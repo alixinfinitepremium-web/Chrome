@@ -1710,7 +1710,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': 'UbAdc2TQhHZEMobkszo8EPwGSX_3zvdWdaVbqCHgNvwC',
+        'version': 'gvMMq685kk-QYYnqi_Y1uHrYl3xOU6DU_jmLYDx1FyAC',
       },
     ],
     'condition': 'non_git_source',
@@ -1822,7 +1822,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': 'UukyhOuSzL8bHjUoR8Rosr06Qz3TuUk5P4qDlAnsZgEC',
+          'version': 'ZmXUAg1e1JodYdLV2acjlMZNi1v2GVsMwOQRttw8Kr8C',
       },
     ],
     'condition': 'checkout_android and non_git_source',
