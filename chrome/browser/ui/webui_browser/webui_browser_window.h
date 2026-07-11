@@ -81,9 +81,6 @@ class WebUIBrowserWindow : public BrowserWindow,
       BookmarkBar::AnimateChangeType change_type) override;
   void UpdateLoadingAnimations(bool is_visible) override;
   void SetStarredState(bool is_starred) override;
-  bool IsTabModalPopupDeprecated() const override;
-  void SetIsTabModalPopupDeprecated(
-      bool is_tab_modal_popup_deprecated) override;
   void OnActiveTabChanged(content::WebContents* old_contents,
                           content::WebContents* new_contents,
                           int index,
@@ -135,7 +132,7 @@ class WebUIBrowserWindow : public BrowserWindow,
   DownloadBubbleUIController* GetDownloadBubbleUIController() override;
   void ConfirmBrowserCloseWithPendingDownloads(
       int download_count,
-      Browser::DownloadCloseType dialog_type,
+      UnloadController::DownloadCloseType dialog_type,
       base::OnceCallback<void(bool)> callback) override;
   void ShowAppMenu() override;
   void PreHandleDragUpdate(const content::DropData& drop_data,
@@ -278,6 +275,8 @@ class WebUIBrowserWindow : public BrowserWindow,
   // activation (e.g., modal dialogs) by not marking the browser inactive
   // when a child widget takes focus.
   void PaintAsActiveChanged();
+
+  void EnsureActiveTabHasNonZeroSize();
 
   void OnWindowCloseRequested(views::Widget::ClosedReason close_reason);
 

@@ -11,6 +11,7 @@
 #include "base/containers/adapters.h"
 #include "base/functional/bind.h"
 #include "base/functional/callback_helpers.h"
+#include "base/memory/raw_ptr.h"
 #include "base/strings/string_util.h"
 #include "base/test/bind.h"
 #include "base/test/gmock_expected_support.h"
@@ -18,6 +19,7 @@
 #include "base/types/expected.h"
 #include "base/types/expected_macros.h"
 #include "build/build_config.h"
+#include "chrome/browser/glic/public/glic_enabling.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/tab_list/tab_list_interface.h"
 #include "chrome/browser/ui/browser_commands.h"
@@ -27,10 +29,13 @@
 #include "components/tabs/public/tab_interface.h"
 #include "content/public/browser/page_navigator.h"
 #include "content/public/test/browser_test.h"
+#include "content/public/test/browser_test_utils.h"
 #include "content/public/test/test_navigation_observer.h"
+#include "third_party/blink/public/common/input/web_input_event.h"
 #include "ui/base/base_window.h"
 #include "ui/base/page_transition_types.h"
 #include "ui/base/window_open_disposition.h"
+#include "ui/events/keycodes/dom/dom_code.h"
 
 #if BUILDFLAG(IS_ANDROID)
 #include "base/android/device_info.h"
@@ -41,10 +46,6 @@
 #else
 #include "chrome/browser/ui/browser.h"
 #endif
-
-#include "content/public/test/browser_test_utils.h"
-#include "third_party/blink/public/common/input/web_input_event.h"
-#include "ui/events/keycodes/dom/dom_code.h"
 
 namespace {
 // Simulates a click on a link with the given modifiers.
@@ -168,12 +169,7 @@ class GlicTabEventCollector {
 
 class GlicTabObserverBrowserTest : public PlatformBrowserTest {
  public:
-  GlicTabObserverBrowserTest() {
-#if BUILDFLAG(IS_ANDROID) && !BUILDFLAG(IS_DESKTOP_ANDROID)
-    feature_list_.InitAndEnableFeature(
-        chrome::android::kBrowserWindowInterfaceMobile);
-#endif
-  }
+  GlicTabObserverBrowserTest() = default;
 
   ~GlicTabObserverBrowserTest() override = default;
 
@@ -187,10 +183,34 @@ class GlicTabObserverBrowserTest : public PlatformBrowserTest {
 #endif
   }
 
+  void SetUp() override {
+    if (!glic::GlicEnabling::IsOsVersionSupported()) {
+      GTEST_SKIP() << "OS version not supported by Glic";
+    }
+    PlatformBrowserTest::SetUp();
+  }
+
  protected:
   void SetUpOnMainThread() override {
     PlatformBrowserTest::SetUpOnMainThread();
     ASSERT_TRUE(GetProfile());
+  }
+
+  BrowserWindowInterface* CreateNewWindowWithTab() {
+    BrowserWindowCreateParams create_params(BrowserWindowInterface::TYPE_NORMAL,
+                                            *GetProfile(), false);
+    base::test::TestFuture<BrowserWindowInterface*> future;
+    CreateBrowserWindow(std::move(create_params), future.GetCallback());
+    BrowserWindowInterface* window = future.Get();
+    CHECK(window);
+    TabListInterface* tab_list = TabListInterface::From(window);
+    CHECK(tab_list);
+    tabs::TabInterface* active_tab = tab_list->GetActiveTab();
+    if (!active_tab) {
+      active_tab = CreateTab(tab_list);
+    }
+    CHECK(active_tab);
+    return window;
   }
 
 #if !BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_DESKTOP_ANDROID)
@@ -259,9 +279,6 @@ class GlicTabObserverBrowserTest : public PlatformBrowserTest {
     navigation_observer.Wait();
     return creation;
   }
-
- private:
-  base::test::ScopedFeatureList feature_list_;
 };
 
 IN_PROC_BROWSER_TEST_F(GlicTabObserverBrowserTest, ObservesTabCreation) {
@@ -380,21 +397,9 @@ IN_PROC_BROWSER_TEST_F(GlicTabObserverBrowserTest, ObservesTabMove) {
 }
 
 IN_PROC_BROWSER_TEST_F(GlicTabObserverBrowserTest, ObservesTabStripMerge) {
-  BrowserWindowCreateParams create_params(BrowserWindowInterface::TYPE_NORMAL,
-                                          *GetProfile(), false);
-  base::test::TestFuture<BrowserWindowInterface*> future;
-  CreateBrowserWindow(std::move(create_params), future.GetCallback());
-  BrowserWindowInterface* browser2 = future.Get();
-  ASSERT_TRUE(browser2);
-
-  TabListInterface* tab_list2 = TabListInterface::From(browser2);
-  ASSERT_TRUE(tab_list2);
-
+  BrowserWindowInterface* window2 = CreateNewWindowWithTab();
+  TabListInterface* tab_list2 = TabListInterface::From(window2);
   tabs::TabInterface* tab_to_move = tab_list2->GetActiveTab();
-  if (!tab_to_move) {
-    tab_to_move = CreateTab(tab_list2);
-  }
-  ASSERT_TRUE(tab_to_move);
 
   GlicTabEventCollector collector(GetProfile());
 
@@ -421,31 +426,17 @@ IN_PROC_BROWSER_TEST_F(GlicTabObserverBrowserTest, ObservesTabStripMerge) {
   EXPECT_TRUE(found_removal);
   EXPECT_TRUE(found_insertion);
 
-  browser2->GetWindow()->Close();
+  window2->GetWindow()->Close();
 }
 
 IN_PROC_BROWSER_TEST_F(GlicTabObserverBrowserTest,
                        TabMoveDoesNotClassifyAsNewCreation) {
-  BrowserWindowCreateParams create_params(BrowserWindowInterface::TYPE_NORMAL,
-                                          *GetProfile(), false);
-  base::test::TestFuture<BrowserWindowInterface*> future;
-  CreateBrowserWindow(std::move(create_params), future.GetCallback());
-  BrowserWindowInterface* browser2 = future.Get();
-  ASSERT_TRUE(browser2);
-
-  TabListInterface* tab_list2 = TabListInterface::From(browser2);
-  ASSERT_TRUE(tab_list2);
+  BrowserWindowInterface* window2 = CreateNewWindowWithTab();
+  TabListInterface* tab_list2 = TabListInterface::From(window2);
+  tabs::TabInterface* tab_to_move = tab_list2->GetActiveTab();
+  NavigateTab(tab_to_move, GURL("about:blank"));
 
   GlicTabEventCollector collector(GetProfile());
-
-  tabs::TabInterface* tab_to_move = tab_list2->GetActiveTab();
-  if (!tab_to_move) {
-    tab_to_move = CreateTab(tab_list2);
-  }
-  ASSERT_TRUE(tab_to_move);
-  NavigateTab(tab_to_move, GURL("about:blank"));
-  collector.WaitForMutation();
-  collector.ClearEvents();
 
   tab_list2->MoveTabToWindow(tab_to_move->GetHandle(),
                              GetBrowserWindowInterface()->GetSessionID(), 0);
@@ -466,7 +457,7 @@ IN_PROC_BROWSER_TEST_F(GlicTabObserverBrowserTest,
   }
   EXPECT_EQ(creation_event_count, 1);
 
-  browser2->GetWindow()->Close();
+  window2->GetWindow()->Close();
 }
 
 IN_PROC_BROWSER_TEST_F(GlicTabObserverBrowserTest, ObservesTabNavigation) {

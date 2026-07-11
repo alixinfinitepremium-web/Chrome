@@ -15,6 +15,7 @@
 #include "chrome/browser/optimization_guide/optimization_guide_keyed_service_factory.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/search/search.h"
+#include "chrome/browser/search_engines/ai_mode_button_service_factory.h"
 #include "chrome/browser/search_engines/template_url_service_factory.h"
 #include "chrome/browser/ui/actions/chrome_action_id.h"
 #include "chrome/browser/ui/browser_actions.h"
@@ -34,8 +35,6 @@
 #include "chrome/browser/ui/ui_features.h"
 #include "chrome/browser/ui/user_education/browser_user_education_interface.h"
 #include "chrome/browser/ui/views/location_bar/lens_overlay_homework_page_action_controller.h"
-#include "chrome/browser/ui/views/toolbar/pinned_toolbar_actions_container.h"
-#include "chrome/browser/ui/views/toolbar/toolbar_view.h"
 #include "chrome/browser/ui/webui/new_tab_page/new_tab_page_ui.h"
 #include "chrome/browser/ui/webui/new_tab_page_third_party/new_tab_page_third_party_ui.h"
 #include "chrome/browser/ui/webui/ntp/new_tab_ui.h"
@@ -248,13 +247,6 @@ void LensOverlayEntryPointController::UpdateEntryPointsState(
       LensOverlayHomeworkPageActionController::From(*tab_interface)
           ->UpdatePageActionIcon();
     }
-  } else {
-    // Update the homework action chip.
-    // TODO(crbug.com/433813408): Remove GetBrowserForMigrationOnly after Page
-    // Actions migration.
-    browser_window_interface_->GetBrowserForMigrationOnly()
-        ->window()
-        ->UpdatePageActionIcon(PageActionIconType::kLensOverlayHomework);
   }
 }
 
@@ -471,8 +463,14 @@ bool LensOverlayEntryPointController::ShouldShowPageAction(
   const auto* aim_eligibility_service =
       AimEligibilityServiceFactory::GetForProfile(
           browser_window_interface_->GetProfile());
-  if (OmniboxFieldTrial::IsAimOmniboxEntrypointEnabled(
-          aim_eligibility_service)) {
+  const auto* ai_mode_button_service =
+      AiModeButtonServiceFactory::GetForProfile(
+          browser_window_interface_->GetProfile());
+  const auto* template_url_service = TemplateURLServiceFactory::GetForProfile(
+      browser_window_interface_->GetProfile());
+  if (OmniboxFieldTrial::IsAimOmniboxEntrypointEnabled(aim_eligibility_service,
+                                                       ai_mode_button_service,
+                                                       template_url_service)) {
     return false;
   }
 

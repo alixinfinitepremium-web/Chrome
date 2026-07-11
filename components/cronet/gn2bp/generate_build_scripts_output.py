@@ -25,7 +25,6 @@ import re
 import subprocess
 import os
 import sys
-import json
 import shutil
 
 REPOSITORY_ROOT = os.path.abspath(
@@ -35,6 +34,7 @@ sys.path.insert(0, REPOSITORY_ROOT)
 import components.cronet.tools.utils as cronet_utils  # pylint: disable=wrong-import-position
 import components.cronet.gn2bp.common as gn2bp_common  # pylint: disable=wrong-import-position
 import components.cronet.gn2bp.gen_android_bp as cronet_gn2bp  # pylint: disable=wrong-import-position
+from components.cronet.gn2bp.arguments import CommandLineUtility
 
 
 def _extract_crate_path(args: List[str]) -> str:
@@ -47,7 +47,8 @@ def _extract_crate_path(args: List[str]) -> str:
   Returns:
     The path to the rust crate relative to Chromium repository.
   """
-    return args[args.index("--src-dir") + 1].replace("../../", "")
+    return CommandLineUtility(args).get_flag_value('--src-dir').replace(
+        "../../", "")
 
 
 def _build_rust_build_script_actions(
@@ -105,14 +106,16 @@ def _get_target_name_from_file(file_name: str) -> str:
     return f"//{build_gn_path}:{target_name}"
 
 
-def _generate_and_copy_build_script_outputs_for_host() -> Dict[str, any]:
-    return _generate_and_copy_build_script_outputs_for_arch(arch="x64",
-                                                            host_variant=True)
+def _generate_and_copy_build_script_outputs_for_host(
+        output_dir: str) -> Dict[str, any]:
+    return _generate_and_copy_build_script_outputs_for_arch(
+        arch="x64", host_variant=True, output_dir=output_dir)
 
 
-def _generate_and_copy_build_script_outputs_for_arch(arch: str,
-                                                     host_variant: bool = False
-                                                     ) -> Dict[str, any]:
+def _generate_and_copy_build_script_outputs_for_arch(
+        arch: str,
+        host_variant: bool = False,
+        output_dir: str = REPOSITORY_ROOT) -> Dict[str, any]:
     # gn desc behaves completely differently when the output
     # directory is outside of chromium/src, some paths will
     # stop having // in the beginning of their labels
@@ -142,7 +145,7 @@ def _generate_and_copy_build_script_outputs_for_arch(arch: str,
                                  cargo_rs)).rstrip("\n").split("\n")
             for output_file in output_files:
                 output_path = os.path.join(
-                    REPOSITORY_ROOT,
+                    output_dir,
                     _extract_crate_path(target_data['args']),
                     "gn2bp_rust_build_script_outputs",
                     (arch if not host_variant else "host"),
@@ -155,9 +158,10 @@ def _generate_and_copy_build_script_outputs_for_arch(arch: str,
 
 def _generate_build_scripts_outputs(
         archs: List[str],
-        targets: List[str] = None) -> Dict[str, Dict[str, List[str]]]:
+        targets: List[str] = None,
+        output_dir: str = REPOSITORY_ROOT) -> Dict[str, Dict[str, List[str]]]:
     build_scripts_output_per_arch = {}
-    args_list = [(arch, False) for arch in archs]
+    args_list = [(arch, False, output_dir) for arch in archs]
     results = gn2bp_common.run_concurrently(
         _generate_and_copy_build_script_outputs_for_arch, args_list)
     for arch, build_script_output in zip(archs, results):
@@ -169,7 +173,8 @@ def _generate_build_scripts_outputs(
             build_scripts_output_per_arch[target_name][arch] = output
 
     # Generate host-specific build script outputs
-    build_script_output = _generate_and_copy_build_script_outputs_for_host()
+    build_script_output = _generate_and_copy_build_script_outputs_for_host(
+        output_dir)
     for (target_name, output) in build_script_output.items():
         if targets and target_name not in targets:
             continue
@@ -182,7 +187,8 @@ def _generate_build_scripts_outputs(
 def dump_build_scripts_outputs_to_file(
         output_file_path: str,
         archs: List[str],
-        targets_to_build: List[str] = None) -> None:
+        targets_to_build: List[str] = None,
+        output_dir: str = REPOSITORY_ROOT) -> None:
     """Dumps a JSON formatted string that maps from target
   name to build scripts output.
 
@@ -191,11 +197,12 @@ def dump_build_scripts_outputs_to_file(
     archs: List of archs to compile for
     targets_to_build: If specified, only those targets build_script will
     be present in the final output. Otherwise, everything will be available.
+    output_dir: Directory to write generated rust files to
   """
     with open(output_file_path, "w") as output_file:
         output_file.write(
-            json.dumps(_generate_build_scripts_outputs(archs,
-                                                       targets_to_build),
+            json.dumps(_generate_build_scripts_outputs(archs, targets_to_build,
+                                                       output_dir),
                        indent=2,
                        sort_keys=True))
 
@@ -210,8 +217,14 @@ def main():
         type=str,
         help='Path to file for which the output will be written to',
         required=True)
+    parser.add_argument('--output-dir',
+                        type=str,
+                        help='Directory to write generated rust files to',
+                        default=REPOSITORY_ROOT)
     args = parser.parse_args()
-    dump_build_scripts_outputs_to_file(args.output, gn2bp_common.ARCHS)
+    dump_build_scripts_outputs_to_file(args.output,
+                                       gn2bp_common.ARCHS,
+                                       output_dir=args.output_dir)
 
 
 if __name__ == '__main__':

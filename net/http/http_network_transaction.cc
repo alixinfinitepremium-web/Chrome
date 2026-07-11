@@ -5,12 +5,14 @@
 #include "net/http/http_network_transaction.h"
 
 #include <deque>
+#include <optional>
 #include <queue>
 #include <set>
 #include <utility>
 #include <vector>
 
 #include "base/base64url.h"
+#include "base/byte_size.h"
 #include "base/compiler_specific.h"
 #include "base/debug/dump_without_crashing.h"
 #include "base/feature_list.h"
@@ -1698,7 +1700,7 @@ int HttpNetworkTransaction::DoReadHeadersComplete(int result) {
   // Note: This will report a success for a redirect even if an error is
   // encountered later while draining the body.
   int response_code = response_.headers->response_code();
-  std::optional<base::ByteCount> content_length =
+  std::optional<base::ByteSize> content_length =
       response_.headers->GetContentLength();
   if ((response_code >= 400 && response_code < 600) ||
       response_code == HTTP_NO_CONTENT || response_code == HTTP_RESET_CONTENT ||
@@ -1942,6 +1944,14 @@ void HttpNetworkTransaction::GenerateNetworkErrorLoggingReport(int rv) {
   } else {
     details.server_ip = IPAddress();
   }
+  // Also report any other addresses that were contacted, so that the downgrade
+  // step can take all of them into account when the resolved address list
+  // contained more than one address.
+  for (const auto& attempt : connection_attempts_) {
+    if (attempt.endpoint.address() != details.server_ip) {
+      details.other_server_ips.push_back(attempt.endpoint.address());
+    }
+  }
   // HttpResponseHeaders::response_code() returns 0 if response code couldn't
   // be parsed, which is also how NEL represents the same.
   if (response_.headers) {
@@ -2125,6 +2135,19 @@ int HttpNetworkTransaction::HandleIOError(int error) {
               true);
           return ERR_TOO_MANY_RETRIES;
         }
+
+        base::UmaHistogramSparse(
+            "Net.NetworkTransaction.RetryOnConnectionErrors", -error);
+        base::UmaHistogramSparse(
+            base::StrCat(
+                {"Net.NetworkTransaction.RetryOnConnectionErrors.",
+                 NegotiatedProtocolToHistogramSuffix(negotiated_protocol_)}),
+            -error);
+
+        if (retry_attempts_on_connection_errors_ == 0) {
+          initial_connection_error_ = error;
+        }
+
         retry_attempts_on_connection_errors_++;
         net_log_.AddEventWithNetErrorCode(
             NetLogEventType::HTTP_TRANSACTION_RESTART_AFTER_ERROR, error);
@@ -2161,16 +2184,22 @@ int HttpNetworkTransaction::HandleIOError(int error) {
           if (retry_attempts_on_connection_errors_ ==
               kAsyncRetryThresholdOnConnectionErrors) {
             base::UmaHistogramBoolean(
-                "Net.NetworkTransaction.AsyncRetryOnTooManyConnectionErrors."
-                "First",
-                true);
+                kAsyncRetryOnTooManyConnectionErrorsFirstHistogram, true);
             base::UmaHistogramBoolean(
-                base::StrCat({"Net.NetworkTransaction."
-                              "AsyncRetryOnTooManyConnectionErrors."
-                              "First.",
-                              NegotiatedProtocolToHistogramSuffix(
-                                  negotiated_protocol_)}),
+                base::StrCat(
+                    {kAsyncRetryOnTooManyConnectionErrorsFirstHistogram, ".",
+                     NegotiatedProtocolToHistogramSuffix(
+                         negotiated_protocol_)}),
                 true);
+            base::UmaHistogramSparse(
+                "Net.NetworkTransaction.InitialErrorOnAsyncRetry",
+                -initial_connection_error_);
+            base::UmaHistogramSparse(
+                base::StrCat(
+                    {"Net.NetworkTransaction.InitialErrorOnAsyncRetry.",
+                     NegotiatedProtocolToHistogramSuffix(
+                         negotiated_protocol_)}),
+                -initial_connection_error_);
           }
           // Use WeakPtr to prevent a potential dangling pointer crash. See
           // http://crbug.com/506964502 for more details.

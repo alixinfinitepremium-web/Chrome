@@ -101,6 +101,12 @@ class TestPDFiumEngine : public PDFiumEngine {
 
   MOCK_METHOD(bool, IsPDFDocTagged, (), (const override));
 
+  MOCK_METHOD(bool, HasMeaningfulText, (), (const override));
+
+  MOCK_METHOD(bool, HasJavaScript, (), (const override));
+
+  MOCK_METHOD(bool, IsPasswordProtected, (), (const override));
+
   MOCK_METHOD(uint32_t, GetLoadedByteSize, (), (override));
 
   MOCK_METHOD(bool,
@@ -114,13 +120,17 @@ class TestPDFiumEngine : public PDFiumEngine {
               (override));
 
 #if BUILDFLAG(ENABLE_PDF_INK2)
-  MOCK_METHOD(void, AddFont, (FontId, base::span<const uint8_t>), (override));
+  MOCK_METHOD(void,
+              AddFont,
+              (FontId, const std::string&, base::span<const uint8_t>),
+              (override));
 
   MOCK_METHOD(void,
               DrawText,
               (int,
                InkTextId,
                base::span<const InkTextInfo>,
+               float,
                double,
                const InkTextBoxAttributes&),
               (override));
@@ -140,8 +150,8 @@ class TestPDFiumEngine : public PDFiumEngine {
 
   MOCK_METHOD(void, DiscardText, (InkTextId), (override));
 
-  MOCK_METHOD(PDFLoadedWithV2InkAnnotations,
-              ContainsV2InkPath,
+  MOCK_METHOD(InkIdentifiers,
+              ScanForInkAnnotations,
               (base::TimeDelta),
               (const override));
 

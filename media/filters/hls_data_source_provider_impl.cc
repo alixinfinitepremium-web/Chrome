@@ -72,13 +72,12 @@ HlsDataSourceProviderImpl::~HlsDataSourceProviderImpl() {
   data_source_factory_.reset();
 }
 
-void HlsDataSourceProviderImpl::ReadFromCombinedUrlQueue(SegmentQueue segments,
-                                                         ReadCb callback) {
+void HlsDataSourceProviderImpl::ReadFromUrl(UrlDataSegment segment,
+                                            ReadCb callback) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
-  CHECK(!segments.empty());
   auto stream_id = stream_id_generator_.GenerateNextId();
   auto stream = std::make_unique<HlsDataSourceStream>(
-      stream_id, std::move(segments),
+      stream_id, std::move(segment),
       base::BindPostTaskToCurrentDefault(
           base::BindOnce(&HlsDataSourceProviderImpl::OnStreamReleased,
                          weak_factory_.GetWeakPtr(), stream_id)));
@@ -93,9 +92,9 @@ void HlsDataSourceProviderImpl::ReadFromExistingStream(
   // There might be no data source attached to the stream yet, so we should
   // try to make one. Creating a new data source will re-enter this function to
   // complete `callback`.
-  if (stream->RequiresNextDataSource()) {
+  if (stream->RequiresInit()) {
     auto [new_uri, cache_mode, range_mode, encoding_mode] =
-        stream->GetNextSegmentURIAndCacheStatus();
+        stream->GetSegmentInfo();
     TRACE_EVENT_BEGIN("media", "HLS::CreateDataSource", GetTracingTrack(this),
                       "uri", new_uri);
     data_source_factory_->Create(
@@ -153,8 +152,7 @@ void HlsDataSourceProviderImpl::OnDataSourceCreated(
     old_data_source->second->Stop();
     data_source_map_.erase(old_data_source);
   }
-  would_taint_origin_ |= data_source->WouldTaintOrigin();
-  if (would_taint_origin_) {
+  if (data_source->WouldTaintOrigin()) {
     stream->set_would_taint_origin();
   }
   if (range_mode == DataSource::RangeMode::kRangeRequest) {
@@ -191,16 +189,23 @@ void HlsDataSourceProviderImpl::DataSourceInitialized(
 
   auto it = data_source_map_.find(stream->stream_id());
   if (it != data_source_map_.end()) {
-    would_taint_origin_ |= it->second->WouldTaintOrigin();
-    if (would_taint_origin_) {
+    if (it->second->WouldTaintOrigin()) {
       stream->set_would_taint_origin();
     }
     if (it->second->DidRedirect()) {
       stream->set_did_redirect();
     }
     const auto& response_uri = it->second->GetUrlAfterRedirects();
-    if (!response_uri.is_empty() && !response_uri.SchemeIs("data")) {
-      stream->TrackOrigin(url::Origin::Create(response_uri));
+    if (!response_uri.is_empty()) {
+      if (!response_uri.SchemeIs("data")) {
+        stream->TrackOrigin(url::Origin::Create(response_uri));
+      }
+      stream->SetPostRedirectUri(response_uri);
+    } else {
+      std::move(callback).Run({ReadStatus::Codes::kError,
+                               "Invalid security origin for non-existent URL"});
+      TRACE_EVENT_END("media", GetTracingTrack(this));
+      return;
     }
   }
 

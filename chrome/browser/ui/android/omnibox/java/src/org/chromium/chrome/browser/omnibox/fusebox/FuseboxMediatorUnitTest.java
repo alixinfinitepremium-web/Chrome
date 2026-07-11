@@ -17,7 +17,6 @@ import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.lenient;
@@ -28,6 +27,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import static org.chromium.build.NullUtil.assertNonNull;
+import static org.chromium.ui.test.util.MockitoHelper.clearInvocations;
 
 import android.app.Activity;
 import android.content.Context;
@@ -82,6 +82,7 @@ import org.chromium.chrome.browser.omnibox.fusebox.FuseboxProperties.BackgroundS
 import org.chromium.chrome.browser.omnibox.fusebox.FuseboxProperties.PopupButtonData;
 import org.chromium.chrome.browser.omnibox.styles.OmniboxResourceProvider;
 import org.chromium.chrome.browser.omnibox.suggestions.AutocompleteController;
+import org.chromium.chrome.browser.preferences.Pref;
 import org.chromium.chrome.browser.profiles.Profile;
 import org.chromium.chrome.browser.profiles.ProfileResolver;
 import org.chromium.chrome.browser.profiles.ProfileResolverJni;
@@ -113,6 +114,10 @@ import org.chromium.components.omnibox.OmniboxFocusReason;
 import org.chromium.components.omnibox.SectionConfigProto.SectionConfig;
 import org.chromium.components.omnibox.ToolConfigProto.ToolConfig;
 import org.chromium.components.omnibox.ToolModeProto.ToolMode;
+import org.chromium.components.prefs.PrefChangeRegistrar;
+import org.chromium.components.prefs.PrefChangeRegistrarJni;
+import org.chromium.components.prefs.PrefService;
+import org.chromium.components.user_prefs.UserPrefs;
 import org.chromium.content_public.browser.RenderWidgetHostView;
 import org.chromium.content_public.browser.WebContents;
 import org.chromium.ui.KeyboardVisibilityDelegate;
@@ -120,6 +125,7 @@ import org.chromium.ui.base.MimeTypeUtils;
 import org.chromium.ui.base.TestActivity;
 import org.chromium.ui.base.WindowAndroid;
 import org.chromium.ui.modelutil.PropertyModel;
+import org.chromium.ui.test.util.MockitoHelper;
 import org.chromium.url.GURL;
 import org.chromium.url.JUnitTestGURLs;
 
@@ -159,6 +165,8 @@ public class FuseboxMediatorUnitTest {
     @Mock private KeyboardVisibilityDelegate mKeyboardVisibilityDelegate;
     @Mock private BackPressManager mBackPressManager;
     @Mock private Runnable mOnFirstPickerInteractionCanceledCallback;
+    @Mock private PrefService mPrefService;
+    @Mock private PrefChangeRegistrar.Natives mPrefChangeRegistrarJni;
     @Mock private Runnable mOnActivationChipClickedWithQuery;
     @Mock private Runnable mClearUrlBarTextCallback;
 
@@ -188,10 +196,16 @@ public class FuseboxMediatorUnitTest {
             ObservableSuppliers.createNonNull(false);
     private final SettableNonNullObservableSupplier<String> mUrlBarText =
             ObservableSuppliers.createNonNull("");
+    private final SettableNonNullObservableSupplier<Boolean> mHasAttachmentsSupplier =
+            ObservableSuppliers.createNonNull(false);
     private final AutocompleteInput mInput = new AutocompleteInput();
 
     @Before
     public void setUp() {
+        UserPrefs.setPrefServiceForTesting(mPrefService);
+        lenient().doReturn(true).when(mPrefService).getBoolean(Pref.SHOW_AI_MODE_OMNIBOX_BUTTON);
+        PrefChangeRegistrarJni.setInstanceForTesting(mPrefChangeRegistrarJni);
+        lenient().doReturn(1L).when(mPrefChangeRegistrarJni).init(any(), any());
         OmniboxFeatures.sMultiattachmentFusebox.setForTesting(true);
         mTabModelSelectorSupplier = ObservableSuppliers.createNonNull(mTabModelSelector);
         mActivityController = Robolectric.buildActivity(TestActivity.class).setup();
@@ -267,7 +281,8 @@ public class FuseboxMediatorUnitTest {
                         mActivationChipVisibilitySupplier,
                         mOnActivationChipClickedWithQuery,
                         mClearUrlBarTextCallback,
-                        mUrlBarText);
+                        mUrlBarText,
+                        mHasAttachmentsSupplier);
         mMediator.beginInput(createSession());
     }
 
@@ -397,6 +412,7 @@ public class FuseboxMediatorUnitTest {
 
         mMediator.uploadAndAddAttachment(attachment);
         RobolectricUtil.runAllBackgroundAndUi();
+        assertTrue(mHasAttachmentsSupplier.get());
         return attachment;
     }
 
@@ -457,6 +473,19 @@ public class FuseboxMediatorUnitTest {
     @Test
     public void initialState_isDisabled() {
         mMediator.endInput();
+        assertEquals(FuseboxState.DISABLED, mModel.get(FuseboxProperties.FUSEBOX_STATE).intValue());
+    }
+
+    @Test
+    public void testAutocompleteStateChange_updatesFuseboxState() {
+        mInput.setAutocompleteState(AutocompleteState.STANDBY);
+        recreateMediator();
+        assertEquals(FuseboxState.DISABLED, mModel.get(FuseboxProperties.FUSEBOX_STATE).intValue());
+
+        mInput.setAutocompleteState(AutocompleteState.ENABLED);
+        assertEquals(FuseboxState.COMPACT, mModel.get(FuseboxProperties.FUSEBOX_STATE).intValue());
+
+        mInput.setAutocompleteState(AutocompleteState.STANDBY);
         assertEquals(FuseboxState.DISABLED, mModel.get(FuseboxProperties.FUSEBOX_STATE).intValue());
     }
 
@@ -582,6 +611,14 @@ public class FuseboxMediatorUnitTest {
         recreateMediator();
 
         assertEquals(FuseboxState.EXPANDED, mModel.get(FuseboxProperties.FUSEBOX_STATE).intValue());
+    }
+
+    @Test
+    public void updateFuseboxState_standby_isDisabled() {
+        mInput.setAutocompleteState(AutocompleteState.STANDBY);
+        recreateMediator();
+
+        assertEquals(FuseboxState.DISABLED, mModel.get(FuseboxProperties.FUSEBOX_STATE).intValue());
     }
 
     @Test
@@ -711,9 +748,12 @@ public class FuseboxMediatorUnitTest {
     public void endInput_clearsState() {
         assertNotEquals(
                 FuseboxState.DISABLED, mModel.get(FuseboxProperties.FUSEBOX_STATE).intValue());
+        addAttachment("title", "token", FuseboxAttachmentType.ATTACHMENT_IMAGE);
+        assertTrue(mHasAttachmentsSupplier.get());
 
         mMediator.endInput();
         assertEquals(FuseboxState.DISABLED, mModel.get(FuseboxProperties.FUSEBOX_STATE).intValue());
+        assertFalse(mHasAttachmentsSupplier.get());
     }
 
     @Test
@@ -812,12 +852,11 @@ public class FuseboxMediatorUnitTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void testDoubleBeginInput_doesNotReapplyPopupState() {
         mInput.setFocusReason(OmniboxFocusReason.FAKE_BOX_PLUS_BUTTON_TAP);
         recreateMediator();
 
-        org.chromium.base.Callback<Integer> observer = mock(org.chromium.base.Callback.class);
+        org.chromium.base.Callback<Integer> observer = MockitoHelper.mockCallback();
         mPopupStateSupplier.addSyncObserverAndCallIfNonNull(observer);
         verify(observer).onResult(PopupState.FLOATING);
         clearInvocations(observer);
@@ -987,6 +1026,7 @@ public class FuseboxMediatorUnitTest {
                         FuseboxAttachmentButtonType.FILES);
         mMediator.uploadAndAddAttachment(attachment);
         assertTrue(mModel.get(FuseboxProperties.ATTACHMENTS_VISIBLE));
+        assertTrue(mHasAttachmentsSupplier.get());
         verify(mComposeboxQueryControllerBridge).addFile("title", "image", byteArray);
     }
 
@@ -1005,6 +1045,7 @@ public class FuseboxMediatorUnitTest {
                         FuseboxAttachmentButtonType.FILES);
         mMediator.uploadAndAddAttachment(attachment);
         assertFalse(mModel.get(FuseboxProperties.ATTACHMENTS_VISIBLE));
+        assertFalse(mHasAttachmentsSupplier.get());
     }
 
     @Test
@@ -2481,6 +2522,14 @@ public class FuseboxMediatorUnitTest {
     }
 
     @Test
+    public void cameraButtonVisibility_desktopPlatform() {
+        OmniboxCapabilities.setIsDesktopPlatformForTesting(true);
+        recreateMediator();
+
+        assertFalse(mModel.get(FuseboxProperties.POPUP_ATTACH_CAMERA_VISIBLE));
+    }
+
+    @Test
     public void activationChip() {
         mModel.set(FuseboxProperties.FUSEBOX_LAYOUT_MODE, FuseboxLayoutMode.SUGGESTIONS_POPOVER);
 
@@ -2584,5 +2633,67 @@ public class FuseboxMediatorUnitTest {
                         .build();
         mInputStateSupplier.set(secondInputState);
         assertEquals("AI Mode", mModel.get(FuseboxProperties.REQUEST_TYPE_BUTTON_TEXT));
+    }
+
+    @Test
+    public void testUpdateClientControlledToolButtonList_setsCorrectIcons_desktopPlatform() {
+        OmniboxFeatures.sShowModelPicker.setForTesting(false);
+        OmniboxCapabilities.setIsDesktopPlatformForTesting(true);
+        recreateMediator();
+        RobolectricUtil.runAllBackgroundAndUi();
+
+        List<PopupButtonData> toolButtons =
+                mModel.get(FuseboxProperties.POPUP_TOOL_BUTTON_DATA_LIST);
+        assertThat(toolButtons).hasSize(1);
+        assertEquals(IconResourceIds.BANANA_VALUE, toolButtons.get(0).iconId);
+    }
+
+    @Test
+    public void testOnInputStateChange_desktopPlatform() {
+        OmniboxFeatures.sShowModelPicker.setForTesting(true);
+        OmniboxCapabilities.setIsDesktopPlatformForTesting(true);
+        recreateMediator();
+        mInput.setRequestType(AutocompleteRequestType.AI_MODE);
+
+        ToolConfig deepSearchConfig =
+                ToolConfig.newBuilder()
+                        .setTool(ToolMode.TOOL_MODE_DEEP_SEARCH)
+                        .setMenuLabel("Deep Search")
+                        .build();
+        InputState state =
+                new InputState.Builder()
+                        .withAllowedTools(ToolMode.TOOL_MODE_DEEP_SEARCH_VALUE)
+                        .withToolConfigs(new byte[][] {deepSearchConfig.toByteArray()})
+                        .build();
+        mInputStateSupplier.set(state);
+
+        List<PopupButtonData> tools = mModel.get(FuseboxProperties.POPUP_TOOL_BUTTON_DATA_LIST);
+        assertEquals(1, tools.size());
+        assertEquals("Deep Search", tools.get(0).text);
+        assertFalse(isToolVisible(ToolMode.TOOL_MODE_UNSPECIFIED_VALUE));
+    }
+
+    @Test
+    public void testAlwaysShowAiModePrefChangesActivationChipVisibility() {
+        mModel.set(FuseboxProperties.FUSEBOX_LAYOUT_MODE, FuseboxLayoutMode.SUGGESTIONS_POPOVER);
+        mInput.setRequestType(AutocompleteRequestType.SEARCH);
+        mExactMatchUrlSupplier.set(null);
+        recreateMediator();
+
+        // Verify registrar is initialized
+        assertNotNull(mMediator.mPrefChangeRegistrar);
+
+        // Activation chip should be visible when the pref is true by default
+        assertTrue(mModel.get(FuseboxProperties.ACTIVATION_CHIP_VISIBLE));
+
+        // When the pref is turned off (set to false), activation chip becomes invisible
+        doReturn(false).when(mPrefService).getBoolean(Pref.SHOW_AI_MODE_OMNIBOX_BUTTON);
+        mMediator.updateActivationChip();
+
+        assertFalse(mModel.get(FuseboxProperties.ACTIVATION_CHIP_VISIBLE));
+
+        // Verify registrar is destroyed when ending input
+        mMediator.endInput();
+        assertNull(mMediator.mPrefChangeRegistrar);
     }
 }

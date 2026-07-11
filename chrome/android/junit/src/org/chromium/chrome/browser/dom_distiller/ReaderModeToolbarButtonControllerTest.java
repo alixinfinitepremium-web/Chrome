@@ -10,8 +10,10 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.robolectric.Shadows.shadowOf;
 
 import android.content.Context;
+import android.os.Looper;
 import android.view.ContextThemeWrapper;
 
 import org.junit.Assert;
@@ -33,7 +35,6 @@ import org.chromium.base.supplier.SettableMonotonicObservableSupplier;
 import org.chromium.base.test.BaseRobolectricTestRunner;
 import org.chromium.base.test.RobolectricUtil;
 import org.chromium.base.test.util.CallbackHelper;
-import org.chromium.base.test.util.Features.EnableFeatures;
 import org.chromium.base.test.util.HistogramWatcher;
 import org.chromium.chrome.R;
 import org.chromium.chrome.browser.ActivityTabProvider;
@@ -46,12 +47,13 @@ import org.chromium.chrome.browser.toolbar.optional_button.ButtonDataProvider;
 import org.chromium.components.browser_ui.bottomsheet.BottomSheetControllerFactory;
 import org.chromium.components.browser_ui.bottomsheet.ManagedBottomSheetController;
 import org.chromium.components.dom_distiller.core.DistilledPagePrefs;
-import org.chromium.components.dom_distiller.core.DomDistillerFeatures;
 import org.chromium.components.dom_distiller.core.DomDistillerService;
 import org.chromium.components.dom_distiller.core.DomDistillerUrlUtilsJni;
 import org.chromium.ui.base.WindowAndroid;
 import org.chromium.ui.modaldialog.ModalDialogManager;
 import org.chromium.url.GURL;
+
+import java.util.concurrent.TimeUnit;
 
 /** This class tests the behavior of the {@link ReaderModeToolbarButtonController}. */
 @RunWith(BaseRobolectricTestRunner.class)
@@ -182,7 +184,6 @@ public class ReaderModeToolbarButtonControllerTest {
     }
 
     @Test
-    @EnableFeatures(DomDistillerFeatures.READER_MODE_DISTILL_IN_APP + ":hide_cpa_delay_ms/0")
     public void testReaderModeButton_timesOut() throws Exception {
         ReaderModeToolbarButtonController controller = createController();
 
@@ -215,10 +216,60 @@ public class ReaderModeToolbarButtonControllerTest {
 
         // Simulate the button being shown, and verify that the button is hidden after a delay.
         controller.onActionShown();
-        RobolectricUtil.runAllBackgroundAndUi();
+        shadowOf(Looper.getMainLooper()).idleFor(5, TimeUnit.SECONDS);
         assertEquals(1, callbackHelper.getCallCount());
         assertFalse(controller.shouldShowButton(mMockTab));
 
         watcher.assertExpected();
+    }
+
+    @Test
+    public void testExitFromDistilledPage_suppressesButton() {
+        ReaderModeToolbarButtonController controller = createController();
+        when(mDomDistillerUrlUtilsJni.isDistilledPage("chrome-distiller://test")).thenReturn(true);
+        when(mDomDistillerUrlUtilsJni.isDistilledPage("chrome-distiller://test/")).thenReturn(true);
+        when(mDomDistillerUrlUtilsJni.isDistilledPage("http://test.com")).thenReturn(false);
+        when(mDomDistillerUrlUtilsJni.isDistilledPage("http://test.com/")).thenReturn(false);
+        when(mDomDistillerUrlUtilsJni.getOriginalUrlFromDistillerUrl(any()))
+                .thenReturn(new GURL("http://test.com"));
+
+        when(mMockTab.getUrl()).thenReturn(new GURL("http://test.com"));
+        controller.getTabSupplierObserverForTesting().onUrlUpdated(mMockTab);
+        assertTrue(controller.shouldShowButton(mMockTab));
+
+        when(mMockTab.getUrl()).thenReturn(new GURL("chrome-distiller://test"));
+        controller.getTabSupplierObserverForTesting().onUrlUpdated(mMockTab);
+        assertTrue(controller.shouldShowButton(mMockTab));
+        assertEquals(
+                "Hide Reading mode",
+                controller.getButtonDataForTesting().getButtonSpec().getContentDescription());
+
+        when(mMockTab.getUrl()).thenReturn(new GURL("http://test.com"));
+        controller.getTabSupplierObserverForTesting().onUrlUpdated(mMockTab);
+        assertFalse(controller.shouldShowButton(mMockTab));
+    }
+
+    @Test
+    public void testExitFromDistilledPage_navigatingToDifferentUrl_doesNotSuppressButton() {
+        ReaderModeToolbarButtonController controller = createController();
+        when(mDomDistillerUrlUtilsJni.isDistilledPage("chrome-distiller://test")).thenReturn(true);
+        when(mDomDistillerUrlUtilsJni.isDistilledPage("chrome-distiller://test/")).thenReturn(true);
+        when(mDomDistillerUrlUtilsJni.isDistilledPage("http://test.com")).thenReturn(false);
+        when(mDomDistillerUrlUtilsJni.isDistilledPage("http://test.com/")).thenReturn(false);
+        when(mDomDistillerUrlUtilsJni.isDistilledPage("http://other.com")).thenReturn(false);
+        when(mDomDistillerUrlUtilsJni.getOriginalUrlFromDistillerUrl(any()))
+                .thenReturn(new GURL("http://test.com"));
+
+        when(mMockTab.getUrl()).thenReturn(new GURL("http://test.com"));
+        controller.getTabSupplierObserverForTesting().onUrlUpdated(mMockTab);
+        assertTrue(controller.shouldShowButton(mMockTab));
+
+        when(mMockTab.getUrl()).thenReturn(new GURL("chrome-distiller://test"));
+        controller.getTabSupplierObserverForTesting().onUrlUpdated(mMockTab);
+        assertTrue(controller.shouldShowButton(mMockTab));
+
+        when(mMockTab.getUrl()).thenReturn(new GURL("http://other.com"));
+        controller.getTabSupplierObserverForTesting().onUrlUpdated(mMockTab);
+        assertTrue(controller.shouldShowButton(mMockTab));
     }
 }

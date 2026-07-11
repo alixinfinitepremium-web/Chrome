@@ -346,11 +346,43 @@ void IntroUI::CreateIntroPageHandler(
   CHECK(page);
   intro_page_.reset();
   intro_page_.Bind(std::move(page));
+  if (animations_active_.has_value()) {
+    intro_page_->ToggleAnimations(*animations_active_);
+  }
 }
 
 void IntroUI::ToggleAnimations(bool active) {
+  animations_active_ = active;
   if (intro_page_.is_bound()) {
     intro_page_->ToggleAnimations(active);
+  }
+}
+
+void IntroUI::SetFinishOrContinueCallback(
+    base::OnceCallback<void(FinishOrContinueChoice)> callback) {
+  CHECK(callback);
+  finish_or_continue_callback_ = std::move(callback);
+}
+
+void IntroUI::BindInterface(
+    mojo::PendingReceiver<intro::mojom::FinishOrContinuePageHandlerFactory>
+        receiver) {
+  finish_or_continue_factory_receiver_.reset();
+  finish_or_continue_factory_receiver_.Bind(std::move(receiver));
+}
+
+void IntroUI::CreateFinishOrContinuePageHandler(
+    mojo::PendingReceiver<intro::mojom::FinishOrContinuePageHandler> receiver) {
+  CHECK(receiver);
+  finish_or_continue_handler_ = std::make_unique<FinishOrContinueHandler>(
+      base::BindOnce(&IntroUI::OnFinishOrContinueChoice,
+                     weak_ptr_factory_.GetWeakPtr()),
+      std::move(receiver));
+}
+
+void IntroUI::OnFinishOrContinueChoice(FinishOrContinueChoice choice) {
+  if (finish_or_continue_callback_) {
+    std::move(finish_or_continue_callback_).Run(choice);
   }
 }
 

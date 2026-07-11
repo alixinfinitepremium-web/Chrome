@@ -15,6 +15,7 @@
 #include "chrome/browser/ui/layout_constants.h"
 #include "chrome/browser/ui/ui_features.h"
 #include "chrome/browser/ui/views/chrome_layout_provider.h"
+#include "chrome/browser/ui/views/toolbar/action_app_menu.h"
 #include "chrome/browser/ui/views/toolbar/app_menu.h"
 #include "chrome/browser/ui/views/toolbar/toolbar_button.h"
 #include "chrome/browser/ui/views/toolbar/toolbar_ink_drop_util.h"
@@ -95,6 +96,11 @@ void BrowserAppMenuButton::ShowMenu(int run_types) {
 
   Browser* browser = toolbar_view_->browser();
 
+  if (base::FeatureList::IsEnabled(features::kAppMenuGlowUp)) {
+    RunActionMenu(browser, run_types);
+    return;
+  }
+
   // Allow highlighting menu items when the menu was opened while
   // certain tutorials are running.
   AlertMenuItem alert_item =
@@ -110,10 +116,6 @@ void BrowserAppMenuButton::OnMenuClosed() {
 #if BUILDFLAG(GOOGLE_CHROME_BRANDING)
   if (features::IsToolbarGlowUpEnabled()) {
     views::SingleAnimatedImageContainer::AnimationConfig config{
-        .direction =
-            views::SingleAnimatedImageContainer::AnimationDirection::kForward,
-        .end_behavior =
-            views::SingleAnimatedImageContainer::AnimationEndBehavior::kReset,
         .boundary =
             views::SingleAnimatedImageContainer::AnimationBoundary{
                 .start_offset = 0.5f, .end_offset = 0.75f},
@@ -121,7 +123,10 @@ void BrowserAppMenuButton::OnMenuClosed() {
         .duration = base::Milliseconds(250)};
 
     animated_image_container().PlayAnimation(
-        {IDR_APP_MENU_LOTTIE, GetForegroundColor(GetState())}, config);
+        {IDR_APP_MENU_LOTTIE, GetForegroundColor(GetState()),
+         views::SingleAnimatedImageContainer::AnimationDirection::kForward,
+         views::SingleAnimatedImageContainer::AnimationEndBehavior::kReset},
+        config);
   }
 #endif  // BUILDFLAG(GOOGLE_CHROME_BRANDING)
   AppMenuButton::OnMenuClosed();
@@ -268,10 +273,6 @@ void BrowserAppMenuButton::ButtonPressed(const ui::Event& event) {
 #if BUILDFLAG(GOOGLE_CHROME_BRANDING)
   if (features::IsToolbarGlowUpEnabled() && !IsMenuShowing()) {
     views::SingleAnimatedImageContainer::AnimationConfig config{
-        .direction =
-            views::SingleAnimatedImageContainer::AnimationDirection::kForward,
-        .end_behavior =
-            views::SingleAnimatedImageContainer::AnimationEndBehavior::kPause,
         .boundary =
             views::SingleAnimatedImageContainer::AnimationBoundary{
                 .start_offset = 0.0f, .end_offset = 0.25f},
@@ -279,7 +280,10 @@ void BrowserAppMenuButton::ButtonPressed(const ui::Event& event) {
         .duration = base::Milliseconds(250)};
 
     animated_image_container().PlayAnimation(
-        {IDR_APP_MENU_LOTTIE, GetForegroundColor(GetState())}, config);
+        {IDR_APP_MENU_LOTTIE, GetForegroundColor(GetState()),
+         views::SingleAnimatedImageContainer::AnimationDirection::kForward,
+         views::SingleAnimatedImageContainer::AnimationEndBehavior::kPause},
+        config);
   }
 #endif  // BUILDFLAG(GOOGLE_CHROME_BRANDING)
 

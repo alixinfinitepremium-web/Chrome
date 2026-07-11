@@ -51,10 +51,10 @@
 #import "ui/base/l10n/l10n_util.h"
 #import "url/gurl.h"
 
-@interface AssistantAIMMediator () <CRWWebStatePolicyDecider,
-                                    CRWWebFramesManagerObserver,
+@interface AssistantAIMMediator () <CRWWebFramesManagerObserver,
                                     CRWWebStateDelegate,
-                                    CRWWebStateObserver>
+                                    CRWWebStateObserver,
+                                    CRWWebStatePolicyDecider>
 @end
 
 @implementation AssistantAIMMediator {
@@ -81,6 +81,9 @@
   AimSRPMessageLogger* _logger;
   // The authentication service.
   raw_ptr<AuthenticationService> _authenticationService;
+  // Whether the initial context library has been processed for the current
+  // thread.
+  BOOL _hasProcessedInitialContextLibrary;
 }
 
 @synthesize consumer = _consumer;
@@ -189,10 +192,17 @@
   _webState.reset();
   _urlLoader = nullptr;
   _context = nil;
+  [self endSession];
   _cobrowseBrowserAgent = nullptr;
   _capabilities = std::nullopt;
   _logger = nil;
   _authenticationService = nullptr;
+}
+
+- (void)endSession {
+  if (_cobrowseBrowserAgent) {
+    _cobrowseBrowserAgent->SetSessionActive(false);
+  }
 }
 
 #pragma mark - CRWWebStatePolicyDecider
@@ -322,16 +332,25 @@
   std::string locale = base::SysNSStringToUTF8(localeIdentifier);
   base::ReplaceChars(locale, "_", "-", &locale);
 
-  base::WeakPtr<web::WebState> weakWebState = _webState->GetWeakPtr();
+  __weak AssistantAIMMediator* weakSelf = self;
+
   _contextualTasksService->GetThreadUrlFromTaskId(
       uuid, locale,
       omnibox::ChromeAimEntryPoint::IOS_CHROME_OMNIBOX_SEARCH_ENTRY_POINT,
       base::BindOnce(^(GURL url) {
-        if (url.is_valid() && weakWebState) {
-          web::NavigationManager::WebLoadParams params(url);
-          weakWebState->GetNavigationManager()->LoadURLWithParams(params);
+        if (url.is_valid()) {
+          [weakSelf didGetSelectedThreadURL:url];
         }
       }));
+}
+
+// Updates and loads the context URL.
+- (void)didGetSelectedThreadURL:(GURL)url {
+  _context = [[CobrowseContext alloc] initWithURL:url];
+  if (_cobrowseBrowserAgent) {
+    _cobrowseBrowserAgent->SetCobrowseContext(_context);
+  }
+  [self loadAIMURL];
 }
 
 #pragma mark - ComposeboxURLLoader
@@ -371,6 +390,7 @@
 }
 
 - (void)didSelectHistoryTaskWithId:(NSString*)taskId {
+  _hasProcessedInitialContextLibrary = NO;
   [self loadHistoryThreadWithTaskId:taskId];
 }
 
@@ -397,6 +417,15 @@
   [self.consumer setGreetingMessage:greeting];
   [self loadAIMURL];
   [self.delegate assistantAIMMediatorDidStartNewThread:self];
+}
+
+- (void)didTapOnMinimizedHeader {
+  [_containerHandler
+      animateAssistantContainerToDetent:AssistantContainerDetent::kLarge
+                               duration:kSheetDetentAnimationDuration
+                                  curve:UIViewAnimationCurveEaseInOut];
+
+  [_delegate assistantAIMMediatorDidFocusFromMinimized:self];
 }
 
 #pragma mark - CRWWebFramesManagerObserver
@@ -446,6 +475,11 @@
   lens::ClientToAimMessage handshake_ping;
   handshake_ping.mutable_handshake_ping()->add_capabilities(
       lens::FeatureCapability::DEFAULT);
+  // Advertise support for the Thread Context Library capability during
+  // handshake, informing the AIM server that the client can receive and process
+  // thread context library updates.
+  handshake_ping.mutable_handshake_ping()->add_capabilities(
+      lens::FeatureCapability::THREAD_CONTEXT_LIBRARY);
 
   if (experimental_flags::IsOmniboxDebuggingEnabled()) {
     [_logger logClientToAimMessage:handshake_ping];
@@ -489,6 +523,27 @@
     VLOG(1) << "AimCobrowse: Received ExitBasicMode";
   } else if (message.has_update_thread_context_library()) {
     VLOG(1) << "AimCobrowse: Received UpdateThreadContextLibrary";
+    if (!_hasProcessedInitialContextLibrary) {
+      _hasProcessedInitialContextLibrary = YES;
+      for (const auto& context :
+           message.update_thread_context_library().contexts()) {
+        std::string title;
+        std::string url;
+        if (context.has_webpage()) {
+          title = context.webpage().title();
+          url = context.webpage().url();
+          GURL gurl(url);
+          if (gurl.is_valid()) {
+            [self.delegate assistantAIMMediator:self
+                didReceiveContextLibraryWebpageSignalWithURL:gurl
+                                                       title:
+                                                           base::
+                                                               SysUTF8ToNSString(
+                                                                   title)];
+          }
+        }
+      }
+    }
   } else if (message.has_notify_zero_state_rendered()) {
     VLOG(1) << "AimCobrowse: Received NotifyZeroStateRendered";
   } else if (message.has_set_chrome_desktop_input_plate_configuration()) {

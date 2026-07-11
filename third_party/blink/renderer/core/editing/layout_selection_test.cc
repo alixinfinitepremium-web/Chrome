@@ -98,7 +98,7 @@ class LayoutSelectionTestBase : public EditingTestBase {
     }
   }
 
-  static void PrintDOMTreeInternal(const FrameSelection& selection,
+  static void PrintDomTreeInternal(const FrameSelection& selection,
                                    std::ostream& ostream,
                                    const Node& node,
                                    wtf_size_t depth) {
@@ -114,28 +114,28 @@ class LayoutSelectionTestBase : public EditingTestBase {
       for (Node* child = shadow_root->firstChild(); child;
            child = child->nextSibling()) {
         ostream << std::endl;
-        PrintDOMTreeInternal(selection, ostream, *child, depth + 2);
+        PrintDomTreeInternal(selection, ostream, *child, depth + 2);
       }
     }
 
     for (Node* child = node.firstChild(); child; child = child->nextSibling()) {
       ostream << std::endl;
-      PrintDOMTreeInternal(selection, ostream, *child, depth + 1);
+      PrintDomTreeInternal(selection, ostream, *child, depth + 1);
     }
   }
 
 #ifndef NDEBUG
-  void PrintDOMTreeForDebug() {
+  void PrintDomTreeForDebug() {
     std::stringstream stream;
     stream << "\nPrintDOMTreeForDebug";
-    PrintDOMTreeInternal(Selection(), stream, *GetDocument().body(), 0u);
+    PrintDomTreeInternal(Selection(), stream, *GetDocument().body(), 0u);
     LOG(INFO) << stream.str();
   }
 #endif
 
   std::string DumpSelectionInfo() {
     std::stringstream stream;
-    PrintDOMTreeInternal(Selection(), stream, *GetDocument().body(), 0u);
+    PrintDomTreeInternal(Selection(), stream, *GetDocument().body(), 0u);
     return stream.str();
   }
 };
@@ -926,11 +926,9 @@ TEST_F(LayoutSelectionTest, InvalidateSlot) {
       DumpSelectionInfo());
 }
 
-class NGLayoutSelectionTest
-    : public LayoutSelectionTestBase,
-      private ScopedPaintUnderInvalidationCheckingForTest {
+class NGLayoutSelectionTest : public LayoutSelectionTestBase {
  public:
-  NGLayoutSelectionTest() : ScopedPaintUnderInvalidationCheckingForTest(true) {}
+  NGLayoutSelectionTest() = default;
 
  protected:
   const Text* GetFirstTextNode() {
@@ -975,6 +973,10 @@ class NGLayoutSelectionTest
     Selection().SetSelection(selection, SetSelectionOptions());
     Selection().CommitAppearanceIfNeeded();
   }
+
+ private:
+  ScopedPaintUnderInvalidationCheckingForTest
+      scoped_paint_under_invalidation_checking_{true};
 };
 
 std::ostream& operator<<(std::ostream& ostream,

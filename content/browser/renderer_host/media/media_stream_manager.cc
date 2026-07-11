@@ -30,7 +30,6 @@
 #include "base/time/time.h"
 #include "base/uuid.h"
 #include "build/build_config.h"
-#include "content/browser/child_process_security_policy_impl.h"
 #include "content/browser/gpu/gpu_process_host.h"
 #include "content/browser/media/capture/desktop_capture_device_uma_types.h"
 #include "content/browser/media/media_devices_permission_checker.h"
@@ -50,6 +49,7 @@
 #include "content/browser/renderer_host/render_process_host_impl.h"
 #include "content/browser/renderer_host/render_view_host_delegate.h"
 #include "content/browser/renderer_host/render_view_host_impl.h"
+#include "content/browser/security/cpsp/child_process_security_policy_impl.h"
 #include "content/public/browser/browser_task_traits.h"
 #include "content/public/browser/browser_thread.h"
 #include "content/public/browser/content_browser_client.h"
@@ -3248,7 +3248,15 @@ void MediaStreamManager::FinalizeRequestFailed(
     }
     case blink::MEDIA_DEVICE_UPDATE: {
       // Fail to change capture source, keep everything unchanged and
-      // bring the previous shared tab to the front.
+      // bring the previous shared tab to the front. Restore the request
+      // state for the still-active devices so that later teardown closes
+      // them as usual.
+      if (blink::IsAudioInputMediaType(request->audio_type())) {
+        request->SetState(request->audio_type(), MEDIA_REQUEST_STATE_DONE);
+      }
+      if (blink::IsVideoInputMediaType(request->video_type())) {
+        request->SetState(request->video_type(), MEDIA_REQUEST_STATE_DONE);
+      }
       DCHECK_EQ(1u, request->stream_devices_set.stream_devices.size());
       const blink::mojom::StreamDevices& devices =
           *request->stream_devices_set.stream_devices[0];

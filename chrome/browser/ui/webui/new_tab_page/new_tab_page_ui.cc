@@ -333,7 +333,9 @@ content::WebUIDataSource* CreateAndAddNewTabPageUiHtmlSource(
   source->AddBoolean(
       "voiceSearchCoherenceSearchboxEnabled",
       base::FeatureList::IsEnabled(omnibox::kVoiceSearchCoherenceSearchbox));
-
+  source->AddBoolean(
+      "voiceSearchCoherenceAnySearchboxExperimentEnabled",
+      SearchboxHandler::GetVoiceSearchCoherenceAnySearchboxExperimentEnabled());
   source->AddBoolean(
       "voiceSearchCoherenceSearchboxWithLiveTranscriptionEnabled",
       omnibox::kVoiceSearchCoherenceSearchboxWithLiveTranscription.Get());
@@ -485,6 +487,7 @@ content::WebUIDataSource* CreateAndAddNewTabPageUiHtmlSource(
       {"modulesDriveTitle", IDS_NTP_MODULES_DRIVE_NAME},
       {"modulesDriveTitleV2", IDS_NTP_MODULES_DRIVE_NAME},
       {"modulesDriveInfo", IDS_NTP_MODULES_DRIVE_INFO},
+      {"modulesDriveSeeMore", IDS_NTP_MODULES_DRIVE_SEE_MORE},
       {"modulesMicrosoftFilesInfo", IDS_NTP_MODULES_MICROSOFT_FILES_INFO},
       {"modulesMicrosoftFilesName", IDS_NTP_MODULES_MICROSOFT_FILES_NAME},
       {"modulesMicrosoftFilesDisableButtonText",
@@ -622,6 +625,9 @@ content::WebUIDataSource* CreateAndAddNewTabPageUiHtmlSource(
       "hideDismissModules",
       base::FeatureList::IsEnabled(
           ntp_features::kNtpFeatureOptimizationDismissModulesRemoval));
+  source->AddBoolean(
+      "showDriveModuleSeeMoreLink",
+      base::FeatureList::IsEnabled(ntp_features::kNtpDriveModuleLink));
 
   source->AddString(
       "calendarModuleDismissHours",
@@ -702,16 +708,16 @@ content::WebUIDataSource* CreateAndAddNewTabPageUiHtmlSource(
   }
 
   source->AddBoolean("keepMenuOpenOnTabSelectForRealbox",
-                     base::FeatureList::IsEnabled(
-                         omnibox::kKeepMenuOpenOnTabSelectForRealbox));
+                     omnibox::kKeepMenuOpenOnTabSelectForRealbox.Get());
   source->AddBoolean("composeboxShowContextMenu",
                      ntp_composebox::kShowContextMenu.Get());
   source->AddBoolean("composeboxShowContextMenuTabPreviews",
                      ntp_composebox::kShowContextMenuTabPreviews.Get());
   source->AddBoolean("composeboxContextMenuEnableMultiTabSelection",
                      ntp_composebox::kContextMenuEnableMultiTabSelection.Get());
-  source->AddBoolean("contextManagementInComposeboxEnabled",
-  base::FeatureList::IsEnabled(omnibox::kContextManagementInComposebox));
+  source->AddBoolean(
+      "contextManagementInComposeboxEnabled",
+      base::FeatureList::IsEnabled(omnibox::kContextManagementInComposebox));
   source->AddBoolean(
       "tabFaviconChipsToCoinsEnabled",
       base::FeatureList::IsEnabled(omnibox::kContextManagementInComposebox) &&
@@ -724,7 +730,6 @@ content::WebUIDataSource* CreateAndAddNewTabPageUiHtmlSource(
   source->AddBoolean("composeboxShowImageSuggest",
                      ntp_composebox::kShowComposeboxImageSuggestions.Get());
 
-  source->AddBoolean("composeboxShowContextMenuDescription", false);
 
   source->AddBoolean("composeboxSmartComposeEnabled",
                      ntp_composebox::kShowSmartCompose.Get());
@@ -752,6 +757,9 @@ content::WebUIDataSource* CreateAndAddNewTabPageUiHtmlSource(
     }
     if (aim_eligibility_service->IsCreateImagesEligible()) {
       num_tools_eligible++;
+      if (base::FeatureList::IsEnabled(ntp_features::kNtpStarterChip)) {
+        num_tools_eligible++;
+      }
     }
     if (base::FeatureList::IsEnabled(ntp_features::kNtpNextCanvasChip) &&
         aim_eligibility_service->IsCanvasEligible()) {
@@ -863,10 +871,10 @@ NewTabPageUI::NewTabPageUI(content::WebUI* web_ui)
       // for the unlikely case where the NewTabPageHandler is created before we
       // received the DidStartNavigation event.
       navigation_start_time_(base::Time::Now()),
+      navigation_start_time_ticks_(base::TimeTicks::Now()),
       module_id_details_(
           ntp::MakeModuleIdDetails(NewTabPageUI::IsManagedProfile(profile_),
-                                   profile_))
-{
+                                   profile_)) {
 
   instance_count_++;
   base::UmaHistogramCounts100("NewTabPage.Count", instance_count_);
@@ -1294,7 +1302,8 @@ void NewTabPageUI::CreatePageHandler(
       SyncServiceFactory::GetForProfile(profile_),
       segmentation_platform::SegmentationPlatformServiceFactory::GetForProfile(
           profile_),
-      web_contents(), navigation_start_time_, &module_id_details_);
+      web_contents(), navigation_start_time_, navigation_start_time_ticks_,
+      &module_id_details_);
 }
 
 void NewTabPageUI::ConnectToParentDocument(
@@ -1342,7 +1351,7 @@ void NewTabPageUI::CreatePageHandler(
   most_visited_page_handler_ = std::make_unique<MostVisitedHandler>(
       std::move(pending_page_handler), std::move(pending_page), profile_,
       web_contents(), chrome::ChromeUINewTabPageURLAsGURL(),
-      navigation_start_time_);
+      navigation_start_time_, navigation_start_time_ticks_);
   UpdateMostVisitedTileTypes();
   most_visited_page_handler_->SetShortcutsVisible(IsShortcutsVisible());
 }
@@ -1468,6 +1477,7 @@ void NewTabPageUI::DidStartNavigation(
   if (navigation_handle->IsInPrimaryMainFrame() &&
       navigation_handle->GetURL() == chrome::ChromeUINewTabPageURLAsGURL()) {
     navigation_start_time_ = base::Time::Now();
+    navigation_start_time_ticks_ = base::TimeTicks::Now();
 
     OnLoad();
 

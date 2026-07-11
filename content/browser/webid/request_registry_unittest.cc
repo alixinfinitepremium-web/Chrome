@@ -22,25 +22,30 @@
 #include "content/browser/webid/test/mock_modal_dialog_view_delegate.h"
 #include "content/browser/webid/test/mock_permission_delegate.h"
 #include "content/public/common/content_features.h"
+#include "content/public/test/navigation_simulator.h"
 #include "content/test/test_render_view_host.h"
 #include "content/test/test_web_contents.h"
 #include "mojo/public/cpp/bindings/remote.h"
+#include "mojo/public/cpp/test_support/test_utils.h"
+#include "services/network/public/cpp/permissions_policy/permissions_policy_declaration.h"
+#include "services/network/public/mojom/permissions_policy/permissions_policy_feature.mojom.h"
 #include "testing/gmock/include/gmock/gmock.h"
 #include "testing/gtest/include/gtest/gtest.h"
-#include "third_party/blink/public/mojom/webid/federated_auth_request.mojom.h"
+#include "third_party/blink/public/common/webid/login_status_options.h"
+#include "third_party/blink/public/mojom/webid/federated_request.mojom.h"
 #include "ui/base/page_transition_types.h"
 #include "url/gurl.h"
 #include "url/origin.h"
 
-using ApiPermissionStatus =
-    content::FederatedIdentityApiPermissionContextDelegate::PermissionStatus;
-using blink::mojom::RegisterIdpStatus;
+namespace content::webid {
+
 using ::testing::_;
 using ::testing::NiceMock;
 using ::testing::Return;
 using ::testing::StrictMock;
-
-namespace content::webid {
+using ApiPermissionStatus =
+    FederatedIdentityApiPermissionContextDelegate::PermissionStatus;
+using blink::mojom::RegisterIdpStatus;
 
 namespace {
 
@@ -99,45 +104,61 @@ class RequestRegistryTest : public RenderViewHostImplTestHarness {
     mock_permission_delegate_ =
         std::make_unique<StrictMock<MockPermissionDelegate>>();
 
-    static_cast<TestWebContents*>(web_contents())
-        ->NavigateAndCommit(GURL(kIdpUrl), ui::PAGE_TRANSITION_LINK);
+    std::unique_ptr<NavigationSimulator> simulator =
+        NavigationSimulator::CreateRendererInitiated(GURL(kIdpUrl),
+                                                     main_test_rfh());
+    network::ParsedPermissionsPolicy policy(1);
+    policy[0].feature =
+        network::mojom::PermissionsPolicyFeature::kIdentityCredentialsGet;
+    policy[0].matches_all_origins = true;
+    simulator->SetPermissionsPolicyHeader(std::move(policy));
+    simulator->Commit();
 
     mock_auto_reauthn_permission_delegate_ =
         std::make_unique<NiceMock<MockAutoReauthnPermissionDelegate>>();
-    mock_identity_registry_ = std::make_unique<NiceMock<MockIdentityRegistry>>(
-        web_contents(), /*delegate=*/nullptr, GURL(kIdpUrl));
+    auto mock_identity_registry =
+        std::make_unique<NiceMock<MockIdentityRegistry>>(
+            web_contents(), /*delegate=*/nullptr, GURL(kIdpUrl));
+    mock_identity_registry_ = mock_identity_registry->GetWeakPtr();
+    web_contents()->SetUserData(IdentityRegistry::UserDataKey(),
+                                std::move(mock_identity_registry));
 
-    request_ = &RequestService::GetOrCreateForCurrentDocument(main_test_rfh())
-                    ->CreateRequestForTesting(
-                        request_remote_.BindNewPipeAndPassReceiver(),
-                        test_api_permission_delegate_.get(),
-                        mock_auto_reauthn_permission_delegate_.get(),
-                        mock_permission_delegate_.get(),
-                        mock_identity_registry_.get());
+    auto* service =
+        RequestService::GetOrCreateForCurrentDocument(main_test_rfh());
+    service->SetDelegatesForTesting(
+        test_api_permission_delegate_.get(),
+        mock_auto_reauthn_permission_delegate_.get(),
+        mock_permission_delegate_.get(), mock_identity_registry_.get());
+    service->BindFederatedRequestService(
+        request_service_remote_.BindNewPipeAndPassReceiver());
+    request_ = service->GetOrCreateActiveRequest()->GetWeakPtr();
+
     auto mock_dialog_controller =
         std::make_unique<NiceMock<MockIdentityRequestDialogController>>();
-    request_->SetDialogControllerForTests(std::move(mock_dialog_controller));
+    service->SetDialogControllerForTests(std::move(mock_dialog_controller));
     std::unique_ptr<TestIdpNetworkRequestManager> network_request_manager =
         std::make_unique<TestIdpNetworkRequestManager>();
-    request_->SetNetworkManagerForTests(std::move(network_request_manager));
+    service->SetNetworkManagerForTests(std::move(network_request_manager));
   }
 
   void TearDown() override {
     request_ = nullptr;
+    mock_identity_registry_ = nullptr;
+    request_service_remote_.reset();
     RenderViewHostImplTestHarness::TearDown();
   }
 
  protected:
   base::test::ScopedFeatureList feature_list_;
 
-  mojo::Remote<blink::mojom::FederatedAuthRequest> request_remote_;
-  raw_ptr<Request> request_;
+  mojo::Remote<blink::mojom::FederatedRequestService> request_service_remote_;
+  base::WeakPtr<Request> request_;
 
   std::unique_ptr<TestApiPermissionDelegate> test_api_permission_delegate_;
   std::unique_ptr<StrictMock<MockPermissionDelegate>> mock_permission_delegate_;
   std::unique_ptr<NiceMock<MockAutoReauthnPermissionDelegate>>
       mock_auto_reauthn_permission_delegate_;
-  std::unique_ptr<NiceMock<MockIdentityRegistry>> mock_identity_registry_;
+  base::WeakPtr<MockIdentityRegistry> mock_identity_registry_ = nullptr;
 };
 
 // Test Registering an IdP successfully.
@@ -149,7 +170,7 @@ TEST_F(RequestRegistryTest, RegistersIdPSuccessfully) {
   EXPECT_CALL(*mock_permission_delegate_, RegisterIdP(_)).WillOnce(Return());
 
   base::RunLoop loop;
-  request_remote_->RegisterIdP(
+  request_service_remote_->RegisterIdP(
       std::move(configURL),
       base::BindLambdaForTesting([&loop](RegisterIdpStatus result) {
         EXPECT_EQ(RegisterIdpStatus::kSuccess, result);
@@ -163,7 +184,7 @@ TEST_F(RequestRegistryTest, RegistersWithoutFeature) {
   GURL configURL = GURL(kIdpUrl);
 
   base::RunLoop loop;
-  request_remote_->RegisterIdP(
+  request_service_remote_->RegisterIdP(
       std::move(configURL),
       base::BindLambdaForTesting([&loop](RegisterIdpStatus result) {
         EXPECT_EQ(RegisterIdpStatus::kErrorFeatureDisabled, result);
@@ -179,7 +200,7 @@ TEST_F(RequestRegistryTest, RegistersCrossOriginNotAllowed) {
   feature_list_.InitAndEnableFeature(features::kFedCmIdPRegistration);
 
   base::RunLoop loop;
-  request_remote_->RegisterIdP(
+  request_service_remote_->RegisterIdP(
       std::move(configURL),
       base::BindLambdaForTesting([&loop](RegisterIdpStatus result) {
         EXPECT_EQ(RegisterIdpStatus::kErrorCrossOriginConfig, result);
@@ -196,7 +217,7 @@ TEST_F(RequestRegistryTest, UnregistersWithoutFeature) {
   // mock) expected.
 
   base::RunLoop loop;
-  request_remote_->UnregisterIdP(
+  request_service_remote_->UnregisterIdP(
       std::move(configURL), base::BindLambdaForTesting([&loop](bool result) {
         EXPECT_EQ(false, result);
         loop.Quit();
@@ -214,7 +235,7 @@ TEST_F(RequestRegistryTest, UnregisterAcrossOrigin) {
   // no call to the mock_permission_delegate_ (which is a strict)
   // mock) expected.
   base::RunLoop loop;
-  request_remote_->UnregisterIdP(
+  request_service_remote_->UnregisterIdP(
       std::move(configURL), base::BindLambdaForTesting([&loop](bool result) {
         EXPECT_EQ(false, result);
         loop.Quit();
@@ -231,12 +252,243 @@ TEST_F(RequestRegistryTest, UnregistersIdP) {
   EXPECT_CALL(*mock_permission_delegate_, UnregisterIdP(_)).WillOnce(Return());
 
   base::RunLoop loop;
-  request_remote_->UnregisterIdP(
+  request_service_remote_->UnregisterIdP(
       std::move(configURL), base::BindLambdaForTesting([&loop](bool result) {
         EXPECT_EQ(true, result);
         loop.Quit();
       }));
   loop.Run();
+}
+
+// Test Registering an IdP via FederatedRequestService.
+TEST_F(RequestRegistryTest, RequestServiceRegisterIdP) {
+  GURL config_url = GURL(kIdpUrl);
+
+  feature_list_.InitAndEnableFeature(features::kFedCmIdPRegistration);
+
+  EXPECT_CALL(*mock_permission_delegate_, RegisterIdP(_)).WillOnce(Return());
+
+  base::RunLoop loop;
+  request_service_remote_->RegisterIdP(
+      std::move(config_url),
+      base::BindLambdaForTesting([&loop](RegisterIdpStatus result) {
+        EXPECT_EQ(RegisterIdpStatus::kSuccess, result);
+        loop.Quit();
+      }));
+  loop.Run();
+}
+
+// Test Unregistering an IdP via FederatedRequestService.
+TEST_F(RequestRegistryTest, RequestServiceUnregisterIdP) {
+  GURL config_url = GURL(kIdpUrl);
+
+  feature_list_.InitAndEnableFeature(features::kFedCmIdPRegistration);
+
+  EXPECT_CALL(*mock_permission_delegate_, UnregisterIdP(_)).WillOnce(Return());
+
+  base::RunLoop loop;
+  request_service_remote_->UnregisterIdP(
+      std::move(config_url), base::BindLambdaForTesting([&loop](bool result) {
+        EXPECT_EQ(true, result);
+        loop.Quit();
+      }));
+  loop.Run();
+}
+
+// Test SetIdpSigninStatus via FederatedRequestService.
+TEST_F(RequestRegistryTest, RequestServiceSetIdpSigninStatus) {
+  url::Origin origin = url::Origin::Create(GURL(kIdpUrl));
+
+  EXPECT_CALL(*mock_permission_delegate_, SetIdpSigninStatus(origin, true, _))
+      .WillOnce(Return());
+
+  base::RunLoop loop;
+  request_service_remote_->SetIdpSigninStatus(
+      origin, blink::mojom::IdpSigninStatus::kSignedIn, std::nullopt,
+      base::BindLambdaForTesting([&loop]() { loop.Quit(); }));
+  loop.Run();
+}
+
+// Test PreventSilentAccess via FederatedRequestService.
+TEST_F(RequestRegistryTest, RequestServicePreventSilentAccess) {
+  EXPECT_CALL(*mock_permission_delegate_, HasSharingPermission(_))
+      .WillOnce(Return(false));
+  EXPECT_CALL(*mock_auto_reauthn_permission_delegate_,
+              SetRequiresUserMediation(_, true))
+      .WillOnce(Return());
+  EXPECT_CALL(*mock_permission_delegate_, OnSetRequiresUserMediation(_, _))
+      .WillOnce(::testing::WithArg<1>(
+          [](base::OnceClosure callback) { std::move(callback).Run(); }));
+
+  base::RunLoop loop;
+  request_service_remote_->PreventSilentAccess(
+      base::BindLambdaForTesting([&loop]() { loop.Quit(); }));
+  loop.Run();
+}
+
+// Test RequestUserInfo via FederatedRequestService.
+TEST_F(RequestRegistryTest, RequestServiceRequestUserInfoFailure) {
+  // Append a child frame (iframe) with identity-credentials-get policy.
+  network::ParsedPermissionsPolicy frame_policy(1);
+  frame_policy[0].feature =
+      network::mojom::PermissionsPolicyFeature::kIdentityCredentialsGet;
+  frame_policy[0].matches_all_origins = true;
+  frame_policy[0].matches_opaque_src = false;
+  TestRenderFrameHost* child_rfh =
+      static_cast<TestRenderFrameHost*>(web_contents()->GetPrimaryMainFrame())
+          ->AppendChildWithPolicy("child_frame", frame_policy);
+
+  // Navigate child frame to same-origin with IDP.
+  auto simulator =
+      NavigationSimulator::CreateRendererInitiated(GURL(kIdpUrl), child_rfh);
+  simulator->Commit();
+  child_rfh =
+      static_cast<TestRenderFrameHost*>(simulator->GetFinalRenderFrameHost());
+
+  // Set up child service and bind Mojo interfaces.
+  mojo::Remote<blink::mojom::FederatedRequestService>
+      child_request_service_remote;
+
+  auto* child_service =
+      RequestService::GetOrCreateForCurrentDocument(child_rfh);
+  child_service->SetDelegatesForTesting(
+      test_api_permission_delegate_.get(),
+      mock_auto_reauthn_permission_delegate_.get(),
+      mock_permission_delegate_.get(), mock_identity_registry_.get());
+
+  child_service->BindFederatedRequestService(
+      child_request_service_remote.BindNewPipeAndPassReceiver());
+
+  auto provider = blink::mojom::IdentityProviderConfig::New();
+  provider->config_url = GURL(kIdpUrl);
+  provider->client_id = "client_id";
+
+  EXPECT_CALL(*mock_permission_delegate_, GetIdpSigninStatus(_))
+      .WillOnce(Return(false));
+
+  base::RunLoop loop;
+  child_request_service_remote->RequestUserInfo(
+      std::move(provider),
+      base::BindLambdaForTesting(
+          [&loop](blink::mojom::RequestUserInfoResultPtr result) {
+            EXPECT_TRUE(result->is_status());
+            EXPECT_EQ(blink::mojom::RequestUserInfoStatus::kError,
+                      result->get_status());
+            loop.Quit();
+          }));
+  loop.Run();
+}
+
+// Test RequestUserInfo with denied Permissions Policy.
+TEST_F(RequestRegistryTest,
+       RequestServiceRequestUserInfoPermissionsPolicyDenied) {
+  // Append a child frame (iframe) but do NOT delegate identity-credentials-get.
+  // This means the feature will be disabled for this iframe.
+  network::ParsedPermissionsPolicy frame_policy(1);
+  frame_policy[0].feature =
+      network::mojom::PermissionsPolicyFeature::kIdentityCredentialsGet;
+  frame_policy[0].matches_all_origins = false;  // Denied!
+  frame_policy[0].matches_opaque_src = false;
+  TestRenderFrameHost* child_rfh =
+      static_cast<TestRenderFrameHost*>(web_contents()->GetPrimaryMainFrame())
+          ->AppendChildWithPolicy("child_frame", frame_policy);
+
+  // Navigate child frame to same-origin with IDP.
+  auto simulator =
+      NavigationSimulator::CreateRendererInitiated(GURL(kIdpUrl), child_rfh);
+  simulator->Commit();
+  child_rfh =
+      static_cast<TestRenderFrameHost*>(simulator->GetFinalRenderFrameHost());
+
+  // Set up child service and bind Mojo interfaces.
+  mojo::Remote<blink::mojom::FederatedRequestService>
+      child_request_service_remote;
+
+  auto* child_service =
+      RequestService::GetOrCreateForCurrentDocument(child_rfh);
+  child_service->SetDelegatesForTesting(
+      test_api_permission_delegate_.get(),
+      mock_auto_reauthn_permission_delegate_.get(),
+      mock_permission_delegate_.get(), mock_identity_registry_.get());
+
+  child_service->BindFederatedRequestService(
+      child_request_service_remote.BindNewPipeAndPassReceiver());
+
+  auto provider = blink::mojom::IdentityProviderConfig::New();
+  provider->config_url = GURL(kIdpUrl);
+  provider->client_id = "client_id";
+
+  mojo::test::BadMessageObserver bad_message_observer;
+  child_request_service_remote->RequestUserInfo(std::move(provider),
+                                                base::DoNothing());
+
+  EXPECT_EQ("identity-credentials-get permissions policy not enabled",
+            bad_message_observer.WaitForBadMessage());
+}
+
+// Test that SetIdpSigninStatus with an invalid picture URL triggers a Bad
+// Message report.
+TEST_F(RequestRegistryTest, SetIdpSigninStatusInvalidPictureUrl) {
+  base::test::ScopedFeatureList scoped_feature_list;
+  scoped_feature_list.InitAndEnableFeature(features::kFedCmLightweightMode);
+
+  url::Origin origin = url::Origin::Create(GURL(kIdpUrl));
+
+  // Create LoginStatusOptions with an invalid picture URL
+  blink::common::webid::LoginStatusOptions options;
+  blink::common::webid::LoginStatusAccount account;
+  account.id = "id";
+  account.email = "email";
+  account.name = "name";
+  account.picture = GURL("invalid_url");  // Invalid!
+  options.accounts.push_back(account);
+
+  mojo::test::BadMessageObserver bad_message_observer;
+  request_service_remote_->SetIdpSigninStatus(
+      origin, blink::mojom::IdpSigninStatus::kSignedIn, std::move(options),
+      base::DoNothing());
+
+  EXPECT_THAT(bad_message_observer.WaitForBadMessage(),
+              testing::HasSubstr("VALIDATION_ERROR_DESERIALIZATION_FAILED"));
+}
+
+// Test that SetIdpSigninStatus with an insecure picture URL triggers a Bad
+// Message report.
+TEST_F(RequestRegistryTest, SetIdpSigninStatusInsecurePictureUrl) {
+  base::test::ScopedFeatureList scoped_feature_list;
+  scoped_feature_list.InitAndEnableFeature(features::kFedCmLightweightMode);
+
+  url::Origin origin = url::Origin::Create(GURL(kIdpUrl));
+
+  // Create LoginStatusOptions with an insecure picture URL (plain http)
+  blink::common::webid::LoginStatusOptions options;
+  blink::common::webid::LoginStatusAccount account;
+  account.id = "id";
+  account.email = "email";
+  account.name = "name";
+  account.picture = GURL("http://insecure.example/picture.png");  // Insecure!
+  options.accounts.push_back(account);
+
+  mojo::test::BadMessageObserver bad_message_observer;
+  request_service_remote_->SetIdpSigninStatus(
+      origin, blink::mojom::IdpSigninStatus::kSignedIn, std::move(options),
+      base::DoNothing());
+
+  EXPECT_THAT(bad_message_observer.WaitForBadMessage(),
+              testing::HasSubstr("VALIDATION_ERROR_DESERIALIZATION_FAILED"));
+}
+
+// Test that CloseModalDialogView via FederatedRequestService Mojo remote
+// notifies IdentityRegistry.
+TEST_F(RequestRegistryTest, RequestServiceCloseModalDialogView) {
+  base::RunLoop run_loop;
+  url::Origin origin = url::Origin::Create(GURL(kIdpUrl));
+  EXPECT_CALL(*mock_identity_registry_, NotifyClose(origin))
+      .WillOnce([&run_loop]() { run_loop.Quit(); });
+
+  request_service_remote_->CloseModalDialogView();
+
+  run_loop.Run();
 }
 
 }  // namespace content::webid

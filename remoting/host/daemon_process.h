@@ -14,8 +14,6 @@
 #include "base/containers/circular_deque.h"
 #include "base/memory/raw_ptr.h"
 #include "base/memory/scoped_refptr.h"
-#include "base/process/process.h"
-#include "base/time/time.h"
 #include "mojo/core/embedder/scoped_ipc_support.h"
 #include "mojo/public/cpp/bindings/associated_receiver.h"
 #include "mojo/public/cpp/bindings/associated_remote.h"
@@ -23,6 +21,8 @@
 #include "mojo/public/cpp/bindings/scoped_interface_endpoint_handle.h"
 #include "mojo/public/cpp/system/message_pipe.h"
 #include "remoting/base/auto_thread_task_runner.h"
+#include "remoting/base/errors.h"
+#include "remoting/base/source_location.h"
 #include "remoting/host/config_watcher.h"
 #include "remoting/host/host_status_monitor.h"
 #include "remoting/host/host_status_observer.h"
@@ -44,6 +44,7 @@ namespace remoting {
 
 class ChromotingHostServicesServer;
 class DesktopSession;
+class PeerConnectionProcessHandler;
 class HostEventLogger;
 class ScreenResolution;
 
@@ -98,6 +99,10 @@ class DaemonProcess : public ConfigWatcher::Delegate,
       int terminal_id,
       mojom::DesktopSessionOptionsPtr options) override;
   void CloseDesktopSession(int terminal_id) override;
+  void CloseDesktopSessionWithError(int terminal_id,
+                                    ErrorCode error_code,
+                                    const std::string& error_details,
+                                    const SourceLocation& error_location);
   void SetScreenResolution(int terminal_id,
                            const ScreenResolution& resolution) override;
 
@@ -165,12 +170,20 @@ class DaemonProcess : public ConfigWatcher::Delegate,
   // Platform-specific initialization after the IPC channel is connected.
   virtual bool OnInitAfterChannelConnected(int32_t peer_pid);
 
+  // Factory method implemented by platform subclasses to create their
+  // specific launcher delegate.
+  virtual std::unique_ptr<WorkerProcessLauncher::Delegate>
+  CreatePeerConnectionProcessLauncherDelegate(int terminal_id) = 0;
+
   // Virtual for testing.
   virtual void SendHostConfigToNetworkProcess(
       const std::string& serialized_config);
 
   // Virtual for testing.
-  virtual void SendTerminalDisconnected(int terminal_id);
+  virtual void SendTerminalDisconnected(int terminal_id,
+                                        ErrorCode error_code,
+                                        const std::string& error_details,
+                                        const SourceLocation& error_location);
 
   // Requests the network process to crash. Virtual for testing.
   virtual void DoCrashNetworkProcess(const base::Location& location);
@@ -212,6 +225,18 @@ class DaemonProcess : public ConfigWatcher::Delegate,
   }
 
  private:
+  // Launches the peer connection process for |terminal_id| and establishes an
+  // IPC channel with it.
+  void LaunchPeerConnectionProcess(int terminal_id);
+
+  // Closes the peer connection process for |terminal_id|.
+  void ClosePeerConnectionProcess(int terminal_id);
+
+  // Tracks active peer connection process launchers. The keys are
+  // `terminal_id`.
+  std::map<int, std::unique_ptr<PeerConnectionProcessHandler>>
+      peer_connection_launchers_;
+
   // Binds associated interfaces to the network process launcher.
   void BindAssociatedInterfaces();
 

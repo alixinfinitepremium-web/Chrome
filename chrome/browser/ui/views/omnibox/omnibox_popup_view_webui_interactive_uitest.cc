@@ -253,7 +253,7 @@ class OmniboxPopupViewWebUIFullV2Test : public OmniboxPopupViewWebUITest {
   void SetUp() override {
     feature_list_full_v2_.InitWithFeatures(
         {omnibox::internal::kWebUIOmniboxPopup,
-         omnibox::kWebUIOmniboxFullPopupV2},
+         omnibox::kWebUIOmniboxFullPopup},
         {});
     InProcessBrowserTest::SetUp();
   }
@@ -285,7 +285,7 @@ IN_PROC_BROWSER_TEST_F(OmniboxPopupViewWebUIFullV2Test, TabSwitchStateSync) {
                                ->GetWebUIController();
   auto* popup_ui = static_cast<OmniboxPopupUI*>(webui_controller);
   if (auto* popup_handler = popup_ui ? popup_ui->popup_handler() : nullptr) {
-    popup_handler->OnSelectionChanged(initial_selection, 10000);
+    popup_handler->OnSelectionChanged(initial_selection, 10000, false);
   }
 
   // Switch to another tab (initial tab).
@@ -314,6 +314,11 @@ IN_PROC_BROWSER_TEST_F(OmniboxPopupViewWebUIFullV2Test, TabSwitchNoSavedState) {
   int initial_tab_index = browser()->tab_strip_model()->active_index();
   chrome::NewTab(browser(), NewTabTypes::kNoUserAction);
   ASSERT_EQ(2, browser()->tab_strip_model()->count());
+
+  // Focus the location bar to ensure the Omnibox has active focus.
+  location_bar()->FocusLocation(/*is_user_initiated=*/true,
+                                /*clear_focus_if_failed=*/false);
+
   // Type text in the omnibox of the active tab (new tab) and select it.
   omnibox_view()->SetUserText(u"test query");
   omnibox_view()->SelectAll(false);
@@ -330,7 +335,7 @@ IN_PROC_BROWSER_TEST_F(OmniboxPopupViewWebUIFullV2Test, TabSwitchNoSavedState) {
                                ->GetWebUIController();
   auto* popup_ui = static_cast<OmniboxPopupUI*>(webui_controller);
   if (auto* popup_handler = popup_ui ? popup_ui->popup_handler() : nullptr) {
-    popup_handler->OnSelectionChanged(initial_selection, 10000);
+    popup_handler->OnSelectionChanged(initial_selection, 10000, false);
   }
 
   // Clear any saved omnibox state from the initial tab.
@@ -340,9 +345,9 @@ IN_PROC_BROWSER_TEST_F(OmniboxPopupViewWebUIFullV2Test, TabSwitchNoSavedState) {
 
   // Switch back to the initial tab.
   browser()->tab_strip_model()->ActivateTabAt(initial_tab_index);
-  std::u16string expected_text = omnibox_view()->GetText();
 
-  // Verify the selection is reset when activating a tab with no saved state.
+  // Verify the selection matches the focus state when activating a tab with
+  // no saved state.
   EXPECT_TRUE(base::test::RunUntil([&]() {
     auto* popup_view_check = static_cast<OmniboxPopupViewWebUI*>(
         location_bar()->GetOmniboxPopupView());
@@ -358,47 +363,15 @@ IN_PROC_BROWSER_TEST_F(OmniboxPopupViewWebUIFullV2Test, TabSwitchNoSavedState) {
     auto* popup_ui_check = static_cast<OmniboxPopupUI*>(webui_controller_check);
     auto* popup_handler_check =
         popup_ui_check ? popup_ui_check->popup_handler() : nullptr;
-    return popup_handler_check && popup_handler_check->latest_selection() ==
-                                      gfx::Range(0, expected_text.length());
-  }));
-}
-
-// TODO(b/523277150): Fix this test on macOS.
-#if BUILDFLAG(IS_MAC)
-#define MAYBE_SteadyStateSelectAll DISABLED_SteadyStateSelectAll
-#else
-#define MAYBE_SteadyStateSelectAll SteadyStateSelectAll
-#endif
-IN_PROC_BROWSER_TEST_F(OmniboxPopupViewWebUIFullV2Test,
-                       MAYBE_SteadyStateSelectAll) {
-  // Navigate to a URL with non-zero length.
-  ASSERT_TRUE(
-      ui_test_utils::NavigateToURL(browser(), GURL("chrome://version")));
-  std::u16string expected_text = omnibox_view()->GetText();
-  ASSERT_FALSE(expected_text.empty());
-
-  // Open the WebUI omnibox via browser action.
-  chrome::FocusLocationBar(browser());
-
-  // Verify that because the text hasn't been edited or manually selected,
-  // the entire URL is selected (select-all).
-  EXPECT_TRUE(base::test::RunUntil([&]() {
-    auto* popup_view_check = static_cast<OmniboxPopupViewWebUI*>(
-        location_bar()->GetOmniboxPopupView());
-    if (!popup_view_check || !popup_view_check->presenter() ||
-        !popup_view_check->presenter()->GetWebUIContent() ||
-        !popup_view_check->presenter()->GetWebUIContent()->contents_wrapper()) {
-      return false;
-    }
-    auto* webui_controller_check = popup_view_check->presenter()
-                                       ->GetWebUIContent()
-                                       ->contents_wrapper()
-                                       ->GetWebUIController();
-    auto* popup_ui_check = static_cast<OmniboxPopupUI*>(webui_controller_check);
-    auto* popup_handler_check =
-        popup_ui_check ? popup_ui_check->popup_handler() : nullptr;
-    return popup_handler_check && popup_handler_check->latest_selection() ==
-                                      gfx::Range(0, expected_text.length());
+    const bool has_focus = controller()->edit_model()->has_focus();
+    const gfx::Range expected_selection =
+        has_focus ? gfx::Range(0, controller()
+                                      ->edit_model()
+                                      ->GetPermanentDisplayText()
+                                      .length())
+                  : gfx::Range(0, 0);
+    return popup_handler_check &&
+           popup_handler_check->latest_selection() == expected_selection;
   }));
 }
 

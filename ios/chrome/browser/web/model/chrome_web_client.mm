@@ -134,6 +134,7 @@
 #import "ui/base/l10n/l10n_util.h"
 #import "ui/base/resource/resource_bundle.h"
 #import "url/gurl.h"
+#import "url/url_constants.h"
 
 namespace {
 // The tag describing the product name with a placeholder for the version.
@@ -254,7 +255,7 @@ NSString* GetSupervisedUserErrorPageHTML(web::WebState* web_state,
       ProfileIOS::FromBrowserState(web_state->GetBrowserState());
   std::string error_page_content =
       supervised_user::SupervisedUserInterstitial::GetHTMLContentsWithApprovals(
-          SupervisedUserServiceFactory::GetForProfile(profile),
+          supervised_user::SupervisedUserServiceFactory::GetForProfile(profile),
           error_info->filtering_result().reason,
           container->IsRemoteApprovalPendingForUrl(url),
           error_info->is_main_frame(),
@@ -281,6 +282,16 @@ std::string GetMobileProduct() {
 std::string GetDesktopProduct() {
   return base::StringPrintf(kProductTagWithPlaceholder,
                             version_info::GetMajorVersionNumber().c_str());
+}
+
+// Filter javascript: URLs and replace them by about:blank.
+bool WillHandleWebBrowserJavascriptURLs(GURL* url, web::BrowserState*) {
+  if (url->is_valid() && url->SchemeIs(url::kJavaScriptScheme)) {
+    *url = GURL(url::kAboutBlankURL);
+    return true;
+  }
+
+  return false;
 }
 
 }  // namespace
@@ -374,6 +385,7 @@ void ChromeWebClient::GetAdditionalWebUISchemes(
 
 void ChromeWebClient::PostBrowserURLRewriterCreation(
     web::BrowserURLRewriter* rewriter) {
+  rewriter->AddURLRewriter(&WillHandleWebBrowserJavascriptURLs);
   rewriter->AddURLRewriter(&WillHandleWebBrowserNewTabPageURLForPolicy);
   rewriter->AddURLRewriter(&WillHandleWebBrowserAboutURL);
   ios::provider::AddURLRewriters(rewriter);

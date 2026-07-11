@@ -63,6 +63,11 @@ class GlicActorTaskManager {
     virtual void OnTabAddedToTask(
         actor::TaskId task_id,
         const tabs::TabInterface::Handle& tab_handle) = 0;
+
+    virtual void OnTaskTabsVisibilityChanged(actor::TaskId task_id,
+                                             bool has_visible_tab) = 0;
+
+    virtual void OnTaskIdChanged(std::optional<int> task_id) = 0;
   };
   explicit GlicActorTaskManager(
       Profile* profile,
@@ -82,6 +87,9 @@ class GlicActorTaskManager {
 
   // Returns the last acted tabs for the current task.
   std::vector<tabs::TabInterface*> GetLastActedTabs() const;
+
+  // Returns the ID of the current active task, if any.
+  std::optional<int> current_task_id() const;
 
   // Adds a callback that is run when the actuating state changes.
   base::CallbackListSubscription AddActuatingChangedCallback(
@@ -131,7 +139,7 @@ class GlicActorClientSession : public GlicActorClientSessionInterface {
   // mojom::ActorHandler:
   void GetContextForActorFromTab(
       int32_t tab_id,
-      mojom::GetTabContextOptionsPtr options,
+      mojom::TabContextOptionsPtr options,
       GetContextForActorFromTabCallback callback) override;
 
   // actor::mojom::ActorHandler:
@@ -148,16 +156,14 @@ class GlicActorClientSession : public GlicActorClientSessionInterface {
                       mojom::ActorTaskPauseReason pause_reason,
                       std::optional<int32_t> tab_handle) override;
   void ResumeActorTask(int32_t task_id,
-                       mojom::GetTabContextOptionsPtr context_options,
+                       mojom::TabContextOptionsPtr context_options,
                        ResumeActorTaskCallback callback) override;
   void InterruptActorTask(
       int32_t task_id,
       std::optional<mojom::ActorTaskInterruptReason> interrupt_reason) override;
   void UninterruptActorTask(int32_t task_id) override;
   void CreateActorTab(int32_t task_id,
-                      bool open_in_background,
-                      std::optional<int32_t> initiator_tab_id,
-                      std::optional<int32_t> initiator_window_id,
+                      mojom::CreateActorTabOptionsPtr options,
                       CreateActorTabCallback callback) override;
 
   void LogBeginAsyncEvent(uint64_t event_async_id,
@@ -181,6 +187,8 @@ class GlicActorClientSession : public GlicActorClientSessionInterface {
   // ActorTaskDelegate:
   void OnTabAddedToTask(actor::TaskId task_id,
                         const tabs::TabInterface::Handle& tab_handle) override;
+  void OnTaskTabsVisibilityChanged(actor::TaskId task_id,
+                                   bool has_visible_tab) override;
   void RequestToShowCredentialSelectionDialog(
       actor::TaskId task_id,
       const base::flat_map<std::string, gfx::Image>& icons,
@@ -202,6 +210,9 @@ class GlicActorClientSession : public GlicActorClientSessionInterface {
       std::vector<autofill::ActorFormFillingRequest> requests,
       base::WeakPtr<actor::AutofillSelectionDialogEventHandler> event_handler,
       AutofillSuggestionSelectedCallback callback) override;
+  void RequestToShowGmailOtpOptInDialog(
+      actor::TaskId task_id,
+      actor::ActorTaskDelegate::GmailOtpOptInCallback callback) override;
   void AutofillSuggestionDialogOnFormPresented(
       int32_t task_id,
       actor::webui::mojom::AutofillSuggestionDialogOnFormPresentedParamsPtr

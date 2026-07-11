@@ -36,11 +36,12 @@ const SHARE_TABS_FLYOUT_CLOSE_DELAY_MS = 300;
 export const SHARE_TABS_FLYOUT_GAP_PX = 0;
 export const DEFAULT_FLYOUT_WIDTH_PX = 320;
 
-const ALIGNMENT_THRESHOLD_PX = 160;
-const ANCHOR_RIGHT_THRESHOLD_PX = 362;
 export const VIEWPORT_BUFFER_PX = 16;
 export const MIN_MENU_HEIGHT_PX = 100;
 export const SHARE_TABS_FLYOUT_MAX_HEIGHT_PX = 344;
+// From the CSS file (default max-height and min-height):
+export const DEFAULT_MAX_MENU_HEIGHT_PX = 540;
+export const DEFAULT_MIN_MENU_HEIGHT_PX = 144;
 
 // Gap between tab shared menu and context menu in px.
 const MENU_GAP = 0;
@@ -56,6 +57,10 @@ interface ShowAtConfig {
   height?: number;
   anchorAlignmentX?: AnchorAlignment;
   anchorAlignmentY?: AnchorAlignment;
+  minX?: number;
+  minY?: number;
+  maxX?: number;
+  maxY?: number;
   noOffset?: boolean;
 }
 
@@ -102,6 +107,7 @@ export class ContextualActionMenuElement extends
   static override get properties() {
     return {
       fileNum: {type: Number},
+      nonTabFileNum: {type: Number},
       disabledTabIds: {type: Object},
       aimThreadRestoredTabs: {type: Array},
       tabSuggestions: {type: Array},
@@ -116,12 +122,16 @@ export class ContextualActionMenuElement extends
       tabPreviewsEnabled_: {type: Boolean},
       showContextMenuHeaders_: {type: Boolean},
       disableAutoReposition: {type: Boolean},
-      contextManagementInComposeboxEnabled_: {
+      contextManagementInComposeboxEnabled: {
         reflect: true,
         type: Boolean,
         attribute: 'context-management-enabled',
       },
-      shareTabsFlyoutOpen: {type: Boolean},
+      shareTabsFlyoutOpen: {
+        reflect: true,
+        type: Boolean,
+        attribute: 'share-tabs-flyout-open',
+      },
       shareTabsFlyoutPosition_: {type: String},
       sharingTabsText_: {type: String},
       uploadButtonDisabled: {type: Boolean},
@@ -132,18 +142,23 @@ export class ContextualActionMenuElement extends
 
   accessor recentTabId: number|null = null;
   accessor fileNum: number = 0;
+  accessor nonTabFileNum: number = 0;
   accessor disabledTabIds: Map<number, UnguessableToken> = new Map();
   accessor aimThreadRestoredTabs: TabInfo[] = [];
   accessor tabSuggestions: TabInfo[] = [];
   accessor inputState: InputState|null = null;
   accessor smartTabSharingActive: boolean = false;
   accessor smartTabSharingVisible: boolean = false;
+  accessor contextManagementInComposeboxEnabled: boolean = false;
   accessor disableAutoReposition: boolean = false;
   accessor uploadButtonDisabled: boolean = false;
   accessor isSidePanel: boolean = false;
   accessor shareTabsFlyoutOpen: boolean = false;
 
   private setShareTabsFlyoutOpen_(open: boolean) {
+    if (this.shareTabsFlyoutOpen === open) {
+      return;
+    }
     this.shareTabsFlyoutOpen = open;
     this.fire('share-tabs-flyout-open-changed', {open});
   }
@@ -158,17 +173,23 @@ export class ContextualActionMenuElement extends
   private metricsSource_: string = loadTimeData.getString('composeboxSource');
   protected accessor showContextMenuHeaders_: boolean =
       loadTimeData.getBoolean('ShowContextMenuHeaders');
-  protected accessor contextManagementInComposeboxEnabled_: boolean =
-      getLoadTimeBoolean('contextManagementInComposeboxEnabled', false);
+  protected enableTabDeselection_: boolean =
+      getLoadTimeBoolean('composeboxContextMenuEnableTabDeselection', false);
   protected accessor shareTabsFlyoutPosition_: string = 'right';
   protected accessor sharingTabsText_: string = '';
-  protected closeMenuOnSelect: boolean =
-      !getLoadTimeBoolean('keepMenuOpenOnTabSelectForRealbox', false);
+  // Only close menu if the context management flag and the
+  // `keepMenuOpenOnTabSelectForRealbox` param are enabled.
+  protected get closeMenuOnSelect(): boolean {
+    return this.contextManagementInComposeboxEnabled &&
+        !getLoadTimeBoolean('keepMenuOpenOnTabSelectForRealbox', false);
+  }
 
   private closeTimer_: number|null = null;
   private pointerOverTrigger_: boolean = false;
   private pointerOverFlyout_: boolean = false;
   private firstTabBeingAdded_: boolean = false;
+  private pendingTabAddId_: number|null = null;
+  private anchor_: HTMLElement|null = null;
 
   protected get supportedTools_(): Map<ToolMode, {
     icon: string,
@@ -236,10 +257,30 @@ export class ContextualActionMenuElement extends
     this.resetShareTabsFlyout_();
   }
 
+  override willUpdate(changedProperties: PropertyValues<this>) {
+    super.willUpdate(changedProperties);
+
+
+    if (!this.closeMenuOnSelect && changedProperties.has('disabledTabIds') &&
+        this.pendingTabAddId_ !== null) {
+      if (this.disabledTabIds.has(this.pendingTabAddId_)) {
+        // Tab was added. Start the timer now to ignore pointerleave.
+        this.firstTabBeingAdded_ = true;
+        WindowProxy.getInstance().setTimeout(() => {
+          this.firstTabBeingAdded_ = false;
+          if (!this.pointerOverTrigger_ && !this.pointerOverFlyout_) {
+            this.scheduleCloseTimer_();
+          }
+        }, FIRST_TAB_DELAY);
+        this.pendingTabAddId_ = null;
+      }
+    }
+  }
+
   override updated(changedProperties: PropertyValues<this>) {
     super.updated(changedProperties);
 
-    if (this.contextManagementInComposeboxEnabled_) {
+    if (this.contextManagementInComposeboxEnabled) {
       if (changedProperties.has('disabledTabIds') ||
           changedProperties.has('aimThreadRestoredTabs')) {
         this.updateSharingTabsText_();
@@ -250,6 +291,15 @@ export class ContextualActionMenuElement extends
     if (changedProperties.has('tabSuggestions') ||
         changedProperties.has('inputState')) {
       this.updateScrollable_();
+
+      if (this.open && this.anchor_) {
+        if (changedProperties.has('tabSuggestions') &&
+            !this.shareTabsFlyoutOpen) {
+          this.showAt(this.anchor_);
+        } else {
+          this.reposition_();
+        }
+      }
       if (this.shareTabsFlyoutOpen) {
         this.updateFlyoutPosition_();
       }
@@ -264,25 +314,70 @@ export class ContextualActionMenuElement extends
   }
 
   private onWindowBlur_ = this.close.bind(this);
+  private layoutResizeObserver_?: ResizeObserver|null = null;
+  private lastConfig_?: unknown;
+
+  private reposition_() {
+    if (!this.anchor_ || !this.open || !this.lastConfig_) {
+      return;
+    }
+    const rect = this.anchor_.getBoundingClientRect();
+    if (rect.width === 0 && rect.height === 0 && rect.top === 0 &&
+        rect.left === 0) {
+      return;
+    }
+    const height = rect.height;
+
+    const doc = document.scrollingElement || document.documentElement;
+    const scrollLeft = doc.scrollLeft;
+    const scrollTop = doc.scrollTop;
+
+    const config =
+        Object.assign({}, this.lastConfig_ as Record<string, unknown>, {
+          top: rect.top + scrollTop,
+          left: rect.left + scrollLeft,
+          height: height,
+          width: rect.width,
+        });
+
+    ((this.$.menu as unknown) as {
+      positionDialog_: (c: unknown) => void,
+    }).positionDialog_(config);
+    if (this.shareTabsFlyoutOpen) {
+      this.updateFlyoutPosition_();
+    }
+  }
 
   getDialog(): HTMLDialogElement {
     return this.$.menu.getDialog();
   }
 
   private computeMenuWidth_(): number {
-    return this.contextManagementInComposeboxEnabled_ ?
+    return this.contextManagementInComposeboxEnabled ?
         SHARE_TABS_MENU_WIDTH_PX :
         MENU_WIDTH_PX;
   }
 
+// Determines where menu can be placed automatically by renderer
+// based on the menu's set max/min heights.
   private constrainMenuHeight_(maxHeight: number) {
-    const menuHeight = this.$.menu.getDialog().offsetHeight;
-    if (menuHeight > maxHeight) {
-      const constrainedHeight = Math.max(MIN_MENU_HEIGHT_PX, maxHeight);
+    // Height limit is either the constant, or window size (minus buffer).
+    const defaultMaxHeight =
+        Math.min(DEFAULT_MAX_MENU_HEIGHT_PX, window.innerHeight - VIEWPORT_BUFFER_PX);
+    // Cap menu height based on the limit. Make sure it is above minimum.
+    const constrainedHeight =
+        Math.max(MIN_MENU_HEIGHT_PX, Math.min(defaultMaxHeight, maxHeight));
+    // Always set the max height, even if the current height is smaller
+    // than the max height in case later asynchronous suggestion loading
+    // creates larger height, which will cause the menu to overlap with the plus button.
+    this.$.menu.style.setProperty(
+        '--contextual-menu-max-height', `${constrainedHeight}px`);
+    // Only if constrainedHeight < CSS default, override the CSS default to allow shrinkage.
+    if (constrainedHeight < DEFAULT_MIN_MENU_HEIGHT_PX) {
       this.$.menu.style.setProperty(
-          '--contextual-menu-max-height', `${constrainedHeight}px`);
+          '--contextual-menu-min-height', `${constrainedHeight}px`);
     } else {
-      this.$.menu.style.removeProperty('--contextual-menu-max-height');
+      this.$.menu.style.removeProperty('--contextual-menu-min-height');
     }
   }
 
@@ -308,7 +403,17 @@ export class ContextualActionMenuElement extends
   }
 
   showAt(anchor: HTMLElement) {
+    this.anchor_ = anchor;
+    const rect = anchor.getBoundingClientRect();
+    if (rect.width === 0 && rect.height === 0 && rect.top === 0 &&
+        rect.left === 0) {
+      return;
+    }
+
     const menuWidth = this.computeMenuWidth_();
+    // Clear any previous max height limit before measuring natural full height.
+    this.$.menu.style.removeProperty('--contextual-menu-max-height');
+
     // Show the menu initially to render it and measure its natural height.
     this.$.menu.showAt(anchor, {
       width: menuWidth,
@@ -316,66 +421,101 @@ export class ContextualActionMenuElement extends
       anchorAlignmentY: AnchorAlignment.AFTER_END,
       noOffset: true,
     });
-
-    const rect = anchor.getBoundingClientRect();
     const iconElement = anchor.querySelector('#entrypointIcon') || anchor;
     const iconRect = iconElement.getBoundingClientRect();
 
     const spaceBelow = window.innerHeight - rect.bottom;
     const spaceAbove = rect.top;
 
-    // Decide whether to anchor to the right of the plus button.
-    let shouldAnchorRight = spaceBelow < ANCHOR_RIGHT_THRESHOLD_PX &&
-        spaceAbove < ANCHOR_RIGHT_THRESHOLD_PX;
+    const fullMenuHeight = this.$.menu.getDialog().scrollHeight;
+    const requiredHeight = fullMenuHeight + VIEWPORT_BUFFER_PX;
 
-    if (shouldAnchorRight) {
-      const limitX = this.computeHorizontalLimit_(iconRect);
-      const menuRight = iconRect.right + menuWidth;
-      if (menuRight > limitX - VIEWPORT_BUFFER_PX) {
-        shouldAnchorRight = false;
-      }
-    }
+    const doc = document.scrollingElement || document.documentElement;
+    const scrollLeft = doc.scrollLeft;
+    const scrollTop = doc.scrollTop;
+    const clientWidth = doc.clientWidth;
+    const clientHeight = doc.clientHeight;
 
     let config: ShowAtConfig = {
       width: menuWidth,
       noOffset: true,
+      minX: scrollLeft + VIEWPORT_BUFFER_PX,
+      minY: scrollTop + VIEWPORT_BUFFER_PX,
+      maxX: scrollLeft + clientWidth - VIEWPORT_BUFFER_PX,
+      maxY: scrollTop + clientHeight - VIEWPORT_BUFFER_PX,
     };
 
-    if (shouldAnchorRight) {
-      this.constrainMenuHeight_(window.innerHeight - VIEWPORT_BUFFER_PX * 2);
-
-      // Override the anchor dimensions to match the icon's dimensions.
-      config = {
-        ...config,
-        top: iconRect.top,
-        left: iconRect.left,
-        width: iconRect.width,
-        height: iconRect.height,
-        anchorAlignmentX: AnchorAlignment.AFTER_END,
-        anchorAlignmentY: AnchorAlignment.AFTER_START,
-      };
-    } else {
-      const anchorAlignmentY = spaceBelow >= ALIGNMENT_THRESHOLD_PX ?
-          AnchorAlignment.AFTER_END :
-          AnchorAlignment.BEFORE_START;
-
-      const availableSpace = anchorAlignmentY === AnchorAlignment.AFTER_END ?
-          spaceBelow :
-          spaceAbove;
-      this.constrainMenuHeight_(availableSpace - VIEWPORT_BUFFER_PX);
-
+    if (spaceBelow >= requiredHeight) {
+      this.constrainMenuHeight_(spaceBelow - VIEWPORT_BUFFER_PX);
       config = {
         ...config,
         anchorAlignmentX: AnchorAlignment.AFTER_START,
-        anchorAlignmentY,
+        anchorAlignmentY: AnchorAlignment.AFTER_END,
       };
+    } else if (spaceAbove >= requiredHeight) {
+      this.constrainMenuHeight_(spaceAbove - VIEWPORT_BUFFER_PX);
+      config = {
+        ...config,
+        anchorAlignmentX: AnchorAlignment.AFTER_START,
+        anchorAlignmentY: AnchorAlignment.BEFORE_START,
+      };
+    } else {
+      // Neither below nor above has enough space for the full menu.
+      let shouldAnchorRight = Math.max(spaceBelow, spaceAbove) < requiredHeight;
+      const horizontalLimit = this.computeHorizontalLimit_(iconRect);
+      // iconRect.right is the left edge of the right-anchored menu.
+      const menuRight = iconRect.right + menuWidth;
+      if (menuRight > horizontalLimit - VIEWPORT_BUFFER_PX) {
+        shouldAnchorRight = false;
+      }
+
+      if (shouldAnchorRight) {
+        const availableSpace = window.innerHeight - VIEWPORT_BUFFER_PX * 2;
+        if (fullMenuHeight > availableSpace) {
+          this.constrainMenuHeight_(availableSpace);
+        }
+
+        config = {
+          ...config,
+          top: iconRect.top,
+          left: iconRect.left,
+          width: iconRect.width,
+          height: iconRect.height,
+          anchorAlignmentX: AnchorAlignment.AFTER_END,
+          anchorAlignmentY: AnchorAlignment.AFTER_START,
+        };
+      } else {
+        const anchorAlignmentY = spaceBelow >= spaceAbove ?
+            AnchorAlignment.AFTER_END :
+            AnchorAlignment.BEFORE_START;
+        const availableSpace = anchorAlignmentY === AnchorAlignment.AFTER_END ?
+            spaceBelow :
+            spaceAbove;
+        this.constrainMenuHeight_(availableSpace - VIEWPORT_BUFFER_PX);
+
+        config = {
+          ...config,
+          anchorAlignmentX: AnchorAlignment.AFTER_START,
+          anchorAlignmentY,
+        };
+      }
     }
 
     // Position the menu using the finalized alignment.
+    this.lastConfig_ = config;
     this.$.menu.showAt(anchor, config);
+    this.reposition_();
     window.addEventListener('blur', this.onWindowBlur_);
 
-    if (this.contextManagementInComposeboxEnabled_) {
+    if (this.layoutResizeObserver_) {
+      this.layoutResizeObserver_.disconnect();
+    }
+    this.layoutResizeObserver_ = new ResizeObserver(() => {
+      this.reposition_();
+    });
+    this.layoutResizeObserver_.observe(document.body);
+
+    if (this.contextManagementInComposeboxEnabled) {
       this.updateSharingTabsText_();
       if (this.shareTabsFlyoutOpen) {
         this.updateFlyoutPosition_();
@@ -413,7 +553,7 @@ export class ContextualActionMenuElement extends
         this.aimThreadRestoredTabs.length :
         0;
     const totalTabs = this.disabledTabIds.size + restoredCount;
-    if (!this.contextManagementInComposeboxEnabled_ || totalTabs === 0) {
+    if (!this.contextManagementInComposeboxEnabled || totalTabs === 0) {
       this.sharingTabsText_ = this.i18n('shareTabs');
       return;
     }
@@ -472,13 +612,11 @@ export class ContextualActionMenuElement extends
   }
 
   protected isTabSelected_(tabOrId: TabInfo|number): boolean {
-    if (typeof tabOrId === 'number') {
-      return this.disabledTabIds.has(tabOrId);
-    }
-    const tab = tabOrId;
-    const isAimThreadRestored =
-        (this.aimThreadRestoredTabs || []).includes(tab);
-    return this.disabledTabIds.has(tab.tabId) || isAimThreadRestored;
+    const tabId = typeof tabOrId === 'number' ? tabOrId : tabOrId.tabId;
+    const isAimThreadRestored = this.contextManagementInComposeboxEnabled &&
+        (this.aimThreadRestoredTabs ||
+         []).some(restoredTab => restoredTab.tabId === tabId);
+    return this.disabledTabIds.has(tabId) || isAimThreadRestored;
   }
 
   protected getToolLabel_(tool: ToolMode): string {
@@ -580,18 +718,47 @@ export class ContextualActionMenuElement extends
     return limitReached;
   }
 
+  protected isShareTabsTriggerDisabled_(): boolean {
+    return (this.inputState?.disabledInputTypes || [])
+        .includes(InputType.kBrowserTab);
+  }
+
   // Checks if a tab item in the context menu should be disabled.
   protected isTabDisabled_(tab: TabInfo): boolean {
-    const noNewContextAllowed =
-        this.isInputTypeDisabled_(InputType.kBrowserTab);
-    const isTabInContext = this.isTabSelected_(tab.tabId);
-    if ((this.aimThreadRestoredTabs || []).includes(tab)) {
+    const isRestored = this.contextManagementInComposeboxEnabled &&
+        (this.aimThreadRestoredTabs ||
+         []).some(restoredTab => restoredTab.tabId === tab.tabId);
+    if (isRestored) {
+      if (this.enableTabDeselection_ && this.isTabSelected_(tab)) {
+        return false;
+      }
       return true;
     }
-    if (this.enableMultiTabSelection_) {
-      return noNewContextAllowed && !isTabInContext;
+
+    // Tabs selected in the current turn must remain enabled for deselection.
+    const isCurrentlySelected = this.disabledTabIds.has(tab.tabId);
+    if (isCurrentlySelected) {
+      return false;
     }
-    return noNewContextAllowed || isTabInContext;
+
+    if (this.isInputTypeDisabled_(InputType.kBrowserTab)) {
+      return true;
+    }
+
+    if (this.enableMultiTabSelection_) {
+      let maxTotal = this.maxFileCount_;
+      if (this.inputState && this.inputState.maxTotalInputs > 0) {
+        maxTotal = this.inputState.maxTotalInputs;
+      }
+      const totalSelected = this.nonTabFileNum + this.disabledTabIds.size +
+          (this.contextManagementInComposeboxEnabled ?
+               (this.aimThreadRestoredTabs || []).length :
+               0);
+      const limitReached = totalSelected >= maxTotal;
+      // Disable unselected tabs only when the total selected count reaches the limit.
+      return limitReached;
+    }
+    return false; // Default: Do not disable tabs if not in the multi-select limit scenario.
   }
 
   protected getSelectedTabs_(): TabInfo[] {
@@ -611,8 +778,11 @@ export class ContextualActionMenuElement extends
     const activeRestoredTabs = allSelectedIds.map(id => suggestionsMap.get(id))
                                    .filter((tab): tab is TabInfo => !!tab)
                                    .reverse();
+    const reversedRestored = this.contextManagementInComposeboxEnabled ?
+        [...(this.aimThreadRestoredTabs || [])].reverse() :
+        [];
 
-    return activeRestoredTabs.concat(this.aimThreadRestoredTabs || []);
+    return activeRestoredTabs.concat(reversedRestored);
   }
 
   protected isRecentTab_(tabId: number): boolean {
@@ -653,17 +823,35 @@ export class ContextualActionMenuElement extends
 
     assert(tabInfo);
 
-    // First tab takes ~1000ms to be added. During this time, ignore
-    // `pointerLeave` events caused by adding the first tab.
-    this.firstTabBeingAdded_ = true;
-    WindowProxy.getInstance().setTimeout(() => {
-      this.firstTabBeingAdded_ = false;
-    }, FIRST_TAB_DELAY);
+    if (!this.closeMenuOnSelect) {
+      // First tab takes ~1000ms to be added. During this time, ignore
+      // `pointerLeave` events caused by adding the first tab.
+      this.pendingTabAddId_ = tabInfo.tabId;
+      this.firstTabBeingAdded_ = true;
+      WindowProxy.getInstance().setTimeout(() => {
+        if (this.pendingTabAddId_ === tabInfo.tabId) {
+          this.firstTabBeingAdded_ = false;
+          this.pendingTabAddId_ = null;
+          if (!this.pointerOverTrigger_ && !this.pointerOverFlyout_) {
+            this.scheduleCloseTimer_();
+          }
+        }
+      }, FIRST_TAB_DELAY * 5);
+    }
 
 
-    if (this.enableMultiTabSelection_ && this.isTabSelected_(tabInfo.tabId)) {
-      this.deleteTabContext_(this.disabledTabIds.get(tabInfo.tabId)!);
-      return;
+    const isRestored = this.contextManagementInComposeboxEnabled &&
+        (this.aimThreadRestoredTabs ||
+         []).some(restoredTab => restoredTab.tabId === tabInfo.tabId);
+    if (this.isTabSelected_(tabInfo.tabId)) {
+      // Allow deselecting the tab if the explicit tab deselection feature is
+      // enabled. If disabled, we only allow deselecting newly-added tabs
+      // (non-restored) when multi-tab selection is enabled.
+      if (this.enableTabDeselection_ ||
+          (this.enableMultiTabSelection_ && !isRestored)) {
+        this.deleteTabContext_(tabInfo.tabId);
+        return;
+      }
     }
     this.addTabContext_(tabInfo);
     recordContextAdditionMethod(
@@ -678,8 +866,8 @@ export class ContextualActionMenuElement extends
     }
   }
 
-  protected deleteTabContext_(uuid: UnguessableToken) {
-    this.fire('delete-tab-context', {uuid: uuid, fromUserAction: true});
+  protected deleteTabContext_(tabId: number) {
+    this.fire('delete-tab-context', {tabId: tabId, fromUserAction: true});
     this.maybeCloseMenuBasedOnEntrypoint_();
   }
 
@@ -712,10 +900,10 @@ export class ContextualActionMenuElement extends
     if (!this.hasTabSuggestions_) {
       return;
     }
+    this.pointerOverTrigger_ = false;
     if (this.firstTabBeingAdded_) {
       return;
     }
-    this.pointerOverTrigger_ = false;
     this.scheduleCloseTimer_();
   }
 
@@ -723,7 +911,7 @@ export class ContextualActionMenuElement extends
     if (!this.hasTabSuggestions_) {
       return;
     }
-    this.firstTabBeingAdded_ = false;
+    // Do NOT reset firstTabBeingAdded_ here, it should only be reset by timers.
     this.pointerOverFlyout_ = true;
     this.cancelCloseTimer_();
   }
@@ -732,10 +920,10 @@ export class ContextualActionMenuElement extends
     if (!this.hasTabSuggestions_) {
       return;
     }
+    this.pointerOverFlyout_ = false;
     if (this.firstTabBeingAdded_) {
       return;
     }
-    this.pointerOverFlyout_ = false;
     this.scheduleCloseTimer_();
   }
 
@@ -820,31 +1008,22 @@ export class ContextualActionMenuElement extends
       const flyoutWidth = flyout.offsetWidth || DEFAULT_FLYOUT_WIDTH_PX;
       const viewportWidth = window.innerWidth;
 
-      let flyoutTop: number;
       if (flyoutWidth + SHARE_TABS_FLYOUT_GAP_PX <=
           viewportWidth - triggerRect.right) {
         this.shareTabsFlyoutPosition_ = 'right';
-        flyout.style.left = `${triggerRect.right + SHARE_TABS_FLYOUT_GAP_PX}px`;
-        flyout.style.right = '';
-        flyoutTop = triggerRect.top;
+        flyout.setAttribute('data-position', 'right');
       } else if (triggerRect.left >= flyoutWidth + SHARE_TABS_FLYOUT_GAP_PX) {
         this.shareTabsFlyoutPosition_ = 'left';
-        flyout.style.left =
-            `${triggerRect.left - flyoutWidth - SHARE_TABS_FLYOUT_GAP_PX}px`;
-        flyout.style.right = '';
-        flyoutTop = triggerRect.top;
+        flyout.setAttribute('data-position', 'left');
       } else {
         this.shareTabsFlyoutPosition_ = 'bottom';
-        flyoutTop = triggerRect.bottom + SHARE_TABS_FLYOUT_GAP_PX;
-        const rtl = getComputedStyle(this).direction === 'rtl';
-        if (rtl) {
-          flyout.style.left = `${triggerRect.right - flyoutWidth}px`;
-        } else {
-          flyout.style.left = `${triggerRect.left}px`;
-        }
+        flyout.setAttribute('data-position', 'bottom');
       }
-      flyout.style.top = `${flyoutTop}px`;
 
+      let flyoutTop = triggerRect.top;
+      if (this.shareTabsFlyoutPosition_ === 'bottom') {
+        flyoutTop = triggerRect.bottom + SHARE_TABS_FLYOUT_GAP_PX;
+      }
       const spaceBelow = window.innerHeight - flyoutTop;
       const maxFlyoutHeight = Math.max(
           MIN_MENU_HEIGHT_PX,
@@ -889,8 +1068,10 @@ export class ContextualActionMenuElement extends
   private updateScrollable_() {
     this.updateComplete.then(() => {
       const dialog = this.$.menu.getDialog();
-      const isScrollable = dialog.scrollHeight > dialog.offsetHeight;
-      this.$.menu.toggleAttribute('scrollable', isScrollable);
+      if (this.open && dialog) {
+        const isScrollable = dialog.scrollHeight > dialog.offsetHeight;
+        this.$.menu.toggleAttribute('scrollable', isScrollable);
+      }
     });
   }
 
@@ -948,8 +1129,14 @@ export class ContextualActionMenuElement extends
 
   protected onMenuClose_() {
     window.removeEventListener('blur', this.onWindowBlur_);
+    if (this.layoutResizeObserver_) {
+      this.layoutResizeObserver_.disconnect();
+      this.layoutResizeObserver_ = null;
+    }
+    this.lastConfig_ = undefined;
     this.resetShareTabsFlyout_();
     this.$.menu.style.removeProperty('--contextual-menu-max-height');
+    this.$.menu.style.removeProperty('--contextual-menu-min-height');
     this.fire('close');
   }
 

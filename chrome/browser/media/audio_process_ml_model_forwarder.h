@@ -23,7 +23,7 @@
 #include "services/audio/public/mojom/ml_model_manager.mojom.h"
 
 namespace optimization_guide {
-class ModelInfo;
+struct ModelInfo;
 }  // namespace optimization_guide
 
 class PrefService;
@@ -85,6 +85,11 @@ class AudioProcessMlModelForwarder {
       }
     }
     return false;
+  }
+  void FlushForTesting() {
+    if (audio_process_model_manager_.is_bound()) {
+      audio_process_model_manager_.FlushForTesting();
+    }
   }
 
   // Signal that an audio capture stream has been opened. Media may not yet be

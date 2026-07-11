@@ -19,6 +19,7 @@
 #include "build/chromeos_buildflags.h"
 #include "cc/base/completion_event.h"
 #include "cc/base/devtools_instrumentation.h"
+#include "cc/base/features.h"
 #include "cc/benchmarks/benchmark_instrumentation.h"
 #include "cc/input/browser_controls_offset_manager.h"
 #include "cc/input/browser_controls_offset_tag_modifications.h"
@@ -330,6 +331,31 @@ void SingleThreadProxy::SetTargetLocalSurfaceId(
     return;
   DebugScopedSetImplThread impl(task_runner_provider_);
   host_impl_->SetTargetLocalSurfaceId(target_local_surface_id);
+}
+
+void SingleThreadProxy::SetUnboundedFrameSink(
+    std::unique_ptr<LayerTreeFrameSink> unbounded_frame_sink,
+    const viz::LocalSurfaceId& local_surface_id) {
+  DCHECK(task_runner_provider_->IsMainThread());
+  DCHECK(layer_tree_host_->GetSettings().enable_unbounded_element);
+  DebugScopedSetImplThread impl(task_runner_provider_);
+  host_impl_->SetUnboundedFrameSink(std::move(unbounded_frame_sink),
+                                    local_surface_id);
+}
+
+void SingleThreadProxy::DismissUnboundedFrameSink() {
+  DCHECK(task_runner_provider_->IsMainThread());
+  DCHECK(layer_tree_host_->GetSettings().enable_unbounded_element);
+  DebugScopedSetImplThread impl(task_runner_provider_);
+  host_impl_->DismissUnboundedFrameSink();
+}
+
+void SingleThreadProxy::SetUnboundedLocalSurfaceId(
+    const viz::LocalSurfaceId& local_surface_id) {
+  DCHECK(task_runner_provider_->IsMainThread());
+  DCHECK(layer_tree_host_->GetSettings().enable_unbounded_element);
+  DebugScopedSetImplThread impl(task_runner_provider_);
+  host_impl_->SetUnboundedLocalSurfaceId(local_surface_id);
 }
 
 void SingleThreadProxy::DetachInputDelegateAndRenderFrameObserver() {
@@ -817,7 +843,10 @@ void SingleThreadProxy::CompositeImmediatelyForTest(
     // Note: We do not want to prevent SetNeedsAnimate from requesting
     // a commit here.
     commit_requested_ = true;
-    StopDeferringCommits();
+    if (base::FeatureList::IsEnabled(
+            features::kStopDeferringCommitsInCompositeForTest)) {
+      StopDeferringCommits();
+    }
     layer_tree_host_->RecordStartOfFrameMetrics();
     DoBeginMainFrame(begin_frame_args);
     commit_requested_ = false;

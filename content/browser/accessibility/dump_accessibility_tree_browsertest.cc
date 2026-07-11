@@ -784,6 +784,13 @@ IN_PROC_BROWSER_TEST_P(DumpAccessibilityTreeTest,
 }
 
 IN_PROC_BROWSER_TEST_P(DumpAccessibilityTreeTest,
+                       AccessibilityAriaActionsVisibilityHidden) {
+  base::CommandLine::ForCurrentProcess()->AppendSwitch(
+      switches::kEnableExperimentalWebPlatformFeatures);
+  RunAriaTest(FILE_PATH_LITERAL("aria-actions-visibility-hidden.html"));
+}
+
+IN_PROC_BROWSER_TEST_P(DumpAccessibilityTreeTest,
                        AccessibilityAriaActionsTargetIdChange) {
   RunAriaTest(FILE_PATH_LITERAL("aria-actions-target-id-change.html"));
 }
@@ -1033,6 +1040,11 @@ IN_PROC_BROWSER_TEST_P(DumpAccessibilityTreeTest, AccessibilityAriaDefinition) {
 IN_PROC_BROWSER_TEST_P(DumpAccessibilityTreeTest,
                        AccessibilityAriaDescribedBy) {
   RunAriaTest(FILE_PATH_LITERAL("aria-describedby.html"));
+}
+
+IN_PROC_BROWSER_TEST_P(DumpAccessibilityTreeTest,
+                       AccessibilityAriaFieldsetDescribedBy) {
+  RunAriaTest(FILE_PATH_LITERAL("aria-fieldset-describedby.html"));
 }
 
 IN_PROC_BROWSER_TEST_P(DumpAccessibilityTreeTest,
@@ -1556,6 +1568,11 @@ IN_PROC_BROWSER_TEST_P(DumpAccessibilityTreeTest,
 IN_PROC_BROWSER_TEST_P(DumpAccessibilityTreeTest,
                        AccessibilityMenuListMultipleInvokers) {
   RunHtmlTest(FILE_PATH_LITERAL("menulist-multiple-invokers.html"));
+}
+
+IN_PROC_BROWSER_TEST_P(DumpAccessibilityTreeTest,
+                       AccessibilityMenuListMultipleInvokers2) {
+  RunHtmlTest(FILE_PATH_LITERAL("menulist-multiple-invokers-2.html"));
 }
 
 IN_PROC_BROWSER_TEST_P(DumpAccessibilityTreeTest,
@@ -2916,6 +2933,11 @@ IN_PROC_BROWSER_TEST_P(DumpAccessibilityTreeTest, AccessibilityImg) {
   RunHtmlTest(FILE_PATH_LITERAL("img.html"));
 }
 
+IN_PROC_BROWSER_TEST_P(DumpAccessibilityTreeTest,
+                       AccessibilityImgInsideFocusableParent) {
+  RunHtmlTest(FILE_PATH_LITERAL("img-inside-focusable-parent.html"));
+}
+
 IN_PROC_BROWSER_TEST_P(DumpAccessibilityTreeTest, AccessibilityImgBroken) {
   RunHtmlTest(FILE_PATH_LITERAL("img-broken.html"));
 }
@@ -4187,6 +4209,11 @@ IN_PROC_BROWSER_TEST_P(DumpAccessibilityTreeTest, AccessibilityTitleEmpty) {
 
 IN_PROC_BROWSER_TEST_P(DumpAccessibilityTreeTest, AccessibilityTitleAttribute) {
   RunHtmlTest(FILE_PATH_LITERAL("title-attribute.html"));
+}
+
+IN_PROC_BROWSER_TEST_P(DumpAccessibilityTreeTest,
+                       AccessibilityTitleAttributeWithChildren) {
+  RunHtmlTest(FILE_PATH_LITERAL("title-attribute-with-children.html"));
 }
 
 IN_PROC_BROWSER_TEST_P(DumpAccessibilityTreeTest, AccessibilityTitleChanged) {

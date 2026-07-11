@@ -152,6 +152,7 @@ source_set("common_headers") {
     "//base",
     "//ipc",
     "//remoting/base",
+    "//remoting/base:errors",
     "//remoting/host/base",
     "//remoting/host/mojom",
     "//remoting/protocol",
@@ -474,6 +475,8 @@ static_library("common") {
     "host_window.h",
     "host_window_proxy.cc",
     "host_window_proxy.h",
+    "input_pipeline.cc",
+    "input_pipeline.h",
     "it2me_desktop_environment.cc",
     "it2me_desktop_environment.h",
     "legacy_interaction_strategy.cc",
@@ -506,6 +509,9 @@ static_library("common") {
     "session_policies_from_dict.h",
     "shutdown_watchdog.cc",
     "shutdown_watchdog.h",
+    "terminal_session.h",
+    "terminal_session_manager.cc",
+    "terminal_session_manager.h",
     "test_echo_extension.cc",
     "test_echo_extension.h",
     "test_echo_extension_session.cc",
@@ -556,6 +562,11 @@ static_library("common") {
       "mojo_video_capturer.h",
       "mojo_video_capturer_list.cc",
       "mojo_video_capturer_list.h",
+      "peer_connection_process.cc",
+      "peer_connection_process.h",
+      "peer_connection_process_handler.cc",
+      "peer_connection_process_handler.h",
+      "peer_connection_process_main.cc",
       "worker_process_launcher.cc",
     ]
   }
@@ -658,11 +669,14 @@ static_library("common") {
       "daemon_process_linux.cc",
       "host_wtmpdb_logger.cc",
       "host_wtmpdb_logger.h",
+      "terminal_session_linux.cc",
     ]
 
     libs += [ "util" ]
 
     deps += [ "//sql" ]
+  } else {
+    sources += [ "terminal_session_null.cc" ]
   }
 
   if (is_linux) {
@@ -829,6 +843,8 @@ static_library("test_support") {
     "fake_keyboard_layout_monitor.h",
     "fake_mouse_cursor_monitor.cc",
     "fake_mouse_cursor_monitor.h",
+    "fake_terminal_session.cc",
+    "fake_terminal_session.h",
     "host_mock_objects.cc",
     "host_mock_objects.h",
   ]
@@ -909,6 +925,7 @@ source_set("unit_tests") {
     "setup/host_starter_oauth_helper_unittest.cc",
     "setup/me2me_native_messaging_host_unittest.cc",
     "setup/pin_validator_unittest.cc",
+    "terminal_session_manager_unittest.cc",
     "webrtc_mouse_cursor_monitor_adaptor_unittest.cc",
     "zombie_host_detector_unittest.cc",
   ]
@@ -963,6 +980,7 @@ source_set("unit_tests") {
     "//remoting/host/native_messaging",
     "//remoting/host/remote_open_url:test_support",
     "//remoting/host/remote_open_url:unit_tests",
+    "//remoting/host/security_key",
     "//remoting/host/security_key:unit_tests",
     "//remoting/host/setup:common",
     "//remoting/host/setup:start_host_common",

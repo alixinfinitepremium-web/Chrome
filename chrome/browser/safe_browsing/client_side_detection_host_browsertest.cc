@@ -31,9 +31,9 @@
 #include "components/safe_browsing/buildflags.h"
 #include "components/safe_browsing/content/browser/client_side_detection_feature_cache.h"
 #include "components/safe_browsing/content/browser/client_side_detection_service.h"
-#include "components/safe_browsing/content/browser/client_side_phishing_model.h"
 #include "components/safe_browsing/content/browser/credit_card_form_event.h"
 #include "components/safe_browsing/content/browser/ui_manager.h"
+#include "components/safe_browsing/core/browser/csd_model_type.h"
 #include "components/safe_browsing/core/common/features.h"
 #include "components/safe_browsing/core/common/proto/client_model.pb.h"
 #include "components/safe_browsing/core/common/proto/csd.pb.h"
@@ -44,12 +44,15 @@
 #include "content/public/browser/web_contents_observer.h"
 #include "content/public/test/browser_test.h"
 #include "content/public/test/mock_navigation_handle.h"
+#include "content/public/test/permissions_test_utils.h"
 #include "content/public/test/prerender_test_util.h"
 #include "net/dns/mock_host_resolver.h"
 #include "net/http/http_status_code.h"
 #include "net/test/embedded_test_server/embedded_test_server.h"
 #include "testing/gmock/include/gmock/gmock.h"
 #include "testing/gtest/include/gtest/gtest.h"
+#include "third_party/blink/public/common/permissions/permission_utils.h"
+#include "third_party/blink/public/mojom/permissions/permission_status.mojom.h"
 #include "third_party/skia/include/core/SkBitmap.h"
 #include "ui/gfx/image/image_unittest_util.h"
 #include "url/gurl.h"
@@ -369,7 +372,7 @@ IN_PROC_BROWSER_TEST_F(ClientSideDetectionHostPrerenderBrowserTest,
   }
 
   if (base::FeatureList::IsEnabled(kClientSideDetectionOnlyESBClassification)) {
-    SetSafeBrowsingState(browser()->profile()->GetPrefs(),
+    SetSafeBrowsingState(browser()->GetProfile()->GetPrefs(),
                          SafeBrowsingState::ENHANCED_PROTECTION);
   }
 
@@ -441,7 +444,7 @@ IN_PROC_BROWSER_TEST_F(ClientSideDetectionHostPrerenderBrowserTest,
   }
 
   if (base::FeatureList::IsEnabled(kClientSideDetectionOnlyESBClassification)) {
-    SetSafeBrowsingState(browser()->profile()->GetPrefs(),
+    SetSafeBrowsingState(browser()->GetProfile()->GetPrefs(),
                          SafeBrowsingState::ENHANCED_PROTECTION);
   }
 
@@ -512,7 +515,7 @@ IN_PROC_BROWSER_TEST_F(ClientSideDetectionHostPrerenderBrowserTest,
   }
 
   if (base::FeatureList::IsEnabled(kClientSideDetectionOnlyESBClassification)) {
-    SetSafeBrowsingState(browser()->profile()->GetPrefs(),
+    SetSafeBrowsingState(browser()->GetProfile()->GetPrefs(),
                          SafeBrowsingState::ENHANCED_PROTECTION);
   }
 
@@ -724,7 +727,7 @@ IN_PROC_BROWSER_TEST_F(
     GTEST_SKIP();
   }
 
-  SetSafeBrowsingState(browser()->profile()->GetPrefs(),
+  SetSafeBrowsingState(browser()->GetProfile()->GetPrefs(),
                        SafeBrowsingState::ENHANCED_PROTECTION);
 
   FakeClientSideDetectionService fake_csd_service;
@@ -785,9 +788,13 @@ IN_PROC_BROWSER_TEST_F(
   LoginReputationClientRequest::DebuggingMetadata* debugging_metadata =
       feature_cache_map->GetOrCreateDebuggingMetadataForURL(prerender_url);
 
-  // The value remains private ip since we bypassed it in the test.
-  EXPECT_EQ(debugging_metadata->preclassification_check_result(),
-            PreClassificationCheckResult::NO_CLASSIFY_PRIVATE_IP);
+  // The value remains private ip or local resource since we bypassed it in the
+  // test.
+  EXPECT_EQ(
+      debugging_metadata->preclassification_check_result(),
+      base::FeatureList::IsEnabled(kClientSideDetectionLocalResourceCheckFix)
+          ? PreClassificationCheckResult::NO_CLASSIFY_LOCAL_RESOURCE
+          : PreClassificationCheckResult::NO_CLASSIFY_PRIVATE_IP);
   EXPECT_EQ(debugging_metadata->network_result(), net::HTTP_OK);
   EXPECT_EQ(debugging_metadata->phishing_detector_result(),
             PhishingDetectorResult::CLASSIFICATION_SUCCESS);
@@ -801,7 +808,7 @@ IN_PROC_BROWSER_TEST_F(
     GTEST_SKIP();
   }
 
-  SetSafeBrowsingState(browser()->profile()->GetPrefs(),
+  SetSafeBrowsingState(browser()->GetProfile()->GetPrefs(),
                        SafeBrowsingState::ENHANCED_PROTECTION);
 
   ClientSideDetectionFeatureCache* feature_cache_map =
@@ -845,7 +852,7 @@ IN_PROC_BROWSER_TEST_F(
     prerender_helper().NavigatePrimaryPage(prerender_url);
   }
 
-  feature_cache_map->Clear();
+  feature_cache_map->ClearForTesting();
 
   // Bypass the pre-classification checks.
   csd_host->OnPhishingPreClassificationDone(
@@ -865,10 +872,14 @@ IN_PROC_BROWSER_TEST_F(
   LoginReputationClientRequest::DebuggingMetadata* debugging_metadata =
       feature_cache_map->GetOrCreateDebuggingMetadataForURL(prerender_url);
 
-  // The value remains private ip since we bypassed it in the test, but we
-  // cleared the cache before bypassing, so this should not equal anymore.
-  EXPECT_NE(debugging_metadata->preclassification_check_result(),
-            PreClassificationCheckResult::NO_CLASSIFY_PRIVATE_IP);
+  // The value remains private ip or local resource since we bypassed it in the
+  // test, but we cleared the cache before bypassing, so this should not equal
+  // anymore.
+  EXPECT_NE(
+      debugging_metadata->preclassification_check_result(),
+      base::FeatureList::IsEnabled(kClientSideDetectionLocalResourceCheckFix)
+          ? PreClassificationCheckResult::NO_CLASSIFY_LOCAL_RESOURCE
+          : PreClassificationCheckResult::NO_CLASSIFY_PRIVATE_IP);
   EXPECT_EQ(debugging_metadata->network_result(), net::HTTP_OK);
   EXPECT_EQ(debugging_metadata->phishing_detector_result(),
             PhishingDetectorResult::CLASSIFICATION_SUCCESS);
@@ -882,7 +893,7 @@ IN_PROC_BROWSER_TEST_F(
     GTEST_SKIP();
   }
 
-  SetSafeBrowsingState(browser()->profile()->GetPrefs(),
+  SetSafeBrowsingState(browser()->GetProfile()->GetPrefs(),
                        SafeBrowsingState::ENHANCED_PROTECTION);
 
   base::HistogramTester histogram_tester;
@@ -931,7 +942,7 @@ IN_PROC_BROWSER_TEST_F(
     GTEST_SKIP();
   }
 
-  SetSafeBrowsingState(browser()->profile()->GetPrefs(),
+  SetSafeBrowsingState(browser()->GetProfile()->GetPrefs(),
                        SafeBrowsingState::ENHANCED_PROTECTION);
 
   base::HistogramTester histogram_tester;
@@ -1079,7 +1090,7 @@ IN_PROC_BROWSER_TEST_F(ClientSideDetectionHostVibrateTest,
   if (base::FeatureList::IsEnabled(kClientSideDetectionKillswitch)) {
     GTEST_SKIP();
   }
-  SetSafeBrowsingState(browser()->profile()->GetPrefs(),
+  SetSafeBrowsingState(browser()->GetProfile()->GetPrefs(),
                        SafeBrowsingState::ENHANCED_PROTECTION);
 
   base::HistogramTester histogram_tester;
@@ -1141,7 +1152,7 @@ IN_PROC_BROWSER_TEST_F(ClientSideDetectionHostVibrateTest,
   if (base::FeatureList::IsEnabled(kClientSideDetectionKillswitch)) {
     GTEST_SKIP();
   }
-  SetSafeBrowsingState(browser()->profile()->GetPrefs(),
+  SetSafeBrowsingState(browser()->GetProfile()->GetPrefs(),
                        SafeBrowsingState::ENHANCED_PROTECTION);
 
   base::HistogramTester histogram_tester;
@@ -1221,6 +1232,15 @@ class ClientSideDetectionHostClipboardTest
     flatbuffer_model_str_ = set_up_client_side_model();
     host_resolver()->AddRule("*", "127.0.0.1");
     ASSERT_TRUE(embedded_test_server()->Start());
+
+    content::PermissionController* permission_controller =
+        browser()->profile()->GetPermissionController();
+    url::Origin origin =
+        url::Origin::Create(embedded_test_server()->GetURL("/title1.html"));
+    content::SetPermissionControllerOverride(
+        permission_controller, origin, origin,
+        blink::PermissionType::CLIPBOARD_SANITIZED_WRITE,
+        blink::mojom::PermissionStatus::GRANTED);
   }
 
   std::string client_side_model() { return flatbuffer_model_str_; }
@@ -1307,7 +1327,7 @@ IN_PROC_BROWSER_TEST_P(ClientSideDetectionHostClipboardTest,
   if (base::FeatureList::IsEnabled(kClientSideDetectionKillswitch)) {
     GTEST_SKIP();
   }
-  SetSafeBrowsingState(browser()->profile()->GetPrefs(),
+  SetSafeBrowsingState(browser()->GetProfile()->GetPrefs(),
                        SafeBrowsingState::ENHANCED_PROTECTION);
 
   base::HistogramTester histogram_tester;
@@ -1360,7 +1380,7 @@ IN_PROC_BROWSER_TEST_P(ClientSideDetectionHostClipboardTest,
   if (base::FeatureList::IsEnabled(kClientSideDetectionKillswitch)) {
     GTEST_SKIP();
   }
-  SetSafeBrowsingState(browser()->profile()->GetPrefs(),
+  SetSafeBrowsingState(browser()->GetProfile()->GetPrefs(),
                        SafeBrowsingState::ENHANCED_PROTECTION);
 
   base::HistogramTester histogram_tester;
@@ -1491,7 +1511,7 @@ IN_PROC_BROWSER_TEST_P(
   if (base::FeatureList::IsEnabled(kClientSideDetectionKillswitch)) {
     GTEST_SKIP();
   }
-  SetSafeBrowsingState(browser()->profile()->GetPrefs(),
+  SetSafeBrowsingState(browser()->GetProfile()->GetPrefs(),
                        SafeBrowsingState::ENHANCED_PROTECTION);
 
   base::HistogramTester histogram_tester;
@@ -1531,7 +1551,7 @@ IN_PROC_BROWSER_TEST_P(
   if (base::FeatureList::IsEnabled(kClientSideDetectionKillswitch)) {
     GTEST_SKIP();
   }
-  SetSafeBrowsingState(browser()->profile()->GetPrefs(),
+  SetSafeBrowsingState(browser()->GetProfile()->GetPrefs(),
                        SafeBrowsingState::ENHANCED_PROTECTION);
 
   base::HistogramTester histogram_tester;
@@ -1699,7 +1719,7 @@ IN_PROC_BROWSER_TEST_F(ClientSideDetectionHostCreditCardFormTest,
   if (base::FeatureList::IsEnabled(kClientSideDetectionKillswitch)) {
     GTEST_SKIP();
   }
-  SetSafeBrowsingState(browser()->profile()->GetPrefs(),
+  SetSafeBrowsingState(browser()->GetProfile()->GetPrefs(),
                        SafeBrowsingState::ENHANCED_PROTECTION);
 
   base::HistogramTester histogram_tester;
@@ -1741,7 +1761,7 @@ IN_PROC_BROWSER_TEST_F(ClientSideDetectionHostCreditCardFormTriggerDisabledTest,
   if (base::FeatureList::IsEnabled(kClientSideDetectionKillswitch)) {
     GTEST_SKIP();
   }
-  SetSafeBrowsingState(browser()->profile()->GetPrefs(),
+  SetSafeBrowsingState(browser()->GetProfile()->GetPrefs(),
                        SafeBrowsingState::ENHANCED_PROTECTION);
 
   base::HistogramTester histogram_tester;
@@ -1793,7 +1813,7 @@ IN_PROC_BROWSER_TEST_F(ClientSideDetectionHostCreditCardFormDetectionOnlyTest,
   if (base::FeatureList::IsEnabled(kClientSideDetectionKillswitch)) {
     GTEST_SKIP();
   }
-  SetSafeBrowsingState(browser()->profile()->GetPrefs(),
+  SetSafeBrowsingState(browser()->GetProfile()->GetPrefs(),
                        SafeBrowsingState::ENHANCED_PROTECTION);
 
   base::HistogramTester histogram_tester;
@@ -1832,7 +1852,7 @@ IN_PROC_BROWSER_TEST_F(
   if (base::FeatureList::IsEnabled(kClientSideDetectionKillswitch)) {
     GTEST_SKIP();
   }
-  SetSafeBrowsingState(browser()->profile()->GetPrefs(),
+  SetSafeBrowsingState(browser()->GetProfile()->GetPrefs(),
                        SafeBrowsingState::ENHANCED_PROTECTION);
 
   base::HistogramTester histogram_tester;
@@ -1893,7 +1913,7 @@ IN_PROC_BROWSER_TEST_F(ClientSideDetectionHostCreditCardFormTest,
   if (base::FeatureList::IsEnabled(kClientSideDetectionKillswitch)) {
     GTEST_SKIP();
   }
-  SetSafeBrowsingState(browser()->profile()->GetPrefs(),
+  SetSafeBrowsingState(browser()->GetProfile()->GetPrefs(),
                        SafeBrowsingState::ENHANCED_PROTECTION);
 
   base::HistogramTester histogram_tester;
@@ -1971,7 +1991,7 @@ IN_PROC_BROWSER_TEST_F(
   if (base::FeatureList::IsEnabled(kClientSideDetectionKillswitch)) {
     GTEST_SKIP();
   }
-  SetSafeBrowsingState(browser()->profile()->GetPrefs(),
+  SetSafeBrowsingState(browser()->GetProfile()->GetPrefs(),
                        SafeBrowsingState::ENHANCED_PROTECTION);
 
   base::HistogramTester histogram_tester;
@@ -2068,7 +2088,7 @@ IN_PROC_BROWSER_TEST_F(ClientSideDetectionHostGeminiAntiscamProtectionTest,
     GTEST_SKIP();
   }
   base::HistogramTester histogram_tester;
-  SetSafeBrowsingState(browser()->profile()->GetPrefs(),
+  SetSafeBrowsingState(browser()->GetProfile()->GetPrefs(),
                        SafeBrowsingState::ENHANCED_PROTECTION);
   FakeClientSideDetectionService fake_csd_service;
   fake_csd_service.SetModel(client_side_model());

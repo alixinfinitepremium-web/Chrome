@@ -138,8 +138,7 @@ class DocumentPipHost : public content::WebContentsUserData<DocumentPipHost>,
       const std::string& frame_name,
       const GURL& target_url) override;
   void WebContentsCreated(content::WebContents* source_contents,
-                          int opener_render_process_id,
-                          int opener_render_frame_id,
+                          const content::GlobalRenderFrameHostId& opener_id,
                           const std::string& frame_name,
                           const GURL& target_url,
                           content::WebContents* new_contents) override;
@@ -200,6 +199,13 @@ class DocumentPipHost : public content::WebContentsUserData<DocumentPipHost>,
   // Private constructor called by WebContentsUserData machinery via
   // CreateForWebContents().
   explicit DocumentPipHost(content::WebContents* opener_web_contents);
+
+  // Creates the WebContents helpers a standalone PiP child needs. The child is
+  // not a tab, so TabHelpers never runs for it; this wires up the specific
+  // helpers (PermissionRequestManager, TabModalDialogManager) directly. Must be
+  // called after `widget_` is initialized, since the dialog manager anchors to
+  // it.
+  void CreateChildWebContentsHelpers(content::WebContents* child_web_contents);
 
   // Tears down the PiP widget (and with it the child WebContents, which is
   // owned by the WebView inside the widget's contents view). Safe to call

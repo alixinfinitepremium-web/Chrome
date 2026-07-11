@@ -98,11 +98,11 @@
 #include "chrome/browser/optimization_guide/optimization_guide_tab_url_provider.h"
 #endif
 
-#include "chrome/browser/private_ai/private_ai_service.h"
 #include "chrome/browser/private_ai/private_ai_service_factory.h"
 #include "components/optimization_guide/core/model_execution/private_ai_model_execution_fetcher.h"
 #include "components/private_ai/client.h"    // nogncheck
 #include "components/private_ai/features.h"  // nogncheck
+#include "components/private_ai/private_ai_service.h"
 
 namespace {
 
@@ -446,14 +446,14 @@ void OptimizationGuideKeyedService::AddObserverForOptimizationTargetModel(
     const std::optional<optimization_guide::proto::Any>& model_metadata,
     scoped_refptr<base::SequencedTaskRunner> model_task_runner,
     optimization_guide::OptimizationTargetModelObserver* observer) {
-  GetPredictionManager()->AddObserverForOptimizationTargetModel(
+  GetGlobalState().model_provider().AddObserverForOptimizationTargetModel(
       optimization_target, model_metadata, model_task_runner, observer);
 }
 
 void OptimizationGuideKeyedService::RemoveObserverForOptimizationTargetModel(
     optimization_guide::proto::OptimizationTarget optimization_target,
     optimization_guide::OptimizationTargetModelObserver* observer) {
-  GetPredictionManager()->RemoveObserverForOptimizationTargetModel(
+  GetGlobalState().model_provider().RemoveObserverForOptimizationTargetModel(
       optimization_target, observer);
 }
 
@@ -580,6 +580,16 @@ void OptimizationGuideKeyedService::AddHintWithMultipleOptimizationsForTesting(
         optimization_types) {
   hints_manager_->AddHintWithMultipleOptimizationsForTesting(  // IN-TEST
       url, optimization_types);
+}
+
+void OptimizationGuideKeyedService::AddHintWithMultipleOptimizationsForTesting(
+    const GURL& url,
+    const std::vector<
+        std::pair<optimization_guide::proto::OptimizationType,
+                  std::optional<optimization_guide::OptimizationMetadata>>>&
+        optimization_types_and_metadata) {
+  hints_manager_->AddHintWithMultipleOptimizationsForTesting(  // IN-TEST
+      url, optimization_types_and_metadata);
 }
 
 void OptimizationGuideKeyedService::AddOnDemandHintForTesting(

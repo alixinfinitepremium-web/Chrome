@@ -79,6 +79,7 @@
 #include "components/embedder_support/origin_trials/origin_trials_settings_storage.h"
 #include "components/embedder_support/switches.h"
 #include "components/embedder_support/user_agent_utils.h"
+#include "components/heap_profiling/in_process/heap_profiler_controller.h"
 #include "components/navigation_interception/intercept_navigation_delegate.h"
 #include "components/page_load_metrics/browser/metrics_navigation_throttle.h"
 #include "components/page_load_metrics/browser/metrics_web_contents_observer.h"
@@ -91,6 +92,7 @@
 #include "components/safe_browsing/content/browser/mojo_safe_browsing_impl.h"
 #include "components/safe_browsing/core/common/features.h"
 #include "components/safe_browsing/core/common/hashprefix_realtime/hash_realtime_utils.h"
+#include "components/sampling_profiler/process_type.h"
 #include "components/url_matcher/url_matcher.h"
 #include "components/url_matcher/url_util.h"
 #include "components/user_prefs/user_prefs.h"
@@ -504,6 +506,18 @@ void AwContentBrowserClient::AppendExtraCommandLineSwitches(
 
     command_line->CopySwitchesFrom(*base::CommandLine::ForCurrentProcess(),
                                    kSwitchNames);
+
+    if (base::FeatureList::IsEnabled(features::kWebViewMemoryProfilingClient)) {
+      if (const auto* heap_profiler_controller =
+              heap_profiling::HeapProfilerController::GetInstance()) {
+        sampling_profiler::ProfilerProcessType profiler_process_type =
+            process_type == switches::kRendererProcess
+                ? sampling_profiler::ProfilerProcessType::kRenderer
+                : sampling_profiler::ProfilerProcessType::kUtility;
+        heap_profiler_controller->AppendCommandLineSwitchForChildProcess(
+            command_line, profiler_process_type, child_process_id);
+      }
+    }
   }
 }
 
@@ -1248,11 +1262,13 @@ void AwContentBrowserClient::WillCreateURLLoaderFactory(
   }
 }
 
-uint32_t AwContentBrowserClient::GetWebSocketOptions(
-    content::RenderFrameHost* frame) {
+content::ContentBrowserClient::WebSocketOptions
+AwContentBrowserClient::GetWebSocketOptions(content::RenderFrameHost* frame) {
+  content::ContentBrowserClient::WebSocketOptions options_struct;
   uint32_t options = network::mojom::kWebSocketOptionNone;
   if (!frame) {
-    return options;
+    options_struct.options = options;
+    return options_struct;
   }
   content::WebContents* web_contents =
       content::WebContents::FromRenderFrameHost(frame);
@@ -1269,7 +1285,9 @@ uint32_t AwContentBrowserClient::GetWebSocketOptions(
   } else if (!third_party_cookie_policy) {
     options |= network::mojom::kWebSocketOptionBlockThirdPartyCookies;
   }
-  return options;
+
+  options_struct.options = options;
+  return options_struct;
 }
 
 bool AwContentBrowserClient::WillCreateRestrictedCookieManager(

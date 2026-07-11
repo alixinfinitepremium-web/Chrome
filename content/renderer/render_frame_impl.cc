@@ -12,7 +12,7 @@
 #include <utility>
 #include <vector>
 
-#include "base/byte_count.h"
+#include "base/byte_size.h"
 #include "base/check_deref.h"
 #include "base/command_line.h"
 #include "base/containers/flat_map.h"
@@ -500,7 +500,7 @@ void FillNavigationParamsRequest(
   // We'll replay the redirects afterwards and will eventually arrive at the
   // final URL. For non-redirecting navigations, use the final URL to be
   // committed (as that is the same as the original URL).
-  const bool should_use_original_url = !commit_params.redirect_infos.empty() &&
+  const bool should_use_original_url = !commit_params.redirect_params.empty() &&
                                        !commit_params.original_url.is_empty();
   navigation_params->url =
       should_use_original_url ? commit_params.original_url : common_params.url;
@@ -578,6 +578,25 @@ void FillNavigationParamsRequest(
     navigation_params->early_hints_preloaded_resources.push_back(
         std::move(web_info));
   }
+
+  navigation_params->preconnects.reserve(
+      commit_params.early_hints_preconnects.size() +
+      commit_params.navigation_preconnects.size());
+  auto append_preconnects =
+      [&](const std::vector<network::mojom::LinkHeaderPtr>& links,
+          bool early_hint) {
+        for (const auto& link : links) {
+          blink::WebPreconnectInfo web_info;
+          web_info.url = blink::ToWebURL(link->href);
+          web_info.cross_origin = link->cross_origin;
+          web_info.early_hint = early_hint;
+          navigation_params->preconnects.push_back(std::move(web_info));
+        }
+      };
+  append_preconnects(commit_params.early_hints_preconnects,
+                     /*early_hint=*/true);
+  append_preconnects(commit_params.navigation_preconnects,
+                     /*early_hint=*/false);
 
   // Pass on the `initiator_base_url` sent via the common_params for srcdoc and
   // about:blank documents. This will be picked up in DocumentLoader.
@@ -995,9 +1014,10 @@ void FillMiscNavigationParams(
   navigation_params->navigation_timings = BuildNavigationTimings(
       common_params.navigation_start, *commit_params.navigation_timing,
       common_params.input_start);
-  if (!commit_params.redirect_infos.empty()) {
+  if (!commit_params.redirect_params.empty()) {
     navigation_params->navigation_timings.critical_ch_restart =
-        commit_params.redirect_infos.back().critical_ch_restart_time;
+        commit_params.redirect_params.back()
+            ->redirect_info.critical_ch_restart_time;
   }
 
   navigation_params->is_user_activated =
@@ -1013,6 +1033,8 @@ void FillMiscNavigationParams(
   }
 
   navigation_params->is_browser_initiated = commit_params.is_browser_initiated;
+  navigation_params->is_secure_context_root =
+      commit_params.is_secure_context_root;
 
   navigation_params->is_cross_site_cross_browsing_context_group =
       commit_params.is_cross_site_cross_browsing_context_group;
@@ -1362,9 +1384,9 @@ mojo::ScopedDataPipeConsumerHandle FillResponseForInitialWebUI(
   mojo::Remote<network::mojom::URLLoaderClient> client(
       std::move(client_remote));
   network::URLLoaderCompletionStatus status(net::OK);
-  status.encoded_data_length = output_size;
-  status.encoded_body_length = output_size;
-  status.decoded_body_length = output_size;
+  status.encoded_data_length = base::ByteSize(output_size);
+  status.encoded_body_length = base::ByteSize(output_size);
+  status.decoded_body_length = base::ByteSize(output_size);
   client->OnComplete(status);
   return std::move(response_body);
 }
@@ -2495,7 +2517,7 @@ void RenderFrameImpl::NotifyResourceResponseReceived(
 
 void RenderFrameImpl::NotifyResourceTransferSizeUpdated(
     int64_t request_id,
-    int32_t transfer_size_diff) {
+    base::ByteSize transfer_size_diff) {
   DidReceiveTransferSizeUpdate(request_id, transfer_size_diff);
 }
 
@@ -2779,8 +2801,7 @@ void RenderFrameImpl::CommitNavigation(
         });
   }
 
-  if (IsForInitialWebUI() && base::FeatureList::IsEnabled(
-                                 features::kInitialWebUISyncNavStartToCommit)) {
+  if (IsForInitialWebUI()) {
     CHECK(subresource_loader_factories);
     CHECK(subresource_loader_factories->local_resource_loader_config());
     // Initial WebUI navigations loads the response body locally within the
@@ -3230,7 +3251,7 @@ void RenderFrameImpl::CommitFailedNavigation(
   navigation_params->unreachable_url = error.url();
   if (base::FeatureList::IsEnabled(
           blink::features::kRemoveCommitRedirectUrlsArray)) {
-    if (commit_params->redirect_infos.size()) {
+    if (commit_params->redirect_params.size()) {
       navigation_params->pre_redirect_url_for_failed_navigations =
           common_params->url;
     } else {
@@ -4629,13 +4650,13 @@ void RenderFrameImpl::DidLoadResourceFromMemoryCache(
   if (load_from_memory_cache_callback_) {
     load_from_memory_cache_callback_.Run(
         request.Url(), response.RequestId(),
-        base::ByteCount(response.EncodedBodyLength()),
+        base::ByteSize(response.EncodedBodyLength()),
         response.MimeType().Utf8(), response.FromArchive());
   } else {
     for (auto& observer : observers_) {
       observer.DidLoadResourceFromMemoryCache(
           request.Url(), response.RequestId(),
-          base::ByteCount(response.EncodedBodyLength()),
+          base::ByteSize(response.EncodedBodyLength()),
           response.MimeType().Utf8(), response.FromArchive());
     }
   }
@@ -4681,11 +4702,11 @@ void RenderFrameImpl::DidCancelResponse(int request_id) {
   }
 }
 
-void RenderFrameImpl::DidReceiveTransferSizeUpdate(int resource_id,
-                                                   int received_data_length) {
+void RenderFrameImpl::DidReceiveTransferSizeUpdate(
+    int resource_id,
+    base::ByteSize received_data_length) {
   for (auto& observer : observers_) {
-    observer.DidReceiveTransferSizeUpdate(
-        resource_id, base::ByteCount(received_data_length));
+    observer.DidReceiveTransferSizeUpdate(resource_id, received_data_length);
   }
 }
 
@@ -4956,13 +4977,6 @@ void RenderFrameImpl::WasShown() {
   frame_->WasShown();
   for (auto& observer : observers_)
     observer.WasShown();
-}
-
-void RenderFrameImpl::OnFrameVisibilityChanged(
-    blink::mojom::FrameVisibility render_status) {
-  for (auto& observer : observers_) {
-    observer.OnFrameVisibilityChanged(render_status);
-  }
 }
 
 bool RenderFrameImpl::IsMainFrame() {
@@ -6378,7 +6392,20 @@ void RenderFrameImpl::BeginNavigationInternal(
             prev_common_params.should_replace_current_entry &&
         begin_params->headers == prev_begin_params.headers &&
         begin_params->has_rel_opener == prev_begin_params.has_rel_opener) {
-      is_duplicate_navigation = true;
+      // Note: The renderer-initiated duplicate navigation cookie check differs
+      // from the browser-initiated check. To prevent cross-site leaks, we only
+      // check here for changes to non-HttpOnly cookies made by this document.
+      DuplicateNavsCookieStatus cookie_status;
+      if (navigation_client_impl_->cookie_modification_count() ==
+          frame_->GetDocument().CookieModificationCount()) {
+        cookie_status = DuplicateNavsCookieStatus::kCookiesNotChanged;
+        is_duplicate_navigation = true;
+      } else {
+        cookie_status = DuplicateNavsCookieStatus::kCookiesChanged;
+      }
+      base::UmaHistogramEnumeration(
+          "Navigation.RendererInitiated.DuplicateNavCookieStatus",
+          cookie_status);
       nav_start_diff = (common_params->navigation_start -
                         prev_common_params.navigation_start);
     }
@@ -6471,6 +6498,8 @@ void RenderFrameImpl::BeginNavigationInternal(
       renderer_cancellation_listener_receiver.InitWithNewPipeAndPassRemote(),
       renderer_ignore_duplicate_navigation_listener_receiver
           .InitWithNewPipeAndPassRemote());
+  navigation_client_impl_->SetCookieModificationCount(
+      frame_->GetDocument().CookieModificationCount());
 
   GetFrameHost()->BeginNavigation(
       std::move(common_params), std::move(begin_params),
@@ -6835,6 +6864,11 @@ RenderFrameImpl::CloneLoaderFactories() {
       std::move(pending_bundle));
 }
 
+std::unique_ptr<network::PendingSharedURLLoaderFactory>
+RenderFrameImpl::CloneLoaderFactoryBundle() {
+  return GetLoaderFactoryBundle()->Clone();
+}
+
 blink::scheduler::WebAgentGroupScheduler&
 RenderFrameImpl::GetAgentGroupScheduler() {
   return agent_scheduling_group_->agent_group_scheduler();
@@ -7090,7 +7124,10 @@ WebView* RenderFrameImpl::CreateNewWindow(
   main_frame_params->widget_params = std::move(widget_params);
   main_frame_params->subresource_loader_factories =
       base::WrapUnique(static_cast<blink::PendingURLLoaderFactoryBundle*>(
-          CloneLoaderFactories()->Clone().release()));
+          base::FeatureList::IsEnabled(
+              features::kReduceMojoURLLoaderFactoryCloning)
+              ? CloneLoaderFactoryBundle().release()
+              : CloneLoaderFactories()->Clone().release()));
 
   view_params->main_frame =
       mojom::CreateMainFrameUnion::NewLocalParams(std::move(main_frame_params));

@@ -1163,7 +1163,8 @@ TEST_F(NetworkContextTest, AddVariationsHeadersToReportingRequest) {
   // The variations header is only added for Google origins.
   GURL google_url("https://www.google.com");
   auto request = network_context->url_request_context()->CreateRequest(
-      google_url, net::DEFAULT_PRIORITY, nullptr, TRAFFIC_ANNOTATION_FOR_TESTS);
+      google_url, net::DEFAULT_PRIORITY, nullptr, TRAFFIC_ANNOTATION_FOR_TESTS,
+      net::handles::kInvalidNetworkHandle);
 
   network_context->AddVariationsHeadersToReportingRequest(request.get());
 
@@ -1196,7 +1197,8 @@ TEST_F(NetworkContextTest, AddVariationsHeadersToReportingRequestIncognito) {
 
   GURL google_url("https://www.google.com");
   auto request = network_context->url_request_context()->CreateRequest(
-      google_url, net::DEFAULT_PRIORITY, nullptr, TRAFFIC_ANNOTATION_FOR_TESTS);
+      google_url, net::DEFAULT_PRIORITY, nullptr, TRAFFIC_ANNOTATION_FOR_TESTS,
+      net::handles::kInvalidNetworkHandle);
 
   network_context->AddVariationsHeadersToReportingRequest(request.get());
 
@@ -1486,6 +1488,109 @@ TEST_F(NetworkContextTest, DeviceBoundSessionsEnabledWithValidPendingRemote) {
 
   EXPECT_TRUE(
       network_context->url_request_context()->unexportable_key_service());
+}
+
+TEST_F(NetworkContextTest,
+       HasCookieAccessForDeviceBoundSession_StorageAccessGrant) {
+  mojom::NetworkContextParamsPtr context_params =
+      CreateNetworkContextParamsForTesting();
+  context_params->device_bound_sessions_enabled = true;
+
+  std::unique_ptr<NetworkContext> network_context =
+      CreateContextWithParams(std::move(context_params));
+
+  auto provider = url::Origin::Create(GURL("https://provider.example.com"));
+  auto rp = url::Origin::Create(GURL("https://rp.example.org"));
+
+  // Block third party cookies to ensure HasCookieAccessForDBSC correctly checks
+  // for the storage access grant instead of relying on the global cookie
+  // access.
+  network_context->cookie_manager()->BlockThirdPartyCookies(true);
+
+  // No storage access by default.
+  EXPECT_FALSE(network_context->HasCookieAccessForDeviceBoundSession(
+      {.provider_origin{provider}, .relying_party_origin{rp}}));
+
+  // Grant storage access.
+  base::RunLoop run_loop;
+  network_context->cookie_manager()->SetContentSettings(
+      ContentSettingsType::STORAGE_ACCESS,
+      {ContentSettingPatternSource(
+          ContentSettingsPattern::FromURLNoWildcard(provider.GetURL()),
+          ContentSettingsPattern::FromURLNoWildcard(rp.GetURL()),
+          base::Value(CONTENT_SETTING_ALLOW),
+          content_settings::ProviderType::kNone, false)},
+      run_loop.QuitClosure());
+  run_loop.Run();
+
+  EXPECT_TRUE(network_context->HasCookieAccessForDeviceBoundSession(
+      {.provider_origin{provider}, .relying_party_origin{rp}}));
+}
+
+TEST_F(NetworkContextTest,
+       HasCookieAccessForDeviceBoundSession_Global3PCookieAllowance) {
+  mojom::NetworkContextParamsPtr context_params =
+      CreateNetworkContextParamsForTesting();
+  context_params->device_bound_sessions_enabled = true;
+
+  std::unique_ptr<NetworkContext> network_context =
+      CreateContextWithParams(std::move(context_params));
+
+  auto provider = url::Origin::Create(GURL("https://provider.example.com"));
+  auto rp = url::Origin::Create(GURL("https://rp.example.org"));
+
+  // By default, third-party cookies are allowed in this test environment.
+  // We do NOT block them here, simulating a user who allows 3P cookies.
+
+  // No storage access is granted explicitly.
+  // Expect true because global third-party cookies are allowed.
+  EXPECT_TRUE(network_context->HasCookieAccessForDeviceBoundSession(
+      {.provider_origin{provider}, .relying_party_origin{rp}}));
+}
+
+TEST_F(NetworkContextTest,
+       HasCookieAccessForDeviceBoundSession_ExplicitSiteBlock) {
+  mojom::NetworkContextParamsPtr context_params =
+      CreateNetworkContextParamsForTesting();
+  context_params->device_bound_sessions_enabled = true;
+
+  std::unique_ptr<NetworkContext> network_context =
+      CreateContextWithParams(std::move(context_params));
+
+  auto provider = url::Origin::Create(GURL("https://provider.example.com"));
+  auto rp = url::Origin::Create(GURL("https://rp.example.org"));
+
+  // Explicitly block cookies for the provider site.
+  base::RunLoop run_loop;
+  network_context->cookie_manager()->SetContentSettings(
+      ContentSettingsType::COOKIES,
+      {ContentSettingPatternSource(
+          ContentSettingsPattern::FromURLNoWildcard(provider.GetURL()),
+          ContentSettingsPattern::FromURLNoWildcard(rp.GetURL()),
+          base::Value(CONTENT_SETTING_BLOCK),
+          content_settings::ProviderType::kNone, false)},
+      run_loop.QuitClosure());
+  run_loop.Run();
+
+  // Expect false because the site is explicitly blocked.
+  EXPECT_FALSE(network_context->HasCookieAccessForDeviceBoundSession(
+      {.provider_origin{provider}, .relying_party_origin{rp}}));
+
+  // Even if we grant storage access, it should still be false because an
+  // explicit site block should override the storage access grant.
+  base::RunLoop run_loop2;
+  network_context->cookie_manager()->SetContentSettings(
+      ContentSettingsType::STORAGE_ACCESS,
+      {ContentSettingPatternSource(
+          ContentSettingsPattern::FromURLNoWildcard(provider.GetURL()),
+          ContentSettingsPattern::FromURLNoWildcard(rp.GetURL()),
+          base::Value(CONTENT_SETTING_ALLOW),
+          content_settings::ProviderType::kNone, false)},
+      run_loop2.QuitClosure());
+  run_loop2.Run();
+
+  EXPECT_FALSE(network_context->HasCookieAccessForDeviceBoundSession(
+      {.provider_origin{provider}, .relying_party_origin{rp}}));
 }
 #endif  // BUILDFLAG(ENABLE_DEVICE_BOUND_SESSIONS)
 
@@ -2864,7 +2969,8 @@ TEST_F(NetworkContextTest, ClearHostCache) {
       host_cache->Set(
           net::HostCache::Key(domain, net::DnsQueryType::UNSPECIFIED, 0,
                               net::HostResolverSource::ANY,
-                              net::NetworkAnonymizationKey()),
+                              net::NetworkAnonymizationKey(),
+                              net::handles::kInvalidNetworkHandle),
           net::HostCache::Entry(net::OK, /*ip_endpoints=*/{}, /*aliases=*/{},
                                 net::HostCache::Entry::SOURCE_UNKNOWN),
           base::TimeTicks::Now(), base::Days(1));
@@ -2872,7 +2978,8 @@ TEST_F(NetworkContextTest, ClearHostCache) {
           net::HostCache::Key(
               url::SchemeHostPort(url::kHttpsScheme, domain, 443),
               net::DnsQueryType::UNSPECIFIED, 0, net::HostResolverSource::ANY,
-              net::NetworkAnonymizationKey()),
+              net::NetworkAnonymizationKey(),
+              net::handles::kInvalidNetworkHandle),
           net::HostCache::Entry(net::OK, /*ip_endpoints=*/{}, /*aliases=*/{},
                                 net::HostCache::Entry::SOURCE_UNKNOWN),
           base::TimeTicks::Now(), base::Days(1));
@@ -4448,6 +4555,105 @@ TEST_F(NetworkContextResolveHostTest, Sync) {
             network_context->GetNumOutstandingResolveHostRequestsForTesting());
 }
 
+TEST_F(NetworkContextResolveHostTest, DirectOnlyDirect) {
+  auto resolver = std::make_unique<net::MockHostResolver>();
+  resolver->rules()->AddRule("sync.test", "1.2.3.4");
+  resolver->set_synchronous_mode(true);
+  network_service_->set_host_resolver_factory_for_testing(
+      std::make_unique<HostResolverFactory>(std::move(resolver)));
+
+  std::unique_ptr<NetworkContext> network_context =
+      CreateContextWithParams(CreateNetworkContextParamsForTesting());
+
+  base::RunLoop run_loop;
+  mojom::ResolveHostParametersPtr optional_parameters =
+      mojom::ResolveHostParameters::New();
+  optional_parameters->direct_only = true;
+  mojo::PendingRemote<mojom::ResolveHostClient> pending_response_client;
+  TestResolveHostClient response_client(&pending_response_client, &run_loop);
+
+  network_context->ResolveHost(
+      network::mojom::HostResolverHost::NewHostPortPair(
+          net::HostPortPair("sync.test", 160)),
+      net::NetworkAnonymizationKey(), std::move(optional_parameters),
+      std::move(pending_response_client));
+  run_loop.Run();
+
+  EXPECT_EQ(net::OK, response_client.top_level_result_error());
+  EXPECT_EQ(net::OK, response_client.result_error());
+  EXPECT_THAT(
+      response_client.result_addresses().endpoints(),
+      testing::UnorderedElementsAre(CreateExpectedEndPoint("1.2.3.4", 160)));
+  EXPECT_EQ(0u,
+            network_context->GetNumOutstandingResolveHostRequestsForTesting());
+}
+
+TEST_F(NetworkContextResolveHostTest, DirectOnlyDisconnect) {
+  mojom::NetworkContextParamsPtr context_params =
+      CreateNetworkContextParamsForTesting();
+  net::ProxyConfig proxy_config =
+      net::ProxyConfig::CreateFromCustomPacURL(GURL("http://pac.test/"));
+  context_params->initial_proxy_config = net::ProxyConfigWithAnnotation(
+      proxy_config, TRAFFIC_ANNOTATION_FOR_TESTS);
+
+  std::unique_ptr<NetworkContext> network_context =
+      CreateContextWithParams(std::move(context_params));
+
+  mojom::ResolveHostParametersPtr optional_parameters =
+      mojom::ResolveHostParameters::New();
+  optional_parameters->direct_only = true;
+  mojo::PendingRemote<mojom::ResolveHostClient> pending_response_client;
+  auto receiver = pending_response_client.InitWithNewPipeAndPassReceiver();
+
+  network_context->ResolveHost(
+      network::mojom::HostResolverHost::NewHostPortPair(
+          net::HostPortPair("sync.test", 160)),
+      net::NetworkAnonymizationKey(), std::move(optional_parameters),
+      std::move(pending_response_client));
+
+  // Drop the receiver, simulating client disconnect while proxy resolution is
+  // pending.
+  receiver.reset();
+
+  // Run pending tasks to ensure disconnect handler runs.
+  EXPECT_TRUE(base::test::RunUntil([&]() {
+    return network_context->GetNumOutstandingResolveHostRequestsForTesting() ==
+           0u;
+  }));
+}
+
+TEST_F(NetworkContextResolveHostTest, DirectOnlyProxied) {
+  mojom::NetworkContextParamsPtr context_params =
+      CreateNetworkContextParamsForTesting();
+  net::ProxyConfig proxy_config;
+  proxy_config.proxy_rules().ParseFromString("proxy.bad.dns");
+  context_params->initial_proxy_config = net::ProxyConfigWithAnnotation(
+      proxy_config, TRAFFIC_ANNOTATION_FOR_TESTS);
+
+  std::unique_ptr<NetworkContext> network_context =
+      CreateContextWithParams(std::move(context_params));
+
+  base::RunLoop run_loop;
+  mojom::ResolveHostParametersPtr optional_parameters =
+      mojom::ResolveHostParameters::New();
+  optional_parameters->direct_only = true;
+  mojo::PendingRemote<mojom::ResolveHostClient> pending_response_client;
+  TestResolveHostClient response_client(&pending_response_client, &run_loop);
+
+  network_context->ResolveHost(
+      network::mojom::HostResolverHost::NewHostPortPair(
+          net::HostPortPair("sync.test", 160)),
+      net::NetworkAnonymizationKey(), std::move(optional_parameters),
+      std::move(pending_response_client));
+  run_loop.Run();
+
+  EXPECT_EQ(net::ERR_DNS_DIRECT_ONLY, response_client.top_level_result_error());
+  EXPECT_EQ(net::ERR_DNS_DIRECT_ONLY, response_client.result_error());
+  EXPECT_TRUE(response_client.result_addresses().empty());
+  EXPECT_EQ(0u,
+            network_context->GetNumOutstandingResolveHostRequestsForTesting());
+}
+
 TEST_F(NetworkContextResolveHostTest, Async) {
   auto resolver = std::make_unique<net::MockHostResolver>();
   resolver->rules()->AddRule("async.test", "1.2.3.4");
@@ -5676,7 +5882,7 @@ TEST_F(NetworkContextTest, PrivacyModeDisabledByDefault) {
       CreateTestURLRequestContextBuilder()->Build();
   std::unique_ptr<net::URLRequest> request = request_context->CreateRequest(
       kURL, net::DEFAULT_PRIORITY, /*delegate=*/nullptr,
-      TRAFFIC_ANNOTATION_FOR_TESTS);
+      TRAFFIC_ANNOTATION_FOR_TESTS, net::handles::kInvalidNetworkHandle);
 
   std::unique_ptr<NetworkContext> network_context =
       CreateContextWithParams(CreateNetworkContextParamsForTesting());
@@ -5702,7 +5908,7 @@ TEST_F(NetworkContextTest, PrivacyModeEnabledIfCookiesBlocked) {
   {
     std::unique_ptr<net::URLRequest> request = request_context->CreateRequest(
         kURL, net::DEFAULT_PRIORITY, /*delegate=*/nullptr,
-        TRAFFIC_ANNOTATION_FOR_TESTS);
+        TRAFFIC_ANNOTATION_FOR_TESTS, net::handles::kInvalidNetworkHandle);
     request->set_site_for_cookies(net::SiteForCookies::FromUrl(kOtherURL));
     EXPECT_EQ(net::NetworkDelegate::PrivacySetting::kStateDisallowed,
               network_context->url_request_context()
@@ -5712,8 +5918,8 @@ TEST_F(NetworkContextTest, PrivacyModeEnabledIfCookiesBlocked) {
 
   {
     std::unique_ptr<net::URLRequest> request = request_context->CreateRequest(
-        kOtherURL, net::DEFAULT_PRIORITY,
-        /*delegate=*/nullptr, TRAFFIC_ANNOTATION_FOR_TESTS);
+        kOtherURL, net::DEFAULT_PRIORITY, /*delegate=*/nullptr,
+        TRAFFIC_ANNOTATION_FOR_TESTS, net::handles::kInvalidNetworkHandle);
     request->set_site_for_cookies(net::SiteForCookies::FromUrl(kURL));
     EXPECT_EQ(net::NetworkDelegate::PrivacySetting::kStateAllowed,
               network_context->url_request_context()
@@ -5736,7 +5942,7 @@ TEST_F(NetworkContextTest, PrivacyModeDisabledIfCookiesAllowed) {
 
   std::unique_ptr<net::URLRequest> request = request_context->CreateRequest(
       kURL, net::DEFAULT_PRIORITY, /*delegate=*/nullptr,
-      TRAFFIC_ANNOTATION_FOR_TESTS);
+      TRAFFIC_ANNOTATION_FOR_TESTS, net::handles::kInvalidNetworkHandle);
   request->set_site_for_cookies(net::SiteForCookies::FromUrl(kOtherURL));
   EXPECT_EQ(net::NetworkDelegate::PrivacySetting::kStateAllowed,
             network_context->url_request_context()
@@ -5759,7 +5965,7 @@ TEST_F(NetworkContextTest, PrivacyModeDisabledIfCookiesSettingForOtherURL) {
 
   std::unique_ptr<net::URLRequest> request = request_context->CreateRequest(
       kURL, net::DEFAULT_PRIORITY, /*delegate=*/nullptr,
-      TRAFFIC_ANNOTATION_FOR_TESTS);
+      TRAFFIC_ANNOTATION_FOR_TESTS, net::handles::kInvalidNetworkHandle);
   request->set_site_for_cookies(net::SiteForCookies::FromUrl(kOtherURL));
   EXPECT_EQ(net::NetworkDelegate::PrivacySetting::kStateAllowed,
             network_context->url_request_context()
@@ -5783,7 +5989,7 @@ TEST_F(NetworkContextTest, PrivacyModeEnabledIfThirdPartyCookiesBlocked) {
   {
     std::unique_ptr<net::URLRequest> request = request_context->CreateRequest(
         kURL, net::DEFAULT_PRIORITY, /*delegate=*/nullptr,
-        TRAFFIC_ANNOTATION_FOR_TESTS);
+        TRAFFIC_ANNOTATION_FOR_TESTS, net::handles::kInvalidNetworkHandle);
     request->set_site_for_cookies(net::SiteForCookies::FromUrl(kOtherURL));
     EXPECT_EQ(
         net::NetworkDelegate::PrivacySetting::kPartitionedStateAllowedOnly,
@@ -5793,7 +5999,7 @@ TEST_F(NetworkContextTest, PrivacyModeEnabledIfThirdPartyCookiesBlocked) {
   {
     std::unique_ptr<net::URLRequest> request = request_context->CreateRequest(
         kURL, net::DEFAULT_PRIORITY, /*delegate=*/nullptr,
-        TRAFFIC_ANNOTATION_FOR_TESTS);
+        TRAFFIC_ANNOTATION_FOR_TESTS, net::handles::kInvalidNetworkHandle);
     request->set_site_for_cookies(net::SiteForCookies::FromUrl(kURL));
     EXPECT_EQ(net::NetworkDelegate::PrivacySetting::kStateAllowed,
               delegate->ForcePrivacyMode(*request));
@@ -5803,7 +6009,7 @@ TEST_F(NetworkContextTest, PrivacyModeEnabledIfThirdPartyCookiesBlocked) {
   {
     std::unique_ptr<net::URLRequest> request = request_context->CreateRequest(
         kURL, net::DEFAULT_PRIORITY, /*delegate=*/nullptr,
-        TRAFFIC_ANNOTATION_FOR_TESTS);
+        TRAFFIC_ANNOTATION_FOR_TESTS, net::handles::kInvalidNetworkHandle);
     request->set_site_for_cookies(net::SiteForCookies::FromUrl(kOtherURL));
     EXPECT_EQ(net::NetworkDelegate::PrivacySetting::kStateAllowed,
               delegate->ForcePrivacyMode(*request));
@@ -5812,7 +6018,7 @@ TEST_F(NetworkContextTest, PrivacyModeEnabledIfThirdPartyCookiesBlocked) {
   {
     std::unique_ptr<net::URLRequest> request = request_context->CreateRequest(
         kURL, net::DEFAULT_PRIORITY, /*delegate=*/nullptr,
-        TRAFFIC_ANNOTATION_FOR_TESTS);
+        TRAFFIC_ANNOTATION_FOR_TESTS, net::handles::kInvalidNetworkHandle);
     request->set_site_for_cookies(net::SiteForCookies::FromUrl(kURL));
     EXPECT_EQ(net::NetworkDelegate::PrivacySetting::kStateAllowed,
               delegate->ForcePrivacyMode(*request));
@@ -5825,8 +6031,8 @@ TEST_F(NetworkContextTest, CanSetCookieFalseIfCookiesBlocked) {
   std::unique_ptr<net::URLRequestContext> context =
       CreateTestURLRequestContextBuilder()->Build();
   std::unique_ptr<net::URLRequest> request = context->CreateRequest(
-      GURL("http://foo.com"), net::DEFAULT_PRIORITY,
-      /*delegate=*/nullptr, TRAFFIC_ANNOTATION_FOR_TESTS);
+      GURL("http://foo.com"), net::DEFAULT_PRIORITY, /*delegate=*/nullptr,
+      TRAFFIC_ANNOTATION_FOR_TESTS, net::handles::kInvalidNetworkHandle);
   auto cookie = net::CanonicalCookie::CreateUnsafeCookieForTesting(
       "TestCookie", "1", "www.test.com", "/", base::Time(), base::Time(),
       base::Time(), base::Time(), false, false, net::CookieSameSite::LAX_MODE,
@@ -5852,8 +6058,8 @@ TEST_F(NetworkContextTest, CanSetCookieTrueIfCookiesAllowed) {
   std::unique_ptr<net::URLRequestContext> context =
       CreateTestURLRequestContextBuilder()->Build();
   std::unique_ptr<net::URLRequest> request = context->CreateRequest(
-      GURL("http://foo.com"), net::DEFAULT_PRIORITY,
-      /*delegate=*/nullptr, TRAFFIC_ANNOTATION_FOR_TESTS);
+      GURL("http://foo.com"), net::DEFAULT_PRIORITY, /*delegate=*/nullptr,
+      TRAFFIC_ANNOTATION_FOR_TESTS, net::handles::kInvalidNetworkHandle);
   auto cookie = net::CanonicalCookie::CreateUnsafeCookieForTesting(
       "TestCookie", "1", "www.test.com", "/", base::Time(), base::Time(),
       base::Time(), base::Time(), false, false,
@@ -5880,8 +6086,8 @@ TEST_F(NetworkContextAnnotateAndMoveUserBlockedCookiesTest,
   std::unique_ptr<net::URLRequestContext> context =
       CreateTestURLRequestContextBuilder()->Build();
   std::unique_ptr<net::URLRequest> request = context->CreateRequest(
-      GURL("http://foo.com"), net::DEFAULT_PRIORITY,
-      /*delegate=*/nullptr, TRAFFIC_ANNOTATION_FOR_TESTS);
+      GURL("http://foo.com"), net::DEFAULT_PRIORITY, /*delegate=*/nullptr,
+      TRAFFIC_ANNOTATION_FOR_TESTS, net::handles::kInvalidNetworkHandle);
 
   net::CookieAccessResultList included;
   net::CookieAccessResultList excluded;
@@ -5919,8 +6125,8 @@ TEST_F(NetworkContextAnnotateAndMoveUserBlockedCookiesTest,
   std::unique_ptr<net::URLRequestContext> context =
       CreateTestURLRequestContextBuilder()->Build();
   std::unique_ptr<net::URLRequest> request = context->CreateRequest(
-      GURL("http://foo.com"), net::DEFAULT_PRIORITY,
-      /*delegate=*/nullptr, TRAFFIC_ANNOTATION_FOR_TESTS);
+      GURL("http://foo.com"), net::DEFAULT_PRIORITY, /*delegate=*/nullptr,
+      TRAFFIC_ANNOTATION_FOR_TESTS, net::handles::kInvalidNetworkHandle);
   net::CookieAccessResultList included;
   net::CookieAccessResultList excluded;
 
@@ -6347,7 +6553,7 @@ TEST_F(NetworkContextTest, CloseConnections) {
     std::unique_ptr<net::URLRequest> request1 =
         network_context->url_request_context()->CreateRequest(
             test_server.GetURL(kPath1), net::DEFAULT_PRIORITY, &delegate1,
-            TRAFFIC_ANNOTATION_FOR_TESTS);
+            TRAFFIC_ANNOTATION_FOR_TESTS, net::handles::kInvalidNetworkHandle);
     request1->Start();
     controllable_response1.WaitForRequest();
     EXPECT_EQ(
@@ -6359,7 +6565,7 @@ TEST_F(NetworkContextTest, CloseConnections) {
     std::unique_ptr<net::URLRequest> request2 =
         network_context->url_request_context()->CreateRequest(
             test_server.GetURL(kPath2), net::DEFAULT_PRIORITY, &delegate2,
-            TRAFFIC_ANNOTATION_FOR_TESTS);
+            TRAFFIC_ANNOTATION_FOR_TESTS, net::handles::kInvalidNetworkHandle);
     request2->Start();
     controllable_response2.WaitForRequest();
     EXPECT_EQ(
@@ -6371,7 +6577,7 @@ TEST_F(NetworkContextTest, CloseConnections) {
     std::unique_ptr<net::URLRequest> request3 =
         network_context->url_request_context()->CreateRequest(
             test_server.GetURL(kPath3), net::DEFAULT_PRIORITY, &delegate3,
-            TRAFFIC_ANNOTATION_FOR_TESTS);
+            TRAFFIC_ANNOTATION_FOR_TESTS, net::handles::kInvalidNetworkHandle);
     request3->Start();
     controllable_response3.WaitForRequest();
     EXPECT_EQ(
@@ -7142,7 +7348,8 @@ class TestURLLoaderHeaderClient : public mojom::TrustedURLLoaderHeaderClient {
       for (const auto& [name, value] : request_headers_to_set_) {
         new_headers.SetHeader(name, value);
       }
-      std::move(callback).Run(on_before_send_headers_result_, new_headers);
+      std::move(callback).Run(on_before_send_headers_result_, new_headers,
+                              std::nullopt);
     }
 
     void OnHeadersReceived(const std::string& headers,
@@ -7453,7 +7660,7 @@ class HangingTestURLLoaderHeaderClient
       net::HttpRequestHeaders new_headers = std::move(saved_request_headers_);
       new_headers.SetHeader("foo", "bar");
       std::move(saved_on_before_send_headers_callback_)
-          .Run(net::OK, new_headers);
+          .Run(net::OK, new_headers, std::nullopt);
     }
 
     void WaitForOnBeforeSendHeaders() { on_before_send_headers_loop_.Run(); }

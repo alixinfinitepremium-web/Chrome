@@ -56,6 +56,7 @@
 #include "chrome/browser/ui/browser_actions.h"
 #include "chrome/browser/ui/browser_commands.h"
 #include "chrome/browser/ui/browser_element_identifiers.h"
+#include "chrome/browser/ui/browser_window.h"
 #include "chrome/browser/ui/browser_window/public/browser_collection_observer.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_features.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
@@ -87,6 +88,7 @@
 #include "chrome/browser/ui/views/web_apps/frame_toolbar/web_app_toolbar_button_container.h"
 #include "chrome/browser/ui/views/web_apps/frame_toolbar/window_controls_overlay_toggle_button.h"
 #include "chrome/browser/ui/views/web_apps/sub_apps/sub_apps_install_dialog_controller.h"
+#include "chrome/browser/ui/views/web_apps/web_app_install_flow_dialog_delegate.h"
 #include "chrome/browser/ui/views/web_apps/web_app_link_capturing_test_utils.h"
 #include "chrome/browser/ui/views/web_apps/web_app_update_review_dialog.h"
 #include "chrome/browser/ui/web_applications/app_browser_controller.h"
@@ -137,7 +139,6 @@
 #include "chrome/common/chrome_switches.h"
 #include "chrome/common/pref_names.h"
 #include "chrome/common/webui_url_constants.h"
-#include "chrome/test/base/interactive_test_utils.h"
 #include "chrome/test/base/ui_test_utils.h"
 #include "components/prefs/scoped_user_pref_update.h"
 #include "components/webapps/browser/features.h"
@@ -177,9 +178,9 @@
 #include "ui/views/interaction/element_tracker_views.h"
 #include "ui/views/test/button_test_api.h"
 #include "ui/views/test/dialog_test.h"
+#include "ui/views/test/views_test_utils.h"
 #include "ui/views/test/widget_test.h"
 #include "ui/views/widget/widget.h"
-#include "ui/views/widget/widget_interactive_uitest_utils.h"
 #include "ui/webui/resources/cr_components/app_management/app_management.mojom-forward.h"
 #include "url/gurl.h"
 
@@ -796,17 +797,6 @@ WebAppSettingsPageHandler CreateAppManagementPageHandler(Profile* profile) {
 }
 #endif
 
-void WaitForAndAcceptInstallDialogForSite(Site site) {
-  std::string widget_name =
-      (site == Site::kScreenshots)     ? "WebAppDetailedInstallDialog"
-      : (site == Site::kNotPromotable) ? "WebAppDiyInstallDialog"
-                                       : "WebAppSimpleInstallDialog";
-  views::NamedWidgetShownWaiter waiter(views::test::AnyWidgetTestPasskey{},
-                                       widget_name);
-  views::Widget* widget = waiter.WaitIfNeededAndGet();
-  views::test::AcceptDialog(widget);
-}
-
 // Determines whether, when attempting to load a path, we want to, instead of
 // using the regular handler, load it from a file on disk.
 bool ShouldLoadResponseFromDisk(const base::FilePath& root,
@@ -1050,7 +1040,7 @@ void WebAppIntegrationTestDriver::SetUpOnMainThread() {
   // Add chrome://webapps_integration_tests/ date source.
   auto root_path = base::PathService::CheckedGet(chrome::DIR_TEST_DATA);
   content::WebUIDataSource* data_source =
-      content::WebUIDataSource::CreateAndAdd(browser()->profile(),
+      content::WebUIDataSource::CreateAndAdd(browser()->GetProfile(),
                                              "webapps_integration_tests");
   valid_chrome_url_for_webapps_registration_ =
       webapps::AddValidChromeUrlHostForTesting("webapps_integration_tests");
@@ -1066,7 +1056,7 @@ void WebAppIntegrationTestDriver::SetUpOnMainThread() {
       base::BindRepeating(LoadResponseFromDisk, root_path));
 
   web_app::test::WaitUntilReady(
-      web_app::WebAppProvider::GetForTest(browser()->profile()));
+      web_app::WebAppProvider::GetForTest(browser()->GetProfile()));
 }
 
 void WebAppIntegrationTestDriver::TearDownOnMainThread() {
@@ -1135,6 +1125,41 @@ void WebAppIntegrationTestDriver::TearDownOnMainThread() {
   override_registration_.reset();
 
   LOG(INFO) << "TearDownOnMainThread: Complete.";
+}
+
+void WebAppIntegrationTestDriver::WaitForAndAcceptInstallDialogForSite(
+    Site site) {
+  if (base::FeatureList::IsEnabled(features::kWebAppInstallDialog)) {
+    views::NamedWidgetShownWaiter waiter(views::test::AnyWidgetTestPasskey{},
+                                         "WebAppInstallFlowDialog");
+    views::Widget* widget = waiter.WaitIfNeededAndGet();
+    ASSERT_TRUE(widget != nullptr);
+    views::test::WidgetDestroyedWaiter destroyed_waiter(widget);
+    views::DialogDelegate* dialog_delegate =
+        widget->widget_delegate()->AsDialogDelegate();
+    ASSERT_TRUE(dialog_delegate != nullptr);
+    // Install or move to install options.
+    dialog_delegate->AcceptDialog();
+    // Accept options if they are shown to install (we don't show on Linux)
+    if (ui::ElementTracker::GetElementTracker()->GetElementInAnyContext(
+            WebAppInstallFlowDialogDelegate::kOptionsViewId)) {
+      dialog_delegate->AcceptDialog();
+    }
+    // Wait for the install to finish happening.
+    provider()->command_manager().AwaitAllCommandsCompleteForTesting();
+    // Finally, accept the last view, which should launch the app.
+    dialog_delegate->AcceptDialog();
+    destroyed_waiter.Wait();
+  } else {
+    std::string widget_name =
+        (site == Site::kScreenshots)     ? "WebAppDetailedInstallDialog"
+        : (site == Site::kNotPromotable) ? "WebAppDiyInstallDialog"
+                                         : "WebAppSimpleInstallDialog";
+    views::NamedWidgetShownWaiter waiter(views::test::AnyWidgetTestPasskey{},
+                                         widget_name);
+    views::Widget* widget = waiter.WaitIfNeededAndGet();
+    views::test::AcceptDialog(widget);
+  }
 }
 
 void WebAppIntegrationTestDriver::OnWidgetShown(views::Widget* widget) {
@@ -1524,7 +1549,7 @@ void WebAppIntegrationTestDriver::InstallOmniboxIcon(InstallableSite site) {
                     browser()->GetActions()->root_action_item())
         ->InvokeAction();
   } else {
-    browser()->window()->ExecutePageActionIconForTesting(
+    BrowserWindow::FromBrowser(browser())->ExecutePageActionIconForTesting(
         PageActionIconType::kPwaInstall);
   }
 
@@ -1658,24 +1683,23 @@ void WebAppIntegrationTestDriver::InstallSubApp(
 
   std::string sub_url = GetRelativeSubAppPath(sub_app);
 
-  // The argument of add() is a dictionary-valued dictionary:
-  // { $manifest_id : {'installURL' : $installURL} }
-  // In our case, both $manifest_id and $installURL are sub_url.
-  base::DictValue inner_dict;
-  inner_dict.Set("installURL", sub_url);
-  base::DictValue outer_dict;
-  outer_dict.Set(sub_url, std::move(inner_dict));
+  base::ListValue install_urls;
+  install_urls.Append(sub_url);
 
   std::string script =
-      content::JsReplace("navigator.subApps.add($1)", std::move(outer_dict));
+      content::JsReplace("window.subApps.add($1)", std::move(install_urls));
   const content::EvalJsResult add_result =
       content::EvalJs(web_contents, script);
 
   if (option == SubAppInstallDialogOptions::kUserDeny) {
     EXPECT_FALSE(add_result.is_ok());
   } else {
+    base::DictValue expected_installed;
+    expected_installed.Set(sub_url, sub_url);
+
     base::DictValue expected_output;
-    expected_output.Set(sub_url, "success");
+    expected_output.Set("installedApps", std::move(expected_installed));
+    expected_output.Set("failedApps", base::DictValue());
     EXPECT_EQ(expected_output, add_result);
   }
 
@@ -1693,11 +1717,14 @@ void WebAppIntegrationTestDriver::RemoveSubApp(Site parent_app, Site sub_app) {
   std::string sub_url = GetRelativeSubAppPath(sub_app);
 
   const content::EvalJsResult remove_result = content::EvalJs(
-      web_contents,
-      content::JsReplace("navigator.subApps.remove([$1])", sub_url));
+      web_contents, content::JsReplace("window.subApps.remove([$1])", sub_url));
+
+  base::ListValue expected_removed;
+  expected_removed.Append(sub_url);
 
   base::DictValue expected_output;
-  expected_output.Set(sub_url, "success");
+  expected_output.Set("removedApps", std::move(expected_removed));
+  expected_output.Set("failedApps", base::DictValue());
   EXPECT_EQ(expected_output, remove_result);
 
   AfterStateChangeAction();
@@ -2423,7 +2450,7 @@ void WebAppIntegrationTestDriver::NavigateAppHome() {
   GURL app_home_url = GURL(chrome::kChromeUIAppsURL);
   WindowOpenDisposition win_disposition;
   content::TestNavigationObserver url_observer(app_home_url);
-  if (IsOffTheRecordBrowserInUse(browser()->profile())) {
+  if (IsOffTheRecordBrowserInUse(browser()->GetProfile())) {
     win_disposition = WindowOpenDisposition::OFF_THE_RECORD;
     url_observer.StartWatchingNewWebContents();
   } else {
@@ -4145,7 +4172,7 @@ void WebAppIntegrationTestDriver::CheckHasSubApp(Site parent_app,
   std::string sub_app_url = GetRelativeSubAppPath(sub_app);
 
   const content::EvalJsResult list_result =
-      content::EvalJs(web_contents, "navigator.subApps.list()");
+      content::EvalJs(web_contents, "window.subApps.list()");
 
   const base::DictValue& list_result_dict = list_result.ExtractDict();
 
@@ -4169,7 +4196,7 @@ void WebAppIntegrationTestDriver::CheckNotHasSubApp(Site parent_app,
   std::string sub_app_url = GetRelativeSubAppPath(sub_app);
 
   const content::EvalJsResult list_result =
-      content::EvalJs(web_contents, "navigator.subApps.list()");
+      content::EvalJs(web_contents, "window.subApps.list()");
 
   const base::DictValue& list_result_dict = list_result.ExtractDict();
 
@@ -4190,7 +4217,7 @@ void WebAppIntegrationTestDriver::CheckNoSubApps(Site parent_app) {
       << "No open tab or window for the parent app was found.";
 
   const content::EvalJsResult result =
-      content::EvalJs(web_contents, "navigator.subApps.list()");
+      content::EvalJs(web_contents, "window.subApps.list()");
 
   // Check that list() returned an empty dictionary.
   EXPECT_EQ(base::Value(base::Value::Type::DICT), result);
@@ -5090,9 +5117,9 @@ WebAppIntegrationTest::WebAppIntegrationTest() : helper_(this) {
   enabled_features.push_back(features::kPwaNavigationCapturing);
 #endif  // !BUILDFLAG(IS_CHROMEOS)
   enabled_features.push_back(blink::features::kWebAppMigrationApi);
+  enabled_features.push_back(features::kWebAppInstallDialog);
   disabled_features.push_back(
       features::kDesktopPWAsWindowControlsOverlayWithNoToggle);
-  disabled_features.push_back(features::kWebAppInstallDialog);
 
   scoped_feature_list_.InitWithFeatures(enabled_features, disabled_features);
 }

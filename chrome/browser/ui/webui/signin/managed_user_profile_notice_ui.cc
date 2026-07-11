@@ -78,6 +78,36 @@ ManagedUserProfileNoticeUI::ScreenType GetScreenTypeFromURL(const GURL& url) {
   return ManagedUserProfileNoticeUI::ScreenType::kProfilePicker;
 }
 
+base::DictValue GetSignalsDisclaimerScreenUpdateData() {
+  return base::DictValue()
+      .Set(
+          "screenType",
+          static_cast<int>(
+              ManagedUserProfileNoticeUI::ScreenType::kDeviceSignalsDisclaimer))
+      .Set("isModalDialog", true)
+      .Set("initialState", ManagedUserProfileNoticeHandler::State::kDisclosure)
+      .Set("profileDisclosureTitle",
+           l10n_util::GetStringUTF16(
+               IDS_ENTERPRISE_DEVICE_SIGNALS_DISCLAIMER_TITLE))
+      .Set("profileDisclosureSubtitle",
+           l10n_util::GetStringUTF16(
+               IDS_ENTERPRISE_DEVICE_SIGNALS_DISCLAIMER_SUBTITLE))
+      .Set(
+          "profileInformationDetails",
+          l10n_util::GetStringUTF16(
+              IDS_ENTERPRISE_DEVICE_SIGNALS_DISCLAIMER_PROFILE_INFORMATION_DETAILS))
+      .Set(
+          "deviceInformationDetails",
+          l10n_util::GetStringUTF16(
+              IDS_ENTERPRISE_DEVICE_SIGNALS_DISCLAIMER_DEVICE_INFORMATION_DETAILS))
+      .Set("continueLabel",
+           l10n_util::GetStringUTF16(
+               IDS_ENTERPRISE_DEVICE_SIGNALS_DISCLAIMER_CONTINUE_BUTTON_LABEL))
+      .Set("cancelLabel",
+           l10n_util::GetStringUTF16(
+               IDS_ENTERPRISE_DEVICE_SIGNALS_DISCLAIMER_CANCEL_BUTTON_LABEL));
+}
+
 }  // namespace
 
 ManagedUserProfileNoticeUI::ManagedUserProfileNoticeUI(content::WebUI* web_ui)
@@ -270,18 +300,59 @@ ManagedUserProfileNoticeUI::ManagedUserProfileNoticeUI(content::WebUI* web_ui)
     source->AddBoolean("disableAnimations", false);
   }
 
+  Profile* profile = Profile::FromWebUI(web_ui);
+
   bool is_in_search_engine_choice_region =
       CHECK_DEREF(regional_capabilities::RegionalCapabilitiesServiceFactory::
-                      GetForProfile(Profile::FromWebUI(web_ui)))
+                      GetForProfile(profile))
           .IsInSearchEngineChoiceScreenRegion();
 
   bool is_first_run_desktop_refresh_enabled =
       switches::IsFirstRunDesktopRefreshEnabled(
           is_in_search_engine_choice_region);
+  // TODO(crbug.com/526570381): Unify WebUI data source initialization.
+  // Currently, there are multiple ways data is initialized: default values
+  // in the constructor, the `kFirstRun` workaround below, and the `Initialize`
+  // call triggered after navigation commits.
+  //
+  // The workaround below is necessary because the WebUI page reads from
+  // `loadTimeData` synchronously on page load, which races with the
+  // asynchronous `Initialize` call that updates the data source.
+  //
+  // To clean this up, we should pass initialization parameters synchronously
+  // before navigation for each screen type.
   if (is_first_run_desktop_refresh_enabled) {
-    source->AddInteger("screenType",
-                       static_cast<int>(GetScreenTypeFromURL(
-                           web_ui->GetWebContents()->GetVisibleURL())));
+    const ScreenType screen_type =
+        GetScreenTypeFromURL(web_ui->GetWebContents()->GetVisibleURL());
+
+    source->AddInteger("screenType", static_cast<int>(screen_type));
+
+    if (screen_type == ScreenType::kFirstRun) {
+      const signin::IdentityManager& identity_manager =
+          CHECK_DEREF(IdentityManagerFactory::GetForProfile(profile));
+      CoreAccountInfo account_info =
+          identity_manager.GetPrimaryAccountInfo(signin::ConsentLevel::kSignin);
+      AccountInfo extended_info =
+          identity_manager.FindExtendedAccountInfo(account_info);
+      const std::string given_name =
+          !extended_info.IsEmpty()
+              ? std::string(
+                    extended_info.GetGivenName().value_or(extended_info.email))
+              : account_info.email;
+
+      if (!given_name.empty()) {
+        source->AddString("profileDisclosureTitle",
+                          l10n_util::GetStringFUTF16(
+                              IDS_FRE_SIGN_IN_CELEBRATION_WELCOME_TITLE,
+                              base::UTF8ToUTF16(given_name)));
+        source->AddString(
+            "profileDisclosureSubtitle",
+            l10n_util::GetStringFUTF16(
+                IDS_ENTERPRISE_WELCOME_PROFILE_DISCLOSURE_KNOWN_DOMAIN_SUBTITLE,
+                base::UTF8ToUTF16(
+                    enterprise_util::GetDomainFromEmail(account_info.email))));
+      }
+    }
   }
 
   bool is_first_run_desktop_revamp_enabled =
@@ -319,6 +390,11 @@ void ManagedUserProfileNoticeUI::Initialize(
     ManagedUserProfileNoticeUI::ScreenType type,
     std::unique_ptr<signin::EnterpriseProfileCreationDialogParams>
         create_param) {
+  if (type == ScreenType::kDeviceSignalsDisclaimer) {
+    InitializeForDeviceSignalsDisclaimer(browser, std::move(create_param));
+    return;
+  }
+
   auto* profile = Profile::FromWebUI(web_ui());
   bool is_school_account =
       create_param->account_info.GetAccountCapabilities()
@@ -458,57 +534,6 @@ void ManagedUserProfileNoticeUI::Initialize(
         l10n_util::GetStringUTF16(
             IDS_ENTERPRISE_WELCOME_SEPARATE_BROWSING_DATA_SCHOOL_CHOICE));
   }
-  if (type == ManagedUserProfileNoticeUI::ScreenType::kFirstRun) {
-    const bool is_in_search_engine_choice_region =
-        CHECK_DEREF(regional_capabilities::RegionalCapabilitiesServiceFactory::
-                        GetForProfile(profile))
-            .IsInSearchEngineChoiceScreenRegion();
-    if (switches::IsFirstRunDesktopRefreshEnabled(
-            is_in_search_engine_choice_region)) {
-      update_data.Set(
-          "profileDisclosureTitle",
-          l10n_util::GetStringFUTF16(
-              IDS_FRE_SIGN_IN_CELEBRATION_WELCOME_TITLE,
-              base::UTF8ToUTF16(
-                  create_param->account_info.GetGivenName().value_or(
-                      create_param->account_info.email))));
-      update_data.Set(
-          "profileDisclosureSubtitle",
-          l10n_util::GetStringFUTF16(
-              IDS_ENTERPRISE_WELCOME_PROFILE_DISCLOSURE_KNOWN_DOMAIN_SUBTITLE,
-              base::UTF8ToUTF16(domain)));
-    }
-  }
-
-  if (type ==
-      ManagedUserProfileNoticeUI::ScreenType::kDeviceSignalsDisclaimer) {
-    update_data.Set("isModalDialog", true);
-    update_data.Set("initialState",
-                    ManagedUserProfileNoticeHandler::State::kDisclosure);
-
-    update_data.Set("profileDisclosureTitle",
-                    l10n_util::GetStringUTF16(
-                        IDS_ENTERPRISE_DEVICE_SIGNALS_DISCLAIMER_TITLE));
-    update_data.Set("profileDisclosureSubtitle",
-                    l10n_util::GetStringUTF16(
-                        IDS_ENTERPRISE_DEVICE_SIGNALS_DISCLAIMER_SUBTITLE));
-    update_data.Set(
-        "profileInformationDetails",
-        l10n_util::GetStringUTF16(
-            IDS_ENTERPRISE_DEVICE_SIGNALS_DISCLAIMER_PROFILE_INFORMATION_DETAILS));
-    update_data.Set(
-        "deviceInformationDetails",
-        l10n_util::GetStringUTF16(
-            IDS_ENTERPRISE_DEVICE_SIGNALS_DISCLAIMER_DEVICE_INFORMATION_DETAILS));
-    update_data.Set(
-        "continueLabel",
-        l10n_util::GetStringUTF16(
-            IDS_ENTERPRISE_DEVICE_SIGNALS_DISCLAIMER_CONTINUE_BUTTON_LABEL));
-    update_data.Set(
-        "cancelLabel",
-        l10n_util::GetStringUTF16(
-            IDS_ENTERPRISE_DEVICE_SIGNALS_DISCLAIMER_CANCEL_BUTTON_LABEL));
-  }
 
   // Change the text so that the "(Recommended)" label is not shown when the
   // admin has set merging data as the default option.
@@ -542,6 +567,22 @@ void ManagedUserProfileNoticeUI::Initialize(
 
   auto handler = std::make_unique<ManagedUserProfileNoticeHandler>(
       browser, type, std::move(create_param));
+  handler_ = handler.get();
+
+  web_ui()->AddMessageHandler(std::move(handler));
+}
+
+void ManagedUserProfileNoticeUI::InitializeForDeviceSignalsDisclaimer(
+    Browser* browser,
+    std::unique_ptr<signin::EnterpriseProfileCreationDialogParams>
+        create_param) {
+  auto* profile = Profile::FromWebUI(web_ui());
+  content::WebUIDataSource::Update(
+      profile, chrome::kChromeUIManagedUserProfileNoticeHost,
+      GetSignalsDisclaimerScreenUpdateData());
+
+  auto handler = std::make_unique<ManagedUserProfileNoticeHandler>(
+      browser, ScreenType::kDeviceSignalsDisclaimer, std::move(create_param));
   handler_ = handler.get();
 
   web_ui()->AddMessageHandler(std::move(handler));

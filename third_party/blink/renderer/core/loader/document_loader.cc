@@ -57,6 +57,7 @@
 #include "services/network/public/cpp/no_vary_search_header_parser.h"
 #include "services/network/public/cpp/permissions_policy/permissions_policy_declaration.h"
 #include "services/network/public/cpp/web_sandbox_flags.h"
+#include "services/network/public/mojom/timing_allow_origin.mojom-blink.h"
 #include "services/network/public/mojom/url_response_head.mojom-shared.h"
 #include "services/network/public/mojom/web_sandbox_flags.mojom-blink.h"
 #include "third_party/blink/public/common/client_hints/client_hints.h"
@@ -121,6 +122,7 @@
 #include "third_party/blink/renderer/core/inspector/console_message.h"
 #include "third_party/blink/renderer/core/inspector/inspector_trace_events.h"
 #include "third_party/blink/renderer/core/inspector/main_thread_debugger.h"
+#include "third_party/blink/renderer/core/layout/layout_replaced.h"
 #include "third_party/blink/renderer/core/lcp_critical_path_predictor/lcp_critical_path_predictor.h"
 #include "third_party/blink/renderer/core/loader/alternate_signed_exchange_resource_info.h"
 #include "third_party/blink/renderer/core/loader/frame_client_hints_preferences_context.h"
@@ -441,6 +443,7 @@ struct SameSizeAsDocumentLoader
   mojo::PendingRemote<mojom::blink::CodeCacheHost>
       pending_code_cache_host_for_background;
   HashMap<KURL, EarlyHintsPreloadEntry> early_hints_preloaded_resources;
+  Vector<DocumentLoader::Preconnect> preconnects;
   std::optional<Vector<KURL>> ad_auction_components;
   std::unique_ptr<ExtraData> extra_data;
   AtomicString reduced_accept_language;
@@ -630,6 +633,7 @@ DocumentLoader::DocumentLoader(
               perfetto::Flow::FromPointer(this));
   DCHECK(frame_);
   DCHECK(params_);
+  is_secure_context_root_ = params_->is_secure_context_root;
 
   // See `archive_` attribute documentation.
   if (!frame_->IsMainFrame()) {
@@ -685,6 +689,11 @@ DocumentLoader::DocumentLoader(
     early_hints_preloaded_resources_.insert(
         KURL(resource.url),
         EarlyHintsPreloadEntry(resource.as, resource.cross_origin));
+  }
+
+  for (const auto& preconnect : params_->preconnects) {
+    preconnects_.push_back(Preconnect{
+        KURL(preconnect.url), preconnect.cross_origin, preconnect.early_hint});
   }
 
   CHECK_EQ(IsBackForwardOrRestore(params_->frame_load_type), !!history_item_);
@@ -1019,15 +1028,20 @@ void DocumentLoader::RunURLAndHistoryUpdateSteps(
     UserNavigationInvolvement involvement,
     PerformanceTimelineEntryIdInfo interaction_id,
     bool is_browser_initiated,
-    bool is_synchronously_committed) {
-  // We use the security origin of this frame since callers of this method must
-  // already have performed same origin checks.
+    bool is_synchronously_committed,
+    const SecurityOrigin* initiator_origin) {
+  // Unless the caller has explicitly provided an initiator (e.g. when
+  // committing an intercepted navigate event that was started by a different
+  // frame), use the security origin of this frame since callers of this
+  // method must already have performed same origin checks.
   // is_browser_initiated is false and is_synchronously_committed is true
   // because anything invoking this algorithm is a renderer-initiated navigation
   // in this process.
   UpdateForSameDocumentNavigation(
       new_url, history_item, same_document_navigation_type, std::move(data),
-      type, fire_popstate, frame_->DomWindow()->GetSecurityOrigin(),
+      type, fire_popstate,
+      initiator_origin ? initiator_origin
+                       : frame_->DomWindow()->GetSecurityOrigin(),
       is_browser_initiated, is_synchronously_committed,
       LocalFrame::HasTransientUserActivation(frame_), involvement,
       /*has_ua_visual_transition*/ false, should_skip_screenshot,
@@ -1093,7 +1107,12 @@ void DocumentLoader::UpdateForSameDocumentNavigation(
     http_method_ = http_names::kGET;
     http_body_ = nullptr;
   }
-
+  // Same-document text fragment navigations are restricted to same-origin or
+  // browser-initiated navigations for security. We must use the original
+  // initiator origin (which might be passed from an intercepted navigate event)
+  // rather than the target frame's origin.
+  // See
+  // https://wicg.github.io/scroll-to-text-fragment/#restricting-the-text-fragment
   last_navigation_had_trusted_initiator_ =
       !initiator_origin || (initiator_origin->IsSameOriginWith(
                                 frame_->DomWindow()->GetSecurityOrigin()) &&
@@ -1108,7 +1127,9 @@ void DocumentLoader::UpdateForSameDocumentNavigation(
   // history API.
   if (type == WebFrameLoadType::kStandard ||
       same_document_navigation_type ==
-          mojom::blink::SameDocumentNavigationType::kFragment) {
+          mojom::blink::SameDocumentNavigationType::kFragment ||
+      same_document_navigation_type ==
+          mojom::blink::SameDocumentNavigationType::kNavigationApiIntercept) {
     has_text_fragment_token_ =
         TextFragmentAnchor::GenerateNewTokenForSameDocument(
             *this, type, same_document_navigation_type);
@@ -1550,6 +1571,19 @@ void DocumentLoader::HandleRedirect(
 
   DCHECK(!GetTiming().FetchStart().is_null());
   GetTiming().AddRedirect(url_before_redirect, url_after_redirect);
+
+  // Record this redirect response's `Timing-Allow-Origin` values in the
+  // navigation's "navigation timing allow check list". This is later used,
+  // together with the navigation's destination origin, to decide whether
+  // redirect timing is exposed for cross-origin redirect chains.
+  // https://fetch.spec.whatwg.org/#append-to-a-requests-navigation-timing-allow-check-list
+  network::mojom::blink::TimingAllowOriginPtr tao;
+  const AtomicString& tao_header =
+      redirect_response.HttpHeaderField(http_names::kTimingAllowOrigin);
+  if (!tao_header.IsNull()) {
+    tao = ParseTimingAllowOrigin(tao_header);
+  }
+  GetTiming().AppendToNavigationTimingAllowCheckList(std::move(tao));
 }
 
 void DocumentLoader::ConsoleError(const String& message) {
@@ -1757,6 +1791,7 @@ mojom::CommitResult DocumentLoader::CommitSameDocumentNavigation(
     params->involvement = involvement;
     params->source_element = source_element;
     params->destination_item = history_item;
+    params->initiator_origin = initiator_origin;
     params->is_browser_initiated = is_browser_initiated;
     params->has_ua_visual_transition = has_ua_visual_transition;
     params->is_synchronously_committed_same_document =
@@ -2282,9 +2317,7 @@ void DocumentLoader::DidInstallNewDocument(Document* document) {
   // render opportunity after activation) since the event is fired as part of
   // updating the rendering which is suppressed until the prerender is
   // activated.
-  if (RuntimeEnabledFeatures::PageRevealEventEnabled()) {
-    document->EnqueuePageRevealEvent();
-  }
+  document->EnqueuePageRevealEvent();
 }
 
 void DocumentLoader::WillCommitNavigation() {
@@ -2919,6 +2952,10 @@ void DocumentLoader::InitializeWindow(Document* owner_document) {
   // wants to inspect sandbox flags.
   SecurityContext& security_context = frame_->DomWindow()->GetSecurityContext();
   security_context.SetSecurityOrigin(std::move(security_origin));
+  // Mirror the browser's `IsSecureContextRoot()` verdict onto this frame's
+  // SecurityContext so same-process descendants see it in
+  // HasInsecureContextInAncestors().
+  security_context.SetIsSecureContextRoot(is_secure_context_root_);
   // Requires SecurityOrigin to be initialized.
   OriginTrialContext::AddTokensFromHeader(
       frame_->DomWindow(), response_.HttpHeaderField(http_names::kOriginTrial));
@@ -2978,7 +3015,39 @@ void DocumentLoader::CommitNavigation() {
       const SecurityOrigin* new_origin =
           frame_->DomWindow()->GetSecurityOrigin();
       if (!old_origin->IsSameOriginWith(new_origin)) {
-        frame_->Owner()->ClearAllNaturalSizingInfo();
+        // In addition to clearing the natural size, resize the view to the
+        // default size, to prevent leaking the previous size.
+        // 1. Ideally this is needed only if the previous `Document` had
+        //    `responsive_embedded_sizing_`. Getting the value involves multiple
+        //    IPCs, so we only check the value of the `frame-sizing` CSS
+        //    property of the frame owner (`<iframe>`).
+        // 2. Ideally the view should be resized to the size of the frame owner
+        //    without the natural size. Use the default size because getting it
+        //    would block until the parent layout is complete.
+        switch (frame_->Owner()->GetResponsiveSizing()) {
+          case mojom::blink::FrameResponsiveSizing::kNone:
+            break;
+          case mojom::blink::FrameResponsiveSizing::kWidth:
+            if (LocalFrameView* frame_view = frame_->View()) {
+              const double zoom = frame_->LayoutZoomFactor();
+              const int height = frame_view->Size().height();
+              const int width =
+                  static_cast<int>(LayoutReplaced::kDefaultWidth * zoom);
+              frame_view->Resize(width, height);
+            }
+            frame_->Owner()->ClearAllNaturalSizingInfo();
+            break;
+          case mojom::blink::FrameResponsiveSizing::kHeight:
+            if (LocalFrameView* frame_view = frame_->View()) {
+              const double zoom = frame_->LayoutZoomFactor();
+              const int width = frame_view->Size().width();
+              const int height =
+                  static_cast<int>(LayoutReplaced::kDefaultHeight * zoom);
+              frame_view->Resize(width, height);
+            }
+            frame_->Owner()->ClearAllNaturalSizingInfo();
+            break;
+        }
       }
     }
   }

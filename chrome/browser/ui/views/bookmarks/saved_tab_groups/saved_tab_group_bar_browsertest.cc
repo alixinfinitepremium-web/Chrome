@@ -2,14 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include <algorithm>
-#include <iterator>
 #include <memory>
 #include <optional>
 #include <vector>
 
 #include "base/task/single_thread_task_runner.h"
-#include "base/test/bind.h"
 #include "base/test/scoped_feature_list.h"
 #include "base/uuid.h"
 #include "chrome/browser/favicon/favicon_utils.h"
@@ -77,7 +74,7 @@ IN_PROC_BROWSER_TEST_P(SavedTabGroupBarBrowserTest,
                        ValidGroupIsOpenedInTabstripOnce) {
   TabGroupSyncService* service =
       tab_groups::TabGroupSyncServiceFactory::GetForProfile(
-          browser()->profile());
+          browser()->GetProfile());
 
   TabStripModel* model = browser()->tab_strip_model();
   const TabGroupId group_id = model->AddToNewGroup({0});
@@ -103,7 +100,7 @@ IN_PROC_BROWSER_TEST_P(SavedTabGroupBarBrowserTest,
                        DeletedSavedTabGroupDoesNotOpen) {
   TabGroupSyncService* service =
       tab_groups::TabGroupSyncServiceFactory::GetForProfile(
-          browser()->profile());
+          browser()->GetProfile());
   TabStripModel* model = browser()->tab_strip_model();
   const TabGroupId group_id = model->AddToNewGroup({0});
   Wait();
@@ -127,7 +124,7 @@ IN_PROC_BROWSER_TEST_P(SavedTabGroupBarBrowserTest,
 
 IN_PROC_BROWSER_TEST_P(SavedTabGroupBarBrowserTest,
                        SavedTabGroupLoadStoredEntries) {
-  ASSERT_TRUE(SavedTabGroupUtils::IsEnabledForProfile(browser()->profile()));
+  ASSERT_TRUE(SavedTabGroupUtils::IsEnabledForProfile(browser()->GetProfile()));
   const SavedTabGroupBar* saved_tab_group_bar =
       BrowserView::GetBrowserViewForBrowser(browser())
           ->bookmark_bar()
@@ -143,7 +140,7 @@ IN_PROC_BROWSER_TEST_P(SavedTabGroupBarBrowserTest,
   group.AddTabFromSync(std::move(tab));
 
   TabGroupSyncService* service =
-      TabGroupSyncServiceFactory::GetForProfile(browser()->profile());
+      TabGroupSyncServiceFactory::GetForProfile(browser()->GetProfile());
   service->AddGroup(std::move(group));
   // Wait until the add group task resolves.
   Wait();
@@ -152,9 +149,9 @@ IN_PROC_BROWSER_TEST_P(SavedTabGroupBarBrowserTest,
 }
 
 IN_PROC_BROWSER_TEST_P(SavedTabGroupBarBrowserTest, SavedTabGroupAdded) {
-  ASSERT_TRUE(SavedTabGroupUtils::IsEnabledForProfile(browser()->profile()));
+  ASSERT_TRUE(SavedTabGroupUtils::IsEnabledForProfile(browser()->GetProfile()));
   TabGroupSyncService* service =
-      TabGroupSyncServiceFactory::GetForProfile(browser()->profile());
+      TabGroupSyncServiceFactory::GetForProfile(browser()->GetProfile());
 
   // Create 1 pinned group
   base::Uuid pinned_group_guid = base::Uuid::GenerateRandomV4();
@@ -190,7 +187,7 @@ IN_PROC_BROWSER_TEST_P(SavedTabGroupBarBrowserTest, SavedTabGroupAdded) {
 
 IN_PROC_BROWSER_TEST_P(SavedTabGroupBarBrowserTest,
                        EmptySavedTabGroupDoesntDisplay) {
-  ASSERT_TRUE(SavedTabGroupUtils::IsEnabledForProfile(browser()->profile()));
+  ASSERT_TRUE(SavedTabGroupUtils::IsEnabledForProfile(browser()->GetProfile()));
   const SavedTabGroupBar* saved_tab_group_bar =
       BrowserView::GetBrowserViewForBrowser(browser())
           ->bookmark_bar()
@@ -203,7 +200,7 @@ IN_PROC_BROWSER_TEST_P(SavedTabGroupBarBrowserTest,
       u"group_title", TabGroupColorId::kGrey, {}, 0, group_guid};
 
   TabGroupSyncService* service =
-      TabGroupSyncServiceFactory::GetForProfile(browser()->profile());
+      TabGroupSyncServiceFactory::GetForProfile(browser()->GetProfile());
   service->AddGroup(std::move(group));
   Wait();
 
@@ -218,7 +215,7 @@ IN_PROC_BROWSER_TEST_P(SavedTabGroupBarBrowserTest,
   constexpr int kLargeTabInGroupCount = 1000;
 
   TabGroupSyncService* service =
-      TabGroupSyncServiceFactory::GetForProfile(browser()->profile());
+      TabGroupSyncServiceFactory::GetForProfile(browser()->GetProfile());
   auto* service_impl = static_cast<TabGroupSyncServiceImpl*>(service);
   SavedTabGroupModel* model = service_impl->GetModel();
   for (int i = 0; i < kLargeGroupCount; i++) {
@@ -269,7 +266,7 @@ class SavedTabGroupBarNtpSimplificationBrowserTest
 
 IN_PROC_BROWSER_TEST_F(SavedTabGroupBarNtpSimplificationBrowserTest,
                        UpdateBookmarkBarVisibilityOnEverythingButtonPressed) {
-  ASSERT_TRUE(SavedTabGroupUtils::IsEnabledForProfile(browser()->profile()));
+  ASSERT_TRUE(SavedTabGroupUtils::IsEnabledForProfile(browser()->GetProfile()));
   SavedTabGroupBar* saved_tab_group_bar = const_cast<SavedTabGroupBar*>(
       BrowserView::GetBrowserViewForBrowser(browser())
           ->bookmark_bar()
@@ -283,7 +280,7 @@ IN_PROC_BROWSER_TEST_F(SavedTabGroupBarNtpSimplificationBrowserTest,
   group.AddTabFromSync(std::move(tab));
 
   TabGroupSyncService* service =
-      TabGroupSyncServiceFactory::GetForProfile(browser()->profile());
+      TabGroupSyncServiceFactory::GetForProfile(browser()->GetProfile());
   service->AddGroup(std::move(group));
   Wait();
 
@@ -321,7 +318,7 @@ IN_PROC_BROWSER_TEST_F(SavedTabGroupBarNtpSimplificationBrowserTest,
 
 IN_PROC_BROWSER_TEST_F(SavedTabGroupBarNtpSimplificationBrowserTest,
                        UpdateBookmarkBarVisibilityOnTabGroupButtonPressed) {
-  ASSERT_TRUE(SavedTabGroupUtils::IsEnabledForProfile(browser()->profile()));
+  ASSERT_TRUE(SavedTabGroupUtils::IsEnabledForProfile(browser()->GetProfile()));
   SavedTabGroupBar* saved_tab_group_bar = const_cast<SavedTabGroupBar*>(
       BrowserView::GetBrowserViewForBrowser(browser())
           ->bookmark_bar()
@@ -335,7 +332,7 @@ IN_PROC_BROWSER_TEST_F(SavedTabGroupBarNtpSimplificationBrowserTest,
   group.AddTabFromSync(std::move(tab));
 
   TabGroupSyncService* service =
-      TabGroupSyncServiceFactory::GetForProfile(browser()->profile());
+      TabGroupSyncServiceFactory::GetForProfile(browser()->GetProfile());
   service->AddGroup(std::move(group));
   Wait();
 

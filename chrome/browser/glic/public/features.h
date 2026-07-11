@@ -39,6 +39,12 @@ extern const base::FeatureParam<bool> kGlicSelectionPromptUpdatesOnly;
 extern const base::FeatureParam<bool> kGlicSelectionPromptUseWidget;
 extern const base::FeatureParam<bool> kGlicSelectionPromptEnablePinning;
 extern const base::FeatureParam<std::string> kGlicSelectionTopCueOnlyList;
+extern const base::FeatureParam<bool> kGlicSelectionEnableSiteSettings;
+extern const base::FeatureParam<bool> kGlicSelectionShowCopyButtons;
+extern const base::FeatureParam<bool> kGlicSelectionAutoSendPrompt;
+extern const base::FeatureParam<std::string> kGlicSelectionPromptCta;
+inline constexpr char kGlicSelectionPromptCtaTellMe[] = "tell_me_about_this";
+inline constexpr char kGlicSelectionPromptCtaExplain[] = "explain";
 
 BASE_DECLARE_FEATURE(kGlicCreateTabAdjacent);
 
@@ -55,6 +61,8 @@ BASE_DECLARE_FEATURE(kGlicFixTimeToFirstQueryKillSwitch);
 BASE_DECLARE_FEATURE(kGlicContextMenu);
 extern const base::FeatureParam<std::string> kGlicContextMenuArm;
 extern const base::FeatureParam<bool> kGlicContextMenuWithOnboarding;
+
+BASE_DECLARE_FEATURE(kGlicTextSelectionContextMenu);
 
 BASE_DECLARE_FEATURE(kGlicTieredRolloutV2);
 extern const base::FeatureParam<std::string> kGlicTieredRolloutV2EligibleTiers;
@@ -80,17 +88,16 @@ inline constexpr char
     kGlicToolbarButtonLocationLeftOfProfileChipWithBackground[] =
         "LeftOfProfileChipWithBackground";
 
-BASE_DECLARE_FEATURE(kGlicButtonAutoSummarize);
-
 BASE_DECLARE_FEATURE(kGlicGetTabFaviconById);
 
 BASE_DECLARE_FEATURE(kGlicSkipCookieSyncOnOpen);
 BASE_DECLARE_FEATURE(kGlicCookieSyncOnTokenChange);
+extern const base::FeatureParam<base::TimeDelta>
+    kGlicCookieSyncOnTokenChangeDelay;
 BASE_DECLARE_FEATURE(kGlicCookieSyncOnError);
 extern const base::FeatureParam<base::TimeDelta>
     kGlicCookieSyncOnErrorMinInterval;
 BASE_DECLARE_FEATURE(kGlicCookieSyncOnOpenEvenIfNoSyncNeeded);
-BASE_DECLARE_FEATURE(kGlicShareImageViaInvoke);
 
 BASE_DECLARE_FEATURE(kGlicWebClientLoadTimes);
 extern const base::FeatureParam<int> kGlicPreLoadingTimeMs;

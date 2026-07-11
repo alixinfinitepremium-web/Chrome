@@ -1627,33 +1627,6 @@ TEST_F(ExtensionServiceTest, FailOnWrongVersion) {
   ASSERT_TRUE(registry()->enabled_extensions().GetByID(kGoodCrx));
 }
 
-// Install a user script (they get converted automatically to an extension)
-TEST_F(ExtensionServiceTest, InstallUserScript) {
-  // The details of script conversion are tested elsewhere, this just tests
-  // integration with ExtensionService.
-  InitializeEmptyExtensionService();
-
-  base::FilePath path = data_dir().AppendASCII("user_script_basic.user.js");
-
-  ASSERT_TRUE(base::PathExists(path));
-  scoped_refptr<CrxInstaller> installer(CrxInstaller::CreateSilent(profile()));
-  installer->set_allow_silent_install(true);
-  installer->InstallUserScript(
-      path,
-      GURL("http://www.aaronboodman.com/scripts/user_script_basic.user.js"));
-
-  task_environment()->RunUntilIdle();
-  std::vector<std::u16string> errors = GetErrors();
-  EXPECT_TRUE(installed_extension()) << "Nothing was installed.";
-  EXPECT_FALSE(was_update()) << path.value();
-  ASSERT_EQ(1u, loaded_extensions().size()) << "Nothing was loaded.";
-  EXPECT_EQ(0u, errors.size())
-      << "There were errors: " << base::JoinString(errors, u",");
-  EXPECT_TRUE(
-      registry()->enabled_extensions().GetByID(loaded_extensions()[0]->id()))
-      << path.value();
-}
-
 // Extensions don't install during shutdown.
 TEST_F(ExtensionServiceTest, InstallExtensionDuringShutdown) {
   InitializeEmptyExtensionService();
@@ -8647,31 +8620,6 @@ class ExternalExtensionPriorityTest
     : public ExtensionServiceTest,
       public testing::WithParamInterface<ManifestLocation> {};
 
-namespace {
-
-class FakeUpdateService : public UpdateService {
- public:
-  FakeUpdateService() : UpdateService(nullptr, nullptr, base::DoNothing()) {}
-
-  void StartUpdateCheck(const ExtensionUpdateCheckParams& update_params,
-                        UpdateFoundCallback update_found_callback,
-                        base::OnceClosure callback) override {
-    last_update_params_ = update_params;
-    if (!callback.is_null()) {
-      std::move(callback).Run();
-    }
-  }
-
-  const std::optional<ExtensionUpdateCheckParams>& last_update_params() const {
-    return last_update_params_;
-  }
-
- private:
-  std::optional<ExtensionUpdateCheckParams> last_update_params_;
-};
-
-}  // namespace
-
 // Policy-forced extensions should be fetched with FOREGROUND priority,
 // otherwise they may be throttled (web store sends “noupdate” response to
 // reduce load), which is OK for updates, but not for a new install. This is
@@ -8683,10 +8631,11 @@ TEST_P(ExternalExtensionPriorityTest, PolicyForegroundFetch) {
   params.autoupdate_enabled = true;
   InitializeExtensionService(std::move(params));
 
-  FakeUpdateService fake_update_service;
-  UpdateService::SupplyUpdateServiceForTest(&fake_update_service);
-
+  ExtensionDownloaderTestHelper helper;
+  NullExtensionCache extension_cache;
   ExtensionUpdater* updater = ExtensionUpdater::Get(profile());
+  updater->SetExtensionDownloaderForTesting(helper.CreateDownloader());
+  updater->SetExtensionCacheForTesting(&extension_cache);
   updater->Start();
 
   GURL update_url(extension_urls::kChromeWebstoreUpdateURL);
@@ -8704,21 +8653,18 @@ TEST_P(ExternalExtensionPriorityTest, PolicyForegroundFetch) {
 
   task_environment()->RunUntilIdle();
 
-  ASSERT_TRUE(fake_update_service.last_update_params().has_value());
-  const ExtensionUpdateCheckParams& update_params =
-      *fake_update_service.last_update_params();
-
+  EXPECT_EQ(helper.test_url_loader_factory().NumPending(), 1);
+  network::TestURLLoaderFactory::PendingRequest* pending_request =
+      helper.test_url_loader_factory().GetPendingRequest(0);
   bool is_high_priority =
       GetParam() == ManifestLocation::kExternalPolicyDownload ||
       GetParam() == ManifestLocation::kExternalComponent;
+  std::string expected_header = is_high_priority ? "fg" : "bg";
+  EXPECT_EQ(expected_header, pending_request->request.headers.GetHeader(
+                                 "X-Goog-Update-Interactivity"));
 
-  ExtensionUpdateCheckParams::UpdateCheckPriority expected_priority =
-      is_high_priority ? ExtensionUpdateCheckParams::FOREGROUND
-                       : ExtensionUpdateCheckParams::BACKGROUND;
-
-  EXPECT_EQ(expected_priority, update_params.priority);
-
-  UpdateService::SupplyUpdateServiceForTest(nullptr);
+  // Destroy updater's downloader as it uses |helper|.
+  updater->SetExtensionDownloaderForTesting(nullptr);
 }
 
 INSTANTIATE_TEST_SUITE_P(

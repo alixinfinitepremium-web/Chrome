@@ -6,6 +6,7 @@
 #define COMPONENTS_PASSAGE_EMBEDDINGS_CORE_INTERNAL_SCHEDULING_EMBEDDER_H_
 
 #include <deque>
+#include <map>
 #include <memory>
 #include <optional>
 #include <string>
@@ -85,8 +86,6 @@ class SchedulingEmbedder
     std::vector<std::string> passages;
     ComputePassagesEmbeddingsCallback callback;
 
-    bool in_progress = false;
-
     // Completed embeddings; may be partial.
     std::vector<Embedding> embeddings;
 
@@ -120,25 +119,20 @@ class SchedulingEmbedder
   // Returns true if currently in a work ready performance scenario state.
   bool IsPerformanceScenarioReady();
 
-  // Finds the job with the worst priority that is not in progress.
-  // Returns jobs.end() if no such job exists.
-  static std::deque<Job>::iterator FindWorstJob(std::deque<Job>& jobs);
+  // Returns an iterator to the highest priority non-empty queue in
+  // pending_jobs_, or pending_jobs_.end() if all queues are empty.
+  std::map<PassagePriority, std::deque<Job>>::iterator GetFirstNonEmptyQueue();
 
   // Call the callback with status, etc. and record relevant histograms.
   static void FinishJob(Job job,
                         ComputeEmbeddingsStatus status,
                         bool record_histograms);
 
-  // When this is non-empty, the embedder is working and its results will be
-  // applied from front to back when `OnEmbeddingsComputed` is called. Not all
-  // of these jobs are necessarily being worked on by the embedder. It may
-  // contain a mix of in-progress, partially completed, and not-yet-started
-  // jobs. In-progress jobs are ordered first, and in the same order as
-  // submitted to the embedder. Partially completed jobs may follow,
-  // still in the order they were last submitted to the embedder.
-  // Not-yet-started jobs are ordered last. All jobs will be re-ordered by
-  // priority before submitting the next batch to the embedder.
-  std::deque<Job> jobs_;
+  // Jobs that are waiting to be scheduled or resumed, grouped by priority.
+  std::map<PassagePriority, std::deque<Job>> pending_jobs_;
+
+  // Jobs that have passages in the current in-flight batch.
+  std::deque<Job> active_jobs_;
 
   // ID to assign to the next Job.
   uint64_t next_job_id_ = 1;

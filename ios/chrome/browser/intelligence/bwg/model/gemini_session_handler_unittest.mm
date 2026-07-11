@@ -12,6 +12,7 @@
 #import "ios/chrome/browser/feature_engagement/model/tracker_factory.h"
 #import "ios/chrome/browser/intelligence/bwg/metrics/gemini_metrics.h"
 #import "ios/chrome/browser/intelligence/bwg/model/gemini_tab_helper.h"
+#import "ios/chrome/browser/intelligence/bwg/utils/gemini_prefs.h"
 #import "ios/chrome/browser/intelligence/features/features.h"
 #import "ios/chrome/browser/optimization_guide/model/optimization_guide_service.h"
 #import "ios/chrome/browser/optimization_guide/model/optimization_guide_service_factory.h"
@@ -20,6 +21,7 @@
 #import "ios/chrome/browser/shared/model/web_state_list/web_state_list.h"
 #import "ios/chrome/browser/shared/public/commands/gemini_commands.h"
 #import "ios/chrome/browser/shared/public/commands/settings_commands.h"
+#import "ios/public/provider/chrome/browser/bwg/gemini_api.h"
 #import "ios/web/public/test/fakes/fake_web_state.h"
 #import "ios/web/public/test/web_task_environment.h"
 #import "testing/gtest/include/gtest/gtest.h"
@@ -59,10 +61,10 @@ class GeminiSessionHandlerTest : public PlatformTest {
 
     browser_ = std::make_unique<TestBrowser>(profile_.get());
     web_state_list_ = browser_->GetWebStateList();
-    session_handler_ =
-        [[GeminiSessionHandler alloc] initWithWebStateList:web_state_list_
-                                                   tracker:mock_tracker_];
-
+    session_handler_ = [[GeminiSessionHandler alloc]
+        initWithWebStateList:web_state_list_
+                     tracker:mock_tracker_
+                 prefService:profile_->GetPrefs()];
     optimization_guide_service_ =
         OptimizationGuideServiceFactory::GetForProfile(profile_.get());
 
@@ -122,6 +124,7 @@ TEST_F(GeminiSessionHandlerTest, TestSessionDurationRecorded) {
   histogram_tester_.ExpectTotalCount(kGeminiSessionTimeHistogram, 1);
   histogram_tester_.ExpectTimeBucketCount(kGeminiSessionTimeHistogram,
                                           kTestSessionDuration, 1);
+  EXPECT_EQ(1, user_action_tester_.GetActionCount("MobileGeminiSessionOpened"));
 }
 
 // Tests that responseReceivedWithClientID records response latency.
@@ -219,9 +222,7 @@ TEST_F(GeminiSessionHandlerTest, TestFirstRunFlag) {
   NSString* client_id = GetClientID();
 
   // Set first run flag.
-  web::WebState* web_state = web_state_list_->GetWebStateAt(0);
-  GeminiTabHelper* tab_helper = GeminiTabHelper::FromWebState(web_state);
-  tab_helper->SetIsFirstRun(true);
+  session_handler_.isFirstSession = YES;
 
   [session_handler_ UIDidAppearWithClientID:client_id serverID:kTestServerID];
   [session_handler_ didSendQueryWithInputType:gemini::InputType::kText
@@ -233,10 +234,9 @@ TEST_F(GeminiSessionHandlerTest, TestFirstRunFlag) {
   [session_handler_ UIDidDisappearWithClientID:client_id
                                       serverID:kTestServerID];
 
-  // Verify first run flag was cleared.
-  EXPECT_FALSE(tab_helper->GetIsFirstRun());
-
   // Session metrics should reflect first session.
+  histogram_tester_.ExpectTotalCount(
+      kGeminiSessionLengthFirstRunWithPromptHistogram, 1);
   histogram_tester_.ExpectTotalCount(kGeminiSessionTimeHistogram, 1);
 }
 
@@ -267,7 +267,8 @@ TEST_F(GeminiSessionHandlerTest, TestDifferentInputTypes) {
   // Test Summarize input type.
   GeminiSessionHandler* handler1 =
       [[GeminiSessionHandler alloc] initWithWebStateList:web_state_list_
-                                                 tracker:mock_tracker_];
+                                                 tracker:mock_tracker_
+                                             prefService:profile_->GetPrefs()];
   [handler1 didSendQueryWithInputType:gemini::InputType::kSummarize
              isNanoBananaToolSelected:NO
                   imagesAttachedCount:0
@@ -280,7 +281,8 @@ TEST_F(GeminiSessionHandlerTest, TestDifferentInputTypes) {
   // Test CheckThisSite input type.
   GeminiSessionHandler* handler2 =
       [[GeminiSessionHandler alloc] initWithWebStateList:web_state_list_
-                                                 tracker:mock_tracker_];
+                                                 tracker:mock_tracker_
+                                             prefService:profile_->GetPrefs()];
   [handler2 didSendQueryWithInputType:gemini::InputType::kCheckThisSite
              isNanoBananaToolSelected:NO
                   imagesAttachedCount:0
@@ -293,7 +295,8 @@ TEST_F(GeminiSessionHandlerTest, TestDifferentInputTypes) {
   // Test FindRelatedSites input type.
   GeminiSessionHandler* handler3 =
       [[GeminiSessionHandler alloc] initWithWebStateList:web_state_list_
-                                                 tracker:mock_tracker_];
+                                                 tracker:mock_tracker_
+                                             prefService:profile_->GetPrefs()];
   [handler3 didSendQueryWithInputType:gemini::InputType::kFindRelatedSites
              isNanoBananaToolSelected:NO
                   imagesAttachedCount:0
@@ -306,7 +309,8 @@ TEST_F(GeminiSessionHandlerTest, TestDifferentInputTypes) {
   // Test AskAboutPage input type.
   GeminiSessionHandler* handler4 =
       [[GeminiSessionHandler alloc] initWithWebStateList:web_state_list_
-                                                 tracker:mock_tracker_];
+                                                 tracker:mock_tracker_
+                                             prefService:profile_->GetPrefs()];
   [handler4 didSendQueryWithInputType:gemini::InputType::kAskAboutPage
              isNanoBananaToolSelected:NO
                   imagesAttachedCount:0
@@ -319,7 +323,8 @@ TEST_F(GeminiSessionHandlerTest, TestDifferentInputTypes) {
   // Test CreateFaq input type.
   GeminiSessionHandler* handler5 =
       [[GeminiSessionHandler alloc] initWithWebStateList:web_state_list_
-                                                 tracker:mock_tracker_];
+                                                 tracker:mock_tracker_
+                                             prefService:profile_->GetPrefs()];
   [handler5 didSendQueryWithInputType:gemini::InputType::kCreateFaq
              isNanoBananaToolSelected:NO
                   imagesAttachedCount:0
@@ -332,7 +337,8 @@ TEST_F(GeminiSessionHandlerTest, TestDifferentInputTypes) {
   // Test Unknown input type.
   GeminiSessionHandler* handler6 =
       [[GeminiSessionHandler alloc] initWithWebStateList:web_state_list_
-                                                 tracker:mock_tracker_];
+                                                 tracker:mock_tracker_
+                                             prefService:profile_->GetPrefs()];
   [handler6 didSendQueryWithInputType:gemini::InputType::kUnknown
              isNanoBananaToolSelected:NO
                   imagesAttachedCount:0
@@ -390,17 +396,18 @@ TEST_F(GeminiSessionHandlerTest, TestUpdateSessionWithClientID) {
   NSString* client_id = GetClientID();
   NSString* server_id = @"test_server_id";
 
-  web::WebState* web_state = web_state_list_->GetWebStateAt(0);
-  GeminiTabHelper* tab_helper = GeminiTabHelper::FromWebState(web_state);
+  web_state_list_->ActivateWebStateAt(0);
 
   // Check initial state - no server ID should exist.
-  std::optional<std::string> initial_server_id = tab_helper->GetServerId();
+  std::optional<std::string> initial_server_id =
+      gemini::GetConversationId(profile_->GetPrefs());
   EXPECT_FALSE(initial_server_id.has_value());
 
   [session_handler_ UIDidAppearWithClientID:client_id serverID:server_id];
 
   // Verify server ID was stored correctly.
-  std::optional<std::string> stored_server_id = tab_helper->GetServerId();
+  std::optional<std::string> stored_server_id =
+      gemini::GetConversationId(profile_->GetPrefs());
   EXPECT_TRUE(stored_server_id.has_value());
   EXPECT_EQ(stored_server_id.value(), "test_server_id");
 }
@@ -411,6 +418,8 @@ TEST_F(GeminiSessionHandlerTest, TestNewChatButtonTapped) {
   NSString* conversation_id = @"conversation_123";
   NSString* server_id = @"test_server_123";
 
+  web_state_list_->ActivateWebStateAt(0);
+
   // Create a session with stored server ID.
   [session_handler_ UIDidAppearWithClientID:client_id serverID:server_id];
 
@@ -418,7 +427,8 @@ TEST_F(GeminiSessionHandlerTest, TestNewChatButtonTapped) {
   GeminiTabHelper* tab_helper = GeminiTabHelper::FromWebState(web_state);
 
   // Verify session exists with server ID.
-  std::optional<std::string> initial_server_id = tab_helper->GetServerId();
+  std::optional<std::string> initial_server_id =
+      gemini::GetConversationId(profile_->GetPrefs());
   EXPECT_TRUE(initial_server_id.has_value());
   EXPECT_EQ(initial_server_id.value(), "test_server_123");
 
@@ -520,4 +530,37 @@ TEST_F(GeminiSessionHandlerTest,
                           imagesAttachedCount:0
                                longPressImage:NO
                           pageContextAttached:NO];
+}
+
+// Tests that showConsentScreenWithCompletion switches view mode to kFloaty if
+// rejected.
+TEST_F(GeminiSessionHandlerTest,
+       TestShowConsentScreenRejectionSwitchesToFloaty) {
+  ios::provider::SwitchToMode(ios::provider::GeminiViewMode::kLive,
+                              /*animated=*/false);
+  EXPECT_EQ(ios::provider::GetCurrentMode(),
+            ios::provider::GeminiViewMode::kLive);
+
+  OCMExpect([mock_gemini_handler_
+                startGeminiLiveFirstRunWithBaseViewController:[OCMArg any]
+                                                   completion:[OCMArg any]])
+      .andDo(^(NSInvocation* invocation) {
+        void (^completion)(BOOL success);
+        [invocation getArgument:&completion atIndex:3];
+        if (completion) {
+          completion(NO);
+        }
+      });
+
+  __block BOOL callback_invoked = NO;
+  [session_handler_ geminiLive:nil
+      showConsentScreenWithCompletion:^(BOOL accepted) {
+        EXPECT_FALSE(accepted);
+        callback_invoked = YES;
+      }];
+
+  EXPECT_TRUE(callback_invoked);
+  EXPECT_EQ(ios::provider::GetCurrentMode(),
+            ios::provider::GeminiViewMode::kFloaty);
+  [mock_gemini_handler_ verify];
 }

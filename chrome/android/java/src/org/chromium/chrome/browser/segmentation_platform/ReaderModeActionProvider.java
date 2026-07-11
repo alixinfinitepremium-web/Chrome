@@ -14,7 +14,6 @@ import org.chromium.base.task.PostTask;
 import org.chromium.base.task.TaskTraits;
 import org.chromium.build.annotations.NullMarked;
 import org.chromium.build.annotations.Nullable;
-import org.chromium.chrome.browser.dom_distiller.DomDistillerTabUtils;
 import org.chromium.chrome.browser.dom_distiller.ReaderModeActionRateLimiter;
 import org.chromium.chrome.browser.dom_distiller.ReaderModeManager;
 import org.chromium.chrome.browser.dom_distiller.ReaderModeManager.DistillationStatus;
@@ -26,7 +25,6 @@ import org.chromium.chrome.browser.tab.EmptyTabObserver;
 import org.chromium.chrome.browser.tab.Tab;
 import org.chromium.chrome.browser.tab.TabHidingType;
 import org.chromium.chrome.browser.toolbar.adaptive.AdaptiveToolbarButtonVariant;
-import org.chromium.components.dom_distiller.core.DomDistillerFeatures;
 import org.chromium.components.dom_distiller.core.DomDistillerUrlUtils;
 import org.chromium.components.embedder_support.util.UrlConstants;
 import org.chromium.components.ukm.UkmRecorder;
@@ -57,9 +55,11 @@ public class ReaderModeActionProvider implements ContextualPageActionController.
 
             mTab.addObserver(this);
             if (!isTabPossiblyDistillable(mTab)) {
-                onIsPageDistillableResult(mTab, /* isDistillable= */ false, /* isLast= */ true, /* isMobileOptimized= */ false);
-            } else if (DomDistillerFeatures.shouldUseReadabilityTriggeringHeuristic()) {
-                useReadabilityHeuristic();
+                onIsPageDistillableResult(
+                        mTab,
+                        /* isDistillable= */ false,
+                        /* isLast= */ true,
+                        /* isMobileOptimized= */ false);
             } else {
                 useDistillabilityProvider();
             }
@@ -81,19 +81,6 @@ public class ReaderModeActionProvider implements ContextualPageActionController.
             } else {
                 mDistillabilityProvider.addObserver(this);
             }
-        }
-
-        /** Uses the readability heurisitic to determine distillability. */
-        private void useReadabilityHeuristic() {
-            DomDistillerTabUtils.runReadabilityHeuristicsOnWebContents(
-                    mTab.getWebContents(),
-                    (readerable) -> {
-                        onIsPageDistillableResult(
-                                mTab,
-                                readerable,
-                                /* isLast= */ true,
-                                /* isMobileOptimized= */ false);
-                    });
         }
 
         public void destroy() {
@@ -142,6 +129,7 @@ public class ReaderModeActionProvider implements ContextualPageActionController.
 
     private @Nullable OneshotDistillabilityObserver mDistillabilityObserver;
     private @Nullable GURL mLastSeenUrl;
+    private int mLastTabId = Tab.INVALID_TAB_ID;
     private final OneshotSupplier<Boolean> mButtonVisibilitySupplier;
 
     public ReaderModeActionProvider(OneshotSupplier<Boolean> buttonVisibilitySupplier) {
@@ -157,10 +145,23 @@ public class ReaderModeActionProvider implements ContextualPageActionController.
 
         if (tab == null) return;
 
+        boolean isSameTab = tab.getId() == mLastTabId;
+        mLastTabId = tab.getId();
+
         // If we're on a reading mode page, always show the button to give users a way to exit
         // outside of a "back" navigation.
         if (DomDistillerUrlUtils.isDistilledPage(tab.getUrl())) {
+            mLastSeenUrl = tab.getUrl();
             signalAccumulator.setSignal(AdaptiveToolbarButtonVariant.READER_MODE, true);
+            return;
+        }
+
+        boolean isExitingReaderMode =
+                isSameTab && DomDistillerUrlUtils.isExitingReaderMode(mLastSeenUrl, tab.getUrl());
+        mLastSeenUrl = tab.getUrl();
+
+        if (isExitingReaderMode) {
+            signalAccumulator.setSignal(AdaptiveToolbarButtonVariant.READER_MODE, false);
             return;
         }
 
@@ -169,7 +170,6 @@ public class ReaderModeActionProvider implements ContextualPageActionController.
         if (tabDistillabilityProvider == null) return;
 
         // Distillability score isn't available yet. Start observing the provider.
-        mLastSeenUrl = tab.getUrl();
         mDistillabilityObserver =
                 new OneshotDistillabilityObserver(
                         tab, tabDistillabilityProvider, signalAccumulator);

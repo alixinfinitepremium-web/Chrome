@@ -327,6 +327,7 @@ class CORE_EXPORT WebFrameWidgetImpl
   float DIPsToBlinkSpace(float scalar) override;
   gfx::RectF DIPsToBlinkSpace(const gfx::RectF& rect) override;
   void MouseCaptureLost() override;
+  void SetPointerLocked(bool is_locked) override;
   bool CanComposeInline() override;
   bool ShouldDispatchImeEventsToPlugin() override;
   void ImeSetCompositionForPlugin(const String& text,
@@ -351,6 +352,14 @@ class CORE_EXPORT WebFrameWidgetImpl
   void OnTaskCompletedForFrame(base::TimeTicks start_time,
                                base::TimeTicks end_time,
                                LocalFrame*) override;
+
+  AnimationFrameTimingInfo* RecordRenderingUpdateEndTime(
+      base::TimeTicks) override;
+  void OnFirstContentfulPaint() override;
+  void MarkConditional(const AtomicString& name,
+                       base::TimeTicks start_time) override;
+  // TODO(https://crbug.com/515098190): Below are not FrameWidget overrides.
+
   void SetVirtualKeyboardResizeHeightForTesting(int);
   bool GetMayThrottleIfUndrawnFramesForTesting();
 
@@ -360,8 +369,6 @@ class CORE_EXPORT WebFrameWidgetImpl
                             base::TimeTicks end,
                             ExecutionContext* task_context) override;
   bool RequestedMainFramePending() override;
-  AnimationFrameTimingInfo* RecordRenderingUpdateEndTime(
-      base::TimeTicks) override;
   ukm::UkmRecorder* MainFrameUkmRecorder() override;
   ukm::SourceId MainFrameUkmSourceId() override;
 
@@ -655,6 +662,8 @@ class CORE_EXPORT WebFrameWidgetImpl
 
   void SetWindowRect(const gfx::Rect& requested_rect,
                      const gfx::Rect& adjusted_rect);
+  void MoveWindowTo(const gfx::Point& origin);
+  void ResizeWindowTo(const gfx::Size& size);
   void SetWindowRectSynchronouslyForTesting(const gfx::Rect& new_window_rect);
 
   void UpdateTooltipUnderCursor(const String& tooltip_text, TextDirection dir);
@@ -792,7 +801,6 @@ class CORE_EXPORT WebFrameWidgetImpl
 
   void OnDevToolsSessionConnectionChanged(bool attached);
 
-  void OnFirstContentfulPaint() override;
 
   WidgetBase* widget_base_for_testing() const { return widget_base_.get(); }
 
@@ -844,6 +852,8 @@ class CORE_EXPORT WebFrameWidgetImpl
   friend class WebFrameWidgetScrollContainerHitTest;
 
   void NotifySwapAndPresentationTime(PromiseCallbacks callbacks);
+  gfx::Rect AdjustPendingWindowRectForDisplay(const gfx::Rect& pending_rect,
+                                              int minimum_size);
 
   // WidgetBaseClient overrides.
   void BeginCommitCompositorFrame() override;
@@ -1416,9 +1426,35 @@ class CORE_EXPORT WebFrameWidgetImpl
 
   Member<UnboundedSurfaceState> unbounded_surface_state_;
 
-  UnboundedSurfaceState* GetOrCreateUnboundedSurfaceState();
+  UnboundedSurfaceState* GetOrCreateUnboundedSurfaceState(
+      ExecutionContext* execution_context);
+  UnboundedSurfaceState* GetUnboundedSurfaceState() const {
+    return unbounded_surface_state_.Get();
+  }
   void UnboundedContextDestroyed();
   HTMLElement* GetActiveUnboundedElement() const;
+
+ public:
+  // Unbounded elements shown in any local frame under this local root frame
+  // tree are tracked on the WebFrameWidgetImpl so that they can be checked
+  // globally (e.g. for clip escaping and hit testing).
+  void IncrementActiveUnboundedElementCount() {
+    active_unbounded_element_count_++;
+  }
+  void DecrementActiveUnboundedElementCount() {
+    DCHECK_GT(active_unbounded_element_count_, 0u);
+    active_unbounded_element_count_--;
+  }
+  bool HasActiveUnboundedElements() const {
+    return active_unbounded_element_count_ > 0;
+  }
+
+ private:
+  // Used during unbounded element show/hide to keep track of whether there is
+  // an active unbounded element in this widget.
+  // TODO(crbug.com/508672616): This likely can just be a bool, once checks are
+  // implemented to ensure only one unbounded element is open at a time.
+  uint32_t active_unbounded_element_count_ = 0;
 
   std::optional<float> browser_controls_top_height_override_;
 

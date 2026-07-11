@@ -16,19 +16,18 @@
 #include "base/types/expected_macros.h"
 #include "base/types/optional_util.h"
 #include "chrome/browser/file_select_helper.h"
+#include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/ui/webui/web_app_internals/web_app_internals.mojom.h"
 #include "chrome/browser/web_applications/isolated_web_apps/commands/install_isolated_web_app_command.h"
-#include "chrome/browser/web_applications/isolated_web_apps/commands/isolated_web_app_install_command_helper.h"
 #include "chrome/browser/web_applications/isolated_web_apps/install/isolated_web_app_dev_install_manager.h"
 #include "chrome/browser/web_applications/isolated_web_apps/isolated_web_app_features.h"
 #include "chrome/browser/web_applications/isolated_web_apps/isolated_web_app_url_info.h"
-#include "chrome/browser/web_applications/isolated_web_apps/isolation_data.h"
-#include "chrome/browser/web_applications/isolated_web_apps/key_distribution/iwa_key_distribution_info_provider.h"
 #include "chrome/browser/web_applications/isolated_web_apps/update/isolated_web_app_update_check_and_prepare_task.h"
 #include "chrome/browser/web_applications/isolated_web_apps/update/isolated_web_app_update_manager.h"
 #include "chrome/browser/web_applications/isolated_web_apps/update_manifest/update_manifest.h"
 #include "chrome/browser/web_applications/isolated_web_apps/update_manifest/update_manifest_fetcher.h"
 #include "chrome/browser/web_applications/locks/app_lock.h"
+#include "chrome/browser/web_applications/model/isolation_data.h"
 #include "chrome/browser/web_applications/web_app_command_scheduler.h"
 #include "chrome/browser/web_applications/web_app_provider.h"
 #include "chrome/browser/web_applications/web_app_registrar.h"
@@ -40,6 +39,7 @@
 #include "components/webapps/isolated_web_apps/types/iwa_version.h"
 #include "content/public/browser/file_select_listener.h"
 #include "content/public/browser/render_frame_host.h"
+#include "content/public/browser/storage_partition.h"
 #include "content/public/browser/web_contents_delegate.h"
 #include "services/network/public/cpp/shared_url_loader_factory.h"
 #include "third_party/abseil-cpp/absl/functional/overload.h"
@@ -295,7 +295,9 @@ void IwaInternalsHandler::ParseUpdateManifestFromUrl(
 
   auto fetcher = std::make_unique<UpdateManifestFetcher>(
       update_manifest_url, kUpdateManifestFetchAnnotation,
-      profile()->GetURLLoaderFactory());
+      profile()->GetURLLoaderFactory(),
+      profile()->GetDefaultStoragePartition()->GetNetworkContext());
+
   auto* fetcher_ptr = fetcher.get();
 
   base::OnceClosure fetcher_keep_alive =
@@ -580,14 +582,6 @@ void IwaInternalsHandler::ApplyDevModeUpdate(
         }
         return "Update failed: " + result.error();
       }).Then(std::move(callback)));
-}
-
-void IwaInternalsHandler::RotateKey(const std::string& web_bundle_id,
-                                    const std::vector<uint8_t>& public_key) {
-  IwaKeyDistributionInfoProvider::GetInstance(
-      base::PassKey<IwaInternalsHandler>())
-      .RotateKeyForDevMode(base::PassKey<IwaInternalsHandler>(), web_bundle_id,
-                           public_key);
 }
 
 void IwaInternalsHandler::UpdateManifestInstalledIsolatedWebApp(

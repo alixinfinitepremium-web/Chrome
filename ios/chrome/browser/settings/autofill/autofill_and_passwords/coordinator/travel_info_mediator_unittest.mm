@@ -10,6 +10,10 @@
 #import "components/autofill/core/browser/data_manager/autofill_ai/entity_data_manager.h"
 #import "components/autofill/core/browser/test_utils/entity_data_test_utils.h"
 #import "components/autofill/core/common/autofill_features.h"
+#import "components/autofill/core/common/autofill_prefs.h"
+#import "components/optimization_guide/core/feature_registry/feature_registration.h"
+#import "components/optimization_guide/core/model_execution/model_execution_prefs.h"
+#import "components/prefs/pref_service.h"
 #import "components/sync/test/test_sync_service.h"
 #import "ios/chrome/browser/autofill/model/ios_autofill_entity_data_manager_factory.h"
 #import "ios/chrome/browser/settings/autofill/autofill_ai/ui/autofill_ai_entity_item.h"
@@ -29,10 +33,6 @@ class TravelInfoMediatorTest : public PlatformTest {
  protected:
   void SetUp() override {
     PlatformTest::SetUp();
-    scoped_feature_list_.InitWithFeatures(
-        {autofill::features::kAutofillAiWithDataSchema,
-         autofill::features::kAutofillAiCreateEntityDataManager},
-        {});
 
     TestProfileIOS::Builder builder;
     builder.AddTestingFactory(ios::WebDataServiceFactory::GetInstance(),
@@ -45,7 +45,8 @@ class TravelInfoMediatorTest : public PlatformTest {
         IOSAutofillEntityDataManagerFactory::GetForProfile(profile_.get());
 
     mediator_ = [[TravelInfoMediator alloc]
-        initWithEntityDataManager:entity_data_manager];
+        initWithEntityDataManager:entity_data_manager
+                      prefService:profile_->GetPrefs()];
     consumer_ = OCMProtocolMock(@protocol(TravelInfoConsumer));
   }
 
@@ -55,7 +56,8 @@ class TravelInfoMediatorTest : public PlatformTest {
   }
 
   web::WebTaskEnvironment task_environment_;
-  base::test::ScopedFeatureList scoped_feature_list_;
+  base::test::ScopedFeatureList scoped_feature_list_{
+      autofill::features::kAutofillAiWithDataSchema};
   std::unique_ptr<TestProfileIOS> profile_;
   TravelInfoMediator* mediator_;
   id consumer_;
@@ -141,6 +143,9 @@ TEST_F(TravelInfoMediatorTest, SupportedEntityTypes) {
 
 @interface FakeTravelInfoConsumer : NSObject <TravelInfoConsumer>
 - (const std::vector<autofill::EntityType>&)writableEntityTypes;
+@property(nonatomic, assign) BOOL travelInfoToggleStateOn;
+@property(nonatomic, assign) BOOL travelInfoToggleEnabled;
+@property(nonatomic, assign) BOOL travelInfoToggleManaged;
 @end
 
 @implementation FakeTravelInfoConsumer {
@@ -162,6 +167,14 @@ TEST_F(TravelInfoMediatorTest, SupportedEntityTypes) {
 
 - (const std::vector<autofill::EntityType>&)writableEntityTypes {
   return _writableEntityTypes;
+}
+
+- (void)setTravelInfoToggleState:(BOOL)on
+                         enabled:(BOOL)enabled
+                         managed:(BOOL)managed {
+  _travelInfoToggleStateOn = on;
+  _travelInfoToggleEnabled = enabled;
+  _travelInfoToggleManaged = managed;
 }
 @end
 
@@ -222,4 +235,106 @@ TEST_F(TravelInfoMediatorTest, DidSelectDeleteEntityItemsRemovesEntity) {
       base::test::ios::kWaitForActionTimeout, true, ^{
         return !entity_data_manager->GetEntityInstance(entity_id).has_value();
       }));
+}
+
+// Tests that calling `didToggleTravelInfo` updates the preference.
+TEST_F(TravelInfoMediatorTest, TogglesTravelInfoPref) {
+  PrefService* prefs = profile_->GetPrefs();
+  prefs->SetBoolean(autofill::prefs::kAutofillAiTravelEntitiesEnabled, false);
+
+  [mediator_ didToggleTravelInfo:YES];
+  EXPECT_TRUE(
+      prefs->GetBoolean(autofill::prefs::kAutofillAiTravelEntitiesEnabled));
+
+  [mediator_ didToggleTravelInfo:NO];
+  EXPECT_FALSE(
+      prefs->GetBoolean(autofill::prefs::kAutofillAiTravelEntitiesEnabled));
+}
+
+// Tests that a preference change updates the consumer toggle state.
+TEST_F(TravelInfoMediatorTest, PrefChangeUpdatesConsumer) {
+  profile_->GetPrefs()->SetBoolean(
+      autofill::prefs::kAutofillAiTravelEntitiesEnabled, false);
+  mediator_.consumer = consumer_;
+
+  OCMExpect([consumer_ setTravelInfoToggleState:YES enabled:YES managed:NO]);
+  profile_->GetPrefs()->SetBoolean(
+      autofill::prefs::kAutofillAiTravelEntitiesEnabled, true);
+  [consumer_ verify];
+
+  OCMExpect([consumer_ setTravelInfoToggleState:NO enabled:YES managed:NO]);
+  profile_->GetPrefs()->SetBoolean(
+      autofill::prefs::kAutofillAiTravelEntitiesEnabled, false);
+  [consumer_ verify];
+}
+
+// Tests that a preference change for address autofill updates the consumer
+// toggle enabled state.
+TEST_F(TravelInfoMediatorTest, AutofillProfilePrefChangeUpdatesConsumer) {
+  base::test::ScopedFeatureList scoped_feature_list;
+  scoped_feature_list.InitAndDisableFeature(
+      autofill::features::kAutofillEnableAutofillSettingsEnterprisePolicy);
+
+  profile_->GetPrefs()->SetBoolean(autofill::prefs::kAutofillProfileEnabled,
+                                   true);
+  profile_->GetPrefs()->SetBoolean(
+      autofill::prefs::kAutofillAiTravelEntitiesEnabled, true);
+  mediator_.consumer = consumer_;
+
+  OCMExpect([consumer_ setTravelInfoToggleState:NO enabled:NO managed:NO]);
+  profile_->GetPrefs()->SetBoolean(autofill::prefs::kAutofillProfileEnabled,
+                                   false);
+  [consumer_ verify];
+
+  OCMExpect([consumer_ setTravelInfoToggleState:YES enabled:YES managed:NO]);
+  profile_->GetPrefs()->SetBoolean(autofill::prefs::kAutofillProfileEnabled,
+                                   true);
+  [consumer_ verify];
+}
+
+// Tests that a preference change for address autofill does not affect the
+// consumer toggle enabled state when the enterprise policy feature is enabled.
+TEST_F(TravelInfoMediatorTest,
+       AutofillProfilePrefChangeUpdatesConsumer_EnterprisePolicy) {
+  base::test::ScopedFeatureList scoped_feature_list(
+      autofill::features::kAutofillEnableAutofillSettingsEnterprisePolicy);
+
+  profile_->GetPrefs()->SetBoolean(autofill::prefs::kAutofillProfileEnabled,
+                                   true);
+  profile_->GetPrefs()->SetBoolean(
+      autofill::prefs::kAutofillAiTravelEntitiesEnabled, true);
+  mediator_.consumer = consumer_;
+
+  OCMExpect([consumer_ setTravelInfoToggleState:YES enabled:YES managed:NO]);
+  profile_->GetPrefs()->SetBoolean(autofill::prefs::kAutofillProfileEnabled,
+                                   false);
+  [consumer_ verify];
+}
+
+// Tests that a policy preference change updates the consumer toggle managed
+// state.
+TEST_F(TravelInfoMediatorTest, PolicyPrefChangeUpdatesConsumer) {
+  using optimization_guide::model_execution::prefs::
+      ModelExecutionEnterprisePolicyValue;
+  const std::string kPolicyPref = optimization_guide::prefs::
+      kAutofillPredictionImprovementsEnterprisePolicyAllowed;
+
+  profile_->GetPrefs()->SetBoolean(
+      autofill::prefs::kAutofillAiTravelEntitiesEnabled, true);
+  profile_->GetPrefs()->SetInteger(
+      kPolicyPref,
+      static_cast<int>(ModelExecutionEnterprisePolicyValue::kAllow));
+  mediator_.consumer = consumer_;
+
+  OCMExpect([consumer_ setTravelInfoToggleState:YES enabled:YES managed:YES]);
+  profile_->GetPrefs()->SetInteger(
+      kPolicyPref,
+      static_cast<int>(ModelExecutionEnterprisePolicyValue::kDisable));
+  [consumer_ verify];
+
+  OCMExpect([consumer_ setTravelInfoToggleState:YES enabled:YES managed:NO]);
+  profile_->GetPrefs()->SetInteger(
+      kPolicyPref,
+      static_cast<int>(ModelExecutionEnterprisePolicyValue::kAllow));
+  [consumer_ verify];
 }

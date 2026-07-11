@@ -7,6 +7,7 @@
 #include "base/callback_list.h"
 #include "base/run_loop.h"
 #include "base/test/metrics/histogram_tester.h"
+#include "base/test/metrics/user_action_tester.h"
 #include "base/test/run_until.h"
 #include "base/test/scoped_feature_list.h"
 #include "base/test/task_environment.h"
@@ -456,6 +457,7 @@ TEST_P(ContextualTasksUiServiceTestParameterized,
   EXPECT_EQ(token_future.Get(), "");
 }
 
+#if !BUILDFLAG(IS_ANDROID)
 TEST_P(ContextualTasksUiServiceTestParameterized,
        HandleNavigation_NewTabAllowed_TracksWindow_Timeout) {
   if (GetParam() == base::test::TaskEnvironment::TimeSource::SYSTEM_TIME) {
@@ -494,6 +496,7 @@ TEST_P(ContextualTasksUiServiceTestParameterized,
   // The tracker should be destroyed.
   EXPECT_EQ(0U, service_for_nav_->window_trackers_for_testing().size());
 }
+#endif
 
 INSTANTIATE_TEST_SUITE_P(
     All,
@@ -786,6 +789,17 @@ TEST_F(ContextualTasksUiServiceTest, IsAiUrl_NoAimUrlParams) {
   EXPECT_CALL(*aim_eligibility_service_, HasAimUrlParams(ai_url))
       .WillOnce(Return(false));
   EXPECT_FALSE(service_for_nav_->IsAiUrl(ai_url));
+}
+
+TEST_F(ContextualTasksUiServiceTest, IsGoogleCaptchaUrl) {
+  EXPECT_TRUE(service_for_nav_->IsGoogleCaptchaUrl(
+      GURL("https://www.google.com/sorry/index?continue=foo")));
+  EXPECT_TRUE(service_for_nav_->IsGoogleCaptchaUrl(
+      GURL("https://ipv4.google.com/sorry/index?continue=foo")));
+  EXPECT_FALSE(service_for_nav_->IsGoogleCaptchaUrl(
+      GURL("https://www.google.com/search?q=test")));
+  EXPECT_FALSE(service_for_nav_->IsGoogleCaptchaUrl(
+      GURL("https://example.com/sorry/index")));
 }
 
 TEST_F(ContextualTasksUiServiceTest, HandleNavigation_AiPage_ChecksCobrowse) {
@@ -1104,6 +1118,7 @@ TEST_F(ContextualTasksUiServiceTest, NormalLinkNotIntercepted) {
   run_loop.Run();
 }
 
+#if !BUILDFLAG(IS_ANDROID)
 TEST_F(ContextualTasksUiServiceTest,
        HandleNavigation_NewTabAllowed_TracksWindow) {
   GURL navigated_url(kTestUrl);
@@ -1298,6 +1313,7 @@ TEST_F(ContextualTasksUiServiceTest,
   }
   EXPECT_EQ(0U, service_for_nav_->window_trackers_for_testing().size());
 }
+#endif
 
 TEST_F(ContextualTasksUiServiceTest, AiHostNotIntercepted_BadPath) {
   auto web_contents = content::WebContentsTester::CreateTestWebContents(
@@ -1585,6 +1601,7 @@ TEST_F(ContextualTasksUiServiceTest, AllowedHostNavigation_ViewedInTab) {
   run_loop.Run();
 }
 
+#if !BUILDFLAG(IS_ANDROID)
 TEST_F(ContextualTasksUiServiceTest, Navigation_ToNewTab_Allowed) {
   GURL navigated_url("https://example.com");
   GURL host_web_content_url(chrome::kChromeUIContextualTasksURL);
@@ -1620,6 +1637,7 @@ TEST_F(ContextualTasksUiServiceTest, Navigation_ToNewTab_Allowed) {
       FROM_HERE, run_loop.QuitClosure());
   run_loop.Run();
 }
+#endif
 
 // Any other link that isn't AI or an allowed host should be treated as a thread
 // link when viewed in a tab.
@@ -1724,6 +1742,27 @@ TEST_F(ContextualTasksUiServiceTest,
   run_loop.Run();
 }
 
+TEST_F(ContextualTasksUiServiceTest, CaptchaNavigation_ViewedInSidePanel) {
+  GURL navigated_url("https://www.google.com/sorry/index?continue=foo");
+  GURL host_web_content_url(chrome::kChromeUIContextualTasksURL);
+
+  auto web_contents = content::WebContentsTester::CreateTestWebContents(
+      profile_.get(), content::SiteInstance::Create(profile_.get()));
+  content::WebContentsTester::For(web_contents.get())
+      ->SetLastCommittedURL(host_web_content_url);
+
+  EXPECT_CALL(*service_for_nav_, OnThreadLinkClicked(_, _, _, _, _)).Times(0);
+  EXPECT_CALL(*service_for_nav_, OnSearchResultsNavigationInSidePanel(_, _))
+      .Times(0);
+  EXPECT_CALL(*service_for_nav_, OnNavigationToAiPageIntercepted(_, _, _))
+      .Times(0);
+  EXPECT_FALSE(service_for_nav_->HandleNavigationImpl(
+      CreateOpenUrlParams(navigated_url, true), web_contents.get(), nullptr,
+      /*is_from_embedded_page=*/true,
+      /*from_can_create_window=*/false, /*is_same_site_or_from_ui=*/true, false,
+      std::nullopt, std::nullopt, blink::mojom::WindowFeatures()));
+}
+
 // If the navigating to the Search Labs page, the navigation should be
 // intercepted but open in a new tab.
 TEST_F(ContextualTasksUiServiceTest,
@@ -1759,6 +1798,7 @@ TEST_F(ContextualTasksUiServiceTest,
 }
 
 TEST_F(ContextualTasksUiServiceTest, OnNavigationToAiPageIntercepted_SameTab) {
+  base::UserActionTester user_action_tester;
   ContextualTasksUiService service(
       profile_.get(), /*delegate=*/nullptr, contextual_tasks_service_.get(),
       /*identity_manager=*/nullptr, aim_eligibility_service_.get(),
@@ -1791,6 +1831,9 @@ TEST_F(ContextualTasksUiServiceTest, OnNavigationToAiPageIntercepted_SameTab) {
 
   service.OnNavigationToAiPageIntercepted(intercepted_url,
                                           weak_factory.GetWeakPtr(), false);
+
+  EXPECT_EQ(
+      user_action_tester.GetActionCount("ContextualTasks.AimFullTab.Shown"), 1);
 
   GURL expected_initial_url(
       "https://google.com/search?udm=50&q=test+query&sourceid=chrome&ccb=1");
@@ -2484,6 +2527,9 @@ TEST_F(ContextualTasksUiServiceTest,
   scoped_feature_list.InitAndEnableFeature(
       kContextualTasksBackButtonExpandsSidePanel);
 
+  base::UserActionTester user_action_tester;
+  base::HistogramTester histogram_tester;
+
   tabs::TabModel::PreventFeatureInitializationForTesting prevent_feature_init;
 
   NiceMock<MockBrowserWindowInterface> mock_browser_window;
@@ -2564,6 +2610,16 @@ TEST_F(ContextualTasksUiServiceTest,
   EXPECT_EQ(controller.GetEntryCount(), 2);
   EXPECT_EQ(controller.GetEntryAtIndex(0)->GetURL(),
             GURL("chrome://contextual-tasks/"));
+  EXPECT_FALSE(controller.NeedsReload());
+  EXPECT_FALSE(side_panel_contents->IsLoading());
+
+  // Verify that the back-button navigation metric was recorded.
+  EXPECT_EQ(1, user_action_tester.GetActionCount(
+                   "ContextualTasks.BackButton.UserAction."
+                   "NavigatedFromSidePanelToFullTab"));
+  histogram_tester.ExpectUniqueSample(
+      "ContextualTasks.BackButton.UserAction.NavigatedFromSidePanelToFullTab",
+      true, 1);
 }
 #endif
 
@@ -2777,6 +2833,24 @@ TEST_F(ContextualTasksUiServiceTest,
         web_contents->GetController().GetPendingEntry();
     return entry && entry->GetURL().host() == "www.google.com";
   }));
+}
+
+TEST_F(ContextualTasksUiServiceTest, HandleNavigation_WebUI_TokensNotLoaded) {
+  base::test::ScopedFeatureList scoped_feature_list(
+      contextual_tasks::kContextualTasks);
+  GURL webui_url(chrome::kChromeUIContextualTasksURL);
+  auto web_contents = content::WebContentsTester::CreateTestWebContents(
+      profile_.get(), content::SiteInstance::Create(profile_.get()));
+
+  EXPECT_CALL(*aim_eligibility_service_, IsCobrowseEligible())
+      .WillRepeatedly(Return(true));
+
+  identity_test_env_->MakePrimaryAccountAvailable(
+      "user@gmail.com", signin::ConsentLevel::kSignin);
+  identity_test_env_->ResetToAccountsNotYetLoadedFromDiskState();
+  EXPECT_FALSE(real_service_->HandleNavigation(
+      CreateOpenUrlParams(webui_url, false), web_contents.get(), false, false,
+      true, false, std::nullopt, std::nullopt, blink::mojom::WindowFeatures()));
 }
 
 TEST_F(
@@ -3017,6 +3091,7 @@ TEST_F(ContextualTasksUiServiceTest,
   EXPECT_EQ(web_contents->GetController().GetPendingEntry(), nullptr);
 }
 
+#if !BUILDFLAG(IS_ANDROID)
 TEST_F(ContextualTasksUiServiceTest, RegisterWindow_UpdatesTracker) {
   GURL navigated_url(kTestUrl);
   GURL host_web_content_url(chrome::kChromeUIContextualTasksURL);
@@ -3121,6 +3196,7 @@ TEST_F(ContextualTasksUiServiceTest, CloseTrackedWindow_ClosesTab) {
 
   EXPECT_EQ(0U, service_for_nav_->window_trackers_for_testing().size());
 }
+#endif
 
 TEST_F(ContextualTasksUiServiceTest, IsValidUrlForSuggestedTab) {
   SiteExclusionDetail site_exclusion_detail;
@@ -3197,41 +3273,6 @@ TEST_F(ContextualTasksUiServiceTest, SearchResultsLink_HandledAsThreadLink) {
   run_loop.Run();
 }
 
-TEST_F(ContextualTasksUiServiceTest, IsTrustedAiUrl) {
-  // Exact allowlist parameters should pass
-  GURL valid_url(
-      "https://google.com/"
-      "search?q=a&sxsrf=b&ei=c&iflsig=d&ved=e&uact=f&sclient=g&udm=h&fbs=i&aep="
-      "j&ntc=k&mstk=l&aioh=m&csuir=n&cs=o");
-  EXPECT_TRUE(service_for_nav_->IsTrustedAiUrl(valid_url));
 
-  // Extra parameters not in allowlist should fail
-  GURL invalid_extra_url(
-      "https://google.com/"
-      "search?q=a&sxsrf=b&ei=c&iflsig=d&ved=e&uact=f&sclient=g&udm=h&fbs=i&aep="
-      "j&ntc=k&mstk=l&aioh=m&csuir=n&cs=o&extra=p");
-  EXPECT_FALSE(service_for_nav_->IsTrustedAiUrl(invalid_extra_url));
-
-  // Missing one or more parameters should pass
-  GURL missing_params_url(
-      "https://google.com/"
-      "search?q=a&sxsrf=b&ei=c&iflsig=d&ved=e&uact=f&sclient=g&udm=h&fbs=i&aep="
-      "j&ntc=k&mstk=l&aioh=m&csuir=n");
-  EXPECT_TRUE(service_for_nav_->IsTrustedAiUrl(missing_params_url));
-
-  // Non google.com/search URLs should fail
-  GURL invalid_domain_url(
-      "https://example.com/"
-      "search?q=a&sxsrf=b&ei=c&iflsig=d&ved=e&uact=f&sclient=g&udm=h&fbs=i&aep="
-      "j&ntc=k&mstk=l&aioh=m&csuir=n&cs=o");
-  EXPECT_FALSE(service_for_nav_->IsTrustedAiUrl(invalid_domain_url));
-
-  GURL invalid_path_url(
-      "https://google.com/"
-      "other_path?q=a&sxsrf=b&ei=c&iflsig=d&ved=e&uact=f&sclient=g&udm=h&fbs=i&"
-      "aep="
-      "j&ntc=k&mstk=l&aioh=m&csuir=n&cs=o");
-  EXPECT_FALSE(service_for_nav_->IsTrustedAiUrl(invalid_path_url));
-}
 
 }  // namespace contextual_tasks

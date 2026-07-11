@@ -1,14 +1,12 @@
 include_rules = [
   '-chrome/browser/actor/ui',
   '+components/actor',
+  '+components/origin_gating',
 ]
 
 specific_include_rules = {
   'aggregated_journal.*_serializer\\.cc': [
     "+third_party/perfetto/include/perfetto",
-  ],
-  'aggregated_journal_serializer\\.cc': [
-    "+third_party/perfetto/protos/perfetto",
   ],
   'actor_keyed_service\\.cc': [
     # This is required to create the ActorUiStateManager when a profile
@@ -17,6 +15,12 @@ specific_include_rules = {
     "+chrome/browser/actor/ui/actor_ui_state_manager_interface.h",
     # Required to create the ActorTask.
     "+chrome/browser/actor/ui/event_dispatcher.h",
+  ],
+  'actor_tab_strip_tracker_desktop\\.cc': [
+    "+chrome/browser/actor/ui/actor_task_unload_handler.h",
+  ],
+  'tool_agnostic_browsertest\\.cc': [
+    "+chrome/browser/actor/ui/actor_task_unload_handler.h",
   ],
   'actor_tab_data\\.cc': [
     # Possible work-around to dependency: introduce an ActorUiTabData class,
@@ -64,7 +68,7 @@ specific_include_rules = {
   'tools_test_util\\.cc': [
     "+chrome/browser/actor/ui/event_dispatcher.h",
   ],
-  'attempt_otp_filling_tool_browsertest\\.cc': [
+  'attempt_otp_filling_.*': [
     "+components/one_time_tokens/core/browser",
   ],
   '.*test.cc': [

@@ -24,7 +24,8 @@ def format_descendant_node_text(node,
                                 total_dur,
                                 min_dur_ms,
                                 is_aggregated,
-                                indent=""):
+                                indent="",
+                                expand_config=None):
     dur_ms = node.dur_ms
     self_ms = node.self_ms
 
@@ -45,17 +46,19 @@ def format_descendant_node_text(node,
         for child in sorted_children:
             lines.extend(
                 format_descendant_node_text(child, total_dur, min_dur_ms, True,
-                                            indent + "  "))
+                                            indent + "  ", expand_config))
     else:
+        sig = trace_analyzer_lib.get_slice_signature(node, expand_config)
         line = (f"{indent}* [{dur_ms:8.3f} ms ({pct_root:5.1f}%) | "
                 f"self: {self_ms:8.3f} ms ({pct_self:5.1f}%)] "
-                f"{node.name}")
+                f"{sig}")
         lines = [line]
         sorted_children = sorted(node.children, key=lambda x: x.ts)
         for child in sorted_children:
             lines.extend(
                 format_descendant_node_text(child, total_dur, min_dur_ms,
-                                            False, indent + "  "))
+                                            False, indent + "  ",
+                                            expand_config))
     return lines
 
 
@@ -72,7 +75,11 @@ def format_window_node_text(node, total_dur, min_dur_ms, indent=""):
     return lines
 
 
-def generate_text_report(args, trees_or_roots, total_dur_ms, is_window):
+def generate_text_report(args,
+                         trees_or_roots,
+                         total_dur_ms,
+                         is_window,
+                         expand_config=None):
     output_lines = []
     if is_window:
         output_lines.append(
@@ -98,23 +105,27 @@ def generate_text_report(args, trees_or_roots, total_dur_ms, is_window):
             output_lines.append(
                 "Legend: * [Total Dur ( % of Focus ) | "
                 "Self Dur ( % of Focus )] Slice Name (call_count)\n")
-            agg_root = trace_analyzer_lib.aggregate_trees(trees_or_roots)
+            agg_root = trace_analyzer_lib.aggregate_trees(
+                trees_or_roots, expand_config)
             if agg_root:
                 output_lines.extend(
                     format_descendant_node_text(agg_root, agg_root.dur,
-                                                args.min_dur, True))
+                                                args.min_dur, True, "",
+                                                expand_config))
         else:
             longest_root = trees_or_roots[0]
+            sig = trace_analyzer_lib.get_slice_signature(
+                longest_root, expand_config)
             output_lines.append(
-                f"=== TEXT FLAMEGRAPH FOR FOCUS SLICE: {longest_root.name} ==="
-            )
+                f"=== TEXT FLAMEGRAPH FOR FOCUS SLICE: {sig} ===")
             output_lines.append(
                 f"Total Duration: {longest_root.dur_ms:.3f} ms")
             output_lines.append("Legend: * [Total Dur ( % of Focus ) | "
                                 "Self Dur ( % of Focus )] Slice Name\n")
             output_lines.extend(
                 format_descendant_node_text(longest_root, longest_root.dur,
-                                            args.min_dur, False))
+                                            args.min_dur, False, "",
+                                            expand_config))
     return "\n".join(output_lines) + "\n"
 
 
@@ -193,6 +204,23 @@ def main():
         "--arg-value",
         help=("Optional argument value to filter the target/metric slice "
               "(requires --arg-key)"))
+    parser.add_argument(
+        "--boundary-target",
+        help=
+        "Optional top-level boundary slice name to restrict the target slices")
+    parser.add_argument(
+        "--boundary-arg-key",
+        help=("Optional argument key to filter the boundary slice "
+              "(requires --boundary-target)"))
+    parser.add_argument(
+        "--boundary-arg-value",
+        help=("Optional argument value to filter the boundary slice "
+              "(requires --boundary-arg-key)"))
+    parser.add_argument(
+        "--expand-config",
+        help=("Optional JSON string or path to a JSON file containing "
+              "slice argument expansion configuration."))
+
 
     args = parser.parse_args()
 
@@ -200,11 +228,27 @@ def main():
     if (args.arg_key and not args.arg_value) or (args.arg_value
                                                  and not args.arg_key):
         parser.error("--arg-key and --arg-value must be used together.")
+    if (args.boundary_arg_key and not args.boundary_arg_value) or (
+            args.boundary_arg_value and not args.boundary_arg_key):
+        parser.error(
+            "--boundary-arg-key and --boundary-arg-value must be used together."
+        )
+    if (args.boundary_arg_key
+            or args.boundary_arg_value) and not args.boundary_target:
+        parser.error("Boundary filters require specifying --boundary-target.")
     if args.mode == "descendants" and (args.threads or args.processes):
         parser.error(
             "--threads and --processes are only valid in 'window' mode.")
     if args.mode == "window" and args.aggregate:
         parser.error("--aggregate is only valid in 'descendants' mode.")
+
+    expand_config = None
+    if args.expand_config:
+        try:
+            expand_config = trace_analyzer_lib.parse_expand_config(
+                args.expand_config)
+        except Exception as e:
+            parser.error(str(e))
 
     # 1. Load sessions and fetch data
     if args.mode == "descendants":
@@ -219,8 +263,12 @@ def main():
                 args.target,
                 arg_key=args.arg_key,
                 arg_value=args.arg_value,
-                aggregate=args.aggregate)
+                aggregate=args.aggregate,
+                boundary_target=args.boundary_target,
+                boundary_arg_key=args.boundary_arg_key,
+                boundary_arg_value=args.boundary_arg_value)
             root_nodes.extend(roots)
+
 
         if not root_nodes:
             print(f"Error: Target slice '{args.target}' not found.",
@@ -259,7 +307,8 @@ def main():
             output_content = json.dumps(output_data, indent=2)
 
         elif args.format == "markdown":
-            flat_metrics = trace_analyzer_lib.get_flat_metrics(root_nodes)
+            flat_metrics = trace_analyzer_lib.get_flat_metrics(
+                root_nodes, expand_config)
             # Average the flat metrics across trace count
             num_traces = len(args.traces)
             for name in flat_metrics:
@@ -272,7 +321,8 @@ def main():
 
         else:  # text
             output_content = generate_text_report(args, root_nodes,
-                                                  total_dur_ms, False)
+                                                  total_dur_ms, False,
+                                                  expand_config)
 
     else:  # window mode
         path_data = defaultdict(list)
@@ -294,11 +344,15 @@ def main():
                 threads=set(args.threads) if args.threads else None,
                 processes=set(args.processes) if args.processes else None,
                 arg_key=args.arg_key,
-                arg_value=args.arg_value)
+                arg_value=args.arg_value,
+                boundary_target=args.boundary_target,
+                boundary_arg_key=args.boundary_arg_key,
+                boundary_arg_value=args.boundary_arg_value)
             if slices is None:
                 continue
             metric_durations.append(m_dur)
-            run_paths = trace_analyzer_lib.build_paths_from_slices(slices)
+            run_paths = trace_analyzer_lib.build_paths_from_slices(
+                slices, expand_config)
             for p, d in run_paths.items():
                 path_data[p].append(d)
 

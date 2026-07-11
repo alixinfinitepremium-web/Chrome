@@ -47,6 +47,7 @@
 #include "components/contextual_search/pref_names.h"
 #include "components/keyed_service/content/browser_context_dependency_manager.h"
 #include "components/omnibox/browser/aim_eligibility_service.h"
+#include "components/omnibox/browser/aim_eligibility_service_features.h"
 #include "components/omnibox/browser/omnibox_field_trial.h"
 #include "components/omnibox/common/omnibox_features.h"
 #include "components/prefs/pref_service.h"
@@ -124,13 +125,7 @@ class OmniboxWebUiInteractiveTestBase
           {omnibox::kShowLensSearchChip.name, "true"}};
       features.emplace_back(omnibox::internal::kWebUIOmniboxSimplification,
                             simplification_params);
-      features.emplace_back(omnibox::kAiModeOmniboxEntryPoint,
-                            base::FieldTrialParams());
       features.emplace_back(omnibox::kAimEnabled, base::FieldTrialParams());
-      features.emplace_back(
-          features::kPageActionsMigration,
-          base::FieldTrialParams(
-              {{features::kPageActionsMigrationAiMode.name, "true"}}));
     }
     return features;
   }
@@ -228,13 +223,7 @@ IN_PROC_BROWSER_TEST_F(OmniboxWebUiInteractiveTest, GeminiHidesVerbatimMatch) {
 // Ensures Gemini mode's null match; e.g. "<Type search term>" is hidden, and
 // that clicking the default search suggestion navigates correctly.
 // TODO(crbug.com/496926191): Re-enable after de-flaking.
-#if BUILDFLAG(IS_MAC)
-#define MAYBE_GeminiHidesNullMatch DISABLED_GeminiHidesNullMatch
-#else
-#define MAYBE_GeminiHidesNullMatch GeminiHidesNullMatch
-#endif
-IN_PROC_BROWSER_TEST_F(OmniboxWebUiInteractiveTest,
-                       MAYBE_GeminiHidesNullMatch) {
+IN_PROC_BROWSER_TEST_F(OmniboxWebUiInteractiveTest, GeminiHidesNullMatch) {
   RunTestSequence(
       // Enter Gemini mode in Omnibox.
       AddInstrumentedTab(kNewTab, chrome::ChromeUINewTabURLAsGURL()),
@@ -511,7 +500,9 @@ IN_PROC_BROWSER_TEST_F(OmniboxAimWebUiInteractiveTest,
 }
 
 // TODO(crbug.com/505548434, crbug.com/517370516): Flaky on Mac, Win and Linux.
-#if BUILDFLAG(IS_MAC) || BUILDFLAG(IS_WIN) || BUILDFLAG(IS_LINUX)
+// TODO(crbug.com/524892796): Broken on ChromeOS.
+#if BUILDFLAG(IS_MAC) || BUILDFLAG(IS_WIN) || BUILDFLAG(IS_LINUX) || \
+    BUILDFLAG(IS_CHROMEOS)
 #define MAYBE_ClassicContextMenuOpensDeepSearch \
   DISABLED_ClassicContextMenuOpensDeepSearch
 #else
@@ -923,8 +914,8 @@ class WebUIOmniboxSimplificationInteractiveTest
   base::test::ScopedFeatureList feature_list_;
 };
 
-// TODO(crbug.com/512352908): Flaky on Mac.
-#if BUILDFLAG(IS_MAC)
+// TODO(crbug.com/512348269): Flaky on Mac and Windows ASAN.
+#if BUILDFLAG(IS_MAC) || (BUILDFLAG(IS_WIN) && defined(ADDRESS_SANITIZER))
 #define MAYBE_HasBackgroundApplied DISABLED_HasBackgroundApplied
 #else
 #define MAYBE_HasBackgroundApplied HasBackgroundApplied
@@ -947,8 +938,8 @@ IN_PROC_BROWSER_TEST_F(WebUIOmniboxSimplificationInteractiveTest,
           true)));
 }
 
-// TODO(crbug.com/512348269): Flaky on Mac.
-#if BUILDFLAG(IS_MAC)
+// TODO(crbug.com/512348269): Flaky on Mac and Windows ASAN.
+#if BUILDFLAG(IS_MAC) || (BUILDFLAG(IS_WIN) && defined(ADDRESS_SANITIZER))
 #define MAYBE_OblongShapeApplied DISABLED_OblongShapeApplied
 #else
 #define MAYBE_OblongShapeApplied OblongShapeApplied

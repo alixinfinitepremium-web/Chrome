@@ -638,13 +638,7 @@ bool CorsURLLoaderFactory::IsValidRequest(
     }
 
     // Apply allowlist for which flags untrusted factories are allowed to use.
-    if (request.load_flags &
-        ~(net::LOAD_VALIDATE_CACHE | net::LOAD_BYPASS_CACHE |
-          net::LOAD_SKIP_CACHE_VALIDATION | net::LOAD_ONLY_FROM_CACHE |
-          net::LOAD_DISABLE_CACHE | net::LOAD_PREFETCH |
-          net::LOAD_IGNORE_LIMITS | net::LOAD_DO_NOT_USE_EMBEDDED_IDENTITY |
-          net::LOAD_SUPPORT_ASYNC_REVALIDATION |
-          net::LOAD_RESTRICTED_PREFETCH_FOR_MAIN_FRAME)) {
+    if (request.load_flags & ~GetAllowedLoadFlagsForUntrustedRequests()) {
       mojo::ReportBadMessage(
           "CorsURLLoaderFactory: Untrusted caller using restricted load flag");
       return false;
@@ -676,6 +670,31 @@ bool CorsURLLoaderFactory::IsValidRequest(
     mojo::ReportBadMessage(
         "CorsURLLoaderFactory: original_destination is unexpectedly set to "
         "kDocument");
+    return false;
+  }
+
+  // A request whose destination is a frame type must be a navigation. A
+  // renderer-initiated subresource fetch must never claim to be a document /
+  // frame load, otherwise downstream consumers (e.g. Android WebView's
+  // shouldInterceptRequest) may misclassify it as a main-frame navigation.
+  // See 2.2.5 Requests: https://fetch.spec.whatwg.org/#requests
+  // See Navigation Request: https://fetch.spec.whatwg.org/#navigation-request
+  // See fenced frames: https://github.com/WICG/fenced-frame/issues/239
+  //
+  // This intentionally excludes destination types (see
+  // https://chromium-review.git.corp.google.com/c/chromium/src/+/7952612?tab=checks
+  // for details):
+  // * kEmbed: used by PDF pages to embed subresources.
+  // * kObject: used by wpt tests.
+  if (base::FeatureList::IsEnabled(
+          features::kRestrictFrameDestinationsToNavigate) &&
+      (request.destination == mojom::RequestDestination::kDocument ||
+       request.destination == mojom::RequestDestination::kFrame ||
+       request.destination == mojom::RequestDestination::kIframe ||
+       request.destination == mojom::RequestDestination::kFencedframe) &&
+      request.mode != mojom::RequestMode::kNavigate) {
+    mojo::ReportBadMessage(
+        "CorsURLLoaderFactory: frame destination requires kNavigate mode");
     return false;
   }
 
@@ -855,10 +874,15 @@ bool CorsURLLoaderFactory::IsValidRequest(
 
   const bool allow_unsafe_headers = cors::ShouldAllowUnsafeHeaders(
       *origin_access_list_, request.request_initiator, request.url);
+  std::string forbidden_header;
   if (!process_id_.is_browser() && !allow_unsafe_headers &&
-      ContainsForbiddenSecurityHeader(request.headers)) {
-    mojo::ReportBadMessage(
-        "CorsURLLoaderFactory: Forbidden Sec- header from renderer");
+      ContainsForbiddenSecurityHeader(request.headers, &forbidden_header)) {
+    SCOPED_CRASH_KEY_STRING32("network", "forbidden_sec_header",
+                              forbidden_header);
+    if (features::kRestrictForbiddenSecurityHeadersDump.Get()) {
+      mojo::ReportBadMessage(
+          "CorsURLLoaderFactory: Forbidden Sec- header from renderer");
+    }
     return false;
   }
 

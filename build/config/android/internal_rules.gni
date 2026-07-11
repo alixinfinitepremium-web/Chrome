@@ -808,6 +808,12 @@ template("test_runner_script") {
       ]
     }
 
+    if (defined(invoker.device_data_filters)) {
+      foreach(filter, invoker.device_data_filters) {
+        executable_args += [ "--device-data-filter=$filter" ]
+      }
+    }
+
     # apk_target is not used for native executable tests
     # (e.g. breakpad_unittests).
     if (defined(invoker.apk_target)) {
@@ -2119,9 +2125,7 @@ if (enable_java_templates) {
   #   app_as_shared_lib: (optional)
   #     If true, same effect as shared_resources, but also ensures that the
   #     resources can be used by the APK when it is loaded as a regular
-  #     application as well. Previously used for the monochrome_public_apk
-  #     target (now obsolete) which is both an application and a shared runtime
-  #     library that implements the system webview feature.
+  #     application as well.
   #
 
   #   aapt_locale_allowlist: (optional)
@@ -2383,6 +2387,13 @@ if (enable_java_templates) {
         invoker.arsc_package_name,
       ]
     }
+    if (defined(invoker.apk_under_test_rtxt)) {
+      _inputs += [ invoker.apk_under_test_rtxt ]
+      _args += [
+        "--apk-under-test-rtxt",
+        rebase_path(invoker.apk_under_test_rtxt, root_build_dir),
+      ]
+    }
 
     if (defined(invoker.proguard_file)) {
       _outputs += [ invoker.proguard_file ]
@@ -2390,6 +2401,9 @@ if (enable_java_templates) {
         "--proguard-file",
         rebase_path(invoker.proguard_file, root_build_dir),
       ]
+      if (optimize_android_resources) {
+        _args += [ "--use-r8-resource-shrinking" ]
+      }
     }
 
     if (defined(invoker.aapt_locale_allowlist)) {

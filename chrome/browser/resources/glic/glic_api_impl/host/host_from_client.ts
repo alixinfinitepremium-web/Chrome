@@ -10,13 +10,14 @@ import {loadTimeData} from '//resources/js/load_time_data.js';
 import type {BitmapN32} from '//resources/mojo/skia/public/mojom/bitmap.mojom-webui.js';
 
 import {ContentSettingsType} from '../../content_settings_types.mojom-webui.js';
-import type {CaptureRegionErrorReason as CaptureRegionErrorReasonMojo, CaptureRegionObserver, CaptureRegionResult as CaptureRegionResultMojo, OpenSettingsOptions as OpenSettingsOptionsMojo, PinCandidate as PinCandidateMojo, PinCandidatesObserver, ScrollToSelector as ScrollToSelectorMojo, TabDataHandlerInterface, TabDataMojoType, TabFaviconHandlerInterface, WebClientHandlerInterface} from '../../glic.mojom-webui.js';
-import {CaptureRegionObserverReceiver, ClientErrorDialogType as ClientErrorDialogTypeMojo, PinCandidatesObserverReceiver, ResponseStopCause as ResponseStopCauseMojo, SettingsPageField as SettingsPageFieldMojo, SkillSource as SkillSourceMojo, TabDataHandlerReceiver, TabFaviconHandlerReceiver, WebClientReceiver} from '../../glic.mojom-webui.js';
-import type {CaptureRegionParams, ClientErrorDialogType, ConversationInfo, CounterAbuseVerdict, CreateSkillRequest, ExperimentalTriggeringUpdate, GetPinCandidatesOptions, MicrophoneStatus, OnResponseStoppedDetails, OpenSettingsOptions, PinTabsOptions, Screenshot, ScrollToParams, Skill, SkillsWebClientEvent, TabContextOptions, UnpinTabsOptions, UpdateSkillRequest, WebClientMode, ZeroStateSuggestions, ZeroStateSuggestionsOptions, ZeroStateSuggestionsV2} from '../../glic_api/glic_api.js';
-import {CaptureScreenshotErrorReason, ClientCapabilities, ResponseStopCause, ScrollToErrorReason} from '../../glic_api/glic_api.js';
+import {CaptureRegionObserverReceiver, ClientErrorDialogType as ClientErrorDialogTypeMojo, PinCandidatesObserverReceiver, ResponseStopCause as ResponseStopCauseMojo, SettingsPageField as SettingsPageFieldMojo, TabDataHandlerReceiver, TabFaviconHandlerReceiver, WebClientReceiver} from '../../glic.mojom-webui.js';
+import type {CaptureRegionErrorReason as CaptureRegionErrorReasonMojo, CaptureRegionObserver, CaptureRegionResult as CaptureRegionResultMojo, OpenSettingsOptions as OpenSettingsOptionsMojo, PinCandidate as PinCandidateMojo, PinCandidatesObserver, TabDataHandlerInterface, TabDataMojoType, TabFaviconHandlerInterface, WebClientHandlerInterface} from '../../glic.mojom-webui.js';
+import {CaptureScreenshotErrorReason, ClientCapabilities, ResponseStopCause} from '../../glic_api/glic_api.js';
+import type {CaptureRegionParams, ClientErrorDialogType, ConversationInfo, CounterAbuseVerdict, ExperimentalTriggeringUpdate, GetPinCandidatesOptions, MicrophoneStatus, OnResponseStoppedDetails, OpenSettingsOptions, PinTabsOptions, Screenshot, TabContextOptions, UnpinTabsOptions, WebClientMode, ZeroStateSuggestions, ZeroStateSuggestionsOptions, ZeroStateSuggestionsV2} from '../../glic_api/glic_api.js';
 import {replaceProperties} from '../conversions.js';
 import {enumFromClient, enumToClient} from '../enum_conversions.js';
-import type {ActorClient, ActorHost, GlicException, ImageBytesResultPrivate, RgbaImage, TabContextResultPrivate, WebClientHost, WebClientInitialStatePrivate, WebClientPinCandidatesObserver, WebClientRegionCapture, WebClientTabDataObserver, WebClientTabFaviconObserver} from '../request_types.js';
+import type {ExperimentalTriggeringClient} from '../experimental_triggering/experimental_triggering_types.js';
+import type {ActorClient, ActorHost, AnnotationHost, GlicException, ImageBytesResultPrivate, RgbaImage, SkillsClient, SkillsHost, TabContextResultPrivate, WebClientHost, WebClientInitialStatePrivate, WebClientPinCandidatesObserver, WebClientRegionCapture, WebClientTabDataObserver, WebClientTabFaviconObserver} from '../request_types.js';
 import {ErrorWithReasonImpl, exceptionFromTransferable, SubscriberObservationType} from '../request_types.js';
 import {ResponseExtras} from '../transport/messaging.js';
 import type {PendingReceiver, PendingRemote, PostMessageHandler, PostMessageRemote, PostMessageRouter} from '../transport/post_message_transport.js';
@@ -58,6 +59,10 @@ export class HostMessageHandler implements PostMessageHandler<WebClientHost> {
     initialState: WebClientInitialStatePrivate,
     actorRemote?: PendingRemote<ActorHost>,
     actorReceiver?: PendingReceiver<ActorClient>,
+    skillsRemote?: PendingRemote<SkillsHost>,
+    skillsReceiver?: PendingReceiver<SkillsClient>,
+    experimentalTriggeringReceiver?: PendingReceiver<
+                                      ExperimentalTriggeringClient>,
   }> {
     if (this.receiver) {
       throw new Error('web client already created');
@@ -81,7 +86,7 @@ export class HostMessageHandler implements PostMessageHandler<WebClientHost> {
     webClientImpl.markCreated();
 
     conversionSettings.platform = enumToClient(initialState.platform);
-    const actorPipes = this.host.setInitialState(initialState);
+    const initialPipes = this.host.setInitialState(initialState);
     const chromeVersion = initialState.chromeVersion.components;
     const hostCapabilities = initialState.hostCapabilities;
     this.host.setInstanceIsActive(initialState.instanceIsActive);
@@ -107,9 +112,19 @@ export class HostMessageHandler implements PostMessageHandler<WebClientHost> {
             loadTimeData.getBoolean('sendResponsesForAllRequests'),
         hostCapabilities: hostCapabilitiesToClient(hostCapabilities),
       }),
-      actorRemote: actorPipes.actorRemote,
-      actorReceiver: actorPipes.actorReceiver,
+      actorRemote: initialPipes.actorRemote,
+      actorReceiver: initialPipes.actorReceiver,
+      skillsRemote: initialPipes.skillsRemote,
+      skillsReceiver: initialPipes.skillsReceiver,
+      experimentalTriggeringReceiver:
+          initialPipes.experimentalTriggeringReceiver,
     };
+  }
+
+  createAnnotationHandler(
+      request: {annotationReceiver: PendingReceiver<AnnotationHost>},
+      _extras: ResponseExtras): void {
+    this.host.createAnnotationHandler(request.annotationReceiver);
   }
 
   webClientInitialized(request: {success: boolean, exception?: GlicException}) {
@@ -157,12 +172,35 @@ export class HostMessageHandler implements PostMessageHandler<WebClientHost> {
     url: string,
     options: {openInBackground?: boolean, windowId?: string},
   }) {
-    const response = await this.handler.createTab(
-        urlFromClient(request.url),
-        request.options.openInBackground !== undefined ?
-            request.options.openInBackground :
-            false,
-        idFromClient(request.options.windowId));
+    const response = await this.handler.createTab(urlFromClient(request.url), {
+      openInBackground: request.options.openInBackground === true,
+      windowId: idFromClient(request.options.windowId),
+    });
+    const tabData = response.tabData;
+    if (tabData) {
+      return {
+        tabData: {
+          tabId: idToClient(tabData.tabId),
+          windowId: idToClient(tabData.windowId),
+          url: urlToClient(tabData.url),
+          title: optionalToClient(tabData.title),
+        },
+      };
+    }
+    return {};
+  }
+
+  async activateTabWithUrl(request: {
+    exactUrl: string,
+    options: {pattern?: string, fallbackWindowId?: string},
+  }) {
+    const response =
+        await this.handler.activateTabWithUrl(urlFromClient(request.exactUrl), {
+          pattern: request.options.pattern !== undefined ?
+              request.options.pattern :
+              '',
+          fallbackWindowId: idFromClient(request.options.fallbackWindowId),
+        });
     const tabData = response.tabData;
     if (tabData) {
       return {
@@ -309,60 +347,6 @@ export class HostMessageHandler implements PostMessageHandler<WebClientHost> {
     const {effectiveMax} =
         await this.handler.setMaximumNumberOfPinnedTabs(requestedMax);
     return {effectiveMax};
-  }
-
-  async createSkill(request: {
-    request: CreateSkillRequest,
-  }): Promise<{modalOpened: boolean}> {
-    const mojoRequest = {
-      id: request.request.id ?? '',
-      name: request.request.name ?? '',
-      icon: request.request.icon ?? '',
-      prompt: request.request.prompt,
-      description: request.request.description ?? '',
-      source:
-          enumFromClient(request.request.source) ?? SkillSourceMojo.kUnknown,
-    };
-    return await this.handler.createSkill(mojoRequest);
-  }
-
-  async updateSkill(request: {
-    request: UpdateSkillRequest,
-  }): Promise<{modalOpened: boolean}> {
-    return await this.handler.updateSkill(request.request);
-  }
-
-  showManageSkillsUi(_request: void): void {
-    this.handler.showManageSkillsUi();
-  }
-
-  showBrowseSkillsUi(_request: void): void {
-    this.handler.showBrowseSkillsUi();
-  }
-
-  async getSkill(request: {
-    id: string,
-  }): Promise<{skill?: Skill}> {
-    const {skill: mojoSkill} = await this.handler.getSkill(request.id);
-    if (!mojoSkill) {
-      return {};
-    }
-    return {
-      skill: {
-        ...mojoSkill,
-        sourceSkillId: optionalFromClient(mojoSkill.sourceSkillId) || undefined,
-        preview: {
-          ...mojoSkill.preview,
-          source: enumToClient(mojoSkill.preview.source),
-        },
-      },
-    };
-  }
-
-  recordSkillsWebClientEvent(request: {
-    event: SkillsWebClientEvent,
-  }): void {
-    this.handler.recordSkillsWebClientEvent(enumFromClient(request.event));
   }
 
   activateTab(request: {tabId: string}): void {
@@ -560,70 +544,6 @@ export class HostMessageHandler implements PostMessageHandler<WebClientHost> {
     this.handler.onClosedCaptionsShown();
   }
 
-  async scrollTo(request: {params: ScrollToParams}): Promise<void> {
-    const {params} = request;
-
-    function getMojoSelector(): ScrollToSelectorMojo {
-      const {selector} = params;
-      if (selector.exactText !== undefined) {
-        if (selector.exactText.searchRangeStartNodeId !== undefined &&
-            params.documentId === undefined) {
-          throw new ErrorWithReasonImpl(
-              'scrollTo', ScrollToErrorReason.NOT_SUPPORTED,
-              'searchRangeStartNodeId without documentId');
-        }
-        return {
-          exactTextSelector: {
-            text: selector.exactText.text,
-            searchRangeStartNodeId:
-                selector.exactText.searchRangeStartNodeId ?? null,
-          },
-        };
-      }
-      if (selector.textFragment !== undefined) {
-        if (selector.textFragment.searchRangeStartNodeId !== undefined &&
-            params.documentId === undefined) {
-          throw new ErrorWithReasonImpl(
-              'scrollTo', ScrollToErrorReason.NOT_SUPPORTED,
-              'searchRangeStartNodeId without documentId');
-        }
-        return {
-          textFragmentSelector: {
-            textStart: selector.textFragment.textStart,
-            textEnd: selector.textFragment.textEnd,
-            searchRangeStartNodeId:
-                selector.textFragment.searchRangeStartNodeId ?? null,
-          },
-        };
-      }
-      if (selector.node !== undefined) {
-        if (params.documentId === undefined) {
-          throw new ErrorWithReasonImpl(
-              'scrollTo', ScrollToErrorReason.NOT_SUPPORTED,
-              'nodeId without documentId');
-        }
-        return {
-          nodeSelector: {
-            nodeId: selector.node.nodeId,
-          },
-        };
-      }
-      throw new ErrorWithReasonImpl(
-          'scrollTo', ScrollToErrorReason.NOT_SUPPORTED);
-    }
-
-    const mojoParams = {
-      highlight: params.highlight === undefined ? true : params.highlight,
-      selector: getMojoSelector(),
-      documentId: params.documentId ?? null,
-      url: params.url ? urlFromClient(params.url) : null,
-    };
-    const {errorReason} = (await this.handler.scrollTo(mojoParams));
-    if (errorReason !== null) {
-      throw new ErrorWithReasonImpl('scrollTo', enumToClient(errorReason));
-    }
-    return;
-  }
 
   setSyntheticExperimentState(request: {
     trialName: string,
@@ -703,7 +623,7 @@ export class HostMessageHandler implements PostMessageHandler<WebClientHost> {
       return {
         suggestions: {
           tabId: idToClient(zeroStateData.tabId),
-          url: urlToClient(zeroStateData.tabUrl),
+          url: urlToClient(zeroStateData.url),
           suggestions: zeroStateData.suggestions,
         },
       };
@@ -726,9 +646,6 @@ export class HostMessageHandler implements PostMessageHandler<WebClientHost> {
     } else {
       return {suggestions: zeroStateSuggestionsToClient(zeroStateData)};
     }
-  }
-  dropScrollToHighlight(): void {
-    this.handler.dropScrollToHighlight();
   }
 
   maybeRefreshUserStatus(): void {
@@ -754,6 +671,9 @@ export class HostMessageHandler implements PostMessageHandler<WebClientHost> {
 
   setOnboardingCompleted(): void {
     this.handler.setOnboardingCompleted();
+    if (this.embedder.onboardingCompleted) {
+      this.embedder.onboardingCompleted();
+    }
   }
 
   subscribeToTabData(request: {

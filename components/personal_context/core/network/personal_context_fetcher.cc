@@ -18,6 +18,7 @@
 #include "components/signin/public/base/oauth_consumer_id.h"
 #include "components/signin/public/identity_manager/access_token_info.h"
 #include "components/signin/public/identity_manager/primary_account_access_token_fetcher.h"
+#include "components/variations/net/variations_http_headers.h"
 #include "google_apis/gaia/google_service_auth_error.h"
 #include "net/http/http_response_headers.h"
 #include "net/http/http_status_code.h"
@@ -97,10 +98,20 @@ net::NetworkTrafficAnnotationTag GetNetworkTrafficAnnotation(
   }
 }
 
-void RecordErrorStatusHistogram(proto::ContextMemoryFeature feature,
-                                ContextMemoryError::ExecutionError error) {
+void RecordFetchContextErrorStatusHistogram(
+    proto::ContextMemoryFeature feature,
+    ContextMemoryError::ExecutionError error) {
   base::UmaHistogramEnumeration(
       base::StrCat({"PersonalContext.FetchContext.ErrorStatus.",
+                    GetStringNameForContextMemoryFeature(feature)}),
+      error);
+}
+
+void RecordFetchPiiEntitiesErrorStatusHistogram(
+    proto::ContextMemoryFeature feature,
+    ContextMemoryError::ExecutionError error) {
+  base::UmaHistogramEnumeration(
+      base::StrCat({"PersonalContext.FetchPiiEntities.ErrorStatus.",
                     GetStringNameForContextMemoryFeature(feature)}),
       error);
 }
@@ -171,12 +182,15 @@ void PersonalContextFetcher::RunErrorCallback(ContextMemoryError error) {
   std::visit(absl::Overload{
                  [&](FetchContextResponseCallback& callback) {
                    if (callback) {
-                     RecordErrorStatusHistogram(feature_, error.error());
+                     RecordFetchContextErrorStatusHistogram(feature_,
+                                                            error.error());
                      std::move(callback).Run(base::unexpected(error));
                    }
                  },
                  [&](FetchPiiEntitiesResponseCallback& callback) {
                    if (callback) {
+                     RecordFetchPiiEntitiesErrorStatusHistogram(feature_,
+                                                                error.error());
                      std::move(callback).Run(base::unexpected(error));
                    }
                  },
@@ -254,8 +268,13 @@ void PersonalContextFetcher::OnAccessTokenReceived(
   resource_request->method = kHttpPostMethod;
   resource_request->credentials_mode = network::mojom::CredentialsMode::kOmit;
 
-  active_url_loader_ = network::SimpleURLLoader::Create(
-      std::move(resource_request), GetNetworkTrafficAnnotation(feature_));
+  active_url_loader_ = variations::CreateSimpleURLLoaderWithVariationsHeader(
+      std::move(resource_request), variations::InIncognito::kNo,
+      variations::SignedIn::kYes, GetNetworkTrafficAnnotation(feature_));
+
+  if (timeout && timeout->is_positive()) {
+    active_url_loader_->SetTimeoutDuration(*timeout);
+  }
 
   active_url_loader_->AttachStringForUpload(std::move(serialized_request),
                                             kRequestContentType);

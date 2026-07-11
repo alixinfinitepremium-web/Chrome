@@ -28,6 +28,7 @@ import org.chromium.chrome.browser.bookmarks.BookmarkManagerOpenerImpl;
 import org.chromium.chrome.browser.bookmarks.BookmarkModel;
 import org.chromium.chrome.browser.bookmarks.BookmarkUtils;
 import org.chromium.chrome.browser.document.ChromeLauncherActivity;
+import org.chromium.chrome.browser.dom_distiller.ReaderModeManager;
 import org.chromium.chrome.browser.download.DownloadUtils;
 import org.chromium.chrome.browser.ephemeraltab.EphemeralTabCoordinator;
 import org.chromium.chrome.browser.feature_engagement.TrackerFactory;
@@ -303,6 +304,7 @@ public class TabContextMenuItemDelegate implements ContextMenuItemDelegate {
      * @param isIncognito Whether the other window should be incognito.
      * @param preferNew Whether the URL should be opened in a new window.
      */
+    @Override
     public void openInOtherWindow(
             GURL url, @Nullable Referrer referrer, boolean isIncognito, boolean preferNew) {
         LoadUrlParams loadUrlParams = new LoadUrlParams(url.getSpec());
@@ -323,6 +325,7 @@ public class TabContextMenuItemDelegate implements ContextMenuItemDelegate {
      *
      * @param url The URL to open.
      */
+    @Override
     public void openInIncognitoWindow(GURL url) {
         LoadUrlParams loadUrlParams = new LoadUrlParams(url.getSpec());
         MultiInstanceOrchestratorFactory.getInstance()
@@ -344,6 +347,7 @@ public class TabContextMenuItemDelegate implements ContextMenuItemDelegate {
      * @param additionalNavigationParams Additional information that needs to be passed to the
      *     navigation request.
      */
+    @Override
     public void onOpenInNewTab(
             GURL url,
             @Nullable Referrer referrer,
@@ -368,6 +372,7 @@ public class TabContextMenuItemDelegate implements ContextMenuItemDelegate {
      *
      * @param url The URL to open.
      */
+    @Override
     public void onOpenInNewTabInGroup(GURL url, @Nullable Referrer referrer) {
         RecordUserAction.record("MobileNewTabOpened");
         RecordUserAction.record("LinkOpenedInNewTab");
@@ -385,6 +390,7 @@ public class TabContextMenuItemDelegate implements ContextMenuItemDelegate {
      *
      * @param url The URL to open.
      */
+    @Override
     public void onOpenInNewIncognitoTab(GURL url) {
         RecordUserAction.record("MobileNewTabOpened");
         mTabModelSelector.openNewTab(
@@ -404,6 +410,7 @@ public class TabContextMenuItemDelegate implements ContextMenuItemDelegate {
      *
      * @param url The image URL to open.
      */
+    @Override
     public void onOpenImageUrl(GURL url, @Nullable Referrer referrer) {
         LoadUrlParams loadUrlParams = new LoadUrlParams(url.getSpec());
         loadUrlParams.setTransitionType(PageTransition.LINK);
@@ -455,6 +462,7 @@ public class TabContextMenuItemDelegate implements ContextMenuItemDelegate {
      * @param url The URL to be saved to the reading list.
      * @param title The title text to be shown for this item in the reading list.
      */
+    @Override
     public void onReadLater(GURL url, String title) {
         if (url == null || url.isEmpty()) return;
         assert url.isValid();
@@ -492,6 +500,7 @@ public class TabContextMenuItemDelegate implements ContextMenuItemDelegate {
      * @param linkUrl URL that should be opened.
      * @param pageUrl URL of the current page.
      */
+    @Override
     public void onOpenInChrome(GURL linkUrl, GURL pageUrl) {
         Context applicationContext = ContextUtils.getApplicationContext();
         Intent chromeIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(linkUrl.getSpec()));
@@ -527,6 +536,7 @@ public class TabContextMenuItemDelegate implements ContextMenuItemDelegate {
      * @param linkUrl The URL to open.
      * @param isIncognito true if the {@code url} should be opened in a new incognito page.
      */
+    @Override
     public void onOpenInNewChromeTabFromCct(GURL linkUrl, boolean isIncognito) {
         Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(linkUrl.getSpec()));
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -555,5 +565,13 @@ public class TabContextMenuItemDelegate implements ContextMenuItemDelegate {
         Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url.getSpec()));
         CustomTabsIntent.setAlwaysUseBrowserUI(intent);
         IntentUtils.safeStartActivity(mTab.getContext(), intent);
+    }
+
+    public void onOpenInReadingMode() {
+        ReaderModeManager readerModeManager =
+                mTab.getUserDataHost().getUserData(ReaderModeManager.class);
+        if (readerModeManager != null) {
+            readerModeManager.activateReaderMode(ReaderModeManager.EntryPoint.CONTEXT_MENU);
+        }
     }
 }

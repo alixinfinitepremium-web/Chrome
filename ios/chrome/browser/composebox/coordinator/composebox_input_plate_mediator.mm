@@ -143,24 +143,6 @@ NSData* ReadDataFromURL(GURL url) {
   return data;
 }
 
-// Generates a UIImage preview for the given PDF data.
-UIImage* GeneratePDFPreview(NSData* pdf_data) {
-  if (!pdf_data) {
-    return nil;
-  }
-  PDFDocument* doc = [[PDFDocument alloc] initWithData:pdf_data];
-  if (!doc) {
-    return nil;
-  }
-  PDFPage* page = [doc pageAtIndex:0];
-  if (!page) {
-    return nil;
-  }
-  // TODO(crbug.com/40280872): Determine the correct size for the thumbnail.
-  return [page thumbnailOfSize:CGSizeMake(200, 200)
-                        forBox:kPDFDisplayBoxCropBox];
-}
-
 // Creates an initial ContextualInputData object using the information from the
 // passed in `annotated_page_content` and `web_state`.
 std::unique_ptr<lens::ContextualInputData>
@@ -223,10 +205,10 @@ lens::ImageEncodingOptions GetDefaultImageEncodingOptions() {
 }  // namespace
 
 @interface ComposeboxInputPlateMediator () <
-    SearchEngineObserving,
     ComposeboxInputItemCollectionDelegate,
-    WebStateDeferredExecutorDelegate,
-    ComposeboxQueryContextualizerDelegate>
+    ComposeboxQueryContextualizerDelegate,
+    SearchEngineObserving,
+    WebStateDeferredExecutorDelegate>
 
 @end
 
@@ -582,6 +564,23 @@ lens::ImageEncodingOptions GetDefaultImageEncodingOptions() {
                         cachedWebStateIDs:attachments.cachedWebStateIDs];
 }
 
+- (void)removeSharedTabWithServerToken:
+    (const base::UnguessableToken&)serverToken {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(_sequenceChecker);
+  ComposeboxInputItem* item = [_items itemForServerToken:serverToken];
+  if (item) {
+    [self removeItem:item];
+  }
+}
+
+- (ComposeboxUIInputState*)currentUIInputState {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(_sequenceChecker);
+  return [_stateManager
+      computeUIInputStateWithFavicon:_currentTabFavicon
+                 attachedWebStateIDs:[self
+                                         attachedWebStateIDsInCurrentContext]];
+}
+
 - (void)applyFocusParams:(ComposeboxFocusParams*)params {
   DCHECK_CALLED_ON_VALID_SEQUENCE(_sequenceChecker);
   if (!params) {
@@ -689,8 +688,11 @@ lens::ImageEncodingOptions GetDefaultImageEncodingOptions() {
 - (void)sendText:(NSString*)text
     additionalParams:(std::map<std::string, std::string>)additionalParams {
   DCHECK_CALLED_ON_VALID_SEQUENCE(_sequenceChecker);
-  // Contextual search session can be null when fusebox is disabled.
-  if (!_contextualSearchSession) {
+  // If the session is null, or if this is a regular search with no attachments,
+  // the contextual session is bypassed and a standard search URL is generated.
+  BOOL isRegularSearchWithoutContext =
+      [_modeHolder isRegularSearch] && (!_items || _items.empty);
+  if (!_contextualSearchSession || isRegularSearchWithoutContext) {
     if (_templateURLService) {
       GURL URL = GetDefaultSearchURLForSearchTerms(_templateURLService,
                                                    [text cr_UTF16String]);
@@ -706,6 +708,12 @@ lens::ImageEncodingOptions GetDefaultImageEncodingOptions() {
   std::unique_ptr<ComposeboxQueryController::CreateSearchUrlRequestInfo>
       search_url_request_info = std::make_unique<
           ComposeboxQueryController::CreateSearchUrlRequestInfo>();
+  search_url_request_info->search_url_type =
+      [_modeHolder isRegularSearch]
+          ? contextual_search::ContextualSearchContextController::
+                SearchUrlType::kStandard
+          : contextual_search::ContextualSearchContextController::
+                SearchUrlType::kAim;
   search_url_request_info->query_text = base::SysNSStringToUTF8(text);
   search_url_request_info->query_start_time = base::Time::Now();
   search_url_request_info->aim_entry_point =
@@ -761,6 +769,42 @@ lens::ImageEncodingOptions GetDefaultImageEncodingOptions() {
 - (void)processText:(NSString*)text {
   DCHECK_CALLED_ON_VALID_SEQUENCE(_sequenceChecker);
   [self.delegate refineWithText:text];
+}
+
+- (void)processContextLibraryWebpageSignalWithURL:(const GURL&)url
+                                            title:(NSString*)title {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(_sequenceChecker);
+  CHECK(_entrypoint == ComposeboxEntrypoint::kCobrowse);
+
+  ComposeboxInputItem* item = [[ComposeboxInputItem alloc]
+      initWithComposeboxInputItemType:ComposeboxInputItemType::
+                                          kComposeboxInputItemTypeTab
+                               source:ComposeboxInputItemSource::
+                                          kContextLibrary];
+  item.title = title;
+  item.tabURL = url;
+  item.state = ComposeboxInputItemState::kLoaded;
+  base::UnguessableToken identifier = item.identifier;
+
+  [_items addItem:item];
+
+  if (_faviconLoader) {
+    __weak __typeof(self) weakSelf = self;
+
+    /// Based on the favicon loader API, this callback could be called twice.
+    auto faviconLoadedBlock = ^(FaviconAttributes* attributes, bool cached) {
+      if (attributes.faviconImage) {
+        [weakSelf didLoadFaviconIcon:attributes.faviconImage
+               forItemWithIdentifier:identifier];
+      }
+    };
+
+    _faviconLoader->FaviconForPageUrl(url, gfx::kFaviconSize, gfx::kFaviconSize,
+                                      /*fallback_to_google_server=*/true,
+                                      faviconLoadedBlock);
+  }
+
+  [self notifyContextChanged];
 }
 
 - (void)processFileURL:(GURL)fileURL isPDF:(BOOL)isPDF {
@@ -899,6 +943,10 @@ lens::ImageEncodingOptions GetDefaultImageEncodingOptions() {
   }
   _omniboxFocused = focused;
   [self requestUIRefresh];
+
+  if (_omniboxFocused && _entrypoint == ComposeboxEntrypoint::kCobrowse) {
+    [self attachCurrentTabContent];
+  }
 }
 
 - (void)removeDeselectedIDs:(std::set<web::WebStateID>)deselectedIDs {
@@ -922,6 +970,7 @@ lens::ImageEncodingOptions GetDefaultImageEncodingOptions() {
                                           kComposeboxInputItemTypeTab
                                source:source];
   item.title = base::SysUTF16ToNSString(webState->GetTitle());
+  item.tabURL = webState->GetVisibleURL();
   base::UnguessableToken identifier = item.identifier;
   _latestTabSelectionMapping[identifier] = webState->GetUniqueIdentifier();
 
@@ -1222,7 +1271,7 @@ lens::ImageEncodingOptions GetDefaultImageEncodingOptions() {
   request_info->query_text = base::SysNSStringToUTF8(text);
   request_info->query_start_time = base::Time::Now();
   request_info->file_tokens =
-      _contextualSearchSession->GetSubmittedContextTokens();
+      _contextualSearchSession->GetUploadedContextTokens();
 
   request_info->active_tool = inputState->active_tool;
   request_info->active_model = inputState->active_model;
@@ -1395,23 +1444,25 @@ lens::ImageEncodingOptions GetDefaultImageEncodingOptions() {
   __weak __typeof(self) weakSelf = self;
 
   if (isCached) {
-    [_webStateDeferredExecutor webState:webState
-                    executeOnceRealized:^{
-                      [weakSelf attachWebStateContent:webState
-                                           identifier:identifier
-                                         hasCachedAPC:YES];
-                    }];
+    [_webStateDeferredExecutor
+        ensureWebStateIsRealized:webState
+                  withCompletion:^(web::WebState* innerWebState) {
+                    [weakSelf attachWebStateContent:innerWebState
+                                         identifier:identifier
+                                       hasCachedAPC:YES];
+                  }];
   } else {
-    [_webStateDeferredExecutor webState:webState
-                      executeOnceLoaded:^(BOOL success) {
-                        if (!success) {
-                          [weakSelf handleFailedAttachment:identifier];
-                          return;
-                        }
-                        [weakSelf attachWebStateContent:webState
-                                             identifier:identifier
-                                           hasCachedAPC:NO];
-                      }];
+    [_webStateDeferredExecutor
+        ensureWebStateIsLoaded:webState
+                withCompletion:^(web::WebState* innerWebState, BOOL success) {
+                  if (!success) {
+                    [weakSelf handleFailedAttachment:identifier];
+                    return;
+                  }
+                  [weakSelf attachWebStateContent:innerWebState
+                                       identifier:identifier
+                                     hasCachedAPC:NO];
+                }];
   }
 }
 
@@ -1436,10 +1487,7 @@ lens::ImageEncodingOptions GetDefaultImageEncodingOptions() {
   DCHECK_CALLED_ON_VALID_SEQUENCE(_sequenceChecker);
   [self recordNavigationInitiated];
 
-  // TODO(crbug.com/40280872): Handle AIM enabled in the query controller.
-  if ([_modeHolder isRegularSearch]) {
-    URL = net::AppendOrReplaceQueryParameter(URL, "udm", "24");
-  } else if (_modeHolder.mode == ComposeboxMode::kAIM) {
+  if (_modeHolder.mode == ComposeboxMode::kAIM) {
     // If the active tab is attached to the composebox, an AIM query should
     // invoke the Assistant directly using the query URL instead of routing
     // through the standard search navigation flow.
@@ -1776,15 +1824,6 @@ lens::ImageEncodingOptions GetDefaultImageEncodingOptions() {
         GetDefaultImageEncodingOptions());
     [self notifyContextChanged];
   }
-
-  // Concurrently, generate a preview for the UI.
-  __weak __typeof(self) weakSelf = self;
-  base::ThreadPool::PostTaskAndReplyWithResult(
-      FROM_HERE, {base::MayBlock(), base::TaskPriority::USER_VISIBLE},
-      base::BindOnce(&GeneratePDFPreview, data),
-      base::BindOnce(^(UIImage* preview) {
-        [weakSelf didLoadPreviewImage:preview forItemWithIdentifier:identifier];
-      }));
 }
 
 - (void)processDriveFileWithIdentifier:(NSString*)identifier

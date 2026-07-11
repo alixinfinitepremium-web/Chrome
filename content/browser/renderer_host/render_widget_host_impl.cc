@@ -61,7 +61,6 @@
 #include "content/browser/accessibility/browser_accessibility_state_impl.h"
 #include "content/browser/bad_message.h"
 #include "content/browser/browser_main_loop.h"
-#include "content/browser/child_process_security_policy_impl.h"
 #include "content/browser/compositor/surface_utils.h"
 #include "content/browser/devtools/devtools_instrumentation.h"
 #include "content/browser/file_system/browser_file_system_helper.h"
@@ -85,6 +84,7 @@
 #include "content/browser/renderer_host/visible_time_request_trigger.h"
 #include "content/browser/scheduler/browser_task_executor.h"
 #include "content/browser/scheduler/browser_ui_thread_scheduler.h"
+#include "content/browser/security/cpsp/child_process_security_policy_impl.h"
 #include "content/browser/storage_partition_impl.h"
 #include "content/common/content_constants_internal.h"
 #include "content/common/frame.mojom.h"
@@ -96,6 +96,7 @@
 #include "content/public/browser/content_browser_client.h"
 #include "content/public/browser/device_service.h"
 #include "content/public/browser/disallow_activation_reason.h"
+#include "content/public/browser/gpu_data_manager.h"
 #include "content/public/browser/keyboard_event_processing_result.h"
 #include "content/public/browser/peak_gpu_memory_tracker_factory.h"
 #include "content/public/browser/render_frame_metadata_provider.h"
@@ -661,12 +662,12 @@ void RenderWidgetHostImpl::SendScreenRects() {
   }
 
   if (last_view_screen_rect_ == view_->GetViewBounds() &&
-      last_window_screen_rect_ == view_->GetBoundsInRootWindow()) {
+      last_window_screen_rect_ == view_->GetBoundsInScreen()) {
     return;
   }
 
   last_view_screen_rect_ = view_->GetViewBounds();
-  last_window_screen_rect_ = view_->GetBoundsInRootWindow();
+  last_window_screen_rect_ = view_->GetBoundsInScreen();
   blink_widget_->UpdateScreenRects(
       last_view_screen_rect_, last_window_screen_rect_,
       base::BindOnce(&RenderWidgetHostImpl::OnUpdateScreenRectsAck,
@@ -1055,6 +1056,15 @@ blink::VisualProperties RenderWidgetHostImpl::GetVisualProperties() {
   blink::VisualProperties visual_properties;
   visual_properties.screen_infos = GetScreenInfos();
   auto& current_screen_info = visual_properties.screen_infos.mutable_current();
+
+  // If hardware acceleration is disabled then do not report the display as
+  // HDR or high bit depth because it is too resource intensive to run on the
+  // CPU.
+  if (!GpuDataManager::GetInstance()->HardwareAccelerationEnabled()) {
+    for (auto& screen_info : visual_properties.screen_infos.screen_infos) {
+      display::DisplayUtil::DisableHdrAndHighBitDepth(&screen_info);
+    }
+  }
 
   // For testing, override the raster color profile.
   // Note: this needs to be done here and not earlier in the pipeline because
@@ -1463,6 +1473,13 @@ void RenderWidgetHostImpl::SetPageFocus(bool focused) {
   // where this RenderWidgetHost lives.
   if (owner_delegate_ && frame_tree_) {
     frame_tree_->ReplicatePageFocus(focused);
+  }
+
+  if (!focused && view_) {
+    auto* root_view = view_->GetRootView();
+    if (root_view && root_view->HasActiveUnboundedSurface()) {
+      root_view->DismissUnboundedSurface();
+    }
   }
 }
 
@@ -2434,6 +2451,22 @@ void RenderWidgetHostImpl::ImeCancelComposition() {
       base::OnceClosure());
 }
 
+void RenderWidgetHostImpl::SetExternallySourcedComposition(
+    const std::u16string& text,
+    const std::vector<ui::ImeTextSpan>& ime_text_spans) {
+  int length = text.length();
+  GetWidgetInputHandler()->ImeSetComposition(
+      text, ime_text_spans, gfx::Range::InvalidRange(), length, length,
+      blink::mojom::ImeState::kNone, base::OnceClosure());
+}
+
+void RenderWidgetHostImpl::CommitExternallySourcedComposition(
+    const std::u16string& text) {
+  GetWidgetInputHandler()->ImeCommitText(text, std::vector<ui::ImeTextSpan>(),
+                                         gfx::Range::InvalidRange(), 0,
+                                         base::OnceClosure());
+}
+
 void RenderWidgetHostImpl::RejectPointerLockOrUnlockIfNecessary(
     blink::mojom::PointerLockResult reason) {
   CHECK(!request_pointer_lock_callback_ || !IsPointerLocked());
@@ -2841,9 +2874,8 @@ void RenderWidgetHostImpl::ShowPopup(const gfx::Rect& initial_screen_rect,
   // `delegate_` may be null since this message may be received from when
   // the delegate shutdown but this widget is not yet destroyed.
   if (delegate_) {
-    delegate_->ShowCreatedWidget(GetProcess()->GetDeprecatedID(),
-                                 GetRoutingID(), initial_screen_rect,
-                                 anchor_screen_rect);
+    delegate_->ShowCreatedWidget(GetProcess()->GetID(), GetRoutingID(),
+                                 initial_screen_rect, anchor_screen_rect);
   }
   std::move(callback).Run();
 }
@@ -2888,7 +2920,7 @@ void RenderWidgetHostImpl::OnUpdateScreenRectsAck() {
   view_->SendInitialPropertiesIfNeeded();
 
   if (view_->GetViewBounds() == last_view_screen_rect_ &&
-      view_->GetBoundsInRootWindow() == last_window_screen_rect_) {
+      view_->GetBoundsInScreen() == last_window_screen_rect_) {
     return;
   }
 

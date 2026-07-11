@@ -6,18 +6,25 @@
 #define COMPONENTS_THEMES_CROSS_DEVICE_CROSS_DEVICE_THEME_SYNC_BRIDGE_H_
 
 #include <memory>
+#include <optional>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "base/functional/callback.h"
 #include "base/memory/weak_ptr.h"
 #include "base/notreached.h"
 #include "base/sequence_checker.h"
+#include "components/sync/model/client_tag_based_data_type_processor.h"
 #include "components/sync/model/data_type_store.h"
 #include "components/sync/model/data_type_sync_bridge.h"
+#include "components/sync/model/entity_change.h"
 #include "components/sync/model/metadata_batch.h"
 #include "components/sync/model/model_error.h"
 #include "components/sync/protocol/entity_data.h"
+#include "components/sync/protocol/theme_android_specifics.pb.h"
+#include "components/sync/protocol/theme_ios_specifics.pb.h"
+#include "components/sync/protocol/theme_specifics.pb.h"
 #include "components/themes/cross_device/cross_device_theme_tracker.h"
 
 namespace syncer {
@@ -26,7 +33,7 @@ class DataTypeLocalChangeProcessor;
 
 namespace themes {
 
-// Helper to get specific proto from EntitySpecifics.
+// Helpers to get specific proto from EntitySpecifics.
 template <typename Specifics>
 const Specifics& GetSpecifics(const sync_pb::EntitySpecifics& specifics);
 
@@ -51,7 +58,7 @@ GetSpecifics<sync_pb::ThemeAndroidSpecifics>(
 }
 
 // Generic sync bridge for cross-device themes.
-// It is read-only and delegates storage and updates to callbacks.
+// It is read-only and delegates storage and updates to CrossDeviceThemeTracker.
 template <typename RemoteSpecifics, typename LocalSpecifics>
 class CrossDeviceThemeSyncBridge : public syncer::DataTypeSyncBridge {
  public:
@@ -62,19 +69,25 @@ class CrossDeviceThemeSyncBridge : public syncer::DataTypeSyncBridge {
       base::RepeatingCallback<void(const std::string&,
                                    DeviceThemeInfo<LocalSpecifics>)>;
   using RemoveCallback = base::RepeatingCallback<void(const std::string&)>;
+  using SyncStartedCallback = base::RepeatingClosure;
+  using DisableCallback = base::RepeatingClosure;
 
   CrossDeviceThemeSyncBridge(
       syncer::DataType type,
       TranslateCallback translate_cb,
       UpdateCallback update_cb,
       RemoveCallback remove_cb,
+      SyncStartedCallback sync_started_cb,
+      DisableCallback disable_cb,
       std::unique_ptr<syncer::DataTypeLocalChangeProcessor> change_processor,
       syncer::OnceDataTypeStoreFactory store_factory)
       : syncer::DataTypeSyncBridge(std::move(change_processor)),
         type_(type),
         translate_cb_(std::move(translate_cb)),
         update_cb_(std::move(update_cb)),
-        remove_cb_(std::move(remove_cb)) {
+        remove_cb_(std::move(remove_cb)),
+        sync_started_cb_(std::move(sync_started_cb)),
+        disable_cb_(std::move(disable_cb)) {
     std::move(store_factory)
         .Run(type_, base::BindOnce(&CrossDeviceThemeSyncBridge::OnStoreCreated,
                                    weak_ptr_factory_.GetWeakPtr()));
@@ -94,6 +107,15 @@ class CrossDeviceThemeSyncBridge : public syncer::DataTypeSyncBridge {
   }
 
   // DataTypeSyncBridge implementation:
+  void OnSyncStarting(
+      const syncer::DataTypeActivationRequest& request) override {
+    DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+    syncer::DataTypeSyncBridge::OnSyncStarting(request);
+    if (sync_started_cb_) {
+      sync_started_cb_.Run();
+    }
+  }
+
   std::unique_ptr<syncer::MetadataChangeList> CreateMetadataChangeList()
       override {
     DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
@@ -137,12 +159,10 @@ class CrossDeviceThemeSyncBridge : public syncer::DataTypeSyncBridge {
 
   std::unique_ptr<syncer::DataBatch> GetDataForCommit(
       StorageKeyList storage_keys) override {
-    // Read-only bridge, no local changes to commit.
     NOTREACHED();
   }
 
   std::unique_ptr<syncer::DataBatch> GetAllDataForDebugging() override {
-    // TODO(crbug.com/...): Implement if needed, or return empty.
     return nullptr;
   }
 
@@ -175,6 +195,9 @@ class CrossDeviceThemeSyncBridge : public syncer::DataTypeSyncBridge {
         std::move(delete_metadata_change_list),
         base::BindOnce(&CrossDeviceThemeSyncBridge::OnDatabaseDeleted,
                        weak_ptr_factory_.GetWeakPtr()));
+    if (disable_cb_) {
+      disable_cb_.Run();
+    }
   }
 
  private:
@@ -236,6 +259,8 @@ class CrossDeviceThemeSyncBridge : public syncer::DataTypeSyncBridge {
   const TranslateCallback translate_cb_;
   const UpdateCallback update_cb_;
   const RemoveCallback remove_cb_;
+  const SyncStartedCallback sync_started_cb_;
+  const DisableCallback disable_cb_;
 
   std::unique_ptr<syncer::DataTypeStore> store_;
   SEQUENCE_CHECKER(sequence_checker_);

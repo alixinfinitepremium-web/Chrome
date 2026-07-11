@@ -22,22 +22,15 @@ BASE_FEATURE(kApiContentSettingsClipboard, base::FEATURE_ENABLED_BY_DEFAULT);
 
 BASE_FEATURE(kApiEnterpriseKioskInput, base::FEATURE_ENABLED_BY_DEFAULT);
 
-BASE_FEATURE(kApiMimeHandler, base::FEATURE_DISABLED_BY_DEFAULT);
+BASE_FEATURE(kApiMimeHandler, base::FEATURE_ENABLED_BY_DEFAULT);
 
 BASE_FEATURE(kApiRuntimeActionData, base::FEATURE_DISABLED_BY_DEFAULT);
-
-BASE_FEATURE(kApiPermissionsHostAccessRequests,
-             base::FEATURE_ENABLED_BY_DEFAULT);
-
-BASE_FEATURE(kApiUserScriptsExecute, base::FEATURE_ENABLED_BY_DEFAULT);
-
-BASE_FEATURE(kApiUserScriptsMultipleWorlds, base::FEATURE_ENABLED_BY_DEFAULT);
 
 BASE_FEATURE(kApiOdfsConfigPrivate, base::FEATURE_ENABLED_BY_DEFAULT);
 
 BASE_FEATURE(kApiContextualTasksPrivate, base::FEATURE_DISABLED_BY_DEFAULT);
 
-BASE_FEATURE(kApiGlicPrivate, base::FEATURE_DISABLED_BY_DEFAULT);
+BASE_FEATURE(kApiGlicPrivate, base::FEATURE_ENABLED_BY_DEFAULT);
 
 BASE_FEATURE(kApiEnterpriseReportingPrivateOnDataMaskingRulesTriggered,
              base::FEATURE_ENABLED_BY_DEFAULT);
@@ -85,6 +78,9 @@ BASE_FEATURE(kApiRuntimeGetPlatformInfoNaClArch,
              base::FEATURE_ENABLED_BY_DEFAULT);
 
 BASE_FEATURE(kWebRequestSecurityInfo, base::FEATURE_DISABLED_BY_DEFAULT);
+
+BASE_FEATURE(kWebRequestPerContextEventDispatch,
+             base::FEATURE_DISABLED_BY_DEFAULT);
 
 ///////////////////////////////////////////////////////////////////////////////
 // Other Features
@@ -168,7 +164,6 @@ BASE_FEATURE(kLaunchWindowsNativeHostsDirectly,
 BASE_FEATURE(kSafeBrowsingCrxAllowlistAutoDisable,
              base::FEATURE_DISABLED_BY_DEFAULT);
 
-BASE_FEATURE(kStructuredCloningForMessaging, base::FEATURE_ENABLED_BY_DEFAULT);
 
 // TODO(https://crbug.com/328494022): Disable this on ChromeOS, too, and then
 // eventually remove it.
@@ -179,11 +174,6 @@ BASE_FEATURE(kWebstoreHostedApp,
              base::FEATURE_DISABLED_BY_DEFAULT
 #endif  // BUILDFLAG(IS_CHROMEOS)
 );
-
-// TODO(crbug.com/399447642): Clean up this feature after confirming the fix is
-// sufficient.
-BASE_FEATURE(kWebstoreInstallerUserGestureKillSwitch,
-             base::FEATURE_ENABLED_BY_DEFAULT);
 
 BASE_FEATURE(kDeclarativeNetRequestSafeRuleLimits,
              "DeclarativeNetRequestSafeDynamicRules",
@@ -256,6 +246,6 @@ BASE_FEATURE_PARAM(bool,
 BASE_FEATURE(kSearchEngineUnconditionalDialog,
              base::FEATURE_DISABLED_BY_DEFAULT);
 
-BASE_FEATURE(kOptimizeWebRequestProxy, base::FEATURE_DISABLED_BY_DEFAULT);
+BASE_FEATURE(kOptimizeWebRequestProxy, base::FEATURE_ENABLED_BY_DEFAULT);
 
 }  // namespace extensions_features

@@ -16,42 +16,40 @@
 #include "base/strings/string_util.h"
 #include "cc/paint/paint_flags.h"
 #include "cc/paint/paint_record.h"
-#include "cc/paint/paint_shader.h"
 #include "chrome/browser/themes/theme_properties.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
 #include "chrome/browser/ui/color/chrome_color_id.h"
 #include "chrome/browser/ui/layout_constants.h"
 #include "chrome/browser/ui/tabs/tab_style.h"
-#include "chrome/browser/ui/tabs/tab_types.h"
 #include "chrome/browser/ui/ui_features.h"
 #include "chrome/browser/ui/views/frame/browser_frame_view.h"
 #include "chrome/browser/ui/views/frame/browser_view.h"
 #include "chrome/browser/ui/views/frame/themed_background.h"
 #include "chrome/browser/ui/views/tabs/tab.h"
 #include "chrome/browser/ui/views/tabs/tab/glow_hover_controller.h"
-#include "chrome/browser/ui/views/tabs/tab/tab_close_button.h"
 #include "chrome/browser/ui/views/tabs/tab_group_underline.h"
 #include "chrome/browser/ui/views/tabs/tab_slot_controller.h"
-#include "chrome/browser/ui/views/tabs/tab_slot_view.h"
 #include "chrome/grit/theme_resources.h"
-#include "components/tab_groups/tab_group_visual_data.h"
 #include "third_party/skia/include/core/SkPath.h"
 #include "third_party/skia/include/core/SkPathBuilder.h"
 #include "third_party/skia/include/core/SkRRect.h"
-#include "third_party/skia/include/core/SkScalar.h"
 #include "third_party/skia/include/pathops/SkPathOps.h"
 #include "ui/base/theme_provider.h"
 #include "ui/base/ui_base_features.h"
+#include "ui/gfx/animation/tween.h"
 #include "ui/gfx/canvas.h"
 #include "ui/gfx/favicon_size.h"
-#include "ui/gfx/font_list.h"
 #include "ui/gfx/geometry/insets.h"
 #include "ui/gfx/geometry/skia_conversions.h"
 #include "ui/gfx/scoped_canvas.h"
-#include "ui/views/controls/focus_ring.h"
 #include "ui/views/widget/widget.h"
 
 namespace {
+// The alpha to use when painting a background for a non active tab
+// in the glass frame. Note that we do not paint a background
+// for inactive tabs unless they are hovered.
+static constexpr float kGlassTabBackgroundAlpha = 0.5f;
+
 class TabStyleViewsImpl : public TabStyleViews {
  public:
   explicit TabStyleViewsImpl(Tab* tab);
@@ -140,11 +138,6 @@ class TabStyleViewsImpl : public TabStyleViews {
   // Returns the opacity of the hover effect that should be drawn, which may not
   // be the same as GetHoverAnimationValue.
   float GetHoverOpacity() const;
-
-  // In some platforms, the window caption buttons and tab search may not be on
-  // the left side of the tabstrip. The leading edge should be modified for
-  // those cases.
-  bool ShouldCompactLeadingEdge(TabStyle::PathType path_type) const;
 
   // Painting helper functions:
   void PaintTabBackground(gfx::Canvas* canvas,
@@ -347,16 +340,8 @@ SkPath TabStyleViewsImpl::GetPath(TabStyle::PathType path_type,
     tab_bottom -= 0.5f * stroke_adjustment;
     extension_corner_radius -= 0.5f * stroke_adjustment;
   }
-  const bool compact_left_to_bottom = ShouldCompactLeadingEdge(path_type);
 
   float left_extension_corner_radius = extension_corner_radius;
-  if (compact_left_to_bottom) {
-    left_extension_corner_radius =
-        (tab_style()->GetBottomCornerRadius() -
-         GetLayoutConstant(LayoutConstant::kToolbarCornerRadius)) *
-        scale;
-  }
-
   if (IsLeftSplitTab(tab())) {
     top_right_corner_radius = 0;
     // Assign half of the tab overlap to each of the split tabs.
@@ -590,7 +575,7 @@ bool TabStyleViewsImpl::IsApparentlyActive() const {
   if (selection_state == TabStyle::TabSelectionState::kActive) {
     return true;
   }
-  if (!features::IsGlassFrameEnabled() && IsHovering()) {
+  if (IsHovering()) {
     return GetHoverOpacity() > 0.5f;
   }
   return selection_state == TabStyle::TabSelectionState::kSelected;
@@ -841,11 +826,6 @@ int TabStyleViewsImpl::GetStrokeThickness() const {
 bool TabStyleViewsImpl::ShouldPaintTabBackgroundColor(
     TabStyle::TabSelectionState selection_state,
     bool has_custom_background) const {
-  if (features::IsGlassFrameEnabled()) {
-    return selection_state == TabStyle::TabSelectionState::kActive ||
-           GetHoverAnimationValue() > 0.0;
-  }
-
   // In the active and selected cases, always paint the tab background. The fill
   // image may be transparent.
   if (selection_state == TabStyle::TabSelectionState::kActive ||
@@ -856,6 +836,12 @@ bool TabStyleViewsImpl::ShouldPaintTabBackgroundColor(
   // In the inactive case, the fill image is guaranteed to be opaque, so it's
   // not necessary to paint the background when there is one.
   if (has_custom_background) {
+    return false;
+  }
+
+  // In glass frame we will not show a background for inactive tabs.
+  // But we will have a hover effect.
+  if (features::IsGlassFrameEnabled()) {
     return false;
   }
 
@@ -882,15 +868,6 @@ SkColor TabStyleViewsImpl::GetCurrentTabBackgroundColor(
       tab()->GetWidget() ? tab()->GetWidget()->ShouldPaintAsActive() : true;
   const ui::ColorProvider* color_provider = tab()->GetColorProvider();
 
-  if (features::IsGlassFrameEnabled() &&
-      selection_state != TabStyle::TabSelectionState::kActive) {
-    const SkColor color = tab_style()->GetTabBackgroundColor(
-        selection_state, true, frame_active, color_provider);
-    return color_utils::AlphaBlend(
-        color, SK_ColorTRANSPARENT,
-        static_cast<float>(GetHoverAnimationValue()));
-  }
-
   return tab_style()->GetCurrentTabBackgroundColor(
       selection_state, hovered, GetHoverAnimationValue(), frame_active,
       color_provider);
@@ -906,14 +883,6 @@ TabStyle::TabSelectionState TabStyleViewsImpl::GetSelectionState() const {
   }
 
   return TabStyle::TabSelectionState::kInactive;
-}
-
-bool TabStyleViewsImpl::ShouldCompactLeadingEdge(
-    TabStyle::PathType path_type) const {
-  // If the tab is the first in the list
-  return tab_->controller()->GetTabCount() > 0 &&
-         tab_->controller()->tab_at(0) == tab_ &&
-         tab_->controller()->ShouldCompactLeadingEdge();
 }
 
 void TabStyleViewsImpl::PaintTabBackground(gfx::Canvas* canvas,
@@ -951,14 +920,20 @@ void TabStyleViewsImpl::PaintTabBackgroundFill(
   if (ShouldPaintTabBackgroundColor(selection_state, fill_id.has_value())) {
     cc::PaintFlags flags;
     flags.setAntiAlias(true);
-    flags.setColor(GetCurrentTabBackgroundColor(selection_state, hovered));
+
+    SkColor color = GetCurrentTabBackgroundColor(selection_state, hovered);
+    if (features::IsGlassFrameEnabled() &&
+        selection_state == TabStyle::TabSelectionState::kSelected) {
+      color =
+          SkColorSetA(color, static_cast<int>(255 * kGlassTabBackgroundAlpha));
+    }
+
+    flags.setColor(color);
     canvas->DrawRect(gfx::ScaleToEnclosingRect(tab_->GetLocalBounds(), scale),
                      flags);
   }
 
-  if (fill_id.has_value() &&
-      (!features::IsGlassFrameEnabled() ||
-       selection_state == TabStyle::TabSelectionState::kActive)) {
+  if (fill_id.has_value()) {
     gfx::ScopedCanvas scale_scoper(canvas);
     canvas->sk_canvas()->scale(scale, scale);
     gfx::ImageSkia* image =
@@ -969,8 +944,7 @@ void TabStyleViewsImpl::PaintTabBackgroundFill(
         image);
   }
 
-  if (hovered &&
-      (!features::IsGlassFrameEnabled() || GetHoverAnimationValue() > 0.0)) {
+  if (hovered) {
     PaintBackgroundHover(canvas, scale);
   }
 }
@@ -981,8 +955,17 @@ void TabStyleViewsImpl::PaintBackgroundHover(gfx::Canvas* canvas,
       GetPath(TabStyle::PathType::kHighlight, canvas->image_scale(), {});
   canvas->ClipPath(fill_path, true);
 
-  const SkColor hover_color =
+  SkColor hover_color =
       GetCurrentTabBackgroundColor(GetSelectionState(), /*hovered=*/true);
+
+  if (features::IsGlassFrameEnabled() &&
+      GetSelectionState() != TabStyle::TabSelectionState::kActive) {
+    hover_color = SkColorSetA(
+        hover_color, static_cast<uint8_t>(SkColorGetA(hover_color) *
+                                          gfx::Tween::FloatValueBetween(
+                                              GetHoverAnimationValue(), 0.0f,
+                                              kGlassTabBackgroundAlpha)));
+  }
 
   cc::PaintFlags flags;
   flags.setAntiAlias(true);

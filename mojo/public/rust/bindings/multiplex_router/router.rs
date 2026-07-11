@@ -42,6 +42,10 @@ use std::sync::{Arc, Mutex, Weak};
 use system::message_pipe::MessageEndpoint;
 
 use super::arc_or_weak::ArcOrWeak;
+use super::control_messages::{
+    construct_peer_endpoint_closed_message, parse_incoming_control_message, RunOrClosePipeInput,
+};
+
 use crate::message::MojomMessage;
 use crate::message_pipe_watcher::{MessagePipeWatcher, ResponseSender};
 
@@ -254,7 +258,11 @@ impl MultiplexRouter {
         // a disconnected ID will be ignored on the other side.
         if self.shared_state.lock().unwrap().registry.endpoint_map.contains_key(&interface_id) {
             msg.header.interface_id = interface_id;
-            self.endpoint_watcher.with(|watcher| watcher.send_message(msg.into()));
+            self.endpoint_watcher.with(|watcher| {
+                watcher.send_message(
+                    system::message::WritableMessage::from(msg).finalize_for_sending(),
+                )
+            });
         }
     }
 
@@ -276,12 +284,17 @@ impl MultiplexRouter {
             // will run all _other_ disconnect handlers.
             self.run_all_disconnect_handlers();
         } else {
-            // TODO(crbug.com/517547791): Otherwise, we need to alert the other side that it
-            // is now disconnected. Mojo handles this automatically for the
-            // primary interface, but other interfaces need to send a special
-            // control message. This isn't yet implemented, but we can't panic
-            // here because this happens whenever stuff gets dropped, which
-            // happens during tests.
+            // Otherwise, we need to alert the other side that it is now disconnected.
+            // Mojo handles this automatically for the primary interface, but other
+            // interfaces need to send a special control message.
+            let msg = construct_peer_endpoint_closed_message(interface_id);
+            self.endpoint_watcher.with(|watcher| {
+                // The send can only fail if the entire other side is closed,
+                // in which case we don't need to tell it anything.
+                let _ = watcher.send_message(
+                    system::message::WritableMessage::from(msg).finalize_for_sending(),
+                );
+            });
 
             self.schedule_all_possible_tasks();
         }
@@ -294,7 +307,7 @@ impl MultiplexRouter {
     /// run whenever there's an incoming message.
     fn incoming_message_handler(
         &self,
-        raw_message: system::message::RawMojoMessage,
+        raw_message: system::message::FullyReadableWithHandlesMessage,
         _sender: ResponseSender,
     ) {
         let Some(message) = MojomMessage::parse_raw_or_report_bad_message(raw_message) else {
@@ -303,9 +316,28 @@ impl MultiplexRouter {
             return;
         };
 
-        // Add this message to the queue to be scheduled later. If the queue is empty,
-        // we'll just schedule it immediately.
-        self.shared_state.lock().unwrap().unscheduled_tasks.push_back(Task::Message(message));
+        let task = if message.header.interface_id != CONTROL_INTERFACE_ID {
+            Task::Message(message)
+        } else {
+            // If this is a control message, then we need to read it and create
+            // the appropriate task, which at the moment will only ever be a
+            // disconnect notification.
+            if let Some(RunOrClosePipeInput::PeerAssociatedEndpointClosedEvent(event)) =
+                parse_incoming_control_message(message)
+            {
+                // TODO(crbug.com/524990003): Maybe check here if this ID is valid,
+                // and report the message if not.
+                Task::Disconnect(event.id)
+            } else {
+                // Ignore other types of control message for now, and bad
+                // messages which have already been reported.
+                return;
+            }
+        };
+
+        // Add this task to the queue to be scheduled later. If the queue is empty,
+        // this will just schedule it immediately.
+        self.shared_state.lock().unwrap().unscheduled_tasks.push_back(task);
 
         self.schedule_all_possible_tasks();
     }
@@ -322,7 +354,7 @@ impl MultiplexRouter {
         let registry = &mut shared_state.registry;
         let unscheduled_tasks = &mut shared_state.unscheduled_tasks;
         while let Some(task) = unscheduled_tasks.front() {
-            let interface_id = match &task {
+            let interface_id = match task {
                 Task::Disconnect(interface_id) => interface_id,
                 Task::Message(message) => &message.header.interface_id,
             };

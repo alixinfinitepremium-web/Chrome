@@ -9,25 +9,32 @@ import {assert} from '//resources/js/assert.js';
 import {loadTimeData} from '//resources/js/load_time_data.js';
 
 import type {BrowserProxy} from '../../browser_proxy.js';
-import {ActorClientReceiver, ActorHandlerRemote, WebClientHandlerRemote} from '../../glic.mojom-webui.js';
+import {ActorClientReceiver, ActorHandlerRemote, AnnotationHandlerRemote, ExperimentalTriggeringClientReceiver, SkillsClientReceiver, SkillsHandlerRemote, WebClientHandlerRemote} from '../../glic.mojom-webui.js';
 import type {ExperimentalTriggeringUpdatesHandlerRemote, WebClientInitialState} from '../../glic.mojom-webui.js';
 import type {ClientCapabilities} from '../../glic_api/glic_api.js';
 import {ObservableValue} from '../../observable.js';
 import type {ObservableValueReadOnly} from '../../observable.js';
 import {TaskQueue} from '../../task_queue.js';
 import {OneShotTimer} from '../../timer.js';
-import {ActorHostMessageHandler} from '../actor/actor_host.js';
+import {ActorClientImpl, ActorHostMessageHandler} from '../actor/actor_host.js';
 import {ActorClientDef, ActorHostDef} from '../actor/actor_types.js';
+import {AnnotationHostMessageHandler} from '../annotation/annotation_host.js';
+import {AnnotationHostDef} from '../annotation/annotation_types.js';
+import type {AnnotationHost} from '../annotation/annotation_types.js';
+import {ExperimentalTriggeringClientImpl} from '../experimental_triggering/experimental_triggering_host.js';
+import {ExperimentalTriggeringClientDef} from '../experimental_triggering/experimental_triggering_types.js';
+import type {ExperimentalTriggeringClient} from '../experimental_triggering/experimental_triggering_types.js';
+import {SkillsClientImpl, SkillsHostMessageHandler} from '../skills/skills_host.js';
+import {SkillsClientDef, SkillsHostDef} from '../skills/skills_types.js';
 import type {ResponseExtras} from '../transport/messaging.js';
 import type {InterfaceDef, PendingReceiver, PendingRemote, PostMessageHandler, PostMessageLifecycleObserver, PostMessageReceiver, PostMessageRemote, PostMessageRequestReceiver, PostMessageRequestSender, PostMessageRouter} from '../transport/post_message_transport.js';
 import {createBidirectionalPostMessageTransport} from '../transport/post_message_transport.js';
 
 import {ERROR_CODEC, getHostRequestHistogramInfo, MAX_REQUEST_ID, WebClientDef, WebClientHostDef} from './../request_types.js';
-import type {ActorClient, ActorHost, WebClient, WebClientHost} from './../request_types.js';
+import type {ActorClient, ActorHost, SkillsClient, SkillsHost, WebClient, WebClientHost} from './../request_types.js';
 import {urlFromClient} from './conversions.js';
 import {HostMessageHandler} from './host_from_client.js';
 import type {CaptureRegionObserverImpl, PinCandidatesObserverImpl} from './host_from_client.js';
-import {ActorClientImpl} from './host_to_client.js';
 import {PanelOpenState} from './types.js';
 
 
@@ -72,6 +79,9 @@ export interface ApiHostEmbedder {
 
   // Returns the current zoom level of the webview.
   getZoom(): Promise<number>;
+
+  // Called when the user completes the onboarding flow.
+  onboardingCompleted?(): void;
 }
 
 
@@ -188,7 +198,6 @@ type HandlerFunction = (payload: unknown, extras: ResponseExtras) =>
 export class GlicApiHost implements PostMessageLifecycleObserver {
   hostMessageHandler: HostMessageHandler;
   sender: PostMessageRemote<WebClient>;
-  actorSender?: PostMessageRemote<ActorClient>;
   panelIsActive = false;
 
   private handler: WebClientHandlerRemote;
@@ -212,6 +221,9 @@ export class GlicApiHost implements PostMessageLifecycleObserver {
   captureRegionObserver?: CaptureRegionObserverImpl;
 
   actorHandler?: ActorHandlerRemote;
+  annotationHandler?: AnnotationHandlerRemote;
+  skillsHandler?: SkillsHandlerRemote;
+
   private isSubscribedToZoomLevel = false;
   private experimentalTriggeringUpdatesHandler =
       new Map<number, ExperimentalTriggeringUpdatesHandlerRemote>();
@@ -258,6 +270,14 @@ export class GlicApiHost implements PostMessageLifecycleObserver {
       this.actorHandler.$.close();
       this.actorHandler = undefined;
     }
+    if (this.annotationHandler) {
+      this.annotationHandler.$.close();
+      this.annotationHandler = undefined;
+    }
+    if (this.skillsHandler) {
+      this.skillsHandler.$.close();
+      this.skillsHandler = undefined;
+    }
     for (const handler of this.experimentalTriggeringUpdatesHandler.values()) {
       handler.$.close();
     }
@@ -267,33 +287,81 @@ export class GlicApiHost implements PostMessageLifecycleObserver {
   setInitialState(initialState: WebClientInitialState): {
     actorRemote?: PendingRemote<ActorHost>,
     actorReceiver?: PendingReceiver<ActorClient>,
+    skillsRemote?: PendingRemote<SkillsHost>,
+    skillsReceiver?: PendingReceiver<SkillsClient>,
+    experimentalTriggeringReceiver?: PendingReceiver<
+                                      ExperimentalTriggeringClient>,
   } {
     this.panelIsActive = initialState.panelIsActive;
 
-    if (!initialState.enableActInFocusedTab) {
-      return {};
+    let actorRemote: PendingRemote<ActorHost>|undefined;
+    let actorReceiver: PendingReceiver<ActorClient>|undefined;
+
+    if (initialState.enableActInFocusedTab) {
+      this.actorHandler = new ActorHandlerRemote();
+      const {remote: clientRemote, receiver: receiverVal} =
+          this.communicator.router.newPipeWithRemote(ActorClientDef);
+      const actorClientReceiver =
+          new ActorClientReceiver(new ActorClientImpl(clientRemote));
+      this.handler.createActorHandler(
+          this.actorHandler.$.bindNewPipeAndPassReceiver(),
+          actorClientReceiver.$.bindNewPipeAndPassRemote());
+      const actorHostMessageHandler =
+          new ActorHostMessageHandler(this.actorHandler);
+      const {remote: hostRemote} = this.communicator.router.newPipeWithReceiver(
+          actorHostMessageHandler, ActorHostDef);
+      actorRemote = hostRemote;
+      actorReceiver = receiverVal;
     }
-    this.actorHandler = new ActorHandlerRemote();
-    const {remote: clientRemote, receiver: actorReceiver} =
-        this.communicator.router.newPipeWithRemote(ActorClientDef);
-    this.actorSender = clientRemote;
-    const actorClientReceiver =
-        new ActorClientReceiver(new ActorClientImpl(this.actorSender));
-    this.handler.createActorHandler(
-        this.actorHandler.$.bindNewPipeAndPassReceiver(),
-        actorClientReceiver.$.bindNewPipeAndPassRemote());
-    const actorHostMessageHandler =
-        new ActorHostMessageHandler(this.actorHandler);
-    const {remote: actorRemote /* receiver never closed */} =
-        this.communicator.router.newPipeWithReceiver(
-            actorHostMessageHandler, ActorHostDef);
+
+    let skillsRemote: PendingRemote<SkillsHost>|undefined;
+    let skillsReceiver: PendingReceiver<SkillsClient>|undefined;
+
+    if (initialState.enableSkills) {
+      this.skillsHandler = new SkillsHandlerRemote();
+      const {remote: clientRemote, receiver: receiverVal} =
+          this.communicator.router.newPipeWithRemote(SkillsClientDef);
+      const skillsClientReceiver =
+          new SkillsClientReceiver(new SkillsClientImpl(clientRemote));
+      this.handler.createSkillsHandler(
+          this.skillsHandler.$.bindNewPipeAndPassReceiver(),
+          skillsClientReceiver.$.bindNewPipeAndPassRemote());
+      const skillsHostMessageHandler =
+          new SkillsHostMessageHandler(this.skillsHandler);
+      const {remote: hostRemote} = this.communicator.router.newPipeWithReceiver(
+          skillsHostMessageHandler, SkillsHostDef);
+      skillsRemote = hostRemote;
+      skillsReceiver = receiverVal;
+    }
+
+    const {remote: clientRemote, receiver: experimentalTriggeringReceiver} =
+        this.communicator.router.newPipeWithRemote(
+            ExperimentalTriggeringClientDef);
+    const experimentalTriggeringClientReceiver =
+        new ExperimentalTriggeringClientReceiver(
+            new ExperimentalTriggeringClientImpl(clientRemote, this));
+    this.handler.createExperimentalTriggeringClient(
+        experimentalTriggeringClientReceiver.$.bindNewPipeAndPassRemote());
 
     return {
       actorRemote,
       actorReceiver,
+      skillsRemote,
+      skillsReceiver,
+      experimentalTriggeringReceiver,
     };
   }
 
+  createAnnotationHandler(receiver: PendingReceiver<AnnotationHost>): void {
+    assert(!this.annotationHandler);
+    this.annotationHandler = new AnnotationHandlerRemote();
+    this.handler.createAnnotationHandler(
+        this.annotationHandler.$.bindNewPipeAndPassReceiver());
+    const annotationHostMessageHandler =
+        new AnnotationHostMessageHandler(this.annotationHandler);
+    this.communicator.router.newReceiver(
+        receiver, annotationHostMessageHandler, AnnotationHostDef);
+  }
 
   async subscribeToZoomLevel() {
     this.isSubscribedToZoomLevel = true;
@@ -494,7 +562,10 @@ export class GlicApiHost implements PostMessageLifecycleObserver {
   }
 
   async openLinkInNewTab(url: string) {
-    await this.handler.createTab(urlFromClient(url), false, null);
+    await this.handler.createTab(urlFromClient(url), {
+      openInBackground: false,
+      windowId: null,
+    });
   }
 
   async shouldAllowMediaPermissionRequest(): Promise<boolean> {

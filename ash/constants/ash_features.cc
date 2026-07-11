@@ -1817,7 +1817,7 @@ BASE_FEATURE(kUseDHCPCD10, base::FEATURE_ENABLED_BY_DEFAULT);
 
 // If enabled, the new `TokenHandleStoreImpl` will be used instead of
 // `TokenHandleUtil`.
-BASE_FEATURE(kUseTokenHandleStore, base::FEATURE_DISABLED_BY_DEFAULT);
+BASE_FEATURE(kUseTokenHandleStore, base::FEATURE_ENABLED_BY_DEFAULT);
 
 // Use the AnnotatedAccountId for mapping between User and BrowserContext
 // (a.k.a. browser's Profile).
@@ -1928,15 +1928,6 @@ BASE_FEATURE(kWakeOnWifiAllowed, base::FEATURE_DISABLED_BY_DEFAULT);
 // Enable "daily" refresh wallpaper to refresh every ten seconds for testing.
 BASE_FEATURE(kWallpaperFastRefresh, base::FEATURE_DISABLED_BY_DEFAULT);
 
-// kWelcomeExperienceTestUnsupportedDevices enables the new device Welcome
-// Experience to be tested on external devices that are not officially
-// supported. When enabled, users will be able to initiate and complete
-// the enhanced Welcome Experience flow using these unsupported external
-// devices. This flag is intended for testing purposes and should be disabled
-// disabled in production environments.
-BASE_FEATURE(kWelcomeExperienceTestUnsupportedDevices,
-             base::FEATURE_DISABLED_BY_DEFAULT);
-
 // Enables the Welcome Tour that walks new users through ChromeOS System UI.
 BASE_FEATURE(kWelcomeTour, base::FEATURE_ENABLED_BY_DEFAULT);
 
@@ -2008,6 +1999,14 @@ BASE_FEATURE(kDeviceActiveClientChurnObservationCheckMembership,
 // Enables or disables attaching first active week and last powerwash week to
 // the churn observation check in ping.
 BASE_FEATURE(kDeviceActiveClientChurnObservationNewDeviceMetadata,
+             base::FEATURE_ENABLED_BY_DEFAULT);
+
+// Enables or disables certain OOBE config options, set before a powerwash that
+// happens as part of a device move to a new domain.
+BASE_FEATURE(kDeviceMoveConfigSave, base::FEATURE_ENABLED_BY_DEFAULT);
+
+// Enables the DeviceWeeklyScheduledSuspend policy for Managed Guest Sessions.
+BASE_FEATURE(kDeviceWeeklyScheduledSuspendMgs,
              base::FEATURE_ENABLED_BY_DEFAULT);
 
 // Enables peripheral customization to be split per device.
@@ -2166,6 +2165,10 @@ BASE_FEATURE(kHappinessTrackingLauncherAppsNeeding,
 
 // Enables the Happiness Tracking System for the Office integration.
 BASE_FEATURE(kHappinessTrackingOffice, base::FEATURE_DISABLED_BY_DEFAULT);
+
+// Enables the Happiness Tracking System for the slow and laggy survery.
+BASE_FEATURE(kHappinessTrackingSystemSlowAndLaggyDeepDive,
+             base::FEATURE_DISABLED_BY_DEFAULT);
 
 // Enables new UX for files policy restrictions on ChromeOS.
 BASE_FEATURE(kNewFilesPolicyUX, base::FEATURE_ENABLED_BY_DEFAULT);
@@ -2469,6 +2472,10 @@ bool IsDemoModeSignInFileCleanupEnabled() {
 
 bool IsDeskTemplateSyncEnabled() {
   return base::FeatureList::IsEnabled(kDeskTemplateSync);
+}
+
+bool IsDeviceMoveConfigSaveEnabled() {
+  return base::FeatureList::IsEnabled(kDeviceMoveConfigSave);
 }
 
 bool IsDisplayPerformanceModeEnabled() {
@@ -3270,11 +3277,6 @@ bool IsVcWebApiEnabled() {
 
 bool IsWallpaperFastRefreshEnabled() {
   return base::FeatureList::IsEnabled(kWallpaperFastRefresh);
-}
-
-bool IsWelcomeExperienceTestUnsupportedDevicesEnabled() {
-  return IsPeripheralCustomizationEnabled() &&
-         base::FeatureList::IsEnabled(kWelcomeExperienceTestUnsupportedDevices);
 }
 
 bool IsWelcomeTourChromeVoxSupported() {

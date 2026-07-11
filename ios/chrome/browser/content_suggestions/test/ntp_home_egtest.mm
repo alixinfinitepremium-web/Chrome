@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#import <TargetConditionals.h>
+
 #import "base/apple/foundation_util.h"
 #import "base/functional/bind.h"
 #import "base/ios/ios_util.h"
@@ -796,12 +798,10 @@ bool AreNumbersEqual(CGFloat num1, CGFloat num2) {
 // and moved up, the scroll position restored is the position before the omnibox
 // is selected.
 - (void)testPositionRestoredWithShiftingOffset {
-#if TARGET_OS_SIMULATOR
   // TODO(crbug.com/513858033): Re-enable this flaky test on iPad simulator.
-  if ([ChromeEarlGrey isIPadIdiom]) {
+  if ([ChromeEarlGrey isIPadIdiom] && TARGET_OS_SIMULATOR) {
     EARL_GREY_TEST_DISABLED(@"Flaky on iPad simulator.");
   }
-#endif
 
   // Scroll a bit to have a position to restore.
   [[EarlGrey selectElementWithMatcher:chrome_test_util::NTPCollectionView()]
@@ -1084,14 +1084,15 @@ bool AreNumbersEqual(CGFloat num1, CGFloat num2) {
                     index])] assertWithMatcher:grey_sufficientlyVisible()];
   }
 
-  // Change the Search Engine to Yahoo!.
+  // Change the Search Engine to Microsoft Bing.
+  // TODO(b/530120931): Stop assuming that search engine is even available.
   [ChromeEarlGreyUI openSettingsMenu];
   [ChromeEarlGreyUI
       tapSettingsMenuButton:grey_accessibilityID(kSettingsSearchEngineCellId)];
-  NSString* yahooSearchEngineName = [SearchEngineChoiceEarlGreyUI
-      searchEngineNameWithPrepopulatedEngine:TemplateURLPrepopulateData::yahoo];
+  NSString* bingSearchEngineName = [SearchEngineChoiceEarlGreyUI
+      searchEngineNameWithPrepopulatedEngine:TemplateURLPrepopulateData::bing];
   [[EarlGrey
-      selectElementWithMatcher:grey_accessibilityLabel(yahooSearchEngineName)]
+      selectElementWithMatcher:grey_accessibilityLabel(bingSearchEngineName)]
       performAction:grey_tap()];
   [[EarlGrey
       selectElementWithMatcher:chrome_test_util::SettingsMenuBackButton()]
@@ -1225,7 +1226,7 @@ bool AreNumbersEqual(CGFloat num1, CGFloat num2) {
       assertWithMatcher:grey_notVisible()];
 
   // Reload page, then check if incognito view is still visible.
-  if (UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad) {
+  if (ui::GetDeviceFormFactor() == ui::DEVICE_FORM_FACTOR_TABLET) {
     // In the new
     // overflow menu on iPad, the reload button is only on the toolbar.
     [[EarlGrey selectElementWithMatcher:chrome_test_util::ReloadButton()]

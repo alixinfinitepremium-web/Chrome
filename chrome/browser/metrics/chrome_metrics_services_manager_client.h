@@ -79,7 +79,6 @@ class ChromeMetricsServicesManagerClient
   std::unique_ptr<metrics::MetricsServiceClient> CreateMetricsServiceClient(
       variations::SyntheticTrialRegistry* synthetic_trial_registry) override;
   metrics::MetricsStateManager* GetMetricsStateManager() override;
-  PrefService* GetLocalState() override;
   scoped_refptr<network::SharedURLLoaderFactory> GetURLLoaderFactory() override;
   const metrics::EnabledStateProvider& GetEnabledStateProvider() override;
   bool IsOffTheRecordSessionActive() override;
@@ -110,10 +109,7 @@ class ChromeMetricsServicesManagerClient
   const raw_ptr<PrefService> local_state_;
 
 #if BUILDFLAG(IS_CHROMEOS)
-  // TODO(b/492510818): Remove once migration to metrics reporting level
-  // completes.
   base::CallbackListSubscription reporting_setting_subscription_;
-  base::CallbackListSubscription reporting_level_setting_subscription_;
 #endif
 };
 

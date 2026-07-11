@@ -17,9 +17,9 @@
 #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
 #include "chrome/browser/ui/download/download_bubble_row_list_view_info.h"
 #include "chrome/browser/ui/download/download_display.h"
+#include "chrome/browser/ui/immersive/immersive_mode_controller.h"
 #include "chrome/browser/ui/views/download/bubble/download_bubble_contents_view.h"
 #include "chrome/browser/ui/views/download/bubble/download_bubble_navigation_handler.h"
-#include "chrome/browser/ui/views/frame/immersive_mode_controller.h"
 #include "components/offline_items_collection/core/offline_item.h"
 #include "ui/base/metadata/metadata_header_macros.h"
 #include "ui/base/unowned_user_data/scoped_unowned_user_data.h"
@@ -85,6 +85,7 @@ class DownloadToolbarUIController
   void OpenSecuritySubpage(
       const offline_items_collection::ContentId& id) override;
   IconState GetIconState() const override;
+  void OnOfflineItemsInitialized() override;
 
   void UpdateIcon();
 
@@ -225,10 +226,10 @@ class DownloadToolbarUIController
   raw_ptr<BrowserView> browser_view_;
   DownloadBubbleMode primary_view_mode_ = DownloadBubbleMode::kComplete;
   raw_ptr<actions::ActionItem> action_item_ = nullptr;
-  // Controller for the DownloadToolbarButton UI.
-  std::unique_ptr<DownloadDisplayController> controller_;
   // Controller for keeping track of items for both main view and partial view.
   std::unique_ptr<DownloadBubbleUIController> bubble_controller_;
+  // Controller for the DownloadToolbarButton UI.
+  std::unique_ptr<DownloadDisplayController> controller_;
   raw_ptr<views::BubbleDialogDelegate> bubble_delegate_ = nullptr;
   raw_ptr<DownloadBubbleContentsView> bubble_contents_ = nullptr;
 

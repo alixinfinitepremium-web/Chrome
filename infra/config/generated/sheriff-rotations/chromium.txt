@@ -1,7 +1,6 @@
 ci/ASAN Debug
 ci/ASAN Release
 ci/ASAN Release Media
-ci/ASan Debug (32-bit x86 with V8-ARM)
 ci/ASan Release (32-bit x86 with V8-ARM)
 ci/ASan Release Media (32-bit x86 with V8-ARM)
 ci/Centipede High End Upload Linux ASan
@@ -126,6 +125,7 @@ ci/mac13-arm64-rel-tests
 ci/mac14-arm64-rel-tests
 ci/mac15-arm64-rel-tests
 ci/mac15-x64-rel-tests
+ci/mac26-arm64-rel-tests
 ci/win-archive-rel
 ci/win-arm64-dbg
 ci/win-arm64-rel

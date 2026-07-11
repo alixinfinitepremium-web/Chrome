@@ -102,7 +102,7 @@
 #include "third_party/blink/renderer/platform/geometry/stroke_data.h"
 #include "third_party/blink/renderer/platform/graphics/bitmap_image.h"
 #include "third_party/blink/renderer/platform/graphics/blend_mode.h"
-#include "third_party/blink/renderer/platform/graphics/canvas_resource_provider.h"
+#include "third_party/blink/renderer/platform/graphics/canvas_2d_resource_provider.h"
 #include "third_party/blink/renderer/platform/graphics/color.h"
 #include "third_party/blink/renderer/platform/graphics/filters/paint_filter_builder.h"
 #include "third_party/blink/renderer/platform/graphics/gpu/webgpu_mailbox_texture.h"
@@ -1956,6 +1956,20 @@ void Canvas2DRecorderContext::clearRect(double x,
   float fheight = ClampTo<float>(height);
 
   gfx::RectF rect(fx, fy, fwidth, fheight);
+  if (CanvasRenderingContextHost* host = GetCanvasRenderingContextHost();
+      host && host->ShouldCaptureRenderedText()) {
+    // Map the cleared rect from context coordinates to canvas element
+    // coordinates.
+    gfx::RectF canvas_clear_rect = GetTransform().MapRect(rect);
+    gfx::RectF canvas_rect(0, 0, host->width(), host->height());
+    // If the cleared area covers the entire canvas, clear all recorded text.
+    // Otherwise, clear only the text that intersects with the cleared area.
+    if (canvas_clear_rect.Contains(canvas_rect)) {
+      host->ClearRenderedText();
+    } else {
+      host->ClearRenderedText(canvas_clear_rect);
+    }
+  }
   if (RectContainsTransformedRect(rect, clip_bounds)) {
     CheckOverdraw(&clear_flags, CanvasRenderingContext2DState::kNoImage,
                   OverdrawOp::kClearRect);

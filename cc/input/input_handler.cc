@@ -65,6 +65,11 @@ InputHandlerClient::ScrollEventDispatchMode GetScrollEventDispatchMode() {
                  kScrollEventDispatchModeUseScrollPredictorForDeadline) {
     return InputHandlerClient::ScrollEventDispatchMode::
         kUseScrollPredictorForDeadline;
+  } else if (mode_name ==
+             ::features::
+                 kScrollEventDispatchModeDispatchScrollEventsUntilDeadline) {
+    return InputHandlerClient::ScrollEventDispatchMode::
+        kDispatchScrollEventsUntilDeadline;
   }
 
   return InputHandlerClient::ScrollEventDispatchMode::kEnqueueScrollEvents;
@@ -483,8 +488,6 @@ InputHandlerScrollResult InputHandler::ScrollUpdate(
   InputHandlerScrollResult scroll_result;
   scroll_result.did_scroll = did_scroll_content || did_scroll_top_controls;
   scroll_result.hit_snap_constraint = hit_snap_constraint;
-  // TODO(crbug.com/41102897): Refactor did_root_overscroll to instead store the
-  // ElementId of scroller that consumed the overscroll.
   scroll_result.did_overscroll_root =
       is_root_scroller && !unused_scroll_delta.IsZero();
   scroll_result.accumulated_root_overscroll = accumulated_root_overscroll_;

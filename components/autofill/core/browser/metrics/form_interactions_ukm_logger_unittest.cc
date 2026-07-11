@@ -7,6 +7,7 @@
 #include <utility>
 #include <vector>
 
+#include "base/auto_reset.h"
 #include "base/base64.h"
 #include "base/notreached.h"
 #include "base/strings/to_string.h"
@@ -164,16 +165,9 @@ TEST_F(FormInteractionsUkmLoggerTest, AutofillSuggestionsShownTest) {
 
 // Test the field log events at the form submission.
 class FieldLogUkmMetricTest : public FormInteractionsUkmLoggerTest {
- protected:
-  FieldLogUkmMetricTest() {
-    scoped_features_.InitAndEnableFeatureWithParameters(
-        features::kAutofillLogUKMEventsWithSamplingOnSession,
-        {{features::kAutofillLogUKMEventsWithSamplingOnSessionRate.name,
-          "100"}});
-  }
-
  private:
-  base::test::ScopedFeatureList scoped_features_;
+  base::AutoReset<int> sampling_override_ =
+      autofill_metrics::SetUkmSamplingRateForTesting(100);
 };
 
 // Test if we record FieldInfo UKM event correctly after we click the field and
@@ -274,7 +268,7 @@ TEST_F(FieldLogUkmMetricTest, AddressSubmittedFormLogEvents) {
     std::vector<std::vector<UkmMetricNameAndValue>> expected_events;
     for (size_t i = 0; i < 3; ++i) {
       FieldFillingSkipReason status =
-          i == 2 ? FieldFillingSkipReason::kFieldTypeUnrelated
+          i == 2 ? FieldFillingSkipReason::kNoValueToFill
                  : FieldFillingSkipReason::kNotSkipped;
       DenseSet<AutofillStatus> autofill_status_vector;
       int field_log_events_count = 0;
@@ -1052,12 +1046,6 @@ class LogFocusedComplexFormAtFormRemoveTest
     : public AutofillMetricsBaseTest,
       public testing::TestWithParam<LogFocusedComplexFormAtFormRemoveTestCase> {
  public:
-  LogFocusedComplexFormAtFormRemoveTest() {
-    scoped_features_.InitAndEnableFeatureWithParameters(
-        features::kAutofillLogUKMEventsWithSamplingOnSession,
-        {{features::kAutofillLogUKMEventsWithSamplingOnSessionRate.name,
-          "100"}});
-  }
   ~LogFocusedComplexFormAtFormRemoveTest() override = default;
 
   void SetUp() override {
@@ -1073,7 +1061,8 @@ class LogFocusedComplexFormAtFormRemoveTest
   }
 
  private:
-  base::test::ScopedFeatureList scoped_features_;
+  base::AutoReset<int> sampling_override_ =
+      autofill_metrics::SetUkmSamplingRateForTesting(100);
   std::unique_ptr<icu::TimeZone> previousZone;
 };
 

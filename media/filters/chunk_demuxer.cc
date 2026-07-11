@@ -549,9 +549,9 @@ base::Time ChunkDemuxer::GetTimelineOffset() const {
   return timeline_offset_;
 }
 
-std::vector<DemuxerStream*> ChunkDemuxer::GetAllStreams() {
+std::vector<raw_ptr<DemuxerStream>> ChunkDemuxer::GetAllStreams() {
   base::AutoLock auto_lock(lock_);
-  std::vector<DemuxerStream*> result;
+  std::vector<raw_ptr<DemuxerStream>> result;
   // Put enabled streams at the beginning of the list so that
   // MediaResource::GetFirstStream returns the enabled stream if there is one.
   // TODO(servolk): Revisit this after media track switching is supported.
@@ -1106,6 +1106,15 @@ void ChunkDemuxer::ResetParserState(const std::string& id,
   // Need to check whether seeking can be completed.
   if (old_waiting_for_data && !IsSeekWaitingForData_Locked() && seek_cb_)
     RunSeekCB_Locked(PIPELINE_OK);
+}
+
+void ChunkDemuxer::SetAppendWindow(const std::string& id,
+                                   base::TimeDelta start,
+                                   base::TimeDelta end) {
+  base::AutoLock auto_lock(lock_);
+  DCHECK(!id.empty());
+  CHECK(IsValidId_Locked(id));
+  source_state_map_[id]->SetAppendWindow(start, end);
 }
 
 void ChunkDemuxer::Remove(const std::string& id,

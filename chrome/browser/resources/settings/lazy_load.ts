@@ -16,7 +16,6 @@ import './autofill_page/walletable_pass_detection_toggle.js';
 import './autofill_page/passkeys_subpage.js';
 // </if>
 import './autofill_page/payments_section.js';
-import './autofill_page/suggestions_from_gemini_subpage.js';
 // <if expr="not is_chromeos">
 import './clear_browsing_data_dialog/clear_browsing_data_account_indicator.js';
 // </if>
@@ -62,6 +61,7 @@ import './site_settings/hand_tracking_page.js';
 import './site_settings/hid_devices_page.js';
 import './site_settings/idle_detection_page.js';
 import './site_settings/images_page.js';
+import './site_settings/inline_cue_menu_page.js';
 import './site_settings/insecure_content_page.js';
 import './site_settings/javascript_page.js';
 import './site_settings/keyboard_lock_page.js';
@@ -121,6 +121,7 @@ import './system_page/system_page.js';
 // </if>
 import './your_saved_info_page/identity_docs_page.js';
 import './your_saved_info_page/shopping_page.js';
+import './your_saved_info_page/suggestions_from_gemini_subpage.js';
 import './your_saved_info_page/travel_page.js';
 
 // <if expr="not is_chromeos">
@@ -195,7 +196,6 @@ export {SettingsPaymentsListElement} from './autofill_page/payments_list.js';
 export {PaymentsManagerImpl} from './autofill_page/payments_manager_proxy.js';
 export type {PaymentsManagerProxy} from './autofill_page/payments_manager_proxy.js';
 export {SettingsPaymentsSectionElement} from './autofill_page/payments_section.js';
-export {SettingsSuggestionsFromGeminiSubpageElement} from './autofill_page/suggestions_from_gemini_subpage.js';
 export {SettingsVirtualCardUnenrollDialogElement} from './autofill_page/virtual_card_unenroll_dialog.js';
 export {SettingsWalletablePassDetectionToggleElement} from './autofill_page/walletable_pass_detection_toggle.js';
 // <if expr="not is_chromeos">
@@ -314,6 +314,7 @@ export {FileSystemSiteEntryElement} from './site_settings/file_system_site_entry
 export {FileSystemSiteEntryItemElement} from './site_settings/file_system_site_entry_item.js';
 export {FileSystemSiteListElement} from './site_settings/file_system_site_list.js';
 export {GeolocationPageElement} from './site_settings/geolocation_page.js';
+export {InlineCueMenuPageElement} from './site_settings/inline_cue_menu_page.js';
 export {NotificationsPageElement} from './site_settings/notifications_page.js';
 export {PdfDocumentsPageElement} from './site_settings/pdf_documents_page.js';
 export {ProtectedContentPageElement} from './site_settings/protected_content_page.js';
@@ -356,4 +357,5 @@ export type {SystemPageBrowserProxy} from './system_page/system_page_browser_pro
 // </if>
 export {SettingsIdentityDocsPageElement} from './your_saved_info_page/identity_docs_page.js';
 export {SettingsShoppingPageElement} from './your_saved_info_page/shopping_page.js';
+export {SettingsSuggestionsFromGeminiSubpageElement} from './your_saved_info_page/suggestions_from_gemini_subpage.js';
 export {SettingsTravelPageElement} from './your_saved_info_page/travel_page.js';

@@ -5,28 +5,35 @@
 #include "services/webnn/public/cpp/webnn_sandbox_init.h"
 
 #include "base/files/file_path.h"
-#include "base/logging.h"
-#include "base/scoped_native_library.h"
+#include "base/native_library.h"
+#include "base/path_service.h"
 #include "services/webnn/public/cpp/webnn_buildflags.h"
+
+#if BUILDFLAG(IS_LINUX)
+#include <dlfcn.h>
+#endif
 
 namespace webnn {
 
-#if BUILDFLAG(IS_WIN)
+#if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_LINUX)
 void PreSandboxWebNNInitialization() {
-#if BUILDFLAG(WEBNN_USE_LITERT)
-  // Preload the LiteRT WebGPU Accelerator DLL.
+#if BUILDFLAG(WEBNN_USE_WEBGPU_ACCELERATOR)
+#if BUILDFLAG(IS_WIN)
   base::FilePath library_path(
       FILE_PATH_LITERAL("libLiteRtWebGpuAccelerator.dll"));
-  base::ScopedNativeLibrary library(library_path);
-  if (!library.is_valid()) {
-    LOG(ERROR) << "Failed to preload WebNN LiteRT WebGPU Accelerator: "
-               << (library.GetError() ? library.GetError()->ToString()
-                                      : "unknown error");
-    return;
+  base::LoadNativeLibrary(library_path, nullptr);
+#elif BUILDFLAG(IS_LINUX)
+  base::FilePath library_path;
+  if (base::PathService::Get(base::DIR_MODULE, &library_path)) {
+    library_path =
+        library_path.Append(FILE_PATH_LITERAL("libLiteRtWebGpuAccelerator.so"));
+  } else {
+    library_path =
+        base::FilePath(FILE_PATH_LITERAL("libLiteRtWebGpuAccelerator.so"));
   }
 
-  // Keep the library loaded in memory for the lifetime of the process.
-  [[maybe_unused]] base::NativeLibrary raw_library = library.release();
+  dlopen(library_path.value().c_str(), RTLD_LAZY | RTLD_GLOBAL | RTLD_NODELETE);
+#endif
 #endif
 }
 #endif

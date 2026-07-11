@@ -7,7 +7,7 @@ import '//resources/cr_elements/cr_tabs/cr_tabs.js';
 
 import {CrLitElement} from '//resources/lit/v3_0/lit.rollup.js';
 
-import {ActuationEligibility, ActuationTarget, FormFactor, FreOverride, InvocationSource, Platform} from '../glic.mojom-webui.js';
+import {ActuationEligibility, ActuationTarget, FormFactor, FreOverride, GlicExperimentalTriggeringState, InvocationSource, Platform} from '../glic.mojom-webui.js';
 import {FeatureMode} from '../glic_enums.mojom-webui.js';
 import {FreCompletionWaitMode, InternalsPageHandlerFactory, InternalsPageHandlerRemote} from '../glic_internals.mojom-webui.js';
 import type {InternalsDataPayload, TriggerInvokeFromInternalsOptions} from '../glic_internals.mojom-webui.js';
@@ -51,6 +51,7 @@ export class GlicInternalsAppElement extends CrLitElement {
       freCompletionWaitModeEnumValues_: {type: Array},
 
       selectedTabIndex_: {type: Number},
+      invokeNewConversation_: {type: Boolean},
       tabNames_: {type: Array},
       featureModeEnumValues_: {type: Array},
     };
@@ -75,6 +76,7 @@ export class GlicInternalsAppElement extends CrLitElement {
   protected accessor invokePayloadUniversalCartMetadata_: string = '';
   protected accessor invokeFreCompletionWaitMode_: FreCompletionWaitMode =
       FreCompletionWaitMode.kDefault;
+  protected accessor invokeNewConversation_: boolean = false;
 
   protected accessor selectedTabIndex_: number = 0;
   protected accessor tabNames_: string[] = ['General', 'Debug Controls'];
@@ -198,6 +200,11 @@ export class GlicInternalsAppElement extends CrLitElement {
     }
   }
 
+  protected getExperimentalTriggeringStateString_(
+      state: GlicExperimentalTriggeringState): string {
+    return GlicExperimentalTriggeringState[state] || 'Unknown';
+  }
+
   protected getTableData_(): Array<{label: string, value: boolean}> {
     if (!this.data_ || !this.data_.enablement) {
       return [];
@@ -286,6 +293,10 @@ export class GlicInternalsAppElement extends CrLitElement {
     this.invokeWaitForPanelOpen_ = (e.target as HTMLInputElement).checked;
   }
 
+  protected onInvokeNewConversationChange_(e: Event) {
+    this.invokeNewConversation_ = (e.target as HTMLInputElement).checked;
+  }
+
   protected onPayloadUniversalCartMetadataInput_(e: Event) {
     this.invokePayloadUniversalCartMetadata_ =
         (e.target as HTMLInputElement).value;
@@ -341,7 +352,8 @@ export class GlicInternalsAppElement extends CrLitElement {
       invocationSource: this.invokeInvocationSource_,
       prompts: this.invokePrompt_ ? [this.invokePrompt_] : [],
       additionalContext: null,
-      conversation: {defaultConversation: {}},
+      conversation: this.invokeNewConversation_ ? {newConversation: {}} :
+                                                  {defaultConversation: {}},
       featureMode: this.invokeFeatureMode_,
       disableZss: false,
       zssConfig: this.invokeZssOverride_ ?
@@ -478,16 +490,20 @@ export class GlicInternalsAppElement extends CrLitElement {
     const debugInfo = this.data_.debugInfo;
     const settings: Array<{label: string, value: string | boolean}> = [
       {
-        label: 'Glic Feature Flag',
-        value: debugInfo.glicFeatureEnabled,
-      },
-      {
         label: 'GlicActor Feature Flag',
         value: debugInfo.glicActorFeatureEnabled,
       },
       {
         label: 'GlicRollout Feature Flag',
         value: debugInfo.glicRolloutFeatureEnabled,
+      },
+      {
+        label: 'GlicTieredRollout Feature Flag',
+        value: debugInfo.glicTieredRolloutFeatureEnabled,
+      },
+      {
+        label: 'GlicTieredRolloutV2 Feature Flag',
+        value: debugInfo.glicTieredRolloutV2FeatureEnabled,
       },
       {
         label: 'Platform',
@@ -500,6 +516,38 @@ export class GlicInternalsAppElement extends CrLitElement {
       {
         label: 'OS Hotkey',
         value: debugInfo.hotkey || 'None',
+      },
+      {
+        label: 'Locale',
+        value: debugInfo.locale || 'None',
+      },
+      {
+        label: 'Permanent Country Code',
+        value: debugInfo.permanentCountryCode || 'None',
+      },
+      {
+        label: 'Session Country Code',
+        value: debugInfo.sessionCountryCode || 'None',
+      },
+      {
+        label: 'System Requirement Met',
+        value: debugInfo.systemRequirementMet,
+      },
+      {
+        label: 'OS Version Supported',
+        value: debugInfo.osVersionSupported,
+      },
+      {
+        label: 'Anchor Entrypoint Override Active',
+        value: debugInfo.anchorEntrypointOverrideActive,
+      },
+      {
+        label: 'Primary Account Needs Signed In',
+        value: debugInfo.primaryAccountNeedsSignedIn,
+      },
+      {
+        label: 'Dogfood Client Status',
+        value: debugInfo.dogfoodStatus,
       },
     ];
 

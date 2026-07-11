@@ -28,6 +28,7 @@
 #include "components/autofill/core/browser/data_manager/autofill_ai/entity_data_manager.h"
 #include "components/autofill/core/browser/data_model/autofill_ai/entity_instance.h"
 #include "components/autofill/core/browser/data_model/autofill_ai/entity_type.h"
+#include "components/autofill/core/browser/data_model/autofill_ai/entity_type_names.h"
 #include "components/autofill/core/browser/data_quality/addresses/address_normalizer.h"
 #include "components/autofill/core/browser/field_type_utils.h"
 #include "components/autofill/core/browser/field_types.h"
@@ -209,9 +210,11 @@ std::vector<const EntityInstance*> GetFillableEntityInstances(
 
   base::span<const EntityInstance> all_entities = edm->GetEntityInstances();
 
+  const GURL url = client.GetLastCommittedPrimaryMainFrameURL();
   DenseSet<EntityType> enabled_types;
   for (EntityType type : DenseSet(all_entities, &EntityInstance::type)) {
-    if (MayPerformAutofillAiAction(client, AutofillAiAction::kFilling, type)) {
+    if (!IsAutofillAiEntityTypeBlockedByPolicy(client, url, type) &&
+        MayPerformAutofillAiAction(client, AutofillAiAction::kFilling, type)) {
       enabled_types.insert(type);
     }
   }

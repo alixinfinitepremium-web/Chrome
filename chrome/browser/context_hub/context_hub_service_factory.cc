@@ -7,8 +7,13 @@
 #include "base/feature_list.h"
 #include "chrome/browser/context_hub/context_hub_service.h"
 #include "chrome/browser/context_hub/features.h"
+#include "chrome/browser/context_hub/memory_bank/in_memory_memory_bank.h"
+#include "chrome/browser/context_hub/memory_bank/noop_memory_bank.h"
+#include "chrome/browser/optimization_guide/optimization_guide_keyed_service.h"
+#include "chrome/browser/optimization_guide/optimization_guide_keyed_service_factory.h"
 #include "chrome/browser/personal_context/personal_context_service_factory.h"
 #include "chrome/browser/profiles/profile.h"
+#include "components/optimization_guide/core/model_execution/remote_model_executor.h"
 
 // static
 context_hub::ContextHubService* ContextHubServiceFactory::GetForProfile(
@@ -30,6 +35,7 @@ ContextHubServiceFactory::ContextHubServiceFactory()
               .WithRegular(ProfileSelection::kOriginalOnly)
               .Build()) {
   DependsOn(PersonalContextServiceFactory::GetInstance());
+  DependsOn(OptimizationGuideKeyedServiceFactory::GetInstance());
 }
 
 ContextHubServiceFactory::~ContextHubServiceFactory() = default;
@@ -46,6 +52,18 @@ ContextHubServiceFactory::BuildServiceInstanceForBrowserContext(
   if (!personal_context_service) {
     return nullptr;
   }
+  OptimizationGuideKeyedService* optimization_guide_service =
+      OptimizationGuideKeyedServiceFactory::GetForProfile(profile);
+  if (!optimization_guide_service) {
+    return nullptr;
+  }
+  std::unique_ptr<context_hub::MemoryBank> memory_bank;
+  if (base::FeatureList::IsEnabled(context_hub::features::kMemoryBanks)) {
+    memory_bank = std::make_unique<context_hub::InMemoryMemoryBank>();
+  } else {
+    memory_bank = std::make_unique<context_hub::NoOpMemoryBank>();
+  }
   return std::make_unique<context_hub::ContextHubService>(
-      personal_context_service);
+      personal_context_service, optimization_guide_service,
+      std::move(memory_bank));
 }

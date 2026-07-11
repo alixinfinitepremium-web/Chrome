@@ -42,10 +42,14 @@ MEDIA_EXPORT extern const char kUserGestureRequiredPolicy[];
 MEDIA_EXPORT extern const char kAudioBufferSize[];
 MEDIA_EXPORT extern const char kAutoGrantCapturedSurfaceControlPrompt[];
 MEDIA_EXPORT extern const char kAutoplayPolicy[];
+MEDIA_EXPORT extern const char kCastStreamingForceDisableHardwareAv1[];
 MEDIA_EXPORT extern const char kCastStreamingForceDisableHardwareH264[];
+MEDIA_EXPORT extern const char kCastStreamingForceDisableHardwareHevc[];
 MEDIA_EXPORT extern const char kCastStreamingForceDisableHardwareVp8[];
 MEDIA_EXPORT extern const char kCastStreamingForceDisableHardwareVp9[];
+MEDIA_EXPORT extern const char kCastStreamingForceEnableHardwareAv1[];
 MEDIA_EXPORT extern const char kCastStreamingForceEnableHardwareH264[];
+MEDIA_EXPORT extern const char kCastStreamingForceEnableHardwareHevc[];
 MEDIA_EXPORT extern const char kCastStreamingForceEnableHardwareVp8[];
 MEDIA_EXPORT extern const char kCastStreamingForceEnableHardwareVp9[];
 MEDIA_EXPORT extern const char kClearKeyCdmPathForTesting[];
@@ -155,6 +159,9 @@ MEDIA_EXPORT extern const base::FeatureParam<double>
 MEDIA_EXPORT extern const base::FeatureParam<double>
     kCastStreamingExponentialVideoBitrateAlgorithmDynamicWindowMultiplier;
 MEDIA_EXPORT BASE_DECLARE_FEATURE(kCastStreamingHardwareHevc);
+MEDIA_EXPORT BASE_DECLARE_FEATURE(kCastStreamingMaxVideoBitrate);
+MEDIA_EXPORT extern const base::FeatureParam<int>
+    kCastStreamingMaxVideoBitrateMbps;
 MEDIA_EXPORT BASE_DECLARE_FEATURE(kCastStreamingPerformanceOverlay);
 MEDIA_EXPORT BASE_DECLARE_FEATURE(kCastStreamingVp8);
 MEDIA_EXPORT BASE_DECLARE_FEATURE(kCastStreamingVp9);
@@ -247,6 +254,10 @@ MEDIA_EXPORT extern const base::FeatureParam<bool>
     kHardwareSecureDecryptionFallbackOnHardwareContextReset;
 MEDIA_EXPORT BASE_DECLARE_FEATURE(kHardwareSecureDecryptionAv1);
 MEDIA_EXPORT BASE_DECLARE_FEATURE(kHardwareSecureDecryptionVp9);
+#if BUILDFLAG(ENABLE_PLATFORM_ENCRYPTED_DOLBY_VISION)
+MEDIA_EXPORT BASE_DECLARE_FEATURE(
+    kHardwareSecureDecryptionDolbyVisionWithHdrCheck);
+#endif  // ENABLE_PLATFORM_ENCRYPTED_DOLBY_VISION
 #if BUILDFLAG(IS_WIN)
 MEDIA_EXPORT BASE_DECLARE_FEATURE(kProtectedMediaIdentifierIndicator);
 MEDIA_EXPORT BASE_DECLARE_FEATURE(kHardwareSecureDecryptionRequireServerCert);
@@ -311,6 +322,9 @@ MEDIA_EXPORT BASE_DECLARE_FEATURE(kPlatformHEVCDecoderSupport);
 MEDIA_EXPORT BASE_DECLARE_FEATURE(kPlatformHEVCEncoderSupport);
 #endif  // BUILDFLAG(IS_WIN) || BUILDFLAG(IS_APPLE) || BUILDFLAG(IS_ANDROID)
 #endif  // BUILDFLAG(ENABLE_PLATFORM_HEVC)
+#if BUILDFLAG(IS_APPLE)
+MEDIA_EXPORT BASE_DECLARE_FEATURE(kVTVideoEncodeAcceleratorCalculatePSNR);
+#endif  // BUILDFLAG(IS_APPLE)
 #if BUILDFLAG(ENABLE_HEVC_PARSER_AND_HW_DECODER)
 MEDIA_EXPORT BASE_DECLARE_FEATURE(kMediaRecorderHEVCSupport);
 #endif  // BUILDFLAG(ENABLE_HEVC_PARSER_AND_HW_DECODER)
@@ -388,7 +402,6 @@ MEDIA_EXPORT BASE_DECLARE_FEATURE(kFullscreenVideoPictureInPicture);
 
 MEDIA_EXPORT BASE_DECLARE_FEATURE(kMediaCodecBlockModel);
 MEDIA_EXPORT BASE_DECLARE_FEATURE(kMediaCodecLowDelayMode);
-MEDIA_EXPORT BASE_DECLARE_FEATURE(kMediaControlsExpandGesture);
 MEDIA_EXPORT BASE_DECLARE_FEATURE(kMediaDrmPersistentLicense);
 MEDIA_EXPORT BASE_DECLARE_FEATURE(kMediaDrmPreprovisioning);
 MEDIA_EXPORT BASE_DECLARE_FEATURE(kMediaDrmPreprovisioningAtStartup);
@@ -570,6 +583,10 @@ MEDIA_EXPORT bool IsChromeWideEchoCancellationEnabled();
 // WebRTC echo cancellation.
 MEDIA_EXPORT BASE_DECLARE_FEATURE(kWebRtcAudioNeuralResidualEchoEstimation);
 
+// When enabled, input audio processing in the audio process may use an ML-based
+// voice isolation denoiser.
+MEDIA_EXPORT BASE_DECLARE_FEATURE(kWebRtcVoiceIsolationDenoiser);
+
 // Flag to enable or disable parsing of MP4 timed metadata tracks.
 MEDIA_EXPORT BASE_DECLARE_FEATURE(kMP4TimedMetadataTrack);
 
@@ -626,6 +643,9 @@ MEDIA_EXPORT bool IsOutOfProcessVideoDecodingEnabled();
 // Return bitmask of audio formats supported by EDID.
 MEDIA_EXPORT uint32_t GetPassthroughAudioFormats();
 
+#if BUILDFLAG(IS_ANDROID)
+MEDIA_EXPORT BASE_DECLARE_FEATURE(kUseMediaFormatCodedSize);
+#endif
 }  // namespace media
 
 #endif  // MEDIA_BASE_MEDIA_SWITCHES_H_

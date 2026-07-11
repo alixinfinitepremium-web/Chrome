@@ -71,7 +71,7 @@ class FirstRunFinishOrContinuePixelTest
     SignInWithAccount();
 
     auto* view = new ProfileManagementStepTestView(
-        ProfilePicker::Params::ForFirstRun(browser()->profile()->GetPath(),
+        ProfilePicker::Params::ForFirstRun(browser()->GetProfile()->GetPath(),
                                            base::DoNothing()),
         ProfileManagementFlowController::Step::kFinishOrContinue,
         /*step_controller_factory=*/
@@ -83,28 +83,20 @@ class FirstRunFinishOrContinuePixelTest
                   /*eligibility_callback=*/
                   base::BindOnce([](bool eligible) { return eligible; },
                                  eligible),
-                  /*step_completed_callback=*/base::DoNothing());
+                  /*query_effects_callback=*/
+                  base::BindRepeating([] { return false; }),
+                  /*step_completed_callback=*/base::DoNothing(),
+                  /*play_all_set_sound_callback=*/base::DoNothing());
             },
             GetParam().is_feature_showcase_eligible));
     profile_picker_view_tracker_.SetView(view);
     view->ShowAndWait();
 
     // Wait for all cr-lotties to initialize to prevent flakiness.
-    EXPECT_EQ(true, content::EvalJs(view->GetPickerContents(), R"(
-      Promise.all(
-        Array.from(document.querySelector('finish-or-continue-app')
-            .shadowRoot.querySelectorAll('cr-lottie')).map(
-          anim => new Promise(resolve => {
-            if (anim.hasAttribute('is-animation-loaded')) {
-              resolve(true);
-            } else {
-              anim.addEventListener('cr-lottie-initialized',
-                                    () => resolve(true));
-            }
-          })
-        )
-      ).then(() => true);
-    )"));
+    CHECK_EQ(
+        content::EvalJs(view->GetPickerContents(),
+                        GetWaitForAnimationsScript("finish-or-continue-app")),
+        true);
   }
 
   bool VerifyUi() override {

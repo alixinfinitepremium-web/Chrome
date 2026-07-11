@@ -77,6 +77,7 @@ class ContextualTasksPageHandler
                              bool is_side_panel,
                              GetCommonSearchParamsCallback callback) override;
   void OnboardingTooltipDismissed() override;
+  void LensSearchTooltipDismissed() override;
   void ReopenTabs() override;
   void PinSidePanel() override;
   void UnpinSidePanel() override;
@@ -89,6 +90,7 @@ class ContextualTasksPageHandler
       const contextual_tasks::ContextualWindowId& window_id) override;
   void CloseWindow(
       const contextual_tasks::ContextualWindowId& window_id) override;
+  void MaybeTriggerPinningPromo() override;
   void PostMessageToWebview(const lens::ClientToAimMessage& message);
 
   // contextual_tasks::ContextualTasksService::Observer:

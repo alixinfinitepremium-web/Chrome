@@ -33,7 +33,11 @@ class PasswordCheckupTaskInfo : public TaskInfo {
   std::string GetTriggerUserAction() const override {
     return "MobilePasswordCheckupSettingsClose";
   }
-  base::RepeatingClosure GetNavigationAction() const override {
+  std::string GetCompletionSnackbarMessage() const override {
+    return l10n_util::GetStringUTF8(
+        IDS_IOS_LEVEL_UP_TASK_COMPLETED_PASSWORD_CHECKUP);
+  }
+  TaskInfo::NavigationAction GetNavigationAction() const override {
     return base::DoNothing();
   }
 };

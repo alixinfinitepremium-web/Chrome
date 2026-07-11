@@ -27,6 +27,7 @@
 #include "components/autofill/content/renderer/form_autofill_util.h"
 #include "components/autofill/content/renderer/form_cache.h"
 #include "components/autofill/content/renderer/form_tracker.h"
+#include "components/autofill/content/renderer/javascript_autofill_tracker.h"
 #include "components/autofill/content/renderer/timing.h"
 #include "components/autofill/core/common/autofill_features.h"
 #include "components/autofill/core/common/autofill_util.h"
@@ -52,6 +53,7 @@
 namespace blink {
 class WebFormControlElement;
 class WebFormElement;
+struct RendererPreferences;
 }  // namespace blink
 
 namespace autofill {
@@ -250,6 +252,9 @@ class AutofillAgent : public content::RenderFrameObserver,
                                   const std::string& email,
                                   FieldRendererId token_field_id,
                                   const std::string& token) override;
+  void UpdateEmailVerificationState(
+      FieldRendererId email_field_id,
+      mojom::EmailVerificationState state) override;
 
   // Fires Mojo messages for a given form submission.
   void FireHostSubmitEvents(const FormData& form_data,
@@ -277,7 +282,7 @@ class AutofillAgent : public content::RenderFrameObserver,
   bool IsPrerendering() const;
 
   blink::WebFormControlElement last_queried_element() const {
-    return last_queried_element_.GetField();
+    return form_util::GetFormControlByRendererId(last_queried_element_id_);
   }
 
   FieldDataManager& field_data_manager() const {
@@ -327,6 +332,8 @@ class AutofillAgent : public content::RenderFrameObserver,
     return content::RenderFrameObserver::render_frame();
   }
 
+  const blink::RendererPreferences* GetRendererPreferences() const;
+
   // Use unsafe_render_frame() instead.
   template <typename T = int>
   content::RenderFrame* render_frame(T* = 0) const {
@@ -354,9 +361,10 @@ class AutofillAgent : public content::RenderFrameObserver,
   void DataListOptionsChanged(const blink::WebInputElement& element) override;
   void UserGestureObserved() override;
   void AjaxSucceeded() override;
-  void JavaScriptChangedValue(blink::WebFormControlElement element,
-                              const blink::WebString& old_value,
-                              bool was_autofilled) override;
+  void JavaScriptSetValue(blink::WebFormControlElement element,
+                          const blink::WebString& old_value,
+                          bool was_autofilled,
+                          bool value_changed) override;
   void DidCompleteFocusChangeInFrame() override;
   void DidReceiveLeftMouseDownOrGestureTapInNode(
       const blink::WebNode& node) override;
@@ -463,6 +471,12 @@ class AutofillAgent : public content::RenderFrameObserver,
   void BatchSelectOptionChange(FieldRendererId element_id);
   void BatchDataListOptionChange(FieldRendererId element_id);
 
+  // Called when a custom JavaScript autofill is detected by
+  // `JavaScriptAutofillTracker`.
+  void OnJavaScriptAutofillDetected(
+      blink::WebFormControlElement trigger_field,
+      const std::vector<FieldRendererId>& field_ids);
+
   // Stores immutable configuration this agent was created with. It contains
   // features and settings that are specific to the client using this agent.
   const Config config_;
@@ -474,7 +488,7 @@ class AutofillAgent : public content::RenderFrameObserver,
   std::unique_ptr<PasswordGenerationAgent> password_generation_agent_;
 
   // The element corresponding to the last request sent for form field Autofill.
-  FieldRef last_queried_element_;
+  FieldRendererId last_queried_element_id_;
 
   // List of elements that are currently being previewed, along with their
   // autofill state before the preview.
@@ -612,6 +626,10 @@ class AutofillAgent : public content::RenderFrameObserver,
   const bool replace_form_element_observer_ = false;
 
   EmailVerificationObserver email_verification_observer_;
+
+  // Tracks when an autofill operation is performed on a form via JavaScript,
+  // and not via regular Chrome Autofill.
+  JavaScriptAutofillTracker javascript_autofill_tracker_;
 
   base::WeakPtrFactory<AutofillAgent> weak_ptr_factory_{this};
 };

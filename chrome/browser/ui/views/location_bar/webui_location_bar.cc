@@ -13,6 +13,7 @@
 #include "build/buildflag.h"
 #include "chrome/browser/search_engines/template_url_service_factory.h"
 #include "chrome/browser/ui/browser.h"
+#include "chrome/browser/ui/browser_actions.h"
 #include "chrome/browser/ui/browser_command_controller.h"
 #include "chrome/browser/ui/browser_element_identifiers.h"
 #include "chrome/browser/ui/interaction/browser_elements.h"
@@ -22,7 +23,6 @@
 #include "chrome/browser/ui/views/location_bar/location_icon_state_helper.h"
 #include "chrome/browser/ui/views/location_bar/selected_keyword_view.h"
 #include "chrome/browser/ui/views/location_bar/webui_content_setting_image_control.h"
-#include "chrome/browser/ui/views/omnibox/omnibox_popup_closer.h"
 #include "chrome/browser/ui/views/omnibox/omnibox_popup_presenter.h"
 #include "chrome/browser/ui/views/omnibox/omnibox_popup_view_webui.h"
 #include "chrome/browser/ui/views/omnibox/webui_readonly_omnibox.h"
@@ -47,7 +47,6 @@
 #include "ui/display/screen.h"
 #include "ui/views/bubble/bubble_border.h"
 #include "ui/views/button_drag_utils.h"
-#include "ui/views/mouse_constants.h"
 #include "ui/views/widget/widget.h"
 
 #if BUILDFLAG(GOOGLE_CHROME_BRANDING)
@@ -80,7 +79,9 @@ WebUILocationBar::WebUILocationBar(Browser* browser,
     : LocationBar(browser ? browser->command_controller() : nullptr),
       browser_(browser),
       delegate_(delegate),
-      content_setting_image_control_(this) {
+      content_setting_image_control_(this),
+      page_action_control_(
+          browser ? browser->browser_actions()->root_action_item() : nullptr) {
   permission_dashboard_ = std::make_unique<WebUIPermissionDashboard>(this);
   permission_dashboard_controller_ =
       std::make_unique<PermissionDashboardController>(
@@ -97,14 +98,16 @@ void WebUILocationBar::Init(WebUIToolbarControlDelegate* delegate) {
   omnibox_controller_ =
       std::make_unique<OmniboxController>(std::make_unique<ChromeOmniboxClient>(
           /*location_bar=*/this, browser_, browser_->profile()));
-  omnibox_view_ =
-      std::make_unique<WebUIReadOnlyOmnibox>(omnibox_controller_.get(), *this);
+  omnibox_view_ = std::make_unique<WebUIReadOnlyOmnibox>(
+      /*location_bar=*/this, omnibox_controller_.get(),
+      /*update_propagator=*/*this);
 
   omnibox_popup_view_ = std::make_unique<OmniboxPopupViewWebUI>(
       /*omnibox_view=*/omnibox_view_.get(), omnibox_controller_.get(),
       /*location_bar=*/this, /*presenter_delegate=*/*this);
 
   content_setting_image_control_.Init(delegate);
+  page_action_control_.Init(delegate);
 
   // Unretained is safe because `this` owns `moved_subscription_`.
   moved_subscription_ =
@@ -135,12 +138,25 @@ void WebUILocationBar::PropagateFocusRequest(
   toolbar_delegate_->OnFocusRequested(target);
 }
 
+std::optional<GURL> WebUILocationBar::ConsumeDroppedUrl(
+    const gfx::PointF& drop_position) {
+  return toolbar_delegate_ ? toolbar_delegate_->ConsumeDroppedUrl(drop_position)
+                           : std::nullopt;
+}
+
 void WebUILocationBar::OnThemeChanged() {
   if (!is_initialized_) {
     return;
   }
   // Location icon cares about color scheme.
   UpdateLhsChipsState();
+}
+
+void WebUILocationBar::HandleContextMenu(views::Widget* widget,
+                                         const gfx::Point& point,
+                                         ui::mojom::MenuSourceType source_type,
+                                         int edit_flags) {
+  omnibox_view_->HandleContextMenu(widget, point, source_type, edit_flags);
 }
 
 base::expected<std::monostate, mojo_base::mojom::ErrorPtr>
@@ -168,12 +184,22 @@ void WebUILocationBar::UpdateFocusBehavior(bool toolbar_visible) {
 }
 
 void WebUILocationBar::UpdateContentSettingsIcons() {
+  // If the LHS permission chip models changed visibility or state, propagate
+  // the updated LHS dashboard state to the WebUI.
+  if (UpdateContentSettingModels()) {
+    UpdateLhsChipsState();
+  }
+}
+
+bool WebUILocationBar::UpdateContentSettingModels() {
   content::WebContents* web_contents = GetWebContents();
   if (!web_contents) {
-    return;
+    return false;
   }
 
   bool permission_dashboard_changed = false;
+  bool dashboard_updated = false;
+
   if (base::FeatureList::IsEnabled(
           content_settings::features::kLeftHandSideActivityIndicators)) {
     ContentSettingImageModel* media_stream_model =
@@ -182,18 +208,31 @@ void WebUILocationBar::UpdateContentSettingsIcons() {
     if (media_stream_model) {
       permission_dashboard_changed |=
           permission_dashboard_controller_->Update(media_stream_model);
+      if (media_stream_model->is_visible()) {
+        dashboard_updated = true;
+      }
+    }
+  }
+
+  if (!dashboard_updated &&
+      base::FeatureList::IsEnabled(
+          content_settings::features::kLeftHandSideSensorActivityIndicators)) {
+    ContentSettingImageModel* sensors_model =
+        content_setting_image_control_.GetModel(
+            ContentSettingImageModel::ImageType::kSensors);
+    if (sensors_model) {
+      permission_dashboard_changed |=
+          permission_dashboard_controller_->Update(sensors_model);
     }
   }
 
   if (!toolbar_delegate_) {
-    return;
+    return permission_dashboard_changed;
   }
   toolbar_delegate_->OnContentSettingChanged(
       content_setting_image_control_.ProcessContentSettingState(web_contents));
 
-  if (permission_dashboard_changed) {
-    UpdateLhsChipsState();
-  }
+  return permission_dashboard_changed;
 }
 
 void WebUILocationBar::SaveStateToContents(content::WebContents* contents) {
@@ -300,6 +339,11 @@ bool WebUILocationBar::IsEditingOrEmpty() const {
   return omnibox_view_ && omnibox_view_->IsEditingOrEmpty();
 }
 
+bool WebUILocationBar::IsMouseHovered() const {
+  return IsVisible() && BoundsInScreen().Contains(
+                            display::Screen::Get()->GetCursorScreenPoint());
+}
+
 void WebUILocationBar::InvalidateLayout() {
   base::SequencedTaskRunner::GetCurrentDefault()->PostTask(
       FROM_HERE, base::BindOnce(&WebUILocationBar::OnChanged,
@@ -327,7 +371,7 @@ gfx::Rect WebUILocationBar::BoundsInScreen() const {
 
 gfx::Size WebUILocationBar::MinimumSize() const {
   // TODO(crbug.com/474060468): Proper calculation.
-  return gfx::Size(400, 34);
+  return gfx::Size(300, 34);
 }
 
 gfx::Size WebUILocationBar::PreferredSize() const {
@@ -343,6 +387,14 @@ void WebUILocationBar::Update(content::WebContents* contents) {
   } else {
     omnibox_view_->Update();
   }
+
+  UpdateContentSettingModels();
+
+  content::WebContents* active_contents = contents;
+  if (!active_contents && browser_) {
+    active_contents = browser_->tab_strip_model()->GetActiveWebContents();
+  }
+  page_action_control_.UpdateController(active_contents);
 
   OnChanged();
 }

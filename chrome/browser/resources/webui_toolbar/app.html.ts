@@ -38,8 +38,7 @@ ${this.isBackForwardButtonEnabled_ ? html`
   ${this.isSplitTabsButtonEnabled_ ? html`
     <split-tabs-button id="split-tabs"
         .state="${this.navigationControlsState_.splitTabsControlState}"
-        .hidden="${!this.navigationControlsState_.splitTabsControlState.isPinned &&
-                   !this.navigationControlsState_.splitTabsControlState.isCurrentTabSplit}">
+        .hidden="${!this.navigationControlsState_.splitTabsControlState.shouldBeShown}">
     </split-tabs-button>
   ` : ''}
   ${this.isLocationBarEnabled_ ? html`
@@ -49,14 +48,12 @@ ${this.isBackForwardButtonEnabled_ ? html`
   ` : ''}
   ${this.isExtensionsContainerEnabled_ ? html`
     <webui-toolbar-extensions id="extensions"
-        .state="${this.navigationControlsState_.extensionsState}"
-        .hidden="${this.navigationControlsState_.extensionsState.length === 0}">
+        .state="${this.navigationControlsState_.extensionsState}">
     </webui-toolbar-extensions>
   ` : ''}
   ${this.isPinnedToolbarActionsEnabled_ ? html`
     <pinned-toolbar-actions id="pinnedToolbarActions"
-        .state="${this.navigationControlsState_.pinnedToolbarActionsState}"
-        .hidden="${this.navigationControlsState_.pinnedToolbarActionsState.length === 0}">
+        .state="${this.navigationControlsState_.pinnedToolbarActionsState}">
     </pinned-toolbar-actions>
   ` : ''}
   ${this.isBatterySaverButtonEnabled_ ? html`
@@ -68,6 +65,11 @@ ${this.isBackForwardButtonEnabled_ ? html`
     <avatar-button id="avatar"
         .state="${this.navigationControlsState_.avatarControlState}">
     </avatar-button>
+  ` : ''}
+  ${this.isAppMenuButtonEnabled_ ? html`
+    <app-menu-button id="app-menu"
+        .state="${this.navigationControlsState_.appMenuControlState}">
+    </app-menu-button>
   ` : ''}
 <!--_html_template_end_-->`;
   // clang-format on

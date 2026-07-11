@@ -11,7 +11,6 @@ source_set("sharing_hub") {
     "preview_view.h",
     "screenshot/screenshot_captured_bubble.h",
     "sharing_hub_bubble_util.h",
-    "sharing_hub_icon_view.h",
   ]
   public_deps = [
     "//base",
@@ -36,7 +35,6 @@ source_set("impl") {
     "preview_view.cc",
     "screenshot/screenshot_captured_bubble.cc",
     "sharing_hub_bubble_util.cc",
-    "sharing_hub_icon_view.cc",
   ]
   deps = [
     ":sharing_hub",
@@ -45,7 +43,6 @@ source_set("impl") {
     "//chrome/browser/ui/qrcode_generator",
     "//chrome/browser/ui/sharing_hub",
     "//chrome/browser/ui/views:layout_provider",
-    "//chrome/browser/ui/views/send_tab_to_self",
     "//components/omnibox/browser:vector_icons",
     "//components/url_formatter",
     "//ui/strings:ui_strings",

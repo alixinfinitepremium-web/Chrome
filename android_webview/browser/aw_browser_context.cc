@@ -63,6 +63,7 @@
 #include "components/origin_matcher/origin_matcher.h"
 #include "components/origin_trials/browser/leveldb_persistence_provider.h"
 #include "components/origin_trials/browser/origin_trials.h"
+#include "components/performance_manager/embedder/performance_manager_registry.h"
 #include "components/policy/core/browser/browser_policy_connector_base.h"
 #include "components/policy/core/browser/configuration_policy_pref_store.h"
 #include "components/policy/core/browser/url_list/url_blocklist_manager.h"
@@ -78,6 +79,7 @@
 #include "components/safe_browsing/core/common/safe_browsing_prefs.h"
 #include "components/url_formatter/url_fixer.h"
 #include "components/user_prefs/user_prefs.h"
+#include "components/visitedlink/browser/partitioned_visitedlink_writer.h"
 #include "components/visitedlink/browser/visitedlink_writer.h"
 #include "content/public/browser/browser_task_traits.h"
 #include "content/public/browser/browser_thread.h"
@@ -160,9 +162,17 @@ AwBrowserContext::AwBrowserContext(std::string name,
 
   CreateUserPrefService();
 
-  visitedlink_writer_ =
-      std::make_unique<visitedlink::VisitedLinkWriter>(this, this, false);
-  visitedlink_writer_->Init();
+  if (base::FeatureList::IsEnabled(features::kWebViewMigrateVisitedLinks)) {
+    partitioned_visitedlink_writer_ =
+        std::make_unique<visitedlink::PartitionedVisitedLinkWriter>(
+            this, this,
+            /*use_constant_salt=*/true);
+    partitioned_visitedlink_writer_->Init();
+  } else {
+    visitedlink_writer_ =
+        std::make_unique<visitedlink::VisitedLinkWriter>(this, this, false);
+    visitedlink_writer_->Init();
+  }
 
   EnsureResourceContextInitialized();
   prefetch_manager_ = std::make_unique<AwPrefetchManager>(this);
@@ -181,9 +191,18 @@ AwBrowserContext::AwBrowserContext(std::string name,
       std::make_unique<AwContentRestrictionManagerClient>();
   content_restriction_blocked_navigation_tracker_ =
       std::make_unique<AwContentRestrictionBlockedNavigationTracker>();
+
+  if (auto* pm_registry =
+          performance_manager::PerformanceManagerRegistry::GetInstance()) {
+    pm_registry->NotifyBrowserContextAdded(this);
+  }
 }
 
 AwBrowserContext::~AwBrowserContext() {
+  if (auto* pm_registry =
+          performance_manager::PerformanceManagerRegistry::GetInstance()) {
+    pm_registry->NotifyBrowserContextRemoved(this);
+  }
   NotifyWillBeDestroyed();
   SimpleKeyMap::GetInstance()->Dissociate(this);
   ShutdownStoragePartitions();
@@ -335,8 +354,13 @@ std::vector<std::string> AwBrowserContext::GetAuthSchemes() {
 }
 
 void AwBrowserContext::AddVisitedURLs(const std::vector<GURL>& urls) {
-  DCHECK(visitedlink_writer_);
-  visitedlink_writer_->AddURLs(urls);
+  if (base::FeatureList::IsEnabled(features::kWebViewMigrateVisitedLinks)) {
+    CHECK(partitioned_visitedlink_writer_);
+    partitioned_visitedlink_writer_->AddPseudoPartitionedVisitedLinks(urls);
+  } else {
+    CHECK(visitedlink_writer_);
+    visitedlink_writer_->AddURLs(urls);
+  }
 }
 
 AwQuotaManagerBridge* AwBrowserContext::GetQuotaManagerBridge() {
@@ -509,8 +533,9 @@ void AwBrowserContext::RebuildTable(
 
 void AwBrowserContext::BuildVisitedLinkTable(
     const scoped_refptr<VisitedLinkEnumerator>& enumerator) {
-  // Partitioned visited link hashtables are not supported in Android WebView,
-  // so this initialization path is not used.
+  // Android WebView gets :visited links history from each individual WebView's
+  // WebChromeClient.getVisitedHistory rather than handling them at the
+  // BrowserContext level. Therefore this initialization path is not used.
   enumerator->OnVisitedLinkComplete(true);
 }
 
@@ -587,6 +612,8 @@ void AwBrowserContext::ConfigureNetworkContextParams(
   // Add proxy settings
   AwProxyConfigMonitor::GetInstance()->AddProxyToNetworkContextParams(
       context_params);
+
+  context_params->use_platform_ech_policy = true;
 }
 
 static base::android::ScopedJavaLocalRef<jobject>

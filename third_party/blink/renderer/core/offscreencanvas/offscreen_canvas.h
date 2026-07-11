@@ -23,6 +23,7 @@
 #include "third_party/blink/renderer/platform/heap/prefinalizer.h"
 #include "third_party/blink/renderer/platform/text/layout_locale.h"
 #include "ui/gfx/geometry/rect.h"
+#include "ui/gfx/geometry/rect_f.h"
 #include "ui/gfx/geometry/size.h"
 
 namespace blink {
@@ -136,9 +137,14 @@ class CORE_EXPORT OffscreenCanvas final
   bool IsPageVisible() const override;
   void SetParentVisibility(bool visible) override;
   void DiscardResources() override;
+  void RecordRenderedText(const String& text,
+                          const gfx::RectF& bounds,
+                          float font_height) override;
+  void ClearRenderedText(const gfx::RectF& rect) override;
+  void ClearRenderedText() override;
 
   bool PushFrameIfNeeded();
-  bool PushFrame(scoped_refptr<CanvasResource>&& frame) override;
+  bool PushFrame(scoped_refptr<CanvasResource>&& frame);
   void DidDraw(const gfx::Rect&) override;
   using CanvasRenderingContextHost::DidDraw;
   bool ShouldAccelerate2dContext() const override;
@@ -152,7 +158,7 @@ class CORE_EXPORT OffscreenCanvas final
   bool IsWebGL2Enabled() const override { return true; }
   bool IsWebGLBlocked() const override { return false; }
 
-  // CanvasResourceProvider::Delegate implementation
+  // CanvasResourceProviderDelegate implementation
   void NotifyGpuContextLost() override;
   void SetNeedsCompositingUpdate() override {}
 
@@ -259,7 +265,7 @@ class CORE_EXPORT OffscreenCanvas final
   Member<CanvasRenderingContext> context_;
   WeakMember<ExecutionContext> execution_context_;
 
-  DOMNodeId placeholder_canvas_id_ = kInvalidDOMNodeId;
+  const DOMNodeId placeholder_canvas_id_;
   bool is_parent_visible_ = true;
   std::optional<TextDirection> text_direction_;
 

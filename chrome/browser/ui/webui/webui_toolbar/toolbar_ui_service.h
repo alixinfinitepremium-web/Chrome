@@ -40,6 +40,13 @@ class ToolbarUIService : public toolbar_ui_api::mojom::ToolbarUIService {
     virtual void ShowContentSettingsBubble(
         ::toolbar_ui_api::mojom::ContentSettingImageType type,
         ShowContentSettingsBubbleCallback callback) = 0;
+    virtual void OnPageActionClick(
+        ::toolbar_ui_api::mojom::PageActionId action_id,
+        ::toolbar_ui_api::mojom::PageActionTrigger trigger,
+        OnPageActionClickCallback callback) = 0;
+    virtual void OnPageActionChipShowingChanged(
+        ::toolbar_ui_api::mojom::PageActionId action_id,
+        OnPageActionChipShowingChangedCallback callback) = 0;
     virtual void OnPageInitialized() = 0;
     virtual void InvokePinnedToolbarAction(
         toolbar_ui_api::mojom::PinnedToolbarAction action_id) = 0;
@@ -67,6 +74,11 @@ class ToolbarUIService : public toolbar_ui_api::mojom::ToolbarUIService {
     virtual void ShowAvatarMenu() = 0;
     virtual void SetAvatarButtonHovered(bool hovered) = 0;
     virtual void SetAvatarButtonFocused(bool focused) = 0;
+    virtual void SetAvatarButtonIPHPromoShowing(bool showing) = 0;
+    virtual void OnAppMenuFocusChanged(bool focused) = 0;
+    virtual void ExecuteExtensionAction(const std::string& extension_id) = 0;
+    virtual void ShowExtensionContextMenu(const std::string& extension_id,
+                                          ui::mojom::MenuSourceType source) = 0;
   };
 
   ToolbarUIService(
@@ -98,6 +110,12 @@ class ToolbarUIService : public toolbar_ui_api::mojom::ToolbarUIService {
   void ShowContentSettingsBubble(
       ::toolbar_ui_api::mojom::ContentSettingImageType type,
       ShowContentSettingsBubbleCallback callback) override;
+  void OnPageActionClick(::toolbar_ui_api::mojom::PageActionId action_id,
+                         ::toolbar_ui_api::mojom::PageActionTrigger trigger,
+                         OnPageActionClickCallback callback) override;
+  void OnPageActionChipShowingChanged(
+      ::toolbar_ui_api::mojom::PageActionId action_id,
+      OnPageActionChipShowingChangedCallback callback) override;
   void InvokePinnedToolbarAction(
       toolbar_ui_api::mojom::PinnedToolbarAction action_id) override;
   void OnLhsChipMousePressed(
@@ -122,6 +140,13 @@ class ToolbarUIService : public toolbar_ui_api::mojom::ToolbarUIService {
                               SetAvatarButtonHoveredCallback callback) override;
   void SetAvatarButtonFocused(bool focused,
                               SetAvatarButtonFocusedCallback callback) override;
+  void SetAvatarButtonIphPromoShowing(
+      bool showing,
+      SetAvatarButtonIphPromoShowingCallback callback) override;
+  void OnAppMenuFocusChanged(bool focused) override;
+  void ExecuteExtensionAction(const std::string& extension_id) override;
+  void ShowExtensionContextMenu(const std::string& extension_id,
+                                ui::mojom::MenuSourceType source) override;
 
  private:
   mojo::Receiver<toolbar_ui_api::mojom::ToolbarUIService> service_;

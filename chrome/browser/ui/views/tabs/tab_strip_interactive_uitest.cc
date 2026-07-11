@@ -6,10 +6,12 @@
 #include "base/test/run_until.h"
 #include "chrome/browser/ui/browser_commands.h"
 #include "chrome/browser/ui/browser_element_identifiers.h"
+#include "chrome/browser/ui/tabs/features.h"
 #include "chrome/browser/ui/tabs/split_tab_metrics.h"
 #include "chrome/browser/ui/tabs/tab_group_model.h"
 #include "chrome/browser/ui/views/frame/browser_view.h"
 #include "chrome/browser/ui/views/frame/horizontal_tab_strip_region_view.h"
+#include "chrome/browser/ui/views/interaction/browser_elements_views.h"
 #include "chrome/browser/ui/views/tabs/browser_tab_strip_controller.h"
 #include "chrome/browser/ui/views/tabs/new_tab_button.h"
 #include "chrome/browser/ui/views/tabs/tab.h"
@@ -21,13 +23,9 @@
 #include "chrome/test/interaction/interactive_browser_test.h"
 #include "components/tabs/public/tab_group.h"
 #include "content/public/test/browser_test.h"
-#include "net/dns/mock_host_resolver.h"
-#include "ui/base/mojom/menu_source_type.mojom.h"
 #include "ui/base/test/ui_controls.h"
-#include "ui/views/controls/menu/menu_item_view.h"
 #include "ui/views/interaction/polling_view_observer.h"
 #include "ui/views/view_observer.h"
-#include "url/gurl.h"
 
 namespace {
 DEFINE_LOCAL_ELEMENT_IDENTIFIER_VALUE(kFirstTabContents);
@@ -41,8 +39,9 @@ class TabStripInteractiveUiTest
     : public TabStripInteractiveTestMixin<InteractiveBrowserTest> {
  public:
   TabStripInteractiveUiTest() {
-    scoped_feature_list_.InitAndEnableFeature(
-        features::kTabStripNewTabButtonFlickerFix);
+    scoped_feature_list_.InitWithFeatures(
+        {features::kTabStripNewTabButtonFlickerFix},
+        {tabs::kTabStripUnification});
   }
   ~TabStripInteractiveUiTest() override = default;
 
@@ -95,7 +94,7 @@ class TestNewTabButtonContextMenu : public TabStripInteractiveUiTest {
  public:
   TestNewTabButtonContextMenu() {
     scoped_feature_list_.InitWithFeatures(
-        {features::kTabGroupMenuMoreEntryPoints}, {});
+        {features::kTabGroupMenuMoreEntryPoints}, {tabs::kTabStripUnification});
   }
 
   TabStrip* tabstrip() {
@@ -152,7 +151,7 @@ IN_PROC_BROWSER_TEST_F(TestNewTabButtonContextMenu,
       EnsurePresent(NewTabButtonMenuModel::kNewSplitView),
       SelectMenuItem(NewTabButtonMenuModel::kNewSplitView));
 
-  BrowserView* browser_view = static_cast<BrowserView*>(browser()->window());
+  BrowserView* browser_view = BrowserView::GetBrowserViewForBrowser(browser());
 
   // Split view should be open
   EXPECT_TRUE(browser_view->IsInSplitView());
@@ -179,7 +178,7 @@ IN_PROC_BROWSER_TEST_F(TestNewTabButtonContextMenu,
       SendAccelerator(NewTabButtonMenuModel::kNewTab,
                       ui::Accelerator(ui::VKEY_ESCAPE, ui::EF_NONE)));
 
-  BrowserView* browser_view = static_cast<BrowserView*>(browser()->window());
+  BrowserView* browser_view = BrowserView::GetBrowserViewForBrowser(browser());
 
   // Split view should be open
   EXPECT_TRUE(browser_view->IsInSplitView());
@@ -312,7 +311,9 @@ IN_PROC_BROWSER_TEST_F(
           GetBrowserView()->tab_strip_view());
   ASSERT_NE(region_view, nullptr);
 
-  views::View* new_tab_button = region_view->new_tab_button_for_testing();
+  views::View* new_tab_button =
+      BrowserElementsViews::From(browser())->GetViewAs<views::View>(
+          kNewTabButtonElementId);
   ASSERT_NE(new_tab_button, nullptr);
 
   // Set up the bounds observer to verify that it only moves right (grows).
@@ -354,7 +355,9 @@ IN_PROC_BROWSER_TEST_F(TabStripInteractiveUiTest,
           GetBrowserView()->tab_strip_view());
   ASSERT_NE(region_view, nullptr);
 
-  views::View* new_tab_button = region_view->new_tab_button_for_testing();
+  views::View* new_tab_button =
+      BrowserElementsViews::From(browser())->GetViewAs<views::View>(
+          kNewTabButtonElementId);
   ASSERT_NE(new_tab_button, nullptr);
 
   // Ensure the layout has settled into steady state first.
@@ -395,7 +398,9 @@ IN_PROC_BROWSER_TEST_F(TabStripInteractiveUiTest,
           GetBrowserView()->tab_strip_view());
   ASSERT_NE(region_view, nullptr);
 
-  views::View* new_tab_button = region_view->new_tab_button_for_testing();
+  views::View* new_tab_button =
+      BrowserElementsViews::From(browser())->GetViewAs<views::View>(
+          kNewTabButtonElementId);
   ASSERT_NE(new_tab_button, nullptr);
 
   // Ensure layout is settled first.

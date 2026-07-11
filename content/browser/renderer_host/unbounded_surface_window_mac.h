@@ -49,7 +49,9 @@ class UnboundedSurfaceWindowMac : public UnboundedSurfaceWindow,
   ~UnboundedSurfaceWindowMac() override;
 
   // UnboundedSurfaceWindow overrides:
+  base::WeakPtr<UnboundedSurfaceWindow> GetWeakPtr() override;
   bool is_valid() const override;
+  gfx::NativeWindow GetNativeWindow() const override;
   void SetBounds(const gfx::Rect& bounds_in_screen) override;
   viz::FrameSinkId GetFrameSinkId() const override;
   viz::LocalSurfaceId GetLocalSurfaceId() const override;
@@ -59,6 +61,13 @@ class UnboundedSurfaceWindowMac : public UnboundedSurfaceWindow,
       override;
 
   gfx::Rect GetBounds() const override;
+  void CopyFromSurface(
+      const gfx::Rect& src_subrect,
+      const gfx::Size& dst_size,
+      base::TimeDelta timeout,
+      base::OnceCallback<void(const content::CopyFromSurfaceResult&)> callback)
+      override;
+  void EnsureSurfaceSynchronizedForWebTest() override;
 
   // blink::mojom::UnboundedSurfaceHost overrides:
   void UpdateBounds(const gfx::Rect& bounds) override;
@@ -67,9 +76,6 @@ class UnboundedSurfaceWindowMac : public UnboundedSurfaceWindow,
   void RouteMouseEvent(NSEvent* event);
   void RouteMouseEvent(const blink::WebMouseEvent& event) override;
   void RouteKeyboardEvent(NSEvent* event);
-
-  // Resign Key:
-  void OnWindowResignedKey();
 
   void Dismiss() override;
 
@@ -109,6 +115,7 @@ class UnboundedSurfaceWindowMac : public UnboundedSurfaceWindow,
   std::unique_ptr<ui::RecyclableCompositorMac> recyclable_compositor_;
   std::unique_ptr<ui::Layer> root_layer_;
   std::unique_ptr<ui::DisplayCALayerTree> display_ca_layer_tree_;
+  base::WeakPtrFactory<UnboundedSurfaceWindow> weak_ptr_factory_{this};
 };
 
 }  // namespace content

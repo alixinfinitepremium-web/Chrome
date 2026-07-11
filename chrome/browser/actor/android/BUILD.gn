@@ -20,6 +20,7 @@ android_library("java") {
     "java/src/org/chromium/chrome/browser/actor/ActorTask.java",
     "java/src/org/chromium/chrome/browser/actor/ActorTaskHelper.java",
     "java/src/org/chromium/chrome/browser/actor/ActorTaskId.java",
+    "java/src/org/chromium/chrome/browser/actor/ActorTaskTimeoutManager.java",
     "java/src/org/chromium/chrome/browser/actor/ActorTaskTimeoutParameters.java",
     "java/src/org/chromium/chrome/browser/actor/ActorUtils.java",
     "java/src/org/chromium/chrome/browser/actor/NoOpActorForegroundServiceController.java",
@@ -155,10 +156,12 @@ android_resources("java_resources") {
 robolectric_library("junit") {
   sources = [
     "java/src/org/chromium/chrome/browser/actor/ActorForegroundServiceManagerTest.java",
+    "java/src/org/chromium/chrome/browser/actor/ActorMetricsTest.java",
     "java/src/org/chromium/chrome/browser/actor/ActorNotificationFactoryTest.java",
     "java/src/org/chromium/chrome/browser/actor/ActorNotificationServiceTest.java",
     "java/src/org/chromium/chrome/browser/actor/ActorPictureInPictureControllerTest.java",
     "java/src/org/chromium/chrome/browser/actor/ActorTaskHelperTest.java",
+    "java/src/org/chromium/chrome/browser/actor/ActorTaskTimeoutManagerTest.java",
     "java/src/org/chromium/chrome/browser/actor/ActorTaskTimeoutParametersTest.java",
     "java/src/org/chromium/chrome/browser/actor/ui/ActorControlCoordinatorTest.java",
     "java/src/org/chromium/chrome/browser/actor/ui/ActorNavigationConfirmationDialogTest.java",
@@ -251,7 +254,10 @@ android_library("unit_device_javatests") {
 
 android_library("javatests") {
   testonly = true
-  sources = [ "java/src/org/chromium/chrome/browser/actor/ActorPictureInPictureIntegrationTest.java" ]
+  sources = [
+    "java/src/org/chromium/chrome/browser/actor/ActorNotificationClickIntegrationTest.java",
+    "java/src/org/chromium/chrome/browser/actor/ActorPictureInPictureIntegrationTest.java",
+  ]
   deps = [
     ":java",
     "//base:base_java",
@@ -263,6 +269,7 @@ android_library("javatests") {
     "//chrome/browser/tabmodel:java",
     "//chrome/test/android:chrome_java_integration_test_support",
     "//chrome/test/android:chrome_java_test_support_common",
+    "//components/browser_ui/notifications/android:java",
     "//content/public/android:content_java",
     "//third_party/androidx:androidx_activity_activity_java",
     "//third_party/androidx:androidx_core_core_pip_java",

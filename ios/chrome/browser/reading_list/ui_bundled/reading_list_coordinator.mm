@@ -90,10 +90,10 @@
 @interface ReadingListCoordinator () <AccountSettingsPresenter,
                                       AuthenticationServiceObserving,
                                       IdentityManagerObserverBridgeDelegate,
-                                      ReadingListMenuProvider,
                                       ReadingListListItemFactoryDelegate,
                                       ReadingListListViewControllerAudience,
                                       ReadingListListViewControllerDelegate,
+                                      ReadingListMenuProvider,
                                       SigninPromoViewConsumer,
                                       SigninPromoViewMediatorDelegate,
                                       UIAdaptivePresentationControllerDelegate>
@@ -691,7 +691,7 @@
   if (shouldShowSignInPromo) {
     [_signinPromoViewMediator signinPromoViewIsVisible];
   } else {
-    if (!_signinPromoViewMediator.invalidClosedOrNeverVisible) {
+    if (_signinPromoViewMediator.isUsable) {
       [_signinPromoViewMediator signinPromoViewIsHidden];
     }
   }
@@ -706,6 +706,7 @@
       [[SharingParams alloc] initWithURL:URL
                                    title:title
                                 scenario:SharingScenario::ReadingListEntry];
+  [self.sharingCoordinator stop];
   self.sharingCoordinator = [[SharingCoordinator alloc]
       initWithBaseViewController:self.tableViewController
                          browser:self.browser

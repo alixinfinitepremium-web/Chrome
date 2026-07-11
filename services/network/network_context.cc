@@ -81,6 +81,7 @@
 #include "net/cookies/cookie_monster.h"
 #include "net/cookies/cookie_setting_override.h"
 #include "net/cookies/cookie_store.h"
+#include "net/cookies/site_for_cookies.h"
 #include "net/device_bound_sessions/session_service.h"
 #include "net/disk_cache/disk_cache.h"
 #include "net/dns/context_host_resolver.h"
@@ -104,6 +105,7 @@
 #include "net/proxy_resolution/configured_proxy_resolution_service.h"
 #include "net/proxy_resolution/proxy_config.h"
 #include "net/shared_dictionary/shared_dictionary_isolation_key.h"
+#include "net/ssl/ech_mode_getter.h"
 #include "net/ssl/ssl_config_service.h"
 #include "net/storage_access_api/status.h"
 #include "net/traffic_annotation/network_traffic_annotation.h"
@@ -134,6 +136,7 @@
 #include "services/network/prefetch_cache.h"
 #include "services/network/prefetch_matching_url_loader_factory.h"
 #include "services/network/prefetch_url_loader_client.h"
+#include "services/network/proxy_checking_host_resolver_request.h"
 #include "services/network/proxy_config_service_mojo.h"
 #include "services/network/proxy_lookup_request.h"
 #include "services/network/proxy_resolving_socket_factory_mojo.h"
@@ -177,6 +180,11 @@
 #include "services/network/web_transport.h"
 #include "url/gurl.h"
 
+#if BUILDFLAG(ENABLE_DEVICE_BOUND_SESSIONS)
+#include "services/network/device_bound_session_service_delegate.h"
+#include "services/network/ssl_private_key_proxy.h"
+#endif
+
 #if BUILDFLAG(IS_CT_SUPPORTED)
 // gn check does not account for BUILDFLAG(). So, for iOS builds, it will
 // complain about a missing dependency on the target exposing this header. Add a
@@ -210,6 +218,7 @@
 
 #if BUILDFLAG(IS_ANDROID)
 #include "base/android/application_status_listener.h"
+#include "net/ssl/ech_mode_getter_android.h"
 #endif  // BUILDFLAG(IS_ANDROID)
 
 namespace network {
@@ -1287,6 +1296,13 @@ void NetworkContext::OnProxyLookupComplete(
   proxy_lookup_requests_.erase(it);
 }
 
+void NetworkContext::OnProxyCheckingHostResolverRequestComplete(
+    ProxyCheckingHostResolverRequest* request) {
+  auto it = proxy_checking_host_resolver_requests_.find(request);
+  CHECK(it != proxy_checking_host_resolver_requests_.end());
+  proxy_checking_host_resolver_requests_.erase(it);
+}
+
 void NetworkContext::SetTLS13EarlyDataEnabled(bool enabled) {
   url_request_context_->http_transaction_factory()
       ->GetSession()
@@ -1334,7 +1350,7 @@ bool NetworkContext::CanCreateLoader(const OriginatingProcessId& process_id) {
 }
 
 size_t NetworkContext::GetNumOutstandingResolveHostRequestsForTesting() const {
-  size_t sum = 0;
+  size_t sum = proxy_checking_host_resolver_requests_.size();
   if (internal_host_resolver_) {
     sum += internal_host_resolver_->GetNumOutstandingRequestsForTesting();
   }
@@ -2169,6 +2185,16 @@ void NetworkContext::ResolveHost(
     return;
   }
 
+  if (optional_parameters && optional_parameters->direct_only) {
+    auto request = std::make_unique<ProxyCheckingHostResolverRequest>(
+        this, std::move(host), network_anonymization_key,
+        std::move(optional_parameters), std::move(response_client));
+    auto* request_ptr = request.get();
+    proxy_checking_host_resolver_requests_.insert(std::move(request));
+    request_ptr->Start(url);
+    return;
+  }
+
   if (!internal_host_resolver_) {
     internal_host_resolver_ = std::make_unique<HostResolver>(
         url_request_context_->host_resolver(), url_request_context_->net_log());
@@ -2922,12 +2948,12 @@ URLRequestContextOwner NetworkContext::MakeURLRequestContext(
         std::move(params_->proxy_resolver_factory));
   }
 
-#if BUILDFLAG(IS_WIN)
+#if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC)
   if (params_->system_proxy_resolver) {
-    builder.SetMojoWindowsSystemProxyResolver(
+    builder.SetMojoSystemProxyResolver(
         std::move(params_->system_proxy_resolver));
   }
-#endif  // BUILDFLAG(IS_WIN)
+#endif  // BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC)
 
 #if BUILDFLAG(IS_CHROMEOS)
   if (params_->dhcp_wpad_url_client) {
@@ -3005,10 +3031,17 @@ URLRequestContextOwner NetworkContext::MakeURLRequestContext(
     builder.EnableHttpCache(cache_params);
   }
 
+  std::unique_ptr<net::EchModeGetter> ech_mode_getter;
+  if (params_->use_platform_ech_policy) {
+#if BUILDFLAG(IS_ANDROID)
+    ech_mode_getter = std::make_unique<net::EchModeGetterAndroid>();
+#endif
+  }
   std::unique_ptr<SSLConfigServiceMojo> ssl_config_service =
       std::make_unique<SSLConfigServiceMojo>(
           std::move(params_->initial_ssl_config),
-          std::move(params_->ssl_config_client_receiver));
+          std::move(params_->ssl_config_client_receiver),
+          std::move(ech_mode_getter));
   SSLConfigServiceMojo* ssl_config_service_raw = ssl_config_service.get();
   builder.set_ssl_config_service(std::move(ssl_config_service));
 
@@ -3227,6 +3260,22 @@ URLRequestContextOwner NetworkContext::MakeURLRequestContext(
         params_->device_bound_sessions_restricted_sites);
 
 #if BUILDFLAG(ENABLE_DEVICE_BOUND_SESSIONS)
+    if (base::FeatureList::IsEnabled(
+            net::features::kDeviceBoundSessionsForSingleSignOn)) {
+      builder.set_device_bound_sessions_cookie_access_callback(
+          base::BindRepeating(
+              &NetworkContext::HasCookieAccessForDeviceBoundSession,
+              // `this` outlives the `URLRequestContext` that owns the
+              // device_bound_sessions::SessionService which calls this
+              // callback.
+              base::Unretained(this)));
+    }
+    device_bound_session_service_delegate_ =
+        std::make_unique<DeviceBoundSessionServiceDelegate>(
+            std::move(params_->device_bound_sessions_network_observer));
+    builder.set_device_bound_sessions_client_cert_handler(base::BindRepeating(
+        &DeviceBoundSessionServiceDelegate::SelectClientCertificate,
+        base::Unretained(device_bound_session_service_delegate_.get())));
     if (params_->bound_sessions_unexportable_key_service.is_valid()) {
       builder.set_unexportable_key_service(
           std::make_unique<unexportable_keys::UnexportableKeyServiceProxied>(
@@ -3934,6 +3983,21 @@ void NetworkContext::SetVariationsHeaders(
     variations::mojom::VariationsHeadersPtr variations_headers) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
   variations_headers_ = std::move(variations_headers);
+}
+
+bool NetworkContext::HasCookieAccessForDeviceBoundSession(
+    const net::device_bound_sessions::CookieAccessCheckParams& params) {
+  if (!cookie_manager_) {
+    return false;
+  }
+  return cookie_manager_->cookie_settings().IsFullCookieAccessAllowed(
+      params.provider_origin->GetURL(),
+      net::SiteForCookies::FromOrigin(*params.relying_party_origin),
+      *params.relying_party_origin,
+      {net::CookieSettingOverride::kStorageAccessGrantEligible},
+      // TODO(crbug.com/353772143): update once partitioned cookies are
+      // supported. DBSC does not support cookie partition yet.
+      /*cookie_partition_key=*/std::nullopt);
 }
 
 }  // namespace network

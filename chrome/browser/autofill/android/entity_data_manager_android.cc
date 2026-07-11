@@ -24,7 +24,7 @@
 #include "chrome/browser/browser_process.h"
 #include "chrome/browser/consent_auditor/consent_auditor_factory.h"
 #include "chrome/browser/metrics/variations/google_groups_manager_factory.h"
-#include "chrome/browser/personal_context/personal_context_enablement_service_factory.h"
+#include "chrome/browser/personal_context/personal_context_eligibility_service_factory.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/signin/identity_manager_factory.h"
 #include "chrome/browser/subscription_eligibility/subscription_eligibility_service_factory.h"
@@ -44,7 +44,7 @@
 #include "components/autofill/core/common/autofill_features.h"
 #include "components/autofill/core/common/autofill_prefs.h"
 #include "components/consent_auditor/consent_auditor.h"
-#include "components/personal_context/core/personal_context_enablement_service.h"
+#include "components/personal_context/core/personal_context_eligibility_service.h"
 #include "components/personal_context/core/personal_context_prefs.h"
 #include "components/personal_context/core/personal_context_types.h"
 #include "components/personal_context/core/url_constants.h"
@@ -66,8 +66,8 @@ EntityDataManagerAndroid::EntityDataManagerAndroid(
     const syncer::SyncService* sync_service,
     const account_settings::AccountSettingService* account_setting_service,
     consent_auditor::ConsentAuditor* consent_auditor,
-    personal_context::PersonalContextEnablementService*
-        personal_context_enablement_service,
+    personal_context::PersonalContextEligibilityService*
+        personal_context_eligibility_service,
     subscription_eligibility::SubscriptionEligibilityService*
         subscription_eligibility_service,
     bool is_off_the_record,
@@ -80,7 +80,8 @@ EntityDataManagerAndroid::EntityDataManagerAndroid(
       sync_service_(sync_service),
       account_setting_service_(account_setting_service),
       consent_auditor_(consent_auditor),
-      personal_context_enablement_service_(personal_context_enablement_service),
+      personal_context_eligibility_service_(
+          personal_context_eligibility_service),
       subscription_eligibility_service_(subscription_eligibility_service),
       is_off_the_record_(is_off_the_record),
       wallet_pass_access_manager_(wallet_pass_access_manager),
@@ -91,12 +92,14 @@ EntityDataManagerAndroid::EntityDataManagerAndroid(
 EntityDataManagerAndroid::~EntityDataManagerAndroid() = default;
 
 bool EntityDataManagerAndroid::IsPersonalContextPreferenceVisible(JNIEnv* env) {
-  if (!autofill::AreAutofillPersonalContextFeaturesSupported()) {
-    return false;
-  }
-
   return autofill::ShouldShowPersonalContextAutofillSetting(
-      personal_context_enablement_service_);
+#if !BUILDFLAG(IS_FUCHSIA)
+      google_groups_manager_,
+#endif
+      prefs_, &entity_data_manager(), identity_manager_, sync_service_,
+      IsWalletPublicPassStorageEnabledHelper(), is_off_the_record_,
+      entity_data_manager_->GetVariationCountryCode(),
+      personal_context_eligibility_service_, subscription_eligibility_service_);
 }
 
 bool EntityDataManagerAndroid::IsPersonalContextEnabled(JNIEnv* env) {
@@ -113,14 +116,7 @@ void EntityDataManagerAndroid::SetPersonalContextEnabled(JNIEnv* env,
 
 static std::string
 JNI_EntityDataManager_GetPersonalContextManageConnectedAppsUrl(JNIEnv* env) {
-  // TODO(b/516667536): Update url when final one is ready.
-  return personal_context::kPersonalContextSettingsURL;
-}
-
-static std::string JNI_EntityDataManager_GetPersonalContextManageSuggestionsUrl(
-    JNIEnv* env) {
-  // TODO(b/516667536): Update url when final one is ready.
-  return personal_context::kPersonalContextSettingsURL;
+  return personal_context::kPersonalContextConnectedAppsURL;
 }
 
 static int64_t JNI_EntityDataManager_Init(JNIEnv* env,
@@ -140,7 +136,7 @@ static int64_t JNI_EntityDataManager_Init(JNIEnv* env,
           SyncServiceFactory::GetForProfile(profile),
           AccountSettingServiceFactory::GetForBrowserContext(profile),
           ConsentAuditorFactory::GetForProfile(profile),
-          PersonalContextEnablementServiceFactory::GetForProfile(profile),
+          PersonalContextEligibilityServiceFactory::GetForProfile(profile),
           subscription_eligibility::SubscriptionEligibilityServiceFactory::
               GetForProfile(profile),
           profile->IsOffTheRecord(),
@@ -177,18 +173,18 @@ bool EntityDataManagerAndroid::SetAutofillAiOptInStatus(
           ->GetBoolean(account_settings::kWalletPrivacyContextualSurfacing)
           .value_or(false);
 
-  const personal_context::PersonalContextEnablementState
-      personal_context_enablement_state =
-          personal_context_enablement_service_
-              ? personal_context_enablement_service_->GetEnablementState()
-              : personal_context::PersonalContextEnablementState::
+  const personal_context::PersonalContextEligibilityState
+      personal_context_eligibility_state =
+          personal_context_eligibility_service_
+              ? personal_context_eligibility_service_->GetEligibilityState()
+              : personal_context::PersonalContextEligibilityState::
                     kDisabledNotEligible;
 
   return autofill::SetAutofillAiOptInStatus(
       google_groups_manager_, prefs_, &entity_data_manager(), identity_manager_,
       sync_service_, is_wallet_public_pass_storage_enabled, is_off_the_record_,
       entity_data_manager_->GetVariationCountryCode(),
-      subscription_eligibility_service_, personal_context_enablement_state,
+      subscription_eligibility_service_, personal_context_eligibility_state,
       opt_in_status);
 }
 
@@ -309,8 +305,8 @@ EntityDataManagerAndroid::GetEntitiesWithLabels(JNIEnv* env) {
   // Entity labels should be generated based on other entities of the same
   // type. This is because the disambiguation values of attributes are only
   // relevant inside a specific entity type.
-  base::span<const EntityInstance> entities =
-      entity_data_manager().GetEntityInstances();
+  const std::vector<EntityInstance> entities =
+      GetEntityInstancesForSettings(entity_data_manager().GetEntityInstances());
   std::map<EntityType, std::vector<const EntityInstance*>> entities_per_type;
   for (const EntityInstance& entity : entities) {
     entities_per_type[entity.type()].push_back(&entity);
@@ -437,18 +433,18 @@ bool EntityDataManagerAndroid::IsWalletPublicPassStorageEnabled(JNIEnv* env) {
 bool EntityDataManagerAndroid::RunMayPerformAutofillAiAction(
     AutofillAiAction action,
     std::optional<EntityType> entity_type) const {
-  const personal_context::PersonalContextEnablementState
-      personal_context_enablement_state =
-          personal_context_enablement_service_
-              ? personal_context_enablement_service_->GetEnablementState()
-              : personal_context::PersonalContextEnablementState::
+  const personal_context::PersonalContextEligibilityState
+      personal_context_eligibility_state =
+          personal_context_eligibility_service_
+              ? personal_context_eligibility_service_->GetEligibilityState()
+              : personal_context::PersonalContextEligibilityState::
                     kDisabledNotEligible;
 
   return MayPerformAutofillAiAction(
       google_groups_manager_, prefs_, &entity_data_manager(), identity_manager_,
       sync_service_, IsWalletPublicPassStorageEnabledHelper(),
       is_off_the_record_, entity_data_manager_->GetVariationCountryCode(),
-      subscription_eligibility_service_, personal_context_enablement_state,
+      subscription_eligibility_service_, personal_context_eligibility_state,
       action, entity_type);
 }
 

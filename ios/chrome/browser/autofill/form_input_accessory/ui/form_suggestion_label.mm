@@ -17,7 +17,9 @@
 #import "components/autofill/core/common/autofill_features.h"
 #import "components/autofill/ios/browser/form_suggestion.h"
 #import "components/password_manager/ios/shared_password_controller.h"
+#import "components/strings/grit/components_strings.h"
 #import "components/webauthn/ios/features.h"
+#import "ios/chrome/browser/autofill/model/autofill_ai_util.h"
 #import "ios/chrome/browser/autofill/model/features.h"
 #import "ios/chrome/browser/autofill/model/form_suggestion_constants.h"
 #import "ios/chrome/browser/shared/public/features/features.h"
@@ -43,6 +45,9 @@ constexpr CGFloat kBorderWidth = 12;
 constexpr CGFloat kSpacing = 4;
 // The corner radius of the label.
 constexpr CGFloat kCornerRadius = 8;
+
+// Initial max width used until the view is added to the view hierarchy.
+constexpr CGFloat kInitialMaxWidth = 375;
 
 // The size adjustment for the subtitle font from the default font size.
 constexpr CGFloat kSubtitleFontPointSizeAdjustment = -1;
@@ -254,10 +259,12 @@ bool IsPasswordSuggestion(FormSuggestion* suggestion) {
     case SuggestionType::kManageAddress:
     case SuggestionType::kManageAutofillAi:
     case SuggestionType::kManageAutofillAiIdentityDocs:
+    case SuggestionType::kManageAutofillAiShopping:
     case SuggestionType::kManageAutofillAiTravel:
     case SuggestionType::kManageCreditCard:
     case SuggestionType::kManageIban:
     case SuggestionType::kManageLoyaltyCard:
+    case SuggestionType::kManageEnhancedAutofill:
     case SuggestionType::kComposeResumeNudge:
     case SuggestionType::kComposeDisable:
     case SuggestionType::kComposeGoToSettings:
@@ -299,15 +306,20 @@ bool IsPasswordSuggestion(FormSuggestion* suggestion) {
     case SuggestionType::kAllLoyaltyCardsEntry:
     case SuggestionType::kOneTimePasswordEntry:
     case SuggestionType::kLoadingThrobber:
+    case SuggestionType::kAtMemoryAiDisclosure:
     case SuggestionType::kAtMemorySearchResult:
     case SuggestionType::kAtMemoryInactivityNudge:
     case SuggestionType::kBnplFootnote:
     case SuggestionType::kAutocompleteAtMemoryButton:
     case SuggestionType::kOpenGemini:
     case SuggestionType::kAtMemoryNoConnection:
+    case SuggestionType::kAtMemoryGenericError:
     case SuggestionType::kAtMemorySearchAffordance:
     case SuggestionType::kPersonalContextNotice:
+    case SuggestionType::kAutofillAiOtherOrders:
+    case SuggestionType::kAutofillAiPrivateInferenceNotice:
     case SuggestionType::kFetchingAmbientData:
+    case SuggestionType::kMaximizeCreditCardBenefitsEntry:
       return false;
   }
   NOTREACHED();
@@ -371,6 +383,36 @@ bool ShouldShowEditAction(FormSuggestion* suggestion) {
   }
 }
 
+// Configures the suggestion label when the suggestion is of type
+// SuggestionType::kFetchingAmbientData.
+void ConfigureFetchingAmbientDataSuggestion(UIStackView* stackView,
+                                            NSString* value) {
+  UIActivityIndicatorView* spinner = GetMediumUIActivityIndicatorView();
+  [spinner startAnimating];
+  [stackView addArrangedSubview:spinner];
+
+  UILabel* text_label =
+      TextLabel(value, [UIColor colorNamed:kTextSecondaryColor],
+                /*bold=*/NO, /*is_title=*/YES);
+  text_label.font = [UIFont preferredFontForTextStyle:UIFontTextStyleFootnote];
+  [stackView addArrangedSubview:text_label];
+}
+
+// Returns the display description for a suggestion.
+NSString* DisplayDescriptionForSuggestion(FormSuggestion* suggestion,
+                                          BOOL showRPId) {
+  if (suggestion.type == autofill::SuggestionType::kWebauthnCredential) {
+    NSString* passkeyLabel =
+        l10n_util::GetNSString(IDS_IOS_PASSKEY_SUGGESTION_LABEL);
+    if (showRPId) {
+      return [NSString
+          stringWithFormat:@"%@ • %@", passkeyLabel, suggestion.minorValue];
+    }
+    return passkeyLabel;
+  }
+  return suggestion.displayDescription;
+}
+
 }  // namespace
 
 @interface FormSuggestionLabel () <UIContextMenuInteractionDelegate>
@@ -431,6 +473,12 @@ bool ShouldShowEditAction(FormSuggestion* suggestion) {
       AddSameConstraints(stackView, self);
     }
 
+    if (suggestion.type == SuggestionType::kFetchingAmbientData) {
+      ConfigureFetchingAmbientDataSuggestion(stackView, suggestion.value);
+      [self setUserInteractionEnabled:NO];
+      return self;
+    }
+
     if (suggestion.icon) {
       UIImageView* iconView = [[UIImageView alloc]
           initWithImage:[self resizeIconIfNecessary:suggestion.icon]];
@@ -448,16 +496,26 @@ bool ShouldShowEditAction(FormSuggestion* suggestion) {
             ? PasswordSuggestionDisplayText(suggestion.value)
             : suggestion.value;
 
+    BOOL isPasskey =
+        suggestion.type == autofill::SuggestionType::kWebauthnCredential;
+
+    if (isPasskey && [suggestionText length] == 0) {
+      suggestionText =
+          l10n_util::GetNSString(IDS_IOS_CREDENTIAL_BOTTOM_SHEET_NO_USERNAME);
+    }
+
+    NSString* displayDescription = DisplayDescriptionForSuggestion(
+        suggestion,
+        isPasskey && [delegate shouldShowRPId:suggestion.minorValue]);
+
+    NSString* minorValue = isPasskey ? nil : suggestion.minorValue;
+
     BOOL isTablet = ui::GetDeviceFormFactor() == ui::DEVICE_FORM_FACTOR_TABLET;
 
-    NSString* displayDescription =
-        IsConditionalPasskeyLoginEnabled() && IsPasswordSuggestion(suggestion)
-            ? l10n_util::GetNSString(IDS_IOS_PASSWORD_SUBTEXT)
-            : suggestion.displayDescription;
-
-    BOOL hasText = suggestionText.length > 0 ||
-                   suggestion.minorValue.length > 0 ||
-                   displayDescription.length > 0;
+    BOOL hasText =
+        suggestion.type != SuggestionType::kAutocompleteAtMemoryButton &&
+        (suggestionText.length > 0 || minorValue.length > 0 ||
+         displayDescription.length > 0);
 
     if (hasText) {
       if (isTablet) {
@@ -469,7 +527,7 @@ bool ShouldShowEditAction(FormSuggestion* suggestion) {
         // same way without having to rely on a stack of UILabel objects, which,
         // on the plus side, might actually be more light weight in the end.
         [stackView addArrangedSubview:AttributedTextLabel(
-                                          suggestionText, suggestion.minorValue,
+                                          suggestionText, minorValue,
                                           displayDescription, suggestion.icon)];
       } else {
         // On phones, store the suggestion information in a stack view so that
@@ -491,7 +549,7 @@ bool ShouldShowEditAction(FormSuggestion* suggestion) {
         // piece of information can be truncated individually when truncation is
         // needed.
         NSArray<UIView*>* views =
-            TextViews(suggestionText, suggestion.minorValue, displayDescription,
+            TextViews(suggestionText, minorValue, displayDescription,
                       [self isCreditCardSuggestion]);
         for (UIView* view in views) {
           [stackView addArrangedSubview:view];
@@ -507,10 +565,11 @@ bool ShouldShowEditAction(FormSuggestion* suggestion) {
     [self setClipsToBounds:YES];
     [self setUserInteractionEnabled:YES];
     [self setIsAccessibilityElement:YES];
-    [self setAccessibilityLabel:AccessibilityLabel(
-                                    suggestionText, displayDescription,
-                                    suggestion.type ==
-                                        SuggestionType::kBackupPasswordEntry)];
+    [self
+        setAccessibilityLabel:AccessibilityLabel(
+                                  suggestionText, suggestion.displayDescription,
+                                  suggestion.type ==
+                                      SuggestionType::kBackupPasswordEntry)];
     [self
         setAccessibilityValue:l10n_util::GetNSStringF(
                                   IDS_IOS_AUTOFILL_SUGGESTION_INDEX_VALUE,
@@ -530,8 +589,7 @@ bool ShouldShowEditAction(FormSuggestion* suggestion) {
     }
 
     if (ShouldShowContextMenu(suggestion)) {
-      if (base::FeatureList::IsEnabled(
-              autofill::features::kAutofillAmbientAutofill)) {
+      if (autofill::IsAmbientAutofillEnabled()) {
         [self addInteraction:[[UIContextMenuInteraction alloc]
                                  initWithDelegate:self]];
       }
@@ -562,6 +620,13 @@ bool ShouldShowEditAction(FormSuggestion* suggestion) {
         [UIColor colorNamed:kBackgroundShadowColor].CGColor;
     self.layer.masksToBounds = NO;
   }
+  if (_widthConstraint) {
+    _widthConstraint.constant = [self maximumWidth];
+  }
+}
+
+- (void)didMoveToWindow {
+  [super didMoveToWindow];
   if (_widthConstraint) {
     _widthConstraint.constant = [self maximumWidth];
   }
@@ -703,9 +768,9 @@ bool ShouldShowEditAction(FormSuggestion* suggestion) {
 // Returns CGFLOAT_MAX if there's no maximum width.
 - (CGFloat)maximumWidth {
   CGFloat maxWidth = CGFLOAT_MAX;
-  // Using the screen width because the `window` member is nil at the moment of
-  // setting up the label's width anchor.
-  CGSize windowSize = [[UIScreen mainScreen] bounds].size;
+  CGSize windowSize = self.window
+                          ? self.window.bounds.size
+                          : CGSizeMake(kInitialMaxWidth, kInitialMaxWidth);
   CGFloat portraitScreenWidth = MIN(windowSize.width, windowSize.height);
   switch (_suggestion.type) {
     case SuggestionType::kCreditCardEntry:
@@ -777,7 +842,14 @@ bool ShouldShowEditAction(FormSuggestion* suggestion) {
     [children addObject:[self editAction]];
   }
   [children addObject:[self openSettingsAction]];
-  return [UIMenu menuWithTitle:@"" children:children];
+
+  NSString* title = @"";
+  if (self.suggestion.type == autofill::SuggestionType::kFillAutofillAi &&
+      [_delegate isPersonalContextSuggestion:self.suggestion]) {
+    title = l10n_util::GetNSString(
+        IDS_IOS_AUTOFILL_AI_CONTEXT_MENU_PERSONAL_CONTEXT_DESCRIPTION);
+  }
+  return [UIMenu menuWithTitle:title children:children];
 }
 
 @end

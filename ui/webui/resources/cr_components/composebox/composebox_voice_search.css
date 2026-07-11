@@ -14,8 +14,13 @@
   --cr-icon-button-margin-end: 0;
   --cr-icon-button-margin-start: 0;
   --cr-composebox-submit-default-icon-size: 16px;
-  --submit-timing-and-function: 300ms ease-in-out;
+  --submit-timing-and-function: 100ms ease-in-out;
   --voice-search-fade-transition: opacity var(--submit-timing-and-function);
+  /* Minimum height used for error modes, etc., where 'composebox_voice_search'
+   * determines the composebox height. In normal voice search mode, 'search-animated-glow'
+   * determines the composebox height and min-height is ignored.
+   */
+  --voice-search-minimum-height: 121px;
 }
 
 #container {
@@ -25,11 +30,23 @@
   /* Transparent so background from animated-glow shows. */
   background-color: transparent;
   display: flex;
-  inset: 0;
+  height: 100%;
+  min-height: var(--voice-search-minimum-height);
   padding: 7px 0;
-  position: absolute;
   pointer-events: none;
+  width: 100%;
   z-index: 4;
+}
+
+/* Must be positioned absolute in voice recording mode
+ * (no error, no permission prompt open). This is so stop/submit buttons
+ * can overlay the animation's container div.
+ * Must have static positioning otherwise so the error and placeholder
+ * voice search text change the height of voice_search and thus composebox.
+ */
+:host(:not([is-permission-prompt-open])) #container:not(.has-error) {
+  inset: 0;
+  position: absolute;
 }
 
 :host-context([energy-effect-enabled]) #container {
@@ -44,6 +61,7 @@
   background-color: transparent;
   border: none;
   flex: 1;
+  font-size: var(--cr-composebox-font-size, 16px);
   height: 100%;
   /* Overflow scroll blur top/bottom. */
   mask-image: linear-gradient(to bottom,
@@ -64,7 +82,6 @@
   color: var(--color-composebox-voice-search-font, rgba(71, 71, 71, 1));
   flex-grow: 1;
   font-family: inherit;
-  font-size: 18px;
   line-height: 24px;
   overflow-x: hidden;
   overflow-y: auto;
@@ -73,6 +90,16 @@
       40px 0 20px;
   pointer-events: auto;
   width: 100%;
+}
+
+#error-container {
+  display: none;
+  font-size: 18px;
+}
+
+#error-container:not([hidden]) {
+  display: block;
+  position: absolute;
 }
 
 #error-container a {
@@ -98,7 +125,7 @@
 
 #bottomActions {
   align-items: center;
-  bottom: 12px;
+  bottom: var(--voice-bottom-actions-bottom, 12px);
   display: flex;
   gap: var(--voice-bottom-actions-gap, 8px);
   inset-inline-end: var(--voice-bottom-actions-inset-inline-end, 12px);
@@ -157,7 +184,7 @@
 /* Hide submit/stop buttons (if applicable) via fade if permission
  * prompt is showing.
  */
-:host(.embedded-permission-prompt-showing) #bottomActions {
+:host(.permission-prompt-showing) #bottomActions {
   opacity: 0;
   pointer-events: none;
 }

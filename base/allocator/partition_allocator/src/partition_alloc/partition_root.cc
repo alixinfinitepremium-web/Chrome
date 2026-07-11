@@ -71,6 +71,10 @@ void RecordAllocOrFree(uintptr_t addr, size_t size) {
 
 namespace partition_alloc {
 
+namespace {
+internal::Lock g_leak_size_map_lock;
+}  // namespace
+
 #if PA_CONFIG(USE_PARTITION_ROOT_ENUMERATOR)
 
 namespace {
@@ -235,9 +239,11 @@ void BeforeForkInParent() PA_NO_THREAD_SAFETY_ANALYSIS {
       internal::PartitionRootEnumerator::EnumerateOrder::kNormal);
 
   internal::ThreadCacheRegistry::GetLock().Acquire();
+  g_leak_size_map_lock.Acquire();
 }
 
 void ReleaseLocks(bool in_child) PA_NO_THREAD_SAFETY_ANALYSIS {
+  UnlockOrReinit(g_leak_size_map_lock, in_child);
   // In reverse order, even though there are no lock ordering dependencies.
   UnlockOrReinit(internal::ThreadCacheRegistry::GetLock(), in_child);
   internal::PartitionRootEnumerator::Instance().Enumerate(
@@ -1439,7 +1445,7 @@ size_t PartitionRoot::GetUsableSize(const void* ptr) {
 // returned value, it'd use the same amount of underlying memory as the
 // allocation with |size|.
 size_t PartitionRoot::AllocationCapacityFromRequestedSize(size_t size) const {
-#if defined(MEMORY_TOOL_REPLACES_ALLOCATOR)
+#if PA_BUILDFLAG(MEMORY_TOOL_REPLACES_ALLOCATOR)
   return size;
 #else
   PA_DCHECK(PartitionRoot::initialized_);
@@ -1583,7 +1589,8 @@ void PartitionRoot::DumpStats(const char* partition_name,
     direct_map_lengths =
         std::unique_ptr<uint32_t[]>(new uint32_t[kMaxReportableDirectMaps]);
   }
-  PartitionBucketMemoryStats bucket_stats[BucketIndexLookup::kNumBuckets];
+  std::array<PartitionBucketMemoryStats, BucketIndexLookup::kNumBuckets>
+      bucket_stats;
   size_t num_direct_mapped_allocations = 0;
   PartitionMemoryStats stats = {};
 
@@ -2053,23 +2060,9 @@ PA_NOINLINE PartitionRoot* PartitionRoot::GetRootFromAddress(void* object) {
   return nullptr;
 }
 
-void PartitionRoot::Zap(internal::SlotStart slot_start,
-                        SlotSpanMetadata* slot_span,
-                        uint32_t type_id) {
-  void* object = reinterpret_cast<void*>(slot_start.value());
-
-  uint64_t zap_value = internal::kIntendedLeakQuarantineMarker |
-                       (static_cast<uint64_t>(type_id) << 8);
-
-  size_t slot_size = slot_span->GetUtilizedSlotSize();
-  size_t count = slot_size / sizeof(uint64_t);
-  std::fill_n(static_cast<uint64_t*>(object), count, zap_value);
-
-  size_t remainder_offset = sizeof(uint64_t) * count;
-  size_t remainder_size = slot_size - remainder_offset;
-
-  std::fill_n(PA_UNSAFE_TODO(static_cast<uint8_t*>(object) + remainder_offset),
-              remainder_size, internal::kIntendedLeakQuarantineRemainder);
+// static
+internal::Lock& PartitionRoot::GetLeakSizeMapLock() {
+  return g_leak_size_map_lock;
 }
 
 template <AllocFlags flags>
@@ -2085,6 +2078,7 @@ template <AllocFlags flags>
 PA_NOINLINE PA_MALLOC_FN void* PartitionRoot::AllocInline(
     size_t requested_size,
     const char* type_name) {
+  static_assert(!ContainsFlags(flags, AllocFlags::kAlignedAlloc));
   return AllocInternal<flags>(requested_size, internal::PartitionPageSize(),
                               type_name);
 }
@@ -2120,11 +2114,11 @@ PA_NOINLINE void PartitionRoot::AlignedFree(void* object) {
   // Normally kAlignedFree is a no-op call into Free, but with memory tools it
   // will instead remap to the appropriate system aligned free call.
   constexpr FreeFlags kMaybeAlignedFreeForMemoryTool =
-#if defined(MEMORY_TOOL_REPLACES_ALLOCATOR)
+#if PA_BUILDFLAG(MEMORY_TOOL_REPLACES_ALLOCATOR)
       FreeFlags::kAlignedFreeForMemoryTool;
 #else
       FreeFlags::kNone;
-#endif  // defined(MEMORY_TOOL_REPLACES_ALLOCATOR)
+#endif  // PA_BUILDFLAG(MEMORY_TOOL_REPLACES_ALLOCATOR)
   FreeInline<flags | kMaybeAlignedFreeForMemoryTool>(object);
 }
 

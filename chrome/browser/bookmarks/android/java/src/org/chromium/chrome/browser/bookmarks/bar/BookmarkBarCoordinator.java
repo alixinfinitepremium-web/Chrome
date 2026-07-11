@@ -24,7 +24,6 @@ import android.view.ViewStub;
 import android.widget.FrameLayout;
 
 import androidx.annotation.ColorInt;
-import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.DefaultItemAnimator;
@@ -58,6 +57,7 @@ import org.chromium.chrome.browser.profiles.Profile;
 import org.chromium.chrome.browser.tab.CurrentTabObserver;
 import org.chromium.chrome.browser.tab.EmptyTabObserver;
 import org.chromium.chrome.browser.tab.Tab;
+import org.chromium.chrome.browser.tab.TabObscuringHandler;
 import org.chromium.chrome.browser.theme.ThemeUtils;
 import org.chromium.chrome.browser.theme.TopUiThemeColorProvider;
 import org.chromium.chrome.browser.ui.side_ui.SideUiCoordinator.SideUiSpecs;
@@ -84,7 +84,8 @@ public class BookmarkBarCoordinator
                 View.OnLayoutChangeListener,
                 BrowserControlsStateProvider.Observer,
                 FullscreenManager.Observer,
-                TopResumedActivityChangedObserver {
+                TopResumedActivityChangedObserver,
+                TabObscuringHandler.Observer {
 
     private final Context mContext;
     private final ActivityLifecycleDispatcher mActivityLifecycleDispatcher;
@@ -98,6 +99,7 @@ public class BookmarkBarCoordinator
     private final SideUiObserver mSideUiObserver;
     private @Nullable SideUiStateProvider mSideUiStateProvider;
     private final TopControlsStacker mTopControlsStacker;
+    private final TabObscuringHandler mTabObscuringHandler;
     private final Callback<@Nullable Void> mHeightChangeCallback;
     private final Runnable mRequestUpdate;
     private final BrowserControlsStateProvider mBrowserControlsStateProvider;
@@ -124,6 +126,9 @@ public class BookmarkBarCoordinator
 
     // Represents the latest non-zero height for the Android view.
     private int mContentHeight;
+
+    private final int mDefaultUnobscuredImportantForAccessibility;
+    private boolean mIsObscured;
 
     /**
      * Constructs the bookmark bar coordinator.
@@ -163,9 +168,12 @@ public class BookmarkBarCoordinator
             TopControlsStacker topControlsStacker,
             NullableObservableSupplier<Tab> currentTabSupplier,
             TopUiThemeColorProvider topUiThemeColorProvider,
-            OneshotSupplier<SideUiStateProvider> sideUiStateProviderSupplier) {
+            OneshotSupplier<SideUiStateProvider> sideUiStateProviderSupplier,
+            TabObscuringHandler tabObscuringHandler) {
         mContext = activity;
         mRequestUpdate = requestUpdate;
+        mTabObscuringHandler = tabObscuringHandler;
+        mTabObscuringHandler.addObserver(this);
         mResourceManager = resourceManager;
         mFullscreenManager = fullscreenManager;
         mFullscreenManager.addObserver(this);
@@ -179,10 +187,7 @@ public class BookmarkBarCoordinator
 
         // The Bookmark Bar may first be turned on in fullscreen mode, in which case we want its
         // initial state to be hidden, which is tracked by this member variable.
-        if (currentTabSupplier.get() != null && currentTabSupplier.get().getWebContents() != null) {
-            mIsInFullscreenMode =
-                    currentTabSupplier.get().getWebContents().isFullscreenForCurrentTab();
-        }
+        mIsInFullscreenMode = fullscreenManager.getPersistentFullscreenMode();
 
         // Inflate the Bookmark Bar. The bar is a ViewStub which contains a container to hold all
         // the content of the Bookmark Bar, and a hairline footer.
@@ -257,7 +262,7 @@ public class BookmarkBarCoordinator
                         mBookmarkBarItemsLayoutManager,
                         mModel,
                         profileSupplier,
-                        currentTab,
+                        currentTabSupplier,
                         bookmarkOpener,
                         bookmarkManagerOpenerSupplier,
                         mItemsContainer,
@@ -312,10 +317,16 @@ public class BookmarkBarCoordinator
 
         mMediator.setTopMargin(
                 mTopControlsStacker.getHeightFromLayerToTop(TopControlType.BOOKMARK_BAR));
+
+        mDefaultUnobscuredImportantForAccessibility = mView.getImportantForAccessibility();
+
+        // Initialize Android widget visibility to match the current screen state.
+        updateAndroidWidgetVisibility();
     }
 
     /** Destroys the bookmark bar coordinator. */
     public void destroy() {
+        mTabObscuringHandler.removeObserver(this);
         // Stop all pending animations and remove animator to stop any running async update calls.
         if (mItemsContainer != null) {
             mItemsContainer.setItemAnimator(null);
@@ -495,6 +506,19 @@ public class BookmarkBarCoordinator
         }
     }
 
+    // TabObscuringHandler.Observer implementation:
+
+    @Override
+    public void updateObscured(boolean obscureTabContent, boolean obscureToolbar) {
+        if (obscureToolbar == mIsObscured) return;
+
+        mIsObscured = obscureToolbar;
+        mView.setImportantForAccessibility(
+                mIsObscured
+                        ? View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
+                        : mDefaultUnobscuredImportantForAccessibility);
+    }
+
     // BookmarkBarVisibilityObserver implementation:
 
     @Override
@@ -613,7 +637,8 @@ public class BookmarkBarCoordinator
         // When fullscreen mode is entered, we need to hide the scene layer and Android widgets.
         // However, if LockTopControls is enabled, we never remove the bookmark bar.
 
-        boolean isLockTopControlsEnabled = BrowserControlsUtils.doSyncMinHeightWithTotalHeightV2(mContext);
+        boolean isLockTopControlsEnabled =
+                BrowserControlsUtils.doSyncMinHeightWithTotalHeightV2(mContext);
         if (!isLockTopControlsEnabled) {
             mIsInFullscreenMode = true;
             updateSceneLayerVisibility();
@@ -801,7 +826,7 @@ public class BookmarkBarCoordinator
         }
 
         @Override
-        public void onAnimationFinished(@NonNull RecyclerView.ViewHolder viewHolder) {
+        public void onAnimationFinished(RecyclerView.ViewHolder viewHolder) {
             super.onAnimationFinished(viewHolder);
             if (!mIsDestroyed) {
                 mPostAnimationRunnable.run();
@@ -820,5 +845,9 @@ public class BookmarkBarCoordinator
 
     PropertyModel getBookmarkBarSceneLayerModelForTesting() {
         return mBookmarkBarSceneLayerModel;
+    }
+
+    BookmarkBarMediator getMediatorForTesting() {
+        return mMediator;
     }
 }

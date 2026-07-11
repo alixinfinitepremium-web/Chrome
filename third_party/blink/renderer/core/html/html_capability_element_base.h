@@ -106,6 +106,11 @@ class CORE_EXPORT HTMLCapabilityElementBase
 
   void HandleActivation(Event&, base::OnceClosure on_success);
 
+  // Called when the element activation (e.g. click) fails one of the security
+  // or validation checks in the base class. Derived classes can override this
+  // to perform custom error handling, such as firing DOM events.
+  virtual void OnActivationFailed(const String& error_message) {}
+
   bool PermissionsGranted() const {
     return aggregated_permission_status_.has_value() &&
            aggregated_permission_status_ ==
@@ -205,6 +210,8 @@ class CORE_EXPORT HTMLCapabilityElementBase
                            UnclickableBeforeRegistered);
   FRIEND_TEST_ALL_PREFIXES(HTMLCapabilityElementBaseIntersectionTest,
                            IntersectionChanged);
+  FRIEND_TEST_ALL_PREFIXES(HTMLCapabilityElementBaseIntersectionTest,
+                           MovePEPCFromIframeAndDestroyIframe);
   FRIEND_TEST_ALL_PREFIXES(HTMLCapabilityElementBaseIntersectionTest,
                            IntersectionChangedDisableEnableDisable);
   FRIEND_TEST_ALL_PREFIXES(HTMLCapabilityElementBaseIntersectionTest,
@@ -592,6 +599,9 @@ class CORE_EXPORT HTMLCapabilityElementBase
 
   // Whether the elements has entered fallback mode. See |EnableFallbackMode|.
   bool fallback_mode_ = false;
+
+ private:
+  String GetActivationErrorMessage() const;
 };
 
 // The custom type casting is required for the PermissionElement OT because the

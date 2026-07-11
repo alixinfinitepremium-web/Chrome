@@ -14,6 +14,11 @@
 #include "third_party/blink/renderer/platform/graphics/dom_node_id.h"
 #include "third_party/blink/renderer/platform/platform_export.h"
 #include "third_party/blink/renderer/platform/wtf/allocator/allocator.h"
+#include "third_party/blink/renderer/platform/wtf/text/wtf_string.h"
+
+namespace gfx {
+class RectF;
+}
 
 namespace blink {
 
@@ -23,10 +28,6 @@ class PLATFORM_EXPORT OffscreenCanvasPlaceholder {
   DISALLOW_NEW();
 
  public:
-  enum {
-    kNoPlaceholderId = -1,
-  };
-
   enum class AnimationState {
     // Animation should be active, and use the real sync signal from viz.
     kActive,
@@ -123,10 +124,16 @@ class PLATFORM_EXPORT OffscreenCanvasPlaceholder {
   }
 
   bool IsOffscreenCanvasRegistered() const {
-    return placeholder_id_ != kNoPlaceholderId;
+    return placeholder_id_ != kInvalidDOMNodeId;
   }
 
   virtual bool HasCanvasCapture() const { return false; }
+
+  virtual void RecordRenderedText(const String& text,
+                                  const gfx::RectF& bounds,
+                                  float font_height) {}
+  virtual void ClearRenderedText(const gfx::RectF& rect) {}
+  virtual void ClearRenderedText() {}
 
   AnimationState GetAnimationStateForTesting() const {
     return current_animation_state_;
@@ -141,7 +148,7 @@ class PLATFORM_EXPORT OffscreenCanvasPlaceholder {
   base::WeakPtr<Client> client_;
   scoped_refptr<base::SingleThreadTaskRunner> client_task_runner_;
 
-  DOMNodeId placeholder_id_ = kNoPlaceholderId;
+  DOMNodeId placeholder_id_ = kInvalidDOMNodeId;
 
   // If an animation state change was requested, but we couldn't update it
   // immediately, then this holds the most recent request.

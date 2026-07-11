@@ -210,9 +210,7 @@ PaymentMethodAccessoryControllerImpl::GetSheetData() const {
 
   std::vector<UserInfo> info_to_add;
   bool allow_filling =
-      autofill_manager &&
-      !IsFormOrClientNonSecure(autofill_manager->client(),
-                               autofill_manager->last_query_form());
+      autofill_manager && autofill_manager->client().IsContextSecure();
 
   std::vector<const CachedServerCardInfo*> unmasked_cards =
       GetUnmaskedCreditCards();
@@ -653,6 +651,7 @@ void PaymentMethodAccessoryControllerImpl::OnFillOrPreviewForm(
     FieldGlobalId trigger_field_id,
     mojom::ActionPersistence action_persistence,
     const base::flat_set<FieldGlobalId>&,
+    const base::flat_map<FieldGlobalId, DenseSet<FieldFillingSkipReason>>&,
     const FillingPayload& filling_payload) {
   if (action_persistence == mojom::ActionPersistence::kFill &&
       std::holds_alternative<const CreditCard*>(filling_payload)) {

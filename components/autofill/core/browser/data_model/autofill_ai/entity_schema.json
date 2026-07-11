@@ -120,7 +120,11 @@
     "required fields": [
       [ "Id" ]
     ],
-    "import constraints": [],
+    "import constraints": [
+      [ "Id", "Merchant name", "Date" ],
+      [ "Id", "Merchant domain", "Date" ],
+      [ "Id", "Product names", "Date" ]
+    ],
     "merge constraints": [
       [ "Id" ]
     ],
@@ -131,12 +135,15 @@
   },
   {
     "name": "Shipment",
-    "attributes": [ "Tracking number", "Delivery zip code", "Carrier name", "Carrier domain", "Estimated delivery date", "Order ids", "Order dates", "Merchant name", "Product names"],
+    "attributes": [ "Tracking number", "Delivery zip code", "Carrier name", "Carrier domain", "Shipped date", "Order ids", "Order dates", "Merchant name", "Product names"],
     "obfuscated attributes": [],
     "required fields": [
       [ "Tracking number" ]
     ],
-    "import constraints": [],
+    "import constraints": [
+      [ "Tracking number", "Merchant name", "Shipped date" ],
+      [ "Tracking number", "Product names", "Shipped date" ]
+    ],
     "merge constraints": [
       [ "Tracking number" ]
     ],

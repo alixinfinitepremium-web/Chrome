@@ -20,7 +20,7 @@
 @class GridItemIdentifier;
 @protocol GridViewControllerMutator;
 @class LayoutGuideCenter;
-@class LegacyGridTransitionLayout;
+
 @class TabGridTransitionLayout;
 @protocol PriceCardDataSource;
 @protocol SuggestedActionsDelegate;
@@ -109,8 +109,8 @@ class WebStateID;
 
 // A view controller that contains a grid of items.
 @interface BaseGridViewController
-    : UIViewController <TabCollectionConsumer,
-                        ContextMenuTransitionStateProviding>
+    : UIViewController <ContextMenuTransitionStateProviding,
+                        TabCollectionConsumer>
 // The remaining distance to scroll to the top, in point.
 @property(nonatomic, readonly) CGFloat remainingScrollDistanceTop;
 // The remaining distance to scroll to the bottom, in point.
@@ -173,9 +173,6 @@ class WebStateID;
 // The active context menu interaction animator.
 @property(nonatomic, strong) id<UIContextMenuInteractionAnimating>
     activeContextMenuAnimator;
-
-// Returns the legacy layout of the grid for use in an animated transition.
-- (LegacyGridTransitionLayout*)legacyTransitionLayout;
 
 // Returns the layout of the grid for use in an animated transition.
 - (TabGridTransitionLayout*)transitionLayout;

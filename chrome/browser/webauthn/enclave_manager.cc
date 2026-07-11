@@ -1999,9 +1999,9 @@ class EnclaveManager::StateMachine {
       user_->set_deferred_uv_key_creation(true);
     }
 
-    manager_->identity_key_ = base::MakeRefCounted<
-        unexportable_keys::RefCountedUnexportableSigningKey>(
-        std::move(std::get_if<KeyReady>(&event)->value().second));
+    manager_->identity_key_ =
+        unexportable_keys::MakeRefCountedUnexportableSigningKey(
+            std::move(std::get_if<KeyReady>(&event)->value().second));
 
     if (manager_->user_verifying_key_) {
       const std::vector<uint8_t> uv_public_key =
@@ -2994,9 +2994,7 @@ class EnclaveManager::StateMachine {
       base::span<const uint8_t> security_domain_secret) {
     cbor::Value::MapValue map;
     map.emplace(1, base::span<const uint8_t>(hashed_pin.hashed));
-    if (base::FeatureList::IsEnabled(device::kWebAuthnSendPinGeneration)) {
-      map.emplace(2, 0);  // Generation number.
-    }
+    // Key 2 used to be the generation number and is now obsolete.
     map.emplace(3, claim_key);
     map.emplace(4, base::as_byte_span(
                        vault_details.vault->vault_parameters().counter_id()));
@@ -3467,9 +3465,9 @@ void EnclaveManager::GetIdentityKeyForSignature(
           std::move(callback).Run(nullptr);
           return;
         }
-        enclave_manager->identity_key_ = base::MakeRefCounted<
-            unexportable_keys::RefCountedUnexportableSigningKey>(
-            std::move(key));
+        enclave_manager->identity_key_ =
+            unexportable_keys::MakeRefCountedUnexportableSigningKey(
+                std::move(key));
         std::move(callback).Run(enclave_manager->identity_key_);
       },
       weak_ptr_factory_.GetWeakPtr(), primary_account_info_->account_id,

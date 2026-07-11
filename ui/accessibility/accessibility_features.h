@@ -149,6 +149,12 @@ enum class CanvasAccessibilityMode {
 
 AX_BASE_EXPORT CanvasAccessibilityMode GetCanvasAccessibilityMode();
 
+// Controls whether canvas accessibility heuristic results are collected via
+// UKM.
+AX_BASE_EXPORT BASE_DECLARE_FEATURE(
+    kEnableCollectAccessibilityHeuristicInCanvasUkm);
+AX_BASE_EXPORT bool IsCollectAccessibilityHeuristicInCanvasUkmEnabled();
+
 #if BUILDFLAG(IS_WIN)
 // This is a killswitch. Controls whether
 // HWNDMessageHandler::GetParentOfAXFragmentRoot returns nullptr (legacy) or
@@ -292,6 +298,10 @@ AX_BASE_EXPORT bool IsMainNodeAnnotationsEnabled();
 AX_BASE_EXPORT BASE_DECLARE_FEATURE(kImprovedReadAloud);
 AX_BASE_EXPORT bool IsImprovedReadAloudEnabled();
 
+// Enable heuristic enhancements for PDF accessibility.
+AX_BASE_EXPORT BASE_DECLARE_FEATURE(kPdfAccessibilityHeuristicEnhancements);
+AX_BASE_EXPORT bool IsPdfAccessibilityHeuristicEnhancementsEnabled();
+
 enum class ReadAnythingMenuShuffleExperimentGroup {
   kDefault,              // Leaves in default position
   kPlaceWithSeparation,  // Adds a UI separator from previous element.
@@ -325,6 +335,10 @@ AX_BASE_EXPORT bool IsReadAnythingReadAloudPhraseHighlightingEnabled();
 AX_BASE_EXPORT BASE_DECLARE_FEATURE(kReadAnythingOmniboxChip);
 AX_BASE_EXPORT bool IsReadAnythingOmniboxChipEnabled();
 
+// Enable the translate entrypoint for Read Anything.
+AX_BASE_EXPORT BASE_DECLARE_FEATURE(kReadAnythingTranslateEntryPoint);
+AX_BASE_EXPORT bool IsReadAnythingTranslateEntryPointEnabled();
+
 // Enable the line focus feature for Read Anything.
 AX_BASE_EXPORT BASE_DECLARE_FEATURE(kReadAnythingLineFocus);
 AX_BASE_EXPORT bool IsReadAnythingLineFocusEnabled();
@@ -338,8 +352,6 @@ AX_BASE_EXPORT bool IsHatsReadingModeSurveyEnabled();
 AX_BASE_EXPORT BASE_DECLARE_FEATURE(kReadAnythingImagesViaAlgorithm);
 AX_BASE_EXPORT bool IsReadAnythingImagesViaAlgorithmEnabled();
 
-// Enable Reading Mode to work on Google Docs. Should be disabled by default.
-AX_BASE_EXPORT BASE_DECLARE_FEATURE(kReadAnythingDocsIntegration);
 AX_BASE_EXPORT bool IsReadAnythingDocsIntegrationEnabled();
 
 // Enable "load more" button to show at the end of Reading Mode panel.
@@ -350,6 +362,10 @@ AX_BASE_EXPORT bool IsReadAnythingDocsLoadMoreButtonEnabled();
 // Enable ReadabilityJS as the distillation source for Reading Mode.
 AX_BASE_EXPORT BASE_DECLARE_FEATURE(kReadAnythingWithReadability);
 AX_BASE_EXPORT bool IsReadAnythingWithReadabilityEnabled();
+
+// Enable distillation quality evaluation for Reading Mode.
+AX_BASE_EXPORT BASE_DECLARE_FEATURE(kReadAnythingDistillationQualityEvaluation);
+AX_BASE_EXPORT bool IsReadAnythingDistillationQualityEvaluationEnabled();
 
 // ScreenAI library's Main Content Extraction service is enabled.
 AX_BASE_EXPORT bool IsScreenAIMainContentExtractionEnabled();

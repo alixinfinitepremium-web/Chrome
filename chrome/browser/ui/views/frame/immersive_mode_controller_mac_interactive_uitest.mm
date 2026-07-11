@@ -12,11 +12,11 @@
 #include "chrome/browser/ui/browser_commands.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_features.h"
 #include "chrome/browser/ui/exclusive_access/exclusive_access_manager.h"
+#include "chrome/browser/ui/immersive/immersive_mode_controller.h"
 #include "chrome/browser/ui/tabs/features.h"
 #include "chrome/browser/ui/tabs/vertical_tab_strip_state_controller.h"
 #include "chrome/browser/ui/views/find_bar_host.h"
 #include "chrome/browser/ui/views/frame/browser_view.h"
-#include "chrome/browser/ui/views/frame/immersive_mode_controller.h"
 #include "chrome/browser/ui/views/frame/immersive_mode_controller_mac.h"
 #include "chrome/browser/ui/views/frame/top_container_view.h"
 #include "chrome/browser/ui/views/frame/vertical_tab_strip_region_view.h"
@@ -32,10 +32,10 @@
 #include "ui/views/bubble/bubble_dialog_delegate_view.h"
 #import "ui/views/cocoa/native_widget_mac_ns_window_host.h"
 #include "ui/views/interaction/element_tracker_views.h"
+#include "ui/views/test/views_test_utils.h"
 #include "ui/views/widget/any_widget_observer.h"
 #include "ui/views/widget/native_widget_mac.h"
 #include "ui/views/widget/widget.h"
-#include "ui/views/widget/widget_interactive_uitest_utils.h"
 
 class ScopedAlwaysShowToolbar {
  public:
@@ -116,7 +116,7 @@ class ImmersiveModeControllerMacInteractiveTest : public InProcessBrowserTest {
   void ActivateSecondBrowserWindow() {
     views::test::PropertyWaiter activate_waiter(
         base::BindRepeating(&ui::BaseWindow::IsActive,
-                            base::Unretained(second_browser_->window())),
+                            base::Unretained(second_browser_->GetWindow())),
         true);
     second_browser_->GetWindow()->Activate();
     EXPECT_TRUE(activate_waiter.Wait());
@@ -130,7 +130,7 @@ class ImmersiveModeControllerMacInteractiveTest : public InProcessBrowserTest {
   }
 
   bool SecondBrowserWindowIsOnTheActiveSpace() {
-    return second_browser_->window()
+    return second_browser_->GetWindow()
         ->GetNativeWindow()
         .GetNativeNSWindow()
         .onActiveSpace;
@@ -293,7 +293,7 @@ IN_PROC_BROWSER_TEST_F(ImmersiveModeControllerMacInteractiveTest,
   // testing.
   views::test::PropertyWaiter activate_waiter(
       base::BindRepeating(&ui::BaseWindow::IsActive,
-                          base::Unretained(browser()->window())),
+                          base::Unretained(browser()->GetWindow())),
       true);
   EXPECT_FALSE(activate_waiter.Wait());
 

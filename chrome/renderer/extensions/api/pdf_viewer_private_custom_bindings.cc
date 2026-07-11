@@ -70,6 +70,9 @@ bool SetTypefaceInArray(v8::Isolate* isolate,
     return false;
   }
 
+  SkString family_name;
+  font->getFamilyName(&family_name);
+
   v8::Local<v8::Context> context = isolate->GetCurrentContext();
   v8::Local<v8::Object> typeface = v8::Object::New(isolate);
   typeface
@@ -79,6 +82,10 @@ bool SetTypefaceInArray(v8::Isolate* isolate,
   typeface
       ->Set(context, gin::StringToSymbol(isolate, "serializedTypeface"),
             serialized_font)
+      .Check();
+  typeface
+      ->Set(context, gin::StringToSymbol(isolate, "name"),
+            gin::ConvertToV8(isolate, std::string(family_name.c_str())))
       .Check();
   typefaces_result->Set(context, index, typeface).Check();
   return true;
@@ -179,6 +186,7 @@ void PdfViewerPrivateCustomBindings::GetTextInfo(
   // Fill the mojo struct with the GetTextInfo() results.
   auto text_info_mojo = pdf::mojom::InkTextInfo::New();
   text_info_mojo->effective_zoom = maybe_text_info->effective_zoom;
+  text_info_mojo->primary_ascent = maybe_text_info->primary_ascent;
   for (const blink::WebFormControlElement::TextRunInfo& text_run : text_runs) {
     auto text_run_mojo = pdf::mojom::InkTextRun::New();
     text_run_mojo->location = text_run.location;

@@ -171,19 +171,6 @@ struct COMPONENT_EXPORT(SQL) DatabaseOptions {
     return *this;
   }
 
-  // If true, enables preloading the database before opening it.
-  //
-  // Hints the file system that the database will be accessed soon.
-  //
-  // This method should be called on databases that are on the critical path to
-  // Chrome startup. Informing the filesystem about our expected access pattern
-  // early on reduces the likelihood that we'll be blocked on disk I/O. This has
-  // a high impact on startup time.
-  DatabaseOptions& set_preload(bool preload) {
-    preload_ = preload;
-    return *this;
-  }
-
   // If true, transaction commit waits for data to reach persistent media.
   //
   // This is currently only meaningful on macOS. All other operating systems
@@ -367,7 +354,6 @@ struct COMPONENT_EXPORT(SQL) DatabaseOptions {
   bool flush_to_media_ = false;
   int page_size_ = kDefaultPageSize;
   int cache_size_ = 0;
-  bool preload_ = false;
   bool mmap_alt_status_discouraged_ = false;
   bool enable_views_discouraged_ = false;
   const char* vfs_name_discouraged_ = nullptr;
@@ -982,10 +968,6 @@ class COMPONENT_EXPORT(SQL) Database {
   bool OpenInternal(const std::string& file_name)
       VALID_CONTEXT_REQUIRED(sequence_checker_);
 
-  // Requests the operating system to preload the pages on disk into memory.
-  void PreloadInternal(const base::FilePath& path)
-      VALID_CONTEXT_REQUIRED(sequence_checker_);
-
   // Configures the underlying sqlite3* object via sqlite3_db_config().
   //
   // To minimize the number of possible SQLite code paths executed in Chrome,
@@ -1258,9 +1240,6 @@ class COMPONENT_EXPORT(SQL) Database {
   // The number of blobs open for streaming, tracked for debugging purposes.
   size_t outstanding_blob_count_ GUARDED_BY_CONTEXT(sequence_checker_) = 0;
 
-  // When non-zero, indicates that `this` is inside `OnSqliteError()`.
-  size_t handling_error_nesting_ GUARDED_BY_CONTEXT(sequence_checker_) = 0;
-
   // Number of currently-nested transactions.
   int transaction_nesting_ GUARDED_BY_CONTEXT(sequence_checker_) = 0;
 
@@ -1306,6 +1285,9 @@ class COMPONENT_EXPORT(SQL) Database {
   // after the Database instance goes out of scope. set_error_callback() makes
   // this guarantee.
   ErrorCallback error_callback_ GUARDED_BY_CONTEXT(sequence_checker_);
+
+  // `true` if `error_callback_` is executing.
+  bool executing_error_callback_ GUARDED_BY_CONTEXT(sequence_checker_) = false;
 
   // Developer-friendly database ID used in logging output and memory dumps.
   const std::string histogram_tag_;

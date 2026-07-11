@@ -32,6 +32,8 @@ public class ActorNotificationFactory {
     public static final String EXTRA_SHOW_ACTOR_CONTROL =
             "org.chromium.chrome.browser.actor.SHOW_ACTOR_CONTROL";
 
+    public static final int TASK_STARTS_SOON_NOTIFICATION_ID = 101;
+
     @IntDef({
         NotificationCategory.RUNNING,
         NotificationCategory.PAUSED,
@@ -93,24 +95,15 @@ public class ActorNotificationFactory {
      * Determines whether a notification update is required when transitioning between two states.
      *
      * @param oldState The previous {@link ActorTaskState}.
-     * @param wasWarning Whether the previous notification was in a warning state.
      * @param newState The new {@link ActorTaskState}.
-     * @param isWarning Whether the new notification is in a warning state.
      * @return True if the notification should be updated, false otherwise.
      */
     public static boolean shouldUpdateNotification(
-            @ActorTaskState int oldState,
-            boolean wasWarning,
-            @ActorTaskState int newState,
-            boolean isWarning) {
-        if (wasWarning != isWarning) return true;
-        return getNotificationCategory(oldState, wasWarning)
-                != getNotificationCategory(newState, isWarning);
+            @ActorTaskState int oldState, @ActorTaskState int newState) {
+        return getNotificationCategory(oldState) != getNotificationCategory(newState);
     }
 
-    static @NotificationCategory int getNotificationCategory(
-            @ActorTaskState int state, boolean isWarning) {
-        if (isWarning) return NotificationCategory.WARNING;
+    static @NotificationCategory int getNotificationCategory(@ActorTaskState int state) {
         if (ActorUtils.isRunningState(state)) {
             return NotificationCategory.RUNNING;
         }
@@ -129,9 +122,9 @@ public class ActorNotificationFactory {
             int id,
             @ActorTaskState int state) {
         int bodyResId =
-                (state == ActorTaskState.PAUSED_BY_ACTOR)
-                        ? R.string.actor_notification_body_will_stop_task_long_running
-                        : R.string.actor_notification_body_will_stop_task_no_response;
+                (state == ActorTaskState.WAITING_ON_USER)
+                        ? R.string.actor_notification_body_will_stop_task_no_response
+                        : R.string.actor_notification_body_will_stop_task_long_running;
 
         String body = context.getString(bodyResId, task.getTitle());
         builder.setOngoing(true)
@@ -236,5 +229,29 @@ public class ActorNotificationFactory {
         if (intent == null) return null;
         return PendingIntentProvider.getActivity(
                 context, notificationId, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+    }
+
+    /**
+     * Builds a notification to show that the foreground service has started and the task will start
+     * soon.
+     *
+     * @return The built {@link NotificationWrapper}.
+     */
+    // TODO(crbug.com/533082119): Enable translation when UX is finalized.
+    public static NotificationWrapper buildTaskStartsSoonNotification() {
+        Context context = ContextUtils.getApplicationContext();
+        NotificationMetadata metadata =
+                new NotificationMetadata(
+                        NotificationUmaTracker.SystemNotificationType.ACTOR,
+                        /* notificationTag= */ null,
+                        TASK_STARTS_SOON_NOTIFICATION_ID);
+        return NotificationWrapperBuilderFactory.createNotificationWrapperBuilder(
+                        ChromeChannelDefinitions.ChannelId.ACTOR, metadata)
+                .setSmallIcon(R.drawable.ic_chrome)
+                .setContentTitle(
+                        context.getString(R.string.actor_notification_title_task_starts_soon))
+                .setContentText(
+                        context.getString(R.string.actor_notification_body_task_starts_soon))
+                .buildNotificationWrapper();
     }
 }

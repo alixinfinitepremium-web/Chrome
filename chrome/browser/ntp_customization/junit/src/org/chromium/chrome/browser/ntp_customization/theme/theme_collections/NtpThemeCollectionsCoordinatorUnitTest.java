@@ -55,6 +55,7 @@ import org.chromium.chrome.browser.ntp_customization.theme.chrome_colors.NtpThem
 import org.chromium.chrome.browser.ntp_customization.theme.upload_image.BackgroundImageInfo;
 import org.chromium.chrome.browser.ntp_customization.theme_sync.data.NtpBackgroundDataBase.PlatformType;
 import org.chromium.chrome.browser.ntp_customization.theme_sync.data.NtpBackgroundDataColor;
+import org.chromium.chrome.browser.ntp_customization.theme_sync.data.NtpBackgroundDataThemeCollection;
 import org.chromium.chrome.browser.ntp_customization.theme_sync.data.NtpBackgroundDataUploadImage;
 import org.chromium.chrome.browser.profiles.Profile;
 import org.chromium.components.browser_ui.bottomsheet.BottomSheetController;
@@ -324,7 +325,6 @@ public class NtpThemeCollectionsCoordinatorUnitTest {
         NtpBackgroundDataUploadImage uploadImageData =
                 new NtpBackgroundDataUploadImage(
                         PlatformType.ANDROID_LOCAL,
-                        /* lastUploadImageFilePath= */ "",
                         backgroundImageInfo,
                         bitmap,
                         /* primaryColor= */ null,
@@ -341,7 +341,8 @@ public class NtpThemeCollectionsCoordinatorUnitTest {
         mCoordinator.setNtpSingleThemeCollectionCoordinatorForTesting(
                 mNtpSingleThemeCollectionCoordinator);
 
-        mNtpCustomizationConfigManager.onBackgroundReset();
+        mNtpCustomizationConfigManager.onBackgroundDataChanged(
+                mContext, /* backgroundData= */ null);
         mCoordinator.onBackgroundTypeChanged();
 
         verify(mNtpSingleThemeCollectionCoordinator).cancelLoadingState();
@@ -378,11 +379,18 @@ public class NtpThemeCollectionsCoordinatorUnitTest {
         CustomBackgroundInfo customBackgroundInfo =
                 new CustomBackgroundInfo(
                         JUnitTestGURLs.EXAMPLE_URL,
-                        "test",
+                        /* collectionId= */ "test",
                         /* isUploadedImage= */ false,
                         /* isDailyRefreshEnabled= */ false);
-        mNtpCustomizationConfigManager.onThemeCollectionImageSelected(
-                bitmap, customBackgroundInfo, backgroundImageInfo);
+        NtpBackgroundDataThemeCollection backgroundData =
+                new NtpBackgroundDataThemeCollection(
+                        PlatformType.ANDROID_LOCAL,
+                        customBackgroundInfo,
+                        backgroundImageInfo,
+                        bitmap,
+                        /* primaryColor= */ null,
+                        /* fileIdHash= */ null);
+        mNtpCustomizationConfigManager.onBackgroundDataChanged(mContext, backgroundData);
 
         mCoordinator.onBackgroundTypeChanged();
 

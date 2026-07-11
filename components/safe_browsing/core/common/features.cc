@@ -45,6 +45,9 @@ BASE_FEATURE(kAllowSafeBrowsingV4StoreDiskMigrationChanges,
              "SafeBrowsingAllowV4StoreDiskMigrationChanges",
              base::FEATURE_DISABLED_BY_DEFAULT);
 
+BASE_FEATURE(kAntivirusTelemetryForDownloads,
+             base::FEATURE_DISABLED_BY_DEFAULT);
+
 BASE_FEATURE(kAutoRevokeSuspiciousNotification,
              base::FEATURE_ENABLED_BY_DEFAULT);
 constexpr base::FeatureParam<int>
@@ -156,7 +159,7 @@ BASE_FEATURE(kClientSideDetectionLocalResourceCheckFix,
              base::FEATURE_DISABLED_BY_DEFAULT);
 
 BASE_FEATURE(kClientSideDetectionNewObservers,
-             base::FEATURE_DISABLED_BY_DEFAULT);
+             base::FEATURE_ENABLED_BY_DEFAULT);
 constexpr base::FeatureParam<double> kCsdClassificationDelay{
     &kClientSideDetectionNewObservers, "ClassificationDelay", 0.0};
 
@@ -176,8 +179,7 @@ constexpr base::FeatureParam<int> kClientSideDetectionRetryLimitTime{
     &kClientSideDetectionRetryLimit, /*name=*/"RetryTimeMax",
     /*default_value=*/15};
 
-BASE_FEATURE(kClientSideDetectionSamplePing, base::FEATURE_ENABLED_BY_DEFAULT);
-
+BASE_FEATURE(kClientSideDetectionScamScore, base::FEATURE_DISABLED_BY_DEFAULT);
 #if BUILDFLAG(IS_ANDROID)
 BASE_FEATURE(kClientSideDetectionServerModelForScamDetectionAndroid,
              base::FEATURE_ENABLED_BY_DEFAULT);
@@ -197,7 +199,7 @@ constexpr base::FeatureParam<int>
 BASE_FEATURE(kClientSideDetectionSkipErrorPage,
              base::FEATURE_ENABLED_BY_DEFAULT);
 
-BASE_FEATURE(kClientSideDetectionTierSystem, base::FEATURE_DISABLED_BY_DEFAULT);
+BASE_FEATURE(kClientSideDetectionTierSystem, base::FEATURE_ENABLED_BY_DEFAULT);
 
 BASE_FEATURE(kConditionalImageResize, base::FEATURE_DISABLED_BY_DEFAULT);
 

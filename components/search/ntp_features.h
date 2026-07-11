@@ -38,6 +38,7 @@ BASE_DECLARE_FEATURE(kNtpCustomizeChromeAutoOpen);
 BASE_DECLARE_FEATURE(kNtpDisableBrowserInitiatedLinks);
 BASE_DECLARE_FEATURE(kNtpDriveModule);
 BASE_DECLARE_FEATURE(kNtpDriveModuleHistorySyncRequirement);
+BASE_DECLARE_FEATURE(kNtpDriveModuleLink);
 BASE_DECLARE_FEATURE(kNtpDriveModuleSegmentation);
 #if !defined(OFFICIAL_BUILD)
 BASE_DECLARE_FEATURE(kNtpDummyModules);
@@ -74,6 +75,7 @@ BASE_DECLARE_FEATURE(kNtpWallpaperSearchButtonAnimationShownThreshold);
 BASE_DECLARE_FEATURE(kNtpMicrosoftAuthenticationModule);
 BASE_DECLARE_FEATURE(kNtpNextFeatures);
 BASE_DECLARE_FEATURE(kNtpNextCanvasChip);
+BASE_DECLARE_FEATURE(kNtpStarterChip);
 BASE_DECLARE_FEATURE(kNtpOneGoogleBarAsyncBarParts);
 BASE_DECLARE_FEATURE(kNtpFooter);
 BASE_DECLARE_FEATURE(kNtpTabGroupsModule);

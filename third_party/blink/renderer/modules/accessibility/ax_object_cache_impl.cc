@@ -125,6 +125,7 @@
 #include "third_party/blink/renderer/platform/graphics/compositor_element_id.h"
 #include "third_party/blink/renderer/platform/graphics/dom_node_id.h"
 #include "third_party/blink/renderer/platform/instrumentation/tracing/trace_event.h"
+#include "third_party/blink/renderer/platform/runtime_enabled_features.h"
 #include "third_party/blink/renderer/platform/wtf/functional.h"
 #include "ui/accessibility/accessibility_features.h"
 #include "ui/accessibility/ax_common.h"
@@ -752,6 +753,13 @@ LayoutObject* PreviousLayoutObjectTextOnLine(
   LayoutObject* previous = layout_object.PreviousInPreOrder(&block_flow);
   while (previous) {
     if (IsA<LayoutText>(previous)) {
+      if (!previous->IsInLayoutNGInlineFormattingContext() &&
+          RuntimeEnabledFeatures::
+              AccessibilityCheckIfcInPreviousTextOnLineEnabled()) {
+        // Avoid `MoveToIncludingCulledInline()` to fail.
+        previous = previous->PreviousInPreOrder(&block_flow);
+        continue;
+      }
       InlineCursor cursor;
       cursor.MoveToIncludingCulledInline(*previous);
       while (cursor) {
@@ -1396,9 +1404,8 @@ bool AXObjectCacheImpl::IsRelevantPseudoElement(const Node& node) {
         node.parentNode()->GetLayoutObject()->IsInline()) {
       return true;  // Parent inline: not a clearfix hack.
     }
-    const ComputedStyle* style = node.GetLayoutObject()->Style();
-    DCHECK(style);
-    ContentData* content_data = style->GetContentData();
+    const ComputedStyle& style = node.GetLayoutObject()->StyleRef();
+    ContentData* content_data = style.GetContentData();
     if (!content_data)
       return true;
     if (!content_data->IsText())
@@ -3040,6 +3047,24 @@ void AXObjectCacheImpl::NotifyParentChildrenChanged(AXObject* parent) {
     return;
   }
   if (lifecycle_.StateAllowsImmediateTreeUpdates()) {
+    // While an AXObject is updating its cached attribute values, dispatching
+    // ChildrenChangedWithCleanLayout() can restructure the tree and detach
+    // the object that is still being updated (crbug.com/436609528).
+    // Instead, invalidate the ancestors now and queue the first included
+    // ancestor. Once the update is done, the outermost
+    // ScopedCachedAttributeValuesUpdate dispatches the queued notifications.
+    // Queueing marks ancestors dirty, which is not allowed during
+    // kFinalizingTree (see AXObject::SetAncestorsHaveDirtyDescendants()).
+    if (in_cached_attribute_values_update_ &&
+        lifecycle_.GetState() ==
+            AXObjectCacheLifecycle::kProcessDeferredUpdates) {
+      if (AXObject* ancestor = InvalidateChildren(parent)) {
+        if (!queued_children_changed_ancestors_.Contains(ancestor)) {
+          queued_children_changed_ancestors_.push_back(ancestor);
+        }
+      }
+      return;
+    }
     ChildrenChangedWithCleanLayout(parent);
   } else {
     AXObject* ax_ancestor = ChildrenChanged(parent);
@@ -3067,6 +3092,38 @@ void AXObjectCacheImpl::ChildrenChangedOnAncestorOf(AXObject* obj) {
   // Any ancestor up to the first included ancestor can contain the now-detached
   // child in it's cached children, and therefore must update children.
   NotifyParentChildrenChanged(obj->ParentObjectIfPresent());
+}
+
+AXObjectCacheImpl::ScopedCachedAttributeValuesUpdate::
+    ScopedCachedAttributeValuesUpdate(AXObjectCacheImpl& cache)
+    : cache_(cache),
+      was_in_cached_attribute_values_update_(
+          cache.in_cached_attribute_values_update_) {
+  cache_.in_cached_attribute_values_update_ = true;
+}
+
+AXObjectCacheImpl::ScopedCachedAttributeValuesUpdate::
+    ~ScopedCachedAttributeValuesUpdate() {
+  // Nested scopes leave both the flag and the queue to the outermost scope.
+  if (was_in_cached_attribute_values_update_) {
+    return;
+  }
+
+  // Dispatch the queued notifications. in_cached_attribute_values_update_
+  // remains set so that any notifications raised by the dispatch itself
+  // are appended to the end of the queue that this loop is processing.
+  while (!cache_.queued_children_changed_ancestors_.empty()) {
+    AXObject* ancestor = cache_.queued_children_changed_ancestors_.front();
+    cache_.queued_children_changed_ancestors_.EraseAt(0);
+    if (ancestor->IsDetached()) {
+      continue;
+    }
+    // Use the 2-arg overload directly; this ancestor has already been
+    // invalidated by InvalidateChildren() at enqueue time.
+    cache_.ChildrenChangedWithCleanLayout(ancestor->GetNode(), ancestor);
+  }
+
+  cache_.in_cached_attribute_values_update_ = false;
 }
 
 void AXObjectCacheImpl::ChildrenChangedWithCleanLayout(AXObject* obj) {
@@ -3653,6 +3710,7 @@ bool AXObjectCacheImpl::CommitAXUpdates(Document& document, bool force) {
       CHECK(tree_update_callback_queue_main_.empty());
       CHECK(tree_update_callback_queue_popup_.empty());
       CHECK(nodes_with_pending_children_changed_.empty());
+      CHECK(queued_children_changed_ancestors_.empty());
 
       {
         lifecycle_.AdvanceTo(AXObjectCacheLifecycle::kFinalizingTree);
@@ -6850,6 +6908,7 @@ void AXObjectCacheImpl::Trace(Visitor* visitor) const {
 
   visitor->Trace(tree_update_callback_queue_main_);
   visitor->Trace(tree_update_callback_queue_popup_);
+  visitor->Trace(queued_children_changed_ancestors_);
   visitor->Trace(render_accessibility_host_);
   visitor->Trace(ax_tree_source_);
   visitor->Trace(pending_objects_to_serialize_);

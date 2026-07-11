@@ -40,7 +40,6 @@
 #include "components/prefs/pref_service.h"
 #include "components/safe_browsing/content/browser/client_side_detection_feature_cache.h"
 #include "components/safe_browsing/content/browser/client_side_detection_service.h"
-#include "components/safe_browsing/content/browser/client_side_phishing_model.h"
 #include "components/safe_browsing/content/browser/content_unsafe_resource_util.h"
 #include "components/safe_browsing/content/browser/credit_card_form_event.h"
 #include "components/safe_browsing/content/common/safe_browsing.mojom.h"
@@ -72,6 +71,7 @@
 #include "mojo/public/cpp/base/proto_wrapper.h"
 #include "net/base/ip_endpoint.h"
 #include "net/base/registry_controlled_domains/registry_controlled_domain.h"
+#include "net/base/url_util.h"
 #include "net/http/http_response_headers.h"
 #include "services/network/public/mojom/url_response_head.mojom.h"
 #include "third_party/blink/public/common/associated_interfaces/associated_interface_provider.h"
@@ -399,7 +399,12 @@ class ClientSideDetectionHost::ShouldClassifyUrlRequest {
 
     if (base::FeatureList::IsEnabled(
             kClientSideDetectionLocalResourceCheckFix)) {
-      if (url_.SchemeIsFile()) {
+      // safe_browsing::CanGetReputationOfUrl() is another option to be
+      // comprehensive, but since IsPrivateIPAddress and SchemeIsHTTPOrHTTPS
+      // are checked below, using net::IsLocalhost() is sufficient.
+      // TODO: Consider safe_browsing::CanGetReputationOfUrl() in the future to
+      // have a consolidated preclassification check result.
+      if (url_.SchemeIsFile() || net::IsLocalhost(url_)) {
         DontClassifyForPhishing(
             PreClassificationCheckResult::NO_CLASSIFY_LOCAL_RESOURCE);
       }
@@ -759,8 +764,7 @@ class ClientSideDetectionHost::ShouldClassifyUrlRequest {
                ClientSideDetectionType::TRIGGER_MODELS &&
            host_ && host_->delegate_->GetPrefs() &&
            IsEnhancedProtectionEnabled(*host_->delegate_->GetPrefs()) &&
-           base::RandDouble() <= kProbabilityForSendingSampleRequest &&
-           base::FeatureList::IsEnabled(kClientSideDetectionSamplePing);
+           base::RandDouble() <= kProbabilityForSendingSampleRequest;
   }
 
   bool ShouldAcceptHCAllowlist() {
@@ -2152,6 +2156,10 @@ void ClientSideDetectionHost::OnIntelligentScanDone(
   if (response.execution_success) {
     intelligent_scan_info.set_brand(response.brand);
     intelligent_scan_info.set_intent(response.intent);
+    if (base::FeatureList::IsEnabled(kClientSideDetectionScamScore) &&
+        response.scam_score.has_value()) {
+      intelligent_scan_info.set_scam_score(response.scam_score.value());
+    }
   } else {
     intelligent_scan_info.set_no_info_reason(response.no_info_reason);
   }

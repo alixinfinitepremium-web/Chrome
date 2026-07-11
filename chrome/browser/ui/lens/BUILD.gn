@@ -73,10 +73,10 @@ source_set("lens") {
     "//chrome/browser/ui/contextual_search",
     "//chrome/browser/ui/desktop_to_mobile_promos:service",
     "//chrome/browser/ui/exclusive_access",
+    "//chrome/browser/ui/immersive:immersive_mode_controller",
     "//chrome/browser/ui/omnibox",
     "//chrome/browser/ui/side_panel",
     "//chrome/browser/ui/side_panel:side_panel_views_dependent",
-    "//chrome/browser/ui/views/frame:immersive_mode_controller",
     "//chrome/browser/ui/views/side_panel",
     "//chrome/browser/ui/webui/cr_components/searchbox",
     "//chrome/browser/ui/webui/searchbox",
@@ -291,6 +291,7 @@ source_set("browser_tests") {
     "//base/test:test_support",
     "//chrome/browser",
     "//chrome/browser/autocomplete:aim_eligibility_service",
+    "//chrome/browser/contextual_tasks:impl",
     "//chrome/browser/contextual_tasks:test_support",
     "//chrome/browser/contextual_tasks:ui",
     "//chrome/browser/lens/core/mojom:mojo_bindings",
@@ -344,6 +345,7 @@ source_set("browser_tests") {
     "//ui/compositor",
     "//ui/events:events_base",
     "//ui/events:test_support",
+    "//ui/shell_dialogs:test_support",
     "//ui/views",
     "//ui/views:test_support",
     "//ui/views/controls/webview",
@@ -362,7 +364,11 @@ source_set("interactive_ui_tests") {
   testonly = true
   defines = [ "HAS_OUT_OF_PROC_TEST_RUNNER" ]
   sources = [
+    "contextual_tasks_lens_overlay_interactive_uitest.cc",
     "lens_overlay_controller_interactive_uitest.cc",
+    "lens_overlay_homework_page_action_interactive_uitest.cc",
+    "lens_overlay_interactive_test_base.cc",
+    "lens_overlay_interactive_test_base.h",
     "lens_permission_bubble_controller_interactive_uitest.cc",
   ]
   deps = [
@@ -386,6 +392,7 @@ source_set("interactive_ui_tests") {
     "//chrome/browser/ui/views/location_bar",
     "//chrome/test:test_support",
     "//chrome/test:test_support_ui",
+    "//chrome/test/user_education:impl",
     "//components/contextual_search:test_support",
     "//components/contextual_search/internal",
     "//components/contextual_tasks/public:test_support",
@@ -448,6 +455,7 @@ source_set("unit_tests") {
     "//components/endpoint_fetcher",
     "//components/lens:enterprise_policy",
     "//components/lens:features",
+    "//components/omnibox/browser:test_support",
     "//components/optimization_guide/content/browser:page_context_eligibility",
     "//components/tabs:test_support",
     "//content/public/browser",

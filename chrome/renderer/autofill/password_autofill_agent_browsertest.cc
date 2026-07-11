@@ -481,6 +481,12 @@ class FakeAutofillDriver : public mojom::AutofillDriver {
               FormWithEmailVerificationTokenSubmitted,
               (const FormData& form, FieldRendererId field_id),
               (override));
+  MOCK_METHOD(void,
+              DidDetectJavaScriptAutofill,
+              (const FormData& form,
+               FieldRendererId trigger_field_id,
+               const std::vector<FieldRendererId>& field_ids),
+              (override));
 
  private:
   mojo::AssociatedReceiver<mojom::AutofillDriver> receiver_{this};
@@ -4401,12 +4407,12 @@ TEST_F(PasswordAutofillAgentTest, ManualFallbackForSaving) {
   EXPECT_EQ(2, called_inform_about_user_input_count_);
 
   // Remove one character from the password value.
-  SimulateUserTypingASCIICharacter(ui::VKEY_BACK, true);
+  SimulateUserTypingKeyCode(ui::VKEY_BACK, true);
   EXPECT_EQ(3, called_inform_about_user_input_count_);
 
   // Add one character to the username value.
   SetFocused(username_element_);
-  SimulateUserTypingASCIICharacter('a', true);
+  SimulateUserTypingAsciiCharacter('a', true);
   EXPECT_EQ(4, called_inform_about_user_input_count_);
 
   // Remove username value.
@@ -4415,7 +4421,7 @@ TEST_F(PasswordAutofillAgentTest, ManualFallbackForSaving) {
 
   // Change the password.
   SetFocused(password_element_);
-  SimulateUserTypingASCIICharacter('a', true);
+  SimulateUserTypingAsciiCharacter('a', true);
   EXPECT_EQ(6, called_inform_about_user_input_count_);
 
   // Remove password value. Inform the driver too.
@@ -4423,7 +4429,7 @@ TEST_F(PasswordAutofillAgentTest, ManualFallbackForSaving) {
   EXPECT_EQ(7, called_inform_about_user_input_count_);
 
   // The user enters new password.
-  SimulateUserTypingASCIICharacter('a', true);
+  SimulateUserTypingAsciiCharacter('a', true);
   EXPECT_EQ(8, called_inform_about_user_input_count_);
 }
 
@@ -4447,7 +4453,7 @@ TEST_F(PasswordAutofillAgentTest, ManualFallbackForSaving_PasswordChangeForm) {
   WebInputElement new_password = GetInputElementByID("newpassword");
   ASSERT_TRUE(new_password);
   SetFocused(new_password);
-  SimulateUserTypingASCIICharacter('a', true);
+  SimulateUserTypingAsciiCharacter('a', true);
   EXPECT_EQ(3, called_inform_about_user_input_count_);
 
   // Edits of the confirmation password field trigger informing the driver.
@@ -4455,7 +4461,7 @@ TEST_F(PasswordAutofillAgentTest, ManualFallbackForSaving_PasswordChangeForm) {
       GetInputElementByID("confirmpassword");
   ASSERT_TRUE(confirmation_password);
   SetFocused(confirmation_password);
-  SimulateUserTypingASCIICharacter('a', true);
+  SimulateUserTypingAsciiCharacter('a', true);
   EXPECT_EQ(4, called_inform_about_user_input_count_);
 
   // Clear all password fields. The driver should be informed.
@@ -5252,14 +5258,16 @@ TEST_F(PasswordAutofillAgentTest, NoFillingFallbackForBannedFields) {
   // Password Manager found credential fields and has saved credentials.
   PasswordFormFillData form_data;
   form_data.form_renderer_id = FormRendererId();
-  form_data.username_element_renderer_id = FieldRef(username_field).GetId();
-  form_data.password_element_renderer_id = FieldRef(password_field).GetId();
+  form_data.username_element_renderer_id =
+      form_util::GetFieldRendererId(username_field);
+  form_data.password_element_renderer_id =
+      form_util::GetFieldRendererId(password_field);
   form_data.preferred_login.username_value = kAliceUsername16;
   form_data.preferred_login.password_value = kAlicePassword16;
   form_data.suggestion_banned_fields = {
-      FieldRef(credit_card_full_name_field).GetId(),
-      FieldRef(credit_card_number_field).GetId(),
-      FieldRef(credit_card_cvc_field).GetId()};
+      form_util::GetFieldRendererId(credit_card_full_name_field),
+      form_util::GetFieldRendererId(credit_card_number_field),
+      form_util::GetFieldRendererId(credit_card_cvc_field)};
   password_autofill_agent_->ApplyFillDataOnParsingCompletion(form_data);
 
   // Expect filling suggestion on credential forms.

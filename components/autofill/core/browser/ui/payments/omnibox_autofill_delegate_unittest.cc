@@ -12,9 +12,12 @@
 #include "base/test/task_environment.h"
 #include "components/autofill/core/browser/form_structure.h"
 #include "components/autofill/core/browser/form_structure_test_api.h"
+#include "components/autofill/core/browser/foundations/mock_autofill_manager_observer.h"
 #include "components/autofill/core/browser/foundations/with_test_autofill_client_driver_manager.h"
+#include "components/autofill/core/browser/metrics/form_events/form_events.h"
 #include "components/autofill/core/browser/metrics/payments/omnibox_autofill_metrics.h"
 #include "components/autofill/core/browser/test_utils/autofill_test_utils.h"
+#include "components/autofill/core/browser/ui/autofill_suggestion_delegate.h"
 #include "components/autofill/core/common/autofill_prefs.h"
 #include "components/autofill/core/common/form_data.h"
 #include "components/autofill/core/common/form_data_test_api.h"
@@ -462,6 +465,7 @@ TEST_F(OmniboxAutofillDelegateTest,
   payments_autofill_client().ShowOmniboxAutofillChip(
       /*suggestions=*/{},
       /*on_suggestions_shown=*/base::DoNothing(),
+      /*on_suggestions_hidden=*/base::DoNothing(),
       /*did_select_suggestion=*/base::DoNothing(),
       /*did_accept_suggestion=*/base::DoNothing());
 
@@ -481,10 +485,43 @@ TEST_F(OmniboxAutofillDelegateTest,
 }
 
 TEST_F(OmniboxAutofillDelegateTest,
+       OnAutofillManagerStateChanged_WasActive_ResetsState) {
+  FormData form = CreateTestCreditCardFormData();
+
+  // Find a candidate form. This sets `candidate_form_found_` to `true`.
+  {
+    base::HistogramTester histogram_tester;
+    FormsSeen({form});
+    histogram_tester.ExpectUniqueSample(
+        "Autofill.OmniboxAutofill.ShowChipDecisionPart1",
+        OmniboxAutofillShowChipDecisionPart1::kSuccess, 1);
+  }
+
+  // Trigger state change to inactive (from active), which triggers `Reset()`.
+  OmniboxAutofillDelegate* delegate =
+      payments_autofill_client().GetOmniboxAutofillDelegate();
+  ASSERT_TRUE(delegate);
+  delegate->OnAutofillManagerStateChanged(
+      autofill_manager(), /*previous=*/AutofillManager::LifecycleState::kActive,
+      /*current=*/AutofillManager::LifecycleState::kInactive);
+
+  // Verify that the state was reset. If it was reset, we can find the candidate
+  // form again and it will log success.
+  {
+    base::HistogramTester histogram_tester;
+    FormsSeen({form});
+    histogram_tester.ExpectUniqueSample(
+        "Autofill.OmniboxAutofill.ShowChipDecisionPart1",
+        OmniboxAutofillShowChipDecisionPart1::kSuccess, 1);
+  }
+}
+
+TEST_F(OmniboxAutofillDelegateTest,
        OnAutofillManagerStateChanged_WasNotActive_DoesNotHideChip) {
   payments_autofill_client().ShowOmniboxAutofillChip(
       /*suggestions=*/{},
       /*on_suggestions_shown=*/base::DoNothing(),
+      /*on_suggestions_hidden=*/base::DoNothing(),
       /*did_select_suggestion=*/base::DoNothing(),
       /*did_accept_suggestion=*/base::DoNothing());
 
@@ -511,6 +548,7 @@ TEST_F(OmniboxAutofillDelegateTest, OnAfterFormsSeen_FormRemoved_HidesChip) {
   payments_autofill_client().ShowOmniboxAutofillChip(
       /*suggestions=*/{},
       /*on_suggestions_shown=*/base::DoNothing(),
+      /*on_suggestions_hidden=*/base::DoNothing(),
       /*did_select_suggestion=*/base::DoNothing(),
       /*did_accept_suggestion=*/base::DoNothing());
 
@@ -524,6 +562,33 @@ TEST_F(OmniboxAutofillDelegateTest, OnAfterFormsSeen_FormRemoved_HidesChip) {
   EXPECT_FALSE(payments_autofill_client().omnibox_autofill_chip_shown());
 }
 
+TEST_F(OmniboxAutofillDelegateTest, OnAfterFormsSeen_FormRemoved_ResetsState) {
+  FormData form = CreateTestCreditCardFormData();
+
+  // Find a candidate form. This sets `candidate_form_found_` to `true`.
+  {
+    base::HistogramTester histogram_tester;
+    FormsSeen({form});
+    histogram_tester.ExpectUniqueSample(
+        "Autofill.OmniboxAutofill.ShowChipDecisionPart1",
+        OmniboxAutofillShowChipDecisionPart1::kSuccess, 1);
+  }
+
+  // Remove the form. This should trigger `OnAfterFormsSeen` and `Reset()`.
+  autofill_manager().OnFormsSeen(/*updated_forms=*/{},
+                                 /*removed_forms=*/{form.global_id()});
+
+  // Verify that the state was reset. If it was reset, we can find the candidate
+  // form again.
+  {
+    base::HistogramTester histogram_tester;
+    FormsSeen({form});
+    histogram_tester.ExpectUniqueSample(
+        "Autofill.OmniboxAutofill.ShowChipDecisionPart1",
+        OmniboxAutofillShowChipDecisionPart1::kSuccess, 1);
+  }
+}
+
 TEST_F(OmniboxAutofillDelegateTest,
        OnAfterFormsSeen_FormNotRemoved_DoesNotHideChip) {
   FormData form = CreateTestCreditCardFormData();
@@ -532,6 +597,7 @@ TEST_F(OmniboxAutofillDelegateTest,
   payments_autofill_client().ShowOmniboxAutofillChip(
       /*suggestions=*/{},
       /*on_suggestions_shown=*/base::DoNothing(),
+      /*on_suggestions_hidden=*/base::DoNothing(),
       /*did_select_suggestion=*/base::DoNothing(),
       /*did_accept_suggestion=*/base::DoNothing());
 
@@ -625,7 +691,8 @@ TEST_F(OmniboxAutofillDelegateTest,
   EXPECT_FALSE(payments_autofill_client().omnibox_autofill_chip_shown());
 }
 
-TEST_F(OmniboxAutofillDelegateTest, OnGetIntersectionObserverInfo_IsVisible) {
+TEST_F(OmniboxAutofillDelegateTest,
+       OnGetIntersectionObserverInfo_IsVisible_ShowsChip) {
   FormData form = CreateTestCreditCardFormData();
   FormsSeen({form});
 
@@ -636,6 +703,183 @@ TEST_F(OmniboxAutofillDelegateTest, OnGetIntersectionObserverInfo_IsVisible) {
   delegate->OnGetIntersectionObserverInfo(/*is_visible=*/true);
 
   EXPECT_TRUE(payments_autofill_client().omnibox_autofill_chip_shown());
+}
+
+TEST_F(OmniboxAutofillDelegateTest,
+       OnGetIntersectionObserverInfo_IsVisible_LogsMetrics) {
+  base::HistogramTester histogram_tester;
+
+  FormData form = CreateTestCreditCardFormData();
+  FormsSeen({form});
+
+  OmniboxAutofillDelegate* delegate =
+      payments_autofill_client().GetOmniboxAutofillDelegate();
+  ASSERT_TRUE(delegate);
+
+  delegate->OnGetIntersectionObserverInfo(/*is_visible=*/true);
+
+  // Verify that suggestions count and secure form are logged. `SetUp()` adds 1
+  // credit card, so count should be 1.
+  histogram_tester.ExpectUniqueSample("Autofill.SuggestionsCount.CreditCard", 1,
+                                      1);
+  histogram_tester.ExpectUniqueSample("Autofill.QueriedCreditCardFormIsSecure",
+                                      true, 1);
+}
+
+TEST_F(OmniboxAutofillDelegateTest, OnSuggestionsShown_ForwardToObserver) {
+  FormData form = CreateTestCreditCardFormData();
+  FormsSeen({form});
+
+  MockAutofillManagerObserver observer;
+  autofill_manager().AddObserver(&observer);
+
+  OmniboxAutofillDelegate* delegate =
+      payments_autofill_client().GetOmniboxAutofillDelegate();
+  ASSERT_TRUE(delegate);
+
+  std::vector<Suggestion> suggestions = {
+      Suggestion(SuggestionType::kCreditCardEntry)};
+
+  EXPECT_CALL(observer, OnSuggestionsShown(::testing::Ref(autofill_manager()),
+                                           testing::_));
+  delegate->OnSuggestionsShown(suggestions, std::nullopt);
+
+  autofill_manager().RemoveObserver(&observer);
+}
+
+TEST_F(OmniboxAutofillDelegateTest, OnSuggestionsShown_LogFormEvents) {
+  base::HistogramTester histogram_tester;
+
+  FormData form = CreateTestCreditCardFormData();
+  FormsSeen({form});
+
+  OmniboxAutofillDelegate* delegate =
+      payments_autofill_client().GetOmniboxAutofillDelegate();
+  ASSERT_TRUE(delegate);
+
+  std::vector<Suggestion> suggestions = {
+      Suggestion(SuggestionType::kCreditCardEntry)};
+
+  delegate->OnSuggestionsShown(suggestions, std::nullopt);
+
+  // Verify interaction and shown form events.
+  histogram_tester.ExpectBucketCount(
+      "Autofill.FormEvents.CreditCard",
+      autofill_metrics::FORM_EVENT_INTERACTED_ONCE, 1);
+  histogram_tester.ExpectBucketCount(
+      "Autofill.FormEvents.CreditCard",
+      autofill_metrics::FORM_EVENT_SUGGESTIONS_SHOWN, 1);
+  histogram_tester.ExpectBucketCount(
+      "Autofill.FormEvents.CreditCard",
+      autofill_metrics::FORM_EVENT_SUGGESTIONS_SHOWN_ONCE, 1);
+
+  // Verify form events log with the correct data suffix. `SetUp()` adds a
+  // masked server card, so it should log under ".WithOnlyServerData".
+  histogram_tester.ExpectBucketCount(
+      "Autofill.FormEvents.CreditCard.WithOnlyServerData",
+      autofill_metrics::FORM_EVENT_INTERACTED_ONCE, 1);
+  histogram_tester.ExpectBucketCount(
+      "Autofill.FormEvents.CreditCard.WithOnlyServerData",
+      autofill_metrics::FORM_EVENT_SUGGESTIONS_SHOWN, 1);
+  histogram_tester.ExpectBucketCount(
+      "Autofill.FormEvents.CreditCard.WithOnlyServerData",
+      autofill_metrics::FORM_EVENT_SUGGESTIONS_SHOWN_ONCE, 1);
+}
+
+TEST_F(OmniboxAutofillDelegateTest, OnSuggestionsShown_LogTimingMetrics) {
+  base::HistogramTester histogram_tester;
+
+  FormData form = CreateTestCreditCardFormData();
+  FormsSeen({form});
+
+  OmniboxAutofillDelegate* delegate =
+      payments_autofill_client().GetOmniboxAutofillDelegate();
+  ASSERT_TRUE(delegate);
+
+  std::vector<Suggestion> suggestions = {
+      Suggestion(SuggestionType::kCreditCardEntry)};
+
+  delegate->OnSuggestionsShown(suggestions, std::nullopt);
+
+  // Verify timing metrics logging.
+  histogram_tester.ExpectTotalCount(
+      "Autofill.Timing.ParseFormUntilInteraction2", 1);
+}
+
+TEST_F(OmniboxAutofillDelegateTest, OnSuggestionsShown_LogFunnelMetrics) {
+  base::HistogramTester histogram_tester;
+
+  FormData form = CreateTestCreditCardFormData();
+  FormsSeen({form});
+
+  OmniboxAutofillDelegate* delegate =
+      payments_autofill_client().GetOmniboxAutofillDelegate();
+  ASSERT_TRUE(delegate);
+
+  std::vector<Suggestion> suggestions = {
+      Suggestion(SuggestionType::kCreditCardEntry)};
+
+  delegate->OnSuggestionsShown(suggestions, std::nullopt);
+
+  // Reset the manager to trigger logger destruction and metrics logging.
+  autofill_manager().Reset();
+
+  histogram_tester.ExpectUniqueSample("Autofill.Funnel.ParsedAsType.CreditCard",
+                                      true, 1);
+  histogram_tester.ExpectUniqueSample(
+      "Autofill.Funnel.ParsedAsType.StandaloneCvc", false, 1);
+  histogram_tester.ExpectUniqueSample(
+      "Autofill.Funnel.InteractionAfterParsedAsType.CreditCard", true, 1);
+  histogram_tester.ExpectUniqueSample(
+      "Autofill.Funnel.SuggestionAfterInteraction.CreditCard", true, 1);
+  histogram_tester.ExpectUniqueSample(
+      "Autofill.Funnel.FillAfterSuggestion.CreditCard", false, 1);
+}
+
+TEST_F(OmniboxAutofillDelegateTest, OnSuggestionsShown_DoesNotLogKeyMetrics) {
+  base::HistogramTester histogram_tester;
+
+  FormData form = CreateTestCreditCardFormData();
+  FormsSeen({form});
+
+  OmniboxAutofillDelegate* delegate =
+      payments_autofill_client().GetOmniboxAutofillDelegate();
+  ASSERT_TRUE(delegate);
+
+  std::vector<Suggestion> suggestions = {
+      Suggestion(SuggestionType::kCreditCardEntry)};
+
+  delegate->OnSuggestionsShown(suggestions, std::nullopt);
+
+  // Reset the manager to trigger logger destruction and metrics logging.
+  autofill_manager().Reset();
+
+  // Key metrics are only logged upon submission. Since there was no submission,
+  // they should not be logged.
+  histogram_tester.ExpectTotalCount(
+      "Autofill.KeyMetrics.FillingReadiness.CreditCard", 0);
+  histogram_tester.ExpectTotalCount(
+      "Autofill.KeyMetrics.FillingAcceptance.CreditCard", 0);
+  histogram_tester.ExpectTotalCount(
+      "Autofill.KeyMetrics.FillingCorrectness.CreditCard", 0);
+  histogram_tester.ExpectTotalCount(
+      "Autofill.KeyMetrics.FillingAssistance.CreditCard", 0);
+}
+
+TEST_F(OmniboxAutofillDelegateTest, OnSuggestionsHidden_ForwardToObserver) {
+  MockAutofillManagerObserver observer;
+  autofill_manager().AddObserver(&observer);
+
+  OmniboxAutofillDelegate* delegate =
+      payments_autofill_client().GetOmniboxAutofillDelegate();
+  ASSERT_TRUE(delegate);
+
+  EXPECT_CALL(observer,
+              OnSuggestionsHidden(::testing::Ref(autofill_manager()),
+                                  SuggestionHidingReason::kUserAborted));
+  delegate->OnSuggestionsHidden(SuggestionHidingReason::kUserAborted);
+
+  autofill_manager().RemoveObserver(&observer);
 }
 
 }  // namespace

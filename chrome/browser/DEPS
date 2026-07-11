@@ -72,6 +72,7 @@ include_rules = [
   "+components/bookmarks/managed",
   "+components/bookmarks/test",
   "+components/breadcrumbs/core",
+  "+components/browser_actuator/public",
   "+components/browser_apis/bookmarks",
   "+components/browser_apis/browser_controls",
   "+components/browser_apis/tab_drag",
@@ -123,6 +124,7 @@ include_rules = [
   "+components/crash/core/browser",
   "+components/crash/core/common",
   "+components/credential_management",
+  "+components/critical_actions",
   "+components/cross_device/nearby",
   "+components/crx_file",
   "+components/desks_storage",
@@ -375,6 +377,7 @@ include_rules = [
   "+components/sync_device_info",
   "+components/sync_preferences",
   "+components/sync_sessions",
+  "+components/sync_tab_context",
   "+components/sync_user_events",
   "+components/tabs",
   "+components/tab_groups",
@@ -648,5 +651,8 @@ specific_include_rules = {
   ],
   r"android/omnibox/composebox_query_controller_bridge\.cc": [
     "+components/contextual_search/internal",
+  ],
+  "spellcheck_service.cc": [
+    "+chrome/browser/search/search.h",
   ],
 }

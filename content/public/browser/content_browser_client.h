@@ -268,6 +268,7 @@ class RenderFrameHost;
 class RenderProcessHost;
 class ResponsivenessCalculatorDelegate;
 class SecurityPrincipal;
+class SensorDelegate;
 class SerialDelegate;
 class ServiceWorkerContext;
 class SiteInstance;
@@ -623,7 +624,7 @@ class CONTENT_EXPORT ContentBrowserClient {
   // Computes the IPAddressSpace of the given URL with embedder knowledge.
   // This is used to assign values to special schemes recognized only by the
   // embedders of content/. Returns kUnknown if no such scheme was found.
-  // See https://wicg.github.io/private-network-access/ for details on what
+  // See https://wicg.github.io/local-network-access/ for details on what
   // the IPAddressSpace represents.
   virtual network::mojom::IPAddressSpace DetermineAddressSpaceFromURL(
       const GURL& url);
@@ -852,6 +853,10 @@ class CONTENT_EXPORT ContentBrowserClient {
   // This function is defined on all platforms, but is expected to always return
   // false on platforms that do not support Top Chrome WebUIs, e.g., Android.
   virtual bool IsTopChromeWebUIURL(const GURL& url);
+
+  // Returns true if the given `site_url` is allowed to use MojoJS bindings.
+  virtual bool ShouldAllowMojoJsBindingsForSite(BrowserContext* browser_context,
+                                                const GURL& site_url);
 
   // Returns whether the application running in the |render_frame_host| is
   // allowed to automatically capture all screens by using the
@@ -2133,8 +2138,21 @@ class CONTENT_EXPORT ContentBrowserClient {
   // Returns true when the embedder wants to intercept a websocket connection.
   virtual bool WillInterceptWebSocket(RenderFrameHost* frame);
 
+  struct CONTENT_EXPORT WebSocketOptions {
+    WebSocketOptions();
+    ~WebSocketOptions();
+    WebSocketOptions(WebSocketOptions&&);
+    WebSocketOptions& operator=(WebSocketOptions&&) = default;
+
+    WebSocketOptions(const WebSocketOptions&) = delete;
+    WebSocketOptions& operator=(const WebSocketOptions&) = delete;
+
+    uint32_t options = network::mojom::kWebSocketOptionNone;
+    mojo::PendingRemote<network::mojom::TrustedHeaderClient> header_client;
+  };
+
   // Returns the WebSocket creation options.
-  virtual uint32_t GetWebSocketOptions(RenderFrameHost* frame);
+  virtual WebSocketOptions GetWebSocketOptions(RenderFrameHost* frame);
 
   using WebSocketFactory = base::OnceCallback<void(
       const GURL& /* url */,
@@ -2159,7 +2177,8 @@ class CONTENT_EXPORT ContentBrowserClient {
       const net::SiteForCookies& site_for_cookies,
       const std::optional<std::string>& user_agent,
       mojo::PendingRemote<network::mojom::WebSocketHandshakeClient>
-          handshake_client);
+          handshake_client,
+      WebSocketOptions options);
 
   // Allows the embedder to control if establishing a WebTransport connection is
   // allowed.
@@ -2399,6 +2418,9 @@ class CONTENT_EXPORT ContentBrowserClient {
   // Allows the embedder to provide an implementation of the WebUSB API.
   virtual UsbDelegate* GetUsbDelegate();
 
+  // Allows the embedder to provide an implementation of the Generic Sensor API.
+  virtual SensorDelegate* GetSensorDelegate();
+
   // Allows the embedder to provide an implementation of the Local Font Access
   // API.
   virtual FontAccessDelegate* GetFontAccessDelegate();
@@ -2584,6 +2606,10 @@ class CONTENT_EXPORT ContentBrowserClient {
   // Returns true if the network service should be sandboxed. false otherwise.
   // This is called on the UI thread.
   virtual bool ShouldSandboxNetworkService();
+
+  // Returns true if the WebNN compiler service should be sandboxed. false
+  // otherwise. This is called on the UI thread.
+  virtual bool ShouldSandboxWebNNCompilerService();
 
   // Returns true if system DNS resolution should be run outside of the network
   // service. This is useful if the network service is sandboxed but system DNS
@@ -2835,11 +2861,11 @@ class CONTENT_EXPORT ContentBrowserClient {
     kDefault,
   };
 
-  // Returns whether and how we should override the default private network
+  // Returns whether and how we should override the default local network
   // request policy.
   //
   // See the Private Network Access spec for more details:
-  // https://wicg.github.io/private-network-access.
+  // https://wicg.github.io/local-network-access.
   //
   // |browser_context| must not be nullptr. Caller retains ownership.
   // |origin| is the origin of a navigation ready to commit.
@@ -3087,6 +3113,26 @@ class CONTENT_EXPORT ContentBrowserClient {
       const std::optional<blink::LocalFrameToken>& source_frame_token,
       const url::Origin& source_origin,
       const std::optional<url::Origin>& target_origin);
+
+  // Returns true if the frame identified by `frame_tree_node_id`, committing
+  // at `url`, should be treated as a secure-context inheritance root. Such a
+  // frame acts as an independent security boundary that does not inherit an
+  // insecure state from its embedder. Instead, the frame evaluates its
+  // secure context status based solely on its own origin's trustworthiness,
+  // ignoring the parent's status.
+  //
+  // This is used to isolate trusted environments embedded within potentially
+  // insecure contexts. For example, MIME-handler extension OOPIFs need this
+  // because they can be embedded under arbitrary (possibly HTTP) pages yet
+  // must maintain their secure-context status to support features like
+  // Service Workers.
+  //
+  // `parent_frame` is the evaluated frame's committed parent/embedder, or
+  // nullptr for a main frame. The evaluated frame may be mid-navigation with
+  // no committed RenderFrameHost yet, so it is identified by FrameTreeNode id.
+  virtual bool IsSecureContextRoot(RenderFrameHost* parent_frame,
+                                   FrameTreeNodeId frame_tree_node_id,
+                                   const GURL& url);
 
   // Browser-side authoritative permission check, allowing embedders to grant
   // a file picker exemption to a known-trusted cross-origin subframe.

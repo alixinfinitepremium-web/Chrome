@@ -5,6 +5,7 @@
 import './omnibox_popup_searchbox.js';
 import '/strings.m.js';
 
+import {ColorChangeUpdater} from '//resources/cr_components/color_change_listener/colors_css_updater.js';
 import {EventTracker} from '//resources/js/event_tracker.js';
 import {CrLitElement} from '//resources/lit/v3_0/lit.rollup.js';
 
@@ -19,18 +20,15 @@ export class OmniboxFullAppElement extends CrLitElement {
     return getHtml.bind(this)();
   }
 
-  private isDebug_: boolean =
-      new URLSearchParams(window.location.search).has('debug');
   private eventTracker_ = new EventTracker();
+
+  constructor() {
+    super();
+    ColorChangeUpdater.forDocument().start();
+  }
 
   override connectedCallback() {
     super.connectedCallback();
-    if (!this.isDebug_) {
-      this.eventTracker_.add(
-          document.documentElement, 'contextmenu', (e: Event) => {
-            e.preventDefault();
-          });
-    }
   }
 
   override disconnectedCallback() {

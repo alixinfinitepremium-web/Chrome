@@ -32,7 +32,7 @@
 #include "content/public/common/content_switches.h"
 #include "content/public/test/browser_test.h"
 #include "content/public/test/browser_test_utils.h"
-#include "ui/views/widget/widget_interactive_uitest_utils.h"
+#include "ui/views/test/views_test_utils.h"
 
 #if BUILDFLAG(IS_CHROMEOS)
 #include "ash/constants/ash_features.h"
@@ -47,7 +47,7 @@ class SessionRestoreInteractiveTest : public InProcessBrowserTest {
  protected:
   void SetUpOnMainThread() override {
     SessionStartupPref pref(SessionStartupPref::LAST);
-    SessionStartupPref::SetStartupPref(browser()->profile(), pref);
+    SessionStartupPref::SetStartupPref(browser()->GetProfile(), pref);
   }
 
   bool SetUpUserDataDirectory() override {
@@ -59,7 +59,7 @@ class SessionRestoreInteractiveTest : public InProcessBrowserTest {
   }
 
   BrowserWindowInterface* QuitBrowserAndRestore(Browser* browser) {
-    Profile* profile = browser->profile();
+    Profile* profile = browser->GetProfile();
 
     // Close the browser.
     auto keep_alive = std::make_unique<ScopedKeepAlive>(
@@ -191,16 +191,10 @@ IN_PROC_BROWSER_TEST_F(SessionRestoreInteractiveTest, MAYBE_FocusOnLaunch) {
 // Regression test for https://crbug.com/40655640.
 IN_PROC_BROWSER_TEST_F(SessionRestoreInteractiveTest,
                        MAYBE_RestoreMinimizedWindow) {
-#if BUILDFLAG(IS_WIN)
-  if (base::FeatureList::IsEnabled(features::kInitialWebUI)) {
-    GTEST_SKIP() << "Skipping test on Windows with InitialWebUI enabled. "
-                    "See crbug.com/477426026";
-  }
-#endif
   // Minimize the window.
   views::test::PropertyWaiter minimize_waiter(
       base::BindRepeating(&ui::BaseWindow::IsMinimized,
-                          base::Unretained(browser()->window())),
+                          base::Unretained(browser()->GetWindow())),
       true);
   browser()->GetWindow()->Minimize();
   EXPECT_TRUE(minimize_waiter.Wait());
@@ -226,12 +220,12 @@ IN_PROC_BROWSER_TEST_F(SessionRestoreInteractiveTest,
   Profile* profile = browser()->profile();
 
   // Create a second browser.
-  CreateBrowser(browser()->profile());
+  CreateBrowser(browser()->GetProfile());
 
   // Minimize the first browser window.
   views::test::PropertyWaiter minimize_waiter(
       base::BindRepeating(&ui::BaseWindow::IsMinimized,
-                          base::Unretained(browser()->window())),
+                          base::Unretained(browser()->GetWindow())),
       true);
   browser()->GetWindow()->Minimize();
   EXPECT_TRUE(minimize_waiter.Wait());

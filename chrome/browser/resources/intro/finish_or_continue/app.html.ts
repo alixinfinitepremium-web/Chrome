@@ -9,15 +9,15 @@ import type {FinishOrContinueAppElement} from './app.js';
 export function getHtml(this: FinishOrContinueAppElement) {
   // clang-format off
   return html`<!--_html_template_start_-->
-<cr-lottie id="left-animation" class="animation"
+<cr-lottie id="leftAnimation" class="animation"
     .animationUrl="${this.getAnimationUrl_('left')}"
     ?autoplay="${!this.disableAnimations_}">
 </cr-lottie>
-<cr-lottie id="right-animation" class="animation"
+<cr-lottie id="rightAnimation" class="animation"
     .animationUrl="${this.getAnimationUrl_('right')}"
     ?autoplay="${!this.disableAnimations_}">
 </cr-lottie>
-<cr-lottie id="bottom-animation" class="animation"
+<cr-lottie id="bottomAnimation" class="animation"
     .animationUrl="${this.getAnimationUrl_('bottom')}"
     ?autoplay="${!this.disableAnimations_}">
 </cr-lottie>
@@ -27,15 +27,18 @@ export function getHtml(this: FinishOrContinueAppElement) {
 <h1 class="title">$i18n{finishOrContinueTitle}</h1>
 <div id="buttonContainer">
   <if expr="not is_win">
-    <cr-button id="continueEducationButton">
+    <cr-button id="continueEducationButton"
+        @click="${this.onContinueEducationClick_}">
       ${this.getContinueEducationButtonLabel_()}
     </cr-button>
   </if>
-  <cr-button id="startBrowsingButton" class="action-button">
+  <cr-button id="startBrowsingButton" class="action-button"
+      @click="${this.onStartBrowsingClick_}">
     $i18n{startBrowsingButtonLabel}
   </cr-button>
   <if expr="is_win">
-    <cr-button id="continueEducationButton">
+    <cr-button id="continueEducationButton"
+        @click="${this.onContinueEducationClick_}">
       ${this.getContinueEducationButtonLabel_()}
     </cr-button>
   </if>

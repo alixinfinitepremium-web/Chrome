@@ -7,12 +7,12 @@
 
 #include <vector>
 
+#include "components/browser_apis/tab_drag/adapters/tab_drag_window_adapter.h"
+#include "components/browser_apis/tab_drag/destinations/drop_target_id.h"
 #include "components/browser_apis/tab_strip/types/node_id.h"
 #include "ui/gfx/geometry/point.h"
 
 namespace tabs_api {
-
-class TabDragWindowAdapter;
 
 class TabDragSessionListener {
  public:
@@ -20,15 +20,19 @@ class TabDragSessionListener {
 
   // Called when a new drag session starts.
   virtual void OnSessionStarted(std::vector<tabs_api::NodeId> dragged_tabs,
-                                TabDragWindowAdapter* source_window) = 0;
+                                TabDragWindowId source_window_id,
+                                const gfx::Point& start_point) = 0;
 
-  // Called when the active target window for the drag changes.
-  // `new_target` is the window now under the cursor, or nullptr if none.
-  virtual void OnTargetWindowChanged(TabDragWindowAdapter* new_target,
-                                     const gfx::Point& screen_point) = 0;
+  // Called when the active drop target for the drag changes.
+  virtual void OnTargetChanged(DropTargetId new_target,
+                               const gfx::Point& screen_point) = 0;
 
   // Called when the drag moves within the current target window.
   virtual void OnDragMoved(const gfx::Point& screen_point) = 0;
+
+  // Called when the drag transitions from attached to detached (outside any
+  // window).
+  virtual void OnDragDetached(const gfx::Point& screen_point) = 0;
 
   // Called when the session ends with a drop.
   virtual void OnSessionDropped(const gfx::Point& screen_point) = 0;

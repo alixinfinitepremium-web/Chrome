@@ -44,7 +44,7 @@ const CGFloat kProgressCellHeight = 150.0;
 // Width ratio for stats card group.
 const CGFloat kStatCardWidthRatio = 0.88;
 // Height of the stats card cell.
-const CGFloat kStatCardHeight = 96.0;
+const CGFloat kStatCardHeight = 140.0;
 // Height of the tasks card cell.
 const CGFloat kTasksCellHeight = 350.0;
 }  // namespace
@@ -69,6 +69,10 @@ const CGFloat kTasksCellHeight = 350.0;
   NSArray<LevelUpStat*>* _stats;
   // The diffable data source.
   UICollectionViewDiffableDataSource<NSString*, NSString*>* _diffableDataSource;
+  // The menu button in the navigation bar.
+  UIButton* _menuButton;
+  // Whether progress updates are enabled.
+  BOOL _progressUpdatesEnabled;
 }
 
 @synthesize delegate = _delegate;
@@ -90,12 +94,18 @@ const CGFloat kTasksCellHeight = 350.0;
   _stats = [stats copy];
 }
 
+- (void)setProgressUpdatesEnabled:(BOOL)enabled {
+  _progressUpdatesEnabled = enabled;
+  [self updateMenuButtonMenu];
+}
+
 #pragma mark - LevelUpProfileConsumer
 
 - (void)setUserFullName:(NSString*)userFullName
              userAvatar:(UIImage*)userAvatar {
   _userFullName = userFullName;
   _userAvatar = userAvatar;
+  [self applyDataSnapshotAnimated:YES];
 }
 
 #pragma mark - LevelUpTaskCollectionViewCellDelegate
@@ -106,6 +116,11 @@ const CGFloat kTasksCellHeight = 350.0;
 
 - (void)taskCollectionViewDidTapCompletedHeader:(UICollectionViewCell*)cell {
   // Collapsible section is not supported on main screen.
+}
+
+- (void)taskCollectionViewCell:(LevelUpTaskCollectionViewCell*)cell
+                    didTapTask:(LevelUpTask*)task {
+  [self.delegate levelUpViewController:self didTapTask:task];
 }
 
 #pragma mark - Private
@@ -136,7 +151,9 @@ const CGFloat kTasksCellHeight = 350.0;
     NSString* statIdentifier =
         [NSString stringWithFormat:@"StatCardItem_%d", stat.type];
     if ([statIdentifier isEqualToString:itemIdentifier]) {
-      [cell setStatTitle:stat.title subtitle:stat.subtitle image:stat.image];
+      [cell setStatTitle:stat.title
+                 subtitle:stat.subtitle
+          imageLottieName:stat.imageLottieName];
       break;
     }
   }
@@ -147,16 +164,16 @@ const CGFloat kTasksCellHeight = 350.0;
   self.view.backgroundColor = [UIColor colorNamed:kSecondaryBackgroundColor];
   self.title = l10n_util::GetNSString(IDS_IOS_TOOLS_MENU_LEVEL_UP);
 
-  UIButton* menuButton = [UIButton buttonWithType:UIButtonTypeSystem];
-  menuButton.backgroundColor = UIColor.clearColor;
-  menuButton.tintColor = [UIColor colorNamed:kTextPrimaryColor];
-  [menuButton setImage:DefaultSymbolTemplateWithPointSize(
-                           kEllipsisSymbol, kSymbolAccessoryPointSize)
-              forState:UIControlStateNormal];
-  menuButton.menu = [UIMenu menuWithTitle:@"" children:@[]];
-  menuButton.showsMenuAsPrimaryAction = YES;
+  _menuButton = [UIButton buttonWithType:UIButtonTypeSystem];
+  _menuButton.backgroundColor = UIColor.clearColor;
+  _menuButton.tintColor = [UIColor colorNamed:kTextPrimaryColor];
+  [_menuButton setImage:DefaultSymbolTemplateWithPointSize(
+                            kEllipsisSymbol, kSymbolAccessoryPointSize)
+               forState:UIControlStateNormal];
+  _menuButton.showsMenuAsPrimaryAction = YES;
+  [self updateMenuButtonMenu];
   self.navigationItem.leftBarButtonItem =
-      [[UIBarButtonItem alloc] initWithCustomView:menuButton];
+      [[UIBarButtonItem alloc] initWithCustomView:_menuButton];
 
   UIButton* dismissButton = [UIButton buttonWithType:UIButtonTypeSystem];
   dismissButton.backgroundColor = UIColor.clearColor;
@@ -169,6 +186,33 @@ const CGFloat kTasksCellHeight = 350.0;
           forControlEvents:UIControlEventTouchUpInside];
   self.navigationItem.rightBarButtonItem =
       [[UIBarButtonItem alloc] initWithCustomView:dismissButton];
+}
+
+// Re-creates and applies the menu to the left bar button item.
+- (void)updateMenuButtonMenu {
+  NSString* title =
+      _progressUpdatesEnabled
+          ? l10n_util::GetNSString(IDS_IOS_LEVEL_UP_TURN_OFF_PROGRESS_UPDATES)
+          : l10n_util::GetNSString(IDS_IOS_LEVEL_UP_TURN_ON_PROGRESS_UPDATES);
+  NSString* symbolName =
+      _progressUpdatesEnabled ? kBellSlashSymbol : kBellSymbol;
+  UIImage* image =
+      DefaultSymbolTemplateWithPointSize(symbolName, kSymbolAccessoryPointSize);
+
+  __weak __typeof(self) weakSelf = self;
+  UIAction* toggleAction = [UIAction actionWithTitle:title
+                                               image:image
+                                          identifier:nil
+                                             handler:^(UIAction* action) {
+                                               [weakSelf toggleProgressUpdates];
+                                             }];
+
+  _menuButton.menu = [UIMenu menuWithTitle:@"" children:@[ toggleAction ]];
+}
+
+// Calls the delegate to toggle the progress updates.
+- (void)toggleProgressUpdates {
+  [self.delegate didTapToggleProgressUpdates:self];
 }
 
 // Sets up the collection view layout.
@@ -204,11 +248,7 @@ const CGFloat kTasksCellHeight = 350.0;
                configurationHandler:^(LevelUpWelcomeHeaderView* cell,
                                       NSIndexPath* indexPath,
                                       NSString* itemIdentifier) {
-                 __strong __typeof(weakSelf) strongSelf = weakSelf;
-                 if (!strongSelf) {
-                   return;
-                 }
-                 [strongSelf configureWelcomeHeaderCell:cell];
+                 [weakSelf configureWelcomeHeaderCell:cell];
                }];
 
   UICollectionViewCellRegistration* progressRegistration =
@@ -217,11 +257,7 @@ const CGFloat kTasksCellHeight = 350.0;
                configurationHandler:^(LevelUpProgressView* cell,
                                       NSIndexPath* indexPath,
                                       NSString* itemIdentifier) {
-                 __strong __typeof(weakSelf) strongSelf = weakSelf;
-                 if (!strongSelf) {
-                   return;
-                 }
-                 [strongSelf configureProgressCell:cell];
+                 [weakSelf configureProgressCell:cell];
                }];
 
   UICollectionViewCellRegistration* tasksRegistration =
@@ -230,11 +266,7 @@ const CGFloat kTasksCellHeight = 350.0;
                configurationHandler:^(LevelUpTaskCollectionViewCell* cell,
                                       NSIndexPath* indexPath,
                                       NSString* itemIdentifier) {
-                 __strong __typeof(weakSelf) strongSelf = weakSelf;
-                 if (!strongSelf) {
-                   return;
-                 }
-                 [strongSelf configureTasksCell:cell];
+                 [weakSelf configureTasksCell:cell];
                }];
 
   UICollectionViewCellRegistration* statRegistration =
@@ -243,12 +275,8 @@ const CGFloat kTasksCellHeight = 350.0;
                configurationHandler:^(LevelUpStatView* cell,
                                       NSIndexPath* indexPath,
                                       NSString* itemIdentifier) {
-                 __strong __typeof(weakSelf) strongSelf = weakSelf;
-                 if (!strongSelf) {
-                   return;
-                 }
-                 [strongSelf configureStatCell:cell
-                                itemIdentifier:itemIdentifier];
+                 [weakSelf configureStatCell:cell
+                              itemIdentifier:itemIdentifier];
                }];
 
   _diffableDataSource = [[UICollectionViewDiffableDataSource alloc]
@@ -334,6 +362,8 @@ const CGFloat kTasksCellHeight = 350.0;
 
   [snapshot appendItemsWithIdentifiers:@[ kTasksItemIdentifier ]
              intoSectionWithIdentifier:kTasksSectionIdentifier];
+
+  [snapshot reconfigureItemsWithIdentifiers:@[ kWelcomeItemIdentifier ]];
 
   [_diffableDataSource applySnapshot:snapshot animatingDifferences:animated];
 }

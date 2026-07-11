@@ -488,8 +488,12 @@ void WebSocket::WebSocketEventHandler::OnStartOpeningHandshake(
   net::HttpRequestHeaders::Iterator it(request->headers);
   while (it.GetNext()) {
     if (!impl_->has_raw_headers_access_ &&
-        base::EqualsCaseInsensitiveASCII(it.name(),
-                                         net::HttpRequestHeaders::kCookie)) {
+        (base::EqualsCaseInsensitiveASCII(it.name(),
+                                          net::HttpRequestHeaders::kCookie) ||
+         base::EqualsCaseInsensitiveASCII(
+             it.name(), net::HttpRequestHeaders::kAuthorization) ||
+         base::EqualsCaseInsensitiveASCII(
+             it.name(), net::HttpRequestHeaders::kProxyAuthorization))) {
       continue;
     }
     mojom::HttpHeaderPtr header(mojom::HttpHeader::New());
@@ -1059,7 +1063,8 @@ void WebSocket::OnAuthRequiredComplete(
 void WebSocket::OnBeforeSendHeadersComplete(
     net::NetworkDelegate::OnBeforeStartTransactionCallback callback,
     int result,
-    const std::optional<net::HttpRequestHeaders>& headers) {
+    const std::optional<net::HttpRequestHeaders>& headers,
+    std::optional<base::DictValue> extended_net_log_events) {
   if (!channel_) {
     // Something happened before the OnBeforeSendHeaders response arrives.
     return;

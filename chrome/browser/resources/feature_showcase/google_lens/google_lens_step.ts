@@ -33,11 +33,14 @@ export class FeatureShowcaseGoogleLensStepElement extends CrLitElement {
   accessor buttonsDisabled: boolean = false;
 
   protected onConfirmClick_() {
+    this.buttonsDisabled = true;
     GoogleLensBrowserProxyImpl.getInstance().handler.enableGoogleLens();
     this.fire('step-completed');
   }
 
   protected onSkipClick_() {
+    this.buttonsDisabled = true;
+    GoogleLensBrowserProxyImpl.getInstance().handler.skipGoogleLens();
     this.fire('step-completed');
   }
 }

@@ -319,7 +319,7 @@ public class LocationBarCoordinator
                                         : null,
                         backPressManager,
                         exactMatchUrlSupplier,
-                        () -> mAutocompleteCoordinator.loadTypedOmniboxText(),
+                        () -> mAutocompleteCoordinator.loadTypedOmniboxText(false),
                         () -> setOmniboxEditingText(""),
                         this::getUrlBarTextWithoutAutocomplete);
         NonNullObservableSupplier<Integer> fuseboxStateSupplier =
@@ -352,7 +352,6 @@ public class LocationBarCoordinator
                         bottomWindowPaddingSupplier,
                         fuseboxStateSupplier,
                         fuseboxLayoutModeSupplier,
-                        locationBarDataProvider,
                         topInsetProvider);
 
         mPageZoomIndicatorCoordinator =
@@ -435,7 +434,7 @@ public class LocationBarCoordinator
                         omniboxActionDelegate,
                         omniboxSuggestionsDropdownScrollListener,
                         mActivityLifecycleDispatcher,
-                        uiOverrides.isForcedPhoneStyleOmnibox(),
+                        uiOverrides,
                         windowAndroid,
                         mDeferredIMEWindowInsetApplicationCallback,
                         mFuseboxCoordinator);
@@ -790,6 +789,17 @@ public class LocationBarCoordinator
         mStatusCoordinator.setShowStatusIconForSecureOrigins(showStatusIconForSecureOrigins);
     }
 
+    /**
+     * Sets an icon override resource ID to replace the default status icon. See {@link
+     * StatusCoordinator#setDefaultStatusIconOverrideResId(int)} for more details.
+     *
+     * @param iconOverrideResId The resource ID of the override icon, or {@link Resources#ID_NULL}
+     *     to clear.
+     */
+    public void setDefaultStatusIconOverrideResId(@DrawableRes int iconOverrideResId) {
+        mStatusCoordinator.setDefaultStatusIconOverrideResId(iconOverrideResId);
+    }
+
     @Override
     public void setMiniOriginMode(boolean active) {
         mMiniOriginMode = active;
@@ -922,8 +932,7 @@ public class LocationBarCoordinator
     /** Initiates a pre-fetch of autocomplete suggestions. */
     public void startAutocompletePrefetch() {
         if (!mNativeInitialized) return;
-        mAutocompleteCoordinator.prefetchZeroSuggestResults(
-                mLocationBarMediator.getLocationBarDataProvider().getTab());
+        mLocationBarMediator.hintZeroSuggestRefresh();
     }
 
     /**
@@ -1505,11 +1514,7 @@ public class LocationBarCoordinator
 
         var locationBarDataProvider = mLocationBarMediator.getLocationBarDataProvider();
         boolean isNtp = locationBarDataProvider.getNewTabPageDelegate().isCurrentlyVisible();
-        if (!ToolbarVariationUtils.shouldModifyToolbarButtons(
-                        mLocationBarLayout.getContext(), isNtp)
-                || mLocationBarMediator.isUrlBarFocused()
-                || mMiniOriginMode
-                || mOptionalButtonData == null) {
+        if (shouldHideOptionalButton(isNtp)) {
             mOptionalButtonCoordinator.hideButton();
         } else {
             mOptionalButtonCoordinator.setBrandedColorScheme(
@@ -1521,6 +1526,23 @@ public class LocationBarCoordinator
         }
 
         updateUrlBarNextFocusForwardId();
+    }
+
+    private boolean shouldHideOptionalButton(boolean isNtp) {
+        if (!ToolbarVariationUtils.shouldModifyToolbarButtons(
+                mLocationBarLayout.getContext(), isNtp)) {
+            return true;
+        }
+        if (mLocationBarMediator.isUrlBarFocused()
+                || mMiniOriginMode
+                || mOptionalButtonData == null) {
+            return true;
+        }
+        if (ToolbarVariationUtils.isToolbarUiRefactorEnabled(mLocationBarLayout.getContext())
+                && mOptionalButtonData.isIdentityDisc()) {
+            return true;
+        }
+        return false;
     }
 
     private void updateUrlBarNextFocusForwardId() {

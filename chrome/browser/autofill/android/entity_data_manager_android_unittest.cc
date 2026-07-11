@@ -8,6 +8,7 @@
 #include <optional>
 
 #include "base/android/jni_android.h"
+#include "base/containers/span.h"
 #include "base/test/gmock_callback_support.h"
 #include "base/test/metrics/histogram_tester.h"
 #include "base/test/mock_callback.h"
@@ -53,8 +54,9 @@ class EntityDataManagerAndroidTest : public testing::Test {
     entity_data_manager_ = std::make_unique<EntityDataManager>(
         &prefs_, identity_test_env_.identity_manager(), &sync_service_,
         webdata_helper_.autofill_webdata_service(),
-        /*history_service=*/nullptr, /*strike_database=*/nullptr,
-        GeoIpCountryCode("US"));
+        /*history_service=*/nullptr,
+        /*pcontext_manager=*/nullptr,
+        /*strike_database=*/nullptr, GeoIpCountryCode("US"));
 
     entity_data_manager_android_ = new EntityDataManagerAndroid(
         base::android::AttachCurrentThread(),
@@ -62,7 +64,7 @@ class EntityDataManagerAndroidTest : public testing::Test {
         /*google_groups_manager=*/nullptr, &prefs_,
         identity_test_env_.identity_manager(), &sync_service_,
         /*account_setting_service=*/nullptr, &consent_auditor_,
-        /*personal_context_enablement_service=*/nullptr,
+        /*personal_context_eligibility_service=*/nullptr,
         /*subscription_eligibility_service=*/nullptr,
         /*is_off_the_record=*/false, &mock_wallet_pass_access_manager_,
         entity_data_manager_.get());

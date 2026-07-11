@@ -32,11 +32,10 @@ import org.chromium.build.annotations.NullMarked;
 import org.chromium.build.annotations.Nullable;
 import org.chromium.components.password_manager.BrowserAssistedLoginType;
 import org.chromium.components.ukm.UkmRecorder;
+import org.chromium.content_public.browser.LifecycleState;
 import org.chromium.content_public.browser.RenderFrameHost;
 import org.chromium.content_public.browser.Visibility;
 import org.chromium.content_public.browser.WebContents;
-import org.chromium.device.DeviceFeatureList;
-import org.chromium.device.DeviceFeatureMap;
 import org.chromium.mojo.system.MojoException;
 import org.chromium.ui.base.WindowAndroid;
 import org.chromium.url.Origin;
@@ -165,6 +164,13 @@ public final class AuthenticatorImpl implements Authenticator, AuthenticationCon
                             new RequestMetrics.Builder().build()));
             return;
         }
+        if (mRenderFrameHost.getLifecycleState() != LifecycleState.ACTIVE) {
+            requestCallback.onComplete(
+                    WebauthnRequestResponse.forFailedMakeCredential(
+                            AuthenticatorStatus.NOT_ALLOWED_ERROR,
+                            new RequestMetrics.Builder().build()));
+            return;
+        }
         log(TAG, "makeCredential");
 
         mIsPaymentRequest = options.isPaymentCredentialCreation;
@@ -251,6 +257,13 @@ public final class AuthenticatorImpl implements Authenticator, AuthenticationCon
             requestCallback.onComplete(
                     WebauthnRequestResponse.forFailedGetCredential(
                             AuthenticatorStatus.PENDING_REQUEST,
+                            new RequestMetrics.Builder().build()));
+            return;
+        }
+        if (mRenderFrameHost.getLifecycleState() != LifecycleState.ACTIVE) {
+            requestCallback.onComplete(
+                    WebauthnRequestResponse.forFailedGetCredential(
+                            AuthenticatorStatus.NOT_ALLOWED_ERROR,
                             new RequestMetrics.Builder().build()));
             return;
         }
@@ -414,10 +427,7 @@ public final class AuthenticatorImpl implements Authenticator, AuthenticationCon
                             capabilities.add(
                                     createWebAuthnClientCapability(
                                             AuthenticatorConstants.CAPABILITY_IMMEDIATE_GET,
-                                            DeviceFeatureMap.isEnabled(
-                                                            DeviceFeatureList
-                                                                    .WEBAUTHN_IMMEDIATE_GET)
-                                                    && isUvpaa));
+                                            isUvpaa));
                             capabilities.add(
                                     createWebAuthnClientCapability(
                                             AuthenticatorConstants

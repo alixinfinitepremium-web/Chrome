@@ -512,6 +512,12 @@ data/accessibility/aria/aria-actions-reference-target.html
 data/accessibility/aria/aria-actions-target-id-change-expected-blink.txt
 data/accessibility/aria/aria-actions-target-id-change-expected-mac.txt
 data/accessibility/aria/aria-actions-target-id-change.html
+data/accessibility/aria/aria-actions-visibility-hidden-expected-auralinux.txt
+data/accessibility/aria/aria-actions-visibility-hidden-expected-blink.txt
+data/accessibility/aria/aria-actions-visibility-hidden-expected-mac.txt
+data/accessibility/aria/aria-actions-visibility-hidden-expected-uia-win.txt
+data/accessibility/aria/aria-actions-visibility-hidden-expected-win.txt
+data/accessibility/aria/aria-actions-visibility-hidden.html
 data/accessibility/aria/aria-actions.html
 data/accessibility/aria/aria-activedescendant-expected-auralinux.txt
 data/accessibility/aria/aria-activedescendant-expected-blink.txt
@@ -895,6 +901,9 @@ data/accessibility/aria/aria-feed-expected-auralinux.txt
 data/accessibility/aria/aria-feed-expected-mac.txt
 data/accessibility/aria/aria-feed-expected-win.txt
 data/accessibility/aria/aria-feed.html
+data/accessibility/aria/aria-fieldset-describedby-expected-blink.txt
+data/accessibility/aria/aria-fieldset-describedby-expected-mac.txt
+data/accessibility/aria/aria-fieldset-describedby.html
 data/accessibility/aria/aria-figure-expected-android-assist-data.txt
 data/accessibility/aria/aria-figure-expected-android-external.txt
 data/accessibility/aria/aria-figure-expected-android.txt
@@ -2716,6 +2725,8 @@ data/accessibility/event/button-click-expected-android.txt
 data/accessibility/event/button-click-expected-auralinux.txt
 data/accessibility/event/button-click-expected-uia-win.txt
 data/accessibility/event/button-click.html
+data/accessibility/event/button-haspopup-checked-state-changed-expected-uia-win.txt
+data/accessibility/event/button-haspopup-checked-state-changed.html
 data/accessibility/event/button-remove-children-expected-android.txt
 data/accessibility/event/button-remove-children-expected-auralinux.txt
 data/accessibility/event/button-remove-children-expected-uia-win.txt
@@ -4477,6 +4488,8 @@ data/accessibility/html/img-expected-fuchsia.txt
 data/accessibility/html/img-expected-mac.txt
 data/accessibility/html/img-expected-uia-win.txt
 data/accessibility/html/img-expected-win.txt
+data/accessibility/html/img-inside-focusable-parent-expected-android.txt
+data/accessibility/html/img-inside-focusable-parent.html
 data/accessibility/html/img-link-empty-alt-expected-android-assist-data.txt
 data/accessibility/html/img-link-empty-alt-expected-android-external.txt
 data/accessibility/html/img-link-empty-alt-expected-android.txt
@@ -5171,6 +5184,9 @@ data/accessibility/html/menulist-invoker-haspopup-expected-android.txt
 data/accessibility/html/menulist-invoker-haspopup-expected-auralinux.txt
 data/accessibility/html/menulist-invoker-haspopup-expected-blink.txt
 data/accessibility/html/menulist-invoker-haspopup.html
+data/accessibility/html/menulist-multiple-invokers-2-expected-auralinux.txt
+data/accessibility/html/menulist-multiple-invokers-2-expected-blink.txt
+data/accessibility/html/menulist-multiple-invokers-2.html
 data/accessibility/html/menulist-multiple-invokers-expected-auralinux.txt
 data/accessibility/html/menulist-multiple-invokers-expected-blink.txt
 data/accessibility/html/menulist-multiple-invokers-expected-mac.txt
@@ -6105,6 +6121,9 @@ data/accessibility/html/time-expected-uia-win.txt
 data/accessibility/html/time-expected-win.txt
 data/accessibility/html/time.html
 data/accessibility/html/title-attribute-expected-blink.txt
+data/accessibility/html/title-attribute-with-children-expected-android.txt
+data/accessibility/html/title-attribute-with-children-expected-blink.txt
+data/accessibility/html/title-attribute-with-children.html
 data/accessibility/html/title-attribute.html
 data/accessibility/html/title-changed-expected-blink.txt
 data/accessibility/html/title-changed.html
@@ -6330,6 +6349,8 @@ data/accessibility/mac/attributes/ax-selected-rows.html
 data/accessibility/mac/attributes/ax-selected.html
 data/accessibility/mac/attributes/ax-size-expected.txt
 data/accessibility/mac/attributes/ax-size.html
+data/accessibility/mac/attributes/ax-subrole-expected.txt
+data/accessibility/mac/attributes/ax-subrole.html
 data/accessibility/mac/attributes/ax-title-expected.txt
 data/accessibility/mac/attributes/ax-title-ui-element-expected.txt
 data/accessibility/mac/attributes/ax-title-ui-element.html
@@ -6534,6 +6555,8 @@ data/accessibility/mathml/annotation-xml-node-expected-auralinux.txt
 data/accessibility/mathml/annotation-xml-node-expected-mac.txt
 data/accessibility/mathml/annotation-xml.html
 data/accessibility/mathml/annotation.html
+data/accessibility/mathml/intent-expected-android-external.txt
+data/accessibility/mathml/intent-expected-android.txt
 data/accessibility/mathml/intent-expected-blink.txt
 data/accessibility/mathml/intent.html
 data/accessibility/mathml/maction-expected-blink.txt
@@ -7391,6 +7414,7 @@ data/download/gzip-content.gz.mock-http-headers
 data/download/hello.mhtml
 data/download/iframe-host.html
 data/download/iframe-host.html.mock-http-headers
+data/download/mathml_download_test.html
 data/download/octet-stream.abc
 data/download/octet-stream.abc.mock-http-headers
 data/download/page_with_data_image.html
@@ -7402,8 +7426,6 @@ data/echo-referrer.html
 data/empty-script.js
 data/empty-script.js.mock-http-headers
 data/empty-style.css
-data/empty-treat-as-public-address.html
-data/empty-treat-as-public-address.html.mock-http-headers
 data/empty.html
 data/empty404.html
 data/empty404.html.mock-http-headers
@@ -7692,6 +7714,8 @@ data/frame_tree/scrollable_page_with_two_frames.html
 data/frame_tree/top.html
 data/frame_with_load_event.html
 data/fullscreen_frame.html
+data/gamepad-permissions-policy-none.html
+data/gamepad-permissions-policy-none.html.mock-http-headers
 data/generic_sensor/ambient_light_sensor_cross_origin_iframe_test.html
 data/generic_sensor/ambient_light_sensor_test.html
 data/generic_sensor/ambient_light_sensor_unavailable_test.html
@@ -8152,6 +8176,8 @@ data/indexeddb/delete_compact.html
 data/indexeddb/delete_open_use.html
 data/indexeddb/delete_open_use.js
 data/indexeddb/delete_over_quota.html
+data/indexeddb/dexie_leak_repro.html
+data/indexeddb/dexie_leak_repro.js
 data/indexeddb/disk_full_on_commit.html
 data/indexeddb/empty_blob.html
 data/indexeddb/fill_quota.html
@@ -8726,7 +8752,6 @@ data/prerender/doc-with-display-none-iframe.html
 data/prerender/duplicate_prerenders.html
 data/prerender/empty.html
 data/prerender/external_sync_script.html
-data/prerender/form_submission_origin_trial_initiator.html
 data/prerender/image_loading_lazy.html
 data/prerender/inline_script.html
 data/prerender/inline_script_iframe.html
@@ -8905,6 +8930,10 @@ data/service_worker/create_service_worker_from_isolated.html
 data/service_worker/create_service_worker_from_isolated.html.mock-http-headers
 data/service_worker/cross_site_xfer.js
 data/service_worker/cross_site_xfer.js.mock-http-headers
+data/service_worker/csp_sandboxed.html
+data/service_worker/csp_sandboxed.html.mock-http-headers
+data/service_worker/csp_sandboxed_allow_same_origin.html
+data/service_worker/csp_sandboxed_allow_same_origin.html.mock-http-headers
 data/service_worker/disable_web_security_cross_origin.html
 data/service_worker/disable_web_security_get_registration.html
 data/service_worker/disable_web_security_register.html

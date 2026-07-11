@@ -58,7 +58,7 @@
 #include "chrome/browser/ui/views/contextual_tasks/contextual_tasks_button.h"
 #include "chrome/browser/ui/views/frame/browser_view.h"
 #include "chrome/browser/ui/views/frame/contents_web_view.h"
-#include "chrome/browser/ui/views/location_bar/cookie_controls/cookie_controls_icon_view.h"
+#include "chrome/browser/ui/views/frame/toolbar_button_provider.h"
 #include "chrome/browser/ui/views/page_action/page_action_view.h"
 #include "chrome/browser/ui/views/tabs/tab/tab_icon.h"
 #include "chrome/browser/ui/views/toolbar/pinned_action_toolbar_button.h"
@@ -71,6 +71,7 @@
 #include "chrome/browser/ui/views/user_education/impl/browser_user_education_context.h"
 #include "chrome/browser/ui/views/user_education/ios_promo_bubble_view.h"
 #include "chrome/browser/ui/views/web_apps/web_app_install_dialog_delegate.h"
+#include "components/signin/public/base/signin_switches.h"
 #if BUILDFLAG(IS_WIN)
 #include "chrome/browser/ui/search_promotion/search_promotion_manager.h"
 #include "chrome/browser/ui/search_promotion/search_promotion_manager_factory.h"
@@ -85,6 +86,7 @@
 #include "chrome/browser/user_education/user_education_service.h"
 #include "chrome/browser/user_education/user_education_service_factory.h"
 #include "chrome/browser/web_applications/web_app_tab_helper.h"
+#include "chrome/browser/web_applications/web_app_utils.h"
 #include "chrome/common/chrome_features.h"
 #include "chrome/common/pref_names.h"
 #include "chrome/common/url_constants.h"
@@ -286,6 +288,8 @@ CreateNavigationAction(GURL target) {
       std::move(target));
 }
 
+#if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_LINUX) || \
+    BUILDFLAG(IS_CHROMEOS)
 void NavigateToSettingsPage(ContextPtr ctx,
                             user_education::FeaturePromoHandle promo_handle) {
   BrowserWindowInterface* const browser = GetBrowser(ctx);
@@ -300,16 +304,12 @@ void NavigateToSettingsPage(ContextPtr ctx,
   if (!app_id) {
     return;
   }
-#if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_LINUX)
-  const GURL final_url(chrome::kChromeUIWebAppSettingsURL + *app_id);
-  if (web_contents) {
-    NavigateParams params(browser->GetProfile(), final_url,
-                          ui::PAGE_TRANSITION_LINK);
-    params.disposition = WindowOpenDisposition::NEW_FOREGROUND_TAB;
-    Navigate(&params);
-  }
-#endif
+  chrome::ShowWebAppSettings(
+      browser, *app_id,
+      web_app::AppSettingsPageEntryPoint::kNavigationCapturingIphBubble);
 }
+#endif  // BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_LINUX) ||
+        // BUILDFLAG(IS_CHROMEOS)
 
 }  // namespace
 
@@ -378,6 +378,36 @@ void MaybeRegisterChromeFeaturePromos(
           .SetMetadata(125, "alexandertekle@google.com",
                        "Triggered after a credit card benefit is displayed for "
                        "the first time.")));
+
+  // kIPHMultistepFilterPromoFeature:
+  registry.RegisterFeature(std::move(
+      FeaturePromoSpecification::CreateForToastPromo(
+          feature_engagement::kIPHMultistepFilterPromoFeature,
+          kMultistepFilterPageActionIconElementId,
+          IDS_MULTISTEP_FILTER_IPH_BODY,
+          IDS_MULTISTEP_FILTER_IPH_BODY_SCREENREADER,
+          FeaturePromoSpecification::AcceleratorInfo())
+          .SetBubbleArrow(HelpBubbleArrow::kTopCenter)
+          .SetAnchorElementFilter(base::BindRepeating(
+              [](const ui::ElementTracker::ElementList& elements)
+                  -> ui::TrackedElement* {
+                if (elements.empty()) {
+                  return nullptr;
+                }
+                ui::ElementContext context = elements[0]->context();
+                if (ui::TrackedElement* cue_bubble =
+                        ui::ElementTracker::GetElementTracker()
+                            ->GetFirstMatchingElement(
+                                page_actions::AnchoredMessageBubbleView::
+                                    kAnchoredMessageBubbleId,
+                                context)) {
+                  return cue_bubble;
+                }
+                return elements[0];
+              }))
+          .SetMetadata(151, "adigupt@google.com",
+                       "Triggered on first time feature usage to educate users "
+                       "about Multistep Filter.")));
 
   // TODO(crbug.com/40264177): Use toast or snooze instead of legacy promo.
   // kIPHAutofillExternalAccountProfileSuggestionFeature:
@@ -922,6 +952,24 @@ void MaybeRegisterChromeFeaturePromos(
           .SetBubbleIcon(kLightbulbOutlineIcon)
           .SetBubbleTitleText(IDS_PASSWORD_MANAGER_IPH_CREATE_SHORTCUT_TITLE)));
 
+  // kIPHPdfGlicSummarizeFeature:
+  registry.RegisterFeature(std::move(
+      FeaturePromoSpecification::CreateForToastPromo(
+          feature_engagement::kIPHPdfGlicSummarizeFeature,
+          pdf::PdfHelpBubbleHandlerFactory::kPdfGlicSummarizeElementId,
+          IDS_PDF_GLIC_SUMMARIZE_IPH_TEXT_NEW,
+          IDS_PDF_GLIC_SUMMARIZE_IPH_TEXT_NEW_SCREENREADER,
+          FeaturePromoSpecification::AcceleratorInfo())
+          .SetPromoSubtype(
+              FeaturePromoSpecification::PromoSubtype::kLegalNotice)
+          .SetBubbleTitleText(IDS_PDF_GLIC_SUMMARIZE_IPH_TITLE)
+          .SetBubbleIcon(&vector_icons::kChatSparkIcon)
+          .SetBubbleArrow(HelpBubbleArrow::kTopLeft)
+          .SetInAnyContext(true)
+          .SetMetadata(151, "cuianthony@chromium.org",
+                       "Triggered when the PDF Viewer loads with the "
+                       "Summarize button.")));
+
 #if BUILDFLAG(ENABLE_PDF_INK2)
   // kIPHPdfInkSignaturesFeature:
   registry.RegisterFeature(std::move(
@@ -933,7 +981,17 @@ void MaybeRegisterChromeFeaturePromos(
           .SetInAnyContext(true)
           .SetMetadata(138, "thestig@chromium.org",
                        "Triggered when the PDF Viewer opens.")));
-#endif
+  // kIPHPdfTextAnnotationsFeature:
+  registry.RegisterFeature(std::move(
+      FeaturePromoSpecification::CreateForSnoozePromo(
+          feature_engagement::kIPHPdfTextAnnotationsFeature,
+          pdf::PdfHelpBubbleHandlerFactory::kPdfInkSignaturesAddTextElementId,
+          IDS_PDF_TEXT_ANNOTATIONS_IPH_BODY)
+          .SetBubbleArrow(HelpBubbleArrow::kTopRight)
+          .SetInAnyContext(true)
+          .SetMetadata(151, "thestig@chromium.org",
+                       "Triggered when the PDF Viewer opens.")));
+#endif  // BUILDFLAG(ENABLE_PDF_INK2)
 
   // kIPHPdfSearchifyFeature:
   registry.RegisterFeature(std::move(
@@ -1057,39 +1115,6 @@ void MaybeRegisterChromeFeaturePromos(
                        "Triggered once per-app when is in quiet notification "
                        "mode and a notification is triggered in a PWA.")));
 
-  // kIPHCookieControlsFeature:
-  registry.RegisterFeature(std::move(
-      FeaturePromoSpecification::CreateForCustomAction(
-          feature_engagement::kIPHCookieControlsFeature,
-          kCookieControlsIconElementId, IDS_COOKIE_CONTROLS_PROMO_TEXT,
-          IDS_COOKIE_CONTROLS_PROMO_SEE_HOW_BUTTON_TEXT,
-          base::BindRepeating(
-              [](ContextPtr ctx,
-                 user_education::FeaturePromoHandle promo_handle) {
-                if (IsPageActionMigrated(PageActionIconType::kCookieControls)) {
-                  actions::ActionManager::Get()
-                      .FindAction(
-                          kActionShowCookieControls,
-                          GetBrowser(ctx)->GetActions()->root_action_item())
-                      ->InvokeAction();
-                } else {
-                  auto* cookie_controls_icon_view =
-                      views::ElementTrackerViews::GetInstance()
-                          ->GetFirstMatchingViewAs<CookieControlsIconView>(
-                              kCookieControlsIconElementId,
-                              ctx->GetElementContext());
-                  if (cookie_controls_icon_view != nullptr) {
-                    cookie_controls_icon_view->ShowCookieControlsBubble();
-                  }
-                }
-              }))
-          .SetBubbleTitleText(IDS_COOKIE_CONTROLS_PROMO_TITLE)
-          .SetBubbleArrow(HelpBubbleArrow::kTopRight)
-          .SetBubbleIcon(kLightbulbOutlineIcon)
-          .SetCustomActionIsDefault(true)
-          .SetCustomActionDismissText(
-              IDS_COOKIE_CONTROLS_PROMO_CLOSE_BUTTON_TEXT)));
-
   // kIPHSmartTabSharingFeature:
   auto smart_tab_sharing_iph_first_time_prompt_option =
       contextual_tasks::kSmartTabSharingIphFirstTimePromptOption.Get();
@@ -1138,68 +1163,6 @@ void MaybeRegisterChromeFeaturePromos(
               "Triggered when the user opens the '+' context menu in "
               "composebox "
               "and Smart Tab Sharing is available but hasn't been used yet.")));
-
-  // kIPHSmartTabSharingTryItFeature:
-  int smart_tab_sharing_iph_try_it_body_id = IDS_STS_IPH_TRY_IT_BODY;
-  int smart_tab_sharing_iph_try_it_header_id = IDS_STS_IPH_TRY_IT_HEADER;
-  switch (contextual_tasks::kSmartTabSharingIphTryItPromoOption.Get()) {
-    case contextual_tasks::SmartTabSharingIphTryItPromoOption::kIphTryItPromoV1:
-      smart_tab_sharing_iph_try_it_body_id = IDS_STS_IPH_TRY_IT_BODY;
-      smart_tab_sharing_iph_try_it_header_id = IDS_STS_IPH_TRY_IT_HEADER;
-      break;
-    case contextual_tasks::SmartTabSharingIphTryItPromoOption::kIphTryItPromoV2:
-      smart_tab_sharing_iph_try_it_body_id = IDS_STS_IPH_TRY_IT_BODY_V2;
-      smart_tab_sharing_iph_try_it_header_id = IDS_STS_IPH_TRY_IT_HEADER_V2;
-      break;
-  }
-  registry.RegisterFeature(std::move(
-      user_education::FeaturePromoSpecification::CreateForCustomAction(
-          feature_engagement::kIPHSmartTabSharingTryItFeature,
-          ContextualTasksUI::kSmartTabSharingMenuItemElementId,
-          smart_tab_sharing_iph_try_it_body_id, IDS_STS_IPH_TRY_IT_TURN_ON,
-          base::DoNothing())
-          .SetBubbleTitleText(smart_tab_sharing_iph_try_it_header_id)
-          .SetCustomActionDismissText(IDS_STS_IPH_TRY_IT_NOT_NOW)
-          .SetInAnyContext(true)
-          .SetAdditionalConditions(std::move(
-              AdditionalConditions().AddAdditionalCondition(AdditionalCondition{
-                  "smart_tab_sharing_activated",
-                  AdditionalConditions::Constraint::kExactly, 0})))
-          .SetMetadata(148, "orinj@chromium.org",
-                       "Custom UI IPH promo shown above the composebox.")));
-
-  // kIPHSmartTabSharingDefaultOnFeature:
-  int smart_tab_sharing_iph_default_on_body_id = IDS_STS_IPH_DEFAULT_ON_BODY;
-  int smart_tab_sharing_iph_default_on_header_id =
-      IDS_STS_IPH_DEFAULT_ON_HEADER;
-  switch (contextual_tasks::kSmartTabSharingIphDefaultOnOption.Get()) {
-    case contextual_tasks::SmartTabSharingIphDefaultOnOption::kIphDefaultOnV1:
-      smart_tab_sharing_iph_default_on_body_id = IDS_STS_IPH_DEFAULT_ON_BODY;
-      smart_tab_sharing_iph_default_on_header_id =
-          IDS_STS_IPH_DEFAULT_ON_HEADER;
-      break;
-    case contextual_tasks::SmartTabSharingIphDefaultOnOption::kIphDefaultOnV2:
-      smart_tab_sharing_iph_default_on_body_id = IDS_STS_IPH_DEFAULT_ON_BODY_V2;
-      smart_tab_sharing_iph_default_on_header_id =
-          IDS_STS_IPH_DEFAULT_ON_HEADER_V2;
-      break;
-  }
-  registry.RegisterFeature(std::move(
-      user_education::FeaturePromoSpecification::CreateForCustomAction(
-          feature_engagement::kIPHSmartTabSharingDefaultOnFeature,
-          ContextualTasksUI::kSmartTabSharingMenuItemElementId,
-          smart_tab_sharing_iph_default_on_body_id,
-          IDS_STS_IPH_DEFAULT_ON_TURN_ON, base::DoNothing())
-          .SetBubbleTitleText(smart_tab_sharing_iph_default_on_header_id)
-          .SetCustomActionDismissText(IDS_STS_IPH_DEFAULT_ON_NOT_NOW)
-          .SetInAnyContext(true)
-          .SetAdditionalConditions(std::move(
-              AdditionalConditions().AddAdditionalCondition(AdditionalCondition{
-                  "smart_tab_sharing_activated",
-                  AdditionalConditions::Constraint::kAtLeast, 3})))
-          .SetMetadata(148, "orinj@chromium.org",
-                       "Custom UI IPH promo shown above the composebox for "
-                       "default-on.")));
 
   // kIPHReadingListDiscoveryFeature:
   registry.RegisterFeature(
@@ -1559,20 +1522,6 @@ void MaybeRegisterChromeFeaturePromos(
                        "Triggered for a signed-in user who hasn't turned on "
                        "sync yet, after the sync-to-signin migration.")));
 #endif  // BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_LINUX)
-
-  // kIPHTabSearchToolbarButtonFeature:
-  registry.RegisterFeature(std::move(
-      FeaturePromoSpecification::CreateForToastPromo(
-          feature_engagement::kIPHTabSearchToolbarButtonFeature,
-          kTabSearchButtonElementId, IDS_TAB_SEARCH_TOOLBAR_BUTTON_PROMO_BODY,
-          IDS_TAB_SEARCH_TOOLBAR_BUTTON_PROMO_BODY,
-          FeaturePromoSpecification::AcceleratorInfo())
-          .SetBubbleArrow(HelpBubbleArrow::kTopRight)
-          .SetBubbleIcon(kLightbulbOutlineIcon)
-          .SetBubbleTitleText(IDS_TAB_SEARCH_TOOLBAR_BUTTON_PROMO_TITLE)
-          .SetMetadata(136, "emshack@chromium.org",
-                       "Triggered when the tab search button has been moved "
-                       "into the toolbar.")));
 
   // kIPHTabSearchComboButtonFeature:
   registry.RegisterFeature(std::move(
@@ -1948,6 +1897,20 @@ void MaybeRegisterChromeFeaturePromos(
               "Triggered when there are enough tabs in the tabstrip and"
               "the size of the tabs are shrunk significantly compared to their "
               "ideal width.")));
+
+  registry.RegisterFeature(std::move(
+      FeaturePromoSpecification::CreateForTutorialPromo(
+          feature_engagement::kIPHSidePanelContextualTasksPinnableFeature,
+          kContextualTasksWebUIToolbarElementId,
+          IDS_SIDE_PANEL_CONTEXTUAL_TASKS_PINNABLE_IPH,
+          kContextualTasksTutorialId)
+          .SetBubbleArrow(HelpBubbleArrow::kNone)
+          .SetBubbleIcon(kLightbulbOutlineIcon)
+          .SetInAnyContext(true)
+          .SetMetadata(
+              147, "dianaou@google.com",
+              "Triggered automatically when the user opens Contextual Tasks "
+              "to smoothly onboard them into the pinning tutorial.")));
 
   // kIPHVerticalTabsExpandOnHoverFeature:
   const auto expand_on_hover_iph_body_string_id =
@@ -2391,7 +2354,6 @@ void MaybeRegisterChromeTutorials(
             // Completion of the tutorial after side panel appears.
             BubbleStep(
                 kPinnedToolbarActionShowSidePanelContextualTasksElementId)
-                .SetBubbleTitleText(IDS_TUTORIAL_GENERIC_SUCCESS_TITLE)
                 .SetBubbleBodyText(IDS_TUTORIAL_CONTEXTUAL_TASKS_STEP3)
                 .SetBubbleArrow(HelpBubbleArrow::kTopRight)
                 .InAnyContext());
@@ -2511,6 +2473,20 @@ void MaybeRegisterChromeNewBadges(user_education::NewBadgeRegistry& registry) {
       user_education::Metadata(
           151, "mtatarski@google.com",
           "Show the new badge on Send to Your Devices context menu items.")));
+
+  registry.RegisterFeature(user_education::NewBadgeSpecification(
+      send_tab_to_self::kSendTabToSelfEnhancedDesktopUIv2,
+      user_education::Metadata(
+          153, "mtatarski@google.com",
+          "Show the new badge on Send to Your Devices context menu items.")));
+
+#if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_LINUX)
+  registry.RegisterFeature(user_education::NewBadgeSpecification(
+      switches::kCrossDeviceSigninFromDesktop,
+      user_education::Metadata(
+          151, "pmeuleman@chromium.org",
+          "Shown on the sign-in with your phone profile menu item.")));
+#endif
 }
 
 std::unique_ptr<user_education::FeaturePromoControllerImpl>

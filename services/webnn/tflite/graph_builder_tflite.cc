@@ -3331,9 +3331,18 @@ auto GraphBuilderTflite::SerializeBuffer(base::span<const uint8_t> buffer)
       buffer_info.index =
           base::checked_cast<uint32_t>(external_buffers_.size() + 1);
       buffer_info.is_external = true;
+      size_t external_length = buffer.size();
+#if BUILDFLAG(BUILD_TFLITE_WITH_XNNPACK)
+      // The runtime maps each external buffer using only the recorded
+      // `length`, so include XNN_EXTRA_BYTES to cover the XNNPACK delegate's
+      // over-reads past the tensor data. These padding bytes always exist:
+      // buffers are aligned to `kWeightsAlignment` (>= XNN_EXTRA_BYTES) and
+      // `FinishAndTakeResult` pads the final buffer.
+      external_length += XNN_EXTRA_BYTES;
+#endif
       external_buffers_.emplace_back(::tflite::CreateExternalBufferDirect(
           builder_, /*id=*/buffer_info.index, /*group=*/1, offset,
-          buffer.size()));
+          external_length));
     } else {
       buffers_.emplace_back(
           ::tflite::CreateBuffer(builder_, /*data=*/0, offset, buffer.size()));
@@ -3612,12 +3621,6 @@ GraphBuilderTflite::SerializeBinaryOperationWithRankReduction(
                                                              rhs_tensor_type));
   operators_.emplace_back(SerializeReshapeOperation(
       binary_rhs_tensor_index, reshaped_rhs_tensor_index, binary_rhs_dims));
-
-  if (binary_output_dims == output_dims) {
-    return SerializeBinaryOperation(code, reshaped_lhs_tensor_index,
-                                    reshaped_rhs_tensor_index,
-                                    output_tensor_index);
-  }
 
   ASSIGN_OR_RETURN(const TensorIndex binary_output_tensor_index,
                    SerializeTemporaryTensorWithByteSizeCheck(

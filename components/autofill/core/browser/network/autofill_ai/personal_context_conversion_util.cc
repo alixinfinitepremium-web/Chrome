@@ -243,9 +243,9 @@ EntityInstance PersonalContextShipmentToEntityInstance(
   AddStringAttribute(kShipmentCarrierName, shipment.carrier_name(), attributes);
   AddStringAttribute(kShipmentCarrierDomain, shipment.carrier_domain(),
                      attributes);
-  if (shipment.has_estimated_delivery_date()) {
-    AddAttribute(kShipmentEstimatedDeliveryDate,
-                 FormatDate(shipment.estimated_delivery_date()), attributes);
+  if (shipment.has_ship_date()) {
+    AddAttribute(kShipmentShippedDate, FormatDate(shipment.ship_date()),
+                 attributes);
   }
   if (shipment.associated_order_ids_size() > 0) {
     std::vector<std::string> order_ids(shipment.associated_order_ids().begin(),
@@ -285,6 +285,7 @@ std::optional<EntityInstance> PersonalContextEntityToEntityInstance(
       return PersonalContextOrderToEntityInstance(entity.order());
     case personal_context::proto::Entity::kShipment:
       return PersonalContextShipmentToEntityInstance(entity.shipment());
+    case personal_context::proto::Entity::kKnownTravelerNumber:
     case personal_context::proto::Entity::kSensitivePiiPresence:
       return std::nullopt;
     case personal_context::proto::Entity::ENTITY_NOT_SET:
@@ -333,8 +334,23 @@ std::optional<EntityType> ToEntityType(
       return EntityType(EntityTypeName::kOrder);
     case personal_context::proto::Entity::kShipment:
       return EntityType(EntityTypeName::kShipment);
+    case personal_context::proto::Entity::kKnownTravelerNumber:
     case personal_context::proto::Entity::kSensitivePiiPresence:
     case personal_context::proto::Entity::ENTITY_NOT_SET:
+      return std::nullopt;
+  }
+}
+
+std::optional<EntityType> ToEntityType(
+    personal_context::proto::SensitivePiiPresence::Type presence_type) {
+  switch (presence_type) {
+    case personal_context::proto::SensitivePiiPresence::DRIVERS_LICENSE:
+      return EntityType(EntityTypeName::kDriversLicense);
+    case personal_context::proto::SensitivePiiPresence::PASSPORT:
+      return EntityType(EntityTypeName::kPassport);
+    case personal_context::proto::SensitivePiiPresence::NATIONAL_ID:
+      return EntityType(EntityTypeName::kNationalIdCard);
+    case personal_context::proto::SensitivePiiPresence::UNSPECIFIED:
       return std::nullopt;
   }
 }

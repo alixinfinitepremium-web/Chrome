@@ -20,6 +20,7 @@
 #include "third_party/blink/renderer/platform/fonts/font_height.h"
 #include "third_party/blink/renderer/platform/fonts/shaping/han_kerning.h"
 #include "third_party/blink/renderer/platform/heap/collection_support/clear_collection_scope.h"
+#include "third_party/blink/renderer/platform/runtime_enabled_features.h"
 
 namespace blink {
 
@@ -729,6 +730,8 @@ AnnotationMetrics ComputeAnnotationOverflow(
 
   bool has_over_annotation = false;
   bool has_under_annotation = false;
+  bool has_over_emphasis = false;
+  bool has_under_emphasis = false;
 
   const LayoutUnit line_under = line_over + line_box_metrics.LineHeight();
   LayoutUnit over_emphasis;
@@ -742,8 +745,10 @@ AnnotationMetrics ComputeAnnotationOverflow(
       continue;
     }
     UsedFont used_font = item.GetUsedFont();
-    LayoutUnit item_over = line_box_metrics.ascent + item.BlockOffset();
-    LayoutUnit item_under = line_box_metrics.ascent + item.BlockEndOffset();
+    LayoutUnit text_box_over = line_box_metrics.ascent + item.BlockOffset();
+    LayoutUnit text_box_under = line_box_metrics.ascent + item.BlockEndOffset();
+    LayoutUnit item_over = text_box_over;
+    LayoutUnit item_under = text_box_under;
     if (item.shape_result) {
       if (const auto* style = item.Style()) {
         std::tie(item_over, item_under) = AdjustTextOverUnderOffsetsForEmHeight(
@@ -760,22 +765,28 @@ AnnotationMetrics ComputeAnnotationOverflow(
 
     if (const auto* style = item.Style()) {
       if (style->GetTextEmphasisMark() != TextEmphasisMark::kNone) {
-        if (RuntimeEnabledFeatures::TextEmphasisWithRubyEnabled() ||
-            RuntimeEnabledFeatures::TextEmphasisAsRubyEnabled()) {
+        if (RuntimeEnabledFeatures::TextEmphasisAsRubyEnabled()) {
           const auto emphasis_mark_height =
-              InlineBoxState::ComputeEmphasisMarkOutsets(
-                  *style, used_font.GetFont(), used_font.ScalingFactor())
+              InlineBoxState::ComputeEmphasisMarkOutsets(*style, used_font)
                   .LineHeight();
           if (style->GetTextEmphasisLineLogicalSide() ==
               LineLogicalSide::kOver) {
-            if (RuntimeEnabledFeatures::TextEmphasisAsRubyEnabled()) {
-              item_over -= emphasis_mark_height;
-            }
+            item_over = text_box_over -
+                        (emphasis_mark_height + item.annotation_metrics.ascent);
+            has_over_emphasis = true;
+          } else {
+            item_under = text_box_under + emphasis_mark_height +
+                         item.annotation_metrics.descent;
+            has_under_emphasis = true;
+          }
+        } else if (RuntimeEnabledFeatures::TextEmphasisWithRubyEnabled()) {
+          const auto emphasis_mark_height =
+              InlineBoxState::ComputeEmphasisMarkOutsets(*style, used_font)
+                  .LineHeight();
+          if (style->GetTextEmphasisLineLogicalSide() ==
+              LineLogicalSide::kOver) {
             over_emphasis = std::max(emphasis_mark_height, over_emphasis);
           } else {
-            if (RuntimeEnabledFeatures::TextEmphasisAsRubyEnabled()) {
-              item_under += emphasis_mark_height;
-            }
             under_emphasis = std::max(emphasis_mark_height, under_emphasis);
           }
         } else {
@@ -834,12 +845,6 @@ AnnotationMetrics ComputeAnnotationOverflow(
     }
   }
 
-  const bool has_over_emphasis =
-      RuntimeEnabledFeatures::TextEmphasisAsRubyEnabled() &&
-      over_emphasis > LayoutUnit();
-  const bool has_under_emphasis =
-      RuntimeEnabledFeatures::TextEmphasisAsRubyEnabled() &&
-      under_emphasis > LayoutUnit();
   // With some fonts, text fragment sizes can exceed line-height.
   // We'd like to set overflow only if we have annotations.
   // This affects fast/ruby/line-height.html on macOS.
@@ -888,6 +893,59 @@ void UpdateRubyColumnInlinePositions(
   }
 }
 
+void SetTextEmphasisAnnotationMetrics(
+    const HeapVector<Member<LogicalRubyColumn>>& column_list,
+    LogicalLineItems& line_box) {
+  for (wtf_size_t idx = 0; idx < line_box.size(); ++idx) {
+    LogicalLineItem& item = line_box[idx];
+    if (!item.IsItemType(InlineItem::kText)) {
+      continue;
+    }
+    const ComputedStyle* style = item.Style();
+    if (!style || style->GetTextEmphasisMark() == TextEmphasisMark::kNone) {
+      continue;
+    }
+
+    const LogicalRubyColumn* matched_column = nullptr;
+    for (const auto& column : column_list) {
+      if (column->start_index <= idx &&
+          idx < column->start_index + column->size) {
+        matched_column = column.Get();
+        break;
+      }
+    }
+
+    const FontBaseline font_baseline = style->GetFontBaseline();
+    UsedFont used_font = item.GetUsedFont();
+    const LayoutUnit over_initial = -used_font.FixedAscent(font_baseline);
+    const LayoutUnit under_initial = used_font.FixedDescent(font_baseline);
+
+    LayoutUnit over = over_initial;
+    LayoutUnit under = under_initial;
+    if (item.shape_result) {
+      std::tie(over, under) = AdjustTextOverUnderOffsetsForEmHeight(
+          over, under, font_baseline, used_font, *item.shape_result);
+    }
+
+    if (matched_column) {
+      if (matched_column->layout_annotation_metrics.ascent) {
+        over = -matched_column->layout_annotation_metrics.ascent;
+      }
+      if (matched_column->layout_annotation_metrics.descent) {
+        under = matched_column->layout_annotation_metrics.descent;
+      }
+    }
+    item.annotation_metrics = {over_initial - over, under - under_initial};
+  }
+
+  for (const auto& column : column_list) {
+    if (column->annotation_items) {
+      SetTextEmphasisAnnotationMetrics(column->RubyColumnList(),
+                                       *column->annotation_items);
+    }
+  }
+}
+
 // ================================================================
 
 namespace {
@@ -910,6 +968,47 @@ FontHeight ComputeLogicalLineEmHeight(const LogicalLineItems& line_items,
     height.Unite(ComputeEmHeight(line_items[index]));
   }
   return height;
+}
+
+// Computes the maximum emphasis mark heights (outsets) among all items in
+// `line_items` that have a text-emphasis mark applied.
+FontHeight ComputeEmphasisHeights(const LogicalLineItems& line_items) {
+  FontHeight heights;
+  for (const auto& item : line_items) {
+    if (!item.HasInFlowFragment()) {
+      continue;
+    }
+    const auto* style = item.Style();
+    if (!style || style->GetTextEmphasisMark() == TextEmphasisMark::kNone) {
+      continue;
+    }
+    heights.Unite(
+        InlineBoxState::ComputeEmphasisMarkOutsets(*style, item.GetUsedFont()));
+  }
+  return heights;
+}
+
+// Computes the maximum emphasis mark heights (outsets) among the items in
+// `line_items` that are explicitly specified by `index_list`.
+FontHeight ComputeEmphasisHeights(const LogicalLineItems& line_items,
+                                  base::span<const wtf_size_t> index_list) {
+  FontHeight heights;
+  for (wtf_size_t idx : index_list) {
+    if (idx >= line_items.size()) {
+      continue;
+    }
+    const auto& item = line_items[idx];
+    if (!item.HasInFlowFragment()) {
+      continue;
+    }
+    const auto* style = item.Style();
+    if (!style || style->GetTextEmphasisMark() == TextEmphasisMark::kNone) {
+      continue;
+    }
+    heights.Unite(
+        InlineBoxState::ComputeEmphasisMarkOutsets(*style, item.GetUsedFont()));
+  }
+  return heights;
 }
 
 }  // namespace
@@ -964,21 +1063,24 @@ FontHeight RubyBlockPositionCalculator::HandleRubyLine(
           create_level_and_update_depth(current_level, depth_stack.back());
       RubyLine& annotation_line = EnsureRubyLine(annotation_level);
       annotation_line.Append(*closing_depth.column);
-      annotation_metrics += HandleRubyLine(
+      FontHeight closing_metrics = HandleRubyLine(
           annotation_line, closing_depth.column->RubyColumnList());
       annotation_line.MaybeRecordBaseIndexes(*closing_depth.column);
 
-      LayoutUnit annotation_height =
-          closing_depth.column->annotation_items
-              ? ComputeLogicalLineEmHeight(
-                    *closing_depth.column->annotation_items)
-                    .LineHeight()
-              : LayoutUnit();
-      if (closing_depth.column->ruby_position == RubyPosition::kOver) {
-        annotation_metrics.ascent += annotation_height;
-      } else {
-        annotation_metrics.descent += annotation_height;
+      LayoutUnit annotation_height = LayoutUnit();
+      if (closing_depth.column->annotation_items) {
+        annotation_height =
+            ComputeLogicalLineEmHeight(*closing_depth.column->annotation_items)
+                .LineHeight();
       }
+      if (closing_depth.column->ruby_position == RubyPosition::kOver) {
+        closing_metrics.ascent += annotation_height;
+      } else {
+        closing_metrics.descent += annotation_height;
+      }
+      closing_depth.column->annotation_metrics = closing_metrics;
+      annotation_metrics = closing_metrics;
+      max_annotation_metrics.Unite(closing_metrics);
 
       depth_stack.pop_back();
       if (!depth_stack.empty()) {
@@ -989,8 +1091,6 @@ FontHeight RubyBlockPositionCalculator::HandleRubyLine(
             std::min(parent_depth.under_depth, closing_depth.under_depth);
       }
     }
-    column_list[i]->annotation_metrics = annotation_metrics;
-    max_annotation_metrics.Unite(annotation_metrics);
   }
   CHECK(depth_stack.empty());
   return max_annotation_metrics;
@@ -1015,6 +1115,22 @@ RubyBlockPositionCalculator& RubyBlockPositionCalculator::PlaceLines(
     const FontHeight& line_box_metrics) {
   DCHECK(!ruby_lines_.empty()) << "This must be called after GroupLines().";
   annotation_metrics_ = FontHeight();
+
+  if (RuntimeEnabledFeatures::TreeRubyPlacementEnabled()) {
+    RubyLine* root = BuildTree();
+    CHECK(root);
+    FontHeight total_subtree_metrics =
+        ComputeRelativeOffsets(*root, base_line_items, line_box_metrics);
+    ComputeOffsetsFromBase(*root, LayoutUnit());
+
+    if (!root->OverChildren().empty()) {
+      annotation_metrics_.ascent = total_subtree_metrics.ascent;
+    }
+    if (!root->UnderChildren().empty()) {
+      annotation_metrics_.descent = total_subtree_metrics.descent;
+    }
+    return *this;
+  }
 
   // Sort `ruby_lines` from the lowest to the highest.
   std::ranges::sort(ruby_lines_, [](const Member<RubyLine>& line1,
@@ -1046,6 +1162,7 @@ RubyBlockPositionCalculator& RubyBlockPositionCalculator::PlaceLines(
       FontHeight metrics = ruby_line->UpdateMetrics();
       offset += metrics.ascent;
       ruby_line->MoveInBlockDirection(offset);
+      ruby_line->SetOffset(offset);
       offset += metrics.descent;
     }
     annotation_metrics_.descent = offset;
@@ -1069,6 +1186,7 @@ RubyBlockPositionCalculator& RubyBlockPositionCalculator::PlaceLines(
       FontHeight metrics = ruby_line->UpdateMetrics();
       offset -= metrics.descent;
       ruby_line->MoveInBlockDirection(offset);
+      ruby_line->SetOffset(offset);
       offset -= metrics.ascent;
     }
     annotation_metrics_.ascent = -offset;
@@ -1092,6 +1210,276 @@ FontHeight RubyBlockPositionCalculator::AnnotationMetrics() const {
   return annotation_metrics_;
 }
 
+void RubyBlockPositionCalculator::UpdateColumnLayoutAnnotationMetrics(
+    const HeapVector<Member<LogicalRubyColumn>>& column_list) const {
+  for (const auto& column : column_list) {
+    UpdateColumnLayoutAnnotationMetrics(*column, LayoutUnit());
+  }
+}
+
+void RubyBlockPositionCalculator::UpdateColumnLayoutAnnotationMetrics(
+    LogicalRubyColumn& column,
+    LayoutUnit base_offset) const {
+  const RubyLine* associated_line = nullptr;
+  if (column.annotation_items) {
+    for (const auto& line : ruby_lines_) {
+      if (line->ContainsColumn(&column)) {
+        associated_line = line.Get();
+        break;
+      }
+    }
+  }
+
+  LayoutUnit child_base_offset = base_offset;
+  if (associated_line) {
+    child_base_offset = associated_line->Offset();
+  }
+
+  for (const auto& sub_column : column.RubyColumnList()) {
+    UpdateColumnLayoutAnnotationMetrics(*sub_column, child_base_offset);
+  }
+
+  LayoutUnit min_offset = LayoutUnit::Max();
+  LayoutUnit max_offset = LayoutUnit::Min();
+
+  AccumulateColumnOffsets(column, min_offset, max_offset);
+
+  FontHeight new_metrics;
+  if (min_offset != LayoutUnit::Max()) {
+    new_metrics.ascent = base_offset - min_offset;
+  }
+  if (max_offset != LayoutUnit::Min()) {
+    new_metrics.descent = max_offset - base_offset;
+  }
+  column.layout_annotation_metrics = new_metrics;
+}
+
+void RubyBlockPositionCalculator::AccumulateColumnOffsets(
+    const LogicalRubyColumn& column,
+    LayoutUnit& min_offset,
+    LayoutUnit& max_offset) const {
+  if (column.annotation_items) {
+    const RubyLine* associated_line = nullptr;
+    for (const auto& line : ruby_lines_) {
+      if (line->ContainsColumn(&column)) {
+        associated_line = line.Get();
+        break;
+      }
+    }
+    if (associated_line) {
+      const RubyLevel& level = associated_line->Level();
+      FontHeight metrics = ComputeLogicalLineEmHeight(*column.annotation_items);
+      FontHeight emphasis_metrics =
+          ComputeEmphasisHeights(*column.annotation_items);
+      metrics.ascent += emphasis_metrics.ascent;
+      metrics.descent += emphasis_metrics.descent;
+
+      if (!level.empty() && level[0] > 0) {
+        LayoutUnit start = -metrics.ascent;
+        min_offset = std::min(min_offset, start);
+      } else if (!level.empty() && level[0] < 0) {
+        LayoutUnit end = metrics.descent;
+        max_offset = std::max(max_offset, end);
+      }
+    }
+  }
+
+  for (const auto& sub_column :
+       const_cast<LogicalRubyColumn&>(column).RubyColumnList()) {
+    AccumulateColumnOffsets(*sub_column, min_offset, max_offset);
+  }
+}
+
+RubyBlockPositionCalculator::RubyLine*
+RubyBlockPositionCalculator::BuildTree() {
+  RubyLine* root = nullptr;
+  for (auto& line : ruby_lines_) {
+    if (line->IsBaseLevel()) {
+      root = line.Get();
+    }
+  }
+
+  for (auto& line : ruby_lines_) {
+    if (line->IsBaseLevel()) {
+      continue;
+    }
+    const RubyLevel& level = line->Level();
+    DCHECK(!level.empty());
+    RubyLevel parent_level;
+    parent_level.append_range(base::span(level).first(level.size() - 1));
+
+    auto parent_it = std::ranges::find_if(
+        ruby_lines_, [&](const Member<RubyLine>& potential_parent) {
+          return std::ranges::equal(potential_parent->Level(), parent_level);
+        });
+    if (parent_it != ruby_lines_.end()) {
+      RubyLine* parent = parent_it->Get();
+      if (level.back() > 0) {
+        parent->AddOverChild(line.Get());
+      } else {
+        parent->AddUnderChild(line.Get());
+      }
+    }
+  }
+
+  for (auto& line : ruby_lines_) {
+    line->SortChildren();
+  }
+
+  return root;
+}
+
+FontHeight RubyBlockPositionCalculator::ComputeRelativeOffsets(
+    RubyLine& node,
+    const LogicalLineItems& base_line_items,
+    const FontHeight& line_box_metrics) {
+  FontHeight node_metrics;
+  if (node.IsBaseLevel()) {
+    if (!node.OverChildren().empty()) {
+      node_metrics = ComputeLogicalLineEmHeight(
+          base_line_items, node.OverChildren().front()->BaseIndexList());
+    } else if (!node.UnderChildren().empty()) {
+      node_metrics = ComputeLogicalLineEmHeight(
+          base_line_items, node.UnderChildren().front()->BaseIndexList());
+    }
+    if (!node_metrics.LineHeight()) {
+      node_metrics = line_box_metrics;
+    }
+  } else {
+    node_metrics = node.UpdateMetrics();
+  }
+
+  LayoutUnit subtree_ascent = node_metrics.ascent;
+  LayoutUnit subtree_descent = node_metrics.descent;
+  FontHeight node_emphasis = node.ComputeLevelEmphasisHeights(base_line_items);
+
+  if (!node.OverChildren().empty()) {
+    LayoutUnit current_offset = -node_metrics.ascent;
+    wtf_size_t i = 0;
+
+    // 1. Own annotations
+    for (; i < node.OverChildren().size(); ++i) {
+      auto& child = node.OverChildren()[i];
+      if (child->Level().size() <= node.Level().size()) {
+        break;
+      }
+      FontHeight child_subtree_metrics =
+          ComputeRelativeOffsets(*child, base_line_items, line_box_metrics);
+      LayoutUnit child_relative_offset =
+          current_offset - child_subtree_metrics.descent;
+      child->SetRelativeOffset(child_relative_offset);
+      current_offset = child_relative_offset - child_subtree_metrics.ascent;
+    }
+
+    // 1.5. Include own annotations in subtree ascent
+    subtree_ascent = std::max(subtree_ascent, -current_offset);
+
+    // 2. Node's emphasis
+    LayoutUnit emphasis_top_with_anno = LayoutUnit::Max();
+    if (i > 0) {
+      FontHeight emp_with_anno = node.ComputeParentEmphasisHeightsForChild(
+          *node.OverChildren()[i - 1], base_line_items);
+      emphasis_top_with_anno = current_offset - emp_with_anno.ascent;
+    }
+    LayoutUnit emphasis_top_without_anno =
+        -node_metrics.ascent - node_emphasis.ascent;
+    LayoutUnit emphasis_top =
+        std::min(emphasis_top_with_anno, emphasis_top_without_anno);
+    subtree_ascent = std::max(subtree_ascent, -emphasis_top);
+
+    // 3. Higher-level annotations
+    for (; i < node.OverChildren().size(); ++i) {
+      auto& child = node.OverChildren()[i];
+      FontHeight child_subtree_metrics =
+          ComputeRelativeOffsets(*child, base_line_items, line_box_metrics);
+      FontHeight parent_emphasis_for_child =
+          node.ComputeParentEmphasisHeightsForChild(*child, base_line_items);
+
+      LayoutUnit child_bottom =
+          current_offset - parent_emphasis_for_child.ascent;
+      LayoutUnit child_relative_offset =
+          child_bottom - child_subtree_metrics.descent;
+      child->SetRelativeOffset(child_relative_offset);
+      current_offset = child_relative_offset - child_subtree_metrics.ascent;
+
+      subtree_ascent = std::max(subtree_ascent, -current_offset);
+    }
+  } else {
+    subtree_ascent += node_emphasis.ascent;
+  }
+
+  if (!node.UnderChildren().empty()) {
+    LayoutUnit current_offset = node_metrics.descent;
+    wtf_size_t i = 0;
+
+    // 1. Own annotations
+    for (; i < node.UnderChildren().size(); ++i) {
+      auto& child = node.UnderChildren()[i];
+      if (child->Level().size() <= node.Level().size()) {
+        break;
+      }
+      FontHeight child_subtree_metrics =
+          ComputeRelativeOffsets(*child, base_line_items, line_box_metrics);
+      LayoutUnit child_relative_offset =
+          current_offset + child_subtree_metrics.ascent;
+      child->SetRelativeOffset(child_relative_offset);
+      current_offset = child_relative_offset + child_subtree_metrics.descent;
+    }
+
+    // 1.5. Include own annotations in subtree descent
+    subtree_descent = std::max(subtree_descent, current_offset);
+
+    // 2. Node's emphasis
+    LayoutUnit emphasis_bottom_with_anno = LayoutUnit::Min();
+    if (i > 0) {
+      FontHeight emp_with_anno = node.ComputeParentEmphasisHeightsForChild(
+          *node.UnderChildren()[i - 1], base_line_items);
+      emphasis_bottom_with_anno = current_offset + emp_with_anno.descent;
+    }
+    LayoutUnit emphasis_bottom_without_anno =
+        node_metrics.descent + node_emphasis.descent;
+    LayoutUnit emphasis_bottom =
+        std::max(emphasis_bottom_with_anno, emphasis_bottom_without_anno);
+    subtree_descent = std::max(subtree_descent, emphasis_bottom);
+
+    // 3. Higher-level annotations
+    for (; i < node.UnderChildren().size(); ++i) {
+      auto& child = node.UnderChildren()[i];
+      FontHeight child_subtree_metrics =
+          ComputeRelativeOffsets(*child, base_line_items, line_box_metrics);
+      FontHeight parent_emphasis_for_child =
+          node.ComputeParentEmphasisHeightsForChild(*child, base_line_items);
+
+      LayoutUnit child_top = current_offset + parent_emphasis_for_child.descent;
+      LayoutUnit child_relative_offset =
+          child_top + child_subtree_metrics.ascent;
+      child->SetRelativeOffset(child_relative_offset);
+      current_offset = child_relative_offset + child_subtree_metrics.descent;
+
+      subtree_descent = std::max(subtree_descent, current_offset);
+    }
+  } else {
+    subtree_descent += node_emphasis.descent;
+  }
+
+  return {subtree_ascent, subtree_descent};
+}
+
+void RubyBlockPositionCalculator::ComputeOffsetsFromBase(
+    RubyLine& node,
+    LayoutUnit parent_offset_from_base) {
+  LayoutUnit offset_from_base = parent_offset_from_base + node.RelativeOffset();
+  node.SetOffset(offset_from_base);
+  node.MoveInBlockDirection(offset_from_base);
+
+  for (auto& child : node.OverChildren()) {
+    ComputeOffsetsFromBase(*child, offset_from_base);
+  }
+  for (auto& child : node.UnderChildren()) {
+    ComputeOffsetsFromBase(*child, offset_from_base);
+  }
+}
+
 // ================================================================
 
 RubyBlockPositionCalculator::RubyLine::RubyLine(const RubyLevel& level)
@@ -1099,6 +1487,17 @@ RubyBlockPositionCalculator::RubyLine::RubyLine(const RubyLevel& level)
 
 void RubyBlockPositionCalculator::RubyLine::Trace(Visitor* visitor) const {
   visitor->Trace(column_list_);
+  visitor->Trace(over_children_);
+  visitor->Trace(under_children_);
+}
+
+void RubyBlockPositionCalculator::RubyLine::SortChildren() {
+  auto compare_abs_level = [](const Member<RubyLine>& a,
+                              const Member<RubyLine>& b) {
+    return std::abs(a->Level().back()) < std::abs(b->Level().back());
+  };
+  std::ranges::sort(over_children_, compare_abs_level);
+  std::ranges::sort(under_children_, compare_abs_level);
 }
 
 bool RubyBlockPositionCalculator::RubyLine::operator<(
@@ -1169,21 +1568,56 @@ void RubyBlockPositionCalculator::RubyLine::AddLinesTo(
   }
 }
 
+FontHeight RubyBlockPositionCalculator::RubyLine::ComputeLevelEmphasisHeights(
+    const LogicalLineItems& base_line_items) const {
+  FontHeight heights;
+  if (IsBaseLevel()) {
+    return ComputeEmphasisHeights(base_line_items);
+  }
+  for (const auto& column : column_list_) {
+    if (column->annotation_items) {
+      heights.Unite(ComputeEmphasisHeights(*column->annotation_items));
+    }
+  }
+  return heights;
+}
+
+FontHeight
+RubyBlockPositionCalculator::RubyLine::ComputeParentEmphasisHeightsForChild(
+    const RubyLine& child,
+    const LogicalLineItems& base_line_items) const {
+  FontHeight heights;
+  if (IsBaseLevel()) {
+    if (!child.BaseIndexList().empty()) {
+      return ComputeEmphasisHeights(base_line_items, child.BaseIndexList());
+    }
+    for (const auto& column : child.column_list_) {
+      for (wtf_size_t i = column->start_index; i < column->EndIndex(); ++i) {
+        if (i < base_line_items.size()) {
+          heights.Unite(ComputeEmphasisHeights(base_line_items, {i}));
+        }
+      }
+    }
+  } else {
+    for (const auto& node_col : column_list_) {
+      if (node_col->annotation_items) {
+        heights.Unite(ComputeEmphasisHeights(*node_col->annotation_items));
+      }
+    }
+  }
+  return heights;
+}
+
+bool RubyBlockPositionCalculator::RubyLine::ContainsColumn(
+    const LogicalRubyColumn* column) const {
+  return std::ranges::find(column_list_, column) != column_list_.end();
+}
+
 // ================================================================
 
 void RubyBlockPositionCalculator::AnnotationDepth::Trace(
     Visitor* visitor) const {
   visitor->Trace(column);
-}
-
-std::tuple<LayoutUnit, LayoutUnit> AdjustTextOverUnderOffsetsForEmphasis(
-    const ShapeResultView& shape_view,
-    const UsedFont& used_font) {
-  // We apply kAlphabeticBaseline because this is for painting.
-  LayoutUnit over = -used_font.FixedAscent();
-  LayoutUnit under = used_font.FixedDescent();
-  return AdjustTextOverUnderOffsetsForEmHeight(over, under, kAlphabeticBaseline,
-                                               used_font, shape_view);
 }
 
 }  // namespace blink

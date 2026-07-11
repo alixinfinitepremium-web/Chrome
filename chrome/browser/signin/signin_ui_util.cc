@@ -21,6 +21,7 @@
 #include "build/build_config.h"
 #include "chrome/browser/browser_process.h"
 #include "chrome/browser/feature_engagement/tracker_factory.h"
+#include "chrome/browser/metrics/profile_metrics_service_factory.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/profiles/profile_attributes_storage.h"
 #include "chrome/browser/profiles/profile_manager.h"
@@ -29,12 +30,13 @@
 #include "chrome/browser/signin/signin_ui_delegate.h"
 #include "chrome/browser/signin/signin_util.h"
 #include "chrome/browser/sync/sync_service_factory.h"
-#include "chrome/browser/ui/browser.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_features.h"
+#include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
 #include "chrome/browser/ui/chrome_pages.h"
 #include "chrome/browser/ui/navigator/browser_navigator.h"
 #include "chrome/browser/ui/navigator/browser_navigator_params.h"
 #include "chrome/browser/ui/signin/promos/signin_promo_tab_helper.h"
+#include "chrome/browser/ui/tabs/tab_strip_model.h"
 #include "chrome/browser/ui/ui_features.h"
 #include "chrome/browser/ui/webui/signin/turn_sync_on_helper.h"
 #include "chrome/common/pref_names.h"
@@ -56,11 +58,10 @@
 #include "ui/gfx/text_elider.h"
 
 #if BUILDFLAG(IS_CHROMEOS)
-#include "base/check_deref.h"
 #include "chrome/browser/ash/profiles/profile_helper.h"
 #include "chrome/browser/signin/signin_ui_chromeos_util.h"
-#include "chromeos/ash/components/account_manager/account_manager_factory.h"
-#include "components/account_manager_core/chromeos/account_manager_mojo_service.h"
+#include "chrome/browser/ui/ash/account_manager/account_manager_dialog_coordinator.h"
+#include "chrome/browser/ui/ash/account_manager/account_manager_dialog_coordinator_factory.h"
 #include "components/user_manager/user.h"
 #endif  // BUILDFLAG(IS_CHROMEOS)
 
@@ -146,6 +147,14 @@ SigninUiDelegate* GetSigninUiDelegate() {
 
 }  // namespace
 
+#if BUILDFLAG(ENABLE_DICE_SUPPORT)
+void ShowCrossDeviceSigninQrBubble(BrowserWindowInterface* browser,
+                                   base::OnceClosure closing_callback) {
+  GetSigninUiDelegate()->ShowCrossDeviceSigninQrBubble(
+      browser, std::move(closing_callback));
+}
+#endif  // BUILDFLAG(ENABLE_DICE_SUPPORT)
+
 std::u16string GetAuthenticatedUsername(Profile* profile) {
   DCHECK(profile);
   std::string user_display_name;
@@ -195,16 +204,10 @@ void ShowReauthForAccount(Profile* profile,
                           const std::string& email,
                           signin_metrics::AccessPoint access_point) {
 #if BUILDFLAG(IS_CHROMEOS)
-  crosapi::AccountManagerMojoService& account_manager_mojo_service =
-      CHECK_DEREF(
-          ash::AccountManagerFactory::Get()->GetAccountManagerMojoService(
-              profile->GetPath().value()));
-
-  // TODO(b/365741912, b/365902693): Route signin reauth through the
-  // future Ash-owned Account Manager dialog coordinator once it exists.
-  account_manager_mojo_service.ShowReauthAccountDialog(
-      GetAccountReauthSourceFromAccessPoint(access_point), email,
-      base::DoNothing());
+  ash::AccountManagerDialogCoordinatorFactory::GetForProfile(profile)
+      ->ShowReauthAccountDialog(
+          GetAccountReauthSourceFromAccessPoint(access_point), email,
+          base::DoNothing());
 #elif BUILDFLAG(ENABLE_DICE_SUPPORT)
   // Pass `false` for `enable_sync`, as this function is not expected to start a
   // sync setup flow after the reauth.
@@ -233,7 +236,8 @@ void SignInFromSingleAccountPromo(Profile* profile,
             : signin_metrics::PromoAction::
                   PROMO_ACTION_NEW_ACCOUNT_EXISTING_ACCOUNT;
     GetSigninUiDelegate()->ShowSigninUI(profile, /*enable_sync=*/false,
-                                        access_point, new_account_promo_action);
+                                        access_point, new_account_promo_action,
+                                        /*extension_name=*/"");
     return;
   }
 
@@ -265,6 +269,8 @@ void SignInFromSingleAccountPromo(Profile* profile,
   }
 
   // If the account's refresh token are fine, sign in directly.
+  signin_metrics::LogSignInStarted(
+      access_point, *ProfileMetricsServiceFactory::GetForProfile(profile));
   IdentityManagerFactory::GetForProfile(profile)
       ->GetPrimaryAccountMutator()
       ->SetPrimaryAccount(account.account_id, signin::ConsentLevel::kSignin,
@@ -304,7 +310,8 @@ void EnableSyncFromMultiAccountPromo(Profile* profile,
             : signin_metrics::PromoAction::
                   PROMO_ACTION_NEW_ACCOUNT_EXISTING_ACCOUNT;
     GetSigninUiDelegate()->ShowSigninUI(profile, /*enable_sync=*/true,
-                                        access_point, new_account_promo_action);
+                                        access_point, new_account_promo_action,
+                                        /*extension_name=*/"");
     return;
   }
 
@@ -329,12 +336,12 @@ void EnableSyncFromMultiAccountPromo(Profile* profile,
     return;
   }
 
-  signin_metrics::LogSigninAccessPointStarted(access_point,
-                                              existing_account_promo_action);
   signin_metrics::RecordSigninUserActionForAccessPoint(access_point);
 
   if (syncer::IsReplaceSyncPromosWithSignInPromosEnabled()) {
     if (!identity_manager->HasPrimaryAccount(signin::ConsentLevel::kSignin)) {
+      signin_metrics::LogSignInStarted(
+          access_point, *ProfileMetricsServiceFactory::GetForProfile(profile));
       identity_manager->GetPrimaryAccountMutator()->SetPrimaryAccount(
           account.account_id, signin::ConsentLevel::kSignin, access_point);
     }
@@ -375,6 +382,8 @@ void EnableSyncFromMultiAccountPromo(Profile* profile,
   // account in the profile.
   if (is_sync_promo &&
       !identity_manager->HasPrimaryAccount(signin::ConsentLevel::kSignin)) {
+    signin_metrics::LogSignInStarted(
+        access_point, *ProfileMetricsServiceFactory::GetForProfile(profile));
     identity_manager->GetPrimaryAccountMutator()->SetPrimaryAccount(
         account.account_id, signin::ConsentLevel::kSignin, access_point);
   }

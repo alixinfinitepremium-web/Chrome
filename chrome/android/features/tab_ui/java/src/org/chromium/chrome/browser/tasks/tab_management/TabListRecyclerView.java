@@ -132,8 +132,13 @@ public class TabListRecyclerView extends RecyclerView
     }
 
     public void setupCustomItemAnimator() {
+        setupCustomItemAnimator(/* useClipAnimations= */ false);
+    }
+
+    public void setupCustomItemAnimator(boolean useClipAnimations) {
         if (mTabListItemAnimator == null) {
-            mTabListItemAnimator = new TabListItemAnimator(mIsAnimatorRunningSupplier);
+            mTabListItemAnimator =
+                    new TabListItemAnimator(mIsAnimatorRunningSupplier, useClipAnimations);
             setItemAnimator(mTabListItemAnimator);
         }
     }
@@ -352,7 +357,7 @@ public class TabListRecyclerView extends RecyclerView
         if (holder == null || tabIndex == TabModel.INVALID_TAB_INDEX) return Tab.INVALID_TAB_ID;
         PropertyModel model = holder.model;
         assumeNonNull(model);
-        return TabListModel.isTabOrTabGroup(model)
+        return TabProperties.isTabOrTabGroup(model)
                 ? model.get(TabProperties.TAB_ID)
                 : Tab.INVALID_TAB_ID;
     }

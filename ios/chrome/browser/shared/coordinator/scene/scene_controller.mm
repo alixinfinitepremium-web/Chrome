@@ -40,6 +40,7 @@
 #import "ios/chrome/app/change_profile_commands.h"
 #import "ios/chrome/app/profile/profile_state.h"
 #import "ios/chrome/app/profile/profile_state_observer.h"
+#import "ios/chrome/app/startup/chrome_app_startup_parameters.h"
 #import "ios/chrome/app/tests_hook.h"
 #import "ios/chrome/browser/app_store_rating/model/app_store_rating_scene_agent.h"
 #import "ios/chrome/browser/app_store_rating/model/features.h"
@@ -70,8 +71,11 @@
 #import "ios/chrome/browser/feature_engagement/model/tracker_factory.h"
 #import "ios/chrome/browser/first_run/model/first_run.h"
 #import "ios/chrome/browser/geolocation/model/geolocation_manager.h"
+#import "ios/chrome/browser/google_one/shared/google_one_deep_link_util.h"
 #import "ios/chrome/browser/incognito_reauth/ui_bundled/incognito_reauth_scene_agent.h"
+#import "ios/chrome/browser/intelligence/bwg/model/gemini_tab_helper.h"
 #import "ios/chrome/browser/intelligence/bwg/utils/gemini_constants.h"
+#import "ios/chrome/browser/intelligence/bwg/utils/gemini_prefs.h"
 #import "ios/chrome/browser/intelligence/features/features.h"
 #import "ios/chrome/browser/intents/model/user_activity_browser_agent.h"
 #import "ios/chrome/browser/intents/model/user_activity_compatibility_util.h"
@@ -105,6 +109,8 @@
 #import "ios/chrome/browser/shared/coordinator/default_browser_promo/non_modal_default_browser_promo_scheduler_scene_agent.h"
 #import "ios/chrome/browser/shared/coordinator/layout_guide/layout_guide_scene_agent.h"
 #import "ios/chrome/browser/shared/coordinator/scene/scene_controller+OTRProfileDeletion.h"
+#import "ios/chrome/browser/shared/coordinator/scene/scene_state.h"
+#import "ios/chrome/browser/shared/coordinator/scene/scene_state_options.h"
 #import "ios/chrome/browser/shared/coordinator/scene/scene_ui_provider.h"
 #import "ios/chrome/browser/shared/coordinator/scene/state/incognito_state.h"
 #import "ios/chrome/browser/shared/coordinator/scene/state/scene_ui_blocker_state.h"
@@ -130,6 +136,7 @@
 #import "ios/chrome/browser/shared/public/commands/browser_coordinator_commands.h"
 #import "ios/chrome/browser/shared/public/commands/command_dispatcher.h"
 #import "ios/chrome/browser/shared/public/commands/gemini_commands.h"
+#import "ios/chrome/browser/shared/public/commands/google_one_commands.h"
 #import "ios/chrome/browser/shared/public/commands/lens_commands.h"
 #import "ios/chrome/browser/shared/public/commands/open_lens_input_selection_command.h"
 #import "ios/chrome/browser/shared/public/commands/open_new_tab_command.h"
@@ -169,15 +176,18 @@
 #import "ios/chrome/grit/ios_strings.h"
 #import "ios/components/webui/web_ui_url_constants.h"
 #import "ios/public/provider/chrome/browser/cobalt/cobalt_api.h"
+#import "ios/public/provider/chrome/browser/google_one/google_one_api.h"
 #import "ios/web/common/features.h"
 #import "ios/web/public/js_image_transcoder/java_script_image_transcoder.h"
 #import "ios/web/public/navigation/navigation_manager.h"
 #import "ios/web/public/web_state.h"
+#import "ios/web/public/web_state_id.h"
 #import "net/base/apple/url_conversions.h"
 #import "net/base/url_util.h"
 #import "services/network/public/cpp/shared_url_loader_factory.h"
 #import "ui/base/device_form_factor.h"
 #import "ui/base/l10n/l10n_util.h"
+#import "ui/base/l10n/l10n_util_mac.h"
 #import "ui/base/page_transition_types.h"
 
 namespace {
@@ -675,6 +685,23 @@ UrlLoadParams UpdateParamsForDinoGame(UrlLoadParams params) {
         };
       }
       return nil;
+    case SHOW_GOOGLE_ONE_SCREEN: {
+      __weak id<GoogleOneCommands> weakGoogleOneHandler = HandlerForProtocol(
+          self.currentInterface.browser->GetCommandDispatcher(),
+          GoogleOneCommands);
+      GURL inputURL =
+          self.startupParameters ? self.startupParameters.completeURL : GURL();
+      if (inputURL.is_valid()) {
+        return ^{
+          [weakGoogleOneHandler showGoogleOneForURL:inputURL];
+        };
+      }
+      return nil;
+    }
+    case START_GEMINI_AI_SUMMARIZATION:
+      return ^{
+        [weakSelf startGeminiFlowForAppSwitcherIntent];
+      };
     default:
       return nil;
   }
@@ -1240,8 +1267,8 @@ UrlLoadParams UpdateParamsForDinoGame(UrlLoadParams params) {
     ChangeProfileContinuation continuation =
         CreateChangeProfileSignoutContinuation(
             signoutSource, /*force_snackbar_over_toolbar=*/false,
-            /*should_record_metrics=*/false, /*snackbar_message =*/nil,
-            base::DoNothing());
+            /*should_record_metrics=*/false,
+            /*snackbar_message_builder=*/{}, base::DoNothing());
     signin::SwitchToPersonalProfile(self.sceneState,
                                     ChangeProfileReason::kManagedAccountSignOut,
                                     std::move(continuation));
@@ -1293,7 +1320,12 @@ UrlLoadParams UpdateParamsForDinoGame(UrlLoadParams params) {
     openURL = YES;
   }
   ChangeProfileReason reason;
-  if ([self shareExtensionURLEligibleForAccountChange:context.context.URL]) {
+  if (IsGoogleOneDeepLinkURL(net::GURLWithNSURL(context.context.URL),
+                             nullptr)) {
+    CHECK(IsGoogleOneDeepLinkEnabled());
+    reason = ChangeProfileReason::kForGoogleOneSettings;
+  } else if ([self shareExtensionURLEligibleForAccountChange:context.context
+                                                                 .URL]) {
     reason = ChangeProfileReason::kSwitchAccountsFromShareExtension;
   } else {
     reason = ChangeProfileReason::kSwitchAccountsFromWidget;
@@ -1320,6 +1352,15 @@ UrlLoadParams UpdateParamsForDinoGame(UrlLoadParams params) {
     if (net::GetValueForKeyInQuery(net::GURLWithNSURL(context.URL),
                                    app_group::kGaiaIDQueryItemName, &newGaia)) {
       accountChanges++;
+    } else {
+      GURL googleOneGURL;
+      if (IsGoogleOneDeepLinkEnabled() &&
+          IsGoogleOneDeepLinkURL(net::GURLWithNSURL(context.URL),
+                                 &googleOneGURL)) {
+        if (GoogleOneAccountFromURL(googleOneGURL).length > 0) {
+          accountChanges++;
+        }
+      }
     }
   }
   return accountChanges > 1 ? YES : NO;
@@ -1344,20 +1385,37 @@ UrlLoadParams UpdateParamsForDinoGame(UrlLoadParams params) {
   CoreAccountInfo primaryAccount =
       identityManager->GetPrimaryAccountInfo(signin::ConsentLevel::kSignin);
   for (UIOpenURLContext* context : URLContexts) {
-    // Check that this URL is coming from a widget.
-    if (!([self widgetURLEligibleForAccountChange:context.URL] ||
-          [self shareExtensionURLEligibleForAccountChange:context.URL])) {
+    BOOL isWidgetOrShare =
+        [self widgetURLEligibleForAccountChange:context.URL] ||
+        [self shareExtensionURLEligibleForAccountChange:context.URL];
+    GURL contextGURL = net::GURLWithNSURL(context.URL);
+    GURL googleOneGURL;
+    BOOL isGoogleOne = IsGoogleOneDeepLinkEnabled() &&
+                       IsGoogleOneDeepLinkURL(contextGURL, &googleOneGURL);
+    if (!(isWidgetOrShare || isGoogleOne)) {
       continue;
     }
-    std::string newGaia;
+    GaiaId newGaiaID;
 
-    // Continue if the URL does not contain a gaia.
-    if (!net::GetValueForKeyInQuery(net::GURLWithNSURL(context.URL),
-                                    app_group::kGaiaIDQueryItemName,
-                                    &newGaia)) {
-      continue;
+    if (isGoogleOne) {
+      NSString* accountParam = GoogleOneAccountFromURL(googleOneGURL);
+      if (accountParam.length == 0) {
+        continue;
+      }
+      newGaiaID = FindGaiaIdForGoogleOneAccount(accountParam);
+      if (newGaiaID.empty()) {
+        continue;
+      }
+    } else {
+      std::string newGaia;
+      // Continue if the URL does not contain a gaia.
+      if (!net::GetValueForKeyInQuery(net::GURLWithNSURL(context.URL),
+                                      app_group::kGaiaIDQueryItemName,
+                                      &newGaia)) {
+        continue;
+      }
+      newGaiaID = GaiaId(newGaia);
     }
-    GaiaId newGaiaID(newGaia);
 
     // Only switch account if the gaia in the widget is different from the gaia
     // in the app.
@@ -1499,7 +1557,8 @@ UrlLoadParams UpdateParamsForDinoGame(UrlLoadParams params) {
       [[BrowserLifecycleManager alloc] initWithProfile:profile
                                             sceneState:sceneState
                                          sceneEndpoint:_mainCoordinator
-                                      settingsEndpoint:_mainCoordinator];
+                                      settingsEndpoint:_mainCoordinator
+                                        geminiEndpoint:_mainCoordinator];
 
   // Create and start the BVC.
   [self.browserLifecycleManager createMainCoordinatorAndInterface];
@@ -1653,11 +1712,13 @@ UrlLoadParams UpdateParamsForDinoGame(UrlLoadParams params) {
   }
 }
 
-- (void)setProfileState:(ProfileState*)profileState {
+- (void)connectWithOptions:(SceneStateOptions)options {
   DCHECK(!_sceneState.profileState);
+  DCHECK(!options.identifier.empty());
 
   // Connect the ProfileState with the SceneState.
-  _sceneState.profileState = profileState;
+  ProfileState* profileState = options.profile_state;
+  [_sceneState connectWithOptions:std::move(options)];
   [profileState sceneStateConnected:_sceneState];
 
   // Add agents. They may depend on the ProfileState, so they need to be
@@ -2550,11 +2611,11 @@ UrlLoadParams UpdateParamsForDinoGame(UrlLoadParams params) {
     return;
   }
 
-  id<GeminiCommands> geminiHandler = HandlerForProtocol(
-      self.currentInterface.browser->GetCommandDispatcher(), GeminiCommands);
   GeminiStartupState* startupState = [[GeminiStartupState alloc]
       initWithEntryPoint:gemini::EntryPoint::ExternalAppStoreEvent];
 
+  id<GeminiCommands> geminiHandler = HandlerForProtocol(
+      self.currentInterface.browser->GetCommandDispatcher(), GeminiCommands);
   if (IsGeneralizedGeminiEntryFlowEnabled()) {
     [geminiHandler
         startGeminiEntryFlowWithStartupState:startupState
@@ -2564,10 +2625,41 @@ UrlLoadParams UpdateParamsForDinoGame(UrlLoadParams params) {
                     showSnackbarOnCompletion:YES
                                   completion:nil];
   } else {
-    // TODO(crbug.com/515476625): Remove this fallback path, the associated
-    // method and string when the generalized Gemini entry flow is rolled out.
+    // TODO(crbug.com/515476625): Remove this legacy fallback path when the
+    // generalized Gemini entry flow is fully rolled out.
     [geminiHandler startGeminiFlowWithStartupState:startupState];
   }
+}
+
+// TODO(crbug.com/526644569): Handle user waiting for page to load.
+// Starts the Gemini flow when an App Switcher intent occurs.
+- (void)startGeminiFlowForAppSwitcherIntent {
+  CHECK(IsAppSwitcherAISummarizationEnabled());
+  Browser* browser = self.currentInterface.browser;
+  if (!browser) {
+    return;
+  }
+
+  web::WebState* activeWebState =
+      browser->GetWebStateList()->GetActiveWebState();
+  if (!activeWebState) {
+    return;
+  }
+
+  GeminiStartupState* startupState = [[GeminiStartupState alloc]
+      initWithEntryPoint:gemini::EntryPoint::AppSwitcherAISummarization];
+  startupState.prepopulatedPrompt =
+      l10n_util::GetNSString(IDS_IOS_GEMINI_SUMMARIZE_PAGE_PROMPT);
+
+  id<GeminiCommands> geminiHandler =
+      HandlerForProtocol(browser->GetCommandDispatcher(), GeminiCommands);
+  [geminiHandler
+      startGeminiEntryFlowWithStartupState:startupState
+                        baseViewController:self.activeViewController
+                               accessPoint:signin_metrics::AccessPoint::
+                                               kDeepLinkDefault
+                  showSnackbarOnCompletion:YES
+                                completion:nil];
 }
 
 // Returns the condition to check in order to show the `IncognitoIntertitial`

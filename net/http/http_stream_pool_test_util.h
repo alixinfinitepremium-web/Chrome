@@ -112,8 +112,15 @@ class FakeServiceEndpointRequest : public HostResolver::ServiceEndpointRequest {
   FakeServiceEndpointRequest& CallOnServiceEndpointsUpdated();
 
   // Calls `delegate_->OnServiceEndpointRequestFinished()`. Must not be used
-  // after calling CompleteStartSynchronously().
-  FakeServiceEndpointRequest& CallOnServiceEndpointRequestFinished(int rv);
+  // after calling CompleteStartSynchronously(). Unlike other methods, this
+  // doesn't return `*this` since `this` can be deleted during the delegate
+  // call.
+  void CallOnServiceEndpointRequestFinished(int rv);
+
+  FakeServiceEndpointRequest& set_is_stale_while_refreshing(bool is_stale) {
+    is_stale_while_refreshing_ = is_stale;
+    return *this;
+  }
 
   RequestPriority priority() const { return resolution_.priority(); }
   const HostResolver::ResolveHostParameters& resolve_host_params() const {
@@ -137,6 +144,8 @@ class FakeServiceEndpointRequest : public HostResolver::ServiceEndpointRequest {
   void CompleteAsync(int rv);
 
   raw_ptr<Delegate> delegate_;
+
+  bool is_stale_while_refreshing_ = false;
 
   FakeServiceEndpointResolution resolution_;
 

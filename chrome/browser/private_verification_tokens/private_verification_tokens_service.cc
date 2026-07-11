@@ -63,6 +63,10 @@ void PrivateVerificationTokensService::Shutdown() {
     return;
   }
   is_shutting_down_ = true;
+  auto operations = std::move(pending_operations_);
+  for (auto& operation : operations) {
+    std::move(operation).Run();
+  }
   store_ = nullptr;
   receivers_.Clear();
 }
@@ -101,18 +105,76 @@ void PrivateVerificationTokensService::GetTokens(
     std::move(callback).Run({});
     return;
   }
-  CHECK(store_);
+
+  if (!is_initialized()) {
+    pending_operations_.push_back(
+        base::BindOnce(&PrivateVerificationTokensService::GetTokens,
+                       weak_ptr_factory_.GetWeakPtr(), std::move(callback)));
+    return;
+  }
+
   std::vector<
       private_verification_tokens::mojom::PrivateVerificationTokensTokenPtr>
       tokens;
-  for (const auto& [etld_plus_one, token_with_id] : store_->tokens()) {
+  CHECK(store_);
+  for (const auto& [issuer, token_with_id] : store_->tokens()) {
     auto mojo_token = private_verification_tokens::mojom::
         PrivateVerificationTokensToken::New();
-    mojo_token->issuer = url::Origin::Create(GURL("https://" + etld_plus_one));
+    mojo_token->issuer = issuer;
     mojo_token->serialized_token = token_with_id.token.token();
     tokens.push_back(std::move(mojo_token));
   }
   std::move(callback).Run(std::move(tokens));
+}
+
+void PrivateVerificationTokensService::GetTokenIssuers(
+    base::OnceCallback<void(std::vector<url::Origin>)> callback) {
+  DCHECK_CURRENTLY_ON(content::BrowserThread::UI);
+  if (is_shutting_down_) {
+    std::move(callback).Run({});
+    return;
+  }
+
+  if (!is_initialized()) {
+    pending_operations_.push_back(
+        base::BindOnce(&PrivateVerificationTokensService::GetTokenIssuers,
+                       weak_ptr_factory_.GetWeakPtr(), std::move(callback)));
+    return;
+  }
+
+  std::vector<url::Origin> issuers;
+  CHECK(store_);
+  const std::map<url::Origin, private_verification_tokens::TokenWithId>&
+      tokens = store_->tokens();
+  issuers.reserve(tokens.size());
+  for (const auto& [issuer, unused] : tokens) {
+    issuers.push_back(issuer);
+  }
+  std::move(callback).Run(std::move(issuers));
+}
+
+void PrivateVerificationTokensService::DeleteTokens(
+    base::Time delete_begin,
+    base::Time delete_end,
+    std::optional<std::vector<url::Origin>> issuers,
+    base::OnceClosure callback) {
+  DCHECK_CURRENTLY_ON(content::BrowserThread::UI);
+  if ((issuers.has_value() && issuers->empty()) || is_shutting_down_) {
+    std::move(callback).Run();
+    return;
+  }
+
+  if (!is_initialized()) {
+    pending_operations_.push_back(
+        base::BindOnce(&PrivateVerificationTokensService::DeleteTokens,
+                       weak_ptr_factory_.GetWeakPtr(), delete_begin, delete_end,
+                       std::move(issuers), std::move(callback)));
+    return;
+  }
+
+  CHECK(store_);
+  store_->DeleteTokens(delete_begin, delete_end, std::move(issuers),
+                       std::move(callback));
 }
 
 void PrivateVerificationTokensService::OnStoreInitialized() {
@@ -121,5 +183,9 @@ void PrivateVerificationTokensService::OnStoreInitialized() {
   }
   for (auto& observer : observers_) {
     observer.OnInitializationComplete();
+  }
+  auto operations = std::move(pending_operations_);
+  for (auto& operation : operations) {
+    std::move(operation).Run();
   }
 }

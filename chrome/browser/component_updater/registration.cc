@@ -15,6 +15,7 @@
 #include "build/build_config.h"
 #include "chrome/browser/browser_process.h"
 #include "chrome/browser/buildflags.h"
+#include "chrome/browser/component_updater/ai_embeddings_component_installer.h"
 #include "chrome/browser/component_updater/app_provisioning_component_installer.h"
 #include "chrome/browser/component_updater/captcha_provider_component_installer.h"
 #include "chrome/browser/component_updater/chrome_origin_trials_component_installer.h"
@@ -43,6 +44,9 @@
 #include "components/component_updater/installer_policies/optimization_hints_component_installer.h"
 #include "components/component_updater/installer_policies/safety_tips_component_installer.h"
 #include "components/on_device_translation/buildflags/buildflags.h"
+#include "components/optimization_guide/core/model_execution/model_execution_prefs.h"
+#include "components/optimization_guide/core/model_execution/model_execution_util.h"
+#include "components/prefs/pref_service.h"
 #include "components/safe_browsing/core/common/features.h"
 #include "device/vr/buildflags/buildflags.h"
 #include "third_party/widevine/cdm/buildflags.h"
@@ -59,6 +63,7 @@
 #endif  // BUILDFLAG(IS_ANDROID)
 
 #if !BUILDFLAG(IS_ANDROID)
+#include "chrome/browser/component_updater/dictation_connector_component_installer.h"
 #include "chrome/browser/component_updater/iwa_key_distribution_component_installer.h"
 #include "chrome/browser/component_updater/zxcvbn_data_component_installer.h"
 #include "chrome/browser/resource_coordinator/tab_manager.h"
@@ -168,6 +173,7 @@ void RegisterComponentsForUpdate() {
 #endif  // !BUILDFLAG(IS_CHROMEOS)
 
   RegisterOriginTrialsComponent(cus);
+  RegisterAIEmbeddingsComponent(cus, g_browser_process->local_state());
   RegisterMediaEngagementPreloadComponent(cus, base::OnceClosure());
 
   MaybeRegisterPKIMetadataComponent(cus);
@@ -186,6 +192,7 @@ void RegisterComponentsForUpdate() {
 #endif
 
 #if !BUILDFLAG(IS_ANDROID)
+  RegisterDictationConnectorComponent(cus);
   RegisterIwaKeyDistributionComponent(cus);
   RegisterZxcvbnDataComponent(cus);
   RegisterActorSafetyListsComponent(cus, base::OnceClosure());
@@ -229,6 +236,14 @@ void RegisterComponentsForUpdate() {
 
   base::FilePath path;
   if (base::PathService::Get(chrome::DIR_USER_DATA, &path)) {
+    if (optimization_guide::
+            GetGenAILocalFoundationalModelEnterprisePolicySettings(
+                g_browser_process->local_state()) ==
+        optimization_guide::model_execution::prefs::
+            GenAILocalFoundationalModelEnterprisePolicySettings::kDisallowed) {
+      DeleteAIEmbeddingsComponent(path);
+    }
+
     if (!history_embeddings::IsHistoryEmbeddingsFeatureEnabled()) {
       DeleteHistorySearchStringsComponent(path);
     }

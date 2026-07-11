@@ -860,8 +860,6 @@ void ClientTagBasedDataTypeProcessor::OnCommitCompleted(
       DLOG(ERROR) << "Received commit response for missing item."
                   << " type: " << DataTypeToDebugString(type_)
                   << " client_tag_hash: " << data.client_tag_hash;
-      base::UmaHistogramEnumeration("Sync.CommitResponseForUnknownEntity",
-                                    DataTypeHistogramValue(type_));
       continue;
     }
 
@@ -1147,6 +1145,7 @@ std::optional<ModelError> ClientTagBasedDataTypeProcessor::OnFullUpdateReceived(
   std::unique_ptr<MetadataChangeList> metadata_changes =
       bridge_->CreateMetadataChangeList();
   CHECK(model_ready_to_sync_);
+  CHECK(!model_error_);
 
   // Check that the worker correctly marked initial sync as (at least) partially
   // done for this update.
@@ -1195,6 +1194,9 @@ std::optional<ModelError> ClientTagBasedDataTypeProcessor::OnFullUpdateReceived(
   // If there is already an error (this can happen if one of the metadata
   // writes failed), don't even send the data to the bridge.
   if (model_error_) {
+    // Do not call metadata_changes->DropAllChanges() here because the in-memory
+    // implementation of MetadataChangeList is not expected to cause any errors,
+    // and the other implementations don't support this method.
     return model_error_;
   }
 

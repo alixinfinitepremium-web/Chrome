@@ -38,7 +38,11 @@ public class WebViewCachedFlagsTest {
         Assume.assumeTrue(BuildConfig.ENABLE_ASSERTS);
         InMemorySharedPreferences sharedPrefs = new InMemorySharedPreferences();
         WebViewCachedFlags.init(sharedPrefs);
-        Assert.assertThrows(AssertionError.class, () -> WebViewCachedFlags.init(sharedPrefs));
+        try {
+            Assert.assertThrows(AssertionError.class, () -> WebViewCachedFlags.init(sharedPrefs));
+        } finally {
+            WebViewCachedFlags.resetForTesting();
+        }
     }
 
     @Test
@@ -51,7 +55,7 @@ public class WebViewCachedFlagsTest {
                 .putStringSet(CACHED_ENABLED_FLAGS_PREF, Set.of("Foo", "Bar"))
                 .putStringSet(CACHED_DISABLED_FLAGS_PREF, Set.of("Baz"))
                 .apply();
-        new WebViewCachedFlags(sharedPrefs, Map.of());
+        new WebViewCachedFlags(sharedPrefs, Map.of(), false);
         Assert.assertFalse(sharedPrefs.contains(CACHED_ENABLED_FLAGS_PREF));
         Assert.assertFalse(sharedPrefs.contains(CACHED_DISABLED_FLAGS_PREF));
     }
@@ -66,7 +70,7 @@ public class WebViewCachedFlagsTest {
                 .putStringSet(CACHED_ENABLED_FLAGS_PREF, Set.of("Foo", "Bar"))
                 .putStringSet(CACHED_DISABLED_FLAGS_PREF, Set.of("Baz"))
                 .apply();
-        WebViewCachedFlags cachedFlags = new WebViewCachedFlags(sharedPrefs, Map.of());
+        WebViewCachedFlags cachedFlags = new WebViewCachedFlags(sharedPrefs, Map.of(), false);
         Assert.assertTrue(cachedFlags.isCachedFeatureEnabled("Foo"));
         Assert.assertTrue(cachedFlags.isCachedFeatureEnabled("Bar"));
         Assert.assertFalse(cachedFlags.isCachedFeatureEnabled("Baz"));
@@ -88,7 +92,8 @@ public class WebViewCachedFlagsTest {
                         Map.of(
                                 "Foo", WebViewCachedFlags.DefaultState.DISABLED,
                                 "Bar", WebViewCachedFlags.DefaultState.DISABLED,
-                                "Baz", WebViewCachedFlags.DefaultState.ENABLED));
+                                "Baz", WebViewCachedFlags.DefaultState.ENABLED),
+                        false);
         Assert.assertFalse(cachedFlags.isCachedFeatureEnabled("Foo"));
         Assert.assertFalse(cachedFlags.isCachedFeatureEnabled("Bar"));
         Assert.assertTrue(cachedFlags.isCachedFeatureEnabled("Baz"));
@@ -112,7 +117,8 @@ public class WebViewCachedFlagsTest {
                         Map.of(
                                 "Foo", WebViewCachedFlags.DefaultState.ENABLED,
                                 "Bar", WebViewCachedFlags.DefaultState.ENABLED,
-                                "Baz", WebViewCachedFlags.DefaultState.ENABLED));
+                                "Baz", WebViewCachedFlags.DefaultState.ENABLED),
+                        false);
 
         cachedFlags.onStartupCompleted(sharedPrefs);
         Assert.assertEquals(
@@ -120,25 +126,6 @@ public class WebViewCachedFlagsTest {
         Assert.assertEquals(
                 Set.of("Foo", "Bar"),
                 sharedPrefs.getStringSet(CACHED_DISABLED_FLAGS_PREF, Set.of()));
-    }
-
-    @Test
-    @Feature({"AndroidWebView"})
-    @SmallTest
-    public void manualFlagsAreMigrated() {
-        InMemorySharedPreferences sharedPrefs = new InMemorySharedPreferences();
-        sharedPrefs
-                .edit()
-                .putBoolean("useWebViewResourceContext", true)
-                .putBoolean("defaultWebViewPartitionedCookiesState", true)
-                .putBoolean("webViewUseStartupTasksLogic", true)
-                .apply();
-        new WebViewCachedFlags(sharedPrefs, Map.of());
-
-        // Check that we removed the old prefs.
-        Assert.assertFalse(sharedPrefs.contains("useWebViewResourceContext"));
-        Assert.assertFalse(sharedPrefs.contains("defaultWebViewPartitionedCookiesState"));
-        Assert.assertFalse(sharedPrefs.contains("webViewUseStartupTasksLogic"));
     }
 
     @Test
@@ -153,13 +140,13 @@ public class WebViewCachedFlagsTest {
                 .apply();
         try (HistogramWatcher ignored =
                 HistogramWatcher.newSingleRecordWatcher(CACHED_FLAGS_EXIST_HISTOGRAM_NAME, true)) {
-            new WebViewCachedFlags(sharedPrefs, Map.of());
+            new WebViewCachedFlags(sharedPrefs, Map.of(), false);
         }
 
         InMemorySharedPreferences emptySharedPrefs = new InMemorySharedPreferences();
         try (HistogramWatcher ignored =
                 HistogramWatcher.newSingleRecordWatcher(CACHED_FLAGS_EXIST_HISTOGRAM_NAME, false)) {
-            new WebViewCachedFlags(emptySharedPrefs, Map.of());
+            new WebViewCachedFlags(emptySharedPrefs, Map.of(), false);
         }
     }
 
@@ -176,7 +163,8 @@ public class WebViewCachedFlagsTest {
                         Map.of(
                                 "Foo", WebViewCachedFlags.DefaultState.ENABLED,
                                 "Bar", WebViewCachedFlags.DefaultState.ENABLED,
-                                "Baz", WebViewCachedFlags.DefaultState.ENABLED));
+                                "Baz", WebViewCachedFlags.DefaultState.ENABLED),
+                        false);
 
         cachedFlags.onStartupCompleted(sharedPrefs);
         Assert.assertEquals(
@@ -191,7 +179,8 @@ public class WebViewCachedFlagsTest {
                         Map.of(
                                 "Foo", WebViewCachedFlags.DefaultState.ENABLED,
                                 "Bar", WebViewCachedFlags.DefaultState.ENABLED,
-                                "Baz", WebViewCachedFlags.DefaultState.ENABLED));
+                                "Baz", WebViewCachedFlags.DefaultState.ENABLED),
+                        false);
         Assert.assertTrue(newCachedFlags.isCachedFeatureOverridden("Baz"));
         Assert.assertTrue(newCachedFlags.isCachedFeatureOverridden("Foo"));
         Assert.assertFalse(newCachedFlags.isCachedFeatureOverridden("Bar"));
@@ -209,7 +198,8 @@ public class WebViewCachedFlagsTest {
                                 "Foo", WebViewCachedFlags.DefaultState.DISABLED,
                                 "Bar", WebViewCachedFlags.DefaultState.DISABLED,
                                 "Baz", WebViewCachedFlags.DefaultState.ENABLED,
-                                "Back", WebViewCachedFlags.DefaultState.ENABLED));
+                                "Back", WebViewCachedFlags.DefaultState.ENABLED),
+                        false);
 
         int fooHash = WebViewCachedFlags.hashFieldTrialName("Foo");
         int barHash = WebViewCachedFlags.hashFieldTrialName("Bar");
@@ -264,7 +254,7 @@ public class WebViewCachedFlagsTest {
     @Test
     @Feature({"AndroidWebView"})
     @SmallTest
-    public void testResetToDefaults() {
+    public void testForceDefaults() {
         InMemorySharedPreferences sharedPrefs = new InMemorySharedPreferences();
         sharedPrefs
                 .edit()
@@ -277,8 +267,8 @@ public class WebViewCachedFlagsTest {
                         Map.of(
                                 "Foo", WebViewCachedFlags.DefaultState.DISABLED,
                                 "Bar", WebViewCachedFlags.DefaultState.DISABLED,
-                                "Baz", WebViewCachedFlags.DefaultState.ENABLED));
-        cachedFlags.resetToDefaults();
+                                "Baz", WebViewCachedFlags.DefaultState.ENABLED),
+                        true);
         // Should have default values.
         Assert.assertFalse(cachedFlags.isCachedFeatureEnabled("Foo"));
         Assert.assertFalse(cachedFlags.isCachedFeatureEnabled("Bar"));

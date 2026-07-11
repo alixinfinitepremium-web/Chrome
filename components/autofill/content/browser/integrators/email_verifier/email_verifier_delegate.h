@@ -41,7 +41,9 @@ enum class EvpAutofillFlowResult {
   kVerificationFailed = 8,
   kManagerDestroyed = 9,
   kTokenSentToRenderer = 10,
-  kMaxValue = kTokenSentToRenderer,
+  kDriverInactive = 11,
+  kPageNavigatedDuringVerification = 12,
+  kMaxValue = kPageNavigatedDuringVerification,
 };
 // LINT.ThenChange(//tools/metrics/histograms/metadata/blink/enums.xml:EvpAutofillFlowResult)
 
@@ -77,6 +79,7 @@ class EmailVerifierDelegate : public AutofillManager::Observer,
       FieldGlobalId trigger_field_id,
       mojom::ActionPersistence action_persistence,
       const base::flat_set<FieldGlobalId>& filled_field_ids,
+      const base::flat_map<FieldGlobalId, DenseSet<FieldFillingSkipReason>>&,
       const FillingPayload& filling_payload) override;
   void OnFillOrPreviewField(AutofillManager& manager,
                             FormGlobalId form_id,
@@ -88,12 +91,23 @@ class EmailVerifierDelegate : public AutofillManager::Observer,
       AutofillManager& manager,
       const FormData& form,
       const FieldGlobalId& field_id) override;
+  void OnAfterFocusOnFormField(AutofillManager& manager,
+                               FormGlobalId form_id,
+                               FieldGlobalId field_id) override;
+  void OnAfterFocusOnNonFormField(AutofillManager& manager) override;
 
   // content::WebContentsObserver:
   void DidFinishNavigation(
       content::NavigationHandle* navigation_handle) override;
 
  private:
+  class MetricsObserver : public Observer {
+   public:
+    MetricsObserver();
+    ~MetricsObserver() override;
+    void OnFlowCompleted(EvpAutofillFlowResult result) override;
+  };
+
   // Initiates the verification of the given `email_value` by checking the frame
   // for a `nonce` attribute, prompting the user for verification, and sending
   // the token to the renderer on completion.
@@ -135,20 +149,30 @@ class EmailVerifierDelegate : public AutofillManager::Observer,
       content::webid::EmailVerifier::Result result,
       AutofillClient::EmailVerificationPermissionUiResult ui_result);
 
-  void NotifyFlowCompleted(EvpAutofillFlowResult result);
+  // Notifies `observers_` that an EVP flow finished with `result`. If `manager`
+  // and `field_id` are present and the flow ended in a state other than success
+  // or waiting for renderer response, resets the email verification loading
+  // spinner on the input field (`EmailVerificationState::kNone`).
+  // `field_id` is `std::nullopt` (and `manager` is null) when the flow is
+  // cancelled due to a page navigation or manager destruction.
+  void NotifyFlowCompleted(AutofillManager* manager,
+                           const std::optional<FieldGlobalId>& field_id,
+                           EvpAutofillFlowResult result);
 
-  class MetricsObserver : public Observer {
-   public:
-    MetricsObserver();
-    ~MetricsObserver() override;
-    void OnFlowCompleted(EvpAutofillFlowResult result) override;
-  };
+  void OnFieldLostFocus(AutofillManager& manager,
+                        const FieldGlobalId& field_id);
 
   MetricsObserver metrics_observer_;
   base::ObserverList<Observer> observers_;
 
   ScopedAutofillManagersObservation observation_{this};
   std::map<FieldGlobalId, GURL> issuers_;
+  size_t in_flight_verify_count_ = 0;
+  std::optional<FieldGlobalId> last_focused_field_;
+  // A tab-scoped cache of recently verified email values (mapped by field ID)
+  // used to deduplicate verification prompts when the user alternates focus.
+  std::vector<std::pair<FieldGlobalId, std::u16string>> last_verified_values_;
+
   base::WeakPtrFactory<EmailVerifierDelegate> weak_ptr_factory_{this};
 };
 

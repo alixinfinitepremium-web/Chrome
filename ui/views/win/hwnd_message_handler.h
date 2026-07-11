@@ -176,8 +176,8 @@ class VIEWS_EXPORT HWNDMessageHandler : public gfx::WindowImpl,
   // Returns true if any HWndMessageHandler is in a native move/resize loop.
   static bool IsInNativeMoveResizeLoop();
 
-  // Returns true if this HWNDMessageHandler is in a native menu loop.
-  bool IsInNativeMenuLoop() const { return menu_depth_ > 0; }
+  // Returns true if any HWNDMessageHandler is in a native menu loop.
+  static bool IsInNativeMenuLoop();
 
   // Tells the HWND its client area has changed.
   virtual void SendFrameChanged();
@@ -811,8 +811,8 @@ class VIEWS_EXPORT HWNDMessageHandler : public gfx::WindowImpl,
   // glass. Defaults to false.
   bool dwm_transition_desired_;
 
-  // True if HandleWindowSizeChanging has been called in the delegate, but not
-  // HandleClientSizeChanged.
+  // True if a size-changing WM_WINDOWPOSCHANGING has been observed but the
+  // corresponding client size change hasn't been processed yet.
   bool sent_window_size_changing_;
 
   // This is used to keep track of whether a WM_WINDOWPOSCHANGED has

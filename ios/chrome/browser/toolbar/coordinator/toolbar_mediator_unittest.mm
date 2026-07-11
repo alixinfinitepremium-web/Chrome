@@ -50,6 +50,8 @@
 #import "ios/chrome/browser/signin/model/fake_system_identity_manager.h"
 #import "ios/chrome/browser/signin/model/identity_manager_factory.h"
 #import "ios/chrome/browser/signin/model/identity_test_environment_browser_state_adaptor.h"
+#import "ios/chrome/browser/sync/model/sync_service_factory.h"
+#import "ios/chrome/browser/sync/model/test_sync_service_utils.h"
 #import "ios/chrome/browser/toolbar/ui/toolbar_consumer.h"
 #import "ios/chrome/browser/web/model/web_navigation_browser_agent.h"
 #import "ios/chrome/browser/web/model/web_navigation_util.h"
@@ -97,6 +99,8 @@ class ToolbarMediatorTest : public PlatformTest,
         AuthenticationServiceFactory::GetInstance(),
         AuthenticationServiceFactory::GetFactoryWithDelegate(
             std::make_unique<FakeAuthenticationServiceDelegate>()));
+    builder.AddTestingFactory(SyncServiceFactory::GetInstance(),
+                              base::BindRepeating(&CreateTestSyncService));
     builder.AddTestingFactory(GeminiServiceFactory::GetInstance(),
                               GeminiServiceFactory::GetDefaultFactory());
     builder.AddTestingFactory(
@@ -196,7 +200,7 @@ class ToolbarMediatorTest : public PlatformTest,
         identity_manager,
         builder.Build(base::SysNSStringToUTF8(identity.userEmail)));
 
-    AccountCapabilitiesTestMutator mutator(&account_info.capabilities);
+    AccountCapabilitiesTestMutator mutator(&account_info);
     mutator.set_can_use_model_execution_features(capability);
     mutator.set_can_use_gemini_in_chrome(capability);
 
@@ -312,7 +316,10 @@ TEST_P(ToolbarMediatorTest, TestWebStateSelectionUpdatesConsumer) {
   OCMExpect([consumer_ setCanGoBack:YES]);
   OCMExpect([consumer_ setCanGoForward:NO animated:NO]);
   OCMExpect([consumer_ setShareEnabled:YES]);
-  OCMExpect([consumer_ setIsLoading:NO]);
+  OCMExpect([consumer_ setNTPVisible:NO
+                      isStartSurface:NO
+                           isLoading:NO
+                     loadingProgress:0.0]);
 
   browser_->GetWebStateList()->InsertWebState(
       CreateWebState(), WebStateList::InsertionParams::AtIndex(0).Activate());
@@ -329,7 +336,10 @@ TEST_P(ToolbarMediatorTest, TestWebStateSelectionNTPUpdatesConsumer) {
   NewTabPageTabHelper::FromWebState(web_state.get())
       ->SetShowStartSurface(false);
 
-  OCMExpect([consumer_ setNTPVisible:YES isStartSurface:NO]);
+  OCMExpect([consumer_ setNTPVisible:YES
+                      isStartSurface:NO
+                           isLoading:NO
+                     loadingProgress:0.0]);
 
   browser_->GetWebStateList()->InsertWebState(
       std::move(web_state),
@@ -344,7 +354,10 @@ TEST_P(ToolbarMediatorTest, TestWebStateSelectionNTPUpdatesConsumer) {
   NewTabPageTabHelper::FromWebState(start_web_state.get())
       ->SetShowStartSurface(true);
 
-  OCMExpect([consumer_ setNTPVisible:YES isStartSurface:YES]);
+  OCMExpect([consumer_ setNTPVisible:YES
+                      isStartSurface:YES
+                           isLoading:NO
+                     loadingProgress:0.0]);
 
   browser_->GetWebStateList()->InsertWebState(
       std::move(start_web_state),
@@ -363,11 +376,17 @@ TEST_P(ToolbarMediatorTest, TestWebStateUpdates) {
       WebStateList::InsertionParams::AtIndex(0).Activate());
 
   // Test loading state.
-  OCMExpect([consumer_ setIsLoading:YES]);
+  OCMExpect([consumer_ setNTPVisible:NO
+                      isStartSurface:NO
+                           isLoading:YES
+                     loadingProgress:0.0]);
   fake_web_state->SetLoading(true);
   EXPECT_OCMOCK_VERIFY(consumer_);
 
-  OCMExpect([consumer_ setIsLoading:NO]);
+  OCMExpect([consumer_ setNTPVisible:NO
+                      isStartSurface:NO
+                           isLoading:NO
+                     loadingProgress:0.0]);
   fake_web_state->SetLoading(false);
   EXPECT_OCMOCK_VERIFY(consumer_);
 

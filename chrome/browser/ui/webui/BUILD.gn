@@ -125,12 +125,14 @@ source_set("configs") {
       "//chrome/browser/ui/webui/content_annotator_internals",
       "//chrome/browser/ui/webui/data_sharing",
       "//chrome/browser/ui/webui/feedback",
+      "//chrome/browser/ui/webui/history",
       "//chrome/browser/ui/webui/infobar_internals",
       "//chrome/browser/ui/webui/inspect",
       "//chrome/browser/ui/webui/multistep_filter_internals",
       "//chrome/browser/ui/webui/new_tab_footer",
       "//chrome/browser/ui/webui/new_tab_page_third_party",
       "//chrome/browser/ui/webui/new_tab_page_third_party:impl",
+      "//chrome/browser/ui/webui/omnibox_everywhere",
       "//chrome/browser/ui/webui/omnibox_popup",
       "//chrome/browser/ui/webui/personal_context",
       "//chrome/browser/ui/webui/profile_internals",
@@ -146,6 +148,10 @@ source_set("configs") {
         "//chrome/browser/ui/webui/app_home",
         "//chrome/browser/ui/webui/default_browser:default_browser_modal",
       ]
+      if (is_win) {
+        deps +=
+            [ "//chrome/browser/ui/webui/default_browser:visual_guided_setter" ]
+      }
     }
   } else {
     #is_android
@@ -211,6 +217,10 @@ source_set("configs") {
     ]
   }
 
+  if (enable_print_preview) {
+    deps += [ "//chrome/browser/ui/webui/print_preview" ]
+  }
+
   if (is_mac) {
     deps += [ "//chrome/browser/ui/webui/unexportable_keys_internals" ]
   }
@@ -228,10 +238,7 @@ source_set("configs") {
   }
 
   if (is_win) {
-    deps += [
-      "//chrome/browser/ui/webui/conflicts",
-      "//chrome/browser/ui/webui/default_browser:visual_guided_setter",
-    ]
+    deps += [ "//chrome/browser/ui/webui/conflicts" ]
   }
 
   if (enable_extensions_core) {

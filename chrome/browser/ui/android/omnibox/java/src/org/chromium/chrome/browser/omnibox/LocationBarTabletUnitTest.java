@@ -52,6 +52,7 @@ import org.chromium.chrome.browser.omnibox.status.StatusCoordinator;
 import org.chromium.chrome.browser.omnibox.styles.OmniboxResourceProvider;
 import org.chromium.chrome.browser.omnibox.suggestions.AutocompleteCoordinator;
 import org.chromium.chrome.browser.ui.theme.BrandedColorScheme;
+import org.chromium.components.browser_ui.styles.ChromeColors;
 import org.chromium.components.browser_ui.util.motion.MotionEventTestUtils;
 import org.chromium.components.omnibox.OmniboxFeatureList;
 import org.chromium.ui.base.DeviceFormFactor;
@@ -99,6 +100,9 @@ public class LocationBarTabletUnitTest {
         mActivity.setContentView(contentView, parentParams);
         doReturn(mDisplay).when(mWindowAndroid).getDisplay();
         doReturn(DIP_SCALE).when(mDisplay).getDipScale();
+        doReturn(ChromeColors.getDefaultThemeColor(mActivity, /* isIncognito= */ false))
+                .when(mLocationBarDataProvider)
+                .getPrimaryColor();
         mLocationBarTablet.setHolder(mHolderView);
         mLocationBarTablet.initialize(
                 mAutocompleteCoordinator,
@@ -233,6 +237,7 @@ public class LocationBarTabletUnitTest {
     public void testFuseboxStateChange_popoverLayoutMode() {
         mLocationBarTablet.onFuseboxStateChanged(FuseboxState.EXPANDED);
         mLocationBarTablet.setFuseboxLayoutMode(FuseboxLayoutMode.SUGGESTIONS_POPOVER);
+        mLocationBarTablet.setReparentedToPopover(true);
         GradientDrawable outerRect =
                 (GradientDrawable)
                         ((LayerDrawable) mLocationBarTablet.getBackground())
@@ -272,6 +277,10 @@ public class LocationBarTabletUnitTest {
                         .getResources()
                         .getDimension(R.dimen.omnibox_suggestion_dropdown_round_corner_radius);
         assertEquals(radius, glifStrokeDrawable.getCornerRadiusForTesting(), MathUtils.EPSILON);
+
+        LinearLayout.LayoutParams layoutParams =
+                (LinearLayout.LayoutParams) mHolderView.getLayoutParams();
+        assertEquals(0, layoutParams.topMargin);
     }
 
     @Test
@@ -472,6 +481,8 @@ public class LocationBarTabletUnitTest {
         assertEquals(expectedIncognitoColor, unfocusedRect.getColor().getDefaultColor());
 
         mLocationBarTablet.updateVisualsForState(BrandedColorScheme.APP_DEFAULT);
+        background = (LayerDrawable) mLocationBarTablet.getBackground();
+        unfocusedRect = (GradientDrawable) background.findDrawableByLayerId(R.id.unfocused_bg);
         @ColorInt
         int expectedAppDefaultColor =
                 OmniboxResourceProvider.getTabletToolbarTextBoxBackgroundColor(
@@ -522,12 +533,32 @@ public class LocationBarTabletUnitTest {
     @Test
     public void testSetIsInStandby() {
         assertNull(mLocationBarTablet.getForeground());
+        mLocationBarTablet.updateVisualsForState(BrandedColorScheme.APP_DEFAULT);
+        LayerDrawable background = (LayerDrawable) mLocationBarTablet.getBackground();
+        GradientDrawable unfocusedRect =
+                (GradientDrawable) background.findDrawableByLayerId(R.id.unfocused_bg);
 
-        mLocationBarTablet.setIsInStandby(true);
+        mLocationBarTablet.setShowStandbyRing(true);
 
         // Verify the InsetDrawable border was applied to the foreground.
         assertNotNull(mLocationBarTablet.getForeground());
         assertTrue(mLocationBarTablet.getForeground() instanceof InsetDrawable);
+
+        @ColorInt
+        int expectedStandbyColor =
+                OmniboxResourceProvider.getTabletToolbarTextBoxStandbyBackgroundColor(
+                        mActivity, BrandedColorScheme.APP_DEFAULT);
+        assertEquals(expectedStandbyColor, unfocusedRect.getColor().getDefaultColor());
+
+        mLocationBarTablet.setShowStandbyRing(false);
+        mLocationBarTablet.updateVisualsForState(BrandedColorScheme.INCOGNITO);
+        mLocationBarTablet.setShowStandbyRing(true);
+        @ColorInt
+        int expectedIncognitoStandbyColor =
+                OmniboxResourceProvider.getTabletToolbarTextBoxStandbyBackgroundColor(
+                        mActivity, BrandedColorScheme.INCOGNITO);
+        assertEquals(expectedIncognitoStandbyColor, unfocusedRect.getColor().getDefaultColor());
+
         mLocationBarTablet.onFuseboxStateChanged(FuseboxState.COMPACT);
         // Standby mode should override the fusebox state when deciding if to expand.
         var layoutParams = (LinearLayout.LayoutParams) mHolderView.getLayoutParams();
@@ -540,7 +571,12 @@ public class LocationBarTabletUnitTest {
         assertEquals(0, urlBar.getTranslationY(), MathUtils.EPSILON);
         assertEquals(0, statusView.getTranslationY(), MathUtils.EPSILON);
 
-        mLocationBarTablet.setIsInStandby(false);
+        mLocationBarTablet.setShowStandbyRing(false);
         assertNull(mLocationBarTablet.getForeground());
+        @ColorInt
+        int expectedNormalColor =
+                OmniboxResourceProvider.getTabletToolbarTextBoxBackgroundColor(
+                        mActivity, BrandedColorScheme.INCOGNITO);
+        assertEquals(expectedNormalColor, unfocusedRect.getColor().getDefaultColor());
     }
 }

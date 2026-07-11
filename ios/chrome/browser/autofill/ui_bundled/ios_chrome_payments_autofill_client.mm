@@ -47,6 +47,7 @@
 #import "components/autofill/core/browser/ui/payments/card_unmask_prompt_controller_impl.h"
 #import "components/autofill/core/browser/ui/payments/card_unmask_prompt_view.h"
 #import "components/autofill/core/browser/ui/payments/virtual_card_enroll_ui_model.h"
+#import "components/autofill/core/common/autofill_features.h"
 #import "components/autofill/core/common/autofill_payments_features.h"
 #import "components/autofill/core/common/autofill_prefs.h"
 #import "components/autofill/ios/browser/credit_card_save_metrics_ios.h"
@@ -496,7 +497,17 @@ void IOSChromePaymentsAutofillClient::ShowMandatoryReauthOptInPrompt(
 void IOSChromePaymentsAutofillClient::ShowMandatoryReauthOptInConfirmation() {}
 
 bool IOSChromePaymentsAutofillClient::IsAutofillPaymentMethodsEnabled() const {
-  return prefs::IsAutofillPaymentMethodsEnabled(pref_service_);
+  if (!prefs::IsAutofillPaymentMethodsEnabled(pref_service_)) {
+    return false;
+  }
+  if (base::FeatureList::IsEnabled(
+          features::kAutofillEnableAutofillSettingsEnterprisePolicy) &&
+      client_->IsAutofillTypeBlockedByPolicy(
+          client_->GetLastCommittedPrimaryMainFrameURL(),
+          AutofillClient::AutofillPolicyDataCategory::kPayments)) {
+    return false;
+  }
+  return true;
 }
 
 void IOSChromePaymentsAutofillClient::DisablePaymentsAutofill() {
@@ -650,9 +661,23 @@ void IOSChromePaymentsAutofillClient::ShowCreditCardUploadSaveAndFillDialog(
 void IOSChromePaymentsAutofillClient::ShowCreditCardSaveAndFillPendingDialog(
     CardSaveAndFillDialogCallback callback) {}
 
-void IOSChromePaymentsAutofillClient::HideCreditCardSaveAndFillDialog() {}
+void IOSChromePaymentsAutofillClient::HideCreditCardSaveAndFillDialog() {
+  // Specifically for signed-out users executing a direct local save,
+  // `HideCreditCardSaveAndFillDialog` is called after the card is saved
+  // locally. Calling `CreditCardUploadCompleted` with `kPermanentFailure`
+  // triggers dismissal of the Save and Fill bottom sheet and displays the
+  // "Card saved to device" confirmation dialog, maintaining parity with the
+  // upload save fallback flow for signed-in users.
+  if ((client_->GetAutofillSaveCardInfoBarDelegateIOS() &&
+       !client_->GetAutofillSaveCardInfoBarDelegateIOS()->is_for_upload()) ||
+      (save_card_bottom_sheet_model_ &&
+       !save_card_bottom_sheet_model_->is_for_upload())) {
+    CreditCardUploadCompleted(PaymentsRpcResult::kPermanentFailure,
+                              std::nullopt);
+  }
+}
 
-bool IOSChromePaymentsAutofillClient::IsTabModalPopupDeprecated() const {
+bool IOSChromePaymentsAutofillClient::IsTabModalPopup() const {
   return false;
 }
 

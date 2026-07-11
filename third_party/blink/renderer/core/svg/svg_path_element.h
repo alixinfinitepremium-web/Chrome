@@ -45,11 +45,14 @@ class SVGPathElement final : public SVGGeometryElement {
   Path AsPath() const override;
   PathBuilder AsMutablePath() const override;
 
+  const Path& GetUnzoomedAsPath() const;
+
   float getTotalLength(ExceptionState&) override;
   SVGPointTearOff* getPointAtLength(float distance, ExceptionState&) override;
 
   HeapVector<Member<SVGPathSegment>> getPathData(
       const SVGPathDataSettings* settings);
+  void setPathData(const HeapVector<Member<SVGPathSegment>>& path_data);
 
   SVGAnimatedPath* GetPath() const { return path_.Get(); }
 

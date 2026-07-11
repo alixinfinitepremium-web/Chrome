@@ -5,6 +5,7 @@
 import './readonly_omnibox.js';
 import './location_icon.js';
 import './content_settings_icons.js';
+import './page_action_icons.js';
 import './permission_dashboard.js';
 import './selected_keyword.js';
 
@@ -46,11 +47,13 @@ export class LocationBarElement extends CrLitElement {
     omniboxViewState: {
       browserVersion: 0,
       uiVersion: 0,
+      formattedFullUrl: '',
       textPieces: [],
       inlineAutocompletion: '',
       additionalText: '',
       selection: null,
       textIsUrl: false,
+      userInputInProgress: false,
     },
     locationBarFlags: {
       userInputInProgress: false,
@@ -74,6 +77,7 @@ export class LocationBarElement extends CrLitElement {
       permissionDashboard: null,
     },
     contentSettingImageStates: [],
+    pageActionStates: [],
   };
 
   private trackedElementManager_: TrackedElementManager;

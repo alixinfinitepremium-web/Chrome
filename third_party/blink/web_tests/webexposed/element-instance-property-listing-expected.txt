@@ -94,6 +94,7 @@ namespace http://www.w3.org/1999/xhtml
     property attributeStyleMap
     property attributes
     property autocapitalize
+    property autocorrect
     property autofocus
     property baseURI
     property before
@@ -365,7 +366,6 @@ namespace http://www.w3.org/1999/xhtml
     property setPointerCapture
     property shadowRoot
     property showPopover
-    property showUnboundedElement
     property slot
     property spellcheck
     property startViewTransition
@@ -390,7 +390,6 @@ namespace http://www.w3.org/1999/xhtml
     property toggleAttribute
     property togglePopover
     property translate
-    property unbounded
     property virtualKeyboardPolicy
     property webkitMatchesSelector
     property webkitRequestFullScreen
@@ -791,6 +790,7 @@ html element iframe
     property marginHeight
     property marginWidth
     property name
+    property permissionsPolicy
     property policy
     property privateToken
     property referrerPolicy
@@ -834,10 +834,12 @@ html element img
 html element input
     property accept
     property align
+    property alpha
     property alt
     property autocomplete
     property checkValidity
     property checked
+    property colorSpace
     property createValueRange
     property defaultChecked
     property defaultValue
@@ -1146,6 +1148,7 @@ html element style
     property sheet
     property type
 html element sub
+html element submenu
 html element summary
 html element sup
 html element table
@@ -1205,6 +1208,7 @@ html element template
     property shadowRootDelegatesFocus
     property shadowRootMode
     property shadowRootSerializable
+    property shadowRootSlotAssignment
 html element textarea
     property autocomplete
     property checkValidity
@@ -2273,6 +2277,7 @@ svg element path
     property nearestViewportElement
     property pathLength
     property requiredExtensions
+    property setPathData
     property systemLanguage
     property transform
 svg element pattern

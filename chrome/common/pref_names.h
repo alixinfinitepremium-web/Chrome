@@ -654,9 +654,13 @@ inline constexpr char kSplitViewDragAndDropNudgeUsedCount[] =
 // recently used tabs.
 inline constexpr char kCtrlTabMru[] = "browser.ctrl_tab_mru";
 
-// A boolean pref set to true if Gemini integration be enabled. This is managed
-// by enterprise policy.
-inline constexpr char kGeminiSettings[] = "browser.gemini_settings";
+// An int pref that controls the voice typing feature. This is managed by
+// enterprise policy.
+inline constexpr char kVoiceTypingSettings[] = "browser.voice_typing_settings";
+
+// Boolean indicating completion of the Dictation onboarding.
+inline constexpr char kPrefDictationOnboardingCompleted[] =
+    "browser.dictation_onboarding_completed";
 
 // Comma separated list of domain names (e.g. "google.com,school.edu").
 // When this pref is set, the user will be able to access Google Apps
@@ -721,6 +725,11 @@ inline constexpr char kGrayscaleThemeEnabled[] = "browser.theme.is_grayscale2";
 inline constexpr char kExtensionsUIDeveloperMode[] =
     "extensions.ui.developer_mode";
 
+// Boolean pref which persists whether new extensions should be pinned by
+// default.
+inline constexpr char kExtensionsPinnedByDefault[] =
+    "extensions.pinned_by_default";
+
 #if BUILDFLAG(IS_ANDROID) && BUILDFLAG(ENABLE_EXTENSIONS_CORE)
 // A boolean pref set to true if the extensions menu button should be pinned to
 // the toolbar.
@@ -735,11 +744,6 @@ inline constexpr char kExtensionCommands[] = "extensions.commands";
 // Whether Chrome should use its internal PDF viewer or not.
 inline constexpr char kPluginsAlwaysOpenPdfExternally[] =
     "plugins.always_open_pdf_externally";
-
-// Int64 containing the internal value of the time at which the default browser
-// infobar was last dismissed by the user.
-inline constexpr char kDefaultBrowserInfobarLastDeclined[] =
-    "browser.default_browser_infobar_last_declined";
 
 // base::Time containing time at which the default browser infobar was last
 // dismissed by the user.
@@ -1214,25 +1218,10 @@ inline constexpr char kSidePanelIdToWidth[] = "side_panel.id_to_width";
 // Corresponds to the enterprise policy.
 inline constexpr char kGoogleSearchSidePanelEnabled[] =
     "side_panel.google_search_side_panel_enabled";
-// Boolean determining the side the tab search will be appear on (left / right).
-// True when the tab search button is on the right side of the tab strip even in
-// RTL.
-inline constexpr char kTabSearchRightAligned[] = "tab_search.is_right_aligned";
 
 // Boolean determining whether the tab search button is pinned to the tab strip.
 inline constexpr char kTabSearchPinnedToTabstrip[] =
     "tab_search.pinned_to_tabstrip";
-
-// Boolean indicating whether the tab search pinning migration to the tab strip
-// is complete.
-inline constexpr char kTabSearchPinnedToTabstripMigrationComplete[] =
-    "tab_search.pinned_to_tabstrip_migration_complete";
-
-// Boolean indicating whether the tab search pinning migration to the tab strip
-// is complete. This was created to fix a bug in the initial implementation,
-// which referenced kTabSearchPinnedToTabstripMigrationComplete.
-inline constexpr char kTabSearchPinnedToTabstripMigrationComplete2[] =
-    "tab_search.pinned_to_tabstrip_migration_complete_2";
 
 // Boolean determining whether the projects panel button is pinned to the tab
 // strip.
@@ -1327,7 +1316,6 @@ inline constexpr char kManagedSerialAllowAllPortsForUrls[] =
 inline constexpr char kManagedSerialAllowUsbDevicesForUrls[] =
     "managed.serial_allow_usb_devices_for_urls";
 
-#if !BUILDFLAG(IS_ANDROID)
 // Used to store the value of the WebHidAllowAllDevicesForUrls policy.
 inline constexpr char kManagedWebHidAllowAllDevicesForUrls[] =
     "managed.web_hid_allow_all_devices_for_urls";
@@ -1345,7 +1333,6 @@ inline constexpr char kManagedWebHidAllowDevicesForUrlsOnLoginScreen[] =
 // policy.
 inline constexpr char kManagedWebHidAllowDevicesWithHidUsagesForUrls[] =
     "managed.web_hid_allow_devices_with_hid_usages_for_urls";
-#endif  // !BUILDFLAG(IS_ANDROID)
 
 // Directory of the last profile used.
 inline constexpr char kProfileLastUsed[] = "profile.last_used";
@@ -1597,10 +1584,26 @@ static_assert(std::string_view(kWasRestarted) ==
 inline constexpr char kPreSmartRestartSessionState[] =
     "session.pre_smart_restart_session_state";
 
+#if BUILDFLAG(IS_MAC)
+// Boolean preference controlling zero window relaunch per enterprise policy.
+inline constexpr char kUpdateOnZeroWindowEnabled[] =
+    "policy.update_on_zero_window_enabled";
+#endif  //  BUILDFLAG(IS_MAC)
+
 #endif  // !BUILDFLAG(IS_ANDROID)
 
 // Whether Extensions are enabled.
 inline constexpr char kDisableExtensions[] = "extensions.disabled";
+
+#if BUILDFLAG(IS_ANDROID)
+// Dictionary pref for custom background information.
+inline constexpr char kNtpAndroidCustomBackgroundDict[] =
+    "ntp.android_custom_background_dict";
+
+// Boolean pref for whether the custom background is local to device.
+inline constexpr char kNtpAndroidCustomBackgroundLocalToDevice[] =
+    "ntp.android_custom_background_local_to_device";
+#endif  // BUILDFLAG(IS_ANDROID)
 
 // Keeps track of which sessions are collapsed in the Other Devices menu.
 inline constexpr char kNtpCollapsedForeignSessions[] =
@@ -2322,6 +2325,9 @@ inline constexpr char kRelaunchHeadsUpPeriod[] =
 #endif  // BUILDFLAG(IS_CHROMEOS)
 
 #if BUILDFLAG(IS_MAC)
+// Boolean determining whether the glass frame is enabled.
+inline constexpr char kGlassFrameEnabled[] = "glass_frame.enabled";
+
 // Counts how many times prominent call-to-actions have occurred as part of the
 // Mac restore permissions experiment. https://crbug.com/1211052
 inline constexpr char kMacRestoreLocationPermissionsExperimentCount[] =
@@ -2404,9 +2410,14 @@ inline constexpr char kBackgroundModeEnabled[] = "background_mode.enabled";
 inline constexpr char kHardwareAccelerationModeEnabled[] =
     "hardware_acceleration_mode.enabled";
 
-// Set to true if process isolation mode is enabled.
 #if BUILDFLAG(IS_WIN)
+// Set to true if process isolation mode is enabled.
 inline constexpr char kProcessIsolationEnabled[] = "isolation_state.enabled";
+
+// A string representing the state or field trial group name of the isolation
+// state.
+inline constexpr char kPreviousIsolationState[] = "isolation_state.previous";
+
 #endif  // BUILDFLAG(IS_WIN)
 
 // Hardware acceleration mode from previous browser launch.

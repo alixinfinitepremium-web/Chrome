@@ -8,6 +8,7 @@
 
 #include "base/metrics/histogram_functions.h"
 #include "base/strings/strcat.h"
+#include "components/send_tab_to_self/send_tab_to_self_model.h"
 
 namespace send_tab_to_self {
 
@@ -94,6 +95,54 @@ SendTabToSelfFormFactorCombination GetFormFactorCombination(
   }
 }
 
+SendTabToSelfDeviceCount GetSendTabToSelfDeviceCount(
+    EntryPointDisplayReason reason,
+    size_t device_count) {
+  switch (reason) {
+    case EntryPointDisplayReason::kOfferSignIn:
+      return SendTabToSelfDeviceCount::kNoTargetDevicesBecauseSignedOut;
+    case EntryPointDisplayReason::kInformNoTargetDevice:
+      return SendTabToSelfDeviceCount::kZeroDevices;
+    case EntryPointDisplayReason::kOfferFeature:
+      if (device_count == 0) {
+        return SendTabToSelfDeviceCount::kZeroDevices;
+      } else if (device_count == 1) {
+        return SendTabToSelfDeviceCount::kOneDevice;
+      } else if (device_count == 2) {
+        return SendTabToSelfDeviceCount::kTwoDevices;
+      } else if (device_count == 3) {
+        return SendTabToSelfDeviceCount::kThreeDevices;
+      } else if (device_count == 4) {
+        return SendTabToSelfDeviceCount::kFourDevices;
+      } else if (device_count == 5) {
+        return SendTabToSelfDeviceCount::kFiveDevices;
+      } else {
+        return SendTabToSelfDeviceCount::kMoreThanFiveDevices;
+      }
+  }
+}
+
+std::string GetEntryPointSuffix(ShareEntryPoint entry_point) {
+  switch (entry_point) {
+    case ShareEntryPoint::kContentMenu:
+      return "ContentMenu";
+    case ShareEntryPoint::kLinkMenu:
+      return "LinkMenu";
+    case ShareEntryPoint::kToolbarIcon:
+      return "ToolbarIcon";
+    case ShareEntryPoint::kOmniboxMenu:
+      return "OmniboxMenu";
+    case ShareEntryPoint::kShareMenu:
+      return "ShareMenu";
+    case ShareEntryPoint::kShareSheet:
+      return "ShareSheet";
+    case ShareEntryPoint::kTabMenu:
+      return "TabMenu";
+    case ShareEntryPoint::kGesture:
+      return "Gesture";
+  }
+}
+
 }  // namespace
 
 void RecordNotificationShown() {
@@ -127,8 +176,13 @@ void RecordNotificationThrottled() {
 }
 
 void RecordAutoOpenOutcome(AutoOpenOutcome outcome) {
-  base::UmaHistogramEnumeration("Sharing.SendTabToSelf.AutoOpenOutcome",
+  base::UmaHistogramEnumeration("Sharing.SendTabToSelf.AutoOpenOutcome2",
                                 outcome);
+}
+
+void RecordActivatedEntryPoint(ShareActivatedEntryPoint entry_point) {
+  base::UmaHistogramEnumeration("Sharing.SendTabToSelf.ActivatedEntryPoint",
+                                entry_point);
 }
 
 void RecordFormFieldMatchOutcome(FormFieldMatchOutcome outcome, int count) {
@@ -183,12 +237,54 @@ void RecordTimeSentToOpened(base::TimeDelta delay) {
                                 base::Milliseconds(100), base::Days(10), 100);
 }
 
+void RecordTimeOpenedToActivated(base::TimeDelta delay) {
+  base::UmaHistogramCustomTimes("Sharing.SendTabToSelf.TimeOpenedToActivated",
+                                delay, base::Milliseconds(100), base::Days(10),
+                                100);
+}
+
+void RecordTimeSentToActivated(base::TimeDelta delay) {
+  base::UmaHistogramCustomTimes("Sharing.SendTabToSelf.TimeSentToActivated",
+                                delay, base::Milliseconds(100), base::Days(10),
+                                100);
+}
+
 void RecordDeviceFormFactorCombination(
     syncer::DeviceInfo::FormFactor sender_form_factor,
     syncer::DeviceInfo::FormFactor target_form_factor) {
   base::UmaHistogramEnumeration(
       "Sharing.SendTabToSelf.DeviceFormFactorCombination",
       GetFormFactorCombination(sender_form_factor, target_form_factor));
+}
+
+void RecordTargetDeviceCount(ShareEntryPoint entry_point,
+                             EntryPointDisplayReason display_reason,
+                             size_t device_count) {
+  SendTabToSelfDeviceCount device_count_bucket =
+      GetSendTabToSelfDeviceCount(display_reason, device_count);
+  // Record the general/aggregate histogram.
+  base::UmaHistogramEnumeration("Sharing.SendTabToSelf.TargetDeviceCount",
+                                device_count_bucket);
+
+  // Record the per-entry-point breakdown histogram.
+  base::UmaHistogramEnumeration(
+      base::StrCat({"Sharing.SendTabToSelf.TargetDeviceCount.",
+                    GetEntryPointSuffix(entry_point)}),
+      device_count_bucket);
+}
+
+void RecordEntryPointInvoked(ShareEntryPoint entry_point) {
+  base::UmaHistogramEnumeration("Sharing.SendTabToSelf.InvokedEntryPoint",
+                                entry_point);
+}
+
+void RecordEntryPointSent(ShareEntryPoint entry_point) {
+  base::UmaHistogramEnumeration("Sharing.SendTabToSelf.SentEntryPoint",
+                                entry_point);
+}
+
+void RecordSendResult(SendTabToSelfResult result) {
+  base::UmaHistogramEnumeration("Sharing.SendTabToSelf.SendResult", result);
 }
 
 }  // namespace send_tab_to_self

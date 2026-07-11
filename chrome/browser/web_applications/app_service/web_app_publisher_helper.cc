@@ -42,6 +42,7 @@
 #include "base/strings/string_util.h"
 #include "base/strings/to_string.h"
 #include "base/strings/utf_string_conversions.h"
+#include "base/task/sequenced_task_runner.h"
 #include "base/time/time.h"
 #include "base/values.h"
 #include "build/build_config.h"
@@ -60,6 +61,7 @@
 #include "chrome/browser/web_applications/app_service/publisher_helper.h"
 #include "chrome/browser/web_applications/commands/compute_app_size_command.h"
 #include "chrome/browser/web_applications/commands/computed_app_size.h"
+#include "chrome/browser/web_applications/link_capturing_features.h"
 #include "chrome/browser/web_applications/locks/app_lock.h"
 #include "chrome/browser/web_applications/mojom/user_display_mode.mojom-shared.h"
 #include "chrome/browser/web_applications/os_integration/os_integration_manager.h"
@@ -75,6 +77,7 @@
 #include "chrome/browser/web_applications/web_app_helpers.h"
 #include "chrome/browser/web_applications/web_app_management_type.h"
 #include "chrome/browser/web_applications/web_app_provider.h"
+#include "chrome/browser/web_applications/web_app_provider_factory.h"
 #include "chrome/browser/web_applications/web_app_registrar.h"
 #include "chrome/browser/web_applications/web_app_scope.h"
 #include "chrome/browser/web_applications/web_app_tab_helper.h"
@@ -134,7 +137,6 @@
 #include "components/services/app_service/public/cpp/app_registry_cache.h"
 #include "components/services/app_service/public/cpp/preferred_apps_list_handle.h"
 #include "components/sessions/core/session_id.h"
-#include "extensions/browser/api/file_handlers/mime_util.h"  // nogncheck
 #include "ui/message_center/public/cpp/notification.h"
 #include "ui/message_center/public/cpp/notifier_id.h"
 #endif
@@ -163,6 +165,9 @@ const ContentSettingsType kSupportedPermissionTypes[] = {
 
 // Mime Type for plain text.
 const char kTextPlain[] = "text/plain";
+#if BUILDFLAG(IS_CHROMEOS)
+constexpr char kMimeTypeInodeDirectory[] = "inode/directory";
+#endif
 
 bool GetContentSettingsType(apps::PermissionType permission_type,
                             ContentSettingsType& content_setting_type) {
@@ -528,6 +533,22 @@ bool AreOtherAppsPreferredForLinks(
   return !GetOtherPreferredAppsForFilters(proxy, app_id, new_app_intent_filters)
               .empty();
 }
+
+MigrationState GetTargetMigrationState() {
+  if (!base::FeatureList::IsEnabled(::features::kPwaNavigationCapturing)) {
+    return MigrationState::kDefaultOff;
+  }
+  switch (::features::kNavigationCapturingDefaultState.Get()) {
+    case ::features::CapturingState::kReimplDefaultOn:
+      return MigrationState::kDefaultOn;
+    case ::features::CapturingState::kReimplOnViaClientMode:
+      return MigrationState::kOnViaClientMode;
+    case ::features::CapturingState::kReimplDefaultOff:
+      return MigrationState::kDefaultOff;
+  }
+  NOTREACHED();
+}
+
 #endif  //  BUILDFLAG(IS_CHROMEOS)
 
 }  // namespace
@@ -853,11 +874,11 @@ apps::AppPtr WebAppPublisherHelper::CreateWebApp(const WebApp* web_app) {
 
 #if BUILDFLAG(IS_CHROMEOS)
   if (web_app->app_id() == guest_os::kTerminalSystemAppId) {
-    app->intent_filters->push_back(apps_util::CreateFileFilter(
-        {apps_util::kIntentActionView},
-        /*mime_types=*/
-        {extensions::app_file_handler_util::kMimeTypeInodeDirectory},
-        /*file_extensions=*/{}));
+    app->intent_filters->push_back(
+        apps_util::CreateFileFilter({apps_util::kIntentActionView},
+                                    /*mime_types=*/
+                                    {kMimeTypeInodeDirectory},
+                                    /*file_extensions=*/{}));
   }
 #endif
 
@@ -1433,7 +1454,7 @@ void WebAppPublisherHelper::MaybeSetSupportedLinksPreference(
   }
 
   // PWAs
-  if (base::FeatureList::IsEnabled(features::kPwaNavigationCapturing)) {
+  if (apps::features::IsNavigationCapturingOnByDefault()) {
     bool should_capture_links = false;
     switch (features::kNavigationCapturingDefaultState.Get()) {
       case features::CapturingState::kReimplDefaultOn:
@@ -1816,6 +1837,7 @@ void WebAppPublisherHelper::ObserveWebAppSubsystems() {
 #if BUILDFLAG(IS_CHROMEOS)
   auto* proxy = apps::AppServiceProxyFactory::GetForProfile(profile_);
   preferred_apps_list_observation_.Observe(&proxy->PreferredAppsList());
+  app_registry_cache_observation_.Observe(&proxy->AppRegistryCache());
   MaybeMigrateLinkCapturingPreferences();
 #endif
 }
@@ -2217,15 +2239,136 @@ void WebAppPublisherHelper::OnGetWebAppSize(
 #if BUILDFLAG(IS_CHROMEOS)
 void WebAppPublisherHelper::MaybeMigrateLinkCapturingPreferences() {
   auto* proxy = apps::AppServiceProxyFactory::GetForProfile(profile_);
-  if (!proxy->PreferredAppsList().IsInitialized()) {
+  if (!proxy->PreferredAppsList().IsInitialized() ||
+      !proxy->AppRegistryCache().IsAppTypeInitialized(apps::AppType::kWeb)) {
     return;
   }
-  // TODO(crbug.com/519225475): Implement migration for existing web apps to
-  // start capturing by default.
+
+  PrefService* prefs = profile_->GetPrefs();
+  MigrationState last_state = static_cast<MigrationState>(
+      prefs->GetInteger(prefs::kLastNavigationCapturingMigrationState));
+  MigrationState target_state = GetTargetMigrationState();
+
+  if (last_state == target_state) {
+    return;
+  }
+
+  if (target_state == MigrationState::kDefaultOff) {
+    // Rollback: Restore original preferred app status.
+    const base::ListValue& backup =
+        prefs->GetList(prefs::kWebAppsPreviouslyAppSupportedLinks);
+    base::flat_set<std::string> backup_apps;
+    for (const auto& value : backup) {
+      if (const std::string* app = value.GetIfString()) {
+        backup_apps.insert(*app);
+      }
+    }
+
+    for (const WebApp& web_app : registrar().GetApps()) {
+      if (web_app.IsSystemApp()) {
+        continue;
+      }
+      const std::string& app_id = web_app.app_id();
+      // Restore if this app was previously set as preferred for handling
+      // supported links.
+      if (backup_apps.contains(app_id)) {
+        proxy->SetSupportedLinksPreference(app_id);
+      } else {
+        proxy->RemoveSupportedLinksPreference(app_id);
+      }
+    }
+
+    prefs->ClearPref(prefs::kWebAppsPreviouslyAppSupportedLinks);
+    prefs->SetInteger(prefs::kLastNavigationCapturingMigrationState,
+                      static_cast<int>(target_state));
+    return;
+  }
+
+  // Migration: Backup current preferences if migrating from default-off.
+  base::ListValue backup;
+  const bool should_backup = (last_state == MigrationState::kDefaultOff);
+
+  for (const WebApp& web_app : registrar().GetApps()) {
+    if (web_app.IsSystemApp()) {
+      continue;
+    }
+    const std::string& app_id = web_app.app_id();
+
+    if (proxy->PreferredAppsList().IsPreferredAppForSupportedLinks(app_id)) {
+      backup.Append(app_id);
+      // The app is already capturing links, keep it as it is.
+      continue;
+    }
+
+    bool should_migrate = false;
+    if (target_state == MigrationState::kDefaultOn) {
+      should_migrate = true;
+    } else if (target_state == MigrationState::kOnViaClientMode) {
+      should_migrate = web_app.launch_handler()
+                           .value_or(LaunchHandler())
+                           .client_mode_valid_and_specified();
+    }
+
+    if (!should_migrate) {
+      continue;
+    }
+
+    // Check if a non-web app or system web app is already set as preferred for
+    // these filters.
+    apps::IntentFilters link_filters;
+    proxy->AppRegistryCache().ForOneApp(
+        app_id, [&app_id, &link_filters](const apps::AppUpdate& update) {
+          if (update.Readiness() == apps::Readiness::kReady) {
+            for (const auto& filter : update.IntentFilters()) {
+              if (apps_util::IsSupportedLinkForApp(app_id, filter)) {
+                link_filters.push_back(filter->Clone());
+              }
+            }
+          }
+        });
+
+    base::flat_set<std::string> preferred_apps =
+        proxy->PreferredAppsList().FindPreferredAppsForFilters(app_id,
+                                                               link_filters);
+    bool has_conflicting_preferred_app = false;
+    for (const std::string& other_app_id : preferred_apps) {
+      const WebApp* other_web_app = registrar().GetAppById(other_app_id);
+      // There are only 2 use-cases where there is a conflicting preferred app:
+      // 1. If `other_web_app` is nullptr, in which case there is a
+      //    corresponding `AppPtr` in the AppService that is a non-web app
+      //    (and is not tracked in the registrar).
+      // 2. If `other_web_app` is a system web app.
+      //
+      // The AppType of the `AppPtr` cannot be checked (and compared to `kWeb`),
+      // since system web apps are stored as both `kWeb` and `kSystemWeb`.
+      if (!other_web_app || other_web_app->IsSystemApp()) {
+        has_conflicting_preferred_app = true;
+        break;
+      }
+    }
+
+    if (has_conflicting_preferred_app) {
+      continue;
+    }
+
+    proxy->SetSupportedLinksPreference(app_id);
+  }
+
+  if (should_backup) {
+    prefs->SetList(prefs::kWebAppsPreviouslyAppSupportedLinks,
+                   std::move(backup));
+  }
+
+  prefs->SetInteger(prefs::kLastNavigationCapturingMigrationState,
+                    static_cast<int>(target_state));
 }
 
 void WebAppPublisherHelper::OnPreferredAppsListInitialized() {
-  MaybeMigrateLinkCapturingPreferences();
+  base::SequencedTaskRunner::GetCurrentDefault()->PostTask(
+      FROM_HERE,
+      base::BindOnce(
+          &WebAppPublisherHelper::MaybeMigrateLinkCapturingPreferences,
+          weak_ptr_factory_.GetWeakPtr()));
 }
 
 void WebAppPublisherHelper::OnPreferredAppChanged(const std::string& app_id,
@@ -2234,6 +2377,17 @@ void WebAppPublisherHelper::OnPreferredAppChanged(const std::string& app_id,
 void WebAppPublisherHelper::OnPreferredAppsListWillBeDestroyed(
     apps::PreferredAppsListHandle* handle) {
   preferred_apps_list_observation_.Reset();
+}
+
+void WebAppPublisherHelper::OnAppTypeInitialized(apps::AppType app_type) {
+  if (app_type == apps::AppType::kWeb) {
+    MaybeMigrateLinkCapturingPreferences();
+  }
+}
+
+void WebAppPublisherHelper::OnAppRegistryCacheWillBeDestroyed(
+    apps::AppRegistryCache* cache) {
+  app_registry_cache_observation_.Reset();
 }
 #endif
 

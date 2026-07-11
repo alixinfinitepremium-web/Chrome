@@ -746,7 +746,6 @@ SelectorChecker::FeaturelessMatch SelectorChecker::MatchShadowHost(
     case CSSSelector::kPseudoOnlyChild:
     case CSSSelector::kPseudoOnlyOfType:
     case CSSSelector::kPseudoOptional:
-    case CSSSelector::kPseudoOverscrollTarget:
     case CSSSelector::kPseudoOverscrollOpen:
     case CSSSelector::kPseudoPart:
     case CSSSelector::kPseudoPermissionGranted:
@@ -770,6 +769,7 @@ SelectorChecker::FeaturelessMatch SelectorChecker::MatchShadowHost(
     case CSSSelector::kPseudoSearchText:
     case CSSSelector::kPseudoPickerIcon:
     case CSSSelector::kPseudoPicker:
+    case CSSSelector::kPseudoSelectListbox:
     case CSSSelector::kPseudoSelection:
     case CSSSelector::kPseudoSingleButton:
     case CSSSelector::kPseudoStart:
@@ -830,8 +830,8 @@ SelectorChecker::FeaturelessMatch SelectorChecker::MatchShadowHost(
     case CSSSelector::kPseudoTextField:
     case CSSSelector::kPseudoToolFormActive:
     case CSSSelector::kPseudoToolSubmitActive:
-    case CSSSelector::kPseudoTriggerLink:
-    case CSSSelector::kPseudoUnboundedElementInactive:
+    case CSSSelector::kPseudoNavSource:
+    case CSSSelector::kPseudoUnbounded:
     case CSSSelector::kPseudoViewTransition:
     case CSSSelector::kPseudoViewTransitionGroup:
     case CSSSelector::kPseudoViewTransitionGroupChildren:
@@ -843,6 +843,8 @@ SelectorChecker::FeaturelessMatch SelectorChecker::MatchShadowHost(
     case CSSSelector::kPseudoScrollMarkerGroup:
     case CSSSelector::kPseudoScrollButton:
     case CSSSelector::kPseudoOverscrollAreaParent:
+    case CSSSelector::kPseudoSelectContainsInput:
+    case CSSSelector::kPseudoOverscrollBackdrop:
     case CSSSelector::kPseudoSelectHasSlottedButton:
       // These pseudos are not allowed to match featureless elements. When
       // adding new pseudos here, they would typically be allowed if they are
@@ -1399,11 +1401,16 @@ static bool AnyAttributeMatches(Element& element,
   // Legacy dictates that values of some attributes should be compared in
   // a case-insensitive manner regardless of whether the case insensitive
   // flag is set or not (but an explicit case sensitive flag will override
-  // that, by causing LegacyCaseInsensitiveMatch() never to be set).
+  // that, by causing LegacyCaseInsensitiveMatch() never to be set). This only
+  // applies to HTML elements in HTML documents:
+  // https://html.spec.whatwg.org/multipage/semantics-other.html#case-sensitivity-of-selectors
   const bool case_insensitive =
       selector.AttributeMatch() ==
           CSSSelector::AttributeMatchType::kCaseInsensitive ||
       (selector.LegacyCaseInsensitiveMatch() &&
+       (!RuntimeEnabledFeatures::
+            CSSAttributeValueCaseSensitiveNonHTMLEnabled() ||
+        element.IsHTMLElement()) &&
        IsA<HTMLDocument>(element.GetDocument()));
 
   AttributeCollection attributes = element.AttributesWithoutUpdate();
@@ -2499,6 +2506,12 @@ bool SelectorChecker::CheckPseudoClass(const SelectorCheckingContext& context,
       }
       return selector.MatchNth(NthIndexCache::NthLastOfTypeIndex(element));
     }
+    case CSSSelector::kPseudoSelectContainsInput:
+      DCHECK(RuntimeEnabledFeatures::FilterableSelectEnabled());
+      if (auto* select = DynamicTo<HTMLSelectElement>(element)) {
+        return select->NumDescendantInputs() > 0;
+      }
+      return false;
     case CSSSelector::kPseudoSelectHasSlottedButton:
       if (auto* select = DynamicTo<HTMLSelectElement>(element)) {
         return select->SlottedButton();
@@ -2535,6 +2548,11 @@ bool SelectorChecker::CheckPseudoClass(const SelectorCheckingContext& context,
         return form_element->MatchesToolFormActivePseudoClass();
       }
       return false;
+    case CSSSelector::kPseudoUnbounded: {
+      DCHECK(RuntimeEnabledFeatures::UnboundedElementEnabled());
+      auto* html_element = DynamicTo<HTMLElement>(element);
+      return html_element && html_element->IsUnboundedElementActive();
+    }
     case CSSSelector::kPseudoToolSubmitActive:
       if (auto* form_control_element =
               DynamicTo<HTMLFormControlElement>(element)) {
@@ -2915,18 +2933,18 @@ bool SelectorChecker::CheckPseudoClass(const SelectorCheckingContext& context,
     case CSSSelector::kPseudoActiveNavigation:
       DCHECK(RuntimeEnabledFeatures::RouteMatchingEnabled());
       return CheckPseudoActiveNavigation(context, result);
-    case CSSSelector::kPseudoTriggerLink:
+    case CSSSelector::kPseudoNavSource:
       DCHECK(RuntimeEnabledFeatures::RouteMatchingEnabled());
-      if (element.IsLink()) {
-        if (const auto* state = NavigationState::Get(&element.GetDocument())) {
-          return &element == state->GetSourceElement();
+      if (const auto* state = NavigationState::Get(&element.GetDocument())) {
+        if (&element == state->GetSourceElement()) {
+          return true;
         }
-
-        // TODO(crbug.com/436805487) Find a better solution. For now we need a
-        // RouteMap instance in order to trigger style recalc of source elements
-        // for :trigger-link, when navigation starts and ends.
-        RouteMap::Ensure(element.GetDocument());
       }
+
+      // TODO(crbug.com/436805487) Find a better solution. For now we need a
+      // RouteMap instance in order to trigger style recalc of source elements
+      // for :nav-source, when navigation starts and ends.
+      RouteMap::Ensure(element.GetDocument()).SetNeedsStyleUpdateOnNavigation();
       return false;
     case CSSSelector::kPseudoLang: {
       auto* vtt_element = DynamicTo<VTTElement>(element);
@@ -3142,14 +3160,7 @@ bool SelectorChecker::CheckPseudoClass(const SelectorCheckingContext& context,
     case CSSSelector::kPseudoSpatialNavigationFocus:
       DCHECK(is_ua_rule_);
       return MatchesSpatialNavigationFocusPseudoClass(element);
-    case CSSSelector::kPseudoUnboundedElementInactive: {
-      DCHECK(is_ua_rule_);
-      DCHECK(RuntimeEnabledFeatures::UnboundedElementEnabled());
-      auto* html_element = DynamicTo<HTMLElement>(element);
-      return html_element &&
-             html_element->FastHasAttribute(html_names::kUnboundedAttr) &&
-             !html_element->IsUnboundedElementActive();
-    }
+
     case CSSSelector::kPseudoHasDatalist:
       DCHECK(is_ua_rule_);
       return MatchesHasDatalistPseudoClass(element);
@@ -3237,8 +3248,7 @@ bool SelectorChecker::CheckPseudoClass(const SelectorCheckingContext& context,
         return false;
       }
       return context.search_text_request_is_current;
-    case CSSSelector::kPseudoOverscrollTarget:
-      return SelectorChecker::MatchesOverscrollTarget(element);
+
     case CSSSelector::kPseudoUnknown:
     default:
       NOTREACHED();
@@ -3340,6 +3350,10 @@ bool SelectorChecker::CheckPseudoElement(const SelectorCheckingContext& context,
       } else {
         return false;
       }
+    case CSSSelector::kPseudoSelectListbox:
+      DCHECK(RuntimeEnabledFeatures::FilterableSelectEnabled());
+      return MatchesUAShadowElement(element,
+                                    shadow_element_names::kSelectListbox);
     case CSSSelector::kPseudoPlaceholder:
       return MatchesUAShadowElement(
           element, shadow_element_names::kPseudoInputPlaceholder);
@@ -3788,10 +3802,6 @@ bool SelectorChecker::MatchesActiveViewTransitionPseudoClass(
   return GetTransitionForScope(element) != nullptr;
 }
 
-bool SelectorChecker::MatchesOverscrollTarget(const Element& element) {
-  return RuntimeEnabledFeatures::OverscrollGesturesEnabled() &&
-         element.GetDocument().OverscrollCommandTargets().Contains(&element);
-}
 
 bool SelectorChecker::MatchesFocusPseudoClass(
     const Element& element,

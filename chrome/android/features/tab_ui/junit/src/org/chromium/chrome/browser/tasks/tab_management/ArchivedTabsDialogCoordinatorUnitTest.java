@@ -18,6 +18,7 @@ import static org.mockito.Mockito.when;
 
 import android.app.Activity;
 import android.graphics.drawable.ColorDrawable;
+import android.text.SpannableString;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -72,6 +73,7 @@ import org.chromium.components.tab_group_sync.TabGroupUiActionHandler;
 import org.chromium.ui.base.TestActivity;
 import org.chromium.ui.edge_to_edge.EdgeToEdgePadAdjuster;
 import org.chromium.ui.modaldialog.ModalDialogManager;
+import org.chromium.ui.text.ChromeClickableSpan;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -359,5 +361,27 @@ public class ArchivedTabsDialogCoordinatorUnitTest {
         assertEquals(
                 SemanticColorUtils.getColorSurface(mActivity),
                 ((ColorDrawable) buttonContainer.getBackground()).getColor());
+    }
+
+    @Test
+    public void testGetIphDescriptionSpans() {
+        when(mTabArchiveSettings.getArchiveTimeDeltaDays()).thenReturn(7);
+        when(mTabArchiveSettings.getAutoDeleteTimeDeltaMonths()).thenReturn(1);
+        when(mTabArchiveSettings.isAutoDeleteEnabled()).thenReturn(true);
+
+        CharSequence description =
+                ArchivedTabsDialogCoordinator.getIphDescription(
+                        mActivity, mTabArchiveSettings, (view) -> {});
+        assertTrue(description instanceof SpannableString);
+        SpannableString ss = (SpannableString) description;
+
+        String settingsTitle =
+                mActivity.getString(R.string.archived_tab_iph_card_subtitle_settings_title);
+        int start = ss.toString().indexOf(settingsTitle);
+        int end = start + settingsTitle.length();
+
+        // Verify ChromeClickableSpan
+        ChromeClickableSpan[] clickableSpans = ss.getSpans(start, end, ChromeClickableSpan.class);
+        assertEquals(1, clickableSpans.length);
     }
 }

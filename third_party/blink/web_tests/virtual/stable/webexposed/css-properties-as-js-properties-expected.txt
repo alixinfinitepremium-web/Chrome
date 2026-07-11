@@ -293,7 +293,6 @@ length
 letterSpacing
 lightingColor
 lineBreak
-lineClamp
 lineGapOverride
 lineHeight
 listStyle
@@ -739,6 +738,7 @@ whiteSpaceCollapse
 widows
 width
 willChange
+windowDrag
 wordBreak
 wordSpacing
 wordWrap

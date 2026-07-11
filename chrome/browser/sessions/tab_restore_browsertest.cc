@@ -1417,6 +1417,57 @@ IN_PROC_BROWSER_TEST_F(TabRestoreTest, WindowMappingHasGroupDataAfterRestart) {
 }
 
 IN_PROC_BROWSER_TEST_F(TabRestoreTest,
+                       PRE_WindowMappingHasCollapsedGroupDataAfterRestart) {
+  // Enable session service in default mode.
+  EnableSessionService();
+
+  // Navigate to url1 in the current tab.
+  ui_test_utils::NavigateToURLWithDisposition(
+      browser(), url1_, WindowOpenDisposition::CURRENT_TAB,
+      ui_test_utils::BROWSER_TEST_WAIT_FOR_LOAD_STOP);
+
+  // Add a second tab so the window entry will be logged instead of a single tab
+  // when the browser closes.
+  ui_test_utils::NavigateToURLWithDisposition(
+      browser(), url2_, WindowOpenDisposition::NEW_BACKGROUND_TAB,
+      ui_test_utils::BROWSER_TEST_WAIT_FOR_LOAD_STOP);
+
+  // Add the tab to a group.
+  tab_groups::TabGroupId group =
+      browser()->tab_strip_model()->AddToNewGroup({0});
+  browser()->tab_strip_model()->ChangeTabGroupVisuals(
+      group, tab_groups::TabGroupVisualData(u"Group title",
+                                            tab_groups::TabGroupColorId::kGreen,
+                                            /*is_collapsed=*/true));
+}
+
+IN_PROC_BROWSER_TEST_F(TabRestoreTest,
+                       WindowMappingHasCollapsedGroupDataAfterRestart) {
+  // Enable session service in default mode.
+  EnableSessionService();
+
+  sessions::TabRestoreService* tab_restore_service =
+      TabRestoreServiceFactory::GetForProfile(browser()->profile());
+  CHECK(tab_restore_service);
+
+  ASSERT_EQ(1u, tab_restore_service->entries().size());
+  sessions::tab_restore::Entry* entry =
+      tab_restore_service->entries().front().get();
+  ASSERT_EQ(sessions::tab_restore::WINDOW, entry->type);
+
+  auto* window = static_cast<sessions::tab_restore::Window*>(entry);
+  ASSERT_EQ(2u, window->tabs.size());
+  ASSERT_EQ(1u, window->tab_groups.size());
+
+  const sessions::tab_restore::Group* first_group =
+      window->tab_groups.begin()->second.get();
+  tab_groups::TabGroupVisualData expected_visual_data(
+      u"Group title", tab_groups::TabGroupColorId::kGreen,
+      /*is_collapsed=*/true);
+  EXPECT_EQ(expected_visual_data, first_group->visual_data);
+}
+
+IN_PROC_BROWSER_TEST_F(TabRestoreTest,
                        PRE_RecentlyClosedGroupTimestampPersistsAfterRestart) {
   // Enable session service in default mode.
   EnableSessionService();
@@ -3849,116 +3900,5 @@ IN_PROC_BROWSER_TEST_F(TabRestoreVerticalTabsTest,
   EXPECT_EQ(new_state_controller->GetUncollapsedWidth(), kUncollapsedWidth);
 }
 
-struct EncryptionTestParams {
-  const char* stage_name;
-};
-
-class TabRestoreEncryptionTest
-    : public TabRestoreTest,
-      public testing::WithParamInterface<EncryptionTestParams> {
- public:
-  TabRestoreEncryptionTest() {
-    if (std::string_view(GetParam().stage_name) == "clear_only") {
-      scoped_feature_list_.InitAndDisableFeature(
-          sessions::kEncryptSessionStorage);
-    } else {
-      scoped_feature_list_.InitAndEnableFeatureWithParameters(
-          sessions::kEncryptSessionStorage, {{"stage", GetParam().stage_name}});
-    }
-  }
-
-  void AssertCommandStorageBackendFilesExist(Profile* profile) {
-    base::ScopedAllowBlockingForTesting allow_blocking;
-    sessions::TabRestoreServiceImpl* tab_restore_service =
-        static_cast<sessions::TabRestoreServiceImpl*>(
-            TabRestoreServiceFactory::GetForProfile(profile));
-    sessions::CommandStorageManager* command_storage_manager =
-        tab_restore_service->command_storage_manager_for_testing();
-    sessions::CommandStorageManagerTestHelper test_helper(
-        command_storage_manager);
-    command_storage_manager->Save();
-    test_helper.RunMessageLoopUntilBackendDone();
-    sessions::CommandStorageBackend* cleartext_backend =
-        test_helper.GetCleartextBackend();
-    sessions::CommandStorageBackend* encrypted_backend =
-        test_helper.GetEncryptedBackend();
-    if (test_helper.ShouldWriteEncryptedFiles()) {
-      ASSERT_TRUE(encrypted_backend);
-      const base::FilePath path = encrypted_backend->current_path_for_testing();
-      ASSERT_TRUE(base::PathExists(path));
-    } else {
-      ASSERT_FALSE(encrypted_backend);
-    }
-    if (test_helper.ShouldWriteCleartextFiles()) {
-      ASSERT_TRUE(cleartext_backend);
-      const base::FilePath path = cleartext_backend->current_path_for_testing();
-      ASSERT_TRUE(base::PathExists(path));
-    } else {
-      ASSERT_FALSE(cleartext_backend);
-    }
-  }
-
- private:
-  base::test::ScopedFeatureList scoped_feature_list_;
-};
-
-IN_PROC_BROWSER_TEST_P(TabRestoreEncryptionTest, BasicRestore) {
-  AddFileSchemeTabs(browser(), 1);
-  int starting_tab_count = browser()->tab_strip_model()->count();
-
-  CloseTab(starting_tab_count - 1);
-  EXPECT_EQ(starting_tab_count - 1, browser()->tab_strip_model()->count());
-  AssertCommandStorageBackendFilesExist(browser()->profile());
-
-  ASSERT_NO_FATAL_FAILURE(RestoreTab(browser(), starting_tab_count - 1));
-
-  EXPECT_EQ(starting_tab_count, browser()->tab_strip_model()->count());
-  EXPECT_EQ(url1_,
-            browser()->tab_strip_model()->GetActiveWebContents()->GetURL());
-}
-
-IN_PROC_BROWSER_TEST_P(TabRestoreEncryptionTest, LargeSessionRestore) {
-  constexpr int kNumTabs = 20;
-  AddFileSchemeTabs(browser(), kNumTabs);
-  int starting_tab_count = browser()->tab_strip_model()->count();
-  EXPECT_EQ(kNumTabs + 1, starting_tab_count);
-
-  // Create a second browser window to stay alive and trigger restore.
-  ui_test_utils::NavigateToURLWithDisposition(
-      browser(), GURL(chrome::kChromeUINewTabURL),
-      WindowOpenDisposition::NEW_WINDOW,
-      ui_test_utils::BROWSER_TEST_WAIT_FOR_BROWSER);
-  EXPECT_EQ(2u, GlobalBrowserCollection::GetInstance()->GetSize());
-
-  Browser* browser1 = browser();
-  CloseBrowserSynchronously(browser1);
-  EXPECT_EQ(1u, GlobalBrowserCollection::GetInstance()->GetSize());
-
-  BrowserWindowInterface* browser2 =
-      GetLastActiveBrowserWindowInterfaceWithAnyProfile();
-  AssertCommandStorageBackendFilesExist(browser2->GetProfile());
-
-  ui_test_utils::BrowserCreatedObserver observer;
-  sessions::TabRestoreService* service =
-      TabRestoreServiceFactory::GetForProfile(browser2->GetProfile());
-  service->RestoreMostRecentEntry(browser2->GetFeatures().live_tab_context());
-  Browser* restored_browser = observer.Wait();
-
-  EXPECT_EQ(starting_tab_count, restored_browser->tab_strip_model()->count());
-  for (int i = 1; i < starting_tab_count; ++i) {
-    EXPECT_EQ(
-        url1_,
-        restored_browser->tab_strip_model()->GetWebContentsAt(i)->GetURL());
-  }
-}
-
-INSTANTIATE_TEST_SUITE_P(
-    All,
-    TabRestoreEncryptionTest,
-    testing::Values(EncryptionTestParams{"clear_only"},
-                    EncryptionTestParams{"write_both_read_only_clear"}),
-    [](const testing::TestParamInfo<EncryptionTestParams>& info) {
-      return info.param.stage_name;
-    });
 
 }  // namespace sessions

@@ -99,12 +99,9 @@ namespace version_info {
 enum class Channel;
 }
 
-namespace accessibility_annotator {
-class AccessibilityQueryService;
-}
-
 namespace personal_context {
-enum class PersonalContextEnablementState;
+enum class PersonalContextEligibilityState;
+class PersonalContextEligibilityService;
 }
 
 namespace subscription_eligibility {
@@ -120,6 +117,7 @@ namespace autofill {
 class ActorKeyMetricsRecorder;
 class AutofillManager;
 class AddressNormalizer;
+class AtMemoryQueryService;
 class AutocompleteHistoryManager;
 class AutofillAblationStudy;
 class AutofillAiManager;
@@ -154,7 +152,7 @@ enum class SuggestionHidingReason;
 enum class SuggestionType;
 class SingleFieldFillRouter;
 class ValuablesDataManager;
-class PersonalContextAccessManager;
+class AutofillAiPersonalContextAccessManager;
 class VotesUploader;
 class PasswordManagerAutofillHelperDelegate;
 class WalletPassAccessManager;
@@ -179,6 +177,24 @@ using PlusAddressCallback = base::OnceCallback<void(const std::string&)>;
 // with" (e.g. for the tab the BrowserAutofillManager is attached to).
 class AutofillClient {
  public:
+  // Categories of Autofill data that can be blocked or allowed on specific GURL
+  // patterns by enterprise policies.
+  // LINT.IfChange(AutofillPolicyDataCategory)
+  enum class AutofillPolicyDataCategory {
+    // Address, name, email, phone, and profile configuration details.
+    kContactInfo,
+    // Credit cards, virtual cards, bank accounts, and IBANs.
+    kPayments,
+    // Autofill AI identity document details (e.g. passports, driver's licenses,
+    // national IDs).
+    kIdentityDocs,
+    // Autofill AI travel/booking details (e.g. flights, vehicles).
+    kTravel,
+    // Autofill AI shopping details (e.g. orders, shipments).
+    kShopping,
+  };
+  // LINT.ThenChange(//components/autofill/core/browser/permissions/autofill_policy_service.cc:AutofillPolicyDataCategory,//components/autofill/core/browser/permissions/autofill_policy_service_unittest.cc:AutofillPolicyDataCategory)
+
   // Represents the user's possible decisions or outcomes in response to a
   // prompt related to address saving, updating, or migrating.
   // These values are persisted to logs. Entries should not be renumbered and
@@ -252,7 +268,8 @@ class AutofillClient {
   // Required arguments to create a dropdown showing autofill suggestions.
   struct PopupOpenArgs {
     PopupOpenArgs();
-    PopupOpenArgs(const gfx::RectF& element_bounds,
+    PopupOpenArgs(LocalFrameToken frame_token,
+                  const gfx::RectF& element_bounds,
                   base::i18n::TextDirection text_direction,
                   std::vector<Suggestion> suggestions,
                   AutofillSuggestionTriggerSource trigger_source,
@@ -265,6 +282,9 @@ class AutofillClient {
     PopupOpenArgs& operator=(const PopupOpenArgs&);
     PopupOpenArgs& operator=(PopupOpenArgs&&);
     ~PopupOpenArgs();
+    // The frame in which the popup is anchored. Typically this is the frame of
+    // the field on which the user triggered Autofill.
+    LocalFrameToken frame_token;
     // TODO(crbug.com/340817507): Update this member name since bounds can now
     // refer to the caret bounds and elements gives the idea of HTML elements
     // only.
@@ -418,10 +438,16 @@ class AutofillClient {
 
   // Returns true if Autofill suggestions should include the Personal Context
   // notice.
-  virtual bool ShouldShowPersonalContextAutofillNotice() const;
+  virtual bool ShouldShowPersonalContextAmbientAutofillNotice() const;
 
   // Marks the Personal Context notice as acknowledged.
-  virtual void MarkPersonalContextInAutofillNoticeAsAcknowledged();
+  virtual void MarkPersonalContextAmbientAutofillNoticeAsAcknowledged();
+
+  // Returns true if AtMemory UI should include the Personal Context notice.
+  virtual bool ShouldShowPersonalContextAtMemoryNotice() const;
+
+  // Marks the AtMemory Personal Context notice as acknowledged.
+  virtual void MarkPersonalContextAtMemoryNoticeAsAcknowledged();
 
   // Gets the AutocompleteHistoryManager instance associated with the client.
   virtual AutocompleteHistoryManager* GetAutocompleteHistoryManager() = 0;
@@ -441,10 +467,13 @@ class AutofillClient {
   // Autofill AI feature is unsupported.
   virtual AutofillAiManager* GetAutofillAiManager();
 
-  // Returns the `PersonalContextAccessManager` instance associated with the
-  // client. Returns `nullptr` if `kAutofillAmbientAutofill` is not enabled.
-  virtual PersonalContextAccessManager* GetPersonalContextAccessManager();
-  const PersonalContextAccessManager* GetPersonalContextAccessManager() const;
+  // Returns the `AutofillAiPersonalContextAccessManager` instance associated
+  // with the client. Returns `nullptr` if `kAutofillAmbientAutofill` is not
+  // enabled.
+  virtual AutofillAiPersonalContextAccessManager*
+  GetAutofillAiPersonalContextAccessManager();
+  const AutofillAiPersonalContextAccessManager*
+  GetAutofillAiPersonalContextAccessManager() const;
 
   // Returns the per-profile `AutofillAiModelCache`. Returns `nullptr` if the
   // `kAutofillAiServerModel` is not enabled.
@@ -469,14 +498,19 @@ class AutofillClient {
 
   virtual IdentityCredentialDelegate* GetIdentityCredentialDelegate();
 
-  // Returns the `AccessibilityQueryService` associated with the profile of
+  // Returns the `AtMemoryQueryService` associated with the profile of
   // the window of this tab.
-  virtual accessibility_annotator::AccessibilityQueryService*
-  GetAccessibilityQueryService();
+  virtual AtMemoryQueryService* GetAtMemoryQueryService();
 
   // Returns the enablement state of the Accessibility Annotator.
-  virtual personal_context::PersonalContextEnablementState
-  GetPersonalContextEnablementState() const;
+  // TODO(crbug.com/524193567) Delete this method once all the invocations are
+  // replaced by the calls to the central enablement util.
+  virtual personal_context::PersonalContextEligibilityState
+  GetPersonalContextEligibilityState() const;
+
+  // Returns the Personal Context Eligibility Service. May return nullptr.
+  virtual personal_context::PersonalContextEligibilityService*
+  GetPersonalContextEligibilityService() const;
 
   // Returns the `PasswordManagerDelegate` responsible to provide
   // password suggestions for the given `field_id`.
@@ -529,6 +563,9 @@ class AutofillClient {
 
   // Returns the last committed url of the primary main frame.
   virtual const GURL& GetLastCommittedPrimaryMainFrameURL() const = 0;
+
+  // Returns the title of the current page.
+  virtual std::u16string_view GetPageTitle() const = 0;
 
   // Returns the last committed origin of the primary main frame.
   virtual url::Origin GetLastCommittedPrimaryMainFrameOrigin() const = 0;
@@ -595,6 +632,9 @@ class AutofillClient {
 
   // Opens Gemini in the sidebar with the given prompt pre-filled.
   virtual void OpenGeminiInSidebar(const std::u16string& prompt);
+
+  // Returns true if the Glic sidebar is enabled and can be opened.
+  virtual bool IsGlicEnabled() const;
 
   // Update the data list values shown by the Autofill suggestions, if visible.
   virtual void UpdateAutofillDataListValues(
@@ -674,6 +714,12 @@ class AutofillClient {
   // Whether the Autocomplete feature of Autofill should be enabled.
   virtual bool IsAutocompleteEnabled() const = 0;
 
+  // Returns true if the specified Autofill type is blocked by enterprise policy
+  // on GURL.
+  virtual bool IsAutofillTypeBlockedByPolicy(
+      const GURL& url,
+      AutofillPolicyDataCategory category) const;
+
   // Returns whether password management is enabled as per the user preferences.
   virtual bool IsPasswordManagerEnabled() const = 0;
 
@@ -710,6 +756,7 @@ class AutofillClient {
   virtual void ShowAtMemoryBottomSheet(
       base::span<const Suggestion> suggestions,
       base::WeakPtr<AutofillSuggestionDelegate> delegate);
+  virtual void HideAtMemoryBottomSheet() {}
 
   // The AutofillSnackbarController is used to show a snackbar notification
   // on Android.
@@ -743,7 +790,7 @@ class AutofillClient {
 
   // Returns true if the device supports any kind of re-auth through the
   // `GetDeviceAuthenticator()`.
-  bool SupportsDeviceReauth() const;
+  virtual bool SupportsDeviceReauth() const;
 
   // Attaches the IPH for `feature` to the `field`, on
   // platforms that it. If another IPH has been shown for the tab, the IPH is
@@ -808,6 +855,13 @@ class AutofillClient {
 
   // Notifies the user that operation to fetch data from Wallet failed.
   virtual void ShowAutofillAiFetchFromWalletFailureNotification();
+
+  // Notifies the user that prefetching Autofill AI entities failed.
+  virtual void ShowAutofillAiPreFetchFailureNotification();
+
+  // Notifies the user that the page content will now be processed privately by
+  // default.
+  virtual void ShowAutofillAiPrivateInferenceNotice();
 
   virtual void ShowEmailVerifiedToast(const GURL& issuer);
 

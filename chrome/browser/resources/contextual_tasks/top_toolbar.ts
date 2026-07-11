@@ -87,6 +87,13 @@ export class TopToolbarElement extends TopToolbarElementBase {
         type: Boolean,
         reflect: true,
       },
+      isUserSignedIn: {type: Boolean},
+      onboardingTooltipShowing: {type: Boolean},
+      lensSearchTooltipShowing: {type: Boolean},
+      contextualTasksEnableSpatialModelToolbarLayout_: {type: Boolean},
+      contextualTasksEnableSpatialModelToolbarLayoutNewThreadInOverflow_:
+          {type: Boolean},
+      overflowMenuOpen_: {type: Boolean},
     };
   }
 
@@ -95,8 +102,11 @@ export class TopToolbarElement extends TopToolbarElementBase {
   accessor darkMode: boolean = false;
   accessor isAiPage: boolean = loadTimeData.getBoolean('isAiPage');
   accessor isAimEligible: boolean = loadTimeData.getBoolean('isAimEligible');
+  accessor isUserSignedIn: boolean = true;
   accessor enableOpenInNewTabButton: boolean = false;
   accessor showReopenTabs_: boolean = false;
+  accessor onboardingTooltipShowing: boolean = false;
+  accessor lensSearchTooltipShowing: boolean = false;
   private browserProxy_: BrowserProxy = BrowserProxyImpl.getInstance();
   private listenerIds_: number[] = [];
   protected accessor isExpandButtonEnabled: boolean =
@@ -105,12 +115,18 @@ export class TopToolbarElement extends TopToolbarElementBase {
       loadTimeData.getBoolean('enablePinButton');
   private hideOverflowMenuOnAiPageEnabled_: boolean =
       loadTimeData.getBoolean('hideMenuOnAiPageEnabled');
+  protected accessor contextualTasksEnableSpatialModelToolbarLayout_: boolean =
+      loadTimeData.getBoolean('contextualTasksEnableSpatialModelToolbarLayout');
+  protected accessor contextualTasksEnableSpatialModelToolbarLayoutNewThreadInOverflow_:
+      boolean = loadTimeData.getBoolean(
+          'contextualTasksEnableSpatialModelToolbarLayoutNewThreadInOverflow');
   accessor hideOverflowMenuButton_: boolean =
       this.hideOverflowMenuOnAiPageEnabled_ && this.isAiPage;
   protected accessor isPinned: boolean =
       loadTimeData.getBoolean('isSidePanelPinned');
   protected accessor contextManagementInComposeboxEnabled_: boolean =
       loadTimeData.getBoolean('contextManagementInComposeboxEnabled');
+  protected accessor overflowMenuOpen_: boolean = false;
 
   override connectedCallback() {
     super.connectedCallback();
@@ -139,19 +155,30 @@ export class TopToolbarElement extends TopToolbarElementBase {
     this.listenerIds_ = [];
   }
 
+  // <if expr="not is_android">
+  override firstUpdated(_changedProperties: PropertyValues) {
+    super.firstUpdated(_changedProperties);
+    this.registerHelpBubble(
+        'kContextualTasksWebUIToolbarElementId', '#top-row');
+    this.registerHelpBubble(
+        'kContextualTasksWebUIOverflowMenuElementId',
+        '#overflowMenuButton');
+  }
+  // </if>
+
   override updated(changedProperties: PropertyValues<this>) {
     super.updated(changedProperties);
 
-    if (changedProperties.has('isAiPage')) {
+    if (changedProperties.has('isAiPage') ||
+        changedProperties.has('onboardingTooltipShowing') ||
+        changedProperties.has('lensSearchTooltipShowing')) {
       this.hideOverflowMenuButton_ =
           this.isAiPage && this.hideOverflowMenuOnAiPageEnabled_;
       // <if expr="not is_android">
       if (this.isAiPage) {
-        this.registerHelpBubble(
-            'kContextualTasksWebUIOverflowMenuElementId',
-            '#overflowMenuButton');
-      } else {
-        this.unregisterHelpBubble('kContextualTasksWebUIOverflowMenuElementId');
+        if (!this.onboardingTooltipShowing && !this.lensSearchTooltipShowing) {
+          this.browserProxy_.handler.maybeTriggerPinningPromo();
+        }
       }
       // </if>
     }
@@ -180,7 +207,7 @@ export class TopToolbarElement extends TopToolbarElementBase {
   }
 
   protected onNewThreadClick_() {
-    this.dispatchEvent(new CustomEvent('new-thread-click'));
+    this.fire('new-thread-click');
   }
 
   protected onThreadHistoryClick_() {
@@ -191,6 +218,10 @@ export class TopToolbarElement extends TopToolbarElementBase {
   protected onOverflowMenuButtonClick_(e: Event) {
     recordAction('ContextualTasks.WebUI.UserAction.OpenOverflowMenu');
     this.$.overflowMenu.get().showAt(e.target as HTMLElement);
+  }
+
+  protected onOverflowMenuOpenChanged_(e: CustomEvent<{value: boolean}>) {
+    this.overflowMenuOpen_ = e.detail.value;
   }
 
   protected onSourcesClick_(e: Event) {

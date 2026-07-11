@@ -41,7 +41,6 @@
 #include "third_party/blink/renderer/platform/fonts/plain_text_painter.h"
 #include "third_party/blink/renderer/platform/graphics/canvas_resource.h"
 #include "third_party/blink/renderer/platform/graphics/canvas_resource_dispatcher.h"
-#include "third_party/blink/renderer/platform/graphics/canvas_resource_provider.h"
 #include "third_party/blink/renderer/platform/graphics/exported_canvas_resource.h"
 #include "third_party/blink/renderer/platform/graphics/gpu/canvas_utils.h"
 #include "third_party/blink/renderer/platform/graphics/gpu/shared_gpu_context.h"
@@ -55,9 +54,14 @@
 #include "third_party/blink/renderer/platform/instrumentation/histogram.h"
 #include "third_party/blink/renderer/platform/instrumentation/tracing/trace_event.h"
 #include "third_party/blink/renderer/platform/instrumentation/use_counter.h"
+#include "third_party/blink/renderer/platform/scheduler/public/post_cross_thread_task.h"
 #include "third_party/blink/renderer/platform/supplementable.h"
+#include "third_party/blink/renderer/platform/wtf/cross_thread_copier.h"
+#include "third_party/blink/renderer/platform/wtf/cross_thread_functional.h"
 #include "third_party/blink/renderer/platform/wtf/math_extras.h"
+#include "third_party/blink/renderer/platform/wtf/text/wtf_string.h"
 #include "third_party/skia/include/core/SkSurface.h"
+#include "ui/accessibility/accessibility_features.h"
 #include "ui/gfx/geometry/skia_conversions.h"
 
 namespace blink {
@@ -97,6 +101,35 @@ class OffscreenCanvasRegistry
 };
 const char OffscreenCanvasRegistry::kSupplementName[] =
     "OffscreenCanvasRegistry";
+
+void RecordRenderedTextOnMainThread(int placeholder_canvas_id,
+                                    const String text,
+                                    const gfx::RectF bounds,
+                                    float font_height) {
+  DCHECK(IsMainThread());
+  if (auto* placeholder = OffscreenCanvasPlaceholder::GetPlaceholderCanvasById(
+          placeholder_canvas_id)) {
+    placeholder->RecordRenderedText(text, bounds, font_height);
+  }
+}
+
+void ClearRenderedTextOnMainThread(int placeholder_canvas_id,
+                                   const gfx::RectF rect) {
+  DCHECK(IsMainThread());
+  if (auto* placeholder = OffscreenCanvasPlaceholder::GetPlaceholderCanvasById(
+          placeholder_canvas_id)) {
+    placeholder->ClearRenderedText(rect);
+  }
+}
+
+void ClearAllRenderedTextOnMainThread(int placeholder_canvas_id) {
+  DCHECK(IsMainThread());
+  if (auto* placeholder = OffscreenCanvasPlaceholder::GetPlaceholderCanvasById(
+          placeholder_canvas_id)) {
+    placeholder->ClearRenderedText();
+  }
+}
+
 }  // namespace
 
 OffscreenCanvas::OffscreenCanvas(ExecutionContext* context,
@@ -152,6 +185,10 @@ OffscreenCanvas::OffscreenCanvas(ExecutionContext* context,
       animation_frame_provider->RegisterOffscreenCanvas(this);
     }
   }
+
+  // TODO(crbug.com/498093320): Try to get this from placeholder canvas.
+  should_capture_rendered_text_ =
+      base::FeatureList::IsEnabled(::features::kAccessibilityCanvas);
 }
 
 OffscreenCanvas* OffscreenCanvas::Create(ScriptState* script_state,
@@ -547,7 +584,7 @@ bool OffscreenCanvas::HasPlaceholderCanvas() const {
 }
 
 CanvasResourceDispatcher* OffscreenCanvas::GetOrCreateResourceDispatcher() {
-  DCHECK(HasPlaceholderCanvas());
+  CHECK(HasPlaceholderCanvas());
   // If we don't have a valid placeholder_canvas_id_, then this is a standalone
   // OffscreenCanvas, and it should not have a placeholder.
   if (frame_dispatcher_ == nullptr) {
@@ -566,13 +603,9 @@ CanvasResourceDispatcher* OffscreenCanvas::GetOrCreateResourceDispatcher() {
     // (either main or worker) to the GPU process and will have to be recreated
     // if the GPU channel is lost.
     frame_dispatcher_ = std::make_unique<CanvasResourceDispatcher>(
-        this, dispatcher_task_runner,
-        agent_group_scheduler_compositor_task_runner, client_id_, sink_id_,
-        placeholder_canvas_id_, Size());
+        this, dispatcher_task_runner, client_id_, sink_id_, Size());
 
-    if (placeholder_canvas_id_ !=
-            OffscreenCanvasPlaceholder::kNoPlaceholderId &&
-        agent_group_scheduler_compositor_task_runner) {
+    if (agent_group_scheduler_compositor_task_runner) {
       placeholder_client_ =
           std::make_unique<OffscreenCanvasPlaceholder::Client>(
               placeholder_canvas_id_,
@@ -601,14 +634,34 @@ void OffscreenCanvas::DidDraw(const gfx::Rect& rect) {
   if (HasPlaceholderCanvas()) {
     needs_push_frame_ = true;
     if (!inside_worker_raf_) {
+      // If the offscreencanvas is in the same tread as the canvas, and we are
+      // trying for a second time to request the being frame, and we are in a
+      // capture_stream scenario, we will call a BeginFrame right away. So
+      // Offscreen Canvas can behave in a more synchronous way when it's on the
+      // main thread.
+      if (GetOrCreateResourceDispatcher()->NeedsBeginFrame() &&
+          IsMainThread()) {
+        if (placeholder_canvas_id_ != kInvalidDOMNodeId) {
+          OffscreenCanvasPlaceholder* placeholder_canvas =
+              OffscreenCanvasPlaceholder::GetPlaceholderCanvasById(
+                  placeholder_canvas_id_);
+          if (placeholder_canvas &&
+              placeholder_canvas->IsOffscreenCanvasRegistered() &&
+              placeholder_canvas->HasCanvasCapture()) {
+            GetOrCreateResourceDispatcher()->SetNeedsBeginFrame(false);
+            PushFrameIfNeeded();
+          }
+        }
+      }
+
       GetOrCreateResourceDispatcher()->SetNeedsBeginFrame(true);
     }
   }
 }
 
 bool OffscreenCanvas::BeginFrame() {
-  DCHECK(HasPlaceholderCanvas());
-  GetOrCreateResourceDispatcher()->SetNeedsBeginFrame(false);
+  CHECK(frame_dispatcher_);
+  frame_dispatcher_->SetNeedsBeginFrame(false);
   return PushFrameIfNeeded();
 }
 
@@ -635,6 +688,12 @@ bool OffscreenCanvas::PushFrame(
   }
   canvas_resource->SetOriginClean(OriginClean());
   current_frame_damage_rect_.Intersect(gfx::Rect(Size()));
+
+  // We can't submit empty CompositorFrames, but contexts not always obeys it
+  // (e.g webgl clamps it's size to 1x1) and can still produce the resource.
+  if (Size().IsEmpty()) {
+    return false;
+  }
 
   auto exported_resource =
       base::MakeRefCounted<ExportedCanvasResource>(std::move(canvas_resource));
@@ -737,6 +796,71 @@ void OffscreenCanvas::SetParentVisibility(bool visible) {
   is_parent_visible_ = visible;
   if (context_) {
     context_->PageVisibilityChanged();
+  }
+}
+
+void OffscreenCanvas::RecordRenderedText(const String& text,
+                                         const gfx::RectF& bounds,
+                                         float font_height) {
+  if (placeholder_canvas_id_ == kInvalidDOMNodeId) {
+    return;
+  }
+
+  if (IsMainThread()) {
+    RecordRenderedTextOnMainThread(placeholder_canvas_id_, text, bounds,
+                                   font_height);
+  } else {
+    // Accessibility only runs on the main thread. If this OffscreenCanvas is
+    // running on a worker thread, we must post a task to the main thread to
+    // record the rendered text on the placeholder canvas.
+    if (auto* context = GetTopExecutionContext()) {
+      if (auto task_runner =
+              context->GetAgentGroupSchedulerCompositorTaskRunner()) {
+        PostCrossThreadTask(*task_runner, FROM_HERE,
+                            CrossThreadBindOnce(&RecordRenderedTextOnMainThread,
+                                                placeholder_canvas_id_, text,
+                                                bounds, font_height));
+      }
+    }
+  }
+}
+
+void OffscreenCanvas::ClearRenderedText(const gfx::RectF& rect) {
+  if (placeholder_canvas_id_ == kInvalidDOMNodeId) {
+    return;
+  }
+
+  if (IsMainThread()) {
+    ClearRenderedTextOnMainThread(placeholder_canvas_id_, rect);
+  } else {
+    if (auto* context = GetTopExecutionContext()) {
+      if (auto task_runner =
+              context->GetAgentGroupSchedulerCompositorTaskRunner()) {
+        PostCrossThreadTask(*task_runner, FROM_HERE,
+                            CrossThreadBindOnce(&ClearRenderedTextOnMainThread,
+                                                placeholder_canvas_id_, rect));
+      }
+    }
+  }
+}
+
+void OffscreenCanvas::ClearRenderedText() {
+  if (placeholder_canvas_id_ == kInvalidDOMNodeId) {
+    return;
+  }
+
+  if (IsMainThread()) {
+    ClearAllRenderedTextOnMainThread(placeholder_canvas_id_);
+  } else {
+    if (auto* context = GetTopExecutionContext()) {
+      if (auto task_runner =
+              context->GetAgentGroupSchedulerCompositorTaskRunner()) {
+        PostCrossThreadTask(
+            *task_runner, FROM_HERE,
+            CrossThreadBindOnce(&ClearAllRenderedTextOnMainThread,
+                                placeholder_canvas_id_));
+      }
+    }
   }
 }
 

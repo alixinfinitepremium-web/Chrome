@@ -39,7 +39,11 @@ enum class EntryPoint {
   ExternalAppStoreEvent = 11,
   // Gemini was opened from the Toolbar.
   Toolbar = 12,
-  kMaxValue = Toolbar,
+  // Gemini was opened via App Switcher AI Summarization entry point.
+  AppSwitcherAISummarization = 13,
+  // The entry point is unknown.
+  Unknown = 100,
+  kMaxValue = Unknown,
 };
 // LINT.ThenChange(/tools/metrics/histograms/metadata/ios/enums.xml:IOSGeminiEntryPoint)
 
@@ -223,6 +227,9 @@ enum class GeminiFirstRunType {
 // The entry point that triggered the Gemini session.
 @property(nonatomic, assign) gemini::EntryPoint entryPoint;
 
+// Whether this is the first Gemini session.
+@property(nonatomic, assign) BOOL isFirstSession;
+
 // An optional image to attach to the query.
 @property(nonatomic, strong) UIImage* imageAttachment;
 
@@ -263,6 +270,7 @@ extern const char kSecondBoxLink2URLNonManagedAccount[];
 extern const char kLivePrivacyNoticeLinkURL[];
 extern const char kLiveLearnMoreLinkURL[];
 extern const char kLivePrivacyPolicyLinkURL[];
+extern const char kLivePrivacyHubManagedLinkURL[];
 
 // Footnote links.
 extern const char kFirstFootnoteLinkURL[];
@@ -287,6 +295,7 @@ extern NSString* const kGeminiSecondBoxLink2ActionNonManagedAccount;
 extern NSString* const kGeminiLivePrivacyNoticeLinkAction;
 extern NSString* const kGeminiLiveLearnMoreLinkAction;
 extern NSString* const kGeminiLivePrivacyPolicyLinkAction;
+extern NSString* const kGeminiLivePrivacyHubManagedLinkAction;
 
 // Action identifier for links in the Gemini consent footnote.
 extern NSString* const kGeminiFirstFootnoteLinkAction;

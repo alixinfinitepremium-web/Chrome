@@ -33,6 +33,8 @@
 #include "chrome/browser/ai/ai_language_model.h"
 #include "chrome/browser/ai/ai_proofreader.h"
 #include "chrome/browser/ai/ai_rewriter.h"
+#include "chrome/browser/ai/ai_semantic_embedder.h"
+#include "chrome/browser/ai/ai_semantic_embedder_service_launcher.h"
 #include "chrome/browser/ai/ai_summarizer.h"
 #include "chrome/browser/ai/ai_writer.h"
 #include "chrome/browser/ai/features.h"
@@ -47,6 +49,7 @@
 #include "components/on_device_ai/ai_utils.h"
 #include "components/optimization_guide/core/delivery/model_util.h"
 #include "components/optimization_guide/core/model_execution/feature_keys.h"
+#include "components/optimization_guide/core/model_execution/model_execution_prefs.h"
 #include "components/optimization_guide/core/model_execution/model_execution_util.h"
 #include "components/optimization_guide/core/model_execution/on_device_capability.h"
 #include "components/optimization_guide/core/model_execution/on_device_features.h"
@@ -90,17 +93,17 @@ constexpr float kMinTemperature = 0.0f;
 constexpr float kMostPredictableTemperature = 0.0f;
 constexpr uint32_t kMostPredictableTopK = 1;
 
-constexpr float kPredictableTemperature = 0.2f;
-constexpr uint32_t kPredictableTopK = 2;
+constexpr float kPredictableTemperature = 0.3f;
+constexpr uint32_t kPredictableTopK = 30;
 
-constexpr float kBalancedTemperature = 1.0f;
-constexpr uint32_t kBalancedTopK = 3;
+constexpr float kBalancedTemperature = 0.7f;
+constexpr uint32_t kBalancedTopK = 64;
 
 constexpr float kCreativeTemperature = 1.1f;
-constexpr uint32_t kCreativeTopK = 10;
+constexpr uint32_t kCreativeTopK = 80;
 
 constexpr float kMostCreativeTemperature = 1.2f;
-constexpr uint32_t kMostCreativeTopK = 25;
+constexpr uint32_t kMostCreativeTopK = 100;
 
 const char kUnsupportedLanguageError[] =
     "Unsupported %s API languages were specified, and the request was aborted. "
@@ -655,6 +658,19 @@ void CheckAndLogEligibility(
              optimization_guide::GetVariantName(feature)}),
         service->GetOnDeviceModelEligibility(feature));
   }
+}
+
+template <typename OptionsPtr>
+uint32_t GetInputContextLimit(const OptionsPtr& options) {
+  if constexpr (std::is_same_v<OptionsPtr,
+                               blink::mojom::AISummarizerCreateOptionsPtr>) {
+    return AISummarizer::GetInputContextLimit(options);
+  }
+  if constexpr (std::is_same_v<OptionsPtr,
+                               blink::mojom::AIProofreaderCreateOptionsPtr>) {
+    return AIProofreader::GetInputContextLimit(options);
+  }
+  return blink::mojom::kWritingAssistanceMaxInputTokenSize;
 }
 
 }  // namespace
@@ -1710,12 +1726,12 @@ void AIManager::OnGotExecutionInputSizeInTokens(
         blink::mojom::AIManagerCreateClientError::kUnableToCalculateTokenSize);
     return;
   }
-  uint32_t quota = blink::mojom::kWritingAssistanceMaxInputTokenSize;
-  if (result.value() > quota) {
+  uint32_t context_window_size = GetInputContextLimit(options);
+  if (result.value() > context_window_size) {
     on_device_ai::SendClientRemoteError(
         client_remote,
         blink::mojom::AIManagerCreateClientError::kInitialInputTooLarge,
-        blink::mojom::QuotaErrorInfo::New(result.value(), quota));
+        blink::mojom::QuotaErrorInfo::New(result.value(), context_window_size));
     return;
   }
   mojo::PendingRemote<ContextBoundObjectReceiverInterface> pending_remote;
@@ -1834,6 +1850,83 @@ void AIManager::StartModelPathValidationIfOverrideSet() {
         base::BindOnce(&AIManager::OnModelPathValidationComplete,
                        weak_factory_.GetWeakPtr(), model_path.value()));
   }
+}
+
+void AIManager::CanCreateSemanticEmbedder(
+    CanCreateSemanticEmbedderCallback callback) {
+  if (!base::FeatureList::IsEnabled(blink::features::kAIEmbeddingsAPI)) {
+    std::move(callback).Run(blink::mojom::ModelAvailabilityCheckResult::
+                                kUnavailableFeatureNotEnabled);
+    return;
+  }
+
+  // TODO(crbug.com/428233906): Implement a dedicated Permissions Policy for the
+  // Embedding API.
+  if (IsPermissionsPolicyBlocked(
+          network::mojom::PermissionsPolicyFeature::kLanguageModel)) {
+    receivers_.ReportBadMessage("Permissions policy disabled");
+    return;
+  }
+
+  if (auto pref_blocked_result = GetPrefBlockedResult()) {
+    std::move(callback).Run(*pref_blocked_result);
+    return;
+  }
+
+  auto* service_launcher = AISemanticEmbedderServiceLauncher::Get();
+
+  if (!service_launcher->controller()->IsModelAvailable()) {
+    std::move(callback).Run(
+        blink::mojom::ModelAvailabilityCheckResult::kDownloadable);
+    return;
+  }
+
+  // Reject if the crash limit is reached
+  if (!service_launcher->AllowedToLaunch()) {
+    std::move(callback).Run(blink::mojom::ModelAvailabilityCheckResult::
+                                kUnavailableTooManyRecentCrashes);
+    return;
+  }
+
+  std::move(callback).Run(
+      blink::mojom::ModelAvailabilityCheckResult::kAvailable);
+}
+
+void AIManager::CreateSemanticEmbedder(
+    mojo::PendingRemote<blink::mojom::AIManagerCreateSemanticEmbedderClient>
+        client) {
+  mojo::Remote<blink::mojom::AIManagerCreateSemanticEmbedderClient>
+      client_remote(std::move(client));
+
+  if (!base::FeatureList::IsEnabled(blink::features::kAIEmbeddingsAPI)) {
+    receivers_.ReportBadMessage("Feature not enabled");
+    return;
+  }
+
+  if (IsBlocked(network::mojom::PermissionsPolicyFeature::kLanguageModel)) {
+    receivers_.ReportBadMessage("Policy or user setting disabled");
+    return;
+  }
+
+  auto* service_launcher = AISemanticEmbedderServiceLauncher::Get();
+  if (!service_launcher->controller()->IsModelAvailable()) {
+    client_remote->OnError(
+        blink::mojom::AIManagerCreateClientError::kUnableToCreateSession);
+    return;
+  }
+
+  if (!service_launcher->AllowedToLaunch()) {
+    client_remote->OnError(
+        blink::mojom::AIManagerCreateClientError::kUnableToCreateSession);
+    return;
+  }
+
+  mojo::PendingRemote<blink::mojom::AISemanticEmbedder> pending_remote;
+  context_bound_object_set_.AddContextBoundObject(
+      std::make_unique<AISemanticEmbedder>(
+          context_bound_object_set_,
+          pending_remote.InitWithNewPipeAndPassReceiver()));
+  client_remote->OnResult(std::move(pending_remote));
 }
 
 void AIManager::RenderWidgetHostVisibilityChanged(

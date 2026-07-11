@@ -38,6 +38,8 @@
 #include "chrome/browser/glic/test_support/test_result.h"
 #include "chrome/browser/tab_list/tab_list_interface.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
+#include "chrome/browser/ui/side_panel/side_panel_ui.h"
+#include "chrome/browser/ui/side_panel/side_panel_ui_provider.h"
 #include "chrome/common/chrome_switches.h"
 #include "chrome/test/base/platform_browser_test.h"
 #include "components/feature_engagement/test/scoped_iph_feature_list.h"
@@ -51,7 +53,6 @@
 #include "url/gurl.h"
 
 #if BUILDFLAG(IS_ANDROID)
-#include "base/android/android_info.h"
 #include "base/android/device_info.h"
 #include "chrome/browser/flags/android/chrome_feature_list.h"
 #include "chrome/browser/ui/android/tab_model/tab_model.h"
@@ -60,6 +61,10 @@
 #if defined(TOOLKIT_VIEWS)
 #include "chrome/browser/ui/views/side_panel/side_panel_coordinator.h"
 #include "ui/views/test/mock_activation_controller.h"
+#endif
+
+#if BUILDFLAG(IS_CHROMEOS)
+#include "components/sync/base/features.h"
 #endif
 
 namespace glic {
@@ -108,9 +113,10 @@ template <typename T>
     return base::ok();
   }
   std::stringstream ss;
-  ss << message << " Expected: " << expected_value << ", saw values: {";
+  ss << message << " Expected: " << base::ToString(expected_value)
+     << ", saw values: {";
   for (const auto& value : ignored_values) {
-    ss << value << ", ";
+    ss << base::ToString(value) << ", ";
   }
   ss << "}";
   return base::unexpected(ss.str());
@@ -147,8 +153,10 @@ class GlicBrowserTestMixin : public T {
       : T(std::forward<Args>(args)...) {
     std::vector<base::test::FeatureRefAndParams> enabled_features = {
         {features::kGlicMultiInstance, {}},
+#if BUILDFLAG(IS_CHROMEOS)
+        {syncer::kReplaceSyncPromosWithSignInPromos, {}},
+#endif
 #if BUILDFLAG(IS_ANDROID)
-        {chrome::android::kBrowserWindowInterfaceMobile, {}},
         {chrome::android::kTabBottomSheet, {}},
 #endif
     // TODO(crbug.com/516793173): Remove this compile-time check once C++
@@ -190,12 +198,9 @@ class GlicBrowserTestMixin : public T {
   }
 
   void SetUp() override {
-#if BUILDFLAG(IS_ANDROID)
-    if (base::android::android_info::sdk_int() <
-        base::android::android_info::SDK_VERSION_S) {
-      GTEST_SKIP() << "Glic requires Android S+ to run";
+    if (!glic::GlicEnabling::IsOsVersionSupported()) {
+      GTEST_SKIP() << "OS version not supported by Glic";
     }
-#endif
     T::SetUp();
   }
 
@@ -205,9 +210,14 @@ class GlicBrowserTestMixin : public T {
     activation_controller_ =
         std::make_unique<views::test::MockActivationController>();
 #endif
-#if defined(TOOLKIT_VIEWS)
-    SidePanelCoordinator::From(GetBrowser())->DisableAnimationsForTesting();
-#endif
+
+    // Disable side panel animations on supported platforms.
+    if (IsSidePanelEnabled()) {
+      SidePanelUI* side_panel_ui = SidePanelUIProvider::From(GetBrowser());
+      CHECK(side_panel_ui);
+      side_panel_ui->SetNoDelaysForTesting(true);
+      side_panel_ui->DisableAnimationsForTesting();
+    }
 
     CHECK(glic_test_environment_.SetupEmbeddedTestServers(
         T::embedded_test_server(), &T::embedded_https_test_server()));
@@ -281,6 +291,15 @@ class GlicBrowserTestMixin : public T {
     if (!instance->conversation_id().has_value()) {
       RegisterConversation(instance, conversation_id);
     }
+    instance->OnUserInputSubmitted(mojom::WebClientMode::kText);
+  }
+
+  // Keeps a blank instance alive on close without registering a conversation.
+  void PreventBlankDeletionOnClose(GlicInstanceImpl* instance = nullptr) {
+    if (!instance) {
+      instance = GetOnlyGlicInstance();
+    }
+    CHECK(instance);
     instance->OnUserInputSubmitted(mojom::WebClientMode::kText);
   }
 
@@ -382,21 +401,8 @@ class GlicBrowserTestMixin : public T {
     RETURN_IF_ERROR(
         WaitForSidePanelState(tab, GlicSidePanelCoordinator::State::kClosed));
 
-    // TODO(crbug.com/513209932): Actuating instances intentionally keep the
-    // WebContents visible on Android to make progress. On other platforms, the
-    // WebContents is hidden on close because the WebView is detached from the
-    // views hierarchy. Android doesn't seem to have the same automatic
-    // visibility change.
-#if BUILDFLAG(IS_ANDROID)
-    content::Visibility expected_visibility = instance->IsActuating()
-                                                  ? content::Visibility::VISIBLE
-                                                  : content::Visibility::HIDDEN;
-#else
-    content::Visibility expected_visibility = content::Visibility::HIDDEN;
-#endif
-
     return WaitForWebUiContentsVisibility(weak_instance.get(),
-                                          expected_visibility);
+                                          content::Visibility::HIDDEN);
   }
 
   [[nodiscard]] TestResult<GlicInstanceImpl*> WaitForGlicInstanceBoundToTab(

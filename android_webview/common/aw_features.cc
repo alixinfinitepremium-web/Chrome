@@ -15,6 +15,10 @@ namespace android_webview::features {
 // Kill switch for Profile.addQuicHints.
 BASE_FEATURE(kWebViewAddQuicHints, base::FEATURE_ENABLED_BY_DEFAULT);
 
+// Preloads expensive classes that will be used by WebView on a background
+// thread.
+BASE_FEATURE(kWebViewAwClassPreloader, base::FEATURE_ENABLED_BY_DEFAULT);
+
 // Enable back/forward cache support in WebView. Note that this will only take
 // effect iff both this feature flag and the content/public kBackForwardCache
 // flag is enabled.
@@ -54,7 +58,7 @@ BASE_FEATURE(kWebViewForceWebAuthn, base::FEATURE_DISABLED_BY_DEFAULT);
 // Gate text-size-adjust on whether the app called
 // setLayoutAlgorithm(TEXT_AUTOSIZING).
 BASE_FEATURE(kWebViewGateTextSizeAdjustOnTextAutosizing,
-             base::FEATURE_ENABLED_BY_DEFAULT);
+             base::FEATURE_DISABLED_BY_DEFAULT);
 
 // Install the profiling client with memory_system::Initializer. If this is
 // enabled the profiler MAY be started by
@@ -72,6 +76,10 @@ BASE_FEATURE(kWebViewProfileStoreNotTriggerStartup,
 // creation time and used throughout its lifetime. This enables shared memory
 // cookie versioning to reduce IPC overhead.
 BASE_FEATURE(kWebViewLatchedCookiePolicy, base::FEATURE_DISABLED_BY_DEFAULT);
+
+// Migrates WebView's visited links database to the new partitioned database
+// structure without performing actual partitioning.
+BASE_FEATURE(kWebViewMigrateVisitedLinks, base::FEATURE_DISABLED_BY_DEFAULT);
 
 // When enabled, passive mixed content (Audio/Video/Image subresources loaded
 // over HTTP on HTTPS sites) will be autoupgraded to HTTPS, and the load will be
@@ -242,6 +250,17 @@ BASE_FEATURE(kWebViewOptInToGmsBindServiceOptimization,
 // when async startup takes place.
 BASE_FEATURE(kWebViewMoveWorkToProviderInit, base::FEATURE_DISABLED_BY_DEFAULT);
 
+// When enabled, WebViewMoveWorkToProviderInit tasks are run on a posted task
+// instead of synchronously during WebView provider initialization. Only has any
+// effect if `kWebViewMoveWorkToProviderInit` is also enabled.
+BASE_FEATURE(kWebViewMoveWorkToProviderInitThreadPool,
+             base::FEATURE_DISABLED_BY_DEFAULT);
+
+// When enabled, accessing multi-profile APIs skips automatic initialization
+// of the Default profile during startup.
+BASE_FEATURE(kWebViewMultiProfileSkipDefaultProfile,
+             base::FEATURE_DISABLED_BY_DEFAULT);
+
 // When enabled, the temporary cookie manager used before WebView startup is
 // bypassed. If WebView isn't already started up, calling
 // `CookieManager.getInstance()` will trigger WebView startup on the main looper
@@ -261,12 +280,11 @@ BASE_FEATURE(kPrerender2WarmUpCompositorForWebView,
 
 // Keeps the renderer process alive after the last WebView is destroyed to
 // allow for reuse.
-BASE_FEATURE(kWebViewRendererKeepAlive, base::FEATURE_DISABLED_BY_DEFAULT);
+BASE_FEATURE(kWebViewRendererKeepAlive, base::FEATURE_ENABLED_BY_DEFAULT);
 
 const base::FeatureParam<base::TimeDelta> kWebViewRendererKeepAliveDuration{
     &kWebViewRendererKeepAlive, "webview_renderer_keep_alive_duration",
-    base::Seconds(30)};
-
+    base::Days(1000)};
 
 // Enables recording user actions for API calls.
 BASE_FEATURE(kWebViewEnableApiCallUserActions,
@@ -282,11 +300,6 @@ BASE_FEATURE(kWebViewWebPerformanceMetricsReporting,
 BASE_FEATURE(kWebViewTestNonembeddedLowEntropySource,
              base::FEATURE_DISABLED_BY_DEFAULT);
 
-// When enabled, WebView uses the low entropy source provided by the nonembedded
-// WebView service.
-BASE_FEATURE(kWebViewUseNonembeddedLowEntropySource,
-             base::FEATURE_ENABLED_BY_DEFAULT);
-
 // When enabled, the default user agent string is fetched more quickly without
 // waiting for chromium startup to complete.
 BASE_FEATURE(kWebViewFasterGetDefaultUserAgent,
@@ -294,8 +307,7 @@ BASE_FEATURE(kWebViewFasterGetDefaultUserAgent,
 
 // When enabled, navigation headers will be saved and restored as part
 // of saved state for WebView.
-BASE_FEATURE(kWebViewSaveStateIncludeHeaders,
-             base::FEATURE_DISABLED_BY_DEFAULT);
+BASE_FEATURE(kWebViewSaveStateIncludeHeaders, base::FEATURE_ENABLED_BY_DEFAULT);
 
 // When enabled, certain static methods in SharedStatics do not trigger startup.
 BASE_FEATURE(kWebViewStaticMethodsNotTriggerStartup,

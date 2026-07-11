@@ -6,6 +6,7 @@
 
 #include "base/check_is_test.h"
 #include "base/check_op.h"
+#include "base/command_line.h"
 #include "base/debug/alias.h"
 #include "base/feature_list.h"
 #include "base/functional/bind.h"
@@ -42,6 +43,7 @@
 #include "extensions/common/manifest_handlers/background_info.h"
 #include "extensions/common/manifest_handlers/shared_module_info.h"
 #include "extensions/common/permissions/permissions_data.h"
+#include "extensions/common/switches.h"
 #include "third_party/blink/public/common/service_worker/service_worker_status_code.h"
 
 using content::DevToolsAgentHost;
@@ -395,6 +397,14 @@ void ExtensionRegistrar::DisableExtensionWithRawReasons(
   scoped_refptr<const Extension> extension =
       registry_->GetExtensionById(extension_id, ExtensionRegistry::EVERYTHING);
 
+  // Since this can be called from WebUI, this disable request might race with
+  // an extension that has already been uninstalled (e.g. via a non-UI
+  // automated means). If so, we can just return early since the extension is
+  // already uninstalled.
+  if (!extension) {
+    return;
+  }
+
   CHECK(delegate_);
   bool is_controlled_extension =
       !delegate_->CanDisableExtension(extension.get());
@@ -593,7 +603,9 @@ void ExtensionRegistrar::AddComponentExtension(const Extension* extension) {
       ServiceWorkerTaskQueue::Get(browser_context_)
           ->RetrieveRegisteredServiceWorkerVersion(extension->id())
           .IsValid();
-  if (browser_updated && sw_registered) {
+  bool force_refresh = base::CommandLine::ForCurrentProcess()->HasSwitch(
+      switches::kRefreshComponentExtensionServiceWorkers);
+  if ((browser_updated || force_refresh) && sw_registered) {
     UnregisterServiceWorkerWithRootScope(extension);
   }
 

@@ -10,14 +10,16 @@
 #import "base/test/metrics/histogram_tester.h"
 #import "base/test/scoped_feature_list.h"
 #import "components/lens/lens_overlay_permission_utils.h"
+#import "components/sync/test/test_sync_service.h"
 #import "components/variations/scoped_variations_ids_provider.h"
 #import "ios/chrome/app/profile/profile_state.h"
 #import "ios/chrome/browser/fullscreen/model/fullscreen_browser_agent.h"
 #import "ios/chrome/browser/fullscreen/ui_bundled/fullscreen_controller.h"
 #import "ios/chrome/browser/lens_overlay/model/lens_overlay_tab_helper.h"
 #import "ios/chrome/browser/lens_overlay/ui/lens_overlay_consent_view_controller.h"
-#import "ios/chrome/browser/omnibox/model/omnibox_position/omnibox_position_browser_agent.h"
+#import "ios/chrome/browser/omnibox/model/omnibox_focus/omnibox_focus_browser_agent.h"
 #import "ios/chrome/browser/shared/coordinator/scene/scene_state.h"
+#import "ios/chrome/browser/shared/coordinator/scene/state/lens_overlay_state_notifier.h"
 #import "ios/chrome/browser/shared/model/application_context/application_context.h"
 #import "ios/chrome/browser/shared/model/browser/test/test_browser.h"
 #import "ios/chrome/browser/shared/model/prefs/pref_names.h"
@@ -41,6 +43,8 @@
 #import "ios/chrome/browser/snapshots/model/fake_snapshot_generator_delegate.h"
 #import "ios/chrome/browser/snapshots/model/snapshot_source_tab_helper.h"
 #import "ios/chrome/browser/snapshots/model/snapshot_tab_helper.h"
+#import "ios/chrome/browser/sync/model/sync_service_factory.h"
+#import "ios/chrome/browser/sync/model/test_sync_service_utils.h"
 #import "ios/chrome/browser/toolbar/legacy/ui_bundled/fullscreen/toolbars_size_browser_agent.h"
 #import "ios/chrome/browser/web/model/web_view_proxy/web_view_proxy_tab_helper.h"
 #import "ios/chrome/test/app/uikit_test_util.h"
@@ -95,6 +99,8 @@ class LensOverlayCoordinatorTest : public PlatformTest {
         AuthenticationServiceFactory::GetInstance(),
         AuthenticationServiceFactory::GetFactoryWithDelegate(
             std::make_unique<FakeAuthenticationServiceDelegate>()));
+    builder.AddTestingFactory(SyncServiceFactory::GetInstance(),
+                              base::BindRepeating(&CreateTestSyncService));
     profile_ = profile_manager_.AddProfileWithBuilder(std::move(builder));
 
     AuthenticationService* authentication_service =
@@ -108,6 +114,9 @@ class LensOverlayCoordinatorTest : public PlatformTest {
     profile_state_ = [[ProfileState alloc] initWithAppState:nil];
     profile_state_.profile = profile_.get();
     OCMStub([mock_scene_state profileState]).andReturn(profile_state_);
+    lens_overlay_state_ = [[LensOverlayStateNotifier alloc] init];
+    OCMStub([mock_scene_state lensOverlayStateNotifier])
+        .andReturn(lens_overlay_state_);
     browser_ = std::make_unique<TestBrowser>(profile_, mock_scene_state);
     dispatcher_ = [[CommandDispatcher alloc] init];
 
@@ -118,7 +127,7 @@ class LensOverlayCoordinatorTest : public PlatformTest {
 
     base_view_controller_ = [[UIViewController alloc] init];
 
-    OmniboxPositionBrowserAgent::CreateForBrowser(browser_.get());
+    OmniboxFocusBrowserAgent::CreateForBrowser(browser_.get());
     // FullscreenController depends on ToolbarsSizeBrowserAgent, so the agent
     // must be created first. Please maintain this order.
     ToolbarsSizeBrowserAgent::CreateForBrowser(browser_.get());
@@ -255,6 +264,7 @@ class LensOverlayCoordinatorTest : public PlatformTest {
   LensOverlayCoordinator* coordinator_;
   raw_ptr<TestProfileIOS> profile_;
   ProfileState* profile_state_;
+  LensOverlayStateNotifier* lens_overlay_state_;
   std::unique_ptr<TestBrowser> browser_;
   UIViewController* base_view_controller_;
   base::test::ScopedFeatureList feature_list_;

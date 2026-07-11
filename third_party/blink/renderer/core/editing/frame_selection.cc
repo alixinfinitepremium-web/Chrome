@@ -67,6 +67,7 @@
 #include "third_party/blink/renderer/core/editing/visible_position.h"
 #include "third_party/blink/renderer/core/editing/visible_selection.h"
 #include "third_party/blink/renderer/core/editing/visible_units.h"
+#include "third_party/blink/renderer/core/event_type_names.h"
 #include "third_party/blink/renderer/core/frame/local_dom_window.h"
 #include "third_party/blink/renderer/core/frame/local_frame.h"
 #include "third_party/blink/renderer/core/frame/local_frame_view.h"
@@ -222,8 +223,40 @@ void FrameSelection::MoveCaretSelection(const gfx::Point& point) {
 void FrameSelection::SetSelection(const SelectionInDomTree& selection,
                                   const SetSelectionOptions& data) {
   TRACE_EVENT0("blink", "FrameSelection::SetSelection");
-  if (SetSelectionDeprecated(selection, data))
+  if (SetSelectionDeprecated(selection, data)) {
     DidSetSelectionDeprecated(selection, data);
+  } else {
+    MaybeNotifyEventHandlerForSelectionChange(data);
+  }
+}
+
+// If a selection range is programmatically set (e.g. via setSelectionRange)
+// to the same range, we notify the selection controller so that subsequent
+// mouse releases do not collapse it. However, if this occurs during a mouse
+// or touch release event (mouseup, click, pointerup, touchend), the user is
+// clicking on an already-selected range, so the selection should still
+// collapse as expected.
+void FrameSelection::MaybeNotifyEventHandlerForSelectionChange(
+    const SetSelectionOptions& options) {
+  if (!RuntimeEnabledFeatures::
+          NotifySelectionControllerOnUnchangedSelectionEnabled()) {
+    return;
+  }
+  if (!options.ShouldNotifySelectionControllerOfUnchangedSelection()) {
+    return;
+  }
+  if (LocalDOMWindow* window = frame_->DomWindow()) {
+    if (Event* current_event = window->CurrentEvent()) {
+      const AtomicString& type = current_event->type();
+      if (type == event_type_names::kMouseup ||
+          type == event_type_names::kClick ||
+          type == event_type_names::kPointerup ||
+          type == event_type_names::kTouchend) {
+        return;
+      }
+    }
+  }
+  NotifyEventHandlerForSelectionChange();
 }
 
 void FrameSelection::SetSelectionAndEndTyping(
@@ -296,7 +329,6 @@ bool FrameSelection::SetSelectionDeprecated(
   is_handle_visible_ = should_show_handle;
   ScheduleVisualUpdateForVisualOverflowIfNeeded();
 
-  frame_->GetEditor().RespondToChangedSelection();
   DCHECK_EQ(current_document, GetDocument());
   return true;
 }
@@ -399,6 +431,7 @@ void FrameSelection::DidSetSelectionDeprecated(
         *Event::Create(event_type_names::kSelectionchange),
         TaskType::kMiscPlatformAPI);
   }
+  frame_->GetEditor().RespondToChangedSelection();
 }
 
 void FrameSelection::SetSelectionForAccessibility(
@@ -483,6 +516,31 @@ void FrameSelection::NodeWillBeRemoved(Node& node) {
 
 void FrameSelection::DidChangeFocus() {
   UpdateAppearance();
+}
+
+void FrameSelection::UpdateTextOverflowOfSelectionFocus(const Element& element,
+                                                        bool focused) {
+  DCHECK(RuntimeEnabledFeatures::TextOverflowClipWithSelectionEnabled());
+  Node* focus_node = GetSelectionInDomTree().Focus().AnchorNode();
+  if (!focus_node || !focus_node->GetLayoutObject() ||
+      !IsEditable(*focus_node)) {
+    return;
+  }
+  LayoutObject* style_owner =
+      focus_node->GetLayoutObject()->ContainingBlockForTextOverflow();
+  if (!style_owner || style_owner->ContainsSelectionFocus() == focused) {
+    return;
+  }
+  // Ignore focus changes on elements unrelated to the truncation style owner.
+  // Anchor to |element| because Document::FocusedElement() is not updated yet
+  // while a blur is being processed.
+  Node* style_node = style_owner->GetNode();
+  if (!style_node ||
+      (!style_node->IsDescendantOf(&element) && style_node != &element &&
+       !element.IsDescendantOf(style_node))) {
+    return;
+  }
+  SelectionEditor::SetContainsSelectionFocusFlag(style_owner, focused);
 }
 
 static DispatchEventResult DispatchSelectStart(
@@ -1243,13 +1301,13 @@ static String ExtractSelectedText(const FrameSelection& selection,
   return PlainText(range, behavior).Replace(0, "");
 }
 
-String FrameSelection::SelectedHTMLForClipboard() const {
+String FrameSelection::SelectedHtmlForClipboard() const {
   const EphemeralRangeInFlatTree& range =
       ComputeRangeForSerialization(GetSelectionInDomTree());
   return CreateMarkup(range.StartPosition(), range.EndPosition(),
                       CreateMarkupOptions::Builder()
                           .SetShouldAnnotateForInterchange(true)
-                          .SetShouldResolveURLs(kResolveNonLocalURLs)
+                          .SetShouldResolveUrls(ResolveUrls::kNonLocal)
                           .SetIgnoresCssTextTransformsForRenderedText(true)
                           .SetShouldSkipUnselectableContent(true)
                           .Build());

@@ -350,6 +350,15 @@ if (current_toolchain == default_toolchain) {
     ]
   }
 
+  android_library("selection_java") {
+    sources = [ "java/src/org/chromium/components/embedder_support/selection/DefaultSelectionDropdownMenuDelegate.java" ]
+    deps = [
+      "//build/android:build_java",
+      "//content/public/android:content_java",
+      "//ui/android:ui_no_recycler_view_java",
+    ]
+  }
+
   android_library("native_java_unittests_java") {
     testonly = true
     deps = [
@@ -384,6 +393,7 @@ if (current_toolchain == default_toolchain) {
     deps = [
       ":content_view_java",
       ":util_java",
+      "//base:base_java",
       "//base:base_java_test_support",
       "//base:base_junit_test_support",
       "//base:build_info_java",

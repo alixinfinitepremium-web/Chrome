@@ -8,6 +8,7 @@
 #include <memory>
 
 #include "base/dcheck_is_on.h"
+#include "base/functional/callback.h"
 #include "base/memory/ptr_util.h"
 #include "base/memory/scoped_refptr.h"
 #include "cc/layers/content_layer_client.h"
@@ -154,11 +155,6 @@ class PLATFORM_EXPORT PaintArtifactCompositor final
 
     // Full update of layers and property trees. See `Update`.
     kFull,
-
-    // TODO(522765400): The enum values are logged to UMA temporarily.
-    // Please keep in sync with "PACUpdateType" in
-    // src/tools/metrics/histograms/metadata/blink/enums.xml.
-    kMaxValue = kFull,
   };
 
   void SetNeedsUpdate() { SetNeedsUpdateInternal(UpdateType::kFull); }
@@ -167,9 +163,6 @@ class PLATFORM_EXPORT PaintArtifactCompositor final
   }
   void SetNeedsUpdateAfterRepaint(const PaintArtifact& previous,
                                   const PaintArtifact& repainted);
-  void SetScrollingContentsCullRectChanged() {
-    scrolling_contents_cull_rect_changed_ = true;
-  }
 
   UpdateType NeedsUpdate() const { return needs_update_; }
   void ClearNeedsUpdateForTesting() { needs_update_ = UpdateType::kNone; }
@@ -224,6 +217,12 @@ class PLATFORM_EXPORT PaintArtifactCompositor final
   cc::Layer* RootLayer() const { return root_layer_.get(); }
 
   void SetTracksRasterInvalidations(bool);
+
+  using GetCanvasSnapshotCallback =
+      base::RepeatingCallback<std::optional<cc::PaintRecord>(DOMNodeId)>;
+  void SetGetCanvasSnapshotCallback(GetCanvasSnapshotCallback callback) {
+    get_canvas_snapshot_callback_ = std::move(callback);
+  }
 
   bool HasCanvasChildPaintRecord(DOMNodeId child_id) const;
   std::optional<CanvasChildPaintRecord> GetCanvasChildPaintRecord(
@@ -344,9 +343,6 @@ class PLATFORM_EXPORT PaintArtifactCompositor final
   bool layer_debug_info_enabled_ = false;
   bool should_always_update_on_scroll_ = false;
 
-  // TODO(crbug.com/522765400): This is temporary for performance evaluation.
-  bool scrolling_contents_cull_rect_changed_ = false;
-
   UpdateType needs_update_ = UpdateType::kFull;
   UpdateType previous_update_for_testing_ = UpdateType::kNone;
 
@@ -360,6 +356,7 @@ class PLATFORM_EXPORT PaintArtifactCompositor final
   class OldPendingLayerMatcher;
   PendingLayers pending_layers_;
   HashMap<DOMNodeId, wtf_size_t> canvas_child_layer_map_;
+  GetCanvasSnapshotCallback get_canvas_snapshot_callback_;
 
   class Layerizer;
 

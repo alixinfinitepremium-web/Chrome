@@ -107,16 +107,14 @@ public final class SidePanelDevFeatureImpl implements SidePanelDevFeature {
         ThreadUtils.assertOnUiThread();
         if (mDevContent == null) {
             mDevContent = createDevContent(mProfileSupplier, mWindowAndroid);
-            mSidePanelContainerCoordinator.populateContent(
+            mSidePanelContainerCoordinator.startOpeningPanel(
                     assumeNonNull(mDevContent.mSidePanelContent),
-                    result -> {},
                     /* startingBounds= */ null,
                     /* suppressAnimations= */ false);
         } else {
             mDevContent.destroy();
             mDevContent = null;
-            mSidePanelContainerCoordinator.removeContentAndClose(
-                    result -> {}, /* suppressAnimations= */ false);
+            mSidePanelContainerCoordinator.startClosingPanel(/* suppressAnimations= */ false);
         }
     }
 
@@ -128,6 +126,11 @@ public final class SidePanelDevFeatureImpl implements SidePanelDevFeature {
             mDevContent.destroy();
             mDevContent = null;
         }
+    }
+
+    /** Returns whether there is {@link SidePanelDevFeatureContent} to show. */
+    public boolean hasDevContentToShow() {
+        return mDevContent != null;
     }
 
     @Nullable SidePanelDevFeatureContent getDevFeatureContentForTesting() {

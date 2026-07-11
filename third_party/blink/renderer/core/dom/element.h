@@ -267,8 +267,6 @@ enum class CommandEventType {
   kPause,
   kPlay,
   kToggleMuted,
-  // Menu
-  kToggleMenu,
   // Scroll
   kPageUp,
   kPageDown,
@@ -1138,7 +1136,7 @@ class CORE_EXPORT Element : public ContainerNode {
     return HasElementFlag(ElementFlags::kIsCanvasOrInCanvasSubtree);
   }
   // Called when `IsCanvasOrInCanvasSubtree()` has changed.
-  virtual void DidChangeIsCanvasOrInCanvasSubtree() {}
+  virtual void DidChangeIsCanvasOrInCanvasSubtree();
   // Like `IsCanvasOrInCanvasSubtree()`, but excludes the outermost <canvas>.
   bool IsInCanvasSubtree() const;
 
@@ -1204,7 +1202,7 @@ class CORE_EXPORT Element : public ContainerNode {
   void FocusWithinStateChanged();
   void ActiveViewTransitionStateChanged();
   void ActiveViewTransitionTypeStateChanged();
-  void OverscrollTargetStateChanged();
+
   void SetDragged(bool) override;
 
   void UpdateSelectionOnFocus(SelectionBehaviorOnFocus);
@@ -2371,9 +2369,12 @@ class CORE_EXPORT Element : public ContainerNode {
   };
 
   bool ShouldUpdateBackdropPseudoElement(const StyleRecalcChange);
-
   void UpdateBackdropPseudoElement(const StyleRecalcChange,
                                    const StyleRecalcContext&);
+
+  bool ShouldUpdateOverscrollBackdropPseudoElement(const StyleRecalcChange);
+  void UpdateOverscrollBackdropPseudoElement(const StyleRecalcChange,
+                                             const StyleRecalcContext&);
 
   void UpdateFirstLetterPseudoElement(StyleUpdatePhase,
                                       const StyleRecalcContext&);

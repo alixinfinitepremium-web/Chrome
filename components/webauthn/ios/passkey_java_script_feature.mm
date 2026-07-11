@@ -89,6 +89,7 @@ std::string Base64UrlEncode(std::string_view input) {
   return output;
 }
 
+// Validates whether the given passkey request is permitted to proceed.
 bool ValidateFeatureUsage(const PasskeyRequestParams& request_params,
                           bool has_user_interaction) {
   if (request_params.Type() == PasskeyRequestParams::RequestType::kModal) {
@@ -261,7 +262,7 @@ void PasskeyJavaScriptFeature::ScriptMessageReceived(
   // event: (string) Describes a type of event.
   //
   // For some events there are more expected arguments described below.
-  base::Value* body = message.body();
+  base::Value* body = message.legacy_body();
   if (!body || !body->is_dict()) {
     return;
   }

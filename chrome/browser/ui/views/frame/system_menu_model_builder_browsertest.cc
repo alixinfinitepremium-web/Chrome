@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <utility>
+
 #include "base/test/scoped_feature_list.h"
 #include "chrome/app/chrome_command_ids.h"
 #include "chrome/browser/glic/glic_pref_names.h"
@@ -11,16 +13,17 @@
 #include "chrome/browser/ui/browser.h"
 #include "chrome/browser/ui/browser_command_controller.h"
 #include "chrome/browser/ui/browser_commands.h"
+#include "chrome/browser/ui/immersive/immersive_mode_controller.h"
 #include "chrome/browser/ui/tabs/features.h"
 #include "chrome/browser/ui/tabs/vertical_tab_strip_state_controller.h"
 #include "chrome/browser/ui/ui_features.h"
 #include "chrome/browser/ui/views/frame/browser_view.h"
-#include "chrome/browser/ui/views/frame/immersive_mode_controller.h"
 #include "chrome/browser/ui/views/frame/immersive_mode_controller_stub.h"
 #include "chrome/common/pref_names.h"
 #include "chrome/grit/generated_resources.h"
 #include "chrome/test/base/in_process_browser_test.h"
 #include "chrome/test/base/ui_test_utils.h"
+#include "components/optimization_guide/core/feature_registry/feature_registration.h"
 #include "components/prefs/pref_service.h"
 #include "content/public/test/browser_test.h"
 #include "ui/base/l10n/l10n_util.h"
@@ -46,16 +49,8 @@ bool ContainsCommand(const ui::MenuModel* menu,
 }  // namespace
 
 class SystemMenuModelBuilderGlicTest : public InProcessBrowserTest {
- protected:
-  void SetUp() override {
-    scoped_feature_list_.InitWithFeatures(
-        {tabs::kHorizontalTabStripComboButton}, {});
-    InProcessBrowserTest::SetUp();
-  }
-
  private:
   glic::GlicTestEnvironment glic_test_env_;
-  base::test::ScopedFeatureList scoped_feature_list_;
 };
 
 // Check if the toggle tab search pinning option exists and has the right label
@@ -84,19 +79,19 @@ IN_PROC_BROWSER_TEST_F(SystemMenuModelBuilderGlicTest, ToggleGlicPinning) {
                             ->GetSystemMenuModel();
 
   profile_prefs->SetInteger(
-      ::prefs::kGeminiSettings,
-      static_cast<int>(glic::prefs::SettingsPolicyState::kDisabled));
+      optimization_guide::prefs::kGeminiSettings,
+      std::to_underlying(glic::prefs::SettingsPolicyState::kDisabled));
   EXPECT_FALSE(ContainsCommand(menu, IDC_GLIC_TOGGLE_PIN, std::nullopt));
 
   profile_prefs->SetInteger(
-      ::prefs::kGeminiSettings,
-      static_cast<int>(glic::prefs::SettingsPolicyState::kEnabled));
+      optimization_guide::prefs::kGeminiSettings,
+      std::to_underlying(glic::prefs::SettingsPolicyState::kEnabled));
   profile_prefs->SetBoolean(glic::prefs::kGlicPinnedToTabstrip, false);
   EXPECT_TRUE(ContainsCommand(menu, IDC_GLIC_TOGGLE_PIN, IDS_GLIC_PIN));
 
   profile_prefs->SetInteger(
-      ::prefs::kGeminiSettings,
-      static_cast<int>(glic::prefs::SettingsPolicyState::kEnabled));
+      optimization_guide::prefs::kGeminiSettings,
+      std::to_underlying(glic::prefs::SettingsPolicyState::kEnabled));
   profile_prefs->SetBoolean(glic::prefs::kGlicPinnedToTabstrip, true);
   EXPECT_TRUE(ContainsCommand(menu, IDC_GLIC_TOGGLE_PIN, IDS_GLIC_UNPIN));
 }
@@ -112,28 +107,6 @@ IN_PROC_BROWSER_TEST_F(SystemMenuModelBuilderGlicTest,
   EXPECT_TRUE(profile_prefs->GetBoolean(prefs::kTabSearchPinnedToTabstrip));
   chrome::ExecuteCommand(browser(), IDC_TAB_SEARCH_TOGGLE_PIN);
   EXPECT_FALSE(profile_prefs->GetBoolean(prefs::kTabSearchPinnedToTabstrip));
-}
-
-class SystemMenuModelBuilderTabSearchDisabledTest
-    : public InProcessBrowserTest {
- protected:
-  void SetUp() override {
-    scoped_feature_list_.InitWithFeatures(
-        {}, {tabs::kHorizontalTabStripComboButton});
-    InProcessBrowserTest::SetUp();
-  }
-
- private:
-  base::test::ScopedFeatureList scoped_feature_list_;
-};
-
-IN_PROC_BROWSER_TEST_F(SystemMenuModelBuilderTabSearchDisabledTest,
-                       TabSearchPinningHidden) {
-  ui::MenuModel* menu = BrowserView::GetBrowserViewForBrowser(browser())
-                            ->browser_widget()
-                            ->GetSystemMenuModel();
-
-  EXPECT_FALSE(ContainsCommand(menu, IDC_TAB_SEARCH_TOGGLE_PIN, std::nullopt));
 }
 
 class SystemMenuModelBuilderSimplificationTest : public InProcessBrowserTest {
@@ -210,11 +183,11 @@ class SystemMenuModelBuilderVerticalTabsTest : public InProcessBrowserTest {
 };
 
 IN_PROC_BROWSER_TEST_F(SystemMenuModelBuilderVerticalTabsTest,
-                       VerticalTabsSystemMenuNotImmersive) {
+                       VerticalTabsSystemMenu) {
   auto* controller = tabs::VerticalTabStripStateController::From(browser());
   ASSERT_TRUE(controller);
 
-  // Horizonal Tabs.
+  // Horizontal Tabs
   ASSERT_FALSE(controller->ShouldDisplayVerticalTabs());
 
   ui::MenuModel* menu = BrowserView::GetBrowserViewForBrowser(browser())
@@ -228,7 +201,26 @@ IN_PROC_BROWSER_TEST_F(SystemMenuModelBuilderVerticalTabsTest,
   EXPECT_FALSE(ContainsCommand(menu, IDC_TOGGLE_VERTICAL_TABS_EXPAND_ON_HOVER,
                                std::nullopt));
 
-  // Vertical Tabs.
+#if BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_MAC)
+  // Horizontal Tabs + Immersive Mode (only exists on Mac and ChromeOS).
+  ui_test_utils::ToggleFullscreenModeAndWait(browser());
+  ASSERT_TRUE(ImmersiveModeController::From(browser())->IsEnabled());
+
+  menu = BrowserView::GetBrowserViewForBrowser(browser())
+             ->browser_widget()
+             ->GetSystemMenuModel();
+
+  EXPECT_TRUE(ContainsCommand(menu, IDC_TOGGLE_VERTICAL_TABS,
+                              IDS_SWITCH_TO_VERTICAL_TAB));
+  EXPECT_FALSE(ContainsCommand(menu, IDC_TOGGLE_VERTICAL_TABS_EXPAND_ON_HOVER,
+                               std::nullopt));
+
+  // Exit immersive fullscreen so that we can change tab strip orientations.
+  ui_test_utils::ToggleFullscreenModeAndWait(browser());
+  ASSERT_FALSE(ImmersiveModeController::From(browser())->IsEnabled());
+#endif
+
+  // Vertical Tabs
   controller->SetVerticalTabsEnabled(true);
   ASSERT_TRUE(controller->ShouldDisplayVerticalTabs());
 
@@ -238,42 +230,17 @@ IN_PROC_BROWSER_TEST_F(SystemMenuModelBuilderVerticalTabsTest,
 
   // In vertical tabs, we should show:
   // - IDC_TOGGLE_VERTICAL_TABS (to switch to horizontal tabs)
+  // - IDC_TOGGLE_VERTICAL_TABS_COLLAPSE
   // - IDC_TOGGLE_VERTICAL_TABS_EXPAND_ON_HOVER
   EXPECT_TRUE(ContainsCommand(menu, IDC_TOGGLE_VERTICAL_TABS,
                               IDS_SWITCH_TO_HORIZONTAL_TAB));
+  EXPECT_TRUE(ContainsCommand(menu, IDC_TOGGLE_VERTICAL_TABS_COLLAPSE,
+                              IDS_COLLAPSE_VERTICAL_TABS));
   EXPECT_TRUE(ContainsCommand(menu, IDC_TOGGLE_VERTICAL_TABS_EXPAND_ON_HOVER,
                               std::nullopt));
-}
 
 #if BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_MAC)
-// Immersive Mode only exists on Mac and ChromeOS.
-IN_PROC_BROWSER_TEST_F(SystemMenuModelBuilderVerticalTabsTest,
-                       VerticalTabsSystemMenuImmersive) {
-  auto* controller = tabs::VerticalTabStripStateController::From(browser());
-  ASSERT_TRUE(controller);
-
-  // Horizontal Tabs + Immersive Mode.
-  ASSERT_FALSE(controller->ShouldDisplayVerticalTabs());
-  ui_test_utils::ToggleFullscreenModeAndWait(browser());
-  ASSERT_TRUE(ImmersiveModeController::From(browser())->IsEnabled());
-
-  ui::MenuModel* menu = BrowserView::GetBrowserViewForBrowser(browser())
-                            ->browser_widget()
-                            ->GetSystemMenuModel();
-
-  // In horizontal tabs + immersive mode:
-  // None of the vertical tabs menu items should be visible.
-  EXPECT_FALSE(ContainsCommand(menu, IDC_TOGGLE_VERTICAL_TABS, std::nullopt));
-  EXPECT_FALSE(ContainsCommand(menu, IDC_TOGGLE_VERTICAL_TABS_EXPAND_ON_HOVER,
-                               std::nullopt));
-
-  // Exit immersive fullscreen so that we can change tab strip orientations.
-  ui_test_utils::ToggleFullscreenModeAndWait(browser());
-  ASSERT_FALSE(ImmersiveModeController::From(browser())->IsEnabled());
-
   // Vertical Tabs + Immersive Mode.
-  controller->SetVerticalTabsEnabled(true);
-  ASSERT_TRUE(controller->ShouldDisplayVerticalTabs());
   ui_test_utils::ToggleFullscreenModeAndWait(browser());
   ASSERT_TRUE(ImmersiveModeController::From(browser())->IsEnabled());
 
@@ -281,10 +248,15 @@ IN_PROC_BROWSER_TEST_F(SystemMenuModelBuilderVerticalTabsTest,
              ->browser_widget()
              ->GetSystemMenuModel();
 
-  // In vertical tabs + immersive mode:
-  // - IDC_TOGGLE_VERTICAL_TABS_EXPAND_ON_HOVER should be visible.
-  EXPECT_FALSE(ContainsCommand(menu, IDC_TOGGLE_VERTICAL_TABS, std::nullopt));
+  EXPECT_TRUE(ContainsCommand(menu, IDC_TOGGLE_VERTICAL_TABS,
+                              IDS_SWITCH_TO_HORIZONTAL_TAB));
+  EXPECT_TRUE(ContainsCommand(menu, IDC_TOGGLE_VERTICAL_TABS_COLLAPSE,
+                              IDS_COLLAPSE_VERTICAL_TABS));
   EXPECT_TRUE(ContainsCommand(menu, IDC_TOGGLE_VERTICAL_TABS_EXPAND_ON_HOVER,
                               std::nullopt));
-}
+
+  // Exit immersive fullscreen at the end of the test.
+  ui_test_utils::ToggleFullscreenModeAndWait(browser());
+  ASSERT_FALSE(ImmersiveModeController::From(browser())->IsEnabled());
 #endif
+}

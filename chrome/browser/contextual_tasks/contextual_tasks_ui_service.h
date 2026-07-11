@@ -263,7 +263,9 @@ class ContextualTasksUiService : public KeyedService {
       tabs::TabInterface* tab_interface,
       const GURL& url,
       std::unique_ptr<contextual_search::ContextualSearchSessionHandle>
-          session_handle);
+          session_handle,
+      omnibox::ChromeAimEntryPoint entry_point =
+          omnibox::ChromeAimEntryPoint::UNKNOWN_AIM_ENTRY_POINT);
 
   // Opens the contextual tasks side panel and creates a new task with the given
   // URL as its initial thread URL. Allows specifying whether the active tab's
@@ -277,7 +279,10 @@ class ContextualTasksUiService : public KeyedService {
       const GURL& url,
       std::unique_ptr<contextual_search::ContextualSearchSessionHandle>
           session_handle,
-      bool associate_web_contents);
+      bool associate_web_contents,
+      omnibox::ChromeAimEntryPoint entry_point =
+          omnibox::ChromeAimEntryPoint::UNKNOWN_AIM_ENTRY_POINT,
+      bool use_mstk_for_task_association = false);
 
   // Opens the contextual tasks side panel showing a ghost loader while waiting
   // for the initial thread URL to be provided for that task. This creates an
@@ -286,7 +291,9 @@ class ContextualTasksUiService : public KeyedService {
       BrowserWindowInterface* browser_window_interface,
       tabs::TabInterface* tab_interface,
       std::unique_ptr<contextual_search::ContextualSearchSessionHandle>
-          session_handle);
+          session_handle,
+      omnibox::ChromeAimEntryPoint entry_point =
+          omnibox::ChromeAimEntryPoint::UNKNOWN_AIM_ENTRY_POINT);
 
   // Opens the contextual tasks side panel with the protected error page showing
   // by default.
@@ -294,15 +301,12 @@ class ContextualTasksUiService : public KeyedService {
       BrowserWindowInterface* browser_window_interface,
       tabs::TabInterface* tab_interface,
       std::unique_ptr<contextual_search::ContextualSearchSessionHandle>
-          session_handle);
+          session_handle,
+      omnibox::ChromeAimEntryPoint entry_point =
+          omnibox::ChromeAimEntryPoint::UNKNOWN_AIM_ENTRY_POINT);
 
   // Returns whether the provided URL is to an AI page.
   virtual bool IsAiUrl(const GURL& url);
-
-  // Returns whether the provided URL is a trusted AI page (i.e. is an AI URL
-  // and contains the permitted subset of query parameters). This is used to
-  // validate URLs requested from the private extension API.
-  virtual bool IsTrustedAiUrl(const GURL& url);
 
   // Returns whether the provided task ID is for a task that should show the
   // error page on load.
@@ -330,6 +334,9 @@ class ContextualTasksUiService : public KeyedService {
   // the embedded page in the WebUI) search results page that contains the
   // correct params and isn't a shopping query.
   bool IsValidSearchResultsPage(const GURL& url);
+
+  // Returns whether the provided URL is a Google CAPTCHA ("sorry") page.
+  virtual bool IsGoogleCaptchaUrl(const GURL& url);
 
   // Returns a copy of base_url with the URL params from webui_url applied to
   // it. This will exclude chrome webui-specific params, specifically "task".
@@ -624,6 +631,11 @@ class ContextualTasksUiService : public KeyedService {
   // intercepting a query from some other surface like the omnibox. The entry
   // in this map is removed once the UI is loaded with the correct thread.
   std::map<base::Uuid, GURL> task_id_to_creation_url_;
+
+  // Map a task's ID to the initial Magi State Token (mstk) used to create it.
+  // This is used to identify and reuse tasks when launched again with the same
+  // initial token, even after the task's active thread turn ID has changed.
+  std::map<base::Uuid, std::string> task_id_to_initial_mstk_;
 
   // Map a task's ID to the entry point that was used to open it. This is used
   // to populate the aep param for GetInitialUrlForTask.

@@ -116,6 +116,7 @@
 #include "chrome/browser/ui/webui/new_tab_page_third_party/new_tab_page_third_party_ui.h"
 #include "chrome/browser/ui/webui/ntp/new_tab_ui.h"
 #endif  // BUILDFLAG(ENABLE_WEBUI_NTP)
+#include "chrome/browser/ui/webui/omnibox_everywhere/omnibox_everywhere_ui.h"
 #include "chrome/browser/ui/webui/omnibox_popup/omnibox_popup_ui.h"
 #include "chrome/browser/ui/webui/on_device_internals/on_device_internals_ui.h"
 #include "chrome/browser/ui/webui/password_manager/password_manager_ui.h"
@@ -197,8 +198,8 @@
 #endif  // BUILDFLAG(ENABLE_DICE_SUPPORT) || BUILDFLAG(IS_CHROMEOS)
 #if BUILDFLAG(ENABLE_DICE_SUPPORT)
 #include "chrome/browser/ui/webui/feature_showcase/feature_showcase_ui.h"
+#include "chrome/browser/ui/webui/signin/cross_device_signin_qr_bubble_ui.h"
 #include "chrome/browser/ui/webui/signin/dice_web_signin_intercept_ui.h"
-#include "chrome/browser/ui/webui/signin/signin_qrcode_bar_ui.h"
 #include "chrome/browser/ui/webui/signin/signout_confirmation/signout_confirmation_ui.h"
 #endif  // BUILDFLAG(ENABLE_DICE_SUPPORT)
 
@@ -370,6 +371,7 @@ void RegisterChromeWebUIConfigs() {
   map.AddWebUIConfig(std::make_unique<NewTabPageThirdPartyUIConfig>());
 #endif  // BUILDFLAG(ENABLE_WEBUI_NTP)
   map.AddWebUIConfig(std::make_unique<NewTabUIConfig>());
+  map.AddWebUIConfig(std::make_unique<OmniboxEverywhereUIConfig>());
   map.AddWebUIConfig(std::make_unique<OmniboxPopupUIConfig>());
   map.AddWebUIConfig(
       std::make_unique<on_device_internals::OnDeviceInternalsUIConfig>());
@@ -461,9 +463,9 @@ void RegisterChromeWebUIConfigs() {
 #endif  // BUILDFLAG(ENABLE_DICE_SUPPORT) || BUILDFLAG(IS_CHROMEOS)
 
 #if BUILDFLAG(ENABLE_DICE_SUPPORT)
+  map.AddWebUIConfig(std::make_unique<CrossDeviceSigninQrBubbleUIConfig>());
   map.AddWebUIConfig(std::make_unique<DiceWebSigninInterceptUIConfig>());
   map.AddWebUIConfig(std::make_unique<FeatureShowcaseUIConfig>());
-  map.AddWebUIConfig(std::make_unique<SigninQRCodeBarUIConfig>());
   map.AddWebUIConfig(std::make_unique<SignoutConfirmationUIConfig>());
 #endif  // BUILDFLAG(ENABLE_DICE_SUPPORT)
 

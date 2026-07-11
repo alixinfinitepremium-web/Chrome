@@ -12,6 +12,7 @@
 
 #include "base/functional/callback_forward.h"
 #include "base/memory/raw_ptr.h"
+#include "base/types/optional_ref.h"
 #include "build/build_config.h"
 #include "build/buildflag.h"
 #include "components/autofill/core/browser/foundations/autofill_manager.h"
@@ -136,8 +137,13 @@ class ChromePasswordManagerClient
   ~ChromePasswordManagerClient() override;
 
   // PasswordManagerClient implementation.
-  bool IsSavingAndFillingEnabled(const GURL& url) const override;
-  bool IsFillingEnabled(const GURL& url) const override;
+  using password_manager::PasswordManagerClient::IsFillingEnabled;
+  using password_manager::PasswordManagerClient::IsSavingAndFillingEnabled;
+  bool IsSavingAndFillingEnabled(
+      const url::Origin& origin,
+      base::optional_ref<const GURL> url) const override;
+  bool IsFillingEnabled(const url::Origin& origin,
+                        base::optional_ref<const GURL> url) const override;
   bool IsFieldFilledWithOtp(autofill::FormGlobalId form_id,
                             autofill::FieldGlobalId field_id) override;
   bool IsAutoSignInEnabled() const override;
@@ -314,6 +320,7 @@ class ChromePasswordManagerClient
 
   bool IsIsolationForPasswordSitesEnabled() const override;
   bool IsNewTabPage() const override;
+  bool IsChromeSigninPage() const override;
   password_manager::WebAuthnCredentialsDelegate*
   GetWebAuthnCredentialsDelegateForDriver(
       password_manager::PasswordManagerDriver* driver) override;
@@ -444,6 +451,7 @@ class ChromePasswordManagerClient
   void ResourceLoadComplete(
       content::RenderFrameHost* render_frame_host,
       const content::GlobalRequestID& request_id,
+      const GURL& original_url,
       const blink::mojom::ResourceLoadInfo& resource_load_info) override;
   void OnFedCmFederatedLogin(bool success) override;
 
@@ -484,7 +492,7 @@ class ChromePasswordManagerClient
       autofill::password_generation::PasswordGenerationType type,
       password_manager::ContentPasswordManagerDriver* driver,
       const autofill::password_generation::PasswordGenerationUIData& ui_data);
-  void MaybeShowSavePasswordPrimingPromo(const GURL& current_url) override;
+  void MaybeShowSavePasswordPrimingPromo(const url::Origin& origin) override;
 #endif  // !BUILDFLAG(IS_ANDROID)
 
   gfx::RectF TransformToRootCoordinates(

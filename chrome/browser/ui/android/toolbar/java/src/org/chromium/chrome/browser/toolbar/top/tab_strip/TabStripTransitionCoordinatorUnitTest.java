@@ -336,6 +336,46 @@ public class TabStripTransitionCoordinatorUnitTest {
     }
 
     @Test
+    @EnableFeatures(ChromeFeatureList.TAB_STRIP_LAYOUT_TRANSITION_DEBOUNCE_FIX)
+    public void testDebounceLayoutPass_PreserveForceUpdate() {
+        // Initialize and enter desktop windowing mode.
+        setUpTabStripTransitionCoordinator(
+                /* isInDesktopWindow= */ true, LARGE_DESKTOP_WINDOW_WIDTH);
+        RobolectricUtil.runAllBackgroundAndUiIncludingDelayed();
+        mTestHandler.reset();
+
+        int initialHeaderHeight = TEST_TAB_STRIP_HEIGHT + mReservedTopPadding;
+
+        // Trigger header height change (staying in desktop window).
+        // This should set mForceUpdateHeight = true and post a delayed task.
+        int newHeaderHeight = initialHeaderHeight + 10;
+        Rect appHeaderRect = new Rect(0, 0, LARGE_DESKTOP_WINDOW_WIDTH, newHeaderHeight);
+        AppHeaderState state1 = new AppHeaderState(appHeaderRect, appHeaderRect, true);
+        mCoordinator.onAppHeaderStateChanged(state1);
+
+        // Verify that no transition has run yet (it should be delayed).
+        assertEquals(
+                "Transition should be delayed.", NOTHING_OBSERVED, mTestHandler.heightRequested);
+
+        // Trigger another app header state change with the same new height, but different width.
+        // This should cancel the first task and post a new one.
+        // mForceUpdateHeight should be preserved.
+        int newerWidth = LARGE_DESKTOP_WINDOW_WIDTH - 10;
+        Rect appHeaderRect2 = new Rect(0, 0, newerWidth, newHeaderHeight);
+        AppHeaderState state2 = new AppHeaderState(appHeaderRect2, appHeaderRect2, true);
+        mCoordinator.onAppHeaderStateChanged(state2);
+
+        // Run the looper to let the delayed task run.
+        RobolectricUtil.runAllBackgroundAndUiIncludingDelayed();
+
+        // Verify that the transition ran, and it used the new height.
+        assertEquals(
+                "Transition should have run with new height.",
+                newHeaderHeight,
+                mTestHandler.heightRequested);
+    }
+
+    @Test
     @Config(qualifiers = "w320dp")
     public void showTabStrip() {
         settleTransitionDuringInitForNarrowWindow();
@@ -875,6 +915,32 @@ public class TabStripTransitionCoordinatorUnitTest {
     }
 
     @Test
+    public void fadeTransitionThresholdChangedInDesktopWindow() {
+        // Start in desktop windowing mode with a large window.
+        // LARGE_DESKTOP_WINDOW_WIDTH is wider than the default threshold, so no scrim initially.
+        setUpTabStripTransitionCoordinator(
+                /* isInDesktopWindow= */ true, LARGE_DESKTOP_WINDOW_WIDTH);
+        RobolectricUtil.runAllBackgroundAndUiIncludingDelayed();
+        verifyFadeTransitionState(0f);
+
+        // Update the threshold dynamically to exceed LARGE_DESKTOP_WINDOW_WIDTH.
+        mDelegate.thresholdDp = LARGE_DESKTOP_WINDOW_WIDTH + 1;
+
+        // Trigger the callback to notify the coordinator/handler of the threshold change.
+        int count = mDelegate.fadeTransitionCallback.getCallCount();
+        mDelegate.triggerThresholdChanged();
+        RobolectricUtil.runAllBackgroundAndUiIncludingDelayed();
+
+        // The handler should immediately re-evaluate visibility and request a fade transition
+        // (applying the scrim overlay because the current width is now under the threshold).
+        assertEquals(
+                "Fade transition should be requested when threshold changed.",
+                count + 1,
+                mDelegate.fadeTransitionCallback.getCallCount());
+        verifyFadeTransitionState(1f);
+    }
+
+    @Test
     public void transitionUpdatesTopPaddingOnAppThemeChange() {
         // Simulate re-instantiation of the coordinator when the control container hasn't been
         // measured yet, that happens on an app theme change.
@@ -1310,9 +1376,23 @@ public class TabStripTransitionCoordinatorUnitTest {
             return hiddenByFade;
         }
 
+        public int thresholdDp = NARROW_DESKTOP_WINDOW_WIDTH + 1;
+        private Runnable mCallback;
+
         @Override
         public int getFadeTransitionThresholdDp() {
-            return NARROW_DESKTOP_WINDOW_WIDTH + 1;
+            return thresholdDp;
+        }
+
+        @Override
+        public void setFadeTransitionThresholdChangedCallback(Runnable callback) {
+            mCallback = callback;
+        }
+
+        public void triggerThresholdChanged() {
+            if (mCallback != null) {
+                mCallback.run();
+            }
         }
     }
 }

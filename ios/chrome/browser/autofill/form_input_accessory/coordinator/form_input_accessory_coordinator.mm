@@ -32,6 +32,8 @@
 #import "components/password_manager/core/common/password_manager_features.h"
 #import "components/password_manager/ios/password_generation_provider.h"
 #import "components/strings/grit/components_strings.h"
+#import "ios/chrome/browser/autofill/atmemory/coordinator/at_memory_coordinator.h"
+#import "ios/chrome/browser/autofill/atmemory/public/at_memory_commands.h"
 #import "ios/chrome/browser/autofill/form_input_accessory/coordinator/form_input_accessory_mediator.h"
 #import "ios/chrome/browser/autofill/form_input_accessory/coordinator/form_input_accessory_mediator_handler.h"
 #import "ios/chrome/browser/autofill/form_input_accessory/public/autofill_suggestion_context_menu_handler.h"
@@ -81,7 +83,6 @@
 #import "ios/chrome/grit/ios_branded_strings.h"
 #import "ios/chrome/grit/ios_strings.h"
 #import "ios/web/public/web_state.h"
-#import "ui/base/device_form_factor.h"
 #import "ui/base/l10n/l10n_util_mac.h"
 
 namespace {
@@ -135,13 +136,14 @@ AutofillSettingsPage SuggestionToAutofillSettingsPage(
 
 @interface FormInputAccessoryCoordinator () <
     AddressCoordinatorDelegate,
+    AtMemoryCommands,
     AutofillSuggestionContextMenuHandler,
     CardCoordinatorDelegate,
+    ExpandedManualFillCoordinatorDelegate,
     FormInputAccessoryMediatorHandler,
     FormInputAccessoryViewControllerDelegate,
     ManualFillAllPasswordCoordinatorDelegate,
     PasswordCoordinatorDelegate,
-    ExpandedManualFillCoordinatorDelegate,
     SecurityAlertCommands>
 
 // The object in charge of interacting with the web view. Used to fill the data
@@ -188,6 +190,8 @@ AutofillSettingsPage SuggestionToAutofillSettingsPage(
     CommandDispatcher* dispatcher = browser->GetCommandDispatcher();
     [dispatcher startDispatchingToTarget:self
                              forProtocol:@protocol(SecurityAlertCommands)];
+    [dispatcher startDispatchingToTarget:self
+                             forProtocol:@protocol(AtMemoryCommands)];
 
     _brandingCoordinator =
         [[BrandingCoordinator alloc] initWithBaseViewController:viewController
@@ -321,6 +325,11 @@ AutofillSettingsPage SuggestionToAutofillSettingsPage(
 - (void)startManualFillFromButton:(UIButton*)button
                       forDataType:(manual_fill::ManualFillDataType)dataType
          invokedOnObfuscatedField:(BOOL)invokedOnObfuscatedField {
+  if (dataType == manual_fill::ManualFillDataType::kAtMemory) {
+    [self presentAtMemory];
+    return;
+  }
+
   manual_fill::ManualFillDataType focusedFieldDataType = [ManualFillUtil
       manualFillDataTypeFromFillingProduct:
           [_formInputAccessoryMediator currentProviderMainFillingProduct]];
@@ -343,7 +352,7 @@ AutofillSettingsPage SuggestionToAutofillSettingsPage(
       expandedManualFillCoordinator;
   [expandedManualFillCoordinator start];
 
-  if (ui::GetDeviceFormFactor() == ui::DEVICE_FORM_FACTOR_TABLET) {
+  if ([ManualFillUtil shouldUsePopover]) {
     [expandedManualFillCoordinator presentFromButton:button];
   } else {
     self.formInputViewController = expandedManualFillCoordinator.viewController;
@@ -360,7 +369,7 @@ AutofillSettingsPage SuggestionToAutofillSettingsPage(
 }
 
 - (void)dismissPopover {
-  if (ui::GetDeviceFormFactor() == ui::DEVICE_FORM_FACTOR_TABLET) {
+  if ([ManualFillUtil shouldUsePopover]) {
     // Close the popover view.
     [self stopChildren];
   }
@@ -417,7 +426,7 @@ AutofillSettingsPage SuggestionToAutofillSettingsPage(
   BOOL invokedOnObfuscatedField =
       [_formInputAccessoryMediator lastFocusedFieldWasObfuscated];
 
-  if (ui::GetDeviceFormFactor() != ui::DEVICE_FORM_FACTOR_TABLET) {
+  if (![ManualFillUtil shouldUsePopover]) {
     [self stopChildren];
   }
 
@@ -464,6 +473,12 @@ AutofillSettingsPage SuggestionToAutofillSettingsPage(
   return NO;
 }
 
+- (BOOL)formInputAccessoryViewController:
+            (FormInputAccessoryViewController*)formInputAccessoryViewController
+                          shouldShowRPId:(NSString*)rpId {
+  return [_formInputAccessoryMediator shouldShowRPId:rpId];
+}
+
 #pragma mark - AutofillSuggestionContextMenuHandler
 
 - (void)openSettingsForSuggestion:(FormSuggestion*)suggestion {
@@ -474,6 +489,20 @@ AutofillSettingsPage SuggestionToAutofillSettingsPage(
 
 - (void)openEditForSuggestion:(FormSuggestion*)suggestion {
   // TODO(crbug.com/521517095): Implement edit action.
+}
+
+- (BOOL)isPersonalContextSuggestion:(FormSuggestion*)suggestion {
+  web::WebState* activeWebState = [self activeWebState];
+  if (!activeWebState) {
+    return NO;
+  }
+  base::optional_ref<const autofill::EntityInstance> entity =
+      autofill::GetEntityInstance(
+          ProfileIOS::FromBrowserState(activeWebState->GetBrowserState()),
+          suggestion.payload);
+  return entity.has_value() &&
+         entity->record_type() ==
+             autofill::EntityInstance::RecordType::kPersonalContext;
 }
 
 #pragma mark - FallbackCoordinatorDelegate
@@ -607,17 +636,14 @@ AutofillSettingsPage SuggestionToAutofillSettingsPage(
     return;
   }
 
-  if (base::FeatureList::IsEnabled(
-          autofill::features::kAutofillEnableSupportForNameAndEmail)) {
-    sceneHandler =
-        HandlerForProtocol(self.browser->GetCommandDispatcher(), SceneCommands);
-    if (address.record_type() ==
-        autofill::AutofillProfile::RecordType::kAccountNameEmail) {
-      OpenNewTabCommand* command = [OpenNewTabCommand
-          commandWithURLFromChrome:GURL(kGoogleAccountNameEmailAddressEditURL)];
-      [sceneHandler openURLInNewTab:command];
-      return;
-    }
+  sceneHandler =
+      HandlerForProtocol(self.browser->GetCommandDispatcher(), SceneCommands);
+  if (address.record_type() ==
+      autofill::AutofillProfile::RecordType::kAccountNameEmail) {
+    OpenNewTabCommand* command = [OpenNewTabCommand
+        commandWithURLFromChrome:GURL(kGoogleAccountNameEmailAddressEditURL)];
+    [sceneHandler openURLInNewTab:command];
+    return;
   }
 
   CommandDispatcher* dispatcher = self.browser->GetCommandDispatcher();
@@ -643,6 +669,12 @@ AutofillSettingsPage SuggestionToAutofillSettingsPage(
 // Called when the user has taken action to dismiss a popover.
 - (void)expandedManualFillCoordinatorDidDismissPopover:
     (ExpandedManualFillCoordinator*)coordinator {
+  [self reset];
+}
+
+#pragma mark - AtMemoryCommands
+
+- (void)dismissAtMemory {
   [self reset];
 }
 
@@ -673,8 +705,8 @@ AutofillSettingsPage SuggestionToAutofillSettingsPage(
 #pragma mark - CRWResponderInputView
 
 - (UIView*)inputView {
-  BOOL isIPad = ui::GetDeviceFormFactor() == ui::DEVICE_FORM_FACTOR_TABLET;
-  return isIPad ? nil : self.formInputViewController.view;
+  return [ManualFillUtil shouldUsePopover] ? nil
+                                           : self.formInputViewController.view;
 }
 
 - (UIView*)inputAccessoryView {
@@ -704,6 +736,16 @@ AutofillSettingsPage SuggestionToAutofillSettingsPage(
   [_allPasswordCoordinator stop];
   _allPasswordCoordinator.manualFillAllPasswordCoordinatorDelegate = nil;
   _allPasswordCoordinator = nil;
+}
+
+// Presents the AtMemory Page Sheet (on iPhone) or Form Sheet (on iPad).
+- (void)presentAtMemory {
+  AtMemoryCoordinator* atMemoryCoordinator = [[AtMemoryCoordinator alloc]
+      initWithBaseViewController:self.baseViewController
+                         browser:self.browser];
+  [atMemoryCoordinator start];
+
+  [self.childCoordinators addObject:atMemoryCoordinator];
 }
 
 - (void)dismissAlertCoordinator {
@@ -914,10 +956,9 @@ AutofillSettingsPage SuggestionToAutofillSettingsPage(
 // notification to re-present the manual fallback UI if it was temporarily
 // dismissed.
 - (void)cardCoordinatorDidCompleteManualFill:(CardCoordinator*)cardCoordinator {
-  // On iPad, the manual fill view is a popover anchored to a button.
-  // We only re-trigger this automatically on iPhone (where it is an input
-  // view).
-  if (ui::GetDeviceFormFactor() == ui::DEVICE_FORM_FACTOR_TABLET) {
+  // This is re-triggered automatically only when it is an input view (as
+  // opposed to a popover anchored to a button).
+  if ([ManualFillUtil shouldUsePopover]) {
     return;
   }
 

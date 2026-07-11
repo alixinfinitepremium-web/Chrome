@@ -30,6 +30,7 @@
 #include "content/public/test/browser_test.h"
 #include "mojo/public/cpp/bindings/remote.h"
 #include "net/base/features.h"
+#include "testing/gmock/include/gmock/gmock.h"
 #include "testing/gtest/include/gtest/gtest.h"
 #include "url/gurl.h"
 #include "url/origin.h"
@@ -63,10 +64,10 @@ class PrivateVerificationTokensServiceBrowserTest : public PlatformBrowserTest {
     std::vector<private_verification_tokens::PrivateVerificationTokensToken>
         tokens;
     const auto expiration = base::Time::Now() + base::Hours(2);
-    tokens.emplace_back("a.com", std::vector<uint8_t>{1, 2, 3}, 1, expiration,
-                        1);
-    tokens.emplace_back("b.org", std::vector<uint8_t>{4, 5, 6, 7}, 2,
-                        expiration, 1);
+    tokens.emplace_back(url::Origin::Create(GURL("https://a.com")),
+                        std::vector<uint8_t>{1, 2, 3}, 1, expiration, 1);
+    tokens.emplace_back(url::Origin::Create(GURL("https://b.org")),
+                        std::vector<uint8_t>{4, 5, 6, 7}, 2, expiration, 1);
     return tokens;
   }
 
@@ -114,8 +115,7 @@ class PrivateVerificationTokensServiceBrowserTest : public PlatformBrowserTest {
           expected_tokens) {
     base::flat_map<url::Origin, std::vector<uint8_t>> expected_map;
     for (const auto& token : expected_tokens) {
-      expected_map[url::Origin::Create(
-          GURL("https://" + token.etld_plus_one()))] = token.token();
+      expected_map[token.issuer()] = token.token();
     }
 
     EXPECT_EQ(actual_tokens.size(), expected_map.size());
@@ -168,12 +168,29 @@ IN_PROC_BROWSER_TEST_F(PrivateVerificationTokensServiceBrowserTest,
       PrivateVerificationTokensServiceFactory::GetForProfile(GetProfile());
   ASSERT_TRUE(service);
 
+  WaitForInitialization(service);
   service->Shutdown();
 
   base::test::TestFuture<std::vector<
       private_verification_tokens::mojom::PrivateVerificationTokensTokenPtr>>
       future;
   service->GetTokens(future.GetCallback());
+
+  auto tokens = future.Take();
+  EXPECT_TRUE(tokens.empty());
+}
+
+IN_PROC_BROWSER_TEST_F(PrivateVerificationTokensServiceBrowserTest,
+                       GetTokenIssuers_WhenShuttingDown_ReturnsEmpty) {
+  PrivateVerificationTokensService* service =
+      PrivateVerificationTokensServiceFactory::GetForProfile(GetProfile());
+  ASSERT_TRUE(service);
+
+  WaitForInitialization(service);
+  service->Shutdown();
+
+  base::test::TestFuture<std::vector<url::Origin>> future;
+  service->GetTokenIssuers(future.GetCallback());
 
   auto tokens = future.Take();
   EXPECT_TRUE(tokens.empty());
@@ -266,6 +283,198 @@ IN_PROC_BROWSER_TEST_F(
 
   auto tokens = future.Take();
   EXPECT_TRUE(tokens.empty());
+}
+
+IN_PROC_BROWSER_TEST_F(PrivateVerificationTokensServiceBrowserTest,
+                       GetTokenIssuers_Success) {
+  Profile* profile = GetProfile();
+  PrivateVerificationTokensService* service =
+      PrivateVerificationTokensServiceFactory::GetForProfile(profile);
+  ASSERT_TRUE(service);
+
+  WaitForInitialization(service);
+
+  base::test::TestFuture<std::vector<url::Origin>> future;
+  service->GetTokenIssuers(future.GetCallback());
+
+  auto issuers = future.Take();
+  EXPECT_THAT(issuers, testing::UnorderedElementsAre(
+                           url::Origin::Create(GURL("https://a.com")),
+                           url::Origin::Create(GURL("https://b.org"))));
+}
+
+IN_PROC_BROWSER_TEST_F(PrivateVerificationTokensServiceBrowserTest,
+                       DeleteTokens_Success) {
+  Profile* profile = GetProfile();
+  PrivateVerificationTokensService* service =
+      PrivateVerificationTokensServiceFactory::GetForProfile(profile);
+  ASSERT_TRUE(service);
+
+  WaitForInitialization(service);
+
+  // Verify tokens exist first.
+  base::test::TestFuture<std::vector<url::Origin>> issuers_future;
+  service->GetTokenIssuers(issuers_future.GetCallback());
+  EXPECT_EQ(issuers_future.Get().size(), 2u);
+
+  // Delete tokens for a.com.
+  base::test::TestFuture<void> delete_future;
+  service->DeleteTokens(
+      base::Time::Min(), base::Time::Max(),
+      std::vector<url::Origin>{url::Origin::Create(GURL("https://a.com"))},
+      delete_future.GetCallback());
+  EXPECT_TRUE(delete_future.Wait());
+
+  // Verify only b.org remains.
+  base::test::TestFuture<std::vector<url::Origin>> issuers_future2;
+  service->GetTokenIssuers(issuers_future2.GetCallback());
+  auto issuers = issuers_future2.Take();
+  EXPECT_EQ(issuers.size(), 1u);
+  EXPECT_EQ(issuers[0], url::Origin::Create(GURL("https://b.org")));
+}
+
+IN_PROC_BROWSER_TEST_F(PrivateVerificationTokensServiceBrowserTest,
+                       GetTokens_PendingBeforeInitialization_Success) {
+  Profile* profile = GetProfile();
+  PrivateVerificationTokensService* service =
+      PrivateVerificationTokensServiceFactory::GetForProfile(profile);
+  ASSERT_TRUE(service);
+
+  base::test::TestFuture<std::vector<
+      private_verification_tokens::mojom::PrivateVerificationTokensTokenPtr>>
+      future;
+  service->GetTokens(future.GetCallback());
+
+  // The callback should not have run yet because it's pending initialization.
+  EXPECT_FALSE(future.IsReady());
+
+  // Now wait for initialization. This should trigger the pending callback.
+  WaitForInitialization(service);
+
+  // The callback should now have run.
+  auto tokens = future.Take();
+  auto expected_tokens = CreateTestTokens();
+  VerifyTokens(tokens, expected_tokens);
+}
+
+IN_PROC_BROWSER_TEST_F(PrivateVerificationTokensServiceBrowserTest,
+                       GetTokenIssuers_PendingBeforeInitialization_Success) {
+  Profile* profile = GetProfile();
+  PrivateVerificationTokensService* service =
+      PrivateVerificationTokensServiceFactory::GetForProfile(profile);
+  ASSERT_TRUE(service);
+
+  base::test::TestFuture<std::vector<url::Origin>> future;
+  service->GetTokenIssuers(future.GetCallback());
+
+  EXPECT_FALSE(future.IsReady());
+
+  WaitForInitialization(service);
+
+  auto issuers = future.Take();
+  EXPECT_THAT(issuers, testing::UnorderedElementsAre(
+                           url::Origin::Create(GURL("https://a.com")),
+                           url::Origin::Create(GURL("https://b.org"))));
+}
+
+IN_PROC_BROWSER_TEST_F(PrivateVerificationTokensServiceBrowserTest,
+                       DeleteTokens_PendingBeforeInitialization_Success) {
+  Profile* profile = GetProfile();
+  PrivateVerificationTokensService* service =
+      PrivateVerificationTokensServiceFactory::GetForProfile(profile);
+  ASSERT_TRUE(service);
+
+  base::test::TestFuture<void> delete_future;
+  service->DeleteTokens(
+      base::Time::Min(), base::Time::Max(),
+      std::vector<url::Origin>{url::Origin::Create(GURL("https://a.com"))},
+      delete_future.GetCallback());
+
+  EXPECT_FALSE(delete_future.IsReady());
+
+  WaitForInitialization(service);
+
+  EXPECT_TRUE(delete_future.Wait());
+
+  // Verify deletion worked.
+  base::test::TestFuture<std::vector<url::Origin>> issuers_future;
+  service->GetTokenIssuers(issuers_future.GetCallback());
+  auto issuers = issuers_future.Take();
+  EXPECT_EQ(issuers.size(), 1u);
+  EXPECT_EQ(issuers[0], url::Origin::Create(GURL("https://b.org")));
+}
+
+IN_PROC_BROWSER_TEST_F(PrivateVerificationTokensServiceBrowserTest,
+                       GetTokens_PendingShutdownBeforeInitialization_Success) {
+  Profile* profile = GetProfile();
+  PrivateVerificationTokensService* service =
+      PrivateVerificationTokensServiceFactory::GetForProfile(profile);
+  ASSERT_TRUE(service);
+
+  base::test::TestFuture<std::vector<
+      private_verification_tokens::mojom::PrivateVerificationTokensTokenPtr>>
+      future;
+  service->GetTokens(future.GetCallback());
+
+  // The callback should not have run yet because it's pending initialization.
+  EXPECT_FALSE(future.IsReady());
+
+  // Shut down the service before initialization; this should clear the
+  // callbacks.
+  service->Shutdown();
+
+  // The callback should now have run, but with an empty result since we never
+  // got a chance to initialize our DB.
+  auto tokens = future.Take();
+  EXPECT_EQ(tokens.size(), 0u);
+}
+
+IN_PROC_BROWSER_TEST_F(
+    PrivateVerificationTokensServiceBrowserTest,
+    GetTokenIssuers_PendingShutdownBeforeInitialization_Success) {
+  Profile* profile = GetProfile();
+  PrivateVerificationTokensService* service =
+      PrivateVerificationTokensServiceFactory::GetForProfile(profile);
+  ASSERT_TRUE(service);
+
+  base::test::TestFuture<std::vector<url::Origin>> future;
+  service->GetTokenIssuers(future.GetCallback());
+
+  EXPECT_FALSE(future.IsReady());
+
+  // Shut down the service before initialization; this should clear the
+  // callbacks.
+  service->Shutdown();
+
+  // The callback should now have run, but with an empty result since we never
+  // got a chance to initialize our DB.
+  auto issuers = future.Take();
+  EXPECT_EQ(issuers.size(), 0u);
+}
+
+IN_PROC_BROWSER_TEST_F(
+    PrivateVerificationTokensServiceBrowserTest,
+    DeleteTokens_PendingShutdownBeforeInitialization_Success) {
+  Profile* profile = GetProfile();
+  PrivateVerificationTokensService* service =
+      PrivateVerificationTokensServiceFactory::GetForProfile(profile);
+  ASSERT_TRUE(service);
+
+  base::test::TestFuture<void> delete_future;
+  service->DeleteTokens(
+      base::Time::Min(), base::Time::Max(),
+      std::vector<url::Origin>{url::Origin::Create(GURL("https://a.com"))},
+      delete_future.GetCallback());
+
+  EXPECT_FALSE(delete_future.IsReady());
+
+  // Shut down the service before initialization; this should clear the
+  // callbacks.
+  service->Shutdown();
+
+  // Verify that the callback is run even though we couldn't have deleted the
+  // tokens without an initialized store.
+  EXPECT_TRUE(delete_future.Wait());
 }
 
 }  // namespace

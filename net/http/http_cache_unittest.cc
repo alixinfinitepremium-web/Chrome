@@ -631,9 +631,9 @@ void Verify206Response(const std::string& response, int start, int end) {
   int64_t range_start, range_end, object_size;
   ASSERT_TRUE(
       headers->GetContentRangeFor206(&range_start, &range_end, &object_size));
-  std::optional<base::ByteCount> content_length = headers->GetContentLength();
+  std::optional<base::ByteSize> content_length = headers->GetContentLength();
 
-  int length = end - start + 1;
+  uint64_t length = end - start + 1;
   ASSERT_EQ(length, content_length->InBytes());
   ASSERT_EQ(start, range_start);
   ASSERT_EQ(end, range_end);
@@ -12622,9 +12622,9 @@ TEST_P(HttpCacheHugeResourceTest,
 
   int64_t total_bytes_received = 0;
 
-  EXPECT_EQ(kTotalSize, http_transaction->GetResponseInfo()
-                            ->headers->GetContentLength()
-                            ->InBytes());
+  EXPECT_EQ(kTotalSize, static_cast<int64_t>(http_transaction->GetResponseInfo()
+                                                 ->headers->GetContentLength()
+                                                 ->InBytes()));
   do {
     // This test simulates reading gigabytes of data. Buffer size is set to 10MB
     // to reduce the number of reads and speed up the test.
@@ -13423,9 +13423,10 @@ TEST_F(HttpCacheTest, GetResourceURLFromHttpCacheKey) {
 
       // Invalid input, producing garbage, without crashing.
       {"", ""},
-      {"0/a.com", "0/a.com"},
+      {"0/a.com", ""},
       {"https://a.com/", "a.com/"},
       {"0/https://a.com/", "/a.com/"},
+      {"0/0/_dk_https://a.com", ""},
   };
 
   for (const auto& test : kTestCase) {

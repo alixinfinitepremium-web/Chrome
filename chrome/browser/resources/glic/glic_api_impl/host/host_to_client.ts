@@ -5,14 +5,12 @@
 // This file handles messages from the browser, sending messages to the client.
 
 import type {PageMetadata as PageMetadataMojo} from '../../ai_page_content_metadata.mojom-webui.js';
-import type {ActorClientInterface, ActorTaskState as ActorTaskStateMojo, AdditionalContext as AdditionalContextMojo, ExperimentalTriggeringUpdatesHandlerRemote, FocusedTabData as FocusedTabDataMojo, GeminiEnterpriseSettings as GeminiEnterpriseSettingsMojo, InvokeOptions as InvokeOptionsMojo, OpenPanelInfo as OpenPanelInfoMojo, PanelOpeningData as PanelOpeningDataMojo, PanelState as PanelStateMojo, SkillPreview as SkillPreviewMojo, TabData as TabDataMojo, WebClientInterface, ZeroStateSuggestionsOptions as ZeroStateSuggestionsOptionsMojo, ZeroStateSuggestionsV2 as ZeroStateSuggestionsV2Mojo} from '../../glic.mojom-webui.js';
-import {enumToClient} from '../enum_conversions.js';
-import type {ActorClient, WebClient} from '../request_types.js';
+import type {AdditionalContext as AdditionalContextMojo, FocusedTabData as FocusedTabDataMojo, GeminiEnterpriseSettings as GeminiEnterpriseSettingsMojo, InvokeOptions as InvokeOptionsMojo, OpenPanelInfo as OpenPanelInfoMojo, PanelOpeningData as PanelOpeningDataMojo, PanelState as PanelStateMojo, TabData as TabDataMojo, WebClientInterface, ZeroStateSuggestionsOptions as ZeroStateSuggestionsOptionsMojo, ZeroStateSuggestionsV2 as ZeroStateSuggestionsV2Mojo} from '../../glic.mojom-webui.js';
+import type {WebClient} from '../request_types.js';
 import {ResponseExtras} from '../transport/messaging.js';
 import type {PostMessageRemote} from '../transport/post_message_transport.js';
 
-import type {NavigationConfirmationRequest as NavigationConfirmationRequestMojo, NavigationConfirmationResponse as NavigationConfirmationResponseMojo, SelectAutofillSuggestionsDialogRequest as SelectAutofillSuggestionsDialogRequestMojo, SelectAutofillSuggestionsDialogResponse as SelectAutofillSuggestionsDialogResponseMojo, SelectCredentialDialogRequest as SelectCredentialDialogRequestMojo, SelectCredentialDialogResponse as SelectCredentialDialogResponseMojo, UserConfirmationDialogRequest as UserConfirmationDialogRequestMojo, UserConfirmationDialogResponse as UserConfirmationDialogResponseMojo} from './../../actor_webui.mojom-webui.js';
-import {additionalContextToClient, focusedTabDataToClient, idToClient, invokeOptionsToClient, navigationConfirmationRequestToClient, navigationConfirmationResponseToMojo, pageMetadataToClient, panelOpeningDataToClient, panelStateToClient, selectAutofillSuggestionsDialogRequestToClient, selectAutofillSuggestionsDialogResponseToMojo, selectCredentialDialogRequestToClient, selectCredentialDialogResponseToMojo, tabDataToClient, timeDeltaFromClient, userConfirmationDialogRequestToClient, userConfirmationDialogResponseToMojo, webClientModeToMojo, zeroStateSuggestionsToClient} from './conversions.js';
+import {additionalContextToClient, focusedTabDataToClient, idToClient, invokeOptionsToClient, pageMetadataToClient, panelOpeningDataToClient, panelStateToClient, tabDataToClient, timeDeltaFromClient, webClientModeToMojo, zeroStateSuggestionsToClient} from './conversions.js';
 import type {ApiHostEmbedder, GlicApiHost} from './glic_api_host.js';
 import {PanelOpenState} from './types.js';
 
@@ -26,25 +24,6 @@ export class WebClientImpl implements WebClientInterface {
 
   markCreated() {
     this.clientCreated.resolve();
-  }
-
-  async getExperimentalTriggeringUpdates(
-      handler: ExperimentalTriggeringUpdatesHandlerRemote):
-      Promise<{success: boolean}> {
-    const id = this.host.addExperimentalTriggeringUpdatesHandler(handler);
-    try {
-      const result = await this.sender.requestWithResponse(
-          'getExperimentalTriggeringUpdates', {
-            observationId: id,
-          });
-      if (!result.success) {
-        this.host.deleteExperimentalTriggeringUpdatesHandler(id);
-      }
-      return {success: result.success};
-    } catch (e) {
-      this.host.deleteExperimentalTriggeringUpdatesHandler(id);
-      throw e;
-    }
   }
 
   async processNotifyPanelWillOpen(panelOpeningData: PanelOpeningDataMojo):
@@ -217,42 +196,6 @@ export class WebClientImpl implements WebClientInterface {
         {tabData: tabDataToClient(tabData, extras)}, extras.transfers);
   }
 
-  notifySkillPreviewsChanged(skillPreviews: SkillPreviewMojo[]): void {
-    this.sender.requestNoResponse('notifySkillPreviewsChanged', {
-      skillPreviews: skillPreviews.map(s => ({
-                                         ...s,
-                                         source: enumToClient(s.source),
-                                         isContextual: false,
-                                       })),
-    });
-  }
-
-  notifyContextualSkillPreviewsChanged(skillPreviews: SkillPreviewMojo[]):
-      void {
-    this.sender.requestNoResponse('notifyContextualSkillPreviewsChanged', {
-      contextualSkillPreviews:
-          skillPreviews.map(s => ({
-                              ...s,
-                              source: enumToClient(s.source),
-                              isContextual: true,
-                            })),
-    });
-  }
-
-  notifySkillPreviewChanged(skillPreview: SkillPreviewMojo): void {
-    this.sender.requestNoResponse('notifySkillPreviewChanged', {
-      skillPreview: {
-        ...skillPreview,
-        source: enumToClient(skillPreview.source),
-      },
-    });
-  }
-
-  notifySkillDeleted(skillId: string): void {
-    this.sender.requestNoResponse('notifySkillDeleted', {
-      skillId,
-    });
-  }
 
   notifyZeroStateSuggestionsChanged(
       suggestions: ZeroStateSuggestionsV2Mojo,
@@ -289,59 +232,5 @@ export class WebClientImpl implements WebClientInterface {
 
   notifyActorTaskListRowClicked(taskId: number): void {
     this.sender.requestNoResponse('notifyActorTaskListRowClicked', {taskId});
-  }
-}
-
-export class ActorClientImpl implements ActorClientInterface {
-  constructor(private sender: PostMessageRemote<ActorClient>) {}
-
-  notifyActorTaskStateChanged(taskId: number, state: ActorTaskStateMojo): void {
-    const clientState = enumToClient(state);
-    this.sender.requestNoResponse(
-        'notifyActorTaskStateChanged', {taskId, state: clientState});
-  }
-
-  async requestToShowCredentialSelectionDialog(
-      request: SelectCredentialDialogRequestMojo):
-      Promise<{response: SelectCredentialDialogResponseMojo}> {
-    const clientResponse = await this.sender.requestWithResponse(
-        'requestToShowDialog',
-        {request: selectCredentialDialogRequestToClient(request)});
-    return {
-      response: selectCredentialDialogResponseToMojo(clientResponse.response),
-    };
-  }
-
-  async requestToShowUserConfirmationDialog(
-      request: UserConfirmationDialogRequestMojo):
-      Promise<{response: UserConfirmationDialogResponseMojo}> {
-    const clientResponse = await this.sender.requestWithResponse(
-        'requestToShowConfirmationDialog',
-        {request: userConfirmationDialogRequestToClient(request)});
-    return {
-      response: userConfirmationDialogResponseToMojo(clientResponse.response),
-    };
-  }
-
-  async requestToConfirmNavigation(request: NavigationConfirmationRequestMojo):
-      Promise<{response: NavigationConfirmationResponseMojo}> {
-    const clientResponse = await this.sender.requestWithResponse(
-        'requestToConfirmNavigation',
-        {request: navigationConfirmationRequestToClient(request)});
-    return {
-      response: navigationConfirmationResponseToMojo(clientResponse.response),
-    };
-  }
-
-  async requestToShowAutofillSuggestionsDialog(
-      request: SelectAutofillSuggestionsDialogRequestMojo):
-      Promise<{response: SelectAutofillSuggestionsDialogResponseMojo}> {
-    const clientResponse = await this.sender.requestWithResponse(
-        'requestToShowAutofillSuggestionsDialog',
-        {request: selectAutofillSuggestionsDialogRequestToClient(request)});
-    return {
-      response: selectAutofillSuggestionsDialogResponseToMojo(
-          clientResponse.response),
-    };
   }
 }

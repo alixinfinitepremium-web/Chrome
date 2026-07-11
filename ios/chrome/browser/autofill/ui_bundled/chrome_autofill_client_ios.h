@@ -50,6 +50,7 @@ namespace autofill {
 class AutofillAiSaveEntityInfoBarDelegateIOS;
 class AutofillSuggestionDelegate;
 class LogRouter;
+class AutofillAiPersonalContextAccessManager;
 
 enum class SuggestionType;
 
@@ -103,6 +104,8 @@ class ChromeAutofillClientIOS : public AutofillClientIOS {
   AutocompleteHistoryManager* GetAutocompleteHistoryManager() override;
   void GetAiPageContent(GetAiPageContentCallback callback) override;
   AutofillAiManager* GetAutofillAiManager() override;
+  AutofillAiPersonalContextAccessManager*
+  GetAutofillAiPersonalContextAccessManager() override;
   AutofillAiModelCache* GetAutofillAiModelCache() override;
   AutofillAiModelExecutor* GetAutofillAiModelExecutor() override;
   optimization_guide::RemoteModelExecutor* GetRemoteModelExecutor() override;
@@ -141,6 +144,9 @@ class ChromeAutofillClientIOS : public AutofillClientIOS {
                        std::optional<FillingProduct> product) override;
   bool IsAutofillEnabled() const override;
   bool IsAutofillProfileEnabled() const override;
+  bool IsAutofillTypeBlockedByPolicy(
+      const GURL& url,
+      AutofillPolicyDataCategory category) const override;
   bool IsWalletPublicPassStorageEnabled() const override;
   bool IsAutocompleteEnabled() const override;
   bool IsPasswordManagerEnabled() const override;
@@ -168,6 +174,7 @@ class ChromeAutofillClientIOS : public AutofillClientIOS {
   void ShowAutofillAiLocalSaveNotification() override;
   void ShowAutofillAiSaveToWalletFailureNotification() override;
   void ShowAutofillAiFetchFromWalletFailureNotification() override;
+  void ShowAutofillAiPreFetchFailureNotification() override;
 
   // Searches infobars managed by the infobar_manager_ for infobar of the type
   // AutofillSaveCardInfoBarDelegateIOS and returns it if found else returns a

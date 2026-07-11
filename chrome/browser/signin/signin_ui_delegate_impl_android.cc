@@ -8,7 +8,6 @@
 #include <optional>
 
 #include "base/check.h"
-#include "base/notimplemented.h"
 #include "chrome/browser/android/tab_android.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/signin/android/signin_bridge.h"
@@ -41,8 +40,11 @@ void SigninUiDelegateImplAndroid::ShowSigninUI(
     Profile* profile,
     bool enable_sync,
     signin_metrics::AccessPoint access_point,
-    signin_metrics::PromoAction promo_action) {
+    signin_metrics::PromoAction promo_action,
+    const std::string& extension_name) {
   CHECK(profile);
+  CHECK(!extension_name.empty())
+      << "SigninUiDelegate is only used for extension flows on Android";
 
   content::WebContents* web_contents = GetActiveWebContents(profile);
   if (!web_contents) {
@@ -57,16 +59,15 @@ void SigninUiDelegateImplAndroid::ShowSigninUI(
     SigninBridgeFactory::GetForProfile(profile)->StartAddAccountFlow(
         TabAndroid::FromWebContents(web_contents),
         /*prefilled_email= */ std::string(),
-        /*continue_url=*/web_contents->GetLastCommittedURL(),
-        /*is_web_signin=*/false, access_point);
+        /*continue_url=*/web_contents->GetLastCommittedURL(), extension_name);
     return;
   }
 
-  SigninBridgeFactory::GetForProfile(profile)->OpenAccountPickerBottomSheet(
-      web_contents,
-      /*continue_url=*/web_contents->GetLastCommittedURL(),
-      accounts.front().account_id,
-      /*is_web_signin=*/false, access_point);
+  SigninBridgeFactory::GetForProfile(profile)
+      ->OpenAccountPickerBottomSheetForExtensions(
+          web_contents,
+          /*continue_url=*/web_contents->GetLastCommittedURL(),
+          accounts.front().account_id, extension_name);
 }
 
 void SigninUiDelegateImplAndroid::ShowReauthUI(
@@ -75,7 +76,21 @@ void SigninUiDelegateImplAndroid::ShowReauthUI(
     bool enable_sync,
     signin_metrics::AccessPoint access_point,
     signin_metrics::PromoAction promo_action) {
-  NOTIMPLEMENTED() << "Not yet implemented on Android";
+  CHECK(profile);
+  CHECK(profile->IsRegularProfile());
+
+  content::WebContents* web_contents = GetActiveWebContents(profile);
+  if (!web_contents) {
+    // TODO(crbug.com/403867715): Open a new tab in this case.
+    return;
+  }
+  CoreAccountId account_id = IdentityManagerFactory::GetForProfile(profile)
+                                 ->FindExtendedAccountInfoByEmailAddress(email)
+                                 .account_id;
+  CHECK(!account_id.empty());
+  SigninBridgeFactory::GetForProfile(profile)->StartUpdateCredentialsFlow(
+      TabAndroid::FromWebContents(web_contents),
+      /*continue_url=*/web_contents->GetLastCommittedURL(), account_id);
 }
 
 }  // namespace signin_ui_util

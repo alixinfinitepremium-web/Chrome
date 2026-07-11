@@ -35,6 +35,8 @@ export class BookmarkTreeNodeElement extends CrLitElement {
       id: {value: ''},
       title: '',
       children: [],
+      permanentFolderType: null,
+      isSynced: false,
     },
   };
 
@@ -53,6 +55,8 @@ export class BookmarkTreeNodeElement extends CrLitElement {
         id: null,
         title: 'new bookmark',
         url: 'chrome://new-tab-page',
+        faviconUrl: null,
+        isSynced: false,
       },
     };
 
@@ -72,6 +76,8 @@ export class BookmarkTreeNodeElement extends CrLitElement {
         id: null,
         title: 'new folder',
         children: [],
+        permanentFolderType: null,
+        isSynced: false,
       },
     };
 
@@ -88,6 +94,8 @@ export class BookmarkTreeNodeElement extends CrLitElement {
           id: this.node.url.id!,
           title: 'has been updated',
           url: 'http://updated.somewhere',
+          faviconUrl: null,
+          isSynced: false,
         },
       };
 
@@ -98,10 +106,28 @@ export class BookmarkTreeNodeElement extends CrLitElement {
           id: this.node.folder.id!,
           title: 'updated folder',
           children: [],
+          permanentFolderType: null,
+          isSynced: false,
         },
       };
 
       this.bookmarksService_.updateBookmarkNode(updatedNode);
+    }
+  }
+
+  protected onMoveClick(e: Event) {
+    e.stopPropagation();
+    e.preventDefault();
+
+    const host = (this.getRootNode() as ShadowRoot).host;
+
+    if (host &&
+        host.tagName.toLowerCase() === 'webui-browser-bookmark-tree-node') {
+      const id = this.node.url ? this.node.url.id! : this.node.folder!.id!;
+
+      const targetParentId = (host as BookmarkTreeNodeElement).node.folder!.id!;
+      // always move to first element for now.
+      this.bookmarksService_.moveBookmarkNode(id, targetParentId, 0);
     }
   }
 
@@ -111,7 +137,7 @@ export class BookmarkTreeNodeElement extends CrLitElement {
 
     const id = this.node.url ? this.node.url.id! : this.node.folder!.id!;
 
-    this.bookmarksService_.deleteBookmarkNode(id);
+    this.bookmarksService_.deleteBookmarkNodes([id]);
   }
 }
 

@@ -19,7 +19,7 @@ AccountCapabilitiesTestMutator::AccountCapabilitiesTestMutator(
 
 AccountCapabilitiesTestMutator::AccountCapabilitiesTestMutator(
     AccountInfo* account_info)
-    : capabilities_(&account_info->capabilities) {}
+    : capabilities_(&account_info->capabilities_) {}
 
 // static
 base::span<const std::string_view>
@@ -256,4 +256,10 @@ void AccountCapabilitiesTestMutator::SetCapability(const std::string& name,
   CHECK(std::ranges::contains(capability_names, name))
       << "Invalid capability name: " << name;
   capabilities_->capabilities_map_[name] = value;
+}
+
+void AccountCapabilitiesTestMutator::SetCapabilityOverride(
+    std::string_view name,
+    std::optional<signin::Tribool> value) {
+  capabilities_->SetCapabilityOverride(name, value);
 }

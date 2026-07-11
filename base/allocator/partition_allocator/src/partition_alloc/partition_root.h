@@ -30,6 +30,7 @@
 //   might be placed into a 4096-byte bucket. Bucket sizes are chosen to try and
 //   keep worst-case waste to ~10%.
 
+#include <array>
 #include <atomic>
 #include <cstddef>
 #include <cstdint>
@@ -55,13 +56,13 @@
 
 // When a memory tool is replacing malloc to keep aligned behaviour working we
 // use window's aligned_malloc and aligned_free, but otherwise we need memalign.
-#if defined(MEMORY_TOOL_REPLACES_ALLOCATOR)
+#if PA_BUILDFLAG(MEMORY_TOOL_REPLACES_ALLOCATOR)
 #if PA_BUILDFLAG(PA_COMPILER_MSVC)
 #include <malloc.h>
 #else
 #include <stdlib.h>
 #endif  // PA_BUILDFLAG(PA_COMPILER_MSVC)
-#endif  // defined(MEMORY_TOOL_REPLACES_ALLOCATOR)
+#endif  // PA_BUILDFLAG(MEMORY_TOOL_REPLACES_ALLOCATOR)
 
 namespace partition_alloc::internal {
 
@@ -185,7 +186,8 @@ enum class StraightenLargerSlotSpanFreeListsMode {
 
 // Never instantiate a PartitionRoot directly, instead use
 // PartitionAllocator.
-class alignas(64) PA_COMPONENT_EXPORT(PARTITION_ALLOC) PartitionRoot {
+class alignas(internal::kPartitionCachelineSize)
+    PA_COMPONENT_EXPORT(PARTITION_ALLOC) PartitionRoot {
  public:
   using SlotSpanMetadata = internal::SlotSpanMetadata;
   using Bucket = internal::PartitionBucket;
@@ -329,9 +331,9 @@ class alignas(64) PA_COMPONENT_EXPORT(PARTITION_ALLOC) PartitionRoot {
   SuperPageExtentEntry* first_extent_ = nullptr;
   DirectMapExtent* direct_map_list_
       PA_GUARDED_BY(internal::PartitionRootLock(this)) = nullptr;
-  SlotSpanMetadata* global_empty_slot_span_ring_
-      [internal::kMaxEmptySlotSpanRingSize] PA_GUARDED_BY(
-          internal::PartitionRootLock(this)) = {};
+  std::array<SlotSpanMetadata*, internal::kMaxEmptySlotSpanRingSize>
+      global_empty_slot_span_ring_
+          PA_GUARDED_BY(internal::PartitionRootLock(this)) = {};
   int16_t global_empty_slot_span_ring_index_
       PA_GUARDED_BY(internal::PartitionRootLock(this)) = 0;
   int16_t global_empty_slot_span_ring_size_
@@ -491,7 +493,7 @@ class alignas(64) PA_COMPONENT_EXPORT(PARTITION_ALLOC) PartitionRoot {
   template <AllocFlags flags = AllocFlags::kNone>
   PA_NOINLINE PA_MALLOC_FN void* AllocInternalForTesting(
       size_t requested_size,
-      size_t slot_span_alignment,
+      size_t alignment,
       const char* type_name);  // IN-TEST
 
   template <AllocFlags alloc_flags = AllocFlags::kNone,
@@ -627,6 +629,9 @@ class alignas(64) PA_COMPONENT_EXPORT(PARTITION_ALLOC) PartitionRoot {
                  bool is_light_dump,
                  bool populate_discardable_bytes,
                  PartitionStatsDumper* partition_stats_dumper);
+
+  PA_NOINLINE static void DumpIntendedLeakStats(PartitionStatsDumper* dumper);
+  PA_NOINLINE static void ClearIntendedLeakStatsForTesting();
 
   static void DeleteForTesting(PartitionRoot* partition_root);
   void ResetForTesting(bool allow_leaks);
@@ -783,6 +788,10 @@ class alignas(64) PA_COMPONENT_EXPORT(PARTITION_ALLOC) PartitionRoot {
 
   PA_NOINLINE static void CheckMetadataIntegrity(const void* object);
 
+  // Returns `slot_size` of the bucket for `requested_size` memory allocation.
+  PA_NOINLINE size_t
+  GetSlotSizeFromRequestedSizeForTesting(size_t requested_size) const;
+
  private:
   static inline StraightenLargerSlotSpanFreeListsMode
       straighten_larger_slot_span_free_lists_ =
@@ -838,7 +847,7 @@ class alignas(64) PA_COMPONENT_EXPORT(PARTITION_ALLOC) PartitionRoot {
   // guarantee the higher-order alignment.
   template <AllocFlags flags>
   PA_ALWAYS_INLINE PA_MALLOC_FN void* AllocInternal(size_t requested_size,
-                                                    size_t slot_span_alignment,
+                                                    size_t alignment,
                                                     const char* type_name);
 
   // Same as |AllocInternal()|, but don't handle allocation hooks.
@@ -923,6 +932,9 @@ class alignas(64) PA_COMPONENT_EXPORT(PARTITION_ALLOC) PartitionRoot {
   static void Zap(internal::SlotStart slot_start,
                   SlotSpanMetadata* slot_span,
                   uint32_t type_id);
+  static void RecordLeakSizePerTypeId(uint32_t type_id, size_t slot_size);
+  // Internally used for recording leak size per typeid.
+  static internal::Lock& GetLeakSizeMapLock();
 
 #if PA_CONFIG(USE_PARTITION_ROOT_ENUMERATOR)
   static internal::Lock& GetEnumeratorLock();

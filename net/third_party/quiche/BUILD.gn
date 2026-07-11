@@ -883,6 +883,9 @@ proto_library("blind_sign_auth_proto") {
   sources = protobuf_blind_sign_auth
   cc_generator_options = "lite=true,dllexport_decl=COMPONENT_EXPORT(QUICHE):"
   cc_include = "base/component_export.h"
+
+  # In component builds, blind_sign_auth_proto should be part of the
+  # blind_sign_auth component.
   component_build_force_source_set = true
 
   proto_in_dir = "src"

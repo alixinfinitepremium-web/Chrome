@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "base/compiler_specific.h"
+#include "base/files/file_path.h"
 #include "base/functional/bind.h"
 #include "base/logging.h"
 #include "base/task/thread_pool.h"
@@ -21,6 +22,7 @@
 #include "services/webnn/ort/ort_status.h"
 #include "services/webnn/ort/platform_functions_ort.h"
 #include "services/webnn/ort/scoped_ort_types.h"
+#include "services/webnn/public/cpp/ep_device_info.h"
 #include "services/webnn/webnn_constant_operand.h"
 #include "services/webnn/webnn_tensor_impl.h"
 
@@ -45,34 +47,29 @@ struct CompilerContextImplOrt::CompilationResult {
 
 // static
 std::unique_ptr<CompilerContextImplOrt> CompilerContextImplOrt::Create(
-    base::flat_map<std::string, mojom::EpPackageInfoPtr> ep_package_info,
+    const base::FilePath& ep_library_path,
+    const EpDeviceInfo& target_device,
     mojom::CreateContextOptionsPtr options,
     ContextProperties properties,
     mojo::PendingRemote<mojom::WebNNModelLoader> model_loader) {
-  auto env = Environment::GetOrCreateInstance(ep_package_info);
+  // TODO(crbug.com/502249078): Create the environment before sandbox lockdown.
+  auto env = Environment::GetOrCreateInstanceForCompiler(target_device.ep_name,
+                                                         ep_library_path);
   if (!env.has_value()) {
     LOG(ERROR) << "[WebNN] Failed to create ONNX Runtime environment: "
                << env.error();
     return nullptr;
   }
 
-  auto session_options = SessionOptions::Create(
-      WebnnToOrtDeviceType(options->device), env.value());
-  if (!session_options.has_value()) {
-    LOG(ERROR) << "[WebNN] Failed to create ONNX Runtime session options: "
-               << session_options.error();
-    return nullptr;
-  }
-
   return std::make_unique<CompilerContextImplOrt>(
-      std::move(env.value()), std::move(session_options.value()),
-      std::move(options), std::move(properties), std::move(model_loader),
+      target_device, std::move(env.value()), std::move(options),
+      std::move(properties), std::move(model_loader),
       base::PassKey<CompilerContextImplOrt>());
 }
 
 CompilerContextImplOrt::CompilerContextImplOrt(
+    const EpDeviceInfo& target_device,
     scoped_refptr<Environment> env,
-    scoped_refptr<SessionOptions> session_options,
     mojom::CreateContextOptionsPtr options,
     ContextProperties properties,
     mojo::PendingRemote<mojom::WebNNModelLoader> model_loader,
@@ -80,8 +77,9 @@ CompilerContextImplOrt::CompilerContextImplOrt(
     : properties_(std::move(properties)),
       options_(std::move(options)),
       model_loader_(std::move(model_loader)),
-      env_(std::move(env)),
-      session_options_(std::move(session_options)) {
+      env_(std::move(env)) {
+  session_options_ = SessionOptions::Create(target_device, env_);
+
   model_loader_.set_disconnect_handler(
       base::BindOnce(&CompilerContextImplOrt::OnModelLoaderDisconnected,
                      base::Unretained(this)));
@@ -104,7 +102,6 @@ void CompilerContextImplOrt::CreateGraphBuilder(
 
 // TODO(crbug.com/508864477): Remove the constant tensor operands parameter.
 void CompilerContextImplOrt::BuildGraph(
-    mojo::PendingReceiver<mojom::WebNNGraph> receiver,
     mojom::GraphInfoPtr graph_info,
     WebNNGraphImpl::ComputeResourceInfo compute_resource_info,
     base::flat_map<OperandId, std::unique_ptr<WebNNConstantOperand>>
@@ -129,8 +126,7 @@ void CompilerContextImplOrt::BuildGraph(
                      std::move(graph_info), session_options_, env_, properties_,
                      std::move(constant_operands)),
       base::BindOnce(&CompilerContextImplOrt::DidCompile,
-                     base::Unretained(this), std::move(receiver),
-                     std::move(compute_resource_info),
+                     base::Unretained(this), std::move(compute_resource_info),
                      std::move(wrapped_callback)));
 }
 
@@ -225,7 +221,6 @@ CompilerContextImplOrt::CompileOnBackgroundThread(
 }
 
 void CompilerContextImplOrt::DidCompile(
-    mojo::PendingReceiver<mojom::WebNNGraph> graph_receiver,
     WebNNGraphImpl::ComputeResourceInfo compute_resource_info,
     BuildGraphCallback callback,
     base::expected<std::unique_ptr<CompilationResult>, mojom::ErrorPtr>
@@ -263,9 +258,9 @@ void CompilerContextImplOrt::DidCompile(
       mojom::CompiledGraph::New(std::move(compilation->compiled_model_data),
                                 std::move(inputs), std::move(outputs));
 
-  // Send compiled graph and graph receiver to GPU process.
+  // Send compiled graph to GPU process.
   model_loader_->LoadCompiledGraph(
-      std::move(compiled_graph), std::move(graph_receiver),
+      std::move(compiled_graph),
       base::BindOnce(
           [](BuildGraphCallback callback,
              base::expected<mojom::LoadedGraphInfoPtr, mojom::ErrorPtr>

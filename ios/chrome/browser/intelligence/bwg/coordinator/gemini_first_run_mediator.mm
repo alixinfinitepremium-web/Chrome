@@ -104,8 +104,9 @@ const CGFloat kPromoMaxImpressionCount = 3;
 
 - (void)disconnect {
   if (_FRECompletion) {
-    _FRECompletion(NO);
+    void (^completion)(BOOL) = _FRECompletion;
     _FRECompletion = nil;
+    completion(NO);
   }
 }
 
@@ -201,7 +202,7 @@ const CGFloat kPromoMaxImpressionCount = 3;
 
 // Did consent to Live Gemini.
 - (void)didConsentToLiveGemini {
-  gemini::UpdateUserConsentPrefs(YES, _prefService);
+  gemini::UpdateUserConsentToLivePrefs(YES, _prefService);
   __weak __typeof(self) weakSelf = self;
   [_delegate dismissGeminiConsentUIWithCompletion:^{
     [weakSelf handleFRECompletion:YES];
@@ -240,17 +241,13 @@ const CGFloat kPromoMaxImpressionCount = 3;
   }
 
   [self logPromoShown];
-
-  GeminiTabHelper* geminiTabHelper = [self activeWebStateGeminiTabHelper];
-  if (geminiTabHelper) {
-    geminiTabHelper->SetIsFirstRun(true);
-  }
 }
 
 - (void)handleFRECompletion:(BOOL)success {
   if (_FRECompletion) {
-    _FRECompletion(success);
+    void (^completion)(BOOL) = _FRECompletion;
     _FRECompletion = nil;
+    completion(success);
   }
 }
 

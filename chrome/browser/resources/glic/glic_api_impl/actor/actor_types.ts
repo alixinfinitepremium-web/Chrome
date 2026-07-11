@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import type {ActorTaskInterruptReason, ActorTaskPauseReason, ActorTaskState, ActorTaskStopReason, AutofillSuggestion, CancelActionsResult, Credential, FormFillingRequest, FormFillingResponse, Journal, NavigationConfirmationRequest, NavigationConfirmationResponse, SelectAutofillSuggestionsDialogRequest, SelectAutofillSuggestionsDialogResponse, SelectCredentialDialogRequest, SelectCredentialDialogResponse, TabContextOptions, TaskOptions, UserConfirmationDialogRequest, UserConfirmationDialogResponse} from '../../glic_api/glic_api.js';
+import type {ActorTaskInterruptReason, ActorTaskPauseReason, ActorTaskState, ActorTaskStopReason, AutofillSuggestion, CancelActionsResult, Credential, FormFillingRequest, FormFillingResponse, Journal, NavigationConfirmationRequest, NavigationConfirmationResponse, SelectAutofillSuggestionsDialogRequest, SelectAutofillSuggestionsDialogResponse, SelectCredentialDialogRequest, SelectCredentialDialogResponse, TabContextOptions, TaskOptions, UserConfirmationDialogRequest, UserConfirmationDialogResponse, GmailOtpOptInRequest, GmailOtpOptInResponse} from '../../glic_api/glic_api.js';
 import type {ResumeActorTaskResultPrivate, RgbaImage, TabContextResultPrivate, TabDataPrivate} from '../request_types.js';
 import {defInterface, defMessage} from '../transport/messaging.js';
 
@@ -20,7 +20,6 @@ export const ActorHostDef = defInterface({
       response: defMessage<{
         tabContextResult: TabContextResultPrivate,
       }>(),
-      backgroundAllowed: true,
       histogram: {
         id: 11,
       },
@@ -33,7 +32,6 @@ export const ActorHostDef = defInterface({
       response: defMessage<{
         taskId: number,
       }>(),
-      backgroundAllowed: true,
       histogram: {
         id: 60,
       },
@@ -46,7 +44,6 @@ export const ActorHostDef = defInterface({
       response: defMessage<{
         actionsResult: ArrayBuffer,
       }>(),
-      backgroundAllowed: true,
       histogram: {
         id: 61,
       },
@@ -59,7 +56,6 @@ export const ActorHostDef = defInterface({
       response: defMessage<{
         result: CancelActionsResult,
       }>(),
-      backgroundAllowed: true,
       histogram: {
         id: 85,
       },
@@ -70,7 +66,6 @@ export const ActorHostDef = defInterface({
         taskId: number,
         stopReason: ActorTaskStopReason,
       }>(),
-      backgroundAllowed: true,
       histogram: {
         id: 13,
       },
@@ -82,7 +77,6 @@ export const ActorHostDef = defInterface({
         pauseReason: ActorTaskPauseReason,
         tabId: string,
       }>(),
-      backgroundAllowed: true,
       histogram: {
         id: 14,
       },
@@ -96,7 +90,6 @@ export const ActorHostDef = defInterface({
       response: defMessage<{
         resumeActorTaskResult: ResumeActorTaskResultPrivate,
       }>(),
-      backgroundAllowed: true,
       histogram: {
         id: 15,
       },
@@ -107,7 +100,6 @@ export const ActorHostDef = defInterface({
         taskId: number,
         interruptReason?: ActorTaskInterruptReason,
       }>(),
-      backgroundAllowed: true,
       histogram: {
         id: 74,
       },
@@ -117,7 +109,6 @@ export const ActorHostDef = defInterface({
       request: defMessage<{
         taskId: number,
       }>(),
-      backgroundAllowed: true,
       histogram: {
         id: 75,
       },
@@ -136,7 +127,6 @@ export const ActorHostDef = defInterface({
         // Undefined on failure.
         tabData?: TabDataPrivate,
       }>(),
-      backgroundAllowed: true,
       histogram: {
         id: 77,
       },
@@ -149,7 +139,6 @@ export const ActorHostDef = defInterface({
         event: string,
         details: string,
       }>(),
-      backgroundAllowed: true,
       histogram: {
         id: 30,
       },
@@ -160,7 +149,6 @@ export const ActorHostDef = defInterface({
         asyncEventId: number,
         details: string,
       }>(),
-      backgroundAllowed: true,
       histogram: {
         id: 31,
       },
@@ -172,14 +160,12 @@ export const ActorHostDef = defInterface({
         event: string,
         details: string,
       }>(),
-      backgroundAllowed: true,
       histogram: {
         id: 32,
       },
     },
     {
       name: 'journalClear',
-      backgroundAllowed: true,
       histogram: {
         id: 33,
       },
@@ -192,7 +178,6 @@ export const ActorHostDef = defInterface({
       response: defMessage<{
         journal: Journal,
       }>(),
-      backgroundAllowed: true,
       histogram: {
         id: 34,
       },
@@ -203,14 +188,12 @@ export const ActorHostDef = defInterface({
         maxBytes: number,
         captureScreenshots: boolean,
       }>(),
-      backgroundAllowed: true,
       histogram: {
         id: 35,
       },
     },
     {
       name: 'journalStop',
-      backgroundAllowed: true,
       histogram: {
         id: 36,
       },
@@ -221,7 +204,6 @@ export const ActorHostDef = defInterface({
         positive: boolean,
         reason: string,
       }>(),
-      backgroundAllowed: true,
       histogram: {
         id: 37,
       },
@@ -232,7 +214,6 @@ export const ActorHostDef = defInterface({
         taskId: number,
         params: {formFillingRequestIndex: number},
       }>(),
-      backgroundAllowed: true,
       histogram: {
         id: 87,
       },
@@ -246,7 +227,6 @@ export const ActorHostDef = defInterface({
           response?: FormFillingResponse,
         },
       }>(),
-      backgroundAllowed: true,
       histogram: {
         id: 88,
       },
@@ -260,7 +240,6 @@ export const ActorHostDef = defInterface({
           response: FormFillingResponse,
         },
       }>(),
-      backgroundAllowed: true,
       histogram: {
         id: 89,
       },
@@ -278,7 +257,6 @@ export const ActorClientDef = defInterface({
         taskId: number,
         state: ActorTaskState,
       }>(),
-      backgroundAllowed: true,
     },
     {
       name: 'requestToShowDialog',
@@ -288,7 +266,6 @@ export const ActorClientDef = defInterface({
       response: defMessage<{
         response: SelectCredentialDialogResponsePrivate,
       }>(),
-      backgroundAllowed: true,
     },
     {
       name: 'requestToShowConfirmationDialog',
@@ -298,7 +275,6 @@ export const ActorClientDef = defInterface({
       response: defMessage<{
         response: UserConfirmationDialogResponsePrivate,
       }>(),
-      backgroundAllowed: true,
     },
     {
       name: 'requestToConfirmNavigation',
@@ -308,7 +284,6 @@ export const ActorClientDef = defInterface({
       response: defMessage<{
         response: NavigationConfirmationResponsePrivate,
       }>(),
-      backgroundAllowed: true,
     },
     {
       name: 'requestToShowAutofillSuggestionsDialog',
@@ -317,6 +292,15 @@ export const ActorClientDef = defInterface({
       }>(),
       response: defMessage<{
         response: SelectAutofillSuggestionsDialogResponsePrivate,
+      }>(),
+    },
+    {
+      name: 'requestToShowGmailOtpOptInDialog',
+      request: defMessage<{
+        request: GmailOtpOptInRequestPrivate,
+      }>(),
+      response: defMessage<{
+        response: GmailOtpOptInResponsePrivate,
       }>(),
       backgroundAllowed: true,
     },
@@ -414,3 +398,17 @@ export enum SelectAutofillSuggestionsDialogErrorReason {
   NO_ACTOR_TASK_DELEGATE = 2,
 }
 // LINT.ThenChange(//chrome/common/actor_webui.mojom:SelectAutofillSuggestionsDialogErrorReason)
+
+export declare interface GmailOtpOptInRequestPrivate extends
+    Omit<GmailOtpOptInRequest, 'onDialogClosed'> {}
+
+export declare interface GmailOtpOptInResponsePrivate extends
+    GmailOtpOptInResponse {
+  errorReason?: GmailOtpOptInErrorReason;
+}
+
+// LINT.IfChange(GmailOtpOptInErrorReason)
+export enum GmailOtpOptInErrorReason {
+  REQUEST_PROMISE_NO_SUBSCRIBER = 0,
+}
+// LINT.ThenChange(//chrome/common/actor_webui.mojom:GmailOtpOptInErrorReason)

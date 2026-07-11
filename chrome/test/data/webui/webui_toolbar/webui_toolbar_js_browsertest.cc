@@ -29,12 +29,20 @@ class WebUiToolbarJsTest : public WebUIMochaBrowserTest {
   base::test::ScopedFeatureList scoped_feature_list_;
 };
 
+IN_PROC_BROWSER_TEST_F(WebUiToolbarJsTest, AppMenuButton) {
+  RunTest("webui_toolbar/app_menu_button_test.js", "mocha.run();");
+}
+
 IN_PROC_BROWSER_TEST_F(WebUiToolbarJsTest, ReadOnlyOmnibox) {
   RunTest("webui_toolbar/readonly_omnibox_test.js", "mocha.run();");
 }
 
 IN_PROC_BROWSER_TEST_F(WebUiToolbarJsTest, ContentSettingIcon) {
   RunTest("webui_toolbar/content_setting_icon_test.js", "mocha.run();");
+}
+
+IN_PROC_BROWSER_TEST_F(WebUiToolbarJsTest, PageActionIcon) {
+  RunTest("webui_toolbar/page_action_icon_test.js", "mocha.run();");
 }
 
 IN_PROC_BROWSER_TEST_F(WebUiToolbarJsTest, PinnedToolbarAction) {
@@ -63,8 +71,16 @@ IN_PROC_BROWSER_TEST_F(WebUiToolbarJsTest, MAYBE_PermissionChip) {
   RunTest("webui_toolbar/permission_chip_test.js", "mocha.run();");
 }
 
+IN_PROC_BROWSER_TEST_F(WebUiToolbarJsTest, PermissionDashboard) {
+  RunTest("webui_toolbar/permission_dashboard_test.js", "mocha.run();");
+}
+
 IN_PROC_BROWSER_TEST_F(WebUiToolbarJsTest, ToolbarButton) {
   RunTest("webui_toolbar/toolbar_button_test.js", "mocha.run();");
+}
+
+IN_PROC_BROWSER_TEST_F(WebUiToolbarJsTest, ToolbarChipButton) {
+  RunTest("webui_toolbar/toolbar_chip_button_test.js", "mocha.run();");
 }
 
 IN_PROC_BROWSER_TEST_F(WebUiToolbarJsTest, ToolbarApp) {

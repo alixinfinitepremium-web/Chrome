@@ -23,7 +23,6 @@
 #include "chrome/browser/profiles/profile_manager.h"
 #include "chrome/browser/themes/theme_properties.h"
 #include "chrome/browser/ui/ash/session/session_util.h"
-#include "chrome/browser/ui/ash/system_web_apps/system_web_app_ui_utils.h"
 #include "chrome/browser/ui/browser.h"
 #include "chrome/browser/ui/browser_element_identifiers.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_features.h"
@@ -31,9 +30,9 @@
 #include "chrome/browser/ui/color/chrome_color_id.h"
 #include "chrome/browser/ui/exclusive_access/exclusive_access_manager.h"
 #include "chrome/browser/ui/exclusive_access/fullscreen_controller.h"
+#include "chrome/browser/ui/immersive/immersive_mode_controller.h"
 #include "chrome/browser/ui/views/frame/browser_view.h"
 #include "chrome/browser/ui/views/frame/browser_widget.h"
-#include "chrome/browser/ui/views/frame/immersive_mode_controller.h"
 #include "chrome/browser/ui/views/frame/tab_strip_region_view.h"
 #include "chrome/browser/ui/views/frame/top_container_view.h"
 #include "chrome/browser/ui/views/profiles/profile_indicator_icon.h"
@@ -99,7 +98,8 @@ DEFINE_UI_CLASS_PROPERTY_KEY(BrowserFrameViewChromeOS*,
 // the header used for packaged apps.
 bool UsePackagedAppHeaderStyle(const Browser* browser) {
   if (browser->is_type_normal() ||
-      (browser->is_type_popup() && !browser->is_trusted_source())) {
+      (browser->is_type_popup() &&
+       !WindowFeatureController::From(browser)->IsTrustedSource())) {
     return false;
   }
 
@@ -208,21 +208,28 @@ void BrowserFrameViewChromeOS::Init() {
   window_observation_.Observe(GetFrameWindow());
 
   if (apps::AppServiceProxyFactory::IsAppServiceAvailableForProfile(
-          browser->profile())) {
+          browser->GetProfile())) {
     app_registry_cache_observation_.Observe(
-        &apps::AppServiceProxyFactory::GetForProfile(browser->profile())
+        &apps::AppServiceProxyFactory::GetForProfile(browser->GetProfile())
              ->AppRegistryCache());
   }
 
   // To preserve privacy, tag incognito windows so that they won't be included
   // in screenshot sent to assistant server.
-  if (browser->profile()->IsOffTheRecord()) {
+  if (browser->GetProfile()->IsOffTheRecord()) {
     browser_widget()->GetNativeWindow()->SetProperty(
         chromeos::kBlockedForAssistantSnapshotKey, true);
   }
 
   display_observer_.emplace(this);
   frame_header_ = CreateFrameHeader();
+
+  // BrowserFrameViewChromeOS should not paint titles for Web Apps given that
+  // client view (BrowserView) paints/manages the window title for Web Apps.
+  // (See `BrowserView::web_app_window_title_`)
+  if (GetBrowserView()->GetIsWebAppType()) {
+    frame_header_->SetPaintTitleBar(false);
+  }
 
   if (AppIsPwaWithUnframedDisplayMode()) {
     UpdateUnframedModeEnabled();
@@ -253,17 +260,12 @@ BrowserLayoutParams BrowserFrameViewChromeOS::GetBrowserLayoutParams() const {
     params.trailing_exclusion.content =
         gfx::SizeF(width() - caption_bounds.x(), height);
   }
+  MaybeAddAppIconToLayoutParams(params);
   return params;
 }
 
 bool BrowserFrameViewChromeOS::ShouldShowWebAppFrameToolbar() const {
   if (!GetShowCaptionButtons()) {
-    return false;
-  }
-
-  if (GetBrowserView()->browser()->is_type_app_popup() &&
-      !GetBrowserView()->AppUsesWindowControlsOverlay() &&
-      !GetBrowserView()->AppUsesUnframedMode()) {
     return false;
   }
 
@@ -497,9 +499,10 @@ void BrowserFrameViewChromeOS::Layout(PassKey) {
 
 gfx::Size BrowserFrameViewChromeOS::GetMinimumSize() const {
   // System web apps (e.g. Settings) may have a fixed minimum size.
-  Browser* browser = GetBrowserView()->browser();
-  if (ash::IsSystemWebApp(browser)) {
-    gfx::Size minimum_size = ash::GetSystemWebAppMinimumWindowSize(browser);
+  const auto* const swa_delegate =
+      web_app::GetSystemWebAppDelegate(GetBrowserView()->browser());
+  if (swa_delegate) {
+    gfx::Size minimum_size = swa_delegate->GetMinimumWindowSize();
     if (!minimum_size.IsEmpty()) {
       return minimum_size;
     }
@@ -972,7 +975,7 @@ bool BrowserFrameViewChromeOS::GetShowProfileIndicatorIcon() const {
   // between multi-user sessions. Note that you can't teleport an incognito
   // window.
   Browser* browser = GetBrowserView()->browser();
-  if (browser->profile()->IsIncognitoProfile()) {
+  if (browser->GetProfile()->IsIncognitoProfile()) {
     return false;
   }
 
@@ -1000,10 +1003,20 @@ void BrowserFrameViewChromeOS::UpdateProfileIcons() {
     if (needs_layout && root_view) {
       // Adding a child does not invalidate the layout.
       InvalidateLayout();
+      if (GetBrowserView()->GetIsWebAppType()) {
+        // We must invalidate the BrowserView layout as it is responsible for
+        // painting the window title in web apps (See
+        // `BrowserView::web_app_window_title_`).
+        GetBrowserView()->InvalidateLayout();
+      }
       root_view->DeprecatedLayoutImmediately();
     }
   } else if (profile_indicator_icon_) {
     RemoveChildViewT(std::exchange(profile_indicator_icon_, nullptr));
+    InvalidateLayout();
+    if (GetBrowserView()->GetIsWebAppType()) {
+      GetBrowserView()->InvalidateLayout();
+    }
     if (root_view) {
       root_view->DeprecatedLayoutImmediately();
     }
@@ -1039,10 +1052,30 @@ void BrowserFrameViewChromeOS::UpdateWindowRoundedCorners() {
   GetWidget()->client_view()->UpdateWindowRoundedCorners(window_radii);
 }
 
+void BrowserFrameViewChromeOS::MaybeAddAppIconToLayoutParams(
+    BrowserLayoutParams& params) const {
+  if (GetBrowserView()->ShouldShowWindowIcon() && window_icon_) {
+    const auto icon_bounds = window_icon_->bounds();
+    const float icon_right = icon_bounds.right();
+    const float icon_bottom = icon_bounds.bottom();
+
+    // The icon may extend the size of the exclusion area.
+    params.leading_exclusion.content.set_width(
+        std::max(params.leading_exclusion.content.width(), icon_right));
+    params.leading_exclusion.content.set_height(
+        std::max(params.leading_exclusion.content.height(), icon_bottom));
+
+    // Default space between window icon and title text for ChromeOS.
+    // (See `kTitleIconOffsetX` in chromeos/ui/frame/frame_header.cc).
+    params.leading_exclusion.horizontal_padding = 5.f;
+  }
+}
+
 void BrowserFrameViewChromeOS::LayoutProfileIndicator() {
   DCHECK(profile_indicator_icon_);
   const int frame_height =
-      GetTopInset(false) + GetClientFrameElementInfo().top_area_height();
+      GetTopInset(false) +
+      GetClientFrameElementInfo().tabstrip_preferred_height;
   profile_indicator_icon_->SetPosition(
       gfx::Point(kProfileIndicatorPadding,
                  (frame_height - profile_indicator_icon_->height()) / 2));

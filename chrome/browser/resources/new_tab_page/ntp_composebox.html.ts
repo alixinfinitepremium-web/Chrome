@@ -88,14 +88,19 @@ export function getHtml(this: NtpComposeboxElement) {
             @input-focusin="${this.onInputFocusin}"
             @cancel-click="${this.onCancelClick}"
             @clear-smart-compose="${this.onClearSmartCompose}">
+          ${this.shouldShowVoiceSearch() ? html`
+            <cr-icon-button id="voiceSearchButton" class="voice-icon"
+                slot="action-buttons"
+                part="voice-icon" iron-icon="cr:mic"
+                @click="${this.onVoiceSearchButtonClick}"
+                title="${this.i18n('voiceSearchButtonLabel')}">
+            </cr-icon-button>
+          ` : ''}
         </cr-composebox-input>
         <div id="context" part="context-entrypoint">
           <cr-composebox-file-inputs id="fileInputs"
               @file-change="${this.onFileChange}"
               .disableFileInputs="${this.shouldDisableFileInputs()}">
-            ${this.contextMenuEnabled ? html`
-                ${getContextMenuHtml.bind(this)()}
-            ` : ''}
             <div id="carouselContainer" part="carousel-container">
               <div class="carousel-container-inner">
                 ${this.showFileCarousel ? html`
@@ -106,7 +111,9 @@ export function getHtml(this: NtpComposeboxElement) {
                     .files="${this.getFilteredCarouselFiles()}"
                     @delete-file="${this.onDeleteFile}">
                   </cr-composebox-file-carousel> ` : ''}
-
+                  ${this.contextMenuEnabled ? html`
+                      ${getContextMenuHtml.bind(this)()}
+                  ` : ''}
                   ${this.inToolMode ? html`
                   <div class="context-menu-container" id="toolChipsContainer"
                       part="tool-chips-container">

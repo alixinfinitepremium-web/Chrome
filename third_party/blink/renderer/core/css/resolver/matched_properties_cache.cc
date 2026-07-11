@@ -57,16 +57,8 @@ static unsigned ComputeMatchedPropertiesHash(const MatchResult& result,
                                HashTraits<unsigned>::DeletedValue();
                       }))
       << "This should have been checked in AddMatchedProperties()";
-  unsigned hash = StringHasher::HashMemory(base::as_byte_span(hashes));
-  hash = HashInts(hash, additional_hash);
-
-  // See CSSPropertyValueSet::ComputeHash() for asserts that this is safe.
-  if (hash == HashTraits<unsigned>::EmptyValue() ||
-      hash == HashTraits<unsigned>::DeletedValue()) {
-    hash ^= 0x80000000;
-  }
-
-  return hash;
+  unsigned hash = StringHasher::HashMemory32(base::as_byte_span(hashes));
+  return EnsureValidHash(HashInts(hash, additional_hash));
 }
 
 CachedMatchedProperties::CachedMatchedProperties(

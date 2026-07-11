@@ -51,6 +51,12 @@ BASE_FEATURE_PARAM(int,
                    "ad-auction-signals-max-size-bytes",
                    10000);
 
+// Controls whether JavaScript execution inside AudioWorkletProcessor::Process()
+// runs under strict IEEE-754 floating-point semantics (disabling FTZ/DAZ).
+// Enabled by default as a remote kill-switch.
+BASE_FEATURE(kAudioWorkletJSDenormalEnabler,
+             base::FEATURE_ENABLED_BY_DEFAULT);
+
 #if BUILDFLAG(IS_ANDROID)
 // If enabled, then use desktop page webprefs for Android devices that have
 // large displays, specifically tablets and desktops.
@@ -68,6 +74,9 @@ BASE_FEATURE(kAndroidDesktopUAPlatform, base::FEATURE_DISABLED_BY_DEFAULT);
 // desktop Android devices, when kAndroidDesktopUAPlatform is disabled.
 BASE_FEATURE(kAndroidDesktopUASpoofAsChromeOS,
              base::FEATURE_DISABLED_BY_DEFAULT);
+
+// Gated prewarming of system fonts on Android to background threads.
+BASE_FEATURE(kAndroidSystemFontPrewarming, base::FEATURE_DISABLED_BY_DEFAULT);
 #endif
 
 // Avoids copying ResourceRequest::TrustedParams when possible.
@@ -76,11 +85,10 @@ BASE_FEATURE(kAvoidTrustedParamsCopies, base::FEATURE_ENABLED_BY_DEFAULT);
 // When enabled, fast-exits the mixed-content checks for secure URLs.
 BASE_FEATURE(kOptimizeMixedContentChecks, base::FEATURE_ENABLED_BY_DEFAULT);
 
-#if BUILDFLAG(IS_ANDROID)
+// When enabled, caches the stripped outgoing referrer URL on Document.
+BASE_FEATURE(kCacheDocumentOutgoingReferrer, base::FEATURE_ENABLED_BY_DEFAULT);
+
 BASE_FEATURE(kUnthrottleAsyncTouchMoves, base::FEATURE_ENABLED_BY_DEFAULT);
-#else
-BASE_FEATURE(kUnthrottleAsyncTouchMoves, base::FEATURE_DISABLED_BY_DEFAULT);
-#endif
 
 const base::FeatureParam<AsyncTouchMoveThrottlingPolicy>::Option
     async_touch_move_throttling_policies[] = {
@@ -96,8 +104,11 @@ BASE_FEATURE_ENUM_PARAM(
     AsyncTouchMoveThrottlingPolicy::kUnthrottledWhenGsuUnconsumed,
     &async_touch_move_throttling_policies);
 
+// Exports this feature so that Rust code can use it.
+extern "C" {
 // Block all MIDI access with the MIDI_SYSEX permission
 BASE_FEATURE(kBlockMidiByDefault, base::FEATURE_ENABLED_BY_DEFAULT);
+}
 
 BASE_FEATURE(kComputePressureRateObfuscationMitigation,
              base::FEATURE_ENABLED_BY_DEFAULT);
@@ -141,14 +152,6 @@ BASE_FEATURE(kAudioWorkletThreadRealtimePeriodMac,
 // A thread pool system for effective usage of RealtimeAudioWorkletThread
 // instances.
 BASE_FEATURE(kAudioWorkletThreadPool, base::FEATURE_ENABLED_BY_DEFAULT);
-
-// If enabled, WebFormElement applies the same special case to nested forms
-// as it does for the outermost form. The fix is relevant only to Autofill.
-// For other callers of HTMLFormElement::ListedElements(), which don't traverse
-// shadow trees and flatten nested forms, are not affected by the feature at
-// all. This is a kill switch.
-BASE_FEATURE(kAutofillFixFieldsAssociatedWithNestedFormsByParser,
-             base::FEATURE_ENABLED_BY_DEFAULT);
 
 // https://crbug.com/1472970
 BASE_FEATURE(kAutoSpeculationRules, base::FEATURE_DISABLED_BY_DEFAULT);
@@ -488,6 +491,11 @@ BASE_FEATURE(kCreateImageBitmapOrientationNone,
 // Blob URL in the generated Import Map.
 BASE_FEATURE(kDeclarativeCSSModulesUseDataURI,
              base::FEATURE_DISABLED_BY_DEFAULT);
+
+BASE_FEATURE_PARAM(bool,
+                   kDeclarativePerformanceObserverSupportCaptureEarlyFailures,
+                   &kDeclarativePerformanceObserver,
+                   true);
 
 BASE_FEATURE(kDataUrlWorkerOpaqueOrigin, base::FEATURE_ENABLED_BY_DEFAULT);
 
@@ -984,6 +992,8 @@ BASE_FEATURE(kForceHighPerformanceGPUForWebGL,
 BASE_FEATURE(kOffscreenCanvasPropagateVisibility,
              base::FEATURE_DISABLED_BY_DEFAULT);
 
+BASE_FEATURE(kWebGLDiscardBackBuffer, base::FEATURE_DISABLED_BY_DEFAULT);
+
 BASE_FEATURE(kForceSkcmsICCParsing, base::FEATURE_DISABLED_BY_DEFAULT);
 
 BASE_FEATURE(kForceSkExifCppParsing, base::FEATURE_DISABLED_BY_DEFAULT);
@@ -1076,6 +1086,12 @@ constexpr base::FeatureParam<int>
         /*name=*/"compression-threshold",
         /*default_value=*/-1};
 
+BASE_FEATURE(kIndexedDBConnectionDeduplication,
+             base::FEATURE_DISABLED_BY_DEFAULT);
+
+BASE_FEATURE(kIDBDatabaseExternalMemoryAccounting,
+             base::FEATURE_DISABLED_BY_DEFAULT);
+
 BASE_FEATURE(kInlineScriptCache, base::FEATURE_DISABLED_BY_DEFAULT);
 
 BASE_FEATURE_PARAM(size_t,
@@ -1093,6 +1109,11 @@ BASE_FEATURE_PARAM(bool,
                    &kInlineScriptCache,
                    "enable_for_default_hint",
                    true);
+
+// Gating the migration of Android IME cursor anchor updates from Mojo IPC to
+// RenderFrameMetadata.
+BASE_FEATURE(kInputCursorAnchorInfoMigration,
+             base::FEATURE_DISABLED_BY_DEFAULT);
 
 BASE_FEATURE(kInputPredictorTypeChoice, base::FEATURE_DISABLED_BY_DEFAULT);
 
@@ -1912,6 +1933,8 @@ BASE_FEATURE_PARAM(int,
 
 BASE_FEATURE(kMHTML_Improvements, base::FEATURE_DISABLED_BY_DEFAULT);
 
+BASE_FEATURE(kMoveResizeWindowToIPCs, base::FEATURE_ENABLED_BY_DEFAULT);
+
 // Used to control the collection of anchor element metrics (crbug.com/856683).
 // If kNavigationPredictor is enabled, then metrics of anchor elements
 // in the first viewport after the page load and the metrics of the clicked
@@ -1983,6 +2006,11 @@ BASE_FEATURE_PARAM(bool,
 // out of process.  Has no effect when kCanvasOopRasterization is disabled.
 BASE_FEATURE(kPath2DPaintCache, base::FEATURE_DISABLED_BY_DEFAULT);
 
+// TODO(mcnee): Required for merge safety to M151. Default enable and remove
+// after this release.
+BASE_FEATURE(kPopulateDOMNodeIdInFocusedNodeDetails,
+             base::FEATURE_DISABLED_BY_DEFAULT);
+
 BASE_FEATURE(kDedicatedWorkerAblationStudyEnabled,
              base::FEATURE_DISABLED_BY_DEFAULT);
 
@@ -1991,10 +2019,6 @@ BASE_FEATURE_PARAM(int,
                    &kDedicatedWorkerAblationStudyEnabled,
                    "DedicatedWorkerStartDelayInMs",
                    0);
-
-// Fix for https://crbug.com/454354290.
-BASE_FEATURE(kUpdatedDeviceMemoryLimitsFor2026,
-             base::FEATURE_ENABLED_BY_DEFAULT);
 
 BASE_FEATURE(kUseAncestorRenderFrameForWorker,
              base::FEATURE_ENABLED_BY_DEFAULT);
@@ -2265,7 +2289,7 @@ BASE_FEATURE_PARAM(bool,
                    "disable_resource_load",
                    false);
 
-BASE_FEATURE(kRustyBmpFeature, base::FEATURE_DISABLED_BY_DEFAULT);
+BASE_FEATURE(kRustyBmpFeature, base::FEATURE_ENABLED_BY_DEFAULT);
 
 BASE_FEATURE(kUnrestrictSpellingAndGrammarForTesting,
              base::FEATURE_DISABLED_BY_DEFAULT);
@@ -2294,7 +2318,12 @@ BASE_FEATURE(kScrollPredictorFilteringBypassOnSynthetic,
              base::FEATURE_DISABLED_BY_DEFAULT);
 
 BASE_FEATURE(kScrollPredictorRefinedHasPrediction,
-             base::FEATURE_DISABLED_BY_DEFAULT);
+#if BUILDFLAG(IS_ANDROID)
+             base::FEATURE_ENABLED_BY_DEFAULT
+#else
+             base::FEATURE_DISABLED_BY_DEFAULT
+#endif
+);
 
 BASE_FEATURE(kScrollPredictorSyntheticKalman,
              base::FEATURE_DISABLED_BY_DEFAULT);
@@ -2618,6 +2647,13 @@ BASE_FEATURE_PARAM(base::TimeDelta,
 
 BASE_FEATURE(kVSyncEncoding, base::FEATURE_DISABLED_BY_DEFAULT);
 
+#if BUILDFLAG(IS_ANDROID)
+bool IsVirtualKeyboardGeometryAndInsetFixesEnabled() {
+  return base::FeatureList::IsEnabled(
+      base::features::kVirtualKeyboardGeometryAndInsetFixes);
+}
+#endif
+
 // Server-side kill switch for applying the local VisualViewport transform
 // (page scale + visual viewport location) when mapping visual rects into
 // viewport space in LayoutView's slow path (ancestor == nullptr). This keeps
@@ -2626,17 +2662,7 @@ BASE_FEATURE(kVisualRectMappingApplyLocalVisualViewportTransform,
              base::FEATURE_ENABLED_BY_DEFAULT);
 
 BASE_FEATURE(kWebBluetoothCancelConnect,
-// TODO(382556910): Enable on Windows when DCHECK issue is resolved.
-// TODO(40502943): Enable on Android when connect callback can be called when
-// cancelled.
-// GATT connect on Windows/Android will timeout after a few seconds if the
-// device is unreachable, so it does not have hang issue like MacOS which
-// definitely needs cancel to get from the hang state.
-#if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_ANDROID)
-             base::FEATURE_DISABLED_BY_DEFAULT);
-#else
              base::FEATURE_ENABLED_BY_DEFAULT);
-#endif  // BUILDFLAG(IS_WIN) || BUILDFLAG(IS_ANDROID)
 
 BASE_FEATURE(kWebRtcUseCaptureBeginTimestamp, base::FEATURE_ENABLED_BY_DEFAULT);
 

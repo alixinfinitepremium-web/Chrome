@@ -30,6 +30,7 @@
 #include "cc/base/features.h"
 #include "components/input/utils.h"
 #include "components/viz/common/constants.h"
+#include "components/viz/common/display/display_scheduler_draw_result.h"
 #include "components/viz/common/features.h"
 #include "components/viz/common/frame_sinks/begin_frame_args.h"
 #include "components/viz/common/frame_sinks/begin_frame_source.h"
@@ -72,10 +73,6 @@ BASE_FEATURE(kDisconnectOnInvalidHitTestRegionList,
              base::FEATURE_ENABLED_BY_DEFAULT);
 
 namespace {
-
-// The maximum amount of time to wait for a new interactive frame before
-// assuming that interaction has ended.
-constexpr base::TimeDelta kInteractionTimeout = base::Milliseconds(250);
 
 bool RecordShouldSendBeginFrame(const std::string& reason, bool should_send) {
   TRACE_EVENT2("viz", "SendBeginFrameDecision", "reason", reason, "should_send",
@@ -287,22 +284,7 @@ void CompositorFrameSinkSupport::SetAllowThrottling(bool allowed) {
   throttler_.SetAllowThrottling(allowed);
 }
 
-void CompositorFrameSinkSupport::SetThrottledDueToInteraction(bool throttled) {
-  throttler_.SetThrottledDueToInteraction(throttled);
-}
 
-void CompositorFrameSinkSupport::SetIsHandlingInteraction(
-    bool is_handling_interaction) {
-  if (is_handling_interaction_ != is_handling_interaction) {
-    is_handling_interaction_ = is_handling_interaction;
-    frame_sink_manager_->OnFrameSinkInteractionChanged(frame_sink_id_,
-                                                       is_handling_interaction);
-  }
-
-  if (is_handling_interaction_) {
-    last_interaction_time_ = base::TimeTicks::Now();
-  }
-}
 
 void CompositorFrameSinkSupport::OnSurfaceCommitted(Surface* surface) {
   if (surface->HasPendingFrame()) {
@@ -601,7 +583,6 @@ void CompositorFrameSinkSupport::EvictLastActiveSurface() {
 
 void CompositorFrameSinkSupport::SetNeedsBeginFrame(bool needs_begin_frame) {
   client_needs_begin_frame_ = needs_begin_frame;
-  SetIsHandlingInteraction(false);
   UpdateNeedsBeginFramesInternal();
 }
 
@@ -686,13 +667,6 @@ bool CompositorFrameSinkSupport::DidNotProduceFrame(const BeginFrameAck& ack) {
   BeginFrameAck modified_ack(ack);
   modified_ack.has_damage = false;
 
-  // We only check for a timeout if we are currently handling an interaction.
-  if (is_handling_interaction_ &&
-      (last_begin_frame_args_.frame_time - last_interaction_time_) >=
-          kInteractionTimeout) {
-    SetIsHandlingInteraction(false);
-  }
-
   // If the client doesn't produce a frame, we assume it's no longer interactive
   // for scheduling.
   if (last_activated_surface_id_.is_valid()) {
@@ -701,7 +675,8 @@ bool CompositorFrameSinkSupport::DidNotProduceFrame(const BeginFrameAck& ack) {
   }
 
   if (begin_frame_source_) {
-    begin_frame_source_->DidFinishFrame(this);
+    begin_frame_source_->DidFinishFrame(
+        this, DisplaySchedulerDrawResult::kDidNotDraw);
     frame_sink_manager_->DidFinishFrame(frame_sink_id_, last_begin_frame_args_);
   }
   return true;
@@ -1014,11 +989,6 @@ SubmitResult CompositorFrameSinkSupport::MaybeSubmitCompositorFrame(
       return SubmitResult::HIT_TEST_DATA_INVALID;
     }
   }
-  // Update the interaction state at the end of this method to ensure it only
-  // reflects valid frames that were successfully accepted. This prevents
-  // invalid frames (e.g. those with a size mismatch) from affecting the global
-  // interaction state.
-  SetIsHandlingInteraction(frame.metadata.is_handling_interaction);
 
   Surface::QueueFrameResult result = current_surface->QueueFrame(
       std::move(frame), frame_index, std::move(frame_rejected_callback));
@@ -1035,7 +1005,8 @@ SubmitResult CompositorFrameSinkSupport::MaybeSubmitCompositorFrame(
   }
 
   if (begin_frame_source_) {
-    begin_frame_source_->DidFinishFrame(this);
+    begin_frame_source_->DidFinishFrame(this,
+                                        DisplaySchedulerDrawResult::kUnknown);
     frame_sink_manager_->DidFinishFrame(frame_sink_id_, last_begin_frame_args_);
   }
 
@@ -1242,7 +1213,8 @@ void CompositorFrameSinkSupport::OnBeginFrame(const BeginFrameArgs& args) {
       frame_timing_details_.clear();
     }
   } else if (begin_frame_source_) {
-    begin_frame_source_->DidFinishFrame(this);
+    begin_frame_source_->DidFinishFrame(
+        this, DisplaySchedulerDrawResult::kDidNotDraw);
   }
 }
 

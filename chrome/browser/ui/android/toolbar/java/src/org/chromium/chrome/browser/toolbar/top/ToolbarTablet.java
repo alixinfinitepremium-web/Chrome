@@ -42,7 +42,6 @@ import org.chromium.chrome.browser.omnibox.fusebox.FuseboxCoordinator.FuseboxSta
 import org.chromium.chrome.browser.omnibox.status.StatusCoordinator;
 import org.chromium.chrome.browser.tabmodel.IncognitoStateProvider;
 import org.chromium.chrome.browser.theme.ThemeColorProvider;
-import org.chromium.chrome.browser.theme.ThemeUtils;
 import org.chromium.chrome.browser.toolbar.R;
 import org.chromium.chrome.browser.toolbar.ToolbarDataProvider;
 import org.chromium.chrome.browser.toolbar.ToolbarProgressBar;
@@ -157,8 +156,7 @@ public class ToolbarTablet extends ToolbarLayout {
                 .getFuseboxStateSupplier()
                 .addSyncObserverAndPostIfNonNull(
                         mCallbackController.makeCancelable(mFuseboxStateObserver));
-        final @ColorInt int color = SemanticColorUtils.getColorSurfaceContainer(getContext());
-        mLocationBar.getTabletCoordinator().tintBackground(color);
+        mLocationBar.updateVisualsForState();
 
         mToolbarWidthConsumers[ToolbarComponentId.OMNIBOX_BOOKMARK] =
                 mLocationBar.getBookmarkButtonToolbarWidthConsumer();
@@ -289,10 +287,6 @@ public class ToolbarTablet extends ToolbarLayout {
     public void onThemeColorChanged(@ColorInt int color, boolean shouldAnimate) {
         setBackgroundColor(color);
         mFixedHeightBackground.setBackgroundColor(color);
-        final @ColorInt int textBoxColor =
-                ThemeUtils.getTextBoxColorForToolbarBackgroundInNonNativePage(
-                        getContext(), color, isIncognitoBranded(), /* isCustomTab= */ false);
-        mLocationBar.getTabletCoordinator().tintBackground(textBoxColor);
         mLocationBar.updateVisualsForState();
         setToolbarHairlineColor(color);
 
@@ -459,16 +453,23 @@ public class ToolbarTablet extends ToolbarLayout {
 
     @Override
     public void setExtensionsToolbarCoordinator(
-            ExtensionsToolbarCoordinator extensionsToolbarCoordinator) {
+            @Nullable ExtensionsToolbarCoordinator extensionsToolbarCoordinator) {
         mExtensionsToolbarCoordinator = extensionsToolbarCoordinator;
-        mToolbarWidthConsumers[ToolbarComponentId.POPPED_EXTENSION_ACTION] =
-                mExtensionsToolbarCoordinator.getPoppedOutActionWidthConsumer();
-        mToolbarWidthConsumers[ToolbarComponentId.EXTENSIONS_MENU_BUTTON] =
-                mExtensionsToolbarCoordinator.getMenuButtonWidthConsumer();
-        mToolbarWidthConsumers[ToolbarComponentId.EXTENSIONS_REQUEST_ACCESS_BUTTON] =
-                mExtensionsToolbarCoordinator.getRequestAccessButtonWidthConsumer();
-        mToolbarWidthConsumers[ToolbarComponentId.EXTENSION_ACTION_LIST] =
-                mExtensionsToolbarCoordinator.getActionListWidthConsumer();
+        if (mExtensionsToolbarCoordinator != null) {
+            mToolbarWidthConsumers[ToolbarComponentId.POPPED_EXTENSION_ACTION] =
+                    mExtensionsToolbarCoordinator.getPoppedOutActionWidthConsumer();
+            mToolbarWidthConsumers[ToolbarComponentId.EXTENSIONS_MENU_BUTTON] =
+                    mExtensionsToolbarCoordinator.getMenuButtonWidthConsumer();
+            mToolbarWidthConsumers[ToolbarComponentId.EXTENSIONS_REQUEST_ACCESS_BUTTON] =
+                    mExtensionsToolbarCoordinator.getRequestAccessButtonWidthConsumer();
+            mToolbarWidthConsumers[ToolbarComponentId.EXTENSION_ACTION_LIST] =
+                    mExtensionsToolbarCoordinator.getActionListWidthConsumer();
+        } else {
+            mToolbarWidthConsumers[ToolbarComponentId.POPPED_EXTENSION_ACTION] = null;
+            mToolbarWidthConsumers[ToolbarComponentId.EXTENSIONS_MENU_BUTTON] = null;
+            mToolbarWidthConsumers[ToolbarComponentId.EXTENSIONS_REQUEST_ACCESS_BUTTON] = null;
+            mToolbarWidthConsumers[ToolbarComponentId.EXTENSION_ACTION_LIST] = null;
+        }
     }
 
     @Override
@@ -502,6 +503,10 @@ public class ToolbarTablet extends ToolbarLayout {
 
     @Override
     public LocationBar getLocationBar() {
+        return mLocationBar;
+    }
+
+    public LocationBarCoordinator getLocationBarCoordinatorForTesting() {
         return mLocationBar;
     }
 
@@ -690,6 +695,7 @@ public class ToolbarTablet extends ToolbarLayout {
     private class ToolbarPaddingWidthConsumer implements ToolbarWidthConsumer {
         private final View mToolbarView;
         private final int mHorizontalPadding;
+        private boolean mHasSpaceToShow;
 
         ToolbarPaddingWidthConsumer(View toolbarView, int horizontalPadding) {
             mToolbarView = toolbarView;
@@ -703,11 +709,17 @@ public class ToolbarTablet extends ToolbarLayout {
         }
 
         @Override
+        public boolean hasSpaceToShow() {
+            return mHasSpaceToShow;
+        }
+
+        @Override
         public int updateVisibility(int availableWidth) {
             assert availableWidth >= 0;
             int paddingWidth = Math.min(availableWidth, 2 * mHorizontalPadding);
             mToolbarView.setPaddingRelative(
                     paddingWidth / 2, getPaddingTop(), paddingWidth / 2, getPaddingBottom());
+            mHasSpaceToShow = paddingWidth > 0;
             return paddingWidth;
         }
 
@@ -719,19 +731,32 @@ public class ToolbarTablet extends ToolbarLayout {
     }
 
     private class LocationBarMinWidthConsumer implements ToolbarWidthConsumer {
+        private boolean mHasSpaceToShow;
+
         @Override
         public boolean isVisible() {
             return true;
         }
 
         @Override
+        public boolean hasSpaceToShow() {
+            return mHasSpaceToShow;
+        }
+
+        @Override
         public int updateVisibility(int availableWidth) {
             assert ToolbarUtils.isToolbarTabletResizeRefactorEnabled();
-            return Math.min(
-                    availableWidth,
-                    (int)
-                            (MINIMUM_LOCATION_BAR_WIDTH_DP
-                                    * getContext().getResources().getDisplayMetrics().density));
+            int width =
+                    Math.min(
+                            availableWidth,
+                            (int)
+                                    (MINIMUM_LOCATION_BAR_WIDTH_DP
+                                            * getContext()
+                                                    .getResources()
+                                                    .getDisplayMetrics()
+                                                    .density));
+            mHasSpaceToShow = width > 0;
+            return width;
         }
 
         @Override
@@ -742,9 +767,16 @@ public class ToolbarTablet extends ToolbarLayout {
     }
 
     private class OptionalButtonToolbarWidthConsumer implements ToolbarWidthConsumer {
+        private boolean mHasSpaceToShow;
+
         @Override
         public boolean isVisible() {
             return mOptionalButton != null && mOptionalButton.getVisibility() == View.VISIBLE;
+        }
+
+        @Override
+        public boolean hasSpaceToShow() {
+            return mHasSpaceToShow;
         }
 
         @Override
@@ -752,11 +784,13 @@ public class ToolbarTablet extends ToolbarLayout {
             assert ToolbarUtils.isToolbarTabletResizeRefactorEnabled();
             if (mOptionalButtonForciblyHidden) {
                 setOptionalButtonVisibility(false);
+                mHasSpaceToShow = false;
                 return 0;
             }
 
             int width = getResources().getDimensionPixelSize(R.dimen.toolbar_button_width);
-            setOptionalButtonVisibility(availableWidth >= width);
+            mHasSpaceToShow = availableWidth >= width;
+            setOptionalButtonVisibility(mHasSpaceToShow);
             return Math.min(availableWidth, width);
         }
 
@@ -960,7 +994,7 @@ public class ToolbarTablet extends ToolbarLayout {
         for (@ToolbarComponentId int toolbarComponentId : toolbarComponents) {
             @Nullable ToolbarWidthConsumer widthConsumer =
                     mToolbarWidthConsumers[toolbarComponentId];
-            if (widthConsumer == null || !widthConsumer.isVisible()) return true;
+            if (widthConsumer == null || !widthConsumer.hasSpaceToShow()) return true;
         }
         return false;
     }

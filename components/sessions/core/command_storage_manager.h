@@ -133,6 +133,8 @@ class SESSIONS_EXPORT CommandStorageManager {
   base::Value ToDebugValue() const;
 #endif  // DCHECK_IS_ON()
 
+  base::FilePath GetBackendDirectoryForTesting(bool is_encrypted);
+
  private:
   friend class CommandStorageManagerTestHelper;
 
@@ -166,6 +168,9 @@ class SESSIONS_EXPORT CommandStorageManager {
   // This backend will eventually replace the cleartext |backend_|; the launch
   // is being tracked in crbug.com/479420496.
   scoped_refptr<CommandStorageBackend> encrypted_backend_;
+
+  // Pending operations waiting for `encrypted_backend_` initialization.
+  std::vector<base::OnceClosure> pending_encrypted_ops_;
 
   // Commands we need to send over to the backend.
   std::vector<std::unique_ptr<SessionCommand>> pending_commands_;

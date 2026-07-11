@@ -53,6 +53,8 @@ source_set("sync") {
     "sync_startup_tracker.h",
     "sync_ui_util.cc",
     "sync_ui_util.h",
+    "tab_context_sync_service_factory.cc",
+    "tab_context_sync_service_factory.h",
     "user_event_service_factory.cc",
     "user_event_service_factory.h",
   ]
@@ -76,6 +78,7 @@ source_set("sync") {
     "//components/sync_preferences",
     "//components/sync_preferences:common_syncable_prefs_database",
     "//components/sync_sessions",
+    "//components/sync_tab_context",
     "//components/translate/core/browser",
     "//content/public/browser",
 
@@ -164,6 +167,7 @@ source_set("sync") {
     "//components/sync_preferences:features",
     "//components/sync_preferences/cross_device_pref_tracker",
     "//components/sync_user_events",
+    "//components/themes/cross_device",
     "//components/user_manager",
     "//components/variations/service",
     "//components/webauthn/core/browser:passkey_model",
@@ -212,6 +216,8 @@ source_set("sync") {
     ]
   } else {
     sources += [
+      "cross_device_theme_tracker_factory.cc",
+      "cross_device_theme_tracker_factory.h",
       "sessions/browser_list_router_helper.cc",
       "sessions/browser_list_router_helper.h",
     ]
@@ -221,6 +227,7 @@ source_set("sync") {
     ]
     deps += [
       "//chrome/browser/accessibility/tree_fixing:prefs",
+      "//chrome/browser/themes",
       "//chrome/browser/ui/read_anything:prefs",
       "//chrome/browser/ui/tabs:tab_strip",
       "//chrome/browser/ui/tabs/saved_tab_groups",
@@ -378,6 +385,41 @@ source_set("unit_tests") {
     deps += [
       "//chrome/browser/extensions",
       "//extensions/common",
+    ]
+  }
+}
+
+if (!is_android) {
+  source_set("browser_tests") {
+    testonly = true
+
+    defines = [ "HAS_OUT_OF_PROC_TEST_RUNNER" ]
+
+    sources = [
+      "sessions/browser_list_router_helper_browsertest.cc",
+      "sessions/sync_sessions_router_tab_helper_browsertest.cc",
+      "sync_ui_util_browsertest.cc",
+    ]
+
+    deps = [
+      ":sync",
+      "//base",
+      "//chrome/browser:browser_process",
+      "//chrome/browser/profiles:profile",
+      "//chrome/browser/resource_coordinator",
+      "//chrome/browser/translate",
+      "//chrome/browser/ui",
+      "//chrome/browser/ui/sync",
+      "//chrome/test:test_support",
+      "//chrome/test:test_support_ui",
+      "//components/language/core/common",
+      "//components/sessions:session_id",
+      "//components/sync:test_support",
+      "//components/sync_sessions",
+      "//components/translate/core/browser",
+      "//content/public/common",
+      "//content/test:test_support",
+      "//testing/gtest",
     ]
   }
 }

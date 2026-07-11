@@ -149,16 +149,12 @@ void BackForwardButton::OnMouseEntered(const ui::MouseEvent& event) {
 }
 
 bool BackForwardButton::OnMousePressed(const ui::MouseEvent& event) {
-  const bool play_animation = features::IsToolbarGlowUpEnabled() &&
+  const bool play_animation = features::IsToolbarGlowUpBackForwardEnabled() &&
                               !ui::TouchUiController::Get()->touch_ui() &&
                               event.IsLeftMouseButton();
 
   if (play_animation) {
     views::SingleAnimatedImageContainer::AnimationConfig config{
-        .direction =
-            views::SingleAnimatedImageContainer::AnimationDirection::kForward,
-        .end_behavior =
-            views::SingleAnimatedImageContainer::AnimationEndBehavior::kReset,
         .boundary =
             views::SingleAnimatedImageContainer::AnimationBoundary{
                 .start_offset = 0.0f, .end_offset = 0.5f},
@@ -167,7 +163,9 @@ bool BackForwardButton::OnMousePressed(const ui::MouseEvent& event) {
     animated_image_container().PlayAnimation(
         {direction_ == Direction::kBack ? IDR_BACK_ARROW_LOTTIE
                                         : IDR_FORWARD_ARROW_LOTTIE,
-         GetForegroundColor(GetState())},
+         GetForegroundColor(GetState()),
+         views::SingleAnimatedImageContainer::AnimationDirection::kForward,
+         views::SingleAnimatedImageContainer::AnimationEndBehavior::kReset},
         config);
   }
 

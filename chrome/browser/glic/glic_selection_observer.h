@@ -18,24 +18,26 @@
 #include "base/time/time.h"
 #include "base/timer/timer.h"
 #include "chrome/browser/glic/host/host.h"
+#include "components/optimization_guide/content/browser/page_context_eligibility_observer.h"
 #include "components/shared_highlighting/core/common/shared_highlighting_metrics.h"
 #include "content/public/browser/render_widget_host.h"
 #include "content/public/browser/weak_document_ptr.h"
 #include "content/public/browser/web_contents_observer.h"
 #include "mojo/public/cpp/bindings/remote.h"
 #include "third_party/blink/public/mojom/link_to_text/link_to_text.mojom.h"
-#include "ui/views/widget/widget.h"
 
 namespace content {
 class Page;
 class RenderFrameHost;
 }  // namespace content
 
-namespace views {
-class Widget;
-}  // namespace views
-
 class BrowserWindowInterface;
+enum class ToastId;
+
+namespace optimization_guide {
+class PageContextEligibilityObserver;
+class PageContextEligibility;
+}  // namespace optimization_guide
 
 namespace glic {
 
@@ -88,6 +90,7 @@ class GlicSelectionObserver
   void RenderFrameDeleted(content::RenderFrameHost* render_frame_host) override;
   void OnVisibilityChanged(content::Visibility visibility) override;
   void PrimaryPageChanged(content::Page& page) override;
+  void PrimaryMainFrameWasResized(bool width_changed) override;
   void OnWebContentsLostFocus(
       content::RenderWidgetHost* render_widget_host) override;
 
@@ -101,6 +104,7 @@ class GlicSelectionObserver
  private:
   void ProcessPendingSelection();
   void ResetPendingSelection();
+  void ProcessInputEvent(std::unique_ptr<blink::WebInputEvent> event);
 
   void OnGlobalPanelShowHide();
 
@@ -118,6 +122,7 @@ class GlicSelectionObserver
   void OnCopyLink();
   void OnHideForThisSite();
   void OnSettings();
+  void ShowHiddenToast(ToastId toast_id);
 
   void CopyLinkToHighlight(content::WeakDocumentPtr weak_document_ptr);
 
@@ -131,6 +136,13 @@ class GlicSelectionObserver
       shared_highlighting::LinkGenerationReadyStatus ready_status);
 
   void RequestLinkGeneration(content::RenderFrameHost* rfh);
+
+  void OnPageContextEligibilityChanged(
+      optimization_guide::PageContextEligibilityStatus status);
+  void CreatePageContextEligibilityAPI(std::string account);
+  void OnPageContextEligibilityAPILoaded(
+      std::string account,
+      optimization_guide::PageContextEligibility* page_context_eligibility);
 
   raw_ptr<GlicKeyedService> glic_keyed_service_;
   base::CallbackListSubscription panel_state_subscription_;
@@ -165,9 +177,8 @@ class GlicSelectionObserver
   // target dependencies in the build configuration.
   class WidgetActionDelegate;
 
-  void OnWidgetClosed(views::Widget::ClosedReason reason);
+  void OnWidgetClose();
 
-  std::unique_ptr<views::Widget> selection_widget_;
   std::unique_ptr<GlicSelectionWidgetDelegate> widget_delegate_;
   std::unique_ptr<WidgetActionDelegate> action_delegate_;
   // True if the user temporarily blocked the selection widget for the current
@@ -178,9 +189,20 @@ class GlicSelectionObserver
   mojo::Remote<blink::mojom::TextFragmentReceiver> text_fragment_remote_;
   std::optional<GURL> generated_link_;
 
-  base::WeakPtrFactory<GlicSelectionObserver> weak_ptr_factory_{this};
-
   friend class GlicSelectionObserverTest;
+
+ protected:
+  bool IsPageContextEligible() const;
+
+  ::optimization_guide::PageContextEligibilityObserver* page_context_tracker() {
+    return page_context_tracker_.get();
+  }
+
+ private:
+  base::CallbackListSubscription page_context_eligibility_subscription_;
+  std::unique_ptr<::optimization_guide::PageContextEligibilityObserver>
+      page_context_tracker_;
+  base::WeakPtrFactory<GlicSelectionObserver> weak_ptr_factory_{this};
 };
 
 }  // namespace glic

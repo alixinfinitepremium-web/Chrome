@@ -9,6 +9,7 @@
 #include "base/time/time.h"
 #include "chrome/browser/multistep_filter/ui/filter_ui_controller.h"
 #include "chrome/test/base/chrome_render_view_host_test_harness.h"
+#include "components/multistep_filter/core/data_models/suggestion_user_decision.h"
 #include "components/multistep_filter/core/data_models/url_filter_suggestion.h"
 #include "components/tabs/public/mock_tab_interface.h"
 #include "testing/gmock/include/gmock/gmock.h"
@@ -20,6 +21,8 @@ namespace multistep_filter {
 
 namespace {
 
+using ::testing::_;
+
 constexpr int64_t kTestNavigationId = 0;
 
 class MockFilterUiController : public FilterUiController {
@@ -30,7 +33,8 @@ class MockFilterUiController : public FilterUiController {
 
   MOCK_METHOD(void,
               OnSuggestionGenerated,
-              (std::optional<UrlFilterSuggestion> suggestion),
+              (std::optional<UrlFilterSuggestion> suggestion,
+               MultistepFilterUiDelegate::SuggestionUiCallbacks callbacks),
               (override));
   MOCK_METHOD(void, ClearSuggestion, (SuggestionUserDecision), (override));
 };
@@ -66,9 +70,8 @@ TEST_F(MultistepFilterUiDelegateImplTest, ClearSuggestion_WithController) {
   auto mock_controller =
       std::make_unique<testing::NiceMock<MockFilterUiController>>(*mock_tab_);
 
-  EXPECT_CALL(
-      *mock_controller,
-      ClearSuggestion(FilterUiController::SuggestionUserDecision::kIgnored));
+  EXPECT_CALL(*mock_controller,
+              ClearSuggestion(SuggestionUserDecision::kIgnored));
   delegate_->ClearSuggestion();
 }
 
@@ -85,18 +88,16 @@ TEST_F(MultistepFilterUiDelegateImplTest,
   const GURL suggestion_url("https://suggestion.com");
   UrlFilterSuggestion suggestion(UrlFilterSuggestion::Params{
       .navigation_url = suggestion_url,
-      .source_domain = u"suggestion.com",
       .source_host = u"suggestion.com",
       .extraction_timestamp = base::Time::Now(),
       .attribute_ui_labels = {},
       .triggering_navigation_id = kTestNavigationId,
-      .triggering_domain = "suggestion.com",
       .triggering_host = "suggestion.com",
       .task_type = "task1"});
 
   EXPECT_CALL(*mock_controller,
-              OnSuggestionGenerated(testing::Optional(suggestion)));
-  delegate_->OnSuggestionGenerated(suggestion);
+              OnSuggestionGenerated(testing::Optional(suggestion), _));
+  delegate_->OnSuggestionGenerated(suggestion, {});
 }
 
 TEST_F(MultistepFilterUiDelegateImplTest,
@@ -104,31 +105,14 @@ TEST_F(MultistepFilterUiDelegateImplTest,
   const GURL suggestion_url("https://suggestion.com");
   UrlFilterSuggestion suggestion(UrlFilterSuggestion::Params{
       .navigation_url = suggestion_url,
-      .source_domain = u"suggestion.com",
       .source_host = u"suggestion.com",
       .extraction_timestamp = base::Time::Now(),
       .attribute_ui_labels = {},
       .triggering_navigation_id = kTestNavigationId,
-      .triggering_domain = "suggestion.com",
       .triggering_host = "suggestion.com",
       .task_type = "task1"});
   // Should not crash when there is no controller.
-  delegate_->OnSuggestionGenerated(suggestion);
-}
-
-TEST_F(MultistepFilterUiDelegateImplTest, GetWeakPtr) {
-  base::WeakPtr<MultistepFilterUiDelegate> weak_ptr = delegate_->GetWeakPtr();
-  EXPECT_TRUE(weak_ptr);
-
-  delegate_.reset();
-  EXPECT_FALSE(weak_ptr);
-}
-
-TEST_F(MultistepFilterUiDelegateImplTest, ClearSuggestion_InvalidatesWeakPtr) {
-  base::WeakPtr<MultistepFilterUiDelegate> weak_ptr = delegate_->GetWeakPtr();
-  EXPECT_TRUE(weak_ptr);
-  delegate_->ClearSuggestion();
-  EXPECT_FALSE(weak_ptr);
+  delegate_->OnSuggestionGenerated(suggestion, {});
 }
 
 }  // namespace

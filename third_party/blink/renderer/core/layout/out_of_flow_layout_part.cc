@@ -920,8 +920,7 @@ void OutOfFlowLayoutPart::ComputeInlineContainingBlocks(
 
   for (auto& candidate : candidates) {
     const LayoutInline* inline_container = candidate.InlineContainer();
-    if (inline_container &&
-        !inline_container_fragments.Contains(inline_container)) {
+    if (inline_container) {
       InlineContainingBlockUtils::InlineContainingBlockGeometry
           inline_geometry = {};
       inline_container_fragments.insert(inline_container, inline_geometry);
@@ -974,9 +973,9 @@ void OutOfFlowLayoutPart::ComputeInlineContainingBlocksForFragmentainer(
           descendant.InlineContainerInfo().RelativeOffset();
       auto it = inline_containing_blocks.find(containing_block);
       if (it != inline_containing_blocks.end()) {
-        if (!it->value.map.Contains(inline_container)) {
-          it->value.map.insert(inline_container, inline_geometry);
-        }
+        // insert() leaves any existing entry untouched, so the prior
+        // Contains() guard was a redundant second lookup.
+        it->value.map.insert(inline_container, inline_geometry);
         continue;
       }
       InlineContainingBlockUtils::InlineContainingBlockMap inline_container_map;
@@ -1074,12 +1073,10 @@ void OutOfFlowLayoutPart::AddInlineContainingBlockInfo(
     //
     // Note in cases [2a, 2b] we don't allow a "negative" containing block size,
     // we clamp negative sizes to zero.
-    const ComputedStyle* inline_cb_style = block_info.key->Style();
-    DCHECK(inline_cb_style);
+    const ComputedStyle& inline_cb_style = block_info.key->StyleRef();
 
-    const auto inline_writing_direction =
-        inline_cb_style->GetWritingDirection();
-    BoxStrut inline_cb_borders = ComputeBordersForInline(*inline_cb_style);
+    const auto inline_writing_direction = inline_cb_style.GetWritingDirection();
+    BoxStrut inline_cb_borders = ComputeBordersForInline(inline_cb_style);
     DCHECK_EQ(container_writing_direction.GetWritingMode(),
               inline_writing_direction.GetWritingMode());
 
@@ -2335,7 +2332,6 @@ OutOfFlowLayoutPart::OffsetInfo OutOfFlowLayoutPart::CalculateOffset(
       anchor_evaluator.GetDisplayLocksAffectedByAnchors();
 
   if (anchor_evaluator.DidResolveAnchorWithRunningTransformAnimation()) {
-    DCHECK(RuntimeEnabledFeatures::CSSAnchorWithTransformsEnabled());
     container_builder_->SetHasRunningAnchorTransformAnimation();
   }
 

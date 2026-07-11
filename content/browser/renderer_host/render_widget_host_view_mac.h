@@ -194,7 +194,7 @@ class CONTENT_EXPORT RenderWidgetHostViewMac
   bool HasSavedCompositorFrame() const override;
 
   void TransformPointToRootSurface(gfx::PointF* point) override;
-  gfx::Rect GetBoundsInRootWindow() override;
+  gfx::Rect GetBoundsInScreen() override;
   void UpdateScreenInfo() override;
   viz::ScopedSurfaceIdAllocator DidUpdateVisualProperties(
       const cc::RenderFrameMetadata& metadata) override;
@@ -467,6 +467,8 @@ class CONTENT_EXPORT RenderWidgetHostViewMac
   id GetAccessibilityFocusedUIElement() override;
 
   void SetShowingContextMenu(bool showing) override;
+
+  void SetSupportsAutoFill(bool supports) override;
 
   // Helper method to obtain ui::TextInputType for the active widget from the
   // TextInputManager.

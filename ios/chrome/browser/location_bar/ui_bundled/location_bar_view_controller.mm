@@ -25,8 +25,8 @@
 #import "ios/chrome/browser/intelligence/features/features.h"
 #import "ios/chrome/browser/intelligence/page_action_menu/ui/page_action_menu_entrypoint_view.h"
 #import "ios/chrome/browser/lens/ui_bundled/lens_entrypoint.h"
-#import "ios/chrome/browser/lens_overlay/coordinator/lens_overlay_availability.h"
 #import "ios/chrome/browser/lens_overlay/model/lens_overlay_presentation_type.h"
+#import "ios/chrome/browser/lens_overlay/public/lens_overlay_availability.h"
 #import "ios/chrome/browser/lens_overlay/ui/lens_overlay_entrypoint_view.h"
 #import "ios/chrome/browser/location_bar/ui_bundled/badges_container_view.h"
 #import "ios/chrome/browser/location_bar/ui_bundled/fakebox_buttons_snapshot_provider.h"
@@ -180,6 +180,7 @@ const CGFloat kGeminiLiveCircleSize = 20.0;
 
 @implementation LocationBarViewController {
   BOOL _isNTP;
+  BOOL _active;
   // Stores a snapshot of the fakebox buttons that is overlaid on the Location
   // Bar and anchored to the trailing edge during focus transitions (when it is
   // faded out) and defocus transitions (when it is faded in).
@@ -331,8 +332,6 @@ const CGFloat kGeminiLiveCircleSize = 20.0;
   [self.locationBarSteadyView setBadgeView:self.badgeView];
   if (self.readerModeChipView) {
     [self.locationBarSteadyView setReaderModeChipView:self.readerModeChipView];
-    [self.layoutGuideCenter referenceView:self.readerModeChipView
-                                underName:kReaderModeOptionsEntrypointGuide];
   }
 
   if (IsPageActionMenuEnabled()) {
@@ -341,15 +340,11 @@ const CGFloat kGeminiLiveCircleSize = 20.0;
                addTarget:self
                   action:@selector(handlePageActionMenuEntrypointTapped)
         forControlEvents:UIControlEventTouchUpInside];
-    [self.layoutGuideCenter referenceView:_pageActionMenuEntrypointView
-                                underName:kPageActionMenuEntrypointGuide];
   }
 
   if (IsLensOverlayAllowedByPolicy(_profilePrefs)) {
     _lensOverlayPlaceholderView = [[LensOverlayEntrypointButton alloc]
         initWithProfilePrefs:_profilePrefs];
-    [self.layoutGuideCenter referenceView:_lensOverlayPlaceholderView
-                                underName:kLensOverlayEntrypointGuide];
 
     [_lensOverlayPlaceholderView
                addTarget:self
@@ -461,6 +456,16 @@ const CGFloat kGeminiLiveCircleSize = 20.0;
   if (IsProactiveSuggestionsFrameworkEnabled()) {
     _locationBarSteadyView.pageActionMenuHandler = self.pageActionMenuHandler;
   }
+
+  [self updateLayoutGuides];
+}
+
+- (void)setActive:(BOOL)active {
+  if (_active == active) {
+    return;
+  }
+  _active = active;
+  [self updateLayoutGuides];
 }
 
 #pragma mark - FullscreenUIElement
@@ -772,7 +777,7 @@ const CGFloat kGeminiLiveCircleSize = 20.0;
           removeTarget:nil
                 action:nil
       forControlEvents:UIControlEventAllEvents];
-  self.locationBarSteadyView.trailingButton.hidden = NO;
+  [self.locationBarSteadyView setTrailingButtonHidden:NO];
 
   TrailingButtonState state = self.trailingButtonState;
   if (state == kShareButton && self.hideShareButtonWhileOnIncognitoNTP) {
@@ -781,7 +786,7 @@ const CGFloat kGeminiLiveCircleSize = 20.0;
 
   switch (state) {
     case kNoButton: {
-      self.locationBarSteadyView.trailingButton.hidden = YES;
+      [self.locationBarSteadyView setTrailingButtonHidden:YES];
       break;
     };
     case kShareButton: {
@@ -934,6 +939,49 @@ const CGFloat kGeminiLiveCircleSize = 20.0;
         forControlEvents:UIControlEventTouchUpInside];
 }
 
+// Updates the layout guides to point to the entrypoints in this toolbar.
+- (void)updateLayoutGuides {
+  if (!self.isViewLoaded) {
+    return;
+  }
+  if (_active) {
+    if (self.readerModeChipView) {
+      [self.layoutGuideCenter referenceView:self.readerModeChipView
+                                  underName:kReaderModeOptionsEntrypointGuide];
+    }
+    if (_pageActionMenuEntrypointView) {
+      [self.layoutGuideCenter referenceView:_pageActionMenuEntrypointView
+                                  underName:kPageActionMenuEntrypointGuide];
+    }
+    if (IsLensOverlayAllowedByPolicy(_profilePrefs)) {
+      [self.layoutGuideCenter referenceView:_lensOverlayPlaceholderView
+                                  underName:kLensOverlayEntrypointGuide];
+    }
+  } else {
+    if (self.readerModeChipView &&
+        [self.layoutGuideCenter
+            referencedViewUnderName:kReaderModeOptionsEntrypointGuide] ==
+            self.readerModeChipView) {
+      [self.layoutGuideCenter referenceView:nil
+                                  underName:kReaderModeOptionsEntrypointGuide];
+    }
+    if (_pageActionMenuEntrypointView &&
+        [self.layoutGuideCenter
+            referencedViewUnderName:kPageActionMenuEntrypointGuide] ==
+            _pageActionMenuEntrypointView) {
+      [self.layoutGuideCenter referenceView:nil
+                                  underName:kPageActionMenuEntrypointGuide];
+    }
+    if (IsLensOverlayAllowedByPolicy(_profilePrefs) &&
+        [self.layoutGuideCenter
+            referencedViewUnderName:kLensOverlayEntrypointGuide] ==
+            _lensOverlayPlaceholderView) {
+      [self.layoutGuideCenter referenceView:nil
+                                  underName:kLensOverlayEntrypointGuide];
+    }
+  }
+}
+
 #pragma mark - UIContextMenuInteractionDelegate
 
 - (UIMenu*)contextMenuUIMenu:(NSArray<UIMenuElement*>*)suggestedActions {
@@ -1064,7 +1112,7 @@ const CGFloat kGeminiLiveCircleSize = 20.0;
   }
 
   // Used to easily trigger the Assistant sheet during development.
-  if (IsAssistantContainerEnabled()) {
+  if (IsAssistantContainerDebugEnabled()) {
     UIAction* assistantAction = [UIAction
         actionWithTitle:l10n_util::GetNSString(IDS_IOS_APP_BAR_ASK_GEMINI)
                   image:DefaultSymbolWithPointSize(kMagicStackSymbol,
@@ -1177,9 +1225,6 @@ const CGFloat kGeminiLiveCircleSize = 20.0;
     willDisplayMenuForConfiguration:(UIContextMenuConfiguration*)configuration
                            animator:
                                (id<UIContextMenuInteractionAnimating>)animator {
-  if (!IsGeminiCopresenceEnabled()) {
-    return;
-  }
 
   [self.geminiHandler
       hideFloatyIfInvokedAnimated:YES
@@ -1423,6 +1468,13 @@ const CGFloat kGeminiLiveCircleSize = 20.0;
 - (void)setCustomLeadingViewVisible:(BOOL)visible animated:(BOOL)animated {
   [self.locationBarSteadyView updateCustomLeadingViewVisibility:visible
                                                        animated:animated];
+}
+
+- (CGFloat)locationBarTextWidth {
+  if (!IsToolbarGlassPrototypeEnabled()) {
+    return 0.0;
+  }
+  return [self.locationBarSteadyView.locationLabel intrinsicContentSize].width;
 }
 
 @end

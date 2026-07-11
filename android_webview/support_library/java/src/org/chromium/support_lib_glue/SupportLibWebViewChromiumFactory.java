@@ -11,8 +11,8 @@ import android.webkit.WebView;
 
 import androidx.annotation.GuardedBy;
 import androidx.annotation.IntDef;
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 
 import com.android.webview.chromium.CallbackConverter;
 import com.android.webview.chromium.ProfileStore;
@@ -26,6 +26,8 @@ import com.android.webview.chromium.WebkitToSharedGlueConverter;
 import org.chromium.android_webview.AwProxyController;
 import org.chromium.android_webview.AwServiceWorkerController;
 import org.chromium.android_webview.AwTracingController;
+import org.chromium.android_webview.common.AwFeatures;
+import org.chromium.android_webview.common.WebViewCachedFlags;
 import org.chromium.base.TraceEvent;
 import org.chromium.base.metrics.RecordHistogram;
 import org.chromium.support_lib_boundary.StaticsBoundaryInterface;
@@ -37,7 +39,9 @@ import org.chromium.support_lib_boundary.util.Features;
 
 import java.lang.reflect.InvocationHandler;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -142,12 +146,36 @@ public class SupportLibWebViewChromiumFactory implements WebViewProviderFactoryB
                 Features.NAVIGATION_GET_WEB_RESOURCE_ERROR,
                 Features.BACK_FORWARD_CACHE_SETTINGS_V4,
                 Features.WEBVIEW_NAVIGATE_V1,
-                Features.DOWNLOAD_FAVICONS_ENABLED + Features.DEV_SUFFIX,
-                Features.HTTP_CACHE_MANAGER + Features.DEV_SUFFIX,
+                Features.DOWNLOAD_FAVICONS_ENABLED,
+                Features.HTTP_CACHE_MANAGER,
                 // Add new features above. New features must include `+ Features.DEV_SUFFIX`
-                // when they're initially added (this can be removed in a future CL). The final
-                // feature should have a trailing comma for cleaner diffs.
+                // when they're initially added (this can be removed in a future CL). The one
+                // exception is when adding a new method to an interface that extends from
+                // FeatureFlagHolderBoundaryInterface - these may be added without the suffix.
+                // For more information, see:
+                // https://android.googlesource.com/platform/frameworks/support/+/androidx-main/webkit/webkit/CONTRIBUTING.md#feature-checking-callback-interfaces
+                //
+                // The final feature should have a trailing comma for cleaner diffs.
             };
+
+    // ENQUEUE_PRECONNECT schedules a preconnect task to run asynchronously once native Chromium
+    // startup completes. To invoke enqueuePreconnect(), an app must first obtain a Profile via
+    // ProfileStore. If WEBVIEW_PROFILE_STORE_NOT_TRIGGER_STARTUP is disabled, accessing the
+    // ProfileStore or Profile synchronously triggers Chromium startup. In that case,
+    // enqueuePreconnect() would be redundant as native init has already occurred. Thus, its
+    // availability is conditioned on the Lazy Profile flag.
+    private static final Map<String, String> sWebViewSupportedFeaturesWithCachedFlagConditions =
+            Map.of(
+                    Features.ENQUEUE_PRECONNECT,
+                    AwFeatures.WEBVIEW_PROFILE_STORE_NOT_TRIGGER_STARTUP);
+
+    // mAwInit.getLazyInitLock() guards access to fields that are lazily initialized.
+    // This lock is shared across WebViewChromiumAwInit, WebViewChromiumFactoryProvider,
+    // and SupportLibWebViewChromiumFactory. Sharing a single global lock instead of using
+    // local locks (e.g. synchronized(this)) prevents lock inversion deadlocks when lazy
+    // initializations cross the boundaries of these glue layers
+    @GuardedBy("mAwInit.getLazyInitLock()")
+    private String[] mSupportedFeaturesCache;
 
     // These values are persisted to logs. Entries should not be renumbered and
     // numeric values should never be reused.
@@ -348,6 +376,7 @@ public class SupportLibWebViewChromiumFactory implements WebViewProviderFactoryB
         ApiCall.HTTP_CACHE_USE_DEFAULT_QUOTA,
         ApiCall.HTTP_CACHE_GET_QUOTA_BYTES,
         ApiCall.HTTP_CACHE_SET_QUOTA_BYTES,
+        ApiCall.ENQUEUE_PRECONNECT,
         // Add new constants above. The final constant should have a trailing comma for cleaner
         // diffs.
         ApiCall.COUNT, // Added to suppress WrongConstant in #recordApiCall
@@ -558,8 +587,9 @@ public class SupportLibWebViewChromiumFactory implements WebViewProviderFactoryB
         int HTTP_CACHE_USE_DEFAULT_QUOTA = 200;
         int HTTP_CACHE_GET_QUOTA_BYTES = 201;
         int HTTP_CACHE_SET_QUOTA_BYTES = 202;
+        int ENQUEUE_PRECONNECT = 203;
         // Remember to update AndroidXWebkitApiCall in enums.xml when adding new values here
-        int COUNT = 203;
+        int COUNT = 204;
     }
 
     // LINT.ThenChange(/tools/metrics/histograms/metadata/android/enums.xml:AndroidXWebkitApiCall)
@@ -650,7 +680,7 @@ public class SupportLibWebViewChromiumFactory implements WebViewProviderFactoryB
         public void setSafeBrowsingWhitelist(List<String> hosts, ValueCallback<Boolean> callback) {
             try (TraceEvent event =
                     TraceEvent.scoped(
-                            "WebView.APICall.AndroidX.SET_SAFE_BROWSING_ALLOWLIST_DEPRECATED_NAME")) {
+                            "WebView.APICall.AndroidX.SET_SAFE_BROWSING_ALLOWLIST_DEPRECATED")) {
                 recordApiCall(ApiCall.SET_SAFE_BROWSING_ALLOWLIST_DEPRECATED_NAME);
                 mSharedStatics.setSafeBrowsingAllowlist(
                         hosts, CallbackConverter.fromValueCallback(callback));
@@ -702,7 +732,6 @@ public class SupportLibWebViewChromiumFactory implements WebViewProviderFactoryB
                 mSharedStatics.setDefaultTrafficStatsUid(uid);
             }
         }
-
     }
 
     @Override
@@ -713,13 +742,29 @@ public class SupportLibWebViewChromiumFactory implements WebViewProviderFactoryB
         }
     }
 
-    @Override
-    public String[] getSupportedFeatures() {
-        return sWebViewSupportedFeatures;
+    @VisibleForTesting
+    public static String[] assembleSupportedFeatures() {
+        List<String> features = new ArrayList<>();
+        Collections.addAll(features, sWebViewSupportedFeatures);
+
+        WebViewCachedFlags cachedFlags = WebViewCachedFlags.get();
+        for (Map.Entry<String, String> entry :
+                sWebViewSupportedFeaturesWithCachedFlagConditions.entrySet()) {
+            if (cachedFlags.isCachedFeatureEnabled(entry.getValue())) {
+                features.add(entry.getKey());
+            }
+        }
+        return features.toArray(new String[0]);
     }
 
-    public static String[] getSupportedFeaturesForTesting() {
-        return sWebViewSupportedFeatures;
+    @Override
+    public String[] getSupportedFeatures() {
+        synchronized (mAwInit.getLazyInitLock()) {
+            if (mSupportedFeaturesCache == null) {
+                mSupportedFeaturesCache = assembleSupportedFeatures();
+            }
+            return mSupportedFeaturesCache;
+        }
     }
 
     @Override
@@ -818,9 +863,9 @@ public class SupportLibWebViewChromiumFactory implements WebViewProviderFactoryB
 
     @Override
     public void startUpWebView(
-            @NonNull Consumer<BiConsumer<@StartUpConfigField Integer, Object>> config,
-            @NonNull Consumer<Consumer<BiConsumer<@StartUpResultField Integer, Object>>> onSuccess,
-            @NonNull Consumer<Consumer<BiConsumer<@StartupErrorType Integer, Object>>> onFailure) {
+            Consumer<BiConsumer<@StartUpConfigField Integer, Object>> config,
+            Consumer<Consumer<BiConsumer<@StartUpResultField Integer, Object>>> onSuccess,
+            Consumer<Consumer<BiConsumer<@StartupErrorType Integer, Object>>> onFailure) {
         try (TraceEvent event = TraceEvent.scoped("WebView.APICall.AndroidX.START_UP_WEBVIEW")) {
             recordApiCall(ApiCall.START_UP_WEBVIEW);
 

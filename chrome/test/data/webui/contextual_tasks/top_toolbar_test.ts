@@ -18,7 +18,7 @@ import {fakeMetricsPrivate} from 'chrome://webui-test/metrics_test_support.js';
 import {eventToPromise, microtasksFinished} from 'chrome://webui-test/test_util.js';
 
 import {TestContextualTasksBrowserProxy} from './test_contextual_tasks_browser_proxy.js';
-import {assertHTMLElement} from './test_utils.js';
+import {assertHTMLElement} from './contextual_tasks_test_utils.js';
 
 suite('TopToolbarTest', () => {
   let topToolbar: TopToolbarElement;
@@ -28,7 +28,10 @@ suite('TopToolbarTest', () => {
     proxy = new TestContextualTasksBrowserProxy(
         'chrome://webui-test/contextual_tasks/test.html');
     BrowserProxyImpl.setInstance(proxy);
-    loadTimeData.overrideValues({contextManagementInComposeboxEnabled: false});
+    loadTimeData.overrideValues({
+      contextManagementInComposeboxEnabled: false,
+      contextualTasksEnableSpatialModelToolbarLayout: false,
+    });
   });
 
   (loadTimeData.getBoolean('isSmallDeviceFormFactor') ? suite.skip : suite)(
@@ -95,6 +98,23 @@ suite('TopToolbarTest', () => {
       topToolbar.isAiPage = true;
       await microtasksFinished();
       assertFalse(historyButton.hidden);
+    });
+
+    test('history button visibility with eligibility and signin', async () => {
+      const historyButton = topToolbar.$.threadHistoryButton;
+      assertTrue(!!historyButton);
+
+      topToolbar.isAiPage = true;
+
+      // Case 1: Signed In -> Visible
+      topToolbar.isUserSignedIn = true;
+      await microtasksFinished();
+      assertFalse(historyButton.hidden);
+
+      // Case 2: Signed Out -> Hidden
+      topToolbar.isUserSignedIn = false;
+      await microtasksFinished();
+      assertTrue(historyButton.hidden);
     });
 
     test('handles close button click', async () => {
@@ -422,6 +442,7 @@ suite('TopToolbarTest', () => {
         hideMenuOnAiPageEnabled: false,
         isAiPage: true,
         enablePinButton: false,
+        contextualTasksEnableSpatialModelToolbarLayout: false,
       });
 
       topToolbar = document.createElement('top-toolbar');
@@ -527,6 +548,52 @@ suite('TopToolbarTest', () => {
       helpButton.click();
       await proxy.handler.whenCalled('openFeedbackUi');
     });
+
+    test('calls maybeTriggerPinningPromo when AI page is shown', async () => {
+      topToolbar.isAiPage = false;
+      await microtasksFinished();
+      proxy.handler.reset();
+
+      topToolbar.isAiPage = true;
+      await microtasksFinished();
+
+      // <if expr="is_android">
+      assertEquals(0, proxy.handler.getCallCount('maybeTriggerPinningPromo'));
+      // </if>
+      // <if expr="not is_android">
+      await proxy.handler.whenCalled('maybeTriggerPinningPromo');
+      // </if>
+    });
+
+    test(
+        'does not call maybeTriggerPinningPromo when onboarding tooltip is showing',
+        async () => {
+          topToolbar.isAiPage = false;
+          topToolbar.onboardingTooltipShowing = true;
+          await microtasksFinished();
+          proxy.handler.reset();
+
+          topToolbar.isAiPage = true;
+          await microtasksFinished();
+
+          assertEquals(
+              0, proxy.handler.getCallCount('maybeTriggerPinningPromo'));
+        });
+
+    test(
+        'does not call maybeTriggerPinningPromo when lens search tooltip is showing',
+        async () => {
+          topToolbar.isAiPage = false;
+          topToolbar.lensSearchTooltipShowing = true;
+          await microtasksFinished();
+          proxy.handler.reset();
+
+          topToolbar.isAiPage = true;
+          await microtasksFinished();
+
+          assertEquals(
+              0, proxy.handler.getCallCount('maybeTriggerPinningPromo'));
+        });
   });
 
   (loadTimeData.getBoolean('isSmallDeviceFormFactor') ? suite.skip : suite)(
@@ -538,6 +605,7 @@ suite('TopToolbarTest', () => {
         expandButtonEnabled: false,
         hideMenuOnAiPageEnabled: true,
         isAiPage: true,
+        contextualTasksEnableSpatialModelToolbarLayout: false,
       });
 
       topToolbar = document.createElement('top-toolbar');
@@ -714,5 +782,30 @@ suite('TopToolbarTest', () => {
     const newThreadButton = topToolbar.$.newThreadButton;
     assertTrue(!!newThreadButton);
     assertTrue(newThreadButton.hidden);
+  });
+
+  test('highlights overflow menu button when menu is open', async () => {
+    document.body.innerHTML = window.trustedTypes!.emptyHTML;
+    topToolbar = document.createElement('top-toolbar');
+    document.body.appendChild(topToolbar);
+    await microtasksFinished();
+
+    const overflowMenuButton =
+        topToolbar.shadowRoot.querySelector<HTMLElement>('#overflowMenuButton');
+    assertTrue(!!overflowMenuButton);
+    assertFalse(overflowMenuButton.classList.contains('active'));
+
+    // Open overflow menu
+    overflowMenuButton.click();
+    await microtasksFinished();
+
+    assertTrue(overflowMenuButton.classList.contains('active'));
+
+    // Close overflow menu
+    const menu = topToolbar.$.overflowMenu.get();
+    menu.close();
+    await microtasksFinished();
+
+    assertFalse(overflowMenuButton.classList.contains('active'));
   });
 });

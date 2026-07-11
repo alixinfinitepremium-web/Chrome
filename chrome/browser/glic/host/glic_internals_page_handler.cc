@@ -5,6 +5,7 @@
 #include "chrome/browser/glic/host/glic_internals_page_handler.h"
 
 #include <cstdio>
+#include <sstream>
 
 #include "base/command_line.h"
 #include "base/functional/callback_helpers.h"
@@ -22,6 +23,7 @@
 #include "chrome/browser/glic/host/glic.mojom.h"
 #include "chrome/browser/glic/host/glic_features.mojom.h"
 #include "chrome/browser/glic/host/guest_util.h"
+#include "chrome/browser/glic/public/features.h"
 #include "chrome/browser/glic/public/glic_enabling.h"
 #include "chrome/browser/glic/public/glic_invoke_options.h"
 #include "chrome/browser/glic/public/glic_keyed_service.h"
@@ -29,7 +31,11 @@
 #include "chrome/browser/glic/public/glic_passkeys.h"
 #include "chrome/browser/glic/service/glic_instance_coordinator_impl.h"
 #include "chrome/browser/glic/suggestions/contextual_cueing_features.h"
+#include "chrome/browser/metrics/chrome_feature_list_creator.h"
 #include "chrome/browser/profiles/profile.h"
+#include "chrome/browser/startup_data.h"
+#include "chrome/browser/subscription_eligibility/subscription_eligibility_service_factory.h"
+#include "chrome/browser/sync/sync_service_factory.h"
 #include "chrome/browser/tab_list/tab_list_interface.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_interface_iterator.h"
@@ -37,8 +43,14 @@
 #include "components/content_settings/core/common/content_settings_types.h"
 #include "components/prefs/pref_service.h"
 #include "components/skills/features.h"
+#include "components/subscription_eligibility/subscription_eligibility_service.h"
+#include "components/sync/service/sync_service.h"
+#include "components/sync_device_info/device_info.h"
 #include "components/tabs/public/tab_interface.h"
+#include "components/variations/service/variations_service.h"
+#include "components/variations/service/variations_service_utils.h"
 #include "content/public/browser/web_contents.h"
+#include "third_party/abseil-cpp/absl/functional/overload.h"
 #include "third_party/blink/public/common/features.h"
 #include "ui/base/device_form_factor.h"
 
@@ -46,13 +58,21 @@
 #include "chrome/browser/glic/experimental_opt_in/glic_experimental_opt_in_controller.h"
 #endif
 
-#include <sstream>
-
-#include "third_party/abseil-cpp/absl/functional/overload.h"
-
 namespace glic {
 
 namespace {
+
+mojom::GlicExperimentalTriggeringState ConvertGlicExperimentalTriggeringState(
+    syncer::DeviceInfo::GlicExperimentalTriggeringState state) {
+  switch (state) {
+    case syncer::DeviceInfo::GlicExperimentalTriggeringState::kUnavailable:
+      return mojom::GlicExperimentalTriggeringState::kUnavailable;
+    case syncer::DeviceInfo::GlicExperimentalTriggeringState::kNeedsOptIn:
+      return mojom::GlicExperimentalTriggeringState::kNeedsOptIn;
+    case syncer::DeviceInfo::GlicExperimentalTriggeringState::kReady:
+      return mojom::GlicExperimentalTriggeringState::kReady;
+  }
+}
 
 mojom::ProfileEnablementPtr BuildProfileEnablement(
     content::BrowserContext* browser_context,
@@ -87,6 +107,15 @@ mojom::ProfileEnablementPtr BuildProfileEnablement(
   result->actuation_is_consented =
       (service && service->enabling().GetUserEnabledActuationOnWeb());
 
+  if (service) {
+    result->glic_experimental_triggering_state =
+        ConvertGlicExperimentalTriggeringState(
+            service->enabling().GetExperimentalTriggeringState());
+  } else {
+    result->glic_experimental_triggering_state =
+        mojom::GlicExperimentalTriggeringState::kUnavailable;
+  }
+
   using CannotActReason = ::glic::CannotActReason;
   if (actor_policy_checker) {
     if (actor_policy_checker->CanActOnWeb()) {
@@ -113,10 +142,38 @@ mojom::ProfileEnablementPtr BuildProfileEnablement(
           NOTREACHED();
       }
     }
+
+    if (actor_policy_checker->GlicApiCanActOnWeb()) {
+      result->glic_api_actuation_eligibility =
+          mojom::ActuationEligibility::kEligible;
+    } else {
+      switch (actor_policy_checker->GlicApiCannotActOnWebReason()) {
+        case CannotActReason::kAccountCapabilityIneligible:
+          result->glic_api_actuation_eligibility =
+              mojom::ActuationEligibility::kMissingAccountCapability;
+          break;
+        case CannotActReason::kAccountMissingChromeBenefits:
+          result->glic_api_actuation_eligibility =
+              mojom::ActuationEligibility::kMissingChromeBenefits;
+          break;
+        case CannotActReason::kDisabledByPolicy:
+          result->glic_api_actuation_eligibility =
+              mojom::ActuationEligibility::kDisabledByPolicy;
+          break;
+        case CannotActReason::kEnterpriseWithoutManagement:
+          result->glic_api_actuation_eligibility =
+              mojom::ActuationEligibility::kEnterpriseWithoutManagement;
+          break;
+        case CannotActReason::kNone:
+          NOTREACHED();
+      }
+    }
   } else {
     // If there is no GlicKeyedService (e.g., due to country filter),
     // default to missing capability or disabled by policy.
     result->actuation_eligibility =
+        mojom::ActuationEligibility::kMissingAccountCapability;
+    result->glic_api_actuation_eligibility =
         mojom::ActuationEligibility::kMissingAccountCapability;
   }
 
@@ -196,6 +253,18 @@ std::string InvocationSourceToString(glic::mojom::InvocationSource source) {
       return "kWebDragDrop";
     case glic::mojom::InvocationSource::kPromotionPage:
       return "kPromotionPage";
+    case glic::mojom::InvocationSource::kDaisyChainOnNewTab:
+      return "kDaisyChainOnNewTab";
+    case glic::mojom::InvocationSource::kDaisyChainOnFollowLink:
+      return "kDaisyChainOnFollowLink";
+    case glic::mojom::InvocationSource::kConversationSwitch:
+      return "kConversationSwitch";
+    case glic::mojom::InvocationSource::kDetachAttachButton:
+      return "kDetachAttachButton";
+    case glic::mojom::InvocationSource::kTabRestore:
+      return "kTabRestore";
+    case glic::mojom::InvocationSource::kReshowInactive:
+      return "kReshowInactive";
   }
   LOG(ERROR) << "Unexpected value for InvocationSource: "
              << static_cast<int>(source);
@@ -346,6 +415,16 @@ void LogGlicInvokeOptions(const GlicInvokeOptions& options,
                  },
                  [&target_pieces](const Floating& floating) {
                    target_pieces.push_back("    surface: Floating {}");
+                 },
+                 [&target_pieces](const LastActiveOrNew& last_active_or_new) {
+                   target_pieces.push_back(base::StrCat(
+                       {"    surface: LastActiveOrNew { window: ",
+                        base::StringPrintf("%p",
+                                           last_active_or_new.window.get()),
+                        ", open_in_foreground: ",
+                        last_active_or_new.open_in_foreground ? "true"
+                                                              : "false",
+                        " }"}));
                  }},
              options.target.surface);
 
@@ -452,81 +531,158 @@ void GlicInternalsPageHandler::GetInternalsDataPayload(
 
   mojom::InternalsDebugInfoPtr debug_info = mojom::InternalsDebugInfo::New();
 
+  // Populate partial WebClientInitialState
+  Profile* profile = Profile::FromBrowserContext(browser_context_);
+  auto state = mojom::WebClientInitialState::New();
+  PopulateGlobalClientInitialState(state.get(), profile);
+
   // Feature flags
-  debug_info->glic_feature_enabled =
-      base::FeatureList::IsEnabled(features::kGlic);
-  debug_info->glic_actor_feature_enabled =
-      base::FeatureList::IsEnabled(features::kGlicActor);
+  debug_info->glic_actor_feature_enabled = state->enable_act_in_focused_tab;
   debug_info->glic_rollout_feature_enabled =
       base::FeatureList::IsEnabled(features::kGlicRollout);
+  debug_info->glic_tiered_rollout_feature_enabled =
+      base::FeatureList::IsEnabled(features::kGlicTieredRollout);
+  debug_info->glic_tiered_rollout_v2_feature_enabled =
+      base::FeatureList::IsEnabled(features::kGlicTieredRolloutV2);
 
   // Platform and form factor
-  debug_info->platform = GetGlicPlatform();
-  debug_info->form_factor = GetGlicFormFactor(ui::GetDeviceFormFactor());
+  debug_info->platform = state->platform;
+  debug_info->form_factor = state->form_factor;
 
   // WebClientInitialState fields (browser and user settings)
-  Profile* profile = Profile::FromBrowserContext(browser_context_);
-  PrefService* pref_service = profile->GetPrefs();
-
   base::flat_map<std::string, bool> boolean_settings;
 
   boolean_settings["Microphone Permission Enabled"] =
-      pref_service->GetBoolean(prefs::kGlicMicrophoneEnabled);
+      state->microphone_permission_enabled;
+  boolean_settings["Location Permission Enabled"] =
+      state->location_permission_enabled;
   boolean_settings["Tab Context Permission Enabled"] =
-      pref_service->GetBoolean(prefs::kGlicTabContextEnabled);
+      state->tab_context_permission_enabled;
+  boolean_settings["OS Location Permission Enabled"] =
+      state->os_location_permission_enabled;
 
   boolean_settings["Zero State Suggestions Enabled"] =
-      IsZeroStateSuggestionsEnabled();
+      state->enable_zero_state_suggestions;
   boolean_settings["Cached Get User Profile Info Enabled"] =
-      base::FeatureList::IsEnabled(
-          features::kGlicEnableCachedGetUserProfileInfo);
-  boolean_settings["Scroll To Enabled"] =
-      base::FeatureList::IsEnabled(features::kGlicScrollTo);
+      state->enable_cached_get_user_profile_info;
+  boolean_settings["Scroll To Enabled"] = state->enable_scroll_to;
   boolean_settings["Default Tab Context Setting Feature Enabled"] =
-      base::FeatureList::IsEnabled(features::kGlicDefaultTabContextSetting);
+      state->enable_default_tab_context_setting_feature;
   boolean_settings["Default Tab Context Setting Enabled"] =
-      pref_service->GetBoolean(prefs::kGlicDefaultTabContextEnabled);
+      state->default_tab_context_setting_enabled;
   boolean_settings["Closed Captioning Setting Enabled"] =
-      pref_service->GetBoolean(prefs::kGlicClosedCaptioningEnabled);
+      state->closed_captioning_setting_enabled;
   boolean_settings["Maybe Refresh User Status Enabled"] =
-      base::FeatureList::IsEnabled(features::kGlicUserStatusCheck) &&
-      features::kGlicUserStatusRefreshApi.Get();
+      state->enable_maybe_refresh_user_status;
   boolean_settings["Get Context Actor Enabled"] =
-      base::FeatureList::IsEnabled(glic::mojom::features::kGlicActorTabContext);
+      state->enable_get_context_actor;
   boolean_settings["Web Actuation Setting Feature Enabled"] =
-      base::FeatureList::IsEnabled(features::kGlicWebActuationSetting);
+      state->enable_web_actuation_setting_feature;
 
   boolean_settings["Get Page Metadata Enabled"] =
-      base::FeatureList::IsEnabled(blink::features::kFrameMetadataObserver);
+      state->enable_get_page_metadata;
+  boolean_settings["Capture Region Enabled"] = state->enable_capture_region;
+  boolean_settings["Can Act on Web"] = state->can_act_on_web;
 
-  boolean_settings["Capture Region Enabled"] =
-      base::FeatureList::IsEnabled(features::kGlicCaptureRegion);
-  boolean_settings["Can Act on Web"] =
-      glic_service ? glic_service->actor_policy_checker().CanActOnWeb() : false;
-
-  boolean_settings["Activate Tab Enabled"] =
-      base::FeatureList::IsEnabled(glic::mojom::features::kGlicActivateTabApi);
-  boolean_settings["Get Tab by ID Enabled"] =
-      base::FeatureList::IsEnabled(features::kGlicGetTabByIdApi);
+  boolean_settings["Activate Tab Enabled"] = state->enable_activate_tab;
+  boolean_settings["Get Tab by ID Enabled"] = state->enable_get_tab_by_id;
   boolean_settings["Open Password Manager Settings Page Enabled"] =
-      base::FeatureList::IsEnabled(
-          features::kGlicOpenPasswordManagerSettingsPageApi);
-  boolean_settings["Skills Feature Enabled"] =
-      base::FeatureList::IsEnabled(features::kSkillsEnabled);
+      state->enable_open_password_manager_settings_page;
+  boolean_settings["Skills Feature Enabled"] = state->enable_skills;
   boolean_settings["Get Tab Favicon by ID Enabled"] =
-      base::FeatureList::IsEnabled(features::kGlicGetTabFaviconById);
+      state->enable_get_tab_favicon_by_id;
   boolean_settings["Process Counter Abuse Verdict Enabled"] =
-      base::FeatureList::IsEnabled(features::kGlicProcessCounterAbuseVerdict);
+      state->enable_process_counter_abuse_verdict;
 
   debug_info->boolean_settings = std::move(boolean_settings);
+  debug_info->hotkey = state->hotkey;
 
-#if !BUILDFLAG(IS_ANDROID)
-  debug_info->hotkey = GetHotkeyString();
-#else
-  debug_info->hotkey = "";
-#endif
+  // Locale and country settings
+  if (auto* startup_data = g_browser_process->startup_data()) {
+    debug_info->locale = base::ToLowerASCII(
+        startup_data->chrome_feature_list_creator()->actual_locale());
+  }
+  debug_info->permanent_country_code =
+      base::ToLowerASCII(variations::GetCurrentCountryCode(
+          g_browser_process->variations_service()));
+  if (g_browser_process->variations_service()) {
+    debug_info->session_country_code = base::ToLowerASCII(
+        g_browser_process->variations_service()->GetLatestCountry());
+  }
+
+  // Additional enablement checks from GlicEnabling::ProfileEnablement
+  GlicEnabling::ProfileEnablement enablement =
+      GlicEnabling::EnablementForProfile(profile);
+  debug_info->system_requirement_met = enablement.system_requirement_met;
+  debug_info->os_version_supported = enablement.os_version_supported;
+  debug_info->anchor_entrypoint_override_active =
+      enablement.anchor_entrypoint_override_active;
+  debug_info->primary_account_needs_signed_in =
+      enablement.primary_account_needs_signed_in;
+
+  std::string dogfood_status = "No";
+  auto* variations_service = g_browser_process->variations_service();
+  if (variations_service && variations_service->IsLikelyDogfoodClient()) {
+    if (base::FeatureList::IsEnabled(features::kGlicIgnoreDogfoodClient)) {
+      dogfood_status = "Yes (Ignored via kGlicIgnoreDogfoodClient)";
+    } else {
+      dogfood_status = "Yes";
+    }
+  }
+  debug_info->dogfood_status = dogfood_status;
 
   payload->debug_info = std::move(debug_info);
+
+  auto tiered_rollout_info = mojom::TieredRolloutInfo::New();
+  subscription_eligibility::SubscriptionEligibilityService*
+      subscription_eligibility_service = subscription_eligibility::
+          SubscriptionEligibilityServiceFactory::GetForProfile(profile);
+  if (subscription_eligibility_service) {
+    tiered_rollout_info->ai_subscription_tier =
+        subscription_eligibility_service->GetAiSubscriptionTier();
+  }
+  tiered_rollout_info->is_eligible_for_tiered_rollout_v1 =
+      base::FeatureList::IsEnabled(features::kGlicTieredRollout) &&
+      profile->GetPrefs()->GetBoolean(prefs::kGlicRolloutEligibility);
+  tiered_rollout_info->is_eligible_for_tiered_rollout_v2 =
+      base::FeatureList::IsEnabled(features::kGlicTieredRolloutV2) &&
+      subscription_eligibility_service &&
+      features::GetGlicTieredRolloutV2EligibleTiers().contains(
+          subscription_eligibility_service->GetAiSubscriptionTier());
+  tiered_rollout_info->is_eligible_overall =
+      GlicEnabling::IsEligibleForGlicTieredRollout(profile);
+  tiered_rollout_info->glic_rollout_eligibility_pref =
+      profile->GetPrefs()->GetBoolean(prefs::kGlicRolloutEligibility);
+  tiered_rollout_info->tiered_rollout_v2_eligible_tiers =
+      features::kGlicTieredRolloutV2EligibleTiers.Get();
+
+  std::string sync_status = "Sync Service Not Found";
+  if (syncer::SyncService* sync_service =
+          SyncServiceFactory::GetForProfile(profile)) {
+    if (!sync_service->IsEngineInitialized()) {
+      sync_status = "Sync Engine Not Initialized";
+    } else {
+      switch (
+          sync_service->GetDownloadStatusFor(syncer::DataType::PREFERENCES)) {
+        case syncer::SyncService::DataTypeDownloadStatus::kWaitingForUpdates:
+          sync_status = "Waiting for Updates / Syncing";
+          break;
+        case syncer::SyncService::DataTypeDownloadStatus::kUpToDate:
+          sync_status = "Up to Date (Successfully Synced)";
+          break;
+        case syncer::SyncService::DataTypeDownloadStatus::kError:
+          sync_status = "Error (Sync Failed)";
+          break;
+      }
+    }
+    if (sync_service->GetAuthError().IsPersistentError()) {
+      sync_status +=
+          " (Auth Error: " + sync_service->GetAuthError().ToString() + ")";
+    }
+  }
+  tiered_rollout_info->preference_sync_status = sync_status;
+
+  payload->tiered_rollout_info = std::move(tiered_rollout_info);
 
   std::move(callback).Run(std::move(payload));
 }
@@ -657,6 +813,9 @@ void GlicInternalsPageHandler::TriggerInvokeFromInternalsAction(
             break;
           case GlicInvokeError::kInstanceNotFound:
             error_msg = "Instance Not Found";
+            break;
+          case GlicInvokeError::kProfileNotEnabled:
+            error_msg = "Profile Not Enabled";
             break;
           case GlicInvokeError::kUnknown:
             error_msg = "Unknown Error";

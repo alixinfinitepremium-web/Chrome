@@ -432,13 +432,13 @@
     "dependencies": ["manifest:devtools_page"],
     "contexts": ["privileged_extension"]
   },
+  "dictationPrivate": {
+    "dependencies": ["permission:dictationPrivate"],
+    "contexts": ["privileged_extension"]
+  },
   "documentScan": {
     "dependencies": ["permission:documentScan"],
     "contexts": ["privileged_extension"]
-  },
-  "dom": {
-    "channel": "stable",
-    "contexts": ["privileged_extension", "content_script"]
   },
   "downloads": {
     "dependencies": ["permission:downloads"],
@@ -675,10 +675,6 @@
     "dependencies": ["permission:identity"],
     "contexts": ["privileged_extension"]
   },
-  "idltest": {
-    "dependencies": ["permission:idltest"],
-    "contexts": ["privileged_extension"]
-  },
   "indigoPrivate": {
     "dependencies": ["permission:indigoPrivate"],
     "contexts": [
@@ -846,12 +842,10 @@
     "contexts": ["privileged_extension"]
   },
   "permissions.addHostAccessRequest": {
-    "min_manifest_version": 3,
-    "feature_flag": "ApiPermissionsHostAccessRequests"
+    "min_manifest_version": 3
   },
   "permissions.removeHostAccessRequest": {
-    "min_manifest_version": 3,
-    "feature_flag": "ApiPermissionsHostAccessRequests"
+    "min_manifest_version": 3
   },
   "platformKeys": {
     "dependencies": ["permission:platformKeys"],

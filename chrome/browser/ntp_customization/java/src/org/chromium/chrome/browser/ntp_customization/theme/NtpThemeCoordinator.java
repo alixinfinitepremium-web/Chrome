@@ -39,6 +39,7 @@ import org.chromium.chrome.browser.ntp_customization.theme.theme_collections.Ntp
 import org.chromium.chrome.browser.ntp_customization.theme.theme_collections.NtpThemeCollectionsCoordinator;
 import org.chromium.chrome.browser.ntp_customization.theme.upload_image.BackgroundImageInfo;
 import org.chromium.chrome.browser.ntp_customization.theme.upload_image.UploadImagePreviewCoordinator;
+import org.chromium.chrome.browser.ntp_customization.theme_sync.data.NtpBackgroundDataBase;
 import org.chromium.chrome.browser.ntp_customization.theme_sync.data.NtpBackgroundDataBase.PlatformType;
 import org.chromium.chrome.browser.ntp_customization.theme_sync.data.NtpBackgroundDataUploadImage;
 import org.chromium.chrome.browser.profiles.Profile;
@@ -47,6 +48,7 @@ import org.chromium.ui.modelutil.PropertyModel;
 import org.chromium.ui.modelutil.PropertyModelChangeProcessor;
 
 import java.util.List;
+import java.util.Objects;
 
 /** Coordinator for the NTP appearance settings bottom sheet in the NTP customization. */
 @NullMarked
@@ -145,8 +147,15 @@ public class NtpThemeCoordinator {
     public void onImageSelectedForPreview(@Nullable Bitmap bitmap, String fileIdHash) {
         if (bitmap == null) return;
 
+        // A non-null file ID is used when NTP theme sync is enabled. This is because we only keep
+        // at most one image file for upload image theme if sync is disabled.
+        String fileIdHashToUse = mIsNtpThemeSyncEnabled ? fileIdHash : null;
+
         // Tablets bypass the preview dialog and apply the selection directly.
         if (DeviceFormFactor.isNonMultiDisplayContextOnTablet(mContext)) {
+            NtpBackgroundDataBase currentBackgroundData =
+                    NtpCustomizationConfigManager.getInstance().getNtpBackgroundData();
+
             // Applies the background immediately for instant visual feedback.
             // Full Activity recreation to finalize theme changes is deferred
             // until the ntp customization bottom sheets are fully dismissed.
@@ -155,20 +164,25 @@ public class NtpThemeCoordinator {
             NtpBackgroundDataUploadImage uploadImageData =
                     new NtpBackgroundDataUploadImage(
                             PlatformType.ANDROID_LOCAL,
-                            NtpCustomizationUtils.createBackgroundImageFile().getAbsolutePath(),
                             info,
                             bitmap,
                             /* primaryColor= */ null,
-                            mIsNtpThemeSyncEnabled ? fileIdHash : null);
+                            fileIdHashToUse);
             NtpCustomizationConfigManager.getInstance()
                     .onBackgroundDataChanged(mContext, uploadImageData);
-            onPreviewClosed(/* isImageSelected= */ true);
+            onPreviewClosed(
+                    /* isImageSelected= */ true,
+                    !Objects.equals(currentBackgroundData, uploadImageData));
             return;
         }
 
         mUploadPreviewCoordinator =
                 new UploadImagePreviewCoordinator(
-                        (Activity) mContext, mProfile, bitmap, fileIdHash, this::onPreviewClosed);
+                        (Activity) mContext,
+                        mProfile,
+                        bitmap,
+                        fileIdHashToUse,
+                        this::onPreviewClosed);
     }
 
     /**
@@ -282,11 +296,11 @@ public class NtpThemeCoordinator {
     }
 
     @VisibleForTesting
-    void onPreviewClosed(boolean isImageSelected) {
+    void onPreviewClosed(boolean isImageSelected, boolean isDifferentTheme) {
         if (!isImageSelected) {
             return;
         }
-        onImageSelectedForPreviewImpl();
+        onImageSelectedForPreviewImpl(isDifferentTheme);
         mDismissBottomSheetRunnable.run();
     }
 
@@ -304,9 +318,9 @@ public class NtpThemeCoordinator {
      * confirming an uploaded image, an invocation of {@link
      * #notifyBottomSheetBackgroundTypeChanged()} should be added here.
      */
-    private void onImageSelectedForPreviewImpl() {
+    private void onImageSelectedForPreviewImpl(boolean isDifferentTheme) {
         mMediator.updateTrailingIconVisibilityForSectionType(IMAGE_FROM_DISK);
-        mBottomSheetDelegate.onNewColorSelected(/* isDifferentColor= */ true);
+        mBottomSheetDelegate.onNewColorSelected(isDifferentTheme);
     }
 
     NtpThemeMediator getMediatorForTesting() {

@@ -21,13 +21,13 @@
 #include "content/browser/media/session/audio_focus_delegate.h"
 #include "content/browser/media/session/media_players_callback_aggregator.h"
 #include "content/browser/media/session/media_session_controller.h"
-#include "content/browser/media/session/media_session_player_observer.h"
 #include "content/browser/media/session/media_session_service_impl.h"
 #include "content/browser/picture_in_picture/video_picture_in_picture_window_controller_impl.h"
 #include "content/browser/web_contents/web_contents_impl.h"
 #include "content/public/browser/browser_context.h"
 #include "content/public/browser/media_session.h"
 #include "content/public/browser/media_session_client.h"
+#include "content/public/browser/media_session_player_observer.h"
 #include "content/public/browser/navigation_handle.h"
 #include "content/public/browser/render_frame_host.h"
 #include "content/public/browser/web_contents.h"
@@ -342,6 +342,12 @@ void MediaSessionImpl::TitleWasSet(NavigationEntry* entry) {
 
 void MediaSessionImpl::DidUpdateFaviconURL(
     RenderFrameHost* rfh,
+    const std::vector<blink::mojom::FaviconURLPtr>& candidates,
+    blink::mojom::FaviconUpdateReason reason) {
+  SetSourceIconsFromFavicons(candidates);
+}
+
+void MediaSessionImpl::SetSourceIconsFromFavicons(
     const std::vector<blink::mojom::FaviconURLPtr>& candidates) {
   std::vector<media_session::MediaImage> icons;
 
@@ -1032,8 +1038,7 @@ void MediaSessionImpl::Initialize() {
   delegate_->MediaSessionInfoChanged(GetMediaSessionInfoSync());
 
   DCHECK(web_contents());
-  DidUpdateFaviconURL(web_contents()->GetPrimaryMainFrame(),
-                      web_contents()->GetFaviconURLs());
+  SetSourceIconsFromFavicons(web_contents()->GetFaviconURLs());
 
   GetContentClient()->browser()->AddPresentationObserver(this, web_contents());
 }

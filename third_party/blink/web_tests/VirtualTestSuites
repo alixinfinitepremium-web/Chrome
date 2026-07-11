@@ -237,19 +237,6 @@
     "expires": "Dec 1, 2026"
   },
   {
-    "prefix": "audio-decoder-correctness",
-    "owners": ["jophba@chromium.org"],
-    "platforms": ["Android", "Fuchsia", "Linux", "Mac", "Win", "Webview"],
-    "bases": [
-      "webaudio/codec-tests"
-    ],
-    "exclusive_tests": [
-      "webaudio/codec-tests/opus/opus-decode.html"
-    ],
-    "args": ["--enable-features=AudioDecoderAudioFileReader"],
-    "expires": "Jul 7, 2026"
-  },
-  {
     "prefix": "autoplay-policy-no-user-gesture-required",
     "owners": [
       "leimy@google.com"
@@ -436,7 +423,7 @@
       "http/tests/inspector-protocol/issues/connection-allowlists"
     ],
     "exclusive_tests": "ALL",
-    "args": [ "--enable-features=ConnectionAllowlists,OverrideConnectionAllowlistOriginTrial" ],
+    "args": [ "--enable-features=ConnectionAllowlists:ConnectionAllowlistsEarlyHints/true,OverrideConnectionAllowlistOriginTrial" ],
     "expires": "Dec 1, 2026"
   },
   {
@@ -471,7 +458,7 @@
       "--enable-features=ForcedColors",
       "--force-high-contrast"
     ],
-    "expires": "Jul 1, 2026"
+    "expires": "Jul 1, 2027"
   },
   {
     "prefix": "cookie-reject-domain-non-ascii",
@@ -552,7 +539,7 @@
     "args": [
       "--enable-features=CpuPerformance"
     ],
-    "expires": "Jun 30, 2026"
+    "expires": "Sep 30, 2026"
   },
   {
     "prefix": "declarative-performance-observer",
@@ -825,6 +812,21 @@
       "--disable-blink-features=DialogCloseWhenOpenRemoved"
     ],
     "expires": "Jun 1, 2027"
+  },
+  "Enables the fake UI to test successful token retrieval by auto-resolving",
+  "requests in 1ms. Without this flag, the API hangs to simulate waiting",
+  "for user interaction (which is the default expectation for WPTs).",
+  {
+    "prefix": "digital-credentials-fake-ui",
+    "platforms": ["Linux", "Mac", "Win"],
+    "bases": [
+      "wpt_internal/digital-credentials",
+      "http/tests/inspector-protocol/digital-credentials"
+    ],
+    "args": ["--use-fake-ui-for-digital-identity"],
+    "exclusive_tests": "ALL",
+    "owners": ["mamir@chromium.org"],
+    "expires": "never"
   },
   {
     "prefix": "direct-sockets",
@@ -2318,6 +2320,8 @@
       "arthursonzogni@chromium.org"
     ]
   },
+  "CSS Paint worklets require a compositor to pass. Because this suite tests a",
+  "shipping configuration, it never expires.",
   {
     "prefix": "off-main-thread-css-paint",
     "platforms": [
@@ -2327,22 +2331,17 @@
     ],
     "bases": [
       "external/wpt/css/css-paint-api",
-      "http/tests/csspaint",
-      "http/tests/inspector-protocol/paint-worklet"
-    ],
-    "exclusive_tests": [
-      "http/tests/inspector-protocol/paint-worklet"
+      "http/tests/csspaint"
     ],
     "args": [
       "--enable-threaded-compositing",
-      "--enable-blink-features=OffMainThreadCSSPaint",
       "--enable-gpu-rasterization",
       "--enable-accelerated-2d-canvas"
     ],
     "owners": [
       "ikilpatrick@chromium.org"
     ],
-    "expires": "Dec 1, 2026"
+    "expires": "never"
   },
   "The origin trials suite tests that OT-controlled features are exposed to",
   "the web as expected, so should not expire.",
@@ -2674,31 +2673,9 @@
     "expires": "Jul 3, 2025"
   },
   {
-    "prefix": "prerender-by-form-submission",
-    "platforms": [
-      "Linux",
-      "Mac",
-      "Win"
-    ],
-    "bases": [
-      "external/wpt/speculation-rules/prerender/activation-by-form-submission.https.html",
-      "external/wpt/speculation-rules/prerender/csp-form-action.https.html"
-    ],
-    "exclusive_tests": "ALL",
-    "args": [
-      "--enable-blink-features=PrerenderActivationByFormSubmission,PrerenderUntilScript"
-    ],
-    "owners": [
-      "robertlin@chromium.org"
-    ],
-    "expires": "Jul 1, 2026"
-  },
-  {
     "prefix": "prerender2-fallback-prefetch-spec-rules",
     "platforms": [
-      "Linux",
-      "Mac",
-      "Win"
+      "Webview"
     ],
     "bases": [
       "http/tests/inspector-protocol/prefetch",
@@ -2903,6 +2880,7 @@
       "external/wpt/css/css-grid/animation",
       "external/wpt/css/css-sizing/responsive-iframe/responsive-iframe.html",
       "external/wpt/css/css-sizing/responsive-iframe/responsive-iframe-dom-content-loaded.html",
+      "external/wpt/css/css-sizing/responsive-iframe/responsive-iframe-navigation.html",
       "external/wpt/css/printing",
       "external/wpt/largest-contentful-paint",
       "fast/forms/file/file-appearance-no-default-width.html",
@@ -3193,7 +3171,7 @@
       "dizhangg@chromium.org",
       "jarhar@chromium.org"
     ],
-    "expires": "Jul 1, 2026"
+    "expires": "Jul 1, 2027"
   },
   {
     "prefix": "speculation-rules-prerender-cross-origin-iframes",
@@ -3328,7 +3306,6 @@
       "media/stable",
       "webexposed",
       "compositing/filters",
-      "external/wpt/soft-navigation-heuristics/smoke/tentative/lcp.html",
       "wpt_internal/performance-timeline/performance-user-timing-mark-feature-usage.html",
       "wpt_internal/wasm/custom_descriptors_feature.any.js",
       "wpt_internal/origin_trials/webmcp/webmcp-origin-trial-disabled.https.html",
@@ -3345,34 +3322,6 @@
       "--disable-field-trial-config"
     ],
     "expires": "never"
-  },
-  {
-    "prefix": "symphonia-audio-decoding",
-    "owners": [
-      "jophba@chromium.org"
-    ],
-    "platforms": ["Linux", "Mac", "Win", "ChromeOS"],
-    "bases": [
-      "webaudio/codec-tests"
-    ],
-    "exclusive_tests": ["webaudio/codec-tests/opus/opus-decode.html"],
-    "args": [
-      "--enable-features=AudioDecoderAudioFileReader",
-      "--enable-features=SymphoniaAudioDecoding"
-    ],
-    "expires": "Jul 7, 2026"
-  },
-   {
-    "prefix": "symphonia-mp3-decoding",
-    "owners": ["wenz@google.com"],
-    "platforms": ["Linux", "Mac", "Win", "ChromeOS"],
-    "bases": [
-      "webaudio/codec-tests"
-    ],
-    "args": [
-      "--enable-features=SymphoniaMp3Decoding"
-    ],
-    "expires": "Aug 10, 2026"
   },
   {
     "prefix": "freeze-shared-worker-bfcache",
@@ -3651,6 +3600,8 @@
       "external/wpt/css/css-overflow/scroll-markers/scroll-markers-updated-by-programmatic-scroll.html",
       "external/wpt/css/cssom-view/overflow-hidden-smooth-scroll-crash.html",
       "external/wpt/css/cssom-view/scroll-behavior-smooth-after-hiding-iframe.html",
+      "external/wpt/fetch/compression-dictionary/dictionary-fetch-timing-001.tentative.https.html",
+      "external/wpt/fetch/compression-dictionary/dictionary-fetch-timing-002.tentative.https.html",
       "external/wpt/fetch/compression-dictionary/dictionary-fetch-with-link-element.tentative.https.html",
       "external/wpt/fetch/compression-dictionary/dictionary-fetch-with-link-header.tentative.https.html",
       "external/wpt/html/canvas/element/manual/draw-element-image",
@@ -3667,6 +3618,7 @@
       "fast/events/pointerevents/pinch",
       "http/tests/devtools/isolated-code-cache",
       "http/tests/devtools/tracing",
+      "http/tests/inspector-protocol/paint-worklet",
       "http/tests/worklet",
       "inspector-protocol/css/css-get-keyframes-for-view-transitions.js",
       "inspector-protocol/css/css-get-styles-for-nested-view-transition.js",
@@ -3680,6 +3632,7 @@
       "view-transition",
       "wpt_internal/webgl/draw-element-image",
       "wpt_internal/html/script-execution",
+      "wpt_internal/route",
       "wpt_internal/scheduler/integration_tests",
       "wpt_internal/view-transition",
       "external/wpt/trusted-types/navigate-to-javascript-url-001.html",
@@ -3694,14 +3647,18 @@
       "external/wpt/trusted-types/trusted-types-reporting.html"
     ],
     "exclusive_tests": [
+      "external/wpt/fetch/compression-dictionary/dictionary-fetch-timing-001.tentative.https.html",
+      "external/wpt/fetch/compression-dictionary/dictionary-fetch-timing-002.tentative.https.html",
       "external/wpt/fetch/compression-dictionary/dictionary-fetch-with-link-element.tentative.https.html",
       "external/wpt/fetch/compression-dictionary/dictionary-fetch-with-link-header.tentative.https.html",
       "external/wpt/permissions-policy/experimental-features/vertical-scroll-touch-block-manual.tentative.html",
       "external/wpt/requestidlecallback",
       "external/wpt/scheduler/tentative/yield/yield-priority-idle-callbacks.html",
       "http/tests/devtools/isolated-code-cache",
+      "http/tests/inspector-protocol/paint-worklet",
       "external/wpt/css/css-view-transitions",
       "wpt_internal/html/script-execution",
+      "wpt_internal/route",
       "wpt_internal/scheduler/integration_tests",
       "wpt_internal/view-transition",
       "view-transition",
@@ -4965,7 +4922,9 @@
       "fast/xsl/xslt",
       "external/wpt/xml/xslt",
       "http/tests/xsl/xslt",
-      "inspector-protocol/debugger/unpause-after-xslt-commit.js"
+      "inspector-protocol/debugger/unpause-after-xslt-commit.js",
+      "http/tests/origin_trials/xslt-deprecation-trial-disabled.html",
+      "http/tests/origin_trials/xslt-deprecation-trial-enabled.html"
     ],
     "exclusive_tests": [
       "http/tests/xsl/xslt/xsltpi-issue.js",
@@ -4989,7 +4948,9 @@
       "fast/xsl/xslt",
       "external/wpt/xml/xslt",
       "http/tests/xsl/xslt",
-      "inspector-protocol/debugger/unpause-after-xslt-commit.js"
+      "inspector-protocol/debugger/unpause-after-xslt-commit.js",
+      "http/tests/origin_trials/xslt-deprecation-trial-disabled.html",
+      "http/tests/origin_trials/xslt-deprecation-trial-enabled.html"
     ],
     "args": ["--disable-blink-features=XSLTSpecialTrial"],
     "owners": [
@@ -5026,7 +4987,7 @@
     "expires": "Feb 1, 2027"
   },
   {
-    "prefix": "dom_storage_sqlite",
+    "prefix": "dom_storage_leveldb",
     "owners": [
       "evanstade@microsoft.com",
       "stevebe@microsoft.com",
@@ -5041,8 +5002,8 @@
       "external/wpt/webstorage",
       "storage/domstorage"
     ],
-    "args": ["--enable-features=DomStorageSqlite"],
-    "expires": "Aug 13, 2026"
+    "args": ["--enable-features=DomStorageSqliteNewDatabases:DomStorageSqliteNewDatabasesStage/UseLevelDbOnly"],
+    "expires": "Feb 1, 2027"
   },
   {
     "prefix": "durable-messages",
@@ -5155,25 +5116,18 @@
     "expires": "never"
   },
   "This is for the Unbounded Element API. See crbug.com/508672616.",
-  "This virtual suite just ensures nothing breaks when the flag is disabled.",
   {
-    "prefix": "unbounded-element-disabled",
-    "platforms": [
-      "Linux",
-      "Mac",
-      "Win",
-      "ChromeOS"
-    ],
-    "bases": [
-      "wpt_internal/html/rendering/unbounded_element"
-    ],
+    "prefix": "unbounded-element",
+    "platforms": ["Linux", "Mac", "Win"],
+    "bases": ["wpt_internal/html/rendering/unbounded-element"],
     "args": [
-      "--disable-blink-features=UnboundedElement,UnboundedElementOnTheOpenWeb"
+      "--enable-features=UnboundedElement,UnboundedElementOnTheOpenWeb",
+      "--disable-features=TreesInViz"
     ],
     "owners": [
       "masonf@chromium.org"
     ],
-    "expires": "Dec 1, 2026"
+    "expires": "Jan 1, 2027"
   },
   {
     "prefix": "canvas-draw-element-image-hardware-video",

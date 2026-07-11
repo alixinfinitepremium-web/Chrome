@@ -6,8 +6,10 @@
 #define COMPONENTS_UNEXPORTABLE_KEYS_UNEXPORTABLE_KEY_SERVICE_IMPL_H_
 
 #include <algorithm>
+#include <concepts>
 #include <functional>
 
+#include "base/containers/enum_set.h"
 #include "base/containers/span.h"
 #include "base/functional/bind.h"
 #include "base/functional/callback_forward.h"
@@ -29,6 +31,13 @@
 
 namespace unexportable_keys {
 
+// Concept defining the valid wrapper classes that can be stored and managed
+// within the spare key pool.
+template <typename T>
+concept SparePoolKeyType =
+    std::same_as<T, RefCountedUnexportableSigningKey> ||
+    std::same_as<T, RefCountedUnexportableAttestationKey>;
+
 // LINT.IfChange(SpareKeyPoolRetrievalResult)
 // These values are persisted to logs. Entries should not be renumbered and
 // numeric values should never be reused.
@@ -47,8 +56,8 @@ enum class SpareKeyPoolRetrievalResult {
   kMaxValue = kAlgorithmNotSupported,
 };
 // LINT.ThenChange(/tools/metrics/histograms/metadata/net/enums.xml:SpareKeyPoolRetrievalResult)
+
 class UnexportableKeyTaskManager;
-class SpareKeyPoolRequest;
 
 class COMPONENT_EXPORT(UNEXPORTABLE_KEYS) UnexportableKeyServiceImpl
     : public UnexportableKeyService {
@@ -104,8 +113,9 @@ class COMPONENT_EXPORT(UNEXPORTABLE_KEYS) UnexportableKeyServiceImpl
           callback) override;
   void GetAllKeysForGarbageCollectionSlowlyAsync(
       BackgroundTaskPriority priority,
-      base::OnceCallback<void(ServiceErrorOr<std::vector<UnexportableKeyId>>)>
-          callback) override;
+      base::OnceCallback<
+          void(ServiceErrorOr<std::vector<UnexportableSigningKeyId>>)> callback)
+      override;
   void SignSlowlyAsync(
       UnexportableSigningKeyId key_id,
       base::span<const uint8_t> data,
@@ -120,26 +130,26 @@ class COMPONENT_EXPORT(UNEXPORTABLE_KEYS) UnexportableKeyServiceImpl
       base::OnceCallback<void(ServiceErrorOr<crypto::AttestationStatement>)>
           callback) override;
   void DeleteKeysSlowlyAsync(
-      base::span<const UnexportableKeyId> key_ids,
+      base::span<const UnexportableSigningKeyId> key_ids,
       BackgroundTaskPriority priority,
       base::OnceCallback<void(ServiceErrorOr<size_t>)> callback) override;
   void DeleteAllKeysSlowlyAsync(
       base::OnceCallback<void(ServiceErrorOr<size_t>)> callback) override;
   ServiceErrorOr<std::vector<uint8_t>> GetSubjectPublicKeyInfo(
-      UnexportableKeyId key_id) const override;
+      UnexportableSigningKeyId key_id) const override;
   ServiceErrorOr<std::vector<uint8_t>> GetWrappedKey(
-      UnexportableKeyId key_id) const override;
+      UnexportableSigningKeyId key_id) const override;
   ServiceErrorOr<crypto::SignatureVerifier::SignatureAlgorithm> GetAlgorithm(
-      UnexportableKeyId key_id) const override;
+      UnexportableSigningKeyId key_id) const override;
   ServiceErrorOr<std::string> GetKeyTag(
-      UnexportableKeyId key_id) const override;
+      UnexportableSigningKeyId key_id) const override;
   ServiceErrorOr<base::Time> GetCreationTime(
-      UnexportableKeyId key_id) const override;
+      UnexportableSigningKeyId key_id) const override;
 
  private:
   using AllKeysForGarbageCollectionMap =
-      absl::flat_hash_map<UnexportableKeyId,
-                          scoped_refptr<RefCountedUnexportableKey>>;
+      absl::flat_hash_map<UnexportableSigningKeyId,
+                          scoped_refptr<RefCountedUnexportableSigningKey>>;
 
   // Repositories storing and managing the lifetime of loaded unexportable
   // signing and attestation keys, respectively.
@@ -150,25 +160,54 @@ class COMPONENT_EXPORT(UNEXPORTABLE_KEYS) UnexportableKeyServiceImpl
   using AttestationKeyRepository =
       KeyRepository<RefCountedUnexportableAttestationKey>;
 
-  // Returns a pointer to the unexportable key with the given ID, or an error
-  // if it is not found. The returned pointer is guaranteed to be non-null on
-  // success. The returned pointer is only valid for as long as the key is
-  // present in the service (i.e., not deleted and not garbage collected).
-  ServiceErrorOr<const crypto::UnexportableKey*> GetKey(
-      UnexportableKeyId key_id) const;
-  ServiceErrorOr<const crypto::StatefulKey*> GetStatefulKey(
-      UnexportableKeyId key_id) const;
+  // A class template that maintains a background-replenished pool
+  // of idle pre-generated keys (of a specific key type) to mitigate the
+  // significant latency (~1s) of on-demand Windows TPM key generation.
+  template <typename KeyType>
+    requires SparePoolKeyType<KeyType>
+  class SpareKeyPool;
+
+  using SpareSigningKeyPool = SpareKeyPool<RefCountedUnexportableSigningKey>;
+  using SpareAttestationKeyPool =
+      SpareKeyPool<RefCountedUnexportableAttestationKey>;
+
+  // Identifies which internal repository or map holds the unexportable key.
+  enum class KeyMap {
+    // Look up key in `signing_keys_`.
+    kSigning = 0,
+    // Look up key in `attestation_keys_`.
+    kAttestation = 1,
+    // Look up key in `all_gc_keys_by_key_id_`.
+    kGarbageCollection = 2,
+  };
+
+  using KeyMapSet =
+      base::EnumSet<KeyMap, KeyMap::kSigning, KeyMap::kGarbageCollection>;
+
+  // Convenient set to search all non-GC keys.
+  static constexpr KeyMapSet kSigningAndAttestationKeyMaps = {
+      KeyMap::kSigning,
+      KeyMap::kAttestation,
+  };
+
+  // Returns the ref-counted key wrapper corresponding to `key_id`. Performs
+  // lookup in the key maps specified in `key_map_set`. Returns nullptr if the
+  // key is not found in any set.
+  RefCountedUnexportableSigningKey* GetKey(
+      KeyMapSet key_map_set,
+      UnexportableSigningKeyId key_id) const;
 
   // Removes the key with `key_id` from the in-memory maps.
   // Returns the mapped key on success, or `ServiceError::kKeyNotFound` if the
   // key was not found.
-  ServiceErrorOr<scoped_refptr<RefCountedUnexportableKey>> ExtractKeyFromMaps(
-      UnexportableKeyId key_id);
+  ServiceErrorOr<scoped_refptr<RefCountedUnexportableSigningKey>>
+  ExtractKeyFromMaps(UnexportableSigningKeyId key_id);
 
   // Callback for `GetAllKeysForGarbageCollectionSlowlyAsync()`.
-  ServiceErrorOr<std::vector<UnexportableKeyId>>
+  ServiceErrorOr<std::vector<UnexportableSigningKeyId>>
   OnGetAllKeysForGarbageCollectionSlowlyImpl(
-      ServiceErrorOr<std::vector<scoped_refptr<RefCountedUnexportableKey>>>
+      ServiceErrorOr<
+          std::vector<scoped_refptr<RefCountedUnexportableSigningKey>>>
           keys_or_error);
 
   // Generic trampoline that runs the callback only if the WeakPtr used to bind
@@ -193,27 +232,6 @@ class COMPONENT_EXPORT(UNEXPORTABLE_KEYS) UnexportableKeyServiceImpl
         },
         weak_ptr_factory_.GetWeakPtr(), std::move(callback), std::move(proj));
   }
-  // Hardware-backed key generation via Windows TPM incurs significant latency
-  // (~1s). The in-memory spare key pool mitigates this bottleneck. Other
-  // platforms do not require this optimization.
-  // Returns a spare signing key from the pool if available.
-  scoped_refptr<RefCountedUnexportableSigningKey> PopSpareSigningKey(
-      base::span<const crypto::SignatureVerifier::SignatureAlgorithm>
-          acceptable_algorithms);
-
-  // Posts a task to replenish the spare signing key pool.
-  void ReplenishSpareSigningKeyPoolAsync(
-      base::span<const crypto::SignatureVerifier::SignatureAlgorithm>
-          acceptable_algorithms);
-
-  // Callback invoked when a background task generates a spare key. This adds
-  // the key to the pool and immediately triggers a new task if the pool is
-  // below capacity. If `key_or_error` is an error, this marks the replenishment
-  // as failed to prevent runaway error loops.
-  void OnSpareSigningKeyGenerated(
-      SpareKeyPoolRequest* request,
-      ServiceErrorOr<scoped_refptr<RefCountedUnexportableSigningKey>>
-          key_or_error);
 
   const raw_ref<UnexportableKeyTaskManager, DanglingUntriaged> task_manager_;
   const BackgroundTaskOrigin task_origin_;
@@ -230,21 +248,11 @@ class COMPONENT_EXPORT(UNEXPORTABLE_KEYS) UnexportableKeyServiceImpl
   // be overwritten on each call to `GetAllKeysForGarbageCollection`.
   AllKeysForGarbageCollectionMap all_gc_keys_by_key_id_;
 
-  // Maps a signature algorithm to a queue of pre-generated, ready-to-use
-  // signing keys.
-  absl::flat_hash_map<
-      crypto::SignatureVerifier::SignatureAlgorithm,
-      std::vector<scoped_refptr<RefCountedUnexportableSigningKey>>>
-      spare_signing_keys_pool_;
-
-  // Tracks the pending background tasks that generate spare keys. Used to avoid
-  // queuing more tasks than needed to reach the maximum spare pool capacity.
-  // We store unique_ptr to ensure pointer stability for the requests,
-  // as they might be referenced asynchronously.
-  // `std::nullopt` indicates that the pool has not started replenishing yet.
-  // When populated, it holds the in-flight requests.
-  std::optional<absl::flat_hash_set<std::unique_ptr<SpareKeyPoolRequest>>>
-      inflight_spare_key_pool_requests_;
+  // Spare key pools for preemptively generating and caching
+  // hardware-backed keys in the background to mitigate the significant
+  // latency (~1s) of on-demand Windows TPM key generation.
+  std::unique_ptr<SpareSigningKeyPool> spare_signing_key_pool_;
+  std::unique_ptr<SpareAttestationKeyPool> spare_attestation_key_pool_;
 
   base::WeakPtrFactory<UnexportableKeyServiceImpl> weak_ptr_factory_{this};
 };

@@ -517,7 +517,8 @@ void WizardController::Init(OobeScreenId first_screen) {
   is_initialized_ = true;
 
   prescribed_enrollment_config_ =
-      policy::EnrollmentConfig::GetPrescribedEnrollmentConfig();
+      policy::EnrollmentConfig::GetPrescribedEnrollmentConfig(
+          local_state_.get());
 
   VLOG(1) << "Starting OOBE wizard with screen: " << first_screen;
 
@@ -860,6 +861,7 @@ WizardController::CreateScreens() {
       base::BindRepeating(&WizardController::OnMarketingOptInScreenExit,
                           weak_factory_.GetWeakPtr())));
   append(std::make_unique<PackagedLicenseScreen>(
+      &local_state_.get(),
       oobe_ui->GetView<PackagedLicenseScreenHandler>()->AsWeakPtr(),
       base::BindRepeating(&WizardController::OnPackagedLicenseScreenExit,
                           weak_factory_.GetWeakPtr())));
@@ -871,6 +873,7 @@ WizardController::CreateScreens() {
 
   append(std::make_unique<GaiaScreen>(
       &local_state_.get(), shared_url_loader_factory_,
+      browser_policy_connector_ash_->device_management_service(),
       oobe_ui->GetView<GaiaScreenHandler>()->AsWeakPtr(),
       base::BindRepeating(&WizardController::OnGaiaScreenExit,
                           weak_factory_.GetWeakPtr())));
@@ -1244,7 +1247,8 @@ void WizardController::ShowEnrollmentScreen() {
   // Update the enrollment configuration and start the screen.
   GetLoginDisplayHost()->GetOobeMetricsHelper()->RecordEnrollingUserType();
   prescribed_enrollment_config_ =
-      policy::EnrollmentConfig::GetPrescribedEnrollmentConfig();
+      policy::EnrollmentConfig::GetPrescribedEnrollmentConfig(
+          local_state_.get());
   StartEnrollmentScreen();
 }
 
@@ -3311,7 +3315,8 @@ void WizardController::OnOobeFlowFinished() {
 
 void WizardController::OnDeviceDisabledChecked(bool device_disabled) {
   prescribed_enrollment_config_ =
-      policy::EnrollmentConfig::GetPrescribedEnrollmentConfig();
+      policy::EnrollmentConfig::GetPrescribedEnrollmentConfig(
+          local_state_.get());
 
   if (device_disabled) {
     demo_setup_controller_.reset();
@@ -4036,7 +4041,9 @@ WizardController::GetAutoEnrollmentController() {
   if (!auto_enrollment_controller_) {
     auto_enrollment_controller_ =
         std::make_unique<policy::AutoEnrollmentController>(
-            shared_url_loader_factory_);
+            &local_state_.get(), shared_url_loader_factory_,
+            browser_policy_connector_ash_->device_management_service(),
+            browser_policy_connector_ash_->GetStateKeysBroker());
   }
   return auto_enrollment_controller_.get();
 }

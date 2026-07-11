@@ -185,7 +185,9 @@ interface CustomProxyConfigClient {
 interface TrustedHeaderClient {
   // Allows modifying request headers before the request is sent.
   OnBeforeSendHeaders(url.mojom.Url request_url, HttpRequestHeaders headers)
-      => (int32 result, HttpRequestHeaders? headers);
+      => (int32 result,
+          HttpRequestHeaders? headers,
+          mojo_base.mojom.DictionaryValue? extended_net_log_events);
 
   // Allows modifying response headers, including sensitive headers such as
   // set-cookie. This should only be used from a trusted process.
@@ -376,7 +378,7 @@ struct NetworkContextParams {
   // Handles all proxy resolution logic if the current proxy config comes from
   // the operating system. Otherwise, or if this is not populated, proxy
   // resolution is handled by Chrome as normal.
-  [EnableIf=is_win]
+  [EnableIf=is_win|is_mac]
   pending_remote<proxy_resolver.mojom.SystemProxyResolver>?
       system_proxy_resolver;
 
@@ -650,6 +652,19 @@ struct NetworkContextParams {
 
   // Initial variations headers to use.
   variations.mojom.VariationsHeaders? initial_variations_headers;
+
+  // If true, EchMode should be queried via the platform API. This enables
+  // embedders like Android WebView to respect the system's ECH policy.
+  bool use_platform_ech_policy = false;
+
+  // Used to notify clients about authentication and certificate events for
+  // background requests related to Device Bound Sessions that originate
+  // directly from the Network Service. Reuses the
+  // `URLLoaderNetworkServiceObserver` interface to avoid duplicating Mojo IPC
+  // definitions for certificate request handling, even though these requests
+  // do not have an associated `URLLoaderFactory`.
+  pending_remote<URLLoaderNetworkServiceObserver>?
+      device_bound_sessions_network_observer;
 };
 
 struct NetworkConditions {
@@ -965,7 +980,10 @@ struct URLLoaderFactoryParams {
   // An unguessable token used to apply network restrictions to outgoing
   // requests using this factory. The token is matched against the tokens in
   // `NetworkContext::network_restrictions_ids_`.
-  // If no value is present, network restrictions will not be checked.
+  //
+  // This is marked optional to avoid having to update many test callsites that
+  // do not use network restrictions, but the browser process asserts that it
+  // is non-empty (via a CHECK) when creating factories for pages and workers.
   mojo_base.mojom.UnguessableToken? network_restrictions_id;
 
   // When true, the network service uses the factory's
@@ -1537,7 +1555,6 @@ interface NetworkContext {
   // The |network_restrictions_id| is used to block WebTransport connections
   // that don't adhere to the current context's Connection Allowlist:
   // https://wicg.github.io/connection-allowlists
-  // TODO(492456054): Make network_restrictions_id non-optional.
   CreateWebTransport(
       url.mojom.Url url,
       url.mojom.Origin origin,
@@ -1574,8 +1591,7 @@ interface NetworkContext {
   // 2. or the url is blocked by the connection-allowlist associated with the
   // `network_restrictions_id`. Please see: crbug.com/447954811.
   // More context on network revocation and connection-allowlist is in the
-  // comment for `RestrictNetworkForIds()`. If `network_restrictions_id` is
-  // nullopt, connection-allowlist is not enforced on the preconnect.
+  // comment for `RestrictNetworkForIds()`.
   PreconnectSockets(
       uint32 num_streams,
       url.mojom.Url url,

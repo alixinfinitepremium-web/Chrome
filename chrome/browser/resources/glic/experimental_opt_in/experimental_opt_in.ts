@@ -9,6 +9,7 @@ import 'chrome://resources/cr_elements/cr_icon/cr_icon.js';
 import 'chrome://resources/cr_elements/cr_icon_button/cr_icon_button.js';
 import 'chrome://resources/cr_elements/cr_button/cr_button.js';
 
+import {ColorChangeUpdater} from '//resources/cr_components/color_change_listener/colors_css_updater.js';
 import {loadTimeData} from '//resources/js/load_time_data.js';
 import {getRequiredElement} from '//resources/js/util.js';
 
@@ -60,8 +61,11 @@ export class ExperimentalOptInApp {
 
   constructor() {
     this.webview_ = getRequiredElement<chrome.webviewTag.WebView>('webview');
-    this.webview_.setAttribute('minwidth', String(defaultWidth));
-    this.webview_.setAttribute('maxwidth', String(defaultWidth));
+    // Allow a small margin of error (±2px) around the target width to prevent
+    // subpixel rounding or zoom differences from failing the webview's internal
+    // size-changed checks and collapsing the layout.
+    this.webview_.setAttribute('minwidth', String(defaultWidth - 2));
+    this.webview_.setAttribute('maxwidth', String(defaultWidth + 2));
 
     this.errorPanel_ = getRequiredElement('errorPanel');
     this.errorIcon_ = getRequiredElement('errorIcon');
@@ -119,6 +123,9 @@ export class ExperimentalOptInApp {
                 'Failed to parse URL in onBeforeRequest:', details.url);
             return {cancel: true};
           }
+          if (loadTimeData.getBoolean('glicDevEnabled')) {
+            return {};
+          }
           if (url.protocol === 'http:' || url.protocol === 'https:') {
             if (url.origin !== this.optInOrigin_) {
               return {cancel: true};
@@ -145,6 +152,9 @@ export class ExperimentalOptInApp {
 
     this.webview_.addEventListener(
         'loadabort', ((e: Event) => {
+                       if (loadTimeData.getBoolean('glicDevEnabled')) {
+                         return;
+                       }
                        const loadAbortEvent =
                            e as unknown as chrome.webviewTag.LoadAbortEvent;
                        // Log failures when the top-level
@@ -226,6 +236,9 @@ export class ExperimentalOptInApp {
   }
 
   private startWatchdog_() {
+    if (loadTimeData.getBoolean('glicDevEnabled')) {
+      return;
+    }
     this.clearWatchdog_();
     this.loadingTimeoutId_ = setTimeout(() => {
       if (!this.hasError_ && this.webview_.hidden === false) {
@@ -306,6 +319,7 @@ export class ExperimentalOptInApp {
 }
 
 function init() {
+  ColorChangeUpdater.forDocument().start();
   new ExperimentalOptInApp();
 }
 

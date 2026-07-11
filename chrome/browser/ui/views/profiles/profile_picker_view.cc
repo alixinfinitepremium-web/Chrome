@@ -46,6 +46,7 @@
 #include "chrome/browser/ui/views/profiles/profile_picker_flow_controller.h"
 #include "chrome/browser/ui/views/profiles/profile_picker_glic_flow_controller.h"
 #include "chrome/browser/ui/views/profiles/profile_picker_toolbar.h"
+#include "chrome/browser/ui/views/profiles/profile_picker_widget.h"
 #include "chrome/browser/ui/webui/signin/profile_picker_ui.h"
 #include "chrome/browser/ui/webui/signin/signin_ui_error.h"
 #include "chrome/browser/ui/webui/signin/signin_url_utils.h"
@@ -69,6 +70,7 @@
 #include "google_apis/gaia/gaia_id.h"
 #include "ui/base/l10n/l10n_util.h"
 #include "ui/base/metadata/metadata_impl_macros.h"
+#include "ui/views/controls/native/native_view_host.h"
 #include "ui/views/controls/webview/webview.h"
 #include "ui/views/layout/fill_layout.h"
 #include "ui/views/view.h"
@@ -104,22 +106,6 @@ constexpr float kMaxRatioOfWorkArea = 0.9;
 constexpr int kSupportedAcceleratorCommands[] = {
     IDC_CLOSE_TAB,       IDC_CLOSE_WINDOW, IDC_EXIT,  IDC_FULLSCREEN,
     IDC_MINIMIZE_WINDOW, IDC_BACK,         IDC_RELOAD};
-
-class ProfilePickerWidget : public views::Widget {
- public:
-  explicit ProfilePickerWidget(ProfilePickerView* profile_picker_view) {
-    views::Widget::InitParams params(
-        views::Widget::InitParams::NATIVE_WIDGET_OWNS_WIDGET);
-    params.delegate = profile_picker_view;
-#if BUILDFLAG(IS_LINUX)
-    params.wm_class_name = shell_integration_linux::GetProgramClassName();
-    params.wm_class_class = shell_integration_linux::GetProgramClassClass();
-    params.wayland_app_id = params.wm_class_class;
-#endif
-    Init(std::move(params));
-  }
-  ~ProfilePickerWidget() override = default;
-};
 
 // Returns whether the current flow is part of the classic profile picker flow.
 // Checking this should become eventually unnecessary as flows move away from
@@ -490,6 +476,11 @@ void ProfilePickerView::SetNativeToolbarDontSignInButtonVisible(bool visible) {
   CHECK_DEREF(toolbar_).SetDontSignInButtonVisible(visible);
 }
 
+void ProfilePickerView::SetNativeToolbarStartBrowsingButtonVisible(
+    bool visible) {
+  CHECK_DEREF(toolbar_).SetStartBrowsingButtonVisible(visible);
+}
+
 bool ProfilePickerView::AreNativeToolbarSigninButtonsVisibleForTesting() const {
   return CHECK_DEREF(toolbar_).AreSigninButtonsVisibleForTesting();  // IN-TEST
 }
@@ -840,6 +831,8 @@ void ProfilePickerView::Layout(PassKey) {
   LayoutSuperclass<views::WidgetDelegateView>(this);
   CHECK(toolbar_);
   toolbar_->SetBounds(0, 0, width(), toolbar_->GetPreferredSize().height());
+  CHECK(web_view_);
+  web_view_->holder()->SetHitTestTopInset(toolbar_->bounds().height());
 }
 
 void ProfilePickerView::BuildLayout() {

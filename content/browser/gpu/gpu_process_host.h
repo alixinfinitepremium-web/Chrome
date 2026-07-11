@@ -40,13 +40,18 @@
 #if BUILDFLAG(IS_WIN)
 #include "services/viz/privileged/mojom/gl/info_collection_gpu_service.mojom.h"
 #include "services/webnn/public/cpp/context_properties.h"
-#include "services/webnn/public/mojom/ep_package_info.mojom.h"
 #include "services/webnn/public/mojom/webnn_context_provider.mojom.h"
 #endif
 
 namespace base {
 class Thread;
 }
+
+#if BUILDFLAG(IS_WIN)
+namespace webnn {
+struct EpDeviceInfo;
+}
+#endif
 
 namespace content {
 class BrowserChildProcessHostImpl;
@@ -209,9 +214,11 @@ class GpuProcessHost final : public BrowserChildProcessHostDelegate,
   void RequestWebNNCompilerContext(
       webnn::mojom::CreateContextOptionsPtr context_options,
       const webnn::ContextProperties& context_properties,
-      base::flat_map<std::string, webnn::mojom::EpPackageInfoPtr>
-          ep_package_info,
-      RequestWebNNCompilerContextCallback callback) override;
+      const webnn::EpDeviceInfo& target_device,
+      mojo::PendingReceiver<webnn::mojom::WebNNCompilerContext>
+          compiler_context_receiver,
+      mojo::PendingRemote<webnn::mojom::WebNNModelLoader> model_loader_remote)
+      override;
 #endif
 
   bool LaunchGpuProcess();

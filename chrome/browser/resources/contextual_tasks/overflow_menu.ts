@@ -56,6 +56,10 @@ export class OverflowMenuElement extends OverflowMenuElementBase {
       isPinButtonEnabled: {type: Boolean},
       isAiPage: {type: Boolean},
       isUserFeedbackAllowed: {type: Boolean},
+      contextualTasksEnableSpatialModelToolbarLayout: {type: Boolean},
+      contextualTasksEnableSpatialModelToolbarLayoutNewThreadInOverflow:
+          {type: Boolean},
+      isAimEligible: {type: Boolean},
     };
   }
 
@@ -70,6 +74,12 @@ export class OverflowMenuElement extends OverflowMenuElementBase {
       loadTimeData.getBoolean('isAiPage');
   accessor isUserFeedbackAllowed: boolean =
       loadTimeData.getBoolean('isUserFeedbackAllowed');
+  accessor contextualTasksEnableSpatialModelToolbarLayout: boolean =
+      loadTimeData.getBoolean('contextualTasksEnableSpatialModelToolbarLayout');
+  accessor contextualTasksEnableSpatialModelToolbarLayoutNewThreadInOverflow:
+      boolean = loadTimeData.getBoolean(
+          'contextualTasksEnableSpatialModelToolbarLayoutNewThreadInOverflow');
+  accessor isAimEligible: boolean = false;
   private browserProxy_: BrowserProxy = BrowserProxyImpl.getInstance();
   private listenerIds_: number[] = [];
 // <if expr="not is_android">
@@ -166,10 +176,49 @@ export class OverflowMenuElement extends OverflowMenuElementBase {
     this.browserProxy_.handler.openMyActivityUi();
   }
 
-  protected onFeedbackClick_() {
+  protected onHelpClick_() {
     this.close();
     recordAction('ContextualTasks.WebUI.UserAction.OpenHelp');
+    this.browserProxy_.handler.openOnboardingHelpUi();
+  }
+
+
+  protected onFeedbackClick_() {
+    this.close();
+    recordAction('ContextualTasks.WebUI.UserAction.OpenFeedback');
     this.browserProxy_.handler.openFeedbackUi();
+  }
+
+  protected onNewThreadClick_() {
+    this.close();
+    this.fire('new-thread-click');
+  }
+
+  protected onOpenChanged_(e: CustomEvent<{value: boolean}>) {
+    this.fire('open-changed', {value: e.detail.value});
+  }
+
+  protected shouldShowNewThreadInMenu_(): boolean {
+    return this.isAimEligible &&
+        this.contextualTasksEnableSpatialModelToolbarLayout &&
+        this.contextualTasksEnableSpatialModelToolbarLayoutNewThreadInOverflow;
+  }
+
+  protected shouldShowThreadHistoryInMenu_(): boolean {
+    return this.isSmallDeviceFormFactor ||
+        (this.contextualTasksEnableSpatialModelToolbarLayout && this.isAiPage);
+  }
+
+  protected shouldShowOpenInNewTabInMenu_(): boolean {
+    return !this.isSmallDeviceFormFactor &&
+        !this.contextualTasksEnableSpatialModelToolbarLayout &&
+        !this.contextualTasksEnableSpatialModelToolbarLayoutNewThreadInOverflow;
+  }
+
+  protected shouldShowMenuHeaderDivider_(): boolean {
+    return this.shouldShowOpenInNewTabInMenu_() ||
+        this.shouldShowThreadHistoryInMenu_() ||
+        this.shouldShowPinButton_();
   }
 }
 

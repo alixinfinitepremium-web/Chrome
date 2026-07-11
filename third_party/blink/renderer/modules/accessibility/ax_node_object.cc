@@ -121,6 +121,7 @@
 #include "third_party/blink/renderer/core/html/html_progress_element.h"
 #include "third_party/blink/renderer/core/html/html_slot_element.h"
 #include "third_party/blink/renderer/core/html/html_span_element.h"
+#include "third_party/blink/renderer/core/html/html_sub_menu_element.h"
 #include "third_party/blink/renderer/core/html/html_summary_element.h"
 #include "third_party/blink/renderer/core/html/html_table_caption_element.h"
 #include "third_party/blink/renderer/core/html/html_table_cell_element.h"
@@ -1277,6 +1278,12 @@ AXObjectInclusion AXNodeObject::ShouldIncludeBasedOnSemantics(
       ignored_reasons->push_back(IgnoredReason(kAXPresentational));
     }
     return kIgnoreObject;
+  }
+
+  if (IsCanvas()) {
+    if (!CanvasAnnotation().empty()) {
+      return kIncludeObject;
+    }
   }
 
   return kDefaultBehavior;
@@ -3474,6 +3481,12 @@ AccessibilityExpanded AXNodeObject::IsExpanded() const {
     }
   }
 
+  if (auto* menuitem = DynamicTo<HTMLMenuItemElement>(element)) {
+    if (HTMLMenuListElement* submenu = menuitem->GetInvokedSubmenu()) {
+      return submenu->popoverOpen() ? kExpandedExpanded : kExpandedCollapsed;
+    }
+  }
+
   if (IsA<HTMLSummaryElement>(*element)) {
     if (element->parentNode() &&
         IsA<HTMLDetailsElement>(element->parentNode())) {
@@ -3522,6 +3535,35 @@ bool AXNodeObject::CanvasHasFallbackContent() const {
     return false;
   Node* node = GetNode();
   return IsA<HTMLCanvasElement>(node) && node->hasChildren();
+}
+
+String AXNodeObject::CanvasAnnotation() const {
+  if (IsDetached()) {
+    return String();
+  }
+  if (auto* canvas = DynamicTo<HTMLCanvasElement>(GetNode())) {
+    return canvas->CanvasAnnotation();
+  }
+  return String();
+}
+
+bool AXNodeObject::HasRequestedOCR() const {
+  if (IsDetached()) {
+    return false;
+  }
+  if (auto* canvas = DynamicTo<HTMLCanvasElement>(GetNode())) {
+    return canvas->HasRequestedOCR();
+  }
+  return false;
+}
+
+void AXNodeObject::ClearHasRequestedOCR() {
+  if (IsDetached()) {
+    return;
+  }
+  if (auto* canvas = DynamicTo<HTMLCanvasElement>(GetNode())) {
+    canvas->ClearHasRequestedOCR();
+  }
 }
 
 int AXNodeObject::HeadingLevel() const {
@@ -4922,10 +4964,10 @@ ax::mojom::blink::HasPopup AXNodeObject::HasPopup() const {
     return ax::mojom::blink::HasPopup::kMenu;
   }
 
-  // If this element invokes a menulist via popovertarget OR commandfor, give it
-  // haspopup=menu.
-  Element* invoked_target = nullptr;
+  // If this element (typically a button) invokes a menulist via popovertarget
+  // OR commandfor, give it haspopup=menu.
   if (auto* html_element = DynamicTo<HTMLElement>(GetElement())) {
+    Element* invoked_target = nullptr;
     if (HTMLElement* command_for_element =
             DynamicTo<HTMLElement>(html_element->commandForElement())) {
       CommandEventType command = command_for_element->GetCommandEventType(
@@ -4940,10 +4982,16 @@ ax::mojom::blink::HasPopup AXNodeObject::HasPopup() const {
         invoked_target = form_control->popoverTargetElement().popover;
       }
     }
+    if (invoked_target && IsA<HTMLMenuListElement>(invoked_target)) {
+      return ax::mojom::blink::HasPopup::kMenu;
+    }
   }
 
-  if (invoked_target && IsA<HTMLMenuListElement>(invoked_target)) {
-    return ax::mojom::blink::HasPopup::kMenu;
+  // Also give haspopup=menu for menuitems associated via DOM structure.
+  if (auto* menuitem = DynamicTo<HTMLMenuItemElement>(GetNode())) {
+    if (menuitem->GetInvokedSubmenu()) {
+      return ax::mojom::blink::HasPopup::kMenu;
+    }
   }
 
   return AXObject::HasPopup();
@@ -7109,9 +7157,18 @@ String AXNodeObject::NativeTextAlternative(
   String text_alternative;
   AXRelatedObjectVector local_related_objects;
 
-  if (auto* menulist = DynamicTo<HTMLMenuListElement>(GetNode());
-      menulist && menulist->GetPopoverData()) {
-    if (Element* invoker = menulist->GetPopoverData()->invoker()) {
+  if (auto* menulist = DynamicTo<HTMLMenuListElement>(GetNode())) {
+    Element* invoker = nullptr;
+    if (menulist->GetPopoverData()) {
+      invoker = menulist->GetPopoverData()->invoker();
+    }
+    if (!invoker) {
+      if (auto* submenu =
+              DynamicTo<HTMLSubMenuElement>(menulist->parentNode())) {
+        invoker = submenu->MenuItem();
+      }
+    }
+    if (invoker) {
       if (AXObject* ax_invoker = AXObjectCache().Get(invoker)) {
         name_from = ax::mojom::blink::NameFrom::kRelatedElement;
         text_alternative = RecursiveTextAlternative(

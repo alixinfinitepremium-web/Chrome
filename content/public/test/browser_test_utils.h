@@ -1088,6 +1088,17 @@ RenderFrameHost* ChildFrameAt(const ToRenderFrameHost& adapter, size_t index);
 // OriginAgentCluster header.
 bool HasOriginKeyedProcess(RenderFrameHost* frame);
 
+// Returns true when both frames' SiteInstances carry the same unique-instance
+// embedder isolation (equal per-instance id). Two frames that share a unique
+// instance are guaranteed to share a process.
+bool HaveEmbedderIsolationWithSameUniqueInstance(RenderFrameHost* a,
+                                                 RenderFrameHost* b);
+
+// Returns true if `frame`'s process is locked to a unique-instance
+// `EmbedderIsolationInfo` (one per-document isolated instance; today's
+// sole producer is the MIME handler stream manager).
+bool HasUniqueInstanceIsolation(RenderFrameHost* frame);
+
 // Returns the frames visited by |RenderFrameHost::ForEachRenderFrameHost| in
 // the same order.
 std::vector<RenderFrameHost*> CollectAllRenderFrameHosts(
@@ -2701,6 +2712,8 @@ void InitAndEnableRenderDocumentForAllFrames(
 // or std::nullopt if no node matches.
 // Note: This method makes multiple renderer IPC calls (via the devtools
 // protocol) and waits for a result (an IPC back from the renderer) each time.
+// TODO(bokan): Update the return value to be a blink::DOMNodeIdType which is a
+// base::IdType32
 std::optional<int> GetDOMNodeId(content::RenderFrameHost& rfh,
                                 std::string_view query_selector);
 

@@ -6,7 +6,9 @@
 
 #include <utility>
 
+#include "base/check.h"
 #include "base/check_deref.h"
+#include "base/check_op.h"
 #include "base/debug/crash_logging.h"
 #include "base/feature_list.h"
 #include "base/functional/bind.h"
@@ -333,9 +335,8 @@ NavigationCapturingProcess::MaybeHandleAppNavigation(
   const std::optional<ash::SystemWebAppType> capturing_system_app_type =
       ash::GetCapturingSystemAppForURL(profile, params.url);
   if (capturing_system_app_type.has_value()) {
-    if (params.browser && ash::IsBrowserForSystemWebApp(
-                              params.browser->GetBrowserForMigrationOnly(),
-                              capturing_system_app_type.value())) {
+    if (params.browser && GetSystemWebAppType(params.browser) ==
+                              capturing_system_app_type.value()) {
       RecordInitialNavigationCapturingResult(
           NavigationCapturingInitialResult::kNotHandled);
       return nullptr;
@@ -932,6 +933,16 @@ NavigationCapturingProcess::HandleIsolatedWebAppNavigation(
     return CapturingDisabled();
   }
 
+  // Service worker `clients.openWindow()` arrives with no source browser and a
+  // non-link transition, so the link-based source check below does not apply.
+  // Use the initiator origin to enforce the same cross-IWA restriction.
+  if (params.is_service_worker_open_window && params.initiator_origin &&
+      !params.initiator_origin->IsSameOriginWith(params.url)) {
+    // TODO(crbug.com/424422466): Support cross-IWA navigations to start_url.
+    return CancelInitialNavigation(
+        NavigationCapturingInitialResult::kNavigationCanceled);
+  }
+
   if (ui::PageTransitionCoreTypeIs(params.transition,
                                    ui::PAGE_TRANSITION_LINK)) {
     // Any links: same-IWA or cross-IWA window.open(), same-IWA or cross-IWA
@@ -1438,13 +1449,11 @@ NavigationCapturingProcess::HandleRedirectImpl() {
       launch_params.set_time_navigation_started_for_enqueue(
           time_navigation_started_);
       WebAppLaunchNavigationHandleUserData::DispatchLaunchParams(
-          pre_existing_contents, std::move(launch_params));
+          pre_existing_contents, std::move(launch_params),
+          apps::LaunchContainer::kLaunchContainerWindow,
+          apps::LaunchSource::kFromNavigationCapturing);
       MaybeShowNavigationCaptureIph(*target_app_id, &*profile_,
                                     client_mode_and_browser.browser);
-      RecordLaunchMetrics(*target_app_id,
-                          apps::LaunchContainer::kLaunchContainerWindow,
-                          apps::LaunchSource::kFromNavigationCapturing,
-                          final_url, pre_existing_contents);
       RecordNavigationCapturingDisplayModeMetrics(
           *target_app_id, pre_existing_contents, !is_web_app_browser);
       debug_data_.Set("!redirection_result", "cancel, focus-existing");
@@ -1946,7 +1955,7 @@ NavigationCapturingProcess::CapturedNavigateExisting(Browser* app_browser,
                                                      int browser_tab) {
   CHECK(first_navigation_app_id_.has_value());
 
-  CHECK(browser_tab != -1);
+  CHECK_NE(browser_tab, -1);
   if (isolated_web_app_navigation_) {
     CHECK(disposition_ == WindowOpenDisposition::NEW_FOREGROUND_TAB ||
           disposition_ == WindowOpenDisposition::CURRENT_TAB);
@@ -1990,15 +1999,11 @@ NavigationCapturingProcess::CapturedFocusExisting(Browser* browser,
   launch_params.set_time_navigation_started_for_enqueue(
       time_navigation_started_);
   WebAppLaunchNavigationHandleUserData::DispatchLaunchParams(
-      contents, std::move(launch_params));
+      contents, std::move(launch_params),
+      apps::LaunchContainer::kLaunchContainerWindow,
+      apps::LaunchSource::kFromNavigationCapturing);
 
   MaybeShowNavigationCaptureIph(app_id, &*profile_, browser);
-
-  // TODO(crbug.com/336371044): Update RecordLaunchMetrics() to also work
-  // with apps that open in a new browser tab.
-  RecordLaunchMetrics(app_id, apps::LaunchContainer::kLaunchContainerWindow,
-                      apps::LaunchSource::kFromNavigationCapturing, url,
-                      contents);
 
   RecordNavigationCapturingDisplayModeMetrics(app_id, contents,
                                               !is_current_container_window);

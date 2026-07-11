@@ -245,6 +245,7 @@
 #include "third_party/blink/renderer/core/layout/layout_view.h"
 #include "third_party/blink/renderer/core/layout/svg/layout_svg_root.h"
 #include "third_party/blink/renderer/core/loader/render_blocking_resource_manager.h"
+#include "third_party/blink/renderer/core/mathml/mathml_anchor_element.h"
 #include "third_party/blink/renderer/core/overscroll/overscroll_area_tracker.h"
 #include "third_party/blink/renderer/core/page/chrome_client.h"
 #include "third_party/blink/renderer/core/page/focus_controller.h"
@@ -254,6 +255,7 @@
 #include "third_party/blink/renderer/core/page/scrolling/root_scroller_controller.h"
 #include "third_party/blink/renderer/core/page/scrolling/sync_scroll_attempt_heuristic.h"
 #include "third_party/blink/renderer/core/page/spatial_navigation.h"
+#include "third_party/blink/renderer/core/paint/object_paint_invalidator.h"
 #include "third_party/blink/renderer/core/paint/paint_layer.h"
 #include "third_party/blink/renderer/core/paint/paint_layer_scrollable_area.h"
 #include "third_party/blink/renderer/core/probe/core_probes.h"
@@ -1403,9 +1405,6 @@ void Element::SetElementAttribute(const QualifiedName& name, Element* element) {
     if (AXObjectCache* cache = GetDocument().ExistingAXObjectCache()) {
       cache->HandleAttributeChanged(name, this);
     }
-    if (name == html_names::kCommandforAttr) {
-      GetDocument().MarkOverscrollCommandTargetsDirty();
-    }
   }
 }
 
@@ -1975,6 +1974,10 @@ bool Element::InterestGained(Element* target, InterestState state) {
 
   Event* interest_event = InterestEvent::Create(event_type_names::kInterest,
                                                 this, Event::Cancelable::kYes);
+  if (RuntimeEnabledFeatures::ShadowRootReferenceTargetEnabled(
+          GetExecutionContext())) {
+    interest_event->SetComposed(true);
+  }
   target->DispatchEvent(*interest_event);
   if (interest_event->defaultPrevented()) {
     return false;
@@ -2020,6 +2023,10 @@ bool Element::InterestLost(Element* target,
                             cancelable == InterestLostCancelable::kCancelable
                                 ? Event::Cancelable::kYes
                                 : Event::Cancelable::kNo);
+  if (RuntimeEnabledFeatures::ShadowRootReferenceTargetEnabled(
+          GetExecutionContext())) {
+    lose_interest_event->SetComposed(true);
+  }
   target->DispatchEvent(*lose_interest_event);
   if (lose_interest_event->defaultPrevented()) {
     return false;
@@ -2536,8 +2543,9 @@ int Element::clientTop() {
 
 int Element::ClientLeftNoLayout() const {
   if (const auto* layout_object = GetLayoutBox()) {
-    return AdjustForAbsoluteZoom::AdjustLayoutUnit(layout_object->ClientLeft(),
-                                                   layout_object->StyleRef())
+    return AdjustForAbsoluteZoom::AdjustLayoutUnit(
+               layout_object->PhysicalPaddingBoxRect().offset.left,
+               layout_object->StyleRef())
         .Round();
   }
   return 0;
@@ -2545,8 +2553,9 @@ int Element::ClientLeftNoLayout() const {
 
 int Element::ClientTopNoLayout() const {
   if (const auto* layout_object = GetLayoutBox()) {
-    return AdjustForAbsoluteZoom::AdjustLayoutUnit(layout_object->ClientTop(),
-                                                   layout_object->StyleRef())
+    return AdjustForAbsoluteZoom::AdjustLayoutUnit(
+               layout_object->PhysicalPaddingBoxRect().offset.top,
+               layout_object->StyleRef())
         .Round();
   }
   return 0;
@@ -2651,15 +2660,16 @@ int Element::clientWidth() {
 
   GetDocument().UpdateStyleAndLayoutForNode(this,
                                             DocumentUpdateReason::kJavaScript);
-
-  int result = 0;
-  if (const auto* layout_object = GetLayoutBox()) {
-    result = AdjustForAbsoluteZoom::AdjustLayoutUnit(
-                 layout_object->ClientWidthWithTableSpecialBehavior(),
-                 layout_object->StyleRef())
-                 .Round();
+  if (const auto* box = GetLayoutBox()) {
+    // We don't have a table-wrapper box which is what clientWidth should be
+    // using, just use the border-box size.
+    return AdjustForAbsoluteZoom::AdjustLayoutUnit(
+               box->IsTable() ? box->StitchedSize().width
+                              : box->PhysicalPaddingBoxRect().Width(),
+               box->StyleRef())
+        .Round();
   }
-  return result;
+  return 0;
 }
 
 int Element::clientHeight() {
@@ -2694,14 +2704,16 @@ int Element::clientHeight() {
   GetDocument().UpdateStyleAndLayoutForNode(this,
                                             DocumentUpdateReason::kJavaScript);
 
-  int result = 0;
-  if (const auto* layout_object = GetLayoutBox()) {
-    result = AdjustForAbsoluteZoom::AdjustLayoutUnit(
-                 layout_object->ClientHeightWithTableSpecialBehavior(),
-                 layout_object->StyleRef())
-                 .Round();
+  if (const auto* box = GetLayoutBox()) {
+    // We don't have a table-wrapper box which is what clientHeight should be
+    // using, just use the border-box size.
+    return AdjustForAbsoluteZoom::AdjustLayoutUnit(
+               box->IsTable() ? box->StitchedSize().height
+                              : box->PhysicalPaddingBoxRect().Height(),
+               box->StyleRef())
+        .Round();
   }
-  return result;
+  return 0;
 }
 
 double Element::currentCSSZoom() {
@@ -3825,10 +3837,6 @@ void Element::AttributeChanged(const AttributeModificationParams& params) {
           ->RemovePendingParsingElement(GetIdAttribute(), this);
     }
 
-    if (isConnected() &&
-        (!params.old_value.empty() || !params.new_value.empty())) {
-      GetDocument().MarkOverscrollCommandTargetsDirty();
-    }
   } else if (name == html_names::kClassAttr) {
     if (params.old_value == params.new_value &&
         params.reason != AttributeModificationReason::kByMoveToNewDocument &&
@@ -4363,10 +4371,6 @@ Node::InsertionNotificationRequest Element::InsertedInto(
     }
   }
 
-  if (insertion_point.isConnected() && !GetIdAttribute().empty()) {
-    GetDocument().MarkOverscrollCommandTargetsDirty();
-  }
-
   return kInsertionDone;
 }
 
@@ -4404,6 +4408,18 @@ void Element::SetIsCanvasOrInCanvasSubtree(bool value) {
   }
   SetElementFlag(ElementFlags::kIsCanvasOrInCanvasSubtree, value);
   DidChangeIsCanvasOrInCanvasSubtree();
+}
+
+void Element::DidChangeIsCanvasOrInCanvasSubtree() {
+  if (auto* layout_object = GetLayoutObject()) {
+    layout_object->SetNeedsPaintPropertyUpdate();
+    if (layout_object->HasLayer()) {
+      To<LayoutBoxModelObject>(layout_object)->Layer()->SetNeedsRepaint();
+    }
+    ObjectPaintInvalidator(*layout_object)
+        .InvalidateDisplayItemClient(*layout_object,
+                                     PaintInvalidationReason::kUncacheable);
+  }
 }
 
 void Element::RemovedFrom(ContainerNode& insertion_point) {
@@ -4555,9 +4571,6 @@ void Element::RemovedFrom(ContainerNode& insertion_point) {
     tracker->RemoveAllOverscroll();
   }
 
-  if (was_in_document && !GetIdAttribute().empty()) {
-    document.MarkOverscrollCommandTargetsDirty();
-  }
 }
 
 void Element::AttachColumnPseudoElements(AttachContext& context) {
@@ -5239,6 +5252,7 @@ void Element::RecalcStyle(const StyleRecalcChange change,
     // TODO: When the OverlayProperty feature flag is removed,
     // this can probably be moved inside the if.
     UpdateBackdropPseudoElement(child_change, child_recalc_context);
+    UpdateOverscrollBackdropPseudoElement(child_change, child_recalc_context);
 
     // ::marker ignores the ComputedStyle bits and checks IsDisplayListItem().
     UpdatePseudoElement(kPseudoIdMarker, child_change, child_recalc_context);
@@ -5581,27 +5595,25 @@ StyleRecalcChange Element::RecalcOwnStyle(
   // If we have an overscroll container, but it's the wrong one or we shouldn't
   // have one, remove this element from the overscroll container (which should
   // also clear GetOverscrollContainer() on `this`).
-  if (GetOverscrollContainer() &&
-      (!new_style || !new_style->IsInternalOverscrollPositionAuto() ||
-       GetOverscrollContainer() != style_recalc_context.overscroll_container)) {
+  bool is_valid_overscroll_area =
+      new_style && new_style->IsInternalOverscrollPositionAuto() &&
+      style_recalc_context.parent_is_overscroll_container;
+  Element* parent = parentElement();
+
+  if (GetOverscrollContainer() && (!new_style || !is_valid_overscroll_area ||
+                                   GetOverscrollContainer() != parent)) {
     DetachOverscroll();
     // We may need to remove this element's ::-internal-overscroll-area-parent.
     child_change =
         child_change.EnsureAtLeast(StyleRecalcChange::kUpdatePseudoElements);
   }
-  // If we no longer an overscroll container, but need one, add this element to
-  // the context overscroll container.
-  if (!GetOverscrollContainer() && new_style &&
-      new_style->IsInternalOverscrollPositionAuto()) {
-    // Note that we don't do anything special if there is no overscroll
-    // container.
-    if (style_recalc_context.overscroll_container) {
-      style_recalc_context.overscroll_container->EnsureOverscrollAreaTracker()
-          .AddOverscroll(this);
-      // We need to add a ::-internal-overscroll-area-parent for this element.
-      child_change =
-          child_change.EnsureAtLeast(StyleRecalcChange::kUpdatePseudoElements);
-    }
+  // If we no longer have an overscroll container, but need one, add this
+  // element to the parent overscroll container.
+  if (!GetOverscrollContainer() && is_valid_overscroll_area) {
+    parent->EnsureOverscrollAreaTracker().AddOverscroll(this);
+    // We need to add a ::-internal-overscroll-area-parent for this element.
+    child_change =
+        child_change.EnsureAtLeast(StyleRecalcChange::kUpdatePseudoElements);
   }
 
   if (!new_style) {
@@ -5722,11 +5734,11 @@ StyleRecalcChange Element::RecalcOwnStyle(
                                   styles_changed, 1);
     probe::DidUpdateComputedStyle(this, old_style, new_style);
     if (this == GetDocument().documentElement()) {
-      if (GetDocument().GetStyleEngine().UpdateRootFontRelativeUnits(
-              old_style, new_style)) {
-        // Trigger a full document recalc on root font units changes. We could
-        // keep track of which elements depend on root font units like we do for
-        // viewport styles, but we assume root font size changes are rare and
+      if (GetDocument().GetStyleEngine().UpdateRootRelativeUnits(old_style,
+                                                                 new_style)) {
+        // Trigger a full document recalc on root font and lh unit changes.
+        // We could keep track of which elements depend on these units like we
+        // do for viewport styles, but we assume root unit changes are rare and
         // just recalculate everything.
         child_change =
             child_change.EnsureAtLeast(StyleRecalcChange::kRecalcDescendants);
@@ -5980,6 +5992,14 @@ void Element::RebuildLayoutTree(WhitespaceAttacher& whitespace_attacher) {
     if (has_pseudo_elements) {
       RebuildPseudoElementLayoutTree(kPseudoIdScrollMarkerGroupAfter,
                                      local_attacher);
+      RebuildPseudoElementLayoutTree(kPseudoIdScrollButtonBlockEnd,
+                                     local_attacher);
+      RebuildPseudoElementLayoutTree(kPseudoIdScrollButtonInlineEnd,
+                                     local_attacher);
+      RebuildPseudoElementLayoutTree(kPseudoIdScrollButtonInlineStart,
+                                     local_attacher);
+      RebuildPseudoElementLayoutTree(kPseudoIdScrollButtonBlockStart,
+                                     local_attacher);
     }
     LayoutObject* layout_object = GetLayoutObject();
     if (layout_object || !HasDisplayContentsStyle()) {
@@ -6010,17 +6030,11 @@ void Element::RebuildLayoutTree(WhitespaceAttacher& whitespace_attacher) {
       RebuildPseudoElementLayoutTree(kPseudoIdCheckMark, *child_attacher);
       RebuildPseudoElementLayoutTree(kPseudoIdBefore, *child_attacher);
       RebuildPseudoElementLayoutTree(kPseudoIdMarker, *child_attacher);
-      RebuildPseudoElementLayoutTree(kPseudoIdScrollButtonBlockEnd,
-                                     local_attacher);
-      RebuildPseudoElementLayoutTree(kPseudoIdScrollButtonInlineEnd,
-                                     local_attacher);
-      RebuildPseudoElementLayoutTree(kPseudoIdScrollButtonInlineStart,
-                                     local_attacher);
-      RebuildPseudoElementLayoutTree(kPseudoIdScrollButtonBlockStart,
-                                     local_attacher);
       RebuildPseudoElementLayoutTree(kPseudoIdScrollMarkerGroupBefore,
                                      local_attacher);
       RebuildPseudoElementLayoutTree(kPseudoIdBackdrop, *child_attacher);
+      RebuildPseudoElementLayoutTree(kPseudoIdOverscrollBackdrop,
+                                     *child_attacher);
     }
     RebuildFirstLetterLayoutTree();
     if (has_pseudo_elements) {
@@ -6112,8 +6126,9 @@ void Element::RebuildOverscrollAreaLayoutTree(
        overscroll_area_tracker->DOMSortedElements()) {
     PseudoElement* pseudo_element =
         overscroll_area->GetPseudoElement(kPseudoIdOverscrollAreaParent);
-    pseudo_element->RebuildLayoutTree(whitespace_attacher);
-    CHECK(pseudo_element->GetLayoutObject());
+    if (pseudo_element) {
+      pseudo_element->RebuildLayoutTree(whitespace_attacher);
+    }
   }
 }
 
@@ -6130,8 +6145,9 @@ void Element::AttachOverscrollPseudoElements(AttachContext& context) {
        overscroll_area_tracker->DOMSortedElements()) {
     PseudoElement* pseudo_element =
         overscroll_area->GetPseudoElement(kPseudoIdOverscrollAreaParent);
-    pseudo_element->AttachLayoutTree(context);
-    CHECK(pseudo_element->GetLayoutObject());
+    if (pseudo_element) {
+      pseudo_element->AttachLayoutTree(context);
+    }
   }
 }
 
@@ -6145,7 +6161,9 @@ void Element::DetachOverscrollPseudoElements(bool performing_reattach) {
        overscroll_area_tracker->DOMSortedElements()) {
     PseudoElement* pseudo_element =
         overscroll_area->GetPseudoElement(kPseudoIdOverscrollAreaParent);
-    pseudo_element->DetachLayoutTree(performing_reattach);
+    if (pseudo_element) {
+      pseudo_element->DetachLayoutTree(performing_reattach);
+    }
   }
 }
 
@@ -7068,9 +7086,9 @@ void Element::RecalcCustomHighlightPseudoStyle(
       const ComputedStyle* highlight_style = StyleForHighlightPseudoElement(
           style_recalc_context, highlight_parent, originating_style,
           kPseudoIdHighlight, highlight_name);
-      if (highlight_style) {
-        highlights.SetCustomHighlight(highlight_name, highlight_style);
-      }
+
+      // Always update, even when there is no longer a matching style.
+      highlights.SetCustomHighlight(highlight_name, highlight_style);
     }
   }
 }
@@ -8914,6 +8932,15 @@ void Element::FocusStateChanged() {
   InvalidateIfHasEffectiveAppearance();
   FocusVisibleStateChanged();
   FocusWithinStateChanged();
+
+  // Keep text-overflow in sync with focus: a selection focus inside this
+  // editable field hides its ellipsis, so restore it on focus loss and re-hide
+  // it on focus gain while the selection stays inside.
+  if (RuntimeEnabledFeatures::TextOverflowClipWithSelectionEnabled()) {
+    if (LocalFrame* frame = GetDocument().GetFrame()) {
+      frame->Selection().UpdateTextOverflowOfSelectionFocus(*this, IsFocused());
+    }
+  }
 }
 
 void Element::FocusVisibleStateChanged() {
@@ -8944,14 +8971,6 @@ void Element::ActiveViewTransitionTypeStateChanged() {
           style_change_reason::kPseudoClass,
           style_change_extra_data::g_active_view_transition_type));
   PseudoStateChanged(CSSSelector::kPseudoActiveViewTransitionType);
-}
-
-void Element::OverscrollTargetStateChanged() {
-  SetNeedsStyleRecalc(kLocalStyleChange,
-                      StyleChangeReasonForTracing::CreateWithExtraData(
-                          style_change_reason::kPseudoClass,
-                          style_change_extra_data::g_overscroll_target));
-  PseudoStateChanged(CSSSelector::kPseudoOverscrollTarget);
 }
 
 bool Element::MatchesOverscrollOpen() const {
@@ -10040,6 +10059,7 @@ void Element::SetShadowPseudoId(const AtomicString& id) {
            type == CSSSelector::kPseudoBlinkInternalElement ||
            type == CSSSelector::kPseudoDetailsContent ||
            type == CSSSelector::kPseudoPermissionIcon ||
+           type == CSSSelector::kPseudoSelectListbox ||
            id == shadow_element_names::kPickerSelect)
         << "type: " << type << ", id: " << id;
   }
@@ -10520,6 +10540,43 @@ void Element::UpdateBackdropPseudoElement(
   // it in a separate pass.
   //
   // See also PostStyleUpdateScope::PseudoData::AddPendingBackdrop.
+  if (PostStyleUpdateScope::PseudoData* pseudo_data =
+          PostStyleUpdateScope::CurrentPseudoData()) {
+    pseudo_data->AddPendingBackdrop(/* originating_element */ *this);
+  }
+}
+
+bool Element::ShouldUpdateOverscrollBackdropPseudoElement(
+    const StyleRecalcChange change) {
+  if (!RuntimeEnabledFeatures::OverscrollGesturesEnabled()) {
+    return false;
+  }
+  PseudoElement* element =
+      GetPseudoElement(PseudoId::kPseudoIdOverscrollBackdrop,
+                       /* pseudo_argument */ g_null_atom);
+  bool generate_pseudo =
+      CanGeneratePseudoElement(PseudoId::kPseudoIdOverscrollBackdrop);
+
+  if (element) {
+    return !generate_pseudo || change.ShouldUpdatePseudoElement(*element);
+  }
+
+  return generate_pseudo;
+}
+
+void Element::UpdateOverscrollBackdropPseudoElement(
+    const StyleRecalcChange change,
+    const StyleRecalcContext& style_recalc_context) {
+  if (!ShouldUpdateOverscrollBackdropPseudoElement(change)) {
+    return;
+  }
+
+  if (GetDocument().GetStyleEngine().GetInterleavingRecalcRoot() != this) {
+    UpdatePseudoElement(PseudoId::kPseudoIdOverscrollBackdrop, change,
+                        style_recalc_context);
+    return;
+  }
+
   if (PostStyleUpdateScope::PseudoData* pseudo_data =
           PostStyleUpdateScope::CurrentPseudoData()) {
     pseudo_data->AddPendingBackdrop(/* originating_element */ *this);
@@ -11327,7 +11384,11 @@ bool Element::CanGeneratePseudoElement(PseudoId pseudo_id) const {
     }
     if (!RuntimeEnabledFeatures::OverlayPropertyEnabled() &&
         pseudo_id == kPseudoIdBackdrop) {
-      return IsInTopLayer() || GetOverscrollContainer();
+      return IsInTopLayer();
+    }
+    if (pseudo_id == kPseudoIdOverscrollBackdrop) {
+      return RuntimeEnabledFeatures::OverscrollGesturesEnabled() &&
+             GetOverscrollContainer() != nullptr;
     }
     return style->CanGeneratePseudoElement(pseudo_id);
   }
@@ -11421,7 +11482,7 @@ KURL Element::HrefURL() const {
   // FIXME: These all have href() or url(), but no common super class. Why
   // doesn't <link> implement URLUtils?
   if (IsA<HTMLAnchorElement>(*this) || IsA<HTMLAreaElement>(*this) ||
-      IsA<HTMLLinkElement>(*this)) {
+      IsA<HTMLLinkElement>(*this) || IsA<MathMLAnchorElement>(*this)) {
     return GetURLAttributeAsKURL(html_names::kHrefAttr);
   }
   if (auto* svg_a = DynamicTo<SVGAElement>(*this)) {

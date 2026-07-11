@@ -12,11 +12,13 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -30,8 +32,10 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 
 import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.test.filters.SmallTest;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -44,22 +48,31 @@ import org.mockito.junit.MockitoRule;
 import org.robolectric.Robolectric;
 import org.robolectric.shadows.ShadowLooper;
 
+import org.chromium.base.FeatureOverrides;
 import org.chromium.base.Token;
 import org.chromium.base.supplier.ObservableSuppliers;
 import org.chromium.base.supplier.SettableMonotonicObservableSupplier;
+import org.chromium.base.supplier.SettableNonNullObservableSupplier;
 import org.chromium.base.test.BaseRobolectricTestRunner;
 import org.chromium.base.test.util.Features;
 import org.chromium.chrome.browser.collaboration.CollaborationServiceFactory;
 import org.chromium.chrome.browser.commerce.ShoppingServiceFactory;
 import org.chromium.chrome.browser.commerce.ShoppingServiceFactoryJni;
+import org.chromium.chrome.browser.compositor.overlays.strip.TabContextMenuCoordinator;
+import org.chromium.chrome.browser.compositor.overlays.strip.TabContextMenuCoordinator.AnchorInfo;
+import org.chromium.chrome.browser.compositor.overlays.strip.TabGroupContextMenuCoordinator;
 import org.chromium.chrome.browser.compositor.overlays.strip.TabStripContextMenuCoordinator;
 import org.chromium.chrome.browser.data_sharing.DataSharingServiceFactory;
+import org.chromium.chrome.browser.data_sharing.DataSharingTabManager;
 import org.chromium.chrome.browser.flags.ChromeFeatureList;
 import org.chromium.chrome.browser.glic.GlicEnabling;
 import org.chromium.chrome.browser.hub.PaneId;
 import org.chromium.chrome.browser.multiwindow.MultiInstanceManager;
+import org.chromium.chrome.browser.multiwindow.MultiInstanceOrchestrator;
+import org.chromium.chrome.browser.multiwindow.MultiInstanceOrchestratorFactory;
 import org.chromium.chrome.browser.price_tracking.PriceTrackingFeatures;
 import org.chromium.chrome.browser.profiles.Profile;
+import org.chromium.chrome.browser.share.ShareDelegate;
 import org.chromium.chrome.browser.tab.Tab;
 import org.chromium.chrome.browser.tab.TabLaunchType;
 import org.chromium.chrome.browser.tab.TabSelectionType;
@@ -70,9 +83,11 @@ import org.chromium.chrome.browser.tabmodel.TabModel;
 import org.chromium.chrome.browser.tabmodel.TabModelSelector;
 import org.chromium.chrome.browser.tabmodel.TabModelSelectorObserver;
 import org.chromium.chrome.browser.tasks.tab_management.TabActionListener;
+import org.chromium.chrome.browser.tasks.tab_management.TabListModel.CardProperties;
 import org.chromium.chrome.browser.tasks.tab_management.TabListRecyclerView;
 import org.chromium.chrome.browser.tasks.tab_management.TabProperties;
 import org.chromium.chrome.browser.tasks.tab_management.TabProperties.UiType;
+import org.chromium.chrome.browser.tasks.tab_management.vertical_tabs.VerticalTabListCoordinator.RailCollapseListener;
 import org.chromium.chrome.browser.ui.favicon.FaviconHelper;
 import org.chromium.chrome.browser.ui.favicon.FaviconHelperJni;
 import org.chromium.chrome.browser.ui.messages.snackbar.SnackbarManager;
@@ -84,14 +99,18 @@ import org.chromium.components.collaboration.ServiceStatus;
 import org.chromium.components.commerce.core.ShoppingService;
 import org.chromium.components.data_sharing.DataSharingService;
 import org.chromium.components.tab_group_sync.TabGroupSyncService;
+import org.chromium.components.tab_groups.TabGroupsFeatureMap;
+import org.chromium.ui.KeyboardVisibilityDelegate;
 import org.chromium.ui.base.WindowAndroid;
 import org.chromium.ui.modelutil.MVCListAdapter;
 import org.chromium.ui.modelutil.PropertyModel;
 import org.chromium.ui.modelutil.SimpleRecyclerViewAdapter;
+import org.chromium.ui.widget.RectProvider;
 import org.chromium.url.GURL;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -100,7 +119,10 @@ import java.util.concurrent.TimeUnit;
 @Features.DisableFeatures({
     ChromeFeatureList.GLIC,
     ChromeFeatureList.DATA_SHARING,
-    ChromeFeatureList.DATA_SHARING_JOIN_ONLY
+    ChromeFeatureList.DATA_SHARING_JOIN_ONLY,
+    ChromeFeatureList.ANDROID_CONTEXT_MENU_NEW_ACTIONS,
+    ChromeFeatureList.TASK_MANAGER_CLANK,
+    TabGroupsFeatureMap.UPDATE_TAB_GROUP_COLORS
 })
 public class VerticalTabListCoordinatorUnitTest {
     @Rule public MockitoRule mMockitoRule = MockitoJUnit.rule();
@@ -122,10 +144,20 @@ public class VerticalTabListCoordinatorUnitTest {
     @Mock private SnackbarManager mSnackbarManager;
     @Mock private TabStripContextMenuCoordinator mTabStripContextMenuCoordinator;
     @Mock private DesktopWindowStateManager mDesktopWindowStateManager;
+    @Mock private TabContextMenuCoordinator mTabContextMenuCoordinator;
+    @Mock private ShareDelegate mShareDelegate;
+    @Mock private MultiInstanceOrchestrator mMultiInstanceOrchestrator;
+    @Mock private DataSharingTabManager mDataSharingTabManager;
+    @Mock private TabGroupContextMenuCoordinator mTabGroupContextMenuCoordinator;
+    @Mock private KeyboardVisibilityDelegate mKeyboardDelegate;
 
     private Activity mActivity;
+    private final SettableMonotonicObservableSupplier<ShareDelegate> mShareDelegateSupplier =
+            ObservableSuppliers.createMonotonic(mShareDelegate);
     private final SettableMonotonicObservableSupplier<TabModel> mCurrentTabModelSupplier =
             ObservableSuppliers.createMonotonic();
+    private final SettableNonNullObservableSupplier<Boolean> mIsVerticalTabsActiveSupplier =
+            ObservableSuppliers.createNonNull(false);
     private final List<TabGroupObserver> mTabGroupObservers = new ArrayList<>();
     private VerticalTabListCoordinator mCoordinator;
 
@@ -134,6 +166,7 @@ public class VerticalTabListCoordinatorUnitTest {
         FaviconHelperJni.setInstanceForTesting(mFaviconHelperJniMock);
         when(mFaviconHelperJniMock.init()).thenReturn(1L);
         TabGroupSyncServiceFactory.setForTesting(mTabGroupSyncService);
+        when(mTabGroupSyncService.getAllGroupIds()).thenReturn(new String[0]);
         DataSharingServiceFactory.setForTesting(mDataSharingService);
         CollaborationServiceFactory.setForTesting(mCollaborationService);
         ServiceStatus serviceStatus = mock(ServiceStatus.class);
@@ -153,10 +186,12 @@ public class VerticalTabListCoordinatorUnitTest {
         when(mProfile.getOriginalProfile()).thenReturn(mProfile);
         when(mTabModel.isTabModelRestored()).thenReturn(true);
         when(mTabModel.getTabCreator()).thenReturn(mTabCreator);
-        when(mTabModel.iterator()).thenReturn(java.util.Collections.emptyIterator());
+        when(mTabModel.iterator()).thenReturn(Collections.emptyIterator());
         when(mTabModelSelector.isTabStateInitialized()).thenReturn(true);
         when(mWindowAndroid.getActivity()).thenReturn(new WeakReference<>(mActivity));
         GlicEnabling.setEnabledForTesting(false);
+        MultiInstanceOrchestratorFactory.setInstanceForTesting(mMultiInstanceOrchestrator);
+        when(mWindowAndroid.getKeyboardDelegate()).thenReturn(mKeyboardDelegate);
 
         doAnswer(
                         invocation -> {
@@ -165,6 +200,11 @@ public class VerticalTabListCoordinatorUnitTest {
                         })
                 .when(mTabModel)
                 .addTabGroupObserver(any(TabGroupObserver.class));
+    }
+
+    @After
+    public void tearDown() {
+        MultiInstanceOrchestratorFactory.setInstanceForTesting(null);
     }
 
     private void createCoordinator() {
@@ -177,7 +217,10 @@ public class VerticalTabListCoordinatorUnitTest {
                         mWindowAndroid,
                         mMultiInstanceManager,
                         mSnackbarManager,
-                        mDesktopWindowStateManager);
+                        mDesktopWindowStateManager,
+                        mShareDelegateSupplier,
+                        mDataSharingTabManager,
+                        mIsVerticalTabsActiveSupplier);
     }
 
     private Tab prepareMockTab(int id) {
@@ -207,6 +250,27 @@ public class VerticalTabListCoordinatorUnitTest {
                 /* metaState= */ 0);
     }
 
+    private TabListRecyclerView setupMockRecyclerViewWithTab(int tabId) {
+        // Mock the backend model.
+        Tab mockTab = prepareMockTab(tabId);
+        when(mTabModel.getTabById(tabId)).thenReturn(mockTab);
+        when(mTabModel.getRelatedTabList(tabId)).thenReturn(Collections.singletonList(mockTab));
+
+        createCoordinator();
+        ViewGroup container = (ViewGroup) mCoordinator.getView();
+        TabListRecyclerView realRecyclerView = container.findViewById(R.id.tab_list_recycler_view);
+
+        // Populate the real UI list dataset with a placeholder tab item data properties bundle.
+        SimpleRecyclerViewAdapter adapter =
+                (SimpleRecyclerViewAdapter) realRecyclerView.getAdapter();
+        PropertyModel tabPropertyModel = new PropertyModel(TabProperties.ALL_KEYS_VERTICAL_TAB);
+        tabPropertyModel.set(TabProperties.TAB_ID, tabId);
+        adapter.getModelList().add(new MVCListAdapter.ListItem(UiType.TAB, tabPropertyModel));
+
+        // Wrap the real inflated Recycler View in a spy.
+        return spy(realRecyclerView);
+    }
+
     @Test
     @SmallTest
     public void testConstructor() {
@@ -220,11 +284,75 @@ public class VerticalTabListCoordinatorUnitTest {
         assertNotNull(recyclerView.getAdapter());
         assertNotNull(recyclerView.getLayoutManager());
 
-        GridLayoutManager layoutManager = (GridLayoutManager) recyclerView.getLayoutManager();
-        assertEquals(4, layoutManager.getSpanCount());
+        LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+        assertEquals(LinearLayoutManager.VERTICAL, layoutManager.getOrientation());
+
+        // Verify the pinned tabs RecyclerView is initialized but hidden when empty.
+        TabListRecyclerView pinnedRecyclerView = view.findViewById(R.id.pinned_tabs_recycler_view);
+        assertNotNull(pinnedRecyclerView);
+        assertNotNull(pinnedRecyclerView.getAdapter());
+        assertNotNull(pinnedRecyclerView.getLayoutManager());
+        assertEquals(View.GONE, pinnedRecyclerView.getVisibility());
+
+        GridLayoutManager pinnedLayoutManager =
+                (GridLayoutManager) pinnedRecyclerView.getLayoutManager();
+        assertEquals(4, pinnedLayoutManager.getSpanCount());
 
         assertNotNull(mSelectorObserverCaptor.getValue());
         verify(mTabModelSelector).addObserver(mSelectorObserverCaptor.getValue());
+    }
+
+    @Test
+    @SmallTest
+    public void testPinnedTabsVisibility() {
+        // Set up the tab model with a pinned tab.
+        Tab pinnedTab = prepareMockTab(123);
+        when(pinnedTab.getIsPinned()).thenReturn(true);
+        when(mTabModel.getRepresentativeTabList()).thenReturn(List.of(pinnedTab));
+        when(mTabModel.iterator()).thenReturn(List.of(pinnedTab).iterator());
+        when(mTabModel.getTabById(123)).thenReturn(pinnedTab);
+        when(mTabModel.getCount()).thenReturn(1);
+        when(mTabModel.getTabAt(0)).thenReturn(pinnedTab);
+
+        createCoordinator();
+
+        // Verify the pinned tabs RecyclerView becomes visible when it contains elements.
+        ViewGroup view = (ViewGroup) mCoordinator.getView();
+        TabListRecyclerView pinnedRecyclerView = view.findViewById(R.id.pinned_tabs_recycler_view);
+        assertNotNull(pinnedRecyclerView);
+        assertEquals(View.VISIBLE, pinnedRecyclerView.getVisibility());
+
+        // Swap to an empty tab model.
+        TabModel emptyTabModel = mock(TabModel.class);
+        when(emptyTabModel.getProfile()).thenReturn(mProfile);
+        when(emptyTabModel.isTabModelRestored()).thenReturn(true);
+        when(emptyTabModel.getRepresentativeTabList()).thenReturn(Collections.emptyList());
+        when(emptyTabModel.iterator()).thenReturn(Collections.emptyIterator());
+
+        mCurrentTabModelSupplier.set(emptyTabModel);
+
+        // Verify the pinned tabs RecyclerView becomes hidden when empty.
+        assertEquals(View.GONE, pinnedRecyclerView.getVisibility());
+    }
+
+    @Test
+    @SmallTest
+    public void testConstructor_AddsSpineDecoration() {
+        createCoordinator();
+        ViewGroup view = (ViewGroup) mCoordinator.getView();
+        TabListRecyclerView recyclerView = view.findViewById(R.id.tab_list_recycler_view);
+        assertNotNull(recyclerView);
+
+        boolean hasSpineDecoration = false;
+        for (int i = 0; i < recyclerView.getItemDecorationCount(); i++) {
+            if (recyclerView.getItemDecorationAt(i) instanceof VerticalTabGroupSpineDecoration) {
+                hasSpineDecoration = true;
+                break;
+            }
+        }
+        assertTrue(
+                "VerticalTabGroupSpineDecoration should be added to RecyclerView.",
+                hasSpineDecoration);
     }
 
     @Test
@@ -233,6 +361,8 @@ public class VerticalTabListCoordinatorUnitTest {
         doNothing().when(mTabModelSelector).addObserver(mSelectorObserverCaptor.capture());
         createCoordinator();
         mCoordinator.setTabStripContextMenuCoordinatorForTesting(mTabStripContextMenuCoordinator);
+        mCoordinator.setTabContextMenuCoordinatorForTesting(mTabContextMenuCoordinator);
+        mCoordinator.setTabGroupContextMenuCoordinatorForTesting(mTabGroupContextMenuCoordinator);
 
         TabModelSelectorObserver observer = mSelectorObserverCaptor.getValue();
         assertNotNull(observer);
@@ -244,6 +374,17 @@ public class VerticalTabListCoordinatorUnitTest {
         assertNull(
                 "The tab strip context menu reference must be nullified upon destruction.",
                 mCoordinator.getTabStripContextMenuCoordinatorForTesting());
+
+        verify(mTabContextMenuCoordinator).dismiss();
+        assertNull(
+                "The tab context menu reference must be nullified upon destruction.",
+                mCoordinator.getTabContextMenuCoordinatorForTesting());
+
+        verify(mTabGroupContextMenuCoordinator).destroy();
+        assertNull(
+                "The tab group context menu coordinator reference must be nullified on lifecycle"
+                        + " teardown.",
+                mCoordinator.getTabGroupContextMenuCoordinatorForTesting());
     }
 
     @Test
@@ -315,6 +456,171 @@ public class VerticalTabListCoordinatorUnitTest {
 
     @Test
     @SmallTest
+    public void testTabItemInteraction_WithTouchPointLaunchesMenuAtPreciseLocation() {
+        TabListRecyclerView recyclerViewSpy = setupMockRecyclerViewWithTab(456);
+
+        View mockChildView = mock(View.class);
+        doReturn(mockChildView).when(recyclerViewSpy).findChildViewUnder(150f, 250f);
+        doReturn(0).when(recyclerViewSpy).getChildAdapterPosition(mockChildView);
+
+        // Inject our mock coordinator so we can intercept the rect capture bounds.
+        mCoordinator.setTabContextMenuCoordinatorForTesting(mTabContextMenuCoordinator);
+
+        // Simulate setting the last touch coordinates to a non-zero point.
+        mCoordinator.getLastTouchPointForTesting().set(150, 250);
+
+        // Trigger the context menu interaction.
+        mCoordinator.handleContextMenuInteractionForTesting(
+                mActivity, recyclerViewSpy, /* localX= */ 150f, /* localY= */ 250f);
+
+        // Verify the RectProvider bounds match our 1x1 tight pixel calculation.
+        ArgumentCaptor<RectProvider> rectCaptor = ArgumentCaptor.forClass(RectProvider.class);
+        ArgumentCaptor<AnchorInfo> anchorInfoCaptor = ArgumentCaptor.forClass(AnchorInfo.class);
+
+        verify(mTabContextMenuCoordinator)
+                .showMenu(rectCaptor.capture(), anchorInfoCaptor.capture());
+
+        Rect descriptiveBoundRect = rectCaptor.getValue().getRect();
+        assertEquals("Width must be exactly 1 pixel.", 1, descriptiveBoundRect.width());
+        assertEquals("Height must be exactly 1 pixel.", 1, descriptiveBoundRect.height());
+        assertNotNull(
+                "Anchor info parameters must be provided to showMenu.",
+                anchorInfoCaptor.getValue());
+
+        if (mCoordinator.getTabContextMenuCoordinatorForTesting() != null) {
+            mCoordinator.getTabContextMenuCoordinatorForTesting().dismiss();
+        }
+    }
+
+    @Test
+    @SmallTest
+    public void testTabGroupHeaderInteraction_LaunchesGroupHeaderContextMenu_Fallback() {
+        // Mock the backend model.
+        Tab mockTab = prepareMockTab(123);
+        Token tabGroupId = new Token(1L, 2L);
+        when(mockTab.getTabGroupId()).thenReturn(tabGroupId);
+        when(mTabModel.getTabById(123)).thenReturn(mockTab);
+        when(mTabModel.getRelatedTabList(123)).thenReturn(Collections.singletonList(mockTab));
+
+        createCoordinator();
+        ViewGroup container = (ViewGroup) mCoordinator.getView();
+        TabListRecyclerView realRecyclerView = container.findViewById(R.id.tab_list_recycler_view);
+        assertNotNull(realRecyclerView);
+
+        // Wrap the real inflated Recycler View in a spy.
+        TabListRecyclerView recyclerViewSpy = spy(realRecyclerView);
+        assertNull(mCoordinator.getTabGroupContextMenuCoordinatorForTesting());
+
+        // Inject the mock coordinator here before calling #handleContextMenuInteractionForTesting
+        // so that we can verify the rect captor later in this test.
+        mCoordinator.setTabGroupContextMenuCoordinatorForTesting(mTabGroupContextMenuCoordinator);
+
+        SimpleRecyclerViewAdapter adapter =
+                (SimpleRecyclerViewAdapter) realRecyclerView.getAdapter();
+        PropertyModel groupPropertyModel = new PropertyModel(TabProperties.ALL_KEYS_VERTICAL_TAB);
+        groupPropertyModel.set(TabProperties.TAB_ID, 123);
+        groupPropertyModel.set(TabProperties.TAB_GROUP_HEADER_ID, tabGroupId);
+
+        // This forces item.type == UiType.TAB but inner header id is not null, mimicking the real
+        // list behavior.
+        adapter.getModelList().add(new MVCListAdapter.ListItem(UiType.TAB, groupPropertyModel));
+
+        assertEquals(
+                "The adapter lookup should resolve this list item row layout as a TAB_GROUP type.",
+                UiType.TAB_GROUP,
+                adapter.getItemViewType(0));
+
+        // Create a mock View layout box (child of the recycler view) that renders the tab card on
+        // the screen.
+        View mockChildView = mock(View.class);
+        when(mockChildView.getWidth()).thenReturn(400);
+        when(mockChildView.getHeight()).thenReturn(80);
+
+        doAnswer(
+                        invocation -> {
+                            int[] pos = invocation.getArgument(0);
+                            pos[0] = 40;
+                            pos[1] = 120;
+                            return null;
+                        })
+                .when(mockChildView)
+                .getLocationInWindow(any());
+
+        doReturn(mockChildView).when(recyclerViewSpy).findChildViewUnder(200f, 150f);
+        doReturn(0).when(recyclerViewSpy).getChildAdapterPosition(mockChildView);
+
+        boolean handled =
+                mCoordinator.handleContextMenuInteractionForTesting(
+                        mActivity, recyclerViewSpy, /* localX= */ 200f, /* localY= */ 150f);
+
+        assertTrue(
+                "Context gesture interaction on an active group header card should return true.",
+                handled);
+
+        ArgumentCaptor<RectProvider> rectCaptor = ArgumentCaptor.forClass(RectProvider.class);
+        verify(mTabGroupContextMenuCoordinator).showMenu(rectCaptor.capture(), eq(tabGroupId));
+
+        Rect descriptiveBoundRect = rectCaptor.getValue().getRect();
+        assertEquals(
+                "Anchor bounding box left edge must be mapped.", 40, descriptiveBoundRect.left);
+        assertEquals("Anchor bounding box top edge must be mapped.", 120, descriptiveBoundRect.top);
+        assertEquals(
+                "Anchor bounding box right edge must be mapped.", 440, descriptiveBoundRect.right);
+        assertEquals(
+                "Anchor bounding box bottom edge must be mapped.",
+                200,
+                descriptiveBoundRect.bottom);
+
+        if (mCoordinator.getTabGroupContextMenuCoordinatorForTesting() != null) {
+            // Dismiss/destroy the instantiated context menu tracker to satisfy LifetimeAssert.
+            mCoordinator.getTabGroupContextMenuCoordinatorForTesting().destroy();
+        }
+    }
+
+    @Test
+    @SmallTest
+    public void testTabItemInteraction_LaunchesTabContextMenu_Fallback() {
+        TabListRecyclerView recyclerViewSpy = setupMockRecyclerViewWithTab(456);
+        assertNull(mCoordinator.getTabContextMenuCoordinatorForTesting());
+
+        // Create a mock View layout box (child of the recycler view) that renders the tab card on
+        // the screen.
+        View mockChildView = mock(View.class);
+        when(mockChildView.getWidth()).thenReturn(300);
+        when(mockChildView.getHeight()).thenReturn(100);
+
+        doAnswer(
+                        invocation -> {
+                            int[] pos = invocation.getArgument(0);
+                            pos[0] = 50;
+                            pos[1] = 100;
+                            return null;
+                        })
+                .when(mockChildView)
+                .getLocationInWindow(any());
+
+        doReturn(mockChildView).when(recyclerViewSpy).findChildViewUnder(150f, 250f);
+        doReturn(0).when(recyclerViewSpy).getChildAdapterPosition(mockChildView);
+
+        // Directly trigger the context interaction mapping.
+        boolean handled =
+                mCoordinator.handleContextMenuInteractionForTesting(
+                        mActivity, recyclerViewSpy, /* localX= */ 150f, /* localY= */ 250f);
+
+        assertTrue("Context gesture interaction on an active tab row should return true.", handled);
+        assertNotNull(
+                "Long press/right click interaction on a tab item view should launch the"
+                        + " TabContextMenuCoordinator.",
+                mCoordinator.getTabContextMenuCoordinatorForTesting());
+
+        if (mCoordinator.getTabContextMenuCoordinatorForTesting() != null) {
+            // Dismiss/destroy the instantiated context menu tracker to satisfy LifetimeAssert.
+            mCoordinator.getTabContextMenuCoordinatorForTesting().dismiss();
+        }
+    }
+
+    @Test
+    @SmallTest
     public void testDestroy_RemovesSupplierObserver() {
         createCoordinator();
         TabListRecyclerView recycler =
@@ -335,14 +641,12 @@ public class VerticalTabListCoordinatorUnitTest {
 
     @Test
     @SmallTest
-    public void testAdapterInterceptionAndSpanLookup() {
+    public void testAdapterInterception() {
         createCoordinator();
         TabListRecyclerView recycler =
                 mCoordinator.getView().findViewById(R.id.tab_list_recycler_view);
         SimpleRecyclerViewAdapter adapter = (SimpleRecyclerViewAdapter) recycler.getAdapter();
         assertNotNull(recycler.getLayoutManager());
-        GridLayoutManager.SpanSizeLookup lookup =
-                ((GridLayoutManager) recycler.getLayoutManager()).getSpanSizeLookup();
 
         PropertyModel reg = new PropertyModel(TabProperties.ALL_KEYS_VERTICAL_TAB);
         PropertyModel pin = new PropertyModel(TabProperties.ALL_KEYS_VERTICAL_TAB);
@@ -358,9 +662,6 @@ public class VerticalTabListCoordinatorUnitTest {
         assertEquals(UiType.TAB, adapter.getItemViewType(0));
         assertEquals(UiType.PINNED_TAB, adapter.getItemViewType(1));
         assertEquals(UiType.TAB_GROUP, adapter.getItemViewType(2));
-        assertEquals(4, lookup.getSpanSize(0));
-        assertEquals(1, lookup.getSpanSize(1));
-        assertEquals(4, lookup.getSpanSize(2));
     }
 
     @Test
@@ -541,7 +842,7 @@ public class VerticalTabListCoordinatorUnitTest {
         ImageButton tabSearchButton = mCoordinator.getView().findViewById(R.id.tab_search_button);
         assertNotNull(tabSearchButton);
         tabSearchButton.performClick();
-        verify(mVerticalTabsActionDelegate).openHubPane(PaneId.TAB_SWITCHER);
+        verify(mVerticalTabsActionDelegate).openTabSearch();
     }
 
     @Test
@@ -598,5 +899,119 @@ public class VerticalTabListCoordinatorUnitTest {
         observer.onAppHeaderStateChanged(appHeaderState2);
 
         assertEquals("Spacer view should be hidden.", View.GONE, spacer.getVisibility());
+    }
+
+    @Test
+    @SmallTest
+    public void testScrollActiveTabIntoView_PinnedTab_NoScroll() {
+        int pinnedTabId = 111;
+        Tab pinnedTab = prepareMockTab(pinnedTabId);
+        when(pinnedTab.getIsPinned()).thenReturn(true);
+        when(mTabModel.getTabById(pinnedTabId)).thenReturn(pinnedTab);
+        when(mTabModelSelector.getCurrentTabId()).thenReturn(pinnedTabId);
+
+        mIsVerticalTabsActiveSupplier.set(false);
+        createCoordinator();
+        mActivity.setContentView(mCoordinator.getView());
+
+        ViewGroup view = (ViewGroup) mCoordinator.getView();
+        TabListRecyclerView recyclerView = view.findViewById(R.id.tab_list_recycler_view);
+        LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+        recyclerView.setLayoutManager(null);
+        assert layoutManager != null;
+        LinearLayoutManager spyLayoutManager = spy(layoutManager);
+        recyclerView.setLayoutManager(spyLayoutManager);
+
+        mIsVerticalTabsActiveSupplier.set(true);
+
+        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+
+        verify(spyLayoutManager, never()).scrollToPositionWithOffset(anyInt(), anyInt());
+    }
+
+    @Test
+    @SmallTest
+    public void testScrollActiveTabIntoView_RegularTab_Scrolls() {
+        int regTabId = 222;
+        Tab regTab = prepareMockTab(regTabId);
+        when(regTab.getIsPinned()).thenReturn(false);
+        when(mTabModel.getTabById(regTabId)).thenReturn(regTab);
+        when(mTabModelSelector.getCurrentTabId()).thenReturn(regTabId);
+
+        mIsVerticalTabsActiveSupplier.set(false);
+        createCoordinator();
+        mActivity.setContentView(mCoordinator.getView());
+
+        ViewGroup view = (ViewGroup) mCoordinator.getView();
+        TabListRecyclerView recyclerView = view.findViewById(R.id.tab_list_recycler_view);
+        SimpleRecyclerViewAdapter adapter = (SimpleRecyclerViewAdapter) recyclerView.getAdapter();
+        assertNotNull(adapter);
+
+        PropertyModel model =
+                new PropertyModel.Builder(TabProperties.ALL_KEYS_VERTICAL_TAB)
+                        .with(CardProperties.CARD_TYPE, CardProperties.ModelType.TAB)
+                        .with(TabProperties.TAB_ID, regTabId)
+                        .build();
+        adapter.getModelList().add(new MVCListAdapter.ListItem(UiType.TAB, model));
+
+        LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+        recyclerView.setLayoutManager(null);
+        assert layoutManager != null;
+        LinearLayoutManager spyLayoutManager = spy(layoutManager);
+        recyclerView.setLayoutManager(spyLayoutManager);
+
+        mIsVerticalTabsActiveSupplier.set(true);
+
+        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+
+        verify(spyLayoutManager).scrollToPositionWithOffset(eq(0), anyInt());
+    }
+
+    @Test
+    @SmallTest
+    public void testCollapseListenerAndModelToggle() {
+        FeatureOverrides.newBuilder()
+                .enable(ChromeFeatureList.ANDROID_VERTICAL_TABS)
+                .param("enable_collapsible_rail", true)
+                .apply();
+
+        createCoordinator();
+
+        // Mock listener
+        RailCollapseListener mockListener = mock(RailCollapseListener.class);
+        mCoordinator.setCollapseListener(mockListener);
+
+        ViewGroup view = (ViewGroup) mCoordinator.getView();
+        View collapseButton = view.findViewById(R.id.collapse_button);
+        assertNotNull(collapseButton);
+        assertEquals(View.VISIBLE, collapseButton.getVisibility());
+
+        // Initially expanded
+        assertFalse(
+                mCoordinator
+                        .getContainerModelForTesting()
+                        .get(VerticalTabListProperties.IS_COLLAPSED));
+        assertEquals(4, mCoordinator.getPinnedLayoutManagerForTesting().getSpanCount());
+
+        // Click collapse
+        collapseButton.performClick();
+
+        // Verify model updated
+        assertTrue(
+                mCoordinator
+                        .getContainerModelForTesting()
+                        .get(VerticalTabListProperties.IS_COLLAPSED));
+        // Verify listener notified
+        verify(mockListener).onRailCollapseChanged(true);
+        assertEquals(1, mCoordinator.getPinnedLayoutManagerForTesting().getSpanCount());
+
+        // Click again to expand
+        collapseButton.performClick();
+        assertFalse(
+                mCoordinator
+                        .getContainerModelForTesting()
+                        .get(VerticalTabListProperties.IS_COLLAPSED));
+        verify(mockListener).onRailCollapseChanged(false);
+        assertEquals(4, mCoordinator.getPinnedLayoutManagerForTesting().getSpanCount());
     }
 }

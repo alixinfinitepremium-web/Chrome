@@ -67,7 +67,6 @@ def __step_config(ctx, step_config):
         "third_party/dawn/webgpu-cts/scripts/copy_files.py",
         "third_party/dawn/webgpu-cts/scripts/gen_ts_dep_lists.py",
         "third_party/devtools-frontend/src/scripts/build/build_inspector_overlay.py",
-        "third_party/devtools-frontend/src/scripts/build/typescript/ts_library.py",
         "third_party/inspector_protocol/check_protocol_compatibility.py",
         "third_party/inspector_protocol/code_generator.py",
         "third_party/inspector_protocol/concatenate_protocols.py",
@@ -84,7 +83,6 @@ def __step_config(ctx, step_config):
         "tools/grit/grit_info.py",
         "tools/grit/grit.py",
         "tools/grit/pak_util.py",
-        "tools/grit/preprocess_if_expr.py",
         "tools/licenses/licenses.py",
 
         # merge_xml.py relies on expand_owners.py, which
@@ -117,8 +115,6 @@ def __step_config(ctx, step_config):
         "third_party/devtools-frontend/src/front_end/core/i18n/generate-locales-js.js",
         "third_party/devtools-frontend/src/node_modules/rollup/dist/bin/rollup",
         "third_party/devtools-frontend/src/scripts/build/build_ai_skills.mjs",
-        "third_party/devtools-frontend/src/scripts/build/esbuild.js",
-        "third_party/devtools-frontend/src/scripts/build/generate_css_js_files.js",
         "third_party/devtools-frontend/src/scripts/build/generate_devtools_json.mjs",
         "third_party/devtools-frontend/src/scripts/build/generate_html_entrypoint.js",
         "third_party/devtools-frontend/src/scripts/component_docs/generate_docs.mjs",
@@ -132,12 +128,6 @@ def __step_config(ctx, step_config):
         })
 
     binary_files = [
-        "character_data_generator",
-        "country_native_names_generator",
-        "crx3_build_action",
-        "flatc",
-        "make_top_domain_list_variables",
-        "top_domain_generator",
         "./v8_context_snapshot_generator",
     ]
 
@@ -153,6 +143,7 @@ def __step_config(ctx, step_config):
             "name": "default",
             "action": ".*",
             "remote": True,
+            "timeout": "2m",
         })
 
     return step_config

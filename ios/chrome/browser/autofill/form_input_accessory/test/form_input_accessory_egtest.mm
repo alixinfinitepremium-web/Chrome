@@ -297,12 +297,6 @@ void SlowlyTypeText(NSString* text) {
 
 @implementation FormInputAccessoryEGTest
 
-// Returns whether the two-bubble feature should be enabled for the current
-// test. `NO` is returned to verify all tests pass when the two-bubble feature
-// is disabled.
-- (BOOL)shouldEnableTwoBubbleFeature {
-  return NO;
-}
 
 - (void)setUp {
   [super setUp];
@@ -346,8 +340,6 @@ void SlowlyTypeText(NSString* text) {
                         overrideParam:(std::string_view)overrideParam {
   config.features_enabled.push_back(
       autofill::features::kAutofillAiWithDataSchema);
-  config.features_enabled.push_back(
-      autofill::features::kAutofillAiCreateEntityDataManager);
   config.features_enabled.push_back(
       autofill::features::debug::kAutofillAiForceOptIn);
 
@@ -401,8 +393,6 @@ void SlowlyTypeText(NSString* text) {
   }
 
   if ([self isRunningTest:@selector(testAccountNameEmailIPH)]) {
-    config.features_enabled.push_back(
-        autofill::features::kAutofillEnableSupportForNameAndEmail);
     config.iph_feature_enabled =
         feature_engagement::kIPHAutofillAccountNameEmailSuggestionFeature.name;
   }
@@ -418,11 +408,6 @@ void SlowlyTypeText(NSString* text) {
     config.features_enabled.push_back(kIOSPasskeyConditionalLoginWithShim);
   }
 
-  if ([self shouldEnableTwoBubbleFeature]) {
-    config.features_enabled.push_back(kIOSKeyboardAccessoryTwoBubble);
-  } else {
-    config.features_disabled.push_back(kIOSKeyboardAccessoryTwoBubble);
-  }
 
   return config;
 }
@@ -1399,19 +1384,3 @@ id<GREYMatcher> PaymentsBottomSheetUseKeyboardButton() {
 
 @end
 
-// Reruns all the tests in this file but with the two-bubble feature enabled by
-// default.
-@interface FormInputAccessoryTwoBubbleTestCase : FormInputAccessoryEGTest
-
-@end
-
-@implementation FormInputAccessoryTwoBubbleTestCase
-
-// Returns whether the two-bubble feature should be enabled for the current
-// test. It returns `YES` to rerun tests defined in
-// `FormInputAccessoryEGTest`.
-- (BOOL)shouldEnableTwoBubbleFeature {
-  return YES;
-}
-
-@end

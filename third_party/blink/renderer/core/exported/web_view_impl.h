@@ -576,6 +576,10 @@ class CORE_EXPORT WebViewImpl final : public WebView,
   // browser has processed it.
   void SendWindowRectToMainFrameHost(const gfx::Rect& bounds,
                                      base::OnceClosure ack_callback);
+  void SendMoveWindowToMainFrameHost(const gfx::Point& origin,
+                                     base::OnceClosure ack_callback);
+  void SendResizeWindowToMainFrameHost(const gfx::Size& size,
+                                       base::OnceClosure ack_callback);
 
   // Tells the browser that another page has accessed the DOM of the initial
   // empty document of a main frame.
@@ -693,10 +697,6 @@ class CORE_EXPORT WebViewImpl final : public WebView,
   // Request the window to close from the renderer by sending the request to the
   // browser.
   void DoDeferredCloseWindowSoon();
-
-#if BUILDFLAG(IS_CHROMEOS)
-  void UpdateUseOverlayScrollbar(bool use_overlay_scrollbar);
-#endif
 
   WebViewImpl(
       WebViewClient*,

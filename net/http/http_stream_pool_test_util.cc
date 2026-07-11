@@ -159,12 +159,10 @@ FakeServiceEndpointRequest::CallOnServiceEndpointsUpdated() {
   return *this;
 }
 
-FakeServiceEndpointRequest&
-FakeServiceEndpointRequest::CallOnServiceEndpointRequestFinished(int rv) {
+void FakeServiceEndpointRequest::CallOnServiceEndpointRequestFinished(int rv) {
   CHECK(delegate_);
   resolution_.set_crypto_ready(true);
   delegate_->OnServiceEndpointRequestFinished(rv);
-  return *this;
 }
 
 int FakeServiceEndpointRequest::Start(Delegate* delegate) {
@@ -201,7 +199,7 @@ const HostCache::EntryStaleness* FakeServiceEndpointRequest::GetStaleInfo()
 }
 
 bool FakeServiceEndpointRequest::IsStaleWhileRefreshing() const {
-  return false;
+  return is_stale_while_refreshing_;
 }
 
 void FakeServiceEndpointRequest::ChangeRequestPriority(

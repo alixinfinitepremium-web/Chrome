@@ -9,6 +9,7 @@
 #include <optional>
 
 #include "base/feature.h"
+#include "base/memory/memory_pressure_listener.h"
 #include "base/memory/post_delayed_memory_reduction_task.h"
 #include "base/memory/raw_ptr.h"
 #include "base/time/time.h"
@@ -54,12 +55,20 @@ class GlicWebContentsWarmingPool {
   // container is available, one will be created and then returned. A new
   // container is then preloaded in the background to replace the taken one.
   std::unique_ptr<WebUIContentsContainer> TakeContainer();
-  // Ensures that a WebUIContentsContainer is preloaded. If the existing one is
-  // crashed, it will be replaced.
+  // Checks resource constraints (e.g., memory pressure) and initiates
+  // initial cold-start pre-warming if allowed. Returns true if pre-warming
+  // proceeded, or false otherwise.
+  bool MaybeStartInitialWarming();
+  // Unconditionally ensures that a WebUIContentsContainer is preloaded. If the
+  // existing one is crashed, it will be replaced.
   void EnsurePreload(ContainerCreationReason reason =
                          ContainerCreationReason::kUserTriggeredColdStart);
   // Clears the warming pool and destroys any warmed WebContents.
   void Clear(std::optional<ClearReason> reason);
+
+  // Handles memory pressure notifications by clearing or statefully disabling
+  // pre-warming, depending on feature configuration.
+  void OnMemoryPressure(base::MemoryPressureLevel level);
 
   // LINT.IfChange(GlicWarmingPoolStatus)
   enum class WarmingPoolStatus {
@@ -67,7 +76,8 @@ class GlicWebContentsWarmingPool {
     kCold = 1,
     kExpired = 2,
     kCrashed = 3,
-    kMaxValue = kCrashed,
+    kMemoryPressure = 4,
+    kMaxValue = kMemoryPressure,
   };
   // LINT.ThenChange(//tools/metrics/histograms/metadata/glic/enums.xml:GlicWarmingPoolStatus)
 
@@ -96,6 +106,13 @@ class GlicWebContentsWarmingPool {
   // Starts a timer to preload a WebContents after a delay.
   void EnsurePreloadDelayed(ContainerCreationReason reason);
 
+  // Returns true if pre-warming is permitted to run. When the stateful memory
+  // pressure feature (kStatefulMemoryPressure) is enabled, pre-warming is
+  // suspended while the system remains under critical memory pressure. When the
+  // feature is disabled (stateless mode), pre-warming is never blocked by
+  // memory pressure state.
+  bool IsWarmingAllowedByMemoryPressure() const;
+
   raw_ptr<Profile> profile_;
   std::unique_ptr<WebUIContentsContainer> warmed_container_;
 
@@ -104,9 +121,23 @@ class GlicWebContentsWarmingPool {
   // Timer for resource cleanup.
   base::OneShotDelayedBackgroundTimer expiry_timer_;
   std::unique_ptr<Metrics> metrics_;
+  // Number of times the standby container has been reloaded after expiring.
   int reload_count_ = 0;
+  base::MemoryPressureLevel memory_pressure_level_ =
+      base::MEMORY_PRESSURE_LEVEL_NONE;
   base::TimeDelta expiry_delay_ = base::Hours(23);
   base::TimeDelta warming_delay_ = base::Seconds(20);
+
+  // Tracks whether the pool is active and should maintain a warmed container.
+  // Set to true when initial warming starts or when a container is consumed.
+  // Set to false when the pool is cleared permanently (e.g., on container
+  // expiry, explicit clearing, or shutdown), but remains true if cleared
+  // temporarily due to critical memory pressure.
+  //
+  // In stateful memory pressure mode, when memory pressure drops below
+  // CRITICAL, this flag ensures the pool only refills if it was previously
+  // active.
+  bool is_active_ = false;
 };
 
 }  // namespace glic

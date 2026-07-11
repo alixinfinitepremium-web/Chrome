@@ -9,14 +9,14 @@ import type {MockTimer} from 'chrome://webui-test/mock_timer.js';
 import type {TestMock} from 'chrome://webui-test/test_mock.js';
 import {microtasksFinished} from 'chrome://webui-test/test_util.js';
 
-import {fixtureUrl} from './test_utils.js';
+import {fixtureUrl} from './contextual_tasks_test_utils.js';
 
 export const ADD_FILE_CONTEXT_FN = 'addFileContext';
 export const ADD_TAB_CONTEXT_FN = 'addTabContext';
 
 export async function setupAutocompleteResults(
-    searchboxCallbackRouterRemote: SearchboxPageRemote, testQuery: string,
-    mockTimer: MockTimer) {
+    searchboxCallbackRouterRemote: SearchboxPageRemote, queryId: number,
+    testQuery: string, mockTimer: MockTimer) {
   const matches = [
     createAutocompleteMatch({
       allowedToBeDefaultMatch: true,
@@ -29,6 +29,7 @@ export async function setupAutocompleteResults(
   ];
   searchboxCallbackRouterRemote.autocompleteResultChanged(
       createAutocompleteResultForTesting({
+        queryId: queryId,
         input: testQuery,
         matches: matches,
       }));

@@ -371,7 +371,7 @@ void WebStateDelegateBrowserAgent::ContextMenuConfiguration(
     web::WebState* source,
     const web::ContextMenuParams& params,
     void (^completion_handler)(UIContextMenuConfiguration*)) {
-  if (IsGeminiCopresenceEnabled()) {
+  if (IsPageActionMenuEnabled()) {
     id<GeminiCommands> geminiHandler =
         HandlerForProtocol(browser_->GetCommandDispatcher(), GeminiCommands);
     [geminiHandler

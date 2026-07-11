@@ -388,7 +388,6 @@ crbug.com/486121429 [ linux amd ] Pixel_SVGHuge [ Slow ]
 # Mac Asan timeouts
 crbug.com/338200323 [ mac angle-opengl asan graphite-disabled intel-0x3e9b passthrough ] Pixel_WebGPUToDataURL [ Slow ]
 crbug.com/338200323 crbug.com/479387364 [ mac angle-metal asan passthrough ] Pixel_WebGLSadCanvas [ Failure ]
-crbug.com/338200323 crbug.com/479387364 [ angle-metal asan graphite-disabled intel-0x3e9b mac passthrough ] Pixel_WebGLFloat [ Failure ]
 crbug.com/338200323 [ sonoma angle-metal asan passthrough ] Pixel_OffscreenCanvasWebGLSoftwareCompositing [ Slow ]
 crbug.com/338200323 [ sonoma angle-metal asan passthrough ] Pixel_OffscreenCanvasWebGLSoftwareCompositingWorker [ Slow ]
 crbug.com/338200323 [ mac angle-metal asan passthrough ] Pixel_OffscreenCanvasTransferToImageBitmapSoftwareCompositing [ Slow ]
@@ -552,8 +551,10 @@ crbug.com/286989320 [ mac no-clang-coverage no-asan  ] Pixel_MeetEffects_rainbow
 crbug.com/444653106 [ mac amd-0x7340 graphite-enabled angle-metal ] Pixel_CSSFilterEffects [ Slow ]
 crbug.com/444653106 [ mac amd-0x7340 graphite-enabled angle-metal ] Pixel_CSSFilterEffects_NoOverlays [ Slow ]
 
-# Linux AMD flakes
-crbug.com/494242715 [ linux amd-0x7480 ] Pixel_PaintWorkletTransform [ Failure ]
+# Flaky all white image on multiple platforms
+crbug.com/510186413 [ linux ] Pixel_PaintWorkletTransform [ RetryOnFailure ]
+crbug.com/510186413 [ mac ] Pixel_PaintWorkletTransform [ RetryOnFailure ]
+crbug.com/510186413 [ win ] Pixel_PaintWorkletTransform [ RetryOnFailure ]
 
 #######################################################################
 # Automated Entries After This Point - Do Not Manually Add Below Here #

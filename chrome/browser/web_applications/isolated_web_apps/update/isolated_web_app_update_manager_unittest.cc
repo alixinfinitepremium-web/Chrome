@@ -40,13 +40,9 @@
 #include "chrome/browser/web_applications/isolated_web_apps/commands/isolated_web_app_apply_update_command.h"
 #include "chrome/browser/web_applications/isolated_web_apps/isolated_web_app_trust_checker.h"
 #include "chrome/browser/web_applications/isolated_web_apps/isolated_web_app_url_info.h"
-#include "chrome/browser/web_applications/isolated_web_apps/isolation_data.h"
-#include "chrome/browser/web_applications/isolated_web_apps/key_distribution/iwa_key_distribution_info_provider.h"
 #include "chrome/browser/web_applications/isolated_web_apps/policy/isolated_web_app_installer.h"
 #include "chrome/browser/web_applications/isolated_web_apps/policy/isolated_web_app_policy_constants.h"
 #include "chrome/browser/web_applications/isolated_web_apps/policy/isolated_web_app_policy_manager.h"
-#include "chrome/browser/web_applications/isolated_web_apps/runtime_data/chrome_iwa_runtime_data_provider.h"
-#include "chrome/browser/web_applications/isolated_web_apps/test/fake_chrome_iwa_runtime_data_provider.h"
 #include "chrome/browser/web_applications/isolated_web_apps/test/integrity_block_data_matcher.h"
 #include "chrome/browser/web_applications/isolated_web_apps/test/isolated_web_app_builder.h"
 #include "chrome/browser/web_applications/isolated_web_apps/test/isolated_web_app_test.h"
@@ -54,6 +50,7 @@
 #include "chrome/browser/web_applications/isolated_web_apps/test/policy_generator.h"
 #include "chrome/browser/web_applications/isolated_web_apps/test/policy_test_utils.h"
 #include "chrome/browser/web_applications/isolated_web_apps/update/isolated_web_app_update_check_and_prepare_task.h"
+#include "chrome/browser/web_applications/model/isolation_data.h"
 #include "chrome/browser/web_applications/test/fake_web_app_database_factory.h"
 #include "chrome/browser/web_applications/test/fake_web_app_provider.h"
 #include "chrome/browser/web_applications/test/fake_web_app_ui_manager.h"
@@ -74,6 +71,9 @@
 #include "components/webapps/browser/installable/installable_metrics.h"
 #include "components/webapps/browser/uninstall_result_code.h"
 #include "components/webapps/common/web_app_id.h"
+#include "components/webapps/isolated_web_apps/key_distribution/iwa_key_distribution_info_provider.h"
+#include "components/webapps/isolated_web_apps/public/iwa_runtime_data_provider.h"
+#include "components/webapps/isolated_web_apps/test_support/fake_iwa_runtime_data_provider.h"
 #include "components/webapps/isolated_web_apps/test_support/signing_keys.h"
 #include "components/webapps/isolated_web_apps/types/source.h"
 #include "components/webapps/isolated_web_apps/types/storage_location.h"
@@ -206,8 +206,7 @@ class IsolatedWebAppUpdateManagerTest : public IsolatedWebAppTest {
   }
 
   void SetUp() override {
-    resetter_ =
-        ChromeIwaRuntimeDataProvider::SetInstanceForTesting(&data_provider_);
+    resetter_ = IwaRuntimeDataProvider::SetInstanceForTesting(&data_provider_);
     IsolatedWebAppTest::SetUp();
     data_provider_.Update([&](auto& update) {
       update.AddToManagedAllowlist(test::GetDefaultEcdsaP256WebBundleId())
@@ -339,7 +338,7 @@ class IsolatedWebAppUpdateManagerTest : public IsolatedWebAppTest {
   data_decoder::test::InProcessDataDecoder data_decoder_;
 
   FakeIwaRuntimeDataProvider data_provider_;
-  std::optional<base::AutoReset<ChromeIwaRuntimeDataProvider*>> resetter_;
+  std::optional<base::AutoReset<IwaRuntimeDataProvider*>> resetter_;
 };
 
 class IsolatedWebAppUpdateManagerDevModeUpdateTest : public IsolatedWebAppTest {

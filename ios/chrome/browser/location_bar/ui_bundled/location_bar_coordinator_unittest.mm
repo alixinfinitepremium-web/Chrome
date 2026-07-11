@@ -14,6 +14,7 @@
 #import "components/feature_engagement/test/mock_tracker.h"
 #import "components/omnibox/browser/test_location_bar_model.h"
 #import "components/send_tab_to_self/features.h"
+#import "components/send_tab_to_self/metrics_util.h"
 #import "components/variations/scoped_variations_ids_provider.h"
 #import "components/variations/variations_ids_provider.h"
 #import "ios/chrome/browser/autocomplete/model/autocomplete_browser_agent.h"
@@ -48,6 +49,7 @@
 #import "ios/chrome/browser/shared/public/commands/scene_commands.h"
 #import "ios/chrome/browser/shared/public/commands/settings_commands.h"
 #import "ios/chrome/browser/shared/public/commands/toolbar_commands.h"
+#import "ios/chrome/browser/sync/model/sync_service_factory.h"
 #import "ios/chrome/browser/toolbar/legacy/ui_bundled/fullscreen/toolbars_size_browser_agent.h"
 #import "ios/chrome/browser/url_loading/model/fake_url_loading_browser_agent.h"
 #import "ios/chrome/browser/url_loading/model/url_loading_notifier_browser_agent.h"
@@ -135,6 +137,9 @@ class LocationBarCoordinatorTest : public PlatformTest {
     test_profile_builder.AddTestingFactory(
         ios::HistoryServiceFactory::GetInstance(),
         ios::HistoryServiceFactory::GetDefaultFactory());
+    test_profile_builder.AddTestingFactory(
+        SyncServiceFactory::GetInstance(),
+        SyncServiceFactory::GetDefaultFactory());
 
     profile_ = std::move(test_profile_builder).Build();
 
@@ -444,7 +449,8 @@ TEST_F(LocationBarCoordinatorTest, SendTabToSelfTapped) {
   // Note: `ignoringNonObjectArgs` because OCMock cannot handle C++ references.
   [[[mock_browser_coordinator_handler_ expect] ignoringNonObjectArgs]
       showSendTabToSelfUI:GURL()
-                    title:@"Test Title"];
+                    title:@"Test Title"
+               entryPoint:send_tab_to_self::ShareEntryPoint::kOmniboxMenu];
 
   [partial_mock_coordinator locationBarSendTabToSelfTapped];
 

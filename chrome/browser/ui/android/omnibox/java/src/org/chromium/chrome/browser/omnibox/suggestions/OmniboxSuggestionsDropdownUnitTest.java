@@ -10,15 +10,14 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.clearInvocations;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+
+import static org.chromium.ui.test.util.MockitoHelper.clearInvocations;
 
 import android.content.Context;
 import android.view.ContextThemeWrapper;
@@ -42,10 +41,10 @@ import org.robolectric.annotation.Config;
 import org.chromium.base.supplier.ObservableSuppliers;
 import org.chromium.base.supplier.SettableNonNullObservableSupplier;
 import org.chromium.base.test.BaseRobolectricTestRunner;
+import org.chromium.base.test.RobolectricUtil;
 import org.chromium.base.test.util.Features.DisableFeatures;
 import org.chromium.base.test.util.Features.EnableFeatures;
 import org.chromium.chrome.browser.omnibox.R;
-import org.chromium.chrome.browser.omnibox.fusebox.FuseboxCoordinator;
 import org.chromium.chrome.browser.omnibox.suggestions.OmniboxSuggestionsDropdown.SuggestionLayoutScrollListener;
 import org.chromium.components.omnibox.OmniboxFeatureList;
 import org.chromium.components.omnibox.suggestions.OmniboxSuggestionUiType;
@@ -63,7 +62,6 @@ public class OmniboxSuggestionsDropdownUnitTest {
     private @Mock OmniboxSuggestionsDropdownAdapter mAdapter;
     private @Mock View mView;
     private @Mock OmniboxSuggestionsDropdown.NavigationListener mNavigationListener;
-    private @Mock FuseboxCoordinator mFuseboxCoordinator;
 
     private Context mContext;
     private OmniboxSuggestionsDropdown mDropdown;
@@ -395,48 +393,6 @@ public class OmniboxSuggestionsDropdownUnitTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
-    public void testActivationChip() {
-        doReturn(mChipVisibilitySupplier)
-                .when(mFuseboxCoordinator)
-                .getActivationChipVisibilitySupplier();
-        mDropdown.setFuseboxCoordinator(mFuseboxCoordinator);
-
-        RecyclerViewSelectionController controller =
-                (RecyclerViewSelectionController) mDropdown.getSelectionControllerForTesting();
-
-        mChipVisibilitySupplier.set(true);
-        controller.setPosition(0);
-        verify(mFuseboxCoordinator).onActivationChipSelectionChanged(true);
-
-        when(mDropdown.isShown()).thenReturn(true);
-        mDropdown.onKeyDown(
-                KeyEvent.KEYCODE_ENTER, new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER));
-        verify(mFuseboxCoordinator).onActivationChipClicked();
-
-        clearInvocations(mFuseboxCoordinator);
-        // Changes mode to WRAPPING and chip position to 1
-        mDropdown.setAllowParkingAtSentinel(false);
-
-        controller.setPosition(1);
-        verify(mFuseboxCoordinator).onActivationChipSelectionChanged(true);
-
-        mDropdown.onKeyDown(
-                KeyEvent.KEYCODE_ENTER, new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER));
-        verify(mFuseboxCoordinator).onActivationChipClicked();
-
-        clearInvocations(mFuseboxCoordinator);
-        mChipVisibilitySupplier.set(false);
-
-        controller.setPosition(1);
-        verify(mFuseboxCoordinator, never()).onActivationChipSelectionChanged(anyBoolean());
-
-        mDropdown.onKeyDown(
-                KeyEvent.KEYCODE_ENTER, new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER));
-        verify(mFuseboxCoordinator, never()).onActivationChipClicked();
-    }
-
-    @Test
     @EnableFeatures(OmniboxFeatureList.OMNIBOX_ASYNC_VIEW_INFLATION)
     public void testRecycledViewPool_NotClearedAndReused() {
         ModelList listItems = new ModelList();
@@ -448,6 +404,9 @@ public class OmniboxSuggestionsDropdownUnitTest {
 
         PreWarmingRecycledViewPool pool =
                 (PreWarmingRecycledViewPool) dropdown.getRecycledViewPool();
+
+        RobolectricUtil.runAllBackgroundAndUiIncludingDelayed();
+
         // Verify pool is initially pre-warmed.
         assertEquals(
                 PreWarmingRecycledViewPool.PRE_WARMED_DEFAULT_VIEW_COUNT,

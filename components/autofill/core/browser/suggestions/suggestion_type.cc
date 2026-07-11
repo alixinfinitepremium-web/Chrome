@@ -29,8 +29,12 @@ std::string_view SuggestionTypeToStringView(SuggestionType type) {
       return "kManageAutofillAi";
     case SuggestionType::kManageAutofillAiIdentityDocs:
       return "kManageAutofillAiIdentityDocs";
+    case SuggestionType::kManageAutofillAiShopping:
+      return "kManageAutofillAiShopping";
     case SuggestionType::kManageAutofillAiTravel:
       return "kManageAutofillAiTravel";
+    case SuggestionType::kManageEnhancedAutofill:
+      return "kManageEnhancedAutofill";
     case SuggestionType::kManageCreditCard:
       return "kManageCreditCard";
     case SuggestionType::kManageIban:
@@ -141,6 +145,16 @@ std::string_view SuggestionTypeToStringView(SuggestionType type) {
       return "kPersonalContextNotice";
     case SuggestionType::kFetchingAmbientData:
       return "kFetchingAmbientData";
+    case SuggestionType::kAtMemoryGenericError:
+      return "kAtMemoryGenericError";
+    case SuggestionType::kMaximizeCreditCardBenefitsEntry:
+      return "kMaximizeCreditCardBenefitsEntry";
+    case SuggestionType::kAutofillAiOtherOrders:
+      return "kAutofillAiOtherOrders";
+    case SuggestionType::kAutofillAiPrivateInferenceNotice:
+      return "kAutofillAiPrivateInferenceNotice";
+    case SuggestionType::kAtMemoryAiDisclosure:
+      return "kAtMemoryAiDisclosure";
   }
   NOTREACHED();
 }

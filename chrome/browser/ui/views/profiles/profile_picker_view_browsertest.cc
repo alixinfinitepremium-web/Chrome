@@ -169,6 +169,10 @@
 #include "ui/views/widget/widget_delegate.h"
 #include "url/gurl.h"
 
+#if BUILDFLAG(IS_OZONE)
+#include "ui/ozone/public/ozone_platform.h"
+#endif
+
 #if BUILDFLAG(IS_WIN)
 // This is needed to resolve a conflict with a Windows specific macro for
 // `GetUserName`.
@@ -1176,15 +1180,15 @@ IN_PROC_BROWSER_TEST_F(ProfilePickerCreationFlowBrowserTest,
 }
 
 // TODO(https://crbug.com/447636989): Flaky on Linux Wayland
-#if BUILDFLAG(IS_LINUX) && BUILDFLAG(SUPPORTS_OZONE_WAYLAND)
-#define MAYBE_CreateSignedInProfileClosePicker \
-  DISABLED_CreateSignedInProfileClosePicker
-#else
 #define MAYBE_CreateSignedInProfileClosePicker CreateSignedInProfileClosePicker
-#endif  // BUILDFLAG(IS_LINUX) && BUILDFLAG(SUPPORTS_OZONE_WAYLAND)
 // Regression test for https://crbug.com/40902259
 IN_PROC_BROWSER_TEST_F(ProfilePickerCreationFlowBrowserTest,
                        MAYBE_CreateSignedInProfileClosePicker) {
+#if BUILDFLAG(IS_OZONE)
+  if (::ui::OzonePlatform::RunningOnWaylandForTest()) {
+    GTEST_SKIP() << "Flaky on Linux Wayland";
+  }
+#endif
   // Closes the picker at the same time the new browser is created.
   class ClosePickerOnBrowserAddedObserver : public BrowserCollectionObserver {
    public:
@@ -2922,7 +2926,7 @@ IN_PROC_BROWSER_TEST_F(ProfilePickerCreationFlowBrowserTest,
 
   // Close the browser window.
   ui_test_utils::BrowserDestroyedObserver observer(browser());
-  chrome::CloseAllBrowsersWithProfile(browser()->profile());
+  chrome::CloseAllBrowsersWithProfile(browser()->GetProfile());
   observer.Wait();
   base::RunLoop().RunUntilIdle();
   ASSERT_EQ(0u, GlobalBrowserCollection::GetInstance()->GetSize());
@@ -3907,12 +3911,12 @@ class ProfilePickerCreationFlowEphemeralProfileBrowserTest
       ProfileAttributesEntry* entry =
           profile_manager()
               ->GetProfileAttributesStorage()
-              .GetProfileAttributesWithPath(browser()->profile()->GetPath());
+              .GetProfileAttributesWithPath(browser()->GetProfile()->GetPath());
       ASSERT_NE(entry, nullptr);
       entry->SetLocalProfileName(kOriginalProfileName,
                                  entry->IsUsingDefaultName());
     }
-    CheckPolicyApplied(browser()->profile());
+    CheckPolicyApplied(browser()->GetProfile());
   }
 
  private:
@@ -4149,7 +4153,7 @@ IN_PROC_BROWSER_TEST_P(ProfilePickerWithGlicParamBrowserTest,
 
   base::FilePath initial_profile_path = browser()->profile()->GetPath();
   // Destroy the current profile to make sure no profiles are loaded.
-  ProfileDestructionWaiter profile_destruction_waiter(browser()->profile());
+  ProfileDestructionWaiter profile_destruction_waiter(browser()->GetProfile());
   CloseBrowserSynchronously(browser());
   profile_destruction_waiter.Wait();
   ASSERT_EQ(0u, GlobalBrowserCollection::GetInstance()->GetSize());
@@ -4163,7 +4167,7 @@ IN_PROC_BROWSER_TEST_P(ProfilePickerWithGlicParamBrowserTest,
   profile_picker_handler()->HandleOnLearnMoreClicked(base::ListValue());
   Browser* new_browser = ui_test_utils::WaitForBrowserToOpen();
   EXPECT_TRUE(new_browser);
-  EXPECT_EQ(new_browser->profile()->GetPath(), initial_profile_path);
+  EXPECT_EQ(new_browser->GetProfile()->GetPath(), initial_profile_path);
 
   ui_test_utils::TabAddedWaiter tab_waiter(new_browser);
   content::WebContents* learn_more_content = tab_waiter.Wait();

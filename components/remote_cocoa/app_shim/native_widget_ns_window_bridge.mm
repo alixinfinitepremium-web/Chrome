@@ -1369,6 +1369,9 @@ void NativeWidgetNSWindowBridge::OnWindowWillClose() {
   [window_ setCommandDispatcherDelegate:nil];
 
   ui::CATransactionCoordinator::Get().RemovePreCommitObserver(this);
+  // This is the standard teardown path when the NSWindow is closing.
+  // Notify the host process that the window is closing so that it can
+  // tear down the browser-side widget/window structures.
   host_->OnWindowWillClose();
 
   // Ensure NativeWidgetNSWindowBridge does not have capture, otherwise
@@ -1516,7 +1519,12 @@ void NativeWidgetNSWindowBridge::InitCompositorView(
   // native shape is what's most appropriate for displaying sheets on Mac.
   if (is_translucent_window_ && !IsWindowModalSheet()) {
     [window_ setOpaque:NO];
-    [window_ setBackgroundColor:[NSColor clearColor]];
+    // A completely transparent background ([NSColor clearColor]) causes AppKit
+    // to continuously invalidate the window surface, resulting in high CPU
+    // and energy usage. Using an almost-transparent color (alpha 0.001) avoids
+    // this performance issue while remaining visually indistinguishable.
+    [window_ setBackgroundColor:[[NSColor windowBackgroundColor]
+                                    colorWithAlphaComponent:0.001]];
 
     // Don't block waiting for the initial frame of completely transparent
     // windows. This allows us to avoid blocking on the UI thread e.g, while
@@ -2237,6 +2245,7 @@ void NativeWidgetNSWindowBridge::ShowAsModalSheet() {
               // key window, it would try to show us as a new modal sheet.
               wants_to_be_visible_ = false;
               [window orderOut:nil];
+              // Notify that the sheet window is closing.
               OnWindowWillClose();
             }];
   });

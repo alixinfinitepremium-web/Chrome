@@ -65,7 +65,6 @@
 #import "components/autofill/ios/browser/password_autofill_agent.h"
 #import "components/autofill/ios/common/features.h"
 #import "components/autofill/ios/common/field_data_manager_factory_ios.h"
-#import "components/autofill/ios/form_util/autofill_form_features_injector.h"
 #import "components/autofill/ios/form_util/autofill_form_features_java_script_feature.h"
 #import "components/autofill/ios/form_util/form_activity_observer_bridge.h"
 #import "components/autofill/ios/form_util/form_activity_params.h"
@@ -91,7 +90,6 @@
 #import "ui/gfx/image/image.h"
 #import "url/gurl.h"
 
-using autofill::AutofillFormFeaturesInjector;
 using autofill::AutofillFormFeaturesJavaScriptFeature;
 using autofill::AutofillJavaScriptFeature;
 using autofill::FieldDataManager;
@@ -232,9 +230,6 @@ bool HasGuid(const Suggestion::Payload& payload) {
 
   // ID of the last Autofill query made. Used to discard outdated suggestions.
   FieldGlobalId _lastQueriedFieldID;
-
-  // Helper for setting feature flags in page content world WebFrames.
-  std::unique_ptr<AutofillFormFeaturesInjector> _page_world_features_injector;
 }
 
 @end
@@ -266,12 +261,6 @@ bool HasGuid(const Suggestion::Payload& payload) {
         autofill::prefs::kAutofillCreditCardEnabled, &_prefChangeRegistrar);
     _prefObserverBridge->ObserveChangesForPreference(
         autofill::prefs::kAutofillProfileEnabled, &_prefChangeRegistrar);
-
-    // Inject feature flags in the page content world. Feature flags are needed
-    // for the form submission hook that is injected in that the page world.
-    _page_world_features_injector =
-        std::make_unique<AutofillFormFeaturesInjector>(
-            webState, web::ContentWorld::kPageContentWorld);
   }
   return self;
 }
@@ -397,6 +386,16 @@ bool HasGuid(const Suggestion::Payload& payload) {
         });
   }
 
+  if (suggestion.type == SuggestionType::kAutocompleteAtMemoryButton) {
+    // TODO(crbug.com/527936416) - Clicking this chip should open the
+    // AtMemoryViewController.
+    if (SuggestionHandledCompletion c =
+            std::exchange(_suggestionHandledCompletion, nil)) {
+      c();
+    }
+    return;
+  }
+
   if (suggestion.type == SuggestionType::kAutocompleteEntry ||
       suggestion.type == SuggestionType::kAddressEntry ||
       suggestion.type == SuggestionType::kCreditCardEntry ||
@@ -409,9 +408,6 @@ bool HasGuid(const Suggestion::Payload& payload) {
       (base::FeatureList::IsEnabled(
            autofill::features::kAutofillEnableBottomSheetScanCardAndFill) &&
        suggestion.type == SuggestionType::kSaveAndFillCreditCardEntry)) {
-    CHECK(suggestion.type != SuggestionType::kFillAutofillAi ||
-          base::FeatureList::IsEnabled(
-              autofill::features::kAutofillAiCreateEntityDataManager));
 
     if (_suggestionDelegate) {
       Suggestion autofill_suggestion(suggestion.type);
@@ -419,12 +415,15 @@ bool HasGuid(const Suggestion::Payload& payload) {
           SysNSStringToUTF16(suggestion.value);
       autofill_suggestion.field_by_field_filling_type_used =
           suggestion.fieldByFieldFillingTypeUsed;
-      autofill_suggestion.payload = HasGuid(suggestion.payload)
-                                        ? suggestion.payload
-                                        : Suggestion::Payload();
+      autofill_suggestion.payload =
+          base::FeatureList::IsEnabled(autofill::features::kAutofillUseOriginalPayloadIos) ||
+                  HasGuid(suggestion.payload)
+              ? suggestion.payload
+              : Suggestion::Payload();
 
-      _suggestionDelegate->DidAcceptSuggestion(autofill_suggestion,
-                                               {static_cast<int>(index), 0});
+      CHECK_GE(index, 0);
+      _suggestionDelegate->DidAcceptSuggestion(
+          autofill_suggestion, {.multi_index = {static_cast<size_t>(index)}});
     }
     return;
   }
@@ -608,11 +607,11 @@ bool HasGuid(const Suggestion::Payload& payload) {
     switch (popup_suggestion.type) {
       case SuggestionType::kAddressEntry:
       case SuggestionType::kAddressFieldByFieldFilling:
-      case SuggestionType::kCreditCardEntry:
-      case SuggestionType::kVirtualCreditCardEntry:
-      case SuggestionType::kSaveAndFillCreditCardEntry:
-      case SuggestionType::kFillAutofillAi:
       case SuggestionType::kAutocompleteEntry:
+      case SuggestionType::kCreditCardEntry:
+      case SuggestionType::kFillAutofillAi:
+      case SuggestionType::kSaveAndFillCreditCardEntry:
+      case SuggestionType::kVirtualCreditCardEntry:
         if ((!base::FeatureList::IsEnabled(
                  autofill::features::
                      kAutofillEnableBottomSheetScanCardAndFill) &&
@@ -655,14 +654,26 @@ bool HasGuid(const Suggestion::Payload& payload) {
         }
         break;
 
-      case SuggestionType::kAddressEntryOnTyping:
-      case SuggestionType::kDevtoolsTestAddresses:
-      case SuggestionType::kLoyaltyCardEntry:
-      case SuggestionType::kOneTimePasswordEntry:
+      case SuggestionType::kAutocompleteAtMemoryButton:
+      case SuggestionType::kFetchingAmbientData:
+        value = SysUTF16ToNSString(popup_suggestion.main_text.value);
+        break;
+
       case SuggestionType::kAccountStoragePasswordEntry:
+      case SuggestionType::kAddressEntryOnTyping:
       case SuggestionType::kAllLoyaltyCardsEntry:
       case SuggestionType::kAllSavedPasswordsEntry:
+      case SuggestionType::kAtMemoryAiDisclosure:
+      case SuggestionType::kAtMemoryGenericError:
+      case SuggestionType::kAtMemoryInactivityNudge:
+      case SuggestionType::kAtMemoryNoConnection:
+      case SuggestionType::kAtMemorySearchAffordance:
+      case SuggestionType::kAtMemorySearchResult:
+      case SuggestionType::kAutofillAiOtherOrders:
+      case SuggestionType::kAutofillAiPrivateInferenceNotice:
+      case SuggestionType::kBackupPasswordEntry:
       case SuggestionType::kBnplEntry:
+      case SuggestionType::kBnplFootnote:
       case SuggestionType::kComposeDisable:
       case SuggestionType::kComposeGoToSettings:
       case SuggestionType::kComposeNeverShowOnThisSiteAgain:
@@ -672,44 +683,42 @@ bool HasGuid(const Suggestion::Payload& payload) {
       case SuggestionType::kDatalistEntry:
       case SuggestionType::kDevtoolsTestAddressByCountry:
       case SuggestionType::kDevtoolsTestAddressEntry:
+      case SuggestionType::kDevtoolsTestAddresses:
       case SuggestionType::kFillPassword:
+      case SuggestionType::kFreeformFooter:
       case SuggestionType::kGeneratePasswordEntry:
       case SuggestionType::kIbanEntry:
+      case SuggestionType::kIdentityCredential:
       case SuggestionType::kInsecureContextPaymentDisabledMessage:
+      case SuggestionType::kLoadingThrobber:
+      case SuggestionType::kLoyaltyCardEntry:
       case SuggestionType::kManageAddress:
       case SuggestionType::kManageAutofillAi:
       case SuggestionType::kManageAutofillAiIdentityDocs:
+      case SuggestionType::kManageAutofillAiShopping:
       case SuggestionType::kManageAutofillAiTravel:
       case SuggestionType::kManageCreditCard:
       case SuggestionType::kManageIban:
       case SuggestionType::kManageLoyaltyCard:
+      case SuggestionType::kManageEnhancedAutofill:
+      case SuggestionType::kMaximizeCreditCardBenefitsEntry:
       case SuggestionType::kMerchantPromoCodeEntry:
       case SuggestionType::kMixedFormMessage:
+      case SuggestionType::kOneTimePasswordEntry:
+      case SuggestionType::kOpenGemini:
       case SuggestionType::kPasswordEntry:
-      case SuggestionType::kBackupPasswordEntry:
-      case SuggestionType::kTroubleSigningInEntry:
-      case SuggestionType::kFreeformFooter:
       case SuggestionType::kPasswordFieldByFieldFilling:
+      case SuggestionType::kPendingStateSignin:
+      case SuggestionType::kPersonalContextNotice:
       case SuggestionType::kScanCreditCard:
       case SuggestionType::kSeePromoCodeDetails:
       case SuggestionType::kSeparator:
       case SuggestionType::kTitle:
+      case SuggestionType::kTroubleSigningInEntry:
       case SuggestionType::kViewPasswordDetails:
-      case SuggestionType::kIdentityCredential:
       case SuggestionType::kWebauthnCredential:
-      case SuggestionType::kWebauthnSignInWithAnotherDevice:
       case SuggestionType::kWebauthnPasskeyQrCode:
-      case SuggestionType::kPendingStateSignin:
-      case SuggestionType::kLoadingThrobber:
-      case SuggestionType::kAtMemorySearchResult:
-      case SuggestionType::kAtMemoryInactivityNudge:
-      case SuggestionType::kAtMemorySearchAffordance:
-      case SuggestionType::kBnplFootnote:
-      case SuggestionType::kAutocompleteAtMemoryButton:
-      case SuggestionType::kOpenGemini:
-      case SuggestionType::kAtMemoryNoConnection:
-      case SuggestionType::kPersonalContextNotice:
-      case SuggestionType::kFetchingAmbientData:
+      case SuggestionType::kWebauthnSignInWithAnotherDevice:
         break;
     }
 
@@ -730,16 +739,16 @@ bool HasGuid(const Suggestion::Payload& payload) {
         (popup_suggestion.field_by_field_filling_type_used
              ? *popup_suggestion.field_by_field_filling_type_used
              : autofill::FieldType::EMPTY_TYPE);
-    FormSuggestion* suggestion = [FormSuggestion
-                suggestionWithValue:value
-                         minorValue:minorValue
-                 displayDescription:displayDescription
-                               icon:icon
-                               type:popup_suggestion.type
-                            payload:popup_suggestion.payload
-        fieldByFieldFillingTypeUsed:fieldByFieldFillingTypeUsed
-                     requiresReauth:NO
-         acceptanceA11yAnnouncement:acceptanceA11yAnnouncement];
+    FormSuggestion* suggestion =
+        [FormSuggestion suggestionWithValue:value
+                                 minorValue:minorValue
+                         displayDescription:displayDescription
+                                       icon:icon
+                                       type:popup_suggestion.type
+                                    payload:popup_suggestion.payload
+                fieldByFieldFillingTypeUsed:fieldByFieldFillingTypeUsed
+                             requiresReauth:NO
+                 acceptanceA11yAnnouncement:acceptanceA11yAnnouncement];
 
     suggestion.featureForIPH = SuggestionFeatureForIPH::kUnknown;
     suggestion.suggestionIconType = suggestionIconType;
@@ -773,7 +782,7 @@ bool HasGuid(const Suggestion::Payload& payload) {
   // TODO(crbug.com/363958046): Pass the actually shown suggestions instead of
   // `popup_suggestions`.
   if (delegate) {
-    delegate->OnSuggestionsShown(popup_suggestions);
+    delegate->OnSuggestionsShown(popup_suggestions, std::nullopt);
   }
 }
 
@@ -786,7 +795,6 @@ bool HasGuid(const Suggestion::Payload& payload) {
 - (bool)isLastQueriedField:(FieldGlobalId)fieldID {
   return fieldID == _lastQueriedFieldID;
 }
-
 
 #pragma mark - CRWWebStateObserver
 
@@ -925,13 +933,31 @@ bool HasGuid(const Suggestion::Payload& payload) {
                    hasUserGesture:(BOOL)hasUserGesture
                           inFrame:(web::WebFrame*)frame
                    perfectFilling:(BOOL)perfectFilling {
-  if (![self isAutofillEnabled] || !frame) {
+  if (![self isAutofillEnabled]) {
+    base::UmaHistogramEnumeration(
+        "Autofill.iOS.FormSubmission.BlockedReason",
+        autofill::SubmissionBlockedReason::kAutofillDisabled);
+    return;
+  }
+  if (!frame) {
+    base::UmaHistogramEnumeration("Autofill.iOS.FormSubmission.BlockedReason",
+                                  autofill::SubmissionBlockedReason::kNoFrame);
+    return;
+  }
+  if (!hasUserGesture &&
+      base::FeatureList::IsEnabled(
+          kAutofillRejectFormSubmissionsWithoutUserGesture)) {
+    base::UmaHistogramEnumeration(
+        "Autofill.iOS.FormSubmission.BlockedReason",
+        autofill::SubmissionBlockedReason::kNoUserGesture);
     return;
   }
 
   auto* driver =
       autofill::AutofillDriverIOS::FromWebStateAndWebFrame(webState, frame);
   if (!driver) {
+    base::UmaHistogramEnumeration("Autofill.iOS.FormSubmission.BlockedReason",
+                                  autofill::SubmissionBlockedReason::kNoDriver);
     return;
   }
 
@@ -1270,7 +1296,7 @@ bool HasGuid(const Suggestion::Payload& payload) {
 }
 
 // Notifies the autofill manager when forms are detected on a page.
-- (void)notifyFormsSeen:(const FormDataVector&)updatedForms
+- (void)notifyFormsSeen:(FormDataVector)updatedForms
                 inFrame:(web::WebFrame*)frame {
   auto* driver =
       autofill::AutofillDriverIOS::FromWebStateAndWebFrame(_webState, frame);
@@ -1280,7 +1306,8 @@ bool HasGuid(const Suggestion::Payload& payload) {
 
   DCHECK(!updatedForms.empty());
 
-  driver->FormsSeen(/*updated_forms=*/updatedForms, /*removed_forms=*/{});
+  driver->FormsSeen(/*updated_forms=*/std::move(updatedForms),
+                    /*removed_forms=*/{});
 }
 
 // Invokes the form extraction script in |frame| and loads the output into the
@@ -1400,12 +1427,6 @@ bool HasGuid(const Suggestion::Payload& payload) {
     return;
   }
   driver->set_processed(true);
-
-  // Inject feature flags in frame directly to make sure the flags are set
-  // before triggering form extraction. We could use
-  // AutofillFormFeaturesInjector but there is no guarantee that it will inject
-  // the flags before this code is run.
-  autofill::SetAutofillFormFeatureFlags(frame);
 
   if (frame->IsMainFrame()) {
     _suggestionDelegate.reset();

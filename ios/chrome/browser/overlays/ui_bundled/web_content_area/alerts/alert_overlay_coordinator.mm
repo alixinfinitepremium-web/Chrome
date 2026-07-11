@@ -59,7 +59,7 @@ using alert_overlays::AlertRequest;
 #pragma mark - ContainedPresenterDelegate
 
 - (void)containedPresenterWillPresent:(id<ContainedPresenter>)presenter {
-  if (IsGeminiCopresenceEnabled()) {
+  if (IsPageActionMenuEnabled()) {
     [_geminiHandler
         hideFloatyIfInvokedAnimated:NO
                          fromSource:gemini::FloatyUpdateSource::Alert];
@@ -73,7 +73,10 @@ using alert_overlays::AlertRequest;
 - (void)containedPresenterDidDismiss:(id<ContainedPresenter>)presenter {
   self.alertViewController = nil;
   self.presenter = nil;
-  if (IsGeminiCopresenceEnabled()) {
+  if (IsPageActionMenuEnabled() &&
+      [_geminiHandler
+          respondsToSelector:@selector(updateFloatyVisibilityIfEligibleAnimated:
+                                       fromSource:)]) {
     [_geminiHandler
         updateFloatyVisibilityIfEligibleAnimated:NO
                                       fromSource:gemini::FloatyUpdateSource::
@@ -101,8 +104,7 @@ using alert_overlays::AlertRequest;
   if (self.started) {
     return;
   }
-
-  if (IsGeminiCopresenceEnabled()) {
+  if (IsPageActionMenuEnabled()) {
     _geminiHandler = HandlerForProtocol(self.browser->GetCommandDispatcher(),
                                         GeminiCommands);
   }

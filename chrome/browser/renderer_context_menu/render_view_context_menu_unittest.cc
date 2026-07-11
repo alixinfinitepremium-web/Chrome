@@ -108,6 +108,7 @@
 #include "testing/gtest/include/gtest/gtest.h"
 #include "third_party/blink/public/common/context_menu_data/context_menu_data.h"
 #include "third_party/blink/public/common/context_menu_data/edit_flags.h"
+#include "third_party/blink/public/common/dom/dom_node_id.h"
 #include "third_party/blink/public/common/navigation/impression.h"
 #include "third_party/blink/public/mojom/context_menu/context_menu.mojom.h"
 #include "ui/accessibility/accessibility_features.h"
@@ -1072,8 +1073,9 @@ class RenderViewContextMenuUsePasskeyFromAnotherDeviceTest
     NotifyFormManagerAndWait(form);
 
     content::ContextMenuParams params = CreateParams(MenuItem::EDITABLE);
-    params.form_renderer_id = form.renderer_id().value();
-    params.field_renderer_id = form.fields()[0].renderer_id().value();
+    params.form_renderer_id = blink::DOMNodeIdType(form.renderer_id().value());
+    params.field_renderer_id =
+        blink::DOMNodeIdType(form.fields()[0].renderer_id().value());
 
     auto menu = std::make_unique<TestRenderViewContextMenu>(
         *web_contents()->GetPrimaryMainFrame(), params);
@@ -1113,29 +1115,10 @@ class RenderViewContextMenuUsePasskeyFromAnotherDeviceTest
       af_manager_injector_;
 };
 
-// Verify that "Use passkey from another device" is not displayed when the
-// feature is disabled.
-TEST_F(RenderViewContextMenuUsePasskeyFromAnotherDeviceTest,
-       UsePasskeyFromAnotherDeviceNotInContextMenu) {
-  base::test::ScopedFeatureList features;
-  features.InitAndDisableFeature(
-      password_manager::features::
-          kWebAuthnUsePasskeyFromAnotherDeviceInContextMenu);
-  NavigateAndCommit(get_url());
-
-  auto menu = CreateFormAndDisplayMenu(/*is_webauthn_form=*/true);
-
-  EXPECT_FALSE(
-      menu->IsItemPresent(IDC_CONTENT_CONTEXT_USE_PASSKEY_FROM_ANOTHER_DEVICE));
-}
-
 // Verify that "Use passkey from another device" is not displayed on
-// non-WebAuthn fields when the feature is enabled.
+// non-WebAuthn fields.
 TEST_F(RenderViewContextMenuUsePasskeyFromAnotherDeviceTest,
        UsePasskeyFromAnotherDeviceNotInContextMenuWhenNonWebauthnField) {
-  base::test::ScopedFeatureList features(
-      password_manager::features::
-          kWebAuthnUsePasskeyFromAnotherDeviceInContextMenu);
   NavigateAndCommit(get_url());
   webauthn_delegate()->OnCredentialsReceived(
       {}, ChromeWebAuthnCredentialsDelegate::SecurityKeyOrHybridFlowAvailable(
@@ -2190,6 +2173,26 @@ TEST_P(RenderViewContextMenuReadAnythingTest, MAYBE_AppendPageItems) {
     // Read anything is after translate.
     EXPECT_EQ(model.GetItemCount() - 1, read_anything_index.value());
   }
+}
+
+TEST_P(RenderViewContextMenuReadAnythingTest, GlicNotPresentInReadingMode) {
+  base::test::ScopedFeatureList features;
+  features.InitAndEnableFeature(features::kGlicContextMenu);
+
+  glic::GlicEnabling::SetBypassEnablementChecksForTesting(true);
+
+  // Simulate a context menu request with page level options.
+  content::ContextMenuParams params = CreateParams(MenuItem::PAGE);
+  params.page_url = GURL(chrome::kChromeUIUntrustedReadAnythingSidePanelURL);
+
+  TestRenderViewContextMenu menu(*web_contents()->GetPrimaryMainFrame(),
+                                 params);
+  menu.SetBrowser(GetBrowser());
+  menu.Init();
+
+  EXPECT_FALSE(menu.IsItemPresent(IDC_CONTENT_CONTEXT_GLIC));
+
+  glic::GlicEnabling::SetBypassEnablementChecksForTesting(false);
 }
 
 INSTANTIATE_TEST_SUITE_P(All,

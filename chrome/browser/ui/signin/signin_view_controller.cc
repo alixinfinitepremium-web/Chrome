@@ -14,6 +14,7 @@
 #include "base/functional/callback.h"
 #include "base/functional/callback_helpers.h"
 #include "base/metrics/histogram_functions.h"
+#include "base/task/single_thread_task_runner.h"
 #include "build/build_config.h"
 #include "chrome/browser/browser_process.h"
 #include "chrome/browser/profiles/profile.h"
@@ -25,6 +26,7 @@
 #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
 #include "chrome/browser/ui/dialogs/browser_dialogs.h"
 #include "chrome/browser/ui/profiles/signin_intercept_first_run_experience_dialog.h"
+#include "chrome/browser/ui/signin/cross_device_signin_qr_bubble.h"
 #include "chrome/browser/ui/signin/signin_modal_dialog.h"
 #include "chrome/browser/ui/signin/signin_modal_dialog_impl.h"
 #include "chrome/browser/ui/signin/signin_view_controller_delegate.h"
@@ -51,6 +53,9 @@
 #include "extensions/buildflags/buildflags.h"
 #include "google_apis/gaia/core_account_id.h"
 #include "google_apis/gaia/gaia_id.h"
+#include "ui/views/bubble/bubble_dialog_delegate_view.h"
+#include "ui/views/widget/widget.h"
+#include "ui/views/widget/widget_observer.h"
 
 #if BUILDFLAG(ENABLE_DICE_SUPPORT)
 #include "base/strings/utf_string_conversions.h"
@@ -480,6 +485,26 @@ void SigninViewController::ShowModalSigninEmailConfirmationDialog(
 }
 #endif  // BUILDFLAG(ENABLE_DICE_SUPPORT)
 
+#if BUILDFLAG(ENABLE_DICE_SUPPORT)
+void SigninViewController::ShowCrossDeviceSigninQrBubble(
+    base::OnceClosure closing_callback) {
+  CloseBubbleSignin();
+  auto delegate = ::CreateCrossDeviceSigninQrBubble(
+      &*browser_, std::move(closing_callback));
+  bubble_widget_ = views::BubbleDialogDelegate::CreateBubble(
+      delegate.release(),
+      base::BindOnce(&SigninViewController::OnBubbleClosed, AsWeakPtr()));
+  bubble_widget_->Show();
+}
+#endif  // BUILDFLAG(ENABLE_DICE_SUPPORT)
+
+void SigninViewController::OnBubbleClosed(views::Widget::ClosedReason reason) {
+  if (bubble_widget_) {
+    base::SingleThreadTaskRunner::GetCurrentDefault()->DeleteSoon(
+        FROM_HERE, std::move(bubble_widget_));
+  }
+}
+
 void SigninViewController::ShowModalSyncConfirmationDialog(
     bool is_signin_intercept,
     bool is_sync_promo) {
@@ -542,6 +567,16 @@ void SigninViewController::CloseModalSignin() {
   }
 
   DCHECK(!dialog_);
+}
+
+void SigninViewController::CloseBubbleSignin() {
+  if (bubble_widget_) {
+    // Extract the pointer so bubble_widget_ is nullified immediately.
+    auto widget = std::move(bubble_widget_);
+    widget->CloseWithReason(views::Widget::ClosedReason::kUnspecified);
+    base::SingleThreadTaskRunner::GetCurrentDefault()->DeleteSoon(
+        FROM_HERE, std::move(widget));
+  }
 }
 
 void SigninViewController::SetModalSigninHeight(int height) {
@@ -647,16 +682,30 @@ void SigninViewController::ShowDiceSigninTab(
       DiceTabHelper::OnSigninHeaderReceived(),
       DiceTabHelper::GetShowSigninErrorCallbackForBrowser());
 
-  if (base::FeatureList::IsEnabled(switches::kMagiChromeSignInBanner)) {
-    infobars::InfoBarManager* infobar_manager =
-        infobars::ContentInfoBarManager::FromWebContents(active_contents);
-    if (infobar_manager) {
-      auto delegate =
-          std::make_unique<SigninQRCodeInfoBarDelegate>(active_contents);
-      Profile* profile = delegate->profile();
-      infobar_manager->AddInfoBar(
-          std::make_unique<SigninQRCodeInfoBar>(profile, std::move(delegate)));
-    }
+  if (switches::IsMagiChromePasskeyBannerEnabled()) {
+    signin::IsHybridTransportSupportedForQrCodeSignin(base::BindOnce(
+        [](base::WeakPtr<content::WebContents> web_contents, bool can_start) {
+          if (!can_start || !web_contents) {
+            return;
+          }
+          DiceTabHelper* tab_helper =
+              DiceTabHelper::FromWebContents(web_contents.get());
+          if (!tab_helper || !tab_helper->IsChromeSigninPage()) {
+            return;
+          }
+          infobars::InfoBarManager* infobar_manager =
+              infobars::ContentInfoBarManager::FromWebContents(
+                  web_contents.get());
+          if (infobar_manager) {
+            auto delegate = std::make_unique<SigninQRCodeInfoBarDelegate>(
+                web_contents.get());
+            auto* model = SigninQRCodeModel::GetOrCreateForWebContents(
+                web_contents.get());
+            infobar_manager->AddInfoBar(std::make_unique<SigninQRCodeInfoBar>(
+                std::move(delegate), model));
+          }
+        },
+        active_contents->GetWeakPtr()));
   }
 }
 

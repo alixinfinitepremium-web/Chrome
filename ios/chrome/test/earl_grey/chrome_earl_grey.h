@@ -68,9 +68,6 @@ id<GREYAction> grey_longPressWithDuration(base::TimeDelta duration);
 // Returns YES if running on an iPhone.
 - (BOOL)isIPhoneIdiom;
 
-// YES if the TabGridViewController's child views have been set up.
-- (BOOL)isTabGridSetUp;
-
 // YES if the current interface language uses RTL layout.
 - (BOOL)isRTL;
 
@@ -106,9 +103,6 @@ id<GREYAction> grey_longPressWithDuration(base::TimeDelta duration);
 
 // Returns whether the current layout is showing the bottom omnibox.
 - (BOOL)isCurrentLayoutBottomOmnibox;
-
-// Returns whether the Ask Gemini Chip feature is enabled.
-- (BOOL)isAskGeminiChipEnabled;
 
 // Returns whether the ComposeboxIOS feature is enabled.
 - (BOOL)isComposeboxIOSEnabled;
@@ -694,6 +688,11 @@ id<GREYAction> grey_longPressWithDuration(base::TimeDelta duration);
 // is not met within a timeout a GREYAssert is induced.
 - (void)waitForWebStateFrameContainingText:(const std::string&)UTF8Text;
 
+// Waits for the main frame or an iframe to contain `UTF8Text`. If the condition
+// is not met within the given `timeout` a GREYAssert is induced.
+- (void)waitForWebStateFrameContainingText:(const std::string&)UTF8Text
+                                   timeout:(base::TimeDelta)timeout;
+
 // Waits for the current web state to contain `UTF8Text`. If the condition is
 // not met within the given `timeout` a GREYAssert is induced.
 - (void)waitForWebStateContainingText:(const std::string&)UTF8Text
@@ -843,11 +842,17 @@ id<GREYAction> grey_longPressWithDuration(base::TimeDelta duration);
 // Returns whether the UseLensToSearchForImage feature is enabled;
 - (BOOL)isUseLensToSearchForImageEnabled;
 
+// Returns whether the YourSavedInfoSettingsPageIos feature is enabled.
+- (BOOL)isYourSavedInfoSettingsPageIosEnabled;
+
 // Returns whether the unfocused omnibox is at the bottom.
 - (BOOL)isUnfocusedOmniboxAtBottom;
 
 // Returns whether Chrome Next is enabled.
 - (BOOL)isChromeNextEnabled;
+
+// Returns whether overflow menu refactoring on the NTP is enabled.
+- (BOOL)isOverflowMenuNTPRefactorEnabled;
 
 // Returns whether the Chrome Next Share Icon is visible.
 - (BOOL)isChromeNextShareIconVisible;

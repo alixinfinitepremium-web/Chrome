@@ -70,6 +70,7 @@
 #import "ios/chrome/browser/sync/model/send_tab_to_self_sync_service_factory.h"
 #import "ios/chrome/browser/sync/model/session_sync_service_factory.h"
 #import "ios/chrome/browser/sync/model/sync_invalidations_service_factory.h"
+#import "ios/chrome/browser/sync/model/tab_context_sync_service_factory.h"
 #import "ios/chrome/browser/trusted_vault/model/ios_trusted_vault_service_factory.h"
 #import "ios/chrome/browser/webauthn/model/ios_passkey_model_factory.h"
 #import "ios/chrome/browser/webdata_services/model/web_data_service_factory.h"
@@ -139,6 +140,8 @@ syncer::DataTypeController::TypeVector CreateControllers(
       SendTabToSelfSyncServiceFactory::GetForProfile(profile));
   builder.SetSessionSyncService(
       SessionSyncServiceFactory::GetForProfile(profile));
+  builder.SetTabContextSyncService(
+      TabContextSyncServiceFactory::GetForProfile(profile));
   builder.SetSharingMessageBridge(
       IOSSharingMessageBridgeFactory::GetForProfile(profile));
 #if BUILDFLAG(ENABLE_SUPERVISED_USERS)
@@ -155,8 +158,7 @@ syncer::DataTypeController::TypeVector CreateControllers(
   syncer::DataTypeController::TypeVector controllers = builder.Build(
       /*disabled_types=*/{}, sync_service, ::GetChannel());
 
-  if (base::FeatureList::IsEnabled(syncer::kSyncThemesIos) &&
-      IsNTPBackgroundCustomizationEnabled()) {
+  if (base::FeatureList::IsEnabled(syncer::kSyncThemesIos)) {
     HomeBackgroundCustomizationService* service =
         HomeBackgroundCustomizationServiceFactory::GetForProfile(profile);
     // TODO(crbug.com/481713548): Log metrics indicating service
@@ -249,7 +251,7 @@ std::unique_ptr<KeyedService> BuildSyncService(ProfileIOS* profile) {
   }
 
   if (base::FeatureList::IsEnabled(
-          password_manager::features::kInFlowTrustedVaultKeyRetrievalIos)) {
+          password_manager::features::kPasswordSaveInContextErrorResolution)) {
     scoped_refptr<password_manager::PasswordStoreInterface>
         profile_password_store =
             IOSChromeProfilePasswordStoreFactory::GetForProfile(
@@ -331,7 +333,8 @@ SyncServiceFactory::TestingFactory SyncServiceFactory::GetDefaultFactory() {
 }
 
 SyncServiceFactory::SyncServiceFactory()
-    : ProfileKeyedServiceFactoryIOS("SyncService") {
+    : ProfileKeyedServiceFactoryIOS("SyncService",
+                                    TestingCreation::kNoServiceForTests) {
   // The SyncServiceImpl depends on various KeyedServices being around
   // when it is shut down.  Specify those dependencies here to build the proper
   // destruction order. Note that some of the dependencies are listed here but
@@ -366,6 +369,7 @@ SyncServiceFactory::SyncServiceFactory()
   DependsOn(ReadingListModelFactory::GetInstance());
   DependsOn(SendTabToSelfSyncServiceFactory::GetInstance());
   DependsOn(SessionSyncServiceFactory::GetInstance());
+  DependsOn(TabContextSyncServiceFactory::GetInstance());
   DependsOn(supervised_user::FamilyLinkSettingsServiceFactory::GetInstance());
   DependsOn(SyncInvalidationsServiceFactory::GetInstance());
   DependsOn(tab_groups::TabGroupSyncServiceFactory::GetInstance());

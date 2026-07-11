@@ -25,14 +25,12 @@
 #include "base/scoped_observation.h"
 #include "base/trace_event/trace_event.h"
 #include "build/build_config.h"
-#include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/tab_group_sync/tab_group_sync_service_factory.h"
 #include "chrome/browser/ui/browser_commands.h"
 #include "chrome/browser/ui/browser_element_identifiers.h"
 #include "chrome/browser/ui/browser_window.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_interface_iterator.h"
 #include "chrome/browser/ui/sad_tab_helper.h"
-#include "chrome/browser/ui/tabs/features.h"
 #include "chrome/browser/ui/tabs/saved_tab_groups/saved_tab_group_utils.h"
 #include "chrome/browser/ui/tabs/split_tab_util.h"
 #include "chrome/browser/ui/tabs/tab_enums.h"
@@ -355,8 +353,7 @@ const int TabDragController::kTouchVerticalDetachMagnetism = 50;
 const int TabDragController::kVerticalDetachMagnetism = 15;
 
 TabDragController::TabDragController()
-    : current_state_(DragState::kNotStarted),
-      source_context_(nullptr),
+    : source_context_(nullptr),
       attached_context_(nullptr),
       can_release_capture_(true),
       old_focused_view_tracker_(std::make_unique<views::ViewTracker>()),
@@ -1543,6 +1540,24 @@ TabDragController::Detach(ReleaseCapture release_capture) {
   const std::vector<tab_groups::TabGroupId> groups_to_move =
       attached_model->GetGroupsDestroyedFromRemovingIndices(dragged_indices);
 
+  // If we are detaching from the source tabstrip, make sure the tab that was
+  // initially active is selected. This ensures that when the currently active
+  // dragged tab is removed, TabStripModel will fall back to activating the
+  // initially active tab, preventing a brief flash of an incorrect active tab.
+  if (attached_context_ == source_context_ &&
+      !initial_selection_model_.empty() &&
+      initial_selection_model_.active().has_value()) {
+    const int initial_active_index = initial_selection_model_.active().value();
+    if (attached_model->ContainsIndex(initial_active_index) &&
+        std::ranges::find(dragged_indices, initial_active_index) ==
+            dragged_indices.end()) {
+      ui::ListSelectionModel selection =
+          attached_model->selection_model().GetListSelectionModel();
+      selection.AddIndexToSelection(initial_active_index);
+      UpdateSelectionModel(attached_model, selection);
+    }
+  }
+
   std::vector<std::variant<std::unique_ptr<DetachedTab>,
                            std::unique_ptr<DetachedTabCollection>>>
       owned_tabs_and_collections =
@@ -1841,7 +1856,7 @@ std::vector<TabSlotView*> TabDragController::GetViewsMatchingDraggedContents(
     // compatible with `TabDragController`, rather than relying on the tab
     // selection model to achieve expected behavior. As is, this is incompatible
     // with the vertical tab strip because the split tabs are contained within
-    // a single dedicated `VerticalSplitTabView`.
+    // a single dedicated `SplitTabView`.
     if (tab_drag_datum.view_type == TabSlotView::ViewType::kTab) {
       TabSlotView* tab_view =
           context->GetTabForContents(tab_drag_datum.contents);

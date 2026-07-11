@@ -6,9 +6,13 @@
 
 #import "base/apple/foundation_util.h"
 #import "base/check.h"
+#import "base/feature_list.h"
+#import "base/metrics/user_metrics.h"
+#import "components/autofill/core/common/autofill_features.h"
 #import "ios/chrome/browser/authentication/ui_bundled/cells/signin_promo_view_configurator.h"
 #import "ios/chrome/browser/authentication/ui_bundled/cells/signin_promo_view_delegate.h"
 #import "ios/chrome/browser/authentication/ui_bundled/cells/table_view_signin_promo_item.h"
+#import "ios/chrome/browser/autofill/model/autofill_ai_util.h"
 #import "ios/chrome/browser/settings/autofill/autofill_and_passwords/utils/autofill_and_passwords_item_utils.h"
 #import "ios/chrome/browser/settings/ui_bundled/settings_table_view_controller_constants.h"
 #import "ios/chrome/browser/shared/public/features/features.h"
@@ -26,6 +30,7 @@
   BOOL _autofillProfileEnabled;
   BOOL _identityDocsEnabled;
   BOOL _travelInfoEnabled;
+  BOOL _shoppingEnabled;
   BOOL _shouldShowAutofillAIFeatures;
 
   // Updatable Items.
@@ -34,8 +39,7 @@
   TableViewDetailIconItem* _autofillProfileDetailItem;
   TableViewDetailIconItem* _identityDocsDetailItem;
   TableViewDetailIconItem* _travelInfoDetailItem;
-  TableViewDetailIconItem* _autofillSettingsDetailItem;
-
+  TableViewDetailIconItem* _shoppingDetailItem;
   BOOL _settingsAreDismissed;
 }
 
@@ -87,11 +91,19 @@
     _travelInfoDetailItem = TravelInfoItem(_travelInfoEnabled);
     [model addItem:_travelInfoDetailItem
         toSectionWithIdentifier:SettingsSectionIdentifierBasics];
+
+    if (autofill::IsAmbientAutofillEnabled()) {
+      _shoppingDetailItem = ShoppingInfoItem(_shoppingEnabled);
+      [model addItem:_shoppingDetailItem
+          toSectionWithIdentifier:SettingsSectionIdentifierBasics];
+    }
   }
 
-  _autofillSettingsDetailItem = AutofillSettingsItem();
-  [model addItem:_autofillSettingsDetailItem
-      toSectionWithIdentifier:SettingsSectionIdentifierBasics];
+  if (base::FeatureList::IsEnabled(
+          autofill::features::kAutofillAiWithDataSchema)) {
+    [model addItem:AutofillSettingsItem()
+        toSectionWithIdentifier:SettingsSectionIdentifierBasics];
+  }
 
   [self.delegate autofillAndPasswordsTableViewControllerDidLoadContent:self];
 }
@@ -125,6 +137,10 @@
     case SettingsItemTypeTravelInfo:
       [self.delegate
           autofillAndPasswordsTableViewControllerDidSelectTravelInfo:self];
+      break;
+    case SettingsItemTypeShoppingInfo:
+      [self.delegate
+          autofillAndPasswordsTableViewControllerDidSelectShopping:self];
       break;
     case SettingsItemTypeAutofillSettings:
       [self.delegate
@@ -225,8 +241,31 @@
   }
 }
 
+- (void)setShoppingEnabled:(BOOL)enabled {
+  if (_shoppingEnabled == enabled) {
+    return;
+  }
+  _shoppingEnabled = enabled;
+
+  if (_shoppingDetailItem) {
+    if (IsYourSavedInfoSettingsPageIosEnabled()) {
+      _shoppingDetailItem.trailingDetailText =
+          ShoppingInfoItemDetailText(enabled);
+    } else {
+      _shoppingDetailItem.detailText = ShoppingInfoItemDetailText(enabled);
+    }
+    [self reconfigureCellsForItems:@[ _shoppingDetailItem ]];
+  }
+}
+
 - (void)setShouldShowAutofillAIFeatures:(BOOL)shouldShow {
+  if (_shouldShowAutofillAIFeatures == shouldShow) {
+    return;
+  }
   _shouldShowAutofillAIFeatures = shouldShow;
+  if (self.isViewLoaded) {
+    [self reloadData];
+  }
 }
 
 #pragma mark - AutofillAndPasswordsSigninPromoConsumer
@@ -303,11 +342,13 @@
 #pragma mark - SettingsControllerProtocol
 
 - (void)reportDismissalUserAction {
-  // TODO(crbug.com/500341282): Add missing metric.
+  base::RecordAction(
+      base::UserMetricsAction("MobileAutofillAndPasswordsSettingsClose"));
 }
 
 - (void)reportBackUserAction {
-  // TODO(crbug.com/500341282): Add missing metric.
+  base::RecordAction(
+      base::UserMetricsAction("MobileAutofillAndPasswordsSettingsBack"));
 }
 
 - (void)settingsWillBeDismissed {

@@ -296,7 +296,8 @@ public class ChipView extends LinearLayout {
                         mCornerRadius,
                         chipStrokeColorId,
                         chipBorderWidthId,
-                        verticalInset);
+                        verticalInset,
+                        0);
         setIconWithTint(INVALID_ICON_ID, /* tintWithTextColor= */ false);
 
         updateLayoutDirection();
@@ -415,7 +416,7 @@ public class ChipView extends LinearLayout {
         if (loadingViewObserver != null) {
             mLoadingView.addObserver(loadingViewObserver);
         }
-        mLoadingView.showLoadingUi();
+        mLoadingView.showLoadingUi(/* skipDelay= */ true);
     }
 
     /**

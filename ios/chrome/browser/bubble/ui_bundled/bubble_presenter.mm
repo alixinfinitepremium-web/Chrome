@@ -32,6 +32,7 @@
 #import "ios/chrome/browser/fullscreen/ui_bundled/fullscreen_controller.h"
 #import "ios/chrome/browser/fullscreen/ui_bundled/scoped_fullscreen_disabler.h"
 #import "ios/chrome/browser/intelligence/bwg/utils/gemini_constants.h"
+#import "ios/chrome/browser/intelligence/features/features.h"
 #import "ios/chrome/browser/ntp/model/new_tab_page_tab_helper.h"
 #import "ios/chrome/browser/ntp/shared/metrics/feed_metrics_recorder.h"
 #import "ios/chrome/browser/overlays/model/public/overlay_presenter.h"
@@ -367,11 +368,8 @@ constexpr CGFloat kAdditionalBorderMargin = 4;
 
   BubbleArrowDirection arrowDirection;
   if (IsChromeNextIaEnabled()) {
-    BOOL isBottomOmnibox = IsBottomOmniboxAvailable() &&
-                           GetApplicationContext()->GetLocalState()->GetBoolean(
-                               omnibox::kIsOmniboxInBottomPosition);
-    arrowDirection =
-        isBottomOmnibox ? BubbleArrowDirectionDown : BubbleArrowDirectionUp;
+    arrowDirection = [self isBottomOmnibox] ? BubbleArrowDirectionDown
+                                            : BubbleArrowDirectionUp;
 
   } else {
     arrowDirection = IsSplitToolbarMode(self.rootViewController)
@@ -405,12 +403,21 @@ constexpr CGFloat kAdditionalBorderMargin = 4;
   if (![self canPresentBubble]) {
     return;
   }
-  BubbleArrowDirection arrowDirection = [self isGuideAtBottom:kToolsMenuGuide]
-                                            ? BubbleArrowDirectionDown
-                                            : BubbleArrowDirectionUp;
-  BubbleAlignment alignment = [self isGuideAtLeading:kToolsMenuGuide]
-                                  ? BubbleAlignmentTopOrLeading
-                                  : BubbleAlignmentBottomOrTrailing;
+  BubbleArrowDirection arrowDirection;
+  BubbleAlignment alignment;
+  if (IsChromeNextIaEnabled()) {
+    arrowDirection = [self isGuideAtBottom:kToolsMenuGuide]
+                         ? BubbleArrowDirectionDown
+                         : BubbleArrowDirectionUp;
+    alignment = [self isGuideAtLeading:kToolsMenuGuide]
+                    ? BubbleAlignmentTopOrLeading
+                    : BubbleAlignmentBottomOrTrailing;
+  } else {
+    arrowDirection = IsSplitToolbarMode(self.rootViewController)
+                         ? BubbleArrowDirectionDown
+                         : BubbleArrowDirectionUp;
+    alignment = BubbleAlignmentBottomOrTrailing;
+  }
   NSString* text = l10n_util::GetNSString(IDS_IOS_WHATS_NEW_IPH_TEXT);
   CGPoint toolsMenuAnchor = [self anchorPointToGuide:kToolsMenuGuide
                                            direction:arrowDirection];
@@ -484,7 +491,11 @@ constexpr CGFloat kAdditionalBorderMargin = 4;
 }
 
 - (void)presentLensOverlayTipBubble {
-  if (![self canPresentBubble]) {
+  BOOL checkTabScrolledToTop = YES;
+  if (IsChromeNextIaEnabled() && ![self isBottomOmnibox]) {
+    checkTabScrolledToTop = NO;
+  }
+  if (![self canPresentBubbleWithCheckTabScrolledToTop:checkTabScrolledToTop]) {
     return;
   }
 
@@ -534,12 +545,21 @@ constexpr CGFloat kAdditionalBorderMargin = 4;
     return;
   }
 
-  BubbleArrowDirection arrowDirection = [self isGuideAtBottom:kToolsMenuGuide]
-                                            ? BubbleArrowDirectionDown
-                                            : BubbleArrowDirectionUp;
-  BubbleAlignment alignment = [self isGuideAtLeading:kToolsMenuGuide]
-                                  ? BubbleAlignmentTopOrLeading
-                                  : BubbleAlignmentBottomOrTrailing;
+  BubbleArrowDirection arrowDirection;
+  BubbleAlignment alignment;
+  if (IsChromeNextIaEnabled()) {
+    arrowDirection = [self isGuideAtBottom:kToolsMenuGuide]
+                         ? BubbleArrowDirectionDown
+                         : BubbleArrowDirectionUp;
+    alignment = [self isGuideAtLeading:kToolsMenuGuide]
+                    ? BubbleAlignmentTopOrLeading
+                    : BubbleAlignmentBottomOrTrailing;
+  } else {
+    arrowDirection = IsSplitToolbarMode(self.rootViewController)
+                         ? BubbleArrowDirectionDown
+                         : BubbleArrowDirectionUp;
+    alignment = BubbleAlignmentBottomOrTrailing;
+  }
   NSString* text =
       l10n_util::GetNSString(IDS_IOS_SETTINGS_IN_OVERFLOW_MENU_IPH_TEXT);
 
@@ -763,9 +783,11 @@ constexpr CGFloat kAdditionalBorderMargin = 4;
   toolbarSwipeGestureIPH.delegate = self;
   [self.rootViewController.view addSubview:toolbarSwipeGestureIPH];
   AddSameConstraints(toolbarSwipeGestureIPH, guide);
-  [self.geminiHandler
-      hideFloatyIfInvokedAnimated:NO
-                       fromSource:gemini::FloatyUpdateSource::GestureIph];
+  if (IsPageActionMenuEnabled()) {
+    [self.geminiHandler
+        hideFloatyIfInvokedAnimated:NO
+                         fromSource:gemini::FloatyUpdateSource::GestureIph];
+  }
   [toolbarSwipeGestureIPH startAnimation];
   _toolbarSwipeGestureIPH = toolbarSwipeGestureIPH;
 }
@@ -990,10 +1012,12 @@ constexpr CGFloat kAdditionalBorderMargin = 4;
       !dismissButtonTappedEvent.empty()) {
     _engagementTracker->NotifyEvent(dismissButtonTappedEvent);
   }
-  [self.geminiHandler
-      updateFloatyVisibilityIfEligibleAnimated:NO
-                                    fromSource:gemini::FloatyUpdateSource::
-                                                   GestureIph];
+  if (IsPageActionMenuEnabled()) {
+    [self.geminiHandler
+        updateFloatyVisibilityIfEligibleAnimated:NO
+                                      fromSource:gemini::FloatyUpdateSource::
+                                                     GestureIph];
+  }
 }
 
 - (void)gestureInProductHelpView:(GestureInProductHelpView*)view
@@ -1409,9 +1433,11 @@ constexpr CGFloat kAdditionalBorderMargin = 4;
     [self.rootViewController.view addSubview:gestureIPHView];
     gestureIPHView.delegate = self;
     AddSameConstraints(gestureIPHView, contentAreaGuide);
-    [self.geminiHandler
-        hideFloatyIfInvokedAnimated:NO
-                         fromSource:gemini::FloatyUpdateSource::GestureIph];
+    if (IsPageActionMenuEnabled()) {
+      [self.geminiHandler
+          hideFloatyIfInvokedAnimated:NO
+                           fromSource:gemini::FloatyUpdateSource::GestureIph];
+    }
     return gestureIPHView;
   }
   return nil;
@@ -1515,6 +1541,13 @@ constexpr CGFloat kAdditionalBorderMargin = 4;
     _infobarModalPresenter = nullptr;
   }
   _overlayPresenterObserver = nullptr;
+}
+
+// Returns whether the omnibox is in the bottom position.
+- (BOOL)isBottomOmnibox {
+  return IsBottomOmniboxAvailable() &&
+         GetApplicationContext()->GetLocalState()->GetBoolean(
+             omnibox::kIsOmniboxInBottomPosition);
 }
 
 @end

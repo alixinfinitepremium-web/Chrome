@@ -28,6 +28,7 @@
 #include "base/uuid.h"
 #include "build/build_config.h"
 #include "components/autofill/core/browser/crowdsourcing/randomized_encoder.h"
+#include "components/autofill/core/browser/data_manager/addresses/account_name_email_store.h"
 #include "components/autofill/core/browser/data_manager/payments/payments_data_manager.h"
 #include "components/autofill/core/browser/data_manager/test_personal_data_manager.h"
 #include "components/autofill/core/browser/data_model/addresses/autofill_i18n_api.h"
@@ -63,12 +64,14 @@
 #include "components/autofill/core/common/form_field_data_predictions.h"
 #include "components/autofill/core/common/signatures.h"
 #include "components/autofill/core/common/unique_ids.h"
+#include "components/personal_context/core/personal_context_prefs.h"
 #include "components/pref_registry/pref_registry_syncable.h"
 #include "components/prefs/pref_service.h"
 #include "components/prefs/pref_service_factory.h"
 #include "components/prefs/testing_pref_store.h"
 #include "components/security_interstitials/core/pref_names.h"
 #include "components/signin/public/identity_manager/identity_manager.h"
+#include "components/subscription_eligibility/subscription_eligibility_prefs.h"
 #include "components/sync/protocol/autofill_specifics.pb.h"
 #include "testing/gtest/include/gtest/gtest.h"
 #include "third_party/abseil-cpp/absl/functional/overload.h"
@@ -149,6 +152,8 @@ std::unique_ptr<AutofillTestingPrefService> PrefServiceForTesting() {
   auto pref_service = std::make_unique<AutofillTestingPrefService>();
   user_prefs::PrefRegistrySyncable* registry = pref_service->registry();
   signin::IdentityManager::RegisterProfilePrefs(registry);
+  subscription_eligibility::prefs::RegisterProfilePrefs(registry);
+  personal_context::prefs::RegisterProfilePrefs(registry);
   registry->RegisterBooleanPref(
       RandomizedEncoder::kUrlKeyedAnonymizedDataCollectionEnabled, false);
   registry->RegisterBooleanPref(::prefs::kMixedFormsWarningsEnabled, true);
@@ -812,7 +817,7 @@ void HideAccountNameEmailProfile(PrefService* pref_service,
   // the kAccountNameEmail profile that matches `info` will be removed.
   pref_service->SetInteger(
       prefs::kAutofillNameAndEmailProfileNotSelectedCounter,
-      features::kAutofillNameAndEmailProfileNotSelectedThreshold.Get() + 1);
+      AccountNameEmailStore::kNotSelectedThreshold + 1);
   pref_service->SetString(
       prefs::kAutofillNameAndEmailProfileSignature,
       base::NumberToString(base::PersistentHash(base::StrCat(
@@ -1065,14 +1070,12 @@ void GenerateTestAutofillPopup(
   field.set_bounds(gfx::RectF(100.f, 100.f));
   autofill_external_delegate->OnQuery(
       form, field, /*caret_bounds=*/gfx::Rect(),
-      AutofillSuggestionTriggerSource::kFormControlElementClicked,
-      /*update_datalist=*/false);
+      AutofillSuggestionTriggerSource::kFormControlElementClicked);
 
   std::vector<Suggestion> suggestions;
   suggestions.emplace_back(u"Test suggestion",
                            SuggestionType::kAutocompleteEntry);
-  autofill_external_delegate->OnSuggestionsReturned(field.global_id(),
-                                                    suggestions);
+  autofill_external_delegate->OnSuggestionsReturned(field, suggestions);
 }
 
 std::string ObfuscatedCardDigitsAsUTF8(const std::string& str,

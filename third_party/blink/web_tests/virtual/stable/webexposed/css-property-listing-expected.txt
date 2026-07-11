@@ -257,7 +257,6 @@ All changes to this list should go through Blink's feature review process: http:
     letter-spacing
     lighting-color
     line-break
-    line-clamp
     line-height
     list-style-image
     list-style-position
@@ -477,6 +476,7 @@ All changes to this list should go through Blink's feature review process: http:
     widows
     width
     will-change
+    window-drag
     word-break
     word-spacing
     writing-mode

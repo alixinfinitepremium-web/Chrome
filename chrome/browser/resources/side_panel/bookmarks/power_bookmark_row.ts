@@ -146,11 +146,9 @@ export class PowerBookmarkRowElement extends CrLitElement {
   override willUpdate(changedProperties: PropertyValues<this>) {
     super.willUpdate(changedProperties);
 
-    if (changedProperties.has('bookmark') &&
-        this.bookmark.id !== changedProperties.get('bookmark')?.id) {
-      this.toggleExpand = false;
+    if (changedProperties.has('bookmark')) {
+      this.isPriceTracked = this.isPriceTracked_();
     }
-
 
     if (changedProperties.has('compact')) {
       this.listItemSize =
@@ -178,7 +176,7 @@ export class PowerBookmarkRowElement extends CrLitElement {
 
   override shouldUpdate(changedProperties: PropertyValues<this>) {
     if (changedProperties.has('updatedElementIds')) {
-      const updatedElementIds = changedProperties.get('updatedElementIds');
+      const updatedElementIds = this.updatedElementIds;
       if (updatedElementIds?.includes(this.bookmark?.id)) {
         return true;
       }

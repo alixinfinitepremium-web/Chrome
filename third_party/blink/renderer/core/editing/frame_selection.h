@@ -227,6 +227,11 @@ class CORE_EXPORT FrameSelection final
 
   void DidChangeFocus();
 
+  // Restores |element|'s text-overflow ellipsis as it loses or
+  // gains focus while the selection focus stays inside it. The caller guards on
+  // the feature flag (see SelectionEditor::SetContainsSelectionFocusFlag()).
+  void UpdateTextOverflowOfSelectionFocus(const Element& element, bool focused);
+
   const SelectionInDomTree& GetSelectionInDomTree() const;
   bool IsDirectional() const;
 
@@ -295,7 +300,7 @@ class CORE_EXPORT FrameSelection final
   void SetFocusedNodeIfNeeded();
   void NotifyTextControlOfSelectionChange(SetSelectionBy);
 
-  String SelectedHTMLForClipboard() const;
+  String SelectedHtmlForClipboard() const;
   String SelectedText(const TextIteratorBehavior&) const;
   String SelectedText() const;
   String SelectedTextForClipboard() const;
@@ -372,6 +377,7 @@ class CORE_EXPORT FrameSelection final
       const SelectionInDomTree& new_selection);
 
   void FocusedOrActiveStateChanged();
+  void MaybeNotifyEventHandlerForSelectionChange(const SetSelectionOptions&);
 
   GranularityStrategy* GetGranularityStrategy();
 

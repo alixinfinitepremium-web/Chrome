@@ -38,6 +38,7 @@
 #include "absl/base/attributes.h"
 #include "absl/base/config.h"
 #include "absl/base/internal/endian.h"
+#include "absl/base/internal/hardening.h"
 #include "absl/base/macros.h"
 #include "absl/base/no_destructor.h"
 #include "absl/base/options.h"
@@ -244,8 +245,6 @@ class CordTestPeer {
 
 ABSL_NAMESPACE_END
 }  // namespace absl
-
-
 
 // The CordTest fixture runs all tests with and without expected CRCs being set
 // on the subject Cords.
@@ -2828,6 +2827,7 @@ TEST_P(CordTest, Hardening) {
   }());
   if (!test_hardening) return;
 
+  absl::base_internal::ScopedSetAbslHardeningForTesting hardener(true);
   EXPECT_DEATH_IF_SUPPORTED(cord[5], "");
   EXPECT_DEATH_IF_SUPPORTED(*cord.chunk_end(), "");
   EXPECT_DEATH_IF_SUPPORTED(static_cast<void>(cord.chunk_end()->empty()), "");

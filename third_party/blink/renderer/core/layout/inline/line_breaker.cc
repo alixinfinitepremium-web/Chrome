@@ -671,6 +671,28 @@ void LineBreaker::ComputeBaseDirection() {
       Character::IsLineFeed);
 }
 
+inline LayoutUnit LineBreaker::ComputeFloatOffset() const {
+  if (constraint_space_.AvailableSize().inline_size == kIndefiniteSize) {
+    return LayoutUnit();
+  }
+  const LayoutUnit left = line_opportunity_.line_left_offset;
+  const LayoutUnit bfc_left = constraint_space_.GetBfcOffset().line_offset;
+  const LayoutUnit right = line_opportunity_.line_right_offset;
+  const LayoutUnit bfc_right = constraint_space_.GetBfcOffset().line_offset +
+                               constraint_space_.AvailableSize().inline_size;
+  if (IsLtr(base_direction_)) {
+    if (left <= bfc_left) {
+      return LayoutUnit();
+    }
+    return left - bfc_left;
+  } else {
+    if (right >= bfc_right) {
+      return LayoutUnit();
+    }
+    return bfc_right - right;
+  }
+}
+
 void LineBreaker::RecalcClonedBoxDecorations() {
   cloned_box_decorations_count_ = 0u;
   cloned_box_decorations_initial_size_ = LayoutUnit();
@@ -2693,7 +2715,7 @@ bool LineBreaker::ComputeTrailingCollapsibleSpaceHelper(LineInfo& line_info) {
       }
 
       InlineItemResults* results = line_info.MutableResults();
-      wtf_size_t index = std::distance(results->data(), &item_result);
+      wtf_size_t index = CheckedDistance(results->data(), &item_result);
       if (!trailing_collapsible_space_.has_value() ||
           trailing_collapsible_space_->item_results != results ||
           trailing_collapsible_space_->item_result_index != index) {
@@ -2943,7 +2965,10 @@ void LineBreaker::HandleControlItem(const InlineItem& item,
                              : style.GetFont();
       const ShapeResult* shape_result =
           ShapeResult::CreateForTabulationCharacters(
-              font, item.Direction(), style.GetTabSize(), position_,
+              font, item.Direction(), style.GetTabSize(),
+              RuntimeEnabledFeatures::TabAlignmentWithFloatsEnabled()
+                  ? position_ + ComputeFloatOffset()
+                  : position_,
               item.StartOffset(), item.Length());
       HandleText(item, *shape_result, line_info);
       return;
@@ -3568,13 +3593,14 @@ InlineItemResult* LineBreaker::AddRubyColumnResult(
   for (wtf_size_t i = 0; i < annotation_line_list.size(); ++i) {
     LayoutObject& annotation_object =
         *Items()[annotation_data_list[i].start_item_index]->GetLayoutObject();
-    data->annotation_line_list[i].OverrideLineStyle(*annotation_object.Style());
+    data->annotation_line_list[i].OverrideLineStyle(
+        annotation_object.StyleRef());
     data->annotation_line_list[i].SetIsRubyText();
     data->annotation_line_list[i].UpdateTextAlign();
     const LayoutObject* parent = annotation_object.Parent();
     data->position_list.push_back(
         parent->IsInlineRuby()
-            ? parent->Style(use_first_line_style_)->GetRubyPosition()
+            ? parent->StyleRef(use_first_line_style_).GetRubyPosition()
             : RubyPosition::kOver);
   }
   DCHECK_EQ(data->annotation_line_list.size(), data->position_list.size());
@@ -4121,7 +4147,6 @@ void LineBreaker::HandleOverflow(LineInfo* line_info) {
         BreakText(item_result, item, *item.TextShapeResult(),
                   std::min(item_available_width, min_available_width),
                   item_available_width, line_info);
-        DCHECK_LE(item_result->EndOffset(), item_result_before.EndOffset());
 #if DCHECK_IS_ON()
         item_result->CheckConsistency(true);
 #endif
@@ -4151,6 +4176,13 @@ void LineBreaker::HandleOverflow(LineInfo* line_info) {
         }
 
         // Failed to break to fit. Restore to the original state.
+        //
+        // Generally, breaking at a smaller width should result in a shorter or
+        // equal end offset; i.e., `item_result->EndOffset()` should be
+        // `<= item_result_before.EndOffset()`.
+        // However, due to reshaping (especially at huge font sizes) or
+        // float-to-LayoutUnit rounding mismatches, the `EndOffset()` becoming
+        // larger is possible.
         if (HasHyphen()) [[unlikely]] {
           RemoveHyphen(item_results);
         }
@@ -4235,8 +4267,12 @@ void LineBreaker::HandleOverflow(LineInfo* line_info) {
   disable_bisect_line_break_ = true;
 
   // Restore the hyphenation states to before the loop if needed.
+  // The loop above may have shrunk `item_results` via `Rewind()` (e.g. when
+  // handling a ruby column), so the saved index can be stale. Only restore
+  // the hyphen if the item it referenced still exists. See crbug.com/435058045.
   DCHECK(!HasHyphen());
-  if (hyphen_index_before) [[unlikely]] {
+  if (hyphen_index_before && *hyphen_index_before < item_results->size())
+      [[unlikely]] {
     position_ += AddHyphen(item_results, *hyphen_index_before);
   }
 

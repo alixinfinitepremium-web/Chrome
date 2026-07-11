@@ -6,6 +6,7 @@
 
 #include <memory>
 
+#include "base/strings/string_util.h"
 #include "base/test/metrics/histogram_tester.h"
 #include "base/test/metrics/user_action_tester.h"
 #include "base/test/run_until.h"
@@ -33,7 +34,6 @@
 #include "components/bookmarks/common/bookmark_pref_names.h"
 #include "components/data_sharing/public/features.h"
 #include "components/prefs/pref_service.h"
-#include "components/saved_tab_groups/public/features.h"
 #include "components/tab_groups/tab_group_id.h"
 #include "components/tabs/public/tab_group.h"
 #include "content/public/test/browser_test.h"
@@ -362,7 +362,7 @@ class TabGroupEditorBubbleViewDialogBrowserTestWithFreezingEnabled
 IN_PROC_BROWSER_TEST_F(
     TabGroupEditorBubbleViewDialogBrowserTestWithFreezingEnabled,
     CollapsingGroupFreezesAllTabs) {
-  BrowserView* browser_view = static_cast<BrowserView*>(browser()->window());
+  BrowserView* browser_view = BrowserView::GetBrowserViewForBrowser(browser());
   InProcessBrowserTest::AddBlankTabAndShow(browser());
   InProcessBrowserTest::AddBlankTabAndShow(browser());
 
@@ -448,7 +448,7 @@ IN_PROC_BROWSER_TEST_F(TabGroupEditorBubbleViewDialogBrowserTestWithSavedGroup,
 
 IN_PROC_BROWSER_TEST_F(TabGroupEditorBubbleViewDialogBrowserTestWithSavedGroup,
                        CloseGroupedTab) {
-  BrowserView* browser_view = static_cast<BrowserView*>(browser()->window());
+  BrowserView* browser_view = BrowserView::GetBrowserViewForBrowser(browser());
   InProcessBrowserTest::AddBlankTabAndShow(browser());
   InProcessBrowserTest::AddBlankTabAndShow(browser());
 
@@ -472,7 +472,7 @@ IN_PROC_BROWSER_TEST_F(TabGroupEditorBubbleViewDialogBrowserTestWithSavedGroup,
 
 IN_PROC_BROWSER_TEST_F(TabGroupEditorBubbleViewDialogBrowserTestWithSavedGroup,
                        CloseGroupedTabWithPreventShowDialog) {
-  BrowserView* browser_view = static_cast<BrowserView*>(browser()->window());
+  BrowserView* browser_view = BrowserView::GetBrowserViewForBrowser(browser());
   InProcessBrowserTest::AddBlankTabAndShow(browser());
   InProcessBrowserTest::AddBlankTabAndShow(browser());
 
@@ -629,6 +629,54 @@ IN_PROC_BROWSER_TEST_F(
   EXPECT_TRUE(base::test::RunUntil([&]() { return !weak_widget2; }));
 
   EXPECT_FALSE(tsm->GetFocusedGroup().has_value());
+}
+
+class TabGroupEditorBubbleViewDialogBrowserTestWithTabGroupHome
+    : public TabGroupEditorBubbleViewDialogBrowserTest {
+ public:
+  TabGroupEditorBubbleViewDialogBrowserTestWithTabGroupHome() {
+    scoped_feature_list_.InitAndEnableFeature(tabs::kTabGroupHome);
+  }
+
+ private:
+  base::test::ScopedFeatureList scoped_feature_list_;
+};
+
+IN_PROC_BROWSER_TEST_F(
+    TabGroupEditorBubbleViewDialogBrowserTestWithTabGroupHome,
+    TabGroupHomeTrigger) {
+  ShowUi("SetUp");
+
+  views::Widget* editor_bubble = WaitForAndGetEditorBubbleWidget();
+  ASSERT_NE(nullptr, editor_bubble);
+
+  views::Button* const home_button =
+      views::Button::AsButton(editor_bubble->GetContentsView()->GetViewByID(
+          TabGroupEditorBubbleView::TAB_GROUP_HEADER_CXMENU_HOME));
+  EXPECT_NE(nullptr, home_button);
+
+  // Store the initial tab count.
+  int initial_tab_count = browser()->tab_strip_model()->count();
+
+  ui::MouseEvent released_event(ui::EventType::kMouseReleased, gfx::PointF(),
+                                gfx::PointF(), base::TimeTicks(), 0, 0);
+  base::WeakPtr<views::Widget> weak_widget = editor_bubble->GetWeakPtr();
+  views::test::ButtonTestApi(home_button).NotifyClick(released_event);
+
+  // The bubble should close.
+  EXPECT_TRUE(base::test::RunUntil([&]() { return !weak_widget; }));
+
+  // Verify that a new tab was opened.
+  EXPECT_EQ(browser()->tab_strip_model()->count(), initial_tab_count + 1);
+
+  // Verify it is the active tab.
+  EXPECT_EQ(browser()->tab_strip_model()->active_index(), initial_tab_count);
+
+  // Verify the URL.
+  content::WebContents* active_contents =
+      browser()->tab_strip_model()->GetActiveWebContents();
+  ASSERT_NE(nullptr, active_contents);
+  EXPECT_EQ(active_contents->GetVisibleURL(), GURL("chrome://tab-group-home/"));
 }
 
 #if BUILDFLAG(IS_OZONE)

@@ -40,6 +40,7 @@
 #include "chrome/browser/ui/navigator/browser_navigator_params.h"
 #include "chrome/browser/ui/recently_audible_helper.h"
 #include "chrome/browser/ui/tabs/tab_muted_utils.h"
+#include "chrome/browser/ui/unload_controller.h"
 #include "chrome/browser/web_applications/web_app_helpers.h"
 #include "chrome/common/pref_names.h"
 #include "chrome/common/webui_url_constants.h"
@@ -143,6 +144,14 @@ constexpr char kWindowCreateCannotUseTabIdWithIwaError[] =
     "tab by its ID.";
 constexpr char kCannotMoveIwaTabError[] =
     "The tab of an Isolated Web App cannot be moved.";
+constexpr char kTabsCreateIwaUrlNotAllowedError[] =
+    "URLs with the 'isolated-app:' scheme cannot be opened with tabs.create. "
+    "Use windows.create instead.";
+constexpr char kTabsUpdateIwaUrlNotAllowedError[] =
+    "Cannot navigate to a URL with the 'isolated-app:' scheme via tabs.update. "
+    "Use windows.create instead.";
+constexpr char kCannotDuplicateIwaTabError[] =
+    "The tab of an Isolated Web App cannot be duplicated.";
 #endif
 
 #if BUILDFLAG(IS_ANDROID)
@@ -356,7 +365,7 @@ void MaybeSetLockedFullscreenState(const api::windows::Update::Params& params,
   // the JS side, and in that case we don't want to change the locked state.
   Browser* const target_browser = browser->GetBrowserForMigrationOnly();
   if (target_browser) {
-    Profile* const browser_profile = target_browser->profile();
+    Profile* const browser_profile = target_browser->GetProfile();
     if (is_locked_fullscreen &&
         params.update_info.state != windows::WindowState::kLockedFullscreen &&
         params.update_info.state != windows::WindowState::kNone) {
@@ -2102,6 +2111,14 @@ ExtensionFunction::ResponseAction TabsCreateFunction::Run() {
     validated_url_ = std::move(maybe_url.value());
   }
 
+#if !BUILDFLAG(IS_ANDROID)
+  // Isolated Web Apps must be opened at their start URL with the requested
+  // URL routed via launchQueue, which is handled by `windows.create`.
+  if (validated_url_.SchemeIs(webapps::kIsolatedAppScheme)) {
+    return RespondNow(Error(kTabsCreateIwaUrlNotAllowedError));
+  }
+#endif
+
   opener_tab_id_ = create_properties.opener_tab_id;
 
   // TODO(jstritar): Add a constant, chrome.tabs.TAB_ID_ACTIVE, that
@@ -2162,7 +2179,8 @@ ExtensionFunction::ResponseAction TabsCreateFunction::Run() {
   // back to the dawn of time, AKA the initial implementation in 2014:
   // https://codereview.chromium.org/245933002.
   if (browser && browser->GetType() != BrowserWindowInterface::TYPE_NORMAL &&
-      browser->GetBrowserForMigrationOnly()->IsAttemptingToCloseBrowser()) {
+      UnloadController::From(browser->GetBrowserForMigrationOnly())
+          ->is_attempting_to_close_browser()) {
     browser = nullptr;
     fallback_to_tabbed_browser = true;
   }
@@ -2357,6 +2375,13 @@ ExtensionFunction::ResponseAction TabsDuplicateFunction::Run() {
       !ExtensionTabUtil::IsTabStripEditable(*browser->GetProfile())) {
     return RespondNow(Error(ExtensionTabUtil::kTabStripNotEditableError));
   }
+
+#if !BUILDFLAG(IS_ANDROID)
+  if (web_contents->GetLastCommittedURL().SchemeIs(
+          webapps::kIsolatedAppScheme)) {
+    return RespondNow(Error(kCannotDuplicateIwaTabError));
+  }
+#endif
 
   TabListInterface* tab_list = TabListInterface::From(browser);
   if (!tab_list) {
@@ -2816,6 +2841,15 @@ bool TabsUpdateFunction::UpdateURL(content::WebContents* web_contents,
     *error = std::move(url.error());
     return false;
   }
+
+#if !BUILDFLAG(IS_ANDROID)
+  // Isolated Web Apps must be opened at their start URL with the requested
+  // URL routed via launchQueue, which is handled by `windows.create`.
+  if (url->SchemeIs(webapps::kIsolatedAppScheme)) {
+    *error = kTabsUpdateIwaUrlNotAllowedError;
+    return false;
+  }
+#endif
 
   if (IsDSERedirect(extension()->id(), *browser_context(), render_frame_host(),
                     *web_contents, *url, user_gesture())) {
@@ -3559,20 +3593,10 @@ bool TabsCaptureVisibleTabFunction::disable_throttling_for_test_ = false;
 TabsCaptureVisibleTabFunction::TabsCaptureVisibleTabFunction()
     : chrome_details_(this) {}
 
-WebContentsCaptureClient::ScreenshotAccess
+base::expected<void, extensions::ScreenshotAccessError>
 TabsCaptureVisibleTabFunction::GetScreenshotAccess(
     content::WebContents* web_contents) const {
-  PrefService* service =
-      Profile::FromBrowserContext(browser_context())->GetPrefs();
-  if (service->GetBoolean(prefs::kDisableScreenshots)) {
-    return ScreenshotAccess::kDisabledByPreferences;
-  }
-
-  if (ExtensionsBrowserClient::Get()->IsScreenshotRestricted(web_contents)) {
-    return ScreenshotAccess::kDisabledByDlp;
-  }
-
-  return ScreenshotAccess::kEnabled;
+  return ExtensionsBrowserClient::Get()->IsScreenshotRestricted(web_contents);
 }
 
 bool TabsCaptureVisibleTabFunction::ClientAllowsTransparency() {

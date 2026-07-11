@@ -320,6 +320,56 @@ TEST_F(OnDeviceModelServiceTest, IdleTimeout) {
             static_cast<uint32_t>(ModelDisconnectReason::kIdleShutdown));
 }
 
+TEST_F(OnDeviceModelServiceTest, AsrStreamIdleTimeout) {
+  auto model = LoadModel();
+  mojo::Remote<mojom::Session> session;
+  model->StartSession(session.BindNewPipeAndPassReceiver(), nullptr);
+
+  base::test::TestFuture<uint32_t, const std::string&> model_future;
+  base::test::TestFuture<uint32_t, const std::string&> session_future;
+  model.set_disconnect_with_reason_handler(model_future.GetCallback());
+  session.set_disconnect_with_reason_handler(session_future.GetCallback());
+
+  class DummyResponder : public mojom::AsrStreamResponder {
+   public:
+    void OnResponse(
+        std::vector<mojom::SpeechRecognitionResultPtr> result) override {}
+  };
+  DummyResponder responder_impl;
+  mojo::PendingRemote<mojom::AsrStreamResponder> responder_remote;
+  mojo::Receiver<mojom::AsrStreamResponder> receiver(
+      &responder_impl, responder_remote.InitWithNewPipeAndPassReceiver());
+
+  auto options = mojom::AsrStreamOptions::New();
+  options->sample_rate_hz = 16000;
+  mojo::Remote<mojom::AsrStreamInput> asr_input;
+  session->AsrStream(std::move(options), asr_input.BindNewPipeAndPassReceiver(),
+                     std::move(responder_remote));
+
+  task_environment_.FastForwardBy(kDefaultModelIdleTimeout - base::Seconds(1));
+  EXPECT_FALSE(model_future.IsReady());
+  EXPECT_FALSE(session_future.IsReady());
+
+  // An ASR chunk should reset timeout.
+  auto audio_data = mojom::AudioData::New();
+  audio_data->sample_rate = 16000;
+  audio_data->channel_count = 1;
+  audio_data->frame_count = 1;
+  audio_data->data = {0};
+  asr_input->AddAudioChunk(std::move(audio_data));
+  task_environment_.RunUntilIdle();
+
+  task_environment_.FastForwardBy(kDefaultModelIdleTimeout - base::Seconds(1));
+  EXPECT_FALSE(model_future.IsReady());
+  EXPECT_FALSE(session_future.IsReady());
+
+  task_environment_.FastForwardBy(base::Seconds(1));
+  EXPECT_EQ(std::get<0>(model_future.Get()),
+            static_cast<uint32_t>(ModelDisconnectReason::kIdleShutdown));
+  EXPECT_EQ(std::get<0>(session_future.Get()),
+            static_cast<uint32_t>(ModelDisconnectReason::kIdleShutdown));
+}
+
 TEST_F(OnDeviceModelServiceTest, Responds) {
   auto model = LoadModel();
   EXPECT_THAT(GetResponses(*model, "bar"), ElementsAre("bar"));
@@ -363,6 +413,63 @@ TEST_F(OnDeviceModelServiceTest, PerSessionSamplingParams) {
 
   EXPECT_THAT(response.responses(),
               ElementsAre("TopK: 2, Temp: 0.5", "cheese", "more", "cheddar"));
+}
+
+TEST_F(OnDeviceModelServiceTest, ClampedSamplingParams) {
+  auto model = LoadModel();
+
+  // top_k = 0 should be clamped to kMinTopK (1). We use temperature = 0.5 to
+  // ensure the params block is printed by the fake engine.
+  {
+    auto session_params = mojom::SessionParams::New();
+    session_params->top_k = 0;
+    session_params->temperature = 0.5;
+
+    TestResponseHolder response;
+    mojo::Remote<mojom::Session> session;
+    model->StartSession(session.BindNewPipeAndPassReceiver(),
+                        std::move(session_params));
+
+    session->Generate(mojom::GenerateOptions::New(), response.BindRemote());
+    response.WaitForCompletion();
+
+    EXPECT_THAT(response.responses(), ElementsAre("TopK: 1, Temp: 0.5"));
+  }
+
+  // temperature = -1 should be clamped to kMinTemperature (0.0f). We use
+  // top_k = 2 to ensure the params block is printed by the fake engine.
+  {
+    auto session_params = mojom::SessionParams::New();
+    session_params->top_k = 2;
+    session_params->temperature = -1;
+
+    TestResponseHolder response;
+    mojo::Remote<mojom::Session> session;
+    model->StartSession(session.BindNewPipeAndPassReceiver(),
+                        std::move(session_params));
+
+    session->Generate(mojom::GenerateOptions::New(), response.BindRemote());
+    response.WaitForCompletion();
+
+    EXPECT_THAT(response.responses(), ElementsAre("TopK: 2, Temp: 0"));
+  }
+
+  // top_k = 1000 should be clamped to MaxTopK (128).
+  {
+    auto session_params = mojom::SessionParams::New();
+    session_params->top_k = 1000;
+    session_params->temperature = 0.5;
+
+    TestResponseHolder response;
+    mojo::Remote<mojom::Session> session;
+    model->StartSession(session.BindNewPipeAndPassReceiver(),
+                        std::move(session_params));
+
+    session->Generate(mojom::GenerateOptions::New(), response.BindRemote());
+    response.WaitForCompletion();
+
+    EXPECT_THAT(response.responses(), ElementsAre("TopK: 128, Temp: 0.5"));
+  }
 }
 
 TEST_F(OnDeviceModelServiceTest, CloneContextAndContinue) {

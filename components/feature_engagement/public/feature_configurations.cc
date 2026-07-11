@@ -347,6 +347,42 @@ std::optional<FeatureConfig> GetClientSideFeatureConfig(
     return config;
   }
 
+  if (kIPHSmartTabSharingTryItFeature.name == feature->name) {
+    FeatureConfig config;
+    config.valid = true;
+    config.availability = Comparator(ANY, 0);
+    config.session_rate = Comparator(ANY, 0);
+    // Show the promo max 3 times total (per year), once per week.
+    config.trigger = EventConfig("smart_tab_sharing_try_it_trigger",
+                                 Comparator(EQUAL, 0), 7, 7);
+    config.event_configs.insert(EventConfig("smart_tab_sharing_try_it_trigger",
+                                            Comparator(LESS_THAN, 3), 360,
+                                            360));
+    config.used = EventConfig("smart_tab_sharing_try_it_used",
+                              Comparator(EQUAL, 0), 360, 360);
+    return config;
+  }
+
+  if (kIPHSmartTabSharingDefaultOnFeature.name == feature->name) {
+    FeatureConfig config;
+    config.valid = true;
+    config.availability = Comparator(ANY, 0);
+    config.session_rate = Comparator(ANY, 0);
+    // Show the promo max 3 times total (per year), once per week.
+    // Repeated activation of smart tab sharing is also required.
+    config.trigger = EventConfig("smart_tab_sharing_default_on_trigger",
+                                 Comparator(EQUAL, 0), 7, 7);
+    config.event_configs.insert(
+        EventConfig("smart_tab_sharing_default_on_trigger",
+                    Comparator(LESS_THAN, 3), 360, 360));
+    config.event_configs.insert(
+        EventConfig("smart_tab_sharing_activated",
+                    Comparator(GREATER_THAN_OR_EQUAL, 3), 360, 360));
+    config.used = EventConfig("smart_tab_sharing_default_on_used",
+                              Comparator(EQUAL, 0), 360, 360);
+    return config;
+  }
+
 #if BUILDFLAG(ENABLE_EXTENSIONS)
   if (kIPHExtensionsMenuFeature.name == feature->name) {
     FeatureConfig config;
@@ -680,6 +716,52 @@ std::optional<FeatureConfig> GetClientSideFeatureConfig(
 
 #if BUILDFLAG(IS_ANDROID)
   // CONFIGURATION_ANDROID_START
+  if (kIPHAndroidBottomBarAim.name == feature->name) {
+    FeatureConfig config;
+    config.valid = true;
+
+    // IPH is always available at start-up.
+    config.availability = Comparator(ANY, 0);
+
+    // IPH only shows if no other IPH has shown this session.
+    config.session_rate = Comparator(EQUAL, 0);
+
+    // IPH only shows once per 360 days.
+    config.trigger = EventConfig("android_bottom_bar_aim_trigger",
+                                 Comparator(EQUAL, 0), 360, 360);
+
+    // IPH will not show if the user has interacted with the AI Mode button.
+    config.used = EventConfig("android_bottom_bar_aim_used",
+                              Comparator(EQUAL, 0), 360, 360);
+
+    // Require that the aim promo dialog IPH has been shown at least once.
+    config.event_configs.insert(
+        EventConfig("android_bottom_bar_aim_promo_dialog_trigger",
+                    Comparator(GREATER_THAN_OR_EQUAL, 1), 360, 360));
+    return config;
+  }
+
+  if (kIPHAndroidBottomBarAimPromoDialog.name == feature->name) {
+    FeatureConfig config;
+    config.valid = true;
+
+    // IPH is always available at start-up.
+    config.availability = Comparator(ANY, 0);
+
+    // IPH only shows if no other IPH has shown this session.
+    config.session_rate = Comparator(EQUAL, 0);
+    config.session_rate_impact.type = SessionRateImpact::Type::NONE;
+
+    // IPH only shows once per 360 days.
+    config.trigger = EventConfig("android_bottom_bar_aim_promo_dialog_trigger",
+                                 Comparator(EQUAL, 0), 360, 360);
+
+    // IPH will not show if the user has interacted with the AIM Promo Dialog.
+    config.used = EventConfig("android_bottom_bar_aim_promo_dialog_used",
+                              Comparator(EQUAL, 0), 360, 360);
+    return config;
+  }
+
   if (kIPHAndroidBottomBarGlic.name == feature->name) {
     FeatureConfig config;
     config.valid = true;
@@ -852,6 +934,24 @@ std::optional<FeatureConfig> GetClientSideFeatureConfig(
         EventConfig("android_tab_declutter_iph_triggered",
                     Comparator(LESS_THAN, 3), 360, 360));
     config.used = EventConfig("android_tab_declutter_button_clicked",
+                              Comparator(EQUAL, 0), 360, 360);
+    return config;
+  }
+
+  if (kIPHAndroidVerticalTabsPromoFeature.name == feature->name) {
+    // A config that allows the Vertical Tabs promo IPH on Android tab strip:
+    // * Only once per week.
+    // * Up to 3 times per year.
+    FeatureConfig config;
+    config.valid = true;
+    config.availability = Comparator(ANY, 0);
+    config.session_rate = Comparator(EQUAL, 0);
+    config.trigger = EventConfig("android_vertical_tabs_promo_iph_triggered",
+                                 Comparator(EQUAL, 0), 7, 360);
+    config.event_configs.insert(
+        EventConfig("android_vertical_tabs_promo_iph_triggered",
+                    Comparator(LESS_THAN, 3), 360, 360));
+    config.used = EventConfig("android_vertical_tabs_promo_used",
                               Comparator(EQUAL, 0), 360, 360);
     return config;
   }
@@ -2361,23 +2461,6 @@ std::optional<FeatureConfig> GetClientSideFeatureConfig(
         "IPH_KeyboardAccessoryBarSwiping");
 #endif  // BUILDFLAG(IS_ANDROID)
 
-    return config;
-  }
-
-  if (kIPHCookieControlsFeature.name == feature->name) {
-    FeatureConfig config;
-    config.valid = true;
-    config.availability = Comparator(ANY, 0);
-    config.session_rate = Comparator(EQUAL, 0);
-    // Show promo up to 3 times per year and only if user hasn't interacted with
-    // the cookie controls bubble in the last week.
-    config.trigger = EventConfig("iph_cookie_controls_triggered",
-                                 Comparator(LESS_THAN, 3), 360, 360);
-#if !BUILDFLAG(IS_ANDROID)
-    config.used =
-        EventConfig(feature_engagement::events::kCookieControlsBubbleShown,
-                    Comparator(EQUAL, 0), 7, 7);
-#endif  // !BUILDFLAG(IS_ANDROID)
     return config;
   }
 

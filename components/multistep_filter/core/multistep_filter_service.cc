@@ -10,6 +10,7 @@
 
 #include "base/functional/bind.h"
 #include "base/functional/callback_helpers.h"
+#include "base/strings/string_util.h"
 #include "base/uuid.h"
 #include "components/history/core/browser/history_service.h"
 #include "components/multistep_filter/core/annotation_index/annotation_index_client.h"
@@ -17,9 +18,10 @@
 #include "components/multistep_filter/core/extraction/filter_extractor.h"
 #include "components/multistep_filter/core/logging/log_entry.h"
 #include "components/multistep_filter/core/logging/multistep_filter_logger.h"
-#include "components/multistep_filter/core/multistep_filter_util.h"
+#include "components/multistep_filter/core/prefs/multistep_filter_retention_prefs.h"
 #include "components/multistep_filter/core/storage/filter_store.h"
 #include "components/multistep_filter/core/suggestion/filter_suggestion_generator.h"
+#include "components/multistep_filter/core/verification/filter_application_verifier.h"
 #include "components/signin/public/identity_manager/identity_manager.h"
 #include "components/sync/base/user_selectable_type.h"
 #include "components/sync/service/sync_service.h"
@@ -33,41 +35,25 @@ namespace {
 
 void LogUrlEligibilityCheck(MultistepFilterLogRouter* log_router,
                             int64_t navigation_id,
-                            std::string_view domain,
+                            std::string_view host,
                             bool signed_in,
                             bool url_keyed_data_collection_enabled,
                             bool history_sync_enabled) {
   MULTISTEP_FILTER_LOG(log_router, navigation_id,
-                       LogEventType::kUrlEligibilityCheck, domain)
+                       LogEventType::kUrlEligibilityCheck, host)
       << LogDetail{"signed_in", signed_in}
       << LogDetail{"url_keyed_data_collection_enabled",
                    url_keyed_data_collection_enabled}
       << LogDetail{"history_sync_enabled", history_sync_enabled};
 }
 
-void LogExtractionStarted(MultistepFilterLogRouter* log_router,
-                          int64_t navigation_id,
-                          std::string_view domain,
-                          const GURL& url) {
-  MULTISTEP_FILTER_LOG(log_router, navigation_id,
-                       LogEventType::kAnnotationExtractionStarted, domain)
-      << LogDetail{"url", url.spec()};
-}
 
-void LogSuggestionGenerationStarted(MultistepFilterLogRouter* log_router,
-                                    int64_t navigation_id,
-                                    std::string_view domain,
-                                    const GURL& url) {
-  MULTISTEP_FILTER_LOG(log_router, navigation_id,
-                       LogEventType::kSuggestionGenerationStarted, domain)
-      << LogDetail{"url", url.spec()};
-}
 void LogAnnotationsExpired(MultistepFilterLogRouter* log_router,
                            int64_t navigation_id,
-                           std::string_view domain,
+                           std::string_view host,
                            std::optional<int64_t> count) {
   MULTISTEP_FILTER_LOG(log_router, navigation_id,
-                       LogEventType::kSuggestionCleared, domain)
+                       LogEventType::kSuggestionCleared, host)
       << LogDetail{"success", count.has_value()}
       << LogDetail{"expired_count", static_cast<int>(count.value_or(0))};
 }
@@ -84,24 +70,8 @@ void LogHistoryDeleted(MultistepFilterLogRouter* log_router,
       << LogDetail{"rows_deleted", static_cast<int>(rows_deleted.value_or(0))};
 }
 
-void LogExtractionFailed(MultistepFilterLogRouter* log_router,
-                         int64_t navigation_id,
-                         std::string_view domain,
-                         std::string_view reason) {
-  MULTISTEP_FILTER_LOG(log_router, navigation_id,
-                       LogEventType::kAnnotationsExtracted, domain)
-      << LogDetail{"success", false}
-      << LogDetail{"reason", std::string(reason)};
-}
 
-void LogSuggestionSuppressed(MultistepFilterLogRouter* log_router,
-                             int64_t navigation_id,
-                             std::string_view domain,
-                             std::string_view reason) {
-  MULTISTEP_FILTER_LOG(log_router, navigation_id,
-                       LogEventType::kSuggestionSuppressed, domain)
-      << LogDetail{"reason", std::string(reason)};
-}
+
 
 }  // namespace
 
@@ -111,13 +81,10 @@ MultistepFilterService::MultistepFilterService(Params params)
       identity_manager_(params.identity_manager),
       consent_helper_(std::move(params.consent_helper)),
       log_router_(params.log_router),
+      pref_service_(params.pref_service),
       sync_service_(params.sync_service) {
   CHECK(annotation_index_client_);
   CHECK(filter_store_);
-  filter_extractor_ = std::make_unique<FilterExtractor>(
-      *annotation_index_client_, *filter_store_, log_router_);
-  filter_suggestion_generator_ = std::make_unique<FilterSuggestionGenerator>(
-      *annotation_index_client_, *filter_store_, log_router_);
 
   if (params.history_service) {
     history_service_observation_.Observe(params.history_service);
@@ -130,143 +97,35 @@ void MultistepFilterService::Shutdown() {
   history_service_observation_.Reset();
 }
 
-void MultistepFilterService::ExtractAnnotation(int64_t navigation_id,
-                                               const GURL& url) {
-  const std::string domain = GetEtldPlusOne(url);
-  if (!HasUserProvidedConsent(navigation_id, domain)) {
-    if (observer_for_test_) {
-      observer_for_test_->OnExtractionFinished(std::nullopt);
-    }
+void MultistepFilterService::RecordSuggestionImpression() {
+  if (!pref_service_) {
     return;
   }
-
-  GetSupportedTaskForUrl(
-      url,
-      base::BindOnce(
-          [](base::WeakPtr<MultistepFilterService> service, const GURL& url,
-             int64_t navigation_id, std::string domain,
-             std::vector<std::string> supported_task_types) {
-            if (service) {
-              service->OnUrlAllowedForExtraction(
-                  url, std::move(supported_task_types), navigation_id, domain);
-            }
-          },
-          weak_ptr_factory_.GetWeakPtr(), url, navigation_id, domain),
-      navigation_id, domain);
+  RecordImpression(pref_service_);
 }
 
-void MultistepFilterService::OnUrlAllowedForExtraction(
-    const GURL& url,
-    std::vector<std::string> supported_task_types,
-    int64_t navigation_id,
-    std::string_view domain) {
-  if (supported_task_types.empty()) {
-    LogExtractionFailed(log_router_, navigation_id, domain,
-                        "no_supported_tasks");
-    if (observer_for_test_) {
-      observer_for_test_->OnExtractionFinished(std::nullopt);
-    }
+void MultistepFilterService::RecordUserInteractionWithSuggestion(
+    SuggestionUserDecision decision) {
+  if (!pref_service_) {
     return;
   }
-
-  LogExtractionStarted(log_router_, navigation_id, domain, url);
-
-  filter_extractor_->ExtractAnnotationFromUrl(
-      url,
-      base::BindOnce(&MultistepFilterService::OnExtractionFinished,
-                     weak_ptr_factory_.GetWeakPtr()),
-      navigation_id, domain);
+  RecordUserInteraction(pref_service_, decision);
 }
 
-void MultistepFilterService::GenerateFilterSuggestions(
-    int64_t navigation_id,
-    const GURL& url,
-    base::OnceCallback<void(std::optional<UrlFilterSuggestion>)> callback) {
-  if (callback.is_null()) {
-    return;
-  }
 
-  const std::string domain = GetEtldPlusOne(url);
-  if (!HasUserProvidedConsent(navigation_id, domain)) {
-    if (observer_for_test_) {
-      observer_for_test_->OnSuggestionGenerated(std::nullopt);
-    }
-    std::move(callback).Run(std::nullopt);
-    return;
-  }
-
-  GetSupportedTaskForUrl(
-      url,
-      base::BindOnce(
-          [](base::WeakPtr<MultistepFilterService> service, const GURL& url,
-             base::OnceCallback<void(std::optional<UrlFilterSuggestion>)>
-                 callback,
-             int64_t navigation_id, std::string domain,
-             std::vector<std::string> supported_task_types) {
-            if (service) {
-              service->OnUrlAllowedForSuggestion(
-                  url, std::move(callback), std::move(supported_task_types),
-                  navigation_id, domain);
-            }
-          },
-          weak_ptr_factory_.GetWeakPtr(), url, std::move(callback),
-          navigation_id, domain),
-      navigation_id, domain);
-}
-
-void MultistepFilterService::OnUrlAllowedForSuggestion(
-    const GURL& url,
-    base::OnceCallback<void(std::optional<UrlFilterSuggestion>)> callback,
-    std::vector<std::string> supported_task_types,
-    int64_t navigation_id,
-    std::string_view domain) {
-  if (supported_task_types.empty()) {
-    LogSuggestionSuppressed(log_router_, navigation_id, domain,
-                            "no_supported_tasks");
-    if (observer_for_test_) {
-      observer_for_test_->OnSuggestionGenerated(std::nullopt);
-    }
-    std::move(callback).Run(std::nullopt);
-    return;
-  }
-
-  LogSuggestionGenerationStarted(log_router_, navigation_id, domain, url);
-
-  filter_suggestion_generator_->GenerateSuggestion(
-      url, supported_task_types,
-      base::BindOnce(&MultistepFilterService::OnSuggestionGenerated,
-                     weak_ptr_factory_.GetWeakPtr(), std::move(callback)),
-      navigation_id, domain);
-}
-
-void MultistepFilterService::OnExtractionFinished(
-    std::optional<base::Uuid> annotation_id) {
-  if (observer_for_test_) {
-    observer_for_test_->OnExtractionFinished(annotation_id);
-  }
-}
 
 void MultistepFilterService::DeleteAnnotationsForTask(
     std::string_view task_type,
     int64_t navigation_id,
-    std::string_view domain) {
+    std::string_view host) {
   filter_store_->DeleteAnnotationsForTask(
       std::string(task_type),
       base::BindOnce(&LogAnnotationsExpired, log_router_, navigation_id,
-                     std::string(domain)));
-}
-
-void MultistepFilterService::OnSuggestionGenerated(
-    base::OnceCallback<void(std::optional<UrlFilterSuggestion>)> callback,
-    std::optional<UrlFilterSuggestion> suggestion) {
-  if (observer_for_test_) {
-    observer_for_test_->OnSuggestionGenerated(suggestion);
-  }
-  std::move(callback).Run(std::move(suggestion));
+                     std::string(host)));
 }
 
 bool MultistepFilterService::HasUserProvidedConsent(int64_t navigation_id,
-                                                    std::string_view domain) {
+                                                    std::string_view host) {
   const bool signed_in = IsUserSignedIn();
   const bool url_keyed_data_collection_enabled =
       IsUrlKeyedDataCollectionEnabled();
@@ -274,19 +133,10 @@ bool MultistepFilterService::HasUserProvidedConsent(int64_t navigation_id,
   const bool consent_enabled =
       signed_in && url_keyed_data_collection_enabled && history_sync_enabled;
 
-  LogUrlEligibilityCheck(log_router_, navigation_id, domain, signed_in,
+  LogUrlEligibilityCheck(log_router_, navigation_id, host, signed_in,
                          url_keyed_data_collection_enabled,
                          history_sync_enabled);
   return consent_enabled;
-}
-
-void MultistepFilterService::GetSupportedTaskForUrl(
-    const GURL& url,
-    base::OnceCallback<void(std::vector<std::string>)> callback,
-    int64_t navigation_id,
-    std::string_view domain) {
-  annotation_index_client_->GetSupportedTasks(url, std::move(callback),
-                                              navigation_id);
 }
 
 bool MultistepFilterService::IsUserSignedIn() const {

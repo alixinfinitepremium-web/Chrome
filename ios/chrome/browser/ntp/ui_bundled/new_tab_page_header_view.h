@@ -29,10 +29,10 @@ enum class SearchEngineLogoState;
 // Header view for the NTP. The header view contains all views that are
 // displayed above the list of most visited sites, which includes the
 // primary toolbar, doodle, and fake omnibox.
-@interface NewTabPageHeaderView : UIView <UserAccountImageUpdateDelegate,
-                                          SearchEngineLogoConsumer,
+@interface NewTabPageHeaderView : UIView <FakeboxButtonsSnapshotProvider,
                                           NewTabPageHeaderConsumer,
-                                          FakeboxButtonsSnapshotProvider>
+                                          SearchEngineLogoConsumer,
+                                          UserAccountImageUpdateDelegate>
 // Returns the toolbar view.
 @property(nonatomic, readonly) UIView* toolBarView;
 
@@ -101,6 +101,9 @@ enum class SearchEngineLogoState;
 
 // Animation to expand this header in response to focusing the omnibox.
 - (void)expandHeaderForFocus;
+
+// Reverts the effects of expanding the header.
+- (void)revertHeaderExpansionOnUnfocus;
 
 // Updates the fake omnibox layout for the given scroll offset.
 - (void)updateFakeOmniboxForOffset:(CGFloat)offset

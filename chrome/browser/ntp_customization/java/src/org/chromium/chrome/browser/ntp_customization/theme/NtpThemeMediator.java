@@ -124,14 +124,6 @@ public class NtpThemeMediator {
     /** Sets the on click listener for each theme bottom sheet section. */
     @VisibleForTesting
     void setOnClickListenerForAllSection() {
-        if (mActivityResultRegistry != null) {
-            mActivityResultLauncher =
-                    mActivityResultRegistry.register(
-                            UPLOAD_IMAGE_KEY,
-                            new ActivityResultContracts.GetContent(),
-                            this::onUploadImageResult);
-        }
-
         mThemePropertyModel.set(
                 SECTION_ON_CLICK_LISTENER,
                 new Pair<>(DEFAULT, this::handleChromeDefaultSectionClick));
@@ -210,11 +202,20 @@ public class NtpThemeMediator {
             // We need to update the app's theme when a customized background color is removed.
             mBottomSheetDelegate.onNewColorSelected(/* isDifferentColor= */ true);
         }
-        mNtpCustomizationConfigManager.onBackgroundReset();
+        mNtpCustomizationConfigManager.onBackgroundDataChanged(
+                mContext, /* backgroundData= */ null);
     }
 
     @VisibleForTesting
     void handleUploadAnImageSectionClick(View view) {
+        if (mActivityResultRegistry == null) return;
+
+        mActivityResultLauncher =
+                mActivityResultRegistry.register(
+                        UPLOAD_IMAGE_KEY,
+                        new ActivityResultContracts.GetContent(),
+                        this::onUploadImageResult);
+
         if (mActivityResultLauncher != null) {
             mActivityResultLauncher.launch("image/*");
         }

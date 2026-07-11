@@ -96,7 +96,6 @@
 #include "content/browser/browser_main_loop.h"
 #include "content/browser/buckets/bucket_manager.h"
 #include "content/browser/child_process_host_impl.h"
-#include "content/browser/child_process_security_policy_impl.h"
 #include "content/browser/code_cache/generated_code_cache_context.h"
 #include "content/browser/compositor/surface_utils.h"
 #include "content/browser/cpu_performance/cpu_performance.h"
@@ -131,6 +130,7 @@
 #include "content/browser/renderer_host/render_widget_helper.h"
 #include "content/browser/renderer_host/renderer_sandboxed_process_launcher_delegate.h"
 #include "content/browser/renderer_host/spare_render_process_host_manager_impl.h"
+#include "content/browser/security/cpsp/child_process_security_policy_impl.h"
 #include "content/browser/service_worker/service_worker_context_wrapper.h"
 #include "content/browser/site_info.h"
 #include "content/browser/site_instance_impl.h"
@@ -200,6 +200,7 @@
 #include "services/resource_coordinator/public/mojom/memory_instrumentation/memory_instrumentation.mojom.h"
 #include "services/service_manager/public/cpp/interface_provider.h"
 #include "services/tracing/public/cpp/trace_startup.h"
+#include "services/webnn/webnn_switches.h"
 #include "skia/ext/switches.h"
 #include "storage/browser/quota/quota_manager.h"
 #include "third_party/blink/public/common/associated_interfaces/associated_interface_registry.h"
@@ -1706,9 +1707,8 @@ RenderProcessHostImpl::RenderProcessHostImpl(
           perfetto::NamedTrack::FromPointer("RenderProcessHostImpl",
                                             this,
                                             GetChildProcessTracingTrack(id_))) {
-  // TODO(https://crbug.com/497761255): CHECK-exclusion: Convert to CHECK once
-  // we are sure this isn't hit.
-  DCHECK(!browser_context->ShutdownStarted());
+
+  CHECK(!browser_context->ShutdownStarted());
   TRACE_EVENT("shutdown", "RenderProcessHostImpl",
               ChromeTrackEvent::kRenderProcessHost, *this);
   TRACE_EVENT_BEGIN("shutdown", "Browser.RenderProcessHostImpl", tracing_track_,
@@ -2260,7 +2260,7 @@ void RenderProcessHostImpl::InitializeSharedMemoryRegionsOnceChannelIsUp() {
         base::AtomicSharedMemory<base::TimeTicks>::Create(
             priority_.is_background() ? base::TimeTicks()
                                       : base::TimeTicks::Now());
-    // TODO(https://crbug.com/497761255): CHECK-exclusion: Convert to CHECK once
+    // TODO(https://crbug.com/526542975): CHECK-exclusion: Convert to CHECK once
     // we are sure this isn't hit.
     DCHECK(last_foreground_time_region_.has_value());
   }
@@ -3157,7 +3157,7 @@ void RenderProcessHostImpl::DisableRefCounts() {
 }
 
 bool RenderProcessHostImpl::AreRefCountsDisabled() {
-  DCHECK_CURRENTLY_ON(BrowserThread::UI);
+  CHECK_CURRENTLY_ON(BrowserThread::UI, base::NotFatalUntil::M152);
   return are_ref_counts_disabled_;
 }
 
@@ -3214,7 +3214,7 @@ void RenderProcessHostImpl::RemoveRoute(int32_t routing_id) {
                                   ->set_render_process_host_listener_changed();
                 proto->set_routing_id(routing_id);
               });
-  DCHECK(listeners_.Lookup(routing_id) != nullptr);
+  CHECK(listeners_.Lookup(routing_id) != nullptr, base::NotFatalUntil::M152);
   listeners_.Remove(routing_id);
   Cleanup();
 }
@@ -3291,7 +3291,7 @@ void RenderProcessHostImpl::ShutdownForBadMessage(
 
 void RenderProcessHostImpl::UpdateClientPriority(
     RenderProcessHostPriorityClient* client) {
-  DCHECK(client);
+  CHECK(client, base::NotFatalUntil::M152);
   DCHECK_EQ(1u, priority_clients_.count(client));
   UpdateProcessPriorityInputs();
 }
@@ -3398,12 +3398,14 @@ void RenderProcessHostImpl::OnImmersiveXrSessionStarted() {
   // TODO(https://crbug.com/397907158): Evaluate upgrading to CHECK.
   DUMP_WILL_BE_CHECK(!has_immersive_xr_session_);
   has_immersive_xr_session_ = true;
+  UpdateProcessPriority();
 }
 
 void RenderProcessHostImpl::OnImmersiveXrSessionStopped() {
   // TODO(https://crbug.com/397907158): Evaluate upgrading to CHECK.
   DUMP_WILL_BE_CHECK(has_immersive_xr_session_);
   has_immersive_xr_session_ = false;
+  UpdateProcessPriority();
 }
 
 bool RenderProcessHostImpl::HasImmersiveXrSessionForTesting() const {
@@ -3904,6 +3906,7 @@ void RenderProcessHostImpl::PropagateBrowserCommandLineToRenderer(
       switches::kMSEVideoBufferSizeLimitMb,
       switches::kNoZygote,
       switches::kOverrideLanguageDetection,
+      switches::kPartitionAllocSchedulerLoopQuarantine,
       switches::kPerfettoDisableInterning,
       switches::kProfilingAtStart,
       switches::kProfilingFile,
@@ -4011,6 +4014,10 @@ void RenderProcessHostImpl::PropagateBrowserCommandLineToRenderer(
 #endif
   };
   renderer_cmd->CopySwitchesFrom(browser_cmd, kSwitchNames);
+
+  // Propagate WebNN switches needed by backends that run in the renderer.
+  renderer_cmd->CopySwitchesFrom(
+      browser_cmd, switches::GetWebNNSwitchesForRendererProcess());
 
   // |switches::kGaiaConfig| can be set via browser command-line arguments,
   // usually by developers working on signin code. The switch, however, cannot
@@ -4289,7 +4296,7 @@ void RenderProcessHostImpl::OnChannelConnected(int32_t peer_pid) {
 #endif
 
   if (IsReady()) {
-    DCHECK(!sent_render_process_ready_);
+    CHECK(!sent_render_process_ready_, base::NotFatalUntil::M152);
     sent_render_process_ready_ = true;
     // Send RenderProcessReady only if we already received the process handle.
     for (auto& observer : observers_)
@@ -4421,7 +4428,8 @@ bool RenderProcessHostImpl::HasOnlyNonLiveRenderFrameHosts() {
     return false;
 
   // We should never find more than render_frame_host_count_.
-  DCHECK_EQ(GetRenderFrameHostCount(), found_rfh_count);
+  CHECK_EQ(GetRenderFrameHostCount(), found_rfh_count,
+           base::NotFatalUntil::M152);
 
   // We accounted for all the RenderFrameHosts (at least one), and none were
   // live.
@@ -4431,7 +4439,7 @@ bool RenderProcessHostImpl::HasOnlyNonLiveRenderFrameHosts() {
 void RenderProcessHostImpl::Cleanup() {
   TRACE_EVENT("shutdown", "RenderProcessHostImpl::Cleanup",
               ChromeTrackEvent::kRenderProcessHost, *this);
-  DCHECK_CURRENTLY_ON(BrowserThread::UI);
+  CHECK_CURRENTLY_ON(BrowserThread::UI, base::NotFatalUntil::M152);
   base::UmaHistogramBoolean("BrowserRenderProcessHost.Cleanup.Total", true);
   // Keep the one renderer thread around forever in single process mode.
   if (run_renderer_in_process()) {
@@ -4552,7 +4560,7 @@ void RenderProcessHostImpl::Cleanup() {
   // safe for the process to cleanly exit but not for the RenderProcessHost to
   // be deleted.
   if (has_only_non_live_rfhs) {
-    DCHECK(!listeners_.IsEmpty());
+    CHECK(!listeners_.IsEmpty(), base::NotFatalUntil::M152);
 
     // No need to terminate the renderer if it is already gone.
     if (!IsInitializedAndNotDead())
@@ -4588,7 +4596,7 @@ void RenderProcessHostImpl::Cleanup() {
         base::BindOnce(&WebRtcLog::ClearLogMessageCallback, GetDeprecatedID()));
   }
 
-  DCHECK_EQ(0, pending_views_);
+  CHECK_EQ(0, pending_views_, base::NotFatalUntil::M152);
 
   // If the process associated with this RenderProcessHost is still alive,
   // notify all observers that the process has exited cleanly, even though it
@@ -4615,7 +4623,7 @@ void RenderProcessHostImpl::Cleanup() {
   // Use `DeleteSoon` to delete `this` RenderProcessHost *after* the tasks
   // that are *already* queued on the UI thread have been given a chance to run
   // (this may include IPC handling tasks that depend on the existence of
-  // RenderProcessHost and/or ChildProcessSecurityPolicyImpl::SecurityState).
+  // RenderProcessHost and/or ChildProcessSecurityPolicyImpl::ProcessState).
 #ifndef NDEBUG
   is_self_deleted_ = true;
 #endif
@@ -4652,7 +4660,7 @@ void RenderProcessHostImpl::AddPendingView() {
 }
 
 void RenderProcessHostImpl::RemovePendingView() {
-  DCHECK(pending_views_);
+  CHECK(pending_views_, base::NotFatalUntil::M152);
   --pending_views_;
   if (!pending_views_)
     UpdateProcessPriority();
@@ -4672,11 +4680,16 @@ void RenderProcessHostImpl::RemovePriorityClient(
   UpdateProcessPriorityInputs();
 }
 
-#if !BUILDFLAG(IS_ANDROID)
 void RenderProcessHostImpl::SetPriorityOverride(
     base::Process::Priority priority) {
   priority_override_ = priority;
+#if !BUILDFLAG(IS_ANDROID)
   UpdateProcessPriority();
+#else
+  // On Android, the priority override might boost the effective importance,
+  // which is calculated based on the client inputs.
+  UpdateProcessPriorityInputs();
+#endif
 }
 
 bool RenderProcessHostImpl::HasPriorityOverride() {
@@ -4685,9 +4698,14 @@ bool RenderProcessHostImpl::HasPriorityOverride() {
 
 void RenderProcessHostImpl::ClearPriorityOverride() {
   priority_override_.reset();
+#if !BUILDFLAG(IS_ANDROID)
   UpdateProcessPriority();
+#else
+  // On Android, the priority override might boost the effective importance,
+  // which is calculated based on the client inputs.
+  UpdateProcessPriorityInputs();
+#endif
 }
-#endif  // !BUILDFLAG(IS_ANDROID)
 
 void RenderProcessHostImpl::SetSuddenTerminationAllowed(bool allowed) {
   sudden_termination_allowed_ = allowed;
@@ -4919,6 +4937,8 @@ bool RenderProcessHostImpl::IsSuitableHost(
   if (host->IsPdf() != site_info.is_pdf())
     return false;
 
+  ProcessLock process_lock = host->GetProcessLock();
+
   // Check whether the given host and the intended site_info will be using the
   // same StoragePartition, since a RenderProcessHost can only support a
   // single StoragePartition.  This is relevant for packaged apps.
@@ -4942,7 +4962,6 @@ bool RenderProcessHostImpl::IsSuitableHost(
   bool host_has_web_ui_bindings =
       ChildProcessSecurityPolicyImpl::GetInstance()->HasWebUIBindings(
           host->GetDeprecatedID());
-  ProcessLock process_lock = host->GetProcessLock();
   if (host->HostHasNotBeenUsed()) {
     // If the host hasn't been used, it won't have the expected WebUI bindings
     // or origin locks just *yet* - skip the checks in this case.  One example
@@ -4986,6 +5005,17 @@ bool RenderProcessHostImpl::IsSuitableHost(
         !IsUnusedAndTiedToBrowsingInstance(host, isolation_context)) {
       TRACE_EVENT_INSTANT("navigation",
                           "NotSuitableHost: no WebUI bindings, url is WebUI");
+      return false;
+    }
+
+    // Hosts and destinations with different embedder-imposed isolation (e.g.
+    // PDF vs non-PDF, or differing unique-instance ids) cannot share a
+    // process. Note that the explicit `IsPdf()` check above is still needed
+    // to disallow spare processes from being used for PDF, because PDF
+    // processes (but not unique-instance processes) require a custom
+    // command-line flag that spare processes don't have.
+    if (process_lock.embedder_isolation_info() !=
+        site_info.embedder_isolation_info()) {
       return false;
     }
 
@@ -5667,7 +5697,8 @@ void RenderProcessHostImpl::ProcessDied(
 
   compositing_mode_reporter_.reset();
 
-  metrics::HistogramController::GetInstance()->NotifyChildDied(this);
+  metrics::HistogramController::GetInstance()->NotifyChildDied(
+      GetProcessIdForHistogram());
   // This object is not deleted at this point and might be reused later.
   // TODO(darin): clean this up
 }
@@ -5859,7 +5890,8 @@ void RenderProcessHostImpl::UpdateProcessPriorityInputs() {
   bool new_is_discarding = false;
 #if BUILDFLAG(IS_ANDROID)
   ChildProcessImportance new_effective_importance =
-      ChildProcessImportance::NORMAL;
+      priority_override_ ? PriorityToChildProcessImportance(*priority_override_)
+                         : ChildProcessImportance::NORMAL;
 #endif
   for (RenderProcessHostPriorityClient* client : priority_clients_) {
     RenderProcessHostPriorityClient::Priority priority = client->GetPriority();
@@ -6210,6 +6242,10 @@ void RenderProcessHostImpl::BindChildHistogramFetcherFactory(
 
 bool RenderProcessHostImpl::IsWebiumRenderer() const {
   return IsForTopChromeWebUI();
+}
+
+uint64_t RenderProcessHostImpl::GetProcessIdForHistogram() const {
+  return GetID().value();
 }
 
 // static

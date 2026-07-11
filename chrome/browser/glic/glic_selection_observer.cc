@@ -14,7 +14,9 @@
 #include "base/strings/utf_string_conversions.h"
 #include "base/task/sequenced_task_runner.h"
 #include "base/task/single_thread_task_runner.h"
+#include "base/task/thread_pool.h"
 #include "build/build_config.h"
+#include "chrome/browser/content_settings/host_content_settings_map_factory.h"
 #include "chrome/browser/enterprise/data_protection/data_protection_clipboard_utils.h"
 #include "chrome/browser/feature_engagement/tracker_factory.h"
 #include "chrome/browser/glic/browser_ui/glic_nudge_controller.h"
@@ -27,20 +29,31 @@
 #include "chrome/browser/glic/public/glic_instance.h"
 #include "chrome/browser/glic/public/glic_invoke_options.h"
 #include "chrome/browser/glic/public/glic_keyed_service.h"
+#include "chrome/browser/glic/public/glic_passkeys.h"
 #include "chrome/browser/glic/public/service/glic_instance_coordinator.h"
 #include "chrome/browser/platform_util.h"
 #include "chrome/browser/profiles/profile.h"
+#include "chrome/browser/signin/identity_manager_factory.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_features.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
 #include "chrome/browser/ui/chrome_pages.h"
+#include "chrome/browser/ui/tabs/page_context_eligibility_helper.h"
 #include "chrome/browser/ui/toasts/api/toast_id.h"
 #include "chrome/browser/ui/toasts/toast_controller.h"
 #include "chrome/browser/ui/toasts/toast_features.h"
+#include "chrome/common/webui_url_constants.h"
 #include "chrome/grit/generated_resources.h"
+#include "components/content_settings/core/browser/host_content_settings_map.h"
+#include "components/content_settings/core/common/content_settings_pattern.h"
 #include "components/feature_engagement/public/tracker.h"
+#include "components/optimization_guide/content/browser/page_context_eligibility.h"
+#include "components/optimization_guide/content/browser/page_context_eligibility_observer.h"
+#include "components/prefs/pref_service.h"
 #include "components/shared_highlighting/core/common/disabled_sites.h"
 #include "components/shared_highlighting/core/common/fragment_directives_utils.h"
 #include "components/shared_highlighting/core/common/shared_highlighting_features.h"
+#include "components/signin/public/identity_manager/account_info.h"
+#include "components/signin/public/identity_manager/identity_manager.h"
 #include "components/tabs/public/tab_interface.h"
 #include "content/public/browser/clipboard_types.h"
 #include "content/public/browser/render_frame_host.h"
@@ -66,7 +79,10 @@ namespace {
 
 // The maximum length of the selection text sent as a suggested prompt.
 // Selections longer than this are ignored.
+// We send a truncated version of the selection to the panel as it does not
+// need to be the full text.
 constexpr size_t kMaxSelectionLength = 1000;
+constexpr size_t kMaxSelectionLengthSentToPanel = 100;
 
 // The minimum length of the selection text sent as a suggested prompt.
 // Selections shorter than this are ignored.
@@ -91,7 +107,6 @@ void DoUpdateNudgeLabel(
     base::WeakPtr<content::WebContents> web_contents,
     std::string text,
     std::optional<std::string> prompt_suggestion,
-    std::string anchored_message_text,
     std::optional<GlicNudgeActivity> activity,
     GlicNudgeController::GlicNudgeActivityCallback invoke_glic) {
   if (!web_contents) {
@@ -111,23 +126,21 @@ void DoUpdateNudgeLabel(
     return;
   }
 
-  controller->UpdateNudgeLabel(
-      web_contents.get(), std::move(text), std::move(prompt_suggestion),
-      std::move(anchored_message_text), activity, std::move(invoke_glic));
+  controller->UpdateNudgeLabel(web_contents.get(), std::move(text),
+                               std::move(prompt_suggestion), activity,
+                               std::move(invoke_glic));
 }
 
 void PostUpdateNudgeLabel(
     content::WebContents* web_contents,
     std::string text,
     std::optional<std::string> prompt_suggestion,
-    std::string anchored_message_text,
     std::optional<GlicNudgeActivity> activity,
     GlicNudgeController::GlicNudgeActivityCallback invoke_glic) {
   base::SequencedTaskRunner::GetCurrentDefault()->PostTask(
       FROM_HERE, base::BindOnce(&DoUpdateNudgeLabel, web_contents->GetWeakPtr(),
                                 std::move(text), std::move(prompt_suggestion),
-                                std::move(anchored_message_text), activity,
-                                std::move(invoke_glic)));
+                                activity, std::move(invoke_glic)));
 }
 
 mojom::AdditionalContextPtr CreateAdditionalContext(
@@ -139,7 +152,8 @@ mojom::AdditionalContextPtr CreateAdditionalContext(
   if (!selected_text.empty()) {
     auto context_data = mojom::ContextData::New();
     context_data->mime_type = kSelectionMimeType;
-    std::string utf8_text = base::UTF16ToUTF8(selected_text);
+    std::string utf8_text = base::UTF16ToUTF8(
+        selected_text.substr(0, kMaxSelectionLengthSentToPanel));
     context_data->data =
         mojo_base::BigBuffer(base::as_bytes(base::span(utf8_text)));
     parts.push_back(
@@ -151,6 +165,29 @@ mojom::AdditionalContextPtr CreateAdditionalContext(
   }
   context->parts = std::move(parts);
   return context;
+}
+
+bool IsListenedToInputEvent(blink::WebInputEvent::Type type) {
+  switch (type) {
+    case blink::WebInputEvent::Type::kMouseDown:
+    case blink::WebInputEvent::Type::kPointerDown:
+    case blink::WebInputEvent::Type::kGestureTapDown:
+    case blink::WebInputEvent::Type::kTouchStart:
+    case blink::WebInputEvent::Type::kMouseUp:
+    case blink::WebInputEvent::Type::kPointerUp:
+    case blink::WebInputEvent::Type::kPointerCancel:
+    case blink::WebInputEvent::Type::kTouchEnd:
+    case blink::WebInputEvent::Type::kTouchCancel:
+    case blink::WebInputEvent::Type::kGestureTapCancel:
+    case blink::WebInputEvent::Type::kKeyUp:
+    case blink::WebInputEvent::Type::kRawKeyDown:
+    case blink::WebInputEvent::Type::kKeyDown:
+    case blink::WebInputEvent::Type::kGestureScrollBegin:
+    case blink::WebInputEvent::Type::kMouseWheel:
+      return true;
+    default:
+      return false;
+  }
 }
 
 }  // namespace
@@ -170,6 +207,7 @@ class GlicSelectionObserver::WidgetActionDelegate
   }
   void OnHideForThisSite() override { observer_->OnHideForThisSite(); }
   void OnSettings() override { observer_->OnSettings(); }
+  void OnWidgetClose() override { observer_->OnWidgetClose(); }
 
  private:
   raw_ptr<GlicSelectionObserver> observer_;
@@ -178,6 +216,7 @@ class GlicSelectionObserver::WidgetActionDelegate
 GlicSelectionObserver::GlicSelectionObserver(content::WebContents* web_contents)
     : content::WebContentsObserver(web_contents),
       action_delegate_(std::make_unique<WidgetActionDelegate>(this)) {
+  CHECK(web_contents);
   Profile* profile =
       Profile::FromBrowserContext(web_contents->GetBrowserContext());
   glic_keyed_service_ = GlicKeyedService::Get(profile);
@@ -189,6 +228,29 @@ GlicSelectionObserver::GlicSelectionObserver(content::WebContents* web_contents)
                                 weak_ptr_factory_.GetWeakPtr()));
   }
 
+  std::string account;
+  if (profile) {
+    auto* identity_manager = IdentityManagerFactory::GetForProfile(profile);
+    if (identity_manager) {
+      account =
+          identity_manager->GetPrimaryAccountInfo(signin::ConsentLevel::kSignin)
+              .email;
+    }
+  }
+
+  auto* tab_interface = tabs::TabInterface::MaybeGetFromContents(web_contents);
+  auto* helper = tab_interface
+                     ? tabs::PageContextEligibilityHelper::From(tab_interface)
+                     : nullptr;
+  if (helper) {
+    page_context_eligibility_subscription_ =
+        helper->RegisterEligibilityChangeCallback(base::BindRepeating(
+            &GlicSelectionObserver::OnPageContextEligibilityChanged,
+            weak_ptr_factory_.GetWeakPtr()));
+  } else {
+    CreatePageContextEligibilityAPI(std::move(account));
+  }
+
   web_contents->ForEachRenderFrameHost(
       [this](content::RenderFrameHost* render_frame_host) {
         RenderFrameCreated(render_frame_host);
@@ -196,22 +258,12 @@ GlicSelectionObserver::GlicSelectionObserver(content::WebContents* web_contents)
 }
 
 bool GlicSelectionObserver::IsSelectionPromptEnabled() const {
-  if (!web_contents()) {
-    return false;
-  }
   Profile* profile =
       Profile::FromBrowserContext(web_contents()->GetBrowserContext());
   return GlicEnabling::IsSelectionPromptEnabledForProfile(profile);
 }
 
 GlicSelectionObserver::~GlicSelectionObserver() {
-  if (selection_widget_) {
-    selection_widget_->CloseWithReason(views::Widget::ClosedReason::kLostFocus);
-  }
-  // Explicitly destroy the widget first, then the bubble delegate to ensure the
-  // delegate outlives its widget. This is required under the CLIENT_OWNS_WIDGET
-  // ownership model.
-  selection_widget_.reset();
   widget_delegate_.reset();
 
   base::flat_set<content::RenderWidgetHost*> unique_rwhs;
@@ -273,16 +325,20 @@ void GlicSelectionObserver::RenderFrameDeleted(
 }
 void GlicSelectionObserver::OnVisibilityChanged(
     content::Visibility visibility) {
-  if (visibility == content::Visibility::HIDDEN && selection_widget_) {
-    selection_widget_->CloseWithReason(views::Widget::ClosedReason::kLostFocus);
+  if (visibility == content::Visibility::HIDDEN && widget_delegate_) {
+    widget_delegate_->CloseWidget();
   }
 }
 
 void GlicSelectionObserver::PrimaryPageChanged(content::Page& page) {
   is_hidden_on_current_page_ = false;
-  if (selection_widget_) {
-    selection_widget_->CloseWithReason(views::Widget::ClosedReason::kLostFocus);
+  if (widget_delegate_) {
+    widget_delegate_->CloseWidget();
   }
+}
+
+void GlicSelectionObserver::PrimaryMainFrameWasResized(bool width_changed) {
+  DismissUI(/*keep_nudge=*/true);
 }
 
 void GlicSelectionObserver::OnWebContentsLostFocus(
@@ -300,24 +356,33 @@ void GlicSelectionObserver::OnInputEvent(
     const content::RenderWidgetHost& host,
     const blink::WebInputEvent& event,
     content::RenderWidgetHost::InputEventObserver::InputEventSource source) {
+  if (!IsListenedToInputEvent(event.GetType())) {
+    return;
+  }
+  if (!IsTabValidForSharing(web_contents())) {
+    return;
+  }
+  base::SequencedTaskRunner::GetCurrentDefault()->PostTask(
+      FROM_HERE, base::BindOnce(&GlicSelectionObserver::ProcessInputEvent,
+                                weak_ptr_factory_.GetWeakPtr(), event.Clone()));
+}
+
+void GlicSelectionObserver::ProcessInputEvent(
+    std::unique_ptr<blink::WebInputEvent> event) {
   if (!IsSelectionPromptEnabled()) {
     return;
   }
 
-  if (!IsTabValidForSharing(web_contents())) {
-    return;
-  }
-
-  switch (event.GetType()) {
+  switch (event->GetType()) {
     case blink::WebInputEvent::Type::kMouseDown:
     case blink::WebInputEvent::Type::kPointerDown:
     case blink::WebInputEvent::Type::kGestureTapDown:
     case blink::WebInputEvent::Type::kTouchStart: {
       bool is_left_click_or_touch = true;
-      if (event.GetType() == blink::WebInputEvent::Type::kMouseDown ||
-          event.GetType() == blink::WebInputEvent::Type::kPointerDown) {
+      if (event->GetType() == blink::WebInputEvent::Type::kMouseDown ||
+          event->GetType() == blink::WebInputEvent::Type::kPointerDown) {
         const auto& mouse_event =
-            static_cast<const blink::WebMouseEvent&>(event);
+            static_cast<const blink::WebMouseEvent&>(*event);
         if (mouse_event.button != blink::WebPointerProperties::Button::kLeft) {
           is_left_click_or_touch = false;
         }
@@ -370,16 +435,16 @@ void GlicSelectionObserver::OnInputEvent(
       }
       DismissUI(/*keep_nudge=*/false);
       const auto& keyboard_event =
-          static_cast<const blink::WebKeyboardEvent&>(event);
+          static_cast<const blink::WebKeyboardEvent&>(*event);
 #if BUILDFLAG(IS_MAC)
       int select_all_modifier = blink::WebInputEvent::Modifiers::kMetaKey;
 #else
       int select_all_modifier = blink::WebInputEvent::Modifiers::kControlKey;
 #endif
-      bool is_select_all = (event.GetModifiers() & select_all_modifier) &&
+      bool is_select_all = (event->GetModifiers() & select_all_modifier) &&
                            keyboard_event.windows_key_code == ui::VKEY_A;
       bool is_shift =
-          event.GetModifiers() & blink::WebInputEvent::Modifiers::kShiftKey;
+          event->GetModifiers() & blink::WebInputEvent::Modifiers::kShiftKey;
       bool is_navigation_key =
           keyboard_event.windows_key_code == ui::VKEY_LEFT ||
           keyboard_event.windows_key_code == ui::VKEY_RIGHT ||
@@ -431,23 +496,26 @@ void GlicSelectionObserver::OnTextSelectionChanged(
   std::u16string_view trimmed_text =
       base::TrimWhitespace(selected_text, base::TRIM_ALL);
 
-  size_t non_whitespace_count = 0;
-  bool exceeds_minimum_selection_length = false;
-  for (char16_t c : trimmed_text) {
-    if (!base::IsUnicodeWhitespace(c)) {
-      non_whitespace_count++;
-    }
-    if (non_whitespace_count == kMinSelectionLength) {
-      exceeds_minimum_selection_length = true;
-      break;
-    }
-  }
-
-  if (!exceeds_minimum_selection_length ||
-      trimmed_text.length() > kMaxSelectionLength) {
+  if (trimmed_text.length() > kMaxSelectionLength) {
     pending_selection_text_ = std::u16string();
   } else {
-    pending_selection_text_ = std::u16string(trimmed_text);
+    size_t non_whitespace_count = 0;
+    bool exceeds_minimum_selection_length = false;
+    for (char16_t c : trimmed_text) {
+      if (!base::IsUnicodeWhitespace(c)) {
+        non_whitespace_count++;
+      }
+      if (non_whitespace_count == kMinSelectionLength) {
+        exceeds_minimum_selection_length = true;
+        break;
+      }
+    }
+
+    if (!exceeds_minimum_selection_length) {
+      pending_selection_text_ = std::u16string();
+    } else {
+      pending_selection_text_ = std::u16string(trimmed_text);
+    }
   }
   if (render_frame_host) {
     last_selection_frame_token_ = render_frame_host->GetGlobalFrameToken();
@@ -460,15 +528,14 @@ void GlicSelectionObserver::OnTextSelectionChanged(
 }
 
 void GlicSelectionObserver::DismissUI(bool keep_nudge) {
-  if (selection_widget_ && !selection_widget_->IsClosed()) {
-    selection_widget_->CloseWithReason(views::Widget::ClosedReason::kLostFocus);
+  if (widget_delegate_) {
+    widget_delegate_->CloseWidget();
   }
   // Only dismiss the nudge if this is NOT a scroll event.
   // The nudge lives in the toolbar and doesn't need to be hidden when
   // scrolling.
   if (!keep_nudge && !features::kGlicSelectionPromptUpdatesOnly.Get()) {
     PostUpdateNudgeLabel(web_contents(), "", std::nullopt,
-                         /*anchored_message_text=*/std::string(),
                          GlicNudgeActivity::kNudgeDismissed, base::DoNothing());
   }
 }
@@ -537,7 +604,21 @@ void GlicSelectionObserver::InvokeGlicFromSelectionAffordance(
           options.additional_context = AdditionalTabContext(
               CreateAdditionalContext(web_contents.get(), selected_text),
               content::GlobalRenderFrameHostId(), PolicyCheck::kNone);
-          glic_keyed_service->Invoke(std::move(options));
+          if (features::kGlicSelectionAutoSendPrompt.Get()) {
+            std::string cta = features::kGlicSelectionPromptCta.Get();
+            std::string prompt = l10n_util::GetStringUTF8(
+                IDS_GLIC_SELECTION_AUTO_SEND_PROMPT_TELL_ME);
+            if (cta == features::kGlicSelectionPromptCtaExplain) {
+              prompt = l10n_util::GetStringUTF8(
+                  IDS_GLIC_SELECTION_AUTO_SEND_PROMPT_EXPLAIN);
+            }
+            options.prompts.push_back(prompt);
+            glic_keyed_service->InvokeWithAutoSubmit(
+                InvokeWithAutoSubmitPasskeyProvider::GetPassKey(),
+                std::move(options));
+          } else {
+            glic_keyed_service->Invoke(std::move(options));
+          }
         }
       }
     }
@@ -556,14 +637,12 @@ void GlicSelectionObserver::UpdateSelectionState(
   BrowserWindowInterface* bwi = tab_interface->GetBrowserWindowInterface();
 
   if (selected_text.empty()) {
-    if (selection_widget_) {
-      selection_widget_->CloseWithReason(
-          views::Widget::ClosedReason::kLostFocus);
+    if (widget_delegate_) {
+      widget_delegate_->CloseWidget();
     }
 
     if (!features::kGlicSelectionPromptUpdatesOnly.Get()) {
       PostUpdateNudgeLabel(web_contents(), "", std::nullopt,
-                           /*anchored_message_text=*/std::string(),
                            GlicNudgeActivity::kNudgeDismissed,
                            base::DoNothing());
     }
@@ -587,9 +666,8 @@ void GlicSelectionObserver::UpdateSelectionState(
       if (!features::kGlicSelectionPromptUpdatesOnly.Get()) {
         ShowSelectionAffordance(selected_text, bwi);
       }
-    } else if (selection_widget_) {
-      selection_widget_->CloseWithReason(
-          views::Widget::ClosedReason::kLostFocus);
+    } else if (widget_delegate_) {
+      widget_delegate_->CloseWidget();
     }
 
     // TODO(b/508916357): Use the invoke API.
@@ -637,7 +715,6 @@ void GlicSelectionObserver::ShowSelectionAffordance(
           /*is_widget=*/false, web_contents()->GetWeakPtr());
       PostUpdateNudgeLabel(web_contents(), base::UTF16ToUTF8(label),
                            std::nullopt,
-                           /*anchored_message_text=*/std::string(),
                            std::nullopt, std::move(invoke_glic));
     } else {
       // Show selection widget
@@ -657,9 +734,8 @@ void GlicSelectionObserver::ShowSelectionAffordance(
       std::optional<gfx::Rect> bounds =
           web_contents()->GetTextSelectionBounds(selected_frame);
       if (bounds.has_value() && !bounds->IsEmpty()) {
-        if (selection_widget_) {
-          selection_widget_->CloseWithReason(
-              views::Widget::ClosedReason::kLostFocus);
+        if (widget_delegate_) {
+          widget_delegate_->CloseWidget();
         }
 
         base::UmaHistogramEnumeration(
@@ -667,19 +743,14 @@ void GlicSelectionObserver::ShowSelectionAffordance(
             GlicSelectionAction::kWidgetShown);
 
         widget_delegate_ = std::make_unique<GlicSelectionWidgetDelegate>(
-            *action_delegate_, *bounds,
-            web_contents() ? web_contents()->GetContainerBounds() : gfx::Rect(),
+            *action_delegate_, *bounds, web_contents()->GetContainerBounds(),
             std::u16string(selected_text), is_widget_pinned_);
-        if (web_contents()) {
-          widget_delegate_->set_parent_window(platform_util::GetViewForWindow(
-              web_contents()->GetTopLevelNativeWindow()));
+        widget_delegate_->set_parent_window(platform_util::GetViewForWindow(
+            web_contents()->GetTopLevelNativeWindow()));
+        widget_delegate_->ShowWidget();
+        if (features::kGlicSelectionShowCopyButtons.Get()) {
+          RequestLinkGeneration(selected_frame);
         }
-        selection_widget_ = views::BubbleDialogDelegate::CreateBubble(
-            widget_delegate_.get(),
-            base::BindOnce(&GlicSelectionObserver::OnWidgetClosed,
-                           weak_ptr_factory_.GetWeakPtr()));
-        selection_widget_->ShowInactive();
-        RequestLinkGeneration(selected_frame);
       } else if (bounds_retry_count_ < 5) {
         // Retry showing the widget, bounds might not be available yet due
         // to IPC timing (especially on double click).
@@ -699,6 +770,23 @@ bool GlicSelectionObserver::ShouldShowSelectionWidget() {
   // TODO(b/519247911): Update this.
   if (is_hidden_on_current_page_) {
     return false;
+  }
+
+  Profile* profile =
+      Profile::FromBrowserContext(web_contents()->GetBrowserContext());
+
+  if (features::kGlicSelectionEnableSiteSettings.Get() &&
+      ContentSettingsPattern::FromURL(web_contents()->GetLastCommittedURL())
+          .IsValid()) {
+    HostContentSettingsMap* settings_map =
+        HostContentSettingsMapFactory::GetForProfile(profile);
+    ContentSetting setting =
+        settings_map->GetContentSetting(web_contents()->GetLastCommittedURL(),
+                                        web_contents()->GetLastCommittedURL(),
+                                        ContentSettingsType::INLINE_CUE_MENU);
+    if (setting == CONTENT_SETTING_BLOCK) {
+      return false;
+    }
   }
 
   // Check the top cue only list.
@@ -722,18 +810,42 @@ bool GlicSelectionObserver::ShouldShowSelectionWidget() {
 
 void GlicSelectionObserver::OnHideForThisSite() {
   is_hidden_on_current_page_ = true;
+
+  if (features::kGlicSelectionEnableSiteSettings.Get() &&
+      ContentSettingsPattern::FromURL(web_contents()->GetLastCommittedURL())
+          .IsValid()) {
+    Profile* profile =
+        Profile::FromBrowserContext(web_contents()->GetBrowserContext());
+    HostContentSettingsMap* settings_map =
+        HostContentSettingsMapFactory::GetForProfile(profile);
+    settings_map->SetContentSettingDefaultScope(
+        web_contents()->GetLastCommittedURL(), GURL(),
+        ContentSettingsType::INLINE_CUE_MENU, CONTENT_SETTING_BLOCK);
+  }
+
   DismissUI(/*keep_nudge=*/false);
+  ShowHiddenToast(ToastId::kGlicSelectionHiddenForSite);
+}
+
+void GlicSelectionObserver::ShowHiddenToast(ToastId toast_id) {
+  if (auto* toast_controller =
+          ToastController::MaybeGetForWebContents(web_contents())) {
+    toast_controller->MaybeShowToast(ToastParams(toast_id));
+  }
 }
 
 void GlicSelectionObserver::OnSettings() {
+  if (!features::kGlicSelectionEnableSiteSettings.Get()) {
+    return;
+  }
   auto* tab_interface =
       tabs::TabInterface::MaybeGetFromContents(web_contents());
   if (tab_interface) {
     BrowserWindowInterface* browser_window_interface =
         tab_interface->GetBrowserWindowInterface();
     if (browser_window_interface) {
-      chrome::ShowSettingsSubPage(browser_window_interface,
-                                  "content?search=site+settings");
+      chrome::ShowContentSettingsExceptions(
+          browser_window_interface, ContentSettingsType::INLINE_CUE_MENU);
     }
   }
 }
@@ -831,11 +943,78 @@ void GlicSelectionObserver::SendAdditionalContextToPanel(
   if (!glic_keyed_service_) {
     return;
   }
+
+  // If the page is not eligible, do not send the additional context.
+  if (!IsPageContextEligible() && !selected_text.empty()) {
+    return;
+  }
+
   if (auto* instance = glic_keyed_service_->GetInstanceForTab(tab_interface)) {
     // TODO(b/508916357): Use the invoke API.
     instance->SendAdditionalContext(
         CreateAdditionalContext(web_contents(), selected_text));
   }
+}
+
+bool GlicSelectionObserver::IsPageContextEligible() const {
+  auto* tab_interface =
+      tabs::TabInterface::MaybeGetFromContents(web_contents());
+  if (tab_interface) {
+    auto* helper = tabs::PageContextEligibilityHelper::From(tab_interface);
+    if (helper) {
+      return helper->IsPageContextEligible() ==
+             optimization_guide::PageContextEligibilityStatus::kEligible;
+    }
+  }
+  if (page_context_tracker_) {
+    return page_context_tracker_->IsPageContextEligible() ==
+           optimization_guide::PageContextEligibilityStatus::kEligible;
+  }
+  return false;
+}
+
+void GlicSelectionObserver::OnPageContextEligibilityChanged(
+    optimization_guide::PageContextEligibilityStatus status) {
+  // If the page context transitions into a liminal state (kUnknown) or becomes
+  // ineligible (kNotEligible), and we've already sent selection context, we
+  // should clear it.
+  if (status != optimization_guide::PageContextEligibilityStatus::kEligible &&
+      has_sent_selection_context_) {
+    auto* tab_interface =
+        tabs::TabInterface::MaybeGetFromContents(web_contents());
+    if (tab_interface) {
+      SendAdditionalContextToPanel(tab_interface, std::u16string());
+      has_sent_selection_context_ = false;
+    }
+  }
+}
+
+void GlicSelectionObserver::CreatePageContextEligibilityAPI(
+    std::string account) {
+  base::ThreadPool::PostTaskAndReplyWithResult(
+      FROM_HERE, {base::TaskPriority::BEST_EFFORT, base::MayBlock()},
+      base::BindOnce(&optimization_guide::PageContextEligibility::Get),
+      base::BindOnce(&GlicSelectionObserver::OnPageContextEligibilityAPILoaded,
+                     weak_ptr_factory_.GetWeakPtr(), std::move(account)));
+}
+
+void GlicSelectionObserver::OnPageContextEligibilityAPILoaded(
+    std::string account,
+    optimization_guide::PageContextEligibility* page_context_eligibility) {
+  if (!page_context_eligibility) {
+    return;
+  }
+  page_context_tracker_ =
+      optimization_guide::PageContextEligibilityObserver::Create(
+          web_contents(), std::move(account),
+          base::BindRepeating(
+              [](base::WeakPtr<GlicSelectionObserver> observer,
+                 optimization_guide::PageContextEligibilityStatus status) {
+                if (observer) {
+                  observer->OnPageContextEligibilityChanged(status);
+                }
+              },
+              weak_ptr_factory_.GetWeakPtr()));
 }
 
 void GlicSelectionObserver::CopyLinkToHighlight(
@@ -862,9 +1041,7 @@ void GlicSelectionObserver::OnAskGemini() {
 
 void GlicSelectionObserver::OnCopy() {
   DismissUI(/*keep_nudge=*/false);
-  if (web_contents()) {
-    web_contents()->Copy();
-  }
+  web_contents()->Copy();
 }
 
 void GlicSelectionObserver::OnCopyLink() {
@@ -879,15 +1056,14 @@ void GlicSelectionObserver::OnCopyLink() {
   }
 }
 
-void GlicSelectionObserver::OnWidgetClosed(views::Widget::ClosedReason reason) {
-  // Under the CLIENT_OWNS_WIDGET ownership model, the
-  // GlicSelectionWidgetDelegate (the delegate) must outlive the views::Widget.
-  // To guarantee this asynchronously, we post tasks to delete the widget first,
-  // followed by the delegate.
-  base::SingleThreadTaskRunner::GetCurrentDefault()->DeleteSoon(
-      FROM_HERE, selection_widget_.release());
-  base::SingleThreadTaskRunner::GetCurrentDefault()->DeleteSoon(
-      FROM_HERE, widget_delegate_.release());
+void GlicSelectionObserver::OnWidgetClose() {
+  if (widget_delegate_) {
+    // Defer the destruction of the delegate to ensure the views::Widget is
+    // destroyed first, and then the delegate. This is required under the
+    // CLIENT_OWNS_WIDGET ownership model.
+    base::SingleThreadTaskRunner::GetCurrentDefault()->DeleteSoon(
+        FROM_HERE, std::move(widget_delegate_));
+  }
 }
 
 }  // namespace glic

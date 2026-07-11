@@ -4,7 +4,10 @@
 
 #import "ios/chrome/browser/toolbar/ui/buttons/toolbar_button_factory.h"
 
+#import "base/apple/foundation_util.h"
 #import "base/check.h"
+#import "components/strings/grit/components_strings.h"
+#import "ios/chrome/browser/shared/public/features/features.h"
 #import "ios/chrome/browser/shared/ui/symbols/symbols.h"
 #import "ios/chrome/browser/toolbar/ui/buttons/toolbar_button.h"
 #import "ios/chrome/browser/toolbar/ui/buttons/toolbar_button_visibility.h"
@@ -36,6 +39,7 @@ constexpr CGFloat kDefaultSymbolPointSize = 19;
                                               defaultImage:YES];
   button.visibilityMask = ToolbarButtonVisibility::kAlways;
   button.accessibilityIdentifier = kToolbarBackButtonIdentifier;
+  button.accessibilityLabel = l10n_util::GetNSString(IDS_ACCNAME_BACK);
   button.accessibilityHint =
       l10n_util::GetNSString(IDS_IOS_TOOLBAR_ACCESSIBILITY_HINT_BACK);
   return button;
@@ -46,6 +50,7 @@ constexpr CGFloat kDefaultSymbolPointSize = 19;
                                               defaultImage:YES];
   button.visibilityMask = ToolbarButtonVisibility::kWhenEnabled;
   button.accessibilityIdentifier = kToolbarForwardButtonIdentifier;
+  button.accessibilityLabel = l10n_util::GetNSString(IDS_ACCNAME_FORWARD);
   button.accessibilityHint =
       l10n_util::GetNSString(IDS_IOS_TOOLBAR_ACCESSIBILITY_HINT_FORWARD);
   return button;
@@ -63,11 +68,25 @@ constexpr CGFloat kDefaultSymbolPointSize = 19;
   [buttonsContainer setContentHuggingPriority:UILayoutPriorityRequired
                                       forAxis:UILayoutConstraintAxisHorizontal];
 
-  UIView* backgroundView = [[UIView alloc] init];
-  backgroundView.translatesAutoresizingMaskIntoConstraints = NO;
-  backgroundView.backgroundColor = ToolbarElementBackgroundColor(_incognito);
-  [buttonsContainer addSubview:backgroundView];
-  AddSameConstraints(backgroundView, buttonsContainer);
+  UIView* backgroundView;
+  if (IsToolbarGlassPrototypeEnabled()) {
+    UIBlurEffect* blurEffect = [UIBlurEffect
+        effectWithStyle:_incognito
+                            ? UIBlurEffectStyleSystemUltraThinMaterialDark
+                            : UIBlurEffectStyleSystemUltraThinMaterial];
+    UIVisualEffectView* blurBackgroundView =
+        [[UIVisualEffectView alloc] initWithEffect:blurEffect];
+    blurBackgroundView.translatesAutoresizingMaskIntoConstraints = NO;
+    [buttonsContainer addSubview:blurBackgroundView];
+    AddSameConstraints(blurBackgroundView, buttonsContainer);
+    backgroundView = blurBackgroundView;
+  } else {
+    backgroundView = [[UIView alloc] init];
+    backgroundView.translatesAutoresizingMaskIntoConstraints = NO;
+    backgroundView.backgroundColor = ToolbarElementBackgroundColor(_incognito);
+    [buttonsContainer addSubview:backgroundView];
+    AddSameConstraints(backgroundView, buttonsContainer);
+  }
 
   // Internal stack view to handle dynamic resizing when the forward button
   // visibility changes.
@@ -78,8 +97,15 @@ constexpr CGFloat kDefaultSymbolPointSize = 19;
   buttonsStack.distribution = UIStackViewDistributionFill;
   buttonsStack.alignment = UIStackViewAlignmentFill;
 
-  [backgroundView addSubview:buttonsStack];
-  AddSameConstraints(buttonsStack, backgroundView);
+  UIView* containerView = backgroundView;
+  if (IsToolbarGlassPrototypeEnabled()) {
+    if (UIVisualEffectView* blurView =
+            base::apple::ObjCCast<UIVisualEffectView>(backgroundView)) {
+      containerView = blurView.contentView;
+    }
+  }
+  [containerView addSubview:buttonsStack];
+  AddSameConstraints(buttonsStack, containerView);
 
   [NSLayoutConstraint activateConstraints:@[
     [buttonsContainer.heightAnchor
@@ -94,6 +120,10 @@ constexpr CGFloat kDefaultSymbolPointSize = 19;
   // Remove effects from the standalone buttons in the container
   ConfigureShadowForToolbarElement(backButton, /*remove_shadow*/ YES);
   ConfigureShadowForToolbarElement(forwardButton, /*remove_shadow*/ YES);
+  if (IsToolbarGlassPrototypeEnabled()) {
+    backButton.backgroundBlurView.effect = nil;
+    forwardButton.backgroundBlurView.effect = nil;
+  }
 
   [buttonsContainer
       registerForTraitChanges:
@@ -151,6 +181,7 @@ constexpr CGFloat kDefaultSymbolPointSize = 19;
                                        incognito:_incognito];
   button.visibilityMask = ToolbarButtonVisibility::kCompactHeight;
   button.accessibilityIdentifier = kToolbarShareButtonIdentifier;
+  button.accessibilityLabel = l10n_util::GetNSString(IDS_IOS_TOOLS_MENU_SHARE);
   return button;
 }
 
@@ -170,6 +201,7 @@ constexpr CGFloat kDefaultSymbolPointSize = 19;
                                               defaultImage:YES];
   button.visibilityMask = ToolbarButtonVisibility::kAlways;
   button.accessibilityIdentifier = kToolbarToolsMenuButtonIdentifier;
+  button.accessibilityLabel = l10n_util::GetNSString(IDS_IOS_TOOLBAR_SETTINGS);
   return button;
 }
 

@@ -261,7 +261,7 @@ using tab_groups::VersioningMessageController;
   LegacyToolbarButtonFactory* buttonFactory =
       [[LegacyToolbarButtonFactory alloc] initWithStyle:style];
   buttonFactory.actionHandler = actionHandler;
-  if (IsGeminiCopresenceEnabled()) {
+  if (IsPageActionMenuEnabled()) {
     buttonFactory.geminiHandler =
         HandlerForProtocol(dispatcher, GeminiCommands);
   }

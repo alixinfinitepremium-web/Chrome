@@ -69,6 +69,7 @@
 #include "third_party/blink/public/mojom/css/preferred_color_scheme.mojom-blink.h"
 #include "third_party/blink/public/mojom/css/preferred_contrast.mojom-blink.h"
 #include "third_party/blink/public/mojom/devtools/inspector_issue.mojom-blink.h"
+#include "third_party/blink/public/mojom/dom/dom_node_id.mojom-blink.h"
 #include "third_party/blink/public/mojom/frame/frame.mojom-blink.h"
 #include "third_party/blink/public/mojom/input/focus_type.mojom-blink.h"
 #include "third_party/blink/public/mojom/manifest/display_mode.mojom-blink-forward.h"
@@ -227,6 +228,8 @@
 #include "third_party/blink/renderer/core/frame/settings.h"
 #include "third_party/blink/renderer/core/frame/viewport_data.h"
 #include "third_party/blink/renderer/core/frame/visual_viewport.h"
+#include "third_party/blink/renderer/core/frame/web_frame_widget_impl.h"
+#include "third_party/blink/renderer/core/frame/web_local_frame_impl.h"
 #include "third_party/blink/renderer/core/html/anchor_element_metrics_sender.h"
 #include "third_party/blink/renderer/core/html/canvas/canvas_font_cache.h"
 #include "third_party/blink/renderer/core/html/collection_type.h"
@@ -379,6 +382,7 @@
 #include "third_party/blink/renderer/platform/bindings/v8_per_isolate_data.h"
 #include "third_party/blink/renderer/platform/fonts/font_performance.h"
 #include "third_party/blink/renderer/platform/geometry/length_functions.h"
+#include "third_party/blink/renderer/platform/graphics/dom_node_id.h"
 #include "third_party/blink/renderer/platform/heap/garbage_collected.h"
 #include "third_party/blink/renderer/platform/heap/thread_state.h"
 #include "third_party/blink/renderer/platform/instrumentation/histogram.h"
@@ -972,6 +976,8 @@ Document::Document(const DocumentInit& initializer,
       execution_context_(initializer.GetExecutionContext()),
       agent_(initializer.GetAgent()),
       http_refresh_scheduler_(MakeGarbageCollected<HttpRefreshScheduler>(this)),
+      should_cache_outgoing_referrer_(base::FeatureList::IsEnabled(
+          features::kCacheDocumentOutgoingReferrer)),
       fallback_base_url_(initializer.FallbackBaseURL()),
       cookie_url_(dom_window_ ? initializer.GetCookieUrl()
                               : KURL(g_empty_string)),
@@ -1065,7 +1071,7 @@ Document::Document(const DocumentInit& initializer,
         !dom_window_->IsFeatureEnabled(
             network::mojom::PermissionsPolicyFeature::kVerticalScroll);
     cached_top_frame_site_for_visited_links_ =
-        net::SchemefulSite(TopFrameOrigin()->ToUrlOrigin());
+        TopFrameOrigin()->GetSchemefulSite();
   } else {
     // We disable fetches for frame-less Documents.
     // See https://crbug.com/961614 for details.
@@ -2371,8 +2377,7 @@ Document::CalculateStyleAndLayoutTreeUpdateForThisDocument() const {
   if (!IsActive() || !View())
     return StyleAndLayoutTreeUpdate::kNone;
 
-  if (style_engine_->NeedsFullStyleUpdate() ||
-      OverscrollCommandTargetsDirty()) {
+  if (style_engine_->NeedsFullStyleUpdate()) {
     return StyleAndLayoutTreeUpdate::kFull;
   }
   if (!use_elements_needing_update_.empty())
@@ -2691,11 +2696,11 @@ void Document::UpdateStyleAndLayoutTreeForThisDocument() {
   // style-recalc and layout tree detach (Node::DetachLayoutTree).
   DCHECK(svg_resources_needing_invalidation_.empty());
 
-  TRACE_EVENT_BEGIN1("blink,devtools.timeline", "UpdateLayoutTree", "beginData",
-                     [&](perfetto::TracedValue context) {
-                       inspector_recalculate_styles_event::Data(
-                           std::move(context), GetFrame());
-                     });
+  TRACE_EVENT_BEGIN("blink,devtools.timeline", "UpdateLayoutTree", "beginData",
+                    [&](perfetto::TracedValue context) {
+                      inspector_recalculate_styles_event::Data(
+                          std::move(context), GetFrame());
+                    });
 
   StyleEngine& style_engine = GetStyleEngine();
   unsigned start_element_count = style_engine.StyleForElementCount();
@@ -2705,8 +2710,6 @@ void Document::UpdateStyleAndLayoutTreeForThisDocument() {
   document_animations_->UpdateAnimationTimingIfNeeded();
   EvaluateMediaQueryListIfNeeded();
   UpdateUseShadowTreesIfNeeded();
-
-  UpdateOverscrollCommandTargets();
 
   style_engine.UpdateActiveStyle();
   style_engine.UpdateCounterStyles();
@@ -2743,8 +2746,7 @@ void Document::UpdateStyleAndLayoutTreeForThisDocument() {
     document_rules->DocumentStyleUpdated();
   }
 
-  TRACE_EVENT_END1("blink,devtools.timeline", "UpdateLayoutTree",
-                   "elementCount", element_count);
+  TRACE_EVENT_END("blink,devtools.timeline", "elementCount", element_count);
 
   ElementRuleCollector::DumpAndClearRulesPerfMap();
 
@@ -2761,7 +2763,7 @@ void Document::InvalidateStyleAndLayoutForFontUpdates() {
 
 void Document::UpdateStyle() {
   DCHECK(!View()->ShouldThrottleRendering());
-  TRACE_EVENT_BEGIN0("blink,blink_style", "Document::updateStyle");
+  TRACE_EVENT_BEGIN("blink,blink_style", "Document::updateStyle");
   RUNTIME_CALL_TIMER_SCOPE(GetAgent().isolate(),
                            RuntimeCallStats::CounterId::kUpdateStyle);
 
@@ -2787,13 +2789,12 @@ void Document::UpdateStyle() {
   DCHECK(InStyleRecalc());
   lifecycle_.AdvanceTo(DocumentLifecycle::kStyleClean);
   if (should_record_stats) {
-    TRACE_EVENT_END2(
-        "blink,blink_style", "Document::updateStyle", "resolverAccessCount",
-        style_engine.StyleForElementCount() - initial_element_count, "counters",
-        GetStyleEngine().Stats()->ToTracedValue());
+    TRACE_EVENT_END("blink,blink_style", "resolverAccessCount",
+                    style_engine.StyleForElementCount() - initial_element_count,
+                    "counters", GetStyleEngine().Stats()->ToTracedValue());
   } else {
-    TRACE_EVENT_END1(
-        "blink,blink_style", "Document::updateStyle", "resolverAccessCount",
+    TRACE_EVENT_END(
+        "blink,blink_style", "resolverAccessCount",
         style_engine.StyleForElementCount() - initial_element_count);
   }
 }
@@ -4955,12 +4956,23 @@ void Document::SetURL(const KURL& url) {
   new_url = fragment_directive_->ConsumeFragmentDirective(new_url);
 
   url_ = new_url;
+  cached_outgoing_referrer_url_ = std::nullopt;
   UpdateBaseURL();
 
   if (GetFrame()) {
     if (FrameScheduler* frame_scheduler = GetFrame()->GetFrameScheduler())
       frame_scheduler->TraceUrlChange(url_.GetString());
   }
+}
+
+KURL Document::OutgoingReferrerUrl() const {
+  if (should_cache_outgoing_referrer_) {
+    if (!cached_outgoing_referrer_url_) {
+      cached_outgoing_referrer_url_ = Url().UrlStrippedForUseAsReferrer();
+    }
+    return *cached_outgoing_referrer_url_;
+  }
+  return Url().UrlStrippedForUseAsReferrer();
 }
 
 KURL Document::ValidBaseElementURL() const {
@@ -6098,8 +6110,16 @@ void Document::SendFocusNotification(Element* new_focused_element,
     }
   }
 
+  auto dom_node_id = mojom::blink::DOMNodeId::New(kInvalidDOMNodeId);
+  if (base::FeatureList::IsEnabled(
+          features::kPopulateDOMNodeIdInFocusedNodeDetails) &&
+      new_focused_element && (is_editable || is_richly_editable)) {
+    dom_node_id->value = new_focused_element->GetDomNodeId();
+  }
+
   GetFrame()->GetLocalFrameHostRemote().FocusedElementChanged(
-      is_editable, is_richly_editable, element_bounds_in_dips, focus_type);
+      is_editable, is_richly_editable, element_bounds_in_dips, focus_type,
+      std::move(dom_node_id));
 }
 
 void Document::NotifyFocusedElementChanged(Element* old_focused_element,
@@ -6341,14 +6361,28 @@ void Document::NodeWillBeRemoved(Node& n) {
   for (NodeIterator* ni : node_iterators_)
     ni->NodeWillBeRemoved(n);
 
+  if (sequential_focus_navigation_starting_point_) {
+    // If the removed node is the starting point and is assigned to a slot,
+    // move the starting point to the slot itself so that sequential focus
+    // navigation can continue from there.
+    if (sequential_focus_navigation_starting_point_->startContainer() &&
+        n.IsShadowIncludingInclusiveAncestorOf(
+            *sequential_focus_navigation_starting_point_->startContainer())) {
+      if (auto* element = DynamicTo<Element>(&n)) {
+        if (auto* slot = element->AssignedSlot()) {
+          SetSequentialFocusNavigationStartingPoint(slot);
+        }
+      }
+    }
+    sequential_focus_navigation_starting_point_
+        ->FixupRemovedNodeAcrossShadowBoundary(n);
+  }
+
   // We want to run the normal Range reset code when we're not in the middle of
   // `moveBefore()`, or when we *are* but when range preservation is disabled
   // (it is by default).
   for (Range* range : ranges_) {
     range->NodeWillBeRemoved(n);
-    if (range == sequential_focus_navigation_starting_point_) {
-      range->FixupRemovedNodeAcrossShadowBoundary(n);
-    }
   }
 
   if (LocalFrame* frame = GetFrame()) {
@@ -6790,7 +6824,9 @@ void Document::setCookie(const String& value, ExceptionState& exception_state) {
     UseCounter::Count(*this, WebFeature::kFileAccessedCookies);
   }
 
-  cookie_jar_->SetCookie(value);
+  if (cookie_jar_->SetCookie(value)) {
+    IncrementCookieModificationCount();
+  }
 }
 
 bool Document::CookiesEnabled() const {
@@ -7012,20 +7048,20 @@ net::SiteForCookies Document::SiteForCookies() const {
   // like images or video. We do so because when third-party cookie blocking is
   // enabled, access-controlled media cannot be rendered. We only make this
   // exception in this special case to minimize security/privacy risk.
-  url::Origin url_origin = origin->ToUrlOrigin();
-
-  if (override_site_for_cookies_for_csp_media_ && url_origin.opaque() &&
-      !url_origin.GetTupleOrPrecursorTupleIfOpaque().host().empty()) {
-    return net::SiteForCookies::FromOrigin(url::Origin::Create(
-        url_origin.GetTupleOrPrecursorTupleIfOpaque().GetURL()));
+  if (override_site_for_cookies_for_csp_media_ && origin->IsOpaque()) {
+    url::Origin url_origin = origin->ToUrlOrigin();
+    if (!url_origin.GetTupleOrPrecursorTupleIfOpaque().host().empty()) {
+      return net::SiteForCookies::FromOrigin(url::Origin::Create(
+          url_origin.GetTupleOrPrecursorTupleIfOpaque().GetURL()));
+    }
   }
 
-  net::SiteForCookies candidate = net::SiteForCookies::FromOrigin(url_origin);
+  net::SiteForCookies candidate(origin->GetSchemefulSite());
 
-  // If true, CompareWithFrameTreeOriginAndRevise() is skipped if the
-  // SecurityOrigin of the the frames is the same. If any frame has a different
+  // If true, CompareWithFrameTreeSiteAndRevise() is skipped if the
+  // SecurityOrigin of the frames is the same. If any frame has a different
   // SecurityOrigin, then this is set to false so that
-  // CompareWithFrameTreeOriginAndRevise() is called for all remaining frames.
+  // CompareWithFrameTreeSiteAndRevise() is called for all remaining frames.
   bool can_avoid_revise_if_security_origins_match = true;
 
   if (SchemeRegistry::ShouldTreatURLSchemeAsFirstPartyWhenTopLevel(
@@ -7047,8 +7083,10 @@ net::SiteForCookies Document::SiteForCookies() const {
     // If possible, skip revising frames that have the same security origin.
     if (!can_avoid_revise_if_security_origins_match ||
         current_frame_security_origin != origin) {
-      if (!candidate.CompareWithFrameTreeOriginAndRevise(
-              current_frame_security_origin->ToUrlOrigin())) {
+      const bool candidate_still_matches =
+          candidate.CompareWithFrameTreeSiteAndRevise(
+              current_frame_security_origin->GetSchemefulSite());
+      if (!candidate_still_matches) {
         return candidate;
       }
       can_avoid_revise_if_security_origins_match = false;
@@ -7964,6 +8002,13 @@ void Document::FinishedParsing() {
   }
 
   if (LocalFrame* frame = GetFrame()) {
+    // If First Paint has already happened but FCP hasn't (e.g., a page with
+    // only background-color content), release paint holding now that we know
+    // parsing is complete and no more static text/images will arrive.
+    if (frame->View()) {
+      frame->View()->MaybeStopDeferringCommitsWithoutContentfulPaint();
+    }
+
     // Guarantee at least one call to the client specifying a title. (If
     // |title_| is not empty, then the title has already been dispatched.)
     if (title_.empty())
@@ -8685,6 +8730,21 @@ HTMLElement* Document::TopmostPopoverOrHint() const {
     return PopoverAutoStack().back();
   }
   return nullptr;
+}
+
+bool Document::HasActiveUnboundedElements() const {
+  if (!RuntimeEnabledFeatures::UnboundedElementEnabled()) {
+    return false;
+  }
+  if (auto* frame = GetFrame()) {
+    if (auto* web_frame =
+            WebLocalFrameImpl::FromFrame(&frame->LocalFrameRoot())) {
+      if (auto* widget = web_frame->FrameWidgetImpl()) {
+        return widget->HasActiveUnboundedElements();
+      }
+    }
+  }
+  return false;
 }
 void Document::SetPopoverPointerdownTarget(const HTMLElement* popover) {
   CHECK(!RuntimeEnabledFeatures::LightDismissFromClickEnabled());
@@ -9523,8 +9583,7 @@ void Document::Trace(Visitor* visitor) const {
   visitor->Trace(payment_link_handler_);
 #endif  // BUILDFLAG(IS_ANDROID)
   visitor->Trace(view_transitions_);
-  visitor->Trace(overscroll_command_targets_);
-  visitor->Trace(overscroll_command_invokers_);
+
   visitor->Trace(menu_safe_triangle_);
   Supplementable<Document>::Trace(visitor);
   TreeScope::Trace(visitor);
@@ -10013,8 +10072,17 @@ void Document::ResetAgent(Agent& agent) {
 }
 
 void Document::EnqueuePageRevealEvent() {
-  CHECK(RuntimeEnabledFeatures::PageRevealEventEnabled());
   CHECK(dom_window_);
+
+  if (RuntimeEnabledFeatures::RouteMatchingEnabled()) {
+    // Set up a route map and navigation state now, and perform an active style
+    // update right away, in case there are any @navigation rules.
+    //
+    // TODO(crbug.com/436805487): This seems rather heavy. Should it be
+    // conditioned on active view transitions or something?
+    auto& route_map = RouteMap::Ensure(*this);
+    route_map.EstablishNavigationStateFromActivation();
+  }
 
   dom_window_->SetHasBeenRevealed(false);
   auto* page_reveal_event = MakeGarbageCollected<PageRevealEvent>();
@@ -10309,64 +10377,7 @@ CustomElementRegistry* Document::EffectiveGlobalCustomElementRegistry() const {
   return nullptr;
 }
 
-const HeapHashSet<Member<const Element>>& Document::OverscrollCommandTargets() {
-  UpdateOverscrollCommandTargets();
-  return overscroll_command_targets_;
-}
 
-void Document::UpdateOverscrollCommandTargets() {
-  if (!overscroll_command_targets_dirty_) {
-    return;
-  }
-
-  if (overscroll_command_invokers_.empty() &&
-      overscroll_command_targets_.empty()) {
-    overscroll_command_targets_dirty_ = false;
-    return;
-  }
-
-  HeapHashSet<Member<const Element>> new_targets;
-  for (Element* element : overscroll_command_invokers_) {
-    if (auto* html_element = DynamicTo<HTMLElement>(element)) {
-      if (Element* target = html_element->commandForElement()) {
-        new_targets.insert(target);
-      }
-    }
-  }
-
-  // Calculate the difference and call OverscrollTargetStateChanged.
-  for (auto& entry : overscroll_command_targets_) {
-    if (!new_targets.Contains(entry)) {
-      const_cast<Element*>(entry.Get())->OverscrollTargetStateChanged();
-    }
-  }
-  for (auto& entry : new_targets) {
-    if (!overscroll_command_targets_.Contains(entry)) {
-      const_cast<Element*>(entry.Get())->OverscrollTargetStateChanged();
-    }
-  }
-
-  overscroll_command_targets_ = std::move(new_targets);
-  overscroll_command_targets_dirty_ = false;
-}
-
-// We require either the invokers list to be non-empty (so we have some invokers
-// to process) or the existing targets list to be non-empty (because we might
-// have some "old" targets that need re-processing).
-bool Document::OverscrollCommandTargetsDirty() const {
-  return overscroll_command_targets_dirty_ &&
-         (!overscroll_command_invokers_.empty() ||
-          !overscroll_command_targets_.empty());
-}
-void Document::MarkOverscrollCommandTargetsDirty() {
-  overscroll_command_targets_dirty_ = true;
-}
-void Document::AddOverscrollCommandInvoker(Element& invoker) {
-  overscroll_command_invokers_.insert(&invoker);
-}
-void Document::RemoveOverscrollCommandInvoker(Element& invoker) {
-  overscroll_command_invokers_.erase(&invoker);
-}
 
 template class CORE_TEMPLATE_EXPORT Supplement<Document>;
 

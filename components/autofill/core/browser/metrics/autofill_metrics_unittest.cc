@@ -12,6 +12,7 @@
 #include <utility>
 #include <vector>
 
+#include "base/auto_reset.h"
 #include "base/base64.h"
 #include "base/check.h"
 #include "base/containers/fixed_flat_map.h"
@@ -620,14 +621,13 @@ TEST_F(AutofillMetricsTest, CreditCardCheckoutFlowUserActions) {
     external_delegate().OnQuery(
         form, form.fields().front(),
         /*caret_bounds=*/gfx::Rect(),
-        AutofillSuggestionTriggerSource::kFormControlElementClicked,
-        /*update_datalist=*/false);
+        AutofillSuggestionTriggerSource::kFormControlElementClicked);
 
     external_delegate().DidAcceptSuggestion(
         test::CreateAutofillSuggestion(SuggestionType::kCreditCardEntry,
                                        u"Test",
                                        Suggestion::Guid(kTestLocalCardId)),
-        AutofillSuggestionDelegate::SuggestionMetadata{.row = 0});
+        AutofillSuggestionDelegate::SuggestionMetadata{.multi_index = {0}});
 
     EXPECT_EQ(1,
               user_action_tester.GetActionCount("Autofill_SelectedSuggestion"));
@@ -650,12 +650,11 @@ TEST_F(AutofillMetricsTest, CreditCardCheckoutFlowUserActions) {
     external_delegate().OnQuery(
         form, form.fields().front(),
         /*caret_bounds=*/gfx::Rect(),
-        AutofillSuggestionTriggerSource::kFormControlElementClicked,
-        /*update_datalist=*/false);
+        AutofillSuggestionTriggerSource::kFormControlElementClicked);
 
     external_delegate().DidAcceptSuggestion(
         Suggestion(SuggestionType::kUndoOrClear),
-        AutofillSuggestionDelegate::SuggestionMetadata{.row = 0});
+        AutofillSuggestionDelegate::SuggestionMetadata{.multi_index = {0}});
 
     EXPECT_EQ(
         1, user_action_tester.GetActionCount("Autofill_UndoPaymentsAutofill"));
@@ -678,14 +677,13 @@ TEST_F(AutofillMetricsTest, CreditCardCheckoutFlowUserActions) {
     external_delegate().OnQuery(
         form, form.fields().front(),
         /*caret_bounds=*/gfx::Rect(),
-        AutofillSuggestionTriggerSource::kFormControlElementClicked,
-        /*update_datalist=*/false);
+        AutofillSuggestionTriggerSource::kFormControlElementClicked);
 
     external_delegate().DidAcceptSuggestion(
         test::CreateAutofillSuggestion(SuggestionType::kCreditCardEntry,
                                        u"Test",
                                        Suggestion::Guid(kTestLocalCardId)),
-        AutofillSuggestionDelegate::SuggestionMetadata{.row = 0});
+        AutofillSuggestionDelegate::SuggestionMetadata{.multi_index = {0}});
 
     EXPECT_EQ(1,
               user_action_tester.GetActionCount("Autofill_SelectedSuggestion"));
@@ -811,14 +809,13 @@ TEST_F(AutofillMetricsTest, ProfileCheckoutFlowUserActions) {
     external_delegate().OnQuery(
         form, form.fields().front(),
         /*caret_bounds=*/gfx::Rect(),
-        AutofillSuggestionTriggerSource::kFormControlElementClicked,
-        /*update_datalist=*/false);
+        AutofillSuggestionTriggerSource::kFormControlElementClicked);
 
     external_delegate().DidAcceptSuggestion(
         test::CreateAutofillSuggestion(SuggestionType::kCreditCardEntry,
                                        u"Test",
                                        Suggestion::Guid(kTestProfileId)),
-        AutofillSuggestionDelegate::SuggestionMetadata{.row = 0});
+        AutofillSuggestionDelegate::SuggestionMetadata{.multi_index = {0}});
 
     EXPECT_EQ(1,
               user_action_tester.GetActionCount("Autofill_SelectedSuggestion"));
@@ -2897,13 +2894,6 @@ class AutofillMetricsSeamlessnessTest
   static constexpr auto kBitmask = MetricName::Variant::kBitmask;
 
  protected:
-  AutofillMetricsSeamlessnessTest() {
-    scoped_features_.InitAndEnableFeatureWithParameters(
-        features::kAutofillLogUKMEventsWithSamplingOnSession,
-        {{features::kAutofillLogUKMEventsWithSamplingOnSessionRate.name,
-          "100"}});
-  }
-
   void InitAutofillClient() override {
     AutofillMetricsCrossFrameFormTest::InitAutofillClient();
 
@@ -2912,7 +2902,8 @@ class AutofillMetricsSeamlessnessTest
   }
 
  private:
-  base::test::ScopedFeatureList scoped_features_;
+  base::AutoReset<int> sampling_override_ =
+      autofill_metrics::SetUkmSamplingRateForTesting(100);
 };
 
 // Tests that Autofill.CreditCard.SeamlessFills.* is not emitted for manual

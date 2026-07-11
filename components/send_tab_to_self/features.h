@@ -53,17 +53,28 @@ BASE_DECLARE_FEATURE(kSendTabToSelfPostSendToast);
 // to the Omnibox context menu.
 BASE_DECLARE_FEATURE(kSendTabToSelfExtraEntryPoints);
 
+// If this feature is enabled, desktop entry points get submenu treatment as
+// part of the enhanced desktop UI v2.
+BASE_DECLARE_FEATURE(kSendTabToSelfEnhancedDesktopUIv2);
+
 #if BUILDFLAG(IS_ANDROID)
 // If this feature is enabled, physical double-tap gestures will be detected
 // and used to trigger sending tabs to self on Android devices.
 BASE_DECLARE_FEATURE(kSendTabToSelfGesture);
-
-// If this feature is enabled, the target device picker on Android will use
-// an enhanced bottom sheet UI.
-BASE_DECLARE_FEATURE(kSendTabToSelfEnhancedBottomsheet);
 #endif  // BUILDFLAG(IS_ANDROID)
 
+#if BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_IOS)
+// If this feature is enabled, the target device picker will use an enhanced
+// bottom sheet UI.
+BASE_DECLARE_FEATURE(kSendTabToSelfEnhancedBottomsheet);
+#endif  // BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_IOS)
+
 #if BUILDFLAG(IS_IOS)
+
+// If this feature is enabled, target devices are displayed as individual
+// actions in the native iOS Share Sheet.
+BASE_DECLARE_FEATURE(kSendTabToSelfIOSShareSheetDeviceList);
+
 // If this feature is enabled, users can schedule tab reminder iOS push
 // notifications.
 BASE_DECLARE_FEATURE(kIOSTabReminders);

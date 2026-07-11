@@ -57,18 +57,6 @@ BASE_DECLARE_FEATURE(kApiMimeHandler);
 // TODO(crbug.com/376354347): Remove this when the experiment is finished.
 BASE_DECLARE_FEATURE(kApiRuntimeActionData);
 
-// Controls the availability of adding and removing site access requests with
-// the permissions API.
-BASE_DECLARE_FEATURE(kApiPermissionsHostAccessRequests);
-
-// Controls the availability of executing user scripts programmatically using
-// the userScripts API.
-BASE_DECLARE_FEATURE(kApiUserScriptsExecute);
-
-// Controls the availability of specifying different world IDs in the
-// userScripts API.
-BASE_DECLARE_FEATURE(kApiUserScriptsMultipleWorlds);
-
 // Controls the availability of the odfsConfigPrivate API.
 BASE_DECLARE_FEATURE(kApiOdfsConfigPrivate);
 
@@ -208,17 +196,9 @@ BASE_DECLARE_FEATURE(kExperimentalOmniboxLabs);
 // out of the allowlist.
 BASE_DECLARE_FEATURE(kSafeBrowsingCrxAllowlistAutoDisable);
 
-// When enabled, cause extensions to use structured cloning (instead of JSON
-// serialization) for extension messaging, except when communicating with native
-// messaging hosts.
-BASE_DECLARE_FEATURE(kStructuredCloningForMessaging);
 
 // Controls whether the component webstore hosted app is loaded.
 BASE_DECLARE_FEATURE(kWebstoreHostedApp);
-
-// Used to control whether downloads initiated by `WebstoreInstaller` are marked
-// as having a corresponding user gesture or not.
-BASE_DECLARE_FEATURE(kWebstoreInstallerUserGestureKillSwitch);
 
 ///////////////////////////////////////////////////////////////////////////////
 // STOP!
@@ -319,6 +299,14 @@ BASE_DECLARE_FEATURE(kWebRequestSecurityInfo);
 // avoids unnecessary performance overhead and restores navigation
 // optimizations like preconnect.
 BASE_DECLARE_FEATURE(kOptimizeWebRequestProxy);
+
+// When enabled, the browser dispatches blocking webRequest events once per
+// renderer context (using the parent event name) instead of once per listener
+// (using per-listener synthetic sub-event names). The renderer matches
+// listeners itself, reports each blocking listener's response via the
+// `webRequestInternal.eventHandled` function, and signals completion with a
+// single `webRequestInternal.eventHandlingDone` per context.
+BASE_DECLARE_FEATURE(kWebRequestPerContextEventDispatch);
 
 }  // namespace extensions_features
 

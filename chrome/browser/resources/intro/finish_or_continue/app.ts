@@ -5,22 +5,29 @@
 import '/strings.m.js';
 import 'chrome://resources/cr_elements/cr_button/cr_button.js';
 import 'chrome://resources/cr_elements/cr_lottie/cr_lottie.js';
-import '/strings.m.js';
 
 import {loadTimeData} from 'chrome://resources/js/load_time_data.js';
 import {CrLitElement} from 'chrome://resources/lit/v3_0/lit.rollup.js';
 
-import type {IntroBrowserProxy} from '../browser_proxy.js';
-import {IntroBrowserProxyImpl} from '../browser_proxy.js';
+import type {CrLottieElement} from 'chrome://resources/cr_elements/cr_lottie/cr_lottie.js';
+
+import type {IntroBrowserProxy} from '../intro_browser_proxy.js';
+import {IntroBrowserProxyImpl} from '../intro_browser_proxy.js';
 
 import {getCss} from './app.css.js';
 import {getHtml} from './app.html.js';
+
+import type {FinishOrContinueBrowserProxy} from './finish_or_continue_browser_proxy.js';
+import {FinishOrContinueBrowserProxyImpl} from './finish_or_continue_browser_proxy.js';
 
 export interface FinishOrContinueAppElement {
   $: {
     buttonContainer: HTMLElement,
     continueEducationButton: HTMLElement,
     startBrowsingButton: HTMLElement,
+    leftAnimation: CrLottieElement,
+    rightAnimation: CrLottieElement,
+    bottomAnimation: CrLottieElement,
   };
 }
 
@@ -49,10 +56,13 @@ export class FinishOrContinueAppElement extends CrLitElement {
       loadTimeData.getBoolean('disableAnimations');
 
   private isFeatureShowcaseEligible_: boolean = false;
-  private browserProxy_: IntroBrowserProxy =
+  private browserProxy_: FinishOrContinueBrowserProxy =
+      FinishOrContinueBrowserProxyImpl.getInstance();
+  private introBrowserProxy_: IntroBrowserProxy =
       IntroBrowserProxyImpl.getInstance();
   private darkModeListener_: (e: MediaQueryListEvent) => void;
   private matchMedia_: MediaQueryList;
+  private listenerIds_: number[] = [];
 
   constructor() {
     super();
@@ -71,11 +81,19 @@ export class FinishOrContinueAppElement extends CrLitElement {
   override connectedCallback() {
     super.connectedCallback();
     this.matchMedia_.addEventListener('change', this.darkModeListener_);
+
+    this.listenerIds_.push(
+        this.introBrowserProxy_.callbackRouter.toggleAnimations.addListener(
+            (active: boolean) => this.toggleAnimations_(active)));
   }
 
   override disconnectedCallback() {
     super.disconnectedCallback();
     this.matchMedia_.removeEventListener('change', this.darkModeListener_);
+
+    this.listenerIds_.forEach(
+        id => this.introBrowserProxy_.callbackRouter.removeListener(id));
+    this.listenerIds_ = [];
   }
 
   protected getContinueEducationButtonLabel_(): string {
@@ -88,6 +106,24 @@ export class FinishOrContinueAppElement extends CrLitElement {
     return (this.isDarkMode_) ?
         `chrome://intro/animations/finish_or_continue_dark_${position}.json` :
         `chrome://intro/animations/finish_or_continue_light_${position}.json`;
+  }
+
+  private toggleAnimations_(active: boolean) {
+    if (this.disableAnimations_) {
+      return;
+    }
+
+    this.$.leftAnimation.setPlay(active);
+    this.$.rightAnimation.setPlay(active);
+    this.$.bottomAnimation.setPlay(active);
+  }
+
+  protected onStartBrowsingClick_() {
+    this.browserProxy_.handler.startBrowsing();
+  }
+
+  protected onContinueEducationClick_() {
+    this.browserProxy_.handler.continueEducation();
   }
 }
 

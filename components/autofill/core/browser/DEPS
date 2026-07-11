@@ -2,8 +2,10 @@ include_rules = [
   # go/keep-sorted start
   "+components/accessibility_annotator/core",
   "+components/accessibility_annotator/core/annotation_reducer",
+  "+components/affiliations",
   "+components/browser_ui/device_lock/android",
   "+components/consent_auditor",
+  "+components/content_settings/core/common",
   "+components/device_reauth/device_authenticator.h",
   "+components/facilitated_payments/core/features",
   "+components/feature_engagement",
@@ -73,6 +75,9 @@ specific_include_rules = {
   ".*test.(cc|h)": [
     "+components/device_reauth",
     "+content/public/test",
+  ],
+  "at_memory_cross_tab_copy_paste_tracker_unittest\\.cc": [
+    "+components/ukm",
   ],
   "autofill_manager_unittest\\.cc": [
     "+components/ukm",

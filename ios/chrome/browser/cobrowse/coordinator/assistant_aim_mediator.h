@@ -43,11 +43,24 @@ class WebState;
 // Called when the mediator starts a new thread.
 - (void)assistantAIMMediatorDidStartNewThread:(AssistantAIMMediator*)mediator;
 
+// Called when the mediator reacts to a tap in the minimized state.
+- (void)assistantAIMMediatorDidFocusFromMinimized:
+    (AssistantAIMMediator*)mediator;
+
+// Called when the server's Thread Context Library updates with a webpage
+// context attachment. "WebpageSignal" carries the URL and title of a webpage
+// context associated with the active thread. The delegate forwards this signal
+// to the Composebox Input Plate to populate and display the corresponding
+// webpage context chip in the UI.
+- (void)assistantAIMMediator:(AssistantAIMMediator*)mediator
+    didReceiveContextLibraryWebpageSignalWithURL:(const GURL&)url
+                                           title:(NSString*)title;
+
 @end
 
 // Mediator that manages the business logic and data for the AI mode Assistant.
 @interface AssistantAIMMediator
-    : NSObject <ComposeboxURLLoader, AssistantAIMMutator>
+    : NSObject <AssistantAIMMutator, ComposeboxURLLoader>
 
 // The consumer for this mediator.
 @property(nonatomic, weak) id<AssistantAIMConsumer> consumer;
@@ -94,6 +107,9 @@ class WebState;
 
 // Disconnects the mediator.
 - (void)disconnect;
+
+// Ends the current cobrowse session.
+- (void)endSession;
 
 @end
 

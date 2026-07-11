@@ -13,6 +13,7 @@
 
 #include "base/command_line.h"
 #include "base/functional/callback_helpers.h"
+#include "base/memory/raw_ptr.h"
 #include "base/memory/ref_counted.h"
 #include "base/memory/scoped_refptr.h"
 #include "base/run_loop.h"
@@ -483,8 +484,7 @@ class WebMediaPlayerImplTest
         provider.Unbind(),
         blink::BindOnce(&WebMediaPlayerImplTest::CreateMockSurfaceLayerBridge,
                         base::Unretained(this)),
-        viz::TestContextProvider::CreateGLES(),
-        /*use_surface_layer=*/true, is_background_suspend_enabled_,
+        viz::TestContextProvider::CreateGLES(), is_background_suspend_enabled_,
         is_background_video_playback_enabled_, true,
         std::move(demuxer_override), nullptr);
   }
@@ -3060,6 +3060,14 @@ TEST_F(WebMediaPlayerImplTest, DisabledFlagShouldPauseWhenFrameIsHidden) {
   EXPECT_FALSE(IsPausedBecauseFrameHidden());
 }
 
+TEST_F(WebMediaPlayerImplTest, IsVideoBeingCapturedTracksCanvasReadback) {
+  InitializeWebMediaPlayerImpl();
+  EXPECT_FALSE(wmpi_->IsVideoBeingCaptured());
+
+  wmpi_->GetCurrentFrameThenUpdate();
+  EXPECT_TRUE(wmpi_->IsVideoBeingCaptured());
+}
+
 TEST_F(WebMediaPlayerImplTest, NotifiesObserverWhenFrozen) {
   InitializeWebMediaPlayerImpl();
   EXPECT_CALL(mock_observer_, OnFrozen());
@@ -3400,7 +3408,7 @@ TEST_F(WebMediaPlayerImplTest, DISABLED_DemuxerOverride) {
       std::make_unique<NiceMock<media::MockDemuxer>>();
   StrictMock<media::MockDemuxerStream> stream(media::DemuxerStream::AUDIO);
   stream.set_audio_decoder_config(TestAudioConfig::Normal());
-  std::vector<media::DemuxerStream*> streams;
+  auto streams = demuxer->GetAllStreams();
   streams.push_back(&stream);
 
   EXPECT_CALL(stream, SupportsConfigChanges()).WillRepeatedly(Return(false));

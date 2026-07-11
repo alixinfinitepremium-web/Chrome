@@ -1407,6 +1407,11 @@ const ComputedStyle* StyleResolver::ResolveStyle(
                                   styles_animated, 1);
     StyleAdjuster::AdjustComputedStyle(
         state, IsForPseudoElement(*element, style_request) ? nullptr : element);
+    StyleAdjuster::RunUncacheableStyleAdjustment(
+        state.StyleBuilder(), *element,
+        IsForPseudoElement(*element, style_request) ? state.GetPseudoElement()
+                                                    : element,
+        state.GetStyledElement());
   }
 
   ApplyAnchorData(state);
@@ -1459,7 +1464,7 @@ const ComputedStyle* StyleResolver::ResolveStyle(
   GetDocument().AddViewportUnitFlags(state.StyleBuilder().ViewportUnitFlags());
 
   if (state.StyleBuilder().HasRootFontRelativeUnits()) {
-    GetDocument().GetStyleEngine().SetUsesRootFontRelativeUnits(true);
+    GetDocument().GetStyleEngine().SetUsesRootRelativeUnits(true);
   }
 
   if (state.StyleBuilder().HasGlyphRelativeUnits()) {
@@ -2031,6 +2036,11 @@ void StyleResolver::ApplyBaseStyle(
 
     StyleAdjuster::AdjustComputedStyle(
         state, IsForPseudoElement(*element, style_request) ? nullptr : element);
+    StyleAdjuster::RunUncacheableStyleAdjustment(
+        state.StyleBuilder(), *element,
+        IsForPseudoElement(*element, style_request) ? state.GetPseudoElement()
+                                                    : element,
+        state.GetStyledElement());
 
     // Normally done by StyleResolver::MaybeAddToMatchedPropertiesCache(),
     // when applying the cascade. Note that this is probably redundant
@@ -3033,7 +3043,7 @@ const CSSValue* StyleResolver::ComputeValue(
   if (state.HasUnsupportedGuaranteedInvalid()) {
     return nullptr;
   }
-  CSSPropertyRef property_ref(property_name, document);
+  CSSPropertyRef property_ref(&property_name, document);
   flags = state.TakeLengthConversionFlags();
   const ComputedStyle* style = state.TakeStyle();
   return ComputedStyleUtils::ComputedPropertyValue(property_ref.GetProperty(),

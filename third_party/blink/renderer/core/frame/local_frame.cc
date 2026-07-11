@@ -194,6 +194,7 @@
 #include "third_party/blink/renderer/core/layout/hit_test_result.h"
 #include "third_party/blink/renderer/core/layout/layout_embedded_content.h"
 #include "third_party/blink/renderer/core/layout/layout_object_inlines.h"
+#include "third_party/blink/renderer/core/layout/layout_video.h"
 #include "third_party/blink/renderer/core/layout/layout_view.h"
 #include "third_party/blink/renderer/core/lcp_critical_path_predictor/lcp_critical_path_predictor.h"
 #include "third_party/blink/renderer/core/loader/document_loader.h"
@@ -3375,7 +3376,7 @@ void LocalFrame::FinishedLoading(FrameLoader::NavigationFinishState state) {
   DomWindow()->FinishedLoading(state);
 }
 
-void LocalFrame::UpdateFaviconURL() {
+void LocalFrame::UpdateFaviconURL(mojom::blink::FaviconUpdateReason reason) {
   if (!IsMainFrame())
     return;
 
@@ -3402,7 +3403,7 @@ void LocalFrame::UpdateFaviconURL() {
   }
   DCHECK_EQ(icon_urls.size(), urls.size());
 
-  GetLocalFrameHostRemote().UpdateFaviconURL(std::move(urls));
+  GetLocalFrameHostRemote().UpdateFaviconURL(std::move(urls), reason);
 
   if (GetPage())
     GetPage()->GetPageScheduler()->OnTitleOrFaviconUpdated();
@@ -3691,7 +3692,19 @@ void LocalFrame::MediaPlayerActionAtViewportPoint(
       break;
     case mojom::blink::MediaPlayerActionType::kCopyVideoFrame:
       if (auto* video = DynamicTo<HTMLVideoElement>(media_element); video) {
-        auto image = video->CreateStaticBitmapImage();
+        std::optional<gfx::Size> size;
+        // A site could theoretically apply the CSS `content: url(...)` property
+        // to a <video> element. In this edge case,
+        // HTMLVideoElement::CreateLayoutObject instantiates a LayoutImage
+        // instead of a LayoutVideo, which is safely caught by the DynamicTo
+        // here.
+        if (auto* layout_video =
+                DynamicTo<LayoutVideo>(video->GetLayoutObject())) {
+          size = layout_video->ReplacedContentRect().PixelSnappedSize();
+        }
+        auto image = video->CreateStaticBitmapImage(
+            size, /*reinterpret_as_srgb=*/false,
+            /*respect_orientation=*/kDoNotRespectImageOrientation);
         if (image) {
           GetEditor().CopyImage(result, image);
         }
@@ -3973,7 +3986,7 @@ String CreateMarkupInRect(LocalFrame* frame,
   const CreateMarkupOptions create_markup_options =
       CreateMarkupOptions::Builder()
           .SetShouldAnnotateForInterchange(true)
-          .SetShouldResolveURLs(kResolveNonLocalURLs)
+          .SetShouldResolveUrls(ResolveUrls::kNonLocal)
           .Build();
   if (start_position.CompareTo(end_position) <= 0) {
     return CreateMarkup(start_position, end_position, create_markup_options);
@@ -4239,18 +4252,6 @@ void LocalFrame::OnStorageAccessCallback(
   std::move(callback).Run(is_allowed);
 }
 
-void LocalFrame::NotifyFrameVisibilityChanged(
-    mojom::blink::FrameVisibility visibility) {
-  // Iterate on a copy of the vector to avoid invalidating the iterator if
-  // `FrameVisibilityChanged` happens to remove the observer from
-  // `frame_visibility_observers_`.
-  HeapVector<Member<FrameVisibilityObserver>>
-      frame_visibility_observers_as_vector(frame_visibility_observers_);
-  for (auto observer : frame_visibility_observers_as_vector) {
-    observer->FrameVisibilityChanged(visibility);
-  }
-}
-
 void LocalFrame::AddVisibilityObserver(FrameVisibilityObserver* observer) {
   frame_visibility_observers_.insert(observer);
 }
@@ -4268,7 +4269,7 @@ void LocalFrame::OnFrameVisibilityChangedForMediaPlayback(bool is_hidden) {
   is_hidden_for_media_playback_ = is_hidden;
 
   // Iterate on a copy of the vector to avoid invalidating the iterator if
-  // `FrameVisibilityChanged` happens to remove the observer from
+  // `OnFrameHidden` or `OnFrameShown` happens to remove the observer from
   // `frame_visibility_observers_`.
   HeapVector<Member<FrameVisibilityObserver>>
       frame_visibility_observers_as_vector(frame_visibility_observers_);

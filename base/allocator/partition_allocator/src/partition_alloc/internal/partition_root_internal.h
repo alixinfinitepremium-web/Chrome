@@ -43,13 +43,13 @@
 
 // When a memory tool is replacing malloc to keep aligned behaviour working we
 // use window's aligned_malloc and aligned_free, but otherwise we need memalign.
-#if defined(MEMORY_TOOL_REPLACES_ALLOCATOR)
+#if PA_BUILDFLAG(MEMORY_TOOL_REPLACES_ALLOCATOR)
 #if PA_BUILDFLAG(PA_COMPILER_MSVC)
 #include <malloc.h>
 #else
 #include <stdlib.h>
 #endif  // PA_BUILDFLAG(PA_COMPILER_MSVC)
-#endif  // defined(MEMORY_TOOL_REPLACES_ALLOCATOR)
+#endif  // PA_BUILDFLAG(MEMORY_TOOL_REPLACES_ALLOCATOR)
 
 namespace partition_alloc {
 
@@ -95,9 +95,10 @@ PA_ALWAYS_INLINE void DCheckIfManagedByPartitionAllocBRPPool(
 template <AllocFlags flags>
 PA_NOINLINE PA_MALLOC_FN void* PartitionRoot::AllocInternalForTesting(
     size_t requested_size,
-    size_t slot_span_alignment,
+    size_t alignment,
     const char* type_name) {
-  return AllocInternal<flags>(requested_size, slot_span_alignment, type_name);
+  static_assert(!ContainsFlags(flags, AllocFlags::kAlignedAlloc));
+  return AllocInternal<flags>(requested_size, alignment, type_name);
 }
 
 PA_ALWAYS_INLINE size_t
@@ -413,7 +414,7 @@ template <FreeFlags flags>
 PA_ALWAYS_INLINE bool PartitionRoot::FreeProlog(void* object,
                                                 const PartitionRoot* root) {
   static_assert(AreValidFlags(flags));
-#if defined(MEMORY_TOOL_REPLACES_ALLOCATOR)
+#if PA_BUILDFLAG(MEMORY_TOOL_REPLACES_ALLOCATOR)
   if constexpr (!ContainsFlags(flags, FreeFlags::kNoMemoryToolOverride)) {
 #if PA_BUILDFLAG(PA_COMPILER_MSVC)
     if (ContainsFlags(flags, FreeFlags::kAlignedFreeForMemoryTool)) {
@@ -426,11 +427,11 @@ PA_ALWAYS_INLINE bool PartitionRoot::FreeProlog(void* object,
 #endif  // PA_BUILDFLAG(PA_COMPILER_MSVC)
     return true;
   }
-#else   // !defined(MEMORY_TOOL_REPLACES_ALLOCATOR)
+#else   // !PA_BUILDFLAG(MEMORY_TOOL_REPLACES_ALLOCATOR)
   // If the memory tool is not replacing the allocator, then the
   // kAlignedFreeForMemoryTool flag is unused and should not be passed.
   static_assert(!ContainsFlags(flags, FreeFlags::kAlignedFreeForMemoryTool));
-#endif  // defined(MEMORY_TOOL_REPLACES_ALLOCATOR)
+#endif  // PA_BUILDFLAG(MEMORY_TOOL_REPLACES_ALLOCATOR)
 
   if (!object) [[unlikely]] {
     return true;
@@ -685,6 +686,7 @@ PA_ALWAYS_INLINE void PartitionRoot::FreeNoHooksImmediateInternal(
 #endif
     if constexpr (ContainsFlags(flags, FreeFlags::kWithTypeIdHint)) {
       Zap(slot_start, slot_span, hint.type_id);
+      RecordLeakSizePerTypeId(hint.type_id, size_details.slot_size);
     }
     intended_leak_size_.fetch_add(size_details.slot_size);
     return;  // Leak
@@ -1261,15 +1263,19 @@ PartitionRoot::SizeToBucketSizeDetails(size_t requested_size,
 
 template <AllocFlags flags>
 PA_ALWAYS_INLINE void* PartitionRoot::AllocInternal(size_t requested_size,
-                                                    size_t slot_span_alignment,
+                                                    size_t alignment,
                                                     const char* type_name) {
   static_assert(AreValidFlags(flags));
+  size_t slot_span_alignment = alignment;
+  if constexpr (ContainsFlags(flags, AllocFlags::kAlignedAlloc)) {
+    slot_span_alignment = std::max(alignment, internal::PartitionPageSize());
+  }
   PA_DCHECK((slot_span_alignment >= internal::PartitionPageSize()) &&
             internal::base::bits::HasSingleBit(slot_span_alignment));
   static_assert(!ContainsFlags(
       flags, AllocFlags::kMemoryShouldBeTaggedForMte));  // Internal only.
 
-#if defined(MEMORY_TOOL_REPLACES_ALLOCATOR)
+#if PA_BUILDFLAG(MEMORY_TOOL_REPLACES_ALLOCATOR)
   if constexpr (!ContainsFlags(flags, AllocFlags::kNoMemoryToolOverride)) {
     if (!PartitionRoot::AllocWithMemoryToolProlog<flags>(requested_size)) {
       // Early return if AllocWithMemoryToolProlog returns false
@@ -1277,8 +1283,7 @@ PA_ALWAYS_INLINE void* PartitionRoot::AllocInternal(size_t requested_size,
     }
     void* result = nullptr;
     // Taken from base::AlignedAlloc implementation.
-    if constexpr (ContainsFlags(flags,
-                                AllocFlags::kAlignedAllocForMemoryTool)) {
+    if constexpr (ContainsFlags(flags, AllocFlags::kAlignedAlloc)) {
 #if PA_BUILDFLAG(PA_COMPILER_MSVC)
       result = _aligned_malloc(requested_size, slot_span_alignment);
 #elif PA_BUILDFLAG(IS_ANDROID)
@@ -1312,11 +1317,7 @@ PA_ALWAYS_INLINE void* PartitionRoot::AllocInternal(size_t requested_size,
     }
     return result;
   }
-#else   // !defined(MEMORY_TOOL_REPLACES_ALLOCATOR)
-  // If `MEMORY_TOOL_REPLACES_ALLOCATOR` is not defined,
-  // `kAlignedAllocForMemoryTool` should not be passed to `AllocInternal`.
-  static_assert(!ContainsFlags(flags, AllocFlags::kAlignedAllocForMemoryTool));
-#endif  // defined(MEMORY_TOOL_REPLACES_ALLOCATOR)
+#endif  // PA_BUILDFLAG(MEMORY_TOOL_REPLACES_ALLOCATOR)
 
   constexpr bool no_hooks = ContainsFlags(flags, AllocFlags::kNoHooks);
   bool hooks_enabled;
@@ -1337,8 +1338,13 @@ PA_ALWAYS_INLINE void* PartitionRoot::AllocInternal(size_t requested_size,
       // request to the default mechanisms.
       // TODO(crbug.com/40152647): See if we can make the forwarding more
       // verbose to ensure that this situation doesn't go unnoticed.
+      std::optional<size_t> override_alignment = std::nullopt;
+      if constexpr (ContainsFlags(flags, AllocFlags::kAlignedAlloc)) {
+        override_alignment = alignment;
+      }
       if (PartitionAllocHooks::AllocationOverrideHookIfEnabled(
-              &object, flags | additional_flags, requested_size, type_name)) {
+              &object, flags | additional_flags, requested_size, type_name,
+              override_alignment)) {
         PartitionAllocHooks::AllocationObserverHookIfEnabled(
             CreateAllocationNotificationData(object, requested_size,
                                              type_name));
@@ -1629,18 +1635,8 @@ PA_ALWAYS_INLINE void* PartitionRoot::AlignedAllocInline(
     PA_NOTREACHED();
   }
 
-  // Slot spans are naturally aligned on partition page size, but make sure you
-  // don't pass anything less, because it'll mess up callee's calculations.
-  size_t slot_span_alignment =
-      std::max(alignment, internal::PartitionPageSize());
-  constexpr AllocFlags kMaybeAlignedAllocForMemoryTool =
-#if defined(MEMORY_TOOL_REPLACES_ALLOCATOR)
-      AllocFlags::kAlignedAllocForMemoryTool;
-#else
-      AllocFlags::kNone;
-#endif
-  void* object = AllocInternal<flags | kMaybeAlignedAllocForMemoryTool>(
-      adjusted_size, slot_span_alignment, nullptr);
+  void* object = AllocInternal<flags | AllocFlags::kAlignedAlloc>(
+      adjusted_size, alignment, nullptr);
 
   // |alignment| is a power of two, but the compiler doesn't necessarily know
   // that. A regular % operation is very slow, make sure to use the equivalent,
@@ -1655,7 +1651,8 @@ template <AllocFlags alloc_flags, FreeFlags free_flags>
 void* PartitionRoot::ReallocInline(void* ptr,
                                    size_t new_size,
                                    const char* type_name) {
-#if defined(MEMORY_TOOL_REPLACES_ALLOCATOR)
+  static_assert(!ContainsFlags(alloc_flags, AllocFlags::kAlignedAlloc));
+#if PA_BUILDFLAG(MEMORY_TOOL_REPLACES_ALLOCATOR)
   if (!PartitionRoot::AllocWithMemoryToolProlog<alloc_flags>(new_size)) {
     // Early return if AllocWithMemoryToolProlog returns false
     return nullptr;

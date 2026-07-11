@@ -180,8 +180,6 @@ export {OsAboutPageElement} from './os_about_page/os_about_page.js';
 export type {AndroidAppsBrowserProxy} from './os_apps_page/android_apps_browser_proxy.js';
 export {AndroidAppsBrowserProxyImpl} from './os_apps_page/android_apps_browser_proxy.js';
 export {AppManagementFileHandlingItemElement} from './os_apps_page/app_management_page/file_handling_item.js';
-export type {PluginVmBrowserProxy} from './os_apps_page/app_management_page/plugin_vm_page/plugin_vm_browser_proxy.js';
-export {PluginVmBrowserProxyImpl} from './os_apps_page/app_management_page/plugin_vm_page/plugin_vm_browser_proxy.js';
 export {AppManagementReadOnlyPermissionItemElement} from './os_apps_page/app_management_page/read_only_permission_item.js';
 export {AppManagementSupportedLinksItemElement} from './os_apps_page/app_management_page/supported_links_item.js';
 export {AppManagementToggleRowElement} from './os_apps_page/app_management_page/toggle_row.js';
@@ -240,6 +238,9 @@ export {ParentalControlsSettingsCardElement} from './parental_controls_page/pare
 export type {PersonalizationHubBrowserProxy} from './personalization_page/personalization_hub_browser_proxy.js';
 export {PersonalizationHubBrowserProxyImpl} from './personalization_page/personalization_hub_browser_proxy.js';
 export {SettingsPersonalizationPageElement} from './personalization_page/personalization_page.js';
+export {LockScreenUnlockType, LockStateMixin} from './lock_state_mixin.js';
+export {QuickUnlockBrowserProxyImpl} from './os_people_page/quick_unlock_browser_proxy.js';
+export type {QuickUnlockBrowserProxy} from './os_people_page/quick_unlock_browser_proxy.js';
 export {createRouter as createRouterForTesting, Route, Router, routes} from './router.js';
 export {getPersonalizationSearchHandler, setPersonalizationSearchHandlerForTesting} from './search/personalization_search_handler.js';
 export {getSettingsSearchHandler, setSettingsSearchHandlerForTesting} from './search/settings_search_handler.js';

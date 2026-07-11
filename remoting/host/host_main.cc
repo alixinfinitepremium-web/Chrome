@@ -33,6 +33,7 @@
 #include "remoting/base/file_path_util_linux.h"
 #endif  // BUILDFLAG(IS_LINUX)
 
+#include "remoting/base/memory_consumer_registry.h"
 #include "remoting/host/base/host_exit_codes.h"
 #include "remoting/host/base/switches.h"
 #include "remoting/host/evaluate_capability.h"
@@ -61,6 +62,7 @@ int SingleProcessHostProcessMain();
 int NetworkProcessMain();
 int DaemonProcessMain();
 int DesktopProcessMain();
+int PeerConnectionProcessMain();
 #endif
 #if BUILDFLAG(IS_WIN)
 int FileChooserMain();
@@ -195,6 +197,8 @@ MainRoutineFn SelectMainRoutine(const std::string& process_type) {
     main_routine = &DaemonProcessMain;
   } else if (process_type == kProcessTypeDesktop) {
     main_routine = &DesktopProcessMain;
+  } else if (process_type == kProcessTypePeerConnection) {
+    main_routine = &PeerConnectionProcessMain;
 #endif
 #if BUILDFLAG(IS_WIN)
   } else if (process_type == kProcessTypeFileChooser) {
@@ -216,6 +220,9 @@ MainRoutineFn SelectMainRoutine(const std::string& process_type) {
 }  // namespace
 
 int HostMain(int argc, char** argv) {
+  base::ScopedMemoryConsumerRegistry<remoting::MemoryConsumerRegistry>
+      memory_consumer_registry;
+
 #if BUILDFLAG(IS_APPLE)
   // Needed so we don't leak objects when threads are created.
   base::apple::ScopedNSAutoreleasePool pool;

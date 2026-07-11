@@ -305,6 +305,9 @@ constexpr auto kTouchDownContextResetTimeout = base::Milliseconds(500);
 // same location as the cursor.
 constexpr int kSynthesizedMouseMessagesTimeDifference = 500;
 
+// True if any browser window is in a menu loop.
+bool g_is_in_native_menu_loop = false;
+
 }  // namespace
 
 // A scoping class that prevents a window from being able to redraw in response
@@ -921,6 +924,11 @@ bool HWNDMessageHandler::IsInNativeMoveResizeLoop() {
   return UserResizeMoveDetector::InMoveResizeLoop();
 }
 
+// static
+bool HWNDMessageHandler::IsInNativeMenuLoop() {
+  return g_is_in_native_menu_loop;
+}
+
 void HWNDMessageHandler::SendFrameChanged() {
   ::SetWindowPos(hwnd(), nullptr, 0, 0, 0, 0,
                  SWP_FRAMECHANGED | SWP_NOACTIVATE | SWP_NOCOPYBITS |
@@ -1269,6 +1277,10 @@ LRESULT HWNDMessageHandler::HandleMouseMessage(unsigned int message,
                                                WPARAM w_param,
                                                LPARAM l_param,
                                                bool* handled) {
+  if (!delegate_) {
+    *handled = false;
+    return 0;
+  }
   // Don't track forwarded mouse messages. We expect the caller to track the
   // mouse.
   base::WeakPtr<HWNDMessageHandler> ref(msg_handler_weak_factory_.GetWeakPtr());
@@ -1281,6 +1293,10 @@ LRESULT HWNDMessageHandler::HandleKeyboardMessage(unsigned int message,
                                                   WPARAM w_param,
                                                   LPARAM l_param,
                                                   bool* handled) {
+  if (!delegate_) {
+    *handled = false;
+    return 0;
+  }
   base::WeakPtr<HWNDMessageHandler> ref(msg_handler_weak_factory_.GetWeakPtr());
   LRESULT ret = 0;
   if ((message == WM_CHAR) || (message == WM_SYSCHAR)) {
@@ -1296,6 +1312,10 @@ LRESULT HWNDMessageHandler::HandleTouchMessage(unsigned int message,
                                                WPARAM w_param,
                                                LPARAM l_param,
                                                bool* handled) {
+  if (!delegate_) {
+    *handled = false;
+    return 0;
+  }
   base::WeakPtr<HWNDMessageHandler> ref(msg_handler_weak_factory_.GetWeakPtr());
   LRESULT ret = OnTouchEvent(message, w_param, l_param);
   *handled = IsDestroyed(ref) || msg_handled_;
@@ -1306,6 +1326,10 @@ LRESULT HWNDMessageHandler::HandlePointerMessage(unsigned int message,
                                                  WPARAM w_param,
                                                  LPARAM l_param,
                                                  bool* handled) {
+  if (!delegate_) {
+    *handled = false;
+    return 0;
+  }
   base::WeakPtr<HWNDMessageHandler> ref(msg_handler_weak_factory_.GetWeakPtr());
   LRESULT ret = OnPointerEvent(message, w_param, l_param);
   *handled = IsDestroyed(ref) || msg_handled_;
@@ -1316,6 +1340,10 @@ LRESULT HWNDMessageHandler::HandleInputMessage(unsigned int message,
                                                WPARAM w_param,
                                                LPARAM l_param,
                                                bool* handled) {
+  if (!delegate_) {
+    *handled = false;
+    return 0;
+  }
   base::WeakPtr<HWNDMessageHandler> ref(msg_handler_weak_factory_.GetWeakPtr());
   LRESULT ret = OnInputEvent(message, w_param, l_param);
   *handled = IsDestroyed(ref) || msg_handled_;
@@ -1326,6 +1354,10 @@ LRESULT HWNDMessageHandler::HandleScrollMessage(unsigned int message,
                                                 WPARAM w_param,
                                                 LPARAM l_param,
                                                 bool* handled) {
+  if (!delegate_) {
+    *handled = false;
+    return 0;
+  }
   base::WeakPtr<HWNDMessageHandler> ref(msg_handler_weak_factory_.GetWeakPtr());
   LRESULT ret = OnScrollMessage(message, w_param, l_param);
   *handled = IsDestroyed(ref) || msg_handled_;
@@ -1336,6 +1368,10 @@ LRESULT HWNDMessageHandler::HandleNcHitTestMessage(unsigned int message,
                                                    WPARAM w_param,
                                                    LPARAM l_param,
                                                    bool* handled) {
+  if (!delegate_) {
+    *handled = false;
+    return 0;
+  }
   base::WeakPtr<HWNDMessageHandler> ref(msg_handler_weak_factory_.GetWeakPtr());
   LRESULT ret = OnNCHitTest(
       gfx::Point(CR_GET_X_LPARAM(l_param), CR_GET_Y_LPARAM(l_param)));
@@ -1344,6 +1380,9 @@ LRESULT HWNDMessageHandler::HandleNcHitTestMessage(unsigned int message,
 }
 
 void HWNDMessageHandler::ApplyPinchZoomScale(float scale) {
+  if (!delegate_) {
+    return;
+  }
   POINT cursor_pos = GetCursorPos();
   ::ScreenToClient(hwnd(), &cursor_pos);
 
@@ -1357,6 +1396,9 @@ void HWNDMessageHandler::ApplyPinchZoomScale(float scale) {
 }
 
 void HWNDMessageHandler::ApplyPinchZoomBegin() {
+  if (!delegate_) {
+    return;
+  }
   POINT cursor_pos = GetCursorPos();
   ::ScreenToClient(hwnd(), &cursor_pos);
 
@@ -1369,6 +1411,9 @@ void HWNDMessageHandler::ApplyPinchZoomBegin() {
 }
 
 void HWNDMessageHandler::ApplyPinchZoomEnd() {
+  if (!delegate_) {
+    return;
+  }
   POINT cursor_pos = GetCursorPos();
   ::ScreenToClient(hwnd(), &cursor_pos);
 
@@ -1385,6 +1430,9 @@ void HWNDMessageHandler::ApplyPanGestureEvent(
     int scroll_y,
     ui::EventMomentumPhase momentum_phase,
     ui::ScrollEventPhase phase) {
+  if (!delegate_) {
+    return;
+  }
   gfx::Vector2d offset{scroll_x, scroll_y};
 
   POINT root_location = GetCursorPos();
@@ -2055,6 +2103,9 @@ LRESULT HWNDMessageHandler::OnDpiChanged(UINT msg,
 }
 
 void HWNDMessageHandler::OnEnterMenuLoop(BOOL from_track_popup_menu) {
+  // Chrome doesn't have any recursive menus.
+  CHECK(!g_is_in_native_menu_loop);
+  g_is_in_native_menu_loop = true;
   if (menu_depth_++ == 0) {
     delegate_->HandleMenuLoop(true);
   }
@@ -2085,6 +2136,8 @@ LRESULT HWNDMessageHandler::OnEraseBkgnd(HDC dc) {
 }
 
 void HWNDMessageHandler::OnExitMenuLoop(BOOL is_shortcut_menu) {
+  CHECK(g_is_in_native_menu_loop);
+  g_is_in_native_menu_loop = false;
   if (--menu_depth_ == 0) {
     delegate_->HandleMenuLoop(false);
   }
@@ -2588,6 +2641,15 @@ LRESULT HWNDMessageHandler::OnNCCreate(LPCREATESTRUCT lpCreateStruct) {
 }
 
 LRESULT HWNDMessageHandler::OnNCHitTest(const gfx::Point& point) {
+  // If pointer lock with unadjusted movement is active in fullscreen and we
+  // have mouse capture, we want all mouse events to register as client area
+  // events. Returning HTCLIENT prevents Windows from treating clicks near the
+  // window edges (e.g. caption/reveal zones in fullscreen) as non-client clicks
+  // and swallowing them.
+  if (mouse_locked_ && using_wm_input_ && HasCapture() && IsFullscreen()) {
+    return HTCLIENT;
+  }
+
   if (!delegate_->HasNonClientView()) {
     SetMsgHandled(FALSE);
     return 0;
@@ -3179,12 +3241,11 @@ void HWNDMessageHandler::OnWindowPosChanging(WINDOWPOS* window_pos) {
     // WM_PAINT.
     exposed_pixels_ = new_size - old_size;
 
-    delegate_->HandleWindowSizeChanging();
     sent_window_size_changing_ = true;
 
     // It's possible that if Aero snap is being entered then the window size
-    // won't actually change. Post a message to ensure swaps will be re-enabled
-    // in that case.
+    // won't actually change. Post a message to finalize the size-changing
+    // state in that case.
     ::PostMessage(hwnd(), WM_WINDOWSIZINGFINISHED,
                   ++current_window_size_message_, 0);
     // Copying the old bits can sometimes cause a flash of black when
@@ -3241,7 +3302,6 @@ LRESULT HWNDMessageHandler::OnWindowSizingFinished(UINT message,
   if (current_window_size_message_ != w_param) {
     return 0;
   }
-  delegate_->HandleWindowSizeUnchanged();
   sent_window_size_changing_ = false;
 
   // The window size didn't actually change, so nothing was exposed that needs
@@ -3627,7 +3687,7 @@ LRESULT HWNDMessageHandler::HandlePointerEventTypeTouchOrNonClient(
   base::WeakPtr<HWNDMessageHandler> ref(msg_handler_weak_factory_.GetWeakPtr());
   delegate_->HandleTouchEvent(&event);
 
-  if (ref) {
+  if (!IsDestroyed(ref)) {
     // Mark touch released events handled. These will usually turn into tap
     // gestures, and doing this avoids propagating the event to other windows.
     if (delegate_->GetFrameMode() == FrameMode::SYSTEM_DRAWN) {
@@ -3678,7 +3738,7 @@ LRESULT HWNDMessageHandler::HandlePointerEventTypePen(
     is_pen_active_in_client_area_ = true;
   }
 
-  if (ref) {
+  if (!IsDestroyed(ref)) {
     SetMsgHandled(handle_pen_events_in_client_area_);
   }
 
@@ -4015,7 +4075,7 @@ bool HWNDMessageHandler::IsDestroyed(
         views::features::kDeferHWNDMessageHandlerDestruction));
     return true;
   }
-  return false;
+  return ref->delete_pending_;
 }
 
 // static

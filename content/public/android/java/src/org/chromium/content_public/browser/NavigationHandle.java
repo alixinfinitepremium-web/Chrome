@@ -14,6 +14,7 @@ import org.jni_zero.JNINamespace;
 import org.chromium.base.UserDataHost;
 import org.chromium.build.annotations.NullMarked;
 import org.chromium.build.annotations.Nullable;
+import org.chromium.content.browser.framehost.PageImpl;
 import org.chromium.net.NetError;
 import org.chromium.ui.base.PageTransition;
 import org.chromium.url.GURL;
@@ -220,6 +221,30 @@ public class NavigationHandle {
         }
         mIsSameOrigin = isSameOrigin;
         mIgnoredDuplicateNavigationCount = ignoredDuplicateNavigationCount;
+    }
+
+    public void callDidFinishForTesting(GURL url) {
+        callDidFinishForTesting(url, true);
+    }
+
+    public void callDidFinishForTesting(GURL url, boolean hasCommitted) {
+        didFinish(
+                url,
+                /* isErrorPage= */ false,
+                hasCommitted,
+                /* isPrimaryMainFrameFragmentNavigation= */ false,
+                /* isDownload= */ false,
+                /* isValidSearchFormUrl= */ false,
+                /* transition= */ PageTransition.LINK,
+                /* errorCode= */ NetError.OK,
+                /* errorDescription= */ "",
+                /* httpStatuscode= */ 200,
+                /* isExternalProtocol= */ false,
+                /* isPdf= */ false,
+                /* mimeType= */ "",
+                new PageImpl(/* nativePage= */ 0, /* isPrerendering= */ false),
+                /* isSameOrigin= */ true,
+                /* ignoredDuplicateNavigationCount= */ 0);
     }
 
     /** Release the C++ pointer. */

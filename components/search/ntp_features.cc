@@ -69,12 +69,7 @@ BASE_FEATURE(kNtpBackgroundImageErrorDetection,
              base::FEATURE_DISABLED_BY_DEFAULT);
 
 // If enabled, calendar module will be shown.
-BASE_FEATURE(kNtpCalendarModule,
-#if BUILDFLAG(IS_ANDROID)
-             base::FEATURE_DISABLED_BY_DEFAULT);
-#else
-             base::FEATURE_ENABLED_BY_DEFAULT);
-#endif
+BASE_FEATURE(kNtpCalendarModule, base::FEATURE_ENABLED_BY_DEFAULT);
 
 // If enabled, chrome cart module will be shown.
 BASE_FEATURE(kNtpChromeCartModule,
@@ -101,16 +96,14 @@ BASE_FEATURE(kNtpDummyModules, base::FEATURE_DISABLED_BY_DEFAULT);
 
 // If enabled, Google Drive module will be shown.
 // This is a kill switch. Keep indefinitely.
-BASE_FEATURE(kNtpDriveModule,
-#if BUILDFLAG(IS_ANDROID)
-             base::FEATURE_DISABLED_BY_DEFAULT);
-#else
-             base::FEATURE_ENABLED_BY_DEFAULT);
-#endif
+BASE_FEATURE(kNtpDriveModule, base::FEATURE_ENABLED_BY_DEFAULT);
 
 // If enabled, the NTP Drive module does not require sync.
 BASE_FEATURE(kNtpDriveModuleHistorySyncRequirement,
              base::FEATURE_ENABLED_BY_DEFAULT);
+
+// If enabled, the NTP Drive Module will link to the Drive page.
+BASE_FEATURE(kNtpDriveModuleLink, base::FEATURE_DISABLED_BY_DEFAULT);
 
 // If enabled, segmentation data will be collected to decide whether or not to
 // show the Drive module.
@@ -241,6 +234,9 @@ BASE_FEATURE(kNtpNextFeatures, base::FEATURE_DISABLED_BY_DEFAULT);
 // If enabled, the Canvas action chip will be shown.
 BASE_FEATURE(kNtpNextCanvasChip, base::FEATURE_DISABLED_BY_DEFAULT);
 
+// If enabled, the starter chip will be shown.
+BASE_FEATURE(kNtpStarterChip, base::FEATURE_DISABLED_BY_DEFAULT);
+
 // If enabled, the OGB loader will request for the async bar parts payload type.
 BASE_FEATURE(kNtpOneGoogleBarAsyncBarParts, base::FEATURE_DISABLED_BY_DEFAULT);
 
@@ -259,12 +255,24 @@ BASE_FEATURE(kNtpTabGroupsModuleZeroState,
              base::FEATURE_DISABLED_BY_DEFAULT);
 
 // If enabled, stale modules will be auto-removed from the NTP.
+// TODO(b/525245973): Enable on Android once customize chrome is implemented.
+#if BUILDFLAG(IS_ANDROID)
+BASE_FEATURE(kNtpFeatureOptimizationModuleRemoval,
+             base::FEATURE_DISABLED_BY_DEFAULT);
+#else
 BASE_FEATURE(kNtpFeatureOptimizationModuleRemoval,
              base::FEATURE_ENABLED_BY_DEFAULT);
+#endif
 
 // If enabled, stale shortcuts will be auto-removed from the NTP.
+// TODO(b/525245973): Enable on Android once customize chrome is implemented.
+#if BUILDFLAG(IS_ANDROID)
+BASE_FEATURE(kNtpFeatureOptimizationShortcutsRemoval,
+             base::FEATURE_DISABLED_BY_DEFAULT);
+#else
 BASE_FEATURE(kNtpFeatureOptimizationShortcutsRemoval,
              base::FEATURE_ENABLED_BY_DEFAULT);
+#endif
 
 // If enabled, the dismiss module buttons will be removed from the NTP modules.
 BASE_FEATURE(kNtpFeatureOptimizationDismissModulesRemoval,

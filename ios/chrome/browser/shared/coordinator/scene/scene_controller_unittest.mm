@@ -9,10 +9,12 @@
 #import "components/signin/public/base/consent_level.h"
 #import "components/signin/public/identity_manager/identity_test_utils.h"
 #import "components/supervised_user/test_support/kids_chrome_management_test_utils.h"
+#import "components/sync/test/test_sync_service.h"
 #import "components/variations/scoped_variations_ids_provider.h"
 #import "components/variations/variations_ids_provider.h"
 #import "ios/chrome/app/profile/profile_init_stage.h"
 #import "ios/chrome/app/profile/profile_state.h"
+#import "ios/chrome/app/profile/profile_state_test_utils.h"
 #import "ios/chrome/browser/bookmarks/model/bookmark_model_factory.h"
 #import "ios/chrome/browser/enterprise/data_protection/model/data_protection_scene_agent.h"
 #import "ios/chrome/browser/enterprise/data_protection/public/features.h"
@@ -32,12 +34,13 @@
 #import "ios/chrome/browser/shared/coordinator/layout_guide/layout_guide_scene_agent.h"
 #import "ios/chrome/browser/shared/coordinator/scene/scene_controller_testing.h"
 #import "ios/chrome/browser/shared/coordinator/scene/scene_state.h"
-#import "ios/chrome/browser/shared/coordinator/scene/scene_util_test_support.h"
+#import "ios/chrome/browser/shared/coordinator/scene/scene_state_options.h"
 #import "ios/chrome/browser/shared/coordinator/scene/state/incognito_state.h"
 #import "ios/chrome/browser/shared/model/browser/browser_list_factory.h"
 #import "ios/chrome/browser/shared/model/browser/test/test_browser.h"
 #import "ios/chrome/browser/shared/model/profile/test/test_profile_ios.h"
 #import "ios/chrome/browser/shared/public/commands/command_dispatcher.h"
+#import "ios/chrome/browser/shared/public/commands/gemini_commands.h"
 #import "ios/chrome/browser/shared/public/commands/scene_commands.h"
 #import "ios/chrome/browser/shared/public/commands/settings_commands.h"
 #import "ios/chrome/browser/shared/public/features/features.h"
@@ -46,6 +49,8 @@
 #import "ios/chrome/browser/signin/model/identity_manager_factory.h"
 #import "ios/chrome/browser/signin/model/identity_test_environment_browser_state_adaptor.h"
 #import "ios/chrome/browser/sync/model/send_tab_to_self_sync_service_factory.h"
+#import "ios/chrome/browser/sync/model/sync_service_factory.h"
+#import "ios/chrome/browser/sync/model/test_sync_service_utils.h"
 #import "ios/chrome/browser/url_loading/model/url_loading_params.h"
 #import "ios/chrome/common/ui/reauthentication/reauthentication_module.h"
 #import "ios/chrome/test/ios_chrome_scoped_testing_local_state.h"
@@ -98,12 +103,10 @@ class SceneControllerTest : public PlatformTest {
 
     base_view_controller_ = [[UIViewController alloc] init];
 
-    fake_scene_ = FakeSceneWithIdentifier([[NSUUID UUID] UUIDString]);
-    scene_state_ = [[SceneStateWithFakeScene alloc] initWithScene:fake_scene_
-                                                         appState:nil];
-
-    profile_state_ = CreateMockProfileState(ProfileInitStage::kFinal);
-    scene_state_.profileState = profile_state_;
+    profile_state_ = CreateProfileState(ProfileInitStage::kFinal);
+    scene_state_ = [[SceneState alloc] initWithAppState:nil];
+    [scene_state_ connectWithOptions:{.profile_state = profile_state_,
+                                      .identifier = "scene-id"}];
 
     scene_controller_ =
         [[InternalFakeSceneController alloc] initWithSceneState:scene_state_];
@@ -142,6 +145,8 @@ class SceneControllerTest : public PlatformTest {
     builder.AddTestingFactory(
         tab_groups::TabGroupSyncServiceFactory::GetInstance(),
         tab_groups::TabGroupSyncServiceFactory::GetDefaultFactory());
+    builder.AddTestingFactory(SyncServiceFactory::GetInstance(),
+                              base::BindRepeating(&CreateTestSyncService));
     profile_ = std::move(builder).Build();
 
     browser_ = std::make_unique<TestBrowser>(profile_.get(), scene_state_);
@@ -153,11 +158,14 @@ class SceneControllerTest : public PlatformTest {
 
     mock_scene_handler_ = OCMProtocolMock(@protocol(SceneCommands));
     mock_settings_handler_ = OCMProtocolMock(@protocol(SettingsCommands));
+    mock_gemini_handler_ = OCMProtocolMock(@protocol(GeminiCommands));
     CommandDispatcher* dispatcher = browser_->GetCommandDispatcher();
     [dispatcher startDispatchingToTarget:mock_scene_handler_
                              forProtocol:@protocol(SceneCommands)];
     [dispatcher startDispatchingToTarget:mock_settings_handler_
                              forProtocol:@protocol(SettingsCommands)];
+    [dispatcher startDispatchingToTarget:mock_gemini_handler_
+                             forProtocol:@protocol(GeminiCommands)];
 
     LayoutGuideSceneAgent* layout_guide_scene_agent =
         [[LayoutGuideSceneAgent alloc] init];
@@ -167,11 +175,12 @@ class SceneControllerTest : public PlatformTest {
         initWithReauthModule:[[ReauthenticationModule alloc] init]];
     [scene_state_ addAgent:reauth_agent];
 
-    scene_controller_.browserLifecycleManager = [[BrowserLifecycleManager alloc]
-         initWithProfile:profile_.get()
-              sceneState:scene_state_
-           sceneEndpoint:mock_scene_handler_
-        settingsEndpoint:mock_settings_handler_];
+    scene_controller_.browserLifecycleManager =
+        [[BrowserLifecycleManager alloc] initWithProfile:profile_.get()
+                                              sceneState:scene_state_
+                                           sceneEndpoint:mock_scene_handler_
+                                        settingsEndpoint:mock_settings_handler_
+                                          geminiEndpoint:mock_gemini_handler_];
     [scene_controller_
             .browserLifecycleManager createMainCoordinatorAndInterface];
 
@@ -186,12 +195,12 @@ class SceneControllerTest : public PlatformTest {
     ResetEnableNewStartupFlowEnabledForTesting();
   }
 
-  // Mock & stub a ProfileState object with an arbitrary `init_stage` property.
-  ProfileState* CreateMockProfileState(ProfileInitStage init_stage) {
-    ProfileState* mock_profile_state = OCMClassMock([ProfileState class]);
-    OCMStub([mock_profile_state initStage]).andReturn(init_stage);
-    OCMStub([mock_profile_state profile]).andReturn(profile_.get());
-    return mock_profile_state;
+  // Creates a ProfileState object with an arbitrary `init_stage` property.
+  ProfileState* CreateProfileState(ProfileInitStage init_stage) {
+    ProfileState* profile_state = [[ProfileState alloc] initWithAppState:nil];
+    SetProfileStateInitStage(profile_state, init_stage);
+    profile_state.profile = profile_.get();
+    return profile_state;
   }
 
   // Mock & stub a WrangledBrowser object.
@@ -239,9 +248,9 @@ class SceneControllerTest : public PlatformTest {
   InternalFakeSceneController* scene_controller_;
   id mock_scene_handler_;
   id mock_settings_handler_;
+  id mock_gemini_handler_;
   SceneState* scene_state_;
   ProfileState* profile_state_;
-  id fake_scene_;
   id<ConnectionInformation> connection_information_;
   UIViewController* base_view_controller_;
   network::TestURLLoaderFactory test_loader_factory_;
@@ -349,8 +358,9 @@ TEST_F(SceneControllerTest, TestDataProtectionSceneAgentEnabled) {
 
   EXPECT_EQ(nil, [DataProtectionSceneAgent agentFromScene:scene_state]);
 
-  scene_controller.profileState =
-      CreateMockProfileState(ProfileInitStage::kFinal);
+  ProfileState* profile_state = CreateProfileState(ProfileInitStage::kFinal);
+  [scene_controller connectWithOptions:{.profile_state = profile_state,
+                                        .identifier = "other-id"}];
 
   EXPECT_NE(nil, [DataProtectionSceneAgent agentFromScene:scene_state]);
 }
@@ -367,8 +377,9 @@ TEST_F(SceneControllerTest, TestDataProtectionSceneAgentDisabled) {
 
   EXPECT_EQ(nil, [DataProtectionSceneAgent agentFromScene:scene_state]);
 
-  scene_controller.profileState =
-      CreateMockProfileState(ProfileInitStage::kFinal);
+  ProfileState* profile_state = CreateProfileState(ProfileInitStage::kFinal);
+  [scene_controller connectWithOptions:{.profile_state = profile_state,
+                                        .identifier = "other-id"}];
 
   EXPECT_EQ(nil, [DataProtectionSceneAgent agentFromScene:scene_state]);
 }

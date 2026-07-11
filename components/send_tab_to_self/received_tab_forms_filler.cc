@@ -135,6 +135,13 @@ base::flat_set<AutofillTypeSet> ComputeUniqueTypeSets(
                                          std::move(unique_type_sets));
 }
 
+// Returns true if the pending field and the local field have the same
+// control type.
+bool HasSameControlType(const PageContext::FormField& pending_field,
+                        const autofill::AutofillField& local_field) {
+  return pending_field.form_control_type == local_field.form_control_type();
+}
+
 }  // namespace
 
 // static
@@ -290,13 +297,17 @@ ReceivedTabFormsFiller::FindPendingFieldMatching(
       form.form_signature(), field.GetFieldSignature()};
   if (const PageContext::FormField* match =
           FindPendingFieldBySignature(signature, form_unique_signatures)) {
-    return {match, FormFieldMatchOutcome::kMatchedBySignature};
+    if (HasSameControlType(*match, field)) {
+      return {match, FormFieldMatchOutcome::kMatchedBySignature};
+    }
   }
 
   // 3. Try fallback match using Autofill types (exact set match).
   if (const PageContext::FormField* match =
           FindPendingFieldByExactTypeSet(field, form_unique_type_sets)) {
-    return {match, FormFieldMatchOutcome::kMatchedByExactTypeSet};
+    if (HasSameControlType(*match, field)) {
+      return {match, FormFieldMatchOutcome::kMatchedByExactTypeSet};
+    }
   }
 
   return {};
@@ -306,8 +317,7 @@ const PageContext::FormField*
 ReceivedTabFormsFiller::FindPendingFieldByIdNameAndType(
     const autofill::AutofillField& field) const {
   auto it = pending_fields_.find(std::make_tuple(
-      field.id_attribute(), field.name_attribute(),
-      autofill::FormControlTypeToString(field.form_control_type())));
+      field.id_attribute(), field.name_attribute(), field.form_control_type()));
   return it != pending_fields_.end() ? &*it : nullptr;
 }
 
@@ -391,6 +401,14 @@ void ReceivedTabFormsFiller::FillForms(
       if (!match.field) {
         // Fields on the page that don't match any pending field are ignored for
         // metrics purposes.
+        continue;
+      }
+
+      // Don't fill fields that are considered sensitive. Since matching
+      // enforces identical control types, checking the local field's type
+      // is sufficient.
+      if (IsSensitiveFieldType(field->form_control_type())) {
+        pending_fields_.erase(*match.field);
         continue;
       }
 

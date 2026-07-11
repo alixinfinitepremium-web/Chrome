@@ -80,11 +80,6 @@ chromium-metrics-reviews@google.com.
   <variant name="Renderer"/>
 </variants>
 
-<variants name="VizCodePathName">
-  <variant name="Aggregate"/>
-  <variant name="DrawAndSwap"/>
-</variants>
-
 <histogram name="Compositing.Animation.MissingPropertyNodeForElementId"
     enum="PropertyMutation" expires_after="2026-01-31">
   <owner>kevers@chromium.org</owner>
@@ -95,8 +90,8 @@ chromium-metrics-reviews@google.com.
   </summary>
 </histogram>
 
-<histogram name="Compositing.BeginMainFrame.BMFReason9{FrameType}{Suffix}"
-    units="reasons" expires_after="2026-10-30">
+<histogram name="Compositing.BeginMainFrame.BMFReason10{FrameType}{Suffix}"
+    units="reasons" expires_after="2027-06-30">
   <owner>thiabaud@google.com</owner>
   <owner>jonross@chromium.org</owner>
   <summary>
@@ -117,7 +112,7 @@ chromium-metrics-reviews@google.com.
 </histogram>
 
 <histogram name="Compositing.BeginMainFrame.MainResult"
-    enum="BeginMainFrameMainResult" expires_after="2026-11-01">
+    enum="BeginMainFrameMainResult" expires_after="2027-01-03">
   <owner>lizeb@chromium.org</owner>
   <owner>jonross@chromium.org</owner>
   <summary>
@@ -127,7 +122,7 @@ chromium-metrics-reviews@google.com.
 </histogram>
 
 <histogram name="Compositing.BeginMainFrame.TimeUs" units="microseconds"
-    expires_after="2026-11-01">
+    expires_after="2027-01-03">
   <owner>lizeb@chromium.org</owner>
   <owner>jonross@chromium.org</owner>
   <improvement direction="LOWER_IS_BETTER"/>
@@ -139,7 +134,7 @@ chromium-metrics-reviews@google.com.
 </histogram>
 
 <histogram name="Compositing.BeginMainFrame.TimeUs.NoUpdate"
-    units="microseconds" expires_after="2026-11-01">
+    units="microseconds" expires_after="2027-01-03">
   <owner>lizeb@chromium.org</owner>
   <owner>jonross@chromium.org</owner>
   <improvement direction="LOWER_IS_BETTER"/>
@@ -291,7 +286,7 @@ chromium-metrics-reviews@google.com.
 </histogram>
 
 <histogram name="Compositing.DirectRenderer.PartialSwap.TotalDamage" units="%"
-    expires_after="2026-11-01">
+    expires_after="2027-01-03">
   <owner>vasilyt@chromium.org</owner>
   <owner>jonross@chromium.org</owner>
   <owner>chrome-gpu-metric-alerts@chromium.org</owner>
@@ -306,7 +301,7 @@ chromium-metrics-reviews@google.com.
 </histogram>
 
 <histogram name="Compositing.DirectRenderer.RenderPassDrawnRectMatch"
-    enum="Boolean" expires_after="2026-11-01">
+    enum="Boolean" expires_after="2027-01-03">
   <owner>jonross@chromium.org</owner>
   <owner>chrome-gpu-metric-alerts@chromium.org</owner>
   <summary>
@@ -332,7 +327,7 @@ chromium-metrics-reviews@google.com.
 </histogram>
 
 <histogram name="Compositing.Display.Draw.AverageOverdraw2" units="units"
-    expires_after="2026-10-25">
+    expires_after="2026-12-27">
   <owner>zoraiznaeem@chromium.org</owner>
   <owner>chrome-gpu-metric-alerts@chromium.org</owner>
   <summary>
@@ -453,19 +448,6 @@ chromium-metrics-reviews@google.com.
   </summary>
 </histogram>
 
-<histogram name="Compositing.Display.VizCodePath.{VizCodePathName}"
-    enum="Boolean" expires_after="2026-06-09">
-  <owner>fangzhoug@chromium.org</owner>
-  <owner>jonross@chromium.org</owner>
-  <owner>chrome-gpu-metric-alerts@chromium.org</owner>
-  <summary>
-    Track usage of different code paths in Viz display compositor. We want to
-    monitor code paths and see if some code paths will not be executed each
-    frame.
-  </summary>
-  <token key="VizCodePathName" variants="VizCodePathName"/>
-</histogram>
-
 <histogram name="Compositing.Display.VizDependencyResolvedToGpuStartedDrawUs"
     units="microseconds" expires_after="2027-01-07">
   <owner>vasilyt@chromium.org</owner>
@@ -513,7 +495,7 @@ chromium-metrics-reviews@google.com.
 </histogram>
 
 <histogram name="Compositing.Renderer.CALayerResult" enum="CALayerResult"
-    expires_after="2026-10-25">
+    expires_after="2026-12-27">
   <owner>ccameron@chromium.org</owner>
   <owner>chrome-gpu-metric-alerts@chromium.org</owner>
   <summary>
@@ -594,7 +576,7 @@ chromium-metrics-reviews@google.com.
 </histogram>
 
 <histogram name="Compositing.SkiaRenderer.{DrawQuadMaterial}.SrcRectConstraint"
-    enum="SrcRectConstraintUMA" expires_after="2026-10-16">
+    enum="SrcRectConstraintUMA" expires_after="2026-12-16">
   <owner>hitawala@chromium.org</owner>
   <owner>chrome-gpu-metric-alerts@chromium.org</owner>
   <summary>
@@ -670,7 +652,7 @@ chromium-metrics-reviews@google.com.
 
 <histogram
     name="Compositing.TileManager.LimitWhenNotEnoughMemory.{ProcessType}"
-    units="MB" expires_after="2026-11-01">
+    units="MB" expires_after="2027-01-03">
   <owner>lizeb@chromium.org</owner>
   <owner>chrome-gpu-memory@google.com</owner>
   <summary>
@@ -695,7 +677,7 @@ chromium-metrics-reviews@google.com.
 </histogram>
 
 <histogram name="Compositing.TileManager.RasterTasksDuration"
-    units="microseconds" expires_after="2026-10-25">
+    units="microseconds" expires_after="2026-12-27">
   <owner>lizeb@chromium.org</owner>
   <owner>chrome-gpu-metric-alerts@chromium.org</owner>
   <improvement direction="LOWER_IS_BETTER"/>
@@ -703,17 +685,6 @@ chromium-metrics-reviews@google.com.
     Total duration (in us) for all raster tasks to execute. Recorded when raster
     tasks are scheduled, at a downsampled rate. Only reported for platforms
     supporting high resolution clocks.
-  </summary>
-</histogram>
-
-<histogram name="Compositing.TileManager.TileInvalidationArea" units="%"
-    expires_after="2026-07-26">
-  <owner>jonross@chromium.org</owner>
-  <owner>chrome-gpu-metric-alerts@chromium.org</owner>
-  <summary>
-    When resource is assigned to tile for rasterization, records the percentage
-    area of invalidation of said resource. This will only be recorded for
-    partially rasterized tiles.
   </summary>
 </histogram>
 
@@ -887,7 +858,7 @@ chromium-metrics-reviews@google.com.
 </histogram>
 
 <histogram name="Graphics.Smoothness.CheckerboardingNeedRaster4.AllSequences"
-    units="%" expires_after="2026-11-01">
+    units="%" expires_after="2027-01-03">
   <owner>wangxianzhu@chromium.org</owner>
   <owner>chrome-gpu-metric-alerts@chromium.org</owner>
   <summary>
@@ -911,7 +882,7 @@ chromium-metrics-reviews@google.com.
 </histogram>
 
 <histogram name="Graphics.Smoothness.CheckerboardingNeedRecord4.AllSequences"
-    units="%" expires_after="2026-10-25">
+    units="%" expires_after="2026-12-27">
   <owner>wangxianzhu@chromium.org</owner>
   <owner>chrome-gpu-metric-alerts@chromium.org</owner>
   <summary>
@@ -959,7 +930,7 @@ chromium-metrics-reviews@google.com.
 </histogram>
 
 <histogram name="Graphics.Smoothness.Checkerboarding{Version}.{Sequence}"
-    units="%" expires_after="2026-10-25">
+    units="%" expires_after="2027-01-03">
   <owner>jonross@chromium.org</owner>
   <owner>chrome-gpu-metric-alerts@chromium.org</owner>
   <summary>
@@ -983,7 +954,7 @@ chromium-metrics-reviews@google.com.
 
 <histogram
     name="Graphics.Smoothness.Checkerboarding{Version}.{Thread}{Sequence}"
-    units="%" expires_after="2026-10-25">
+    units="%" expires_after="2027-01-03">
   <owner>jonross@chromium.org</owner>
   <owner>chrome-gpu-metric-alerts@chromium.org</owner>
   <summary>
@@ -1116,7 +1087,7 @@ chromium-metrics-reviews@google.com.
 </histogram>
 
 <histogram name="Graphics.Smoothness.PercentDroppedFrames3.{Sequence}"
-    units="%" expires_after="2026-10-25">
+    units="%" expires_after="2027-01-03">
   <owner>jonross@chromium.org</owner>
   <owner>chrome-gpu-metric-alerts@chromium.org</owner>
   <improvement direction="LOWER_IS_BETTER"/>
@@ -1173,7 +1144,7 @@ chromium-metrics-reviews@google.com.
 </histogram>
 
 <histogram name="Graphics.Smoothness.PercentDroppedFrames3.{Thread}{Sequence}"
-    units="%" expires_after="2026-10-25">
+    units="%" expires_after="2027-01-03">
   <owner>jonross@chromium.org</owner>
   <owner>chrome-gpu-metric-alerts@chromium.org</owner>
   <improvement direction="LOWER_IS_BETTER"/>
@@ -1203,7 +1174,7 @@ chromium-metrics-reviews@google.com.
 </histogram>
 
 <histogram name="Graphics.Smoothness.PercentDroppedFrames4.AllSequences"
-    units="%" expires_after="2026-11-01">
+    units="%" expires_after="2027-01-03">
   <owner>jonross@chromium.org</owner>
   <owner>gaiko@chromium.org</owner>
   <owner>chrome-gpu-metric-alerts@chromium.org</owner>

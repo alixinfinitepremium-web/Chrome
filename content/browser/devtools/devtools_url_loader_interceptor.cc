@@ -10,6 +10,7 @@
 
 #include "base/barrier_closure.h"
 #include "base/base64.h"
+#include "base/byte_size.h"
 #include "base/functional/bind.h"
 #include "base/memory/raw_ptr.h"
 #include "base/memory/raw_ref.h"
@@ -388,7 +389,7 @@ class NoOpHeaderClient final : public network::mojom::TrustedHeaderClient {
   void OnBeforeSendHeaders(const GURL& request_url,
                            const net::HttpRequestHeaders& headers,
                            OnBeforeSendHeadersCallback callback) override {
-    std::move(callback).Run(net::OK, std::nullopt);
+    std::move(callback).Run(net::OK, std::nullopt, std::nullopt);
   }
 
   void OnHeadersReceived(const std::string& headers,
@@ -537,7 +538,8 @@ class InterceptionJob : public network::mojom::URLLoaderClient,
       const net::HttpRequestHeaders& original_headers,
       OnBeforeSendHeadersCallback original_callback,
       int result_from_target,
-      const std::optional<net::HttpRequestHeaders>& headers_from_target);
+      const std::optional<net::HttpRequestHeaders>& headers_from_target,
+      std::optional<base::DictValue> extended_net_log_events);
 
   void StartLoadingResponseBody(mojo::ScopedDataPipeConsumerHandle body);
 
@@ -1476,9 +1478,10 @@ Response InterceptionJob::ProcessResponseOverride(
   response_metadata_->transfer_size = body_size;
 
   response_metadata_->status.completion_time = base::TimeTicks::Now();
-  response_metadata_->status.encoded_data_length = headers_size + body_size;
-  response_metadata_->status.encoded_body_length = body_size;
-  response_metadata_->status.decoded_body_length = body_size;
+  response_metadata_->status.encoded_data_length =
+      base::ByteSize(headers_size) + base::ByteSize(body_size);
+  response_metadata_->status.encoded_body_length = base::ByteSize(body_size);
+  response_metadata_->status.decoded_body_length = base::ByteSize(body_size);
 
   base::OnceClosure continue_after_cookies_set;
   std::string location;
@@ -2065,7 +2068,7 @@ void InterceptionJob::OnBeforeSendHeaders(
 
   if (!headers_override_ ||
       !headers_override_->overridden_cookie().has_value()) {
-    std::move(callback).Run(net::OK, headers);
+    std::move(callback).Run(net::OK, headers, std::nullopt);
     return;
   }
 
@@ -2079,7 +2082,7 @@ void InterceptionJob::OnBeforeSendHeaders(
   net::HttpRequestHeaders final_headers = headers;
   final_headers.SetHeader(net::HttpRequestHeaders::kCookie,
                           headers_override_->overridden_cookie().value());
-  std::move(callback).Run(net::OK, final_headers);
+  std::move(callback).Run(net::OK, final_headers, std::nullopt);
 }
 
 void InterceptionJob::OnHeadersReceived(
@@ -2104,17 +2107,20 @@ void InterceptionJob::OnTargetHeaderClientBeforeSendHeadersComplete(
     const net::HttpRequestHeaders& original_headers,
     OnBeforeSendHeadersCallback original_callback,
     int result_from_target,
-    const std::optional<net::HttpRequestHeaders>& headers_from_target) {
+    const std::optional<net::HttpRequestHeaders>& headers_from_target,
+    std::optional<base::DictValue> extended_net_log_events) {
   // If the downstream client (e.g., an extension) blocked or cancelled the
   // request, we must respect that decision and forward the result immediately.
   if (result_from_target != net::OK) {
-    std::move(original_callback).Run(result_from_target, headers_from_target);
+    std::move(original_callback)
+        .Run(result_from_target, headers_from_target, std::nullopt);
     return;
   }
 
   if (!headers_override_ ||
       !headers_override_->overridden_cookie().has_value()) {
-    std::move(original_callback).Run(result_from_target, headers_from_target);
+    std::move(original_callback)
+        .Run(result_from_target, headers_from_target, std::nullopt);
     return;
   }
 
@@ -2129,7 +2135,8 @@ void InterceptionJob::OnTargetHeaderClientBeforeSendHeadersComplete(
       headers_from_target.value_or(original_headers);
   final_headers.SetHeader(net::HttpRequestHeaders::kCookie,
                           headers_override_->overridden_cookie().value());
-  std::move(original_callback).Run(result_from_target, final_headers);
+  std::move(original_callback)
+      .Run(result_from_target, final_headers, std::nullopt);
 }
 
 void InterceptionJob::OnAuthRequest(

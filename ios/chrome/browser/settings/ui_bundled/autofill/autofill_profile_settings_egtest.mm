@@ -23,6 +23,7 @@
 #import "ios/chrome/browser/settings/autofill/autofill_ai/test/autofill_ai_settings_test_util.h"
 #import "ios/chrome/browser/settings/ui_bundled/autofill/autofill_settings_constants.h"
 #import "ios/chrome/browser/settings/ui_bundled/settings_root_table_constants.h"
+#import "ios/chrome/browser/shared/public/features/features.h"
 #import "ios/chrome/browser/shared/public/snackbar/snackbar_constants.h"
 #import "ios/chrome/browser/shared/ui/elements/activity_overlay_egtest_util.h"
 #import "ios/chrome/browser/signin/model/fake_system_identity.h"
@@ -44,7 +45,6 @@ using chrome_test_util::SettingsDoneButton;
 using chrome_test_util::SettingsMenuBackButton;
 using chrome_test_util::SettingsToolbarAddButton;
 using chrome_test_util::SettingsToolbarEditButton;
-using chrome_test_util::TabGridEditButton;
 using policy_test_utils::SetPolicy;
 
 namespace {
@@ -93,7 +93,6 @@ NSString* TravelSectionTitle() {
 id<GREYMatcher> NavigationBarEditButton() {
   return grey_allOf(
       ButtonWithAccessibilityLabelId(IDS_IOS_NAVIGATION_BAR_EDIT_BUTTON),
-      grey_not(TabGridEditButton()),
       grey_not(grey_accessibilityTrait(UIAccessibilityTraitNotEnabled)), nil);
 }
 
@@ -160,6 +159,7 @@ id<GREYMatcher> TextFieldWithLabel(NSString* textFieldLabel) {
 
 - (AppLaunchConfiguration)appConfigurationForTestCase {
   AppLaunchConfiguration config = [super appConfigurationForTestCase];
+  config.features_disabled.push_back(kYourSavedInfoSettingsPageIos);
 
   if ([self isRunningTest:@selector(testToggleEnhancedAutofillSwitch)] ||
       [self isRunningTest:@selector(testAddAndDeleteEntityUsingMenu)] ||
@@ -170,8 +170,6 @@ id<GREYMatcher> TextFieldWithLabel(NSString* textFieldLabel) {
       [self isRunningTest:@selector(
                               testDeleteLastEntityInSectionRemovesSection)] ||
       [self isRunningTest:@selector(testSimultaneousRowAndSectionDeletion)]) {
-    config.features_enabled.push_back(
-        autofill::features::kAutofillAiCreateEntityDataManager);
     config.features_enabled.push_back(
         autofill::features::kAutofillAiWithDataSchema);
   }
@@ -192,8 +190,6 @@ id<GREYMatcher> TextFieldWithLabel(NSString* textFieldLabel) {
       [self isRunningTest:@selector(testToggleToolbarAddButtonBySwitch)]) {
     config.features_disabled.push_back(
         autofill::features::kAutofillAiWithDataSchema);
-    config.features_disabled.push_back(
-        autofill::features::kAutofillAiCreateEntityDataManager);
   }
 
   return config;

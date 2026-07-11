@@ -110,6 +110,7 @@
 #include "third_party/blink/public/common/storage_key/storage_key.h"
 #include "third_party/blink/public/common/switches.h"
 #include "third_party/blink/public/common/web_preferences/web_preferences.h"
+#include "ui/base/ui_base_features.h"
 #include "url/gurl.h"
 #include "url/origin.h"
 
@@ -651,7 +652,7 @@ TEST_F(ChromeContentBrowserClientTestWithWebContents,
   search_test_utils::WaitForTemplateURLServiceToLoad(template_url_service);
   TemplateURLData data;
   data.SetShortName(u"example.com");
-  data.SetURL("http://example.com/test?q={searchTerms}");
+  data.SetURL("https://example.com/test?q={searchTerms}");
   data.new_tab_url = chrome::kChromeUINewTabURL;
   TemplateURL* template_url =
       template_url_service->Add(std::make_unique<TemplateURL>(data));
@@ -667,6 +668,38 @@ TEST_F(ChromeContentBrowserClientTestWithWebContents,
       profile(), GURL("https://example.com/test?q=")));
   EXPECT_TRUE(browser_client.IsServiceWorkerSyntheticResponseAllowed(
       profile(), GURL("https://example.com/test?q=test")));
+}
+
+TEST_F(ChromeContentBrowserClientTestWithWebContents,
+       IsServiceWorkerSyntheticResponseAllowedForAlternateUrls) {
+  ChromeContentBrowserClient browser_client;
+
+  // Update the default search engine with an alternate URL on a different
+  // origin.
+  TemplateURLServiceFactory::GetInstance()->SetTestingFactoryAndUse(
+      profile(),
+      base::BindRepeating(&TemplateURLServiceFactory::BuildInstanceFor));
+  TemplateURLService* template_url_service =
+      TemplateURLServiceFactory::GetForProfile(profile());
+  search_test_utils::WaitForTemplateURLServiceToLoad(template_url_service);
+  TemplateURLData data;
+  data.SetShortName(u"example.com");
+  data.SetURL("https://example.com/test?q={searchTerms}");
+  data.alternate_urls.push_back("https://other.test/{searchTerms}");
+  data.new_tab_url = chrome::kChromeUINewTabURL;
+  TemplateURL* template_url =
+      template_url_service->Add(std::make_unique<TemplateURL>(data));
+  template_url_service->SetUserSelectedDefaultSearchProvider(template_url);
+
+  // The synthetic response should only be allowed for navigations to the
+  // default search provider's own origin, even when an alternate URL on a
+  // different origin matches.
+  EXPECT_TRUE(browser_client.IsServiceWorkerSyntheticResponseAllowed(
+      profile(), GURL("https://example.com/test?q=test")));
+  EXPECT_FALSE(browser_client.IsServiceWorkerSyntheticResponseAllowed(
+      profile(), GURL("https://other.test/page")));
+  EXPECT_FALSE(browser_client.IsServiceWorkerSyntheticResponseAllowed(
+      profile(), GURL("http://example.com/test?q=test")));
 }
 
 #endif  // !BUILDFLAG(IS_ANDROID)
@@ -2225,6 +2258,31 @@ class ChromeContentBrowserClientAIPrefsTest
   ChromeContentBrowserClient client_;
   base::test::ScopedFeatureList feature_list_;
 };
+
+#if BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_WIN)
+class ChromeContentBrowserClientTouchDragDropTest
+    : public ChromeRenderViewHostTestHarness {
+ protected:
+  ChromeContentBrowserClient client_;
+  base::test::ScopedFeatureList feature_list_;
+};
+
+TEST_F(ChromeContentBrowserClientTouchDragDropTest,
+       TouchDragEndContextMenuFollowsTouchDragDrop) {
+  feature_list_.InitAndEnableFeature(features::kTouchDragAndDrop);
+
+  auto web_contents = CreateTestWebContents();
+  content::WebContentsTester::For(web_contents.get())
+      ->NavigateAndCommit(GURL("https://www.example.com"));
+
+  blink::web_pref::WebPreferences web_preferences;
+  client_.OverrideWebPreferences(
+      web_contents.get(), *web_contents->GetSiteInstance(), &web_preferences);
+
+  EXPECT_TRUE(web_preferences.touch_drag_drop_enabled);
+  EXPECT_TRUE(web_preferences.touch_dragend_context_menu);
+}
+#endif  // BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_WIN)
 
 // Verifies the web preference is enabled in DevTools when
 // kDevToolsAiOriginTrialsApis is enabled.

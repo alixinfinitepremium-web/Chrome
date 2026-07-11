@@ -18,7 +18,6 @@
 #include "base/metrics/histogram_macros.h"
 #include "base/synchronization/waitable_event.h"
 #include "components/embedder_support/user_agent_utils.h"
-#include "components/variations/net/omnibox_autofocus_http_headers.h"
 #include "components/variations/net/variations_http_headers.h"
 #include "content/browser/browser_context_impl.h"
 #include "content/browser/connection_allowlist_utils.h"
@@ -95,9 +94,6 @@ namespace {
 static ServiceWorkerContext* g_service_worker_context_for_testing = nullptr;
 
 bool (*g_host_non_unique_filter)(std::string_view) = nullptr;
-
-static network::SharedURLLoaderFactory* g_url_loader_factory_for_testing =
-    nullptr;
 
 static network::mojom::NetworkContext*
     g_network_context_for_proxy_lookup_for_testing = nullptr;
@@ -285,7 +281,7 @@ bool IsAllowedByConnectionAllowlist(const PrefetchRequest& request,
   // enabled. In order to check the origin trial status, the initiator policy
   // container policies need to be retrieved.
   if (!base::FeatureList::IsEnabled(network::features::kConnectionAllowlists)) {
-    return false;
+    return true;
   }
 
   const PrefetchRendererInitiatorInfo* renderer_initiator_info =
@@ -558,13 +554,34 @@ base::WeakPtr<PrefetchContainer> PrefetchService::CreatePrefetchContainer(
     std::unique_ptr<PrePrefetchContainer> pre_prefetch_container) {
   if (base::FeatureList::IsEnabled(
           features::kPrefetchOffTheMainThreadForceForTesting)) {
-    // - If `pre_prefetch_container` is non-null, it's already from the
-    //   off-the-main-thread path and thus don't force the off-the-main-thread
-    //   path again.
-    // - Currently off-the-main-thread prefetch is only for same-site requests.
-    if (!pre_prefetch_container &&
-        !prefetch_request->IsCrossSiteRequest(
-            url::Origin::Create(prefetch_request->key().url()))) {
+    const bool is_eligible_for_force_pre_prefetch = [&]() {
+      // If `pre_prefetch_container` is non-null, it's already from the
+      // off-the-main-thread path and thus don't force the off-the-main-thread
+      // path again.
+      if (pre_prefetch_container) {
+        return false;
+      }
+
+      const auto origin = url::Origin::Create(prefetch_request->key().url());
+
+      // Currently off-the-main-thread prefetch is only for same-site requests.
+      if (prefetch_request->IsCrossSiteRequest(origin)) {
+        return false;
+      }
+
+      // Also don't trigger off-the-main-thread prefetch if still we need a
+      // proxy. This mirrors the condition for
+      // `PreloadingEligibility::kSameSiteCrossOriginPrefetchRequiredProxy`.
+      if (prefetch_request->IsProxyRequiredForURL(origin) &&
+          !ShouldPrefetchBypassProxyForTestHost(
+              prefetch_request->key().url().GetHost())) {
+        return false;
+      }
+
+      return true;
+    }();
+
+    if (is_eligible_for_force_pre_prefetch) {
       base::WeakPtr<PrefetchContainer> prefetch_container =
           CreatePrefetchContainerFromPrePrefetchForTesting(  // IN-TEST
               std::move(prefetch_request));
@@ -929,9 +946,17 @@ void PrefetchService::CheckEligibilityOfPrefetch(
   // check for service workers and existing cookies.
   StoragePartition* default_storage_partition =
       browser_context_->GetDefaultStoragePartition();
-  if (default_storage_partition !=
-      browser_context_->GetStoragePartitionForUrl(params.url,
-                                                  /*can_create=*/false)) {
+  StoragePartition* initiator_storage_partition = default_storage_partition;
+  if (auto* renderer_info = params.request().GetRendererInitiatorInfo()) {
+    if (auto* rfh = renderer_info->GetRenderFrameHost()) {
+      initiator_storage_partition = rfh->GetStoragePartition();
+    }
+  }
+
+  if (initiator_storage_partition != default_storage_partition ||
+      default_storage_partition !=
+          browser_context_->GetStoragePartitionForUrl(params.url,
+                                                      /*can_create=*/false)) {
     std::move(params).Finish(
         PreloadingEligibility::kNonDefaultStoragePartition);
     return;
@@ -1513,16 +1538,6 @@ void PrefetchService::EvictPrefetch(base::PassKey<PrefetchScheduler>,
 bool PrefetchService::StartSinglePrefetch(
     base::PassKey<PrefetchScheduler>,
     PrefetchContainer& prefetch_container) {
-  return StartSinglePrefetch(prefetch_container);
-}
-
-bool PrefetchService::StartSinglePrefetchForTesting(
-    PrefetchContainer& prefetch_container) {
-  return StartSinglePrefetch(prefetch_container);
-}
-
-bool PrefetchService::StartSinglePrefetch(
-    PrefetchContainer& prefetch_container) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
   CHECK_EQ(prefetch_container.GetLoadState(),
            PrefetchContainer::LoadState::kEligible);
@@ -1686,7 +1701,6 @@ PrefetchService::CreateIsolatedNetworkContext(
   if (base::FeatureList::IsEnabled(
           kVariationsHeaderForCrossSiteSpeculationRulesPrefetch)) {
     variations::UpdateCorsExemptHeaderForVariations(context_params.get());
-    variations::UpdateCorsExemptHeaderForOmniboxAutofocus(context_params.get());
   }
   GetContentClient()->browser()->UpdateCorsExemptHeaderForPrefetch(
       context_params.get());
@@ -1748,10 +1762,6 @@ PrefetchService::CreateIsolatedNetworkContextForTesting(  // IN-TEST
 scoped_refptr<network::SharedURLLoaderFactory>
 PrefetchService::GetURLLoaderFactoryForCurrentPrefetch(
     PrefetchContainer& prefetch_container) {
-  if (g_url_loader_factory_for_testing) {
-    return base::WrapRefCounted(g_url_loader_factory_for_testing);
-  }
-
   // We can only use PrePrefetch's `URLLoaderFactory` for the initial request.
   // E.g., assume the page 4 redirects (1)A -> (2)A -> (3)B -> (4)A,
   // and B is a cross-site redirect. In this case,
@@ -1951,15 +1961,12 @@ std::pair<std::vector<PrefetchContainer*>,
 PrefetchService::CollectMatchCandidates(
     const PrefetchKey& key,
     bool is_nav_prerender,
-    base::WeakPtr<PrefetchServingPageMetricsContainer>
-        serving_page_metrics_container,
     const PrefetchKey* key_ahead_of_prerender,
     PrefetchPotentialCandidateCollectResult*
         collect_result_ahead_of_prerender) {
-  return CollectMatchCandidatesGeneric(
-      owned_prefetches(), key, is_nav_prerender,
-      std::move(serving_page_metrics_container), key_ahead_of_prerender,
-      collect_result_ahead_of_prerender);
+  return CollectMatchCandidatesGeneric(owned_prefetches(), key,
+                                       is_nav_prerender, key_ahead_of_prerender,
+                                       collect_result_ahead_of_prerender);
 }
 
 PrefetchContainer* PrefetchService::FindPrefetchAheadOfPrerenderForMetrics(
@@ -1996,12 +2003,6 @@ void PrefetchService::SetServiceWorkerContextForTesting(
 void PrefetchService::SetHostNonUniqueFilterForTesting(
     bool (*filter)(std::string_view)) {
   g_host_non_unique_filter = filter;
-}
-
-// static
-void PrefetchService::SetURLLoaderFactoryForTesting(
-    network::SharedURLLoaderFactory* url_loader_factory) {
-  g_url_loader_factory_for_testing = url_loader_factory;
 }
 
 // static

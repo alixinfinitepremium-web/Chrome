@@ -65,6 +65,8 @@
 #include "content/public/browser/disallow_activation_reason.h"
 #include "content/public/browser/render_frame_host.h"
 #include "content/public/browser/render_process_host.h"
+#include "content/public/browser/security_principal.h"
+#include "content/public/browser/site_instance.h"
 #include "content/public/browser/web_contents.h"
 #include "extensions/buildflags/buildflags.h"
 #include "third_party/blink/public/common/features_generated.h"
@@ -738,11 +740,12 @@ std::string_view GetGrantKeyFromGrantType(GrantType type) {
 
 #if BUILDFLAG(SAFE_BROWSING_AVAILABLE)
 safe_browsing::DownloadFileType::DangerLevel GetFileTypeDangerLevel(
-    const base::FilePath& path,
-    const url::Origin& origin,
-    Profile* profile) {
+    const base::FilePath& path) {
+  // Passing an empty source URL and null prefs ensures the result reflects
+  // only the configured danger level for the file type, without applying any
+  // download-specific overrides.
   return safe_browsing::FileTypePolicies::GetInstance()->GetFileDangerLevel(
-      path, origin.GetURL(), profile->GetPrefs());
+      path, GURL(), /*prefs=*/nullptr);
 }
 #endif
 
@@ -2035,11 +2038,9 @@ bool ChromeFileSystemAccessPermissionContext::CanObtainWritePermission(
 }
 
 bool ChromeFileSystemAccessPermissionContext::IsFileTypeDangerous(
-    const base::FilePath& path,
-    const url::Origin& origin) {
+    const base::FilePath& path) {
 #if BUILDFLAG(SAFE_BROWSING_AVAILABLE)
-  return GetFileTypeDangerLevel(path, origin,
-                                Profile::FromBrowserContext(profile_)) ==
+  return GetFileTypeDangerLevel(path) ==
          safe_browsing::DownloadFileType::DANGEROUS;
 #else
   return false;
@@ -2281,6 +2282,16 @@ ChromeFileSystemAccessPermissionContext::CanShowFilePicker(
   }
 #endif  // BUILDFLAG(ENABLE_EXTENSIONS_CORE) && BUILDFLAG(ENABLE_GUEST_VIEW)
 
+  // Because permission is scoped to the profile, guest contexts (like
+  // <controlledframe> and SlimWebView), despite having isolated
+  // StoragePartitions, would share File System Access permissions with the rest
+  // of the profile. Therefore, we disable File System Access for guest
+  // contexts. Note that on desktop, <webview> is explicitly allowed to use FSA
+  // in the block above to avoid breaking existing usage.
+  if (rfh->GetSiteInstance()->GetSecurityPrincipal().IsGuest()) {
+    return base::unexpected(kDefaultNotAllowedMessage);
+  }
+
   // Disable any other non-default StoragePartition contexts. However, unique
   // schemes (e.g. isolated-app://) are exempt here.
   if (rfh->GetStoragePartition() !=
@@ -2331,8 +2342,7 @@ void ChromeFileSystemAccessPermissionContext::DidCheckPathAgainstBlocklist(
     // See https://crbug.com/40059513#comment5 for justification for why we show
     // the prompt if `danger_level` is ALLOW_ON_USER_GESTURE as well as
     // DANGEROUS.
-    auto danger_level = GetFileTypeDangerLevel(
-        path_info.path, origin, Profile::FromBrowserContext(profile_));
+    auto danger_level = GetFileTypeDangerLevel(path_info.path);
     if (danger_level == safe_browsing::DownloadFileType::DANGEROUS ||
         danger_level ==
             safe_browsing::DownloadFileType::ALLOW_ON_USER_GESTURE) {

@@ -4,8 +4,8 @@
 
 import 'chrome-untrusted://read-anything-side-panel.top-chrome/read_anything.js';
 
-import {LinkStatus, MetricsBrowserProxyImpl, ReadAloudSettingsChange, ReadAnythingLogger, ReadAnythingSettingsChange, ReadAnythingVoiceType, SpeechControls, TimeFrom} from 'chrome-untrusted://read-anything-side-panel.top-chrome/read_anything.js';
-import {assertEquals, assertGT, assertLE} from 'chrome-untrusted://webui-test/chai_assert.js';
+import {LinkStatus, MetricsBrowserProxyImpl, ReadAloudSettingsChange, ReadAnythingLogger, ReadAnythingSettingsAction, ReadAnythingSettingsChange, ReadAnythingVoiceType, SpeechControls, TimeFrom} from 'chrome-untrusted://read-anything-side-panel.top-chrome/read_anything.js';
+import {assertEquals, assertGT, assertLE, assertNotEquals, assertTrue} from 'chrome-untrusted://webui-test/chai_assert.js';
 
 import {createSpeechSynthesisVoice} from './common.js';
 import {FakeReadingMode} from './fake_reading_mode.js';
@@ -115,6 +115,13 @@ suite('Logger', () => {
         ReadAnythingSettingsChange.LINKS_ENABLED_CHANGE,
         await metrics.whenCalled('recordTextSettingsChange'));
     assertEquals(0, metrics.getCallCount('recordSpeechSettingsChange'));
+  });
+
+  test('settings actions', async () => {
+    logger.logSettingsAction(ReadAnythingSettingsAction.TRANSLATE_ACTION);
+    assertEquals(
+        ReadAnythingSettingsAction.TRANSLATE_ACTION,
+        await metrics.whenCalled('recordSettingsAction'));
   });
 
   test('speech settings', async () => {
@@ -290,9 +297,62 @@ suite('Logger', () => {
     // The playback length should be at least the amount of time we waited above
     // and less than the starting time (i.e. we should be recording length of
     // time, not timestamp).
-    const recordedTime = await metrics.whenCalled('recordSpeechPlaybackLength');
+    const recordedTime =
+        await metrics.whenCalled('recordSpeechPlaybackLengthLegacy');
     assertLE(expectedTime, recordedTime);
     assertGT(startTime, recordedTime);
+  });
+
+  test(
+      'logSpeechPlaySession records time with page type and view mode',
+      async () => {
+        chrome.readingMode.isImmersiveEnabled = true;
+        const startTime = Date.now();
+
+        chrome.readingMode.isPdf = false;
+        chrome.readingMode.activePresentationState =
+            chrome.readingMode.inImmersiveOverlayPresentationState;
+        logger.logSpeechPlaySession(startTime, null);
+        let args = await metrics.whenCalled('recordSpeechPlaybackLength');
+        assertEquals(
+            'Accessibility.ReadAnything.SpeechPlaybackSession.WebPageInFullPage',
+            args[0]);
+
+        metrics.reset();
+        chrome.readingMode.activePresentationState =
+            chrome.readingMode.inSidePanelPresentationState;
+        logger.logSpeechPlaySession(startTime, null);
+        args = await metrics.whenCalled('recordSpeechPlaybackLength');
+        assertEquals(
+            'Accessibility.ReadAnything.SpeechPlaybackSession.WebPageInSidePanel',
+            args[0]);
+
+        metrics.reset();
+        chrome.readingMode.isPdf = true;
+        logger.logSpeechPlaySession(startTime, null);
+        args = await metrics.whenCalled('recordSpeechPlaybackLength');
+        assertEquals(
+            'Accessibility.ReadAnything.SpeechPlaybackSession.PDFInSidePanel',
+            args[0]);
+
+        metrics.reset();
+        chrome.readingMode.activePresentationState =
+            chrome.readingMode.inImmersiveOverlayPresentationState;
+        logger.logSpeechPlaySession(startTime, null);
+        args = await metrics.whenCalled('recordSpeechPlaybackLength');
+        assertEquals(
+            'Accessibility.ReadAnything.SpeechPlaybackSession.PDFInFullPage',
+            args[0]);
+      });
+
+  test('logSpeechPlaySession does not record with invalid page type', () => {
+    const startTime = Date.now();
+    chrome.readingMode.isPdf = false;
+    chrome.readingMode.activePresentationState = 10000;
+
+    logger.logSpeechPlaySession(startTime, null);
+
+    assertEquals(0, metrics.getCallCount('recordSpeechPlaybackLength'));
   });
 
   test('logTimeFrom uses correct uma name', () => {
@@ -516,5 +576,110 @@ suite('Logger', () => {
           booleanCalls[0][0]);
       assertEquals(false, booleanCalls[0][1]);
     });
+
+    test('logs pdf structure for pdfs', () => {
+      chrome.readingMode.isPdf = true;
+      for (let i = 0; i < 5; i++) {
+        container.appendChild(document.createElement('h1'));
+        container.appendChild(document.createElement('h2'));
+      }
+      container.appendChild(document.createElement('h3'));
+      for (let i = 0; i < 30; i++) {
+        container.appendChild(document.createElement('p'));
+      }
+
+      logger.logDistilledPageStructure(container);
+
+      assertNotEquals(0, metrics.getCallCount('recordCount'));
+      const countCalls = metrics.getArgs('recordCount');
+      const h1Metric = countCalls.find(
+          args => args[0] === 'Accessibility.ReadAnything.Pdf.Headings.H1');
+      assertTrue(!!h1Metric);
+      assertEquals(5, h1Metric[1]);
+
+      const h2Metric = countCalls.find(
+          args => args[0] === 'Accessibility.ReadAnything.Pdf.Headings.H2');
+      assertTrue(!!h2Metric);
+      assertEquals(5, h2Metric[1]);
+
+      const h3Metric = countCalls.find(
+          args => args[0] === 'Accessibility.ReadAnything.Pdf.Headings.H3');
+      assertTrue(!!h3Metric);
+      assertEquals(1, h3Metric[1]);
+
+      const h4Metric = countCalls.find(
+          args => args[0] === 'Accessibility.ReadAnything.Pdf.Headings.H4');
+      assertTrue(!!h4Metric);
+      assertEquals(0, h4Metric[1]);
+
+      const h5Metric = countCalls.find(
+          args => args[0] === 'Accessibility.ReadAnything.Pdf.Headings.H5');
+      assertTrue(!!h5Metric);
+      assertEquals(0, h5Metric[1]);
+
+      const h6Metric = countCalls.find(
+          args => args[0] === 'Accessibility.ReadAnything.Pdf.Headings.H6');
+      assertTrue(!!h6Metric);
+      assertEquals(0, h6Metric[1]);
+
+      const pMetric = countCalls.find(
+          args =>
+              args[0] === 'Accessibility.ReadAnything.Pdf.NumberParagraphs');
+      assertTrue(!!pMetric);
+      assertEquals(30, pMetric[1]);
+
+      const ratioMetric = countCalls.find(
+          args => args[0] ===
+              'Accessibility.ReadAnything.Pdf.HeadingToParagraphRatio');
+      assertTrue(!!ratioMetric);
+      assertNotEquals(0, ratioMetric[1]);
+    });
+  });
+  test('logDistilledPageStructure logs key points correctly', () => {
+    // Setup wordCountContainer
+    const container = document.createElement('div');
+
+    // Add h1 which should be ignored
+    const h1 = document.createElement('h1');
+    h1.textContent = 'Summary of the article';
+    container.appendChild(h1);
+
+    // Test baseLanguageForSpeech is checked
+    chrome.readingMode.baseLanguageForSpeech = 'en-US';
+    logger.logDistilledPageStructure(container);
+
+    const booleanMetrics1 = metrics.getArgs('recordBoolean');
+    const inReadingModeMetric1 = booleanMetrics1.find(
+        (args: [string, boolean]) => args[0] ===
+            'Accessibility.ReadAnything.PageStructure.EnglishKeyPointsInReadingMode');
+    assertTrue(!!inReadingModeMetric1);
+    assertEquals(false, inReadingModeMetric1[1]);
+
+    metrics.reset();
+
+    // Add h2 which should trigger true
+    const h2 = document.createElement('h2');
+    h2.textContent = 'The Bottom Line';
+    container.appendChild(h2);
+
+    // Mock chrome.readingMode.maybeHasKeyPointsSection to return true
+    chrome.readingMode.maybeHasKeyPointsSection = () => true;
+
+    logger.logDistilledPageStructure(container);
+
+    // Verify true because of 'the bottom line'
+    const booleanMetrics2 = metrics.getArgs('recordBoolean');
+    const inReadingModeMetric2 = booleanMetrics2.find(
+        (args: [string, boolean]) => args[0] ===
+            'Accessibility.ReadAnything.PageStructure.EnglishKeyPointsInReadingMode');
+    assertTrue(!!inReadingModeMetric2);
+    assertEquals(true, inReadingModeMetric2[1]);
+
+    // Verify OnPage is also logged
+    const onPageMetric = booleanMetrics2.find(
+        (args: [string, boolean]) => args[0] ===
+            'Accessibility.ReadAnything.PageStructure.EnglishKeyPointsOnPage');
+    assertTrue(!!onPageMetric);
+    assertEquals(true, onPageMetric[1]);
   });
 });

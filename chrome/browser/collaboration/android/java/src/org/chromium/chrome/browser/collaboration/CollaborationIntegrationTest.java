@@ -56,6 +56,7 @@ import org.chromium.base.test.util.DisableIf;
 import org.chromium.base.test.util.DisabledTest;
 import org.chromium.base.test.util.DoNotBatch;
 import org.chromium.base.test.util.Feature;
+import org.chromium.base.test.util.Features.DisableFeatures;
 import org.chromium.base.test.util.Features.EnableFeatures;
 import org.chromium.base.test.util.Restriction;
 import org.chromium.build.annotations.Nullable;
@@ -91,6 +92,7 @@ import org.chromium.components.signin.base.AccountInfo;
 import org.chromium.components.tab_group_sync.EitherId.EitherGroupId;
 import org.chromium.components.tab_group_sync.LocalTabGroupId;
 import org.chromium.components.tab_group_sync.TabGroupSyncService;
+import org.chromium.components.tab_groups.TabGroupsFeatureMap;
 import org.chromium.ui.base.DeviceFormFactor;
 import org.chromium.ui.test.util.DeviceRestriction;
 import org.chromium.ui.test.util.GmsCoreVersionRestriction;
@@ -104,6 +106,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @RunWith(ChromeJUnit4ClassRunner.class)
 @CommandLineFlags.Add({ChromeSwitches.DISABLE_FIRST_RUN_EXPERIENCE})
 @EnableFeatures({ChromeFeatureList.DATA_SHARING})
+@DisableFeatures({TabGroupsFeatureMap.UPDATE_TAB_GROUP_COLORS})
 @DoNotBatch(reason = "Tabs can't be closed reliably between tests.")
 // TODO(crbug.com/399444939) Re-enable on automotive devices if needed.
 // Only run on device non-auto and with valid Google services.

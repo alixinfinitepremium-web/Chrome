@@ -9,6 +9,7 @@
 #include <string_view>
 #include <vector>
 
+#include "base/memory/raw_ptr.h"
 #include "base/memory/scoped_refptr.h"
 #include "base/sequence_checker.h"
 #include "base/task/sequenced_task_runner.h"
@@ -70,8 +71,8 @@ class MEDIA_EXPORT HlsManifestDemuxerEngine : public ManifestDemuxer::Engine,
 
   void SelectVideoTrack(const MediaTrack::Id&) override;
   void SelectAudioTrack(const MediaTrack::Id&) override;
-  std::vector<DemuxerStream*> FilterDemuxerStreams(
-      std::vector<DemuxerStream*>&&) override;
+  std::vector<raw_ptr<DemuxerStream>> FilterDemuxerStreams(
+      std::vector<raw_ptr<DemuxerStream>>&&) override;
 
   // HlsRenditionHost implementation.
   void ReadMediaSegment(const hls::MediaSegment& segment,
@@ -178,7 +179,6 @@ class MEDIA_EXPORT HlsManifestDemuxerEngine : public ManifestDemuxer::Engine,
                   base::TimeDelta delay_time);
   void UpdateMediaPlaylistForRole(
       std::string role,
-      GURL uri,
       HlsDemuxerStatusCallback cb,
       HlsDataSourceProvider::ReadResult maybe_stream);
 
@@ -217,10 +217,8 @@ class MEDIA_EXPORT HlsManifestDemuxerEngine : public ManifestDemuxer::Engine,
 
   // Capture the stream before it gets posted to `cb` and update the internal
   // memory state and origin tainting.
-  void UpdateHlsDataSourceStats(
-      HlsDataSourceProvider::ReadCb cb,
-      HlsDataSourceProvider::ReadStatus::Or<
-          std::unique_ptr<HlsDataSourceStream>> result);
+  void UpdateHlsDataSourceStats(HlsDataSourceProvider::ReadCb cb,
+                                HlsDataSourceProvider::ReadResult result);
 
   // Helper to bind `UpdateHlsDataSourceStats` around a response CB.
   HlsDataSourceProvider::ReadCb BindStatsUpdate(

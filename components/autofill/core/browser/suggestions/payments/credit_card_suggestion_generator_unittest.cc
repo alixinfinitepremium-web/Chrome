@@ -641,12 +641,15 @@ class AutofillCreditCardBenefitsLabelTest
         card(), autofill_client(), CREDIT_CARD_NUMBER,
         /*virtual_card_option=*/false, &metadata_logging_context);
 
-    base::flat_map<int64_t, std::string>
-        expected_instrument_ids_to_available_benefit_sources = {
-            {card().instrument_id(), card().benefit_source()}};
+    base::flat_map<
+        int64_t,
+        autofill_metrics::CardMetadataLoggingContext::CardBenefitLoggingContext>
+        expected_instrument_ids_to_available_benefit_context = {
+            {card().instrument_id(),
+             {card().benefit_source(), GetTypeForCardBenefit(GetBenefit())}}};
     EXPECT_EQ(
-        metadata_logging_context.instrument_ids_to_available_benefit_sources,
-        expected_instrument_ids_to_available_benefit_sources);
+        metadata_logging_context.instrument_ids_to_available_benefit_context,
+        expected_instrument_ids_to_available_benefit_context);
   }
 
  private:
@@ -864,14 +867,17 @@ TEST_P(AutofillCreditCardBenefitsLabelTest,
 TEST_P(AutofillCreditCardBenefitsLabelTest,
        GetCreditCardSuggestionsForTouchToFill_BenefitsAdded_RealCard) {
   std::vector<CreditCard> cards = {card()};
-  base::flat_map<int64_t, std::string>
-      expected_instrument_ids_to_available_benefit_sources = {
-          {cards[0].instrument_id(), cards[0].benefit_source()}};
+  base::flat_map<
+      int64_t,
+      autofill_metrics::CardMetadataLoggingContext::CardBenefitLoggingContext>
+      expected_instrument_ids_to_available_benefit_context = {
+          {cards[0].instrument_id(),
+           {cards[0].benefit_source(), GetTypeForCardBenefit(GetBenefit())}}};
   EXPECT_CALL(credit_card_form_event_logger(),
               OnMetadataLoggingContextReceived(
                   Field(&autofill_metrics::CardMetadataLoggingContext::
-                            instrument_ids_to_available_benefit_sources,
-                        expected_instrument_ids_to_available_benefit_sources)))
+                            instrument_ids_to_available_benefit_context,
+                        expected_instrument_ids_to_available_benefit_context)))
       .Times(1);
 
   std::vector<Suggestion> suggestions = GetCreditCardSuggestionsForTouchToFill(
@@ -901,14 +907,17 @@ TEST_P(AutofillCreditCardBenefitsLabelTest,
        GetCreditCardSuggestionsForTouchToFill_BenefitsAdded_VirtualCard) {
   CreditCard virtual_card = CreditCard::CreateVirtualCard(card());
   std::vector<CreditCard> cards = {virtual_card};
-  base::flat_map<int64_t, std::string>
-      expected_instrument_ids_to_available_benefit_sources = {
-          {cards[0].instrument_id(), cards[0].benefit_source()}};
+  base::flat_map<
+      int64_t,
+      autofill_metrics::CardMetadataLoggingContext::CardBenefitLoggingContext>
+      expected_instrument_ids_to_available_benefit_context = {
+          {cards[0].instrument_id(),
+           {cards[0].benefit_source(), GetTypeForCardBenefit(GetBenefit())}}};
   EXPECT_CALL(credit_card_form_event_logger(),
               OnMetadataLoggingContextReceived(
                   Field(&autofill_metrics::CardMetadataLoggingContext::
-                            instrument_ids_to_available_benefit_sources,
-                        expected_instrument_ids_to_available_benefit_sources)))
+                            instrument_ids_to_available_benefit_context,
+                        expected_instrument_ids_to_available_benefit_context)))
       .Times(1);
 
   std::vector<Suggestion> suggestions = GetCreditCardSuggestionsForTouchToFill(
@@ -1019,15 +1028,19 @@ TEST_P(
     GetCreditCardSuggestionsForTouchToFill_OnMetadataLoggingContextReceivedCalled) {
   std::vector<CreditCard> cards = {card(),
                                    CreditCard::CreateVirtualCard(card())};
-  base::flat_map<int64_t, std::string>
-      expected_instrument_ids_to_available_benefit_sources = {
-          {cards[0].instrument_id(), cards[0].benefit_source()},
-          {cards[1].instrument_id(), cards[1].benefit_source()}};
+  base::flat_map<
+      int64_t,
+      autofill_metrics::CardMetadataLoggingContext::CardBenefitLoggingContext>
+      expected_instrument_ids_to_available_benefit_context = {
+          {cards[0].instrument_id(),
+           {cards[0].benefit_source(), GetTypeForCardBenefit(GetBenefit())}},
+          {cards[1].instrument_id(),
+           {cards[1].benefit_source(), GetTypeForCardBenefit(GetBenefit())}}};
   EXPECT_CALL(credit_card_form_event_logger(),
               OnMetadataLoggingContextReceived(
                   Field(&autofill_metrics::CardMetadataLoggingContext::
-                            instrument_ids_to_available_benefit_sources,
-                        expected_instrument_ids_to_available_benefit_sources)))
+                            instrument_ids_to_available_benefit_context,
+                        expected_instrument_ids_to_available_benefit_context)))
       .Times(1);
 
   GetCreditCardSuggestionsForTouchToFill(cards, autofill_manager(),
@@ -1667,8 +1680,10 @@ TEST_F(CreditCardSuggestionGeneratorTest, IsCreditCardFooterSuggestion) {
       GetCreditCardFooterSuggestionsForTest(
           autofill_client(), /*should_show_pay_later_tab_suggestions=*/false,
           /*should_append_bnpl_suggestion=*/false,
-          /*should_show_scan_credit_card=*/true, /*is_autofilled=*/true,
-          /*with_gpay_logo=*/true, payments::AmountExtractionStatus());
+          /*should_show_scan_credit_card=*/true,
+          /*should_append_maximize_credit_card_benefits_suggestion=*/false,
+          /*is_autofilled=*/true, /*with_gpay_logo=*/true,
+          payments::AmountExtractionStatus());
 
   for (size_t index = 0; index < footer_suggestions.size(); index++) {
     EXPECT_TRUE(IsCreditCardFooterSuggestion(footer_suggestions, index));
@@ -3219,6 +3234,39 @@ TEST_F(
   ASSERT_EQ(suggestions.size(), 2U);
   EXPECT_EQ(suggestions[0].type, SuggestionType::kCreditCardEntry);
   EXPECT_EQ(suggestions[1].type, SuggestionType::kCreditCardEntry);
+}
+
+TEST_F(CreditCardSuggestionGeneratorBnplTest,
+       GetCreditCardSuggestionsForTouchToFill_TabsEnabled_IncludesBnpl) {
+  scoped_feature_list_.Reset();
+  scoped_feature_list_.InitWithFeatures(
+      /*enabled_features=*/
+      {features::kAutofillEnableBuyNowPayLater,
+       features::kAutofillEnableAmountExtraction,
+       features::kAutofillEnableAiBasedAmountExtraction,
+       features::kAutofillEnablePayNowPayLaterTabs},
+      /*disabled_features=*/{});
+  payments_data().AddBnplIssuer(test::GetTestUnlinkedBnplIssuer());
+  FormData form = test::GetFormData(
+      {.fields = {{.role = CREDIT_CARD_NAME_FULL,
+                   .value = u"Card Name",
+                   .is_autofilled_according_to_renderer = true},
+                  {.role = CREDIT_CARD_NUMBER, .value = u"01230123012399"}}});
+  autofill_manager().AddSeenForm(form,
+                                 {CREDIT_CARD_NAME_FULL, CREDIT_CARD_NUMBER});
+  ON_CALL(*static_cast<MockAutofillOptimizationGuideDecider*>(
+              autofill_client().GetAutofillOptimizationGuideDecider()),
+          IsUrlEligibleForBnplIssuer)
+      .WillByDefault(testing::Return(true));
+
+  std::vector<Suggestion> suggestions = GetCreditCardSuggestionsForTouchToFill(
+      {CreateServerCard(), CreateLocalCard()}, autofill_manager(),
+      form.global_id());
+
+  ASSERT_EQ(suggestions.size(), 3U);
+  EXPECT_EQ(suggestions[0].type, SuggestionType::kCreditCardEntry);
+  EXPECT_EQ(suggestions[1].type, SuggestionType::kCreditCardEntry);
+  EXPECT_EQ(suggestions[2].type, SuggestionType::kBnplEntry);
 }
 
 #endif  // BUILDFLAG(IS_ANDROID)
@@ -6513,6 +6561,245 @@ TEST_F(CreditCardSuggestionGeneratorTest, VirtualCard) {
                     EqualsManagePaymentsMethodsSuggestion(
                         /*with_gpay_logo=*/true)));
   }
+}
+
+// Tests that credit card suggestions are not generated when payments is blocked
+// by the AutofillSettings policy.
+TEST_F(CreditCardSuggestionGeneratorTest, AutofillSettingsBlocked) {
+  base::test::ScopedFeatureList scoped_feature_list{
+      features::kAutofillEnableAutofillSettingsEnterprisePolicy};
+
+  payments_data().ClearCreditCards();
+  CreditCard visa_card(autofill::test::MakeGuid(1), test::kEmptyOrigin);
+  test::SetCreditCardInfo(&visa_card, "Elvis Presley", "4111111111113456", "04",
+                          "2099", "1");
+  payments_data().AddCreditCard(visa_card);
+
+  autofill_client().SetAutofillTypeBlockedByPolicy(
+      AutofillClient::AutofillPolicyDataCategory::kPayments, true);
+
+  FormBundle form_bundle =
+      GetFormWithTypes({.fields = {{.role = CREDIT_CARD_NUMBER}}});
+  form_bundle.trigger_field = form_bundle.form.fields()[0];
+  form_bundle.trigger_autofill_field = form_bundle.form_structure->field(0);
+
+  std::vector<Suggestion> suggestions = GetSuggestionsForCreditCards(
+      form_bundle.form, *form_bundle.form_structure, form_bundle.trigger_field,
+      *form_bundle.trigger_autofill_field, autofill_client(),
+      /*four_digit_combinations_in_dom=*/{},
+      /*amount_extraction_manager=*/nullptr, /*bnpl_manager=*/nullptr,
+      credit_card_form_event_logger(),
+      AutofillMetrics::PaymentsSigninState::kUnknown,
+      /*exclude_virtual_cards=*/false);
+  EXPECT_TRUE(suggestions.empty());
+}
+
+// Tests that "Maximize rewards" suggestion is NOT generated when the
+// feature flag is disabled.
+TEST_F(CreditCardSuggestionGeneratorTest,
+       MaximizeCreditCardBenefits_FeatureDisabled) {
+  base::test::ScopedFeatureList scoped_feature_list;
+  scoped_feature_list.InitAndDisableFeature(
+      features::kAutofillEnableAiCardRecommendation);
+
+  // Setup 2 eligible cards for AI card recommendations.
+  CreditCard card1 = CreateServerCard(
+      /*guid=*/"00000000-0000-0000-0000-000000000001",
+      /*server_id=*/"server_id1", /*instrument_id=*/1);
+  card1.set_product_description(u"Amex Gold");
+  card1.set_card_art_url(GURL("https://example.com/amex.png"));
+  payments_data().AddServerCreditCard(card1);
+
+  CreditCard card2 = CreateServerCard(
+      /*guid=*/"00000000-0000-0000-0000-000000000002",
+      /*server_id=*/"server_id2", /*instrument_id=*/2);
+  card2.set_product_description(u"Chase Sapphire");
+  card2.set_card_art_url(GURL("https://example.com/chase.png"));
+  payments_data().AddServerCreditCard(card2);
+
+  FormBundle form_bundle =
+      GetFormWithTypes({.fields = {{.role = CREDIT_CARD_NUMBER}}});
+
+  std::vector<Suggestion> suggestions = GetSuggestionsForCreditCards(
+      form_bundle.form, *form_bundle.form_structure, form_bundle.trigger_field,
+      *form_bundle.trigger_autofill_field, autofill_client(),
+      /*four_digit_combinations_in_dom=*/{},
+      /*amount_extraction_manager=*/nullptr, /*bnpl_manager=*/nullptr,
+      credit_card_form_event_logger(),
+      AutofillMetrics::PaymentsSigninState::kUnknown,
+      /*exclude_virtual_cards=*/false);
+
+  // The suggestion should not be generated.
+  EXPECT_FALSE(std::ranges::any_of(suggestions, [](const Suggestion& s) {
+    return s.type == SuggestionType::kMaximizeCreditCardBenefitsEntry;
+  }));
+}
+
+// Tests that "Maximize rewards" suggestion is NOT generated if the user has
+// fewer than 2 cards.
+TEST_F(CreditCardSuggestionGeneratorTest,
+       MaximizeCreditCardBenefits_NotEnoughCards) {
+  base::test::ScopedFeatureList scoped_feature_list{
+      features::kAutofillEnableAiCardRecommendation};
+
+  // Setup only 1 eligible card for AI card recommendations.
+  CreditCard card1 = CreateServerCard(
+      /*guid=*/"00000000-0000-0000-0000-000000000001",
+      /*server_id=*/"server_id1", /*instrument_id=*/1);
+  card1.set_product_description(u"Amex Gold");
+  card1.set_card_art_url(GURL("https://example.com/amex.png"));
+  payments_data().AddServerCreditCard(card1);
+
+  FormBundle form_bundle =
+      GetFormWithTypes({.fields = {{.role = CREDIT_CARD_NUMBER}}});
+
+  std::vector<Suggestion> suggestions = GetSuggestionsForCreditCards(
+      form_bundle.form, *form_bundle.form_structure, form_bundle.trigger_field,
+      *form_bundle.trigger_autofill_field, autofill_client(),
+      /*four_digit_combinations_in_dom=*/{},
+      /*amount_extraction_manager=*/nullptr, /*bnpl_manager=*/nullptr,
+      credit_card_form_event_logger(),
+      AutofillMetrics::PaymentsSigninState::kUnknown,
+      /*exclude_virtual_cards=*/false);
+
+  // The suggestion should not be generated.
+  EXPECT_FALSE(std::ranges::any_of(suggestions, [](const Suggestion& s) {
+    return s.type == SuggestionType::kMaximizeCreditCardBenefitsEntry;
+  }));
+}
+
+// Tests that "Maximize rewards" suggestion is NOT generated if cards lack
+// product name.
+TEST_F(CreditCardSuggestionGeneratorTest,
+       MaximizeCreditCardBenefits_CardsNotEligible) {
+  base::test::ScopedFeatureList scoped_feature_list{
+      features::kAutofillEnableAiCardRecommendation};
+
+  // Setup 2 cards: 1 that's eligible and 1 that doesn't have art or product
+  // name.
+  CreditCard card1 = CreateServerCard(
+      /*guid=*/"00000000-0000-0000-0000-000000000001",
+      /*server_id=*/"server_id1", /*instrument_id=*/1);
+  card1.set_product_description(u"Amex Gold");
+  card1.set_card_art_url(GURL("https://example.com/amex.png"));
+  payments_data().AddServerCreditCard(card1);
+
+  CreditCard card2 = CreateServerCard(
+      /*guid=*/"00000000-0000-0000-0000-000000000002",
+      /*server_id=*/"server_id2", /*instrument_id=*/2);
+  payments_data().AddServerCreditCard(card2);
+
+  FormBundle form_bundle =
+      GetFormWithTypes({.fields = {{.role = CREDIT_CARD_NUMBER}}});
+
+  std::vector<Suggestion> suggestions = GetSuggestionsForCreditCards(
+      form_bundle.form, *form_bundle.form_structure, form_bundle.trigger_field,
+      *form_bundle.trigger_autofill_field, autofill_client(),
+      /*four_digit_combinations_in_dom=*/{},
+      /*amount_extraction_manager=*/nullptr, /*bnpl_manager=*/nullptr,
+      credit_card_form_event_logger(),
+      AutofillMetrics::PaymentsSigninState::kUnknown,
+      /*exclude_virtual_cards=*/false);
+
+  // The suggestion should not be generated.
+  EXPECT_FALSE(std::ranges::any_of(suggestions, [](const Suggestion& s) {
+    return s.type == SuggestionType::kMaximizeCreditCardBenefitsEntry;
+  }));
+}
+
+// Tests that "Maximize rewards" suggestion is NOT generated if the focused
+// credit card number field is not empty.
+TEST_F(CreditCardSuggestionGeneratorTest,
+       MaximizeCreditCardBenefits_CardNumberFieldNotEmpty) {
+  base::test::ScopedFeatureList scoped_feature_list{
+      features::kAutofillEnableAiCardRecommendation};
+
+  // Setup 2 eligible cards for AI card recommendations.
+  CreditCard card1 = CreateServerCard(
+      /*guid=*/"00000000-0000-0000-0000-000000000001",
+      /*server_id=*/"server_id1", /*instrument_id=*/1);
+  card1.set_product_description(u"Amex Gold");
+  card1.set_card_art_url(GURL("https://example.com/amex.png"));
+  payments_data().AddServerCreditCard(card1);
+
+  CreditCard card2 = CreateServerCard(
+      /*guid=*/"00000000-0000-0000-0000-000000000002",
+      /*server_id=*/"server_id2", /*instrument_id=*/2);
+  card2.set_product_description(u"Chase Sapphire");
+  card2.set_card_art_url(GURL("https://example.com/chase.png"));
+  payments_data().AddServerCreditCard(card2);
+
+  FormBundle form_bundle = GetFormWithTypes(
+      {.fields = {{.role = CREDIT_CARD_NUMBER, .value = u"4111"}}});
+
+  std::vector<Suggestion> suggestions = GetSuggestionsForCreditCards(
+      form_bundle.form, *form_bundle.form_structure, form_bundle.trigger_field,
+      *form_bundle.trigger_autofill_field, autofill_client(),
+      /*four_digit_combinations_in_dom=*/{},
+      /*amount_extraction_manager=*/nullptr, /*bnpl_manager=*/nullptr,
+      credit_card_form_event_logger(),
+      AutofillMetrics::PaymentsSigninState::kUnknown,
+      /*exclude_virtual_cards=*/false);
+
+  // The suggestion should not be generated.
+  EXPECT_FALSE(std::ranges::any_of(suggestions, [](const Suggestion& s) {
+    return s.type == SuggestionType::kMaximizeCreditCardBenefitsEntry;
+  }));
+}
+
+// Tests that "Maximize rewards" suggestion is generated with correct data
+// when all criteria are met.
+TEST_F(CreditCardSuggestionGeneratorTest,
+       MaximizeCreditCardBenefits_SuggestionCreatedSuccess) {
+  base::test::ScopedFeatureList scoped_feature_list{
+      features::kAutofillEnableAiCardRecommendation};
+
+  // Setup 2 eligible cards for AI card recommendations.
+  CreditCard card1 = CreateServerCard(
+      /*guid=*/"00000000-0000-0000-0000-000000000001",
+      /*server_id=*/"server_id1", /*instrument_id=*/1);
+  card1.set_product_description(u"Amex Gold");
+  card1.set_card_art_url(GURL("https://example.com/amex.png"));
+  payments_data().AddServerCreditCard(card1);
+
+  CreditCard card2 = CreateServerCard(
+      /*guid=*/"00000000-0000-0000-0000-000000000002",
+      /*server_id=*/"server_id2", /*instrument_id=*/2);
+  card2.set_product_description(u"Chase Sapphire");
+  card2.set_card_art_url(GURL("https://example.com/chase.png"));
+  payments_data().AddServerCreditCard(card2);
+
+  FormBundle form_bundle =
+      GetFormWithTypes({.fields = {{.role = CREDIT_CARD_NUMBER}}});
+
+  std::vector<Suggestion> suggestions = GetSuggestionsForCreditCards(
+      form_bundle.form, *form_bundle.form_structure, form_bundle.trigger_field,
+      *form_bundle.trigger_autofill_field, autofill_client(),
+      /*four_digit_combinations_in_dom=*/{},
+      /*amount_extraction_manager=*/nullptr, /*bnpl_manager=*/nullptr,
+      credit_card_form_event_logger(),
+      AutofillMetrics::PaymentsSigninState::kUnknown,
+      /*exclude_virtual_cards=*/false);
+
+  // The suggestion should be generated with the correct copy, labels, and
+  // icon, and it should be the third last suggestion in the suggestion list,
+  // behind a `kSeparator` and the "Manage payment methods..." suggestion.
+  ASSERT_GE(suggestions.size(), 3u);
+  EXPECT_THAT(
+      suggestions[suggestions.size() - 3],
+      EqualsSuggestion(
+          SuggestionType::kMaximizeCreditCardBenefitsEntry,
+          l10n_util::GetStringUTF16(
+              IDS_AUTOFILL_MAXIMIZE_CREDIT_CARD_BENEFITS_SUGGESTION_MAIN_TEXT),
+          Suggestion::Icon::kSpark,
+          std::vector<std::vector<
+              Suggestion::Text>>{{Suggestion::Text(l10n_util::GetStringUTF16(
+              IDS_AUTOFILL_MAXIMIZE_CREDIT_CARD_BENEFITS_SUGGESTION_SECONDARY_TEXT))}}));
+
+  // Check if the last 2 suggestions are `kSeparator` and `kManageCreditCard`.
+  EXPECT_EQ(suggestions[suggestions.size() - 2].type,
+            SuggestionType::kSeparator);
+  EXPECT_EQ(suggestions.back().type, SuggestionType::kManageCreditCard);
 }
 
 }  // namespace

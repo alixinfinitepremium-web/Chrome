@@ -22,6 +22,7 @@
 #include "chrome/common/chrome_paths.h"
 #include "chrome/common/chrome_switches.h"
 #include "components/feed/feed_feature_list.h"
+#include "components/metrics/metrics_features.h"
 #include "components/metrics/metrics_pref_names.h"
 #include "components/metrics/persistent_histograms.h"
 #include "components/site_isolation/features.h"
@@ -246,11 +247,6 @@ void ChromeBrowserFieldTrials::RegisterFeatureOverrides(
   feature_overrides.EnableFeature(
       features::kEnableFullscreenToAnyScreenAndroid);
 
-  // Enables the ability to specify a platform-specific zoom scaling that will
-  // apply transparently to all pages.
-  // TODO(crbug.com/450281745): Remove once feature is enabled by default.
-  feature_overrides.EnableFeature(::features::kAndroidDesktopZoomScaling);
-
   // Enables desktop page web prefs for large displays on Android.
   // TODO(crbug.com/433519850): Remove once feature is enabled by default.
   feature_overrides.EnableFeature(
@@ -260,8 +256,17 @@ void ChromeBrowserFieldTrials::RegisterFeatureOverrides(
   // TODO(crbug.com/504722790): Remove when experiment is complete.
   feature_overrides.EnableFeature(features::kTextClassifierTimeout);
 
+  // Enable graceful tab shutdown.
+  // TODO(crbug.com/532514154): Remove when experiment is complete.
+  feature_overrides.EnableFeature(chrome::android::kTabAndroidGracefulShutdown);
+
 #endif  // BUILDFLAG(IS_DESKTOP_ANDROID)
   // Desktop-first features which are past incubation should either end up here,
   // or to a finch trial that enables it for all form factors.
 #endif  // BUILDFLAG(IS_ANDROID)
+}
+
+void ChromeBrowserFieldTrials::EnableRuntimeMutableFeatures(
+    base::FeatureList* feature_list) {
+  // Add calls to enable runtime-mutable features here.
 }

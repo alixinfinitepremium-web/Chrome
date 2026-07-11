@@ -109,11 +109,6 @@ LayoutBoxModelObject::~LayoutBoxModelObject() = default;
 void LayoutBoxModelObject::WillBeDestroyed() {
   NOT_DESTROYED();
 
-  GetDocument()
-      .GetFrame()
-      ->GetInputMethodController()
-      .LayoutObjectWillBeDestroyed(*this);
-
   LayoutObject::WillBeDestroyed();
 
   if (HasLayer())
@@ -194,6 +189,11 @@ void LayoutBoxModelObject::StyleDidChange(
         ClearStickyConstraints(remove_axes);
       }
     }
+  }
+
+  if (RuntimeEnabledFeatures::AnnotationSpaceOnStartEnabled() &&
+      StyleRef().GetTextEmphasisMark() != TextEmphasisMark::kNone) {
+    View()->SetContainsAnnotations();
   }
 
   PaintLayerType type = LayerTypeRequired();

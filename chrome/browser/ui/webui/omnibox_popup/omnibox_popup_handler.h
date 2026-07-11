@@ -19,12 +19,15 @@ namespace content {
 class WebContents;
 }
 
+class OmniboxController;
+
 class OmniboxPopupHandler : public omnibox_popup::mojom::PageHandler {
  public:
   OmniboxPopupHandler(
       mojo::PendingReceiver<omnibox_popup::mojom::PageHandler> receiver,
       mojo::PendingRemote<omnibox_popup::mojom::Page> page,
-      content::WebContents* web_contents);
+      content::WebContents* web_contents,
+      OmniboxController* controller);
 
   OmniboxPopupHandler(const OmniboxPopupHandler&) = delete;
   OmniboxPopupHandler& operator=(const OmniboxPopupHandler&) = delete;
@@ -40,7 +43,13 @@ class OmniboxPopupHandler : public omnibox_popup::mojom::PageHandler {
   void ShowContextMenu(const gfx::Point& point) override;
   void CloseUI() override;
   void OnSelectionChanged(const gfx::Range& selection,
-                          uint32_t sequence_number) override;
+                          uint32_t sequence_number,
+                          bool show_full_url) override;
+  void Revert(uint32_t sequence_number) override;
+  void LogEscapeAction(
+      omnibox_popup::mojom::OmniboxEscapeAction action) override;
+  void OnInputCleared(uint32_t sequence_number) override;
+  void RequestInputState() override;
 
   // omnibox_popup::mojom::Page:
   void OnShow();
@@ -48,19 +57,25 @@ class OmniboxPopupHandler : public omnibox_popup::mojom::PageHandler {
   void SetInputState(const std::string& text,
                      const gfx::Range& selection,
                      bool user_input_in_progress,
-                     bool is_double_click,
-                     const std::string& full_url);
+                     const std::string& full_url,
+                     bool is_focused,
+                     const std::string& permanent_display_text,
+                     bool show_full_url);
+  void SetFocus(bool is_focused);
 
   const gfx::Range& latest_selection() const { return latest_selection_; }
+  bool show_full_url() const { return show_full_url_; }
 
  private:
   mojo::Receiver<omnibox_popup::mojom::PageHandler> receiver_;
   mojo::Remote<omnibox_popup::mojom::Page> page_;
   base::WeakPtr<TopChromeWebUIController::Embedder> embedder_;
   raw_ptr<content::WebContents> web_contents_;
+  raw_ptr<OmniboxController> controller_;
   // Caches the latest selection range reported by the WebUI to allow
   // synchronous access on tab switches.
   gfx::Range latest_selection_;
+  bool show_full_url_ = false;
   // Monotonically increasing sequence number sent to the WebUI to reject stale
   // selection reports that arrive asynchronously.
   uint32_t current_sequence_number_ = 0;

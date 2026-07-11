@@ -77,6 +77,7 @@ source_set("renderer_context_menu") {
 }
 
 source_set("impl") {
+  friend = [ ":unit_tests" ]
   public = [ "context_menu_content_type_factory.h" ]
   sources = [ "context_menu_content_type_factory.cc" ]
 
@@ -84,7 +85,7 @@ source_set("impl") {
     ":renderer_context_menu",
     "//base",
     "//chrome/browser/app_mode",
-    "//chrome/common:url_constants",
+    "//chrome/common",
     "//components/renderer_context_menu",
     "//content/public/browser",
     "//extensions/buildflags",
@@ -121,6 +122,7 @@ source_set("impl") {
       "//chrome/browser/apps/platform_apps",
       "//chrome/browser/autocomplete",
       "//chrome/browser/compose",
+      "//chrome/browser/context_hub",
       "//chrome/browser/custom_handlers",
       "//chrome/browser/devtools",
       "//chrome/browser/dictation",
@@ -148,6 +150,7 @@ source_set("impl") {
       "//chrome/browser/sync",
       "//chrome/browser/translate",
       "//chrome/browser/ui",
+      "//chrome/browser/ui:chrome_pages",
       "//chrome/browser/ui:ui_features",
       "//chrome/browser/ui/autofill",
       "//chrome/browser/ui/lens",
@@ -159,6 +162,7 @@ source_set("impl") {
       "//chrome/browser/ui/translate",
       "//chrome/browser/ui/user_education",
       "//chrome/browser/ui/webui:webui_util",
+      "//chrome/browser/ui/webui/history",
       "//chrome/browser/user_education",
       "//chrome/common:mojo_bindings",
       "//components/compose/core/browser",
@@ -309,6 +313,7 @@ if (!is_android) {
     testonly = true
 
     sources = [
+      "context_menu_content_type_read_anything_unittest.cc",
       "context_menu_content_type_unittest.cc",
       "render_view_context_menu_unittest.cc",
     ]
@@ -323,6 +328,7 @@ if (!is_android) {
       "//chrome/browser/password_manager",
       "//chrome/browser/prefs",
       "//chrome/browser/search_engines",
+      "//chrome/browser/ui:chrome_pages",
       "//chrome/browser/ui:ui_features",
       "//chrome/browser/ui/lens",
       "//chrome/browser/ui/side_panel:test_support",
@@ -366,6 +372,7 @@ if (!is_android) {
       "//base/test:test_support",
       "//chrome/browser",
       "//chrome/browser/compose:test_support",
+      "//chrome/browser/context_hub",
       "//chrome/browser/devtools",
       "//chrome/browser/enterprise/data_controls:test_support",
       "//chrome/browser/pdf:pdf_extension_test_utils",

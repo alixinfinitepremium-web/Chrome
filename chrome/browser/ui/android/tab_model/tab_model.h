@@ -237,6 +237,9 @@ class TabModel : public TabListInterface {
     FROM_OMNIBOX,
     // Selection of a previously closed tab when closure is undone.
     FROM_UNDO,
+    // Selection of a tab when an item is dragged in the UI, requiring an active
+    // tab representation.
+    FROM_DRAG,
     // Must be last.
     SIZE
   };
@@ -271,6 +274,7 @@ class TabModel : public TabListInterface {
   virtual content::WebContents* GetWebContentsAt(int index) const = 0;
   // This will return NULL if the tab has not yet been initialized.
   virtual TabAndroid* GetTabAt(int index) const = 0;
+  virtual bool HasTab(TabAndroid* tab) const = 0;
   virtual std::vector<tabs::TabHandle> GetOrderedMultiSelectedTabs() const = 0;
   virtual base::android::ScopedJavaLocalRef<jobject> GetJavaObject() const = 0;
 
@@ -329,8 +333,6 @@ class TabModel : public TabListInterface {
   }
   TabModelType GetTabModelType() const { return tab_model_type_; }
   bool IsEmptyRegularModelForEphemeralOrIncognitoCct() const;
-
-  static bool EnableBrowserWindowInterfaceMobile();
 
  protected:
   TabModel(Profile* profile,

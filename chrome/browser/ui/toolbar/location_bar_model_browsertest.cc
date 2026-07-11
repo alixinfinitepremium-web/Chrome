@@ -188,7 +188,7 @@ void LocationBarModelTest::SetUpOnMainThread() {
       extensions::ExtensionBuilder("Test")
           .SetID("fooooooooooooooooooooooooooooooo")
           .Build();
-  extensions::ExtensionRegistrar::Get(browser()->profile())
+  extensions::ExtensionRegistrar::Get(browser()->GetProfile())
       ->AddExtension(extension);
 #endif
 }
@@ -298,7 +298,7 @@ IN_PROC_BROWSER_TEST_F(LocationBarModelTest,
   ASSERT_TRUE(location_bar_model->GetFormattedFullURL().empty());
 
   OmniboxView* omnibox_view =
-      browser()->window()->GetLocationBar()->GetOmniboxView();
+      BrowserWindow::FromBrowser(browser())->GetLocationBar()->GetOmniboxView();
   ASSERT_TRUE(omnibox_view);
 
   content::WebContents* ntp_tab =
@@ -356,7 +356,7 @@ class LocationBarModelInstantNTPTest : public LocationBarModelTest,
     GURL base_url = https_test_server().GetURL("/instant_extended.html?");
     GURL ntp_url = https_test_server().GetURL("/instant_extended_ntp.html?");
     ASSERT_NO_FATAL_FAILURE(
-        SetupInstant(browser()->profile(), base_url, ntp_url));
+        SetupInstant(browser()->GetProfile(), base_url, ntp_url));
   }
 
  protected:
@@ -438,7 +438,7 @@ IN_PROC_BROWSER_TEST_F(LocationBarModelInstantNTPBrowserInitiatedLinksTest,
   LocationBarModel* location_bar_model =
       browser()->GetFeatures().location_bar_model();
   OmniboxView* omnibox_view =
-      browser()->window()->GetLocationBar()->GetOmniboxView();
+      BrowserWindow::FromBrowser(browser())->GetLocationBar()->GetOmniboxView();
   ASSERT_TRUE(omnibox_view);
 
   const GURL slow_url = NavigateRemoteNTPAndClickSlowLink();
@@ -467,7 +467,7 @@ IN_PROC_BROWSER_TEST_F(LocationBarModelInstantNTPNoBrowserInitiatedLinksTest,
   LocationBarModel* location_bar_model =
       browser()->GetFeatures().location_bar_model();
   OmniboxView* omnibox_view =
-      browser()->window()->GetLocationBar()->GetOmniboxView();
+      BrowserWindow::FromBrowser(browser())->GetLocationBar()->GetOmniboxView();
   ASSERT_TRUE(omnibox_view);
 
   const GURL slow_url = NavigateRemoteNTPAndClickSlowLink();

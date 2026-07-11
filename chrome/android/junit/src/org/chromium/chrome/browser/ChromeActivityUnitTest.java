@@ -57,7 +57,6 @@ import org.chromium.chrome.browser.app.metrics.LaunchCauseMetrics;
 import org.chromium.chrome.browser.app.tabmodel.TabModelOrchestrator;
 import org.chromium.chrome.browser.compositor.layouts.LayoutManagerImpl;
 import org.chromium.chrome.browser.dom_distiller.ReaderModeManager;
-import org.chromium.chrome.browser.enterprise.util.EnterpriseInfo;
 import org.chromium.chrome.browser.flags.ActivityType;
 import org.chromium.chrome.browser.flags.ChromeFeatureList;
 import org.chromium.chrome.browser.layouts.LayoutType;
@@ -67,6 +66,7 @@ import org.chromium.chrome.browser.profiles.ProfileProvider;
 import org.chromium.chrome.browser.readaloud.ReadAloudController;
 import org.chromium.chrome.browser.settings.SettingsNavigationFactory;
 import org.chromium.chrome.browser.tab.Tab;
+import org.chromium.chrome.browser.tab.TabDestroyStatus;
 import org.chromium.chrome.browser.tab.TabLaunchType;
 import org.chromium.chrome.browser.tabmodel.TabCreator;
 import org.chromium.chrome.browser.tabmodel.TabModel;
@@ -79,6 +79,7 @@ import org.chromium.chrome.browser.ui.messages.snackbar.SnackbarManager;
 import org.chromium.components.browser_ui.settings.SettingsNavigation;
 import org.chromium.components.dom_distiller.core.DomDistillerUrlUtilsJni;
 import org.chromium.components.embedder_support.util.UrlConstants;
+import org.chromium.components.policy.EnterpriseInfo;
 import org.chromium.components.ukm.UkmRecorder;
 import org.chromium.components.ukm.UkmRecorderJni;
 import org.chromium.content_public.browser.LoadUrlParams;
@@ -129,7 +130,9 @@ public class ChromeActivityUnitTest {
         protected void createTabModels() {}
 
         @Override
-        protected void destroyTabModels() {}
+        protected @TabDestroyStatus int destroyTabModels() {
+            return TabDestroyStatus.NO_SHUTDOWN;
+        }
 
         @Override
         protected Pair<? extends TabCreator, ? extends TabCreator> createTabCreators() {

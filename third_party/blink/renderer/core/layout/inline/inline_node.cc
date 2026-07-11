@@ -10,6 +10,7 @@
 #include "base/containers/adapters.h"
 #include "base/debug/dump_without_crashing.h"
 #include "base/not_fatal_until.h"
+#include "base/numerics/safe_conversions.h"
 #include "base/trace_event/trace_event.h"
 #include "third_party/blink/renderer/core/dom/text_diff_range.h"
 #include "third_party/blink/renderer/core/frame/local_frame.h"
@@ -266,7 +267,7 @@ class ReusingTextShaper final {
           return item->EndOffset() <= offset;
         });
     const wtf_size_t start_item_index =
-        std::distance(reusable_items_->begin(), start_item_iter);
+        CheckedDistance(reusable_items_->begin(), start_item_iter);
     for (const Member<InlineItem>& item_ptr :
          base::span{*reusable_items_}.subspan(start_item_index)) {
       const InlineItem& item = *item_ptr;
@@ -1803,26 +1804,26 @@ void InlineNode::ShapeTextForFirstLineIfNeeded(InlineNodeData* data) const {
     return;
 
   // Check if :first-line rules make any differences in the style.
-  const ComputedStyle* block_style = layout_object->Style();
-  const ComputedStyle* first_line_style = layout_object->FirstLineStyle();
+  const ComputedStyle& block_style = layout_object->StyleRef();
+  const ComputedStyle& first_line_style = layout_object->FirstLineStyleRef();
   if (block_style == first_line_style)
     return;
 
   String text_content = data->text_content;
   bool needs_reshape = false;
   TextOffsetMap offset_map;
-  if (first_line_style->TextTransform() != block_style->TextTransform()) {
+  if (first_line_style.TextTransform() != block_style.TextTransform()) {
     // TODO(kojii): This logic assumes that text-transform is applied only to
     // ::first-line, and does not work when the base style has text-transform
     // and ::first-line has different text-transform.
     if (RuntimeEnabledFeatures::FirstLineTextTransformEnabled()) {
       text_content =
-          first_line_style->ApplyTextTransform(text_content, ' ', &offset_map);
+          first_line_style.ApplyTextTransform(text_content, ' ', &offset_map);
       if (text_content != data->text_content) {
         needs_reshape = true;
       }
     } else {
-      text_content = first_line_style->ApplyTextTransform(text_content);
+      text_content = first_line_style.ApplyTextTransform(text_content);
       if (text_content != data->text_content) {
         // TODO(kojii): When text-transform changes the length, we need to
         // adjust offset in InlineItem, or re-collect inlines. Other classes
@@ -1870,8 +1871,9 @@ void InlineNode::ShapeTextForFirstLineIfNeeded(InlineNodeData* data) const {
 #endif  // EXPENSIVE_DCHECKS_ARE_ON()
 
   // Re-shape if the font is different.
-  if (needs_reshape || FirstLineNeedsReshape(*first_line_style, *block_style))
+  if (needs_reshape || FirstLineNeedsReshape(first_line_style, block_style)) {
     ShapeText(first_line_items);
+  }
   if (auto* with_offset_map = DynamicTo<InlineItemsDataWithOffsetMap>(
           first_line_items)) [[unlikely]] {
     with_offset_map->offset_map = std::move(offset_map);
@@ -1946,7 +1948,7 @@ template <typename CharType>
 String CreateTextContentForStickyImagesQuirk(
     base::span<const CharType> text,
     base::span<const Member<InlineItem>> items) {
-  StringBuffer<CharType> buffer(text.size());
+  StringBuffer<CharType> buffer(base::checked_cast<wtf_size_t>(text.size()));
   base::span<CharType> span = buffer.Span();
   span.copy_from(text);
   for (const Member<InlineItem>& item_ptr : items) {

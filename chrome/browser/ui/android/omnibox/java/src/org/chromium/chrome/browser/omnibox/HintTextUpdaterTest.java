@@ -7,11 +7,12 @@ package org.chromium.chrome.browser.omnibox;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import static org.chromium.ui.test.util.MockitoHelper.clearInvocations;
 
 import androidx.test.core.app.ApplicationProvider;
 
@@ -44,6 +45,7 @@ import org.chromium.components.feature_engagement.Tracker;
 import org.chromium.components.omnibox.AutocompleteInput;
 import org.chromium.components.omnibox.AutocompleteInput.SiteSearchData;
 import org.chromium.components.omnibox.AutocompleteRequestType;
+import org.chromium.components.omnibox.OmniboxCapabilities;
 import org.chromium.components.omnibox.OmniboxFeatures;
 import org.chromium.components.omnibox.ToolConfigProto.ToolConfig;
 import org.chromium.components.omnibox.ToolModeProto.ToolMode;
@@ -92,7 +94,6 @@ public class HintTextUpdaterTest {
     private SearchEngineNameObserver mSearchEngineNameObserver;
 
     @Before
-    @SuppressWarnings("unchecked")
     public void setUp() {
         when(mLocationBarDataProvider.getFuseboxSessionState()).thenReturn(mFuseboxSessionState);
         when(mLocationBarDataProvider.getDefaultRequestType())
@@ -129,6 +130,7 @@ public class HintTextUpdaterTest {
                         mProfileSupplier,
                         mUpdateHintTextCallback);
 
+        when(mSearchEngineService.getOmniboxHintString()).thenReturn("Search Google or type URL");
         mSearchEngineServiceSupplier.set(mSearchEngineService);
 
         verify(mSearchEngineService)
@@ -178,7 +180,6 @@ public class HintTextUpdaterTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void testGetOmniboxHintText_FuseboxSessionState() {
         OmniboxFeatures.sShowModelPicker.setForTesting(true);
         when(mSearchEngineService.getSearchEngineName()).thenReturn("Google");
@@ -265,7 +266,6 @@ public class HintTextUpdaterTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void testGetOmniboxHintText_ModelPickerDisabled() {
         when(mSearchEngineService.getSearchEngineName()).thenReturn("Google");
         when(mSearchEngineService.isDefaultSearchEngineGoogle()).thenReturn(true);
@@ -284,10 +284,10 @@ public class HintTextUpdaterTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void testGetOmniboxHintText_UseAskHintForNtp() {
         when(mSearchEngineService.getSearchEngineName()).thenReturn("Google");
         when(mSearchEngineService.isDefaultSearchEngineGoogle()).thenReturn(true);
+        when(mSearchEngineService.getOmniboxHintString()).thenReturn("Search Google or type URL");
 
         clearInvocations(mUpdateHintTextCallback);
         OmniboxFeatures.sUseAskHintForNtp.setForTesting(false);
@@ -296,12 +296,20 @@ public class HintTextUpdaterTest {
 
         clearInvocations(mUpdateHintTextCallback);
         OmniboxFeatures.sUseAskHintForNtp.setForTesting(true);
+        when(mSearchEngineService.getOmniboxHintString()).thenReturn("Ask Google or type URL");
         mUpdater.onTitleChanged();
         verify(mUpdateHintTextCallback).onResult(eq("Ask Google or type URL"));
 
         clearInvocations(mUpdateHintTextCallback);
+        OmniboxCapabilities.setIsDesktopPlatformForTesting(true);
+        mUpdater.onTitleChanged();
+        verify(mUpdateHintTextCallback).onResult(eq("Ask Google or type URL"));
+        OmniboxCapabilities.setIsDesktopPlatformForTesting(false);
+
+        clearInvocations(mUpdateHintTextCallback);
         when(mSearchEngineService.getSearchEngineName()).thenReturn("Yahoo");
         when(mSearchEngineService.isDefaultSearchEngineGoogle()).thenReturn(false);
+        when(mSearchEngineService.getOmniboxHintString()).thenReturn("Search Yahoo or type URL");
         mSearchEngineNameObserver.onSearchEngineNameChanged();
         verify(mUpdateHintTextCallback).onResult(eq("Search Yahoo or type URL"));
 
@@ -309,7 +317,6 @@ public class HintTextUpdaterTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void testAimActivationHint_ShowHint() {
         when(mTracker.shouldTriggerHelpUi(FeatureConstants.AIM_ACTIVATION_HINT)).thenReturn(true);
         mFuseboxStateSupplier.set(FuseboxState.COMPACT);
@@ -325,7 +332,6 @@ public class HintTextUpdaterTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void testAimActivationHint_ShowEmptyHintWhenTrackerSaysNo() {
         when(mTracker.shouldTriggerHelpUi(FeatureConstants.AIM_ACTIVATION_HINT)).thenReturn(false);
         mFuseboxStateSupplier.set(FuseboxState.COMPACT);
@@ -363,7 +369,6 @@ public class HintTextUpdaterTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void testAimActivationHint_FallbackToDefaultIfChipNotVisible() {
         when(mSearchEngineService.getSearchEngineName()).thenReturn("Google");
         mFuseboxStateSupplier.set(FuseboxState.COMPACT);

@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <optional>
 
 #include "base/check.h"
 #include "base/containers/adapters.h"
@@ -47,6 +48,7 @@
 #include "third_party/blink/renderer/core/html/forms/option_list.h"
 #include "third_party/blink/renderer/core/html/forms/text_control_element.h"
 #include "third_party/blink/renderer/core/html/html_anchor_element.h"
+#include "third_party/blink/renderer/core/html/html_dialog_element.h"
 #include "third_party/blink/renderer/core/html/html_head_element.h"
 #include "third_party/blink/renderer/core/html/html_image_element.h"
 #include "third_party/blink/renderer/core/html/html_meta_element.h"
@@ -1081,9 +1083,9 @@ void ProcessTextNode(const LayoutText& layout_text,
   DCHECK(!ShouldRedactSubtree(attributes.redaction_decision));
 
   auto text_style = mojom::blink::AIPageContentTextStyle::New();
-  text_style->text_size = GetTextSize(*layout_text.Style(), document_style);
-  text_style->has_emphasis = HasEmphasis(*layout_text.Style());
-  text_style->color = GetColor(*layout_text.Style());
+  text_style->text_size = GetTextSize(layout_text.StyleRef(), document_style);
+  text_style->has_emphasis = HasEmphasis(layout_text.StyleRef());
+  text_style->color = GetColor(layout_text.StyleRef());
 
   auto text_info = mojom::blink::AIPageContentTextInfo::New();
   text_info->text_content =
@@ -1474,6 +1476,49 @@ bool ProcessAriaFormControlNode(
     form_control_data.is_checked = aria_checked;
   }
   return true;
+}
+
+// Returns a modal/modeless dialog attribute type if relevant.
+std::optional<mojom::blink::AIPageContentAttributeType> GetDialogAttributeType(
+    const Element* element) {
+  using AttributeType = mojom::blink::AIPageContentAttributeType;
+
+  // Layout objects without DOM elements cannot be dialogs.
+  if (!element) {
+    return std::nullopt;
+  }
+
+  // Native <dialog> tracks whether showModal() placed it in modal state.
+  if (const auto* dialog = DynamicTo<HTMLDialogElement>(element)) {
+    if (!dialog->IsOpen()) {
+      return std::nullopt;
+    }
+
+    return dialog->IsModal() ? AttributeType::kDialogModal
+                             : AttributeType::kDialogModeless;
+  }
+
+  // Map ARIA dialogs.
+  const ax::mojom::blink::Role aria_role =
+      AXObject::DetermineRawAriaRole(*element);
+  if (!ui::IsDialog(aria_role)) {
+    return std::nullopt;
+  }
+
+  // alertdialog defaults to modal unless aria-modal is explicitly set.
+  bool is_aria_modal = false;
+  const bool has_aria_modal = AXObject::AriaBooleanAttribute(
+      *element, html_names::kAriaModalAttr, &is_aria_modal);
+  if (has_aria_modal) {
+    return is_aria_modal ? AttributeType::kDialogModal
+                         : AttributeType::kDialogModeless;
+  }
+
+  if (aria_role == ax::mojom::blink::Role::kAlertDialog) {
+    return AttributeType::kDialogModal;
+  }
+
+  return AttributeType::kDialogModeless;
 }
 
 void ProcessFormControlNode(const HTMLFormControlElement& form_control_element,
@@ -2119,7 +2164,7 @@ mojom::blink::AIPageContentPtr AIPageContentAgent::ContentBuilder::Build(
   UpdateLifecycle(document);
 
   auto* layout_view = document.GetLayoutView();
-  auto* document_style = layout_view->Style();
+  const auto& document_style = layout_view->StyleRef();
 
   if (ShouldSkipNonSalientNode(*layout_view, *options_)) {
     return nullptr;
@@ -2136,7 +2181,7 @@ mojom::blink::AIPageContentPtr AIPageContentAgent::ContentBuilder::Build(
   AddFrameData(frame, *frame_data);
   page_content->frame_data = std::move(frame_data);
 
-  RecursionData recursion_data(*document_style);
+  RecursionData recursion_data(document_style);
   recursion_data.accessibility_focused_node_id =
       GetAccessibilityFocusedDOMNodeId(frame);
 
@@ -2581,6 +2626,8 @@ AIPageContentAgent::ContentBuilder::MaybeGenerateContentNodeImpl(
   } else if (const auto* form_control =
                  DynamicTo<HTMLFormControlElement>(object.GetNode())) {
     ProcessFormControlNode(*form_control, attributes);
+  } else if (auto dialog_attribute_type = GetDialogAttributeType(element)) {
+    attributes.attribute_type = *dialog_attribute_type;
   } else if (element &&
              ProcessAriaFormControlNode(object, *element, attributes)) {
     // ProcessAriaFormControlNode sets the attribute type and data.
@@ -3166,9 +3213,13 @@ void AIPageContentAgent::ContentBuilder::AddNodeInteractionInfo(
     const LayoutObject& object,
     mojom::blink::AIPageContentAttributes& attributes,
     bool is_aria_disabled) {
-  // The node is not hit-testable which also means no interaction is supported.
-  const ComputedStyle& style = *object.Style();
+  const ComputedStyle& style = object.StyleRef();
   if (style.UsedPointerEvents() == EPointerEvents::kNone) {
+    // Treat nodes exposed through pointer-events:none as non-actionable. This
+    // includes elements the author explicitly removed from hit testing and
+    // inert subtrees Blink maps to the same used value, such as [inert],
+    // interactivity:inert, content outside an active modal dialog or fullscreen
+    // element, and elements transitioning to display:none.
     return;
   }
 

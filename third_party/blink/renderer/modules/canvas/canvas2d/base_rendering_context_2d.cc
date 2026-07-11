@@ -76,6 +76,8 @@
 #include "third_party/blink/renderer/platform/geometry/path.h"
 #include "third_party/blink/renderer/platform/graphics/bitmap_image.h"
 #include "third_party/blink/renderer/platform/graphics/blend_mode.h"
+#include "third_party/blink/renderer/platform/graphics/canvas_2d_bitmap_provider.h"
+#include "third_party/blink/renderer/platform/graphics/canvas_2d_resource_provider.h"
 #include "third_party/blink/renderer/platform/graphics/canvas_deferred_paint_record.h"
 #include "third_party/blink/renderer/platform/graphics/flush_reason.h"
 #include "third_party/blink/renderer/platform/graphics/gpu/shared_gpu_context.h"
@@ -252,7 +254,7 @@ void BaseRenderingContext2D::TryRestoreContextEvent(TimerBase* timer) {
       (!SharedGpuContext::IsGpuCompositingEnabled() &&
        SharedGpuContext::SharedImageInterfaceProvider())) {
     RestoreGuard context_is_being_restored(*this);
-    if (GetOrCreateResourceProvider()) {
+    if (InitializeResourceProvider()) {
       try_restore_context_event_timer_.Stop();
       DispatchContextRestoredEvent(nullptr);
       return;
@@ -274,7 +276,6 @@ void BaseRenderingContext2D::RestoreFromInvalidSizeIfNeeded() {
       !host) {
     return;
   }
-  DCHECK(!GetResourceProvider());
 
   if (host->IsValidImageSize()) {
     // The size was restored. Fire a contextrestored event, but only if there's
@@ -720,16 +721,6 @@ void BaseRenderingContext2D::Trace(Visitor* visitor) const {
   Canvas2DRecorderContext::Trace(visitor);
 }
 
-bool BaseRenderingContext2D::Is2DCanvasAccelerated() const {
-  if (IsHibernating()) {
-    return false;
-  }
-
-  auto* resource_provider = GetResourceProvider();
-  return resource_provider ? resource_provider->IsAccelerated()
-                           : Host()->ShouldTryToUseGpuRaster();
-}
-
 void BaseRenderingContext2D::RestoreCanvasMatrixClipStack(
     cc::PaintCanvas* c) const {
   RestoreMatrixClipStack(c);
@@ -739,20 +730,26 @@ void BaseRenderingContext2D::Reset() {
   ResetInternal();
 }
 
-scoped_refptr<StaticBitmapImage>
-BaseRenderingContext2D::PaintRenderingResultsToSnapshot(
-    SourceDrawingBuffer source_buffer) {
-  if (!IsResourceProviderValid()) {
-    return nullptr;
+std::optional<cc::PaintRecord> BaseRenderingContext2D::FlushCanvasInternal(
+    Canvas2DResourceProvider* shared_image_provider,
+    Canvas2DBitmapProvider* bitmap_provider,
+    FlushReason reason) {
+  std::optional<cc::PaintRecord> recording;
+  if (shared_image_provider) {
+    recording = shared_image_provider->Flush(reason);
+    if (recording) {
+      shared_image_provider->ReleaseImageProviderImages();
+    }
+  } else if (bitmap_provider) {
+    recording = bitmap_provider->Flush(reason);
+    if (recording) {
+      bitmap_provider->ReleaseImageProviderImages();
+    }
   }
-
-  CanvasResourceProvider* provider = GetResourceProvider();
-  provider->Flush();
-  return provider->Snapshot();
-}
-
-bool BaseRenderingContext2D::IsResourceProviderValid() {
-  return GetResourceProvider() && GetResourceProvider()->IsValid();
+  if (recording && Host()) {
+    Host()->DidFlush();
+  }
+  return recording;
 }
 
 void BaseRenderingContext2D::WillUseCurrentFont() const {
@@ -1074,6 +1071,31 @@ void BaseRenderingContext2D::DrawTextInternal(
   }
 
   location.Offset(0, TextMetrics::GetFontBaseline(baseline, *font_data));
+
+  if (host && host->ShouldCaptureRenderedText()) {
+    gfx::RectF exact_bounds = bounds;
+    // If the text is scaled horizontally to fit maxWidth, scale the bounding
+    // box by the same factor.
+    if (use_max_width) {
+      float scale_x = width / font_width;
+      exact_bounds.set_x(exact_bounds.x() * scale_x);
+      exact_bounds.set_width(exact_bounds.width() * scale_x);
+    }
+
+    // Offset the bounding box to the actual draw location.
+    exact_bounds.Offset(location.x(), location.y());
+
+    // Inflate the bounding box to account for stroke width if we are stroking.
+    if (paint_type == CanvasRenderingContext2DState::kStrokePaintType) {
+      InflateStrokeRect(exact_bounds);
+    }
+
+    // Map the bounds to the canvas coordinate system and record the text.
+    exact_bounds = state.GetTransform().MapRect(exact_bounds);
+    host->RecordRenderedText(text.substr(run_start, run_end - run_start),
+                             exact_bounds,
+                             font_data->GetFontMetrics().FloatHeight());
+  }
 
   bounds.Offset(location.x(), location.y());
   if (paint_type == CanvasRenderingContext2DState::kStrokePaintType) {
