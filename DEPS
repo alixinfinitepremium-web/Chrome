@@ -431,7 +431,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': 'aaf3fa7135fcc4fb8ca1f7765dfe5b9c503438a7',
+  'dawn_revision': 'dc2326f4d024d69d9cd8110a869a86aa65281df0',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -3166,7 +3166,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '06ae2e94a5bd1e23d1100ee1e214c62a9d0d069d',
+    Var('webrtc_git') + '/src.git' + '@' + '3fa947630451197bca6fc57fc0c89d87bb299d01',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -3295,7 +3295,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_receiver_app/app',
-        'version': 'Ih2b6U07MbZ9UFTU9HY1XYhJInT6agioEm-tAsmVkO8C',
+        'version': '0o3yDNKf5c0vjUEEPiShWYZE55UfngD1nMIqurYZm0oC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3306,7 +3306,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_app/app',
-        'version': 'juv_1brkM7t3zMWEUEDS_ot_C7cwsi4iQ9KPePrcc6wC',
+        'version': 'kb6mH-FmPsa8nWlwvqFEY0ySZLdFhdW-i40a4FQp8TUC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
