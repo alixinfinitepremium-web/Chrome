@@ -8909,6 +8909,7 @@ from previous Chrome versions.
   <int value="-1821491797"
       label="AutofillEnableRankingFormulaCreditCards:enabled"/>
   <int value="-1821336389" label="DiscardedTabTreatment:enabled"/>
+  <int value="-1821271329" label="BookmarksBarContextMenu:enabled"/>
   <int value="-1821058653" label="enable-delay-agnostic-aec"/>
   <int value="-1820740914"
       label="AndroidAutofillUpdateContextForWebContents:disabled"/>
@@ -9103,6 +9104,8 @@ from previous Chrome versions.
       label="PasswordSaveUpdateDropdownMenuExperiment:enabled"/>
   <int value="-1754262889" label="RemoteCopyPersistentNotification:enabled"/>
   <int value="-1753979488" label="SupportForcedSigninPolicy:enabled"/>
+  <int value="-1753418347"
+      label="ContextualTasksPrivateApiNoAnimation:enabled"/>
   <int value="-1753314199"
       label="ZeroSuggestPrefetchingForComposebox:disabled"/>
   <int value="-1752853388"
@@ -9282,6 +9285,8 @@ from previous Chrome versions.
   <int value="-1695774453" label="skip-extra-ash-window-positioning"/>
   <int value="-1695608731"
       label="PageInfoAboutThisSiteDescriptionPlaceholder:disabled"/>
+  <int value="-1695485728"
+      label="ContextualTasksPrivateApiNoAnimation:disabled"/>
   <int value="-1695235937" label="CampbellGlyph:enabled"/>
   <int value="-1694900665" label="HandwritingGestureEditing:enabled"/>
   <int value="-1694420704"
@@ -13434,6 +13439,7 @@ from previous Chrome versions.
   <int value="-374423260" label="OmniboxTabSwitchSuggestions:disabled"/>
   <int value="-374005145" label="UsePrimaryAndTonalButtonsForPromos:disabled"/>
   <int value="-373365335" label="JourneysOmniboxAction:disabled"/>
+  <int value="-373319805" label="AndroidDesktopBookmarkPopup:disabled"/>
   <int value="-373233195" label="SyncUSSAutofillWalletData:enabled"/>
   <int value="-372171039" label="BlinkGenPropertyTrees:disabled"/>
   <int value="-371771269" label="ShortcutsNotApps:enabled"/>
@@ -13857,6 +13863,7 @@ from previous Chrome versions.
   <int value="-245342115" label="PermissionChip:enabled"/>
   <int value="-243786659" label="DevToolsPlusButton:disabled"/>
   <int value="-242836432" label="EnableFakeKeyboardHeuristic:disabled"/>
+  <int value="-242673912" label="BookmarksBarContextMenu:disabled"/>
   <int value="-242603713" label="EnableImprovedGuestProfileMenu:disabled"/>
   <int value="-242441279" label="SafetyCheckUnusedSitePermissions:enabled"/>
   <int value="-242431978" label="StartSurfaceRefactor:enabled"/>
@@ -14329,6 +14336,7 @@ from previous Chrome versions.
   <int value="-91575163" label="PaymentLinkDetection:disabled"/>
   <int value="-91370149" label="UseSerialBusEnumerator:enabled"/>
   <int value="-90521375" label="PDFTwoUpView:enabled"/>
+  <int value="-90410008" label="WebUiNtpAndroidTheming:enabled"/>
   <int value="-90032223" label="BuiltInModuleInfra:disabled"/>
   <int value="-89812525"
       label="AutofillEnableMerchantOptOutClientSideUrlFiltering:enabled"/>
@@ -15675,6 +15683,7 @@ from previous Chrome versions.
   <int value="343286828" label="IgnoreUiGains:disabled"/>
   <int value="343445783" label="AllowScrollSettings:enabled"/>
   <int value="343815157" label="SafeBrowsingHashPrefixRealTimeLookups:enabled"/>
+  <int value="345246871" label="WebUiNtpAndroidTheming:disabled"/>
   <int value="345430155" label="CrOSDspBasedAgcAllowed:enabled"/>
   <int value="345611669"
       label="OmniboxLocalZeroSuggestFrecencyRanking:enabled"/>
@@ -16582,6 +16591,7 @@ from previous Chrome versions.
   <int value="638865852" label="UsePreferredIntervalForVideo:disabled"/>
   <int value="638977069" label="ModalMemorySaver:enabled"/>
   <int value="639765450" label="AccessCodeCastTabSwitchingUI:enabled"/>
+  <int value="640005692" label="AndroidDesktopBookmarkPopup:enabled"/>
   <int value="640174751" label="AndroidMultipleDisplay:enabled"/>
   <int value="640256251" label="RemotePageMetadata:enabled"/>
   <int value="642037198" label="SoleIntegration:disabled"/>

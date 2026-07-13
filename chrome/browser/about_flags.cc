@@ -7518,10 +7518,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kOnStartupWindowPolicyDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(chrome::android::kOnStartupWindowPolicy)},
 
-    {"settings-in-tab", flag_descriptions::kSettingsInTabName,
-     flag_descriptions::kSettingsInTabDescription, kOsAndroid,
-     FEATURE_VALUE_TYPE(chrome::android::kSettingsInTab)},
-
     {"android-settings-containment",
      flag_descriptions::kAndroidSettingsContainmentName,
      flag_descriptions::kAndroidSettingsContainmentDescription, kOsAndroid,
@@ -9513,6 +9509,10 @@ const FeatureEntry kFeatureEntries[] = {
     {"use-webui-ntp-android", flag_descriptions::kUseWebUiNtpAndroidName,
      flag_descriptions::kUseWebUiNtpAndroidDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(chrome::android::kUseWebUiNtpAndroid)},
+
+    {"webui-ntp-android-theming", flag_descriptions::kWebUiNtpAndroidThemingName,
+     flag_descriptions::kWebUiNtpAndroidThemingDescription, kOsAndroid,
+     FEATURE_VALUE_TYPE(chrome::android::kWebUiNtpAndroidTheming)},
 
     {"tab-switcher-group-suggestions-android",
      flag_descriptions::kTabSwitcherGroupSuggestionsAndroidName,
@@ -11560,6 +11560,11 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kAndroidOpenIncognitoAsWindowDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(feed::kAndroidOpenIncognitoAsWindow)},
 
+    {"android-desktop-bookmark-popup",
+     flag_descriptions::kAndroidDesktopBookmarkPopupName,
+     flag_descriptions::kAndroidDesktopBookmarkPopupDescription, kOsAndroid,
+     FEATURE_VALUE_TYPE(chrome::android::kAndroidDesktopBookmarkPopup)},
+
     {"android-desktop-ua-platform",
      flag_descriptions::kAndroidDesktopUAPlatformName,
      flag_descriptions::kAndroidDesktopUAPlatformDescription, kOsAndroid,
@@ -11952,6 +11957,15 @@ const FeatureEntry kFeatureEntries[] = {
          contextual_tasks::kContextualTasksEphemeralBrandedEntryPoint,
          kEphemeralBrandedEntryPointVariations,
          "ContextualTasksEphemeralBrandedEntryPoint")},
+
+    {"contextual-tasks-private-api-no-animation",
+     contextual_tasks::flag_descriptions::
+         kContextualTasksPrivateApiNoAnimationName,
+     contextual_tasks::flag_descriptions::
+         kContextualTasksPrivateApiNoAnimationDescription,
+     kOsDesktop,
+     FEATURE_VALUE_TYPE(
+         contextual_tasks::kContextualTasksPrivateApiNoAnimation)},
 
     {"contextual-tasks-java-fusebox",
      contextual_tasks::flag_descriptions::kContextualTasksJavaFuseboxName,
@@ -12986,6 +13000,12 @@ const FeatureEntry kFeatureEntries[] = {
     {"bookmarks-bar-ntp", flag_descriptions::kBookmarksBarNTPName,
      flag_descriptions::kBookmarksBarNTPDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(chrome::android::kBookmarksBarNTP)},
+#endif
+#if BUILDFLAG(IS_ANDROID)
+    {"bookmarks-bar-context-menu",
+     flag_descriptions::kBookmarksBarContextMenuName,
+     flag_descriptions::kBookmarksBarContextMenuDescription, kOsAndroid,
+     FEATURE_VALUE_TYPE(chrome::android::kBookmarksBarContextMenu)},
 #endif
 
     {"tabs-from-other-devices-side-panel",

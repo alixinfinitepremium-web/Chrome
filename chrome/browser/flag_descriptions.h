@@ -1388,10 +1388,6 @@ inline constexpr char kOnStartupWindowPolicyDescription[] =
     "Enables updated on-startup window default behavior and settings on "
     "Android.";
 
-inline constexpr char kSettingsInTabName[] = "Settings in Tab";
-inline constexpr char kSettingsInTabDescription[] =
-    "Allows the Chrome Settings UI to appear in a tab on Android.";
-
 inline constexpr char kBottomSheetOnDesktopWindowingName[] =
     "Bottom Sheet on Desktop Windowing";
 inline constexpr char kBottomSheetOnDesktopWindowingDescription[] =
@@ -5335,6 +5331,12 @@ inline constexpr char kAndroidContextMenuNewActionsName[] =
 inline constexpr char kAndroidContextMenuNewActionsDescription[] =
     "Adds new context menu actions.";
 
+inline constexpr char kAndroidDesktopBookmarkPopupName[] =
+    "Android Desktop Bookmark Popup";
+inline constexpr char kAndroidDesktopBookmarkPopupDescription[] =
+    "Enables the desktop-styled anchor popup when adding or editing a bookmark "
+    "on Android Desktop devices.";
+
 inline constexpr char kAndroidDesktopUAPlatformName[] =
     "Android platform client hint for Desktop Android";
 inline constexpr char kAndroidDesktopUAPlatformDescription[] =
@@ -5639,6 +5641,11 @@ inline constexpr char kBackgroundNotPerceptibleBindingDescription[] =
 inline constexpr char kBookmarkPaneAndroidName[] = "Bookmark hub pane";
 inline constexpr char kBookmarkPaneAndroidDescription[] =
     "Enables a bookmark hub pane.";
+
+inline constexpr char kBookmarksBarContextMenuName[] =
+    "Bookmarks Bar Context Menu";
+inline constexpr char kBookmarksBarContextMenuDescription[] =
+    "Enable context menu actions on the Bookmarks Bar.";
 
 inline constexpr char kBookmarksBarNTPName[] = "Bookmarks Bar on New Tab Page";
 inline constexpr char kBookmarksBarNTPDescription[] =
@@ -6378,6 +6385,10 @@ inline constexpr char kUseAngleVulkan[] = "Vulkan";
 inline constexpr char kUseWebUiNtpAndroidName[] = "Use WebUI NTP on Android";
 inline constexpr char kUseWebUiNtpAndroidDescription[] =
     "When enabled, use the WebUI NTP instead of the native NTP on Android.";
+
+inline constexpr char kWebUiNtpAndroidThemingName[] = "WebUI NTP Android theming";
+inline constexpr char kWebUiNtpAndroidThemingDescription[] =
+    "When enabled, use Android theming on the WebUI NTP.";
 
 inline constexpr char kTextClassifierTimeoutName[] = "TextClassifier Timeout";
 inline constexpr char kTextClassifierTimeoutDescription[] =

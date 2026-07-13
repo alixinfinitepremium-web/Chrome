@@ -307,6 +307,14 @@
     "expiry_milestone": 160
   },
   {
+    "name": "android-desktop-bookmark-popup",
+    "owners": [
+      "wylieb@google.com",
+      "clank-app-team@google.com"
+    ],
+    "expiry_milestone": 150
+  },
+  {
     "name": "android-desktop-ua-platform",
     "owners": [ "victortan@chromium.org", "miketaylr@chromium.org" ],
     "expiry_milestone": 155
@@ -1285,6 +1293,11 @@
     "expiry_milestone": 155
   },
   {
+    "name": "bookmarks-bar-context-menu",
+    "owners": ["wylieb@google.com", "evanluo@google.com", "clank-tab-dev@google.com" ],
+    "expiry_milestone": 165
+  },
+  {
     "name": "bookmarks-bar-ntp",
     "owners": ["mschillaci@google.com", "eleanorlee@google.com", "clank-app-team@google.com"],
     "expiry_milestone": 156
@@ -2087,6 +2100,11 @@
     "name": "contextual-tasks-override-show-bottom-sheet-on-large-screen",
     "owners": ["shaktisahu@chromium.org", "chrome-contextual-tasks-eng@google.com"],
     "expiry_milestone": 155
+  },
+  {
+    "name": "contextual-tasks-private-api-no-animation",
+    "owners": ["mercerd@google.com", "chrome-contextual-tasks-eng@google.com"],
+    "expiry_milestone": 160
   },
   {
     "name": "contextual-tasks-rearchitecture",
@@ -8730,11 +8748,6 @@
     "expiry_milestone": -1
   },
   {
-    "name": "settings-in-tab",
-    "owners": [ "jamescook@google.com", "clank-desktopify@google.com" ],
-    "expiry_milestone": 170
-  },
-  {
     "name": "share-ablation-hide-share-in-toolbar",
     "owners": [ "stkhapugin@google.com", "bling-search@google.com"],
     "expiry_milestone": 150
@@ -10138,6 +10151,11 @@
     // This flag is used by developers to debug applications
     // using WebTransport locally.
     "expiry_milestone": -1
+  },
+  {
+    "name": "webui-ntp-android-theming",
+    "owners": [ "giannich@google.com", "rtatum@google.com", "ruoxih@google.com" ],
+    "expiry_milestone": 160
   },
   {
     "name": "webui-omnibox-aim-popup",
