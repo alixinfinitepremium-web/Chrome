@@ -71,6 +71,10 @@ crbug.com/457388389 http/tests/devtools/a11y-axe-core/sources/scope-pane-a11y-te
 crbug.com/457388389 http/tests/devtools/sources/debugger-pause/debugger-change-variable.js [ Failure Pass Timeout ]
 crbug.com/457388389 http/tests/devtools/sources/debugger/debugger-scope-resolve-identifiers.js [ Failure Pass Timeout ]
 crbug.com/457388389 http/tests/devtools/sources/debugger/debugger-scope-resolve-this.js [ Failure Pass Timeout ]
+crbug.com/457388389 http/tests/devtools/sources/debugger-pause/set-return-value.js [ Failure Pass Timeout ]
+crbug.com/457388389 http/tests/devtools/sources/debugger-ui/debugger-expand-scope.js [ Failure Pass Timeout ]
+crbug.com/457388389 http/tests/devtools/sources/debugger/debugger-es6-harmony-scopes.js [ Failure Pass Timeout ]
+crbug.com/457388389 http/tests/devtools/sources/debugger/debugger-scope-minified-variables.js [ Failure Pass Timeout ]
 
 # Disable layout tests to land crrev.com/c/7969697
 http/tests/devtools/security/blank-origins-not-shown.js [ Failure Pass ]
@@ -6151,6 +6155,9 @@ crbug.com/429365670 external/wpt/css/css-break/out-of-flow-in-multicolumn-098.ht
 crbug.com/429365670 external/wpt/css/css-break/out-of-flow-in-multicolumn-109.html [ Failure ]
 crbug.com/429365670 external/wpt/css/css-multicol/multicol-nested-column-rule-002.html [ Failure ]
 
+# Fragmentation bug with a column flex.
+crbug.com/532828232 external/wpt/css/css-gaps/flex/fragmentation/flex-gap-decorations-fragmentation-027.html [ Failure ]
+
 crbug.com/445971864 external/wpt/css/css-gaps/multicol/multicol-gap-decorations-007.html [ Failure ]
 
 ### End of tests failing with CSSGapDecorations Enabled
@@ -8735,6 +8742,7 @@ crbug.com/465879478 http/tests/devtools/sources/debugger-ui/async-call-stack-wor
 
 # Gardener 2024-11-18
 crbug.com/379516106 [ Debug Mac14 ] external/wpt/css/css-overflow/scrollbar-large-scale-in-iframe.html [ Pass Timeout ]
+crbug.com/379516106 [ Win ] external/wpt/css/css-overflow/scrollbar-large-scale-in-iframe.html [ Crash Pass ]
 crbug.com/377815400 [ Mac13 ] external/wpt/webcodecs/video-encoder-h264.https.any.html?high-6.2 [ Pass Timeout ]
 crbug.com/379335371 [ Mac13 ] external/wpt/webcodecs/video-encoder-h264.https.any.worker.html?baseline [ Pass Timeout ]
 
@@ -9510,3 +9518,4 @@ crbug.com/532874152 external/wpt/html/semantics/document-metadata/the-link-eleme
 # Gardener 2026-07-13
 crbug.com/534101060 [ Linux ] wpt_internal/webmcp/custom-element-invalid-schema.https.html [ Failure Pass ]
 crbug.com/534138461 [ Linux ] external/wpt/css/css-ui/compute-kind-widget-generated/grouped-kind-of-widget-fallback-background-attachment-001.html [ Failure Pass ]
+crbug.com/534282817 [ Linux ] external/wpt/css/css-ui/compute-kind-widget-generated/grouped-kind-of-widget-fallback-border-block-start-color-001.html [ Failure Pass ]

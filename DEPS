@@ -323,19 +323,19 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '5757d2f92f7f8ddf931e6b61542e44d731f238b0',
+  'src_internal_revision': '52b21e5b22b74d510ba01578e152b8a73c9f1c45',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '94db35da9a8acaab6e81ec085e865880ef1393be',
+  'skia_revision': 'a80e3db937e8873b63d3b39d1a0bd348dddc649a',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': '6035b39affa461cd289ade75133c3fbcff8c90b9',
+  'v8_revision': 'fd80e8f1bac54356fd6f98cd56ac64ae9e8bb8a0',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '8b3018dd68238fdee38bf39203a077aef35d64b4',
+  'angle_revision': 'dc38646362718844f0f139a402769268808960b9',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -387,7 +387,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': '4422eacaf8055336bda1aaccee3626eac1321498',
+  'crossbench_revision': '220464136d25e928c0f3f16a1aee24c347b34bcd',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -407,7 +407,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '746e32534e7b2ca7bf3ec411a754113eece78d7d',
+  'devtools_frontend_revision': '261915e936d83cf5e9135615b023bcec91632b5a',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -431,7 +431,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': '99906bea51e4d8882bf4509f2af8ac6a21282e22',
+  'dawn_revision': '7002d2419ce405e4d3d9e68fe29d86b6e363ff6e',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -1722,7 +1722,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '862579d512eef06f3a2eddf2cc4539be939d2e90',
+    'f81f1ace704b50375ae76df8671c17fe0fa6a4ff',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -2140,7 +2140,7 @@ deps = {
   # Tools used when building Chrome for Chrome OS. This affects both the Simple
   # Chrome workflow, as well as the chromeos-chrome ebuild.
   'src/third_party/chromite': {
-      'url': Var('chromium_git') + '/chromiumos/chromite.git' + '@' + '6d35c5a2ba3f31973fba33705673077c54bc82d0',
+      'url': Var('chromium_git') + '/chromiumos/chromite.git' + '@' + 'fd76ef608810a32a3e66857b18d66ce8ca978592',
       'condition': 'checkout_chromeos',
   },
 
@@ -3317,7 +3317,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/help_app/app',
-        'version': 'OnQYkuOCUHuaxu6mMbPLqIqUmFOsNR3-7zzH7mdVGVkC',
+        'version': '06Y5fZ2iNi09YnJ-eKSb2q6Gg-VxNqQP2_6RLQK0igEC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3328,7 +3328,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/media_app/app',
-        'version': '-KKGjkw2c3OvaQIeiprfUKIOAmHMnAENP3d5FZ0WsmAC',
+        'version': 'c1VdHDFbG9C666MvMDuY3VEu8usxN_Ndwca8uB8zI4QC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -4007,7 +4007,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        'a8f0d44c56762ead8b5cf61bc9d05f4e5761527a',
+        'e4564b4ba8e957b94759f2edaa6f9d4dd713ec84',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 

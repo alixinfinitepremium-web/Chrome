@@ -781,6 +781,11 @@ BASE_FEATURE(kAutofillPopupCheckHtmlFormPopupOverlap,
 BASE_FEATURE(kAutofillPopupDontAcceptNonVisibleEnoughSuggestion,
              base::FEATURE_DISABLED_BY_DEFAULT);
 
+// When enabled, fields populated by standard Autofill or Autofill AI products
+// are not saved to the Autocomplete database at form submission.
+BASE_FEATURE(kAutofillPreventAutofillFromSavingToAutocomplete,
+             base::FEATURE_DISABLED_BY_DEFAULT);
+
 // Replaces blink::WebFormElementObserver usage in FormTracker by updated logic
 // for tracking the disappearance of forms as well as other submission
 // triggering events.
@@ -992,11 +997,6 @@ DEFINE_WALLET_FEATURE(kSuggestionManageButtonSplitForEnhancedAutofill);
 // removed and instead, the address editor from the settings will be used.
 // TODO: crbug.com/399071964 - Remove when launched.
 BASE_FEATURE(kUseSettingsAddressEditorInPaymentsRequest,
-             base::FEATURE_DISABLED_BY_DEFAULT);
-
-// When enabled, updates the "Autofill and passwords" (or "Passwords and
-// autofill") labels and icons to "Your saved info".
-BASE_FEATURE(kYourSavedInfoBrandingInSettings,
              base::FEATURE_DISABLED_BY_DEFAULT);
 
 // Defines if the "Your Saved Info" page is eligible to be shown in Chrome
