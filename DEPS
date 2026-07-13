@@ -327,11 +327,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '3d1fc554f1a2356bbe3a3d49482ffb313b1b8f3f',
+  'skia_revision': '8a4c7365a72dda929283389dd130042180b85d4b',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': '89413eb944b3aceb26f8c0e385bce78e575a80df',
+  'v8_revision': 'aafae445c338228df3c26a82c19d3adc92d7c7db',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -554,7 +554,7 @@ vars = {
   'libcxx_revision':       'b16984ce99c702355a5b2b4c52574e82cec41fb9',
 
   # GN CIPD package version.
-  'gn_version': 'git_revision:d2f537b1e397daa13e02a8085feb32f5ad7c5dec',
+  'gn_version': 'git_revision:868533076321adfebe4a73668847f659a8a9fab2',
 
   # ninja CIPD package.
   'ninja_package': 'infra/3pp/tools/ninja/',
@@ -1710,7 +1710,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': 'aLyrOqRcX5V6PDL9RSxgq83hyWJrJscBq0DZj6uF7IgC',
+        'version': 'nRmtgY1mzuM_f8rFN1zNDD27mJ_ZWoQD6VgpDN2Ph9kC',
       },
     ],
     'condition': 'non_git_source',
@@ -2184,7 +2184,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '8058e942b93552de975760f9d4d0f72e21c2b925',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '4a5c040749ba5c24c3268c1a3d00c4ec40ad6c39',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '17a56409b86d0da5e01ca38f6498e13b2db16bc3',
