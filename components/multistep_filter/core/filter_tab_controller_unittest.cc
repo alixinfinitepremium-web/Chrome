@@ -19,7 +19,10 @@
 #include "components/multistep_filter/core/logging/multistep_filter_metrics.h"
 #include "components/multistep_filter/core/multistep_filter_service.h"
 #include "components/multistep_filter/core/multistep_filter_ui_delegate.h"
+#include "components/multistep_filter/core/prefs/multistep_filter_retention_prefs.h"
 #include "components/multistep_filter/core/storage/filter_store.h"
+#include "components/prefs/testing_pref_service.h"
+#include "components/signin/public/identity_manager/identity_test_environment.h"
 #include "components/unified_consent/url_keyed_data_collection_consent_helper.h"
 #include "testing/gmock/include/gmock/gmock.h"
 #include "testing/gtest/include/gtest/gtest.h"
@@ -118,7 +121,9 @@ class MockObserver : public FilterTabController::ObserverForTest {
 
 class FilterTabControllerTest : public testing::Test {
  public:
-  FilterTabControllerTest() = default;
+  FilterTabControllerTest() {
+    RegisterRetentionProfilePrefs(pref_service_.registry());
+  }
   ~FilterTabControllerTest() override = default;
 
   void SetUp() override {
@@ -131,6 +136,11 @@ class FilterTabControllerTest : public testing::Test {
     MultistepFilterService::Params params;
     params.annotation_index_client = std::move(mock_client);
     params.filter_store = std::move(filter_store);
+    params.pref_service = &pref_service_;
+    params.identity_manager = identity_test_env_.identity_manager();
+    params.consent_helper =
+        unified_consent::UrlKeyedDataCollectionConsentHelper::
+            NewAnonymizedDataCollectionConsentHelper(&pref_service_);
     mock_service_ = std::make_unique<StrictMock<MockMultistepFilterService>>(
         std::move(params));
     mock_delegate_ =
@@ -194,6 +204,23 @@ class FilterTabControllerTest : public testing::Test {
         .task_type = "Task1"});
   }
 
+  UrlFilterSuggestion CreateSuggestionWithFacet(
+      const std::string& key,
+      const std::u16string& label,
+      const std::string& value,
+      int64_t triggering_navigation_id,
+      const GURL& url = GURL("https://example.com/")) {
+    UrlFilterSuggestion::Params params;
+    params.navigation_url = url;
+    params.triggering_navigation_id = triggering_navigation_id;
+    params.triggering_host = "example.com";
+    params.task_type = "Task1";
+    params.attribute_ui_labels.emplace_back(
+        FilterSuggestionCandidateAttribute(key, label),
+        FilterAttribute(key, value));
+    return UrlFilterSuggestion(std::move(params));
+  }
+
   void ExpectNoExtractionOrSuggestion() {
     EXPECT_CALL(*mock_delegate_, ClearSuggestion());
     EXPECT_CALL(*mock_delegate_,
@@ -206,6 +233,8 @@ class FilterTabControllerTest : public testing::Test {
 
  protected:
   base::test::TaskEnvironment task_environment_;
+  signin::IdentityTestEnvironment identity_test_env_;
+  TestingPrefServiceSimple pref_service_;
   std::unique_ptr<StrictMock<MockMultistepFilterService>> mock_service_;
   std::unique_ptr<StrictMock<MockMultistepFilterUiDelegate>> mock_delegate_;
   raw_ptr<StrictMock<MockFilterExtractor>> mock_extractor_ = nullptr;
@@ -651,8 +680,8 @@ TEST_F(FilterTabControllerTest, HistogramLoggingInitialCueAccepted) {
               ExtractAnnotationFromUrl(metadata.url, _, metadata.navigation_id))
       .WillOnce(base::test::RunOnceCallback<1>(annotation));
 
-  UrlFilterSuggestion expected_suggestion =
-      CreateDefaultSuggestion(metadata.navigation_id, metadata.url);
+  UrlFilterSuggestion expected_suggestion = CreateSuggestionWithFacet(
+      "key1", u"Label1", "value1", metadata.navigation_id, metadata.url);
 
   EXPECT_CALL(*mock_generator_,
               GenerateSuggestion(metadata.url, supported_tasks, _,
@@ -696,6 +725,10 @@ TEST_F(FilterTabControllerTest, HistogramLoggingInitialCueAccepted) {
                                       SuggestionUserDecision::kAccepted, 1);
   histogram_tester.ExpectTotalCount(
       kMultistepFilterAcceptanceReopenedCueHistogram, 0);
+  histogram_tester.ExpectUniqueSample(
+      kMultistepFilterNumberOfFacetsShownHistogram, 1, 1);
+  histogram_tester.ExpectUniqueSample(
+      "MultistepFilter.NumberOfFacetsShown.ByTask.Task1", 1, 1);
 }
 
 // Tests that FilterTabController logs the correct histograms when the reopened
@@ -915,16 +948,8 @@ TEST_F(FilterTabControllerTest, HttpNavigationLogsApplicationFailure) {
 // Tests that successful extraction and application verification logs success.
 TEST_F(FilterTabControllerTest, SuccessfulApplicationLogsSuccess) {
   base::HistogramTester histogram_tester;
-  // Set up suggestion
-  UrlFilterSuggestion::Params params;
-  params.navigation_url = GURL("https://example.com/");
-  params.triggering_navigation_id = 10;
-  params.task_type = "Task1";
-  FilterSuggestionCandidateAttribute candidate_attr("key1", u"Label1");
-  FilterAttribute annotation_attr("key1", "value1");
-  FilterAttributeUiLabel label(candidate_attr, annotation_attr);
-  params.attribute_ui_labels.push_back(label);
-  UrlFilterSuggestion suggestion(std::move(params));
+  UrlFilterSuggestion suggestion = CreateSuggestionWithFacet(
+      "key1", u"Label1", "value1", /*triggering_navigation_id=*/10);
 
   FilterNavigationMetadata metadata = CreateMetadata(
       /*navigation_id=*/11, GURL("https://example.com/applied"),
@@ -969,6 +994,74 @@ TEST_F(FilterTabControllerTest, SuccessfulApplicationLogsSuccess) {
                   "MultistepFilter.ApplicationOutcome.ByTask.Task1"),
               BucketsAre(Bucket(
                   MultistepFilterApplicationOutcome::kAllFiltersApplied, 1)));
+
+  histogram_tester.ExpectUniqueSample(
+      kMultistepFilterNumberOfFacetsSuccessfullyAppliedHistogram, 1, 1);
+  histogram_tester.ExpectUniqueSample(
+      "MultistepFilter.NumberOfFacetsSuccessfullyApplied.ByTask.Task1", 1, 1);
+  histogram_tester.ExpectUniqueSample(
+      "MultistepFilter.ApplicationOutcome.ByTask.Task1.ByFacet.key1", true, 1);
+}
+
+// Tests that failed extraction and application verification logs failure and
+// per-facet failure.
+TEST_F(FilterTabControllerTest,
+       FailedApplicationLogsFailureAndPerFacetOutcomes) {
+  base::HistogramTester histogram_tester;
+  UrlFilterSuggestion suggestion = CreateSuggestionWithFacet(
+      "key1", u"Label1", "value1", /*triggering_navigation_id=*/11);
+
+  FilterNavigationMetadata metadata = CreateMetadata(
+      /*navigation_id=*/12, GURL("https://example.com/applied"),
+      /*is_cryptographic=*/true, /*is_error_page=*/false,
+      /*net_error_code=*/0, std::move(suggestion));
+  metadata.has_user_gesture = true;
+
+  EXPECT_CALL(*mock_delegate_, ClearSuggestion());
+  EXPECT_CALL(*mock_service_, HasUserProvidedConsent(metadata.navigation_id,
+                                                     metadata.url.GetHost()))
+      .WillOnce(Return(true));
+
+  std::vector<std::string> supported_tasks = {"Task1"};
+  EXPECT_CALL(*mock_annotation_client(),
+              GetSupportedTasks(metadata.url, _, metadata.navigation_id))
+      .WillOnce(base::test::RunOnceCallback<1>(supported_tasks));
+
+  // Set up MISMATCHING annotation (different value or key)
+  base::Uuid expected_id = base::Uuid::GenerateRandomV4();
+  FilterAttribute attr("key1", "value_mismatch");
+  FilterAnnotation annotation(expected_id, "Task1", "example.com",
+                              base::Time::Now(), {attr});
+
+  EXPECT_CALL(*mock_extractor_,
+              ExtractAnnotationFromUrl(metadata.url, _, metadata.navigation_id))
+      .WillOnce(base::test::RunOnceCallback<1>(annotation));
+
+  EXPECT_CALL(*mock_generator_, GenerateSuggestion)
+      .WillOnce(base::test::RunOnceCallback<2>(std::nullopt));
+  EXPECT_CALL(*mock_delegate_, OnSuggestionGenerated(Eq(std::nullopt), _));
+
+  EXPECT_CALL(observer_,
+              OnExtractionFinishedForTest(std::optional(expected_id)));
+  EXPECT_CALL(observer_, OnSuggestionGeneratedForTest(Eq(std::nullopt)));
+
+  controller_->OnNavigationFinished(metadata);
+
+  EXPECT_THAT(
+      histogram_tester.GetAllSamples(
+          kMultistepFilterApplicationOutcomeHistogram),
+      BucketsAre(
+          Bucket(MultistepFilterApplicationOutcome::kNotAllFiltersApplied, 1)));
+  EXPECT_THAT(
+      histogram_tester.GetAllSamples(
+          "MultistepFilter.ApplicationOutcome.ByTask.Task1"),
+      BucketsAre(
+          Bucket(MultistepFilterApplicationOutcome::kNotAllFiltersApplied, 1)));
+
+  histogram_tester.ExpectTotalCount(
+      kMultistepFilterNumberOfFacetsSuccessfullyAppliedHistogram, 0);
+  histogram_tester.ExpectUniqueSample(
+      "MultistepFilter.ApplicationOutcome.ByTask.Task1.ByFacet.key1", false, 1);
 }
 
 }  // namespace

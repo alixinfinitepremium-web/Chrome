@@ -6438,7 +6438,6 @@ test("unit_tests") {
       "../browser/media/android/cdm/media_drm_origin_id_manager_unittest.cc",
       "../browser/optimization_guide/android/optimization_guide_bridge_unittest.cc",
       "../browser/optimization_guide/android/optimization_guide_tab_url_provider_android_unittest.cc",
-      "../browser/partnerbookmarks/partner_bookmarks_shim_unittest.cc",
       "../browser/readaloud/android/prefs_unittest.cc",
       "../browser/signin/android/cross_device_signin_flow_navigation_throttle_unittest.cc",
       "../browser/signin/android/signin_manager_android_unittest.cc",
@@ -6486,6 +6485,7 @@ test("unit_tests") {
       "//chrome/browser/optimization_guide/android:native_j_unittests_jni_headers",
       "//chrome/browser/optimization_guide/android:native_java_unittests",
       "//chrome/browser/page_image_service/android:unit_tests",
+      "//chrome/browser/partnerbookmarks:unit_tests",
       "//chrome/browser/password_manager/android:unit_tests",
       "//chrome/browser/password_manager/android:utils",
       "//chrome/browser/password_manager/android/grouped_affiliations:public",
@@ -10564,4 +10564,54 @@ test("captcha_provider_fuzztests") {
     "//third_party/fuzztest:fuzztest_gtest_main",
     "//url",
   ]
+}
+
+if (is_mac) {
+  import("//build/config/clang/clang.gni")
+  import("//build/config/mac/mac_sdk.gni")
+  import("//build/config/sanitizers/sanitizers.gni")
+
+  verify_dynamic_libraries = !is_component_build && !is_asan && !is_ubsan_any
+
+  executable("aperitif_test_helper") {
+    testonly = true
+    sources = [
+      "//chrome/app/chrome_exe_main_mac.c",
+      "//chrome/test/aperitif_test_helper_main.c",
+    ]
+    deps = [
+      "//build:branding_buildflags",
+      "//content/public/app:aperitif",
+    ]
+    no_default_deps = true
+  }
+
+  if (verify_dynamic_libraries) {
+    if (host_os == "mac") {
+      objdump_path = mac_bin_path
+    } else {
+      objdump_path = rebase_path("$clang_base_path/bin/", root_build_dir)
+    }
+
+    action("verify_libraries_aperitif_test_helper") {
+      testonly = true
+      script = "//chrome/tools/build/mac/verify_dynamic_libraries.py"
+      inputs = [ "$root_out_dir/aperitif_test_helper" ]
+      outputs = [ "$target_gen_dir/verify_lib_aperitif_helper.stamp" ]
+      args = [
+        "--stamp",
+        rebase_path(outputs[0], root_out_dir),
+        "-B",
+        objdump_path,
+        "--exact-match",
+        "--image",
+        rebase_path(inputs[0], root_out_dir),
+        "--allow",
+        "@loader_path/libaperitif.dylib",
+        "--allow",
+        "/usr/lib/libSystem.B.dylib",
+      ]
+      deps = [ ":aperitif_test_helper" ]
+    }
+  }
 }

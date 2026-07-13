@@ -323,11 +323,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '52b21e5b22b74d510ba01578e152b8a73c9f1c45',
+  'src_internal_revision': '818e344e5b1bdbb2774d6448342e68b1d37cf652',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': 'be0ec8e4cb3c6f9af2a956d524939fd79bcc1dd4',
+  'skia_revision': '36e509ddad66569e1a604816c1e47845950eee77',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -554,7 +554,7 @@ vars = {
   'libcxx_revision':       'b16984ce99c702355a5b2b4c52574e82cec41fb9',
 
   # GN CIPD package version.
-  'gn_version': 'git_revision:868533076321adfebe4a73668847f659a8a9fab2',
+  'gn_version': 'git_revision:bbfe0f948f4ac84f671acdf6ab008a6ce1bfb257',
 
   # ninja CIPD package.
   'ninja_package': 'infra/3pp/tools/ninja/',
@@ -1710,7 +1710,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': 'nRmtgY1mzuM_f8rFN1zNDD27mJ_ZWoQD6VgpDN2Ph9kC',
+        'version': 'jup9JzxwnG5GoGEIKZ8a5zE_RtxTciXGEH-GchF-_YsC',
       },
     ],
     'condition': 'non_git_source',
@@ -1722,7 +1722,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '27d03e825da5b2046e7debf52839088a4c46d119',
+    '52fa18ed3829b7c937b0b39a136620118652ec6f',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -1731,7 +1731,7 @@ deps = {
   },
 
   'src/ios/third_party/earl_grey2/src': {
-      'url': Var('chromium_git') + '/external/github.com/google/EarlGrey.git' + '@' + 'd25208a2be1c3c7123930ef22598b0d4a5392e16',
+      'url': Var('chromium_git') + '/external/github.com/google/EarlGrey.git' + '@' + 'de53f43e94b00737d11d4c27995d52865e2a7901',
       'condition': 'checkout_ios',
   },
 
