@@ -420,6 +420,7 @@
   E(kActionToggleCollapseVertical, IDC_TOGGLE_VERTICAL_TABS_COLLAPSE) \
   E(kActionToggleVerticalTabsExpandOnHover, \
     IDC_TOGGLE_VERTICAL_TABS_EXPAND_ON_HOVER) \
+  E(kActionVerticalTabsSendFeedback, IDC_VERTICAL_TABS_SEND_FEEDBACK) \
   /*Projects Panel*/ \
   E(kActionToggleProjectsPanel) \
   /*Omnibox Context Menu*/       \
@@ -446,7 +447,9 @@
   E(kRestoreWindow, IDC_RESTORE_WINDOW)
 #elif BUILDFLAG(IS_WIN)
 #define CHROME_PLATFORM_SPECIFIC_ACTION_IDS \
-  E(kRestoreWindow, IDC_RESTORE_WINDOW)
+  E(kRestoreWindow, IDC_RESTORE_WINDOW) \
+  E(kActionMoveWindow, IDC_MOVE_WINDOW) \
+  E(kActionSizeWindow, IDC_SIZE_WINDOW)
 #else
 #define CHROME_PLATFORM_SPECIFIC_ACTION_IDS
 #endif  // BUILDFLAG(IS_CHROMEOS)
@@ -480,6 +483,7 @@
   E(kActionSidePanelShowLens) \
   E(kActionSidePanelShowLensOverlayResults, IDC_CONTENT_CONTEXT_LENS_OVERLAY) \
   E(kActionSidePanelShowReadAnything, IDC_SHOW_READING_MODE_SIDE_PANEL) \
+  E(kActionShowReadingModeKeyboard, IDC_SHOW_READING_MODE_KEYBOARD) \
   E(kActionSidePanelShowReadingList, IDC_READING_LIST_MENU_SHOW_UI) \
   E(kActionSidePanelShowSearchCompanion) \
   E(kActionSidePanelShowShoppingInsights) \

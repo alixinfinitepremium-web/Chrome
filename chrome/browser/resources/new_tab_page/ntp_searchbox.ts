@@ -400,7 +400,8 @@ export class NtpSearchboxElement extends NtpSearchboxElementBase implements
         inline: '',
         moveCursorToEnd: true,
       });
-      this.queryAutocomplete(newText, false);
+      this.queryAutocomplete(
+          newText, /*preventInlineAutocomplete=*/ false, /*isOnFocus=*/ false);
       e.preventDefault();
       return;
     }
@@ -487,10 +488,6 @@ export class NtpSearchboxElement extends NtpSearchboxElementBase implements
       return true;
     }
     return !this.$.input.lastInput()!.text.trim();
-  }
-
-  queryInputAutocomplete() {
-    this.queryAutocomplete(this.$.input.inputElement.value, false);
   }
 
   setInputText(text: string) {
@@ -818,7 +815,7 @@ export class NtpSearchboxElement extends NtpSearchboxElementBase implements
   protected onSearchboxInputTextUpdated_(
       e: CustomEvent<{value: string, isComposing: boolean}>) {
     this.hasUserInput_ = !!e.detail.value.trim();
-    this.onSearchboxInputTextUpdated(e, /*is_composing=*/ false);
+    this.onSearchboxInputTextUpdated(e);
   }
 
   protected onLensSearchClick_() {
