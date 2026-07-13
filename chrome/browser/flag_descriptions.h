@@ -1355,12 +1355,6 @@ inline constexpr char kCCTNavigationMetricsName[] = "CCT Navigation Metrics";
 inline constexpr char kCCTNavigationMetricsDescription[] =
     "Enables detailed navigation-related metrics in CustomTabsCallback.";
 
-inline constexpr char kCCTResetTimeoutEnabledName[] =
-    "CCT Reset Timeout Enabled";
-inline constexpr char kCCTResetTimeoutEnabledDescription[] =
-    "Enables the reset timeout for CCTs. This flag allows embedder to "
-    "close CCT after a specified time in mins.";
-
 inline constexpr char kCCTResetTimeoutAllowedName[] =
     "CCT Reset Timeout Allowed";
 inline constexpr char kCCTResetTimeoutAllowedDescription[] =
@@ -2079,6 +2073,14 @@ inline constexpr char kDirectSocketsInSharedWorkersName[] =
 inline constexpr char kDirectSocketsInSharedWorkersDescription[] =
     "Enables access to the Direct Sockets API in shared workers. See "
     "https://github.com/WICG/direct-sockets for details.";
+
+inline constexpr char
+    kDirectSocketsUdpSendRequireMulticastPermissionPolicyName[] =
+        "Direct Sockets UDP send require multicast permission policy";
+inline constexpr char
+    kDirectSocketsUdpSendRequireMulticastPermissionPolicyDescription[] =
+        "Requires the 'direct-sockets-multicast' permissions policy to send or "
+        "connect to multicast addresses using the Direct Sockets API.";
 
 inline constexpr char kEnableIsolatedWebAppUnmanagedInstallName[] =
     "Enable Isolated Web App unmanaged installation";

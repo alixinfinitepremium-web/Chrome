@@ -71,9 +71,6 @@ crbug.com/457388389 http/tests/devtools/a11y-axe-core/sources/scope-pane-a11y-te
 crbug.com/457388389 http/tests/devtools/sources/debugger-pause/debugger-change-variable.js [ Failure Pass Timeout ]
 crbug.com/457388389 http/tests/devtools/sources/debugger/debugger-scope-resolve-identifiers.js [ Failure Pass Timeout ]
 crbug.com/457388389 http/tests/devtools/sources/debugger/debugger-scope-resolve-this.js [ Failure Pass Timeout ]
-# Temporary disable for devtools-frontend change crrev.com/c/8069248
-http/tests/devtools/a11y-axe-core/settings/ignorelist-a11y-test.js [ Failure Pass Timeout ]
-
 
 # Disable layout tests to land crrev.com/c/7969697
 http/tests/devtools/security/blank-origins-not-shown.js [ Failure Pass ]
@@ -2854,12 +2851,6 @@ crbug.com/526682332 external/wpt/css/css-anchor-position/position-visibility-anc
 crbug.com/526669136 external/wpt/css/css-fonts/small-caps-letter-spacing-001.html [ Failure ]
 crbug.com/526669136 external/wpt/css/css-fonts/small-caps-letter-spacing-002.html [ Failure ]
 crbug.com/526673504 external/wpt/css/css-values/random-unresolvable-argument.tentative.html [ Crash ]
-crbug.com/526682330 external/wpt/digital-credentials/mdoc/encryption-info-validation.https.html [ Timeout ]
-crbug.com/526682330 external/wpt/digital-credentials/mdoc/malformed-requests.https.html [ Timeout ]
-crbug.com/526682330 external/wpt/digital-credentials/mdoc/mixed-requests.https.html [ Timeout ]
-crbug.com/526682330 external/wpt/digital-credentials/mdoc/origin-binding.https.html [ Timeout ]
-crbug.com/526682330 external/wpt/digital-credentials/mdoc/response-handling.https.html [ Failure Timeout ]
-crbug.com/526682330 external/wpt/digital-credentials/mdoc/valid-roundtrip.https.html [ Failure ]
 crbug.com/526682330 external/wpt/digital-credentials/webdriver/create.https.html [ Failure ]
 crbug.com/526682330 external/wpt/digital-credentials/webdriver/get.https.html [ Failure ]
 crbug.com/526677154 [ Win ] external/wpt/html/cross-origin-opener-policy/iframe-popup-same-origin-to-unsafe-none.https.html?1-2 [ Crash Pass ]
@@ -7057,7 +7048,6 @@ crbug.com/432218257 [ Debug Mac13 ] jquery/event.html [ Skip Timeout ]
 [ Debug Mac13 ] external/wpt/fetch/metadata/generated/element-frame.https.sub.html [ Skip Timeout ]
 [ Debug Mac13 ] virtual/threaded/http/tests/worklet/import-on-detached-iframe.html [ Skip Timeout ]
 [ Debug Mac13 ] fast/events/autoscroll-should-not-stop-on-keypress.html [ Failure ]
-[ Debug Mac13 ] http/tests/devtools/indexeddb/delete-entry.js [ Skip Timeout ]
 [ Debug Mac13 ] virtual/threaded/http/tests/worklet/animation-worklet-csp-eval.html [ Skip Timeout ]
 [ Debug Mac13 ] virtual/threaded/printing/css2.1/page-break-after-000.html [ Skip Timeout ]
 [ Debug Mac13 ] http/tests/devtools/overrides/can-edit-iframe-html.js [ Skip Timeout ]
@@ -9519,3 +9509,7 @@ crbug.com/532703006 virtual/composite-clip-path-animation/external/wpt/css/css-m
 
 # WPT Roll 2026-07-08
 crbug.com/532874152 external/wpt/html/semantics/document-metadata/the-link-element/link-error-handler-triggers-abort-crash.html [ Crash ]
+
+# Gardener 2026-07-13
+crbug.com/534101060 [ Linux ] wpt_internal/webmcp/custom-element-invalid-schema.https.html [ Failure Pass ]
+crbug.com/534138461 [ Linux ] external/wpt/css/css-ui/compute-kind-widget-generated/grouped-kind-of-widget-fallback-background-attachment-001.html [ Failure Pass ]

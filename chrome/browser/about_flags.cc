@@ -3877,18 +3877,22 @@ const FeatureEntry::FeatureVariation
 
 #if BUILDFLAG(IS_ANDROID)
 const FeatureEntry::FeatureParam kCCTResetTimeoutParams_1min[] = {
-    {"minimum_reset_timeout_mins", "1"},
+    {"reset_timeout_mins_override", "1"},
+};
+const FeatureEntry::FeatureParam kCCTResetTimeoutParams_3min[] = {
+    {"reset_timeout_mins_override", "3"},
 };
 const FeatureEntry::FeatureParam kCCTResetTimeoutParams_15min[] = {
-    {"minimum_reset_timeout_mins", "15"},
+    {"reset_timeout_mins_override", "15"},
 };
 const FeatureEntry::FeatureParam kCCTResetTimeoutParams_30min[] = {
-    {"minimum_reset_timeout_mins", "30"},
+    {"reset_timeout_mins_override", "30"},
 };
 const FeatureEntry::FeatureVariation kCCTResetTimeoutVariations[] = {
-    {"- Minimum timeout 1 minute", kCCTResetTimeoutParams_1min, nullptr},
-    {"- Minimum timeout 15 minutes", kCCTResetTimeoutParams_15min, nullptr},
-    {"- Minimum timeout 30 minutes", kCCTResetTimeoutParams_30min, nullptr},
+    {"- Force timeout 1 minute", kCCTResetTimeoutParams_1min, nullptr},
+    {"- Force timeout 3 minutes", kCCTResetTimeoutParams_3min, nullptr},
+    {"- Force timeout 15 minutes", kCCTResetTimeoutParams_15min, nullptr},
+    {"- Force timeout 30 minutes", kCCTResetTimeoutParams_30min, nullptr},
 };
 #endif
 
@@ -5473,6 +5477,15 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kDirectSocketsInSharedWorkersName,
      flag_descriptions::kDirectSocketsInSharedWorkersDescription, kOsDesktop,
      FEATURE_VALUE_TYPE(blink::features::kDirectSocketsInSharedWorkers)},
+    {"direct-sockets-udp-send-require-multicast-permission-policy",
+     flag_descriptions::
+         kDirectSocketsUdpSendRequireMulticastPermissionPolicyName,
+     flag_descriptions::
+         kDirectSocketsUdpSendRequireMulticastPermissionPolicyDescription,
+     kOsDesktop,
+     FEATURE_VALUE_TYPE(
+         network::features::
+             kDirectSocketsUdpSendRequireMulticastPermissionPolicy)},
 #if BUILDFLAG(IS_CHROMEOS)
     {"enable-chromeos-isolated-web-app-set-shape",
      flag_descriptions::kEnableChromeOSIsolatedWebAppSetShapeName,
@@ -7783,13 +7796,6 @@ const FeatureEntry kFeatureEntries[] = {
 #endif
 
 #if BUILDFLAG(IS_ANDROID)
-    {"cct-reset-timeout-enabled",
-     flag_descriptions::kCCTResetTimeoutEnabledName,
-     flag_descriptions::kCCTResetTimeoutEnabledDescription, kOsAndroid,
-     FEATURE_WITH_PARAMS_VALUE_TYPE(chrome::android::kCCTResetTimeoutEnabled,
-                                    kCCTResetTimeoutVariations,
-                                    "CCTResetTimeoutVariations")},
-
     {"cct-reset-timeout-allowed",
      flag_descriptions::kCCTResetTimeoutAllowedName,
      flag_descriptions::kCCTResetTimeoutAllowedDescription, kOsAndroid,
