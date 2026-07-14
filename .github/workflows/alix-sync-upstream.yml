@@ -1,8 +1,9 @@
 name: Sync Chromium upstream
 
 on:
+  # Explicit off-hour slots reduce schedule drops during GitHub Actions load.
   schedule:
-    - cron: "*/5 * * * *"
+    - cron: "7,27,47 * * * *"
   workflow_dispatch:
   push:
     paths:
@@ -50,4 +51,3 @@ jobs:
 
           printf 'Mirror did not converge after four attempts.\n' >&2
           exit 1
-
