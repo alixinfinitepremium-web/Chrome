@@ -3154,7 +3154,6 @@ if (!is_android) {
       "../../components/live_caption/views/caption_bubble_browsertest.cc",
       "../../components/record_replay/content/renderer/record_replay_agent_browsertest.cc",
       "../app/chrome_main_delegate_browsertest.cc",
-      "../browser/media/media_engagement_browsertest.cc",
       "../browser/media/webrtc/capture_handle_browsertest.cc",
       "../browser/media/webrtc/display_media_access_handler_browsertest.cc",
       "../browser/media/webrtc/media_stream_devices_controller_browsertest.cc",
@@ -7876,13 +7875,11 @@ test("unit_tests") {
     # Use this scope to migrate files/deps from
     # `enterprise_cloud_content_analysis` conditions that now need to compile
     # on Android.
-    sources += [
-      "../browser/interstitials/enterprise_util_unittest.cc",
-      "../browser/safe_browsing/download_protection/deep_scanning_request_unittest.cc",
-    ]
+    sources += [ "../browser/safe_browsing/download_protection/deep_scanning_request_unittest.cc" ]
     deps += [
       "//chrome/browser/enterprise/connectors/reporting:unit_tests",
       "//chrome/browser/enterprise/connectors/test:test_support",
+      "//chrome/browser/interstitials:unit_tests",
       "//components/enterprise/common/proto:browser_events_proto",
       "//components/enterprise/common/proto:chrome_reporting_entity",
       "//components/enterprise/connectors/core",

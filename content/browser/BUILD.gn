@@ -52,6 +52,14 @@ if (is_android) {
   }
 }
 
+rust_static_library("browser_id_types") {
+  crate_name = "content_browser_id_types"
+  crate_root = "browsing_instance_id.rs"
+  sources = [ crate_root ]
+  allow_unsafe = true
+  deps = [ "//third_party/rust/cxx/v1:lib" ]
+}
+
 rust_static_library("child_process_security_policy_impl") {
   # allow_unsafe is needed for FFI that underpins the `cxx` crate. While this
   # allows allow_unsafe for the entire crate, the Rust file also implements
@@ -64,7 +72,9 @@ rust_static_library("child_process_security_policy_impl") {
   visibility = [ ":browser" ]
   configs += [ "//content:content_implementation" ]
   deps = [
+    ":browser_id_types",
     "//base:feature",
+    "//content/common:common_id_types",
     "//storage/common:storage_common_rust",
     "//third_party/blink/public/common",
     "//third_party/rust/cxx/v1:lib",
@@ -524,13 +534,8 @@ source_set("browser") {
     "attribution_reporting/attribution_config.cc",
     "attribution_reporting/attribution_config.h",
     "attribution_reporting/attribution_constants.h",
-    "attribution_reporting/attribution_data_host_manager.h",
-    "attribution_reporting/attribution_data_host_manager_impl.cc",
-    "attribution_reporting/attribution_data_host_manager_impl.h",
     "attribution_reporting/attribution_debug_report.cc",
     "attribution_reporting/attribution_debug_report.h",
-    "attribution_reporting/attribution_host.cc",
-    "attribution_reporting/attribution_host.h",
     "attribution_reporting/attribution_info.cc",
     "attribution_reporting/attribution_info.h",
     "attribution_reporting/attribution_input_event.cc",
@@ -558,8 +563,6 @@ source_set("browser") {
     "attribution_reporting/attribution_storage_sql.h",
     "attribution_reporting/attribution_storage_sql_migrations.cc",
     "attribution_reporting/attribution_storage_sql_migrations.h",
-    "attribution_reporting/attribution_suitable_context.cc",
-    "attribution_reporting/attribution_suitable_context.h",
     "attribution_reporting/attribution_trigger.cc",
     "attribution_reporting/attribution_trigger.h",
     "attribution_reporting/attribution_utils.cc",
@@ -1346,8 +1349,6 @@ source_set("browser") {
     "loader/download_utils_impl.h",
     "loader/file_url_loader_factory.cc",
     "loader/file_url_loader_factory.h",
-    "loader/keep_alive_attribution_request_helper.cc",
-    "loader/keep_alive_attribution_request_helper.h",
     "loader/keep_alive_url_loader.cc",
     "loader/keep_alive_url_loader.h",
     "loader/keep_alive_url_loader_service.cc",
