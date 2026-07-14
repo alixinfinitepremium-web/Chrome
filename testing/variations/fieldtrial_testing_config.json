@@ -17400,6 +17400,24 @@
             ]
         }
     ],
+    "NtpThreadsRail": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "NtpThreadsRail"
+                    ]
+                }
+            ]
+        }
+    ],
     "OAuthMultiloginYoutubeCookiesBinding": [
         {
             "platforms": [
@@ -20322,31 +20340,6 @@
                     "name": "Enabled",
                     "enable_features": [
                         "PreventPasswordManagerOnFederatedLogin"
-                    ]
-                }
-            ]
-        }
-    ],
-    "PreventSvgFilterPaint": [
-        {
-            "platforms": [
-                "android",
-                "android_webview",
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "params": {
-                        "PreventSvgFilterPaintOnLocalFrameRestricted": "true",
-                        "PreventSvgFilterPaintOnRemoteFrame": "true",
-                        "PreventSvgFilterPaintOnWebPlugin": "true"
-                    },
-                    "enable_features": [
-                        "PreventSvgFilterPaint"
                     ]
                 }
             ]

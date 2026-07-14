@@ -318,7 +318,10 @@ content::WebUIDataSource* CreateAndAddNewTabPageUiHtmlSource(
           ntp_features::kNtpMostRelevantTabResumptionModuleFallbackToHost));
   source->AddBoolean("footerEnabled",
                      base::FeatureList::IsEnabled(ntp_features::kNtpFooter));
-  source->AddBoolean("isAndroid", BUILDFLAG(IS_ANDROID));
+  source->AddBoolean(
+      "showCustomizeButton",
+      base::FeatureList::IsEnabled(ntp_features::kNtpCustomizeWebUiAndroid) ||
+          !BUILDFLAG(IS_ANDROID));
 
   source->AddBoolean("ntpRealboxNextEnabled",
                      ntp_realbox::IsNtpRealboxNextEnabled(profile));
@@ -736,15 +739,8 @@ content::WebUIDataSource* CreateAndAddNewTabPageUiHtmlSource(
   source->AddBoolean("composeboxSmartComposeEnabled",
                      ntp_composebox::kShowSmartCompose.Get());
 
-  source->AddBoolean("enableThreadsRail",
-                     ntp_composebox::kEnableThreadsRail.Get());
-
-#if BUILDFLAG(GOOGLE_CHROME_BRANDING)
-  source->AddBoolean("enableThreadsRailLogo",
-                     ntp_composebox::kEnableThreadsRailLogo.Get());
-#else
-  source->AddBoolean("enableThreadsRailLogo", false);
-#endif  // BUILDFLAG(GOOGLE_CHROME_BRANDING)
+  source->AddBoolean("enableThreadsRail", base::FeatureList::IsEnabled(
+                                              ntp_features::kNtpThreadsRail));
 
 #if BUILDFLAG(IS_ANDROID)
   source->AddBoolean(

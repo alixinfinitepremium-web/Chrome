@@ -6632,6 +6632,11 @@ inline constexpr char kNtpCustomizeChromeAutoOpenName[] =
 inline constexpr char kNtpCustomizeChromeAutoOpenDescription[] =
     "Shows the Customize Chrome on the New Tab Page automatically.";
 
+inline constexpr char kNtpCustomizeWebUiAndroidName[] =
+    "Customize WebUI Android";
+inline constexpr char kNtpCustomizeWebUiAndroidDescription[] =
+    "Enables Customize WebUI on Android.";
+
 inline constexpr char kNtpRealboxNextName[] = "NTP Realbox Next";
 inline constexpr char kNtpRealboxNextDescription[] =
     "Enables the Realbox 'Next' experience.";
@@ -6679,6 +6684,10 @@ inline constexpr char kNtpAnimatedDoodlesDescription[] =
 inline constexpr char kNtpDoodleMuralsName[] = "NTP Doodle Murals";
 inline constexpr char kNtpDoodleMuralsDescription[] =
     "Enables Doodle Murals on the NTP.";
+
+inline constexpr char kNtpThreadsRailName[] = "NTP Threads Rail";
+inline constexpr char kNtpThreadsRailDescription[] =
+    "Enables the Threads Rail on the NTP.";
 
 inline constexpr char kNtpSimplificationBookmarkBarName[] =
     "NTP Simplification Bookmark Bar";

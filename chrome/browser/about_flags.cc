@@ -1610,14 +1610,6 @@ const FeatureEntry::FeatureVariation
 #if BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_MAC) || \
     BUILDFLAG(IS_WIN) || BUILDFLAG(IS_ANDROID)
 
-const FeatureEntry::FeatureParam kComposeboxNextThreadsRail[] = {
-    {"EnableThreadsRail", "true"},
-};
-
-const FeatureEntry::FeatureVariation kNtpComposeboxVariations[] = {
-    {"- With Threads Rail", kComposeboxNextThreadsRail, nullptr},
-};
-
 const FeatureEntry::FeatureParam kNtpNextAllowDisablement[] = {
     {"NtpNextDisablementContextMenuParam", "true"},
 };
@@ -3703,21 +3695,14 @@ const FeatureEntry::FeatureVariation kGlicOSIconVariantVariations[] = {
 
 const FeatureEntry::Choice kGlicSelectionPromptChoices[] = {
     {flags_ui::kGenericExperimentChoiceDefault, "", ""},
-    {"Enabled", switches::kEnableFeatures, "GlicSelectionPrompt"},
+    {"Enabled (Defaults: Explain CTA + Settings)", switches::kEnableFeatures,
+     "GlicSelectionPrompt"},
     {"Enabled with Updates Only", switches::kEnableFeatures,
      "GlicSelectionPrompt:updates_only/true"},
-    {"Enabled with Pinning", switches::kEnableFeatures,
-     "GlicSelectionPrompt:enable_pinning/true"},
-    {"Enabled with Settings", switches::kEnableFeatures,
-     "GlicSelectionPrompt:enable_site_settings/true"},
     {"Enabled with Copy Buttons", switches::kEnableFeatures,
      "GlicSelectionPrompt:show_copy_buttons/true"},
     {"Enabled (CTA: Tell me about this)", switches::kEnableFeatures,
-     "GlicSelectionPrompt:enable_site_settings/true/cta/"
-     "tell_me_about_this/auto_send_prompt/true"},
-    {"Enabled (CTA: Explain)", switches::kEnableFeatures,
-     "GlicSelectionPrompt:enable_site_settings/true/cta/"
-     "explain/auto_send_prompt/true"}};
+     "GlicSelectionPrompt:cta/tell_me_about_this"}};
 
 const FeatureEntry::FeatureParam kAutofillShowTypePredictionsAsTitle[] = {
     {"as-title", "true"}};
@@ -7125,9 +7110,7 @@ const FeatureEntry kFeatureEntries[] = {
 
     {"ntp-composebox", flag_descriptions::kNtpComposeboxName,
      flag_descriptions::kNtpComposeboxDescription, kOsDesktop | kOsAndroid,
-     FEATURE_WITH_PARAMS_VALUE_TYPE(ntp_composebox::kNtpComposebox,
-                                    kNtpComposeboxVariations,
-                                    "NtpComposebox")},
+     FEATURE_VALUE_TYPE(ntp_composebox::kNtpComposebox)},
 
     {"ntp-realbox-next", flag_descriptions::kNtpRealboxNextName,
      flag_descriptions::kNtpRealboxNextDescription, kOsDesktop | kOsAndroid,
@@ -7330,6 +7313,10 @@ const FeatureEntry kFeatureEntries[] = {
     {"ntp-shortcuts-redesign", flag_descriptions::kNtpShortcutsRedesignName,
      flag_descriptions::kNtpShortcutsRedesignDescription, kOsDesktop,
      FEATURE_VALUE_TYPE(ntp_features::kNtpShortcutsRedesign)},
+
+    {"ntp-threads-rail", flag_descriptions::kNtpThreadsRailName,
+     flag_descriptions::kNtpThreadsRailDescription, kOsDesktop,
+     FEATURE_VALUE_TYPE(ntp_features::kNtpThreadsRail)},
 
 #endif  // !BUILDFLAG(IS_ANDROID)
 
@@ -9027,6 +9014,11 @@ const FeatureEntry kFeatureEntries[] = {
     {"enable-tab-audio-muting", flag_descriptions::kTabAudioMutingName,
      flag_descriptions::kTabAudioMutingDescription, kOsDesktop,
      FEATURE_VALUE_TYPE(media::kEnableTabMuting)},
+
+    {"ntp-customize-webui-android",
+     flag_descriptions::kNtpCustomizeWebUiAndroidName,
+     flag_descriptions::kNtpCustomizeWebUiAndroidDescription, kOsAndroid,
+     FEATURE_VALUE_TYPE(ntp_features::kNtpCustomizeWebUiAndroid)},
 
 #if !BUILDFLAG(IS_ANDROID)
     {"customize-chrome-side-panel-extensions-card",
