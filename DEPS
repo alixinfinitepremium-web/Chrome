@@ -387,7 +387,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': '1058343e2e48c9a2d6f08e0f6b723b354d4d9d83',
+  'crossbench_revision': '201460d6f735f9cfe64f77b2e66d4bd5006428f2',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -407,7 +407,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '0c5979fc236f10b94e07dc32e2d00b5d5a04fbcd',
+  'devtools_frontend_revision': 'c92517ff529c8d8a46e2d21503e2ac475fe77ac5',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -2140,7 +2140,7 @@ deps = {
   # Tools used when building Chrome for Chrome OS. This affects both the Simple
   # Chrome workflow, as well as the chromeos-chrome ebuild.
   'src/third_party/chromite': {
-      'url': Var('chromium_git') + '/chromiumos/chromite.git' + '@' + 'fd76ef608810a32a3e66857b18d66ce8ca978592',
+      'url': Var('chromium_git') + '/chromiumos/chromite.git' + '@' + '693c1dbd1aa4434d873ab95baa451f1f0845d75b',
       'condition': 'checkout_chromeos',
   },
 
@@ -3923,7 +3923,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        'a1b58dee748dbfa40f22129e3ebf93022a25e9f4',
+        '399d9b038119f5122940d3cd4ba03ef54f40f1db',
       'condition': 'checkout_src_internal',
   },
 
@@ -4007,7 +4007,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '0b758e32daed7009f019b9cc32fcf2d7f82f5933',
+        'aa8c277523c5420f7753d94c847b919dd6b685ec',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
