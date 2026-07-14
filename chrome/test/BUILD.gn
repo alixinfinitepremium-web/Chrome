@@ -13,8 +13,6 @@ import("//build/config/ui.gni")
 import("//build/toolchain/toolchain.gni")
 import("//chrome/browser/buildflags.gni")
 import("//chrome/browser/downgrade/buildflags.gni")
-import("//chrome/browser/page_load_metrics/integration_tests/jsdeps.gni")
-import("//chrome/browser/page_load_metrics/integration_tests/sources.gni")
 import("//chrome/common/features.gni")
 import("//chrome/common/request_header_integrity/buildflags.gni")
 import("//chrome/services/speech/buildflags/buildflags.gni")
@@ -1253,7 +1251,6 @@ source_set("platform_browser_tests") {
     "//chrome/browser/signin",
     "//chrome/browser/ssl",
     "//chrome/browser/ssl:platform_browser_tests",
-    "//chrome/browser/storage:platform_browser_tests",
     "//chrome/browser/tab_group_sync",
     "//chrome/browser/tab_group_sync:factories",
     "//chrome/browser/ui",
@@ -3154,8 +3151,6 @@ if (!is_android) {
       "$root_gen_dir/third_party/perfetto/protos/perfetto/config/chrome/scenario_config.descriptor",
     ]
 
-    data += metric_integration_jsdeps
-
     sources = [
       "../../components/live_caption/views/caption_bubble_browsertest.cc",
       "../../components/record_replay/content/renderer/record_replay_agent_browsertest.cc",
@@ -3186,16 +3181,6 @@ if (!is_android) {
       "../browser/media/webrtc/webrtc_video_quality_browsertest.cc",
       "../browser/media/webrtc/webrtc_webcam_browsertest.cc",
       "../browser/os_crypt/os_crypt_async_browsertest.cc",
-      "../browser/page_load_metrics/observers/abandoned_page_load_metrics_observer_browsertest.cc",
-      "../browser/page_load_metrics/observers/back_forward_cache_page_load_metrics_observer_browsertest.cc",
-      "../browser/page_load_metrics/observers/from_gws_abandoned_page_load_metrics_observer_browsertest.cc",
-      "../browser/page_load_metrics/observers/gws_abandoned_page_load_metrics_observer_browsertest.cc",
-      "../browser/page_load_metrics/observers/gws_abandoned_page_load_metrics_observer_browsertest.h",
-      "../browser/page_load_metrics/observers/gws_hp_page_load_metrics_observer_browsertest.cc",
-      "../browser/page_load_metrics/observers/gws_page_load_metrics_observer_browsertest.cc",
-      "../browser/page_load_metrics/observers/navigation_initiator_page_load_metrics_observer_browsertest.cc",
-      "../browser/page_load_metrics/observers/prerender_page_load_metrics_observer_browsertest.cc",
-      "../browser/page_load_metrics/observers/use_counter_page_load_metrics_observer_browsertest.cc",
       "../browser/renderer_host/javascript_optimizer_feature_browsertest.cc",
       "../browser/safe_browsing/download_protection/download_protection_service_browsertest.cc",
       "../browser/signin/e2e_tests/live_sign_in_test.cc",
@@ -4006,8 +3991,6 @@ if (!is_android) {
         "../browser/ui/views/permissions/permission_prompt_bubble_two_origins_view_browsertest.cc",
         "../browser/ui/views/permissions/permission_request_chip_browsertest.cc",
         "../browser/ui/views/profiles/profile_menu_view_browsertest.cc",
-        "../browser/ui/views/record_replay/replay_recording_bubble_view_browsertest.cc",
-        "../browser/ui/views/record_replay/save_recording_bubble_view_browsertest.cc",
         "../browser/ui/views/sad_tab_split_view_browsertest.cc",
         "../browser/ui/views/safe_browsing/password_reuse_modal_warning_dialog_browsertest.cc",
         "../browser/ui/views/safe_browsing/tailored_security_desktop_dialog_manager_browsertest.cc",
@@ -4139,6 +4122,7 @@ if (!is_android) {
         "//chrome/browser/ui/views/performance_controls:browser_tests",
         "//chrome/browser/ui/views/permissions:permission_prompt_observer",
         "//chrome/browser/ui/views/permissions/chip",
+        "//chrome/browser/ui/views/record_replay:browser_tests",
         "//chrome/browser/ui/views/send_tab_to_self",
         "//chrome/browser/ui/views/sharing",
         "//chrome/browser/ui/views/translate",
@@ -4888,7 +4872,10 @@ if (!is_android) {
       deps += [ "//chrome/browser/enterprise/data_controls:test_support" ]
     }
 
-    sources += metric_integration_sources
+    deps += [
+      "//chrome/browser/page_load_metrics/integration_tests:browser_tests",
+      "//chrome/browser/page_load_metrics/observers:browser_tests",
+    ]
 
     if (!is_chromeos) {
       deps += [
@@ -7601,11 +7588,6 @@ test("unit_tests") {
   # //chrome/browser/extensions/BUILD.gn.
   # TODO(crbug.com/1229899): Clean up and move this to a separate target.
   if (enable_extensions) {
-    sources += [
-      "../browser/safe_browsing/test_extension_event_observer.cc",
-      "../browser/safe_browsing/test_extension_event_observer.h",
-    ]
-
     if (enterprise_data_controls) {
       sources += [ "../../components/enterprise/data_controls/core/browser/data_controls_policy_handler_unittest.cc" ]
       deps += [

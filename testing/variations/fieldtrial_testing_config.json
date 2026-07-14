@@ -1318,25 +1318,6 @@
             ]
         }
     ],
-    "AndroidSetupList": [
-        {
-            "platforms": [
-                "android"
-            ],
-            "experiments": [
-                {
-                    "name": "AddressBarAndPwManagementEnabled",
-                    "params": {
-                        "include_address_bar_placement": "true",
-                        "include_pw_management": "true"
-                    },
-                    "enable_features": [
-                        "AndroidSetupList"
-                    ]
-                }
-            ]
-        }
-    ],
     "AndroidSpareRendererCreation_V3": [
         {
             "platforms": [
@@ -21283,6 +21264,9 @@
             "experiments": [
                 {
                     "name": "Enabled",
+                    "params": {
+                        "UseLazyURLLoaderFactoryForServiceWorkerFallback": "true"
+                    },
                     "enable_features": [
                         "ReduceMojoURLLoaderFactoryCloning"
                     ]
