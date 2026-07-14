@@ -327,7 +327,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '21fd70c15354fd1c9a42b59e72d3d4614ec30b85',
+  'skia_revision': '1ad5c734a51ef51f16c5472b34ebd451f7794547',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -335,7 +335,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '9cf92a040212666602fd7b05375455ea14a3f61e',
+  'angle_revision': 'ef84704aca0595b7e3c5b165efc4de81bfaa83d5',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -407,7 +407,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'ec43e92f728b5e3c9c11f6cf65e6e88d13d5bae9',
+  'devtools_frontend_revision': '1e5201c8a313645de617862bac49e8cf294fd047',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -431,7 +431,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': '662d70fc3c6af931ee88d0fef77afa68ca0fdb63',
+  'dawn_revision': '8b692610bcff3452945acf376290c6d753bfc833',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -1722,7 +1722,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '90052225c04507a6cc81824275ed2cf5da31cd1e',
+    '279625955bc6870d2906c8979a1855dcbdf57706',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -1731,7 +1731,7 @@ deps = {
   },
 
   'src/ios/third_party/earl_grey2/src': {
-      'url': Var('chromium_git') + '/external/github.com/google/EarlGrey.git' + '@' + 'f97522cf040222615981f5ee01de3a5ecfc290f8',
+      'url': Var('chromium_git') + '/external/github.com/google/EarlGrey.git' + '@' + 'f62e250172a3296e9ebe7efa4d0447ce447f94e5',
       'condition': 'checkout_ios',
   },
 
