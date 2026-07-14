@@ -451,6 +451,11 @@ BASE_FEATURE_PARAM(base::TimeDelta,
 BASE_FEATURE(kAutofillAtMemoryInactivityNudge,
              base::FEATURE_DISABLED_BY_DEFAULT);
 
+// If enabled, AtMemory can be triggered with a keyboard shortcut like
+// Ctrl+Space.
+BASE_FEATURE(kAutofillAtMemoryTriggerShortcut,
+             base::FEATURE_DISABLED_BY_DEFAULT);
+
 // When enabled, the placeholder is not considered a label fallback on the
 // renderer side anymore. Instead, local heuristic will match regexes against
 // either the label or the placeholder, depending on how high quality the label
@@ -784,7 +789,7 @@ BASE_FEATURE(kAutofillPopupDontAcceptNonVisibleEnoughSuggestion,
 // When enabled, fields populated by standard Autofill or Autofill AI products
 // are not saved to the Autocomplete database at form submission.
 BASE_FEATURE(kAutofillPreventAutofillFromSavingToAutocomplete,
-             base::FEATURE_DISABLED_BY_DEFAULT);
+             base::FEATURE_ENABLED_BY_DEFAULT);
 
 // Replaces blink::WebFormElementObserver usage in FormTracker by updated logic
 // for tracking the disappearance of forms as well as other submission
