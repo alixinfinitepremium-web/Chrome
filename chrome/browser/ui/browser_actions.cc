@@ -2066,7 +2066,11 @@ void BrowserActions::InitializeToolbarAndMiscActions() {
           base::BindRepeating(
               [](BrowserWindowInterface* bwi, actions::ActionItem* item,
                  actions::ActionInvocationContext context) {
-                chrome::ExecuteCommand(bwi, IDC_SHOW_CUSTOMIZE_CHROME_TOOLBAR);
+                bwi->GetFeatures()
+                    .browser_command_controller()
+                    ->ShowCustomizeChromeSidePanel(
+                        SidePanelOpenTrigger::kAppMenu,
+                        CustomizeChromeSection::kToolbar);
               },
               bwi))
           .SetActionId(kActionSidePanelShowCustomizeChromeToolbar)
@@ -4116,6 +4120,20 @@ void BrowserActions::InitializeToolbarAndMiscActions() {
               },
               bwi))
           .SetActionId(kActionShowGoogleLensShortcut)
+          .Build());
+
+  root_action_item_->AddChild(
+      actions::ActionItem::Builder(
+          base::BindRepeating(
+              [](BrowserWindowInterface* bwi, actions::ActionItem* item,
+                 actions::ActionInvocationContext context) {
+                if (!bwi) {
+                  return;
+                }
+                chrome::ExecLensOverlay(bwi);
+              },
+              bwi))
+          .SetActionId(kActionShowLensOverlayFromAppMenu)
           .Build());
 
   root_action_item_->AddChild(

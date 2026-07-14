@@ -323,11 +323,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '4d4fc73d27de8f8332e37639da64298857ccb00c',
+  'src_internal_revision': '295ec588c3e832b7a2606cc9a59ccd9bb9826cfb',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': 'ca065587acac8432379ae196812dd3ec663129c2',
+  'skia_revision': '00d5dbacd878c37060277d30c1a4d1c14079624f',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -463,7 +463,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling crabbyavif
   # and whatever else without interference from each other.
-  'crabbyavif_revision': 'f3a11783d55c780c943487216c506d1c44e6709e',
+  'crabbyavif_revision': 'a635af5716f98f28558c38e29b76cb712dec4aa9',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Speedometer main
   # and whatever else without interference from each other.
@@ -523,7 +523,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ffmpeg
   # and whatever else without interference from each other.
-  'ffmpeg_revision': 'ad41607c61898cf7150e0fb20fe4bbabd44922a3',
+  'ffmpeg_revision': 'fcf00a65aa4168c2ae1ce6e55f59e8bc1edd6c78',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling webpagereplay
   # and whatever else without interference from each other.
@@ -543,7 +543,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling agents-internal
   # and whatever else without interference from each other.
-  'agents_internal_revision': 'b0c73864f65aab80f001b22b5f287228d174882c',
+  'agents_internal_revision': '21c25488408500557636122892d27dda39a0f922',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling agents-public
   # and whatever else without interference from each other.
@@ -1710,7 +1710,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': 'UFFHv8RpLiMgVljvOfFPga2lr5nzzte47gQiDvgMjtgC',
+        'version': 'XjtjJcK11j0STFgsgZ_VHa44MZJVs5Dr6s9uJXNsV2YC',
       },
     ],
     'condition': 'non_git_source',
@@ -3923,7 +3923,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        'd560e3321b360ded67205f603d4b60057d50b63d',
+        '5cd7c05db4647b9ff35bf50e7f05ec39c89b6e51',
       'condition': 'checkout_src_internal',
   },
 
