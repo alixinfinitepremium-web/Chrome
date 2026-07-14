@@ -4,6 +4,7 @@ on:
   # Explicit off-hour slots reduce schedule drops during GitHub Actions load.
   schedule:
     - cron: "7,27,47 * * * *"
+  # A workflow-file push is also the recovery trigger when GitHub drops cron runs.
   workflow_dispatch:
   push:
     paths:
