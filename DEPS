@@ -367,7 +367,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling freetype
   # and whatever else without interference from each other.
-  'freetype_revision': '5336c0d4da22a13dab3389eb153b12672fdf841c',
+  'freetype_revision': 'f01dec5e676847267834b881b25f6e8c79581163',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling HarfBuzz
   # and whatever else without interference from each other.
@@ -387,7 +387,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': '71578cb1117a8a33974eda08dca1990e5a7fe705',
+  'crossbench_revision': '1058343e2e48c9a2d6f08e0f6b723b354d4d9d83',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -2723,7 +2723,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + 'ae22f029e081968281a37cf7b147509a539cd0c2',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '48b6cb961393cb67759ec9530b63b2c8847222e5',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
