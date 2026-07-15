@@ -84,7 +84,9 @@ export function getHtml(this: ReadAnythingToolbarElement) {
     </cr-icon-button>
 
     <cr-icon-button class="toolbar-button" id="highlight" tabindex="-1"
-        iron-icon="read-anything:highlight-on"
+        iron-icon="${this.webuiRoundedIconsEnabled_
+            ? 'read-anything:ink-highlighter-move'
+            : 'read-anything:highlight-on-old'}"
         title="${this.getHighlightButtonLabel_()}"
         aria-label="${this.getHighlightButtonLabel_()}"
         aria-haspopup="menu"
@@ -189,7 +191,9 @@ export function getHtml(this: ReadAnythingToolbarElement) {
         id="font-size-decrease"
         aria-label="$i18n{decreaseFontSizeLabel}"
         title="$i18n{decreaseFontSizeLabel}"
-        iron-icon="read-anything:font-size-decrease"
+        iron-icon="${this.webuiRoundedIconsEnabled_
+            ? 'read-anything:remove'
+            : 'read-anything:font-size-decrease-old'}"
         @click="${this.onFontSizeDecreaseClick_}">
     </cr-icon-button>
     <cr-icon-button class="font-size" role="menuitem"
@@ -269,6 +273,15 @@ export function getHtml(this: ReadAnythingToolbarElement) {
       .presentationState="${this.presentationState}"
       @close-all-menus="${this.onCloseAllMenus_}">
   </appearance-menu>
+  <text-menu
+      id="textMenu"
+      class="settings-submenu"
+      non-modal
+      .settingsPrefs="${this.settingsPrefs}"
+      .areFontsLoaded="${this.areFontsLoaded_}"
+      .pageLanguage="${this.pageLanguage}"
+      @close-all-menus="${this.onCloseAllMenus_}">
+  </text-menu>
   <voice-selection-menu id="voiceSelectionMenu"
       class="${this.isImmersiveEnabled_ ? 'settings-submenu' : ''}"
       .nonModal="${this.isImmersiveEnabled_}"

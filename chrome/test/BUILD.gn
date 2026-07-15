@@ -3192,7 +3192,6 @@ if (!is_android) {
       "../browser/ui/views/passwords/password_change/password_change_toast_browsertest.cc",
       "../browser/ui/views/passwords/password_change/password_change_ui_browsertest.cc",
       "../browser/ui/views/profiles/avatar_toolbar_button_browsertest.cc",
-      "../browser/ui/views/sharing/click_to_call_browsertest.cc",
       "../browser/ui/views/sharing/remote_copy_browsertest.cc",
       "../browser/ui/views/sharing/shared_clipboard_browsertest.cc",
       "../browser/ui/views/sharing/sharing_browsertest.cc",
@@ -3441,7 +3440,6 @@ if (!is_android) {
       "//chrome/browser/sessions",
       "//chrome/browser/sessions:browser_tests",
       "//chrome/browser/sharing",
-      "//chrome/browser/sharing/click_to_call",
       "//chrome/browser/signin:signin_promo",
       "//chrome/browser/subscription_eligibility",
       "//chrome/browser/subscription_eligibility:browser_tests",
@@ -6962,6 +6960,7 @@ test("unit_tests") {
       "//chrome/browser/ui/omnibox",
       "//chrome/browser/ui/omnibox:test_support",
       "//chrome/browser/ui/omnibox:unit_tests",
+      "//chrome/browser/ui/omnibox/omnibox_everywhere:unit_tests",
       "//chrome/browser/ui/qrcode_generator:unit_tests",
       "//chrome/browser/ui/safety_hub:unit_tests",
       "//chrome/browser/ui/signin",
@@ -9024,6 +9023,7 @@ if (!is_android && !is_chromeos_device) {
       "//chrome/browser/ui/lens:interactive_ui_tests",
       "//chrome/browser/ui/omnibox",
       "//chrome/browser/ui/omnibox:interactive_ui_tests",
+      "//chrome/browser/ui/omnibox/omnibox_everywhere:interactive_ui_tests",
       "//chrome/browser/ui/page_action:icon_type",
       "//chrome/browser/ui/passwords:impl",
       "//chrome/browser/ui/plus_addresses:interactive_ui_tests",
@@ -9780,6 +9780,7 @@ if (!is_android && !is_chromeos_device) {
 
     if (is_win || is_mac || is_linux) {
       sources += [
+        "../browser/ui/views/profiles/device_signals_disclaimer_interactive_uitest.cc",
         "../browser/ui/views/profiles/first_run_interactive_uitest.cc",
         "../browser/ui/views/profiles/profile_bubble_interactive_uitest.cc",
       ]

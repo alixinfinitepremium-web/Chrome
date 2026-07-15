@@ -41,7 +41,6 @@ class Size;
 }  // namespace gfx
 
 namespace gpu {
-class RasterScopedAccess;
 namespace raster {
 class RasterInterface;
 }  // namespace raster
@@ -68,8 +67,6 @@ class PLATFORM_EXPORT WebGpuRecyclableResourceProvider final
   scoped_refptr<gpu::ClientSharedImage> GetSharedImage() const;
   gpu::SyncToken GetSyncToken() const;
 
-
-  // NOTE: Can only be used if this instance is accelerated.
   bool UploadToBackingSharedImage(const SkPixmap& pixmap,
                                   uint32_t src_x,
                                   uint32_t src_y);
@@ -123,24 +120,12 @@ class PLATFORM_EXPORT WebGpuRecyclableResourceProvider final
 
   bool IsGpuContextLost() const;
 
-
   // CanvasMemoryDumpClient implementation.
   base::ByteSize EstimatedSizeInBytes() const;
   void OnMemoryDump(base::trace_event::ProcessMemoryDump* pmd) override;
   size_t GetSize() const override;
 
-
-
   gpu::raster::RasterInterface* RasterInterface() const;
-
-  base::WeakPtr<WebGraphicsContext3DProviderWrapper> ContextProviderWrapper()
-      const {
-    return context_provider_wrapper_;
-  }
-
-
-
-  std::unique_ptr<gpu::RasterScopedAccess> WillDrawInternal();
 
   const gfx::Size size_;
   const viz::SharedImageFormat format_;
