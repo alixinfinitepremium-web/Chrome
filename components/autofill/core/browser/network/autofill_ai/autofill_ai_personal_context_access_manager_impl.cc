@@ -43,8 +43,11 @@ constexpr net::BackoffEntry::Policy kBackoffPolicy = {
     .num_errors_to_ignore = 0,
     .initial_delay_ms = base::Seconds(1).InMilliseconds(),
     .multiply_factor = 2.0,
+    // Jitter is disabled (0.0) to keep the retry delays deterministic.
     .jitter_factor = 0.0,
     .maximum_backoff_ms = base::Hours(1).InMilliseconds(),
+    // -1 indicates infinite lifetime; entries persist for the lifecycle of the
+    // manager.
     .entry_lifetime_ms = -1,
     .always_use_initial_delay = false};
 
@@ -61,7 +64,7 @@ bool IsPersonalContextEligible(
 }
 
 personal_context::proto::ContextMemoryAmbientAutofillRequest
-CreateAmbientAutofillRequest(base::span<EntityType> types,
+CreateAmbientAutofillRequest(base::span<const EntityType> types,
                              bool return_spii_presence) {
   personal_context::proto::ContextMemoryAmbientAutofillRequest request;
   for (const EntityType& type : types) {
@@ -124,9 +127,11 @@ void AutofillAiPersonalContextAccessManagerImpl::PrefetchContext(
   // Types to request in Request 1 (which includes all non-SPII types and any
   // SPII types for which we want to check presence signals).
   std::vector<EntityType> non_spii_and_presence_to_request;
+  non_spii_and_presence_to_request.reserve(requested_types.size());
   // SPII types for which we want to fetch the actual masked entity data in
   // Request 2.
   std::vector<EntityType> spii_to_request;
+  spii_to_request.reserve(requested_types.size());
 
   DenseSet<PrefetchTriggerResult> unique_trigger_results;
   for (const EntityType& type : requested_types) {
@@ -155,7 +160,7 @@ void AutofillAiPersonalContextAccessManagerImpl::PrefetchContext(
   // Request 1: collects non-spii entities and asks for spii presence if any of
   // the requested_types contains SPII types.
   {
-    auto request =
+    personal_context::proto::ContextMemoryAmbientAutofillRequest request =
         CreateAmbientAutofillRequest(non_spii_and_presence_to_request,
                                      /*return_spii_presence=*/has_spii_types);
     personal_context_service_->FetchContext(
@@ -171,8 +176,9 @@ void AutofillAiPersonalContextAccessManagerImpl::PrefetchContext(
 
   // Request 2: collects spii entities without asking for spii presence.
   if (has_spii_types) {
-    auto request = CreateAmbientAutofillRequest(spii_to_request,
-                                                /*return_spii_presence=*/false);
+    personal_context::proto::ContextMemoryAmbientAutofillRequest request =
+        CreateAmbientAutofillRequest(spii_to_request,
+                                     /*return_spii_presence=*/false);
     personal_context_service_->FetchContext(
         personal_context::proto::CONTEXT_MEMORY_FEATURE_AMBIENT_AUTOFILL,
         request,
@@ -196,8 +202,7 @@ void AutofillAiPersonalContextAccessManagerImpl::
 
   base::expected<std::vector<ParsedEntity>,
                  personal_context::ContextMemoryError>
-      parsed_entities =
-          ExtractEntitiesFromResponse(result.response.value().value());
+      parsed_entities = ExtractEntitiesFromResponse(result.response->value());
 
   if (!parsed_entities.has_value()) {
     HandleFailedResponse(requested_types, requested_spii_presence);
@@ -205,18 +210,10 @@ void AutofillAiPersonalContextAccessManagerImpl::
   }
 
   std::vector<EntityType> prefetched_types;
-  std::vector<SpiiEntityPresenceSignal> presence_signals;
 
   for (const EntityType& type : requested_types) {
     if (!requested_spii_presence || !IsPersonalContextSpiiType(type)) {
       prefetched_types.push_back(type);
-    }
-  }
-
-  for (const ParsedEntity& parsed_entity : *parsed_entities) {
-    if (const SpiiEntityPresenceSignal* signal =
-            std::get_if<SpiiEntityPresenceSignal>(&parsed_entity.instance)) {
-      presence_signals.push_back(*signal);
     }
   }
 
@@ -372,8 +369,10 @@ void AutofillAiPersonalContextAccessManagerImpl::ProcessPrefetchedEntities(
         base::BindOnce(
             &AutofillAiPersonalContextAccessManagerImpl::ResetStateForType,
             weak_factory_.GetWeakPtr(), type),
-        kPrefetchedEntitiesAndSignalsCacheTTL);
+        features::kAutofillAmbientAutofillPrefetchedEntitiesAndSignalsCacheTTL
+            .Get());
   }
+
   // Populates the proto cache and notify observers about the fetched entities.
   // Also cache presence signals.
   std::vector<EntityInstance> entities;
@@ -413,7 +412,7 @@ void AutofillAiPersonalContextAccessManagerImpl::CacheUnmaskedSpiiEntity(
             access_manager->unmasked_spii_cache_.erase(id);
           },
           weak_factory_.GetWeakPtr(), id),
-      kUnmaskedSpiiCacheTTL);
+      features::kAutofillAmbientAutofillUnmaskedSpiiCacheTTL.Get());
 }
 
 void AutofillAiPersonalContextAccessManagerImpl::CachePresenceSignal(
@@ -436,7 +435,8 @@ void AutofillAiPersonalContextAccessManagerImpl::CachePresenceSignal(
             access_manager->spii_presence_signal_cache_.erase(signal_to_remove);
           },
           weak_factory_.GetWeakPtr(), signal),
-      kPrefetchedEntitiesAndSignalsCacheTTL);
+      features::kAutofillAmbientAutofillPrefetchedEntitiesAndSignalsCacheTTL
+          .Get());
 }
 
 void AutofillAiPersonalContextAccessManagerImpl::WipeCache() {
@@ -477,20 +477,22 @@ AutofillAiPersonalContextAccessManagerImpl::DeterminePrefetchTriggerResult(
     return PrefetchTriggerResult::kInitiated;
   }
 
+  using enum RequestStatus;
   switch (request_state->status) {
-    case RequestStatus::kPending:
+    case kPending:
       return PrefetchTriggerResult::kSkippedInFlight;
-    case RequestStatus::kSuccess:
+    case kSuccess:
       if (base::TimeTicks::Now() - request_state->last_update_time >
-          kPrefetchedEntitiesAndSignalsCacheTTL) {
+          features::kAutofillAmbientAutofillPrefetchedEntitiesAndSignalsCacheTTL
+              .Get()) {
         return PrefetchTriggerResult::kInitiated;
       }
       return PrefetchTriggerResult::kSkippedFreshCache;
-    case RequestStatus::kFailure:
+    case kFailure:
       return ShouldRetryAfterFailure(*request_state)
                  ? PrefetchTriggerResult::kInitiated
                  : PrefetchTriggerResult::kSkippedBackoff;
-    case RequestStatus::kNotStarted:
+    case kNotStarted:
       return PrefetchTriggerResult::kInitiated;
   }
 }
@@ -511,16 +513,16 @@ void AutofillAiPersonalContextAccessManagerImpl::SetTypeStatus(
     state.backoff_entry = std::make_unique<net::BackoffEntry>(&kBackoffPolicy);
   }
 
+  using enum RequestStatus;
   switch (status) {
-    case RequestStatus::kPending:
+    case kPending:
+    case kNotStarted:
       break;
-    case RequestStatus::kSuccess:
+    case kSuccess:
       state.backoff_entry->Reset();
       break;
-    case RequestStatus::kFailure:
+    case kFailure:
       state.backoff_entry->InformOfRequest(/*succeeded=*/false);
-      break;
-    case RequestStatus::kNotStarted:
       break;
   }
 }
