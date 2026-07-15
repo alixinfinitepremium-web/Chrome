@@ -374,30 +374,48 @@ if (!is_android) {
   source_set("browser_tests") {
     testonly = true
     defines = [ "HAS_OUT_OF_PROC_TEST_RUNNER" ]
+
+    # Some of these tests declare file-scope objects with non-trivial
+    # destructors (e.g. webrtc_getdisplaymedia_browsertest.cc).
+    configs += [ "//build/config/compiler:no_exit_time_destructors" ]
+
     sources = [
       "capture_handle_browsertest.cc",
+      "display_media_access_handler_browsertest.cc",
       "media_stream_devices_controller_browsertest.cc",
       "media_stream_focus_delegate_browsertest.cc",
       "same_origin_observer_browsertest.cc",
       "sub_capture_browsertest.cc",
+      "tab_desktop_media_list_browsertest.cc",
       "webrtc_browsertest_perf_unittest.cc",
       "webrtc_desktop_capture_browsertest.cc",
       "webrtc_disable_encryption_flag_browsertest.cc",
+      "webrtc_getdisplaymedia_browsertest.cc",
+      "webrtc_internals_integration_browsertest.cc",
       "webrtc_pan_tilt_zoom_browsertest.cc",
+      "webrtc_stats_perf_browsertest.cc",
+      "webrtc_video_display_perf_browsertest.cc",
+      "webrtc_video_high_bitrate_browsertest.cc",
+      "webrtc_video_quality_browsertest.cc",
       "webrtc_webcam_browsertest.cc",
     ]
     deps = [
+      ":test_support",
       ":webrtc",
       ":webrtc_browser_tests_base",
       "//base",
       "//chrome/browser:test_support",
+      "//chrome/browser/apps/platform_apps:browser_test_support",
       "//chrome/browser/extensions:test_support",
       "//chrome/browser/extensions/api/desktop_capture",
       "//chrome/browser/permissions",
       "//chrome/browser/sessions:test_support",
       "//chrome/browser/ui",
+      "//chrome/browser/ui/apps",
       "//chrome/browser/ui/tab_sharing",
       "//chrome/browser/ui/tabs:tab_strip",
+      "//chrome/browser/web_applications:web_applications_test_support",
+      "//chrome/test:test_support",
       "//chrome/test:test_support_ui",
       "//components/infobars/content",
       "//components/permissions:test_support",
@@ -405,20 +423,42 @@ if (!is_android) {
       "//net:test_support",
       "//testing/gtest",
     ]
+
+    if (is_chromeos) {
+      deps += [
+        "//chrome/browser/ash/login/users",
+        "//chrome/browser/chromeos/policy/dlp",
+        "//chrome/browser/chromeos/policy/dlp/test:test_support",
+      ]
+    }
   }
 }
 
 source_set("unit_tests") {
   testonly = true
-  sources = []
+
+  # Some of these tests declare file-scope objects with non-trivial
+  # destructors (e.g. media_stream_capture_indicator_unittest.cc).
+  configs += [ "//build/config/compiler:no_exit_time_destructors" ]
+
+  # These tests build on all platforms (matching the original monolithic
+  # //chrome/test:unit_tests target).
+  sources = [
+    "capture_policy_utils_unittest.cc",
+    "media_device_salt_service_factory_unittest.cc",
+    "media_stream_device_permission_context_unittest.cc",
+  ]
   deps = [
     ":webrtc",
     "//base",
     "//base/test:test_support",
     "//chrome/browser/content_settings:content_settings_factory",
+    "//chrome/browser/media/prefs",
     "//chrome/browser/prefs",
     "//chrome/common",
     "//chrome/test:test_support",
+    "//components/infobars/content",
+    "//components/media_device_salt",
     "//components/prefs:test_support",
     "//components/sync_preferences:test_support",
     "//components/user_manager",
@@ -432,23 +472,34 @@ source_set("unit_tests") {
   ]
 
   if (is_chromeos) {
+    sources += [
+      "chrome_screen_enumerator_ash_unittest.cc",
+      "desktop_media_list_ash_unittest.cc",
+    ]
     deps += [
+      "//chrome/browser/ash/login/users",
       "//chrome/browser/ash/login/users:test_support",
+      "//chrome/browser/chromeos/policy/dlp",
       "//chrome/browser/chromeos/policy/dlp/test:test_support",
+      "//chrome/test:test_support_unit",
       "//chromeos/ash/components/system",
       "//components/account_id",
     ]
   }
 
-  # All of the media/webrtc unit tests are desktop-only (!is_android);
+  # These media/webrtc unit tests are desktop-only (!is_android);
   # test_stats_dictionary additionally lives in the desktop-only browser-test
   # base.
   if (!is_android) {
     sources += [
-      "capture_policy_utils_unittest.cc",
+      "current_tab_desktop_media_list_unittest.cc",
       "desktop_capture_access_handler_unittest.cc",
       "desktop_media_picker_controller_unittest.cc",
+      "display_media_access_handler_unittest.cc",
+      "media_capture_devices_dispatcher_unittest.cc",
+      "media_stream_capture_indicator_unittest.cc",
       "rtc_diagnostic_logging_unittest.cc",
+      "tab_capture_access_handler_unittest.cc",
       "test_stats_dictionary_unittest.cc",
       "webrtc_event_log_manager_common_unittest.cc",
       "webrtc_event_log_manager_unittest.cc",
@@ -461,7 +512,12 @@ source_set("unit_tests") {
       "webrtc_rtp_dump_writer_unittest.cc",
       "webrtc_text_log_handler_unittest.cc",
     ]
-    deps += [ ":webrtc_browser_tests_base" ]
+    deps += [
+      ":test_support",
+      ":webrtc_browser_tests_base",
+      "//chrome/browser/web_applications:web_app_test",
+      "//chrome/browser/web_applications:web_applications_test_support",
+    ]
   }
 
   if (is_mac) {

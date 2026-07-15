@@ -68,15 +68,6 @@ crbug.com/475504307 [ Mac ] html/details_summary/details-replace-text.html [ Fai
 
 crbug.com/457388389 http/tests/devtools/sources/debugger-pause/set-return-value.js [ Failure Pass Timeout ]
 
-# Disable layout tests to land crrev.com/c/7969697
-http/tests/devtools/security/blank-origins-not-shown.js [ Failure Pass ]
-http/tests/devtools/security/failed-request.js [ Failure Pass ]
-http/tests/devtools/security/main-origin-assigned-despite-request-missing.js [ Failure Pass ]
-http/tests/devtools/security/origin-view-ct-compliance.js [ Failure Pass ]
-http/tests/devtools/security/origin-view-noncryptographic-secure-origin.js [ Failure Pass ]
-http/tests/devtools/security/origin-view-then-interstitial.js [ Failure Pass ]
-http/tests/devtools/security/security-details-updated-with-security-state.js [ Failure Pass ]
-http/tests/devtools/security/security-unknown-resource.js [ Failure Pass ]
 # Reftest failure related to off-main-thread interaction (imperceptible AA differences)
 crbug.com/395909730 virtual/off-main-thread-css-paint/http/tests/csspaint/paint2d-zoom.html [ Failure ]  # Reftest image failure
 crbug.com/395909730 virtual/off-main-thread-css-paint/http/tests/csspaint/transform-with-page-zoom-003.html [ Failure ]  # Reftest image failure
@@ -9518,3 +9509,6 @@ crbug.com/507385957 [ Linux ] external/wpt/html/semantics/menu/tentative/menu-sa
 crbug.com/533188858 [ Mac ] external/wpt/html/semantics/forms/the-input-element/checkable-active-space-key-being-disabled.html [ Failure Pass ]
 crbug.com/534600077 [ Linux ] external/wpt/css/css-ui/compute-kind-widget-generated/grouped-kind-of-widget-fallback-border-image-source-001.html [ Failure Pass ]
 crbug.com/534698830 external/wpt/worklets/audio-worklet-service-worker-interception.https.html [ Failure Pass ]
+
+# DevTools CL block unblock: Failing due to encoding changes
+crbug.com/529423495 http/tests/devtools/elements/styles/xsl-transformed.js [ Failure ]

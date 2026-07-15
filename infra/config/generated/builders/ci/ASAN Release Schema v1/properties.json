@@ -2,32 +2,38 @@
   "$build/chromium_tests_builder_config": {
     "builder_config": {
       "additional_exclusions": [
-        "infra/config/generated/builders/ci/mac-osxbeta-rel/gn-args.json"
+        "infra/config/generated/builders/ci/ASAN Release Schema v1/gn-args.json"
       ],
       "builder_db": {
         "entries": [
           {
             "builder_id": {
               "bucket": "ci",
-              "builder": "mac-osxbeta-rel",
+              "builder": "ASAN Release Schema v1",
               "project": "chromium"
             },
             "builder_spec": {
-              "builder_group": "chromium.fyi",
+              "builder_group": "chromium.fuzz",
+              "clusterfuzz_archive": {
+                "archive_name_prefix": "asan",
+                "archive_schema_version": 1,
+                "archive_subdir": "schema-v1",
+                "gs_acl": "public-read",
+                "gs_bucket": "chromium-browser-asan",
+                "use_archive_path": false
+              },
               "execution_mode": "COMPILE_AND_TEST",
               "legacy_chromium_config": {
                 "apply_configs": [
+                  "clobber",
                   "mb"
                 ],
-                "build_config": "Debug",
-                "config": "chromium",
+                "build_config": "Release",
+                "config": "chromium_asan",
                 "target_bits": 64,
-                "target_platform": "mac"
+                "target_platform": "linux"
               },
               "legacy_gclient_config": {
-                "apply_configs": [
-                  "chromium_with_telemetry_dependencies"
-                ],
                 "config": "chromium"
               }
             }
@@ -37,17 +43,12 @@
       "builder_ids": [
         {
           "bucket": "ci",
-          "builder": "mac-osxbeta-rel",
+          "builder": "ASAN Release Schema v1",
           "project": "chromium"
         }
       ],
-      "mirroring_builder_group_and_names": [
-        {
-          "builder": "mac-osxbeta-rel",
-          "group": "tryserver.chromium.mac"
-        }
-      ],
-      "targets_spec_directory": "infra/config/generated/builders/ci/mac-osxbeta-rel/targets"
+      "retry_failed_shards": true,
+      "targets_spec_directory": "infra/config/generated/builders/ci/ASAN Release Schema v1/targets"
     }
   },
   "$build/siso": {
@@ -68,6 +69,6 @@
       "v.test_suite"
     ]
   },
-  "builder_group": "chromium.fyi",
+  "builder_group": "chromium.fuzz",
   "recipe": "chromium"
 }

@@ -34,6 +34,7 @@ class GlicWebContentsWarmingPool {
   enum class ClearReason {
     kShutdown,
     kMemoryPressure,
+    kExpired,
   };
 
   // LINT.IfChange(GlicContainerCreationReason)
@@ -64,7 +65,7 @@ class GlicWebContentsWarmingPool {
   void EnsurePreload(ContainerCreationReason reason =
                          ContainerCreationReason::kUserTriggeredColdStart);
   // Clears the warming pool and destroys any warmed WebContents.
-  void Clear(std::optional<ClearReason> reason);
+  void Clear(ClearReason reason);
 
   // Handles memory pressure notifications by clearing or statefully disabling
   // pre-warming, depending on feature configuration.
@@ -89,6 +90,17 @@ class GlicWebContentsWarmingPool {
     kMaxValue = kNotReloadedLimitReached,
   };
   // LINT.ThenChange(//tools/metrics/histograms/metadata/glic/enums.xml:GlicReloadAfterExpiryStatus)
+
+  // LINT.IfChange(GlicWarmedContainerFate)
+  enum class WarmedContainerFate {
+    kUsed = 0,
+    kExpired = 1,
+    kDeletedOnChromeClosed = 2,
+    kCrashed = 3,
+    kDeletedOnMemoryPressure = 4,
+    kMaxValue = kDeletedOnMemoryPressure,
+  };
+  // LINT.ThenChange(//tools/metrics/histograms/metadata/glic/enums.xml:GlicWarmedContainerFate)
 
   bool HasWarmedContainerForTesting() const;
   base::OneShotTimer& GetDelayTimerForTesting() { return delay_timer_; }

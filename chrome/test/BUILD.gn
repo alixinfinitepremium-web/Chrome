@@ -3136,14 +3136,6 @@ if (!is_android) {
       "../../components/live_caption/views/caption_bubble_browsertest.cc",
       "../../components/record_replay/content/renderer/record_replay_agent_browsertest.cc",
       "../app/chrome_main_delegate_browsertest.cc",
-      "../browser/media/webrtc/display_media_access_handler_browsertest.cc",
-      "../browser/media/webrtc/tab_desktop_media_list_browsertest.cc",
-      "../browser/media/webrtc/webrtc_getdisplaymedia_browsertest.cc",
-      "../browser/media/webrtc/webrtc_internals_integration_browsertest.cc",
-      "../browser/media/webrtc/webrtc_stats_perf_browsertest.cc",
-      "../browser/media/webrtc/webrtc_video_display_perf_browsertest.cc",
-      "../browser/media/webrtc/webrtc_video_high_bitrate_browsertest.cc",
-      "../browser/media/webrtc/webrtc_video_quality_browsertest.cc",
       "../browser/os_crypt/os_crypt_async_browsertest.cc",
       "../browser/renderer_host/javascript_optimizer_feature_browsertest.cc",
       "../browser/safe_browsing/download_protection/download_protection_service_browsertest.cc",
@@ -5223,8 +5215,6 @@ test("unit_tests") {
     "../browser/font_family_cache_unittest.cc",
     "../browser/font_pref_change_notifier_unittest.cc",
     "../browser/logging_chrome_unittest.cc",
-    "../browser/media/webrtc/media_device_salt_service_factory_unittest.cc",
-    "../browser/media/webrtc/media_stream_device_permission_context_unittest.cc",
     "../browser/renderer_preferences_util_unittest.cc",
     "../browser/resources_util_unittest.cc",
     "../browser/safe_browsing/gemini_antiscam_protection/gemini_antiscam_protection_service_factory_unittest.cc",
@@ -6579,11 +6569,6 @@ test("unit_tests") {
     # !is_android
     sources += [
       "../browser/browser_commands_unittest.cc",
-      "../browser/media/webrtc/current_tab_desktop_media_list_unittest.cc",
-      "../browser/media/webrtc/display_media_access_handler_unittest.cc",
-      "../browser/media/webrtc/media_capture_devices_dispatcher_unittest.cc",
-      "../browser/media/webrtc/media_stream_capture_indicator_unittest.cc",
-      "../browser/media/webrtc/tab_capture_access_handler_unittest.cc",
       "../browser/safe_browsing/generated_safe_browsing_pref_unittest.cc",
       "../browser/safe_browsing/generated_security_settings_bundle_pref_unittest.cc",
       "../browser/ui/accelerator_table_unittest.cc",
@@ -7151,8 +7136,6 @@ test("unit_tests") {
   if (is_chromeos) {
     sources -= [ "../browser/ui/webui/settings/settings_manage_profile_handler_unittest.cc" ]
     sources += [
-      "../browser/media/webrtc/chrome_screen_enumerator_ash_unittest.cc",
-      "../browser/media/webrtc/desktop_media_list_ash_unittest.cc",
       "../browser/shell_integration_chromeos_unittest.cc",
       "../browser/ui/ash/editor_menu/editor_menu_card_context_unittest.cc",
       "../browser/ui/ash/editor_menu/editor_menu_view_unittest.cc",

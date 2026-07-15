@@ -17,8 +17,10 @@
 #include "base/functional/bind.h"
 #include "base/location.h"
 #include "base/metrics/histogram_functions.h"
+#include "base/strings/strcat.h"
 #include "base/task/single_thread_task_runner.h"
 #include "components/autofill/core/browser/data_model/autofill_ai/entity_type.h"
+#include "components/autofill/core/browser/integrators/autofill_ai/metrics/autofill_ai_metrics.h"
 #include "components/autofill/core/browser/manual_testing_import.h"
 #include "components/autofill/core/browser/network/autofill_ai/personal_context_conversion_util.h"
 #include "components/autofill/core/common/autofill_features.h"
@@ -171,7 +173,8 @@ void AutofillAiPersonalContextAccessManagerImpl::PrefetchContext(
                            OnPrefetchContextRequestComplete,
                        weak_factory_.GetWeakPtr(),
                        std::move(non_spii_and_presence_to_request),
-                       /*requested_spii_presence=*/has_spii_types));
+                       RequestType::kNonSpiiAndPresence,
+                       base::TimeTicks::Now()));
   }
 
   // Request 2: collects spii entities without asking for spii presence.
@@ -186,17 +189,20 @@ void AutofillAiPersonalContextAccessManagerImpl::PrefetchContext(
         base::BindOnce(&AutofillAiPersonalContextAccessManagerImpl::
                            OnPrefetchContextRequestComplete,
                        weak_factory_.GetWeakPtr(), std::move(spii_to_request),
-                       /*requested_spii_presence=*/false));
+                       RequestType::kSpiiMasked, base::TimeTicks::Now()));
   }
 }
 
 void AutofillAiPersonalContextAccessManagerImpl::
     OnPrefetchContextRequestComplete(
         std::vector<EntityType> requested_types,
-        bool requested_spii_presence,
+        RequestType request_type,
+        base::TimeTicks request_start_time,
         personal_context::FetchContextResult result) {
+  LogRequestLatency(request_type, request_start_time);
+
   if (!result.response.has_value()) {
-    HandleFailedResponse(requested_types, requested_spii_presence);
+    HandleFailedResponse(requested_types, request_type);
     return;
   }
 
@@ -205,14 +211,15 @@ void AutofillAiPersonalContextAccessManagerImpl::
       parsed_entities = ExtractEntitiesFromResponse(result.response->value());
 
   if (!parsed_entities.has_value()) {
-    HandleFailedResponse(requested_types, requested_spii_presence);
+    HandleFailedResponse(requested_types, request_type);
     return;
   }
 
   std::vector<EntityType> prefetched_types;
 
   for (const EntityType& type : requested_types) {
-    if (!requested_spii_presence || !IsPersonalContextSpiiType(type)) {
+    if (request_type == RequestType::kSpiiMasked ||
+        !IsPersonalContextSpiiType(type)) {
       prefetched_types.push_back(type);
     }
   }
@@ -278,13 +285,17 @@ void AutofillAiPersonalContextAccessManagerImpl::GetUnmaskedSpiiEntity(
       request, /*options=*/{},
       base::BindOnce(&AutofillAiPersonalContextAccessManagerImpl::
                          OnFetchPiiEntitiesComplete,
-                     weak_factory_.GetWeakPtr(), id, std::move(callback)));
+                     weak_factory_.GetWeakPtr(), id, std::move(callback),
+                     base::TimeTicks::Now()));
 }
 
 void AutofillAiPersonalContextAccessManagerImpl::OnFetchPiiEntitiesComplete(
     const EntityInstance::EntityId& id,
     GetUnmaskedSpiiEntityCallback callback,
+    base::TimeTicks request_start_time,
     personal_context::FetchPiiEntitiesResult result) {
+  LogRequestLatency(RequestType::kSpiiUnmasking, request_start_time);
+
   if (!result.response.has_value()) {
     std::move(callback).Run(std::nullopt);
     return;
@@ -361,7 +372,8 @@ void AutofillAiPersonalContextAccessManagerImpl::ProcessPrefetchedEntities(
     std::vector<EntityType> requested_types,
     std::vector<ParsedEntity> parsed_entities) {
   // Evict existing entities for the `requested_types`.
-  for (EntityType type : requested_types) {
+  for (const EntityType& type : requested_types) {
+    LogPrefetchTotalLatency(type);
     ResetStateForType(type);
     SetTypeStatus(type, RequestStatus::kSuccess);
     base::SingleThreadTaskRunner::GetCurrentDefault()->PostDelayedTask(
@@ -446,7 +458,7 @@ void AutofillAiPersonalContextAccessManagerImpl::WipeCache() {
   // `prefetch_state_`.
   std::vector<EntityType> prefetched_types = base::ToVector(
       prefetch_state_, [](const auto& item) { return item.first; });
-  for (EntityType type : prefetched_types) {
+  for (const EntityType& type : prefetched_types) {
     ResetStateForType(type);
   }
   spii_presence_signal_cache_.clear();
@@ -529,15 +541,51 @@ void AutofillAiPersonalContextAccessManagerImpl::SetTypeStatus(
 
 void AutofillAiPersonalContextAccessManagerImpl::HandleFailedResponse(
     base::span<const EntityType> requested_types,
-    bool requested_spii_presence) {
+    RequestType request_type) {
   for (const EntityType& type : requested_types) {
-    // SPII types are handled during SPII requests, instead of their presence.
-    if (requested_spii_presence && IsPersonalContextSpiiType(type)) {
+    if (request_type == RequestType::kNonSpiiAndPresence &&
+        IsPersonalContextSpiiType(type)) {
       continue;
     }
     SetTypeStatus(type, RequestStatus::kFailure);
   }
   NotifyPrefetchStatusObservers({});
+}
+
+void AutofillAiPersonalContextAccessManagerImpl::LogRequestLatency(
+    RequestType request_type,
+    base::TimeTicks start_time) {
+  const base::TimeDelta latency = base::TimeTicks::Now() - start_time;
+  switch (request_type) {
+    case RequestType::kNonSpiiAndPresence:
+      base::UmaHistogramMediumTimes(
+          "Autofill.Ai.PersonalContext.RequestLatency."
+          "PrefetchNonSpiiAndPresence",
+          latency);
+      break;
+    case RequestType::kSpiiMasked:
+      base::UmaHistogramMediumTimes(
+          "Autofill.Ai.PersonalContext.RequestLatency.PrefetchSpiiMasked",
+          latency);
+      break;
+    case RequestType::kSpiiUnmasking:
+      base::UmaHistogramMediumTimes(
+          "Autofill.Ai.PersonalContext.RequestLatency.SpiiUnmasking", latency);
+      break;
+  }
+}
+
+void AutofillAiPersonalContextAccessManagerImpl::LogPrefetchTotalLatency(
+    EntityType type) {
+  if (const RequestState* state = base::FindOrNull(prefetch_state_, type)) {
+    if (state->status == RequestStatus::kPending &&
+        !state->last_update_time.is_null()) {
+      base::UmaHistogramMediumTimes(
+          base::StrCat({"Autofill.Ai.PersonalContext.Prefetch.TotalLatency.",
+                        EntityTypeToMetricsString(type)}),
+          base::TimeTicks::Now() - state->last_update_time);
+    }
+  }
 }
 
 void AutofillAiPersonalContextAccessManagerImpl::NotifyPrefetchStatusObservers(
