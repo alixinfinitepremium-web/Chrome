@@ -1497,7 +1497,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_mac_arm64',
-          'version': 'version:2@1656001',
+          'version': 'version:2@1657004',
         },
       ],
   },
@@ -1508,7 +1508,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_arm64',
-          'version': 'version:2@1656022',
+          'version': 'version:2@1657004',
         },
       ],
   },
@@ -1663,7 +1663,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_win_x86',
-          'version': 'hWEdvieSetmG81WqpFbsMehNysA4Y2KKI3AFBubyNt4C',
+          'version': 'Dkfuq4r9rZgPTWE0UNCmsyx1-Igz0utwU93p76KQZ2IC',
         },
       ],
   },
@@ -2172,7 +2172,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'f9963a5b585f11095bc3221092870326926b6636',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '35892a9e24190cc5f3a511d3954319c93445926c',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -2723,7 +2723,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + 'c3585c0a57aa99f7b3cfdd724398a0a368ad945b',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '190839adfe31ea9b2888ca320320128e530bd70e',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
@@ -3317,7 +3317,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/help_app/app',
-        'version': 'n5DoFwjvcsKiwbKeiClR8DVQoyfiZ88qzW2g9FGbcyQC',
+        'version': '06Y5fZ2iNi09YnJ-eKSb2q6Gg-VxNqQP2_6RLQK0igEC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
