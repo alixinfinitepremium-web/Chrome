@@ -4132,10 +4132,6 @@ if (!is_android) {
 
         # TODO(crbug.com/510716187): Enable for other platforms once macOS
         # native window ID translation is implemented.
-        "../browser/media/webrtc/capture_handle_app_window_browsertest.cc",
-        "../browser/media/webrtc/get_all_screens_media_browsertest.cc",
-        "../browser/media/webrtc/multi_capture/multi_capture_data_service_browsertest.cc",
-        "../browser/media/webrtc/multi_capture/multi_capture_usage_indicator_service_browsertest.cc",
         "../browser/ui/ash/editor_menu/editor_menu_browsertest.cc",
         "../browser/ui/ash/input_method/candidate_window_view_pixeltest.cc",
         "../browser/ui/ash/quick_answers/quick_answers_browsertest.cc",
@@ -6132,8 +6128,6 @@ test("unit_tests") {
 
     data_deps += [
       "//chrome",
-      "//chrome/browser/safe_browsing/incident_reporting/verifier_test:verifier_test_dll_1",
-      "//chrome/browser/safe_browsing/incident_reporting/verifier_test:verifier_test_dll_2",
       "//chrome/notification_helper",
     ]
 
@@ -6214,7 +6208,6 @@ test("unit_tests") {
       "../browser/app_controller_mac_unittest.mm",
       "../browser/chrome_browser_application_mac_unittest.mm",
       "../browser/global_keyboard_shortcuts_mac_unittest.mm",
-      "../browser/media/webrtc/thumbnail_capturer_mac_unittest.mm",
       "../browser/renderer_host/chrome_render_widget_host_view_mac_history_swiper_unittest.mm",
       "../browser/shell_integration_mac_unittest.mm",
       "../browser/ui/accelerator_table_unittest_mac.mm",
@@ -7700,46 +7693,8 @@ test("unit_tests") {
       "../browser/safe_browsing/download_protection/download_feedback_service_unittest.cc",
       "../browser/safe_browsing/download_protection/download_feedback_unittest.cc",
       "../browser/safe_browsing/download_protection/path_sanitizer_unittest.cc",
-      "../browser/safe_browsing/extension_telemetry/activity_log_ingester_unittest.cc",
-      "../browser/safe_browsing/extension_telemetry/cookies_get_all_signal_processor_unittest.cc",
-      "../browser/safe_browsing/extension_telemetry/cookies_get_all_signal_unittest.cc",
-      "../browser/safe_browsing/extension_telemetry/cookies_get_signal_processor_unittest.cc",
-      "../browser/safe_browsing/extension_telemetry/cookies_get_signal_unittest.cc",
-      "../browser/safe_browsing/extension_telemetry/declarative_net_request_action_signal_processor_unittest.cc",
-      "../browser/safe_browsing/extension_telemetry/declarative_net_request_action_signal_unittest.cc",
-      "../browser/safe_browsing/extension_telemetry/declarative_net_request_signal_processor_unittest.cc",
-      "../browser/safe_browsing/extension_telemetry/dom_access_signal_processor_unittest.cc",
-      "../browser/safe_browsing/extension_telemetry/dom_access_signal_unittest.cc",
-      "../browser/safe_browsing/extension_telemetry/extension_js_callstacks_unittest.cc",
-      "../browser/safe_browsing/extension_telemetry/extension_telemetry_config_manager_unittest.cc",
-      "../browser/safe_browsing/extension_telemetry/extension_telemetry_file_processor_unittest.cc",
-      "../browser/safe_browsing/extension_telemetry/extension_telemetry_persister_unittest.cc",
-      "../browser/safe_browsing/extension_telemetry/extension_telemetry_service_unittest.cc",
-      "../browser/safe_browsing/extension_telemetry/extension_telemetry_uploader_unittest.cc",
-      "../browser/safe_browsing/extension_telemetry/potential_password_theft_signal_processor_unittest.cc",
-      "../browser/safe_browsing/extension_telemetry/remote_host_contacted_signal_processor_unittest.cc",
-      "../browser/safe_browsing/extension_telemetry/remote_host_contacted_signal_unittest.cc",
-      "../browser/safe_browsing/extension_telemetry/script_injection_signal_processor_unittest.cc",
-      "../browser/safe_browsing/extension_telemetry/script_injection_signal_unittest.cc",
-      "../browser/safe_browsing/extension_telemetry/search_hijacking_detector_unittest.cc",
-      "../browser/safe_browsing/extension_telemetry/tabs_api_signal_processor_unittest.cc",
-      "../browser/safe_browsing/extension_telemetry/tabs_api_signal_unittest.cc",
-      "../browser/safe_browsing/extension_telemetry/tabs_execute_script_signal_processor_unittest.cc",
       "../browser/safe_browsing/external_app_redirect_checking_unittest.cc",
       "../browser/safe_browsing/hash_realtime_service_factory_unittest.cc",
-      "../browser/safe_browsing/incident_reporting/binary_integrity_incident_unittest.cc",
-      "../browser/safe_browsing/incident_reporting/delayed_callback_runner_unittest.cc",
-      "../browser/safe_browsing/incident_reporting/download_metadata_manager_unittest.cc",
-      "../browser/safe_browsing/incident_reporting/extension_data_collection_unittest.cc",
-      "../browser/safe_browsing/incident_reporting/incident_report_uploader_impl_unittest.cc",
-      "../browser/safe_browsing/incident_reporting/incident_reporting_service_unittest.cc",
-      "../browser/safe_browsing/incident_reporting/last_download_finder_unittest.cc",
-      "../browser/safe_browsing/incident_reporting/mock_incident_receiver.cc",
-      "../browser/safe_browsing/incident_reporting/mock_incident_receiver.h",
-      "../browser/safe_browsing/incident_reporting/platform_state_store_unittest.cc",
-      "../browser/safe_browsing/incident_reporting/preference_validation_delegate_unittest.cc",
-      "../browser/safe_browsing/incident_reporting/state_store_unittest.cc",
-      "../browser/safe_browsing/incident_reporting/tracked_preference_incident_unittest.cc",
       "../browser/safe_browsing/ohttp_key_service_factory_unittest.cc",
       "../browser/safe_browsing/phishy_interaction_tracker_unittest.cc",
       "../browser/safe_browsing/safe_browsing_service_unittest.cc",
@@ -7753,7 +7708,6 @@ test("unit_tests") {
     ]
     if (is_mac) {
       sources += [
-        "../browser/safe_browsing/incident_reporting/binary_integrity_analyzer_mac_unittest.cc",
         "../browser/safe_browsing/signature_evaluator_mac_unittest.cc",
         "../common/safe_browsing/binary_feature_extractor_mac_unittest.cc",
         "../common/safe_browsing/disk_image_type_sniffer_mac_unittest.cc",
@@ -7767,15 +7721,8 @@ test("unit_tests") {
       ]
     }
     if (is_win) {
-      sources += [
-        "../browser/safe_browsing/incident_reporting/binary_integrity_analyzer_win_unittest.cc",
-        "../browser/safe_browsing/incident_reporting/environment_data_collection_win_unittest.cc",
-        "../browser/safe_browsing/incident_reporting/module_integrity_unittest_util_win.cc",
-        "../browser/safe_browsing/incident_reporting/module_integrity_unittest_util_win.h",
-        "../browser/safe_browsing/incident_reporting/module_integrity_verifier_win_unittest.cc",
-        "../browser/safe_browsing/incident_reporting/platform_state_store_win_unittest.cc",
-        "../common/safe_browsing/binary_feature_extractor_win_unittest.cc",
-      ]
+      sources +=
+          [ "../common/safe_browsing/binary_feature_extractor_win_unittest.cc" ]
     }
     deps += [
       ":test_proto",
@@ -7987,7 +7934,6 @@ test("unit_tests") {
   }
   if (!is_android && !is_chromeos) {
     sources += [
-      "../browser/media/webrtc/native_desktop_media_list_unittest.cc",
       "../browser/ui/views/download/bubble/download_bubble_contents_view_unittest.cc",
       "../browser/ui/views/download/bubble/download_bubble_row_view_unittest.cc",
       "../browser/ui/views/download/bubble/download_bubble_security_view_unittest.cc",
@@ -8806,11 +8752,6 @@ if (!is_android && !is_chromeos_device) {
       "../browser/browser_keyevents_interactive_uitest.cc",
       "../browser/chrome_render_widget_host_interactive_uitest.cc",
       "../browser/focus_ring_interactive_uitest.cc",
-      "../browser/media/webrtc/conditional_focus_interactive_uitest.cc",
-      "../browser/media/webrtc/display_media_access_handler_interactive_uitest.cc",
-      "../browser/media/webrtc/media_stream_permission_interactive_uitest.cc",
-      "../browser/media/webrtc/webrtc_interactive_uitest.cc",
-      "../browser/media/webrtc/webrtc_mediadevices_interactive_uitest.cc",
       "../browser/mouse_events_interactive_uitest.cc",
       "../browser/select_popup_interactive_uitest.cc",
       "../browser/surface_embed_background_tab_capture_interactive_uitest.cc",
@@ -8941,6 +8882,7 @@ if (!is_android && !is_chromeos_device) {
       "//chrome/browser/media/router/discovery/access_code:access_code_cast_feature",
       "//chrome/browser/media/router/discovery/access_code:access_code_sink_service",
       "//chrome/browser/media/webrtc",
+      "//chrome/browser/media/webrtc:interactive_ui_tests",
       "//chrome/browser/media/webrtc:webrtc_browser_tests_base",
       "//chrome/browser/metrics/critical_user_journeys",
       "//chrome/browser/metrics/critical_user_journeys:interactive_ui_tests",

@@ -10699,24 +10699,6 @@
             ]
         }
     ],
-    "EnterpriseConnectorContentHashInFileUploadFinalCall": [
-        {
-            "platforms": [
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "ContentHashInFileUploadFinalCall"
-                    ]
-                }
-            ]
-        }
-    ],
     "EnterpriseDataProtectionForGlic": [
         {
             "platforms": [
@@ -14945,27 +14927,6 @@
             ]
         }
     ],
-    "ImprovedStartupBestEffortDelay": [
-        {
-            "platforms": [
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "params": {
-                        "session_restore_delays_best_effort": "true"
-                    },
-                    "enable_features": [
-                        "ImprovedStartupBestEffortDelay"
-                    ]
-                }
-            ]
-        }
-    ],
     "IncognitoScreenshot": [
         {
             "platforms": [
@@ -16106,6 +16067,26 @@
                     "name": "Enabled",
                     "enable_features": [
                         "LocalNetworkAccessChecksWebTransport"
+                    ]
+                }
+            ]
+        }
+    ],
+    "Localized1PSkills": [
+        {
+            "platforms": [
+                "chromeos",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "SkillsServiceApi"
+                    ],
+                    "disable_features": [
+                        "Skills1PDisabledForNonEnLocales"
                     ]
                 }
             ]

@@ -331,7 +331,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': 'dcd76eed28e093e67b32a6a76b5cdf34c6b637c1',
+  'v8_revision': '0c38af21383c744f7a322b4a1835e09e6371c7fe',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -407,7 +407,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '277c0b68110e8c1dd625c328b56a4bf93334d30d',
+  'devtools_frontend_revision': '5c81b59131cca2c2bd6cac217f0645097058c33b',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -3708,7 +3708,7 @@ deps = {
 
   'src/chrome/browser/glic/e2e_test/internal': {
       'url': Var('chrome_git') + '/chrome/browser/glic/test/internal.git' + '@' +
-        'f22aacf01726dca670a9a8c442780aa8865a6544',
+        '272eb38c6da1daddfc36eb90770994c44c9c457c',
       'condition': 'checkout_glic_e2e_tests',
   },
 

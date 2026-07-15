@@ -425,10 +425,22 @@ if (!is_android) {
     ]
 
     if (is_chromeos) {
+      sources += [
+        "capture_handle_app_window_browsertest.cc",
+        "get_all_screens_media_browsertest.cc",
+        "multi_capture/multi_capture_data_service_browsertest.cc",
+        "multi_capture/multi_capture_usage_indicator_service_browsertest.cc",
+      ]
       deps += [
+        "//chrome/browser:chrome_content_browser_client",
+        "//chrome/browser/apps/app_service",
         "//chrome/browser/ash/login/users",
+        "//chrome/browser/ash/system_web_apps/test_support:test_support_ui",
         "//chrome/browser/chromeos/policy/dlp",
         "//chrome/browser/chromeos/policy/dlp/test:test_support",
+        "//chrome/browser/policy:test_support",
+        "//chrome/browser/ui/ash/system_web_apps",
+        "//components/embedder_support",
       ]
     }
   }
@@ -520,8 +532,78 @@ source_set("unit_tests") {
     ]
   }
 
+  # native_desktop_media_list is not built on ChromeOS (it uses the desktop
+  # DesktopMediaList backend), so it is desktop-only excluding ChromeOS.
+  if (!is_android && !is_chromeos) {
+    sources += [ "native_desktop_media_list_unittest.cc" ]
+    deps += [
+      "//chrome/test/views",
+      "//content/public/browser",
+      "//ui/views",
+    ]
+    if (use_aura) {
+      deps += [ "//ui/aura" ]
+    }
+    if (is_mac) {
+      deps += [ "//components/remote_cocoa/browser" ]
+    }
+  }
+
   if (is_mac) {
-    deps += [ "//chrome/browser/permissions/system" ]
+    sources += [ "thumbnail_capturer_mac_unittest.mm" ]
+    deps += [
+      "//chrome/browser/permissions/system",
+      "//media/capture:test_support",
+    ]
+    weak_frameworks = [ "ScreenCaptureKit.framework" ]
+  }
+}
+
+# Interactive UI tests cannot run on ChromeOS devices; see
+# //docs/testing/chromeos_integration for background.
+if (!is_android && !is_chromeos_device) {
+  source_set("interactive_ui_tests") {
+    testonly = true
+    defines = [ "HAS_OUT_OF_PROC_TEST_RUNNER" ]
+
+    sources = [
+      "conditional_focus_interactive_uitest.cc",
+      "display_media_access_handler_interactive_uitest.cc",
+      "media_stream_permission_interactive_uitest.cc",
+      "webrtc_interactive_uitest.cc",
+      "webrtc_mediadevices_interactive_uitest.cc",
+    ]
+    deps = [
+      ":webrtc",
+      ":webrtc_browser_tests_base",
+      "//base",
+      "//chrome/browser/content_settings:content_settings_factory",
+      "//chrome/browser/picture_in_picture",
+      "//chrome/browser/preloading:test_support",
+      "//chrome/browser/profiles:profile",
+      "//chrome/browser/ui",
+      "//chrome/browser/ui/tabs:tab_strip",
+      "//chrome/common",
+      "//chrome/test:test_support",
+      "//chrome/test:test_support_ui",
+      "//components/content_settings/core/browser",
+      "//components/content_settings/core/common",
+      "//components/media_device_salt",
+      "//components/permissions:test_support",
+      "//components/prefs",
+      "//content/public/browser",
+      "//content/public/common",
+      "//content/test:test_support",
+      "//media",
+      "//services/network/public/cpp",
+      "//services/network/public/mojom",
+      "//testing/gtest",
+      "//ui/gl",
+    ]
+
+    if (use_ozone) {
+      deps += [ "//ui/ozone" ]
+    }
   }
 }
 
