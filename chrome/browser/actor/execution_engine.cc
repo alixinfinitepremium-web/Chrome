@@ -45,6 +45,8 @@
 #include "chrome/browser/autofill/actor/one_time_tokens/actor_one_time_token_filling_service.h"
 #include "chrome/browser/autofill/actor/one_time_tokens/actor_one_time_token_filling_service_impl.h"
 #include "chrome/browser/favicon/favicon_service_factory.h"
+#include "chrome/browser/lookalikes/lookalike_url_service.h"
+#include "chrome/browser/lookalikes/lookalike_url_service_factory.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/common/actor.mojom.h"
 #include "chrome/common/actor/action_result.h"
@@ -58,6 +60,7 @@
 #include "components/actor/public/mojom/actor_types.mojom.h"
 #include "components/affiliations/core/browser/affiliation_service.h"
 #include "components/keyed_service/core/service_access_type.h"
+#include "components/lookalikes/core/lookalike_url_util.h"
 #include "components/optimization_guide/content/browser/page_content_proto_provider.h"
 #include "components/optimization_guide/proto/features/actions_data.pb.h"
 #include "components/origin_gating/core/actor_container_config.h"
@@ -97,6 +100,7 @@ namespace {
 
 constexpr char kSafetyListPredicateName[] = "actor_safety_list_check";
 constexpr char kSensitiveUrlPredicateName[] = "actor_sensitive_url_check";
+constexpr char kLookalikeUrlPredicateName[] = "actor_lookalike_url_check";
 
 struct ActorGatingContext : public origin_gating::GatingDecisionContext {
   ActorGatingContext(ukm::SourceId ukm_id,
@@ -158,6 +162,32 @@ void EvaluateSensitiveUrl(
   }
 }
 
+origin_gating::Decision EvaluateLookalikeUrl(
+    Profile* profile,
+    const origin_gating::GatingDecisionContext* context,
+    origin_gating::GateableEvent event,
+    const GURL& source,
+    const GURL& destination) {
+  auto* lookalike_service = LookalikeUrlServiceFactory::GetForProfile(profile);
+  LookalikeUrlService::LookalikeUrlCheckResult lookalike_result =
+      lookalike_service->CheckUrlForLookalikes(
+          destination, lookalike_service->GetLatestEngagedSites(),
+          /*stop_checking_on_allowlist_or_ignore=*/true);
+  // Out of caution, do not act on lookalike domains.
+  // For now, we just accept the possibility of false positives.
+  // Note that this is partially redundant in the case where the lookalike
+  // detection shows an interstitial, since we don't act on interstitials.
+  // However, it may be that the navigation is allowed and a safety tip is
+  // shown instead. We consider that sufficient cause for concern for actor
+  // code.
+  if (lookalike_result.action_type != lookalikes::LookalikeActionType::kNone &&
+      lookalike_result.action_type !=
+          lookalikes::LookalikeActionType::kRecordMetrics) {
+    return origin_gating::Decision::kBlocked;
+  }
+  return origin_gating::Decision::kNoDecision;
+}
+
 static constexpr std::string_view kPermissionGrantedHistogram =
     "Actor.NavigationGating.PermissionGranted";
 
@@ -205,6 +235,8 @@ ExecutionEngine::GatingDecision MapGatingDecisionToEngineDecision(
         case origin_gating::DecisionSource::kCacheWithoutUserConfirmation:
         case origin_gating::DecisionSource::kNoVerdict:
           return ExecutionEngine::GatingDecision::kNeedsAsyncCheck;
+        case origin_gating::DecisionSource::kEnterprisePolicy:
+          NOTREACHED();
       }
     case origin_gating::DecisionAttribution::Type::kCustomPredicate:
       if (decision.attribution == kSafetyListPredicateName) {
@@ -222,6 +254,9 @@ MayActOnUrlBlockResult MapGatingDecisionToBlockResult(
   switch (decision.attribution.type()) {
     case origin_gating::DecisionAttribution::Type::kDecisionSource:
       switch (decision.attribution.Source()) {
+        case origin_gating::DecisionSource::kEnterprisePolicy:
+          return {"Enterprise policy block",
+                  MayActOnUrlBlockReason::kEnterprisePolicy};
         default:
           NOTREACHED() << "Unexpected decision source: "
                        << static_cast<int>(decision.attribution.Source());
@@ -230,6 +265,10 @@ MayActOnUrlBlockResult MapGatingDecisionToBlockResult(
       if (decision.attribution == kSensitiveUrlPredicateName) {
         return {kSensitiveUrlPredicateName,
                 MayActOnUrlBlockReason::kOptimizationGuideBlock};
+      }
+      if (decision.attribution == kLookalikeUrlPredicateName) {
+        return {kLookalikeUrlPredicateName,
+                MayActOnUrlBlockReason::kLookalikeDomain};
       }
       NOTREACHED() << "Unrecognized custom predicate attribution: "
                    << decision.attribution.CustomPredicateName();
@@ -320,6 +359,15 @@ ExecutionEngine::ExecutionEngine(
           *this,
           origin_gating::OriginGatingConfiguration(
               {
+                  {origin_gating::DecisionSource::kEnterprisePolicy,
+                   {origin_gating::GateableEvent::kNavigationRequest,
+                    origin_gating::GateableEvent::kPageAction}},
+                  {origin_gating::CustomPredicate(
+                       base::BindRepeating(&EvaluateLookalikeUrl,
+                                           task_->GetProfile()),
+                       kLookalikeUrlPredicateName),
+                   {origin_gating::GateableEvent::kNavigationRequest,
+                    origin_gating::GateableEvent::kPageAction}},
                   {CreateSafetyListPredicate(),
                    {origin_gating::GateableEvent::kNavigationResponse}},
                   {origin_gating::DecisionSource::kCacheWithUserConfirmation,
@@ -576,6 +624,24 @@ void ExecutionEngine::DoesOriginRequireUserConfirmation(
   }
 }
 
+void ExecutionEngine::EvaluateEnterprisePolicy(
+    const GURL& destination,
+    EvaluateEnterprisePolicyCallback callback) const {
+  origin_gating::Decision decision;
+  switch (GetEnterprisePolicyChecker().Evaluate(destination)) {
+    case EnterprisePolicyChecker::UrlBlockReason::kNotBlocked:
+      decision = origin_gating::Decision::kNoDecision;
+      break;
+    case EnterprisePolicyChecker::UrlBlockReason::kExplicitlyAllowed:
+      decision = origin_gating::Decision::kAllowed;
+      break;
+    case EnterprisePolicyChecker::UrlBlockReason::kExplicitlyBlocked:
+      decision = origin_gating::Decision::kBlocked;
+      break;
+  }
+  std::move(callback).Run({.decision = decision, .bypass_cache = true});
+}
+
 void ExecutionEngine::OnNoVerdict(
     origin_gating::GatingDecisionContext* context,
     origin_gating::GateableEvent event,
@@ -621,10 +687,9 @@ void ExecutionEngine::OnNoVerdict(
 void ExecutionEngine::MayActOnTab(const tabs::TabInterface& tab,
                                   AggregatedJournal& journal,
                                   TaskId task_id,
-                                  const EnterprisePolicyChecker& policy_checker,
                                   DecisionCallbackWithReason callback) {
   actor::MayActOnTab(
-      tab, journal, task_id, policy_checker,
+      tab, journal, task_id,
       base::BindOnce(&ExecutionEngine::ShouldAllowPageAction, GetWeakPtr()),
       std::move(callback));
 }
@@ -1022,7 +1087,7 @@ void ExecutionEngine::SafetyChecksForNextAction() {
   // added the precursor to `origin_gating_cache()` to ensure the optimization
   // guide sensitive origin check would be skipped as expected.
   actor::MayActOnTab(
-      *tab, *journal_, task_->id(), task_->policy_checker(),
+      *tab, *journal_, task_->id(),
       base::BindOnce(&ExecutionEngine::ShouldAllowPageAction,
                      GetActionSequenceWeakPtr()),
       base::BindOnce(
@@ -1350,7 +1415,7 @@ void ExecutionEngine::IsAcceptableNavigationDestination(
     DecisionCallbackWithReason callback) {
   actor::MayActOnUrl(
       url, /*allow_insecure_http=*/true, task_->GetProfile(), *journal_,
-      task_->id(), task_->policy_checker(),
+      task_->id(),
       base::BindOnce(&ExecutionEngine::ShouldAllowNavigationDestination,
                      GetWeakPtr()),
       std::move(callback));

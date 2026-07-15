@@ -15,10 +15,7 @@
 #include "base/strings/string_split.h"
 #include "base/task/sequenced_task_runner.h"
 #include "base/types/expected.h"
-#include "chrome/browser/actor/enterprise_policy_checker.h"
 #include "chrome/browser/browser_process.h"
-#include "chrome/browser/lookalikes/lookalike_url_service.h"
-#include "chrome/browser/lookalikes/lookalike_url_service_factory.h"
 #include "chrome/browser/optimization_guide/optimization_guide_keyed_service.h"
 #include "chrome/browser/optimization_guide/optimization_guide_keyed_service_factory.h"
 #include "chrome/browser/profiles/profile.h"
@@ -121,7 +118,6 @@ bool ShouldContinueFromOptimizationGuideDecision(
 void MayActOnUrlInternal(const GURL& url,
                          bool allow_insecure_http,
                          Profile* profile,
-                         const EnterprisePolicyChecker& policy_checker,
                          NoVerdictContinuation resolve_no_verdict,
                          std::unique_ptr<DecisionWrapper> decision_wrapper) {
   CHECK(resolve_no_verdict);
@@ -207,40 +203,6 @@ void MayActOnUrlInternal(const GURL& url,
     }
   }
 
-  const EnterprisePolicyChecker::UrlBlockReason enterprise_reason =
-      policy_checker.Evaluate(url);
-  switch (enterprise_reason) {
-    case EnterprisePolicyChecker::UrlBlockReason::kNotBlocked:
-      break;
-    case EnterprisePolicyChecker::UrlBlockReason::kExplicitlyAllowed:
-      decision_wrapper->Accept();
-      return;
-    case EnterprisePolicyChecker::UrlBlockReason::kExplicitlyBlocked:
-      decision_wrapper->Reject("Enterprise policy block",
-                               MayActOnUrlBlockReason::kEnterprisePolicy);
-      return;
-  }
-
-  auto* lookalike_service = LookalikeUrlServiceFactory::GetForProfile(profile);
-  LookalikeUrlService::LookalikeUrlCheckResult lookalike_result =
-      lookalike_service->CheckUrlForLookalikes(
-          url, lookalike_service->GetLatestEngagedSites(),
-          /*stop_checking_on_allowlist_or_ignore=*/true);
-  if (lookalike_result.action_type != lookalikes::LookalikeActionType::kNone &&
-      lookalike_result.action_type !=
-          lookalikes::LookalikeActionType::kRecordMetrics) {
-    // Out of caution, do not act on lookalike domains.
-    // For now, we just accept the possibility of false positives.
-    // Note that this is partially redundant in the case where the lookalike
-    // detection shows an interstitial, since we don't act on interstitials.
-    // However, it may be that the navigation is allowed and a safety tip is
-    // shown instead. We consider that sufficient cause for concern for actor
-    // code.
-    decision_wrapper->Reject("Lookalike domain",
-                             MayActOnUrlBlockReason::kLookalikeDomain);
-    return;
-  }
-
   std::move(resolve_no_verdict)
       .Run(url,
            base::BindOnce(
@@ -272,7 +234,6 @@ void InitActionBlocklist(Profile* profile) {
 void MayActOnTab(const tabs::TabInterface& tab,
                  AggregatedJournal& journal,
                  TaskId task_id,
-                 const EnterprisePolicyChecker& policy_checker,
                  NoVerdictContinuation resolve_no_verdict,
                  DecisionCallbackWithReason callback) {
   content::WebContents& web_contents = *tab.GetContents();
@@ -305,8 +266,7 @@ void MayActOnTab(const tabs::TabInterface& tab,
   MayActOnUrlInternal(
       url, /*allow_insecure_http=*/false,
       Profile::FromBrowserContext(web_contents.GetBrowserContext()),
-      policy_checker, std::move(resolve_no_verdict),
-      std::move(decision_wrapper));
+      std::move(resolve_no_verdict), std::move(decision_wrapper));
 }
 
 void MayActOnUrl(const GURL& url,
@@ -314,13 +274,12 @@ void MayActOnUrl(const GURL& url,
                  Profile* profile,
                  AggregatedJournal& journal,
                  TaskId task_id,
-                 const EnterprisePolicyChecker& policy_checker,
                  NoVerdictContinuation resolve_no_verdict,
                  DecisionCallbackWithReason callback) {
   std::unique_ptr<DecisionWrapper> decision_wrapper =
       std::make_unique<DecisionWrapper>(journal, url, task_id, "MayActOnUrl",
                                         std::move(callback));
-  MayActOnUrlInternal(url, allow_insecure_http, profile, policy_checker,
+  MayActOnUrlInternal(url, allow_insecure_http, profile,
                       std::move(resolve_no_verdict),
                       std::move(decision_wrapper));
 }
