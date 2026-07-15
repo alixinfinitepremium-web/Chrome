@@ -323,11 +323,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '08c57af8966f7c7ef0e4097563ca53fd0168b316',
+  'src_internal_revision': '27909fbb4d3ce5f06a0d8e6c1f99c6c372f891d0',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '87411a6ec870da300a6b51a21166335121e69ec8',
+  'skia_revision': '9af10ab0b01017a2c64ade80204a5ed25ad84493',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -1727,7 +1727,7 @@ deps = {
   },
 
   'src/docs/website': {
-    'url': Var('chromium_git') + '/website.git' + '@' + '83cc960d932276c667e764f432a411a3c6d1f959',
+    'url': Var('chromium_git') + '/website.git' + '@' + '9352ca898c5799325e99121b925e0704f12fe00c',
   },
 
   'src/ios/third_party/earl_grey2/src': {
@@ -3780,7 +3780,7 @@ deps = {
 
   'src/chrome/browser/ttc/resources/internal': {
       'url': Var('chrome_git') + '/chrome/browser/ttc/resources/internal.git' + '@' +
-        '138484fd36790729cbeffd6e1267b5b2e33a8b14',
+        'd73053a63592e2c4795eb64c2a715efd04714679',
       'condition': 'checkout_src_internal',
   },
 
@@ -3995,7 +3995,7 @@ deps = {
 
   'src/components/vector_icons/google_chrome': {
       'url': Var('chrome_git') + '/chrome/vector_icons/google_chrome.git' + '@' +
-        '2550fc5f336f8832b1c9b6dfeedb5ccc5eb7d0da',
+        '61137db915acd5b8e034e2a49e13d9b6a2abc207',
       'condition': 'checkout_src_internal',
   },
 
@@ -4013,7 +4013,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        'fc64e28518262c3f3fa55a66f8b920e94c7f80c3',
+        'a929b4cedc1267a9ed719e77a793d466df755e8c',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
