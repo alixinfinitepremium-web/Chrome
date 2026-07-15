@@ -331,7 +331,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': '4979324e84c149ba7a37193e35a19c69d527e2bf',
+  'v8_revision': 'f28df75d5f3de8fb1d89ef77c435810863591928',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -387,7 +387,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': '1bc70cac943127c66241ba646dedd9a82283f5cb',
+  'crossbench_revision': '60407da8df4c004b50c939e2c5137402b2fe618f',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -407,7 +407,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '1d8d1b0ddc31bd0c3b654016e759e2a78625088d',
+  'devtools_frontend_revision': '9cf4c56eb58a37f4d6ac84a1ae8a1838bfba1b16',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -531,7 +531,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
-  'llvm_libc_revision':    '83f32ad6082062f42d45886fba823bcc3b812bc3',
+  'llvm_libc_revision':    '5477fb04c4629919181befbb75860286e066c5fc',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
@@ -554,7 +554,7 @@ vars = {
   'libcxx_revision':       'b16984ce99c702355a5b2b4c52574e82cec41fb9',
 
   # GN CIPD package version.
-  'gn_version': 'git_revision:10d3ab4387f7f4ad0d3fb9d626218a6e09e71d86',
+  'gn_version': 'git_revision:5ae53f3cdc589ce27419c4f84734d1abf2f0ac66',
 
   # ninja CIPD package.
   'ninja_package': 'infra/3pp/tools/ninja/',
@@ -1722,12 +1722,12 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '938fc5ab37328e8d8d073a00762d01fe61d441bc',
+    '010950a981742953e2172bcb8e88a4b4f9e31228',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
   'src/docs/website': {
-    'url': Var('chromium_git') + '/website.git' + '@' + '554e9bec531ef2f7f332db91c520db1d99f167d2',
+    'url': Var('chromium_git') + '/website.git' + '@' + '83cc960d932276c667e764f432a411a3c6d1f959',
   },
 
   'src/ios/third_party/earl_grey2/src': {
@@ -2184,7 +2184,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '37b7310d617edfcdba2afed9525e0d97857e9ae4',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '76c990b66a8886bf7f95e46025f8acddf3ae8c5c',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '17a56409b86d0da5e01ca38f6498e13b2db16bc3',
@@ -3295,7 +3295,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_receiver_app/app',
-        'version': 's2rah0m4rHPbGY7QCbQjvHQph0VwuawG7z6FEBGejV8C',
+        'version': 'UkRe6DAwJUCJ0OYR1G47MU5d68qC0PTvyShE_1Z8MSsC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3306,7 +3306,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_app/app',
-        'version': 'zKTGa7W3UATQkNH6xGSzAdoHi0ECqtrcJ5QkPkOIqEwC',
+        'version': 'lFhtARasO23zn5q5yzzCvz7wt5R4Y7CFdoWg8S7HwGUC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3361,7 +3361,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/projector_app/app',
-        'version': '8Iq_nROXTJ4paisLtmM1dlrqG2adgyM7NvzKDP-LmyoC',
+        'version': '3isBwE1eQgmmFMj8e6CG7tpyb3uZr3LhKNz1Lb93-5sC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
