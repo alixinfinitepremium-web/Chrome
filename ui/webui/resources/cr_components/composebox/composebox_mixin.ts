@@ -13,7 +13,7 @@ import {loadTimeData} from '//resources/js/load_time_data.js';
 import {hasKeyModifiers} from '//resources/js/util.js';
 import type {CrLitElement, PropertyValues} from '//resources/lit/v3_0/lit.rollup.js';
 import type {AutocompleteMatch, AutocompleteResult, PageCallbackRouter as SearchboxPageCallbackRouter, PageHandlerRemote as SearchboxPageHandlerRemote, SelectedFileInfo, SmartComposeStats, TabInfo} from '//resources/mojo/components/omnibox/browser/searchbox.mojom-webui.js';
-import {DriveDisclaimerStatus, DriveUploadError, SuggestInventory} from '//resources/mojo/components/omnibox/browser/searchbox.mojom-webui.js';
+import {DriveDisclaimerStatus, DriveUploadError, InputMethod, SuggestInventory} from '//resources/mojo/components/omnibox/browser/searchbox.mojom-webui.js';
 import type {BigBuffer} from '//resources/mojo/mojo/public/mojom/base/big_buffer.mojom-webui.js';
 import type {UnguessableToken} from '//resources/mojo/mojo/public/mojom/base/unguessable_token.mojom-webui.js';
 import type {Url} from '//resources/mojo/url/mojom/url.mojom-webui.js';
@@ -48,8 +48,11 @@ const PERMISSION_PROMPT_CSS_CLASS = 'permission-prompt-showing';
 type Constructor<T> = new (...args: any[]) => T;
 
 function dedupeTabs(restoredTabs: TabInfo[], recentTabs: TabInfo[]): TabInfo[] {
-  const restoredIds = new Set(restoredTabs.map(t => t.tabId));
-  return recentTabs.filter(t => !restoredIds.has(t.tabId));
+  const restoredUrlMap = new Map(restoredTabs.map(t => [t.tabId, t.url]));
+  return recentTabs.filter(t => {
+    const restoredUrl = restoredUrlMap.get(t.tabId);
+    return restoredUrl !== t.url;
+  });
 }
 
 export const ComposeboxEmbedderMixin =
@@ -966,6 +969,8 @@ export const ComposeboxEmbedderMixin =
               this.smartComposeStats.acceptedCount++;
               this.smartComposeStats.charactersAccepted +=
                   this.smartComposeInlineHint.length;
+              this.getSearchboxHandler().setInputMethod(
+                  InputMethod.kSmartCompose);
               this.input = this.input + this.smartComposeInlineHint;
               this.smartComposeInlineHint = '';
               e.preventDefault();
