@@ -152,7 +152,12 @@ TEST_F(AtMemoryMetricsRecorderTest, Destructor_SuggestionAccepted_True) {
                          std::nullopt);
     metrics.OnQuerySubmitted(u"query");
     SendResponse(metrics);
-    metrics.OnSuggestionAccepted(MemoryDataType::kAddressFull);
+    metrics.OnSuggestionAccepted(
+        MemoryDataType::kAddressFull,
+        std::to_underlying(
+            accessibility_annotator::MemoryEntrySourceType::kAutofill) |
+            std::to_underlying(
+                accessibility_annotator::MemoryEntrySourceType::kGmail));
   }
 
   histogram_tester_.ExpectUniqueSample("Autofill.AtMemory.SuggestionAccepted",
@@ -160,6 +165,13 @@ TEST_F(AtMemoryMetricsRecorderTest, Destructor_SuggestionAccepted_True) {
   histogram_tester_.ExpectUniqueSample(
       "Autofill.AtMemory.AcceptedSuggestionDataType",
       MemoryDataType::kAddressFull, 1);
+  histogram_tester_.ExpectUniqueSample(
+      "Autofill.AtMemory.AcceptedSuggestionDataSources",
+      std::to_underlying(
+          accessibility_annotator::MemoryEntrySourceType::kAutofill) |
+          std::to_underlying(
+              accessibility_annotator::MemoryEntrySourceType::kGmail),
+      1);
   histogram_tester_.ExpectUniqueSample(
       "Autofill.AtMemory.SuggestionAcceptedInSession", true, 1);
 }
@@ -493,7 +505,7 @@ TEST_F(AtMemoryMetricsRecorderTest, LogEntryUploaded_SuggestionAccepted_Root) {
         MemorySearchStatus::kFinalResponseSuccess, {local_suggestion}));
 
     metrics.OnSuggestionAccepted(
-        MemoryDataType::kAddressFull,
+        MemoryDataType::kAddressFull, /*sources_bitmask=*/0,
         AutofillSuggestionDelegate::SuggestionMetadata{.multi_index = {0}});
   }
 
@@ -531,7 +543,7 @@ TEST_F(AtMemoryMetricsRecorderTest, LogEntryUploaded_SuggestionAccepted_Sub) {
                              .multi_index = {0}});
 
     metrics.OnSuggestionAccepted(
-        MemoryDataType::kAddressFull,
+        MemoryDataType::kAddressFull, /*sources_bitmask=*/0,
         AutofillSuggestionDelegate::SuggestionMetadata{.multi_index = {0, 1}});
   }
 
@@ -596,7 +608,7 @@ TEST_F(AtMemoryMetricsRecorderTest, OnSuggestionAccepted_LogsIndices) {
     metrics.OnPopupShown(AutofillSuggestionTriggerSource::kAtMemory,
                          std::nullopt);
     metrics.OnSuggestionAccepted(
-        MemoryDataType::kAddressFull,
+        MemoryDataType::kAddressFull, /*sources_bitmask=*/0,
         AutofillSuggestionDelegate::SuggestionMetadata{.multi_index = {2}});
     histogram_tester.ExpectUniqueSample(
         "Autofill.AtMemory.AcceptedSuggestionIndex", 2, 1);
@@ -613,7 +625,7 @@ TEST_F(AtMemoryMetricsRecorderTest, OnSuggestionAccepted_LogsIndices) {
     metrics.OnPopupShown(AutofillSuggestionTriggerSource::kAtMemory,
                          std::nullopt);
     metrics.OnSuggestionAccepted(
-        MemoryDataType::kAddressFull,
+        MemoryDataType::kAddressFull, /*sources_bitmask=*/0,
         AutofillSuggestionDelegate::SuggestionMetadata{.multi_index = {2, 1}});
     histogram_tester.ExpectUniqueSample(
         "Autofill.AtMemory.AcceptedSuggestionIndex", 2, 1);
@@ -669,6 +681,151 @@ TEST_F(AtMemoryMetricsRecorderTest, LogsUiSessionUkm) {
       entries[0], ukm::builders::AtMemory_UiSession::kQuerySubmittedName, 1);
   test_ukm_recorder_.ExpectEntryMetric(
       entries[0], ukm::builders::AtMemory_UiSession::kSuggestionFilledName, 1);
+}
+
+// Tests that AtMemory.SearchQuery UKM is logged correctly when no suggestion is
+// accepted.
+TEST_F(AtMemoryMetricsRecorderTest, LogsSearchQueryUkm_NoAcceptance) {
+  {
+    AtMemoryMetricsRecorder metrics(nullptr, &test_ukm_recorder_, kTestSourceId,
+                                    GURL(), std::u16string(), FieldGlobalId(),
+                                    FormSignature(0), FieldSignature(0));
+    metrics.OnPopupShown(AutofillSuggestionTriggerSource::kAtMemory,
+                         std::nullopt);
+    metrics.OnQuerySubmitted(u"query");
+
+    task_environment_.FastForwardBy(base::Milliseconds(100));
+    metrics.OnQueryResponseReceived(
+        MemorySearchResults(MemorySearchStatus::kFinalResponseSuccess,
+                            {MemorySearchResult(MemoryDataType::kAddressFull,
+                                                u"Address", u"123 Main St")}));
+  }
+
+  auto entries = test_ukm_recorder_.GetEntriesByName(
+      ukm::builders::AtMemory_SearchQuery::kEntryName);
+  ASSERT_EQ(entries.size(), 1u);
+  test_ukm_recorder_.ExpectEntryMetric(
+      entries[0], ukm::builders::AtMemory_SearchQuery::kQueryLatencyMsName,
+      100);
+  test_ukm_recorder_.ExpectEntryMetric(
+      entries[0], ukm::builders::AtMemory_SearchQuery::kQueryCompletedName,
+      std::to_underlying(AtMemoryQueryCompletedStatus::kQueryReturnedData));
+  test_ukm_recorder_.ExpectEntryMetric(
+      entries[0], ukm::builders::AtMemory_SearchQuery::kSuggestionAcceptedName,
+      0);
+  test_ukm_recorder_.ExpectEntryMetric(
+      entries[0], ukm::builders::AtMemory_SearchQuery::kUiSessionOrderName, 0);
+}
+
+// Tests that AtMemory.SearchQuery UKM is logged with correct acceptance and
+// fill metrics.
+TEST_F(AtMemoryMetricsRecorderTest, LogsSearchQueryUkm_WithAcceptanceAndFill) {
+  {
+    AtMemoryMetricsRecorder metrics(nullptr, &test_ukm_recorder_, kTestSourceId,
+                                    GURL(), std::u16string(), FieldGlobalId(),
+                                    FormSignature(0), FieldSignature(0));
+    metrics.OnPopupShown(AutofillSuggestionTriggerSource::kAtMemory,
+                         std::nullopt);
+    metrics.OnQuerySubmitted(u"query");
+    metrics.OnQueryResponseReceived(
+        MemorySearchResults(MemorySearchStatus::kFinalResponseSuccess,
+                            {MemorySearchResult(MemoryDataType::kAddressFull,
+                                                u"Address", u"123 Main St")}));
+    metrics.OnSuggestionAccepted(
+        MemoryDataType::kAddressFull,
+        std::to_underlying(
+            accessibility_annotator::MemoryEntrySourceType::kAutofill) |
+            std::to_underlying(
+                accessibility_annotator::MemoryEntrySourceType::kGmail),
+        AutofillSuggestionDelegate::SuggestionMetadata{.multi_index = {2}});
+    metrics.MarkFilled();
+  }
+
+  auto entries = test_ukm_recorder_.GetEntriesByName(
+      ukm::builders::AtMemory_SearchQuery::kEntryName);
+  ASSERT_EQ(entries.size(), 1u);
+  test_ukm_recorder_.ExpectEntryMetric(
+      entries[0], ukm::builders::AtMemory_SearchQuery::kSuggestionAcceptedName,
+      1);
+  test_ukm_recorder_.ExpectEntryMetric(
+      entries[0], ukm::builders::AtMemory_SearchQuery::kSuggestionFilledName,
+      1);
+  test_ukm_recorder_.ExpectEntryMetric(
+      entries[0],
+      ukm::builders::AtMemory_SearchQuery::kAcceptedSuggestionIndexName, 2);
+  test_ukm_recorder_.ExpectEntryMetric(
+      entries[0],
+      ukm::builders::AtMemory_SearchQuery::
+          kAcceptedSuggestionSecondaryIndexName,
+      -1);
+  test_ukm_recorder_.ExpectEntryMetric(
+      entries[0],
+      ukm::builders::AtMemory_SearchQuery::kAcceptedSuggestionDataTypeName,
+      std::to_underlying(MemoryDataType::kAddressFull));
+  test_ukm_recorder_.ExpectEntryMetric(
+      entries[0],
+      ukm::builders::AtMemory_SearchQuery::kAcceptedSuggestionDataSourcesName,
+      std::to_underlying(
+          accessibility_annotator::MemoryEntrySourceType::kAutofill) |
+          std::to_underlying(
+              accessibility_annotator::MemoryEntrySourceType::kGmail));
+}
+
+// Tests that AtMemory.SearchQuery UKM is logged for each query when multiple
+// queries are submitted in a session.
+TEST_F(AtMemoryMetricsRecorderTest, LogsSearchQueryUkm_MultipleQueries) {
+  {
+    AtMemoryMetricsRecorder metrics(nullptr, &test_ukm_recorder_, kTestSourceId,
+                                    GURL(), std::u16string(), FieldGlobalId(),
+                                    FormSignature(0), FieldSignature(0));
+    metrics.OnPopupShown(AutofillSuggestionTriggerSource::kAtMemory,
+                         std::nullopt);
+
+    // 1st query
+    metrics.OnQuerySubmitted(u"query 1");
+    task_environment_.FastForwardBy(base::Milliseconds(100));
+    metrics.OnQueryResponseReceived(
+        MemorySearchResults(MemorySearchStatus::kFinalResponseSuccess,
+                            {MemorySearchResult(MemoryDataType::kAddressFull,
+                                                u"Address", u"123 Main St")}));
+
+    // 2nd query - should flush 1st query
+    metrics.OnQuerySubmitted(u"query 2");
+
+    // Verify 1st query is logged
+    auto entries = test_ukm_recorder_.GetEntriesByName(
+        ukm::builders::AtMemory_SearchQuery::kEntryName);
+    ASSERT_EQ(entries.size(), 1u);
+    test_ukm_recorder_.ExpectEntryMetric(
+        entries[0], ukm::builders::AtMemory_SearchQuery::kUiSessionOrderName,
+        0);
+    test_ukm_recorder_.ExpectEntryMetric(
+        entries[0], ukm::builders::AtMemory_SearchQuery::kQueryLatencyMsName,
+        100);
+
+    // Respond to 2nd query
+    task_environment_.FastForwardBy(base::Milliseconds(200));
+    metrics.OnQueryResponseReceived(
+        MemorySearchResults(MemorySearchStatus::kFinalResponseSuccess,
+                            {MemorySearchResult(MemoryDataType::kAddressFull,
+                                                u"Address", u"123 Main St")}));
+    metrics.OnSuggestionAccepted(
+        MemoryDataType::kAddressFull, /*sources_bitmask=*/0,
+        AutofillSuggestionDelegate::SuggestionMetadata{.multi_index = {0}});
+  }
+
+  // Destructor should flush 2nd query
+  auto entries = test_ukm_recorder_.GetEntriesByName(
+      ukm::builders::AtMemory_SearchQuery::kEntryName);
+  ASSERT_EQ(entries.size(), 2u);
+  test_ukm_recorder_.ExpectEntryMetric(
+      entries[1], ukm::builders::AtMemory_SearchQuery::kUiSessionOrderName, 1);
+  test_ukm_recorder_.ExpectEntryMetric(
+      entries[1], ukm::builders::AtMemory_SearchQuery::kQueryLatencyMsName,
+      200);
+  test_ukm_recorder_.ExpectEntryMetric(
+      entries[1], ukm::builders::AtMemory_SearchQuery::kSuggestionAcceptedName,
+      1);
 }
 
 struct QueryCompletedTestCase {

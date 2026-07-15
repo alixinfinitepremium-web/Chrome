@@ -61,12 +61,12 @@ AtMemoryMetricsRecorder::AtMemoryMetricsRecorder(
     : session_id_token_(base::Token::CreateRandom()),
       url_(std::move(url)),
       title_(title),
+      field_id_(field_id),
       form_signature_(form_signature),
       field_signature_(field_signature),
-      uploader_service_(uploader_service),
       ukm_recorder_(ukm_recorder),
       ukm_source_id_(ukm_source_id),
-      field_id_(field_id) {}
+      uploader_service_(uploader_service) {}
 
 AtMemoryMetricsRecorder::~AtMemoryMetricsRecorder() {
   // Only log summary metrics if the popup was successfully shown.
@@ -78,13 +78,13 @@ AtMemoryMetricsRecorder::~AtMemoryMetricsRecorder() {
   }
 
   base::UmaHistogramBoolean("Autofill.AtMemory.QuerySubmitted",
-                            query_submitted_);
+                            query_count_ > 0);
   MaybeLogSuggestionAccepted();
   base::UmaHistogramBoolean("Autofill.AtMemory.SuggestionAcceptedInSession",
                             suggestion_accepted_in_session_);
   if (suggestion_acceptance_.accepted_data_type.has_value()) {
     base::UmaHistogramBoolean("Autofill.AtMemory.SuggestionFilled",
-                              was_filled_);
+                              suggestion_filled_in_session_);
     if (fetch_pii_duration_) {
       base::UmaHistogramTimes("Autofill.AtMemory.Funnel.TimeToFetchUnmasked",
                               *fetch_pii_duration_);
@@ -92,15 +92,17 @@ AtMemoryMetricsRecorder::~AtMemoryMetricsRecorder() {
   }
 
   if (CanLogUkm()) {
+    MaybeFlushSearchQueryUkm();
+
     ukm::builders::AtMemory_UiSession(ukm_source_id_)
         .SetFieldSessionIdentifier(
             autofill_metrics::FieldGlobalIdToHash64Bit(field_id_))
         .SetFieldSignature(HashFieldSignature(field_signature_))
         .SetFormSignature(HashFormSignature(form_signature_))
-        .SetQuerySubmitted(query_submitted_)
+        .SetQuerySubmitted(query_count_ > 0)
         .SetSearchBarDisplayed(std::to_underlying(*source_))
         .SetSuggestionAccepted(suggestion_accepted_in_session_)
-        .SetSuggestionFilled(was_filled_)
+        .SetSuggestionFilled(suggestion_filled_in_session_)
         .SetUiSessionId(session_id_token_.low())
         .Record(ukm_recorder_);
   }
@@ -170,6 +172,14 @@ void AtMemoryMetricsRecorder::OnQuerySubmitted(std::u16string_view query) {
 
   query_to_suggestions_shown_timer_.emplace();
 
+  if (CanLogUkm()) {
+    MaybeFlushSearchQueryUkm();
+    ukm_search_query_builder_.emplace(ukm_source_id_);
+    ukm_search_query_builder_->SetUiSessionId(session_id_token_.low());
+    ukm_search_query_builder_->SetUiSessionOrder(query_count_ - 1);
+    ukm_search_query_builder_->SetSuggestionAccepted(false);
+  }
+
   if (uploader_service_) {
     pending_log_entry_ =
         std::make_unique<optimization_guide::ModelQualityLogEntry>(
@@ -187,16 +197,24 @@ void AtMemoryMetricsRecorder::OnQuerySubmitted(std::u16string_view query) {
     // Rely on log entry destructor to upload the log entry, so this will flush
     // when a new query comes in or the funnel metrics object gets destroyed.
   }
-
-  query_submitted_ = true;
 }
 
 void AtMemoryMetricsRecorder::OnSuggestionAccepted(
     accessibility_annotator::MemoryDataType memory_data_type,
+    MemorySourcesBitmask sources_bitmask,
     base::optional_ref<const AutofillSuggestionDelegate::SuggestionMetadata>
         metadata) {
   suggestion_acceptance_.accepted_data_type = memory_data_type;
   suggestion_accepted_in_session_ = true;
+  suggestion_acceptance_.accepted_sources_bitmask = sources_bitmask;
+
+  if (ukm_search_query_builder_) {
+    ukm_search_query_builder_->SetSuggestionAccepted(true);
+    ukm_search_query_builder_->SetAcceptedSuggestionDataType(
+        std::to_underlying(memory_data_type));
+    ukm_search_query_builder_->SetAcceptedSuggestionDataSources(
+        sources_bitmask);
+  }
 
   if (metadata.has_value() && !metadata->multi_index.empty()) {
     base::UmaHistogramSparse("Autofill.AtMemory.AcceptedSuggestionIndex",
@@ -206,6 +224,13 @@ void AtMemoryMetricsRecorder::OnSuggestionAccepted(
                                     : -1;
     base::UmaHistogramSparse(
         "Autofill.AtMemory.AcceptedSuggestionSecondaryIndex", secondary_index);
+
+    if (ukm_search_query_builder_) {
+      ukm_search_query_builder_->SetAcceptedSuggestionIndex(
+          metadata->multi_index[0]);
+      ukm_search_query_builder_->SetAcceptedSuggestionSecondaryIndex(
+          secondary_index);
+    }
 
     if (pending_log_entry_) {
       optimization_guide::proto::AtMemoryQuality* quality =
@@ -233,6 +258,9 @@ void AtMemoryMetricsRecorder::OnQueryResponseReceived(
   if (std::optional<AtMemoryQueryCompletedStatus> status =
           GetQueryCompletedStatus(result)) {
     base::UmaHistogramEnumeration("Autofill.AtMemory.QueryCompleted", *status);
+    if (ukm_search_query_builder_) {
+      ukm_search_query_builder_->SetQueryCompleted(std::to_underlying(*status));
+    }
   }
 
   MaybeLogSuggestionAccepted();
@@ -246,6 +274,10 @@ void AtMemoryMetricsRecorder::OnQueryResponseReceived(
       query_to_suggestions_shown_timer_->Elapsed();
   base::UmaHistogramTimes("Autofill.AtMemory.Latency.Query",
                           time_since_query_submitted);
+  if (ukm_search_query_builder_) {
+    ukm_search_query_builder_->SetQueryLatencyMs(
+        time_since_query_submitted.InMilliseconds());
+  }
   query_to_suggestions_shown_timer_.reset();
 
   if (!pending_log_entry_) {
@@ -287,7 +319,10 @@ void AtMemoryMetricsRecorder::OnFetchPiiCompleted() {
 }
 
 void AtMemoryMetricsRecorder::MarkFilled() {
-  was_filled_ = true;
+  suggestion_filled_in_session_ = true;
+  if (ukm_search_query_builder_) {
+    ukm_search_query_builder_->SetSuggestionFilled(true);
+  }
 }
 
 void AtMemoryMetricsRecorder::MaybeLogSuggestionAccepted() {
@@ -303,10 +338,21 @@ void AtMemoryMetricsRecorder::MaybeLogSuggestionAccepted() {
     base::UmaHistogramCounts100("Autofill.AtMemory.QueryCountBeforeAcceptance",
                                 query_count_);
   }
+  if (suggestion_acceptance_.accepted_sources_bitmask.has_value()) {
+    base::UmaHistogramSparse("Autofill.AtMemory.AcceptedSuggestionDataSources",
+                             *suggestion_acceptance_.accepted_sources_bitmask);
+  }
 }
 
 bool AtMemoryMetricsRecorder::CanLogUkm() const {
   return ukm_recorder_ && ukm_source_id_ != ukm::kInvalidSourceId;
+}
+
+void AtMemoryMetricsRecorder::MaybeFlushSearchQueryUkm() {
+  if (ukm_search_query_builder_) {
+    ukm_search_query_builder_->Record(ukm_recorder_);
+    ukm_search_query_builder_.reset();
+  }
 }
 
 }  // namespace autofill
