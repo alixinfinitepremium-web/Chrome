@@ -331,7 +331,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': '75d7132e840221325c75fd8093897712c0774e14',
+  'v8_revision': 'dcd76eed28e093e67b32a6a76b5cdf34c6b637c1',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -407,7 +407,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '568f969a07b84d8581df80ee0cb2941da0a6ddc5',
+  'devtools_frontend_revision': 'aa5fc1d7ad0d21ed349cf5925e7eb19bad4bd9d6',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -2140,7 +2140,7 @@ deps = {
   # Tools used when building Chrome for Chrome OS. This affects both the Simple
   # Chrome workflow, as well as the chromeos-chrome ebuild.
   'src/third_party/chromite': {
-      'url': Var('chromium_git') + '/chromiumos/chromite.git' + '@' + '693c1dbd1aa4434d873ab95baa451f1f0845d75b',
+      'url': Var('chromium_git') + '/chromiumos/chromite.git' + '@' + 'f58f0baf850bc2686dfec4859476b582be4cc1ac',
       'condition': 'checkout_chromeos',
   },
 
@@ -2652,6 +2652,12 @@ deps = {
   'src/third_party/mutter/src': {
       'url': Var('chromium_git') + '/external/gitlab.gnome.org/GNOME/mutter.git' + '@' + '7c88672bfc702f7d47c6b3755147fbeb859391af',
       'condition': 'checkout_linux and checkout_mutter',
+  },
+
+  'src/third_party/pipewire/src': {
+      'url': Var('chromium_git') + '/external/gitlab.freedesktop.org/pipewire/pipewire.git'
+             + '@' + 'b741e0c74f5436f0c925f7741140db0efd32cf4e',
+      'condition': 'checkout_linux',
   },
 
   'src/third_party/nasm': {
