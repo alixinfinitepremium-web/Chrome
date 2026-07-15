@@ -323,11 +323,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': 'ada9cfe9b4417700448e50a72da9e7509661fc94',
+  'src_internal_revision': '3e288394818fdf1e02c6f0af891dd3f6c1a1a06b',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': 'ab2410bc857c1ff6ad8d6d2f0db9c33cb49aeb37',
+  'skia_revision': 'd7dafdd163b9f4c6c5b81f9ff3d4743d87c040e5',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -387,7 +387,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': '047a05b021786cce2470f431714cf7dfbd6ae6f3',
+  'crossbench_revision': '1bc70cac943127c66241ba646dedd9a82283f5cb',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -1475,7 +1475,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_linux64',
-          'version': 'version:2@1656010',
+          'version': 'version:2@1657002',
         },
       ],
   },
@@ -1652,7 +1652,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_mac_arm64',
-          'version': 'kEqK8ogFRj9nqmWfcnBCEJQnERzWSAf16L8gUbzL2eEC',
+          'version': 'ZO7SG1DgzTcOxsvHABUQnylr_MSAfokEv2NI0SSCZgYC',
         },
       ],
   },
@@ -1674,7 +1674,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_win_x86_64',
-          'version': 'cu_Tw2gC8ocdO8H3tmxc_jXP7pIG8f8-mUN5nAK468wC',
+          'version': 'for-swQw_3o5bRCGernzuVLnx9XjNN-HH-vNbV3cJ3wC',
         },
       ],
   },
@@ -3923,7 +3923,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        '205e94649e09b9c9d3be3148b42e7b43c8959f35',
+        '285192a5993b55781ab253f4b9dad01ada855b69',
       'condition': 'checkout_src_internal',
   },
 
