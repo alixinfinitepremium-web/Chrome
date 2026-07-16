@@ -25046,6 +25046,23 @@
             ]
         }
     ],
+    "UploadReportOnProfileOpenStudy": [
+        {
+            "platforms": [
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "UploadReportOnProfileOpen"
+                    ]
+                }
+            ]
+        }
+    ],
     "UseAndroidCustomFrameDeadlines": [
         {
             "platforms": [
@@ -27318,21 +27335,6 @@
                     "name": "Enabled",
                     "enable_features": [
                         "WebViewInterceptedCookieHeader"
-                    ]
-                }
-            ]
-        }
-    ],
-    "WebViewLatchedCookiePolicy": [
-        {
-            "platforms": [
-                "android_webview"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled_20260116",
-                    "enable_features": [
-                        "WebViewLatchedCookiePolicy"
                     ]
                 }
             ]

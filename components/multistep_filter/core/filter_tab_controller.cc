@@ -241,11 +241,13 @@ void FilterTabController::OnNavigationFinished(
 
 void FilterTabController::OnSuggestionShown(
     const UrlFilterSuggestion& suggestion) {
+  // Store the retention state before storing the suggestion impression record.
+  RetentionStateSnapshot retention_snapshot = service_->GetRetentionState();
   service_->RecordSuggestionImpression();
   service_->DeleteAnnotationsForTask(suggestion.task_type,
                                      suggestion.triggering_navigation_id,
                                      suggestion.triggering_host);
-  metrics_tracker_.OnSuggestionShown(suggestion);
+  metrics_tracker_.OnSuggestionShown(suggestion, retention_snapshot);
 }
 
 void FilterTabController::OnSuggestionReopened() {
@@ -306,6 +308,7 @@ void FilterTabController::OnSuggestionGenerated(
         });
   } else {
     delegate_->OnSuggestionGenerated(std::nullopt, {});
+    metrics_tracker_.OnPreservedSuggestionCleared();
   }
   if (observer_for_test_) {
     observer_for_test_->OnSuggestionGeneratedForTest(suggestion);  // IN-TEST

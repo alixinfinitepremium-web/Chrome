@@ -8,9 +8,11 @@
 #include <optional>
 #include <string>
 
+#include "base/memory/raw_ptr.h"
 #include "base/time/time.h"
 #include "components/multistep_filter/core/data_models/suggestion_user_decision.h"
 #include "components/multistep_filter/core/data_models/url_filter_suggestion.h"
+#include "components/multistep_filter/core/prefs/retention_state_snapshot.h"
 
 namespace multistep_filter {
 
@@ -20,6 +22,45 @@ struct FilterNavigationMetadata;
 // holistic UMA metrics for the Multistep Filter feature.
 class MultistepFilterMetricsTracker {
  public:
+  struct NavigationSession {
+    base::TimeTicks navigation_finish_time;
+    bool is_back_navigation = false;
+  };
+
+  // Tracks the UI lifecycle of a multistep filter suggestion.
+  //
+  // A session begins when the suggestion is first shown to the user.
+  // It tracks interactive state transitions (such as collapsing and reopening),
+  // timestamps for latency calculations, and the user's final decision
+  // (accepted, dismissed, or ignored).
+  //
+  // The session is flushed and reset when the suggestion is cleared
+  // (e.g., due to a new navigation).
+  struct SuggestionUiSession {
+    UrlFilterSuggestion suggestion;
+    bool reopened_cue_shown = false;
+    SuggestionUserDecision user_decision = SuggestionUserDecision::kIgnored;
+    base::TimeTicks suggestion_shown_time;
+    base::TimeTicks suggestion_accepted_time;
+    RetentionStateSnapshot retention_snapshot;
+    bool is_preserved_same_page = false;
+  };
+
+  // Tracks the lifecycle of a suggestion application.
+  //
+  // A session starts when the user accepts a suggestion, triggering a new
+  // navigation. It tracks the navigation outcome (e.g., if it hit an error
+  // page) and measures the latency between suggestion acceptance and when the
+  // navigation finishes (when the suggestion is applied). This latency is only
+  // recorded if the application is subsequently verified by successful
+  // annotation extraction on the navigated URL.
+  struct SuggestionApplicationSession {
+    UrlFilterSuggestion suggestion;
+    bool is_error_page = false;
+    base::TimeTicks suggestion_accepted_time;
+    RetentionStateSnapshot retention_snapshot;
+  };
+
   MultistepFilterMetricsTracker();
   MultistepFilterMetricsTracker(const MultistepFilterMetricsTracker&) = delete;
   MultistepFilterMetricsTracker& operator=(
@@ -33,7 +74,8 @@ class MultistepFilterMetricsTracker {
   // --- 2. SUGGESTION IMPRESSION LIFE-CYCLE ---
   // Triggered when the suggestion UI cue is shown to the user (initial bubble
   // or page action icon). Starts the impression tracking session.
-  void OnSuggestionShown(const UrlFilterSuggestion& suggestion);
+  void OnSuggestionShown(const UrlFilterSuggestion& suggestion,
+                         const RetentionStateSnapshot& retention_snapshot);
 
   // --- 2.1. SUGGESTION REOPEN ---
   // Triggered once if the user re-opens the cue from the Omnibox.
@@ -43,6 +85,11 @@ class MultistepFilterMetricsTracker {
   // Triggered when the user interacts with the suggestion UI or a
   // navigation/tab close discards the suggestion.
   void OnSuggestionUserInteraction(SuggestionUserDecision decision);
+
+  // --- 2.3. PRESERVED SUGGESTION CLEARED ---
+  // Triggered when a preserved suggestion for same page navigation is cleared
+  // (e.g. because new suggestion generation failed).
+  void OnPreservedSuggestionCleared();
 
   // --- 3. SUGGESTION APPLICATION LIFE-CYCLE ---
   // Triggered when the suggestion application extraction is finished.
@@ -61,50 +108,18 @@ class MultistepFilterMetricsTracker {
   // application sessions.
   void FlushSuggestionApplicationSession(bool was_applied_successfully);
 
-  struct NavigationSession {
-    base::TimeTicks navigation_start_time;
-    base::TimeTicks navigation_finish_time;
-    bool is_back_navigation = false;
-  } current_navigation_;
-
-  // Tracks the UI lifecycle of a multistep filter suggestion.
-  //
-  // A session begins when the suggestion is first shown to the user.
-  // It tracks interactive state transitions (such as collapsing and reopening),
-  // timestamps for latency calculations, and the user's final decision
-  // (accepted, dismissed, or ignored).
-  //
-  // The session is flushed and reset when the suggestion is cleared
-  // (e.g., due to a new navigation).
-  struct SuggestionUiSession {
-    UrlFilterSuggestion suggestion;
-    bool reopened_cue_shown = false;
-    SuggestionUserDecision user_decision = SuggestionUserDecision::kIgnored;
-    base::TimeTicks suggestion_shown_time;
-    base::TimeTicks suggestion_accepted_time;
-  };
-
+  // The current navigation session.
+  NavigationSession current_navigation_;
   // The current UI session, if any.
   std::optional<SuggestionUiSession> current_ui_session_;
-
-  // Tracks the lifecycle of a suggestion application.
-  //
-  // A session starts when the user accepts a suggestion, triggering a new
-  // navigation. It tracks the navigation outcome (e.g., if it hit an error
-  // page) and measures the latency between suggestion acceptance and when the
-  // navigation finishes (when the suggestion is applied). This latency is only
-  // recorded if the application is subsequently verified by successful
-  // annotation extraction on the navigated URL.
-  struct SuggestionApplicationSession {
-    UrlFilterSuggestion suggestion;
-    bool is_error_page = false;
-    // TODO(crbug.com/531717350): Populate and use this field to measure
-    // suggestion application latency.
-    base::TimeTicks suggestion_accepted_time;
-  };
   // The current suggestion application session, if any.
   std::optional<SuggestionApplicationSession>
       current_suggestion_application_session_;
+  // The retention state snapshot of the last accepted suggestion. It is
+  // set when a suggestion is accepted, and cleared when the next navigation
+  // finishes (either consumed by the application session or discarded).
+  std::optional<RetentionStateSnapshot>
+      last_accepted_suggestion_retention_snapshot_;
 };
 
 }  // namespace multistep_filter
