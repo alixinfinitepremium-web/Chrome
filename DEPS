@@ -323,7 +323,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '97021debc067e590b6765c6750a50de99dd48b4c',
+  'src_internal_revision': '09c1c710ca9de63a08633faed32062c750ad4ee5',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -331,11 +331,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': '0c38af21383c744f7a322b4a1835e09e6371c7fe',
+  'v8_revision': '3b7743895333aa2c43f0a45f1f45bbd52c61b687',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '88229d73b7cf2b464ffd94621928690c08b16a1b',
+  'angle_revision': 'c1af73ff70ca5ea9ac842b9e07ae192f18102166',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -351,7 +351,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
-  'fuchsia_version': 'version:32.20260708.4.1',
+  'fuchsia_version': 'version:32.20260716.2.1',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling googletest
   # and whatever else without interference from each other.
@@ -387,7 +387,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': '67a5a515020afefea9939bf8a04f2bbe37387a6e',
+  'crossbench_revision': '117fd1bf7c5fa1544f18dadadc64c951bb663759',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -3166,13 +3166,13 @@ deps = {
     Var('chromium_git') + '/external/khronosgroup/webgl.git' + '@' + '064aaf18207438d4f6dd10c98b02b25778257b7f',
 
   'src/third_party/webgpu-cts/src':
-    Var('chromium_git') + '/external/github.com/gpuweb/cts.git' + '@' + 'af9a57819508d02e97ab728df4fe96261dd7e4c8',
+    Var('chromium_git') + '/external/github.com/gpuweb/cts.git' + '@' + '9fb8ce60d1f3413b704bdcf9f8d29ca28a6da2ee',
 
   'src/third_party/webpagereplay':
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '86676d3c4ee49b92380647d4b68388ed8f0ce94a',
+    Var('webrtc_git') + '/src.git' + '@' + '8ef9deecb446f223f33506677e956d2acf805f6d',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -3301,7 +3301,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_receiver_app/app',
-        'version': 'UkRe6DAwJUCJ0OYR1G47MU5d68qC0PTvyShE_1Z8MSsC',
+        'version': 'lVaLYL8B8e-C6pcGHa_x1RffNBHCpaDqdVbzceePJpQC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3312,7 +3312,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_app/app',
-        'version': 'lFhtARasO23zn5q5yzzCvz7wt5R4Y7CFdoWg8S7HwGUC',
+        'version': '36JDtXIHtoJXsYF6fk8_TpjYin9S8AnKmKKRQaI85Z8C',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3323,7 +3323,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/help_app/app',
-        'version': 'oNW8Ipb_-7X3_qO6pETOfQSmYTit_lFNCtwWGKQbJesC',
+        'version': 'tqO2YE5pAE3FmjI97g5GvFMgqLdaxf7ph4jsxG9uNeUC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',

@@ -659,6 +659,7 @@ html element fencedframe
     property width
 html element fieldset
     property checkValidity
+    property checkable
     property disabled
     property elements
     property form
@@ -901,6 +902,7 @@ html element install
     property isValid
     property manifest
     property manifestId
+    property oninstallresult
     property onpromptaction
     property onpromptdismiss
     property onvalidationstatuschange

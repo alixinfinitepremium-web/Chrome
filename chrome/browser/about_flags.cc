@@ -1219,7 +1219,6 @@ const FeatureEntry::FeatureParam kPageActionsMigrationParams[] = {
     {"file_system_access", "true"},
     {"filled_card_information", "true"},
     {"intent_picker", "true"},
-    {"mandatory_reauth", "true"},
     {"save_payments", "true"},
     {"sharing_hub", "true"},
     {"virtual_card", "true"},
@@ -10750,7 +10749,7 @@ const FeatureEntry kFeatureEntries[] = {
          features::kGlicExperimentalTriggeringSuppressDoneNotification)},
     {"glic-actor-autofill", flag_descriptions::kGlicActorAutofillName,
      flag_descriptions::kGlicActorAutofillDescription, kOsDesktop,
-     FEATURE_VALUE_TYPE(features::kGlicActorAutofill)},
+     FEATURE_VALUE_TYPE(autofill::features::kGlicActorAutofill)},
     {"glic-actor-autofill-section-label",
      flag_descriptions::kGlicActorAutofillSectionLabelName,
      flag_descriptions::kGlicActorAutofillSectionLabelDescription, kOsDesktop,
@@ -13205,7 +13204,8 @@ const FeatureEntry kFeatureEntries[] = {
          payments::facilitated::kEnableEwalletNewAccountLinking)},
 #endif
     {"suspicious-site-warnings", flag_descriptions::kSuspiciousSiteWarningsName,
-     flag_descriptions::kSuspiciousSiteWarningsDescription, kOsDesktop,
+     flag_descriptions::kSuspiciousSiteWarningsDescription,
+     kOsDesktop | kOsAndroid,
      FEATURE_VALUE_TYPE(safe_browsing::kSuspiciousSiteWarnings)},
 
 #if BUILDFLAG(IS_ANDROID)

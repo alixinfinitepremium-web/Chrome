@@ -1453,14 +1453,6 @@ interface CharacterData : Node
     method streamReplaceWithHTMLUnsafe
     method substringData
     setter data
-interface Classifier
-    static method availability
-    static method create
-    attribute @@toStringTag
-    getter inputQuota
-    method classify
-    method constructor
-    method destroy
 interface Clipboard : EventTarget
     attribute @@toStringTag
     getter onclipboardchange
@@ -4322,6 +4314,7 @@ interface HTMLFencedFrameElement : HTMLElement
     setter width
 interface HTMLFieldSetElement : HTMLElement
     attribute @@toStringTag
+    getter checkable
     getter disabled
     getter elements
     getter form
@@ -4334,6 +4327,7 @@ interface HTMLFieldSetElement : HTMLElement
     method constructor
     method reportValidity
     method setCustomValidity
+    setter checkable
     setter disabled
     setter name
 interface HTMLFontElement : HTMLElement
@@ -4742,6 +4736,7 @@ interface HTMLInstallElement : HTMLElement
     getter isValid
     getter manifest
     getter manifestId
+    getter oninstallresult
     getter onpromptaction
     getter onpromptdismiss
     getter onvalidationstatuschange
@@ -4750,6 +4745,7 @@ interface HTMLInstallElement : HTMLElement
     setter installURL
     setter manifest
     setter manifestId
+    setter oninstallresult
     setter onpromptaction
     setter onpromptdismiss
     setter onvalidationstatuschange
@@ -5952,6 +5948,10 @@ interface InputEvent : UIEvent
     getter isComposing
     method constructor
     method getTargetRanges
+interface InstallResultEvent : Event
+    attribute @@toStringTag
+    getter result
+    method constructor
 interface IntegrityViolationReportBody : ReportBody
     attribute @@toStringTag
     getter blockedURL

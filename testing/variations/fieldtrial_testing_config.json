@@ -7224,6 +7224,24 @@
             ]
         }
     ],
+    "ContextualTasksCookiePrefetch": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "ContextualTasksCookiePrefetch"
+                    ]
+                }
+            ]
+        }
+    ],
     "ContextualTasksDesktop": [
         {
             "platforms": [
@@ -7956,30 +7974,6 @@
                     "name": "Enabled",
                     "enable_features": [
                         "CrosSwitcher"
-                    ]
-                }
-            ]
-        }
-    ],
-    "CrossDevicePrefTracker": [
-        {
-            "platforms": [
-                "android"
-            ],
-            "experiments": [
-                {
-                    "name": "EnabledAll",
-                    "enable_features": [
-                        "EnableCrossDevicePrefTracker",
-                        "HomeModulePrefRefactor",
-                        "XplatSyncedSetup"
-                    ]
-                },
-                {
-                    "name": "EnabledInfraOnly",
-                    "enable_features": [
-                        "EnableCrossDevicePrefTracker",
-                        "HomeModulePrefRefactor"
                     ]
                 }
             ]
