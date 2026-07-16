@@ -30,26 +30,39 @@ jobs:
         run: |
           set -euo pipefail
           for attempt in 1 2 3 4; do
+            # Freeze the target before merging. Chromium can advance several
+            # times while this job runs, so requiring zero lag against a later
+            # live head creates false failures even after a successful import.
+            frozen_upstream="$(gh api "repos/chromium/chromium/commits/main" --jq '.sha')"
+
             gh api --method POST "repos/${GITHUB_REPOSITORY}/merge-upstream" \
               -f branch=main --jq '{message, merge_type, base_branch}'
 
-            upstream="$(gh api "repos/chromium/chromium/commits/main" --jq '.sha')"
             mirror="$(gh api "repos/${GITHUB_REPOSITORY}/commits/main" --jq '.sha')"
-            behind="$(gh api "repos/${GITHUB_REPOSITORY}/compare/${upstream}...main" --jq '.behind_by')"
-            printf 'attempt=%s upstream=%s mirror=%s behind_by=%s\n' \
-              "$attempt" "$upstream" "$mirror" "$behind"
+            frozen_behind="$(gh api \
+              "repos/${GITHUB_REPOSITORY}/compare/${frozen_upstream}...main" \
+              --jq '.behind_by')"
+            live_upstream="$(gh api "repos/chromium/chromium/commits/main" --jq '.sha')"
+            live_behind="$(gh api \
+              "repos/${GITHUB_REPOSITORY}/compare/${live_upstream}...main" \
+              --jq '.behind_by')"
+            printf 'attempt=%s frozen_upstream=%s mirror=%s frozen_behind=%s live_upstream=%s live_behind=%s\n' \
+              "$attempt" "$frozen_upstream" "$mirror" "$frozen_behind" \
+              "$live_upstream" "$live_behind"
 
-            if test "$behind" -eq 0; then
+            if test "$frozen_behind" -eq 0; then
               {
                 printf '### Chromium mirror freshness\n\n'
-                printf -- '- Upstream: `%s`\n' "$upstream"
+                printf -- '- Frozen upstream imported: `%s`\n' "$frozen_upstream"
+                printf -- '- Live upstream at verification: `%s`\n' "$live_upstream"
                 printf -- '- Mirror: `%s`\n' "$mirror"
-                printf -- '- Behind: `%s`\n' "$behind"
+                printf -- '- Live lag: `%s`\n' "$live_behind"
               } >> "$GITHUB_STEP_SUMMARY"
               exit 0
             fi
             sleep $((attempt * 2))
           done
 
-          printf 'Mirror did not converge after four attempts.\n' >&2
+          printf 'Mirror did not contain any frozen upstream target after four attempts.\n' >&2
           exit 1
+
