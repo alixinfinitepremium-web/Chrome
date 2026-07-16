@@ -778,6 +778,7 @@ should be able to be added at any place in this file.
       summary="For ReadLaterBottomSheet feature."/>
   <variant name="_ReadLaterContextMenu"
       summary="For ReadLaterContextMenu feature."/>
+  <variant name="_RecentTabs" summary="For Recent tabs feature."/>
   <variant name="_ReopenTab" summary="For ReopenTab feature."/>
   <variant name="_RequestDesktopSiteAppMenu"
       summary="For the RequestDesktopSiteAppMenu feature. (obsolete)"/>
@@ -28304,6 +28305,15 @@ should be able to be added at any place in this file.
   <owner>joemerramos@google.com</owner>
   <description>
     The user dismissed the Gemini floaty from an expanded state. iOS only.
+  </description>
+</action>
+
+<action name="MobileGeminiFloatyTabSwitched">
+  <owner>hamzamoh@google.com</owner>
+  <owner>bling-alchemy-eng@google.com</owner>
+  <description>
+    The user switched active tabs while the Gemini floaty session was active.
+    iOS only.
   </description>
 </action>
 

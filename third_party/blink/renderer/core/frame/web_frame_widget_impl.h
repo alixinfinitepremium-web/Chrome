@@ -114,6 +114,10 @@ class WidgetBase;
 class WidgetEventHandler;
 class ScreenMetricsEmulator;
 
+template <typename IDLType>
+class ScriptPromiseResolver;
+struct IDLUndefined;
+
 // Implements WebFrameWidget for both main frames and child local root frame
 // (OOPIF).
 class CORE_EXPORT WebFrameWidgetImpl
@@ -534,7 +538,8 @@ class CORE_EXPORT WebFrameWidgetImpl
       mojo::PendingAssociatedReceiver<mojom::blink::UnboundedSurfaceClient>
           client_receiver,
       mojo::PendingAssociatedRemote<mojom::blink::UnboundedSurfaceHost>
-          host_remote);
+          host_remote,
+      ScriptPromiseResolver<IDLUndefined>* resolver);
   void UpdateUnboundedElementBounds(const gfx::Rect& bounds);
 
   // mojom::blink::FrameWidgetInputHandler overrides:
@@ -1046,13 +1051,6 @@ class CORE_EXPORT WebFrameWidgetImpl
   void SendScrollSnapChangingEventIfNeeded(
       const cc::CompositorCommitData& commit_data);
 
-  // Performance Scroll Timing API: consumes the per-scroll timing
-  // records that the compositor thread populated on `commit_data` and
-  // forwards each one to the local frame's WindowPerformance for emission as
-  // a PerformanceScrollTiming entry. No-op when the runtime feature is
-  // disabled or when the frame is being torn down.
-  void ProcessScrollTimingData(const cc::CompositorCommitData& commit_data);
-
   void RecordManipulationTypeCounts(cc::ManipulationInfo info);
 
   enum DragAction { kDragEnter, kDragOver };
@@ -1414,6 +1412,7 @@ class CORE_EXPORT WebFrameWidgetImpl
       visitor->Trace(client_receiver_);
       visitor->Trace(host_);
       visitor->Trace(active_element_);
+      visitor->Trace(unbounded_element_resolver_);
       ExecutionContextLifecycleObserver::Trace(visitor);
     }
 
@@ -1426,6 +1425,10 @@ class CORE_EXPORT WebFrameWidgetImpl
     HeapMojoAssociatedRemote<mojom::blink::UnboundedSurfaceHost> host_;
 
     WeakMember<HTMLElement> active_element_;
+
+    // The resolver for the pending showUnboundedElement() promise. It is used
+    // to resolve or reject when unbounded elements are shown or dismissed.
+    Member<ScriptPromiseResolver<IDLUndefined>> unbounded_element_resolver_;
 
     viz::FrameSinkId frame_sink_id_;
     viz::LocalSurfaceId local_surface_id_;

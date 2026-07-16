@@ -323,7 +323,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '09c1c710ca9de63a08633faed32062c750ad4ee5',
+  'src_internal_revision': '33977e724b9a69b1fbbbe9d92ef03b5c384e3f65',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -335,7 +335,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': 'c1af73ff70ca5ea9ac842b9e07ae192f18102166',
+  'angle_revision': 'b9eb1104efd5be97c40dcb31524cecec0afbbd77',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -407,7 +407,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '89419a1a6dcccacc39241a31aa0777f20574233c',
+  'devtools_frontend_revision': '07342db2e5fa2cd844fec8fa23e3616cadbdf75e',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -523,7 +523,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ffmpeg
   # and whatever else without interference from each other.
-  'ffmpeg_revision': 'fcf00a65aa4168c2ae1ce6e55f59e8bc1edd6c78',
+  'ffmpeg_revision': '2b68d2babae73714846961fb0ee47e3b3d2e39a9',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling webpagereplay
   # and whatever else without interference from each other.
@@ -1822,7 +1822,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': 'j-1dwLWAFlybI7SRgj9vJFphbBMO1xX3dlDYiX1uX8sC',
+          'version': 'idyjfSdHNv1hsih16zo4FrzzUvKg4i_NEPUJbelpooMC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
@@ -2172,7 +2172,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '99d255e39ab1d5a6a56fa19605bef619b3c0e31b',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'ebf1df8f2fdb62818ccae2a09a65c9634e422d4d',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -4013,7 +4013,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '68ebdccfa950529f10340ebcbed15d69ada9ec24',
+        '8eb514bc4c90fee29e1b45be721ce3fcaaa80510',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 

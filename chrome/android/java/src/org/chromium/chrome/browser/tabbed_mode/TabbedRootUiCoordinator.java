@@ -1590,14 +1590,31 @@ public class TabbedRootUiCoordinator extends RootUiCoordinator {
         } else {
             mToolbarButtonInProductHelpController.showColdStartIph();
             mReadLaterIphController.showColdStartIph();
+            String featureName = null;
+            int stringId = 0;
+            int menuId = 0;
+
             if (MultiWindowUtils.shouldShowInstanceSwitcherIph()) {
+                featureName = FeatureConstants.INSTANCE_SWITCHER;
+                stringId = R.string.iph_instance_switcher_text;
+                menuId = R.id.manage_all_windows_menu_id;
+            } else if (MultiWindowUtils.shouldShowRecentTabsIph()) {
+                featureName = FeatureConstants.RECENT_TABS;
+                stringId = R.string.iph_recent_tabs_text;
+                menuId = R.id.recent_tabs_menu_id;
+            }
+
+            if (featureName != null) {
                 MultiInstanceIphController.maybeShowInProductHelp(
                         mActivity,
                         profile,
                         menuButtonView,
                         mAppMenuCoordinator.getAppMenuHandler(),
-                        R.id.manage_all_windows_menu_id);
+                        featureName,
+                        stringId,
+                        menuId);
             }
+
             mDesktopSiteSettingsIphController =
                     DesktopSiteSettingsIphController.create(
                             mActivity,
@@ -2334,7 +2351,8 @@ public class TabbedRootUiCoordinator extends RootUiCoordinator {
                         if (!success) return;
 
                         boolean active = VerticalTabUtils.isVerticalTabsEnabled(mActivity);
-                        assumeNonNull(mVerticalTabsSideUiCoordinator).setVisible(active);
+                        assumeNonNull(mVerticalTabsSideUiCoordinator)
+                                .setVisible(active, /* suppressAnimations= */ false);
                     });
         }
 
@@ -2349,7 +2367,8 @@ public class TabbedRootUiCoordinator extends RootUiCoordinator {
                                             .getTabStripTransitionCoordinator();
                             assumeNonNull(transitionCoord).suppressTabStrip(true);
                         } else {
-                            assumeNonNull(mVerticalTabsSideUiCoordinator).setVisible(false);
+                            assumeNonNull(mVerticalTabsSideUiCoordinator)
+                                    .setVisible(/* show= */ false, /* suppressAnimations= */ false);
                         }
                     }
                 };
@@ -2357,7 +2376,8 @@ public class TabbedRootUiCoordinator extends RootUiCoordinator {
                 .registerOnSharedPreferenceChangeListener(mVerticalTabsPreferenceListener);
 
         if (useVerticalLayoutOnLaunch) {
-            assumeNonNull(mVerticalTabsSideUiCoordinator).setVisible(true);
+            assumeNonNull(mVerticalTabsSideUiCoordinator)
+                    .setVisible(/* show= */ true, /* suppressAnimations= */ true);
         }
 
         // Set up vertical tabs + pinned Glic visibility interaction.
@@ -2694,7 +2714,9 @@ public class TabbedRootUiCoordinator extends RootUiCoordinator {
                             mActivityTabProvider.asObservable(),
                             getTopUiThemeColorProvider(),
                             mSideUiStateProviderSupplier,
-                            mTabObscuringHandlerSupplier.get());
+                            mTabObscuringHandlerSupplier.get(),
+                            mModalDialogManagerSupplier,
+                            mSnackbarManagerSupplier);
             if (mBookmarkBarVisibilityProvider != null) {
                 mBookmarkBarVisibilityProvider.addObserver(mBookmarkBarCoordinator);
             }

@@ -1954,14 +1954,6 @@
     "expiry_milestone": 155
   },
   {
-  "name": "confirmation-button-swap-order",
-  "owners": [
-    "pabouchard@google.com",
-    "bling-mony-pod@google.com"
-  ],
-  "expiry_milestone": 155
-  },
-  {
     "name": "connection-allowlists",
     "owners": [ "mkwst@chromium.org" ],
     "expiry_milestone": 154
@@ -7209,6 +7201,11 @@
   {
     "name": "ntp-realbox-next",
     "owners": [ "romanarora@chromium.com", "chrome-desktop-ntp@google.com" ],
+    "expiry_milestone": 160
+  },
+  {
+    "name": "ntp-scaled-action-chips",
+    "owners": [ "rtatum@google.com", "chrome-desktop-ntp@google.com" ],
     "expiry_milestone": 160
   },
   {

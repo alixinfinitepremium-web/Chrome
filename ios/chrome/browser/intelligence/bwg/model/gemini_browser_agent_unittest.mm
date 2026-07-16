@@ -9,6 +9,7 @@
 #import "base/apple/foundation_util.h"
 #import "base/run_loop.h"
 #import "base/test/metrics/histogram_tester.h"
+#import "base/test/metrics/user_action_tester.h"
 #import "base/test/run_until.h"
 #import "base/test/scoped_feature_list.h"
 #import "base/test/task_environment.h"
@@ -55,13 +56,13 @@
 #import "ios/chrome/grit/ios_strings.h"
 #import "ios/chrome/test/ios_chrome_scoped_testing_local_state.h"
 #import "ios/web/find_in_page/find_in_page_java_script_feature.h"
-#import "ios/web/js_messaging/java_script_feature_manager.h"
 #import "ios/web/public/js_messaging/java_script_feature_util.h"
 #import "ios/web/public/test/fakes/fake_navigation_manager.h"
 #import "ios/web/public/test/fakes/fake_web_client.h"
 #import "ios/web/public/test/fakes/fake_web_frame.h"
 #import "ios/web/public/test/fakes/fake_web_frames_manager.h"
 #import "ios/web/public/test/fakes/fake_web_state.h"
+#import "ios/web/public/test/js_test_util.h"
 #import "ios/web/public/test/scoped_testing_web_client.h"
 #import "ios/web/public/test/web_task_environment.h"
 #import "testing/gtest_mac.h"
@@ -100,10 +101,9 @@ class GeminiBrowserAgentTest : public PlatformTest {
         profile_manager_.AddProfileWithBuilder(std::move(profile_builder));
     mock_tracker_ = static_cast<feature_engagement::test::MockTracker*>(
         feature_engagement::TrackerFactory::GetForProfile(profile_));
-    web::JavaScriptFeatureManager::FromBrowserState(profile_)
-        ->ConfigureFeatures(
-            {web::FindInPageJavaScriptFeature::GetInstance(),
-             PageContextExtractorJavaScriptFeature::GetInstance()});
+    web::test::OverrideJavaScriptFeatures(
+        profile_, {web::FindInPageJavaScriptFeature::GetInstance(),
+                   PageContextExtractorJavaScriptFeature::GetInstance()});
     SceneState* scene_state = [[SceneState alloc] initWithAppState:nil];
     browser_ = std::make_unique<TestBrowser>(profile_, scene_state);
     GeminiBrowserAgent::CreateForBrowser(browser_.get());
@@ -187,6 +187,11 @@ class GeminiBrowserAgentTest : public PlatformTest {
 
   // Getter for `is_floaty_invoked_`.
   bool IsFloatyInvoked() { return gemini_browser_agent_->is_floaty_invoked_; }
+
+  // Getter for `floaty_tab_switch_count_`.
+  int GetFloatyTabSwitchCount() {
+    return gemini_browser_agent_->floaty_tab_switch_count_;
+  }
 
   // Getter for `is_floaty_temporarily_hidden_`.
   bool IsFloatyTemporarilyHidden() {
@@ -437,6 +442,38 @@ TEST_F(GeminiBrowserAgentTest, TestActiveWebStateChanged) {
   // observing the second one.
   EXPECT_FALSE(helper1->HasObserver(agent));
   EXPECT_TRUE(helper2->HasObserver(agent));
+}
+
+// Tests that switching active web states while floaty is invoked increments
+// `floaty_tab_switch_count_`, records a user action, and records session
+// metrics when dismissed.
+TEST_F(GeminiBrowserAgentTest, TestFloatyTabSwitchMetrics) {
+  base::UserActionTester user_action_tester;
+  base::HistogramTester histogram_tester;
+
+  // Invoke floaty when `web_state_` is active.
+  GeminiConfiguration* config = [[GeminiConfiguration alloc] init];
+  InvokeFloaty(config);
+  EXPECT_EQ(0, GetFloatyTabSwitchCount());
+
+  // Insert and activate a second tab while floaty is invoked.
+  std::unique_ptr<web::FakeWebState> web_state2 =
+      std::make_unique<web::FakeWebState>();
+  web_state2->SetBrowserState(profile_);
+  GeminiTabHelper::CreateForWebState(web_state2.get());
+  WebViewProxyTabHelper::CreateForWebState(web_state2.get());
+  browser_->GetWebStateList()->InsertWebState(
+      std::move(web_state2),
+      WebStateList::InsertionParams::Automatic().Activate(true));
+
+  EXPECT_EQ(1, GetFloatyTabSwitchCount());
+  EXPECT_EQ(1,
+            user_action_tester.GetActionCount("MobileGeminiFloatyTabSwitched"));
+
+  // Dismiss floaty and verify histograms are recorded and count is reset.
+  gemini_browser_agent_->DismissFloaty();
+  EXPECT_EQ(0, GetFloatyTabSwitchCount());
+  histogram_tester.ExpectUniqueSample(kSessionTabSwitchCountHistogram, 1, 1);
 }
 
 // Tests that RequestPageContextGeneration triggers page context generation.
