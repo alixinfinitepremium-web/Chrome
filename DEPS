@@ -323,11 +323,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '27909fbb4d3ce5f06a0d8e6c1f99c6c372f891d0',
+  'src_internal_revision': '034da987a0ec8f410752adafd224fd1511880d54',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '9af10ab0b01017a2c64ade80204a5ed25ad84493',
+  'skia_revision': '37c5e6b26aee27e8e9ba5dc2b0afb854ff8ef411',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -335,7 +335,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '5fd3f6b59f8541ffe5102eded19b2d880b4e827d',
+  'angle_revision': '88229d73b7cf2b464ffd94621928690c08b16a1b',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -387,7 +387,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': '8115a43fb0a8dd6fe19a059c8d4374df82a54a1a',
+  'crossbench_revision': '67a5a515020afefea9939bf8a04f2bbe37387a6e',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -554,7 +554,7 @@ vars = {
   'libcxx_revision':       'b16984ce99c702355a5b2b4c52574e82cec41fb9',
 
   # GN CIPD package version.
-  'gn_version': 'git_revision:5ae53f3cdc589ce27419c4f84734d1abf2f0ac66',
+  'gn_version': 'git_revision:d8ce0ac50ac489314dd3b65ef39b527eabb3aeed',
 
   # ninja CIPD package.
   'ninja_package': 'infra/3pp/tools/ninja/',
@@ -1710,7 +1710,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': 'HQnzQb8mWY_HSXbn6xUUXlf47gSm2FfRafWxVhjZ6gkC',
+        'version': 'fgxLc4nC6myg5qdLMnnosZNovM31mTloSKqJ71OcR_EC',
       },
     ],
     'condition': 'non_git_source',
@@ -1822,7 +1822,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': 'X3ujqUgc6PPDiJaFF-r7RZAIg08B-Xmj_1WRcfkfG4cC',
+          'version': 'tK8h_3uv34eAR7QLeVt65viDbEu4JGmVq1V8usK_rwAC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
@@ -3120,7 +3120,7 @@ deps = {
       ],
   },
 
-  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@2c68d1fca805bfb556960e5fc3c766851fbcd93d',
+  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@2b7da4dc6042cbf6541bcd9233aaa12483244633',
   'src/third_party/glslang/src': '{chromium_git}/external/github.com/KhronosGroup/glslang@168d452a4f460d24b588fed08477a81c44ee27a1',
   'src/third_party/spirv-cross/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Cross@b8fcf307f1f347089e3c46eb4451d27f32ebc8d3',
   'src/third_party/spirv-headers/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Headers@29981f65241605e08b0ede4cfeb999fe3b723c6a',
@@ -3129,7 +3129,7 @@ deps = {
   'src/third_party/vulkan-loader/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Loader@7b909b404b1fbb62fd3feae08caf06a88f63500a',
   'src/third_party/vulkan-tools/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Tools@2a863f5ae6ee77baa882648581aab70530c2aefe',
   'src/third_party/vulkan-utility-libraries/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Utility-Libraries@b856ffcc0404a8c12fa45935e72d1446c72f5f37',
-  'src/third_party/vulkan-validation-layers/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-ValidationLayers@d9b3b81315c05ef5ec483519ab5b5fdfd4eb24f0',
+  'src/third_party/vulkan-validation-layers/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-ValidationLayers@023be642c35a3d0c24224721a3c748850bf08e56',
 
   'src/third_party/vulkan_memory_allocator':
     Var('chromium_git') + '/external/github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git' + '@' + '7e55b011e16182fc349149abbd3aaf3b1db46421',
