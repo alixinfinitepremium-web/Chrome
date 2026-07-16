@@ -32,7 +32,7 @@
             ]
         }
     ],
-    "AIFuseboxIOSModelPicker": [
+    "AIFuseboxIOSModelPicker_ROW": [
         {
             "platforms": [
                 "ios"
@@ -3024,6 +3024,26 @@
                     "name": "Enabled",
                     "enable_features": [
                         "AutofillFixCivilStateMisclassificationForESPT"
+                    ]
+                }
+            ]
+        }
+    ],
+    "AutofillFixCvcImport": [
+        {
+            "platforms": [
+                "android",
+                "chromeos",
+                "ios",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "AutofillFixCvcImport"
                     ]
                 }
             ]
@@ -6824,27 +6844,6 @@
                     "name": "Enabled",
                     "enable_features": [
                         "LensSendUrlsInComposeboxes"
-                    ]
-                }
-            ]
-        }
-    ],
-    "CompositeClipPathAnimation": [
-        {
-            "platforms": [
-                "android",
-                "android_webview",
-                "chromeos",
-                "fuchsia",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "CompositeClipPathAnimation"
                     ]
                 }
             ]
@@ -19097,22 +19096,6 @@
             ]
         }
     ],
-    "PaymentHandlerDialogUseInitiatorInUrlLoadForAndroid": [
-        {
-            "platforms": [
-                "android",
-                "android_webview"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "PaymentHandlerDialogUseInitiatorInUrlLoadForAndroid"
-                    ]
-                }
-            ]
-        }
-    ],
     "PaymentRequestRejectTooSmallWindows": [
         {
             "platforms": [
@@ -24009,26 +23992,6 @@
             ]
         }
     ],
-    "SyncValidateAccessToken": [
-        {
-            "platforms": [
-                "android",
-                "chromeos",
-                "ios",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "SyncValidateAccessToken"
-                    ]
-                }
-            ]
-        }
-    ],
     "SystemEmojiPickerGIFSupportByDefault": [
         {
             "platforms": [
@@ -25862,25 +25825,6 @@
             ]
         }
     ],
-    "VerticalTabs": [
-        {
-            "platforms": [
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "VerticalTabs",
-                        "VerticalTabsPreviewBadge"
-                    ]
-                }
-            ]
-        }
-    ],
     "VerticalTabsExpandOnHover": [
         {
             "platforms": [
@@ -25913,10 +25857,7 @@
     "VerticalTabsLaunch": [
         {
             "platforms": [
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
+                "chromeos"
             ],
             "experiments": [
                 {

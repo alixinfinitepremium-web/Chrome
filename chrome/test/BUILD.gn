@@ -5555,7 +5555,6 @@ test("unit_tests") {
     "//chrome/browser/share:unit_tests",
     "//chrome/browser/sharing",
     "//chrome/browser/sharing:unit_tests",
-    "//chrome/browser/sharing/click_to_call:unit_tests",
     "//chrome/browser/sharing/sms:unit_tests",
     "//chrome/browser/signin:unit_tests",
     "//chrome/browser/site_cookie_provider:unit_tests",
@@ -7938,7 +7937,6 @@ test("unit_tests") {
 
     deps += [
       "//chrome/browser/policy",
-      "//chrome/browser/sharing/click_to_call",
       "//chrome/browser/sharing/sms",
       "//components/enterprise:test_support",
     ]
@@ -8101,6 +8099,7 @@ test("unit_tests") {
       "../browser/ui/views/permissions/chip/webui_permission_chip_unittest.cc",
       "../browser/ui/views/permissions/permission_prompt_bubble_one_origin_view_unittest.cc",
       "../browser/ui/views/send_tab_to_self/send_tab_to_self_device_picker_bubble_view_unittest.cc",
+      "../browser/ui/views/send_tab_to_self/send_tab_to_self_no_target_device_bubble_view_unittest.cc",
       "../browser/ui/views/send_tab_to_self/send_tab_to_self_promo_bubble_view_unittest.cc",
       "../browser/ui/views/send_tab_to_self/send_tab_to_self_toolbar_bubble_view_unittest.cc",
       "../browser/ui/views/tab_contents/chrome_web_contents_view_delegate_views_unittest.cc",
