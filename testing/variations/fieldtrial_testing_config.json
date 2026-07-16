@@ -21241,6 +21241,9 @@
             "experiments": [
                 {
                     "name": "Enabled",
+                    "params": {
+                        "UseLazyURLLoaderFactoryForServiceWorkerFallback": "true"
+                    },
                     "enable_features": [
                         "ReduceMojoURLLoaderFactoryCloning"
                     ]
@@ -24102,33 +24105,6 @@
                     "name": "Enabled",
                     "enable_features": [
                         "TabAndroidGracefulShutdown"
-                    ]
-                }
-            ]
-        }
-    ],
-    "TabGroupInteractionsDesktop2": [
-        {
-            "platforms": [
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled_NewTabsAddToActiveGroup",
-                    "enable_features": [
-                        "NewTabAddsToActiveGroup"
-                    ]
-                },
-                {
-                    "name": "Enabled_TabGroupMenuChanges",
-                    "enable_features": [
-                        "BookmarkTabGroupConversion",
-                        "CreateNewTabGroupAppMenuTopLevel",
-                        "ShowTabGroupsMacSystemMenu",
-                        "TabGroupMenuMoreEntryPoints"
                     ]
                 }
             ]
