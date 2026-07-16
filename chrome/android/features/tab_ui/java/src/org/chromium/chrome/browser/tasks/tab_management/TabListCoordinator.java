@@ -338,6 +338,12 @@ public class TabListCoordinator implements PriceWelcomeMessageProvider, DestroyO
                     public boolean supportsMessageCards() {
                         return mMode == TabListMode.GRID;
                     }
+
+                    @Override
+                    public @Nullable NonNullObservableSupplier<Boolean>
+                            getIsRailCollapsedSupplier() {
+                        return null;
+                    }
                 };
 
         mMediator =
@@ -584,7 +590,7 @@ public class TabListCoordinator implements PriceWelcomeMessageProvider, DestroyO
         // where the runnable will not be serviced downstream, dropping the runnable altogether is
         // safe.
         if (mAwaitingLayoutRunnable != null) {
-            Log.d(TAG, "Dropping AwaitingLayoutRunnable for " + mAwaitingTabId);
+            Log.d(TAG, "Dropping AwaitingLayoutRunnable for %d", mAwaitingTabId);
             mAwaitingLayoutRunnable = null;
             mAwaitingTabId = Tab.INVALID_TAB_ID;
         }
