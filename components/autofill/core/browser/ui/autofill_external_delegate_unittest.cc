@@ -9,6 +9,7 @@
 #include <string>
 #include <string_view>
 #include <type_traits>
+#include <utility>
 #include <vector>
 
 #include "base/command_line.h"
@@ -496,8 +497,8 @@ class AutofillExternalDelegateTest : public testing::Test,
       accessibility_annotator::MemorySearchResults results) {
     auto mock_service =
         std::make_unique<testing::NiceMock<MockAtMemoryQueryService>>();
-    EXPECT_CALL(*mock_service, Query(Eq(query), _))
-        .WillOnce(base::test::RunOnceCallback<1>(std::move(results)));
+    EXPECT_CALL(*mock_service, Query(Eq(query), _, _, _))
+        .WillOnce(base::test::RunOnceCallback<3>(std::move(results)));
     // Inject the mock service into the client.
     autofill_client().set_at_memory_query_service(std::move(mock_service));
   }
@@ -994,8 +995,8 @@ TEST_F(AutofillExternalDelegateTest,
   MockAtMemoryQueryService* mock_service_ptr = mock_service.get();
   autofill_client().set_at_memory_query_service(std::move(mock_service));
 
-  EXPECT_CALL(*mock_service_ptr, Query(std::u16string_view(u"addr"), _))
-      .WillOnce(base::test::RunOnceCallback<1>(std::move(search_results1)));
+  EXPECT_CALL(*mock_service_ptr, Query(std::u16string_view(u"addr"), _, _, _))
+      .WillOnce(base::test::RunOnceCallback<3>(std::move(search_results1)));
 
   EXPECT_CALL(autofill_client(),
               UpdateAutofillSuggestions(testing::IsEmpty(), _, _, _));
@@ -1013,8 +1014,8 @@ TEST_F(AutofillExternalDelegateTest,
   // running immediately.
   base::RepeatingCallback<void(accessibility_annotator::MemorySearchResults)>
       received_callback;
-  EXPECT_CALL(*mock_service_ptr, Query(std::u16string_view(u"addr2"), _))
-      .WillOnce(testing::SaveArg<1>(&received_callback));
+  EXPECT_CALL(*mock_service_ptr, Query(std::u16string_view(u"addr2"), _, _, _))
+      .WillOnce(testing::SaveArg<3>(&received_callback));
 
   // We expect that UpdateAutofillSuggestions IS called when the second search
   // starts, which clears the suggestions list.
@@ -1055,8 +1056,8 @@ TEST_F(AutofillExternalDelegateTest, AtMemoryPartialResponseKeepsSearching) {
 
   base::RepeatingCallback<void(accessibility_annotator::MemorySearchResults)>
       received_callback;
-  EXPECT_CALL(*mock_service_ptr, Query(std::u16string_view(u"addr"), _))
-      .WillOnce(testing::SaveArg<1>(&received_callback));
+  EXPECT_CALL(*mock_service_ptr, Query(std::u16string_view(u"addr"), _, _, _))
+      .WillOnce(testing::SaveArg<3>(&received_callback));
 
   // Trigger the search, which clears suggestions.
   EXPECT_CALL(autofill_client(),
@@ -1112,8 +1113,8 @@ TEST_F(AutofillExternalDelegateTest, AtMemoryFinalResponseStopsSearching) {
 
   base::RepeatingCallback<void(accessibility_annotator::MemorySearchResults)>
       received_callback;
-  EXPECT_CALL(*mock_service_ptr, Query(std::u16string_view(u"addr"), _))
-      .WillOnce(testing::SaveArg<1>(&received_callback));
+  EXPECT_CALL(*mock_service_ptr, Query(std::u16string_view(u"addr"), _, _, _))
+      .WillOnce(testing::SaveArg<3>(&received_callback));
 
   // Trigger the search, which clears suggestions.
   EXPECT_CALL(autofill_client(),
@@ -1169,8 +1170,8 @@ TEST_F(AutofillExternalDelegateTest,
 
   base::RepeatingCallback<void(accessibility_annotator::MemorySearchResults)>
       received_callback;
-  EXPECT_CALL(*mock_service_ptr, Query(std::u16string_view(u"addr"), _))
-      .WillOnce(testing::SaveArg<1>(&received_callback));
+  EXPECT_CALL(*mock_service_ptr, Query(std::u16string_view(u"addr"), _, _, _))
+      .WillOnce(testing::SaveArg<3>(&received_callback));
 
   EXPECT_CALL(autofill_client(),
               UpdateAutofillSuggestions(testing::IsEmpty(), _, _, _));
@@ -1211,8 +1212,8 @@ TEST_F(AutofillExternalDelegateTest, AtMemoryStaleResponseIgnored) {
 
   base::RepeatingCallback<void(accessibility_annotator::MemorySearchResults)>
       received_callback1;
-  EXPECT_CALL(*mock_service_ptr, Query(std::u16string_view(u"addr1"), _))
-      .WillOnce(testing::SaveArg<1>(&received_callback1));
+  EXPECT_CALL(*mock_service_ptr, Query(std::u16string_view(u"addr1"), _, _, _))
+      .WillOnce(testing::SaveArg<3>(&received_callback1));
 
   EXPECT_CALL(autofill_client(),
               UpdateAutofillSuggestions(testing::IsEmpty(), _, _, _));
@@ -1221,8 +1222,8 @@ TEST_F(AutofillExternalDelegateTest, AtMemoryStaleResponseIgnored) {
   // Trigger second search before first one completes.
   base::RepeatingCallback<void(accessibility_annotator::MemorySearchResults)>
       received_callback2;
-  EXPECT_CALL(*mock_service_ptr, Query(std::u16string_view(u"addr2"), _))
-      .WillOnce(testing::SaveArg<1>(&received_callback2));
+  EXPECT_CALL(*mock_service_ptr, Query(std::u16string_view(u"addr2"), _, _, _))
+      .WillOnce(testing::SaveArg<3>(&received_callback2));
 
   EXPECT_CALL(autofill_client(),
               UpdateAutofillSuggestions(testing::IsEmpty(), _, _, _));
@@ -4005,6 +4006,27 @@ TEST_F(AutofillExternalDelegateTest, UpdateSuggestions) {
   external_delegate().AttemptToDisplayAutofillSuggestionsForTest(
       suggestions2, AutofillSuggestionTriggerSource::kUnspecified,
       std::nullopt);
+}
+
+// Tests that calling `AttemptToDisplayAutofillSuggestions` with empty
+// `trigger_field` and different filling product doesn't hide the popup.
+TEST_F(AutofillExternalDelegateTest, UpdateSuggestions_ProductChanged) {
+  base::HistogramTester histogram_tester;
+  IssueOnQuery();
+  EXPECT_CALL(autofill_client(), ShowAutofillSuggestions).Times(1);
+  EXPECT_CALL(autofill_client(), HideSuggestions).Times(0);
+
+  OnSuggestionsReturned(
+      queried_field(),
+      {Suggestion(u"Address suggestion", SuggestionType::kAddressEntry)});
+  external_delegate().AttemptToDisplayAutofillSuggestionsForTest(
+      {Suggestion(u"Autofill AI suggestion", SuggestionType::kFillAutofillAi)},
+      AutofillSuggestionTriggerSource::kUnspecified, std::nullopt);
+
+  int expected_sample = (std::to_underlying(FillingProduct::kAddress) << 8) |
+                        std::to_underlying(FillingProduct::kAutofillAi);
+  histogram_tester.ExpectUniqueSample(
+      "Autofill.PopupUpdateIgnored.ProductMismatch", expected_sample, 1);
 }
 
 // TODO(crbug.com/41483208): Add test case where 'Show cards from your Google
