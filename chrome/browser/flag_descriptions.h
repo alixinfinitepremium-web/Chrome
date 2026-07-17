@@ -3040,10 +3040,6 @@ inline constexpr char kLensOverlayEduActionChipDescription[] =
     "Enables Lens Overlay EDU action chip. Intended for testing the chip "
     "itself, not its triggering criteria.";
 
-inline constexpr char kLensOverlayEntrypointLabelAltName[] =
-    "Lens overlay entrypoint label";
-inline constexpr char kLensOverlayEntrypointLabelAltDescription[] =
-    "Replaces the string used for the Lens overlay entrypoint label.";
 
 inline constexpr char kLensOverlayForceEmptyCsbQueryName[] =
     "Lens overlay force empty CSB query";
@@ -3071,11 +3067,6 @@ inline constexpr char kLensOverlayOmniboxEntryPointName[] =
     "Lens Overlay Omnibox entrypoint";
 inline constexpr char kLensOverlayOmniboxEntryPointDescription[] =
     "Enables icon button for Lens entrypoint in the Omnibox.";
-
-inline constexpr char kLensOverlayOptimizationFilterName[] =
-    "Lens Overlay optimization filter";
-inline constexpr char kLensOverlayOptimizationFilterDescription[] =
-    "Enables using the optimization filter for triggering the action chip.";
 
 inline constexpr char kLensOverlaySidePanelOpenInNewTabName[] =
     "Lens overlay side panel open in new tab";
@@ -4460,6 +4451,12 @@ inline constexpr char kPwaNavigationCapturingName[] =
 inline constexpr char kPwaNavigationCapturingDescription[] =
     "Enables opening links from Chrome in an installed PWA. Currently under "
     "reimplementation.";
+
+inline constexpr char kPwaNavigationCapturingNameTesting[] =
+    "Desktop PWA Link Capturing Default On For Testing";
+inline constexpr char kPwaNavigationCapturingDescriptionTesting[] =
+    "Enables opening links from Chrome in an installed PWA by default for "
+    "testing.";
 
 inline constexpr char kIsolateOriginsName[] = "Isolate additional origins";
 inline constexpr char kIsolateOriginsDescription[] =

@@ -3313,6 +3313,12 @@ const flags_ui::FeatureEntry::FeatureVariation
          nullptr},
         {"V2, On by app client_mode",
          kPwaNavigationCapturingReimplOnViaClientMode, nullptr}};
+
+const flags_ui::FeatureEntry::FeatureVariation
+    kPwaNavigationCapturingVariationsForTesting[] = {
+        {"V2, On by default", kPwaNavigationCapturingReimplDefaultOn, nullptr},
+        {"V2, On by app client_mode",
+         kPwaNavigationCapturingReimplOnViaClientMode, nullptr}};
 #endif  // BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_WIN) ||
         // BUILDFLAG(IS_CHROMEOS)
 
@@ -3768,44 +3774,7 @@ const FeatureEntry::FeatureVariation kTouchToSearchCalloutVariations[] = {
 #endif  // BUILDFLAG(IS_ANDROID)
 
 #if !BUILDFLAG(IS_ANDROID)
-const FeatureEntry::FeatureParam kLensOverlayEduActionChipAllPages[] = {
-    {"url-allow-filters", "[\"*\"]"},
-    {"url-path-forced-allowed-match-patterns", "[\".\"]"},
-    {"disabled-by-glic", "false"},
-};
 
-const FeatureEntry::FeatureParam kLensOverlayEduActionChipHomework[] = {
-    {"url-allow-filters", "[\"*\"]"},
-    {"url-path-match-allow-filters", "[\"(?i)homework\"]"},
-    {"disabled-by-glic", "false"},
-};
-
-const FeatureEntry::FeatureVariation kLensOverlayEduActionChipVariations[] = {
-    {"trigger on \"homework\"", kLensOverlayEduActionChipHomework, nullptr},
-    {"force trigger all pages", kLensOverlayEduActionChipAllPages, nullptr},
-};
-
-const FeatureEntry::FeatureParam kLensOverlayEntrypointLabelAlt1[] = {
-    {"id", "1"},
-};
-
-const FeatureEntry::FeatureParam kLensOverlayEntrypointLabelAlt2[] = {
-    {"id", "2"},
-};
-
-const FeatureEntry::FeatureParam kLensOverlayEntrypointLabelAlt3[] = {
-    {"id", "3"},
-};
-
-const FeatureEntry::FeatureVariation
-    kLensOverlayEntrypointLabelAltVariations[] = {
-        {"Ask Google about this page", kLensOverlayEntrypointLabelAlt1,
-         nullptr},
-        {"Ask Google Lens about this page", kLensOverlayEntrypointLabelAlt2,
-         nullptr},
-        {"Search this page with Google Lens", kLensOverlayEntrypointLabelAlt3,
-         nullptr},
-};
 
 const FeatureEntry::FeatureParam kEnableNtpBrowserPromosVariationSimple[] = {
     {"promo-type", "simple"}};
@@ -4741,13 +4710,10 @@ const FeatureEntry::FeatureParam kGlassFrameEoH925[] = {
     {"BackgroundBlurOpacity", "0.925"}};
 const FeatureEntry::FeatureParam kGlassFrameEoH90[] = {
     {"BackgroundBlurOpacity", "0.90"}};
-const FeatureEntry::FeatureParam kDisableLiquidGlassEffect[] = {
-    {"UseLiquidGlassEffect", "false"}};
 const FeatureEntry::FeatureVariation kGlassFrameVariations[] = {
     {"expand-on-hover 5% glass", kGlassFrameEoH95, nullptr},
     {"expand-on-hover 7.5% glass", kGlassFrameEoH925, nullptr},
-    {"expand-on-hover 10% glass", kGlassFrameEoH90, nullptr},
-    {"disable liquid glass effect", kDisableLiquidGlassEffect, nullptr}};
+    {"expand-on-hover 10% glass", kGlassFrameEoH90, nullptr}};
 
 #if !BUILDFLAG(IS_ANDROID)
 const FeatureEntry::FeatureParam kDictationEvalModeParam[] = {
@@ -7327,8 +7293,7 @@ const FeatureEntry kFeatureEntries[] = {
                                     kNtpRealboxCr23ThemingVariations,
                                     "NtpRealboxCr23Theming")},
 
-    {"ntp-scaled-action-chips",
-     flag_descriptions::kNtpScaledActionChipsName,
+    {"ntp-scaled-action-chips", flag_descriptions::kNtpScaledActionChipsName,
      flag_descriptions::kNtpScaledActionChipsDescription, kOsDesktop,
      FEATURE_VALUE_TYPE(ntp_features::kNtpScaledActionChips)},
 
@@ -9868,6 +9833,14 @@ const FeatureEntry kFeatureEntries[] = {
      FEATURE_WITH_PARAMS_VALUE_TYPE(features::kPwaNavigationCapturing,
                                     kPwaNavigationCapturingVariations,
                                     "PwaNavigationCapturing")},
+    {"enable-user-navigation-capturing-pwa-testing-override",
+     flag_descriptions::kPwaNavigationCapturingNameTesting,
+     flag_descriptions::kPwaNavigationCapturingDescriptionTesting,
+     kOsLinux | kOsMac | kOsWin | kOsCrOS,
+     FEATURE_WITH_PARAMS_VALUE_TYPE(
+         apps::features::kPwaNavigationCapturingTestingOverride,
+         kPwaNavigationCapturingVariationsForTesting,
+         "PwaNavigationCapturingTestingOverride")},
 #endif  // BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_WIN) ||
         // BUILDFLAG(IS_CHROMEOS)
 
@@ -11701,17 +11674,8 @@ const FeatureEntry kFeatureEntries[] = {
     {"enable-lens-overlay-edu-action-chip",
      flag_descriptions::kLensOverlayEduActionChipName,
      flag_descriptions::kLensOverlayEduActionChipDescription, kOsDesktop,
-     FEATURE_WITH_PARAMS_VALUE_TYPE(lens::features::kLensOverlayEduActionChip,
-                                    kLensOverlayEduActionChipVariations,
-                                    "LensOverlayEduActionChip")},
+     FEATURE_VALUE_TYPE(lens::features::kLensOverlayEduActionChip)},
 
-    {"enable-lens-overlay-entrypoint-label-alt",
-     flag_descriptions::kLensOverlayEntrypointLabelAltName,
-     flag_descriptions::kLensOverlayEntrypointLabelAltDescription, kOsDesktop,
-     FEATURE_WITH_PARAMS_VALUE_TYPE(
-         lens::features::kLensOverlayEntrypointLabelAlt,
-         kLensOverlayEntrypointLabelAltVariations,
-         "LensOverlayEntrypointLabelAltVariations")},
 #endif
 
     {"safety-hub-disruptive-notification-revocation",
@@ -12338,14 +12302,6 @@ const FeatureEntry kFeatureEntries[] = {
      FEATURE_WITH_PARAMS_VALUE_TYPE(features::kAndroidDesktopZoomScaling,
                                     kAndroidDesktopZoomScalingVariations,
                                     "AndroidDesktopZoomScaling")},
-#endif
-
-#if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_LINUX) || \
-    BUILDFLAG(IS_CHROMEOS)
-    {"lens-overlay-optimization-filter",
-     flag_descriptions::kLensOverlayOptimizationFilterName,
-     flag_descriptions::kLensOverlayOptimizationFilterDescription, kOsDesktop,
-     FEATURE_VALUE_TYPE(lens::features::kLensOverlayOptimizationFilter)},
 #endif
 
 #if !BUILDFLAG(IS_ANDROID)
