@@ -407,7 +407,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '3bfb1bca8f3671a5f090e6572f54dbf6b5ad54d3',
+  'devtools_frontend_revision': '77c240f90e64b5f6915761276a5288fdb584cbfb',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1822,7 +1822,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': 'M44tpRUzaizITXC5ezO6Nkb5xYHEA8l7B7asfyz0SUsC',
+          'version': 'XQ9Do60jPCR44pyii2Z28-prb-96vc6DwcMur586UFMC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
@@ -3780,7 +3780,7 @@ deps = {
 
   'src/chrome/browser/ttc/resources/internal': {
       'url': Var('chrome_git') + '/chrome/browser/ttc/resources/internal.git' + '@' +
-        'd73053a63592e2c4795eb64c2a715efd04714679',
+        '91246e62c6e4f7745d4c0beae7075f124393d84b',
       'condition': 'checkout_src_internal',
   },
 
@@ -3983,7 +3983,7 @@ deps = {
 
   'src/components/test/data/autofill/heuristics-json/internal': {
       'url': Var('chrome_git') + '/chrome/test/autofill/structured_forms.git' + '@' +
-        'cb978f379a55ffe4b00f4ca86bc5bac3844ae5d9',
+        'c680e28aff0fe1c5410f319af3a8c5248f710310',
       'condition': 'checkout_chromium_autofill_test_dependencies',
   },
 
@@ -4013,7 +4013,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '891d1109147e5ff60ddd903881f000e1d6669f29',
+        '08d6719154a98bf64a39e491573091396c372d2a',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
