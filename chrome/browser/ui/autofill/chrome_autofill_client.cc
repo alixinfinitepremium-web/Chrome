@@ -187,6 +187,7 @@
 #include "chrome/browser/keyboard_accessory/android/manual_filling_controller.h"
 #include "chrome/browser/signin/android/signin_bridge.h"
 #include "chrome/browser/touch_to_fill/autofill/android/touch_to_fill_autofill_controller.h"
+#include "chrome/browser/touch_to_fill/autofill/android/touch_to_fill_autofill_view_impl.h"
 #include "chrome/browser/ui/android/autofill/at_memory_bottom_sheet_bridge.h"
 #include "chrome/browser/ui/android/autofill/at_memory_bottom_sheet_delegate_android.h"
 #include "chrome/browser/ui/android/autofill/autofill_ai_save_update_entity_flow_manager.h"
@@ -1254,6 +1255,22 @@ void ChromeAutofillClient::SetTouchToFillAutofillControllerForTesting(
   touch_to_fill_autofill_controller_ =
       std::move(touch_to_fill_autofill_controller);
 }
+
+bool ChromeAutofillClient::ShowAmbientAutoFillNotice(
+    base::WeakPtr<TouchToFillAutofillDelegate> delegate) {
+  if (!touch_to_fill_autofill_controller_) {
+    return false;
+  }
+  return touch_to_fill_autofill_controller_->ShowPersonalContextNotice(
+      std::make_unique<TouchToFillAutofillViewImpl>(web_contents()),
+      std::move(delegate));
+}
+
+void ChromeAutofillClient::HideAmbientAutoFillNotice() {
+  if (touch_to_fill_autofill_controller_) {
+    touch_to_fill_autofill_controller_->Hide();
+  }
+}
 #endif
 
 std::unique_ptr<device_reauth::DeviceAuthenticator>
@@ -1626,8 +1643,19 @@ void ChromeAutofillClient::ShowAutofillAiPreFetchFailureNotification() {
 
 void ChromeAutofillClient::ShowAutofillAiPrivateInferenceNotice() {
 #if BUILDFLAG(IS_ANDROID)
+  // TODO(crbug.com/530174611): Record the timestamp when the notice was shown.
+  base::OnceClosure action_callback = base::BindOnce(
+      [](base::WeakPtr<AutofillClient> client) {
+        if (client && client->GetPrefs()) {
+          client->GetPrefs()->SetTime(
+              prefs::kAutofillAiPrivateInferenceNoticeAcknowledgedTimestamp,
+              base::Time::Now());
+        }
+      },
+      GetWeakPtr());
   GetAutofillMessageController()->Show(
-      AutofillMessageModel::CreateForPrivateInferenceNotice(web_contents()));
+      AutofillMessageModel::CreateForPrivateInferenceNotice(
+          web_contents(), std::move(action_callback)));
 #else
   NOTREACHED();
 #endif  // BUILDFLAG(IS_ANDROID)

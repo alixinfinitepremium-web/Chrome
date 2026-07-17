@@ -25,16 +25,20 @@
 #include "ui/base/l10n/l10n_util.h"
 #include "ui/base/metadata/metadata_impl_macros.h"
 #include "ui/color/color_id.h"
+#include "ui/events/keycodes/keyboard_codes.h"
 #include "ui/gfx/geometry/insets.h"
 #include "ui/views/accessibility/view_accessibility.h"
 #include "ui/views/background.h"
 #include "ui/views/border.h"
+#include "ui/views/controls/button/button.h"
 #include "ui/views/controls/button/md_text_button.h"
+#include "ui/views/controls/focus_ring.h"
 #include "ui/views/controls/link.h"
 #include "ui/views/controls/styled_label.h"
 #include "ui/views/layout/box_layout.h"
 #include "ui/views/layout/layout_types.h"
 #include "ui/views/style/typography.h"
+#include "ui/views/style/typography_provider.h"
 #include "ui/views/view.h"
 #include "ui/views/view_class_properties.h"
 #include "ui/views/view_utils.h"
@@ -46,7 +50,7 @@ namespace {
 constexpr int kBetweenChildSpacing = 8;
 constexpr int kBackgroundCornerRadius = 10;
 constexpr int kBorderInsets = 12;
-constexpr int kRowVerticalMargin = 8;
+constexpr int kRowVerticalMargin = 12;
 constexpr int kRowHorizontalMargin = 12;
 constexpr int kMinimumWidth = 320;
 
@@ -109,6 +113,9 @@ PopupPersonalContextNoticeView::PopupPersonalContextNoticeView(
   GetViewAccessibility().SetName(full_text, ax::mojom::NameFrom::kAttribute);
   description_->SetText(std::move(full_text));
   description_->SetTextContext(views::style::CONTEXT_DIALOG_BODY_TEXT);
+  description_->SetDefaultTextStyle(views::style::STYLE_BODY_5);
+  description_->SetLineHeight(views::TypographyProvider::Get().GetLineHeight(
+      views::style::CONTEXT_DIALOG_BODY_TEXT, views::style::STYLE_BODY_5));
 
   views::StyledLabel::RangeStyleInfo title_style;
   title_style.text_style = views::style::STYLE_BODY_5_MEDIUM;
@@ -116,8 +123,8 @@ PopupPersonalContextNoticeView::PopupPersonalContextNoticeView(
   description_->AddStyleRange(gfx::Range(0, title_text.length()), title_style);
 
   views::StyledLabel::RangeStyleInfo context_style;
-  context_style.text_style = views::style::STYLE_BODY_5_MEDIUM;
-  context_style.override_color_id = ui::kColorLabelForegroundSecondary;
+  context_style.text_style = views::style::STYLE_BODY_5;
+  context_style.override_color_id = ui::kColorSysOnSurfaceSubtle;
   description_->AddStyleRange(
       gfx::Range(title_text.length() + 1,
                  title_text.length() + 1 + context_text.length()),
@@ -128,6 +135,8 @@ PopupPersonalContextNoticeView::PopupPersonalContextNoticeView(
       views::StyledLabel::RangeStyleInfo::CreateForLink(base::BindRepeating(
           &PopupPersonalContextNoticeView::OnSettingsLinkClicked,
           base::Unretained(this)));
+  link_style.text_style = views::style::STYLE_LINK_5;
+  link_style.override_color_id = ui::kColorSysPrimary;
   description_->AddStyleRange(gfx::Range(link_start, full_text_length),
                               link_style);
 
@@ -137,6 +146,13 @@ PopupPersonalContextNoticeView::PopupPersonalContextNoticeView(
                           base::Unretained(this)),
       button_text));
   got_it_button_->SetStyle(ui::ButtonStyle::kTonal);
+
+  if (views::FocusRing* focus_ring = views::FocusRing::Get(got_it_button_)) {
+    focus_ring->SetHasFocusPredicate(base::BindRepeating(
+        [](const PopupPersonalContextNoticeView* notice_view,
+           const views::View* view) { return notice_view->is_button_focused_; },
+        base::Unretained(this)));
+  }
 }
 
 std::optional<PopupInteractiveRowView::CellType>
@@ -146,20 +162,37 @@ PopupPersonalContextNoticeView::GetSelectedCell() const {
 
 void PopupPersonalContextNoticeView::SetSelectedCell(
     std::optional<PopupInteractiveRowView::CellType> cell) {
-  // TODO(crbug.com/515651052): Implement the behavior when the focus is
-  // entering the notice view.
+  if (cell) {
+    FocusLink();
+  } else {
+    UnfocusLink();
+    UnfocusButton();
+  }
 }
 
 bool PopupPersonalContextNoticeView::HandleKeyPressEvent(
     const input::NativeWebKeyboardEvent& event) {
-  // TODO(crbug.com/515651052): Handle internal navigation between
-  // the "Settings" link and "Got It" button.
+  // The main element (we always go through) is the "Settings" link and
+  // the "Got it" button is the secondary one we can navigate to from it.
+  const bool is_rtl = base::i18n::IsRTL();
+  const int main_to_secondary = is_rtl ? ui::VKEY_LEFT : ui::VKEY_RIGHT;
+  const int secondary_to_main = is_rtl ? ui::VKEY_RIGHT : ui::VKEY_LEFT;
+
+  if (event.windows_key_code == main_to_secondary && is_link_focused_) {
+    UnfocusLink();
+    FocusButton();
+    return true;
+  } else if (event.windows_key_code == secondary_to_main &&
+             is_button_focused_) {
+    UnfocusButton();
+    FocusLink();
+    return true;
+  }
   return false;
 }
 
 bool PopupPersonalContextNoticeView::IsSelectable() const {
-  // TODO(crbug.com/515651052): Return true when navigation is implemented.
-  return false;
+  return true;
 }
 
 void PopupPersonalContextNoticeView::OnGotItButtonClicked() {
@@ -185,6 +218,56 @@ void PopupPersonalContextNoticeView::OnSettingsLinkClicked() {
                                         chrome::kSuggestionsFromGeminiSubPage);
 }
 
+void PopupPersonalContextNoticeView::FocusLink() {
+  if (description_) {
+    is_link_focused_ = true;
+    UpdateLinkBorders(/*focused=*/true);
+  }
+}
+
+void PopupPersonalContextNoticeView::UnfocusLink() {
+  if (description_) {
+    is_link_focused_ = false;
+    UpdateLinkBorders(/*focused=*/false);
+  }
+}
+
+void PopupPersonalContextNoticeView::UpdateLinkBorders(bool focused) {
+  if (!description_) {
+    return;
+  }
+  // A multi-line link created by `StyledLabel` is split into multiple link
+  // fragments. We iterate over all `views::Link` child views to ensure the
+  // focus border styling is applied to or removed from the entire wrapped link.
+  for (views::View* child : description_->children()) {
+    if (views::IsViewClass<views::Link>(child)) {
+      child->SetBorder(focused ? views::CreateSolidBorder(
+                                     1, ui::kColorFocusableBorderFocused)
+                               : views::CreateEmptyBorder(1));
+    }
+  }
+}
+
+void PopupPersonalContextNoticeView::FocusButton() {
+  if (got_it_button_) {
+    is_button_focused_ = true;
+    got_it_button_->SetState(views::Button::STATE_HOVERED);
+    if (views::FocusRing* focus_ring = views::FocusRing::Get(got_it_button_)) {
+      focus_ring->Refresh();
+    }
+  }
+}
+
+void PopupPersonalContextNoticeView::UnfocusButton() {
+  if (got_it_button_) {
+    is_button_focused_ = false;
+    got_it_button_->SetState(views::Button::STATE_NORMAL);
+    if (views::FocusRing* focus_ring = views::FocusRing::Get(got_it_button_)) {
+      focus_ring->Refresh();
+    }
+  }
+}
+
 views::Link* PopupPersonalContextNoticeView::GetSettingsLink() const {
   if (!description_) {
     return nullptr;
@@ -207,6 +290,7 @@ void PopupPersonalContextNoticeView::Layout(views::View::PassKey pass_key) {
   auto* link = GetSettingsLink();
   if (link) {
     link->SetFocusBehavior(views::View::FocusBehavior::NEVER);
+    link->SetFontList(link->font_list().DeriveWithStyle(gfx::Font::UNDERLINE));
   }
 }
 
@@ -228,9 +312,7 @@ gfx::Size PopupPersonalContextNoticeView::CalculatePreferredSize(
   gfx::Size content_preferred_size =
       views::View::CalculatePreferredSize(views::SizeBounds(width, {}));
 
-  int height = content_preferred_size.height() + GetInsets().height();
-
-  return gfx::Size(width, height);
+  return content_preferred_size;
 }
 
 PopupPersonalContextNoticeView::~PopupPersonalContextNoticeView() = default;
