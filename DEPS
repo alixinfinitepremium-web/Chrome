@@ -323,7 +323,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': 'a058a8bd8599388e816392252bbec5a93d0c5b6a',
+  'src_internal_revision': '898db366e872d600459eebcd1a7486ae3c310f1c',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -331,7 +331,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': '11e21c9eef8d6832cc32d2f4afd93eea3e410ca4',
+  'v8_revision': '9f02713acf2b35317bf3e627145cb121d2623716',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -407,7 +407,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '6dd2e1014ac3b5620b868cf6f5952358781cf577',
+  'devtools_frontend_revision': '92188bb1269ae23ed301b6bcd82d3ac453000682',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -554,7 +554,7 @@ vars = {
   'libcxx_revision':       'b16984ce99c702355a5b2b4c52574e82cec41fb9',
 
   # GN CIPD package version.
-  'gn_version': 'git_revision:e39e7711d043a212de384b8f5f46ea8678416306',
+  'gn_version': 'git_revision:566d29033b5fd7c73e5e8bbcf7ab794194df68bd',
 
   # ninja CIPD package.
   'ninja_package': 'infra/3pp/tools/ninja/',
@@ -1710,7 +1710,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': 'w1MPpwp9C8t8RnHR2kEL9S9QGt4toI_glGeW4rrheEQC',
+        'version': 'Xo7oHHGXMwFsGG_TsM7plsa3qYnnP3Zph-VUiJ-nSOkC',
       },
     ],
     'condition': 'non_git_source',
@@ -2140,7 +2140,7 @@ deps = {
   # Tools used when building Chrome for Chrome OS. This affects both the Simple
   # Chrome workflow, as well as the chromeos-chrome ebuild.
   'src/third_party/chromite': {
-      'url': Var('chromium_git') + '/chromiumos/chromite.git' + '@' + '8fc7b8204f318bce033f1579ed5c4c69c291fcde',
+      'url': Var('chromium_git') + '/chromiumos/chromite.git' + '@' + 'ea5e74dcac945a42f755720df5b3aff4d5ce8a3b',
       'condition': 'checkout_chromeos',
   },
 
