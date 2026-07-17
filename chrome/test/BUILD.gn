@@ -3631,6 +3631,8 @@ if (!is_android) {
         "//chrome/app:chrome_dll_resources",
         "//chrome/app:command_ids",
         "//chrome/browser:font_prewarmer_tab_helper",
+        "//chrome/browser/ui:uninstall_browser_prompt",
+        "//chrome/browser/ui/views:uninstall_browser_prompt",
         "//chrome/browser/win:browser_tests",
         "//chrome/credential_provider/common:common_constants",
         "//components/onc",
@@ -6138,6 +6140,8 @@ test("unit_tests") {
       "//chrome/browser/os_crypt",
       "//chrome/browser/os_crypt:unit_tests",
       "//chrome/browser/shortcuts",
+      "//chrome/browser/ui:uninstall_browser_prompt",
+      "//chrome/browser/ui/views:uninstall_browser_prompt",
       "//chrome/browser/ui/search_promotion:unit_tests",
       "//chrome/browser/ui/webui/version:unit_tests",
       "//chrome/browser/win:chrome_process_finder",
@@ -6354,8 +6358,6 @@ test("unit_tests") {
       "../browser/optimization_guide/android/optimization_guide_bridge_unittest.cc",
       "../browser/optimization_guide/android/optimization_guide_tab_url_provider_android_unittest.cc",
       "../browser/readaloud/android/prefs_unittest.cc",
-      "../browser/signin/android/cross_device_signin_flow_navigation_throttle_unittest.cc",
-      "../browser/signin/android/signin_manager_android_unittest.cc",
     ]
 
     deps += [

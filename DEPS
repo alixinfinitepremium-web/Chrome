@@ -399,7 +399,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling fuzztest
   # and whatever else without interference from each other.
-  'fuzztest_revision': 'baaa27377182e8e19899693c335da8a69dd21155',
+  'fuzztest_revision': 'df6fca2bb669b7c46103edd65c890f9df2ba3df7',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling domato
   # and whatever else without interference from each other.
@@ -4013,7 +4013,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '1e7065ecfb94b3866e6763a39cee823f1061fdc5',
+        'e3d06e8920f44a651cb83678a5f0e475c3f98499',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
