@@ -1266,7 +1266,7 @@ crbug.com/495458814 [ Linux ] external/wpt/css/css-masking/mask-image/mask-image
 crbug.com/495458814 [ Linux ] external/wpt/css/css-overflow/overflow-auto-scrolling-with-margin-and-transform.html [ Failure Pass ]
 crbug.com/495458814 [ Linux ] external/wpt/css/css-overflow/overflow-body-propagation-013.html [ Pass Timeout ]
 crbug.com/495458814 [ Linux ] external/wpt/css/css-overflow/scroll-markers/root-scroll-button-activation.html [ Pass Timeout ]
-crbug.com/492790879 external/wpt/css/css-overflow/scroll-markers/scroll-marker-navigation-cycles.html [ Failure Pass ]
+crbug.com/492790879 external/wpt/css/css-overflow/scroll-markers/scroll-marker-navigation-cycles.html [ Failure Pass Timeout ]
 crbug.com/495458814 [ Linux ] external/wpt/css/css-pseudo/text-selection.html [ Failure Pass ]
 crbug.com/495458814 [ Linux ] external/wpt/css/css-values/rlh-on-root-lengths.html [ Failure Pass ]
 crbug.com/495458814 [ Linux ] external/wpt/css/cssom/font-family-serialization-001.html [ Failure Pass ]
@@ -9186,9 +9186,8 @@ crbug.com/448800278 [ Mac ] external/wpt/notifications/registration-association.
 crbug.com/40250618 [ Mac ] external/wpt/html/cross-origin-opener-policy/reporting/access-reporting/access-from-coop-page-to-opener_coop-ro_cross-origin.https.html [ Failure Pass ]
 
 # Gardener 2026-01-08
-crbug.com/474158153 [ Linux ] external/wpt/xml/xslt/large-cdata.html [ Crash Failure Pass Timeout ]
-crbug.com/474155097 [ Linux ] virtual/xslt-disabled/external/wpt/xml/xslt/large-cdata.html [ Crash Failure Pass Timeout ]
-crbug.com/474158153 [ Win ] external/wpt/xml/xslt/large-cdata.html [ Crash Failure Pass ]
+crbug.com/474158153 [ Linux ] external/wpt/xml/xslt/large-cdata.html [ Crash Failure Pass ]
+crbug.com/474155097 [ Linux ] virtual/xslt-disabled/external/wpt/xml/xslt/large-cdata.html [ Crash Failure Pass ]
 
 # Gardener 2026-01-12
 crbug.com/475047610 [ Linux ] external/wpt/webdriver/tests/bidi/input/perform_actions/pointer_mouse.py [ Failure Timeout ]

@@ -327,15 +327,15 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '1a70f537d1b3c0223089f21cff34633984fffa62',
+  'skia_revision': '59e52ab1d4e32ffc4562fde48c8fbb9e1531b75f',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': '3b7743895333aa2c43f0a45f1f45bbd52c61b687',
+  'v8_revision': '7e7b509f281a31278468e185b78b4f9e8bf40ba1',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '911e02025afc91469fb02b5872f5eae6c314a20d',
+  'angle_revision': '57ce6e20b57c890d6d63a42fd5376fc400a75fd6',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -391,7 +391,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_web_tests_revision': '9296bfdad605c142f88fbf480c0d086b09ed323c',
+  'crossbench_web_tests_revision': 'bc2dbc8937c9c34634780b5644ee08695f5807da',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libFuzzer
   # and whatever else without interference from each other.
@@ -407,7 +407,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'd915e63ca3fd4bea4049725c1916bc91682516e5',
+  'devtools_frontend_revision': '052e32ed24542e1d05880da62acf3868635f4951',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -2557,7 +2557,7 @@ deps = {
   },
 
   'src/third_party/libphonenumber/src':
-    Var('chromium_git') + '/external/libphonenumber.git' + '@' + '1b411cef61875cdb35e543514eaa499db5893c95',
+    Var('chromium_git') + '/external/libphonenumber.git' + '@' + 'f7e3e88c92b905c8d6edb81f336dbe25edc05b52',
 
   'src/third_party/libprotobuf-mutator/src':
     Var('chromium_git') + '/external/github.com/google/libprotobuf-mutator.git' + '@' +  Var('libprotobuf-mutator'),
