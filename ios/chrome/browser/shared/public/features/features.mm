@@ -1084,7 +1084,8 @@ bool IsDisableFeedbackForIneligibleUsersEnabled() {
 BASE_FEATURE(kFullscreenRefactoring, base::FEATURE_DISABLED_BY_DEFAULT);
 
 bool IsFullscreenRefactoringEnabled() {
-  return base::FeatureList::IsEnabled(kFullscreenRefactoring);
+  return IsChromeNextIaEnabled() ||
+         base::FeatureList::IsEnabled(kFullscreenRefactoring);
 }
 
 BASE_FEATURE(kPageToolsFeatureUnavailability, base::FEATURE_ENABLED_BY_DEFAULT);
@@ -1261,10 +1262,4 @@ BASE_FEATURE(kSearchEngineChoiceScreenSnackbar,
 
 bool IsSearchEngineChoiceScreenSnackbarEnabled() {
   return base::FeatureList::IsEnabled(kSearchEngineChoiceScreenSnackbar);
-}
-
-BASE_FEATURE(kToolbarGlassPrototype, base::FEATURE_DISABLED_BY_DEFAULT);
-
-bool IsToolbarGlassPrototypeEnabled() {
-  return base::FeatureList::IsEnabled(kToolbarGlassPrototype);
 }

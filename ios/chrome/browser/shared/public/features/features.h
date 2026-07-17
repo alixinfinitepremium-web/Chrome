@@ -895,7 +895,7 @@ bool IsDisableFeedbackForIneligibleUsersEnabled();
 // Enables the FullscreenRefactoring feature.
 BASE_DECLARE_FEATURE(kFullscreenRefactoring);
 
-// Returns true if the FullscreenRefactoring feature is enabled.
+// Returns true if the FullscreenRefactoring feature or ChromeNext is enabled.
 bool IsFullscreenRefactoringEnabled();
 
 // Enables the AskAboutThisPage feature.
@@ -1046,11 +1046,5 @@ BASE_DECLARE_FEATURE(kSearchEngineChoiceScreenSnackbar);
 
 // Returns true if SearchEngineChoiceScreenSnackbar is enabled.
 bool IsSearchEngineChoiceScreenSnackbarEnabled();
-
-// Enables the ToolbarGlassPrototype feature.
-BASE_DECLARE_FEATURE(kToolbarGlassPrototype);
-
-// Returns true if the ToolbarGlassPrototype feature is enabled.
-bool IsToolbarGlassPrototypeEnabled();
 
 #endif  // IOS_CHROME_BROWSER_SHARED_PUBLIC_FEATURES_FEATURES_H_

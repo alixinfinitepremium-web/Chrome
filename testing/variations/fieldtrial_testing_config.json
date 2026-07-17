@@ -2775,6 +2775,26 @@
             ]
         }
     ],
+    "AutofillComplementCountryUsingPhoneNumber": [
+        {
+            "platforms": [
+                "android",
+                "chromeos",
+                "ios",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "AutofillComplementCountryUsingPhoneNumber"
+                    ]
+                }
+            ]
+        }
+    ],
     "AutofillCreditCardUserPerceptionSurvey": [
         {
             "platforms": [
@@ -9140,6 +9160,23 @@
                     "name": "Enabled",
                     "enable_features": [
                         "DiacriticsOnPhysicalKeyboardLongpressDefaultOn"
+                    ]
+                }
+            ]
+        }
+    ],
+    "DiceProtocolVersion2": [
+        {
+            "platforms": [
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled_20260716",
+                    "enable_features": [
+                        "DiceHeaderVersion2"
                     ]
                 }
             ]
@@ -25841,6 +25878,25 @@
             ]
         }
     ],
+    "VerticalTabs": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "VerticalTabs",
+                        "VerticalTabsPreviewBadge"
+                    ]
+                }
+            ]
+        }
+    ],
     "VerticalTabsExpandOnHover": [
         {
             "platforms": [
@@ -25873,7 +25929,10 @@
     "VerticalTabsLaunch": [
         {
             "platforms": [
-                "chromeos"
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
             ],
             "experiments": [
                 {

@@ -327,7 +327,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '2e4a3ae035cd7630ed0b6de776da444a34f9de32',
+  'skia_revision': '702c3e790232d4cccfcb1d49e8294126de645cb7',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -407,7 +407,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '4b1a6195fa8932910a0fb9968e61cb83cd492ec5',
+  'devtools_frontend_revision': '4bf2750477cd3234ec0ce00f51e023aa0e6c3c5b',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1188,10 +1188,10 @@ deps = {
     'condition': 'non_git_source',
     'objects': [
       {
-        'object_name': 'meet-gpu-tests/927042943.tar.gz',
-        'sha256sum': 'c0dd6e5696b31049ec780cf4ad8009c54edc922763b999b89faf41c365042176',
-        'size_bytes': 277434798,
-        'generation': 1780649425827802,
+        'object_name': 'meet-gpu-tests/949354730.tar.gz',
+        'sha256sum': '51dd1d2d832662c1980cafc492839835a09875f340d2cdb49c81151b923ac59d',
+        'size_bytes': 278448515,
+        'generation': 1784278368237605,
       },
     ],
   },
@@ -1722,7 +1722,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '71bc8e2b659b2865806060abeabaf198b6104cdc',
+    '73605337c9f8d9d2432a530517ae674b520d979f',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -1822,7 +1822,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': 'idyjfSdHNv1hsih16zo4FrzzUvKg4i_NEPUJbelpooMC',
+          'version': 'M44tpRUzaizITXC5ezO6Nkb5xYHEA8l7B7asfyz0SUsC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
@@ -4013,7 +4013,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '5cecccecb99af9a5222c5b9c3e00c64ceb5837cd',
+        'd3fa03423558fdc7a15a8bd9dc560265be7ad4cb',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 

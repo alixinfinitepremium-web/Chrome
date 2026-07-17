@@ -197,10 +197,6 @@ inline constexpr char kAutofillAmbientAutofillName[] =
 inline constexpr char kAutofillAmbientAutofillDescription[] =
     "Enables Ambient Autofill.";
 
-inline constexpr char kAutofillAtMemoryName[] = "Autofill AtMemory";
-inline constexpr char kAutofillAtMemoryDescription[] =
-    "Enables Autofill AtMemory.";
-
 inline constexpr char kAutofillBottomSheetNewBlurName[] =
     "New Blur Method for Autofill Bottom Sheet";
 inline constexpr char kAutofillBottomSheetNewBlurDescription[] =
@@ -1965,10 +1961,6 @@ inline constexpr char kTabSwitcherOverflowMenuDescription[] =
 inline constexpr char kTaiyakiAllSurfacesName[] = "Taiyaki (all surfaces)";
 inline constexpr char kTaiyakiAllSurfacesDescription[] =
     "Enables Taiyaki for all surfaces (including post-FRE).";
-
-inline constexpr char kToolbarGlassPrototypeName[] = "ToolbarGlassPrototype";
-inline constexpr char kToolbarGlassPrototypeDescription[] =
-    "Enables the toolbar_glass_prototype feature.";
 
 inline constexpr char kUpdateTabGroupColorsName[] = "UpdateTabGroupColors";
 inline constexpr char kUpdateTabGroupColorsDescription[] =

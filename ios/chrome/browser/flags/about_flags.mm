@@ -2642,9 +2642,6 @@ constexpr auto kFeatureEntries = std::to_array<flags_ui::FeatureEntry>({
      flag_descriptions::kAutofillAmbientAutofillName,
      flag_descriptions::kAutofillAmbientAutofillDescription, flags_ui::kOsIos,
      FEATURE_VALUE_TYPE(autofill::features::kAutofillAmbientAutofill)},
-    {"autofill-at-memory", flag_descriptions::kAutofillAtMemoryName,
-     flag_descriptions::kAutofillAtMemoryDescription, flags_ui::kOsIos,
-     FEATURE_VALUE_TYPE(autofill::features::kAutofillAtMemory)},
     {"gemini-chat-persistence", flag_descriptions::kGeminiChatPersistenceName,
      flag_descriptions::kGeminiChatPersistenceDescription, flags_ui::kOsIos,
      FEATURE_VALUE_TYPE(kGeminiChatPersistence)},
@@ -2879,9 +2876,6 @@ constexpr auto kFeatureEntries = std::to_array<flags_ui::FeatureEntry>({
      flag_descriptions::kIOSPasskeyModalLoginWithShimName,
      flag_descriptions::kIOSPasskeyModalLoginWithShimDescription,
      flags_ui::kOsIos, FEATURE_VALUE_TYPE(kIOSPasskeyModalLoginWithShim)},
-    {"toolbar-glass-prototype", flag_descriptions::kToolbarGlassPrototypeName,
-     flag_descriptions::kToolbarGlassPrototypeDescription, flags_ui::kOsIos,
-     FEATURE_VALUE_TYPE(kToolbarGlassPrototype)},
 });
 
 bool SkipConditionalFeatureEntry(const flags_ui::FeatureEntry& entry) {

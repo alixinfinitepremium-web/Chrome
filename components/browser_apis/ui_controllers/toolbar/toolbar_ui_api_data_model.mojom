@@ -282,7 +282,7 @@ struct AvatarControlState {
   mojo_base.mojom.String16 accessibility_name;
   mojo_base.mojom.String16 accessibility_description;
   bool enabled = true;
-  bool has_ai_ring = false;
+  bool has_linear_gradient_ring = false;
 };
 
 // The type of the content setting image model.
@@ -422,9 +422,6 @@ struct PageActionState {
 
   // Mouseover tooltip to display.
   mojo_base.mojom.String16 tooltip_text;
-
-  // The icon to display.
-  IconHandle icon;
 
   // TODO: crbug.com/501449027 - Add remaining fields.
 };
