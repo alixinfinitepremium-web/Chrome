@@ -29,21 +29,40 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
+
+          api_retry() {
+            local api_attempt output
+            for api_attempt in 1 2 3 4 5; do
+              if output="$(gh api "$@" 2>&1)"; then
+                printf '%s\n' "$output"
+                return 0
+              fi
+              printf 'gh api attempt %s/5 failed: %s\n' \
+                "$api_attempt" "$output" >&2
+              sleep $((api_attempt * 2))
+            done
+            return 1
+          }
+
           for attempt in 1 2 3 4; do
             # Freeze the target before merging. Chromium can advance several
             # times while this job runs, so requiring zero lag against a later
             # live head creates false failures even after a successful import.
-            frozen_upstream="$(gh api "repos/chromium/chromium/commits/main" --jq '.sha')"
+            frozen_upstream="$(api_retry \
+              "repos/chromium/chromium/commits/main" --jq '.sha')"
 
-            gh api --method POST "repos/${GITHUB_REPOSITORY}/merge-upstream" \
+            api_retry --method POST \
+              "repos/${GITHUB_REPOSITORY}/merge-upstream" \
               -f branch=main --jq '{message, merge_type, base_branch}'
 
-            mirror="$(gh api "repos/${GITHUB_REPOSITORY}/commits/main" --jq '.sha')"
-            frozen_behind="$(gh api \
+            mirror="$(api_retry \
+              "repos/${GITHUB_REPOSITORY}/commits/main" --jq '.sha')"
+            frozen_behind="$(api_retry \
               "repos/${GITHUB_REPOSITORY}/compare/${frozen_upstream}...main" \
               --jq '.behind_by')"
-            live_upstream="$(gh api "repos/chromium/chromium/commits/main" --jq '.sha')"
-            live_behind="$(gh api \
+            live_upstream="$(api_retry \
+              "repos/chromium/chromium/commits/main" --jq '.sha')"
+            live_behind="$(api_retry \
               "repos/${GITHUB_REPOSITORY}/compare/${live_upstream}...main" \
               --jq '.behind_by')"
             printf 'attempt=%s frozen_upstream=%s mirror=%s frozen_behind=%s live_upstream=%s live_behind=%s\n' \
@@ -65,4 +84,3 @@ jobs:
 
           printf 'Mirror did not contain any frozen upstream target after four attempts.\n' >&2
           exit 1
-
