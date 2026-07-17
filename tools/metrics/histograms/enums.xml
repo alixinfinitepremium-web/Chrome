@@ -8330,6 +8330,7 @@ from previous Chrome versions.
   <int value="-1998060131" label="WebMCPTesting:disabled"/>
   <int value="-1996887988" label="WaylandLinuxDrmSyncobj:disabled"/>
   <int value="-1996592771" label="FedCmAccountAutoSelectedFlag:enabled"/>
+  <int value="-1996458427" label="MultistepFilter:enabled"/>
   <int value="-1996233283"
       label="OmniboxGroupSuggestionsBySearchVsUrl:enabled"/>
   <int value="-1996087238" label="kAutofillEnableOffersInDownstream:enabled"/>
@@ -17698,6 +17699,7 @@ from previous Chrome versions.
   <int value="992066588" label="SHA1ServerSignature:disabled"/>
   <int value="992151904" label="AutofillAtMemory:enabled"/>
   <int value="992170242" label="AutofillAiWalletVehicleRegistration:enabled"/>
+  <int value="992265305" label="MultistepFilter:disabled"/>
   <int value="993486662" label="BorealisForceBetaClient:enabled"/>
   <int value="993850099" label="FedCmButtonMode:disabled"/>
   <int value="994317727"
@@ -17801,6 +17803,7 @@ from previous Chrome versions.
   <int value="1023777155" label="AutocorrectParamsTuning:enabled"/>
   <int value="1023849676" label="SmdsDbusMigration:enabled"/>
   <int value="1024560563" label="EnableFuzzyAppSearch:enabled"/>
+  <int value="1025089469" label="GlicTabGroups:disabled"/>
   <int value="1025383624" label="FilesLocalImageSearch:enabled"/>
   <int value="1026169964" label="MicMuteNotifications:enabled"/>
   <int value="1026981579" label="TLS13HardeningForLocalAnchors:enabled"/>
@@ -18985,6 +18988,7 @@ from previous Chrome versions.
   <int value="1392400382" label="EnableAIRewriterAPI:disabled"/>
   <int value="1392836587" label="DesktopPWAsElidedExtensionsMenu:disabled"/>
   <int value="1392935139" label="KidsManagementUrlClassification:enabled"/>
+  <int value="1392999416" label="GlicTabGroups:enabled"/>
   <int value="1393413889" label="SeparatePointingStickSettings:disabled"/>
   <int value="1393500952" label="EnableVirtualKeyboardUkm:disabled"/>
   <int value="1393722373" label="SaveEditedPDFForm:disabled"/>

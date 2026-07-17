@@ -3379,6 +3379,16 @@
       },
       base_feature: "none",
     },
+    // When a Web application calls getDisplayMedia(), allow a hint to be
+    // provided as to whether the Web application prefers prioritizing audio
+    // capture.
+    //
+    // https://w3c.github.io/mediacapture-screen-share/#dom-displaymediastreamoptions-audioselection
+    {
+      name: "GetDisplayMediaAudioSelection",
+      depends_on: ["GetDisplayMedia"],
+      status: "experimental",
+    },
     {
       name: "GetDisplayMediaRequiresUserActivation",
       depends_on: ["GetDisplayMedia"],
@@ -3621,6 +3631,12 @@
       origin_trial_os: [ "win" ],
       base_feature: "none",
       public: true,
+    },
+    {
+      // Support for https://www.w3.org/TR/IFT/. Tracked at
+      // https://chromestatus.com/feature/5135917565214720.
+      name: "IncrementalFontTransfer",
+      status: "test",
     },
     {
       name: "InertElementNonEditable",

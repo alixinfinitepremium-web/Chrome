@@ -323,11 +323,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '73f1f3736c24f0aecddc95bb3df4ed0693d0caf0',
+  'src_internal_revision': 'a058a8bd8599388e816392252bbec5a93d0c5b6a',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '9468e96cc40f6c18e62caf9a4b4a0a700fa7f24a',
+  'skia_revision': 'bf73fd513fa53710c83a703b5b505ea5b2463bc9',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -407,7 +407,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'f7931fc37dcfac5dc5b08342ae59e585fd1ce120',
+  'devtools_frontend_revision': '6dd2e1014ac3b5620b868cf6f5952358781cf577',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -511,7 +511,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'libunwind_revision':    '20582d1d17f96ebf2b11e278e00128288e23ece0',
+  'libunwind_revision':    '96c0a03e9e6b540f48753030dd0aa254aeb5545d',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -3120,11 +3120,11 @@ deps = {
       ],
   },
 
-  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@6d31c95953303ba249a5b29bf5973631602ae3ff',
+  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@b687b7d13de43fc9faecd90b6fc90f0373cbd10d',
   'src/third_party/glslang/src': '{chromium_git}/external/github.com/KhronosGroup/glslang@a0b513644803358f66ea6379e5d206963835afac',
   'src/third_party/spirv-cross/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Cross@b8fcf307f1f347089e3c46eb4451d27f32ebc8d3',
   'src/third_party/spirv-headers/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Headers@29981f65241605e08b0ede4cfeb999fe3b723c6a',
-  'src/third_party/spirv-tools/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Tools@d34072656009319e6c39368121d6cba4a790b889',
+  'src/third_party/spirv-tools/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Tools@470d6931c170dafe9feb5a808f58df1f94779355',
   'src/third_party/vulkan-headers/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Headers@e3b1eec08173d6b825cd3ac88c885a63b621504a',
   'src/third_party/vulkan-loader/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Loader@5f157b62e333c63260d05d81bf66faa216ab0fb8',
   'src/third_party/vulkan-tools/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Tools@8c66b352925cb771f793a4d3220b1321ae0febf1',
@@ -3929,7 +3929,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        '168bf97b289599ce4e9c3b09e7333032c41e9c6f',
+        'dd31b9c5325b53f25590c735d8f1bafe08210a63',
       'condition': 'checkout_src_internal',
   },
 
@@ -4013,7 +4013,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '2539185fa094ccecf37fc2e5939073c62c19d468',
+        '51a8650e2efa5bbde9e27e6820c9c5e7634cdd2d',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
