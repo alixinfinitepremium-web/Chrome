@@ -531,11 +531,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
-  'llvm_libc_revision':    'e47bd251d50531ab503f875c847861f0589be158',
+  'llvm_libc_revision':    'af2200b7673fdcde5e614ce501aad4ad66236ec1',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
-  'compiler_rt_revision': 'e6c7fa970fbaad0cac22fcfb1f8dac4d8a144900',
+  'compiler_rt_revision': '855c4b80cc60c8252f2af4ca24745de9e43ea3fc',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling clusterfuzz-data
   # and whatever else without interference from each other.
@@ -1727,7 +1727,7 @@ deps = {
   },
 
   'src/docs/website': {
-    'url': Var('chromium_git') + '/website.git' + '@' + '9352ca898c5799325e99121b925e0704f12fe00c',
+    'url': Var('chromium_git') + '/website.git' + '@' + '8cf0731d6ef0fa605a0fa5ecde2b23deaab0d669',
   },
 
   'src/ios/third_party/earl_grey2/src': {
@@ -3172,7 +3172,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '38832759832dd97162ff3c261c184bf8ce8186f3',
+    Var('webrtc_git') + '/src.git' + '@' + 'bd5b39a98306db544431921bdc43baa8b750ed4a',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -4013,7 +4013,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '51a8650e2efa5bbde9e27e6820c9c5e7634cdd2d',
+        '1e7065ecfb94b3866e6763a39cee823f1061fdc5',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
