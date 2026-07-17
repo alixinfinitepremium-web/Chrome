@@ -323,7 +323,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '898db366e872d600459eebcd1a7486ae3c310f1c',
+  'src_internal_revision': '18794527f75c1497c50c4a1daf9bf65a601616fb',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -335,7 +335,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '57ce6e20b57c890d6d63a42fd5376fc400a75fd6',
+  'angle_revision': '8679cc8097beb087d87e45780eb75141a5a30942',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -399,7 +399,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling fuzztest
   # and whatever else without interference from each other.
-  'fuzztest_revision': 'df6fca2bb669b7c46103edd65c890f9df2ba3df7',
+  'fuzztest_revision': 'dc04a8f95b40f101fe16b7f045fa18de50b5c8e2',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling domato
   # and whatever else without interference from each other.
@@ -3166,7 +3166,7 @@ deps = {
     Var('chromium_git') + '/external/khronosgroup/webgl.git' + '@' + '064aaf18207438d4f6dd10c98b02b25778257b7f',
 
   'src/third_party/webgpu-cts/src':
-    Var('chromium_git') + '/external/github.com/gpuweb/cts.git' + '@' + '8dc100410ada6fd1ba34c192da0f2dcfc386c9eb',
+    Var('chromium_git') + '/external/github.com/gpuweb/cts.git' + '@' + 'f4186348cf4be0be76b621cf68fa427f5cf61649',
 
   'src/third_party/webpagereplay':
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
@@ -3744,7 +3744,7 @@ deps = {
 
   'src/chrome/browser/platform_experience/win': {
       'url': Var('chrome_git') + '/chrome/browser/platform_experience/win.git' + '@' +
-        '6ca7889cf5a511f0a2558f26e937768dd0c0b4fb',
+        '1d09bd84674e17571f6b0b613aad0499549c3d6f',
       'condition': 'checkout_src_internal',
   },
 
@@ -4013,7 +4013,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        'e3d06e8920f44a651cb83678a5f0e475c3f98499',
+        '4c2dc5b881bcbad8168809dffc11f54a4fa441dc',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 

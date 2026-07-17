@@ -1608,11 +1608,6 @@
     "expiry_milestone": 150
   },
   {
-    "name": "cct-auth-tab-enable-https-redirects",
-    "owners": [ "sinansahin@google.com", "chrome-connective-tissue@google.com"],
-    "expiry_milestone": 150
-  },
-  {
     "name": "cct-contextual-menu-items",
     "owners": [
       "adelm@google.com",
@@ -2033,6 +2028,11 @@
   {
     "name": "contextual-tasks-back-button-expands-side-panel",
     "owners": ["nguyenbryan@chromium.org", "chrome-contextual-tasks-eng@google.com"],
+    "expiry_milestone": 160
+  },
+  {
+    "name": "contextual-tasks-bypass-dismissed-cap",
+    "owners": [ "dianaou@google.com", "chrome-contextual-tasks-eng@google.com" ],
     "expiry_milestone": 160
   },
   {
@@ -9318,7 +9318,7 @@
     "expiry_milestone": 160
   },
   {
-    "name": "tab-search-for-al",
+    "name": "tab-search-for-desktop",
     "owners": [
       "bjfong@google.com",
       "wylieb@google.com",

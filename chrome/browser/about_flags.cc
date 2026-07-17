@@ -712,18 +712,6 @@ const FeatureEntry::FeatureVariation kCCTAdaptiveButtonTestSwitchVariations[] =
         {"+Both", kCCTAdaptiveButtonTestSwitchBoth, nullptr},
 };
 
-const FeatureEntry::FeatureParam kCCTAuthTabHttpsVerificationTimeout10000Ms[] =
-    {{"verification_timeout_ms", "10000"}};
-const FeatureEntry::FeatureParam kCCTAuthTabHttpsVerificationTimeout1000Ms[] = {
-    {"verification_timeout_ms", "1000"}};
-
-const FeatureEntry::FeatureVariation
-    kCCTAuthTabEnableHttpsRedirectsVariations[] = {
-        {"HTTPS verification timeout 10,000ms",
-         kCCTAuthTabHttpsVerificationTimeout10000Ms, nullptr},
-        {"HTTPS verification timeout 1000ms",
-         kCCTAuthTabHttpsVerificationTimeout1000Ms, nullptr}};
-
 const FeatureEntry::FeatureParam kCCTResizablePolicyParamUseAllowlist[] = {
     {"default_policy", "use-allowlist"}};
 const FeatureEntry::FeatureParam kCCTResizablePolicyParamUseDenylist[] = {
@@ -4719,8 +4707,11 @@ const FeatureEntry::FeatureVariation kGlassFrameVariations[] = {
 #if !BUILDFLAG(IS_ANDROID)
 const FeatureEntry::FeatureParam kDictationEvalModeParam[] = {
     {"eval_mode", "true"}};
+const FeatureEntry::FeatureParam kDictationShowPartialsParam[] = {
+    {"show_partials", "true"}};
 const FeatureEntry::FeatureVariation kDictationVariations[] = {
-    {"with evaluation mode", kDictationEvalModeParam, nullptr}};
+    {"with evaluation mode", kDictationEvalModeParam, nullptr},
+    {"with shown partials", kDictationShowPartialsParam, nullptr}};
 #endif  // !BUILDFLAG(IS_ANDROID)
 
 // RECORDING USER METRICS FOR FLAGS:
@@ -7559,9 +7550,9 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kTabSwitcherDragDropDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(chrome::android::kTabSwitcherDragDropAndroid)},
 
-    {"tab-search-for-al", flag_descriptions::kTabSearchForALName,
-     flag_descriptions::kTabSearchForALDescription, kOsAndroid,
-     FEATURE_VALUE_TYPE(chrome::android::kTabSearchForAL)},
+    {"tab-search-for-desktop", flag_descriptions::kTabSearchForDesktopName,
+     flag_descriptions::kTabSearchForDesktopDescription, kOsAndroid,
+     FEATURE_VALUE_TYPE(chrome::android::kTabSearchForDesktop)},
 
     {"most-visited-tiles-customization",
      flag_descriptions::kMostVisitedTilesCustomizationName,
@@ -7722,13 +7713,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kCCTAuthTabDisableAllExternalIntentsDescription,
      kOsAndroid,
      FEATURE_VALUE_TYPE(chrome::android::kCCTAuthTabDisableAllExternalIntents)},
-    {"cct-auth-tab-enable-https-redirects",
-     flag_descriptions::kCCTAuthTabEnableHttpsRedirectsName,
-     flag_descriptions::kCCTAuthTabEnableHttpsRedirectsDescription, kOsAndroid,
-     FEATURE_WITH_PARAMS_VALUE_TYPE(
-         chrome::android::kCCTAuthTabEnableHttpsRedirects,
-         kCCTAuthTabEnableHttpsRedirectsVariations,
-         "CCTAuthTabEnableHttpsRedirectsVariations")},
 #endif
 
 #if BUILDFLAG(IS_ANDROID)
@@ -12040,6 +12024,14 @@ const FeatureEntry kFeatureEntries[] = {
      kOsDesktop | kOsAndroid,
      FEATURE_VALUE_TYPE(
          contextual_tasks::kContextualTasksSidePanelRearchitecture)},
+
+    {"contextual-tasks-bypass-dismissed-cap",
+     contextual_tasks::flag_descriptions::
+         kContextualTasksBypassDismissedCapName,
+     contextual_tasks::flag_descriptions::
+         kContextualTasksBypassDismissedCapDescription,
+     kOsDesktop | kOsAndroid,
+     FEATURE_VALUE_TYPE(contextual_tasks::kContextualTasksBypassDismissedCap)},
 
     {"omnibox-debug-logs", omnibox::flag_descriptions::kOmniboxDebugLogsName,
      omnibox::flag_descriptions::kOmniboxDebugLogsDescription, kOsDesktop,

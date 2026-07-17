@@ -327,8 +327,6 @@ public abstract class ChromeFeatureList {
     public static final String CCT_ADAPTIVE_BUTTON_TEST_SWITCH = "CCTAdaptiveButtonTestSwitch";
     public static final String CCT_AUTH_TAB_DISABLE_ALL_EXTERNAL_INTENTS =
             "CCTAuthTabDisableAllExternalIntents";
-    public static final String CCT_AUTH_TAB_ENABLE_HTTPS_REDIRECTS =
-            "CCTAuthTabEnableHttpsRedirects";
     public static final String CCT_AUTO_TRANSLATE = "CCTAutoTranslate";
     public static final String CCT_BLOCK_TOUCHES_DURING_ENTER_ANIMATION =
             "CCTBlockTouchesDuringEnterAnimation";
@@ -687,7 +685,7 @@ public abstract class ChromeFeatureList {
     public static final String TAB_BOTTOM_SHEET = "TabBottomSheet";
     public static final String TAB_BOTTOM_SHEET_RESIZE_WEBVIEW = "TabBottomSheetResizeWebview";
     public static final String TAB_CLOSURE_METHOD_REFACTOR = "TabClosureMethodRefactor";
-    public static final String TAB_SEARCH_FOR_AL = "TabSearchForAL";
+    public static final String TAB_SEARCH_FOR_DESKTOP = "TabSearchForDesktop";
     public static final String TAB_SHARING_TOOLBAR_ANDROID = "TabSharingToolbarAndroid";
     public static final String TAB_STORAGE_SQLITE_PROTOTYPE = "TabStorageSqlitePrototype";
     public static final String TAB_STRIP_AUTO_SELECT_ON_CLOSE_CHANGE =
@@ -881,8 +879,6 @@ public abstract class ChromeFeatureList {
                     CCT_ADAPTIVE_BUTTON, /* defaultValue= */ true, /* defaultValueInTests= */ true);
     public static final CachedFlag sCctAuthTabDisableAllExternalIntents =
             newCachedFlag(CCT_AUTH_TAB_DISABLE_ALL_EXTERNAL_INTENTS, false);
-    public static final CachedFlag sCctAuthTabEnableHttpsRedirects =
-            newCachedFlag(CCT_AUTH_TAB_ENABLE_HTTPS_REDIRECTS, true);
     public static final CachedFlag sCctAutoTranslate = newCachedFlag(CCT_AUTO_TRANSLATE, true);
     public static final CachedFlag sCctBlockTouchesDuringEnterAnimation =
             newCachedFlag(CCT_BLOCK_TOUCHES_DURING_ENTER_ANIMATION, true);
@@ -1326,7 +1322,6 @@ public abstract class ChromeFeatureList {
                     sCacheIsMultiInstanceApi31Enabled,
                     sCctAdaptiveButton,
                     sCctAuthTabDisableAllExternalIntents,
-                    sCctAuthTabEnableHttpsRedirects,
                     sCctAutoTranslate,
                     sCctBlockTouchesDuringEnterAnimation,
                     sCctContextualMenuItems,
@@ -1558,8 +1553,8 @@ public abstract class ChromeFeatureList {
             newMutableFlagWithSafeDefault(TAB_BOTTOM_SHEET, false);
     public static final MutableFlagWithSafeDefault sTabBottomSheetResizeWebview =
             newMutableFlagWithSafeDefault(TAB_BOTTOM_SHEET_RESIZE_WEBVIEW, false);
-    public static final MutableFlagWithSafeDefault sTabSearchForAL =
-            newMutableFlagWithSafeDefault(TAB_SEARCH_FOR_AL, false);
+    public static final MutableFlagWithSafeDefault sTabSearchForDesktop =
+            newMutableFlagWithSafeDefault(TAB_SEARCH_FOR_DESKTOP, false);
     public static final MutableFlagWithSafeDefault sTabSwitcherGroupSuggestionsAndroid =
             newMutableFlagWithSafeDefault(TAB_SWITCHER_GROUP_SUGGESTIONS_ANDROID, false);
     public static final MutableFlagWithSafeDefault sTabSwitcherGroupSuggestionsTestModeAndroid =
@@ -1650,9 +1645,6 @@ public abstract class ChromeFeatureList {
     public static final IntCachedFeatureParam sBackgroundThreadPoolFieldTrialConfig =
             newIntCachedFeatureParam(BACKGROUND_THREAD_POOL_FIELD_TRIAL, "config", 4);
 
-    public static final IntCachedFeatureParam sCctAuthTabEnableHttpsRedirectsVerificationTimeoutMs =
-            newIntCachedFeatureParam(
-                    CCT_AUTH_TAB_ENABLE_HTTPS_REDIRECTS, "verification_timeout_ms", 10_000);
     public static final IntCachedFeatureParam sClampAutomotiveScalingMaxScalingPercentage =
             newIntCachedFeatureParam(
                     CLAMP_AUTOMOTIVE_SCALING, "max_automotive_scaling_percentage", 150);
@@ -2013,7 +2005,6 @@ public abstract class ChromeFeatureList {
                     sCctAdaptiveButtonContextualOnly,
                     sCctAdaptiveButtonDefaultVariant,
                     sCctAdaptiveButtonEnableVoice,
-                    sCctAuthTabEnableHttpsRedirectsVerificationTimeoutMs,
                     sCctAutoTranslateAllowAllFirstParties,
                     sCctAutoTranslatePackageNamesAllowlist,
                     sCctGoogleBottomBarButtonList,
