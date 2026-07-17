@@ -15,8 +15,9 @@
 #include "base/logging.h"
 #include "chrome/browser/flags/android/chrome_feature_list.h"
 #include "chrome/browser/tab_list/tab_list_interface.h"
+#include "chrome/browser/ui/android/tab_model/tab_model.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
-#include "chrome/browser/ui/side_panel/internal/android/side_panel_tab_list_observer_android.h"
+#include "chrome/browser/ui/side_panel/internal/android/side_panel_tab_model_observer.h"
 #include "chrome/browser/ui/side_panel/side_panel_entry.h"
 #include "chrome/browser/ui/side_panel/side_panel_entry_waiter.h"
 #include "chrome/browser/ui/side_panel/side_panel_enums.h"
@@ -62,7 +63,9 @@ SidePanelCoordinatorAndroid::SidePanelCoordinatorAndroid(
     : SidePanelUIBase(browser),
       java_coordinator_(env, java_coordinator),
       scoped_unowned_user_data_(browser->GetUnownedUserDataHost(), *this),
-      tab_list_observer_(TabListInterface::From(browser), this) {
+      tab_model_observer_(
+          static_cast<TabModel*>(TabListInterface::From(browser)),
+          this) {
   SPLOG("SidePanelCoordinatorAndroid Constructor - browser: " << browser);
 }
 
@@ -236,7 +239,7 @@ void SidePanelCoordinatorAndroid::OnTabReparented(tabs::TabInterface* tab) {
 
   // In multi-tab windows, when the active tab is reparented out, the source
   // window activates another tab first. This triggers
-  // `SidePanelTabListObserverAndroid::OnActiveTabChanged()`, which already
+  // `SidePanelTabModelObserver::DidSelectTab()`, which already
   // closes or replaces the side panel before this method runs, making any
   // additional cleanup here unnecessary.
   auto* tab_list = TabListInterface::From(browser());
@@ -250,7 +253,7 @@ void SidePanelCoordinatorAndroid::OnTabReparented(tabs::TabInterface* tab) {
   //
   // In this case, because the source window is left with 0 tabs, Android's
   // `TabListInterface` cannot select a new active tab and never fires
-  // `SidePanelTabListObserverAndroid::OnActiveTabChanged()`. Thus, the source
+  // `SidePanelTabModelObserver::DidSelectTab()`. Thus, the source
   // window's side panel remains open and `current_key()` still matches the
   // reparented tab here.
   //

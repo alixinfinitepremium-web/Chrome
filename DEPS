@@ -327,11 +327,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '702c3e790232d4cccfcb1d49e8294126de645cb7',
+  'skia_revision': '9468e96cc40f6c18e62caf9a4b4a0a700fa7f24a',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': '41ca3d797e78dd21bac27f03f8b63ef1f03ef48b',
+  'v8_revision': '11e21c9eef8d6832cc32d2f4afd93eea3e410ca4',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -407,7 +407,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '77c240f90e64b5f6915761276a5288fdb584cbfb',
+  'devtools_frontend_revision': 'f7931fc37dcfac5dc5b08342ae59e585fd1ce120',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1188,10 +1188,10 @@ deps = {
     'condition': 'non_git_source',
     'objects': [
       {
-        'object_name': 'meet-gpu-tests/949354730.tar.gz',
-        'sha256sum': '51dd1d2d832662c1980cafc492839835a09875f340d2cdb49c81151b923ac59d',
-        'size_bytes': 278448515,
-        'generation': 1784278368237605,
+        'object_name': 'meet-gpu-tests/927042943.tar.gz',
+        'sha256sum': 'c0dd6e5696b31049ec780cf4ad8009c54edc922763b999b89faf41c365042176',
+        'size_bytes': 277434798,
+        'generation': 1780649425827802,
       },
     ],
   },
@@ -2589,7 +2589,7 @@ deps = {
     Var('chromium_git') + '/webm/libwebp.git' + '@' +  'b43b2caa710c0c997c066cb32c7fea1391fad70a',
 
   'src/third_party/libyuv':
-    Var('chromium_git') + '/libyuv/libyuv.git' + '@' + 'afff0cf68bdd2d713c81040a4bd1b7c7fe69e39c',
+    Var('chromium_git') + '/libyuv/libyuv.git' + '@' + '45258a40a0c1d72bba911f61d81fd5a44d92f50d',
 
   'src/third_party/lss': {
       'url': Var('chromium_git') + '/linux-syscall-support.git' + '@' + Var('lss_revision'),
@@ -3059,9 +3059,9 @@ deps = {
     Var('chromium_git') + '/external/github.com/GoogleChromeLabs/text-fragments-polyfill.git' + '@' + 'abc6ed408b3f20e91d9cbda9977748459f5e3877',
 
   'src/third_party/tflite/src':
-    Var('chromium_git') + '/external/github.com/tensorflow/tensorflow.git' + '@' + 'a12cd7d36bb3dbae1dd7a4b572643084bc62f6e1',
+    Var('chromium_git') + '/external/github.com/tensorflow/tensorflow.git' + '@' + '6eded1ce7a1aa23f6ff3e22f163c43061bc14c9f',
   'src/third_party/litert/src':
-    Var('chromium_git') + '/external/github.com/google-ai-edge/LiteRT.git' + '@' + 'd419a5d6b81ad7f6db0a469dac5b82d47f3ac980',
+    Var('chromium_git') + '/external/github.com/google-ai-edge/LiteRT.git' + '@' + '61f432493259e1eddbb72a24426b15beea9395fd',
   'src/third_party/turbine/cipd': {
       'packages': [
           {
@@ -3166,13 +3166,13 @@ deps = {
     Var('chromium_git') + '/external/khronosgroup/webgl.git' + '@' + '064aaf18207438d4f6dd10c98b02b25778257b7f',
 
   'src/third_party/webgpu-cts/src':
-    Var('chromium_git') + '/external/github.com/gpuweb/cts.git' + '@' + '9fb8ce60d1f3413b704bdcf9f8d29ca28a6da2ee',
+    Var('chromium_git') + '/external/github.com/gpuweb/cts.git' + '@' + '8dc100410ada6fd1ba34c192da0f2dcfc386c9eb',
 
   'src/third_party/webpagereplay':
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '9db8e13c6c56b08a29d67dbd807abc99a415d475',
+    Var('webrtc_git') + '/src.git' + '@' + '38832759832dd97162ff3c261c184bf8ce8186f3',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -3191,7 +3191,7 @@ deps = {
   },
 
   'src/third_party/xnnpack/src':
-    Var('chromium_git') + '/external/github.com/google/XNNPACK.git' + '@' + 'd9ff5bf36955f97c657013272acd3a46d696b301',
+    Var('chromium_git') + '/external/github.com/google/XNNPACK.git' + '@' + 'dff8cb5db8c102d0f65140838f11de8bc9668c86',
 
   'src/third_party/libei/src': {
       'url': Var('chromium_git') + '/external/gitlab.freedesktop.org/libinput/libei.git' + '@' + '5d6d8e6590df210b75559a889baa9459c68d9366',
@@ -3334,7 +3334,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/media_app/app',
-        'version': 'zXmDsz3XxovziGF8TwoFuG2Jmq8--SUOF3lMtcZ859wC',
+        'version': 'b-hiA8Svwlop2IMWP5L8tP45XvxsarDP65JukGYXJwIC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -4013,7 +4013,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        'b98f415f5f0bb89efa68b63920378d0dd386528c',
+        '2539185fa094ccecf37fc2e5939073c62c19d468',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 

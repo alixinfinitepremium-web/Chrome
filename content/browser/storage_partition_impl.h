@@ -10,6 +10,7 @@
 #include <memory>
 #include <set>
 #include <string>
+#include <variant>
 
 #include "base/containers/flat_map.h"
 #include "base/dcheck_is_on.h"
@@ -108,9 +109,6 @@ class GeneratedCodeCacheContext;
 class HostZoomLevelContext;
 class InterestGroupManagerImpl;
 class PaymentAppContextImpl;
-class PrivateAggregationDataModel;
-class PrivateAggregationManager;
-class PrivateAggregationManagerImpl;
 class PushMessagingContext;
 class QuotaContext;
 class ReconnectableURLLoaderFactoryForIOThreadWrapper;
@@ -155,9 +153,6 @@ class CONTENT_EXPORT StoragePartitionImpl
       std::unique_ptr<SharedWorkerServiceImpl> shared_worker_service);
   void OverrideAggregationServiceForTesting(
       std::unique_ptr<AggregationService> aggregation_service);
-  void OverridePrivateAggregationManagerForTesting(
-      std::unique_ptr<PrivateAggregationManagerImpl>
-          private_aggregation_manager);
   void OverrideDeviceBoundSessionManagerForTesting(
       std::unique_ptr<network::mojom::DeviceBoundSessionManager>
           device_bound_session_manager);
@@ -208,8 +203,6 @@ class CONTENT_EXPORT StoragePartitionImpl
   InterestGroupManager* GetInterestGroupManager() override;
   BrowsingTopicsSiteDataManager* GetBrowsingTopicsSiteDataManager() override;
   leveldb_proto::ProtoDatabaseProvider* GetProtoDatabaseProvider() override;
-  // Use outside content.
-  PrivateAggregationDataModel* GetPrivateAggregationDataModel() override;
 #if BUILDFLAG(ENABLE_LIBRARY_CDMS)
   CdmStorageDataModel* GetCdmStorageDataModel() override;
 #endif  // BUILDFLAG(ENABLE_LIBRARY_CDMS)
@@ -284,8 +277,6 @@ class CONTENT_EXPORT StoragePartitionImpl
   const std::string& GetPartitionDomain() const;
   AggregationService* GetAggregationService();
   FontAccessManager* GetFontAccessManager();
-
-  PrivateAggregationManager* GetPrivateAggregationManager();
 
   // blink::mojom::DomStorage interface.
   void OpenLocalStorage(
@@ -599,6 +590,23 @@ class CONTENT_EXPORT StoragePartitionImpl
 
   class URLLoaderNetworkContext {
    public:
+    struct NavigationRequestContext {
+      scoped_refptr<NavigationOrDocumentHandle> navigation_or_document;
+    };
+    struct RenderFrameHostContext {
+      scoped_refptr<NavigationOrDocumentHandle> navigation_or_document;
+    };
+    struct SharedOrServiceWorkerContext {
+      network::OriginatingProcessId process_id;
+      std::optional<url::Origin> worker_origin;
+    };
+    struct DeviceBoundSessionContext {};
+
+    using Context = std::variant<NavigationRequestContext,
+                                 RenderFrameHostContext,
+                                 SharedOrServiceWorkerContext,
+                                 DeviceBoundSessionContext>;
+
     ~URLLoaderNetworkContext();
 
     // Allow copy and assign.
@@ -625,50 +633,42 @@ class CONTENT_EXPORT StoragePartitionImpl
     static StoragePartitionImpl::URLLoaderNetworkContext
     CreateForDeviceBoundSessions();
 
-    // Returns true if `type` is `kNavigationRequestContext`.
+    // Returns true if `context_` holds `NavigationRequestContext`.
     bool IsNavigationRequestContext() const;
 
-    ContextType type() const { return type_; }
+    ContextType type() const;
 
-    NavigationOrDocumentHandle* navigation_or_document() const {
-      return navigation_or_document_.get();
-    }
+    const Context& context() const { return context_; }
+    Context& context() { return context_; }
 
-    network::OriginatingProcessId process_id() const { return process_id_; }
-    const std::optional<url::Origin>& worker_origin() const {
-      return worker_origin_;
-    }
+    // Helper to retrieve `NavigationOrDocumentHandle*` if the underlying
+    // variant is either `RenderFrameHostContext` or `NavigationRequestContext`.
+    // Returns `nullptr` otherwise.
+    NavigationOrDocumentHandle* navigation_or_document() const;
 
-    // If `type_` is kSharedOrServiceWorkerContext, returns nullptr. Otherwise
-    // returns the WebContents.
+    // Returns nullptr if `context_` holds `SharedOrServiceWorkerContext` or
+    // `DeviceBoundSessionContext`. Otherwise returns the WebContents.
     WebContents* GetWebContents();
 
     // Returns true if the request is the primary main frame navigation.
     bool IsPrimaryMainFrameRequest();
 
    private:
-    // Used when `type` is `kRenderFrameHostContext`.
+    // Used when `context_` holds `RenderFrameHostContext`.
     explicit URLLoaderNetworkContext(
         GlobalRenderFrameHostId global_render_frame_host_id);
 
-    // Used when `type` is `kSharedOrServiceWorkerContext`.
+    // Used when `context_` holds `SharedOrServiceWorkerContext`.
     URLLoaderNetworkContext(const network::OriginatingProcessId& process_id,
                             const url::Origin& worker_origin);
 
-    // Used when `type` is `kNavigationRequestContext`.
+    // Used when `context_` holds `NavigationRequestContext`.
     explicit URLLoaderNetworkContext(NavigationRequest& navigation_request);
 
-    // Used when `type` is `kDeviceBoundSessionContext`.
+    // Used when `context_` holds `DeviceBoundSessionContext`.
     URLLoaderNetworkContext();
 
-    ContextType type_;
-    scoped_refptr<NavigationOrDocumentHandle> navigation_or_document_;
-
-    // Only valid when `type_` is kSharedOrServiceWorkerContext.
-    network::OriginatingProcessId process_id_;
-
-    // Only valid and non-nullopt when `type_` is kSharedOrServiceWorkerContext.
-    std::optional<url::Origin> worker_origin_;
+    Context context_;
   };
 
   // `relative_partition_path` is the relative path under `profile_path` to the
@@ -816,8 +816,6 @@ class CONTENT_EXPORT StoragePartitionImpl
   mojo::Remote<network::mojom::DeviceBoundSessionManager>
       device_bound_session_manager_;
 
-
-  std::unique_ptr<PrivateAggregationManagerImpl> private_aggregation_manager_;
 
   // ReceiverSet for DomStorage, using the
   // ChildProcessSecurityPolicyImpl::Handle as the binding context type. The

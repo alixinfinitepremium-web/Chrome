@@ -10,6 +10,7 @@
 #include <memory>
 #include <optional>
 #include <utility>
+#include <variant>
 #include <vector>
 
 #include "base/barrier_callback.h"
@@ -87,8 +88,6 @@
 #include "content/browser/notifications/platform_notification_context_impl.h"
 #include "content/browser/payments/payment_app_context_impl.h"
 #include "content/browser/preloading/prerender/prerender_final_status.h"
-#include "content/browser/private_aggregation/private_aggregation_manager.h"
-#include "content/browser/private_aggregation/private_aggregation_manager_impl.h"
 #include "content/browser/push_messaging/push_messaging_context.h"
 #include "content/browser/quota/quota_context.h"
 #include "content/browser/renderer_host/frame_tree_node.h"
@@ -115,7 +114,6 @@
 #include "content/public/browser/permission_controller.h"
 #include "content/public/browser/permission_descriptor_util.h"
 #include "content/public/browser/permission_result.h"
-#include "content/public/browser/private_aggregation_data_model.h"
 #include "content/public/browser/runtime_feature_state/runtime_feature_state_document_data.h"
 #include "content/public/browser/service_process_host.h"
 #include "content/public/browser/session_storage_usage_info.h"
@@ -891,7 +889,6 @@ class StoragePartitionImpl::DataDeletionHelper {
       network::mojom::CookieManager* cookie_manager,
       InterestGroupManagerImpl* interest_group_manager,
       AggregationService* aggregation_service,
-      PrivateAggregationManagerImpl* private_aggregation_manager,
 #if BUILDFLAG(ENABLE_LIBRARY_CDMS)
       CdmStorageManager* cdm_storage_manager,
 #endif  // BUILDFLAG(ENABLE_LIBRARY_CDMS)
@@ -919,7 +916,7 @@ class StoragePartitionImpl::DataDeletionHelper {
     kAggregationService = 9,
     kSharedStorage = 10,
     kGpuCache = 11,
-    kPrivateAggregation = 12,
+    kPrivateAggregation = 12,  // Deprecated.
     kInterestGroups = 13,
     kCdmStorage = 14,
     kDeviceBoundSessions = 15,
@@ -1508,12 +1505,6 @@ void StoragePartitionImpl::Initialize(
 #endif  // BUILDFLAG(ENABLE_LIBRARY_CDMS)
 
 
-  if (base::FeatureList::IsEnabled(blink::features::kPrivateAggregationApi)) {
-    private_aggregation_manager_ =
-        std::make_unique<PrivateAggregationManagerImpl>(is_in_memory(), path,
-                                                        this);
-  }
-
   if (base::FeatureList::IsEnabled(
           blink::features::kDeclarativePerformanceObserver)) {
     declarative_performance_observer_store_ =
@@ -1868,18 +1859,6 @@ StoragePartitionImpl::GetProtoDatabaseProviderForTesting() {
 }
 
 
-PrivateAggregationManager*
-StoragePartitionImpl::GetPrivateAggregationManager() {
-  DCHECK(initialized_);
-  return private_aggregation_manager_.get();
-}
-
-PrivateAggregationDataModel*
-StoragePartitionImpl::GetPrivateAggregationDataModel() {
-  DCHECK(initialized_);
-  return private_aggregation_manager_.get();
-}
-
 void StoragePartitionImpl::DeleteStaleSessionData() {
   GetDOMStorageContext()->StartScavengingUnusedSessionStorage();
   // We need to delay deleting stale session cookies until after the cookie db
@@ -2035,13 +2014,15 @@ void StoragePartitionImpl::OnAuthRequired(
   }
   network::OriginatingProcessId process_id =
       network::OriginatingProcessId::browser();
-  if (original_context.type() == ContextType::kSharedOrServiceWorkerContext) {
+  if (const auto* worker_context =
+          std::get_if<URLLoaderNetworkContext::SharedOrServiceWorkerContext>(
+              &original_context.context())) {
     // If the request was initiated by a service worker, use the service
     // worker's process ID. This ensures the `GlobalRequestID` used to look up
     // the proxy (e.g. in `WebRequestAPI`) matches the one used when the factory
     // was created, which for service worker subresources is the worker's
     // process ID.
-    process_id = original_context.process_id();
+    process_id = worker_context->process_id;
   } else if (context.type() == ContextType::kRenderFrameHostContext) {
     // Set `process_id` to `kInvalidProcessId` considering `render_frame_host`
     // can be null when it's destroyed already. `process_id` is updated only if
@@ -2268,7 +2249,9 @@ void StoragePartitionImpl::OnLocalNetworkAccessPermissionRequired(
               std::move(callback)));
       return;
     }
-  } else if (context.type() == ContextType::kSharedOrServiceWorkerContext) {
+  } else if (const auto* worker_context = std::get_if<
+                 URLLoaderNetworkContext::SharedOrServiceWorkerContext>(
+                 &context.context())) {
     // TODO(crbug.com/404887282): Plumb the `frame_window_id` of the worker,
     // if it exists, to allow this to identify the hosting frame of the worker,
     // when available. This would allow us to additionally _request_ the
@@ -2288,8 +2271,8 @@ void StoragePartitionImpl::OnLocalNetworkAccessPermissionRequired(
     // are opaque (but workers loaded from blob: URLs should have the origin
     // which created the blob: URL).
     // TODO(crbug.com/404887282): Revisit if opaque origins support is needed.
-    CHECK(context.worker_origin());
-    if (context.worker_origin()->opaque()) {
+    CHECK(worker_context->worker_origin);
+    if (worker_context->worker_origin->opaque()) {
       std::move(callback).Run(
           network::mojom::LocalNetworkAccessResult::kDenied);
       return;
@@ -2297,13 +2280,13 @@ void StoragePartitionImpl::OnLocalNetworkAccessPermissionRequired(
 
     PermissionController& permission_controller =
         CHECK_DEREF(browser_context_->GetPermissionController());
-    CHECK(!context.process_id().is_browser());
+    CHECK(!worker_context->process_id.is_browser());
     auto status = permission_controller.GetPermissionStatusForWorker(
         content::PermissionDescriptorUtil::
             CreatePermissionDescriptorForPermissionType(permission_type),
         content::RenderProcessHost::FromID(
-            ToChildProcessId(context.process_id().renderer_process_id())),
-        context.worker_origin().value());
+            ToChildProcessId(worker_context->process_id.renderer_process_id())),
+        worker_context->worker_origin.value());
 
     // If the request was loaded from cache, prefer retrying over the network
     // over prompting the user or blocking.
@@ -2402,11 +2385,13 @@ void StoragePartitionImpl::OnCertificateRequested(
   int process_id = network::mojom::kInvalidProcessId;
   if (context.type() == ContextType::kSharedOrServiceWorkerContext ||
       context.type() == ContextType::kDeviceBoundSessionContext) {
-    if (context.type() == ContextType::kSharedOrServiceWorkerContext) {
+    if (const auto* worker_context =
+            std::get_if<URLLoaderNetworkContext::SharedOrServiceWorkerContext>(
+                &context.context())) {
       // TODO(crbug.com/379869738) Remove GetUnsafeValue.
       // TODO(crbug.com/479742988) This can be the browser process and
       // shouldn't.
-      process_id = context.process_id().GetUnsafeValue();
+      process_id = worker_context->process_id.GetUnsafeValue();
     }
   } else {
     WebContents* web_contents = context.GetWebContents();
@@ -2785,7 +2770,6 @@ void StoragePartitionImpl::ClearDataImpl(
       quota_manager_.get(), special_storage_policy_.get(),
       filesystem_context_.get(), GetCookieManagerForBrowserProcess(),
       interest_group_manager_.get(), aggregation_service_.get(),
-      private_aggregation_manager_.get(),
 #if BUILDFLAG(ENABLE_LIBRARY_CDMS)
       cdm_storage_manager_.get(),
 #endif  // BUILDFLAG(ENABLE_LIBRARY_CDMS)
@@ -2888,7 +2872,6 @@ void StoragePartitionImpl::DataDeletionHelper::ClearData(
     network::mojom::CookieManager* cookie_manager,
     InterestGroupManagerImpl* interest_group_manager,
     AggregationService* aggregation_service,
-    PrivateAggregationManagerImpl* private_aggregation_manager,
 #if BUILDFLAG(ENABLE_LIBRARY_CDMS)
     CdmStorageManager* cdm_storage_manager,
 #endif  // BUILDFLAG(ENABLE_LIBRARY_CDMS)
@@ -3101,18 +3084,6 @@ void StoragePartitionImpl::DataDeletionHelper::ClearData(
         mojo::WrapCallbackWithDefaultInvokeIfNotRun(
             CreateTaskCompletionClosure(TracingDataType::kAggregationService)));
   }
-
-  if (private_aggregation_manager &&
-      (remove_mask_ & REMOVE_DATA_MASK_PRIVATE_AGGREGATION_INTERNAL)) {
-    private_aggregation_manager->ClearBudgetData(
-        begin, end, generic_filter,
-
-        // Wrapping the callback ensures that the callback is still run in the
-        // case that the storage partition is deleted before the task is posted.
-        mojo::WrapCallbackWithDefaultInvokeIfNotRun(
-            CreateTaskCompletionClosure(TracingDataType::kPrivateAggregation)));
-  }
-
 
   if (remove_mask_ & REMOVE_DATA_MASK_DEVICE_BOUND_SESSIONS &&
       device_bound_session_manager) {
@@ -3442,13 +3413,6 @@ void StoragePartitionImpl::OverrideAggregationServiceForTesting(
   aggregation_service_ = std::move(aggregation_service);
 }
 
-void StoragePartitionImpl::OverridePrivateAggregationManagerForTesting(
-    std::unique_ptr<PrivateAggregationManagerImpl>
-        private_aggregation_manager) {
-  DCHECK(initialized_);
-  private_aggregation_manager_ = std::move(private_aggregation_manager);
-}
-
 void StoragePartitionImpl::OverrideDeviceBoundSessionManagerForTesting(
     std::unique_ptr<network::mojom::DeviceBoundSessionManager>
         device_bound_session_manager) {
@@ -3766,33 +3730,28 @@ void StoragePartitionImpl::OnScenarioMatchChanged(
 
 StoragePartitionImpl::URLLoaderNetworkContext::URLLoaderNetworkContext(
     GlobalRenderFrameHostId render_frame_host_id)
-    : type_(Type::kRenderFrameHostContext) {
-  auto* render_frame_host = RenderFrameHostImpl::FromID(render_frame_host_id);
-  if (!render_frame_host) {
-    return;
+    : context_(RenderFrameHostContext{}) {
+  if (auto* rfh = RenderFrameHostImpl::FromID(render_frame_host_id)) {
+    std::get<RenderFrameHostContext>(context_).navigation_or_document =
+        rfh->GetNavigationOrDocumentHandle();
   }
-
-  navigation_or_document_ = render_frame_host->GetNavigationOrDocumentHandle();
 }
 
 StoragePartitionImpl::URLLoaderNetworkContext::URLLoaderNetworkContext(
     NavigationRequest& navigation_request)
-    : type_(Type::kNavigationRequestContext) {
-  navigation_or_document_ = navigation_request.navigation_or_document_handle();
-}
+    : context_(NavigationRequestContext{
+          navigation_request.navigation_or_document_handle()}) {}
 
 StoragePartitionImpl::URLLoaderNetworkContext::URLLoaderNetworkContext(
     const network::OriginatingProcessId& process_id,
     const url::Origin& worker_origin)
-    : type_(Type::kSharedOrServiceWorkerContext),
-      process_id_(process_id),
-      worker_origin_(worker_origin) {}
+    : context_(SharedOrServiceWorkerContext{process_id, worker_origin}) {}
 
 StoragePartitionImpl::URLLoaderNetworkContext::URLLoaderNetworkContext(
     const URLLoaderNetworkContext& other) = default;
 
 StoragePartitionImpl::URLLoaderNetworkContext::URLLoaderNetworkContext()
-    : type_(Type::kDeviceBoundSessionContext) {}
+    : context_(DeviceBoundSessionContext{}) {}
 
 StoragePartitionImpl::URLLoaderNetworkContext&
 StoragePartitionImpl::URLLoaderNetworkContext::operator=(
@@ -3826,9 +3785,37 @@ StoragePartitionImpl::URLLoaderNetworkContext::CreateForDeviceBoundSessions() {
   return StoragePartitionImpl::URLLoaderNetworkContext();
 }
 
+StoragePartitionImpl::ContextType
+StoragePartitionImpl::URLLoaderNetworkContext::type() const {
+  if (std::holds_alternative<RenderFrameHostContext>(context_)) {
+    return ContextType::kRenderFrameHostContext;
+  }
+  if (std::holds_alternative<NavigationRequestContext>(context_)) {
+    return ContextType::kNavigationRequestContext;
+  }
+  if (std::holds_alternative<SharedOrServiceWorkerContext>(context_)) {
+    return ContextType::kSharedOrServiceWorkerContext;
+  }
+  CHECK(std::holds_alternative<DeviceBoundSessionContext>(context_));
+  return ContextType::kDeviceBoundSessionContext;
+}
+
 bool StoragePartitionImpl::URLLoaderNetworkContext::IsNavigationRequestContext()
     const {
-  return type_ == ContextType::kNavigationRequestContext;
+  return std::holds_alternative<NavigationRequestContext>(context_);
+}
+
+NavigationOrDocumentHandle*
+StoragePartitionImpl::URLLoaderNetworkContext::navigation_or_document() const {
+  if (const auto* rfh_context =
+          std::get_if<RenderFrameHostContext>(&context_)) {
+    return rfh_context->navigation_or_document.get();
+  }
+  if (const auto* nav_context =
+          std::get_if<NavigationRequestContext>(&context_)) {
+    return nav_context->navigation_or_document.get();
+  }
+  return nullptr;
 }
 
 // Returns the WebContents corresponding to `context`.

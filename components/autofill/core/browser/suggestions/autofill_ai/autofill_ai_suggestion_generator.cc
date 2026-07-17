@@ -592,9 +592,6 @@ bool CompareSameTypeEntities(const EntityInstance& lhs,
     return frecency_order(lhs, rhs);
   };
 
-  auto compare_less = [&compare_by_attribute](AttributeTypeName attr_name) {
-    return compare_by_attribute(attr_name, std::less<std::u16string>());
-  };
 
   auto compare_greater = [&compare_by_attribute](AttributeTypeName attr_name) {
     return compare_by_attribute(attr_name, std::greater<std::u16string>());
@@ -610,13 +607,14 @@ bool CompareSameTypeEntities(const EntityInstance& lhs,
 
   switch (lhs.type().name()) {
     case EntityTypeName::kPassport:
-      return compare_less(AttributeTypeName::kPassportExpirationDate);
+      return compare_greater(AttributeTypeName::kPassportExpirationDate);
     case EntityTypeName::kDriversLicense:
-      return compare_less(AttributeTypeName::kDriversLicenseExpirationDate);
+      return compare_greater(AttributeTypeName::kDriversLicenseExpirationDate);
     case EntityTypeName::kNationalIdCard:
-      return compare_less(AttributeTypeName::kNationalIdCardExpirationDate);
+      return compare_greater(AttributeTypeName::kNationalIdCardExpirationDate);
     case EntityTypeName::kFlightReservation:
-      return compare_less(AttributeTypeName::kFlightReservationDepartureDate);
+      return compare_greater(
+          AttributeTypeName::kFlightReservationDepartureDate);
     case EntityTypeName::kVehicle:
       return compare_less_case_insensitive(
           AttributeTypeName::kVehiclePlateNumber);
@@ -881,11 +879,14 @@ bool HasPersonalContextSuggestion(
 // Returns the parent `Suggestion` for a fallback menu which displays entities
 // that do not match the current domain.
 Suggestion CreateParentFallbackSuggestion(EntityType entity_type,
+                                          bool has_primary_suggestions,
                                           std::vector<Suggestion> children) {
   switch (entity_type.name()) {
     case EntityTypeName::kOrder: {
       Suggestion suggestion(
-          l10n_util::GetStringUTF16(IDS_AUTOFILL_AI_OTHER_ORDERS),
+          l10n_util::GetStringUTF16(has_primary_suggestions
+                                        ? IDS_AUTOFILL_AI_OTHER_ORDERS
+                                        : IDS_AUTOFILL_AI_ALL_ORDERS),
           SuggestionType::kAutofillAiOtherOrders);
       suggestion.acceptability = Suggestion::Acceptability::kUnacceptable;
       suggestion.children = std::move(children);
@@ -893,7 +894,9 @@ Suggestion CreateParentFallbackSuggestion(EntityType entity_type,
     }
     case EntityTypeName::kShipment: {
       Suggestion suggestion(
-          l10n_util::GetStringUTF16(IDS_AUTOFILL_AI_OTHER_SHIPMENTS),
+          l10n_util::GetStringUTF16(has_primary_suggestions
+                                        ? IDS_AUTOFILL_AI_OTHER_SHIPMENTS
+                                        : IDS_AUTOFILL_AI_ALL_SHIPMENTS),
           SuggestionType::kAutofillAiOtherShipments);
       suggestion.acceptability = Suggestion::Acceptability::kUnacceptable;
       suggestion.children = std::move(children);
@@ -922,6 +925,7 @@ std::optional<Suggestion> CreateDomainFallbackSuggestion(
     const FormStructure& form,
     const AutofillField& trigger_field,
     EntityType entity_type,
+    bool has_primary_suggestions,
     base::span<const EntityInstance> all_entities,
     const AttributeTypeAssignment& assignment,
     const GURL& page_url,
@@ -976,13 +980,15 @@ std::optional<Suggestion> CreateDomainFallbackSuggestion(
     ui_sections->insert(GetAutofillAiUiSection(entity.type()));
   }
 
-  return CreateParentFallbackSuggestion(entity_type, std::move(children));
+  return CreateParentFallbackSuggestion(entity_type, has_primary_suggestions,
+                                        std::move(children));
 }
 
 void AppendDomainFallbackSuggestions(
     std::vector<Suggestion>& suggestions,
     const FormStructure& form,
     const AutofillField& trigger_field,
+    base::span<const EntityInstance> entities_to_suggest,
     base::span<const EntityInstance> all_entities,
     const AttributeTypeAssignment& assignment,
     AutofillClient& client,
@@ -990,15 +996,21 @@ void AppendDomainFallbackSuggestions(
   for (EntityType entity_type : DenseSet<EntityType>::all()) {
     switch (entity_type.name()) {
       case EntityTypeName::kOrder:
-      case EntityTypeName::kShipment:
+      case EntityTypeName::kShipment: {
+        const bool has_primary_suggestions = std::ranges::any_of(
+            entities_to_suggest, [&](const EntityInstance& entity) {
+              return entity.type() == entity_type;
+            });
         if (std::optional<Suggestion> fallback_suggestion =
                 CreateDomainFallbackSuggestion(
-                    form, trigger_field, entity_type, all_entities, assignment,
+                    form, trigger_field, entity_type, has_primary_suggestions,
+                    all_entities, assignment,
                     client.GetLastCommittedPrimaryMainFrameURL(), client,
                     &ui_sections)) {
           suggestions.push_back(std::move(*fallback_suggestion));
         }
         break;
+      }
       case EntityTypeName::kPassport:
       case EntityTypeName::kDriversLicense:
       case EntityTypeName::kVehicle:
@@ -1035,8 +1047,8 @@ std::vector<Suggestion> CreateAutofillAiFillingSuggestions(
   }
 
   AppendDomainFallbackSuggestions(suggestions, form, trigger_field,
-                                  all_entities, assignment, client,
-                                  ui_sections);
+                                  entities_to_suggest, all_entities, assignment,
+                                  client, ui_sections);
 
   if (suggestions.empty() && !should_show_fetching_suggestions) {
     return {};
