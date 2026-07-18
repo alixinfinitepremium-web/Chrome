@@ -1710,7 +1710,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': 'Xo7oHHGXMwFsGG_TsM7plsa3qYnnP3Zph-VUiJ-nSOkC',
+        'version': 'NrUIvJuZ0Z_eB7r__KPM27qYvmQ8r257WlVTDOwRt6oC',
       },
     ],
     'condition': 'non_git_source',
@@ -1722,7 +1722,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '735266c6f84c278751b713e45dd7c67d158b997d',
+    '0290d45cfca3afeeeb53aea62beae71ada205e9f',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
