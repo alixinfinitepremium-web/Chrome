@@ -511,7 +511,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'libunwind_revision':    '96c0a03e9e6b540f48753030dd0aa254aeb5545d',
+  'libunwind_revision':    'e825c6124fdca28ffe8bec55b410e073f10c78e7',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -1722,7 +1722,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    'c2c2066f227586529de4208069fd68722badaf32',
+    '6483c7581e6e246fe9f6931d0f0db9ea80767ab1',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
