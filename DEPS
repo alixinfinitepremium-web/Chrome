@@ -535,7 +535,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
-  'compiler_rt_revision': '855c4b80cc60c8252f2af4ca24745de9e43ea3fc',
+  'compiler_rt_revision': '0bc2bddce14a53d9184c230b49fa807bf1e6f3f6',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling clusterfuzz-data
   # and whatever else without interference from each other.
@@ -4013,7 +4013,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        'c2f65fb1cd3c103f15f34766ce08727d5175ddef',
+        '68ef642daeb18fe9530cbebc4f72ade91a2add58',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
