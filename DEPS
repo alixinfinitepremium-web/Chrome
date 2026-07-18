@@ -323,7 +323,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '18794527f75c1497c50c4a1daf9bf65a601616fb',
+  'src_internal_revision': '046c614e0f2a37a1955f56cb37253666c420cd37',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -335,7 +335,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '8679cc8097beb087d87e45780eb75141a5a30942',
+  'angle_revision': '20ba9991499b808cf6d3d36b888088591fc0989c',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -431,7 +431,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': '3b1b14f758d82ad7d9e7d75fc04f509585ad0eb9',
+  'dawn_revision': '341eebf213e817eafc25b6b408cc364b30f406e3',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -1475,7 +1475,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_linux64',
-          'version': 'version:2@1658011',
+          'version': 'version:2@1659009',
         },
       ],
   },
@@ -1486,7 +1486,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_mac_amd64',
-          'version': 'version:2@1658025',
+          'version': 'version:2@1659006',
         },
       ],
   },
@@ -1497,7 +1497,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_mac_arm64',
-          'version': 'version:2@1658011',
+          'version': 'version:2@1659002',
         },
       ],
   },
@@ -1508,7 +1508,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_arm64',
-          'version': 'version:2@1658090',
+          'version': 'version:2@1659089',
         },
       ],
   },
@@ -1519,7 +1519,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_x86',
-          'version': 'version:2@1658073',
+          'version': 'version:2@1659081',
         },
       ],
   },
@@ -1530,7 +1530,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_x86_64',
-          'version': 'version:2@1658089',
+          'version': 'version:2@1659044',
         },
       ],
   },
@@ -1641,7 +1641,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_mac_amd64',
-          'version': 'S887MP89Mwm4Hq9IOvf7UZEaFj0W2rDQwMep6rb23L8C',
+          'version': '2emsuVUOEhJZ_fIjVPAclU98C3gIggU6Gpw6kGpMEa0C',
         },
       ],
   },
@@ -1652,7 +1652,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_mac_arm64',
-          'version': 'M57oHEKs5xuLXXDv_n-Kpv-DMahvBE4BTQxXQoo14iwC',
+          'version': 'CrZY52ZoiRKLJnNEjYacBL4683g3pKgaL8E44zITEEcC',
         },
       ],
   },
@@ -1674,7 +1674,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_win_x86_64',
-          'version': 'Jd_C9660msB5vJJlk_VsmEThgbf9pV0aFYPHq6grmBwC',
+          'version': 'RJSYrNzwPZoDAMWeTIPBQbVauCLJxXpaFwLFPGFYRIIC',
         },
       ],
   },
@@ -3929,7 +3929,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        'dd31b9c5325b53f25590c735d8f1bafe08210a63',
+        'c9081f9ef586d39b604f97ee43c926574a89f2cb',
       'condition': 'checkout_src_internal',
   },
 
