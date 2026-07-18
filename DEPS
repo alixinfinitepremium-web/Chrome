@@ -1663,7 +1663,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_win_x86',
-          'version': 'akoBzuqtEvfQtnJdYWXrl1ybRaafM2L3jUdIi5xKomgC',
+          'version': 'fNWJBWhuRVV21ClH44sIyqzKQKdv_hUzYKyNKoFY0MUC',
         },
       ],
   },
@@ -2172,7 +2172,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '523cac151f2d6c6d0849f35753613864fc38850f',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '1709e20d5ca2afe97bfa726168719c3b77eb9883',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
