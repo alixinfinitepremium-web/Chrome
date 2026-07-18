@@ -335,7 +335,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '20ba9991499b808cf6d3d36b888088591fc0989c',
+  'angle_revision': '318948133839dcf445f6b39854538f776e3302b3',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -1822,7 +1822,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': 'GAwgRJ-2Z55WeiIpbDSC0TETmuEpdeoH5hNpmJVy3wUC',
+          'version': 'HCb55Jy97xIKqkKgVypoSWOWXtggmWXTdFaIEHxawJcC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
@@ -3172,7 +3172,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + 'bd5b39a98306db544431921bdc43baa8b750ed4a',
+    Var('webrtc_git') + '/src.git' + '@' + '848836f85d4036def631df0ed6eeb001b5c0c174',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -3301,7 +3301,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_receiver_app/app',
-        'version': 'TP-A7nGw6hMSoGhD3oHnHnTswhkUEKhZYy6jLqIj0ywC',
+        'version': '0EAx2Ou8SP75IXhEIwO7bzrnyjSo1OiKR3vdd1nVQQcC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3312,7 +3312,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_app/app',
-        'version': 'uswzXs5QOq-Aw13ews2Ud7Q33w0QmlE-bxGBZdlK95wC',
+        'version': 'PseTChL3tKgZm2WuVg2PaS8p12NozmIMg-9gYa-PUHIC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3367,7 +3367,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/projector_app/app',
-        'version': 'IlGyE2npfZMy8uc9tjcdjzVg7xIoV5t9n7AvP9KSbe8C',
+        'version': 'CPmwoAtjIpRRiY88KVt1I3dNLklHuqHwveq1Eo9s--YC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -4013,7 +4013,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '4c2dc5b881bcbad8168809dffc11f54a4fa441dc',
+        'ccf4610baa3912df06dba28a35b8806ec2c90c5a',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
