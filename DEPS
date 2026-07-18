@@ -327,7 +327,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': 'bf73fd513fa53710c83a703b5b505ea5b2463bc9',
+  'skia_revision': '04dbd15284b8b10a72da7636f23db5a077641437',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -399,7 +399,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling fuzztest
   # and whatever else without interference from each other.
-  'fuzztest_revision': 'dc04a8f95b40f101fe16b7f045fa18de50b5c8e2',
+  'fuzztest_revision': 'ad66c13417df44074f4fac737192b3943e22ce01',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling domato
   # and whatever else without interference from each other.
@@ -1630,7 +1630,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_linux64',
-          'version': '3FcwDLZiHLLNs8fNwhfHUKht7wz9elikczNfiuJLQYMC',
+          'version': '7GvQESECgi9ooVVlL0GRR5ubFk07hHQ1xPYxRhn-e4sC',
         },
       ],
   },
@@ -1722,7 +1722,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '5e686331e220196e23bf137faf53ac46952dd244',
+    '6a8d887c0a6be3a866f19de49e13b38b556108ef',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -1736,7 +1736,7 @@ deps = {
   },
 
   'src/ios/third_party/edo/src': {
-      'url': Var('chromium_git') + '/external/github.com/google/eDistantObject.git' + '@' + '3433ee48ad27b8446acb388a4ca7373cb71725fe',
+      'url': Var('chromium_git') + '/external/github.com/google/eDistantObject.git' + '@' + '51f78db84aa9f88a54164fdd40299fefaf161c07',
       'condition': 'checkout_ios',
   },
 
@@ -1822,7 +1822,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': 'XQ9Do60jPCR44pyii2Z28-prb-96vc6DwcMur586UFMC',
+          'version': 'GAwgRJ-2Z55WeiIpbDSC0TETmuEpdeoH5hNpmJVy3wUC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
