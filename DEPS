@@ -1722,7 +1722,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '6cc046cd1a38049fd740b9e01a27823750516fba',
+    '3c45583d45d96b152a57a6b4e52b3370ab62d7a3',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -3367,7 +3367,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/projector_app/app',
-        'version': 'CPmwoAtjIpRRiY88KVt1I3dNLklHuqHwveq1Eo9s--YC',
+        'version': 'GZpzoiIvLZFDkvW3iTIPXoSv3ZKMWJeFo9_fhfBk_-0C',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
