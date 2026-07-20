@@ -8,6 +8,11 @@
 
 import type {AdditionalContextPart, ImageOriginAnnotations, InvocationPayload, Point, Rect, ResponseStopCause} from './glic_api.js';
 
+export enum FileUploadPolicyState {
+  ENABLED = 0,
+  DISABLED = 1,
+}
+
 // The type of user input reaction.
 export enum MetricUserInputReactionType {
   // An unknown reaction type.
@@ -1351,6 +1356,34 @@ export declare interface SelectAutofillSuggestionsDialogRequest {
 export declare interface FormFillingResponse {
   // The ID corresponding to the user selected suggestion.
   selectedSuggestionId: string;
+}
+
+// Request to show a Gmail OTP opt-in dialog.
+export declare interface GmailOtpOptInRequest {
+  // ID of the actor's task.
+  taskId: number;
+}
+
+// Response for the Gmail OTP opt-in dialog.
+export declare interface GmailOtpOptInResponse {
+  // True if the user clicked the opt-in button, false if they
+  // cancelled/closed it.
+  permissionGranted: boolean;
+}
+
+// Request to show a Gmail OTP confirmation dialog.
+export declare interface GmailOtpConfirmationRequest {
+  // ID of the actor's task.
+  taskId: number;
+  // The verification code that the user needs to confirm.
+  verificationCode: string;
+}
+
+// Response for the Gmail OTP confirmation dialog.
+export declare interface GmailOtpConfirmationResponse {
+  // True if the user clicked the confirmation button, false if they
+  // cancelled/closed it.
+  permissionGranted: boolean;
 }
 
 // Meta tag name and content taken from the <head> element of a frame.

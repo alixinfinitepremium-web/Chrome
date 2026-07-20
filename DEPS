@@ -407,7 +407,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '4a3a0728fb207c1adb1fa3e4ea2cf92b4028d19b',
+  'devtools_frontend_revision': 'f437bda14da4b24b92d4a4b4ace66bf28d4b85eb',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1722,7 +1722,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '0bff1067b3810de72ed8747ae83ba7a626310774',
+    '10b16d9b8826876fb75e7e3cbc7a98a42bd86fb2',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -2580,7 +2580,7 @@ deps = {
     Var('chromium_git') + '/chromiumos/platform/libva-fake-driver.git' + '@' + 'a9bcab9cd6b15d4e3634ca44d5e5f7652c612194',
 
   'src/third_party/libvpx/source/libvpx':
-    Var('chromium_git') + '/webm/libvpx.git' + '@' +  'c1f98b5fedfc5c302439587341082542d8e4fd2d',
+    Var('chromium_git') + '/webm/libvpx.git' + '@' +  'a6b27ea5560311ceaed5ea478d082917159571b5',
 
   'src/third_party/libwebm/source':
     Var('chromium_git') + '/webm/libwebm.git' + '@' + '6184f4484a826724b5293837134ab9492261b941',
@@ -3166,7 +3166,7 @@ deps = {
     Var('chromium_git') + '/external/khronosgroup/webgl.git' + '@' + '064aaf18207438d4f6dd10c98b02b25778257b7f',
 
   'src/third_party/webgpu-cts/src':
-    Var('chromium_git') + '/external/github.com/gpuweb/cts.git' + '@' + 'f4186348cf4be0be76b621cf68fa427f5cf61649',
+    Var('chromium_git') + '/external/github.com/gpuweb/cts.git' + '@' + 'a5da75765403bba8de35a010d7cdde2cf6c6b982',
 
   'src/third_party/webpagereplay':
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
@@ -3323,7 +3323,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/help_app/app',
-        'version': 'BC34txR-GYZ8jDqqVwWuWvA3fSUzcFzi7cv-m8BgZL0C',
+        'version': 'YcW7C8LCF0hIJn5a8aRvUU0rmDEDH35nAGUZaATxK4QC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3334,7 +3334,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/media_app/app',
-        'version': 'S0sQfvJZ9VE7z9VSLgSUyBvUQMu4v5qHtYCTWsHx_nIC',
+        'version': 'cEo9UIhKj-2kTOApOxOFQ16hYryqqaqprgWxW86a8kcC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -4013,7 +4013,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        'cea869f723073e22b4f250ccdc1b91f47e21cfc3',
+        '4dc25295c725c2436aa98d1f21a5c172842194ce',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 

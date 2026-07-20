@@ -578,6 +578,10 @@ void PopulateGlobalClientInitialState(mojom::WebClientInitialState* state,
 
   state->enable_gmail_otp_opt_in =
       base::FeatureList::IsEnabled(features::kGlicActorAutofillOneTimePassword);
+  state->enable_gmail_otp_confirmation =
+      base::FeatureList::IsEnabled(features::kGlicActorAutofillOneTimePassword);
+  state->file_upload_policy_state =
+      glic::prefs::GetFileUploadAllowedCapability(profile->GetPrefs());
 }
 
 #if !BUILDFLAG(IS_ANDROID)

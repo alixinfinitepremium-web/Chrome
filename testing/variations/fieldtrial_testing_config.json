@@ -13544,21 +13544,6 @@
             ]
         }
     ],
-    "HeliosLuminous": [
-        {
-            "platforms": [
-                "ios"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "GeminiLuminous"
-                    ]
-                }
-            ]
-        }
-    ],
     "HeliosScreenContextMigration": [
         {
             "platforms": [
@@ -14177,21 +14162,6 @@
             ]
         }
     ],
-    "IOSFRESignInSecondaryActionLabelUpdateHoldback": [
-        {
-            "platforms": [
-                "ios"
-            ],
-            "experiments": [
-                {
-                    "name": "PreviousCTA",
-                    "disable_features": [
-                        "FRESignInSecondaryActionLabelUpdate"
-                    ]
-                }
-            ]
-        }
-    ],
     "IOSFastApplicationWillTerminate": [
         {
             "platforms": [
@@ -14544,6 +14514,21 @@
                     "name": "Disabled",
                     "disable_features": [
                         "IOSPasskeyModalLoginWithShim"
+                    ]
+                }
+            ]
+        }
+    ],
+    "IOSPasswordAutofillAutoSubmission": [
+        {
+            "platforms": [
+                "ios"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "PasswordAutofillAutoSubmission"
                     ]
                 }
             ]
@@ -15881,6 +15866,7 @@
                 {
                     "name": "Enabled",
                     "enable_features": [
+                        "ContextualTasksSidePanel",
                         "LensSidePanelUnification"
                     ]
                 }
@@ -24123,6 +24109,7 @@
                     "name": "Enabled",
                     "params": {
                         "system_pdh_metrics_downsampling_factor": "20",
+                        "system_pdh_metrics_metrics_per_process": "3",
                         "system_pdh_metrics_sampling_period": "30s"
                     },
                     "enable_features": [
@@ -25931,25 +25918,6 @@
             ]
         }
     ],
-    "VerticalTabs": [
-        {
-            "platforms": [
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "VerticalTabs",
-                        "VerticalTabsPreviewBadge"
-                    ]
-                }
-            ]
-        }
-    ],
     "VerticalTabsExpandOnHover": [
         {
             "platforms": [
@@ -25982,10 +25950,7 @@
     "VerticalTabsLaunch": [
         {
             "platforms": [
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
+                "chromeos"
             ],
             "experiments": [
                 {
