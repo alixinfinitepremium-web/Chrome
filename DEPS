@@ -297,11 +297,11 @@ vars = {
   'reclient_version': 're_client_version:0.185.0.db415f21-gomaip',
 
   # screen-ai CIPD packages
-  'screen_ai_linux': 'version:148.12',
-  'screen_ai_macos_amd64': 'version:148.12',
-  'screen_ai_macos_arm64': 'version:148.12',
-  'screen_ai_windows_amd64': 'version:148.12',
-  'screen_ai_windows_386': 'version:148.12',
+  'screen_ai_linux': 'version:148.13',
+  'screen_ai_macos_amd64': 'version:148.13',
+  'screen_ai_macos_arm64': 'version:148.13',
+  'screen_ai_windows_amd64': 'version:148.13',
+  'screen_ai_windows_386': 'version:148.13',
 
   # download libaom test data
   'download_libaom_testdata': False,
@@ -387,7 +387,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': 'cc9c73b7e3d65c1b4104b5a0ee004d51558926a8',
+  'crossbench_revision': '4c0f56e860ae10e118dae0b649b2306ea16e43e2',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -407,7 +407,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'afe3879f58e84b54fc417dced15951d6c8132588',
+  'devtools_frontend_revision': 'a18fc65c7d3f4f0e7cb8f96644586dccb0e4ca20',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -4013,7 +4013,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '47556749d41b7e2126dcfdafa21215b7d178ddfa',
+        'a1330e8d3f082cfe6fd4ae26af36dc92be034aa5',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
