@@ -387,7 +387,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': '4c0f56e860ae10e118dae0b649b2306ea16e43e2',
+  'crossbench_revision': 'e5b58c498e53d0ccba4701221cdab16e3489a4ef',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -407,7 +407,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'a18fc65c7d3f4f0e7cb8f96644586dccb0e4ca20',
+  'devtools_frontend_revision': '4a3a0728fb207c1adb1fa3e4ea2cf92b4028d19b',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1822,7 +1822,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': 'T3DVPfEqchRloZjP8er2S_R534TMNSjDGUqclMmZ638C',
+          'version': 'qQMTr-tM-gZas4vFdqP1YJf07S1HH1v7fV1YhB86XocC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
@@ -3120,7 +3120,7 @@ deps = {
       ],
   },
 
-  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@e5ed54df51f5e835e9381b06b366c07fe9bd6b54',
+  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@a9dfca63399cf6a6976a6ab52313358bcc273d21',
   'src/third_party/glslang/src': '{chromium_git}/external/github.com/KhronosGroup/glslang@a0b513644803358f66ea6379e5d206963835afac',
   'src/third_party/spirv-cross/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Cross@b8fcf307f1f347089e3c46eb4451d27f32ebc8d3',
   'src/third_party/spirv-headers/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Headers@29981f65241605e08b0ede4cfeb999fe3b723c6a',
@@ -4013,7 +4013,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        'a1330e8d3f082cfe6fd4ae26af36dc92be034aa5',
+        'cea869f723073e22b4f250ccdc1b91f47e21cfc3',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
