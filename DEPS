@@ -335,7 +335,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '318948133839dcf445f6b39854538f776e3302b3',
+  'angle_revision': 'd4ce3014dd92c3c57c0f128ff464f18b03858d8a',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -387,7 +387,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': '0f87dadd72a401f260d94f7b62fb8b81aed40314',
+  'crossbench_revision': '5428cf471a4ddea85f56ff33179e0947afedc256',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -407,7 +407,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'd417f01e18ebd8d1ccbfed4e37197f43b41b807c',
+  'devtools_frontend_revision': '11d3380de111cc2e3736decd182baeb15637c25a',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1710,7 +1710,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': 'e3mADienDu_UzA07u2a5k6JYfhAYCc3dAScUoPuNsFkC',
+        'version': 'mk5qMNUCKDyFyU7Oje2nGDWtZMwT_ymsodGOFes0Z9MC',
       },
     ],
     'condition': 'non_git_source',
@@ -1722,7 +1722,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    'b83363bd0dd33d9ecb6f8fc59c8bb38dd133ab63',
+    '4863fb9261ec53a63c4fe4ca86f363e0d8d85b32',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -1822,7 +1822,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': 'bB1KM1Pb9b4I6r2beXlvwCDC9BNgH7wX6FD4n89BRz4C',
+          'version': 'T3DVPfEqchRloZjP8er2S_R534TMNSjDGUqclMmZ638C',
       },
     ],
     'condition': 'checkout_android and non_git_source',
@@ -2072,7 +2072,7 @@ deps = {
      Var('chromium_git') + '/external/github.com/aengelke/disarm.git' + '@' + '2d13d3f410a52daff1c5d8ef07d623332f372560',
 
   'src/third_party/fadec/src':
-     Var('chromium_git') + '/external/github.com/aengelke/fadec.git' + '@' + '340a7a86117895b7b71e56deac99d96340eab587',
+     Var('chromium_git') + '/external/github.com/aengelke/fadec.git' + '@' + 'c9f78f532b9004de278489019ab2c6c28ae9746e',
 
   'src/third_party/highway/src':
     Var('chromium_git') + '/external/github.com/google/highway.git' + '@' + Var('highway_revision'),
@@ -3301,7 +3301,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_receiver_app/app',
-        'version': 'SvqWc9u9KtE48ISfMgsOKLZ5BTbjo_OLzagRfOdqiFEC',
+        'version': '30uLvVBFImTNnpZkNmateXP_XC5FIhCrhTpJHInOsQcC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3312,7 +3312,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_app/app',
-        'version': '8WC2eA5wVk1PIVFZzWAV4rzYedZcw8kYBIr_Q2pNdNwC',
+        'version': 'CafeULVdESINgo8jR3DD4GSTK7I1i5wx9I-YZCiPPr4C',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3367,7 +3367,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/projector_app/app',
-        'version': 'GZpzoiIvLZFDkvW3iTIPXoSv3ZKMWJeFo9_fhfBk_-0C',
+        'version': 'B8P2gAv_i6aJ-o-peVLR8bG7ZcF_QMahlGHsjLLbqCgC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -4013,7 +4013,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        'b8b3b723c0a0c94904465898a94ef36744b27bf2',
+        'fdd7054d0af912b244f39b61ef3c7c66866e2080',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
