@@ -214,12 +214,8 @@ static_library("test_support") {
 
   sources = [
     "../app/startup_timestamps.h",
-    "../browser/autofill/automated_tests/cache_replayer.cc",
-    "../browser/autofill/automated_tests/cache_replayer.h",
     "../browser/performance_manager/test_support/page_discarding_utils.cc",
     "../browser/performance_manager/test_support/page_discarding_utils.h",
-    "../browser/permissions/crowd_deny_fake_safe_browsing_database_manager.cc",
-    "../browser/permissions/crowd_deny_fake_safe_browsing_database_manager.h",
     "../browser/policy/messaging_layer/public/report_client_test_util.cc",
     "../browser/policy/messaging_layer/public/report_client_test_util.h",
     "../browser/policy/messaging_layer/upload/file_upload_job_test_util.cc",
@@ -748,10 +744,6 @@ static_library("test_support") {
       "../browser/performance_manager/test_support/test_user_performance_tuning_manager_environment.cc",
       "../browser/performance_manager/test_support/test_user_performance_tuning_manager_environment.h",
       "../browser/signin/signin_browser_test_base.h",
-      "../browser/sync_file_system/mock_local_change_processor.cc",
-      "../browser/sync_file_system/mock_local_change_processor.h",
-      "../browser/sync_file_system/mock_remote_file_sync_service.cc",
-      "../browser/sync_file_system/mock_remote_file_sync_service.h",
       "../browser/themes/test/theme_service_changed_waiter.cc",
       "../browser/themes/test/theme_service_changed_waiter.h",
       "../browser/ui/views/tabs/dragging/tab_drag_controller_interactive_test_mixin.h",
@@ -3189,7 +3181,6 @@ if (!is_android) {
       "../browser/ui/views/passwords/password_change/password_change_ui_browsertest.cc",
       "../browser/ui/views/profiles/avatar_toolbar_button_browsertest.cc",
       "../browser/ui/views/sharing/remote_copy_browsertest.cc",
-      "../browser/ui/views/sharing/shared_clipboard_browsertest.cc",
       "../browser/ui/views/sharing/sharing_browsertest.cc",
       "../browser/ui/views/sharing/sharing_browsertest.h",
       "../browser/ui/views/side_panel/history_clusters/history_clusters_side_panel_coordinator_browsertest.cc",
@@ -4119,7 +4110,6 @@ if (!is_android) {
     # NOTE: This is the main "browser_tests" section for |is_chromeos|.
     if (is_chromeos) {
       sources += [
-        "../browser/chromeos/enterprise/cloud_storage/one_drive_pref_observer_browsertest.cc",
         "../browser/file_system_access/cloud_identifier/cloud_identifier_util_ash_browsertest.cc",
 
         # TODO(crbug.com/510716187): Enable for other platforms once macOS
@@ -4393,6 +4383,7 @@ if (!is_android) {
         "//chrome/browser/chromeos/app_mode",
         "//chrome/browser/chromeos/arc",
         "//chrome/browser/chromeos/enterprise/cloud_storage",
+        "//chrome/browser/chromeos/enterprise/cloud_storage:browser_tests",
         "//chrome/browser/chromeos/network",
         "//chrome/browser/chromeos/platform_keys",
         "//chrome/browser/chromeos/policy/dlp",
@@ -8891,6 +8882,7 @@ if (!is_android && !is_chromeos_device) {
       "//chrome/browser/ui/webui/side_panel/customize_chrome/wallpaper_search:interactive_ui_tests",
       "//chrome/browser/ui/webui/skills",
       "//chrome/browser/ui/webui/whats_new:interactive_ui_tests",
+      "//chrome/browser/ui/webui_browser:interactive_ui_tests",
       "//chrome/browser/ui/window_metadata",
       "//chrome/browser/web_applications:features",
       "//chrome/browser/web_applications:interactive_ui_tests",
