@@ -343,7 +343,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling PDFium
   # and whatever else without interference from each other.
-  'pdfium_revision': 'dd3583292697a0356cca1f64892892a92f0a2770',
+  'pdfium_revision': 'c33f1f7e2be963b55e74c28516ce566f1f45b47d',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
@@ -511,7 +511,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'libunwind_revision':    'e825c6124fdca28ffe8bec55b410e073f10c78e7',
+  'libunwind_revision':    '8bd5df6498ca260b0857fdc155a4417682976b44',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -535,7 +535,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
-  'compiler_rt_revision': '0bc2bddce14a53d9184c230b49fa807bf1e6f3f6',
+  'compiler_rt_revision': 'a282d2dd39fbdee7de35732a37f527390b829f57',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling clusterfuzz-data
   # and whatever else without interference from each other.
