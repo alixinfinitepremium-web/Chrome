@@ -847,17 +847,19 @@
             ]
         }
     ],
-    "AndroidAdaptiveAffinity": [
+    "AndroidAdaptiveAffinityMode": [
         {
             "platforms": [
                 "android"
             ],
             "experiments": [
                 {
-                    "name": "AdaptiveAffinity",
+                    "name": "Enabled_LongPageBoost_20260615",
                     "params": {
                         "helper_mode": "affinity",
-                        "mode": "adaptive"
+                        "page_load_boost": "10s",
+                        "scroll_boost": "0.2s",
+                        "user_input_boost": "0.5s"
                     },
                     "enable_features": [
                         "UsePerformanceHelper"
@@ -20781,30 +20783,6 @@
                     "name": "Enabled",
                     "enable_features": [
                         "ProgressiveAccessibilityPhase2"
-                    ]
-                }
-            ]
-        }
-    ],
-    "ProjectsPanel": [
-        {
-            "platforms": [
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "params": {
-                        "include_threads_in_projects_panel": "true"
-                    },
-                    "enable_features": [
-                        "IPH_ResumptionRail",
-                        "ProjectsPanel",
-                        "SyncAIThreads",
-                        "SyncGeminiThreads"
                     ]
                 }
             ]

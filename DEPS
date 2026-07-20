@@ -1727,7 +1727,7 @@ deps = {
   },
 
   'src/docs/website': {
-    'url': Var('chromium_git') + '/website.git' + '@' + '8cf0731d6ef0fa605a0fa5ecde2b23deaab0d669',
+    'url': Var('chromium_git') + '/website.git' + '@' + '7b95c4af484f43f14e3a4d7f310ea4ed15ad6139',
   },
 
   'src/ios/third_party/earl_grey2/src': {
@@ -2729,7 +2729,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '29c572c0ac06cb971558bf8057dc7b7639e172f5',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '83732e8f4ab27cad25343778f333257bfb0b719e',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',

@@ -498,7 +498,6 @@ void LocationBarView::Init() {
     }
     params.types_enabled.push_back(PageActionIconType::kFederation);
   }
-  params.types_enabled.push_back(PageActionIconType::kFilledCardInformation);
   params.types_enabled.push_back(PageActionIconType::kVirtualCardEnroll);
 
   if (browser_ && !is_popup_mode_) {
@@ -1159,7 +1158,7 @@ ui::TrackedElement* LocationBarView::GetAnchorOrNull() {
   return views::ElementTrackerViews::GetInstance()->GetElementForView(this);
 }
 
-Browser* LocationBarView::GetBrowser() {
+BrowserWindowInterface* LocationBarView::GetBrowser() {
   return browser();
 }
 
