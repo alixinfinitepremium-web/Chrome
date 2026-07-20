@@ -331,7 +331,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': '9f02713acf2b35317bf3e627145cb121d2623716',
+  'v8_revision': '83e7f425b60c7d91002291a6b72144379ecda3e0',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -387,7 +387,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': '5428cf471a4ddea85f56ff33179e0947afedc256',
+  'crossbench_revision': 'cc9c73b7e3d65c1b4104b5a0ee004d51558926a8',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -407,7 +407,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '11d3380de111cc2e3736decd182baeb15637c25a',
+  'devtools_frontend_revision': 'afe3879f58e84b54fc417dced15951d6c8132588',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -431,7 +431,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': '2529dfe8b6af2e6d21ac8786146adbaa54582cfc',
+  'dawn_revision': 'e80a4b5237e26bc164d020e7283a39445689ea49',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -1722,7 +1722,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '4863fb9261ec53a63c4fe4ca86f363e0d8d85b32',
+    '0bff1067b3810de72ed8747ae83ba7a626310774',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -2184,7 +2184,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + 'e0f18b799e2cc7d416fdb0aec2075dceebbc8295',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '8a4a417dde40a03632e56b771e9fbadbc938d790',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '17a56409b86d0da5e01ca38f6498e13b2db16bc3',
@@ -3066,7 +3066,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/turbine',
-              'version': 'awzkIvxy_4B26fyNBwkUNbN42WABkTHyQawK2Q6EgQwC',
+              'version': 'floeXuzDYZ93TM1JKq2TbAiSZGra60Kqft5da4HlXGQC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -4013,7 +4013,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        'fdd7054d0af912b244f39b61ef3c7c66866e2080',
+        '47556749d41b7e2126dcfdafa21215b7d178ddfa',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
