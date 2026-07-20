@@ -367,7 +367,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling freetype
   # and whatever else without interference from each other.
-  'freetype_revision': 'f01dec5e676847267834b881b25f6e8c79581163',
+  'freetype_revision': 'b6c6934a76fae579fce081b03e2e74aca17e7eeb',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling HarfBuzz
   # and whatever else without interference from each other.
@@ -407,7 +407,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'df152307308d5b0136dc7a48ef69da2699d3c5d5',
+  'devtools_frontend_revision': 'd417f01e18ebd8d1ccbfed4e37197f43b41b807c',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1722,7 +1722,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '1f5aba243a248cd75cd36092c05c418a4f1cadba',
+    'b83363bd0dd33d9ecb6f8fc59c8bb38dd133ab63',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -3983,7 +3983,7 @@ deps = {
 
   'src/components/test/data/autofill/heuristics-json/internal': {
       'url': Var('chrome_git') + '/chrome/test/autofill/structured_forms.git' + '@' +
-        'c680e28aff0fe1c5410f319af3a8c5248f710310',
+        'c42210aba0150db60a72af7cf50778e062e14c6d',
       'condition': 'checkout_chromium_autofill_test_dependencies',
   },
 
