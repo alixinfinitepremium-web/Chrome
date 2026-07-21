@@ -1664,6 +1664,11 @@ inline constexpr char kGlicOSIconVariantDescription[] =
 inline constexpr char kGlicClientZoomControlName[] = "Glic Client Zoom Control";
 inline constexpr char kGlicClientZoomControlDescription[] =
     "Enables the use of Chrome zoom keyboard controls in the Glic UI.";
+inline constexpr char kGlicSparkSettingsAccessibleLabelsName[] =
+    "Glic Spark Settings Accessible Labels";
+inline constexpr char kGlicSparkSettingsAccessibleLabelsDescription[] =
+    "Enables screen reader accessible labels for links in the Gemini Spark "
+    "settings page.";
 
 inline constexpr char kGlicDefaultTabContextSettingName[] =
     "Glic Default Tab Context Setting";
@@ -2215,13 +2220,6 @@ inline constexpr char kDeprecateAltClickName[] =
 inline constexpr char kDeprecateAltClickDescription[] =
     "Start providing notifications about Alt+Click deprecation and enable "
     "Search+Click as an alternative.";
-inline constexpr char kExperimentalAccessibilityLanguageDetectionDynamicName[] =
-    "Experimental accessibility language detection for dynamic content";
-inline constexpr char
-    kExperimentalAccessibilityLanguageDetectionDynamicDescription[] =
-        "Enable language detection for dynamic content which is then exposed "
-        "to "
-        "assistive technologies such as screen readers.";
 
 inline constexpr char kMemlogName[] = "Chrome heap profiler start mode.";
 inline constexpr char kMemlogDescription[] =

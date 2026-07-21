@@ -539,6 +539,19 @@ struct ScatterElementsParams {
   bool is_updates_constant;
 };
 
+struct ScatterNDParams {
+  OperandDataType input_data_type;
+  OperandDataType indices_data_type;
+  uint32_t input_rank;
+  std::array<uint32_t, 8> input_dims;
+  uint32_t indices_rank;
+  std::array<uint32_t, 8> indices_dims;
+  int64_t indices_fill_value;
+  bool is_input_constant;
+  bool is_indices_constant;
+  bool is_updates_constant;
+};
+
 struct SliceParams {
   OperandDataType data_type;
   uint32_t rank;
@@ -588,6 +601,20 @@ struct TriangularParams {
   bool upper;
   int32_t diagonal;
   bool is_input_constant;
+};
+
+struct WhereParams {
+  OperandDataType condition_data_type;
+  OperandDataType value_data_type;
+  uint32_t condition_rank;
+  uint32_t true_value_rank;
+  uint32_t false_value_rank;
+  std::array<uint32_t, 8> condition_dims;
+  std::array<uint32_t, 8> true_value_dims;
+  std::array<uint32_t, 8> false_value_dims;
+  bool is_condition_constant;
+  bool is_true_value_constant;
+  bool is_false_value_constant;
 };
 
 SupportedDataTypes GetActivationDataTypes(ActivationKind kind) {
@@ -1498,6 +1525,23 @@ auto AnyScatterElementsParams() {
   );
 }
 
+auto AnyScatterNDParams() {
+  const auto& limits = GetContextPropertiesForTesting().data_type_limits;
+  return fuzztest::StructOf<ScatterNDParams>(
+      AnyOperandDataTypeFor(limits.scatter_nd_input.data_types),
+      AnyOperandDataTypeFor(limits.scatter_nd_indices.data_types),
+      AnyTensorRank(),                     // input_rank
+      fuzztest::ArrayOf<8>(AnyDimSize()),  // input_dims
+      AnyTensorRank(),                     // indices_rank
+      fuzztest::ArrayOf<8>(AnyDimSize()),  // indices_dims
+      fuzztest::OneOf(fuzztest::InRange<int64_t>(-10, 10),
+                      fuzztest::Arbitrary<int64_t>()),  // indices_fill_value
+      fuzztest::Arbitrary<bool>(),                      // is_input_constant
+      fuzztest::Arbitrary<bool>(),                      // is_indices_constant
+      fuzztest::Arbitrary<bool>()                       // is_updates_constant
+  );
+}
+
 auto AnySliceParams() {
   const auto& limits = GetContextPropertiesForTesting().data_type_limits;
   return fuzztest::StructOf<SliceParams>(
@@ -1563,6 +1607,25 @@ auto AnyTriangularParams() {
       fuzztest::OneOf(fuzztest::InRange<int32_t>(-10, 10),
                       fuzztest::Arbitrary<int32_t>()),  // diagonal
       fuzztest::Arbitrary<bool>()                       // is_input_constant
+  );
+}
+
+auto AnyWhereParams() {
+  const auto& limits = GetContextPropertiesForTesting().data_type_limits;
+  // Bias input dims toward 1 which is broadcastable.
+  auto any_input_dim = fuzztest::OneOf(fuzztest::Just(1u), AnyDimSize());
+  return fuzztest::StructOf<WhereParams>(
+      AnyOperandDataTypeFor(limits.where_condition.data_types),
+      AnyOperandDataTypeFor(limits.where_value.data_types),
+      AnyTensorRankIncludeZero(),           // condition_rank
+      AnyTensorRankIncludeZero(),           // true_value_rank
+      AnyTensorRankIncludeZero(),           // false_value_rank
+      fuzztest::ArrayOf<8>(any_input_dim),  // condition_dims
+      fuzztest::ArrayOf<8>(any_input_dim),  // true_value_dims
+      fuzztest::ArrayOf<8>(any_input_dim),  // false_value_dims
+      fuzztest::Arbitrary<bool>(),          // is_condition_constant
+      fuzztest::Arbitrary<bool>(),          // is_true_value_constant
+      fuzztest::Arbitrary<bool>()           // is_false_value_constant
   );
 }
 
@@ -3035,11 +3098,16 @@ class WebNNGraphImplFuzzerImpl
   void Resample2d(Resample2dParams params, uint8_t seed_for_data);
   void Reshape(ReshapeParams params, uint8_t seed_for_data);
   void ScatterElements(ScatterElementsParams params, uint8_t seed_for_data);
+  void ScatterND(ScatterNDParams params, uint8_t seed_for_data);
   void Slice(SliceParams params, uint8_t seed_for_data);
   void Softmax(SoftmaxParams params, uint8_t seed_for_data);
   void Split(SplitParams params, uint8_t seed_for_data);
   void Transpose(TransposeParams params, uint8_t seed_for_data);
   void Triangular(TriangularParams params, uint8_t seed_for_data);
+  void Where(WhereParams params,
+             uint8_t seed_for_condition,
+             uint8_t seed_for_true_value,
+             uint8_t seed_for_false_value);
   void DQActivationQ(ActivationParams activation_params,
                      OperandDataType quantized_type,
                      uint8_t seed_for_input,
@@ -4927,6 +4995,77 @@ void WebNNGraphImplFuzzerImpl<BaseFixture>::ScatterElements(
 }
 
 template <typename BaseFixture>
+void WebNNGraphImplFuzzerImpl<BaseFixture>::ScatterND(ScatterNDParams params,
+                                                      uint8_t seed_for_data) {
+  std::vector<uint32_t> input_dims(
+      params.input_dims.begin(), params.input_dims.begin() + params.input_rank);
+
+  std::vector<uint32_t> indices_dims(
+      params.indices_dims.begin(),
+      params.indices_dims.begin() + params.indices_rank);
+  // The last dimension of indices must be in [1, input_rank].
+  indices_dims.back() = indices_dims.back() % params.input_rank + 1;
+
+  // Derive the updates shape required by scatterND:
+  // `updates.shape` = `indices.shape[:-1]` + `input.shape[indices.shape[-1]:]`.
+  std::vector<uint32_t> updates_dims(indices_dims.begin(),
+                                     indices_dims.end() - 1);
+  updates_dims.insert(updates_dims.end(),
+                      input_dims.begin() + indices_dims.back(),
+                      input_dims.end());
+
+  ASSIGN_OR_RETURN_VOID(
+      auto input_desc,
+      OperandDescriptor::Create(this->context_properties(),
+                                params.input_data_type, input_dims, ""));
+  ASSIGN_OR_RETURN_VOID(
+      auto indices_desc,
+      OperandDescriptor::Create(this->context_properties(),
+                                params.indices_data_type, indices_dims, ""));
+  ASSIGN_OR_RETURN_VOID(
+      auto updates_desc,
+      OperandDescriptor::Create(this->context_properties(),
+                                params.input_data_type, updates_dims, ""));
+
+  ASSIGN_OR_RETURN_VOID(
+      auto output_desc,
+      ValidateScatterNDAndInferOutput(this->context_properties(), input_desc,
+                                      indices_desc, updates_desc, ""));
+
+  mojo::Remote<mojom::WebNNGraphBuilder> remote =
+      this->BindNewGraphBuilderRemote();
+  GraphInfoBuilder builder(remote);
+
+  base::flat_map<std::string, base::span<const uint8_t>> named_inputs;
+  std::vector<std::vector<uint8_t>> data_buffers;
+  OperandId input_id = BuildInputOrConstant(builder, params.is_input_constant,
+                                            "input", input_desc, seed_for_data,
+                                            data_buffers, named_inputs);
+  OperandId indices_id = BuildInputOrConstant(
+      builder, params.is_indices_constant, "indices", indices_desc,
+      CreateBufferAsIndicesType(indices_desc.PackedByteLength(),
+                                params.indices_data_type,
+                                params.indices_fill_value),
+      data_buffers, named_inputs);
+  OperandId updates_id = BuildInputOrConstant(
+      builder, params.is_updates_constant, "updates", updates_desc,
+      seed_for_data, data_buffers, named_inputs);
+
+  OperandId output_id = builder.BuildOutput("output", output_desc.shape(),
+                                            output_desc.data_type());
+
+  builder.BuildScatterND(input_id, indices_id, updates_id, output_id);
+
+  if (!builder.IsValidGraphForTesting(this->context_properties())) {
+    return;
+  }
+  BuildAndCompute(this->context_, std::move(remote), builder.TakeGraphInfo(),
+                  std::move(named_inputs));
+
+  GetGlobalFuzzEnvironment().GetWebNNTestEnvironment().RunUntilIdle();
+}
+
+template <typename BaseFixture>
 void WebNNGraphImplFuzzerImpl<BaseFixture>::Slice(SliceParams params,
                                                   uint8_t seed_for_data) {
   ASSIGN_OR_RETURN_VOID(
@@ -5091,6 +5230,97 @@ void WebNNGraphImplFuzzerImpl<BaseFixture>::Triangular(TriangularParams params,
                                             output_desc.data_type());
 
   builder.BuildTriangular(input_id, output_id, params.upper, params.diagonal);
+
+  if (!builder.IsValidGraphForTesting(this->context_properties())) {
+    return;
+  }
+  BuildAndCompute(this->context_, std::move(remote), builder.TakeGraphInfo(),
+                  std::move(named_inputs));
+
+  GetGlobalFuzzEnvironment().GetWebNNTestEnvironment().RunUntilIdle();
+}
+
+template <typename BaseFixture>
+void WebNNGraphImplFuzzerImpl<BaseFixture>::Where(
+    WhereParams params,
+    uint8_t seed_for_condition,
+    uint8_t seed_for_true_value,
+    uint8_t seed_for_false_value) {
+  std::vector<uint32_t> condition_dims(
+      params.condition_dims.begin(),
+      params.condition_dims.begin() + params.condition_rank);
+  std::vector<uint32_t> true_value_dims(
+      params.true_value_dims.begin(),
+      params.true_value_dims.begin() + params.true_value_rank);
+  std::vector<uint32_t> false_value_dims(
+      params.false_value_dims.begin(),
+      params.false_value_dims.begin() + params.false_value_rank);
+
+  // Fix up the three shapes to be bidirectionally broadcastable. For each
+  // aligned dimension (from the right), pick the first non-1 value as the
+  // target and rewrite any other non-1 value that differs from it.
+  std::array<std::vector<uint32_t>*, 3> all_dims = {
+      &condition_dims, &true_value_dims, &false_value_dims};
+  size_t max_rank = std::max(
+      {condition_dims.size(), true_value_dims.size(), false_value_dims.size()});
+  for (size_t i = 0; i < max_rank; ++i) {
+    uint32_t target = 1;
+    for (std::vector<uint32_t>* dims : all_dims) {
+      if (i >= dims->size()) {
+        continue;
+      }
+      uint32_t& dim = (*dims)[dims->size() - 1 - i];
+      if (dim != 1) {
+        // The first non-1 value becomes the target. Subsequent non-1 values are
+        // aligned to it.
+        if (target == 1) {
+          target = dim;
+        } else {
+          dim = target;
+        }
+      }
+    }
+  }
+
+  ASSIGN_OR_RETURN_VOID(auto condition_desc,
+                        OperandDescriptor::Create(this->context_properties(),
+                                                  params.condition_data_type,
+                                                  condition_dims, ""));
+  ASSIGN_OR_RETURN_VOID(
+      auto true_value_desc,
+      OperandDescriptor::Create(this->context_properties(),
+                                params.value_data_type, true_value_dims, ""));
+  ASSIGN_OR_RETURN_VOID(
+      auto false_value_desc,
+      OperandDescriptor::Create(this->context_properties(),
+                                params.value_data_type, false_value_dims, ""));
+
+  ASSIGN_OR_RETURN_VOID(
+      auto output_desc,
+      ValidateWhereAndInferOutput(this->context_properties(), condition_desc,
+                                  true_value_desc, false_value_desc, ""));
+
+  mojo::Remote<mojom::WebNNGraphBuilder> remote =
+      this->BindNewGraphBuilderRemote();
+  GraphInfoBuilder builder(remote);
+
+  base::flat_map<std::string, base::span<const uint8_t>> named_inputs;
+  std::vector<std::vector<uint8_t>> data_buffers;
+  data_buffers.reserve(3);
+  OperandId condition_id = BuildInputOrConstant(
+      builder, params.is_condition_constant, "condition", condition_desc,
+      seed_for_condition, data_buffers, named_inputs);
+  OperandId true_value_id = BuildInputOrConstant(
+      builder, params.is_true_value_constant, "true_value", true_value_desc,
+      seed_for_true_value, data_buffers, named_inputs);
+  OperandId false_value_id = BuildInputOrConstant(
+      builder, params.is_false_value_constant, "false_value", false_value_desc,
+      seed_for_false_value, data_buffers, named_inputs);
+
+  OperandId output_id = builder.BuildOutput("output", output_desc.shape(),
+                                            output_desc.data_type());
+
+  builder.BuildWhere(condition_id, true_value_id, false_value_id, output_id);
 
   if (!builder.IsValidGraphForTesting(this->context_properties())) {
     return;
@@ -6965,6 +7195,23 @@ WEBNN_FUZZ_TEST_F(
                      },
                      /*seed_for_data=*/4}}));
 
+WEBNN_FUZZ_TEST_F(
+    ScatterND,
+    .WithDomains(AnyScatterNDParams(), fuzztest::Arbitrary<uint8_t>())
+        .WithSeeds({{ScatterNDParams{
+                         /*input_data_type=*/OperandDataType::kFloat32,
+                         /*indices_data_type=*/OperandDataType::kInt32,
+                         /*input_rank=*/3,
+                         /*input_dims=*/{6, 5, 4, 1, 1, 1, 1, 1},
+                         /*indices_rank=*/2,
+                         /*indices_dims=*/{3, 1, 1, 1, 1, 1, 1, 1},
+                         /*indices_fill_value=*/0,
+                         /*is_input_constant=*/false,
+                         /*is_indices_constant=*/false,
+                         /*is_updates_constant=*/true,
+                     },
+                     /*seed_for_data=*/4}}));
+
 WEBNN_FUZZ_TEST_F(Slice,
                   .WithDomains(AnySliceParams(), fuzztest::Arbitrary<uint8_t>())
                       .WithSeeds({{SliceParams{
@@ -7028,6 +7275,29 @@ WEBNN_FUZZ_TEST_F(Triangular,
                                        /*is_input_constant=*/false,
                                    },
                                    /*seed_for_data=*/5}}));
+
+WEBNN_FUZZ_TEST_F(
+    Where,
+    .WithDomains(AnyWhereParams(),
+                 /*seed_for_condition=*/fuzztest::Arbitrary<uint8_t>(),
+                 /*seed_for_true_value=*/fuzztest::Arbitrary<uint8_t>(),
+                 /*seed_for_false_value=*/fuzztest::Arbitrary<uint8_t>())
+        .WithSeeds({{WhereParams{
+                         /*condition_data_type=*/OperandDataType::kUint8,
+                         /*value_data_type=*/OperandDataType::kFloat32,
+                         /*condition_rank=*/4,
+                         /*true_value_rank=*/3,
+                         /*false_value_rank=*/2,
+                         /*condition_dims=*/{1, 3, 4, 4, 1, 1, 1, 1},
+                         /*true_value_dims=*/{3, 4, 4, 1, 1, 1, 1, 1},
+                         /*false_value_dims=*/{4, 4, 1, 1, 1, 1, 1, 1},
+                         /*is_condition_constant=*/false,
+                         /*is_true_value_constant=*/true,
+                         /*is_false_value_constant=*/false,
+                     },
+                     /*seed_for_condition=*/1,
+                     /*seed_for_true_value=*/2,
+                     /*seed_for_false_value=*/3}}));
 
 WEBNN_FUZZ_TEST_F(
     DQActivationQ,

@@ -3585,11 +3585,6 @@
     "expiry_milestone": 140
   },
   {
-    "name": "enable-experimental-accessibility-language-detection-dynamic",
-    "owners": [ "chrishall@chromium.org", "//ui/accessibility/OWNERS" ],
-    "expiry_milestone": 130
-  },
-  {
     "name": "enable-experimental-accessibility-manifest-v3",
     "owners": [ "akihiroota@chromium.org", "//ui/accessibility/OWNERS" ],
     "expiry_milestone": 150
@@ -5681,6 +5676,11 @@
       "//chrome/browser/glic/OWNERS"
     ],
     "expiry_milestone": 150
+  },
+  {
+    "name": "glic-spark-settings-accessible-labels",
+    "owners": [ "rosiey@chromium.org", "//chrome/browser/glic/OWNERS" ],
+    "expiry_milestone": 160
   },
   {
     "name": "glic-tab-groups",

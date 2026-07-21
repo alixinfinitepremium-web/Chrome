@@ -6053,13 +6053,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kSmartZoomDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(features::kSmartZoom)},
 #endif  // BUILDFLAG(IS_ANDROID)
-    {"enable-experimental-accessibility-language-detection-dynamic",
-     flag_descriptions::kExperimentalAccessibilityLanguageDetectionDynamicName,
-     flag_descriptions::
-         kExperimentalAccessibilityLanguageDetectionDynamicDescription,
-     kOsAll,
-     SINGLE_VALUE_TYPE(
-         ::switches::kEnableExperimentalAccessibilityLanguageDetectionDynamic)},
 
 #if BUILDFLAG(IS_CHROMEOS)
     {"enable-cros-autocorrect-params-tuning",
@@ -10729,6 +10722,11 @@ const FeatureEntry kFeatureEntries[] = {
      kOsDesktop,
      FEATURE_VALUE_TYPE(
          features::kGlicExperimentalTriggeringSuppressDoneNotification)},
+    {"glic-spark-settings-accessible-labels",
+     flag_descriptions::kGlicSparkSettingsAccessibleLabelsName,
+     flag_descriptions::kGlicSparkSettingsAccessibleLabelsDescription,
+     kOsDesktop,
+     FEATURE_VALUE_TYPE(features::kGlicSparkSettingsAccessibleLabels)},
     {"glic-actor-autofill", flag_descriptions::kGlicActorAutofillName,
      flag_descriptions::kGlicActorAutofillDescription, kOsDesktop,
      FEATURE_VALUE_TYPE(autofill::features::kGlicActorAutofill)},
