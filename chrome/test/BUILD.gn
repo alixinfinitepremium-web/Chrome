@@ -739,7 +739,10 @@ static_library("test_support") {
       "base/test_browser_window.cc",
       "base/test_browser_window.h",
     ]
-    allow_circular_includes_from += [ ":test_support_ui" ]
+    allow_circular_includes_from += [
+      ":test_support_ui",
+      "//chrome/browser/ui/views/tabs/common:impl",
+    ]
   }
 
   if (enable_devtools_frontend) {
@@ -998,8 +1001,7 @@ static_library("test_support") {
   }
 
   if (is_win || is_mac || is_linux) {
-    sources += [
-    ]
+    sources += []
   }
 
   # TODO(crbug.com/40031409): Fix code that adds exit-time destructors and
@@ -2133,7 +2135,6 @@ if (!is_android) {
       "//chrome/browser/breadcrumbs:browser_tests",
       "//chrome/browser/browsing_data:browser_tests",
       "//chrome/browser/browsing_data:constants",
-      "//chrome/browser/browsing_topics:browser_tests",
       "//chrome/browser/btm:browser_tests",
       "//chrome/browser/chooser_controller:browser_tests",
       "//chrome/browser/client_hints:browser_tests",
@@ -6889,7 +6890,6 @@ test("unit_tests") {
       "//chrome/browser/ui/webui/side_panel/customize_chrome",
       "//chrome/browser/ui/webui/side_panel/customize_chrome:mojo_bindings",
       "//chrome/browser/ui/webui/signin",
-      "//chrome/browser/ui/webui/tab_search:unit_tests",
       "//chrome/browser/ui/webui/top_chrome",
       "//chrome/browser/ui/webui/top_chrome:test_support",
       "//chrome/browser/ui/window_sizer:unit_tests",
@@ -8165,8 +8165,7 @@ static_library("test_support_unit") {
   }
 
   if (enable_bound_session_credentials) {
-    sources += [
-    ]
+    sources += []
     public_deps += [ "//components/unexportable_keys" ]
   }
 }

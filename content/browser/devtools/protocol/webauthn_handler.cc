@@ -13,6 +13,7 @@
 #include "base/functional/callback.h"
 #include "base/memory/ref_counted.h"
 #include "base/memory/scoped_refptr.h"
+#include "base/numerics/safe_conversions.h"
 #include "base/strings/string_number_conversions.h"
 #include "content/browser/devtools/protocol/web_authn.h"
 #include "content/browser/renderer_host/render_frame_host_impl.h"
@@ -55,10 +56,12 @@ static constexpr char kInvalidProtocol[] = "The protocol is not valid";
 static constexpr char kInvalidTransport[] = "The transport is not valid";
 static constexpr char kInvalidUserHandle[] =
     "The User Handle must have a maximum size of ";
-static constexpr char kLargeBlobRequiresResidentKey[] =
-    "Large blob requires resident key support";
+static constexpr char kRequiresCtap2[] =
+    "Specified options require a CTAP 2 authenticator";
 static constexpr char kRequiresCtap2_1[] =
     "Specified options require a CTAP 2.1 authenticator";
+static constexpr char kRequiresResidentKey[] =
+    "Specified options require an authenticator with resident key support";
 static constexpr char kResidentCredentialNotSupported[] =
     "The Authenticator does not support Resident Credentials.";
 static constexpr char kRpIdRequired[] =
@@ -124,28 +127,42 @@ std::vector<uint8_t> CopyBinaryToVector(const Binary& binary) {
 }
 
 std::unique_ptr<WebAuthn::Credential> BuildCredentialFromRegistration(
-    base::span<const uint8_t> id,
-    const device::VirtualFidoDevice::RegistrationData* registration) {
+    const VirtualAuthenticator& authenticator,
+    base::span<const uint8_t> credential_id,
+    const device::VirtualFidoDevice::RegistrationData& registration) {
   auto credential = WebAuthn::Credential::Create()
-                        .SetCredentialId(Binary::fromSpan(id))
+                        .SetCredentialId(Binary::fromSpan(credential_id))
                         .SetPrivateKey(Binary::fromVector(
-                            registration->private_key->GetPKCS8PrivateKey()))
-                        .SetSignCount(registration->counter)
-                        .SetIsResidentCredential(registration->is_resident)
-                        .SetBackupEligibility(registration->backup_eligible)
-                        .SetBackupState(registration->backup_state)
+                            registration.private_key->GetPKCS8PrivateKey()))
+                        .SetSignCount(registration.counter)
+                        .SetIsResidentCredential(registration.is_resident)
+                        .SetBackupEligibility(registration.backup_eligible)
+                        .SetBackupState(registration.backup_state)
                         .Build();
 
-  if (registration->rp)
-    credential->SetRpId(registration->rp->id);
-  if (registration->user) {
-    credential->SetUserHandle(Binary::fromVector(registration->user->id));
-    if (registration->user->name) {
-      credential->SetUserName(*registration->user->name);
+  if (registration.rp) {
+    credential->SetRpId(registration.rp->id);
+  }
+  if (registration.user) {
+    credential->SetUserHandle(Binary::fromVector(registration.user->id));
+    if (registration.user->name) {
+      credential->SetUserName(*registration.user->name);
     }
-    if (registration->user->display_name) {
-      credential->SetUserDisplayName(*registration->user->display_name);
+    if (registration.user->display_name) {
+      credential->SetUserDisplayName(*registration.user->display_name);
     }
+  }
+
+  if (authenticator.has_cmtg_key()) {
+    auto cmtg_keys = std::make_unique<Array<Binary>>();
+    for (const auto& key : registration.cmtg_keys) {
+      cmtg_keys->emplace_back(Binary::fromVector(key->GetPKCS8PrivateKey()));
+    }
+    credential->SetCmtgKeys(std::move(cmtg_keys));
+    credential->SetActiveCmtgKeyIndex(
+        base::saturated_cast<int>(registration.selected_cmtg_key_index));
+    credential->SetGenerateCmtgKeyOnNextOperation(
+        registration.generate_cmtg_key_on_next_operation);
   }
 
   return credential;
@@ -224,9 +241,15 @@ Response WebAuthnHandler::AddVirtualAuthenticator(
   bool has_hmac_secret = options->GetHasHmacSecret(/*defaultValue=*/false);
   bool has_hmac_secret_mc = options->GetHasHmacSecretMc(/*defaultValue=*/false);
   bool has_resident_key = options->GetHasResidentKey(/*defaultValue=*/false);
+  bool has_cmtg_key = options->GetHasCmtgKey(/*defaultValue=*/false);
 
-  if (has_large_blob && !has_resident_key)
-    return Response::InvalidParams(kLargeBlobRequiresResidentKey);
+  if (!has_resident_key && (has_large_blob || has_cmtg_key)) {
+    return Response::InvalidParams(kRequiresResidentKey);
+  }
+
+  if (protocol != device::ProtocolVersion::kCtap2 && has_cmtg_key) {
+    return Response::InvalidParams(kRequiresCtap2);
+  }
 
   if ((protocol != device::ProtocolVersion::kCtap2 ||
        ctap2_version < device::Ctap2Version::kCtap2_1) &&
@@ -267,6 +290,7 @@ Response WebAuthnHandler::AddVirtualAuthenticator(
       virt_auth_options.has_prf = has_prf;
       virt_auth_options.has_hmac_secret = has_hmac_secret;
       virt_auth_options.has_hmac_secret_mc = has_hmac_secret_mc;
+      virt_auth_options.has_cmtg_key = has_cmtg_key;
       virt_auth_options.default_backup_eligibility =
           options->GetDefaultBackupEligibility(/*defaultValue=*/false);
       virt_auth_options.default_backup_state =
@@ -354,8 +378,7 @@ void WebAuthnHandler::AddCredential(
     return;
   }
   if (credential->HasLargeBlob() && !credential->GetIsResidentCredential()) {
-    callback->sendFailure(
-        Response::InvalidParams(kLargeBlobRequiresResidentKey));
+    callback->sendFailure(Response::InvalidParams(kRequiresResidentKey));
     return;
   }
 
@@ -450,8 +473,9 @@ void WebAuthnHandler::GetCredential(
             }
             callback->sendSuccess(std::move(registration));
           },
-          BuildCredentialFromRegistration(base::span(registration->first),
-                                          &registration->second),
+          BuildCredentialFromRegistration(*authenticator,
+                                          base::span(registration->first),
+                                          registration->second),
           std::move(callback)));
 }
 
@@ -470,10 +494,11 @@ void WebAuthnHandler::GetCredentials(
   for (const auto& registration : authenticator->registrations()) {
     authenticator->GetLargeBlob(
         registration.first,
-        base::BindOnce(
-            &GetCredentialCallbackAggregator::OnLargeBlob, aggregator,
-            BuildCredentialFromRegistration(base::span(registration.first),
-                                            &registration.second)));
+        base::BindOnce(&GetCredentialCallbackAggregator::OnLargeBlob,
+                       aggregator,
+                       BuildCredentialFromRegistration(
+                           *authenticator, base::span(registration.first),
+                           registration.second)));
   }
 }
 
@@ -572,7 +597,8 @@ void WebAuthnHandler::OnCredentialCreated(
     const device::VirtualFidoDevice::Credential& credential) {
   frontend_->CredentialAdded(
       authenticator->unique_id(),
-      BuildCredentialFromRegistration(credential.first, credential.second));
+      BuildCredentialFromRegistration(*authenticator, credential.first,
+                                      *credential.second));
 }
 
 void WebAuthnHandler::OnCredentialDeleted(
@@ -587,7 +613,8 @@ void WebAuthnHandler::OnCredentialUpdated(
     const device::VirtualFidoDevice::Credential& credential) {
   frontend_->CredentialUpdated(
       authenticator->unique_id(),
-      BuildCredentialFromRegistration(credential.first, credential.second));
+      BuildCredentialFromRegistration(*authenticator, credential.first,
+                                      *credential.second));
 }
 
 void WebAuthnHandler::OnAssertion(
@@ -595,7 +622,8 @@ void WebAuthnHandler::OnAssertion(
     const device::VirtualFidoDevice::Credential& credential) {
   frontend_->CredentialAsserted(
       authenticator->unique_id(),
-      BuildCredentialFromRegistration(credential.first, credential.second));
+      BuildCredentialFromRegistration(*authenticator, credential.first,
+                                      *credential.second));
 }
 
 void WebAuthnHandler::OnAuthenticatorWillBeDestroyed(

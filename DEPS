@@ -323,7 +323,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '0b7d76cf75a79572636e50a4ab47608116f708de',
+  'src_internal_revision': '0298e076a37fb55c90946daf382de9bc0a4800fa',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -347,7 +347,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': '07e0c573d78357ac6fd1734ace0f177467aff576',
+  'boringssl_revision': '0aaa16d4680db7f8a935585196376988bf337d12',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -387,7 +387,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': '92efb5d812b137acaf9581873955e6e6b46fc6a6',
+  'crossbench_revision': 'd963b5cf1d7e7839c2a73fbacdc368824610186d',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -431,7 +431,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': '71bbe8c756944053ffd65504b08cdccb7445856c',
+  'dawn_revision': 'e5dd1223d8bd599ba2557bc4b607bb74aa330fad',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -551,7 +551,7 @@ vars = {
 
   # If you change this, also update the libc++ revision in
   # //buildtools/deps_revisions.gni.
-  'libcxx_revision':       'b16984ce99c702355a5b2b4c52574e82cec41fb9',
+  'libcxx_revision':       '944eeec7c303138555d740408ac171a624277d93',
 
   # GN CIPD package version.
   'gn_version': 'git_revision:2de5327bfac4c9bcde7a07960d6ae344b13075b2',
@@ -2140,7 +2140,7 @@ deps = {
   # Tools used when building Chrome for Chrome OS. This affects both the Simple
   # Chrome workflow, as well as the chromeos-chrome ebuild.
   'src/third_party/chromite': {
-      'url': Var('chromium_git') + '/chromiumos/chromite.git' + '@' + '02aa652520a499fd8a0313a7aab5b79a6526ce06',
+      'url': Var('chromium_git') + '/chromiumos/chromite.git' + '@' + 'e2816d52db42fc1b95967a9f29347e899dc16848',
       'condition': 'checkout_chromeos',
   },
 
@@ -3323,7 +3323,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/help_app/app',
-        'version': 'YcW7C8LCF0hIJn5a8aRvUU0rmDEDH35nAGUZaATxK4QC',
+        'version': 'yEZxzoIOjY1hpKe6lTvgPYBmu9yhynxXyi1iAKfmTtIC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3334,7 +3334,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/media_app/app',
-        'version': 'cEo9UIhKj-2kTOApOxOFQ16hYryqqaqprgWxW86a8kcC',
+        'version': 'y3QASb0Fx7dZLwbkXlvaKIVrYjMVR50xPz7JPEAHe6gC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3744,7 +3744,7 @@ deps = {
 
   'src/chrome/browser/platform_experience/win': {
       'url': Var('chrome_git') + '/chrome/browser/platform_experience/win.git' + '@' +
-        'ccb8f37cc5d5573402fa249de7468f09d95183df',
+        '26d02fb10a98bd761382e34d62a0d41581caab4c',
       'condition': 'checkout_src_internal',
   },
 
@@ -4013,7 +4013,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '42ee8da49e31922827eb5e237b3e22ae463f265b',
+        '792ff38f58dce2f22ef28cdd1282fff09eeb7900',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 

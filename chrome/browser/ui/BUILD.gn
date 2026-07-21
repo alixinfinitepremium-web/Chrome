@@ -702,7 +702,6 @@ static_library("ui") {
     "//chrome/browser/ui/webui/accessibility",
     "//chrome/browser/ui/webui/accessibility:impl",
     "//chrome/browser/ui/webui/bluetooth_internals",
-    "//chrome/browser/ui/webui/browsing_topics",
     "//chrome/browser/ui/webui/components",
     "//chrome/browser/ui/webui/connectors_internals",
     "//chrome/browser/ui/webui/crashes",
@@ -745,7 +744,6 @@ static_library("ui") {
     "//components/browsing_data/core",
     "//components/browsing_data/core:cookie_or_cache_deletion_choice",
     "//components/browsing_topics",
-    "//components/browsing_topics/mojom:mojo_bindings",
     "//components/captive_portal/content",
     "//components/client_hints/browser",
     "//components/commerce/content/browser",
@@ -1094,6 +1092,7 @@ static_library("ui") {
     # //chrome/browser/ui.
     allow_circular_includes_from += [
       "//chrome/browser/download:impl",
+      "//chrome/browser/ui/browser_web_contents_delegate",
 
       # bookmarks includes headers from //chrome/browser/ui (e.g. browser.h,
       # browser_window_interface.h) that can't be split out yet.
@@ -1643,6 +1642,7 @@ static_library("ui") {
       "//chrome/browser/signin:signin_promo",
       "//chrome/browser/speech",
       "//chrome/browser/subscription_eligibility",
+      "//chrome/browser/ui/browser_web_contents_delegate",
       "//chrome/browser/ui/browser_window:create_browser_window",
       "//chrome/browser/ui/contextual_search",
       "//chrome/browser/ui/desktop_to_mobile_promos:controller",
@@ -4442,8 +4442,10 @@ static_library("ui") {
 
     sources += get_target_outputs(":webui_name_variants")
 
-    public_deps +=
-        [ "//chrome/browser/ui/views/bookmarks:bookmark_bar_view_observer" ]
+    public_deps += [
+      "//chrome/browser/ui/views/bookmarks:bookmark_bar_view_observer",
+      "//chrome/browser/ui/views/tabs/common:impl",
+    ]
 
     deps += [
       "//base",
@@ -4561,7 +4563,6 @@ static_library("ui") {
       "//chrome/browser/ui/views/tab_contents",
       "//chrome/browser/ui/views/tab_sharing",
       "//chrome/browser/ui/views/tabs/common",
-      "//chrome/browser/ui/views/tabs/common:impl",
       "//chrome/browser/ui/views/tabs/dragging:tab_drag_target",
       "//chrome/browser/ui/views/tabs/projects",
       "//chrome/browser/ui/views/tabs/shared",

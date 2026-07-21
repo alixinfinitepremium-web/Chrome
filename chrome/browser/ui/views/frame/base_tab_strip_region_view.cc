@@ -486,8 +486,8 @@ void BaseTabStripRegionView::OnChildrenAdded(
     }
   }
 
-  if (last_new_tab) {
-    ScrollToFitTabs(active_tab, last_new_tab);
+  if (last_new_tab && tab_strip_view_) {
+    tab_strip_view_->ScrollToFitTabs(active_tab, last_new_tab);
   }
 }
 
@@ -504,18 +504,15 @@ void BaseTabStripRegionView::OnChildMoved(TabCollectionNode* moved_node) {
 
 void BaseTabStripRegionView::OnActiveTabChanged(
     const tabs::TabInterface* active_tab) {
+  if (hover_card_controller_) {
+    hover_card_controller_->UpdateHoverCard(
+        nullptr, TabSlotController::HoverCardUpdateType::kSelectionChanged);
+  }
   if (tab_strip_view_) {
     tab_strip_view_->OnTabChanged(active_tab);
   }
 }
 
-void BaseTabStripRegionView::ScrollToFitTabs(
-    const tabs::TabInterface* active_tab,
-    const tabs::TabInterface* new_tab) {
-  if (tab_strip_view_) {
-    tab_strip_view_->ScrollToFitTabs(active_tab, new_tab);
-  }
-}
 
 void BaseTabStripRegionView::SetLinkDropArrow(
     const std::optional<BrowserRootView::DropIndex>& index) {

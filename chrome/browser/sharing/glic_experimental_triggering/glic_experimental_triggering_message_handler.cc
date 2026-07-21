@@ -6,6 +6,7 @@
 
 #include <memory>
 #include <optional>
+#include <utility>
 
 #include "base/atomic_sequence_num.h"
 #include "base/containers/span.h"
@@ -62,14 +63,19 @@ constexpr int64_t kDefaultStartingRequestFailureSequenceNumber = 0;
 
 glic::GlicInvokeOptions CreateInvokeOptions(
     const components_sharing_message::GlicExperimentalTriggering& request,
-    BrowserWindowInterface* window) {
+    BrowserWindowInterface* window,
+    tabs::TabInterface* tab) {
   glic::GlicInvokeOptions options{
       glic::mojom::InvocationSource::kExperimentalTriggering};
 
-  glic::LastActiveOrNew last_active_or_new;
-  last_active_or_new.window = window;
-  last_active_or_new.open_in_foreground = false;
-  options.target.surface = last_active_or_new;
+  if (tab) {
+    options.target.surface = tab->GetHandle();
+  } else {
+    glic::LastActiveOrNew last_active_or_new;
+    last_active_or_new.window = window;
+    last_active_or_new.open_in_foreground = false;
+    options.target.surface = last_active_or_new;
+  }
   options.target.actuation_target =
       glic::mojom::ActuationTarget::kTargetSurface;
 
@@ -225,7 +231,8 @@ class ExperimentalTriggeringUpdatesHandler
         receiver_(this) {}
 
   std::unique_ptr<components_sharing_message::ResponseMessage> OnRequest(
-      const components_sharing_message::GlicExperimentalTriggering& request) {
+      const components_sharing_message::GlicExperimentalTriggering& request,
+      tabs::TabInterface* prepared_tab) {
     if (!request.has_task_metadata()) {
       return nullptr;
     }
@@ -247,13 +254,13 @@ class ExperimentalTriggeringUpdatesHandler
       case components_sharing_message::GlicExperimentalTriggering::
           ExperimentalTriggeringRequest::kTriggerActuationRequest: {
         return ProcessTriggerOrContinueActuationRequest(
-            request, std::move(cleanup_runner));
+            request, prepared_tab, std::move(cleanup_runner));
       }
 
       case components_sharing_message::GlicExperimentalTriggering::
           ExperimentalTriggeringRequest::kContinueActuationRequest: {
         return ProcessTriggerOrContinueActuationRequest(
-            request, std::move(cleanup_runner));
+            request, prepared_tab, std::move(cleanup_runner));
       }
 
       case components_sharing_message::GlicExperimentalTriggering::
@@ -331,6 +338,10 @@ class ExperimentalTriggeringUpdatesHandler
             SendTaskUpdateMessage(TaskUpdate::YIELD, std::nullopt,
                                   std::move(update->data));
             break;
+          case glic::mojom::ExperimentalTriggeringUpdateType::kResumed:
+            SendTaskUpdateMessage(TaskUpdate::RESUMED, std::nullopt,
+                                  std::move(update->data));
+            break;
           case glic::mojom::ExperimentalTriggeringUpdateType::kUnknown:
             SendTaskUpdateMessage(TaskUpdate::UNKNOWN_STATE, std::nullopt,
                                   std::move(update->data));
@@ -387,6 +398,7 @@ class ExperimentalTriggeringUpdatesHandler
   std::unique_ptr<components_sharing_message::ResponseMessage>
   ProcessTriggerOrContinueActuationRequest(
       const components_sharing_message::GlicExperimentalTriggering& request,
+      tabs::TabInterface* prepared_tab,
       base::ScopedClosureRunner cleanup_runner) {
     CHECK(request.has_task_metadata());
     if (!message_handler_) {
@@ -408,26 +420,33 @@ class ExperimentalTriggeringUpdatesHandler
           &request.task_metadata(), sequence_generator_.GetNext());
     }
 
-    // Find or create a valid browser window. On Android, or if window
-    // creation is disabled/fails, clean up and abort.
-    BrowserWindowInterface* browser_window =
-        message_handler_->GetBrowserWindow();
-    if (!browser_window) {
-      if (base::FeatureList::IsEnabled(
-              features::kGlicExperimentalTriggeringOpenWindowIfNone)) {
-#if !BUILDFLAG(IS_ANDROID)
-        browser_window = chrome::OpenEmptyWindow(message_handler_->profile_);
-#endif
-      }
+    // TODO(ritikagup): Align window/tab creation lifecycle across platforms.
+    // Desktop initializes the target surface synchronously during request
+    // processing, whereas Android triggers an async foreground service that
+    // sets up the background tab later in different methods.
+    BrowserWindowInterface* browser_window = nullptr;
+    if (!prepared_tab) {
+      // Find or create a valid browser window. On Android, or if window
+      // creation is disabled/fails, clean up and abort.
+      browser_window = message_handler_->GetBrowserWindow();
       if (!browser_window) {
-        return CreateResponseMessage(
-            context_id_, TaskUpdate::FAILED, TaskUpdate::ERROR_MESSAGE,
-            "No browser window found for current profile.",
-            &request.task_metadata(), sequence_generator_.GetNext());
+        if (base::FeatureList::IsEnabled(
+                features::kGlicExperimentalTriggeringOpenWindowIfNone)) {
+#if !BUILDFLAG(IS_ANDROID)
+          browser_window = chrome::OpenEmptyWindow(message_handler_->profile_);
+#endif
+        }
+        if (!browser_window) {
+          return CreateResponseMessage(
+              context_id_, TaskUpdate::FAILED, TaskUpdate::ERROR_MESSAGE,
+              "No browser window found for current profile.",
+              &request.task_metadata(), sequence_generator_.GetNext());
+        }
       }
     }
 
-    auto options = CreateInvokeOptions(request, browser_window);
+    glic::GlicInvokeOptions options =
+        CreateInvokeOptions(request, browser_window, prepared_tab);
     options.on_client_connected = base::BindOnce(
         &ExperimentalTriggeringUpdatesHandler::SubscribeForTriggeringUpdates,
         weak_ptr_factory_.GetWeakPtr());
@@ -457,8 +476,15 @@ class ExperimentalTriggeringUpdatesHandler
         &request.task_metadata(), sequence_generator_.GetNext());
     std::ignore = cleanup_runner.Release();
 
-    instance_ =
-        glic_service->InvokeWithAutoSubmit(passkey_, std::move(options));
+    glic::GlicInvokeWithAutoSubmitOptions auto_submit_options;
+#if BUILDFLAG(IS_ANDROID)
+    if (prepared_tab) {
+      auto_submit_options.show_panel = false;
+    }
+#endif
+
+    instance_ = glic_service->InvokeWithAutoSubmit(
+        passkey_, std::move(options), std::move(auto_submit_options));
 
     return response;
   }
@@ -899,7 +925,7 @@ void GlicExperimentalTriggeringMessageHandler::OnMessage(
     return;
   }
 
-  std::move(done_callback).Run(handler->OnRequest(request));
+  std::move(done_callback).Run(handler->OnRequest(request, nullptr));
 }
 
 void GlicExperimentalTriggeringMessageHandler::OnUpdatesHandlerCleanup(
