@@ -327,15 +327,15 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '5e183e5aeac5ed96b403e54335ece52a42f630ac',
+  'skia_revision': 'f59537437b63a25a4bbfc5fc285ee53f0ec15107',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': '0d8f830c309329ab42af1ad27705f3e7ebeb5e7d',
+  'v8_revision': '1b38f3f930a61165b5e885c637fa3536ca848915',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': 'b8d53cd2770bf3519d658c23d849d9db26f0a11a',
+  'angle_revision': '10dcf44dc8e0d44596fa5a999117a04fddfcab8b',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -407,7 +407,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '4e4723f72ee9335ac974cff9066b4a3536748679',
+  'devtools_frontend_revision': '953b0919d8a55d11ba66eef22a5988ae77307172',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1822,7 +1822,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': '6fLOIwIsxePrl8iNCl9rCU50Q8HbU6gPF9085x-WqQoC',
+          'version': 'RL9zU4ELT_bCNxOZYO00JrrlhZ8FpdatTJqVTwM8nf8C',
       },
     ],
     'condition': 'checkout_android and non_git_source',
@@ -4013,7 +4013,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '792ff38f58dce2f22ef28cdd1282fff09eeb7900',
+        '337bfadd515610208fdfa63162fe82963c48bec8',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
