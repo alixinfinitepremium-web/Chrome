@@ -431,7 +431,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': 'e80a4b5237e26bc164d020e7283a39445689ea49',
+  'dawn_revision': '840ec28a32556e36b5e5a6f95f63185b09132664',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -463,7 +463,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling crabbyavif
   # and whatever else without interference from each other.
-  'crabbyavif_revision': '86aac37861b5a283bafcb06ab0fd2a40cf5a6e96',
+  'crabbyavif_revision': 'e23a092291554912f51617398dc63d51b24bafb5',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Speedometer main
   # and whatever else without interference from each other.
@@ -531,7 +531,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
-  'llvm_libc_revision':    '8840f8449abcf2bb3e4f6ce2350fd56202f8a50f',
+  'llvm_libc_revision':    'c0852c770d4ed1a8cf7a70cd8e6fd0d0a6ab8c43',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
@@ -1722,7 +1722,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    'c6e6c01eb97ea171652c7fe156c6eb232208f966',
+    'cb32330a88f1b6ec571ec26b19c1a4cd27c82c7d',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -1822,7 +1822,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': 'qQMTr-tM-gZas4vFdqP1YJf07S1HH1v7fV1YhB86XocC',
+          'version': 'oN1Z5RIFv1ndsN6EliJ1YgoJX1dWkgpAZ-ooF2kUJsEC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
@@ -3215,7 +3215,7 @@ deps = {
       'packages': [
         {
           'package': 'skia/tools/goldctl/windows-amd64',
-          'version': 'Qr1JQfr2B01VuR37jQ8y-e0ocJtYYSi6Hj3MykYpJYsC',
+          'version': '4o5vYNNYySbQLxP3szt1OTnICY4azxDBJqx7vbq1BecC',
         },
       ],
       'dep_type': 'cipd',
@@ -3226,7 +3226,7 @@ deps = {
       'packages': [
         {
           'package': 'skia/tools/goldctl/mac-amd64',
-          'version': 'qV8HDb09Tf3NwaiX8SuHRy2SrXct3YmTgM9QMdU8mRMC',
+          'version': 'X2IlbBy9rIqbwarwLhyVY-HltUm--agbSk1Nf2MYvtcC',
         },
       ],
       'dep_type': 'cipd',
@@ -3237,7 +3237,7 @@ deps = {
       'packages': [
         {
           'package': 'skia/tools/goldctl/mac-arm64',
-          'version': '3fM4e_ZIJpGXMcybE_zsSJajZVZphUFS5IFSF7RPjwYC',
+          'version': 'PCfES9vxv_sIRuMHGAOgDLmj5ggMJV1qzCzD5kmmo5cC',
         },
       ],
       'dep_type': 'cipd',
@@ -3708,7 +3708,7 @@ deps = {
 
   'src/chrome/browser/glic/e2e_test/internal': {
       'url': Var('chrome_git') + '/chrome/browser/glic/test/internal.git' + '@' +
-        '272eb38c6da1daddfc36eb90770994c44c9c457c',
+        '1172414561b775f51613a7a418f391b29429f85c',
       'condition': 'checkout_glic_e2e_tests',
   },
 
@@ -4013,7 +4013,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        'c8ff39621fda70d1a8637d9c1120145d084c79f7',
+        '4940082267a63cf9c28e676b4179276f9cef12ff',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 

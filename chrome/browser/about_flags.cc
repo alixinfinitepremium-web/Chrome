@@ -1208,7 +1208,6 @@ const FeatureEntry::FeatureParam kPageActionsMigrationParams[] = {
     {"file_system_access", "true"},
     {"intent_picker", "true"},
     {"sharing_hub", "true"},
-    {"virtual_card", "true"},
 };
 const FeatureEntry::FeatureVariation kPageActionsMigrationVariations[] = {
     {"with all migrated page actions enabled", kPageActionsMigrationParams,
@@ -10714,6 +10713,10 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kGlicExperimentalTriggeringName,
      flag_descriptions::kGlicExperimentalTriggeringDescription, kOsDesktop,
      FEATURE_VALUE_TYPE(features::kGlicExperimentalTriggering)},
+    {"glic-settings-a11y-context-fix",
+     flag_descriptions::kGlicSettingsA11yContextFixName,
+     flag_descriptions::kGlicSettingsA11yContextFixDescription, kOsDesktop,
+     FEATURE_VALUE_TYPE(features::kGlicSettingsA11yContextFix)},
     {"glic-experimental-triggering-screenshot",
      flag_descriptions::kGlicExperimentalTriggeringScreenshotName,
      flag_descriptions::kGlicExperimentalTriggeringScreenshotDescription,

@@ -139,6 +139,7 @@ if (!is_android) {
       "//chrome/browser/ui/views/commerce",
       "//chrome/browser/ui/views/download",
       "//chrome/browser/ui/views/file_system_access",
+      "//chrome/browser/ui/views/frame:app_menu_button_observer",
       "//chrome/browser/ui/views/frame:toolbar_button_provider",
       "//chrome/browser/ui/views/js_optimization",
       "//chrome/browser/ui/views/location_bar/cookie_controls",
@@ -375,9 +376,12 @@ if (!is_android) {
     ]
   }
 }
-
 source_set("uninstall_browser_prompt") {
   public = [ "uninstall_browser_prompt.h" ]
+}
+
+source_set("view_ids") {
+  public = [ "view_ids.h" ]
 }
 
 # Use a static library here because many test binaries depend on this but don't
@@ -405,7 +409,6 @@ static_library("ui") {
     "tab_modal_confirm_dialog.h",
     "tab_ui_helper.cc",
     "tab_ui_helper.h",
-    "view_ids.h",
     "webui/chrome_web_ui_controller_factory.cc",
     "webui/chrome_web_ui_controller_factory.h",
     "webui/fileicon_source.cc",
@@ -466,6 +469,7 @@ static_library("ui") {
     ":ui_features",
     ":uninstall_browser_prompt",
     ":url_identity",
+    ":view_ids",
     "//base",
     "//base:i18n",
     "//base/allocator:buildflags",
@@ -3663,8 +3667,6 @@ static_library("ui") {
   if (toolkit_views) {
     sources += [
       "bubble_anchor_util.h",
-      "toolbar_controller_util.cc",
-      "toolbar_controller_util.h",
       "views/autofill/address_bubble_base_view.cc",
       "views/autofill/address_editor_view.cc",
       "views/autofill/address_editor_view.h",
@@ -3745,8 +3747,6 @@ static_library("ui") {
       "views/autofill/payments/select_bnpl_issuer_dialog.h",
       "views/autofill/payments/virtual_card_enroll_bubble_views.cc",
       "views/autofill/payments/virtual_card_enroll_bubble_views.h",
-      "views/autofill/payments/virtual_card_enroll_icon_view.cc",
-      "views/autofill/payments/virtual_card_enroll_icon_view.h",
       "views/autofill/popup/custom_cursor_suppressor.cc",
       "views/autofill/popup/custom_cursor_suppressor.h",
       "views/autofill/popup/email_verifier/email_verification_popup_view.cc",
@@ -3918,7 +3918,6 @@ static_library("ui") {
       "views/flying_indicator.h",
       "views/frame/app_menu_button.cc",
       "views/frame/app_menu_button.h",
-      "views/frame/app_menu_button_observer.h",
       "views/frame/base_tab_strip_region_view.cc",
       "views/frame/base_tab_strip_region_view.h",
       "views/frame/browser_frame_view.cc",
@@ -4010,7 +4009,6 @@ static_library("ui") {
       "views/frame/themed_background.h",
       "views/frame/top_container_view.cc",
       "views/frame/top_container_view.h",
-      "views/frame/top_controls_slide_controller.h",
       "views/frame/vertical_tab_strip_background_blur_backdrop.cc",
       "views/frame/vertical_tab_strip_background_blur_backdrop.h",
       "views/frame/vertical_tab_strip_region_view.cc",
@@ -4461,6 +4459,7 @@ static_library("ui") {
       "//chrome/browser/profiles/keep_alive",
       "//chrome/browser/ui:sad_tab",
       "//chrome/browser/ui:sad_tab_impl",
+      "//chrome/browser/ui:toolbar_controller_util",
       "//chrome/browser/ui/actions",
       "//chrome/browser/ui/actions:actions_headers",
       "//chrome/browser/ui/actions:actions_util",
@@ -4509,6 +4508,7 @@ static_library("ui") {
       "//chrome/browser/ui/views/extensions:security_dialog_tracker",
       "//chrome/browser/ui/views/extensions:windows_utils_views",
       "//chrome/browser/ui/views/frame",
+      "//chrome/browser/ui/views/frame:app_menu_button_observer",
       "//chrome/browser/ui/views/frame:shadow",
       "//chrome/browser/ui/views/frame:toolbar_button_provider",
       "//chrome/browser/ui/views/fullscreen_control",
@@ -4836,7 +4836,6 @@ static_library("ui") {
       # TODO(crbug.com/434882143): Remove this circular dependency when the
       # following headers get componentized:
       # c/b/ui/browser.h, view_ids.h
-      # c/b/ui/views/autofill/payments/virtual_card_enroll_icon_view.h
       "//chrome/browser/ui/views/page_action:impl",
 
       # TODO(crbug.com/451609048): Remove this circular dependency when the
@@ -5324,6 +5323,10 @@ static_library("ui") {
     allow_circular_includes_from +=
         [ "//chrome/browser/ui/webui/tab_strip_internals:impl" ]
   }
+
+  if (toolkit_views) {
+    deps += [ "//chrome/browser/ui/views/frame:top_controls_slide_controller" ]
+  }
 }
 
 # These are the dependencies for the "ui" target that are outside of
@@ -5634,6 +5637,13 @@ static_library("browser_element_identifiers") {
 }
 
 if (toolkit_views) {
+  source_set("toolbar_controller_util") {
+    sources = [
+      "toolbar_controller_util.cc",
+      "toolbar_controller_util.h",
+    ]
+  }
+
   source_set("sad_tab") {
     public = [
       "sad_tab.h",
