@@ -109,6 +109,10 @@ static_library("safe_browsing") {
 
   if (enable_extensions) {
     deps += [ "//chrome/browser/ui/web_applications" ]
+
+    if (is_chromeos) {
+      deps += [ "//chromeos/ash/components/system" ]
+    }
   }
 
   # Note: is_android is not equivalent to safe_browsing_mode == 2.
@@ -862,6 +866,9 @@ source_set("unit_tests") {
       "cloud_content_scanning/cloud_binary_upload_service_unittest.cc",
       "cloud_content_scanning/deep_scanning_utils_unittest.cc",
       "cloud_content_scanning/file_analysis_request_unittest.cc",
+      "download_protection/download_feedback_service_unittest.cc",
+      "download_protection/download_feedback_unittest.cc",
+      "download_protection/path_sanitizer_unittest.cc",
       "extension_telemetry/activity_log_ingester_unittest.cc",
       "extension_telemetry/cookies_get_all_signal_processor_unittest.cc",
       "extension_telemetry/cookies_get_all_signal_unittest.cc",
@@ -972,6 +979,7 @@ source_set("unit_tests") {
     sources += [
       "android/client_side_detection_intelligent_scan_delegate_android_unittest.cc",
       "android/password_reuse_controller_android_unittest.cc",
+      "download_protection/rate_limiting_key_manager_unittest.cc",
       "safe_browsing_pref_change_handler_android_unittest.cc",
       "tailored_security/chrome_tailored_security_service_android_unittest.cc",
       "tailored_security/consented_message_android_unittest.cc",
@@ -980,7 +988,27 @@ source_set("unit_tests") {
     deps += [
       "//chrome/browser/ui/android/tab_model:test_support",
       "//components/messages/android:test_support",
+      "//components/safe_browsing/android:real_time_url_checks_allowlist",
+      "//components/safe_browsing/android:safe_browsing_api_handler",
+      "//components/safe_browsing/android:safe_browsing_api_handler_util",
     ]
+  }
+  if (enterprise_cloud_content_analysis || is_android) {
+    sources += [ "download_protection/deep_scanning_request_unittest.cc" ]
+    deps += [
+      "//chrome/browser/enterprise/connectors/reporting:unit_tests",
+      "//chrome/browser/enterprise/connectors/test:test_support",
+      "//chrome/browser/interstitials:unit_tests",
+      "//components/enterprise/common/proto:browser_events_proto",
+      "//components/enterprise/common/proto:chrome_reporting_entity",
+      "//components/enterprise/connectors/core",
+      "//components/enterprise/connectors/core:cloud_content_scanning",
+      "//components/enterprise/connectors/core:test_support",
+      "//components/enterprise/obfuscation/core:enterprise_obfuscation",
+    ]
+    if (is_chromeos) {
+      deps += [ "//chromeos/ash/components/system" ]
+    }
   }
   if (is_win || is_mac || is_linux || is_chromeos) {
     sources += [

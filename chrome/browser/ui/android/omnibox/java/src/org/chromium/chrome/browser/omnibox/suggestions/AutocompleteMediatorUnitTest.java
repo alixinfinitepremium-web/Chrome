@@ -178,6 +178,7 @@ public class AutocompleteMediatorUnitTest {
     private @Mock TemplateUrl mTemplateUrl;
     private @Mock PropertyObserver<PropertyKey> mPropertyObserver;
     private PropertyModel mListModel;
+    private OmniboxResourceProvider mResourceProvider;
     private AutocompleteMediator mMediator;
     private List<AutocompleteMatch> mSuggestionsList;
     private AutocompleteResult mAutocompleteResult;
@@ -193,6 +194,8 @@ public class AutocompleteMediatorUnitTest {
         mContext =
                 new ContextThemeWrapper(
                         ContextUtils.getApplicationContext(), R.style.Theme_BrowserUI_DayNight);
+        mResourceProvider =
+                new OmniboxResourceProvider(mContext, BrandedColorScheme.LIGHT_BRANDED_THEME);
 
         CachedZeroSuggestionsManager.setOverridesForTesting(mMockCachedZeroSuggestionsManager);
         UserPrefs.setPrefServiceForTesting(mPrefService);
@@ -234,6 +237,7 @@ public class AutocompleteMediatorUnitTest {
         mMediator =
                 new AutocompleteMediator(
                         mContext,
+                        mResourceProvider,
                         mAutocompleteDelegate,
                         mTextStateProvider,
                         mListModel,
@@ -2005,7 +2009,7 @@ public class AutocompleteMediatorUnitTest {
     @Test
     @SmallTest
     public void fuseboxStateChanges() {
-        doReturn(true).when(mEmbedder).isWideWindow();
+        doReturn(true).when(mEmbedder).isTablet();
         mMediator.beginInput(createEmptySession());
         mFuseboxStateSupplier.set(FuseboxState.EXPANDED);
         RobolectricUtil.runAllBackgroundAndUi();
@@ -2025,7 +2029,7 @@ public class AutocompleteMediatorUnitTest {
     @Test
     @SmallTest
     public void fuseboxStateChanges_phone() {
-        doReturn(false).when(mEmbedder).isWideWindow();
+        doReturn(false).when(mEmbedder).isTablet();
         mMediator.beginInput(createEmptySession());
         mFuseboxStateSupplier.set(FuseboxState.EXPANDED);
         RobolectricUtil.runAllBackgroundAndUi();
@@ -2036,32 +2040,20 @@ public class AutocompleteMediatorUnitTest {
 
     @Test
     @SmallTest
-    public void fuseboxStateChanges_phone_popover() {
-        doReturn(false).when(mEmbedder).isWideWindow();
-        mFuseboxLayoutModeSupplier.set(FuseboxLayoutMode.SUGGESTIONS_POPOVER);
-        mMediator.beginInput(createEmptySession());
-        mFuseboxStateSupplier.set(FuseboxState.EXPANDED);
-        RobolectricUtil.runAllBackgroundAndUi();
-
-        assertTrue(mListModel.get(SuggestionListProperties.ROUND_TOP_CORNERS));
-        assertTrue(mListModel.get(SuggestionListProperties.DRAW_OVER_ANCHOR));
-    }
-
-    @Test
-    @SmallTest
     public void roundSidesPropagatedToModels_popoverLayoutModeTransitions() {
+        OmniboxCapabilities.setIsDesktopPlatformForTesting(true);
         mFuseboxLayoutModeSupplier.set(FuseboxLayoutMode.SUGGESTIONS_POPOVER);
         mFuseboxStateSupplier.set(FuseboxState.COMPACT);
         mMediator.beginInput(createEmptySession());
         mMediator.onSuggestionsReceived(AutocompleteResult.fromCache(mSuggestionsList, null), true);
 
-        verifySuggestionModelsRoundSides(RoundSides.BOTTOM_ONLY);
+        verifySuggestionModelsRoundSides(RoundSides.NONE);
 
         mFuseboxStateSupplier.set(FuseboxState.EXPANDED);
         verifySuggestionModelsRoundSides(RoundSides.NONE);
 
         mFuseboxStateSupplier.set(FuseboxState.COMPACT);
-        verifySuggestionModelsRoundSides(RoundSides.BOTTOM_ONLY);
+        verifySuggestionModelsRoundSides(RoundSides.NONE);
     }
 
     @Test
@@ -2245,7 +2237,7 @@ public class AutocompleteMediatorUnitTest {
     @Test
     @SmallTest
     public void testExternallyDrivenFadeAnimation() {
-        doReturn(true).when(mEmbedder).isWideWindow();
+        doReturn(true).when(mEmbedder).isTablet();
         var session = createEmptySession();
         mMediator.beginInput(session);
         mFuseboxStateSupplier.set(FuseboxState.COMPACT);
@@ -2258,7 +2250,7 @@ public class AutocompleteMediatorUnitTest {
     @Test
     @SmallTest
     public void testUnsyncedAnimation_doesNotShowKeyboardInStandbyNoFocus() {
-        doReturn(false).when(mEmbedder).isWideWindow();
+        doReturn(false).when(mEmbedder).isTablet();
         var session = createSession(AutocompleteRequestType.SEARCH);
         session.getAutocompleteInput()
                 .setAutocompleteState(AutocompleteInput.AutocompleteState.STANDBY_NO_FOCUS);
@@ -2275,7 +2267,7 @@ public class AutocompleteMediatorUnitTest {
     @Test
     @SmallTest
     public void testUnsyncedAnimation_showsKeyboardInEnabledState() {
-        doReturn(false).when(mEmbedder).isWideWindow();
+        doReturn(false).when(mEmbedder).isTablet();
         var session = createSession(AutocompleteRequestType.SEARCH);
         session.getAutocompleteInput()
                 .setAutocompleteState(AutocompleteInput.AutocompleteState.ENABLED);
@@ -2597,6 +2589,7 @@ public class AutocompleteMediatorUnitTest {
         AutocompleteMediator mediator =
                 new AutocompleteMediator(
                         mContext,
+                        mResourceProvider,
                         mAutocompleteDelegate,
                         mTextStateProvider,
                         mListModel,

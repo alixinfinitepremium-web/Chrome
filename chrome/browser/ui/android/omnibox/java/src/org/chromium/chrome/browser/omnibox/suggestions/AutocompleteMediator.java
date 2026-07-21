@@ -139,6 +139,7 @@ class AutocompleteMediator
             "omnibox.keyword_space_triggering_enabled";
 
     private final Context mContext;
+    private final OmniboxResourceProvider mResourceProvider;
     private final AutocompleteDelegate mDelegate;
     private final UrlBarEditingTextStateProvider mUrlBarEditingTextProvider;
     private final PropertyModel mListPropertyModel;
@@ -219,6 +220,7 @@ class AutocompleteMediator
 
     AutocompleteMediator(
             Context context,
+            OmniboxResourceProvider resourceProvider,
             AutocompleteDelegate delegate,
             UrlBarEditingTextStateProvider textProvider,
             PropertyModel listPropertyModel,
@@ -237,6 +239,7 @@ class AutocompleteMediator
             FuseboxCoordinator fuseboxCoordinator,
             LocationBarEmbedderUiOverrides uiOverrides) {
         mContext = context;
+        mResourceProvider = resourceProvider;
         mDelegate = delegate;
         mUrlBarEditingTextProvider = textProvider;
         mListPropertyModel = listPropertyModel;
@@ -254,7 +257,8 @@ class AutocompleteMediator
                 new DropdownItemViewInfoListBuilder(
                         activityTabSupplier,
                         bookmarkState,
-                        locationBarDataProvider.getToolbarPositionSupplier());
+                        locationBarDataProvider.getToolbarPositionSupplier(),
+                        mResourceProvider);
         mDropdownViewInfoListBuilder.setShareDelegateSupplier(shareDelegateSupplier);
         mDropdownViewInfoListManager =
                 new DropdownItemViewInfoListManager(
@@ -1353,8 +1357,9 @@ class AutocompleteMediator
 
     private void onFuseboxStateChanged(@FuseboxState int fuseboxState) {
         boolean suggestionsSeparated =
-                (mEmbedder.isWideWindow() && fuseboxState == FuseboxState.DISABLED)
-                        || getFuseboxLayoutMode() == FuseboxLayoutMode.SUGGESTIONS_POPOVER;
+                mEmbedder.isTablet()
+                        && (fuseboxState == FuseboxState.DISABLED
+                                || getFuseboxLayoutMode() == FuseboxLayoutMode.SUGGESTIONS_POPOVER);
 
         mListPropertyModel.set(SuggestionListProperties.ROUND_TOP_CORNERS, suggestionsSeparated);
         mListPropertyModel.set(SuggestionListProperties.DRAW_OVER_ANCHOR, suggestionsSeparated);
@@ -1363,7 +1368,7 @@ class AutocompleteMediator
 
     boolean shouldAnimateFuseboxPopover() {
         return mFuseboxCoordinator.getFuseboxStateSupplier().get() != FuseboxState.DISABLED
-                && mEmbedder.isWideWindow()
+                && mEmbedder.isTablet()
                 && !OmniboxCapabilities.isDesktopPlatform();
     }
 
@@ -1372,12 +1377,10 @@ class AutocompleteMediator
     }
 
     private @RoundSides int calculateRoundSides() {
-        if (getFuseboxLayoutMode() != FuseboxLayoutMode.SUGGESTIONS_POPOVER) {
-            return RoundSides.TOP_AND_BOTTOM;
+        if (getFuseboxLayoutMode() == FuseboxLayoutMode.SUGGESTIONS_POPOVER) {
+            return RoundSides.NONE;
         }
-        // Expanded will have buttons below suggestions, and should not get bottom rounding.
-        @FuseboxState int fuseboxState = mFuseboxCoordinator.getFuseboxStateSupplier().get();
-        return fuseboxState == FuseboxState.EXPANDED ? RoundSides.NONE : RoundSides.BOTTOM_ONLY;
+        return RoundSides.TOP_AND_BOTTOM;
     }
 
     /**

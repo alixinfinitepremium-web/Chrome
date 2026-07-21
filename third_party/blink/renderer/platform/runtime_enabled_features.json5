@@ -2304,6 +2304,11 @@
     {
       name: "DesktopPWAsAdditionalWindowingControls",
       status: "experimental",
+      origin_trial_feature_name: "DesktopPWAsAdditionalWindowingControls",
+      origin_trial_os: ["win", "mac", "linux", "chromeos"],
+      origin_trial_allows_third_party: true,
+      base_feature_status: "enabled",
+      copied_from_base_feature_if: "overridden",
     },
     {
       name: "DesktopPWAsAdditionalWindowingControlsOnMove",
@@ -7522,6 +7527,7 @@
       origin_trial_feature_name: "XSLT",
       origin_trial_type: "deprecation",
       origin_trial_allows_insecure: true,
+      origin_trial_allows_third_party: true,
     },
     {
       // A feature flag that will be used for a "special trial" of disabling
