@@ -387,7 +387,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': 'd963b5cf1d7e7839c2a73fbacdc368824610186d',
+  'crossbench_revision': '95645af07f6806bdd81f02352c081d2760feec9d',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -511,7 +511,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'libunwind_revision':    '8bd5df6498ca260b0857fdc155a4417682976b44',
+  'libunwind_revision':    'bc2c2b1715f3a491d7313fb03642bfe27ce0f3b5',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -1980,7 +1980,7 @@ deps = {
     Var('chromium_git') + '/angle/angle.git' + '@' +  Var('angle_revision'),
 
   'src/third_party/anonymous_tokens/src':
-    Var('chromium_git') + '/external/github.com/google/anonymous-tokens.git' + '@' + '6869aca50cc4f8c81b650ff254a1da8ef1265f4b',
+    Var('chromium_git') + '/external/github.com/google/anonymous-tokens.git' + '@' + 'e07c92bc81cfd4203e6158cac115fc44c27b31b8',
 
   'src/third_party/aria-practices/src':
     Var('chromium_git') + '/external/github.com/w3c/aria-practices.git' + '@' + '7b134ce6d19497cce8a67db4a9f59980baf853dc',
@@ -2729,7 +2729,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '6059947a19c9d2305264dfeecf9251c467c2e591',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '2b4a154a1d095e03cd20358c09b8fd7950ee9734',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
@@ -3166,7 +3166,7 @@ deps = {
     Var('chromium_git') + '/external/khronosgroup/webgl.git' + '@' + '064aaf18207438d4f6dd10c98b02b25778257b7f',
 
   'src/third_party/webgpu-cts/src':
-    Var('chromium_git') + '/external/github.com/gpuweb/cts.git' + '@' + 'a5da75765403bba8de35a010d7cdde2cf6c6b982',
+    Var('chromium_git') + '/external/github.com/gpuweb/cts.git' + '@' + '499044af47ec2717e06e644d0943e6fcdb3f3538',
 
   'src/third_party/webpagereplay':
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
