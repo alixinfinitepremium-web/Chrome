@@ -9207,8 +9207,9 @@ crbug.com/448800278 [ Mac ] external/wpt/notifications/registration-association.
 crbug.com/40250618 [ Mac ] external/wpt/html/cross-origin-opener-policy/reporting/access-reporting/access-from-coop-page-to-opener_coop-ro_cross-origin.https.html [ Failure Pass ]
 
 # Gardener 2026-01-08
-crbug.com/474158153 [ Linux ] external/wpt/xml/xslt/large-cdata.html [ Crash Failure Pass ]
-crbug.com/474155097 [ Linux ] virtual/xslt-disabled/external/wpt/xml/xslt/large-cdata.html [ Crash Failure Pass ]
+crbug.com/474158153 [ Linux ] external/wpt/xml/xslt/large-cdata.html [ Crash Failure Pass Timeout ]
+crbug.com/474155097 [ Linux ] virtual/xslt-disabled/external/wpt/xml/xslt/large-cdata.html [ Crash Failure Pass Timeout ]
+crbug.com/474158153 [ Win ] external/wpt/xml/xslt/large-cdata.html [ Crash Failure Pass Timeout ]
 
 # Gardener 2026-01-12
 crbug.com/475047610 [ Linux ] external/wpt/webdriver/tests/bidi/input/perform_actions/pointer_mouse.py [ Failure Timeout ]
@@ -9516,3 +9517,6 @@ crbug.com/535696870 [ Linux ] virtual/permission-element/external/wpt/html/seman
 
 # Unblock BoringSSL roll 2026-07-17
 crbug.com/535947496 [ Linux ] http/tests/inspector-protocol/web-transport-handshake-failure.js [ Failure Pass ]
+
+# Gardener 2026-07-21
+crbug.com/531170669 [ Linux ] fast/canvas/canvas-drawImage-live-video.html [ Failure Pass ]
