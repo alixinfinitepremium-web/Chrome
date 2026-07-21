@@ -68,6 +68,13 @@ crbug.com/475504307 [ Mac ] html/details_summary/details-replace-text.html [ Fai
 
 crbug.com/457388389 http/tests/devtools/sources/debugger-pause/set-return-value.js [ Failure Pass Timeout ]
 
+# Disable layout tests to land crrev.com/c/8045801
+http/tests/devtools/security/origin-view-ct-compliance.js [ Failure Pass ]
+http/tests/devtools/security/security-details-updated-with-security-state.js [ Failure Pass ]
+
+# Disabled to land https://crrev.com/c/8117529
+crbug.com/407751377 http/tests/devtools/a11y-axe-core/settings/locations-a11y-test.js [ Failure Pass Timeout ]
+
 # Reftest failure related to off-main-thread interaction (imperceptible AA differences)
 crbug.com/395909730 virtual/off-main-thread-css-paint/http/tests/csspaint/paint2d-zoom.html [ Failure ]  # Reftest image failure
 crbug.com/395909730 virtual/off-main-thread-css-paint/http/tests/csspaint/transform-with-page-zoom-003.html [ Failure ]  # Reftest image failure
@@ -129,6 +136,9 @@ crbug.com/1339285 [ Mac ] fast/loader/iframe-window-open-stealing-focus.html [ P
 
 crbug.com/1393073 [ Linux ] virtual/fenced-frame-mparch/external/wpt/fenced-frame/anchor-focus.https.html [ Failure Pass ]
 crbug.com/340949930 virtual/fenced-frame-mparch/external/wpt/fenced-frame/intersection-observer.https.html [ Failure Timeout ]
+
+# Temporarily disabling to land change in DevTools
+crbug.com/493763857 http/tests/devtools/sources/debugger/debugger-resolve-expression-line-by-line.js [ Failure Pass ]
 
 # WPT Test harness doesn't deal with finding an about:blank ref test
 crbug.com/895777 external/wpt/infrastructure/assumptions/blank.html [ Timeout ]
