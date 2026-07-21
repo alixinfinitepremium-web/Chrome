@@ -40,6 +40,7 @@
 #include "components/autofill/core/browser/filling/field_filling_util.h"
 #include "components/autofill/core/browser/filling/form_filler.h"
 #include "components/autofill/core/browser/foundations/autofill_client.h"
+#include "components/autofill/core/browser/foundations/autofill_manager_test_api.h"
 #include "components/autofill/core/browser/foundations/browser_autofill_manager.h"
 #include "components/autofill/core/browser/foundations/browser_autofill_manager_test_api.h"
 #include "components/autofill/core/browser/foundations/test_autofill_client.h"
@@ -82,6 +83,7 @@
 #include "components/autofill/core/browser/test_utils/valuables_data_test_utils.h"
 #include "components/autofill/core/browser/ui/tabbed_pane_enums.h"
 #include "components/autofill/core/browser/webdata/autocomplete/autocomplete_entry.h"
+#include "components/autofill/core/browser/webdata/autocomplete/autocomplete_table_label_sensitive.h"
 #include "components/autofill/core/browser/webdata/autofill_ai/entity_table.h"
 #include "components/autofill/core/browser/webdata/autofill_webdata_service_test_helper.h"
 #include "components/autofill/core/common/aliases.h"
@@ -405,7 +407,8 @@ class AutofillExternalDelegateTest : public testing::Test,
                     AutofillSuggestionTriggerSource trigger_source =
                         kDefaultSuggestionTriggerSource) {
     queried_form_ = std::move(form_data);
-    autofill_manager().OnFormsSeen({queried_form()}, {});
+    autofill_manager().OnFormsSeen({queried_form()}, {},
+                                   AutofillManagerTestApi::pass_key());
     external_delegate().OnQuery(queried_form(), queried_field(), caret_bounds,
                                 trigger_source);
   }
@@ -1468,6 +1471,37 @@ TEST_F(AutofillExternalDelegateTest, TestExternalDelegateVirtualCalls) {
   // option.
   external_delegate().DidAcceptSuggestion(
       autofill_item[0], SuggestionPosition{.multi_index = {0}});
+}
+
+// Test that the field label is passed to the SingleFieldFillRouter when an
+// autocomplete suggestion is removed.
+TEST_F(AutofillExternalDelegateTest, RemoveAutocompleteSuggestion_LabelPassed) {
+  base::test::ScopedFeatureList scoped_feature_list{
+      features::kAutofillLabelSensitiveAutocomplete};
+  const std::u16string kLabel = u"Field Label";
+  const std::u16string kName = u"Some Field Name";
+  const std::u16string kValue = u"Some Value";
+
+  test::FormDescription form_description = {.fields = {{.role = NAME_FIRST,
+                                                        .label = kLabel,
+                                                        .name = kName,
+                                                        .value = kValue}}};
+  IssueOnQuery(form_description);
+
+  auto suggestion = CreateAutofillSuggestion(
+      SuggestionType::kAutocompleteEntry, kValue,
+      AutocompleteSearchResultLabelSensitive(kValue, MatchingType::kUnknown,
+                                             kName, kLabel, /*count=*/0));
+  auto mock_single_field_fill_router =
+      std::make_unique<MockSingleFieldFillRouter>(
+          autofill_client().GetAutocompleteHistoryManager(), nullptr, nullptr);
+  EXPECT_CALL(*mock_single_field_fill_router,
+              OnRemoveCurrentSingleFieldSuggestion(
+                  kName, kLabel, kValue, SuggestionType::kAutocompleteEntry));
+  autofill_client().set_single_field_fill_router(
+      std::move(mock_single_field_fill_router));
+
+  external_delegate().RemoveSuggestion(suggestion);
 }
 
 // Test that data list elements for a node will appear in the Autofill popup.
@@ -3865,10 +3899,11 @@ TEST_F(AutofillExternalDelegateTest, RemoveSuggestion_Autocomplete) {
   auto mock_single_field_fill_router =
       std::make_unique<MockSingleFieldFillRouter>(
           autofill_client().GetAutocompleteHistoryManager(), nullptr, nullptr);
-  EXPECT_CALL(*mock_single_field_fill_router,
-              OnRemoveCurrentSingleFieldSuggestion(
-                  std::u16string(u"name"), std::u16string(u"value"),
-                  SuggestionType::kAutocompleteEntry));
+  EXPECT_CALL(
+      *mock_single_field_fill_router,
+      OnRemoveCurrentSingleFieldSuggestion(
+          std::u16string(u"name"), std::u16string(u""),
+          std::u16string(u"value"), SuggestionType::kAutocompleteEntry));
   autofill_client().set_single_field_fill_router(
       std::move(mock_single_field_fill_router));
 

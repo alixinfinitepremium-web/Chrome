@@ -145,6 +145,15 @@
                   '|/lint-suppressions.xml' \
                   '|third_party/android_build_tools/lint'
     },
+    'android_magic_stack': {
+      'filepath': 'chrome/browser/magic_stack/'
+    },
+    'android_ntp': {
+      'filepath': 'chrome/android/java/src/org/chromium/chrome/browser/ntp/'
+    },
+    'android_ntp_customization': {
+      'filepath': 'chrome/browser/ntp_customization/'
+    },
     'android_omnibox': {
       'filepath': 'chrome/browser/ui/android/omnibox/',
     },
@@ -176,10 +185,6 @@
     },
     'android_tab': {
       'filepath': 'chrome/android/java/src/org/chromium/chrome/browser/Tab'
-    },
-    'android_toolbar': {
-      'filepath': 'chrome/android/java/src/org/chromium/chrome/browser/toolbar/' \
-                  '|chrome/browser/ui/android/toolbar/'
     },
     'android_toolbar_deps': {
       'filepath': 'chrome/android/java/src/org/chromium/chrome/browser/toolbar/DEPS'
@@ -866,7 +871,7 @@
                   '|tools/metrics/histograms/metadata/bluetooth/'
     },
     'chromeos_cellular': {
-      'filepath': 'ash/webui/common/resources/cellular_setup/'\
+      'filepath': 'ash/webui/common/resources/cellular_setup/|'\
                   'chromeos/ash/services/cellular_setup/|'\
                   'chromeos/ash/components/carrier_lock/|'\
                   'chromeos/ash/components/dbus/hermes/|'\
@@ -918,7 +923,7 @@
                   'chromeos/ash/services/wifi_direct/|'\
                   'chromeos/services/network_config/|'\
                   'components/onc/|'\
-                  'extensions/browser/api/networking_private/'\
+                  'extensions/browser/api/networking_private/|'\
                   'tools/metrics/histograms/metadata/network/',
     },
     'chromeos_tast_control': {
@@ -1212,8 +1217,8 @@
                   'media/base/android/.*drm|' \
                   'media/cdm/|' \
                   'media/mojo/services/.*(cdm|drm|media_foundation)|' \
-                  'third_party/blink/renderer/modules/encryptedmedia/' \
-                  'third_party/blink/web_tests/external/wpt/encrypted-media/' \
+                  'third_party/blink/renderer/modules/encryptedmedia/|' \
+                  'third_party/blink/web_tests/external/wpt/encrypted-media/|' \
                   'third_party/widevine/cdm/'
     },
     'enterprise_data_protection': {
@@ -2311,7 +2316,7 @@
                   '|chrome/browser/ash/input_method/'\
                   '|chrome/browser/extensions/api/input_ime'\
                   '|chrome/browser/resources/chromeos/keyboard/' \
-                  'chromeos/.*(language|keyboard)'\
+                  '|chromeos/.*(language|keyboard)'\
                   '|chromeos/ime/'
     },
     'third_party_conflicts': {
@@ -2353,7 +2358,7 @@
                   'chrome/browser/ui/views/translate|'\
                   'chrome/renderer/translate|'\
                   'chrome/test/data/translate|'\
-                  'components/resources/translate_resources.grdp'\
+                  'components/resources/translate_resources.grdp|'\
                   'components/translate|'\
                   'components/translate_strings_grdp|'\
                   'ios/chrome/browser/translate|'\
@@ -2608,6 +2613,9 @@
     'android_infra': ['agrieve+watch@chromium.org'],
     'android_item_chooser_dialogs': [],
     'android_lint': ['wnwen+watch@chromium.org'],
+    'android_magic_stack': ['hanxi+watch@chromium.org'],
+    'android_ntp': ['hanxi+watch@chromium.org'],
+    'android_ntp_customization': ['hanxi+watch@chromium.org'],
     'android_omnibox': ['ender+watch@chromium.org'],
     'android_search_widget': ['yusufo+watch@chromium.org'],
     'android_side_panel': ['adelm@google.com',
@@ -2621,7 +2629,6 @@
     'android_studio': ['wnwen+watch@chromium.org',
                        'nyquist+watch@chromium.org'],
     'android_tab': ['dtrainor+watch@chromium.org'],
-    'android_toolbar': ['hanxi+watch@chromium.org'],
     'android_toolbar_deps': ['jinsukkim+watch@chromium.org'],
     'android_ui_actions': ['polardz+watch@google.com',
                            'ckitagawa+watch@chromium.org'],
@@ -3384,7 +3391,6 @@
                                  'wychen+watch@chromium.org',
                                  'yusufo+watch@chromium.org',
                                  'gogerald+watch@chromium.org',
-                                 'hanxi+watch@chromium.org',
                                  'mattsimmons+watch@chromium.org',
                                  'davidjm+watch@chromium.org'],
     'tbmv2_metrics': ['speed-metrics-reviews@chromium.org',

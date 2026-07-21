@@ -2515,6 +2515,13 @@ const FeatureEntry::FeatureVariation kEphemeralCardRankerCardOverrideOptions[] =
         {"- Force show ntp theme promo", kNtpThemePromoShowArm, nullptr},
         {"- Force hide ntp theme promo", kNtpThemePromoHideArm, nullptr},
 };
+
+const FeatureEntry::FeatureParam kAndroidVerticalTabs_ExpandOnHover[] = {
+    {"expand_on_hover", "true"}};
+
+const FeatureEntry::FeatureVariation kAndroidVerticalTabsVariations[] = {
+    {"with expand-on-hover", kAndroidVerticalTabs_ExpandOnHover, nullptr},
+};
 #endif  // BUILDFLAG(IS_ANDROID)
 #if BUILDFLAG(IS_ANDROID)
 const FeatureEntry::FeatureParam
@@ -7548,7 +7555,9 @@ const FeatureEntry kFeatureEntries[] = {
 
     {"android-vertical-tabs", flag_descriptions::kAndroidVerticalTabsName,
      flag_descriptions::kAndroidVerticalTabsDescription, kOsAndroid,
-     FEATURE_VALUE_TYPE(chrome::android::kAndroidVerticalTabs)},
+     FEATURE_WITH_PARAMS_VALUE_TYPE(chrome::android::kAndroidVerticalTabs,
+                                    kAndroidVerticalTabsVariations,
+                                    "AndroidVerticalTabs")},
 
     {"price-insights", commerce::flag_descriptions::kPriceInsightsName,
      commerce::flag_descriptions::kPriceInsightsDescription, kOsAndroid,
@@ -10988,6 +10997,15 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kEnableCookieBindingCookieUpgradeDescription,
      kOsMac | kOsWin | kOsLinux,
      FEATURE_VALUE_TYPE(switches::kEnableCookieBindingCookieUpgrade)},
+
+    {"linked-accounts", flag_descriptions::kDiceLinkedAccountsName,
+     flag_descriptions::kDiceLinkedAccountsDescription,
+     kOsMac | kOsWin | kOsLinux,
+     ENABLE_DISABLE_VALUE_TYPE_AND_VALUE(
+         switches::kEnableFeatures,
+         "DiceLinkedAccounts,DiceHeaderVersion2",
+         switches::kDisableFeatures,
+         "DiceLinkedAccounts,DiceHeaderVersion2")},
 #endif  // BUILDFLAG(ENABLE_DICE_SUPPORT)
 
 #if !BUILDFLAG(IS_ANDROID)
@@ -13242,7 +13260,14 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kEnableDlpFileSystemApiName,
      flag_descriptions::kEnableDlpFileSystemApiDescription, kOsCrOS,
      FEATURE_VALUE_TYPE(enterprise_data_protection::kEnableDlpFileSystemApi)},
-#endif
+#endif  // BUILDFLAG(IS_CHROMEOS)
+
+#if BUILDFLAG(IS_CHROMEOS)
+    {"enable-isolated-web-app-inline-update",
+     flag_descriptions::kIsolatedWebAppInlineUpdateName,
+     flag_descriptions::kIsolatedWebAppInlineUpdateDescription, kOsCrOS,
+     FEATURE_VALUE_TYPE(ash::features::kIsolatedWebAppInlineUpdate)},
+#endif  // BUILDFLAG(IS_CHROMEOS)
 
 #if BUILDFLAG(IS_ANDROID)
     {"android-bricks-native-page",

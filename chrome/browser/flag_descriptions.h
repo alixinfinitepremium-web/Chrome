@@ -2989,6 +2989,11 @@ inline constexpr char kInStockNotificationDescription[] =
     "Enables detecting, showing, and subscribing to back-in-stock "
     "notifications on eligible product pages.";
 
+inline constexpr char kIsolatedWebAppInlineUpdateName[] =
+    "Isolated Web App Inline Update";
+inline constexpr char kIsolatedWebAppInlineUpdateDescription[] =
+    "Enables the inline manual update flow for Isolated Web Apps in Settings.";
+
 inline constexpr char
     kInvalidateSearchEngineChoiceOnDeviceRestoreDetectionName[] =
         "Invalidate search engine choice after the install detects it has been "
@@ -8596,6 +8601,10 @@ inline constexpr char kEnableCookieBindingCookieUpgradeName[] =
 inline constexpr char kEnableCookieBindingCookieUpgradeDescription[] =
     "Enables upgrading unbound session cookies to be hardware-bound on "
     "supported device platforms.";
+
+inline constexpr char kDiceLinkedAccountsName[] = "Linked Accounts";
+inline constexpr char kDiceLinkedAccountsDescription[] =
+    "Enables Linked Accounts and DICE version 2 protocol header.";
 
 inline constexpr char kEnableOAuthMultiloginStandardCookiesBindingName[] =
     "Enable OAuthMultilogin Standard Cookies Binding";

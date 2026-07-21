@@ -1187,11 +1187,6 @@ uploading your change for review.  These are checked by presubmit scripts.
   <int value="1" label="Deprecated enum name"/>
 </enum>
 
-<enum name="BooleanDestroyed">
-  <int value="0" label="Not destroyed"/>
-  <int value="1" label="Destroyed"/>
-</enum>
-
 <enum name="BooleanDetected">
   <int value="0" label="Not detected"/>
   <int value="1" label="Detected"/>
@@ -1280,11 +1275,6 @@ uploading your change for review.  These are checked by presubmit scripts.
 <enum name="BooleanInForeground">
   <int value="0" label="Background"/>
   <int value="1" label="Foreground"/>
-</enum>
-
-<enum name="BooleanIsFileBacked">
-  <int value="0" label="Not file backed"/>
-  <int value="1" label="File backed"/>
 </enum>
 
 <enum name="BooleanKnown">
@@ -9678,6 +9668,8 @@ from previous Chrome versions.
   <int value="-1571525676" label="FilesSWA:disabled"/>
   <int value="-1571428754" label="VcStudioLook:enabled"/>
   <int value="-1570760081" label="FocusFollowsCursor:disabled"/>
+  <int value="-1570451415"
+      label="enable-isolated-web-app-inline-update:enabled"/>
   <int value="-1569571629"
       label="AutofillEnableOffersInClankKeyboardAccessory:disabled"/>
   <int value="-1569484090" label="ElementCaptureOfOtherTabs:disabled"/>
@@ -10100,6 +10092,7 @@ from previous Chrome versions.
   <int value="-1443261188" label="DesktopPWAsTabStripLinkCapturing:disabled"/>
   <int value="-1443123730" label="WebAppMigratePreinstalledChat:disabled"/>
   <int value="-1442983656" label="ActorScriptToolSkipScreenshot:enabled"/>
+  <int value="-1441960576" label="linked-accounts:enabled"/>
   <int value="-1441695001" label="OmniboxOnFocusSuggestions:enabled"/>
   <int value="-1441386544" label="NtpSearchboxComposeEntrypoint:disabled"/>
   <int value="-1441340278" label="NewTabPageIcons:enabled"/>
@@ -10933,6 +10926,7 @@ from previous Chrome versions.
       label="DropUnrecognizedTemplateUrlParameters:disabled"/>
   <int value="-1176748003"
       label="FramebustingNeedsSameOriginOrUserGesture:disabled"/>
+  <int value="-1176658463" label="linked-accounts:disabled"/>
   <int value="-1176540753"
       label="ContextualSearchWithCredentialsForDebug:enabled"/>
   <int value="-1176493523" label="enable-md-extensions"/>
@@ -17752,6 +17746,8 @@ from previous Chrome versions.
   <int value="1003006004" label="RichBubbleWithoutImage:disabled"/>
   <int value="1003081697" label="DesktopPWAsUnifiedInstall:enabled"/>
   <int value="1003419905" label="AutofillImprovedLabels:disabled"/>
+  <int value="1003541603"
+      label="enable-isolated-web-app-inline-update:disabled"/>
   <int value="1003612981"
       label="AutofillAutoTriggerManualFallbackForCards:enabled"/>
   <int value="1003673062" label="MediaIndicatorsAndroid:disabled"/>
@@ -20496,6 +20492,7 @@ from previous Chrome versions.
   <int value="1855997611"
       label="ForceSafeSearchForUnauthenticatedSupervisedUsers:enabled"/>
   <int value="1856270952" label="AutofillAssistantProactiveHelp:disabled"/>
+  <int value="1856422839" label="IsolatedWebAppInlineUpdate:disabled"/>
   <int value="1857000695" label="SendWebUIJavaScriptErrorReports:disabled"/>
   <int value="1858133486" label="UsernameFirstFlowStoreSeveralValues:enabled"/>
   <int value="1858385315" label="ChromeHomeBottomNavLabels:enabled"/>
@@ -20785,6 +20782,7 @@ from previous Chrome versions.
   <int value="1949314084" label="OmniboxWarmRecycledViewPool:enabled"/>
   <int value="1949908940" label="disable-zip-archiver-unpacker"/>
   <int value="1949996482" label="CSSColorSchemeUARendering:disabled"/>
+  <int value="1950185643" label="IsolatedWebAppInlineUpdate:enabled"/>
   <int value="1950191981" label="OverlayNewLayout:enabled"/>
   <int value="1950930453" label="NtpRealboxLensSearch:enabled"/>
   <int value="1951020379" label="ArcRoundedWindowCompat:disabled"/>

@@ -779,6 +779,11 @@
     "expiry_milestone": 153
   },
   {
+    "name": "atmemory-context-menu-entry-point",
+    "owners": [ "novakovica@google.com", "leozhao@google.com", "tmartino@google.com", "bling-transactions@google.com" ],
+    "expiry_milestone": 140
+  },
+  {
     "name": "audio-flexible-loopback-for-system-loopback",
     "owners": ["aaronyu@google.com", "chromeos-audio@google.com" ],
     "expiry_milestone": 200
@@ -3838,6 +3843,11 @@
     "expiry_milestone": -1
   },
   {
+    "name": "enable-isolated-web-app-inline-update",
+    "owners": [ "simonha@google.com", "iwa-team@google.com" ],
+    "expiry_milestone": 170
+  },
+  {
     "name": "enable-isolated-web-app-managed-guest-session-install",
     "owners": [ "simonha@google.com", "iwa-team@google.com" ],
     "expiry_milestone": 150
@@ -6614,6 +6624,11 @@
     "name": "link-cross-device-internals",
     "owners": [ "chromeos-cross-device-eng@google.com", "dclasson@chromium.org" ],
     "expiry_milestone": 125
+  },
+  {
+    "name": "linked-accounts",
+    "owners": ["msalama@chromium.org", "chrome-signin-team@google.com"],
+    "expiry_milestone": 160
   },
   {
     "name": "load-all-tabs-at-startup",

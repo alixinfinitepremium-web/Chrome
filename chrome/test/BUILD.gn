@@ -807,10 +807,6 @@ static_library("test_support") {
     sources += [
       "../browser/chromeos/extensions/login_screen/login_screen_apitest_base.cc",
       "../browser/chromeos/extensions/login_screen/login_screen_apitest_base.h",
-      "../browser/enterprise/connectors/analysis/mock_file_transfer_analysis_delegate.cc",
-      "../browser/enterprise/connectors/analysis/mock_file_transfer_analysis_delegate.h",
-      "../browser/enterprise/connectors/analysis/source_destination_test_util.cc",
-      "../browser/enterprise/connectors/analysis/source_destination_test_util.h",
       "../browser/ui/views/frame/immersive_mode_tester.cc",
       "../browser/ui/views/frame/immersive_mode_tester.h",
       "base/ash/extension_js_browser_test.cc",
@@ -4742,6 +4738,7 @@ if (!is_android) {
       sources += [
         "../browser/ui/views/profiles/profile_picker_glic_flow_controller_browsertest.cc",
         "../browser/ui/views/profiles/profile_picker_sign_in_provider_browsertest.cc",
+        "../browser/ui/views/profiles/profile_picker_utils_browsertest.cc",
         "../browser/ui/views/profiles/profile_picker_view_browsertest.cc",
         "../browser/ui/views/supervised_user/parent_permission_dialog_view_browsertest.cc",
         "../browser/ui/views/supervised_user/parent_permission_extension_flow_view_browsertest.cc",
@@ -5341,6 +5338,7 @@ test("unit_tests") {
     "//chrome/browser/context_hub:unit_tests",
     "//chrome/browser/context_hub/memory_bank:unit_tests",
     "//chrome/browser/context_hub/storage:unit_tests",
+    "//chrome/browser/context_hub/tab_group_store:unit_tests",
     "//chrome/browser/contextual_tasks:unit_tests",
     "//chrome/browser/crash_upload_list:unit_tests",
     "//chrome/browser/critical_actions:unit_tests",

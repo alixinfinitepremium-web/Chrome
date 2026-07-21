@@ -6384,6 +6384,26 @@
             ]
         }
     ],
+    "ClientSideDetectionScamScore": [
+        {
+            "platforms": [
+                "android",
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "ClientSideDetectionScamScore",
+                        "ClientSideDetectionServerModelForScamDetectionAndroid"
+                    ]
+                }
+            ]
+        }
+    ],
     "ClientSideDetectionSendLlamaForcedTriggerInfo": [
         {
             "platforms": [
@@ -19522,45 +19542,6 @@
             ]
         }
     ],
-    "PermissionElementPromptPositioning": [
-        {
-            "platforms": [
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "NearElement",
-                    "params": {
-                        "PermissionElementPromptPositioningParam": "near_element"
-                    },
-                    "enable_features": [
-                        "PermissionElementPromptPositioning"
-                    ]
-                },
-                {
-                    "name": "WindowMiddle",
-                    "params": {
-                        "PermissionElementPromptPositioningParam": "window_middle"
-                    },
-                    "enable_features": [
-                        "PermissionElementPromptPositioning"
-                    ]
-                },
-                {
-                    "name": "LegacyPrompt",
-                    "params": {
-                        "PermissionElementPromptPositioningParam": "legacy_prompt"
-                    },
-                    "enable_features": [
-                        "PermissionElementPromptPositioning"
-                    ]
-                }
-            ]
-        }
-    ],
     "PermissionPromiseLifetimeModulationAndroid": [
         {
             "platforms": [
@@ -21230,6 +21211,29 @@
             ]
         }
     ],
+    "RecordLockAcquisitionTimeStudy": [
+        {
+            "platforms": [
+                "android",
+                "chromeos",
+                "ios",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled_20260721",
+                    "params": {
+                        "RecordLockAcquisitionTimeAllowedThreads": "CrBrowserMain,CrRendererMain,CrGpuMain,VizCompositor,Compositor,BrowserIO,NetworkService,GPU.ForegroundWorker,GPU.BackgroundWorker,Renderer.ForegroundWorker,Renderer.BackgroundWorker,Browser.ForegroundWorker,Browser.BackgroundWorker"
+                    },
+                    "enable_features": [
+                        "RecordLockAcquisitionTime"
+                    ]
+                }
+            ]
+        }
+    ],
     "RedWarningSurvey": [
         {
             "platforms": [
@@ -21816,6 +21820,26 @@
                     "name": "Enabled",
                     "enable_features": [
                         "SafeBrowsingSyncCheckerCheckAllowlist"
+                    ]
+                }
+            ]
+        }
+    ],
+    "SafeBrowsingWaitForDnsForRealTimeLookup": [
+        {
+            "platforms": [
+                "android",
+                "chromeos",
+                "ios",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "SafeBrowsingWaitForDnsForRealTimeLookup"
                     ]
                 }
             ]
