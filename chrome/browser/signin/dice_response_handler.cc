@@ -8,6 +8,7 @@
 #include <optional>
 #include <string_view>
 
+#include "base/check.h"
 #include "base/feature_list.h"
 #include "base/functional/bind.h"
 #include "base/functional/callback.h"
@@ -383,7 +384,9 @@ void DiceResponseHandler::DiceSigninSession::OnTokenExchangeSuccess(
       base::StringPrintf("Successful (%s)", account_id.ToString().c_str()));
 
   if (is_initiator) {
-    delegate_->HandleTokenExchangeSuccess(account_id, is_new_account);
+    delegate_->HandleTokenExchangeSuccess(
+        account_id, is_new_account,
+        signin_info_.linked_accounts_metadata().primary_is_connected);
 
     if (fetcher->should_enable_sync()) {
       delegate_->CompleteChromeSignInAfterGaiaSignin(
@@ -542,6 +545,22 @@ void DiceResponseHandler::ProcessDiceSigninHeader(
     std::unique_ptr<ProcessDiceHeaderDelegate> delegate) {
   VLOG(1) << "Start processing Dice signin response";
   RecordDiceResponseHeader(kSignin);
+
+  if (signin_info.linked_accounts_metadata().primary_is_connected ==
+      signin::Tribool::kTrue) {
+    bool has_primary_account =
+        identity_manager_->HasPrimaryAccount(signin::ConsentLevel::kSignin);
+    base::UmaHistogramBoolean(
+        "Signin.Dice.InvalidPrimaryConnectedInUnsignedProfile",
+        !has_primary_account);
+    if (!has_primary_account) {
+      DLOG(ERROR)
+          << "Received primary_is_connected=true in an unsigned-in profile.";
+      auto metadata = signin_info.linked_accounts_metadata();
+      metadata.primary_is_connected = signin::Tribool::kFalse;
+      signin_info.set_linked_accounts_metadata(std::move(metadata));
+    }
+  }
 
   delegate->OnDiceSigninHeaderReceived();
 

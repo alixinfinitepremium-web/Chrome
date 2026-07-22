@@ -214,6 +214,10 @@ BASE_FEATURE_PARAM(std::string,
                    "autofill_ai_geo_ip_blocklist",
                    "");
 
+// If enabled, Autofill AI suggestion width can be limited.
+BASE_FEATURE(kAutofillAiLimitSuggestionWidth,
+             base::FEATURE_DISABLED_BY_DEFAULT);
+
 // If enabled, Autofill AI will use a new update prompt on Desktop that shows
 // both the previous and the new value of an updated entity attribute.
 BASE_FEATURE_WITH_COUNTRY_RESTRICTIONS(kAutofillAiNewUpdatePrompt,
@@ -351,10 +355,8 @@ BASE_FEATURE_WITH_COUNTRY_RESTRICTIONS(kAutofillAiWalletPrivatePasses,
                                        base::FEATURE_ENABLED_FOR_COUNTRIES,
                                        WALLET_SUPPORTED_COUNTRIES);
 
-// When enabled, account-related eligibility criteria (minor status, location)
-// are determined based on a capability, rather than approximated through
-// signals that were readily available in Chrome prior to the Autofill-specific
-// capability (e.g., using geo-location).
+// When enabled, account location rather than geo-location is used to determine
+// the eligiblity to save Wallet private passes.
 BASE_FEATURE(kAutofillAiWalletPrivatePassesCapability,
              base::FEATURE_DISABLED_BY_DEFAULT);
 

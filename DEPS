@@ -347,7 +347,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': '0aaa16d4680db7f8a935585196376988bf337d12',
+  'boringssl_revision': 'bbae15127720290fb1216cf5a933a4bda6abf323',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -387,7 +387,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': '738a072d5f25a04acdc8ebfe904a94e3b137c8ed',
+  'crossbench_revision': '2db30da271847ab61ba841a9ac79b730f1ea313a',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -407,7 +407,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '86b51e92db039e81bda237e993f518bd74065d43',
+  'devtools_frontend_revision': 'c491d93482cc852e3a72e00b308d7a23ef6c9fe6',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1475,7 +1475,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_linux64',
-          'version': 'version:2@1660004',
+          'version': 'version:2@1661012',
         },
       ],
   },
@@ -1508,7 +1508,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_arm64',
-          'version': 'version:2@1660023',
+          'version': 'version:2@1661032',
         },
       ],
   },
@@ -1519,7 +1519,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_x86',
-          'version': 'version:2@1660018',
+          'version': 'version:2@1661018',
         },
       ],
   },
@@ -1530,7 +1530,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_x86_64',
-          'version': 'version:2@1660010',
+          'version': 'version:2@1661026',
         },
       ],
   },
@@ -1674,7 +1674,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_win_x86_64',
-          'version': 'aN4RJJezROd93wr4XJTI0ECN7JOvIM9fbxC0QKvY-6UC',
+          'version': '8dlqUhUG_M0zkE6SYJyeutnqDPWy36zciWZBIS37GXcC',
         },
       ],
   },
@@ -1710,7 +1710,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': 'MfW3uPZi_3TvM0TmpDbHTmc8-bUBqGz_0BbXmn71YA4C',
+        'version': 'D2Pz_XQGlciC7l7nwz7ZCLUSVUERNFWWv-BQAM8__PIC',
       },
     ],
     'condition': 'non_git_source',
@@ -2432,7 +2432,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/kotlin_stdlib',
-              'version': 'LfMkC0ju_9R8pqxEVnw1FsjpMFqorY4XhKTYhOWeO-QC',
+              'version': 'a4T5pabTdy8H0esu3gdGkqafcXiEczSPTxSz03Gp_m4C',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -2729,7 +2729,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '2b4a154a1d095e03cd20358c09b8fd7950ee9734',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '5ef59a6941059614e1fcd9f8b1d2f01c6f0f1eba',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
@@ -3120,11 +3120,11 @@ deps = {
       ],
   },
 
-  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@a5843ef093d3fa3890f834b630cd34badf43dbf9',
+  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@f809187d19bc47982ad888ddba95dd1986296105',
   'src/third_party/glslang/src': '{chromium_git}/external/github.com/KhronosGroup/glslang@a899a43d6d4ee97c8427c9b87d2a8fa37855fd2b',
   'src/third_party/spirv-cross/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Cross@b8fcf307f1f347089e3c46eb4451d27f32ebc8d3',
   'src/third_party/spirv-headers/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Headers@29981f65241605e08b0ede4cfeb999fe3b723c6a',
-  'src/third_party/spirv-tools/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Tools@0d6fd73ca73830ccab5fa1f00ed5ed40124e2c55',
+  'src/third_party/spirv-tools/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Tools@3c96171c74ed289804c925b171b5234c73d5fdd0',
   'src/third_party/vulkan-headers/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Headers@e3b1eec08173d6b825cd3ac88c885a63b621504a',
   'src/third_party/vulkan-loader/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Loader@f443e1450bc84699dc62c51156abe4357e20ed37',
   'src/third_party/vulkan-tools/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Tools@286299bb6b732e4b22771cfb9d7d421542d40501',
@@ -3172,7 +3172,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + 'ea0f85f6fd0ebb2e92f0ce29099a8ad946c68c5c',
+    Var('webrtc_git') + '/src.git' + '@' + '47f9a9641699cf31879d81769e998edbc0caa782',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -4013,7 +4013,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '7c04a9912ba544ca158e31d6ec651b94dc36f5e6',
+        '543fc6bd63e80f943d3757ac23f83ade3d744dfe',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 

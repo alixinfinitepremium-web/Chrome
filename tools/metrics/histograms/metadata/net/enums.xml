@@ -686,6 +686,7 @@ historical analysis. -->
   <int value="1" label="DnsTCPAttempt due to low UDP entropy"/>
   <int value="2" label="DnsTCPAttempt due to retry due to UDP trucation"/>
   <int value="3" label="DnsHTTPAttempt"/>
+  <int value="4" label="DnsPlatformAttempt"/>
 </enum>
 
 <!-- LINT.IfChange(DnsClientCapability) -->
@@ -3337,6 +3338,17 @@ Called by update_net_trust_anchors.py.-->
 </enum>
 
 <!-- LINT.ThenChange(//chrome/browser/net/stub_resolver_config_reader.h:SecureDnsModeDetailsForHistogram) -->
+
+<!-- LINT.IfChange(SetSocketOptionGroResult) -->
+
+<enum name="SetSocketOptionGroResult">
+  <int value="0" label="Success"/>
+  <int value="1"
+      label="Unsupported Kernel Fallback (ENOPROTOOPT, EOPNOTSUPP, or ENOPKG)"/>
+  <int value="2" label="Other Error"/>
+</enum>
+
+<!-- LINT.ThenChange(//net/socket/udp_socket_posix.h:SetSocketOptionGroResult) -->
 
 <!-- LINT.IfChange(SharedDictionaryStorageEvictionReason) -->
 
