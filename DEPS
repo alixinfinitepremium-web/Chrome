@@ -331,7 +331,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': '1b38f3f930a61165b5e885c637fa3536ca848915',
+  'v8_revision': 'd7d77da2d65c86743e1d7fffdde793c33fd2fc3d',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -547,7 +547,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling agents-public
   # and whatever else without interference from each other.
-  'agents_public_revision': 'adcdf8dc365dace57d722df3ec48a9f2f7d9d738',
+  'agents_public_revision': '1f67a87031bca1695444bdc1d1f8bc9e8084be6f',
 
   # If you change this, also update the libc++ revision in
   # //buildtools/deps_revisions.gni.
@@ -1822,7 +1822,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': 'tmfh7kRa_-KLHOlo1O6QC-OxEY7WoYoffd_Amssmz00C',
+          'version': 'nacSo4oPtLfXT1Au317knlmnGAJGNmdjFRAP3CEhjfIC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
@@ -2443,7 +2443,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/kotlinc',
-              'version': '_TbalRHqOOWTHttZVLFGKk2_NmCRdmU-RPOVA4cizScC',
+              'version': 'aw66-l1f--Z7_ZxJ-JW7OS3IK-3dscUel7WG9-2L-x8C',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -3666,13 +3666,13 @@ deps = {
 
   'src/chrome/app/theme/default_100_percent/google_chrome': {
       'url': Var('chrome_git') + '/chrome/theme/default_100_percent/google_chrome.git' + '@' +
-        '6cf3ceff1e0dc9de311a64f255caa169a2cdfcf9',
+        'ac08dfdabf105bd1b975b00ed0284477ac2573dd',
       'condition': 'checkout_src_internal',
   },
 
   'src/chrome/app/theme/default_200_percent/google_chrome': {
       'url': Var('chrome_git') + '/chrome/theme/default_200_percent/google_chrome.git' + '@' +
-        'cf5a14730f8ba600f960b925e0b60ef6145c82dc',
+        'b820f4eaaec6018093cb67fbca04499b5d98d092',
       'condition': 'checkout_src_internal',
   },
 
@@ -3929,7 +3929,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        'a684866e56a66fa897c07781b280be73f815e8ec',
+        'bc332dc9742918d68a993ff5e4bd86dd0ea3c9ae',
       'condition': 'checkout_src_internal',
   },
 
