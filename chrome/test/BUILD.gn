@@ -226,8 +226,6 @@ static_library("test_support") {
     "../browser/performance_manager/test_support/page_discarding_utils.h",
     "../browser/policy/messaging_layer/public/report_client_test_util.cc",
     "../browser/policy/messaging_layer/public/report_client_test_util.h",
-    "../browser/policy/messaging_layer/util/test_request_payload.cc",
-    "../browser/policy/messaging_layer/util/test_request_payload.h",
     "../browser/profiles/profile_test_util.cc",
     "../browser/profiles/profile_test_util.h",
     "../browser/safe_browsing/test_safe_browsing_database_helper.cc",
@@ -240,8 +238,6 @@ static_library("test_support") {
     "../browser/signin/identity_test_environment_profile_adaptor.h",
     "../browser/signin/test_signin_client_builder.cc",
     "../browser/signin/test_signin_client_builder.h",
-    "../browser/subresource_filter/subresource_filter_browser_test_harness.cc",
-    "../browser/subresource_filter/subresource_filter_browser_test_harness.h",
     "../test/base/menu_model_test.cc",
     "../test/base/menu_model_test.h",
     "base/chrome_render_view_host_test_harness.cc",
@@ -317,8 +313,6 @@ static_library("test_support") {
     # TODO(crbug.com/521960574): Move these into build files closer to the
     # sources.
     sources += [
-      "../browser/policy/extension_force_install_mixin.cc",
-      "../browser/policy/extension_force_install_mixin.h",
       "../browser/ui/web_applications/test/isolated_web_app_test_utils.cc",
       "../browser/ui/web_applications/test/isolated_web_app_test_utils.h",
       "../browser/ui/web_applications/test/ssl_test_utils.cc",
@@ -2196,6 +2190,7 @@ if (!is_android) {
       "//chrome/browser/indigo:browser_tests",
       "//chrome/browser/indigo:test_support",
       "//chrome/browser/indigo/onboarding:browser_tests",
+      "//chrome/browser/interstitials:idn_test_support",
       "//chrome/browser/language",
       "//chrome/browser/language_detection:browser_tests",
       "//chrome/browser/launch_time_navigation_signal:browser_tests",
@@ -3741,7 +3736,10 @@ if (!is_android) {
           "../browser/ui/views/profiles/first_run_intro_browsertest.cc",
           "../browser/ui/views/profiles/first_run_sign_in_celebration_ui_browsertest.cc",
         ]
-        deps += [ "//chrome/browser/ui/webui/intro" ]
+        deps += [
+          "//chrome/browser/ui:feature_showcase_metrics",
+          "//chrome/browser/ui/webui/intro",
+        ]
       }
       if (!is_chromeos) {
         deps += [ "//chrome/browser/ui/webui/signin:profile" ]
@@ -6222,11 +6220,13 @@ test("unit_tests") {
       "../browser/ui/views/profiles/dice_web_signin_interception_bubble_view_unittest.cc",
       "../browser/ui/views/profiles/feature_showcase/default_browser_step_eligibility_checker_unittest.cc",
       "../browser/ui/views/profiles/feature_showcase/feature_showcase_eligibility_tracker_unittest.cc",
+      "../browser/ui/views/profiles/feature_showcase/gemini_step_eligibility_checker_unittest.cc",
       "../browser/ui/views/profiles/feature_showcase/google_lens_step_eligibility_checker_unittest.cc",
       "../browser/ui/views/profiles/feature_showcase/password_manager_feature_showcase_eligibility_checker_unittest.cc",
       "../browser/ui/views/profiles/feature_showcase/themes_and_customization_step_eligibility_checker_unittest.cc",
       "../browser/ui/webui/feature_showcase/default_browser_handler_unittest.cc",
       "../browser/ui/webui/feature_showcase/feature_showcase_handler_unittest.cc",
+      "../browser/ui/webui/feature_showcase/gemini_handler_unittest.cc",
       "../browser/ui/webui/feature_showcase/google_lens_handler_unittest.cc",
       "../browser/ui/webui/feature_showcase/password_manager_handler_unittest.cc",
       "../browser/ui/webui/feature_showcase/themes_and_customization_handler_unittest.cc",
@@ -8129,8 +8129,6 @@ if (!is_android) {
     testonly = true
 
     sources = [
-      "../browser/interstitials/security_interstitial_idn_test.cc",
-      "../browser/interstitials/security_interstitial_idn_test.h",
       "../browser/ui/views/autofill/payments/card_unmask_prompt_view_tester_views.cc",
       "../browser/ui/views/autofill/payments/card_unmask_prompt_view_tester_views.h",
       "../browser/ui/views/autofill/payments/offer_notification_bubble_views_test_base.cc",
@@ -9691,8 +9689,6 @@ if (!is_android) {
       "../browser/sync/test/integration/performance/extensions_sync_perf_test.cc",
       "../browser/sync/test/integration/performance/passwords_sync_perf_test.cc",
       "../browser/sync/test/integration/performance/sessions_sync_perf_test.cc",
-      "../browser/sync/test/integration/performance/sync_timing_helper.cc",
-      "../browser/sync/test/integration/performance/sync_timing_helper.h",
       "base/browser_perf_tests_main.cc",
     ]
 

@@ -1462,11 +1462,6 @@ inline constexpr char kOmniboxCrashFixKillSwitchName[] =
 inline constexpr char kOmniboxCrashFixKillSwitchDescription[] =
     "Enables the OmniboxCrashFixKillSwitch feature.";
 
-inline constexpr char kOmniboxDRSPrototypeName[] =
-    "Enable the Omnibox DRS prototype";
-inline constexpr char kOmniboxDRSPrototypeDescription[] =
-    "Enables the omnibox dynamic response system prototype";
-
 inline constexpr char kOmniboxGroupingFrameworkForTypedSuggestionsName[] =
     "Omnibox Grouping Framework for Typed Suggestions";
 inline constexpr char
@@ -1637,10 +1632,6 @@ inline constexpr char kPageContextIPCOptimizationName[] =
     "PageContextIPCOptimization";
 inline constexpr char kPageContextIPCOptimizationDescription[] =
     "Enables the PageContextIPCOptimization feature.";
-
-inline constexpr char kPageStabilityMetricsName[] = "Page Stability Metrics";
-inline constexpr char kPageStabilityMetricsDescription[] =
-    "Enables metrics to track DOM mutation frequency after user interactions.";
 
 inline constexpr char kPageToolsFeatureUnavailabilityName[] =
     "PageToolsFeatureUnavailability";
