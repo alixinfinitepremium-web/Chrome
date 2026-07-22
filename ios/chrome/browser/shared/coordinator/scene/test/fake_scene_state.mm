@@ -8,6 +8,7 @@
 
 #import "base/apple/foundation_util.h"
 #import "base/check.h"
+#import "ios/chrome/browser/shared/coordinator/scene/scene_state_options.h"
 #import "ios/chrome/browser/shared/coordinator/scene/test/stub_browser_provider.h"
 #import "ios/chrome/browser/shared/coordinator/scene/test/stub_browser_provider_interface.h"
 #import "ios/chrome/browser/shared/model/browser/browser.h"
@@ -24,13 +25,9 @@
   // Owning pointer for the browser that backs the interface provider.
   std::unique_ptr<TestBrowser> _browser;
   std::unique_ptr<TestBrowser> _incognito_browser;
-  // Overridden value for the scene session identifier.
-  std::string _sceneSessionID;
   // Used to check that -shutdown is called before -dealloc.
   BOOL _shutdown;
 }
-
-@synthesize browserProviderInterface = _browserProviderInterface;
 
 @synthesize window = _window;
 
@@ -57,7 +54,9 @@
         initWithBrowser:_browser.get()
         incognitBrowser:_incognito_browser.get()];
 
-    _sceneSessionID = std::move(sceneSessionID);
+    if (!sceneSessionID.empty()) {
+      [self connectWithOptions:{.identifier = std::move(sceneSessionID)}];
+    }
   }
   return self;
 }
@@ -73,8 +72,8 @@
   return [self initWithProfile:profile sceneSessionID:{} commandDispatcher:nil];
 }
 
-- (std::string_view)sceneSessionID {
-  return _sceneSessionID.empty() ? [super sceneSessionID] : _sceneSessionID;
+- (id<BrowserProviderInterface>)browserProviderInterface {
+  return _browserProviderInterface;
 }
 
 - (void)dealloc {
@@ -91,6 +90,12 @@
 }
 
 - (void)destroyAndRecreateOffTheRecordProfile {
+  // Remember whether the current interface was incognito in order to
+  // restore it after the destruction/creation.
+  const BOOL currentInterfaceWasIncognito =
+      _browserProviderInterface.currentBrowserProvider ==
+      _browserProviderInterface.incognitoBrowserProvider;
+
   [_browserProviderInterface.incognitoBrowserProvider shutdown];
   _browserProviderInterface.incognitoBrowserProvider = nil;
 
@@ -106,17 +111,20 @@
   _incognito_browser =
       std::make_unique<TestBrowser>(profile->GetOffTheRecordProfile(), self);
 
-  _browserProviderInterface.incognitoBrowserProvider =
+  StubBrowserProvider* incognitoBrowserProvider =
       [[StubBrowserProvider alloc] initWithBrowser:_incognito_browser.get()];
+  _browserProviderInterface.incognitoBrowserProvider = incognitoBrowserProvider;
+
+  if (currentInterfaceWasIncognito) {
+    _browserProviderInterface.currentBrowserProvider = incognitoBrowserProvider;
+  }
 }
 
 - (void)appendWebStateWithURL:(const GURL&)URL {
   auto test_web_state = std::make_unique<web::FakeWebState>();
   test_web_state->SetCurrentURL(URL);
-  WebStateList* web_state_list =
-      self.browserProviderInterface.mainBrowserProvider.browser
-          ->GetWebStateList();
-  web_state_list->InsertWebState(std::move(test_web_state));
+
+  _browser->GetWebStateList()->InsertWebState(std::move(test_web_state));
 }
 
 - (void)appendWebStatesWithURL:(const GURL&)URL count:(int)count {

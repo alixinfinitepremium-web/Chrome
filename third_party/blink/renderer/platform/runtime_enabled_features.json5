@@ -1154,6 +1154,12 @@
       status: "test",
     },
     {
+      // Compression Dictionary Transport: Use "compression-dictionary" as the
+      // destination string.
+      name: "CDTNewDestination",
+      status: "test",
+    },
+    {
       // Compression Dictionary Transport: Align handling of referrerpolicy
       // attribute and referrer on the spec.
       name: "CDTNewReferrerAndReferrerPolicyHandling",
@@ -4722,10 +4728,6 @@
       // Enables performance.mark('mark_feature_usage'): crbug.com/1517170
       name: "PerformanceMarkFeatureUsage",
       status: "experimental"
-    },
-    {
-      name: "PerformanceNavigationTimingConfidence",
-      status: "stable",
     },
     {
       name: "PeriodicBackgroundSync",

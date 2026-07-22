@@ -3233,27 +3233,6 @@
             ]
         }
     ],
-    "AutofillServerQueryPredictionsEarly": [
-        {
-            "platforms": [
-                "android",
-                "android_webview",
-                "chromeos",
-                "ios",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "AutofillServerQueryPredictionsEarly"
-                    ]
-                }
-            ]
-        }
-    ],
     "AutofillSharedStorageServerCardData": [
         {
             "platforms": [
@@ -4970,10 +4949,10 @@
                 {
                     "name": "Enabled",
                     "params": {
-                        "kMigratedCollectedCookies": "true",
-                        "kMigratedInstallerDownloader": "true",
-                        "kMigratedPageInfo": "true",
-                        "kMigratedPdf": "true"
+                        "MigratedCollectedCookies": "true",
+                        "MigratedInstallerDownloader": "true",
+                        "MigratedPageInfo": "true",
+                        "MigratedPdf": "true"
                     },
                     "enable_features": [
                         "CentralizedInfoBarFramework"
@@ -6151,7 +6130,7 @@
                 {
                     "name": "Enabled",
                     "params": {
-                        "en_site_id": "uAmt8ZyqJ0ugnJ3q1cK0PAWUdnZB",
+                        "en_site_id": "R8iDTcjjT0ugnJ3q1cK0TiRRjjy4",
                         "probability": "1.0"
                     },
                     "enable_features": [
@@ -15030,6 +15009,24 @@
             ]
         }
     ],
+    "ImprovedStartupBestEffortDelay": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "ImprovedStartupBestEffortDelay"
+                    ]
+                }
+            ]
+        }
+    ],
     "InAppWindowManagerDeprecation": [
         {
             "platforms": [
@@ -19215,7 +19212,21 @@
                 "chromeos",
                 "linux",
                 "mac",
-                "windows",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "PaymentHandlerDialogUseInitiatorInUrlLoad"
+                    ]
+                }
+            ]
+        }
+    ],
+    "PaymentHandlerDialogUseInitiatorInUrlLoadForAndroid": [
+        {
+            "platforms": [
                 "android",
                 "android_webview"
             ],
@@ -19656,7 +19667,7 @@
                 {
                     "name": "Enabled",
                     "params": {
-                        "en_site_id": "ZPGYEfdNz0ugnJ3q1cK0WdJNwYC3",
+                        "en_site_id": "8RJXcn5t20ugnJ3q1cK0VLDGHPAz",
                         "probability": "1.0"
                     },
                     "enable_features": [
@@ -26039,7 +26050,7 @@
                 {
                     "name": "Enabled",
                     "params": {
-                        "en_site_id": "Y2We4jMf70ugnJ3q1cK0QFVzpBEr",
+                        "en_site_id": "mL46CjHkE0ugnJ3q1cK0NsAQJpTP",
                         "probability": "1.0"
                     },
                     "enable_features": [
