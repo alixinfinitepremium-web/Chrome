@@ -402,7 +402,6 @@ static_library("ui") {
     "managed_ui.cc",
     "managed_ui.h",
     "screen_capture_notification_ui.h",
-    "session_crashed_bubble.h",
     "status_bubble.h",
     "storage_pressure_bubble.h",
     "tab_dialogs.cc",
@@ -470,6 +469,7 @@ static_library("ui") {
     ":browser_ui_prefs",
     ":incognito_allowed_url",
     ":recently_audible_helper",
+    ":session_crashed_bubble",
     ":simple_message_box_internal",
     ":tab_modal_confirm_dialog_delegate",
     ":ui_features",
@@ -3661,13 +3661,7 @@ static_library("ui") {
   }
 
   if (is_linux || is_chromeos) {
-    sources += [ "process_singleton_dialog_linux.h" ]
-
-    # process_singleton_posix.cc includes process_singleton_dialog_linux.h,
-    # owned by this target, on Linux and ChromeOS.
-    deps += [ "//chrome/browser:process_singleton_posix" ]
-    allow_circular_includes_from +=
-        [ "//chrome/browser:process_singleton_posix" ]
+    deps += [ "//chrome/browser/ui/views:process_singleton_dialog_linux" ]
 
     if (use_aura) {
       deps += [ "//third_party/fontconfig" ]
@@ -4887,10 +4881,6 @@ static_library("ui") {
       ]
     }
 
-    if (is_linux || is_chromeos) {
-      sources += [ "views/process_singleton_dialog_linux.cc" ]
-    }
-
     if (is_win || is_linux || is_chromeos) {
       sources += [
         "views/bluetooth_device_credentials_view.cc",
@@ -5206,10 +5196,7 @@ static_library("ui") {
         [ "//chrome/browser/ui/webui/print_preview:impl" ]
 
     if (is_chromeos) {
-      deps += [
-        "//chromeos/crosapi/mojom",
-        "//chromeos/printing",
-      ]
+      deps += [ "//chromeos/printing" ]
     }
   }
 
@@ -5385,6 +5372,10 @@ source_set("layout_constants") {
   if (is_chromeos) {
     deps += [ "//chromeos/constants" ]
   }
+}
+
+source_set("session_crashed_bubble") {
+  sources = [ "session_crashed_bubble.h" ]
 }
 
 source_set("url_identity") {
@@ -5747,5 +5738,11 @@ if (enable_dice_support) {
       "views/profiles/feature_showcase/feature_showcase_metrics.h",
     ]
     deps = [ "//base" ]
+  }
+}
+
+if (is_linux || is_chromeos) {
+  source_set("process_singleton_dialog_linux") {
+    public = [ "process_singleton_dialog_linux.h" ]
   }
 }

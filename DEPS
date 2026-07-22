@@ -323,11 +323,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': 'd8a9ffeabc643b9592a2a692a2044e5b17d02ffa',
+  'src_internal_revision': 'bf4e9885f091d32799ce8fcb191bef217904df52',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': 'd978fd3a89fbf47b305e6f55c7a75eda7274e40f',
+  'skia_revision': 'aee3692371639d705d05da1c99918b59ea003129',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -335,7 +335,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': 'd6660ddf0137a22851f7b6b8f3895eeccb6992d7',
+  'angle_revision': 'ab5bee732a58f6c61b93b6eea830ef6296325d98',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -343,7 +343,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling PDFium
   # and whatever else without interference from each other.
-  'pdfium_revision': '63649a67dcdb0590a64d9b7530e2cadb26acbc59',
+  'pdfium_revision': 'aa4c85cd507d59567b7ea8fa551ad49353279afc',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
@@ -387,7 +387,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': '95645af07f6806bdd81f02352c081d2760feec9d',
+  'crossbench_revision': '332fda32e780d5894c419c10d74631796a09cdff',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -463,7 +463,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling crabbyavif
   # and whatever else without interference from each other.
-  'crabbyavif_revision': 'e3d9b9a1f71ffd30f23dc517480b81032481eca7',
+  'crabbyavif_revision': '7ccb19ea2c096fcc5838674dc74f5163365fffcc',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Speedometer main
   # and whatever else without interference from each other.
@@ -531,7 +531,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
-  'llvm_libc_revision':    'c0852c770d4ed1a8cf7a70cd8e6fd0d0a6ab8c43',
+  'llvm_libc_revision':    '997ff00a9bce38952e415de76a384d5efd4fb033',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
@@ -2172,7 +2172,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '93974d01460c8a37dda1fb935e4c861bdd9146d5',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '36a464bfe6ef49e0710caf65bfbabc87725720da',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -2589,7 +2589,7 @@ deps = {
     Var('chromium_git') + '/webm/libwebp.git' + '@' +  'b43b2caa710c0c997c066cb32c7fea1391fad70a',
 
   'src/third_party/libyuv':
-    Var('chromium_git') + '/libyuv/libyuv.git' + '@' + 'c302f85bb18252c7eefedf7882a190562481d338',
+    Var('chromium_git') + '/libyuv/libyuv.git' + '@' + '666b4ee51445f5c504cc07231edf32562944423b',
 
   'src/third_party/lss': {
       'url': Var('chromium_git') + '/linux-syscall-support.git' + '@' + Var('lss_revision'),
@@ -3774,7 +3774,7 @@ deps = {
 
   'src/chrome/browser/resources/webui_toolbar/internal': {
       'url': Var('chrome_git') + '/chrome/browser/resources/webui_toolbar/internal.git' + '@' +
-        '5ebb6b609343fe71fff96cfe8b49e0dd7a0d26cb',
+        'a947d8ad27f6b809aee0b6b3d9c4182236cc78d1',
       'condition': 'checkout_src_internal',
   },
 
@@ -3929,7 +3929,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        '6c08414802c7aed2dc5be0cf183e7c2e646a7e3a',
+        'cb193a51338aa30c083aaeac0cdb4c8421f012f6',
       'condition': 'checkout_src_internal',
   },
 
