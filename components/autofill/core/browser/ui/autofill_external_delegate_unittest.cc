@@ -959,7 +959,8 @@ TEST_F(AutofillExternalDelegateTest, AtMemoryFlyoutChildrenAutofillSource) {
               testing::AllOf(HasMainText(u"CA"), HasLabel(u"State")),
               testing::Field(&Suggestion::type, SuggestionType::kSeparator),
               testing::AllOf(
-                  HasMainText(u"Manage information"),
+                  HasMainText(l10n_util::GetStringUTF16(
+                      IDS_AUTOFILL_AT_MEMORY_MANAGE_CONTACT_INFO)),
                   testing::Field(&Suggestion::type,
                                  SuggestionType::kManageAddress))))));
 
@@ -1379,7 +1380,8 @@ TEST_F(AutofillExternalDelegateTest, AtMemoryRemoteQuery_NoConnection) {
                               IDS_AUTOFILL_AT_MEMORY_NO_CONNECTION))))),
                 Field(&Suggestion::icon, Suggestion::Icon::kSadTab),
                 Field(&Suggestion::acceptability,
-                      Suggestion::Acceptability::kUnacceptable))));
+                      Suggestion::Acceptability::
+                          kUnacceptableWithDeactivatedStyle))));
       });
 
   external_delegate().OnSearchSubmitted(u"shoe size");
@@ -2175,6 +2177,7 @@ TEST_F(AutofillExternalDelegateTest, ExternalDelegateFillsIbanEntry) {
       .WillByDefault([iban](const Suggestion::Payload& payload,
                             IbanAccessManager::OnIbanFetchedCallback callback) {
         std::move(callback).Run(iban.value());
+        return IsAsync(false);
       });
 
   external_delegate().DidAcceptSuggestion(
@@ -3827,6 +3830,7 @@ TEST_F(AutofillExternalDelegateTest, ExternalDelegateFillFieldWithValue_Iban) {
       .WillByDefault([iban](const Suggestion::Payload& payload,
                             IbanAccessManager::OnIbanFetchedCallback callback) {
         std::move(callback).Run(iban.value());
+        return IsAsync(false);
       });
   external_delegate().DidAcceptSuggestion(
       CreateAutofillSuggestion(SuggestionType::kIbanEntry,
@@ -4128,6 +4132,7 @@ TEST_F(AutofillExternalDelegateTest, AtMemorySearchResult_RevealsIban) {
       .WillOnce([iban](const Suggestion::Payload& payload,
                        IbanAccessManager::OnIbanFetchedCallback callback) {
         std::move(callback).Run(iban.value());
+        return IsAsync(false);
       });
 
   EXPECT_CALL(

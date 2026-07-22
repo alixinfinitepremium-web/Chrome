@@ -338,7 +338,8 @@ TEST_F(AtMemoryManagerTest,
                                  {{Suggestion::Text(l10n_util::GetStringUTF16(
                                      IDS_AUTOFILL_AT_MEMORY_NO_CONNECTION))}}),
                 Field(&Suggestion::acceptability,
-                      Suggestion::Acceptability::kUnacceptable)),
+                      Suggestion::Acceptability::
+                          kUnacceptableWithDeactivatedStyle)),
           EqualsSuggestion(SuggestionType::kSeparator),
           EqualsSuggestion(SuggestionType::kAtMemoryAiDisclosure)));
 }
@@ -529,6 +530,66 @@ TEST_F(AtMemoryManagerTest,
                   MemoryDataType::kAddressFull)));
 }
 
+TEST_F(AtMemoryManagerTest, OnSearchSubmitted_AutofillSource_Flight_Footer) {
+  base::test::ScopedFeatureList feature_list{
+      features::kYourSavedInfoSettingsPage};
+
+  auto [form_id, field_id] = SeeForm();
+  manager().OnPopupShown(form_id, field_id,
+                         AutofillSuggestionTriggerSource::kAtMemory,
+                         /*parent_suggestion_metadata=*/std::nullopt,
+                         /*is_context_secure=*/true, update_callback_.Get(),
+                         ukm::kInvalidSourceId);
+
+  std::vector<Suggestion> final_suggestions;
+  std::vector<MemorySearchResult> entries;
+  MemorySearchResult entry(MemoryDataType::kFlightReservationFull, u"Label",
+                           u"Value");
+  entry.sources.emplace_back(MemoryEntrySourceType::kAutofill);
+  entries.push_back(std::move(entry));
+
+  MockQueryResultsAndExpectCallback(u"query",
+                                    MemorySearchStatus::kFinalResponseSuccess,
+                                    std::move(entries), final_suggestions);
+
+  manager().OnSearchSubmitted(u"query");
+
+  EXPECT_THAT(
+      final_suggestions,
+      ElementsAre(EqualsAtMemorySuggestion(
+          MemoryDataType::kFlightReservationFull,
+          ElementsAre(EqualsSuggestion(
+              SuggestionType::kManageAutofillAiTravel,
+              l10n_util::GetStringUTF16(
+                  IDS_AUTOFILL_AI_MANAGE_TRAVEL_SUGGESTION_MAIN_TEXT))))));
+}
+
+// Tests that Autofill-sourced data of unknown type does not display any manage
+// information footer suggestion.
+TEST_F(AtMemoryManagerTest, OnSearchSubmitted_AutofillSource_Unknown_NoFooter) {
+  auto [form_id, field_id] = SeeForm();
+  manager().OnPopupShown(form_id, field_id,
+                         AutofillSuggestionTriggerSource::kAtMemory,
+                         /*parent_suggestion_metadata=*/std::nullopt,
+                         /*is_context_secure=*/true, update_callback_.Get(),
+                         ukm::kInvalidSourceId);
+
+  std::vector<Suggestion> final_suggestions;
+  std::vector<MemorySearchResult> entries;
+  MemorySearchResult entry(MemoryDataType::kUnknown, u"Label", u"Value");
+  entry.sources.emplace_back(MemoryEntrySourceType::kAutofill);
+  entries.push_back(std::move(entry));
+
+  MockQueryResultsAndExpectCallback(u"query",
+                                    MemorySearchStatus::kFinalResponseSuccess,
+                                    std::move(entries), final_suggestions);
+
+  manager().OnSearchSubmitted(u"query");
+
+  EXPECT_THAT(final_suggestions, ElementsAre(EqualsAtMemorySuggestion(
+                                     MemoryDataType::kUnknown, IsEmpty())));
+}
+
 // Tests that Personal Context-sourced data (e.g. from Gmail) displays the
 // attribution info, separator, and the "Manage enhanced autofill" footer (but
 // not local settings).
@@ -611,7 +672,7 @@ TEST_F(AtMemoryManagerTest,
   EXPECT_EQ(final_suggestions[0].labels[0][0].value,
             l10n_util::GetStringUTF16(IDS_AUTOFILL_AT_MEMORY_NO_CONNECTION));
   EXPECT_EQ(final_suggestions[0].acceptability,
-            Suggestion::Acceptability::kUnacceptable);
+            Suggestion::Acceptability::kUnacceptableWithDeactivatedStyle);
 }
 
 // Tests that when filling an attribute (e.g. Passport Number), the manager
@@ -1300,13 +1361,13 @@ TEST_F(AtMemoryManagerTest, FillOverlappingPopups) {
   MockIbanAccessManager* mock_iban_access_manager =
       autofill_client().GetPaymentsAutofillClient()->GetIbanAccessManager();
 
-  base::OnceCallback<void(const std::u16string& value)> fetch_callback;
+  IbanAccessManager::OnIbanFetchedCallback fetch_callback;
   EXPECT_CALL(*mock_iban_access_manager, FetchValue)
-      .WillOnce(
-          [&](const Suggestion::Payload& payload,
-              base::OnceCallback<void(const std::u16string& value)> callback) {
-            fetch_callback = std::move(callback);
-          });
+      .WillOnce([&](const Suggestion::Payload& payload,
+                    IbanAccessManager::OnIbanFetchedCallback callback) {
+        fetch_callback = std::move(callback);
+        return IsAsync(true);
+      });
 
   // 2. Accept async suggestion on Popup 1.
   manager().FillOrPreviewSearchResult(mojom::ActionPersistence::kFill, form_id,
