@@ -256,10 +256,6 @@ public final class ProductionSupportedFlagList {
                 "Allows autofill to offer filling again on fields that were autofilled and now hold"
                         + " autocomplete=unrecognized value."),
         Flag.baseFeature(
-                AutofillFeatures.AUTOFILL_FIX_CIVIL_STATE_MISCLASSIFICATION_FOR_ESPT,
-                "When enabled, improves heuristic regexes for state classification to avoid"
-                        + " misclassification as civil state."),
-        Flag.baseFeature(
                 AutofillFeatures.AUTOFILL_FIX_STATE_COUNTRY_MISCLASSIFICATION,
                 "When enabled, the rationalization engine will fix misclassifications where"
                         + " a field is detected as a COUNTRY when it should be a STATE or vice"
@@ -693,6 +689,9 @@ public final class ProductionSupportedFlagList {
                 "Controls if back/forward cache is enabled. Note that it's also possible"
                         + " to enable BFCache through AwSettings as well. If either of"
                         + " the flag / setting is enabled, BFCache will be enabled"),
+        Flag.baseFeature(
+                AwFeatures.WEBVIEW_PURGE_MEMORY_IN_BACKGROUND,
+                "Aggressively purge memory when WebView apps go to the background."),
         Flag.baseFeature(
                 AwSwitches.WEBVIEW_STATIC_METHODS_NOT_TRIGGER_STARTUP,
                 "When enabled, static methods in SharedStatics do not trigger startup."),
