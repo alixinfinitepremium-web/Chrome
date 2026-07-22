@@ -327,7 +327,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': 'aee3692371639d705d05da1c99918b59ea003129',
+  'skia_revision': '418ab117fa0e9c92319ba746de2b659c115e36f8',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -335,7 +335,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': 'ab5bee732a58f6c61b93b6eea830ef6296325d98',
+  'angle_revision': '3d3c181bdcf2aa1e7b0f05637247479e56ca075e',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -391,7 +391,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_web_tests_revision': 'e8672c80e22a543b29ee2ab6568288c46169f4c8',
+  'crossbench_web_tests_revision': '4bbb34427076fa80ee4c152ff485c42246fcc6d2',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libFuzzer
   # and whatever else without interference from each other.
@@ -407,7 +407,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '953b0919d8a55d11ba66eef22a5988ae77307172',
+  'devtools_frontend_revision': '10d15a99ea3b9da2dd0d3549f3888eb76f9ae93a',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1486,7 +1486,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_mac_amd64',
-          'version': 'version:2@1660003',
+          'version': 'version:2@1661004',
         },
       ],
   },
@@ -1497,7 +1497,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_mac_arm64',
-          'version': 'version:2@1660001',
+          'version': 'version:2@1661004',
         },
       ],
   },
@@ -1630,7 +1630,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_linux64',
-          'version': 'rIcmuwkV1sIAPmHpdk4-bahqY-G-TGvhlJKfwauWGsoC',
+          'version': 'kWjqV0JuUSC-shD7TSIkHoNQRdVRBwx6zFJGj9lzCToC',
         },
       ],
   },
@@ -1641,7 +1641,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_mac_amd64',
-          'version': 'Kwgcul4MRd8h6tCO4MH44RzeEsM9RTTK4GhI3YlBC1gC',
+          'version': 'GReXE_HbWzDh_-ocYO7eBFM90MAtQ2UahzKBIKqg5wYC',
         },
       ],
   },
@@ -1652,7 +1652,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_mac_arm64',
-          'version': 'jWMVpoAKg9U__add_Nv-mz8RdUcet2s_NHWGix310c8C',
+          'version': 'D36ydcKQ32_fHwirKZkNgKHt2YW4dmXuvRMJnUmeBPMC',
         },
       ],
   },
@@ -2589,7 +2589,7 @@ deps = {
     Var('chromium_git') + '/webm/libwebp.git' + '@' +  'b43b2caa710c0c997c066cb32c7fea1391fad70a',
 
   'src/third_party/libyuv':
-    Var('chromium_git') + '/libyuv/libyuv.git' + '@' + '666b4ee51445f5c504cc07231edf32562944423b',
+    Var('chromium_git') + '/libyuv/libyuv.git' + '@' + 'b56492e2dfc064f65ef27fed9c45d9bbfc2e2ad2',
 
   'src/third_party/lss': {
       'url': Var('chromium_git') + '/linux-syscall-support.git' + '@' + Var('lss_revision'),
