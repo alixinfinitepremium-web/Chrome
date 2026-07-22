@@ -89,7 +89,6 @@
 #include "components/omnibox/common/omnibox_feature_configs.h"
 #include "components/omnibox/common/omnibox_features.h"
 #include "components/omnibox/common/omnibox_focus_state.h"
-#include "components/search_engines/ai_mode_button_config.h"
 #include "components/search_engines/ai_mode_button_service.h"
 #include "components/search_engines/search_engine_type.h"
 #include "components/search_engines/template_url.h"
@@ -196,9 +195,9 @@ void EmitEnteredKeywordModeHistogram(
   }
 }
 
-const ai_mode_button_config::AiModeButtonConfig* GetAiModeButtonConfig(
+const AiModeButtonUiConfig* GetAiModeButtonUiConfig(
     OmniboxController* controller) {
-  // `GetAiModeButtonConfig()` is only called when AI mode button is visible.
+  // `GetAiModeButtonUiConfig()` is only called when AI mode button is visible.
   CHECK(controller);
   auto* service = controller->client()->GetAiModeButtonService();
   CHECK(service);
@@ -797,7 +796,7 @@ void OmniboxEditModel::OpenAiMode(AimActivation activation) {
 
   RecordAiModeMetrics(query_text, activation);
 
-  if (GetAiModeButtonConfig(controller_)->id !=
+  if (GetAiModeButtonUiConfig(controller_)->id !=
       SearchEngineType::SEARCH_ENGINE_GOOGLE) {
     NavigateToThirdPartyAiMode(query_text);
     return;
@@ -2254,7 +2253,7 @@ std::u16string OmniboxEditModel::GetPopupAccessibilityLabelForCurrentSelection(
 
 std::u16string OmniboxEditModel::GetPopupAccessibilityLabelForAimButton() {
   DCHECK(popup_selection_.state == OmniboxPopupSelection::FOCUSED_BUTTON_AIM);
-  return GetAiModeButtonConfig(controller_)->a11y_label;
+  return GetAiModeButtonUiConfig(controller_)->a11y_label;
 }
 
 std::u16string
@@ -3463,9 +3462,9 @@ void OmniboxEditModel::NavigateToAiModeWithoutContextualizer(
 
 void OmniboxEditModel::NavigateToThirdPartyAiMode(
     const std::u16string& query_text) {
-  auto* config = GetAiModeButtonConfig(controller_);
-  std::string url = query_text.empty() ? config->navigation_url_empty
-                                       : config->navigation_url;
+  auto* config = GetAiModeButtonUiConfig(controller_);
+  std::string url(query_text.empty() ? config->navigation_url_empty
+                                     : config->navigation_url);
   TemplateURLData turl_data;
   turl_data.SetURL(url);
   TemplateURL turl(turl_data);

@@ -32,7 +32,6 @@
 #include "components/omnibox/browser/autocomplete_match.h"
 #include "components/omnibox/browser/omnibox_pref_names.h"
 #include "components/prefs/pref_service.h"
-#include "components/search_engines/ai_mode_button_config.h"
 #include "components/search_engines/ai_mode_button_service.h"
 #include "components/search_engines/search_engines_switches.h"
 #include "components/send_tab_to_self/features.h"
@@ -446,7 +445,7 @@ void OmniboxContextMenuMixinBase::AddOmniboxSpecificItems(
   }
 
   if (omnibox::ShouldShowAimContextMenuOption(location_bar_->GetProfile())) {
-    auto* config = GetAiModeConfig();
+    auto* config = GetAiModeUiConfig();
     if (config) {
       menu_contents->AddCheckItem(IDC_SHOW_AI_MODE_OMNIBOX_BUTTON,
                                   config->context_menu_label);
@@ -484,8 +483,8 @@ bool OmniboxContextMenuMixinBase::HandleIsCommandIdChecked(int id) const {
   return false;
 }
 
-const ai_mode_button_config::AiModeButtonConfig*
-OmniboxContextMenuMixinBase::GetAiModeConfig() const {
+const AiModeButtonUiConfig* OmniboxContextMenuMixinBase::GetAiModeUiConfig()
+    const {
   if (!location_bar_) {
     return nullptr;
   }

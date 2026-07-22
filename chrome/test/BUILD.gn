@@ -226,12 +226,8 @@ static_library("test_support") {
     "../browser/performance_manager/test_support/page_discarding_utils.h",
     "../browser/policy/messaging_layer/public/report_client_test_util.cc",
     "../browser/policy/messaging_layer/public/report_client_test_util.h",
-    "../browser/policy/messaging_layer/util/reporting_server_connector_test_util.cc",
-    "../browser/policy/messaging_layer/util/reporting_server_connector_test_util.h",
     "../browser/policy/messaging_layer/util/test_request_payload.cc",
     "../browser/policy/messaging_layer/util/test_request_payload.h",
-    "../browser/policy/messaging_layer/util/test_response_payload.cc",
-    "../browser/policy/messaging_layer/util/test_response_payload.h",
     "../browser/profiles/profile_test_util.cc",
     "../browser/profiles/profile_test_util.h",
     "../browser/safe_browsing/test_safe_browsing_database_helper.cc",
@@ -795,8 +791,6 @@ static_library("test_support") {
 
   if (is_chromeos) {
     sources += [
-      "../browser/chromeos/extensions/login_screen/login_screen_apitest_base.cc",
-      "../browser/chromeos/extensions/login_screen/login_screen_apitest_base.h",
       "../browser/ui/views/frame/immersive_mode_tester.cc",
       "../browser/ui/views/frame/immersive_mode_tester.h",
       "base/ash/extension_js_browser_test.cc",
@@ -3952,6 +3946,7 @@ if (!is_android) {
         ]
         deps += [
           "//chrome/browser/ui/views/extensions:extension_post_install_dialog_view_utils",
+          "//chrome/browser/ui/views/policy:enterprise_startup_dialog",
           "//chrome/browser/ui/views/relaunch_notification:browser_tests",
           "//chrome/browser/ui/views/shortcuts:browser_tests",
         ]
