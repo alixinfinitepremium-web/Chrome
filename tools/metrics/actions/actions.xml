@@ -1563,6 +1563,23 @@ should be able to be added at any place in this file.
   </description>
 </action>
 
+<action name="Accel_CycleToNextTab">
+  <owner>markchang@chromium.org</owner>
+  <owner>top-chrome-desktop-ui@google.com</owner>
+  <description>
+    Logged when the user activates the accelerator for cycling to the next tab.
+  </description>
+</action>
+
+<action name="Accel_CycleToPrevTab">
+  <owner>markchang@chromium.org</owner>
+  <owner>top-chrome-desktop-ui@google.com</owner>
+  <description>
+    Logged when the user activates the accelerator for cycling to the previous
+    tab.
+  </description>
+</action>
+
 <action name="Accel_Desks_ActivateLeft">
   <owner>afakhry@chromium.org</owner>
   <description>
@@ -16110,6 +16127,24 @@ should be able to be added at any place in this file.
   <owner>erikchen@chromium.org</owner>
   <description>
     Logged if the user enables geolocation in glic settings.
+  </description>
+</action>
+
+<action name="Glic.Settings.HotkeyScope.Chrome">
+  <owner>andreaxg@google.com</owner>
+  <owner>iwells@chromium.org</owner>
+  <description>
+    Logged when the user changes the Glic hotkey scope setting to 'In Chrome'
+    (local scope) on the Glic settings page.
+  </description>
+</action>
+
+<action name="Glic.Settings.HotkeyScope.Global">
+  <owner>andreaxg@google.com</owner>
+  <owner>iwells@chromium.org</owner>
+  <description>
+    Logged when the user changes the Glic hotkey scope setting to 'Global' on
+    the Glic settings page.
   </description>
 </action>
 

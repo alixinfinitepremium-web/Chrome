@@ -445,6 +445,11 @@ export const ComposeboxEmbedderMixin =
           }
         }
 
+        computeVoiceSearchCoherenceEnabled(): boolean {
+          return loadTimeData.getBoolean(
+              'voiceSearchCoherenceComposeboxesEnabled');
+        }
+
         override willUpdate(changedProperties: PropertyValues<this>) {
           super.willUpdate(changedProperties);
 
@@ -528,8 +533,8 @@ export const ComposeboxEmbedderMixin =
           }
 
           if (!this.hasUpdated) {
-            this.voiceSearchCoherenceEnabled = loadTimeData.getBoolean(
-                'voiceSearchCoherenceComposeboxesEnabled');
+            this.voiceSearchCoherenceEnabled =
+                this.computeVoiceSearchCoherenceEnabled();
           }
         }
 
@@ -1897,8 +1902,14 @@ export const ComposeboxEmbedderMixin =
             const viaKeyboard = !!e && e instanceof KeyboardEvent;
             this.getSearchboxHandler().openAutocompleteMatch(
                 this.selectedMatchIndex, match.destinationUrl,
-                /* are_matches_showing */ true, mouseButton, altKey, ctrlKey,
-                metaKey, shiftKey, viaKeyboard);
+                /*areMatchesShowing=*/ true,
+                /*mouseButton=*/ mouseButton, {
+                  altKey: altKey,
+                  ctrlKey: ctrlKey,
+                  metaKey: metaKey,
+                  shiftKey: shiftKey,
+                },
+                /*viaKeyboard=*/ viaKeyboard);
           } else {
             this.getSearchboxHandler().submitQuery(
                 this.input.trim(), mouseButton, altKey, ctrlKey, metaKey,
@@ -2918,4 +2929,5 @@ export interface ComposeboxEmbedderMixinInterface extends I18nMixinLitInterface,
   computeShowDropdown(): boolean;
   shouldDisableFileInputs(): boolean;
   computeCancelButtonTitle(): string;
+  computeVoiceSearchCoherenceEnabled(): boolean;
 }

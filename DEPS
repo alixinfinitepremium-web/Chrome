@@ -327,15 +327,15 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '364211678848bfe164e4bdebf54d787f6b439f46',
+  'skia_revision': '3424966b8a2b1e96427f3eab2bd069954ff745e7',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': 'd7d77da2d65c86743e1d7fffdde793c33fd2fc3d',
+  'v8_revision': '5bf65914637a64b716262052096a91a284b1fbbe',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '484310cbc9730ab8a85f8953a1aadb3ebb942e3c',
+  'angle_revision': 'cf254faf4fcc7c8ee957e47ed2b3762bdf88e07d',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -387,7 +387,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': '7f9797e93c0fe035b4795e186c1e3a51dc92f62d',
+  'crossbench_revision': '8a81b5b04496ef3a5d8d77bd426d6971a68b8831',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -407,7 +407,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '275bd871c60a16af642be24e54b4e767f535d059',
+  'devtools_frontend_revision': '85103e064fd560ee60a875f9fee59530f67e20c2',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -431,7 +431,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': '17771d72340995d56c39a514acf7f13d6674335c',
+  'dawn_revision': '84bfd00efb6d84cc1e2c60069da278b1c262fae8',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -463,7 +463,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling crabbyavif
   # and whatever else without interference from each other.
-  'crabbyavif_revision': '7ccb19ea2c096fcc5838674dc74f5163365fffcc',
+  'crabbyavif_revision': '555da4b3343817510cf9aef955d9423fed15e88c',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Speedometer main
   # and whatever else without interference from each other.
@@ -535,7 +535,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
-  'compiler_rt_revision': 'ddf6253b3226ab64a6f86a34b82e21256fc698ea',
+  'compiler_rt_revision': 'f39acf7e52deac52290149e672d5c74eb596dcae',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling clusterfuzz-data
   # and whatever else without interference from each other.
@@ -3929,7 +3929,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        'bc332dc9742918d68a993ff5e4bd86dd0ea3c9ae',
+        '0988f3cbcce6ceb28f627311951227fe59415058',
       'condition': 'checkout_src_internal',
   },
 
@@ -4013,7 +4013,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '5d9e36f8b14ddc22b6b6823aac4dbfaed14bbc8c',
+        '0c9f82bf642049a5419186db3cfa9e7fc463b370',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
