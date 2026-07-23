@@ -1291,6 +1291,8 @@ crbug.com/494341468 external/wpt/quirks/tables-inherit-color-from-body-quirk-003
 crbug.com/494341468 external/wpt/quirks/tables-inherit-color-from-body-quirk-004.html [ Failure ]
 crbug.com/494341468 external/wpt/quirks/tables-inherit-color-from-body-quirk-005.html [ Failure ]
 
+crbug.com/537801217 external/wpt/css/selectors/active-observable.html [ Pass Failure Timeout ]
+
 # ====== Style team owned tests to here ======
 
 crbug.com/384523570 fast/animation/scroll-animations/scroll-timeline-snapshotting.html [ Failure ]
@@ -2057,6 +2059,10 @@ crbug.com/1110401 external/wpt/css/css-pseudo/active-selection-045.html [ Failur
 crbug.com/1024156 external/wpt/css/css-pseudo/active-selection-027.html [ Failure ]
 
 crbug.com/354751900 external/wpt/css/css-values/viewport-units-scrollbars-auto-vhw-001.html [ Failure ]
+
+# Fails because expected value in some cases is based on randomized values,
+# and failure output will rely on those randomized values.
+crbug.com/537461414 external/wpt/css/css-values/random-item-computed.html [ Failure ]
 
 crbug.com/27659 external/wpt/css/css-ruby/block-ruby-001.html [ Failure ]
 crbug.com/27659 external/wpt/css/css-ruby/empty-ruby-base-container.html [ Failure ]
@@ -2826,7 +2832,6 @@ crbug.com/536952792 external/wpt/html/semantics/scripting-1/the-script-element/m
 crbug.com/536952792 external/wpt/html/semantics/scripting-1/the-script-element/module/dynamic-import/shared-dependency-repeated-import.html [ Failure ]
 
 # ====== New tests from wpt-importer added here ======
-crbug.com/537793901 external/wpt/css/css-values/random-item-computed.html [ Failure ]
 crbug.com/537776442 virtual/disable-css-line-clamp/external/wpt/css/css-overflow/line-clamp/line-clamp-bfc.html [ Failure ]
 crbug.com/536956106 [ Win ] external/wpt/css/css-inline/text-box-trim/text-box-on-non-root-inline-box.html [ Pass Timeout ]
 crbug.com/536956106 external/wpt/css/css-inline/text-box-trim/text-box-trim-end-001.html?class=ideographic [ Failure ]
@@ -3827,7 +3832,6 @@ crbug.com/383154220 [ Mac15 ] external/wpt/html/cross-origin-opener-policy/ifram
 crbug.com/382953502 external/wpt/webrtc/simulcast/setParameters-maxFramerate.https.html [ Skip Timeout ]
 crbug.com/382552065 [ Mac13 ] external/wpt/css/css-writing-modes/abs-pos-replaced-vrl-001.html [ Failure ]
 crbug.com/382552065 [ Mac14 ] external/wpt/css/css-writing-modes/abs-pos-replaced-vrl-001.html [ Failure ]
-crbug.com/379233932 [ Mac ] external/wpt/css/selectors/active-observable.html [ Timeout ]
 crbug.com/382547589 [ Mac13 ] external/wpt/html/cross-origin-opener-policy/iframe-popup-unsafe-none-to-unsafe-none.https.html?1-2 [ Crash ]
 crbug.com/382302593 [ Win10.20h2 ] external/wpt/mathml/presentation-markup/fractions/frac-created-dynamically-4.html [ Failure ]
 crbug.com/382302593 [ Win10.20h2 ] external/wpt/png/apng/acTL-plays-two.html [ Failure ]

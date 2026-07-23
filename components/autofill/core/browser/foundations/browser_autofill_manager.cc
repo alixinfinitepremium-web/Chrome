@@ -280,6 +280,7 @@ FillDataType GetEventTypeFromSingleFieldSuggestionType(SuggestionType type) {
     case SuggestionType::kAtMemoryNoConnection:
     case SuggestionType::kAtMemorySearchAffordance:
     case SuggestionType::kAtMemorySearchResult:
+    case SuggestionType::kAtMemorySourceAttribution:
     case SuggestionType::kAutocompleteAtMemoryButton:
     case SuggestionType::kAutofillAiOtherOrders:
     case SuggestionType::kAutofillAiOtherShipments:
@@ -718,6 +719,7 @@ bool IsManagementFooterOption(const Suggestion& suggestion) {
     case SuggestionType::kAtMemoryNoConnection:
     case SuggestionType::kAtMemorySearchAffordance:
     case SuggestionType::kAtMemorySearchResult:
+    case SuggestionType::kAtMemorySourceAttribution:
     case SuggestionType::kAutocompleteAtMemoryButton:
     case SuggestionType::kAutocompleteEntry:
     case SuggestionType::kAutofillAiOtherOrders:
@@ -3493,18 +3495,9 @@ void BrowserAutofillManager::InitializeSuggestionGenerators(
   }
   if (relevant_filling_products.contains(FillingProduct::kAutocomplete) &&
       client().GetAutocompleteHistoryManager()) {
-    const GURL& main_frame_url = client().GetLastCommittedPrimaryMainFrameURL();
-    const GURL& field_url = field.origin().GetURL();
-    const bool is_enabled = MayPerformAtMemoryAction(
-                                AtMemoryAction::kShowAutocompleteAtMemoryButton,
-                                client(), main_frame_url) &&
-                            MayPerformAtMemoryAction(
-                                AtMemoryAction::kShowAutocompleteAtMemoryButton,
-                                client(), field_url);
     suggestion_generators_.push_back(
         std::make_unique<AutocompleteSuggestionGenerator>(
-            client().GetAutocompleteHistoryManager()->GetProfileDatabase(),
-            is_enabled));
+            client().GetAutocompleteHistoryManager()->GetProfileDatabase()));
   }
   if (relevant_filling_products.contains(FillingProduct::kLoyaltyCard) &&
       client().GetValuablesDataManager()) {

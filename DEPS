@@ -323,19 +323,19 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': 'b8899d605a6b816425221579938891a41eeec23b',
+  'src_internal_revision': '3a0816e6bb6494aca0ee106be5bf881058769bf3',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '933b272d039add454e6491efafd2db84a18a92dd',
+  'skia_revision': '952973ebe391b9d783495e3bc0609c3fd6477c04',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': '3706bf5c619b4495c02835ec141b8b2b0b5ec925',
+  'v8_revision': 'd0c53053ee811dbf069030b57a9067de370a6cf1',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '9fbbd3be5129311d2b2402c79b2959abea4c3b4f',
+  'angle_revision': 'ed24a839d2e02063cc749f843b16a56a2865157b',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -347,7 +347,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': 'cb82b33315609646b99084afe8812f590ae5e533',
+  'boringssl_revision': '14947f74999fcb53abec7eba10e088b59566062f',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -387,7 +387,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': 'd97d3558b81de6c86c3a4f7400d9327c67a98458',
+  'crossbench_revision': '1722348f54fdb008f87191ba6c0401f256405cf6',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -407,7 +407,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'eb5acb374c6b113f8931f00931bebe4c807bb67c',
+  'devtools_frontend_revision': 'a8184b82d879cfe9f6462547d23e7a83a34999a3',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -2729,7 +2729,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '5ef59a6941059614e1fcd9f8b1d2f01c6f0f1eba',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '51b612f55c517771d5f3e4a20b32f685d89ad59f',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
@@ -3172,7 +3172,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '47f9a9641699cf31879d81769e998edbc0caa782',
+    Var('webrtc_git') + '/src.git' + '@' + '2c10bc21bef20c2cc872f9a45f19199c17db86ac',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -4013,7 +4013,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '09673eebe3392e43a465af7ba4406353ee263cf0',
+        'd5596ab1d32e6b26bee6337739da372f5caf8f25',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 

@@ -367,6 +367,7 @@ bool IsPaymentMethodSuggestion(const Suggestion& suggestion) {
     case SuggestionType::kAtMemoryNoConnection:
     case SuggestionType::kAtMemorySearchAffordance:
     case SuggestionType::kAtMemorySearchResult:
+    case SuggestionType::kAtMemorySourceAttribution:
     case SuggestionType::kAutocompleteAtMemoryButton:
     case SuggestionType::kAutocompleteEntry:
     case SuggestionType::kAutofillAiOtherOrders:
@@ -531,10 +532,9 @@ std::optional<ui::ImageModel> GetIconImageModelFromIcon(Suggestion::Icon icon) {
                                                 : vector_icons::kErrorOldIcon,
                                             ui::kColorSysError, kIconSize);
     case Suggestion::Icon::kSadTab:
-      return ImageModelFromVectorIcon(::features::IsRoundedIconsEnabled()
-                                          ? kSadTabFilledIcon
-                                          : kSadTabOldIcon,
-                                      kIconSize);
+      return ImageModelFromVectorIcon(
+          ::features::IsRoundedIconsEnabled() ? kSadTabIcon : kSadTabOldIcon,
+          kIconSize);
     case Suggestion::Icon::kFlight:
       return ImageModelFromVectorIcon(::features::IsRoundedIconsEnabled()
                                           ? vector_icons::kFlightIcon

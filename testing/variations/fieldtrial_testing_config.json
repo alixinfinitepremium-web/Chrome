@@ -5061,8 +5061,12 @@
                         "chrome_next_ia_share_icon_visible": "false"
                     },
                     "enable_features": [
+                        "AppBarHideInFullscreen",
+                        "AppBarHideLabels",
                         "ChromeNextIa",
                         "FullscreenRefactoring",
+                        "OverflowMenuHomeCustomizationEntrypoint",
+                        "OverflowMenuNTPRefactor",
                         "UseSceneViewController"
                     ]
                 }
@@ -13556,6 +13560,21 @@
             ]
         }
     ],
+    "HeliosMultiTabContext": [
+        {
+            "platforms": [
+                "ios"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "GeminiMultiTabContext"
+                    ]
+                }
+            ]
+        }
+    ],
     "HeliosScreenContextMigration": [
         {
             "platforms": [
@@ -20407,8 +20426,9 @@
             ],
             "experiments": [
                 {
-                    "name": "Enabled",
+                    "name": "Enabled_WithDisableOnStartup",
                     "enable_features": [
+                        "PrewarmDisableOnStartup",
                         "PrewarmZeroSuggestTrigger"
                     ]
                 }

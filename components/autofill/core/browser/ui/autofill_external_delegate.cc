@@ -204,6 +204,7 @@ bool HasAutofillSuggestionsForA11y(SuggestionType type) {
     case SuggestionType::kAtMemoryNoConnection:
     case SuggestionType::kAtMemorySearchAffordance:
     case SuggestionType::kAtMemorySearchResult:
+    case SuggestionType::kAtMemorySourceAttribution:
     case SuggestionType::kAutocompleteAtMemoryButton:
     case SuggestionType::kAutofillAiOtherOrders:
     case SuggestionType::kAutofillAiOtherShipments:
@@ -303,6 +304,7 @@ bool AutofillExternalDelegate::IsAutofillAndFirstLayerSuggestionId(
     case SuggestionType::kAtMemoryNoConnection:
     case SuggestionType::kAtMemorySearchAffordance:
     case SuggestionType::kAtMemorySearchResult:
+    case SuggestionType::kAtMemorySourceAttribution:
     case SuggestionType::kAutocompleteAtMemoryButton:
     case SuggestionType::kAutocompleteEntry:
     case SuggestionType::kAutofillAiOtherOrders:
@@ -739,6 +741,7 @@ void AutofillExternalDelegate::DidSelectSuggestion(
     case SuggestionType::kAtMemoryInactivityNudge:
     case SuggestionType::kAtMemoryNoConnection:
     case SuggestionType::kAtMemorySearchAffordance:
+    case SuggestionType::kAtMemorySourceAttribution:
     case SuggestionType::kAutocompleteAtMemoryButton:
     case SuggestionType::kAutofillAiOtherOrders:
     case SuggestionType::kAutofillAiOtherShipments:
@@ -1024,11 +1027,26 @@ void AutofillExternalDelegate::DidAcceptSuggestion(
       manager_->driver().RendererShouldTriggerSuggestions(
           last_query_.field_id, AutofillSuggestionTriggerSource::kAtMemory);
       break;
-    case SuggestionType::kAtMemorySearchResult:
-      manager_->GetAtMemoryManager().FillOrPreviewSearchResult(
-          mojom::ActionPersistence::kFill, last_query_.form_id,
-          last_query_.field_id, suggestion, metadata);
+    case SuggestionType::kAtMemorySearchResult: {
+      const IsAsync is_async =
+          manager_->GetAtMemoryManager().FillOrPreviewSearchResult(
+              mojom::ActionPersistence::kFill, last_query_.form_id,
+              last_query_.field_id, suggestion, metadata);
+      if (is_async) {
+        manager_->client().UpdateAutofillSuggestions(
+            PrepareLoadingStateSuggestions(
+                base::ToVector(manager_->client().GetAutofillSuggestions()),
+                suggestion),
+            FillingProduct::kAtMemory, trigger_source_,
+            AutofillSuggestionsIgnoreFocusLoss(true));
+        // If the filled suggestion is sensitive and obfuscated,
+        // `AtMemoryManager` fetches the entity asynchronously from the server
+        // or reauthenticates. The popup has to remain open and show the loading
+        // UI.
+        return;
+      }
       break;
+    }
     case SuggestionType::kOpenGemini:
 #if BUILDFLAG(GOOGLE_CHROME_BRANDING)
       manager_->client().OpenGeminiInSidebar(
@@ -1056,6 +1074,7 @@ void AutofillExternalDelegate::DidAcceptSuggestion(
     case SuggestionType::kAtMemoryAiDisclosure:
     case SuggestionType::kAtMemoryGenericError:
     case SuggestionType::kAtMemoryNoConnection:
+    case SuggestionType::kAtMemorySourceAttribution:
     case SuggestionType::kAutofillAiOtherOrders:
     case SuggestionType::kAutofillAiOtherShipments:
     case SuggestionType::kAutofillAiPrivateInferenceNotice:
@@ -1162,6 +1181,7 @@ bool AutofillExternalDelegate::RemoveSuggestion(const Suggestion& suggestion) {
     case SuggestionType::kAtMemoryNoConnection:
     case SuggestionType::kAtMemorySearchAffordance:
     case SuggestionType::kAtMemorySearchResult:
+    case SuggestionType::kAtMemorySourceAttribution:
     case SuggestionType::kAutocompleteAtMemoryButton:
     case SuggestionType::kAutofillAiOtherOrders:
     case SuggestionType::kAutofillAiOtherShipments:
@@ -1220,6 +1240,7 @@ bool AutofillExternalDelegate::RemoveSuggestion(const Suggestion& suggestion) {
     case SuggestionType::kWebauthnSignInWithAnotherDevice:
       return false;
   }
+  NOTREACHED();
 }
 
 void AutofillExternalDelegate::DidEndTextFieldEditing() {
