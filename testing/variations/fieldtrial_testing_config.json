@@ -10745,6 +10745,24 @@
             ]
         }
     ],
+    "EnergyEffectMotionStudy": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Treatment",
+                    "enable_features": [
+                        "EnergyEffectAnimation"
+                    ]
+                }
+            ]
+        }
+    ],
     "EnergyEffectVisdStudy": [
         {
             "platforms": [
@@ -23414,6 +23432,21 @@
                     },
                     "enable_features": [
                         "SkipPagehideInCommitForDSENavigation"
+                    ]
+                }
+            ]
+        }
+    ],
+    "SkipPostTaskForCallbacks": [
+        {
+            "platforms": [
+                "mac"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "SkipPostTaskForCallbacks"
                     ]
                 }
             ]
