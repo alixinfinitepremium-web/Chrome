@@ -331,11 +331,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': 'bc94799c8f9a86bd4b5c5bc141c3df68aeaed452',
+  'v8_revision': '3706bf5c619b4495c02835ec141b8b2b0b5ec925',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '8521722b7ebc715adb1cec75c722fa51942c73d2',
+  'angle_revision': '9fbbd3be5129311d2b2402c79b2959abea4c3b4f',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -407,7 +407,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'ccf3fa06316b271ec162e5f945c4cf7b406beb0a',
+  'devtools_frontend_revision': 'eb5acb374c6b113f8931f00931bebe4c807bb67c',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1188,10 +1188,10 @@ deps = {
     'condition': 'non_git_source',
     'objects': [
       {
-        'object_name': 'meet-gpu-tests/951880859.tar.gz',
-        'sha256sum': '50b21d1f84ad25502aa80a9f6b4e90789db5b51e546e529ec015d56aa3b6c49d',
-        'size_bytes': 278442002,
-        'generation': 1784710013312586,
+        'object_name': 'meet-gpu-tests/952511557.tar.gz',
+        'sha256sum': 'ae43c1046a34f18e6069d83804236c5e65601be53981d3cd5d3f9802b0df2068',
+        'size_bytes': 278442748,
+        'generation': 1784796559305969,
       },
     ],
   },
@@ -1722,7 +1722,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    'ea9c0992926ebd720c930489f4e4a26cc14d3b8e',
+    'c89ef23428aabb67fbb42571805e36e502a36548',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
