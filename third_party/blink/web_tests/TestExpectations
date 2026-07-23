@@ -1291,7 +1291,7 @@ crbug.com/494341468 external/wpt/quirks/tables-inherit-color-from-body-quirk-003
 crbug.com/494341468 external/wpt/quirks/tables-inherit-color-from-body-quirk-004.html [ Failure ]
 crbug.com/494341468 external/wpt/quirks/tables-inherit-color-from-body-quirk-005.html [ Failure ]
 
-crbug.com/537801217 external/wpt/css/selectors/active-observable.html [ Pass Failure Timeout ]
+crbug.com/537801217 external/wpt/css/selectors/active-observable.html [ Failure Pass Timeout ]
 
 # ====== Style team owned tests to here ======
 
@@ -2832,6 +2832,16 @@ crbug.com/536952792 external/wpt/html/semantics/scripting-1/the-script-element/m
 crbug.com/536952792 external/wpt/html/semantics/scripting-1/the-script-element/module/dynamic-import/shared-dependency-repeated-import.html [ Failure ]
 
 # ====== New tests from wpt-importer added here ======
+external/wpt/css/css-viewport/zoom/column-rule-width-keywords.html [ Failure ]
+external/wpt/css/css-viewport/zoom/outline-offset.html [ Failure ]
+external/wpt/css/css-viewport/zoom/shape-outside-circle.html [ Failure ]
+external/wpt/css/css-viewport/zoom/shape-outside-ellipse.html [ Failure ]
+external/wpt/css/css-viewport/zoom/shape-outside-inset.html [ Failure ]
+external/wpt/css/css-viewport/zoom/shape-outside-polygon.html [ Failure ]
+external/wpt/css/css-viewport/zoom/shape-outside-rect.html [ Failure ]
+external/wpt/css/css-viewport/zoom/shape-outside-xywh.html [ Failure ]
+external/wpt/fetch/compression-dictionary/compressed-large-resources-002.tentative.https.html [ Skip Timeout ]
+virtual/produce-compile-hints/external/wpt/fetch/compression-dictionary/compressed-large-resources-002.tentative.https.html [ Skip Timeout ]
 crbug.com/537776442 virtual/disable-css-line-clamp/external/wpt/css/css-overflow/line-clamp/line-clamp-bfc.html [ Failure ]
 crbug.com/536956106 [ Win ] external/wpt/css/css-inline/text-box-trim/text-box-on-non-root-inline-box.html [ Pass Timeout ]
 crbug.com/536956106 external/wpt/css/css-inline/text-box-trim/text-box-trim-end-001.html?class=ideographic [ Failure ]
@@ -9191,9 +9201,7 @@ crbug.com/448800278 [ Mac ] external/wpt/notifications/registration-association.
 crbug.com/40250618 [ Mac ] external/wpt/html/cross-origin-opener-policy/reporting/access-reporting/access-from-coop-page-to-opener_coop-ro_cross-origin.https.html [ Failure Pass ]
 
 # Gardener 2026-01-08
-crbug.com/474158153 [ Linux ] external/wpt/xml/xslt/large-cdata.html [ Crash Failure Pass Timeout ]
-crbug.com/474155097 [ Linux ] virtual/xslt-disabled/external/wpt/xml/xslt/large-cdata.html [ Crash Failure Pass Timeout ]
-crbug.com/474158153 [ Win ] external/wpt/xml/xslt/large-cdata.html [ Crash Failure Pass Timeout ]
+crbug.com/474158153 external/wpt/xml/xslt/large-cdata.html [ Crash Failure Pass Timeout ]
 
 # Gardener 2026-01-12
 crbug.com/475047610 [ Linux ] external/wpt/webdriver/tests/bidi/input/perform_actions/pointer_mouse.py [ Failure Timeout ]
@@ -9388,9 +9396,6 @@ crbug.com/486238126 webaudio/WaveShaper/waveshaper-rendersizehint.html [ Crash F
 crbug.com/502309240 external/wpt/webaudio/the-audio-api/rendersizehint-smoke-tests.https.html [ Crash Timeout ]
 crbug.com/502309240 external/wpt/webaudio/the-audio-api/the-analysernode-interface/analysernode-rendersizehint.https.html [ Crash Failure Timeout ]
 crbug.com/502309240 external/wpt/webaudio/the-audio-api/the-convolvernode-interface/convolver-rendersizehint.https.html [ Crash Failure Timeout ]
-
-crbug.com/502311300 webaudio/MediaStreamAudioDestination/mediastreamaudiodestinationnode-rendersizehint.https.html [ Crash Timeout ]
-crbug.com/502311300 webaudio/MediaStreamAudioSource/mediastreamaudiosourcenode-rendersizehint.https.html [ Crash Timeout ]
 
 # Gardener 2026-05-18
 crbug.com/514075904 [ Win11-arm64 ] virtual/text-antialias/emphasis-complex.html [ Failure Pass ]

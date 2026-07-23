@@ -6069,7 +6069,12 @@
   {
     "name": "inline-pdf-v2",
     "owners": [ "rathomas@google.com", "clank-large-form-factors@google.com" ],
-    "expiry_milestone": 152
+    "expiry_milestone": 154
+  },
+  {
+    "name": "inline-pdf-v2-incognito",
+    "owners": [ "rathomas@google.com", "clank-large-form-factors@google.com" ],
+    "expiry_milestone": 154
   },
   {
     "name": "inline-script-cache",
@@ -7310,6 +7315,14 @@
   {
     "name": "ntp-scaled-action-chips",
     "owners": [ "rtatum@google.com", "chrome-desktop-ntp@google.com" ],
+    "expiry_milestone": 160
+  },
+  {
+    "name": "ntp-scaled-action-chips-small",
+    "owners": [
+      "rtatum@google.com",
+      "chrome-desktop-ntp@google.com"
+    ],
     "expiry_milestone": 160
   },
   {

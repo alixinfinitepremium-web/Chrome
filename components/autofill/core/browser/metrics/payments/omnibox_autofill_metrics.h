@@ -70,7 +70,10 @@ enum class OmniboxAutofillEvents {
   kChipClickedOnce = 3,
   kSuggestionAccepted = 4,
   kSuggestionAcceptedOnce = 5,
-  kMaxValue = kSuggestionAcceptedOnce,
+  kFormFilled = 6,
+  kFormFilledOnce = 7,
+  kFormSubmittedOnce = 8,
+  kMaxValue = kFormSubmittedOnce,
 };
 // LINT.ThenChange(/tools/metrics/histograms/metadata/autofill/enums.xml:OmniboxAutofillEvents)
 
