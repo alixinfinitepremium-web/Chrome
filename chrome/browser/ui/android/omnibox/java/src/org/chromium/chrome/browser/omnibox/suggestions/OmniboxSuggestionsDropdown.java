@@ -132,9 +132,7 @@ public class OmniboxSuggestionsDropdown extends RecyclerView {
             super.onInitializeAccessibilityNodeInfoForItem(recycler, state, host, info);
             // Suppress the default "X of Y" announcement for the entire list for TalkBack to
             // avoid verbosity. Announcement of position within its group is already provided.
-            if (OmniboxFeatures.sOmniboxItemDecoration.isEnabled()) {
-                info.setCollectionItemInfo(null);
-            }
+            info.setCollectionItemInfo(null);
         }
 
         @Override
@@ -324,10 +322,8 @@ public class OmniboxSuggestionsDropdown extends RecyclerView {
             setItemAnimator(null);
             addItemDecoration(new SuggestionHorizontalDivider(context));
 
-            if (OmniboxFeatures.sOmniboxItemDecoration.isEnabled()) {
-                addItemDecoration(new GroupSeparatorDecoration(context));
-                addItemDecoration(new HeaderDecoration(context));
-            }
+            addItemDecoration(new GroupSeparatorDecoration(context));
+            addItemDecoration(new HeaderDecoration(context));
 
             mLayoutScrollListener = suggestionLayoutScrollListener;
             setLayoutManager(mLayoutScrollListener);
@@ -592,7 +588,11 @@ public class OmniboxSuggestionsDropdown extends RecyclerView {
             handleSelectionChange();
             return true;
         } else if (KeyNavigationUtil.isEnter(event)) {
-            if (selectedView != null && !hasAdditionalModifiers) {
+            if (selectedView != null) {
+                if (selectedView instanceof ActivatableSuggestionView) {
+                    return ((ActivatableSuggestionView) selectedView)
+                            .activate(event.getMetaState());
+                }
                 return selectedView.performClick();
             }
         }

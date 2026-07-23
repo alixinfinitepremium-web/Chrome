@@ -407,7 +407,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'c440608ead6349fb535441aac0ab055a3f275aee',
+  'devtools_frontend_revision': '5573b07717553e1c8d7e59d3addaa13be3157bb4',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1722,12 +1722,12 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    'c89ef23428aabb67fbb42571805e36e502a36548',
+    'd9b8e59f211a5358c80c213326605d1e4114c061',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
   'src/docs/website': {
-    'url': Var('chromium_git') + '/website.git' + '@' + '20815abe5ab757a2c61258b9fd4b6c8897f67f77',
+    'url': Var('chromium_git') + '/website.git' + '@' + 'eea70ef561232f5327761bc55fc3e8d54219bbfa',
   },
 
   'src/ios/third_party/earl_grey2/src': {
@@ -3334,7 +3334,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/media_app/app',
-        'version': 'iCdVKthzgb3L5gOF5GFShspAMCaRdlWrQj8GNYXh3tYC',
+        'version': 'MfZ8vpBZt_HcSBUojXztYWtX4VffM1fdOMOdmTN4p-IC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -4013,7 +4013,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '73944c45629ae0975bf8fdbdb2d0ae9452f66d61',
+        '1b19d95203bbef3e243577f32ec3265ed665419f',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 

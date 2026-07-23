@@ -116,6 +116,9 @@ BASE_DECLARE_FEATURE(kUrlScoringModel);
 // suggestions and only controls whether the signal is sent.
 BASE_DECLARE_FEATURE(kOmniboxTouchDownTriggerForPrefetch);
 
+// Enables simultaneous prefetch and navigation on Enter KeyDown in Omnibox.
+BASE_DECLARE_FEATURE(kOmniboxSearchPrefetchOnEnterKeyDown);
+
 // Site search/Keyword mode related features.
 BASE_DECLARE_FEATURE(kOmniboxSiteSearch);
 BASE_DECLARE_FEATURE(kStarterPackExpansion);
@@ -134,7 +137,6 @@ BASE_DECLARE_FEATURE(kUseFusedLocationProvider);
 BASE_DECLARE_FEATURE(kOmniboxMobileParityUpdate);
 BASE_DECLARE_FEATURE(kOmniboxMobileParityUpdateV2);
 BASE_DECLARE_FEATURE(kOmniboxXGeoPermissionGranularity);
-BASE_DECLARE_FEATURE(kOmniboxItemDecoration);
 BASE_DECLARE_FEATURE(kExactMatchFavicons);
 BASE_DECLARE_FEATURE(kOmniboxAimImageDownscaling);
 
