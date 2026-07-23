@@ -33,9 +33,11 @@ import org.chromium.base.ContextUtils;
 import org.chromium.base.DeviceInfo;
 import org.chromium.base.Log;
 import org.chromium.base.ResettersForTesting;
+import org.chromium.base.TimeUtils;
 import org.chromium.base.Token;
 import org.chromium.base.TraceEvent;
 import org.chromium.base.lifetime.Destroyable;
+import org.chromium.base.metrics.RecordHistogram;
 import org.chromium.base.shared_preferences.SharedPreferencesManager;
 import org.chromium.base.supplier.MonotonicObservableSupplier;
 import org.chromium.base.supplier.NonNullObservableSupplier;
@@ -1145,6 +1147,12 @@ public class TabbedRootUiCoordinator extends RootUiCoordinator {
                 UiUtils.isGestureNavigationMode(mActivity.getWindow())
                         ? "GestureNav"
                         : "ThreeButton");
+
+        if (VerticalTabUtils.isVerticalTabsEligible(mActivity)) {
+            boolean enabled = VerticalTabUtils.isVerticalTabsEnabled(mActivity);
+            UmaSessionStats.registerSyntheticFieldTrial(
+                    "VerticalTabsAndroid", enabled ? "Enabled" : "Disabled");
+        }
 
         CompositorViewHolder compositorViewHolder = mCompositorViewHolderSupplier.asNonNull().get();
         mHistoryNavigationCoordinator =
@@ -2418,6 +2426,28 @@ public class TabbedRootUiCoordinator extends RootUiCoordinator {
                 TrackerFactory.getTrackerForProfile(profile)
                         .notifyEvent(EventConstants.ANDROID_VERTICAL_TABS_PROMO_USED);
             }
+            ChromeSharedPreferences.getInstance()
+                    .writeLong(
+                            ChromePreferenceKeys.VERTICAL_TABS_ENABLED_TIMESTAMP,
+                            TimeUtils.currentTimeMillis());
+        } else {
+            long startTime =
+                    ChromeSharedPreferences.getInstance()
+                            .readLong(ChromePreferenceKeys.VERTICAL_TABS_ENABLED_TIMESTAMP, 0);
+            if (startTime > 0) {
+                long durationMs = TimeUtils.currentTimeMillis() - startTime;
+                if (durationMs > 0) {
+                    RecordHistogram.recordLongTimesHistogram(
+                            "Android.VerticalTabs.DurationEnabled", durationMs);
+                }
+            }
+            ChromeSharedPreferences.getInstance()
+                    .removeKey(ChromePreferenceKeys.VERTICAL_TABS_ENABLED_TIMESTAMP);
+        }
+
+        if (VerticalTabUtils.isVerticalTabsEligible(mActivity)) {
+            UmaSessionStats.registerSyntheticFieldTrial(
+                    "VerticalTabsAndroid", shouldShowVerticalTabs ? "Enabled" : "Disabled");
         }
     }
 

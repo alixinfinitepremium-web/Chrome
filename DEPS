@@ -1475,7 +1475,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_linux64',
-          'version': 'version:2@1661012',
+          'version': 'version:2@1662007',
         },
       ],
   },
@@ -1486,7 +1486,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_mac_amd64',
-          'version': 'version:2@1661004',
+          'version': 'version:2@1662009',
         },
       ],
   },
@@ -1497,7 +1497,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_mac_arm64',
-          'version': 'version:2@1661004',
+          'version': 'version:2@1662013',
         },
       ],
   },
@@ -1508,7 +1508,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_arm64',
-          'version': 'version:2@1661032',
+          'version': 'version:2@1662007',
         },
       ],
   },
@@ -1519,7 +1519,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_x86',
-          'version': 'version:2@1661018',
+          'version': 'version:2@1662035',
         },
       ],
   },
@@ -1530,7 +1530,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_x86_64',
-          'version': 'version:2@1661026',
+          'version': 'version:2@1662007',
         },
       ],
   },
@@ -1630,7 +1630,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_linux64',
-          'version': 'kWjqV0JuUSC-shD7TSIkHoNQRdVRBwx6zFJGj9lzCToC',
+          'version': '2Avm0P2fe4X6lKyXE7GLZyXSpXrsHq17Ei3Igzi97PQC',
         },
       ],
   },
@@ -1641,7 +1641,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_mac_amd64',
-          'version': 'GReXE_HbWzDh_-ocYO7eBFM90MAtQ2UahzKBIKqg5wYC',
+          'version': 'JJlM6utaVlY46nncBnyt9ak_B6QHnwdv-nZRyEb_-ikC',
         },
       ],
   },
@@ -1663,7 +1663,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_win_x86',
-          'version': 'deUAccGvuZxK4y5t34O62d5S_13pnRVa5uTMoU6STYgC',
+          'version': 'AYslTlYIeTAeixIsCIfqdortf8dhyL7afIv34gZLi8sC',
         },
       ],
   },
@@ -1920,7 +1920,7 @@ deps = {
       'packages': [
           {
                'package': 'chromium/third_party/android_build_tools/lint',
-               'version': '5WFjhp-KTy7WAXZIht6vbl7p0N9Y8SC236ckRVu4u7UC',
+               'version': 'FbV50P66WTk1bC4_2apc1q9bHDz7BN1eKe8ebdz10TgC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -1931,7 +1931,7 @@ deps = {
       'packages': [
           {
                'package': 'chromium/third_party/android_build_tools/manifest_merger',
-               'version': '_77D_v3PWMAB5zkrjPK5UCjhM8bYCRYPJROOrs_IkQQC',
+               'version': 'zRGbFVQK7ouxmqrlVVU66qKnaTf-PvnfixlGLxuzeYQC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -2729,7 +2729,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '3c7a01897e0a77f4ce79ea7e44b65b2e5cf18c8b',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '78c38b72516e8f34c42d5d401858530b9c4b12a8',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
@@ -3120,8 +3120,8 @@ deps = {
       ],
   },
 
-  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@9f1e0aa321abc9e04867864acff389f8f559756e',
-  'src/third_party/glslang/src': '{chromium_git}/external/github.com/KhronosGroup/glslang@a163b7f1e8cbba3f553c4da075a4c148d16d8e7c',
+  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@54575eba58d6110b652023b1080d511858a149ee',
+  'src/third_party/glslang/src': '{chromium_git}/external/github.com/KhronosGroup/glslang@8bf40872496729312a306656dc2dad01ac1480c0',
   'src/third_party/spirv-cross/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Cross@b8fcf307f1f347089e3c46eb4451d27f32ebc8d3',
   'src/third_party/spirv-headers/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Headers@29981f65241605e08b0ede4cfeb999fe3b723c6a',
   'src/third_party/spirv-tools/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Tools@a665e21f3061f34064b39937cf00fe8d8769f4ef',

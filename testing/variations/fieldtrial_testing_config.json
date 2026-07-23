@@ -8283,21 +8283,6 @@
             ]
         }
     ],
-    "DefaultBrowserPromoIpadInstructions": [
-        {
-            "platforms": [
-                "ios"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "DefaultBrowserPromoIpadInstructions"
-                    ]
-                }
-            ]
-        }
-    ],
     "DefaultBrowserRound3Phase1": [
         {
             "platforms": [
@@ -9131,6 +9116,22 @@
                     "name": "Enabled_20260430",
                     "enable_features": [
                         "EnableOAuthMultiloginStandardCookiesBindingForSecondaryPartitions"
+                    ]
+                }
+            ]
+        }
+    ],
+    "DeviceBoundSessionsRetryTransientRefreshErrors": [
+        {
+            "platforms": [
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "DeviceBoundSessionsRetryTransientRefreshErrors"
                     ]
                 }
             ]
