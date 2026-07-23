@@ -323,11 +323,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '340ec35d50b23f938b943310258c9d31336d855d',
+  'src_internal_revision': '17e2893d01b2141290656689e179ef386dba3cb5',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '3424966b8a2b1e96427f3eab2bd069954ff745e7',
+  'skia_revision': '5690871f9facd70e63358e28e80704e33820cbf2',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -335,7 +335,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': 'cf254faf4fcc7c8ee957e47ed2b3762bdf88e07d',
+  'angle_revision': '3abba2912f3314422eee57f055280d874d3a9a4c',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -343,7 +343,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling PDFium
   # and whatever else without interference from each other.
-  'pdfium_revision': 'aa4c85cd507d59567b7ea8fa551ad49353279afc',
+  'pdfium_revision': '9e66a384fe7ffed5f6a161242ca699c32f21eecf',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
@@ -391,7 +391,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_web_tests_revision': '59d414345468f510bc4c028b00d804ce62e8cc89',
+  'crossbench_web_tests_revision': '348f9c4a2c318d7958ef1b88c041a1e1b96be164',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libFuzzer
   # and whatever else without interference from each other.
@@ -531,7 +531,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
-  'llvm_libc_revision':    '997ff00a9bce38952e415de76a384d5efd4fb033',
+  'llvm_libc_revision':    'fc207ca0fe8936a7c3746bea5d8080c4e5427018',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
@@ -1710,7 +1710,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': 'D2Pz_XQGlciC7l7nwz7ZCLUSVUERNFWWv-BQAM8__PIC',
+        'version': '4-BdTLWPx8SCsVF22Vr9pRQrfpiL6fnaUhtoAGuI4GsC',
       },
     ],
     'condition': 'non_git_source',
@@ -2466,7 +2466,7 @@ deps = {
     Var('chromium_git') + '/external/libaddressinput.git' + '@' + '81eb9628382b07d371d8ea0b11badf7de3857fd5',
 
   'src/third_party/libaom/source/libaom':
-    Var('aomedia_git') + '/aom.git' + '@' +  'a9a24c56d8754f72e4f26cc6ff0f3926d1b91163',
+    Var('aomedia_git') + '/aom.git' + '@' +  '34c63b10ea0dad83aa2666d88c800879e09bff86',
 
   'src/third_party/crabbyavif/src':
     Var('chromium_git') + '/external/github.com/webmproject/CrabbyAvif.git' + '@' + Var('crabbyavif_revision'),
@@ -3929,7 +3929,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        '0988f3cbcce6ceb28f627311951227fe59415058',
+        '6c95ab35d7f1da8c682f2c47f6bc4c4e088e919a',
       'condition': 'checkout_src_internal',
   },
 
@@ -4013,7 +4013,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '456a7671e54f30868d8625845b939b5f82e04d85',
+        'e2a9b9c89d17ddc128ca16499a760dc0d9e2d11e',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
