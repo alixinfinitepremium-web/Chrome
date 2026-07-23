@@ -89,6 +89,7 @@ import org.chromium.ui.modelutil.SimpleRecyclerViewAdapter;
 import org.chromium.ui.recyclerview.widget.ItemTouchHelper2;
 import org.chromium.ui.widget.RectProvider;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
@@ -127,7 +128,7 @@ public class VerticalTabListCoordinator {
     private final @Nullable DesktopWindowStateManager mDesktopWindowStateManager;
     private final @Nullable AppHeaderObserver mAppHeaderObserver;
     private final @Nullable BooleanSupplier mCanActivateTabLayoutToggleMenuSupplier;
-    private @Nullable TabSwitcherDragHandler mTabSwitcherDragHandler;
+    private final List<TabSwitcherDragHandler> mTabSwitcherDragHandlers = new ArrayList<>();
     private @Nullable TabStripContextMenuCoordinator mTabStripContextMenuCoordinator;
     private @Nullable TabContextMenuCoordinator mTabContextMenuCoordinator;
     private @Nullable TabGroupContextMenuCoordinator mTabGroupContextMenuCoordinator;
@@ -351,19 +352,19 @@ public class VerticalTabListCoordinator {
                         R.dimen.default_favicon_corner_radius,
                         TabFavicon::getBitmap);
 
-        setupItemTouchHelper(activity, recyclerView, mModelList, tabModelSelector);
-
-        mSpineDecoration =
-                new VerticalTabGroupSpineDecoration(
-                        activity, recyclerView::postInvalidate, mModelList, tabModelSelector);
-        recyclerView.addItemDecoration(mSpineDecoration);
-
         mTabModelSelector = tabModelSelector;
         mWindowAndroid = windowAndroid;
         mMultiInstanceManager = multiInstanceManager;
         mSnackbarManager = snackbarManager;
         mShareDelegateSupplier = shareDelegateSupplier;
         mDataSharingTabManager = dataSharingTabManager;
+
+        setupItemTouchHelper(activity, recyclerView, mModelList, tabModelSelector);
+
+        mSpineDecoration =
+                new VerticalTabGroupSpineDecoration(
+                        activity, recyclerView::postInvalidate, mModelList, tabModelSelector);
+        recyclerView.addItemDecoration(mSpineDecoration);
 
         TabListConfigDelegate tabListConfigDelegate =
                 new TabListConfigDelegate() {
@@ -598,9 +599,10 @@ public class VerticalTabListCoordinator {
         mSpineDecoration.destroy();
         mTabModelSelectorTabModelObserver.destroy();
         mVerticalTabsActiveSupplier.removeObserver(mActiveObserver);
-        if (mTabSwitcherDragHandler != null) {
-            mTabSwitcherDragHandler.destroy();
+        for (TabSwitcherDragHandler dragHandler : mTabSwitcherDragHandlers) {
+            dragHandler.destroy();
         }
+        mTabSwitcherDragHandlers.clear();
 
         mRailCollapseListener = null;
     }
@@ -797,6 +799,10 @@ public class VerticalTabListCoordinator {
         recyclerView.addOnItemTouchListener(
                 touchHelperCallback.createMouseDragDetector(itemTouchHelper));
 
+        TabSwitcherDragHandler dragHandler =
+                createTabSwitcherDragHandler(activity, tabModelSelector);
+        recyclerView.setOnDragListener(dragHandler);
+
         touchHelperCallback.setOnDragOutListener(
                 (viewHolder, dX, dY) -> {
                     if (!(viewHolder
@@ -823,62 +829,11 @@ public class VerticalTabListCoordinator {
                         return;
                     }
 
-                    if (mTabSwitcherDragHandler == null) {
-                        Supplier<@Nullable Activity> activitySupplier = () -> activity;
-                        DragAndDropDelegate dragDropDelegate = new DragAndDropDelegateImpl();
-                        dragDropDelegate.setDragAndDropBrowserDelegate(
-                                new ChromeDragAndDropBrowserDelegate(activitySupplier));
-
-                        mTabSwitcherDragHandler =
-                                new TabSwitcherDragHandler(
-                                        activitySupplier,
-                                        mMultiInstanceManager,
-                                        dragDropDelegate,
-                                        // TODO(crbug.com/518307037): Provide back press handler
-                                        // manager?
-                                        new TabSwitcherBackPressHandlerManager());
-                        mTabSwitcherDragHandler.setTabModelSelector(tabModelSelector);
-                        recyclerView.setOnDragListener(mTabSwitcherDragHandler);
-
-                        mTabSwitcherDragHandler.setDragHandlerDelegate(
-                                new TabSwitcherDragHandler.DragHandlerDelegate() {
-                                    @Override
-                                    public boolean handleDragStart(float xPx, float yPx) {
-                                        itemTouchHelper.onExternalDragStart(
-                                                xPx, yPx, /* hideItemWhileDragging= */ true);
-                                        return true;
-                                    }
-
-                                    @Override
-                                    public boolean handleDragLocation(float xPx, float yPx) {
-                                        itemTouchHelper.onExternalDragLocation(xPx, yPx);
-                                        return true;
-                                    }
-
-                                    @Override
-                                    public boolean handleExternalDragEnd(float xPx, float yPx) {
-                                        itemTouchHelper.onExternalDragStop(
-                                                /* recoverItem= */ false);
-                                        return true;
-                                    }
-
-                                    @Override
-                                    public int handleInternalDragEnd() {
-                                        itemTouchHelper.stopInternalDrag();
-                                        return BackPressHandler.BackPressResult.SUCCESS;
-                                    }
-
-                                    @Override
-                                    public boolean isDragInProcess() {
-                                        return itemTouchHelper.isDragInProcess();
-                                    }
-                                });
-                    }
-
                     PointF startPoint = new PointF(mLastTouchPoint.x + dX, mLastTouchPoint.y + dY);
                     View gridCardView = buildGridCardDragShadow(activity, model);
 
-                    mTabSwitcherDragHandler.startTabDragAction(
+                    dragHandler.setDragHandlerDelegate(createDragHandlerDelegate(itemTouchHelper));
+                    dragHandler.startTabDragAction(
                             viewHolder.itemView, tab, startPoint, gridCardView);
                 });
 
@@ -888,6 +843,59 @@ public class VerticalTabListCoordinator {
         recyclerView.addOnItemTouchListener(
                 VerticalTabListItemTouchHelperCallback.createAfterOnItemTouchListener(
                         touchHelperCallback));
+    }
+
+    private TabSwitcherDragHandler createTabSwitcherDragHandler(
+            Activity activity, TabModelSelector tabModelSelector) {
+        Supplier<@Nullable Activity> activitySupplier = () -> activity;
+        DragAndDropDelegate dragDropDelegate = new DragAndDropDelegateImpl();
+        dragDropDelegate.setDragAndDropBrowserDelegate(
+                new ChromeDragAndDropBrowserDelegate(activitySupplier));
+
+        TabSwitcherDragHandler dragHandler =
+                new TabSwitcherDragHandler(
+                        activitySupplier,
+                        mMultiInstanceManager,
+                        dragDropDelegate,
+                        // TODO(crbug.com/518307037): Provide back press handler manager?
+                        new TabSwitcherBackPressHandlerManager());
+        dragHandler.setTabModelSelector(tabModelSelector);
+        mTabSwitcherDragHandlers.add(dragHandler);
+        return dragHandler;
+    }
+
+    private TabSwitcherDragHandler.DragHandlerDelegate createDragHandlerDelegate(
+            ItemTouchHelper2 itemTouchHelper) {
+        return new TabSwitcherDragHandler.DragHandlerDelegate() {
+            @Override
+            public boolean handleDragStart(float xPx, float yPx) {
+                itemTouchHelper.onExternalDragStart(xPx, yPx, /* hideItemWhileDragging= */ true);
+                return true;
+            }
+
+            @Override
+            public boolean handleDragLocation(float xPx, float yPx) {
+                itemTouchHelper.onExternalDragLocation(xPx, yPx);
+                return true;
+            }
+
+            @Override
+            public boolean handleExternalDragEnd(float xPx, float yPx) {
+                itemTouchHelper.onExternalDragStop(/* recoverItem= */ false);
+                return true;
+            }
+
+            @Override
+            public int handleInternalDragEnd() {
+                itemTouchHelper.stopInternalDrag();
+                return BackPressHandler.BackPressResult.SUCCESS;
+            }
+
+            @Override
+            public boolean isDragInProcess() {
+                return itemTouchHelper.isDragInProcess();
+            }
+        };
     }
 
     /** Returns the default grid column span count for the Left Rail. */

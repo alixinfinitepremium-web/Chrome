@@ -327,15 +327,15 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '5690871f9facd70e63358e28e80704e33820cbf2',
+  'skia_revision': '8105956c23f7b11f6db5cda401a9ee8e4f93c556',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': '4f08d417c7ed7a323fe9f910946c9ec66c88081e',
+  'v8_revision': 'bc94799c8f9a86bd4b5c5bc141c3df68aeaed452',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '3abba2912f3314422eee57f055280d874d3a9a4c',
+  'angle_revision': '8521722b7ebc715adb1cec75c722fa51942c73d2',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -391,7 +391,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_web_tests_revision': '348f9c4a2c318d7958ef1b88c041a1e1b96be164',
+  'crossbench_web_tests_revision': '92d748acb154cb58c76ad1d509378d5aa8669755',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libFuzzer
   # and whatever else without interference from each other.
@@ -407,7 +407,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '85103e064fd560ee60a875f9fee59530f67e20c2',
+  'devtools_frontend_revision': 'bc4df38fb11dc1c324d692cb6ca44b780051c80f',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -554,7 +554,7 @@ vars = {
   'libcxx_revision':       'b16984ce99c702355a5b2b4c52574e82cec41fb9',
 
   # GN CIPD package version.
-  'gn_version': 'git_revision:2de5327bfac4c9bcde7a07960d6ae344b13075b2',
+  'gn_version': 'git_revision:270735aad0feec26c61b107c053a84bfcf230f62',
 
   # ninja CIPD package.
   'ninja_package': 'infra/3pp/tools/ninja/',
@@ -1722,7 +1722,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '697510a926e2079223c9804b57cf0cb307b22268',
+    'ea9c0992926ebd720c930489f4e4a26cc14d3b8e',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -2172,7 +2172,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'a6626e7885df3617f2c921d5bde0a9a79599bf53',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'b276ddf3c75027b86715bab97ea46f1d463e087c',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),

@@ -200,22 +200,9 @@ scoped_refptr<StaticBitmapImage> Canvas2DBitmapProvider::Snapshot(
                                                 orientation);
 }
 
-std::optional<cc::PaintRecord> Canvas2DBitmapProvider::Flush(
-    bool preserve_recording) {
-  if (!Recorder().HasReleasableDrawOps()) {
-    return std::nullopt;
-  }
-  ScopedRasterTimer timer(nullptr, *this, false);
-
+void Canvas2DBitmapProvider::Flush(cc::PaintRecord recording) {
   clear_frame_ = false;
-  cc::PaintRecord recording;
-  recording = Recorder().ReleaseMainRecording();
   RasterRecord(recording);
-
-  last_recording_ =
-      preserve_recording ? std::optional(recording) : std::nullopt;
-
-  return recording;
 }
 
 void Canvas2DBitmapProvider::ReleaseImageProviderImages() {

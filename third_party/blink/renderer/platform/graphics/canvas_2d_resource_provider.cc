@@ -522,21 +522,9 @@ scoped_refptr<StaticBitmapImage> Canvas2DResourceProvider::Snapshot(
   return cached_snapshot_;
 }
 
-std::optional<cc::PaintRecord> Canvas2DResourceProvider::Flush(
-    bool preserve_recording) {
-  if (!Recorder().HasReleasableDrawOps()) {
-    return std::nullopt;
-  }
-
+void Canvas2DResourceProvider::Flush(cc::PaintRecord recording) {
   clear_frame_ = false;
-  cc::PaintRecord recording;
-  recording = Recorder().ReleaseMainRecording();
   RasterRecord(recording);
-
-  last_recording_ =
-      preserve_recording ? std::optional(recording) : std::nullopt;
-
-  return recording;
 }
 
 void Canvas2DResourceProvider::ReleaseImageProviderImages() {
@@ -625,8 +613,6 @@ Canvas2DResourceProvider::GetOrCreateCanvasImageProvider() {
 }
 
 void Canvas2DResourceProvider::RasterRecord(cc::PaintRecord last_recording) {
-  ScopedRasterTimer timer(IsAccelerated() ? RasterInterface() : nullptr, *this,
-                          always_enable_raster_timers_for_testing_);
   if (!is_accelerated_) {
     WillDrawUnaccelerated();
     if (!skia_canvas_) {

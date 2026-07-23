@@ -81,9 +81,12 @@ class PLATFORM_EXPORT Canvas2DBitmapProvider final
   }
   scoped_refptr<StaticBitmapImage> Snapshot(
       ImageOrientation = ImageOrientationEnum::kDefault);
-  std::optional<cc::PaintRecord> Flush(bool preserve_recording);
+  void Flush(cc::PaintRecord recording);
   void ReleaseImageProviderImages();
   const std::optional<cc::PaintRecord>& LastRecording();
+  void SetLastRecording(cc::PaintRecord recording) {
+    last_recording_ = std::move(recording);
+  }
   void ClearLastRecording() { last_recording_ = std::nullopt; }
 
   void SetAnimatedImageFrameIndexes(
