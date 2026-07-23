@@ -251,6 +251,12 @@ bool ShouldReloadZeroState(const GURL& url, ContextualTasksUiService* service) {
 }
 #endif
 
+void LoadUrlInSidePanel(content::WebContents* web_contents, const GURL& url) {
+  web_contents->GetController().LoadURL(url, content::Referrer(),
+                                        ui::PAGE_TRANSITION_AUTO_TOPLEVEL,
+                                        std::string());
+}
+
 }  // namespace
 
 ContextualTasksUiService::ContextualTasksUiService(
@@ -1191,7 +1197,9 @@ bool ContextualTasksUiService::HandleNavigation(
         initiator_frame_token,
     const blink::mojom::WindowFeatures& window_features) {
   if (base::FeatureList::IsEnabled(
-          contextual_tasks::kContextualTasksRearchitecture)) {
+          contextual_tasks::kContextualTasksRearchitecture) ||
+      base::FeatureList::IsEnabled(
+          contextual_tasks::kContextualTasksSidePanelRearchitecture)) {
     return false;
   }
   return HandleNavigationImpl(
@@ -2191,9 +2199,9 @@ std::string ContextualTasksUiService::GetHostForTask(
     const base::Uuid& task_id) {
   auto it = task_id_to_creation_url_.find(task_id);
   if (it != task_id_to_creation_url_.end()) {
-    std::string host;
-    if (net::GetValueForKeyInQuery(it->second, kChromeHostParam, &host)) {
-      return host;
+    std::optional<std::string> host = GetHostFromUrl(it->second);
+    if (host.has_value()) {
+      return *host;
     }
 
     std::string_view creation_host = it->second.host();
@@ -2268,6 +2276,16 @@ bool ContextualTasksUiService::IsTrustedHost(const std::string& host) {
   }
 
   return false;
+}
+
+std::optional<std::string> ContextualTasksUiService::GetHostFromUrl(
+    const GURL& url) {
+  std::string host;
+  if (net::GetValueForKeyInQuery(url, kChromeHostParam, &host) &&
+      IsTrustedHost(host)) {
+    return host;
+  }
+  return std::nullopt;
 }
 
 void ContextualTasksUiService::SetInitialEntryPointForTask(
@@ -2601,7 +2619,19 @@ void ContextualTasksUiService::StartTaskUiInSidePanelImpl(
   // initial pull request via GetUrlForTask.
   if (helper->task_id().has_value() &&
       IsTaskWaitingForUrl(helper->task_id().value())) {
+    if (base::FeatureList::IsEnabled(kContextualTasksSidePanelRearchitecture)) {
+      LoadUrlInSidePanel(panel_contents, url);
+    }
     OnInitialThreadUrlAvailable(helper->task_id().value(), url);
+    return;
+  }
+
+  if (base::FeatureList::IsEnabled(kContextualTasksSidePanelRearchitecture)) {
+    if (ShouldReloadZeroState(url, this)) {
+      // TODO(crbug.com/537842795): Understand if this flow is possible in the
+      // rearchitecture and handle accordingly. For now, just load the URL.
+    }
+    LoadUrlInSidePanel(panel_contents, url);
     return;
   }
 
@@ -2625,10 +2655,16 @@ void ContextualTasksUiService::StartTaskUiInSidePanelImpl(
       return;
     }
 
-    content::OpenURLParams url_params(
-        url, content::Referrer(), WindowOpenDisposition::CURRENT_TAB,
-        ui::PAGE_TRANSITION_LINK, /*is_renderer_initiated=*/false);
-    web_ui_interface->TransferNavigationToEmbeddedPage(url_params);
+    if (base::FeatureList::IsEnabled(kContextualTasksSidePanelRearchitecture)) {
+      panel_contents->GetController().LoadURL(url, content::Referrer(),
+                                              ui::PAGE_TRANSITION_AUTO_TOPLEVEL,
+                                              std::string());
+    } else {
+      content::OpenURLParams url_params(
+          url, content::Referrer(), WindowOpenDisposition::CURRENT_TAB,
+          ui::PAGE_TRANSITION_LINK, /*is_renderer_initiated=*/false);
+      web_ui_interface->TransferNavigationToEmbeddedPage(url_params);
+    }
   }
 }
 
@@ -2787,30 +2823,28 @@ bool ContextualTasksUiService::IsGoogleCaptchaUrl(const GURL& url) {
 
 GURL ContextualTasksUiService::CopyParamsFromWebUIUrl(const GURL& base_url,
                                                       const GURL& webui_url) {
-  std::string host_value;
+  std::optional<std::string> host_value = GetHostFromUrl(webui_url);
   GURL aim_url(base_url);
 
   // Extract host if present in WebUI URL and prepend it to make it
   // first.
-  if (net::GetValueForKeyInQuery(webui_url, kChromeHostParam, &host_value)) {
-    if (IsTrustedHost(host_value)) {
-      GURL::Replacements replacements;
-      std::string new_query = base::StrCat({kChromeHostParam, "=", host_value});
-      replacements.SetQueryStr(new_query);
-      aim_url = base_url.ReplaceComponents(replacements);
+  if (host_value.has_value()) {
+    GURL::Replacements replacements;
+    std::string new_query = base::StrCat({kChromeHostParam, "=", *host_value});
+    replacements.SetQueryStr(new_query);
+    aim_url = base_url.ReplaceComponents(replacements);
 
-      // The QueryIterator correctly iterates over duplicate keys, and
-      // GetUnescapedValue preserves their values. This ensures that duplicate
-      // parameters on base_url are not lost during the transfer.
-      net::QueryIterator base_it(base_url);
-      while (!base_it.IsAtEnd()) {
-        std::string key(base_it.GetKey());
-        if (key != kChromeHostParam) {
-          aim_url = net::AppendQueryParameter(aim_url, key,
-                                              base_it.GetUnescapedValue());
-        }
-        base_it.Advance();
+    // The QueryIterator correctly iterates over duplicate keys, and
+    // GetUnescapedValue preserves their values. This ensures that duplicate
+    // parameters on base_url are not lost during the transfer.
+    net::QueryIterator base_it(base_url);
+    while (!base_it.IsAtEnd()) {
+      std::string key(base_it.GetKey());
+      if (key != kChromeHostParam) {
+        aim_url = net::AppendQueryParameter(aim_url, key,
+                                            base_it.GetUnescapedValue());
       }
+      base_it.Advance();
     }
   }
   // Now add all other params from the WebUI URL.
@@ -2840,13 +2874,10 @@ GURL ContextualTasksUiService::GetAiUrlFromWebUIUrl(const GURL& base_url,
                                                     const GURL& webui_url) {
   GURL url = CopyParamsFromWebUIUrl(base_url, webui_url);
 
-  std::string host_value;
-  // If there is the chrome_host param in the URL, use it to set the host of
-  // the AI url.
-  if (net::GetValueForKeyInQuery(url, kChromeHostParam, &host_value) &&
-      !host_value.empty()) {
+  std::optional<std::string> host_value = GetHostFromUrl(url);
+  if (host_value.has_value()) {
     GURL::Replacements replacements;
-    replacements.SetHostStr(host_value);
+    replacements.SetHostStr(*host_value);
     url = url.ReplaceComponents(replacements);
   }
 

@@ -331,7 +331,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': '5bf65914637a64b716262052096a91a284b1fbbe',
+  'v8_revision': '4f08d417c7ed7a323fe9f910946c9ec66c88081e',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -347,7 +347,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': '4901b475d0433dbcc9dc726167d1165c11795cff',
+  'boringssl_revision': '360ca35a3724567abc275c45c1f50c73871bd2d0',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -511,7 +511,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'libunwind_revision':    'bc2c2b1715f3a491d7313fb03642bfe27ce0f3b5',
+  'libunwind_revision':    'a622539c31e0eb0e635dac3a310eee8e0234aff1',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -1722,12 +1722,12 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '0aaaf0ad678313c3d4f58eddf63c517ba9daa7c7',
+    '697510a926e2079223c9804b57cf0cb307b22268',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
   'src/docs/website': {
-    'url': Var('chromium_git') + '/website.git' + '@' + '7b95c4af484f43f14e3a4d7f310ea4ed15ad6139',
+    'url': Var('chromium_git') + '/website.git' + '@' + '20815abe5ab757a2c61258b9fd4b6c8897f67f77',
   },
 
   'src/ios/third_party/earl_grey2/src': {
@@ -1822,7 +1822,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': 'nacSo4oPtLfXT1Au317knlmnGAJGNmdjFRAP3CEhjfIC',
+          'version': '9iT4VO6iStPch8IWMBUGNDQumxk91Ehc9lNc0ko7AKkC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
@@ -3120,8 +3120,8 @@ deps = {
       ],
   },
 
-  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@b65fca8cfc8760005d62f261d2880a849c81f8d7',
-  'src/third_party/glslang/src': '{chromium_git}/external/github.com/KhronosGroup/glslang@a899a43d6d4ee97c8427c9b87d2a8fa37855fd2b',
+  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@afc9d8707b532a9e65731f751c1c5b45f66bd033',
+  'src/third_party/glslang/src': '{chromium_git}/external/github.com/KhronosGroup/glslang@2eb8a58103d0d4d75393afef16aa9bc24d1513b0',
   'src/third_party/spirv-cross/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Cross@b8fcf307f1f347089e3c46eb4451d27f32ebc8d3',
   'src/third_party/spirv-headers/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Headers@29981f65241605e08b0ede4cfeb999fe3b723c6a',
   'src/third_party/spirv-tools/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Tools@a665e21f3061f34064b39937cf00fe8d8769f4ef',
@@ -4013,7 +4013,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '0c9f82bf642049a5419186db3cfa9e7fc463b370',
+        '456a7671e54f30868d8625845b939b5f82e04d85',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
