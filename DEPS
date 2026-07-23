@@ -323,11 +323,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '17e2893d01b2141290656689e179ef386dba3cb5',
+  'src_internal_revision': 'b8899d605a6b816425221579938891a41eeec23b',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '8105956c23f7b11f6db5cda401a9ee8e4f93c556',
+  'skia_revision': '933b272d039add454e6491efafd2db84a18a92dd',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -347,7 +347,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': '360ca35a3724567abc275c45c1f50c73871bd2d0',
+  'boringssl_revision': 'cb82b33315609646b99084afe8812f590ae5e533',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -387,7 +387,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': '8a81b5b04496ef3a5d8d77bd426d6971a68b8831',
+  'crossbench_revision': 'd97d3558b81de6c86c3a4f7400d9327c67a98458',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -407,7 +407,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'bc4df38fb11dc1c324d692cb6ca44b780051c80f',
+  'devtools_frontend_revision': 'ccf3fa06316b271ec162e5f945c4cf7b406beb0a',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1822,7 +1822,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': '9iT4VO6iStPch8IWMBUGNDQumxk91Ehc9lNc0ko7AKkC',
+          'version': 'oYpSbgXKip5DkCpGGFxDjcDKxlVLhFQX546CMlRoWEQC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
@@ -3301,7 +3301,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_receiver_app/app',
-        'version': 'VewGRHtOTwlYK76TaTYL2lzDtx1UPW82A004XBI7ZSwC',
+        'version': 'D44kWK2-yxfBUh4U89W9eHIkyXFLHvFkHpScfA3P5mIC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3312,7 +3312,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_app/app',
-        'version': 'yzdwmZlOQXLfqWqGzWweRH6jmh3baDzUI9lLHSeb_hQC',
+        'version': 'GoII3RHCon8zvGQdg21ibBO_MoIdzz7TNyazkHOlffgC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3367,7 +3367,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/projector_app/app',
-        'version': '-slz0NnXbjcvUI0fZW0PWT-UyNH3GaVnT2iW8xjaTAkC',
+        'version': 'mv5lppdoH7XCKRUl7kMXiLBaiJOXyW8GIJ3bXmAN4mQC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -4013,7 +4013,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        'e2a9b9c89d17ddc128ca16499a760dc0d9e2d11e',
+        '09673eebe3392e43a465af7ba4406353ee263cf0',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
