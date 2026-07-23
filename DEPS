@@ -331,7 +331,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': 'd0c53053ee811dbf069030b57a9067de370a6cf1',
+  'v8_revision': 'e582024787bfe8c053c70eb6814b75c4917d3e68',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -347,7 +347,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': '14947f74999fcb53abec7eba10e088b59566062f',
+  'boringssl_revision': 'd79c2af327e97dcd566bd9231325fc9b06b95177',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -407,7 +407,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'a8184b82d879cfe9f6462547d23e7a83a34999a3',
+  'devtools_frontend_revision': 'c440608ead6349fb535441aac0ab055a3f275aee',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1710,7 +1710,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': '4-BdTLWPx8SCsVF22Vr9pRQrfpiL6fnaUhtoAGuI4GsC',
+        'version': 'zRbGF1nDhAYn78FUx2XYubdIDIDTqpYS2eVJrnN1kgUC',
       },
     ],
     'condition': 'non_git_source',
@@ -1822,7 +1822,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': 'oYpSbgXKip5DkCpGGFxDjcDKxlVLhFQX546CMlRoWEQC',
+          'version': 'RFf5h26HqGVjFvPLPJTxKKAZ0i4EUWsKZOzSJ3oWSroC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
@@ -2729,7 +2729,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '51b612f55c517771d5f3e4a20b32f685d89ad59f',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '2c6c22f1d0740957312d0f7896066d7a5aa4ef89',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
@@ -4013,7 +4013,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        'd5596ab1d32e6b26bee6337739da372f5caf8f25',
+        '974897e82e0743425577d1c689298c0a633076c6',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
