@@ -323,11 +323,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '24dce439ba95c25dbf7fda989cc1ce0016905f2a',
+  'src_internal_revision': 'f0bd2127a824ab7825a4be3d1a1cedd1464e54cc',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '5fd4072db0c7e83510825f3351d082df2aae776f',
+  'skia_revision': 'e808d47821876af2f61dcce856e8c68bcbc67ba4',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -363,7 +363,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling breakpad
   # and whatever else without interference from each other.
-  'breakpad_revision': '9aebd3d8ef5a246deb2c929b5666aaba160ebce6',
+  'breakpad_revision': '69e9aada412e81575a95d0d94f4592fe1b8dfc15',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling freetype
   # and whatever else without interference from each other.
@@ -399,7 +399,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling fuzztest
   # and whatever else without interference from each other.
-  'fuzztest_revision': '1bdc37c73c3e083d688843a8caf324a5cbedce09',
+  'fuzztest_revision': '073bf2392bf11e22d456036a8f7d286bc9a6d346',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling domato
   # and whatever else without interference from each other.
@@ -407,7 +407,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '88d813e0bf7ca45688080d02266ac6ea0282d2cb',
+  'devtools_frontend_revision': 'b72fdc299cd8f427b0e6f0d22c27f59940eec7e6',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -2140,7 +2140,7 @@ deps = {
   # Tools used when building Chrome for Chrome OS. This affects both the Simple
   # Chrome workflow, as well as the chromeos-chrome ebuild.
   'src/third_party/chromite': {
-      'url': Var('chromium_git') + '/chromiumos/chromite.git' + '@' + 'b8bbd2e0d6869b5243bdd5686c322c1104850f76',
+      'url': Var('chromium_git') + '/chromiumos/chromite.git' + '@' + '13ef526b18a548d1000dda4a6b08cdde860c30d5',
       'condition': 'checkout_chromeos',
   },
 
@@ -2276,7 +2276,7 @@ deps = {
     Var('chromium_git') + '/codecs/libgav1.git' + '@' + 'c1deec657b32b911920c78e078cfd089faa77200',
 
   'src/third_party/google-truth/src': {
-      'url': Var('chromium_git') + '/external/github.com/google/truth.git' + '@' + '9521113e85eb9148af9873a5541f8f93f673cc97',
+      'url': Var('chromium_git') + '/external/github.com/google/truth.git' + '@' + 'd806a7ead947c6d0253e074e6278ddcc1f61dbc4',
       'condition': 'checkout_android',
   },
 
@@ -3059,9 +3059,9 @@ deps = {
     Var('chromium_git') + '/external/github.com/GoogleChromeLabs/text-fragments-polyfill.git' + '@' + 'abc6ed408b3f20e91d9cbda9977748459f5e3877',
 
   'src/third_party/tflite/src':
-    Var('chromium_git') + '/external/github.com/tensorflow/tensorflow.git' + '@' + '7bedf2e94aff6ca62150d74fd40aa63cb73c6583',
+    Var('chromium_git') + '/external/github.com/tensorflow/tensorflow.git' + '@' + '183bec3c34f6ad76aa9f2428b4be1ce10db27533',
   'src/third_party/litert/src':
-    Var('chromium_git') + '/external/github.com/google-ai-edge/LiteRT.git' + '@' + '1ae23176dd5d3a43e35961d8236d5adda7f8c0a1',
+    Var('chromium_git') + '/external/github.com/google-ai-edge/LiteRT.git' + '@' + 'e79bd31ff190e8cec6d79c7161f45a4533b0f95d',
   'src/third_party/turbine/cipd': {
       'packages': [
           {
@@ -3120,7 +3120,7 @@ deps = {
       ],
   },
 
-  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@808860b25bf761ea13867c1eb2629b724969866a',
+  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@1f2cbadfb9c8d919db59bf849b72445d948a029f',
   'src/third_party/glslang/src': '{chromium_git}/external/github.com/KhronosGroup/glslang@6cbfdd648e7fd5e8fee7917800f0f3329ce21ca8',
   'src/third_party/spirv-cross/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Cross@b8fcf307f1f347089e3c46eb4451d27f32ebc8d3',
   'src/third_party/spirv-headers/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Headers@29981f65241605e08b0ede4cfeb999fe3b723c6a',
@@ -3129,7 +3129,7 @@ deps = {
   'src/third_party/vulkan-loader/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Loader@59a70594de4559fd3aed73fe8ac2d6c48ca002d4',
   'src/third_party/vulkan-tools/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Tools@286299bb6b732e4b22771cfb9d7d421542d40501',
   'src/third_party/vulkan-utility-libraries/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Utility-Libraries@e9585c3e3d41ab608ee3b098ce4721d357308fc8',
-  'src/third_party/vulkan-validation-layers/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-ValidationLayers@84e4e10cbe6772908f5d5b84ce1771794cefb738',
+  'src/third_party/vulkan-validation-layers/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-ValidationLayers@b3b204491a55ed22c73616dc039072a2f3fd1758',
 
   'src/third_party/vulkan_memory_allocator':
     Var('chromium_git') + '/external/github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git' + '@' + '82a9d47e4f9d91f0e32d2b6acd9714fcee1933a0',
@@ -3929,7 +3929,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        'ef88394ea464790870a163a529959e80e5a888e4',
+        'b86c07ab46263e7ba0f717bbffbe5580f38f6da0',
       'condition': 'checkout_src_internal',
   },
 

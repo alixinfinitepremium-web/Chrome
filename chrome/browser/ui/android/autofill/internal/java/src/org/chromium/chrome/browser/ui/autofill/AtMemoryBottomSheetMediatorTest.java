@@ -334,7 +334,6 @@ public class AtMemoryBottomSheetMediatorTest {
         assertEquals(1, mModelList.size());
         assertEquals(HomeProperties.ItemType.SUGGESTION, mModelList.get(0).type);
         assertEquals("flight", mModelList.get(0).model.get(TITLE));
-        assertTrue(mHomeModel.get(HomeProperties.SHOW_SUGGESTIONS_BACKGROUND));
 
         mModelList.get(0).model.get(ON_SUGGESTION_CLICKED).run();
         verify(mSearchDelegate).hideKeyboardAndClearFocus();
@@ -534,7 +533,7 @@ public class AtMemoryBottomSheetMediatorTest {
     @Test
     public void testOnSearchFocus() {
         mHomeModel.get(HomeProperties.SEARCH_BAR_DELEGATE).onSearchFocus(true);
-        verify(mDelegate).requestExpandSheet();
+        verify(mDelegate).requestExpandSheet(/* expandInFullHeight= */ true);
     }
 
     @Test

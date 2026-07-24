@@ -109,8 +109,6 @@ class AtMemoryBottomSheetMediator implements AtMemorySearchBarView.Delegate {
     private void applyScreenState(
             AtMemoryScreenState screenState, List<AutofillSuggestion> suggestions) {
         mHomeModel.set(HomeProperties.IS_LOADING, screenState.isLoading);
-        mHomeModel.set(
-                HomeProperties.SHOW_SUGGESTIONS_BACKGROUND, screenState.showSuggestionsBackground);
 
         ModelList sheetItems = mHomeModel.get(HomeProperties.SHEET_ITEMS);
         sheetItems.clear();
@@ -193,12 +191,12 @@ class AtMemoryBottomSheetMediator implements AtMemorySearchBarView.Delegate {
 
         mModel.set(CURRENT_SCREEN, ScreenId.FLYOUT_SCREEN);
         mDelegate.onChildSuggestionsShown(position);
-        mDelegate.requestExpandSheet();
+        mDelegate.requestExpandSheet(/* expandInFullHeight= */ false);
     }
 
     private void onFlyoutBackClicked() {
         mModel.set(CURRENT_SCREEN, ScreenId.HOME_SCREEN);
-        mDelegate.requestExpandSheet();
+        mDelegate.requestExpandSheet(/* expandInFullHeight= */ false);
     }
 
     private void onFlyoutSuggestionClicked(int parentPosition, int childPosition) {
@@ -209,6 +207,7 @@ class AtMemoryBottomSheetMediator implements AtMemorySearchBarView.Delegate {
     public void onQuerySubmitted(String query) {
         mHomeModel.set(HomeProperties.IS_LOADING, true);
         mDelegate.onQuerySubmitted(query);
+        mDelegate.requestExpandSheet(/* expandInFullHeight= */ true);
     }
 
     @Override
@@ -219,7 +218,7 @@ class AtMemoryBottomSheetMediator implements AtMemorySearchBarView.Delegate {
     @Override
     public void onSearchFocus(boolean hasFocus) {
         if (hasFocus) {
-            mDelegate.requestExpandSheet();
+            mDelegate.requestExpandSheet(/* expandInFullHeight= */ true);
         }
     }
 
@@ -263,7 +262,6 @@ class AtMemoryBottomSheetMediator implements AtMemorySearchBarView.Delegate {
     private PropertyModel createHomeModel() {
         return new PropertyModel.Builder(HomeProperties.ALL_KEYS)
                 .with(HomeProperties.IS_LOADING, false)
-                .with(HomeProperties.SHOW_SUGGESTIONS_BACKGROUND, false)
                 .with(HomeProperties.SHEET_ITEMS, new ModelList())
                 .with(HomeProperties.SEARCH_BAR_DELEGATE, this)
                 .build();
