@@ -458,6 +458,7 @@ if (is_android) {
     ]
   }
 
+
   robolectric_library("chrome_junit_tests_org.chromium.chrome.browser.app") {
     sources = [
       "src/org/chromium/chrome/browser/app/appmenu/AppMenuPropertiesDelegateUnitTest.java",
@@ -693,7 +694,6 @@ if (is_android) {
     sources = [
       "src/org/chromium/chrome/browser/contextualsearch/ContextualSearchContextTest.java",
       "src/org/chromium/chrome/browser/contextualsearch/ContextualSearchInternalStateTest.java",
-      "src/org/chromium/chrome/browser/contextualsearch/ContextualSearchPolicyUnitTest.java",
       "src/org/chromium/chrome/browser/contextualsearch/ContextualSearchSelectionControllerTest.java",
       "src/org/chromium/chrome/browser/contextualsearch/ContextualSearchTabHelperTest.java",
       "src/org/chromium/chrome/browser/contextualsearch/ContextualSearchTranslationImplTest.java",
@@ -1528,7 +1528,6 @@ if (is_android) {
       "//chrome/android/java/src/org/chromium/chrome/browser/settings/MultiColumnTitleUpdaterTest.java",
       "//chrome/android/java/src/org/chromium/chrome/browser/settings/SettingsMenuHelperUnitTest.java",
       "src/org/chromium/chrome/browser/settings/ActivityUtilUnitTest.java",
-      "src/org/chromium/chrome/browser/settings/SelectionDecorationTest.java",
       "src/org/chromium/chrome/browser/settings/SettingsActivityUnitTest.java",
       "src/org/chromium/chrome/browser/settings/SettingsBreadcrumbUtilTest.java",
       "src/org/chromium/chrome/browser/settings/SettingsContainmentHelperTest.java",
