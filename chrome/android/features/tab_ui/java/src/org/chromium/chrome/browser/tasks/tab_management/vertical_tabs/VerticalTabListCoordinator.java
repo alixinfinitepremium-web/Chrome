@@ -25,6 +25,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import org.chromium.base.Callback;
 import org.chromium.base.Token;
+import org.chromium.base.metrics.RecordUserAction;
 import org.chromium.base.supplier.MonotonicObservableSupplier;
 import org.chromium.base.supplier.NonNullObservableSupplier;
 import org.chromium.base.supplier.ObservableSuppliers;
@@ -412,6 +413,8 @@ public class VerticalTabListCoordinator {
                         .with(
                                 VerticalTabListProperties.ON_SEARCH_CLICK_LISTENER,
                                 v -> {
+                                    RecordUserAction.record(
+                                            "Android.VerticalTabs.SearchButtonClicked");
                                     if (ChromeFeatureList.sTabSearchForDesktop.isEnabled()) {
                                         verticalTabsActionDelegate.openTabSearch();
                                     } else {
@@ -734,6 +737,7 @@ public class VerticalTabListCoordinator {
 
         if (!model.isIncognitoBranded()) model.commitAllTabClosures();
         TabCreatorUtil.launchNtp(model.getTabCreator());
+        RecordUserAction.record("MobileNewTabOpened.VerticalTabs");
     }
 
     private void updatePinnedTabsVisibility() {
@@ -911,7 +915,7 @@ public class VerticalTabListCoordinator {
 
             @Override
             public boolean handleDragEnter() {
-                itemTouchHelper.restoreExternalDragItemVisibility();
+                itemTouchHelper.restoreExternalDragItemVisibility(/* isOSNewWindowDrop= */ false);
                 return true;
             }
 
@@ -922,8 +926,9 @@ public class VerticalTabListCoordinator {
             }
 
             @Override
-            public boolean handleExternalDragEnd(float xPx, float yPx) {
-                itemTouchHelper.restoreExternalDragItemVisibility();
+            public boolean handleExternalDragEnd(
+                    float xPx, float yPx, boolean isOSNewWindowDrop) {
+                itemTouchHelper.restoreExternalDragItemVisibility(isOSNewWindowDrop);
                 itemTouchHelper.onExternalDragStop(/* recoverItem= */ false);
                 return true;
             }

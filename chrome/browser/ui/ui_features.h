@@ -198,6 +198,8 @@ BASE_DECLARE_FEATURE(kCollapseTabGroupDuringDrag);
 BASE_DECLARE_FEATURE(kTabGroupMenuMoreEntryPoints);
 bool IsTabGroupMenuMoreEntryPointsEnabled();
 
+BASE_DECLARE_FEATURE(kNewTabButtonContextMenu);
+
 BASE_DECLARE_FEATURE(kTabGroupHoverCards);
 bool IsTabGroupHoverCardsEnabled();
 
@@ -357,7 +359,11 @@ bool IsWebUIAppMenuButtonEnabled();
 
 bool IsWebUILocationBarEnabled();
 
+// Returns true if any of the toolbar control is being handled by WebUI.
 bool IsWebUIToolbarEnabled();
+
+// Returns true if all toolbar controls are being handled by WebUI.
+bool IsWebUIToolbarFullyEnabled();
 #endif  // !BUILDFLAG(IS_ANDROID)
 
 // Controls whether to show a toast for Chrome non milestone update.

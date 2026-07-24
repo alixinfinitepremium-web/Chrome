@@ -62,6 +62,7 @@
 #import "ios/chrome/browser/autofill/model/autofill_log_router_factory.h"
 #import "ios/chrome/browser/autofill/model/autofill_policy_service_factory.h"
 #import "ios/chrome/browser/autofill/model/bottom_sheet/autofill_bottom_sheet_tab_helper.h"
+#import "ios/chrome/browser/autofill/model/forms_ai_private_inference_infobar_delegate_ios.h"
 #import "ios/chrome/browser/autofill/model/ios_autofill_ai_model_cache_factory.h"
 #import "ios/chrome/browser/autofill/model/ios_autofill_ai_model_executor_factory.h"
 #import "ios/chrome/browser/autofill/model/ios_autofill_ai_personal_context_access_manager_factory.h"
@@ -461,6 +462,29 @@ ChromeAutofillClientIOS::ShowAutofillSuggestions(
     const AutofillClient::PopupOpenArgs& open_args,
     base::WeakPtr<AutofillSuggestionDelegate> delegate) {
   active_suggestion_delegate_ = std::move(delegate);
+
+  // TODO(crbug.com/538597989): This manual suggestions-based notice triggering
+  // check is a temporary workaround. Replace it with the shared
+  // cross-platform logic once verified.
+  bool has_autofill_ai_suggestion = std::ranges::any_of(
+      open_args.suggestions, [](const Suggestion& suggestion) {
+        return suggestion.type == SuggestionType::kFillAutofillAi;
+      });
+
+  if (has_autofill_ai_suggestion) {
+    PrefService* prefs = GetPrefs();
+    bool should_show_notice =
+        prefs
+            ->GetTime(
+                autofill::prefs::
+                    kAutofillAiPrivateInferenceNoticeAcknowledgedTimestamp)
+            .is_null();
+    if (should_show_notice &&
+        base::FeatureList::IsEnabled(features::kAutofillAiUsePrivateAi)) {
+      ShowAutofillAiPrivateInferenceNotice();
+    }
+  }
+
   [bridge_ showAutofillPopup:open_args.suggestions
           suggestionDelegate:active_suggestion_delegate_];
   return SuggestionUiSessionId();
@@ -756,6 +780,28 @@ void ChromeAutofillClientIOS::ShowAutofillAiPreFetchFailureNotification() {
 
   infobar_manager_->AddInfoBar(std::make_unique<InfoBarIOS>(
       InfobarType::kInfobarTypeConfirm, std::move(delegate)));
+}
+
+void ChromeAutofillClientIOS::ShowAutofillAiPrivateInferenceNotice() {
+  const auto existing_infobar =
+      std::ranges::find(infobar_manager_->infobars(),
+                        infobars::InfoBarDelegate::
+                            FORMS_AI_PRIVATE_INFERENCE_INFOBAR_DELEGATE_IOS,
+                        &infobars::InfoBar::GetIdentifier);
+
+  if (existing_infobar != infobar_manager_->infobars().cend()) {
+    infobar_manager_->RemoveInfoBar(*existing_infobar);
+  }
+
+  GetPrefs()->SetTime(
+      autofill::prefs::kAutofillAiPrivateInferenceNoticeFirstShownTimestamp,
+      base::Time::Now());
+
+  auto delegate =
+      std::make_unique<FormsAiPrivateInferenceInfoBarDelegateIOS>(GetPrefs());
+
+  infobar_manager_->AddInfoBar(std::make_unique<InfoBarIOS>(
+      InfobarType::kInfobarTypeFormsAiPrivateInference, std::move(delegate)));
 }
 
 AutofillAiSaveEntityInfoBarDelegateIOS*

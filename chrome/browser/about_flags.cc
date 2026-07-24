@@ -4673,6 +4673,8 @@ const FeatureEntry::FeatureVariation kToolbarGlowUpVariations[] = {
     {"no reload, back, or forward animations",
      kToolbarGlowUpNoReloadBackForward, nullptr}};
 
+const FeatureEntry::FeatureParam kGlassFrameEoHOpaque[] = {
+    {"GlassExpandOnHoverOpacity", "1.0"}};
 const FeatureEntry::FeatureParam kGlassFrameEoH95[] = {
     {"GlassExpandOnHoverOpacity", "0.95"}};
 const FeatureEntry::FeatureParam kGlassFrameEoH925[] = {
@@ -4680,6 +4682,7 @@ const FeatureEntry::FeatureParam kGlassFrameEoH925[] = {
 const FeatureEntry::FeatureParam kGlassFrameEoH90[] = {
     {"GlassExpandOnHoverOpacity", "0.90"}};
 const FeatureEntry::FeatureVariation kGlassFrameVariations[] = {
+    {"expand-on-hover opaque", kGlassFrameEoHOpaque, nullptr},
     {"expand-on-hover 5% glass", kGlassFrameEoH95, nullptr},
     {"expand-on-hover 7.5% glass", kGlassFrameEoH925, nullptr},
     {"expand-on-hover 10% glass", kGlassFrameEoH90, nullptr}};
@@ -13517,6 +13520,11 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kExportPlatformPoliciesJsonDescription,
      kOsWin | kOsMac | kOsLinux,
      FEATURE_VALUE_TYPE(policy::features::kExportPlatformPoliciesJson)},
+    {"payment-handler-camera-access",
+     flag_descriptions::kPaymentHandlerCameraAccessName,
+     flag_descriptions::kPaymentHandlerCameraAccessDescription, kOsDesktop,
+     FEATURE_VALUE_TYPE(payments::features::kPaymentHandlerCameraAccess)},
+
     // Add new entries above this line.
     // NOTE: Adding a new flag requires adding a corresponding entry to enum
     // "LoginCustomFlags" in tools/metrics/histograms/enums.xml. See "Flag

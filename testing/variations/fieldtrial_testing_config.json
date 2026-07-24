@@ -12747,6 +12747,24 @@
             ]
         }
     ],
+    "GlicTextSelectionContextMenu": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "GlicTextSelectionContextMenu"
+                    ]
+                }
+            ]
+        }
+    ],
     "GlicTryItUnlaunch": [
         {
             "platforms": [
@@ -15193,6 +15211,31 @@
                     "name": "Enabled",
                     "enable_features": [
                         "IndexedDBConnectionDeduplication"
+                    ]
+                }
+            ]
+        }
+    ],
+    "Indigo": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "params": {
+                        "indigo_saved_url": "https://www.google.com/saves"
+                    },
+                    "enable_features": [
+                        "ImageReplacement",
+                        "Indigo",
+                        "IndigoComponent",
+                        "IndigoMetadataKeywordHeuristic",
+                        "IndigoOpenGlic"
                     ]
                 }
             ]
@@ -22881,6 +22924,25 @@
                     },
                     "enable_features": [
                         "IPH_DesktopSharedHighlighting"
+                    ]
+                }
+            ]
+        }
+    ],
+    "SharedStorageDeprecation": [
+        {
+            "platforms": [
+                "android",
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Disabled",
+                    "disable_features": [
+                        "SharedStorageAPI"
                     ]
                 }
             ]

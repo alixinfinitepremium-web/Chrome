@@ -158,6 +158,7 @@ should be able to be added at any place in this file.
   <variant name="Lens" summary="Lens"/>
   <variant name="NewTabPage" summary="New tab page"/>
   <variant name="Omnibox" summary="Omnibox"/>
+  <variant name="OmniboxEverywhere" summary="Omnibox Everywhere"/>
   <variant name="Unknown" summary="Unknown"/>
 </variants>
 
@@ -5191,6 +5192,15 @@ should be able to be added at any place in this file.
   <description>
     User tapped 'Unpin Glic' on the tab strip context menu to unpin the Glic
     button in the tab strip.
+  </description>
+</action>
+
+<action name="Android.VerticalTabs.SearchButtonClicked">
+  <owner>agazal@google.com</owner>
+  <owner>kije@google.com</owner>
+  <description>
+    Recorded when a user taps the search button/field inside the Vertical Tabs
+    rail.
   </description>
 </action>
 
@@ -30239,6 +30249,9 @@ should be able to be added at any place in this file.
     <variant name=".TabStrip"
         summary="Users tapped '+' button on the tab strip, causing a new tab
                  to be created in the group."/>
+    <variant name=".VerticalTabs"
+        summary="Users tapped '+' button on the vertical tabs strip, causing
+                 a new tab to be created."/>
   </token>
 </action>
 
@@ -32336,6 +32349,9 @@ should be able to be added at any place in this file.
     <variant name=".TabStrip"
         summary="Users tapped the currently selected tab's favicon on the tab
                  strip, causing a tab to be closed in the group."/>
+    <variant name=".VerticalTabs"
+        summary="Users tapped 'x' button on the tab in the vertical tab
+                 strip, causing a tab to be closed."/>
   </token>
 </action>
 
@@ -33260,6 +33276,10 @@ should be able to be added at any place in this file.
                  switcher."/>
     <variant name=".TabStrip"
         summary="Users switched tabs from the tab strip."/>
+    <variant name=".VerticalTabs"
+        summary="Users switched tabs from the vertical tabs strip."/>
+    <variant name=".VerticalTabsPinned"
+        summary="Users switched to a pinned tab from the vertical tabs strip."/>
   </token>
 </action>
 
@@ -55112,6 +55132,32 @@ should be able to be added at any place in this file.
     Recorded when prefs::kBrowserGuestModeEnabled and
     prefs::kBrowserAddPersonEnabled are cleared because they no longer exist in
     the Material Design settings page.
+  </description>
+</action>
+
+<action name="VerticalTabs.Toolbar.CaptionAreaPressed">
+  <owner>kunaldaftari@google.com</owner>
+  <owner>top-chrome-desktop-ui@google.com</owner>
+  <description>
+    Recorded when the user presses on the non-interactive caption area of the
+    toolbar in vertical tabs mode to potentially start a window drag. Note: This
+    metric is based on hit testing during mouse button state checks. It may
+    include false positives (e.g. right-clicks or deduplication artifacts), and
+    should be used primarily for relative comparison with
+    VerticalTabs.Toolbar.InteractiveAreaPressed.
+  </description>
+</action>
+
+<action name="VerticalTabs.Toolbar.InteractiveAreaPressed">
+  <owner>kunaldaftari@google.com</owner>
+  <owner>top-chrome-desktop-ui@google.com</owner>
+  <description>
+    Recorded when the user presses on an interactive area (e.g. buttons,
+    omnibox, or menu) of the toolbar in vertical tabs mode. Note: This metric is
+    based on hit testing during mouse button state checks. It may include
+    inaccuracies (e.g. false positives or deduplication artifacts) and should be
+    used primarily for relative comparison with
+    VerticalTabs.Toolbar.CaptionAreaPressed.
   </description>
 </action>
 

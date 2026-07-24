@@ -82,6 +82,8 @@ class VideoLayout;
 // A PeerSessionImpl keeps a reference to a connection to a client, and
 // maintains per-client state.
 class PeerSessionImpl : public PeerSession,
+                        public protocol::HostStub,
+                        public protocol::ConnectionToClient::EventHandler,
                         public ClientSessionControl,
                         public ClientSessionEvents,
                         public CursorVisibilityNotifier::EventHandler,
@@ -122,6 +124,10 @@ class PeerSessionImpl : public PeerSession,
 
   HostExtensionSessionManager* extension_manager_for_tests() const {
     return extension_manager_.get();
+  }
+
+  TerminalSessionManager* terminal_session_manager_for_tests() const {
+    return terminal_session_manager_.get();
   }
 
   // Returns the set of capabilities negotiated between client and host.
