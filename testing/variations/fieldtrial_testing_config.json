@@ -6273,24 +6273,6 @@
             ]
         }
     ],
-    "ClientSideDetectionImageEmbeddingMatch": [
-        {
-            "platforms": [
-                "android"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "params": {
-                        "CsdImageEmbeddingMatchWithIntelligentScan": "false"
-                    },
-                    "enable_features": [
-                        "ClientSideDetectionImageEmbeddingMatch"
-                    ]
-                }
-            ]
-        }
-    ],
     "ClientSideDetectionLocalResourceCheckFix": [
         {
             "platforms": [
@@ -12968,25 +12950,6 @@
             ]
         }
     ],
-    "GpuYieldRasterization": [
-        {
-            "platforms": [
-                "android",
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "GpuYieldRasterization"
-                    ]
-                }
-            ]
-        }
-    ],
     "GrCacheLimits": [
         {
             "platforms": [
@@ -14228,21 +14191,6 @@
                     "name": "Enabled",
                     "enable_features": [
                         "DownloadAutoDeletionFeatureEnabled"
-                    ]
-                }
-            ]
-        }
-    ],
-    "IOSDownloadNoUIUpdateInBackground": [
-        {
-            "platforms": [
-                "ios"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "IOSDownloadNoUIUpdateInBackground"
                     ]
                 }
             ]
@@ -25244,6 +25192,7 @@
     "UploadReportOnProfileOpenStudy": [
         {
             "platforms": [
+                "android",
                 "linux",
                 "mac",
                 "windows"
@@ -27208,7 +27157,6 @@
     "WebUIReloadButtonStudy": [
         {
             "platforms": [
-                "chromeos",
                 "linux",
                 "mac",
                 "windows"

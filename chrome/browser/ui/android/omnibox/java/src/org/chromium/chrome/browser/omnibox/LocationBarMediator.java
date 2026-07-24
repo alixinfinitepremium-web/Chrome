@@ -2031,15 +2031,19 @@ class LocationBarMediator
     }
 
     private void updateShouldAnimateIconChanges() {
-        boolean isToolbarTopAnchored =
-                mBrowserControlsStateProvider != null
-                        && mBrowserControlsStateProvider.getControlsPosition()
-                                == ControlsPosition.TOP;
-        boolean shouldAnimate =
-                mIsTablet
-                        ? isUrlBarFocused()
-                        : isToolbarTopAnchored
-                                && (isUrlBarFocused() || mIsUrlFocusChangeInProgress);
+        boolean shouldAnimate;
+        if (OmniboxCapabilities.isDesktopPlatform()) {
+            shouldAnimate = false;
+        } else if (mIsTablet) {
+            shouldAnimate = isUrlBarFocused();
+        } else {
+            boolean isToolbarTopAnchored =
+                    mBrowserControlsStateProvider != null
+                            && mBrowserControlsStateProvider.getControlsPosition()
+                                    == ControlsPosition.TOP;
+            shouldAnimate =
+                    isToolbarTopAnchored && (isUrlBarFocused() || mIsUrlFocusChangeInProgress);
+        }
         mStatusCoordinator.setShouldAnimateIconChanges(shouldAnimate);
     }
 
@@ -2155,6 +2159,7 @@ class LocationBarMediator
     }
 
     /* package */ void onBackButtonClicked() {
+        RecordUserAction.record("MobileOmnibox.Back");
         Tab tab = mLocationBarDataProvider.getTab();
         if (tab != null) {
             if (tab.canGoBack()) {
@@ -2366,6 +2371,10 @@ class LocationBarMediator
     @EnsuresNonNullIf("mCurrentInput")
     private boolean isUrlBarFocusedOnDesktop() {
         return mCurrentInput != null && OmniboxCapabilities.hasDesktopExperience(mContext);
+    }
+
+    /* package */ @Nullable AutocompleteInput getCurrentInput() {
+        return mCurrentInput;
     }
 
     @VisibleForTesting
