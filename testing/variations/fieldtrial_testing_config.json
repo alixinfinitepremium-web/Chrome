@@ -7324,6 +7324,25 @@
             ]
         }
     ],
+    "ContextualTasks_Srp2Aim": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "ApiContextualTasksPrivate",
+                        "ContextualTasksPrivateApiNoAnimation"
+                    ]
+                }
+            ]
+        }
+    ],
     "CookieSameSiteConsidersRedirectChainDesktop": [
         {
             "platforms": [
@@ -9465,6 +9484,7 @@
                 {
                     "name": "Sql",
                     "params": {
+                        "DiskCacheBackendResetCacheOnGroupChange": "true",
                         "backend": "sql"
                     },
                     "enable_features": [
