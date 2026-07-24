@@ -1404,8 +1404,7 @@
     "AndroidThreadPriority": [
         {
             "platforms": [
-                "android",
-                "android_webview"
+                "android"
             ],
             "experiments": [
                 {
@@ -13656,21 +13655,6 @@
             ]
         }
     ],
-    "HeliosScreenContextMigration": [
-        {
-            "platforms": [
-                "ios"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "GeminiScreenContextMigration"
-                    ]
-                }
-            ]
-        }
-    ],
     "HeliosUpdatedEligibility": [
         {
             "platforms": [
@@ -15977,6 +15961,24 @@
                     "name": "Enabled",
                     "enable_features": [
                         "LazyBrowserInterfaceBroker"
+                    ]
+                }
+            ]
+        }
+    ],
+    "LazyInitializeSpellcheckCharAttribute": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled_20260723",
+                    "enable_features": [
+                        "LazyInitializeSpellcheckCharAttribute"
                     ]
                 }
             ]
@@ -27273,6 +27275,25 @@
                     "name": "Enabled",
                     "enable_features": [
                         "CacheCertVerification"
+                    ]
+                }
+            ]
+        }
+    ],
+    "WebViewAndroidThreadPriority": [
+        {
+            "platforms": [
+                "android_webview"
+            ],
+            "experiments": [
+                {
+                    "name": "WebViewAndroidThreadPriority",
+                    "params": {
+                        "interactive": "-8",
+                        "presentation": "-8"
+                    },
+                    "enable_features": [
+                        "AndroidThreadPriority"
                     ]
                 }
             ]
