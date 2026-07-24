@@ -327,7 +327,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': 'fa51c183742c7dfb1731b86aee07fdaa4a5e2be7',
+  'skia_revision': '8a831d88688d667e79699bd5ecfc9e345a9c4c2a',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -407,7 +407,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'f40d341a20ceb4146d72cea4470cd956c6e9d87d',
+  'devtools_frontend_revision': 'de078175d9d11797980ac23298e748807b54d1b6',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -431,7 +431,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': '3ba675d5770803978e0c7dce72045245f1b3cfab',
+  'dawn_revision': 'a56ab87a19a0eb5baaedaa30e8507e4989b13e5d',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -531,7 +531,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
-  'llvm_libc_revision':    'fc207ca0fe8936a7c3746bea5d8080c4e5427018',
+  'llvm_libc_revision':    '19f5977e331ceaf3eb3c1a4c29aff7777a4605aa',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
@@ -1710,7 +1710,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': 'zRbGF1nDhAYn78FUx2XYubdIDIDTqpYS2eVJrnN1kgUC',
+        'version': 'xYdnpTBytwq6TPTma18FguC3LZEWipL1G7Yi7rqq7pcC',
       },
     ],
     'condition': 'non_git_source',
@@ -3132,7 +3132,7 @@ deps = {
   'src/third_party/vulkan-validation-layers/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-ValidationLayers@84e4e10cbe6772908f5d5b84ce1771794cefb738',
 
   'src/third_party/vulkan_memory_allocator':
-    Var('chromium_git') + '/external/github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git' + '@' + '7e55b011e16182fc349149abbd3aaf3b1db46421',
+    Var('chromium_git') + '/external/github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git' + '@' + '82a9d47e4f9d91f0e32d2b6acd9714fcee1933a0',
 
   # Display server protocol for Linux.
   'src/third_party/wayland/src': {

@@ -511,9 +511,10 @@ class AutofillAgent::DeferringAutofillDriver : public mojom::AutofillDriver {
   void DidDetectJavaScriptAutofill(
       const FormData& form,
       FieldRendererId trigger_field_id,
-      const std::vector<FieldRendererId>& field_ids) override {
+      std::vector<mojom::JavaScriptFieldModificationPtr> field_modifications)
+      override {
     DeferMsg(&mojom::AutofillDriver::DidDetectJavaScriptAutofill, form,
-             trigger_field_id, field_ids);
+             trigger_field_id, std::move(field_modifications));
   }
 
   const raw_ref<AutofillAgent> agent_;
@@ -1284,8 +1285,6 @@ void AutofillAgent::ApplyFieldsAction(
     form_util::DispatchAutofillEvent(document, fields, fill_id,
                                      supports_refill);
   }
-
-  javascript_autofill_tracker_.OnWillAutofillForm();
 
   std::vector<WebFormControlElement> filled_elements = base::ToVector(
       form_util::ApplyFieldsAction(document, fields, action_type,
@@ -2291,6 +2290,10 @@ void AutofillAgent::DidReceiveLeftMouseDownOrGestureTapInNode(
 #endif
 }
 
+void AutofillAgent::DidReceiveLeftPointerDownBeforeDispatch() {
+  javascript_autofill_tracker_.HandleMousedown();
+}
+
 void AutofillAgent::SelectControlSelectionChanged(
     const WebFormControlElement& element) {
   if (WebDocument document = GetDocument();
@@ -2453,7 +2456,7 @@ void AutofillAgent::JavaScriptSetValue(WebFormControlElement element,
     return;
   }
 
-  javascript_autofill_tracker_.OnJavaScriptChangedValue(element);
+  javascript_autofill_tracker_.OnJavaScriptChangedValue(element, old_value);
 
   if (!value_changed) {
     return;
@@ -2518,7 +2521,7 @@ mojom::AutofillDriver* AutofillAgent::unsafe_autofill_driver() {
 
 void AutofillAgent::OnJavaScriptAutofillDetected(
     blink::WebFormControlElement trigger_field,
-    const std::vector<FieldRendererId>& field_ids) {
+    std::vector<mojom::JavaScriptFieldModificationPtr> field_modifications) {
   if (std::optional<FormAndField> form_and_field =
           form_util::FindFormAndFieldForFormControlElement(
               trigger_field, field_data_manager(),
@@ -2526,8 +2529,8 @@ void AutofillAgent::OnJavaScriptAutofillDetected(
               button_titles_cache(), /*form_cache=*/{})) {
     auto& [form, field] = *form_and_field;
     if (auto* autofill_driver = unsafe_autofill_driver()) {
-      autofill_driver->DidDetectJavaScriptAutofill(form, field->renderer_id(),
-                                                   field_ids);
+      autofill_driver->DidDetectJavaScriptAutofill(
+          form, field->renderer_id(), std::move(field_modifications));
     }
   }
 }
