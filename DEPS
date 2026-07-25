@@ -323,7 +323,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': 'c0b7e6d3107653d42a86da99a3b4d5268a29a972',
+  'src_internal_revision': 'fe39b015681ef67342642f315aff550bcd0066af',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -3172,7 +3172,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '596524b5bfe6879f2a3f6331bb8980bf1248f61a',
+    Var('webrtc_git') + '/src.git' + '@' + '9622a32258c74ee31a7c022f81c6fc931e40a37e',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
