@@ -280,6 +280,7 @@ class LocationBarMediator
     private UrlBarCoordinator mUrlCoordinator;
     private GURL mOriginalUrl = GURL.emptyGURL();
     private @Nullable Animator mUrlFocusChangeAnimator;
+    private boolean mWindowHasFocus;
     private boolean mNativeInitialized;
     private boolean mUrlFocusedWithoutAnimations;
     private boolean mIsUrlFocusChangeInProgress;
@@ -366,6 +367,8 @@ class LocationBarMediator
             mPageZoomIndicatorCoordinator.setOnDismissCallbacks(
                     () -> updateZoomButtonVisibility(/* notifyEmbedder= */ true));
         }
+        Activity activity = mWindowAndroid.getActivity().get();
+        mWindowHasFocus = activity != null && activity.hasWindowFocus();
         AppBannerManager.addObserver(this);
         mScrimHandler = scrimHandler;
         if (mScrimHandler != null) {
@@ -918,16 +921,16 @@ class LocationBarMediator
         mLocationBarLayout.onSuggestionsListScrollOffsetChanged(scrollOffset);
     }
 
-    private @Nullable GURL getExactMatchUrl(@Nullable AutocompleteMatch defaultMatch) {
+    private @Nullable GURL getPreviewMatchUrl(@Nullable AutocompleteMatch defaultMatch) {
         if (mCurrentInput == null) return null;
 
-        // Other modes cannot exact match.
+        // Non-conventional modes will not have site favicons.
         if (!mCurrentInput.isConventionalRequestType()) return null;
 
-        // Zero suggest is always considered Search.
+        // Zero suggest is always considered Search, there may be a match, but we shouldn't show it.
         if (TextUtils.isEmpty(mCurrentInput.getUserText())) return null;
 
-        // Search suggestions again are search, not an exact matches.
+        // Search suggestions will not have site favicons.
         if (defaultMatch == null || defaultMatch.isSearchSuggestion()) return null;
 
         return defaultMatch.getUrl();
@@ -945,7 +948,7 @@ class LocationBarMediator
             mScrimHandler.setVisibility(
                     mCurrentInput.getAutocompleteState() == AutocompleteState.ENABLED);
         }
-        mCurrentInput.getExactMatchUrlSupplier().set(getExactMatchUrl(defaultMatch));
+        mCurrentInput.getPreviewMatchUrlSupplier().set(getPreviewMatchUrl(defaultMatch));
 
         if (mUrlCoordinator.shouldAutocomplete()) {
             String siteSearchLabel = null;
@@ -2693,6 +2696,7 @@ class LocationBarMediator
     private void updateShowStandbyRing() {
         boolean showStandbyRing =
                 mCurrentInput != null
+                        && mWindowHasFocus
                         && mCurrentInput.getAutocompleteState() == AutocompleteState.STANDBY
                         && mSelectionController.getSelectedView() == mUrlBarSelectableView;
         mLocationBarLayout.setShowStandbyRing(showStandbyRing);
@@ -2910,11 +2914,11 @@ class LocationBarMediator
 
         updateReparentingState();
 
-        // StatusMediator#onExactMatchUrlChanged observes this supplier, so we need it to see this
+        // StatusMediator#onPreviewMatchUrlChanged observes this supplier, so we need it to see this
         // null value before the observer is disconnected in StatusMediator#endInput. This will
         // no longer be needed after implementing drafting w/o focus TODO(b/530079993), because
         // suspend input won't clear the favicon anymore.
-        input.getExactMatchUrlSupplier().set(null);
+        input.getPreviewMatchUrlSupplier().set(null);
 
         mAutocompleteCoordinator.endInput();
         mStatusCoordinator.endInput();
@@ -3214,12 +3218,14 @@ class LocationBarMediator
 
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
+        mWindowHasFocus = hasFocus;
         if (!hasFocus) {
             if (mCurrentInput != null
                     && mCurrentInput.getAutocompleteState() == AutocompleteState.ENABLED) {
                 mCurrentInput.setAutocompleteState(AutocompleteState.STANDBY);
             }
         }
+        updateShowStandbyRing();
     }
 
     /* package */ void setLocationBarButtonTranslationForNtpAnimation(float translationX) {
