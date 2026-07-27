@@ -887,8 +887,6 @@ static_library("test_support") {
       "../browser/ui/views/frame/test_with_browser_view.cc",
       "../browser/ui/views/frame/test_with_browser_view.h",
       "../browser/ui/views/media_router/app_menu_test_api.h",
-      "../browser/ui/views/omnibox/omnibox_popup_view_views_test.cc",
-      "../browser/ui/views/omnibox/omnibox_popup_view_views_test.h",
       "../browser/ui/views/profiles/profile_picker_view_test_utils.cc",
       "../browser/ui/views/profiles/profile_picker_view_test_utils.h",
       "../browser/ui/views/profiles/profiles_pixel_test_utils.cc",
@@ -2440,6 +2438,7 @@ if (!is_android) {
       "//chrome/browser/ui/web_applications:browser_tests",
       "//chrome/browser/ui/webauthn:browser_tests",
       "//chrome/browser/ui/webui",
+      "//chrome/browser/ui/webui:chrome_web_contents_handler",
       "//chrome/browser/ui/webui:log_web_ui_url",
       "//chrome/browser/ui/webui:theme_source",
       "//chrome/browser/ui/webui:webui_util",
@@ -3282,6 +3281,7 @@ if (!is_android) {
         "//chrome/browser/enterprise/profile_management:browser_tests",
         "//chrome/browser/enterprise/signin:browser_tests",
         "//chrome/browser/ui/views/media_preview/mic_preview:browser_tests",
+        "//chrome/browser/ui/webui:profile_helper",
       ]
     }
 
@@ -7142,6 +7142,7 @@ test("unit_tests") {
       "//chrome/browser/ui/browser_window/test:test_support",
       "//chrome/browser/ui/views/crostini",
       "//chrome/browser/ui/views/mahi",
+      "//chrome/browser/ui/webui:certificate_provisioning_ui_handler",
       "//chrome/browser/ui/webui/about:unit_tests",
       "//chrome/browser/ui/webui/ash/add_supervision",
       "//chrome/browser/ui/webui/ash/enterprise_reporting:mojo_bindings",
@@ -8736,6 +8737,7 @@ if (!is_android && !is_chromeos_device) {
       "//chrome/browser/ui/views/toolbar:interactive_ui_tests",
       "//chrome/browser/ui/views/user_education",
       "//chrome/browser/ui/web_applications",
+      "//chrome/browser/ui/webui:chrome_web_contents_handler",
       "//chrome/browser/ui/webui/access_code_cast:interactive_ui_tests",
       "//chrome/browser/ui/webui/searchbox:searchbox_test_utils",
       "//chrome/browser/ui/webui/side_panel/customize_chrome:interactive_ui_tests",
