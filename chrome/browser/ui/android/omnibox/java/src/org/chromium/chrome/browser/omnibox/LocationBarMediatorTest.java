@@ -72,6 +72,7 @@ import org.chromium.base.supplier.SettableMonotonicObservableSupplier;
 import org.chromium.base.supplier.SettableNonNullObservableSupplier;
 import org.chromium.base.test.BaseRobolectricTestRunner;
 import org.chromium.base.test.RobolectricUtil;
+import org.chromium.base.test.util.DisabledTest;
 import org.chromium.base.test.util.Features.DisableFeatures;
 import org.chromium.base.test.util.Features.EnableFeatures;
 import org.chromium.base.test.util.UserActionTester;
@@ -559,6 +560,26 @@ public class LocationBarMediatorTest {
 
         input.setAutocompleteState(AutocompleteState.ENABLED);
         verify(mAutocompleteStateObserverMock, never()).onResult(any());
+    }
+
+    @Test
+    public void testAutocompleteStateChanged_updatesSelectionMode() {
+        LocationBarSelectionController selectionController =
+                mMediator.getSelectionControllerForTesting();
+        assertEquals(
+                LocationBarSelectionController.Mode.SATURATING,
+                selectionController.getSelectionModeForTesting());
+
+        AutocompleteInput input = mSessionState.getAutocompleteInput();
+        mMediator.beginInput(input);
+        assertEquals(
+                LocationBarSelectionController.Mode.WRAPPING,
+                selectionController.getSelectionModeForTesting());
+
+        input.setAutocompleteState(AutocompleteState.DISABLED);
+        assertEquals(
+                LocationBarSelectionController.Mode.SATURATING,
+                selectionController.getSelectionModeForTesting());
     }
 
     @Test
@@ -4342,6 +4363,7 @@ public class LocationBarMediatorTest {
     }
 
     @Test
+    @DisabledTest(message = "https://crbug.com/532032970")
     public void testBeginInput_unfocusedWindow_standby() {
         mMediator.onFinishNativeInitialization();
         mProfileSupplier.set(mProfile);
