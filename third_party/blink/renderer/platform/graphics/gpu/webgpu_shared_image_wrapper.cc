@@ -41,6 +41,44 @@
 
 namespace blink {
 
+namespace {
+
+scoped_refptr<gpu::ClientSharedImage> CreateClientSharedImage(
+    viz::SharedImageFormat format,
+    gfx::Size size,
+    const gfx::ColorSpace& color_space,
+    SkAlphaType alpha_type,
+    WebGraphicsContext3DProviderWrapper* context_provider_wrapper) {
+  auto* sii =
+      context_provider_wrapper->ContextProvider().SharedImageInterface();
+  // The SharedImages created by this provider serve as a means of
+  // import/export between VideoFrames/canvas and WebGPU, e.g.:
+  // * Import from VideoFrames into WebGPU via CreateExternalTexture() (the
+  //   WebGPU textures will then be read by clients)
+  // * Export from WebGPU into a static bitmap image via
+  //   GpuCanvasContext::{PaintRenderingResultsToSnapshot, GetImage}() (the
+  //   export happens via the WebGPU interface)
+  // Hence, both WEBGPU_READ and WEBGPU_WRITE usage are needed here.
+  // Additionally, these SharedImages are both read and written by the
+  // raster interface (both occur, for example, when copying canvas
+  // resources between canvases) and can be put into
+  // AcceleratedStaticBitmapImages (via Bitmap()) that are then copied into
+  // GL textures by WebGL (via
+  // AcceleratedStaticBitmapImage::CopyToTexture()).
+  gpu::SharedImageUsageSet shared_image_usage_flags =
+      gpu::SHARED_IMAGE_USAGE_WEBGPU_READ |
+      gpu::SHARED_IMAGE_USAGE_WEBGPU_WRITE |
+      gpu::SHARED_IMAGE_USAGE_RASTER_READ |
+      gpu::SHARED_IMAGE_USAGE_RASTER_WRITE | gpu::SHARED_IMAGE_USAGE_GLES2_READ;
+
+  return sii->CreateSharedImage(
+      {format, size, color_space, kTopLeft_GrSurfaceOrigin, alpha_type,
+       shared_image_usage_flags, "CanvasResourceRaster"},
+      gpu::kNullSurfaceHandle);
+}
+
+}  // namespace
+
 std::unique_ptr<WebGpuSharedImageWrapper> WebGpuSharedImageWrapper::Create(
     gfx::Size size,
     viz::SharedImageFormat format,
@@ -95,61 +133,28 @@ WebGpuSharedImageWrapper::WebGpuSharedImageWrapper(
     const gfx::ColorSpace& color_space,
     const gfx::HDRMetadata& hdr_metadata,
     base::WeakPtr<WebGraphicsContext3DProviderWrapper> context_provider_wrapper)
-    : size_(size),
-      format_(format),
-      alpha_type_(alpha_type),
-      color_space_(color_space),
-      hdr_metadata_(hdr_metadata),
+    : hdr_metadata_(hdr_metadata),
       recorder_for_external_draws_(
-          std::make_unique<MemoryManagedPaintRecorder>(Size(),
+          std::make_unique<MemoryManagedPaintRecorder>(size,
                                                        /*client=*/nullptr)),
+      shared_image_(CreateClientSharedImage(format,
+                                            size,
+                                            color_space,
+                                            alpha_type,
+                                            context_provider_wrapper.get())),
       context_provider_wrapper_(std::move(context_provider_wrapper)) {
   CanvasMemoryDumpProvider::Instance()->RegisterClient(this);
-  if (context_provider_wrapper_) {
-    // Graphite can handle a large buffer size.
-    if (context_provider_wrapper_->ContextProvider()
-            .GetGpuFeatureInfo()
-            .status_values[gpu::GPU_FEATURE_TYPE_SKIA_GRAPHITE] ==
-        gpu::kGpuFeatureStatusEnabled) {
-      recorder_for_external_draws_->DisableLineDrawingAsPaths();
-    }
+  // Graphite can handle a large buffer size.
+  if (context_provider_wrapper_->ContextProvider()
+          .GetGpuFeatureInfo()
+          .status_values[gpu::GPU_FEATURE_TYPE_SKIA_GRAPHITE] ==
+      gpu::kGpuFeatureStatusEnabled) {
+    recorder_for_external_draws_->DisableLineDrawingAsPaths();
   }
 
-  if (context_provider_wrapper_) {
-    if (auto* sii = context_provider_wrapper_->ContextProvider()
-                        .SharedImageInterface()) {
-      // The SharedImages created by this provider serve as a means of
-      // import/export between VideoFrames/canvas and WebGPU, e.g.:
-      // * Import from VideoFrames into WebGPU via CreateExternalTexture() (the
-      //   WebGPU textures will then be read by clients)
-      // * Export from WebGPU into a static bitmap image via
-      //   GpuCanvasContext::{PaintRenderingResultsToSnapshot, GetImage}() (the
-      //   export happens via the WebGPU interface)
-      // Hence, both WEBGPU_READ and WEBGPU_WRITE usage are needed here.
-      // Additionally, these SharedImages are both read and written by the
-      // raster interface (both occur, for example, when copying canvas
-      // resources between canvases) and can be put into
-      // AcceleratedStaticBitmapImages (via Bitmap()) that are then copied into
-      // GL textures by WebGL (via
-      // AcceleratedStaticBitmapImage::CopyToTexture()).
-      gpu::SharedImageUsageSet shared_image_usage_flags =
-          gpu::SHARED_IMAGE_USAGE_WEBGPU_READ |
-          gpu::SHARED_IMAGE_USAGE_WEBGPU_WRITE |
-          gpu::SHARED_IMAGE_USAGE_RASTER_READ |
-          gpu::SHARED_IMAGE_USAGE_RASTER_WRITE |
-          gpu::SHARED_IMAGE_USAGE_GLES2_READ;
-
-      shared_image_ = sii->CreateSharedImage(
-          {format, size, color_space, kTopLeft_GrSurfaceOrigin, alpha_type,
-           shared_image_usage_flags, "CanvasResourceRaster"},
-          gpu::kNullSurfaceHandle);
-
-      if (shared_image_) {
-        WaitSyncToken(shared_image_->creation_sync_token());
-        release_sync_token_ = shared_image_->creation_sync_token();
-      }
-    }
-  }
+  CHECK(shared_image_);
+  WaitSyncToken(shared_image_->creation_sync_token());
+  release_sync_token_ = shared_image_->creation_sync_token();
 }
 
 WebGpuSharedImageWrapper::~WebGpuSharedImageWrapper() {
@@ -236,43 +241,46 @@ void WebGpuSharedImageWrapper::DoExternalOverdraw(
     is_cleared_ = true;
 
     gpu::raster::RasterInterface* ri = RasterInterface();
-    SkColor4f background_color = GetAlphaType() == kOpaque_SkAlphaType
-                                     ? SkColors::kBlack
-                                     : SkColors::kTransparent;
+    SkColor4f background_color =
+        shared_image_->alpha_type() == kOpaque_SkAlphaType
+            ? SkColors::kBlack
+            : SkColors::kTransparent;
 
     auto list = base::MakeRefCounted<cc::DisplayItemList>();
     list->StartPaint();
     list->push<cc::DrawRecordOp>(std::move(last_recording));
-    list->EndPaintOfUnpaired(gfx::Rect(Size().width(), Size().height()));
+    list->EndPaintOfUnpaired(gfx::Rect(shared_image_->size().width(),
+                                       shared_image_->size().height()));
     list->Finalize();
 
-    gfx::Size size(Size().width(), Size().height());
+    gfx::Size size = shared_image_->size();
     size_t max_op_size_hint =
         gpu::raster::RasterInterface::kDefaultMaxOpSizeHint;
-    gfx::Rect full_raster_rect(Size().width(), Size().height());
-    gfx::Rect playback_rect(Size().width(), Size().height());
+    gfx::Rect full_raster_rect(shared_image_->size());
+    gfx::Rect playback_rect(shared_image_->size());
     gfx::Vector2dF post_translate(0.f, 0.f);
     gfx::Vector2dF post_scale(1.f, 1.f);
 
-    const bool can_use_lcd_text = GetAlphaType() == kOpaque_SkAlphaType;
+    const bool can_use_lcd_text =
+        shared_image_->alpha_type() == kOpaque_SkAlphaType;
     const auto& caps =
         context_provider_wrapper_->ContextProvider().GetCapabilities();
     bool use_msaa = !caps.msaa_is_slow && !caps.avoid_stencil_buffers;
-    ri->BeginRasterCHROMIUM(background_color, needs_clear,
-                            /*msaa_sample_count=*/use_msaa ? 1 : 0,
-                            use_msaa ? gpu::raster::MsaaMode::kDMSAA
-                                     : gpu::raster::MsaaMode::kNoMSAA,
-                            can_use_lcd_text, /*visible=*/true, GetColorSpace(),
-                            /*hdr_headroom=*/0.f,
-                            shared_image_->mailbox().name);
+    ri->BeginRasterCHROMIUM(
+        background_color, needs_clear,
+        /*msaa_sample_count=*/use_msaa ? 1 : 0,
+        use_msaa ? gpu::raster::MsaaMode::kDMSAA
+                 : gpu::raster::MsaaMode::kNoMSAA,
+        can_use_lcd_text, /*visible=*/true, shared_image_->color_space(),
+        /*hdr_headroom=*/0.f, shared_image_->mailbox().name);
 
     auto& context_provider = context_provider_wrapper_->ContextProvider();
     CanvasImageProvider image_provider(
         context_provider.ImageDecodeCache(kN32_SkColorType),
-        GetSharedImageFormat() == viz::SinglePlaneFormat::kRGBA_F16
+        shared_image_->format() == viz::SinglePlaneFormat::kRGBA_F16
             ? context_provider.ImageDecodeCache(kRGBA_F16_SkColorType)
             : nullptr,
-        GetColorSpace(), GetSharedImageFormat(),
+        shared_image_->color_space(), shared_image_->format(),
         cc::PlaybackImageProvider::RasterMode::kGpu, context_provider_wrapper_);
 
     ri->RasterCHROMIUM(
@@ -295,8 +303,8 @@ bool WebGpuSharedImageWrapper::UploadToBackingSharedImage(
     const SkPixmap& pixmap,
     uint32_t src_x,
     uint32_t src_y) {
-  const int dest_width = Size().width();
-  const int dest_height = Size().height();
+  const int dest_width = shared_image_->size().width();
+  const int dest_height = shared_image_->size().height();
 
   SkPixmap subset;
   if (!pixmap.extractSubset(
@@ -344,7 +352,8 @@ bool WebGpuSharedImageWrapper::CopyToBackingSharedImage(
     return false;
   }
 
-  gfx::Rect copy_rect(src_x, src_y, Size().width(), Size().height());
+  gfx::Rect copy_rect(src_x, src_y, shared_image_->size().width(),
+                      shared_image_->size().height());
 
   auto dst_access =
       shared_image_->BeginRasterAccess(RasterInterface(), acquire_sync_token_,
@@ -378,23 +387,15 @@ gpu::SyncToken WebGpuSharedImageWrapper::GetSyncToken() const {
   if (IsGpuContextLost()) {
     return gpu::SyncToken();
   }
-  return shared_image_ ? release_sync_token_ : gpu::SyncToken();
+  return release_sync_token_;
 }
 
 base::ByteSize WebGpuSharedImageWrapper::EstimatedSizeInBytes() const {
-  base::ByteSize result;
-  if (shared_image_) {
-    result += shared_image_->EstimatedSizeInBytes();
-  }
-  return result;
+  return shared_image_->EstimatedSizeInBytes();
 }
 
 void WebGpuSharedImageWrapper::OnMemoryDump(
     base::trace_event::ProcessMemoryDump* pmd) {
-  if (!shared_image_) {
-    return;
-  }
-
   std::string path = base::StringPrintf("canvas/ResourceProvider_0x%" PRIXPTR,
                                         reinterpret_cast<uintptr_t>(this));
 

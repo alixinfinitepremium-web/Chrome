@@ -59,11 +59,6 @@ class PLATFORM_EXPORT WebGpuSharedImageWrapper final
       const gfx::HDRMetadata& hdr_metadata);
   ~WebGpuSharedImageWrapper();
 
-  gfx::Size Size() const { return size_; }
-  viz::SharedImageFormat GetSharedImageFormat() const { return format_; }
-  const gfx::ColorSpace& GetColorSpace() const { return color_space_; }
-  SkAlphaType GetAlphaType() const { return alpha_type_; }
-
   scoped_refptr<gpu::ClientSharedImage> GetSharedImage() const;
   gpu::SyncToken GetSyncToken() const;
 
@@ -125,15 +120,11 @@ class PLATFORM_EXPORT WebGpuSharedImageWrapper final
 
   gpu::raster::RasterInterface* RasterInterface() const;
 
-  const gfx::Size size_;
-  const viz::SharedImageFormat format_;
-  const SkAlphaType alpha_type_;
-  const gfx::ColorSpace color_space_;
   const gfx::HDRMetadata hdr_metadata_;
 
   std::unique_ptr<MemoryManagedPaintRecorder> recorder_for_external_draws_;
 
-  scoped_refptr<gpu::ClientSharedImage> shared_image_;
+  const scoped_refptr<gpu::ClientSharedImage> shared_image_;
   gpu::SyncToken acquire_sync_token_;
   gpu::SyncToken release_sync_token_;
 

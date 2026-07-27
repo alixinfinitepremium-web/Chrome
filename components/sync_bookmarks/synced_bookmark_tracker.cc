@@ -536,16 +536,8 @@ SyncedBookmarkTracker::InitEntitiesFromModelAndMetadata(
     const syncer::ClientTagHash client_tag_hash =
         GetClientTagHashFromUuid(node->uuid());
     if (client_tag_hash != metadata->GetClientTagHash()) {
-      if (node->is_permanent_node()) {
-        // For permanent nodes the client tag hash is irrelevant and subject to
-        // change if the constants in components/bookmarks change and adopt
-        // different UUID constants. To avoid treating such state as corrupt
-        // metadata, let's fix it automatically.
-        metadata->mutable_proto()->set_client_tag_hash(client_tag_hash.value());
-      } else {
-        DLOG(ERROR) << "Bookmark UUID does not match the client tag.";
-        return CorruptionReason::BOOKMARK_UUID_MISMATCH;
-      }
+      DLOG(ERROR) << "Bookmark UUID does not match the client tag.";
+      return CorruptionReason::BOOKMARK_UUID_MISMATCH;
     }
 
     // The code populates |bookmark_favicon_hash| for all new nodes, including
@@ -706,7 +698,9 @@ void SyncedBookmarkTracker::TraverseAndAppend(
 
 void SyncedBookmarkTracker::UndeleteTombstoneForBookmarkNode(
     const SyncedBookmarkTrackerEntity* entity,
-    const bookmarks::BookmarkNode* node) {
+    const bookmarks::BookmarkNode* node,
+    const sync_pb::EntitySpecifics& specifics,
+    base::Time modification_time) {
   DCHECK(entity);
   DCHECK(node);
   DCHECK(entity->IsDeleted());
@@ -721,7 +715,8 @@ void SyncedBookmarkTracker::UndeleteTombstoneForBookmarkNode(
   SyncedBookmarkTrackerEntity* mutable_entity = AsMutableEntity(entity);
   std::erase(ordered_local_tombstones_, mutable_entity);
   mutable_entity->UndeleteTombstoneForBookmarkNode(
-      SyncedBookmarkTrackerEntity::PassKey(), node);
+      SyncedBookmarkTrackerEntity::PassKey(), node, specifics,
+      modification_time);
   bookmark_node_to_entities_map_[node] = mutable_entity;
 }
 

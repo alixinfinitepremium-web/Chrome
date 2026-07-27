@@ -234,7 +234,7 @@
 #include "chrome/browser/signin/signin_metrics_service_factory.h"
 #include "chrome/browser/signin/signin_policy_service_factory.h"
 #include "chrome/browser/signin/signin_profile_attributes_updater_factory.h"
-#include "chrome/browser/site_cookie_provider/site_cookie_provider_service_factory.h"
+#include "chrome/browser/site_token_provider/site_token_provider_service_factory.h"
 #include "chrome/browser/ssl/https_first_mode_settings_tracker.h"
 #include "chrome/browser/ssl/sct_reporting_service_factory.h"
 #include "chrome/browser/ssl/stateful_ssl_host_state_delegate_factory.h"
@@ -308,8 +308,8 @@
 #include "components/safe_browsing/buildflags.h"
 #include "components/safe_browsing/core/common/features.h"
 #include "components/signin/public/base/signin_switches.h"
-#include "components/site_cookie_provider/features.h"
 #include "components/site_engagement/content/site_engagement_service.h"
+#include "components/site_token_provider/features.h"
 #include "components/spellcheck/spellcheck_buildflags.h"
 #include "components/sync/base/features.h"
 #include "content/public/common/buildflags.h"
@@ -467,6 +467,7 @@
 #include "chrome/browser/chromeos/policy/dlp/dlp_download_observer_factory.h"
 #include "chrome/browser/chromeos/policy/dlp/dlp_rules_manager_factory.h"
 #include "chrome/browser/media/webrtc/multi_capture/multi_capture_data_service_factory.h"
+#include "chrome/browser/media/webrtc/multi_capture/multi_capture_session_controller_factory.h"
 #include "chrome/browser/media/webrtc/multi_capture/multi_capture_usage_indicator_service_factory.h"
 #include "chrome/browser/media_galleries/gallery_watch_manager.h"
 #include "chrome/browser/media_galleries/media_file_system_registry.h"
@@ -906,6 +907,7 @@ void ChromeBrowserMainExtraPartsProfiles::
 #if BUILDFLAG(IS_CHROMEOS)
   multi_capture::MultiCaptureDataServiceFactory::GetInstance();
   multi_capture::MultiCaptureUsageIndicatorServiceFactory::GetInstance();
+  multi_capture::MultiCaptureSessionControllerFactory::GetInstance();
 
   if (chromeos::features::
           IsMicrosoftOneDriveIntegrationForEnterpriseEnabled()) {
@@ -1514,12 +1516,12 @@ void ChromeBrowserMainExtraPartsProfiles::
   SigninMetricsServiceFactory::GetInstance();
   SigninPolicyServiceFactory::GetInstance();
   SigninProfileAttributesUpdaterFactory::GetInstance();
-  if (base::FeatureList::IsEnabled(
-          site_cookie_provider::features::kSiteCookieProviderEnabled)) {
-    site_cookie_provider::SiteCookieProviderServiceFactory::GetInstance();
-  }
   if (site_engagement::SiteEngagementService::IsEnabled()) {
     site_engagement::SiteEngagementServiceFactory::GetInstance();
+  }
+  if (base::FeatureList::IsEnabled(
+          site_token_provider::features::kSiteTokenProviderEnabled)) {
+    site_token_provider::SiteTokenProviderServiceFactory::GetInstance();
   }
 #if BUILDFLAG(IS_CHROMEOS)
   SmartCardPermissionContextFactory::GetInstance();
