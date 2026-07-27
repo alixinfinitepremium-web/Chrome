@@ -314,6 +314,8 @@ inline LayoutStateScenePassKey PassKey() {
     _viewController.layoutGuideCenter =
         LayoutGuideCenterForScene(self.sceneState);
     _viewController.delegate = self;
+    _viewController.geminiHandler = HandlerForProtocol(
+        _regularBrowser->GetCommandDispatcher(), GeminiCommands);
     [_viewController setTabGrid:_tabGridCoordinator.viewController];
     self.sceneState.window.rootViewController = _viewController;
 
@@ -363,7 +365,21 @@ inline LayoutStateScenePassKey PassKey() {
   // unregister observers and destroy C++ objects before the application is
   // shut down without depending on non-deterministic call to -dealloc.
   [self stopSettingsAnimated:NO completion:nil];
-  [_regularBrowser->GetCommandDispatcher() stopDispatchingToTarget:self];
+  if (!IsAlertCrashFixKillSwitchEnabled()) {
+    // Ensure command dispatching is stopped across all non-nil browsers so that
+    // shutdown captures unregistered targets in silently failing targets.
+    if (_regularBrowser) {
+      [_regularBrowser->GetCommandDispatcher() stopDispatchingToTarget:self];
+    }
+    if (_incognitoBrowser) {
+      [_incognitoBrowser->GetCommandDispatcher() stopDispatchingToTarget:self];
+    }
+    if (_inactiveBrowser) {
+      [_inactiveBrowser->GetCommandDispatcher() stopDispatchingToTarget:self];
+    }
+  } else {
+    [_regularBrowser->GetCommandDispatcher() stopDispatchingToTarget:self];
+  }
   _policyWatcherObserver.reset();
   _policyWatcherObserverBridge.reset();
   [self stopAccountMenu];
@@ -1619,6 +1635,9 @@ inline LayoutStateScenePassKey PassKey() {
 }
 
 - (void)setIncognitoBrowser:(Browser*)incognitoBrowser {
+  if (!IsAlertCrashFixKillSwitchEnabled() && _incognitoBrowser) {
+    [_incognitoBrowser->GetCommandDispatcher() stopDispatchingToTarget:self];
+  }
   _incognitoBrowser = incognitoBrowser;
   _tabGridCoordinator.incognitoBrowser = incognitoBrowser;
   if (IsChromeNextIaEnabled()) {
@@ -2385,6 +2404,15 @@ inline LayoutStateScenePassKey PassKey() {
     [self updateFloatyVisibilityIfEligibleAnimated:NO
                                         fromSource:gemini::FloatyUpdateSource::
                                                        ViewTransition];
+  }
+}
+
+- (void)sceneViewControllerHideGeminiFloatyIfInvoked:
+    (SceneViewController*)viewController {
+  if (IsPageActionMenuEnabled()) {
+    [self
+        hideFloatyIfInvokedAnimated:YES
+                         fromSource:gemini::FloatyUpdateSource::ViewTransition];
   }
 }
 

@@ -268,9 +268,7 @@
 #include "chrome/browser/pdf/pdf_pref_names.h"
 #endif  // BUILDFLAG(ENABLE_PDF)
 
-#if !BUILDFLAG(IS_ANDROID) || BUILDFLAG(ENABLE_EXTENSIONS_CORE)
 #include "chrome/browser/ui/webui/management/management_ui.h"
-#endif
 
 #if BUILDFLAG(IS_ANDROID)
 #include "chrome/browser/accessibility/accessibility_prefs/android/accessibility_prefs_controller.h"
@@ -1392,6 +1390,12 @@ void RegisterProfilePrefsForMigration(
   // Deprecated 07/2026.
   registry->RegisterTimePref(kObsoleteManagementProfileLastLogTime,
                              base::Time());
+
+#if !BUILDFLAG(IS_ANDROID)
+  // Deprecated 07/2026.
+  registry->RegisterBooleanPref(prefs::kProjectsPanelEntrypointEnabled, true);
+  registry->RegisterBooleanPref(prefs::kProjectsPanelPinnedToTabstrip, true);
+#endif
 }
 
 }  // namespace
@@ -1996,9 +2000,7 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry,
   toolbar::RegisterProfilePrefs(registry);
 #endif  // BUILDFLAG(IS_ANDROID)
 
-#if !BUILDFLAG(IS_ANDROID) || BUILDFLAG(ENABLE_EXTENSIONS_CORE)
   ManagementUI::RegisterProfilePrefs(registry);
-#endif
 
 #if BUILDFLAG(ENABLE_DEVTOOLS_FRONTEND)
   DevToolsWindow::RegisterProfilePrefs(registry);
@@ -2186,7 +2188,7 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry,
 
   actor::ui::RegisterProfilePrefs(registry);
 
-  projects::RegisterProfilePrefs(registry);
+  organizer::RegisterProfilePrefs(registry);
 #endif  // !BUILDFLAG(IS_ANDROID)
 
   registry->RegisterBooleanPref(webauthn::pref_names::kAllowWithBrokenCerts,
@@ -2717,6 +2719,12 @@ void MigrateObsoleteProfilePrefs(PrefService* profile_prefs,
 
   // Added 07/2026.
   profile_prefs->ClearPref(kObsoleteManagementProfileLastLogTime);
+
+#if !BUILDFLAG(IS_ANDROID)
+  // Added 07/2026.
+  profile_prefs->ClearPref(prefs::kProjectsPanelEntrypointEnabled);
+  profile_prefs->ClearPref(prefs::kProjectsPanelPinnedToTabstrip);
+#endif
 
   // Please don't delete the following line. It is used by PRESUBMIT.py.
   // END_MIGRATE_OBSOLETE_PROFILE_PREFS

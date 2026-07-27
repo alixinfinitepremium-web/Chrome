@@ -271,6 +271,9 @@ BASE_DECLARE_FEATURE(kNTPFooterBadgingPolicies);
 BASE_DECLARE_FEATURE(kEnterpriseManagementDisclaimerUsesCustomLabel);
 BASE_DECLARE_FEATURE(kEnterpriseReleaseNotes);
 BASE_DECLARE_FEATURE(kManagedProfileRequiredInterstitial);
+// Enables WebUI migration for chrome://management on Android Mobile.
+BASE_DECLARE_FEATURE(kMigrateManagementPageToWebUIOnMobile);
+
 
 // Cocoa to views migration.
 #if BUILDFLAG(IS_MAC)
@@ -352,6 +355,10 @@ bool IsWebUISplitTabsButtonEnabled();
 // Controls whether the WebUI version of the Avatar Button is used.
 BASE_DECLARE_FEATURE(kWebUIAvatarButton);
 bool IsWebUIAvatarButtonEnabled();
+
+// Controls whether the WebUI version of the Media Button is used.
+BASE_DECLARE_FEATURE(kWebUIMediaButton);
+bool IsWebUIMediaButtonEnabled();
 
 bool IsWebUIPerformanceInterventionButtonEnabled();
 

@@ -2504,9 +2504,18 @@ const FeatureEntry::FeatureVariation kEphemeralCardRankerCardOverrideOptions[] =
 
 const FeatureEntry::FeatureParam kAndroidVerticalTabs_ExpandOnHover[] = {
     {"expand_on_hover", "true"}};
+const FeatureEntry::FeatureParam kAndroidVerticalTabs_GroupHeaderDrag[] = {
+    {"group_header_drag", "true"}};
+const FeatureEntry::FeatureParam
+    kAndroidVerticalTabs_ExpandOnHoverAndGroupHeaderDrag[] = {
+        {"expand_on_hover", "true"},
+        {"group_header_drag", "true"}};
 
 const FeatureEntry::FeatureVariation kAndroidVerticalTabsVariations[] = {
     {"with expand-on-hover", kAndroidVerticalTabs_ExpandOnHover, nullptr},
+    {"with group-header-drag", kAndroidVerticalTabs_GroupHeaderDrag, nullptr},
+    {"with expand-on-hover and group-header-drag",
+     kAndroidVerticalTabs_ExpandOnHoverAndGroupHeaderDrag, nullptr},
 };
 #endif  // BUILDFLAG(IS_ANDROID)
 #if BUILDFLAG(IS_ANDROID)
@@ -4451,13 +4460,19 @@ const FeatureEntry::FeatureVariation kCastStreamingMaxVideoBitrateVariations[] =
 
 const FeatureEntry::FeatureParam
     kPermissionsGestureGatedPromptsMuteNotifications[] = {
-        {"mute_notifications", "true"}};
+        {"mute_notifications", "true"},
+        {"exclude_same_origin_navigations", "true"},
+};
 const FeatureEntry::FeatureParam
     kPermissionsGestureGatedPromptsMuteGeolocation[] = {
-        {"mute_geolocation", "true"}};
+        {"mute_geolocation", "true"},
+        {"exclude_same_origin_navigations", "true"},
+};
 const FeatureEntry::FeatureParam kPermissionsGestureGatedPromptsMuteBoth[] = {
     {"mute_notifications", "true"},
-    {"mute_geolocation", "true"}};
+    {"mute_geolocation", "true"},
+    {"exclude_same_origin_navigations", "true"},
+};
 
 const FeatureEntry::FeatureVariation
     kPermissionsGestureGatedPromptsVariations[] = {
@@ -12333,9 +12348,9 @@ const FeatureEntry kFeatureEntries[] = {
 
 #if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_LINUX) || \
     BUILDFLAG(IS_CHROMEOS)
-    {"projects-panel", flag_descriptions::kProjectsPanelName,
-     flag_descriptions::kProjectsPanelDescription, kOsDesktop,
-     FEATURE_VALUE_TYPE(tab_groups::kProjectsPanel)},
+    {"organizer-panel", flag_descriptions::kOrganizerPanelName,
+     flag_descriptions::kOrganizerPanelDescription, kOsDesktop,
+     FEATURE_VALUE_TYPE(tab_groups::kOrganizerPanel)},
     {"sync-ai-threads", flag_descriptions::kSyncAIThreadsName,
      flag_descriptions::kSyncAIThreadsDescription, kOsDesktop,
      FEATURE_VALUE_TYPE(syncer::kSyncAIThread)},
@@ -13545,6 +13560,13 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kDevToolsInstrumentationBreakpointsName,
      flag_descriptions::kDevToolsInstrumentationBreakpointsDescription, kOsAll,
      FEATURE_VALUE_TYPE(features::kDevToolsInstrumentationBreakpoints)},
+
+#if defined(TOOLKIT_VIEWS)
+    {"native-view-host-manages-layers",
+     flag_descriptions::kNativeViewHostManagesLayersName,
+     flag_descriptions::kNativeViewHostManagesLayersDescription, kOsDesktop,
+     FEATURE_VALUE_TYPE(views::features::kNativeViewHostManagesLayers)},
+#endif  // defined(TOOLKIT_VIEWS)
 
     // Add new entries above this line.
     // NOTE: Adding a new flag requires adding a corresponding entry to enum

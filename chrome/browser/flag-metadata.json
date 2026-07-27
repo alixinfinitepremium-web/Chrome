@@ -162,6 +162,11 @@
     "expiry_milestone": 160
   },
   {
+    "name": "alert-crash-fix-kill-switch",
+    "owners": [ "hamzamoh@google.com", "bling-alchemy-eng@google.com" ],
+    "expiry_milestone": 160
+  },
+  {
     "name": "align-pdf-default-print-settings-with-html",
     "owners": [ "thestig@chromium.org", "cathiechen@igalia.com" ],
     "expiry_milestone": 160
@@ -7045,6 +7050,11 @@
     "expiry_milestone": 96
   },
   {
+    "name": "native-view-host-manages-layers",
+    "owners": [ "oshima@chromium.org", "tluk@chromium.org" ],
+    "expiry_milestone": 165
+  },
+  {
     "name": "nearby-ble-v2",
     "owners": ["chromeos-cross-device-eng@google.com", "dclasson@google.com"],
     "expiry_milestone": 130
@@ -7832,6 +7842,14 @@
     "expiry_milestone": 150
   },
   {
+    "name": "organizer-panel",
+    "owners": [
+      "kunaldaftari@google.com",
+      "top-chrome-desktop-ui@google.com"
+    ],
+    "expiry_milestone": 155
+  },
+  {
     "name": "origin-agent-cluster-default",
     "owners": [ "vogelheim@chromium.org", "chrome-security-owp-team@google.com" ],
     "expiry_milestone": 130
@@ -8338,16 +8356,6 @@
     "name": "profiles-reordering",
     "owners": ["rsult@google.com", "chrome-signin-team@google.com"],
     "expiry_milestone": 146
-  },
-  {
-    "name": "projects-panel",
-    "owners": [
-      "chazzy@chromium.org",
-      "davidjm@google.com",
-      "chrome-shopping-eng@google.com",
-      "top-chrome-desktop-ui@google.com"
-    ],
-    "expiry_milestone": 155
   },
   {
     "name": "prompt-api",

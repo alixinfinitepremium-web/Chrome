@@ -4199,9 +4199,9 @@ inline constexpr char kProfileSignalsReportingEnabledName[] =
 inline constexpr char kProfileSignalsReportingEnabledDescription[] =
     "Enables the profile signals reporting flow for Chrome Enterprise.";
 
-inline constexpr char kProjectsPanelName[] = "Projects Panel";
-inline constexpr char kProjectsPanelDescription[] =
-    "Enables the Projects Panel.";
+inline constexpr char kOrganizerPanelName[] = "Organizer Panel";
+inline constexpr char kOrganizerPanelDescription[] =
+    "Enables the Organizer Panel.";
 
 inline constexpr char kProtectedAudiencesConsentedDebugTokenName[] =
     "Protected Audiences Consented Debug Token";
@@ -6737,6 +6737,11 @@ inline constexpr char kMuteNotificationSnoozeActionName[] =
     "Snooze action for mute notifications";
 inline constexpr char kMuteNotificationSnoozeActionDescription[] =
     "Adds a Snooze action to mute notifications shown while sharing a screen.";
+
+inline constexpr char kNativeViewHostManagesLayersName[] =
+    "NativeViewHost manages layers";
+inline constexpr char kNativeViewHostManagesLayersDescription[] =
+    "Enables NativeViewHost to control the layers of the native view.";
 
 inline constexpr char kNtpAlphaBackgroundCollectionsName[] =
     "NTP Alpha Background Collections";

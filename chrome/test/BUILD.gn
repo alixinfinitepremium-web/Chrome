@@ -210,6 +210,7 @@ static_library("test_support") {
     ":test_switches",
     "//chrome/browser/notifications:test_support",
     "//chrome/browser/origin_trials",
+    "//chrome/browser/performance_manager:test_support",
     "//chrome/browser/profiles:profile_test_util",
     "//chrome/browser/renderer_context_menu:test_support",
     "//chrome/browser/safe_browsing:test_database_helper",
@@ -226,8 +227,6 @@ static_library("test_support") {
 
   sources = [
     "../app/startup_timestamps.h",
-    "../browser/performance_manager/test_support/page_discarding_utils.cc",
-    "../browser/performance_manager/test_support/page_discarding_utils.h",
     "../test/base/menu_model_test.cc",
     "../test/base/menu_model_test.h",
     "base/chrome_render_view_host_test_harness.cc",
@@ -565,18 +564,6 @@ static_library("test_support") {
   data_deps = []
 
   if (enable_pdf) {
-    sources += [
-      "../browser/pdf/pdf_extension_test_base.cc",
-      "../browser/pdf/pdf_extension_test_base.h",
-    ]
-
-    deps += [
-      "../browser/pdf",
-      "../browser/pdf:pdf_extension_test_utils",
-      "//components/pdf/browser",
-      "//extensions/browser/api:extensions_api_client",
-      "//pdf:features",
-    ]
     public_deps += [ "../browser/pdf:test_mime_handler_stream_manager" ]
   }
 
@@ -585,12 +572,9 @@ static_library("test_support") {
   }
 
   if (enable_print_preview) {
-    sources += [
-      "../browser/printing/browser_printing_context_factory_for_test.cc",
-      "../browser/printing/browser_printing_context_factory_for_test.h",
+    public_deps += [
+      "//chrome/browser/printing:browser_printing_context_factory_for_test",
     ]
-
-    public_deps += [ "//printing:test_support" ]
   }
 
   if (is_linux) {
@@ -672,8 +656,6 @@ static_library("test_support") {
     }
 
     sources += [
-      "../browser/performance_manager/test_support/test_user_performance_tuning_manager_environment.cc",
-      "../browser/performance_manager/test_support/test_user_performance_tuning_manager_environment.h",
       "../browser/signin/signin_browser_test_base.h",
       "../browser/ui/views/tabs/dragging/tab_drag_controller_interactive_test_mixin.h",
       "../browser/ui/views/test/split_view_browser_test_mixin.h",
@@ -1431,10 +1413,6 @@ if (is_android) {
       "../browser/android/historical_tab_saver_browsertest.cc",
       "../browser/android/persisted_tab_data/persisted_tab_data_android_browsertest.cc",
       "../browser/android/persisted_tab_data/sensitivity_persisted_tab_data_android_browsertest.cc",
-      "../browser/android/persisted_tab_data/test/bar_persisted_tab_data.cc",
-      "../browser/android/persisted_tab_data/test/bar_persisted_tab_data.h",
-      "../browser/android/persisted_tab_data/test/foo_persisted_tab_data.cc",
-      "../browser/android/persisted_tab_data/test/foo_persisted_tab_data.h",
       "../browser/android/webapk/webapk_icons_hasher_browsertest.cc",
       "../browser/android/webapk/webapk_installer_browsertest.cc",
       "../browser/android/webapk/webapk_restore_task_browsertest.cc",
@@ -1465,7 +1443,6 @@ if (is_android) {
       ":android_browsertests_assets",
       ":android_browsertests_java",
       ":browser_tests_runner",
-      ":persisted_tab_data_test_proto",
       ":platform_browser_tests",
       ":sync_integration_test_support_java",
       ":test_support",
@@ -1480,6 +1457,7 @@ if (is_android) {
       "//chrome/browser/accessibility/accessibility_prefs:browser_tests",
       "//chrome/browser/actor:browser_tests",
       "//chrome/browser/android",
+      "//chrome/browser/android/persisted_tab_data/test:test_support",
       "//chrome/browser/autofill",
       "//chrome/browser/autofill:browser_tests",
       "//chrome/browser/auxiliary_search:browser_tests",
@@ -1785,6 +1763,7 @@ if (is_android) {
         "//components/webxr/android:xr_java",
         "//device/vr",
         "//device/vr:openxr_data",
+        "//device/vr:openxr_test_helper",
         "//device/vr:vr_test_hook",
         "//device/vr/buildflags",
         "//device/vr/orientation",
@@ -1851,13 +1830,6 @@ if (is_android) {
     # TODO(crbug.com/40031409): Fix code that adds exit-time destructors and
     # enable the diagnostic by removing this line.
     configs += [ "//build/config/compiler:no_exit_time_destructors" ]
-  }
-
-  proto_library("persisted_tab_data_test_proto") {
-    sources = [
-      "../browser/android/persisted_tab_data/test/bar.proto",
-      "../browser/android/persisted_tab_data/test/foo.proto",
-    ]
   }
 
   test("android_sync_integration_tests") {
@@ -3474,6 +3446,7 @@ if (!is_android) {
       deps += [
         "../browser/pdf",
         "../browser/pdf:browser_tests",
+        "../browser/pdf:pdf_extension_test_base",
         "../browser/pdf:pdf_extension_test_utils",
         "../browser/ui/pdf",
         "//build/config/coverage:buildflags",
@@ -6620,6 +6593,7 @@ test("unit_tests") {
       "//chrome/browser/ui/webid:unit_tests",
       "//chrome/browser/ui/webui:favicon_source_unit_tests",
       "//chrome/browser/ui/webui:managed_ui_handler",
+      "//chrome/browser/ui/webui:theme_colors_source_manager",
       "//chrome/browser/ui/webui:theme_source_unit_tests",
       "//chrome/browser/ui/webui:webui_util",
       "//chrome/browser/ui/webui/access_code_cast:unit_tests",
@@ -7563,16 +7537,15 @@ test("unit_tests") {
         [ "//chrome/browser/extensions/api/safe_browsing_private:unit_tests" ]
   }
 
-  if (is_win || is_mac || is_linux || is_chromeos || is_desktop_android) {
-    deps += [ "//chrome/browser/ui/webui/management:unit_tests" ]
+  if (is_win || is_mac || is_linux || is_chromeos || is_android) {
+    deps += [
+      "../browser/enterprise/connectors/device_trust:test_support",
+      "//chrome/browser/ui/webui/management:unit_tests",
+    ]
   }
 
   if (enterprise_client_certificates) {
     deps += [ "../browser/enterprise/client_certificates:unit_tests" ]
-  }
-
-  if (is_linux || is_chromeos || is_mac || is_win || is_android) {
-    deps += [ "../browser/enterprise/connectors/device_trust:test_support" ]
   }
 
   if (is_linux || is_chromeos || is_mac || is_win) {
@@ -9155,7 +9128,6 @@ if (!is_android && !is_chromeos_device) {
         "//chrome/browser/ui/views/global_media_controls",
         "//chrome/browser/ui/views/media_router:interactive_ui_tests",
         "//chrome/browser/ui/views/omnibox:interactive_ui_tests",
-        "//chrome/browser/ui/views/optimization_guide:interactive_ui_tests",
         "//chrome/browser/ui/views/page_action:interactive_ui_tests",
         "//chrome/browser/ui/views/page_info",
         "//chrome/browser/ui/views/page_info:interactive_ui_tests",

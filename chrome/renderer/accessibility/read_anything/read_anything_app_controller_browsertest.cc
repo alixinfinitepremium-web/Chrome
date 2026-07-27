@@ -277,6 +277,9 @@ class ReadAnythingAppControllerTest : public ChromeRenderViewTest {
   void Distill() { controller_->Distill(); }
   void ProcessModelUpdates() { controller_->ProcessModelUpdates(); }
   bool IsControllerHidden() const { return controller_->IsHidden(); }
+  bool IsPdfDrawDebouncerRunning() const {
+    return controller_->pdf_draw_debouncer_->IsRunning();
+  }
   bool IsNodePendingDeletion(ui::AXNodeID node_id) const {
     return controller_->displayed_nodes_pending_deletion_.contains(node_id);
   }
@@ -3321,12 +3324,13 @@ TEST_F(ReadAnythingAppControllerTest,
 }
 
 TEST_F(ReadAnythingAppControllerTest,
-       OnStringAttributeChanged_ReadabilityFlagEnabled_DoesNothing) {
+       OnStringAttributeChanged_ReadabilityDistillation_DoesNothing) {
   base::test::ScopedFeatureList feature_list;
-  feature_list.InitWithFeatures({features::kReadAnythingImagesViaAlgorithm,
-                                 features::kReadAnythingWithReadability},
-                                {});
-
+  feature_list.InitAndEnableFeature(features::kReadAnythingImagesViaAlgorithm);
+  model().set_current_content_distillation_method(
+      ReadAnythingAppModel::DistillationMethod::kReadability);
+  model().set_next_distillation_method(
+      ReadAnythingAppModel::DistillationMethod::kReadability);
   // Create an image node with a placeholder "data:" URL, mimicking a
   // lazy-loaded image.
   static constexpr ui::AXNodeID kImageNodeId = 2;
@@ -3846,7 +3850,7 @@ TEST_F(ReadAnythingAppControllerImmersiveTest,
 }
 
 TEST_F(ReadAnythingAppControllerImmersiveTest,
-       OnActiveAXTreeIDChanged_DoesNotStartDebouncerIfHidden) {
+       OnActiveAXTreeIDChanged_StartsDebouncerIfHidden) {
   // Start in inactive state (hidden).
   controller().OnGetPresentationState(
       read_anything::mojom::ReadAnythingPresentationState::kInactive);
@@ -3861,7 +3865,11 @@ TEST_F(ReadAnythingAppControllerImmersiveTest,
                                        /*is_pdf=*/true);
   page_handler_.FlushForTesting();
 
-  // The debouncer should NOT be running.
+  // The debouncer SHOULD be running.
+  EXPECT_TRUE(IsPdfDrawDebouncerRunning());
+
+  // Since it is hidden, when the debouncer fires, it should not draw or change
+  // state.
   EXPECT_CALL(page_handler_, OnDistillationStateChanged(testing::_)).Times(0);
   task_environment_.FastForwardBy(base::Milliseconds(500));
   page_handler_.FlushForTesting();

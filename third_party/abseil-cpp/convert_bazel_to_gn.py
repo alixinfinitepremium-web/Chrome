@@ -14,6 +14,11 @@ import re
 import subprocess
 import sys
 
+# List of targets that do not have matching gn target generated.
+_SKIP_TARGETS = {
+    'types:any_span_test':
+    'any_span_test is not ported because relies on RTTI',
+}
 
 def _ast_get_value(node):
     if isinstance(node, ast.Constant):
@@ -27,9 +32,12 @@ def _ast_get_value(node):
 
 class _Converter:
 
-    def __init__(self, old_gn_content=None):
+    def __init__(self, path, old_gn_content=None):
         self.bazel_targets = []
         self.year = str(datetime.datetime.now().year)
+        self.path = path
+        m = re.search(r'.*/absl/(.*)', path)
+        self.rel_path = m.group(1) if m else ''
         if old_gn_content:
             m = re.search(r'# Copyright (\d{4})', old_gn_content)
             if m:
@@ -69,6 +77,22 @@ class _Converter:
         if ':*' not in result and '//third_party/abseil-cpp/absl/*' not in result:
             result.append(':*')
         return result
+
+    # Targets that include string_view.h should depend on string_view target.
+    # For backward compatibility it is possible to depend just on 'strings', but it is
+    # better to depend on string_view directly.
+    def _need_to_add_string_view(self, bt):
+        if "//absl/strings" not in bt.get('deps', []):
+            # If target doesn't depend on 'strings', it either doesn't use string_view,
+            # or already directly depends on string_view. Skip reading source files.
+            return False
+
+        for s in bt.get('srcs', []) + bt.get('hdrs', []):
+            with open(os.path.join(self.path, s), 'r', encoding='utf-8') as f:
+                if re.search(r'#include "absl/strings/string_view.h"',
+                             f.read()):
+                    return True
+        return False
 
     def parse_bazel(self, content):
         tree = ast.parse(content)
@@ -110,6 +134,14 @@ class _Converter:
 
             is_test = bt.get('is_test')
             rule = 'absl_test' if is_test else 'absl_source_set'
+            target_name = f"{self.rel_path}:{name}"
+
+            skip = _SKIP_TARGETS.get(target_name)
+            if skip:
+                out.append(f'# {skip}')
+                out.append(f'# {rule}("{name}")')
+                out.append(f'')
+                continue
 
             # Start writing the output.
             out.append(f'{rule}("{name}") {{')
@@ -146,6 +178,12 @@ class _Converter:
                 td = self._translate_dep(d)
                 if td:
                     gn_deps.append(td)
+                elif not is_test and d == '@googletest//:gtest':
+                    gn_deps.append("//third_party/googletest:gmock")
+                    gn_deps.append("//third_party/googletest:gtest")
+            if self._need_to_add_string_view(bt):
+                gn_deps.append(
+                    self._translate_dep('//absl/strings:string_view'))
             if gn_deps:
                 out.append('deps = [')
                 for d in sorted(gn_deps):
@@ -161,7 +199,7 @@ class _Converter:
 def convert_one(path):
     bazel_path = os.path.join(path, 'BUILD.bazel')
     gn_path = os.path.join(path, 'BUILD.gn')
-    logging.info(f'Converting {bazel_path} -> {gn_path}')
+    logging.info(f'Converting {bazel_path}')
     old_gn = None
     if os.path.exists(gn_path):
         with open(gn_path, 'r', encoding='utf-8') as f:
@@ -170,7 +208,7 @@ def convert_one(path):
     with open(bazel_path, 'r', encoding='utf-8') as f:
         bazel_content = f.read()
 
-    converter = _Converter(old_gn)
+    converter = _Converter(path, old_gn)
     converter.parse_bazel(bazel_content)
 
     if not converter.bazel_targets:
@@ -192,11 +230,14 @@ def convert_all(root_dir):
     # TODO: crbug.com/524565513: walk the root dir when script is fully ready to handle all edge cases.
     for folder in [
             'algorithm',
+            'crc',
             'functional',
             'memory',
             'meta',
             'numeric',
+            'status',
             'time',
+            'types',
             'utility',
     ]:
         convert_one(os.path.join(root_dir, 'absl', folder))

@@ -8640,6 +8640,7 @@ from previous Chrome versions.
   <int value="-1856080892" label="UseAdHocSigningForWebAppShims:disabled"/>
   <int value="-1855876994"
       label="SyncEnableContactInfoDataTypeInTransportMode:enabled"/>
+  <int value="-1855602285" label="NativeViewHostManagesLayers:enabled"/>
   <int value="-1855347512" label="FormControlsRefresh:disabled"/>
   <int value="-1855339525"
       label="CompressionDictionaryTransportRequireKnownRootCert:enabled"/>
@@ -9331,6 +9332,7 @@ from previous Chrome versions.
   <int value="-1635048938" label="DetectFormSubmissionOnFormClear:disabled"/>
   <int value="-1634878515" label="ChromeHomeModernLayout:enabled"/>
   <int value="-1634753928" label="QueryTilesDisableCountryOverride:disabled"/>
+  <int value="-1634708108" label="NativeViewHostManagesLayers:disabled"/>
   <int value="-1634490190"
       label="AutofillCreditCardLocalCardMigration:disabled"/>
   <int value="-1634154256" label="ZeroSuggestRedirectToChrome:enabled"/>
@@ -12800,6 +12802,7 @@ from previous Chrome versions.
   <int value="-538448229" label="MaxUnthrottledTimeoutNestingLevel:enabled"/>
   <int value="-538398895"
       label="EnterpriseUpdatedProfileCreationScreen:disabled"/>
+  <int value="-538384350" label="OrganizerPanel:disabled"/>
   <int value="-538323456" label="OmniboxSuggestionAnswerMigration:enabled"/>
   <int value="-538317834" label="ShimlessRMAComplianceCheck:enabled"/>
   <int value="-538240055" label="MagiChromePasskeySignIn:disabled"/>
@@ -20168,6 +20171,7 @@ from previous Chrome versions.
   <int value="1793023585"
       label="ClickToCallContextMenuForSelectedText:disabled"/>
   <int value="1793434695" label="VideoPlayerAppHidden:enabled"/>
+  <int value="1793676031" label="OrganizerPanel:enabled"/>
   <int value="1793835436"
       label="NtpMostRelevantTabResumptionModuleDeviceIcon:disabled"/>
   <int value="1794057460" label="AutofillProfileClientValidation:enabled"/>
