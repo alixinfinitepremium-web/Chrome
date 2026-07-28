@@ -323,15 +323,15 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': 'b6015fa7ac5a5ac0c757f3c2dcedecf2b81f02af',
+  'src_internal_revision': '2d1ac4a14b623bfcf9e4b2bdd05ecaeb29b4651e',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '711f7c04f826733369d5d7985c90663f34e42f99',
+  'skia_revision': '32cd7e454cc3c07badf974b363513e68d67557d4',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': 'a534a9bbb98b3462fac4ffab9a95b92c22ea5031',
+  'v8_revision': 'f5bbd01ef2b1d877b3173f90699fb355523f795d',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -407,7 +407,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '009e69ad63f44b7568a047fd147a42eeedb8999d',
+  'devtools_frontend_revision': 'c6eb1ccab2993e084c040483017612a2f8eb58e4',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -531,11 +531,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
-  'llvm_libc_revision':    '3ea89f4304312567e31a8eb45e0737577e65b676',
+  'llvm_libc_revision':    '539518b87b142cdaa3aab90854652fab1e57b526',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
-  'compiler_rt_revision': 'e1c9323385b40780f574f440a8a9ad83855712b0',
+  'compiler_rt_revision': '4a08706fffe66ede459c36064ff267dd03c5e854',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling clusterfuzz-data
   # and whatever else without interference from each other.
@@ -1188,10 +1188,10 @@ deps = {
     'condition': 'non_git_source',
     'objects': [
       {
-        'object_name': 'meet-gpu-tests/954443332.tar.gz',
-        'sha256sum': '38bb2842f486dee0822045ddb0579b1fbc7222c3a412488579c1fe6ff1d39137',
-        'size_bytes': 278457858,
-        'generation': 1785142180562353,
+        'object_name': 'meet-gpu-tests/955062038.tar.gz',
+        'sha256sum': '3d3879e803d6da753e650f5b8b40f13ce3bfebb79d36da1bcae766fa26b55170',
+        'size_bytes': 278462601,
+        'generation': 1785229619391506,
       },
     ],
   },
@@ -1722,7 +1722,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    'd1c6ff035870ac8f71eac8d03b3b2815cc484970',
+    'af720f6217de13b045e95f33dc9b01031ceb0be1',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -3172,7 +3172,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + 'dd1d31113c425e6b8a60b26229e27963d9e15bc3',
+    Var('webrtc_git') + '/src.git' + '@' + '5ad58d70eea10785fab05ba4150e2fe22ecc7f97',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -3929,7 +3929,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        '4852b52cdd0a2d78de256e259da502f0084c81ca',
+        '9becafcb64d07729b8be79eb9663bddf5942f68d',
       'condition': 'checkout_src_internal',
   },
 
@@ -4013,7 +4013,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '747c2d0785f23e765d64df9f061e2731fd8ad594',
+        '08d85fd5a762efb5d0b63f20898fec217d4995b3',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 

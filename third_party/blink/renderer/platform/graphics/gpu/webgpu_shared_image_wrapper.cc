@@ -386,9 +386,6 @@ gpu::SyncToken WebGpuSharedImageWrapper::GetSyncToken() const {
   return release_sync_token_;
 }
 
-base::ByteSize WebGpuSharedImageWrapper::EstimatedSizeInBytes() const {
-  return shared_image_->EstimatedSizeInBytes();
-}
 
 void WebGpuSharedImageWrapper::OnMemoryDump(
     base::trace_event::ProcessMemoryDump* pmd) {
@@ -399,11 +396,9 @@ void WebGpuSharedImageWrapper::OnMemoryDump(
       base::StringPrintf("%s/CanvasResource_0x%" PRIXPTR, path.c_str(),
                          reinterpret_cast<uintptr_t>(this));
   auto* dump = pmd->CreateAllocatorDump(dump_name);
-  size_t memory_size =
-      shared_image_->format().EstimatedSizeInBytes(shared_image_->size());
   dump->AddScalar(base::trace_event::MemoryAllocatorDump::kNameSize,
                   base::trace_event::MemoryAllocatorDump::kUnitsBytes,
-                  memory_size);
+                  GetSize());
 
   shared_image_->OnMemoryDump(
       pmd, dump->guid(),
@@ -411,7 +406,8 @@ void WebGpuSharedImageWrapper::OnMemoryDump(
 }
 
 size_t WebGpuSharedImageWrapper::GetSize() const {
-  return base::checked_cast<size_t>(EstimatedSizeInBytes().InBytes());
+  return base::checked_cast<size_t>(
+      shared_image_->EstimatedSizeInBytes().InBytes());
 }
 
 }  // namespace blink
