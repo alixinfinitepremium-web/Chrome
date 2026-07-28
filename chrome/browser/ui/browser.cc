@@ -328,29 +328,6 @@ namespace {
 // How long we wait before updating the browser chrome while loading a page.
 constexpr base::TimeDelta kUIUpdateCoalescingTime = base::Milliseconds(200);
 
-
-const extensions::Extension* GetExtensionForOrigin(
-    Profile* profile,
-    const GURL& security_origin) {
-#if BUILDFLAG(ENABLE_EXTENSIONS)
-  if (!security_origin.SchemeIs(extensions::kExtensionScheme)) {
-    return nullptr;
-  }
-
-  const extensions::Extension* extension =
-      extensions::ExtensionRegistry::Get(profile)->enabled_extensions().GetByID(
-          security_origin.GetHost());
-  DCHECK(extension);
-  return extension;
-#else
-  return nullptr;
-#endif
-}
-
-
-
-
-
 }  // namespace
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1343,28 +1320,10 @@ bool Browser::IsWebContentsCreationOverridden(
     const GURL& opener_url,
     const std::string& frame_name,
     const GURL& target_url) {
-  if (actor::HasActorTaskPreventingNewWebContents(opener)) {
-    // If an ExecutionEngine is acting on the opener, prevent it from creating a
-    // new WebContents. We'll instead force the navigation to happen in the same
-    // tab. Note, we do this even if the task isn't active (e.g. paused) so that
-    // a user action on behalf of the actor has the same behavior since the
-    // resumed task will still be fixed to the tab.
-
-    // However, if the opener is sandboxed and restricted from top-level
-    // navigation, we cannot force a same-tab redirection as it would violate
-    // the sandbox. Instead, we decline to override creation, allowing the
-    // browser to safely open a new popup window (since kPopups is allowed).
-    if (opener &&
-        opener->IsSandboxed(network::mojom::WebSandboxFlags::kTopNavigation)) {
-      return false;
-    }
-    return true;
-  }
-
-  return (window_container_type ==
-              content::mojom::WindowContainerType::BACKGROUND &&
-          ShouldCreateBackgroundContents(source_site_instance, opener_url,
-                                         frame_name));
+  return BrowserWebContentsDelegate::From(this)
+      ->IsWebContentsCreationOverridden(opener, source_site_instance,
+                                        window_container_type, opener_url,
+                                        frame_name, target_url);
 }
 
 WebContents* Browser::CreateCustomWebContents(
@@ -1378,30 +1337,10 @@ WebContents* Browser::CreateCustomWebContents(
     const blink::mojom::WindowFeatures& window_features,
     const content::StoragePartitionConfig& partition_config,
     content::SessionStorageNamespace* session_storage_namespace) {
-  if (auto* opener_contents = content::WebContents::FromRenderFrameHost(opener);
-      actor::HasActorTaskPreventingNewWebContents(opener)) {
-    // If an ExecutionEngine is acting on the opener, we force the navigation
-    // to happen in the same tab.
-    content::NavigationController::LoadURLParams params(target_url);
-    params.initiator_frame_token = opener->GetFrameToken();
-    params.initiator_process_id = opener->GetProcess()->GetID();
-    params.initiator_origin = opener->GetLastCommittedOrigin();
-    params.source_site_instance = source_site_instance;
-    params.transition_type = ui::PAGE_TRANSITION_LINK;
-    params.is_renderer_initiated = true;
-    opener_contents->GetController().LoadURLWithParams(params);
-    VLOG(1) << "Actor treated window open as same tab navigation. "
-            << target_url;
-    return nullptr;
-  }
-
-  BackgroundContents* background_contents = CreateBackgroundContents(
-      source_site_instance, opener, opener_url, is_new_browsing_instance,
-      frame_name, target_url, partition_config, session_storage_namespace);
-  if (background_contents) {
-    return background_contents->web_contents();
-  }
-  return nullptr;
+  return BrowserWebContentsDelegate::From(this)->CreateCustomWebContents(
+      opener, source_site_instance, is_new_browsing_instance, opener_url,
+      frame_name, target_url, disposition, window_features, partition_config,
+      session_storage_namespace);
 }
 
 void Browser::WebContentsCreated(WebContents* source_contents,
@@ -1409,264 +1348,151 @@ void Browser::WebContentsCreated(WebContents* source_contents,
                                  const std::string& frame_name,
                                  const GURL& target_url,
                                  WebContents* new_contents) {
-  // Note: Consult owners before adding new code here.
-  // This method is called from WebContentsImpl::CreateNewWindow() for a created
-  // `new_contents`. This occurs before ownership of `new_contents` is
-  // transferred to Browser and `new_contents` is added to a TabModel. Tab
-  // specific initialization should be performed by TabModel and not added here.
-
-  // SafeBrowsingNavigationObserver relies on recording a precise sequence of
-  // navigation events, with tabs tracked via their SessionID, managed by
-  // SessionTabHelper. The current safe browsing implementation requires
-  // tracking new contents from the moment of creation, at which point TabModel
-  // and tab helpers have not yet been initialized for `new_contents`.
-  // Explicitly instantiate the SessionTabHelper here to ensure SessionIDs are
-  // available when needed.
-  // TODO(crbug.com/362038317): Once SafeBrowsingNavigationObserver is updated
-  // to track `new_contents` after it is added to its TabModel this override can
-  // be removed.
-  CreateSessionServiceTabHelper(new_contents);
+  BrowserWebContentsDelegate::From(this)->WebContentsCreated(
+      source_contents, opener_id, frame_name, target_url, new_contents);
 }
 
 void Browser::RendererUnresponsive(
     WebContents* source,
     content::RenderWidgetHost* render_widget_host,
     base::RepeatingClosure hang_monitor_restarter) {
-  // Don't show the page hung dialog when a HTML popup hangs because
-  // the dialog will take the focus and immediately close the popup.
-  RenderWidgetHostView* view = render_widget_host->GetView();
-  if (view && !render_widget_host->GetView()->IsHTMLFormPopup()) {
-    TabDialogs::FromWebContents(source)->ShowHungRendererDialog(
-        render_widget_host, std::move(hang_monitor_restarter));
-  }
+  BrowserWebContentsDelegate::From(this)->RendererUnresponsive(
+      source, render_widget_host, hang_monitor_restarter);
 }
 
 void Browser::RendererResponsive(
     WebContents* source,
     content::RenderWidgetHost* render_widget_host) {
-  RenderWidgetHostView* view = render_widget_host->GetView();
-  if (view && !render_widget_host->GetView()->IsHTMLFormPopup()) {
-    TabDialogs::FromWebContents(source)->HideHungRendererDialog(
-        render_widget_host);
-  }
+  BrowserWebContentsDelegate::From(this)->RendererResponsive(
+      source, render_widget_host);
 }
 
 content::JavaScriptDialogManager* Browser::GetJavaScriptDialogManager(
     WebContents* source) {
-  return javascript_dialogs::TabModalDialogManager::FromWebContents(source);
+  return BrowserWebContentsDelegate::From(this)->GetJavaScriptDialogManager(
+      source);
 }
 
 bool Browser::GuestSaveFrame(content::WebContents* guest_web_contents) {
-  auto* guest_view =
-      extensions::MimeHandlerViewGuest::FromWebContents(guest_web_contents);
-  return guest_view && guest_view->PluginDoSave();
+  return BrowserWebContentsDelegate::From(this)->GuestSaveFrame(
+      guest_web_contents);
 }
 
 std::unique_ptr<content::EyeDropper> Browser::OpenEyeDropper(
     content::RenderFrameHost* frame,
     content::EyeDropperListener* listener) {
-  return window_->OpenEyeDropper(frame, listener);
+  return BrowserWebContentsDelegate::From(this)->OpenEyeDropper(frame,
+                                                                listener);
 }
 
 bool Browser::ShouldUseInstancedSystemMediaControls() const {
-  return GetType() == BrowserWindowInterface::Type::TYPE_APP ||
-         is_type_app_popup();
+  return BrowserWebContentsDelegate::From(this)
+      ->ShouldUseInstancedSystemMediaControls();
 }
 
 void Browser::DraggableRegionsChanged(
     const std::vector<blink::mojom::DraggableRegionPtr>& regions,
     content::WebContents* contents) {
-  if (auto* const app_browser_controller =
-          web_app::AppBrowserController::From(this)) {
-    app_browser_controller->DraggableRegionsChanged(regions, contents);
-  }
+  BrowserWebContentsDelegate::From(this)->DraggableRegionsChanged(regions,
+                                                                  contents);
 }
 
 std::vector<blink::mojom::RelatedApplicationPtr>
 Browser::GetSavedRelatedApplications(WebContents* web_contents) {
-  Profile* profile =
-      Profile::FromBrowserContext(web_contents->GetBrowserContext());
-  CHECK(profile);
-  if (!web_app::AreWebAppsEnabled(profile)) {
-    return {};
-  }
-  const webapps::AppId* app_id =
-      web_app::WebAppTabHelper::GetAppId(web_contents);
-  if (!app_id || app_id->empty()) {
-    return {};
-  }
-  web_app::WebAppProvider* provider =
-      web_app::WebAppProvider::GetForWebApps(profile);
-  CHECK(provider);
-  std::vector<blink::Manifest::RelatedApplication> saved_related_apps =
-      provider->registrar_unsafe().GetRelatedApplications(*app_id);
-  std::vector<blink::mojom::RelatedApplicationPtr> related_apps_ptr;
-  for (const auto& app : saved_related_apps) {
-    auto related_app = blink::mojom::RelatedApplication::New();
-    related_app->platform =
-        base::UTF16ToUTF8(app.platform.value_or(std::u16string()));
-    related_app->id = base::UTF16ToUTF8(app.id.value_or(std::u16string()));
-    if (!app.url.is_empty()) {
-      related_app->url = app.url.spec();
-    }
-    related_apps_ptr.push_back(std::move(related_app));
-  }
-  return related_apps_ptr;
+  return BrowserWebContentsDelegate::From(this)->GetSavedRelatedApplications(
+      web_contents);
 }
 
 content::WebContents* Browser::GetResponsibleWebContents(
     content::WebContents* web_contents) {
-  // Tabs are the proper choice for modal scope.
-  return web_contents;
+  return BrowserWebContentsDelegate::From(this)->GetResponsibleWebContents(
+      web_contents);
 }
 
 std::optional<gfx::Rect> Browser::GetWindowBoundsInScreen() {
-  if (!window_) {
-    return std::nullopt;
-  }
-
-  // Note that `GetBounds` here returns the screen coordinate bounds
-  // from the browser widget. This is not to be confused with
-  // `views::View::bounds()` which returns parent-relative bounds.
-  return GetBrowserView().GetBounds();
+  return BrowserWebContentsDelegate::From(this)->GetWindowBoundsInScreen();
 }
 
 void Browser::RunFileChooser(
     content::RenderFrameHost* render_frame_host,
     scoped_refptr<content::FileSelectListener> listener,
     const blink::mojom::FileChooserParams& params) {
-  FileSelectHelper::RunFileChooser(render_frame_host, std::move(listener),
-                                   params);
+  BrowserWebContentsDelegate::From(this)->RunFileChooser(
+      render_frame_host, std::move(listener), params);
 }
 
 void Browser::EnumerateDirectory(
     WebContents* web_contents,
     scoped_refptr<content::FileSelectListener> listener,
     const base::FilePath& path) {
-  FileSelectHelper::EnumerateDirectory(web_contents, std::move(listener), path);
+  BrowserWebContentsDelegate::From(this)->EnumerateDirectory(
+      web_contents, std::move(listener), path);
 }
 
 bool Browser::GetCanResize() {
-  return window_->GetCanResize();
+  return BrowserWebContentsDelegate::From(this)->GetCanResize();
 }
 
 #if !BUILDFLAG(IS_ANDROID)
 bool Browser::CanUseWindowingControls(
     content::RenderFrameHost* requesting_frame) {
-  if (!web_app::AppBrowserController::From(this)) {
-    requesting_frame->AddMessageToConsole(
-        blink::mojom::ConsoleMessageLevel::kWarning,
-        "API called from something else than a web_app.");
-    return false;
-  }
-  return true;
+  return BrowserWebContentsDelegate::From(this)->CanUseWindowingControls(
+      requesting_frame);
 }
 
 void Browser::MinimizeFromWebAPI() {
-  window_->Minimize();
+  BrowserWebContentsDelegate::From(this)->MinimizeFromWebAPI();
 }
 
 void Browser::MaximizeFromWebAPI() {
-  window_->Maximize();
+  BrowserWebContentsDelegate::From(this)->MaximizeFromWebAPI();
 }
 
 void Browser::RestoreFromWebAPI() {
-  window_->Restore();
+  BrowserWebContentsDelegate::From(this)->RestoreFromWebAPI();
 }
 
 void Browser::SetResizableFromWebAPI(bool resizable) {
-  GetBrowserView().SetResizableFromWebApi(resizable);
+  BrowserWebContentsDelegate::From(this)->SetResizableFromWebAPI(resizable);
 }
 #endif  // !BUILDFLAG(IS_ANDROID)
 
 ui::mojom::WindowShowState Browser::GetWindowShowState() const {
-  return window_->GetWindowShowState();
+  return BrowserWebContentsDelegate::From(this)->GetWindowShowState();
 }
 
 bool Browser::CanEnterFullscreenModeForTab(
     content::RenderFrameHost* requesting_frame) {
-  // If the tab strip isn't editable then a drag session is in progress, and it
-  // is not safe to enter fullscreen. https://crbug.com/40059349
-  if (!tab_strip_model_delegate_->IsTabStripEditable()) {
-    return false;
-  }
-
-  return browser_window_features()
-      ->exclusive_access_manager()
-      ->fullscreen_controller()
-      ->CanEnterFullscreenModeForTab(requesting_frame);
+  return BrowserWebContentsDelegate::From(this)->CanEnterFullscreenModeForTab(
+      requesting_frame);
 }
 
 void Browser::EnterFullscreenModeForTab(
     content::RenderFrameHost* requesting_frame,
     const blink::mojom::FullscreenOptions& options) {
-  browser_window_features()
-      ->exclusive_access_manager()
-      ->fullscreen_controller()
-      ->EnterFullscreenModeForTab(requesting_frame,
-                                  FullscreenTabParams{options.display_id});
+  BrowserWebContentsDelegate::From(this)->EnterFullscreenModeForTab(
+      requesting_frame, options);
 }
 
 void Browser::ExitFullscreenModeForTab(WebContents* web_contents) {
-  browser_window_features()
-      ->exclusive_access_manager()
-      ->fullscreen_controller()
-      ->ExitFullscreenModeForTab(web_contents);
+  BrowserWebContentsDelegate::From(this)->ExitFullscreenModeForTab(
+      web_contents);
 }
 
 bool Browser::IsFullscreenForTabOrPending(const WebContents* web_contents) {
-  const content::FullscreenState state = GetFullscreenState(web_contents);
-  return state.target_mode == content::FullscreenMode::kContent ||
-         state.target_mode == content::FullscreenMode::kPseudoContent;
+  return BrowserWebContentsDelegate::From(this)->IsFullscreenForTabOrPending(
+      web_contents);
 }
 
 content::FullscreenState Browser::GetFullscreenState(
     const WebContents* web_contents) const {
-  return browser_window_features()
-      ->exclusive_access_manager()
-      ->fullscreen_controller()
-      ->GetFullscreenState(web_contents);
+  return BrowserWebContentsDelegate::From(this)->GetFullscreenState(
+      web_contents);
 }
 
 blink::mojom::DisplayMode Browser::GetDisplayMode(
     const WebContents* web_contents) {
-  if (window_->IsFullscreen()) {
-    return blink::mojom::DisplayMode::kFullscreen;
-  }
-
-  if (is_type_picture_in_picture()) {
-    return blink::mojom::DisplayMode::kPictureInPicture;
-  }
-
-  if (GetType() == BrowserWindowInterface::Type::TYPE_APP ||
-      is_type_devtools() || is_type_app_popup()) {
-    auto* const app_browser_controller =
-        web_app::AppBrowserController::From(this);
-    if (app_browser_controller &&
-        app_browser_controller->HasMinimalUiButtons()) {
-      return blink::mojom::DisplayMode::kMinimalUi;
-    }
-
-    if (app_browser_controller &&
-        app_browser_controller->AppUsesWindowControlsOverlay() &&
-        !web_contents->GetWindowsControlsOverlayRect().IsEmpty()) {
-      return blink::mojom::DisplayMode::kWindowControlsOverlay;
-    }
-
-    if (app_browser_controller && app_browser_controller->AppUsesTabbed()) {
-      return blink::mojom::DisplayMode::kTabbed;
-    }
-
-    if (app_browser_controller &&
-        app_browser_controller->AppUsesUnframedMode() &&
-        window_->IsUnframedModeEnabled()) {
-      return blink::mojom::DisplayMode::kUnframed;
-    }
-
-    return blink::mojom::DisplayMode::kStandalone;
-  }
-
-  return blink::mojom::DisplayMode::kBrowser;
+  return BrowserWebContentsDelegate::From(this)->GetDisplayMode(web_contents);
 }
 
 blink::mojom::ApplicationContext Browser::GetApplicationContext(
@@ -1678,17 +1504,8 @@ blink::mojom::ApplicationContext Browser::GetApplicationContext(
 
 blink::ProtocolHandlerSecurityLevel Browser::GetProtocolHandlerSecurityLevel(
     content::RenderFrameHost* requesting_frame) {
-  content::BrowserContext* context = requesting_frame->GetBrowserContext();
-  extensions::ProcessMap* process_map = extensions::ProcessMap::Get(context);
-  const Extension* owner_extension =
-      extensions::ProcessManager::Get(context)->GetExtensionForRenderFrameHost(
-          requesting_frame);
-  if (owner_extension &&
-      process_map->IsPrivilegedExtensionProcess(
-          *owner_extension, requesting_frame->GetProcess()->GetID())) {
-    return blink::ProtocolHandlerSecurityLevel::kExtensionFeatures;
-  }
-  return blink::ProtocolHandlerSecurityLevel::kStrict;
+  return BrowserWebContentsDelegate::From(this)
+      ->GetProtocolHandlerSecurityLevel(requesting_frame);
 }
 
 void Browser::RegisterProtocolHandler(
@@ -1696,69 +1513,8 @@ void Browser::RegisterProtocolHandler(
     const std::string& protocol,
     const GURL& url,
     bool user_gesture) {
-  content::BrowserContext* context = requesting_frame->GetBrowserContext();
-  if (context->IsOffTheRecord()) {
-    return;
-  }
-
-  auto* web_contents =
-      content::WebContents::FromRenderFrameHost(requesting_frame);
-
-  ProtocolHandler handler = ProtocolHandler::CreateProtocolHandler(
-      protocol, url, GetProtocolHandlerSecurityLevel(requesting_frame));
-
-  // The parameters's normalization process defined in the spec has been already
-  // applied in the WebContentImpl class, so at this point it shouldn't be
-  // possible to create an invalid handler.
-  // https://html.spec.whatwg.org/multipage/system-state.html#normalize-protocol-handler-parameters
-  DCHECK(handler.IsValid());
-
-  custom_handlers::ProtocolHandlerRegistry* registry =
-      ProtocolHandlerRegistryFactory::GetForBrowserContext(context);
-  if (registry->SilentlyHandleRegisterHandlerRequest(handler)) {
-    return;
-  }
-
-  // TODO(carlscab): This should probably be FromFrame() once it becomes
-  // PageSpecificContentSettingsDelegate
-  auto* page_content_settings_delegate =
-      PageSpecificContentSettingsDelegate::FromWebContents(web_contents);
-  if (!user_gesture && window_) {
-    page_content_settings_delegate->set_pending_protocol_handler(handler);
-    page_content_settings_delegate->set_previous_protocol_handler(
-        registry->GetHandlerFor(handler.protocol()));
-    window_->GetLocationBar()->UpdateContentSettingsIcons();
-    return;
-  }
-
-  // Make sure content-setting icon is turned off in case the page does
-  // ungestured and gestured RPH calls.
-  if (window_) {
-    page_content_settings_delegate->ClearPendingProtocolHandler();
-    window_->GetLocationBar()->UpdateContentSettingsIcons();
-  }
-
-  if (registry->registration_mode() ==
-      custom_handlers::RphRegistrationMode::kAutoAccept) {
-    registry->OnAcceptRegisterProtocolHandler(handler);
-    return;
-  }
-
-  permissions::PermissionRequestManager* permission_request_manager =
-      permissions::PermissionRequestManager::FromWebContents(web_contents);
-  if (permission_request_manager) {
-    auto blocker = web_contents->ForSecurityDropFullscreen(
-        /*display_id=*/display::kInvalidDisplayId);
-    if (!blocker) {
-      return;
-    }
-
-    permission_request_manager->AddRequest(
-        requesting_frame,
-        std::make_unique<
-            custom_handlers::RegisterProtocolHandlerPermissionRequest>(
-            registry, handler, url, std::move(*blocker)));
-  }
+  BrowserWebContentsDelegate::From(this)->RegisterProtocolHandler(
+      requesting_frame, protocol, url, user_gesture);
 }
 
 void Browser::UnregisterProtocolHandler(
@@ -1766,19 +1522,8 @@ void Browser::UnregisterProtocolHandler(
     const std::string& protocol,
     const GURL& url,
     bool user_gesture) {
-  // user_gesture will be used in case we decide to have confirmation bubble
-  // for user while un-registering the handler.
-  content::BrowserContext* context = requesting_frame->GetBrowserContext();
-  if (context->IsOffTheRecord()) {
-    return;
-  }
-
-  ProtocolHandler handler = ProtocolHandler::CreateProtocolHandler(
-      protocol, url, GetProtocolHandlerSecurityLevel(requesting_frame));
-
-  custom_handlers::ProtocolHandlerRegistry* registry =
-      ProtocolHandlerRegistryFactory::GetForBrowserContext(context);
-  registry->RemoveHandler(handler);
+  BrowserWebContentsDelegate::From(this)->UnregisterProtocolHandler(
+      requesting_frame, protocol, url, user_gesture);
 }
 
 void Browser::FindReply(WebContents* web_contents,
@@ -1787,15 +1532,9 @@ void Browser::FindReply(WebContents* web_contents,
                         const gfx::Rect& selection_rect,
                         int active_match_ordinal,
                         bool final_update) {
-  find_in_page::FindTabHelper* find_tab_helper =
-      find_in_page::FindTabHelper::FromWebContents(web_contents);
-  if (!find_tab_helper) {
-    return;
-  }
-
-  find_tab_helper->HandleFindReply(request_id, number_of_matches,
-                                   selection_rect, active_match_ordinal,
-                                   final_update);
+  BrowserWebContentsDelegate::From(this)->FindReply(
+      web_contents, request_id, number_of_matches, selection_rect,
+      active_match_ordinal, final_update);
 }
 
 void Browser::RequestPointerLock(WebContents* web_contents,
@@ -1834,43 +1573,28 @@ void Browser::RequestMediaAccessPermission(
     content::WebContents* web_contents,
     const content::MediaStreamRequest& request,
     content::MediaResponseCallback callback) {
-  const extensions::Extension* extension =
-      GetExtensionForOrigin(profile_, request.security_origin);
-  MediaCaptureDevicesDispatcher::GetInstance()->ProcessMediaAccessRequest(
-      web_contents, request, std::move(callback), extension);
+  BrowserWebContentsDelegate::From(this)->RequestMediaAccessPermission(
+      web_contents, request, std::move(callback));
 }
 
 void Browser::ProcessSelectAudioOutput(
     const content::SelectAudioOutputRequest& request,
     content::SelectAudioOutputCallback callback) {
-#if defined(TOOLKIT_VIEWS)
-  MediaCaptureDevicesDispatcher::GetInstance()->ProcessSelectAudioOutputRequest(
-      this, request, std::move(callback));
-#else
-  std::move(callback).Run(
-      base::unexpected(content::SelectAudioOutputError::kUnknown));
-#endif
+  BrowserWebContentsDelegate::From(this)->ProcessSelectAudioOutput(
+      request, std::move(callback));
 }
 
 bool Browser::CheckMediaAccessPermission(
     content::RenderFrameHost* render_frame_host,
     const url::Origin& security_origin,
     blink::mojom::MediaStreamType type) {
-  Profile* profile =
-      Profile::FromBrowserContext(render_frame_host->GetBrowserContext());
-  const extensions::Extension* extension =
-      GetExtensionForOrigin(profile, security_origin.GetURL());
-  return MediaCaptureDevicesDispatcher::GetInstance()
-      ->CheckMediaAccessPermission(render_frame_host, security_origin, type,
-                                   extension);
+  return BrowserWebContentsDelegate::From(this)->CheckMediaAccessPermission(
+      render_frame_host, security_origin, type);
 }
 
 std::string Browser::GetTitleForMediaControls(WebContents* web_contents) {
-  auto* const app_browser_controller =
-      web_app::AppBrowserController::From(this);
-  return app_browser_controller
-             ? app_browser_controller->GetTitleForMediaControls()
-             : std::string();
+  return BrowserWebContentsDelegate::From(this)->GetTitleForMediaControls(
+      web_contents);
 }
 
 void Browser::GetAIPageContent(
@@ -1900,10 +1624,8 @@ void Browser::PrintCrossProcessSubframe(
     const gfx::Rect& rect,
     int document_cookie,
     content::RenderFrameHost* subframe_host) const {
-  auto* client = printing::PrintCompositeClient::FromWebContents(web_contents);
-  if (client) {
-    client->PrintCrossProcessSubframe(rect, document_cookie, subframe_host);
-  }
+  BrowserWebContentsDelegate::From(this)->PrintCrossProcessSubframe(
+      web_contents, rect, document_cookie, subframe_host);
 }
 #endif
 
@@ -1913,11 +1635,8 @@ void Browser::CapturePaintPreviewOfSubframe(
     const gfx::Rect& rect,
     const base::UnguessableToken& guid,
     content::RenderFrameHost* render_frame_host) {
-  auto* client =
-      paint_preview::PaintPreviewClient::FromWebContents(web_contents);
-  if (client) {
-    client->CaptureSubframePaintPreview(guid, rect, render_frame_host);
-  }
+  BrowserWebContentsDelegate::From(this)->CapturePaintPreviewOfSubframe(
+      web_contents, rect, guid, render_frame_host);
 }
 #endif
 

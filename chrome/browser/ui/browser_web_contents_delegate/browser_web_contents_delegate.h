@@ -7,6 +7,7 @@
 
 #include "base/memory/raw_ref.h"
 #include "base/timer/elapsed_timer.h"
+#include "content/public/browser/file_select_listener.h"
 #include "content/public/browser/web_contents_delegate.h"
 #include "ui/base/unowned_user_data/scoped_unowned_user_data.h"
 
@@ -44,6 +45,8 @@ class BrowserWebContentsDelegate : public content::WebContentsDelegate {
   ~BrowserWebContentsDelegate() override;
 
   static BrowserWebContentsDelegate* From(BrowserWindowInterface* browser);
+  static const BrowserWebContentsDelegate* From(
+      const BrowserWindowInterface* browser);
 
   // content::WebContentsDelegate:
   content::PictureInPictureResult EnterPictureInPicture(
@@ -142,6 +145,115 @@ class BrowserWebContentsDelegate : public content::WebContentsDelegate {
   bool ShouldFocusLocationBarByDefault(content::WebContents* source) override;
   bool ShouldFocusPageAfterCrash(content::WebContents* source) override;
   void ShowRepostFormWarningDialog(content::WebContents* source) override;
+  std::unique_ptr<content::EyeDropper> OpenEyeDropper(
+      content::RenderFrameHost* frame,
+      content::EyeDropperListener* listener) override;
+  bool ShouldUseInstancedSystemMediaControls() const override;
+  void DraggableRegionsChanged(
+      const std::vector<blink::mojom::DraggableRegionPtr>& regions,
+      content::WebContents* contents) override;
+  std::vector<blink::mojom::RelatedApplicationPtr> GetSavedRelatedApplications(
+      content::WebContents* web_contents) override;
+  content::WebContents* GetResponsibleWebContents(
+      content::WebContents* web_contents) override;
+  std::optional<gfx::Rect> GetWindowBoundsInScreen() override;
+  bool IsWebContentsCreationOverridden(
+      content::RenderFrameHost* opener,
+      content::SiteInstance* source_site_instance,
+      content::mojom::WindowContainerType window_container_type,
+      const GURL& opener_url,
+      const std::string& frame_name,
+      const GURL& target_url) override;
+  content::WebContents* CreateCustomWebContents(
+      content::RenderFrameHost* opener,
+      content::SiteInstance* source_site_instance,
+      bool is_new_browsing_instance,
+      const GURL& opener_url,
+      const std::string& frame_name,
+      const GURL& target_url,
+      WindowOpenDisposition disposition,
+      const blink::mojom::WindowFeatures& window_features,
+      const content::StoragePartitionConfig& partition_config,
+      content::SessionStorageNamespace* session_storage_namespace) override;
+  void WebContentsCreated(content::WebContents* source_contents,
+                          const content::GlobalRenderFrameHostId& opener_id,
+                          const std::string& frame_name,
+                          const GURL& target_url,
+                          content::WebContents* new_contents) override;
+  void RendererUnresponsive(
+      content::WebContents* source,
+      content::RenderWidgetHost* render_widget_host,
+      base::RepeatingClosure hang_monitor_restarter) override;
+  void RendererResponsive(
+      content::WebContents* source,
+      content::RenderWidgetHost* render_widget_host) override;
+  content::JavaScriptDialogManager* GetJavaScriptDialogManager(
+      content::WebContents* source) override;
+  bool GuestSaveFrame(content::WebContents* guest_web_contents) override;
+  void RunFileChooser(content::RenderFrameHost* render_frame_host,
+                      scoped_refptr<content::FileSelectListener> listener,
+                      const blink::mojom::FileChooserParams& params) override;
+  void EnumerateDirectory(content::WebContents* web_contents,
+                          scoped_refptr<content::FileSelectListener> listener,
+                          const base::FilePath& path) override;
+  bool GetCanResize() override;
+  bool CanUseWindowingControls(
+      content::RenderFrameHost* requesting_frame) override;
+  void MinimizeFromWebAPI() override;
+  void MaximizeFromWebAPI() override;
+  void RestoreFromWebAPI() override;
+  void SetResizableFromWebAPI(bool resizable) override;
+  ui::mojom::WindowShowState GetWindowShowState() const override;
+  bool CanEnterFullscreenModeForTab(
+      content::RenderFrameHost* requesting_frame) override;
+  void EnterFullscreenModeForTab(
+      content::RenderFrameHost* requesting_frame,
+      const blink::mojom::FullscreenOptions& options) override;
+  void ExitFullscreenModeForTab(content::WebContents* web_contents) override;
+  bool IsFullscreenForTabOrPending(
+      const content::WebContents* web_contents) override;
+  content::FullscreenState GetFullscreenState(
+      const content::WebContents* web_contents) const override;
+  blink::mojom::DisplayMode GetDisplayMode(
+      const content::WebContents* web_contents) override;
+  blink::ProtocolHandlerSecurityLevel GetProtocolHandlerSecurityLevel(
+      content::RenderFrameHost* requesting_frame) override;
+  void RegisterProtocolHandler(content::RenderFrameHost* requesting_frame,
+                               const std::string& protocol,
+                               const GURL& url,
+                               bool user_gesture) override;
+  void UnregisterProtocolHandler(content::RenderFrameHost* requesting_frame,
+                                 const std::string& protocol,
+                                 const GURL& url,
+                                 bool user_gesture) override;
+  void FindReply(content::WebContents* web_contents,
+                 int request_id,
+                 int number_of_matches,
+                 const gfx::Rect& selection_rect,
+                 int active_match_ordinal,
+                 bool final_update) override;
+  void RequestMediaAccessPermission(
+      content::WebContents* web_contents,
+      const content::MediaStreamRequest& request,
+      content::MediaResponseCallback callback) override;
+  void ProcessSelectAudioOutput(
+      const content::SelectAudioOutputRequest& request,
+      content::SelectAudioOutputCallback callback) override;
+  bool CheckMediaAccessPermission(content::RenderFrameHost* render_frame_host,
+                                  const url::Origin& security_origin,
+                                  blink::mojom::MediaStreamType type) override;
+  std::string GetTitleForMediaControls(
+      content::WebContents* web_contents) override;
+  void PrintCrossProcessSubframe(
+      content::WebContents* web_contents,
+      const gfx::Rect& rect,
+      int document_cookie,
+      content::RenderFrameHost* subframe_host) const override;
+  void CapturePaintPreviewOfSubframe(
+      content::WebContents* web_contents,
+      const gfx::Rect& rect,
+      const base::UnguessableToken& guid,
+      content::RenderFrameHost* render_frame_host) override;
 
  private:
   const base::ElapsedTimer creation_timer_;

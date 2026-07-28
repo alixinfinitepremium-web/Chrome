@@ -327,7 +327,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '8f54ee31423f0fe3dc452f81c2da982fd7d0522f',
+  'skia_revision': '833f1993991332798c035dcaf41e333d9d15a15a',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -383,7 +383,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling catapult
   # and whatever else without interference from each other.
-  'catapult_revision': 'd810008022eeaefcbea50393ea5baa0930b27047',
+  'catapult_revision': '015082d0ace5b72a203d85f5907e91df2bd9382f',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -391,7 +391,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_web_tests_revision': '92d748acb154cb58c76ad1d509378d5aa8669755',
+  'crossbench_web_tests_revision': '314a9a73e10494afee88d9367fdd325b61b14341',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libFuzzer
   # and whatever else without interference from each other.
@@ -431,7 +431,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': '4ad5700c273f6b8e36058699df7eb30be22ce935',
+  'dawn_revision': 'cb7cb1dac16c133b3aae728f50e0a48f3c2fea75',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -1475,7 +1475,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_linux64',
-          'version': 'version:2@1663012',
+          'version': 'version:2@1664006',
         },
       ],
   },
@@ -1497,7 +1497,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_mac_arm64',
-          'version': 'version:2@1662013',
+          'version': 'version:2@1664016',
         },
       ],
   },
@@ -1630,7 +1630,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_linux64',
-          'version': '2Avm0P2fe4X6lKyXE7GLZyXSpXrsHq17Ei3Igzi97PQC',
+          'version': 'mG4w7SkoZu001gtipC_K1zARjOKfXBKB_CCyDpDk7XkC',
         },
       ],
   },
@@ -2172,7 +2172,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '38c391feba5fb96812f9028da12413ffc39df394',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '22bbabd48a66b7ad708d6c8084f03cd3867d2808',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -3172,7 +3172,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + 'fed1dbf9c342ad4b78f53332ccd40d35f81e24d6',
+    Var('webrtc_git') + '/src.git' + '@' + 'dd1d31113c425e6b8a60b26229e27963d9e15bc3',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -3205,7 +3205,7 @@ deps = {
       'packages': [
         {
           'package': 'skia/tools/goldctl/linux-amd64',
-          'version': '-r2o3R-j8b0B9bDj8Un0cFydT__ZDzqZfwGzAzMYF2sC',
+          'version': 'GhyWxyHcAwCEoo5VKbU9TyI3EYOnVVX4zSSqMB6l34kC',
         },
       ],
       'dep_type': 'cipd',
@@ -3215,7 +3215,7 @@ deps = {
       'packages': [
         {
           'package': 'skia/tools/goldctl/windows-amd64',
-          'version': '-xDDUZodBeTybAnBSH4M_GKIYBtt7r4CdSUugKkjFpgC',
+          'version': '0mYV2tTD_kxPCJV721Qbd1kMIOgUTCTwTwMBJKiVpP0C',
         },
       ],
       'dep_type': 'cipd',
@@ -3226,7 +3226,7 @@ deps = {
       'packages': [
         {
           'package': 'skia/tools/goldctl/mac-amd64',
-          'version': 'rmVKW9lEDvAtTLiyE21YYSf3QaUqzL2BcCmRxFzrRBUC',
+          'version': 'ctEVTG9Iuui_f_tmAzPfCTgPaHcVf0CJY6UAMHG1oh4C',
         },
       ],
       'dep_type': 'cipd',
@@ -3237,7 +3237,7 @@ deps = {
       'packages': [
         {
           'package': 'skia/tools/goldctl/mac-arm64',
-          'version': 'S1n8X9Qj1JdOPr2mh46gR60931N0uKTL9QCCXn5t5cUC',
+          'version': 'ma2O9SbAABz25thPapJ5yGMt9_ZU6cO073S5CsrPvYUC',
         },
       ],
       'dep_type': 'cipd',
@@ -3929,7 +3929,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        '0ba59d19e6d05d5f870ae2b1a36bded122a46818',
+        '4852b52cdd0a2d78de256e259da502f0084c81ca',
       'condition': 'checkout_src_internal',
   },
 
