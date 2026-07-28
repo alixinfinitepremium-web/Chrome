@@ -431,7 +431,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': '3e6e57a3eeda2e7756dc0f41ba44e7bb30fbafc5',
+  'dawn_revision': '443eabd201532ff827444a8f13ed4b587f51a4ce',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -2729,7 +2729,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '502412dfb6c6a70d99faddd8783cdc6ae072d4f2',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + 'a1c97b9eb9926f13c39d8a48a17700127584fbf3',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
@@ -3172,7 +3172,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + 'a0b1dfd19796b70d8b4343eb70ead8454188cee7',
+    Var('webrtc_git') + '/src.git' + '@' + '8e8d1d6259fd3b7c1a33cba4a00dd8d37c2389bd',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
