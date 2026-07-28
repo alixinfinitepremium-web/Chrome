@@ -193,6 +193,7 @@ public abstract class ChromeFeatureList {
     public static final String ANDROID_DEVICE_SIGNALS_DISCLAIMER = "AndroidDeviceSignalsDisclaimer";
     public static final String ANDROID_ELEGANT_TEXT_HEIGHT = "AndroidElegantTextHeight";
     public static final String ANDROID_FIRST_RUN_LAUNCH_BOUNDS = "AndroidFirstRunLaunchBounds";
+    public static final String ANDROID_FRE_LAYOUT_UPDATE = "AndroidFreLayoutUpdate";
     public static final String ANDROID_HISTORY_CLUSTERING = "AndroidHistoryClustering";
     public static final String ANDROID_NEW_MEDIA_PICKER = "AndroidNewMediaPicker";
     public static final String ANDROID_NO_VISIBLE_HINT_FOR_DIFFERENT_TLD =
@@ -638,6 +639,7 @@ public abstract class ChromeFeatureList {
     public static final String SEND_TAB_TO_SELF_EXTRA_ENTRY_POINTS =
             "SendTabToSelfExtraEntryPoints";
     public static final String SEND_TAB_TO_SELF_GESTURE = "SendTabToSelfGesture";
+    public static final String SEND_TAB_TO_SELF_OPEN_NATIVE_APP = "SendTabToSelfOpenNativeApp";
     public static final String SEND_TAB_TO_SELF_POST_SEND_TOAST = "SendTabToSelfPostSendToast";
     public static final String SEND_TAB_TO_SELF_PROPAGATE_SCROLL_POSITION =
             "SendTabToSelfPropagateScrollPosition";
@@ -1106,7 +1108,7 @@ public abstract class ChromeFeatureList {
     public static final CachedFlag sNewTabPageCustomizationThemeSync =
             newCachedFlag(NEW_TAB_PAGE_CUSTOMIZATION_THEME_SYNC, /* defaultValue= */ false);
     public static final CachedFlag sNewTabPageCustomizationV2 =
-            newCachedFlag(NEW_TAB_PAGE_CUSTOMIZATION_V2, false, true);
+            newCachedFlag(NEW_TAB_PAGE_CUSTOMIZATION_V2, true);
     public static final CachedFlag sNotificationTrampoline =
             newCachedFlag(NOTIFICATION_TRAMPOLINE, false);
     public static final CachedFlag sNotificationTrampolineNoNewTask =
@@ -1780,7 +1782,7 @@ public abstract class ChromeFeatureList {
 
     public static final BooleanCachedFeatureParam sNewTabPageCustomizationV2ShowLogoAndSearchBox =
             newBooleanCachedFeatureParam(
-                    NEW_TAB_PAGE_CUSTOMIZATION_V2, "show_logo_and_search_box", false);
+                    NEW_TAB_PAGE_CUSTOMIZATION_V2, "show_logo_and_search_box", true);
 
     public static final BooleanCachedFeatureParam
             sNewTabPageCustomizationV2ForceShowTipBottomSheet =
@@ -1789,7 +1791,7 @@ public abstract class ChromeFeatureList {
 
     public static final BooleanCachedFeatureParam sNewTabPageCustomizationV2ShowTipBottomSheet =
             newBooleanCachedFeatureParam(
-                    NEW_TAB_PAGE_CUSTOMIZATION_V2, "show_tip_bottom_sheet", false);
+                    NEW_TAB_PAGE_CUSTOMIZATION_V2, "show_tip_bottom_sheet", true);
 
     /** The time duration limit to refresh NTP's background. */
     public static final IntCachedFeatureParam sNewTabPageCustomizationV2DailyRefreshThresholdMs =

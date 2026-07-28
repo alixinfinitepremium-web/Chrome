@@ -355,6 +355,11 @@
     "expiry_milestone": 154
   },
   {
+    "name": "android-fre-layout-update",
+    "owners": ["sinansahin@google.com"],
+    "expiry_milestone": 160
+  },
+  {
     "name": "android-history-clustering",
     "owners": [ "wylieb@google.com", "clank-tab-dev@google.com" ],
     "expiry_milestone": 160
@@ -6174,11 +6179,7 @@
     "name": "ios-cobalt-developer-mode",
     "owners": [ "qpubert@google.com", "erahmaoui@google.com", "bling-squid-squad@google.com" ],
     "expiry_milestone": 160
-  },
-  {
-    "name": "ios-custom-file-upload-menu",
-    "owners": [ "qpubert@google.com", "bling-squid-squad@google.com" ],
-    "expiry_milestone": 150
+
   },
   {
     "name": "ios-date-to-calendar-signed-out",
