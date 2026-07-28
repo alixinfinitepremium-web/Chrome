@@ -7,8 +7,10 @@
 
 #include <memory>
 
-#include "base/memory/weak_ptr.h"
+#include "base/functional/callback.h"
+#include "base/memory/raw_ptr.h"
 #include "build/build_config.h"
+#include "chrome/browser/glic/host/glic.mojom.h"
 #include "ui/base/unowned_user_data/scoped_unowned_user_data.h"
 
 class ActorTaskListBubbleController;
@@ -37,9 +39,18 @@ class GlicSplitButtonController {
 
   ~GlicSplitButtonController();
 
+  // TODO(crbug.com/511309088): Rename these to toolbar and tab strip delegate
+  // since they no longer necessarily correspond to vertical tab mode.
   void SetHorizontalTabsDelegate(GlicSplitButtonDelegate* delegate);
   void SetVerticalTabsDelegate(GlicSplitButtonDelegate* delegate);
   base::WeakPtr<GlicSplitButtonController> GetWeakPtr();
+
+#if !BUILDFLAG(IS_ANDROID)
+  void OnGlicButtonClicked();
+#endif
+
+  GlicSplitButtonDelegate* GetActiveDelegate();
+  void CallOnBoth(base::RepeatingCallback<void(GlicSplitButtonDelegate&)> fn);
 
   GlicNudgeController* nudge_controller() {
     return glic_nudge_controller_.get();
@@ -54,6 +65,15 @@ class GlicSplitButtonController {
 #endif
 
  private:
+  bool IsToolbarButton() const;
+  mojom::InvocationSource GetInvocationSource(
+      GlicSplitButtonDelegate& delegate) const;
+
+  const raw_ptr<BrowserWindowInterface> browser_;
+  raw_ptr<GlicSplitButtonDelegate> horizontal_tabs_delegate_ = nullptr;
+  raw_ptr<GlicSplitButtonDelegate> vertical_tabs_delegate_ = nullptr;
+  raw_ptr<GlicKeyedService> glic_service_ = nullptr;
+
   std::unique_ptr<GlicNudgeController> glic_nudge_controller_;
 #if !BUILDFLAG(IS_ANDROID)
   std::unique_ptr<GlicButtonController> glic_button_controller_;

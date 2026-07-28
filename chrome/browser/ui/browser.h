@@ -559,8 +559,10 @@ class Browser : public TabStripModelObserver,
 
  private:
   friend class BrowserTest;
+  friend class BrowserWebContentsDelegate;
   friend class ExclusiveAccessTest;
   friend class FullscreenControllerInteractiveTest;
+  friend class SessionServiceTestHelper;
   FRIEND_TEST_ALL_PREFIXES(AppModeTest, EnableAppModeTest);
   FRIEND_TEST_ALL_PREFIXES(BrowserCloseTest, LastIncognito);
   FRIEND_TEST_ALL_PREFIXES(BrowserCloseTest, LastRegular);
@@ -923,8 +925,6 @@ class Browser : public TabStripModelObserver,
 
   // If true, immediately updates the UI when scheduled.
   bool update_ui_immediately_for_testing_ = false;
-
-  const base::ElapsedTimer creation_timer_;
 
   // The opener browser of the document picture-in-picture browser. Null if the
   // current browser is a regular browser.

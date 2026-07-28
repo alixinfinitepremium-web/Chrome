@@ -304,10 +304,6 @@ static_library("test_support") {
     sources += [
       "../browser/ui/web_applications/test/isolated_web_app_test_utils.cc",
       "../browser/ui/web_applications/test/isolated_web_app_test_utils.h",
-      "../browser/ui/web_applications/test/ssl_test_utils.cc",
-      "../browser/ui/web_applications/test/ssl_test_utils.h",
-      "../browser/ui/web_applications/test/test_server_redirect_handle.cc",
-      "../browser/ui/web_applications/test/test_server_redirect_handle.h",
       "../browser/ui/web_applications/test/web_app_browsertest_util.cc",
       "../browser/ui/web_applications/test/web_app_browsertest_util.h",
       "../browser/ui/web_applications/web_app_browsertest_base.cc",
@@ -341,6 +337,7 @@ static_library("test_support") {
       "//chrome/browser/preloading:test_support",
       "//chrome/browser/task_manager:test_support",
       "//chrome/browser/ui/autofill:test_support",
+      "//chrome/browser/ui/web_applications/test:test_support",
       "//chrome/common/extensions/api",
       "//extensions:test_support",
       "//extensions/browser:test_support",
@@ -745,8 +742,6 @@ static_library("test_support") {
 
   if (is_chromeos) {
     sources += [
-      "../browser/ui/views/frame/immersive_mode_tester.cc",
-      "../browser/ui/views/frame/immersive_mode_tester.h",
       "base/ash/extension_js_browser_test.cc",
       "base/ash/extension_js_browser_test.h",
       "base/ash/js_test_api.cc",
@@ -835,6 +830,7 @@ static_library("test_support") {
       "//chrome/browser/ash/profiles",
       "//chrome/browser/ash/settings:test_support",
       "//chrome/browser/ash/system_web_apps",
+      "//chrome/browser/ui/views/frame:immersive_mode_tester",
       "//chromeos/ash/components/account_manager",
       "//chromeos/ash/components/dbus/session_manager",
       "//chromeos/ash/components/dbus/userdataauth",
@@ -4622,8 +4618,6 @@ if (!is_android) {
         "../browser/printing/print_preview_browsertest.cc",
         "../browser/printing/print_preview_browsertest.h",
         "../browser/printing/print_preview_dialog_controller_browsertest.cc",
-        "../browser/printing/test_print_view_manager.cc",
-        "../browser/printing/test_print_view_manager.h",
       ]
       deps += [
         "//chrome/browser/printing:test_support",
@@ -5925,6 +5919,7 @@ test("unit_tests") {
       "//chrome/browser/background:unit_tests",
       "//chrome/browser/dictation:unit_tests",
       "//chrome/browser/feedback/report_unsafe_site:unit_tests",
+      "//chrome/browser/glic/selection:unit_tests",
       "//chrome/browser/lifetime:unit_tests",
       "//chrome/browser/new_tab_page/chrome_colors:generate_chrome_colors_info",
       "//chrome/browser/new_tab_page/chrome_colors:generate_colors_info",

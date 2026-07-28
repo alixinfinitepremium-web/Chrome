@@ -3717,7 +3717,9 @@ const FeatureEntry::Choice kGlicSelectionPromptChoices[] = {
     {"Enabled with Copy Buttons", switches::kEnableFeatures,
      "GlicSelectionPrompt:show_copy_buttons/true"},
     {"Enabled (CTA: Tell me about this)", switches::kEnableFeatures,
-     "GlicSelectionPrompt:cta/tell_me_about_this"}};
+     "GlicSelectionPrompt:cta/tell_me_about_this"},
+    {"Enabled (Inline Fulfillment)", switches::kEnableFeatures,
+     "GlicSelectionPrompt:inline_fulfillment/true"}};
 
 const FeatureEntry::FeatureParam kAutofillShowTypePredictionsAsTitle[] = {
     {"as-title", "true"}};
@@ -9188,6 +9190,11 @@ const FeatureEntry kFeatureEntries[] = {
     {"dse-preload2-on-press", flag_descriptions::kDsePreload2OnPressName,
      flag_descriptions::kDsePreload2OnPressDescription, kOsAll,
      FEATURE_VALUE_TYPE(features::kDsePreload2OnPress)},
+    {"omnibox-search-prefetch-on-enter-key-down",
+     flag_descriptions::kOmniboxSearchPrefetchOnEnterKeyDownName,
+     flag_descriptions::kOmniboxSearchPrefetchOnEnterKeyDownDescription,
+     kOsAndroid,
+     FEATURE_VALUE_TYPE(omnibox::kOmniboxSearchPrefetchOnEnterKeyDown)},
 
     {"http-cache-custom-backend",
      flag_descriptions::kHttpCacheCustomBackendName,
