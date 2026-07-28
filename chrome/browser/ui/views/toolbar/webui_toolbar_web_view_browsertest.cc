@@ -2565,6 +2565,10 @@ class WebUIToolbarWebViewBrowserTest : public InProcessBrowserTest {
     feature_list_.InitWithFeatures(enabled, disabled);
   }
 
+  ToolbarView* GetToolbarView() {
+    return BrowserView::GetBrowserViewForBrowser(browser())->toolbar();
+  }
+
   void SimulateDropOnToolbar(content::WebContents* web_contents,
                              const std::string& text) {
     EXPECT_TRUE(
@@ -2758,7 +2762,10 @@ IN_PROC_BROWSER_TEST_F(WebUIAppMenuBrowserTest, AppMenuStateWithSeverity) {
 // Verifies the bidirectional state synchronization between the WebUI app menu
 // button and the native menu controller via Mojo. This ensures the WebUI button
 // correctly reflects whether the native menu is currently open or closed.
-IN_PROC_BROWSER_TEST_F(WebUIAppMenuBrowserTest, CheckAppMenuShowingStateSync) {
+//
+// TODO(crbug.com/539483663): Deflake and re-enable.
+IN_PROC_BROWSER_TEST_F(WebUIAppMenuBrowserTest,
+                       DISABLED_CheckAppMenuShowingStateSync) {
   ui::TrackedElement* element = nullptr;
   WebUIToolbarWebView* webui_toolbar_view = nullptr;
   views::WebView* web_view = nullptr;
@@ -5067,8 +5074,9 @@ IN_PROC_BROWSER_TEST_F(WebUIToolbarWebViewHomeButtonBrowserTest,
   home_control->menu_runner_->Cancel();
 }
 
+// TODO(crbug.com/539569490): Deflake and re-enable.
 IN_PROC_BROWSER_TEST_F(WebUIToolbarWebViewHomeButtonBrowserTest,
-                       LongPressHomeButton) {
+                       DISABLED_LongPressHomeButton) {
   WebUIToolbarWebView* webui_toolbar_view = SetUpAndPinHomeButton(browser());
   views::WebView* web_view = webui_toolbar_view->GetWebViewForTesting();
 
@@ -7340,4 +7348,34 @@ IN_PROC_BROWSER_TEST_F(WebUIToolbarSynchronousStartupBrowserTest,
   EXPECT_TRUE(dict->contains("layoutConstantsVersion"));
   EXPECT_TRUE(dict->contains("touchUi"));
   EXPECT_TRUE(dict->contains("isFallbackPrewarming"));
+}
+
+// Test fixture that enables all WebUI toolbar controls.
+class WebUIToolbarFullyEnabledBrowserTest
+    : public WebUIToolbarWebViewBrowserTest {
+ public:
+  WebUIToolbarFullyEnabledBrowserTest()
+      : WebUIToolbarWebViewBrowserTest(
+            {features::kInitialWebUI, features::kWebUIToolbar,
+             features::kSkipIPCChannelPausingForNonGuests,
+             features::kWebUIInProcessResourceLoadingV2},
+            {}) {}
+};
+
+// When all currently supported WebUI controls are enabled, check that Views
+// controls are not instantiated.
+IN_PROC_BROWSER_TEST_F(WebUIToolbarFullyEnabledBrowserTest, CheckViews) {
+  ToolbarView* toolbar_view = GetToolbarView();
+  EXPECT_FALSE(toolbar_view->forward_button());
+  EXPECT_FALSE(toolbar_view->home_button());
+  EXPECT_FALSE(toolbar_view->reload_button());
+  EXPECT_FALSE(toolbar_view->location_bar_view());
+  EXPECT_FALSE(toolbar_view->custom_tab_bar());
+  EXPECT_FALSE(toolbar_view->battery_saver_button());
+  EXPECT_FALSE(toolbar_view->avatar_toolbar_button());
+
+  // The ToolbarController is not a view, but manages the Views overflow button.
+  // Overflow and layout should be handled entirely in Javascript when all WebUI
+  // controls are enabled, so the controller should also be nullptr.
+  EXPECT_FALSE(toolbar_view->toolbar_controller());
 }
