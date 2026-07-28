@@ -327,11 +327,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '32cd7e454cc3c07badf974b363513e68d67557d4',
+  'skia_revision': '3cbd8d411582c71af877929802fce8ccf0d7ff56',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': 'f5bbd01ef2b1d877b3173f90699fb355523f795d',
+  'v8_revision': '7b7ab1d1affca3a6540087d08c58272bb2ddabf5',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -387,7 +387,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': 'da4d5f435323ae4d65ab6aac0915ef6c1a11e89b',
+  'crossbench_revision': '28dbe37d4db9a16d003e39d143aa321a57e4a331',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -407,7 +407,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'c6eb1ccab2993e084c040483017612a2f8eb58e4',
+  'devtools_frontend_revision': '87a86ab6689439c61c748d8f2e27895a87d3b262',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -2729,7 +2729,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '5a50e820d3cebba0358d1d3b875e977826547e3f',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '4eecb4440e228daa95219c16e72784b041ed32c0',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
@@ -3172,7 +3172,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '5ad58d70eea10785fab05ba4150e2fe22ecc7f97',
+    Var('webrtc_git') + '/src.git' + '@' + '3281a01143ea491cbf73ea0e0d77f924bcadf699',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -3205,7 +3205,7 @@ deps = {
       'packages': [
         {
           'package': 'skia/tools/goldctl/linux-amd64',
-          'version': 'GhyWxyHcAwCEoo5VKbU9TyI3EYOnVVX4zSSqMB6l34kC',
+          'version': 'Wy67goQjOenlBbUnDjx82JummyY8-HLsXpqdRtj5AHQC',
         },
       ],
       'dep_type': 'cipd',
@@ -3226,7 +3226,7 @@ deps = {
       'packages': [
         {
           'package': 'skia/tools/goldctl/mac-amd64',
-          'version': 'ctEVTG9Iuui_f_tmAzPfCTgPaHcVf0CJY6UAMHG1oh4C',
+          'version': '35eS8o8JIxauJUUAzQV52fA0siT272SQClfAVizj1YMC',
         },
       ],
       'dep_type': 'cipd',
@@ -4013,7 +4013,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '08d85fd5a762efb5d0b63f20898fec217d4995b3',
+        '16d0d1a3363b265a22253b96171f964698f56840',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 

@@ -300,10 +300,11 @@ Matcher<Suggestion> EqualsSuggestionWithManageEnhancedAutofillFooter(
     MemoryDataType memory_data_type,
     Matchers&&... matchers) {
   auto attribution_matcher = AllOf(
-      EqualsSuggestion(
-          SuggestionType::kAtMemorySourceAttribution,
-          l10n_util::GetStringUTF16(
-              IDS_AUTOFILL_AT_MEMORY_SOURCE_ATTRIBUTION_PERSONAL_INTELLIGENCE)),
+      EqualsSuggestion(SuggestionType::kAtMemorySourceAttribution),
+      Field(
+          &Suggestion::minor_texts,
+          ElementsAre(Suggestion::Text(l10n_util::GetStringUTF16(
+              IDS_AUTOFILL_AT_MEMORY_SOURCE_ATTRIBUTION_PERSONAL_INTELLIGENCE)))),
       Field(&Suggestion::acceptability,
             Suggestion::Acceptability::kUnacceptable));
 
@@ -548,8 +549,6 @@ TEST_F(AtMemoryManagerTest,
 }
 
 TEST_F(AtMemoryManagerTest, OnSearchSubmitted_AutofillSource_Flight_Footer) {
-  base::test::ScopedFeatureList feature_list{
-      features::kYourSavedInfoSettingsPage};
 
   SeeFormAndShowPopup();
 

@@ -9828,6 +9828,21 @@
             ]
         }
     ],
+    "EarlyTopAppForSandboxedRenderer": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "EarlyTopAppForSandboxedRenderer"
+                    ]
+                }
+            ]
+        }
+    ],
     "EdgeToEdgeUseBackupNavbarInsets": [
         {
             "platforms": [
@@ -23134,23 +23149,6 @@
                     "name": "Control",
                     "disable_features": [
                         "SigninPromoLimitsExperiment"
-                    ]
-                }
-            ]
-        }
-    ],
-    "SigninPromoOnAvatarPill": [
-        {
-            "platforms": [
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "SigninPromoOnAvatarPill"
                     ]
                 }
             ]
