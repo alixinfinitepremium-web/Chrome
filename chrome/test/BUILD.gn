@@ -130,30 +130,6 @@ if (is_android) {
   }
 }
 
-# TODO(crbug.com/353332589): Move to //chrome/test/base when that module is
-# componentized.
-source_set("test_switches") {
-  testonly = true
-  sources = [
-    "base/test_switches.cc",
-    "base/test_switches.h",
-  ]
-}
-
-if (toolkit_views) {
-  # TODO(crbug.com/353332589): Move to //chrome/test/base when that module is
-  # componentized.
-  source_set("test_theme_provider") {
-    testonly = true
-    sources = [
-      "base/test_theme_provider.cc",
-      "base/test_theme_provider.h",
-    ]
-    public_deps = [ "//ui/base" ]
-    deps = [ "//ui/gfx" ]
-  }
-}
-
 # Use a static library here because many test binaries depend on this but don't
 # require many files from it. This makes linking more efficient.
 static_library("test_support") {
@@ -186,7 +162,6 @@ static_library("test_support") {
     "//chrome/browser/ui:ui_features",
     "//chrome/browser/ui/browser_window",
     "//chrome/browser/update_client",
-    "//chrome/test/data/webui:resources",
     "//components/activity_reporter",
     "//components/affiliations/core/browser:test_support",
     "//components/record_replay/core/common",
@@ -207,7 +182,6 @@ static_library("test_support") {
   }
 
   public_deps = [
-    ":test_switches",
     "//chrome/browser/notifications:test_support",
     "//chrome/browser/origin_trials",
     "//chrome/browser/performance_manager:test_support",
@@ -221,8 +195,12 @@ static_library("test_support") {
     "//chrome/test/base:chrome_test_scoped_utils",
     "//chrome/test/base:profile_lifecycle_test_utils",
     "//chrome/test/base:test_launcher_utils",
+    "//chrome/test/base:test_switches",
     "//chrome/test/base:testing_browser_process",
     "//chrome/test/base:testing_profile_impl",
+    "//chrome/test/base:tracing",
+    "//chrome/test/base:web_feature_histogram_tester",
+    "//chrome/test/base:web_ui_test_data_source",
   ]
 
   sources = [
@@ -241,14 +219,8 @@ static_library("test_support") {
     "base/chrome_unit_test_suite.h",
     "base/scoped_metrics_service_for_synthetic_trials.cc",
     "base/scoped_metrics_service_for_synthetic_trials.h",
-    "base/tracing.cc",
-    "base/tracing.h",
-    "base/web_feature_histogram_tester.cc",
-    "base/web_feature_histogram_tester.h",
     "base/web_ui_mocha_browser_test.cc",
     "base/web_ui_mocha_browser_test.h",
-    "base/web_ui_test_data_source.cc",
-    "base/web_ui_test_data_source.h",
   ]
 
   if (enable_guest_view) {
@@ -270,10 +242,7 @@ static_library("test_support") {
   }
 
   if (is_chromeos) {
-    deps += [
-      "//ash/webui/common:trusted_types_util",
-      "//chrome/browser/media_galleries",
-    ]
+    deps += [ "//chrome/browser/media_galleries" ]
   }
 
   if (is_android) {
@@ -355,16 +324,8 @@ static_library("test_support") {
     ]
   }
 
-  if (is_chrome_branded &&
-      (is_mac || is_win || (is_posix && !is_android && !is_chromeos))) {
-    sources += [ "base/scoped_channel_override.h" ]
-    if (is_mac) {
-      sources += [ "base/scoped_channel_override_mac.cc" ]
-    } else if (is_win) {
-      sources += [ "base/scoped_channel_override_win.cc" ]
-    } else if (is_posix && !is_android && !is_chromeos) {
-      sources += [ "base/scoped_channel_override_posix.cc" ]
-    }
+  if (is_chrome_branded && (is_mac || is_win || is_linux)) {
+    public_deps += [ "//chrome/test/base:scoped_channel_override" ]
   }
 
   configs += [ "//build/config:precompiled_headers" ]
@@ -883,7 +844,7 @@ static_library("test_support") {
       "//chrome/browser/media/router:media_router_feature",
       "//chrome/browser/ui/omnibox",
       "//chrome/browser/ui/web_applications:launch_utils",
-      "//chrome/test:test_theme_provider",
+      "//chrome/test/base:test_theme_provider",
 
       # TODO(crbug.com/353332589): Remove once browser_with_test_window_test.h
       # is componentized. It uses ChromeTestViewsDelegate<> as a member field,
@@ -8237,7 +8198,7 @@ if (!is_android) {
       "//chrome/common:non_code_constants",
       "//chrome/common/profiler",
       "//chrome/renderer",
-      "//chrome/test:test_switches",
+      "//chrome/test/base:test_switches",
       "//chrome/test/data/webui:resources",
       "//chrome/test/data/webui/mojo:mojo_bindings",
       "//chrome/test/supervised_user:child_accounts",
