@@ -618,11 +618,6 @@ inline constexpr char kTabFaviconChipsToCoinsDescription[] =
     "Removes existing tab chips from the composebox and instead adds favicon "
     "coins next to the \"+\" button.";
 
-inline constexpr char kTabsFromOtherDevicesSidePanelName[] =
-    "Tabs from other devices side panel";
-inline constexpr char kTabsFromOtherDevicesSidePanelDescription[] =
-    "Enables the tabs from other devices side panel.";
-
 inline constexpr char kTabStripDeclutterName[] = "Tab Strip Declutter";
 inline constexpr char kTabStripDeclutterDescription[] =
     "Enables the Tab Strip Declutter feature on Desktop.";
@@ -8641,11 +8636,6 @@ inline constexpr char kGlicHotkeyLocalScopeDescription[] =
 inline constexpr char kGlicTabGroupsName[] = "Glic Tab Groups";
 inline constexpr char kGlicTabGroupsDescription[] =
     "Enables Glic to integrate with tab groups.";
-
-inline constexpr char kEnableGenericOidcAuthProfileManagementName[] =
-    "Enable generic OIDC profile management";
-inline constexpr char kEnableGenericOidcAuthProfileManagementDescription[] =
-    "Enables profile management triggered by generic OIDC authentications.";
 
 inline constexpr char kProfilesReorderingName[] = "Profiles Reordering";
 inline constexpr char kProfilesReorderingDescription[] =
