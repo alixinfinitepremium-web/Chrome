@@ -323,15 +323,15 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': 'eeb8ebca22ea13eccdb0dd865f5201f6d1442251',
+  'src_internal_revision': '3c0c06d9b96b22370087bdab9d43341368624bf2',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '9c9f26f92c2ec3f62562987ec47279fba53ac8c6',
+  'skia_revision': '6fea713d32ec101877b670ce05ff8844265525fc',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': '6a5dafcfa95632f01528ede6fc1b0ea18f4eb96b',
+  'v8_revision': '652a92e039a9e22d965395e254a74a9a17251321',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -3929,7 +3929,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        '731aad1c8a32f163f76fd4190d6f460226963e12',
+        'be6ce9a51085105b4001103d6e7fb6c8d3bd35a9',
       'condition': 'checkout_src_internal',
   },
 
