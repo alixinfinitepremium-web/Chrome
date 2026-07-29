@@ -73,7 +73,6 @@ import org.chromium.chrome.browser.lens.LensIntentParams;
 import org.chromium.chrome.browser.lens.LensMetrics;
 import org.chromium.chrome.browser.lens.LensQueryParams;
 import org.chromium.chrome.browser.lifecycle.PauseResumeWithNativeObserver;
-import org.chromium.chrome.browser.lifecycle.TopResumedActivityChangedObserver;
 import org.chromium.chrome.browser.locale.LocaleManager;
 import org.chromium.chrome.browser.multiwindow.MultiInstanceOrchestratorFactory;
 import org.chromium.chrome.browser.omnibox.LocationBarDataProvider.Observer;
@@ -170,7 +169,6 @@ class LocationBarMediator
                 TemplateUrlServiceObserver,
                 BackPressHandler,
                 PauseResumeWithNativeObserver,
-                TopResumedActivityChangedObserver,
                 AppBannerManager.Observer,
                 OmniboxSuggestionsDropdownScrollListener {
 
@@ -280,7 +278,6 @@ class LocationBarMediator
     private UrlBarCoordinator mUrlCoordinator;
     private GURL mOriginalUrl = GURL.emptyGURL();
     private @Nullable Animator mUrlFocusChangeAnimator;
-    private boolean mWindowHasFocus;
     private boolean mNativeInitialized;
     private boolean mUrlFocusedWithoutAnimations;
     private boolean mIsUrlFocusChangeInProgress;
@@ -367,8 +364,6 @@ class LocationBarMediator
             mPageZoomIndicatorCoordinator.setOnDismissCallbacks(
                     () -> updateZoomButtonVisibility(/* notifyEmbedder= */ true));
         }
-        Activity activity = mWindowAndroid.getActivity().get();
-        mWindowHasFocus = activity != null && activity.hasWindowFocus();
         AppBannerManager.addObserver(this);
         mScrimHandler = scrimHandler;
         if (mScrimHandler != null) {
@@ -2680,7 +2675,6 @@ class LocationBarMediator
     private void updateShowStandbyRing() {
         boolean showStandbyRing =
                 mCurrentInput != null
-                        && mWindowHasFocus
                         && mCurrentInput.getAutocompleteState() == AutocompleteState.STANDBY
                         && mSelectionController.getSelectedView() == mUrlBarSelectableView;
         mLocationBarLayout.setShowStandbyRing(showStandbyRing);
@@ -3198,18 +3192,6 @@ class LocationBarMediator
         if (OmniboxFeatures.sUseFusedLocationProvider.isEnabled()) {
             GeolocationHeader.stopListeningForLocationUpdates();
         }
-    }
-
-    @Override
-    public void onTopResumedActivityChanged(boolean isTopResumedActivity) {
-        mWindowHasFocus = isTopResumedActivity;
-        if (!isTopResumedActivity) {
-            if (mCurrentInput != null
-                    && mCurrentInput.getAutocompleteState() == AutocompleteState.ENABLED) {
-                mCurrentInput.setAutocompleteState(AutocompleteState.STANDBY);
-            }
-        }
-        updateShowStandbyRing();
     }
 
     /* package */ void setLocationBarButtonTranslationForNtpAnimation(float translationX) {

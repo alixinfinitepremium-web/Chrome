@@ -66,6 +66,14 @@ source_set("contextual_tasks") {
     "//third_party/abseil-cpp:absl",
     "//third_party/omnibox_proto",
   ]
+
+  if (enable_extensions_core) {
+    sources += [
+      "contextual_tasks_extension_bridge.h",
+      "contextual_tasks_extension_bridge_factory.h",
+    ]
+  }
+
   if (!is_android) {
     public_deps += [ "//components/policy/core/browser" ]
   }
@@ -173,6 +181,17 @@ source_set("impl") {
     deps += [
       "//chrome/browser/ui:browser_actions",
       "//components/policy/core/browser",
+    ]
+  }
+
+  if (enable_extensions_core) {
+    sources += [
+      "contextual_tasks_extension_bridge.cc",
+      "contextual_tasks_extension_bridge_factory.cc",
+    ]
+    deps += [
+      "//extensions/browser",
+      "//extensions/common",
     ]
   }
 }
@@ -562,10 +581,13 @@ source_set("unit_tests") {
     "contextual_tasks_context_signal_utils_unittest.cc",
     "contextual_tasks_cookie_synchronizer_unittest.cc",
     "contextual_tasks_eligibility_manager_unittest.cc",
+    "contextual_tasks_navigation_throttle_unittest.cc",
     "contextual_tasks_page_handler_unittest.cc",
     "contextual_tasks_service_factory_unittest.cc",
     "contextual_tasks_side_panel_coordinator_unittest.cc",
     "contextual_tasks_tab_visit_tracker_unittest.cc",
+    "contextual_tasks_ui_service_test_base.cc",
+    "contextual_tasks_ui_service_test_base.h",
     "contextual_tasks_ui_service_unittest.cc",
     "contextual_tasks_ui_unittest.cc",
     "contextual_tasks_window_tracker_manager_unittest.cc",
