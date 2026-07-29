@@ -6117,7 +6117,7 @@
   {
     "name": "input-on-viz",
     "owners": [ "woa-performance-team@google.com", "amanvr@google.com", "jonross@chromium.org", "kartarsingh@google.com", "nuskos@chromium.org" ],
-    "expiry_milestone": 150
+    "expiry_milestone": 165
   },
   {
     "name": "instant-hotspot-on-nearby",
@@ -8352,7 +8352,7 @@
       "crowleso@google.com",
       "chrome-signin-mobile-team@google.com"
     ],
-    "expiry_milestone": 153
+    "expiry_milestone": 155
   },
   {
     "name": "profile-signals-reporting-enabled",
@@ -9097,7 +9097,7 @@
       "crowleso@google.com",
       "chrome-signin-mobile-team@google.com"
     ],
-    "expiry_milestone": 153
+    "expiry_milestone": 155
   },
   {
     "name": "signin-promo-on-avatar-pill",
@@ -9191,11 +9191,7 @@
     "name": "split-view-horizontal",
     "owners": [ "charlesmeng@google.com", "top-chrome-desktop-ui@google.com" ],
     "expiry_milestone": 155
-  },
-  {
-    "name": "split-view-link-open",
-    "owners": [ "helmut@januschka.com", "top-chrome-desktop-ui@google.com" ],
-    "expiry_milestone": 152
+
   },
   {
     "name": "split-view-tab-restore",

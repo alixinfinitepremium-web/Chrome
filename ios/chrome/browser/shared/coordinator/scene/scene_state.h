@@ -24,7 +24,6 @@
 @class SceneState;
 @class SceneStatePrefs;
 class SigninInProgress;
-struct SceneStateOptions;
 @class SceneUIBlockerState;
 @class TabGridState;
 
@@ -93,7 +92,7 @@ struct SceneStateOptions;
 
 // The persistent identifier for the scene session. This should be used instead
 // of -[UISceneSession persistentIdentifier].
-@property(nonatomic, readonly) std::string_view sceneSessionID;
+@property(nonatomic, assign) std::string_view sceneSessionID;
 
 // The controller for this scene.
 @property(nonatomic, weak) SceneController* controller;
@@ -159,9 +158,6 @@ struct SceneStateOptions;
 // Records that an extra sign-in process started. When the returned value is
 // destructed, the sign-in ended.
 - (std::unique_ptr<SigninInProgress>)createSigninInProgress;
-
-// Connects the SceneState with the given `options`.
-- (void)connectWithOptions:(SceneStateOptions)options;
 
 @end
 

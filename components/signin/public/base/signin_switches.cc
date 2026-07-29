@@ -102,7 +102,7 @@ BASE_FEATURE(kBoundSessionCredentialsKillSwitch,
 #endif  // BUILDFLAG(ENABLE_BOUND_SESSION_CREDENTIALS)
 
 #if BUILDFLAG(IS_IOS)
-BASE_FEATURE(kBuildExternalPrivacyContext, base::FEATURE_DISABLED_BY_DEFAULT);
+BASE_FEATURE(kBuildExternalPrivacyContext, base::FEATURE_ENABLED_BY_DEFAULT);
 const base::FeatureParam<std::string>
     kBuildExternalPrivacyContextAgeMismatchLearnMoreUrl{
         &kBuildExternalPrivacyContext, "AgeMismatchLearnMoreUrl",
@@ -297,7 +297,7 @@ BASE_FEATURE(kDiceLinkedAccounts, base::FEATURE_DISABLED_BY_DEFAULT);
 #endif  // BUILDFLAG(ENABLE_DICE_SUPPORT)
 
 #if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_LINUX)
-BASE_FEATURE(kDisableU18FeedbackDesktop, base::FEATURE_DISABLED_BY_DEFAULT);
+BASE_FEATURE(kDisableU18FeedbackDesktop, base::FEATURE_ENABLED_BY_DEFAULT);
 #endif  // BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_LINUX)
 
 #if BUILDFLAG(IS_IOS)
@@ -308,6 +308,10 @@ BASE_FEATURE(kDontIncludeSIDUnsecureCookiesInGaiaAuthFetcher,
 // Enables fetching sync preview data from the server for accounts with refresh
 // tokens.
 BASE_FEATURE(kEnableAccountPreviewData, base::FEATURE_DISABLED_BY_DEFAULT);
+const base::FeatureParam<base::TimeDelta>
+    kAccountPreviewDataPeriodicRefreshTiming{
+        &kEnableAccountPreviewData, "AccountPreviewDataPeriodicRefreshTiming",
+        base::Hours(24)};
 // Controls whether fetching entity preview data is enabled (via a specific api
 // method). This flag has no effect if `kEnableAccountPreviewData` is not
 // enabled.
@@ -540,7 +544,7 @@ BASE_FEATURE(kEnableWebSigninLoadingDialog, base::FEATURE_DISABLED_BY_DEFAULT);
 
 #if BUILDFLAG(IS_IOS)
 BASE_FEATURE(kEnforceCanSignInToChromeCapability,
-             base::FEATURE_DISABLED_BY_DEFAULT);
+             base::FEATURE_ENABLED_BY_DEFAULT);
 #endif
 
 #if BUILDFLAG(ENABLE_DICE_SUPPORT)
@@ -718,7 +722,7 @@ BASE_FEATURE(kProfilesReordering, base::FEATURE_DISABLED_BY_DEFAULT);
 
 #if BUILDFLAG(IS_IOS)
 BASE_FEATURE(kReadContextualAccountCapabilities,
-             base::FEATURE_DISABLED_BY_DEFAULT);
+             base::FEATURE_ENABLED_BY_DEFAULT);
 #endif
 
 BASE_FEATURE(kReadSupportsWalletPrivatePassesInAutofillCapability,
