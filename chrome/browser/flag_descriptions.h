@@ -5144,6 +5144,12 @@ inline constexpr char kShowTabGroupsMacSystemMenuDescription[] =
     "Show tab group colours of tabs that are in tab groups in the 'tabs' and"
     "'windows' menu' of the Mac OS menu bar";
 
+inline constexpr char kAndroidYuvOverlayEvenAlignmentName[] =
+    "Android YUV Overlay Even Alignment";
+inline constexpr char kAndroidYuvOverlayEvenAlignmentDescription[] =
+    "Enforces 2-pixel even boundary alignment for YUV hardware video overlays "
+    "in SurfaceControl to prevent odd-coordinate display scaling rejections.";
+
 inline constexpr char kUsePassthroughCommandDecoderName[] =
     "Use passthrough command decoder";
 inline constexpr char kUsePassthroughCommandDecoderDescription[] =
@@ -5656,6 +5662,11 @@ inline constexpr char kOpenDownloadInPreferredAppName[] =
 inline constexpr char kOpenDownloadInPreferredAppDescription[] =
     "When enabled, downloaded items in Chrome will open in the user's "
     "preferred app for that file type.";
+
+inline constexpr char kSidePanelTopHairlineRefactorAndroidName[] =
+    "Side Panel Top Hairline Refactor Android";
+inline constexpr char kSidePanelTopHairlineRefactorAndroidDescription[] =
+    "Enables the Side Panel top hairline refactor on Android.";
 
 inline constexpr char kTextHighlightFullLinkName[] = "Text Highlight Full Link";
 inline constexpr char kTextHighlightFullLinkDescription[] =

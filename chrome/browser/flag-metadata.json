@@ -506,6 +506,11 @@
     "expiry_milestone": 160
   },
   {
+    "name": "android-yuv-overlay-even-alignment",
+    "owners": [ "philyan@chromium.org", "media-dev@chromium.org" ],
+    "expiry_milestone": 170
+  },
+  {
     "name": "android-zoom-immersive",
     "owners": [
       "hitarthkothari@google.com",
@@ -7982,6 +7987,11 @@
     "expiry_milestone": 153
   },
   {
+    "name": "page-context-pdf",
+    "owners": [ "mreichhoff@chromium.org", "bling-ai-foundations@google.com" ],
+    "expiry_milestone": 160
+  },
+  {
     "name": "page-info-certificate-information",
     "owners": [ "xiaoweigao@microsoft.com" , "fsenra@google.com"],
     "expiry_milestone": 155
@@ -9096,6 +9106,11 @@
     "name" : "side-panel-flyover-animation",
     "owners": [ "dfried@google.com", "estalin@chromium.org", "dljames@chromium.org" ],
     "expiry_milestone" : 160
+  },
+  {
+    "name": "side-panel-top-hairline-refactor-android",
+    "owners": ["nemco@google.com"],
+    "expiry_milestone": 160
   },
   {
     "name": "signin-level-up-button",

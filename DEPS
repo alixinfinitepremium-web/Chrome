@@ -331,7 +331,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': '652a92e039a9e22d965395e254a74a9a17251321',
+  'v8_revision': '4c6fb150c752c38bb217599b5c90e286b07ef5b9',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -407,7 +407,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '8aa0c3b10e73f3c4755a280a5a3652e3d7551e7e',
+  'devtools_frontend_revision': '35c62b50339de34a7c71ef44bc70319625e70088',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -2729,7 +2729,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '3291902e4b8c1c71c0951b7ccf0937433ee1c439',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '1ba518a35426643c365b9d35ff16a1fdbaf27820',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
@@ -4013,7 +4013,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '5e293048ca95f2dec89c3cdce8a4bcbfd0f7f540',
+        'e5ffde837531d92e5428582d0a8fbe518c515941',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 

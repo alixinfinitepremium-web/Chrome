@@ -293,7 +293,6 @@ crbug.com/1396218 fragmentation/fragmented-rowspan-alignment.html [ Failure ]
 crbug.com/1396218 fragmentation/fragmented-rowspan.html [ Failure ]
 crbug.com/1078927 fragmentation/no-repeating-table-header-after-sections.html [ Failure ]
 crbug.com/1352931 fragmentation/repeating-thead-under-repeating-thead.html [ Failure ]
-crbug.com/1347984 fragmentation/table-in-subpixel-fragmentainer.html [ Failure ]
 crbug.com/1396218 fragmentation/table-overlapping-rowspan.html [ Failure ]
 crbug.com/1347984 fragmentation/table-row-dimensions-break-freely.html [ Failure ]
 crbug.com/1347984 fragmentation/table-row-dimensions-with-thead.html [ Failure ]
@@ -405,10 +404,6 @@ crbug.com/335769262 [ Mac13-arm64 ] external/wpt/html/canvas/element/manual/draw
 
 crbug.com/626703 [ Mac13-arm64 ] external/wpt/density-size-correction/density-corrected-image-in-canvas.html [ Failure Timeout ]
 crbug.com/1464614 [ Win11-arm64 ] external/wpt/density-size-correction/density-corrected-image-in-canvas.html [ Failure Timeout ]
-
-crbug.com/709227 external/wpt/html/canvas/offscreen/path-objects/2d.path.stroke.prune.arc.worker.html [ Failure ]
-crbug.com/709227 external/wpt/html/canvas/offscreen/path-objects/2d.path.stroke.prune.curve.worker.html [ Failure ]
-crbug.com/709227 external/wpt/html/canvas/offscreen/path-objects/2d.path.stroke.prune.line.worker.html [ Failure ]
 
 crbug.com/979422 [ Mac ] fast/borders/border-radius-mask-canvas-with-shadow.html [ Failure ]
 crbug.com/979422 [ Mac ] fast/borders/border-radius-mask-canvas-padding.html [ Failure ]
@@ -2844,7 +2839,6 @@ crbug.com/507921593 external/wpt/css/css-align/baseline-rules/inline-table-inlin
 crbug.com/507904199 [ Win ] external/wpt/css/css-lists/parsing/counter-increment-computed.html [ Pass Timeout ]
 crbug.com/507902976 [ Win ] external/wpt/fullscreen/api/document-fullscreen-keyboard-lock-shadowdom.tentative.window.html [ Pass Timeout ]
 crbug.com/507903802 virtual/jxl-enabled/external/wpt/jpegxl/patches-reftest.html [ Failure ]
-crbug.com/507903802 virtual/jxl-enabled/external/wpt/jpegxl/smallest-valid-reftest.html [ Failure ]
 external/wpt/css/css-backgrounds/border-image-repeat-round.html [ Failure ]
 virtual/threaded/external/wpt/css/css-backgrounds/border-image-repeat-round.html [ Failure ]
 crbug.com/505118033 virtual/jxl-enabled/external/wpt/jpegxl/cmyk-basic-conversion-reftest.html [ Failure ]
@@ -9422,3 +9416,9 @@ crbug.com/539889938 [ Linux ] external/wpt/html/cross-origin-opener-policy/ifram
 # the V8 fix rolls in, then remove this line and the stale -expected.txt
 # baseline.
 virtual/javascript-defer-phase-imports/external/wpt/html/semantics/scripting-1/the-script-element/module/dynamic-import/cyclic-tla-defer-eval.tentative.html [ Failure Pass ]
+
+# Temporarily mark tests failing until DevTools Shared Storage removal CL lands and rolls
+crbug.com/535990398 http/tests/devtools/application-panel/resources-panel-on-navigation.js [ Failure Pass ]
+crbug.com/535990398 http/tests/devtools/application-panel/resources-panel-resource-preview.js [ Failure Pass ]
+crbug.com/535990398 http/tests/devtools/application-panel/resources-panel-selection-on-reload.js [ Failure Pass ]
+

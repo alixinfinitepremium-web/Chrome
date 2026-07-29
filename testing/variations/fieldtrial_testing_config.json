@@ -1671,6 +1671,21 @@
             ]
         }
     ],
+    "AndroidYuvOverlayEvenAlignment": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "AndroidYuvOverlayEvenAlignment"
+                    ]
+                }
+            ]
+        }
+    ],
     "AndroidZeroCopyVideoCapture": [
         {
             "platforms": [
@@ -14036,6 +14051,24 @@
                     "name": "Enabled",
                     "enable_features": [
                         "IOSBackendPromoServiceIntegration"
+                    ]
+                }
+            ]
+        }
+    ],
+    "IOSBestOfAppFRE": [
+        {
+            "platforms": [
+                "ios"
+            ],
+            "experiments": [
+                {
+                    "name": "EnabledWithAnimatedLensPromo_20260627",
+                    "params": {
+                        "variant": "2"
+                    },
+                    "enable_features": [
+                        "BestOfAppFRE"
                     ]
                 }
             ]
