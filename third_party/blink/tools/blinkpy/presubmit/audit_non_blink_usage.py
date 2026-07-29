@@ -148,6 +148,7 @@ _CONFIG = [
             'base::RangeAsRvalues',
             'base::raw_span',
             'base::RefCountedData',
+            'base::RefCountedMemory',
             'base::RemoveChars',
             'base::RepeatingTimer',
             'base::RunLoop',
@@ -1679,6 +1680,15 @@ _CONFIG = [
             'v8::Isolate',
             'v8::Local',
             'v8::Value',
+        ],
+    },
+    {
+        'paths': [
+            'third_party/blink/public/web/web_v8_features.h',
+        ],
+        'allowed': [
+            'v8::Context',
+            'v8::Local',
         ],
     },
     {

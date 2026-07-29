@@ -9158,6 +9158,24 @@
             ]
         }
     ],
+    "Dictation": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "Dictation"
+                    ]
+                }
+            ]
+        }
+    ],
     "DipsForWebView": [
         {
             "platforms": [
@@ -16482,6 +16500,21 @@
             ]
         }
     ],
+    "MachIPCVouchersHoldback": [
+        {
+            "platforms": [
+                "mac"
+            ],
+            "experiments": [
+                {
+                    "name": "Holdback",
+                    "disable_features": [
+                        "UseMachVouchers"
+                    ]
+                }
+            ]
+        }
+    ],
     "MagiChromeBatch1": [
         {
             "platforms": [
@@ -23588,24 +23621,6 @@
             ]
         }
     ],
-    "SplitViewTabRestore": [
-        {
-            "platforms": [
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "SplitViewTabRestore"
-                    ]
-                }
-            ]
-        }
-    ],
     "SplitscreenVersusFullScreenForNewWindows": [
         {
             "platforms": [
@@ -24246,6 +24261,21 @@
                     "name": "Enabled_20260216",
                     "enable_features": [
                         "TaiyakiAllSurfaces"
+                    ]
+                }
+            ]
+        }
+    ],
+    "TcpPortRandomizationMac": [
+        {
+            "platforms": [
+                "mac"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "TcpPortRandomizationMac"
                     ]
                 }
             ]
