@@ -327,7 +327,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': 'bb33c115454b273613c515245ec3d4ae0a305b0b',
+  'skia_revision': '119cae39662562fcd78054ff5bbef7a3ec5c26e2',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -391,7 +391,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_web_tests_revision': '5f2db857c60e5498b093bfd7fc4cde4a3bf76f2d',
+  'crossbench_web_tests_revision': '76beca29dbae3278ae186a0588f3ff2485c29683',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libFuzzer
   # and whatever else without interference from each other.
@@ -407,7 +407,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '2cbce3bb40f6c3d1389134219fa1680df97860b2',
+  'devtools_frontend_revision': 'c150ef91fa6f3f904d2e11e5c4a2118933ed994f',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -3744,7 +3744,7 @@ deps = {
 
   'src/chrome/browser/platform_experience/win': {
       'url': Var('chrome_git') + '/chrome/browser/platform_experience/win.git' + '@' +
-        '52cd703bfa7ebc23223f90552e446ebca1e02026',
+        '66e55ae55f3155bc0f80a0c4c4d69a2dc6e8cce9',
       'condition': 'checkout_src_internal',
   },
 
