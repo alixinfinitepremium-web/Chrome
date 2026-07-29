@@ -2767,6 +2767,7 @@ const FeatureEntry::Choice kSendTabToSelfEnhancedHandoffChoices[] = {
      "SendTabToSelfDynamicShortcuts,"
      "SendTabToSelfOpenNativeApp,"
      "SyncSimplifyDeviceNaming,"
+     "SyncDisambiguateDeviceNamesWithChannel,"
      "SyncUseServerDeterminedDeviceName,"
      "SyncSessionsUsePreferredDisplayName"},
     {flags_ui::kGenericExperimentChoiceDisabled, switches::kDisableFeatures,
@@ -2782,6 +2783,7 @@ const FeatureEntry::Choice kSendTabToSelfEnhancedHandoffChoices[] = {
      "SendTabToSelfDynamicShortcuts,"
      "SendTabToSelfOpenNativeApp,"
      "SyncSimplifyDeviceNaming,"
+     "SyncDisambiguateDeviceNamesWithChannel,"
      "SyncUseServerDeterminedDeviceName,"
      "SyncSessionsUsePreferredDisplayName"},
 };
@@ -10750,7 +10752,8 @@ const FeatureEntry kFeatureEntries[] = {
                                          "GlicActor,GlicActorUi")},
     {"glic-experimental-triggering",
      flag_descriptions::kGlicExperimentalTriggeringName,
-     flag_descriptions::kGlicExperimentalTriggeringDescription, kOsDesktop,
+     flag_descriptions::kGlicExperimentalTriggeringDescription,
+     kOsDesktop | kOsAndroid,
      FEATURE_VALUE_TYPE(features::kGlicExperimentalTriggering)},
     {"glic-settings-a11y-context-fix",
      flag_descriptions::kGlicSettingsA11yContextFixName,

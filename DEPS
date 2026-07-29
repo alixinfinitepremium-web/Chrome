@@ -327,7 +327,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '70733f74d415bf389f6bda812e95e8aee6182664',
+  'skia_revision': 'bb33c115454b273613c515245ec3d4ae0a305b0b',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -343,7 +343,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling PDFium
   # and whatever else without interference from each other.
-  'pdfium_revision': '59e5ffd2c81c85f4e58a6812cd2aab982e5bbbce',
+  'pdfium_revision': '8dbb801d5cda8a777834f54bfd160df67f93c9cd',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
@@ -399,7 +399,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling fuzztest
   # and whatever else without interference from each other.
-  'fuzztest_revision': '228ca7a9f682d096468bb8b9be59a2d1c4a06f22',
+  'fuzztest_revision': 'a233d758c21f725311e1b72f92463bb389ae4228',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling domato
   # and whatever else without interference from each other.
@@ -431,7 +431,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': '443eabd201532ff827444a8f13ed4b587f51a4ce',
+  'dawn_revision': '3e6e57a3eeda2e7756dc0f41ba44e7bb30fbafc5',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -511,7 +511,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'libunwind_revision':    'b2ff0e6b9ac002918d7a9ce982eee88dcc27a450',
+  'libunwind_revision':    'ec7ac638dae6f39c950d4606809b81fdca815a19',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -554,7 +554,7 @@ vars = {
   'libcxx_revision':       'b16984ce99c702355a5b2b4c52574e82cec41fb9',
 
   # GN CIPD package version.
-  'gn_version': 'git_revision:fc56c7a0d0917f2b668714408ec22bd05736a9f5',
+  'gn_version': 'git_revision:2998394993e31023c4a476c2344eab0e5fe00ef6',
 
   # ninja CIPD package.
   'ninja_package': 'infra/3pp/tools/ninja/',
@@ -2172,7 +2172,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'c0148d63d4909b3f27c9df5b6273efc496bc4459',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '621cd2a212921328b0a552582c0bc18ba786588c',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -2276,7 +2276,7 @@ deps = {
     Var('chromium_git') + '/codecs/libgav1.git' + '@' + 'c1deec657b32b911920c78e078cfd089faa77200',
 
   'src/third_party/google-truth/src': {
-      'url': Var('chromium_git') + '/external/github.com/google/truth.git' + '@' + '9fbe5aeb2c7c44d439f5e3f40b34f8cbab5e4a7c',
+      'url': Var('chromium_git') + '/external/github.com/google/truth.git' + '@' + 'bb5408b6eea400f68c55407a919ad583ea0f537d',
       'condition': 'checkout_android',
   },
 
@@ -2421,7 +2421,7 @@ deps = {
 
   'src/third_party/jsoncpp/source':
     Var('chromium_git') + '/external/github.com/open-source-parsers/jsoncpp.git'
-      + '@' + 'edc01ab10f52135ec80e3589b6b4e0a9c65b27fd',
+      + '@' + '60de77f915ab08499032d6e5a63e05e974f85d01',
 
   'src/third_party/junit/src': {
       'url': Var('chromium_git') + '/external/junit.git' + '@' + '0eb5ce72848d730da5bd6d42902fdd6a8a42055d',
@@ -3172,7 +3172,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '8e8d1d6259fd3b7c1a33cba4a00dd8d37c2389bd',
+    Var('webrtc_git') + '/src.git' + '@' + 'ecd3da44e4ebd6c1cc03b69ec12894ed32077641',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.

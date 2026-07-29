@@ -9861,22 +9861,6 @@
             ]
         }
     ],
-    "EnableA2APayments": [
-        {
-            "platforms": [
-                "android"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "AutofillEnableSeparatePixPreferenceItem",
-                        "FacilitatedPaymentsEnableA2APayment"
-                    ]
-                }
-            ]
-        }
-    ],
     "EnableADPFAsyncSetThreads": [
         {
             "platforms": [
@@ -21394,7 +21378,8 @@
                 {
                     "name": "Enabled",
                     "params": {
-                        "UseLazyURLLoaderFactoryForServiceWorkerFallback": "true"
+                        "UseLazyURLLoaderFactoryForServiceWorkerFallback": "true",
+                        "UseLazyURLLoaderFactoryForSubresourceProxying": "true"
                     },
                     "enable_features": [
                         "ReduceMojoURLLoaderFactoryCloning"
@@ -26159,21 +26144,6 @@
             ]
         }
     ],
-    "WaylandExternalBeginFrameSource": [
-        {
-            "platforms": [
-                "linux"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "WaylandExternalBeginFrameSource"
-                    ]
-                }
-            ]
-        }
-    ],
     "WebApkBackupAndRestore": [
         {
             "platforms": [
@@ -27980,21 +27950,6 @@
                     "enable_features": [
                         "EnableCsrssLockdown",
                         "WinSboxProxyLocale"
-                    ]
-                }
-            ]
-        }
-    ],
-    "WinSboxModuleTamperingProtection": [
-        {
-            "platforms": [
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "WinSboxModuleTamperingProtection"
                     ]
                 }
             ]
