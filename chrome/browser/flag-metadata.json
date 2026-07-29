@@ -8018,7 +8018,7 @@
   {
     "name": "passkey-unlock-error-ui",
     "owners": ["ylahodiuk@google.com", "izuzic@google.com", "anki-team@google.com"],
-    "expiry_milestone": 150
+    "expiry_milestone": 154
   },
   {
     "name": "password-auto-submission-ios",
@@ -8112,7 +8112,7 @@
       "hempjudith@google.com",
       "//components/permissions/PERMISSIONS_OWNERS"
     ],
-    "expiry_milestone": 153
+    "expiry_milestone": 165
   },
   {
     "name": "permissions-android-clapper-loud",
@@ -8962,26 +8962,6 @@
     "name": "settings-in-tab",
     "owners": [ "jamescook@google.com", "clank-desktopify@google.com" ],
     "expiry_milestone": 170
-  },
-  {
-    "name": "share-ablation-hide-share-in-toolbar",
-    "owners": [ "stkhapugin@google.com", "bling-search@google.com"],
-    "expiry_milestone": 150
-  },
-  {
-    "name": "share-ablation-omnibox-long-press",
-    "owners": [ "stkhapugin@google.com", "bling-search@google.com"],
-    "expiry_milestone": 150
-  },
-  {
-    "name": "share-ablation-omnibox-overflow-menu",
-    "owners": [ "stkhapugin@google.com", "bling-search@google.com"],
-    "expiry_milestone": 150
-  },
-  {
-    "name": "share-ablation-verbatim-match",
-    "owners": [ "stkhapugin@google.com", "bling-search@google.com"],
-    "expiry_milestone": 150
   },
   {
     "name": "shared-data-types-kill-switch",

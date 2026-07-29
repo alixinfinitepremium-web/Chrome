@@ -24,6 +24,15 @@ namespace content {
 class WebContents;
 }
 
+// Returns whether the field with `renderer_id` in `form_data` is focusable.
+bool FieldFocusable(autofill::FieldRendererId renderer_id,
+                    const autofill::FormData& form_data);
+
+// Returns whether the field with `renderer_id` in `form_data` is enabled and
+// not readonly.
+bool FieldEnabled(autofill::FieldRendererId renderer_id,
+                  const autofill::FormData& form_data);
+
 // Helper object which waits for change password parsing, invokes callback on
 // completion. If form isn't found withing
 // `kChangePasswordFormWaitingTimeout` after WebContents finished loading
@@ -35,6 +44,10 @@ class ChangePasswordFormWaiter
   // Timeout for change password form await time after the page is loaded.
   static constexpr base::TimeDelta kChangePasswordFormWaitingTimeout =
       base::Seconds(3);
+
+  // Timeout for local ML model availability before falling back to Init().
+  static constexpr base::TimeDelta kLocalMLModelDownloadTimeout =
+      base::Seconds(10);
 
   using PasswordFormFoundCallback =
       base::OnceCallback<void(password_manager::PasswordFormManager*)>;
@@ -83,6 +96,7 @@ class ChangePasswordFormWaiter
   void DidStopLoading() override;
 
   void OnTimeout();
+  void OnLocalMLModelDownloadTimeout();
 
   static password_manager::PasswordFormManager* GetCorrespondingFormManager(
       base::WeakPtr<ChangePasswordFormWaiter> waiter,
