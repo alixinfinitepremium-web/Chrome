@@ -326,11 +326,6 @@ IN_PROC_BROWSER_TEST_P(
 
 IN_PROC_BROWSER_TEST_P(ReadAnythingSidePanelControllerInteractiveTest,
                        OpenAndCloseWithKeyboardShortcut) {
-  if (GetParam()) {
-    // Immersive mode is tested in ToggleImmersiveFromKeyboardShortcut.
-    return;
-  }
-
   ui::Accelerator reading_mode_accelerator;
   ASSERT_TRUE(BrowserView::GetBrowserViewForBrowser(browser())->GetAccelerator(
       IDC_SHOW_READING_MODE_KEYBOARD, &reading_mode_accelerator));
@@ -369,7 +364,6 @@ class ReadAnythingKeyboardShortcutCUJTest
 
     std::vector<base::test::FeatureRef> enabled_features = {
         features::kImmersiveReadAnything, features::kReadAnythingOmniboxChip,
-        features::kPageActionsMigration,
         feature_engagement::kIPHReadingModeKeyboardShortcutFeature};
     feature_list_.InitAndEnableFeatures(enabled_features);
     ReadAnythingController::SetFreezeDistillationOnCreationForTesting(true);
@@ -445,7 +439,6 @@ class ReadAnythingPresentationModeCUJTest
 
     std::vector<base::test::FeatureRef> enabled_features = {
         features::kImmersiveReadAnything, features::kReadAnythingOmniboxChip,
-        features::kPageActionsMigration,
         feature_engagement::kIPHReadingModePresentationModeFeature};
     feature_list_.InitAndEnableFeatures(enabled_features);
     ReadAnythingController::SetFreezeDistillationOnCreationForTesting(true);

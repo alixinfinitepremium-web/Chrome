@@ -327,7 +327,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '932102cf4a2515551124378b54d5ba4c3b3a0866',
+  'skia_revision': '9c9f26f92c2ec3f62562987ec47279fba53ac8c6',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -335,7 +335,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '880d825611b31a19f253c3e1531c07c829f64d57',
+  'angle_revision': 'b3ad723d0da24b71d1041538c40dcc8a3e36ed87',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -347,7 +347,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': 'f1f2556a5dfa59e147d9d47279cc3f7f8a18b433',
+  'boringssl_revision': '31e7335fffcc61b8cd5bd1ecd0707969f48f3eb3',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -407,7 +407,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '15af494ad6dbb8ff29ff57c5c67d316022c9bc44',
+  'devtools_frontend_revision': '184a74dd67da736152ad3296b7ebb15a9a3d579c',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -2140,7 +2140,7 @@ deps = {
   # Tools used when building Chrome for Chrome OS. This affects both the Simple
   # Chrome workflow, as well as the chromeos-chrome ebuild.
   'src/third_party/chromite': {
-      'url': Var('chromium_git') + '/chromiumos/chromite.git' + '@' + 'a25e98593ad495b22683cbec7c8bd611979b243a',
+      'url': Var('chromium_git') + '/chromiumos/chromite.git' + '@' + 'fe8c1334027974058e90da0320b9373b87428fcf',
       'condition': 'checkout_chromeos',
   },
 
@@ -3166,13 +3166,13 @@ deps = {
     Var('chromium_git') + '/external/khronosgroup/webgl.git' + '@' + '064aaf18207438d4f6dd10c98b02b25778257b7f',
 
   'src/third_party/webgpu-cts/src':
-    Var('chromium_git') + '/external/github.com/gpuweb/cts.git' + '@' + '63cb9fcd6c162eb4514a79cb4d6438fa59bceb56',
+    Var('chromium_git') + '/external/github.com/gpuweb/cts.git' + '@' + 'a152afa827329d93e881fceb6df053eab6898f65',
 
   'src/third_party/webpagereplay':
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + 'c2ae64049be47013f718f125b51a952b5b58e286',
+    Var('webrtc_git') + '/src.git' + '@' + '4e3c057bedc15913c832750c3ee0fbf1f5b32450',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -3323,7 +3323,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/help_app/app',
-        'version': 'd6dz4Y6cFVIpdgLZA-e0auH1jyhVuAZ18CcYRmwvErEC',
+        'version': 'Tgx6kmdCHXnkOeKXyC5kb0AOvnQ8xF1QsxLhE0ndonYC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3334,7 +3334,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/media_app/app',
-        'version': 'H1dzKZyprq1AJNN1yL_IDksw2X1QUz0mngSNikVSUh4C',
+        'version': '9apa9tYel9FPNbRWnxMoNRkIclx7vy8N78ON1adiXXIC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -4013,7 +4013,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '30b1d8c760c2f9d088c07993bffde1d3ecdb4d61',
+        'e955b065017e08b7dac753ee73e964956aa9a522',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 

@@ -78,8 +78,19 @@ _ADD_CONTENT = {
     'log:absl_check_test': 'if (is_ios) { sources = [] }',
     'log:log_sink_test': 'if (is_ios) { sources = [] }',
     'log:scoped_mock_log_test': 'if (is_ios) { sources = [] }',
+    'log/internal:log_sink_set': 'if (is_android) { libs = [ "log" ]  }',
+    'log/internal:stderr_log_sink_test':
+    'if (is_apple || is_android) { sources = [] }',
     'random:uniform_real_distribution_test': 'if (is_ios) { sources = [] }',
     'random/internal:seed_material': 'if (is_win) {  libs = [ "bcrypt.lib" ]}',
+    'strings:strings': '''public_deps = [
+    # string_view.h was once part of :strings, so string_view.h is
+    # re-exported for backwards compatibility.
+    # New code should directly depend on :string_view.
+    # TODO(crbug.com/40276308): Remove once all targets are migrated to
+    # :string_view.
+    ":string_view" ]''',
+    'strings:str_format_convert_test': 'if (is_fuchsia) { sources = [] }',
 }
 
 
@@ -103,6 +114,7 @@ class _Converter:
 
     def __init__(self, path, old_gn_content=None):
         self.bazel_targets = []
+        self.packages = {}
         self.year = str(datetime.datetime.now().year)
         self.path = path
         m = re.search(r'.*/absl/(.*)', path)
@@ -113,6 +125,10 @@ class _Converter:
                 self.year = m.group(1)
 
     def _translate_dep(self, dep):
+        if dep.startswith('@do_not_use'):
+            return None
+        if dep == '//absl/' + self.rel_path:
+            return ':' + self.rel_path.split('/')[-1]
         if dep.startswith(':'):
             return dep
         if dep.startswith('//absl/' + self.rel_path + ':'):
@@ -144,17 +160,28 @@ class _Converter:
                     result.append(gn_pkg + '/*')
                 else:
                     result.append(gn_pkg + ':' + rule)
+            if vis.startswith(':') and vis[1:] in self.packages:
+                result += self.packages[vis[1:]]
         # In bazel targets are implicitly visible to the same BUILD file
         # in gn such visibility should be explicit.
         if ':*' not in result and '//third_party/abseil-cpp/absl/*' not in result:
             result.append(':*')
         return result
 
+    def _translate_package(self, package):
+        if package.endswith('/...'):
+            return '//third_party/abseil-cpp' + package[1:-4] + "/*"
+        else:
+            path = package[7:]
+            gn_path = '' if path == self.rel_path else '//third_party/abseil-cpp/absl/' + path
+            return gn_path + ':*'
+
     # Targets that include string_view.h should depend on string_view target.
     # For backward compatibility it is possible to depend just on 'strings', but it is
     # better to depend on string_view directly.
     def _need_to_add_string_view(self, bt):
-        if "//absl/strings" not in bt.get('deps', []):
+        string_target = ':strings' if self.rel_path == 'strings' else '//absl/strings'
+        if string_target not in bt.get('deps', []):
             # If target doesn't depend on 'strings', it either doesn't use string_view,
             # or already directly depends on string_view. Skip reading source files.
             return False
@@ -189,6 +216,17 @@ class _Converter:
                             if kw.arg == 'default_visibility':
                                 default_vis = _ast_get_value(
                                     kw.value, local_vars)
+                    elif func_name == 'package_group':
+                        name = None
+                        packages = []
+                        for kw in call.keywords:
+                            if kw.arg == 'name':
+                                name = _ast_get_value(kw.value, local_vars)
+                            elif kw.arg == 'packages':
+                                for p in _ast_get_value(kw.value, local_vars):
+                                    packages.append(self._translate_package(p))
+                        if name:
+                            self.packages[name] = packages
                     elif func_name in ('cc_library', 'cc_test'):
                         t = {'is_test': func_name == 'cc_test'}
                         for kw in call.keywords:
@@ -264,6 +302,9 @@ class _Converter:
             if hdrs:
                 out.append('public = [')
                 for h in sorted(hdrs):
+                    # One exception where header is excluded
+                    if target_name == 'strings:strings' and h == 'string_view.h':
+                        continue
                     out.append(f'"{h}",')
                 out.append(']')
 
@@ -343,6 +384,7 @@ def convert_all(root_dir):
             'functional',
             'hash',
             'log',
+            'log/internal',
             'memory',
             'meta',
             'numeric',
@@ -350,6 +392,7 @@ def convert_all(root_dir):
             'random',
             'random/internal',
             'status',
+            'strings',
             'synchronization',
             'time',
             'types',
