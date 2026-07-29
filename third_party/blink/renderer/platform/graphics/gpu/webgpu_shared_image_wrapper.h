@@ -78,21 +78,6 @@ class PLATFORM_EXPORT WebGpuSharedImageWrapper final
   void DrawToBackingSharedImage(
       base::FunctionRef<void(cc::PaintCanvas&)> draw_callback);
 
-  const gpu::SyncToken& acquire_sync_token() const {
-    return acquire_sync_token_;
-  }
-  void set_release_sync_token(const gpu::SyncToken& token) {
-    release_sync_token_ = token;
-  }
-
-  // Returns the ClientSharedImage backing this WebGpuSharedImageWrapper, if one
-  // exists, after flushing the resource and signaling that an external write
-  // will occur on it. The caller should wait on `internal_access_sync_token`
-  // before writing the contents. When the external write is complete, the
-  // caller should call `EndExternalWrite()`.
-  scoped_refptr<gpu::ClientSharedImage> BeginExternalOverwrite(
-      gpu::SyncToken& internal_access_sync_token);
-
   // Copies the contents of the passed-in SharedImage at `copy_rect` into this
   // instance's SharedImage. Waits on `ready_sync_token` before copying; pass
   // SyncToken() if no sync is required. Synthesizes a new sync token in
@@ -105,12 +90,19 @@ class PLATFORM_EXPORT WebGpuSharedImageWrapper final
       const gpu::SyncToken& ready_sync_token,
       gpu::SyncToken& completion_sync_token);
 
-  // Signals that an external write has completed, passing the token that should
-  // be waited on to ensure that the service-side operations of the external
-  // write have completed. Ensures that the next read of this resource (whether
-  // via raster or the compositor) waits on this token.
-  void EndExternalWrite(const gpu::SyncToken& external_write_sync_token);
   void WaitSyncToken(const gpu::SyncToken& sync_token);
+
+  gpu::raster::RasterInterface* RasterInterface() const;
+  bool IsGpuContextLost() const;
+
+  // Temporarily public for WebGpuSharedImageWrapperLease migration.
+  const gfx::HDRMetadata hdr_metadata_;
+  std::unique_ptr<MemoryManagedPaintRecorder> recorder_for_external_draws_;
+  const scoped_refptr<gpu::ClientSharedImage> shared_image_;
+  gpu::SyncToken acquire_sync_token_;
+  gpu::SyncToken release_sync_token_;
+  bool is_cleared_ = false;
+  base::WeakPtr<WebGraphicsContext3DProviderWrapper> context_provider_wrapper_;
 
  private:
   WebGpuSharedImageWrapper(gfx::Size,
@@ -120,25 +112,9 @@ class PLATFORM_EXPORT WebGpuSharedImageWrapper final
                            const gfx::HDRMetadata&,
                            base::WeakPtr<WebGraphicsContext3DProviderWrapper>);
 
-  bool IsGpuContextLost() const;
-
   // CanvasMemoryDumpClient implementation.
   void OnMemoryDump(base::trace_event::ProcessMemoryDump* pmd) override;
   size_t GetSize() const override;
-
-  gpu::raster::RasterInterface* RasterInterface() const;
-
-  const gfx::HDRMetadata hdr_metadata_;
-
-  std::unique_ptr<MemoryManagedPaintRecorder> recorder_for_external_draws_;
-
-  const scoped_refptr<gpu::ClientSharedImage> shared_image_;
-  gpu::SyncToken acquire_sync_token_;
-  gpu::SyncToken release_sync_token_;
-
-  bool is_cleared_ = false;
-
-  base::WeakPtr<WebGraphicsContext3DProviderWrapper> context_provider_wrapper_;
 };
 
 }  // namespace blink

@@ -9,6 +9,7 @@
 #include "base/task/single_thread_task_runner.h"
 #include "base/time/time.h"
 #include "components/viz/common/resources/shared_image_format_utils.h"
+#include "gpu/command_buffer/client/raster_interface.h"
 #include "third_party/blink/renderer/platform/graphics/gpu/webgpu_shared_image_wrapper.h"
 #include "third_party/blink/renderer/platform/graphics/skia/skia_utils.h"
 #include "third_party/blink/renderer/platform/wtf/functional.h"
@@ -25,6 +26,90 @@ WebGpuSharedImageWrapperLease::~WebGpuSharedImageWrapperLease() {
     cache_->ReturnWebGpuSharedImageWrapper(std::move(shared_image_wrapper_),
                                            completion_sync_token_);
   }
+}
+
+scoped_refptr<gpu::ClientSharedImage>
+WebGpuSharedImageWrapperLease::GetSharedImage() const {
+  return shared_image_wrapper_->GetSharedImage();
+}
+
+gpu::SyncToken WebGpuSharedImageWrapperLease::GetSyncToken() const {
+  return shared_image_wrapper_->GetSyncToken();
+}
+
+bool WebGpuSharedImageWrapperLease::UploadToBackingSharedImage(
+    const SkPixmap& pixmap,
+    uint32_t src_x,
+    uint32_t src_y) {
+  return shared_image_wrapper_->UploadToBackingSharedImage(pixmap, src_x,
+                                                           src_y);
+}
+
+void WebGpuSharedImageWrapperLease::DrawToBackingSharedImage(
+    base::FunctionRef<void(cc::PaintCanvas&)> draw_callback) {
+  shared_image_wrapper_->DrawToBackingSharedImage(draw_callback);
+}
+
+const gpu::SyncToken& WebGpuSharedImageWrapperLease::acquire_sync_token()
+    const {
+  return shared_image_wrapper_->acquire_sync_token_;
+}
+
+void WebGpuSharedImageWrapperLease::set_release_sync_token(
+    const gpu::SyncToken& token) {
+  shared_image_wrapper_->release_sync_token_ = token;
+}
+
+void WebGpuSharedImageWrapperLease::WriteToBackingSharedImage(
+    base::FunctionRef<
+        gpu::SyncToken(const scoped_refptr<gpu::ClientSharedImage>&,
+                       const gpu::SyncToken&)> overwrite_callback) {
+  if (shared_image_wrapper_->IsGpuContextLost()) {
+    return;
+  }
+
+  // NOTE: Invoking BeginRasterAccess() ensures that this invocation of
+  // EndAccess() will generate a new sync token.
+  auto access = shared_image_wrapper_->shared_image_->BeginRasterAccess(
+      shared_image_wrapper_->RasterInterface(),
+      shared_image_wrapper_->acquire_sync_token_,
+      /*readonly=*/false);
+  auto sync_token = gpu::RasterScopedAccess::EndAccess(std::move(access));
+  shared_image_wrapper_->release_sync_token_ = sync_token;
+  shared_image_wrapper_->shared_image_->UpdateDestructionSyncToken(sync_token);
+
+  gpu::SyncToken external_write_sync_token =
+      overwrite_callback(shared_image_wrapper_->shared_image_,
+                         shared_image_wrapper_->release_sync_token_);
+
+  if (shared_image_wrapper_->IsGpuContextLost()) {
+    return;
+  }
+
+  // Ensure that any subsequent internal accesses wait for the external write to
+  // complete.
+  shared_image_wrapper_->WaitSyncToken(external_write_sync_token);
+
+  // Additionally ensure that the next external read waits for the external
+  // write to complete by ensuring that a new sync token is generated on the
+  // internal interface. This new sync token will be chained after
+  // `external_write_sync_token` thanks to the wait above.
+  access = shared_image_wrapper_->shared_image_->BeginRasterAccess(
+      shared_image_wrapper_->RasterInterface(),
+      shared_image_wrapper_->acquire_sync_token_, /*readonly=*/true);
+  sync_token = gpu::RasterScopedAccess::EndAccess(std::move(access));
+  shared_image_wrapper_->release_sync_token_ = sync_token;
+  shared_image_wrapper_->shared_image_->UpdateDestructionSyncToken(sync_token);
+}
+
+bool WebGpuSharedImageWrapperLease::CopyToBackingSharedImage(
+    const scoped_refptr<gpu::ClientSharedImage>& shared_image,
+    uint32_t src_x,
+    uint32_t src_y,
+    const gpu::SyncToken& ready_sync_token,
+    gpu::SyncToken& completion_sync_token) {
+  return shared_image_wrapper_->CopyToBackingSharedImage(
+      shared_image, src_x, src_y, ready_sync_token, completion_sync_token);
 }
 
 WebGpuSharedImageWrapperCache::WebGpuSharedImageWrapperCache(
