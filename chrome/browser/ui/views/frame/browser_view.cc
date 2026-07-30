@@ -976,7 +976,7 @@ BrowserView::BrowserView(Browser* browser)
     auto vertical_tab_strip_container =
         std::make_unique<VerticalTabStripRegionView>(
             vertical_tab_strip_state_controller,
-            browser_->GetActions()->root_action_item(), this);
+            BrowserActions::From(browser_)->root_action_item(), this);
 
     if (base::FeatureList::IsEnabled(features::kGlassFrame)) {
       vertical_tab_strip_background_blur_backdrop_ = AddChildView(
@@ -1011,7 +1011,7 @@ BrowserView::BrowserView(Browser* browser)
       OrganizerPanelStateController::From(browser_);
   if (organizer_panel_state_controller) {
     auto organizer_panel_container = std::make_unique<OrganizerPanelView>(
-        browser_.get(), browser_->GetActions()->root_action_item(),
+        browser_.get(), BrowserActions::From(browser_)->root_action_item(),
         organizer_panel_state_controller);
     organizer_panel_container_ =
         AddChildView(std::move(organizer_panel_container));
@@ -3200,7 +3200,8 @@ content::KeyboardEventProcessingResult BrowserView::PreHandleKeyboardEvent(
 
   // If it's a known browser command, we decide whether to consume it now, i.e.
   // reserved by browser.
-  chrome::BrowserCommandController* controller = browser_->command_controller();
+  chrome::BrowserCommandController* controller =
+      chrome::BrowserCommandController::From(browser_);
   // Executing the command may cause |this| object to be destroyed.
   if (controller->IsReservedCommandOrKey(id, event)) {
     UpdateAcceleratorMetrics(accelerator, id);

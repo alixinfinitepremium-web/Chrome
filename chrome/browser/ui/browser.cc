@@ -681,10 +681,6 @@ void Browser::SynchronouslyDestroyBrowser() {
   // `this` is no longer valid from this point forward.
 }
 
-BrowserActions* Browser::GetActions() {
-  return GetFeatures().browser_actions();
-}
-
 BrowserWindowInterface::Type Browser::GetType() const {
   return type_;
 }
@@ -800,13 +796,13 @@ void Browser::WindowFullscreenStateChanged() {
       ->exclusive_access_manager()
       ->fullscreen_controller()
       ->WindowFullscreenStateChanged();
-  GetCommandController()->FullscreenStateChanged();
+  chrome::BrowserCommandController::From(this)->FullscreenStateChanged();
   BookmarkBarController::From(this)->UpdateBookmarkBarState(
       BookmarkBarController::StateChangeReason::kToggleFullscreen);
 }
 
 void Browser::FullscreenTopUIStateChanged() {
-  GetCommandController()->FullscreenStateChanged();
+  chrome::BrowserCommandController::From(this)->FullscreenStateChanged();
   BookmarkBarController::From(this)->UpdateBookmarkBarState(
       BookmarkBarController::StateChangeReason::kToolbarOptionChange);
 }
@@ -814,7 +810,7 @@ void Browser::FullscreenTopUIStateChanged() {
 void Browser::OnFindBarVisibilityChanged() {
   GetFeatures().GetFindBarController()->UpdatePageAction();
 
-  GetCommandController()->FindBarVisibilityChanged();
+  chrome::BrowserCommandController::From(this)->FindBarVisibilityChanged();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1154,7 +1150,7 @@ void Browser::OnActiveTabChanged(const TabStripModelChange& change,
 
   // Update reload/stop state.
   chrome::BrowserCommandController* const browser_command_controller =
-      GetCommandController();
+      chrome::BrowserCommandController::From(this);
   browser_command_controller->LoadingStateChanged(
       selection.new_contents->IsLoading(), true);
 
@@ -1399,9 +1395,6 @@ std::vector<StatusBubble*> Browser::GetStatusBubbles() {
   }
 }
 
-chrome::BrowserCommandController* Browser::GetCommandController() {
-  return GetFeatures().browser_command_controller();
-}
 
 ///////////////////////////////////////////////////////////////////////////////
 // Browser, Assorted utility functions (private):
@@ -1460,7 +1453,8 @@ void Browser::UpdateWindowForLoadingStateChanged(content::WebContents* source,
   WebContents* selected_contents = tab_strip_model_->GetActiveWebContents();
   if (source == selected_contents) {
     bool is_loading = source->IsLoading() && should_show_loading_ui;
-    GetCommandController()->LoadingStateChanged(is_loading, false);
+    chrome::BrowserCommandController::From(this)->LoadingStateChanged(
+        is_loading, false);
 
     std::vector<StatusBubble*> status_bubbles = GetStatusBubbles();
     if (status_bubbles.size() > 0) {

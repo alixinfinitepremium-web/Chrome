@@ -323,7 +323,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '3c0c06d9b96b22370087bdab9d43341368624bf2',
+  'src_internal_revision': '27f978236352634a256e978847600e2fd1e4a65f',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -335,7 +335,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': 'fef82cd9be4e17022d57268977882110c7f123a4',
+  'angle_revision': '1ebd518e9a4905b3a9eb78a617a0d6432a56f7e4',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -547,7 +547,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling agents-public
   # and whatever else without interference from each other.
-  'agents_public_revision': '559f135fc214d637f85174c6be7010804e31f1e5',
+  'agents_public_revision': '78cc65e41fda49ebc70071b591fd29cce068f785',
 
   # If you change this, also update the libc++ revision in
   # //buildtools/deps_revisions.gni.
@@ -1727,7 +1727,7 @@ deps = {
   },
 
   'src/docs/website': {
-    'url': Var('chromium_git') + '/website.git' + '@' + 'd6f9699122ec26033897a92d2c9e33cfc0e53ca0',
+    'url': Var('chromium_git') + '/website.git' + '@' + 'c012ea5df7981a8ff3c03c77006b08f7efe10ac9',
   },
 
   'src/ios/third_party/earl_grey2/src': {
@@ -3166,7 +3166,7 @@ deps = {
     Var('chromium_git') + '/external/khronosgroup/webgl.git' + '@' + '064aaf18207438d4f6dd10c98b02b25778257b7f',
 
   'src/third_party/webgpu-cts/src':
-    Var('chromium_git') + '/external/github.com/gpuweb/cts.git' + '@' + 'a152afa827329d93e881fceb6df053eab6898f65',
+    Var('chromium_git') + '/external/github.com/gpuweb/cts.git' + '@' + 'dc20b8682aa71ff31f135de6ae7f8acaa2e16383',
 
   'src/third_party/webpagereplay':
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
@@ -3744,7 +3744,7 @@ deps = {
 
   'src/chrome/browser/platform_experience/win': {
       'url': Var('chrome_git') + '/chrome/browser/platform_experience/win.git' + '@' +
-        '66e55ae55f3155bc0f80a0c4c4d69a2dc6e8cce9',
+        '7046a436f37b4b00761b270abc2ba5efe2d9cc06',
       'condition': 'checkout_src_internal',
   },
 
@@ -3929,7 +3929,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        'be6ce9a51085105b4001103d6e7fb6c8d3bd35a9',
+        '9bebb01e08d904c59750114087d16ac6fab3449e',
       'condition': 'checkout_src_internal',
   },
 

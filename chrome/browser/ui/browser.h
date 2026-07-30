@@ -62,7 +62,6 @@
 #endif
 
 class BackgroundContents;
-class BrowserActions;
 class BrowserInitState;
 class BrowserView;
 class BrowserWindow;
@@ -80,10 +79,6 @@ class TabInterface;
 
 namespace blink {
 enum class ProtocolHandlerSecurityLevel;
-}
-
-namespace chrome {
-class BrowserCommandController;
 }
 
 namespace content {
@@ -335,12 +330,6 @@ class Browser : public TabStripModelObserver,
   // avoided.
   BrowserView& GetBrowserView();
 
-  BrowserActions* browser_actions() { return GetActions(); }
-
-  // TODO(crbug.com/434734349): Remove this method once callsites are migrated.
-  chrome::BrowserCommandController* command_controller() {
-    return GetCommandController();
-  }
 
   SessionID session_id() const { return session_id_; }
   BrowserWindowFeatures* browser_window_features() const {
@@ -461,7 +450,6 @@ class Browser : public TabStripModelObserver,
       DidBecomeActiveCallback callback) override;
   base::CallbackListSubscription RegisterDidBecomeInactive(
       DidBecomeInactiveCallback callback) override;
-  BrowserActions* GetActions() override;
   Type GetType() const override;
   std::vector<tabs::TabInterface*> GetAllTabInterfaces() override;
   Browser* GetBrowserForMigrationOnly() override;
@@ -581,8 +569,6 @@ class Browser : public TabStripModelObserver,
   // listed first.
   // TODO(beng): remove this.
   std::vector<StatusBubble*> GetStatusBubbles();
-
-  chrome::BrowserCommandController* GetCommandController();
 
 
 
