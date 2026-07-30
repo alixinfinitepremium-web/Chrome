@@ -1355,6 +1355,22 @@
             ]
         }
     ],
+    "AndroidSurfaceControlPartialDamage": [
+        {
+            "platforms": [
+                "android",
+                "android_webview"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "AndroidSurfaceControlPartialDamage"
+                    ]
+                }
+            ]
+        }
+    ],
     "AndroidSwipeToSwitchPane": [
         {
             "platforms": [
@@ -1674,7 +1690,8 @@
     "AndroidYuvOverlayEvenAlignment": [
         {
             "platforms": [
-                "android"
+                "android",
+                "android_webview"
             ],
             "experiments": [
                 {
@@ -17972,6 +17989,21 @@
                     },
                     "enable_features": [
                         "OmniboxOnDeviceHeadProviderNonIncognito"
+                    ]
+                }
+            ]
+        }
+    ],
+    "OmniboxSearchPrefetchOnEnterKeyDown": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "OmniboxSearchPrefetchOnEnterKeyDown"
                     ]
                 }
             ]

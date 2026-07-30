@@ -55,7 +55,8 @@ void BrowserWindowPropertyManager::UpdateWindowProperties() {
   std::wstring app_id =
       browser->GetType() == BrowserWindowInterface::Type::TYPE_APP ||
               browser->is_type_app_popup() || browser->is_type_devtools() ||
-              (browser->is_type_picture_in_picture() &&
+              (browser->GetType() ==
+                   BrowserWindowInterface::Type::TYPE_PICTURE_IN_PICTURE &&
                !browser->app_name().empty())
           ? shell_integration::win::GetAppUserModelIdForApp(
                 base::UTF8ToWide(browser->app_name()), profile->GetPath())
@@ -83,7 +84,8 @@ void BrowserWindowPropertyManager::UpdateWindowProperties() {
   base::FilePath icon_path;
   std::wstring command_line_string;
   std::wstring pinned_name;
-  if ((browser->is_type_normal() || browser->is_type_popup()) &&
+  if ((browser->is_type_normal() ||
+       browser->GetType() == BrowserWindowInterface::Type::TYPE_POPUP) &&
       shortcut_manager &&
       profile->GetPrefs()->HasPrefPath(prefs::kProfileIconVersion)) {
     // Set relaunch details to use profile.
