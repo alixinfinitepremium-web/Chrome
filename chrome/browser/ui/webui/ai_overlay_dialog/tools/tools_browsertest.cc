@@ -8,10 +8,13 @@
 #include <string>
 
 #include "base/hash/hash.h"
+#include "base/json/json_reader.h"
 #include "base/strings/string_number_conversions.h"
 #include "base/test/bind.h"
 #include "base/test/test_future.h"
 #include "base/types/expected.h"
+#include "chrome/browser/bookmarks/bookmark_model_factory.h"
+#include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/translate/chrome_translate_client.h"
 #include "chrome/browser/translate/translate_test_utils.h"
 #include "chrome/browser/ui/browser.h"
@@ -19,6 +22,7 @@
 #include "chrome/browser/ui/webui/ai_overlay_dialog/page_context_monitor.h"
 #include "chrome/test/base/in_process_browser_test.h"
 #include "chrome/test/base/ui_test_utils.h"
+#include "components/bookmarks/browser/bookmark_model.h"
 #include "components/translate/core/browser/language_state.h"
 #include "components/translate/core/common/translate_switches.h"
 #include "content/public/test/browser_test.h"
@@ -582,5 +586,182 @@ IN_PROC_BROWSER_TEST_F(AiOverlayToolsBrowserTest, FollowLinkWithHashSymbol) {
                             ->GetLastCommittedURL());
 }
 
+IN_PROC_BROWSER_TEST_F(AiOverlayToolsBrowserTest, AddAndRemoveBookmark) {
+  GURL active_url = embedded_test_server()->GetURL("/title1.html");
+  ASSERT_TRUE(ui_test_utils::NavigateToURL(browser(), active_url));
+
+  // Add bookmark for active tab via Mojo tool call.
+  base::test::TestFuture<base::expected<std::monostate, std::string>> add_future;
+  tools()->AddBookmark(add_future.GetCallback());
+  EXPECT_TRUE(add_future.Get().has_value());
+
+  // Verify in BookmarkModel.
+  bookmarks::BookmarkModel* model =
+      BookmarkModelFactory::GetForBrowserContext(GetProfile());
+  ASSERT_TRUE(model);
+  auto nodes = model->GetNodesByURL(active_url);
+  EXPECT_EQ(1u, nodes.size());
+
+  // Remove bookmark for active tab via Mojo tool call.
+  base::test::TestFuture<base::expected<std::monostate, std::string>> remove_future;
+  tools()->RemoveBookmark(remove_future.GetCallback());
+  EXPECT_TRUE(remove_future.Get().has_value());
+
+  // Verify removed.
+  nodes = model->GetNodesByURL(active_url);
+  EXPECT_TRUE(nodes.empty());
+}
+
+namespace {
+
+using ToolResultFuture =
+    base::test::TestFuture<base::expected<std::string, std::string>>;
+
+std::string GetToolResultAction(ToolResultFuture& future) {
+  if (!future.Get().has_value()) {
+    return "";
+  }
+  auto dict = base::JSONReader::ReadDict(future.Get().value(),
+                                          base::JSON_PARSE_CHROMIUM_EXTENSIONS);
+  if (!dict) {
+    return "";
+  }
+  const std::string* action = dict->FindString("action");
+  return action ? *action : "";
+}
+
+std::string GetToolResultPathJson(ToolResultFuture& future,
+                                  const std::string& path) {
+  if (!future.Get().has_value()) {
+    return "";
+  }
+  auto dict = base::JSONReader::ReadDict(future.Get().value(),
+                                          base::JSON_PARSE_CHROMIUM_EXTENSIONS);
+  if (!dict) {
+    return "";
+  }
+  const base::Value* val = dict->FindByDottedPath(path);
+  if (!val) {
+    return "";
+  }
+  return base::WriteJson(*val).value_or("");
+}
+
+}  // namespace
+
+IN_PROC_BROWSER_TEST_F(AiOverlayToolsBrowserTest, OpenPageSingleMatchAutoNavigate) {
+  // 1. Setup two tabs: tab 0 = title1.html, tab 1 = title2.html
+  GURL tab1_url = embedded_test_server()->GetURL("/title1.html");
+  GURL tab2_url = embedded_test_server()->GetURL("/title2.html");
+
+  ASSERT_TRUE(ui_test_utils::NavigateToURL(browser(), tab1_url));
+  ui_test_utils::NavigateToURLWithDisposition(
+      browser(), tab2_url, WindowOpenDisposition::NEW_FOREGROUND_TAB,
+      ui_test_utils::BROWSER_TEST_WAIT_FOR_LOAD_STOP);
+
+  TabStripModel* tab_strip = browser()->tab_strip_model();
+  ASSERT_EQ(2, tab_strip->count());
+  ASSERT_EQ(1, tab_strip->active_index());
+
+  // 2. Execute Single Match OpenPage -> Expect auto-switch to tab 0
+  ToolResultFuture future;
+  tools()->OpenPage("Title1", future.GetCallback());
+
+  EXPECT_EQ("switched_tab", GetToolResultAction(future));
+  EXPECT_EQ(0, tab_strip->active_index());
+}
+
+IN_PROC_BROWSER_TEST_F(AiOverlayToolsBrowserTest, OpenPageNegativeNoMatch) {
+  GURL tab_url = embedded_test_server()->GetURL("/title1.html");
+  ASSERT_TRUE(ui_test_utils::NavigateToURL(browser(), tab_url));
+
+  TabStripModel* tab_strip = browser()->tab_strip_model();
+  int initial_active_index = tab_strip->active_index();
+
+  ToolResultFuture future;
+  tools()->OpenPage("NonExistentTopicKeyword", future.GetCallback());
+
+  ASSERT_TRUE(future.Get().has_value());
+  EXPECT_EQ("", GetToolResultAction(future));
+  EXPECT_EQ(initial_active_index, tab_strip->active_index());
+
+  EXPECT_EQ("[]", GetToolResultPathJson(future, "open_tabs"));
+  EXPECT_EQ("[]", GetToolResultPathJson(future, "bookmarks"));
+  EXPECT_EQ("[]", GetToolResultPathJson(future, "history"));
+}
+
+IN_PROC_BROWSER_TEST_F(AiOverlayToolsBrowserTest, OpenPageMultiMatchDisambiguation) {
+  // 1. Setup Open Tab & Bookmark entry for multi-match query
+  GURL page_url = embedded_test_server()->GetURL("/title2.html");
+  ASSERT_TRUE(ui_test_utils::NavigateToURL(browser(), page_url));
+
+  bookmarks::BookmarkModel* bm_model =
+      BookmarkModelFactory::GetForBrowserContext(GetProfile());
+  ASSERT_TRUE(bm_model);
+  const bookmarks::BookmarkNode* other_node = bm_model->other_node();
+  bm_model->AddNewURL(other_node, 0, u"Title2 Bookmark", page_url);
+
+  // 2. Execute Multi Match OpenPage -> Expect candidate listing with monotonically
+  // assigned target_ids across categories (open_tabs candidates first, then
+  // bookmarks, then history).
+  ToolResultFuture future;
+  tools()->OpenPage("Title2", future.GetCallback());
+
+  ASSERT_TRUE(future.Get().has_value());
+  EXPECT_EQ("", GetToolResultAction(future));
+
+  auto dict = base::JSONReader::ReadDict(
+      future.Get().value(), base::JSON_PARSE_CHROMIUM_EXTENSIONS);
+  ASSERT_TRUE(dict.has_value());
+
+  // Category 1: open_tabs with candidate target_id = 1
+  const base::ListValue* open_tabs = dict->FindList("open_tabs");
+  ASSERT_TRUE(open_tabs);
+  ASSERT_FALSE(open_tabs->empty());
+  EXPECT_EQ(1, (*open_tabs)[0].GetDict().FindInt("target_id"));
+
+  // Category 2: bookmarks with candidate target_id = 2
+  const base::ListValue* bookmarks = dict->FindList("bookmarks");
+  ASSERT_TRUE(bookmarks);
+  ASSERT_FALSE(bookmarks->empty());
+  EXPECT_EQ(2, (*bookmarks)[0].GetDict().FindInt("target_id"));
+}
+
+IN_PROC_BROWSER_TEST_F(AiOverlayToolsBrowserTest, OpenPageHistorySearch) {
+  GURL history_url = embedded_test_server()->GetURL("/title3.html");
+  ASSERT_TRUE(ui_test_utils::NavigateToURL(browser(), history_url));
+
+  GURL active_url = embedded_test_server()->GetURL("/title1.html");
+  ASSERT_TRUE(ui_test_utils::NavigateToURL(browser(), active_url));
+
+  ToolResultFuture future;
+  tools()->OpenPage("Title3", future.GetCallback());
+
+  EXPECT_EQ("opened_history", GetToolResultAction(future));
+  EXPECT_EQ(history_url,
+            browser()->tab_strip_model()->GetActiveWebContents()->GetVisibleURL());
+}
+
+IN_PROC_BROWSER_TEST_F(AiOverlayToolsBrowserTest, OpenPageSearchByTitle) {
+  // 1. Setup tab 0 with a unique page title that does not appear in its URL.
+  GURL tab0_url("data:text/html,<title>Unique Special Page Title</title><h1>Tab 0</h1>");
+  GURL tab1_url("data:text/html,<title>Other Page</title><h1>Tab 1</h1>");
+
+  ASSERT_TRUE(ui_test_utils::NavigateToURL(browser(), tab0_url));
+  ui_test_utils::NavigateToURLWithDisposition(
+      browser(), tab1_url, WindowOpenDisposition::NEW_FOREGROUND_TAB,
+      ui_test_utils::BROWSER_TEST_WAIT_FOR_LOAD_STOP);
+
+  TabStripModel* tab_strip = browser()->tab_strip_model();
+  ASSERT_EQ(2, tab_strip->count());
+  ASSERT_EQ(1, tab_strip->active_index());
+
+  // 2. Search by page title query -> Expect auto-switch to tab 0
+  ToolResultFuture future;
+  tools()->OpenPage("Unique Special", future.GetCallback());
+
+  EXPECT_EQ("switched_tab", GetToolResultAction(future));
+  EXPECT_EQ(0, tab_strip->active_index());
+}
 }  // namespace
 }  // namespace ttc

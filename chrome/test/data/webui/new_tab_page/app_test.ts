@@ -2538,7 +2538,7 @@ suite('NewTabPageAppTest', () => {
               secondaryText: {text: 'tab-subtitle', a11yText: null},
               preselectedTool: ToolMode.kUnspecified,
               preferredInventory: null,
-              clickAction: null,
+              fuseboxAction: null,
             },
             tab: fakeTab,
           },
@@ -2550,7 +2550,7 @@ suite('NewTabPageAppTest', () => {
               secondaryText: {text: 'image-subtitle', a11yText: null},
               preselectedTool: ToolMode.kImageGen,
               preferredInventory: null,
-              clickAction: null,
+              fuseboxAction: null,
             },
             tab: null,
           },
@@ -2562,7 +2562,7 @@ suite('NewTabPageAppTest', () => {
               secondaryText: {text: 'ds-subtitle', a11yText: null},
               preselectedTool: ToolMode.kDeepSearch,
               preferredInventory: null,
-              clickAction: null,
+              fuseboxAction: null,
             },
             tab: null,
           },
@@ -2726,7 +2726,7 @@ suite('NewTabPageAppTest', () => {
               secondaryText: {text: subtitle, a11yText: null},
               preselectedTool: ToolMode.kUnspecified,
               preferredInventory: null,
-              clickAction: null,
+              fuseboxAction: null,
             },
             tab: {
               tabId: 1,
@@ -2985,7 +2985,7 @@ suite('NewTabPageAppTest', () => {
           assertFalse(searchbox.isListening);
 
           voiceSearch.hasErrorTimer = true;
-          voiceSearch.detailedError_ = 5; // VoiceSearchError.NO_MATCH
+          voiceSearch.detailedError = 5; // VoiceSearchError.NO_MATCH
           voiceSearch.setErrorMessageForTesting('Didn\'t get that.');
           await microtasksFinished();
           const tryAgainLink =

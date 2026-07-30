@@ -14661,7 +14661,7 @@
                 {
                     "name": "Enabled",
                     "enable_features": [
-                        "PasswordAutofillAutoSubmission"
+                        "IOSPasswordAutoSubmission"
                     ]
                 }
             ]
@@ -23828,6 +23828,26 @@
                     "name": "Enabled",
                     "enable_features": [
                         "StructuredCloningForMessaging"
+                    ]
+                }
+            ]
+        }
+    ],
+    "StructuredHeadersInRust": [
+        {
+            "platforms": [
+                "android",
+                "android_webview",
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled_20260730",
+                    "enable_features": [
+                        "StructuredHeadersInRust"
                     ]
                 }
             ]

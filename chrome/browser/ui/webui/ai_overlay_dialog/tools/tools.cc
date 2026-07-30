@@ -9,6 +9,9 @@
 #include <vector>
 
 #include "base/functional/callback_helpers.h"
+#include "base/i18n/time_formatting.h"
+#include "base/json/json_writer.h"
+#include "base/location.h"
 #include "base/logging.h"
 #include "base/metrics/histogram_functions.h"
 #include "base/strings/strcat.h"
@@ -18,14 +21,21 @@
 #include "base/strings/utf_string_conversions.h"
 #include "base/types/expected.h"
 #include "base/values.h"
+#include "chrome/browser/bookmarks/bookmark_model_factory.h"
 #include "chrome/browser/glic/public/glic_instance.h"
 #include "chrome/browser/glic/public/glic_invoke_options.h"
 #include "chrome/browser/glic/public/glic_keyed_service.h"
 #include "chrome/browser/glic/public/glic_keyed_service_factory.h"
 #include "chrome/browser/glic/public/glic_passkeys.h"
+#include "chrome/browser/history/history_service_factory.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/search_engines/template_url_service_factory.h"
 #include "chrome/browser/translate/chrome_translate_client.h"
+#include "chrome/browser/ui/browser.h"
+#include "chrome/browser/ui/browser_window.h"
+#include "components/bookmarks/browser/bookmark_model.h"
+#include "components/bookmarks/browser/bookmark_utils.h"
+#include "components/history/core/browser/history_service.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
 #include "chrome/browser/ui/tabs/tab_strip_model.h"
 #include "chrome/browser/ui/webui/ai_overlay_dialog/page_context_monitor.h"
@@ -478,6 +488,288 @@ void AiOverlayTools::TranslatePage(const std::string& target_language,
   }
 
   std::move(callback).Run(std::monostate());
+}
+
+void AiOverlayTools::AddBookmark(AddBookmarkCallback callback) {
+  RecordToolCallInvoked("AddBookmark");
+  Profile* profile = browser_->GetProfile();
+  bookmarks::BookmarkModel* bookmark_model =
+      BookmarkModelFactory::GetForBrowserContext(profile);
+  if (!bookmark_model || !bookmark_model->loaded()) {
+    std::move(callback).Run(base::unexpected("Bookmark model not loaded"));
+    return;
+  }
+
+  content::WebContents* active_contents =
+      browser_->tab_strip_model()->GetActiveWebContents();
+  if (!active_contents) {
+    std::move(callback).Run(base::unexpected("No active tab"));
+    return;
+  }
+
+  const GURL& target_url = active_contents->GetVisibleURL();
+  const std::u16string& title = active_contents->GetTitle();
+
+  const bookmarks::BookmarkNode* other_node = bookmark_model->other_node();
+  bookmark_model->AddNewURL(other_node, other_node->children().size(), title,
+                            target_url);
+  std::move(callback).Run(std::monostate());
+}
+
+void AiOverlayTools::RemoveBookmark(RemoveBookmarkCallback callback) {
+  RecordToolCallInvoked("RemoveBookmark");
+  Profile* profile = browser_->GetProfile();
+  bookmarks::BookmarkModel* bookmark_model =
+      BookmarkModelFactory::GetForBrowserContext(profile);
+  if (!bookmark_model || !bookmark_model->loaded()) {
+    std::move(callback).Run(base::unexpected("Bookmark model not loaded"));
+    return;
+  }
+
+  content::WebContents* active_contents =
+      browser_->tab_strip_model()->GetActiveWebContents();
+  if (!active_contents) {
+    std::move(callback).Run(base::unexpected("No active tab"));
+    return;
+  }
+
+  const GURL& target_url = active_contents->GetVisibleURL();
+  std::vector<raw_ptr<const bookmarks::BookmarkNode, VectorExperimental>>
+      nodes = bookmark_model->GetNodesByURL(target_url);
+  if (nodes.empty()) {
+    std::move(callback).Run(base::unexpected("Active tab is not bookmarked"));
+    return;
+  }
+
+  for (const auto& node : nodes) {
+    bookmark_model->Remove(node.get(),
+                           bookmarks::metrics::BookmarkEditSource::kUser,
+                           FROM_HERE);
+  }
+  std::move(callback).Run(std::monostate());
+}
+
+namespace {
+
+bool HasOpenTabWithUrl(const TabStripModel& tab_strip, const GURL& url) {
+  // TODO(crbug.com/540589868): Consider parameter/fragment-insensitive URL
+  // comparison to avoid duplicate candidates when session tokens differ.
+  for (int i = 0; i < tab_strip.count(); ++i) {
+    content::WebContents* contents = tab_strip.GetWebContentsAt(i);
+    if (contents && contents->GetLastCommittedURL() == url) {
+      return true;
+    }
+  }
+  return false;
+}
+
+void FinishOpenPage(base::DictValue response,
+                    TabStripModel& tab_strip,
+                    AiOverlayTools::OpenPageCallback callback) {
+  const base::ListValue* open_tabs = response.FindList("open_tabs");
+  const base::ListValue* bookmarks = response.FindList("bookmarks");
+  const base::ListValue* history = response.FindList("history");
+
+  size_t open_tabs_count = open_tabs ? open_tabs->size() : 0;
+  size_t bookmarks_count = bookmarks ? bookmarks->size() : 0;
+  size_t history_count = history ? history->size() : 0;
+  size_t total_matches = open_tabs_count + bookmarks_count + history_count;
+
+  if (total_matches == 1) {
+    if (open_tabs_count == 1) {
+      const base::DictValue& tab_dict = (*open_tabs)[0].GetDict();
+      int tab_id = tab_dict.FindInt("tab_id").value_or(0);
+      const std::string* title = tab_dict.FindString("title");
+
+      tab_strip.ActivateTabAt(tab_id);
+      base::DictValue auto_response;
+      auto_response.Set("action", "switched_tab");
+      auto_response.Set("tab_id", tab_id);
+      if (title) {
+        auto_response.Set("title", *title);
+      }
+      std::optional<std::string> auto_json = base::WriteJson(auto_response);
+      if (!auto_json) {
+        std::move(callback).Run(
+            base::unexpected("Failed to format search result response JSON"));
+        return;
+      }
+      std::move(callback).Run(base::ok(std::move(*auto_json)));
+      return;
+    }
+
+    if (bookmarks_count == 1) {
+      const base::DictValue& bm_dict = (*bookmarks)[0].GetDict();
+      const std::string* url_str = bm_dict.FindString("url");
+      const std::string* title = bm_dict.FindString("title");
+
+      content::WebContents* active_contents = tab_strip.GetActiveWebContents();
+      if (active_contents && url_str) {
+        active_contents->GetController().LoadURL(
+            GURL(*url_str), content::Referrer(),
+            ui::PAGE_TRANSITION_AUTO_BOOKMARK, std::string());
+      }
+      base::DictValue auto_response;
+      auto_response.Set("action", "opened_bookmark");
+      if (title) {
+        auto_response.Set("title", *title);
+      }
+      std::optional<std::string> auto_json = base::WriteJson(auto_response);
+      if (!auto_json) {
+        std::move(callback).Run(
+            base::unexpected("Failed to format search result response JSON"));
+        return;
+      }
+      std::move(callback).Run(base::ok(std::move(*auto_json)));
+      return;
+    }
+
+    if (history_count == 1) {
+      const base::DictValue& hist_dict = (*history)[0].GetDict();
+      const std::string* url_str = hist_dict.FindString("url");
+      const std::string* title = hist_dict.FindString("title");
+
+      content::WebContents* active_contents = tab_strip.GetActiveWebContents();
+      if (active_contents && url_str) {
+        active_contents->GetController().LoadURL(
+            GURL(*url_str), content::Referrer(),
+            ui::PAGE_TRANSITION_TYPED, std::string());
+      }
+      base::DictValue auto_response;
+      auto_response.Set("action", "opened_history");
+      if (title) {
+        auto_response.Set("title", *title);
+      }
+      std::optional<std::string> auto_json = base::WriteJson(auto_response);
+      if (!auto_json) {
+        std::move(callback).Run(
+            base::unexpected("Failed to format search result response JSON"));
+        return;
+      }
+      std::move(callback).Run(base::ok(std::move(*auto_json)));
+      return;
+    }
+  }
+
+  std::optional<std::string> json_str = base::WriteJson(response);
+  if (!json_str) {
+    std::move(callback).Run(
+        base::unexpected("Failed to format search results response JSON"));
+    return;
+  }
+  std::move(callback).Run(base::ok(std::move(*json_str)));
+}
+
+}  // namespace
+
+void AiOverlayTools::OpenPage(const std::string& query,
+                              OpenPageCallback callback) {
+  RecordToolCallInvoked("OpenPage");
+  TabStripModel* tab_strip = browser_ ? browser_->tab_strip_model() : nullptr;
+  if (!tab_strip) {
+    std::move(callback).Run(base::unexpected("No tab strip model available"));
+    return;
+  }
+
+  Profile* profile = browser_->GetProfile();
+  std::string lower_query = base::ToLowerASCII(query);
+
+  base::DictValue response;
+  int target_id_counter = 1;
+
+  // 1. Search Open Tabs
+  base::ListValue open_tabs_list;
+  for (int i = 0; i < tab_strip->count(); ++i) {
+    content::WebContents* contents = tab_strip->GetWebContentsAt(i);
+    if (!contents) continue;
+
+    std::string title = base::UTF16ToUTF8(contents->GetTitle());
+    std::string url_str = contents->GetVisibleURL().spec();
+    if (base::ToLowerASCII(title).find(lower_query) != std::string::npos ||
+        base::ToLowerASCII(url_str).find(lower_query) != std::string::npos) {
+      base::DictValue tab_dict;
+      tab_dict.Set("target_id", target_id_counter++);
+      tab_dict.Set("title", title);
+      tab_dict.Set("url", url_str);
+      tab_dict.Set("tab_id", i);
+      open_tabs_list.Append(std::move(tab_dict));
+    }
+  }
+  response.Set("open_tabs", std::move(open_tabs_list));
+
+  // 2. Search Bookmarks
+  base::ListValue bookmarks_list;
+  bookmarks::BookmarkModel* bookmark_model =
+      BookmarkModelFactory::GetForBrowserContext(profile);
+  if (bookmark_model && bookmark_model->loaded()) {
+    bookmarks::QueryFields query_fields;
+    query_fields.word_phrase_query =
+        std::make_unique<std::u16string>(base::UTF8ToUTF16(query));
+    std::vector<const bookmarks::BookmarkNode*> matches =
+        bookmarks::GetBookmarksMatchingProperties(bookmark_model, query_fields, 10);
+
+    for (const auto* node : matches) {
+      base::DictValue bm_dict;
+      bm_dict.Set("target_id", target_id_counter++);
+      bm_dict.Set("title", node->GetTitle());
+      bm_dict.Set("url", node->url().spec());
+      if (node->parent()) {
+        bm_dict.Set("folder", node->parent()->GetTitle());
+      }
+      bm_dict.Set("date_added", base::UnlocalizedTimeFormatWithPattern(
+                                    node->date_added(), "yyyy-MM-dd"));
+      bookmarks_list.Append(std::move(bm_dict));
+    }
+  }
+  response.Set("bookmarks", std::move(bookmarks_list));
+
+  // 3. Search History
+  history::HistoryService* history_service =
+      HistoryServiceFactory::GetForProfile(profile,
+                                            ServiceAccessType::EXPLICIT_ACCESS);
+  if (!history_service) {
+    FinishOpenPage(std::move(response), *tab_strip, std::move(callback));
+    return;
+  }
+
+  history::QueryOptions options;
+  options.max_count = 10;
+  history_service->QueryHistory(
+      base::UTF8ToUTF16(query), options,
+      base::BindOnce(
+          [](base::DictValue res, OpenPageCallback cb,
+             base::WeakPtr<AiOverlayTools> self,
+             int start_target_id, history::QueryResults results) {
+            if (!self || !self->browser_) {
+              std::move(cb).Run(base::unexpected("Browser closed"));
+              return;
+            }
+            TabStripModel* tab_strip = self->browser_->tab_strip_model();
+            CHECK(tab_strip);
+            base::ListValue history_list;
+            int current_target_id = start_target_id;
+
+            for (const history::URLResult& result : results) {
+              if (HasOpenTabWithUrl(*tab_strip, result.url())) {
+                continue;
+              }
+
+              base::DictValue hist_dict;
+              hist_dict.Set("target_id", current_target_id++);
+              hist_dict.Set("title", result.title());
+              hist_dict.Set("url", result.url().spec());
+              hist_dict.Set("date_visited",
+                            base::UnlocalizedTimeFormatWithPattern(
+                                result.visit_time(), "yyyy-MM-dd"));
+              history_list.Append(std::move(hist_dict));
+            }
+            res.Set("history", std::move(history_list));
+
+            FinishOpenPage(std::move(res), *tab_strip, std::move(cb));
+          },
+          std::move(response), std::move(callback), weak_factory_.GetWeakPtr(),
+          target_id_counter),
+      &task_tracker_);
 }
 
 }  // namespace ttc
