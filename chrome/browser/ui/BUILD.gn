@@ -394,6 +394,77 @@ source_set("view_ids") {
   public = [ "view_ids.h" ]
 }
 
+source_set("managed_ui") {
+  public = [ "managed_ui.h" ]
+  sources = [ "managed_ui.cc" ]
+  public_deps = [
+    "//base",
+    "//extensions/buildflags",
+  ]
+  deps = [
+    ":ui_features",
+    "//chrome:strings",
+    "//chrome/browser:browser_features",
+    "//chrome/browser/enterprise",
+    "//chrome/browser/enterprise/browser_management:management_identity",
+    "//chrome/browser/profiles:profile",
+    "//chrome/common",
+    "//components/policy/core/common",
+    "//components/strings:components_strings",
+    "//components/supervised_user/core/browser",
+    "//components/supervised_user/core/common",
+    "//components/vector_icons",
+    "//ui/base",
+    "//ui/gfx",
+    "//url",
+  ]
+  if (is_chromeos) {
+    deps += [
+      "//chrome/browser/ui/webui/management",
+      "//chromeos/ash/components/demo_mode",
+      "//ui/chromeos",
+    ]
+  }
+}
+
+source_set("crypto_module_password_dialog") {
+  public = [ "crypto_module_password_dialog.h" ]
+
+  public_deps = [
+    "//base",
+    "//ui/gfx",
+  ]
+
+  if (use_nss_certs) {
+    public += [ "crypto_module_delegate_nss.h" ]
+    sources = [
+      "crypto_module_delegate_nss.cc",
+      "crypto_module_password_dialog_nss.cc",
+      "crypto_module_password_dialog_nss.h",
+    ]
+
+    deps = [
+      "//chrome/browser/profiles:profile",
+      "//content/public/browser",
+      "//crypto",
+      "//net",
+    ]
+
+    if (use_aura) {
+      public += [ "views/crypto_module_password_dialog_view.h" ]
+      sources += [ "views/crypto_module_password_dialog_view.cc" ]
+
+      deps += [
+        "//chrome/app:generated_resources",
+        "//chrome/browser/ui/views:layout_provider",
+        "//components/strings:components_strings",
+        "//ui/base",
+        "//ui/views",
+      ]
+    }
+  }
+}
+
 # Use a static library here because many test binaries depend on this but don't
 # require many files from it. This makes linking more efficient.
 # TODO(https://crbug.com/353332589): Once //chrome/browser is properly
@@ -402,10 +473,7 @@ source_set("view_ids") {
 # circular includes from each other.
 static_library("ui") {
   sources = [
-    "crypto_module_password_dialog.h",
     "idle_bubble.h",
-    "managed_ui.cc",
-    "managed_ui.h",
     "screen_capture_notification_ui.h",
     "tab_dialogs.cc",
     "tab_dialogs.h",
@@ -414,8 +482,6 @@ static_library("ui") {
     "tab_modal_confirm_dialog.h",
     "tab_ui_helper.cc",
     "tab_ui_helper.h",
-    "views/frame/glass_frame_service.cc",
-    "views/frame/glass_frame_service.h",
   ]
 
   defines = []
@@ -433,6 +499,7 @@ static_library("ui") {
     # New dependencies inside of //chrome/browser that generate header files
     # should be added to //chrome/browser:browser_generated_files.
     ":accelerator_utils_headers",
+    ":crypto_module_password_dialog",
     ":enterprise_startup_dialog",
     ":simple_message_box_headers",
     "//chrome/browser:browser_public_dependencies",
@@ -465,6 +532,7 @@ static_library("ui") {
     ":browser_otr_state",
     ":browser_ui_prefs",
     ":incognito_allowed_url",
+    ":managed_ui",
     ":recently_audible_helper",
     ":session_crashed_bubble",
     ":simple_message_box_internal",
@@ -1062,6 +1130,7 @@ static_library("ui") {
   if (!is_android) {
     deps += [
       "//chrome/browser/ui/infobars",
+      "//chrome/browser/ui/views/frame:glass_frame_service",
       "//chrome/browser/ui/views/relaunch_notification",
       "//chrome/browser/ui/views/relaunch_notification:impl",
       "//chrome/browser/ui/webui:chrome_web_contents_handler",
@@ -1118,21 +1187,9 @@ static_library("ui") {
       # browser_window.h) that can't be split out yet.
       "//chrome/browser/ui/webui/downloads",
 
-      # management includes headers from //chrome/browser/ui (e.g. managed_ui.h)
-      # that can't be split out yet.
-      "//chrome/browser/ui/webui/management",
-
       # web_app_internals includes headers from //chrome/browser/ui (e.g.
       # browser.h) that can't be split out yet.
       "//chrome/browser/ui/webui/web_app_internals",
-    ]
-  }
-
-  if (is_android) {
-    allow_circular_includes_from += [
-      # management includes headers from //chrome/browser/ui (e.g. managed_ui.h)
-      # that can't be split out yet.
-      "//chrome/browser/ui/webui/management",
     ]
   }
 
@@ -5047,10 +5104,6 @@ static_library("ui") {
     allow_circular_includes_from += [
       "//chrome/browser/extensions",
       "//chrome/browser/ui/webui/extensions",
-
-      # managed_ui_handler includes managed_ui.h from //chrome/browser/ui that
-      # can't be split out yet.
-      "//chrome/browser/ui/webui:managed_ui_handler",
     ]
   }
 
@@ -5197,22 +5250,6 @@ static_library("ui") {
 
   if (use_dbus) {
     deps += [ "//dbus" ]
-  }
-
-  if (use_nss_certs) {
-    sources += [
-      "crypto_module_delegate_nss.cc",
-      "crypto_module_delegate_nss.h",
-      "crypto_module_password_dialog_nss.cc",
-      "crypto_module_password_dialog_nss.h",
-    ]
-
-    if (use_aura) {
-      sources += [
-        "views/crypto_module_password_dialog_view.cc",
-        "views/crypto_module_password_dialog_view.h",
-      ]
-    }
   }
 
   if (chrome_root_store_cert_management_ui) {
