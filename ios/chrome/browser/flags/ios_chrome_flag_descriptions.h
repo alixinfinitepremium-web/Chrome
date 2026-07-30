@@ -1764,11 +1764,6 @@ inline constexpr char kReaderModeOmniboxEntrypointInUSName[] =
 inline constexpr char kReaderModeOmniboxEntrypointInUSDescription[] =
     "Enables the omnibox entrypoint for Reader Mode for users in the US.";
 
-inline constexpr char kReaderModeOptimizationGuideEligibilityName[] =
-    "Enables Reader Mode Optimization Guide Eligibility";
-inline constexpr char kReaderModeOptimizationGuideEligibilityDescription[] =
-    "Enables the optimization guide eligibility check for Reader Mode.";
-
 inline constexpr char kReaderModeReadabilityHeuristicName[] =
     "Enables Readability heuristic for Reader Mode";
 inline constexpr char kReaderModeReadabilityHeuristicDescription[] =
@@ -1778,10 +1773,6 @@ inline constexpr char kReaderModeSupportNewFontsName[] =
     "Reader Mode support new fonts";
 inline constexpr char kReaderModeSupportNewFontsDescription[] =
     "Enables new accessible font options in Reader Mode.";
-
-inline constexpr char kReaderModeUSEnabledName[] = "Enables Reader Mode in US";
-inline constexpr char kReaderModeUSEnabledDescription[] =
-    "Enables Reader Mode for users in the US. Requires reader-mode-enabled.";
 
 inline constexpr char kRefactorToolbarsSizeName[] = "Refactor toolbars size";
 inline constexpr char kRefactorToolbarsSizeDescription[] =
