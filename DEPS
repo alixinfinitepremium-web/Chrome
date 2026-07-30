@@ -323,15 +323,15 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': 'fa05ca1797c2aff74e03f0aaa1783b2901a792a5',
+  'src_internal_revision': 'f61e06c15cd14ca662134e984f51b4707b3f01b6',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '177de1940bf2bad20d9be58a3013c2b2d7aa9bf2',
+  'skia_revision': '50cf67910462acc1e5b6474d0ec9d5f35e44c54c',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': 'c570eb9190818a3172feee94d5622a25aa012b3e',
+  'v8_revision': 'fe73da2cb4e5cd9c26ed22aef5c8e00ef139fffb',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -407,7 +407,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'd2fdb221facd1398e1d80b28d84d7b6a163e960c',
+  'devtools_frontend_revision': 'e06bdae5aac6fb5c0c83702702ca69304e527713',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1710,7 +1710,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': 'tdzcP2bDERYys5Y9zSCuK_u4C_G8HhNpG2TtK1kSyfkC',
+        'version': '0cDHfpcC7b73RWuI56c0blnDVRdVQsuEQvMHW_zQKP0C',
       },
     ],
     'condition': 'non_git_source',
@@ -1980,7 +1980,7 @@ deps = {
     Var('chromium_git') + '/angle/angle.git' + '@' +  Var('angle_revision'),
 
   'src/third_party/anonymous_tokens/src':
-    Var('chromium_git') + '/external/github.com/google/anonymous-tokens.git' + '@' + 'e07c92bc81cfd4203e6158cac115fc44c27b31b8',
+    Var('chromium_git') + '/external/github.com/google/anonymous-tokens.git' + '@' + 'eb2875671b0daf3e8f3735d77f09ea80e032c2e6',
 
   'src/third_party/aria-practices/src':
     Var('chromium_git') + '/external/github.com/w3c/aria-practices.git' + '@' + '7b134ce6d19497cce8a67db4a9f59980baf853dc',
@@ -2161,7 +2161,7 @@ deps = {
 
   # For Linux and Chromium OS.
   'src/third_party/cros_system_api': {
-      'url': Var('chromium_git') + '/chromiumos/platform2/system_api.git' + '@' + '54e5484f94e59fdc31e7821293692a8bb47f88a3',
+      'url': Var('chromium_git') + '/chromiumos/platform2/system_api.git' + '@' + '2cc495c852c0d339f395cbd8ca00fc684f12e334',
       'condition': 'checkout_linux or checkout_chromeos',
   },
 
@@ -3172,7 +3172,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + 'ed7092760180c065a5106e1555f25274e26dcc1c',
+    Var('webrtc_git') + '/src.git' + '@' + 'c9baebb35dd26aaecb06f7e440e3422a08a38740',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -3323,7 +3323,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/help_app/app',
-        'version': 'Tgx6kmdCHXnkOeKXyC5kb0AOvnQ8xF1QsxLhE0ndonYC',
+        'version': '8ESCt_r9-LS6LICtEbG-KdGiL81e-Wf0PVUErQn-fuEC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -4013,7 +4013,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '32e6c2889b7a7d6a015d5635d6e6188ffc1f25d0',
+        '2cdc1ff5f43e7aad470c137fb2b124b7315e4fb4',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 

@@ -1021,6 +1021,7 @@ source_set("platform_browser_tests") {
   defines = [ "HAS_OUT_OF_PROC_TEST_RUNNER" ]
 
   sources = [
+    "../browser/chrome_content_browser_client_platform_browsertest.cc",
     "../browser/loadtimes_extension_bindings_browsertest.cc",
     "../browser/no_best_effort_tasks_browsertest.cc",
     "../browser/safe_browsing/client_side_detection_service_browsertest.cc",
@@ -5174,6 +5175,7 @@ test("unit_tests") {
     "//chrome/browser/content_settings",
     "//chrome/browser/content_settings:content_settings_factory",
     "//chrome/browser/context_hub:unit_tests",
+    "//chrome/browser/context_hub/auto_todos:unit_tests",
     "//chrome/browser/context_hub/memory_bank:unit_tests",
     "//chrome/browser/context_hub/storage:unit_tests",
     "//chrome/browser/context_hub/tab_group_store:unit_tests",

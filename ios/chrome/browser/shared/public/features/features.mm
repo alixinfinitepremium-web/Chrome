@@ -363,8 +363,6 @@ bool IsPinnedTabsEnabled() {
   return ui::GetDeviceFormFactor() != ui::DEVICE_FORM_FACTOR_TABLET;
 }
 
-BASE_FEATURE(kSegmentationPlatformIosModuleRankerCaching,
-             base::FEATURE_ENABLED_BY_DEFAULT);
 
 BASE_FEATURE(kEnableAppBackgroundRefresh, base::FEATURE_DISABLED_BY_DEFAULT);
 
@@ -429,11 +427,6 @@ bool IsIOSExpandedTipsEnabled() {
   return base::FeatureList::IsEnabled(kIOSExpandedTips);
 }
 
-BASE_FEATURE(kProvisionalNotificationAlert, base::FEATURE_ENABLED_BY_DEFAULT);
-
-bool IsProvisionalNotificationAlertEnabled() {
-  return base::FeatureList::IsEnabled(kProvisionalNotificationAlert);
-}
 
 BASE_FEATURE(kIOSOneTimeDefaultBrowserNotification,
              base::FEATURE_DISABLED_BY_DEFAULT);
@@ -733,26 +726,6 @@ TipsNotificationsAlternativeStringVersion
 GetTipsNotificationsAlternativeStringVersion() {
   return static_cast<TipsNotificationsAlternativeStringVersion>(
       kTipsNotificationsAlternativeStringVersionFeatureParam.Get());
-}
-
-BASE_FEATURE(kIOSSyncedSetUp, base::FEATURE_ENABLED_BY_DEFAULT);
-
-bool IsSyncedSetUpEnabled() {
-  return base::FeatureList::IsEnabled(
-             sync_preferences::features::kEnableCrossDevicePrefTracker) &&
-         base::FeatureList::IsEnabled(kIOSSyncedSetUp);
-}
-
-const char kSyncedSetUpImpressionLimit[] = "SyncedSetUpImpressionLimit";
-
-BASE_FEATURE_PARAM(int,
-                   kSyncedSetUpImpressionLimitFeatureParam,
-                   &kIOSSyncedSetUp,
-                   kSyncedSetUpImpressionLimit,
-                   1);
-
-int GetSyncedSetUpImpressionLimit() {
-  return kSyncedSetUpImpressionLimitFeatureParam.Get();
 }
 
 BASE_FEATURE(kDisableKeyboardAccessory, base::FEATURE_DISABLED_BY_DEFAULT);
