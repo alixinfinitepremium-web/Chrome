@@ -30,26 +30,15 @@
 #include "third_party/skia/include/core/SkAlphaType.h"
 #include "third_party/skia/include/core/SkRefCnt.h"
 
-namespace cc {
-class PaintCanvas;
-}  // namespace cc
-
 namespace gfx {
 class ColorSpace;
 struct HDRMetadata;
 class Size;
 }  // namespace gfx
 
-namespace gpu {
-namespace raster {
-class RasterInterface;
-}  // namespace raster
-}  // namespace gpu
-
 namespace blink {
 
-class PLATFORM_EXPORT WebGpuSharedImageWrapper final
-    : public CanvasMemoryDumpClient {
+class PLATFORM_EXPORT WebGpuSharedImageWrapper final {
  public:
   static std::unique_ptr<WebGpuSharedImageWrapper> Create(
       gfx::Size size,
@@ -68,32 +57,7 @@ class PLATFORM_EXPORT WebGpuSharedImageWrapper final
   }
   SkAlphaType GetAlphaType() const { return shared_image_->alpha_type(); }
 
-  scoped_refptr<gpu::ClientSharedImage> GetSharedImage() const;
-  gpu::SyncToken GetSyncToken() const;
-
-  bool UploadToBackingSharedImage(const SkPixmap& pixmap,
-                                  uint32_t src_x,
-                                  uint32_t src_y);
-
-  void DrawToBackingSharedImage(
-      base::FunctionRef<void(cc::PaintCanvas&)> draw_callback);
-
-  // Copies the contents of the passed-in SharedImage at `copy_rect` into this
-  // instance's SharedImage. Waits on `ready_sync_token` before copying; pass
-  // SyncToken() if no sync is required. Synthesizes a new sync token in
-  // `completion_sync_token` which will satisfy after the image copy completes.
-  // NOTE: Can only be used if this instance is accelerated.
-  bool CopyToBackingSharedImage(
-      const scoped_refptr<gpu::ClientSharedImage>& shared_image,
-      uint32_t src_x,
-      uint32_t src_y,
-      const gpu::SyncToken& ready_sync_token,
-      gpu::SyncToken& completion_sync_token);
-
   void WaitSyncToken(const gpu::SyncToken& sync_token);
-
-  gpu::raster::RasterInterface* RasterInterface() const;
-  bool IsGpuContextLost() const;
 
   // Temporarily public for WebGpuSharedImageWrapperLease migration.
   const gfx::HDRMetadata hdr_metadata_;
@@ -111,10 +75,6 @@ class PLATFORM_EXPORT WebGpuSharedImageWrapper final
                            const gfx::ColorSpace&,
                            const gfx::HDRMetadata&,
                            base::WeakPtr<WebGraphicsContext3DProviderWrapper>);
-
-  // CanvasMemoryDumpClient implementation.
-  void OnMemoryDump(base::trace_event::ProcessMemoryDump* pmd) override;
-  size_t GetSize() const override;
 };
 
 }  // namespace blink

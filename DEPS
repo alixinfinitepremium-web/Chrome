@@ -327,7 +327,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': 'a747713516489e0f776395d82bfeeb9e4aa278e8',
+  'skia_revision': '177de1940bf2bad20d9be58a3013c2b2d7aa9bf2',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -347,7 +347,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': '603b54d3d338efde4b84ece7be9aa410e44b1417',
+  'boringssl_revision': 'fd490c05de684d4cf135388023acf9aabb4e54f1',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -383,7 +383,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling catapult
   # and whatever else without interference from each other.
-  'catapult_revision': '12c9a9affa63bab026bffaec6a90217c8cf7507e',
+  'catapult_revision': 'becc231ab238127c371e2cbd561fd5773ecf1511',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -407,7 +407,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'c2d93b7edd58cdee4afa011e66291d6e9d660287',
+  'devtools_frontend_revision': 'ef656d3bfe0a5c074b96a7a9e1c6cf7e91d171e0',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -431,7 +431,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': '132d2dbee31a8753bf29d24e59f4bc8864a479a0',
+  'dawn_revision': 'e832cc40921516a63c286dfe5966c2ceb82bb7d3',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -1722,7 +1722,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '7e42f63369a5511b0575b58e7cf3aab424099d87',
+    'daac9c692ad56e6874c95b3984f8f2af778bab43',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -3136,7 +3136,7 @@ deps = {
 
   # Display server protocol for Linux.
   'src/third_party/wayland/src': {
-      'url': Var('chromium_git') + '/external/anongit.freedesktop.org/git/wayland/wayland.git' + '@' + '736d12ac67c20c60dc406dc49bb06be878501f86',
+      'url': Var('chromium_git') + '/external/anongit.freedesktop.org/git/wayland/wayland.git' + '@' + '87cc8a8728a923fc57938faa81ba0e74f34ecdc7',
       'condition': 'checkout_linux',
   },
 
@@ -3172,7 +3172,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + 'ca3f11442cb4e07d9863fe9a07564fec15e678f8',
+    Var('webrtc_git') + '/src.git' + '@' + 'eceb834d5937e9278540c9d4b96e4436a6e5068e',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -3301,7 +3301,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_receiver_app/app',
-        'version': 'U-p2MIhzYUhtyerAZaAL4r_EoxV80hIthvVzlwHySG8C',
+        'version': '-Ds-zfZrMr9VzV4ROnjQJhktrVhWtIt39K2LJEJ8kNMC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3312,7 +3312,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_app/app',
-        'version': 'yIcn5pFLbog2D-3YA3WW5WPqiEo20H49d30plfoyjj8C',
+        'version': '--RhoXPulD1tQDTuCVdScYodf3TiCJYmjScr3EQvhh8C',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',

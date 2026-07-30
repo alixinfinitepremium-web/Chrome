@@ -43,6 +43,17 @@ namespace blink {
 
 namespace {
 
+bool IsGpuContextLost(
+    WebGraphicsContext3DProviderWrapper* context_provider_wrapper) {
+  if (!context_provider_wrapper) {
+    return true;
+  }
+  auto* raster_interface =
+      context_provider_wrapper->ContextProvider().RasterInterface();
+  return !raster_interface ||
+         raster_interface->GetGraphicsResetStatusKHR() != GL_NO_ERROR;
+}
+
 scoped_refptr<gpu::ClientSharedImage> CreateClientSharedImage(
     viz::SharedImageFormat format,
     gfx::Size size,
@@ -120,7 +131,7 @@ std::unique_ptr<WebGpuSharedImageWrapper> WebGpuSharedImageWrapper::Create(
       new WebGpuSharedImageWrapper(size, format, alpha_type, color_space,
                                    hdr_metadata, context_provider_wrapper));
 
-  if (provider->IsGpuContextLost()) {
+  if (IsGpuContextLost(context_provider_wrapper.get())) {
     return nullptr;
   }
   return provider;
@@ -143,7 +154,6 @@ WebGpuSharedImageWrapper::WebGpuSharedImageWrapper(
                                             alpha_type,
                                             context_provider_wrapper.get())),
       context_provider_wrapper_(std::move(context_provider_wrapper)) {
-  CanvasMemoryDumpProvider::Instance()->RegisterClient(this);
   // Graphite can handle a large buffer size.
   if (context_provider_wrapper_->ContextProvider()
           .GetGpuFeatureInfo()
@@ -157,219 +167,13 @@ WebGpuSharedImageWrapper::WebGpuSharedImageWrapper(
   release_sync_token_ = shared_image_->creation_sync_token();
 }
 
-WebGpuSharedImageWrapper::~WebGpuSharedImageWrapper() {
-  CanvasMemoryDumpProvider::Instance()->UnregisterClient(this);
-}
+WebGpuSharedImageWrapper::~WebGpuSharedImageWrapper() = default;
 
 void WebGpuSharedImageWrapper::WaitSyncToken(const gpu::SyncToken& sync_token) {
   if (sync_token.HasData()) {
     acquire_sync_token_ = sync_token;
     shared_image_->UpdateDestructionSyncToken(acquire_sync_token_);
   }
-}
-
-gpu::raster::RasterInterface* WebGpuSharedImageWrapper::RasterInterface()
-    const {
-  if (!context_provider_wrapper_) {
-    return nullptr;
-  }
-  return context_provider_wrapper_->ContextProvider().RasterInterface();
-}
-
-bool WebGpuSharedImageWrapper::IsGpuContextLost() const {
-  auto* raster_interface = RasterInterface();
-  return !raster_interface ||
-         raster_interface->GetGraphicsResetStatusKHR() != GL_NO_ERROR;
-}
-
-
-
-void WebGpuSharedImageWrapper::DrawToBackingSharedImage(
-    base::FunctionRef<void(cc::PaintCanvas&)> draw_callback) {
-  if (IsGpuContextLost()) {
-    return;
-  }
-
-  draw_callback(recorder_for_external_draws_->getRecordingCanvas());
-  if (recorder_for_external_draws_->HasReleasableDrawOps()) {
-    cc::PaintRecord last_recording =
-        recorder_for_external_draws_->ReleaseMainRecording();
-
-    auto access =
-        shared_image_->BeginRasterAccess(RasterInterface(), acquire_sync_token_,
-                                         /*readonly=*/false);
-
-    const bool needs_clear = !is_cleared_;
-    is_cleared_ = true;
-
-    gpu::raster::RasterInterface* ri = RasterInterface();
-    SkColor4f background_color = GetAlphaType() == kOpaque_SkAlphaType
-                                     ? SkColors::kBlack
-                                     : SkColors::kTransparent;
-
-    auto list = base::MakeRefCounted<cc::DisplayItemList>();
-    list->StartPaint();
-    list->push<cc::DrawRecordOp>(std::move(last_recording));
-    list->EndPaintOfUnpaired(gfx::Rect(Size().width(), Size().height()));
-    list->Finalize();
-
-    gfx::Size size(Size().width(), Size().height());
-    size_t max_op_size_hint =
-        gpu::raster::RasterInterface::kDefaultMaxOpSizeHint;
-    gfx::Rect full_raster_rect(Size().width(), Size().height());
-    gfx::Rect playback_rect(Size().width(), Size().height());
-    gfx::Vector2dF post_translate(0.f, 0.f);
-    gfx::Vector2dF post_scale(1.f, 1.f);
-
-    const bool can_use_lcd_text = GetAlphaType() == kOpaque_SkAlphaType;
-    const auto& caps =
-        context_provider_wrapper_->ContextProvider().GetCapabilities();
-    bool use_msaa = !caps.msaa_is_slow && !caps.avoid_stencil_buffers;
-    ri->BeginRasterCHROMIUM(background_color, needs_clear,
-                            /*msaa_sample_count=*/use_msaa ? 1 : 0,
-                            use_msaa ? gpu::raster::MsaaMode::kDMSAA
-                                     : gpu::raster::MsaaMode::kNoMSAA,
-                            can_use_lcd_text, /*visible=*/true, GetColorSpace(),
-                            /*hdr_headroom=*/0.f,
-                            shared_image_->mailbox().name);
-
-    auto& context_provider = context_provider_wrapper_->ContextProvider();
-    CanvasImageProvider image_provider(
-        context_provider.ImageDecodeCache(kN32_SkColorType),
-        GetSharedImageFormat() == viz::SinglePlaneFormat::kRGBA_F16
-            ? context_provider.ImageDecodeCache(kRGBA_F16_SkColorType)
-            : nullptr,
-        GetColorSpace(), GetSharedImageFormat(),
-        cc::PlaybackImageProvider::RasterMode::kGpu, context_provider_wrapper_);
-
-    ri->RasterCHROMIUM(
-        list.get(), &image_provider, size, full_raster_rect, playback_rect,
-        post_translate, post_scale, /*requires_clear=*/false,
-        /*raster_inducing_scroll_offsets=*/nullptr, &max_op_size_hint,
-        base::RepeatingCallback<void(SkCanvas*, uint32_t)>());
-
-    ri->EndRasterCHROMIUM();
-    auto sync_token = gpu::RasterScopedAccess::EndAccess(std::move(access));
-    release_sync_token_ = sync_token;
-    shared_image_->UpdateDestructionSyncToken(sync_token);
-
-    image_provider.ReleaseLockedImages();
-    image_provider.UnbindTextureBackedImages();
-  }
-}
-
-bool WebGpuSharedImageWrapper::UploadToBackingSharedImage(
-    const SkPixmap& pixmap,
-    uint32_t src_x,
-    uint32_t src_y) {
-  const int dest_width = Size().width();
-  const int dest_height = Size().height();
-
-  SkPixmap subset;
-  if (!pixmap.extractSubset(
-          &subset,
-          SkIRect::MakeXYWH(static_cast<int>(src_x), static_cast<int>(src_y),
-                            dest_width, dest_height))) {
-    return false;
-  }
-
-  TRACE_EVENT0("blink",
-               "WebGpuSharedImageWrapper::"
-               "UploadToBackingSharedImage");
-  if (IsGpuContextLost()) {
-    return false;
-  }
-
-  auto access =
-      shared_image_->BeginRasterAccess(RasterInterface(), acquire_sync_token_,
-                                       /*readonly=*/false);
-
-  RasterInterface()->WritePixels(shared_image_->mailbox(), /*dst_x_offset=*/0,
-                                 /*dst_y_offset=*/0,
-                                 shared_image_->GetTextureTarget(), subset);
-  auto sync_token = gpu::RasterScopedAccess::EndAccess(std::move(access));
-  release_sync_token_ = sync_token;
-  shared_image_->UpdateDestructionSyncToken(sync_token);
-
-  is_cleared_ = true;
-
-  return true;
-}
-
-bool WebGpuSharedImageWrapper::CopyToBackingSharedImage(
-    const scoped_refptr<gpu::ClientSharedImage>& shared_image,
-    uint32_t src_x,
-    uint32_t src_y,
-    const gpu::SyncToken& ready_sync_token,
-    gpu::SyncToken& completion_sync_token) {
-  gpu::raster::RasterInterface* raster = RasterInterface();
-  if (!raster) {
-    return false;
-  }
-
-  if (IsGpuContextLost()) {
-    return false;
-  }
-
-  gfx::Rect copy_rect(src_x, src_y, Size().width(), Size().height());
-
-  auto dst_access =
-      shared_image_->BeginRasterAccess(RasterInterface(), acquire_sync_token_,
-                                       /*readonly=*/false);
-
-  std::unique_ptr<gpu::RasterScopedAccess> src_access =
-      shared_image->BeginRasterAccess(raster, ready_sync_token,
-                                      /*readonly=*/true);
-  raster->CopySharedImage(shared_image->mailbox(), shared_image_->mailbox(),
-                          /*xoffset=*/0,
-                          /*yoffset=*/0, copy_rect.x(), copy_rect.y(),
-                          copy_rect.width(), copy_rect.height());
-  completion_sync_token =
-      gpu::RasterScopedAccess::EndAccess(std::move(src_access));
-  auto sync_token = gpu::RasterScopedAccess::EndAccess(std::move(dst_access));
-  release_sync_token_ = sync_token;
-  shared_image_->UpdateDestructionSyncToken(sync_token);
-  is_cleared_ = true;
-  return true;
-}
-
-scoped_refptr<gpu::ClientSharedImage> WebGpuSharedImageWrapper::GetSharedImage()
-    const {
-  if (IsGpuContextLost()) {
-    return nullptr;
-  }
-  return shared_image_;
-}
-
-gpu::SyncToken WebGpuSharedImageWrapper::GetSyncToken() const {
-  if (IsGpuContextLost()) {
-    return gpu::SyncToken();
-  }
-  return release_sync_token_;
-}
-
-
-void WebGpuSharedImageWrapper::OnMemoryDump(
-    base::trace_event::ProcessMemoryDump* pmd) {
-  std::string path = base::StringPrintf("canvas/ResourceProvider_0x%" PRIXPTR,
-                                        reinterpret_cast<uintptr_t>(this));
-
-  std::string dump_name =
-      base::StringPrintf("%s/CanvasResource_0x%" PRIXPTR, path.c_str(),
-                         reinterpret_cast<uintptr_t>(this));
-  auto* dump = pmd->CreateAllocatorDump(dump_name);
-  dump->AddScalar(base::trace_event::MemoryAllocatorDump::kNameSize,
-                  base::trace_event::MemoryAllocatorDump::kUnitsBytes,
-                  GetSize());
-
-  shared_image_->OnMemoryDump(
-      pmd, dump->guid(),
-      static_cast<int>(gpu::TracingImportance::kClientOwner));
-}
-
-size_t WebGpuSharedImageWrapper::GetSize() const {
-  return base::checked_cast<size_t>(
-      shared_image_->EstimatedSizeInBytes().InBytes());
 }
 
 }  // namespace blink
