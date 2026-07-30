@@ -331,11 +331,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': '783f2fc31eebed48747a1582c0bd2034ad352c9d',
+  'v8_revision': '85891d0d307180591f544c23ad6f3b067ae392d5',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '22ba45a57477342698df834a7b2df7a54ac0df34',
+  'angle_revision': '2c5c60cd270d1596fa8abe06bd277983852f4b2b',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -407,7 +407,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'ef656d3bfe0a5c074b96a7a9e1c6cf7e91d171e0',
+  'devtools_frontend_revision': '692ec1f759ad9e5447ef8877e130982b92db2e1b',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1722,7 +1722,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    'daac9c692ad56e6874c95b3984f8f2af778bab43',
+    '360b5c30f2ab34e06b18600b27f107c721f6b886',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -3172,7 +3172,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + 'eceb834d5937e9278540c9d4b96e4436a6e5068e',
+    Var('webrtc_git') + '/src.git' + '@' + 'c85f47251c1ed02e7e56fcac4698b92f09cbeb81',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -3367,7 +3367,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/projector_app/app',
-        'version': '6tn7b6CV1g2YtQ_d4yz9AysIq7VfiZ0xRflNftRLArUC',
+        'version': '0GJDAILZUN5ovSUMlmTOE7knLD5YeB2Mo1wJ7qc_jCIC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
