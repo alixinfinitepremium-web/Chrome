@@ -327,7 +327,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '6fea713d32ec101877b670ce05ff8844265525fc',
+  'skia_revision': 'a747713516489e0f776395d82bfeeb9e4aa278e8',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -407,7 +407,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '35c62b50339de34a7c71ef44bc70319625e70088',
+  'devtools_frontend_revision': 'c2d93b7edd58cdee4afa011e66291d6e9d660287',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -554,7 +554,7 @@ vars = {
   'libcxx_revision':       'b16984ce99c702355a5b2b4c52574e82cec41fb9',
 
   # GN CIPD package version.
-  'gn_version': 'git_revision:2998394993e31023c4a476c2344eab0e5fe00ef6',
+  'gn_version': 'git_revision:4c57ddcb664d8e432c4edbd864017e1d1cee709d',
 
   # ninja CIPD package.
   'ninja_package': 'infra/3pp/tools/ninja/',
@@ -2557,7 +2557,7 @@ deps = {
   },
 
   'src/third_party/libphonenumber/src':
-    Var('chromium_git') + '/external/libphonenumber.git' + '@' + 'eee81630a337b9045c6db4577cf60bb1a2c6cbd1',
+    Var('chromium_git') + '/external/libphonenumber.git' + '@' + '99ade73f8465edd4a71969c8899bc45a854ed100',
 
   'src/third_party/libprotobuf-mutator/src':
     Var('chromium_git') + '/external/github.com/google/libprotobuf-mutator.git' + '@' +  Var('libprotobuf-mutator'),
@@ -4013,7 +4013,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '3c4b9fe2616cb7941507708ca735f043dcc412bf',
+        'bc985a83cdb041d0676c2c504df20a6fa4851b20',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
