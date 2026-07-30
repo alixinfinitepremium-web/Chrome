@@ -859,12 +859,6 @@ bool IsOmniboxCrashFixKillSwitchEnabled() {
   return base::FeatureList::IsEnabled(kOmniboxCrashFixKillSwitch);
 }
 
-BASE_FEATURE(kAlertCrashFixKillSwitch, base::FEATURE_DISABLED_BY_DEFAULT);
-
-bool IsAlertCrashFixKillSwitchEnabled() {
-  return base::FeatureList::IsEnabled(kAlertCrashFixKillSwitch);
-}
-
 BASE_FEATURE(kAIMEligibilityServiceStartWithProfile,
              base::FEATURE_ENABLED_BY_DEFAULT);
 
@@ -1273,4 +1267,13 @@ bool IsGlassToolbarEnabled() {
     return base::FeatureList::IsEnabled(kGlassToolbar);
   }
   return false;
+}
+
+BASE_FEATURE(kNextOldDesign, base::FEATURE_DISABLED_BY_DEFAULT);
+
+bool IsNextOldDesignEnabled() {
+  if (!IsChromeNextIaEnabled()) {
+    return false;
+  }
+  return base::FeatureList::IsEnabled(kNextOldDesign);
 }

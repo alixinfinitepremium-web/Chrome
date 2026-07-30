@@ -65,11 +65,6 @@ inline constexpr char kAimUrlNavigationFetchEnabledName[] =
 inline constexpr char kAimUrlNavigationFetchEnabledDescription[] =
     "Enables the AimUrlNavigationFetchEnabled feature.";
 
-inline constexpr char kAlertCrashFixKillSwitchName[] =
-    "AlertCrashFixKillSwitch";
-inline constexpr char kAlertCrashFixKillSwitchDescription[] =
-    "Enables the AlertCrashFixKillSwitch feature.";
-
 inline constexpr char kAnimatedDefaultBrowserPromoInFREName[] =
     "Enable the animated Default Browser Promo in the FRE";
 inline constexpr char kAnimatedDefaultBrowserPromoInFREDescription[] =
@@ -1462,6 +1457,10 @@ inline constexpr char kNewTabPageRedesignName[] = "New Tab Page Redesign";
 inline constexpr char kNewTabPageRedesignDescription[] =
     "Enables the redesigned New Tab Page on iOS (iPhone only).";
 
+inline constexpr char kNextOldDesignName[] = "NextOldDesign";
+inline constexpr char kNextOldDesignDescription[] =
+    "Enables the NextOldDesign feature.";
+
 inline constexpr char kNoAccountWebSigninName[] =
     "Enable no account web sigin bottom sheet";
 inline constexpr char kNoAccountWebSigninDescription[] =
@@ -1764,15 +1763,14 @@ inline constexpr char kReaderModeOmniboxEntrypointInUSName[] =
 inline constexpr char kReaderModeOmniboxEntrypointInUSDescription[] =
     "Enables the omnibox entrypoint for Reader Mode for users in the US.";
 
-inline constexpr char kReaderModeReadabilityHeuristicName[] =
-    "Enables Readability heuristic for Reader Mode";
-inline constexpr char kReaderModeReadabilityHeuristicDescription[] =
-    "Enables Readability heuristic for Reader Mode UI.";
-
 inline constexpr char kReaderModeSupportNewFontsName[] =
     "Reader Mode support new fonts";
 inline constexpr char kReaderModeSupportNewFontsDescription[] =
     "Enables new accessible font options in Reader Mode.";
+
+inline constexpr char kReaderModeUSEnabledName[] = "Enables Reader Mode in US";
+inline constexpr char kReaderModeUSEnabledDescription[] =
+    "Enables Reader Mode for users in the US. Requires reader-mode-enabled.";
 
 inline constexpr char kRefactorToolbarsSizeName[] = "Refactor toolbars size";
 inline constexpr char kRefactorToolbarsSizeDescription[] =

@@ -738,6 +738,23 @@
             ]
         }
     ],
+    "AiSubscriptionAvatarRingDesktop": [
+        {
+            "platforms": [
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "EnableAiSubscriptionAvatarRing"
+                    ]
+                }
+            ]
+        }
+    ],
     "Aim3pEntrypoint": [
         {
             "platforms": [
@@ -5030,8 +5047,11 @@
                 {
                     "name": "Enabled",
                     "params": {
+                        "MigratedChromeForTesting": "true",
                         "MigratedCollectedCookies": "true",
+                        "MigratedGoogleApiKeys": "true",
                         "MigratedInstallerDownloader": "true",
+                        "MigratedObsoleteSystem": "true",
                         "MigratedPageInfo": "true",
                         "MigratedPdf": "true"
                     },
@@ -6391,8 +6411,7 @@
                 {
                     "name": "Enabled",
                     "enable_features": [
-                        "ClientSideDetectionScamScore",
-                        "ClientSideDetectionServerModelForScamDetectionAndroid"
+                        "ClientSideDetectionScamScore"
                     ]
                 }
             ]
@@ -9996,23 +10015,6 @@
                     "name": "Enabled_20260309",
                     "enable_features": [
                         "EnableAccountPreviewData"
-                    ]
-                }
-            ]
-        }
-    ],
-    "EnableAiSubscriptionAvatarRing": [
-        {
-            "platforms": [
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "EnableAiSubscriptionAvatarRing"
                     ]
                 }
             ]

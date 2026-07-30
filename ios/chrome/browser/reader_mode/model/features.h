@@ -8,17 +8,20 @@
 #import "base/feature_list.h"
 #import "base/time/time.h"
 
+// Feature to enable Reader Mode UI in the US country code.
+BASE_DECLARE_FEATURE(kEnableReaderModeInUS);
+
 // Feature to enable Reader Mode omnibox entry point in the US country code.
 BASE_DECLARE_FEATURE(kEnableReaderModeOmniboxEntryPointInUS);
-
-// Feature to enable Readability heuristic for page triggering eligibility.
-BASE_DECLARE_FEATURE(kEnableReadabilityHeuristic);
 
 // Feature to enable disabling links in Reading Mode from Content Settings.
 BASE_DECLARE_FEATURE(kEnableContentSettingsOptionForLinks);
 
 // Feature to ignore the badge threshold.
 BASE_DECLARE_FEATURE(kReaderModeIgnoreBadgeThreshold);
+
+// Returns whether the Reader Mode feature is available.
+bool IsReaderModeAvailable();
 
 // Returns whether the omnibox entrypoint is enabled.
 bool IsReaderModeOmniboxEntryPointEnabled();

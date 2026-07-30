@@ -65,6 +65,7 @@ ReaderModeTest::ReaderModeTest()
 ReaderModeTest::~ReaderModeTest() = default;
 
 void ReaderModeTest::SetUp() {
+  scoped_feature_list_.InitAndEnableFeature(kEnableReaderModeInUS);
   TestProfileIOS::Builder builder;
   builder.AddTestingFactory(
       OptimizationGuideServiceFactory::GetInstance(),
@@ -159,9 +160,7 @@ void ReaderModeTest::SetReaderModeState(web::FakeWebState* web_state,
       web_state, /*url_language_histogram=*/nullptr, &language_detection_model_,
       profile_->GetPrefs());
 
-  if (base::FeatureList::IsEnabled(kEnableReadabilityHeuristic)) {
-    AddReadabilityHeuristicResultToFrame(result, web_frame);
-  }
+  AddReadabilityHeuristicResultToFrame(result, web_frame);
 
   // Set up the fake web frame to return a custom result after executing
   // the Readability Javascript.

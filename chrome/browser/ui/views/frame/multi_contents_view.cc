@@ -51,10 +51,6 @@
 
 namespace {
 constexpr int kSnapDistance = 15;
-
-constexpr float kSplitViewContentCornerRadius = 6;
-constexpr gfx::RoundedCornersF kSplitViewContentRoundedCorners{
-    kSplitViewContentCornerRadius};
 }
 
 void MultiContentsView::ContentsSeparators::Reset() {
@@ -576,8 +572,16 @@ void MultiContentsView::BeforeApplyLayout(const views::ProposedLayout& layout) {
   //
   // This is a bit more expensive than a normal layout but only happens during
   // animation when the target bounds are set.
-  const auto target_layout = CalculateProposedLayout(
-      views::SizeBounds(target_content_bounds_->actual_size));
+  views::ProposedLayout target_layout;
+  {
+    // Need to temporarily override the split view insets.
+    const auto split_view_insets =
+        gfx::Insets::TLBR(split_view_insets_.top(), kSplitViewContentInset,
+                          kSplitViewContentInset, kSplitViewContentInset);
+    base::AutoReset inset_override(&split_view_insets_, split_view_insets);
+    target_layout = CalculateProposedLayout(
+        views::SizeBounds(target_content_bounds_->actual_size));
+  }
 
   const auto& default_clip = target_content_bounds_->clipped_area;
 

@@ -383,7 +383,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling catapult
   # and whatever else without interference from each other.
-  'catapult_revision': 'becc231ab238127c371e2cbd561fd5773ecf1511',
+  'catapult_revision': '1653a52cef43e9fa0b90f60c870b6136301a3246',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -407,7 +407,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '98627cfda04233f05047a2765aaeba09a45d80f0',
+  'devtools_frontend_revision': 'd2fdb221facd1398e1d80b28d84d7b6a163e960c',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -2729,7 +2729,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '1ba518a35426643c365b9d35ff16a1fdbaf27820',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '63a118d65804bf0076ebd648c722be2834dffb82',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
@@ -3172,7 +3172,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '79633e1a8451099d71d39d6dedc2b9cc8ccbd109',
+    Var('webrtc_git') + '/src.git' + '@' + 'ed7092760180c065a5106e1555f25274e26dcc1c',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -3809,7 +3809,7 @@ deps = {
 
   'src/chrome/elevation_service/internal': {
     'url': Var('chrome_git') + '/chrome/elevation_service/internal.git' + '@' +
-        '70d63c8ded42757337928ec5fe7b4de5820d4475',
+        '2674521ba834202d25783d99ec1baaba424b96e4',
     'condition': 'checkout_src_internal and checkout_win',
   },
 
@@ -4013,7 +4013,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        'ece45358c2f2b1ff54e9400e93d2a3bc155e2476',
+        '32e6c2889b7a7d6a015d5635d6e6188ffc1f25d0',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 

@@ -5007,8 +5007,6 @@ test("unit_tests") {
     "../browser/resources_util_unittest.cc",
     "../browser/services_unittest.cc",
     "../browser/ui/url_identity_unittest.cc",
-    "../browser/ui/webui/fileicon_source_unittest.cc",
-    "../browser/ui/webui/log_web_ui_url_unittest.cc",
     "../common/chrome_content_client_unittest.cc",
     "../common/chrome_paths_unittest.cc",
     "../common/crash_keys_unittest.cc",
@@ -5424,6 +5422,7 @@ test("unit_tests") {
     "//chrome/browser/ui/webui",
     "//chrome/browser/ui/webui:fileicon_source",
     "//chrome/browser/ui/webui:log_web_ui_url",
+    "//chrome/browser/ui/webui:unit_tests",
     "//chrome/browser/ui/webui/chrome_urls:unit_tests",
     "//chrome/browser/ui/webui/components:unit_tests",
     "//chrome/browser/ui/webui/context_hub:unit_tests",
@@ -6367,11 +6366,6 @@ test("unit_tests") {
       "../browser/ui/views/side_panel/tabs_from_other_devices/tabs_from_other_devices_side_panel_metrics_unittest.cc",
       "../browser/ui/views/tabs/dragging/test/mock_tab_drag_context.cc",
       "../browser/ui/views/tabs/dragging/test/mock_tab_drag_context.h",
-      "../browser/ui/webui/constrained_web_dialog_ui_unittest.cc",
-      "../browser/ui/webui/managed_ui_handler_unittest.cc",
-      "../browser/ui/webui/theme_colors_source_manager_unittest.cc",
-      "../browser/ui/webui/webui_allowlist_provider_unittest.cc",
-      "../browser/ui/webui/webui_embedding_context_unittest.cc",
       "../renderer/accessibility/phrase_segmentation/dependency_parser_model_unittest.cc",
       "../renderer/accessibility/phrase_segmentation/dependency_tree_unittest.cc",
       "../renderer/accessibility/phrase_segmentation/phrase_segmenter_unittest.cc",
@@ -6885,7 +6879,6 @@ test("unit_tests") {
       "../browser/ui/views/mahi/mahi_condensed_menu_view_unittest.cc",
       "../browser/ui/views/mahi/mahi_menu_controller_unittest.cc",
       "../browser/ui/views/mahi/mahi_menu_view_unittest.cc",
-      "../browser/ui/webui/certificate_provisioning_ui_handler_unittest.cc",
       "../common/chrome_constants_ash_unittest.cc",
       "../renderer/ash_merge_session_loader_throttle_unittest.cc",
       "../renderer/chromeos_delayed_callback_group_unittest.cc",
@@ -8426,11 +8419,6 @@ if (!is_android && !is_chromeos_device) {
       "../browser/ui/views/web_dialog_view_interactive_uitest.cc",
       "../browser/ui/views/webview_interactive_uitest.cc",
       "../browser/ui/web_applications/web_app_interactive_uitest.cc",
-      "../browser/ui/webui/cr_components/history_embeddings/history_embeddings_interactive_uitest.cc",
-      "../browser/ui/webui/downloads/downloads_page_interactive_uitest.cc",
-      "../browser/ui/webui/settings/performance_settings_interactive_uitest.cc",
-      "../browser/ui/webui/settings/settings_interactive_uitest.cc",
-      "../browser/ui/webui/skills/skills_page_interactive_uitest.cc",
       "//ui/base/clipboard/clipboard_unittest.cc",
       "base/interactive_ui_tests_main.cc",
     ]
@@ -8438,12 +8426,6 @@ if (!is_android && !is_chromeos_device) {
     if (is_mac || is_linux || is_win) {
       sources +=
           [ "../browser/ui/views/default_link_capturing_interactive_uitest.cc" ]
-
-      if (enable_dice_support) {
-        sources += [
-          "../browser/ui/webui/settings/sync_settings_interactive_uitest.cc",
-        ]
-      }
     }
 
     if (is_mac || is_linux || is_win || is_chromeos) {
@@ -8650,11 +8632,15 @@ if (!is_android && !is_chromeos_device) {
       "//chrome/browser/ui/web_applications",
       "//chrome/browser/ui/webui:chrome_web_contents_handler",
       "//chrome/browser/ui/webui/access_code_cast:interactive_ui_tests",
+      "//chrome/browser/ui/webui/cr_components/history_embeddings:interactive_ui_tests",
+      "//chrome/browser/ui/webui/downloads:interactive_ui_tests",
       "//chrome/browser/ui/webui/searchbox:interactive_ui_tests",
       "//chrome/browser/ui/webui/searchbox:searchbox_test_utils",
+      "//chrome/browser/ui/webui/settings:interactive_ui_tests",
       "//chrome/browser/ui/webui/side_panel/customize_chrome:interactive_ui_tests",
       "//chrome/browser/ui/webui/side_panel/customize_chrome/wallpaper_search:interactive_ui_tests",
       "//chrome/browser/ui/webui/skills",
+      "//chrome/browser/ui/webui/skills:interactive_ui_tests",
       "//chrome/browser/ui/webui/whats_new:interactive_ui_tests",
       "//chrome/browser/ui/webui_browser:interactive_ui_tests",
       "//chrome/browser/ui/window_metadata",
