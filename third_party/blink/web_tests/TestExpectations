@@ -65,8 +65,7 @@ crbug.com/475504307 [ Mac ] html/details_summary/details-replace-text.html [ Fai
 
 crbug.com/457388389 http/tests/devtools/sources/debugger-pause/set-return-value.js [ Failure Pass Timeout ]
 
-# Disabled to land https://crrev.com/c/8117529
-crbug.com/407751377 http/tests/devtools/a11y-axe-core/settings/locations-a11y-test.js [ Failure Pass Timeout ]
+
 
 # Reftest failure related to off-main-thread interaction (imperceptible AA differences)
 crbug.com/395909730 virtual/off-main-thread-css-paint/http/tests/csspaint/paint2d-zoom.html [ Failure ]  # Reftest image failure
@@ -8972,6 +8971,9 @@ crbug.com/450592015 [ Win11-arm64 ] external/wpt/webxr/idlharness.https.window.h
 
 # Disabled for landing behavior change
 crbug.com/439514253 external/wpt/webrtc-extensions/RTCRtpTransceiver-headerExtensionControl.html [ Failure Pass ]
+
+# TODO(crbug.com/433898678): re-enable after webrtc roll
+crbug.com/433898678 external/wpt/webrtc-extensions/RTCConfiguration-alwaysNegotiateDataChannels.html [ Failure Pass ]
 
 crbug.com/453203283 [ Mac ] virtual/threaded/external/wpt/css/css-backgrounds/background-clip/clip-text-on-body-not-propagated-to-root.html [ Pass Timeout ]
 
