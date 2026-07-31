@@ -331,11 +331,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': '068c28808fda5086c47b897de48c141307f82821',
+  'v8_revision': 'caa723ab9c621fcec3534de035b08d35e2947760',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '92ff3b92c8dde63959cfc0fdc651ed0dc6d9ea13',
+  'angle_revision': '2e484954bb497ddb2125e04fe8663d13551be850',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -2729,7 +2729,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '63a118d65804bf0076ebd648c722be2834dffb82',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + 'c4eb67434f84012636894e923a3a10832c14415c',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
@@ -3172,7 +3172,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + 'a898fdd02f92e1aaafe0bcc9181985762051f12f',
+    Var('webrtc_git') + '/src.git' + '@' + '9813003c2cb78b32f99a421b30258f9e527ce82a',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -3323,7 +3323,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/help_app/app',
-        'version': '8ESCt_r9-LS6LICtEbG-KdGiL81e-Wf0PVUErQn-fuEC',
+        'version': 'bwGRslsmL3DglYJQT9h1i8JnJZ4k9G_i5NLLqbxkgFIC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3334,7 +3334,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/media_app/app',
-        'version': '9apa9tYel9FPNbRWnxMoNRkIclx7vy8N78ON1adiXXIC',
+        'version': 'UqAHfq9OZQhQf8xzBsupUveUYD2Ohj2mAeXn9JFmIlkC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -4013,7 +4013,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        'd7fe75fe56ea4ec1238d746300bcaa40313ae77a',
+        'bb951899fec445a0f5e274650e5c1c3aca62c9d0',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
