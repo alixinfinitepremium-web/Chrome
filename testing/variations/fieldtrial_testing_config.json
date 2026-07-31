@@ -828,6 +828,21 @@
             ]
         }
     ],
+    "AllowMultipleMediaNotifications": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "AllowMultipleMediaNotifications"
+                    ]
+                }
+            ]
+        }
+    ],
     "AlwaysRegisterSessionsInvalidationsAndroid": [
         {
             "platforms": [
@@ -13804,21 +13819,6 @@
             ]
         }
     ],
-    "HideDelegatedFrameHostMac": [
-        {
-            "platforms": [
-                "mac"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "HideDelegatedFrameHostMac"
-                    ]
-                }
-            ]
-        }
-    ],
     "HideToolbarsInOverflowMenu": [
         {
             "platforms": [
@@ -18071,6 +18071,21 @@
             ]
         }
     ],
+    "OmniboxWebUIPopupMarkAsHiddenMacOS": [
+        {
+            "platforms": [
+                "mac"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled_20260730",
+                    "enable_features": [
+                        "HideDelegatedFrameHostMac"
+                    ]
+                }
+            ]
+        }
+    ],
     "OnDeviceCategoryClassifierAndroid": [
         {
             "platforms": [
@@ -22195,6 +22210,27 @@
                     "name": "Enabled",
                     "enable_features": [
                         "SeaPenUseExptTemplate"
+                    ]
+                }
+            ]
+        }
+    ],
+    "SearchEngineExplicitChoiceDialog": [
+        {
+            "platforms": [
+                "windows",
+                "mac"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "params": {
+                        "unlimited_shows": "false"
+                    },
+                    "enable_features": [
+                        "HappinessTrackingSurveysForDesktopSEHijacking",
+                        "SearchEngineExplicitChoiceDialog",
+                        "SearchEngineUnconditionalDialog"
                     ]
                 }
             ]
