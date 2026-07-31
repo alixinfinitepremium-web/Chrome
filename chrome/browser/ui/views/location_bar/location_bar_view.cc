@@ -181,7 +181,6 @@ LocationBarView* GetLocationBarViewForActions(Browser* browser) {
   return browser_view ? browser_view->GetLocationBarView() : nullptr;
 }
 
-
 // The padding between the content setting icons and other trailing decorations.
 constexpr int kContentSettingIntraItemPadding = 8;
 
@@ -360,8 +359,7 @@ void LocationBarView::Init() {
     } else if (omnibox::IsWebUIOmniboxInBrowserViewEnabled()) {
       omnibox_popup_view_ =
           std::make_unique<OmniboxPopupViewBrowserView>(this, browser_);
-    } else if (base::FeatureList::IsEnabled(
-                   omnibox::kWebUIOmniboxFullPopup)) {
+    } else if (base::FeatureList::IsEnabled(omnibox::kWebUIOmniboxFullPopup)) {
       omnibox_popup_view_ = std::make_unique<OmniboxPopupViewFullWebUI>(
           /*omnibox_view=*/omnibox_view_,
           /*controller=*/omnibox_controller_.get(), /*location_bar=*/this,
@@ -434,7 +432,6 @@ void LocationBarView::Init() {
 
   selected_keyword_view_ = AddChildView(std::make_unique<SelectedKeywordView>(
       this, profile_, omnibox_controller_.get(), font_list));
-
 
   SkColor icon_color = color_provider->GetColor(kColorOmniboxResultsIcon);
 
@@ -606,8 +603,7 @@ const OmniboxController* LocationBarView::GetOmniboxController() const {
 }
 
 void LocationBarView::AddedToWidget() {
-  if (lens::features::IsOmniboxEntryPointEnabled() && browser_ &&
-      GetFocusManager()) {
+  if (browser_ && GetFocusManager()) {
     CHECK(!focus_manager_);
     focus_manager_ = GetFocusManager();
     focus_manager_->AddFocusChangeListener(this);
@@ -623,8 +619,15 @@ void LocationBarView::RemovedFromWidget() {
 }
 
 void LocationBarView::OnDidChangeFocus(views::View* before, views::View* now) {
-  // TODO(crbug.com/376283383): Remove this once Lens Overlay is migrated to the
-  // new page actions design.
+  if (Contains(before) != Contains(now)) {
+    NotifyFocusChanged();
+  }
+
+  // TODO(crbug.com/376283383): Remove things below once Lens Overlay is
+  // migrated to the new page actions design.
+  if (!lens::features::IsOmniboxEntryPointEnabled()) {
+    return;
+  }
 
   // This is very blunt. There's a page action (LensOverlayPageActionView) whose
   // visibility state depends on whether focus is within the location bar or
@@ -855,7 +858,6 @@ void LocationBarView::Layout(PassKey) {
                             /*edge_padding=*/trailing_decorations_edge_padding);
   }
 
-
   add_trailing_decoration(clear_all_button_, /*intra_item_padding=*/0,
                           /*edge_padding=*/trailing_decorations_edge_padding);
 
@@ -991,7 +993,6 @@ void LocationBarView::Update(WebContents* contents) {
   RefreshPageActionIconViews();
   location_icon_view_->Update(
       /*suppress_animations=*/contents, GetOmniboxController()->IsPopupOpen());
-
 
   if (contents) {
     omnibox_view_->OnTabChanged(contents);
@@ -1144,7 +1145,13 @@ bool LocationBarView::ShouldHideContentSettingImage() {
 }
 
 content::WebContents* LocationBarView::GetContentSettingWebContents() {
-  return GetWebContents();
+  // Non-Browser location bars (SimpleWebViewDialog, the presentation
+  // receiver window) do not support the content-setting icons: their hosts
+  // cannot show the icons' bubbles (GetContentSettingBubbleModelDelegate()
+  // is not implemented for them), and the models assume tab-only helpers.
+  // Returning null keeps the icon row inert, which matches
+  // SimpleWebViewDialog's behavior where GetWebContents() is already null.
+  return browser_ ? GetWebContents() : nullptr;
 }
 
 ContentSettingBubbleModelDelegate*
