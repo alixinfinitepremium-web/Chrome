@@ -3096,6 +3096,25 @@
             ]
         }
     ],
+    "AutofillEnableTravelCategoryAndMerchantBenefitsFromCurinos": [
+        {
+            "platforms": [
+                "android",
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "AutofillEnableTravelCategoryAndMerchantBenefitsFromCurinos"
+                    ]
+                }
+            ]
+        }
+    ],
     "AutofillEnableWalletBrandingV2": [
         {
             "platforms": [
@@ -17501,6 +17520,29 @@
             ]
         }
     ],
+    "NoopRuntimeMutableStudy2": [
+        {
+            "platforms": [
+                "android",
+                "chromeos",
+                "ios",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled_20260731",
+                    "enable_features": [
+                        "NoopRuntimeMutable3"
+                    ],
+                    "disable_features": [
+                        "NoopRuntimeMutable4"
+                    ]
+                }
+            ]
+        }
+    ],
     "NotificationTrampolineNoNewTask": [
         {
             "platforms": [
@@ -25870,6 +25912,26 @@
                     "name": "Enabled",
                     "enable_features": [
                         "VTVideoEncodeAcceleratorCalculatePSNR"
+                    ]
+                }
+            ]
+        }
+    ],
+    "VariationsRuntimeMutability": [
+        {
+            "platforms": [
+                "android",
+                "chromeos",
+                "ios",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled_20260731",
+                    "enable_features": [
+                        "VariationsRuntimeMutability"
                     ]
                 }
             ]
