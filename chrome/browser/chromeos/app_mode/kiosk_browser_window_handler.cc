@@ -370,14 +370,14 @@ bool KioskBrowserWindowHandler::IsNewBrowserWindowAllowed(
 
 bool KioskBrowserWindowHandler::IsDevToolsAllowedBrowser(
     Browser* browser) const {
-  return browser->is_type_devtools() &&
+  return browser->GetType() == BrowserWindowInterface::Type::TYPE_DEVTOOLS &&
          kiosk_troubleshooting_controller_
              ->AreKioskTroubleshootingToolsEnabled();
 }
 
 bool KioskBrowserWindowHandler::IsNormalTroubleshootingBrowserAllowed(
     Browser* browser) const {
-  return browser->is_type_normal() &&
+  return browser->GetType() == BrowserWindowInterface::Type::TYPE_NORMAL &&
          kiosk_troubleshooting_controller_
              ->AreKioskTroubleshootingToolsEnabled();
 }

@@ -115,7 +115,7 @@ class DefaultStateProvider : public WindowSizer::StateProvider {
     if (browser_ && !web_app::AppBrowserController::IsWebApp(browser_) &&
         (browser_->GetType() == BrowserWindowInterface::Type::TYPE_APP ||
          browser_->GetType() == BrowserWindowInterface::Type::TYPE_APP_POPUP ||
-         browser_->is_type_devtools())) {
+         browser_->GetType() == BrowserWindowInterface::Type::TYPE_DEVTOOLS)) {
       return false;
     }
 
@@ -449,7 +449,8 @@ ui::mojom::WindowShowState WindowSizer::GetWindowDefaultShowState(
 
   // Only tabbed browsers and dev tools use the command line.
   bool use_command_line =
-      browser->is_type_normal() || browser->is_type_devtools();
+      browser->GetType() == BrowserWindowInterface::Type::TYPE_NORMAL ||
+      browser->GetType() == BrowserWindowInterface::Type::TYPE_DEVTOOLS;
 
 #if defined(USE_AURA)
   // We use the apps save state as well on aura.

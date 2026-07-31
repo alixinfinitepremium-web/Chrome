@@ -62,6 +62,7 @@
 #endif
 
 class BackgroundContents;
+class BrowserActions;
 class BrowserInitState;
 class BrowserView;
 class BrowserWindow;
@@ -330,6 +331,7 @@ class Browser : public TabStripModelObserver,
   // avoided.
   BrowserView& GetBrowserView();
 
+  BrowserActions* browser_actions() { return GetActions(); }
 
   SessionID session_id() const { return session_id_; }
   BrowserWindowFeatures* browser_window_features() const {
@@ -395,9 +397,7 @@ class Browser : public TabStripModelObserver,
       const TabStripSelectionChange& selection) override;
   void TabStripEmpty() override;
 
-  bool is_type_normal() const { return type_ == TYPE_NORMAL; }
   bool is_type_popup() const { return type_ == TYPE_POPUP; }
-  bool is_type_devtools() const { return type_ == TYPE_DEVTOOLS; }
 
   // Called each time the browser window is shown.
   void OnWindowDidShow();
@@ -446,6 +446,7 @@ class Browser : public TabStripModelObserver,
       DidBecomeActiveCallback callback) override;
   base::CallbackListSubscription RegisterDidBecomeInactive(
       DidBecomeInactiveCallback callback) override;
+  BrowserActions* GetActions() override;
   Type GetType() const override;
   std::vector<tabs::TabInterface*> GetAllTabInterfaces() override;
   Browser* GetBrowserForMigrationOnly() override;
