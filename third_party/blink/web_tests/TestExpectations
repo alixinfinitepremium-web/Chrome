@@ -2230,7 +2230,7 @@ external/wpt/webdriver/tests/bidi/input/set_files/set_files.py [ Timeout ]
 [ Debug Linux ] external/wpt/webdriver/tests/bidi/storage/delete_cookies/filter.py [ Timeout ]
 [ Debug ] external/wpt/webdriver/tests/bidi/storage/delete_cookies/invalid.py [ Timeout ]
 [ Debug ] external/wpt/webdriver/tests/bidi/storage/get_cookies/invalid.py [ Timeout ]
-external/wpt/webdriver/tests/bidi/browsing_context/close/prompt_unload.py [ Timeout ]
+external/wpt/webdriver/tests/bidi/browsing_context/close/prompt_unload.py [ Failure ]
 # Flaky test
 crbug.com/377833124 external/wpt/webdriver/tests/bidi/browsing_context/navigate/error.py [ Failure Pass Timeout ]
 
@@ -9406,9 +9406,4 @@ crbug.com/541138839 [ Mac ] wpt_internal/prerender/unload-on-prerender-same-orig
 # the V8 fix rolls in, then remove this line and the stale -expected.txt
 # baseline.
 virtual/javascript-defer-phase-imports/external/wpt/html/semantics/scripting-1/the-script-element/module/dynamic-import/cyclic-tla-defer-eval.tentative.html [ Failure Pass ]
-
-# Temporarily mark tests failing until DevTools Shared Storage removal CL lands and rolls
-crbug.com/535990398 http/tests/devtools/application-panel/resources-panel-on-navigation.js [ Failure Pass ]
-crbug.com/535990398 http/tests/devtools/application-panel/resources-panel-resource-preview.js [ Failure Pass ]
-crbug.com/535990398 http/tests/devtools/application-panel/resources-panel-selection-on-reload.js [ Failure Pass ]
 

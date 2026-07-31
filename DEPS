@@ -327,7 +327,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '7ef86a5b0eb91db85580bd71ebed3c4ba489d5ba',
+  'skia_revision': '65714a94e20f632558cc81e928915eb98b879b70',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -335,7 +335,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '2e484954bb497ddb2125e04fe8663d13551be850',
+  'angle_revision': 'cdb28096ffbe98c60c85282835f09a4d33ca6b0b',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -347,7 +347,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': '7515be5ccd601ae0433d3682ba7737592b402014',
+  'boringssl_revision': '1a5078d343ba5d9501062caf11e3173fc364dc59',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -431,7 +431,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': 'a7a8c555a8c3f5a52501b7865dddef512678b7d1',
+  'dawn_revision': 'd27499421a834e9f5ee116afa77874881ad7c725',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -1710,7 +1710,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': 'dY70Z9qo0mrHPUWnGCaKnGaVu4s3WrtM0TtT4LPJ7PQC',
+        'version': 'TSR6U5ruRhOcbJ_iIHBOrb1chxoC57Y9srn1K_WvUroC',
       },
     ],
     'condition': 'non_git_source',
@@ -3120,8 +3120,8 @@ deps = {
       ],
   },
 
-  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@9b3fec1aec6cd26265b3c11b18f1b3b656a63c2b',
-  'src/third_party/glslang/src': '{chromium_git}/external/github.com/KhronosGroup/glslang@8d6dd0e41424c25806ca20523430f2e4c3aeb1a1',
+  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@a1ee555f2e000c9827ca8fbed01ac196c0f47352',
+  'src/third_party/glslang/src': '{chromium_git}/external/github.com/KhronosGroup/glslang@04a35a9f4f69bb5593e9339f1838a06640316c6d',
   'src/third_party/spirv-cross/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Cross@b8fcf307f1f347089e3c46eb4451d27f32ebc8d3',
   'src/third_party/spirv-headers/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Headers@4015a331f5ffd6fc5c6fa7b03e08fb4a692491d7',
   'src/third_party/spirv-tools/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Tools@a9cdf5bdd25d516294b5c25502b67e6116ed7eb5',
@@ -3929,7 +3929,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        '97b05c46d8af165a4ff81a0f497684f07e89e4df',
+        'd68dc8683b448ca499e60bbd3d00e9a101455cc5',
       'condition': 'checkout_src_internal',
   },
 
