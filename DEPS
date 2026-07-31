@@ -323,7 +323,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '05fb1b7a834a14200bd1c110021f0e3ff2695e9f',
+  'src_internal_revision': 'fa292a57b7fae049ae3d14cc73260ccf8482f86f',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -343,7 +343,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling PDFium
   # and whatever else without interference from each other.
-  'pdfium_revision': 'a4a2d6706be9f538e355f3b95307ff393f299a54',
+  'pdfium_revision': '5ad8815a68df90c7f3d0e085fb8275f30efa05c2',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
@@ -1982,8 +1982,6 @@ deps = {
   'src/third_party/anonymous_tokens/src':
     Var('chromium_git') + '/external/github.com/google/anonymous-tokens.git' + '@' + 'eb2875671b0daf3e8f3735d77f09ea80e032c2e6',
 
-  'src/third_party/aria-practices/src':
-    Var('chromium_git') + '/external/github.com/w3c/aria-practices.git' + '@' + '7b134ce6d19497cce8a67db4a9f59980baf853dc',
 
     'src/third_party/blink/renderer/core/css/perftest_data': {
       'dep_type': 'gcs',
@@ -2729,7 +2727,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + 'c4eb67434f84012636894e923a3a10832c14415c',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '5774a41e32fede68f25c5509deb9cbfb4ea16383',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
