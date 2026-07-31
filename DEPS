@@ -327,7 +327,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '1831978e157b45d69364cce3e014b7d735190b51',
+  'skia_revision': '7ef86a5b0eb91db85580bd71ebed3c4ba489d5ba',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -335,7 +335,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '7022bdab0a7939ce7f09eb0b7da9cbd1967b461b',
+  'angle_revision': 'ef387bf788d1fc1337bfb645569f8692ef7848af',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -347,7 +347,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': '69bd97acdb5d73b1be8647e3727578bf61c689e2',
+  'boringssl_revision': '7515be5ccd601ae0433d3682ba7737592b402014',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -407,7 +407,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '6d3bad95488c059d60b56736198ea5dc5ff7cd9d',
+  'devtools_frontend_revision': 'f0345f86982b60fc21e913315ca7cf78ace4491c',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1188,10 +1188,10 @@ deps = {
     'condition': 'non_git_source',
     'objects': [
       {
-        'object_name': 'meet-gpu-tests/955596009.tar.gz',
-        'sha256sum': 'f5da860f3856fb535ce02b2d3f9893192b1cf3daa2efc028008b9965370b86ae',
-        'size_bytes': 278464058,
-        'generation': 1785316051689998,
+        'object_name': 'meet-gpu-tests/956838336.tar.gz',
+        'sha256sum': '6f1e64a0bec4f0f744971f12592b9dde76d8430c21347cca073c04619d55aed5',
+        'size_bytes': 278490514,
+        'generation': 1785487730185027,
       },
     ],
   },
@@ -1722,7 +1722,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    'bedfc2739924f4059073639973e86389b0915749',
+    '6a98ef92ce3817d296a045ae968e7633050e2716',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -2557,7 +2557,7 @@ deps = {
   },
 
   'src/third_party/libphonenumber/src':
-    Var('chromium_git') + '/external/libphonenumber.git' + '@' + '99ade73f8465edd4a71969c8899bc45a854ed100',
+    Var('chromium_git') + '/external/libphonenumber.git' + '@' + 'f6f65e1843900efcd3bded4478741c2fbaa2e0bc',
 
   'src/third_party/libprotobuf-mutator/src':
     Var('chromium_git') + '/external/github.com/google/libprotobuf-mutator.git' + '@' +  Var('libprotobuf-mutator'),
@@ -2927,7 +2927,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/r8',
-              'version': 'BwU0v55eXMkU-H8XgpMqN0I_-_C30Me5mDttG6t1h9oC',
+              'version': 'iw4h1Y6N5rGiIdLRsNNGUVBboq0f1WktVTvHGQP5xhUC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -3172,7 +3172,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '393f690923835ea9192f528d1039be6438ee3dc9',
+    Var('webrtc_git') + '/src.git' + '@' + '56104c23934fd2c85f777060ad1ec6e1b46bf61f',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -3301,7 +3301,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_receiver_app/app',
-        'version': '-Ds-zfZrMr9VzV4ROnjQJhktrVhWtIt39K2LJEJ8kNMC',
+        'version': 'zQ5rs2os_Q1L_xpfjbWCldLym-dUDIeNNqbBs-hY4NcC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3367,7 +3367,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/projector_app/app',
-        'version': '0GJDAILZUN5ovSUMlmTOE7knLD5YeB2Mo1wJ7qc_jCIC',
+        'version': 'tTL_dBWGTI5xNWWVSqutdThCJbqNxFY5Bg_UNZcYk40C',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
