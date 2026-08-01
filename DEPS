@@ -2727,7 +2727,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '5774a41e32fede68f25c5509deb9cbfb4ea16383',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + 'b14bd1ba1326d36156784ced0e659a4745704295',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
@@ -3332,7 +3332,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/media_app/app',
-        'version': 'UqAHfq9OZQhQf8xzBsupUveUYD2Ohj2mAeXn9JFmIlkC',
+        'version': 'ZSKhKG8-XPx1ebRGGUUJKAuVvRrMaKVIb4_TSBDQOd8C',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
