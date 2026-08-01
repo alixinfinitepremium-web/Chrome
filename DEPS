@@ -1508,7 +1508,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_arm64',
-          'version': 'version:2@1666009',
+          'version': 'version:2@1667028',
         },
       ],
   },
@@ -1530,7 +1530,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_x86_64',
-          'version': 'version:2@1666014',
+          'version': 'version:2@1667012',
         },
       ],
   },
@@ -2587,7 +2587,7 @@ deps = {
     Var('chromium_git') + '/webm/libwebp.git' + '@' +  'b43b2caa710c0c997c066cb32c7fea1391fad70a',
 
   'src/third_party/libyuv':
-    Var('chromium_git') + '/libyuv/libyuv.git' + '@' + '1a746db4cee1df36a9de56dd1d13446507106032',
+    Var('chromium_git') + '/libyuv/libyuv.git' + '@' + '0148582bb8a8f5909c1ccb4e8e7dc7cbd89a599c',
 
   'src/third_party/lss': {
       'url': Var('chromium_git') + '/linux-syscall-support.git' + '@' + Var('lss_revision'),
@@ -2701,7 +2701,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/cisco/openh264' + '@' + 'fca40fc19f5fb854609d297ae4bde71df72787c9',
 
   'src/third_party/openscreen/src':
-    Var('chromium_git') + '/openscreen' + '@' + '72a3d04d1f8d99d9419bbd44d502c58346ac8f59',
+    Var('chromium_git') + '/openscreen' + '@' + '920129874c16365415a8a52fdbbc492d7623dc11',
 
   'src/third_party/openxr/src': {
     'url': Var('chromium_git') + '/external/github.com/KhronosGroup/OpenXR-SDK' + '@' + '75c53b6e853dc12c7b3c771edc9c9c841b15faaa',
@@ -3118,8 +3118,8 @@ deps = {
       ],
   },
 
-  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@38725942468a06ce41be06a9e43c6a1e75587bb0',
-  'src/third_party/glslang/src': '{chromium_git}/external/github.com/KhronosGroup/glslang@6a0d48e4ba311eacdb8535bec08c6bcfc156d629',
+  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@ac9d0369459863c5d35b0290bf1e41215f5f0e2d',
+  'src/third_party/glslang/src': '{chromium_git}/external/github.com/KhronosGroup/glslang@8211917927d84e358b036eb6c367be8b94b1ff31',
   'src/third_party/spirv-cross/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Cross@b8fcf307f1f347089e3c46eb4451d27f32ebc8d3',
   'src/third_party/spirv-headers/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Headers@4015a331f5ffd6fc5c6fa7b03e08fb4a692491d7',
   'src/third_party/spirv-tools/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Tools@a9cdf5bdd25d516294b5c25502b67e6116ed7eb5',
@@ -3170,7 +3170,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '9813003c2cb78b32f99a421b30258f9e527ce82a',
+    Var('webrtc_git') + '/src.git' + '@' + '46ce2a180cd0e34af34406aa3db44a333e0e1171',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -3927,7 +3927,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        'bd19c41de9aba580d19fdb267fc3298a1871427b',
+        '5767ddf92b97ad870307034eb5951d748d389970',
       'condition': 'checkout_src_internal',
   },
 
@@ -4011,7 +4011,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        'bb951899fec445a0f5e274650e5c1c3aca62c9d0',
+        'd3540cb171d0f5e81a16a973a78eb4fbd0fd39c5',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
