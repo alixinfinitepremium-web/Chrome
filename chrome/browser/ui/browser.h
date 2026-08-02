@@ -113,10 +113,6 @@ class Browser : public TabStripModelObserver,
                 public WebContentsCollection::Observer,
                 public BrowserWindowInterface {
  public:
-  // Possible elements of the Browser window.
-  using WindowFeature = WindowFeatureController::WindowFeature;
-
-
   // Represents the source of a browser creation request.
   enum class CreationSource {
     kUnknown,
@@ -263,6 +259,14 @@ class Browser : public TabStripModelObserver,
     // Specifies the width for the uncollapsed Vertical Tab Strip.
     std::optional<int> vertical_tab_strip_uncollapsed_width;
 
+    // The application name that is also the name of the window to the shell.
+    // Do not set this value directly, use CreateForApp/CreateForAppPopup.
+    // This name will be set for:
+    // 1) v1 applications launched via an application shortcut or extension API.
+    // 2) undocked devtool windows.
+    // 3) popup windows spawned from v1 applications.
+    std::string app_name;
+
    private:
     friend class Browser;
     friend class WindowSizerChromeOSTest;
@@ -273,14 +277,6 @@ class Browser : public TabStripModelObserver,
                                          const gfx::Rect& window_bounds,
                                          Profile* profile,
                                          bool user_gesture);
-
-    // The application name that is also the name of the window to the shell.
-    // Do not set this value directly, use CreateForApp/CreateForAppPopup.
-    // This name will be set for:
-    // 1) v1 applications launched via an application shortcut or extension API.
-    // 2) undocked devtool windows.
-    // 3) popup windows spawned from v1 applications.
-    std::string app_name;
   };
 
   // Constructors, Creation, Showing //////////////////////////////////////////
@@ -321,7 +317,6 @@ class Browser : public TabStripModelObserver,
   // Accessors ////////////////////////////////////////////////////////////////
 
   Type type() const { return type_; }
-  const std::string& app_name() const { return app_name_; }
   // In production code, each instance of Browser will always instantiate an
   // instance of BrowserView in the constructor. Some tests instantiate a
   // Browser without a BrowserView: this is an anti-pattern and should be
@@ -364,19 +359,6 @@ class Browser : public TabStripModelObserver,
   void FullscreenTopUIStateChanged();
 
   void OnFindBarVisibilityChanged();
-
-  // Assorted browser commands ////////////////////////////////////////////////
-
-  // NOTE: Within each of the following sections, the IDs are ordered roughly by
-  // how they appear in the GUI/menus (left to right, top to bottom, etc.).
-
-  // Deprecated: Use capabilities()->SupportsWindowFeature instead.
-  bool SupportsWindowFeature(WindowFeature feature) const;
-
-  // Deprecated: Use capabilities()->CanSupportWindowFeature instead.
-  bool CanSupportWindowFeature(WindowFeature feature) const;
-
-  /////////////////////////////////////////////////////////////////////////////
 
   // Called by Navigate() when a navigation has occurred in a tab in
   // this Browser. Updates the UI for the start of this navigation.
@@ -647,12 +629,6 @@ class Browser : public TabStripModelObserver,
 
   std::unique_ptr<TabStripModelDelegate> const tab_strip_model_delegate_;
   std::unique_ptr<TabStripModel> const tab_strip_model_;
-
-  // The application name that is also the name of the window to the shell.
-  // This name should be set when:
-  // 1) we launch an application via an application shortcut or extension API.
-  // 2) we launch an undocked devtool window.
-  const std::string app_name_;
 
   // Unique identifier of this browser for session restore. This id is only
   // unique within the current session, and is not guaranteed to be unique

@@ -49,6 +49,7 @@
 #include "chrome/browser/ui/web_applications/web_app_launch_navigation_handle_user_data.h"
 #include "chrome/browser/ui/web_applications/web_app_launch_utils.h"
 #include "chrome/browser/ui/web_applications/web_app_tabbed_utils.h"
+#include "chrome/browser/ui/window_feature_controller/window_feature_controller.h"
 #include "chrome/browser/web_applications/web_app_helpers.h"
 #include "chrome/browser/web_applications/web_app_tab_helper.h"
 #include "chrome/common/chrome_features.h"
@@ -128,11 +129,10 @@ bool WindowCanOpenTabs(const NavigateParams& params) {
     return false;
   }
 
-  return params.browser->GetBrowserForMigrationOnly()->CanSupportWindowFeature(
-             Browser::WindowFeature::kFeatureTabStrip) ||
-         params.browser->GetBrowserForMigrationOnly()
-             ->tab_strip_model()
-             ->empty();
+  return WindowFeatureController::From(params.browser)
+             ->CanSupportWindowFeature(
+                 WindowFeatureController::WindowFeature::kFeatureTabStrip) ||
+         params.browser->tab_strip_model()->empty();
 }
 
 // Finds an existing Browser compatible with |profile|, making a new one if no
@@ -298,10 +298,11 @@ std::tuple<BrowserWindowInterface*, int> GetBrowserAndTabForDisposition(
       std::string app_name;
       if (!params.app_id.empty()) {
         app_name = web_app::GenerateApplicationNameFromAppId(params.app_id);
-      } else if (params.browser && !params.browser->GetBrowserForMigrationOnly()
-                                        ->app_name()
-                                        .empty()) {
-        app_name = params.browser->GetBrowserForMigrationOnly()->app_name();
+      } else if (params.browser && !BrowserInitState::From(params.browser)
+                                        ->create_params()
+                                        .app_name.empty()) {
+        app_name =
+            BrowserInitState::From(params.browser)->create_params().app_name;
       }
 
       auto browser_params = Browser::CreateParams::CreateForPictureInPicture(
@@ -338,10 +339,11 @@ std::tuple<BrowserWindowInterface*, int> GetBrowserAndTabForDisposition(
       std::string app_name;
       if (!params.app_id.empty()) {
         app_name = web_app::GenerateApplicationNameFromAppId(params.app_id);
-      } else if (params.browser && !params.browser->GetBrowserForMigrationOnly()
-                                        ->app_name()
-                                        .empty()) {
-        app_name = params.browser->GetBrowserForMigrationOnly()->app_name();
+      } else if (params.browser && !BrowserInitState::From(params.browser)
+                                        ->create_params()
+                                        .app_name.empty()) {
+        app_name =
+            BrowserInitState::From(params.browser)->create_params().app_name;
       }
       if (GetBrowserWindowCreationStatusForProfile(*profile) !=
           Browser::CreationStatus::kOk) {
