@@ -327,7 +327,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '32329e5643b53a27b503d8cb03f27272dedcbab1',
+  'skia_revision': 'df13bfb5a54eaec4720db17e9276f56bc1d5491a',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -343,7 +343,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling PDFium
   # and whatever else without interference from each other.
-  'pdfium_revision': '5ad8815a68df90c7f3d0e085fb8275f30efa05c2',
+  'pdfium_revision': 'f4facdd2652f771eb11d605a82fea2bbfbe66d9f',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
@@ -431,7 +431,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': 'cd2d5a667d1140af6e89f4c4c24f6545e1d5d2d7',
+  'dawn_revision': '6ed7ed9f71813c1d1883543de68e1c2816b0a839',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -3170,7 +3170,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + 'c32ae6b6aeb8ca73a4d08e811552810fc8847208',
+    Var('webrtc_git') + '/src.git' + '@' + '6e1f18c355e3839aa8a392e3707b786d051ccd24',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
