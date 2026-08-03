@@ -755,6 +755,21 @@
             ]
         }
     ],
+    "AiSubscriptionAvatarRingIOS": [
+        {
+            "platforms": [
+                "ios"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "AiSubscriptionAvatarRingIOS"
+                    ]
+                }
+            ]
+        }
+    ],
     "Aim3pEntrypoint": [
         {
             "platforms": [
@@ -24046,23 +24061,6 @@
                     "name": "Enabled",
                     "enable_features": [
                         "SymphoniaAudioDecoding"
-                    ]
-                }
-            ]
-        }
-    ],
-    "SymphoniaMp3Decoding": [
-        {
-            "platforms": [
-                "android",
-                "android_webview",
-                "fuchsia"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "SymphoniaMp3Decoding"
                     ]
                 }
             ]

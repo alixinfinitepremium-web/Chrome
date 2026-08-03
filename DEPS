@@ -327,7 +327,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '62e4d651bc60bc3e3ceda46caef302f730be5aca',
+  'skia_revision': 'e637676adf543184b28a8d2afdea0b1fcdf51c3d',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -387,7 +387,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': '8d5648ca8e2062af1f15fee89ebbd45fff94c7dd',
+  'crossbench_revision': '7470bd3666b3e409b8c35e99ea337dbb358306e7',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -407,7 +407,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '19c6eb23c68b06ed86c93443699f6ab4d3782de3',
+  'devtools_frontend_revision': 'b963582b6689f136a8222c91bc005060b9f0616d',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -2727,7 +2727,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '7b573c1c00f5d5890f496a87b4876a995b6a1c66',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '9e949123df0ce0245c8bf26cb49c30ef330d427b',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
@@ -4011,7 +4011,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '0b7235482ccba548f61d0f3a569fce7784533aca',
+        '63943b57d1c10a2441ebdfefffbca9c95760ef97',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
