@@ -11921,25 +11921,6 @@
             ]
         }
     ],
-    "FreezeSharedWorker": [
-        {
-            "platforms": [
-                "chromeos",
-                "ios",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "FreezeSharedWorker"
-                    ]
-                }
-            ]
-        }
-    ],
     "FullscreenSignInPromoUseDate": [
         {
             "platforms": [
@@ -22734,6 +22715,27 @@
                     ],
                     "disable_features": [
                         "ServiceWorkerMergeFindRegistrationForClientUrl"
+                    ]
+                }
+            ]
+        }
+    ],
+    "ServiceWorkerRaceNetworkRequestFallbackOnDisconnect": [
+        {
+            "platforms": [
+                "android",
+                "android_webview",
+                "chromeos",
+                "fuchsia",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "ServiceWorkerRaceNetworkRequestFallbackOnDisconnect"
                     ]
                 }
             ]

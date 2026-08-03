@@ -252,7 +252,7 @@ vars = {
   # luci-go CIPD package version.
   # Make sure the revision is uploaded by infra-packagers builder.
   # https://ci.chromium.org/p/infra-internal/g/infra-packagers/console
-  'luci_go': 'git_revision:bb2729e2a10f361496937e32c0aeb4fdda0c9247',
+  'luci_go': 'git_revision:de24faf21b953ffe46dd29ef36b8935d6940a513',
 
   # This can be overridden, e.g. with custom_vars, to build clang from HEAD
   # instead of downloading the prebuilt pinned revision.
@@ -282,7 +282,7 @@ vars = {
   # binary available on `PATH`, or absolute path.
   'reapi_credential_helper': Str(''),
   # siso CIPD package version.
-  'siso_version': 'git_revision:7bc9a0bfe050ef97e1712ff61c6f11952799e951',
+  'siso_version': 'git_revision:cb6ccf7181532ce7ca0d533152a68747d1a885c3',
 
   # reclient options.
   # download reclient binaries, required for 'use_reclient` gn arg.
@@ -327,7 +327,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '1c31040989d4813828c88cd43eb94b1bd1690a7f',
+  'skia_revision': '39cda9d6d7d2c4940524b4ee7766a5cdb160ae02',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -343,7 +343,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling PDFium
   # and whatever else without interference from each other.
-  'pdfium_revision': 'f4facdd2652f771eb11d605a82fea2bbfbe66d9f',
+  'pdfium_revision': '0d5ebf0d5f41aa4b2f3bf61ee7cfed611bce3eb6',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
@@ -554,7 +554,7 @@ vars = {
   'libcxx_revision':       'b16984ce99c702355a5b2b4c52574e82cec41fb9',
 
   # GN CIPD package version.
-  'gn_version': 'git_revision:3fd3b0624d8cba16927853600130b2c33d4e7928',
+  'gn_version': 'git_revision:17b0057970fa2b07a20cbb4289ab78cf93565f35',
 
   # ninja CIPD package.
   'ninja_package': 'infra/3pp/tools/ninja/',
@@ -2170,7 +2170,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'e154c8eda5e63cbe85a765ae9d06e2b7af05139e',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '4ccc78dd63a03571cd51cdae5ab7d3ee4485910d',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -3203,7 +3203,7 @@ deps = {
       'packages': [
         {
           'package': 'skia/tools/goldctl/linux-amd64',
-          'version': 'Wy67goQjOenlBbUnDjx82JummyY8-HLsXpqdRtj5AHQC',
+          'version': 'MD_Mhn36vX7TCv-qd56sebo8bdXLnl2ZwecPfjI_tSAC',
         },
       ],
       'dep_type': 'cipd',
@@ -3213,7 +3213,7 @@ deps = {
       'packages': [
         {
           'package': 'skia/tools/goldctl/windows-amd64',
-          'version': 'oLb5hi4gU-Za3QONmPSgWy_DO2zyio9BuS4WXhRdlf4C',
+          'version': 'JkDgm8Jxp3-qClxFQ3DG3M_ff-14E2oo4xyscJdE8mIC',
         },
       ],
       'dep_type': 'cipd',
@@ -3224,7 +3224,7 @@ deps = {
       'packages': [
         {
           'package': 'skia/tools/goldctl/mac-amd64',
-          'version': '35eS8o8JIxauJUUAzQV52fA0siT272SQClfAVizj1YMC',
+          'version': 'Df0n4d7TeO3PaTP8SR4PI3nM3csljStXbFa6ZEV4WtMC',
         },
       ],
       'dep_type': 'cipd',
@@ -3235,7 +3235,7 @@ deps = {
       'packages': [
         {
           'package': 'skia/tools/goldctl/mac-arm64',
-          'version': '9B0yJ1HyHo1ZZirnK1_cK51h9pPUm6bHpEfakTmqf_8C',
+          'version': 'YGGwBCx31_9rJv-6dNuy-QF17Yu-j9Xojb0rg6GdVK0C',
         },
       ],
       'dep_type': 'cipd',

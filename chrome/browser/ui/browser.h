@@ -62,7 +62,6 @@
 #endif
 
 class BackgroundContents;
-class BrowserActions;
 class BrowserInitState;
 class BrowserView;
 class BrowserWindow;
@@ -323,7 +322,6 @@ class Browser : public TabStripModelObserver,
   // avoided.
   BrowserView& GetBrowserView();
 
-  BrowserActions* browser_actions() { return GetActions(); }
 
   SessionID session_id() const { return session_id_; }
   BrowserWindowFeatures* browser_window_features() const {
@@ -378,9 +376,6 @@ class Browser : public TabStripModelObserver,
 
   bool is_type_popup() const { return type_ == TYPE_POPUP; }
 
-  // Called each time the browser window is shown.
-  void OnWindowDidShow();
-
   // Gets the browser for opening chrome:// pages. This will return the opener
   // browser if the current browser is in picture-in-picture mode, otherwise
   // returns the current browser.
@@ -425,7 +420,6 @@ class Browser : public TabStripModelObserver,
       DidBecomeActiveCallback callback) override;
   base::CallbackListSubscription RegisterDidBecomeInactive(
       DidBecomeInactiveCallback callback) override;
-  BrowserActions* GetActions() override;
   Type GetType() const override;
   std::vector<tabs::TabInterface*> GetAllTabInterfaces() override;
   Browser* GetBrowserForMigrationOnly() override;
@@ -648,9 +642,6 @@ class Browser : public TabStripModelObserver,
   // In-progress download termination handling /////////////////////////////////
 
   /////////////////////////////////////////////////////////////////////////////
-
-  // True if the browser window has been shown at least once.
-  bool window_has_shown_;
 
   std::unique_ptr<ScopedKeepAlive> keep_alive_;
 
