@@ -10322,6 +10322,25 @@
             ]
         }
     ],
+    "EnableDynamicRouteFetching": [
+        {
+            "platforms": [
+                "android",
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "EnableDynamicRouteFetching"
+                    ]
+                }
+            ]
+        }
+    ],
     "EnableEncryptedFileUpload": [
         {
             "platforms": [
@@ -14903,26 +14922,6 @@
                     "name": "Enabled",
                     "enable_features": [
                         "IdbInhibitCompactRange"
-                    ]
-                }
-            ]
-        }
-    ],
-    "IdbSqliteBackingStoreInMemoryContexts": [
-        {
-            "platforms": [
-                "android",
-                "android_webview",
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "IdbSqliteBackingStoreInMemoryContexts"
                     ]
                 }
             ]

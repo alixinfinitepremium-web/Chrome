@@ -10297,6 +10297,8 @@ from previous Chrome versions.
   <int value="-1339679303" label="UseAdHocSigningForWebAppShims:enabled"/>
   <int value="-1338701593"
       label="OmniboxMostVisitedTilesTitleWrapAround:enabled"/>
+  <int value="-1338528179"
+      label="AlwaysShowInstallDisambiguationDialog:disabled"/>
   <int value="-1338306372" label="BrowserTouchBar:enabled"/>
   <int value="-1338237485" label="HardwareSecureDecryptionExperiment:disabled"/>
   <int value="-1337873095" label="CompareManagementInterface:disabled"/>
@@ -12991,6 +12993,8 @@ from previous Chrome versions.
   <int value="-491131428" label="OmniboxNewAnswerLayout:disabled"/>
   <int value="-490652941" label="WebViewZeroCopyVideo:enabled"/>
   <int value="-489672760" label="ImeFstDecoderParamsUpdate:disabled"/>
+  <int value="-489303384"
+      label="AlwaysShowInstallDisambiguationDialog:enabled"/>
   <int value="-489165842"
       label="ProfileCreationDeclineSigninCTAExperiment:enabled"/>
   <int value="-489122628" label="ShowTabListAnimations:disabled"/>
@@ -13551,6 +13555,7 @@ from previous Chrome versions.
   <int value="-306439706" label="CastStreaming60fps:disabled"/>
   <int value="-306412483"
       label="OverlayScrollbarFlashOnlyOnceVisibleOnViewport:enabled"/>
+  <int value="-306247431" label="EnterpriseTabTitleReporting:enabled"/>
   <int value="-304951461" label="TextSuggestionsTouchBar:enabled"/>
   <int value="-304886342" label="QuickAnswersTranslation:disabled"/>
   <int value="-304841801" label="AccessibilityFlashScreenFeature:enabled"/>
@@ -18323,6 +18328,7 @@ from previous Chrome versions.
   <int value="1210118915" label="ShelfAutoHideSeparation:disabled"/>
   <int value="1210298193" label="FontAccessPersistent:enabled"/>
   <int value="1210343926" label="enable-drop-sync-credential"/>
+  <int value="1210578165" label="EnterpriseTabTitleReporting:disabled"/>
   <int value="1210839499" label="AutofillEnableOmniboxAutofill:disabled"/>
   <int value="1211284676" label="V8NoTurbo:enabled"/>
   <int value="1211756417"

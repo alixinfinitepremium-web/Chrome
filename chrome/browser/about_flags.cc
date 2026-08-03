@@ -5477,6 +5477,11 @@ const FeatureEntry kFeatureEntries[] = {
          feature_engagement::kIPHDemoMode,
          feature_engagement::kIPHDemoModeChoiceVariations,
          "IPH_DemoMode")},
+    {"enterprise-tab-title-reporting",
+     flag_descriptions::kEnterpriseTabTitleReportingName,
+     flag_descriptions::kEnterpriseTabTitleReportingDescription, kOsAll,
+     FEATURE_VALUE_TYPE(
+         enterprise_data_protection::kEnterpriseTabTitleReporting)},
 #if BUILDFLAG(IS_CHROMEOS)
     {"enterprise-reporting-ui", flag_descriptions::kEnterpriseReportingUIName,
      flag_descriptions::kEnterpriseReportingUIDescription, kOsCrOS,
@@ -9432,6 +9437,13 @@ const FeatureEntry kFeatureEntries[] = {
     {"pwa-restore-ui-at-startup", flag_descriptions::kPwaRestoreUiAtStartupName,
      flag_descriptions::kPwaRestoreUiAtStartupDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(chrome::android::kPwaRestoreUiAtStartup)},
+
+    {"always-show-install-disambiguation-dialog",
+     flag_descriptions::kAlwaysShowInstallDisambiguationDialogName,
+     flag_descriptions::kAlwaysShowInstallDisambiguationDialogDescription,
+     kOsAndroid,
+     FEATURE_VALUE_TYPE(
+         webapps::features::kAlwaysShowInstallDisambiguationDialog)},
 #endif  // BUILDFLAG(IS_ANDROID)
 
     {"safe-browsing-local-lists-use-sbv5",
@@ -13272,7 +13284,7 @@ const FeatureEntry kFeatureEntries[] = {
 #if BUILDFLAG(ENTERPRISE_PROXY)
     {"enable-dynamic-route-fetching",
      flag_descriptions::kEnableDynamicRouteFetchingName,
-     flag_descriptions::kEnableDynamicRouteFetchingDescription, kOsAndroid,
+     flag_descriptions::kEnableDynamicRouteFetchingDescription, kOsAll,
      FEATURE_VALUE_TYPE(enterprise_net::kEnableDynamicRouteFetching)},
 #endif
 

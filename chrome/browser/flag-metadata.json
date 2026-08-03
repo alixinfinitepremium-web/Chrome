@@ -230,6 +230,14 @@
     "expiry_milestone": -1
   },
   {
+    "name": "always-show-install-disambiguation-dialog",
+    "owners": [
+      "dibyapal@chromium.org",
+      "pwa-team@chromium.org"
+    ],
+    "expiry_milestone": 165
+  },
+  {
     "name": "android-adaptive-frame-rate",
     "owners": [ "boliu@chromium.org", "//components/viz/OWNERS" ],
     "expiry_milestone": 160
@@ -4735,6 +4743,11 @@
     "name": "enterprise-reporting-ui",
     "owners": ["cros-reporting-team@google.com"],
     "expiry_milestone": 150
+  },
+  {
+    "name": "enterprise-tab-title-reporting",
+    "owners": ["rslan@google.com", "cbe-cep-eng@google.com" ],
+    "expiry_milestone": 160
   },
   {
     "name": "esim-empty-activation-code-support",
