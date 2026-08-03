@@ -335,7 +335,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '515ed76cdcfe08f1940d84e6d2b704eb1ca9236f',
+  'angle_revision': '82a8b2d800c4179e67e38531c285450916b1b2dd',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -347,7 +347,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': '30a26e970e14f9d943e3961de49bee5cc7e032d3',
+  'boringssl_revision': 'ed2f7e8c26006ff9284279702708797b46d590d6',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -451,7 +451,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling jetstream-main
   # and whatever else without interference from each other.
-  'jetstream_main_revision': 'b7babdf323e64e69bd2f6c376189c15825f5c73a',
+  'jetstream_main_revision': '7769b693502fa80f28a97bbfacd3296e0513acc5',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling jetstream-v2.2
   # and whatever else without interference from each other.
@@ -4011,7 +4011,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '29814a8fcf74023852e9cadce7653916c00f6936',
+        '0b7235482ccba548f61d0f3a569fce7784533aca',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
