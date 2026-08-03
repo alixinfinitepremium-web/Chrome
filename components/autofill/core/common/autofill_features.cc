@@ -387,6 +387,11 @@ BASE_FEATURE(kAutofillAiWalletPrivatePassesCapability,
 BASE_FEATURE(kAutofillAiWalletPrivatePassesDeepLink,
              base::FEATURE_ENABLED_BY_DEFAULT);
 
+// When enabled, orders and shipments from Google Wallet become available in
+// Autofill for filling as read-only AutofillAi entities.
+// TODO(crbug.com/542022094): Clean up when launched.
+BASE_FEATURE(kAutofillAiWalletShopping, base::FEATURE_DISABLED_BY_DEFAULT);
+
 // If enabled, AutofillAi supports vehicle registration entities from Google
 // Wallet.
 DEFINE_FEATURE_WITH_MOBILE_COUNTRY_RESTRICTION(
@@ -447,13 +452,6 @@ BASE_FEATURE(kAutofillAndroidDesktopSuppressAccessoryOnEmpty,
 // `kAutofillAndroidDisableSuggestionsOnJSFocus`
 BASE_FEATURE(kAutofillAndroidDisableSuggestionsOnJSFocus,
              base::FEATURE_DISABLED_BY_DEFAULT);
-
-// If enabled, on Android, form fields are retrieved
-// by comparing FormFieldIds instead of the set of attributes. This flag affects
-// some of the logic in AndroidAutofillProvider.
-// TODO(crbug.com/456526604): Remove when launched.
-BASE_FEATURE(kAutofillAndroidFormDataCompareFieldGlobalId,
-             base::FEATURE_ENABLED_BY_DEFAULT);
 
 // If enabled, on Android, the Autofill keyboard accessory will not be
 // displayed attached to the keyboard but will be placed below or above the

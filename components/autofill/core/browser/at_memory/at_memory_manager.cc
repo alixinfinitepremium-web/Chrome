@@ -453,16 +453,6 @@ std::vector<Suggestion> CreateSecondarySuggestions(
   return children;
 }
 
-Suggestion CreateSourceAttributionSuggestion() {
-  Suggestion source_info(SuggestionType::kAtMemorySourceAttribution);
-  source_info.minor_texts.emplace_back(l10n_util::GetStringUTF16(
-      IDS_AUTOFILL_AT_MEMORY_SOURCE_ATTRIBUTION_PERSONAL_INTELLIGENCE));
-  source_info.acceptability =
-      Suggestion::Acceptability::kSelectableButUnacceptable;
-  source_info.filtration_policy = Suggestion::FiltrationPolicy::kStatic;
-  return source_info;
-}
-
 std::vector<Suggestion> CreateFooterSuggestions(
     const MemorySearchResult& entry) {
   std::vector<Suggestion> suggestions;
@@ -475,7 +465,8 @@ std::vector<Suggestion> CreateFooterSuggestions(
     Suggestion separator(SuggestionType::kSeparator);
     separator.filtration_policy = Suggestion::FiltrationPolicy::kStatic;
     suggestions.reserve(3);
-    suggestions.emplace_back(CreateSourceAttributionSuggestion());
+    suggestions.emplace_back(
+        AtMemoryManager::CreateSourceAttributionSuggestion());
     suggestions.emplace_back(std::move(separator));
     suggestions.emplace_back(CreateManageEnhancedAutofillSuggestion());
   }
@@ -650,6 +641,17 @@ bool ShouldEraseMemorySearchResult(MemoryDataType type,
 
 }  // namespace
 
+// static
+Suggestion AtMemoryManager::CreateSourceAttributionSuggestion() {
+  Suggestion source_info(SuggestionType::kAtMemorySourceAttribution);
+  source_info.minor_texts.emplace_back(l10n_util::GetStringUTF16(
+      IDS_AUTOFILL_AT_MEMORY_SOURCE_ATTRIBUTION_PERSONAL_INTELLIGENCE));
+  source_info.acceptability =
+      Suggestion::Acceptability::kSelectableButUnacceptable;
+  source_info.filtration_policy = Suggestion::FiltrationPolicy::kStatic;
+  return source_info;
+}
+
 AtMemoryManager::AtMemoryManager(BrowserAutofillManager* manager)
     : owner_(manager) {}
 
@@ -773,7 +775,6 @@ IsAsync AtMemoryManager::FillSearchResult(
         metadata) {
   const Suggestion::AtMemoryPayload& payload =
       suggestion.GetPayload<Suggestion::AtMemoryPayload>();
-
   if (at_memory_metrics_recorder_) {
     at_memory_metrics_recorder_->OnSuggestionAccepted(
         payload.memory_data_type, payload.sources_bitmask, metadata);
@@ -1338,6 +1339,7 @@ void AtMemoryManager::OnSensitivePersonalContextDataFetched(
     if (metrics) {
       metrics->OnFetchPersonalContextPiiDataFailed(result.error());
     }
+    owner_->client().ShowAtMemoryFetchFailureNotification();
     return;
   }
   if (metrics) {
