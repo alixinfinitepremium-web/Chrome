@@ -1206,7 +1206,9 @@ TEST_F(AutofillAiSuggestionGeneratorTest,
       {.record_type = EntityInstance::RecordType::kPersonalContext})});
   SetForm({FLIGHT_RESERVATION_FLIGHT_NUMBER});
 
-  client().set_should_show_personal_context_ambient_autofill_notice(true);
+  client()
+      .GetPersonalContextFirstRunService()
+      ->set_should_show_ambient_autofill_notice(true);
 #if BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_IOS)
   EXPECT_THAT(
       CreateAutofillAiFillingSuggestions(field(0)),
@@ -1227,7 +1229,9 @@ TEST_F(AutofillAiSuggestionGeneratorTest,
       {.record_type = EntityInstance::RecordType::kLocal})});
   SetForm({FLIGHT_RESERVATION_FLIGHT_NUMBER});
 
-  client().set_should_show_personal_context_ambient_autofill_notice(true);
+  client()
+      .GetPersonalContextFirstRunService()
+      ->set_should_show_ambient_autofill_notice(true);
 
   EXPECT_THAT(
       CreateAutofillAiFillingSuggestions(field(0)),
@@ -1243,7 +1247,9 @@ TEST_F(AutofillAiSuggestionGeneratorTest,
       {.record_type = EntityInstance::RecordType::kPersonalContext})});
   SetForm({FLIGHT_RESERVATION_FLIGHT_NUMBER});
 
-  client().set_should_show_personal_context_ambient_autofill_notice(false);
+  client()
+      .GetPersonalContextFirstRunService()
+      ->set_should_show_ambient_autofill_notice(false);
 
   EXPECT_THAT(
       CreateAutofillAiFillingSuggestions(field(0)),
@@ -1883,17 +1889,17 @@ TEST_F(AutofillAiSuggestionGeneratorOrderShipmentTest,
       {.id = u"123",
        .merchant_domain = u"example.com",
        .record_type = EntityInstance::RecordType::kServerWallet});
-  EntityInstance order_local = test::GetOrderEntityInstanceWithRandomGuid(
+  EntityInstance pcontext = test::GetOrderEntityInstanceWithRandomGuid(
       {.id = u"123",
        .merchant_domain = u"example.com",
-       .record_type = EntityInstance::RecordType::kLocal});
+       .record_type = EntityInstance::RecordType::kPersonalContext});
 
-  SetEntities({order_local, order_server});
+  SetEntities({pcontext, order_server});
   SetForm({ORDER_ID});
 
   std::vector<Suggestion> res = CreateAutofillAiFillingSuggestions(field(0));
-  // Since `order_local` is a subset/duplicate of `order_server`, only one child
-  // suggestion should be generated in the fallback menu.
+  // Since `order_pcontext` is a subset/duplicate of `order_server`, only one
+  // child suggestion should be generated in the fallback menu.
   EXPECT_THAT(res,
               ShoppingSuggestionsAre(AllOf(
                   SuggestionTypeHasTextAndAcceptability(

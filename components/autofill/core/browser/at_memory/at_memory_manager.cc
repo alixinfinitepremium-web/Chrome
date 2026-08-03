@@ -55,6 +55,7 @@
 #include "components/autofill/core/common/mojom/autofill_types.mojom.h"
 #include "components/autofill/core/common/unique_ids.h"
 #include "components/personal_context/core/personal_context_types.h"
+#include "components/personal_context/first_run/personal_context_first_run_service.h"
 #include "components/prefs/pref_service.h"
 #include "components/strings/grit/components_strings.h"
 #include "net/base/network_change_notifier.h"
@@ -495,7 +496,9 @@ Suggestion TransformResultIntoSuggestion(const MemorySearchResult& entry) {
     if (!label_row.empty()) {
       label_row.emplace_back(u"\u2022");  // Bullet (•)
     }
-    label_row.emplace_back(MaybeObfuscateValue(metadata.value, metadata.type,
+    std::u16string label_value = FormatMemoryDataTypeLabelValue(
+        metadata.type, metadata.value, metadata.typed_value);
+    label_row.emplace_back(MaybeObfuscateValue(label_value, metadata.type,
                                                is_personal_context_sourced));
   }
   if (!label_row.empty()) {
@@ -709,7 +712,9 @@ bool AtMemoryManager::OnFilterChanged(const std::u16string& filter) {
     suggestions.push_back(CreateSearchAffordanceSuggestion(filter));
   }
 
-  if (!owner_->client().ShouldShowPersonalContextAtMemoryNotice()) {
+  personal_context::PersonalContextFirstRunService* service =
+      owner_->client().GetPersonalContextFirstRunService();
+  if (!service || !service->ShouldShowPersonalContextAtMemoryNotice()) {
     suggestions.emplace_back(SuggestionType::kSeparator);
     suggestions.back().filtration_policy =
         Suggestion::FiltrationPolicy::kStatic;
@@ -976,7 +981,9 @@ bool AtMemoryManager::IsSearching() const {
 
 void AtMemoryManager::MaybeAppendPersonalContextNotice(
     std::vector<Suggestion>& suggestions) const {
-  if (!owner_->client().ShouldShowPersonalContextAtMemoryNotice()) {
+  personal_context::PersonalContextFirstRunService* service =
+      owner_->client().GetPersonalContextFirstRunService();
+  if (!service || !service->ShouldShowPersonalContextAtMemoryNotice()) {
     return;
   }
   if (std::ranges::contains(suggestions, SuggestionType::kPersonalContextNotice,

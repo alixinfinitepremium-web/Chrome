@@ -74,6 +74,7 @@ using ::testing::_;
 using ::testing::AllOf;
 using ::testing::Contains;
 using ::testing::ElementsAre;
+using ::testing::Eq;
 using ::testing::Field;
 using ::testing::InSequence;
 using ::testing::IsEmpty;
@@ -380,7 +381,9 @@ TEST_F(AtMemoryManagerTest,
 
   SeeFormAndShowPopup();
 
-  autofill_client().set_should_show_personal_context_at_memory_notice(false);
+  autofill_client()
+      .GetPersonalContextFirstRunService()
+      ->set_should_show_at_memory_notice(false);
 
   std::vector<Suggestion> suggestions;
   EXPECT_CALL(update_callback_,
@@ -407,7 +410,9 @@ TEST_F(AtMemoryManagerTest,
 TEST_F(AtMemoryManagerTest, OnFilterChanged_GeneratesDisclosureWhenEnabled) {
   SeeFormAndShowPopup();
 
-  autofill_client().set_should_show_personal_context_at_memory_notice(false);
+  autofill_client()
+      .GetPersonalContextFirstRunService()
+      ->set_should_show_at_memory_notice(false);
 
   EXPECT_CALL(
       update_callback_,
@@ -425,7 +430,9 @@ TEST_F(AtMemoryManagerTest, OnFilterChanged_GeneratesDisclosureWhenEnabled) {
 TEST_F(AtMemoryManagerTest, OnFilterChanged_NoDisclosureWhenNoticePending) {
   SeeFormAndShowPopup();
 
-  autofill_client().set_should_show_personal_context_at_memory_notice(true);
+  autofill_client()
+      .GetPersonalContextFirstRunService()
+      ->set_should_show_at_memory_notice(true);
 
   EXPECT_CALL(update_callback_,
               Run(Not(Contains(Field("type", &Suggestion::type,
@@ -530,6 +537,68 @@ TEST_F(AtMemoryManagerTest,
   ASSERT_EQ(final_suggestions[0].labels.size(), 1u);
   ASSERT_EQ(final_suggestions[0].labels[0].size(), 1u);
   EXPECT_EQ(final_suggestions[0].labels[0][0].value, u"Custom Type");
+}
+
+// Tests that for a flight reservation departure date entry with metadata,
+// the main suggestion text and payload value retain the full date fill value
+// ("2024-06-07 3:30 PM"), while metadata labels use the short "MMM d" format
+// ("Jun 7"). Also verifies the filled value passed to the Autofill driver.
+TEST_F(AtMemoryManagerTest, FlightReservation_ValueAndLabelFormatting) {
+  auto [form_id, field_id] = SeeFormAndShowPopup();
+
+  personal_context::proto::TypedValue datetime_typed;
+  datetime_typed.mutable_date_time()->set_year(2024);
+  datetime_typed.mutable_date_time()->set_month(6);
+  datetime_typed.mutable_date_time()->set_day(7);
+  datetime_typed.mutable_date_time()->set_hours(15);
+  datetime_typed.mutable_date_time()->set_minutes(30);
+
+  MemorySearchResult entry(MemoryDataType::kFlightReservationDepartureDate,
+                           /*type_name=*/u"Departure Date",
+                           /*value=*/u"2024-06-07 3:30 PM",
+                           /*relevance_score=*/1.0,
+                           /*typed_value=*/datetime_typed);
+
+  entry.metadata_list.emplace_back(
+      MemoryDataType::kFlightReservationDepartureDate,
+      /*type_name=*/u"Departure Date",
+      /*value=*/u"2024-06-07 3:30 PM",
+      /*typed_value=*/datetime_typed);
+
+  std::vector<MemorySearchResult> entries;
+  entries.push_back(std::move(entry));
+
+  std::vector<Suggestion> final_suggestions;
+  MockQueryResultsAndExpectCallback(u"flight",
+                                    MemorySearchStatus::kFinalResponseSuccess,
+                                    std::move(entries), final_suggestions);
+
+  manager().OnSearchSubmitted(u"flight");
+
+  ASSERT_EQ(final_suggestions.size(), 1u);
+  // Main fill value should retain the full date and time string.
+  EXPECT_EQ(final_suggestions[0].main_text.value, u"2024-06-07 3:30 PM");
+
+  const auto* payload =
+      std::get_if<Suggestion::AtMemoryPayload>(&final_suggestions[0].payload);
+  ASSERT_NE(payload, nullptr);
+  EXPECT_EQ(payload->value, u"2024-06-07 3:30 PM");
+
+  // Label row should format the flight date metadata in "MMM d" format.
+  ASSERT_EQ(final_suggestions[0].labels.size(), 1u);
+  ASSERT_FALSE(final_suggestions[0].labels[0].empty());
+  EXPECT_EQ(final_suggestions[0].labels[0].back().value, u"Jun 7");
+
+  // Verify the exact filled value passed to the Autofill driver.
+  EXPECT_CALL(
+      autofill_manager(),
+      FillOrPreviewField(mojom::ActionPersistence::kFill,
+                         mojom::FieldActionType::kReplaceAtMemoryTrigger,
+                         form_id, field_id, Eq(u"2024-06-07 3:30 PM"),
+                         FillingProduct::kAtMemory, _));
+
+  manager().FillOrPreviewSearchResult(mojom::ActionPersistence::kFill, form_id,
+                                      field_id, final_suggestions[0]);
 }
 
 // Tests that Autofill-sourced data displays ONLY the local settings manage link
@@ -1609,7 +1678,9 @@ TEST_F(AtMemoryManagerTest, FillOverlappingPopups) {
 // Tests that the personal context notice is appended when the user needs to see
 // the notice.
 TEST_F(AtMemoryManagerTest, PersonalContext_AppendsNoticeSuggestion) {
-  autofill_client().set_should_show_personal_context_at_memory_notice(true);
+  autofill_client()
+      .GetPersonalContextFirstRunService()
+      ->set_should_show_at_memory_notice(true);
 
   SeeFormAndShowPopup();
 
@@ -1631,7 +1702,9 @@ TEST_F(AtMemoryManagerTest, PersonalContext_AppendsNoticeSuggestion) {
 // is appended at the end (after the search affordance suggestion).
 TEST_F(AtMemoryManagerTest,
        PersonalContext_NoticePositioning_SearchAffordance) {
-  autofill_client().set_should_show_personal_context_at_memory_notice(true);
+  autofill_client()
+      .GetPersonalContextFirstRunService()
+      ->set_should_show_at_memory_notice(true);
   SeeFormAndShowPopup();
 
   // Set up expectation for `update_callback_` when the filter text changes.
@@ -1652,7 +1725,9 @@ TEST_F(AtMemoryManagerTest,
 // Tests that after search results are returned, the personal context notice
 // is prepended at the top (before the search result suggestions).
 TEST_F(AtMemoryManagerTest, PersonalContext_NoticePositioning_SearchResults) {
-  autofill_client().set_should_show_personal_context_at_memory_notice(true);
+  autofill_client()
+      .GetPersonalContextFirstRunService()
+      ->set_should_show_at_memory_notice(true);
   SeeFormAndShowPopup();
 
   // Mock search results returned by the query service.
@@ -1684,7 +1759,9 @@ TEST_F(AtMemoryManagerTest, PersonalContext_NoticePositioning_SearchResults) {
 // receives the `kAtMemoryFetching` meta-suggestion followed by a separator and
 // the notice card if active.
 TEST_F(AtMemoryManagerTest, FetchingState_Suggestions_NoticeActive) {
-  autofill_client().set_should_show_personal_context_at_memory_notice(true);
+  autofill_client()
+      .GetPersonalContextFirstRunService()
+      ->set_should_show_at_memory_notice(true);
   auto [form_id, field_id] = SeeForm();
   manager().OnPopupShown(
       form_id, field_id,
@@ -1710,7 +1787,9 @@ TEST_F(AtMemoryManagerTest, FetchingState_Suggestions_NoticeActive) {
 // Tests that during the fetching state when the notice has been accepted,
 // the UI receives only `kAtMemoryFetching` meta-suggestion.
 TEST_F(AtMemoryManagerTest, FetchingState_Suggestions_NoticeAccepted) {
-  autofill_client().set_should_show_personal_context_at_memory_notice(false);
+  autofill_client()
+      .GetPersonalContextFirstRunService()
+      ->set_should_show_at_memory_notice(false);
 
   auto [form_id, field_id] = SeeForm();
   manager().OnPopupShown(
