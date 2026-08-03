@@ -1722,7 +1722,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    'a1b29c18e463c8aae24f1d6bf4d65b191b0be0cf',
+    '10603622daf1d199e1bfe32c51b46d4d17166ec1',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -1898,7 +1898,7 @@ deps = {
       'packages': [
           {
                'package': 'chromium/third_party/android_build_tools/error_prone',
-               'version': 'I4myLzCu8kNARdk3FPbX5ftF5R1sMOObEk3t02jGcroC',
+               'version': 'pg2AIO9tF27lU2093pmBajVzVFlIA0qZhLan2276c30C',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -1920,7 +1920,7 @@ deps = {
       'packages': [
           {
                'package': 'chromium/third_party/android_build_tools/lint',
-               'version': 'xPF8AdU-OKJ7ZGBH4B4tVb3sSkDdtyCnCZ9b2h4XrRgC',
+               'version': 'MemWZqyAJdEsbgLJFVLy8TTSqWN72DdXmXYIrjMmSRAC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -1931,7 +1931,7 @@ deps = {
       'packages': [
           {
                'package': 'chromium/third_party/android_build_tools/manifest_merger',
-               'version': 'pSnauLHOd1J9rrmuQesady_yrUhPXkRFg9Go0XcJ5a0C',
+               'version': 'qxhzGzUJNZuLCscbr1CuIteB1OHYibhz66dwRKUK9HcC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -2357,7 +2357,7 @@ deps = {
   },
 
   'src/third_party/hunspell_dictionaries':
-    Var('chromium_git') + '/chromium/deps/hunspell_dictionaries.git' + '@' + 'cccf64a8acc951afe3f47fee023908e55699bc58',
+    Var('chromium_git') + '/chromium/deps/hunspell_dictionaries.git' + '@' + 'cee14e319bb7603a1157bb4d1e216be64ee82b77',
 
   'src/third_party/icu':
     Var('chromium_git') + '/chromium/deps/icu.git' + '@' + 'd578f2e8b7bd5938e21cfb6bf15c079e0aa5b738',
@@ -2430,7 +2430,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/kotlin_stdlib',
-              'version': 'V6WiAw0JsqVtaNfISaZgzPBfsDYq0j6n_JkzfJ4frT8C',
+              'version': 'im-cogrvQNLezIt9o-taRP3ZTDHqaQLNO73xPajWQHAC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
