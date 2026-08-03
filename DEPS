@@ -335,7 +335,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': 'cd05752a5137b5f068c11a7a3561e7441a34df75',
+  'angle_revision': '272d37f4cc0ca346d2215bcce01a737ce4ede7bb',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -531,7 +531,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
-  'llvm_libc_revision':    '50ad4d201981eee77b5f52fd53860b54c88cc662',
+  'llvm_libc_revision':    '300662227a83ae5cbb2404c5fdea344f896e18a1',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
@@ -1710,7 +1710,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': 'xax0azTlsLeGle0GUIUzZYDc1C2TjTVPv1xgjSQugokC',
+        'version': 'yKKRYH2ZfJZS_S1c2Oo20YVITv9YFXprfFXvzoIGI-AC',
       },
     ],
     'condition': 'non_git_source',
