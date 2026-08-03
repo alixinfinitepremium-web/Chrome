@@ -24066,6 +24066,23 @@
             ]
         }
     ],
+    "SymphoniaMp3Decoding": [
+        {
+            "platforms": [
+                "android",
+                "android_webview",
+                "fuchsia"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "SymphoniaMp3Decoding"
+                    ]
+                }
+            ]
+        }
+    ],
     "SymphoniaPcmDecoding": [
         {
             "platforms": [
@@ -26037,27 +26054,6 @@
                     "enable_features": [
                         "IPH_VerticalTabsExpandOnHoverFeature",
                         "VerticalTabsExpandOnHover"
-                    ]
-                }
-            ]
-        }
-    ],
-    "VerticalTabsLaunch": [
-        {
-            "platforms": [
-                "chromeos"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "IPH_VerticalTabstripTutorialFeature",
-                        "OmniboxResizingPrioritization",
-                        "ToolbarAppMenuLabelResizing",
-                        "ToolbarGlicButtonResizing",
-                        "ToolbarProfileChipResizing",
-                        "VerticalTabsLaunch",
-                        "VerticalTabsNewBadge"
                     ]
                 }
             ]
