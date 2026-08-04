@@ -4007,11 +4007,6 @@ inline constexpr char kPartitionAllocSchedulerLoopQuarantineDescription[] =
     "Enables PartitionAlloc's scheduler loop quarantine. Takes a JSON "
     "free-form configuration.";
 
-inline constexpr char kPartitionAllocWithAdvancedChecksName[] =
-    "PartitionAlloc with Advanced Checks";
-inline constexpr char kPartitionAllocWithAdvancedChecksDescription[] =
-    "Enables an extra security layer on PartitionAlloc.";
-
 inline constexpr char kPartitionVisitedLinkDatabaseWithSelfLinksName[] =
     "Partition the Visited Link Database, including 'self-links'";
 inline constexpr char kPartitionVisitedLinkDatabaseWithSelfLinksDescription[] =
@@ -4272,6 +4267,10 @@ inline constexpr char kRendererSideContentDecodingDescription[] =
 inline constexpr char kRustyBmpName[] = "Rust-based BMP image handling";
 inline constexpr char kRustyBmpDescription[] =
     "When enabled, uses Rust `image` crate to decode BMP images.";
+
+inline constexpr char kRustyIcoName[] = "Rust-based ICO image handling";
+inline constexpr char kRustyIcoDescription[] =
+    "When enabled, uses Rust `image` crate to decode ICO images.";
 
 inline constexpr char kQuicName[] = "Experimental QUIC protocol";
 inline constexpr char kQuicDescription[] =

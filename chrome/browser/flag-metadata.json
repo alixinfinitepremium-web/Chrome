@@ -4310,6 +4310,15 @@
     "expiry_milestone": 160
   },
   {
+    "name": "enable-rusty-ico",
+    "owners": [
+      "lukasza@chromium.org",
+      "jrosengren@microsoft.com",
+      "//third_party/blink/renderer/platform/image-decoders/skia/OWNERS"
+    ],
+    "expiry_milestone": 160
+  },
+  {
     "name": "enable-seamless-refresh-rate-switching",
     "owners": [ "ddavenport@chromium.org", "chromeos-gfx-display@google.com" ],
     "expiry_milestone": 120
@@ -7144,6 +7153,11 @@
     "expiry_milestone": 160
   },
   {
+    "name": "new-tab-page-padding-update",
+    "owners": ["bmcclure@google.com", "bling-pandamonium@google.com"],
+    "expiry_milestone": 160
+  },
+  {
     "name": "new-tab-page-redesign",
     "owners": [ "thegreenfrog@google.com", "bling-pandamonium@google.com" ],
     "expiry_milestone": 160
@@ -8045,11 +8059,6 @@
   },
   {
     "name": "partition-alloc-scheduler-loop-quarantine",
-    "owners": [ "mikt@google.com", "chrome-memory-safety@google.com" ],
-    "expiry_milestone": 156
-  },
-  {
-    "name": "partition-alloc-with-advanced-checks",
     "owners": [ "mikt@google.com", "chrome-memory-safety@google.com" ],
     "expiry_milestone": 156
   },

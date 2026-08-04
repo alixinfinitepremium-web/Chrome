@@ -41,7 +41,7 @@
 #include "third_party/blink/renderer/platform/image-decoders/bmp/bmp_decoder_factory.h"
 #include "third_party/blink/renderer/platform/image-decoders/fast_shared_buffer_reader.h"
 #include "third_party/blink/renderer/platform/image-decoders/gif/gif_image_decoder.h"
-#include "third_party/blink/renderer/platform/image-decoders/ico/ico_image_decoder.h"
+#include "third_party/blink/renderer/platform/image-decoders/ico/ico_decoder_factory.h"
 #include "third_party/blink/renderer/platform/image-decoders/jpeg/jpeg_image_decoder.h"
 #include "third_party/blink/renderer/platform/image-decoders/png/png_image_decoder.h"
 #include "third_party/blink/renderer/platform/image-decoders/webp/webp_image_decoder.h"
@@ -345,8 +345,9 @@ std::unique_ptr<ImageDecoder> ImageDecoder::CreateByMimeType(
                                                  max_decoded_bytes);
   } else if (mime_type == "image/x-icon" ||
              mime_type == "image/vnd.microsoft.icon") {
-    decoder = std::make_unique<ICOImageDecoder>(alpha_option, color_behavior,
-                                                max_decoded_bytes);
+    decoder =
+        CreateIcoImageDecoder(alpha_option, high_bit_depth_decoding_option,
+                              color_behavior, max_decoded_bytes);
   } else if (mime_type == "image/bmp" || mime_type == "image/x-xbitmap") {
     decoder =
         CreateBmpImageDecoder(alpha_option, high_bit_depth_decoding_option,
@@ -1185,6 +1186,38 @@ void ImageDecoder::SetEmbeddedColorProfile(
 }
 
 ColorProfileTransform::~ColorProfileTransform() = default;
+
+void ImageDecoder::DoDecodeTimeColorTransformIfNeeded(ImageFrame& buffer,
+                                                      const SkIRect& rect) {
+  if (!NeedsDecodeTimeColorTransform()) {
+    return;
+  }
+  const ColorProfileTransform* transform = ColorTransform();
+
+  const auto alpha_format = (buffer.HasAlpha() && buffer.PremultiplyAlpha())
+                                ? skcms_AlphaFormat_PremulAsEncoded
+                                : skcms_AlphaFormat_Unpremul;
+
+  if (buffer.GetPixelFormat() == ImageFrame::kRGBA_F16) {
+    const skcms_PixelFormat color_format = skcms_PixelFormat_RGBA_hhhh;
+    for (int y = rect.top(); y < rect.bottom(); ++y) {
+      ImageFrame::PixelDataF16* const row = buffer.GetAddrF16(rect.left(), y);
+      const bool success = skcms_Transform(
+          row, color_format, alpha_format, transform->SrcProfile(), row,
+          color_format, alpha_format, transform->DstProfile(), rect.width());
+      DCHECK(success);
+    }
+  } else {
+    const skcms_PixelFormat color_format = XformColorFormat();
+    for (int y = rect.top(); y < rect.bottom(); ++y) {
+      ImageFrame::PixelData* const row = buffer.GetAddr(rect.left(), y);
+      const bool success = skcms_Transform(
+          row, color_format, alpha_format, transform->SrcProfile(), row,
+          color_format, alpha_format, transform->DstProfile(), rect.width());
+      DCHECK(success);
+    }
+  }
+}
 
 bool ImageDecoder::CanReusePreviousFrameBuffer(wtf_size_t) const {
   return false;
