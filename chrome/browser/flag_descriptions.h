@@ -2207,12 +2207,6 @@ inline constexpr char kEnableControlledFrameDescription[] =
     "https://github.com/WICG/controlled-frame/blob/main/EXPLAINER.md "
     "for more information.";
 
-inline constexpr char kEnablePeripheralCustomizationName[] =
-    "Enable peripheral customization";
-inline constexpr char kEnablePeripheralCustomizationDescription[] =
-    "Enable peripheral customization to allow users to customize buttons on "
-    "their peripherals.";
-
 inline constexpr char kEnablePeripheralNotificationName[] =
     "Enable peripheral notification";
 inline constexpr char kEnablePeripheralNotificationDescription[] =
@@ -3513,6 +3507,11 @@ inline constexpr char kOmniboxDiagnosticsDescription[] =
     "Allows controlling various diagnostic facilities of the Omnibox component."
     " Use sparingly, as this may produce significant amount of log output. "
     " Restart twice when changing this option.";
+
+inline constexpr char kOmniboxDuiPrerenderingName[] =
+    "Omnibox Direct URL Input Prerendering";
+inline constexpr char kOmniboxDuiPrerenderingDescription[] =
+    "Enables Direct URL Input (DUI) prerendering in the Omnibox.";
 
 inline constexpr char kOmniboxFuseboxAsyncInflationName[] =
     "Fusebox Async View Inflation";

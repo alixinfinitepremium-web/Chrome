@@ -3454,7 +3454,7 @@ const FeatureEntry::FeatureVariation kComposeSelectionNudgeVariations[] = {
     {"30 char - 2sec", kComposeSelectionNudge_30_2s, nullptr}};
 #endif  // ENABLE_COMPOSE
 
-#if BUILDFLAG(IS_MAC) || BUILDFLAG(IS_WIN) || BUILDFLAG(IS_LINUX)
+#if BUILDFLAG(IS_MAC) || BUILDFLAG(IS_WIN)
 const FeatureEntry::FeatureParam kLocationProviderManagerModeNetworkOnly[] = {
     {"LocationProviderManagerMode", "NetworkOnly"}};
 const FeatureEntry::FeatureParam kLocationProviderManagerModePlatformOnly[] = {
@@ -3470,7 +3470,7 @@ const FeatureEntry::FeatureVariation kLocationProviderManagerVariations[] = {
     {"Wi-Fi fallback", kLocationProviderManagerModeHybridPlatform, nullptr},
     {"Fallback on error", kLocationProviderManagerModeHybridPlatform2,
      nullptr}};
-#endif  // BUILDFLAG(IS_MAC) || BUILDFLAG(IS_WIN) || BUILDFLAG(IS_LINUX)
+#endif  // BUILDFLAG(IS_MAC) || BUILDFLAG(IS_WIN)
 
 const FeatureEntry::FeatureParam kVisitedURLRankingDomainDeduplicationParam[] =
     {{"url_deduplication_include_title", "false"}};
@@ -8202,11 +8202,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kEnableOAuthIppDescription, kOsCrOS,
      FEATURE_VALUE_TYPE(ash::features::kEnableOAuthIpp)},
 
-    {"enable-peripheral-customization",
-     flag_descriptions::kEnablePeripheralCustomizationName,
-     flag_descriptions::kEnablePeripheralCustomizationDescription, kOsCrOS,
-     FEATURE_VALUE_TYPE(ash::features::kPeripheralCustomization)},
-
     {"enable-peripherals-logging",
      flag_descriptions::kEnablePeripheralsLoggingName,
      flag_descriptions::kEnablePeripheralsLoggingDescription, kOsCrOS,
@@ -8408,15 +8403,14 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kViewportSegmentsDescription, kOsAll,
      FEATURE_VALUE_TYPE(blink::features::kViewportSegments)},
 
-#if BUILDFLAG(IS_MAC) || BUILDFLAG(IS_WIN) || BUILDFLAG(IS_LINUX)
+#if BUILDFLAG(IS_MAC) || BUILDFLAG(IS_WIN)
     {"enable-location-provider-manager",
      flag_descriptions::kLocationProviderManagerName,
-     flag_descriptions::kLocationProviderManagerDescription,
-     kOsMac | kOsWin | kOsLinux,
+     flag_descriptions::kLocationProviderManagerDescription, kOsMac | kOsWin,
      FEATURE_WITH_PARAMS_VALUE_TYPE(features::kLocationProviderManager,
                                     kLocationProviderManagerVariations,
                                     "LocationProviderManager")},
-#endif  // BUILDFLAG(IS_MAC) || BUILDFLAG(IS_WIN) || BUILDFLAG(IS_LINUX)
+#endif  // BUILDFLAG(IS_MAC) || BUILDFLAG(IS_WIN)
 
 #if !BUILDFLAG(IS_ANDROID)
     {"mute-notification-snooze-action",
@@ -13715,6 +13709,10 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kGlicContextMenuBelowSearchName,
      flag_descriptions::kGlicContextMenuBelowSearchDescription, kOsDesktop,
      FEATURE_VALUE_TYPE(features::kGlicContextMenuBelowSearch)},
+
+    {"omnibox-dui-prerendering", flag_descriptions::kOmniboxDuiPrerenderingName,
+     flag_descriptions::kOmniboxDuiPrerenderingDescription, kOsAll,
+     FEATURE_VALUE_TYPE(features::kOmniboxDuiPrerendering)},
 
     // Add new entries above this line.
     // NOTE: Adding a new flag requires adding a corresponding entry to enum

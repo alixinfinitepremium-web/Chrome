@@ -1042,15 +1042,6 @@ bool ParseMultipartFormHeadersFromBody(base::span<const uint8_t> bytes,
   return true;
 }
 
-bool ParseContentRangeHeaderFor206(const String& content_range,
-                                   int64_t* first_byte_position,
-                                   int64_t* last_byte_position,
-                                   int64_t* instance_length) {
-  return net::HttpUtil::ParseContentRangeHeaderFor206(
-      StringUtf8Adaptor(content_range).AsStringView(), first_byte_position,
-      last_byte_position, instance_length);
-}
-
 std::unique_ptr<ServerTimingHeaderVector> ParseServerTimingHeader(
     const String& headerValue) {
   std::unique_ptr<ServerTimingHeaderVector> headers =
@@ -1155,10 +1146,10 @@ ParseContentSecurityPolicyHeaders(
   return parsed_csps;
 }
 
-network::mojom::blink::CSPSourceListPtr ParseAllowedOrigins(
+network::mojom::blink::CSPSourceListPtr ParseAllowOrigins(
     const String& raw_value) {
   std::vector<std::string> parsing_errors;
-  // `allowed-origins` uses the same syntax as CSP `frame-ancestors`.
+  // `alloworigins` uses the same syntax as CSP `frame-ancestors`.
   return network::mojom::ConvertToBlink(
       network::ParseSourceList(network::mojom::CSPDirectiveName::FrameAncestors,
                                raw_value.Utf8(), parsing_errors));
