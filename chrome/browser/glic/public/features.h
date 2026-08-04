@@ -45,6 +45,7 @@ inline constexpr char kGlicSelectionPromptCtaExplain[] = "explain";
 extern const base::FeatureParam<bool> kGlicSelectionPromptInlineFulfillment;
 extern const base::FeatureParam<std::string>
     kGlicSelectionPromptInlinePromptTemplate;
+extern const base::FeatureParam<bool> kGlicSelectionPromptSkills;
 
 BASE_DECLARE_FEATURE(kGlicCreateTabAdjacent);
 
@@ -138,6 +139,8 @@ BASE_DECLARE_FEATURE(kGlicSparkSettingsAccessibleLabels);
 
 BASE_DECLARE_FEATURE(kGlicOptInDialogA11yFix);
 BASE_DECLARE_FEATURE(kGlicStructuredYieldMetadata);
+
+BASE_DECLARE_FEATURE(kGlicEnableMojoJs);
 
 BASE_DECLARE_FEATURE(kGlicNoWebview);
 

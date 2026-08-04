@@ -11691,9 +11691,11 @@ void RenderFrameHostImpl::BeginNavigation(
     }
   }
 
-  // TODO(crbug.com/40066983): Consider converting these into renderer kills.
   GetProcess()->FilterURL(true, &begin_params->searchable_form_url);
-  GetProcess()->FilterURL(true, &begin_params->client_side_redirect_url);
+  if (!VerifyClientSideRedirectUrl(*this,
+                                   &begin_params->client_side_redirect_url)) {
+    return;
+  }
 
   // If the request was for a blob URL, but the validated URL is no longer a
   // blob URL, reset the blob_url_token to prevent hitting the ReportBadMessage
@@ -18958,12 +18960,11 @@ void RenderFrameHostImpl::EnableMojoJsBindings(
     content::mojom::ExtraMojoJsFeaturesPtr features) {
   // This method should only be called on RenderFrameHost which is for a WebUI
   // or custom URLs allowlisted by the embedder.
-  CHECK(WebUIControllerFactoryRegistry::GetInstance()->GetWebUIType(
-            GetSiteInstance()->GetBrowserContext(),
-            site_instance_->GetSiteInfo().site_url()) != WebUI::kNoWebUI ||
-        GetContentClient()->browser()->ShouldAllowMojoJsBindingsForSite(
-            GetSiteInstance()->GetBrowserContext(),
-            site_instance_->GetSiteInfo().site_url()));
+  CHECK(
+      WebUIControllerFactoryRegistry::GetInstance()->GetWebUIType(
+          GetSiteInstance()->GetBrowserContext(),
+          site_instance_->GetSiteInfo().site_url()) != WebUI::kNoWebUI ||
+      GetContentClient()->browser()->ShouldAllowMojoJsBindingsForFrame(*this));
 
   GetFrameBindingsControl()->EnableMojoJsBindings(std::move(features));
 }
