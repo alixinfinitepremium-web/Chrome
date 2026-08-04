@@ -278,6 +278,8 @@ public class LocationBarMediatorTest {
                     ObservableSuppliers.createNonNull(FuseboxLayoutMode.TOOLBAR);
     private final SettableNonNullObservableSupplier<Boolean> mActivationChipVisibilitySupplier =
             ObservableSuppliers.createNonNull(false);
+    private final SettableNonNullObservableSupplier<Boolean> mWindowHasFocusSupplier =
+            ObservableSuppliers.createNonNull(true);
     private final SettableNonNullObservableSupplier<Boolean> mHasAttachmentsSupplier =
             ObservableSuppliers.createNonNull(false);
     private final UserDataHost mTabUserDataHost = new UserDataHost();
@@ -421,7 +423,8 @@ public class LocationBarMediatorTest {
                         mFuseboxCoordinator,
                         mLocationBarEmbedder,
                         /* omniboxChipManager= */ null,
-                        mScrimHandler);
+                        mScrimHandler,
+                        mWindowHasFocusSupplier);
         verify(mFuseboxCoordinator)
                 .setOnInteractionCompletedCallback(mOnInteractionCompletedCallbackCaptor.capture());
         mOnInteractionCompletedCallback = mOnInteractionCompletedCallbackCaptor.getValue();
@@ -491,7 +494,8 @@ public class LocationBarMediatorTest {
                         mFuseboxCoordinator,
                         mLocationBarEmbedder,
                         /* omniboxChipManager= */ null,
-                        /* scrimHandler= */ null);
+                        /* scrimHandler= */ null,
+                        mWindowHasFocusSupplier);
         doReturn(mUrlBar).when(mLocationBarTablet).getUrlBar();
         doReturn(mDeleteButton).when(mLocationBarTablet).getDeleteButton();
         doReturn(mActivationChip)
@@ -801,22 +805,6 @@ public class LocationBarMediatorTest {
 
         mMediator.onSuggestionsChanged(null, false);
         verify(mUrlCoordinator).setAutocompleteText("text", null, null, null);
-    }
-
-    @Test
-    public void testSuspendInput_clearsPreviewMatchUrlSupplier() {
-        mMediator.onFinishNativeInitialization();
-        mProfileSupplier.set(mProfile);
-
-        AutocompleteInput input = new AutocompleteInput();
-        input.setUserText("text");
-        input.setRequestType(AutocompleteRequestType.SEARCH);
-        mMediator.beginInput(input);
-        mSessionState.getAutocompleteInput().setPreviewMatchUrl(JUnitTestGURLs.RED_1);
-        assertNotNull(mSessionState.getAutocompleteInput().getPreviewMatchUrl());
-
-        mMediator.suspendInput();
-        assertNull(mSessionState.getAutocompleteInput().getPreviewMatchUrl());
     }
 
     @Test
@@ -1927,7 +1915,8 @@ public class LocationBarMediatorTest {
                         mFuseboxCoordinator,
                         mLocationBarEmbedder,
                         /* omniboxChipManager= */ null,
-                        mScrimHandler);
+                        mScrimHandler,
+                        mWindowHasFocusSupplier);
         mMediator.setCoordinators(mUrlCoordinator, mAutocompleteCoordinator, mStatusCoordinator);
         int primeCount = sGeoHeaderPrimeCount;
         mProfileSupplier.set(mProfile);
@@ -4227,6 +4216,38 @@ public class LocationBarMediatorTest {
     }
 
     @Test
+    public void testTabSwitch_maintainsPreviewMatchUrl() {
+        mMediator.onFinishNativeInitialization();
+        mProfileSupplier.set(mProfile);
+
+        AutocompleteInput input = new AutocompleteInput();
+        input.setRequestType(AutocompleteRequestType.SEARCH);
+        mMediator.beginInput(input);
+
+        mSessionState.getAutocompleteInput().setPreviewMatchUrl(JUnitTestGURLs.RED_1);
+
+        mMediator.suspendInput();
+
+        // Switch to a different tab with its own session state.
+        FuseboxSessionState nextTabSessionState = new FuseboxSessionState();
+        nextTabSessionState.getAutocompleteInput().setPreviewMatchUrl(JUnitTestGURLs.BLUE_1);
+        doReturn(nextTabSessionState).when(mLocationBarDataProvider).getFuseboxSessionState();
+        mMediator.onTabChanged(null);
+
+        assertEquals(
+                JUnitTestGURLs.BLUE_1,
+                nextTabSessionState.getAutocompleteInput().getPreviewMatchUrl());
+
+        // Switch back to the original tab.
+        mMediator.suspendInput();
+        doReturn(mSessionState).when(mLocationBarDataProvider).getFuseboxSessionState();
+        mMediator.onTabChanged(null);
+
+        assertEquals(
+                JUnitTestGURLs.RED_1, mSessionState.getAutocompleteInput().getPreviewMatchUrl());
+    }
+
+    @Test
     public void testEscPress_withPreviewText_upgradesToUserTextAndGoesToStandby() {
         mMediator.onFinishNativeInitialization();
         mProfileSupplier.set(mProfile);
@@ -4319,11 +4340,11 @@ public class LocationBarMediatorTest {
         verify(mLocationBarLayout).setShowStandbyRing(true);
 
         // Lose window focus -> standby ring should be hidden.
-        mMediator.onWindowFocusChanged(false);
+        mWindowHasFocusSupplier.set(false);
         verify(mLocationBarLayout).setShowStandbyRing(false);
 
         // Regain window focus -> standby ring should be shown again.
-        mMediator.onWindowFocusChanged(true);
+        mWindowHasFocusSupplier.set(true);
         verify(mLocationBarLayout, times(2)).setShowStandbyRing(true);
     }
 }
