@@ -254,8 +254,6 @@ BASE_FEATURE(kTabHoverCardImages,
 #endif
 );
 
-BASE_FEATURE(kTabStripNewTabButtonFlickerFix, base::FEATURE_ENABLED_BY_DEFAULT);
-
 BASE_FEATURE(kTabModalUsesDesktopWidget, base::FEATURE_DISABLED_BY_DEFAULT);
 
 // Enables creating a web app window when tearing off a tab with a url
@@ -529,16 +527,6 @@ bool IsTabGroupRibbonEnabled() {
   return base::FeatureList::IsEnabled(kTabGroupsFocusing) &&
          base::FeatureList::IsEnabled(kTabGroupRibbon);
 }
-
-BASE_FEATURE(kVerticalTabsGrabHandleRemoval, base::FEATURE_DISABLED_BY_DEFAULT);
-
-// If false, then the grab handle will only be removed when the vertical tab
-// strip is expanded.
-BASE_FEATURE_PARAM(bool,
-                   kVerticalTabsGrabHandleRemovalAlways,
-                   &kVerticalTabsGrabHandleRemoval,
-                   "vertical_tab_grab_handle_remove_always",
-                   true);
 
 BASE_FEATURE(kOmniboxResizingPrioritization, base::FEATURE_ENABLED_BY_DEFAULT);
 

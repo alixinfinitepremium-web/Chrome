@@ -1558,7 +1558,6 @@
                     "name": "Enabled",
                     "enable_features": [
                         "AndroidVerticalTabs",
-                        "EnableAndroidSidePanel",
                         "IPH_AndroidVerticalTabsPromo"
                     ]
                 },
@@ -1573,7 +1572,6 @@
                     },
                     "enable_features": [
                         "AndroidVerticalTabs",
-                        "EnableAndroidSidePanel",
                         "IPH_AndroidVerticalTabsPromo"
                     ]
                 },
@@ -1584,7 +1582,6 @@
                     },
                     "enable_features": [
                         "AndroidVerticalTabs",
-                        "EnableAndroidSidePanel",
                         "IPH_AndroidVerticalTabsPromo"
                     ]
                 }
@@ -10056,6 +10053,21 @@
             ]
         }
     ],
+    "EnableAndroidSidePanel": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "EnableAndroidSidePanel"
+                    ]
+                }
+            ]
+        }
+    ],
     "EnableAppBackgroundRefresh": [
         {
             "platforms": [
@@ -16404,21 +16416,6 @@
                     "name": "Enabled",
                     "enable_features": [
                         "LogicalClearHttpCache"
-                    ]
-                }
-            ]
-        }
-    ],
-    "LogoViewRefactor": [
-        {
-            "platforms": [
-                "android"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "LogoViewRefactor"
                     ]
                 }
             ]

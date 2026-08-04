@@ -1698,8 +1698,6 @@ static_library("ui") {
       "//chrome/browser/password_manager/actor_login:factories",
       "//chrome/browser/password_manager/factories",
       "//chrome/browser/privacy_sandbox:countries",
-      "//chrome/browser/privacy_sandbox/notice:desktop_entrypoint_handlers_helper",
-      "//chrome/browser/privacy_sandbox/notice:notice_mojom",
       "//chrome/browser/record_replay",
       "//chrome/browser/record_replay:impl",
       "//chrome/browser/renderer_context_menu:bubble_models",
@@ -4396,11 +4394,6 @@ static_library("ui") {
     # This dependency is needed because translate_bubble_view.h declares
     # free-functions in translate_bubble_test_utils.h as `friend`.
     deps += [ "//chrome/browser/ui/translate:test_support" ]
-
-    # TODO(crbug.com/413572035): Move into build files of the actual modules
-    # depending on this once they are fully modularized. eg: views/autofill,
-    # views/user_education.
-    deps += [ "//components/plus_addresses/core/browser/resources/strings" ]
 
     # Any circular includes must depend on the target
     # "//chrome/browser:browser_public_dependencies".

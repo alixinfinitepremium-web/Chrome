@@ -184,8 +184,6 @@ class TabContainerTest : public ChromeViewsTestBase {
   TabContainerTest()
       : animation_mode_reset_(gfx::AnimationTestApi::SetRichAnimationRenderMode(
             gfx::Animation::RichAnimationRenderMode::FORCE_ENABLED)) {
-    scoped_feature_list_.InitAndEnableFeature(
-        features::kTabStripNewTabButtonFlickerFix);
   }
   TabContainerTest(const TabContainerTest&) = delete;
   TabContainerTest& operator=(const TabContainerTest&) = delete;
@@ -432,7 +430,6 @@ class TabContainerTest : public ChromeViewsTestBase {
 
   // Used to force animation on, so that any tests that rely on animation pass
   // on machines where animation is turned off.
-  base::test::ScopedFeatureList scoped_feature_list_;
   gfx::AnimationTestApi::RenderModeResetter animation_mode_reset_;
 
   int tab_container_width_ = 0;
@@ -1079,6 +1076,30 @@ TEST_F(TabContainerTest, GroupUnderlineBasics) {
   EXPECT_EQ(underline->bounds().right(),
             tab_container_->GetTabAtModelIndex(1)->bounds().right() +
                 TabGroupUnderline::kStrokeThickness);
+}
+
+TEST_F(TabContainerTest, GroupUnderlineHiddenInFocusMode) {
+  AddTab(0);
+  tab_groups::TabGroupId group = tab_groups::TabGroupId::GenerateNew();
+  AddTabToGroup(0, group);
+  tab_container_->CompleteAnimationAndLayout();
+
+  std::vector<TabGroupViews*> views = ListGroupViews();
+  EXPECT_EQ(1u, views.size());
+  views[0]->UpdateBounds();
+
+  const TabGroupUnderline* underline = views[0]->underline();
+  EXPECT_TRUE(underline->GetVisible());
+
+  // Focus the group and verify underline becomes hidden.
+  tab_strip_controller_->SetFocusedGroup(group);
+  views[0]->UpdateBounds();
+  EXPECT_FALSE(underline->GetVisible());
+
+  // Unfocus the group and verify underline becomes visible again.
+  tab_strip_controller_->SetFocusedGroup(std::nullopt);
+  views[0]->UpdateBounds();
+  EXPECT_TRUE(underline->GetVisible());
 }
 
 TEST_F(TabContainerTest, UnderlineBoundsTabVisibilityChange) {

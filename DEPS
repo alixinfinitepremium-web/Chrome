@@ -327,7 +327,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '1a5ec8d183b919061db40e398780647863981627',
+  'skia_revision': '2c88cbf6fba335c230bab575b3f76a030f30cc41',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -335,7 +335,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '0e80263dfe758c132ec20c5ef649d587de3942f0',
+  'angle_revision': 'e0d53b9dd7e6bc07f25119a8d4ca7174080dc6e9',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -347,7 +347,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': '69607b6ee68af3e918b13ca0bc2367d737c5bdf7',
+  'boringssl_revision': 'eea2d2ae71561d3b76de6dc8b6ad7d2de1c4ff6c',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -407,7 +407,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '3279e3be60371aa6faada956f0e21e101ae14309',
+  'devtools_frontend_revision': '7e3057f5e80a5c215dd560f4abe2eb9f309676f0',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1920,7 +1920,7 @@ deps = {
       'packages': [
           {
                'package': 'chromium/third_party/android_build_tools/lint',
-               'version': 'MemWZqyAJdEsbgLJFVLy8TTSqWN72DdXmXYIrjMmSRAC',
+               'version': '-81nrOtDu8zWMFrYUo_2VaG_oPdsvjbTR1lduTuy5dsC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -3170,7 +3170,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '93173ec4f5fdf71a9249e56e87707ccae750ad52',
+    Var('webrtc_git') + '/src.git' + '@' + '35cec84caaa75750c77e009fa4166e97b3dc81e1',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -3927,7 +3927,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        'f5be2493789aec3463ce5efdbc3b64b44e39e861',
+        '697795648b967aab23861482cff50285c1db42d9',
       'condition': 'checkout_src_internal',
   },
 
@@ -4011,7 +4011,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '88b8f9593c3c275bb4df2ea35d34716314a093a2',
+        'f3e9c0301d17b98dedb0698956cb53531da8be85',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 

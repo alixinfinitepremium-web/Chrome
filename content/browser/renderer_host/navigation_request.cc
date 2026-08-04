@@ -1215,9 +1215,13 @@ std::unique_ptr<NavigationRequest> NavigationRequest::Create(
   common_params->request_destination =
       GetDestinationFromFrameTreeNode(frame_tree_node);
 
+  // Note: we pass std::nullopt as `initiator_state_token` and
+  // `initiator_document_token` below as all initiator relevant data has already
+  // been retrieved and is in the `initiator_navigation_state`.
   auto navigation_params = blink::mojom::BeginNavigationParams::New(
-      initiator_frame_token, extra_headers, net::LOAD_NORMAL,
-      false /* skip_service_worker */,
+      initiator_frame_token, std::nullopt /* initiator_state_token */,
+      std::nullopt /* initiator_document_token*/, extra_headers,
+      net::LOAD_NORMAL, false /* skip_service_worker */,
       blink::mojom::RequestContextType::LOCATION,
       blink::mojom::MixedContentContextType::kBlockable, is_form_submission,
       false /* was_initiated_by_link_click */,
@@ -1832,6 +1836,15 @@ NavigationRequest::NavigationRequest(
   }
 #endif
 
+  if (GetInitiatorFrameToken().has_value()) {
+    RenderFrameHostImpl* initiator_rfh = RenderFrameHostImpl::FromFrameToken(
+        GetInitiatorProcessId(), GetInitiatorFrameToken().value());
+    if (initiator_rfh) {
+      initiator_document_token_ = initiator_rfh->GetDocumentToken();
+      is_opener_navigation_ =
+          (initiator_rfh->frame_tree_node()->opener() == frame_tree_node_);
+    }
+  }
 
   ComputeDownloadPolicy();
 
@@ -1842,13 +1855,6 @@ NavigationRequest::NavigationRequest(
       "navigation", "NavigationRequest", GetNavigationTracingTrack(),
       perfetto::protos::pbzero::ChromeTrackEvent::kNavigation, this);
   TRACE_EVENT_BEGIN("navigation", "Initializing", GetNavigationTracingTrack());
-
-  if (GetInitiatorFrameToken().has_value()) {
-    RenderFrameHostImpl* initiator_rfh = RenderFrameHostImpl::FromFrameToken(
-        GetInitiatorProcessId(), GetInitiatorFrameToken().value());
-    if (initiator_rfh)
-      initiator_document_token_ = initiator_rfh->GetDocumentToken();
-  }
 
   // Spec: https://github.com/whatwg/html/issues/8846
   // We only allow the parent to access a subframe resource timing if the
@@ -8645,7 +8651,7 @@ void NavigationRequest::RecordDownloadUseCountersPrePolicyCheck() {
             "Navigating a cross-origin opener to a download (%s) is "
             "deprecated, see "
             "https://www.chromestatus.com/feature/5742188281462784.",
-            common_params_->url.spec().c_str()));
+            common_params_->url.DeprecatedGetOriginAsURL().spec().c_str()));
     GetContentClient()->browser()->LogWebFeatureForCurrentPage(
         rfh, blink::mojom::WebFeature::kOpenerNavigationDownloadCrossOrigin);
   }
@@ -12243,12 +12249,21 @@ void NavigationRequest::ComputeDownloadPolicy() {
     download_policy().SetDisallowed(blink::NavigationDownloadType::kSandbox);
   }
 
+  // [OpenerCrossOrigin]
+  bool is_cross_origin =
+      GetInitiatorOrigin() && !GetInitiatorOrigin()->IsSameOriginWith(
+                                  frame_tree_node_->current_origin());
+
+  if (is_opener_navigation_ && is_cross_origin) {
+    download_policy().SetDisallowed(
+        blink::NavigationDownloadType::kOpenerCrossOrigin);
+  }
+
   // TODO(arthursonzogni): Check if the following fields from the
   // NavigationDownloadPolicy could be computed here from the browser process
   // instead:
   //
   // [NoGesture]
-  // [OpenerCrossOrigin]
   // [AdFrameNoGesture]
   // [AdFrame]
   // [Interstitial]

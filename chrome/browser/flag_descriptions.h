@@ -4450,11 +4450,6 @@ inline constexpr char kVerticalTabsExpandOnHoverName[] =
 inline constexpr char kVerticalTabsExpandOnHoverDescription[] =
     "Vertical tabs (when enabled and collapsed) will expand on mouse hover.";
 
-inline constexpr char kVerticalTabsGrabHandleRemovalName[] =
-    "Vertical Tabs Grab Handle Removal";
-inline constexpr char kVerticalTabsGrabHandleRemovalDescription[] =
-    "Removes the grab handle for vertical tabs.";
-
 inline constexpr char kSidePanelFlyoverAnimationName[] =
     "Side Panel Flyover Animation";
 inline constexpr char kSidePanelFlyoverAnimationDescription[] =
@@ -6179,9 +6174,6 @@ inline constexpr char kHomeModulePrefRefactorDescription[] =
     "Use UserPrefs for home module customization settings (for the "
     "NTP).";
 
-inline constexpr char kLogoViewRefactorName[] = "Logo View Refactor";
-inline constexpr char kLogoViewRefactorDescription[] =
-    "Enables the Logo View Refactor feature.";
 
 inline constexpr char kLongScreenshotsLenientMemoryCheckName[] =
     "Long Screenshots Lenient Memory Check";

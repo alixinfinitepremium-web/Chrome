@@ -385,6 +385,12 @@ namespace features {
 
 BASE_FEATURE(kDoNotEvictOnAXLocationChange, base::FEATURE_ENABLED_BY_DEFAULT);
 
+// When enabled, RenderFrameHost::IsFocused() treats the main frame as focused
+// by default when the top-level widget has OS focus but FrameTree does not yet
+// have a focused subframe (e.g., in newly opened windows or tabs).
+BASE_FEATURE(kDefaultToMainFrameFocusWhenNoSubframeFocused,
+             base::FEATURE_ENABLED_BY_DEFAULT);
+
 BASE_FEATURE(kEnforceUserActivationForBeforeUnload,
              base::FEATURE_ENABLED_BY_DEFAULT);
 }  // namespace features
@@ -11557,6 +11563,20 @@ void RenderFrameHostImpl::BeginNavigation(
     return;
   }
 
+  // The renderer process must provide an `initiator_state_token` and an
+  // `initiator_document_token` in `begin_params`. Terminate a renderer process
+  // that sends empty values.
+  if (!begin_params->initiator_state_token.has_value() ||
+      !begin_params->initiator_document_token.has_value()) {
+    bad_message::ReceivedBadMessage(
+        GetProcess(), bad_message::RFH_BEGIN_NAVIGATION_NO_INITIATOR_TOKENS);
+    return;
+  }
+
+  // TODO(crbug.com/510258191): Use the `initiator_state_token` to retrieve a
+  // matching InitiatorNavigationState. Validate that it matches the
+  // `initiator_document_token` and the RFH's ProcessID.
+
   // See `owner_` invariants about `lifecycle_state_`.
   // `IsInactiveAndDisallowActivation()` check cause both pending deletion and
   // bfcached states to return early.
@@ -13674,13 +13694,22 @@ void RenderFrameHostImpl::BindBlobUrlStoreReceiver(
 }
 
 bool RenderFrameHostImpl::IsFocused() {
-  if (!GetMainFrame()->GetRenderWidgetHost()->is_focused() ||
-      !frame_tree_->GetFocusedFrame()) {
+  if (!GetMainFrame()->GetRenderWidgetHost()->is_focused()) {
     return false;
   }
 
-  RenderFrameHostImpl* focused_rfh =
-      frame_tree_->GetFocusedFrame()->current_frame_host();
+  // If the top-level widget has OS focus but FrameTree does not yet have a
+  // focused subframe, treat the main frame as focused by default.
+  FrameTreeNode* focused_frame = frame_tree_->GetFocusedFrame();
+  if (!focused_frame) {
+    if (base::FeatureList::IsEnabled(
+            features::kDefaultToMainFrameFocusWhenNoSubframeFocused)) {
+      return this == GetMainFrame();
+    }
+    return false;
+  }
+
+  RenderFrameHostImpl* focused_rfh = focused_frame->current_frame_host();
   return focused_rfh == this ||
          focused_rfh->IsDescendantOfWithinFrameTree(this);
 }
@@ -13726,6 +13755,11 @@ void RenderFrameHostImpl::SetWebUI(NavigationRequest& request) {
   web_ui_type_ = new_web_ui_type;
 
   // WebUIs need the ability to request certain schemes.
+  if (!GetSiteInstance()->GetSiteInfo().site_url().SchemeIs(
+          kChromeUIUntrustedScheme)) {
+    web_ui_->AddRequestableScheme(kChromeUIScheme);
+    web_ui_->AddRequestableScheme(url::kFileScheme);
+  }
   for (const auto& scheme : web_ui_->GetRequestableSchemes()) {
     ChildProcessSecurityPolicyImpl::GetInstance()->GrantRequestScheme(
         GetProcess()->GetDeprecatedID(), scheme);

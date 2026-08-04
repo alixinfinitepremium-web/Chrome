@@ -159,7 +159,9 @@ class GlicInstanceImpl : public GlicInstance,
   void UnbindTabGroup();
   std::optional<tab_groups::TabGroupId> GetTabGroup() const;
   void BindTabGroup(tab_groups::TabGroupId group_id);
-  void ShowForTabGroup(tab_groups::TabGroupId group_id);
+  void ShowForTabGroup(tab_groups::TabGroupId group_id,
+                       std::optional<ShowOptions> options);
+  void SwapGlicTabToPlaceholder();
   void OnTabGroupingChanged(tabs::TabInterface* tab, bool is_added);
   void BindTabWithoutShowing(tabs::TabInterface* tab,
                              GlicPinTrigger pin_trigger,
@@ -200,12 +202,6 @@ class GlicInstanceImpl : public GlicInstance,
   // Closes the embedder identified by `key`.
   // NOTE: This method may result in the deletion of `this`.
   void Close(EmbedderKey key, const CloseOptions& options = {});
-  // Returns true when toggle shows the instance and false when it is closed.
-  bool Toggle(ShowOptions&& options,
-              bool prevent_close,
-              glic::mojom::InvocationSource source,
-              std::unique_ptr<GlicWindowInvocationTracker> invocation_tracker =
-                  nullptr);
 
   bool IsActiveEmbedder(EmbedderKey key) const;
 
@@ -363,7 +359,6 @@ class GlicInstanceImpl : public GlicInstance,
       const gfx::Rect& initial_bounds,
       tabs::TabInterface::Handle source_tab);
   GlicUiEmbedder* CreateActiveEmbedderForTab(ShowOptions& options);
-  void SwapGlicTabToPlaceholder();
   void ShowInactiveSidePanelEmbedderFor(const SidePanelShowOptions& options);
   void SetActiveEmbedderAndNotifyVisibilityChange(
       std::optional<EmbedderKey> new_key);
@@ -385,6 +380,10 @@ class GlicInstanceImpl : public GlicInstance,
   void OnGlicTabWillDetach(tabs::TabInterface* tab,
                            tabs::TabInterface::DetachReason reason);
   void OnGlicTabClosedAsync(tabs::TabInterface::Handle tab_handle);
+  // Checks the associated tab group for any existing Glic-owned full tab.
+  // If one is found, registers/adopts it as this instance's full tab embedder
+  // and establishes observers for its lifetime and activation events.
+  void MaybeAdoptGlicTab();
   bool ShouldDoAutomaticActivation() const;
   void OnZeroStateSuggestionsFetched(
       mojom::ZeroStateSuggestionsPtr suggestions,
@@ -503,6 +502,7 @@ class GlicInstanceImpl : public GlicInstance,
 
   std::optional<TabGroupBinding> tab_group_binding_;
   bool is_contents_in_tab_ = false;
+  bool is_transitioning_full_tab_embedder_ = false;
 
   base::WeakPtrFactory<GlicInstanceImpl> weak_ptr_factory_{this};
 };

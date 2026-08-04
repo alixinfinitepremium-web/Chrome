@@ -631,14 +631,6 @@ const FeatureEntry::FeatureVariation kVerticalTabsExpandOnHoverVariations[] = {
      nullptr},
     {"with 250dp/s velocity heuristic and small delay",
      kVerticalTabsExpandOnHover_VelocityHeuristic_WithDelay, nullptr}};
-
-const FeatureEntry::FeatureParam kVerticalTabsGrabHandleRemoval_OnlyExpanded[] =
-    {{"vertical_tab_grab_handle_remove_always", "false"}};
-
-const FeatureEntry::FeatureVariation
-    kVerticalTabsGrabHandleRemovalVariations[] = {
-        {"Only when expanded", kVerticalTabsGrabHandleRemoval_OnlyExpanded,
-         nullptr}};
 #endif
 
 #if BUILDFLAG(ENABLE_VR)
@@ -767,7 +759,6 @@ const FeatureEntry::FeatureVariation
         {"Single decker with button(s) on right",
          kCCTSingleDeckerBottomBarWithButtonsOnRightParam, nullptr},
 };
-
 const FeatureEntry::FeatureParam kTabBottomSheetSuppressToolbarParam[] = {
     {"suppress_bottom_toolbar_while_open", "true"}};
 
@@ -880,7 +871,23 @@ const FeatureEntry::FeatureVariation
 };
 #endif  // BUILDFLAG(IS_ANDROID)
 
+const FeatureEntry::FeatureParam kEnergyEffectOriginalParam[] = {
+    {"EnergyEffectVariantParam", "energy-effect-original"}};
+const FeatureEntry::FeatureParam kEnergyEffectDarkerShadowParam[] = {
+    {"EnergyEffectVariantParam", "energy-effect-darker-shadow"}};
+const FeatureEntry::FeatureParam kPreEnergyEffectWithBorderParam[] = {
+    {"EnergyEffectVariantParam", "pre-energy-effect-with-border"}};
+const FeatureEntry::FeatureParam kEnergyEffectFuseboxParam[] = {
+    {"EnergyEffectVariantParam", "energy-effect-fusebox"}};
 
+const FeatureEntry::FeatureVariation kEnergyEffectVariations[] = {
+    {"Original Energy Effect", kEnergyEffectOriginalParam, nullptr},
+    {"Energy Effect with Darker Shadow", kEnergyEffectDarkerShadowParam,
+     nullptr},
+    {"Pre-Energy-Effect with Energy-Effect Border",
+     kPreEnergyEffectWithBorderParam, nullptr},
+    {"Energy Effect with Fusebox Shadow", kEnergyEffectFuseboxParam, nullptr},
+};
 
 const FeatureEntry::FeatureParam
     kWebIdentityDigitalIdentityCredentialNoDialogParam[] = {
@@ -3760,11 +3767,11 @@ const FeatureEntry::FeatureVariation kGlicOSIconVariantVariations[] = {
     {"Variant 2 (Square)", kGlicOSIconVariant_2, nullptr},
 };
 
-const FeatureEntry::FeatureParam kGlicTabGroups_NoFullTabEmbedder[] = {
-    {"use_full_tab_embedder", "false"}};
+const FeatureEntry::FeatureParam kGlicTabGroups_FullTabEmbedder[] = {
+    {"use_full_tab_embedder", "true"}};
 
 const FeatureEntry::FeatureVariation kGlicTabGroupsVariations[] = {
-    {"without full tab embedder", kGlicTabGroups_NoFullTabEmbedder, nullptr}};
+    {"with full tab embedder", kGlicTabGroups_FullTabEmbedder, nullptr}};
 
 const FeatureEntry::Choice kGlicSelectionPromptChoices[] = {
     {flags_ui::kGenericExperimentChoiceDefault, "", ""},
@@ -7095,13 +7102,6 @@ const FeatureEntry kFeatureEntries[] = {
      FEATURE_WITH_PARAMS_VALUE_TYPE(tabs::kVerticalTabsExpandOnHover,
                                     kVerticalTabsExpandOnHoverVariations,
                                     "VerticalTabsExpandOnHover")},
-
-    {"vertical-tabs-grab-handle-removal",
-     flag_descriptions::kVerticalTabsGrabHandleRemovalName,
-     flag_descriptions::kVerticalTabsGrabHandleRemovalDescription, kOsDesktop,
-     FEATURE_WITH_PARAMS_VALUE_TYPE(features::kVerticalTabsGrabHandleRemoval,
-                                    kVerticalTabsGrabHandleRemovalVariations,
-                                    "VerticalTabsGrabHandleRemoval")},
 
     {"side-panel-flyover-animation",
      flag_descriptions::kSidePanelFlyoverAnimationName,
@@ -13172,9 +13172,6 @@ const FeatureEntry kFeatureEntries[] = {
      FEATURE_VALUE_TYPE(blink::features::kInlineScriptCache)},
 
 #if BUILDFLAG(IS_ANDROID)
-    {"logo-view-refactor", flag_descriptions::kLogoViewRefactorName,
-     flag_descriptions::kLogoViewRefactorDescription, kOsAndroid,
-     FEATURE_VALUE_TYPE(chrome::android::kLogoViewRefactor)},
     {"enforce-incognito-isolation",
      flag_descriptions::kEnforceIncognitoIsolationName,
      flag_descriptions::kEnforceIncognitoIsolationDescription, kOsAndroid,
@@ -13283,7 +13280,9 @@ const FeatureEntry kFeatureEntries[] = {
 
     {"energy-effect", flag_descriptions::kEnergyEffectName,
      flag_descriptions::kEnergyEffectDescription, kOsDesktop,
-     FEATURE_VALUE_TYPE(ntp_features::kEnergyEffect)},
+     FEATURE_WITH_PARAMS_VALUE_TYPE(ntp_features::kEnergyEffect,
+                                    kEnergyEffectVariations,
+                                    "EnergyEffect")},
 
     {"energy-effect-animation", flag_descriptions::kEnergyEffectAnimationName,
      flag_descriptions::kEnergyEffectAnimationDescription, kOsDesktop,
