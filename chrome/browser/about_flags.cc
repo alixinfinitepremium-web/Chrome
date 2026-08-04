@@ -8202,6 +8202,11 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kEnableOAuthIppDescription, kOsCrOS,
      FEATURE_VALUE_TYPE(ash::features::kEnableOAuthIpp)},
 
+    {"enable-peripheral-customization",
+     flag_descriptions::kEnablePeripheralCustomizationName,
+     flag_descriptions::kEnablePeripheralCustomizationDescription, kOsCrOS,
+     FEATURE_VALUE_TYPE(ash::features::kPeripheralCustomization)},
+
     {"enable-peripherals-logging",
      flag_descriptions::kEnablePeripheralsLoggingName,
      flag_descriptions::kEnablePeripheralsLoggingDescription, kOsCrOS,
@@ -10808,6 +10813,11 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kNewTabPagePrefetchName,
      flag_descriptions::kNewTabPagePrefetchDescription, kOsDesktop,
      FEATURE_VALUE_TYPE(features::kNewTabPageTriggerForPrefetch)},
+
+    {"prerender-new-tab-page-trigger",
+     flag_descriptions::kNewTabPagePrerender2Name,
+     flag_descriptions::kNewTabPagePrerender2Description, kOsDesktop,
+     FEATURE_VALUE_TYPE(features::kNewTabPageTriggerForPrerender2)},
 
 #if BUILDFLAG(IS_ANDROID) && PA_BUILDFLAG(HAS_MEMORY_TAGGING) && \
     PA_BUILDFLAG(USE_PARTITION_ALLOC_AS_MALLOC)

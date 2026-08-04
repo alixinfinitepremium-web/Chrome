@@ -335,7 +335,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '91d2d125ec0054f970594b29660f1cf3d172a8f1',
+  'angle_revision': 'e422fa19258e4dfa2b56cd7a9185cae7a36cd502',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -343,7 +343,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling PDFium
   # and whatever else without interference from each other.
-  'pdfium_revision': '0d5ebf0d5f41aa4b2f3bf61ee7cfed611bce3eb6',
+  'pdfium_revision': '2870fa9244b0f0f69fb743fab1e08deefcb07b2b',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
@@ -407,7 +407,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '111269a86bee3bcb09771bd8771bbe336d270039',
+  'devtools_frontend_revision': 'd22e32f9a9fe2555c47fda034829cd27ce9b9d91',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1475,7 +1475,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_linux64',
-          'version': 'version:2@1667016',
+          'version': 'version:2@1668005',
         },
       ],
   },
@@ -1486,7 +1486,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_mac_amd64',
-          'version': 'version:2@1667019',
+          'version': 'version:2@1668007',
         },
       ],
   },
@@ -1497,7 +1497,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_mac_arm64',
-          'version': 'version:2@1667016',
+          'version': 'version:2@1668007',
         },
       ],
   },
@@ -1519,7 +1519,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_x86',
-          'version': 'version:2@1667051',
+          'version': 'version:2@1668016',
         },
       ],
   },
@@ -1530,7 +1530,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_x86_64',
-          'version': 'version:2@1667012',
+          'version': 'version:2@1668009',
         },
       ],
   },
@@ -1630,7 +1630,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_linux64',
-          'version': 'Lt6PhHXKMFYBt9nIJZXbmowWOKKmKeEnG8uUCNvwfXEC',
+          'version': 'UE4CyqqMC5FjVNAZ77iA-29c5VOE_TaIReydhgeMJY4C',
         },
       ],
   },
@@ -1641,7 +1641,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_mac_amd64',
-          'version': '_lViC0039YU8jARwRxXVXc-jvsanrGRE5TXByLU6suwC',
+          'version': 'GkVnwfj7wwQ25FxTQmvvK9z6bKtN6TRNNxLrvc0N5fUC',
         },
       ],
   },
@@ -1652,7 +1652,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_mac_arm64',
-          'version': '47vs5yg5PD7MVrEw1iEH-iuP_6TVdyMomNoVvgsw9n8C',
+          'version': 'KhDaPnH3vXTPf6dGPE4Eduun8pi6nS-ZXOQUj-IzuNAC',
         },
       ],
   },
@@ -1663,7 +1663,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_win_x86',
-          'version': 'edWQ04b_KZz2r1eiF5NNBaKBB6Dzuirf7lSDLEn4J-0C',
+          'version': 'Z_SUTEi4vc5-oezTzHiVs_8dLCxyGTJYMZvw7LzMQ7gC',
         },
       ],
   },
@@ -1674,7 +1674,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_win_x86_64',
-          'version': 'CeKsJlGJN8v6I8Z0500glRDVLs5pO7uOU_BPp2zOOPgC',
+          'version': 'HXAaMs2Bxw7n9HJh88_kaX0eOVGud5W89ZyRxmhXbBEC',
         },
       ],
   },
@@ -2170,7 +2170,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'bb2878dbdce4da63f6fafacc72092808db283f55',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'c55f47acb2cfd98f5b522541140d8844e4f0a2e6',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -4011,7 +4011,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        'e2b58ed7ad6c562528e308a9b19314bbd5c4fc36',
+        '4e16c50cc05cb5bbeda2a3a2775aa62a00b198a4',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 

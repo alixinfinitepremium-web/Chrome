@@ -1,24 +1,24 @@
 {
     "trace_processor_shell": {
         "linux_arm64": {
-            "hash": "d0d57f3d731c7c655a8af1516e0a4a5436f36edf",
-            "full_remote_path": "perfetto-luci-artifacts/7b573c1c00f5d5890f496a87b4876a995b6a1c66/linux-arm64/trace_processor_shell"
+            "hash": "afb738cf8db691ee6a4c895d736164ac4360f1f2",
+            "full_remote_path": "perfetto-luci-artifacts/2ddeb07aaf1fdf8416bca8eae3d633b374f48654/linux-arm64/trace_processor_shell"
         },
         "win": {
-            "hash": "8b4cd1f0536c62ac6583e95367b84cacc6edf8b8",
-            "full_remote_path": "chromium-telemetry/perfetto_binaries/trace_processor_shell/win/6bd44fb176cbf6e530a47d3744dab662c566f3fe/trace_processor_shell.exe"
+            "hash": "15a99f187c6f4647e6059d3dab6888e656797062",
+            "full_remote_path": "chromium-telemetry/perfetto_binaries/trace_processor_shell/win/2ddeb07aaf1fdf8416bca8eae3d633b374f48654/trace_processor_shell.exe"
         },
         "linux_arm": {
-            "hash": "0cd8fce84c39bcfefc564de9c6b9ac5973df8775",
-            "full_remote_path": "perfetto-luci-artifacts/7b573c1c00f5d5890f496a87b4876a995b6a1c66/linux-arm/trace_processor_shell"
+            "hash": "ce7f099b8023912c8ae520e3d053157e56a3d3bb",
+            "full_remote_path": "perfetto-luci-artifacts/2ddeb07aaf1fdf8416bca8eae3d633b374f48654/linux-arm/trace_processor_shell"
         },
         "mac": {
             "hash": "f5d83eca972747f7c3db9f35c07ed57902418e8c",
             "full_remote_path": "chromium-telemetry/perfetto_binaries/trace_processor_shell/mac/881ad50c05049ca13d4b34e4f92f4167de5ac52a/trace_processor_shell"
         },
         "mac_arm64": {
-            "hash": "280da9f53a7925d0f7ff03b0dae2f56f05c9ce07",
-            "full_remote_path": "perfetto-luci-artifacts/7b573c1c00f5d5890f496a87b4876a995b6a1c66/mac-arm64/trace_processor_shell"
+            "hash": "57a4fb05f86e5fc7cd30a150a029ec9f8cf559d7",
+            "full_remote_path": "perfetto-luci-artifacts/2ddeb07aaf1fdf8416bca8eae3d633b374f48654/mac-arm64/trace_processor_shell"
         },
         "linux": {
             "hash": "5fd63cdbd13feb0e2e487c3dcbf811ee3b0a1103",

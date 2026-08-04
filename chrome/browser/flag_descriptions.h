@@ -785,6 +785,10 @@ inline constexpr char kNewTabPagePrefetchName[] = "NewTabPagePrefetch";
 inline constexpr char kNewTabPagePrefetchDescription[] =
     "If enabled, NewTabPage can trigger prefetch";
 
+inline constexpr char kNewTabPagePrerender2Name[] = "NewTabPagePrerender2";
+inline constexpr char kNewTabPagePrerender2Description[] =
+    "If enabled, NewTabPage can trigger prerendering";
+
 inline constexpr char kEnableDrDcName[] =
     "Enables Display Compositor to use a new gpu thread.";
 inline constexpr char kEnableDrDcDescription[] =
@@ -2206,6 +2210,12 @@ inline constexpr char kEnableControlledFrameDescription[] =
     "Enables experimental support for Controlled Frame. See "
     "https://github.com/WICG/controlled-frame/blob/main/EXPLAINER.md "
     "for more information.";
+
+inline constexpr char kEnablePeripheralCustomizationName[] =
+    "Enable peripheral customization";
+inline constexpr char kEnablePeripheralCustomizationDescription[] =
+    "Enable peripheral customization to allow users to customize buttons on "
+    "their peripherals.";
 
 inline constexpr char kEnablePeripheralNotificationName[] =
     "Enable peripheral notification";
