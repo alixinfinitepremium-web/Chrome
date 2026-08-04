@@ -331,11 +331,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': '8bb22ab1d1f1eb8aa84c4f9254e4c749c53b64bc',
+  'v8_revision': 'ebbf34e1c98a73fa6a63f40e174beaa845dc1761',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': 'e422fa19258e4dfa2b56cd7a9185cae7a36cd502',
+  'angle_revision': 'de419d3fd06b674646d1a4a57ebbcfd2e9b236b9',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -347,7 +347,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': '188ce3c13adb70fc416e7e81c5b8052142e8eb8c',
+  'boringssl_revision': 'eeccc518e91ddebe290349092f0f75fcef24a86e',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -387,7 +387,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': '834e871129f0b4d8b2ec10d0ee12bef1d9b32202',
+  'crossbench_revision': '52a9b4d128d8182d133e32cdafeaa49eb2dfca5f',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -407,7 +407,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'd22e32f9a9fe2555c47fda034829cd27ce9b9d91',
+  'devtools_frontend_revision': '22a94025b6e2a66b2652fdeb5d268eaf88568e50',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -431,7 +431,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': '1abc73dccc0ed21989bb794b36fe3633717cc941',
+  'dawn_revision': '0529f1080c726fbac95de907fee46d786ad5e218',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -507,7 +507,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'libcxxabi_revision':    'b8802b9b84c4a2efa2cc99b7987e9edb15bfa169',
+  'libcxxabi_revision':    'a376dd2738b3755cb1864aa4a1571c434d7c23df',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -1188,10 +1188,10 @@ deps = {
     'condition': 'non_git_source',
     'objects': [
       {
-        'object_name': 'meet-gpu-tests/958097020.tar.gz',
-        'sha256sum': '30c2d21b70ee230bd36c90cc5507d5b4601682ad4dd419df5aa858a96e5cbc08',
-        'size_bytes': 278494624,
-        'generation': 1785746929285607,
+        'object_name': 'meet-gpu-tests/958735589.tar.gz',
+        'sha256sum': '767b5160f6c42c4025526b47ff841c556286cc7d8e48fcd98fb268a7a6619659',
+        'size_bytes': 278495261,
+        'generation': 1785833335207487,
       },
     ],
   },
@@ -2170,7 +2170,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'c55f47acb2cfd98f5b522541140d8844e4f0a2e6',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '2ab4567ffa77dc0b439c83ba5d76d339c63feef2',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -2727,7 +2727,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '2ddeb07aaf1fdf8416bca8eae3d633b374f48654',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + 'dfe3b412807d1275a9bc2ccee489930c339ed707',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
@@ -3299,7 +3299,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_receiver_app/app',
-        'version': 'owWQT144rNahjmd0GYVvJFzu-Eme6kCjAUZZ7DamkiIC',
+        'version': 'kTlFwCl5TUSH3JYOocLtt7YTTAsEURAjlW4ZQ55FUAoC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3310,7 +3310,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_app/app',
-        'version': 'emU4M8n63nJBF_GcVOTd9P9t9ECAsY5HL8fsf2wih0EC',
+        'version': '_GtmrhkoFkXeMbhF_weg-oBUUka6Igf8R7G-b1hecQYC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3365,7 +3365,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/projector_app/app',
-        'version': 'pidXT_olZLQuzDTjzxWa_BvsFXst55dTrRrpmQcZxAoC',
+        'version': 'brdHD07tbNE8zYQJ2xc8ImCjXzut4Y3UDYYpYmpCcgYC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -4011,7 +4011,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '4e16c50cc05cb5bbeda2a3a2775aa62a00b198a4',
+        'cfa51f83823a67cb7b75cf26b4c8c7342e1ae9b9',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
