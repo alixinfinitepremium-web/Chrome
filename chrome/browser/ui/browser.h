@@ -38,6 +38,7 @@
 #include "components/paint_preview/buildflags/buildflags.h"
 #include "components/prefs/pref_change_registrar.h"
 #include "components/sessions/core/session_id.h"
+#include "components/tab_groups/tab_group_id.h"
 #include "content/public/browser/fullscreen_types.h"
 #include "content/public/browser/page_navigator.h"
 #include "content/public/browser/web_contents.h"
@@ -266,6 +267,10 @@ class Browser : public TabStripModelObserver,
     // 3) popup windows spawned from v1 applications.
     std::string app_name;
 
+    // Specifies the focused tab group ID, if the window should be created in a
+    // focused state.
+    std::optional<tab_groups::TabGroupId> focused_tab_group_id;
+
    private:
     friend class Browser;
     friend class WindowSizerChromeOSTest;
@@ -366,6 +371,9 @@ class Browser : public TabStripModelObserver,
       const TabStripModelChange& change,
       const TabStripSelectionChange& selection) override;
   void TabStripEmpty() override;
+  void OnTabGroupFocusChanged(
+      std::optional<tab_groups::TabGroupId> new_focused_group,
+      std::optional<tab_groups::TabGroupId> old_focused_group) override;
 
   // Gets the browser for opening chrome:// pages. This will return the opener
   // browser if the current browser is in picture-in-picture mode, otherwise
