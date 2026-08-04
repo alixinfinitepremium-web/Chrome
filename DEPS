@@ -327,11 +327,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': 'a08d918ebd6a85b03538040ad80da26dc78e387f',
+  'skia_revision': 'd0ea09a02201b0c7742429ccd23b92ad86e0ee3b',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': 'bdd79af043743ce9fe65e68a14086f6d387f03ae',
+  'v8_revision': '8bb22ab1d1f1eb8aa84c4f9254e4c749c53b64bc',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -399,7 +399,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling fuzztest
   # and whatever else without interference from each other.
-  'fuzztest_revision': '10f5fde7ee51c8498f76964b2b1f3e7fbd52a839',
+  'fuzztest_revision': '7455b4d54d8f20957417e4869d42f98c880e0975',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling domato
   # and whatever else without interference from each other.
@@ -531,7 +531,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
-  'llvm_libc_revision':    '300662227a83ae5cbb2404c5fdea344f896e18a1',
+  'llvm_libc_revision':    '47474c54fc7d9951d7a33b4deae9841c3da076a5',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
@@ -1710,7 +1710,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': '7LbgORwr4TjaAaZhCF_3LkxGgfE8RP7O6Ua7fDKS0kwC',
+        'version': '09S0NY1yMDmj51aXRZ5PkCdkScsM6qJdlFoP48kMyPoC',
       },
     ],
     'condition': 'non_git_source',
