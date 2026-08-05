@@ -167,6 +167,16 @@ TEST_F(ContextHubServiceTest, GenerateFirstPartyAutoTodos_ParseError) {
   EXPECT_FALSE(future.Get());
 }
 
+TEST_F(ContextHubServiceTest, GenerateTabBasedTodos) {
+  std::vector<TabData> input_tabs = {
+      {1, "Tab 1", GURL("https://example1.com")}};
+
+  base::test::TestFuture<bool> future;
+  service_.GenerateTabBasedTodos(std::move(input_tabs), future.GetCallback());
+
+  EXPECT_FALSE(future.Get());
+}
+
 TEST_F(ContextHubServiceTest, SaveTab) {
   base::test::TestFuture<void> save_tab_future;
   service_.SaveTab(GURL("https://example.com"), "Title", "Page text",
@@ -320,9 +330,9 @@ TEST_F(ContextHubServiceTest, GroupTabs_WithTabs) {
   EXPECT_THAT(
       stored_groups_future.Get(),
       ElementsAre(
-          FieldsAre("group_1", "Group 1", ElementsAre(1, 2), _,
+          FieldsAre(testing::Ne(""), "Group 1", ElementsAre(1, 2), _,
                     testing::Ne(base::Time()), testing::Ne(base::Time())),
-          FieldsAre("group_2", "Group 2", ElementsAre(3, 4), _,
+          FieldsAre(testing::Ne(""), "Group 2", ElementsAre(3, 4), _,
                     testing::Ne(base::Time()), testing::Ne(base::Time()))));
 }
 

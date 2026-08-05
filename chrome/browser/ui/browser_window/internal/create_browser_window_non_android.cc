@@ -42,6 +42,7 @@ BrowserWindowCreateParams BrowserWindowCreateParams::Clone() const {
   clone.vertical_tab_strip_collapsed = vertical_tab_strip_collapsed;
   clone.vertical_tab_strip_uncollapsed_width =
       vertical_tab_strip_uncollapsed_width;
+  clone.focused_tab_group_id = focused_tab_group_id;
 #if BUILDFLAG(IS_CHROMEOS)
   clone.display_id = display_id;
 #endif
@@ -114,6 +115,7 @@ namespace {
 void CopyDesktopParamsToBrowserParams(
     const BrowserWindowCreateParams& create_params,
     Browser::CreateParams& browser_params) {
+  browser_params.app_name = create_params.app_name;
   browser_params.omit_from_session_restore =
       create_params.omit_from_session_restore;
   browser_params.should_trigger_session_restore =
@@ -129,6 +131,7 @@ void CopyDesktopParamsToBrowserParams(
   browser_params.in_tab_dragging = create_params.in_tab_dragging;
   browser_params.window = create_params.window;
   browser_params.user_title = create_params.user_title;
+  browser_params.focused_tab_group_id = create_params.focused_tab_group_id;
   browser_params.can_resize = create_params.can_resize;
   browser_params.can_maximize = create_params.can_maximize;
   browser_params.can_fullscreen = create_params.can_fullscreen;
@@ -201,7 +204,9 @@ BrowserWindowInterface* CreateBrowserWindow(
   CHECK_EQ(BrowserWindowInterface::CreationStatus::kOk,
            GetBrowserWindowCreationStatusForProfile(*create_params.profile));
 
-  if (!create_params.app_name.empty()) {
+  if (!create_params.app_name.empty() &&
+      (create_params.type == BrowserWindowInterface::TYPE_APP ||
+       create_params.type == BrowserWindowInterface::TYPE_APP_POPUP)) {
     return CreateAppBrowserWindow(std::move(create_params));
   }
 
