@@ -595,6 +595,21 @@
             ]
         }
     ],
+    "AccountRetrievalWaitsForRestoration": [
+        {
+            "platforms": [
+                "ios"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "AccountRetrievalWaitsForRestoration"
+                    ]
+                }
+            ]
+        }
+    ],
     "ActivitylessSigninAllEntryPointClank": [
         {
             "platforms": [
@@ -5096,6 +5111,7 @@
                     "name": "Enabled",
                     "params": {
                         "MigratedCollectedCookies": "true",
+                        "MigratedGoogleApiKeys": "true",
                         "MigratedInstallerDownloader": "true",
                         "MigratedPageInfo": "true",
                         "MigratedPdf": "true"
