@@ -43,7 +43,6 @@
 #include "chrome/browser/glic/test_support/test_result.h"
 #include "chrome/browser/tab_list/tab_list_interface.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
-#include "chrome/browser/ui/browser_window/public/create_browser_window.h"
 #include "chrome/browser/ui/side_panel/side_panel_ui.h"
 #include "chrome/browser/ui/side_panel/side_panel_ui_provider.h"
 #include "chrome/common/chrome_switches.h"
@@ -66,7 +65,6 @@
 #include "base/android/device_info.h"
 #include "chrome/browser/flags/android/chrome_feature_list.h"
 #include "chrome/browser/ui/android/tab_model/tab_model.h"
-#include "chrome/browser/ui/browser_window/public/create_browser_window.h"
 #include "ui/android/accelerator_manager_android.h"
 #include "ui/android/window_android.h"
 #else
@@ -301,30 +299,6 @@ class GlicBrowserTestMixin : public T {
   [[nodiscard]] TestResult<GlicInstanceImpl*> OpenGlicForActiveTab() {
     ToggleGlicForActiveTab(/*prevent_close=*/true);
     return WaitForGlicOpen(T::GetTabListInterface()->GetActiveTab());
-  }
-
-  // Opens the Glic UI on the given tab and returns the instance.
-  [[nodiscard]] TestResult<GlicInstanceImpl*> OpenGlicForTab(
-      tabs::TabInterface* tab) {
-    auto* service = GlicKeyedService::Get(T::GetProfile());
-    service->ToggleUI(tab->GetBrowserWindowInterface(), /*prevent_close=*/true,
-                      mojom::InvocationSource::kTopChromeButton);
-    return WaitForGlicOpen(tab);
-  }
-
-  // Simulates a user input submission, triggering OnUserInputSubmitted on the
-  // client handler.
-  void SimulateUserInputSubmitted(
-      GlicInstanceImpl* instance = nullptr,
-      mojom::WebClientMode mode = mojom::WebClientMode::kText) {
-    if (!instance) {
-      instance = GetOnlyGlicInstance();
-    }
-    CHECK(instance);
-    ASSERT_OK(WaitForGlicClient(instance));
-    GlicWebClientAccess* client = instance->host().GetPrimaryWebClient();
-    CHECK(client);
-    client->OnUserInputSubmittedForTesting(mode);
   }
 
   [[nodiscard]] TestResult<> WaitForInstanceDeletion(
@@ -570,44 +544,11 @@ class GlicBrowserTestMixin : public T {
   }
 
   // Opens a new tab with the given URL and wait for load to complete.
-  tabs::TabInterface* CreateAndActivateTab(TabListInterface* tab_list,
-                                           const GURL& url) {
-    CHECK(tab_list);
-    tabs::TabInterface* new_tab = tab_list->OpenTab(url, -1);
-    tab_list->ActivateTab(new_tab->GetHandle());
+  tabs::TabInterface* CreateAndActivateTab(const GURL& url) {
+    tabs::TabInterface* new_tab = T::GetTabListInterface()->OpenTab(url, -1);
+    T::GetTabListInterface()->ActivateTab(new_tab->GetHandle());
     CHECK(content::WaitForLoadStop(new_tab->GetContents()));
     return new_tab;
-  }
-
-  tabs::TabInterface* CreateAndActivateTab(const GURL& url) {
-    return CreateAndActivateTab(T::GetTabListInterface(), url);
-  }
-
-  tabs::TabInterface* CreateAndActivateTab(BrowserWindowInterface* browser,
-                                           const GURL& url) {
-    return CreateAndActivateTab(TabListInterface::From(browser), url);
-  }
-
-  // Creates a new browser window and returns it. On Desktop, it will also
-  // automatically create a blank tab.
-  // TODO(crbug.com/530318599): CreateBrowserWindow() does not create a tab on
-  // Desktop. Fix the Desktop implementation of CreateBrowserWindow() to match
-  // Android, then remove the #if/#else and just use the #if part.
-  [[nodiscard]] BrowserWindowInterface* CreateAdditionalBrowserWindow() {
-    BrowserWindowInterface* browser = nullptr;
-#if BUILDFLAG(IS_ANDROID)
-    BrowserWindowCreateParams create_params = BrowserWindowCreateParams(
-        BrowserWindowInterface::Type::TYPE_NORMAL, *T::GetProfile(),
-        /*from_user_gesture=*/false);
-    base::test::TestFuture<BrowserWindowInterface*> future;
-    CreateBrowserWindow(std::move(create_params), future.GetCallback());
-    browser = future.Get();
-#else
-    browser = T::CreateBrowser(T::GetProfile());
-#endif
-    CHECK(browser);
-    CHECK(TabListInterface::From(browser)->GetActiveTab());
-    return browser;
   }
 
   content::Visibility GetContentsVisibility(GlicInstanceImpl* instance) {
@@ -812,6 +753,7 @@ class GlicBrowserTestMixin : public T {
   }
 
   GURL GetGuestURL() { return glic_test_environment_.GetGuestURL(); }
+
 
   [[nodiscard]] TestResult<void> WaitForGlicClient(
       GlicInstance* instance = nullptr) {

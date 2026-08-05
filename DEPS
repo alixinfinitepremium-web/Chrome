@@ -180,10 +180,10 @@ vars = {
   'checkout_bazelisk': False,
   'bazelisk_version': 'version:3@1.29.0',
 
-  # By default checkout the OpenXR loader library on Windows, Linux and Android.
-  # The OpenXR backend for VR in Chromium is supported on these platforms;
-  # support for other platforms may be added in the future.
-  'checkout_openxr' : 'checkout_win or checkout_linux or checkout_android',
+  # By default checkout the OpenXR loader library only on Windows and Android.
+  # The OpenXR backend for VR in Chromium is currently only supported for these
+  # platforms, but support for other platforms may be added in the future.
+  'checkout_openxr' : 'checkout_win or checkout_android',
 
   'checkout_instrumented_libraries': 'checkout_linux and checkout_configuration != "small"',
 
@@ -323,7 +323,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '23d0018d10bf1d98395c923e574d2952fb014aeb',
+  'src_internal_revision': '739702720b4280ad442ca85b7344481859642cf5',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -531,7 +531,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
-  'llvm_libc_revision':    '47474c54fc7d9951d7a33b4deae9841c3da076a5',
+  'llvm_libc_revision':    '33411b0e3982d9391d61722105494d993dfe9f67',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
@@ -1710,7 +1710,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': 'baXJsyw3ARe8ZZl-WQ1z8HUuxkTchaVSvZGvfOSnnj0C',
+        'version': 'TGILT2W7n6_MNKU-r0rihTXJsX7tWVeFf-DjTQPkvD4C',
       },
     ],
     'condition': 'non_git_source',
@@ -1722,7 +1722,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '1658ec7d6b83009f4cb16726d000271d86b7c82c',
+    '2c3a187987e4f45cbbfa61503c27ffe660c2c680',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -2701,7 +2701,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/cisco/openh264' + '@' + 'fca40fc19f5fb854609d297ae4bde71df72787c9',
 
   'src/third_party/openscreen/src':
-    Var('chromium_git') + '/openscreen' + '@' + 'd06a113ef8d4143b96d137dda38da1ee0e7ee3c8',
+    Var('chromium_git') + '/openscreen' + '@' + 'f63cca52949ee682c060ee0431fde982496713b2',
 
   'src/third_party/openxr/src': {
     'url': Var('chromium_git') + '/external/github.com/KhronosGroup/OpenXR-SDK' + '@' + '75c53b6e853dc12c7b3c771edc9c9c841b15faaa',
@@ -2727,7 +2727,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + 'c0f38c2b9bed8ecae9972fc69ba5262720998a4d',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '5b36564bf4fa9f9c0d9a126bfbc8cea69f562c97',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
@@ -3927,7 +3927,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        'fdd555cbcd0415a5483dcfa90056423be029f867',
+        '6b2b509aef2fdd1d7eb985bd49e348cc11e0be9b',
       'condition': 'checkout_src_internal',
   },
 
