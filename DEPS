@@ -331,7 +331,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': 'd432476109288e3c2df215bb72615ac021902c69',
+  'v8_revision': '50cafd47e1df11b79ed6d28c38ded522b51b91de',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -407,7 +407,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '0f97947aece43c43d726f2f2eec52340c498a0aa',
+  'devtools_frontend_revision': '438341e947da50f292100b0c4c9d8728dda96d55',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -431,7 +431,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': 'da44df7daa86ecf3ca8086792e344a7452db08c3',
+  'dawn_revision': '7fdccb46d4afeaafe9f4e8a81c80fa8b03aed82e',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -1475,7 +1475,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_linux64',
-          'version': 'version:2@1668005',
+          'version': 'version:2@1669021',
         },
       ],
   },
@@ -1497,7 +1497,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_mac_arm64',
-          'version': 'version:2@1668007',
+          'version': 'version:2@1669006',
         },
       ],
   },
@@ -1630,7 +1630,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_linux64',
-          'version': 'UE4CyqqMC5FjVNAZ77iA-29c5VOE_TaIReydhgeMJY4C',
+          'version': '-9A_fVSs9sqWGMpwrBITN_03inHStwoKeJ9XQhd3R6MC',
         },
       ],
   },
@@ -1641,7 +1641,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_mac_amd64',
-          'version': 'GkVnwfj7wwQ25FxTQmvvK9z6bKtN6TRNNxLrvc0N5fUC',
+          'version': 'pNXV7sTxR8OHkQo8A2w4e6F_hIfpeiKNHQX0Pk1Rll8C',
         },
       ],
   },
@@ -1652,7 +1652,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_mac_arm64',
-          'version': 'KhDaPnH3vXTPf6dGPE4Eduun8pi6nS-ZXOQUj-IzuNAC',
+          'version': 'UY6iW9Uf4YJLTDx1vX_vgSd00w4kxyAXMrKeNHICAAEC',
         },
       ],
   },
@@ -2727,7 +2727,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '5b36564bf4fa9f9c0d9a126bfbc8cea69f562c97',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '79f3c27131a7a3a2c0ea1e82c4bd6c9216be6140',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
@@ -2925,7 +2925,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/r8',
-              'version': 'iw4h1Y6N5rGiIdLRsNNGUVBboq0f1WktVTvHGQP5xhUC',
+              'version': 'RL5vH2aIsRxy46fllIartZ2XN0Q6FkwCFDutfltCj6EC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -4011,7 +4011,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '32cbed4ab0ee2c7d2ca6f5ae6b2775379c47fd54',
+        '751c5bffbc0b5f2c2635342a026a4ed400dd0aba',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 

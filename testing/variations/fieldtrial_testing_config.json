@@ -3170,6 +3170,27 @@
             ]
         }
     ],
+    "AutofillFixIframeOwnership": [
+        {
+            "platforms": [
+                "android",
+                "android_webview",
+                "chromeos",
+                "ios",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "AutofillFixIframeOwnership"
+                    ]
+                }
+            ]
+        }
+    ],
     "AutofillFixLabelGenerationForStreetAddress": [
         {
             "platforms": [
@@ -10012,9 +10033,10 @@
             ],
             "experiments": [
                 {
-                    "name": "Enabled_20260309",
+                    "name": "Enabled_20260805",
                     "enable_features": [
-                        "EnableAccountPreviewData"
+                        "EnableAccountPreviewData",
+                        "EnableAccountPreviewEntityPreviews"
                     ]
                 }
             ]
@@ -13769,6 +13791,7 @@
                 {
                     "name": "Enabled",
                     "enable_features": [
+                        "GeminiUpdatedConsent",
                         "GeminiUpdatedEligibility"
                     ]
                 }
