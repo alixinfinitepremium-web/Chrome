@@ -1020,10 +1020,7 @@
   },
   {
     "name": "autofill-enable-cvc-storage-and-filling-standalone-form-enhancement",
-    "owners": [
-      "jialihuang@google.com","yiwenqian@google.com",
-      "payments-autofill-team@google.com"
-    ],
+    "owners": ["jialihuang@google.com", "payments-autofill-team@google.com"],
     "expiry_milestone": 150
   },
   {
@@ -1152,11 +1149,6 @@
   {
     "name": "autofill-prefer-buy-now-pay-later-blocklists",
     "owners": [ "vinnypersky@google.com", "payments-autofill-team@google.com"],
-    "expiry_milestone": 150
-  },
-  {
-    "name": "autofill-prioritize-save-card-over-mandatory-reauth",
-    "owners": [ "averina@google.com", "payments-autofill-team@google.com"],
     "expiry_milestone": 150
   },
   {
@@ -10263,6 +10255,11 @@
     // requires individual attestation on a device that is not enterprised
     // managed (e.g. during onboarding).
     "expiry_milestone": -1
+  },
+  {
+    "name": "web-frame-tree",
+    "owners": [ "olivierrobin@chromium.org", "michaeldo@chromium.org" ],
+    "expiry_milestone": 160
   },
   {
     "name": "web-hid-in-web-view",

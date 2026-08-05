@@ -15,6 +15,8 @@
 #include "ash/style/ash_color_provider.h"
 #include "ash/style/color_util.h"
 #include "ash/system/time/date_helper.h"
+#include "base/i18n/icubridge/date_time_formatter.h"
+#include "base/i18n/icubridge/icu_bridge.h"
 #include "base/i18n/time_formatting.h"
 #include "base/strings/string_number_conversions.h"
 #include "base/strings/utf_string_conversions.h"
@@ -86,23 +88,23 @@ std::u16string FormatInterval(const icu::DateIntervalFormat* formatter,
 }
 
 std::u16string GetMonthDayYear(const base::Time date) {
-  return calendar_utils::FormatDate(
-      DateHelper::GetInstance()->month_day_year_formatter(), date);
+  return base::i18n::IcuBridge::GetInstance().date_time_formatter().Format(
+      date, base::i18n::datetime_options::YMD::Long());
 }
 
 std::u16string GetMonthDayYearWeek(const base::Time date) {
-  return calendar_utils::FormatDate(
-      DateHelper::GetInstance()->month_day_year_week_formatter(), date);
+  return base::i18n::IcuBridge::GetInstance().date_time_formatter().Format(
+      date, base::i18n::datetime_options::YMDE::Long());
 }
 
 std::u16string GetMonthName(const base::Time date) {
-  return calendar_utils::FormatDate(
-      DateHelper::GetInstance()->month_name_formatter(), date);
+  return base::i18n::IcuBridge::GetInstance().date_time_formatter().Format(
+      date, base::i18n::datetime_options::M::Long());
 }
 
 std::u16string GetDayOfMonth(const base::Time date) {
-  return calendar_utils::FormatDate(
-      DateHelper::GetInstance()->day_of_month_formatter(), date);
+  return base::i18n::IcuBridge::GetInstance().date_time_formatter().Format(
+      date, base::i18n::datetime_options::D::Short());
 }
 
 std::u16string GetDayIntOfMonth(const base::Time local_date) {
@@ -111,8 +113,8 @@ std::u16string GetDayIntOfMonth(const base::Time local_date) {
 }
 
 std::u16string GetMonthNameAndDayOfMonth(const base::Time date) {
-  return calendar_utils::FormatDate(
-      DateHelper::GetInstance()->month_day_formatter(), date);
+  return base::i18n::IcuBridge::GetInstance().date_time_formatter().Format(
+      date, base::i18n::datetime_options::MD::Long());
 }
 
 std::u16string GetTwelveHourClockTime(const base::Time date) {
@@ -141,8 +143,8 @@ std::u16string GetYear(const base::Time date) {
 }
 
 std::u16string GetMonthNameAndYear(const base::Time date) {
-  return calendar_utils::FormatDate(
-      DateHelper::GetInstance()->month_name_year_formatter(), date);
+  return base::i18n::IcuBridge::GetInstance().date_time_formatter().Format(
+      date, base::i18n::datetime_options::YM::Long());
 }
 
 std::u16string GetTwelveHourClockHours(const base::Time date) {

@@ -1028,6 +1028,7 @@ const FeatureEntry::FeatureParam
         {"Omnibox_AskGComposeBox", "false"},
         {"Omnibox_AskGLensChipRoute", "true"},
         {"Omnibox_AskGSwapIcon", "true"},
+        {"Omnibox_AskGSwapSuggestionIcon", "false"},
         {"Omnibox_AskGCurrentTabChip", "false"},
         {"Omnibox_AskGLensIcon", "true"},
         {"Omnibox_AskGLensSearchHintText", "false"},
@@ -1039,6 +1040,7 @@ const FeatureEntry::FeatureParam
         {"Omnibox_AskGComposeBox", "false"},
         {"Omnibox_AskGLensChipRoute", "false"},
         {"Omnibox_AskGSwapIcon", "true"},
+        {"Omnibox_AskGSwapSuggestionIcon", "false"},
         {"Omnibox_AskGCurrentTabChip", "false"},
         {"Omnibox_AskGLensIcon", "false"},
         {"Omnibox_AskGLensSearchHintText", "false"},
@@ -1050,6 +1052,7 @@ const FeatureEntry::FeatureParam
         {"Omnibox_AskGComposeBox", "true"},
         {"Omnibox_AskGLensChipRoute", "true"},
         {"Omnibox_AskGSwapIcon", "true"},
+        {"Omnibox_AskGSwapSuggestionIcon", "false"},
         {"Omnibox_AskGCurrentTabChip", "false"},
         {"Omnibox_AskGLensIcon", "false"},
         {"Omnibox_AskGLensSearchHintText", "true"},
@@ -1061,6 +1064,7 @@ const FeatureEntry::FeatureParam
         {"Omnibox_AskGComposeBox", "true"},
         {"Omnibox_AskGLensChipRoute", "true"},
         {"Omnibox_AskGSwapIcon", "true"},
+        {"Omnibox_AskGSwapSuggestionIcon", "false"},
         {"Omnibox_AskGCurrentTabChip", "false"},
         {"Omnibox_AskGLensIcon", "true"},
         {"Omnibox_AskGLensSearchHintText", "false"},
@@ -1072,6 +1076,7 @@ const FeatureEntry::FeatureParam
         {"Omnibox_AskGComposeBox", "false"},
         {"Omnibox_AskGLensChipRoute", "true"},
         {"Omnibox_AskGSwapIcon", "true"},
+        {"Omnibox_AskGSwapSuggestionIcon", "true"},
         {"Omnibox_AskGCurrentTabChip", "true"},
         {"Omnibox_AskGLensIcon", "true"},
         {"Omnibox_AskGLensSearchHintText", "false"},
@@ -12299,14 +12304,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kLensVideoCitationsDescription, kOsDesktop,
      FEATURE_VALUE_TYPE(lens::features::kLensVideoCitations)},
 #endif
-
-    {"autofill-prioritize-save-card-over-mandatory-reauth",
-     flag_descriptions::kAutofillPrioritizeSaveCardOverMandatoryReauthName,
-     flag_descriptions::
-         kAutofillPrioritizeSaveCardOverMandatoryReauthDescription,
-     kOsMac | kOsWin | kOsAndroid,
-     FEATURE_VALUE_TYPE(
-         autofill::features::kAutofillPrioritizeSaveCardOverMandatoryReauth)},
 
 #if BUILDFLAG(IS_ANDROID)
     {"trusted-web-activity-contacts-delegation",

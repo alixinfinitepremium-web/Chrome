@@ -208,14 +208,7 @@ base::Time DateHelper::GetLocalMidnight(base::Time date) {
 }
 
 DateHelper::DateHelper()
-    : day_of_month_formatter_(CreateSimpleDateFormatter("d")),
-      month_day_formatter_(CreateSimpleDateFormatter("MMMMd")),
-      month_day_year_formatter_(CreateSimpleDateFormatter("MMMMdyyyy")),
-      month_day_year_week_formatter_(
-          CreateSimpleDateFormatter("MMMMEEEEdyyyy")),
-      month_name_formatter_(CreateSimpleDateFormatter("MMMM")),
-      month_name_year_formatter_(CreateSimpleDateFormatter("MMMM yyyy")),
-      time_zone_formatter_(CreateSimpleDateFormatter("zzzz")),
+    : time_zone_formatter_(CreateSimpleDateFormatter("zzzz")),
       twelve_hour_clock_formatter_(CreateSimpleDateFormatter("h:mm a")),
       twenty_four_hour_clock_formatter_(CreateSimpleDateFormatter("HH:mm")),
       day_of_week_formatter_(CreateSimpleDateFormatter("ee")),
@@ -254,12 +247,6 @@ DateHelper::~DateHelper() {
 }
 
 void DateHelper::ResetFormatters() {
-  day_of_month_formatter_ = CreateSimpleDateFormatter("d");
-  month_day_formatter_ = CreateSimpleDateFormatter("MMMMd");
-  month_day_year_formatter_ = CreateSimpleDateFormatter("MMMMdyyyy");
-  month_day_year_week_formatter_ = CreateSimpleDateFormatter("MMMMEEEEdyyyy");
-  month_name_formatter_ = CreateSimpleDateFormatter("MMMM");
-  month_name_year_formatter_ = CreateSimpleDateFormatter("MMMM yyyy");
   time_zone_formatter_ = CreateSimpleDateFormatter("zzzz");
   twelve_hour_clock_formatter_ = CreateSimpleDateFormatter("h:mm a");
   twenty_four_hour_clock_formatter_ = CreateSimpleDateFormatter("HH:mm");

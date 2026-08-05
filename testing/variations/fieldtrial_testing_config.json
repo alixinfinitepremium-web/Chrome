@@ -17509,21 +17509,6 @@
             ]
         }
     ],
-    "NotificationTrampolineNoNewTask": [
-        {
-            "platforms": [
-                "android"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "NotificationTrampolineNoNewTask"
-                    ]
-                }
-            ]
-        }
-    ],
     "NotificationsIgnoreRequireInteraction": [
         {
             "platforms": [
@@ -21189,6 +21174,24 @@
                     },
                     "enable_features": [
                         "IPH_ReadingModeSidePanel"
+                    ]
+                }
+            ]
+        }
+    ],
+    "ReadAnythingImprovedUi": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "ReadAnythingImprovedUi"
                     ]
                 }
             ]
