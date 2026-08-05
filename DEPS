@@ -1710,7 +1710,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': 'TGILT2W7n6_MNKU-r0rihTXJsX7tWVeFf-DjTQPkvD4C',
+        'version': 'mYzvLpvLGA-fJg4FVyaJXrj4oBOQ9-uo8s3yLHMVJOEC',
       },
     ],
     'condition': 'non_git_source',
@@ -2464,7 +2464,7 @@ deps = {
     Var('chromium_git') + '/external/libaddressinput.git' + '@' + '81eb9628382b07d371d8ea0b11badf7de3857fd5',
 
   'src/third_party/libaom/source/libaom':
-    Var('aomedia_git') + '/aom.git' + '@' +  '4f0e3d0a7791e7d5a1fe4aa31497dbe40a7b1b4a',
+    Var('aomedia_git') + '/aom.git' + '@' +  '7d210cef16e828b2400e7baadc2687f30dc3f745',
 
   'src/third_party/crabbyavif/src':
     Var('chromium_git') + '/external/github.com/webmproject/CrabbyAvif.git' + '@' + Var('crabbyavif_revision'),
@@ -3170,7 +3170,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '29e38f3354123ffaf8d6ea40c23482c0a41c776d',
+    Var('webrtc_git') + '/src.git' + '@' + 'e3ba7703926e4134a201b811159c365438957c17',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -3321,7 +3321,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/help_app/app',
-        'version': 'gD3UzfOzRYk12TQ2qGFVxI9ROj2IrFAmkHU9vjAYYgEC',
+        'version': 'JG80yZD3wm0-cX2ttc5UsmGI6WTbca1D_60h3fXCuIkC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -4011,7 +4011,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '8b293c7eedf0085f5ee30679b885aa6dfac0b1eb',
+        '836e02bc2e5bdd96b346a34e209893ee5fcddc37',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
