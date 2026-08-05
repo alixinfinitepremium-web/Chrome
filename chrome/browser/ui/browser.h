@@ -316,18 +316,8 @@ class Browser : public TabStripModelObserver,
 
   // Accessors ////////////////////////////////////////////////////////////////
 
-  // In production code, each instance of Browser will always instantiate an
-  // instance of BrowserView in the constructor. Some tests instantiate a
-  // Browser without a BrowserView: this is an anti-pattern and should be
-  // avoided.
-  BrowserView& GetBrowserView();
-
   base::WeakPtr<Browser> AsWeakPtr();
   base::WeakPtr<const Browser> AsWeakPtr() const;
-
-  // State Storage and Retrieval for UI ///////////////////////////////////////
-
-  GURL GetNewTabURL() const;
 
   // OnBeforeUnload handling //////////////////////////////////////////////////
 
@@ -368,11 +358,6 @@ class Browser : public TabStripModelObserver,
   void OnTabGroupFocusChanged(
       std::optional<tab_groups::TabGroupId> new_focused_group,
       std::optional<tab_groups::TabGroupId> old_focused_group) override;
-
-  // Gets the browser for opening chrome:// pages. This will return the opener
-  // browser if the current browser is in picture-in-picture mode, otherwise
-  // returns the current browser.
-  BrowserWindowInterface* GetBrowserForOpeningWebUi();
 
   std::vector<StatusBubble*> GetStatusBubblesForTesting();
   UnloadController* GetUnloadControllerForTesting() {
@@ -633,10 +618,6 @@ class Browser : public TabStripModelObserver,
 
   // If true, immediately updates the UI when scheduled.
   bool update_ui_immediately_for_testing_ = false;
-
-  // The opener browser of the document picture-in-picture browser. Null if the
-  // current browser is a regular browser.
-  raw_ptr<BrowserWindowInterface> opener_browser_ = nullptr;
 
   WebContentsCollection web_contents_collection_{this};
 

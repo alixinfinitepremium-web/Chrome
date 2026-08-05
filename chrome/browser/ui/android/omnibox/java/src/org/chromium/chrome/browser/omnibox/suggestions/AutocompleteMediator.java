@@ -726,7 +726,8 @@ class AutocompleteMediator
                         keyword,
                         name,
                         /* enteredViaSpace= */ false,
-                        suggestion.getStarterPackId()));
+                        suggestion.getStarterPackId(),
+                        /* isStarterPackPreview= */ true));
         return true;
     }
 
@@ -1054,13 +1055,14 @@ class AutocompleteMediator
     @Override
     public void onSuggestionFocused(AutocompleteMatch suggestion) {
         if (!isInInputSession()) return;
+        if (mIgnoreOmniboxItemSelection) return;
 
         if (!maybeEnterKeywordMode(suggestion)) {
             // Clear keyword mode only if it was a temporary preview triggered by highlighting
-            // a starter pack. hasPreviewText() prevents clearing explicitly typed keyword modes.
+            // a starter pack.
             if (mAutocompleteInput != null
                     && mAutocompleteInput.getSiteSearchData() != null
-                    && mAutocompleteInput.hasPreviewText()) {
+                    && mAutocompleteInput.getSiteSearchData().isStarterPackPreview) {
                 onKeywordModeEntered(null);
             }
             setOmniboxEditingText(suggestion.getFillIntoEdit(), suggestion);
@@ -1118,11 +1120,20 @@ class AutocompleteMediator
         mListPropertyModel.set(SuggestionListProperties.LIST_IS_FINAL, false);
         mIgnoreOmniboxItemSelection = true;
         boolean isInZeroPrefixContext = mAutocompleteInput.isInZeroPrefixContext();
-        boolean allowParking =
-                isInZeroPrefixContext
-                        || !mAutocompleteInput.isConventionalRequestType()
-                        || !OmniboxCapabilities.hasDesktopExperience(mContext);
-        mListPropertyModel.set(SuggestionListProperties.ALLOW_PARKING_AT_SENTINEL, allowParking);
+        boolean isUnconventional =
+                isInZeroPrefixContext || !mAutocompleteInput.isConventionalRequestType();
+        @SelectionController.Mode int selectionMode;
+        if (isUnconventional || !OmniboxCapabilities.hasDesktopExperience(mContext)) {
+            // In desktop experiences, we use SENTINEL_THEN_WRAPPING to match the behavior of the
+            // desktop browser.
+            selectionMode =
+                    OmniboxCapabilities.hasDesktopExperience(mContext)
+                            ? SelectionController.Mode.SENTINEL_THEN_WRAPPING
+                            : SelectionController.Mode.WRAPPING_WITH_SENTINEL;
+        } else {
+            selectionMode = SelectionController.Mode.WRAPPING;
+        }
+        mListPropertyModel.set(SuggestionListProperties.SELECTION_MODE, selectionMode);
         mListPropertyModel.set(SuggestionListProperties.RESET_SELECTION, null);
         cancelAutocompleteRequests();
 

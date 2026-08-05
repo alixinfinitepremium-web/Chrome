@@ -1081,7 +1081,7 @@
     "args": [
       "--enable-features=FedCmLightweightMode"
     ],
-    "expires": "Aug 1, 2026"
+    "expires": "Feb 1, 2027"
   },
   {
     "prefix": "fedcm-navigation-interception",
@@ -1103,27 +1103,6 @@
       "goto@chromium.org"
     ],
     "expires": "Dec 1, 2026"
-  },
-  {
-    "prefix": "fedcm-flexible-tokens",
-    "platforms": [
-      "Linux",
-      "Mac",
-      "Win"
-    ],
-    "bases": [
-      "external/wpt/fedcm/fedcm-flexible-token/"
-    ],
-    "exclusive_tests": "ALL",
-    "args": [
-      "--enable-features=FedCmNonStringToken"
-    ],
-    "owners": [
-      "npm@chromium.org",
-      "cbiesinger@chromium.org",
-      "goto@chromium.org"
-    ],
-    "expires": "Aug 1, 2026"
   },
   {
     "prefix": "fedcm-well-known-validation",
@@ -1186,7 +1165,7 @@
       "cbiesinger@chromium.org",
       "goto@chromium.org"
     ],
-    "expires": "Aug 1, 2026"
+    "expires": "Feb 1, 2027"
   },
   {
     "prefix": "fedcm-error-attribute",
