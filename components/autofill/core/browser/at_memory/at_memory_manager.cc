@@ -479,7 +479,7 @@ Suggestion AtMemoryManager::CreateSourceAttributionSuggestion() {
   source_info.minor_texts.emplace_back(l10n_util::GetStringUTF16(
       IDS_AUTOFILL_AT_MEMORY_SOURCE_ATTRIBUTION_PERSONAL_INTELLIGENCE));
   source_info.acceptability =
-      Suggestion::Acceptability::kSelectableButUnacceptable;
+      Suggestion::Acceptability::kUnselectableAndUnacceptable;
   source_info.filtration_policy = Suggestion::FiltrationPolicy::kStatic;
   return source_info;
 }
@@ -1214,7 +1214,14 @@ void AtMemoryManager::OnSensitivePersonalContextDataFetched(
     if (metrics) {
       metrics->OnFetchPersonalContextPiiDataFailed(result.error());
     }
-    owner_->client().ShowAtMemoryFetchFailureNotification();
+    std::optional<std::u16string> message_override;
+    if (result.error() ==
+        AtMemoryQueryService::SpiiRetrievalFailureReason::kReauthInProgress) {
+      message_override = l10n_util::GetStringUTF16(
+          IDS_AUTOFILL_AT_MEMORY_REAUTH_IN_PROGRESS_ERROR_NOTIFICATION);
+    }
+    owner_->client().ShowAtMemoryFetchFailureNotification(
+        std::move(message_override));
     return;
   }
   if (metrics) {

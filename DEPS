@@ -331,7 +331,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': '5fec35e13321988685b75c47a26a76f0462e2ca9',
+  'v8_revision': 'd432476109288e3c2df215bb72615ac021902c69',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -343,7 +343,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling PDFium
   # and whatever else without interference from each other.
-  'pdfium_revision': '2870fa9244b0f0f69fb743fab1e08deefcb07b2b',
+  'pdfium_revision': '2cbb87156e5b5efcccaf1f475345bb1f37a1f57d',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
@@ -407,7 +407,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'cac33bc6742838fa93cf0c82d343ab00cc1f3ad8',
+  'devtools_frontend_revision': 'b32640af4d9c4867b8a5daefd6a4284e58e54121',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -3299,7 +3299,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_receiver_app/app',
-        'version': 'kTlFwCl5TUSH3JYOocLtt7YTTAsEURAjlW4ZQ55FUAoC',
+        'version': 'sbq1LfAGdL5OsugB5vdNgwXF0kGXDViPkkYA7TOk3msC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3310,7 +3310,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_app/app',
-        'version': '_GtmrhkoFkXeMbhF_weg-oBUUka6Igf8R7G-b1hecQYC',
+        'version': '5FzGIT0J4xw2P7-1q0fUSRsxP3o8vcABHZJ_4NtNG8kC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
