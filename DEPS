@@ -331,7 +331,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': '50cafd47e1df11b79ed6d28c38ded522b51b91de',
+  'v8_revision': '7a5bb0efd813b20287bc2ffd191fb74d3d93ed9c',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -383,7 +383,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling catapult
   # and whatever else without interference from each other.
-  'catapult_revision': '16dc2198b902a285867cc739041a031b3ccd20a2',
+  'catapult_revision': '6a2d2bcb73b65144b0da787ba6b48f3279c1c6d7',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -407,7 +407,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '438341e947da50f292100b0c4c9d8728dda96d55',
+  'devtools_frontend_revision': '7926ea9d75cd40822ca1d4d951d04523ea4df00f',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -3170,7 +3170,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + 'e009e710a242cb2036d93cc651fb56ce79f961f7',
+    Var('webrtc_git') + '/src.git' + '@' + '29e38f3354123ffaf8d6ea40c23482c0a41c776d',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -3712,7 +3712,7 @@ deps = {
 
   'src/chrome/browser/indigo/resources/internal': {
       'url': Var('chrome_git') + '/chrome/browser/indigo/resources/internal.git' + '@' +
-        '17caf888ffa2792cc3f9cac394b662d4c0c1f7df',
+        '8c151065b308994629215452c307f142a817b165',
       'condition': 'checkout_src_internal',
   },
 
@@ -4011,7 +4011,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '751c5bffbc0b5f2c2635342a026a4ed400dd0aba',
+        '8b293c7eedf0085f5ee30679b885aa6dfac0b1eb',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
