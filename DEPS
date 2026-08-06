@@ -347,7 +347,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': '5b0508f29ec17a6a2d4780b3d2715a7feaa99d40',
+  'boringssl_revision': 'cc7b53bd2745389657f0902825769237dbf20b72',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -407,7 +407,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '9e14499652970a71f09dcc2e2cadbb7f4d135c9c',
+  'devtools_frontend_revision': '02a15bcf982565ce2ed2ee6d0bb96c8e250aa3a8',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1722,7 +1722,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '052af5c82500d22d5f7ad6c4e4131f28cf4461f5',
+    '1daef1b91e1bf769d6eeb01720cadbd2aad1ed5d',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -3170,7 +3170,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '437408bd428c915b11f44df4f35cf1834acd61c9',
+    Var('webrtc_git') + '/src.git' + '@' + '16e0e504635ca5c38df1d1d53e0b1c624abae932',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -3299,7 +3299,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_receiver_app/app',
-        'version': 'sbq1LfAGdL5OsugB5vdNgwXF0kGXDViPkkYA7TOk3msC',
+        'version': '4omao44EWEBCz-EkKwfEp3WmQkrtI72i7hmPeG6f1kIC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3310,7 +3310,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_app/app',
-        'version': '5FzGIT0J4xw2P7-1q0fUSRsxP3o8vcABHZJ_4NtNG8kC',
+        'version': '23UJl73m4FnvQE2HQQkQPvExOfYk_NJ3PK-YNT9PCdYC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3365,7 +3365,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/projector_app/app',
-        'version': 'mud6g3252U46N27qGqoG9jzdV9UIHFA5pY4uZR8-yO4C',
+        'version': '1qJ46PyFy-1tv23yMF4FRTcxXxWbcCElTo34JWomj04C',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -4011,7 +4011,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '59fd608bca1a99b0f4332ff166cc2a80d9eaa704',
+        '578e958ac2526dd7cc7376ddb7153ee3431778a8',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
