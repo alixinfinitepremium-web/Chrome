@@ -118,8 +118,12 @@ std::u16string GetMonthNameAndDayOfMonth(const base::Time date) {
 }
 
 std::u16string GetTwelveHourClockTime(const base::Time date) {
-  return calendar_utils::FormatDate(
-      DateHelper::GetInstance()->twelve_hour_clock_formatter(), date);
+  return base::i18n::IcuBridge::GetInstance().date_time_formatter().Format(
+      date,
+      base::i18n::datetime_options::T::Short()
+          .with_hour_clock_type(base::k12HourClock)
+          .with_time_precision(
+              base::i18n::DateTimeFormatterOptions::TimePrecision::kMinute));
 }
 
 std::u16string GetTwentyFourHourClockTime(const base::Time date) {
@@ -128,8 +132,10 @@ std::u16string GetTwentyFourHourClockTime(const base::Time date) {
 }
 
 std::u16string GetTimeZone(const base::Time date) {
-  return calendar_utils::FormatDate(
-      DateHelper::GetInstance()->time_zone_formatter(), date);
+  auto time_zone = base::i18n::TimeZone::Default();
+  return time_zone.GetDisplayName(
+      {.is_day_light = time_zone.InDaylightTime(date),
+       .style = base::i18n::TimeZone::kLong});
 }
 
 std::u16string GetDayOfWeek(const base::Time date) {
