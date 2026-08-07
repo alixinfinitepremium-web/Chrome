@@ -331,7 +331,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': 'edddbb168807306bfb4db3b944a333e2269309bc',
+  'v8_revision': 'a64e65d93272ba8858b8844889d09f24fc9d1e6c',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -387,7 +387,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': '2cc590818ec92c663b69169a511c484cdc12ea41',
+  'crossbench_revision': '6423f30d7ced32b24acc63178459aa917778ebc8',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -2138,7 +2138,7 @@ deps = {
   # Tools used when building Chrome for Chrome OS. This affects both the Simple
   # Chrome workflow, as well as the chromeos-chrome ebuild.
   'src/third_party/chromite': {
-      'url': Var('chromium_git') + '/chromiumos/chromite.git' + '@' + '9cd38d24650c3e01c4e3250b491e2738ce062cb1',
+      'url': Var('chromium_git') + '/chromiumos/chromite.git' + '@' + '129ebe19c01fab058986a39445ad8db713df0901',
       'condition': 'checkout_chromeos',
   },
 
@@ -3321,7 +3321,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/help_app/app',
-        'version': 'DJfEusFUNYFxQy83rK9lxB2cKWRrm5qUqok_qP5qMrUC',
+        'version': 'CjKbJH2QJOEYEnz_8YoxHq-YEp76JgcNeZzVZuFV9NkC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3332,7 +3332,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/media_app/app',
-        'version': 'Vxu4gQKT1QWVU2E1kB7odMd1CDEo3SWU0772dvxiS54C',
+        'version': '5AqAnoS8zoJic1F1DIKsVDYdnVWx2LVk0fCfhShho8sC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -4011,7 +4011,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        'b1d1ad1b9bcd0d07a2eb20e8c45421403a078cbf',
+        '824a640140c461884db8ada2da1bb1a3ba8ef09d',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 

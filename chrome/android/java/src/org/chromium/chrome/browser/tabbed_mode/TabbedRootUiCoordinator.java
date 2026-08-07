@@ -1195,6 +1195,13 @@ public class TabbedRootUiCoordinator extends RootUiCoordinator {
                                 if (tab.canGoBack()) {
                                     return ActionType.NAVIGATE_BACK;
                                 }
+                                // On desktop Android, back actions should not close tabs or
+                                // minimize the Chrome app.
+                                if (ChromeFeatureList.sBackGestureReflectsDesktopBehavior
+                                                .isEnabled()
+                                        && DeviceInfo.isDesktop()) {
+                                    return ActionType.NONE;
+                                }
                                 if (TabAssociatedApp.isOpenedFromExternalApp(tab)) {
                                     return ActionType.EXIT_APP_AND_CLOSE_TAB;
                                 }
@@ -1227,6 +1234,8 @@ public class TabbedRootUiCoordinator extends RootUiCoordinator {
                                         break;
                                     case ActionType.EXIT_APP_ONLY:
                                         mSendToBackground.onResult(null);
+                                        break;
+                                    case ActionType.NONE:
                                         break;
                                 }
                             }
@@ -2043,7 +2052,8 @@ public class TabbedRootUiCoordinator extends RootUiCoordinator {
                             /* itemDelegate= */ null,
                             mShareDelegateSupplier,
                             ChromeContextMenuPopulator.ContextMenuMode.THIN_WEB_VIEW,
-                            /* customContentActions= */ Collections.emptyList());
+                            /* customContentActions= */ Collections.emptyList(),
+                            getLeftSideUiWidthSupplier());
             mCoBrowseViewFactory =
                     new CoBrowseViewFactory(
                             mActivity,
@@ -3070,6 +3080,19 @@ public class TabbedRootUiCoordinator extends RootUiCoordinator {
     @Override
     public OneshotSupplier<SideUiStateProvider> getSideUiStateProviderSupplier() {
         return mSideUiStateProviderSupplier;
+    }
+
+    @Override
+    public Supplier<Integer> getLeftSideUiWidthSupplier() {
+        return () -> {
+            var sideUiStateProvider = mSideUiStateProviderSupplier.get();
+            if (sideUiStateProvider != null) {
+                return sideUiStateProvider
+                        .getCurrentSideUiSpecs()
+                        .getWidth(SideUiCoordinator.AnchorSide.LEFT);
+            }
+            return 0;
+        };
     }
 
     /**

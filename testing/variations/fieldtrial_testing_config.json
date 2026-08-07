@@ -5101,6 +5101,7 @@
                 {
                     "name": "Enabled",
                     "params": {
+                        "MigratedChromeForTesting": "true",
                         "MigratedCollectedCookies": "true",
                         "MigratedGoogleApiKeys": "true",
                         "MigratedInstallerDownloader": "true",
@@ -14825,10 +14826,7 @@
             ],
             "experiments": [
                 {
-                    "name": "Enabled1",
-                    "params": {
-                        "TipsNotificationsAlternativeStringVersion": "1"
-                    },
+                    "name": "Enabled",
                     "enable_features": [
                         "IOSTipsNotificationsAlternativeStrings"
                     ]
