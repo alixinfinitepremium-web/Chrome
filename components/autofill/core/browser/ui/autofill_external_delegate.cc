@@ -252,7 +252,7 @@ bool HasAutofillSuggestionsForA11y(SuggestionType type) {
     case SuggestionType::kSeparator:
     case SuggestionType::kTitle:
     case SuggestionType::kTroubleSigningInEntry:
-    case SuggestionType::kUndoOrClear:
+    case SuggestionType::kUndo:
     case SuggestionType::kViewPasswordDetails:
     case SuggestionType::kWebauthnCredential:
     case SuggestionType::kWebauthnPasskeyQrCode:
@@ -358,7 +358,7 @@ bool AutofillExternalDelegate::IsAutofillAndFirstLayerSuggestionId(
     case SuggestionType::kSeparator:
     case SuggestionType::kTitle:
     case SuggestionType::kTroubleSigningInEntry:
-    case SuggestionType::kUndoOrClear:
+    case SuggestionType::kUndo:
     case SuggestionType::kViewPasswordDetails:
     case SuggestionType::kWebauthnCredential:
     case SuggestionType::kWebauthnPasskeyQrCode:
@@ -668,7 +668,7 @@ void AutofillExternalDelegate::DidSelectSuggestion(
   ClearPreviewedForm();
 
   switch (suggestion.type) {
-    case SuggestionType::kUndoOrClear:
+    case SuggestionType::kUndo:
       manager_->UndoAutofill(mojom::ActionPersistence::kPreview,
                              last_query_.form_id, last_query_.field_id);
       break;
@@ -883,7 +883,7 @@ void AutofillExternalDelegate::DidAcceptSuggestion(
       }
       break;
     }
-    case SuggestionType::kUndoOrClear:
+    case SuggestionType::kUndo:
       manager_->UndoAutofill(mojom::ActionPersistence::kFill,
                              last_query_.form_id, last_query_.field_id);
       break;
@@ -950,9 +950,11 @@ void AutofillExternalDelegate::DidAcceptSuggestion(
           *entity, *form_structure, autofill_field->section(),
           manager_->client().GetAppLocale());
 
+      // TODO(crbug.com/c/536814322): Show loading dialog on Android after
+      // successful authentication.
       const bool is_async =
           manager_->GetAutofillAiAccessManager().FetchEntityInstance(
-              *entity, will_fill_sensitive_info,
+              *entity, will_fill_sensitive_info, base::DoNothing(),
               base::BindOnce(&OnEntityInstanceFetched,
                              manager_->GetBrowserAutofillManagerWeakPtr(),
                              GetTriggerSource(), last_query_.form_id,
@@ -1269,7 +1271,7 @@ bool AutofillExternalDelegate::RemoveSuggestion(const Suggestion& suggestion) {
     case SuggestionType::kSeparator:
     case SuggestionType::kTitle:
     case SuggestionType::kTroubleSigningInEntry:
-    case SuggestionType::kUndoOrClear:
+    case SuggestionType::kUndo:
     case SuggestionType::kViewPasswordDetails:
     case SuggestionType::kVirtualCreditCardEntry:
     case SuggestionType::kWebauthnCredential:

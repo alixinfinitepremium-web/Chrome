@@ -77,6 +77,8 @@ source_set("toolbar") {
     "//chrome/browser/ui/toolbar/pinned_toolbar",
     "//chrome/browser/ui/views",
     "//chrome/browser/ui/views/app_menu",
+    "//chrome/browser/ui/views/bookmarks",
+    "//chrome/browser/ui/views/bookmarks/saved_tab_groups",
     "//chrome/browser/ui/views/frame",
     "//chrome/browser/ui/views/frame:toolbar_button_provider",
     "//chrome/browser/ui/views/glic",
@@ -371,9 +373,9 @@ if (!is_android) {
       "//components/commerce/core:feature_list",
       "//components/prefs",
       "//components/translate/content/browser:test_support",
-      "//components/vector_icons",
+      "//components/user_education/views",
       "//components/version_info",
-      "//content/test:test_support",
+      "//components/webui/flags",
       "//testing/gtest",
       "//ui/base",
       "//ui/views",
@@ -396,7 +398,14 @@ if (!is_android) {
     }
 
     if (is_chromeos) {
-      deps += [ "//ash/constants" ]
+      deps += [
+        "//ash/constants",
+        "//chrome/browser/ash/ownership",
+        "//chrome/browser/ash/settings",
+        "//chromeos/ash/components/cryptohome",
+        "//chromeos/ash/components/dbus/session_manager",
+        "//components/user_manager",
+      ]
     }
   }
 }
@@ -492,7 +501,6 @@ if (toolkit_views) {
     testonly = true
 
     sources = [
-      "chrome_labs/chrome_labs_unittest.cc",
       "pinned_toolbar_actions_container_unittest.cc",
       "reload_button_unittest.cc",
       "toolbar_action_view_unittest.cc",

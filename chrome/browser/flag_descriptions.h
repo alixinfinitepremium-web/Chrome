@@ -1392,6 +1392,11 @@ inline constexpr char kOnStartupWindowPolicyDescription[] =
     "Enables updated on-startup window default behavior and settings on "
     "Android.";
 
+inline constexpr char kSyncRestoreOnStartupPrefName[] =
+    "Sync Restore On Startup Pref";
+inline constexpr char kSyncRestoreOnStartupPrefDescription[] =
+    "Enables syncing of the session restore-on-startup preference on Android.";
+
 inline constexpr char kSettingsInTabName[] = "Settings in Tab";
 inline constexpr char kSettingsInTabDescription[] =
     "Allows the Chrome Settings UI to appear in a tab on Android.";
@@ -4054,6 +4059,12 @@ inline constexpr char kPaymentHandlerCameraAccessName[] =
 inline constexpr char kPaymentHandlerCameraAccessDescription[] =
     "Enables camera access in web-based Payment Handlers on desktop.";
 
+inline constexpr char kPaymentHandlerCameraAccessUxName[] =
+    "Payment Handler Camera Access UX";
+inline constexpr char kPaymentHandlerCameraAccessUxDescription[] =
+    "Enables camera access with integrated permission prompt and "
+    "capture indicator in web-based Payment Handlers on desktop.";
+
 inline constexpr char kDeduplicateNativePaymentAppsName[] =
     "Enables de-duplication of Payment Request native payment apps";
 inline constexpr char kDeduplicateNativePaymentAppsDescription[] =
@@ -5303,6 +5314,12 @@ inline constexpr char kOnDeviceModelLitertLmBackendName[] =
 inline constexpr char kOnDeviceModelLitertLmBackendDescription[] =
     "Use LiteRT-LM runtime for on-device model service inference.";
 
+inline constexpr char kOnDeviceWebSpeechSmallExpertModelName[] =
+    "Web Speech API On-Device Small Expert Model";
+inline constexpr char kOnDeviceWebSpeechSmallExpertModelDescription[] =
+    "Enables the small expert model for on-device Web Speech API "
+    "recognition.";
+
 // Android ---------------------------------------------------------------------
 // FLAG_DESCRIPTIONS_ANDROID_START
 
@@ -5438,11 +5455,6 @@ inline constexpr char kAndroidContextMenuDisabledMenuItemsName[] =
     "Android context menu disabled menu items";
 inline constexpr char kAndroidContextMenuDisabledMenuItemsDescription[] =
     "Disables specific context menu items.";
-
-inline constexpr char kAndroidContextMenuNewActionsName[] =
-    "Android context menu new actions";
-inline constexpr char kAndroidContextMenuNewActionsDescription[] =
-    "Adds new context menu actions.";
 
 inline constexpr char kAndroidDesktopBookmarkPopupName[] =
     "Android Desktop Bookmark Popup";
@@ -6427,6 +6439,18 @@ inline constexpr char kSubmenusInAppMenuLffDescription[] =
 inline constexpr char kTabBottomSheetName[] = "Tab bottom sheet";
 inline constexpr char kTabBottomSheetDescription[] =
     "Enables the tab bottom sheet feature.";
+
+inline constexpr char kTabBottomSheetFullHeightName[] =
+    "Tab bottom sheet - Full height ratio";
+inline constexpr char kTabBottomSheetFullHeightDescription[] =
+    "Allows configuring the full height ratio of the tab bottom sheet. "
+    "Disabling this flag will use the pre-existing default value.";
+
+inline constexpr char kTabBottomSheetHalfHeightName[] =
+    "Tab bottom sheet - Half height ratio";
+inline constexpr char kTabBottomSheetHalfHeightDescription[] =
+    "Allows configuring the half height ratio of the tab bottom sheet. "
+    "Disabling this flag will use the pre-existing default value.";
 
 inline constexpr char kTabAndroidGracefulShutdownName[] =
     "Tab Android Graceful Shutdown";

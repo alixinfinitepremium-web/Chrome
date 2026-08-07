@@ -327,6 +327,7 @@ class TabImpl implements Tab, TabInternal {
     private @Nullable Token mTabGroupId;
     private boolean mTabHasSensitiveContent;
     private boolean mIsPinned;
+    private @Nullable @TabAlert Integer mAlertState;
     private @MediaState int mMediaState;
     private @TabUserAgent int mUserAgent = TabUserAgent.DEFAULT;
 
@@ -1922,7 +1923,9 @@ class TabImpl implements Tab, TabInternal {
         String host = url.getHost();
         if (!UrlConstants.SETTINGS_HOST.equals(host)) return false;
 
-        if (SettingsInTab.isEnabled()) return false;
+        // For incognito we fall through to startSettings(), which will redirect to the original
+        // profile's window, similar to Win/Mac/Linux.
+        if (SettingsInTab.isEnabled() && !isIncognito()) return false;
 
         // TODO(crbug.com/456164910): Use the URL path to open deeplinks into Settings.
         SettingsNavigationFactory.createSettingsNavigation().startSettings(getContext());
@@ -3065,8 +3068,17 @@ class TabImpl implements Tab, TabInternal {
 
     @Override
     public @Nullable @TabAlert Integer getAlertState() {
-        if (mNativeTabAndroid == 0) return null;
-        return TabImplJni.get().getAlertState(mNativeTabAndroid);
+        return mAlertState;
+    }
+
+    @CalledByNative
+    public void onAlertStateChanged(
+            @JniType("std::optional<int32_t>") @Nullable @TabAlert Integer alertState) {
+        if (Objects.equals(mAlertState, alertState)) return;
+        mAlertState = alertState;
+        for (TabObserver observer : mObservers) {
+            observer.onAlertStateChanged(this, alertState);
+        }
     }
 
     @Override
@@ -3283,11 +3295,6 @@ class TabImpl implements Tab, TabInternal {
         void initializeAutofillIfNecessary(long nativeTabAndroid);
 
         void getMemoryUsageBytes(long nativeTabAndroid, Callback<Long> callback);
-
-        @JniType("std::optional<int>")
-        @Nullable
-        @TabAlert
-        Integer getAlertState(long nativeTabAndroid);
 
         void updateDelegates(
                 long nativeTabAndroid,

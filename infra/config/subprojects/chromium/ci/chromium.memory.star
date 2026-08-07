@@ -221,6 +221,14 @@ linux_memory_builder(
                 ],
                 # These are slow on the ASan trybot for some reason, crbug.com/1257927
                 swarming = targets.swarming(
+                    # Move to faster machine types to reduce capacity impact.
+                    # TODO(crbug.com/541675870): Can remove this if/when
+                    # everything's been migrated.
+                    optional_dimensions = {
+                        30: {
+                            "cpu": "x86-64-e4",
+                        },
+                    },
                     shards = 12,
                 ),
             ),
@@ -791,7 +799,8 @@ ci.builder(
     ),
     builderless = False,
     cores = None,  # Swapping between 8 and 24
-    os = os.MAC_DEFAULT,
+    # TODO(crbug.com/543006750): Revert to MAC_DEFAULT after arm migration.
+    os = os.MAC_15,
     console_view_entry = consoles.console_view_entry(
         category = "mac",
         short_name = "bld",
@@ -1083,7 +1092,8 @@ ci.builder(
     ),
     builderless = False,
     cores = 12,
-    os = os.MAC_DEFAULT,
+    # TODO(crbug.com/543006750): Revert to MAC_DEFAULT after arm migration.
+    os = os.MAC_15,
     console_view_entry = consoles.console_view_entry(
         category = "mac",
         short_name = "tst",

@@ -217,8 +217,7 @@ class MockAutofillDriver : public TestAutofillDriver {
                const FillId& fill_id,
                bool supports_refill,
                const url::Origin& triggered_origin,
-               (const absl::flat_hash_map<FieldGlobalId, FieldType>&),
-               (const Section&)),
+               (const absl::flat_hash_map<FieldGlobalId, FieldType>&)),
               (override));
   MOCK_METHOD(void,
               ApplyFieldAction,
@@ -709,9 +708,8 @@ TEST_F(AutofillExternalDelegateTest, GetMainFillingProduct) {
             FillingProduct::kDataList);
 
   // Show auxiliary helper suggestion in the popup.
-  OnSuggestionsReturned(
-      queried_field(),
-      {CreateAutofillSuggestion(SuggestionType::kUndoOrClear, u"undo")});
+  OnSuggestionsReturned(queried_field(), {CreateAutofillSuggestion(
+                                             SuggestionType::kUndo, u"undo")});
   EXPECT_EQ(external_delegate().GetMainFillingProduct(), FillingProduct::kNone);
 
   // Show auxiliary helper suggestion in the popup.
@@ -3628,7 +3626,7 @@ TEST_F(AutofillExternalDelegateTest, ExternalDelegateUndoForm) {
   IssueOnQuery();
   EXPECT_CALL(autofill_manager(), UndoAutofill);
   external_delegate().DidAcceptSuggestion(
-      Suggestion(SuggestionType::kUndoOrClear),
+      Suggestion(SuggestionType::kUndo),
       SuggestionPosition{.multi_index = {0}});
 }
 
@@ -3637,8 +3635,7 @@ TEST_F(AutofillExternalDelegateTest, ExternalDelegateUndoForm) {
 TEST_F(AutofillExternalDelegateTest, ExternalDelegateUndoPreviewForm) {
   IssueOnQuery();
   EXPECT_CALL(autofill_manager(), UndoAutofill);
-  external_delegate().DidSelectSuggestion(
-      Suggestion(SuggestionType::kUndoOrClear));
+  external_delegate().DidSelectSuggestion(Suggestion(SuggestionType::kUndo));
 }
 #endif
 

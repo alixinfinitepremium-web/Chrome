@@ -68,6 +68,7 @@
 #include "third_party/blink/renderer/core/paint/view_painter.h"
 #include "third_party/blink/renderer/core/svg/svg_document_extensions.h"
 #include "third_party/blink/renderer/core/view_transition/view_transition.h"
+#include "third_party/blink/renderer/core/view_transition/view_transition_skip_reason.h"
 #include "third_party/blink/renderer/core/view_transition/view_transition_utils.h"
 #include "third_party/blink/renderer/platform/graphics/paint/paint_controller.h"
 #include "third_party/blink/renderer/platform/instrumentation/histogram.h"
@@ -530,7 +531,8 @@ PhysicalOffset LayoutView::OffsetForFixedPosition() const {
 
 void LayoutView::QuadsInAncestorInternal(Vector<gfx::QuadF>& quads,
                                          const LayoutBoxModelObject* ancestor,
-                                         MapCoordinatesFlags mode) const {
+                                         MapCoordinatesFlags mode,
+                                         BoxQuadType) const {
   NOT_DESTROYED();
   quads.push_back(LocalRectToAncestorQuad(
       PhysicalRect(PhysicalOffset(), GetScrollableArea()->Size()), ancestor,
@@ -581,7 +583,9 @@ PhysicalRect LayoutView::ViewRect() const {
         // layout is deferred during a resize or rotation, causing a temporary
         // mismatch. We need skip the transition which would have happened later
         // anyway.
-        transition->SkipTransitionSoon();
+        transition->SkipTransitionSoon(
+            ViewTransition::PromiseResponse::kRejectInvalidState,
+            ViewTransitionSkipReason::kSnapshotRootChangedSize);
         return PhysicalRect(PhysicalOffset(),
                             PhysicalSize(frame_view_->Size()));
       }
@@ -1048,9 +1052,11 @@ void LayoutView::CacheScrollDimensions() {
 void LayoutView::StyleDidChange(
     StyleDifference diff,
     const ComputedStyle* old_style,
+    const ComputedStyle& new_style,
     const StyleChangeContext& style_change_context) {
   NOT_DESTROYED();
-  LayoutBlockFlow::StyleDidChange(diff, old_style, style_change_context);
+  LayoutBlockFlow::StyleDidChange(diff, old_style, new_style,
+                                  style_change_context);
 
   LocalFrame& frame = GetFrameView()->GetFrame();
   VisualViewport& visual_viewport = frame.GetPage()->GetVisualViewport();

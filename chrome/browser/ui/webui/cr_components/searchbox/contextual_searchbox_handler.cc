@@ -194,7 +194,6 @@ ContextualSearchboxHandler::CreateImageEncodingOptions() {
   const auto& image_upload_config =
       ntp_composebox::FeatureConfig::Get().config.composebox().image_upload();
   return lens::ImageEncodingOptions{
-      .enable_webp_encoding = image_upload_config.enable_webp_encoding(),
       .max_size = image_upload_config.downscale_max_image_size(),
       .max_height = image_upload_config.downscale_max_image_height(),
       .max_width = image_upload_config.downscale_max_image_width(),
@@ -1820,14 +1819,15 @@ void ContextualSearchboxHandler::QueryAutocomplete(
     uint32_t cursor_position,
     omnibox::SuggestInventory suggest_inventory,
     bool is_on_focus,
-    const std::string& keyword) {
+    const std::string& keyword,
+    searchbox::mojom::InputMethod input_method) {
   if (contextual_tasks_context_service_) {
     contextual_tasks_context_service_->OnTypedQuery();
   }
 
   SearchboxHandler::QueryAutocomplete(
       query_id, input, prevent_inline_autocomplete, cursor_position,
-      suggest_inventory, is_on_focus, keyword);
+      suggest_inventory, is_on_focus, keyword, input_method);
 }
 
 void ContextualSearchboxHandler::OnContextUploadStatusChanged(

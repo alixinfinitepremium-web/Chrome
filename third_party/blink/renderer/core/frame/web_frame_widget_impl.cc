@@ -158,6 +158,7 @@
 #include "third_party/blink/renderer/core/timing/dom_window_performance.h"
 #include "third_party/blink/renderer/core/timing/window_performance.h"
 #include "third_party/blink/renderer/core/view_transition/view_transition.h"
+#include "third_party/blink/renderer/core/view_transition/view_transition_skip_reason.h"
 #include "third_party/blink/renderer/core/view_transition/view_transition_utils.h"
 #include "third_party/blink/renderer/platform/graphics/animation_worklet_mutator_dispatcher_impl.h"
 #include "third_party/blink/renderer/platform/graphics/color_space_gamut.h"
@@ -887,7 +888,9 @@ void WebFrameWidgetImpl::NotifyClearedDisplayedGraphics() {
   // Skip any incoming cross document transitions here.
   if (ViewTransition* transition =
           ViewTransitionUtils::GetIncomingCrossDocumentTransition(document)) {
-    transition->SkipTransition();
+    transition->SkipTransition(
+        ViewTransition::PromiseResponse::kRejectInvalidState,
+        ViewTransitionSkipReason::kPageAlreadyRevealed);
   }
 }
 
@@ -2857,9 +2860,6 @@ void WebFrameWidgetImpl::RegisterActiveUnboundedElement(
         host_remote,
     ScriptPromiseResolver<IDLUndefined>* resolver) {
   CHECK(RuntimeEnabledFeatures::UnboundedElementEnabled());
-  // TODO(crbug.com/508672616): Add support for unbounded element when
-  // TreesInViz is enabled.
-  CHECK(!base::FeatureList::IsEnabled(::features::kTreesInViz));
   // Dismiss any existing active unbounded element to ensure only one is
   // active at a time.
   if (unbounded_surface_state_) {
@@ -2899,43 +2899,59 @@ void WebFrameWidgetImpl::OnSurfaceAllocated(
     state->frame_sink_id_ = frame_sink_id;
     state->local_surface_id_ = local_surface_id;
 
-    mojo::PendingRemote<viz::mojom::blink::CompositorFrameSink>
-        blink_sink_remote;
-    auto blink_sink_receiver =
-        blink_sink_remote.InitWithNewPipeAndPassReceiver();
-
-    mojo::PendingReceiver<viz::mojom::blink::CompositorFrameSinkClient>
-        blink_client_receiver;
-    auto blink_client_remote =
-        blink_client_receiver.InitWithNewPipeAndPassRemote();
-
-    if (state->host_.is_bound()) {
-      state->host_->GetCompositorFrameSink(std::move(blink_sink_receiver),
-                                           std::move(blink_client_remote));
-    }
-
-    bool success = false;
-    if (auto* host = LayerTreeHost()) {
-      std::unique_ptr<cc::LayerTreeFrameSink> unbounded_frame_sink =
-          widget_base_->CreateUnboundedFrameSink(
-              std::move(blink_sink_remote), std::move(blink_client_receiver));
-      if (unbounded_frame_sink) {
-        host->SetUnboundedFrameSink(std::move(unbounded_frame_sink),
-                                    local_surface_id);
+    if (base::FeatureList::IsEnabled(::features::kTreesInViz)) {
+      if (auto* host = LayerTreeHost()) {
+        host->SetUnboundedFrameSinkId(frame_sink_id, local_surface_id);
         host->SetNeedsCommitWithForcedRedraw();
         if (state->unbounded_element_resolver_) {
           state->unbounded_element_resolver_->Resolve();
           state->unbounded_element_resolver_ = nullptr;
         }
-        success = true;
+      } else if (state->unbounded_element_resolver_) {
+        state->unbounded_element_resolver_->Reject(
+            MakeGarbageCollected<DOMException>(
+                DOMExceptionCode::kInvalidStateError,
+                "Failed to initialize unbounded element frame sink."));
+        state->unbounded_element_resolver_ = nullptr;
       }
-    }
-    if (!success && state->unbounded_element_resolver_) {
-      state->unbounded_element_resolver_->Reject(
-          MakeGarbageCollected<DOMException>(
-              DOMExceptionCode::kInvalidStateError,
-              "Failed to initialize unbounded element frame sink."));
-      state->unbounded_element_resolver_ = nullptr;
+    } else {
+      mojo::PendingRemote<viz::mojom::blink::CompositorFrameSink>
+          blink_sink_remote;
+      auto blink_sink_receiver =
+          blink_sink_remote.InitWithNewPipeAndPassReceiver();
+
+      mojo::PendingReceiver<viz::mojom::blink::CompositorFrameSinkClient>
+          blink_client_receiver;
+      auto blink_client_remote =
+          blink_client_receiver.InitWithNewPipeAndPassRemote();
+
+      if (state->host_.is_bound()) {
+        state->host_->GetCompositorFrameSink(std::move(blink_sink_receiver),
+                                             std::move(blink_client_remote));
+      }
+
+      bool success = false;
+      if (auto* host = LayerTreeHost()) {
+        auto unbounded_frame_sink = widget_base_->CreateUnboundedFrameSink(
+            std::move(blink_sink_remote), std::move(blink_client_receiver));
+        if (unbounded_frame_sink) {
+          host->SetUnboundedFrameSink(std::move(unbounded_frame_sink),
+                                      local_surface_id);
+          host->SetNeedsCommitWithForcedRedraw();
+          if (state->unbounded_element_resolver_) {
+            state->unbounded_element_resolver_->Resolve();
+            state->unbounded_element_resolver_ = nullptr;
+          }
+          success = true;
+        }
+      }
+      if (!success && state->unbounded_element_resolver_) {
+        state->unbounded_element_resolver_->Reject(
+            MakeGarbageCollected<DOMException>(
+                DOMExceptionCode::kInvalidStateError,
+                "Failed to initialize unbounded element frame sink."));
+        state->unbounded_element_resolver_ = nullptr;
+      }
     }
   } else if (state->local_surface_id_ != local_surface_id) {
     state->local_surface_id_ = local_surface_id;

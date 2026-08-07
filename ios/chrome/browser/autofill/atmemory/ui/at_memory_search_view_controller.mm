@@ -8,8 +8,8 @@
 #import "components/strings/grit/components_strings.h"
 #import "ios/chrome/browser/autofill/atmemory/public/at_memory_commands.h"
 #import "ios/chrome/browser/autofill/atmemory/public/at_memory_constants.h"
-#import "ios/chrome/browser/shared/ui/symbols/symbols.h"
 #import "ios/chrome/grit/ios_strings.h"
+#import "ui/base/device_form_factor.h"
 #import "ui/base/l10n/l10n_util.h"
 
 namespace {
@@ -37,9 +37,6 @@ enum class ItemIdentifier {
   kNoticeItem,
 };
 
-// The symbol point size for the empty state background view.
-constexpr CGFloat kEmptyStateSymbolPointSize = 60;
-
 // View states for the AtMemory search table view.
 enum class ViewState {
   kInitialState,
@@ -60,10 +57,13 @@ enum class ViewState {
   // Search controller for users to type a query for performing an AtMemory
   // search and filtering items.
   UISearchController* _searchController;
+
   // Tells if the notice is visible.
   BOOL _noticeIsVisible;
   // Tells if the recent fills are visible.
   BOOL _recentFillsAreVisible;
+  // Represent the error type.
+  AtMemoryErrorType _errorType;
 }
 
 #pragma mark - UIViewController
@@ -135,6 +135,35 @@ enum class ViewState {
   [self.atMemoryHandler dismissAtMemory];
 }
 
+#pragma mark - AtMemorySearchConsumer
+
+- (void)setErrorType:(AtMemoryErrorType)errorType {
+  _errorType = errorType;
+}
+
+- (void)setNoticeVisible:(BOOL)noticeVisible {
+  _noticeIsVisible = noticeVisible;
+}
+
+- (void)setFetchingSubtitle {
+  // TODO(crbug.com/541237598): Implement fetching subtitle.
+}
+
+- (void)setRecentFills {
+  // TODO(crbug.com/540877897): Implement recent fills.
+}
+
+- (void)updateTableViewBackgroundStyle:(AtMemoryBackgroundStyle)style {
+  switch (style) {
+    case AtMemoryBackgroundStyle::kEmptyStyle:
+      [self setEmptyTableViewBackground];
+      break;
+    case AtMemoryBackgroundStyle::kDefaultStyle:
+      self.tableView.backgroundView = nil;
+      break;
+  }
+}
+
 #pragma mark - Private
 
 // Applies the diffable data source snapshot for the given `viewState`.
@@ -158,12 +187,6 @@ enum class ViewState {
 // Populates `snapshot` for the initial state.
 - (void)populateSnapshotForInitialState:
     (NSDiffableDataSourceSnapshot*)snapshot {
-  if (!_noticeIsVisible && !_recentFillsAreVisible) {
-    [self setEmptyTableViewBackground];
-  } else {
-    self.tableView.backgroundView = nil;
-  }
-
   if (_noticeIsVisible) {
     [snapshot appendSectionsWithIdentifiers:@[
       @(static_cast<int>(SectionIdentifier::kNoticeSection))
@@ -186,9 +209,7 @@ enum class ViewState {
 
 // Sets the table view background to the empty state.
 - (void)setEmptyTableViewBackground {
-  // TODO(crbug.com/542258091): Update the image to the correct one.
-  UIImage* image = SymbolWithPointSize(SymbolMagnifyingglassSpark,
-                                       kEmptyStateSymbolPointSize);
+  UIImage* image = [UIImage imageNamed:@"at_memory_empty"];
   [self addEmptyTableViewWithMessage:
             l10n_util::GetNSString(IDS_AUTOFILL_AT_MEMORY_ZERO_STATE_SUBTITLE)
                                image:image];

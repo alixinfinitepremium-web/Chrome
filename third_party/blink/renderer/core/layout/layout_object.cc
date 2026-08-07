@@ -291,6 +291,28 @@ void ApplyVisibleOverflowToClipRect(OverflowClipAxes overflow_clip,
   }
 }
 
+PhysicalRect LocalRectForBoxQuad(const PhysicalBoxFragment& fragment,
+                                 BoxQuadType box_type) {
+  PhysicalRect rect({}, fragment.Size());
+  switch (box_type) {
+    case BoxQuadType::kMargin:
+      rect.Expand(fragment.Margins());
+      break;
+    case BoxQuadType::kBorder:
+      break;
+    case BoxQuadType::kPadding:
+      rect.Contract(fragment.Borders() + fragment.Scrollbar());
+      break;
+    case BoxQuadType::kContent:
+      rect.Contract(fragment.Borders() + fragment.Scrollbar() +
+                    fragment.Padding());
+      break;
+  }
+  rect.size.width = rect.size.width.ClampNegativeToZero();
+  rect.size.height = rect.size.height.ClampNegativeToZero();
+  return rect;
+}
+
 AllowDestroyingLayoutObjectInFinalizerScope::
     AllowDestroyingLayoutObjectInFinalizerScope() {
   ++g_allow_destroying_layout_object_in_finalizer;
@@ -2989,9 +3011,9 @@ void LayoutObject::SetStyle(const ComputedStyle* style,
 
   StyleChangeContext style_change_context;
 
-  StyleWillChange(diff, *style, style_change_context);
+  const ComputedStyle* old_style = style_.Get();
+  StyleWillChange(diff, old_style, *style, style_change_context);
 
-  const ComputedStyle* old_style = std::move(style_);
   SetStyleInternal(std::move(style));
 
   if (!IsText()) {
@@ -3000,7 +3022,7 @@ void LayoutObject::SetStyle(const ComputedStyle* style,
 
   bool does_not_need_layout_or_paint_invalidation = !parent_;
 
-  StyleDidChange(diff, old_style, style_change_context);
+  StyleDidChange(diff, old_style, *style_, style_change_context);
 
   // FIXME: |this| might be destroyed here. This can currently happen for a
   // LayoutTextFragment when its first-letter block gets an update in
@@ -3154,22 +3176,23 @@ void LayoutObject::UpdateFirstLineImageObservers(
 }
 
 void LayoutObject::StyleWillChange(StyleDifference diff,
+                                   const ComputedStyle* old_style,
                                    const ComputedStyle& new_style,
                                    StyleChangeContext& style_change_context) {
   NOT_DESTROYED();
   DCHECK(!IsText());
 
-  if (style_) {
-    bool visibility_changed = style_->Visibility() != new_style.Visibility();
+  if (old_style) {
+    bool visibility_changed = old_style->Visibility() != new_style.Visibility();
     // If our z-index changes value or our visibility changes,
     // we need to dirty our stacking context's z-order list.
     if (visibility_changed ||
-        style_->EffectiveZIndex() != new_style.EffectiveZIndex() ||
-        IsStackingContext(*style_) != IsStackingContext(new_style)) {
+        old_style->EffectiveZIndex() != new_style.EffectiveZIndex() ||
+        IsStackingContext(*old_style) != IsStackingContext(new_style)) {
       GetDocument().SetDraggableRegionsDirty(true);
     }
 
-    if (style_->ContentVisibility() != new_style.ContentVisibility()) {
+    if (old_style->ContentVisibility() != new_style.ContentVisibility()) {
       if (AXObjectCache* cache = GetDocument().ExistingAXObjectCache()) {
         if (GetNode()) {
           cache->RemoveSubtree(GetNode(), /* remove_root */ false);
@@ -3199,7 +3222,8 @@ void LayoutObject::StyleWillChange(StyleDifference diff,
   // touchstart handler if the root layout object has non-auto effective touch
   // action.
   const bool is_old_touch_action_auto =
-      style_ ? (style_->EffectiveTouchAction() == TouchAction::kAuto) : true;
+      old_style ? (old_style->EffectiveTouchAction() == TouchAction::kAuto)
+                : true;
   const bool is_new_touch_action_auto =
       new_style.EffectiveTouchAction() == TouchAction::kAuto;
   if (GetNode() && is_old_touch_action_auto != is_new_touch_action_auto) {
@@ -3216,10 +3240,10 @@ void LayoutObject::StyleWillChange(StyleDifference diff,
   }
 }
 
-static inline bool AreCursorsEqual(const ComputedStyle* a,
-                                   const ComputedStyle* b) {
-  return a->Cursor() == b->Cursor() &&
-         base::ValuesEquivalent(a->Cursors(), b->Cursors());
+static inline bool AreCursorsEqual(const ComputedStyle& a,
+                                   const ComputedStyle& b) {
+  return a.Cursor() == b.Cursor() &&
+         base::ValuesEquivalent(a.Cursors(), b.Cursors());
 }
 
 void LayoutObject::SetScrollAnchorDisablingStyleChangedOnAncestor() {
@@ -3269,6 +3293,7 @@ void LayoutObject::UpdateAfterReinsert(const ComputedStyle& old_style) {
 void LayoutObject::StyleDidChange(
     StyleDifference diff,
     const ComputedStyle* old_style,
+    const ComputedStyle& new_style,
     const StyleChangeContext& style_change_context) {
   NOT_DESTROYED();
   if (HasHiddenBackface()) {
@@ -3279,7 +3304,7 @@ void LayoutObject::StyleDidChange(
       UseCounter::Count(GetDocument(), WebFeature::kHiddenBackfaceWith3D);
       UseCounter::Count(GetDocument(),
                         WebFeature::kHiddenBackfaceWithPreserve3D);
-    } else if (style_->HasTransform()) {
+    } else if (new_style.HasTransform()) {
       UseCounter::Count(GetDocument(),
                         WebFeature::kHiddenBackfaceWithPossible3D);
       // For consistency with existing code usage, this uses
@@ -3290,13 +3315,14 @@ void LayoutObject::StyleDidChange(
       // https://github.com/w3c/csswg-drafts/issues/3305 it's possible we may
       // want to tie backface-visibility behavior to something closer to the
       // latter.
-      if (style_->Has3DTransformOperation()) {
+      if (new_style.Has3DTransformOperation()) {
         UseCounter::Count(GetDocument(), WebFeature::kHiddenBackfaceWith3D);
       }
     }
   }
 
-  if (ShouldApplyStrictContainment() && style_->IsContentVisibilityVisible()) {
+  if (ShouldApplyStrictContainment() &&
+      new_style.IsContentVisibilityVisible()) {
     if (ShouldApplyStyleContainment()) {
       UseCounter::Count(GetDocument(),
                         WebFeature::kCSSContainAllWithoutContentVisibility);
@@ -3307,14 +3333,14 @@ void LayoutObject::StyleDidChange(
 
   // First assume the outline will be affected. It may be updated when we know
   // it's not affected.
-  SetOutlineMayBeAffectedByDescendants(style_->HasOutline());
+  SetOutlineMayBeAffectedByDescendants(new_style.HasOutline());
 
   if (diff.NeedsFullLayout()) {
     SetNeedsLayoutAndIntrinsicWidthsRecalc(
         layout_invalidation_reason::kStyleChange);
   } else if (diff.NeedsPositionedLayout()) {
     if (auto* containing_block = ContainingBlock()) {
-      if (StyleRef().HasOutOfFlowPosition()) {
+      if (new_style.HasOutOfFlowPosition()) {
         containing_block->SetNeedsSimplifiedLayout();
       } else {
         containing_block->SetChildNeedsLayout();
@@ -3339,7 +3365,7 @@ void LayoutObject::StyleDidChange(
   }
 
   if (diff.opacity_changed && IsDocumentElement() &&
-      old_style->Opacity() == 0.f && style_->Opacity() != 0.f) {
+      old_style->Opacity() == 0.f && new_style.Opacity() != 0.f) {
     PaintTimingDetector::From(GetDocument()).ReportIgnoredContent();
   }
 
@@ -3347,7 +3373,7 @@ void LayoutObject::StyleDidChange(
   // has been updated by subclasses before we know if we have to invalidate
   // paints (in setStyle()).
 
-  if (old_style && !AreCursorsEqual(old_style, Style())) {
+  if (old_style && !AreCursorsEqual(*old_style, new_style)) {
     if (LocalFrame* frame = GetFrame()) {
       // Cursor update scheduling is done by the local root, which is the main
       // frame if there are no RemoteFrame ancestors in the frame tree. Use of
@@ -3359,44 +3385,46 @@ void LayoutObject::StyleDidChange(
 
   if (diff.NeedsNormalPaintInvalidation() && old_style) {
     if (ResolveColor(*old_style, GetCSSPropertyBackgroundColor()) !=
-            ResolveColor(GetCSSPropertyBackgroundColor()) ||
-        old_style->BackgroundLayers() != StyleRef().BackgroundLayers())
+            ResolveColor(new_style, GetCSSPropertyBackgroundColor()) ||
+        old_style->BackgroundLayers() != new_style.BackgroundLayers()) {
       SetBackgroundNeedsFullPaintInvalidation();
+    }
   }
 
   ApplyPseudoElementStyleChanges(old_style);
 
   if (old_style &&
-      old_style->UsedTransformStyle3D() != StyleRef().UsedTransformStyle3D()) {
+      old_style->UsedTransformStyle3D() != new_style.UsedTransformStyle3D()) {
     // Change of transform-style may affect descendant transform property nodes.
     AddSubtreePaintPropertyUpdateReason(
         SubtreePaintPropertyUpdateReason::kTransformStyleChanged);
   }
 
-  if (old_style && old_style->OverflowAnchor() != StyleRef().OverflowAnchor()) {
+  if (old_style && old_style->OverflowAnchor() != new_style.OverflowAnchor()) {
     ClearAncestorScrollAnchors(this);
   }
 
   if (old_style &&
-      old_style->UsedPointerEvents() != StyleRef().UsedPointerEvents()) {
+      old_style->UsedPointerEvents() != new_style.UsedPointerEvents()) {
     // UsedPointerEvents affects hit test opacity.
     SetShouldInvalidatePaintForHitTest();
   }
 
-  if (StyleRef().AnchorName())
+  if (new_style.AnchorName()) {
     MarkMayContainAnchor();
+  }
 
   if (MayContainAnchor() && old_style) {
     // If there's an anchor here, and the new style might want to run animations
     // on the compositor, anchors may affect layout of the anchored elements.
     // Mark for layout to update the anchor references and thus request main
     // frame animations if needed.
-    if (StyleRef().IsRunningTransformRelatedAnimationOnCompositor() &&
+    if (new_style.IsRunningTransformRelatedAnimationOnCompositor() &&
         !old_style->IsRunningTransformRelatedAnimationOnCompositor()) {
       SetNeedsLayout(layout_invalidation_reason::kStyleChange);
     }
   }
-  const bool style_focusability = style_ && style_->IsFocusable();
+  const bool style_focusability = new_style.IsFocusable();
   const bool old_style_focusability = old_style && old_style->IsFocusable();
   if (!style_focusability && old_style_focusability) {
     node_->FocusabilityLost();

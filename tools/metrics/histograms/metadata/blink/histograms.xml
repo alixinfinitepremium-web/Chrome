@@ -454,15 +454,6 @@ chromium-metrics-reviews@google.com.
   </summary>
 </histogram>
 
-<histogram name="Blink.Canvas.OverdrawOp" enum="CanvasOverdrawOp"
-    expires_after="2024-04-01">
-  <owner>junov@chromium.org</owner>
-  <owner>fserb@chromium.org</owner>
-  <summary>
-    Counts 2d canvas draw operations that trigger the overdraw optimization.
-  </summary>
-</histogram>
-
 <histogram name="Blink.Canvas.RasterDuration{BlinkCanvasRasterDurationType}"
     units="microseconds" expires_after="2027-01-03">
   <owner>aaronhk@chromium.org</owner>
@@ -6065,6 +6056,16 @@ chromium-metrics-reviews@google.com.
     recorded for cross-document transitions only on the outgoing page.
 
     This histogram only records metrics on machines with high-resolution clocks.
+  </summary>
+</histogram>
+
+<histogram name="Blink.ViewTransitions.SkipReason"
+    enum="ViewTransitionSkipReason" expires_after="2027-08-05">
+  <owner>vmpstr@chromium.org</owner>
+  <owner>rendering-core-dev@chromium.org</owner>
+  <summary>
+    Recorded when a view transition is skipped or aborted, logging the reason
+    for the skip.
   </summary>
 </histogram>
 

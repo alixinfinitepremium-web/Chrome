@@ -802,6 +802,7 @@ if (is_android) {
     sources = [
       "src/org/chromium/chrome/browser/download/DownloadOpenRequestTest.java",
       "src/org/chromium/chrome/browser/download/DownloadSharedPreferenceEntryTest.java",
+      "src/org/chromium/chrome/browser/download/DownloadUtilsUnitTest.java",
       "src/org/chromium/chrome/browser/download/OfflineContentAvailabilityStatusProviderTest.java",
       "src/org/chromium/chrome/browser/download/items/OfflineContentAggregatorNotificationBridgeUiTest.java",
       "src/org/chromium/chrome/browser/download/service/DownloadBackgroundTaskTest.java",
@@ -844,6 +845,7 @@ if (is_android) {
       "src/org/chromium/chrome/browser/firstrun/FirstRunFilterTouchUnitTest.java",
       "src/org/chromium/chrome/browser/firstrun/FirstRunFlowSequencerTest.java",
       "src/org/chromium/chrome/browser/firstrun/FirstRunIntegrationUnitTest.java",
+      "src/org/chromium/chrome/browser/firstrun/FirstRunUtilsUnitTest.java",
       "src/org/chromium/chrome/browser/firstrun/SkipTosDialogPolicyListenerUnitTest.java",
       "src/org/chromium/chrome/browser/firstrun/TosDialogBehaviorSharedPrefInvalidatorUnitTest.java",
     ]
@@ -984,6 +986,7 @@ if (is_android) {
       "//chrome/browser/composeplate/android:java",
       "//chrome/browser/ntp_customization:ntp_customization_test_support_java",
       "//chrome/browser/segmentation_platform:client_util_java",
+      "//chrome/browser/ui/android/logo:utils_java",
       "//third_party/android_deps:com_airbnb_android_lottie_java",
     ]
   }
@@ -1253,6 +1256,7 @@ if (is_android) {
 
     deps = [
       ":chrome_junit_tests_helper",
+      "//chrome/browser/settings:settings_in_tab_java",
       "//chrome/browser/ui/android/pdf:pdf_info_java",
     ]
   }
@@ -1546,6 +1550,7 @@ if (is_android) {
       "//chrome/android/java/src/org/chromium/chrome/browser/settings/MultiColumnTitleUpdaterTest.java",
       "//chrome/android/java/src/org/chromium/chrome/browser/settings/SettingsMenuHelperUnitTest.java",
       "src/org/chromium/chrome/browser/settings/ActivityUtilUnitTest.java",
+      "src/org/chromium/chrome/browser/settings/FragmentDependencyProviderTest.java",
       "src/org/chromium/chrome/browser/settings/SelectionDecorationTest.java",
       "src/org/chromium/chrome/browser/settings/SettingsActivityUnitTest.java",
       "src/org/chromium/chrome/browser/settings/SettingsBreadcrumbUtilTest.java",

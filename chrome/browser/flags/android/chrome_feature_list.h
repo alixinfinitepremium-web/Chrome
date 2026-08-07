@@ -40,7 +40,6 @@ BASE_DECLARE_FEATURE(kAndroidAtomsLogging);
 BASE_DECLARE_FEATURE(kAndroidBottomBar);
 BASE_DECLARE_FEATURE(kAndroidBricksNativePage);
 BASE_DECLARE_FEATURE(kAndroidContextMenuDisabledMenuItems);
-BASE_DECLARE_FEATURE(kAndroidContextMenuNewActions);
 BASE_DECLARE_FEATURE(kAndroidDesktopBookmarkLayout);
 BASE_DECLARE_FEATURE(kAndroidDesktopBookmarkPopup);
 BASE_DECLARE_FEATURE(kAndroidDeviceSignalsDisclaimer);
@@ -90,6 +89,7 @@ BASE_DECLARE_FEATURE(kAutomotiveBackButtonBarStreamline);
 BASE_DECLARE_FEATURE(kAuxiliarySearchDonation);
 BASE_DECLARE_FEATURE(kAuxiliarySearchHistoryDonation);
 BASE_DECLARE_FEATURE(kAvoidDoubleMultiwindowChanges);
+BASE_DECLARE_FEATURE(kBackGestureReflectsDesktopBehavior);
 BASE_DECLARE_FEATURE(kBackgroundThreadPool);
 BASE_DECLARE_FEATURE(kBlockIntentsWhileLocked);
 BASE_DECLARE_FEATURE(kBookmarkPaneAndroid);
@@ -218,7 +218,6 @@ BASE_DECLARE_FEATURE(kLaunchCauseScreenOffFix);
 BASE_DECLARE_FEATURE(kLensOnQuickActionSearchWidget);
 BASE_DECLARE_FEATURE(kLinkHoverStatusBar);
 BASE_DECLARE_FEATURE(kLoadAllTabsAtStartup);
-BASE_DECLARE_FEATURE(kLoadNativeEarly);
 BASE_DECLARE_FEATURE(kLocationBarModelOptimizations);
 BASE_DECLARE_FEATURE(kLockTopControlsOnLargeTabletsV2);
 BASE_DECLARE_FEATURE(kLongScreenshotsLenientMemoryCheck);
@@ -285,8 +284,11 @@ BASE_DECLARE_FEATURE(kSmallerTabStripTitleLimit);
 BASE_DECLARE_FEATURE(kStartSurfaceReturnTime);
 BASE_DECLARE_FEATURE(kSubmenusInAppMenu);
 BASE_DECLARE_FEATURE(kSubmenusInAppMenuLff);
+BASE_DECLARE_FEATURE(kSyncRestoreOnStartupPref);
 BASE_DECLARE_FEATURE(kTabAndroidGracefulShutdown);
 BASE_DECLARE_FEATURE(kTabBottomSheet);
+BASE_DECLARE_FEATURE(kTabBottomSheetFullHeight);
+BASE_DECLARE_FEATURE(kTabBottomSheetHalfHeight);
 BASE_DECLARE_FEATURE(kTabBottomSheetResizeWebview);
 BASE_DECLARE_FEATURE(kTabClosureMethodRefactor);
 BASE_DECLARE_FEATURE(kTabSearchForDesktop);
@@ -397,11 +399,6 @@ inline constexpr base::FeatureParam<int> kProtectRecentlyVisibleTabDuration(
     &kProtectRecentlyVisibleTab,
     "duration_in_seconds",
     /*default_value=*/base::Minutes(10).InSeconds());
-
-inline constexpr base::FeatureParam<bool> kInitFeatureListEarly(
-    &kLoadNativeEarly,
-    "init_feature_list_early",
-    /*default_value=*/true);
 
 inline constexpr base::FeatureParam<int>
     kReadAloudAudioOverviewsSpeedAdditionPercentage(

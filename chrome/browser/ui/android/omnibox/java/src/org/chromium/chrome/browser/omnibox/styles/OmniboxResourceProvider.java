@@ -25,7 +25,6 @@ import androidx.annotation.IntDef;
 import androidx.annotation.Px;
 import androidx.annotation.StringRes;
 import androidx.annotation.StyleRes;
-import androidx.annotation.VisibleForTesting;
 import androidx.appcompat.content.res.AppCompatResources;
 import androidx.core.content.ContextCompat;
 
@@ -97,7 +96,6 @@ public class OmniboxResourceProvider implements ComponentCallbacks2 {
     private boolean mDarkModeState;
 
     private final Context mContext;
-    private Context mLayoutSizeAdjustedContext;
     private ResourceCache mCache;
 
     private @BrandedColorScheme int mBrandedColorScheme = BrandedColorScheme.APP_DEFAULT;
@@ -172,12 +170,7 @@ public class OmniboxResourceProvider implements ComponentCallbacks2 {
         mLocaleState = newLocale;
         mDarkModeState = darkModeState;
 
-        mLayoutSizeAdjustedContext =
-                mLayoutSizeState == LayoutSize.TABLET_NARROW
-                        ? forceSmallTabletWindowConfig(mContext)
-                        : mContext;
-
-        mCache = new ResourceCache(mLayoutSizeAdjustedContext);
+        mCache = new ResourceCache(mContext);
     }
 
     private @LayoutSize int computeLayoutSize(Configuration config) {
@@ -190,13 +183,6 @@ public class OmniboxResourceProvider implements ComponentCallbacks2 {
                     : LayoutSize.TABLET_WIDE;
         }
         return LayoutSize.PHONE;
-    }
-
-    private Context forceSmallTabletWindowConfig(Context context) {
-        Configuration existingConfig = context.getResources().getConfiguration();
-        Configuration newConfig = new Configuration(existingConfig);
-        newConfig.smallestScreenWidthDp = existingConfig.screenWidthDp;
-        return context.createConfigurationContext(newConfig);
     }
 
     /** As {@link #getDrawable(Context, int)} but uses the instance context and cache. */
@@ -298,31 +284,52 @@ public class OmniboxResourceProvider implements ComponentCallbacks2 {
         return getSuggestionUrlTextColor(mContext, getBrandedColorScheme());
     }
 
-    /**
-     * Get status separator color.
-     *
-     * @see #getStatusSeparatorColor(Context, ...)
-     */
+    /** Get status separator color. */
     public @ColorInt int getStatusSeparatorColor() {
-        return getStatusSeparatorColor(mContext, getBrandedColorScheme());
+        @ColorRes
+        int res =
+                switch (mBrandedColorScheme) {
+                    case BrandedColorScheme.LIGHT_BRANDED_THEME ->
+                            R.color.locationbar_status_separator_color_dark;
+                    case BrandedColorScheme.DARK_BRANDED_THEME ->
+                            R.color.locationbar_status_separator_color_light;
+                    case BrandedColorScheme.INCOGNITO ->
+                            R.color.locationbar_status_separator_color_incognito;
+                    default -> 0;
+                };
+        return res != 0 ? mCache.getColor(res) : mCache.getColorAttr(R.attr.colorOutline);
     }
 
-    /**
-     * Get status preview text color.
-     *
-     * @see #getStatusPreviewTextColor(Context, ...)
-     */
+    /** Get status preview text color. */
     public @ColorInt int getStatusPreviewTextColor() {
-        return getStatusPreviewTextColor(mContext, getBrandedColorScheme());
+        @ColorRes
+        int res =
+                switch (mBrandedColorScheme) {
+                    case BrandedColorScheme.LIGHT_BRANDED_THEME ->
+                            R.color.locationbar_status_preview_color_dark;
+                    case BrandedColorScheme.DARK_BRANDED_THEME ->
+                            R.color.locationbar_status_preview_color_light;
+                    case BrandedColorScheme.INCOGNITO ->
+                            R.color.locationbar_status_preview_color_incognito;
+                    default -> 0;
+                };
+        return res != 0 ? mCache.getColor(res) : mCache.getColorAttr(R.attr.colorPrimary);
     }
 
-    /**
-     * Get status offline text color.
-     *
-     * @see #getStatusOfflineTextColor(Context, ...)
-     */
+    /** Get status offline text color. */
     public @ColorInt int getStatusOfflineTextColor() {
-        return getStatusOfflineTextColor(mContext, getBrandedColorScheme());
+        @ColorRes
+        int res =
+                switch (mBrandedColorScheme) {
+                    case BrandedColorScheme.LIGHT_BRANDED_THEME ->
+                            R.color.locationbar_status_offline_color_dark;
+                    case BrandedColorScheme.DARK_BRANDED_THEME ->
+                            R.color.locationbar_status_offline_color_light;
+                    case BrandedColorScheme.INCOGNITO ->
+                            R.color.locationbar_status_offline_color_incognito;
+                    default -> R.color.default_text_color_secondary_list;
+                };
+        return mCache.getColor(res);
     }
 
     /**
@@ -975,69 +982,6 @@ public class OmniboxResourceProvider implements ComponentCallbacks2 {
         return color;
     }
 
-    /**
-     * Returns the separator line color for the status view.
-     *
-     * @param context The context to retrieve the resources from.
-     * @param brandedColorScheme The {@link BrandedColorScheme}.
-     * @return Status view separator color.
-     */
-    public static @ColorInt int getStatusSeparatorColor(
-            Context context, @BrandedColorScheme int brandedColorScheme) {
-        if (brandedColorScheme == BrandedColorScheme.LIGHT_BRANDED_THEME) {
-            return context.getColor(R.color.locationbar_status_separator_color_dark);
-        }
-        if (brandedColorScheme == BrandedColorScheme.DARK_BRANDED_THEME) {
-            return context.getColor(R.color.locationbar_status_separator_color_light);
-        }
-        if (brandedColorScheme == BrandedColorScheme.INCOGNITO) {
-            return context.getColor(R.color.locationbar_status_separator_color_incognito);
-        }
-        return MaterialColors.getColor(context, R.attr.colorOutline, TAG);
-    }
-
-    /**
-     * Returns the preview text color for the status view.
-     *
-     * @param context The context to retrieve the resources from.
-     * @param brandedColorScheme The {@link BrandedColorScheme}.
-     * @return Status view preview text color.
-     */
-    public static @ColorInt int getStatusPreviewTextColor(
-            Context context, @BrandedColorScheme int brandedColorScheme) {
-        if (brandedColorScheme == BrandedColorScheme.LIGHT_BRANDED_THEME) {
-            return context.getColor(R.color.locationbar_status_preview_color_dark);
-        }
-        if (brandedColorScheme == BrandedColorScheme.DARK_BRANDED_THEME) {
-            return context.getColor(R.color.locationbar_status_preview_color_light);
-        }
-        if (brandedColorScheme == BrandedColorScheme.INCOGNITO) {
-            return context.getColor(R.color.locationbar_status_preview_color_incognito);
-        }
-        return MaterialColors.getColor(context, R.attr.colorPrimary, TAG);
-    }
-
-    /**
-     * Returns the offline text color for the status view.
-     *
-     * @param context The context to retrieve the resources from.
-     * @param brandedColorScheme The {@link BrandedColorScheme}.
-     * @return Status view offline text color.
-     */
-    public static @ColorInt int getStatusOfflineTextColor(
-            Context context, @BrandedColorScheme int brandedColorScheme) {
-        if (brandedColorScheme == BrandedColorScheme.LIGHT_BRANDED_THEME) {
-            return context.getColor(R.color.locationbar_status_offline_color_dark);
-        }
-        if (brandedColorScheme == BrandedColorScheme.DARK_BRANDED_THEME) {
-            return context.getColor(R.color.locationbar_status_offline_color_light);
-        }
-        if (brandedColorScheme == BrandedColorScheme.INCOGNITO) {
-            return context.getColor(R.color.locationbar_status_offline_color_incognito);
-        }
-        return context.getColor(R.color.default_text_color_secondary_list);
-    }
-
     /** Returns the background color for suggestions in the given color scheme and context. */
     public static @ColorInt int getStandardSuggestionBackgroundColor(
             Context context, @BrandedColorScheme int colorScheme) {
@@ -1142,28 +1086,24 @@ public class OmniboxResourceProvider implements ComponentCallbacks2 {
 
     /** Returns the top padding for the Omnibox suggestions dropdown list. */
     public static @Px int getDropdownTopPadding(Context context) {
-        context = maybeReplaceContextForSmallTabletWindow(context);
         return context.getResources()
                 .getDimensionPixelOffset(R.dimen.omnibox_suggestion_list_padding_top);
     }
 
     /** Get the top padding for the MV carousel. */
     public static @Px int getMostVisitedCarouselTopPadding(Context context) {
-        context = maybeReplaceContextForSmallTabletWindow(context);
         return context.getResources()
                 .getDimensionPixelSize(R.dimen.omnibox_carousel_suggestion_padding_smaller);
     }
 
     /** Get the bottom padding for the MV carousel. */
     public static @Px int getMostVisitedCarouselBottomPadding(Context context) {
-        context = maybeReplaceContextForSmallTabletWindow(context);
         return context.getResources()
                 .getDimensionPixelSize(R.dimen.omnibox_carousel_suggestion_padding);
     }
 
     /** Gets the start padding for a header suggestion. */
     public static @Px int getHeaderStartPadding(Context context) {
-        context = maybeReplaceContextForSmallTabletWindow(context);
         if (OmniboxCapabilities.isDesktopPlatform()) {
             return context.getResources()
                     .getDimensionPixelSize(R.dimen.omnibox_suggestion_header_padding_start_desktop);
@@ -1196,15 +1136,8 @@ public class OmniboxResourceProvider implements ComponentCallbacks2 {
 
     /** Returns the width of the Omnibox Suggestion decoration icon. */
     public static @Px int getSuggestionDecorationIconSizeWidth(Context context) {
-        Context wrappedContext = maybeReplaceContextForSmallTabletWindow(context);
-        Resources resources = context.getResources();
-        if (DeviceFormFactor.isNonMultiDisplayContextOnTablet(context)
-                && wrappedContext == context) {
-            return resources.getDimensionPixelSize(
-                    R.dimen.omnibox_suggestion_icon_area_size_modern);
-        }
-
-        return resources.getDimensionPixelSize(R.dimen.omnibox_suggestion_icon_area_size);
+        return context.getResources()
+                .getDimensionPixelSize(R.dimen.omnibox_suggestion_icon_area_size);
     }
 
     /** Returns the height of the content of an Omnibox Suggestion. */
@@ -1267,32 +1200,6 @@ public class OmniboxResourceProvider implements ComponentCallbacks2 {
         }
 
         return context;
-    }
-
-    /**
-     * Replace the given context with a new one where smallestScreenWidthDp is set to the current
-     * screen width, if: 1. The tablet revamp is enabled and the current device is a tablet 2. The
-     * current window width is narrower than 600dp. The returned context can be used to retrieve
-     * resources appropriate for a smaller minimum screen size. If 1 and 2 aren't true, the original
-     * context is returned.
-     *
-     * @param context The context to replace.
-     */
-    @VisibleForTesting
-    static Context maybeReplaceContextForSmallTabletWindow(Context context) {
-        if (!DeviceFormFactor.isNonMultiDisplayContextOnTablet(context)) {
-            return context;
-        }
-
-        Configuration existingConfig = context.getResources().getConfiguration();
-        if (existingConfig.screenWidthDp >= DeviceFormFactor.MINIMUM_TABLET_WIDTH_DP) {
-            return context;
-        }
-
-        Configuration newConfig = new Configuration(existingConfig);
-        newConfig.smallestScreenWidthDp = existingConfig.screenWidthDp;
-
-        return context.createConfigurationContext(newConfig);
     }
 
     /**

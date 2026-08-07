@@ -101,11 +101,6 @@
     "expiry_milestone": 160
   },
   {
-    "name": "aim-cobrowse-header",
-    "owners": [ "radunitescu@google.com", "bling-search@google.com" ],
-    "expiry_milestone": 153
-  },
-  {
     "name": "aim-eligibility-component-extension",
     "owners": [
       "mahmadi@chromium.org",
@@ -294,15 +289,6 @@
       "clank-tab-dev@google.com"
     ],
     "expiry_milestone": 160
-  },
-  {
-    "name": "android-context-menu-new-actions",
-    "owners": [
-      "hitarthkothari@google.com",
-      "ckitagawa@google.com",
-      "clank-tab-dev@google.com"
-    ],
-    "expiry_milestone": 155
   },
   {
     "name": "android-desktop-aim-gate",
@@ -7715,6 +7701,11 @@
     "expiry_milestone": 159
   },
   {
+    "name": "omnibox-paste-promo-experiment",
+    "owners": [ "lilybalas@google.com", "bling-mony-pod@google.com" ],
+    "expiry_milestone": 160
+  },
+  {
     "name": "omnibox-rich-autocompletion-promising",
     "owners": [ "manukh@chromium.org", "chrome-omnibox-team@google.com" ],
     "expiry_milestone": 140
@@ -8064,6 +8055,11 @@
   {
     "name": "payment-handler-camera-access",
     "owners": [ "smcgruer@chromium.org", "chrome-payments-eng@google.com" ],
+    "expiry_milestone": 160
+  },
+  {
+    "name": "payment-handler-camera-access-ux",
+    "owners": [ "luisantunes@google.com", "chrome-payments-eng@google.com" ],
     "expiry_milestone": 160
   },
   {
@@ -9337,6 +9333,14 @@
     "expiry_milestone": 155
   },
   {
+    "name": "sync-restore-on-startup-pref",
+    "owners": [
+      "aishwaryarj@google.com",
+      "clank-large-form-factors@google.com"
+    ],
+    "expiry_milestone": 160
+  },
+  {
     "name": "sync-search-engines-android-lff",
     "owners": ["ender@google.com", "kaiyilin@google.com", "oka@google.com"],
     "expiry_milestone": 160
@@ -9395,6 +9399,16 @@
   {
     "name": "tab-bottom-sheet",
     "owners": [ "hitarthkothari@google.com", "ckitagawa@google.com", "clank-tab-dev@google.com"],
+    "expiry_milestone": 155
+  },
+  {
+    "name": "tab-bottom-sheet-full-height",
+    "owners": [ "mfiaz@google.com", "clank-tab-dev@google.com" ],
+    "expiry_milestone": 155
+  },
+  {
+    "name": "tab-bottom-sheet-half-height",
+    "owners": [ "mfiaz@google.com", "clank-tab-dev@google.com" ],
     "expiry_milestone": 155
   },
   {
@@ -10263,6 +10277,11 @@
     "name": "web-request-security-info",
     "owners": ["vkrot@google.com", "bhaskarsharma@google.com", "//extensions/OWNERS"],
     "expiry_milestone": 160
+  },
+  {
+    "name": "web-speech-on-device-small-expert-model",
+    "owners": [ "evliu@google.com", "chrome-media-ux@google.com" ],
+    "expiry_milestone": 170
   },
   {
     "name": "webcrypto-pqc",

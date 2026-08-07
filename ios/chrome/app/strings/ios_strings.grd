@@ -2383,6 +2383,36 @@ To continue from your computer, switch to <ph name="OTHER_EMAIL">$2<ex>john.doe@
       <message name="IDS_IOS_DEFAULT_BROWSER_NON_MODAL_1P_APP_TITLE" desc="Title for the non-modal default browser promotion banner when Chrome is opened from a first-party app.">
         Better browsing by default
       </message>
+      <message name="IDS_IOS_DEFAULT_BROWSER_NON_MODAL_OMNIBOX_NAVIGATION_TITLE_EXP1" desc="Title for the non-modal default browser promotion banner after Omnibox URL copy/paste and navigation (Copy/Paste Friction experiment) [iOS only].">
+        Skip the Copy &amp; Paste
+      </message>
+      <message name="IDS_IOS_DEFAULT_BROWSER_NON_MODAL_OMNIBOX_NAVIGATION_TITLE_EXP10" desc="Title for the non-modal default browser promotion banner after Omnibox URL copy/paste and navigation (Experience Upgrade experiment) [iOS only].">
+        Better link opening
+      </message>
+      <message name="IDS_IOS_DEFAULT_BROWSER_NON_MODAL_OMNIBOX_NAVIGATION_TITLE_EXP2" desc="Title for the non-modal default browser promotion banner after Omnibox URL copy/paste and navigation (One-Tap Open experiment) [iOS only].">
+        One-Tap Open
+      </message>
+      <message name="IDS_IOS_DEFAULT_BROWSER_NON_MODAL_OMNIBOX_NAVIGATION_TITLE_EXP3" desc="Title for the non-modal default browser promotion banner after Omnibox URL copy/paste and navigation (Smooth Transitions experiment) [iOS only].">
+        Tired of copying links?
+      </message>
+      <message name="IDS_IOS_DEFAULT_BROWSER_NON_MODAL_OMNIBOX_NAVIGATION_TITLE_EXP4" desc="Title for the non-modal default browser promotion banner after Omnibox URL copy/paste and navigation (Time Saving experiment) [iOS only].">
+        Save time on every link
+      </message>
+      <message name="IDS_IOS_DEFAULT_BROWSER_NON_MODAL_OMNIBOX_NAVIGATION_TITLE_EXP5" desc="Title for the non-modal default browser promotion banner after Omnibox URL copy/paste and navigation (Direct Loading experiment) [iOS only].">
+        Launch links directly here
+      </message>
+      <message name="IDS_IOS_DEFAULT_BROWSER_NON_MODAL_OMNIBOX_NAVIGATION_TITLE_EXP6" desc="Title for the non-modal default browser promotion banner after Omnibox URL copy/paste and navigation (Convenience experiment) [iOS only].">
+        Paste less, browse more
+      </message>
+      <message name="IDS_IOS_DEFAULT_BROWSER_NON_MODAL_OMNIBOX_NAVIGATION_TITLE_EXP7" desc="Title for the non-modal default browser promotion banner after Omnibox URL copy/paste and navigation (Speed experiment) [iOS only].">
+        Get here in one tap
+      </message>
+      <message name="IDS_IOS_DEFAULT_BROWSER_NON_MODAL_OMNIBOX_NAVIGATION_TITLE_EXP8" desc="Title for the non-modal default browser promotion banner after Omnibox URL copy/paste and navigation (Seamless Web Flow experiment) [iOS only].">
+        Fluid cross-app browsing
+      </message>
+      <message name="IDS_IOS_DEFAULT_BROWSER_NON_MODAL_OMNIBOX_NAVIGATION_TITLE_EXP9" desc="Title for the non-modal default browser promotion banner after Omnibox URL copy/paste and navigation (Direct Action experiment) [iOS only].">
+        Open links here next time
+      </message>
       <message name="IDS_IOS_DEFAULT_BROWSER_PROMO_PRIMARY_BUTTON_TEXT" desc="Text of button that will take users to iOS settings, where they can change the default browser. Used in the default browser promos [iOS only]">
         Go to Settings…
       </message>
@@ -7249,6 +7279,9 @@ Handoff must also be enabled in the General section of Settings, and your device
       </message>
       <message name="IDS_IOS_SEND_TAB_TO_SELF_NO_TARGET_DEVICE_LABEL_WITH_EMAIL" desc="Label shown when a user with no available target devices attempts to use send-tab-to-self, displaying the email they should sign in with. [iOS only]">
         To send this link, sign in to your other device using <ph name="USER_EMAIL">$1<ex>user@email.com</ex></ph>
+      </message>
+      <message name="IDS_IOS_SEND_TAB_TO_SELF_SHARE_SHEET_DEVICE_NAME_WITH_OWNER" desc="Title for dynamic target device in iOS share sheet, displaying the user's name and device name. [iOS only]">
+        <ph name="OWNER_NAME">$1<ex>John</ex></ph> • <ph name="DEVICE_NAME">$2<ex>Pixel 7 Pro</ex></ph>
       </message>
       <message name="IDS_IOS_SEND_TAB_TO_SELF_SNACKBAR_MESSAGE" desc="Message briefly displayed at the bottom of the screen to the user to inform that the tab is being sent to the target device. [Length: 35em]" meaning="The is being sent to the target device. [Length: 35em]">
         Sending to <ph name="DEVICE_NAME">$1<ex>IPhone</ex></ph>…

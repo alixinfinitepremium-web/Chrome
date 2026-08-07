@@ -161,7 +161,6 @@
 #include "components/payments/core/features.h"
 #include "components/performance_manager/public/features.h"
 #include "components/permissions/features.h"
-#include "components/plus_addresses/core/common/features.h"
 #include "components/policy/core/common/features.h"
 #include "components/privacy_sandbox/privacy_sandbox_features.h"
 #include "components/regional_capabilities/regional_capabilities_switches.h"
@@ -334,6 +333,7 @@
 #include "chromeos/constants/chromeos_switches.h"
 #include "components/app_restore/features.h"
 #include "components/cross_device/nearby/nearby_features.h"
+#include "components/enterprise/connectors/core/features.h"
 #include "components/metrics/structured/structured_metrics_features.h"  // nogncheck
 #include "media/capture/video/chromeos/video_capture_features_chromeos.h"
 #include "remoting/host/chromeos/features.h"
@@ -766,6 +766,39 @@ const FeatureEntry::FeatureVariation kTabBottomSheetVariations[] = {
     {"Suppress bottom toolbar while open", kTabBottomSheetSuppressToolbarParam,
      nullptr}};
 
+const FeatureEntry::FeatureParam kTabBottomSheetFullHeight080Param[] = {
+    {"full_height_ratio", "0.80"}};
+const FeatureEntry::FeatureParam kTabBottomSheetFullHeight085Param[] = {
+    {"full_height_ratio", "0.85"}};
+const FeatureEntry::FeatureParam kTabBottomSheetFullHeight090Param[] = {
+    {"full_height_ratio", "0.90"}};
+const FeatureEntry::FeatureParam kTabBottomSheetFullHeight095Param[] = {
+    {"full_height_ratio", "0.95"}};
+const FeatureEntry::FeatureParam kTabBottomSheetFullHeight100Param[] = {
+    {"full_height_ratio", "1.00"}};
+
+const FeatureEntry::FeatureVariation kTabBottomSheetFullHeightVariations[] = {
+    {"0.80 ratio", kTabBottomSheetFullHeight080Param, nullptr},
+    {"0.85 ratio", kTabBottomSheetFullHeight085Param, nullptr},
+    {"0.90 ratio", kTabBottomSheetFullHeight090Param, nullptr},
+    {"0.95 ratio", kTabBottomSheetFullHeight095Param, nullptr},
+    {"1.00 ratio", kTabBottomSheetFullHeight100Param, nullptr}};
+
+const FeatureEntry::FeatureParam kTabBottomSheetHalfHeight065Param[] = {
+    {"half_height_ratio", "0.65"}};
+const FeatureEntry::FeatureParam kTabBottomSheetHalfHeight070Param[] = {
+    {"half_height_ratio", "0.70"}};
+const FeatureEntry::FeatureParam kTabBottomSheetHalfHeight075Param[] = {
+    {"half_height_ratio", "0.75"}};
+const FeatureEntry::FeatureParam kTabBottomSheetHalfHeight080Param[] = {
+    {"half_height_ratio", "0.80"}};
+
+const FeatureEntry::FeatureVariation kTabBottomSheetHalfHeightVariations[] = {
+    {"0.65 ratio", kTabBottomSheetHalfHeight065Param, nullptr},
+    {"0.70 ratio", kTabBottomSheetHalfHeight070Param, nullptr},
+    {"0.75 ratio", kTabBottomSheetHalfHeight075Param, nullptr},
+    {"0.80 ratio", kTabBottomSheetHalfHeight080Param, nullptr}};
+
 const FeatureEntry::FeatureParam kTabBottomSheetResizeWebviewDefaultParam[] = {
     {"resizing_strategy", "default"}};
 const FeatureEntry::FeatureParam
@@ -1021,6 +1054,12 @@ const FeatureEntry::FeatureVariation kWebUIOmniboxFullPopupVariations[] = {
     {"- with Multiline", kWebUIOmniboxFullPopupMultiline, nullptr},
 };
 
+const FeatureEntry::FeatureParam kOmniboxEverywhereProfilePicker[] = {
+    {"ProfilePicker", "true"}};
+
+const FeatureEntry::FeatureVariation kOmniboxEverywhereVariations[] = {
+    {"with Profile Picker", kOmniboxEverywhereProfilePicker, nullptr}};
+
 const FeatureEntry::FeatureParam
     kWebUiOmniboxAskGAboutThisPageCobrowseAndLensEntrypoint[] = {
         {"Omnibox_AskGCoBrowse", "true"},
@@ -1032,7 +1071,8 @@ const FeatureEntry::FeatureParam
         {"Omnibox_AskGCurrentTabChip", "false"},
         {"Omnibox_AskGLensIcon", "true"},
         {"Omnibox_AskGLensSearchHintText", "false"},
-        {"Omnibox_AskGComposeboxLensChip", "false"}};
+        {"Omnibox_AskGComposeboxLensChip", "false"},
+        {"Omnibox_AskGBlockZeroStateSuggestions", "false"}};
 const FeatureEntry::FeatureParam
     kWebUiOmniboxAskGAboutThisPageCobrowsePlusVisualSelection[] = {
         {"Omnibox_AskGCoBrowse", "false"},
@@ -1044,7 +1084,8 @@ const FeatureEntry::FeatureParam
         {"Omnibox_AskGCurrentTabChip", "false"},
         {"Omnibox_AskGLensIcon", "false"},
         {"Omnibox_AskGLensSearchHintText", "false"},
-        {"Omnibox_AskGComposeboxLensChip", "false"}};
+        {"Omnibox_AskGComposeboxLensChip", "false"},
+        {"Omnibox_AskGBlockZeroStateSuggestions", "false"}};
 const FeatureEntry::FeatureParam
     kWebUiOmniboxAskGAboutThisPageOmniboxComposebox[] = {
         {"Omnibox_AskGCoBrowse", "false"},
@@ -1056,7 +1097,8 @@ const FeatureEntry::FeatureParam
         {"Omnibox_AskGCurrentTabChip", "false"},
         {"Omnibox_AskGLensIcon", "false"},
         {"Omnibox_AskGLensSearchHintText", "true"},
-        {"Omnibox_AskGComposeboxLensChip", "true"}};
+        {"Omnibox_AskGComposeboxLensChip", "true"},
+        {"Omnibox_AskGBlockZeroStateSuggestions", "true"}};
 const FeatureEntry::FeatureParam
     kWebUiOmniboxAskGAboutThisPageOmniboxComposeboxAndLensEntrypoint[] = {
         {"Omnibox_AskGCoBrowse", "false"},
@@ -1068,7 +1110,8 @@ const FeatureEntry::FeatureParam
         {"Omnibox_AskGCurrentTabChip", "false"},
         {"Omnibox_AskGLensIcon", "true"},
         {"Omnibox_AskGLensSearchHintText", "false"},
-        {"Omnibox_AskGComposeboxLensChip", "false"}};
+        {"Omnibox_AskGComposeboxLensChip", "false"},
+        {"Omnibox_AskGBlockZeroStateSuggestions", "true"}};
 const FeatureEntry::FeatureParam
     kWebUiOmniboxAskGAboutThisPageOmniboxChipComposeboxAndLensEntrypoint[] = {
         {"Omnibox_AskGCoBrowse", "false"},
@@ -1080,7 +1123,8 @@ const FeatureEntry::FeatureParam
         {"Omnibox_AskGCurrentTabChip", "true"},
         {"Omnibox_AskGLensIcon", "true"},
         {"Omnibox_AskGLensSearchHintText", "false"},
-        {"Omnibox_AskGComposeboxLensChip", "false"}};
+        {"Omnibox_AskGComposeboxLensChip", "false"},
+        {"Omnibox_AskGBlockZeroStateSuggestions", "true"}};
 
 const FeatureEntry::FeatureVariation
     kWebUiOmniboxAskGAboutThisPageVariations[] = {
@@ -2766,6 +2810,12 @@ const FeatureEntry::FeatureVariation kTabStorageSqlitePrototypeVariations[] = {
     {"- Authoritative Read Source",
      kTabStorageSqlitePrototypeAuthoritativeReads, nullptr},
     {"- Full Migration", kTabStorageSqlitePrototypeFullMigration, nullptr}};
+
+const FeatureEntry::FeatureParam kPdfV2EnableFormFillingParam[] = {
+    {"enable_form_filling", "true"}};
+
+const FeatureEntry::FeatureVariation kInlinePdfV2Variations[] = {
+    {"with form filling", kPdfV2EnableFormFillingParam, nullptr}};
 
 #endif  // BUILDFLAG(IS_ANDROID)
 
@@ -4617,6 +4667,13 @@ const FeatureEntry::Choice kSpeculativeDecodingChoices[] = {
     {flags_ui::kGenericExperimentChoiceEnabled, switches::kEnableFeatures,
      "OnDeviceModelSpeculativeDecoding,OptimizationGuideManifestBroker,"
      "OnDeviceModelLitertLmBackend,AIApiFoundationalModel:model_version/v4"}};
+
+const FeatureEntry::Choice kOnDeviceWebSpeechSmallExpertModelChoices[] = {
+    {flags_ui::kGenericExperimentChoiceDefault, "", ""},
+    {flags_ui::kGenericExperimentChoiceEnabled, switches::kEnableFeatures,
+     "OnDeviceWebSpeech,OnDeviceWebSpeechSmallExpertModel,"
+     "OptimizationGuideManifestBroker,OnDeviceModelLitertLmBackend,"
+     "OnDeviceModelGpuProgramCache,OnDeviceModelGpuWeightCache"}};
 
 const FeatureEntry::FeatureParam kWalletApiPrivatePassesUrl[] = {
     {"wallet_pass_save_url", "https://wallet1ppasses.pa.googleapis.com"}};
@@ -6934,7 +6991,6 @@ const FeatureEntry kFeatureEntries[] = {
      FEATURE_VALUE_TYPE(
          optimization_guide::features::kOptimizationGuideOnDeviceModel)},
 
-
     {"organic-repeatable-queries",
      flag_descriptions::kOrganicRepeatableQueriesName,
      flag_descriptions::kOrganicRepeatableQueriesDescription,
@@ -7527,7 +7583,9 @@ const FeatureEntry kFeatureEntries[] = {
 #if BUILDFLAG(IS_ANDROID)
     {"inline-pdf-v2", flag_descriptions::kInlinePdfV2Name,
      flag_descriptions::kInlinePdfV2Description, kOsAndroid,
-     FEATURE_VALUE_TYPE(chrome::android::kInlinePdfV2)},
+     FEATURE_WITH_PARAMS_VALUE_TYPE(chrome::android::kInlinePdfV2,
+                                    kInlinePdfV2Variations,
+                                    "InlinePdfV2")},
     {"inline-pdf-v2-incognito", flag_descriptions::kInlinePdfV2IncognitoName,
      flag_descriptions::kInlinePdfV2IncognitoDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(chrome::android::kInlinePdfV2Incognito)},
@@ -7614,6 +7672,11 @@ const FeatureEntry kFeatureEntries[] = {
     {"on-startup-window-policy", flag_descriptions::kOnStartupWindowPolicyName,
      flag_descriptions::kOnStartupWindowPolicyDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(chrome::android::kOnStartupWindowPolicy)},
+
+    {"sync-restore-on-startup-pref",
+     flag_descriptions::kSyncRestoreOnStartupPrefName,
+     flag_descriptions::kSyncRestoreOnStartupPrefDescription, kOsAndroid,
+     FEATURE_VALUE_TYPE(chrome::android::kSyncRestoreOnStartupPref)},
 
     {kSettingsInTabInternalName, flag_descriptions::kSettingsInTabName,
      flag_descriptions::kSettingsInTabDescription, kOsAndroid,
@@ -9590,7 +9653,9 @@ const FeatureEntry kFeatureEntries[] = {
                                     "OmniboxDynamicSubmitVariations")},
     {"omnibox-loom", flag_descriptions::kOmniboxLoomName,
      flag_descriptions::kOmniboxLoomDescription, kOsDesktop,
-     FEATURE_VALUE_TYPE(omnibox::kOmniboxEverywhere)},
+     FEATURE_WITH_PARAMS_VALUE_TYPE(omnibox::kOmniboxEverywhere,
+                                    kOmniboxEverywhereVariations,
+                                    "OmniboxEverywhere")},
 
     {"webui-omnibox-aim-popup", flag_descriptions::kWebUIOmniboxAimPopupName,
      flag_descriptions::kWebUIOmniboxAimPopupDescription, kOsDesktop,
@@ -10170,6 +10235,20 @@ const FeatureEntry kFeatureEntries[] = {
                                     kTabBottomSheetVariations,
                                     "TabBottomSheet")},
 
+    {"tab-bottom-sheet-full-height",
+     flag_descriptions::kTabBottomSheetFullHeightName,
+     flag_descriptions::kTabBottomSheetFullHeightDescription, kOsAndroid,
+     FEATURE_WITH_PARAMS_VALUE_TYPE(chrome::android::kTabBottomSheetFullHeight,
+                                    kTabBottomSheetFullHeightVariations,
+                                    "TabBottomSheetFullHeight")},
+
+    {"tab-bottom-sheet-half-height",
+     flag_descriptions::kTabBottomSheetHalfHeightName,
+     flag_descriptions::kTabBottomSheetHalfHeightDescription, kOsAndroid,
+     FEATURE_WITH_PARAMS_VALUE_TYPE(chrome::android::kTabBottomSheetHalfHeight,
+                                    kTabBottomSheetHalfHeightVariations,
+                                    "TabBottomSheetHalfHeight")},
+
     {"tab-bottom-sheet-resize-webview",
      flag_descriptions::kTabBottomSheetResizeWebviewName,
      flag_descriptions::kTabBottomSheetResizeWebviewDescription, kOsAndroid,
@@ -10447,6 +10526,11 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kOnDeviceModelSpeculativeDecodingName,
      flag_descriptions::kOnDeviceModelSpeculativeDecodingDescription,
      kOsDesktop, MULTI_VALUE_TYPE(kSpeculativeDecodingChoices)},
+
+    {"web-speech-on-device-small-expert-model",
+     flag_descriptions::kOnDeviceWebSpeechSmallExpertModelName,
+     flag_descriptions::kOnDeviceWebSpeechSmallExpertModelDescription,
+     kOsDesktop, MULTI_VALUE_TYPE(kOnDeviceWebSpeechSmallExpertModelChoices)},
 
     {"css-grid-lanes-layout", flag_descriptions::kCSSGridLanesLayoutName,
      flag_descriptions::kCSSGridLanesLayoutDescription, kOsAll,
@@ -12344,11 +12428,6 @@ const FeatureEntry kFeatureEntries[] = {
 #endif
 
 #if (BUILDFLAG(IS_ANDROID))
-    {"android-context-menu-new-actions",
-     flag_descriptions::kAndroidContextMenuNewActionsName,
-     flag_descriptions::kAndroidContextMenuNewActionsDescription, kOsAndroid,
-     FEATURE_VALUE_TYPE(chrome::android::kAndroidContextMenuNewActions)},
-
     {"android-context-menu-disabled-menu-items",
      flag_descriptions::kAndroidContextMenuDisabledMenuItemsName,
      flag_descriptions::kAndroidContextMenuDisabledMenuItemsDescription,
@@ -13346,7 +13425,7 @@ const FeatureEntry kFeatureEntries[] = {
     {"enable-dlp-file-system-api",
      flag_descriptions::kEnableDlpFileSystemApiName,
      flag_descriptions::kEnableDlpFileSystemApiDescription, kOsCrOS,
-     FEATURE_VALUE_TYPE(enterprise_data_protection::kEnableDlpFileSystemApi)},
+     FEATURE_VALUE_TYPE(enterprise_connectors::kEnableDlpFileSystemApi)},
 #endif  // BUILDFLAG(IS_CHROMEOS)
 
 #if BUILDFLAG(IS_CHROMEOS)
@@ -13607,6 +13686,10 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kPaymentHandlerCameraAccessName,
      flag_descriptions::kPaymentHandlerCameraAccessDescription, kOsDesktop,
      FEATURE_VALUE_TYPE(payments::features::kPaymentHandlerCameraAccess)},
+    {"payment-handler-camera-access-ux",
+     flag_descriptions::kPaymentHandlerCameraAccessUxName,
+     flag_descriptions::kPaymentHandlerCameraAccessUxDescription, kOsDesktop,
+     FEATURE_VALUE_TYPE(payments::features::kPaymentHandlerCameraAccessUx)},
     {"devtools-instrumentation-breakpoints",
      flag_descriptions::kDevToolsInstrumentationBreakpointsName,
      flag_descriptions::kDevToolsInstrumentationBreakpointsDescription, kOsAll,
