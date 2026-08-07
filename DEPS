@@ -407,7 +407,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '6d1e224c02ef0481eb36eda5d442eec2c84d68c9',
+  'devtools_frontend_revision': 'e3b1a44c39d1d56bf2b41643bd65d04be6a40217',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1188,10 +1188,10 @@ deps = {
     'condition': 'non_git_source',
     'objects': [
       {
-        'object_name': 'meet-gpu-tests/960014087.tar.gz',
-        'sha256sum': 'c621fd5ea7ffa383747de0874ed01eea019be2d0181a7a16295778f18b7d96fd',
-        'size_bytes': 278505718,
-        'generation': 1786006386240155,
+        'object_name': 'meet-gpu-tests/960602972.tar.gz',
+        'sha256sum': '7336e2d4da8a90b3e168c45925de1606cf484f2f2d546df70a903d40a2523372',
+        'size_bytes': 278506964,
+        'generation': 1786092449942225,
       },
     ],
   },
@@ -3170,7 +3170,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '006c8acd7b2a83fcc5ce1ceab383fbe7ca67cdbc',
+    Var('webrtc_git') + '/src.git' + '@' + '36338af30ec0b69a823b537ce5c7ae6c0b709948',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.

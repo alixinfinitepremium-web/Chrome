@@ -477,6 +477,14 @@ BASE_FEATURE(kAutofillAndroidDisableSuggestionsOnJSFocus,
 BASE_FEATURE(kAutofillAndroidKeyboardAccessoryDynamicPositioning,
              base::FEATURE_DISABLED_BY_DEFAULT);
 
+#if BUILDFLAG(IS_ANDROID)
+// If enabled, on Android, hovering over an Autofill suggestion in the keyboard
+// accessory triggers a preview of the suggestion.
+// TODO(crbug.com/542535472): Remove when launched.
+BASE_FEATURE(kAutofillAndroidKeyboardAccessoryHoverPreview,
+             base::FEATURE_DISABLED_BY_DEFAULT);
+#endif  // BUILDFLAG(IS_ANDROID)
+
 // Feature flag for kAutofillAtMemory.
 BASE_FEATURE(kAutofillAtMemory, base::FEATURE_DISABLED_BY_DEFAULT);
 
@@ -647,6 +655,11 @@ BASE_FEATURE(kAutofillEnableAutofillSettingsEnterprisePolicy,
 // TODO(crbug.com/496889243): Remove when launched.
 BASE_FEATURE(kAutofillEnableDeduplicationOnBackgroundThread,
              base::FEATURE_DISABLED_BY_DEFAULT);
+
+// When enabled, the height of the autofill popup is limited to show a fixed
+// maximum number of entries.
+BASE_FEATURE(kAutofillEnableEntryLimitInPopup,
+             base::FEATURE_ENABLED_BY_DEFAULT);
 
 // Enables a couple of improvements to credit card expiration date handling:
 // - The autocomplete attribute values are rationalized with format strings
