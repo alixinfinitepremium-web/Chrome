@@ -20,11 +20,13 @@
 #include "base/test/scoped_run_loop_timeout.h"
 #include "third_party/abseil-cpp/absl/functional/overload.h"
 #include "ui/base/interaction/element_identifier.h"
+#include "ui/base/interaction/element_state_observers.h"
 #include "ui/base/interaction/element_tracker.h"
 #include "ui/base/interaction/interaction_sequence.h"
 #include "ui/base/interaction/interaction_test_util.h"
 #include "ui/base/interaction/interactive_test_definitions.h"
 #include "ui/base/interaction/interactive_test_internal.h"
+#include "ui/base/interaction/state_observer.h"
 
 namespace ui::test {
 
@@ -332,6 +334,26 @@ InteractiveTestApi::StepBuilder InteractiveTestApi::EnsurePresent(
               internal::DescribeElement(element_to_check).c_str())));
 }
 
+InteractiveTestApi::MultiStep InteractiveTestApi::WaitForElementCount(
+    ElementIdentifier id,
+    size_t count) {
+  auto steps = Steps(
+      WithElement(
+          internal::kInteractiveTestPivotElementId,
+          [this, id](ui::InteractionSequence* seq, ui::TrackedElement* el) {
+            private_test_impl().AddStateObserver(
+                internal::kWaitForElementCountState.identifier(), el->context(),
+                std::make_unique<internal::ElementCountStateObserver>(
+                    id, seq->IsCurrentStepInAnyContextForTesting()
+                            ? ui::ElementContext()
+                            : el->context()));
+          }),
+      WaitForState(internal::kWaitForElementCountState, count),
+      StopObservingState(internal::kWaitForElementCountState));
+  AddDescriptionPrefix(steps, "WaitForElementCount");
+  return steps;
+}
+
 InteractionSequence::StepBuilder InteractiveTestApi::NameElement(
     std::string_view name,
     AbsoluteElementSpecifier spec) {
@@ -469,7 +491,7 @@ InteractiveTestApi::GetFindElementCallback(AbsoluteElementSpecifier spec) {
   return std::visit(
       absl::Overload{
           [](TrackedElement* el) {
-            CHECK(el) << "NameView(TrackedElement*): view must be set.";
+            CHECK(el) << "NameElement(TrackedElement*): element must be set.";
             return base::BindOnce(
                 [](const SafeElementReference& ref, TrackedElement*) {
                   LOG_IF(ERROR, !ref.get()) << "NameElement(TrackedElement*): "

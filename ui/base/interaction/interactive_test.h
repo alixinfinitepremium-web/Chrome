@@ -311,6 +311,12 @@ class InteractiveTestApi {
   [[nodiscard]] static StepBuilder EnsurePresent(
       ElementSpecifier element_to_check);
 
+  // Waits until there are `count` visible elements with identifier `id`.
+  // If `InAnyContext()` is specified, the elements will be counted in any
+  // context.
+  [[nodiscard]] MultiStep WaitForElementCount(ElementIdentifier id,
+                                              size_t count);
+
   // Specifies an element not relative to any particular other element.
   using AbsoluteElementSpecifier = std::variant<
       // Specify an element that is known at the time the sequence is created.
@@ -923,7 +929,7 @@ InteractionSequence::StepBuilder InteractiveTestApi::NameElementRelative(
          ui::TrackedElement* el) {
         TrackedElement* const result = std::move(find_callback).Run(el);
         if (!result) {
-          LOG(ERROR) << "NameElement(): No View found.";
+          LOG(ERROR) << "NameElement(): No element found.";
           seq->FailForTesting();
           return;
         }

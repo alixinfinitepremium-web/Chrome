@@ -7,9 +7,10 @@
 
 #import <UIKit/UIKit.h>
 
-#import <map>
 #import <memory>
 #import <set>
+#import <utility>
+#import <vector>
 
 #import "base/memory/raw_ptr.h"
 #import "base/observer_list.h"
@@ -75,6 +76,9 @@ class GeminiBrowserAgent : public BrowserUserData<GeminiBrowserAgent>,
                            public TabGridStateObserver,
                            public GeminiContainerMediatorEventHandler {
  public:
+  using AttachedTabsList =
+      std::vector<std::pair<web::WebStateID, __strong GeminiPageContext*>>;
+
   // Observer interface for GeminiBrowserAgent.
   class Observer : public base::CheckedObserver {
    public:
@@ -217,6 +221,9 @@ class GeminiBrowserAgent : public BrowserUserData<GeminiBrowserAgent>,
   // shared tabs.
   NSArray<GeminiPageContext*>* GetSharedTabs() const;
 
+  // Returns whether there is at least one shared (non-active) tab attached.
+  bool HasSharedTabs() const;
+
   // Generates partial page contexts for `tabs_to_fetch` and triggers async
   // full page context retrieval for them. Page contexts are inserted directly
   // into `attached_tabs_`.
@@ -237,6 +244,9 @@ class GeminiBrowserAgent : public BrowserUserData<GeminiBrowserAgent>,
   // Helper to get the GeminiTabHelper for the active web state if it matches
   // the provided web state.
   GeminiTabHelper* GetActiveTabHelper(web::WebState* web_state) const;
+
+  // Returns the ID of the active web state, or an invalid ID if none exists.
+  web::WebStateID GetActiveWebStateID() const;
 
   // Callback for scroll events.
   void OnScrollEvent();
@@ -398,6 +408,17 @@ class GeminiBrowserAgent : public BrowserUserData<GeminiBrowserAgent>,
       NSString* tab_id,
       ios::provider::GeminiPageContextAttachmentState new_state);
 
+  // Returns the attached page context for `tab_id`, or nil if not found.
+  GeminiPageContext* GetAttachedPageContext(web::WebStateID tab_id) const;
+
+  // Adds or updates `page_context` for `tab_id` in `attached_tabs_`, preserving
+  // the insertion order if `tab_id` already exists.
+  void SetAttachedPageContext(web::WebStateID tab_id,
+                              GeminiPageContext* page_context);
+
+  // Removes the entry for `tab_id` from `attached_tabs_`.
+  void RemoveAttachedPageContext(web::WebStateID tab_id);
+
   // Mediator for the Gemini container. Remove after bottom sheet migrations.
   __strong GeminiContainerMediator* gemini_container_mediator_ = nil;
 
@@ -426,8 +447,8 @@ class GeminiBrowserAgent : public BrowserUserData<GeminiBrowserAgent>,
   bool is_keyboard_visible_ = false;
 
   // The active and shared tabs currently attached to the floaty, represented by
-  // a mapping of the tab's WebStateID to its page context.
-  std::map<web::WebStateID, __strong GeminiPageContext*> attached_tabs_;
+  // a list of WebStateID and page context tuples in insertion order.
+  AttachedTabsList attached_tabs_;
 
   // Used to track the last shown view state of an invoked floaty. Used to show
   // a hidden floaty with the previous view state.

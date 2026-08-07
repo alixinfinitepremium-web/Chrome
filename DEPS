@@ -44,6 +44,7 @@ gclient_gn_args = [
   'checkout_android_prebuilts_build_tools',
   'checkout_clang_coverage_tools',
   'checkout_copybara',
+  'checkout_fuchsia',
   'checkout_glic_e2e_tests',
   'checkout_ios_webkit',
   'checkout_mutter',
@@ -347,7 +348,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': 'e055b59aa175e41614664d04c8b57f243bbba78f',
+  'boringssl_revision': '068dcaa57a6fc45dfe39f46d6accf64419670921',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -1722,7 +1723,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '9924b3ae796f1ead39f335234c232c4226e25c0f',
+    '60af3ed4b83a012447f9a27fad47768a55e80fb3',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -4011,7 +4012,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '824a640140c461884db8ada2da1bb1a3ba8ef09d',
+        '55fe4fce251106c8106468af29053c397b9fc074',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
