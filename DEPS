@@ -531,7 +531,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
-  'llvm_libc_revision':    '323ddc82979cf57cfecc69d9babcc5e359bdfecd',
+  'llvm_libc_revision':    'd12975d00fecc36f7ddff0aa412bec69152542dc',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
@@ -3164,7 +3164,7 @@ deps = {
     Var('chromium_git') + '/external/khronosgroup/webgl.git' + '@' + '064aaf18207438d4f6dd10c98b02b25778257b7f',
 
   'src/third_party/webgpu-cts/src':
-    Var('chromium_git') + '/external/github.com/gpuweb/cts.git' + '@' + 'dc20b8682aa71ff31f135de6ae7f8acaa2e16383',
+    Var('chromium_git') + '/external/github.com/gpuweb/cts.git' + '@' + '2155da5dca153a472c8152e3db6a5a309ad1aa56',
 
   'src/third_party/webpagereplay':
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
