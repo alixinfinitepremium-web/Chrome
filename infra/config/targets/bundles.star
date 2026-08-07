@@ -3133,6 +3133,38 @@ targets.bundle(
 )
 
 targets.bundle(
+    name = "gpu_all_mac_debug_gtests",
+    targets = [
+        "gpu_mac_debug_gtests",
+        "gpu_fyi_mac_debug_gtests",
+    ],
+)
+
+targets.bundle(
+    name = "gpu_all_mac_debug_telemetry_tests",
+    targets = [
+        "gpu_mac_debug_telemetry_tests",
+        "gpu_fyi_mac_debug_telemetry_tests",
+    ],
+)
+
+targets.bundle(
+    name = "gpu_all_mac_release_gtests",
+    targets = [
+        "gpu_mac_release_gtests",
+        "gpu_fyi_mac_release_gtests",
+    ],
+)
+
+targets.bundle(
+    name = "gpu_all_mac_release_telemetry_tests",
+    targets = [
+        "gpu_mac_release_telemetry_tests",
+        "gpu_fyi_mac_release_telemetry_tests",
+    ],
+)
+
+targets.bundle(
     name = "gpu_angle_fuchsia_unittests_isolated_scripts",
     targets = [
         "angle_unittests",
@@ -3466,6 +3498,39 @@ targets.bundle(
         "gpu_dawn_webgpu_compat_cts",
         "gpu_dawn_webgpu_cts",
     ],
+)
+
+targets.bundle(
+    name = "gpu_dawn_galaxy_s24_gtests",
+    targets = [
+        "dawn_end2end_tests",
+    ],
+    per_test_modifications = {
+        "dawn_end2end_tests": targets.mixin(
+            android_swarming = targets.swarming(
+                shards = 2,
+            ),
+        ),
+    },
+)
+
+targets.bundle(
+    name = "gpu_dawn_galaxy_s24_telemetry_tests",
+    targets = [
+        "webgpu_cts_tests",
+    ],
+    per_test_modifications = {
+        "webgpu_cts_tests": [
+            targets.mixin(
+                android_swarming = targets.swarming(
+                    shards = 36,
+                ),
+            ),
+            "gpu_integration_test_common_args",
+            "webgpu_telemetry_cts",
+            "linux_vulkan",
+        ],
+    },
 )
 
 # GPU gtests that test only Dawn
@@ -4192,6 +4257,13 @@ targets.bundle(
 )
 
 targets.bundle(
+    name = "gpu_fyi_mac_debug_telemetry_tests",
+    targets = [
+        # No FYI-only Mac/Debug Telemetry tests at this time.
+    ],
+)
+
+targets.bundle(
     name = "gpu_fyi_mac_release_gtests",
     targets = [
         "gpu_angle_unit_gtests",
@@ -4330,8 +4402,7 @@ targets.bundle(
 targets.bundle(
     name = "gpu_linux_release_gtests",
     targets = [
-        "gpu_angle_unit_gtests",
-        "gpu_common_gtests_passthrough",
+        "gpu_desktop_passthrough_gtests",
     ],
 )
 
@@ -4341,6 +4412,36 @@ targets.bundle(
         "gpu_common_and_optional_telemetry_tests",
         "gpu_passthrough_telemetry_tests",
         "gpu_webgl_conformance_telemetry_tests",
+    ],
+)
+
+targets.bundle(
+    name = "gpu_mac_debug_gtests",
+    targets = [
+        "gpu_mac_release_gtests",
+    ],
+)
+
+targets.bundle(
+    name = "gpu_mac_debug_telemetry_tests",
+    targets = [
+        "gpu_mac_release_telemetry_tests",
+    ],
+)
+
+targets.bundle(
+    name = "gpu_mac_release_gtests",
+    targets = [
+        "gpu_desktop_passthrough_gtests",
+    ],
+)
+
+targets.bundle(
+    name = "gpu_mac_release_telemetry_tests",
+    targets = [
+        "gpu_common_and_optional_telemetry_tests",
+        "gpu_metal_passthrough_graphite_telemetry_tests",
+        "gpu_webgl_conformance_metal_passthrough_graphite_telemetry_tests",
     ],
 )
 

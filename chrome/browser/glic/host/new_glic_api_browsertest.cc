@@ -10,6 +10,7 @@
 #include "base/functional/callback.h"
 #include "base/strings/string_number_conversions.h"
 #include "base/strings/stringprintf.h"
+#include "base/test/bind.h"
 #include "base/test/gmock_callback_support.h"
 #include "base/test/gmock_expected_support.h"
 #include "base/test/scoped_logging_settings.h"
@@ -61,6 +62,7 @@
 #include "chrome/browser/tab_list/tab_list_interface.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_interface_iterator.h"
+#include "chrome/browser/ui/browser_window/public/profile_browser_collection.h"
 #include "chrome/browser/ui/chrome_pages.h"
 #include "chrome/common/chrome_features.h"
 #include "chrome/common/webui_url_constants.h"
@@ -83,6 +85,7 @@
 #include "components/skills/public/skills_service.h"
 #include "components/subscription_eligibility/subscription_eligibility_prefs.h"
 #include "components/tabs/public/tab_interface.h"
+#include "components/version_info/version_info.h"
 #include "content/public/browser/navigation_controller.h"
 #include "content/public/browser/navigation_entry.h"
 #include "content/public/browser/render_frame_host.h"
@@ -93,6 +96,7 @@
 #include "content/public/test/browser_test_utils.h"
 #include "mojo/public/cpp/base/big_buffer.h"
 #include "services/network/test/test_url_loader_factory.h"
+#include "testing/gmock/include/gmock/gmock.h"
 #include "third_party/blink/public/common/features.h"
 #include "url/origin.h"
 
@@ -357,6 +361,18 @@ class NewGlicApiTest : public GlicApiBrowserTest,
         can_resize ? std::string("CanResize") : std::string("CannotResize"));
   }
 #endif
+
+  int GetPopupCount() {
+    int popup_count = 0;
+    ProfileBrowserCollection::GetForProfile(GetProfile())
+        ->ForEach([&popup_count](BrowserWindowInterface* browser) {
+          if (browser->GetType() == BrowserWindowInterface::TYPE_POPUP) {
+            popup_count++;
+          }
+          return true;
+        });
+    return popup_count;
+  }
 
  private:
   logging::ScopedVmoduleSwitches scoped_vmodule_switches_;
@@ -2127,6 +2143,106 @@ IN_PROC_BROWSER_TEST_P(NewGlicApiTest, testGetUserProfileInfo) {
   // Confirm that this response-receiving request gets latency metrics recorded.
   histogram_tester.ExpectTotalCount(
       "Glic.Api.RequestHostLatency.GetUserProfileInfo", 1);
+}
+
+IN_PROC_BROWSER_TEST_P(NewGlicApiTest, testRequestHeader) {
+  ASSERT_OK(OpenGlicForActiveTab());
+  const GURL cross_origin_rpc_url =
+      embedded_test_server()->GetURL("b.com", "/fake-rpc/cors");
+  base::ListValue rpc_urls;
+  rpc_urls.Append("/fake-rpc");
+  rpc_urls.Append(cross_origin_rpc_url.spec());
+  ExecuteJsTest({.params = base::Value(
+                     base::DictValue().Set("rpcUrls", std::move(rpc_urls)))});
+
+  auto request_header_matcher = testing::AllOf(
+      testing::Contains(testing::Pair(testing::StrCaseEq("x-glic"), "1")),
+      testing::Contains(testing::Pair(
+          testing::StrCaseEq("x-glic-chrome-channel"),
+          testing::AnyOf("unknown", "canary", "dev", "beta", "stable"))),
+      testing::Contains(
+          testing::Pair(testing::StrCaseEq("x-glic-chrome-version"),
+                        version_info::GetVersionNumber())));
+
+  auto find_request = [&](std::string_view path) {
+    const auto it = std::ranges::find_if(
+        embedded_test_server_requests_, [&](const auto& request) {
+          return request.GetURL().GetPath() == path &&
+                 request.method == net::test_server::METHOD_GET;
+        });
+    return it == embedded_test_server_requests_.end() ? nullptr : &(*it);
+  };
+
+  auto* main_request = find_request(GetGuestURL().GetPath());
+  ASSERT_TRUE(main_request);
+  EXPECT_THAT(main_request->headers, request_header_matcher);
+
+  auto* rpc_request = find_request("/fake-rpc");
+  ASSERT_TRUE(rpc_request);
+  EXPECT_THAT(rpc_request->headers, request_header_matcher);
+
+  auto* cross_origin_rpc_request = find_request("/fake-rpc/cors");
+  ASSERT_TRUE(cross_origin_rpc_request);
+  EXPECT_THAT(cross_origin_rpc_request->headers, request_header_matcher);
+}
+
+IN_PROC_BROWSER_TEST_P(NewGlicApiTest, testDialogResponseCallOrder) {
+  ASSERT_OK(OpenGlicForActiveTab());
+  auto* actor_service = actor::ActorKeyedService::Get(GetProfile());
+  ASSERT_TRUE(actor_service);
+
+  base::test::TestFuture<actor::TaskId> task_created;
+  base::CallbackListSubscription subscription =
+      actor_service->AddTaskStateChangedCallback(
+          base::BindLambdaForTesting([&](actor::ActorTask& task) {
+            if (task.GetState() == actor::ActorTask::State::kCreated) {
+              task_created.SetValue(task.id());
+            }
+          }));
+
+  // Client side subscribes to the observable returned from
+  // selectUserConfirmationDialogRequestHandler and it creates an actor task.
+  ExecuteJsTest();
+
+  // Wait for the task to be created. Put it in an interrupted state.
+  actor::ActorTask* task = actor_service->GetTask(task_created.Get());
+  ASSERT_TRUE(task);
+
+  // TODO(bokan): This shouldn't be necessary but the task is kCreated state
+  // from which we cannot interrupt.
+  task->SetState(actor::ActorTask::State::kReflecting);
+
+  task->Interrupt();
+  ASSERT_EQ(task->GetState(), actor::ActorTask::State::kWaitingOnUser);
+
+  // Request a user dialog to show and record the state of the task when the
+  // response from it is received.
+  base::test::TestFuture<actor::ActorTask::State>
+      state_when_dialog_response_received;
+  GetOnlyGlicInstance()
+      ->GetActorTaskManager()
+      ->GetClientSessionForTesting()
+      ->RequestToShowUserConfirmationDialog(
+          task->id(), url::Origin(), /*for_sensitive_origin=*/false,
+          base::BindLambdaForTesting(
+              [&](actor::webui::mojom::UserConfirmationDialogResponsePtr) {
+                state_when_dialog_response_received.SetValue(task->GetState());
+              }));
+
+  // The client side will respond to the dialog then uninterrupt the task.
+  // Ensure the dialog response is received before the task has been
+  // uninterrupted.
+  ContinueJsTest();
+
+  EXPECT_EQ(state_when_dialog_response_received.Get(),
+            actor::ActorTask::State::kWaitingOnUser);
+}
+
+IN_PROC_BROWSER_TEST_P(NewGlicApiTest, testPopupOpens) {
+  ASSERT_OK(OpenGlicForActiveTab());
+  EXPECT_EQ(GetPopupCount(), 0);
+  ExecuteJsTest();
+  ASSERT_OK(RunUntilEqual([&]() { return GetPopupCount(); }, 1));
 }
 
 IN_PROC_BROWSER_TEST_P(NewGlicApiTest, testGetContextFromFocusedTabWithIframe) {
