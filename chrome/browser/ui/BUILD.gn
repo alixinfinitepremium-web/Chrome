@@ -110,6 +110,7 @@ if (!is_android) {
     deps = [
       ":browser_actions",
       ":browser_select_file_dialog_controller",
+      ":bubble_anchor_util",
       ":chrome_pages",
       ":ui",
       "//build:branding_buildflags",
@@ -415,6 +416,14 @@ source_set("view_ids") {
   public = [ "view_ids.h" ]
 }
 
+source_set("bubble_anchor_util") {
+  public = [ "bubble_anchor_util.h" ]
+  public_deps = [
+    "//chrome/browser/ui/browser_window",
+    "//ui/gfx",
+  ]
+}
+
 source_set("managed_ui") {
   public = [ "managed_ui.h" ]
   sources = [ "managed_ui.cc" ]
@@ -562,6 +571,7 @@ static_library("ui") {
     ":browser_element_identifiers",
     ":browser_otr_state",
     ":browser_ui_prefs",
+    ":bubble_anchor_util",
     ":incognito_allowed_url",
     ":managed_ui",
     ":recently_audible_helper",
@@ -1078,7 +1088,6 @@ static_library("ui") {
     # - c/b/ui/browser_window.h
     # - c/b/ui/browser.h
     # - c/b/ui/views/title_origin_label.h
-    # - c/b/ui/views/bubble_anchor_util_views.h
     # - c/b/ui/views/frame/browser_view.h
     "//chrome/browser/ui/views/file_system_access:impl",
   ]
@@ -3448,7 +3457,6 @@ static_library("ui") {
 
   if (toolkit_views) {
     sources += [
-      "bubble_anchor_util.h",
       "views/autofill/address_bubble_base_view.cc",
       "views/autofill/address_editor_view.cc",
       "views/autofill/address_editor_view.h",
@@ -3523,7 +3531,6 @@ static_library("ui") {
       "views/autofill/payments/virtual_card_enroll_bubble_views.cc",
       "views/autofill/payments/virtual_card_enroll_bubble_views.h",
       "views/autofill/popup/custom_cursor_suppressor.cc",
-      "views/autofill/popup/custom_cursor_suppressor.h",
       "views/autofill/popup/lazy_loading_image_view.cc",
       "views/autofill/popup/lazy_loading_image_view.h",
       "views/autofill/popup/password_favicon_loader.cc",
@@ -3531,7 +3538,6 @@ static_library("ui") {
       "views/autofill/popup/popup_at_memory_ai_disclosure_view.cc",
       "views/autofill/popup/popup_at_memory_ai_disclosure_view.h",
       "views/autofill/popup/popup_base_view.cc",
-      "views/autofill/popup/popup_base_view.h",
       "views/autofill/popup/popup_bnpl_footnote_view.cc",
       "views/autofill/popup/popup_bnpl_footnote_view.h",
       "views/autofill/popup/popup_cell_utils.cc",
@@ -3539,7 +3545,6 @@ static_library("ui") {
       "views/autofill/popup/popup_centered_text_view.cc",
       "views/autofill/popup/popup_centered_text_view.h",
       "views/autofill/popup/popup_interactive_row_view.cc",
-      "views/autofill/popup/popup_interactive_row_view.h",
       "views/autofill/popup/popup_loading_view.cc",
       "views/autofill/popup/popup_loading_view.h",
       "views/autofill/popup/popup_notice_view.cc",
@@ -3549,7 +3554,6 @@ static_library("ui") {
       "views/autofill/popup/popup_row_factory_utils.cc",
       "views/autofill/popup/popup_row_factory_utils.h",
       "views/autofill/popup/popup_row_view.cc",
-      "views/autofill/popup/popup_row_view.h",
       "views/autofill/popup/popup_row_with_button_view.cc",
       "views/autofill/popup/popup_row_with_button_view.h",
       "views/autofill/popup/popup_search_bar_view.cc",
@@ -3559,7 +3563,6 @@ static_library("ui") {
       "views/autofill/popup/popup_title_view.cc",
       "views/autofill/popup/popup_title_view.h",
       "views/autofill/popup/popup_view_utils.cc",
-      "views/autofill/popup/popup_view_utils.h",
       "views/autofill/popup/popup_view_views.cc",
       "views/autofill/popup/popup_view_views.h",
       "views/autofill/popup/popup_warning_view.cc",
@@ -3571,7 +3574,6 @@ static_library("ui") {
       "views/browser_commands_views.cc",
       "views/browser_dialogs_views.cc",
       "views/bubble_anchor_util_views.cc",
-      "views/bubble_anchor_util_views.h",
       "views/bubble_menu_item_factory.cc",
       "views/bubble_menu_item_factory.h",
       "views/certificate_selector.cc",
@@ -4137,6 +4139,7 @@ static_library("ui") {
       "//chrome/browser/ui/tabs/tab_strip_api/tab_strip_model_impl",
       "//chrome/browser/ui/tabs/tab_strip_api/tab_strip_model_impl/converters",
       "//chrome/browser/ui/views",
+      "//chrome/browser/ui/views:bubble_anchor_util_views",
       "//chrome/browser/ui/views:confirm_bubble",
       "//chrome/browser/ui/views:device_chooser_content_view",
       "//chrome/browser/ui/views:layout_provider_impl",
@@ -4150,6 +4153,7 @@ static_library("ui") {
       "//chrome/browser/ui/views/apps/app_info_dialog",
       "//chrome/browser/ui/views/apps/app_info_dialog:impl",
       "//chrome/browser/ui/views/autofill:delete_address_profile_dialog_view",
+      "//chrome/browser/ui/views/autofill/popup",
       "//chrome/browser/ui/views/bookmarks",
       "//chrome/browser/ui/views/bookmarks:impl",
       "//chrome/browser/ui/views/bookmarks/saved_tab_groups:impl",
@@ -4415,7 +4419,6 @@ static_library("ui") {
       # following headers get componentized:
       # c/b/ui/browser.h, browser_commands.h, browser_window.h
       # c/b/ui/view_ids.h
-      # c/b/ui/views/bubble_anchor_util_views.h
       # c/b/ui/views/frame/browser_view.h
       # c/b/ui/views/frame/contents_container_outline.h
       # c/b/ui/views/frame/contents_container_view.h
@@ -4466,10 +4469,9 @@ static_library("ui") {
       # TODO(crbug.com/434882143): Remove this circular dependency when the
       # following headers get componentized:
       # c/b/ui/browser_command_controller.h, browser_commands.h,
-      # browser_tabstrip.h, browser_window.h, bubble_anchor_util.h,
+      # browser_tabstrip.h, browser_window.h,
       # intent_picker_tab_helper.h, view_ids.h
       # c/b/ui/views/bookmarks/bookmark_bubble_view.h
-      # c/b/ui/views/bubble_anchor_util_views.h
       # c/b/ui/views/content_setting_bubble_contents.h
       # c/b/ui/views/frame/browser_view.h
       # c/b/ui/views/intent_picker_bubble_view.h
