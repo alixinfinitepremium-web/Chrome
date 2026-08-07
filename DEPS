@@ -323,7 +323,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '46a2e200e1e852faf6e0ec165e233f60a5a6f253',
+  'src_internal_revision': '301573184dedc9c3278d20228c6ecdf2d1ccddf2',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -407,7 +407,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'f08761870f25059bf8d2ebfd5a72d26830f82068',
+  'devtools_frontend_revision': 'ac08d61643167fdf83dcb28c6db6693feb5c8d53',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1710,7 +1710,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': 'jeY_reikNS5IyKmFFXw2nbgYqIq3_f2N314c_nBkggAC',
+        'version': 'lz0uU9YjQGJNs4jqDlDqD9pnIg3mICghgXE_XLtKg4kC',
       },
     ],
     'condition': 'non_git_source',
@@ -3299,7 +3299,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_receiver_app/app',
-        'version': '4omao44EWEBCz-EkKwfEp3WmQkrtI72i7hmPeG6f1kIC',
+        'version': 'drdQATHcBKk3-QeCO0Ht4Q8Hvy3e-dgUrdJ-qR7AywAC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3310,7 +3310,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_app/app',
-        'version': '23UJl73m4FnvQE2HQQkQPvExOfYk_NJ3PK-YNT9PCdYC',
+        'version': '-VkFus7MeC0Rlo9d33IrwyK4gqwEL1sASEcPjXq7-ZkC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -4011,7 +4011,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '75b0d5ed9bbd603015527164545128623706a72b',
+        'f85d02a177420e6d00cc32b79895ffb105cd2c76',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
