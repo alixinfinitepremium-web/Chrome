@@ -331,7 +331,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': '06b1b8d9d95c715bb43377055bc534b64afdf863',
+  'v8_revision': 'edddbb168807306bfb4db3b944a333e2269309bc',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -347,7 +347,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': 'c79d85bb558ec04c25d35813abfccc54e968a9fd',
+  'boringssl_revision': 'd6ec22f223afb77d7518226b6aa8db6e97bc4959',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -383,11 +383,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling catapult
   # and whatever else without interference from each other.
-  'catapult_revision': '776d23d7184079de2f04c6d51fa408e7a4aabe72',
+  'catapult_revision': 'e1aeded56aa3289a28a15f5bc468d8a78dcb0ca4',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': '885170833cef8a43f7c1d8ededd88e197a3436cf',
+  'crossbench_revision': '2cc590818ec92c663b69169a511c484cdc12ea41',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -407,7 +407,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'fad8de94262f7a74b6f71691ffe69c6036d32bdb',
+  'devtools_frontend_revision': 'f098fc3290e1c28e9ad5dce2e8d7bb6ce6984cf6',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -431,7 +431,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': 'b6ff470cfd719f90d194cea11d02eb01733147d4',
+  'dawn_revision': '7faf9c18178b86a059212eb855e1b5292e79c43f',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -1822,7 +1822,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': 'zqbHXlg-9P5eVUMb71CT6xs3wcBze25_lZ-xLtieA-wC',
+          'version': 'W575hlWkrdlgH--DYyt74IWUMockGoFdn3odACRptnoC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
