@@ -368,7 +368,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling freetype
   # and whatever else without interference from each other.
-  'freetype_revision': '656cb777798fa420a13faba3758779e9ed6c4798',
+  'freetype_revision': '9e9d3b73f31367dbb4261f93c727a277f6632c77',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling HarfBuzz
   # and whatever else without interference from each other.
@@ -388,7 +388,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': '6423f30d7ced32b24acc63178459aa917778ebc8',
+  'crossbench_revision': 'f2f302aa8142a4c91869d62dff968548a13e01d6',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -2171,7 +2171,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'fa1fac8477c70532274e7244777a846537004750',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '33025ff4f2a57667af0b8302d1547b8c58922cf9',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -2446,6 +2446,17 @@ deps = {
           },
       ],
       'condition': 'checkout_android and non_git_source',
+      'dep_type': 'cipd',
+  },
+
+  'src/third_party/ktfmt/cipd': {
+      'packages': [
+          {
+              'package': 'chromium/third_party/ktfmt',
+              'version': 'version:2@v0.64.a441f23abe',
+          },
+      ],
+      'condition': '(checkout_android or checkout_linux) and non_git_source',
       'dep_type': 'cipd',
   },
 
