@@ -116,6 +116,7 @@
 #include "chrome/browser/skills/skills_service_factory.h"
 #include "chrome/browser/skills/skills_ui_tab_controller.h"
 #include "chrome/browser/ui/browser.h"
+#include "chrome/browser/ui/passwords/ui_utils.h"  // nogncheck
 #include "chrome/test/base/ui_test_utils.h"
 #include "ui/display/screen.h"
 #endif
@@ -2244,6 +2245,38 @@ IN_PROC_BROWSER_TEST_P(NewGlicApiTest, testPopupOpens) {
   ExecuteJsTest();
   ASSERT_OK(RunUntilEqual([&]() { return GetPopupCount(); }, 1));
 }
+
+#if !BUILDFLAG(IS_ANDROID)
+IN_PROC_BROWSER_TEST_P(NewGlicApiTest, testOpenGlicSettingsPage) {
+  glic::GlicHistogramTester histogram_tester;
+  ASSERT_OK(OpenGlicForActiveTab());
+  ExecuteJsTest();
+  ASSERT_OK(
+      RunUntilEqual([&]() { return GetTabListInterface()->GetTabCount(); }, 2));
+  EXPECT_EQ(
+      GetTabListInterface()->GetActiveTab()->GetContents()->GetVisibleURL(),
+      chrome::GetSettingsUrl(chrome::kGlicSettingsSubpage));
+  histogram_tester.ExpectTotalCount(
+      "Glic.Api.RequestHostLatency.OpenGlicSettingsPage", 0);
+}
+#endif
+
+#if !BUILDFLAG(IS_ANDROID)
+IN_PROC_BROWSER_TEST_P(NewGlicApiTest, testOpenPasswordManagerSettingsPage) {
+  glic::GlicHistogramTester histogram_tester;
+  ASSERT_OK(OpenGlicForActiveTab());
+  ExecuteJsTest();
+  ASSERT_OK(
+      RunUntilEqual([&]() { return GetTabListInterface()->GetTabCount(); }, 2));
+  const GURL settings_url =
+      base::FeatureList::IsEnabled(features::kFedCmEmbedderInitiatedLogin)
+          ? chrome::GetSettingsUrl(chrome::kGlicLoginSettingsSubpage)
+          : GURL(GetGooglePasswordManagerSubPageURLStr());
+  EXPECT_EQ(
+      GetTabListInterface()->GetActiveTab()->GetContents()->GetVisibleURL(),
+      settings_url);
+}
+#endif
 
 IN_PROC_BROWSER_TEST_P(NewGlicApiTest, testInvoke) {
   ASSERT_OK_AND_ASSIGN(auto* instance, OpenGlicForActiveTab());
