@@ -407,7 +407,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '8b2c7251e1efdc91775a0c5b9c6bab16cb351b2c',
+  'devtools_frontend_revision': 'f08761870f25059bf8d2ebfd5a72d26830f82068',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1722,7 +1722,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    'e480b2d07194b22ae63a11a788f5e67a784d5b51',
+    '0a7f917b6c3f86b3aaaa8cb0a267289de04acc22',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -1898,7 +1898,7 @@ deps = {
       'packages': [
           {
                'package': 'chromium/third_party/android_build_tools/error_prone',
-               'version': 'QSSs4CXr1W5TkPNzubP_wEAoJ40FMmYDNvNst8nupskC',
+               'version': '63kSyPBT83f0Vx76jHEwCXc2asJa-dQKO52ONrxUS00C',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -2587,7 +2587,7 @@ deps = {
     Var('chromium_git') + '/webm/libwebp.git' + '@' +  'b43b2caa710c0c997c066cb32c7fea1391fad70a',
 
   'src/third_party/libyuv':
-    Var('chromium_git') + '/libyuv/libyuv.git' + '@' + '149568401fc794586da2303b6fa711ee02c49978',
+    Var('chromium_git') + '/libyuv/libyuv.git' + '@' + '240ac24a88822e9a2fe54e31a13fcf197ff82d71',
 
   'src/third_party/lss': {
       'url': Var('chromium_git') + '/linux-syscall-support.git' + '@' + Var('lss_revision'),
