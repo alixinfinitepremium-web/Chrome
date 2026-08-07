@@ -74,14 +74,11 @@ TabGroupView::TabGroupView(TabCollectionNode* collection_node)
           collection_node_->GetController()->GetStateController(),
           &tab_group_visual_data_))),
       group_line_(AddChildView(std::make_unique<views::View>())),
-      layout_manager_(*SetLayoutManager(std::make_unique<
-                                        TabCollectionAnimatingLayoutManager>(
-          std::make_unique<TabGroupViewLayout>(collection_node->orientation()),
-          *this,
-          collection_node->orientation() == TabStripOrientation::kHorizontal
-              ? TabCollectionAnimatingLayoutManager::AnimationAxis::kHorizontal
-              : TabCollectionAnimatingLayoutManager::AnimationAxis::
-                    kVertical))) {
+      layout_manager_(*SetLayoutManager(
+          std::make_unique<TabCollectionAnimatingLayoutManager>(
+              std::make_unique<TabGroupViewLayout>(
+                  collection_node->orientation()),
+              *this))) {
   collection_node->set_remove_child_from_node(base::BindRepeating(
       &TabCollectionAnimatingLayoutManager::AnimateAndDestroyChildView,
       base::Unretained(&layout_manager_.get())));
@@ -257,6 +254,15 @@ void TabGroupView::OnDataChanged() {
         color, gfx::RoundedCornersF(0, kGroupLineCornerRadius,
                                     kGroupLineCornerRadius, 0)));
   }
+
+  InvalidateLayout();
+}
+
+void TabGroupView::SetIsCollapsed(bool is_collapsed) {
+  if (is_collapsed_ == is_collapsed) {
+    return;
+  }
+  is_collapsed_ = is_collapsed;
   InvalidateLayout();
 }
 
@@ -265,7 +271,7 @@ void TabGroupView::UpdateChildVisibilityForCollapseState(bool collapsed) {
   if (!collection_node_) {
     return;
   }
-  group_line_->SetVisible(!collapsed && !IsGroupFocused());
+  SetIsCollapsed(collapsed);
   for (auto* child : collection_node_->GetDirectChildren()) {
     child->SetVisible(!collapsed);
   }
