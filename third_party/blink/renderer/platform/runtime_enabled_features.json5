@@ -2723,6 +2723,7 @@
     },
     {
       name: "ExperimentalJSProfilerMarkers",
+      origin_trial_feature_name: "JSSelfProfilingMarkers",
       status: "experimental",
     },
     {
@@ -5285,15 +5286,6 @@
       // Spec: https://wicg.github.io/sanitizer-api/
       // Tracking bug: crbug.com/356601280
       name: "SanitizerAPI",
-      status: "stable",
-    },
-    {
-      // https://wicg.github.io/webcomponents/proposals/Scoped-Custom-Element-Registries
-      // https://github.com/whatwg/html/issues/10854
-      // Spec PRs:
-      // https://github.com/whatwg/html/pull/10869
-      // https://github.com/whatwg/dom/pull/1341
-      name: "ScopedCustomElementRegistry",
       status: "stable",
     },
     {
