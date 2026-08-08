@@ -1711,7 +1711,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': '3ksu6GHkUbpzkDsAaj431h_iUnzF8hv9XNfc3HpViEwC',
+        'version': 'rGF0LYOvbN_x3Dfa_ive_JrvXAdd_bdUhwBJhcnsXXYC',
       },
     ],
     'condition': 'non_git_source',
@@ -1723,7 +1723,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '60af3ed4b83a012447f9a27fad47768a55e80fb3',
+    'a43a604956ba3310bdfced68b688a959d29f5aec',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -3377,7 +3377,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/projector_app/app',
-        'version': '-H0yFhztiqCydypJqBomY_J5zxDoKSl4U1uzZ_Ba4UoC',
+        'version': 'MSTq0pMs0RfwFOkjnqQ8md-mS92fbNAXUgrhhP1AXGwC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
