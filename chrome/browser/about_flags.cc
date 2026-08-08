@@ -4670,8 +4670,7 @@ const FeatureEntry::Choice kOnDeviceWebSpeechSmallExpertModelChoices[] = {
     {flags_ui::kGenericExperimentChoiceDefault, "", ""},
     {flags_ui::kGenericExperimentChoiceEnabled, switches::kEnableFeatures,
      "OnDeviceWebSpeech,OnDeviceWebSpeechSmallExpertModel,"
-     "OptimizationGuideManifestBroker,OnDeviceModelLitertLmBackend,"
-     "OnDeviceModelGpuProgramCache,OnDeviceModelGpuWeightCache"}};
+     "OptimizationGuideManifestBroker,OnDeviceModelLitertLmBackend"}};
 
 const FeatureEntry::FeatureParam kWalletApiPrivatePassesUrl[] = {
     {"wallet_pass_save_url", "https://wallet1ppasses.pa.googleapis.com"}};
@@ -11036,6 +11035,10 @@ const FeatureEntry kFeatureEntries[] = {
      FEATURE_WITH_PARAMS_VALUE_TYPE(features::kGlicGuestUrlPresets,
                                     kGlicGuestUrlPresetTypes,
                                     "GlicGuestUrlPresets")},
+
+    {"glic-caa-guest-error", flag_descriptions::kGlicCaaGuestErrorName,
+     flag_descriptions::kGlicCaaGuestErrorDescription, kOsDesktop,
+     FEATURE_VALUE_TYPE(features::kGlicCaaGuestError)},
 
     // Glic enterprise settings
     {"glic-gemini-enterprise-settings-override",

@@ -1753,6 +1753,11 @@ inline constexpr char kGlicGuestUrlPresetsName[] = "Glic guest URL presets";
 inline constexpr char kGlicGuestUrlPresetsDescription[] =
     "Overrides the Bluebird environment URL used for Glic with user-configured "
     "values. Intended for manual testing only.";
+
+inline constexpr char kGlicCaaGuestErrorName[] = "Glic CAA Guest Error";
+inline constexpr char kGlicCaaGuestErrorDescription[] =
+    "Enables the Glic CAA Guest Error UI when there are authentication issues.";
+
 inline constexpr char kGlicGeminiEnterpriseSettingsOverrideName[] =
     "Glic Gemini Enterprise Settings Override";
 inline constexpr char kGlicGeminiEnterpriseSettingsOverrideDescription[] =
@@ -6937,8 +6942,7 @@ inline constexpr char kNtpScaledActionChipsDescription[] =
 inline constexpr char kNtpScaledActionChipsSmallName[] =
     "NTP Scaled Action Chips Small";
 inline constexpr char kNtpScaledActionChipsSmallDescription[] =
-    "Enables small scaled merchandising action chips on the New Tab Page. "
-    "Requires #ntp-scaled-action-chips to be enabled too.";
+    "Enables small scaled merchandising action chips on the New Tab Page.";
 
 inline constexpr char kNtpSharepointModuleName[] = "NTP Sharepoint Module";
 inline constexpr char kNtpSharepointModuleDescription[] =

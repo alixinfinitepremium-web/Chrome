@@ -328,7 +328,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '5dddf11de22a1c185766102e0c132a8887b7f7da',
+  'skia_revision': '70eb7b04b5a8935bed6448172343aef8573c8bc9',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -464,7 +464,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling crabbyavif
   # and whatever else without interference from each other.
-  'crabbyavif_revision': 'e12d263c930e4647c611d862887a551d5ddc215e',
+  'crabbyavif_revision': '0348e002c2592ac951ed8f7d24bdf4b80442be79',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Speedometer main
   # and whatever else without interference from each other.
@@ -1476,7 +1476,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_linux64',
-          'version': 'version:2@1670004',
+          'version': 'version:2@1671001',
         },
       ],
   },
@@ -1487,7 +1487,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_mac_amd64',
-          'version': 'version:2@1670002',
+          'version': 'version:2@1671001',
         },
       ],
   },
@@ -1631,7 +1631,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_linux64',
-          'version': 'iB-7QJepjCIJnxZJftn_jzCyMPQ_CscYxRAHNJ_yK3AC',
+          'version': '5jllqx-Q-Z0uhgp1YmwFg-h-JQNk_UtJgn3xZgnYxY8C',
         },
       ],
   },
@@ -1823,7 +1823,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': 'W575hlWkrdlgH--DYyt74IWUMockGoFdn3odACRptnoC',
+          'version': 'csDXFGKw9NbvSnT8E9-CaVjEckvqi3DnWwUk0wJJwUIC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
@@ -3182,7 +3182,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '4fd2711b90905c086f380e74e4c419990f995623',
+    Var('webrtc_git') + '/src.git' + '@' + 'cd5f3c19d89dce8189bde370f2141a76ca7fed80',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -3886,7 +3886,7 @@ deps = {
 
   'src/chrome/updater/internal': {
     'url': Var('chrome_git') + '/chrome/updater/internal.git' + '@' +
-        'f036eed064b40f7cc3651cb666b2551d7e4f73ae',
+        'a5932445f29aa62ebb39d4756d9baef3ee8a4b28',
     'condition': 'checkout_src_internal',
   },
 
