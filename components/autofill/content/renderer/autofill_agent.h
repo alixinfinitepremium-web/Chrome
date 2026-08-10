@@ -14,7 +14,6 @@
 #include <vector>
 
 #include "base/compiler_specific.h"
-#include "base/containers/circular_deque.h"
 #include "base/functional/callback_helpers.h"
 #include "base/memory/raw_ptr.h"
 #include "base/memory/raw_ref.h"
@@ -25,6 +24,7 @@
 #include "base/types/strong_alias.h"
 #include "components/autofill/content/common/mojom/autofill_agent.mojom.h"
 #include "components/autofill/content/common/mojom/autofill_driver.mojom.h"
+#include "components/autofill/content/renderer/at_memory_handler.h"
 #include "components/autofill/content/renderer/email_verification_handler.h"
 #include "components/autofill/content/renderer/form_autofill_util.h"
 #include "components/autofill/content/renderer/form_cache.h"
@@ -32,7 +32,6 @@
 #include "components/autofill/content/renderer/javascript_autofill_tracker.h"
 #include "components/autofill/content/renderer/timing.h"
 #include "components/autofill/core/common/autofill_features.h"
-#include "components/autofill/core/common/autofill_util.h"
 #include "components/autofill/core/common/dense_set.h"
 #include "components/autofill/core/common/field_data_manager.h"
 #include "components/autofill/core/common/form_data_predictions.h"
@@ -50,12 +49,6 @@
 #include "third_party/blink/public/web/web_form_element.h"
 #include "third_party/blink/public/web/web_input_element.h"
 #include "ui/accessibility/ax_mode.h"
-
-namespace blink {
-class WebFormControlElement;
-class WebFormElement;
-struct RendererPreferences;
-}  // namespace blink
 
 namespace autofill {
 
@@ -243,6 +236,22 @@ class AutofillAgent : public content::RenderFrameObserver,
       FieldRendererId field_id,
       mojo::PendingRemote<mojom::AutofillVisibilityObserver> observer) override;
 
+  // Shows Password Manager, password generation, or Autofill suggestions for
+  // `element`. This call is asynchronous and may or may not lead to the showing
+  // of a suggestion popup (no popup is shown if there are no available
+  // suggestions). `form_cache` can be used to optimize form extractions
+  // occurring synchronously after this function call.
+  void ShowSuggestions(
+      const blink::WebFormControlElement& element,
+      AutofillSuggestionTriggerSource trigger_source,
+      const SynchronousFormCache& form_cache,
+      const std::optional<PasswordSuggestionRequest>& password_request);
+
+  // Shows Autofill suggestions for `element` if `element` is a contenteditable.
+  void ShowSuggestionsForContentEditable(
+      const blink::WebElement& element,
+      AutofillSuggestionTriggerSource trigger_source);
+
   // Fires Mojo messages for a given form submission.
   void FireHostSubmitEvents(const FormData& form_data,
                             mojom::SubmissionSource source);
@@ -312,9 +321,6 @@ class AutofillAgent : public content::RenderFrameObserver,
  private:
   class DeferringAutofillDriver;
   friend class AutofillAgentTestApi;
-
-  const blink::RendererPreferences* GetRendererPreferences() const;
-
   // Use unsafe_render_frame() instead.
   template <typename T = int>
   content::RenderFrame* render_frame(T* = 0) const {
@@ -398,22 +404,6 @@ class AutofillAgent : public content::RenderFrameObserver,
   // body for further details.
   bool ShouldThrottleAskForValuesToFill(FieldRendererId field);
   void ResetTokenBucket();
-
-  // Shows Password Manager, password generation, or Autofill suggestions for
-  // `element`. This call is asynchronous and may or may not lead to the showing
-  // of a suggestion popup (no popup is shown if there are no available
-  // suggestions). `form_cache` can be used to optimize form extractions
-  // occurring synchronously after this function call.
-  void ShowSuggestions(
-      const blink::WebFormControlElement& element,
-      AutofillSuggestionTriggerSource trigger_source,
-      const SynchronousFormCache& form_cache,
-      const std::optional<PasswordSuggestionRequest>& password_request);
-
-  // Shows Autofill suggestions for `element` if `element` is a contenteditable.
-  void ShowSuggestionsForContentEditable(
-      const blink::WebElement& element,
-      AutofillSuggestionTriggerSource trigger_source);
 
   // Set `element` to display the given `value`.
   void DoFillFieldWithValue(std::u16string_view value,
@@ -600,40 +590,7 @@ class AutofillAgent : public content::RenderFrameObserver,
     base::TimeTicks last_replenish_time;
   } ask_for_values_to_fill_throttle_;
 
-  // AtMemory needs to maintain special state because AtMemory
-  // - inserts text into specific locations in a field, rather than overwriting
-  //   the entire value, and
-  // - has high unmasking latency, so the focus or caret may have moved by the
-  //   time AtMemory fills an actual value into a field.
-  class AtMemoryState {
-   public:
-    struct AskForValuesToFillInfo {
-      FieldRendererId field_id{};
-      bool caused_by_trigger_string = false;
-      size_t value_hash = 0;
-    };
-
-    AtMemoryState();
-    AtMemoryState(const AtMemoryState&) = delete;
-    AtMemoryState& operator=(const AtMemoryState&) = delete;
-    ~AtMemoryState();
-
-    // Finds the metadata for the last AtMemory-related AskForValuesToFill() on
-    // `element`. If `pop` is true, removes the entry found.
-    std::optional<AskForValuesToFillInfo> FindAskForValuesToFill(
-        const blink::WebElement& element,
-        bool pop);
-
-    // Stores metadata for an AskForValuesToFill() on `element` if
-    // `trigger_source` is related to AtMemory.
-    void MaybeUpdateAskForValuesToFill(
-        const blink::WebElement& element,
-        AutofillSuggestionTriggerSource trigger_source);
-
-   private:
-    base::circular_deque<AskForValuesToFillInfo>
-        last_at_memory_ask_for_values_to_fills_;
-  } at_memory_;
+  AtMemoryHandler at_memory_handler_{this};
 
   struct {
     bool has_warned = false;

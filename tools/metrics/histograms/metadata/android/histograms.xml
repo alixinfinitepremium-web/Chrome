@@ -169,6 +169,7 @@ chromium-metrics-reviews@google.com.
   <variant name=".GlicWindowResized"/>
   <variant name=".ImmersivePlaybackConfirmation"/>
   <variant name=".InstallableAmbientBadge"/>
+  <variant name=".IntranetRedirect"/>
   <variant name=".KnownInterceptionDisclosure"/>
   <variant name=".MerchantTrust"/>
   <variant name=".ModeBRollbackMessage"/>
@@ -7458,6 +7459,17 @@ chromium-metrics-reviews@google.com.
   <summary>
     How many components were updated by AwComponentUpdateService update job.
     This is logged once per run of the job, and is capped at 1000.
+  </summary>
+</histogram>
+
+<histogram name="Android.WebView.ComposeHierarchyDepth" units="levels"
+    expires_after="2027-09-01">
+  <owner>bewise@chromium.org</owner>
+  <owner>src/android_webview/OWNERS</owner>
+  <summary>
+    Records how many levels up in the View hierarchy Jetpack Compose is found
+    when a WebView is attached to the window (e.g. 1 means directly wrapped by
+    AndroidView). Records 0 if no Compose ancestor is found.
   </summary>
 </histogram>
 
