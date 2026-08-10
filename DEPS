@@ -327,7 +327,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '7cf39e3e4574597ab0a67265080cb227b2067e65',
+  'src_internal_revision': '4918d6330e138636c70c9329f17f3a017df85e71',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -375,7 +375,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling HarfBuzz
   # and whatever else without interference from each other.
-  'harfbuzz_revision': '7a2a501c2e3a5c23419bb797f2c5c34d0dedb0c4',
+  'harfbuzz_revision': '28f4dc622fef010dab12f4275ac195b5d4a4a704',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Emoji Segmenter
   # and whatever else without interference from each other.
@@ -2955,7 +2955,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/r8',
-              'version': 'haaP6IG1bllJZwwT139tt5qVBuqtZ1naUKJhl8Yp4HkC',
+              'version': 'MSBeS467DZB4gyXqfb3ZZBmKRmqrcfM5UOsNLO9Fm9wC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -4041,7 +4041,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '368a71ed5955b135031dcbe317816e10a541a833',
+        '672c31f06e0992550d8ca329805094b4d6b737c7',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
