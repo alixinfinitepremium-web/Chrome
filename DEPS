@@ -324,7 +324,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '50499277802f4a6924fe62f202c515b6ea60c5e7',
+  'src_internal_revision': 'fbf12f8731fafcf31f99cbbd40ef33b5a6fd74cf',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -408,7 +408,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'bed90980f58644ef516036458353e28c5fc705e4',
+  'devtools_frontend_revision': 'cd7432b0ddc4125cd825512bf369fe4b57051f20',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -2939,7 +2939,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/r8',
-              'version': 'mgvcxRdCK77IxF9-PPyFpRK2J0UCfEHWKbNInpzj4CkC',
+              'version': 'haaP6IG1bllJZwwT139tt5qVBuqtZ1naUKJhl8Yp4HkC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -3078,7 +3078,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/turbine',
-              'version': 'ugKD8OiOjOjStjYcBwBB7KQrBAV7nNzNAF_GvsbZWvwC',
+              'version': 'iGvH-EemiZZWQXTgQ2YZQVRVkuH7tXiG5WjOXuHpXx0C',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -4025,7 +4025,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '31973099f841d5d8537f407cd6c90c8a457aa14b',
+        'dd33c53d089e9a3781ec54cdebebcbd10fadddc5',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
