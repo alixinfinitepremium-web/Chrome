@@ -147,45 +147,47 @@ public class AutocompleteMediatorUnitTest {
     private static final String TABS_STARTER_PACK_KEYWORD = "@tabs";
     private static final String SAMPLE_QUERY = "sample query";
 
-    public @Rule MockitoRule mMockitoRule = MockitoJUnit.rule();
+    @Rule public final MockitoRule mMockitoRule = MockitoJUnit.rule();
 
-    private @Mock AutocompleteDelegate mAutocompleteDelegate;
-    private @Mock UrlBarEditingTextStateProvider mTextStateProvider;
-    private @Mock SuggestionProcessor mMockProcessor;
-    private @Mock AutocompleteController mAutocompleteController;
-    private @Mock AutocompleteMatch mAutocompleteMatch;
-    private @Mock AutocompleteController.Natives mControllerJniMock;
-    private @Mock LocationBarDataProvider mLocationBarDataProvider;
-    private @Mock ModalDialogManager mModalDialogManager;
-    private @Mock OmniboxActionDelegateImpl mOmniboxActionDelegate;
-    private @Mock LargeIconBridge.Natives mLargeIconBridgeJniMock;
-    private @Mock NavigationHandle mNavigationHandle;
-    private @Mock ActivityLifecycleDispatcher mActivityLifecycleDispatcher;
-    private @Mock WindowAndroid mWindowAndroid;
-    private @Mock Activity mActivity;
-    private @Mock Window mWindow;
-    private @Mock View mDecorView;
-    private @Mock OmniboxSuggestionsDropdownEmbedder mEmbedder;
-    private @Mock InsetObserver mInsetObserver;
+    @Mock private AutocompleteDelegate mAutocompleteDelegate;
+    @Mock private UrlBarEditingTextStateProvider mTextStateProvider;
+    @Mock private SuggestionProcessor mMockProcessor;
+    @Mock private AutocompleteController mAutocompleteController;
+    @Mock private AutocompleteMatch mAutocompleteMatch;
+    @Mock private AutocompleteController.Natives mControllerJniMock;
+    @Mock private LocationBarDataProvider mLocationBarDataProvider;
+    @Mock private ModalDialogManager mModalDialogManager;
+    @Mock private OmniboxActionDelegateImpl mOmniboxActionDelegate;
+    @Mock private LargeIconBridge.Natives mLargeIconBridgeJniMock;
+    @Mock private NavigationHandle mNavigationHandle;
+    @Mock private ActivityLifecycleDispatcher mActivityLifecycleDispatcher;
+    @Mock private WindowAndroid mWindowAndroid;
+    @Mock private Activity mActivity;
+    @Mock private Window mWindow;
+    @Mock private View mDecorView;
+    @Mock private OmniboxSuggestionsDropdownEmbedder mEmbedder;
+    @Mock private InsetObserver mInsetObserver;
     private @Mock AutocompleteCoordinator.OmniboxSuggestionsVisualStateObserver
             mVisualStateObserver;
-    private @Mock DeferredIMEWindowInsetApplicationCallback mDeferredImeCallback;
-    private @Mock FuseboxCoordinator mFuseboxCoordinator;
-    private @Mock LocationBarEmbedderUiOverrides mUiOverrides;
-    private @Mock SideUiStateProvider mSideUiStateProvider;
-    private @Mock PreloadingFeatureMap mPreloadingFeatureMap;
-    private @Mock ComposeboxQueryControllerBridge mComposeboxQueryControllerBridge;
-    private @Mock Callback<GURL> mGurlCallback;
-    private @Captor ArgumentCaptor<OmniboxLoadUrlParams> mOmniboxLoadUrlParamsCaptor;
-    private @Captor ArgumentCaptor<Consumer<SiteSearchData>> mKeywordModeEnteredCaptor;
-    private @Captor ArgumentCaptor<Callback<GURL>> mUrlCallbackCaptor;
+    @Mock private DeferredIMEWindowInsetApplicationCallback mDeferredImeCallback;
+    @Mock private FuseboxCoordinator mFuseboxCoordinator;
+    @Mock private LocationBarEmbedderUiOverrides mUiOverrides;
+    @Mock private SideUiStateProvider mSideUiStateProvider;
+    @Mock private PreloadingFeatureMap mPreloadingFeatureMap;
+    @Mock private ComposeboxQueryControllerBridge mComposeboxQueryControllerBridge;
+    @Mock private Callback<GURL> mGurlCallback;
+    @Captor private ArgumentCaptor<OmniboxLoadUrlParams> mOmniboxLoadUrlParamsCaptor;
+    @Captor private ArgumentCaptor<Consumer<SiteSearchData>> mKeywordModeEnteredCaptor;
+    @Captor private ArgumentCaptor<Callback<GURL>> mUrlCallbackCaptor;
     private @Mock CachedZeroSuggestionsManager.OverridesForTesting
             mMockCachedZeroSuggestionsManager;
-    private @Mock TemplateUrlService mTemplateUrlService;
-    private @Mock Profile mProfile;
-    private @Mock PrefService mPrefService;
-    private @Mock TemplateUrl mTemplateUrl;
-    private @Mock PropertyObserver<PropertyKey> mPropertyObserver;
+    @Mock private TemplateUrlService mTemplateUrlService;
+    @Mock private Profile mProfile;
+    @Mock private PrefService mPrefService;
+    @Mock private TemplateUrl mTemplateUrl;
+    @Mock private PropertyObserver<PropertyKey> mPropertyObserver;
+    @Mock private Tab mTab;
+    @Mock private WebContents mWebContents;
     private PropertyModel mListModel;
     private OmniboxResourceProvider mResourceProvider;
     private AutocompleteMediator mMediator;
@@ -491,10 +493,9 @@ public class AutocompleteMediatorUnitTest {
                 .getBoolean(AutocompleteMediator.KEYWORD_SPACE_TRIGGERING_ENABLED_PREF);
         doReturn("bing").when(mTextStateProvider).getTextWithoutAutocomplete();
         doReturn(true).when(mTemplateUrlService).isLoaded();
-        var mockTemplateUrl = mock(TemplateUrl.class);
-        doReturn("bing").when(mockTemplateUrl).getKeyword();
-        doReturn("Bing").when(mockTemplateUrl).getShortName();
-        doReturn(mockTemplateUrl).when(mAutocompleteController).getTemplateUrlForText("bing");
+        doReturn("bing").when(mTemplateUrl).getKeyword();
+        doReturn("Bing").when(mTemplateUrl).getShortName();
+        doReturn(mTemplateUrl).when(mAutocompleteController).getTemplateUrlForText("bing");
 
         assertTrue(mMediator.triggerSiteSearch(SiteSearchActivationSource.SPACE));
         verify(mAutocompleteDelegate).setOmniboxEditingText("");
@@ -523,10 +524,9 @@ public class AutocompleteMediatorUnitTest {
                 .getBoolean(AutocompleteMediator.KEYWORD_SPACE_TRIGGERING_ENABLED_PREF);
         doReturn("bing").when(mTextStateProvider).getTextWithoutAutocomplete();
         doReturn(true).when(mTemplateUrlService).isLoaded();
-        var mockTemplateUrl = mock(TemplateUrl.class);
-        doReturn("bing").when(mockTemplateUrl).getKeyword();
-        doReturn("Bing").when(mockTemplateUrl).getShortName();
-        doReturn(mockTemplateUrl).when(mAutocompleteController).getTemplateUrlForText("bing");
+        doReturn("bing").when(mTemplateUrl).getKeyword();
+        doReturn("Bing").when(mTemplateUrl).getShortName();
+        doReturn(mTemplateUrl).when(mAutocompleteController).getTemplateUrlForText("bing");
 
         assertFalse(mMediator.triggerSiteSearch(SiteSearchActivationSource.SPACE));
     }
@@ -865,13 +865,11 @@ public class AutocompleteMediatorUnitTest {
         mMediator.beginInput(createEmptySession());
 
         when(mPreloadingFeatureMap.shouldPrewarmOnAutocomplete()).thenReturn(true);
-        Tab tab = mock(Tab.class);
-        WebContents webContents = mock(WebContents.class);
-        when(mLocationBarDataProvider.getTab()).thenReturn(tab);
-        when(tab.getWebContents()).thenReturn(webContents);
+        when(mLocationBarDataProvider.getTab()).thenReturn(mTab);
+        when(mTab.getWebContents()).thenReturn(mWebContents);
 
         mMediator.onSuggestionsReceived(mAutocompleteResult, /* isFinal= */ false);
-        verify(mAutocompleteController).startPrewarm(eq(webContents));
+        verify(mAutocompleteController).startPrewarm(eq(mWebContents));
     }
 
     @Test
@@ -2656,11 +2654,10 @@ public class AutocompleteMediatorUnitTest {
         var session = createEmptySession();
         mMediator.beginInput(session);
 
-        AutocompleteMatch match = mock(AutocompleteMatch.class);
-        doReturn(true).when(match).isDeletable();
-        doReturn(1L).when(match).getNativeObjectRef();
+        doReturn(true).when(mAutocompleteMatch).isDeletable();
+        doReturn(1L).when(mAutocompleteMatch).getNativeObjectRef();
 
-        mMediator.showDeleteDialog(match, "Title", () -> {});
+        mMediator.showDeleteDialog(mAutocompleteMatch, "Title", () -> {});
 
         // Verify dialog is shown.
         verify(mModalDialogManager).showDialog(any(), eq(ModalDialogManager.ModalDialogType.APP));

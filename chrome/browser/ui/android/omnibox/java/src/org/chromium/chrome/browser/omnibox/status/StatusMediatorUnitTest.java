@@ -106,7 +106,7 @@ public final class StatusMediatorUnitTest {
     private static final int CURRENT_TAB_ID = 5;
     private static final int NEW_TAB_ID = 1;
 
-    @Rule public MockitoRule mMockitoRule = MockitoJUnit.rule();
+    @Rule public final MockitoRule mMockitoRule = MockitoJUnit.rule();
 
     @Mock private NewTabPageDelegate mNewTabPageDelegate;
     @Mock private LocationBarDataProvider mLocationBarDataProvider;
@@ -123,7 +123,7 @@ public final class StatusMediatorUnitTest {
     @Mock private WebContents mWebContents;
     @Mock private NavigationController mNavigationController;
     @Mock private NavigationEntry mNavigationEntry;
-    @Mock UserPrefsJni mMockUserPrefsJni;
+    @Mock private UserPrefsJni mMockUserPrefsJni;
     @Mock private PrefService mPrefs;
     @Mock private Tracker mTracker;
     @Mock private OnClickListener mOnClickListener;
@@ -133,6 +133,7 @@ public final class StatusMediatorUnitTest {
     @Mock private ComposeboxQueryControllerBridge.Natives mComposeboxBridgeJni;
     @Mock private LargeIconBridge.Natives mLargeIconBridgeNatives;
     @Mock private Drawable mMockFaviconDrawable;
+    @Mock private TemplateUrl mTemplateUrl;
 
     @Captor private ArgumentCaptor<PermissionDialogController.Observer> mPermissionObserverCaptor;
 
@@ -1291,15 +1292,14 @@ public final class StatusMediatorUnitTest {
 
         Shadows.shadowOf(Looper.getMainLooper()).idle();
 
-        TemplateUrl geminiTemplate = mock(TemplateUrl.class);
-        doReturn(geminiTemplate).when(mTemplateUrlService).getTemplateUrlForKeyword("gemini");
+        doReturn(mTemplateUrl).when(mTemplateUrlService).getTemplateUrlForKeyword("gemini");
         SiteSearchData geminiData = new SiteSearchData("gemini", "Gemini");
         siteSearchDataSupplier.set(geminiData);
 
         Shadows.shadowOf(Looper.getMainLooper()).idle();
 
         verify(mSearchEngineService)
-                .retrieveFavicon(eq(geminiTemplate), mFaviconCallbackCaptor.capture());
+                .retrieveFavicon(eq(mTemplateUrl), mFaviconCallbackCaptor.capture());
 
         StatusIconResource geminiIcon = new StatusIconResource("gemini_icon", null, 0);
         mFaviconCallbackCaptor.getValue().onResult(geminiIcon);

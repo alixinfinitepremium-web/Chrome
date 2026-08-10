@@ -481,15 +481,6 @@ class ApiTests extends ApiTestFixtureBase {
     assertEquals(expectedHotkey, hotkeyState.hotkey);
   }
 
-  async testClosedCaptioning() {
-    assertDefined(this.host.getClosedCaptioningSetting);
-    assertDefined(this.host.setClosedCaptioningSetting);
-    const closedCaptioningState =
-        observeSequence(this.host.getClosedCaptioningSetting());
-    assertFalse(await closedCaptioningState.next());
-    await this.host.setClosedCaptioningSetting(true);
-    assertTrue(await closedCaptioningState.next());
-  }
 
   async testActuationOnWebSetting() {
     assertDefined(this.host.getActuationOnWebSetting);
@@ -553,12 +544,6 @@ class ApiTests extends ApiTestFixtureBase {
       // Can be 'Your Chrome' or 'Your Chromium'.
       assertEquals('Your C', profileInfo.localProfileName?.substring(0, 6));
     }
-  }
-
-  async testRefreshSignInCookies() {
-    assertDefined(this.host.refreshSignInCookies);
-
-    await this.host.refreshSignInCookies();
   }
 
   async testSignInPauseState() {
@@ -1192,17 +1177,6 @@ class ApiTests extends ApiTestFixtureBase {
       // Note: I've tried adding a sleep between minimizing the window and
       // capturing the screenshot, but it still succeeds randomly.
     }
-  }
-
-  async testSwitchConversationToOldConversationNewInstance() {
-    assertDefined(this.host.switchConversation);
-    await this.host.switchConversation(
-        {conversationId: 'A', conversationTitle: 'Title A'});
-  }
-
-  async testSwitchConversationToNewConversationNewInstance() {
-    assertDefined(this.host.switchConversation);
-    await this.host.switchConversation();
   }
 
   async testSwitchConversationToLastActiveConversation() {

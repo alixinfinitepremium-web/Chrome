@@ -104,6 +104,47 @@ class ApiTests extends ApiTestFixtureBase {
     this.host.openPasswordManagerSettingsPage();
   }
 
+  async testSwitchConversationToOldConversationInPlace() {
+    assertDefined(this.host.switchConversation);
+    await this.host.switchConversation(
+        {conversationId: 'A', conversationTitle: 'Title A'});
+  }
+
+  async testSwitchConversationToNewConversationInPlace() {
+    assertDefined(this.host.switchConversation);
+    await this.host.switchConversation();
+  }
+
+  async testClosedCaptioning() {
+    assertDefined(this.host.getClosedCaptioningSetting);
+    assertDefined(this.host.setClosedCaptioningSetting);
+    const closedCaptioningState =
+        observeSequence(this.host.getClosedCaptioningSetting());
+    assertFalse(await closedCaptioningState.next());
+    await this.host.setClosedCaptioningSetting(true);
+    assertTrue(await closedCaptioningState.next());
+  }
+  async testRefreshSignInCookies() {
+    assertDefined(this.host.refreshSignInCookies);
+    await this.host.refreshSignInCookies();
+  }
+  async testSwitchConversationToOldConversationNewInstance() {
+    assertDefined(this.host.switchConversation);
+    await this.host.switchConversation(
+        {conversationId: 'initial_id', conversationTitle: 'Initial Title'});
+    await this.advanceToNextStep();
+    await this.host.switchConversation(
+        {conversationId: 'A', conversationTitle: 'Title A'});
+  }
+
+  async testSwitchConversationToNewConversationNewInstance() {
+    assertDefined(this.host.switchConversation);
+    await this.host.switchConversation(
+        {conversationId: 'initial_id', conversationTitle: 'Initial Title'});
+    await this.advanceToNextStep();
+    await this.host.switchConversation();
+  }
+
   async testCanAttachPanelToFallbackEmbedder() {
     assertDefined(this.host.getFocusedTabStateV2);
     assertDefined(this.host.getPinnedTabs);

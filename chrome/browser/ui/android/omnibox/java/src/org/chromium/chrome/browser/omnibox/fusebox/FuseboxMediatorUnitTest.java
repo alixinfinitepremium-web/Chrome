@@ -171,6 +171,7 @@ public class FuseboxMediatorUnitTest {
     @Mock private Runnable mClearUrlBarTextCallback;
     @Mock private KeyEvent mKeyEvent;
     @Mock private Runnable mOnRemoveRunnable;
+    @Mock private FuseboxAttachmentModelList mFuseboxAttachmentModelList;
 
     @Captor private ArgumentCaptor<Intent> mIntentCaptor;
     @Captor private ArgumentCaptor<WindowAndroid.IntentCallback> mIntentCallbackCaptor;
@@ -271,6 +272,7 @@ public class FuseboxMediatorUnitTest {
                         mWindowAndroid,
                         mModel,
                         mViewHolder,
+                        new OmniboxResourceProvider(mContext, BrandedColorScheme.APP_DEFAULT),
                         mTabModelSelectorSupplier,
                         mFuseboxStateSupplier,
                         mPopupStateSupplier,
@@ -456,11 +458,8 @@ public class FuseboxMediatorUnitTest {
 
     @Test
     public void testDestroy() {
-        // Use a temp for mock to avoid DirectInvocationOnMock lint check. This test cases uses a
-        // mock for mAttachments but the rest of this test file does not.
-        FuseboxAttachmentModelList mockAttachments = mock(FuseboxAttachmentModelList.class);
-        when(mockAttachments.iterator()).thenReturn(Collections.emptyIterator());
-        mAttachments = mockAttachments;
+        when(mFuseboxAttachmentModelList.iterator()).thenReturn(Collections.emptyIterator());
+        mAttachments = mFuseboxAttachmentModelList;
         recreateMediator();
 
         assertTrue(mInput.getRequestTypeSupplier().hasObservers());

@@ -285,6 +285,9 @@ vars = {
   # siso CIPD package version.
   'siso_version': 'git_revision:1b1109fc6f5e177a439a195b87931224efc7a007',
 
+  # CPython 3 CIPD package version for Siso hermetic toolchain.
+  'cpython3_version': 'version:3@3.11.9.chromium.38',
+
   # reclient options.
   # download reclient binaries, required for 'use_reclient` gn arg.
   # TODO(crbug.com/448517720): make it false by default.
@@ -332,7 +335,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': '0585e0f0274c7a4bc934b04da64794a748ce6f5a',
+  'v8_revision': '21f5ab53bc32b249d6af7928f530970c156fd177',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -408,7 +411,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '51116de6171e92767c10d3730c0a29a1242c84ce',
+  'devtools_frontend_revision': 'f2245c966b442892a259aca0490294d8668baf98',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1825,7 +1828,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': 'r1RdBRWnrmElTm1G08JCcxMChxbeWMctlpZ6NoAW0VMC',
+          'version': '4GCfRW_OwyxJraS9YWle4v8HT-dQWkI__GaBckaGIGMC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
@@ -2141,7 +2144,7 @@ deps = {
   # Tools used when building Chrome for Chrome OS. This affects both the Simple
   # Chrome workflow, as well as the chromeos-chrome ebuild.
   'src/third_party/chromite': {
-      'url': Var('chromium_git') + '/chromiumos/chromite.git' + '@' + '129ebe19c01fab058986a39445ad8db713df0901',
+      'url': Var('chromium_git') + '/chromiumos/chromite.git' + '@' + '2a3776d2587c7dcd8efad9fc562469232f22c9aa',
       'condition': 'checkout_chromeos',
   },
 
@@ -2162,7 +2165,7 @@ deps = {
 
   # For Linux and Chromium OS.
   'src/third_party/cros_system_api': {
-      'url': Var('chromium_git') + '/chromiumos/platform2/system_api.git' + '@' + '2cc495c852c0d339f395cbd8ca00fc684f12e334',
+      'url': Var('chromium_git') + '/chromiumos/platform2/system_api.git' + '@' + 'faf06f1112b67fead7dbd81cd9f769f1c9c22726',
       'condition': 'checkout_linux or checkout_chromeos',
   },
 
@@ -2173,7 +2176,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'cad42f6eae1307a35988840c847d16dae68cbc00',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'b8aac3bac568d44ae708382a073740d6cc13186d',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -2298,6 +2301,19 @@ deps = {
         },
       ],
       'condition': 'host_os == "linux" and non_git_source',
+      'dep_type': 'cipd',
+  },
+
+  # Host platform package. ${platform} folder is not used as in .gn the variable
+  # is not initialized yet by the time Python is required.
+  'src/third_party/cpython3/host': {
+      'packages': [
+        {
+          'package': 'infra/3pp/tools/cpython3/${{platform}}',
+          'version': Var('cpython3_version'),
+        },
+      ],
+      'condition': 'non_git_source',
       'dep_type': 'cipd',
   },
 
@@ -3132,16 +3148,16 @@ deps = {
       ],
   },
 
-  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@8ebdc1c3c1fb1eed4ee19d3227ca58b90686d282',
+  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@db1d75efde90d0413fcf6a0da60681a726a73edb',
   'src/third_party/glslang/src': '{chromium_git}/external/github.com/KhronosGroup/glslang@90afccfbd49dff0349d86a41762e9de24e1df811',
   'src/third_party/spirv-cross/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Cross@b8fcf307f1f347089e3c46eb4451d27f32ebc8d3',
   'src/third_party/spirv-headers/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Headers@942fe4b988359a0750b79f0ae7ed735994d3147d',
-  'src/third_party/spirv-tools/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Tools@388f5af1a6d4a4df4ab9bf69a1817255952e6ef1',
+  'src/third_party/spirv-tools/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Tools@ebe980a5e54f2dd52b3b4b23ff433a1843d58040',
   'src/third_party/vulkan-headers/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Headers@f9973cd97e6f3584707e7ef1c425e336f1b92a5b',
   'src/third_party/vulkan-loader/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Loader@ff6f71acd66aa2f11c53bb227d07842db4e46da3',
   'src/third_party/vulkan-tools/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Tools@572d10d787b74601ea09b696521c950c259ae815',
   'src/third_party/vulkan-utility-libraries/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Utility-Libraries@48b2a63b17eb79d612bd276d6e1adeb1f73c03e9',
-  'src/third_party/vulkan-validation-layers/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-ValidationLayers@59af52860578fabad9d28ad403a939e30d41af59',
+  'src/third_party/vulkan-validation-layers/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-ValidationLayers@dd0588fd84b952d8b579a8b8dbad265a39365831',
 
   'src/third_party/vulkan_memory_allocator':
     Var('chromium_git') + '/external/github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git' + '@' + '82a9d47e4f9d91f0e32d2b6acd9714fcee1933a0',
@@ -3335,7 +3351,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/help_app/app',
-        'version': '8Uh6T_gTxlHm-9GthxJGBrYyccHtniPZJtsYLvTVQc0C',
+        'version': 'TM1p5Liy68vU6Or4mcKNM4CijkWx_t6KQRsJ49MvV4IC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3346,7 +3362,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/media_app/app',
-        'version': 'ZusKM9IVnsBrWBlX61BSwdssUeeML9KGHdlijdz_L-8C',
+        'version': 'PMsBDyS3sWMC9P7s9fWO0UZyne0lcNlp3DER9JjdYvUC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3756,7 +3772,7 @@ deps = {
 
   'src/chrome/browser/platform_experience/win': {
       'url': Var('chrome_git') + '/chrome/browser/platform_experience/win.git' + '@' +
-        '7046a436f37b4b00761b270abc2ba5efe2d9cc06',
+        '297c325c5fbf5cebdb1f0a488e7300de771624ad',
       'condition': 'checkout_src_internal',
   },
 

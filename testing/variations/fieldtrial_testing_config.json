@@ -2477,6 +2477,7 @@
                     },
                     "enable_features": [
                         "AutofillAtMemory",
+                        "AutofillAtMemorySupportContenteditableOnAndroid",
                         "AutofillAtMemoryTriggerShortcut",
                         "AutofillKeydownEditableElement",
                         "IPH_AutofillAtMemory",
@@ -23947,6 +23948,21 @@
             ]
         }
     ],
+    "SuspiciousSiteWarnings": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "SuspiciousSiteWarnings"
+                    ]
+                }
+            ]
+        }
+    ],
     "SwiftShaderDeprecation": [
         {
             "platforms": [
@@ -25418,6 +25434,25 @@
                     "name": "Enabled",
                     "enable_features": [
                         "UserValueDefaultBrowserStrings"
+                    ]
+                }
+            ]
+        }
+    ],
+    "UtfConversionAsciiFastPath": [
+        {
+            "platforms": [
+                "android",
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled_20260810",
+                    "enable_features": [
+                        "UtfConversionAsciiFastPath"
                     ]
                 }
             ]
