@@ -2379,6 +2379,22 @@ IN_PROC_BROWSER_TEST_P(NewGlicApiTest, testRefreshSignInCookies) {
   ExecuteJsTest();
 }
 
+IN_PROC_BROWSER_TEST_P(NewGlicApiTest, testSignInPauseState) {
+  ASSERT_OK(OpenGlicForActiveTab());
+  // Check that Glic web client is open and can retrieve the user's info.
+  ExecuteJsTest();
+
+  // Pause the sign-in.
+  auto* const identity_manager =
+      IdentityManagerFactory::GetForProfile(GetProfile());
+  signin::SetInvalidRefreshTokenForPrimaryAccount(identity_manager);
+
+  // The guest frame should be destroyed, and the WebUI should show the sign-in
+  // panel.
+  ASSERT_OK(RunUntilNull([&]() { return FindGlicGuestMainFrame(); }));
+  ASSERT_OK(WaitForWebUiState(mojom::WebUiState::kSignIn));
+}
+
 IN_PROC_BROWSER_TEST_P(NewGlicApiTest, testInvoke) {
   ASSERT_OK_AND_ASSIGN(auto* instance, OpenGlicForActiveTab());
   ASSERT_OK(WaitForGlicClient());
@@ -2786,13 +2802,11 @@ IN_PROC_BROWSER_TEST_P(NewGlicApiTestWithWebContentsWarming,
   ASSERT_TRUE(coordinator()
                   .GetWebContentsWarmingPoolForTesting()
                   .MaybeStartInitialWarming());
-  ASSERT_OK(RunUntilEqual(
-      [&]() {
-        return coordinator()
-                   .GetWebContentsWarmingPoolForTesting()
-                   .GetWarmedContainerForTesting() != nullptr;
-      },
-      true));
+  ASSERT_OK(RunUntilNotNull([&]() {
+    return coordinator()
+        .GetWebContentsWarmingPoolForTesting()
+        .GetWarmedContainerForTesting();
+  }));
   // Opening the glic window will trigger the bootstrap, which should transition
   // the WebUI state to kReady.
   ASSERT_OK(OpenGlicForActiveTab());
@@ -3483,6 +3497,16 @@ IN_PROC_BROWSER_TEST_P(NewGlicApiUnresponsiveTest, MAYBE_testUnresponsive) {
       "Glic.Host.WebClientUnresponsiveState.Duration", 1);
   histogram_tester.ExpectBucketCount("Glic.PanelWebUiState.Error",
                                      /*WebUiErrorReason.CLIENT_ERROR*/ 6, 1);
+}
+
+IN_PROC_BROWSER_TEST_P(NewGlicApiTest, testActuationOnWebSetting) {
+  ASSERT_OK(OpenGlicForActiveTab());
+  ExecuteJsTest();
+}
+
+IN_PROC_BROWSER_TEST_P(NewGlicApiTest, testSetContextAccessIndicator) {
+  ASSERT_OK(OpenGlicForActiveTab());
+  ExecuteJsTest();
 }
 
 auto DefaultTestParamSet() {

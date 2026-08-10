@@ -48,24 +48,11 @@ using ::testing::Not;
 #if !BUILDFLAG(IS_ANDROID)
 class MockTabProvider : public ContextHubPageHandler::TabProvider {
  public:
-  MOCK_METHOD(std::vector<content::WebContents*>, GetTabs, (), (override));
   MOCK_METHOD(std::vector<content::WebContents*>,
-              GetUngroupedTabs,
-              (),
+              GetTabs,
+              (content::WebContents*),
               (override));
-  MOCK_METHOD(void, SwitchToTab, (int64_t), (override));
-  MOCK_METHOD(bool,
-              ConfirmTabGroups,
-              (base::span<const context_hub::TabGroupEntry>),
-              (override));
-  MOCK_METHOD(void,
-              RemoveGroupFromTabstripIfOpen,
-              (const base::Uuid&),
-              (override));
-  MOCK_METHOD(void,
-              UngroupGroupFromTabstripIfOpen,
-              (const base::Uuid&),
-              (override));
+  MOCK_METHOD(void, SwitchToTab, (content::WebContents*, int64_t), (override));
 };
 #endif
 
@@ -647,104 +634,6 @@ TEST_F(ContextHubPageHandlerTest, OnAutoTodosChanged) {
   EXPECT_EQ(todos[0].importance_score, 0.8f);
 }
 
-TEST_F(ContextHubPageHandlerTest, GetAutoTodos_FiltersDismissedTodos) {
-  ContextHubService* service =
-      ContextHubServiceFactory::GetForProfile(&profile_);
-  ASSERT_TRUE(service);
-
-  AutoTodoEntry active_entry;
-  active_entry.id = "active_1";
-  active_entry.status = AutoTodoEntry::Status::kActive;
-  active_entry.data = FirstPartyData{
-      .actionable_url = GURL("https://example.com/action"),
-  };
-
-  AutoTodoEntry dismissed_entry;
-  dismissed_entry.id = "dismissed_1";
-  dismissed_entry.status = AutoTodoEntry::Status::kDismissed;
-  dismissed_entry.data = FirstPartyData{
-      .actionable_url = GURL("https://example.com/action2"),
-  };
-
-  AutoTodoEntry completed_entry;
-  completed_entry.id = "completed_1";
-  completed_entry.status = AutoTodoEntry::Status::kCompleted;
-  completed_entry.data = ThirdPartyData{
-      .tab_id = 12345,
-  };
-
-  // Add Todos to the store.
-  base::test::TestFuture<bool> active_future;
-  service->UpdateAutoTodo(std::move(active_entry), active_future.GetCallback());
-  ASSERT_TRUE(active_future.Get());
-
-  base::test::TestFuture<bool> dismissed_future;
-  service->UpdateAutoTodo(std::move(dismissed_entry),
-                          dismissed_future.GetCallback());
-  ASSERT_TRUE(dismissed_future.Get());
-
-  base::test::TestFuture<bool> completed_future;
-  service->UpdateAutoTodo(std::move(completed_entry),
-                          completed_future.GetCallback());
-  ASSERT_TRUE(completed_future.Get());
-
-  // Verify that GetAutoTodos returns non-dismissed todos to WebUI.
-  base::test::TestFuture<const std::vector<context_hub::AutoTodoEntry>&,
-                         const std::vector<context_hub::AutoTodoEntry>&>
-      get_future;
-  handler_->GetAutoTodos(get_future.GetCallback());
-
-  auto [first_party, third_party] = get_future.Take();
-  ASSERT_EQ(first_party.size(), 1u);
-  EXPECT_EQ(first_party.at(0).id, "active_1");
-  ASSERT_EQ(third_party.size(), 1u);
-  EXPECT_EQ(third_party.at(0).id, "completed_1");
-
-  // Verify that the dismissed item is still in the cache/store.
-  base::test::TestFuture<std::vector<AutoTodoEntry>> service_get_future;
-  service->GetAutoTodos(service_get_future.GetCallback());
-  auto all_cached_entries = service_get_future.Get();
-  EXPECT_EQ(all_cached_entries.size(), 3u);
-}
-
-TEST_F(ContextHubPageHandlerTest, OnAutoTodosChanged_FiltersDismissedTodos) {
-  ContextHubService* service =
-      ContextHubServiceFactory::GetForProfile(&profile_);
-  ASSERT_TRUE(service);
-
-  // Updating the todo to dismissed should notify the page with an empty list.
-  AutoTodoEntry dismissed_entry;
-  dismissed_entry.id = "todo_1";
-  dismissed_entry.status = AutoTodoEntry::Status::kDismissed;
-  dismissed_entry.data = FirstPartyData{
-      .actionable_url = GURL("https://example.com/action"),
-  };
-
-  base::test::TestFuture<std::vector<AutoTodoEntry>> dismissed_notify_future;
-  EXPECT_CALL(mock_page_, OnAutoTodosChanged(_))
-      .WillOnce([&dismissed_notify_future](
-                    const std::vector<AutoTodoEntry>& updated_todos) {
-        dismissed_notify_future.SetValue(updated_todos);
-      });
-
-  base::test::TestFuture<bool> update_future;
-  handler_->UpdateAutoTodo(std::move(dismissed_entry),
-                           update_future.GetCallback());
-  EXPECT_TRUE(update_future.Get());
-
-  auto updated_todos = dismissed_notify_future.Take();
-  EXPECT_TRUE(updated_todos.empty());
-
-  // Verify that the dismissed item is in the cache still, just filtered from
-  // the WebUI.
-  base::test::TestFuture<std::vector<AutoTodoEntry>> cache_future;
-  service->GetAutoTodos(cache_future.GetCallback());
-  auto cached_items = cache_future.Get();
-  ASSERT_EQ(cached_items.size(), 1u);
-  EXPECT_EQ(cached_items[0].id, "todo_1");
-  EXPECT_EQ(cached_items[0].status, AutoTodoEntry::Status::kDismissed);
-}
-
 TEST_F(ContextHubPageHandlerTest, GetAllMemoryBankEntries_Empty) {
   base::test::TestFuture<
       std::vector<browser::context_hub::mojom::MemoryBankEntryPtr>>
@@ -844,13 +733,13 @@ TEST_F(ContextHubPageHandlerTest, DeleteMemoryBankEntries_Success) {
 
 #if !BUILDFLAG(IS_ANDROID)
 TEST_F(ContextHubPageHandlerTest, SwitchToTab) {
-  EXPECT_CALL(*mock_tab_provider_, SwitchToTab(42)).Times(1);
+  EXPECT_CALL(*mock_tab_provider_, SwitchToTab(_, 42)).Times(1);
 
   handler_->SwitchToTab(42);
 }
 
 TEST_F(ContextHubPageHandlerTest, GetTabs_NoTabs) {
-  EXPECT_CALL(*mock_tab_provider_, GetUngroupedTabs())
+  EXPECT_CALL(*mock_tab_provider_, GetTabs(_))
       .WillOnce(testing::Return(std::vector<content::WebContents*>{}));
 
   base::test::TestFuture<std::vector<browser::context_hub::mojom::TabInfoPtr>>
@@ -873,7 +762,7 @@ TEST_F(ContextHubPageHandlerTest, GetTabs_WithTabs) {
     test_tabs.push_back(std::move(tab));
   }
 
-  EXPECT_CALL(*mock_tab_provider_, GetUngroupedTabs())
+  EXPECT_CALL(*mock_tab_provider_, GetTabs(_))
       .WillOnce(testing::Return(raw_test_tabs));
 
   base::test::TestFuture<std::vector<browser::context_hub::mojom::TabInfoPtr>>
@@ -885,7 +774,7 @@ TEST_F(ContextHubPageHandlerTest, GetTabs_WithTabs) {
 }
 
 TEST_F(ContextHubPageHandlerTest, RetrieveAndGroupTabs_NoTabs) {
-  EXPECT_CALL(*mock_tab_provider_, GetUngroupedTabs())
+  EXPECT_CALL(*mock_tab_provider_, GetTabs(_))
       .WillOnce(testing::Return(std::vector<content::WebContents*>{}));
 
   base::test::TestFuture<std::vector<browser::context_hub::mojom::TabGroupPtr>,
@@ -918,7 +807,7 @@ TEST_F(ContextHubPageHandlerTest, RetrieveAndGroupTabs_WithTabs) {
     test_tabs.push_back(std::move(tab));
   }
 
-  EXPECT_CALL(*mock_tab_provider_, GetUngroupedTabs())
+  EXPECT_CALL(*mock_tab_provider_, GetTabs(_))
       .WillOnce(testing::Return(raw_test_tabs));
 
   EXPECT_CALL(
@@ -999,7 +888,7 @@ TEST_F(ContextHubPageHandlerTest, GetExistingTabGroupsAndChats_WithGroups) {
   }
 
   // 1. Group tabs so that service stores tab groups.
-  EXPECT_CALL(*mock_tab_provider_, GetUngroupedTabs())
+  EXPECT_CALL(*mock_tab_provider_, GetTabs(_))
       .WillOnce(testing::Return(raw_test_tabs));
 
   EXPECT_CALL(
@@ -1053,7 +942,7 @@ TEST_F(ContextHubPageHandlerTest, GetExistingTabGroupsAndChats_WithGroups) {
       optimization_guide::proto::ChatHistoryTurn::ROLE_USER, "Hello");
 
   // 3. Call GetExistingTabGroupsAndChats and verify output.
-  EXPECT_CALL(*mock_tab_provider_, GetUngroupedTabs())
+  EXPECT_CALL(*mock_tab_provider_, GetTabs(_))
       .WillOnce(testing::Return(raw_test_tabs));
 
   base::test::TestFuture<
@@ -1082,7 +971,7 @@ TEST_F(ContextHubPageHandlerTest, GetExistingTabGroupsAndChats_WithGroups) {
 }
 
 TEST_F(ContextHubPageHandlerTest, GetExistingTabGroupsAndChats_NoGroups) {
-  EXPECT_CALL(*mock_tab_provider_, GetUngroupedTabs())
+  EXPECT_CALL(*mock_tab_provider_, GetTabs(_))
       .WillOnce(testing::Return(std::vector<content::WebContents*>{}));
 
   base::test::TestFuture<
@@ -1112,7 +1001,7 @@ TEST_F(ContextHubPageHandlerTest, GenerateTabBasedTodos) {
   raw_test_tabs.push_back(tab.get());
   test_tabs.push_back(std::move(tab));
 
-  EXPECT_CALL(*mock_tab_provider_, GetTabs())
+  EXPECT_CALL(*mock_tab_provider_, GetTabs(_))
       .WillOnce(testing::Return(raw_test_tabs));
 
   EXPECT_CALL(mock_page_, OnAutoTodosChanged(_)).Times(0);

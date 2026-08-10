@@ -481,18 +481,6 @@ class ApiTests extends ApiTestFixtureBase {
     assertEquals(expectedHotkey, hotkeyState.hotkey);
   }
 
-
-  async testActuationOnWebSetting() {
-    assertDefined(this.host.getActuationOnWebSetting);
-    assertDefined(this.host.setActuationOnWebSetting);
-    const actuationOnWebState =
-        observeSequence(this.host.getActuationOnWebSetting());
-    assertFalse(await actuationOnWebState.next());
-    await this.host.setActuationOnWebSetting(true);
-    assertTrue(await actuationOnWebState.next());
-  }
-
-
   async testGetUserProfileInfoCached() {
     assertDefined(this.host.getUserProfileInfo);
     assertDefined(this.host.getPlatform);
@@ -544,27 +532,6 @@ class ApiTests extends ApiTestFixtureBase {
       // Can be 'Your Chrome' or 'Your Chromium'.
       assertEquals('Your C', profileInfo.localProfileName?.substring(0, 6));
     }
-  }
-
-  async testSignInPauseState() {
-    assertDefined(this.host.getUserProfileInfo);
-    assertDefined(this.host.getPlatform);
-    const profileInfo = await this.host.getUserProfileInfo();
-    const platform = await this.host.getPlatform();
-
-    assertEquals('Glic Testing', profileInfo.displayName);
-    assertEquals('glic-test@example.com', profileInfo.email);
-    assertEquals('Glic', profileInfo.givenName);
-    assertEquals(false, profileInfo.isManaged!);
-    if (platform !== Platform.CHROME_OS) {
-      assertTrue((profileInfo.localProfileName?.length ?? 0) > 0);
-    }
-  }
-
-  async testSetContextAccessIndicator() {
-    assertDefined(this.host.setContextAccessIndicator);
-
-    await this.host.setContextAccessIndicator(true);
   }
 
   async testSetAudioDucking() {

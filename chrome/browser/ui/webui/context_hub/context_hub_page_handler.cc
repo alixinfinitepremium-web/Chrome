@@ -19,9 +19,72 @@
 #include "url/gurl.h"
 
 #if !BUILDFLAG(IS_ANDROID)
-#include "chrome/browser/ui/webui/context_hub/context_hub_tab_provider_desktop.h"
-#endif
+#include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
+#include "chrome/browser/ui/browser_window/public/global_browser_collection.h"
+#include "chrome/browser/ui/tabs/tab_strip_model.h"
 #include "components/sessions/content/session_tab_helper.h"  // nogncheck
+#endif
+
+#if !BUILDFLAG(IS_ANDROID)
+class BrowserTabProvider : public ContextHubPageHandler::TabProvider {
+ public:
+  std::vector<content::WebContents*> GetTabs(
+      content::WebContents* web_contents) override {
+    std::vector<content::WebContents*> tabs;
+    if (!web_contents) {
+      return tabs;
+    }
+    BrowserWindowInterface* browser_window =
+        GlobalBrowserCollection::GetInstance()->FindBrowserWithTab(
+            web_contents);
+    if (!browser_window) {
+      return tabs;
+    }
+    TabStripModel* tab_strip_model = browser_window->GetTabStripModel();
+    if (!tab_strip_model) {
+      return tabs;
+    }
+    for (int i = 0; i < tab_strip_model->count(); ++i) {
+      content::WebContents* tab_contents =
+          tab_strip_model->GetWebContentsAt(i);
+      if (tab_contents) {
+        tabs.push_back(tab_contents);
+      }
+    }
+    return tabs;
+  }
+
+  void SwitchToTab(content::WebContents* web_contents,
+                   int64_t tab_id) override {
+    if (!web_contents) {
+      return;
+    }
+    BrowserWindowInterface* browser_window =
+        GlobalBrowserCollection::GetInstance()->FindBrowserWithTab(
+            web_contents);
+    if (!browser_window) {
+      return;
+    }
+    TabStripModel* tab_strip_model = browser_window->GetTabStripModel();
+    if (!tab_strip_model) {
+      return;
+    }
+    for (int i = 0; i < tab_strip_model->count(); ++i) {
+      content::WebContents* tab_contents =
+          tab_strip_model->GetWebContentsAt(i);
+      if (!tab_contents) {
+        continue;
+      }
+      SessionID session_id =
+          sessions::SessionTabHelper::IdForTab(tab_contents);
+      if (session_id.is_valid() && session_id.id() == tab_id) {
+        tab_strip_model->ActivateTabAt(i);
+        break;
+      }
+    }
+  }
+};
+#endif
 
 ContextHubPageHandler::ContextHubPageHandler(
     mojo::PendingRemote<browser::context_hub::mojom::Page> page,
@@ -37,8 +100,7 @@ ContextHubPageHandler::ContextHubPageHandler(
   CHECK(page_.is_bound());
   if (!tab_provider_) {
 #if !BUILDFLAG(IS_ANDROID)
-    tab_provider_ =
-        std::make_unique<context_hub::ContextHubTabProviderDesktop>(profile_);
+    tab_provider_ = std::make_unique<BrowserTabProvider>();
 #endif
   }
   context_hub::ContextHubService* service =
@@ -52,16 +114,7 @@ ContextHubPageHandler::~ContextHubPageHandler() = default;
 
 void ContextHubPageHandler::OnAutoTodosChanged(
     base::span<const context_hub::AutoTodoEntry> entries) {
-  std::vector<context_hub::AutoTodoEntry> visible_entries;
-  for (const auto& entry : entries) {
-    // TODO(crbug.com/540562062): Consider showing dismissed todos in a separate
-    // section.
-    if (entry.status != context_hub::AutoTodoEntry::Status::kDismissed) {
-      continue;
-    }
-    visible_entries.push_back(entry);
-  }
-  page_->OnAutoTodosChanged(std::move(visible_entries));
+  page_->OnAutoTodosChanged(std::vector(std::from_range, entries));
 }
 
 void ContextHubPageHandler::GenerateFirstPartyAutoTodos(
@@ -90,9 +143,6 @@ void ContextHubPageHandler::GetAutoTodos(GetAutoTodosCallback callback) {
         std::vector<context_hub::AutoTodoEntry> first_party_todos;
         std::vector<context_hub::AutoTodoEntry> third_party_todos;
         for (auto& entry : entries) {
-          if (entry.status == context_hub::AutoTodoEntry::Status::kDismissed) {
-            continue;
-          }
           if (entry.is_first_party()) {
             first_party_todos.push_back(std::move(entry));
           } else if (entry.is_third_party()) {
@@ -213,15 +263,15 @@ void ContextHubPageHandler::DeleteMemoryBankEntries(
 
 namespace {
 
-std::vector<context_hub::TabData> GetOpenUngroupedTabs(
-    ContextHubPageHandler::TabProvider* tab_provider) {
+std::vector<context_hub::TabData> GetOpenTabs(
+    ContextHubPageHandler::TabProvider* tab_provider,
+    content::WebContents* web_contents) {
   std::vector<context_hub::TabData> tabs;
 #if !BUILDFLAG(IS_ANDROID)
   if (tab_provider) {
     for (content::WebContents* tab_contents :
-         tab_provider->GetUngroupedTabs()) {
-      SessionID session_id =
-          sessions::SessionTabHelper::IdForTab(tab_contents);
+         tab_provider->GetTabs(web_contents)) {
+      SessionID session_id = sessions::SessionTabHelper::IdForTab(tab_contents);
       if (session_id.is_valid()) {
         tabs.push_back({session_id.id(),
                         base::UTF16ToUTF8(tab_contents->GetTitle()),
@@ -275,7 +325,7 @@ void ContextHubPageHandler::GenerateTabBasedTodos(
   }
 
   std::vector<base::WeakPtr<content::WebContents>> tab_contents;
-  for (content::WebContents* wc : tab_provider_->GetTabs()) {
+  for (content::WebContents* wc : tab_provider_->GetTabs(web_contents_)) {
     if (wc) {
       tab_contents.push_back(wc->GetWeakPtr());
     }
@@ -285,7 +335,8 @@ void ContextHubPageHandler::GenerateTabBasedTodos(
 }
 
 void ContextHubPageHandler::GetTabs(GetTabsCallback callback) {
-  std::move(callback).Run(ToMojoTabs(GetOpenUngroupedTabs(tab_provider_.get())));
+  std::move(callback).Run(
+      ToMojoTabs(GetOpenTabs(tab_provider_.get(), web_contents_)));
 }
 
 void ContextHubPageHandler::RetrieveAndGroupTabs(
@@ -299,11 +350,11 @@ void ContextHubPageHandler::RetrieveAndGroupTabs(
   }
 
   service->GroupTabs(
-      GetOpenUngroupedTabs(tab_provider_.get()), user_command,
+      GetOpenTabs(tab_provider_.get(), web_contents_), user_command,
       base::BindOnce(
           [](RetrieveAndGroupTabsCallback callback,
-              std::vector<context_hub::TabGroupEntry> groups,
-              std::vector<context_hub::TabData> ungrouped_tabs) {
+             std::vector<context_hub::TabGroupEntry> groups,
+             std::vector<context_hub::TabData> ungrouped_tabs) {
             std::vector<browser::context_hub::mojom::TabGroupPtr> mojo_groups;
             for (const auto& group : groups) {
               auto mojo_group = browser::context_hub::mojom::TabGroup::New();
@@ -330,7 +381,7 @@ void ContextHubPageHandler::GetExistingTabGroupsAndChats(
   }
 
   std::vector<context_hub::TabData> open_tabs =
-      GetOpenUngroupedTabs(tab_provider_.get());
+      GetOpenTabs(tab_provider_.get(), web_contents_);
   std::vector<browser::context_hub::mojom::ChatMessagePtr> mojo_history =
       ToMojoChatHistory(service->GetTabGroupChatHistory());
 
@@ -352,8 +403,8 @@ void ContextHubPageHandler::GetExistingTabGroupsAndChats(
 
         std::vector<browser::context_hub::mojom::TabGroupPtr> mojo_groups;
         // For each stored group, go through each tab in the group and find
-        // the corresponding tab by ID in the open tabs list. Delete the tab ID
-        // from the map once added to a group.
+        // the corresponding tab by ID in the open tabs list. Delete the tab ID from
+        // the map once added to a group.
         for (const auto& entry : stored_groups) {
           std::vector<context_hub::TabData> group_tabs;
           for (int64_t tab_id_64 : entry.tab_ids) {
@@ -387,7 +438,7 @@ void ContextHubPageHandler::GetExistingTabGroupsAndChats(
 
 void ContextHubPageHandler::SwitchToTab(int64_t tab_id) {
   if (tab_provider_) {
-    tab_provider_->SwitchToTab(tab_id);
+    tab_provider_->SwitchToTab(web_contents_, tab_id);
   }
 }
 

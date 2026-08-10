@@ -4494,8 +4494,8 @@ if (!is_android) {
         sources += [
           # single-process mode hangs on Mac sometimes because of multiple UI
           # message loops. See 306348
+          "../renderer/safe_browsing/content_phishing_classifier_delegate_browsertest.cc",
           "../renderer/safe_browsing/phishing_classifier_browsertest.cc",
-          "../renderer/safe_browsing/phishing_classifier_delegate_browsertest.cc",
           "../renderer/safe_browsing/phishing_dom_utils_browsertest.cc",
         ]
       }
@@ -6645,7 +6645,6 @@ test("unit_tests") {
       "//chrome/browser/image_editor:image_editor_component_util",
       "//chrome/browser/image_fetcher",
       "//chrome/browser/importer:unit_tests",
-      "//chrome/browser/lens:unit_tests",
       "//chrome/browser/lens/core/mojom:mojo_bindings",
       "//chrome/browser/lens/sapisid:unit_tests",
       "//chrome/browser/media/router:test_support",
