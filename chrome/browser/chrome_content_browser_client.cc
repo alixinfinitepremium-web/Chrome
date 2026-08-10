@@ -2286,9 +2286,14 @@ bool ChromeContentBrowserClient::ShouldAllowMojoJsBindingsForFrame(
                              ->GetSecurityPrincipal()
                              .GetDeprecatedSiteURL();
   if (site_url.SchemeIs(extensions::kExtensionScheme)) {
-    return extensions::util::IsMojoJsEnabledForExtension(
-        extensions::ExtensionId(site_url.host()),
-        render_frame_host.GetBrowserContext());
+    content::BrowserContext* browser_context =
+        render_frame_host.GetBrowserContext();
+    const extensions::Extension* extension =
+        extensions::ExtensionRegistry::Get(browser_context)
+            ->enabled_extensions()
+            .GetByID(site_url.GetHost());
+    return extensions::util::IsMojoJsEnabledForExtension(extension,
+                                                         browser_context);
   }
 #endif
   return false;
@@ -4386,6 +4391,15 @@ bool ChromeContentBrowserClient::CanCreateWindow(
       Profile::FromBrowserContext(web_contents->GetBrowserContext());
   DCHECK(profile);
   *no_javascript_access = false;
+
+  // A privileged WebContents (see //chrome's PrivilegedWebContents) must not
+  // create related windows: the new window would share an opener relationship
+  // (and, for same-site targets, a process) with the privileged page. Deny
+  // outright, so window.open() returns null and target=_blank openers get
+  // nothing. Any legitimate off-PWC navigation is the feature's own concern.
+  if (web_contents->IsPrivileged()) {
+    return false;
+  }
 
   // This block gives the Contextual Tasks feature the opportunity to intercept
   // tab creation in the event it doesn't go directly through the feature's
@@ -8700,6 +8714,9 @@ bool ChromeContentBrowserClient::
 std::string ChromeContentBrowserClient::GetChildProcessSuffix(int child_flags) {
   if (child_flags ==
       std::to_underlying(ChildProcessHostFlags::kChildProcessHelperAlerts)) {
+    if (base::FeatureList::IsEnabled(features::kAperitifHelpers)) {
+      return " (Aperitif Alerts)";
+    }
     return chrome::kMacHelperSuffixAlerts;
   }
   NOTREACHED() << "Unsupported child process flags!";

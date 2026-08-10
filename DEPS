@@ -351,7 +351,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': 'e405179cfd5954d3913bc4e5f2e0d630da6e50c8',
+  'boringssl_revision': 'e882d0317177d41b2f19b4d634b53ab36f398f39',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -3148,16 +3148,16 @@ deps = {
       ],
   },
 
-  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@db1d75efde90d0413fcf6a0da60681a726a73edb',
+  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@5c9c2091dda38640e4f9bf7be95bafba85031034',
   'src/third_party/glslang/src': '{chromium_git}/external/github.com/KhronosGroup/glslang@90afccfbd49dff0349d86a41762e9de24e1df811',
   'src/third_party/spirv-cross/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Cross@b8fcf307f1f347089e3c46eb4451d27f32ebc8d3',
   'src/third_party/spirv-headers/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Headers@942fe4b988359a0750b79f0ae7ed735994d3147d',
-  'src/third_party/spirv-tools/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Tools@ebe980a5e54f2dd52b3b4b23ff433a1843d58040',
+  'src/third_party/spirv-tools/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Tools@ab07f9412ae631af816909b6b8440896da5d6f11',
   'src/third_party/vulkan-headers/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Headers@f9973cd97e6f3584707e7ef1c425e336f1b92a5b',
-  'src/third_party/vulkan-loader/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Loader@ff6f71acd66aa2f11c53bb227d07842db4e46da3',
+  'src/third_party/vulkan-loader/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Loader@fc8465f0a5b605e070e5ca9fe3064249926deb2d',
   'src/third_party/vulkan-tools/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Tools@572d10d787b74601ea09b696521c950c259ae815',
-  'src/third_party/vulkan-utility-libraries/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Utility-Libraries@48b2a63b17eb79d612bd276d6e1adeb1f73c03e9',
-  'src/third_party/vulkan-validation-layers/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-ValidationLayers@dd0588fd84b952d8b579a8b8dbad265a39365831',
+  'src/third_party/vulkan-utility-libraries/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Utility-Libraries@120d418dd8fa884c82c783578ca381d2c81c92c9',
+  'src/third_party/vulkan-validation-layers/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-ValidationLayers@d00251b9b1f4ca28377f14e12685c4e837ef22ba',
 
   'src/third_party/vulkan_memory_allocator':
     Var('chromium_git') + '/external/github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git' + '@' + '82a9d47e4f9d91f0e32d2b6acd9714fcee1933a0',
@@ -3904,7 +3904,7 @@ deps = {
 
   'src/chrome/updater/internal': {
     'url': Var('chrome_git') + '/chrome/updater/internal.git' + '@' +
-        'a5932445f29aa62ebb39d4756d9baef3ee8a4b28',
+        '5f1216c3c95eb081c1a24a9e7bf65d0096f1e645',
     'condition': 'checkout_src_internal',
   },
 
@@ -3957,7 +3957,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        '1d89cd0a1598fa2129608f0f46b63f8ff8ab89cf',
+        'd3669ad50276c5b2917a19dd24056bc58fcd149d',
       'condition': 'checkout_src_internal',
   },
 
@@ -4194,19 +4194,19 @@ deps = {
 
   'src/third_party/widevine/cdm/linux': {
       'url': Var('chrome_git') + '/chrome/deps/widevine/cdm/linux.git' + '@' +
-        'afd8e9fb9321a7f40dafb0b5e813a9d93d4644ac',
+        '6327c8373bcf4198d37a94c10d8495b7ffe281ae',
       'condition': 'checkout_linux and checkout_src_internal',
   },
 
   'src/third_party/widevine/cdm/mac': {
       'url': Var('chrome_git') + '/chrome/deps/widevine/cdm/mac.git' + '@' +
-        '7cd2ca2475858b671e3313cf7bc7c2be349d0a5e',
+        '75510ce15dcf46354b6cfc6d66caaa41da855423',
       'condition': 'checkout_mac and checkout_src_internal',
     },
 
   'src/third_party/widevine/cdm/win': {
       'url': Var('chrome_git') + '/chrome/deps/widevine/cdm/win.git' + '@' +
-        '7553255ad648b23be9adc41547d83f664e02a54f',
+        '96de637e98fcefc5d1cbd2037605c2b452522dea',
       'condition': 'checkout_win and checkout_src_internal',
   },
 
