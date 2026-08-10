@@ -408,7 +408,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'e1cbac7cc827a07658ecac071e21ce86fe477782',
+  'devtools_frontend_revision': '57d3ad488d318d319e2d67fbfbef78da6a8a43a3',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1923,7 +1923,7 @@ deps = {
       'packages': [
           {
                'package': 'chromium/third_party/android_build_tools/lint',
-               'version': 'xui13TQL4yFrIX3ZDhWrtHlt9tzUJygq3xOWgPMBwDIC',
+               'version': 'hBEL6744EboNeJbkocIRV0pFfxKhXX-d1ll5HCbJnicC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -1934,7 +1934,7 @@ deps = {
       'packages': [
           {
                'package': 'chromium/third_party/android_build_tools/manifest_merger',
-               'version': 'GShXXEBFsuhkikVlhNKfhU1IendMWhlEJ8aoPexS0VcC',
+               'version': 'IasS5darK5JU5uol9av0N9tEKNrKQ_4VkccKv7U-z5AC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -2173,7 +2173,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '8bbed5afb402c7f63c002738879459874a3277d1',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'cad42f6eae1307a35988840c847d16dae68cbc00',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -2433,7 +2433,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/kotlin_stdlib',
-              'version': 'y8rVLMzsvTk1hS4nEvG0md21OKl-XZkTXjXtm8Lp5TsC',
+              'version': 'nfyAq8Sn-lqGgS8SstLT6Mde-_DiLbf1V4vpbZlyOPkC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
