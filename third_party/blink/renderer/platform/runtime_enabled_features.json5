@@ -2217,6 +2217,7 @@
     },
     {
       name: "DeclarativeSkeletons",
+      status: "test",
     },
     {
       // Killswitch for https://crbug.com/400317114 fix.
@@ -4205,6 +4206,12 @@
       status: "stable",
     },
     {
+      // Support <navigation-type-test> and <navigation-phase-test>.
+      name: "NavigationTypeAndPhase",
+      status: "experimental",
+      depends_on: ["RouteMatching"],
+    },
+    {
       name: "NavigatorContentUtils",
       // Android does not yet support NavigatorContentUtils.
       status: {"Android": "", "default": "stable"},
@@ -5464,6 +5471,10 @@
         "Android": "",
         "default": "test",
       },
+    },
+    {
+      name: "SelectAutofillPopoverPreview",
+      status: "stable",
     },
     {
       // The selectedcontentelement attribute is for connecting select elements

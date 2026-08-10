@@ -324,7 +324,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '8641af3c493753dfbd5f1c535369a8a98c129756',
+  'src_internal_revision': '50499277802f4a6924fe62f202c515b6ea60c5e7',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -332,7 +332,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': '0d232fff67c7aef41e7e7fba1c38ef78fd5c48c1',
+  'v8_revision': '0585e0f0274c7a4bc934b04da64794a748ce6f5a',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -408,7 +408,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'c4124222ca1ce68803ba0f10bf469617d9616e6f',
+  'devtools_frontend_revision': 'bed90980f58644ef516036458353e28c5fc705e4',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1189,10 +1189,10 @@ deps = {
     'condition': 'non_git_source',
     'objects': [
       {
-        'object_name': 'meet-gpu-tests/960602972.tar.gz',
-        'sha256sum': '7336e2d4da8a90b3e168c45925de1606cf484f2f2d546df70a903d40a2523372',
-        'size_bytes': 278506964,
-        'generation': 1786092449942225,
+        'object_name': 'meet-gpu-tests/961904478.tar.gz',
+        'sha256sum': 'c77789052860586093562884e92c866bb4adca97355bc143eed25e64fb87a695',
+        'size_bytes': 278506541,
+        'generation': 1786351645910419,
       },
     ],
   },
@@ -1723,7 +1723,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '4114fd34e997d19955979d218eb58437f274b379',
+    'a1883b36bbc6c8f8226b8fe493b5e350acc5e378',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -3132,7 +3132,7 @@ deps = {
       ],
   },
 
-  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@4a3af97d047f836c4387ed712cbd055a5f40ae1f',
+  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@37e841bbd2f907946f500efbd1c83ae2e1497c84',
   'src/third_party/glslang/src': '{chromium_git}/external/github.com/KhronosGroup/glslang@90afccfbd49dff0349d86a41762e9de24e1df811',
   'src/third_party/spirv-cross/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Cross@b8fcf307f1f347089e3c46eb4451d27f32ebc8d3',
   'src/third_party/spirv-headers/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Headers@942fe4b988359a0750b79f0ae7ed735994d3147d',
@@ -3141,7 +3141,7 @@ deps = {
   'src/third_party/vulkan-loader/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Loader@ff6f71acd66aa2f11c53bb227d07842db4e46da3',
   'src/third_party/vulkan-tools/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Tools@572d10d787b74601ea09b696521c950c259ae815',
   'src/third_party/vulkan-utility-libraries/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Utility-Libraries@48b2a63b17eb79d612bd276d6e1adeb1f73c03e9',
-  'src/third_party/vulkan-validation-layers/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-ValidationLayers@b835cdcb74297baa81f049770962884f4d08d7be',
+  'src/third_party/vulkan-validation-layers/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-ValidationLayers@0a78f9c988b68b7f746f240f0d7a86784ec9ba39',
 
   'src/third_party/vulkan_memory_allocator':
     Var('chromium_git') + '/external/github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git' + '@' + '82a9d47e4f9d91f0e32d2b6acd9714fcee1933a0',
@@ -3324,7 +3324,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_app/app',
-        'version': 'RlVW6AmliRvq0uso_vbmE--LezcY5t43quFfb8BrnjUC',
+        'version': 'OJ2k3_dGU4mT-mzwnaruFbUwv36tZCAjrqcS8js7GlAC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3379,7 +3379,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/projector_app/app',
-        'version': 'wz5hUIzVkWLIWpy3lsrfJu561So1itOsZpKGi2We6tEC',
+        'version': 'a6liDGWZouuhMfTSlnKN4XxDnaxT8-99NpoNBbAS-5kC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
