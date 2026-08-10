@@ -29,7 +29,8 @@
   --color-searchbox-selection-background: rgba(26, 115, 232, 0.2);
   --color-searchbox-selection-foreground: #1f1f1f;
   --cr-composebox-background-color: var(--color-searchbox-background);
-  border: var(--cr-searchbox-border, none);
+  border: var(--cr-searchbox-border, 2px solid transparent);
+  box-sizing: border-box;
 
   border-radius: var(--cr-searchbox-border-radius);
   font-size: var(--cr-searchbox-font-size, 16px);
@@ -408,3 +409,9 @@ cr-composebox-contextual-entrypoint-button,
 :host-context([webui-rounded-icons]):host([use-webkit-search-icons_]) #voiceSearchButton {
   -webkit-mask-image: url(//resources/cr_components/searchbox/icons/mic.svg);
 }
+
+cr-searchbox-input::part(icon) {
+  -webkit-app-region: drag;
+  -webkit-user-drag: none;
+}
+
