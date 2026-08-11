@@ -327,7 +327,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '5bd845d4095ce6ed727bfeb2ba27e163dac23e6d',
+  'src_internal_revision': '6dfeee6cef6234376c8e756c8d048cf2f0c02921',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -351,7 +351,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': '2caf17c144f65143186b641236d389255dc80c28',
+  'boringssl_revision': 'ec0e8e7084c4363b038ddbd532470cfb8ae8d268',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -411,7 +411,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '75c77bef5134f417145736bab54a59d23b2fa8bd',
+  'devtools_frontend_revision': '693a9a8c50a83a743d043b0a961b1a21fb7391fb',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -2188,7 +2188,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '706e3ccf128db6f907b58ee84a79141c777e23e1',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + 'c80e7b89f2eeed33594d3bfebaff982c66e1a194',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '17a56409b86d0da5e01ca38f6498e13b2db16bc3',
@@ -3329,7 +3329,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_receiver_app/app',
-        'version': 'noOrxvjueXsF5di1yUivOdi5TGCzwzk2kbNbkg39FhoC',
+        'version': 'RE45DUug3QpmR-LpEr8n5g9JRSolzbZbcyTrQYXETnsC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3340,7 +3340,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_app/app',
-        'version': 'OJ2k3_dGU4mT-mzwnaruFbUwv36tZCAjrqcS8js7GlAC',
+        'version': 'Mto--J7OeWsMf1gsDu2dMA_oaDXR3r5VaX4zzLlfdwIC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3395,7 +3395,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/projector_app/app',
-        'version': 'a6liDGWZouuhMfTSlnKN4XxDnaxT8-99NpoNBbAS-5kC',
+        'version': 'p5WqOX7oloI3RjL39UbLeZCkbBaCqB5fscnffiwrAggC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -4041,7 +4041,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '672c31f06e0992550d8ca329805094b4d6b737c7',
+        'ae1b074372545eec9eec02ad024f43b2c32155d6',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 

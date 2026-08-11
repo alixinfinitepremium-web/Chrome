@@ -207,6 +207,10 @@ BASE_FEATURE(kAutofillAiEditEntitiesFromSaveUpdatePrompt,
 // to be accepted.
 BASE_FEATURE(kAutofillAiFillingSurvey, base::FEATURE_DISABLED_BY_DEFAULT);
 
+// When enabled, Personal Context Autofill AI suggestions display a hide button
+// in the child submenu on Desktop.
+BASE_FEATURE(kAutofillAiHideSuggestion, base::FEATURE_DISABLED_BY_DEFAULT);
+
 // If enabled, no GeoIp requirements are imposed for AutofillAi.
 // Note that this feature can be modified as follows (all assuming that
 // `kAutofillAiIgnoreGeoIp` is enabled):
@@ -347,6 +351,11 @@ BASE_FEATURE(kAutofillAiShipment, base::FEATURE_ENABLED_BY_DEFAULT);
 // If enabled, the user is notified about a failure to upstream data to Wallet
 // via a dialog instead of a snackbar.
 BASE_FEATURE(kAutofillAiShowDialogInSettingsWhenUpstreamingFails,
+             base::FEATURE_ENABLED_BY_DEFAULT);
+
+// If enabled, a loading dialog is shown to the user during the time their data
+// is fetched from the server.
+BASE_FEATURE(kAutofillAiShowPersonalContextFillingYourInfoDialog,
              base::FEATURE_ENABLED_BY_DEFAULT);
 #endif  // BUILDFLAG(IS_ANDROID)
 

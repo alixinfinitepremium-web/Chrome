@@ -623,6 +623,12 @@ inline constexpr char kEnableActivitylessSigninAllEntryPointDescription[] =
     "When enabled, activityless sign-in will be used for all entry points on "
     "Android.";
 
+inline constexpr char kOpenSystemAccountSettingsDirectlyName[] =
+    "Open system account settings directly";
+inline constexpr char kOpenSystemAccountSettingsDirectlyDescription[] =
+    "When enabled, system account settings will be opened directly instead of "
+    "the account management screen on Desktop Android.";
+
 inline constexpr char kEnableWebSigninLoadingDialogName[] =
     "Enable Web Signin Loading Dialog";
 inline constexpr char kEnableWebSigninLoadingDialogDescription[] =
@@ -4018,6 +4024,11 @@ inline constexpr char kPartitionAllocSchedulerLoopQuarantineName[] =
 inline constexpr char kPartitionAllocSchedulerLoopQuarantineDescription[] =
     "Enables PartitionAlloc's scheduler loop quarantine. Takes a JSON "
     "free-form configuration.";
+
+inline constexpr char kPartitionAllocWithAdvancedChecksName[] =
+    "PartitionAlloc with Advanced Checks";
+inline constexpr char kPartitionAllocWithAdvancedChecksDescription[] =
+    "Enables an extra security layer on PartitionAlloc.";
 
 inline constexpr char kPartitionVisitedLinkDatabaseWithSelfLinksName[] =
     "Partition the Visited Link Database, including 'self-links'";

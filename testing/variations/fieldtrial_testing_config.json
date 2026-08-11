@@ -18989,7 +18989,8 @@
                     },
                     "enable_features": [
                         "PartitionAllocSchedulerLoopQuarantine",
-                        "PartitionAllocSchedulerLoopQuarantineTaskObserverForBrowserUIThread"
+                        "PartitionAllocSchedulerLoopQuarantineTaskObserverForBrowserUIThread",
+                        "PartitionAllocWithAdvancedChecks"
                     ],
                     "disable_features": [
                         "ScreenAIPartitionAllocAdvancedChecksEnabled"
@@ -19641,6 +19642,21 @@
                     },
                     "enable_features": [
                         "PerformanceControlsPPMSurvey"
+                    ]
+                }
+            ]
+        }
+    ],
+    "PermissionPredictionsGeolocationAccuracy": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "PermissionPredictionsGeolocationAccuracy"
                     ]
                 }
             ]
@@ -20877,7 +20893,8 @@
                 {
                     "name": "Enabled",
                     "enable_features": [
-                        "ProfileDiscOnAllPages"
+                        "ProfileDiscOnAllPages",
+                        "SigninLevelUpButton"
                     ]
                 }
             ]
@@ -21501,6 +21518,21 @@
                     },
                     "enable_features": [
                         "ReduceMojoURLLoaderFactoryCloning"
+                    ]
+                }
+            ]
+        }
+    ],
+    "RelaunchWaitForParentProcess": [
+        {
+            "platforms": [
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "RelaunchWaitForParentProcess"
                     ]
                 }
             ]
@@ -23011,21 +23043,6 @@
                     "name": "Enabled",
                     "enable_features": [
                         "ShutdownPreNativeThreadPoolAfterStartup"
-                    ]
-                }
-            ]
-        }
-    ],
-    "SigninLevelUpButton": [
-        {
-            "platforms": [
-                "android"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "SigninLevelUpButton"
                     ]
                 }
             ]
