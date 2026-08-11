@@ -635,6 +635,11 @@
     "expiry_milestone": 156
   },
   {
+    "name": "apply-managed-proxy-bypass-list-verbatim",
+    "owners": [ "acostinas@google.com", "chromeos-commercial-networking@google.com" ],
+    "expiry_milestone": 165
+  },
+  {
     "name": "approximate-geolocation-permission",
     "owners": [ "antoniosartori@chromium.org", "//components/permissions/PERMISSIONS_OWNERS" ],
     "expiry_milestone": 158
@@ -5344,14 +5349,6 @@
     "name": "gemini-fre-refactor",
     "owners": [ "hamzamoh@google.com", "bling-alchemy-eng@google.com" ],
     "expiry_milestone": 160
-  },
-  {
-    "name": "gemini-image-remix-tool",
-    "owners": [
-      "nicolasmacbeth@google.com",
-      "bling-alchemy-eng@google.com"
-    ],
-    "expiry_milestone": 155
   },
   {
     "name": "gemini-live",

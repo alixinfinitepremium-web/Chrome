@@ -1447,6 +1447,51 @@ class ApiTests extends ApiTestFixtureBase {
     assertDefined(track);
     assertTrue(await waitForFirstFrame(track));
   }
+
+  async testJournal() {
+    assertDefined(this.host.getJournalHost);
+    const journalHost = this.host.getJournalHost();
+    assertDefined(journalHost);
+    journalHost.start(64 * 1024 * 1024, true);
+    let snapshot = await journalHost.snapshot(false);
+    let lastJournalSize = snapshot.data.byteLength;
+    assertTrue(lastJournalSize > 0);
+    journalHost.instantEvent(23, 'instant_event', 'some_details');
+    snapshot = await journalHost.snapshot(false);
+    assertTrue(snapshot.data.byteLength > lastJournalSize);
+    lastJournalSize = snapshot.data.byteLength;
+    journalHost.clear();
+    snapshot = await journalHost.snapshot(false);
+    assertTrue(snapshot.data.byteLength < lastJournalSize);
+    lastJournalSize = snapshot.data.byteLength;
+    journalHost.beginAsyncEvent(10, 23, 'async_event', 'some_details');
+    journalHost.endAsyncEvent(10, 'some_details_end');
+    snapshot = await journalHost.snapshot(false);
+    assertTrue(snapshot.data.byteLength > lastJournalSize);
+    lastJournalSize = snapshot.data.byteLength;
+    journalHost.stop();
+  }
+
+  async testStopMicrophone() {
+    const stopMicrophonePromise = Promise.withResolvers<void>();
+    this.client.onStopMicrophone = () => {
+      stopMicrophonePromise.resolve();
+    };
+
+    await this.advanceToNextStep();
+    await waitFor(stopMicrophonePromise.promise);
+  }
+
+  async testSetSyntheticExperimentState() {
+    assertDefined(this.host.setSyntheticExperimentState);
+    this.host.setSyntheticExperimentState('TestTrial', 'Enabled');
+  }
+
+  async testSetSyntheticExperimentStateMultiProfile() {
+    assertDefined(this.host.setSyntheticExperimentState);
+    this.host.setSyntheticExperimentState('TestTrial', 'Group1');
+    this.host.setSyntheticExperimentState('TestTrial', 'Group2');
+  }
 }
 
 class FaviconTest extends ApiTests {
@@ -2128,6 +2173,31 @@ class ScreenshotTests extends ApiTestFixtureBase {
   }
 }
 
+class WebClientThatOpensOnce extends WebClient {
+  notifyPanelWillOpenCallCount = 0;
+  override async notifyPanelWillOpen(panelOpeningData: PanelOpeningData):
+      Promise<OpenPanelInfo> {
+    this.notifyPanelWillOpenCallCount += 1;
+    return super.notifyPanelWillOpen(panelOpeningData);
+  }
+}
+
+class NotifyPanelWillOpenTest extends ApiTestFixtureBase {
+  override createWebClient(): WebClient {
+    return new WebClientThatOpensOnce();
+  }
+
+  async testNotifyPanelWillOpenIsCalledOnce() {
+    const client = this.client as WebClientThatOpensOnce;
+    await runUntil(() => client.notifyPanelWillOpenCallCount > 0);
+    assertEquals(client.notifyPanelWillOpenCallCount, 1);
+    client.notifyPanelWillOpenCallCount = 0;
+    await this.advanceToNextStep();
+    await runUntil(() => client.notifyPanelWillOpenCallCount > 0);
+    assertEquals(client.notifyPanelWillOpenCallCount, 1);
+  }
+}
+
 const TEST_FIXTURES: Array<typeof ApiTestFixtureBase> = [
   ApiTests,
   AdditionalContextQueuedTest,
@@ -2137,6 +2207,7 @@ const TEST_FIXTURES: Array<typeof ApiTestFixtureBase> = [
   ApiTestFailsToInitialize,
   TriggeringUpdatesTest,
   ScreenshotTests,
+  NotifyPanelWillOpenTest,
 ];
 
 

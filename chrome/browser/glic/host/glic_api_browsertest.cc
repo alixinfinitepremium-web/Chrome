@@ -1325,19 +1325,6 @@ IN_PROC_BROWSER_TEST_P(GlicApiTestWithOneTab,
   ExecuteJsTest();
 }
 
-IN_PROC_BROWSER_TEST_P(GlicApiTestWithOneTab, testJournal) {
-  ExecuteJsTest();
-  histogram_tester->ExpectTotalCount("Glic.Actor.JournalEvent.async_event", 1);
-}
-
-IN_PROC_BROWSER_TEST_P(GlicApiTestWithOneTab, testStopMicrophone) {
-  ExecuteJsTest();
-  base::test::TestFuture<void> microphone_stopped;
-  GetHost()->StopMicrophone(microphone_stopped.GetCallback());
-  EXPECT_TRUE(microphone_stopped.Wait());
-  ContinueJsTest();
-}
-
 // TODO(crbug.com/438812885): This is flaky.
 IN_PROC_BROWSER_TEST_P(GlicApiTestWithOneTab, DISABLED_testMetrics) {
   browser()->GetProfile()->GetPrefs()->SetBoolean(
@@ -1358,43 +1345,6 @@ IN_PROC_BROWSER_TEST_P(GlicApiTestWithOneTab, DISABLED_testMetrics) {
   histogram_tester->ExpectTotalCount("Glic.FirstReaction.Text.Modelled.Time",
                                      1);
   histogram_tester->ExpectTotalCount("Glic.TabContext.UploadTime", 1);
-}
-
-
-IN_PROC_BROWSER_TEST_P(GlicApiTestWithOneTab, testSetSyntheticExperimentState) {
-  ExecuteJsTest();
-  ASSERT_TRUE(base::test::RunUntil([]() {
-    std::vector<variations::ActiveGroupId> trials =
-        g_browser_process->metrics_service()
-            ->GetSyntheticTrialRegistry()
-            ->GetCurrentSyntheticFieldTrialsForTest();
-    variations::ActiveGroupId expected =
-        variations::MakeActiveGroupId("TestTrial", "Enabled");
-    return std::ranges::any_of(trials, [&](const auto& trial) {
-      return trial.name == expected.name && trial.group == expected.group;
-    });
-  }));
-}
-
-IN_PROC_BROWSER_TEST_P(GlicApiTestWithOneTab,
-                       testSetSyntheticExperimentStateMultiProfile) {
-  ExecuteJsTest();
-  ASSERT_TRUE(base::test::RunUntil([]() {
-    std::vector<variations::ActiveGroupId> trials =
-        g_browser_process->metrics_service()
-            ->GetSyntheticTrialRegistry()
-            ->GetCurrentSyntheticFieldTrialsForTest();
-    variations::ActiveGroupId expected =
-        variations::MakeActiveGroupId("TestTrial", "MultiProfileDetected");
-    return std::ranges::any_of(trials, [&](const auto& trial) {
-      return trial.name == expected.name && trial.group == expected.group;
-    });
-  }));
-}
-
-IN_PROC_BROWSER_TEST_P(GlicApiTestWithOneTab,
-                       testNotifyPanelWillOpenIsCalledOnce) {
-  ExecuteJsTest();
 }
 
 IN_PROC_BROWSER_TEST_P(GlicApiTest,
