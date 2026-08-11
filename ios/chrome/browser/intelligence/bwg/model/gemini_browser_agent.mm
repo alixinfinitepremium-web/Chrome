@@ -613,9 +613,7 @@ void GeminiBrowserAgent::OnPrimaryAccountChanged(
   if (event_type != signin::PrimaryAccountChangeEvent::Type::kNone) {
     browser_->GetProfile()->GetPrefs()->ClearPref(prefs::kGeminiConversationId);
 
-    if (is_floaty_invoked_) {
-      ForceDismissFloaty();
-    }
+    ForceDismissFloaty();
   }
 }
 
@@ -624,9 +622,7 @@ void GeminiBrowserAgent::OnIdentityManagerShutdown(
   if (identity_manager_) {
     identity_manager_->RemoveObserver(this);
     identity_manager_ = nullptr;
-    if (is_floaty_invoked_) {
-      ForceDismissFloaty();
-    }
+    ForceDismissFloaty();
   }
 }
 
@@ -1432,6 +1428,9 @@ void GeminiBrowserAgent::DismissFloaty() {
 }
 
 void GeminiBrowserAgent::ForceDismissFloaty() {
+  if (!is_floaty_invoked_) {
+    return;
+  }
   is_floaty_temporarily_hidden_ = false;
   DismissFloaty();
 }
@@ -2380,6 +2379,7 @@ void GeminiBrowserAgent::DetachTabWithID(NSString* tab_id) {
   CHECK(detached_tab_id != active_web_state_id);
 
   RemoveAttachedPageContext(detached_tab_id);
+  RecordGeminiTabDetached();
 
   GeminiPageContext* active_page_context =
       GetAttachedPageContext(active_web_state_id);
@@ -2400,6 +2400,13 @@ void GeminiBrowserAgent::UpdateLocalTabAttachmentState(
   if (GeminiPageContext* page_context =
           GetAttachedPageContext(attached_tab_id)) {
     page_context.geminiPageContextAttachmentState = new_state;
+    if (new_state ==
+        ios::provider::GeminiPageContextAttachmentState::kAttached) {
+      RecordGeminiActiveTabAttached();
+    } else if (new_state ==
+               ios::provider::GeminiPageContextAttachmentState::kDetached) {
+      RecordGeminiActiveTabDetached();
+    }
   }
 }
 
