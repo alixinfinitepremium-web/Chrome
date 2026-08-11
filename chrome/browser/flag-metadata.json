@@ -4822,8 +4822,8 @@
   },
   {
     "name": "extensions-menu-access-control",
-    "owners": [ "emiliapaz@chromium.org" ],
-    "expiry_milestone": 152
+    "owners": [ "evasu@chromium.org" ],
+    "expiry_milestone": 160
   },
   {
     "name": "extensions-on-chrome-urls",
@@ -8468,6 +8468,15 @@
     "owners": [
       "andresmolina@google.com",
       "read-aloud-tiger-team@google.com",
+      "//ui/accessibility/OWNERS"
+    ],
+    "expiry_milestone": 160
+  },
+  {
+    "name": "read-anything-distiller-refactor",
+    "owners": [
+      "gusmartin@google.com",
+      "chrome-reading-mode-eng@google.com",
       "//ui/accessibility/OWNERS"
     ],
     "expiry_milestone": 160

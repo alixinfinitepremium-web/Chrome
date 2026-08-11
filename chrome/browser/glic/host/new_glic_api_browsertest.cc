@@ -3509,6 +3509,19 @@ IN_PROC_BROWSER_TEST_P(NewGlicApiTest, testSetContextAccessIndicator) {
   ExecuteJsTest();
 }
 
+IN_PROC_BROWSER_TEST_P(NewGlicApiTest, testSetAudioDucking) {
+  ASSERT_OK(OpenGlicForActiveTab());
+  ExecuteJsTest();
+}
+
+IN_PROC_BROWSER_TEST_P(NewGlicApiTest, testGetDisplayMedia) {
+  // getDisplayMedia() (tab capture) is not supported on standard mobile
+  // Android.
+  SKIP_TEST_FOR_NON_DESKTOP_ANDROID();
+  ASSERT_OK(OpenGlicForActiveTab());
+  ExecuteJsTest();
+}
+
 auto DefaultTestParamSet() {
   return testing::Values(TestParams{});
 }
