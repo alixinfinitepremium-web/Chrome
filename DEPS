@@ -351,7 +351,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': 'ec0e8e7084c4363b038ddbd532470cfb8ae8d268',
+  'boringssl_revision': 'c35f131fcf841034a1b0264ae6647f757c307a12',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -411,7 +411,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '693a9a8c50a83a743d043b0a961b1a21fb7391fb',
+  'devtools_frontend_revision': 'c717554d7ed0ae40d0ee7ff69ab86ba1350cdecf',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -435,7 +435,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': '6185a4785276454a3c30a2788ce19c58d748410c',
+  'dawn_revision': '14478d3071b6c3d39657a5353f22036d4ffbb949',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -1192,10 +1192,10 @@ deps = {
     'condition': 'non_git_source',
     'objects': [
       {
-        'object_name': 'meet-gpu-tests/961904478.tar.gz',
-        'sha256sum': 'c77789052860586093562884e92c866bb4adca97355bc143eed25e64fb87a695',
-        'size_bytes': 278506541,
-        'generation': 1786351645910419,
+        'object_name': 'meet-gpu-tests/962515849.tar.gz',
+        'sha256sum': '7317f81af4d13650e1c4678632f3969c481bdc99b5385c770cf607bce809faac',
+        'size_bytes': 278506296,
+        'generation': 1786438045249569,
       },
     ],
   },
@@ -1726,7 +1726,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    'a1883b36bbc6c8f8226b8fe493b5e350acc5e378',
+    'f03d65768b252cce70084cd4610d4ac12ba4a37a',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -3200,7 +3200,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '67becacf3c88a16f7118766492439863406852cf',
+    Var('webrtc_git') + '/src.git' + '@' + '0fda16159e33adf59c71a7ad1173dcbe5a632102',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
