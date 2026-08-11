@@ -335,7 +335,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': '21f5ab53bc32b249d6af7928f530970c156fd177',
+  'v8_revision': '257aa5e0cc3dcd8b65aca2f47a8bd79d2e727deb',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -351,7 +351,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': 'c35f131fcf841034a1b0264ae6647f757c307a12',
+  'boringssl_revision': 'c94d727ff9c6b1b308049b3f0a7f39bf92eef761',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -411,7 +411,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'b12485948f157fd5de86865317e9b66aeeeb1552',
+  'devtools_frontend_revision': '619886f3a70c3a703ca90ce632a459e43b1ff489',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1501,7 +1501,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_mac_arm64',
-          'version': 'version:2@1671004',
+          'version': 'version:2@1672007',
         },
       ],
   },
@@ -1678,7 +1678,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_win_x86_64',
-          'version': 'wjfx0RsPyJ-JJ1WAraWrdqtSXxFZJGQkw3z_rFhzpqwC',
+          'version': 'MPqc-EiA_MHbsOW9zh-182KbTbWPNnyj0FOvWvn5xx8C',
         },
       ],
   },
@@ -2757,7 +2757,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + 'dad4736ddd5abe218f980ba1ecf324d1264cfa00',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '219d20970ea9541a2eef2a1e681842fd04a0dff9',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
@@ -3148,7 +3148,7 @@ deps = {
       ],
   },
 
-  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@e4ac15180d9c03de3c000dd6d00510ea7c037b15',
+  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@1580b6370f3b09c56679757eca8a5ba33c6987f3',
   'src/third_party/glslang/src': '{chromium_git}/external/github.com/KhronosGroup/glslang@90afccfbd49dff0349d86a41762e9de24e1df811',
   'src/third_party/spirv-cross/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Cross@b8fcf307f1f347089e3c46eb4451d27f32ebc8d3',
   'src/third_party/spirv-headers/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Headers@942fe4b988359a0750b79f0ae7ed735994d3147d',
@@ -3157,7 +3157,7 @@ deps = {
   'src/third_party/vulkan-loader/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Loader@fc8465f0a5b605e070e5ca9fe3064249926deb2d',
   'src/third_party/vulkan-tools/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Tools@572d10d787b74601ea09b696521c950c259ae815',
   'src/third_party/vulkan-utility-libraries/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Utility-Libraries@120d418dd8fa884c82c783578ca381d2c81c92c9',
-  'src/third_party/vulkan-validation-layers/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-ValidationLayers@57bbc5e95ab7ff04ec453c648ed2baec14dea5f5',
+  'src/third_party/vulkan-validation-layers/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-ValidationLayers@51edb7666dd39a5881dfe3ef33946ceabe8a5a62',
 
   'src/third_party/vulkan_memory_allocator':
     Var('chromium_git') + '/external/github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git' + '@' + '82a9d47e4f9d91f0e32d2b6acd9714fcee1933a0',
@@ -4041,7 +4041,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        'ae1b074372545eec9eec02ad024f43b2c32155d6',
+        'ba7a97c2961e87287f113d973e22470c1f5227b0',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
