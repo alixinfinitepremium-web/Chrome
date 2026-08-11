@@ -327,7 +327,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '4918d6330e138636c70c9329f17f3a017df85e71',
+  'src_internal_revision': '5bd845d4095ce6ed727bfeb2ba27e163dac23e6d',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -1828,7 +1828,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': '4GCfRW_OwyxJraS9YWle4v8HT-dQWkI__GaBckaGIGMC',
+          'version': 'pBS13P6t-WPqSBflYSOzTHmOMBT_7IHXKC8pkSc70hUC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
@@ -2731,7 +2731,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/cisco/openh264' + '@' + 'fca40fc19f5fb854609d297ae4bde71df72787c9',
 
   'src/third_party/openscreen/src':
-    Var('chromium_git') + '/openscreen' + '@' + 'b05cd00141a3831c059f42edd68cf6d455d7b67a',
+    Var('chromium_git') + '/openscreen' + '@' + 'e4ed3945ffce0de7a3482f003e755004547af151',
 
   'src/third_party/openxr/src': {
     'url': Var('chromium_git') + '/external/github.com/KhronosGroup/OpenXR-SDK' + '@' + '75c53b6e853dc12c7b3c771edc9c9c841b15faaa',
@@ -2757,7 +2757,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '70af586ff6aef1ffc53178aef055bd09e625b209',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + 'd816982c0a529fe147e5b0966551adbcf1918b17',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
@@ -3736,7 +3736,7 @@ deps = {
 
   'src/chrome/browser/glic/e2e_test/internal': {
       'url': Var('chrome_git') + '/chrome/browser/glic/test/internal.git' + '@' +
-        'f9abc1dd4788bf63c600ec8b4ab0016ad842b1fb',
+        '6d3bcdef824af8facf4e7c412e3c89269630d786',
       'condition': 'checkout_glic_e2e_tests',
   },
 
@@ -3957,7 +3957,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        'd3669ad50276c5b2917a19dd24056bc58fcd149d',
+        '405a158f2a51e2865d5310e8382269765efd08a9',
       'condition': 'checkout_src_internal',
   },
 
