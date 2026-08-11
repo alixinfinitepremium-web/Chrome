@@ -2135,7 +2135,6 @@ if (!is_android) {
       "//chrome/browser/picture_in_picture:browser_tests",
       "//chrome/browser/picture_in_picture:test_support_ui",
       "//chrome/browser/plugins:browser_tests",
-      "//chrome/browser/plus_addresses:browser_tests",
       "//chrome/browser/policy:browser_tests",
       "//chrome/browser/policy:test_support",
       "//chrome/browser/predictors:browser_tests",
@@ -2604,7 +2603,6 @@ if (!is_android) {
       "//components/payments/content:utils",
       "//components/performance_manager",
       "//components/performance_manager/test_support:test_support_common",
-      "//components/plus_addresses/core/browser:test_support",
       "//components/policy:chrome_settings_proto_generated_compile",
       "//components/policy/content",
       "//components/policy/core/browser:pref_mapping_test_support",
@@ -10042,4 +10040,54 @@ test("captcha_provider_fuzztests") {
     "//third_party/fuzztest:fuzztest_gtest_main",
     "//url",
   ]
+}
+
+if (is_mac) {
+  import("//build/config/clang/clang.gni")
+  import("//build/config/mac/mac_sdk.gni")
+  import("//build/config/sanitizers/sanitizers.gni")
+
+  verify_dynamic_libraries = !is_component_build && !is_asan && !is_ubsan_any
+
+  executable("aperitif_test_helper") {
+    testonly = true
+    sources = [
+      "//chrome/app/chrome_exe_main_mac.c",
+      "//chrome/test/aperitif_test_helper_main.c",
+    ]
+    deps = [
+      "//build:branding_buildflags",
+      "//content/public/app:aperitif",
+    ]
+    no_default_deps = true
+  }
+
+  if (verify_dynamic_libraries) {
+    if (host_os == "mac") {
+      objdump_path = mac_bin_path
+    } else {
+      objdump_path = rebase_path("$clang_base_path/bin/", root_build_dir)
+    }
+
+    action("verify_libraries_aperitif_test_helper") {
+      testonly = true
+      script = "//chrome/tools/build/mac/verify_dynamic_libraries.py"
+      inputs = [ "$root_out_dir/aperitif_test_helper" ]
+      outputs = [ "$target_gen_dir/verify_lib_aperitif_helper.stamp" ]
+      args = [
+        "--stamp",
+        rebase_path(outputs[0], root_out_dir),
+        "-B",
+        objdump_path,
+        "--exact-match",
+        "--image",
+        rebase_path(inputs[0], root_out_dir),
+        "--allow",
+        "@loader_path/libaperitif.dylib",
+        "--allow",
+        "/usr/lib/libSystem.B.dylib",
+      ]
+      deps = [ ":aperitif_test_helper" ]
+    }
+  }
 }

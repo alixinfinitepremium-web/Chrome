@@ -195,7 +195,7 @@ class AutofillAgentTest : public test::AutofillRendererTest {
 
   size_t num_extracted_forms() {
     return std::ranges::count_if(
-        test_api(autofill_agent()).form_cache().extracted_forms(),
+        test_api(autofill_agent()).form_cache().extracted_forms_unsafe(),
         [](const auto& id_and_form) {
           const auto& [id, form] = id_and_form;
           return form != nullptr;
@@ -292,6 +292,16 @@ TEST_F(AutofillAgentTest, TriggerFormExtractionWithResponse) {
   task_environment_.FastForwardBy(AutofillAgent::kFormsSeenThrottle / 2);
   EXPECT_CALL(mock_callback, Run(true));
   task_environment_.FastForwardBy(AutofillAgent::kFormsSeenThrottle / 2);
+}
+
+TEST_F(AutofillAgentTest, ClearFormCache) {
+  EXPECT_CALL(autofill_driver(), FormsSeen(SizeIs(1), _)).Times(2);
+  LoadHTML(R"(<body> <input> </body>)");
+  WaitForFormsSeen();
+  autofill_agent().ClearFormCache();
+  base::MockOnceCallback<void(bool)> mock_callback;
+  autofill_agent().TriggerFormExtractionWithResponse(mock_callback.Get());
+  task_environment_.FastForwardBy(AutofillAgent::kFormsSeenThrottle);
 }
 
 // Tests that button titles are extracted and reported to the browser.
@@ -1068,7 +1078,7 @@ TEST_F(AutofillAgentTest,
        DynamicElementNotificationFiltering_AddNonAutofillableElement) {
   LoadHTML(R"(<form id="form_id"> <input id="name"></form>)");
   const auto& extracted_forms =
-      test_api(autofill_agent()).form_cache().extracted_forms();
+      test_api(autofill_agent()).form_cache().extracted_forms_unsafe();
   ASSERT_EQ(num_extracted_forms(), 1u);
   ASSERT_EQ(extracted_forms.rbegin()->second->fields().size(), 1u);
 
@@ -1103,7 +1113,7 @@ TEST_F(AutofillAgentTest,
        DynamicElementNotificationFiltering_AddAutofillableElement) {
   LoadHTML(R"(<form id="form_id"> <input id="name"></form>)");
   const auto& extracted_forms =
-      test_api(autofill_agent()).form_cache().extracted_forms();
+      test_api(autofill_agent()).form_cache().extracted_forms_unsafe();
   ASSERT_EQ(num_extracted_forms(), 1u);
   ASSERT_EQ(extracted_forms.rbegin()->second->fields().size(), 1u);
 
@@ -2282,11 +2292,8 @@ TEST_F(AutofillAgentTest_AtMemory,
   autofill_agent().TriggerSuggestions(
       field_id, AutofillSuggestionTriggerSource::kAtMemoryContextMenu);
   WaitForApplyFieldAction();
-  // Blink's `PasteText` (used by `kFill`) performs "Smart Paste", which
-  // automatically appends a leading space if the insertion point follows a
-  // word.
-  EXPECT_EQ(input.Value().Utf16(), u"hello result extra");
-  EXPECT_EQ(input.SelectionStart(), 18u);
+  EXPECT_EQ(input.Value().Utf16(), u"hello resultextra");
+  EXPECT_EQ(input.SelectionStart(), 17u);
 }
 
 // Tests that ApplyFieldAction correctly handles targeted preview
@@ -2334,8 +2341,7 @@ TEST_F(AutofillAgentTest_AtMemory,
   autofill_agent().TriggerSuggestions(
       field_id, AutofillSuggestionTriggerSource::kAtMemoryKeyboardShortcut);
   WaitForApplyFieldAction();
-  // Smart paste adds a space after @@.
-  EXPECT_EQ(input.Value().Utf16(), u"hello @@ result");
+  EXPECT_EQ(input.Value().Utf16(), u"hello @@result");
 }
 
 // Tests that trigger string removal DOES happen when triggered by trigger
@@ -2592,15 +2598,14 @@ TEST_F(AutofillAgentTest_AtMemoryContentEditable,
       AutofillSuggestionTriggerSource::kAtMemoryContextMenu);
   WaitForApplyFieldAction();
 
-  // 4. Verify the text was inserted. Since WebElement::PasteText() uses Smart
-  // Replace, it inserts spaces around "result".
-  EXPECT_EQ(ce.TextContent().Utf16(), u"Prefix result Suffix");
+  // 4. Verify the text was inserted.
+  EXPECT_EQ(ce.TextContent().Utf16(), u"PrefixresultSuffix");
 
   // 5. Verify the cursor position (at the end of "result").
-  // "Prefix " (7) + "result " (7) = 14.
+  // "Prefix" (6) + "result " (6) = 12.
   blink::WebRange selection =
       GetMainFrame()->GetInputMethodController()->GetSelectionOffsets();
-  EXPECT_EQ(selection.StartOffset(), 14);
+  EXPECT_EQ(selection.StartOffset(), 12);
 }
 
 // Tests that kReplaceSelectionForAtMemory replaces a pre-existing selection.
@@ -2629,16 +2634,14 @@ TEST_F(AutofillAgentTest_AtMemoryContentEditable,
       AutofillSuggestionTriggerSource::kAtMemoryContextMenu);
   WaitForApplyFieldAction();
 
-  // 3. Verify "Selected" was replaced by "result". Since
-  // WebElement::PasteText() uses Smart Replace, it inserts spaces around
-  // "result".
-  EXPECT_EQ(ce.TextContent().Utf16(), u"Prefix result Suffix");
+  // 3. Verify "Selected" was replaced by "result".
+  EXPECT_EQ(ce.TextContent().Utf16(), u"PrefixresultSuffix");
 
   // 4. Verify the cursor position (at the end of "Result").
-  // "Prefix " (7) + "Result " (7) = 14.
+  // "Prefix " (6) + "result" (6) = 12.
   blink::WebRange selection =
       GetMainFrame()->GetInputMethodController()->GetSelectionOffsets();
-  EXPECT_EQ(selection.StartOffset(), 14);
+  EXPECT_EQ(selection.StartOffset(), 12);
 }
 
 // Tests that ApplyFieldAction() with kReplaceSelectionForAtMemory aborts if the
