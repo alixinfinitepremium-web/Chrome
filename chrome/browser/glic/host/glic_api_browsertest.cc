@@ -689,40 +689,6 @@ class GlicApiTestGeminiEnterpriseSettingsPolicyUnset
 // TODO(harringtond): Many of these tests are minimal, and could be improved
 // with additional cases and additional assertions.
 
-// Just verify the test harness works.
-IN_PROC_BROWSER_TEST_P(GlicApiTestWithOneTab, testDoNothing) {
-  ExecuteJsTest();
-}
-
-// Verifies that the TypeScript API receives and exposes the switch settings.
-IN_PROC_BROWSER_TEST_P(GlicApiTestGeminiEnterpriseSettingsOverride,
-                       testGeminiEnterpriseSettings) {
-  ExecuteJsTest();
-}
-
-IN_PROC_BROWSER_TEST_P(GlicApiTestGeminiEnterpriseSettingsDisabled,
-                       testGeminiEnterpriseSettingsDisabled) {
-  ExecuteJsTest();
-}
-
-IN_PROC_BROWSER_TEST_P(GlicApiTestGeminiEnterpriseSettingsPolicy,
-                       testGeminiEnterpriseSettingsPolicy) {
-  ExecuteJsTest();
-}
-
-IN_PROC_BROWSER_TEST_P(GlicApiTestGeminiEnterpriseSettingsPolicyUnset,
-                       testGeminiEnterpriseSettingsDisabled) {
-  ExecuteJsTest();
-}
-
-IN_PROC_BROWSER_TEST_P(GlicApiTestWithOneTab, testDefaultInvocationSource) {
-  RunTestSequence(CloseGlic(), WaitForGlicClose(),
-                  ToggleGlicWindowFromSource(
-                      GlicWindowMode::kAttached, kGlicButtonElementId,
-                      mojom::InvocationSource::kTopChromeButton),
-                  WaitForGlicOpen());
-  ExecuteJsTest();
-}
 
 // Checks that all tests in api_test.ts have a corresponding test case in this
 // file.
@@ -2535,21 +2501,6 @@ INSTANTIATE_TEST_SUITE_P(,
                          GlicApiTestWithFailedCookieSync,
                          DefaultTestParamSet(),
                          &WithTestParams::PrintTestVariant);
-INSTANTIATE_TEST_SUITE_P(,
-                         GlicApiTestGeminiEnterpriseSettingsOverride,
-                         DefaultTestParamSet(),
-                         &WithTestParams::PrintTestVariant);
-INSTANTIATE_TEST_SUITE_P(,
-                         GlicApiTestGeminiEnterpriseSettingsDisabled,
-                         DefaultTestParamSet(),
-                         &WithTestParams::PrintTestVariant);
-INSTANTIATE_TEST_SUITE_P(,
-                         GlicApiTestGeminiEnterpriseSettingsPolicy,
-                         DefaultTestParamSet(),
-                         &WithTestParams::PrintTestVariant);
-INSTANTIATE_TEST_SUITE_P(,
-                         GlicApiTestGeminiEnterpriseSettingsPolicyUnset,
-                         DefaultTestParamSet(),
-                         &WithTestParams::PrintTestVariant);
+
 }  // namespace
 }  // namespace glic

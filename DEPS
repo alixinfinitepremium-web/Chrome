@@ -327,7 +327,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': 'db433b6fb07ac0c3975b3c217db540ef04bbe14c',
+  'src_internal_revision': 'a323afe4c40f417051b6c49851c04f756d93fb21',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -403,7 +403,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling fuzztest
   # and whatever else without interference from each other.
-  'fuzztest_revision': '4e0d121d70078e1340434a49175d0c932f3c2e92',
+  'fuzztest_revision': '7684b43efb436b0b08dac02db472be212ed353ac',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling domato
   # and whatever else without interference from each other.
@@ -1726,7 +1726,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '9d4817d6cfce62971e05f21ad7f914e9f1b99da9',
+    'ef5d71d7e7b5e2876daaf2ee9df7b4c46377cf34',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -3957,7 +3957,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        '1d79fc3262f32c3883c224940c1f39e1119af573',
+        'dcf501e26dd8d333ee8d32def5d2a06683bf096b',
       'condition': 'checkout_src_internal',
   },
 

@@ -1,7 +1,7 @@
 // Copyright 2025 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
-import {HostCapability, InvocationSource, MetricUserInputReactionType, PanelStateKind, Platform, ResponseStopCause, WebClientMode} from '/glic/glic_api/glic_api.js';
+import {HostCapability, MetricUserInputReactionType, PanelStateKind, Platform, ResponseStopCause, WebClientMode} from '/glic/glic_api/glic_api.js';
 import type {CancelActionsResult, FocusedTabData, TabData, UserProfileInfo} from '/glic/glic_api/glic_api.js';
 
 import {ApiTestFixtureBase, assertDefined, assertEquals, assertFalse, assertNotEquals, assertRejects, assertTrue, assertUndefined, checkDefined, mapObservable, observeSequence, readStream, runUntil, sleep, testMain, waitFor} from './browser_test_base.js';
@@ -38,32 +38,8 @@ class ApiTests extends ApiTestFixtureBase {
 
   async testHibernateAllOnMemoryPressure() {}
 
-  async testGeminiEnterpriseSettings() {
-    assertDefined(this.host.getGeminiEnterpriseSettings);
-    const settingsObservable = this.host.getGeminiEnterpriseSettings();
-    const settings = settingsObservable.getCurrentValue();
-    assertDefined(settings);
-    assertEquals(settings.projectId, 'switch-project');
-    assertEquals(settings.appId, 'switch-engine');
-    assertEquals(settings.location, 'switch-location');
-  }
 
-  async testGeminiEnterpriseSettingsPolicy() {
-    assertDefined(this.host.getGeminiEnterpriseSettings);
-    const settingsObservable = this.host.getGeminiEnterpriseSettings();
-    const settings = settingsObservable.getCurrentValue();
-    assertDefined(settings);
-    assertEquals(settings.projectId, 'policy-project');
-    assertEquals(settings.appId, 'policy-engine');
-    assertEquals(settings.location, 'policy-location');
-  }
 
-  async testGeminiEnterpriseSettingsDisabled() {
-    assertDefined(this.host.getGeminiEnterpriseSettings);
-    const settingsObservable = this.host.getGeminiEnterpriseSettings();
-    const settings = settingsObservable.getCurrentValue();
-    assertUndefined(settings);
-  }
 
   async testCancelActions() {
     assertDefined(this.host.cancelActions);
@@ -72,14 +48,6 @@ class ApiTests extends ApiTestFixtureBase {
     await this.advanceToNextStep(result);
   }
 
-  async testDoNothing() {}
-
-  async testDefaultInvocationSource() {
-    const panelOpenData =
-        checkDefined(this.client.panelOpenData.getCurrentValue());
-    assertEquals(
-        panelOpenData.invocationSource, InvocationSource.TOP_CHROME_BUTTON);
-  }
 
   async testErrorShownOnMojoPipeError() {}
 

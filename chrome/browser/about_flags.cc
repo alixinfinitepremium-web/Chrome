@@ -135,7 +135,6 @@
 #include "components/lens/buildflags.h"
 #include "components/lens/lens_features.h"
 #include "components/manta/features.h"
-#include "components/metrics/private_metrics/private_metrics_features.h"
 #include "components/mirroring/service/mirroring_features.h"
 #include "components/multistep_filter/core/features.h"
 #include "components/network_session_configurator/common/network_switches.h"
@@ -3717,7 +3716,6 @@ const FeatureEntry::FeatureVariation kMaliciousApkDownloadCheckChoices[] = {
 #if BUILDFLAG(IS_ANDROID)
 constexpr char kDisableFacilitatedPaymentsMerchantAllowlistInternalName[] =
     "disable-facilitated-payments-merchant-allowlist";
-constexpr char kSettingsInTabInternalName[] = "settings-in-tab";
 constexpr char kSettingsInTabUrlNavInternalName[] = "settings-in-tab-url-nav";
 #endif  // BUILDFLAG(IS_ANDROID)
 
@@ -7697,7 +7695,7 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kSyncRestoreOnStartupPrefDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(chrome::android::kSyncRestoreOnStartupPref)},
 
-    {kSettingsInTabInternalName, flag_descriptions::kSettingsInTabName,
+    {"settings-in-tab", flag_descriptions::kSettingsInTabName,
      flag_descriptions::kSettingsInTabDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(chrome::android::kSettingsInTab)},
 
@@ -12692,16 +12690,6 @@ const FeatureEntry kFeatureEntries[] = {
      FEATURE_VALUE_TYPE(chrome::android::kEnableSwipeToSwitchPane)},
 #endif
 
-    {"private-metrics-enable-puma",
-     flag_descriptions::kPrivateMetricsEnablePumaName,
-     flag_descriptions::kPrivateMetricsEnablePumaDescription, kOsAll,
-     FEATURE_VALUE_TYPE(metrics::private_metrics::kPrivateMetricsPuma)},
-
-    {"private-metrics-enable-puma-rc",
-     flag_descriptions::kPrivateMetricsEnablePumaRcName,
-     flag_descriptions::kPrivateMetricsEnablePumaRcDescription, kOsAll,
-     FEATURE_VALUE_TYPE(metrics::private_metrics::kPrivateMetricsPumaRc)},
-
     {"autofill-ai-based-amount-extraction-ignore-seen-terms-for-testing",
      flag_descriptions::
          kAutofillAiBasedAmountExtractionIgnoreSeenTermsForTestingName,
@@ -13988,10 +13976,9 @@ bool ShouldSkipConditionalFeatureEntry(const flags_ui::FlagsStorage* storage,
            channel != version_info::Channel::CANARY &&
            channel != version_info::Channel::UNKNOWN;
   }
-  // Only show the settings in tab flag on tablets and desktops.
-  if (std::string_view(kSettingsInTabInternalName) == entry.internal_name ||
-      std::string_view(kSettingsInTabUrlNavInternalName) ==
-          entry.internal_name) {
+  // Only show the settings in tab URL nav flag on tablets and desktops.
+  if (std::string_view(kSettingsInTabUrlNavInternalName) ==
+      entry.internal_name) {
     auto form_factor = ui::GetDeviceFormFactor();
     return form_factor != ui::DEVICE_FORM_FACTOR_DESKTOP &&
            form_factor != ui::DEVICE_FORM_FACTOR_TABLET;
