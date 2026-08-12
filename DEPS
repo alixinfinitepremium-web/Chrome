@@ -337,7 +337,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '1f10a20bdd61dc8650a6f4c8dfabaa3343e6753b',
+  'skia_revision': '74ad04d4174b6a652d3285290189cd9632fa7228',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -541,11 +541,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
-  'llvm_libc_revision':    'f695341cf7d6f487aa91dd9c0b904cdf4169e1d1',
+  'llvm_libc_revision':    '2d508139e772670f153b333b4a1f0a0e10bb6d42',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
-  'compiler_rt_revision': 'a6b30d73349b5b38721025e9dc19e0203f343e55',
+  'compiler_rt_revision': '0404e0e0ba2d15bba03b6e3ced1cc1d6e8d07b86',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling clusterfuzz-data
   # and whatever else without interference from each other.
@@ -1720,7 +1720,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': 'UbliCrmlq0PDXTgrZH7BjJuUr2PCOXQJUMJPGPV-u2QC',
+        'version': '3LyZxI5eCHEtz0KcnjaHxpgXey2w6x5SkEV8Tg7bo2QC',
       },
     ],
     'condition': 'non_git_source',
@@ -2182,7 +2182,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'd6b339fcfd4670c2f7596872c081006716e9b802',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'e4a7396d3028c6a75834b8b9a7c33ebc090545be',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -3678,7 +3678,7 @@ deps = {
   # Dependencies from src_internal
   'src/chromeos/ash/resources/internal': {
       'url': Var('chrome_git') + '/chrome/chromeos/ash/resources/internal.git' + '@' +
-        '9120f1fd88b42bdf907dea88cb01fbe0a641c0dc',
+        'd4509cba32a0981c86a9fd63db3186f32c1042e2',
       'condition': 'checkout_src_internal and checkout_chromeos',
   },
 

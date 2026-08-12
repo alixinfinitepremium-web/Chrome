@@ -57,8 +57,12 @@ using ::blink::WebString;
 
 // Returns true if `event` may produce a character.
 bool IsPrintable(const WebKeyboardEvent& event) {
-  if (base::IsAsciiControl(event.text[0])) {
+  if (base::IsAsciiControl(event.text[0]) || event.text[1] != 0) {
     return false;
+  }
+  if constexpr (BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_WIN)) {
+    // On Linux and Windows, Alt+X is not printable.
+    return !(event.GetModifiers() & blink::WebInputEvent::kAltKey);
   }
   if constexpr (BUILDFLAG(IS_MAC)) {
     // On Mac, Meta+X is not printable but leads to `event.text[0] != 'X'`.
@@ -82,8 +86,8 @@ bool AtMemoryHandler::ShouldTriggerAtMemorySearch(
     return false;
   }
 
-  const RendererPreferences* renderer_prefs = GetRendererPreferences();
-  if (!renderer_prefs || renderer_prefs->autofill_trigger_string.empty()) {
+  const WebString trigger = WebString::FromUtf8(GetTriggerString());
+  if (trigger.IsEmpty()) {
     return false;
   }
 
@@ -94,8 +98,6 @@ bool AtMemoryHandler::ShouldTriggerAtMemorySearch(
     return false;
   }
 
-  const WebString trigger =
-      WebString::FromUtf8(renderer_prefs->autofill_trigger_string);
   const int trigger_len = std::max(static_cast<int>(trigger.length()), 0);
 
   if (form_control) {
@@ -149,10 +151,26 @@ bool AtMemoryHandler::DidReceiveKeyDown(const WebElement& element,
       agent_->GetCallTimerState(CallTimerState::CallSite::kDidReceiveKeyDown),
       agent_->button_titles_cache());
 
-  const RendererPreferences* prefs = GetRendererPreferences();
-  if (!prefs || prefs->autofill_shortcut_key_code == ui::VKEY_UNKNOWN ||
-      !base::FeatureList::IsEnabled(
+  if (!base::FeatureList::IsEnabled(features::kAutofillAtMemory)) {
+    return false;
+  }
+  if (DidReceiveKeyDownForAtMemoryShortcut(element, event)) {
+    return true;
+  }
+  DidReceiveKeyDownForAtMemoryTriggerString(element, event);
+  return false;
+}
+
+bool AtMemoryHandler::DidReceiveKeyDownForAtMemoryShortcut(
+    const WebElement& element,
+    const WebKeyboardEvent& event) {
+  if (!base::FeatureList::IsEnabled(
           features::kAutofillAtMemoryTriggerShortcut)) {
+    return false;
+  }
+
+  const RendererPreferences* prefs = GetRendererPreferences();
+  if (!prefs || prefs->autofill_shortcut_key_code == ui::VKEY_UNKNOWN) {
     return false;
   }
 
@@ -162,28 +180,35 @@ bool AtMemoryHandler::DidReceiveKeyDown(const WebElement& element,
   const ui::Accelerator actual_accelerator(
       static_cast<ui::KeyboardCode>(event.windows_key_code),
       ui::WebEventModifiersToEventFlags(event.GetModifiers()));
+  if (expected_accelerator != actual_accelerator || IsPrintable(event)) {
+    return false;
+  }
 
-  if (expected_accelerator == actual_accelerator && !IsPrintable(event)) {
-    if (auto control = element.DynamicTo<WebFormControlElement>();
-        control && form_util::IsTextAreaElementOrTextInput(control) &&
-        control.FormControlTypeForAutofill() !=
-            blink::mojom::FormControlType::kInputPassword) {
-      if (!actual_accelerator.IsRepeat()) {
-        agent_->ShowSuggestions(
-            control, AutofillSuggestionTriggerSource::kAtMemoryKeyboardShortcut,
-            SynchronousFormCache(), std::nullopt);
-      }
-      return true;  // Prevent default.
-    } else if (element.IsContentEditable()) {
-      if (!actual_accelerator.IsRepeat()) {
-        agent_->ShowSuggestionsForContentEditable(
-            element,
-            AutofillSuggestionTriggerSource::kAtMemoryKeyboardShortcut);
-      }
-      return true;  // Prevent default.
+  if (auto control = element.DynamicTo<WebFormControlElement>();
+      control && form_util::IsTextAreaElementOrTextInput(control) &&
+      control.FormControlTypeForAutofill() !=
+          blink::mojom::FormControlType::kInputPassword &&
+      control.IsEnabled() && !control.IsReadOnly()) {
+    if (!actual_accelerator.IsRepeat()) {
+      agent_->ShowSuggestions(
+          control, AutofillSuggestionTriggerSource::kAtMemoryKeyboardShortcut,
+          SynchronousFormCache(), std::nullopt);
     }
+    return true;  // Prevent default.
+  } else if (element.IsContentEditable()) {
+    if (!actual_accelerator.IsRepeat()) {
+      agent_->ShowSuggestionsForContentEditable(
+          element, AutofillSuggestionTriggerSource::kAtMemoryKeyboardShortcut);
+    }
+    return true;  // Prevent default.
   }
   return false;
+}
+
+void AtMemoryHandler::DidReceiveKeyDownForAtMemoryTriggerString(
+    const WebElement& element,
+    const WebKeyboardEvent& event) {
+  // TODO(crbug.com/538494080): Implement this.
 }
 
 void AtMemoryHandler::ReplaceSelectionForAtMemory(WebElement& element,
@@ -195,9 +220,9 @@ void AtMemoryHandler::ReplaceSelectionForAtMemory(WebElement& element,
   }
 
   if (info->caused_by_trigger_string && ShouldTriggerAtMemorySearch(element)) {
-    const RendererPreferences* prefs = GetRendererPreferences();
-    const WebString trigger =
-        WebString::FromUtf8(prefs ? prefs->autofill_trigger_string : "");
+    // TODO(crbug.com/538102446): Instead of adjusting the selection, eliminate
+    // the trigger string.
+    const WebString trigger = WebString::FromUtf8(GetTriggerString());
     const int trigger_len = std::max(static_cast<int>(trigger.length()), 0);
     if (auto form_control = element.DynamicTo<WebFormControlElement>()) {
       const unsigned int offset = form_control.SelectionStart();
@@ -377,6 +402,14 @@ const RendererPreferences* AtMemoryHandler::GetRendererPreferences() const {
     }
   }
   return nullptr;
+}
+
+const std::string& AtMemoryHandler::GetTriggerString() const {
+  const blink::RendererPreferences* prefs = GetRendererPreferences();
+  if (!prefs) {
+    return base::EmptyString();
+  }
+  return prefs->autofill_trigger_string;
 }
 
 }  // namespace autofill

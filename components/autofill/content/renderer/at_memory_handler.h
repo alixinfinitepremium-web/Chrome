@@ -84,7 +84,16 @@ class AtMemoryHandler {
  private:
   const blink::RendererPreferences* GetRendererPreferences() const;
 
+  const std::string& GetTriggerString() const;
+
   bool ShouldTriggerAtMemorySearch(const blink::WebElement& element) const;
+
+  bool DidReceiveKeyDownForAtMemoryShortcut(
+      const blink::WebElement& element,
+      const blink::WebKeyboardEvent& event);
+  void DidReceiveKeyDownForAtMemoryTriggerString(
+      const blink::WebElement& element,
+      const blink::WebKeyboardEvent& event);
 
   // Finds the metadata for the last AtMemory-related AskForValuesToFill() on
   // `element`. If `pop` is true, removes the entry found.
