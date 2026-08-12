@@ -1929,6 +1929,15 @@
     "expiry_milestone": 160
   },
   {
+    "name": "composebox-drive-context-menu-option-signin-promo",
+    "owners": [
+      "julietlevesque@google.com",
+      "chrome-desktop-ntp@google.com",
+      "chrome-signin-desktop-team@google.com"
+    ],
+    "expiry_milestone": 160
+  },
+  {
     "name": "composebox-fetch-contextual-suggestions-for-multiple-attachments",
     "owners": [ "ameurhosni@google.com", "bling-search@google.com" ],
     "expiry_milestone": 150
@@ -6845,7 +6854,7 @@
       "atsvirchkova@google.com",
       "vsemeniuk@google.com"
     ],
-    "expiry_milestone": 144
+    "expiry_milestone": 160
   },
   {
     "name": "mbi-mode",
@@ -8439,6 +8448,11 @@
     "name": "pwm-show-suggestions-on-autofocus",
     "owners": [ "kenrb@chromium.org", "derinel@google.com" ],
     "expiry_milestone": 155
+  },
+  {
+    "name": "queued-compositor-web-contents-updates",
+    "owners": ["clhager@google.com", "twellington@chromium.org"],
+    "expiry_milestone": 170
   },
   {
     "name": "quick-answers-material-next-ui",

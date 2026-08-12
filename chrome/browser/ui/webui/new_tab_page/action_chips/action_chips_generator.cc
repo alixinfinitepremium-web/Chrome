@@ -47,6 +47,8 @@
 #include "components/url_formatter/url_formatter.h"
 #include "content/public/browser/web_contents.h"
 #include "third_party/omnibox_proto/groups.pb.h"
+#include "third_party/omnibox_proto/input_type.pb.h"
+#include "third_party/omnibox_proto/input_type_config.pb.h"
 #include "third_party/omnibox_proto/page_vertical.pb.h"
 #include "third_party/omnibox_proto/suggest_inventory.pb.h"
 #include "third_party/omnibox_proto/suggest_template_info.pb.h"
@@ -368,7 +370,7 @@ ActionChipPtr CreateBrainstormChip() {
   ActionChipPtr chip = ActionChip::New();
   chip->suggestion = std::string();
   chip->suggest_template_info = SuggestTemplateInfo::New();
-  chip->suggest_template_info->type_icon = IconType::kDraftSpark;
+  chip->suggest_template_info->type_icon = IconType::kLightbulb;
   chip->suggest_template_info->primary_text =
       action_chips::mojom::FormattedString::New();
   chip->suggest_template_info->primary_text->text =
@@ -394,7 +396,7 @@ ActionChipPtr CreateLearnChip() {
   ActionChipPtr chip = ActionChip::New();
   chip->suggestion = std::string();
   chip->suggest_template_info = SuggestTemplateInfo::New();
-  chip->suggest_template_info->type_icon = IconType::kDraftSpark;
+  chip->suggest_template_info->type_icon = IconType::kSchool;
   chip->suggest_template_info->primary_text =
       action_chips::mojom::FormattedString::New();
   chip->suggest_template_info->primary_text->text =
@@ -420,7 +422,7 @@ ActionChipPtr CreateWriteChip() {
   ActionChipPtr chip = ActionChip::New();
   chip->suggestion = std::string();
   chip->suggest_template_info = SuggestTemplateInfo::New();
-  chip->suggest_template_info->type_icon = IconType::kDraftSpark;
+  chip->suggest_template_info->type_icon = IconType::kInkPen;
   chip->suggest_template_info->primary_text =
       action_chips::mojom::FormattedString::New();
   chip->suggest_template_info->primary_text->text =
@@ -446,7 +448,7 @@ ActionChipPtr CreateAddImageChip() {
   ActionChipPtr chip = ActionChip::New();
   chip->suggestion = "";
   chip->suggest_template_info = SuggestTemplateInfo::New();
-  chip->suggest_template_info->type_icon = IconType::kDraftSpark;
+  chip->suggest_template_info->type_icon = IconType::kAttachFile;
   chip->suggest_template_info->primary_text =
       action_chips::mojom::FormattedString::New();
   chip->suggest_template_info->primary_text->text = "Add Image";
@@ -480,6 +482,20 @@ std::vector<omnibox::ToolMode> GetAllowedTools(
     tools.push_back(tool_config.tool());
   }
   return tools;
+}
+
+std::vector<omnibox::InputType> GetAllowedInputs(
+    const AimEligibilityService* aim_eligibility_service) {
+  std::vector<omnibox::InputType> inputs;
+  if (aim_eligibility_service == nullptr) {
+    return inputs;
+  }
+  const omnibox::SearchboxConfig* searchbox_config =
+      aim_eligibility_service->GetSearchboxConfig();
+  for (const auto& input_type_config : searchbox_config->input_type_configs()) {
+    inputs.push_back(input_type_config.input_type());
+  }
+  return inputs;
 }
 
 TabInfoPtr CreateTabInfo(const TabIdGenerator& tab_id_generator,
@@ -649,7 +665,8 @@ void ActionChipsGeneratorImpl::GenerateActionChipsFromNewEndpoint(
 
   auto [title, url] = GetTitleAndUrl(tab);
   loader_ = remote_suggestions_service_simple_->GetActionChipSuggestions(
-      title, url, GetAllowedTools(aim_eligibility_service_), page_vertical,
+      title, url, GetAllowedTools(aim_eligibility_service_),
+      GetAllowedInputs(aim_eligibility_service_), page_vertical,
       base::BindOnce(
           &ActionChipsGeneratorImpl::GenerateActionChipsFromRemoteResponse,
           this->weak_factory_.GetWeakPtr(),

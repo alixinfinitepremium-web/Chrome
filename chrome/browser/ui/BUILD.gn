@@ -2868,18 +2868,12 @@ static_library("ui") {
       "views/tabs/dragging/tab_drag_controller.h",
       "views/tabs/dragging/window_finder.cc",
       "views/tabs/dragging/window_finder.h",
-      "views/tabs/groups/avatar_container_view.cc",
-      "views/tabs/groups/avatar_container_view.h",
       "views/tabs/groups/color_picker_view.cc",
       "views/tabs/groups/color_picker_view.h",
-      "views/tabs/groups/manage_sharing_row.cc",
-      "views/tabs/groups/manage_sharing_row.h",
       "views/tabs/groups/recent_activity_bubble_dialog_view.cc",
       "views/tabs/groups/recent_activity_bubble_dialog_view.h",
       "views/tabs/groups/tab_group_accessibility.cc",
       "views/tabs/groups/tab_group_accessibility.h",
-      "views/tabs/groups/tab_group_editor_bubble_tracker.cc",
-      "views/tabs/groups/tab_group_editor_bubble_tracker.h",
       "views/tabs/groups/tab_group_editor_bubble_view.cc",
       "views/tabs/groups/tab_group_editor_bubble_view.h",
       "views/tabs/hovercard/fade_footer_view.cc",
@@ -2961,8 +2955,6 @@ static_library("ui") {
       "views/upgrade_notification_controller.h",
       "views/web_apps/create_shortcut_confirmation_view.cc",
       "views/web_apps/create_shortcut_confirmation_view.h",
-      "views/web_apps/file_handler_launch_dialog_view.cc",
-      "views/web_apps/file_handler_launch_dialog_view.h",
       "views/web_apps/frame_toolbar/system_app_accessible_name.cc",
       "views/web_apps/frame_toolbar/system_app_accessible_name.h",
       "views/web_apps/frame_toolbar/web_app_content_settings_container.cc",
@@ -3001,12 +2993,8 @@ static_library("ui") {
       "views/web_apps/isolated_web_apps/isolated_web_app_user_installability_checker.h",
       "views/web_apps/isolated_web_apps/uninstall_sub_app_identity_view.cc",
       "views/web_apps/isolated_web_apps/uninstall_sub_app_identity_view.h",
-      "views/web_apps/launch_app_user_choice_dialog_view.cc",
-      "views/web_apps/launch_app_user_choice_dialog_view.h",
       "views/web_apps/progress_delay.cc",
       "views/web_apps/progress_delay.h",
-      "views/web_apps/protocol_handler_launch_dialog_view.cc",
-      "views/web_apps/protocol_handler_launch_dialog_view.h",
       "views/web_apps/view_visible_in_active_widget_notifier.cc",
       "views/web_apps/view_visible_in_active_widget_notifier.h",
       "views/web_apps/web_app_blocked_migration_infobar_delegate.cc",
@@ -3162,6 +3150,7 @@ static_library("ui") {
       "//chrome/browser/ui/views/tab_sharing",
       "//chrome/browser/ui/views/tabs/common",
       "//chrome/browser/ui/views/tabs/dragging:tab_drag_target",
+      "//chrome/browser/ui/views/tabs/groups",
       "//chrome/browser/ui/views/tabs/organizer",
       "//chrome/browser/ui/views/tabs/shared",
       "//chrome/browser/ui/views/tabs/shared:impl",
@@ -3174,6 +3163,7 @@ static_library("ui") {
       "//chrome/browser/ui/views/user_education",
       "//chrome/browser/ui/views/user_education:impl",
       "//chrome/browser/ui/views/web_apps",
+      "//chrome/browser/ui/views/web_apps:launch_dialogs",
       "//chrome/browser/ui/views/webauthn",
       "//chrome/browser/ui/views/webid",
       "//chrome/browser/ui/views/zoom",
@@ -3427,7 +3417,6 @@ static_library("ui") {
       # - c/b/ui/views/tabs/dragging/tab_drag_context.h
       # - c/b/ui/views/tabs/dragging/tab_drag_controller.h
       # - c/b/ui/views/tabs/groups/tab_group_accessibility.h
-      # - c/b/ui/views/tabs/groups/tab_group_editor_bubble_tracker.h
       # - c/b/ui/views/tabs/hovercard/hover_card_anchor_target.h
       # - c/b/ui/views/tabs/hovercard/tab_hover_card_controller.h
       # - c/b/ui/views/tabs/new_tab_button.h
@@ -3509,13 +3498,10 @@ static_library("ui") {
 
     if (is_win || is_linux || is_chromeos) {
       sources += [
-        "views/bluetooth_device_credentials_view.cc",
-        "views/bluetooth_device_credentials_view.h",
-        "views/bluetooth_device_pair_confirm_view.cc",
-        "views/bluetooth_device_pair_confirm_view.h",
         "views/native_widget_factory.cc",
         "views/native_widget_factory.h",
       ]
+      deps += [ "//chrome/browser/ui/views:bluetooth_dialogs" ]
     }
 
     if (is_mac) {

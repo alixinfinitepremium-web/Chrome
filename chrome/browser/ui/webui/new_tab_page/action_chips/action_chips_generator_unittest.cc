@@ -47,6 +47,7 @@
 #include "testing/gmock/include/gmock/gmock.h"
 #include "testing/gtest/include/gtest/gtest.h"
 #include "third_party/omnibox_proto/groups.pb.h"
+#include "third_party/omnibox_proto/input_type.pb.h"
 #include "third_party/omnibox_proto/suggest_inventory.pb.h"
 #include "third_party/omnibox_proto/tool_mode.pb.h"
 #include "ui/base/l10n/l10n_util.h"
@@ -188,6 +189,7 @@ class MockRemoteSuggestionsServiceSimple
       (base::optional_ref<const std::u16string> title,
        base::optional_ref<const GURL> url,
        base::span<const omnibox::ToolMode> allowed_tools,
+       base::span<const omnibox::InputType> allowed_inputs,
        base::optional_ref<const omnibox::PageVertical> page_vertical,
        base::OnceCallback<
            void(RemoteSuggestionsServiceSimple::ActionChipSuggestionsResult&&)>
@@ -310,7 +312,7 @@ const ActionChipPtr& GetStaticStarterChip() {
 
 MATCHER(BrainstormChip, "") {
   return arg && arg->suggest_template_info &&
-         arg->suggest_template_info->type_icon == IconType::kDraftSpark &&
+         arg->suggest_template_info->type_icon == IconType::kLightbulb &&
          arg->suggest_template_info->primary_text &&
          arg->suggest_template_info->primary_text->text ==
              l10n_util::GetStringUTF8(IDS_NTP_ACTION_CHIP_BRAINSTORM_HEADING) &&
@@ -325,7 +327,7 @@ MATCHER(BrainstormChip, "") {
 
 MATCHER(LearnChip, "") {
   return arg && arg->suggest_template_info &&
-         arg->suggest_template_info->type_icon == IconType::kDraftSpark &&
+         arg->suggest_template_info->type_icon == IconType::kSchool &&
          arg->suggest_template_info->primary_text &&
          arg->suggest_template_info->primary_text->text ==
              l10n_util::GetStringUTF8(
@@ -341,7 +343,7 @@ MATCHER(LearnChip, "") {
 
 MATCHER(WriteChip, "") {
   return arg && arg->suggest_template_info &&
-         arg->suggest_template_info->type_icon == IconType::kDraftSpark &&
+         arg->suggest_template_info->type_icon == IconType::kInkPen &&
          arg->suggest_template_info->primary_text &&
          arg->suggest_template_info->primary_text->text ==
              l10n_util::GetStringUTF8(IDS_NTP_ACTION_CHIP_WRITE_EDIT_HEADING) &&
@@ -685,9 +687,9 @@ TEST(ActionChipGeneratorTest,
 
   EXPECT_CALL(
       generator_fixture.mock_service(),
-      GetActionChipSuggestions(Eq(std::nullopt), Eq(std::nullopt), _, _, _))
+      GetActionChipSuggestions(Eq(std::nullopt), Eq(std::nullopt), _, _, _, _))
       .Times(1)
-      .WillOnce(WithArg<4>(
+      .WillOnce(WithArg<5>(
           [](base::OnceCallback<void(
                  RemoteSuggestionsServiceSimple::ActionChipSuggestionsResult&&)>
                  callback) {
@@ -735,8 +737,8 @@ TEST(ActionChipGeneratorTest, SteadyStateWithNewEndpoint) {
       GetActionChipSuggestions(Eq(page_title), Eq(page_url),
                                ElementsAre(omnibox::TOOL_MODE_DEEP_SEARCH,
                                            omnibox::TOOL_MODE_IMAGE_GEN),
-                               Eq(std::nullopt), _))
-      .WillOnce(WithArg<4>([&](base::OnceCallback<void(
+                               _, Eq(std::nullopt), _))
+      .WillOnce(WithArg<5>([&](base::OnceCallback<void(
                                    RemoteSuggestionsServiceSimple::
                                        ActionChipSuggestionsResult&&)>
                                    callback) {
@@ -832,8 +834,8 @@ TEST(ActionChipGeneratorTest, SteadyStateWithNewEndpointAndNoTab) {
       GetActionChipSuggestions(Eq(std::nullopt), Eq(std::nullopt),
                                ElementsAre(omnibox::TOOL_MODE_DEEP_SEARCH,
                                            omnibox::TOOL_MODE_IMAGE_GEN),
-                               Eq(std::nullopt), _))
-      .WillOnce(WithArg<4>(
+                               _, Eq(std::nullopt), _))
+      .WillOnce(WithArg<5>(
           [&](base::OnceCallback<void(RemoteSuggestionsServiceSimple::
                                           ActionChipSuggestionsResult&&)>
                   callback) {
@@ -903,9 +905,10 @@ TEST(ActionChipGeneratorTest, NewEndpointFailureFallsBackToStaticChips) {
   TabFixture tab_fixture(page_url, page_title);
   GeneratorFixture generator_fixture;
 
-  EXPECT_CALL(generator_fixture.mock_service(),
-              GetActionChipSuggestions(Eq(page_title), Eq(page_url), _, _, _))
-      .WillOnce(WithArg<4>(
+  EXPECT_CALL(
+      generator_fixture.mock_service(),
+      GetActionChipSuggestions(Eq(page_title), Eq(page_url), _, _, _, _))
+      .WillOnce(WithArg<5>(
           [](base::OnceCallback<void(
                  RemoteSuggestionsServiceSimple::ActionChipSuggestionsResult&&)>
                  callback) {
@@ -956,9 +959,10 @@ TEST(ActionChipGeneratorTest,
                 IsDeepSearchEligible())
         .WillRepeatedly(Return(false));
 
-    EXPECT_CALL(generator_fixture.mock_service(),
-                GetActionChipSuggestions(Eq(page_title), Eq(page_url), _, _, _))
-        .WillOnce(WithArg<4>(
+    EXPECT_CALL(
+        generator_fixture.mock_service(),
+        GetActionChipSuggestions(Eq(page_title), Eq(page_url), _, _, _, _))
+        .WillOnce(WithArg<5>(
             [](base::OnceCallback<void(RemoteSuggestionsServiceSimple::
                                            ActionChipSuggestionsResult&&)>
                    callback) {
@@ -1004,9 +1008,10 @@ TEST(ActionChipGeneratorTest,
                 IsDeepSearchEligible())
         .WillRepeatedly(Return(false));
 
-    EXPECT_CALL(generator_fixture.mock_service(),
-                GetActionChipSuggestions(Eq(page_title), Eq(page_url), _, _, _))
-        .WillOnce(WithArg<4>(
+    EXPECT_CALL(
+        generator_fixture.mock_service(),
+        GetActionChipSuggestions(Eq(page_title), Eq(page_url), _, _, _, _))
+        .WillOnce(WithArg<5>(
             [](base::OnceCallback<void(RemoteSuggestionsServiceSimple::
                                            ActionChipSuggestionsResult&&)>
                    callback) {
@@ -1060,9 +1065,9 @@ TEST(ActionChipGeneratorTest, NewEndpointOptOutReturnsEndpointChips) {
 
   // Should call remote service with nullopt title and URL.
   EXPECT_CALL(generator_fixture.mock_service(),
-              GetActionChipSuggestions(Eq(std::nullopt), Eq(std::nullopt), _,
+              GetActionChipSuggestions(Eq(std::nullopt), Eq(std::nullopt), _, _,
                                        Eq(std::nullopt), _))
-      .WillOnce(WithArg<4>(
+      .WillOnce(WithArg<5>(
           [&](base::OnceCallback<void(RemoteSuggestionsServiceSimple::
                                           ActionChipSuggestionsResult&&)>
                   callback) {
@@ -1157,9 +1162,9 @@ TEST(ActionChipGeneratorTest, NewEndpointOptOutFallsBackToStaticOnFailure) {
 
   // Should call remote service with nullopt title and URL, and fail.
   EXPECT_CALL(generator_fixture.mock_service(),
-              GetActionChipSuggestions(Eq(std::nullopt), Eq(std::nullopt), _,
+              GetActionChipSuggestions(Eq(std::nullopt), Eq(std::nullopt), _, _,
                                        Eq(std::nullopt), _))
-      .WillOnce(WithArg<4>(
+      .WillOnce(WithArg<5>(
           [](base::OnceCallback<void(
                  RemoteSuggestionsServiceSimple::ActionChipSuggestionsResult&&)>
                  callback) {
@@ -1197,9 +1202,10 @@ std::vector<ActionChipPtr> GenerateActionChipsForEmptyRemoteResponse(
   TabFixture tab_fixture(page_url, page_title);
   GeneratorFixture generator_fixture;
 
-  EXPECT_CALL(generator_fixture.mock_service(),
-              GetActionChipSuggestions(Eq(page_title), Eq(page_url), _, _, _))
-      .WillOnce(WithArg<4>(
+  EXPECT_CALL(
+      generator_fixture.mock_service(),
+      GetActionChipSuggestions(Eq(page_title), Eq(page_url), _, _, _, _))
+      .WillOnce(WithArg<5>(
           [](base::OnceCallback<void(
                  RemoteSuggestionsServiceSimple::ActionChipSuggestionsResult&&)>
                  callback) {
@@ -1254,9 +1260,10 @@ TEST(ActionChipGeneratorTest, NewEndpointParseErrorFallsBackToStaticChips) {
   TabFixture tab_fixture(page_url, page_title);
   GeneratorFixture generator_fixture;
 
-  EXPECT_CALL(generator_fixture.mock_service(),
-              GetActionChipSuggestions(Eq(page_title), Eq(page_url), _, _, _))
-      .WillOnce(WithArg<4>(
+  EXPECT_CALL(
+      generator_fixture.mock_service(),
+      GetActionChipSuggestions(Eq(page_title), Eq(page_url), _, _, _, _))
+      .WillOnce(WithArg<5>(
           [](base::OnceCallback<void(
                  RemoteSuggestionsServiceSimple::ActionChipSuggestionsResult&&)>
                  callback) {
@@ -1305,9 +1312,9 @@ TEST(ActionChipGeneratorTest, NewEndpointPartialEligibilityPassesCorrectTools) {
       generator_fixture.mock_service(),
       GetActionChipSuggestions(Eq(page_title), Eq(page_url),
                                // Expect ONLY Deep Search tool mode.
-                               ElementsAre(omnibox::TOOL_MODE_DEEP_SEARCH),
+                               ElementsAre(omnibox::TOOL_MODE_DEEP_SEARCH), _,
                                Eq(std::nullopt), _))
-      .WillOnce(WithArg<4>(
+      .WillOnce(WithArg<5>(
           [](base::OnceCallback<void(
                  RemoteSuggestionsServiceSimple::ActionChipSuggestionsResult&&)>
                  callback) {
@@ -1334,9 +1341,10 @@ TEST(ActionChipGeneratorTest, NewEndpointFiltersInvalidSuggestions) {
   TabFixture tab_fixture(page_url, page_title);
   GeneratorFixture generator_fixture;
 
-  EXPECT_CALL(generator_fixture.mock_service(),
-              GetActionChipSuggestions(Eq(page_title), Eq(page_url), _, _, _))
-      .WillOnce(WithArg<4>([&](base::OnceCallback<void(
+  EXPECT_CALL(
+      generator_fixture.mock_service(),
+      GetActionChipSuggestions(Eq(page_title), Eq(page_url), _, _, _, _))
+      .WillOnce(WithArg<5>([&](base::OnceCallback<void(
                                    RemoteSuggestionsServiceSimple::
                                        ActionChipSuggestionsResult&&)>
                                    callback) {
@@ -1471,8 +1479,8 @@ TEST(ActionChipGeneratorTest, GenerateDynamicChipsWithSmallActionChipsEnabled) {
   // Create mock response of 7 chips.
   EXPECT_CALL(
       generator_fixture.mock_service(),
-      GetActionChipSuggestions(Eq(std::nullopt), Eq(std::nullopt), _, _, _))
-      .WillOnce(WithArg<4>(
+      GetActionChipSuggestions(Eq(std::nullopt), Eq(std::nullopt), _, _, _, _))
+      .WillOnce(WithArg<5>(
           [&](base::OnceCallback<void(RemoteSuggestionsServiceSimple::
                                           ActionChipSuggestionsResult&&)>
                   callback) {
@@ -1515,9 +1523,10 @@ TEST(ActionChipGeneratorTest, ParsesAimActionCorrectly) {
   TabFixture tab_fixture(page_url, page_title);
   GeneratorFixture generator_fixture;
 
-  EXPECT_CALL(generator_fixture.mock_service(),
-              GetActionChipSuggestions(Eq(page_title), Eq(page_url), _, _, _))
-      .WillOnce(WithArg<4>(
+  EXPECT_CALL(
+      generator_fixture.mock_service(),
+      GetActionChipSuggestions(Eq(page_title), Eq(page_url), _, _, _, _))
+      .WillOnce(WithArg<5>(
           [&](base::OnceCallback<void(RemoteSuggestionsServiceSimple::
                                           ActionChipSuggestionsResult&&)>
                   callback) {
@@ -1583,6 +1592,7 @@ TEST(ActionChipsGeneratorTest, SteadyStateFallbackChipsHavePreferredInventory) {
 
   // Brainstorm chip.
   EXPECT_TRUE(actual[0]->suggestion.empty());
+  EXPECT_EQ(actual[0]->suggest_template_info->type_icon, IconType::kLightbulb);
   ASSERT_TRUE(actual[0]->suggest_template_info->fusebox_action);
   EXPECT_EQ(
       actual[0]->suggest_template_info->fusebox_action->preferred_inventory,
@@ -1590,6 +1600,7 @@ TEST(ActionChipsGeneratorTest, SteadyStateFallbackChipsHavePreferredInventory) {
 
   // Help me learn chip.
   EXPECT_TRUE(actual[1]->suggestion.empty());
+  EXPECT_EQ(actual[1]->suggest_template_info->type_icon, IconType::kSchool);
   ASSERT_TRUE(actual[1]->suggest_template_info->fusebox_action);
   EXPECT_EQ(
       actual[1]->suggest_template_info->fusebox_action->preferred_inventory,
@@ -1597,6 +1608,7 @@ TEST(ActionChipsGeneratorTest, SteadyStateFallbackChipsHavePreferredInventory) {
 
   // Write or edit chip.
   EXPECT_TRUE(actual[2]->suggestion.empty());
+  EXPECT_EQ(actual[2]->suggest_template_info->type_icon, IconType::kInkPen);
   ASSERT_TRUE(actual[2]->suggest_template_info->fusebox_action);
   EXPECT_EQ(
       actual[2]->suggest_template_info->fusebox_action->preferred_inventory,
