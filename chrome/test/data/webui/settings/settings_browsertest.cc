@@ -1836,7 +1836,8 @@ class SettingsSiteDetailsTest : public SettingsBrowserTest {};
 // Disabling on debug due to flaky timeout on Win7 Tests (dbg)(1) bot.
 // https://crbug.com/41378604 - later for other platforms in crbug.com/40106090.
 // TODO(https://crbug.com/510377224): Re-enable test on windows
-#if !defined(NDEBUG) || BUILDFLAG(IS_WIN)
+// TODO(crbug.com/543717125): Re-enable test on Mac.
+#if !defined(NDEBUG) || BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC)
 #define MAYBE_SiteDetails DISABLED_SiteDetails
 #else
 #define MAYBE_SiteDetails SiteDetails
@@ -1973,7 +1974,13 @@ IN_PROC_BROWSER_TEST_F(YourSavedInfoTest, AutofillPage) {
   RunTest("settings/autofill_page_test.js", "mocha.run()");
 }
 
-IN_PROC_BROWSER_TEST_F(YourSavedInfoTest, AutofillPageIndex) {
+// TODO(crbug.com/545478765): Flaky on Windows.
+#if BUILDFLAG(IS_WIN)
+#define MAYBE_AutofillPageIndex DISABLED_AutofillPageIndex
+#else
+#define MAYBE_AutofillPageIndex AutofillPageIndex
+#endif
+IN_PROC_BROWSER_TEST_F(YourSavedInfoTest, MAYBE_AutofillPageIndex) {
   RunTest("settings/autofill_page_index_test.js", "mocha.run()");
 }
 

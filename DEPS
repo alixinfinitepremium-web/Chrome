@@ -333,7 +333,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '42b48eec8630a1b2fbfd1ee792946ff10115fef4',
+  'src_internal_revision': '62fe1f036932149641b629ed2b8d9d15dd6c3f81',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -357,7 +357,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': '7017746ef9f887c9005f035d9bd88974d53fd48f',
+  'boringssl_revision': '3af51b8abd85a019dc00f46832f13f12c34946f1',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -1720,7 +1720,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': '3LyZxI5eCHEtz0KcnjaHxpgXey2w6x5SkEV8Tg7bo2QC',
+        'version': 'mh050DEGJoYGILgP95bgzZI3lQbO9EXw_Lga9Yz9RawC',
       },
     ],
     'condition': 'non_git_source',
@@ -2182,7 +2182,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'cde7a9dd1b4ac02089b69b3c9a1bc57cbf314981',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'ec866c111ed9dffa894d5cfbcf7b94b073772264',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
