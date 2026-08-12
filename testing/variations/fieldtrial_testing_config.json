@@ -15416,6 +15416,21 @@
             ]
         }
     ],
+    "InstallerDownloaderReengagement": [
+        {
+            "platforms": [
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "InstallerDownloaderReengagement"
+                    ]
+                }
+            ]
+        }
+    ],
     "InstantHandoffPhase1": [
         {
             "platforms": [
@@ -27252,21 +27267,6 @@
                     "name": "Enabled",
                     "enable_features": [
                         "WebViewBypassProvisionalCookieManager"
-                    ]
-                }
-            ]
-        }
-    ],
-    "WebViewCppMetricsFiltering": [
-        {
-            "platforms": [
-                "android_webview"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "WebViewCppMetricsFiltering"
                     ]
                 }
             ]
