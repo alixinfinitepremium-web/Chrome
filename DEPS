@@ -259,7 +259,7 @@ vars = {
   # luci-go CIPD package version.
   # Make sure the revision is uploaded by infra-packagers builder.
   # https://ci.chromium.org/p/infra-internal/g/infra-packagers/console
-  'luci_go': 'git_revision:de24faf21b953ffe46dd29ef36b8935d6940a513',
+  'luci_go': 'git_revision:2de3d5d5b1e9c5e75f930c363904413000823425',
 
   # This can be overridden, e.g. with custom_vars, to build clang from HEAD
   # instead of downloading the prebuilt pinned revision.
@@ -417,7 +417,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'd1d6ced5c9defad5d8762be06da4b9da39a2c703',
+  'devtools_frontend_revision': '7da4b7eeaea404a21118cd937b23a5c57c367229',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -2182,7 +2182,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'e4a7396d3028c6a75834b8b9a7c33ebc090545be',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '7aaf1a66656768c3f6bc849af57f9afdd3283a7b',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -3272,7 +3272,7 @@ deps = {
       'packages': [
         {
           'package': 'skia/tools/goldctl/mac-amd64',
-          'version': 'Df0n4d7TeO3PaTP8SR4PI3nM3csljStXbFa6ZEV4WtMC',
+          'version': '-DSFRny-HniCy7vguSXA5RIiFVgqu2ADRaGbTwCRvHAC',
         },
       ],
       'dep_type': 'cipd',
@@ -3347,7 +3347,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_receiver_app/app',
-        'version': 'RE45DUug3QpmR-LpEr8n5g9JRSolzbZbcyTrQYXETnsC',
+        'version': 'jErlwCclXLU5NYNLaj8BmhQNuP_JBrdMdfszyo-Hc2kC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -4059,7 +4059,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        'e3e20d2521fbe07bf85a63029997429aa8dca5fe',
+        '9384b898ab82c0f526109d05062f2a3982f19a77',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
