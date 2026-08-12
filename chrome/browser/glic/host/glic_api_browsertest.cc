@@ -1307,33 +1307,6 @@ IN_PROC_BROWSER_TEST_P(GlicApiTest,
 }
 
 
-IN_PROC_BROWSER_TEST_P(GlicApiTest, testGetTabByIdWithDiscard) {
-  NavigateTabAndOpenGlic();
-  ASSERT_TRUE(AddTabAtIndex(1, page_url(), ui::PAGE_TRANSITION_TYPED));
-  auto tab_id = browser()->tab_strip_model()->GetTabAtIndex(1)->GetHandle();
-  ExecuteJsTest(
-      {.params = base::Value(base::NumberToString(tab_id.raw_value()))});
-
-  // Discard the tab.
-  std::unique_ptr<content::WebContents> new_contents =
-      content::WebContents::Create(
-          content::WebContents::CreateParams(browser()->GetProfile()));
-  content::WebContents* new_contents_ptr = new_contents.get();
-  browser()->tab_strip_model()->DiscardWebContentsAt(1,
-                                                     std::move(new_contents));
-
-  // Navigate the new contents.
-  GURL::Replacements replacements;
-  replacements.SetQueryStr("q=hi");
-  ASSERT_TRUE(content::NavigateToURL(
-      new_contents_ptr, page_url().ReplaceComponents(replacements)));
-  ContinueJsTest();
-
-  // Close the tab.
-  browser()->tab_strip_model()->CloseWebContentsAt(1, CLOSE_NONE);
-  ContinueJsTest();
-}
-
 IN_PROC_BROWSER_TEST_P(GlicApiTestWithOneTab, testGetOsHotkeyState) {
   ExecuteJsTest();
   g_browser_process->local_state()->SetString(prefs::kGlicLauncherHotkey,
@@ -1537,28 +1510,8 @@ IN_PROC_BROWSER_TEST_P(GlicApiTest, testCallingApiWhileHiddenRecordsMetrics) {
   histogram_tester.ExpectTotalCount("Glic.Api.RequestHostLatency.CreateTab", 1);
 }
 
-IN_PROC_BROWSER_TEST_P(GlicApiTestWithOneTab, testPinTabs) {
-  ExecuteJsTest();
-}
 
-IN_PROC_BROWSER_TEST_P(GlicApiTest, testUnpinTabsWhileClosing) {
-  NavigateTabAndOpenGlicFloating();
-  ExecuteJsTest();
-}
 
-// TODO(crbug.com/469060213): Re-enable this test on Windows.
-#if BUILDFLAG(IS_WIN)
-#define MAYBE_testPinTabsWithTwoTabs DISABLED_testPinTabsWithTwoTabs
-#else
-#define MAYBE_testPinTabsWithTwoTabs testPinTabsWithTwoTabs
-#endif
-IN_PROC_BROWSER_TEST_P(GlicApiTest, MAYBE_testPinTabsWithTwoTabs) {
-  NavigateTabAndOpenGlicFloating();
-  RunTestSequence(AddInstrumentedTab(kSecondTab, page_url()));
-  ExecuteJsTest();
-  browser()->tab_strip_model()->SelectPreviousTab();
-  ContinueJsTest();
-}
 
 IN_PROC_BROWSER_TEST_P(GlicApiTestWithOneTab,
                        testPinTabsFailsWhenDoesnotExist) {

@@ -341,7 +341,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': '19aae040645808379ca4083ef895722fe532fbe7',
+  'v8_revision': '069ec9db5da63153689d03cd83b84b659f8cd3d8',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -441,7 +441,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': '99d780bd46783826d6a29ddb02f92a221c308974',
+  'dawn_revision': '7d3be3c5e62a1d52c1b96f5673cb50d045754d56',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -557,7 +557,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling agents-public
   # and whatever else without interference from each other.
-  'agents_public_revision': '78cc65e41fda49ebc70071b591fd29cce068f785',
+  'agents_public_revision': '5f790215c32246dfebb22e3bd00f144f7f783ee4',
 
   # If you change this, also update the libc++ revision in
   # //buildtools/deps_revisions.gni.
@@ -1485,7 +1485,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_linux64',
-          'version': 'version:2@1672008',
+          'version': 'version:2@1673012',
         },
       ],
   },
@@ -1529,7 +1529,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_x86',
-          'version': 'version:2@1672062',
+          'version': 'version:2@1673018',
         },
       ],
   },
@@ -1540,7 +1540,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_x86_64',
-          'version': 'version:2@1672056',
+          'version': 'version:2@1673018',
         },
       ],
   },
@@ -1662,7 +1662,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_mac_arm64',
-          'version': 'yP6p5C-QyK8jAp2XJM3tW9BRO6DA-p2lc0F-_ey0cr4C',
+          'version': 'g6Jju-VKmWC1acdrFB1D-CpDOmzSJRWiCw3SnYMc9uUC',
         },
       ],
   },
@@ -1673,7 +1673,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_win_x86',
-          'version': 'tqHuBg5bOM_kvpIC2SqA11AsEg2m-lvTVQWb3rW7B7sC',
+          'version': '8l-YmVJLpF6t-mcekGK6hBgRM7vYMP-Zp3E4Hteku2cC',
         },
       ],
   },
@@ -2194,7 +2194,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '099527f163694446fbf6ab028bc1e07e3ffa69fc',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '6df2dcbd170319f010241f1f035efef29f7d3e70',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '17a56409b86d0da5e01ca38f6498e13b2db16bc3',
@@ -4059,7 +4059,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        'fdb138962d2eb2c0552ba8b226ca9c662b9ac942',
+        '4fbd8f8a9852b792450b08920e36ed40b69d5e07',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
