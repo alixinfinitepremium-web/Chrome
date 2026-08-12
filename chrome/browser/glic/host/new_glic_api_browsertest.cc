@@ -215,6 +215,7 @@ std::vector<std::string> GetTestSuiteNames() {
       "NewGlicApiTestGeminiEnterpriseSettingsDisabled",
       "NewGlicApiTestGeminiEnterpriseSettingsPolicy",
       "NewGlicApiTestGeminiEnterpriseSettingsPolicyUnset",
+      "NewGlicApiTestWithMqlsIdGetterDisabled",
 #if !BUILDFLAG(IS_ANDROID)
       "NewGlicApiTestWithFileUploadPolicyEnabled",
       "NewGlicApiTestWithSkills",
@@ -1303,7 +1304,47 @@ IN_PROC_BROWSER_TEST_P(
     NewGlicApiTestWithProcessCounterAbuseVerdictDisabled,
     testProcessCounterAbuseVerdictIsUndefinedWhenFeatureDisabled) {
   ASSERT_OK(OpenGlicForActiveTab());
+}
+
+class NewGlicApiTestWithMqlsIdGetterDisabled : public NewGlicApiTest {
+ public:
+  NewGlicApiTestWithMqlsIdGetterDisabled() {
+    scoped_feature_list_.InitWithFeatures(
+        /*enabled_features=*/
+        {},
+        /*disabled_features=*/
+        {mojom::features::kGlicAppendModelQualityClientId});
+  }
+
+ private:
+  base::test::ScopedFeatureList scoped_feature_list_;
+};
+
+IN_PROC_BROWSER_TEST_P(NewGlicApiTestWithMqlsIdGetterDisabled,
+                       testGetModelQualityClientIdFeatureDisabled) {
+  ASSERT_OK(OpenGlicForActiveTab());
   ExecuteJsTest();
+}
+IN_PROC_BROWSER_TEST_P(NewGlicApiTest, testGetTabById) {
+  ASSERT_OK(OpenGlicForActiveTab());
+  tabs::TabInterface* new_tab = CreateBackgroundTab(
+      embedded_test_server()->GetURL("/browser_tests/test.html"));
+  auto tab_id = new_tab->GetHandle();
+  ExecuteJsTest(
+      {.params = base::Value(base::NumberToString(tab_id.raw_value()))});
+
+  // Navigate the tab.
+  GURL::Replacements replacements;
+  replacements.SetQueryStr("q=hi");
+  ASSERT_TRUE(content::NavigateToURL(new_tab->GetContents(),
+                                     embedded_test_server()
+                                         ->GetURL("/browser_tests/test.html")
+                                         .ReplaceComponents(replacements)));
+  ContinueJsTest();
+
+  // Close the tab.
+  GetTabListInterface()->CloseTab(new_tab->GetHandle());
+  ContinueJsTest();
 }
 
 #if !BUILDFLAG(IS_ANDROID)
@@ -1332,6 +1373,13 @@ IN_PROC_BROWSER_TEST_P(NewGlicApiTestWithFileUploadPolicyEnabled,
   GetProfile()->GetPrefs()->SetInteger(
       glic::prefs::kGlicFileUploadAllowed,
       std::to_underlying(glic::prefs::GlicFileUploadPolicyState::kDisabled));
+  ContinueJsTest();
+}
+
+IN_PROC_BROWSER_TEST_P(NewGlicApiTest, testGetFocusedTabStateV2BrowserClosed) {
+  ASSERT_OK(OpenGlicForActiveTabAndDetach());
+  ExecuteJsTest();
+  CloseMainBrowserWithIncognitoKeepAlive();
   ContinueJsTest();
 }
 #endif
@@ -2373,6 +2421,53 @@ IN_PROC_BROWSER_TEST_P(NewGlicApiTest, testDoNothing) {
 IN_PROC_BROWSER_TEST_P(NewGlicApiTest, testDefaultInvocationSource) {
   ASSERT_OK(OpenGlicForActiveTab());
   ExecuteJsTest();
+}
+
+// This test is only useful for platforms that support floaty.
+#if !BUILDFLAG(IS_ANDROID)
+IN_PROC_BROWSER_TEST_P(NewGlicApiTest, testIsBrowserOpen) {
+  ASSERT_OK(OpenGlicForActiveTabAndDetach());
+  ExecuteJsTest();
+
+  CloseMainBrowserWithIncognitoKeepAlive();
+
+  ContinueJsTest();
+}
+#endif
+
+IN_PROC_BROWSER_TEST_P(NewGlicApiTest, testNavigateToDifferentClientPage) {
+  glic::GlicHistogramTester histogram_tester;
+  ASSERT_OK_AND_ASSIGN(auto* instance, OpenGlicForActiveTab());
+  WebUIStateListener listener(&instance->host());
+  listener.WaitForWebUiState(mojom::WebUiState::kReady);
+  ExecuteJsTest({.params = base::Value(0)});  // test run count: 0.
+  listener.WaitForWebUiState(mojom::WebUiState::kBeginLoad);
+  listener.WaitForWebUiState(mojom::WebUiState::kReady);
+  ExecuteJsTest({.params = base::Value(1)});  // test run count: 1.
+  histogram_tester.ExpectUniqueSample("Glic.Host.WebClientState.OnCommit",
+                                      6 /*RESPONSIVE*/, 1);
+  histogram_tester.ExpectUniqueSample("Glic.Host.WebClientState.OnDestroy",
+                                      0 /*BOOTSTRAP_PENDING*/, 1);
+}
+
+// TODO(b/544866316): Consider moving this to a different test suite
+// since it does not use the JS test runner.
+IN_PROC_BROWSER_TEST_P(NewGlicApiTest, testCookieSyncFails) {
+  glic::GlicHistogramTester histogram_tester;
+  GlicTestEnvironment::GetService(GetProfile())
+      ->SetResultForFutureCookieSync(false);
+
+  ToggleGlicForActiveTab(/*prevent_close=*/false);
+
+  auto* instance = GetOnlyGlicInstance();
+  ASSERT_TRUE(instance);
+
+  ASSERT_OK(
+      RunUntilEqual([&]() { return instance->host().GetPrimaryWebUiState(); },
+                    mojom::WebUiState::kError));
+
+  histogram_tester.ExpectBucketCount("Glic.PanelWebUiState.Error",
+                                     2 /*COOKIE_SYNC_ERROR*/, 1);
 }
 
 IN_PROC_BROWSER_TEST_P(NewGlicApiTest, testGetUserProfileInfo) {
@@ -3832,6 +3927,10 @@ INSTANTIATE_TEST_SUITE_P(,
 
 INSTANTIATE_TEST_SUITE_P(,
                          NewGlicApiTestWithProcessCounterAbuseVerdictDisabled,
+                         DefaultTestParamSet(),
+                         &WithTestParams::PrintTestVariant);
+INSTANTIATE_TEST_SUITE_P(,
+                         NewGlicApiTestWithMqlsIdGetterDisabled,
                          DefaultTestParamSet(),
                          &WithTestParams::PrintTestVariant);
 INSTANTIATE_TEST_SUITE_P(,

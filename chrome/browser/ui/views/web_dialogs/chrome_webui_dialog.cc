@@ -99,6 +99,8 @@ ChromeWebUIDialog::ChromeWebUIDialog(
   SetModalType(spec_.modal_type);
   SetShowCloseButton(spec_.show_close_button);
   SetHasWindowSizeControls(true);
+  set_esc_should_cancel_dialog_override(
+      spec_.esc_should_cancel_dialog_override);
 
   set_margins(gfx::Insets());
 
@@ -212,6 +214,18 @@ void ChromeWebUIDialog::ResizeDueToAutoResize(content::WebContents* source,
   // The non-client view includes the window frame, so this ensures the
   // entire dialog is sized correctly.
   GetWidget()->CenterWindow(GetWidget()->non_client_view()->GetPreferredSize());
+}
+
+bool ChromeWebUIDialog::HandleKeyboardEvent(
+    content::WebContents* source,
+    const input::NativeWebKeyboardEvent& event) {
+  views::Widget* widget = GetWidget();
+  if (!widget) {
+    return false;
+  }
+
+  return unhandled_keyboard_event_handler_.HandleKeyboardEvent(
+      event, widget->GetFocusManager());
 }
 
 void ChromeWebUIDialog::OnViewAddedToWidget(views::View* observed_view) {

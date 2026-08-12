@@ -84,6 +84,7 @@
 #include "chrome/browser/ui/views/toolbar/reload_button.h"
 #include "chrome/browser/ui/views/toolbar/toolbar_view.h"
 #include "chrome/browser/ui/views/toolbar/webui_avatar_toolbar_button.h"
+#include "chrome/browser/ui/views/toolbar/webui_home_control_test_base.h"
 #include "chrome/browser/ui/views/toolbar/webui_pinned_toolbar_actions.h"
 #include "chrome/browser/ui/views/toolbar/webui_reload_control.h"
 #include "chrome/browser/ui/views/toolbar/webui_test_utils.h"
@@ -204,14 +205,6 @@ constexpr char kHomeSelector[] = "#home";
 constexpr char kAppMenuButtonSelector[] = "#app-menu";
 
 
-std::string GetButtonIconJS(const std::string& selector) {
-  // `toolbar-chip-button` is added to support the internal structure of the
-  // element used by the `app-menu-button`.
-  return base::StrCat(
-      {GetButtonAppJS(selector),
-       "?.shadowRoot?.querySelector('cr-icon-button, toolbar-chip-button')"});
-}
-
 #if !BUILDFLAG(IS_CHROMEOS)
 std::string GetAppMenuPropertyJS(const std::string& property) {
   return base::StrCat({GetButtonAppJS(kAppMenuButtonSelector), property});
@@ -228,28 +221,6 @@ std::string GetValueForCSSProperty(const std::string& element_js,
 std::string GetValueForToolbarAppCSSProperty(const std::string& property) {
   return GetValueForCSSProperty("document.querySelector('toolbar-app')",
                                 property);
-}
-
-bool WaitForButtonVisible(content::WebContents* web_contents,
-                          const std::string& selector) {
-  static constexpr char kScript[] = R"(
-    (() => {
-      const btn = %s;
-      return !!btn && btn.checkVisibility();
-    })();
-  )";
-
-  return base::test::RunUntil([&]() {
-    return content::EvalJs(
-               web_contents,
-               base::StringPrintf(kScript, GetButtonAppJS(selector).c_str()))
-        .ExtractBool();
-  });
-}
-
-void PinButton(Browser* browser, views::WebView* web_view, const char* pref) {
-  browser->GetProfile()->GetPrefs()->SetBoolean(pref, true);
-  content::WaitForCopyableViewInWebContents(web_view->GetWebContents());
 }
 
 bool WaitForButtonEnabled(content::WebContents* web_contents,
@@ -284,58 +255,6 @@ void AssertToolbarSyncState(content::WebContents* web_contents,
           .ExtractBool());
 }
 
-
-constexpr char kGetCoordinatesJS[] =
-    "const rect = target.getBoundingClientRect(); "
-    "const x = rect.left + rect.width / 2; "
-    "const y = rect.top + rect.height / 2; ";
-
-// Adds functions to `target` to mimic pointer capture functions. Note that real
-// pointer capture is lost on pointer up, but the returned functions cannot
-// handle that, so if that is important for a test, it must manually call
-// `releasePointerCapture('*')`.
-std::string AddMockPointerCaptureFunctions(const char* target) {
-  return base::StringPrintf(
-      R"({
-        var element = %s;
-        var elements = [element, element?.parentElement].filter(Boolean);
-        var hasCapture = null;
-        for (var el of elements) {
-          el.setPointerCapture = (id) => { hasCapture = id; };
-          el.hasPointerCapture = (id) => { return id == hasCapture; };
-          el.releasePointerCapture = (id) => {
-            if (id == hasCapture || id == '*') {
-              hasCapture = null;
-            }
-          };
-        }
-      })",
-      target);
-}
-
-// Dispatches an event to a WebUI toolbar button.
-// `selector`: The CSS selector for the button element.
-// `event_class`: The JS event class (e.g. 'MouseEvent', 'PointerEvent').
-// `type`: The event type string (e.g. 'click', 'contextmenu').
-// `options`: JS object string for event options (e.g. "detail: 1, button: 2").
-std::string DispatchEventScript(const std::string& selector,
-                                const std::string& event_class,
-                                const std::string& type,
-                                const std::string& options = "") {
-  return base::StringPrintf(
-      "(() => { const target = %s; "
-      "if (target) { "
-      "  %s"
-      "  %s"
-      "  target.dispatchEvent(new %s('%s', "
-      "  {bubbles: true, cancelable: true, view: window, clientX: x, clientY: "
-      "y, "
-      "  %s}));"
-      "} })();",
-      GetButtonIconJS(selector).c_str(), kGetCoordinatesJS,
-      AddMockPointerCaptureFunctions("target").c_str(), event_class.c_str(),
-      type.c_str(), options.c_str());
-}
 
 // Dispatches a pointerup or pointerdown event based on `event`name`.
 std::string DispatchPointerEventImpl(
@@ -477,14 +396,6 @@ class TestMenuRunnerHandler : public views::MenuRunnerHandler {
  private:
   base::RepeatingCallback<void(const gfx::Rect&)> callback_;
 };
-
-WebUIToolbarWebView* SetUpAndPinHomeButton(Browser* browser) {
-  WebUIToolbarWebView* webui_toolbar_view = GetWebUIToolbarWebView(browser);
-  views::WebView* web_view = webui_toolbar_view->GetWebViewForTesting();
-  PinButton(browser, web_view, prefs::kShowHomeButton);
-  EXPECT_TRUE(WaitForButtonVisible(web_view->GetWebContents(), kHomeSelector));
-  return webui_toolbar_view;
-}
 
 }  // namespace
 
@@ -880,8 +791,7 @@ IN_PROC_BROWSER_TEST_F(WebUIToolbarWebViewPixelBrowserTest,
                                      &webui_toolbar_view, &web_view,
                                      browser()));
 
-  WebUIHomeControl* home_control =
-      webui_toolbar_view->GetHomeControlForTesting();
+  WebUIHomeControl* home_control = &webui_toolbar_view->home_control_;
 
   gfx::Rect control_rect = element->GetScreenBounds();
   gfx::Rect view_rect = webui_toolbar_view->GetBoundsInScreen();
@@ -1338,15 +1248,7 @@ IN_PROC_BROWSER_TEST_F(WebUIToolbarWebViewPixelBrowserTest,
 
   // 1. Verify initially hidden.
   EXPECT_FALSE(webui_toolbar_view->battery_saver_control_.IsVisible());
-  auto check_visible = [&]() {
-    return content::EvalJs(
-               webui_web_contents,
-               base::StringPrintf("(() => { const btn = %s; return !!btn && "
-                                  "btn.checkVisibility(); })()",
-                                  GetButtonAppJS(bsm_selector).c_str()))
-        .ExtractBool();
-  };
-  EXPECT_FALSE(check_visible());
+  EXPECT_FALSE(IsButtonVisible(webui_web_contents, bsm_selector));
 
   // 2. Enable Battery Saver.
 #if BUILDFLAG(IS_CHROMEOS)
@@ -1422,14 +1324,7 @@ IN_PROC_BROWSER_TEST_F(WebUIToolbarWebViewPixelBrowserTest,
   EXPECT_TRUE(base::test::RunUntil([&]() {
     return !webui_toolbar_view->battery_saver_control_.IsVisible();
   }));
-  EXPECT_TRUE(base::test::RunUntil([&]() {
-    return content::EvalJs(
-               webui_web_contents,
-               base::StringPrintf("(() => { const btn = %s; return !btn || "
-                                  "!btn.checkVisibility(); })()",
-                                  GetButtonAppJS(bsm_selector).c_str()))
-        .ExtractBool();
-  }));
+  EXPECT_TRUE(WaitForButtonHidden(webui_web_contents, bsm_selector));
 }
 
 class WebUIToolbarWebViewStabilityTest : public InProcessBrowserTest {
@@ -3023,7 +2918,6 @@ IN_PROC_BROWSER_TEST_F(WebUIAvatarButtonBrowserTest, AvatarButtonIPHPromo) {
 
 struct ButtonVisibilityToggleTestParam {
   const char* test_name;
-  const char* button_acc_name_key;
   const char* button_pref;
   const char* button_selector;
 };
@@ -3032,15 +2926,8 @@ class WebUIToolbarWebViewButtonVisibilityTest
     : public WebUIToolbarWebViewBrowserTest,
       public testing::WithParamInterface<ButtonVisibilityToggleTestParam> {};
 
-// TODO(crbug.com/540745897): Re-enable this test on Mac.
-#if BUILDFLAG(IS_MAC)
-#define MAYBE_TogglesVisibility DISABLED_TogglesVisibility
-#else
-#define MAYBE_TogglesVisibility TogglesVisibility
-#endif
 IN_PROC_BROWSER_TEST_P(WebUIToolbarWebViewButtonVisibilityTest,
-                       MAYBE_TogglesVisibility) {
-  content::ScopedAccessibilityModeOverride mode_override(ui::kAXModeComplete);
+                       TogglesVisibility) {
   const auto& param = GetParam();
 
   WebUIToolbarWebView* webui_toolbar_view = GetWebUIToolbarWebView(browser());
@@ -3048,49 +2935,19 @@ IN_PROC_BROWSER_TEST_P(WebUIToolbarWebViewButtonVisibilityTest,
   views::WebView* web_view = webui_toolbar_view->GetWebViewForTesting();
   ASSERT_TRUE(web_view);
 
-  // Get button name from WebUI.
-  std::string button_name =
-      content::EvalJs(
-          web_view->GetWebContents(),
-          base::StringPrintf(
-              "import('//resources/js/load_time_data.js').then(m => "
-              "m.loadTimeData.getString('%s'))",
-              param.button_acc_name_key))
-          .ExtractString();
-
-  content::FindAccessibilityNodeCriteria find_criteria;
-  find_criteria.name = button_name;
-  find_criteria.role = ax::mojom::Role::kButton;
-
-  // Wait for a known always-present node to ensure the accessibility tree is
-  // populated.
-  content::WaitForAccessibilityTreeToContainNodeWithName(
-      web_view->GetWebContents(), "Reload");
-
-  // Verify the button is initially not found.
-  EXPECT_FALSE(content::FindAccessibilityNode(web_view->GetWebContents(),
-                                              find_criteria));
+  // Verify the button is initially not visible.
+  EXPECT_FALSE(
+      IsButtonVisible(web_view->GetWebContents(), param.button_selector));
 
   // Pin the button and wait for it to become visible.
   PinButton(browser(), web_view, param.button_pref);
   EXPECT_TRUE(
       WaitForButtonVisible(web_view->GetWebContents(), param.button_selector));
 
-  // Wait for it to appear in the accessibility tree.
-  content::WaitForAccessibilityTreeToContainNodeWithName(
-      web_view->GetWebContents(), button_name);
-
-  // Verify it now exists.
-  EXPECT_TRUE(content::FindAccessibilityNode(web_view->GetWebContents(),
-                                             find_criteria));
-
-  // Disable the button via pref and wait for the tree to update.
+  // Disable the button via pref and wait for it to become hidden.
   browser()->GetProfile()->GetPrefs()->SetBoolean(param.button_pref, false);
-  content::WaitForAccessibilityTreeToChange(web_view->GetWebContents());
-
-  // Verify it is gone.
-  EXPECT_FALSE(content::FindAccessibilityNode(web_view->GetWebContents(),
-                                              find_criteria));
+  EXPECT_TRUE(
+      WaitForButtonHidden(web_view->GetWebContents(), param.button_selector));
 }
 
 INSTANTIATE_TEST_SUITE_P(
@@ -3099,12 +2956,10 @@ INSTANTIATE_TEST_SUITE_P(
     testing::Values(
         ButtonVisibilityToggleTestParam{
             .test_name = "SplitTabsButton",
-            .button_acc_name_key = "splitTabsButtonAccNamePinned",
             .button_pref = prefs::kPinSplitTabButton,
             .button_selector = kSplitTabsSelector},
         ButtonVisibilityToggleTestParam{
             .test_name = "HomeButton",
-            .button_acc_name_key = "homeButtonAccName",
             .button_pref = prefs::kShowHomeButton,
             .button_selector = kHomeSelector}),
     [](const testing::TestParamInfo<ButtonVisibilityToggleTestParam>& info) {
@@ -4740,93 +4595,8 @@ IN_PROC_BROWSER_TEST_F(WebUIReadOnlyOmniboxDragDropBrowserTest,
 }
 
 // Tests for the home button. Also serve as the general PressHandler tests.
-class WebUIToolbarWebViewHomeButtonBrowserTest : public InProcessBrowserTest {
- public:
-  WebUIToolbarWebViewHomeButtonBrowserTest() {
-    feature_list_.InitWithFeatures(
-        {features::kInitialWebUI, features::kWebUIHomeButton,
-         features::kSkipIPCChannelPausingForNonGuests,
-         features::kWebUIInProcessResourceLoadingV2},
-        {});
-  }
-
-  void SetUpOnMainThread() override {
-    InProcessBrowserTest::SetUpOnMainThread();
-    ThemeServiceFactory::GetForProfile(browser()->GetProfile())
-        ->SetBrowserColorScheme(ThemeService::BrowserColorScheme::kLight);
-  }
-
- protected:
-  void WaitForUndoBubble(WebUIToolbarWebView* webui_toolbar_view) {
-    ASSERT_TRUE(base::test::RunUntil([&]() {
-      return views::ElementTrackerViews::GetInstance()->GetFirstMatchingView(
-                 HomePageUndoBubbleCoordinator::kHomePageUndoBubbleMainViewId,
-                 views::ElementTrackerViews::GetContextForView(
-                     webui_toolbar_view)) != nullptr;
-    }));
-  }
-
-  GURL GetHomeURL() {
-    GURL home_url(
-        browser()->GetProfile()->GetPrefs()->GetString(prefs::kHomePage));
-    if (home_url.is_empty()) {
-      return chrome::ChromeUINewTabURLAsGURL();
-    }
-    return home_url;
-  }
-
-  void SimulateDropOnHomeButton(content::WebContents* web_contents,
-                                const std::string& url) {
-    EXPECT_TRUE(content::ExecJs(web_contents,
-                                base::StringPrintf(R"(
-      const homeButton = document.querySelector('toolbar-app').shadowRoot
-                             .querySelector('#home').shadowRoot
-                             .querySelector('cr-icon-button');
-      const dataTransfer = new DataTransfer();
-      dataTransfer.setData('text/uri-list', '%s');
-      dataTransfer.setData('text/plain', '%s');
-      const dropEvent = new DragEvent('drop', {
-        bubbles: true,
-        cancelable: true,
-        dataTransfer: dataTransfer
-      });
-      homeButton.dispatchEvent(dropEvent);
-    )",
-                                                   url.c_str(), url.c_str())));
-  }
-
-  WebUIToolbarWebView* PerformDragAndDrop(const std::string& new_home_url) {
-    WebUIToolbarWebView* webui_toolbar_view = SetUpAndPinHomeButton(browser());
-    views::WebView* web_view = webui_toolbar_view->GetWebViewForTesting();
-
-    SimulateDropOnHomeButton(web_view->GetWebContents(), new_home_url);
-
-    // Wait for the bubble widget to be created.
-    WaitForUndoBubble(webui_toolbar_view);
-
-    // Verify the new home page was correctly set.
-    auto* prefs = browser()->GetProfile()->GetPrefs();
-    EXPECT_EQ(new_home_url, prefs->GetString(prefs::kHomePage));
-    EXPECT_FALSE(prefs->GetBoolean(prefs::kHomePageIsNewTabPage));
-
-    return webui_toolbar_view;
-  }
-
-  void PerformUndo(WebUIToolbarWebView* webui_toolbar_view) {
-    // Click undo.
-    auto* bubble =
-        views::ElementTrackerViews::GetInstance()->GetFirstMatchingView(
-            HomePageUndoBubbleCoordinator::kHomePageUndoBubbleMainViewId,
-            views::ElementTrackerViews::GetContextForView(webui_toolbar_view));
-    ASSERT_TRUE(bubble);
-    auto* styled_label =
-        static_cast<views::StyledLabel*>(bubble->children().front());
-    styled_label->ClickFirstLinkForTesting();
-  }
-
- private:
-  base::test::ScopedFeatureList feature_list_;
-};
+class WebUIToolbarWebViewHomeButtonBrowserTest
+    : public WebUIHomeControlTestBase {};
 
 // Home icon is different for touch only with old icon set.
 class WebUIToolbarWebViewHomeButtonOldIconsBrowserTest
@@ -4884,8 +4654,7 @@ IN_PROC_BROWSER_TEST_F(WebUIToolbarWebViewHomeButtonBrowserTest,
                               DispatchEventScript(kHomeSelector, "MouseEvent",
                                                   "contextmenu", "button: 2")));
 
-  WebUIHomeControl* home_control =
-      webui_toolbar_view->GetHomeControlForTesting();
+  WebUIHomeControl* home_control = &webui_toolbar_view->home_control_;
 
   EXPECT_TRUE(base::test::RunUntil([&]() {
     return home_control->menu_runner_ &&
@@ -4896,28 +4665,6 @@ IN_PROC_BROWSER_TEST_F(WebUIToolbarWebViewHomeButtonBrowserTest,
   home_control->menu_runner_->Cancel();
 }
 
-// TODO(crbug.com/539569490): Deflake and re-enable.
-IN_PROC_BROWSER_TEST_F(WebUIToolbarWebViewHomeButtonBrowserTest,
-                       DISABLED_LongPressHomeButton) {
-  WebUIToolbarWebView* webui_toolbar_view = SetUpAndPinHomeButton(browser());
-  views::WebView* web_view = webui_toolbar_view->GetWebViewForTesting();
-
-  EXPECT_TRUE(content::ExecJs(web_view->GetWebContents(),
-                              DispatchEventScript(kHomeSelector, "PointerEvent",
-                                                  "pointerdown", "button: 0")));
-
-  WebUIHomeControl* home_control =
-      webui_toolbar_view->GetHomeControlForTesting();
-
-  // Wait for the long press timer to trigger and show the menu.
-  EXPECT_TRUE(base::test::RunUntil([&]() {
-    return home_control->menu_runner_ &&
-           home_control->menu_runner_->IsRunning();
-  }));
-
-  // Clean up
-  home_control->menu_runner_->Cancel();
-}
 
 IN_PROC_BROWSER_TEST_F(WebUIToolbarWebViewHomeButtonBrowserTest,
                        CtrlClickHomeButton) {

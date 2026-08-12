@@ -22,6 +22,99 @@ class ApiTests extends ApiTestFixtureBase {
         panelOpenData.invocationSource, InvocationSource.TOP_CHROME_BUTTON);
   }
 
+  async testIsBrowserOpen() {
+    assertDefined(this.host.isBrowserOpen);
+    const isBrowserOpen = observeSequence(this.host.isBrowserOpen());
+    assertTrue(await isBrowserOpen.next());
+    // Close the browser.
+    await this.advanceToNextStep();
+    assertTrue(!await isBrowserOpen.next());
+  }
+
+  async testNavigateToDifferentClientPage() {
+    // This test function is run twice.
+    const runCount: number = this.testParams;
+
+    const url = new URL(window.location.href);
+    // First time:
+    if (runCount === 0) {
+      url.searchParams.set('foobar', '1');
+      (async () => {
+        await sleep(100);
+        location.href = url.toString();
+      })();
+      return;
+    }
+
+    // Second time:
+    assertEquals(runCount, 1);
+    assertEquals(url.searchParams.get('foobar'), '1');
+  }
+
+  async testGetModelQualityClientIdFeatureDisabled() {
+    assertDefined(this.host.getHostCapabilities);
+    const capabilities: Set<HostCapability> =
+        await this.host.getHostCapabilities();
+    assertFalse(capabilities.has(HostCapability.GET_MODEL_QUALITY_CLIENT_ID));
+
+    assertUndefined(this.host.getModelQualityClientId);
+  }
+
+  async testGetFocusedTabStateV2BrowserClosed() {
+    assertDefined(this.host.getFocusedTabStateV2);
+    const sequence =
+        observeSequence<FocusedTabData>(this.host.getFocusedTabStateV2());
+    // Ignore the initial focus.
+    await sequence.next();
+    await this.advanceToNextStep();
+    const focus = await sequence.next();
+    assertFalse(!!focus.hasFocus);
+    assertDefined(focus.hasNoFocus);
+  }
+
+  async testGetTabById() {
+    assertDefined(this.host.getTabById);
+
+    // Observe an invalid tab id.
+    {
+      const seq = observeSequence(this.host.getTabById('notA_TabId'));
+      await seq.completed;
+      assertTrue(seq.isEmpty());
+    }
+
+    // Observe a valid tab id that is not found.
+    {
+      const seq = observeSequence(this.host.getTabById('31415926'));
+      await seq.completed;
+      assertTrue(seq.isEmpty());
+    }
+
+    // Observe a valid tab id.
+    {
+      const tabId = this.testParams as string;
+      const obs = this.host.getTabById(tabId);
+      assertUndefined(obs.getCurrentValue());
+      const sequence = observeSequence(obs);
+      const tabData = await sequence.next();
+      assertEquals(tabId, tabData.tabId);
+      assertTrue(
+          tabData.url.endsWith('test.html'), `unexpected url: ${tabData.url}`);
+
+      // Navigate the tab in C++.
+      await this.advanceToNextStep();
+      await sequence.waitFor(tabData => tabData.url.endsWith('test.html?q=hi'));
+
+      // Close the tab in C++.
+      await this.advanceToNextStep();
+      await sequence.waitForComplete();
+
+      // A new subscription should complete without receiving anything.
+      const newSeq = observeSequence(this.host.getTabById(tabId));
+      await newSeq.waitForComplete();
+      assertTrue(newSeq.isEmpty());
+    }
+  }
+
   async testGetUserProfileInfo() {
     assertDefined(this.host.getUserProfileInfo);
     assertDefined(this.host.getPlatform);

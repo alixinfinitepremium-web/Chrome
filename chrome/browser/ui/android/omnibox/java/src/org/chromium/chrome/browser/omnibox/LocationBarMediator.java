@@ -122,7 +122,7 @@ import org.chromium.components.browser_ui.widget.animation.CancelAwareAnimatorLi
 import org.chromium.components.browser_ui.widget.gesture.BackPressHandler;
 import org.chromium.components.embedder_support.util.UrlConstants;
 import org.chromium.components.embedder_support.util.UrlUtilities;
-import org.chromium.components.metrics.OmniboxEventProtos.OmniboxEventProto.PageClassification;
+import org.chromium.components.metrics.OmniboxEventProtosIntDef.PageClassification;
 import org.chromium.components.omnibox.AutocompleteInput;
 import org.chromium.components.omnibox.AutocompleteInput.AutocompleteState;
 import org.chromium.components.omnibox.AutocompleteInput.DisplayState;
@@ -448,6 +448,7 @@ class LocationBarMediator
                         mProfileSupplier,
                         (hint) -> mUrlCoordinator.setUrlBarHintText(hint));
 
+        @PageClassification
         int pageClass = mLocationBarDataProvider.getPageClassification(/* prefetch= */ false);
         if (ToolbarVariationUtils.isToolbarUiRefactorEnabled(mContext)
                 && OmniboxViewUtil.isRegularTabContext(pageClass)) {
@@ -642,8 +643,6 @@ class LocationBarMediator
         }
         mDeferredFocusCurrentTab = false;
     }
-
-
 
     /*package */ void onUrlFocusChange(UrlBarFocusChangeInfo info) {
         boolean hasFocus = info.hasFocus;
@@ -1689,11 +1688,11 @@ class LocationBarMediator
     private boolean isPageClassIneligibleForPopover() {
         if (mLocationBarDataProvider == null) return false;
 
-        int pageClass = mLocationBarDataProvider.getPageClassification(false);
-        return pageClass == PageClassification.ANDROID_SHORTCUTS_WIDGET_VALUE
-                || pageClass == PageClassification.ANDROID_SEARCH_WIDGET_VALUE
+        @PageClassification int pageClass = mLocationBarDataProvider.getPageClassification(false);
+        return pageClass == PageClassification.ANDROID_SHORTCUTS_WIDGET
+                || pageClass == PageClassification.ANDROID_SEARCH_WIDGET
                 || PageClassificationUtils.isHubOrTabSearch(pageClass)
-                || pageClass == PageClassification.JUMP_START_VALUE;
+                || pageClass == PageClassification.JUMP_START;
     }
 
     /**
@@ -2482,11 +2481,13 @@ class LocationBarMediator
                 || !mEmbedderUiOverrides.isVoiceEntrypointAllowed()) {
             return false;
         }
-        boolean isToolbarMicEnabled = mIsToolbarMicEnabledSupplier.getAsBoolean();
+        boolean isAimRequest =
+                mCurrentInput != null && ToolModeUtils.isAimRequest(mCurrentInput.getRequestType());
+        boolean disableForToolbarMic = !isAimRequest && mIsToolbarMicEnabledSupplier.getAsBoolean();
         if (mIsTablet && mShouldShowButtonsWhenUnfocused) {
-            return !isToolbarMicEnabled && (mUrlHasFocus || mIsUrlFocusChangeInProgress);
+            return !disableForToolbarMic && (mUrlHasFocus || mIsUrlFocusChangeInProgress);
         } else {
-            boolean canShowMicButton = !mIsTablet || !isToolbarMicEnabled;
+            boolean canShowMicButton = !mIsTablet || !disableForToolbarMic;
             return canShowMicButton
                     && (mUrlHasFocus
                             || mIsUrlFocusChangeInProgress
@@ -2883,6 +2884,8 @@ class LocationBarMediator
             input.setFocusReason(OmniboxFocusReason.LOCATION_BAR_STATE_RESTORATION);
             mUrlFocusedWithoutAnimations = true;
             beginInput(input);
+        } else {
+            focusCurrentTab();
         }
 
         // Set zoom indicator tooltip
@@ -3245,6 +3248,8 @@ class LocationBarMediator
         // subsequent tap will hide the suggestions dropdown shown for the typed text, while keeping
         // the scrim on the web contents, which is not desirable.
         if (mCurrentInput == null
+                || mCurrentInput.getFocusReason()
+                        != OmniboxFocusReason.DEFAULT_WITH_HARDWARE_KEYBOARD
                 || mCurrentInput.getAutocompleteState() != AutocompleteState.STANDBY) {
             return;
         }

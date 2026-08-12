@@ -16101,6 +16101,9 @@
             "experiments": [
                 {
                     "name": "Enabled",
+                    "params": {
+                        "allow-signed-out": "false"
+                    },
                     "enable_features": [
                         "ContextualTasksSidePanel",
                         "LensSidePanelUnification"
@@ -20745,26 +20748,6 @@
                     "name": "Enabled",
                     "enable_features": [
                         "ZeroStateSuggestionsUsePrivateAi"
-                    ]
-                }
-            ]
-        }
-    ],
-    "PrivateAggregationApiErrorReporting": [
-        {
-            "platforms": [
-                "android",
-                "chromeos",
-                "fuchsia",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "PrivateAggregationApiErrorReporting"
                     ]
                 }
             ]
@@ -27725,21 +27708,6 @@
                         "FencedFrames",
                         "FencedFramesAPIChanges",
                         "SharedStorageAPI"
-                    ]
-                }
-            ]
-        }
-    ],
-    "WebViewSingleSharedContextState": [
-        {
-            "platforms": [
-                "android_webview"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "WebViewSingleSharedContextState"
                     ]
                 }
             ]

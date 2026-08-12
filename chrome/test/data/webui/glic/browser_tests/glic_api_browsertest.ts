@@ -56,20 +56,6 @@ class ApiTests extends ApiTestFixtureBase {
     await this.advanceToNextStep();
   }
 
-  async testIsBrowserOpen() {
-    assertDefined(this.host.isBrowserOpen);
-    // This test closes the browser, so we need to detach the side panel to
-    // avoid closing glic.
-    await this.detachIfInMultiInstance();
-    const isBrowserOpen = observeSequence(this.host.isBrowserOpen());
-    assertTrue(await isBrowserOpen.next());
-    // Close the browser.
-    await this.advanceToNextStep();
-    assertTrue(!await isBrowserOpen.next());
-  }
-
-
-
   async testIsOnboardingCompleted() {
     assertDefined(this.host.isOnboardingCompleted);
     const completedSequence =
@@ -233,17 +219,6 @@ class ApiTests extends ApiTestFixtureBase {
       assertTrue(
           sequence.isEmpty(), '#3: Spurious updates after a new tab opened');
     }
-  }
-
-  async testGetFocusedTabStateV2BrowserClosed() {
-    assertDefined(this.host.getFocusedTabStateV2);
-    const sequence =
-        observeSequence<FocusedTabData>(this.host.getFocusedTabStateV2());
-    // Ignore the initial focus.
-    await sequence.next();
-    const focus = await sequence.next();
-    assertFalse(!!focus.hasFocus);
-    assertDefined(focus.hasNoFocus);
   }
 
   async testGetContextFromFocusedTabWithoutPermission() {
@@ -546,27 +521,6 @@ class ApiTests extends ApiTestFixtureBase {
   async testGetOsMicrophonePermissionStatusNotAllowed() {
     assertDefined(this.host.getOsMicrophonePermissionStatus);
     assertFalse(await this.host.getOsMicrophonePermissionStatus());
-  }
-
-  // Test navigating successfully after client connection.
-  async testNavigateToDifferentClientPage() {
-    // This test function is run twice.
-    const runCount: number = this.testParams;
-
-    const url = new URL(window.location.href);
-    // First time:
-    if (runCount === 0) {
-      url.searchParams.set('foobar', '1');
-      (async () => {
-        await sleep(100);
-        location.href = url.toString();
-      })();
-      return;
-    }
-
-    // Second time:
-    assertEquals(runCount, 1);
-    assertEquals(url.searchParams.get('foobar'), '1');
   }
 
   // Test navigating unsuccessfully after client connection.
@@ -1146,14 +1100,6 @@ class ApiTests extends ApiTestFixtureBase {
     assertDefined(clientId);
   }
 
-  async testGetModelQualityClientIdFeatureDisabled() {
-    assertDefined(this.host.getHostCapabilities);
-    const capabilities: Set<HostCapability> =
-        await this.host.getHostCapabilities();
-    assertFalse(capabilities.has(HostCapability.GET_MODEL_QUALITY_CLIENT_ID));
-
-    assertUndefined(this.host.getModelQualityClientId);
-  }
 
   async testAdditionalContext() {
     const additionalContextPromise = new Promise<void>(resolve => {
@@ -1311,7 +1257,6 @@ class ApiTests extends ApiTestFixtureBase {
     assertEquals('Prompt Suggestion', invokeOptions.prompts?.[0]);
   }
 
-
   async testGetTabByIdWithDiscard() {
     assertDefined(this.host.getTabById);
 
@@ -1339,49 +1284,6 @@ class ApiTests extends ApiTestFixtureBase {
     const newSeq = observeSequence(this.host.getTabById(tabId));
     await newSeq.waitForComplete();
     assertTrue(newSeq.isEmpty());
-  }
-
-  async testGetTabById() {
-    assertDefined(this.host.getTabById);
-
-    // Observe an invalid tab id.
-    {
-      const seq = observeSequence(this.host.getTabById('notA_TabId'));
-      await seq.completed;
-      assertTrue(seq.isEmpty());
-    }
-
-    // Observe a valid tab id that is not found.
-    {
-      const seq = observeSequence(this.host.getTabById('31415926'));
-      await seq.completed;
-      assertTrue(seq.isEmpty());
-    }
-
-    // Observe a valid tab id.
-    {
-      const tabId = this.testParams as string;
-      const obs = this.host.getTabById(tabId);
-      assertUndefined(obs.getCurrentValue());
-      const sequence = observeSequence(obs);
-      const tabData = await sequence.next();
-      assertEquals(tabId, tabData.tabId);
-      assertTrue(
-          tabData.url.endsWith('test.html'), `unexpected url: ${tabData.url}`);
-
-      // Navigate the tab in C++.
-      await this.advanceToNextStep();
-      await sequence.waitFor(tabData => tabData.url.endsWith('test.html?q=hi'));
-
-      // Close the tab in C++.
-      await this.advanceToNextStep();
-      await sequence.waitForComplete();
-
-      // A new subscription should complete without receiving anything.
-      const newSeq = observeSequence(this.host.getTabById(tabId));
-      await newSeq.waitForComplete();
-      assertTrue(newSeq.isEmpty());
-    }
   }
 
   async testGetZoomLevel() {
