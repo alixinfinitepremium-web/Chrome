@@ -1496,7 +1496,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_mac_amd64',
-          'version': 'version:2@1672008',
+          'version': 'version:2@1673010',
         },
       ],
   },
@@ -1507,7 +1507,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_mac_arm64',
-          'version': 'version:2@1672007',
+          'version': 'version:2@1673003',
         },
       ],
   },
@@ -1518,7 +1518,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_arm64',
-          'version': 'version:2@1672073',
+          'version': 'version:2@1673029',
         },
       ],
   },
@@ -1732,7 +1732,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    'ec8a7651bcf366e89dc9883cd86ffa0055d4edc6',
+    '2049780180d6926a06a86a75b1937b213a6ffea8',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -3212,7 +3212,7 @@ deps = {
     Var('chromium_git') + '/external/khronosgroup/webgl.git' + '@' + '064aaf18207438d4f6dd10c98b02b25778257b7f',
 
   'src/third_party/webgpu-cts/src':
-    Var('chromium_git') + '/external/github.com/gpuweb/cts.git' + '@' + '535149e23e538e4f8fe3d6266e32c68b7017ccc0',
+    Var('chromium_git') + '/external/github.com/gpuweb/cts.git' + '@' + '2959e1c3959aa55cd3f02726995ae68159d0e064',
 
   'src/third_party/webpagereplay':
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
