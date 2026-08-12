@@ -409,7 +409,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling fuzztest
   # and whatever else without interference from each other.
-  'fuzztest_revision': '328987610f17b387247805efe317ca30b11bff97',
+  'fuzztest_revision': '9f793cd30f94d7e7fd968cdc214c4be64b8e6605',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling domato
   # and whatever else without interference from each other.
@@ -1732,7 +1732,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    'ef5d71d7e7b5e2876daaf2ee9df7b4c46377cf34',
+    'eda2c512dee0013f56d343278126d8dd28c7b2a6',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -2194,7 +2194,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '4031f0dd14d3e7705dad9802f86b1ef35d96a948',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '830d9d6073114c891bc71500a14a0475976ec99f',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '17a56409b86d0da5e01ca38f6498e13b2db16bc3',
@@ -2307,6 +2307,18 @@ deps = {
         },
       ],
       'condition': 'host_os == "linux" and non_git_source',
+      'dep_type': 'cipd',
+  },
+
+  # Always download Linux x64 package regardless of host OS for RBE workers.
+  'src/third_party/cpython3/linux-amd64': {
+      'packages': [
+        {
+          'package': 'infra/3pp/tools/cpython3/linux-amd64',
+          'version': Var('cpython3_version'),
+        },
+      ],
+      'condition': 'non_git_source',
       'dep_type': 'cipd',
   },
 
@@ -4059,7 +4071,7 @@ deps = {
 
   'src/remoting/internal': {
       'url': Var('chrome_git') + '/chrome/remoting/internal.git' + '@' +
-        '99d7bd429c9cd1943610c5c8e1bd166b9f27d9ec',
+        '0642dbbd16b6a237d3328a781a3f6b72f9d1af34',
       'condition': 'checkout_src_internal',
   },
 
