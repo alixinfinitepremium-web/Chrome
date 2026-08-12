@@ -7149,6 +7149,14 @@ inline constexpr char kBlockRootWindowAccessibleNameChangeEventDescription[] =
     "where frequent or unnecessary name change events could lead to "
     "performance issues or unwanted behavior in assistive applications.";
 
+inline constexpr char kSuppressAppKitFrameAdjustmentsDuringMoveLoopName[] =
+    "Suppress AppKit Frame Adjustments During Move Loop";
+inline constexpr char
+    kSuppressAppKitFrameAdjustmentsDuringMoveLoopDescription[] =
+        "Suppresses AppKit system frame adjustment and move events on macOS "
+        "while a window move loop is active (e.g. during tab dragging across "
+        "display boundaries).";
+
 // Windows and Mac -------------------------------------------------------------
 
 inline constexpr char kLocationProviderManagerName[] =
@@ -7579,12 +7587,6 @@ inline constexpr char kEnableDisplayPerformanceModeName[] =
 inline constexpr char kEnableDisplayPerformanceModeDescription[] =
     "This option enables toggling different display features based on user "
     "setting and power state";
-
-inline constexpr char kDisableDnsProxyName[] =
-    "Disable DNS proxy service for ChromeOS";
-inline constexpr char kDisableDnsProxyDescription[] =
-    "Turns off DNS proxying and SecureDNS for ChromeOS (only). Does not impact "
-    "Chrome browser.";
 
 inline constexpr char kDisconnectWiFiOnEthernetConnectedName[] =
     "Disconnect WiFi on Ethernet";
