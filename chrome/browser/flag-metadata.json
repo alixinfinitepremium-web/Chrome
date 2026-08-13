@@ -3912,6 +3912,11 @@
     "expiry_milestone": -1
   },
   {
+    "name": "enable-isolated-web-app-fast-update-check",
+    "owners": [ "simonha@google.com", "iwa-team@google.com" ],
+    "expiry_milestone": 140
+  },
+  {
     "name": "enable-isolated-web-app-inline-update",
     "owners": [ "simonha@google.com", "iwa-team@google.com" ],
     "expiry_milestone": 170
@@ -4302,6 +4307,14 @@
     "owners": [
       "lukasza@chromium.org",
       "jrosengren@microsoft.com",
+      "//third_party/blink/renderer/platform/image-decoders/skia/OWNERS"
+    ],
+    "expiry_milestone": 160
+  },
+  {
+    "name": "enable-rusty-jpeg",
+    "owners": [
+      "sergiog@microsoft.com",
       "//third_party/blink/renderer/platform/image-decoders/skia/OWNERS"
     ],
     "expiry_milestone": 160

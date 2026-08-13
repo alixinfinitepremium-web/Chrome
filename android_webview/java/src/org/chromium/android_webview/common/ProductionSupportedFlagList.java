@@ -225,6 +225,7 @@ public final class ProductionSupportedFlagList {
         Flag.baseFeature(
                 BlinkFeatures.WEBVIEW_ACCELERATE_SMALL_CANVASES,
                 "Accelerate all canvases in webview."),
+        Flag.baseFeature("RustyJpegFeature", "Enables Rust-based JPEG image decoding."),
         Flag.baseFeature(
                 AwFeatures.WEBVIEW_MIXED_CONTENT_AUTOUPGRADES,
                 "Enables autoupgrades for audio/video/image mixed content when mixed content "
@@ -1463,6 +1464,10 @@ public final class ProductionSupportedFlagList {
                 AwFeatures.WEBVIEW_CROSS_ORIGIN_ALLOWLIST_API,
                 "Enables the Cross Origin Allowlist API, which permits opting out of origin"
                         + " isolation security checks."),
+        Flag.baseFeature(
+                AwFeatures.WEBVIEW_NAVIGATE_DRAIN_PREFETCH,
+                "Enables draining the prefetch queue before loading the URL in the WebView"
+                        + " navigate method"),
         // Add new commandline switches and features above. The final entry should have a
         // trailing comma for cleaner diffs.
     };

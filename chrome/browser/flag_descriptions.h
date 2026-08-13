@@ -2229,6 +2229,12 @@ inline constexpr char kEnableIsolatedWebAppDevModeName[] =
 inline constexpr char kEnableIsolatedWebAppDevModeDescription[] =
     "Enables the installation of unverified Isolated Web Apps";
 
+inline constexpr char kEnableIsolatedWebAppFastUpdateCheckName[] =
+    "Enable Isolated Web App Fast Update Check";
+inline constexpr char kEnableIsolatedWebAppFastUpdateCheckDescription[] =
+    "Enables fast update checks for Isolated Web Apps, reducing the update "
+    "check interval to 1 minute.";
+
 inline constexpr char kEnableIwaKeyDistributionComponentName[] =
     "Enable the Iwa Key Distribution component";
 inline constexpr char kEnableIwaKeyDistributionComponentDescription[] =
@@ -4305,6 +4311,10 @@ inline constexpr char kRustyBmpDescription[] =
 inline constexpr char kRustyIcoName[] = "Rust-based ICO image handling";
 inline constexpr char kRustyIcoDescription[] =
     "When enabled, uses Rust `image` crate to decode ICO images.";
+
+inline constexpr char kRustyJpegName[] = "Rust-based JPEG image handling";
+inline constexpr char kRustyJpegDescription[] =
+    "When enabled, uses Rust crates to decode and encode JPEG images.";
 
 inline constexpr char kQuicName[] = "Experimental QUIC protocol";
 inline constexpr char kQuicDescription[] =
