@@ -372,6 +372,22 @@ BASE_DECLARE_FEATURE(kGeminiContextualSuggestionsCues);
 // Returns true if Gemini contextual suggestions cues framework is enabled.
 bool IsGeminiContextualSuggestionsCuesEnabled();
 
+// Feature parameter for enabling on-device category classifier in Gemini
+// contextual suggestions cues.
+extern const char kGeminiContextualSuggestionsCuesOnDeviceClassifierParam[];
+
+// Returns true if on-device category classifier is enabled for Gemini
+// contextual suggestions cues.
+bool IsGeminiContextualSuggestionsCuesOnDeviceClassifierEnabled();
+
+// Feature parameter for allowing GPU / Neural Engine execution in Gemini
+// contextual suggestions cues.
+extern const char kGeminiContextualSuggestionsCuesAllowGpuExecutionParam[];
+
+// Returns true if GPU / Neural Engine execution is allowed for Gemini
+// contextual suggestions cues.
+bool IsGeminiContextualSuggestionsCuesAllowGpuExecutionEnabled();
+
 #pragma mark - Debugging Features
 
 // Holds the variations of the BWG Promo Consent flow for debugging.
@@ -454,5 +470,16 @@ BASE_DECLARE_FEATURE(kPageContextAutofillCreditCardRedactions);
 // Returns true if `kPageContextAutofillCreditCardRedactions` is
 // enabled.
 bool IsPageContextAutofillCreditCardRedactionsEnabled();
+
+// Controls whether Autofill OTP redactions are applied to clear sensitive
+// field values in the APC proto and screenshot. Matches Blink's
+// `kAnnotatedPageContentAutofillOtpRedactions`.
+// Note: When enabled, this feature enforces redactions on
+// `PageContext` extractions that use rich extraction, overriding any local
+// `PageContextWrapperConfig` setting. It has no effect on light extractions.
+BASE_DECLARE_FEATURE(kPageContextAutofillOtpRedactions);
+
+// Returns true if `kPageContextAutofillOtpRedactions` is enabled.
+bool IsPageContextAutofillOtpRedactionsEnabled();
 
 #endif  // IOS_CHROME_BROWSER_INTELLIGENCE_FEATURES_FEATURES_H_

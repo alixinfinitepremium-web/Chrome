@@ -402,7 +402,6 @@ void AtMemoryManager::OnPopupShown(
     AutofillSuggestionTriggerSource trigger_source,
     base::optional_ref<const AutofillSuggestionDelegate::SuggestionMetadata>
         parent_suggestion_metadata,
-    bool is_context_secure,
     UpdateSuggestionsCallback update_callback,
     ukm::SourceId ukm_source_id) {
   if (!IsAtMemoryTriggerSource(trigger_source)) {
@@ -428,7 +427,6 @@ void AtMemoryManager::OnPopupShown(
             client_->GetMqlsUploadService(), client_->GetUkmRecorder(),
             ukm_source_id, client_->GetLastCommittedPrimaryMainFrameURL(),
             client_->GetPageTitle(), field_id, form_signature, field_signature),
-        .is_context_secure = is_context_secure,
     });
   }
 
@@ -445,26 +443,10 @@ bool AtMemoryManager::OnFilterChanged(const std::u16string& filter) {
   }
   if (filter.empty()) {
     CancelPendingQueries();
-    ClearSuggestions();
+    ShowEmptyQuerySuggestions();
     return true;
   }
-  std::vector<Suggestion> suggestions;
-  if (net::NetworkChangeNotifier::IsOffline()) {
-    suggestions.push_back(CreateNoConnectionSuggestion(filter));
-  } else {
-    suggestions.push_back(CreateSearchAffordanceSuggestion(filter));
-  }
-
-  personal_context::PersonalContextFirstRunService* service =
-      client_->GetPersonalContextFirstRunService();
-  if (!service || !service->ShouldShowPersonalContextAtMemoryNotice()) {
-    suggestions.emplace_back(SuggestionType::kSeparator);
-    suggestions.back().filtration_policy =
-        Suggestion::FiltrationPolicy::kStatic;
-    suggestions.push_back(CreateAiDisclosureSuggestion());
-  }
-
-  SendSuggestions(std::move(suggestions));
+  ShowQueryTypingSuggestions(filter);
   return true;
 }
 
@@ -744,10 +726,6 @@ void AtMemoryManager::MaybeAppendPersonalContextNotice(
   if (!service || !service->ShouldShowPersonalContextAtMemoryNotice()) {
     return;
   }
-  if (std::ranges::contains(suggestions, SuggestionType::kPersonalContextNotice,
-                            &Suggestion::type)) {
-    return;
-  }
   // Before search results are returned (when only the search affordance to
   // start the query is present), place the search affordance first and append
   // the notice card at the end. After actual search results are returned, place
@@ -782,14 +760,13 @@ void AtMemoryManager::ExecuteQuery(const std::u16string& filter) {
   CancelPendingQueries();
 
   if (filter.empty()) {
-    ClearSuggestions();
+    ShowEmptyQuerySuggestions();
     return;
   }
 
   session_state_->is_searching = true;
   fetching_string_index_ = 0;
-  // Notify the UI that search has started.
-  ShowFetchingSuggestion();
+  ShowFetchingStateSuggestions();
   fetching_timer_.Start(
       FROM_HERE, kFetchingMessageInterval,
       base::BindRepeating(&AtMemoryManager::AdvanceFetchingSuggestion,
@@ -828,12 +805,23 @@ Suggestion AtMemoryManager::CreateSearchAffordanceSuggestion(
   return affordance;
 }
 
-Suggestion AtMemoryManager::CreateAiDisclosureSuggestion() {
-  Suggestion suggestion(SuggestionType::kAtMemoryAiDisclosure);
-  suggestion.acceptability =
+// static
+void AtMemoryManager::MaybeAppendAiDisclosure(
+    std::vector<Suggestion>& suggestions) {
+  // Do not append Ai Disclosure, if Personal Context Notice is there.
+  if (std::ranges::contains(suggestions, SuggestionType::kPersonalContextNotice,
+                            &Suggestion::type)) {
+    return;
+  }
+  // Append separator
+  suggestions.emplace_back(SuggestionType::kSeparator);
+  suggestions.back().filtration_policy = Suggestion::FiltrationPolicy::kStatic;
+
+  // Append Ai Disclosure
+  suggestions.emplace_back(SuggestionType::kAtMemoryAiDisclosure);
+  suggestions.back().acceptability =
       Suggestion::Acceptability::kUnselectableAndUnacceptable;
-  suggestion.filtration_policy = Suggestion::FiltrationPolicy::kStatic;
-  return suggestion;
+  suggestions.back().filtration_policy = Suggestion::FiltrationPolicy::kStatic;
 }
 
 Suggestion AtMemoryManager::CreateFetchingSuggestion(size_t index) {
@@ -880,7 +868,6 @@ void AtMemoryManager::CancelPendingQueries() {
 }
 
 void AtMemoryManager::SendSuggestions(std::vector<Suggestion> suggestions) {
-  MaybeAppendPersonalContextNotice(suggestions);
   if (session_state_ && session_state_->update_callback) {
     session_state_->update_callback.Run(std::move(suggestions),
                                         session_state_->trigger_source);
@@ -889,64 +876,49 @@ void AtMemoryManager::SendSuggestions(std::vector<Suggestion> suggestions) {
 
 void AtMemoryManager::AdvanceFetchingSuggestion() {
   fetching_string_index_++;
-  ShowFetchingSuggestion();
+  ShowFetchingStateSuggestions();
 }
 
-void AtMemoryManager::ShowFetchingSuggestion() {
+void AtMemoryManager::ShowFetchingStateSuggestions() {
   std::vector<Suggestion> suggestions;
   suggestions.emplace_back(CreateFetchingSuggestion(fetching_string_index_));
+  MaybeAppendPersonalContextNotice(suggestions);
   SendSuggestions(std::move(suggestions));
 }
 
-void AtMemoryManager::ClearSuggestions() {
-  SendSuggestions({});
+void AtMemoryManager::ShowEmptyQuerySuggestions() {
+  std::vector<Suggestion> suggestions;
+  MaybeAppendPersonalContextNotice(suggestions);
+  SendSuggestions(std::move(suggestions));
 }
 
-void AtMemoryManager::OnSearchResultsReceived(const std::u16string& query,
-                                              MemorySearchResults result) {
-  if (!session_state_ ||
-      !IsAtMemoryTriggerSource(session_state_->trigger_source) ||
-      !session_state_->update_callback || !session_state_->is_searching) {
-    return;
+void AtMemoryManager::ShowQueryTypingSuggestions(const std::u16string& query) {
+  std::vector<Suggestion> suggestions;
+  if (net::NetworkChangeNotifier::IsOffline()) {
+    suggestions.push_back(CreateNoConnectionSuggestion(query));
+  } else {
+    suggestions.push_back(CreateSearchAffordanceSuggestion(query));
   }
+  MaybeAppendPersonalContextNotice(suggestions);
+  MaybeAppendAiDisclosure(suggestions);
+  SendSuggestions(std::move(suggestions));
+}
 
-  bool expecting_more_data =
-      result.status == MemorySearchStatus::kPartialResponseSuccess;
-  if (!expecting_more_data) {
-    CancelPendingQueries();
-  }
+void AtMemoryManager::ShowResultsRetrievedStateSuggestions(
+    const MemorySearchResults& result) {
+  std::vector<Suggestion> suggestions;
+  const std::string_view app_locale = client_->GetAppLocale();
+  suggestions =
+      base::ToVector(result.entries, [&](const MemorySearchResult& entry) {
+        return TransformResultIntoSuggestion(entry, app_locale);
+      });
+  MaybeAppendPersonalContextNotice(suggestions);
+  SendSuggestions(std::move(suggestions));
+}
 
-  if (session_state_->metrics_recorder) {
-    session_state_->metrics_recorder->OnQueryResponseReceived(result);
-  }
-
-  if (!result.entries.empty()) {
-    std::erase_if(result.entries, [this](const MemorySearchResult& entry) {
-      return ShouldEraseMemorySearchResult(entry.type, entry.sources, *client_,
-                                           session_state_->is_context_secure);
-    });
-    for (MemorySearchResult& entry : result.entries) {
-      std::erase_if(entry.metadata_list,
-                    [this, &entry](const EntryMetadata& metadata) {
-                      return ShouldEraseMemorySearchResult(
-                          metadata.type, entry.sources, *client_,
-                          session_state_->is_context_secure);
-                    });
-    }
-
-    if (!result.entries.empty()) {
-      // If there are remaining results after filtering, return them.
-      const std::string app_locale = client_->GetAppLocale();
-      SendSuggestions(
-          base::ToVector(result.entries, [&](const MemorySearchResult& entry) {
-            return TransformResultIntoSuggestion(entry, app_locale);
-          }));
-      return;
-    }
-  }
-
-  // When search returns no entries, show the appropriate special
-  // suggestion based on the status.
+void AtMemoryManager::ShowNoResultsStateSuggestions(
+    const std::u16string& query,
+    const MemorySearchResults& result) {
   std::vector<Suggestion> suggestions;
   switch (result.status) {
     case MemorySearchStatus::kUnsupportedQuery:
@@ -969,7 +941,52 @@ void AtMemoryManager::OnSearchResultsReceived(const std::u16string& query,
       suggestions.push_back(CreateGenericErrorSuggestion());
       break;
   }
+  MaybeAppendPersonalContextNotice(suggestions);
   SendSuggestions(std::move(suggestions));
+}
+
+void AtMemoryManager::OnSearchResultsReceived(const std::u16string& query,
+                                              MemorySearchResults result) {
+  if (!session_state_ ||
+      !IsAtMemoryTriggerSource(session_state_->trigger_source) ||
+      !session_state_->update_callback || !session_state_->is_searching) {
+    return;
+  }
+
+  bool expecting_more_data =
+      result.status == MemorySearchStatus::kPartialResponseSuccess;
+  if (!expecting_more_data) {
+    CancelPendingQueries();
+  }
+
+  if (session_state_->metrics_recorder) {
+    session_state_->metrics_recorder->OnQueryResponseReceived(result);
+  }
+
+  const bool is_context_secure = client_->IsContextSecure();
+  if (!result.entries.empty()) {
+    std::erase_if(result.entries,
+                  [this, is_context_secure](const MemorySearchResult& entry) {
+                    return ShouldEraseMemorySearchResult(
+                        entry.type, entry.sources, *client_, is_context_secure);
+                  });
+    for (MemorySearchResult& entry : result.entries) {
+      std::erase_if(entry.metadata_list, [this, &entry, is_context_secure](
+                                             const EntryMetadata& metadata) {
+        return ShouldEraseMemorySearchResult(metadata.type, entry.sources,
+                                             *client_, is_context_secure);
+      });
+    }
+
+    if (!result.entries.empty()) {
+      ShowResultsRetrievedStateSuggestions(result);
+      return;
+    }
+  }
+
+  // When search returns no entries, show the appropriate special
+  // suggestion based on the status.
+  ShowNoResultsStateSuggestions(query, result);
 }
 
 IsAsync AtMemoryManager::FillIban(

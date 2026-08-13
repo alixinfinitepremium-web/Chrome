@@ -14387,6 +14387,25 @@
             ]
         }
     ],
+    "IOSGeminiContextualSuggestionsCues": [
+        {
+            "platforms": [
+                "ios"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled_ANE_execution",
+                    "params": {
+                        "allow_gpu_execution": "true",
+                        "enable_on_device_classifier": "true"
+                    },
+                    "enable_features": [
+                        "GeminiContextualSuggestionsCues"
+                    ]
+                }
+            ]
+        }
+    ],
     "IOSHelios": [
         {
             "platforms": [
@@ -18326,6 +18345,21 @@
             ]
         }
     ],
+    "OpenSystemAccountSettingsDirectly": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "OpenSystemAccountSettingsDirectly"
+                    ]
+                }
+            ]
+        }
+    ],
     "OpenTranslationSettings": [
         {
             "platforms": [
@@ -18737,7 +18771,8 @@
                 {
                     "name": "Enabled",
                     "enable_features": [
-                        "AiModePageActionOptimization"
+                        "AiModePageActionOptimization",
+                        "LensOverlayHomeworkPageActionFocusOptimization"
                     ]
                 }
             ]
@@ -21085,25 +21120,6 @@
                     "name": "Enabled",
                     "enable_features": [
                         "PruneOldTransferCacheEntries"
-                    ]
-                }
-            ]
-        }
-    ],
-    "PsDualWritePrefsToNoticeStorage": [
-        {
-            "platforms": [
-                "linux",
-                "windows",
-                "android",
-                "mac",
-                "chromeos"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "PsDualWritePrefsToNoticeStorage"
                     ]
                 }
             ]

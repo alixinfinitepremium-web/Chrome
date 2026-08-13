@@ -109,7 +109,8 @@ AtMemoryHandler::~AtMemoryHandler() = default;
 
 std::optional<AtMemoryHandler::CaretInfo> AtMemoryHandler::GetCaretInfo(
     const WebElement& element) const {
-  if (!element || !element.Focused() || !element.ContainsFrameSelection() ||
+  // TODO(crbug.com/545987198): Consider re-adding `element.Focused()`.
+  if (!element || !element.ContainsFrameSelection() ||
       element.DynamicTo<WebFormElement>() ||
       !form_util::IsAccessible(element)) {
     return std::nullopt;
@@ -357,7 +358,7 @@ void AtMemoryHandler::DidReceiveLeftMouseDownOrGestureTapInNode(
   trigger_state_ = {};
 }
 
-void AtMemoryHandler::ReplaceSelectionForAtMemory(WebElement& element,
+void AtMemoryHandler::ReplaceSelectionForAtMemory(WebElement element,
                                                   const std::u16string& value) {
   const std::optional<AskForValuesToFillInfo> info =
       FindAskForValuesToFill(element, /*pop=*/true);
