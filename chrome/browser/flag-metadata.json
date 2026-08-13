@@ -2227,6 +2227,14 @@
     "expiry_milestone": 155
   },
   {
+    "name": "critical-action-history",
+    "owners": [
+      "kalinino@google.com",
+      "//components/critical_actions/OWNERS"
+    ],
+    "expiry_milestone": 160
+  },
+  {
     "name": "cros-components",
     "owners": [ "wenbojie@chromium.org"],
     "expiry_milestone": 137
@@ -2603,11 +2611,6 @@
     "name": "devtools-instrumentation-breakpoints",
     "owners": [ "kimanh@chromium.org" ],
     "expiry_milestone": 160
-  },
-  {
-    "name": "devtools-live-edit",
-    "owners": [ "bmeurer@chromium.org", "szuend@chromium.org" ],
-    "expiry_milestone": 154
   },
   {
     "name": "devtools-plus-button",
@@ -9277,11 +9280,7 @@
       "//chrome/browser/ai/OWNERS", "builtin-ai-team@google.com", "jaeone@google.com" ],
     "expiry_milestone": 159
   },
-  {
-    "name": "supervised-user-emit-log-record-separately",
-    "owners": [ "tju@google.com", "chrome-kids-eng@google.com" ],
-    "expiry_milestone": 155
-  },
+
   {
     "name": "support-f11-and-f12-shortcuts",
     "owners": [

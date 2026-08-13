@@ -391,6 +391,13 @@ inline constexpr char kConnectionAllowlistsDescription[] =
     "Enables a prototype implementation of `Connection-Allowlist` header "
     "parsing and enforcement. See https://github.com/mikewest/anti-exfil/";
 
+inline constexpr char kCriticalActionHistoryName[] =
+    "Critical Actions in History";
+inline constexpr char kCriticalActionHistoryDescription[] =
+    "Surfaces critical actions, such as password fills and file downloads, "
+    "performed during user-initiated AI agent browsing sessions alongside "
+    "page visits on the Chrome History page for transparency and auditing.";
+
 inline constexpr char kCrosSwitcherName[] = "ChromeOS Switcher feature.";
 inline constexpr char kCrosSwitcherDescription[] =
     "Enable/Disable ChromeOS Switcher feature.";
@@ -2039,12 +2046,6 @@ inline constexpr char kDevToolsInstrumentationBreakpointsName[] =
     "Instrumentation breakpoints";
 inline constexpr char kDevToolsInstrumentationBreakpointsDescription[] =
     "Enables instrumentation breakpoints in DevTools.";
-
-inline constexpr char kDevToolsLiveEditName[] =
-    "Enable JavaScript live editing in DevTools";
-inline constexpr char kDevToolsLiveEditDescription[] =
-    "Re-enable the deprecated feature in DevTools' Sources panel to apply code "
-    "edits to the target page live.";
 
 inline constexpr char kDevToolsPlusButtonName[] =
     "Enable the Plus Button in DevTools";
@@ -8791,11 +8792,6 @@ inline constexpr char kEnableManagementPromotionBannerName[] =
 inline constexpr char kEnableManagementPromotionBannerDescription[] =
     "Enables showing the management promotion banner on chrome://management "
     "page.";
-inline constexpr char kSupervisedUserEmitLogRecordSeparatelyName[] =
-    "Emit device log record separately";
-inline constexpr char kSupervisedUserEmitLogRecordSeparatelyDescription[] =
-    "Emits one log record per each supervision type, instead of a single "
-    "combined value. No user-visible effect on other platforms than Android.";
 
 inline constexpr char kVariationsSeedCorpusName[] = "Variations seed corpus";
 inline constexpr char kVariationsSeedCorpusDescription[] =

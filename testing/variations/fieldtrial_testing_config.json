@@ -2982,6 +2982,7 @@
     "AutofillDelayApcForPredictions": [
         {
             "platforms": [
+                "android",
                 "chromeos",
                 "linux",
                 "mac",
@@ -11783,6 +11784,23 @@
                     "name": "Enabled",
                     "enable_features": [
                         "FirstRunDesktopRevamp"
+                    ]
+                }
+            ]
+        }
+    ],
+    "FirstRunFeatureShowcaseGeminiStep": [
+        {
+            "platforms": [
+                "windows",
+                "linux",
+                "mac"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "FirstRunFeatureShowcaseGeminiStep"
                     ]
                 }
             ]
@@ -27342,21 +27360,6 @@
                     },
                     "enable_features": [
                         "AndroidThreadPriority"
-                    ]
-                }
-            ]
-        }
-    ],
-    "WebViewBackgroundClassPreloading": [
-        {
-            "platforms": [
-                "android_webview"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "WebViewBackgroundClassPreloading"
                     ]
                 }
             ]
