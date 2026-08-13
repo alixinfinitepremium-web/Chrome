@@ -1379,6 +1379,51 @@ IN_PROC_BROWSER_TEST_P(NewGlicApiTest, testPinTabs) {
   ExecuteJsTest();
 }
 
+IN_PROC_BROWSER_TEST_P(NewGlicApiTest, testPinTabsFailsWhenDoesNotExist) {
+  ASSERT_OK(OpenGlicForActiveTab());
+  ExecuteJsTest();
+}
+
+IN_PROC_BROWSER_TEST_P(NewGlicApiTest,
+                       testPinTabsStatePersistWhenClientRestarts) {
+  ASSERT_OK_AND_ASSIGN(auto* instance, OpenGlicForActiveTab());
+  GlicClientConnectionObserver connection_observer(instance);
+  // Open second tab in background.
+  tabs::TabInterface* second_tab = CreateBackgroundTab(
+      embedded_test_server()->GetURL("/browser_tests/test.html"));
+  const int tab_id = second_tab->GetHandle().raw_value();
+
+  ExecuteJsTest(
+      {.params = base::Value(base::DictValue()
+                                 .Set("tabId", base::NumberToString(tab_id))
+                                 .Set("isFirstRun", true))});
+
+  instance->host().Reload();
+  ASSERT_OK(connection_observer.WaitForDisconnected());
+
+  ExecuteJsTest(
+      {.params = base::Value(base::DictValue().Set("isFirstRun", false))});
+}
+
+#if !BUILDFLAG(IS_ANDROID)
+IN_PROC_BROWSER_TEST_P(NewGlicApiTest, testPinTabsFailsWhenIncognitoWindow) {
+  ASSERT_OK(OpenGlicForActiveTabAndDetach());
+
+  // Open a new incognito window.
+  Browser* incognito = PlatformBrowserTest::CreateIncognitoBrowser();
+  tabs::TabInterface* incognito_tab =
+      TabListInterface::From(incognito)->OpenTab(
+          embedded_test_server()->GetURL("/browser_tests/test.html"), 1,
+          /*foreground=*/true);
+  ASSERT_TRUE(incognito_tab);
+  auto incognito_tab_id = incognito_tab->GetHandle().raw_value();
+
+  ExecuteJsTest(
+      {.params = base::Value(base::DictValue().Set(
+           "incognitoTabId", base::NumberToString(incognito_tab_id)))});
+}
+#endif  // !BUILDFLAG(IS_ANDROID)
+
 #if !BUILDFLAG(IS_ANDROID)
 class NewGlicApiTestWithFileUploadPolicyEnabled : public NewGlicApiTest {
  public:

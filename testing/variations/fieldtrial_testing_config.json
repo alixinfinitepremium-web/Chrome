@@ -12083,21 +12083,6 @@
             ]
         }
     ],
-    "FuturePoliciesOnDesktopAndroid": [
-        {
-            "platforms": [
-                "android"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "FuturePoliciesOnDesktopAndroid"
-                    ]
-                }
-            ]
-        }
-    ],
     "GCMUseDedicatedNetworkThread": [
         {
             "platforms": [
@@ -20633,24 +20618,6 @@
                     "name": "Enabled",
                     "enable_features": [
                         "PreserveDiscardableImageMapQuality"
-                    ]
-                }
-            ]
-        }
-    ],
-    "PreventPasswordUiOnFederatedLogin": [
-        {
-            "platforms": [
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "PreventAPC",
-                    "enable_features": [
-                        "PreventAPCOnFederatedLogin"
                     ]
                 }
             ]

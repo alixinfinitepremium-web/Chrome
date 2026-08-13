@@ -1513,11 +1513,6 @@ IN_PROC_BROWSER_TEST_P(GlicApiTest, testCallingApiWhileHiddenRecordsMetrics) {
 
 
 
-IN_PROC_BROWSER_TEST_P(GlicApiTestWithOneTab,
-                       testPinTabsFailsWhenDoesnotExist) {
-  // Pinning a non existing tab id should fail.
-  ExecuteJsTest();
-}
 
 IN_PROC_BROWSER_TEST_P(GlicApiTest,
                        testPinTabsStatePersistWhenClosePanelAndReopen) {
@@ -1532,42 +1527,6 @@ IN_PROC_BROWSER_TEST_P(GlicApiTest,
   RunTestSequence(OpenGlicFloatingWindow(GlicInstrumentMode::kHostAndContents,
                                          /*conversation_id=*/std::nullopt));
   ContinueJsTest();
-}
-
-IN_PROC_BROWSER_TEST_P(GlicApiTest, testPinTabsStatePersistWhenClientRestarts) {
-  NavigateTabAndOpenGlicFloating();
-  const int tab_id =
-      GetTabId(browser()->tab_strip_model()->GetActiveWebContents());
-  RunTestSequence(AddInstrumentedTab(kSecondTab, page_url()));
-
-  ExecuteJsTest(
-      {.params = base::Value(base::DictValue()
-                                 .Set("tabId", base::NumberToString(tab_id))
-                                 .Set("isFirstRun", true))});
-
-  WebUIStateListener listener(GetHost());
-  ReloadGlicWebui();
-  listener.WaitForWebUiState(mojom::WebUiState::kBeginLoad);
-
-  ExecuteJsTest(
-      {.params = base::Value(base::DictValue().Set("isFirstRun", false))});
-}
-
-IN_PROC_BROWSER_TEST_P(GlicApiTest, testPinTabsFailsWhenIncognitoWindow) {
-  NavigateTabAndOpenGlicFloating();
-
-  // Open a new incognito window.
-  auto* incognito = CreateIncognitoBrowser();
-  const GURL page_url = InProcessBrowserTest::embedded_test_server()->GetURL(
-      "/glic/browser_tests/test.html");
-  RunTestSequence(
-      AddInstrumentedTab(kSecondTab, page_url, std::nullopt, incognito));
-  const int incognito_tab_id =
-      GetTabId(incognito->tab_strip_model()->GetActiveWebContents());
-
-  ExecuteJsTest(
-      {.params = base::Value(base::DictValue().Set(
-           "incognitoTabId", base::NumberToString(incognito_tab_id)))});
 }
 
 IN_PROC_BROWSER_TEST_P(GlicApiTest, testUnpinTabsFailsWhenNotPinned) {

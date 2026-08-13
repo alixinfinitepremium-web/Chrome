@@ -582,24 +582,6 @@ class ApiTests extends ApiTestFixtureBase {
         (tabs) => tabs.some(t => t.tabId === tabId));
     return tabId;
   }
-  async testPinTabsFailsWhenDoesnotExist() {
-    assertDefined(this.host.pinTabs);
-    assertDefined(this.host.getPinnedTabs);
-    assertDefined(this.host.unpinTabs);
-
-    const tabId = this.getFocusedTabId();
-    const nonExistTabId = 'not-exist';
-    // Pinning a non existing tab id should fail.
-    assertFalse(await this.host.pinTabs([tabId, nonExistTabId]));
-
-    const pinnedTabsUpdates = observeSequence(this.host.getPinnedTabs());
-    await pinnedTabsUpdates.waitFor(
-        (tabs) => tabs.length === 1 && tabs.some(t => t.tabId === tabId));
-
-    // Un-pinning a non existing tab id should fail.
-    assertFalse(await this.host.unpinTabs([tabId, nonExistTabId]));
-    await pinnedTabsUpdates.waitFor((tabs) => tabs.length === 0);
-  }
 
   async testPinTabsStatePersistWhenClosePanelAndReopen() {
     assertDefined(this.host.closePanel);
@@ -619,34 +601,6 @@ class ApiTests extends ApiTestFixtureBase {
     await this.advanceToNextStep();
 
     assertEquals(this.host.getPinnedTabs().getCurrentValue()?.length, 2);
-  }
-
-  async testPinTabsStatePersistWhenClientRestarts() {
-    const isFirstRun: boolean = this.testParams.isFirstRun;
-
-    if (isFirstRun) {
-      assertDefined(this.host.pinTabs);
-      assertDefined(this.host.getPinnedTabs);
-
-      const tabId = this.testParams.tabId;
-      const activeTabId = this.getActiveTabId();
-
-      assertTrue(await this.host.pinTabs([activeTabId, tabId]));
-      const pinnedTabsUpdates = observeSequence(this.host.getPinnedTabs());
-      await pinnedTabsUpdates.waitFor((tabs) => tabs.length === 2);
-    } else {
-      assertEquals(this.host.getPinnedTabs?.().getCurrentValue()?.length, 2);
-    }
-  }
-
-  async testPinTabsFailsWhenIncognitoWindow() {
-    assertDefined(this.host.pinTabs);
-    assertDefined(this.host.getPinnedTabs);
-
-    assertFalse(await this.host.pinTabs([this.testParams.incognitoTabId]));
-
-    const pinnedTabsUpdates = observeSequence(this.host.getPinnedTabs());
-    await pinnedTabsUpdates.waitFor((tabs) => tabs.length === 0);
   }
 
   async testUnpinTabsFailsWhenNotPinned() {
