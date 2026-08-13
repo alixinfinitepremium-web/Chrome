@@ -333,7 +333,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': 'e717f7941e76e33a816db59eb77c08e9d3512591',
+  'src_internal_revision': '51064bd17b62b693980e5e6a50eeccdd05b0170e',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -345,7 +345,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '6579aef92ac97a1ec9c458f5cc6319480e4b2e55',
+  'angle_revision': '0fd366d3e5ee4bdfd810fb90bf1c7c6130f9308d',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -409,7 +409,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling fuzztest
   # and whatever else without interference from each other.
-  'fuzztest_revision': '9f793cd30f94d7e7fd968cdc214c4be64b8e6605',
+  'fuzztest_revision': '74652de42f41ee534c45d6d38b6f564fb81815e5',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling domato
   # and whatever else without interference from each other.
@@ -549,7 +549,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling clusterfuzz-data
   # and whatever else without interference from each other.
-  'clusterfuzz_data_revision':'4521c2c3aff26184d8c0f29eea4ee9003328584c',
+  'clusterfuzz_data_revision':'6391f1debcef52b2a42a6df86137009d76f04a7d',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling agents-internal
   # and whatever else without interference from each other.
