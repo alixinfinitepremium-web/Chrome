@@ -38,6 +38,11 @@
     "expiry_milestone": 110
   },
   {
+    "name": "account-picker-dialog",
+    "owners": [ "adelm@google.com" ],
+    "expiry_milestone": 170
+  },
+  {
     "name": "actor-observe-page-content-default",
     "owners": [
       "mfoltz@chromium.org",
@@ -10137,6 +10142,11 @@
       "top-chrome-desktop-ui@google.com",
       "//chrome/browser/default_browser/OWNERS"
     ],
+    "expiry_milestone": 160
+  },
+  {
+    "name": "voice-search-mic-permissions",
+    "owners": [ "scottyoder@google.com", "bling-pandamonium@google.com" ],
     "expiry_milestone": 160
   },
   {

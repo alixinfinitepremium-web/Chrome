@@ -5,45 +5,82 @@
 #import "ios/chrome/browser/autofill/atmemory/coordinator/at_memory_search_mediator.h"
 
 #import <optional>
+#import <string_view>
 
+#import "base/check.h"
 #import "base/functional/bind.h"
 #import "base/memory/raw_ptr.h"
 #import "base/memory/weak_ptr.h"
+#import "base/metrics/histogram_functions.h"
 #import "base/strings/sys_string_conversions.h"
 #import "components/autofill/core/browser/integrators/at_memory/at_memory_query_service.h"
 #import "components/autofill/core/browser/integrators/at_memory/memory_data_type.h"
 #import "components/autofill/core/browser/integrators/at_memory/memory_search_result.h"
+#import "components/autofill/core/browser/metrics/autofill_metrics.h"
+#import "components/personal_context/first_run/personal_context_first_run_service.h"
+#import "ios/chrome/browser/autofill/atmemory/public/at_memory_commands.h"
 #import "ios/chrome/browser/autofill/atmemory/ui/at_memory_search_consumer.h"
 #import "ios/web/public/web_state.h"
+
+namespace {
+
+// The UMA histogram to log AtMemory notice interactions.
+constexpr std::string_view kNoticeInteractionsHistogram =
+    "PersonalContext.AtMemory.NoticeInteractions";
+
+}  // namespace
 
 @implementation AtMemorySearchMediator {
   // Service for executing AtMemory queries.
   raw_ptr<autofill::AtMemoryQueryService> _atMemoryQueryService;
   // The WebState for the active tab.
   base::WeakPtr<web::WebState> _webState;
+  // Service for managing the first-run notice state.
+  raw_ptr<personal_context::PersonalContextFirstRunService> _firstRunService;
 
   // Results from the AtMemory query service.
   std::optional<autofill::MemorySearchResults> _searchResults;
 
   // Tells if the notice is visible.
   BOOL _noticeIsVisible;
+  // Tracks if the notice impression metric has been logged.
+  BOOL _noticeShownMetricLogged;
+  // Tracks if the user interacted with the notice (either OK or Settings).
+  BOOL _noticeInteractionLogged;
 }
 
-- (instancetype)initWithAtMemoryQueryService:
-                    (autofill::AtMemoryQueryService*)atMemoryQueryService
-                                    webState:(web::WebState*)webState {
+- (instancetype)
+    initWithAtMemoryQueryService:
+        (autofill::AtMemoryQueryService*)atMemoryQueryService
+                        webState:(web::WebState*)webState
+                 firstRunService:
+                     (personal_context::PersonalContextFirstRunService*)
+                         firstRunService {
   self = [super init];
   if (self) {
     _atMemoryQueryService = atMemoryQueryService;
     _webState = webState ? webState->GetWeakPtr() : nullptr;
+    _firstRunService = firstRunService;
+
+    _noticeIsVisible =
+        _firstRunService &&
+        _firstRunService->ShouldShowPersonalContextAtMemoryNotice();
   }
   return self;
 }
 
 - (void)disconnect {
+  if (_noticeIsVisible && !_noticeInteractionLogged) {
+    _noticeInteractionLogged = YES;
+    base::UmaHistogramEnumeration(
+        kNoticeInteractionsHistogram,
+        autofill::AutofillMetrics::PopupNoticeInteractions::kDismissed);
+  }
   _atMemoryQueryService = nullptr;
   _webState = nullptr;
+  _firstRunService = nullptr;
   _searchResults.reset();
+  _atMemoryHandler = nil;
 }
 
 #pragma mark - Consumer
@@ -56,7 +93,14 @@
 
   [_consumer setNoticeVisible:_noticeIsVisible];
   [_consumer
-      updateTableViewBackgroundStyle:[self initialTableViewBackgroundStyle]];
+      updateTableViewBackgroundStyle:[self currentTableViewBackgroundStyle]];
+
+  if (_noticeIsVisible && !_noticeShownMetricLogged) {
+    _noticeShownMetricLogged = YES;
+    base::UmaHistogramEnumeration(
+        kNoticeInteractionsHistogram,
+        autofill::AutofillMetrics::PopupNoticeInteractions::kShown);
+  }
 }
 
 #pragma mark - AtMemorySearchMutator
@@ -79,7 +123,24 @@
 }
 
 - (void)acknowledgePrivacyNotice {
-  // TODO(crbug.com/541207744): Handle notice acknowledgment.
+  CHECK(_firstRunService);
+  _firstRunService->MarkPersonalContextInAtMemoryNoticeAsAcknowledged();
+  _noticeIsVisible = NO;
+  _noticeInteractionLogged = YES;
+  [self.consumer setNoticeVisible:NO];
+  [self.consumer
+      updateTableViewBackgroundStyle:[self currentTableViewBackgroundStyle]];
+  base::UmaHistogramEnumeration(
+      kNoticeInteractionsHistogram,
+      autofill::AutofillMetrics::PopupNoticeInteractions::kAcknowledged);
+}
+
+- (void)didTapSettingsLink {
+  _noticeInteractionLogged = YES;
+  base::UmaHistogramEnumeration(
+      kNoticeInteractionsHistogram,
+      autofill::AutofillMetrics::PopupNoticeInteractions::kLinkButtonClicked);
+  [self.atMemoryHandler openAutofillSettings];
 }
 
 #pragma mark - Private
@@ -114,13 +175,13 @@
   // to the consumer. If the array is nil, there was an error.
 }
 
-- (AtMemoryBackgroundStyle)initialTableViewBackgroundStyle {
+- (AtMemoryBackgroundStyle)currentTableViewBackgroundStyle {
   // TODO(crbug.com/540877897): Verify if there are any recent fills. If yes,
   // show kDefaultStyle.
-  if (_noticeIsVisible) {
-    return AtMemoryBackgroundStyle::kDefaultStyle;
+  if (!_noticeIsVisible && !_searchResults.has_value()) {
+    return AtMemoryBackgroundStyle::kEmptyStyle;
   }
-  return AtMemoryBackgroundStyle::kEmptyStyle;
+  return AtMemoryBackgroundStyle::kDefaultStyle;
 }
 
 @end

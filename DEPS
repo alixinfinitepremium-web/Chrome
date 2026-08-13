@@ -333,7 +333,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '62fe1f036932149641b629ed2b8d9d15dd6c3f81',
+  'src_internal_revision': 'f38063ef3a6fbfac6262c8e95433f839bc59251d',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -473,7 +473,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling crabbyavif
   # and whatever else without interference from each other.
-  'crabbyavif_revision': '0348e002c2592ac951ed8f7d24bdf4b80442be79',
+  'crabbyavif_revision': '5e507e3f0c157b23a8ab1e373e06066ea9ed4e88',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Speedometer main
   # and whatever else without interference from each other.
@@ -1732,7 +1732,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '2049780180d6926a06a86a75b1937b213a6ffea8',
+    'b0f6ff07201a7a5e5e1dbafc4343046c5ace5ad3',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -3975,7 +3975,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        'dcf501e26dd8d333ee8d32def5d2a06683bf096b',
+        'f98ca8f0f348cecd107e502a2ec78ecca4410501',
       'condition': 'checkout_src_internal',
   },
 
