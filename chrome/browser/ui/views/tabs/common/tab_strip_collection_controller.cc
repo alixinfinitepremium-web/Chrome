@@ -366,8 +366,7 @@ void TabStripCollectionController::ToggleTabGroupCollapsedState(
         group->IsCustomized());
   }
 
-  if (should_toggle_group &&
-      base::FeatureList::IsEnabled(features::kTabGroupsCollapseFreezing)) {
+  if (should_toggle_group) {
     gfx::Range tabs_in_group = group->ListTabs();
     for (uint32_t i = tabs_in_group.start(); i < tabs_in_group.end(); ++i) {
       views::View* const view =
@@ -375,9 +374,9 @@ void TabStripCollectionController::ToggleTabGroupCollapsedState(
       CHECK(views::IsViewClass<TabView>(view));
       TabView* const tab_view = views::AsViewClass<TabView>(view);
       if (is_currently_collapsed) {
-        tab_view->ReleaseFreezingVote();
+        tab_view->ReleaseFreezingVote(FreezingVoteReason::kCollapsedGroup);
       } else {
-        tab_view->CreateFreezingVote();
+        tab_view->CreateFreezingVote(FreezingVoteReason::kCollapsedGroup);
       }
     }
   }

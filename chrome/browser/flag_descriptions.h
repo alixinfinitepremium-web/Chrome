@@ -1609,6 +1609,11 @@ inline constexpr char kContextualCueingName[] = "Contextual cueing";
 inline constexpr char kContextualCueingDescription[] =
     "Enables the contextual cueing system to support showing actions.";
 
+inline constexpr char kGlicZeroStateSuggestionsName[] =
+    "Glic zero state suggestions";
+inline constexpr char kGlicZeroStateSuggestionsDescription[] =
+    "Enables the Glic zero state suggestions.";
+
 inline constexpr char kContextualCueingV2Name[] = "Contextual cueing V2";
 inline constexpr char kContextualCueingV2Description[] =
     "Enables the contextual cueing system version 2.";
@@ -1619,6 +1624,10 @@ inline constexpr char kGlassFrameDescription[] =
 
 inline constexpr char kGlicActorName[] = "Glic actor";
 inline constexpr char kGlicActorDescription[] = "Enables the Glic actor.";
+inline constexpr char kGlicHandoffButtonHideWhenModalUIShownName[] =
+    "Glic handoff button hide when modal UI shown";
+inline constexpr char kGlicHandoffButtonHideWhenModalUIShownDescription[] =
+    "Hides the Glic handoff button when a tab-modal UI is active.";
 inline constexpr char kGlicExperimentalTriggeringName[] =
     "Glic experimental triggering";
 inline constexpr char kGlicExperimentalTriggeringDescription[] =
@@ -6172,13 +6181,6 @@ inline constexpr char kHistoryPaneAndroidName[] = "History Pane Android";
 inline constexpr char kHistoryPaneAndroidDescription[] =
     "Enables showing a new pane in the hub that displays History.";
 
-inline constexpr char kHomeModulePrefRefactorName[] =
-    "Home module pref refactor";
-inline constexpr char kHomeModulePrefRefactorDescription[] =
-    "Use UserPrefs for home module customization settings (for the "
-    "NTP).";
-
-
 inline constexpr char kLongScreenshotsLenientMemoryCheckName[] =
     "Long Screenshots Lenient Memory Check";
 inline constexpr char kLongScreenshotsLenientMemoryCheckDescription[] =
@@ -6584,16 +6586,11 @@ inline constexpr char kTextClassifierTimeoutDescription[] =
     "Enable timeout for TextClassifier calls. The timeout is configurable with "
     "a default of 200ms.";
 
-inline constexpr char kXplatSyncedSetupName[] = "Cross-platform synced setup";
-inline constexpr char kXplatSyncedSetupDescription[] =
-    "Enables the Cross-platform synced setup feature.";
-
 inline constexpr char kXplatSyncedSetupThemesName[] =
     "Cross-platform synced setup themes";
 inline constexpr char kXplatSyncedSetupThemesDescription[] =
     "Allows users to import themes from another device as part of the one-time "
     "synced setup experience.";
-
 inline constexpr char kXsurfaceMetricsReportingName[] =
     "Xsurface Metrics Reporting";
 inline constexpr char kXsurfaceMetricsReportingDescription[] =

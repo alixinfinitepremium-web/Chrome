@@ -28,7 +28,6 @@ class OpenXrGraphicsBinding;
 struct OpenXrCreateInfo {
   network::RendererProcessId render_process_id;
   int render_frame_id = IPC::mojom::kRoutingIdNone;
-  bool needs_separate_activity = true;
 };
 
 // This class exists to help provide an interface for working with OpenXR
@@ -53,6 +52,10 @@ class DEVICE_VR_EXPORT OpenXrPlatformHelper {
   // of an XrInstance if they are not available. This could be things like
   // e.g. specific controllers.
   static std::vector<const char*> GetOptionalExtensions();
+
+  using InitializeOpenXrMockTrampolineFn = bool (*)();
+  static void RegisterInitializeOpenXrMockTrampolineFn(
+      InitializeOpenXrMockTrampolineFn fn);
 
   virtual ~OpenXrPlatformHelper();
 

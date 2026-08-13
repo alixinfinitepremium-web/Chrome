@@ -16,12 +16,9 @@
 #include "mojo/public/cpp/bindings/sync_call_restrictions.h"
 #include "ui/gfx/geometry/decomposed_transform.h"
 
-#if BUILDFLAG(ENABLE_OPENXR)
-#include "device/vr/openxr/test/openxr_mock_helper.h"
-#endif
-
 #if BUILDFLAG(IS_ANDROID)
-#include "components/webxr/android/openxr_device_provider.h"
+#include "components/webxr/android/openxr_platform_helper_android.h"
+#include "device/vr/openxr/test/openxr_test_helper.h"
 #endif
 
 MockXRDeviceHookBase::MockXRDeviceHookBase() {
@@ -44,15 +41,8 @@ MockXRDeviceHookBase::MockXRDeviceHookBase() {
   service_test_hook_->SetTestHook(
       receiver_.BindNewPipeAndPassRemote(thread_->task_runner()));
 #elif BUILDFLAG(IS_ANDROID)
-  mojo::ScopedAllowSyncCallForTesting scoped_allow_sync;
-  // On Windows we have to rely on the ServiceTestHook to initialize the
-  // trampoline, since the device code is embedded in the utility process.
-  // However, on Android since the device code is embedded in our process/the
-  // browser process we need to ensure that we initialize the trampoline.
-#if BUILDFLAG(ENABLE_OPENXR)
-  InitializeOpenXrMockTrampoline();
-#endif
-  webxr::OpenXrDeviceProvider::SetTestHook(
+  webxr::OpenXrPlatformHelperAndroid::SetXrHostActivityDisabledForTesting(true);
+  OpenXrTestHelper::Get().SetTestHook(
       receiver_.BindNewPipeAndPassRemote(thread_->task_runner()));
 #endif
 }
@@ -73,6 +63,9 @@ void MockXRDeviceHookBase::StopHooking() {
   // that will potentially deadlock with reentrant or crossing synchronous mojo
   // calls.
   service_test_hook_.reset();
+#if BUILDFLAG(IS_ANDROID)
+  OpenXrTestHelper::Get().SetTestHook(mojo::NullRemote());
+#endif
   // Unretained is safe here because we are going to block until this message
   // has been processed.
   thread_->task_runner()->PostTask(
@@ -120,6 +113,13 @@ void MockXRDeviceHookBase::OnFrameSubmitted(
   DCHECK_CALLED_ON_VALID_SEQUENCE(mock_device_sequence_);
   frame_count_++;
   ProcessSubmittedFrameUnlocked(views, layers);
+
+  // This method is called synchronously by the mock device in the child
+  // process. Run the Mojo reply callback before running `quit_closure`, so that
+  // the child process rendering thread is released from its synchronous IPC
+  // call before the test runner thread unblocks and starts subsequent actions.
+  std::move(callback).Run();
+
   if (frame_count_ >= target_frame_count_) {
     base::RepeatingClosure quit_closure;
     {
@@ -130,8 +130,6 @@ void MockXRDeviceHookBase::OnFrameSubmitted(
       quit_closure.Run();
     }
   }
-
-  std::move(callback).Run();
 }
 
 void MockXRDeviceHookBase::SetDeviceConfig(const device::DeviceConfig& config) {
@@ -275,10 +273,4 @@ void MockXRDeviceHookBase::WaitGetVisibilityMask(
   }
 
   std::move(callback).Run(std::move(mask));
-}
-
-void MockXRDeviceHookBase::TerminateDeviceServiceProcessForTesting() {
-  DCHECK_CALLED_ON_VALID_SEQUENCE(main_sequence_);
-  mojo::ScopedAllowSyncCallForTesting scoped_allow_sync;
-  service_test_hook_->TerminateDeviceServiceProcessForTesting();
 }

@@ -347,21 +347,8 @@ IN_PROC_BROWSER_TEST_F(TabGroupEditorBubbleViewDialogBrowserTest,
   EXPECT_FALSE(move_group_button->GetVisible());
 }
 
-class TabGroupEditorBubbleViewDialogBrowserTestWithFreezingEnabled
-    : public TabGroupEditorBubbleViewDialogBrowserTest {
- public:
-  TabGroupEditorBubbleViewDialogBrowserTestWithFreezingEnabled() {
-    scoped_feature_list_.InitWithFeatures(
-        {features::kTabGroupsCollapseFreezing}, {});
-  }
-
- private:
-  base::test::ScopedFeatureList scoped_feature_list_;
-};
-
-IN_PROC_BROWSER_TEST_F(
-    TabGroupEditorBubbleViewDialogBrowserTestWithFreezingEnabled,
-    CollapsingGroupFreezesAllTabs) {
+IN_PROC_BROWSER_TEST_F(TabGroupEditorBubbleViewDialogBrowserTest,
+                       CollapsingGroupFreezesAllTabs) {
   BrowserView* browser_view = BrowserView::GetBrowserViewForBrowser(browser());
   InProcessBrowserTest::AddBlankTabAndShow(browser());
   InProcessBrowserTest::AddBlankTabAndShow(browser());
@@ -372,24 +359,24 @@ IN_PROC_BROWSER_TEST_F(
 
   ASSERT_FALSE(browser_view->horizontal_tab_strip_for_testing()
                    ->tab_at(0)
-                   ->HasFreezingVote());
+                   ->HasFreezingVote(FreezingVoteReason::kCollapsedGroup));
   ASSERT_FALSE(browser_view->horizontal_tab_strip_for_testing()
                    ->tab_at(1)
-                   ->HasFreezingVote());
+                   ->HasFreezingVote(FreezingVoteReason::kCollapsedGroup));
   ASSERT_FALSE(browser_view->horizontal_tab_strip_for_testing()
                    ->tab_at(2)
-                   ->HasFreezingVote());
+                   ->HasFreezingVote(FreezingVoteReason::kCollapsedGroup));
   browser_view->horizontal_tab_strip_for_testing()
       ->ToggleTabGroupCollapsedState(group.value());
   EXPECT_TRUE(browser_view->horizontal_tab_strip_for_testing()
                   ->tab_at(0)
-                  ->HasFreezingVote());
+                  ->HasFreezingVote(FreezingVoteReason::kCollapsedGroup));
   EXPECT_TRUE(browser_view->horizontal_tab_strip_for_testing()
                   ->tab_at(1)
-                  ->HasFreezingVote());
+                  ->HasFreezingVote(FreezingVoteReason::kCollapsedGroup));
   EXPECT_FALSE(browser_view->horizontal_tab_strip_for_testing()
                    ->tab_at(2)
-                   ->HasFreezingVote());
+                   ->HasFreezingVote(FreezingVoteReason::kCollapsedGroup));
 }
 
 class TabGroupEditorBubbleViewDialogBrowserTestWithSavedGroup

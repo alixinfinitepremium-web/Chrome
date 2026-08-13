@@ -9,6 +9,7 @@
 #include "base/check.h"
 #include "base/functional/bind.h"
 #include "base/logging.h"
+#include "base/notreached.h"
 #include "base/task/single_thread_task_runner.h"
 #include "mojo/public/cpp/bindings/pending_receiver.h"
 #include "mojo/public/cpp/bindings/pending_remote.h"
@@ -19,9 +20,11 @@ namespace remoting {
 IpcPeerSession::IpcPeerSession(
     mojo::PendingRemote<mojom::PeerSession> peer_session_remote,
     GetDesktopSessionCallback get_desktop_session_callback,
-    std::unique_ptr<protocol::IceConfigFetcher> ice_config_fetcher)
+    std::unique_ptr<protocol::IceConfigFetcher> ice_config_fetcher,
+    PeerSessionFactory::RequestPairingOnceCallback request_pairing_cb)
     : get_desktop_session_callback_(std::move(get_desktop_session_callback)),
-      ice_config_fetcher_(std::move(ice_config_fetcher)) {
+      ice_config_fetcher_(std::move(ice_config_fetcher)),
+      request_pairing_cb_(std::move(request_pairing_cb)) {
   CHECK(get_desktop_session_callback_);
   CHECK(ice_config_fetcher_);
   if (peer_session_remote) {
@@ -85,16 +88,32 @@ void IpcPeerSession::Start(
   mojo::PendingRemote<mojom::IceConfigFetcher> ice_config_fetcher_remote =
       ice_config_fetcher_receiver_.BindNewPipeAndPassRemote();
 
-  remote_->Start(std::string(client_jid), std::move(event_handler_remote),
-                 std::move(control_remote), std::move(events_receiver),
-                 std::move(ice_config_fetcher_remote),
-                 desktop_environment_options, session_policies,
-                 session_options);
+  DCHECK(!pairing_requester_receiver_.is_bound());
+  mojo::PendingRemote<mojom::PairingRequester> pairing_requester_remote =
+      pairing_requester_receiver_.BindNewPipeAndPassRemote();
+
+  remote_->Start(
+      std::string(client_jid), std::move(event_handler_remote),
+      std::move(control_remote), std::move(events_receiver),
+      std::move(ice_config_fetcher_remote), std::move(pairing_requester_remote),
+      desktop_environment_options, session_policies, session_options);
 }
 
 void IpcPeerSession::GetIceConfig(GetIceConfigCallback callback) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
   ice_config_fetcher_->GetIceConfig(std::move(callback));
+}
+
+void IpcPeerSession::RequestPairing(const std::string& client_name,
+                                    RequestPairingCallback callback) {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  if (!request_pairing_cb_) {
+    std::move(callback).Run(std::nullopt);
+    return;
+  }
+  // Pairing can only be requested once per connection, so we reset the callback
+  // to prevent possible DOS attacks.
+  std::move(request_pairing_cb_).Run(client_name, std::move(callback));
 }
 
 void IpcPeerSession::DisconnectSession(protocol::ErrorCode error,
@@ -112,13 +131,10 @@ void IpcPeerSession::DisconnectSession(protocol::ErrorCode error,
 
 void IpcPeerSession::OnSessionServicesClientConnected(
     mojo::PendingReceiver<mojom::ChromotingSessionServices> receiver) {
-  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
-  if (!remote_.is_bound()) {
-    LOG(WARNING) << "OnSessionServicesClientConnected called when PeerSession "
-                 << "remote is not bound.";
-    return;
-  }
-  remote_->OnSessionServicesClientConnected(std::move(receiver));
+  // In multi-process host, ChromotingSessionServices clients are connected
+  // directly to the PC process via DesktopSessionEvents by the Daemon process,
+  // so this method is never invoked on IpcPeerSession.
+  NOTREACHED();
 }
 
 protocol::Transport* IpcPeerSession::transport() {
@@ -191,6 +207,7 @@ void IpcPeerSession::DoNotifySessionClosed(
   event_handler_receiver_.reset();
   transport_event_handler_receiver_.reset();
   ice_config_fetcher_receiver_.reset();
+  pairing_requester_receiver_.reset();
   send_transport_info_callback_.Reset();
   if (event_handler_) {
     auto* handler = event_handler_.get();
@@ -244,6 +261,12 @@ void IpcPeerSessionFactory::OnDesktopSessionManagerDisconnected() {
   desktop_session_manager_.reset();
 }
 
+void IpcPeerSessionFactory::set_request_pairing_callback(
+    const RequestPairingCallback& request_pairing_cb) {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  request_pairing_cb_ = request_pairing_cb;
+}
+
 void IpcPeerSessionFactory::SetRequiredUsername(std::string_view username) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
   required_username_ = std::string(username);
@@ -289,7 +312,7 @@ std::unique_ptr<PeerSession> IpcPeerSessionFactory::Create() {
       std::move(pending_remote),
       base::BindRepeating(&IpcPeerSessionFactory::GetDesktopSession,
                           weak_factory_.GetWeakPtr()),
-      std::move(ice_config_fetcher));
+      std::move(ice_config_fetcher), request_pairing_cb_);
 }
 
 }  // namespace remoting

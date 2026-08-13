@@ -7819,6 +7819,7 @@ from previous Chrome versions.
   <int value="-2117048251" label="MediaApp:enabled"/>
   <int value="-2116440101" label="EnablePenetratingImageSelection:enabled"/>
   <int value="-2116226068" label="ReaderModeDistillInApp:disabled"/>
+  <int value="-2116136566" label="glic-daisy-chain-new-tabs:disabled"/>
   <int value="-2116063296" label="DesktopPartialTranslate:disabled"/>
   <int value="-2115449643"
       label="ExtensionTelemetryEnterpriseShortReportingInterval:disabled"/>
@@ -11680,6 +11681,7 @@ from previous Chrome versions.
   <int value="-923318290"
       label="autofill-ai-wallet-pass-branding-2026:disabled"/>
   <int value="-921755651" label="EnableManagedByParentUi:disabled"/>
+  <int value="-921465196" label="glic-zero-state-suggestions:disabled"/>
   <int value="-920794084" label="PickerFlip:disabled"/>
   <int value="-920483976" label="AccessCodeCastRememberDevices:disabled"/>
   <int value="-920284092"
@@ -12468,6 +12470,8 @@ from previous Chrome versions.
   <int value="-677858590" label="cast-streaming-force-enable-hardware-av1"/>
   <int value="-676736440" label="ResetShortcutCustomizations:disabled"/>
   <int value="-676252846" label="ShimlessRMASkuDescription:disabled"/>
+  <int value="-675133817"
+      label="GlicHandoffButtonHideWhenModalUIShown:enabled"/>
   <int value="-674988697" label="BrowsingHistoryActorIntegrationM3:enabled"/>
   <int value="-674804217" label="SoleIntegration:enabled"/>
   <int value="-674265959" label="AppPreloadService:enabled"/>
@@ -13140,6 +13144,8 @@ from previous Chrome versions.
       label="OminboxUIExperimentUseGenericSearchEngineIcon:enabled"/>
   <int value="-462404204" label="CryptAuthV2DeviceSync:disabled"/>
   <int value="-462205750" label="enable-service-worker-sync"/>
+  <int value="-461925111"
+      label="GlicHandoffButtonHideWhenModalUIShown:disabled"/>
   <int value="-461713516" label="ArcEnableVirtioBlkForData:enabled"/>
   <int value="-461631357" label="AndroidFreLayoutUpdate:enabled"/>
   <int value="-461568027" label="EcheSWADebugMode:disabled"/>
@@ -18207,6 +18213,7 @@ from previous Chrome versions.
   <int value="1137176973" label="SplitViewTabRestore:enabled"/>
   <int value="1137441283"
       label="UndoMigrationOfSyncingUserToSignedIn:disabled"/>
+  <int value="1137828349" label="glic-zero-state-suggestions:enabled"/>
   <int value="1138141041"
       label="NtpMostRelevantTabResumptionModuleDeviceIcon:enabled"/>
   <int value="1138345742" label="PreferConstantFrameRate:disabled"/>
@@ -19041,6 +19048,7 @@ from previous Chrome versions.
   <int value="1388939035" label="TabFaviconChipsToCoins:enabled"/>
   <int value="1389697465" label="OmniboxGroupingFramework:disabled"/>
   <int value="1389729816" label="data-reduction-proxy-lo-fi"/>
+  <int value="1390124412" label="glic-daisy-chain-new-tabs:enabled"/>
   <int value="1390803837" label="NtpSharepointModule:enabled"/>
   <int value="1391313384" label="Hotspot:disabled"/>
   <int value="1392400382" label="EnableAIRewriterAPI:disabled"/>

@@ -126,7 +126,6 @@ crbug.com/1048761 external/wpt/websockets/unload-a-document/002.html?wss [ Failu
 crbug.com/1207373 [ Linux ] external/wpt/uievents/order-of-events/mouse-events/mousemove-across.html [ Failure Timeout ]
 crbug.com/1339285 [ Mac ] fast/loader/iframe-window-open-stealing-focus.html [ Pass Timeout ]
 
-crbug.com/1393073 [ Linux ] virtual/fenced-frame-mparch/external/wpt/fenced-frame/anchor-focus.https.html [ Failure Pass ]
 crbug.com/340949930 virtual/fenced-frame-mparch/external/wpt/fenced-frame/intersection-observer.https.html [ Failure Timeout ]
 
 # WPT Test harness doesn't deal with finding an about:blank ref test
@@ -2698,6 +2697,34 @@ crbug.com/536952792 external/wpt/html/semantics/scripting-1/the-script-element/m
 crbug.com/540322301 external/wpt/webaudio/the-audio-api/the-oscillatornode-interface/sub-sample-start.html [ Failure ]
 
 # ====== New tests from wpt-importer added here ======
+crbug.com/545678290 external/wpt/css/css-overflow/line-clamp/block-ellipsis-038.html [ Failure ]
+crbug.com/545678290 external/wpt/css/css-overflow/line-clamp/block-ellipsis-039.html [ Failure ]
+crbug.com/545678290 external/wpt/css/css-overflow/line-clamp/block-ellipsis-040.html [ Failure ]
+crbug.com/545678290 external/wpt/css/css-overflow/line-clamp/block-ellipsis-041.html [ Failure ]
+crbug.com/545678290 external/wpt/css/css-overflow/line-clamp/line-clamp-with-floats-011.html [ Failure ]
+crbug.com/545692281 [ Win ] external/wpt/css/css-values/acos-asin-atan-atan2-computed.html [ Pass Timeout ]
+crbug.com/545692281 [ Win ] external/wpt/css/css-values/ident-function-substitution.html [ Pass Timeout ]
+crbug.com/545692281 external/wpt/css/css-values/progress-computed.html [ Failure ]
+crbug.com/545692281 external/wpt/css/css-variables/variable-declaration-29.html [ Failure ]
+crbug.com/545692281 external/wpt/css/css-variables/variable-supports-30.html [ Failure ]
+crbug.com/545692281 external/wpt/css/css-variables/variable-supports-64.html [ Failure ]
+crbug.com/545676304 [ Win ] external/wpt/html/semantics/popovers/popover-top-layer-nesting-hints.html [ Pass Timeout ]
+crbug.com/545718484 external/wpt/mathml/relations/html5-tree/href-target-base.html [ Failure Pass Timeout ]
+crbug.com/545678290 virtual/disable-css-line-clamp-line-breaking-ellipsis/external/wpt/css/css-overflow/line-clamp/block-ellipsis-038.html [ Failure ]
+crbug.com/545678290 virtual/disable-css-line-clamp-line-breaking-ellipsis/external/wpt/css/css-overflow/line-clamp/block-ellipsis-039.html [ Failure ]
+crbug.com/545678290 virtual/disable-css-line-clamp-line-breaking-ellipsis/external/wpt/css/css-overflow/line-clamp/block-ellipsis-040.html [ Failure ]
+crbug.com/545678290 virtual/disable-css-line-clamp-line-breaking-ellipsis/external/wpt/css/css-overflow/line-clamp/block-ellipsis-041.html [ Failure ]
+crbug.com/545678290 virtual/disable-css-line-clamp-line-breaking-ellipsis/external/wpt/css/css-overflow/line-clamp/line-clamp-with-floats-011.html [ Failure ]
+crbug.com/545678290 virtual/disable-css-line-clamp-longhands/external/wpt/css/css-overflow/line-clamp/block-ellipsis-038.html [ Failure ]
+crbug.com/545678290 virtual/disable-css-line-clamp-longhands/external/wpt/css/css-overflow/line-clamp/block-ellipsis-039.html [ Failure ]
+crbug.com/545678290 virtual/disable-css-line-clamp-longhands/external/wpt/css/css-overflow/line-clamp/block-ellipsis-040.html [ Failure ]
+crbug.com/545678290 virtual/disable-css-line-clamp-longhands/external/wpt/css/css-overflow/line-clamp/block-ellipsis-041.html [ Failure ]
+crbug.com/545678290 virtual/disable-css-line-clamp-longhands/external/wpt/css/css-overflow/line-clamp/line-clamp-with-floats-011.html [ Failure ]
+crbug.com/545678290 virtual/disable-css-line-clamp/external/wpt/css/css-overflow/line-clamp/block-ellipsis-038.html [ Failure ]
+crbug.com/545678290 virtual/disable-css-line-clamp/external/wpt/css/css-overflow/line-clamp/block-ellipsis-039.html [ Failure ]
+crbug.com/545678290 virtual/disable-css-line-clamp/external/wpt/css/css-overflow/line-clamp/block-ellipsis-040.html [ Failure ]
+crbug.com/545678290 virtual/disable-css-line-clamp/external/wpt/css/css-overflow/line-clamp/block-ellipsis-041.html [ Failure ]
+crbug.com/545678290 virtual/disable-css-line-clamp/external/wpt/css/css-overflow/line-clamp/line-clamp-with-floats-011.html [ Failure ]
 crbug.com/543836267 [ Win ] external/wpt/WebCryptoAPI/generateKey/failures_kmac.tentative.https.any.html [ Pass Timeout ]
 crbug.com/543938492 external/wpt/css/css-font-loading/font-face-width-descriptor-aliasing.html [ Failure ]
 crbug.com/543919183 external/wpt/css/css-scroll-snap/snap-after-relayout/multiple-aligned-targets/prefer-first-in-flat-tree-order.html [ Timeout ]
@@ -4754,20 +4781,10 @@ crbug.com/689781 external/wpt/media-source/mediasource-duration.html [ Failure P
 crbug.com/689781 [ Win ] http/tests/media/media-source/mediasource-duration.html [ Failure Pass ]
 crbug.com/689781 [ Mac ] http/tests/media/media-source/mediasource-duration.html [ Failure Pass ]
 
-
 crbug.com/716320 external/wpt/html/infrastructure/safe-passing-of-structured-data/shared-array-buffers/broadcastchannel-success-and-failure.https.html [ Failure Timeout ]
-
-# Test output varies depending on the bot. A single expectation file doesn't
-# work.
-
-# Fullscreen tests are failed because of consuming user activation on fullscreen
 
 # User-Agent is not able to be set on XHR/fetch
 crbug.com/571722 external/wpt/xhr/preserve-ua-header-on-redirect.htm [ Failure ]
-
-# 1) V8 code cache doesn't support host defined options. When V8 code cache is
-# disabled, the subtest will pass. 2) Module cases always fail.
-crbug.com/1244145 external/wpt/html/semantics/scripting-1/the-script-element/module/dynamic-import/v8-code-cache.html [ Failure ]
 
 # Sheriff failures 2017-03-21
 crbug.com/674720 http/tests/loading/preload-img-test.html [ Failure Pass ]
@@ -4782,8 +4799,6 @@ crbug.com/722212 fast/events/pointerevents/mouse-pointer-event-properties.html [
 # Sheriff failures 2018-08-15
 crbug.com/874837 [ Win ] ietestcenter/css3/bordersbackgrounds/background-attachment-local-scrolling.htm [ Failure Pass ]
 crbug.com/874837 [ Debug Linux ] ietestcenter/css3/bordersbackgrounds/background-attachment-local-scrolling.htm [ Failure Pass ]
-
-# Sheiff failures 2021-04-09
 
 crbug.com/715718 external/wpt/media-source/mediasource-remove.html [ Failure Pass ]
 
@@ -9150,8 +9165,6 @@ crbug.com/466779939 [ Debug Linux ] http/tests/inspector-protocol/tracing/user-m
 
 # Gardener 2026-05-06
 crbug.com/510085315 [ Win ] virtual/fenced-frame-mparch/external/wpt/fenced-frame/history-length-outer-page-navigation-not-reflected-in-fenced-nested-iframe.https.html [ Failure ]
-crbug.com/485661974 [ Linux ] external/wpt/client-hints/critical-ch/request-count.https.window.html [ Failure ]
-crbug.com/485661974 [ Linux ] external/wpt/client-hints/critical-ch/subresource.https.window.html [ Failure ]
 crbug.com/485661974 [ Mac ] external/wpt/client-hints/critical-ch/request-count.multiple.https.window.html [ Failure ]
 crbug.com/485661974 external/wpt/client-hints/critical-ch/unsafe-method.https.window.html [ Failure Pass ]
 
@@ -9167,9 +9180,6 @@ crbug.com/512358723 [ Mac ] external/wpt/css/css-overscroll-behavior/overscroll-
 crbug.com/491563468 [ Mac15 ] virtual/web-bluetooth-new-permissions-backend/external/wpt/bluetooth/bidi/requestDevice/reject_opaque_origin.https.html [ Failure Pass ]
 crbug.com/491563468 virtual/web-bluetooth-new-permissions-backend/external/wpt/bluetooth/bidi/getDevices/granted-devices-with-services.https.window.html [ Failure Pass Timeout ]
 crbug.com/491563468 virtual/web-bluetooth-new-permissions-backend/external/wpt/bluetooth/bidi/requestDevice/acceptAllDevices/optional-services-missing.https.window.html [ Failure Pass ]
-
-# [WebAudio] Expected to timeout or crash until Configurable Render Quantum is fully launched.
-crbug.com/502309240 external/wpt/webaudio/the-audio-api/rendersizehint-smoke-tests.https.html [ Crash Timeout ]
 
 # Gardener 2026-05-18
 crbug.com/514075904 [ Win11-arm64 ] virtual/text-antialias/emphasis-complex.html [ Failure Pass ]
@@ -9396,6 +9406,9 @@ crbug.com/540619916 [ Linux ] external/wpt/webdriver/tests/classic/set_window_re
 crbug.com/540619916 [ Linux ] external/wpt/webdriver/tests/classic/take_element_screenshot/user_prompts.py [ Failure Pass ]
 crbug.com/540619916 [ Linux ] external/wpt/webdriver/tests/classic/take_screenshot/screenshot.py [ Failure Pass ]
 crbug.com/540619916 [ Linux ] external/wpt/webdriver/tests/classic/take_screenshot/user_prompts.py [ Failure Pass ]
+
+# Added during FFmpeg roll: Ogg Vorbis container duration vs discard padding discrepancy
+crbug.com/450394703 media/video-seek-to-duration-with-playbackrate-zero.html [ Timeout ]
 
 # Gardener 2026-08-10
 # Timing out on MSAN.
