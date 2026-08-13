@@ -341,7 +341,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': '7b65fc77acd53b01af87d7450c76d11b5b21ef6e',
+  'v8_revision': '2af47ed850ed55cced36d2ad21ec4d9b2b596f97',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -2718,7 +2718,7 @@ deps = {
   },
 
   'src/third_party/neon_2_sse/src':
-    Var('chromium_git') + '/external/github.com/intel/ARM_NEON_2_x86_SSE.git' + '@' + '99d5268074ae058e85c733709c78c0ba3a42a0f4',
+    Var('chromium_git') + '/external/github.com/intel/ARM_NEON_2_x86_SSE.git' + '@' + '183fc88bcb90dbfaefba33a292eae8a5ce94bd67',
 
   'src/third_party/netty-tcnative/src': {
       'url': Var('chromium_git') + '/external/netty-tcnative.git' + '@' + 'b21c6eee658866b83122c674e3c0da054e09a3d7',
@@ -2755,7 +2755,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/cisco/openh264' + '@' + 'fca40fc19f5fb854609d297ae4bde71df72787c9',
 
   'src/third_party/openscreen/src':
-    Var('chromium_git') + '/openscreen' + '@' + '4deaa176aee806ddf9609170d894cf418f3bd671',
+    Var('chromium_git') + '/openscreen' + '@' + '876b5381036e91ca05e21b1446f453ebccfc3acf',
 
   'src/third_party/openxr/src': {
     'url': Var('chromium_git') + '/external/github.com/KhronosGroup/OpenXR-SDK' + '@' + '75c53b6e853dc12c7b3c771edc9c9c841b15faaa',
@@ -2781,7 +2781,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '2de0e6f686b1a97d75ca541cf59e1806643a464d',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '9e2067e12f971799ed1f5b0fba74e485fe87e88e',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
