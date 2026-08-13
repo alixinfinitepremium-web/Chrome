@@ -417,7 +417,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '65b0ed407d9e6f66a0a5878e2786346f5278baa6',
+  'devtools_frontend_revision': '1720ccbe73d8f5cf742e484a694b9b7e9205a538',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -541,11 +541,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
-  'llvm_libc_revision':    '2d508139e772670f153b333b4a1f0a0e10bb6d42',
+  'llvm_libc_revision':    '3df364065fd924271c84b4c57b08580641fc2a3c',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
-  'compiler_rt_revision': '0404e0e0ba2d15bba03b6e3ced1cc1d6e8d07b86',
+  'compiler_rt_revision': '6c2fdc89a3580fc75aed2b7d12c9534e00b7a707',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling clusterfuzz-data
   # and whatever else without interference from each other.
@@ -1732,7 +1732,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '6aa0586b9cd24c659cd12018b1895699378e794c',
+    'e2e3d05ba04079f346dc33bcaa92fb95785fc07e',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -1910,7 +1910,7 @@ deps = {
       'packages': [
           {
                'package': 'chromium/third_party/android_build_tools/error_prone',
-               'version': 'y_YxWAd_C-PKsq90bpTkKpXULzrVzrqWccCs-DVpkXMC',
+               'version': 'dhc5vwmioo6wmCV30TTdDSRPWJKiCOSQNQtjDGJN4VwC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -1932,7 +1932,7 @@ deps = {
       'packages': [
           {
                'package': 'chromium/third_party/android_build_tools/lint',
-               'version': 'hBEL6744EboNeJbkocIRV0pFfxKhXX-d1ll5HCbJnicC',
+               'version': 'QVVIKC8wQbdvy2ZiDFLBepER-Axq-_rc_Qd9u6jaRVcC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -1943,7 +1943,7 @@ deps = {
       'packages': [
           {
                'package': 'chromium/third_party/android_build_tools/manifest_merger',
-               'version': 'IasS5darK5JU5uol9av0N9tEKNrKQ_4VkccKv7U-z5AC',
+               'version': 'HE-SYxF_8NqcIdCmzWmO0e8Q9al40EnebN1z2gs-LYYC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -2182,7 +2182,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'd6c17ef36ca05d6a90d0f1019b0c19702d03298f',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'c733c4a38fd67edd89e2c48dfc33d884e830ad79',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -2467,7 +2467,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/kotlin_stdlib',
-              'version': 'u4FV9NC_4lg5h1iNePIT1szzVd_utv07Lo2bX3bOzWYC',
+              'version': 'FR30rokCeQiCwA-wtaK9ZbTufTiZ4XssM6wwVHoW1xEC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -2478,7 +2478,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/kotlinc',
-              'version': 'siAkpBKBQflnNljs70mZd41mhgbHC3df0QRylOiqn4gC',
+              'version': '_TbalRHqOOWTHttZVLFGKk2_NmCRdmU-RPOVA4cizScC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -2489,7 +2489,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/ktfmt',
-              'version': 'version:2@v0.64.a441f23abe',
+              'version': '8JPLHuYpiImlJ00s48xzyugV2KnDgo_b2FRkSYIUk20C',
           },
       ],
       'condition': '(checkout_android or checkout_linux) and non_git_source',
@@ -2749,7 +2749,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/cisco/openh264' + '@' + 'fca40fc19f5fb854609d297ae4bde71df72787c9',
 
   'src/third_party/openscreen/src':
-    Var('chromium_git') + '/openscreen' + '@' + 'e4ed3945ffce0de7a3482f003e755004547af151',
+    Var('chromium_git') + '/openscreen' + '@' + '4deaa176aee806ddf9609170d894cf418f3bd671',
 
   'src/third_party/openxr/src': {
     'url': Var('chromium_git') + '/external/github.com/KhronosGroup/OpenXR-SDK' + '@' + '75c53b6e853dc12c7b3c771edc9c9c841b15faaa',
@@ -3218,7 +3218,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '1e6ab1a828d5524a99d486bd59a0eb6f9d9d9b18',
+    Var('webrtc_git') + '/src.git' + '@' + '9998fa1b9eeb419d9eef616c9828aeb9adf4caa2',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
