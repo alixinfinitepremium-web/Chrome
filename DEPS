@@ -441,7 +441,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': '25eb865111e39c65e0e3fdf2cec99c746eaa24e3',
+  'dawn_revision': 'd081a6e964f55791bdd437ccb5a55f2758ce7612',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -2518,7 +2518,7 @@ deps = {
     Var('chromium_git') + '/external/libaddressinput.git' + '@' + '81eb9628382b07d371d8ea0b11badf7de3857fd5',
 
   'src/third_party/libaom/source/libaom':
-    Var('aomedia_git') + '/aom.git' + '@' +  '7d210cef16e828b2400e7baadc2687f30dc3f745',
+    Var('aomedia_git') + '/aom.git' + '@' +  '0006e96cdb595ff88950a2c664115335ca5517bf',
 
   'src/third_party/crabbyavif/src':
     Var('chromium_git') + '/external/github.com/webmproject/CrabbyAvif.git' + '@' + Var('crabbyavif_revision'),
@@ -2632,7 +2632,7 @@ deps = {
     Var('chromium_git') + '/chromiumos/platform/libva-fake-driver.git' + '@' + 'a9bcab9cd6b15d4e3634ca44d5e5f7652c612194',
 
   'src/third_party/libvpx/source/libvpx':
-    Var('chromium_git') + '/webm/libvpx.git' + '@' +  '251f0168c042861763f73b744f0b3583c70431a2',
+    Var('chromium_git') + '/webm/libvpx.git' + '@' +  '01a78fbc3b25c6a9eb227973bd591e9092d6daa1',
 
   'src/third_party/libwebm/source':
     Var('chromium_git') + '/webm/libwebm.git' + '@' + '6184f4484a826724b5293837134ab9492261b941',
@@ -3796,7 +3796,7 @@ deps = {
 
   'src/chrome/browser/platform_experience/win': {
       'url': Var('chrome_git') + '/chrome/browser/platform_experience/win.git' + '@' +
-        '297c325c5fbf5cebdb1f0a488e7300de771624ad',
+        '06307d1e9efcc322f9bf64c3f738e671d42a3c3e',
       'condition': 'checkout_src_internal',
   },
 
@@ -3981,7 +3981,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        'c6cab3e518d026a4c847cf0b226c5f30eebd969f',
+        '8532edce81a947a8fc68878d2d36aea7fe5ff160',
       'condition': 'checkout_src_internal',
   },
 

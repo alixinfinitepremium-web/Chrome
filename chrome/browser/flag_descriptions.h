@@ -3583,11 +3583,6 @@ inline constexpr char kOmniboxGroupingFrameworkDescription[] =
     "Enables an alternative grouping implementation for omnibox "
     "autocompletion.";
 
-inline constexpr char kOmniboxMultilineEditFieldName[] =
-    "Omnibox Multiline edit field";
-inline constexpr char kOmniboxMultilineEditFieldDescription[] =
-    "When enabled, allows Omnibox input to span across multiple lines";
-
 inline constexpr char kOmniboxMultimodalInputName[] =
     "Omnibox Multimodal Input";
 inline constexpr char kOmniboxMultimodalInputDescription[] =
@@ -6509,6 +6504,11 @@ inline constexpr char kTabClosureMethodRefactorName[] =
 inline constexpr char kTabClosureMethodRefactorDescription[] =
     "Enables the refactored changes for tab closure methods where existing "
     "methods usages are switched off and newly introduced are made active.";
+
+inline constexpr char kTabOpenerTrackingName[] = "Tab Opener Tracking";
+inline constexpr char kTabOpenerTrackingDescription[] =
+    "Enables tracking opener and sibling relationships between tabs to select "
+    "hierarchical next tabs when closing tabs.";
 
 inline constexpr char kTabSearchForDesktopName[] = "Tab Search for Desktop";
 inline constexpr char kTabSearchForDesktopDescription[] =

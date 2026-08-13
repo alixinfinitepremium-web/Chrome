@@ -7674,11 +7674,6 @@
     "expiry_milestone": 140
   },
   {
-    "name": "omnibox-multiline-edit-field",
-    "owners": [ "ender@google.com", "chrome-mobile-search@google.com"],
-    "expiry_milestone": 160
-  },
-  {
     "name": "omnibox-multimodal-input",
     "owners": [ "ender@google.com", "chrome-mobile-search@google.com" ],
     "expiry_milestone": 160
@@ -9495,6 +9490,11 @@
   {
     "name": "tab-groups-focusing",
     "owners": [ "dpenning@google.com", "top-chrome-desktop-ui@google.com" ],
+    "expiry_milestone": 160
+  },
+  {
+    "name": "tab-opener-tracking",
+    "owners": [ "nemco@google.com" ],
     "expiry_milestone": 160
   },
   {
