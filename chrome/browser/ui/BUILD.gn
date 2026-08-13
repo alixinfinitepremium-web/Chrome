@@ -2053,6 +2053,7 @@ static_library("ui") {
       "//chrome/browser/ui/ash/system_web_apps",
       "//chrome/browser/ui/ash/wallpaper",
       "//chrome/browser/ui/ash/wm",
+      "//chrome/browser/ui/chromeos/locked_state",
       "//chrome/browser/ui/views/apps/app_dialog",
       "//chrome/browser/ui/views/extensions/dialogs:document_scanner_discovery_confirmation_dialog",
       "//chrome/browser/ui/views/extensions/dialogs:document_scanner_start_scan_confirmation_dialog",
@@ -2191,8 +2192,6 @@ static_library("ui") {
       "incognito_clear_browsing_data_dialog_interface.h",
       "views/autofill/payments/webauthn_dialog_view.cc",
       "views/autofill/payments/webauthn_dialog_view.h",
-      "views/close_bubble_on_tab_activation_helper.cc",
-      "views/close_bubble_on_tab_activation_helper.h",
       "views/external_protocol_dialog.cc",
       "views/external_protocol_dialog.h",
       "views/profiles/avatar_badge_view.cc",
@@ -2214,6 +2213,7 @@ static_library("ui") {
       "//chrome/browser/ui/frame:impl",
       "//chrome/browser/ui/lens",
       "//chrome/browser/ui/lens:impl",
+      "//chrome/browser/ui/views:close_bubble_on_tab_activation_helper",
       "//chrome/browser/ui/views/hats",
       "//chrome/browser/ui/views/hats:impl",
       "//chrome/browser/ui/wallet",
@@ -2304,20 +2304,6 @@ static_library("ui") {
         "views/profiles/cross_device_signin_qr_bubble_views.cc",
         "views/profiles/dice_web_signin_interception_bubble_view.cc",
         "views/profiles/dice_web_signin_interception_bubble_view.h",
-        "views/profiles/feature_showcase/default_browser_step_eligibility_checker.cc",
-        "views/profiles/feature_showcase/default_browser_step_eligibility_checker.h",
-        "views/profiles/feature_showcase/feature_showcase_eligibility_tracker.cc",
-        "views/profiles/feature_showcase/feature_showcase_eligibility_tracker.h",
-        "views/profiles/feature_showcase/feature_showcase_step_eligibility_checker.cc",
-        "views/profiles/feature_showcase/feature_showcase_step_eligibility_checker.h",
-        "views/profiles/feature_showcase/gemini_step_eligibility_checker.cc",
-        "views/profiles/feature_showcase/gemini_step_eligibility_checker.h",
-        "views/profiles/feature_showcase/google_lens_step_eligibility_checker.cc",
-        "views/profiles/feature_showcase/google_lens_step_eligibility_checker.h",
-        "views/profiles/feature_showcase/password_manager_feature_showcase_eligibility_checker.cc",
-        "views/profiles/feature_showcase/password_manager_feature_showcase_eligibility_checker.h",
-        "views/profiles/feature_showcase/themes_and_customization_step_eligibility_checker.cc",
-        "views/profiles/feature_showcase/themes_and_customization_step_eligibility_checker.h",
         "views/profiles/first_run_flow_controller.cc",
         "views/profiles/first_run_flow_controller.h",
         "views/profiles/profile_picker_glic_flow_controller.cc",
@@ -2336,6 +2322,7 @@ static_library("ui") {
 
       deps += [
         "webui/signin/batch_upload:mojo_bindings",
+        "//chrome/browser/ui/views/profiles/feature_showcase",
         "//chrome/browser/ui/views/profiles/feature_showcase:metrics",
         "//chrome/browser/ui/webui/feature_showcase",
         "//services/audio/public/cpp",
@@ -2673,8 +2660,6 @@ static_library("ui") {
       "views/content_setting_site_row_view.h",
       "views/dotted_icon.cc",
       "views/dotted_icon.h",
-      "views/elevation_icon_setter.cc",
-      "views/elevation_icon_setter.h",
       "views/extensions/extension_install_dialog_view.cc",
       "views/extensions/extension_install_dialog_view.h",
       "views/extensions/extension_view_utils.cc",
@@ -2828,8 +2813,6 @@ static_library("ui") {
       "views/login_handler_views.cc",
       "views/login_view.cc",
       "views/login_view.h",
-      "views/media_picker_utils.cc",
-      "views/media_picker_utils.h",
       "views/message_box_dialog.cc",
       "views/message_box_dialog.h",
       "views/profiles/avatar_toolbar_button.cc",
@@ -3058,7 +3041,9 @@ static_library("ui") {
       "//chrome/browser/ui/views:bubble_anchor_util_views",
       "//chrome/browser/ui/views:confirm_bubble",
       "//chrome/browser/ui/views:device_chooser_content_view",
+      "//chrome/browser/ui/views:elevation_icon_setter",
       "//chrome/browser/ui/views:layout_provider_impl",
+      "//chrome/browser/ui/views:media_picker_utils",
       "//chrome/browser/ui/views:status_bubble",
       "//chrome/browser/ui/views/accessibility",
       "//chrome/browser/ui/views/accessibility:impl",
@@ -3080,6 +3065,7 @@ static_library("ui") {
       "//chrome/browser/ui/views/bookmarks:impl",
       "//chrome/browser/ui/views/bookmarks/saved_tab_groups:impl",
       "//chrome/browser/ui/views/bubble",
+      "//chrome/browser/ui/views/bubble:reopen_suppressor",
       "//chrome/browser/ui/views/commerce",
       "//chrome/browser/ui/views/commerce:impl",
       "//chrome/browser/ui/views/desktop_capture",
@@ -3203,9 +3189,8 @@ static_library("ui") {
       "//chrome/browser/ui/send_tab_to_self:impl",
 
       # TODO(crbug.com/353332589): Remove this circular dependency when the
-      # following headers get componentized:
+      # following header gets componentized:
       # c/b/ui/browser.h
-      # c/b/ui/views/close_bubble_on_tab_activation_helper.h
       "//chrome/browser/ui/views/bubble",
 
       # TODO(crbug.com/353332589): Remove this circular dependency when the
@@ -3602,17 +3587,14 @@ static_library("ui") {
   # TODO(https://crbug.com/330808104): Delete this code.
 
   if (use_aura) {
-    sources += [
-      "views/accelerator_utils_aura.cc",
-      "views/theme_profile_key.cc",
-      "views/theme_profile_key.h",
-    ]
+    sources += [ "views/accelerator_utils_aura.cc" ]
 
     deps += [
       "//chrome/browser/ui/aura/accessibility",
       "//chrome/browser/ui/aura/accessibility:impl",
       "//chrome/browser/ui/aura/tab_contents",
       "//chrome/browser/ui/aura/tab_contents:impl",
+      "//chrome/browser/ui/views:theme_profile_key",
       "//chrome/browser/ui/views/renderer_context_menu",
       "//chrome/browser/ui/views/renderer_context_menu:impl",
     ]
