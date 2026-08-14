@@ -8112,6 +8112,15 @@
     "expiry_milestone": 170
   },
   {
+    "name": "pdf-launcher-activity",
+    "owners": [
+      "mklw@google.com",
+      "rathomas@google.com",
+      "shuyng@google.com"
+    ],
+    "expiry_milestone": 160
+  },
+  {
     "name": "pdf-oopif",
     "owners": [ "andyphan@chromium.org", "//pdf/OWNERS" ],
     "expiry_milestone": 155
@@ -9232,6 +9241,14 @@
   },
   {
     "name": "startup-launch",
+    "owners": [
+      "top-chrome-desktop-ui@google.com",
+      "//chrome/browser/startup/OWNERS"
+    ],
+    "expiry_milestone": 154
+  },
+  {
+    "name": "startup-launch-infobar",
     "owners": [
       "top-chrome-desktop-ui@google.com",
       "//chrome/browser/startup/OWNERS"

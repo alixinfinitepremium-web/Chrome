@@ -826,16 +826,31 @@ SearchboxHandler::CreateAutocompleteMatches(
     bookmarks::BookmarkModel* bookmark_model,
     const omnibox::GroupConfigMap& suggestion_groups_map,
     const TemplateURLService* turl_service) const {
+  // Tracks whether the first contextual match has been flagged to force show
+  // its description, ensuring only the first one gets flagged.
+  bool flagged_contextual = false;
   std::vector<searchbox::mojom::AutocompleteMatchPtr> matches;
   for (const auto& match : result) {
     auto mojom_match =
         CreateAutocompleteMatch(match, matches.size(), bookmark_model,
                                 suggestion_groups_map, turl_service);
     if (mojom_match) {
+      if (!flagged_contextual && ShouldShowFirstContextualDescription() &&
+          match.suggestion_group_id ==
+              omnibox::GroupId::GROUP_CONTEXTUAL_SEARCH) {
+        mojom_match.value()->show_contextual_description = true;
+        flagged_contextual = true;
+      }
       matches.push_back(std::move(mojom_match.value()));
     }
   }
   return matches;
+}
+
+// TODO(b/546186345): Consider extending this behavior to other searchboxes if
+// they also need to show the contextual description.
+bool SearchboxHandler::ShouldShowFirstContextualDescription() const {
+  return false;
 }
 
 std::optional<searchbox::mojom::AutocompleteMatchPtr>
@@ -928,6 +943,7 @@ SearchboxHandler::CreateAutocompleteMatch(
   mojom_match->is_search_type = AutocompleteMatch::IsSearchType(match.type);
   mojom_match->swap_contents_and_description =
       match.swap_contents_and_description;
+  mojom_match->show_contextual_description = false;
   mojom_match->type = AutocompleteMatchType::ToString(match.type);
   mojom_match->supports_deletion = match.SupportsDeletion();
   if (match.answer_template.has_value()) {
@@ -1279,6 +1295,29 @@ void SearchboxHandler::OpenAutocompleteMatch(
     uint8_t mouse_button,
     searchbox::mojom::ActionModifiersPtr modifiers,
     bool via_keyboard) {
+  const base::TimeTicks timestamp = base::TimeTicks::Now();
+  const WindowOpenDisposition disposition = ComputeWindowOpenDisposition(
+      mouse_button, modifiers->alt_key, modifiers->ctrl_key,
+      modifiers->meta_key, modifiers->shift_key, via_keyboard);
+
+  if (line == static_cast<uint8_t>(OmniboxPopupSelection::kNoMatch)) {
+    const OmniboxPopupSelection selection(OmniboxPopupSelection::kNoMatch);
+    // TODO(crbug.com/545723506): Use match from AutocompleteResult.
+    if (base::FeatureList::IsEnabled(
+            omnibox::kWebUISearchboxWithoutModelController)) {
+      AutocompleteMatch verbatim_match;
+      searchbox::ClassifyString(
+          client(), autocomplete_controller()->input().text(),
+          /*in_keyword_mode=*/false,
+          /*allow_exact_keyword_match=*/true, &verbatim_match);
+      OpenMatch(selection, verbatim_match, disposition, timestamp);
+    } else {
+      edit_model()->OpenSelection(selection, timestamp, disposition,
+                                  via_keyboard);
+    }
+    return;
+  }
+
   const AutocompleteMatch* match = GetMatchWithUrl(line, url);
   if (!match) {
     // This can happen due to asynchronous updates changing the result while
@@ -1286,10 +1325,6 @@ void SearchboxHandler::OpenAutocompleteMatch(
     return;
   }
   const OmniboxPopupSelection selection(line);
-  const base::TimeTicks timestamp = base::TimeTicks::Now();
-  const WindowOpenDisposition disposition = ComputeWindowOpenDisposition(
-      mouse_button, modifiers->alt_key, modifiers->ctrl_key,
-      modifiers->meta_key, modifiers->shift_key, via_keyboard);
   if (base::FeatureList::IsEnabled(
           omnibox::kWebUISearchboxWithoutModelController)) {
     OpenMatch(selection, *match, disposition, timestamp);
@@ -1339,10 +1374,11 @@ OmniboxPopupSelection ConvertSelection(
   // Special case line for mojom equivalent of kNoMatch; it is represented
   // as uint8_t so direct conversion would become a positive out of bounds
   // index.
-  return OmniboxPopupSelection(selection->line == 255
-                                   ? OmniboxPopupSelection::kNoMatch
-                                   : selection->line,
-                               state, selection->action_index);
+  return OmniboxPopupSelection(
+      selection->line == static_cast<uint8_t>(OmniboxPopupSelection::kNoMatch)
+          ? OmniboxPopupSelection::kNoMatch
+          : selection->line,
+      state, selection->action_index);
 }
 
 void SearchboxHandler::SetPopupSelection(
@@ -1748,13 +1784,10 @@ void SearchboxHandler::OnDefaultSearchExtensionDialogDone(
     AutocompleteMatch new_match;
     GURL new_alternate_nav_url;
 
-    AutocompleteClassifier* classifier = client()->GetAutocompleteClassifier();
-    if (classifier) {
-      classifier->Classify(
-          input_text, autocomplete_controller()->input().in_keyword_mode(),
-          true, client()->GetPageClassification(/*is_prefetch=*/false),
-          &new_match, &new_alternate_nav_url);
-    }
+    searchbox::ClassifyString(
+        client(), input_text,
+        autocomplete_controller()->input().in_keyword_mode(),
+        /*allow_exact_keyword_match=*/true, &new_match, &new_alternate_nav_url);
 
     OpenMatch(selection, new_match, disposition, match_selection_timestamp);
     client()->FocusWebContents();

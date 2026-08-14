@@ -2983,6 +2983,13 @@ inline constexpr char kStartupLaunchName[] =
 inline constexpr char kStartupLaunchDescription[] =
     "When enabled, Launch Chrome on Startup can be turned on from Settings";
 
+inline constexpr char kStartupLaunchInfoBarName[] =
+    "Enable Launch Chrome on Startup prompt";
+
+inline constexpr char kStartupLaunchInfoBarDescription[] =
+    "When enabled, shows an infobar prompting to launch Chrome on Windows "
+    "startup";
+
 inline constexpr char kHttpsFirstBalancedModeName[] =
     "Allow enabling Balanced Mode for HTTPS-First Mode.";
 inline constexpr char kHttpsFirstBalancedModeDescription[] =
@@ -8619,6 +8626,10 @@ inline constexpr char kPdfBrotliDecodeDescription[] =
 inline constexpr char kPdfInk2Name[] = "PDF Ink Signatures";
 inline constexpr char kPdfInk2Description[] =
     "Enables the ability to annotate PDFs using a new ink library.";
+
+inline constexpr char kPdfLauncherActivityName[] = "PDF Launcher Activity";
+inline constexpr char kPdfLauncherActivityDescription[] =
+    "Enables Chrome as an option for opening PDF files on Android.";
 
 inline constexpr char kPdfSaveToDriveName[] = "Save PDF to Drive";
 inline constexpr char kPdfSaveToDriveDescription[] =
