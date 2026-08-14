@@ -417,7 +417,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'eaad2491924990cb310a4c753b2851e64d515f00',
+  'devtools_frontend_revision': '3d1cb8cefd18034c19bfe3abdae3b6a4acceb59c',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1738,7 +1738,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    'd7948ff9596f3a9c39962f236ee6e4953a6769e3',
+    '7d404eaa7f0d71988429d51a22849badf96fbb44',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -3353,7 +3353,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_receiver_app/app',
-        'version': '4frudPtkjL9CnU4OhAJWg0fCYSj4uJ62SjHY3nvp_mEC',
+        'version': 'ixmr9faO6u1kb7xM7_intnujvjvEuaOqgaGVr957OA0C',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3364,7 +3364,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_app/app',
-        'version': 'ghm26TB0tnODdaEK2B5nUCJwc-ZS_p0dwbDF3TBIVMMC',
+        'version': 'EpH1BsrBb_OEQuBm-DC38pUU_EBFHbnPtYpdv7gJWjUC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3419,7 +3419,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/projector_app/app',
-        'version': 'lqawKOHIs9jZwg48ojWcsnSdPPDI2W8c3MMEytE_fUsC',
+        'version': '2yv6Ci9C2oVlDlpi44EZafW_lhdPFYLHSfIvKCSKoBwC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3981,7 +3981,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        'c1beaa329a0531df7d60a0d53aabb07e394c638d',
+        '937ed5b1ca794e259401a355c82a8214d8b2ecae',
       'condition': 'checkout_src_internal',
   },
 
