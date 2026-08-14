@@ -337,7 +337,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': 'b6c2cb9a27e04242cb653b290f5335e921397806',
+  'skia_revision': '50a1e811b6e52c045901b2a94c0947686fe5b32e',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -473,7 +473,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling crabbyavif
   # and whatever else without interference from each other.
-  'crabbyavif_revision': '5e507e3f0c157b23a8ab1e373e06066ea9ed4e88',
+  'crabbyavif_revision': 'a843d6269faf338da244b981cfeb7601007b4e6c',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Speedometer main
   # and whatever else without interference from each other.
@@ -2200,7 +2200,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '05def587c878f290f3ad580879f2d08ab51e0f59',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '5ee913f028fa93d3fb3a316dc2edfcf79c886b8e',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '17a56409b86d0da5e01ca38f6498e13b2db16bc3',
