@@ -658,6 +658,50 @@ if (!is_android) {
   }
 }
 
+if (is_mac) {
+  source_set("launchservices_utils_mac") {
+    testonly = true
+    sources = [
+      "launchservices_utils_mac.h",
+      "launchservices_utils_mac.mm",
+    ]
+    public_deps = [ "//base" ]
+    deps = [ "//build:branding_buildflags" ]
+  }
+
+  source_set("scoped_bundle_swizzler_mac") {
+    testonly = true
+    sources = [
+      "scoped_bundle_swizzler_mac.h",
+      "scoped_bundle_swizzler_mac.mm",
+    ]
+    deps = [ "//base" ]
+  }
+}
+
+if (is_win) {
+  source_set("process_inspector_win") {
+    testonly = true
+    sources = [
+      "process_inspector_win.cc",
+      "process_inspector_win.h",
+    ]
+    deps = [ "//base" ]
+  }
+
+  source_set("process_lineage_win") {
+    testonly = true
+    sources = [
+      "process_lineage_win.cc",
+      "process_lineage_win.h",
+    ]
+    deps = [
+      "//base",
+      "//chrome/test/base:process_inspector_win",
+    ]
+  }
+}
+
 if (is_android) {
   source_set("android_ui_test_utils") {
     testonly = true
@@ -707,6 +751,89 @@ if (!is_android) {
       "//chrome/browser/profiles:profile",
       "//chrome/common",
       "//chrome/test/base:web_ui_test_data_source",
+    ]
+  }
+
+  if (is_win) {
+    source_set("always_on_top_window_killer_win") {
+      testonly = true
+      sources = [
+        "always_on_top_window_killer_win.cc",
+        "always_on_top_window_killer_win.h",
+      ]
+      deps = [
+        "//base",
+        "//base/test:test_support",
+        "//chrome/test/base:process_lineage_win",
+        "//chrome/test/base:save_desktop_snapshot",
+        "//ui/display",
+      ]
+    }
+
+    source_set("window_contents_as_string_win") {
+      testonly = true
+      sources = [
+        "window_contents_as_string_win.cc",
+        "window_contents_as_string_win.h",
+      ]
+      deps = [ "//base" ]
+    }
+  }
+}
+
+if (is_chromeos) {
+  source_set("js_test_api") {
+    testonly = true
+    sources = [
+      "ash/js_test_api.cc",
+      "ash/js_test_api.h",
+    ]
+    public_deps = [ "//base" ]
+    deps = [ "//chrome/common" ]
+  }
+
+  source_set("browser_process_platform_part_test_api_chromeos") {
+    testonly = true
+    sources = [
+      "browser_process_platform_part_test_api_chromeos.cc",
+      "browser_process_platform_part_test_api_chromeos.h",
+    ]
+    public_deps = [
+      "//base",
+      "//components/component_updater/ash",
+    ]
+    deps = [ "//chrome/browser:browser_process_platform_part" ]
+  }
+
+  source_set("aura_window_title_observer") {
+    testonly = true
+    sources = [
+      "chromeos/crosier/aura_window_title_observer.cc",
+      "chromeos/crosier/aura_window_title_observer.h",
+    ]
+    public_deps = [
+      "//base",
+      "//ui/aura",
+      "//ui/base/interaction:test_support",
+    ]
+    deps = [ "//ui/aura:test_support" ]
+  }
+
+  source_set("web_ui_test_handler") {
+    testonly = true
+    sources = [
+      "ash/web_ui_test_handler.cc",
+      "ash/web_ui_test_handler.h",
+    ]
+    public_deps = [ "//content/public/browser" ]
+    deps = [
+      "//base",
+      "//chrome/common:mojo_bindings",
+      "//content/public/common",
+      "//content/test:test_support",
+      "//mojo/public/cpp/bindings",
+      "//testing/gtest",
+      "//third_party/blink/public/common:headers",
     ]
   }
 }
@@ -771,5 +898,29 @@ if (use_aura) {
       "//ui/wm",
       "//ui/wm/public",
     ]
+  }
+
+  source_set("drag_and_drop_test_utils") {
+    testonly = true
+    sources = [
+      "drag_and_drop_test_utils.cc",
+      "drag_and_drop_test_utils.h",
+    ]
+    public_deps = [
+      "//base",
+      "//ui/aura",
+      "//ui/base/dragdrop/mojom",
+      "//ui/gfx/geometry",
+    ]
+    deps = [
+      "//content/public/browser",
+      "//content/test:test_support",
+      "//testing/gtest",
+      "//ui/base/dragdrop:types",
+      "//url",
+    ]
+    if (is_win) {
+      deps += [ "//ui/base" ]
+    }
   }
 }

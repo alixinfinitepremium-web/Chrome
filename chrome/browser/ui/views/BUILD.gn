@@ -522,3 +522,35 @@ source_set("title_origin_label") {
     "//ui/gfx/range",
   ]
 }
+
+source_set("bubble_menu_item_factory") {
+  public = [ "bubble_menu_item_factory.h" ]
+  sources = [ "bubble_menu_item_factory.cc" ]
+  public_deps = [
+    "//ui/base",
+    "//ui/views",
+  ]
+  deps = [
+    ":layout_provider",
+    "//base",
+    "//chrome/browser/ui/views/controls",
+    "//ui/color",
+    "//ui/gfx",
+    "//ui/gfx/geometry",
+  ]
+}
+
+if (is_linux) {
+  source_set("eula_dialog_linux") {
+    public = [ "eula_dialog_linux.h" ]
+    sources = [ "eula_dialog_linux.cc" ]
+    public_deps = [ "//ui/views" ]
+    deps = [
+      "//base",
+      "//chrome/app:branded_strings",
+      "//components/strings:components_locale_settings",
+      "//ui/base",
+      "//ui/gfx",
+    ]
+  }
+}

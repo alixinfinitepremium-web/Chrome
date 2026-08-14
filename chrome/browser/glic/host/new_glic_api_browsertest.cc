@@ -13,6 +13,7 @@
 #include "base/test/bind.h"
 #include "base/test/gmock_callback_support.h"
 #include "base/test/gmock_expected_support.h"
+#include "base/test/metrics/user_action_tester.h"
 #include "base/test/scoped_logging_settings.h"
 #include "base/test/test_future.h"
 #include "base/types/expected.h"
@@ -21,12 +22,14 @@
 #include "build/build_config.h"
 #include "chrome/browser/actor/actor_keyed_service.h"
 #include "chrome/browser/actor/actor_task.h"
+#include "chrome/browser/background/glic/glic_launcher_configuration.h"
 #include "chrome/browser/browser_process.h"
 #include "chrome/browser/enterprise/browser_management/management_service_factory.h"
 #include "chrome/browser/glic/common/glic_navigation.h"
 #include "chrome/browser/glic/experimental_triggering/glic_experimental_triggering_manager.h"
 #include "chrome/browser/glic/glic_enums.h"
 #include "chrome/browser/glic/glic_pref_names.h"
+#include "chrome/browser/glic/glic_profile_manager.h"
 #include "chrome/browser/glic/host/auth_controller.h"
 #include "chrome/browser/glic/host/context/glic_tab_data.h"
 #include "chrome/browser/glic/host/context/glic_tab_favicon_observer.h"
@@ -216,6 +219,7 @@ std::vector<std::string> GetTestSuiteNames() {
       "NewGlicApiTestGeminiEnterpriseSettingsPolicy",
       "NewGlicApiTestGeminiEnterpriseSettingsPolicyUnset",
       "NewGlicApiTestWithMqlsIdGetterDisabled",
+      "NewGlicOnboardingApiTest",
 #if !BUILDFLAG(IS_ANDROID)
       "NewGlicApiTestWithFileUploadPolicyEnabled",
       "NewGlicApiTestWithSkills",
@@ -644,6 +648,63 @@ IN_PROC_BROWSER_TEST_P(NewGlicApiTestForNoWebUiLoader, testNoWebUiLoader) {
   EXPECT_EQ(expect_loading, listener.SawState(mojom::WebUiState::kShowLoading));
 
   ExecuteJsTest();
+}
+
+class NewGlicOnboardingApiTest : public NewGlicApiTest {
+ public:
+  NewGlicOnboardingApiTest() {
+    glic_test_environment().SetFreStatusForNewProfiles(
+        prefs::FreStatus::kNotStarted);
+  }
+
+  void TearDownOnMainThread() override {
+    GlicProfileManager::ForceConnectionTypeForTesting(std::nullopt);
+    NewGlicApiTest::TearDownOnMainThread();
+  }
+};
+
+IN_PROC_BROWSER_TEST_P(NewGlicOnboardingApiTest, testIsOnboardingCompleted) {
+  ASSERT_OK(OpenGlicForActiveTab());
+  ExecuteJsTest();
+  glic::SetFRECompletion(GetProfile(), prefs::FreStatus::kCompleted);
+  ContinueJsTest();
+}
+
+IN_PROC_BROWSER_TEST_P(NewGlicOnboardingApiTest, testSetOnboardingCompleted) {
+  ASSERT_OK(OpenGlicForActiveTab());
+  ExecuteJsTest();
+
+  ASSERT_FALSE(GlicEnabling::HasConsentedForProfile(GetProfile()));
+
+// Android doesn't use global hotkeys or a taskbar launcher
+#if !BUILDFLAG(IS_ANDROID)
+  base::test::TestFuture<void> default_browser_check_called;
+  // Ensure that CheckDefaultBrowserToEnableLauncher was called.
+  GlicLauncherConfiguration::SetCheckDefaultBrowserCallbackForTesting(
+      default_browser_check_called.GetRepeatingCallback());
+#endif
+
+  base::UserActionTester user_action_tester;
+  EXPECT_EQ(0,
+            user_action_tester.GetActionCount("Glic.Onboarding.OptInAccept"));
+
+  ContinueJsTest();
+
+  ASSERT_TRUE(base::test::RunUntil(
+      [&] { return GlicEnabling::HasConsentedForProfile(GetProfile()); }));
+
+// Android doesn't use global hotkeys or a taskbar launcher
+#if !BUILDFLAG(IS_ANDROID)
+  // Wait for the default browser check to be called.
+  EXPECT_TRUE(default_browser_check_called.Wait());
+  GlicLauncherConfiguration::SetCheckDefaultBrowserCallbackForTesting(
+      base::RepeatingClosure());
+#endif
+
+  EXPECT_EQ(1,
+            user_action_tester.GetActionCount("Glic.Onboarding.OptInAccept"));
+
+  ContinueJsTest();
 }
 
 class NewGlicApiTestWithDefaultTabContextEnabled : public NewGlicApiTest {
@@ -1517,6 +1578,67 @@ IN_PROC_BROWSER_TEST_P(NewGlicApiTestWithDefaultTabContextDisabled,
   histogram_tester.ExpectTotalCount("Glic.Api.GetContextFromTab.Error.Text", 1);
 }
 
+IN_PROC_BROWSER_TEST_P(NewGlicApiTestWithDefaultTabContextDisabled,
+                       testGetContextFromTabFailDifferentlyBasedOnPermission) {
+  // For unfocused unpinned tabs, getTabContext calls fail with different error
+  // messages based on context sharing permission state.
+  tabs::TabInterface* first_tab = GetTabListInterface()->GetActiveTab();
+  const int first_tab_id = first_tab->GetHandle().raw_value();
+
+  // Create second tab and activate it, so first_tab goes to background.
+  CreateAndActivateTab(
+      embedded_test_server()->GetURL("/browser_tests/test.html"));
+
+  ASSERT_OK(OpenGlicForActiveTab());
+  glic::GlicHistogramTester histogram_tester;
+
+  ExecuteJsTest({.params = base::Value(base::DictValue().Set(
+                     "tabId", base::NumberToString(first_tab_id)))});
+
+  // Two different permission errors should have been reported.
+  histogram_tester.ExpectBucketCount(
+      "Glic.Api.GetContextFromTab.Error.Text",
+      GlicGetContextFromTabError::kPermissionDeniedContextPermissionNotEnabled,
+      1);
+  histogram_tester.ExpectBucketCount(
+      "Glic.Api.GetContextFromTab.Error.Text",
+      GlicGetContextFromTabError::kPermissionDenied, 1);
+  histogram_tester.ExpectTotalCount("Glic.Api.GetContextFromTab.Error.Text", 2);
+}
+
+IN_PROC_BROWSER_TEST_P(NewGlicApiTestWithDefaultTabContextDisabled,
+                       testGetContextFromTabFailsIfNotPinned) {
+  tabs::TabInterface* first_tab = GetTabListInterface()->GetActiveTab();
+  const int first_tab_id = first_tab->GetHandle().raw_value();
+
+  // Create second tab and activate it, so first_tab goes to background.
+  CreateAndActivateTab(
+      embedded_test_server()->GetURL("/browser_tests/test.html"));
+
+  ASSERT_OK(OpenGlicForActiveTab());
+  glic::GlicHistogramTester histogram_tester;
+
+  ExecuteJsTest({.params = base::Value(base::DictValue().Set(
+                     "tabId", base::NumberToString(first_tab_id)))});
+
+  // Should have one error logged for tab context permission not granted.
+  histogram_tester.ExpectBucketCount(
+      "Glic.Api.GetContextFromTab.Error.Text",
+      GlicGetContextFromTabError::kPermissionDeniedContextPermissionNotEnabled,
+      1);
+  histogram_tester.ExpectTotalCount("Glic.Api.GetContextFromTab.Error.Text", 1);
+}
+
+IN_PROC_BROWSER_TEST_P(NewGlicApiTest,
+                       testGetContextFromTabFailsIfDoesNotExist) {
+  ASSERT_OK(OpenGlicForActiveTab());
+  glic::GlicHistogramTester histogram_tester;
+  ExecuteJsTest();
+  histogram_tester.ExpectBucketCount("Glic.Api.GetContextFromTab.Error.Text",
+                                     GlicGetContextFromTabError::kTabNotFound,
+                                     1);
+  histogram_tester.ExpectTotalCount("Glic.Api.GetContextFromTab.Error.Text", 1);
+}
 #if !BUILDFLAG(IS_ANDROID)
 IN_PROC_BROWSER_TEST_P(NewGlicApiTest, testPinTabsFailsWhenIncognitoWindow) {
   ASSERT_OK(OpenGlicForActiveTabAndDetach());
@@ -4158,9 +4280,13 @@ INSTANTIATE_TEST_SUITE_P(,
                          NewGlicApiTestWithExperimentalTriggeringScreenshot,
                          DefaultTestParamSet(),
                          &WithTestParams::PrintTestVariant);
-
 INSTANTIATE_TEST_SUITE_P(,
                          NewGlicApiUnresponsiveTest,
+                         DefaultTestParamSet(),
+                         &WithTestParams::PrintTestVariant);
+
+INSTANTIATE_TEST_SUITE_P(,
+                         NewGlicOnboardingApiTest,
                          DefaultTestParamSet(),
                          &WithTestParams::PrintTestVariant);
 
@@ -4207,6 +4333,7 @@ GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(GlicApiScrollToTest);
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(
     NewGlicApiTestWithExperimentalTriggeringScreenshot);
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(NewGlicApiUnresponsiveTest);
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(NewGlicOnboardingApiTest);
 #if !BUILDFLAG(IS_ANDROID)
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(
     NewGlicApiTestWithFileUploadPolicyEnabled);

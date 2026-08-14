@@ -6,7 +6,7 @@ import {CancelActionsResult, ClientCapabilities, ExperimentalTriggeringUpdateTyp
 import type {AdditionalContext, CounterAbuseVerdict, ExperimentalTriggeringUpdate, FocusedTabData, GetPinCandidatesOptions, GlicBrowserHost, GlicWebClient, InvokeOptions, Observable, Observable2, OpenPanelInfo, PageMetadata, PanelOpeningData, PanelState, ScrollToError, TabData, UserConfirmationDialogRequest, UserProfileInfo, ZeroStateSuggestionsV2} from '/glic/glic_api/glic_api.js';
 import {Subject} from '/glic/observable.js';
 
-import {ApiTestError, ApiTestFixtureBase, assertDefined, assertEquals, assertFalse, assertRejects, assertTrue, assertUndefined, checkDefined, mapObservable, observeSequence, runUntil, sleep, testMain, waitFor, WebClient} from './browser_test_base.js';
+import {ApiTestError, ApiTestFixtureBase, assertDefined, assertEquals, assertFalse, assertNotEquals, assertRejects, assertTrue, assertUndefined, checkDefined, mapObservable, observeSequence, runUntil, sleep, testMain, waitFor, WebClient} from './browser_test_base.js';
 import type {SequencedSubscriber} from './browser_test_base.js';
 
 class ApiTests extends ApiTestFixtureBase {
@@ -297,6 +297,92 @@ class ApiTests extends ApiTestFixtureBase {
     const result = await this.host.getContextFromTab(tabId, {});
     assertDefined(result);
     assertEquals(result.tabData.tabId, tabId);
+  }
+
+  async testGetContextFromTabFailDifferentlyBasedOnPermission() {
+    assertDefined(this.host.getContextFromTab);
+
+    const tabId: string = this.testParams.tabId;
+    // Make sure tabId is not the focused tab.
+    assertNotEquals(tabId, this.getFocusedTabId());
+
+    await this.host.setTabContextPermissionState(false);
+    await assertRejects(this.host.getContextFromTab(tabId, {}), {
+      withErrorMessage: 'tabContext failed: permission denied:' +
+          ' context permission not enabled',
+    });
+
+    await this.host.setTabContextPermissionState(true);
+    await assertRejects(this.host.getContextFromTab(tabId, {}), {
+      withErrorMessage: 'tabContext failed: permission denied',
+    });
+  }
+
+  async testGetContextFromTabFailsIfNotPinned() {
+    assertDefined(this.host.getContextFromTab);
+    assertDefined(this.host.pinTabs);
+    assertDefined(this.host.unpinTabs);
+    assertDefined(this.host.getPinnedTabs);
+
+    const tabId: string = this.testParams.tabId;
+    // Make sure tabId is not the focused tab.
+    assertNotEquals(tabId, this.getFocusedTabId());
+
+    // Initially, only the active tab is auto-pinned.
+    const pinnedTabsUpdates = observeSequence(this.host.getPinnedTabs());
+    await pinnedTabsUpdates.waitFor((tabs) => tabs.length === 1);
+
+    await this.host.pinTabs([tabId]);
+    await pinnedTabsUpdates.waitFor(
+        (tabs) => tabs.length === 2 && tabs.some((t) => t.tabId === tabId));
+
+    const result = await this.host.getContextFromTab(tabId, {});
+    assertDefined(result);
+    assertEquals(result.tabData.tabId, tabId);
+
+    await this.host.unpinTabs([tabId]);
+    await pinnedTabsUpdates.waitFor((tabs) => tabs.length === 1);
+    await assertRejects(this.host.getContextFromTab(tabId, {}), {
+      withErrorMessage: 'tabContext failed: permission denied:' +
+          ' context permission not enabled',
+    });
+  }
+
+  async testGetContextFromTabFailsIfDoesNotExist() {
+    assertDefined(this.host.onModeChange);
+    assertDefined(this.host.getContextFromTab);
+
+    this.host.onModeChange(WebClientMode.TEXT);
+
+    await assertRejects(
+        this.host.getContextFromTab('not-exist', {}),
+        {withErrorMessage: 'tabContext failed: tab not found'},
+    );
+  }
+
+  async testIsOnboardingCompleted() {
+    assertDefined(this.host.isOnboardingCompleted);
+    const completedSequence =
+        observeSequence<boolean>(this.host.isOnboardingCompleted());
+    assertFalse(await completedSequence.next());
+
+    // Mark onboarding as completed.
+    await this.advanceToNextStep();
+
+    assertTrue(await completedSequence.next());
+  }
+
+  async testSetOnboardingCompleted() {
+    assertDefined(this.host.setOnboardingCompleted);
+
+    // Check that onboarding is not completed yet.
+    await this.advanceToNextStep();
+
+    // Call mojo to set onboarding completed.
+    await this.host.setOnboardingCompleted();
+
+    // Check that onboarding is completed.
+    await this.advanceToNextStep();
   }
 
   async testPinTabsFailsWhenIncognitoWindow() {

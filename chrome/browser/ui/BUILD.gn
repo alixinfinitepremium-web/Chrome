@@ -984,11 +984,6 @@ static_library("ui") {
   }
 
   allow_circular_includes_from += [
-    # TODO(crbug.com/503408628): Remove this circular dependency when the
-    # following headers get modularized:
-    # --  c/b/ui/views/eula_dialog_linux.h
-    "//chrome/browser/first_run:impl",
-
     # enterprise headers include from //chrome/browser/ui (e.g. idle_dialog.h).
     # enterprise:impl includes headers from //chrome/browser/ui that can't be
     # split out yet.
@@ -2466,8 +2461,6 @@ static_library("ui") {
 
   if (is_linux) {
     sources += [
-      "views/eula_dialog_linux.cc",
-      "views/eula_dialog_linux.h",
       "views/frame/browser_desktop_window_tree_host.h",
       "views/frame/browser_desktop_window_tree_host_linux.cc",
       "views/frame/browser_desktop_window_tree_host_linux.h",
@@ -2481,6 +2474,7 @@ static_library("ui") {
 
     deps += [
       "//chrome/browser:shell_integration_linux",
+      "//chrome/browser/ui/views:eula_dialog_linux",
       "//ui/linux:linux_ui_factory",
       "//ui/platform_window",
     ]
@@ -2608,8 +2602,6 @@ static_library("ui") {
       "views/browser_commands_views.cc",
       "views/browser_dialogs_views.cc",
       "views/bubble_anchor_util_views.cc",
-      "views/bubble_menu_item_factory.cc",
-      "views/bubble_menu_item_factory.h",
       "views/certificate_selector.cc",
       "views/certificate_selector.h",
       "views/chrome_browser_main_extra_parts_views.cc",
@@ -2968,6 +2960,7 @@ static_library("ui") {
       "//chrome/browser/ui/tabs/tab_strip_api/tab_strip_model_impl",
       "//chrome/browser/ui/tabs/tab_strip_api/tab_strip_model_impl/converters",
       "//chrome/browser/ui/views:bubble_anchor_util_views",
+      "//chrome/browser/ui/views:bubble_menu_item_factory",
       "//chrome/browser/ui/views:confirm_bubble",
       "//chrome/browser/ui/views:device_chooser_content_view",
       "//chrome/browser/ui/views:elevation_icon_setter",

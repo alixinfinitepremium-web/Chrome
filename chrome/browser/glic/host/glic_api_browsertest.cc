@@ -188,7 +188,6 @@ std::vector<std::string> GetTestSuiteNames() {
       "GlicApiTestWithGeminiActOnWebPolicy",
       "GlicApiTestWithWebContentsWarming",
       "GlicApiTestHibernateAllOnMemoryPressure",
-      "GlicOnboardingApiTest",
       "GlicApiTestWithDaisyChain",
       "GlicApiTestGeminiEnterpriseSettingsOverride",
       "GlicApiTestGeminiEnterpriseSettingsDisabled",
@@ -854,70 +853,6 @@ IN_PROC_BROWSER_TEST_P(GlicApiTestWithMqlsIdGetterEnabled,
   ExecuteJsTest();
 }
 
-
-class GlicOnboardingApiTest : public GlicApiTestWithOneTab {
- public:
-  GlicOnboardingApiTest()
-      : GlicApiTestWithOneTab({.fre_status = prefs::FreStatus::kNotStarted}) {
-    feature_list_.InitWithFeaturesAndParameters(
-        {{features::kGlicMultiInstance, {}},
-         {mojom::features::kGlicMultiTab, {}},
-         {features::kGlicMultitabUnderlines, {}}},
-        {/*disabled_features=*/});
-  }
-
-  void SetUpOnMainThread() override {
-    GlicApiTest::SetUpOnMainThread();
-    NavigateTabAndOpenGlic();
-  }
-
-  void TearDownOnMainThread() override {
-    GlicProfileManager::ForceConnectionTypeForTesting(std::nullopt);
-    GlicApiTestWithOneTab::TearDownOnMainThread();
-  }
-
- private:
-  base::test::ScopedFeatureList feature_list_;
-};
-
-IN_PROC_BROWSER_TEST_P(GlicOnboardingApiTest, testIsOnboardingCompleted) {
-  ExecuteJsTest();
-
-  SetFRECompletion(browser()->GetProfile(), prefs::FreStatus::kCompleted);
-
-  ContinueJsTest();
-}
-
-IN_PROC_BROWSER_TEST_P(GlicOnboardingApiTest, testSetOnboardingCompleted) {
-  ExecuteJsTest();
-
-  ASSERT_FALSE(GlicEnabling::HasConsentedForProfile(browser()->GetProfile()));
-
-  base::RunLoop run_loop;
-  // Ensure that CheckDefaultBrowserToEnableLauncher was called.
-  GlicLauncherConfiguration::SetCheckDefaultBrowserCallbackForTesting(
-      run_loop.QuitClosure());
-
-  EXPECT_EQ(0,
-            user_action_tester->GetActionCount("Glic.Onboarding.OptInAccept"));
-
-  ContinueJsTest();
-
-  ASSERT_TRUE(base::test::RunUntil([&] {
-    return GlicEnabling::HasConsentedForProfile(browser()->GetProfile());
-  }));
-
-  // Wait for the default browser check to be called.
-  run_loop.Run();
-  GlicLauncherConfiguration::SetCheckDefaultBrowserCallbackForTesting(
-      base::RepeatingClosure());
-
-  EXPECT_EQ(1,
-            user_action_tester->GetActionCount("Glic.Onboarding.OptInAccept"));
-
-  ContinueJsTest();
-}
-
 // TODO(crbug.com/435271214): Re-enable this test
 #if BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_CHROMEOS) || \
     (BUILDFLAG(IS_WIN) && defined(ADDRESS_SANITIZER))
@@ -1554,70 +1489,6 @@ IN_PROC_BROWSER_TEST_P(GlicApiTest,
 }
 
 
-IN_PROC_BROWSER_TEST_P(GlicApiTestWithOneTab,
-                       testGetContextFromTabFailDifferentlyBasedOnPermission) {
-  TODO_SKIP_BROKEN_MULTI_INSTANCE_TEST();
-  // For unfocused unpinned tabs, getTabContext call fail with different error
-  // messages based on context sharing permission state.
-  const int tab_id =
-      GetTabId(browser()->tab_strip_model()->GetActiveWebContents());
-  RunTestSequence(AddInstrumentedTab(kSecondTab, page_url()));
-
-  ExecuteJsTest({.params = base::Value(base::DictValue().Set(
-                     "tabId", base::NumberToString(tab_id)))});
-
-  // Two different permission errors should have been reported.
-  EXPECT_THAT(
-      histogram_tester->GetAllSamplesForPrefix(
-          "Glic.Api.GetContextFromTab.Error"),
-      UnorderedElementsAre(
-          Pair("Glic.Api.GetContextFromTab.Error.Text",
-               BucketsAre(
-                   Bucket(GlicGetContextFromTabError::
-                              kPermissionDeniedContextPermissionNotEnabled,
-                          1),
-                   Bucket(GlicGetContextFromTabError::kPermissionDenied, 1)))));
-}
-
-IN_PROC_BROWSER_TEST_P(GlicApiTestWithOneTab,
-                       testGetContextFromTabFailsIfNotPinned) {
-  TODO_SKIP_BROKEN_MULTI_INSTANCE_TEST();
-  TrackGlicInstanceWithId(GetGlicInstance()->id());
-  const int tab_id =
-      GetTabId(browser()->tab_strip_model()->GetActiveWebContents());
-  RunTestSequence(AddInstrumentedTab(kSecondTab, page_url()));
-
-  ExecuteJsTest({.params = base::Value(base::DictValue().Set(
-                     "tabId", base::NumberToString(tab_id)))});
-
-  // Should have one error logged for tab context permission not granted.
-  EXPECT_THAT(
-      histogram_tester->GetAllSamplesForPrefix(
-          "Glic.Api.GetContextFromTab.Error"),
-      UnorderedElementsAre(Pair(
-          "Glic.Api.GetContextFromTab.Error.Text",
-          BucketsAre(Bucket(GlicGetContextFromTabError::
-                                kPermissionDeniedContextPermissionNotEnabled,
-                            1)))));
-}
-
-// TODO(crbug.com/457020736): Flaky on multiple platforms.
-IN_PROC_BROWSER_TEST_P(GlicApiTestWithOneTab,
-                       DISABLED_testGetContextFromTabFailsIfDoesNotExist) {
-  ExecuteJsTest();
-
-  // TODO(b/450026474): Multi-instance fails the metrics check because the
-  // starting web client mode is not set.
-  SKIP_TEST_FOR_MULTI_INSTANCE();
-  // Should have one error logged for tab context permission not granted.
-  EXPECT_THAT(
-      histogram_tester->GetAllSamplesForPrefix(
-          "Glic.Api.GetContextFromTab.Error"),
-      UnorderedElementsAre(Pair(
-          "Glic.Api.GetContextFromTab.Error.Text",
-          BucketsAre(Bucket(GlicGetContextFromTabError::kTabNotFound, 1)))));
-}
-
 // TODO(crbug.com/441588906): Flaky on multiple platforms.
 IN_PROC_BROWSER_TEST_F(GlicApiTestWithOneTab,
                        DISABLED_testFetchInactiveTabScreenshot) {
@@ -2170,10 +2041,7 @@ INSTANTIATE_TEST_SUITE_P(,
                          GlicApiTestWithGeminiActOnWebPolicy,
                          DefaultTestParamSet(),
                          &WithTestParams::PrintTestVariant);
-INSTANTIATE_TEST_SUITE_P(,
-                         GlicOnboardingApiTest,
-                         DefaultTestParamSet(),
-                         &WithTestParams::PrintTestVariant);
+
 INSTANTIATE_TEST_SUITE_P(,
                          GlicApiTestWithDaisyChain,
                          DefaultTestParamSet(),

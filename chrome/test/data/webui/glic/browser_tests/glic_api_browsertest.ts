@@ -56,32 +56,6 @@ class ApiTests extends ApiTestFixtureBase {
     await this.advanceToNextStep();
   }
 
-  async testIsOnboardingCompleted() {
-    assertDefined(this.host.isOnboardingCompleted);
-    const completedSequence =
-        observeSequence(this.host.isOnboardingCompleted());
-    assertFalse(await completedSequence.next());
-
-    // Mark onboarding as completed.
-    await this.advanceToNextStep();
-
-    assertTrue(await completedSequence.next());
-  }
-
-  async testSetOnboardingCompleted() {
-    assertDefined(this.host.setOnboardingCompleted);
-
-    // Check that onboarding is not completed yet.
-    await this.advanceToNextStep();
-
-    // Call mojo to set onboarding completed.
-    await this.host.setOnboardingCompleted();
-
-    // Check that onboarding is completed.
-    await this.advanceToNextStep();
-  }
-
-
   async testGetFocusedTabStateV2WithNavigation() {
     // Initial state.
     assertDefined(this.host.getFocusedTabStateV2);
@@ -665,63 +639,6 @@ class ApiTests extends ApiTestFixtureBase {
         }));
   }
 
-
-  async testGetContextFromTabFailDifferentlyBasedOnPermission() {
-    assertDefined(this.host.getContextFromTab);
-    // For unfocused unpinned tabs, getTabContext call fail with different error
-    // messages based on Context sharing permission state.
-
-    const tabId: string = this.testParams.tabId;
-    // Make sure tabId is not the focused tab.
-    assertNotEquals(tabId, this.getFocusedTabId());
-
-    await this.host.setTabContextPermissionState(false);
-    await assertRejects(this.host.getContextFromTab(tabId, {}), {
-      withErrorMessage: 'tabContext failed: permission denied:' +
-          ' context permission not enabled',
-    });
-
-    await this.host.setTabContextPermissionState(true);
-    await assertRejects(this.host.getContextFromTab(tabId, {}), {
-      withErrorMessage: 'tabContext failed: permission denied',
-    });
-  }
-
-  async testGetContextFromTabFailsIfNotPinned() {
-    assertDefined(this.host.getContextFromTab);
-    assertDefined(this.host.pinTabs);
-    assertDefined(this.host.unpinTabs);
-    assertDefined(this.host.getPinnedTabs);
-
-    const tabId: string = this.testParams.tabId;
-    // Make sure tabId is not the focused tab.
-    assertNotEquals(tabId, this.getFocusedTabId());
-
-    await this.host.pinTabs([tabId]);
-    const pinnedTabsUpdates = observeSequence(this.host.getPinnedTabs());
-    pinnedTabsUpdates.waitFor(
-        (tabs) => tabs.length === 1 && tabs.at(0)?.tabId === tabId);
-
-    const result = await this.host.getContextFromTab(tabId, {});
-    assertDefined(result);
-    assertEquals(result.tabData.tabId, tabId);
-
-    await this.host.unpinTabs([tabId]);
-    pinnedTabsUpdates.waitFor((tabs) => tabs.length === 0);
-    await assertRejects(this.host.getContextFromTab(tabId, {}), {
-      withErrorMessage: 'tabContext failed: permission denied:' +
-          ' context permission not enabled',
-    });
-  }
-
-  async testGetContextFromTabFailsIfDoesNotExist() {
-    assertDefined(this.host.getContextFromTab);
-
-    await assertRejects(
-        this.host.getContextFromTab('not-exist', {}),
-        {withErrorMessage: 'tabContext failed: tab not found'},
-    );
-  }
 
   // Helper for `testFetchInactiveTabScreenshot` and
   // `testFetchInactiveTabScreenshotWhileMinimized`.
