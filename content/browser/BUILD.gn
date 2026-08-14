@@ -2853,6 +2853,8 @@ source_set("browser") {
         "media/capture/desktop_capture_device.h",
         "media/capture/mouse_cursor_overlay_controller.cc",
         "media/capture/mouse_cursor_overlay_controller.h",
+        "media/capture/screenshot_capture_request_impl.cc",
+        "media/capture/screenshot_capture_request_impl.h",
       ]
       public_deps += [ "//ui/base/cursor" ]
 
@@ -3612,6 +3614,7 @@ if (is_android) {
 group("for_content_tests") {
   visibility = [
     "//content/browser/btm:unit_tests",
+    "//content/browser/indexed_db:idb_factory_mojolpm_fuzzer",
     "//content/browser/indexed_db:unit_tests",
     "//content/public/test/android/*",
     "//content/test/*",
