@@ -2869,26 +2869,6 @@
             ]
         }
     ],
-    "AutofillAiUsePrivateAi": [
-        {
-            "platforms": [
-                "android",
-                "chromeos",
-                "ios",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "AutofillAiUsePrivateAi"
-                    ]
-                }
-            ]
-        }
-    ],
     "AutofillAiWalletPrivatePasses": [
         {
             "platforms": [
@@ -8653,8 +8633,7 @@
     "DelayNativePaymentAppScrimShow": [
         {
             "platforms": [
-                "android",
-                "android_webview"
+                "android"
             ],
             "experiments": [
                 {
@@ -19492,26 +19471,6 @@
                     "name": "Enabled",
                     "enable_features": [
                         "PaymentRequestRejectTooSmallWindows"
-                    ]
-                }
-            ]
-        }
-    ],
-    "PaymentRequestUseRendererUrlLoader": [
-        {
-            "platforms": [
-                "android",
-                "android_webview",
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "PaymentRequestUseRendererUrlLoader"
                     ]
                 }
             ]
