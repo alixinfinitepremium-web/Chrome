@@ -583,6 +583,23 @@ IN_PROC_BROWSER_TEST_P(NewGlicApiTestWithDefaultTabContextDisabled,
   ContinueJsTest();
 }
 
+IN_PROC_BROWSER_TEST_P(NewGlicApiTestWithDefaultTabContextDisabled,
+                       testPinTabsHaveNoEffectOnFocusedTab) {
+  tabs::TabInterface* first_tab = GetTabListInterface()->GetActiveTab();
+  const int first_tab_id = first_tab->GetHandle().raw_value();
+
+  tabs::TabInterface* second_tab = CreateAndActivateTab(
+      embedded_test_server()->GetURL("/browser_tests/test.html"));
+  const int second_tab_id = second_tab->GetHandle().raw_value();
+
+  ASSERT_OK(OpenGlicForActiveTab());
+
+  ExecuteJsTest({.params = base::Value(
+                     base::DictValue()
+                         .Set("tabId1", base::NumberToString(first_tab_id))
+                         .Set("tabId2", base::NumberToString(second_tab_id)))});
+}
+
 #if defined(NOT_VETTED_ON_ANDROID)
 #define MAYBE_testAttachPanel DISABLED_testAttachPanel
 #else
@@ -1427,14 +1444,25 @@ IN_PROC_BROWSER_TEST_P(NewGlicApiTest,
 }
 
 IN_PROC_BROWSER_TEST_P(NewGlicApiTest, testUnpinTabsFailsWhenNotPinned) {
-  ASSERT_OK(OpenGlicForActiveTab());
+  ASSERT_OK_AND_ASSIGN(auto* instance, OpenGlicForActiveTab());
   // Open second tab in background.
   tabs::TabInterface* second_tab = CreateBackgroundTab(
       embedded_test_server()->GetURL("/browser_tests/test.html"));
+  instance->GetSharingManager()->PinTabs({second_tab->GetHandle()});
   const int tab_id = second_tab->GetHandle().raw_value();
 
   ExecuteJsTest({.params = base::Value(base::DictValue().Set(
                      "tabId", base::NumberToString(tab_id)))});
+}
+
+IN_PROC_BROWSER_TEST_P(NewGlicApiTest, testUnpinAllTabs) {
+  ASSERT_OK_AND_ASSIGN(auto* instance, OpenGlicForActiveTab());
+  // Open second tab in background.
+  tabs::TabInterface* second_tab = CreateBackgroundTab(
+      embedded_test_server()->GetURL("/browser_tests/test.html"));
+  instance->GetSharingManager()->PinTabs({second_tab->GetHandle()});
+
+  ExecuteJsTest();
 }
 
 #if !BUILDFLAG(IS_ANDROID)
@@ -1579,7 +1607,8 @@ IN_PROC_BROWSER_TEST_P(
 }
 
 #if BUILDFLAG(IS_ANDROID)
-// TODO(crbug.com/533085229): Re-enable on Android once close flakiness is fixed.
+// TODO(crbug.com/533085229): Re-enable on Android once close flakiness is
+// fixed.
 #define MAYBE_testNoZssWarmingStateMachine DISABLED_testNoZssWarmingStateMachine
 #else
 #define MAYBE_testNoZssWarmingStateMachine testNoZssWarmingStateMachine
@@ -2480,11 +2509,10 @@ IN_PROC_BROWSER_TEST_P(NewGlicApiTest, testInitializeFails) {
       histogram_tester.GetAllSamplesForPrefix("Glic.Fre.PanelWebUiState"),
       UnorderedElementsAre(
           Pair("Glic.Fre.PanelWebUiState",
-               BucketsAre(Bucket(1 /*kBeginLoad*/, 1),
-                          Bucket(2 /*kShowLoading*/, 1),
-                          Bucket(4 /*kFinishLoading*/, 1),
-                          Bucket(5 /*kError*/, 1),
-                          Bucket(13 /*kGuestError*/, 1))),
+               BucketsAre(
+                   Bucket(1 /*kBeginLoad*/, 1), Bucket(2 /*kShowLoading*/, 1),
+                   Bucket(4 /*kFinishLoading*/, 1), Bucket(5 /*kError*/, 1),
+                   Bucket(13 /*kGuestError*/, 1))),
           Pair("Glic.Fre.PanelWebUiState.Error",
                BucketsAre(Bucket(6 /*CLIENT_ERROR*/, 1)))));
 
@@ -2814,9 +2842,8 @@ IN_PROC_BROWSER_TEST_P(NewGlicApiTest, testProcessCounterAbuseVerdict) {
       static_cast<int>(glic::mojom::SbThreatType::kSocialEngineering), 1);
 }
 
-IN_PROC_BROWSER_TEST_P(
-    NewGlicApiTest,
-    testProcessCounterAbuseVerdictWhenSafeBrowsingDisabled) {
+IN_PROC_BROWSER_TEST_P(NewGlicApiTest,
+                       testProcessCounterAbuseVerdictWhenSafeBrowsingDisabled) {
   glic::GlicHistogramTester histogram_tester;
   GetBrowser()->GetProfile()->GetPrefs()->SetBoolean(
       ::prefs::kSafeBrowsingEnabled, false);

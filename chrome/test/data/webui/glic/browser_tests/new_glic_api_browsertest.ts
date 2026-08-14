@@ -183,10 +183,7 @@ class ApiTests extends ApiTestFixtureBase {
     assertDefined(this.host.getPinnedTabs);
     assertDefined(this.host.unpinTabs);
 
-    const tabId = (this.testParams as any).tabId;
-    const tabId2 = this.getActiveTabId();
-    // Pin both tabs.
-    assertTrue(await this.host.pinTabs([tabId]));
+    const tabId = this.testParams.tabId;
 
     const pinnedTabsUpdates = observeSequence(this.host.getPinnedTabs());
     await pinnedTabsUpdates.waitFor((tabs) => tabs.length === 2);
@@ -196,7 +193,57 @@ class ApiTests extends ApiTestFixtureBase {
     await pinnedTabsUpdates.waitFor((tabs) => tabs.length === 1);
 
     // Unpinning a tab that is not pinned should fail.
-    assertFalse(await this.host.unpinTabs([tabId, tabId2]));
+    assertFalse(await this.host.unpinTabs([tabId]));
+  }
+
+  async testUnpinAllTabs() {
+    assertDefined(this.host.getPinnedTabs);
+    assertDefined(this.host.unpinAllTabs);
+
+    const pinnedTabsUpdates = observeSequence(this.host.getPinnedTabs());
+    await pinnedTabsUpdates.waitFor((tabs) => tabs.length === 2);
+
+    // Unpin all tabs.
+    this.host.unpinAllTabs();
+    await pinnedTabsUpdates.waitFor((tabs) => tabs.length === 0);
+  }
+
+  async testPinTabsHaveNoEffectOnFocusedTab() {
+    assertDefined(this.host.pinTabs);
+    assertDefined(this.host.unpinAllTabs);
+
+    const tabId1 = (this.testParams as any).tabId1;
+    const tabId2 = (this.testParams as any).tabId2;
+
+    assertDefined(this.host.getPinnedTabs);
+    assertDefined(this.host.getFocusedTabStateV2);
+    assertDefined(this.host.setTabContextPermissionState);
+
+    const pinnedTabsUpdates = observeSequence(this.host.getPinnedTabs!());
+    // Initially, only the active tab (tabId2) is auto-pinned.
+    await pinnedTabsUpdates.waitFor((tabs) => tabs.length === 1);
+
+    // Focused tab should be tabId2, which is active and pinned.
+    const focusedTabUpdates =
+        observeSequence(this.host.getFocusedTabStateV2!());
+    await focusedTabUpdates.waitFor(
+        (focus) => focus?.hasFocus?.tabData.tabId === tabId2);
+
+    await this.host.setTabContextPermissionState(true);
+
+    // Pin first tab (tabId1) which is in the background.
+    assertTrue(await this.host.pinTabs([tabId1]));
+    await pinnedTabsUpdates.waitFor((tabs) => tabs.length === 2);
+
+    // Focused tab should still be tabId2.
+    assertEquals(
+        this.host.getFocusedTabStateV2!
+        ().getCurrentValue()
+            ?.hasFocus?.tabData.tabId,
+        tabId2);
+
+    // Unpin all.
+    await this.host.unpinAllTabs();
     await pinnedTabsUpdates.waitFor((tabs) => tabs.length === 0);
   }
 

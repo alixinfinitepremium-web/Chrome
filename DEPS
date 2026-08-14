@@ -341,7 +341,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': 'a8016d8b043e23937c582b7a76c23eecc75c9c53',
+  'v8_revision': 'e08763bb9296dbedf042c86df6dc007e1c9eb811',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -361,7 +361,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
-  'fuchsia_version': 'version:33.20260807.3.1',
+  'fuchsia_version': 'version:33.20260814.3.1',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling googletest
   # and whatever else without interference from each other.
@@ -545,7 +545,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
-  'compiler_rt_revision': '6c2fdc89a3580fc75aed2b7d12c9534e00b7a707',
+  'compiler_rt_revision': 'b86fdb4266bfe98e40947e22e8687aac772213df',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling clusterfuzz-data
   # and whatever else without interference from each other.
@@ -2156,7 +2156,7 @@ deps = {
   # Tools used when building Chrome for Chrome OS. This affects both the Simple
   # Chrome workflow, as well as the chromeos-chrome ebuild.
   'src/third_party/chromite': {
-      'url': Var('chromium_git') + '/chromiumos/chromite.git' + '@' + 'eefea5931e7bf552dae1cff090e33ef31016ab1f',
+      'url': Var('chromium_git') + '/chromiumos/chromite.git' + '@' + '0ffb5f53b62b5d9c7c3ca0ce7aa44e5ba14dcf5b',
       'condition': 'checkout_chromeos',
   },
 
@@ -2200,7 +2200,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '6d035ce6b1ea030ea03bf92ee3aa1fd03145ad2b',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '05def587c878f290f3ad580879f2d08ab51e0f59',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '17a56409b86d0da5e01ca38f6498e13b2db16bc3',
@@ -3375,7 +3375,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/help_app/app',
-        'version': 'GcdiUsSARJFIky0Fsz6MaS27Ez1StTzohGa7M66oYesC',
+        'version': 'pc1cGR4vlO_pfrdvxVKgEvgnShZ0Q1YTS7c0-MqF9c0C',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3760,7 +3760,7 @@ deps = {
 
   'src/chrome/browser/glic/e2e_test/internal': {
       'url': Var('chrome_git') + '/chrome/browser/glic/test/internal.git' + '@' +
-        '6d3bcdef824af8facf4e7c412e3c89269630d786',
+        '9a2bfdf14b4def0d12e28bca05f6d491c4287b20',
       'condition': 'checkout_glic_e2e_tests',
   },
 
