@@ -25,6 +25,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import org.chromium.base.Callback;
+import org.chromium.base.CallbackUtils;
 import org.chromium.base.ResettersForTesting;
 import org.chromium.base.Token;
 import org.chromium.base.metrics.RecordUserAction;
@@ -524,6 +525,13 @@ public class VerticalTabListCoordinator {
                         .with(
                                 VerticalTabListProperties.ON_NEW_TAB_CLICK_LISTENER,
                                 v -> handleNewTabButtonClick())
+                        // TODO(crbug.com/537032526): Wire ON_INCOGNITO_CLICK_LISTENER to handle
+                        // incognito tab creation.
+                        .with(
+                                VerticalTabListProperties.IS_INCOGNITO_BUTTON_VISIBLE,
+                                VerticalTabUtils.isIncognitoButtonEnabled()
+                                        && !IncognitoUtils.shouldOpenIncognitoAsWindow()
+                                        && IncognitoUtils.isIncognitoModeEnabled(profile))
                         .with(
                                 VerticalTabListProperties.ON_COLLAPSE_CLICK_LISTENER,
                                 v -> mCollapseController.toggleCollapseState())
@@ -562,7 +570,7 @@ public class VerticalTabListCoordinator {
                         /* snackbarManager */ null,
                         TabListEditorCoordinator.UNLIMITED_SELECTION,
                         /* isSingleContextMode */ false,
-                        /* onDragStateChangedListener */ () -> {});
+                        /* onDragStateChangedListener */ CallbackUtils.emptyRunnable());
 
         mMediator.initWithNative(profile.getOriginalProfile());
 
