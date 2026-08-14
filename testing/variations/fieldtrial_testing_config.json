@@ -2869,6 +2869,26 @@
             ]
         }
     ],
+    "AutofillAiUsePrivateAi": [
+        {
+            "platforms": [
+                "android",
+                "chromeos",
+                "ios",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "AutofillAiUsePrivateAi"
+                    ]
+                }
+            ]
+        }
+    ],
     "AutofillAiWalletPrivatePasses": [
         {
             "platforms": [
@@ -9252,21 +9272,6 @@
                     "enable_features": [
                         "DeviceBoundSessionsForRestrictedSites",
                         "EnableOAuthMultiloginStandardCookiesBinding"
-                    ]
-                }
-            ]
-        }
-    ],
-    "DeviceBoundSessionsForSecondaryPartitions": [
-        {
-            "platforms": [
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled_20260430",
-                    "enable_features": [
-                        "EnableOAuthMultiloginStandardCookiesBindingForSecondaryPartitions"
                     ]
                 }
             ]
