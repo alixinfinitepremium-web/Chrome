@@ -583,36 +583,6 @@ class ApiTests extends ApiTestFixtureBase {
     return tabId;
   }
 
-  // Tests that tabs which navigate are unpinned if the glic window is closed.
-  async testUnpinTabsThatNavigateInBackground() {
-    assertDefined(this.host.getPinCandidates);
-    assertDefined(this.host.pinTabs);
-    assertDefined(this.host.getPinnedTabs);
-    assertDefined(this.host.closePanel);
-
-    // Pin all tabs.
-    const pinnedTabsUpdates = observeSequence(this.host.getPinnedTabs());
-    const candidates = await observeSequence(this.host.getPinCandidates({
-                         maxCandidates: 3,
-                       })).next();
-    assertEquals(candidates.length, 2);
-    assertTrue(await this.host.pinTabs(candidates.map(c => c.tabData.tabId)));
-    await pinnedTabsUpdates.waitFor((tabs) => tabs.length === 2);
-
-    await this.host.closePanel();
-
-    // Open glic window again.
-    await this.advanceToNextStep();
-
-    // Wait for pin updates. We should see one fewer pinned tab, and one
-    // navigated tab.
-    // Note: pinned tab updates will see the navigation just before the tab is
-    // unpinned.
-    await pinnedTabsUpdates.waitFor(
-        tabs => tabs.map(t => new URL(t.url).search).sort().join(',') ===
-            '?changedOne');
-  }
-
   async testTabDataUpdateOnUrlChangeForPinnedTab() {
     assertDefined(this.host.getPinnedTabs);
     assertDefined(this.host.pinTabs);
@@ -695,31 +665,6 @@ class ApiTests extends ApiTestFixtureBase {
         }));
   }
 
-  async testGetContextFromTabIgnorePermissionWhenPinned() {
-    assertDefined(this.host.getContextFromTab);
-    assertDefined(this.host.pinTabs);
-    assertDefined(this.host.getPinnedTabs);
-    assertDefined(this.host.unpinTabs);
-
-    // Fail getContextFromTab due to no tab context permission not granted.
-    await this.host.setTabContextPermissionState(false);
-    const tabId: string = this.getFocusedTabId();
-    await this.host.unpinTabs([tabId]);  // Unpin required for multi-instance.
-    await assertRejects(this.host.getContextFromTab(tabId, {}), {
-      withErrorMessage: 'tabContext failed: permission denied:' +
-          ' context permission not enabled',
-    });
-
-    // Pinning the tab should allow ignoring the tab context permission.
-    await this.host.pinTabs([tabId]);
-    const pinnedTabsUpdates = observeSequence(this.host.getPinnedTabs());
-    pinnedTabsUpdates.waitFor(
-        (tabs) => tabs.length === 1 && tabs.some((t) => t.tabId === tabId));
-
-    const result = await this.host.getContextFromTab(tabId, {});
-    assertDefined(result);
-    assertEquals(result.tabData.tabId, tabId);
-  }
 
   async testGetContextFromTabFailDifferentlyBasedOnPermission() {
     assertDefined(this.host.getContextFromTab);

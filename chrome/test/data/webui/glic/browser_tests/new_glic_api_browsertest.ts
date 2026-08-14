@@ -247,6 +247,58 @@ class ApiTests extends ApiTestFixtureBase {
     await pinnedTabsUpdates.waitFor((tabs) => tabs.length === 0);
   }
 
+  async testUnpinTabsThatNavigateInBackground() {
+    assertDefined(this.host.pinTabs);
+    assertDefined(this.host.getPinnedTabs);
+    assertDefined(this.host.closePanel);
+
+    const tabId = (this.testParams as any).tabId;
+    // Pin first_tab (background tab).
+    assertTrue(await this.host.pinTabs([tabId]));
+
+    const pinnedTabsUpdates = observeSequence(this.host.getPinnedTabs!());
+    await pinnedTabsUpdates.waitFor((tabs) => tabs.length === 2);
+
+    // Wait for the background tab to navigate. It should stay pinned.
+    await this.advanceToNextStep();
+
+    assertEquals(this.host.getPinnedTabs!().getCurrentValue()?.length, 2);
+
+    // Close the panel.
+    await this.host.closePanel();
+
+    // The background tab will navigate again. It should be unpinned.
+    await this.advanceToNextStep();
+
+    await pinnedTabsUpdates.waitFor((tabs) => tabs.length === 1);
+  }
+
+  async testGetContextFromTabIgnorePermissionWhenPinned() {
+    assertDefined(this.host.getContextFromTab);
+    assertDefined(this.host.pinTabs);
+    assertDefined(this.host.getPinnedTabs);
+    assertDefined(this.host.unpinTabs);
+
+    // Fail getContextFromTab due to no tab context permission not granted.
+    await this.host.setTabContextPermissionState(false);
+    const tabId: string = this.getFocusedTabId();
+    await this.host.unpinTabs([tabId]);  // Unpin required for multi-instance.
+    await assertRejects(this.host.getContextFromTab(tabId, {}), {
+      withErrorMessage: 'tabContext failed: permission denied:' +
+          ' context permission not enabled',
+    });
+
+    // Pinning the tab should allow ignoring the tab context permission.
+    await this.host.pinTabs([tabId]);
+    const pinnedTabsUpdates = observeSequence(this.host.getPinnedTabs());
+    await pinnedTabsUpdates.waitFor(
+        (tabs) => tabs.length === 1 && tabs.some((t) => t.tabId === tabId));
+
+    const result = await this.host.getContextFromTab(tabId, {});
+    assertDefined(result);
+    assertEquals(result.tabData.tabId, tabId);
+  }
+
   async testPinTabsFailsWhenIncognitoWindow() {
     assertDefined(this.host.pinTabs);
     assertDefined(this.host.getPinnedTabs);

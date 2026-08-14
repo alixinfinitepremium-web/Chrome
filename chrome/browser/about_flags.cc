@@ -1075,7 +1075,7 @@ const FeatureEntry::FeatureParam
         {"Omnibox_AskGLensIcon", "true"},
         {"Omnibox_AskGLensSearchHintText", "true"},
         {"Omnibox_AskGComposeboxLensChip", "false"},
-        {"Omnibox_AskGBlockZeroStateSuggestions", "false"},
+        {"Omnibox_AskGBlockAutoTabZeroStateSuggestions", "false"},
         {"Omnibox_AskGShowFirstDescription", "false"}};
 const FeatureEntry::FeatureParam
     kWebUiOmniboxAskGAboutThisPageCobrowsePlusVisualSelection[] = {
@@ -1089,7 +1089,7 @@ const FeatureEntry::FeatureParam
         {"Omnibox_AskGLensIcon", "false"},
         {"Omnibox_AskGLensSearchHintText", "true"},
         {"Omnibox_AskGComposeboxLensChip", "false"},
-        {"Omnibox_AskGBlockZeroStateSuggestions", "false"},
+        {"Omnibox_AskGBlockAutoTabZeroStateSuggestions", "false"},
         {"Omnibox_AskGShowFirstDescription", "false"}};
 const FeatureEntry::FeatureParam
     kWebUiOmniboxAskGAboutThisPageOmniboxComposebox[] = {
@@ -1103,7 +1103,7 @@ const FeatureEntry::FeatureParam
         {"Omnibox_AskGLensIcon", "false"},
         {"Omnibox_AskGLensSearchHintText", "true"},
         {"Omnibox_AskGComposeboxLensChip", "true"},
-        {"Omnibox_AskGBlockZeroStateSuggestions", "true"},
+        {"Omnibox_AskGBlockAutoTabZeroStateSuggestions", "true"},
         {"Omnibox_AskGShowFirstDescription", "false"}};
 const FeatureEntry::FeatureParam
     kWebUiOmniboxAskGAboutThisPageOmniboxComposeboxAndLensEntrypoint[] = {
@@ -1117,7 +1117,7 @@ const FeatureEntry::FeatureParam
         {"Omnibox_AskGLensIcon", "true"},
         {"Omnibox_AskGLensSearchHintText", "true"},
         {"Omnibox_AskGComposeboxLensChip", "false"},
-        {"Omnibox_AskGBlockZeroStateSuggestions", "true"},
+        {"Omnibox_AskGBlockAutoTabZeroStateSuggestions", "true"},
         {"Omnibox_AskGShowFirstDescription", "false"}};
 const FeatureEntry::FeatureParam
     kWebUiOmniboxAskGAboutThisPageOmniboxChipComposeboxAndLensEntrypoint[] = {
@@ -1131,7 +1131,7 @@ const FeatureEntry::FeatureParam
         {"Omnibox_AskGLensIcon", "true"},
         {"Omnibox_AskGLensSearchHintText", "true"},
         {"Omnibox_AskGComposeboxLensChip", "false"},
-        {"Omnibox_AskGBlockZeroStateSuggestions", "true"},
+        {"Omnibox_AskGBlockAutoTabZeroStateSuggestions", "true"},
         {"Omnibox_AskGShowFirstDescription", "true"}};
 
 const FeatureEntry::FeatureVariation
@@ -4902,6 +4902,9 @@ const FeatureEntry::FeatureVariation kAutofillAiWalletPassBranding2026Variations
 // enums.xml and don't forget to run AboutFlagsHistogramTest unit test to
 // calculate and verify checksum.
 //
+constexpr char kEnterpriseIsolatedModeInternalName[] =
+    "force-enterprise-isolated-mode";
+
 // When adding a new choice, add it to the end of the list.
 const FeatureEntry kFeatureEntries[] = {
 // Include generated flags for flag unexpiry; see //docs/flag_expiry.md and
@@ -5637,7 +5640,7 @@ const FeatureEntry kFeatureEntries[] = {
      SINGLE_VALUE_TYPE(switches::kSitePerProcess)},
 #endif
 
-    {"force-enterprise-isolated-mode-replaces-incognito",
+    {kEnterpriseIsolatedModeInternalName,
      flag_descriptions::kEnterpriseIsolatedModeName,
      flag_descriptions::kEnterpriseIsolatedModeDescription, kOsAll,
      SINGLE_VALUE_TYPE(enterprise_isolated_mode::switches::
@@ -6849,7 +6852,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kOmniboxFuseboxAsyncInflationName,
      flag_descriptions::kOmniboxFuseboxAsyncInflationDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(omnibox::kOmniboxFuseboxAsyncInflation)},
-
 
     {"omnibox-multimodal-input", flag_descriptions::kOmniboxMultimodalInputName,
      flag_descriptions::kOmniboxMultimodalInputDescription, kOsAndroid,
@@ -13796,6 +13798,12 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kCriticalActionHistoryDescription, kOsDesktop,
      FEATURE_VALUE_TYPE(critical_actions::features::kCriticalActionHistory)},
 
+    {"autofill-enable-wallet-direct-offers",
+     flag_descriptions::kAutofillEnableWalletDirectOffersName,
+     flag_descriptions::kAutofillEnableWalletDirectOffersDescription,
+     kOsDesktop,
+     FEATURE_VALUE_TYPE(autofill::features::kAutofillEnableWalletDirectOffers)},
+
     // Add new entries above this line.
     // NOTE: Adding a new flag requires adding a corresponding entry to enum
     // "LoginCustomFlags" in tools/metrics/histograms/enums.xml. See "Flag
@@ -14021,6 +14029,13 @@ bool ShouldSkipConditionalFeatureEntry(const flags_ui::FlagsStorage* storage,
            form_factor != ui::DEVICE_FORM_FACTOR_TABLET;
   }
 #endif  // BUILDFLAG(IS_ANDROID)
+  if (std::string_view(kEnterpriseIsolatedModeInternalName) ==
+      entry.internal_name) {
+    return channel != version_info::Channel::BETA &&
+           channel != version_info::Channel::DEV &&
+           channel != version_info::Channel::CANARY &&
+           channel != version_info::Channel::UNKNOWN;
+  }
 
   if (flags::IsFlagExpired(storage, entry.internal_name)) {
     return true;

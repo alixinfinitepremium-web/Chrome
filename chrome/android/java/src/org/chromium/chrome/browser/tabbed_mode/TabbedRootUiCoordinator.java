@@ -247,14 +247,10 @@ import org.chromium.chrome.browser.ui.edge_to_edge.TopInsetProvider;
 import org.chromium.chrome.browser.ui.enterprise_signals_disclaimer.EnterpriseSignalsDisclaimerController;
 import org.chromium.chrome.browser.ui.messages.snackbar.SnackbarManager;
 import org.chromium.chrome.browser.ui.side_panel.AndroidSidePanelEnabledFn;
-import org.chromium.chrome.browser.ui.side_panel.SidePanelCoordinatorAndroid;
-import org.chromium.chrome.browser.ui.side_panel.SidePanelCoordinatorAndroidFactory;
-import org.chromium.chrome.browser.ui.side_panel.SidePanelRegistryBridgeFactory;
-import org.chromium.chrome.browser.ui.side_panel.WindowScopedSidePanelRegistryBridge;
-import org.chromium.chrome.browser.ui.side_panel_container.SidePanelContainerCoordinator;
-import org.chromium.chrome.browser.ui.side_panel_container.SidePanelContainerCoordinatorFactory;
-import org.chromium.chrome.browser.ui.side_panel_container.dev.SidePanelDevFeature;
-import org.chromium.chrome.browser.ui.side_panel_container.dev.SidePanelDevFeatureFactory;
+import org.chromium.chrome.browser.ui.side_panel.SidePanelContainerCoordinator;
+import org.chromium.chrome.browser.ui.side_panel.SidePanelContainerCoordinatorFactory;
+import org.chromium.chrome.browser.ui.side_panel.dev.SidePanelDevFeature;
+import org.chromium.chrome.browser.ui.side_panel.dev.SidePanelDevFeatureFactory;
 import org.chromium.chrome.browser.ui.side_ui.SideUiCoordinator;
 import org.chromium.chrome.browser.ui.side_ui.SideUiCoordinatorFactory;
 import org.chromium.chrome.browser.ui.side_ui.SideUiStateProvider;
@@ -266,6 +262,7 @@ import org.chromium.chrome.browser.ui.vertical_tabs.VerticalTabUtils;
 import org.chromium.chrome.browser.user_education.UserEducationUtils;
 import org.chromium.chrome.browser.user_education.UserEducationUtils.OptionalPromoType;
 import org.chromium.chrome.browser.webapps.PwaRestorePromoUtils;
+import org.chromium.components.bookmarks.BookmarkBarVisibilityState;
 import org.chromium.components.browser_ui.accessibility.PageZoomUtils;
 import org.chromium.components.browser_ui.bottomsheet.EmptyBottomSheetObserver;
 import org.chromium.components.browser_ui.widget.CoordinatorLayoutForPointer;
@@ -430,6 +427,7 @@ public class TabbedRootUiCoordinator extends RootUiCoordinator {
                 var swipeHandler = SwipeRefreshHandler.from(mTab);
                 swipeHandler.setNavigationCoordinator(null);
                 swipeHandler.setBottomOverscrollHandler(null);
+                swipeHandler.setSideUiStateProvider(null);
             }
             mTab = tab;
 
@@ -440,8 +438,17 @@ public class TabbedRootUiCoordinator extends RootUiCoordinator {
                     swipeHandler.setBottomOverscrollHandler(
                             new BottomOverscrollHandler(mBrowserControlsManager));
                 }
+                if (mSideUiStateProviderSupplier.get() != null) {
+                    swipeHandler.setSideUiStateProvider(mSideUiStateProviderSupplier.get());
+                }
             }
             setActivityTitle(tab, /* isHub= */ false);
+        }
+
+        private void setSideUiStateProvider(SideUiStateProvider provider) {
+            if (mTab != null && !mTab.isDestroyed()) {
+                SwipeRefreshHandler.from(mTab).setSideUiStateProvider(provider);
+            }
         }
 
         @Override
@@ -1309,6 +1316,14 @@ public class TabbedRootUiCoordinator extends RootUiCoordinator {
                         @Override
                         public void onVisibilityChanged(boolean visibility) {
                             updateBookmarkBarIfNecessary(visibility);
+                        }
+
+                        @Override
+                        public void onVisibilityChanged_TriState(
+                                @BookmarkBarVisibilityState int visibilityState) {
+                            // TODO(crbug.com/542276874): Add proper NTP treatment here.
+                            updateBookmarkBarIfNecessary(
+                                    visibilityState == BookmarkBarVisibilityState.ALWAYS_SHOW);
                         }
                     };
             mBookmarkBarVisibilityProvider.addObserver(mBookmarkBarVisibilityObserver);
@@ -2275,44 +2290,12 @@ public class TabbedRootUiCoordinator extends RootUiCoordinator {
         mSidePanelContainerCoordinator =
                 SidePanelContainerCoordinatorFactory.create(mActivity, mSideUiCoordinator);
         if (mSidePanelContainerCoordinator != null) {
-            // Initialize SidePanelCoordinatorAndroid and a window-scoped SidePanelRegistry, and
-            // associate them with a ChromeAndroidTask.
-            // This will allow SidePanelCoordinatorAndroid and SidePanelRegistry to access the
-            // native BrowserWindowInterface and ensure the lifecycle and destruction order for both
-            // are correct.
-            //
-            // Note:
-            //
-            // (1) ChromeAndroidTask should be non-null here as ChromeAndroidTask is initialized
-            // immediately after native initialization, along with TabModel;
-            //
-            // (2) The lifecycles of SidePanelCoordinatorAndroid and the window-scoped
-            // SidePanelRegistry are in sync with a native BrowserWindowInterface, but
-            // SidePanelCoordinatorAndroid doesn't own the SidePanelRegistry, or vice versa. This
-            // matches the WML implementation.
             var chromeAndroidTask = mChromeAndroidTaskSupplier.get();
             assert chromeAndroidTask != null
                     : "ChromeAndroidTask shouldn't be null when side panel is enabled";
 
-            var sidePanelCoordinatorAndroid =
-                    (SidePanelCoordinatorAndroid)
-                            chromeAndroidTask.addFeature(
-                                    new ChromeAndroidTaskFeatureKey(
-                                            SidePanelCoordinatorAndroid.class,
-                                            currentlySelectedProfile,
-                                            mWindowAndroid),
-                                    () ->
-                                            SidePanelCoordinatorAndroidFactory.create(
-                                                    mSidePanelContainerCoordinator));
-            assert sidePanelCoordinatorAndroid != null
-                    : "SidePanelCoordinatorAndroid shouldn't be null when side panel is enabled";
-
-            chromeAndroidTask.addFeature(
-                    new ChromeAndroidTaskFeatureKey(
-                            WindowScopedSidePanelRegistryBridge.class,
-                            currentlySelectedProfile,
-                            mWindowAndroid),
-                    SidePanelRegistryBridgeFactory::createWindowScopedBridge);
+            mSidePanelContainerCoordinator.init(
+                    chromeAndroidTask, currentlySelectedProfile, mWindowAndroid);
 
             // TODO(crbug.com/489548570): Remove SidePanelDevFeature when it's not needed.
             mSidePanelDevFeature =
@@ -2321,8 +2304,6 @@ public class TabbedRootUiCoordinator extends RootUiCoordinator {
                             currentlySelectedProfile,
                             mWindowAndroid,
                             mActivityTabProvider);
-
-            mSidePanelContainerCoordinator.init(sidePanelCoordinatorAndroid);
         }
 
         if (VerticalTabUtils.isVerticalTabsEligible(mActivity)) {
@@ -2364,6 +2345,8 @@ public class TabbedRootUiCoordinator extends RootUiCoordinator {
                 provider ->
                         assumeNonNull(mHistoryNavigationCoordinator)
                                 .setSideUiStateProvider(provider));
+        mSideUiStateProviderSupplier.onAvailable(
+                provider -> mRootUiTabObserver.setSideUiStateProvider(provider));
         mSideUiStateProviderSupplier.set(mSideUiCoordinator);
         if (mTopControlsLockCoordinator != null) {
             mTopControlsLockCoordinator.setSideUiStateProvider(mSideUiCoordinator);
@@ -2918,8 +2901,32 @@ public class TabbedRootUiCoordinator extends RootUiCoordinator {
             return true;
         } else if (id == R.id.toggle_bookmark_bar) {
             if (BookmarkBarUtils.isActivityStateBookmarkBarCompatible(mActivity)) {
-                BookmarkBarUtils.toggleShowBookmarksBar(
-                        mProfileSupplier.asNonNull().get(), /* fromKeyboardShortcut= */ true);
+                // When the tri-state feature flag is not enabled, we use the v1 simple boolean.
+                if (!ChromeFeatureList.isEnabled(ChromeFeatureList.BOOKMARKS_BAR_NTP)) {
+                    BookmarkBarUtils.toggleShowBookmarksBar(
+                            mProfileSupplier.asNonNull().get(), /* fromKeyboardShortcut= */ true);
+                    return true;
+                }
+
+                // We will only switch back and forth between ALWAYS_SHOW and ALWAYS_HIDE, there is
+                // no keyboard shortcut to go to ONLY_SHOW_ON_NTP, but if already in that state, the
+                // user will be put into the ALWAYS_SHOW state.
+                @BookmarkBarVisibilityState
+                int currentState =
+                        BookmarkBarUtils.getBookmarkBarVisibilityState(
+                                mActivity,
+                                mProfileSupplier.asNonNull().get(),
+                                mXrSpaceModeObservableSupplier.get());
+                @BookmarkBarVisibilityState
+                int newState =
+                        currentState == BookmarkBarVisibilityState.ALWAYS_SHOW
+                                ? BookmarkBarVisibilityState.ALWAYS_HIDE
+                                : BookmarkBarVisibilityState.ALWAYS_SHOW;
+
+                BookmarkBarUtils.setBookmarkBarVisibilityState(
+                        mProfileSupplier.asNonNull().get(),
+                        newState,
+                        /* fromKeyboardShortcut= */ true);
                 return true;
             }
         } else if (id == R.id.bookmark_bar_state_always_show_menu_id) {
