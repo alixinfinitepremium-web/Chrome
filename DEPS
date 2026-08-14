@@ -381,7 +381,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling HarfBuzz
   # and whatever else without interference from each other.
-  'harfbuzz_revision': '28f4dc622fef010dab12f4275ac195b5d4a4a704',
+  'harfbuzz_revision': '7a2a501c2e3a5c23419bb797f2c5c34d0dedb0c4',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Emoji Segmenter
   # and whatever else without interference from each other.
@@ -564,7 +564,7 @@ vars = {
   'libcxx_revision':       '97b436da4c33663581d394f4ee0a5977fc38c2f4',
 
   # GN CIPD package version.
-  'gn_version': 'git_revision:d5594ca84e69ea33223e41b49ac2736b27feae33',
+  'gn_version': 'git_revision:0db00fc0fb75adf816104951b415769a087144c1',
 
   # ninja CIPD package.
   'ninja_package': 'infra/3pp/tools/ninja/',
@@ -2188,7 +2188,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '7c069bc38add739dfae8e089157001ba01357133',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '8906f98462ad0a0d8250236059e23fe6d27c7318',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
