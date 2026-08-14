@@ -22356,6 +22356,21 @@
             ]
         }
     ],
+    "ScrollJankV4MetricReportAndroidAppJankStats": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "ScrollJankV4MetricReportAndroidAppJankStats"
+                    ]
+                }
+            ]
+        }
+    ],
     "SeaPenUseExptTemplate": [
         {
             "platforms": [
@@ -24507,6 +24522,25 @@
                     },
                     "enable_features": [
                         "ThreadPoolForegroundBlockingTimeouts"
+                    ]
+                }
+            ]
+        }
+    ],
+    "ThrottleConsecutiveNoDamageMainFrames": [
+        {
+            "platforms": [
+                "android",
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled_20260813",
+                    "enable_features": [
+                        "ThrottleRepeatedNoDamageFrames"
                     ]
                 }
             ]
@@ -27244,6 +27278,7 @@
     "WebUIReloadButtonStudy": [
         {
             "platforms": [
+                "chromeos",
                 "linux",
                 "mac",
                 "windows"

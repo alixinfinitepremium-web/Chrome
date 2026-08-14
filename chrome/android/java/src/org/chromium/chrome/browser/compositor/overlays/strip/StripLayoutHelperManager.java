@@ -45,7 +45,6 @@ import org.chromium.build.annotations.MonotonicNonNull;
 import org.chromium.build.annotations.NullMarked;
 import org.chromium.build.annotations.Nullable;
 import org.chromium.chrome.R;
-import org.chromium.chrome.browser.actor.ui.ActorUiTabController;
 import org.chromium.chrome.browser.back_press.BackPressManager;
 import org.chromium.chrome.browser.bookmarks.TabBookmarker;
 import org.chromium.chrome.browser.browser_controls.BrowserControlsOffsetTagsInfo;
@@ -83,7 +82,6 @@ import org.chromium.chrome.browser.multiwindow.MultiWindowUtils;
 import org.chromium.chrome.browser.omnibox.OmniboxStub;
 import org.chromium.chrome.browser.profiles.Profile;
 import org.chromium.chrome.browser.share.ShareDelegate;
-import org.chromium.chrome.browser.tab.MediaState;
 import org.chromium.chrome.browser.tab.Tab;
 import org.chromium.chrome.browser.tab.Tab.LoadUrlResult;
 import org.chromium.chrome.browser.tab.TabClosingSource;
@@ -117,6 +115,7 @@ import org.chromium.components.browser_ui.desktop_windowing.AppHeaderState;
 import org.chromium.components.browser_ui.desktop_windowing.DesktopWindowStateManager;
 import org.chromium.components.browser_ui.desktop_windowing.DesktopWindowStateManager.AppHeaderObserver;
 import org.chromium.components.browser_ui.widget.gesture.BackPressHandler;
+import org.chromium.components.tabs.TabAlert;
 import org.chromium.content_public.browser.LoadUrlParams;
 import org.chromium.ui.base.ActivityResultTracker;
 import org.chromium.ui.base.ActivityWindowAndroid;
@@ -272,7 +271,6 @@ public class StripLayoutHelperManager
             (tabModel) -> {
                 tabModelSwitched(tabModel.isIncognito());
             };
-    private final ActorUiTabController.Observer mActorObserver;
 
     private @MonotonicNonNull TabModelObserver mTabModelObserver; // Set on native initialization.
     private final ActivityLifecycleDispatcher mLifecycleDispatcher;
@@ -533,12 +531,6 @@ public class StripLayoutHelperManager
         mUpdateHost = updateHost;
         mRenderHost = renderHost;
 
-        mActorObserver =
-                state -> {
-                    getStripLayoutHelper(false)
-                            .onActuationStateChanged(state.tabId, state.tabIndicator);
-                    mRenderHost.requestRender();
-                };
         mLayerTitleCacheSupplier = layerTitleCacheSupplier;
         mDensity = res.getDisplayMetrics().density;
         mTabStripTreeProvider = new TabStripSceneLayer(mDensity);
@@ -829,12 +821,6 @@ public class StripLayoutHelperManager
             mTabModelSelector.removeObserverFromAllModels(mTabModelObserver);
 
             mTabModelSelector.getCurrentTabModelSupplier().removeObserver(mCurrentTabModelObserver);
-
-            // Remove observers for Glic actuation icons.
-            TabModel standardModel = mTabModelSelector.getModel(false);
-            for (int i = 0; i < standardModel.getCount(); i++) {
-                unregisterActorObserver(standardModel.getTabAt(i));
-            }
 
             mTabModelSelectorTabModelObserver.destroy();
             mTabModelSelectorTabObserver.destroy();
@@ -1511,13 +1497,11 @@ public class StripLayoutHelperManager
                     @Override
                     public void willCloseTab(Tab tab, boolean didCloseAlone) {
                         getStripLayoutHelper(tab.isIncognitoBranded()).willCloseTab(tab);
-                        unregisterActorObserver(tab);
                     }
 
                     @Override
                     public void tabRemoved(Tab tab) {
                         getStripLayoutHelper(tab.isIncognitoBranded()).tabClosed(tab);
-                        unregisterActorObserver(tab);
                         mTrailingButtonsCoordinator.updateTrailingButtons();
                     }
 
@@ -1536,7 +1520,6 @@ public class StripLayoutHelperManager
                     public void tabClosureUndone(Tab tab) {
                         getStripLayoutHelper(tab.isIncognitoBranded())
                                 .tabClosureCancelled(time(), tab.getId());
-                        registerActorObserver(tab);
                         mTrailingButtonsCoordinator.updateTrailingButtons();
                     }
 
@@ -1578,9 +1561,6 @@ public class StripLayoutHelperManager
                         if (tabs.isEmpty()) return;
                         getStripLayoutHelper(tabs.get(0).isIncognitoBranded())
                                 .willCloseTabs(tabs, isAllTabs, allowUndo);
-                        for (Tab tab : tabs) {
-                            unregisterActorObserver(tab);
-                        }
                         if (isAllTabs) {
                             mTrailingButtonsCoordinator.updateTrailingButtons();
                         }
@@ -1603,7 +1583,6 @@ public class StripLayoutHelperManager
                         getStripLayoutHelper(tab.isIncognitoBranded())
                                 .tabCreated(
                                         time(), tab.getId(), markedForSelection, false, onStartup);
-                        registerActorObserver(tab);
                     }
                 };
 
@@ -1692,9 +1671,10 @@ public class StripLayoutHelperManager
                     }
 
                     @Override
-                    public void onMediaStateChanged(Tab tab, @MediaState int mediaState) {
+                    public void onAlertStateChanged(
+                            Tab tab, @Nullable @TabAlert Integer alertState) {
                         getStripLayoutHelper(tab.isIncognito())
-                                .onMediaStateChanged(tab, mediaState);
+                                .onAlertStateChanged(tab, alertState);
                         mRenderHost.requestRender();
                     }
                 };
@@ -1706,16 +1686,8 @@ public class StripLayoutHelperManager
             mTabStripDragHandler.setTabModelSelector(mTabModelSelector);
         }
 
-        // Register Glic actor observer for existing standard tabs.
-        TabModel standardModel = mTabModelSelector.getModel(false);
-        for (int i = 0; i < standardModel.getCount(); i++) {
-            Tab tab = standardModel.getTabAt(i);
-            if (tab != null) {
-                registerActorObserver(tab);
-            }
-        }
-
         // Register Glic pref change observer for Glic button pin state.
+        TabModel standardModel = mTabModelSelector.getModel(false);
         Profile profile = standardModel.getProfile();
         if (profile != null) {
             mTrailingButtonsCoordinator.onProfileAvailable(profile);
@@ -1755,28 +1727,6 @@ public class StripLayoutHelperManager
         String title = layerCache.getUpdatedTitle(tab, mDefaultTitle);
         getStripLayoutHelper(tab.isIncognito()).tabTitleChanged(tab.getId(), title);
         mUpdateHost.requestUpdate();
-    }
-
-    private void registerActorObserver(Tab tab) {
-        if (tab.isIncognitoBranded()) return;
-        ActorUiTabController controller = ActorUiTabController.from(tab);
-        if (controller == null) return;
-
-        controller.addObserver(mActorObserver);
-
-        ActorUiTabController.UiTabState state = controller.getUiTabState();
-        if (state != null) {
-            getStripLayoutHelper(/* incognito= */ false)
-                    .onActuationStateChanged(tab.getId(), state.tabIndicator);
-        }
-    }
-
-    private void unregisterActorObserver(Tab tab) {
-        if (tab == null || tab.isIncognitoBranded()) return;
-        ActorUiTabController controller = ActorUiTabController.from(tab);
-        if (controller != null) {
-            controller.removeObserver(mActorObserver);
-        }
     }
 
     public float getHeight() {
