@@ -163,6 +163,7 @@
 #include "components/security_interstitials/core/pref_names.h"
 #include "components/strings/grit/components_strings.h"
 #include "services/metrics/public/cpp/ukm_source_id.h"
+#include "third_party/abseil-cpp/absl/container/flat_hash_map.h"
 #include "third_party/abseil-cpp/absl/functional/overload.h"
 #include "ui/base/l10n/l10n_util.h"
 #include "ui/base/resource/resource_bundle.h"
@@ -477,36 +478,6 @@ bool CanReplaceCurrentSuggestions(AutofillSuggestionTriggerSource source) {
   NOTREACHED();
 }
 
-void LogSuggestionsCount(const SuggestionsContext& context,
-                         const std::vector<Suggestion>& suggestions) {
-  if (suggestions.empty()) {
-    return;
-  }
-
-  if (context.filling_product == FillingProduct::kCreditCard) {
-    // TODO(crbug.com/41484171): Move to payments_suggestion_generator_util.cc.
-    autofill_metrics::LogSuggestionsCount(
-        std::ranges::count_if(suggestions,
-                              [](const Suggestion& suggestion) {
-                                return GetFillingProductFromSuggestionType(
-                                           suggestion.type) ==
-                                       FillingProduct::kCreditCard;
-                              }),
-        FillingProduct::kCreditCard);
-  }
-  if (context.filling_product == FillingProduct::kAddress) {
-    // TODO(crbug.com/41484171): Move to address_suggestion_generator.cc.
-    autofill_metrics::LogSuggestionsCount(
-        std::ranges::count_if(suggestions,
-                              [](const Suggestion& suggestion) {
-                                return GetFillingProductFromSuggestionType(
-                                           suggestion.type) ==
-                                       FillingProduct::kAddress;
-                              }),
-        FillingProduct::kAddress);
-  }
-}
-
 // Returns whether suggestions should be suppressed for the given reason.
 bool ShouldSuppressSuggestions(SuppressReason suppress_reason,
                                LogManager* log_manager) {
@@ -691,85 +662,29 @@ bool ShouldShowWebauthnHybridEntryPoint(const FormFieldData& field) {
 #endif  // BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_IOS)
 }
 
-bool IsManagementFooterOption(const Suggestion& suggestion) {
-  switch (suggestion.type) {
-    case SuggestionType::kComposeGoToSettings:
-    case SuggestionType::kManageAddress:
-    case SuggestionType::kManageAutofillAi:
-    case SuggestionType::kManageAutofillAiIdentityDocs:
-    case SuggestionType::kManageAutofillAiShopping:
-    case SuggestionType::kManageAutofillAiTravel:
-    case SuggestionType::kManageCreditCard:
-    case SuggestionType::kManageIban:
-    case SuggestionType::kManageLoyaltyCard:
-    case SuggestionType::kManageEnhancedAutofill:
-    case SuggestionType::kOpenGemini:
-    case SuggestionType::kWebauthnPasskeyQrCode:
-    case SuggestionType::kWebauthnSignInWithAnotherDevice:
-      return true;
-    case SuggestionType::kAccountStoragePasswordEntry:
-    case SuggestionType::kAddressEntry:
-    case SuggestionType::kAddressEntryOnTyping:
-    case SuggestionType::kAddressFieldByFieldFilling:
-    case SuggestionType::kAllLoyaltyCardsEntry:
-    case SuggestionType::kAllSavedPasswordsEntry:
-    case SuggestionType::kAtMemoryAiDisclosure:
-    case SuggestionType::kAtMemoryFetching:
-    case SuggestionType::kAtMemoryGenericError:
-    case SuggestionType::kAtMemoryInactivityNudge:
-    case SuggestionType::kAtMemoryNoConnection:
-    case SuggestionType::kAtMemorySearchAffordance:
-    case SuggestionType::kAtMemorySearchResult:
-    case SuggestionType::kAtMemorySourceAttribution:
-    case SuggestionType::kAutocompleteAtMemoryButton:
-    case SuggestionType::kAutocompleteEntry:
-    case SuggestionType::kAutofillAiOtherOrders:
-    case SuggestionType::kAutofillAiOtherShipments:
-    case SuggestionType::kAutofillAiPrivateInferenceNotice:
-    case SuggestionType::kBackupPasswordEntry:
-    case SuggestionType::kBnplEntry:
-    case SuggestionType::kBnplFootnote:
-    case SuggestionType::kComposeDisable:
-    case SuggestionType::kComposeNeverShowOnThisSiteAgain:
-    case SuggestionType::kComposeProactiveNudge:
-    case SuggestionType::kComposeResumeNudge:
-    case SuggestionType::kComposeSavedStateNotification:
-    case SuggestionType::kCreditCardEntry:
-    case SuggestionType::kDatalistEntry:
-    case SuggestionType::kDevtoolsTestAddressByCountry:
-    case SuggestionType::kDevtoolsTestAddressEntry:
-    case SuggestionType::kDevtoolsTestAddresses:
-    case SuggestionType::kFetchingAmbientData:
-    case SuggestionType::kFillAutofillAi:
-    case SuggestionType::kFillPassword:
-    case SuggestionType::kFreeformFooter:
-    case SuggestionType::kGeneratePasswordEntry:
-    case SuggestionType::kIbanEntry:
-    case SuggestionType::kIdentityCredential:
-    case SuggestionType::kInsecureContextPaymentDisabledMessage:
-    case SuggestionType::kLoadingThrobber:
-    case SuggestionType::kLoyaltyCardEntry:
-    case SuggestionType::kMaximizeCreditCardBenefitsEntry:
-    case SuggestionType::kMerchantPromoCodeEntry:
-    case SuggestionType::kMixedFormMessage:
-    case SuggestionType::kOneTimePasswordEntry:
-    case SuggestionType::kPasswordEntry:
-    case SuggestionType::kPasswordFieldByFieldFilling:
-    case SuggestionType::kPendingStateSignin:
-    case SuggestionType::kPersonalContextNotice:
-    case SuggestionType::kRemoveAutofillAi:
-    case SuggestionType::kSaveAndFillCreditCardEntry:
-    case SuggestionType::kScanCreditCard:
-    case SuggestionType::kSeePromoCodeDetails:
-    case SuggestionType::kSeparator:
-    case SuggestionType::kTitle:
-    case SuggestionType::kTroubleSigningInEntry:
-    case SuggestionType::kUndo:
-    case SuggestionType::kViewPasswordDetails:
-    case SuggestionType::kVirtualCreditCardEntry:
-    case SuggestionType::kWebauthnCredential:
-      return false;
+void LogSuggestionGenerationMetrics(
+    const std::vector<Suggestion>& suggestions,
+    base::TimeTicks suggestion_generation_start_time) {
+  if (suggestions.empty()) {
+    return;
   }
+
+  auto generated_filling_products =
+      DenseSet<FillingProduct>(suggestions, [&](const Suggestion& suggestion) {
+        return GetFillingProductFromSuggestionType(suggestion.type);
+      });
+  generated_filling_products.erase(FillingProduct::kNone);
+  for (FillingProduct filling_product : generated_filling_products) {
+    base::UmaHistogramEnumeration(
+        "Autofill.SuggestionGeneration.GeneratedFillingProduct",
+        filling_product);
+  }
+
+  base::UmaHistogramTimes(
+      "Autofill.Timing.SuggestionGeneration2",
+      base::TimeTicks::Now() - suggestion_generation_start_time);
+
+  autofill_metrics::LogSuggestionsCount(suggestions);
 }
 
 // Finds the footer section with "Manage" suggestions or adds a separator to
@@ -1354,12 +1269,8 @@ void BrowserAutofillManager::OnIndividualSuggestionsGenerated(
     if (suggestions.empty()) {
       continue;
     }
-    FillingProduct filling_product =
-        GetFillingProductFromSuggestionDataSource(suggestion_data_source);
-    base::UmaHistogramEnumeration(
-        "Autofill.SuggestionGeneration.GeneratedFillingProduct",
-        filling_product);
-    prioritized_suggestions[filling_product] = std::move(suggestions);
+    prioritized_suggestions[GetFillingProductFromSuggestionDataSource(
+        suggestion_data_source)] = std::move(suggestions);
   }
 
   auto passkey_suggestions =
@@ -1776,22 +1687,11 @@ void BrowserAutofillManager::OnGenerateSuggestionsComplete(
     base::ScopedClosureRunner scoped_on_after) {
   ReorderWebAuthnSuggestionsToFooter(suggestions);
 
-  if (!suggestions.empty()) {
-    base::UmaHistogramTimes(
-        "Autofill.Timing.SuggestionGeneration2",
-        base::TimeTicks::Now() - suggestion_generation_start_time);
-  }
-
-  LogSuggestionsCount(context, suggestions);
-  // When focusing on a field, log whether there is a suggestion for the user
-  // and whether the suggestion is shown.
   auto [form_structure, autofill_field] =
       FindMutableFormAndField(form_id, trigger_field.global_id());
-  if (form_structure &&
-      context.filling_product == FillingProduct::kCreditCard) {
-    AutofillMetrics::LogIsQueriedCreditCardFormSecure(
-        client().IsContextSecure());
-  }
+
+  LogSuggestionGenerationMetrics(suggestions, suggestion_generation_start_time);
+
   if (trigger_source ==
           AutofillSuggestionTriggerSource::kFormControlElementClicked &&
       autofill_field) {

@@ -409,7 +409,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling fuzztest
   # and whatever else without interference from each other.
-  'fuzztest_revision': '6b4fbe565e958ab241b810bf607a2eaa6c9d7ff0',
+  'fuzztest_revision': 'ff6d1b1aa7deb8d54f3ca11fee99e216a1f5f0a8',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling domato
   # and whatever else without interference from each other.
@@ -557,14 +557,14 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling agents-public
   # and whatever else without interference from each other.
-  'agents_public_revision': '0b207f130c5377dda7d3f775722b4327f7f73a6c',
+  'agents_public_revision': 'e64987d3ea47f5f5d00c66de617aec591d1c0bcf',
 
   # If you change this, also update the libc++ revision in
   # //buildtools/deps_revisions.gni.
   'libcxx_revision':       '97b436da4c33663581d394f4ee0a5977fc38c2f4',
 
   # GN CIPD package version.
-  'gn_version': 'git_revision:0db00fc0fb75adf816104951b415769a087144c1',
+  'gn_version': 'git_revision:e8a8e0932a5e42a99e5896aa58e3b8290f4e5b8c',
 
   # ninja CIPD package.
   'ninja_package': 'infra/3pp/tools/ninja/',
@@ -3023,7 +3023,7 @@ deps = {
     Var('chromium_git') + '/external/search_engines_data.git' + '@' + 'cf814b5cc732a437b4ee636f1c7907f8f1ced51a',
 
   'src/third_party/search_engines_data/resources_internal': {
-    'url': Var('chrome_git') + '/external/search_engines_data_internal.git' + '@' + '401d5754496feaa5722b6e902bfdaf4b5109da15',
+    'url': Var('chrome_git') + '/external/search_engines_data_internal.git' + '@' + 'dc5d6f6e87149e07322208310f7371f5a8a4182b',
     'condition': 'checkout_src_internal',
   },
 
@@ -3386,7 +3386,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/media_app/app',
-        'version': '4sa1msN0uOUvhk3zQTyxxL9RrA1rq89x3I5HeZcA2jMC',
+        'version': 'b19V3rDvmF0b0N5QseCIm3UYix047oJf194jQcyqeiAC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3794,6 +3794,12 @@ deps = {
       'condition': 'checkout_src_internal',
   },
 
+  'src/chrome/browser/payments/internal': {
+      'url': Var('chrome_git') + '/chrome/payments.git' + '@' +
+        '2ee0bfd5990740fccfe223fd6c9fe21bc4846b9a',
+      'condition': 'checkout_src_internal',
+  },
+
   'src/chrome/browser/platform_experience/win': {
       'url': Var('chrome_git') + '/chrome/browser/platform_experience/win.git' + '@' +
         '06307d1e9efcc322f9bf64c3f738e671d42a3c3e',
@@ -4065,7 +4071,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        'a341898153943b09c04a70ac552044c99be628f4',
+        '069a2d376cb77651c9fe822a9bf9616980fe9230',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
