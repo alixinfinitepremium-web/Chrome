@@ -597,12 +597,6 @@
       status: "stable",
     },
     {
-      // This is a bug fix for rendering a missing focus ring on <a> elements.
-      // Shipping in M147, safe to remove in M150.
-      name: "AnchorFocusRingFix",
-      status: "stable",
-    },
-    {
       // Kill switch for https://crbug.com/415834974 which changes anchor
       // positioning adjustments to occur even in cases where there is no
       // scrollable overflow.
@@ -3478,6 +3472,12 @@
       status: "stable",
     },
     {
+      // Kill switch for making <area> display:none by default according to the
+      // HTML rendering specification. https://crbug.com/1231263
+      name: "HTMLAreaElementDisplayNone",
+      status: "stable",
+    },
+    {
       name: "HTMLAreaHreflangType",
       status: "test",
     },
@@ -4700,7 +4700,8 @@
       // Simplifies the behavior and stacking interactions of popover=hint and
       // popover=auto. See https://crbug.com/499019927.
       // This shipped in M150, was disabled via Finch, and was re-enabled in
-      // M151. It can be removed in M153.
+      // M151. The behavior was tweaked slightly in M153, and milestones
+      // now happen twice as quickly, so the flag can be removed in M157.
       name: "PopoverHintNewBehavior",
       status: "stable",
     },
