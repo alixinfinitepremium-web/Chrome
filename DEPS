@@ -333,11 +333,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': 'f153790dabf5a4acd133add9c5f2e6d140c14aef',
+  'src_internal_revision': '1587f8dc74577a4ec0a49cf587d8f5977f2a8988',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': 'e00dbd7448c4fafeb427547a668ce9d658d597c9',
+  'skia_revision': 'b6c2cb9a27e04242cb653b290f5335e921397806',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -517,7 +517,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'libcxxabi_revision':    '4052ed6c715d30ffc0c192eb87021127f757f420',
+  'libcxxabi_revision':    'fc1897a2c12aa27e703c3ed48b62eba8abf4ce19',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -1726,7 +1726,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': 'jjpltp7kBJRx9zkU7tTOty4eNNl6VcB_fBz5xkOxni4C',
+        'version': 'ASvqdtkyWBCW3564wQphiX5rcBfonVmKHuv62Jv0f_gC',
       },
     ],
     'condition': 'non_git_source',
@@ -1840,7 +1840,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': 'JVo-ngmo9mwAn0q5sQ6twvS1zbidOaRD6_V7dSzx88AC',
+          'version': '-WKF6PDhK4RabyYCR2UrRMX_zrud4DWUF7RwvAsuD_cC',
       },
     ],
     'condition': 'checkout_android and non_git_source',

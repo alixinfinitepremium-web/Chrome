@@ -6887,11 +6887,6 @@
     "expiry_milestone": 141
   },
   {
-    "name": "manual-log-uploads-in-the-fre",
-    "owners": [ "hiramahmood@google.com", "bling-pandamonium@google.com" ],
-    "expiry_milestone": 148
-  },
-  {
     "name": "mark-all-credentials-as-leaked",
     "owners": [
       "atsvirchkova@google.com",
@@ -7139,6 +7134,11 @@
       "ishitatsuyuki@google.com"
     ],
     "expiry_milestone": 138
+  },
+  {
+    "name": "new-geolocation-permission-delegate",
+    "owners": ["alexandrasp@google.com", "bling-fundamentals@google.com"],
+    "expiry_milestone": 160
   },
   {
     "name": "new-tab-page-customization-theme-sync",

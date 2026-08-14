@@ -7,6 +7,8 @@ package org.chromium.chrome.browser.settings.search;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import android.view.View;
@@ -255,5 +257,38 @@ public class SettingsSearchCoordinatorUnitTest {
         assertEquals(expectedMargin, lp.getMarginStart());
         assertEquals(expectedMargin, lp.getMarginEnd());
         assertEquals(ViewGroup.LayoutParams.MATCH_PARENT, lp.width);
+    }
+
+    /** Regression test for https://crbug.com/545872336. */
+    @Test
+    public void testUpdateHelpMenuVisibility_whenDestroyed_doesNotCrash() {
+        mUseMultiColumn = false;
+        mCoordinator.updateHelpMenuVisibility();
+
+        // Destroy the coordinator before the posted Runnable executes on the Looper (e.g. during
+        // theme change / Activity recreation).
+        mCoordinator.destroy();
+
+        // Flush the looper. The posted task should exit early without calling isLayoutOpen(),
+        // which could cause a crash due to MultiColumnSettings not yet having a view.
+        ShadowLooper.idleMainLooper();
+
+        verify(mMultiColumnSettings, never()).isLayoutOpen();
+    }
+
+    /** Regression test for https://crbug.com/545907093. */
+    @Test
+    public void testOnConfigurationChangedInternal_whenDestroyed_doesNotCrash() {
+        // Switch to single-column mode and trigger configuration change handling.
+        mUseMultiColumn = false;
+        mCoordinator.onConfigurationChangedInternal();
+
+        // Destroy the coordinator before the posted Runnable executes on the Looper (for example,
+        // language switch / Activity recreation).
+        mCoordinator.destroy();
+
+        // Flush the looper. The posted task should exit early without crashing on methods that
+        // require views that are no longer present.
+        ShadowLooper.idleMainLooper();
     }
 }

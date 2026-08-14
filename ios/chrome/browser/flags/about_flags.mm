@@ -1941,10 +1941,6 @@ constexpr auto kFeatureEntries = std::to_array<flags_ui::FeatureEntry>({
      FEATURE_WITH_PARAMS_VALUE_TYPE(first_run::kBestFeaturesScreenInFirstRun,
                                     kBestFeaturesScreenInFirstRunVariations,
                                     "BestFeaturesScreenInFirstRun")},
-    {"manual-log-uploads-in-the-fre",
-     flag_descriptions::kManualLogUploadsInFREName,
-     flag_descriptions::kManualLogUploadsInFREDescription, flags_ui::kOsIos,
-     FEATURE_VALUE_TYPE(first_run::kManualLogUploadsInTheFRE)},
     {"lens-unary-api-salient-text-enabled",
      flag_descriptions::kLensUnaryApiSalientTextEnabledName,
      flag_descriptions::kLensUnaryApiSalientTextEnabledDescription,
@@ -2930,6 +2926,11 @@ constexpr auto kFeatureEntries = std::to_array<flags_ui::FeatureEntry>({
     {"glic-actor-autofill", flag_descriptions::kGlicActorAutofillName,
      flag_descriptions::kGlicActorAutofillDescription, flags_ui::kOsIos,
      FEATURE_VALUE_TYPE(autofill::features::kGlicActorAutofill)},
+    {"new-geolocation-permission-delegate",
+     flag_descriptions::kNewGeolocationPermissionDelegateName,
+     flag_descriptions::kNewGeolocationPermissionDelegateDescription,
+     flags_ui::kOsIos,
+     FEATURE_VALUE_TYPE(web::features::kNewGeolocationPermissionDelegate)},
 });
 
 bool SkipConditionalFeatureEntry(const flags_ui::FeatureEntry& entry) {
