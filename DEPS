@@ -1726,7 +1726,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': 'qAzc-CGzfqrTztqcZVxyKjhgdjzAh5IWfIlYSoIrAMkC',
+        'version': 'ZasCGTmxwUs6Zsn84hfdP0gznIy04sutIpvpNGMUoAIC',
       },
     ],
     'condition': 'non_git_source',
@@ -2202,7 +2202,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '47324cc2afdcdb0b06e155d22fabe73290880048',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '45da26b7647cdd18edb41ecaa1ab49e194b3fd91',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '17a56409b86d0da5e01ca38f6498e13b2db16bc3',
@@ -2783,7 +2783,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + 'a9ae7e5d3130ee1c82b2d1978aaf446204c097a3',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '454b4cfc454c784ef9f8a3a680cd58e62a258a05',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
@@ -3388,7 +3388,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/media_app/app',
-        'version': 'b19V3rDvmF0b0N5QseCIm3UYix047oJf194jQcyqeiAC',
+        'version': 'AaKirisl4x5_LqDSMkIJnWDh403yYNZpwBqWUIknA_0C',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
