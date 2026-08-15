@@ -345,7 +345,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '651089f2f55b3ea2ce8bcc51328dbf567343a398',
+  'angle_revision': 'aa192212af54a9de42a63db84a292b4cbfcaf114',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -353,7 +353,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling PDFium
   # and whatever else without interference from each other.
-  'pdfium_revision': 'acf52a0b01420c97ed1005ae171edd63bd4701bd',
+  'pdfium_revision': '1348385bb7c8dbc0d667d4b00f038a1d4684a196',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
@@ -1646,7 +1646,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_linux64',
-          'version': 'cceuyutEbIWnKXSzNy1dZhu8Ycg63_JqzcxEeR9mOlsC',
+          'version': 'iBA985X_CB5TYlFdZuA4b0lcgjBMpCa3yezk1HgdGzsC',
         },
       ],
   },
@@ -1657,7 +1657,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_mac_amd64',
-          'version': 'pFp1zwJescIjlRNZAgOLbg0nT_4z9xncNfOK58KTHbAC',
+          'version': 'mRJvFMqqvnJNOn5x_vFt8Q_dK1uomIbCXpN5ZaEICP8C',
         },
       ],
   },
@@ -1726,7 +1726,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': 'ASvqdtkyWBCW3564wQphiX5rcBfonVmKHuv62Jv0f_gC',
+        'version': 'qAzc-CGzfqrTztqcZVxyKjhgdjzAh5IWfIlYSoIrAMkC',
       },
     ],
     'condition': 'non_git_source',
