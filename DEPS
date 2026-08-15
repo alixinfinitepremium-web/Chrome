@@ -337,7 +337,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': 'b09fcee5f9a98b6bd46831244f57eb69f65cbe4e',
+  'skia_revision': '653397c6be15b87fe8f89a4492582fbb825f6da8',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -441,7 +441,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': 'e6938b9030165cceccd0d660c6cb46f27e2510c7',
+  'dawn_revision': '67fb117be46c9bae87cbc1e4d25256af93533579',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -1668,7 +1668,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_mac_arm64',
-          'version': 'Gp9r0jWvNZ4kIOBmpSZWJVpF6sid0IP9Y_Ls2mfL2m8C',
+          'version': 'tDE4GS51AmaxojkrSeYUuT573oeUvrWi9T8HjhNHnWQC',
         },
       ],
   },
@@ -3174,16 +3174,16 @@ deps = {
       ],
   },
 
-  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@ad7b328e42a03bb4c6246aa2e15810be0ba4df5f',
+  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@ef5adb40ce5294c4db5748493b939511c8541f58',
   'src/third_party/glslang/src': '{chromium_git}/external/github.com/KhronosGroup/glslang@a34e1ca58618945fb5ed930f1764d01a04d40a7f',
   'src/third_party/spirv-cross/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Cross@b8fcf307f1f347089e3c46eb4451d27f32ebc8d3',
   'src/third_party/spirv-headers/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Headers@0d25db97cb9b8f725e4c95e4553001710e7fc39d',
-  'src/third_party/spirv-tools/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Tools@f836fe458fde5aa3dd65624e47f311a3498ddbb2',
+  'src/third_party/spirv-tools/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Tools@e39e5c5838bc4b4162c349f2a2e5f163efe5432f',
   'src/third_party/vulkan-headers/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Headers@0b7f383797fa7be53ae28213e001ae60668ee511',
   'src/third_party/vulkan-loader/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Loader@83ddfc5ec5ca64ddd1055cefa1559c568101075a',
   'src/third_party/vulkan-tools/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Tools@99140cef98b4ea135141e0040d84c17a1543e5e3',
   'src/third_party/vulkan-utility-libraries/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Utility-Libraries@245b48c522b5375c0acd5377d52bef5e4917f31e',
-  'src/third_party/vulkan-validation-layers/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-ValidationLayers@76dfcee8641bd5324cbf328e859a22530a7fe855',
+  'src/third_party/vulkan-validation-layers/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-ValidationLayers@6025a18812983c8b7101369e97233ab5b9fdbeca',
 
   'src/third_party/vulkan_memory_allocator':
     Var('chromium_git') + '/external/github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git' + '@' + '82a9d47e4f9d91f0e32d2b6acd9714fcee1933a0',
@@ -3226,7 +3226,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '941dfdddd45dbdda732cc16f0916bd34fd614b82',
+    Var('webrtc_git') + '/src.git' + '@' + '9f30e83c018647b05804571699cf22b1f0f3409e',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -3989,7 +3989,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        '4cd41ce76a31b9d5afad5f2303bd95e2b223fa1a',
+        '5e986e322f95d5a4bef36e7a384ee3e218ccd12b',
       'condition': 'checkout_src_internal',
   },
 
