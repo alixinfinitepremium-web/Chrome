@@ -518,7 +518,6 @@ const base::Feature* const kFeaturesExposedToJava[] = {
     &kUseAppTaskForCustomTabActivation,
     &kUseInitialNetworkStateAtStartup,
     &kUseLibunwindstackNativeUnwinderAndroid,
-    &kUsePLinkInHelp,
     &kUseWebUiNtpAndroid,
     &kVerifyStartupSigninState,
     &kVirtualKeyboardResizesContentTransientOvershootFix,
@@ -532,6 +531,7 @@ const base::Feature* const kFeaturesExposedToJava[] = {
     &kYourSavedInfoSettingsPageAndroid,
     &language::kCctAutoTranslate,
     &language::kDetailedLanguageSettings,
+    &language::kDisableGmsCoreUlp,
     &lens::features::kLensOverlayAndroid,
     &lens::features::kLensSendRawFileMediaTypes,
     &media::kAutoDocPiPPermissionPromptAndroid,
@@ -938,7 +938,6 @@ BASE_FEATURE(kUseInitialNetworkStateAtStartup, base::FEATURE_ENABLED_BY_DEFAULT)
 // Use the LibunwindstackNativeUnwinderAndroid for only browser main thread, and
 // only on Android.
 BASE_FEATURE(kUseLibunwindstackNativeUnwinderAndroid, base::FEATURE_ENABLED_BY_DEFAULT);
-BASE_FEATURE(kUsePLinkInHelp, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kUseWebUiNtpAndroid, base::FEATURE_DISABLED_BY_DEFAULT);
 // Verify sign-in state on startup.
 BASE_FEATURE(kVerifyStartupSigninState, base::FEATURE_ENABLED_BY_DEFAULT);

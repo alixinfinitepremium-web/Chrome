@@ -385,6 +385,16 @@ class ApiTests extends ApiTestFixtureBase {
     await this.advanceToNextStep();
   }
 
+  async testOpenOsMediaPermissionSettings() {
+    assertDefined(this.host.openOsPermissionSettingsMenu);
+    this.host.openOsPermissionSettingsMenu('media');
+  }
+
+  async testOpenOsGeoPermissionSettings() {
+    assertDefined(this.host.openOsPermissionSettingsMenu);
+    this.host.openOsPermissionSettingsMenu('geolocation');
+  }
+
   async testPinTabsFailsWhenIncognitoWindow() {
     assertDefined(this.host.pinTabs);
     assertDefined(this.host.getPinnedTabs);

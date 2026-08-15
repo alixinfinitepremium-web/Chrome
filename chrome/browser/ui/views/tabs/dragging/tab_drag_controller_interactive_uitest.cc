@@ -435,8 +435,8 @@ class BrowserChangeWaiter : public BrowserCollectionObserver {
       return;
     }
     // Browser addition/removal callbacks can be called multiple times, calling
-    // |Quit()| each time.
-    // So make sure that the |closure_| still gets to run if multiple |Quit()|
+    // `Quit()` each time.
+    // So make sure that the `closure_` still gets to run if multiple `Quit()`
     // calls happen in quick succession.
     quit_called_ = true;
     if (closure_) {
@@ -1112,7 +1112,7 @@ class DetachToBrowserTabDragControllerTest
     observer.Wait();
   }
 
-  // Executes |task| once the |new_browser| exists in the BrowserCollection and
+  // Executes `task` once the `new_browser` exists in the BrowserCollection and
   // its widget is visible. Effectively guarantees execution safely after
   // TabDragController's VisibilityWaiter has exited. A generic asynchronous
   // browser waiter that intercepts OnBrowserCreated and queues a
@@ -3227,8 +3227,9 @@ IN_PROC_BROWSER_TEST_P(DetachToBrowserTabDragControllerTest,
   std::unique_ptr<content::WebContents> new_web_contents =
       content::WebContents::Create(
           content::WebContents::CreateParams(browser()->GetProfile()));
-  browser()->tab_strip_model()->DiscardWebContentsAt(
-      0, std::move(new_web_contents));
+  browser()->tab_strip_model()->DiscardWebContents(
+      browser()->tab_strip_model()->GetWebContentsAt(0),
+      std::move(new_web_contents));
 
   // The drag session should still exist, and still not be started.
   ASSERT_TRUE(IsDragSessionActive(tab_strip));
