@@ -1502,7 +1502,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_mac_amd64',
-          'version': 'version:2@1674004',
+          'version': 'version:2@1675002',
         },
       ],
   },
@@ -1524,7 +1524,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_arm64',
-          'version': 'version:2@1674008',
+          'version': 'version:2@1675047',
         },
       ],
   },
@@ -1535,7 +1535,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_x86',
-          'version': 'version:2@1674016',
+          'version': 'version:2@1675025',
         },
       ],
   },
@@ -1546,7 +1546,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_x86_64',
-          'version': 'version:2@1674018',
+          'version': 'version:2@1675018',
         },
       ],
   },
