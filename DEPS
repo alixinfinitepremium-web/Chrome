@@ -1738,7 +1738,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '075a92cf33b80510348579f257a0c4d059c6ef47',
+    '6da5abf0c43ab90ae77554dc8c7bca9b2ce3a1eb',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -3355,7 +3355,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_receiver_app/app',
-        'version': 'ixmr9faO6u1kb7xM7_intnujvjvEuaOqgaGVr957OA0C',
+        'version': 'hQZtAKga__0hQR0_jotxoUCl_-0281gOzoxnc0_VeBcC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3421,7 +3421,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/projector_app/app',
-        'version': '2yv6Ci9C2oVlDlpi44EZafW_lhdPFYLHSfIvKCSKoBwC',
+        'version': '0BW99azqcGWzeluziKzB821iMNs4RU3W6H9XATSPhsUC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
