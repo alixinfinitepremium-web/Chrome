@@ -441,7 +441,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': '67fb117be46c9bae87cbc1e4d25256af93533579',
+  'dawn_revision': '56f332d7d8d03f36149f201ab8cce8aee187e8c6',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -2202,7 +2202,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + 'ddd2165ab4ce15c223693155980824a906a7c63d',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '47324cc2afdcdb0b06e155d22fabe73290880048',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '17a56409b86d0da5e01ca38f6498e13b2db16bc3',
@@ -3366,7 +3366,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_app/app',
-        'version': 'EpH1BsrBb_OEQuBm-DC38pUU_EBFHbnPtYpdv7gJWjUC',
+        'version': 'Z94oRyIPS_OyP90P-Dm6jQAnasT2WjR4R_ZFKrXR0kIC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
