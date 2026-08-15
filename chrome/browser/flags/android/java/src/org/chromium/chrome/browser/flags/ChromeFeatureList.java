@@ -830,7 +830,6 @@ public abstract class ChromeFeatureList {
     public static final String UMA_SESSION_CORRECTNESS_FIXES = "UmaSessionCorrectnessFixes";
     public static final String UNIVERSAL_KEYBOARD_HANDLING = "UniversalKeyboardHandling";
     public static final String UNPARCEL_INTENT_FILE_DESCRIPTORS = "UnparcelIntentFileDescriptors";
-    public static final String USER_FEEDBACK_ALLOWED_POLICY = "UserFeedbackAllowedPolicy";
     public static final String USE_ACTIVITY_MANAGER_FOR_TAB_ACTIVATION =
             "UseActivityManagerForTabActivation";
     public static final String USE_ALTERNATE_HISTORY_SYNC_ILLUSTRATION =
@@ -1427,8 +1426,6 @@ public abstract class ChromeFeatureList {
             newCachedFlag(USE_LIBUNWINDSTACK_NATIVE_UNWINDER_ANDROID, true);
     public static final CachedFlag sUseWebUiNtpAndroid =
             newCachedFlag(USE_WEB_UI_NTP_ANDROID, false);
-    public static final CachedFlag sUserFeedbackAllowedPolicy =
-            newCachedFlag(USER_FEEDBACK_ALLOWED_POLICY, true);
     public static final CachedFlag sVirtualKeyboardResizesContentTransientOvershootFix =
             newCachedFlag(VIRTUAL_KEYBOARD_RESIZES_CONTENT_TRANSIENT_OVERSHOOT_FIX, true);
     public static final CachedFlag sVirtualKeyboardTransientInnerHeightFix =
@@ -1646,7 +1643,6 @@ public abstract class ChromeFeatureList {
                     sUseInitialNetworkStateAtStartup,
                     sUseLibunwindstackNativeUnwinderAndroid,
                     sUseWebUiNtpAndroid,
-                    sUserFeedbackAllowedPolicy,
                     sVirtualKeyboardResizesContentTransientOvershootFix,
                     sVirtualKeyboardTransientInnerHeightFix,
                     sWebApkMinShellApkVersion,
@@ -1764,7 +1760,7 @@ public abstract class ChromeFeatureList {
     public static final MutableFlagWithSafeDefault sTabBottomSheetResizeWebview =
             newMutableFlagWithSafeDefault(TAB_BOTTOM_SHEET_RESIZE_WEBVIEW, false);
     public static final MutableFlagWithSafeDefault sTabOpenerTracking =
-            newMutableFlagWithSafeDefault(TAB_OPENER_TRACKING, false);
+            newMutableFlagWithSafeDefault(TAB_OPENER_TRACKING, true);
     public static final MutableFlagWithSafeDefault sTabSearchForDesktop =
             newMutableFlagWithSafeDefault(TAB_SEARCH_FOR_DESKTOP, false);
     public static final MutableFlagWithSafeDefault sTabSwitcherGroupSuggestionsAndroid =
