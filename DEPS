@@ -1738,7 +1738,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '6da5abf0c43ab90ae77554dc8c7bca9b2ce3a1eb',
+    '6064f6006be412f0bcb8eabe36e09b6c053806fd',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -2202,7 +2202,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '9acad8e42b2912384bbb336ad14baf6762baae46',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '8fdb9a609ada1409352d650bebaafe1c4790bde6',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '17a56409b86d0da5e01ca38f6498e13b2db16bc3',
@@ -3355,7 +3355,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_receiver_app/app',
-        'version': 'hQZtAKga__0hQR0_jotxoUCl_-0281gOzoxnc0_VeBcC',
+        'version': 'CG76hJjTOQ11NBgu8eJ50gAnPwLDxk7a7KQz1Rdjo0MC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3421,7 +3421,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/projector_app/app',
-        'version': '0BW99azqcGWzeluziKzB821iMNs4RU3W6H9XATSPhsUC',
+        'version': 'mvh9l0iSlGT01rtNR23NCXSFJ5CAPSZNKopnVkHfWK4C',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
