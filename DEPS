@@ -445,7 +445,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'quiche_revision': '45ba11954ee99ad1bff3cdb19a0f0ba36a39466a',
+  'quiche_revision': '2c4a124642f095f995cd2e9e2fe10decc08df662',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ink
   # and whatever else without interference from each other.
@@ -4073,7 +4073,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '1d2f331907248207b0b5ca3266057566767ada8a',
+        '459e0ac8cd8288ccc3d0e29ce3a5d17e5b84aa0b',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
