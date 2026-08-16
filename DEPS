@@ -545,7 +545,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
-  'compiler_rt_revision': '06f928b9590feccfceca8199f547bbf4e3aff744',
+  'compiler_rt_revision': 'c8b2785f7af22a5cf9af9435c6bf4c8d32d37597',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling clusterfuzz-data
   # and whatever else without interference from each other.
@@ -1842,7 +1842,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': '8NoXXscPmT0obJ5loeGO7ePr0Ba8vOd0eEV9BckNFS4C',
+          'version': 'EHANDl2aLmMQla577JSczp2nMFEPgrm-5c6SQLyYRmYC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
