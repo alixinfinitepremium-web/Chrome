@@ -39,9 +39,11 @@ import org.chromium.chrome.browser.compositor.overlays.strip.TabContextMenuCoord
 import org.chromium.chrome.browser.compositor.overlays.strip.TabContextMenuCoordinator.TabStripLayoutType;
 import org.chromium.chrome.browser.compositor.overlays.strip.TabGroupContextMenuCoordinator;
 import org.chromium.chrome.browser.compositor.overlays.strip.TabStripContextMenuCoordinator;
+import org.chromium.chrome.browser.compositor.overlays.strip.TabUnderlineManager;
 import org.chromium.chrome.browser.data_sharing.DataSharingTabManager;
 import org.chromium.chrome.browser.dragdrop.ChromeDragAndDropBrowserDelegate;
 import org.chromium.chrome.browser.flags.ChromeFeatureList;
+import org.chromium.chrome.browser.glic.GlicEnabling;
 import org.chromium.chrome.browser.hub.PaneId;
 import org.chromium.chrome.browser.incognito.IncognitoUtils;
 import org.chromium.chrome.browser.multiwindow.MultiInstanceManager;
@@ -68,9 +70,9 @@ import org.chromium.chrome.browser.tasks.tab_management.TabActionButtonData.TabA
 import org.chromium.chrome.browser.tasks.tab_management.TabActionListener;
 import org.chromium.chrome.browser.tasks.tab_management.TabComponentId;
 import org.chromium.chrome.browser.tasks.tab_management.TabGridViewBinder;
+import org.chromium.chrome.browser.tasks.tab_management.TabListConfig;
 import org.chromium.chrome.browser.tasks.tab_management.TabListEditorCoordinator;
 import org.chromium.chrome.browser.tasks.tab_management.TabListMediator;
-import org.chromium.chrome.browser.tasks.tab_management.TabListMediator.TabListConfigDelegate;
 import org.chromium.chrome.browser.tasks.tab_management.TabListMediator.TabListItemOnClickListenerProvider;
 import org.chromium.chrome.browser.tasks.tab_management.TabListMediator.TabListLayoutType;
 import org.chromium.chrome.browser.tasks.tab_management.TabListModel;
@@ -155,6 +157,7 @@ public class VerticalTabListCoordinator {
     private final @Nullable AppHeaderObserver mAppHeaderObserver;
     private final @Nullable BooleanSupplier mCanActivateTabLayoutToggleMenuSupplier;
     private final @Nullable UndoBarThrottle mUndoBarThrottle;
+    private final @Nullable TabUnderlineManager mTabUnderlineManager;
     private @Nullable TabStripContextMenuCoordinator mTabStripContextMenuCoordinator;
     private @Nullable TabContextMenuCoordinator mTabContextMenuCoordinator;
     private @Nullable TabGroupContextMenuCoordinator mTabGroupContextMenuCoordinator;
@@ -291,6 +294,11 @@ public class VerticalTabListCoordinator {
         mShareDelegateSupplier = shareDelegateSupplier;
         mDataSharingTabManager = dataSharingTabManager;
         mUndoBarThrottle = undoBarThrottle;
+        if (GlicEnabling.isEnabledByFlags() || ChromeFeatureList.sContextualTasks.isEnabled()) {
+            mTabUnderlineManager = new TabUnderlineManager(windowAndroid);
+        } else {
+            mTabUnderlineManager = null;
+        }
         mCollapseController = new VerticalTabRailCollapseController(this::setRailCollapseState);
         mModelList = new TabListModel();
         SimpleRecyclerViewAdapter adapter =
@@ -482,29 +490,15 @@ public class VerticalTabListCoordinator {
                         activity, recyclerView::postInvalidate, mModelList, tabModelSelector);
         recyclerView.addItemDecoration(mSpineDecoration);
 
-        TabListConfigDelegate tabListConfigDelegate =
-                new TabListConfigDelegate() {
-                    @Override
-                    public @TabListLayoutType int getLayoutType() {
-                        return TabListLayoutType.NESTED;
-                    }
-
-                    @Override
-                    public boolean supportsMessageCards() {
-                        return false;
-                    }
-
-                    @Override
-                    public @Nullable NonNullObservableSupplier<@RailCollapseState Integer>
-                            getRailCollapseStateSupplier() {
-                        return mCollapseController.getRailCollapseStateSupplier();
-                    }
-
-                    @Override
-                    public @Nullable TabHoverCardListener getTabHoverCardListener() {
-                        return mTabHoverCardController.getTabHoverCardListener();
-                    }
-                };
+        TabListConfig tabListConfig =
+                new TabListConfig.Builder(TabListLayoutType.NESTED)
+                        .setSupportsModifierMultiSelect(VerticalTabUtils.isMultiSelectEnabled())
+                        .setSupportsTabLoadingState(/* supportsTabLoadingState= */ true)
+                        .setRailCollapseStateSupplier(
+                                mCollapseController.getRailCollapseStateSupplier())
+                        .setTabHoverCardListener(mTabHoverCardController.getTabHoverCardListener())
+                        .setTabUnderlineManager(mTabUnderlineManager)
+                        .build();
 
         mContainerModel =
                 new PropertyModel.Builder(VerticalTabListProperties.ALL_KEYS)
@@ -559,7 +553,7 @@ public class VerticalTabListCoordinator {
                         mTabListFaviconProvider,
                         /* selectionDelegateProvider */ null,
                         new VerticalTabListClickHandler(),
-                        tabListConfigDelegate,
+                        tabListConfig,
                         /* dialogHandler */ null,
                         /* priceWelcomeMessageControllerSupplier */ null,
                         TabComponentId.VERTICAL_TABS,
@@ -798,6 +792,9 @@ public class VerticalTabListCoordinator {
         mRecyclerView.removeOnScrollListener(mOnScrollListener);
 
         mCollapseController.destroy();
+        if (mTabUnderlineManager != null) {
+            mTabUnderlineManager.destroy();
+        }
         mLastDraggedGroupId = null;
     }
 
