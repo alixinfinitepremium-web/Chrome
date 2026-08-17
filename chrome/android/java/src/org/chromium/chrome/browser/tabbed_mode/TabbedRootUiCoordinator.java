@@ -75,6 +75,7 @@ import org.chromium.chrome.browser.bookmarks.BookmarkOpenerImpl;
 import org.chromium.chrome.browser.bookmarks.TabBookmarker;
 import org.chromium.chrome.browser.bookmarks.bar.BookmarkBarCoordinator;
 import org.chromium.chrome.browser.bookmarks.bar.BookmarkBarUtils;
+import org.chromium.chrome.browser.bookmarks.bar.BookmarkBarUtils.BookmarkBarSettingChangeOrigin;
 import org.chromium.chrome.browser.bookmarks.bar.BookmarkBarVisibilityProvider;
 import org.chromium.chrome.browser.bookmarks.bar.BookmarkBarVisibilityProvider.BookmarkBarVisibilityObserver;
 import org.chromium.chrome.browser.browser_controls.BottomOverscrollHandler;
@@ -417,11 +418,22 @@ public class TabbedRootUiCoordinator extends RootUiCoordinator {
         @Override
         public void onObservingDifferentTab(@Nullable Tab tab) {
             swapToTab(tab);
+            updateBookmarkBarVisibility();
         }
 
         @Override
         public void onTitleUpdated(Tab tab) {
             setActivityTitle(tab, /* isHub= */ false);
+        }
+
+        @Override
+        public void onUrlUpdated(Tab tab) {
+            updateBookmarkBarVisibility();
+        }
+
+        @Override
+        public void onContentChanged(Tab tab) {
+            updateBookmarkBarVisibility();
         }
 
         private void swapToTab(@Nullable Tab tab) {
@@ -1305,8 +1317,12 @@ public class TabbedRootUiCoordinator extends RootUiCoordinator {
         new OneShotCallback<>(mProfileSupplier, this::initCollaborationDelegatesOnProfile);
 
         if (BookmarkBarUtils.isDeviceBookmarkBarCompatible(mActivity)) {
-            BookmarkBarUtils.recordStartUpMetrics(
-                    mActivity, mProfileSupplier.get(), mXrSpaceModeObservableSupplier.get());
+            if (ChromeFeatureList.isEnabled(ChromeFeatureList.BOOKMARKS_BAR_NTP)) {
+                BookmarkBarUtils.recordStartUpMetricsForVisibilityState(mProfileSupplier.get());
+            } else {
+                BookmarkBarUtils.recordStartUpMetrics(
+                        mActivity, mProfileSupplier.get(), mXrSpaceModeObservableSupplier.get());
+            }
             mBookmarkBarVisibilityProvider =
                     new BookmarkBarVisibilityProvider(
                             mActivity,
@@ -1323,9 +1339,7 @@ public class TabbedRootUiCoordinator extends RootUiCoordinator {
                         @Override
                         public void onVisibilityChanged_TriState(
                                 @BookmarkBarVisibilityState int visibilityState) {
-                            // TODO(crbug.com/542276874): Add proper NTP treatment here.
-                            updateBookmarkBarIfNecessary(
-                                    visibilityState == BookmarkBarVisibilityState.ALWAYS_SHOW);
+                            updateBookmarkBarIfNecessary(getBookmarkBarVisibility());
                         }
                     };
             mBookmarkBarVisibilityProvider.addObserver(mBookmarkBarVisibilityObserver);
@@ -2864,10 +2878,27 @@ public class TabbedRootUiCoordinator extends RootUiCoordinator {
         }
     }
 
+    private void updateBookmarkBarVisibility() {
+        // Because tab events can arrive before native initialization finishes (or after
+        // destruction), verify that the provider and profile are available before updating.
+        if (mBookmarkBarVisibilityProvider == null || mProfileSupplier.get() == null) {
+            return;
+        }
+
+        updateBookmarkBarIfNecessary(getBookmarkBarVisibility());
+    }
+
     @Override
     public boolean getBookmarkBarVisibility() {
-        return BookmarkBarUtils.isBookmarkBarVisible(
-                mActivity, mProfileSupplier.get(), mXrSpaceModeObservableSupplier.get());
+        if (!ChromeFeatureList.isEnabled(ChromeFeatureList.BOOKMARKS_BAR_NTP)) {
+            return BookmarkBarUtils.isBookmarkBarVisible(
+                    mActivity, mProfileSupplier.get(), mXrSpaceModeObservableSupplier.get());
+        }
+        return BookmarkBarUtils.isBookmarkBarVisibleForState(
+                mActivity,
+                mProfileSupplier.get(),
+                mXrSpaceModeObservableSupplier.get(),
+                mActivityTabProvider.get());
     }
 
     public int getBookmarkBarHeight() {
@@ -2930,7 +2961,7 @@ public class TabbedRootUiCoordinator extends RootUiCoordinator {
                 BookmarkBarUtils.setBookmarkBarVisibilityState(
                         mProfileSupplier.asNonNull().get(),
                         newState,
-                        /* fromKeyboardShortcut= */ true);
+                        BookmarkBarSettingChangeOrigin.KEYBOARD_SHORTCUT);
                 return true;
             }
         } else if (id == R.id.bookmark_bar_state_always_show_menu_id) {
@@ -2944,7 +2975,7 @@ public class TabbedRootUiCoordinator extends RootUiCoordinator {
                 BookmarkBarUtils.setBookmarkBarVisibilityState(
                         profile,
                         BookmarkBarVisibilityState.ALWAYS_SHOW,
-                        /* fromKeyboardShortcut= */ false);
+                        BookmarkBarSettingChangeOrigin.APP_MENU);
                 RecordUserAction.record("MobileMenuBookmarkBarAlwaysShow");
             }
             return true;
@@ -2959,7 +2990,7 @@ public class TabbedRootUiCoordinator extends RootUiCoordinator {
                 BookmarkBarUtils.setBookmarkBarVisibilityState(
                         profile,
                         BookmarkBarVisibilityState.ALWAYS_HIDE,
-                        /* fromKeyboardShortcut= */ false);
+                        BookmarkBarSettingChangeOrigin.APP_MENU);
                 RecordUserAction.record("MobileMenuBookmarkBarAlwaysHide");
             }
             return true;
