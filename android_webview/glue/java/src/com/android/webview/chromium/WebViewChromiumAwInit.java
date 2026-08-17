@@ -149,6 +149,33 @@ public class WebViewChromiumAwInit {
     private final WebViewChromiumRunQueue mWebViewStartUpCallbackRunQueue =
             new WebViewChromiumRunQueue();
 
+    private final AwBrowserProcess.StartupDelegate mStartupDelegate =
+            new AwBrowserProcess.StartupDelegate() {
+                @Override
+                public void waitForJavaResourcesSetup() {
+                    WebViewChromiumAwInit.this.waitForJavaResourcesSetup();
+                }
+
+                @Override
+                public boolean shouldForceNativeSandboxedServices() {
+                    AconfigFlaggedApiDelegate aconfigDelegate =
+                            AconfigFlaggedApiDelegate.getInstance();
+                    return aconfigDelegate != null
+                            && aconfigDelegate.isNativeWebViewZygoteEnabled(
+                                    mFactory.getWebViewDelegate());
+                }
+
+                @Override
+                public long getDrawFnFunctionTable() {
+                    return DrawFunctor.getDrawFnFunctionTable();
+                }
+
+                @Override
+                public long getDrawSWFunctionTable() {
+                    return GraphicsUtils.getDrawSWFunctionTable();
+                }
+            };
+
     private final AtomicInteger mChromiumFirstStartupRequestMode =
             new AtomicInteger(StartupTasksRunner.StartupRequestMode.UNSET);
     // Only accessed from the UI thread
@@ -315,7 +342,7 @@ public class WebViewChromiumAwInit {
         } else {
             runNonUiThreadCapableStartupTasks();
         }
-        waitUntilSetUpResources();
+        mStartupDelegate.waitForJavaResourcesSetup();
         // NOTE: Finished writing Java resources. From this point on, it's safe
         // to use them.
 
@@ -359,11 +386,8 @@ public class WebViewChromiumAwInit {
             mFactory.addWebViewAssetPath(ContextUtils.getApplicationContext());
         }
 
-        AconfigFlaggedApiDelegate delegate = AconfigFlaggedApiDelegate.getInstance();
-        boolean isNativeWebViewZygoteEnabled =
-                delegate != null
-                        && delegate.isNativeWebViewZygoteEnabled(mFactory.getWebViewDelegate());
-        AwBrowserProcess.configureChildProcessLauncher(isNativeWebViewZygoteEnabled);
+        AwBrowserProcess.configureChildProcessLauncher(
+                mStartupDelegate.shouldForceNativeSandboxedServices());
 
         // finishVariationsInit() must precede native initialization so
         // the seed is available when AwFeatureListCreator::SetUpFieldTrials()
@@ -512,7 +536,7 @@ public class WebViewChromiumAwInit {
     /**
      * Set up resources on a background thread, in parallel with chromium initialization as it takes
      * some time. This method is called once during WebViewChromiumFactoryProvider initialization
-     * which is guaranteed to finish before this field is accessed by waitUntilSetUpResources.
+     * which is guaranteed to finish before this field is accessed by waitForJavaResourcesSetup.
      *
      * @param context The context.
      */
@@ -542,9 +566,9 @@ public class WebViewChromiumAwInit {
         }
     }
 
-    private void waitUntilSetUpResources() {
+    private void waitForJavaResourcesSetup() {
         try (DualTraceEvent e =
-                DualTraceEvent.scoped("WebViewChromiumAwInit.waitUntilSetUpResources")) {
+                DualTraceEvent.scoped("WebViewChromiumAwInit.waitForJavaResourcesSetup")) {
             mSetUpResourcesTask.get();
         } catch (InterruptedException | ExecutionException e) {
             throw new RuntimeException(e);
@@ -688,8 +712,8 @@ public class WebViewChromiumAwInit {
     private void initPlatSupportLibrary() {
         try (DualTraceEvent e =
                 DualTraceEvent.scoped("WebViewChromiumAwInit.initPlatSupportLibrary")) {
-            AwDrawFnImpl.setDrawFnFunctionTable(DrawFunctor.getDrawFnFunctionTable());
-            AwContents.setAwDrawSWFunctionTable(GraphicsUtils.getDrawSWFunctionTable());
+            AwDrawFnImpl.setDrawFnFunctionTable(mStartupDelegate.getDrawFnFunctionTable());
+            AwContents.setAwDrawSWFunctionTable(mStartupDelegate.getDrawSWFunctionTable());
         }
     }
 
