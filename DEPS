@@ -1743,7 +1743,7 @@ deps = {
   },
 
   'src/docs/website': {
-    'url': Var('chromium_git') + '/website.git' + '@' + '796641dd2b82060117299f99d9f136356dc25e1f',
+    'url': Var('chromium_git') + '/website.git' + '@' + 'ebebad7d52ad3d28f5a21a75561e9bc2b496e472',
   },
 
   'src/ios/third_party/earl_grey2/src': {
@@ -1842,7 +1842,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': 'EHANDl2aLmMQla577JSczp2nMFEPgrm-5c6SQLyYRmYC',
+          'version': 'stqZyLWSguiZUIpMgiR1Tg-z6i1BtyUD5yKbWh1Pjh0C',
       },
     ],
     'condition': 'checkout_android and non_git_source',
@@ -2190,7 +2190,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '882906bdbbdfd5588f103e792d153c8ab6ae1715',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '6411ed52842756261c66b6b8ece6b53ade2570f1',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -2202,7 +2202,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + 'c4236f4a60c813838545e66c376b86d4ed33dcfa',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '4aa66c4ed6666ac94313e0e82d0d9984a6c27f43',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '17a56409b86d0da5e01ca38f6498e13b2db16bc3',
@@ -3355,7 +3355,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_receiver_app/app',
-        'version': 'CG76hJjTOQ11NBgu8eJ50gAnPwLDxk7a7KQz1Rdjo0MC',
+        'version': 'LSlJH8lE1InbOjHG-bfZ910T2NqSe19muqdCAOhugQ8C',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
