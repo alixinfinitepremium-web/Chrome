@@ -395,6 +395,29 @@ class ApiTests extends ApiTestFixtureBase {
     this.host.openOsPermissionSettingsMenu('geolocation');
   }
 
+  async testGetOsMicrophonePermissionStatusAllowed() {
+    assertDefined(this.host.getOsMicrophonePermissionStatus);
+    assertTrue(await this.host.getOsMicrophonePermissionStatus());
+  }
+
+  async testGetOsMicrophonePermissionStatusNotAllowed() {
+    assertDefined(this.host.getOsMicrophonePermissionStatus);
+    assertFalse(await this.host.getOsMicrophonePermissionStatus());
+  }
+
+  async testGetOsHotkeyState() {
+    assertDefined(this.host.getOsHotkeyState);
+    const osHotkeyState = observeSequence(this.host.getOsHotkeyState());
+    let hotkeyState = await osHotkeyState.next();
+    assertEquals(this.testParams.expectedHotkey, hotkeyState.hotkey);
+    await this.advanceToNextStep();
+    hotkeyState = await osHotkeyState.next();
+    assertEquals(this.testParams.expectedHotkey, hotkeyState.hotkey);
+    await this.advanceToNextStep();
+    hotkeyState = await osHotkeyState.next();
+    assertEquals(this.testParams.expectedHotkey, hotkeyState.hotkey);
+  }
+
   async testPinTabsFailsWhenIncognitoWindow() {
     assertDefined(this.host.pinTabs);
     assertDefined(this.host.getPinnedTabs);

@@ -176,7 +176,6 @@ std::vector<std::string> GetTestSuiteNames() {
       "GlicApiTest",
       "GlicApiTestWithOneTab",
       "GlicApiTestWithFastTimeout",
-      "GlicApiTestSystemSettingsTest",
       "GlicApiTestWithOneTabAndCachedUserProfile",
 
       "DISABLED_GlicApiTestWithOneTabAndPreloading",
@@ -1242,15 +1241,6 @@ IN_PROC_BROWSER_TEST_P(GlicApiTest,
 }
 
 
-IN_PROC_BROWSER_TEST_P(GlicApiTestWithOneTab, testGetOsHotkeyState) {
-  ExecuteJsTest();
-  g_browser_process->local_state()->SetString(prefs::kGlicLauncherHotkey,
-                                              "Ctrl+Shift+1");
-  ContinueJsTest();
-  g_browser_process->local_state()->SetString(prefs::kGlicLauncherHotkey, "");
-  ContinueJsTest();
-}
-
 IN_PROC_BROWSER_TEST_P(GlicApiTestWithDaisyChain,
                        testDaisyChainRecursiveAndInput) {
   RunTestSequence(InstrumentTab(kFirstTab),
@@ -1328,42 +1318,6 @@ IN_PROC_BROWSER_TEST_P(GlicApiTestWithDaisyChain, testNewTabMetrics) {
                "Glic.Instance.AutoOpenedPanel.FirstAction.NewTab",
                DaisyChainFirstAction::kInputSubmitted) == 1;
   }));
-}
-
-class GlicApiTestSystemSettingsTest : public GlicApiTestWithOneTab {
- public:
-  GlicApiTestSystemSettingsTest() {
-    system_permission_settings::SetInstanceForTesting(&mock_platform_handle);
-  }
-
-  ~GlicApiTestSystemSettingsTest() override {
-    system_permission_settings::SetInstanceForTesting(nullptr);
-  }
-
-  testing::NiceMock<system_permission_settings::MockPlatformHandle>
-      mock_platform_handle;
-};
-
-IN_PROC_BROWSER_TEST_P(GlicApiTestSystemSettingsTest,
-                       testGetOsMicrophonePermissionStatusAllowed) {
-  EXPECT_CALL(mock_platform_handle,
-              IsAllowed(ContentSettingsType::MEDIASTREAM_MIC))
-      .WillOnce(testing::Return(true));
-
-  // Trigger the GetOsMicrophonePermissionStatus API and check if it returns
-  // true as mocked by this test.
-  ExecuteJsTest();
-}
-
-IN_PROC_BROWSER_TEST_P(GlicApiTestSystemSettingsTest,
-                       testGetOsMicrophonePermissionStatusNotAllowed) {
-  EXPECT_CALL(mock_platform_handle,
-              IsAllowed(ContentSettingsType::MEDIASTREAM_MIC))
-      .WillOnce(testing::Return(false));
-
-  // Trigger the GetOsMicrophonePermissionStatus API and check if it returns
-  // false as mocked by this test.
-  ExecuteJsTest();
 }
 
 // TODO(crbug.com/508719420): Flaky time out.
@@ -1996,10 +1950,6 @@ INSTANTIATE_TEST_SUITE_P(,
                          &WithTestParams::PrintTestVariant);
 INSTANTIATE_TEST_SUITE_P(,
                          GlicApiTestRuntimeFeatureOff,
-                         DefaultTestParamSet(),
-                         &WithTestParams::PrintTestVariant);
-INSTANTIATE_TEST_SUITE_P(,
-                         GlicApiTestSystemSettingsTest,
                          DefaultTestParamSet(),
                          &WithTestParams::PrintTestVariant);
 INSTANTIATE_TEST_SUITE_P(,

@@ -307,11 +307,11 @@ vars = {
   'reclient_version': 're_client_version:0.185.0.db415f21-gomaip',
 
   # screen-ai CIPD packages
-  'screen_ai_linux': 'version:153.00',
-  'screen_ai_macos_amd64': 'version:153.00',
-  'screen_ai_macos_arm64': 'version:153.00',
-  'screen_ai_windows_amd64': 'version:153.00',
-  'screen_ai_windows_386': 'version:153.00',
+  'screen_ai_linux': 'version:153.01',
+  'screen_ai_macos_amd64': 'version:153.01',
+  'screen_ai_macos_arm64': 'version:153.01',
+  'screen_ai_windows_amd64': 'version:153.01',
+  'screen_ai_windows_386': 'version:153.01',
 
   # download libaom test data
   'download_libaom_testdata': False,
@@ -417,7 +417,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '24bebc09b9cd1311482f0ce8376b9945033f3681',
+  'devtools_frontend_revision': 'c3217602c08c5371d8662ec9142194a08ee5a0ca',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -2781,7 +2781,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '1743360cb287a0f864a220d2950b2fab2d5771d0',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '0b6a9e903823720cae8332056dc6e00dc61f1825',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
