@@ -417,7 +417,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '65a2087110d854bd7e2a0320ceef1704c7596b4a',
+  'devtools_frontend_revision': '281b56614a8ac47b2dd70c5b99e3626a80a80ae3',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1738,7 +1738,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '67cc7d6837434d83237392c78f9b0d6c20df515a',
+    '22b506dfc2d6431afc7148faada67228fc9048a2',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -3226,7 +3226,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + 'cccce078a082b488348090c2936afe5783fbfd7d',
+    Var('webrtc_git') + '/src.git' + '@' + '471be95dd75bba97942e0a03f58ab097a06382a7',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
