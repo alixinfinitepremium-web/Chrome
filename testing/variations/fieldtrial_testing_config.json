@@ -14919,6 +14919,21 @@
             ]
         }
     ],
+    "IdentityAwareness": [
+        {
+            "platforms": [
+                "ios"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "IdentityAwareness"
+                    ]
+                }
+            ]
+        }
+    ],
     "IgnoreDiscardAttemptMarker": [
         {
             "platforms": [
@@ -27252,21 +27267,6 @@
                     },
                     "enable_features": [
                         "AndroidThreadPriority"
-                    ]
-                }
-            ]
-        }
-    ],
-    "WebViewBypassProvisionalCookieManager": [
-        {
-            "platforms": [
-                "android_webview"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "WebViewBypassProvisionalCookieManager"
                     ]
                 }
             ]
