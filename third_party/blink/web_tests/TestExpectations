@@ -1282,10 +1282,6 @@ crbug.com/494341468 external/wpt/quirks/tables-inherit-color-from-body-quirk-005
 
 crbug.com/537801217 external/wpt/css/selectors/active-observable.html [ Failure Pass Timeout ]
 
-crbug.com/420443621 external/wpt/css/css-viewport/zoom/animation-range.html [ Failure ]
-crbug.com/420443621 external/wpt/css/css-viewport/zoom/view-timeline-inset.html [ Failure ]
-crbug.com/420443621 external/wpt/css/css-viewport/zoom/grid.html [ Failure ]
-
 # ====== Style team owned tests to here ======
 
 crbug.com/384523570 fast/animation/scroll-animations/scroll-timeline-snapshotting.html [ Failure ]
@@ -2901,8 +2897,6 @@ crbug.com/492307971 external/wpt/client-hints/inner-delegation/accept_ch_delegat
 crbug.com/492286058 external/wpt/css/css-forms/meter-base-appearance-custom-style-initial-rendering.tentative.html [ Failure ]
 crbug.com/492286058 external/wpt/css/css-forms/meter-base-appearance-custom-style-value-dynamic-rendering.tentative.html [ Failure ]
 crbug.com/492307970 external/wpt/gamepad/gamepad-default-permissions-policy.https.sub.html [ Timeout ]
-crbug.com/492274862 external/wpt/html/semantics/embedded-content/media-elements/autoplay-allowed-by-permissions-policy-attribute.https.sub.html [ Timeout ]
-crbug.com/492274862 external/wpt/html/semantics/embedded-content/media-elements/autoplay-allowed-by-permissions-policy.https.sub.html [ Timeout ]
 crbug.com/492230082 [ Win ] external/wpt/permissions-policy/historical.html [ Pass Timeout ]
 crbug.com/492281019 external/wpt/webdriver/tests/bidi/log/entry_added/console.py [ Failure ]
 crbug.com/492281019 external/wpt/webdriver/tests/bidi/session/subscribe/contexts.py [ Failure ]
