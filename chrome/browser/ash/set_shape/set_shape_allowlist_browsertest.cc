@@ -42,7 +42,7 @@ web_app::IsolatedWebAppUrlInfo InstallIsolatedWebAppAndReturnUrlInfo(
   web_app::IsolatedWebAppUrlInfo url_info =
       web_app::IsolatedWebAppBuilder(
           web_app::ManifestBuilder()
-              .SetName("Blink Extension Test IWA")
+              .SetName("Set Shape Test IWA")
               .SetDisplayMode(blink::mojom::DisplayMode::kStandalone)
               .SetDisplayModeOverride(
                   {web_app::DisplayOverride::CreateUnframed({})})
@@ -63,24 +63,22 @@ web_app::IsolatedWebAppUrlInfo InstallIsolatedWebAppAndReturnUrlInfo(
 
 }  // namespace
 
-// Verifies the behavior of Blink extensions for Isolated Web Apps in ChromeOS
-// when the `kCrosIsolatedWebAppSetShape` flag is enabled.
-class BlinkExtensionsWithFlagSetTest
+// Verifies the behavior of the setShape API for Isolated Web Apps in ChromeOS
+// when the `kSetShape` flag is enabled.
+class SetShapeFeatureFlagBrowserTest
     : public web_app::IsolatedWebAppBrowserTestHarness {
  public:
-  BlinkExtensionsWithFlagSetTest() {
+  SetShapeFeatureFlagBrowserTest() {
     feature_list_.InitWithFeatures(
-        {chromeos::features::kCrosIsolatedWebAppSetShape,
-         blink::features::kUnframedIwa},
-        {});
+        {blink::features::kSetShape, blink::features::kUnframedIwa}, {});
   }
 
  private:
   base::test::ScopedFeatureList feature_list_;
 };
 
-IN_PROC_BROWSER_TEST_F(BlinkExtensionsWithFlagSetTest,
-                       IsolatedWebAppCanAccessExtensions) {
+IN_PROC_BROWSER_TEST_F(SetShapeFeatureFlagBrowserTest,
+                       IsolatedWebAppCanAccessSetShape) {
   web_app::IsolatedWebAppUrlInfo url_info =
       InstallIsolatedWebAppAndReturnUrlInfo(profile());
   content::RenderFrameHost* frame = OpenApp(url_info.app_id());
@@ -88,8 +86,8 @@ IN_PROC_BROWSER_TEST_F(BlinkExtensionsWithFlagSetTest,
   EXPECT_EQ(true, content::EvalJs(frame, "'setShape' in window"));
 }
 
-IN_PROC_BROWSER_TEST_F(BlinkExtensionsWithFlagSetTest,
-                       IsolatedWebAppChildWindowCanAccessExtensions) {
+IN_PROC_BROWSER_TEST_F(SetShapeFeatureFlagBrowserTest,
+                       IsolatedWebAppChildWindowCanAccessSetShape) {
   web_app::IsolatedWebAppUrlInfo url_info =
       InstallIsolatedWebAppAndReturnUrlInfo(profile());
 
@@ -104,8 +102,8 @@ IN_PROC_BROWSER_TEST_F(BlinkExtensionsWithFlagSetTest,
   ASSERT_EQ(true, content::EvalJs(child_contents, "'setShape' in window"));
 }
 
-IN_PROC_BROWSER_TEST_F(BlinkExtensionsWithFlagSetTest,
-                       RegularPageCannotAccessExtensions) {
+IN_PROC_BROWSER_TEST_F(SetShapeFeatureFlagBrowserTest,
+                       RegularPageCannotAccessSetShape) {
   std::unique_ptr<net::EmbeddedTestServer> server =
       CreateAndStartServer(FILE_PATH_LITERAL("web_apps"));
   auto page_url = server->GetOrigin().GetURL().Resolve("basic.html");
@@ -118,14 +116,14 @@ IN_PROC_BROWSER_TEST_F(BlinkExtensionsWithFlagSetTest,
   EXPECT_EQ(false, content::EvalJs(web_contents, "'setShape' in window"));
 }
 
-// Verifies that only IWAs in the allowlist can access the CrOS IWA API.
-class BlinkExtensionsAllowlistTest
+// Verifies that only IWAs in the allowlist can access the setShape API.
+class SetShapeAllowlistBrowserTest
     : public web_app::IsolatedWebAppBrowserTestHarness {
  private:
   base::test::ScopedFeatureList feature_list_{blink::features::kUnframedIwa};
 };
 
-IN_PROC_BROWSER_TEST_F(BlinkExtensionsAllowlistTest, ExtensionsAreUndefined) {
+IN_PROC_BROWSER_TEST_F(SetShapeAllowlistBrowserTest, SetShapeIsUndefined) {
   web_app::IsolatedWebAppUrlInfo url_info =
       InstallIsolatedWebAppAndReturnUrlInfo(profile());
   content::RenderFrameHost* app_frame = OpenApp(url_info.app_id());
@@ -134,8 +132,8 @@ IN_PROC_BROWSER_TEST_F(BlinkExtensionsAllowlistTest, ExtensionsAreUndefined) {
   EXPECT_EQ(false, content::EvalJs(app_frame, "'setShape' in window"));
 }
 
-IN_PROC_BROWSER_TEST_F(BlinkExtensionsAllowlistTest,
-                       OnlyAllowlistedIwasCanAccessExtensions) {
+IN_PROC_BROWSER_TEST_F(SetShapeAllowlistBrowserTest,
+                       OnlyAllowlistedIwasCanAccessSetShape) {
   web_app::IsolatedWebAppUrlInfo allowed_url_info =
       InstallIsolatedWebAppAndReturnUrlInfo(profile());
   web_app::IsolatedWebAppUrlInfo non_allowed_url_info =
@@ -162,10 +160,10 @@ IN_PROC_BROWSER_TEST_F(BlinkExtensionsAllowlistTest,
 }
 
 // Verifies the behavior when the allowlist is disabled.
-class BlinkExtensionsAllowlistDisabledTest
+class SetShapeAllowlistDisabledBrowserTest
     : public web_app::IsolatedWebAppBrowserTestHarness {
  public:
-  BlinkExtensionsAllowlistDisabledTest() {
+  SetShapeAllowlistDisabledBrowserTest() {
     feature_list_.InitWithFeatures(
         {blink::features::kUnframedIwa},
         {chromeos::features::kCrosIsolatedWebAppSetShapeAllowlist});
@@ -175,7 +173,7 @@ class BlinkExtensionsAllowlistDisabledTest
   base::test::ScopedFeatureList feature_list_;
 };
 
-IN_PROC_BROWSER_TEST_F(BlinkExtensionsAllowlistDisabledTest,
+IN_PROC_BROWSER_TEST_F(SetShapeAllowlistDisabledBrowserTest,
                        AllowlistDoesNotWork) {
   web_app::IsolatedWebAppUrlInfo url_info =
       InstallIsolatedWebAppAndReturnUrlInfo(profile());
@@ -188,15 +186,14 @@ IN_PROC_BROWSER_TEST_F(BlinkExtensionsAllowlistDisabledTest,
   EXPECT_EQ(false, content::EvalJs(frame, "'setShape' in window"));
 }
 
-// Verifies the `kCrosIsolatedWebAppSetShape` flag grants access even if the
+// Verifies the `kSetShape` flag grants access even if the
 // allowlist is disabled.
-class BlinkExtensionsAllowlistDisabledWithMainFlagEnabledTest
+class SetShapeMainFlagOverridesAllowlistBrowserTest
     : public web_app::IsolatedWebAppBrowserTestHarness {
  public:
-  BlinkExtensionsAllowlistDisabledWithMainFlagEnabledTest() {
+  SetShapeMainFlagOverridesAllowlistBrowserTest() {
     feature_list_.InitWithFeatures(
-        {chromeos::features::kCrosIsolatedWebAppSetShape,
-         blink::features::kUnframedIwa},
+        {blink::features::kSetShape, blink::features::kUnframedIwa},
         {chromeos::features::kCrosIsolatedWebAppSetShapeAllowlist});
   }
 
@@ -204,8 +201,8 @@ class BlinkExtensionsAllowlistDisabledWithMainFlagEnabledTest
   base::test::ScopedFeatureList feature_list_;
 };
 
-IN_PROC_BROWSER_TEST_F(BlinkExtensionsAllowlistDisabledWithMainFlagEnabledTest,
-                       IsolatedWebAppCanAccessExtensions) {
+IN_PROC_BROWSER_TEST_F(SetShapeMainFlagOverridesAllowlistBrowserTest,
+                       IsolatedWebAppCanAccessSetShape) {
   web_app::IsolatedWebAppUrlInfo url_info =
       InstallIsolatedWebAppAndReturnUrlInfo(profile());
 
