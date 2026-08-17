@@ -961,6 +961,14 @@ void BrowserAutofillManager::LogSubmissionMetrics(
   // Log metrics about the autocomplete attribute usage in the submitted form.
   LogAutocompletePredictionCollisionTypeMetrics(*submitted_form);
 
+  // Log metrics about the filling readiness of the submitted form.
+  // Unlike standard filling readiness metrics which are logged per-form-type
+  // (e.g. Address or Credit Card) in their respective FormEventLoggers, this
+  // metric evaluates the overall form globally to check how many different
+  // data sources (Address, Payments, Forms AI) the user has available versus
+  // what the form actually accepts.
+  AutofillMetrics::LogFillingReadinessMetrics(*submitted_form, client());
+
   // Log interaction time metrics for the ablation study.
   if (!metrics_->initial_interaction_timestamp.is_null()) {
     base::TimeDelta time_from_interaction_to_submission =
@@ -1160,8 +1168,7 @@ void BrowserAutofillManager::OnAskForValuesToFillImpl(
   if (AtMemoryManager* am = client().GetAtMemoryManager();
       am && IsAtMemoryTriggerSource(trigger_source)) {
     am->set_target_field_origin(field.origin());
-    std::vector<Suggestion> suggestions;
-    am->MaybeAppendPersonalContextNotice(suggestions);
+    std::vector<Suggestion> suggestions = am->GetEmptyQuerySuggestions();
 
     // Show suggestions with a search bar to start the flow.
     external_delegate_->OnSuggestionsReturned(field, suggestions);

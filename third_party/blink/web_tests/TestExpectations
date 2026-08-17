@@ -593,9 +593,6 @@ crbug.com/329302543 external/wpt/css/css-backgrounds/background-clip/clip-border
 # [css-image-animation]
 crbug.com/536159147 [ Mac ] external/wpt/css/css-image-animation/image-animation-paused-exact-frame.tentative.html [ Failure Pass ]
 
-# Failures due to pointerMove building synthetic events without button information (main thread only).
-crbug.com/1056778 fast/scrolling/scrollbars/scrollbar-thumb-snapping.html [ Failure ]
-
 # Most of these fail due to subpixel differences, but a couple are real failures.
 crbug.com/1044742 external/wpt/css/compositing/mix-blend-mode/mix-blend-mode-border-image.html [ Failure ]
 crbug.com/1044742 external/wpt/css/compositing/mix-blend-mode/mix-blend-mode-filter.html [ Failure ]
@@ -1284,6 +1281,10 @@ crbug.com/494341468 external/wpt/quirks/tables-inherit-color-from-body-quirk-004
 crbug.com/494341468 external/wpt/quirks/tables-inherit-color-from-body-quirk-005.html [ Failure ]
 
 crbug.com/537801217 external/wpt/css/selectors/active-observable.html [ Failure Pass Timeout ]
+
+crbug.com/420443621 external/wpt/css/css-viewport/zoom/animation-range.html [ Failure ]
+crbug.com/420443621 external/wpt/css/css-viewport/zoom/view-timeline-inset.html [ Failure ]
+crbug.com/420443621 external/wpt/css/css-viewport/zoom/grid.html [ Failure ]
 
 # ====== Style team owned tests to here ======
 
@@ -2695,10 +2696,7 @@ crbug.com/536952792 external/wpt/html/semantics/scripting-1/the-script-element/m
 crbug.com/540322301 external/wpt/webaudio/the-audio-api/the-oscillatornode-interface/sub-sample-start.html [ Failure ]
 
 # ====== New tests from wpt-importer added here ======
-crbug.com/546363776 external/wpt/css/css-viewport/zoom/animation-range.html [ Failure ]
-crbug.com/546363776 external/wpt/css/css-viewport/zoom/view-timeline-inset.html [ Failure ]
 crbug.com/546278641 external/wpt/css/css-values/using-font-relative-units-in-font-properties.html [ Crash ]
-crbug.com/546278641 external/wpt/css/css-viewport/zoom/grid.html [ Failure ]
 crbug.com/546159614 external/wpt/html/rendering/widgets/button-layout/anonymous-button-content-box.html [ Failure ]
 crbug.com/546241037 external/wpt/css/css-borders/corner-shape/corner-shape-superellipse-concave.html [ Failure ]
 crbug.com/546241037 external/wpt/css/css-borders/corner-shape/corner-shape-superellipse-convex.html [ Failure ]

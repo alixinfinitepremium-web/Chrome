@@ -2652,10 +2652,10 @@ class MockGlobalError : public GlobalError {
   bool HasMenuItem() override { return true; }
   int MenuItemCommandID() override { return 12345; }
   std::u16string MenuItemLabel() override { return u"Mock Error"; }
-  void ExecuteMenuItem(Browser* browser) override {}
+  void ExecuteMenuItem(BrowserWindowInterface* browser) override {}
   bool HasBubbleView() override { return false; }
   bool HasShownBubbleView() override { return false; }
-  void ShowBubbleView(Browser* browser) override {}
+  void ShowBubbleView(BrowserWindowInterface* browser) override {}
   GlobalErrorBubbleViewBase* GetBubbleView() override { return nullptr; }
 
  private:
@@ -5822,6 +5822,22 @@ class WebUIToolbarFullyEnabledBrowserTest
     });
   }
 
+  void InstallErrorListener() {
+    ASSERT_TRUE(content::ExecJs(GetWebUIWebContents(), R"(
+      window.__caughtJsErrors = [];
+      window.addEventListener('error', (e) => {
+        window.__caughtJsErrors.push(e.message || 'unknown error');
+      });
+    )"));
+  }
+
+  void AssertNoJsErrors() {
+    EXPECT_EQ(content::EvalJs(GetWebUIWebContents(),
+                              "JSON.stringify(window.__caughtJsErrors)")
+                  .ExtractString(),
+              "[]");
+  }
+
   // Sets the size of a test-only element on the toolbar-app with the provided
   // size, which should cause responsive controls to be asynchronously laid out
   // to accommodate it. Does not wait for that layout to occur. Adds the element
@@ -6429,6 +6445,8 @@ IN_PROC_BROWSER_TEST_F(WebUIToolbarFullyEnabledBrowserTest,
   // visible, to ensure that the renderer has received its initial state.
   ASSERT_TRUE(WaitUntilResponsiveControlsAreVisible({kForwardSelector}));
 
+  InstallErrorListener();
+
   // Make window wide enough that all controls should fit. This automatically
   // checks that the toolbar-app element is sized appropriately.
   ASSERT_TRUE(SetWindowWidth(1200));
@@ -6459,6 +6477,8 @@ IN_PROC_BROWSER_TEST_F(WebUIToolbarFullyEnabledBrowserTest,
   // toolbar-app element is sized accordingly.
   ASSERT_TRUE(SetWindowWidth(800));
   ASSERT_TRUE(SetWindowWidth(1200));
+
+  AssertNoJsErrors();
 }
 
 // Test fixture that enables all WebUI toolbar controls, but disables
@@ -6490,6 +6510,8 @@ IN_PROC_BROWSER_TEST_F(WebUIToolbarNoOmniboxPrioritizationBrowserTest,
   // Wait for home, forward, and split tabs buttons to be visible.
   ASSERT_TRUE(WaitUntilResponsiveControlsAreVisible(
       {kSplitTabsSelector, kForwardSelector, kHomeSelector}));
+
+  InstallErrorListener();
 
   // Create spacer so that any padding it will add is taken into account by
   // the MeasureResponsiveControls() call.
@@ -6545,6 +6567,8 @@ IN_PROC_BROWSER_TEST_F(WebUIToolbarNoOmniboxPrioritizationBrowserTest,
 
   expected_sizes.Set(split_tabs_info.id, split_tabs_info.min_width);
   CheckControlSizes(expected_sizes);
+
+  AssertNoJsErrors();
 }
 
 // Tests expanding responsive navigation controls when available toolbar space
@@ -6562,6 +6586,8 @@ IN_PROC_BROWSER_TEST_F(WebUIToolbarNoOmniboxPrioritizationBrowserTest,
   // Wait for home, forward, and split tabs buttons to be visible.
   ASSERT_TRUE(WaitUntilResponsiveControlsAreVisible(
       {kSplitTabsSelector, kForwardSelector, kHomeSelector}));
+
+  InstallErrorListener();
 
   // Create spacer so that any padding it will add is taken into account by
   // the MeasureResponsiveControls() call.
@@ -6629,4 +6655,6 @@ IN_PROC_BROWSER_TEST_F(WebUIToolbarNoOmniboxPrioritizationBrowserTest,
   expected_sizes.Set(location_bar_info.id,
                      location_bar_info.preferred_width + 12);
   CheckControlSizes(expected_sizes);
+
+  AssertNoJsErrors();
 }

@@ -390,7 +390,6 @@ const base::FeatureParam<bool> kUrgentDiscardIgnoreWorkers{
 // When this feature is enabled, partial storage cleanup will be
 // disabled for the GPU disk cache. (Performance improvement)
 BASE_FEATURE(kDisablePartialStorageCleanupForGPUDiskCache,
-             "PerformStorageCleanupForGPUDiskCache",
              base::FEATURE_DISABLED_BY_DEFAULT);
 
 // Enable drawing under System Bars within DisplayCutout.
@@ -1384,12 +1383,6 @@ BASE_FEATURE(kAccessibilityImeGetFormattedText,
 // flag does not. This flag focuses solely on the LIVE_REGION_NODE_CHANGED
 // generated events.
 BASE_FEATURE(kAccessibilityImproveLiveRegionAnnounce,
-             base::FEATURE_ENABLED_BY_DEFAULT);
-
-// When enabled, allows Android to fire WINDOW_CONTENT_CHANGED events for value
-// changes made to ARIA meter controls.
-// TODO(crbug.com/493195387): Remove killswitch after stability period.
-BASE_FEATURE(kAccessibilityMeterEventsOnAndroid,
              base::FEATURE_ENABLED_BY_DEFAULT);
 
 // When this feature is enabled, the accessibility tree will be requested to

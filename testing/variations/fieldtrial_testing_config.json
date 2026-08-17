@@ -309,7 +309,7 @@
                 {
                     "name": "Control",
                     "disable_features": [
-                        "AccessibilityDeprecateJavaNodecache"
+                        "AccessibilityDeprecateJavaNodeCache"
                     ]
                 }
             ]
@@ -4493,8 +4493,8 @@
                 {
                     "name": "Initial1s_Max5m_20260804",
                     "params": {
-                        "kInitialDelayForBrokenAlternativeServiceParam": "1s",
-                        "kMaxDelayForBrokenAlternativeServiceParam": "5m"
+                        "InitialDelayForBrokenAlternativeServiceParam": "1s",
+                        "MaxDelayForBrokenAlternativeServiceParam": "5m"
                     },
                     "enable_features": [
                         "InitialDelayForBrokenAlternativeService",
@@ -9319,25 +9319,6 @@
                     ],
                     "hardware_classes": [
                         "drallion"
-                    ]
-                }
-            ]
-        }
-    ],
-    "DisablePartialStorageCleanupForGPUDiskCache": [
-        {
-            "platforms": [
-                "android",
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "DisablePartialStorageCleanupForGPUDiskCache"
                     ]
                 }
             ]
@@ -16397,25 +16378,6 @@
             ]
         }
     ],
-    "LogicalClearHttpCache": [
-        {
-            "platforms": [
-                "android",
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "LogicalClearHttpCache"
-                    ]
-                }
-            ]
-        }
-    ],
     "LongAnimationFrameSourceCharPosition": [
         {
             "platforms": [
@@ -16932,8 +16894,8 @@
                     "enable_features": [
                         "KillSpareRenderOnMemoryPressure",
                         "MultipleSpareRPHs",
-                        "SpareRPHUseCriticalMemoryPressure",
-                        "kSpareRPHKeepOneAliveOnMemoryPressure"
+                        "SpareRPHKeepOneAliveOnMemoryPressure",
+                        "SpareRPHUseCriticalMemoryPressure"
                     ]
                 },
                 {
@@ -16944,8 +16906,8 @@
                     "enable_features": [
                         "KillSpareRenderOnMemoryPressure",
                         "MultipleSpareRPHs",
-                        "SpareRPHUseCriticalMemoryPressure",
-                        "kSpareRPHKeepOneAliveOnMemoryPressure"
+                        "SpareRPHKeepOneAliveOnMemoryPressure",
+                        "SpareRPHUseCriticalMemoryPressure"
                     ]
                 }
             ]
@@ -23560,6 +23522,26 @@
                     },
                     "enable_features": [
                         "SpeculativeServiceWorkerWarmUp"
+                    ]
+                }
+            ]
+        }
+    ],
+    "SpeedUpClearSiteDataCacheDeletion": [
+        {
+            "platforms": [
+                "android",
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "DisablePartialStorageCleanupForGPUDiskCache",
+                        "LogicalClearHttpCache"
                     ]
                 }
             ]

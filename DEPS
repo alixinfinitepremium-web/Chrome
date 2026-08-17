@@ -333,11 +333,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '3baccbd213f205f9b7d11e42e7234f87002bc198',
+  'src_internal_revision': 'fa8a1c3a7e56007d1341d1f5fe198675922e3b6e',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': 'a06b820a5c866aaf44aa9274bca849f97108eb9c',
+  'skia_revision': 'd01e14fab6de86463f0517bfa37844e76ff2dafd',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -357,7 +357,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': 'da0976d6b8b55bfd2ad446c67cb54113b602085c',
+  'boringssl_revision': 'defe5810ee8be430bcdeccf46a199bec0e93abdb',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -549,7 +549,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling clusterfuzz-data
   # and whatever else without interference from each other.
-  'clusterfuzz_data_revision':'6391f1debcef52b2a42a6df86137009d76f04a7d',
+  'clusterfuzz_data_revision':'1b057717eb510d4a6dcfc050600d350670be991a',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling agents-internal
   # and whatever else without interference from each other.
@@ -912,7 +912,7 @@ deps = {
         'sha256sum': '1dc5bf865a3a48dd820fa8959b83c8662575d25465381803fae82427d176ba77',
         'size_bytes': 2794136,
         'generation': 1786633521996048,
-        'condition': 'checkout_android and not host_os == "linux" and non_git_source',
+        'condition': 'checkout_android and non_git_source',
       },
       {
         'object_name': 'Linux_x64/clang-llvmorg-23-init-19482-g53d18800-22.tar.xz',
@@ -1738,7 +1738,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    'c415212138b644d34de3685bb195622a5e2709bf',
+    '2e8e3054ca1a7392021631746ed6d87ac10b6a5b',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -2458,7 +2458,7 @@ deps = {
   },
 
   'src/third_party/nlohmann_json/src':
-    Var('chromium_git') + '/external/github.com/nlohmann/json.git'+ '@' + '3565f40229515411177c196ec912a06307802ed6',
+    Var('chromium_git') + '/external/github.com/nlohmann/json.git'+ '@' + '55f93686c01528224f448c19128836e7df245f72',
 
   'src/third_party/jsoncpp/source':
     Var('chromium_git') + '/external/github.com/open-source-parsers/jsoncpp.git'
@@ -3224,7 +3224,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + 'bfce0cc707a1516436e0617964e03481f6c6fa45',
+    Var('webrtc_git') + '/src.git' + '@' + '3901cac157827a74e6edf140303ea2260519c7bc',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -3386,7 +3386,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/media_app/app',
-        'version': '8vTPoMKU5vF4ZM3WMdI4Mv4pRdkzUmENM-OdaBEbrQAC',
+        'version': 'K-zW5zv9P8oOPoZD5Z4x2hoYtvJZ1rNkyUOVcvQc-QIC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',

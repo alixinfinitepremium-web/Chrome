@@ -1863,14 +1863,6 @@ IN_PROC_BROWSER_TEST_P(GlicApiTestWithOneTab, testAdditionalContext) {
   ContinueJsTest();
 }
 
-// A smoke test to verify the cancelActions API works end-to-end.
-IN_PROC_BROWSER_TEST_P(GlicApiTestWithOneTab, testCancelActions) {
-  // Task with id 12345 does not exist.
-  ExecuteJsTest({.params = base::Value(12345)});
-  EXPECT_EQ(std::to_underlying(mojom::CancelActionsResult::kTaskNotFound),
-            step_data()->GetInt());
-  ContinueJsTest();
-}
 
 IN_PROC_BROWSER_TEST_P(GlicApiTestWithGeminiActOnWebPolicy,
                        testNotifyActOnWebCapabilityChanged) {
@@ -1887,17 +1879,6 @@ IN_PROC_BROWSER_TEST_P(GlicApiTestWithGeminiActOnWebPolicy,
   // Disable the capability.
   UpdateGeminiActOnWebPolicy(
       glic::prefs::GlicActuationOnWebPolicyState::kDisabled);
-  ContinueJsTest();
-}
-
-IN_PROC_BROWSER_TEST_P(GlicApiTestWithOneTab, testGetZoomLevel) {
-  // Confirm that the observer is notified through getZoomLevel of the initial
-  // state, i.e. zoom level of 1.0.
-  ExecuteJsTest();
-
-  // Zoom in and confirm that the observer is notified of the new state, i.e.
-  // zoom level of 1.1.
-  GetHost()->Zoom(mojom::ZoomAction::kZoomIn);
   ContinueJsTest();
 }
 

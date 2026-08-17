@@ -1801,11 +1801,6 @@
     "expiry_milestone": 155
   },
   {
-    "name": "chrome-item-picker-ui",
-    "owners": [ "haileywang@google.com", "ssid@chromium.org" ],
-    "expiry_milestone": 160
-  },
-  {
     "name": "chrome-native-url-overriding",
     "owners": [
       "mfiaz@google.com",
@@ -6953,11 +6948,6 @@
     "name": "media-playback-while-not-visible-permission-policy",
     "owners": [ "gabrielbrito@microsoft.com", "stevebe@microsoft.com"],
     "expiry_milestone": 142
-  },
-  {
-    "name": "media-route-dial-provider",
-    "owners": [ "sunggch@microsoft.com" ],
-    "expiry_milestone": 124
   },
   {
     "name": "media-router-cast-allow-all-ips",
