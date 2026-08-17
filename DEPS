@@ -2190,7 +2190,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '732902ab86f8bd629bee00af102d5aa2d9336166',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '882906bdbbdfd5588f103e792d153c8ab6ae1715',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -2202,7 +2202,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + 'bbac95e9ecf192e3922fd0e3ebb60e33bc5f2427',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + 'c4236f4a60c813838545e66c376b86d4ed33dcfa',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '17a56409b86d0da5e01ca38f6498e13b2db16bc3',

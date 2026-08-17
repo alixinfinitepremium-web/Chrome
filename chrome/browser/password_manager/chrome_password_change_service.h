@@ -40,7 +40,7 @@ namespace password_manager {
 class PasswordFeatureManager;
 class PasswordManagerSettingsService;
 struct StoredCredential;
-}
+}  // namespace password_manager
 
 class PrefService;
 
@@ -65,7 +65,8 @@ enum class PasswordChangeAvailability {
   kSignupForm = 11,
   kNonPasswordLogin = 12,
   kInvisiblePasswordField = 13,
-  kMaxValue = kInvisiblePasswordField,
+  kDisabledByUser = 14,
+  kMaxValue = kDisabledByUser,
 };
 // LINT.ThenChange(/tools/metrics/histograms/metadata/password/enums.xml:PasswordChangeAvailability)
 
@@ -111,9 +112,6 @@ class ChromePasswordChangeService
       password_manager::StoredCredential credential,
       content::WebContents* web_contents,
       PasswordChangeFromCheckupDelegate::StateChangeCallback callback);
-
-  // Stops the password change flow from the Password Checkup page.
-  virtual void StopPasswordChangeFromCheckup();
 #endif
 
   // PasswordChangeServiceInterface implementation.
