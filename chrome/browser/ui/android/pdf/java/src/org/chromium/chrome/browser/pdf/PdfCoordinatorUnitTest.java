@@ -10,9 +10,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -131,6 +129,7 @@ public class PdfCoordinatorUnitTest {
     public void setUp() {
         mActivityScenarioRule.getScenario().onActivity(activity -> mActivity = activity);
         PdfCoordinator.skipLoadPdfForTesting(true);
+        PdfUtils.setInlinePdfV2EditEnabledForTesting(true);
         ChromeFileProvider.setGeneratedUriForTesting(Uri.parse(TEST_CONTENT_URI));
         PostTask.setPrenativeThreadPoolExecutorForTesting(Runnable::run);
     }
@@ -168,14 +167,26 @@ public class PdfCoordinatorUnitTest {
 
     @Test
     @EnableFeatures(ChromeFeatureList.INLINE_PDF_V2)
-    public void testOnLinkClicked_RegularProfile() {
-        runOnLinkClickedTest(false);
-    }
-
-    @Test
-    @EnableFeatures(ChromeFeatureList.INLINE_PDF_V2)
-    public void testOnLinkClicked_Incognito() {
-        runOnLinkClickedTest(true);
+    public void testOnLinkClicked() {
+        createPdfCoordinator();
+        Uri linkUri = Uri.parse(LINK_URL);
+        HistogramWatcher histogramExpectation =
+                HistogramWatcher.newSingleRecordWatcher(
+                        "Android.Pdf.Hyperlink.ClickResult",
+                        PdfHyperlinkClickResult.SUCCESS_LOAD_INITIATED);
+        boolean result = mPdfCoordinator.onLinkClicked(linkUri);
+        assertTrue("name should verify true", result);
+        histogramExpectation.assertExpected();
+        ArgumentCaptor<LoadUrlParams> captor = ArgumentCaptor.forClass(LoadUrlParams.class);
+        verify(mNativePageHost).openNewTab(captor.capture());
+        LoadUrlParams params = captor.getValue();
+        assertEquals("URL should match.", LINK_URL, params.getUrl());
+        assertEquals(
+                "Transition type should be LINK.", PageTransition.LINK, params.getTransitionType());
+        assertTrue("isRendererInitiated should be true.", params.getIsRendererInitiated());
+        assertEquals(
+                Origin.create(new GURL(PDF_URL)).toString(),
+                params.getInitiatorOrigin().toString());
     }
 
     @Test
@@ -278,7 +289,7 @@ public class PdfCoordinatorUnitTest {
                     mPdfCoordinator.onLinkClicked(Uri.parse(raw)));
             histogramExpectation.assertExpected();
         }
-        verify(mNativePageHost, never()).loadUrl(any(LoadUrlParams.class), anyBoolean());
+        verify(mNativePageHost, never()).openNewTab(any(LoadUrlParams.class));
     }
 
     @Test
@@ -295,7 +306,7 @@ public class PdfCoordinatorUnitTest {
                 "onLinkClicked should reject schemeless URI.",
                 mPdfCoordinator.onLinkClicked(Uri.parse("//www.example.com/foo")));
         histogramExpectation.assertExpected();
-        verify(mNativePageHost, never()).loadUrl(any(LoadUrlParams.class), anyBoolean());
+        verify(mNativePageHost, never()).openNewTab(any(LoadUrlParams.class));
     }
 
     @Test
@@ -312,7 +323,7 @@ public class PdfCoordinatorUnitTest {
                 "onLinkClicked should return false when inline PDF V2 is disabled.",
                 mPdfCoordinator.onLinkClicked(Uri.parse("https://www.example.com/")));
         histogramExpectation.assertExpected();
-        verify(mNativePageHost, never()).loadUrl(any(LoadUrlParams.class), anyBoolean());
+        verify(mNativePageHost, never()).openNewTab(any(LoadUrlParams.class));
     }
 
     @Test
@@ -340,31 +351,7 @@ public class PdfCoordinatorUnitTest {
                     mPdfCoordinator.onLinkClicked(Uri.parse(raw)));
             histogramExpectation.assertExpected();
         }
-        verify(mNativePageHost, times(allowedUris.length))
-                .loadUrl(any(LoadUrlParams.class), eq(false));
-    }
-
-    private void runOnLinkClickedTest(boolean isIncognito) {
-        when(mProfile.isOffTheRecord()).thenReturn(isIncognito);
-        createPdfCoordinator();
-        Uri linkUri = Uri.parse(LINK_URL);
-        HistogramWatcher histogramExpectation =
-                HistogramWatcher.newSingleRecordWatcher(
-                        "Android.Pdf.Hyperlink.ClickResult",
-                        PdfHyperlinkClickResult.SUCCESS_LOAD_INITIATED);
-        boolean result = mPdfCoordinator.onLinkClicked(linkUri);
-        assertTrue("name should verify true", result);
-        histogramExpectation.assertExpected();
-        ArgumentCaptor<LoadUrlParams> captor = ArgumentCaptor.forClass(LoadUrlParams.class);
-        verify(mNativePageHost).loadUrl(captor.capture(), eq(isIncognito));
-        LoadUrlParams params = captor.getValue();
-        assertEquals("URL should match.", LINK_URL, params.getUrl());
-        assertEquals(
-                "Transition type should be LINK.", PageTransition.LINK, params.getTransitionType());
-        assertTrue("isRendererInitiated should be true.", params.getIsRendererInitiated());
-        assertEquals(
-                Origin.create(new GURL(PDF_URL)).toString(),
-                params.getInitiatorOrigin().toString());
+        verify(mNativePageHost, times(allowedUris.length)).openNewTab(any(LoadUrlParams.class));
     }
 
     @Test
@@ -1372,6 +1359,25 @@ public class PdfCoordinatorUnitTest {
         mPdfCoordinator.setEditMode(true);
 
         assertTrue(shadowFragment.getEditModeEnabled());
+        assertFalse(shadowFragment.wasApplyDraftEditsCalled());
+    }
+
+    @Test
+    @EnableFeatures(ChromeFeatureList.INLINE_PDF_V2)
+    @Config(shadows = {ShadowEditablePdfViewerFragment.class})
+    public void testSetEditMode_EditDisabled() {
+        PdfUtils.setInlinePdfV2EditEnabledForTesting(false);
+        createPdfCoordinator();
+        ShadowEditablePdfViewerFragment shadowFragment =
+                Shadow.extract(mPdfCoordinator.mChromePdfViewerFragment);
+        shadowFragment.setHasUnsavedChanges(true);
+
+        mPdfCoordinator.setEditMode(true);
+        assertNull(shadowFragment.getEditModeEnabled());
+        assertFalse(shadowFragment.wasApplyDraftEditsCalled());
+
+        mPdfCoordinator.setEditMode(false);
+        assertFalse(shadowFragment.getEditModeEnabled());
         assertFalse(shadowFragment.wasApplyDraftEditsCalled());
     }
 

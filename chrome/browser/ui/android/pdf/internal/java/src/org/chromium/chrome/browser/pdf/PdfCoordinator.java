@@ -1423,6 +1423,12 @@ public class PdfCoordinator
      */
     @Override
     public void setEditMode(boolean editMode) {
+        if (!PdfUtils.isInlinePdfV2EditEnabled()) {
+            if (!editMode) {
+                mChromePdfViewerFragment.setEditModeEnabled(false);
+            }
+            return;
+        }
         if (!editMode && mChromePdfViewerFragment.hasUnsavedChanges()) {
             mChromePdfViewerFragment.applyDraftEdits();
         } else {
@@ -1494,7 +1500,8 @@ public class PdfCoordinator
         params.setIsRendererInitiated(true);
         // TODO(crbug.com/484103003): Reconsider initiator origin if renderer initiated is true.
         params.setInitiatorOrigin(Origin.create(new GURL(mUrl)));
-        mNativePageHost.loadUrl(params, mIsIncognito);
+        // TODO(crbug.com/548013417): Reuse existing tab for link clicks.
+        mNativePageHost.openNewTab(params);
         PdfUtils.recordHyperlinkClickResult(PdfHyperlinkClickResult.SUCCESS_LOAD_INITIATED);
         return true;
     }
