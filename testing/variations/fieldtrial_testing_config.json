@@ -6888,6 +6888,28 @@
             ]
         }
     ],
+    "ComponentsBase32InRust": [
+        {
+            "platforms": [
+                "android",
+                "android_webview",
+                "chromeos",
+                "fuchsia",
+                "ios",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "ComponentsBase32InRust"
+                    ]
+                }
+            ]
+        }
+    ],
     "ComposeAXSnapshot": [
         {
             "platforms": [
@@ -13884,6 +13906,26 @@
             ]
         }
     ],
+    "HttpCacheZstdCompression": [
+        {
+            "platforms": [
+                "android",
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "HttpCacheZstdCompression",
+                        "HttpCacheZstdDecompression"
+                    ]
+                }
+            ]
+        }
+    ],
     "HttpsFirstBalancedModeAutoEnable": [
         {
             "platforms": [
@@ -14895,6 +14937,21 @@
                     },
                     "enable_features": [
                         "IdbSqliteOnDiskRollout"
+                    ]
+                }
+            ]
+        }
+    ],
+    "IdentityAwareness": [
+        {
+            "platforms": [
+                "ios"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "IdentityAwareness"
                     ]
                 }
             ]
@@ -27361,6 +27418,21 @@
                     "name": "Enabled_20260116",
                     "enable_features": [
                         "WebViewLatchedCookiePolicy"
+                    ]
+                }
+            ]
+        }
+    ],
+    "WebViewMemoryProfilingClient": [
+        {
+            "platforms": [
+                "android_webview"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "WebViewMemoryProfilingClient"
                     ]
                 }
             ]
