@@ -337,7 +337,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '73d18dbf6a7e3df08020f7915217f63f8a695fa6',
+  'skia_revision': '8b8c3872fbc03f025855db96ce683f34ec98a815',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -549,7 +549,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling clusterfuzz-data
   # and whatever else without interference from each other.
-  'clusterfuzz_data_revision':'1b057717eb510d4a6dcfc050600d350670be991a',
+  'clusterfuzz_data_revision':'85d23a9833c8194f6e1fe49235570e892aba87c8',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling agents-internal
   # and whatever else without interference from each other.
@@ -2200,7 +2200,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '14d33f2f2ec94b0dbcf3ce9c441a95c92132b62d',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '76a7c53018c33cd39e0effeb697fa3295bbd3179',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '17a56409b86d0da5e01ca38f6498e13b2db16bc3',
@@ -2641,7 +2641,7 @@ deps = {
     Var('chromium_git') + '/webm/libwebp.git' + '@' +  'b43b2caa710c0c997c066cb32c7fea1391fad70a',
 
   'src/third_party/libyuv':
-    Var('chromium_git') + '/libyuv/libyuv.git' + '@' + '240ac24a88822e9a2fe54e31a13fcf197ff82d71',
+    Var('chromium_git') + '/libyuv/libyuv.git' + '@' + '87c797b3c29cc6fb233fc329a93aace2942ba2d9',
 
   'src/third_party/lss': {
       'url': Var('chromium_git') + '/linux-syscall-support.git' + '@' + Var('lss_revision'),
@@ -2781,7 +2781,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '030b19d1fb9474309d30e45760065f79a9f5c035',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + 'da65f7e907e0caf473ddec16e15427465f503d05',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
@@ -3375,7 +3375,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/help_app/app',
-        'version': 'hMXjrFyvhl5u_ZQvcWYfOAaiWpobAlepav4elN5JQ6IC',
+        'version': '1Gds_6BMdRWWurC2EZMnzfbAahONd_JrNdhzrVAXlmkC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3987,7 +3987,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        '136580b08aaf37b7913f37da1a44fe67cc5c4bdf',
+        'ecd2a1bb454f995253600c3d02ce9cdb4188cd16',
       'condition': 'checkout_src_internal',
   },
 

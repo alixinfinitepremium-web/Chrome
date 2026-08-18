@@ -9819,6 +9819,7 @@ from previous Chrome versions.
       label="EnablePixDetectionOnDomContentLoaded:enabled"/>
   <int value="-1502625008" label="FlexFirmwareUpdate:enabled"/>
   <int value="-1502515694" label="ProfilePickerTextVariations:disabled"/>
+  <int value="-1502379210" label="TabClosureCommittedMethodRefactor:enabled"/>
   <int value="-1501764956" label="AccessibilitySnapshotStressTests:enabled"/>
   <int value="-1501658124" label="IsolatedWebAppAutomaticUpdates:enabled"/>
   <int value="-1501593786" label="GlicCaaGuestError:enabled"/>
@@ -15212,6 +15213,7 @@ from previous Chrome versions.
   <int value="183208826" label="TabGroups:enabled"/>
   <int value="183467994" label="GridTabSwitcherAndroidAnimations:disabled"/>
   <int value="184274661" label="LensAimSuggestions:enabled"/>
+  <int value="185146045" label="TabClosureCommittedMethodRefactor:disabled"/>
   <int value="185991204" label="enable-webrtc-srtp-encrypted-headers"/>
   <int value="186463628" label="DnsOverHttps:disabled"/>
   <int value="187109402" label="SyncingCompromisedCredentials:enabled"/>
@@ -28155,11 +28157,11 @@ This is true even if the type has been removed from the mojom file.
 <enum name="WebDatabaseInitResult">
   <int value="0" label="kSuccess"/>
   <int value="1" label="kCouldNotOpen"/>
-  <int value="2" label="kDatabaseLocked"/>
+  <int value="2" label="(Obsolete) kDatabaseLocked. Removed in 2026/08."/>
   <int value="3" label="kCouldNotRazeIncompatibleVersion"/>
   <int value="4" label="kFailedToBeginInitTransaction"/>
   <int value="5" label="kMetaTableInitFailed"/>
-  <int value="6" label="kCurrentVersionTooNew"/>
+  <int value="6" label="(Obsolete) kCurrentVersionTooNew. Removed in 2026/08."/>
   <int value="7" label="kMigrationError"/>
   <int value="8" label="kFailedToCreateTable"/>
   <int value="9" label="kFailedToCommitInitTransaction"/>

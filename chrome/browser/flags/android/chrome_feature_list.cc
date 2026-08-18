@@ -478,6 +478,7 @@ const base::Feature* const kFeaturesExposedToJava[] = {
     &kTabBottomSheetFullHeight,
     &kTabBottomSheetHalfHeight,
     &kTabBottomSheetResizeWebview,
+    &kTabClosureCommittedMethodRefactor,
     &kTabClosureMethodRefactor,
     &kTabOpenerTracking,
     &kTabSearchForDesktop,
@@ -888,6 +889,7 @@ BASE_FEATURE(kTabBottomSheet, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kTabBottomSheetFullHeight, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kTabBottomSheetHalfHeight, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kTabBottomSheetResizeWebview, base::FEATURE_DISABLED_BY_DEFAULT);
+BASE_FEATURE(kTabClosureCommittedMethodRefactor, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kTabClosureMethodRefactor, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kTabOpenerTracking, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kTabSearchForDesktop, base::FEATURE_DISABLED_BY_DEFAULT);
@@ -927,7 +929,7 @@ BASE_FEATURE(kUnparcelIntentFileDescriptors, base::FEATURE_ENABLED_BY_DEFAULT);
 // Activate tab with moveTaskToFront() which works in multi-window mode.
 BASE_FEATURE(kUseActivityManagerForTabActivation, base::FEATURE_ENABLED_BY_DEFAULT);
 // Use AppTask.startActivity to bypass Background Activity Launch (BAL) restrictions.
-BASE_FEATURE(kUseAppTaskForCustomTabActivation, base::FEATURE_DISABLED_BY_DEFAULT);
+BASE_FEATURE(kUseAppTaskForCustomTabActivation, base::FEATURE_ENABLED_BY_DEFAULT);
 // Whether to use initial network state during initialization to speed up
 // startup.
 BASE_FEATURE(kUseInitialNetworkStateAtStartup, base::FEATURE_ENABLED_BY_DEFAULT);

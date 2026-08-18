@@ -4,7 +4,7 @@
 import {HostCapability, MetricUserInputReactionType, PanelStateKind, Platform, ResponseStopCause, WebClientMode} from '/glic/glic_api/glic_api.js';
 import type {FocusedTabData, TabData, UserProfileInfo} from '/glic/glic_api/glic_api.js';
 
-import {ApiTestFixtureBase, assertDefined, assertEquals, assertFalse, assertNotEquals, assertRejects, assertTrue, assertUndefined, checkDefined, mapObservable, observeSequence, readStream, runUntil, sleep, testMain, waitFor} from './browser_test_base.js';
+import {ApiTestFixtureBase, assertDefined, assertEquals, assertFalse, assertNotEquals, assertRejects, assertTrue, assertUndefined, checkDefined, mapObservable, observeSequence, readStream, runUntil, sleep, testMain} from './browser_test_base.js';
 import type {SequencedSubscriber} from './browser_test_base.js';
 
 // Test cases here correspond to test cases in glic_api_browsertest.cc.
@@ -48,145 +48,6 @@ class ApiTests extends ApiTestFixtureBase {
   async testPanelActiveWithMicrophone() {
     await this.advanceToNextStep();
     await this.advanceToNextStep();
-  }
-
-  async testGetFocusedTabStateV2WithNavigation() {
-    // Initial state.
-    assertDefined(this.host.getFocusedTabStateV2);
-    const sequence =
-        observeSequence<FocusedTabData>(this.host.getFocusedTabStateV2());
-    const focus = await sequence.next();
-    assertDefined(focus.hasFocus);
-    assertEquals(
-        new URL(focus.hasFocus.tabData.url).pathname,
-        '/glic/browser_tests/test.html', `url=${focus.hasFocus.tabData.url}`);
-    assertFalse(!!focus.hasNoFocus);
-
-    // After a second navigation occurs.
-    await this.advanceToNextStep();
-    const focus2 = await sequence.next();
-    assertDefined(focus2.hasFocus);
-    assertEquals(
-        new URL(focus2.hasFocus.tabData.url).pathname,
-        '/scrollable_page_with_content.html',
-        `url=${focus2.hasFocus.tabData.url}`);
-
-    await this.advanceToNextStep();
-    let focus3 = await sequence.next();
-
-    // After a navigation occurs in a new tab, there could first exist a
-    // transitory states where the focus is not yet available, is empty, or
-    // still previous page.
-    while (focus3.hasNoFocus ||
-           (!!focus3.hasFocus &&
-            (focus3.hasFocus.tabData.url === '' ||
-             focus3.hasFocus.tabData.url.endsWith(
-                 'scrollable_page_with_content.html')))) {
-      focus3 = await sequence.next();
-    }
-
-    // Final state, after the tab is fully loaded.
-    assertDefined(focus3.hasFocus);
-    assertEquals(
-        new URL(focus3.hasFocus.tabData.url).pathname,
-        '/glic/browser_tests/test.html', `url=${focus3.hasFocus.tabData.url}`);
-    assertFalse(!!focus3.hasNoFocus);
-  }
-
-  async testGetFocusedTabStateV2WithNavigationWhenInactive() {
-    // Initial state.
-    assertDefined(this.host.getFocusedTabStateV2);
-    await this.closePanelAndWaitUntilInactive();
-    const sequence =
-        observeSequence<FocusedTabData>(this.host.getFocusedTabStateV2());
-    const focus = await sequence.next();
-    assertDefined(focus.hasFocus);
-    assertEquals(
-        new URL(focus.hasFocus.tabData.url).pathname,
-        '/glic/browser_tests/test.html', `url=${focus.hasFocus.tabData.url}`);
-    assertFalse(!!focus.hasNoFocus);
-
-    await this.closePanelAndWaitUntilInactive();
-
-    // After we hide, two navigations will occur. The second in a new tab.
-    await this.advanceToNextStep();
-
-    const focus2 = await runUntil(async () => {
-      const nextFocus = await sequence.next();
-
-      // After a navigation occurs in a new tab, there could first exist a
-      // transitory states where the focus is not yet available, is empty, or
-      // still previous page.
-      if (!nextFocus || !!nextFocus.hasNoFocus || !nextFocus.hasFocus) {
-        return undefined;
-      }
-
-      const focused_url = nextFocus.hasFocus.tabData.url;
-      if (focused_url === '' ||
-          focused_url.endsWith('scrollable_page_with_content.html')) {
-        return undefined;
-      }
-      return nextFocus;
-    });
-
-    // Final state, after the tab is fully loaded.
-    assertDefined(focus2.hasFocus);
-    assertEquals(
-        new URL(focus2.hasFocus.tabData.url).pathname,
-        '/glic/browser_tests/test.html', `url=${focus2.hasFocus.tabData.url}`);
-    assertFalse(!!focus2.hasNoFocus);
-  }
-
-  async testSingleFocusedTabUpdatesOnTabEvents() {
-    assertDefined(this.host.getFocusedTabStateV2);
-    const sequence =
-        observeSequence<FocusedTabData>(this.host.getFocusedTabStateV2());
-    // Check events from first tab.
-    {
-      const focus = await sequence.next();
-      assertDefined(
-          !!focus.hasFocus,
-          `#1: should have a focused tab; FocusedTabData=${
-              JSON.stringify(focus)}`);
-      assertEquals(
-          new URL(focus.hasFocus?.tabData.url).pathname,
-          '/glic/browser_tests/test.html',
-          `#1: Unexpected URL; FocusedTabData=${JSON.stringify(focus)}`);
-      assertTrue(
-          sequence.isEmpty(), '#1: Spurious updates after first tab opened');
-    }
-
-    // After a navigation occurs in the first tab.
-    {
-      await this.advanceToNextStep();
-      const focus = await sequence.next();
-      assertDefined(
-          !!focus.hasFocus,
-          `#2: should have a focused tab; FocusedTabData=${
-              JSON.stringify(focus)}`);
-      assertEquals(
-          new URL(focus.hasFocus?.tabData.url).pathname,
-          '/scrollable_page_with_content.html',
-          `#2: Unexpected URL; FocusedTabData=${JSON.stringify(focus)}`);
-      assertTrue(
-          sequence.isEmpty(), '#2: Spurious updates after first tab navigated');
-    }
-
-    // A new tab is opened and navigated.
-    {
-      await this.advanceToNextStep();
-      const focus = await sequence.next();
-      assertDefined(
-          !!focus.hasFocus,
-          `#3: should have a focused tab; FocusedTabData=${
-              JSON.stringify(focus)}`);
-      assertEquals(
-          new URL(focus.hasFocus?.tabData.url).pathname,
-          '/glic/browser_tests/test.html',
-          `#3: Unexpected URL; FocusedTabData=${JSON.stringify(focus)}`);
-      assertTrue(
-          sequence.isEmpty(), '#3: Spurious updates after a new tab opened');
-    }
   }
 
   async testGetContextFromFocusedTabWithoutPermission() {
@@ -493,17 +354,6 @@ class ApiTests extends ApiTestFixtureBase {
     })();
   }
 
-  async testCallingApiWhileHiddenRecordsMetrics() {
-    assertDefined(this.host.createTab);
-    await this.advanceToNextStep();
-    await observeSequence(this.host.panelActive())
-        .waitFor(isActive => !isActive);
-    try {
-      await this.host.createTab(
-          'https://www.google.com', {openInBackground: false});
-    } catch {
-    }
-  }
 
   // Helper function to pin the active tab. Asserts the tab is pinned, and
   // returns the tab ID.
@@ -911,80 +761,6 @@ class ApiTests extends ApiTestFixtureBase {
   }
 }
 
-// Tests which do not wait for the panel to open before starting.
-class ApiTestWithoutOpen extends ApiTestFixtureBase {
-  override async setUpTest() {
-    await this.client.waitForInitialize();
-  }
-
-  async testDeferredFocusedTabStateAtCreation() {
-    // Initial state.
-    assertDefined(this.host.getFocusedTabStateV2);
-    const focusedTabStateV2Sequence =
-        observeSequence<FocusedTabData>(this.host.getFocusedTabStateV2());
-    let focusedTabState = await focusedTabStateV2Sequence.next();
-    assertDefined(focusedTabState.hasNoFocus);
-    const tabStatePromise = focusedTabStateV2Sequence.next();
-    assertRejects(waitFor(tabStatePromise, 200));
-    // We should only see the second page.
-    await this.advanceToNextStep();
-    focusedTabState = await tabStatePromise;
-    assertDefined(focusedTabState.hasFocus);
-    assertEquals(
-        new URL(focusedTabState.hasFocus.tabData.url).pathname,
-        '/scrollable_page_with_content.html',
-        `url=${focusedTabState.hasFocus.tabData.url}`);
-  }
-
-  async testNoExtractionWhileHidden() {
-    assertDefined(this.host.getContextFromFocusedTab);
-    assertDefined(this.host.getContextFromTab);
-    assertDefined(this.host.getFocusedTabStateV2);
-    assertDefined(this.host.pinTabs);
-    await this.host.setTabContextPermissionState(true);
-
-    // While still hidden (preloaded), focused tab extraction should fail.
-    await assertRejects(this.host.getContextFromFocusedTab({}), {
-      withErrorMessage:
-          'GetContextFromFocusedTab not allowed while backgrounded',
-    });
-
-    // Glic panel is open, so both focused and arbitrary tab extraction should
-    // succeed.
-    await this.advanceToNextStep();
-    await this.client.waitForFirstOpen();
-    let result = await this.host.getContextFromFocusedTab({});
-    assertDefined(result);
-    assertEquals(
-        new URL(result.tabData.url).pathname, '/glic/browser_tests/test.html',
-        `Tab data has unexpected url ${result.tabData.url}`);
-    const focusedTab = await this.host.getFocusedTabStateV2().getCurrentValue();
-    const tabId = checkDefined(focusedTab?.hasFocus?.tabData.tabId);
-    assertTrue(await this.host.pinTabs([tabId]));
-    result = await this.host.getContextFromTab(tabId, {});
-    assertDefined(result);
-    assertEquals(
-        new URL(result.tabData.url).pathname, '/glic/browser_tests/test.html',
-        `Tab data has unexpected url ${result.tabData.url}`);
-
-    // Glic panel is hidden again. Focused and arbitrary tab extraction should
-    // fail.
-    await this.advanceToNextStep();
-    // Panel closure was only requested by native code, but still needs to be
-    // waited on.
-    await observeSequence(this.host.panelActive()).waitForValue(false);
-    await assertRejects(this.host.getContextFromFocusedTab({}), {
-      withErrorMessage:
-          'GetContextFromFocusedTab not allowed while backgrounded',
-    });
-    await assertRejects(this.host.getContextFromTab(tabId, {}), {
-      withErrorMessage: 'GetContextFromTab not allowed while backgrounded',
-    });
-  }
-}
-
-
-
 class DaisyChainApiTests extends ApiTestFixtureBase {
   async clickLinkInGlicUi() {
     const link = document.createElement('a');
@@ -1027,7 +803,6 @@ class DaisyChainApiTests extends ApiTestFixtureBase {
 const TEST_FIXTURES = [
   ApiTests,
   DaisyChainApiTests,
-  ApiTestWithoutOpen,
 ];
 
 testMain(TEST_FIXTURES);

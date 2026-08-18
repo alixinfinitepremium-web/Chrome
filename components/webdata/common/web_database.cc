@@ -149,13 +149,6 @@ sql::InitStatus WebDatabase::Init(
   }
   DCHECK(db_.is_open());
 
-  // Dummy transaction to check whether the database is writeable and bail
-  // early if that's not the case.
-  if (!db_.Execute("BEGIN EXCLUSIVE") || !db_.Execute("COMMIT")) {
-    LogInitResult(InitResult::kDatabaseLocked);
-    return sql::INIT_FAILURE;
-  }
-
   // Clobber really old databases.
   static_assert(kDeprecatedVersionNumber < kCurrentVersionNumber,
                 "Deprecation version must be less than current");
@@ -179,11 +172,6 @@ sql::InitStatus WebDatabase::Init(
                         kCompatibleVersionNumber)) {
     LogInitResult(InitResult::kMetaTableInitFailed);
     return sql::INIT_FAILURE;
-  }
-  if (meta_table_.GetCompatibleVersionNumber() > kCurrentVersionNumber) {
-    LogInitResult(InitResult::kCurrentVersionTooNew);
-    LOG(WARNING) << "Web database is too new.";
-    return sql::INIT_TOO_NEW;
   }
 
   // Initialize the tables.
