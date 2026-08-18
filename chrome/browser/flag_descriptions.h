@@ -1151,6 +1151,13 @@ inline constexpr char kAutofillEnableSaveAndFillDescription[] =
     "When enabled, show an option to offer saving and filling a credit card "
     "with a single click when users don't have any cards saved in Autofill.";
 
+inline constexpr char kAutofillEnableScanCardOptionWhenNoCardsSavedName[] =
+    "Enable 'Scan card' option when no cards saved";
+inline constexpr char
+    kAutofillEnableScanCardOptionWhenNoCardsSavedDescription[] =
+        "When enabled, the 'Scan new card' option will be offered even if the "
+        "user does not have any credit cards saved in Autofill.";
+
 inline constexpr char kAutofillEnableSeparatePixPreferenceItemName[] =
     "Enable Pix settings to be shown as a separate preference menu item.";
 inline constexpr char kAutofillEnableSeparatePixPreferenceItemDescription[] =
@@ -3986,7 +3993,7 @@ inline constexpr char kOriginKeyedProcessesByDefaultDescription[] =
 
 inline constexpr char kOverlayScrollbarsName[] = "Overlay Scrollbars";
 inline constexpr char kOverlayScrollbarsDescription[] =
-    "Adjust scrollbar style to overlay web content and fade out.";
+    "Override scrollbar mode to overlay or classic.";
 
 inline constexpr char kOverlayScrollbarsFlashWhenMouseEnterName[] =
     "Flash Overlay Scrollbars When Mouse Enter";
