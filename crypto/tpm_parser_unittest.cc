@@ -22,6 +22,7 @@
 #include "crypto/test_support.h"
 #include "testing/gmock/include/gmock/gmock.h"
 #include "testing/gtest/include/gtest/gtest.h"
+#include "third_party/abseil-cpp/absl/strings/str_format.h"
 
 namespace crypto::tpm {
 
@@ -203,6 +204,92 @@ std::vector<uint8_t> BuildFakeHashResponse(
     writer.WriteEnumBigEndian(ticket_hierarchy);
     writer.WriteU16BigEndian(ticket_digest.size());
     writer.Write(ticket_digest);
+  }
+
+  CHECK_EQ(writer.remaining(), 0u);
+  return resp;
+}
+
+std::vector<uint8_t> BuildFakeHashSequenceStartResponse(
+    uint32_t sequence_handle,
+    uint32_t response_code = 0) {
+  uint32_t resp_size = 10;
+  if (response_code == 0) {
+    resp_size += 4;
+  }
+
+  std::vector<uint8_t> resp(resp_size);
+  base::SpanWriter<uint8_t> writer(resp);
+  writer.WriteEnumBigEndian(TPM_ST_NO_SESSIONS);
+  writer.WriteU32BigEndian(resp_size);
+  writer.WriteU32BigEndian(response_code);
+
+  if (response_code == 0) {
+    writer.WriteU32BigEndian(sequence_handle);
+  }
+
+  CHECK_EQ(writer.remaining(), 0u);
+  return resp;
+}
+
+std::vector<uint8_t> BuildFakeSequenceCompleteResponse(
+    base::span<const uint8_t> digest,
+    TpmSt ticket_tag,
+    TpmRh ticket_hierarchy,
+    base::span<const uint8_t> ticket_digest,
+    uint32_t response_code = 0) {
+  // TPMT_TK_HASHCHECK size: 2 bytes tag + 4 bytes hierarchy + 2 bytes digest
+  // size prefix + digest.
+  size_t ticket_size = 2 + 4 + 2 + ticket_digest.size();
+  size_t body_size = 2 + digest.size() + ticket_size;
+  uint32_t resp_size = 10;
+  if (response_code == 0) {
+    resp_size += 4 + body_size + 5;  // parameterSize (4) + body + session (5)
+  }
+
+  std::vector<uint8_t> resp(resp_size);
+  base::SpanWriter<uint8_t> writer(resp);
+  writer.WriteEnumBigEndian(TPM_ST_SESSIONS);
+  writer.WriteU32BigEndian(resp_size);
+  writer.WriteU32BigEndian(response_code);
+
+  if (response_code == 0) {
+    writer.WriteU32BigEndian(body_size);
+    writer.WriteU16BigEndian(digest.size());
+    writer.Write(digest);
+    writer.WriteEnumBigEndian(ticket_tag);
+    writer.WriteEnumBigEndian(ticket_hierarchy);
+    writer.WriteU16BigEndian(ticket_digest.size());
+    writer.Write(ticket_digest);
+
+    // Auth Response Session
+    writer.WriteU16BigEndian(0);  // nonce size: 0
+    writer.WriteU8BigEndian(0);   // sessionAttributes: 0
+    writer.WriteU16BigEndian(0);  // hmac size: 0
+  }
+
+  CHECK_EQ(writer.remaining(), 0u);
+  return resp;
+}
+
+std::vector<uint8_t> BuildFakeSequenceUpdateResponse(
+    uint32_t response_code = 0) {
+  uint32_t resp_size = 10;
+  if (response_code == 0) {
+    resp_size += 4 + 5;  // parameter_size (4) + session (5)
+  }
+
+  std::vector<uint8_t> resp(resp_size);
+  base::SpanWriter<uint8_t> writer(resp);
+  writer.WriteEnumBigEndian(TPM_ST_SESSIONS);
+  writer.WriteU32BigEndian(resp_size);
+  writer.WriteU32BigEndian(response_code);
+
+  if (response_code == 0) {
+    writer.WriteU32BigEndian(0);  // parameter_size = 0
+    writer.WriteU16BigEndian(0);  // nonce size: 0
+    writer.WriteU8BigEndian(0);   // sessionAttributes: 0
+    writer.WriteU16BigEndian(0);  // hmac size: 0
   }
 
   CHECK_EQ(writer.remaining(), 0u);
@@ -610,6 +697,145 @@ TEST(TpmCppParserTest, ParseTpmSignature_InvalidAlgorithm) {
 TEST(TpmCppParserTest, ParseTpmSignature_MalformedBlob) {
   static constexpr auto kMalformedSig = ToByteArray({1, 2, 3});
   EXPECT_EQ(ParseTpmSignature(kMalformedSig), std::nullopt);
+}
+
+TEST(TpmCppParserTest, TpmCommandStringify) {
+  EXPECT_EQ(absl::StrFormat("%v", TpmCommand::kCertify), "Certify");
+  EXPECT_EQ(absl::StrFormat("%v", TpmCommand::kHash), "Hash");
+  EXPECT_EQ(absl::StrFormat("%v", TpmCommand::kHashSequenceStart),
+            "HashSequenceStart");
+  EXPECT_EQ(absl::StrFormat("%v", TpmCommand::kSequenceComplete),
+            "SequenceComplete");
+  EXPECT_EQ(absl::StrFormat("%v", TpmCommand::kSequenceUpdate),
+            "SequenceUpdate");
+  EXPECT_EQ(absl::StrFormat("%v", TpmCommand::kSign), "Sign");
+}
+
+TEST(TpmCppParserTest, ResponseStructCommandConstants) {
+  static_assert(CertifyResponse::kCommand == TpmCommand::kCertify);
+  static_assert(HashResponse::kCommand == TpmCommand::kHash);
+  static_assert(HashSequenceStartResponse::kCommand ==
+                TpmCommand::kHashSequenceStart);
+  static_assert(SequenceCompleteResponse::kCommand ==
+                TpmCommand::kSequenceComplete);
+  static_assert(SequenceUpdateResponse::kCommand ==
+                TpmCommand::kSequenceUpdate);
+  static_assert(SignResponse::kCommand == TpmCommand::kSign);
+}
+
+TEST(TpmCppParserTest, BuildHashSequenceStartCommand) {
+  TpmAlg hash_alg = TPM_ALG_SHA256;
+  std::vector<uint8_t> cmd = BuildHashSequenceStartCommand(hash_alg);
+  EXPECT_EQ(cmd.size(), 14u);
+
+  base::SpanReader<const uint8_t> reader(cmd);
+  EXPECT_EQ(reader.ReadEnumBigEndian<TpmSt>(), TPM_ST_NO_SESSIONS);
+  EXPECT_EQ(reader.ReadU32BigEndian(), 14u);
+  EXPECT_EQ(reader.ReadEnumBigEndian<TpmCc>(), TPM_CC_HASH_SEQUENCE_START);
+  EXPECT_EQ(reader.ReadU16BigEndian(), 0u);
+  EXPECT_EQ(reader.ReadEnumBigEndian<TpmAlg>(), hash_alg);
+}
+
+TEST(TpmCppParserTest, ParseHashSequenceStartResponse_Success) {
+  uint32_t sequence_handle = 0x80000001;
+  std::vector<uint8_t> resp =
+      BuildFakeHashSequenceStartResponse(sequence_handle);
+
+  ASSERT_OK_AND_ASSIGN(auto parsed, ParseHashSequenceStartResponse(resp));
+  EXPECT_EQ(parsed.sequence_handle, sequence_handle);
+}
+
+TEST(TpmCppParserTest, ParseHashSequenceStartResponse_TpmError) {
+  std::vector<uint8_t> resp =
+      BuildFakeHashSequenceStartResponse(0x80000001, 0x100);
+
+  EXPECT_THAT(
+      ParseHashSequenceStartResponse(resp),
+      ErrorIs(TpmParseError(TpmParseError::Type::kTpmErrorResponse, 0x100)));
+}
+
+TEST(TpmCppParserTest, BuildSequenceUpdateCommand) {
+  uint32_t sequence_handle = 0x80000001;
+  static constexpr auto kData = ToByteArray({1, 2, 3, 4});
+
+  std::vector<uint8_t> cmd = BuildSequenceUpdateCommand(sequence_handle, kData);
+  EXPECT_EQ(cmd.size(), 33u);
+
+  base::SpanReader<const uint8_t> reader(cmd);
+  EXPECT_EQ(reader.ReadEnumBigEndian<TpmSt>(), TPM_ST_SESSIONS);
+  EXPECT_EQ(reader.ReadU32BigEndian(), 33u);
+  EXPECT_EQ(reader.ReadEnumBigEndian<TpmCc>(), TPM_CC_SEQUENCE_UPDATE);
+  EXPECT_EQ(reader.ReadU32BigEndian(), sequence_handle);
+  EXPECT_EQ(reader.ReadU32BigEndian(), 9u);
+  EXPECT_TRUE(reader.Read<9>().has_value());
+  EXPECT_EQ(reader.ReadU16BigEndian(), 4u);
+  EXPECT_EQ(reader.Read<4>(), kData);
+}
+
+TEST(TpmCppParserTest, ParseSequenceUpdateResponse_Success) {
+  std::vector<uint8_t> resp = BuildFakeSequenceUpdateResponse();
+
+  EXPECT_THAT(ParseSequenceUpdateResponse(resp),
+              ValueIs(SequenceUpdateResponse{}));
+}
+
+TEST(TpmCppParserTest, ParseSequenceUpdateResponse_TpmError) {
+  std::vector<uint8_t> resp = BuildFakeSequenceUpdateResponse(0x100);
+
+  EXPECT_THAT(
+      ParseSequenceUpdateResponse(resp),
+      ErrorIs(TpmParseError(TpmParseError::Type::kTpmErrorResponse, 0x100)));
+}
+
+TEST(TpmCppParserTest, BuildSequenceCompleteCommand) {
+  uint32_t sequence_handle = 0x80000001;
+  static constexpr auto kData = ToByteArray({1, 2, 3, 4});
+  TpmRh hierarchy = TPM_RH_OWNER;
+
+  std::vector<uint8_t> cmd =
+      BuildSequenceCompleteCommand(sequence_handle, kData, hierarchy);
+  EXPECT_EQ(cmd.size(), 37u);
+
+  base::SpanReader<const uint8_t> reader(cmd);
+  EXPECT_EQ(reader.ReadEnumBigEndian<TpmSt>(), TPM_ST_SESSIONS);
+  EXPECT_EQ(reader.ReadU32BigEndian(), 37u);
+  EXPECT_EQ(reader.ReadEnumBigEndian<TpmCc>(), TPM_CC_SEQUENCE_COMPLETE);
+  EXPECT_EQ(reader.ReadU32BigEndian(), sequence_handle);
+  EXPECT_EQ(reader.ReadU32BigEndian(), 9u);
+  EXPECT_TRUE(reader.Read<9>().has_value());
+  EXPECT_EQ(reader.ReadU16BigEndian(), 4u);
+  EXPECT_EQ(reader.Read<4>(), kData);
+  EXPECT_EQ(reader.ReadEnumBigEndian<TpmRh>(), hierarchy);
+}
+
+TEST(TpmCppParserTest, ParseSequenceCompleteResponse_Success) {
+  static constexpr auto kDigest = ToByteArray({1, 2, 3});
+  static constexpr auto kTicketDigest = ToByteArray({4, 5, 6});
+  std::vector<uint8_t> resp = BuildFakeSequenceCompleteResponse(
+      kDigest, TPM_ST_HASHCHECK, TPM_RH_OWNER, kTicketDigest);
+
+  ASSERT_OK_AND_ASSIGN(auto parsed, ParseSequenceCompleteResponse(resp));
+  EXPECT_THAT(parsed.digest, ElementsAreArray(kDigest));
+
+  std::vector<uint8_t> expected_ticket(2 + 4 + 2 + kTicketDigest.size());
+  base::SpanWriter<uint8_t> writer(expected_ticket);
+  writer.WriteEnumBigEndian(TPM_ST_HASHCHECK);
+  writer.WriteEnumBigEndian(TPM_RH_OWNER);
+  writer.WriteU16BigEndian(kTicketDigest.size());
+  writer.Write(kTicketDigest);
+
+  EXPECT_THAT(parsed.validation_ticket, ElementsAreArray(expected_ticket));
+}
+
+TEST(TpmCppParserTest, ParseSequenceCompleteResponse_TpmError) {
+  static constexpr auto kDigest = ToByteArray({1, 2, 3});
+  static constexpr auto kTicketDigest = ToByteArray({4, 5, 6});
+  std::vector<uint8_t> resp = BuildFakeSequenceCompleteResponse(
+      kDigest, TPM_ST_HASHCHECK, TPM_RH_OWNER, kTicketDigest, 0x100);
+
+  EXPECT_THAT(
+      ParseSequenceCompleteResponse(resp),
+      ErrorIs(TpmParseError(TpmParseError::Type::kTpmErrorResponse, 0x100)));
 }
 
 }  // namespace crypto::tpm

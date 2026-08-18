@@ -333,7 +333,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': 'f076eeb025487959a40065d0951f229f7267117b',
+  'src_internal_revision': '363e0ca66ef9c7fb121396b80138bc8bfbf05adc',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -1535,7 +1535,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_x86',
-          'version': 'version:2@1675025',
+          'version': 'version:2@1676034',
         },
       ],
   },
@@ -1690,7 +1690,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_win_x86_64',
-          'version': 'mnRHkZxdTFxVbv476c09JVUSFZeH5Ud1FPQR7InltZ8C',
+          'version': '6Z2LCVbtHoTLXaNYOUV-GrQRz9niKnc6LYO2NPbCwAgC',
         },
       ],
   },
