@@ -1118,8 +1118,14 @@ IN_PROC_BROWSER_TEST_F(ContextualTasksContextServiceTest,
       ContextDeterminationStatus::kTimedOut, 1);
 }
 
+// TODO(crbug.com/540697591): Flaky on ChromeOS MSan.
+#if BUILDFLAG(IS_CHROMEOS) && defined(MEMORY_SANITIZER)
+#define MAYBE_NotValidForServerUpload DISABLED_NotValidForServerUpload
+#else
+#define MAYBE_NotValidForServerUpload NotValidForServerUpload
+#endif
 IN_PROC_BROWSER_TEST_F(ContextualTasksContextServiceTest,
-                       NotValidForServerUpload) {
+                       MAYBE_NotValidForServerUpload) {
   base::HistogramTester histogram_tester;
 
   NavigateToValidURL();
@@ -1129,7 +1135,7 @@ IN_PROC_BROWSER_TEST_F(ContextualTasksContextServiceTest,
   EXPECT_CALL(*page_embeddings_service(), GetEmbeddings(_)).Times(0);
   EXPECT_CALL(*page_content_extraction_service(),
               GetServerUploadEligibilityForPage)
-      .WillOnce(Return(false));
+      .WillRepeatedly(Return(false));
 
   base::test::TestFuture<std::vector<base::WeakPtr<content::WebContents>>>
       future;
