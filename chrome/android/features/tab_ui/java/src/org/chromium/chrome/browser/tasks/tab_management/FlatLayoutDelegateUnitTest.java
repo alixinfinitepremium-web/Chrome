@@ -126,6 +126,51 @@ public class FlatLayoutDelegateUnitTest {
     }
 
     @Test
+    public void testOnFaviconUpdated() {
+        addTabsToModelList(TAB1_ID);
+        PropertyModel model = mModelList.get(0).model;
+
+        mDelegate.onFaviconUpdated(mTab1, null, null);
+
+        verify(mMediator).updateFaviconForTab(model, mTab1, null, null);
+    }
+
+    @Test
+    public void testOnFaviconUpdated_NotFound() {
+        mDelegate.onFaviconUpdated(mTab1, null, null);
+
+        verify(mMediator, never()).updateFaviconForTab(any(), any(), any(), any());
+    }
+
+    @Test
+    public void testOnTabClose() {
+        addTabsToModelList(TAB1_ID, TAB2_ID);
+
+        mDelegate.onTabClose(mTab1);
+
+        assertModelListTabIds(TAB2_ID);
+    }
+
+    @Test
+    public void testOnTabClose_NotFound() {
+        addTabsToModelList(TAB1_ID);
+
+        mDelegate.onTabClose(mTab2);
+
+        assertModelListTabIds(TAB1_ID);
+    }
+
+    @Test
+    public void testDidMoveTab_NoOp() {
+        addTabsToModelList(TAB1_ID, TAB2_ID);
+
+        mDelegate.didMoveTab(mTab1, 1, 0);
+
+        assertModelListTabIds(TAB1_ID, TAB2_ID);
+        verifyNoInteractions(mMediator);
+    }
+
+    @Test
     public void testDidChangeTabGroupTitle_NoOp() {
         mDelegate.didChangeTabGroupTitle(TAB_GROUP_ID, "New Title");
 

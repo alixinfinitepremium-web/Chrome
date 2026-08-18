@@ -7,14 +7,18 @@ package org.chromium.chrome.browser.tasks.tab_management;
 import static org.chromium.build.NullUtil.assumeNonNull;
 import static org.chromium.chrome.browser.tasks.tab_management.TabSwitcherMessageManager.isOnlyArchivedMsg;
 
+import android.graphics.Bitmap;
+
 import org.chromium.base.Token;
 import org.chromium.build.annotations.NullMarked;
+import org.chromium.build.annotations.Nullable;
 import org.chromium.chrome.browser.tab.MediaState;
 import org.chromium.chrome.browser.tab.Tab;
 import org.chromium.chrome.browser.tabmodel.TabGroupObserver;
 import org.chromium.chrome.browser.tabmodel.TabList;
 import org.chromium.chrome.browser.tabmodel.TabModel;
 import org.chromium.ui.modelutil.PropertyModel;
+import org.chromium.url.GURL;
 
 /**
  * Abstract delegate handler for {@link TabGroupObserver} callbacks. Layout-specific subclasses
@@ -78,6 +82,64 @@ abstract class TabListLayoutDelegate implements TabGroupObserver {
 
         mMediator.addTabCardToModel(tab, newIndex);
         return newIndex;
+    }
+
+    /**
+     * Updates the favicon for a tab or its representing card when the favicon changes.
+     *
+     * @param updatedTab The {@link Tab} whose favicon was updated.
+     * @param icon The updated favicon {@link Bitmap}, or null.
+     * @param iconUrl The {@link GURL} of the updated favicon, or null.
+     */
+    void onFaviconUpdated(Tab updatedTab, @Nullable Bitmap icon, @Nullable GURL iconUrl) {
+        @Nullable PropertyModel model = mModelList.getModelFromTabId(updatedTab.getId());
+        if (model == null) return;
+        mMediator.updateFaviconForTab(model, updatedTab, icon, iconUrl);
+    }
+
+    /**
+     * Handles UI model updates when a tab is removed for closure.
+     *
+     * @param tab The {@link Tab} being removed for closure.
+     */
+    void onTabClose(Tab tab) {
+        int index = mModelList.indexFromTabId(tab.getId());
+        if (index == TabModel.INVALID_TAB_INDEX) return;
+
+        mModelList.removeAt(index);
+    }
+
+    /**
+     * Handles UI model updates when a tab is moved in the tab model.
+     *
+     * @param tab The {@link Tab} that moved.
+     * @param newIndex The new index of the tab in the {@link TabModel}.
+     * @param curIndex The previous index of the tab in the {@link TabModel}.
+     */
+    void didMoveTab(Tab tab, int newIndex, int curIndex) {
+        // Standalone tab moves triggered from external sources need to be
+        // explicitly synced to the ModelList for GROUPED and NESTED layouts.
+
+        // Intra-group move or merging into group.
+        if (tab.getTabGroupId() != null) {
+            return;
+        }
+
+        int currentUiIndex = mModelList.indexFromTabId(tab.getId());
+        if (currentUiIndex == TabModel.INVALID_TAB_INDEX) return;
+
+        // Moving out of a group.
+        // This assumes the move event is dispatched before the ungroup event
+        // (didMoveTabOutOfGroup) is processed, meaning the UI model still has the
+        // old grouping metadata.
+        PropertyModel model = mModelList.get(currentUiIndex).model;
+        if (TabProperties.isTabInGroup(model) || TabProperties.isTabGroupHeader(model)) {
+            return;
+        }
+
+        // Standalone tab movement.
+        int targetUiIndex = getInsertionIndexOfTab(tab);
+        mModelList.moveItem(currentUiIndex, targetUiIndex);
     }
 
     @Override

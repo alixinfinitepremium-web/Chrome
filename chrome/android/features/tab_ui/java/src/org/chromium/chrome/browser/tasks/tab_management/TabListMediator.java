@@ -670,27 +670,7 @@ public class TabListMediator implements TabListNotificationHandler {
                         Tab updatedTab, @Nullable Bitmap icon, @Nullable GURL iconUrl) {
                     assert mShowingTabs;
 
-                    @Nullable PropertyModel tabInfo;
-                    @Nullable Tab tab;
-                    if (mLayoutType == TabListLayoutType.GROUPED && isTabInTabGroup(updatedTab)) {
-                        @Nullable Pair<Integer, Tab> indexAndTab =
-                                getIndexAndTabForTabGroupId(updatedTab.getTabGroupId());
-                        if (indexAndTab == null) return;
-
-                        tabInfo = mModelList.get(indexAndTab.first).model;
-                        tab = indexAndTab.second;
-
-                        if (mThumbnailProvider != null) {
-                            updateThumbnailFetcher(tabInfo, tab.getId());
-                        }
-                    } else {
-                        tabInfo = mModelList.getModelFromTabId(updatedTab.getId());
-                        if (tabInfo == null) return;
-
-                        tab = updatedTab;
-                    }
-
-                    updateFaviconForTab(tabInfo, tab, icon, iconUrl);
+                    mTabListLayoutDelegate.onFaviconUpdated(updatedTab, icon, iconUrl);
                 }
 
                 @Override
@@ -1126,73 +1106,15 @@ public class TabListMediator implements TabListNotificationHandler {
                     public void didMoveTab(Tab tab, int newIndex, int curIndex) {
                         assert mShowingTabs;
 
-                        // Standalone tab moves triggered from external sources need to be
-                        // explicitly synced to the ModelList for GROUPED and NESTED layouts.
-                        if (mLayoutType == TabListLayoutType.FLAT) return;
-
-                        // Intra-group move or merging into group.
-                        if (tab.getTabGroupId() != null) {
-                            return;
-                        }
-
-                        int currentUiIndex = mModelList.indexFromTabId(tab.getId());
-                        if (currentUiIndex == TabModel.INVALID_TAB_INDEX) return;
-
-                        // Moving out of a group.
-                        // This assumes the move event is dispatched before the ungroup event
-                        // (didMoveTabOutOfGroup) is processed, meaning the UI model still has the
-                        // old grouping metadata.
-                        PropertyModel model = mModelList.get(currentUiIndex).model;
-                        if (TabProperties.isTabInGroup(model)
-                                || TabProperties.isTabGroupHeader(model)) {
-                            return;
-                        }
-
-                        // Standalone tab movement.
-                        int targetUiIndex = mTabListLayoutDelegate.getInsertionIndexOfTab(tab);
-                        mModelList.moveItem(currentUiIndex, targetUiIndex);
+                        mTabListLayoutDelegate.didMoveTab(tab, newIndex, curIndex);
                     }
 
                     @Override
                     public void didRemoveTabForClosure(Tab tab) {
-                        onTabClose(tab);
-                    }
-
-                    private void onTabClose(Tab tab) {
                         assert mShowingTabs;
 
                         removeObserversForTab(tab);
-
-                        TabModel tabModel = mCurrentTabModelSupplier.get();
-                        Token tabGroupId = tab.getTabGroupId();
-                        if (tabModel != null
-                                && tabGroupId != null
-                                && tabModel.tabGroupExists(tabGroupId)) {
-                            if (mLayoutType == TabListLayoutType.GROUPED) {
-                                // If the tab closed was part of a tab group and the closure was
-                                // triggered from a grouped layout, update the group to reflect the
-                                // closure instead of closing the tab.
-                                int groupIndex = tabModel.representativeIndexOf(tab);
-                                Tab groupTab = tabModel.getRepresentativeTabAt(groupIndex);
-                                assumeNonNull(groupTab);
-                                if (!groupTab.isClosing()) {
-                                    updateTab(
-                                            mModelList.indexOfNthTabCard(groupIndex),
-                                            groupTab,
-                                            /* isUpdatingId= */ true,
-                                            /* quickMode= */ false);
-                                    return;
-                                }
-                            } else if (mLayoutType == TabListLayoutType.NESTED) {
-                                updateTabGroupHeaderId(tabGroupId);
-                                updateTabGroupTitle(tabGroupId);
-                            }
-                        }
-
-                        int index = mModelList.indexFromTabId(tab.getId());
-                        if (index == TabModel.INVALID_TAB_INDEX) return;
-
-                        mModelList.removeAt(index);
+                        mTabListLayoutDelegate.onTabClose(tab);
                     }
 
                     @Override

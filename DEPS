@@ -341,7 +341,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '1a20564afac547f48cafd27332303136b92b4549',
+  'skia_revision': '3810fd8f36dd87c7e11cb78b09407ea016896384',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -349,7 +349,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': 'b10b5403b57b359ab5309c8bef6f2858aab25a96',
+  'angle_revision': '046e6dfc215ea7d91ecca5555b4d586bc8a3aacf',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -361,7 +361,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': '19c562ed7eb69df5d739cbb808c0bad460edae43',
+  'boringssl_revision': 'af1e417c4c1672a9c3b7302ca7cb1f52aac34ad0',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -421,7 +421,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '340d071ea10018b77bc1db8f091587bb0ec19414',
+  'devtools_frontend_revision': '8045013eb168a0653a74ecf4d275f7a83b902a70',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -445,7 +445,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': '61a885c4caca7e601c1362ca7c8b29c850a42cfb',
+  'dawn_revision': '4ae84194122549d20d879c1315d90117011c36f9',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -1743,7 +1743,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    'cf8b059db4db8c2e13d5da86ac454fb78c543d8d',
+    '337e68f832fb60660b5286bbeddce3756dd3a493',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -2193,7 +2193,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '4d4577a3e18dfe943c317232d6318ed5bb7a3ea1',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '262052b23ea3007159090865a4ded9fed77966e6',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -2798,7 +2798,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '1b84966541966b49110cc7a8d4f906e6b0102b0a',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '98a044471ff2141fd9a254f6a8b7b2feb585e838',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
@@ -2996,7 +2996,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/r8',
-              'version': 'q7wBY9a5xN_VZyRneV14Sm1lrX9TTSaPJJMOso9kCCMC',
+              'version': 'gfbyk0tBsuxhygIXcmbMgdAWUL9LrI7cF4qPTEAdKTMC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -3189,8 +3189,8 @@ deps = {
       ],
   },
 
-  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@1d696389f66f9356178d34a56cf3701e40495012',
-  'src/third_party/glslang/src': '{chromium_git}/external/github.com/KhronosGroup/glslang@2cc82463217481bf7f187d4f9f3bdf652de363dd',
+  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@299d9005bcf3928fead539e9ee560df34b44f478',
+  'src/third_party/glslang/src': '{chromium_git}/external/github.com/KhronosGroup/glslang@99a007712f509a9877bd4869358b1129bca3493e',
   'src/third_party/spirv-cross/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Cross@b8fcf307f1f347089e3c46eb4451d27f32ebc8d3',
   'src/third_party/spirv-headers/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Headers@0d25db97cb9b8f725e4c95e4553001710e7fc39d',
   'src/third_party/spirv-tools/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Tools@e39e5c5838bc4b4162c349f2a2e5f163efe5432f',
@@ -3392,7 +3392,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/help_app/app',
-        'version': '1Gds_6BMdRWWurC2EZMnzfbAahONd_JrNdhzrVAXlmkC',
+        'version': 'R1IulfmIiKnDMAcV0Djfri7yDbEX-wYm7n5O4sbafB8C',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',

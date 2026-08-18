@@ -314,16 +314,6 @@ class ApiTests extends ApiTestFixtureBase {
     metrics.onClosedCaptionsShown();
   }
 
-  async testNavigateToAboutBlank() {
-    // Navigation to about:blank will destroy this test client, so the code
-    // below will first allow this test function to return, and then navigate.
-    (async () => {
-      await sleep(100);
-      location.href = 'about:blank';
-    })();
-  }
-
-
   // Helper function to pin the active tab. Asserts the tab is pinned, and
   // returns the tab ID.
   async pinActiveTab(): Promise<string> {
@@ -655,16 +645,6 @@ class ApiTests extends ApiTestFixtureBase {
     await actOnWebCapabilitySequence.waitForValue(false);
   }
 
-
-  async testPanelWillOpenBeforeClientReady() {
-    const openData = await observeSequence(this.client.panelOpenData).next();
-    assertEquals('test_conversation_id', openData.conversationId);
-    assertEquals(
-        'Test Conversation Title',
-        openData.conversationInfo?.conversationTitle);
-    assertEquals(
-        'test_client_data_from_cc', openData.conversationInfo?.clientData);
-  }
 
   async testPanelWillOpenHasRecentlyActiveConversations() {
     assertDefined(this.host.registerConversation);
