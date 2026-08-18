@@ -1255,6 +1255,11 @@ uploading your change for review.  These are checked by presubmit scripts.
   <int value="1" label="Present"/>
 </enum>
 
+<enum name="BooleanRateLimited">
+  <int value="0" label="Rate limiting not active"/>
+  <int value="1" label="Rate limiting active"/>
+</enum>
+
 <enum name="BooleanReady">
   <int value="0" label="Not Ready"/>
   <int value="1" label="Ready"/>
@@ -26144,6 +26149,7 @@ Called by update_net_error_codes.py.-->
   <int value="30" label="Opened from context menu Listen to this page option"/>
   <int value="31" label="Opened from an unknown Read Anything trigger"/>
   <int value="32" label="Opened from an unknown trigger"/>
+  <int value="33" label="Opened from PDF translation"/>
 </enum>
 
 <!-- LINT.ThenChange(//chrome/browser/ui/side_panel/side_panel_enums.h:SidePanelOpenTrigger) -->

@@ -341,7 +341,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '39e1f76e1e2e36014536b5e14de1957d14cd2580',
+  'skia_revision': '1a20564afac547f48cafd27332303136b92b4549',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -361,7 +361,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': '42119772e91173141f359187deab8daaf2f7e286',
+  'boringssl_revision': '19c562ed7eb69df5d739cbb808c0bad460edae43',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -561,7 +561,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling agents-public
   # and whatever else without interference from each other.
-  'agents_public_revision': 'e64987d3ea47f5f5d00c66de617aec591d1c0bcf',
+  'agents_public_revision': '73470db4a7810560ec92e8aa27ff3c6a8a36bea5',
 
   # If you change this, also update the libc++ revision in
   # //buildtools/deps_revisions.gni.
@@ -2193,7 +2193,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '8ff4a322a17ea014561931720c8153904cd0a9c3',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '4d4577a3e18dfe943c317232d6318ed5bb7a3ea1',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -2202,7 +2202,7 @@ deps = {
     Var('chromium_git') + '/chromium/dom-distiller/dist.git' + '@' + '199de96b345ada7c6e7e6ba3d2fa7a6911b8767d',
 
   'src/third_party/ds_store/src':
-    Var('chromium_git') + '/external/github.com/dmgbuild/ds_store.git' + '@' + '5cf0b73afdaf6592666364c354501b51c5ce606e',
+    Var('chromium_git') + '/external/github.com/dmgbuild/ds_store.git' + '@' + 'd93392c32b92033789e8e7590f09812f7289873b',
 
   'src/third_party/dragonbox/src':
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
@@ -2679,7 +2679,7 @@ deps = {
   },
 
   'src/third_party/mac_alias/src': {
-      'url': Var('chromium_git') + '/external/github.com/dmgbuild/mac_alias.git' + '@' + 'caa30be84fa49efd0675c3864a18ae6ffac9f6db',
+      'url': Var('chromium_git') + '/external/github.com/dmgbuild/mac_alias.git' + '@' + '43cd06eb8c233140be75c106e3c673097ffb5761',
   },
 
   'src/third_party/material_color_utilities/src': {
@@ -2688,6 +2688,11 @@ deps = {
 
   'src/third_party/microsoft_dxheaders/src': {
     'url': Var('chromium_git') + '/external/github.com/microsoft/DirectX-Headers.git' + '@' + '07b94cba474be6cdfd934febdbd0b21ca0524187',
+    'condition': 'checkout_win',
+  },
+
+  'src/third_party/microsoft_multimedia_redirection/src': {
+    'url': Var('chromium_git') + '/external/github.com/microsoft/multimedia-redirection.git' + '@' + '8b1d8893d126547309f1bab8d8232418aa7c7109',
     'condition': 'checkout_win',
   },
 
@@ -2793,7 +2798,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + 'b5c58adf53e90e4a60c03269a44ae3342bac9bce',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '1b84966541966b49110cc7a8d4f906e6b0102b0a',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
@@ -3035,7 +3040,7 @@ deps = {
     Var('chromium_git') + '/external/search_engines_data.git' + '@' + 'b9f48dc46a8172cbdd9c3923bd5a85c04458e49f',
 
   'src/third_party/search_engines_data/resources_internal': {
-    'url': Var('chrome_git') + '/external/search_engines_data_internal.git' + '@' + 'dc5d6f6e87149e07322208310f7371f5a8a4182b',
+    'url': Var('chrome_git') + '/external/search_engines_data_internal.git' + '@' + '94bdfa556c13afdea210a36181b2e35bc72210f2',
     'condition': 'checkout_src_internal',
   },
 
@@ -3236,7 +3241,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + 'f93c4fefee56b60876629d03df1ad01e203cc8c3',
+    Var('webrtc_git') + '/src.git' + '@' + 'e12c39e03c3dcab594f73a1e524b1f2c17dfdcb8',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -3398,7 +3403,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/media_app/app',
-        'version': 'K-zW5zv9P8oOPoZD5Z4x2hoYtvJZ1rNkyUOVcvQc-QIC',
+        'version': 'gwtgIcgLhQXkEoTk84pfg4BH407VcZJc8Q-Q-AWF5fsC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -4083,7 +4088,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '4e05ef28fbda80630fecfced8010f1f01516d2b0',
+        'f456626f64aea15e164887480fcbe7f82431e461',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 

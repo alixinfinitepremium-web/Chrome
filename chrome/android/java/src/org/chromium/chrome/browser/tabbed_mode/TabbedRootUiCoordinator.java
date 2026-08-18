@@ -1944,7 +1944,10 @@ public class TabbedRootUiCoordinator extends RootUiCoordinator {
                         // Disable edge-to-edge on top when the status indicator is visible
                         // to avoid the indicator being obscured by the status bar in e2e
                         // mode.
-                        if (mTopInsetCoordinator != null) {
+                        if (EdgeToEdgeUtils.isEdgelessTopInsetEnabled()
+                                && mEdgeToEdgeController != null) {
+                            mEdgeToEdgeController.setStatusIndicatorVisible(indicatorHeight > 0);
+                        } else if (mTopInsetCoordinator != null) {
                             mTopInsetCoordinator.setStatusIndicatorVisible(indicatorHeight > 0);
                         }
                     }
@@ -2272,14 +2275,9 @@ public class TabbedRootUiCoordinator extends RootUiCoordinator {
         }
 
         if (ChromeFeatureList.sTabSearchForDesktop.isEnabled()) {
-            ViewGroup tabSearchParent =
-                    anchorContainerParent != null
-                            ? anchorContainerParent
-                            : assumeNonNull(mCoordinator);
             mTabSearchOverlayCoordinator =
                     new TabSearchOverlayCoordinator(
                             mActivity,
-                            tabSearchParent,
                             mWindowAndroid,
                             mProfileSupplier,
                             assumeNonNull(mSnackbarManagerSupplier.get()),
@@ -2290,7 +2288,8 @@ public class TabbedRootUiCoordinator extends RootUiCoordinator {
                             mBackPressManager,
                             mCompositorViewHolderSupplier,
                             mTabGroupUiActionHandlerSupplier,
-                            getDesktopWindowStateManager());
+                            getDesktopWindowStateManager(),
+                            mTabObscuringHandlerSupplier.get());
         }
 
         mSideUiCoordinator =

@@ -4859,12 +4859,6 @@
       status: "stable",
     },
     {
-      // When enabled, setting progress.max enforces a >0 constraint.
-      // This will be shipped in M150, and it can be removed in M152.
-      name: "ProgressMaxIsPositive",
-      status: "stable",
-    },
-    {
       // Propagate overscroll-behavior from the root element rather than the
       // body element. crbug.com/41453796
       name: "PropagateOverscrollBehaviorFromRoot",
@@ -6103,12 +6097,6 @@
     },
     {
       name: "TabAlignmentWithFloats",
-      status: "stable",
-    },
-    {
-      // Don't trigger table border rendering with only bordercolor attribute.
-      // This shipped in M146 and can be removed in M148.
-      name: "TableBorderColorNoImplicitBorder",
       status: "stable",
     },
     {
@@ -7362,7 +7350,7 @@
       // with its responseXML document.
       // https://crbug.com/466303347
       name: "XMLRustForNonXslt",
-      status: "experimental",
+      status: "stable",
     },
     {
       name: "XMLSerializerConsistentDefaultNsDeclMatching",
@@ -7371,12 +7359,6 @@
     {
       name: "XMLViewerForIframes",
       status: "experimental",
-    },
-    {
-      // Support XPath evaluation within Shadow DOM.
-      // This was added in M146 and can be removed after M148.
-      name: "XPathShadowDOMSupport",
-      status: "stable",
     },
     {
       // A feature flag that controls whether XSLT is supported by the browser.
