@@ -337,7 +337,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': 'e82a7bfaa58ba2b5cf138f5e23466d38654920ea',
+  'skia_revision': '2b9b367a517e70b00c2e188eed8a9ea8c1a84030',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -357,7 +357,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': 'defe5810ee8be430bcdeccf46a199bec0e93abdb',
+  'boringssl_revision': 'bb2b3174e6d48a32f07f1f3e100f68f3239ebb3f',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -417,7 +417,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '3b38206ea24025ff30ad25abd5ed5eb74da49921',
+  'devtools_frontend_revision': '664e8e99fd6f8da4f16897b013c52dec72702ab2',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
