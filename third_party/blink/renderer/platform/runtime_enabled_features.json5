@@ -1154,13 +1154,6 @@
       status: "stable",
     },
     {
-      // If the link has tabindex, the status bubble should not persist after
-      // mouse out.
-      // This was added in M146 and can be removed after M148.
-      name: "ClickFocusDoesntPersistStatusBubble",
-      status: "stable",
-    },
-    {
       // Uses ComputeContainerNode() instead of AnchorNode() for clipboard event
       // targeting so that kBeforeAnchor/kAfterAnchor selections correctly target
       // the containing parent element rather than the element itself.
@@ -1425,13 +1418,6 @@
       base_feature_status: "enabled",
       copied_from_base_feature_if: "overridden",
       origin_trial_feature_name: "CrashReportingStorageAPI",
-    },
-    {
-      // Makes createHTMLDocument() return a document whose readyState is
-      // "complete" instead of "loading". Shipped in M151, safe to remove in
-      // M153. https://issues.chromium.org/issues/522868200
-      name: "CreateHTMLDocumentReadyState",
-      status: "stable",
     },
     {
       name: "CreateInlineContentsAnonymousBlock",
@@ -2342,12 +2328,6 @@
       base_feature: "none",
     },
     {
-      // Disconnected <area> elements should not trigger navigation.
-      // This was added in M146, and can be removed in M148.
-      name: "DisallowDisconnectedAreaNavigation",
-      status: "stable",
-    },
-    {
       // For readonly inputs, do not allow access to the picker.
       // This landed in M146 and can be removed in M148.
       name: "DisallowPickerForReadonlyInputs",
@@ -2526,12 +2506,6 @@
       // "already started" so they stay inert when cloned or imported.
       // https://crbug.com/542115030
       name: "DOMParserXmlScriptAlreadyStarted",
-      status: "stable",
-    },
-    {
-      // When enabled, retarget the relatedTarget attribute of drag events.
-      // This landed partly in M146 and more in M150 and can be removed in M152.
-      name: "DontLeakShadowTreesInDragEvents",
       status: "stable",
     },
     {
