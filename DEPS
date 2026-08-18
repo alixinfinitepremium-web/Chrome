@@ -333,11 +333,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': 'fa8a1c3a7e56007d1341d1f5fe198675922e3b6e',
+  'src_internal_revision': '7fc1bfe2cdd96eec91f60816a22953cf136b9273',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '8b8c3872fbc03f025855db96ce683f34ec98a815',
+  'skia_revision': 'e82a7bfaa58ba2b5cf138f5e23466d38654920ea',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -2762,7 +2762,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/cisco/openh264' + '@' + 'fca40fc19f5fb854609d297ae4bde71df72787c9',
 
   'src/third_party/openscreen/src':
-    Var('chromium_git') + '/openscreen' + '@' + '11e4e00008df90ce2914335869fbfbd572d24c77',
+    Var('chromium_git') + '/openscreen' + '@' + 'fffe43589677baa674ffaeb671d729f52d94357b',
 
   'src/third_party/openxr/src': {
     'url': Var('chromium_git') + '/external/github.com/KhronosGroup/OpenXR-SDK' + '@' + '75c53b6e853dc12c7b3c771edc9c9c841b15faaa',
@@ -3179,8 +3179,8 @@ deps = {
       ],
   },
 
-  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@89c8e85edb61327644aca41e27641b43711bc783',
-  'src/third_party/glslang/src': '{chromium_git}/external/github.com/KhronosGroup/glslang@5d69854866df654a898a32d93cff20a181ac82ed',
+  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@1d696389f66f9356178d34a56cf3701e40495012',
+  'src/third_party/glslang/src': '{chromium_git}/external/github.com/KhronosGroup/glslang@2cc82463217481bf7f187d4f9f3bdf652de363dd',
   'src/third_party/spirv-cross/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Cross@b8fcf307f1f347089e3c46eb4451d27f32ebc8d3',
   'src/third_party/spirv-headers/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Headers@0d25db97cb9b8f725e4c95e4553001710e7fc39d',
   'src/third_party/spirv-tools/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Tools@e39e5c5838bc4b4162c349f2a2e5f163efe5432f',
