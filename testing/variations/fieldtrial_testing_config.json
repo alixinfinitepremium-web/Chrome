@@ -21570,21 +21570,6 @@
             ]
         }
     ],
-    "ReportEmptyAVMetricsOnFailure": [
-        {
-            "platforms": [
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled_20260519",
-                    "enable_features": [
-                        "ReportEmptyAVMetricsOnFailure"
-                    ]
-                }
-            ]
-        }
-    ],
     "ResampleScrollEventsForFling": [
         {
             "platforms": [
@@ -25032,6 +25017,30 @@
             ]
         }
     ],
+    "UniversalOptOut": [
+        {
+            "platforms": [
+                "android",
+                "chromeos",
+                "ios",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "params": {
+                        "target_locations": "us-tx,us-ut,us-nv"
+                    },
+                    "enable_features": [
+                        "ReadIsSubjectToUniversalOptOutCapability",
+                        "UniversalOptOut"
+                    ]
+                }
+            ]
+        }
+    ],
     "UnoPhase2ChromeOS": [
         {
             "platforms": [
@@ -27323,6 +27332,9 @@
             "experiments": [
                 {
                     "name": "Enabled",
+                    "params": {
+                        "no_system": "true"
+                    },
                     "enable_features": [
                         "WebViewEnableDnsPlatform"
                     ]
@@ -27431,7 +27443,12 @@
             "experiments": [
                 {
                     "name": "Enabled",
+                    "params": {
+                        "nonstable-probability": "1",
+                        "stable-probability": "1"
+                    },
                     "enable_features": [
+                        "HeapProfilerReporting",
                         "WebViewMemoryProfilingClient"
                     ]
                 }

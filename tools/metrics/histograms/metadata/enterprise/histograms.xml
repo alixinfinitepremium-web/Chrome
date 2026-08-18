@@ -2090,6 +2090,16 @@ chromium-metrics-reviews@google.com.
   </summary>
 </histogram>
 
+<histogram name="Enterprise.Dlp.ConfidentialContentsCacheEvictedOnFull"
+    enum="Boolean" expires_after="2027-08-01">
+  <owner>aidazolic@chromium.org</owner>
+  <owner>chromeos-dlp@google.com</owner>
+  <summary>
+    Recorded when an entry is evicted from DlpConfidentialContentsCache because
+    the cache has reached its maximum size limit.
+  </summary>
+</histogram>
+
 <histogram name="Enterprise.Dlp.ConfidentialContentsCount" units="entries"
     expires_after="2026-12-20">
   <owner>aidazolic@chromium.org</owner>
@@ -4983,6 +4993,16 @@ chromium-metrics-reviews@google.com.
   <owner>chromeos-commercial-remote-management@google.com</owner>
   <summary>
     The status code (exit code or signal) from VPD update operation (Chrome OS).
+  </summary>
+</histogram>
+
+<histogram name="Enterprise.Watermark.TimestampTimezoneType"
+    enum="WatermarkTimestampTimezoneType" expires_after="2027-08-01">
+  <owner>adamkl@google.com</owner>
+  <owner>cbe-cep-eng@google.com</owner>
+  <summary>
+    Records the timezone evaluation type used when rendering enterprise DLP
+    watermarks.
   </summary>
 </histogram>
 

@@ -179,6 +179,7 @@ import org.chromium.chrome.browser.search_engines.choice_screen.ChoiceDialogCoor
 import org.chromium.chrome.browser.selection.ChromeSelectionDropdownMenuDelegate;
 import org.chromium.chrome.browser.share.ShareDelegate;
 import org.chromium.chrome.browser.share.link_to_text.LinkToTextIphController;
+import org.chromium.chrome.browser.share.send_tab_to_self.SendTabToSelfCoordinator;
 import org.chromium.chrome.browser.signin.SigninAndHistorySyncActivityLauncherImpl;
 import org.chromium.chrome.browser.signin.services.IdentityServicesProvider;
 import org.chromium.chrome.browser.status_indicator.StatusIndicatorCoordinator;
@@ -1621,6 +1622,13 @@ public class TabbedRootUiCoordinator extends RootUiCoordinator {
         } else {
             mToolbarButtonInProductHelpController.showColdStartIph();
             mReadLaterIphController.showColdStartIph();
+            SendTabToSelfCoordinator.maybeShowOmniboxIphOnStartup(
+                    mActivity,
+                    profile,
+                    mActivityTabProvider.get(),
+                    toolbarManager.getLocationBar() == null
+                            ? null
+                            : toolbarManager.getLocationBar().getContainerView());
             String featureName = null;
             int stringId = 0;
             int menuId = 0;
@@ -2964,6 +2972,21 @@ public class TabbedRootUiCoordinator extends RootUiCoordinator {
                         BookmarkBarSettingChangeOrigin.KEYBOARD_SHORTCUT);
                 return true;
             }
+        } else if (id == R.id.bookmark_bar_state_only_ntp_menu_id) {
+            if (!BookmarkBarUtils.isActivityStateBookmarkBarCompatible(mActivity)) {
+                return false;
+            }
+            Profile profile = mProfileSupplier.asNonNull().get();
+            if (BookmarkBarUtils.getBookmarkBarVisibilityState(
+                            mActivity, profile, mXrSpaceModeObservableSupplier.get())
+                    != BookmarkBarVisibilityState.ONLY_SHOW_ON_NTP) {
+                BookmarkBarUtils.setBookmarkBarVisibilityState(
+                        profile,
+                        BookmarkBarVisibilityState.ONLY_SHOW_ON_NTP,
+                        BookmarkBarSettingChangeOrigin.APP_MENU);
+                RecordUserAction.record("MobileMenuBookmarkBarOnlyNtp");
+            }
+            return true;
         } else if (id == R.id.bookmark_bar_state_always_show_menu_id) {
             if (!BookmarkBarUtils.isActivityStateBookmarkBarCompatible(mActivity)) {
                 return false;
