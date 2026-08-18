@@ -337,7 +337,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '3af9997a9c7de7ba0c13c77e349406b7ea28bbb0',
+  'src_internal_revision': '7e59f09fe6fa2e906c9881fd1bf388f81110d90e',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -361,7 +361,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': 'af1e417c4c1672a9c3b7302ca7cb1f52aac34ad0',
+  'boringssl_revision': '51da97bd7194c8bda25ea6575b860e759353d6f3',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -2208,7 +2208,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '0192017d2cea536fa343fb714908c50cb3ebb162',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '8d5ffc2d534e575122d6e6fe60e248e688883096',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '17a56409b86d0da5e01ca38f6498e13b2db16bc3',
@@ -2798,7 +2798,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '98a044471ff2141fd9a254f6a8b7b2feb585e838',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + 'de794788d545dcf05aacece46a7fb5385b52ac77',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
@@ -4088,7 +4088,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '8b07af4742643d0103ea0ed8d09fb65a64af8161',
+        '4147ebeee084789235bc52e4546c9c7d11c10c8b',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
