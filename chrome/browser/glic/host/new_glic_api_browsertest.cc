@@ -31,6 +31,7 @@
 #include "chrome/browser/glic/glic_hotkey.h"
 #include "chrome/browser/glic/glic_pref_names.h"
 #include "chrome/browser/glic/glic_profile_manager.h"
+#include "chrome/browser/glic/glic_user_status_code.h"
 #include "chrome/browser/glic/host/auth_controller.h"
 #include "chrome/browser/glic/host/context/glic_tab_data.h"
 #include "chrome/browser/glic/host/context/glic_tab_favicon_observer.h"
@@ -108,6 +109,7 @@
 #include "content/public/common/content_features.h"
 #include "content/public/test/browser_test.h"
 #include "content/public/test/browser_test_utils.h"
+#include "google_apis/gaia/gaia_auth_util.h"
 #include "mojo/public/cpp/base/big_buffer.h"
 #include "services/network/test/test_url_loader_factory.h"
 #include "testing/gmock/include/gmock/gmock.h"
@@ -227,6 +229,9 @@ std::vector<std::string> GetTestSuiteNames() {
       "NewGlicApiTestWithSkillsDisabled",
       "NewGlicOnboardingApiTest",
       "NewGlicApiTestSystemSettingsTest",
+      "NewGlicGetHostCapabilityApiTest",
+      "NewGlicApiTestUserStatusCheckTest",
+      "NewGlicApiTestWithPixelOutput",
 #if !BUILDFLAG(IS_ANDROID)
       "NewGlicApiTestWithFileUploadPolicyEnabled",
       "NewGlicApiTestWithNewTabDaisyChain",
@@ -500,7 +505,7 @@ class NewGlicApiTestWithPixelOutput : public NewGlicApiTest {
   NewGlicApiTestWithPixelOutput() {
     // Pixel output is necessary for some tests, but it slows down the tests
     // significantly, and may cause flakes on some platforms.
-    EnablePixelOutput(2.0f);
+    EnablePixelOutput();
   }
 };
 
@@ -1802,6 +1807,27 @@ IN_PROC_BROWSER_TEST_P(NewGlicApiTestWithDefaultTabContextDisabled,
   histogram_tester.ExpectTotalCount("Glic.Api.GetContextFromTab.Error.Text", 1);
 }
 
+// Glic floaty/detached and live (Audio) modes are not supported on Android.
+#if !BUILDFLAG(IS_ANDROID)
+IN_PROC_BROWSER_TEST_P(NewGlicApiTestWithDefaultTabContextDisabled,
+                       testGetContextFromFocusedTabWithoutPermission) {
+  ASSERT_OK_AND_ASSIGN(auto* instance, OpenGlicForActiveTabAndDetach());
+  // Wait for the panel opening handshake to complete. Otherwise, the delayed
+  // startup mode (TEXT) response from the guest can race with and overwrite
+  // the test's runtime mode switch (AUDIO), causing metrics flakiness.
+  ASSERT_OK(WaitForPanelWillOpenComplete(instance));
+  glic::GlicHistogramTester histogram_tester;
+  ExecuteJsTest();
+
+  ASSERT_OK(histogram_tester.WaitForBucketCount(
+      "Glic.Api.GetContextFromFocusedTab.Error.Audio",
+      GlicGetContextFromTabError::kPermissionDeniedContextPermissionNotEnabled,
+      1));
+  histogram_tester.ExpectTotalCount(
+      "Glic.Api.GetContextFromFocusedTab.Error.Audio", 1);
+}
+#endif
+
 IN_PROC_BROWSER_TEST_P(NewGlicApiTest,
                        testGetContextFromTabFailsIfDoesNotExist) {
   ASSERT_OK(OpenGlicForActiveTab());
@@ -1812,6 +1838,44 @@ IN_PROC_BROWSER_TEST_P(NewGlicApiTest,
                                      1);
   histogram_tester.ExpectTotalCount("Glic.Api.GetContextFromTab.Error.Text", 1);
 }
+
+IN_PROC_BROWSER_TEST_P(NewGlicApiTest,
+                       testGetContextFromPinnedTabWithoutPermission) {
+  ASSERT_OK(OpenGlicForActiveTab());
+  glic::GlicHistogramTester histogram_tester;
+  ExecuteJsTest();
+  EXPECT_THAT(histogram_tester.GetAllSamplesForPrefix(
+                  "Glic.Api.GetContextFromTab.Error"),
+              testing::IsEmpty());
+}
+
+IN_PROC_BROWSER_TEST_P(NewGlicApiTest,
+                       testGetContextForActorFromTabWithoutPermission) {
+  ASSERT_OK(OpenGlicForActiveTab());
+  glic::GlicHistogramTester histogram_tester;
+  ExecuteJsTest();
+
+  // No context error should have been recorded.
+  EXPECT_THAT(histogram_tester.GetAllSamplesForPrefix(
+                  "Glic.Api.GetContextForActorFromTab.Error"),
+              testing::IsEmpty());
+}
+
+IN_PROC_BROWSER_TEST_P(NewGlicApiTest,
+                       testGetContextFromFocusedTabWithNoRequestedData) {
+  tabs::TabInterface* tab0 = GetTabListInterface()->GetActiveTab();
+  ASSERT_TRUE(tab0);
+  NavigateTab(*tab0,
+              embedded_test_server()->GetURL("/glic/browser_tests/test.html"));
+  ASSERT_OK(OpenGlicForActiveTab());
+  glic::GlicHistogramTester histogram_tester;
+  ExecuteJsTest();
+
+  // No error should be logged to the text histogram.
+  histogram_tester.ExpectTotalCount(
+      "Glic.Api.GetContextFromFocusedTab.Error.Text", 0);
+}
+
 #if !BUILDFLAG(IS_ANDROID)
 IN_PROC_BROWSER_TEST_P(NewGlicApiTest, testPinTabsFailsWhenIncognitoWindow) {
   ASSERT_OK(OpenGlicForActiveTabAndDetach());
@@ -2903,6 +2967,195 @@ IN_PROC_BROWSER_TEST_P(NewGlicApiTest, testPanelWillOpenBeforeClientReady) {
   ExecuteJsTest();
 }
 
+class NewGlicGetHostCapabilityApiTest : public GlicApiBrowserTest,
+                                        public WithTestParams,
+                                        public GlicApiTestPasskeys {
+ public:
+  NewGlicGetHostCapabilityApiTest()
+      : GlicApiBrowserTest("./new_glic_api_browsertest.js") {
+    std::vector<base::test::FeatureRefAndParams> enabled_features = {
+        {features::kGlic, {}},
+        {features::kGlicProcessCounterAbuseVerdict, {}},
+        {features::kGlicWebContentsWarming,
+         {{features::kGlicWebContentsWarmingDelay.name, "7d"}}},
+        {features::kGlicRollout, {}},
+        {mojom::features::kGlicMultiTab, {}},
+        {features::kGlicWebActuationSetting, {}},
+        {features::kGlicCaptureRegion, {}},
+        {features::kGlicPopupWindowsEnabled, {}},
+        {features::kLogJsConsoleMessages, {}},
+        {features::kGlicUserStatusCheck,
+         {{features::kGlicUserStatusRefreshApi.name, "true"},
+          {features::kGlicUserStatusThrottleInterval.name, "2s"}}},
+        {features::kGlicOpenPasswordManagerSettingsPageApi, {}},
+        {features::kGlicActor,
+         {{features::kGlicActorPolicyControlExemption.name, "true"}}},
+        {blink::features::kAIPageContentTrackedElementsIframe, {}},
+    };
+
+    std::vector<base::test::FeatureRef> disabled_features = {
+        features::kGlicWarming,
+        features::kGlicDaisyChainNewTabs,
+        features::kGlicCountryFiltering,
+        features::kGlicLocaleFiltering,
+    };
+
+    if (GetParam().enable_scroll_to_pdf) {
+      enabled_features.push_back(
+          {features::kGlicScrollTo, {{"glic-scroll-to-pdf", "true"}}});
+    } else {
+      disabled_features.push_back(features::kGlicScrollTo);
+    }
+
+    if (GetParam().auto_open_pdf) {
+      enabled_features.push_back(
+          {features::kAutoOpenGlicForPdf,
+           {{"AutoOpenGlicForPdfWithOnboarding", "true"}}});
+    }
+
+    features_.InitWithFeaturesAndParameters(enabled_features,
+                                            disabled_features);
+  }
+
+ private:
+  base::test::ScopedFeatureList features_;
+};
+
+IN_PROC_BROWSER_TEST_P(NewGlicGetHostCapabilityApiTest,
+                       testGetHostCapabilities) {
+  tabs::TabInterface* tab0 = GetTabListInterface()->GetActiveTab();
+  ASSERT_TRUE(tab0);
+  NavigateTab(*tab0, GetTestUrl("page.html"));
+
+  base::ListValue expected_capabilities;
+  if (GetParam().enable_scroll_to_pdf) {
+#if BUILDFLAG(ENABLE_PDF)
+    expected_capabilities.Append(
+        std::to_underlying(mojom::HostCapability::kScrollToPdf));
+#endif
+  }
+  if (GetParam().trust_first_onboarding_arm2) {
+    expected_capabilities.Append(
+        std::to_underlying(mojom::HostCapability::kTrustFirstOnboardingArm2));
+    service()->enabling().SetCompletedFre(prefs::FreStatus::kNotStarted);
+  }
+  if (GetParam().auto_open_pdf) {
+    expected_capabilities.Append(
+        std::to_underlying(mojom::HostCapability::kPdfZeroState));
+  }
+  expected_capabilities.Append(
+      std::to_underlying(mojom::HostCapability::kInvoke));
+  if (!base::FeatureList::IsEnabled(features::kGlicLiveMode)) {
+    expected_capabilities.Append(
+        std::to_underlying(mojom::HostCapability::kNoLiveMode));
+  }
+  if (base::FeatureList::IsEnabled(features::kFedCmEmbedderInitiatedLogin)) {
+    expected_capabilities.Append(
+        std::to_underlying(mojom::HostCapability::kAutoLoginSignInWithGoogle));
+  }
+  if (base::FeatureList::IsEnabled(features::kGlicWebDragAndDropFileUpload)) {
+    expected_capabilities.Append(
+        std::to_underlying(mojom::HostCapability::kImgWebDragDrop));
+  }
+
+  ASSERT_OK(OpenGlicForActiveTab());
+  ExecuteJsTest({.params = base::Value(std::move(expected_capabilities))});
+}
+
+namespace {
+void UpdatePrimaryAccountToBeManaged(Profile* profile) {
+  signin::IdentityManager* identity_manager =
+      IdentityManagerFactory::GetForProfile(profile);
+  CoreAccountInfo core_account_info =
+      identity_manager->GetPrimaryAccountInfo(signin::ConsentLevel::kSignin);
+  AccountInfo account_info =
+      identity_manager->FindExtendedAccountInfo(core_account_info);
+  account_info =
+      AccountInfo::Builder(account_info)
+          .SetHostedDomain(gaia::ExtractDomainName(account_info.email))
+          .Build();
+  signin::UpdateAccountInfoForAccount(identity_manager, account_info);
+}
+}  // namespace
+
+class NewGlicApiTestUserStatusCheckTest : public NewGlicApiTest {
+ protected:
+  void SetUpOnMainThread() override {
+    NewGlicApiTest::SetUpOnMainThread();
+    service()->enabling().SetUserStatusFetchOverrideForTest(
+        base::BindRepeating(&NewGlicApiTestUserStatusCheckTest::UserStatusFetch,
+                            base::Unretained(this)));
+  }
+
+  void UserStatusFetch(
+      base::OnceCallback<void(const CachedUserStatus&)> callback) {
+    user_status_fetch_count_++;
+    base::SequencedTaskRunner::GetCurrentDefault()->PostTask(
+        FROM_HERE, base::BindOnce(std::move(callback), user_status_));
+  }
+
+  CachedUserStatus user_status_;
+  unsigned int user_status_fetch_count_ = 0;
+};
+
+IN_PROC_BROWSER_TEST_P(NewGlicApiTestUserStatusCheckTest,
+                       testMaybeRefreshUserStatus) {
+  Profile* profile = GetProfile();
+  policy::ScopedManagementServiceOverrideForTesting platform_management(
+      policy::ManagementServiceFactory::GetForProfile(profile),
+      policy::EnterpriseManagementAuthority::CLOUD);
+  UpdatePrimaryAccountToBeManaged(profile);
+
+  ASSERT_FALSE(GlicEnabling::EnablementForProfile(profile).DisallowedByAdmin());
+  user_status_.user_status_code = UserStatusCode::DISABLED_BY_ADMIN;
+
+  ASSERT_OK(OpenGlicForActiveTab());
+  ExecuteJsTest();
+
+  ASSERT_TRUE(base::test::RunUntil([&]() {
+    return GlicEnabling::EnablementForProfile(profile).DisallowedByAdmin();
+  }));
+  EXPECT_GE(user_status_fetch_count_, 1u);
+}
+
+IN_PROC_BROWSER_TEST_P(NewGlicApiTestUserStatusCheckTest,
+                       testMaybeRefreshUserStatusThrottled) {
+  // As previous, but requests several updates (e.g., as though many errors
+  // were processed around the same time). An "enabled" status is assumed as
+  // otherwise the client will be unloaded.
+  //
+  // These expectations are a little loose, because we can't use mock time in
+  // browser tests yet, but they should be sufficient to catch a total lack of
+  // throttling, at least.
+
+  Profile* profile = GetProfile();
+  policy::ScopedManagementServiceOverrideForTesting platform_management(
+      policy::ManagementServiceFactory::GetForProfile(profile),
+      policy::EnterpriseManagementAuthority::CLOUD);
+  UpdatePrimaryAccountToBeManaged(profile);
+
+  ASSERT_FALSE(GlicEnabling::EnablementForProfile(profile).DisallowedByAdmin());
+  user_status_.user_status_code = UserStatusCode::ENABLED;
+
+  ASSERT_OK(OpenGlicForActiveTab());
+  ExecuteJsTest();
+
+  ASSERT_TRUE(base::test::RunUntil([&]() {
+    return user_status_fetch_count_ >= 2;
+  })) << "There should be at least two fetches (initial and delayed)";
+  {
+    base::RunLoop loop;
+    base::SequencedTaskRunner::GetCurrentDefault()->PostDelayedTask(
+        FROM_HERE, loop.QuitClosure(), base::Seconds(5));
+    loop.Run();
+  }
+  // The client code requests 10 updates in quick succession, but the throttling
+  // interval in the test parameters is set to 2 seconds. A total of 3 fetches
+  // is expected (1 initial, 1 delayed, 1 at the end of the script loops). If
+  // throttling is not working we will see up to 12 fetches.
+  EXPECT_LE(user_status_fetch_count_, 4u);
+}
+
 IN_PROC_BROWSER_TEST_P(NewGlicApiTest, testInitializeFails) {
   service()->enabling().SetCompletedFre(prefs::FreStatus::kNotStarted);
   glic::GlicHistogramTester histogram_tester;
@@ -3350,6 +3603,29 @@ IN_PROC_BROWSER_TEST_P(NewGlicApiTestWithPixelOutput,
       {GetTabListInterface()->GetTab(0)->GetHandle(),
        GetTabListInterface()->GetTab(1)->GetHandle()});
   ExecuteJsTest();
+}
+
+// Note: Win-ASAN is flaky.
+#if BUILDFLAG(IS_WIN) && defined(ADDRESS_SANITIZER)
+#define MAYBE_testGetContextFromFocusedTabWithAllRequestedData \
+  DISABLED_testGetContextFromFocusedTabWithAllRequestedData
+#else
+#define MAYBE_testGetContextFromFocusedTabWithAllRequestedData \
+  testGetContextFromFocusedTabWithAllRequestedData
+#endif
+IN_PROC_BROWSER_TEST_P(NewGlicApiTestWithPixelOutput,
+                       MAYBE_testGetContextFromFocusedTabWithAllRequestedData) {
+  tabs::TabInterface* tab0 = GetTabListInterface()->GetActiveTab();
+  ASSERT_TRUE(tab0);
+  NavigateTab(*tab0,
+              embedded_test_server()->GetURL("/glic/browser_tests/test.html"));
+  ASSERT_OK(OpenGlicForActiveTab());
+  glic::GlicHistogramTester histogram_tester;
+  ExecuteJsTest();
+
+  // No error should be logged to the text histogram.
+  histogram_tester.ExpectTotalCount(
+      "Glic.Api.GetContextFromFocusedTab.Error.Text", 0);
 }
 
 IN_PROC_BROWSER_TEST_P(NewGlicApiTestWithPixelOutput,
@@ -4524,6 +4800,21 @@ auto DefaultTestParamSet() {
 #ifndef DISABLE_ALL_TESTS
 INSTANTIATE_TEST_SUITE_P(,
                          NewGlicApiTest,
+                         DefaultTestParamSet(),
+                         &WithTestParams::PrintTestVariant);
+
+INSTANTIATE_TEST_SUITE_P(
+    ,
+    NewGlicGetHostCapabilityApiTest,
+    testing::Values(TestParams{},
+                    TestParams{.enable_scroll_to_pdf = true},
+                    TestParams{.trust_first_onboarding_arm2 = true},
+                    TestParams{.trust_first_onboarding_arm2 = true,
+                               .auto_open_pdf = true}),
+    &WithTestParams::PrintTestVariant);
+
+INSTANTIATE_TEST_SUITE_P(,
+                         NewGlicApiTestUserStatusCheckTest,
                          DefaultTestParamSet(),
                          &WithTestParams::PrintTestVariant);
 

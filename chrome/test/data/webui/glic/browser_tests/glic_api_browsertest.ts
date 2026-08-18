@@ -50,104 +50,6 @@ class ApiTests extends ApiTestFixtureBase {
     await this.advanceToNextStep();
   }
 
-  async testGetContextFromFocusedTabWithoutPermission() {
-    assertDefined(this.host.getContextFromFocusedTab);
-    await this.host.setTabContextPermissionState(false);
-
-    await assertRejects(this.host.getContextFromFocusedTab({}), {
-      withErrorMessage: 'tabContext failed: permission denied:' +
-          ' context permission not enabled',
-    });
-  }
-
-  async testGetContextFromPinnedTabWithoutPermission() {
-    assertDefined(this.host.getContextFromTab);
-    assertDefined(this.host.getFocusedTabStateV2);
-    assertDefined(this.host.pinTabs);
-    await this.host.setTabContextPermissionState(false);
-
-    const focusSequence =
-        observeSequence<FocusedTabData>(this.host.getFocusedTabStateV2());
-    const focus = await focusSequence.next();
-    const tabId = checkDefined(focus?.hasFocus?.tabData.tabId);
-
-    // Tab is already pinned in multi-instance mode.
-    if (!this.isMultiInstanceEnabled()) {
-      assertTrue(await this.host.pinTabs([tabId]));
-    }
-
-    const result = await this.host.getContextFromTab(tabId, {});
-    assertDefined(result);
-    assertEquals(
-        new URL(result.tabData.url).pathname, '/glic/browser_tests/test.html',
-        `Tab data has unexpected url ${result.tabData.url}`);
-  }
-
-  async testGetContextFromFocusedTabWithNoRequestedData() {
-    assertDefined(this.host.getContextFromFocusedTab);
-    await this.host.setTabContextPermissionState(true);
-
-    const result = await this.host.getContextFromFocusedTab({});
-    assertDefined(result);
-    assertEquals(
-        new URL(result.tabData.url).pathname, '/glic/browser_tests/test.html',
-        `Tab data has unexpected url ${result.tabData.url}`);
-    assertFalse(!!result.annotatedPageData);
-    assertFalse(!!result.pdfDocumentData);
-    assertFalse(!!result.webPageData);
-    assertFalse(!!result.viewportScreenshot);
-  }
-
-  async testGetContextFromFocusedTabWithAllRequestedData() {
-    await this.host.setTabContextPermissionState(true);
-
-    const result = await this.host.getContextFromFocusedTab?.({
-      innerText: true,
-      viewportScreenshot: true,
-      annotatedPageContent: true,
-      maxMetaTags: 32,
-      pdfData: true,
-    });
-
-    assertDefined(result);
-
-    assertEquals(
-        new URL(result.tabData.url).pathname, '/glic/browser_tests/test.html',
-        `Tab data has unexpected url ${result.tabData.url}`);
-    assertFalse(!!result.pdfDocumentData);  // The page is not a PDF.
-    assertDefined(result.webPageData);
-    assertEquals(
-        'This is a test page', result.webPageData.mainDocument.innerText);
-    assertDefined(result.viewportScreenshot);
-    assertTrue(
-        (result.viewportScreenshot.data.byteLength ?? 0) > 0,
-        `Expected viewport screenshot bytes, got ${
-            result.viewportScreenshot.data.byteLength}`);
-    assertTrue(result.viewportScreenshot.heightPixels > 0);
-    assertTrue(result.viewportScreenshot.widthPixels > 0);
-    assertEquals('image/jpeg', result.viewportScreenshot.mimeType);
-    assertDefined(result.annotatedPageData);
-    const annotatedPageContentSize =
-        (await new Response(result.annotatedPageData.annotatedPageContent)
-             .bytes())
-            .length;
-    assertTrue(annotatedPageContentSize > 1);
-
-    // Check metadata.
-    assertDefined(result.annotatedPageData.metadata);
-    assertDefined(result.annotatedPageData.metadata.frameMetadata);
-    assertEquals(result.annotatedPageData.metadata.frameMetadata.length, 1);
-    const frameMetadata = result.annotatedPageData.metadata.frameMetadata[0];
-    assertDefined(frameMetadata);
-    const url: URL = new URL(frameMetadata.url);
-    assertEquals(url.pathname, '/glic/browser_tests/test.html');
-    assertEquals(frameMetadata.metaTags.length, 1);
-    const metaTag = frameMetadata.metaTags[0];
-    assertDefined(metaTag);
-    assertEquals(metaTag.name, 'author');
-    assertEquals(metaTag.content, 'George');
-  }
-
   async testGetContextFromFocusedTabWithPdfFile() {
     await this.host.setTabContextPermissionState(true);
 
@@ -197,17 +99,6 @@ class ApiTests extends ApiTestFixtureBase {
     await assertRejects(this.host.getContextFromFocusedTab({}), {
       withErrorMessage: 'tabContext failed: permission denied',
     });
-  }
-
-  async testGetContextForActorFromTabWithoutPermission() {
-    await this.host.setTabContextPermissionState(true);
-    assertDefined(this.host.getFocusedTabStateV2);
-    const focusedTab = await this.host.getFocusedTabStateV2().getCurrentValue();
-    assertDefined(focusedTab?.hasFocus?.tabData?.tabId);
-    await this.host.setTabContextPermissionState(false);
-    const result = await this.host.getContextForActorFromTab?.(
-        focusedTab.hasFocus.tabData.tabId, {});
-    assertDefined(result);
   }
 
   async testGetContextForActorFromTabWithRestrictedUrl() {
@@ -512,32 +403,6 @@ class ApiTests extends ApiTestFixtureBase {
     }
   }
 
-  async testMaybeRefreshUserStatus() {
-    assertDefined(this.host.maybeRefreshUserStatus);
-    this.host.maybeRefreshUserStatus();
-  }
-
-  async testMaybeRefreshUserStatusThrottled() {
-    assertDefined(this.host.maybeRefreshUserStatus);
-    for (let i = 0; i < 10; i++) {
-      this.host.maybeRefreshUserStatus();
-      await sleep(100);
-    }
-  }
-
-  async testGetHostCapabilities() {
-    assertDefined(this.host.getHostCapabilities);
-    const capabilities: Set<HostCapability> =
-        await this.host.getHostCapabilities();
-    const expectedCapabilities: HostCapability[] = this.testParams ?? [];
-    assertTrue(
-        expectedCapabilities.every(
-            (expected: HostCapability) => capabilities.has(expected)),
-        `Expect each of ${
-            this.capabilitiesToString(expectedCapabilities)} is in ${
-            this.capabilitiesToString(Array.from(capabilities))}`);
-  }
-
   async testGetModelQualityClientIdFeatureEnabled() {
     assertDefined(this.host.getHostCapabilities);
     const capabilities: Set<HostCapability> =
@@ -695,18 +560,6 @@ class ApiTests extends ApiTestFixtureBase {
     assertDefined(this.host.closePanel);
     await this.host.closePanel();
     await observeSequence(this.host.panelActive()).waitForValue(false);
-  }
-
-  private capabilitiesToString(capabilities: HostCapability[]): string {
-    return `[${capabilities.map(this.capabilityToString).join(',')}]`;
-  }
-
-  private capabilityToString(capability: HostCapability): string {
-    const capabilityName = HostCapability[capability];
-    if (capabilityName) {
-      return capabilityName;
-    }
-    throw new Error(`Unknown capability: ${capability}`);
   }
 }
 

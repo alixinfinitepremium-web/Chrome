@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import {CancelActionsResult, ClientCapabilities, ExperimentalTriggeringUpdateType, FileUploadPolicyState, FormFactor, HostCapability, InvocationSource, PanelStateKind, Platform, SbThreatType, ScreenshotEncryptionScheme, ScrollToErrorReason, SkillSource, SkillsWebClientEvent, WebClientMode} from '/glic/glic_api/glic_api.js';
-import type {AdditionalContext, CounterAbuseVerdict, ExperimentalTriggeringUpdate, FocusedTabData, GetPinCandidatesOptions, GlicBrowserHost, GlicWebClient, InvokeOptions, Observable, Observable2, OpenPanelInfo, PageMetadata, PanelOpeningData, PanelState, ScrollToError, TabData, UserConfirmationDialogRequest, UserProfileInfo, ZeroStateSuggestionsV2} from '/glic/glic_api/glic_api.js';
+import type {AdditionalContext, CounterAbuseVerdict, ExperimentalTriggeringUpdate, FocusedTabData, GetPinCandidatesOptions, GlicBrowserHost, GlicWebClient, InvokeOptions, Observable, Observable2, OpenPanelInfo, PageMetadata, PanelOpeningData, PanelState, ScrollToError, TabContextResult, TabData, UserConfirmationDialogRequest, UserProfileInfo, ZeroStateSuggestionsV2} from '/glic/glic_api/glic_api.js';
 import {Subject} from '/glic/observable.js';
 
 import {ApiTestError, ApiTestFixtureBase, assertDefined, assertEquals, assertFalse, assertNotEquals, assertRejects, assertTrue, assertUndefined, checkDefined, mapObservable, observeSequence, runUntil, sleep, testMain, waitFor, WebClient} from './browser_test_base.js';
@@ -90,6 +90,18 @@ class ApiTests extends ApiTestFixtureBase {
         'test_client_data_from_cc', openData.conversationInfo?.clientData);
   }
 
+  async testMaybeRefreshUserStatus() {
+    assertDefined(this.host.maybeRefreshUserStatus);
+    await this.host.maybeRefreshUserStatus();
+  }
+
+  async testMaybeRefreshUserStatusThrottled() {
+    assertDefined(this.host.maybeRefreshUserStatus);
+    for (let i = 0; i < 10; i++) {
+      this.host.maybeRefreshUserStatus();
+      await sleep(100);
+    }
+  }
   async testGetModelQualityClientIdFeatureDisabled() {
     assertDefined(this.host.getHostCapabilities);
     const capabilities: Set<HostCapability> =
@@ -398,6 +410,44 @@ class ApiTests extends ApiTestFixtureBase {
     );
   }
 
+  async testGetContextFromPinnedTabWithoutPermission() {
+    assertDefined(this.host.getContextFromTab);
+    assertDefined(this.host.getFocusedTabStateV2);
+    assertDefined(this.host.pinTabs);
+    assertDefined(this.host.getHostCapabilities);
+    await this.host.setTabContextPermissionState(false);
+
+    const focusSequence =
+        observeSequence<FocusedTabData>(this.host.getFocusedTabStateV2());
+    const focus = await focusSequence.next();
+    const tabId = checkDefined(focus?.hasFocus?.tabData.tabId);
+
+    // Tab is already pinned in multi-instance mode.
+    if (!this.host.getHostCapabilities().has(HostCapability.MULTI_INSTANCE)) {
+      assertTrue(await this.host.pinTabs([tabId]));
+    }
+
+    const result = await this.host.getContextFromTab(tabId, {});
+    assertDefined(result);
+    assertEquals(
+        new URL(result.tabData.url).pathname, '/test_data/page.html',
+        `Tab data has unexpected url ${result.tabData.url}`);
+  }
+
+  async testGetContextForActorFromTabWithoutPermission() {
+    assertDefined(this.host.getContextForActorFromTab);
+    assertDefined(this.host.getFocusedTabStateV2);
+    await this.host.setTabContextPermissionState(true);
+    const focusSequence =
+        observeSequence<FocusedTabData>(this.host.getFocusedTabStateV2());
+    const focus = await focusSequence.next();
+    const tabId: string = checkDefined(focus?.hasFocus?.tabData.tabId);
+    await this.host.setTabContextPermissionState(false);
+    const result: TabContextResult =
+        await this.host.getContextForActorFromTab(tabId, {});
+    assertDefined(result);
+  }
+
   async testIsOnboardingCompleted() {
     assertDefined(this.host.isOnboardingCompleted);
     const completedSequence =
@@ -589,6 +639,106 @@ class ApiTests extends ApiTestFixtureBase {
         diff > 0.005 && diff < 0.3, `Zoom change is unexpected: diff=${diff}`);
   }
 
+  async testGetHostCapabilities() {
+    assertDefined(this.host.getHostCapabilities);
+    const capabilities: Set<HostCapability> =
+        await this.host.getHostCapabilities();
+    const expectedCapabilities: HostCapability[] = this.testParams ?? [];
+    assertTrue(
+        expectedCapabilities.every(
+            (expected: HostCapability) => capabilities.has(expected)),
+        `Expect each of ${
+            this.capabilitiesToString(expectedCapabilities)} is in ${
+            this.capabilitiesToString(Array.from(capabilities))}`);
+  }
+
+  private capabilitiesToString(capabilities: HostCapability[]): string {
+    return `[${capabilities.map(this.capabilityToString).join(',')}]`;
+  }
+
+  private capabilityToString(capability: HostCapability): string {
+    const capabilityName = HostCapability[capability];
+    if (capabilityName) {
+      return capabilityName;
+    }
+    throw new Error(`Unknown capability: ${capability}`);
+  }
+
+  async testGetContextFromFocusedTabWithoutPermission() {
+    assertDefined(this.host.onModeChange);
+    this.host.onModeChange(WebClientMode.AUDIO);
+
+    assertDefined(this.host.unpinTabs);
+    const tabId = this.getFocusedTabId();
+    await this.host.unpinTabs([tabId]);
+
+    assertDefined(this.host.getContextFromFocusedTab);
+    await assertRejects(this.host.getContextFromFocusedTab({}), {
+      withErrorMessage: 'tabContext failed: permission denied:' +
+          ' context permission not enabled',
+    });
+  }
+
+  async testGetContextFromFocusedTabWithNoRequestedData() {
+    assertDefined(this.host.getContextFromFocusedTab);
+    const result = await this.host.getContextFromFocusedTab({});
+    assertDefined(result);
+    // tabData is present, but pageContent and screenshot are not.
+    assertDefined(result.tabData);
+    assertEquals(
+        new URL(result.tabData.url).pathname, '/glic/browser_tests/test.html',
+        `Tab data has unexpected url ${result.tabData.url}`);
+    assertFalse('pageContent' in result);
+    assertFalse('screenshot' in result);
+  }
+
+  async testGetContextFromFocusedTabWithAllRequestedData() {
+    assertDefined(this.host.getContextFromFocusedTab);
+    const result = await this.host.getContextFromFocusedTab({
+      innerText: true,
+      viewportScreenshot: true,
+      annotatedPageContent: true,
+      maxMetaTags: 32,
+      pdfData: true,
+    });
+    assertDefined(result);
+    assertDefined(result.tabData);
+    assertEquals(
+        new URL(result.tabData.url).pathname, '/glic/browser_tests/test.html',
+        `Tab data has unexpected url ${result.tabData.url}`);
+    assertFalse(!!result.pdfDocumentData);  // The page is not a PDF.
+    assertDefined(result.webPageData);
+    assertEquals(
+        'This is a test page', result.webPageData.mainDocument.innerText);
+    assertDefined(result.viewportScreenshot);
+    assertTrue(
+        (result.viewportScreenshot.data.byteLength ?? 0) > 0,
+        `Expected viewport screenshot bytes, got ${
+            result.viewportScreenshot.data.byteLength}`);
+    assertTrue(result.viewportScreenshot.heightPixels > 0);
+    assertTrue(result.viewportScreenshot.widthPixels > 0);
+    assertEquals('image/jpeg', result.viewportScreenshot.mimeType);
+    assertDefined(result.annotatedPageData);
+    const annotatedPageContentSize =
+        (await new Response(result.annotatedPageData.annotatedPageContent)
+             .bytes())
+            .length;
+    assertTrue(annotatedPageContentSize > 1);
+
+    // Check metadata.
+    assertDefined(result.annotatedPageData.metadata);
+    assertDefined(result.annotatedPageData.metadata.frameMetadata);
+    assertEquals(result.annotatedPageData.metadata.frameMetadata.length, 1);
+    const frameMetadata = result.annotatedPageData.metadata.frameMetadata[0];
+    assertDefined(frameMetadata);
+    const url: URL = new URL(frameMetadata.url);
+    assertEquals(url.pathname, '/glic/browser_tests/test.html');
+    assertEquals(frameMetadata.metaTags.length, 1);
+    const metaTag = frameMetadata.metaTags[0];
+    assertDefined(metaTag);
+    assertEquals(metaTag.name, 'author');
+    assertEquals(metaTag.content, 'George');
+  }
   async testPinTabsFailsWhenIncognitoWindow() {
     assertDefined(this.host.pinTabs);
     assertDefined(this.host.getPinnedTabs);
