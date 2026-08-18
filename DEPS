@@ -341,7 +341,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '2b9b367a517e70b00c2e188eed8a9ea8c1a84030',
+  'skia_revision': '39e1f76e1e2e36014536b5e14de1957d14cd2580',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -421,7 +421,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '664e8e99fd6f8da4f16897b013c52dec72702ab2',
+  'devtools_frontend_revision': 'b39e131ca1691141fb8db8c97e1eb50d40a06740',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -445,7 +445,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': '39959ecc6912f6efaebe840189983d5dd723ad6d',
+  'dawn_revision': '61a885c4caca7e601c1362ca7c8b29c850a42cfb',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -1651,7 +1651,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_linux64',
-          'version': 'iBA985X_CB5TYlFdZuA4b0lcgjBMpCa3yezk1HgdGzsC',
+          'version': 'P7scLZ_km5rZQicMB8j7lNnoM8eWuVu-edLEnudzGZEC',
         },
       ],
   },
@@ -3236,7 +3236,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '45a54bd88620504498cc47fc9bb77517da9a108d',
+    Var('webrtc_git') + '/src.git' + '@' + 'f93c4fefee56b60876629d03df1ad01e203cc8c3',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
