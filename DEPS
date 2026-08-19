@@ -345,7 +345,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': 'aeba1cf7c2684bdebb9ff5a4b8b2c14baa0fee68',
+  'v8_revision': 'e6305bf775075e02e0cbe6829750f5a2f200c2b5',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -2210,7 +2210,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '7c8275ef88304b552a66aa105bed631dfb90bb02',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + 'e82accca02e96d549e51be326b0858c0b8d88576',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '17a56409b86d0da5e01ca38f6498e13b2db16bc3',
@@ -3243,7 +3243,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '9b33b6c524a185a20586741af262370291000b69',
+    Var('webrtc_git') + '/src.git' + '@' + '24b08c9e2e901576a12eed498490504b056cdbcb',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -3394,7 +3394,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/help_app/app',
-        'version': 'R1IulfmIiKnDMAcV0Djfri7yDbEX-wYm7n5O4sbafB8C',
+        'version': 'Y5o1qVT2r3mTHLGEs1lMGg20ofXAIbKTLhoeQ60_AyIC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
