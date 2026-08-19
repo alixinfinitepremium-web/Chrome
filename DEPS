@@ -341,7 +341,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '3c29a055ec5c0a8afde29c3341b41e15ac78be6c',
+  'skia_revision': '64ba71edaa52b0fbf3e9d5fd6d490593f5818cc5',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -349,7 +349,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': 'f3b3ab6b3a40e862179a2940a20c8e15f4732818',
+  'angle_revision': '78f42c860864843faad1b5e8b218ebdcc3215939',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -421,7 +421,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'd5637db1eb8023a4b1a7a5ad9c61d333372835ac',
+  'devtools_frontend_revision': '4f90532e1cf210c9a6777060712b8a3a850545e0',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1529,7 +1529,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_arm64',
-          'version': 'version:2@1676019',
+          'version': 'version:2@1677016',
         },
       ],
   },
@@ -1540,7 +1540,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_x86',
-          'version': 'version:2@1676034',
+          'version': 'version:2@1677016',
         },
       ],
   },
@@ -1551,7 +1551,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_x86_64',
-          'version': 'version:2@1676008',
+          'version': 'version:2@1677005',
         },
       ],
   },
@@ -1684,7 +1684,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_win_x86',
-          'version': 'CdPyEv9mYr93bbdR96LuXQglOCWnCFwk3YNwuYO5S6MC',
+          'version': 'tgDhj_t2s-ssvBtbAUcMzV7OWHsSzA0eApczOH8XE28C',
         },
       ],
   },
@@ -1695,7 +1695,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_win_x86_64',
-          'version': '6Z2LCVbtHoTLXaNYOUV-GrQRz9niKnc6LYO2NPbCwAgC',
+          'version': 'j6cOQ4xZnlm3Ne6TAuZMofCT3EJRjbgYGaa0MWqjO3kC',
         },
       ],
   },
@@ -1731,7 +1731,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': 'Mo3w59Xp7RI3cK0xYw8MwEdNDzeojmfvO7wYDfR8jZcC',
+        'version': 'wloJ5yIDLtwURRL9fGSelCMILRda1ab2pJR4vFSL6wgC',
       },
     ],
     'condition': 'non_git_source',
@@ -3241,7 +3241,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + 'e12c39e03c3dcab594f73a1e524b1f2c17dfdcb8',
+    Var('webrtc_git') + '/src.git' + '@' + '3fcbddbc2728c740e19edaf157c298351336dc4d',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -3807,7 +3807,7 @@ deps = {
 
   'src/chrome/browser/nearby_sharing/internal': {
       'url': Var('chrome_git') + '/chrome/browser/nearby_sharing/internal.git' + '@' +
-        'b54453882b41959777ea55518a7e41ab64560776',
+        '438be484022c1877ff928bebc9670b861ce4d8e0',
       'condition': 'checkout_src_internal',
   },
 
@@ -4088,7 +4088,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '38e26760ff08d0cd556525d6dec3f25f6d7a0657',
+        '3d9645f5725a77f2170a99d247577261b694a437',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
