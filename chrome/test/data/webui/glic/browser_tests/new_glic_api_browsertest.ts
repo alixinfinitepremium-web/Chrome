@@ -1019,6 +1019,13 @@ class ApiTests extends ApiTestFixtureBase {
     }
   }
 
+  async testErrorShownOnMojoPipeError() {}
+
+  async testPanelActiveWithMicrophone() {
+    await this.advanceToNextStep();
+    await this.advanceToNextStep();
+  }
+
   async testRequestHeader() {
     const rpcUrls: string[] = this.testParams.rpcUrls;
     await Promise.all(rpcUrls.map(url => fetch(url)));
@@ -2552,6 +2559,25 @@ class ApiTests extends ApiTestFixtureBase {
     assertDefined(this.host.setSyntheticExperimentState);
     this.host.setSyntheticExperimentState('TestTrial', 'Group1');
     this.host.setSyntheticExperimentState('TestTrial', 'Group2');
+  }
+
+  async testSwitchConversationToLastActiveConversation() {
+    assertDefined(this.host.registerConversation);
+    assertDefined(this.host.switchConversation);
+    if (this.testParams === 'step1') {
+      await this.host.registerConversation(
+          {conversationId: 'A', conversationTitle: 'Title A'});
+      await this.advanceToNextStep();
+    } else if (this.testParams === 'step2') {
+      // Return and then switch conversation to ensure that ExecuteJsTest
+      // completes before the instance is deleted. The instance is deleted
+      // during the `switchConversation` call.
+      sleep(100).then(() => {
+        assertDefined(this.host.switchConversation);
+        this.host.switchConversation(
+            {conversationId: 'A', conversationTitle: 'Title A'});
+      });
+    }
   }
 }
 

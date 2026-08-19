@@ -766,6 +766,26 @@ if (!is_android) {
         "//ui/aura",
       ]
     }
+    if (is_win) {
+      sources += [ "interactive_test_utils_win.cc" ]
+      deps += [
+        "//chrome/test/base:process_lineage_win",
+        "//chrome/test/base:save_desktop_snapshot",
+        "//chrome/test/base:window_contents_as_string_win",
+      ]
+    }
+  }
+
+  source_set("mixin_based_in_process_browser_test") {
+    testonly = true
+    sources = [
+      "mixin_based_in_process_browser_test.cc",
+      "mixin_based_in_process_browser_test.h",
+    ]
+    public_deps = [
+      "//chrome/test/base:in_process_browser_test",
+      "//chrome/test/base:in_process_browser_test_mixin",
+    ]
   }
 }
 

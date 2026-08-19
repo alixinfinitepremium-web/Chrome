@@ -38,18 +38,6 @@ class ApiTests extends ApiTestFixtureBase {
 
   async testHibernateAllOnMemoryPressure() {}
 
-
-
-
-
-
-  async testErrorShownOnMojoPipeError() {}
-
-  async testPanelActiveWithMicrophone() {
-    await this.advanceToNextStep();
-    await this.advanceToNextStep();
-  }
-
   // TODO(crbug.com/422544382): add test for getContextForActorFromTab for the
   // case where tab is in background.
 
@@ -241,25 +229,6 @@ class ApiTests extends ApiTestFixtureBase {
       // screenshotting does not hang forever.
       // Note: I've tried adding a sleep between minimizing the window and
       // capturing the screenshot, but it still succeeds randomly.
-    }
-  }
-
-  async testSwitchConversationToLastActiveConversation() {
-    assertDefined(this.host.registerConversation);
-    assertDefined(this.host.switchConversation);
-    if (this.testParams === 'step1') {
-      await this.host.registerConversation(
-          {conversationId: 'A', conversationTitle: 'Title A'});
-      await this.advanceToNextStep();
-    } else if (this.testParams === 'step2') {
-      // Return and then switch conversation to ensure that ExecuteJsTest
-      // completes before the instance is deleted. The instance is deleted
-      // during the `switchConversation` call.
-      sleep(100).then(() => {
-        assertDefined(this.host.switchConversation);
-        this.host.switchConversation(
-            {conversationId: 'A', conversationTitle: 'Title A'});
-      });
     }
   }
 

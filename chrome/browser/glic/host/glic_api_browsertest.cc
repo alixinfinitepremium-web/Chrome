@@ -178,7 +178,6 @@ std::vector<std::string> GetTestSuiteNames() {
       "GlicApiTestUserStatusCheckTest",
       "GlicApiTestWithOneTabMoreDebounceDelay",
       "GlicGetHostCapabilityApiTest",
-      "GlicApiTestRuntimeFeatureOff",
       "GlicApiTestWithWebContentsWarming",
       "GlicApiTestHibernateAllOnMemoryPressure",
       "GlicApiTestWithDaisyChain",
@@ -489,29 +488,6 @@ class GlicApiTestWithDaisyChain : public GlicApiTest {
 };
 
 IN_PROC_BROWSER_TEST_P(GlicApiTest,
-                       testSwitchConversationToLastActiveConversation) {
-  RunTestSequence(OpenGlic(GlicInstrumentMode::kHostAndContents,
-                           /*conversation_id=*/std::nullopt));
-
-  ExecuteJsTest({.params = base::Value("step1")});
-
-  ASSERT_TRUE(AddTabAtIndex(1, page_url(), ui::PAGE_TRANSITION_TYPED));
-  browser()->tab_strip_model()->ActivateTabAt(1);
-  TrackGlicInstanceWithTabIndex(1);
-  RunTestSequence(InstrumentTab(kSecondTab),
-                  OpenGlic(GlicInstrumentMode::kHostAndContents,
-                           /*conversation_id=*/std::nullopt));
-
-  ExecuteJsTest({.params = base::Value("step2")});
-  ASSERT_TRUE(base::test::RunUntil([&]() {
-    return histogram_tester->GetBucketCount(
-               "Glic.Interaction.SwitchConversationTarget",
-               GlicSwitchConversationTarget::kSwitchedToLastActive) == 1;
-  }));
-  ContinueJsTest();
-}
-
-IN_PROC_BROWSER_TEST_P(GlicApiTest,
                        testSwitchConversationToOldConversationInOldInstance) {
   RunTestSequence(OpenGlic(GlicInstrumentMode::kHostAndContents,
                            /*conversation_id=*/std::nullopt));
@@ -544,90 +520,6 @@ IN_PROC_BROWSER_TEST_P(GlicApiTest,
                "Glic.Interaction.SwitchConversationTarget",
                GlicSwitchConversationTarget::kSwitchedToExistingInstance) == 1;
   }));
-  ContinueJsTest();
-}
-
-class GlicApiTestRuntimeFeatureOff : public GlicApiTestWithOneTab {
- public:
-  GlicApiTestRuntimeFeatureOff() {
-    with_feature_off_.InitAndDisableFeature(
-        mojom::features::kGlicAppendModelQualityClientId);
-  }
-
- private:
-  base::test::ScopedFeatureList with_feature_off_;
-};
-
-// This tests what happens when a mojom RuntimeFeature method is called by
-// the host.
-// DONT DELETE THIS TEST when the method being called here is removed,
-// but instead update this test to call any other RuntimeFeature-protected
-// method.
-IN_PROC_BROWSER_TEST_P(GlicApiTestRuntimeFeatureOff,
-                       testErrorShownOnMojoPipeError) {
-  ExecuteJsTest();
-
-  auto* web_contents = FindGlicWebUIContents();
-  // Reach in to `GlicApiHost`'s handler to call a function that's gated by
-  // a disabled feature.
-  const char* script = R"js(
-(()=>{
-  const appController = appRouter.glicController;
-  if (!appController.webview.host.handler.getModelQualityClientId) {
-    return "Method not found";
-  }
-  appController.webview.host.handler.getModelQualityClientId();
-  return "Method called";
-})()
-)js";
-  auto result = content::EvalJs(web_contents->GetPrimaryMainFrame(), script);
-  ASSERT_EQ("Method called", result.ExtractString());
-
-  WaitForWebUiState(mojom::WebUiState::kError);
-  histogram_tester->ExpectUniqueSample(
-      "Glic.Host.WebClientState.OnDestroy",
-      11 /*MOJO_PIPE_CLOSED_UNEXPECTEDLY_AFTER_INITIALIZE*/, 1);
-
-  // Verify the reload button works.
-  RunTestSequence(
-      ClickWebElement(TargetWebContents::kGlicWebUi, "#reload", false));
-
-  WaitForWebUiState(mojom::WebUiState::kReady);
-  ExecuteJsTest();
-}
-
-IN_PROC_BROWSER_TEST_P(GlicApiTest, testPanelActiveWithMicrophone) {
-  TrackFloatingGlicInstance();
-  // Add another tab and open Floaty.
-  ASSERT_TRUE(AddTabAtIndex(1, GURL("about:blank"), ui::PAGE_TRANSITION_TYPED));
-
-  RunTestSequence(InstrumentTab(kFirstTab),
-                  NavigateWebContents(kFirstTab, page_url()),
-                  OpenGlicFloatingWindow(GlicInstrumentMode::kHostAndContents,
-                                         /*conversation_id=*/std::nullopt));
-
-  ExecuteJsTest();
-
-  GetHost()->OnMicrophoneStatusChanged(mojom::MicrophoneStatus::kListening);
-
-  // Activating the other tab should take focus away from Floaty. Floaty should
-  // still remain active.
-  browser()->tab_strip_model()->ActivateTabAt(1);
-  browser()->GetWindow()->Activate();
-
-  EXPECT_TRUE(GetGlicInstance()->IsActive());
-
-  ContinueJsTest();
-
-  // Pause the microphone and focus on the window. Floaty should not be
-  // considered active.
-  GetHost()->OnMicrophoneStatusChanged(mojom::MicrophoneStatus::kNotListening);
-  browser()->tab_strip_model()->ActivateTabAt(1);
-  browser()->GetWindow()->Activate();
-
-  ASSERT_TRUE(
-      base::test::RunUntil([&]() { return !GetGlicInstance()->IsActive(); }));
-
   ContinueJsTest();
 }
 
@@ -984,11 +876,6 @@ INSTANTIATE_TEST_SUITE_P(
     &WithTestParams::PrintTestVariant);
 INSTANTIATE_TEST_SUITE_P(,
                          GlicApiTest,
-                         DefaultTestParamSet(),
-                         &WithTestParams::PrintTestVariant);
-
-INSTANTIATE_TEST_SUITE_P(,
-                         GlicApiTestRuntimeFeatureOff,
                          DefaultTestParamSet(),
                          &WithTestParams::PrintTestVariant);
 

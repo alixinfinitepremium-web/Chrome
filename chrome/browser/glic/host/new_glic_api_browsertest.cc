@@ -229,6 +229,7 @@ std::vector<std::string> GetTestSuiteNames() {
       "NewGlicApiTestWithSkillsDisabled",
       "NewGlicApiTestWithMqlsIdGetterEnabled",
       "NewGlicApiTestWithCachedUserProfile",
+      "NewGlicApiTestRuntimeFeatureOff",
       "NewGlicOnboardingApiTest",
       "NewGlicApiTestSystemSettingsTest",
       "NewGlicGetHostCapabilityApiTest",
@@ -1621,6 +1622,59 @@ IN_PROC_BROWSER_TEST_P(NewGlicApiTestWithCachedUserProfile,
   ExecuteJsTest();
 }
 
+class NewGlicApiTestRuntimeFeatureOff : public NewGlicApiTest {
+ public:
+  NewGlicApiTestRuntimeFeatureOff() {
+    with_feature_off_.InitAndDisableFeature(
+        mojom::features::kGlicAppendModelQualityClientId);
+  }
+
+ private:
+  base::test::ScopedFeatureList with_feature_off_;
+};
+
+// This tests what happens when a mojom RuntimeFeature method is called by
+// the host.
+// DONT DELETE THIS TEST when the method being called here is removed,
+// but instead update this test to call any other RuntimeFeature-protected
+// method.
+IN_PROC_BROWSER_TEST_P(NewGlicApiTestRuntimeFeatureOff,
+                       testErrorShownOnMojoPipeError) {
+  ASSERT_OK_AND_ASSIGN(auto* instance, OpenGlicForActiveTab());
+  glic::GlicHistogramTester histogram_tester;
+  ExecuteJsTest();
+
+  auto* web_contents = instance->host().webui_contents();
+  ASSERT_TRUE(web_contents);
+
+  // Reach in to `GlicApiHost`'s handler to call a function that's gated by
+  // a disabled feature.
+  const char* script = R"js(
+(()=>{
+  const appController = appRouter.glicController;
+  if (!appController.webview.host.handler.getModelQualityClientId) {
+    return "Method not found";
+  }
+  appController.webview.host.handler.getModelQualityClientId();
+  return "Method called";
+})()
+)js";
+  auto result = content::EvalJs(web_contents->GetPrimaryMainFrame(), script);
+  ASSERT_EQ("Method called", result.ExtractString());
+
+  ASSERT_OK(WaitForWebUiState(mojom::WebUiState::kError));
+  histogram_tester.ExpectUniqueSample(
+      "Glic.Host.WebClientState.OnDestroy",
+      11 /*MOJO_PIPE_CLOSED_UNEXPECTEDLY_AFTER_INITIALIZE*/, 1);
+
+  // Verify the reload button works.
+  ASSERT_TRUE(content::ExecJs(web_contents,
+                              "document.querySelector('#reload').click();"));
+
+  ASSERT_OK(WaitForWebUiState(mojom::WebUiState::kReady));
+  ExecuteJsTest();
+}
+
 IN_PROC_BROWSER_TEST_P(NewGlicApiTest,
                        testGetUserProfileInfoDoesNotDeferWhenInactive) {
   ASSERT_OK(OpenGlicForActiveTab());
@@ -2700,6 +2754,41 @@ IN_PROC_BROWSER_TEST_P(NewGlicApiTest, testSetMinimumWidgetSize) {
   ContinueJsTest();
 }
 #endif
+
+// Detached floating window mode (Floaty) is not supported on Android, where
+// Glic runs exclusively attached to tabs or side panels.
+#if !BUILDFLAG(IS_ANDROID)
+IN_PROC_BROWSER_TEST_P(NewGlicApiTest, testPanelActiveWithMicrophone) {
+  tabs::TabInterface* background_tab = CreateBackgroundTab(
+      embedded_test_server()->GetURL("/browser_tests/test.html"));
+
+  ASSERT_OK_AND_ASSIGN(auto* instance, OpenGlicForActiveTabAndDetach());
+
+  ExecuteJsTest();
+
+  instance->host().OnMicrophoneStatusChanged(
+      mojom::MicrophoneStatus::kListening);
+
+  // Activating the other tab should take focus away from Floaty. Floaty should
+  // still remain active because the microphone is listening.
+  GetTabListInterface()->ActivateTab(background_tab->GetHandle());
+  GetBrowserWindowInterface()->GetWindow()->Activate();
+  EXPECT_TRUE(instance->IsActive());
+
+  ContinueJsTest();
+
+  // Pause the microphone and focus on the other tab. Floaty should not be
+  // considered active.
+  instance->host().OnMicrophoneStatusChanged(
+      mojom::MicrophoneStatus::kNotListening);
+  GetTabListInterface()->ActivateTab(background_tab->GetHandle());
+  GetBrowserWindowInterface()->GetWindow()->Activate();
+
+  ASSERT_TRUE(base::test::RunUntil([&]() { return !instance->IsActive(); }));
+
+  ContinueJsTest();
+}
+#endif  // !BUILDFLAG(IS_ANDROID)
 
 #if !BUILDFLAG(IS_ANDROID)
 IN_PROC_BROWSER_TEST_P(NewGlicApiTest, testManualResizeChanged) {
@@ -4911,6 +5000,26 @@ IN_PROC_BROWSER_TEST_P(NewGlicApiTest, testNotifyPanelWillOpenIsCalledOnce) {
   ContinueJsTest();
 }
 
+IN_PROC_BROWSER_TEST_P(NewGlicApiTest,
+                       testSwitchConversationToLastActiveConversation) {
+  base::HistogramTester histogram_tester;
+  ASSERT_OK_AND_ASSIGN(auto* tab0_instance, OpenGlicForActiveTab());
+
+  ExecuteJsTest({.params = base::Value("step1"), .instance = tab0_instance});
+
+  CreateAndActivateTab(
+      embedded_test_server()->GetURL("/browser_tests/test.html"));
+  ASSERT_OK_AND_ASSIGN(auto* tab1_instance, OpenGlicForActiveTab());
+
+  ExecuteJsTest({.params = base::Value("step2"), .instance = tab1_instance});
+  ASSERT_TRUE(base::test::RunUntil([&]() {
+    return histogram_tester.GetBucketCount(
+               "Glic.Interaction.SwitchConversationTarget",
+               GlicSwitchConversationTarget::kSwitchedToLastActive) == 1;
+  }));
+  ContinueJsTest({.instance = tab0_instance});
+}
+
 auto DefaultTestParamSet() {
   return testing::Values(TestParams{});
 }
@@ -5039,6 +5148,10 @@ INSTANTIATE_TEST_SUITE_P(,
                          &WithTestParams::PrintTestVariant);
 INSTANTIATE_TEST_SUITE_P(,
                          NewGlicApiTestWithCachedUserProfile,
+                         DefaultTestParamSet(),
+                         &WithTestParams::PrintTestVariant);
+INSTANTIATE_TEST_SUITE_P(,
+                         NewGlicApiTestRuntimeFeatureOff,
                          DefaultTestParamSet(),
                          &WithTestParams::PrintTestVariant);
 INSTANTIATE_TEST_SUITE_P(,

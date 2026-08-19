@@ -401,7 +401,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': '6f8b0e943d60ab974b6c6e1faa9015892aa2a189',
+  'crossbench_revision': 'd165a9f9a57aaf64e64822daf0aa7424f463bae1',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -445,7 +445,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': 'c3845d0d962656a2ea03063bddc85dc1ef1a0baa',
+  'dawn_revision': '8f7da32a03f73468d65d8c1c6daf396e6f751c8e',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -3894,7 +3894,7 @@ deps = {
   # grepping.
   'src/chrome/installer/mac/internal': {
       'url': Var('chrome_git') + '/chrome/installer/mac/internal.git' + '@' +
-        'a37ed147aaa384007087e9ab5e2e227e35c4b6c9',
+        'd1ce1fc66043dd2b46dae6f5d356684894f6adc6',
       'condition': 'checkout_src_internal',
   },
 
