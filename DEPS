@@ -337,11 +337,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '21eb99081cacd3923fb95cbfa262f5d7090878d3',
+  'src_internal_revision': 'b2101b186dd59a7edb52e5091c0368eed3449bcd',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '64ba71edaa52b0fbf3e9d5fd6d490593f5818cc5',
+  'skia_revision': 'ba5749f92ea5cec8878b87d617a1205c2ec694ad',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -361,7 +361,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': 'd9cace2c916914c437a10bf987017ba7792c0d57',
+  'boringssl_revision': 'ca53eec53d88ef6fca80e02cb04f1f9aad00794e',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -557,7 +557,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling agents-internal
   # and whatever else without interference from each other.
-  'agents_internal_revision': '21c25488408500557636122892d27dda39a0f922',
+  'agents_internal_revision': '075aff6e19f80590991d455c1b047faf79853224',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling agents-public
   # and whatever else without interference from each other.
@@ -2798,7 +2798,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + 'de794788d545dcf05aacece46a7fb5385b52ac77',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '68927f486b5a0f010023684b091e4ea9db95729a',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
