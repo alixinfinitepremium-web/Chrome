@@ -1742,6 +1742,21 @@
             ]
         }
     ],
+    "AperitifHelpers": [
+        {
+            "platforms": [
+                "mac"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "AperitifHelpers"
+                    ]
+                }
+            ]
+        }
+    ],
     "ApiGlicAccessFromPromotionPage": [
         {
             "platforms": [
@@ -17510,6 +17525,24 @@
             ]
         }
     ],
+    "OmniboxPastePromoExperiment": [
+        {
+            "platforms": [
+                "ios"
+            ],
+            "experiments": [
+                {
+                    "name": "Arm1",
+                    "params": {
+                        "arm": "1"
+                    },
+                    "enable_features": [
+                        "OmniboxPastePromoExperiment"
+                    ]
+                }
+            ]
+        }
+    ],
     "OmniboxSearchPrefetchOnEnterKeyDown": [
         {
             "platforms": [
@@ -23180,7 +23213,11 @@
     "SuspiciousSiteWarnings": [
         {
             "platforms": [
-                "android"
+                "android",
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
             ],
             "experiments": [
                 {
