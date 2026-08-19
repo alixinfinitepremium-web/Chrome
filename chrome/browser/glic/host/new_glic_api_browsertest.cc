@@ -1635,6 +1635,11 @@ IN_PROC_BROWSER_TEST_P(NewGlicApiTest, testPinTabs) {
   ExecuteJsTest();
 }
 
+IN_PROC_BROWSER_TEST_P(NewGlicApiTest, testOpenPinnedTabPicker) {
+  ASSERT_OK(OpenGlicForActiveTab());
+  ExecuteJsTest();
+}
+
 IN_PROC_BROWSER_TEST_P(NewGlicApiTest, testPinTabsFailsWhenDoesNotExist) {
   ASSERT_OK(OpenGlicForActiveTab());
   ExecuteJsTest();
@@ -1859,6 +1864,64 @@ IN_PROC_BROWSER_TEST_P(NewGlicApiTest,
   EXPECT_THAT(histogram_tester.GetAllSamplesForPrefix(
                   "Glic.Api.GetContextForActorFromTab.Error"),
               testing::IsEmpty());
+}
+
+IN_PROC_BROWSER_TEST_P(NewGlicApiTest,
+                       testGetContextForActorFromTabWithRestrictedUrl) {
+  // Navigate to an un-focusable internal page.
+  tabs::TabInterface* tab0 = GetTabListInterface()->GetActiveTab();
+  ASSERT_TRUE(tab0);
+  NavigateTab(*tab0, GURL(chrome::kChromeUIVersionURL));
+  ASSERT_OK(OpenGlicForActiveTab());
+  glic::GlicHistogramTester histogram_tester;
+  ExecuteJsTest();
+
+  // Checks that the correct error was reported.
+  histogram_tester.ExpectBucketCount(
+      "Glic.Api.GetContextForActorFromTab.Error.Text",
+      GlicGetContextFromTabError::kPermissionDenied, 1);
+  histogram_tester.ExpectTotalCount(
+      "Glic.Api.GetContextForActorFromTab.Error.Text", 1);
+}
+
+// Note: PDF support is a necessary precondition for this test.
+#if BUILDFLAG(ENABLE_PDF)
+#define MAYBE_testGetContextFromFocusedTabWithPdfFile \
+  testGetContextFromFocusedTabWithPdfFile
+#else
+#define MAYBE_testGetContextFromFocusedTabWithPdfFile \
+  DISABLED_testGetContextFromFocusedTabWithPdfFile
+#endif
+IN_PROC_BROWSER_TEST_P(NewGlicApiTest,
+                       MAYBE_testGetContextFromFocusedTabWithPdfFile) {
+  tabs::TabInterface* tab0 = GetTabListInterface()->GetActiveTab();
+  ASSERT_TRUE(tab0);
+  NavigateTab(*tab0, embedded_test_server()->GetURL("/pdf/test.pdf"));
+  ASSERT_OK(OpenGlicForActiveTab());
+  glic::GlicHistogramTester histogram_tester;
+  ExecuteJsTest();
+
+  // No context error should have been recorded.
+  EXPECT_THAT(histogram_tester.GetAllSamplesForPrefix(
+                  "Glic.Api.GetContextFromFocusedTab.Error"),
+              testing::IsEmpty());
+}
+
+IN_PROC_BROWSER_TEST_P(NewGlicApiTest,
+                       testGetContextFromFocusedTabWithUnFocusablePage) {
+  tabs::TabInterface* tab0 = GetTabListInterface()->GetActiveTab();
+  ASSERT_TRUE(tab0);
+  NavigateTab(*tab0, GURL(chrome::kChromeUIVersionURL));
+  ASSERT_OK(OpenGlicForActiveTab());
+  glic::GlicHistogramTester histogram_tester;
+  ExecuteJsTest();
+
+  // Checks that the correct error was reported.
+  histogram_tester.ExpectBucketCount(
+      "Glic.Api.GetContextFromFocusedTab.Error.Text",
+      GlicGetContextFromTabError::kPermissionDenied, 1);
+  histogram_tester.ExpectTotalCount(
+      "Glic.Api.GetContextFromFocusedTab.Error.Text", 1);
 }
 
 IN_PROC_BROWSER_TEST_P(NewGlicApiTest,

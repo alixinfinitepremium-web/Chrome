@@ -751,61 +751,6 @@ IN_PROC_BROWSER_TEST_P(GlicApiTestWithMqlsIdGetterEnabled,
   ExecuteJsTest();
 }
 
-IN_PROC_BROWSER_TEST_P(GlicApiTestWithOneTab,
-                       testGetContextForActorFromTabWithRestrictedUrl) {
-  // Navigate to an un-focusable internal page.
-  RunTestSequence(NavigateWebContents(kFirstTab, chrome::GetSettingsUrl("")));
-
-  ExecuteJsTest();
-
-  // Checks that the correct error was reported.
-  EXPECT_THAT(histogram_tester->GetAllSamplesForPrefix(
-                  "Glic.Api.GetContextForActorFromTab.Error"),
-              UnorderedElementsAre(Pair(
-                  "Glic.Api.GetContextForActorFromTab.Error.Text",
-                  BucketsAre(Bucket(
-                      GlicGetContextFromTabError::kPermissionDenied, 1)))));
-}
-
-// Note: PDF support is a necessary preconition for this test.
-#if BUILDFLAG(ENABLE_PDF)
-#define MAYBE_testGetContextFromFocusedTabWithPdfFile \
-  testGetContextFromFocusedTabWithPdfFile
-#else
-#define MAYBE_testGetContextFromFocusedTabWithPdfFile \
-  DISABLED_testGetContextFromFocusedTabWithPdfFile
-#endif
-IN_PROC_BROWSER_TEST_P(GlicApiTestWithOneTab,
-                       MAYBE_testGetContextFromFocusedTabWithPdfFile) {
-  RunTestSequence(NavigateWebContents(
-      kFirstTab,
-      InProcessBrowserTest::embedded_test_server()->GetURL("/pdf/test.pdf")));
-
-  ExecuteJsTest();
-
-  // No context error should have been recorded.
-  EXPECT_THAT(histogram_tester->GetAllSamplesForPrefix(
-                  "Glic.Api.GetContextFromFocusedTab.Error"),
-              testing::IsEmpty());
-}
-
-IN_PROC_BROWSER_TEST_P(GlicApiTestWithOneTab,
-                       testGetContextFromFocusedTabWithUnFocusablePage) {
-  // Navigate to an un-focusable internal page.
-  RunTestSequence(NavigateWebContents(kFirstTab, chrome::GetSettingsUrl("")));
-
-  // Web client request focused tab contents.
-  ExecuteJsTest();
-
-  // Checks that the correct error was reported.
-  EXPECT_THAT(histogram_tester->GetAllSamplesForPrefix(
-                  "Glic.Api.GetContextFromFocusedTab.Error"),
-              UnorderedElementsAre(Pair(
-                  "Glic.Api.GetContextFromFocusedTab.Error.Text",
-                  BucketsAre(Bucket(
-                      GlicGetContextFromTabError::kPermissionDenied, 1)))));
-}
-
 // TODO(crbug.com/454083080): Fix this, it hangs.
 IN_PROC_BROWSER_TEST_P(GlicApiTestWithOneTab, DISABLED_testCaptureScreenshot) {
   ExecuteJsTest();

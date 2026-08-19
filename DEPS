@@ -337,15 +337,15 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '7e59f09fe6fa2e906c9881fd1bf388f81110d90e',
+  'src_internal_revision': '6cdf5e8b356cdab2b97f2d87c4e337350bb15099',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '3810fd8f36dd87c7e11cb78b09407ea016896384',
+  'skia_revision': '30564e38105ed32e5abe146a8a6a24467e16359d',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': '9165506c868feb9fac8960e3e015854063c29848',
+  'v8_revision': '906bb6c447efff47e1ee126f656b12a338baea98',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -413,7 +413,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling fuzztest
   # and whatever else without interference from each other.
-  'fuzztest_revision': '8bc765afc32fa8210cfe827ff4c94ab7db1c518b',
+  'fuzztest_revision': 'd579aa9e1494341ba2bba308bc8a9a93274826df',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling domato
   # and whatever else without interference from each other.
@@ -477,7 +477,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling crabbyavif
   # and whatever else without interference from each other.
-  'crabbyavif_revision': 'd9be24dd7b4138b9d76868bdb5378ac4cfaf5930',
+  'crabbyavif_revision': '45b8b958cc1242dcf6243244070a8702278eb9bd',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Speedometer main
   # and whatever else without interference from each other.
@@ -545,7 +545,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
-  'llvm_libc_revision':    '20fd93c3ba54634c545ae2045fb207e7e58bb648',
+  'llvm_libc_revision':    '4cd0847bb093ecf30ef7f80814d7e83376b343d8',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
@@ -2193,7 +2193,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '262052b23ea3007159090865a4ded9fed77966e6',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '8b520524fca2ff590134bd7ed8e4d42e3bfa64dc',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -2640,7 +2640,7 @@ deps = {
     Var('chromium_git') + '/chromiumos/platform/libva-fake-driver.git' + '@' + 'a9bcab9cd6b15d4e3634ca44d5e5f7652c612194',
 
   'src/third_party/libvpx/source/libvpx':
-    Var('chromium_git') + '/webm/libvpx.git' + '@' +  '8729fc25eaaace0736e6a2e1da3cd307f75446fc',
+    Var('chromium_git') + '/webm/libvpx.git' + '@' +  '5ae5478f99abbe42101906d955458b3c98b587dd',
 
   'src/third_party/libwebm/source':
     Var('chromium_git') + '/webm/libwebm.git' + '@' + '6184f4484a826724b5293837134ab9492261b941',
