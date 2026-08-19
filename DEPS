@@ -337,11 +337,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '09eaa4540ea0b808bff2333b979a1507f2d8c58a',
+  'src_internal_revision': '668fce1f3951e67a2de7d44c603eadb648344552',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '70cc137de3b410749c4a2d5958b5ad666390d659',
+  'skia_revision': '87424d66edba364c697d98c6947a544fa5f6f071',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -361,7 +361,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': '496f8390c6e744d717ae77256a059b9813101906',
+  'boringssl_revision': 'f89068d3030374395c4b070838d1f4d9bbef5465',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -553,7 +553,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling clusterfuzz-data
   # and whatever else without interference from each other.
-  'clusterfuzz_data_revision':'85d23a9833c8194f6e1fe49235570e892aba87c8',
+  'clusterfuzz_data_revision':'f4ff1bb8dbe3e3dae7f89ec68d013546feeb348e',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling agents-internal
   # and whatever else without interference from each other.
@@ -1743,7 +1743,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '697fbc1e1ff1d7f19ccd0b3cd2c31e1bfe5b398b',
+    '3a6ea324586e8f928e8bc64b31eca8e2b5e3f85f',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -1847,7 +1847,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': 'Plk48g02LTVP9HAAbuxcArpPQTieoakZ5aFf25rG6ooC',
+          'version': 'R1yDLo5PFN_KKX5S-JpWBmpBRInhW44oPCJ1vrvULXgC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
@@ -2774,7 +2774,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/cisco/openh264' + '@' + 'fca40fc19f5fb854609d297ae4bde71df72787c9',
 
   'src/third_party/openscreen/src':
-    Var('chromium_git') + '/openscreen' + '@' + '2745d825222cf05f32434d76c13b4797df4ff549',
+    Var('chromium_git') + '/openscreen' + '@' + 'f64b6bfa47a406d3c744e0362dffc2e7122c6bae',
 
   'src/third_party/openxr/src': {
     'url': Var('chromium_git') + '/external/github.com/KhronosGroup/OpenXR-SDK' + '@' + '75c53b6e853dc12c7b3c771edc9c9c841b15faaa',
@@ -2800,7 +2800,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '68927f486b5a0f010023684b091e4ea9db95729a',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '15524260d4a9a6228e688cbbbfa4024161d0d9f3',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
