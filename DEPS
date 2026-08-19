@@ -345,7 +345,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': '67dd7c3223d404adbd510d8cc623ce1a7d07a911',
+  'v8_revision': 'aeba1cf7c2684bdebb9ff5a4b8b2c14baa0fee68',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -421,7 +421,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'db41a0261d28944084aeee0c277eb91e1e8ee65a',
+  'devtools_frontend_revision': 'd5637db1eb8023a4b1a7a5ad9c61d333372835ac',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -568,7 +568,7 @@ vars = {
   'libcxx_revision':       '97b436da4c33663581d394f4ee0a5977fc38c2f4',
 
   # GN CIPD package version.
-  'gn_version': 'git_revision:c6cffd45cc17c30acb6f8bcc0b9a0e49654aafa2',
+  'gn_version': 'git_revision:2481edf51ea7789c66aede9725ff0e202dfae812',
 
   # ninja CIPD package.
   'ninja_package': 'infra/3pp/tools/ninja/',
