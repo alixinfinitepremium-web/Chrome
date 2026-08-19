@@ -113,6 +113,17 @@ class UrlFilteringDelegateObserver : public base::CheckedObserver {
 // its own subscribers.
 class UrlFilteringDelegate {
  public:
+  // Encapsulates statistics about this URL filter.
+  struct Statistics {
+    bool operator==(const Statistics& other) const = default;
+    bool IsEmpty() const { return *this == Statistics(); }
+
+    std::size_t allowed_hosts_count = 0;
+    std::size_t blocked_hosts_count = 0;
+    std::size_t allowed_urls_count = 0;
+    std::size_t blocked_urls_count = 0;
+  };
+
   UrlFilteringDelegate();
   virtual ~UrlFilteringDelegate();
 
@@ -134,6 +145,9 @@ class UrlFilteringDelegate {
       const GURL& main_frame_url,
       WebFilteringResult::Callback callback,
       const WebFilterMetricsOptions& options) = 0;
+
+  // Returns summary of url filtering settings.
+  virtual Statistics GetFilteringStatistics() const;
 
   base::WeakPtr<UrlFilteringDelegate> GetWeakPtr();
 
@@ -214,6 +228,8 @@ class SupervisedUserUrlFilteringService : public KeyedService,
 
   void AddObserver(Observer* observer);
   void RemoveObserver(Observer* observer);
+
+  const UrlFilteringDelegate& GetFamilyLinkUrlFilter() const;
 
 #if BUILDFLAG(IS_IOS) || BUILDFLAG(IS_ANDROID)
   // Test-only accessor for the family link url filter delegate. Used only in

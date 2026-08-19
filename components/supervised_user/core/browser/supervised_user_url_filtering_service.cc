@@ -283,10 +283,21 @@ void SupervisedUserUrlFilteringService::AddObserver(Observer* observer) {
 void SupervisedUserUrlFilteringService::RemoveObserver(Observer* observer) {
   observer_list_.RemoveObserver(observer);
 }
+
+const UrlFilteringDelegate&
+SupervisedUserUrlFilteringService::GetFamilyLinkUrlFilter() const {
+  return *family_link_url_filter_;
+}
+
 SupervisedUserUrlFilteringService::Observer::~Observer() = default;
 
 UrlFilteringDelegate::UrlFilteringDelegate() = default;
 UrlFilteringDelegate::~UrlFilteringDelegate() = default;
+
+UrlFilteringDelegate::Statistics UrlFilteringDelegate::GetFilteringStatistics()
+    const {
+  return {};
+}
 
 void UrlFilteringDelegate::NotifyUrlFilteringDelegateChanged() const {
   for (auto& observer : observers_) {
