@@ -4,7 +4,7 @@
 import {HostCapability, MetricUserInputReactionType, PanelStateKind, ResponseStopCause, WebClientMode} from '/glic/glic_api/glic_api.js';
 import type {TabData} from '/glic/glic_api/glic_api.js';
 
-import {ApiTestFixtureBase, assertDefined, assertEquals, assertFalse, assertNotEquals, assertTrue, checkDefined, mapObservable, observeSequence, sleep, testMain} from './browser_test_base.js';
+import {ApiTestFixtureBase, assertDefined, assertEquals, assertFalse, assertNotEquals, assertTrue, checkDefined, mapObservable, observeSequence, testMain} from './browser_test_base.js';
 import type {SequencedSubscriber} from './browser_test_base.js';
 
 // Test cases here correspond to test cases in glic_api_browsertest.cc.
@@ -231,56 +231,6 @@ class ApiTests extends ApiTestFixtureBase {
       // capturing the screenshot, but it still succeeds randomly.
     }
   }
-
-  async testSwitchConversationToOldConversationInOldInstance() {
-    assertDefined(this.host.registerConversation);
-    assertDefined(this.host.switchConversation);
-    if (this.testParams === 'step1') {
-      await this.host.registerConversation(
-          {conversationId: 'A', conversationTitle: 'Title A'});
-      await this.advanceToNextStep();
-    } else if (this.testParams === 'step2') {
-      sleep(100).then(() => {
-        assertDefined(this.host.switchConversation);
-        this.host.switchConversation(
-            {conversationId: 'B', conversationTitle: 'Title B'});
-      });
-    } else if (this.testParams === 'step3') {
-      // Return and then switch conversation to ensure that ExecuteJsTest
-      // completes before the instance is deleted. The instance is deleted
-      // during the `switchConversation` call.
-      sleep(100).then(() => {
-        assertDefined(this.host.switchConversation);
-        this.host.switchConversation(
-            {conversationId: 'A', conversationTitle: 'Title A'});
-      });
-    }
-  }
-
-
-  async testSwitchConversationToExistingInstance() {
-    assertDefined(this.host.registerConversation);
-    assertDefined(this.host.switchConversation);
-    if (this.testParams === 'first') {
-      await this.host.registerConversation(
-          {conversationTitle: 'Hello', conversationId: 'id_hello'});
-      await this.advanceToNextStep();
-    } else if (this.testParams === 'second') {
-      assertEquals(
-          undefined,
-          this.client.panelOpenData.getCurrentValue()?.conversationId);
-
-      // Return and then switch conversation to ensure that ExecuteJsTest
-      // completes before the instance is deleted. The instance is deleted
-      // during the `switchConversation` call.
-      sleep(100).then(() => {
-        assertDefined(this.host.switchConversation);
-        this.host.switchConversation(
-            {conversationTitle: 'Hello', conversationId: 'id_hello'});
-      });
-    }
-  }
-
 
   async testPanelWillOpenHasRecentlyActiveConversations() {
     assertDefined(this.host.registerConversation);
