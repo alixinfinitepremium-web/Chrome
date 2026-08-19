@@ -957,31 +957,7 @@ public class TabListMediator implements TabListNotificationHandler {
                         int tabId = tab.getId();
                         if (tabId == lastId) return;
 
-                        int oldIndex = mModelList.indexFromTabId(lastId);
-                        if (oldIndex == TabModel.INVALID_TAB_INDEX
-                                && mLayoutType == TabListLayoutType.GROUPED) {
-                            oldIndex = getIndexForTabIdWithRelatedTabs(lastId);
-                        }
-                        int newIndex = mModelList.indexFromTabId(tabId);
-                        if (newIndex == TabModel.INVALID_TAB_INDEX
-                                && mLayoutType == TabListLayoutType.GROUPED) {
-                            // If a tab in tab group does not exist in model and needs to be
-                            // selected, identify the related tab ids and determine newIndex
-                            // based on if any of the related ids are present in model.
-                            newIndex = getIndexForTabIdWithRelatedTabs(tabId);
-                            // For UNDO ensure we update the representative tab in the model.
-                            if (type == TabSelectionType.FROM_UNDO
-                                    && mModelList.isValidIndex(newIndex)) {
-                                mModelList.updateTabListModelIdForGroup(tab, newIndex);
-                            }
-                        }
-
-                        mLastSelectedTabListModelIndex = oldIndex;
-                        if (mTabToAddDelayed != null && mTabToAddDelayed == tab) {
-                            // If tab is being added later, it will be selected later.
-                            return;
-                        }
-                        selectTab(oldIndex, newIndex);
+                        mTabListLayoutDelegate.didSelectTab(tab, type, lastId);
                     }
 
                     @Override
@@ -1063,38 +1039,7 @@ public class TabListMediator implements TabListNotificationHandler {
                             return;
                         }
 
-                        mTabListLayoutDelegate.onTabAdded(tab);
-                        if (type == TabLaunchType.FROM_RESTORE
-                                && mLayoutType != TabListLayoutType.FLAT) {
-                            // When tab is restored after restoring stage (e.g. exiting multi-window
-                            // mode, switching between dark/light mode in incognito), we need to
-                            // update related property models.
-                            int filterIndex = tabModel.representativeIndexOf(tab);
-                            if (filterIndex == TabList.INVALID_TAB_INDEX) return;
-                            Tab currentGroupSelectedTab =
-                                    tabModel.getRepresentativeTabAt(filterIndex);
-                            assumeNonNull(currentGroupSelectedTab);
-                            // TabModel and TabListModel may be in the process of syncing up through
-                            // restoring. Examples of this situation are switching between
-                            // light/dark mode in incognito, exiting multi-window mode, etc.
-                            if (mLayoutType == TabListLayoutType.NESTED) {
-                                int tabUiIndex = mModelList.indexFromTabId(tab.getId());
-                                if (tabUiIndex != TabModel.INVALID_TAB_INDEX) {
-                                    updateTab(tabUiIndex, tab, false, false);
-                                }
-                                if (tab.getTabGroupId() != null) {
-                                    updateTabGroupTitle(tab.getTabGroupId());
-                                }
-                                return;
-                            }
-
-                            int tabListModelIndex = mModelList.indexOfNthTabCard(filterIndex);
-                            if (mModelList.indexFromTabId(currentGroupSelectedTab.getId())
-                                    != tabListModelIndex) {
-                                return;
-                            }
-                            updateTab(tabListModelIndex, currentGroupSelectedTab, false, false);
-                        }
+                        mTabListLayoutDelegate.didAddTab(tab, type);
                     }
 
                     @Override
@@ -1149,13 +1094,7 @@ public class TabListMediator implements TabListNotificationHandler {
                         int closingTabIndex = mModelList.indexFromTabId(tabId);
                         if (closingTabIndex == TabModel.INVALID_TAB_INDEX) return;
 
-                        if (mLayoutType == TabListLayoutType.NESTED) {
-                            // The last tab is clipped from top during animation.
-                            if (view != null && view.getParent() instanceof View rootItemView) {
-                                boolean isLastTab = closingTabIndex == mModelList.size() - 1;
-                                rootItemView.setTag(R.id.tab_clip_from_top, isLastTab);
-                            }
-                        }
+                        mTabListLayoutDelegate.prepareTabCloseAnimation(view, closingTabIndex);
 
                         TabModel tabModel = getCurrentTabModelChecked();
                         Tab closingTab = tabModel.getTabById(tabId);
@@ -1342,7 +1281,15 @@ public class TabListMediator implements TabListNotificationHandler {
         return mDefaultGridCardSize;
     }
 
-    private void selectTab(int oldIndex, int newIndex) {
+    void setLastSelectedTabListModelIndex(int index) {
+        mLastSelectedTabListModelIndex = index;
+    }
+
+    boolean isTabDelayed(Tab tab) {
+        return mTabToAddDelayed != null && mTabToAddDelayed == tab;
+    }
+
+    void selectTab(int oldIndex, int newIndex) {
         if (mModelList.isValidIndex(oldIndex)) {
             PropertyModel oldModel = mModelList.get(oldIndex).model;
             int lastId = oldModel.get(TAB_ID);

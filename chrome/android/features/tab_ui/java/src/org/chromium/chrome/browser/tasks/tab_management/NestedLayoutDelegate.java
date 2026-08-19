@@ -8,16 +8,19 @@ import static org.chromium.build.NullUtil.assumeNonNull;
 import static org.chromium.chrome.browser.tasks.tab_management.TabSwitcherMessageManager.isOnlyArchivedMsg;
 
 import android.util.SparseIntArray;
+import android.view.View;
 
 import org.chromium.base.Token;
 import org.chromium.build.annotations.NullMarked;
 import org.chromium.build.annotations.Nullable;
 import org.chromium.chrome.browser.tab.MediaState;
 import org.chromium.chrome.browser.tab.Tab;
+import org.chromium.chrome.browser.tab.TabLaunchType;
 import org.chromium.chrome.browser.tabmodel.TabGroupUtils;
 import org.chromium.chrome.browser.tabmodel.TabList;
 import org.chromium.chrome.browser.tabmodel.TabModel;
 import org.chromium.chrome.browser.tabmodel.TabModelUtils;
+import org.chromium.chrome.tab_ui.R;
 import org.chromium.components.tab_group_sync.EitherId.EitherGroupId;
 import org.chromium.components.tab_group_sync.LocalTabGroupId;
 import org.chromium.components.tab_groups.TabGroupColorId;
@@ -154,6 +157,22 @@ class NestedLayoutDelegate extends TabListLayoutDelegate {
     }
 
     @Override
+    void didAddTab(Tab tab, @TabLaunchType int type) {
+        super.didAddTab(tab, type);
+
+        if (type == TabLaunchType.FROM_RESTORE) {
+            int tabUiIndex = mModelList.indexFromTabId(tab.getId());
+            if (tabUiIndex != TabModel.INVALID_TAB_INDEX) {
+                mMediator.updateTab(
+                        tabUiIndex, tab, /* isUpdatingId= */ false, /* quickMode= */ false);
+            }
+            if (tab.getTabGroupId() != null) {
+                mMediator.updateTabGroupTitle(tab.getTabGroupId());
+            }
+        }
+    }
+
+    @Override
     void onTabClose(Tab tab) {
         TabModel tabModel = mMediator.getCurrentTabModelChecked();
         Token tabGroupId = tab.getTabGroupId();
@@ -163,6 +182,15 @@ class NestedLayoutDelegate extends TabListLayoutDelegate {
         }
 
         super.onTabClose(tab);
+    }
+
+    @Override
+    void prepareTabCloseAnimation(@Nullable View view, int closingTabIndex) {
+        // The last tab is clipped from top during animation.
+        if (view != null && view.getParent() instanceof View rootItemView) {
+            boolean isLastTab = closingTabIndex == mModelList.size() - 1;
+            rootItemView.setTag(R.id.tab_clip_from_top, isLastTab);
+        }
     }
 
     @Override

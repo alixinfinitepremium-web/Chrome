@@ -8,12 +8,15 @@ import static org.chromium.build.NullUtil.assumeNonNull;
 import static org.chromium.chrome.browser.tasks.tab_management.TabSwitcherMessageManager.isOnlyArchivedMsg;
 
 import android.graphics.Bitmap;
+import android.view.View;
 
 import org.chromium.base.Token;
 import org.chromium.build.annotations.NullMarked;
 import org.chromium.build.annotations.Nullable;
 import org.chromium.chrome.browser.tab.MediaState;
 import org.chromium.chrome.browser.tab.Tab;
+import org.chromium.chrome.browser.tab.TabLaunchType;
+import org.chromium.chrome.browser.tab.TabSelectionType;
 import org.chromium.chrome.browser.tabmodel.TabGroupObserver;
 import org.chromium.chrome.browser.tabmodel.TabList;
 import org.chromium.chrome.browser.tabmodel.TabModel;
@@ -85,6 +88,51 @@ abstract class TabListLayoutDelegate implements TabGroupObserver {
     }
 
     /**
+     * Handles UI model updates when a tab is added to the tab model.
+     *
+     * @param tab The {@link Tab} being added.
+     * @param type The {@link TabLaunchType} indicating how the tab was launched.
+     */
+    void didAddTab(Tab tab, @TabLaunchType int type) {
+        onTabAdded(tab);
+    }
+
+    /**
+     * Resolves the UI index in {@link #mModelList} of the card representing the given tab in this
+     * layout.
+     *
+     * <p>For flat and nested layouts, this locates the tab's direct card in the model list.
+     * Subclasses (such as grouped layouts) may override this to resolve to the containing group
+     * card if the tab is part of a tab group.
+     *
+     * @param tabId The ID of the tab to locate.
+     * @return The UI index in {@link #mModelList}, or {@link TabModel#INVALID_TAB_INDEX} if not
+     *     present.
+     */
+    int getUiIndexForTab(int tabId) {
+        return mModelList.indexFromTabId(tabId);
+    }
+
+    /**
+     * Handles UI model updates when a tab is selected in the tab model.
+     *
+     * @param tab The {@link Tab} that was selected.
+     * @param type The {@link TabSelectionType} indicating the selection trigger.
+     * @param lastId The ID of the previously selected tab.
+     */
+    void didSelectTab(Tab tab, @TabSelectionType int type, int lastId) {
+        int oldIndex = getUiIndexForTab(lastId);
+        int newIndex = getUiIndexForTab(tab.getId());
+
+        mMediator.setLastSelectedTabListModelIndex(oldIndex);
+        if (mMediator.isTabDelayed(tab)) {
+            // If tab is being added later, it will be selected later.
+            return;
+        }
+        mMediator.selectTab(oldIndex, newIndex);
+    }
+
+    /**
      * Updates the favicon for a tab or its representing card when the favicon changes.
      *
      * @param updatedTab The {@link Tab} whose favicon was updated.
@@ -108,6 +156,14 @@ abstract class TabListLayoutDelegate implements TabGroupObserver {
 
         mModelList.removeAt(index);
     }
+
+    /**
+     * Prepares layout-specific view properties and animation tags prior to tab closure animation.
+     *
+     * @param view The clicked close button {@link View}, or null.
+     * @param closingTabIndex The UI index of the tab being closed in {@link #mModelList}.
+     */
+    void prepareTabCloseAnimation(@Nullable View view, int closingTabIndex) {}
 
     /**
      * Handles UI model updates when a tab is moved in the tab model.

@@ -429,7 +429,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling android_sdk_build-tools_version
   # and whatever else without interference from each other.
-  'android_sdk_build-tools_version': 'febJrTgiK9s1ANoUlc4Orn3--zs9GjGCj2vQc8g7OaMC',
+  'android_sdk_build-tools_version': 'version_37.0.0',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling android_sdk_emulator_version
   # and whatever else without interference from each other.
@@ -1820,11 +1820,13 @@ deps = {
   'src/third_party/android_build_tools/protoc/cipd': {
       'packages': [
           {
-              'package': 'chromium/third_party/android_build_tools/protoc',
-              'version': 'ivH_8voaWaRDbk7bDHj8n5YR2IH7sFuenkqy0bVOb2cC',
+              'package': 'chromium/third_party/android_build_tools/protoc/${{platform}}',
+              'version': 'version:2@v35.1',
           },
       ],
-      'condition': 'checkout_android and non_git_source',
+      'condition': 'checkout_android and non_git_source and '
+                   '((host_os == "linux" and host_cpu == "x64") or '
+                   '(host_os == "mac" and host_cpu == "arm64"))',
       'dep_type': 'cipd',
   },
 
@@ -1845,7 +1847,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': 'stqZyLWSguiZUIpMgiR1Tg-z6i1BtyUD5yKbWh1Pjh0C',
+          'version': 'Plk48g02LTVP9HAAbuxcArpPQTieoakZ5aFf25rG6ooC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
@@ -1975,7 +1977,7 @@ deps = {
   'src/third_party/android_sdk/public': {
       'packages': [
           {
-              'package': 'chromium/third_party/android_sdk/public/build-tools/37.0.0',
+              'package': 'chromium/third_party/android_sdk/public/build-tools/37.0.0/${{os}}',
               'version': Var('android_sdk_build-tools_version'),
           },
           {
@@ -3241,7 +3243,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + 'cd81696dce9728804fb4797dae3b969947e15da1',
+    Var('webrtc_git') + '/src.git' + '@' + '9b33b6c524a185a20586741af262370291000b69',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -4088,7 +4090,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '21546b3fb837052ed2de9d11916b25de5db32394',
+        '760e5eabc26bc08265ce44608fcfd0bc15e3e5fa',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
