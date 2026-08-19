@@ -341,11 +341,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': 'c5df7c09578b18e504082c9b8915c4c2f52f9853',
+  'skia_revision': '90e9f68af5404c76707fc31de5173471a9046710',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': 'e94d1b8b7505359ae13bd0f364048816d0a6dd26',
+  'v8_revision': '67dd7c3223d404adbd510d8cc623ce1a7d07a911',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -421,7 +421,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'a092f2943b68ef9aa7c1d2c2a8b7e71aa4087280',
+  'devtools_frontend_revision': 'da8c07c6ba51fcd46787cd33f06baecdbaaf0d6b',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1496,7 +1496,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_linux64',
-          'version': 'version:2@1676011',
+          'version': 'version:2@1677005',
         },
       ],
   },
@@ -1518,7 +1518,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_mac_arm64',
-          'version': 'version:2@1676004',
+          'version': 'version:2@1677003',
         },
       ],
   },
@@ -1651,7 +1651,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_linux64',
-          'version': 'P7scLZ_km5rZQicMB8j7lNnoM8eWuVu-edLEnudzGZEC',
+          'version': 'Oz7gKo5zQF1X73z9CbS0ZSuBJhe9TbcufOV97VD5EPYC',
         },
       ],
   },
@@ -1662,7 +1662,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_mac_amd64',
-          'version': '9uuVw4M1z857RJJiG2j80lRoAXsVs75rZl1FHo_Ru_8C',
+          'version': 'TQ5ddtLX7-J51Dw4joddRv1OrZhZxnTGLUdT9spT2JEC',
         },
       ],
   },
@@ -1673,7 +1673,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_mac_arm64',
-          'version': 'qnjbAI2g0OlIZSmonLmMKsUH67JOHDHdiBcuHYxo1J0C',
+          'version': 'ZbZ7aGJBjGEIGGy-6dvFgoXN1uGbYjC1_nMG5tnqrvoC',
         },
       ],
   },
@@ -1743,7 +1743,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '337e68f832fb60660b5286bbeddce3756dd3a493',
+    'a88b650d68b1df964bf7a854e95844ec0c00142c',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -2772,7 +2772,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/cisco/openh264' + '@' + 'fca40fc19f5fb854609d297ae4bde71df72787c9',
 
   'src/third_party/openscreen/src':
-    Var('chromium_git') + '/openscreen' + '@' + '9852a520853aba0db9989153765184c2ec4eac08',
+    Var('chromium_git') + '/openscreen' + '@' + '2745d825222cf05f32434d76c13b4797df4ff549',
 
   'src/third_party/openxr/src': {
     'url': Var('chromium_git') + '/external/github.com/KhronosGroup/OpenXR-SDK' + '@' + '75c53b6e853dc12c7b3c771edc9c9c841b15faaa',
@@ -3274,7 +3274,7 @@ deps = {
       'packages': [
         {
           'package': 'skia/tools/goldctl/linux-amd64',
-          'version': 'u73fxhoNsosUtXUYzx1gEMluG0uXFtBD4ASIPb_RdZAC',
+          'version': 'ZxCXn4iT9OlJ3luj-3PITFBcaDmamT9_tfmEZQgb2TYC',
         },
       ],
       'dep_type': 'cipd',
@@ -3295,7 +3295,7 @@ deps = {
       'packages': [
         {
           'package': 'skia/tools/goldctl/mac-amd64',
-          'version': '-DSFRny-HniCy7vguSXA5RIiFVgqu2ADRaGbTwCRvHAC',
+          'version': 'H2C8_AQ0XP-GfcYJmQSvT5gOB5bwsYtlqDutlJaM3goC',
         },
       ],
       'dep_type': 'cipd',
@@ -4004,7 +4004,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        'f71bcc619f19e19637e0dc39e14bc707472b73b0',
+        '939f9b9c8565b8461092b08588d3c29ba45f83a9',
       'condition': 'checkout_src_internal',
   },
 
