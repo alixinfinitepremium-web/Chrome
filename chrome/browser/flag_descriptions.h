@@ -2283,12 +2283,6 @@ inline constexpr char kEnableControlledFrameDescription[] =
     "https://github.com/WICG/controlled-frame/blob/main/EXPLAINER.md "
     "for more information.";
 
-inline constexpr char kEnablePeripheralCustomizationName[] =
-    "Enable peripheral customization";
-inline constexpr char kEnablePeripheralCustomizationDescription[] =
-    "Enable peripheral customization to allow users to customize buttons on "
-    "their peripherals.";
-
 inline constexpr char kEnablePeripheralNotificationName[] =
     "Enable peripheral notification";
 inline constexpr char kEnablePeripheralNotificationDescription[] =
@@ -6046,6 +6040,11 @@ inline constexpr char kDesktopAndroidLinkCapturingName[] =
     "Desktop Android Link Capturing";
 inline constexpr char kDesktopAndroidLinkCapturingDescription[] =
     "Enables Link Capturing on desktop Android.";
+
+inline constexpr char kDesktopAndroidTWADisclosuresName[] =
+    "Desktop Android TWA Disclosures";
+inline constexpr char kDesktopAndroidTWADisclosuresDescription[] =
+    "Enables TWA disclosures on Android desktop devices.";
 
 inline constexpr char kDesktopFlingCurveOnAndroidName[] =
     "Desktop Fling Curve on Android";

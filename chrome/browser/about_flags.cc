@@ -8259,11 +8259,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kEnableOAuthIppDescription, kOsCrOS,
      FEATURE_VALUE_TYPE(ash::features::kEnableOAuthIpp)},
 
-    {"enable-peripheral-customization",
-     flag_descriptions::kEnablePeripheralCustomizationName,
-     flag_descriptions::kEnablePeripheralCustomizationDescription, kOsCrOS,
-     FEATURE_VALUE_TYPE(ash::features::kPeripheralCustomization)},
-
     {"enable-peripherals-logging",
      flag_descriptions::kEnablePeripheralsLoggingName,
      flag_descriptions::kEnablePeripheralsLoggingDescription, kOsCrOS,
@@ -12789,6 +12784,10 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kDesktopAndroidLinkCapturingName,
      flag_descriptions::kDesktopAndroidLinkCapturingDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(chrome::android::kDesktopAndroidLinkCapturing)},
+    {"desktop-android-twa-disclosures",
+     flag_descriptions::kDesktopAndroidTWADisclosuresName,
+     flag_descriptions::kDesktopAndroidTWADisclosuresDescription, kOsAndroid,
+     FEATURE_VALUE_TYPE(chrome::android::kDesktopAndroidTWADisclosures)},
 #endif
 
 #if BUILDFLAG(IS_ANDROID)

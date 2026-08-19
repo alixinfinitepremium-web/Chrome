@@ -2611,6 +2611,11 @@
     "expiry_milestone": 152
   },
   {
+    "name": "desktop-android-twa-disclosures",
+    "owners": [ "aixba@chromium.org", "pwa-team@google.com" ],
+    "expiry_milestone": 165
+  },
+  {
     "name": "desktop-fling-curve-on-android",
     "owners": [ "lizeb@google.com", "clank-large-form-factors@google.com" ],
     "expiry_milestone": 165
@@ -4212,14 +4217,6 @@
     "owners": [ "woa-performance@google.com" ],
     // This flag is used for recording system traces on Chrome for Android.
     "expiry_milestone": -1
-  },
-  {
-    "name": "enable-peripheral-customization",
-    "owners": [
-      "dpad@google.com",
-      "cros-device-enablement@google.com"
-    ],
-    "expiry_milestone": 140
   },
   {
     "name": "enable-peripheral-notification",
