@@ -337,11 +337,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': 'b2101b186dd59a7edb52e5091c0368eed3449bcd',
+  'src_internal_revision': 'bda29483a4443a5cabf40b96e8ccd9f0bb67e5b0',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': 'ba5749f92ea5cec8878b87d617a1205c2ec694ad',
+  'skia_revision': 'c67d061a9101254b0eef53d7eaa0b403dda326ec',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -361,7 +361,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': 'ca53eec53d88ef6fca80e02cb04f1f9aad00794e',
+  'boringssl_revision': '2bf5d45e01c3b72ca77e013334707cf3573011f3',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -3405,7 +3405,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/media_app/app',
-        'version': 'gwtgIcgLhQXkEoTk84pfg4BH407VcZJc8Q-Q-AWF5fsC',
+        'version': 'A8x35tBi4k9waLQKnpSqltLB6glgFq5-Q3-UzA6DIMQC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
