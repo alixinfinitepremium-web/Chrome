@@ -421,7 +421,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'cd687dfa63f249ba5c9d66632daaac586e1c9cac',
+  'devtools_frontend_revision': 'db41a0261d28944084aeee0c277eb91e1e8ee65a',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -3370,7 +3370,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_receiver_app/app',
-        'version': 'gckAguUyxvKcrAxqeZFuV1PlPbqVLbTNBh0mOft2440C',
+        'version': 'bvOlHp400nsApcm33_4z6jbvXKnwBVh0ty9gQBG7I-sC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3381,7 +3381,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_app/app',
-        'version': 'gmMAJKHISU_vZNdi3A7PEYza4kgn1kgzdXyJ6xcIDzgC',
+        'version': 'kB_KpTQg3epfWfh6HRi-zr0Y2MHPc740HLYZog6ieosC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3436,7 +3436,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/projector_app/app',
-        'version': 'dnhtldJ0BtxlQdH2n1GqbbMdhBFbHZ6nR8aUkV41Sx4C',
+        'version': 'jaNmN6IGjdWxNMjh-MHiDciKd5UDPoOiz3Lp2xT5acwC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
