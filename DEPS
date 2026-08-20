@@ -337,7 +337,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': 'eaaafcf1946ed75d94a79b2c898d5c2df8a93265',
+  'src_internal_revision': '0d3dc53dd1f462b2ed9312979db6b60c409cb6e7',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -421,7 +421,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '6fdb53e0f7a5cb1ebf16e40c45439a5c8007d9be',
+  'devtools_frontend_revision': 'e56de79653212d130c02b73a9af9830612d6bed0',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -3243,7 +3243,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + 'c84dbe590a5519bc1404a268dd8816088ffe8980',
+    Var('webrtc_git') + '/src.git' + '@' + '984444e8b0b13058b1bae93b9a6e909d30bc7556',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -3372,7 +3372,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_receiver_app/app',
-        'version': 'bvOlHp400nsApcm33_4z6jbvXKnwBVh0ty9gQBG7I-sC',
+        'version': 'JHy5Dk82I8c2UEfhX8FrqMtkUbbbDhOm8sOhSosC9S0C',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3383,7 +3383,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_app/app',
-        'version': 'kB_KpTQg3epfWfh6HRi-zr0Y2MHPc740HLYZog6ieosC',
+        'version': 'rRX-XRW8uv4gA6a4jfi2BFEnABpv644A0gmAqxRAADwC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -4090,7 +4090,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        'e66a146981bc38e3aaf15076bde0cdcff96bc1a1',
+        'a0d38a626968b3de5953aede400f66d47594ba10',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
