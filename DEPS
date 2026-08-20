@@ -337,7 +337,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': 'b0c2f7bbb8ffa934814f2ff6102711900136b508',
+  'src_internal_revision': 'a76a07225b87e7870d021773f769492aa4fc834c',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -361,7 +361,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': '17645ee699546479e6ea9f6bae3538dd12f1ab0c',
+  'boringssl_revision': '91a7e30bf3729b1a8c1a32b20452228f1a403982',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -553,7 +553,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling clusterfuzz-data
   # and whatever else without interference from each other.
-  'clusterfuzz_data_revision':'be0e2a57b488c80bddd1712441641ba542875e75',
+  'clusterfuzz_data_revision':'17023401e9b2c28e5767de566c4473d6988479a1',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling agents-internal
   # and whatever else without interference from each other.
@@ -1731,7 +1731,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': 'bkc8sniXqLu-nXi7v2ZFaadjODpZc-9ZDOdAsbMBHU8C',
+        'version': 'ez75DE3KKbcQ6j7D2GhsTS9xyVBfG76Qi8lzur6pYzQC',
       },
     ],
     'condition': 'non_git_source',
@@ -1847,7 +1847,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': 'DXthcutDCENQHNKyThaEHL1wokLhE5PcXA_eXtrWgKEC',
+          'version': 'JogIkv_i2uzsQIPzd4OKR7EcTicBNAzLoLzYSQ20swYC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
@@ -4090,7 +4090,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        'eec761d26d7b7e245e056899cde8d72aefae6262',
+        '67800b3161caaf7553f2d161544acebb8dd66192',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
