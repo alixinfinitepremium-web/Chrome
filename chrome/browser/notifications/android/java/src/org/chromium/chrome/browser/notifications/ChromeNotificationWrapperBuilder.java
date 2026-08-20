@@ -1,10 +1,8 @@
-// Copyright 2017 The Chromium Authors
+// Copyright 2026 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-package org.chromium.components.browser_ui.notifications;
-
-import static org.chromium.components.browser_ui.notifications.BitmapUtils.resizeBitmap;
+package org.chromium.chrome.browser.notifications;
 
 import android.app.Notification;
 import android.app.PendingIntent;
@@ -16,7 +14,6 @@ import android.os.Bundle;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.widget.RemoteViews;
 
-import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
 import androidx.core.graphics.drawable.IconCompat;
 
@@ -24,26 +21,42 @@ import org.chromium.base.Log;
 import org.chromium.base.metrics.RecordHistogram;
 import org.chromium.build.annotations.NullMarked;
 import org.chromium.build.annotations.Nullable;
+import org.chromium.components.browser_ui.notifications.NotificationMetadata;
+import org.chromium.components.browser_ui.notifications.NotificationWrapper;
+import org.chromium.components.browser_ui.notifications.NotificationWrapperBuilder;
+import org.chromium.components.browser_ui.notifications.PendingIntentProvider;
 import org.chromium.components.browser_ui.notifications.channels.ChannelsInitializer;
 
-/** Wraps a {@link NotificationCompat.Builder} object. */
+/**
+ * Wraps {@link NotificationCompat.Builder} and adds UMA telemetry by way of {@link
+ * NotificationIntentInterceptor}.
+ */
 @NullMarked
-public class NotificationWrapperCompatBuilder implements NotificationWrapperBuilder {
-    private static final String TAG = "NotifCompatBuilder";
+public class ChromeNotificationWrapperBuilder implements NotificationWrapperBuilder {
+    private static final String TAG = "ChromeNotifBuilder";
+
+    private final Context mContext;
     private final NotificationCompat.Builder mBuilder;
     private final @Nullable NotificationMetadata mMetadata;
-    private final Context mContext;
     private boolean mIsSilent;
 
-    public NotificationWrapperCompatBuilder(
+    ChromeNotificationWrapperBuilder(
             Context context,
-            String channelId,
+            @Nullable String channelId,
             ChannelsInitializer channelsInitializer,
             @Nullable NotificationMetadata metadata) {
-        channelsInitializer.safeInitialize(channelId);
-        mBuilder = new NotificationCompat.Builder(context, channelId);
-        mMetadata = metadata;
         mContext = context;
+        if (channelId != null) {
+            channelsInitializer.ensureInitialized(channelId);
+            mBuilder = new NotificationCompat.Builder(mContext, channelId);
+        } else {
+            mBuilder = new NotificationCompat.Builder(mContext);
+        }
+        mMetadata = metadata;
+        if (metadata != null) {
+            mBuilder.setDeleteIntent(
+                    NotificationIntentInterceptor.getDefaultDeletePendingIntent(metadata));
+        }
     }
 
     @Override
@@ -61,8 +74,17 @@ public class NotificationWrapperCompatBuilder implements NotificationWrapperBuil
     @Override
     public NotificationWrapperBuilder setContentIntent(
             @Nullable PendingIntentProvider contentIntent) {
-        mBuilder.setContentIntent(contentIntent != null ? contentIntent.getPendingIntent() : null);
-        return this;
+        if (mMetadata == null || contentIntent == null) {
+            return setContentIntent(
+                    contentIntent != null ? contentIntent.getPendingIntent() : null);
+        }
+        PendingIntent pendingIntent =
+                NotificationIntentInterceptor.createInterceptPendingIntent(
+                        NotificationIntentInterceptor.IntentType.CONTENT_INTENT,
+                        /* actionType= */ NotificationUmaTracker.ActionType.UNKNOWN,
+                        mMetadata,
+                        contentIntent);
+        return setContentIntent(pendingIntent);
     }
 
     @Override
@@ -162,22 +184,17 @@ public class NotificationWrapperCompatBuilder implements NotificationWrapperBuil
             int icon,
             CharSequence title,
             PendingIntentProvider pendingIntentProvider,
-            int actionType) {
-        addAction(icon, title, pendingIntentProvider.getPendingIntent());
-        return this;
-    }
-
-    @Override
-    public NotificationWrapperBuilder addAction(Notification.Action action) {
-        Log.w(TAG, "Ignoring standard action in compat builder.");
-        return this;
-    }
-
-    @Override
-    public NotificationWrapperBuilder addAction(
-            Notification.Action action, int flags, int actionType, int requestCode) {
-        Log.w(TAG, "Ignoring standard action in compat builder.");
-        return this;
+            @NotificationUmaTracker.ActionType int actionType) {
+        if (mMetadata == null) {
+            return addAction(icon, title, pendingIntentProvider.getPendingIntent());
+        }
+        PendingIntent pendingIntent =
+                NotificationIntentInterceptor.createInterceptPendingIntent(
+                        NotificationIntentInterceptor.IntentType.ACTION_INTENT,
+                        actionType,
+                        mMetadata,
+                        pendingIntentProvider);
+        return addAction(icon, title, pendingIntent);
     }
 
     @Override
@@ -188,12 +205,21 @@ public class NotificationWrapperCompatBuilder implements NotificationWrapperBuil
 
     @Override
     public NotificationWrapperBuilder addAction(
-            NotificationCompat.Action action, int flags, int actionType, int requestCode) {
-        action.actionIntent =
-                new PendingIntentProvider(action.actionIntent, flags, requestCode)
-                        .getPendingIntent();
-        addAction(action);
-        return this;
+            NotificationCompat.Action action,
+            int flags,
+            @NotificationUmaTracker.ActionType int actionType,
+            int requestCode) {
+        if (mMetadata == null) {
+            return addAction(action);
+        }
+        PendingIntent pendingIntent =
+                NotificationIntentInterceptor.createInterceptPendingIntent(
+                        NotificationIntentInterceptor.IntentType.ACTION_INTENT,
+                        actionType,
+                        mMetadata,
+                        new PendingIntentProvider(action.actionIntent, flags, requestCode));
+        action.actionIntent = pendingIntent;
+        return addAction(action);
     }
 
     @Override
@@ -204,14 +230,33 @@ public class NotificationWrapperCompatBuilder implements NotificationWrapperBuil
 
     @Override
     public NotificationWrapperBuilder setDeleteIntent(@Nullable PendingIntentProvider intent) {
-        mBuilder.setDeleteIntent(intent != null ? intent.getPendingIntent() : null);
-        return this;
+        if (mMetadata == null || intent == null) {
+            return setDeleteIntent(intent != null ? intent.getPendingIntent() : null);
+        }
+        return setDeleteIntent(
+                NotificationIntentInterceptor.createInterceptPendingIntent(
+                        NotificationIntentInterceptor.IntentType.DELETE_INTENT,
+                        /* actionType= */ NotificationUmaTracker.ActionType.UNKNOWN,
+                        mMetadata,
+                        intent));
     }
 
     @Override
     public NotificationWrapperBuilder setDeleteIntent(
-            @Nullable PendingIntentProvider intent, int ignoredActionType) {
-        return setDeleteIntent(intent);
+            @Nullable PendingIntentProvider intent,
+            @NotificationUmaTracker.ActionType int actionType) {
+        if (mMetadata == null || intent == null) {
+            return setDeleteIntent(intent != null ? intent.getPendingIntent() : null);
+        }
+        // As `actionType` will be part of the `requestCode` that `NotificationIntentInterceptor`
+        // generates, the below wrapper `PendingIntent` will not be `Intent.filterEquals` to the
+        // one above.
+        return setDeleteIntent(
+                NotificationIntentInterceptor.createInterceptPendingIntent(
+                        NotificationIntentInterceptor.IntentType.ACTION_INTENT,
+                        actionType,
+                        mMetadata,
+                        intent));
     }
 
     @Override
@@ -289,7 +334,7 @@ public class NotificationWrapperCompatBuilder implements NotificationWrapperBuil
 
     @Override
     public NotificationWrapperBuilder setBigPictureStyle(
-            @NonNull Bitmap bigPicture, @Nullable CharSequence summaryText) {
+            Bitmap bigPicture, @Nullable CharSequence summaryText) {
         if (bigPicture.getAllocationByteCount() / 1000 > BIG_PICTURE_BITMAP_MAX_SIZE_IN_KB) {
             bigPicture = resizeBitmap(bigPicture, BIG_PICTURE_BITMAP_MAX_SIZE_IN_KB);
         }
@@ -370,12 +415,18 @@ public class NotificationWrapperCompatBuilder implements NotificationWrapperBuil
         return new NotificationWrapper(build(), mMetadata, mIsSilent);
     }
 
-    protected NotificationCompat.Builder getBuilder() {
-        return mBuilder;
-    }
+    /**
+     * Scales down {@code bitmap} if its allocation byte count is larger than {@code
+     * maxSizeInKiloBytes}.
+     */
+    private static Bitmap resizeBitmap(Bitmap bitmap, int maxSizeInKiloBytes) {
+        int allocationByteCount = bitmap.getAllocationByteCount();
+        if (allocationByteCount / 1000 <= maxSizeInKiloBytes) return bitmap;
 
-    protected NotificationMetadata getMetadata() {
-        assert mMetadata != null;
-        return mMetadata;
+        float scale = (float) Math.sqrt((double) (maxSizeInKiloBytes * 1000) / allocationByteCount);
+        int newWidth = Math.round(bitmap.getWidth() * scale);
+        int newHeight = Math.round(bitmap.getHeight() * scale);
+
+        return Bitmap.createScaledBitmap(bitmap, newWidth, newHeight, /* filter= */ true);
     }
 }
