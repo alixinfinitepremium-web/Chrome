@@ -337,7 +337,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '0d3dc53dd1f462b2ed9312979db6b60c409cb6e7',
+  'src_internal_revision': '1eb6e6811d05f1b2c3aa15d5c277ef380c280a5e',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -401,7 +401,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': '934ad59dd33512146d61881faa5662f77c7d5b60',
+  'crossbench_revision': '857b2820101fff4be36772fc10e92d436a54bd3e',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -3438,7 +3438,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/projector_app/app',
-        'version': 'jaNmN6IGjdWxNMjh-MHiDciKd5UDPoOiz3Lp2xT5acwC',
+        'version': 'PgQjIHIAkJ0Ca5MCIpBZ5M4OOLDNeXE1FwPzcUDOv6kC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
