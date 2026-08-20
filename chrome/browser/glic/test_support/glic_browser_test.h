@@ -44,6 +44,7 @@
 #include "chrome/browser/glic/test_support/test_result.h"
 #include "chrome/browser/tab_list/tab_list_interface.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
+#include "chrome/browser/ui/browser_window/public/browser_window_interface_iterator.h"
 #include "chrome/browser/ui/browser_window/public/create_browser_window.h"
 #include "chrome/browser/ui/side_panel/side_panel_ui.h"
 #include "chrome/browser/ui/side_panel/side_panel_ui_provider.h"
@@ -227,8 +228,9 @@ template <typename Trigger>
 
 [[nodiscard]] inline TestResult<> WaitForWindowActive(
     BrowserWindowInterface* browser) {
-  return RunUntilEqual([&]() { return browser->GetWindow()->IsActive(); }, true,
-                       "Window did not become active");
+  return RunUntilEqual(
+      [&]() { return GetLastActiveBrowserWindowInterfaceWithAnyProfile(); },
+      browser, "Window did not become active");
 }
 
 [[nodiscard]] inline TestResult<> WaitForSidePanelState(
@@ -475,6 +477,12 @@ class GlicBrowserTestMixin : public T {
     instance->CloseAllEmbedders();
   }
 
+  [[nodiscard]] TestResult<> CloseAllEmbeddersAndWait(
+      GlicInstanceImpl* instance = nullptr) {
+    CloseAllEmbeddersAndPreventDeletion(instance);
+    return WaitForGlicClose(instance);
+  }
+
   // Opens the Glic UI on the active tab and detaches it.
   [[nodiscard]] TestResult<GlicInstanceImpl*> OpenGlicForActiveTabAndDetach() {
     ASSIGN_OR_RETURN(GlicInstanceImpl * instance, OpenGlicForActiveTab());
@@ -553,6 +561,16 @@ class GlicBrowserTestMixin : public T {
       return base::unexpected("Failed to close Glic UI");
     }
     return base::ok();
+  }
+
+  // Waits for the Glic instance to reach the expected hibernation state.
+  [[nodiscard]] TestResult<> WaitForGlicHibernated(
+      GlicInstanceImpl* instance,
+      bool expected_hibernated = true) {
+    return RunUntilEqual<bool>(
+        [instance]() { return instance->IsHibernated(); }, expected_hibernated,
+        base::StrCat({"Instance hibernation state != ",
+                      expected_hibernated ? "true" : "false"}));
   }
 
   // Closes Glic for a given tab and waits for it to close.

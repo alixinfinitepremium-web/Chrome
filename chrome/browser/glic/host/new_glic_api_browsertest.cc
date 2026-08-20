@@ -146,11 +146,6 @@
 #define SLOW_BINARY
 #endif
 
-// MIGRATION IN PROGRESS:
-// This test will eventually absorb glic_api_browsertest.cc, as it allows
-// execution on Android. Migration will take some time, as some tests need
-// rewritten to avoid RunTestSequence which is not supported on Android.
-
 #if BUILDFLAG(IS_ANDROID)
 // Used to disable tests for android which have not yet been vetted for android.
 // These should be temporary, either the test should be enabled on android or
@@ -3525,12 +3520,7 @@ IN_PROC_BROWSER_TEST_P(NewGlicApiTest, testDoNothing) {
   ExecuteJsTest();
 }
 
-#if BUILDFLAG(IS_ANDROID)
-// TODO(crbug.com/545315239): Re-enable on Android.
-#define MAYBE_testDefaultInvocationSource DISABLED_testDefaultInvocationSource
-#else
 #define MAYBE_testDefaultInvocationSource testDefaultInvocationSource
-#endif
 IN_PROC_BROWSER_TEST_P(NewGlicApiTest, MAYBE_testDefaultInvocationSource) {
   ASSERT_OK(OpenGlicForActiveTab());
   ExecuteJsTest();
@@ -5291,6 +5281,104 @@ IN_PROC_BROWSER_TEST_P(NewGlicApiTest, testMetrics) {
 IN_PROC_BROWSER_TEST_P(NewGlicApiTest, DISABLED_testCaptureScreenshot) {
   ASSERT_OK(OpenGlicForActiveTab());
   ExecuteJsTest();
+}
+
+// TODO(crbug.com/441588906): Flaky on multiple platforms.
+IN_PROC_BROWSER_TEST_P(NewGlicApiTest,
+                       DISABLED_testFetchInactiveTabScreenshot) {
+  tabs::TabInterface* tab0 = GetTabListInterface()->GetActiveTab();
+  ASSERT_TRUE(tab0);
+  CreateAndActivateTab(GetSimpleTestUrl());
+
+  ASSERT_OK(OpenGlicForActiveTab());
+  ExecuteJsTest();
+
+  ActivateTab(tab0);
+
+  ContinueJsTest();
+}
+
+// TODO(crbug.com/460826488): Enable on ChromeOS.
+// Win-asan is flaky.
+#if (BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_ANDROID) || \
+     (BUILDFLAG(IS_WIN) && defined(ADDRESS_SANITIZER)))
+#define MAYBE_testFetchInactiveTabScreenshotWhileMinimized \
+  DISABLED_testFetchInactiveTabScreenshotWhileMinimized
+#else
+#define MAYBE_testFetchInactiveTabScreenshotWhileMinimized \
+  testFetchInactiveTabScreenshotWhileMinimized
+#endif
+IN_PROC_BROWSER_TEST_P(NewGlicApiTest,
+                       MAYBE_testFetchInactiveTabScreenshotWhileMinimized) {
+  tabs::TabInterface* tab0 = GetTabListInterface()->GetActiveTab();
+  ASSERT_TRUE(tab0);
+  CreateAndActivateTab(GetSimpleTestUrl());
+
+  bool can_fetch_screenshot = BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC);
+
+  ASSERT_OK(OpenGlicForActiveTab());
+  ExecuteJsTest({.params = base::Value(can_fetch_screenshot)});
+
+  ActivateTab(tab0);
+#if !BUILDFLAG(IS_ANDROID)
+  GetBrowserWindowInterface()->GetWindow()->Minimize();
+#endif
+
+  ContinueJsTest();
+}
+
+// TODO(b/498955581): Clean up glic hibernation experiments, and test in the
+// coordinator test.
+IN_PROC_BROWSER_TEST_P(NewGlicApiTest, testHibernateAllOnMemoryPressure) {
+  ASSERT_TRUE(coordinator()
+                  .GetWebContentsWarmingPoolForTesting()
+                  .MaybeStartInitialWarming());
+
+  // Open 3 instances, with instance 2 being the active one.
+  tabs::TabInterface* tab1 = GetTabListInterface()->GetActiveTab();
+  ASSERT_TRUE(tab1);
+  ASSERT_OK_AND_ASSIGN(auto* instance1, OpenGlicForActiveTab());
+
+  CreateAndActivateTab(GetSimpleTestUrl());
+  ASSERT_OK_AND_ASSIGN(auto* instance2, OpenGlicForActiveTab());
+
+  CreateAndActivateTab(GetSimpleTestUrl());
+  ASSERT_OK_AND_ASSIGN(auto* instance3, OpenGlicForActiveTab());
+
+  // Close instance 3 to make it non-showing and non-actuating.
+  ASSERT_OK(CloseAllEmbeddersAndWait(instance3));
+  ASSERT_FALSE(instance3->IsHibernated());
+
+  // Switch back to tab 1, so instance 1 is now active and instance 2 is not
+  // showing.
+  ActivateTab(tab1);
+  ASSERT_OK(WaitForGlicOpen(tab1));
+
+  // There is a warmed contents initially. It should be non-showing and
+  // non-actuating.
+  ASSERT_TRUE(coordinator()
+                  .GetWebContentsWarmingPoolForTesting()
+                  .MaybeStartInitialWarming());
+  ASSERT_TRUE(coordinator()
+                  .GetWebContentsWarmingPoolForTesting()
+                  .HasWarmedContainerForTesting());
+
+  // Simulate memory pressure.
+  base::MemoryPressureListener::NotifyMemoryPressure(
+      base::MEMORY_PRESSURE_LEVEL_CRITICAL);
+
+  // Wait for the non-showing instances to hibernate.
+  ASSERT_OK(WaitForGlicHibernated(instance2));
+  ASSERT_OK(WaitForGlicHibernated(instance3));
+
+  // Verify the warmed contents is reset.
+  ASSERT_FALSE(coordinator()
+                   .GetWebContentsWarmingPoolForTesting()
+                   .HasWarmedContainerForTesting());
+
+  // Active instance should not be hibernated.
+  ASSERT_TRUE(instance1->IsShowing());
+  ASSERT_FALSE(instance1->IsHibernated());
 }
 
 auto DefaultTestParamSet() {

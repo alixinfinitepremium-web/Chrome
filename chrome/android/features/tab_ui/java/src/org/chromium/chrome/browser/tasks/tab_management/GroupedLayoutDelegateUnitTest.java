@@ -5,6 +5,7 @@
 package org.chromium.chrome.browser.tasks.tab_management;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
@@ -30,6 +31,7 @@ import org.mockito.junit.MockitoRule;
 
 import org.chromium.base.Token;
 import org.chromium.base.test.BaseRobolectricTestRunner;
+import org.chromium.base.test.util.UserActionTester;
 import org.chromium.chrome.browser.tab.MediaState;
 import org.chromium.chrome.browser.tab.Tab;
 import org.chromium.chrome.browser.tab.TabLaunchType;
@@ -84,6 +86,18 @@ public class GroupedLayoutDelegateUnitTest {
     @Test
     public void testRequiresThumbnailUpdateOnSelect() {
         assertTrue(mDelegate.requiresThumbnailUpdateOnSelect());
+    }
+
+    @Test
+    public void testRecordTabSelection_NoOp() {
+        when(mMediator.getComponentId()).thenReturn(TabComponentId.GRID_TAB_SWITCHER);
+        when(mTabModel.getTabById(TAB1_ID)).thenReturn(mTab1);
+
+        var userActionTester = new UserActionTester();
+        mDelegate.recordTabSelection(TAB1_ID);
+
+        assertTrue(userActionTester.getActions().isEmpty());
+        userActionTester.tearDown();
     }
 
     @Test
@@ -244,6 +258,30 @@ public class GroupedLayoutDelegateUnitTest {
         when(mTabModel.getRepresentativeTabAt(0)).thenReturn(mTab1);
 
         mDelegate.didAddTab(mTab2, TabLaunchType.FROM_RESTORE);
+
+        verify(mMediator).updateTab(0, mTab1, false, false);
+    }
+
+    @Test
+    public void testTabClosureUndone_StandaloneTab() {
+        when(mTabModel.getIndividualTabAndGroupCount()).thenReturn(1);
+        setupRepresentativeTab(mTab1, mTab1, 0);
+
+        mDelegate.tabClosureUndone(mTab1);
+
+        verify(mMediator).addTabCardToModel(mTab1, 0);
+        verify(mMediator, never()).updateTab(anyInt(), any(), anyBoolean(), anyBoolean());
+    }
+
+    @Test
+    public void testTabClosureUndone_InTabGroup_UpdatesGroupCard() {
+        createAndAddPropertyModel(TAB1_ID);
+        when(mMediator.isTabInTabGroup(mTab2)).thenReturn(true);
+        when(mTabModel.isTabInTabGroup(mTab2)).thenReturn(true);
+        when(mTabModel.representativeIndexOf(mTab2)).thenReturn(0);
+        when(mTabModel.getRepresentativeTabAt(0)).thenReturn(mTab1);
+
+        mDelegate.tabClosureUndone(mTab2);
 
         verify(mMediator).updateTab(0, mTab1, false, false);
     }
@@ -662,6 +700,53 @@ public class GroupedLayoutDelegateUnitTest {
         createAndAddPropertyModel(TAB1_ID);
         when(mMediator.getIndexForTabIdWithRelatedTabs(TAB2_ID)).thenReturn(0);
         assertEquals(0, mDelegate.getUiIndexForTab(TAB2_ID));
+    }
+
+    @Test
+    public void testGetGroupCardTypeAndIsGroupCollapsed() {
+        assertEquals(TAB, mDelegate.getGroupCardType());
+        assertTrue(mDelegate.isGroupCollapsed(TAB_GROUP_ID));
+    }
+
+    @Test
+    public void testOnTabSelectionToggled_TabInGroup() {
+        when(mTabModel.getTabById(TAB1_ID)).thenReturn(mTab1);
+        when(mTabModel.isTabInTabGroup(mTab1)).thenReturn(true);
+        PropertyModel model = createAndAddPropertyModel(TAB1_ID);
+
+        mDelegate.onTabSelectionToggled(model, TAB1_ID, /* wasSelected= */ false);
+
+        verify(mMediator).updateThumbnailFetcher(model, TAB1_ID);
+    }
+
+    @Test
+    public void testOnTabSelectionToggled_TabNotInGroup() {
+        when(mTabModel.getTabById(TAB1_ID)).thenReturn(mTab1);
+        when(mTabModel.isTabInTabGroup(mTab1)).thenReturn(false);
+        PropertyModel model = createAndAddPropertyModel(TAB1_ID);
+
+        mDelegate.onTabSelectionToggled(model, TAB1_ID, /* wasSelected= */ false);
+
+        verify(mMediator, never()).updateThumbnailFetcher(any(), anyInt());
+    }
+
+    @Test
+    public void testAreTabsInSameGroup() {
+        when(mTabModel.getTabById(TAB1_ID)).thenReturn(mTab1);
+        when(mTab1.getTabGroupId()).thenReturn(TAB_GROUP_ID);
+        when(mTab2.getTabGroupId()).thenReturn(TAB_GROUP_ID);
+        assertTrue(mDelegate.areTabsInSameGroup(TAB1_ID, mTab2));
+
+        Token otherGroupId = new Token(3L, 4L);
+        when(mTab2.getTabGroupId()).thenReturn(otherGroupId);
+        assertFalse(mDelegate.areTabsInSameGroup(TAB1_ID, mTab2));
+
+        when(mTab1.getTabGroupId()).thenReturn(null);
+        when(mTab2.getTabGroupId()).thenReturn(null);
+        assertFalse(mDelegate.areTabsInSameGroup(TAB1_ID, mTab2));
+
+        when(mTabModel.getTabById(TAB1_ID)).thenReturn(null);
+        assertFalse(mDelegate.areTabsInSameGroup(TAB1_ID, mTab2));
     }
 
     private PropertyModel createAndAddPropertyModel(int tabId) {

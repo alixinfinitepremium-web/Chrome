@@ -27,6 +27,7 @@ import org.chromium.ui.modelutil.PropertyModel;
 import org.chromium.url.GURL;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * {@link TabListMediator.TabListLayoutType#GROUPED} implementation of {@link
@@ -127,6 +128,27 @@ class GroupedLayoutDelegate extends TabListLayoutDelegate {
         }
     }
 
+    @Override
+    void tabClosureUndone(Tab tab) {
+        super.tabClosureUndone(tab);
+
+        TabModel tabModel = mMediator.getCurrentTabModelChecked();
+        int filterIndex = tabModel.representativeIndexOf(tab);
+        if (filterIndex == TabList.INVALID_TAB_INDEX
+                || !tabModel.isTabInTabGroup(tab)
+                || filterIndex >= mModelList.size()) {
+            return;
+        }
+        Tab currentGroupSelectedTab = tabModel.getRepresentativeTabAt(filterIndex);
+        assumeNonNull(currentGroupSelectedTab);
+
+        int tabListModelIndex = mModelList.indexOfNthTabCard(filterIndex);
+        assert mModelList.indexFromTabId(currentGroupSelectedTab.getId()) == tabListModelIndex;
+
+        // TODO(crbug.com/549722494): Clean up updateTab() calls.
+        mMediator.updateTab(tabListModelIndex, currentGroupSelectedTab, false, false);
+    }
+
     /**
      * Resolves the UI index in {@link #mModelList} for the given tab ID, falling back to finding
      * the containing tab group card if the tab is a non-representative member of a group.
@@ -153,6 +175,17 @@ class GroupedLayoutDelegate extends TabListLayoutDelegate {
         }
 
         super.didSelectTab(tab, type, lastId);
+    }
+
+    @Override
+    void recordTabSelection(int tabId) {
+        // Tab switching metrics for GROUPED layout (GTS) are filtered out here and tracked at the
+        // pane/switcher level (see HubTabSwitcherMetricsRecorder#onTabSelected).
+        //
+        // In GTS, components can switch to a different TabModel before switching tabs, whereas
+        // TabListMediator only contains tabs that are in the same TabModel. Additionally, for
+        // MobileTabSwitched, GTS must account for MobileTabReturnedToCurrentTab (returning to the
+        // same tab as before entering the switcher), which is not tracked at this level.
     }
 
     @Override
@@ -377,5 +410,23 @@ class GroupedLayoutDelegate extends TabListLayoutDelegate {
             mMediator.updateTabGroupProperties(destinationTab, model, colorId);
             mMediator.updateFaviconForTab(model, groupTab, null, null);
         }
+    }
+
+    @Override
+    void onTabSelectionToggled(PropertyModel model, int tabId, boolean wasSelected) {
+        // Reset thumbnail to ensure the color of the blank tab slots is correct.
+        TabModel tabModel = mMediator.getCurrentTabModelChecked();
+        Tab tab = tabModel.getTabById(tabId);
+        if (tab != null && tabModel.isTabInTabGroup(tab)) {
+            mMediator.updateThumbnailFetcher(model, tabId);
+        }
+    }
+
+    @Override
+    boolean areTabsInSameGroup(int previousTabId, Tab newTab) {
+        Tab previousTab = mMediator.getCurrentTabModelChecked().getTabById(previousTabId);
+        return previousTab != null
+                && previousTab.getTabGroupId() != null
+                && Objects.equals(previousTab.getTabGroupId(), newTab.getTabGroupId());
     }
 }

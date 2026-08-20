@@ -2184,7 +2184,7 @@ deps = {
 
   # For Linux and Chromium OS.
   'src/third_party/cros_system_api': {
-      'url': Var('chromium_git') + '/chromiumos/platform2/system_api.git' + '@' + 'faf06f1112b67fead7dbd81cd9f769f1c9c22726',
+      'url': Var('chromium_git') + '/chromiumos/platform2/system_api.git' + '@' + 'e9f9883d1e8849276db2df228d59a84c911696e4',
       'condition': 'checkout_linux or checkout_chromeos',
   },
 
@@ -3394,7 +3394,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/help_app/app',
-        'version': 'Y5o1qVT2r3mTHLGEs1lMGg20ofXAIbKTLhoeQ60_AyIC',
+        'version': 'WQvBX0R3dOw_I5nLk9nMNDRVqd9ejjGsugC9d-UXK0MC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
