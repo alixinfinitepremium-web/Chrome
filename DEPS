@@ -341,7 +341,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '25531e4cb95761278f0a563072b07f1024fe3f60',
+  'skia_revision': 'a277cce347430b283d09b5e7dbd52340504945dd',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -357,7 +357,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling PDFium
   # and whatever else without interference from each other.
-  'pdfium_revision': '24765cea688a23baebf0ea8633cb08dfffcba57c',
+  'pdfium_revision': '277d0d8b2744e4b06778a323833fb81e26b9e4d3',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
@@ -413,7 +413,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling fuzztest
   # and whatever else without interference from each other.
-  'fuzztest_revision': 'd2d879008333010823d9b0c3d015b831eaa9ea82',
+  'fuzztest_revision': 'f578179605bf05fae3e6e9624759e4e7ef548ad5',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling domato
   # and whatever else without interference from each other.
@@ -421,7 +421,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '22bb576673eb1d71a3687d01143627273339d53b',
+  'devtools_frontend_revision': 'f6da8dd83c8c18e9b64180e8cd2fe4984357ee59',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -549,7 +549,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
-  'compiler_rt_revision': '66e09cd4803d25d7325727daca3d35fa199a5823',
+  'compiler_rt_revision': 'fd21a429362ea9b04d97129a9fe5163f4c9d1ae2',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling clusterfuzz-data
   # and whatever else without interference from each other.
@@ -2195,7 +2195,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'f270947490cba9e7237a8bb4f8dbce9e39a9b927',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '547d7e12fe104305c7de797d5a2b4155914ad362',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -2210,7 +2210,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '09401d580f246941456bb50e5ecf1bedd04fe747',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '74ce7e6d59a83b8fd6a3d7eea7fe1fba72403eb3',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '17a56409b86d0da5e01ca38f6498e13b2db16bc3',
