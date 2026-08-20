@@ -341,11 +341,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': 'a277cce347430b283d09b5e7dbd52340504945dd',
+  'skia_revision': 'ceb06578e9d80ae97a52e33292520a26d356e21d',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': '89d6407dece068c5279b517e93adf1dc76f98ba7',
+  'v8_revision': '1fc4b1a12c0981e3618195e7d24a58fdbaa61831',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -361,7 +361,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': '96a007fb323e49e5637e018f7f4927addd851d6f',
+  'boringssl_revision': '179af5abdbf5aeba9c71a082126639b8d872af0a',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -568,7 +568,7 @@ vars = {
   'libcxx_revision':       '97b436da4c33663581d394f4ee0a5977fc38c2f4',
 
   # GN CIPD package version.
-  'gn_version': 'git_revision:2481edf51ea7789c66aede9725ff0e202dfae812',
+  'gn_version': 'git_revision:58933a7cdbc90f70f2381f0c72e76d29be1d43a9',
 
   # ninja CIPD package.
   'ninja_package': 'infra/3pp/tools/ninja/',
@@ -1743,7 +1743,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '3a6ea324586e8f928e8bc64b31eca8e2b5e3f85f',
+    '941d2c9d8ea1822bf0ddd09bfc52f22474b4d319',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -1847,7 +1847,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': 'Q5oC6xbttbqUwtWajfCFGlRGhlYwhWHLOpskNlk4bpQC',
+          'version': 'DXthcutDCENQHNKyThaEHL1wokLhE5PcXA_eXtrWgKEC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
@@ -4090,7 +4090,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        'ad5cba404f598f3cc7378da07a27f821ac6dbeff',
+        'e66a146981bc38e3aaf15076bde0cdcff96bc1a1',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
