@@ -246,7 +246,6 @@
 #include "media/media_buildflags.h"
 #include "media/midi/midi_features.h"
 #include "media/webrtc/webrtc_features.h"
-#include "mojo/core/embedder/features.h"
 #include "net/base/features.h"
 #include "net/base/switches.h"
 #include "net/net_buildflags.h"
@@ -6070,8 +6069,7 @@ const FeatureEntry kFeatureEntries[] = {
     {"android-tab-declutter-archive-on-desktop",
      flag_descriptions::kAndroidTabDeclutterArchiveOnDesktopName,
      flag_descriptions::kAndroidTabDeclutterArchiveOnDesktopDescription,
-     kOsAndroid,
-     MULTI_VALUE_TYPE(kAndroidTabDeclutterArchiveOnDesktopChoices)},
+     kOsAndroid, MULTI_VALUE_TYPE(kAndroidTabDeclutterArchiveOnDesktopChoices)},
 
     {"toolbar-capture-fix-for-spas",
      flag_descriptions::kToolbarCaptureFixForSPAsName,
@@ -12815,13 +12813,9 @@ const FeatureEntry kFeatureEntries[] = {
      FEATURE_VALUE_TYPE(chrome::android::kAndroidXrImmersivePlayer)},
 #endif
 
-#if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_LINUX) || \
-    BUILDFLAG(IS_CHROMEOS)
     {"saas-usage-reporting", flag_descriptions::kSaasUsageReportingName,
-     flag_descriptions::kSaasUsageReportingDescription,
-     kOsLinux | kOsMac | kOsWin | kOsCrOS,
+     flag_descriptions::kSaasUsageReportingDescription, kOsAll,
      FEATURE_VALUE_TYPE(enterprise_reporting::kSaasUsageReporting)},
-#endif
 
     {"autofill-enable-pay-now-pay-later-tabs",
      flag_descriptions::kAutofillEnablePayNowPayLaterTabsName,

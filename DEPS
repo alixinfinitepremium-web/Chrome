@@ -401,7 +401,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': '857b2820101fff4be36772fc10e92d436a54bd3e',
+  'crossbench_revision': '611fae44c1842f5e000b357d4bc0d7137765ce7f',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -2163,7 +2163,7 @@ deps = {
   # Tools used when building Chrome for Chrome OS. This affects both the Simple
   # Chrome workflow, as well as the chromeos-chrome ebuild.
   'src/third_party/chromite': {
-      'url': Var('chromium_git') + '/chromiumos/chromite.git' + '@' + '0ffb5f53b62b5d9c7c3ca0ce7aa44e5ba14dcf5b',
+      'url': Var('chromium_git') + '/chromiumos/chromite.git' + '@' + 'ae351a7b1447580e48d50b6022753d4dc5514c8b',
       'condition': 'checkout_chromeos',
   },
 
@@ -2210,7 +2210,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + 'd37653692920f8ff272d0da19d0a81ed271e153b',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '54a71ce1532ca666ddfd31d795d3006f97a9855c',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '17a56409b86d0da5e01ca38f6498e13b2db16bc3',
@@ -3243,7 +3243,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '6150b82ebb22bc9557896c4f79de0fafae598446',
+    Var('webrtc_git') + '/src.git' + '@' + '6cb8d652d8ddc645b5a1933b42c8b1d5c1c76b6c',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
