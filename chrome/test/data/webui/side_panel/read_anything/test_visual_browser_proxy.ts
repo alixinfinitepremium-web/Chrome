@@ -25,6 +25,20 @@ export class TestVisualBrowserProxy extends TestBrowserProxy implements
   highContrastTheme: number = 5;
   lowContrastLightTheme: number = 6;
   lowContrastDarkTheme: number = 7;
+  fontSize: number = 10;
+  lineSpacing: number = 0;
+  activeDistillationMethod: number = 0;
+  distillationTypeReadability: number = 0;
+  lineFocusEnabled: boolean = false;
+  lineFocusOff: number = 50;
+  lineFocusSmallStaticWindow: number = 51;
+  lineFocusMediumStaticWindow: number = 52;
+  lineFocusLargeStaticWindow: number = 53;
+  lineFocusSmallCursorWindow: number = 54;
+  lineFocusMediumCursorWindow: number = 55;
+  lineFocusLargeCursorWindow: number = 56;
+  lineFocusStaticLine: number = 57;
+  lineFocusCursorLine: number = 58;
 
   constructor() {
     super([
@@ -35,6 +49,9 @@ export class TestVisualBrowserProxy extends TestBrowserProxy implements
       'getStandardLineSpacing',
       'getLooseLineSpacing',
       'getVeryLooseLineSpacing',
+      'getLineSpacing',
+      'getLineSpacingValue',
+      'getFontSize',
       'getStandardLetterSpacing',
       'getWideLetterSpacing',
       'getVeryWideLetterSpacing',
@@ -46,10 +63,24 @@ export class TestVisualBrowserProxy extends TestBrowserProxy implements
       'getHighContrastTheme',
       'getLowContrastLightTheme',
       'getLowContrastDarkTheme',
+      'getActiveDistillationMethod',
+      'getDistillationTypeReadability',
+      'requestImageData',
+      'isLineFocusEnabled',
+      'getLineFocusOff',
+      'getLineFocusSmallStaticWindow',
+      'getLineFocusMediumStaticWindow',
+      'getLineFocusLargeStaticWindow',
+      'getLineFocusSmallCursorWindow',
+      'getLineFocusMediumCursorWindow',
+      'getLineFocusLargeCursorWindow',
+      'getLineFocusStaticLine',
+      'getLineFocusCursorLine',
       'onFontChange',
       'onLineSpacingChange',
       'onLetterSpacingChange',
       'onThemeChange',
+      'onLineFocusChanged',
       'togglePresentation',
     ]);
   }
@@ -87,6 +118,21 @@ export class TestVisualBrowserProxy extends TestBrowserProxy implements
   getVeryLooseLineSpacing(): number {
     this.methodCalled('getVeryLooseLineSpacing');
     return this.veryLooseLineSpacing;
+  }
+
+  getLineSpacing(): number {
+    this.methodCalled('getLineSpacing');
+    return this.lineSpacing;
+  }
+
+  getLineSpacingValue(lineSpacing: number): number {
+    this.methodCalled('getLineSpacingValue', lineSpacing);
+    return lineSpacing + 1;
+  }
+
+  getFontSize(): number {
+    this.methodCalled('getFontSize');
+    return this.fontSize;
   }
 
   getStandardLetterSpacing(): number {
@@ -144,6 +190,70 @@ export class TestVisualBrowserProxy extends TestBrowserProxy implements
     return this.lowContrastDarkTheme;
   }
 
+  getActiveDistillationMethod(): number {
+    this.methodCalled('getActiveDistillationMethod');
+    return this.activeDistillationMethod;
+  }
+
+  getDistillationTypeReadability(): number {
+    this.methodCalled('getDistillationTypeReadability');
+    return this.distillationTypeReadability;
+  }
+
+  requestImageData(nodeId: number): void {
+    this.methodCalled('requestImageData', nodeId);
+  }
+
+  isLineFocusEnabled(): boolean {
+    this.methodCalled('isLineFocusEnabled');
+    return this.lineFocusEnabled;
+  }
+
+  getLineFocusOff(): number {
+    this.methodCalled('getLineFocusOff');
+    return this.lineFocusOff;
+  }
+
+  getLineFocusSmallStaticWindow(): number {
+    this.methodCalled('getLineFocusSmallStaticWindow');
+    return this.lineFocusSmallStaticWindow;
+  }
+
+  getLineFocusMediumStaticWindow(): number {
+    this.methodCalled('getLineFocusMediumStaticWindow');
+    return this.lineFocusMediumStaticWindow;
+  }
+
+  getLineFocusLargeStaticWindow(): number {
+    this.methodCalled('getLineFocusLargeStaticWindow');
+    return this.lineFocusLargeStaticWindow;
+  }
+
+  getLineFocusSmallCursorWindow(): number {
+    this.methodCalled('getLineFocusSmallCursorWindow');
+    return this.lineFocusSmallCursorWindow;
+  }
+
+  getLineFocusMediumCursorWindow(): number {
+    this.methodCalled('getLineFocusMediumCursorWindow');
+    return this.lineFocusMediumCursorWindow;
+  }
+
+  getLineFocusLargeCursorWindow(): number {
+    this.methodCalled('getLineFocusLargeCursorWindow');
+    return this.lineFocusLargeCursorWindow;
+  }
+
+  getLineFocusStaticLine(): number {
+    this.methodCalled('getLineFocusStaticLine');
+    return this.lineFocusStaticLine;
+  }
+
+  getLineFocusCursorLine(): number {
+    this.methodCalled('getLineFocusCursorLine');
+    return this.lineFocusCursorLine;
+  }
+
   onFontChange(font: string): void {
     this.methodCalled('onFontChange', font);
   }
@@ -158,6 +268,10 @@ export class TestVisualBrowserProxy extends TestBrowserProxy implements
 
   onThemeChange(theme: number): void {
     this.methodCalled('onThemeChange', theme);
+  }
+
+  onLineFocusChanged(value: number, lastNonDisabledValue: number): void {
+    this.methodCalled('onLineFocusChanged', value, lastNonDisabledValue);
   }
 
   togglePresentation(): void {

@@ -1099,6 +1099,7 @@ const FeatureEntry::FeatureParam
         {"Omnibox_AskGComposeboxLensChip", "false"},
         {"Omnibox_AskGBlockAutoTabZeroStateSuggestions", "false"},
         {"Omnibox_AskGShowFirstDescription", "false"},
+        {"Omnibox_AskGComposeboxPlaceholder", "false"},
         {"Omnibox_AskGBypassPrivacyNotice", "true"}};
 const FeatureEntry::FeatureParam
     kWebUiOmniboxAskGAboutThisPageCobrowsePlusVisualSelection[] = {
@@ -1114,6 +1115,7 @@ const FeatureEntry::FeatureParam
         {"Omnibox_AskGComposeboxLensChip", "false"},
         {"Omnibox_AskGBlockAutoTabZeroStateSuggestions", "false"},
         {"Omnibox_AskGShowFirstDescription", "false"},
+        {"Omnibox_AskGComposeboxPlaceholder", "false"},
         {"Omnibox_AskGBypassPrivacyNotice", "true"}};
 const FeatureEntry::FeatureParam
     kWebUiOmniboxAskGAboutThisPageOmniboxComposebox[] = {
@@ -1129,6 +1131,7 @@ const FeatureEntry::FeatureParam
         {"Omnibox_AskGComposeboxLensChip", "true"},
         {"Omnibox_AskGBlockAutoTabZeroStateSuggestions", "true"},
         {"Omnibox_AskGShowFirstDescription", "false"},
+        {"Omnibox_AskGComposeboxPlaceholder", "true"},
         {"Omnibox_AskGBypassPrivacyNotice", "true"}};
 const FeatureEntry::FeatureParam
     kWebUiOmniboxAskGAboutThisPageOmniboxComposeboxAndLensEntrypoint[] = {
@@ -1144,6 +1147,7 @@ const FeatureEntry::FeatureParam
         {"Omnibox_AskGComposeboxLensChip", "false"},
         {"Omnibox_AskGBlockAutoTabZeroStateSuggestions", "true"},
         {"Omnibox_AskGShowFirstDescription", "false"},
+        {"Omnibox_AskGComposeboxPlaceholder", "true"},
         {"Omnibox_AskGBypassPrivacyNotice", "true"}};
 const FeatureEntry::FeatureParam
     kWebUiOmniboxAskGAboutThisPageOmniboxChipComposeboxAndLensEntrypoint[] = {
@@ -1159,6 +1163,7 @@ const FeatureEntry::FeatureParam
         {"Omnibox_AskGComposeboxLensChip", "false"},
         {"Omnibox_AskGBlockAutoTabZeroStateSuggestions", "true"},
         {"Omnibox_AskGShowFirstDescription", "true"},
+        {"Omnibox_AskGComposeboxPlaceholder", "true"},
         {"Omnibox_AskGBypassPrivacyNotice", "true"}};
 
 const FeatureEntry::FeatureVariation
@@ -2770,6 +2775,24 @@ const FeatureEntry::FeatureVariation kNtpAuroraVariations[] = {
     {"Large padding", kNtpAurora_LargePadding, nullptr},
     {"Composeplate new styling", kNtpAurora_ChangeButtonColor, nullptr}};
 
+const FeatureEntry::FeatureParam kNtpAuroraV2_IncognitoChip[] = {
+    {"action_chips", "1"}};
+const FeatureEntry::FeatureParam kNtpAuroraV2_CanvasChip[] = {
+    {"action_chips", "2"}};
+const FeatureEntry::FeatureParam kNtpAuroraV2_BesideMvtModule[] = {
+    {"layout_type", "1"}};
+const FeatureEntry::FeatureParam kNtpAuroraV2_InsideMvtModule[] = {
+    {"layout_type", "2"}};
+const FeatureEntry::FeatureParam kNtpAuroraV2_RemoveComposeplateButton[] = {
+    {"layout_type", "3"}};
+const FeatureEntry::FeatureVariation kNtpAuroraV2Variations[] = {
+    {"Incognito chip", kNtpAuroraV2_IncognitoChip, nullptr},
+    {"Canvas chip", kNtpAuroraV2_CanvasChip, nullptr},
+    {"Beside MVT module", kNtpAuroraV2_BesideMvtModule, nullptr},
+    {"Inside MVT module", kNtpAuroraV2_InsideMvtModule, nullptr},
+    {"Remove composeplate button", kNtpAuroraV2_RemoveComposeplateButton,
+     nullptr}};
+
 #endif  // BUILDFLAG(IS_ANDROID)
 
 #if BUILDFLAG(IS_ANDROID)
@@ -3206,9 +3229,15 @@ const FeatureEntry::FeatureVariation
 const FeatureEntry::FeatureParam kPdfInk2TextAnnotations[] = {
     {"text-annotations", "true"},
 };
+const FeatureEntry::FeatureParam kPdfInk2TextAnnotationsExtraStyles[] = {
+    {"text-annotations", "true"},
+    {"text-annotations-extra-styles", "true"},
+};
 
 const FeatureEntry::FeatureVariation kPdfInk2Variations[] = {
     {"with text annotations", kPdfInk2TextAnnotations, nullptr},
+    {"with text annotations and extra styles",
+     kPdfInk2TextAnnotationsExtraStyles, nullptr},
 };
 #endif  // BUILDFLAG(ENABLE_PDF_INK2)
 
@@ -13847,6 +13876,13 @@ const FeatureEntry kFeatureEntries[] = {
      FEATURE_VALUE_TYPE(features::kRemoteActorCredentialSharing)},
 #endif
 
+#if BUILDFLAG(IS_ANDROID)
+    {"ntp-aurora-v2", flag_descriptions::kNtpAuroraV2Name,
+     flag_descriptions::kNtpAuroraV2Description, kOsAndroid,
+     FEATURE_WITH_PARAMS_VALUE_TYPE(chrome::android::kNtpAuroraV2,
+                                    kNtpAuroraV2Variations,
+                                    "NtpAuroraV2")},
+#endif
     // Add new entries above this line.
     // NOTE: Adding a new flag requires adding a corresponding entry to enum
     // "LoginCustomFlags" in tools/metrics/histograms/enums.xml. See "Flag

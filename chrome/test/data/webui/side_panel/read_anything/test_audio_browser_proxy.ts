@@ -8,22 +8,28 @@ import {TestBrowserProxy} from 'chrome-untrusted://webui-test/test_browser_proxy
 export class TestAudioBrowserProxy extends TestBrowserProxy implements
     AudioBrowserProxy {
   speechRate: number = 1.0;
+  highlightGranularity: number = 0;
   autoHighlighting: number = 0;
   wordHighlighting: number = 1;
   phraseHighlighting: number = 2;
   sentenceHighlighting: number = 3;
   noHighlighting: number = 4;
   isPhraseHighlightingEnabledFlag: boolean = false;
+  defaultLanguageForSpeech: string = 'en';
+  localeToDisplayName: {[key: string]: string} = {};
 
   constructor() {
     super([
       'getSpeechRate',
+      'getHighlightGranularity',
       'getAutoHighlighting',
       'getWordHighlighting',
       'getPhraseHighlighting',
       'getSentenceHighlighting',
       'getNoHighlighting',
       'isPhraseHighlightingEnabled',
+      'getDisplayNameForLocale',
+      'getDefaultLanguageForSpeech',
       'onSpeechRateChange',
       'onHighlightGranularityChanged',
     ]);
@@ -32,6 +38,11 @@ export class TestAudioBrowserProxy extends TestBrowserProxy implements
   getSpeechRate(): number {
     this.methodCalled('getSpeechRate');
     return this.speechRate;
+  }
+
+  getHighlightGranularity(): number {
+    this.methodCalled('getHighlightGranularity');
+    return this.highlightGranularity;
   }
 
   getAutoHighlighting(): number {
@@ -64,11 +75,23 @@ export class TestAudioBrowserProxy extends TestBrowserProxy implements
     return this.isPhraseHighlightingEnabledFlag;
   }
 
+  getDisplayNameForLocale(locale: string, displayLocale: string): string {
+    this.methodCalled('getDisplayNameForLocale', locale, displayLocale);
+    return this.localeToDisplayName[locale] || locale;
+  }
+
+  getDefaultLanguageForSpeech(): string {
+    this.methodCalled('getDefaultLanguageForSpeech');
+    return this.defaultLanguageForSpeech;
+  }
+
   onSpeechRateChange(rate: number): void {
     this.methodCalled('onSpeechRateChange', rate);
+    this.speechRate = rate;
   }
 
   onHighlightGranularityChanged(granularity: number): void {
     this.methodCalled('onHighlightGranularityChanged', granularity);
+    this.highlightGranularity = granularity;
   }
 }
