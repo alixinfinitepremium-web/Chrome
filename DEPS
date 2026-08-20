@@ -337,15 +337,15 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '668fce1f3951e67a2de7d44c603eadb648344552',
+  'src_internal_revision': '40172f7290ff2099cbf84378d149367c2c62fabf',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '1cc8a048754ffd36265dfa8bd098a9551e278711',
+  'skia_revision': 'abdf8821f313a87f13ad702cf45762167506d925',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': '25b4184bffe8770b4a6fa9d76f5f96a913016fa4',
+  'v8_revision': '89d6407dece068c5279b517e93adf1dc76f98ba7',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -361,7 +361,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': 'f89068d3030374395c4b070838d1f4d9bbef5465',
+  'boringssl_revision': '6f95ff371683db6273ed0108e4f0e6f014d10466',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -445,7 +445,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': '8f7da32a03f73468d65d8c1c6daf396e6f751c8e',
+  'dawn_revision': 'e5958a4fe03fac5c8fec7479a46aa7e4e188a0f8',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -1731,7 +1731,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': 'wloJ5yIDLtwURRL9fGSelCMILRda1ab2pJR4vFSL6wgC',
+        'version': 'bkc8sniXqLu-nXi7v2ZFaadjODpZc-9ZDOdAsbMBHU8C',
       },
     ],
     'condition': 'non_git_source',
@@ -2210,7 +2210,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + 'e82accca02e96d549e51be326b0858c0b8d88576',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '09401d580f246941456bb50e5ecf1bedd04fe747',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '17a56409b86d0da5e01ca38f6498e13b2db16bc3',
@@ -3243,7 +3243,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '24b08c9e2e901576a12eed498490504b056cdbcb',
+    Var('webrtc_git') + '/src.git' + '@' + 'c84dbe590a5519bc1404a268dd8816088ffe8980',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -4006,7 +4006,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        'bb1f8ee39b79c73024105879bd377f1b2c915e70',
+        'b70fd14cf88e5a4e3ed755e918cca056cd378236',
       'condition': 'checkout_src_internal',
   },
 
