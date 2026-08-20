@@ -1,10 +1,10 @@
 // Copyright 2025 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
-import {HostCapability, MetricUserInputReactionType, PanelStateKind, ResponseStopCause, WebClientMode} from '/glic/glic_api/glic_api.js';
+import {HostCapability, PanelStateKind} from '/glic/glic_api/glic_api.js';
 import type {TabData} from '/glic/glic_api/glic_api.js';
 
-import {ApiTestFixtureBase, assertDefined, assertEquals, assertFalse, assertNotEquals, assertTrue, checkDefined, mapObservable, observeSequence, testMain} from './browser_test_base.js';
+import {ApiTestFixtureBase, assertDefined, assertEquals, assertFalse, assertTrue, checkDefined, mapObservable, observeSequence, testMain} from './browser_test_base.js';
 import type {SequencedSubscriber} from './browser_test_base.js';
 
 // Test cases here correspond to test cases in glic_api_browsertest.cc.
@@ -41,43 +41,6 @@ class ApiTests extends ApiTestFixtureBase {
   // TODO(crbug.com/422544382): add test for getContextForActorFromTab for the
   // case where tab is in background.
 
-  // TODO(harringtond): This is disabled because it hangs. Fix it.
-  async testCaptureScreenshot() {
-    assertDefined(this.host.captureScreenshot);
-    const screenshot = await this.host.captureScreenshot?.();
-    assertDefined(screenshot);
-    assertTrue(screenshot.widthPixels > 0);
-    assertTrue(screenshot.heightPixels > 0);
-    assertTrue(screenshot.data.byteLength > 0);
-    assertEquals(screenshot.mimeType, 'image/jpeg');
-  }
-
-
-
-  async testMetrics() {
-    assertDefined(this.host.getMetrics);
-    const metrics = this.host.getMetrics();
-    assertDefined(metrics);
-    assertDefined(metrics.onResponseRated);
-    assertDefined(metrics.onUserInputSubmitted);
-    assertDefined(metrics.onReaction);
-    assertDefined(metrics.onContextUploadStarted);
-    assertDefined(metrics.onContextUploadCompleted);
-    assertDefined(metrics.onResponseStarted);
-    assertDefined(metrics.onResponseStopped);
-    assertDefined(metrics.onSessionTerminated);
-    assertDefined(metrics.onClosedCaptionsShown);
-    metrics.onResponseRated(true);
-    metrics.onUserInputSubmitted(WebClientMode.TEXT);
-    metrics.onContextUploadStarted();
-    metrics.onContextUploadCompleted();
-    metrics.onReaction(MetricUserInputReactionType.MODEL);
-    metrics.onResponseStarted();
-    metrics.onResponseStopped({cause: ResponseStopCause.USER});
-    metrics.onSessionTerminated();
-    metrics.onClosedCaptionsShown();
-  }
-
   // Helper function to pin the active tab. Asserts the tab is pinned, and
   // returns the tab ID.
   async pinActiveTab(): Promise<string> {
@@ -91,54 +54,6 @@ class ApiTests extends ApiTestFixtureBase {
         (tabs) => tabs.some(t => t.tabId === tabId));
     return tabId;
   }
-
-  async testTabDataUpdateOnUrlChangeForPinnedTab() {
-    assertDefined(this.host.getPinnedTabs);
-    assertDefined(this.host.pinTabs);
-
-    const tabId = this.testParams.tabId;
-    assertNotEquals(tabId, this.getActiveTabId());
-
-    await this.host.pinTabs([tabId]);
-    const pinnedTabsUpdates = observeSequence(this.host.getPinnedTabs());
-    await pinnedTabsUpdates.waitFor(
-        (tabs) => tabs.some(t => t.tabId === tabId));
-
-    // Navigate to a different URL.
-    await this.advanceToNextStep();
-
-    // Make sure that the pinned tab is not focused.
-    assertNotEquals(tabId, this.getActiveTabId());
-    await pinnedTabsUpdates.waitFor(
-        (tabs) =>
-            tabs.some(t => t.tabId === tabId && t.url.includes('changed')));
-  }
-
-  async testTabDataUpdateOnFaviconChangeForPinnedTab() {
-    assertDefined(this.host.getPinnedTabs);
-    assertDefined(this.host.pinTabs);
-
-    const tabId = this.testParams.tabId;
-    assertNotEquals(tabId, this.getActiveTabId());
-
-    await this.host.pinTabs([tabId]);
-    const pinnedTabsUpdates = observeSequence(this.host.getPinnedTabs());
-
-    await pinnedTabsUpdates.waitFor(
-        (tabs) => tabs.length === 1 &&
-            tabs.some(t => t.tabId === tabId && t.favicon === undefined));
-
-    // Update the favicon.
-    await this.advanceToNextStep();
-
-    const [tabData] = await pinnedTabsUpdates.waitFor(
-        (tabs) => tabs.length === 1 &&
-            tabs.some(t => t.tabId === tabId && t.favicon !== undefined));
-
-    const blob = await tabData?.favicon?.();
-    assertEquals(blob?.type, 'image/png');
-  }
-
 
   // Helper to get focused tabId.
   getFocusedTabId(): string {
@@ -231,94 +146,12 @@ class ApiTests extends ApiTestFixtureBase {
       // capturing the screenshot, but it still succeeds randomly.
     }
   }
-
-  async testPanelWillOpenHasRecentlyActiveConversations() {
-    assertDefined(this.host.registerConversation);
-
-    if (this.testParams === 'instance1') {
-      await this.host.registerConversation(
-          {conversationTitle: 'Title 1', conversationId: 'convo1'});
-    } else if (this.testParams === 'instance2') {
-      await this.host.registerConversation(
-          {conversationTitle: 'Title 2', conversationId: 'convo2'});
-    } else if (this.testParams === 'instance3') {
-      await this.host.registerConversation(
-          {conversationTitle: 'Title 3', conversationId: 'convo3'});
-    } else if (this.testParams === 'instance4') {
-      await this.host.registerConversation(
-          {conversationTitle: 'Title 4', conversationId: 'convo4'});
-    } else if (this.testParams === 'verify') {
-      const openData = await observeSequence(this.client.panelOpenData).next();
-      assertDefined(openData.recentlyActiveConversations);
-      // Expecting convo4, convo2, convo3 (based on activation order in C++
-      // test)
-      assertEquals(3, openData.recentlyActiveConversations.length);
-      assertEquals(
-          'convo4', openData.recentlyActiveConversations[0]?.conversationId);
-      assertEquals(
-          'Title 4',
-          openData.recentlyActiveConversations[0]?.conversationTitle);
-      assertEquals(
-          'convo2', openData.recentlyActiveConversations[1]?.conversationId);
-      assertEquals(
-          'Title 2',
-          openData.recentlyActiveConversations[1]?.conversationTitle);
-      assertEquals(
-          'convo3', openData.recentlyActiveConversations[2]?.conversationId);
-      assertEquals(
-          'Title 3',
-          openData.recentlyActiveConversations[2]?.conversationTitle);
-    }
-  }
-
-  async testPanelWillOpenHasPromptSuggestion() {
-    const invokeOptions = await observeSequence(this.client.invokeData).next();
-    assertEquals('Prompt Suggestion', invokeOptions.prompts?.[0]);
-  }
 }
-
-class DaisyChainApiTests extends ApiTestFixtureBase {
-  async clickLinkInGlicUi() {
-    const link = document.createElement('a');
-    link.setAttribute('href', location.href);
-    link.setAttribute('target', '_blank');
-    document.body.appendChild(link);
-    link.click();
-  }
-
-  // Helper to handle the daisy chain actions.
-  async handleDaisyChainStep(action: string) {
-    await this.client.waitForInitialize();
-    await this.client.waitForFirstOpen();
-
-    if (action === 'createTab') {
-      await this.clickLinkInGlicUi();
-    } else if (action === 'inputSubmitted') {
-      assertDefined(this.host.getMetrics);
-      const metrics = this.host.getMetrics();
-      assertDefined(metrics);
-      assertDefined(metrics.onUserInputSubmitted);
-      metrics.onUserInputSubmitted(WebClientMode.TEXT);
-    } else {
-      assertTrue(false, `Unexpected daisy chain action: ${action}`);
-    }
-  }
-
-  async testDaisyChainRecursiveAndInput() {
-    await this.handleDaisyChainStep(this.testParams);
-  }
-
-  async testNewTabMetrics() {
-    await this.handleDaisyChainStep(this.testParams);
-  }
-}
-
 
 // All test fixtures. We look up tests by name, and the fixture name is ignored.
 // Therefore all tests must have unique names.
 const TEST_FIXTURES = [
   ApiTests,
-  DaisyChainApiTests,
 ];
 
 testMain(TEST_FIXTURES);

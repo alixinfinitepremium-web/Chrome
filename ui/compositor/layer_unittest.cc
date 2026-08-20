@@ -36,6 +36,7 @@
 #include "cc/animation/keyframe_effect.h"
 #include "cc/layers/layer.h"
 #include "cc/layers/mirror_layer.h"
+#include "cc/layers/surface_layer.h"
 #include "cc/paint/filter_operation.h"
 #include "cc/test/pixel_comparator.h"
 #include "cc/test/pixel_test_utils.h"
@@ -57,8 +58,14 @@
 #include "ui/compositor/layer_animation_sequence.h"
 #include "ui/compositor/layer_animator.h"
 #include "ui/compositor/layer_delegate.h"
+#include "ui/compositor/layer_nine_patch.h"
+#include "ui/compositor/layer_not_drawn.h"
+#include "ui/compositor/layer_solid_color.h"
+#include "ui/compositor/layer_surface.h"
 #include "ui/compositor/layer_test_api.h"
+#include "ui/compositor/layer_textured.h"
 #include "ui/compositor/layer_type.h"
+#include "ui/compositor/layer_with_external_texture.h"
 #include "ui/compositor/paint_context.h"
 #include "ui/compositor/paint_recorder.h"
 #include "ui/compositor/scoped_layer_animation_settings.h"
@@ -1092,6 +1099,11 @@ TEST_P(LayerWithDelegateTest, Mirroring) {
   child->SetIsFastRoundedCorner(true);
   EXPECT_EQ(kCornerRadii, mirror1->rounded_corner_radii());
   EXPECT_TRUE(mirror1->is_fast_rounded_corner());
+
+  EXPECT_TRUE(child_test_api.ContainsMirror(mirror1.get()));
+  EXPECT_TRUE(child_test_api.ContainsMirror(mirror2.get()));
+  EXPECT_TRUE(child_test_api.ContainsMirror(mirror3.get()));
+  EXPECT_FALSE(child_test_api.ContainsMirror(root.get()));
 }
 
 // Tests for SurfaceLayer cloning and mirroring. This tests certain properties

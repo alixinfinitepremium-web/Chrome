@@ -902,7 +902,8 @@ void ContextualTasksUiService::OnThreadLinkClicked(
     tabs::TabInterface* existing_tab = nullptr;
     existing_tab = MaybeFocusExistingOpenTab(url, tab_list, task_id);
     if (!existing_tab) {
-      if (task_id.is_valid()) {
+      if (base::FeatureList::IsEnabled(contextual_tasks::kContextualTasks) &&
+          task_id.is_valid()) {
         AssociateWebContentsToTask(new_contents_ptr, task_id);
       }
 
@@ -1053,7 +1054,10 @@ void ContextualTasksUiService::OnTextFinderLookupComplete(
     new_contents->GetController().LoadURLWithParams(
         content::NavigationController::LoadURLParams(url));
 
-    AssociateWebContentsToTask(new_contents_ptr, task_id);
+    if (base::FeatureList::IsEnabled(contextual_tasks::kContextualTasks) &&
+        task_id.is_valid()) {
+      AssociateWebContentsToTask(new_contents_ptr, task_id);
+    }
 
     TabListInterface* tab_list = TabListInterface::From(browser.get());
     // Insert the WebContents after the current active.
@@ -2562,13 +2566,32 @@ void ContextualTasksUiService::CloseTrackedWindow(
 }
 
 bool ContextualTasksUiService::IsTrustedHost(const std::string& host) {
-  if (base::EndsWith(host, ".corp.google.com") ||
-      base::EndsWith(host, ".c.googlers.com") ||
-      base::EndsWith(host, ".proxy.googlers.com")) {
+  if (host.empty()) {
+    return false;
+  }
+
+  // Handle localhost and loopback addresses. Note: `net::HostStringIsLocalhost`
+  // does not recognize bracketed IPv6 literals like "[::1]", so we explicitly
+  // check for "[::1]" in addition to standard loopback host strings.
+  if (host == "localhost" || host == "127.0.0.1" || host == "[::1]" ||
+      host == "::1" || net::HostStringIsLocalhost(host)) {
     return true;
   }
 
-  if (host == "localhost" || host == "127.0.0.1" || host == "[::1]") {
+  url::CanonHostInfo host_info;
+  std::string canonical_host = net::CanonicalizeHost(host, &host_info);
+  if (canonical_host.empty() ||
+      host_info.family == url::CanonHostInfo::BROKEN) {
+    return false;
+  }
+
+  if (!net::IsCanonicalizedHostCompliant(canonical_host)) {
+    return false;
+  }
+
+  if (net::IsSubdomainOf(canonical_host, "corp.google.com") ||
+      net::IsSubdomainOf(canonical_host, "c.googlers.com") ||
+      net::IsSubdomainOf(canonical_host, "proxy.googlers.com")) {
     return true;
   }
 
@@ -2580,6 +2603,15 @@ std::optional<std::string> ContextualTasksUiService::GetHostFromUrl(
   std::string host;
   if (net::GetValueForKeyInQuery(url, kChromeHostParam, &host) &&
       IsTrustedHost(host)) {
+    if (host == "[::1]" || host == "::1") {
+      return "[::1]";
+    }
+    url::CanonHostInfo host_info;
+    std::string canonical_host = net::CanonicalizeHost(host, &host_info);
+    if (!canonical_host.empty() &&
+        host_info.family != url::CanonHostInfo::BROKEN) {
+      return canonical_host;
+    }
     return host;
   }
   return std::nullopt;
