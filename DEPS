@@ -345,11 +345,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': '2b8e988adefd6bed568566e1f630497ef8ffaa06',
+  'v8_revision': 'fd471f9f9e96b368d2587dc52abe618c5a18307a',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '204fa645c41b5e86822a06584e79d2a981814456',
+  'angle_revision': '7869600a6dad40d09eeedd04d221d6d996a60e58',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -421,7 +421,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '7f90ca30148dddd9b7943c4defe46952ea24ed9d',
+  'devtools_frontend_revision': '898c4d345268a1cbfe8da120293438085af438ba',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -445,7 +445,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': 'e463578aa391834c1cf889ef0024e9978057f39a',
+  'dawn_revision': '29efc21eddaa75678ee08f4a46168021e4c51042',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -1496,7 +1496,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_linux64',
-          'version': 'version:2@1677005',
+          'version': 'version:2@1678012',
         },
       ],
   },
@@ -1651,7 +1651,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_linux64',
-          'version': 'Oz7gKo5zQF1X73z9CbS0ZSuBJhe9TbcufOV97VD5EPYC',
+          'version': '_gbeF6g07w1f4tA0dq09jNh2J7eSb-n3Lf1HJnIQ_1wC',
         },
       ],
   },
@@ -1662,7 +1662,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_mac_amd64',
-          'version': 'TQ5ddtLX7-J51Dw4joddRv1OrZhZxnTGLUdT9spT2JEC',
+          'version': 'wkOmq44zKjRApOaISmPMzZaoUMXo1_oq-Uv8v5-giR4C',
         },
       ],
   },
@@ -1673,7 +1673,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_mac_arm64',
-          'version': 'ZbZ7aGJBjGEIGGy-6dvFgoXN1uGbYjC1_nMG5tnqrvoC',
+          'version': 'JjMDxa1njjyPjodSywVsDalDhr9gUe0C-iKzJJChDqkC',
         },
       ],
   },
@@ -4090,7 +4090,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        'a0d38a626968b3de5953aede400f66d47594ba10',
+        'a6cf24086e09292974cf21d1dcaa7e2bb69a9514',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
