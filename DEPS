@@ -1743,7 +1743,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    'a79dc9f3f41c144cc5a15a62e00bd964b1ce66cf',
+    '1322cf352bef98680e73d7c41f59262dc8d78cbc',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -1847,7 +1847,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': 'JogIkv_i2uzsQIPzd4OKR7EcTicBNAzLoLzYSQ20swYC',
+          'version': '0CGogByOV-ByOkPMB0WU9EsWUE9k1BDPoGiTaUO925cC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
@@ -2472,7 +2472,7 @@ deps = {
 
   'src/third_party/jsoncpp/source':
     Var('chromium_git') + '/external/github.com/open-source-parsers/jsoncpp.git'
-      + '@' + '60de77f915ab08499032d6e5a63e05e974f85d01',
+      + '@' + 'c6f68ac5038b24a027b969dc1bf681a09f138da6',
 
   'src/third_party/junit/src': {
       'url': Var('chromium_git') + '/external/junit.git' + '@' + '300468b1efd48d76fac2f7bd6d576846dcbbf5ed',
@@ -2642,7 +2642,7 @@ deps = {
     Var('chromium_git') + '/chromiumos/platform/libva-fake-driver.git' + '@' + 'a9bcab9cd6b15d4e3634ca44d5e5f7652c612194',
 
   'src/third_party/libvpx/source/libvpx':
-    Var('chromium_git') + '/webm/libvpx.git' + '@' +  '5ae5478f99abbe42101906d955458b3c98b587dd',
+    Var('chromium_git') + '/webm/libvpx.git' + '@' +  '74bcf11247b8fd0ce0f882f9c571a414ef6e2a55',
 
   'src/third_party/libwebm/source':
     Var('chromium_git') + '/webm/libwebm.git' + '@' + '6184f4484a826724b5293837134ab9492261b941',
@@ -2774,7 +2774,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/cisco/openh264' + '@' + 'fca40fc19f5fb854609d297ae4bde71df72787c9',
 
   'src/third_party/openscreen/src':
-    Var('chromium_git') + '/openscreen' + '@' + 'f64b6bfa47a406d3c744e0362dffc2e7122c6bae',
+    Var('chromium_git') + '/openscreen' + '@' + '628bf7523e318587b3f9b00e1191861f40ed4006',
 
   'src/third_party/openxr/src': {
     'url': Var('chromium_git') + '/external/github.com/KhronosGroup/OpenXR-SDK' + '@' + '75c53b6e853dc12c7b3c771edc9c9c841b15faaa',
