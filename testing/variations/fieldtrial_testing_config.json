@@ -2499,7 +2499,7 @@
                     "params": {
                         "autopip_reason": "VideoConferencing",
                         "en_site_id": "zrpDNzCuQ0ugnJ3q1cK0XjBotKRz",
-                        "probability": "1.0",
+                        "probability": "0.93",
                         "prompt_result": "AllowedOnce"
                     },
                     "enable_features": [
@@ -17627,6 +17627,30 @@
                     "name": "Enabled",
                     "enable_features": [
                         "StarterPackIPH"
+                    ]
+                }
+            ]
+        }
+    ],
+    "OmniboxUseShortSuggestPathV1": [
+        {
+            "platforms": [
+                "android",
+                "chromeos",
+                "fuchsia",
+                "ios",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "params": {
+                        "OmniboxSuggestPathClient": "chrome-omni,chrome,chrome-ntp-action,chrome-cobrowse-compose,chrome-compose,chrome-mobile-aim,chrome-multimodal,chrome-contextual,chrome-android-search-resumption-module"
+                    },
+                    "enable_features": [
+                        "OmniboxUseShortSuggestPathV1"
                     ]
                 }
             ]
