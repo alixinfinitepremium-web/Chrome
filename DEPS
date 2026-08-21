@@ -341,7 +341,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '79307ca158afabe759aac049760b7538ab4bebfb',
+  'skia_revision': '3b455627c5ec6b92aa69e8b42f022216e90422a5',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -445,7 +445,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': 'a8e1b7b56820c48665d5cf5176573203fd427cbd',
+  'dawn_revision': '4bd02958922453cab2caac26a7d7638cec010b35',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -3454,7 +3454,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/android_deps/autorolled',
-              'version': 'eEHBP8K3mkvrXmxaV0wajlDh3bMXPQqCTbPKVhYEP3oC',
+              'version': 'LsHpIiU120uqSAFJ9fiaQ0c7YseURtz_gMPZXtUnv0UC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
