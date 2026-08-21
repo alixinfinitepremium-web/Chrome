@@ -341,7 +341,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '70988bed1b3bea0026026083ca0accd215620d53',
+  'skia_revision': 'f6900c5b8439132de9ad98b56ea67a65430a7dbc',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -361,7 +361,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': 'aebe361280f2c4afd7426815002e354ff02a4ce1',
+  'boringssl_revision': 'a0689af29e8e460f1e5380e0fb74cef1b342e810',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -421,7 +421,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '8aa863aa40f497d7731f886879f25390cda2b679',
+  'devtools_frontend_revision': 'bf4cb1fdaefecf501e0bf7fd91cf9ae0bca48c3d',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -3191,7 +3191,7 @@ deps = {
       ],
   },
 
-  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@3cc0a5d1905eb4acbd3dde4667aa0ffb08293c60',
+  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@c0f2370ead05846eb540c889a1ccdc5c7dfef234',
   'src/third_party/glslang/src': '{chromium_git}/external/github.com/KhronosGroup/glslang@cc59a21628dc2adcb61bff2852bf78d944dc641f',
   'src/third_party/spirv-cross/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Cross@b8fcf307f1f347089e3c46eb4451d27f32ebc8d3',
   'src/third_party/spirv-headers/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Headers@0d25db97cb9b8f725e4c95e4553001710e7fc39d',
@@ -3200,7 +3200,7 @@ deps = {
   'src/third_party/vulkan-loader/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Loader@eede24b3f9f789eabf1838391f3a84ce61238fb6',
   'src/third_party/vulkan-tools/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Tools@697e22d5d256b29e4d6cdd75b3cd42f1aa634113',
   'src/third_party/vulkan-utility-libraries/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Utility-Libraries@245b48c522b5375c0acd5377d52bef5e4917f31e',
-  'src/third_party/vulkan-validation-layers/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-ValidationLayers@d09baf6a08d0beb7af8eab5fc1bf3ff11855a763',
+  'src/third_party/vulkan-validation-layers/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-ValidationLayers@007ad63b57cf9d415b5a04bc15c3e4685cc04374',
 
   'src/third_party/vulkan_memory_allocator':
     Var('chromium_git') + '/external/github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git' + '@' + '82a9d47e4f9d91f0e32d2b6acd9714fcee1933a0',
@@ -3394,7 +3394,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/help_app/app',
-        'version': 'WQvBX0R3dOw_I5nLk9nMNDRVqd9ejjGsugC9d-UXK0MC',
+        'version': 'KqGFvyr0VCjtCHZTW_wyIYtw5xnXLNVgoTlvcEarJ5MC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3405,7 +3405,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/media_app/app',
-        'version': 'irQqVhwUUuJEiKWA2mWtFXUmswoYlHFVQcVaSkWy8KoC',
+        'version': 'l8vqsxD3WJQoC8ezCtXBFnwo0KLjdPFuki0tTHO56voC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -4090,7 +4090,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '5f2ffb89c8c5a14af36f97160d2b4716940a8725',
+        '043e9b391d46ed59e0d319517bad9f5b97915133',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
