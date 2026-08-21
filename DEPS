@@ -341,11 +341,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '1d5f72537ba6cff2923f88140746578ae80c4374',
+  'skia_revision': '79307ca158afabe759aac049760b7538ab4bebfb',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': '7b85a7b04b5b38eb8bf2c1dbc1183872ce4e3a8d',
+  'v8_revision': '2ff0df4e1a9db53db12bdd53cc41a0a24628c9eb',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -401,7 +401,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': '7f82020bd03b0fc62f5bd729ddfdd4187d165fdc',
+  'crossbench_revision': '148fbbac3e481409dd3724849ac24ca156ee3056',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -421,7 +421,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '9947c3daa1b6886efaca845e538a1a7ca135648a',
+  'devtools_frontend_revision': 'cc7097fff56eb7509baa8dc2221cb6c84b459fec',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -2998,7 +2998,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/r8',
-              'version': 'C8K1dojUIvIPnzBfVm0O9aWW6yMLCnUUXgaUR9jOB-wC',
+              'version': 'DOFz5E34BPY3qqHWUMfpLtvt49fC4jXLGoSp-Db2CAoC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -3454,7 +3454,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/android_deps/autorolled',
-              'version': 'w3VPIU1RXTD0JYqVkREGmUTr-wNggyfQYra5YXrHY8IC',
+              'version': 'eEHBP8K3mkvrXmxaV0wajlDh3bMXPQqCTbPKVhYEP3oC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -4090,7 +4090,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '6ea4a0860b403ac2e54308946e24d055f602e0e8',
+        'b339f018d1eeeeabee94b2f32a611ca936987702',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
