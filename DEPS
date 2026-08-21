@@ -337,11 +337,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '44e8a4e9ff2babca530d7859ee4af6a061f37d34',
+  'src_internal_revision': 'ecfb98c66b477f8bb92ccfe23870d731ed0d80b4',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '2c25efd2e3691106c9a0d8d22c9710e7ff7e9af6',
+  'skia_revision': '1d5f72537ba6cff2923f88140746578ae80c4374',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -361,7 +361,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': '6b1d1d4df9808de168fe3e16327e928fadd3dd57',
+  'boringssl_revision': 'aebe361280f2c4afd7426815002e354ff02a4ce1',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -401,7 +401,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': 'b5cf903bb767342f5877d4a4de20a9cf1cebe0dc',
+  'crossbench_revision': '56ea538714cd44e7a2400939a94140ca22a7fe7c',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -421,7 +421,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '3fad0ee32a2d823016078c12ed4829602713cdf1',
+  'devtools_frontend_revision': 'c191b4ee60c63bfbc531a2dbfd13d0ebe3b6623b',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
