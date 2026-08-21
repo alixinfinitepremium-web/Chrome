@@ -361,7 +361,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': 'd4c457d3ad70abccb82e9079de195989e60901b6',
+  'boringssl_revision': 'f0e21a53342b98fd94fa4d10c7179689e060ef0a',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -421,7 +421,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '173335356e39a0126988fe7c902c238eec7fe8b5',
+  'devtools_frontend_revision': 'c38adfb4f2104388bc120e948d7a2ccf3f30859c',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -445,7 +445,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': '2bdb77ba30865eedb81abdcf04cf9581ca1c7ab5',
+  'dawn_revision': 'bf1aa37d611477069fc8c26494b9dbbe0b58a2c7',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -2195,7 +2195,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '193f7e4194b5ef3ead3e3bea992290c4062bad9d',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '14422d6b02dbb2ed1cd23645b619e0e9677ebd38',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
