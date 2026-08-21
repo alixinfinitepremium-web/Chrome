@@ -105,6 +105,7 @@ import org.chromium.chrome.browser.tasks.tab_management.TabActionListener;
 import org.chromium.chrome.browser.tasks.tab_management.TabHoverCardView;
 import org.chromium.chrome.browser.tasks.tab_management.TabListMediator;
 import org.chromium.chrome.browser.tasks.tab_management.TabListMediator.TabListItemOnClickListenerProvider;
+import org.chromium.chrome.browser.tasks.tab_management.TabListModel;
 import org.chromium.chrome.browser.tasks.tab_management.TabListModel.CardProperties;
 import org.chromium.chrome.browser.tasks.tab_management.TabListRecyclerView;
 import org.chromium.chrome.browser.tasks.tab_management.TabProperties;
@@ -629,7 +630,7 @@ public class VerticalTabListCoordinatorUnitTest {
 
     @Test
     @SmallTest
-    public void testTabGroupHeaderInteraction_LaunchesGroupHeaderContextMenu_Fallback() {
+    public void testTabGroupHeaderInteraction_LaunchesGroupHeaderContextMenu() {
         Token tabGroupId = new Token(1L, 2L);
         TabListRecyclerView recyclerViewSpy = setupMockRecyclerViewWithTab(mMockTab1, TAB_ID_1);
         when(mMockTab1.getTabGroupId()).thenReturn(tabGroupId);
@@ -650,21 +651,6 @@ public class VerticalTabListCoordinatorUnitTest {
                 UiType.TAB_GROUP,
                 adapter.getItemViewType(0));
 
-        // Create a mock View layout box (child of the recycler view) that renders the tab card on
-        // the screen.
-        when(mMockChildView.getWidth()).thenReturn(400);
-        when(mMockChildView.getHeight()).thenReturn(80);
-
-        doAnswer(
-                        invocation -> {
-                            int[] pos = invocation.getArgument(0);
-                            pos[0] = 40;
-                            pos[1] = 120;
-                            return null;
-                        })
-                .when(mMockChildView)
-                .getLocationInWindow(any());
-
         when(recyclerViewSpy.findChildViewUnder(200f, 150f)).thenReturn(mMockChildView);
         when(recyclerViewSpy.getChildAdapterPosition(mMockChildView)).thenReturn(0);
 
@@ -680,15 +666,8 @@ public class VerticalTabListCoordinatorUnitTest {
         verify(mTabGroupContextMenuCoordinator).showMenu(rectCaptor.capture(), eq(tabGroupId));
 
         Rect descriptiveBoundRect = rectCaptor.getValue().getRect();
-        assertEquals(
-                "Anchor bounding box left edge must be mapped.", 40, descriptiveBoundRect.left);
-        assertEquals("Anchor bounding box top edge must be mapped.", 120, descriptiveBoundRect.top);
-        assertEquals(
-                "Anchor bounding box right edge must be mapped.", 440, descriptiveBoundRect.right);
-        assertEquals(
-                "Anchor bounding box bottom edge must be mapped.",
-                200,
-                descriptiveBoundRect.bottom);
+        assertEquals("Width must be exactly 1 pixel.", 1, descriptiveBoundRect.width());
+        assertEquals("Height must be exactly 1 pixel.", 1, descriptiveBoundRect.height());
 
         if (mCoordinator.getTabGroupContextMenuCoordinatorForTesting() != null) {
             // Dismiss/destroy the instantiated context menu tracker to satisfy LifetimeAssert.
@@ -698,7 +677,7 @@ public class VerticalTabListCoordinatorUnitTest {
 
     @Test
     @SmallTest
-    public void testTabItemInteraction_LaunchesTabContextMenu_Fallback() {
+    public void testTabItemInteraction_LaunchesTabContextMenu() {
         TabListRecyclerView recyclerViewSpy = setupMockRecyclerViewWithTab(mMockTab1, TAB_ID_1);
         assertNull(mCoordinator.getTabContextMenuCoordinatorForTesting());
 
@@ -1770,17 +1749,14 @@ public class VerticalTabListCoordinatorUnitTest {
         mCoordinator.setRailCollapseState(RailCollapseState.EXPANDED);
         assertEquals(2, mCoordinator.getPinnedLayoutManagerForTesting().getSpanCount());
 
-        // Verify narrow width (e.g. 90dp equivalent) still enforces minimum 2 columns when
-        // expanded.
+        // Verify narrow width (e.g. 90dp equivalent) allows 1 column when width only fits 1.
         int narrowWidthPx =
                 itemWidthPx + containerView.getPaddingStart() + containerView.getPaddingEnd();
         containerView.measure(
                 View.MeasureSpec.makeMeasureSpec(narrowWidthPx, View.MeasureSpec.EXACTLY),
                 View.MeasureSpec.makeMeasureSpec(1000, View.MeasureSpec.EXACTLY));
         containerView.layout(0, 0, narrowWidthPx, 1000);
-        assertEquals(
-                VerticalTabListCoordinator.EXPANDED_MIN_GRID_SPAN_COUNT,
-                mCoordinator.getPinnedLayoutManagerForTesting().getSpanCount());
+        assertEquals(1, mCoordinator.getPinnedLayoutManagerForTesting().getSpanCount());
     }
 
     @Test
@@ -1838,6 +1814,162 @@ public class VerticalTabListCoordinatorUnitTest {
         assertEquals(
                 VerticalTabListCoordinator.DEFAULT_GRID_SPAN_COUNT,
                 mCoordinator.getPinnedLayoutManagerForTesting().getSpanCount());
+    }
+
+    @Test
+    @SmallTest
+    public void testDynamicSpanCount_GridOptimizationWithPinnedTabs() {
+        FeatureOverrides.overrideParam(
+                ChromeFeatureList.ANDROID_VERTICAL_TABS, VerticalTabUtils.AUTO_RESIZE_PARAM, true);
+        createCoordinator();
+
+        View containerView = mCoordinator.getView();
+        int itemWidthPx =
+                mActivity
+                        .getResources()
+                        .getDimensionPixelSize(R.dimen.vertical_tab_pinned_item_min_width);
+        int itemMarginPx =
+                mActivity
+                        .getResources()
+                        .getDimensionPixelSize(R.dimen.vertical_tab_pinned_item_gap);
+
+        // Simulate width that fits exactly 5 columns: 5 * itemWidth + 4 * itemMargin + container
+        // paddings.
+        int widthFor5Cols =
+                itemWidthPx * 5
+                        + itemMarginPx * 4
+                        + containerView.getPaddingStart()
+                        + containerView.getPaddingEnd();
+        containerView.measure(
+                View.MeasureSpec.makeMeasureSpec(widthFor5Cols, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(1000, View.MeasureSpec.EXACTLY));
+        containerView.layout(0, 0, widthFor5Cols, 1000);
+
+        TabListModel pinnedModelList = mCoordinator.getPinnedTabsModelListForTesting();
+
+        // 0 pinned tabs -> returns maxFitSpans (5)
+        assertEquals(5, mCoordinator.getPinnedLayoutManagerForTesting().getSpanCount());
+
+        // Expected span counts for N pinned tabs from 1 to 11 when C_max = 5:
+        // N = 1: R = 1, C = 1
+        // N = 2: R = 1, C = 2
+        // N = 3: R = 1, C = 3
+        // N = 4: R = 1, C = 4
+        // N = 5: R = 1, C = 5
+        // N = 6: R = 2, C = 3 (3 + 3)
+        // N = 7: R = 2, C = 4 (4 + 3)
+        // N = 8: R = 2, C = 4 (4 + 4)
+        // N = 9: R = 2, C = 5 (5 + 4)
+        // N = 10: R = 2, C = 5 (5 + 5)
+        // N = 11: R = 3, C = 4 (4 + 4 + 3)
+        int[] expectedSpans = {1, 2, 3, 4, 5, 3, 4, 4, 5, 5, 4};
+
+        for (int i = 0; i < expectedSpans.length; i++) {
+            pinnedModelList.add(
+                    new MVCListAdapter.ListItem(UiType.PINNED_TAB, createTabPropertyModel()));
+            assertEquals(
+                    "Span count mismatch for " + (i + 1) + " pinned tab(s)",
+                    expectedSpans[i],
+                    mCoordinator.getPinnedLayoutManagerForTesting().getSpanCount());
+        }
+
+        // Test removing tabs back down to 1 tab
+        for (int i = expectedSpans.length - 1; i >= 1; i--) {
+            pinnedModelList.removeAt(i);
+            assertEquals(
+                    "Span count mismatch after removal to " + i + " pinned tab(s)",
+                    expectedSpans[i - 1],
+                    mCoordinator.getPinnedLayoutManagerForTesting().getSpanCount());
+        }
+    }
+
+    @Test
+    @SmallTest
+    public void testDynamicSpanCount_WideContainer_CappedAtMaxSpan() {
+        FeatureOverrides.overrideParam(
+                ChromeFeatureList.ANDROID_VERTICAL_TABS, VerticalTabUtils.AUTO_RESIZE_PARAM, true);
+        createCoordinator();
+
+        View containerView = mCoordinator.getView();
+        int itemWidthPx =
+                mActivity
+                        .getResources()
+                        .getDimensionPixelSize(R.dimen.vertical_tab_pinned_item_min_width);
+        int itemMarginPx =
+                mActivity
+                        .getResources()
+                        .getDimensionPixelSize(R.dimen.vertical_tab_pinned_item_gap);
+
+        // Container width that can fit 7 columns physically.
+        int widthFor7Cols =
+                itemWidthPx * 7
+                        + itemMarginPx * 6
+                        + containerView.getPaddingStart()
+                        + containerView.getPaddingEnd();
+        containerView.measure(
+                View.MeasureSpec.makeMeasureSpec(widthFor7Cols, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(1000, View.MeasureSpec.EXACTLY));
+        containerView.layout(0, 0, widthFor7Cols, 1000);
+
+        TabListModel pinnedModelList = mCoordinator.getPinnedTabsModelListForTesting();
+
+        // 0 pinned tabs -> capped at MAX_SINGLE_ROW_SPAN_COUNT = 5
+        assertEquals(5, mCoordinator.getPinnedLayoutManagerForTesting().getSpanCount());
+
+        // Add up to 10 pinned tabs and verify span count never exceeds 5.
+        for (int i = 1; i <= 10; i++) {
+            pinnedModelList.add(
+                    new MVCListAdapter.ListItem(UiType.PINNED_TAB, createTabPropertyModel()));
+            int spanCount = mCoordinator.getPinnedLayoutManagerForTesting().getSpanCount();
+            assertTrue(
+                    "Span count (" + spanCount + ") for " + i + " tabs should be <= 5",
+                    spanCount <= 5);
+        }
+    }
+
+    @Test
+    @SmallTest
+    public void testDynamicSpanCount_NarrowContainer_TwoColumnCap() {
+        FeatureOverrides.overrideParam(
+                ChromeFeatureList.ANDROID_VERTICAL_TABS, VerticalTabUtils.AUTO_RESIZE_PARAM, true);
+        createCoordinator();
+
+        View containerView = mCoordinator.getView();
+        int itemWidthPx =
+                mActivity
+                        .getResources()
+                        .getDimensionPixelSize(R.dimen.vertical_tab_pinned_item_min_width);
+        int itemMarginPx =
+                mActivity
+                        .getResources()
+                        .getDimensionPixelSize(R.dimen.vertical_tab_pinned_item_gap);
+
+        // Container width that fits exactly 2 columns (e.g. 92dp).
+        int widthFor2Cols =
+                itemWidthPx * 2
+                        + itemMarginPx * 1
+                        + containerView.getPaddingStart()
+                        + containerView.getPaddingEnd();
+        containerView.measure(
+                View.MeasureSpec.makeMeasureSpec(widthFor2Cols, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(1000, View.MeasureSpec.EXACTLY));
+        containerView.layout(0, 0, widthFor2Cols, 1000);
+
+        TabListModel pinnedModelList = mCoordinator.getPinnedTabsModelListForTesting();
+
+        // 0 pinned tabs -> returns maxFitSpans = 2
+        assertEquals(2, mCoordinator.getPinnedLayoutManagerForTesting().getSpanCount());
+
+        // N=1 -> 1, N=2 -> 2, N=3 -> 2, N=4 -> 2, N=5 -> 2
+        int[] expectedSpans = {1, 2, 2, 2, 2};
+        for (int i = 0; i < expectedSpans.length; i++) {
+            pinnedModelList.add(
+                    new MVCListAdapter.ListItem(UiType.PINNED_TAB, createTabPropertyModel()));
+            assertEquals(
+                    "Span count mismatch for " + (i + 1) + " pinned tab(s)",
+                    expectedSpans[i],
+                    mCoordinator.getPinnedLayoutManagerForTesting().getSpanCount());
+        }
     }
 
     @Test
@@ -2367,6 +2499,97 @@ public class VerticalTabListCoordinatorUnitTest {
         assertTrue(collapseButton.isFocused());
     }
 
+    @Test
+    @SmallTest
+    public void testOpenKeyboardFocusedContextMenu_WithFocusedUnpinnedTab() {
+        Tab unpinnedTab = prepareMockTab(mMockTab1, TAB_ID_1);
+        when(mTabModel.getRepresentativeTabList()).thenReturn(List.of(unpinnedTab));
+        when(mTabModel.iterator()).thenReturn(List.of(unpinnedTab).iterator());
+        when(mTabModel.getTabById(TAB_ID_1)).thenReturn(unpinnedTab);
+        when(mTabModel.getCount()).thenReturn(1);
+        when(mTabModel.getTabAt(0)).thenReturn(unpinnedTab);
+
+        assertContextMenuOpenedForFocusedTab(TAB_ID_1);
+    }
+
+    @Test
+    @SmallTest
+    public void testOpenKeyboardFocusedContextMenu_WithFocusedPinnedTab() {
+        prepareMockPinnedTab(mMockTab1, PINNED_TAB_ID, 0);
+        when(mTabModel.getRepresentativeTabList()).thenReturn(List.of(mMockTab1));
+        when(mTabModel.iterator()).thenReturn(List.of(mMockTab1).iterator());
+        when(mTabModel.getCount()).thenReturn(1);
+
+        assertContextMenuOpenedForFocusedTab(PINNED_TAB_ID);
+    }
+
+    @Test
+    @SmallTest
+    public void testOpenKeyboardFocusedContextMenu_WithFocusedTabGroupHeader() {
+        Token tabGroupId = new Token(1L, 2L);
+        Tab unpinnedTab = prepareMockTab(mMockTab1, TAB_ID_1);
+        when(unpinnedTab.getTabGroupId()).thenReturn(tabGroupId);
+        when(mTabModel.getRepresentativeTabList()).thenReturn(List.of(unpinnedTab));
+        when(mTabModel.iterator()).thenReturn(List.of(unpinnedTab).iterator());
+        when(mTabModel.getTabById(TAB_ID_1)).thenReturn(unpinnedTab);
+        when(mTabModel.getCount()).thenReturn(1);
+        when(mTabModel.getTabAt(0)).thenReturn(unpinnedTab);
+
+        createCoordinator();
+
+        RecyclerView recyclerView =
+                mCoordinator.getView().findViewById(R.id.tab_list_recycler_view);
+        SimpleRecyclerViewAdapter adapter = (SimpleRecyclerViewAdapter) recyclerView.getAdapter();
+        PropertyModel groupPropertyModel = new PropertyModel(TabProperties.ALL_KEYS_VERTICAL_TAB);
+        groupPropertyModel.set(TabProperties.TAB_GROUP_HEADER_ID, tabGroupId);
+        adapter.getModelList()
+                .add(0, new MVCListAdapter.ListItem(UiType.TAB_GROUP, groupPropertyModel));
+        measureAndLayoutContainer();
+
+        mCoordinator.requestKeyboardFocus();
+        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+
+        mCoordinator.setTabGroupContextMenuCoordinatorForTesting(mTabGroupContextMenuCoordinator);
+        assertTrue(mCoordinator.openKeyboardFocusedContextMenu());
+
+        ArgumentCaptor<RectProvider> rectCaptor = ArgumentCaptor.forClass(RectProvider.class);
+        verify(mTabGroupContextMenuCoordinator).showMenu(rectCaptor.capture(), eq(tabGroupId));
+        assertNotNull(rectCaptor.getValue());
+    }
+
+    @Test
+    @SmallTest
+    public void testOpenKeyboardFocusedContextMenu_NoFocus_ReturnsFalse() {
+        createCoordinator();
+        assertFalse(mCoordinator.openKeyboardFocusedContextMenu());
+    }
+
+    private void assertContextMenuOpenedForFocusedTab(int expectedTabId) {
+        createCoordinator();
+        measureAndLayoutContainer();
+
+        mCoordinator.requestKeyboardFocus();
+        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+
+        mCoordinator.setTabContextMenuCoordinatorForTesting(mTabContextMenuCoordinator);
+        assertTrue(mCoordinator.openKeyboardFocusedContextMenu());
+
+        ArgumentCaptor<RectProvider> rectCaptor = ArgumentCaptor.forClass(RectProvider.class);
+        ArgumentCaptor<AnchorInfo> anchorCaptor = ArgumentCaptor.forClass(AnchorInfo.class);
+        verify(mTabContextMenuCoordinator).showMenu(rectCaptor.capture(), anchorCaptor.capture());
+        assertEquals(expectedTabId, anchorCaptor.getValue().getAnchorTabId());
+        assertNotNull(rectCaptor.getValue());
+    }
+
+    private void measureAndLayoutContainer() {
+        View containerView = mCoordinator.getView();
+        containerView.measure(
+                View.MeasureSpec.makeMeasureSpec(TEST_CONTAINER_WIDTH_PX, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(
+                        TEST_CONTAINER_HEIGHT_PX, View.MeasureSpec.EXACTLY));
+        containerView.layout(0, 0, TEST_CONTAINER_WIDTH_PX, TEST_CONTAINER_HEIGHT_PX);
+    }
+
     // =============================================================================================
     // Helper Methods
     // =============================================================================================
@@ -2572,7 +2795,10 @@ public class VerticalTabListCoordinatorUnitTest {
         return new PropertyModel.Builder(
                         PropertyModel.concatKeys(
                                 TabProperties.ALL_KEYS_VERTICAL_TAB,
-                                new PropertyKey[] {TabProperties.TAB_ACTION_STATE}))
+                                new PropertyKey[] {
+                                    TabProperties.TAB_ACTION_STATE,
+                                    TabProperties.TAB_GROUP_COLOR_VIEW_PROVIDER
+                                }))
                 .with(TabProperties.TAB_ACTION_STATE, TabActionState.CLOSABLE)
                 .build();
     }
