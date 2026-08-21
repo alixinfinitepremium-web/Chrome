@@ -337,7 +337,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '9bde38c14fca2990c0362c569b982b964dea7268',
+  'src_internal_revision': 'bc50da1a823ba305b3915d12e0d4910f79b58864',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -345,7 +345,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': 'f2a5b281b28faebf3c955f3e74bea8bc62de22c7',
+  'v8_revision': 'cd1a98d0cf4379cfd9df4ef8ed50a899f29bf78b',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -401,7 +401,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': '148fbbac3e481409dd3724849ac24ca156ee3056',
+  'crossbench_revision': '06f39d51e72641ba79dd345240c1b7b6cdd3dc27',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -2528,7 +2528,7 @@ deps = {
     Var('chromium_git') + '/external/libaddressinput.git' + '@' + '81eb9628382b07d371d8ea0b11badf7de3857fd5',
 
   'src/third_party/libaom/source/libaom':
-    Var('aomedia_git') + '/aom.git' + '@' +  '7a210280be0986d63abae0661b71d0c342560b9d',
+    Var('aomedia_git') + '/aom.git' + '@' +  'a587e4855dc2bf52d4f77ee35df1fcfed4f9d411',
 
   'src/third_party/crabbyavif/src':
     Var('chromium_git') + '/external/github.com/webmproject/CrabbyAvif.git' + '@' + Var('crabbyavif_revision'),
@@ -4090,7 +4090,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '7b6f6bf6a0e8888d3c4527fb3f77c05d35197525',
+        '5f2ffb89c8c5a14af36f97160d2b4716940a8725',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 

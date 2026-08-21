@@ -1422,6 +1422,7 @@ uploading your change for review.  These are checked by presubmit scripts.
   <int value="3" label="System"/>
   <int value="4" label="Other Off The Record"/>
   <int value="5" label="Deprecated(10/23): Guest (Ephemeral)"/>
+  <int value="6" label="Enterprise Isolated"/>
 </enum>
 
 <!-- LINT.ThenChange(//components/profile_metrics/browser_profile_type.h:BrowserProfileType) -->
@@ -13508,6 +13509,7 @@ from previous Chrome versions.
   <int value="-359886807" label="AppPreloadService:disabled"/>
   <int value="-359452972" label="ProjectorV2:enabled"/>
   <int value="-359331504" label="InputDeviceSettingsSplit:enabled"/>
+  <int value="-358241258" label="BottomSheetTypes:disabled"/>
   <int value="-357464687" label="SharingPreferVapid:enabled"/>
   <int value="-357272449" label="AutoRevokeSuspiciousNotification:disabled"/>
   <int value="-357250869"
@@ -18047,6 +18049,7 @@ from previous Chrome versions.
   <int value="1063909131" label="CrOSDspBasedAgcAllowed:disabled"/>
   <int value="1064288458" label="OfflineRecentPages:enabled"/>
   <int value="1064317648" label="UseMojoVideoDecoderForPepper:disabled"/>
+  <int value="1064904452" label="BottomSheetTypes:enabled"/>
   <int value="1065347448" label="CrOSLateBootAudioAPNoiseCancellation:enabled"/>
   <int value="1065451331" label="NtpRealboxPedals:disabled"/>
   <int value="1065481614" label="SystemEmojiPickerGIFSupport:disabled"/>

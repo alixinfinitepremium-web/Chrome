@@ -10622,21 +10622,6 @@
             ]
         }
     ],
-    "EnterpriseDownloadScanOnAndroid": [
-        {
-            "platforms": [
-                "android"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "EnableDownloadEnterpriseScanOnClank"
-                    ]
-                }
-            ]
-        }
-    ],
     "EnterpriseFileObfuscationArchiveAnalyzer": [
         {
             "platforms": [
@@ -26568,6 +26553,7 @@
                         "WebUIBundledCodeCache",
                         "WebUIInProcessResourceLoadingV2",
                         "WebUIReloadButton",
+                        "WebUIToolbarFrameEvictionOptOut",
                         "WebiumMetricsMapping"
                     ],
                     "disable_features": [
