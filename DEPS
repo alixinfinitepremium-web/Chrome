@@ -337,7 +337,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': 'ecfb98c66b477f8bb92ccfe23870d731ed0d80b4',
+  'src_internal_revision': 'eaa5ff39b635df735d8b0d5628e6d2cfad17c471',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -345,11 +345,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': 'af4927a03399cfabcdfa1f9617a98517328b7b62',
+  'v8_revision': '7b85a7b04b5b38eb8bf2c1dbc1183872ce4e3a8d',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '6f066af1045bd2f675da35532aa3aedb5e2cb6a9',
+  'angle_revision': '897bad1f41b2ca0dad75f9795326948888b63ab3',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -401,7 +401,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': '56ea538714cd44e7a2400939a94140ca22a7fe7c',
+  'crossbench_revision': '7f82020bd03b0fc62f5bd729ddfdd4187d165fdc',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -421,7 +421,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'c191b4ee60c63bfbc531a2dbfd13d0ebe3b6623b',
+  'devtools_frontend_revision': '9947c3daa1b6886efaca845e538a1a7ca135648a',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -2195,7 +2195,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'c23d6b018c73fb1a587e5d526e1d7fb037bb92c0',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'a569e2a5093811bfa8ec1bd36ad046b3cfc90121',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -2210,7 +2210,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '199dfbb6faa635aac8da07b46d4d656696b7aef5',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + 'b1f4d24c8ac50005731677b2bd346add1923c39a',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '17a56409b86d0da5e01ca38f6498e13b2db16bc3',
