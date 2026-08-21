@@ -337,7 +337,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': 'bc50da1a823ba305b3915d12e0d4910f79b58864',
+  'src_internal_revision': '750e59f45126dff4a036039e9d559f46615869d4',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -345,7 +345,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': 'cd1a98d0cf4379cfd9df4ef8ed50a899f29bf78b',
+  'v8_revision': '5aba081c57cfbefa6d330650a72f1cd94e06744f',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -1731,7 +1731,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': 'GyuVtLohK4jGpvMwgjve4jmpjivn1EjgDSvkm7I2oGAC',
+        'version': 'jcNqUj9wlL69zmL2hfzmxVCPDbxSMveChuJS6PT3E7UC',
       },
     ],
     'condition': 'non_git_source',
@@ -4090,7 +4090,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '043e9b391d46ed59e0d319517bad9f5b97915133',
+        '144c39ccf4fade65dda121c4da24f51caf3e6fd7',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 

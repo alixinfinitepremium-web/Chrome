@@ -25,6 +25,7 @@ namespace ui {
 struct ClipboardMetadata;
 }  // namespace ui
 
+class PrefService;
 class Profile;
 
 namespace tabs {
@@ -38,6 +39,8 @@ GURL GetGuestURL();
 url::Origin GetGuestOrigin();
 std::string GetGlicAllowedOrigins(bool is_internal_google_account = false);
 bool IsOriginAllowedGlicApi(const url::Origin& origin);
+bool IsGuestOriginAllowed(const url::Origin& origin);
+bool IsAdminBlockedUrl(const GURL& url);
 bool IsFrameAllowedGlicApi(content::RenderFrameHost& frame_host);
 
 // Returns the StoragePartitionConfig for the Glic webview storage partition.
@@ -98,6 +101,9 @@ mojom::Platform GetGlicPlatform();
 // page handler.
 void PopulateGlobalClientInitialState(mojom::WebClientInitialState* state,
                                       Profile* profile);
+
+// Returns the Glic zoom factor calculated from the zoom level pref.
+double GetZoomFactor(PrefService* pref_service);
 
 #if !BUILDFLAG(IS_ANDROID)
 

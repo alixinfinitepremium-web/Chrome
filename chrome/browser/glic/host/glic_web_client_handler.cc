@@ -487,6 +487,10 @@ class GlicWebClientHandler
         glic::prefs::kGlicFileUploadAllowed,
         base::BindRepeating(&GlicWebClientHandler::OnPrefChanged,
                             base::Unretained(this)));
+    pref_change_registrar_.Add(
+        prefs::kGlicZoomLevel,
+        base::BindRepeating(&GlicWebClientHandler::OnPrefChanged,
+                            base::Unretained(this)));
     web_actuation_pref_subscription_ =
         glic_service_->enabling().RegisterOnUserEnabledActuationOnWebChanged(
             base::BindRepeating(
@@ -1003,6 +1007,10 @@ class GlicWebClientHandler
     host().SetMinimumWidgetSize(size);
   }
 
+  void EnableDragResize(bool enabled) override {
+    host().EnableDragResize(enabled);
+  }
+
   void SetMicrophonePermissionState(
       bool enabled,
       SetMicrophonePermissionStateCallback callback) override {
@@ -1407,24 +1415,38 @@ class GlicWebClientHandler
 
   void PanelWasClosed(base::OnceClosure done) override {
     host().SetInvocationSource(mojom::InvocationSource::kUnsupported);
-    web_client_->NotifyPanelWasClosed(
-        mojo::WrapCallbackWithDefaultInvokeIfNotRun(std::move(done)));
+    if (web_client_) {
+      web_client_->NotifyPanelWasClosed(
+          mojo::WrapCallbackWithDefaultInvokeIfNotRun(std::move(done)));
+    } else {
+      std::move(done).Run();
+    }
   }
 
   void StopMicrophone(base::OnceClosure done) override {
-    web_client_->StopMicrophone(std::move(done));
+    if (web_client_) {
+      web_client_->StopMicrophone(std::move(done));
+    } else {
+      std::move(done).Run();
+    }
   }
 
   void ManualResizeChanged(bool resizing) override {
-    web_client_->NotifyManualResizeChanged(resizing);
+    if (web_client_) {
+      web_client_->NotifyManualResizeChanged(resizing);
+    }
   }
 
   void NotifyAdditionalContext(mojom::AdditionalContextPtr context) override {
-    web_client_->NotifyAdditionalContext(std::move(context));
+    if (web_client_) {
+      web_client_->NotifyAdditionalContext(std::move(context));
+    }
   }
 
   void NotifyActorTaskListRowClicked(int32_t task_id) override {
-    web_client_->NotifyActorTaskListRowClicked(task_id);
+    if (web_client_) {
+      web_client_->NotifyActorTaskListRowClicked(task_id);
+    }
   }
 
   // BrowserAttachmentObserver implementation.
@@ -1657,6 +1679,8 @@ class GlicWebClientHandler
     } else if (pref_name == glic::prefs::kGlicFileUploadAllowed) {
       web_client_->NotifyFileUploadStateChanged(
           glic::prefs::GetFileUploadAllowedCapability(profile_->GetPrefs()));
+    } else if (pref_name == prefs::kGlicZoomLevel) {
+      web_client_->NotifyZoomLevelChanged(GetZoomFactor(pref_service_));
     } else {
       DCHECK(false) << "Unknown Glic permission pref changed: " << pref_name;
     }
@@ -1690,7 +1714,9 @@ class GlicWebClientHandler
   }
 
   void NotifyInstanceActivationChanged(bool is_active) override {
-    web_client_->NotifyInstanceActivationChanged(is_active);
+    if (web_client_) {
+      web_client_->NotifyInstanceActivationChanged(is_active);
+    }
   }
 
   void MaybeNotifyFocusedTabChanged(
