@@ -22705,29 +22705,6 @@
             ]
         }
     ],
-    "SkipPagehideInCommitForDSENavigation": [
-        {
-            "platforms": [
-                "android",
-                "android_webview",
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "params": {
-                        "delay": "100ms"
-                    },
-                    "enable_features": [
-                        "SkipPagehideInCommitForDSENavigation"
-                    ]
-                }
-            ]
-        }
-    ],
     "SkipPostTaskForCallbacks": [
         {
             "platforms": [
@@ -22901,6 +22878,26 @@
                     "name": "Enabled",
                     "enable_features": [
                         "SpdyHeadersToHttpResponseUseBuilder"
+                    ]
+                }
+            ]
+        }
+    ],
+    "SpeculationRulesPrefetchLimitsForEagerModerateAndroid": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled_6",
+                    "params": {
+                        "max_number_of_eager_prefetches_per_page": "6",
+                        "max_number_of_moderate_prefetches_per_page": "6"
+                    },
+                    "enable_features": [
+                        "PrefetchEagerLimit",
+                        "PrefetchModerateLimit"
                     ]
                 }
             ]

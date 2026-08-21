@@ -341,11 +341,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '6718179582511b04b6a0882e8405ff12ac1af208',
+  'skia_revision': '2c25efd2e3691106c9a0d8d22c9710e7ff7e9af6',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': 'ba09e8096e107cfee9874215630bae5f4d17d825',
+  'v8_revision': 'af4927a03399cfabcdfa1f9617a98517328b7b62',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -445,7 +445,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': 'bf1aa37d611477069fc8c26494b9dbbe0b58a2c7',
+  'dawn_revision': 'a8e1b7b56820c48665d5cf5176573203fd427cbd',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -1847,7 +1847,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': '0CGogByOV-ByOkPMB0WU9EsWUE9k1BDPoGiTaUO925cC',
+          'version': 'WfORlc1W4m37fd14LDOBh2BeroFQHQZUfVk6eCg7wywC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
@@ -2210,7 +2210,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '54a71ce1532ca666ddfd31d795d3006f97a9855c',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '199dfbb6faa635aac8da07b46d4d656696b7aef5',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '17a56409b86d0da5e01ca38f6498e13b2db16bc3',
