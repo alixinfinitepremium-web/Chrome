@@ -341,7 +341,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '79bbad6b96491690e4f5ead5a7d5f64eaf1e5362',
+  'skia_revision': '0295493236376d93c1305daf097131e2069acbab',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -545,7 +545,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
-  'llvm_libc_revision':    'cd78f086685109937ad0f16ea13148fd4feec20b',
+  'llvm_libc_revision':    '8bbe89bde10b5eb59c4071079d6e3086c9b74415',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
@@ -1731,7 +1731,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': 'ez75DE3KKbcQ6j7D2GhsTS9xyVBfG76Qi8lzur6pYzQC',
+        'version': 'GyuVtLohK4jGpvMwgjve4jmpjivn1EjgDSvkm7I2oGAC',
       },
     ],
     'condition': 'non_git_source',
@@ -1743,7 +1743,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '1322cf352bef98680e73d7c41f59262dc8d78cbc',
+    '9433986103360e5c2cccdddb0cc9093836127a92',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -2195,7 +2195,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '14422d6b02dbb2ed1cd23645b619e0e9677ebd38',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '725fcf1a1d4d11167008607971b734ee35e53765',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
