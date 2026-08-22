@@ -1765,35 +1765,18 @@ if (is_android) {
     ]
   }
 
-  static_library("test_support_ui_android") {
-    configs += [ "//build/config:precompiled_headers" ]
+  group("test_support_ui_android") {
     testonly = true
-
-    sources = [
-      "base/android/android_browser_test.cc",
-      "base/android/android_browser_test.h",
-      "base/interactive_test_utils.cc",
-      "base/interactive_test_utils.h",
-      "base/mixin_based_in_process_browser_test.cc",
-      "base/mixin_based_in_process_browser_test.h",
-      "base/platform_browser_test.h",
-    ]
     public_deps = [
+      "//chrome/test/base:android_browser_test",
       "//chrome/test/base:chrome_test_path_utils",
       "//chrome/test/base:in_process_browser_test_mixin",
+      "//chrome/test/base:interactive_test_utils",
+      "//chrome/test/base:mixin_based_in_process_browser_test",
+      "//chrome/test/base:platform_browser_test",
       "//chrome/test/base:test_launcher_utils",
       "//components/feed:feature_list",
       "//content/test:test_support",
-    ]
-    deps = [
-      "//chrome/browser",
-      "//chrome/browser/ui",
-      "//chrome/browser/ui:view_ids",
-      "//chrome/browser/ui/android/tab_model",
-      "//chrome/browser/ui/browser_window",
-      "//chrome/browser/ui/select_file_policy",
-      "//content/public/browser",
-      "//ui/base:test_support",
     ]
   }
 
@@ -6513,6 +6496,9 @@ test("unit_tests") {
       "//chrome/browser/ui/views/accessibility:unit_tests",
       "//chrome/browser/ui/views/app_menu:unit_tests",
       "//chrome/browser/ui/views/autofill:address_editor_view",
+      "//chrome/browser/ui/views/autofill:edit_address_profile_view",
+      "//chrome/browser/ui/views/autofill:save_address_profile_view",
+      "//chrome/browser/ui/views/autofill:update_address_profile_view",
       "//chrome/browser/ui/views/autofill/autofill_ai",
       "//chrome/browser/ui/views/autofill/popup/email_verifier",
       "//chrome/browser/ui/views/data_sharing:unit_tests",
@@ -8293,10 +8279,6 @@ if (!is_android) {
     }
 
     if (is_mac) {
-      sources += [
-        "base/in_process_browser_test_mac.mm",
-        "base/interactive_test_utils_mac.mm",
-      ]
       public_deps += [
         "//chrome/test/base:launchservices_utils_mac",
         "//chrome/test/base:scoped_bundle_swizzler_mac",
@@ -8680,6 +8662,9 @@ if (!is_android && !is_chromeos_device) {
       "//chrome/browser/ui/toolbar",
       "//chrome/browser/ui/views/accessibility:dump_accessibility_events_views_browsertest_base",
       "//chrome/browser/ui/views/accessibility:interactive_ui_tests",
+      "//chrome/browser/ui/views/autofill:edit_address_profile_view",
+      "//chrome/browser/ui/views/autofill:save_address_profile_view",
+      "//chrome/browser/ui/views/autofill:update_address_profile_view",
       "//chrome/browser/ui/views/autofill/payments:bnpl_tos_dialog",
       "//chrome/browser/ui/views/autofill/payments:bnpl_tos_view_desktop",
       "//chrome/browser/ui/views/autofill/payments:dialog_view_ids",
