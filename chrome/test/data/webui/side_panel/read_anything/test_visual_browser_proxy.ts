@@ -9,8 +9,10 @@ export class TestVisualBrowserProxy extends TestBrowserProxy implements
     VisualBrowserProxy {
   inSidePanelPresentationState: number = 1;
   inImmersiveOverlayPresentationState: number = 2;
+  inHiddenPresentationState: number = 3;
   fontName: string = 'Poppins';
   supportedFonts: string[] = [];
+  allFonts: string[] = ['Poppins', 'Sans-serif', 'Serif'];
   standardLineSpacing: number = 0;
   looseLineSpacing: number = 1;
   veryLooseLineSpacing: number = 2;
@@ -25,6 +27,7 @@ export class TestVisualBrowserProxy extends TestBrowserProxy implements
   highContrastTheme: number = 5;
   lowContrastLightTheme: number = 6;
   lowContrastDarkTheme: number = 7;
+  defaultFontSize: number = 10;
   fontSize: number = 10;
   lineSpacing: number = 0;
   activeDistillationMethod: number = 0;
@@ -40,6 +43,8 @@ export class TestVisualBrowserProxy extends TestBrowserProxy implements
   lineFocusLargeCursorWindow: number = 56;
   lineFocusStaticLine: number = 57;
   lineFocusCursorLine: number = 58;
+  lineFocusValue: number = 50;
+  lineFocusLastNonDisabledValue: number = 50;
   immersiveEnabled: boolean = true;
   activePresentationState: number = 1;
   pdf: boolean = false;
@@ -48,6 +53,8 @@ export class TestVisualBrowserProxy extends TestBrowserProxy implements
   maxLineWidth: number = 60;
   letterSpacing: number = 0;
   colorTheme: number = 0;
+  translateEntryPointEnabled: boolean = false;
+  experimentalPlaybackUiEnabled: boolean = false;
   imagesEnabled: boolean = true;
   linksEnabled: boolean = true;
   fetchedImages: number[] = [];
@@ -56,14 +63,18 @@ export class TestVisualBrowserProxy extends TestBrowserProxy implements
     super([
       'getInSidePanelPresentationState',
       'getInImmersiveOverlayPresentationState',
+      'getInHiddenPresentationState',
+      'isReadAnythingReadAloudExperimentalPlaybackUiEnabled',
       'getFontName',
       'getSupportedFonts',
+      'getAllFonts',
       'getValidatedFontName',
       'getStandardLineSpacing',
       'getLooseLineSpacing',
       'getVeryLooseLineSpacing',
       'getLineSpacing',
       'getLineSpacingValue',
+      'getDefaultFontSize',
       'getFontSize',
       'getStandardLetterSpacing',
       'getWideLetterSpacing',
@@ -95,7 +106,12 @@ export class TestVisualBrowserProxy extends TestBrowserProxy implements
       'onLetterSpacingChange',
       'onThemeChange',
       'onLineFocusChanged',
+      'onFontSizeChanged',
+      'onFontSizeReset',
+      'isReadAnythingTranslateEntryPointEnabled',
+      'onTranslationRequested',
       'togglePresentation',
+      'close',
       'isImmersiveEnabled',
       'isImagesEnabled',
       'isLinksEnabled',
@@ -152,6 +168,11 @@ export class TestVisualBrowserProxy extends TestBrowserProxy implements
   getLineSpacingValue(lineSpacing: number): number {
     this.methodCalled('getLineSpacingValue', lineSpacing);
     return lineSpacing + 1;
+  }
+
+  getDefaultFontSize(): number {
+    this.methodCalled('getDefaultFontSize');
+    return this.defaultFontSize;
   }
 
   getFontSize(): number {
@@ -296,22 +317,28 @@ export class TestVisualBrowserProxy extends TestBrowserProxy implements
 
   onFontChange(font: string): void {
     this.methodCalled('onFontChange', font);
+    this.fontName = font;
   }
 
   onLineSpacingChange(value: number): void {
     this.methodCalled('onLineSpacingChange', value);
+    this.lineSpacing = value;
   }
 
   onLetterSpacingChange(value: number): void {
     this.methodCalled('onLetterSpacingChange', value);
+    this.letterSpacing = value;
   }
 
   onThemeChange(theme: number): void {
     this.methodCalled('onThemeChange', theme);
+    this.colorTheme = theme;
   }
 
   onLineFocusChanged(value: number, lastNonDisabledValue: number): void {
     this.methodCalled('onLineFocusChanged', value, lastNonDisabledValue);
+    this.lineFocusValue = value;
+    this.lineFocusLastNonDisabledValue = lastNonDisabledValue;
   }
 
   togglePresentation(): void {
@@ -351,6 +378,48 @@ export class TestVisualBrowserProxy extends TestBrowserProxy implements
   getKeyPointsRegex(): string {
     this.methodCalled('getKeyPointsRegex');
     return this.keyPointsRegex;
+  }
+
+  getInHiddenPresentationState(): number {
+    this.methodCalled('getInHiddenPresentationState');
+    return this.inHiddenPresentationState;
+  }
+
+  isReadAnythingReadAloudExperimentalPlaybackUiEnabled(): boolean {
+    this.methodCalled('isReadAnythingReadAloudExperimentalPlaybackUiEnabled');
+    return this.experimentalPlaybackUiEnabled;
+  }
+
+  close(): void {
+    this.methodCalled('close');
+  }
+
+  getAllFonts(): string[] {
+    this.methodCalled('getAllFonts');
+    return this.allFonts;
+  }
+
+  onFontSizeChanged(increase: boolean): void {
+    this.methodCalled('onFontSizeChanged', increase);
+    if (increase) {
+      this.fontSize++;
+    } else {
+      this.fontSize--;
+    }
+  }
+
+  onFontSizeReset(): void {
+    this.methodCalled('onFontSizeReset');
+    this.fontSize = this.defaultFontSize;
+  }
+
+  isReadAnythingTranslateEntryPointEnabled(): boolean {
+    this.methodCalled('isReadAnythingTranslateEntryPointEnabled');
+    return this.translateEntryPointEnabled;
+  }
+
+  onTranslationRequested(): void {
+    this.methodCalled('onTranslationRequested');
   }
 
   onLinksEnabledToggled(): void {

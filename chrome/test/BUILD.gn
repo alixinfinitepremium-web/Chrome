@@ -196,6 +196,7 @@ static_library("test_support") {
     "//chrome/test/base:chrome_test_scoped_utils",
     "//chrome/test/base:chrome_test_suite",
     "//chrome/test/base:chrome_test_utils",
+    "//chrome/test/base:menu_model_test",
     "//chrome/test/base:profile_lifecycle_test_utils",
     "//chrome/test/base:scoped_metrics_service_for_synthetic_trials",
     "//chrome/test/base:test_launcher_utils",
@@ -214,8 +215,6 @@ static_library("test_support") {
 
   sources = [
     "../app/startup_timestamps.h",
-    "../test/base/menu_model_test.cc",
-    "../test/base/menu_model_test.h",
     "base/chrome_render_view_test.cc",
     "base/chrome_render_view_test.h",
     "base/chrome_test_suite.cc",
@@ -664,17 +663,12 @@ static_library("test_support") {
   }
 
   if (is_chromeos) {
-    sources += [
-      "base/ash/extension_js_browser_test.cc",
-      "base/ash/extension_js_browser_test.h",
-      "base/ash/scoped_test_system_nss_key_slot_mixin.cc",
-      "base/ash/scoped_test_system_nss_key_slot_mixin.h",
-    ]
-
     public_deps += [
       "//chrome/test/base:aura_window_title_observer",
       "//chrome/test/base:browser_process_platform_part_test_api_chromeos",
+      "//chrome/test/base:cros_extension_js_browser_test",
       "//chrome/test/base:js_test_api",
+      "//chrome/test/base:scoped_test_system_nss_key_slot_mixin",
     ]
 
     deps += [
@@ -8328,17 +8322,11 @@ if (!is_android) {
     }
 
     if (is_chromeos) {
-      sources += [
-        "base/ash/javascript_browser_test.cc",
-        "base/ash/javascript_browser_test.h",
-        "base/ash/mojo_web_ui_browser_test.cc",
-        "base/ash/mojo_web_ui_browser_test.h",
-        "base/ash/web_ui_browser_test.cc",
-        "base/ash/web_ui_browser_test.h",
-      ]
-
       public_deps += [
+        "//chrome/test/base:cros_web_ui_browser_test",
+        "//chrome/test/base:javascript_browser_test",
         "//chrome/test/base:js_test_api",
+        "//chrome/test/base:mojo_web_ui_browser_test",
         "//chrome/test/base:web_ui_test_handler",
       ]
 

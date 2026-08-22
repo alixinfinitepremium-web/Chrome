@@ -346,6 +346,7 @@ public abstract class TabDragHandlerBase
         if (!res) {
             // The drag failed to start reset the token.
             clearDragDropGlobalState();
+            mDragSourceView = null;
         } else {
             // The drag succeed we can begin the drag.
             setTabDraggingState(dropData, true);
@@ -411,8 +412,14 @@ public abstract class TabDragHandlerBase
         }
     }
 
+    /**
+     * Retrieves the {@link DragDropGlobalState} for the active drag session.
+     *
+     * @param dragEvent The current {@link DragEvent}, or null to look up via the stored drag token.
+     * @return The active {@link DragDropGlobalState}, or null if no drag state exists.
+     */
     @Nullable
-    protected static DragDropGlobalState getDragDropGlobalState(@Nullable DragEvent dragEvent) {
+    public static DragDropGlobalState getDragDropGlobalState(@Nullable DragEvent dragEvent) {
         if (dragEvent != null) {
             return DragDropGlobalState.getState(dragEvent);
         }

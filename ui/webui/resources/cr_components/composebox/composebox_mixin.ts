@@ -1263,7 +1263,9 @@ export const ComposeboxEmbedderMixin =
           if (token) {
             this.deleteFile(token, e.detail.fromUserAction);
           } else {
-            this.getSearchboxHandler().deleteTabContext(tabId);
+            if (this.tabSuggestions.some(t => t.tabId === tabId)) {
+              this.getSearchboxHandler().deleteTabContext(tabId);
+            }
           }
 
           this.aimThreadRestoredTabs =
@@ -2057,7 +2059,7 @@ export const ComposeboxEmbedderMixin =
               this.input.length :
               this.getInputElement().getSelectionEnd();
           this.getSearchboxHandler().queryAutocomplete(
-              this.activeQueryId, this.input,
+              this.activeQueryId, /*tabId=*/ null, this.input,
               /*preventInlineAutocomplete=*/ false, cursorPosition,
               this.suggestInventory ?? SuggestInventory.kDefault,
               /*isOnFocus=*/ !this.input, /*keyword=*/ '', inputMethod);
@@ -2470,7 +2472,9 @@ export const ComposeboxEmbedderMixin =
                     return !currentTab || currentTab.url !== tab.url;
                   });
               closedOrNavigatedRestoredTabs.forEach(tab => {
-                this.getSearchboxHandler().deleteTabContext(tab.tabId);
+                if (tab.tabId) {
+                  this.getSearchboxHandler().deleteTabContext(tab.tabId);
+                }
               });
               this.aimThreadRestoredTabs =
                   this.aimThreadRestoredTabs.filter(tab => {
