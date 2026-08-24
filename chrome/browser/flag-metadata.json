@@ -2827,11 +2827,6 @@
     "expiry_milestone": 170
   },
   {
-    "name": "disable-u18-feedback-desktop",
-    "owners": [ "chrome-signin-team@google.com" ],
-    "expiry_milestone": 160
-  },
-  {
     "name": "disable-virtual-keyboard",
     "owners": [ "dvallet@chromium.org", "essential-inputs-team@google.com" ],
     "expiry_milestone": 116
@@ -6432,6 +6427,11 @@
       "bling-mony-pod@google.com"
     ],
     "expiry_milestone": 156
+  },
+  {
+    "name": "ios-signal-sharing",
+    "owners": [ "mickaczmarczyk@google.com", "szymonkurek@google.com" ],
+    "expiry_milestone": 160
   },
   {
     "name": "ios-skip-fre-default-browser-promo-in-eea",

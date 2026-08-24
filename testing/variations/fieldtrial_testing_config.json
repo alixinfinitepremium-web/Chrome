@@ -12617,6 +12617,21 @@
             ]
         }
     ],
+    "HandleMdmErrorsForDasherAccounts": [
+        {
+            "platforms": [
+                "ios"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "HandleMdmErrorsForDasherAccounts"
+                    ]
+                }
+            ]
+        }
+    ],
     "HangoutsExtensionV3": [
         {
             "platforms": [
@@ -22287,36 +22302,6 @@
                     "name": "Enabled",
                     "enable_features": [
                         "ShutdownPreNativeThreadPoolAfterStartup"
-                    ]
-                }
-            ]
-        }
-    ],
-    "SignOutDeletesBrowsingData": [
-        {
-            "platforms": [
-                "android"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "SignOutDeletesBrowsingData"
-                    ]
-                }
-            ]
-        }
-    ],
-    "SignOutOfChrome": [
-        {
-            "platforms": [
-                "android"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "SignOutOfChrome"
                     ]
                 }
             ]
