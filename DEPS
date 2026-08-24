@@ -345,7 +345,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': '5fd2bee842f22f1da251e923a427035a1253402b',
+  'v8_revision': 'fa21855250aa055909debfcd94c89917e797cc69',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -365,7 +365,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
-  'fuchsia_version': 'version:33.20260814.3.1',
+  'fuchsia_version': 'version:33.20260824.1.1',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling googletest
   # and whatever else without interference from each other.
@@ -421,7 +421,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '33dc271ff25ed247dacaab94a05fadd4c73e30bd',
+  'devtools_frontend_revision': 'bab7257ac755cb29e2e299402ca46146d5ecf071',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -568,7 +568,7 @@ vars = {
   'libcxx_revision':       '97b436da4c33663581d394f4ee0a5977fc38c2f4',
 
   # GN CIPD package version.
-  'gn_version': 'git_revision:58933a7cdbc90f70f2381f0c72e76d29be1d43a9',
+  'gn_version': 'git_revision:e0a6ab04a113b2dd039cab7c21c6f387e0d881ee',
 
   # ninja CIPD package.
   'ninja_package': 'infra/3pp/tools/ninja/',
@@ -1731,7 +1731,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': 'XQhrWEWWJJ6H64wKxJ0iQ-CaVVICiAuDeFbBrSi8VDsC',
+        'version': 'kmYkxbPFdsTevNc-0CGLlODrvEOmrChKQSK_g5HJMuEC',
       },
     ],
     'condition': 'non_git_source',
@@ -1748,7 +1748,7 @@ deps = {
   },
 
   'src/docs/website': {
-    'url': Var('chromium_git') + '/website.git' + '@' + 'ebebad7d52ad3d28f5a21a75561e9bc2b496e472',
+    'url': Var('chromium_git') + '/website.git' + '@' + 'b7ee23066647e3a2dde883ceef1640ef711b7afe',
   },
 
   'src/ios/third_party/earl_grey2/src': {
@@ -2195,7 +2195,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '9f4b1bd59d29f5b9f4acd37733bd10fab3641204',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'b1000833da12f95f49a319a28bf22f1e6db891f8',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -3405,7 +3405,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/media_app/app',
-        'version': 'vUBtM6xb-Kc3EhZvtS8cG96jNXEEDCe9Eh2MkxBXuIUC',
+        'version': 'tsd-WuvD6kfFCOnOIRDSuueBeEz7bOshaBvgrFc8KQ8C',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
