@@ -349,7 +349,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '80760643c85e1dfe07d389ee5c9baa9198e3f870',
+  'angle_revision': 'b4e56ad5850890b5eca9f8b6a573aa5dc4cc8b2d',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -421,7 +421,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '523a2c5d9bf599616688699e53787cf077a42cea',
+  'devtools_frontend_revision': '8e0b8de70d45eb453aab98004165796a0c5b8b83',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -445,7 +445,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': '1e975e28f98a0285e44150a7f64b3bb89f27c719',
+  'dawn_revision': '69751ad909d128f48ee7167ac2c0dff9aa6d43e8',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -902,6 +902,20 @@ deps = {
         'sha256sum': 'a298af5fafd358179d6aec9a42f667902dbcdb03a42ee4a87a1bff83515e96b9',
         'size_bytes': 11320770,
         'generation': 1781805676756361,
+        'output_file': 'node_modules.tar.gz',
+      },
+    ],
+  },
+  # Pull NPM dependencies for chromium-bidi.
+  'src/third_party/chromium-bidi/node_modules': {
+    'dep_type': 'gcs',
+    'bucket': 'chromium-nodejs',
+    'objects': [
+      {
+        'object_name': 'chromium-bidi/e7aab7e5ac29d62f5c023d7e8ba5eedc09a11945a88b0e174fc42f64c0820071',
+        'sha256sum': 'e7aab7e5ac29d62f5c023d7e8ba5eedc09a11945a88b0e174fc42f64c0820071',
+        'size_bytes': 20034775,
+        'generation': 1787231196468746,
         'output_file': 'node_modules.tar.gz',
       },
     ],
@@ -3243,7 +3257,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '16c9fde7cb5f773f6cff1c6942da350f3402caf3',
+    Var('webrtc_git') + '/src.git' + '@' + '14692c9ebb72a3c9e078df621dca059dac456000',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -3372,7 +3386,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_receiver_app/app',
-        'version': 'x2hDDzTKa7IogGs9JCnMNrCuuwL-LFLZHSin_3vdFLkC',
+        'version': 'vap52Tpa8y6V9iieVBzXkPeK_G7pwnxVGKsJHRENdmwC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',

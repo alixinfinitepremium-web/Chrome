@@ -8882,19 +8882,11 @@
             "experiments": [
                 {
                     "name": "Enabled",
-                    "params": {
-                        "RequireOriginTrialTokens": "false",
-                        "SchemaVersion": "4"
-                    },
                     "enable_features": [
-                        "DeviceBoundSessions",
-                        "DeviceBoundSessionsFederatedRegistration",
                         "DeviceBoundSessionsForRestrictedSites",
                         "EnableChromeRefreshTokenBinding",
                         "EnableOAuthMultiloginStandardCookiesBinding",
-                        "EnableOAuthMultiloginStandardCookiesBindingForSecondaryPartitions",
-                        "UnexportableKeyDeletion",
-                        "UseUnexportableKeyServiceInBrowserProcess"
+                        "EnableOAuthMultiloginStandardCookiesBindingForSecondaryPartitions"
                     ]
                 }
             ]
@@ -22295,6 +22287,36 @@
                     "name": "Enabled",
                     "enable_features": [
                         "ShutdownPreNativeThreadPoolAfterStartup"
+                    ]
+                }
+            ]
+        }
+    ],
+    "SignOutDeletesBrowsingData": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "SignOutDeletesBrowsingData"
+                    ]
+                }
+            ]
+        }
+    ],
+    "SignOutOfChrome": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "SignOutOfChrome"
                     ]
                 }
             ]
