@@ -486,7 +486,7 @@ public class FuseboxMediatorUnitTest {
 
     @Test
     public void testAutocompleteStateChange_updatesFuseboxState() {
-        mInput.setAutocompleteState(AutocompleteState.STANDBY);
+        mInput.setAutocompleteState(AutocompleteState.STANDBY_NO_FOCUS);
         recreateMediator();
         assertEquals(FuseboxState.DISABLED, mModel.get(FuseboxProperties.FUSEBOX_STATE));
 
@@ -494,6 +494,9 @@ public class FuseboxMediatorUnitTest {
         assertEquals(FuseboxState.COMPACT, mModel.get(FuseboxProperties.FUSEBOX_STATE));
 
         mInput.setAutocompleteState(AutocompleteState.STANDBY);
+        assertEquals(FuseboxState.COMPACT, mModel.get(FuseboxProperties.FUSEBOX_STATE));
+
+        mInput.setAutocompleteState(AutocompleteState.STANDBY_NO_FOCUS);
         assertEquals(FuseboxState.DISABLED, mModel.get(FuseboxProperties.FUSEBOX_STATE));
     }
 
@@ -632,11 +635,11 @@ public class FuseboxMediatorUnitTest {
     }
 
     @Test
-    public void updateFuseboxState_standby_isDisabled() {
+    public void updateFuseboxState_standby_isCompact() {
         mInput.setAutocompleteState(AutocompleteState.STANDBY);
         recreateMediator();
 
-        assertEquals(FuseboxState.DISABLED, mModel.get(FuseboxProperties.FUSEBOX_STATE));
+        assertEquals(FuseboxState.COMPACT, mModel.get(FuseboxProperties.FUSEBOX_STATE));
     }
 
     @Test
@@ -1098,11 +1101,11 @@ public class FuseboxMediatorUnitTest {
     }
 
     @Test
-    public void attachmentsVisibility_hiddenWhenInStandby() {
+    public void attachmentsVisibility_hiddenWhenInStandbyNoFocus() {
         addAttachment("title", "token1", FuseboxAttachmentType.ATTACHMENT_TAB);
         assertTrue(mModel.get(FuseboxProperties.ATTACHMENTS_VISIBLE));
 
-        mInput.setAutocompleteState(AutocompleteState.STANDBY);
+        mInput.setAutocompleteState(AutocompleteState.STANDBY_NO_FOCUS);
         assertFalse(mModel.get(FuseboxProperties.ATTACHMENTS_VISIBLE));
         assertEquals(FuseboxState.DISABLED, mModel.get(FuseboxProperties.FUSEBOX_STATE));
 
@@ -2633,6 +2636,20 @@ public class FuseboxMediatorUnitTest {
 
         mMediator.endInput();
         assertFalse(mModel.get(FuseboxProperties.ACTIVATION_CHIP_VISIBLE));
+    }
+
+    @Test
+    public void activationChip_restoredSessionWithPreviewMatchUrl() {
+        mModel.set(FuseboxProperties.FUSEBOX_LAYOUT_MODE, FuseboxLayoutMode.SUGGESTIONS_POPOVER);
+        mInput.setRequestType(AutocompleteRequestType.SEARCH);
+        mInput.setInitialUserText("page.com");
+        mInput.setUserText("page.com");
+        mInput.setPreviewMatchUrl(new GURL("https://page.com"));
+
+        // When beginning input with an existing session (e.g. tab restoration),
+        // activation chip should immediately become visible.
+        mMediator.beginInput(createSession());
+        assertTrue(mModel.get(FuseboxProperties.ACTIVATION_CHIP_VISIBLE));
     }
 
     @Test

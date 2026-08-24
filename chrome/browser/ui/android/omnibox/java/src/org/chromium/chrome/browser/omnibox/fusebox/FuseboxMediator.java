@@ -392,6 +392,7 @@ import java.util.function.Supplier;
         setAutocompleteInput(session.getAutocompleteInput());
         onAttachmentsChanged();
         updateFuseboxState();
+        updateActivationChip();
         updateSnackbarStyling();
     }
 
@@ -440,7 +441,8 @@ import java.util.function.Supplier;
                     .addSyncObserverAndCallIfNonNull(mOnSiteSearchDataChanged);
             mInput.getAutocompleteStateSupplier()
                     .addSyncObserverAndCallIfNonNull(mOnAutocompleteStateChanged);
-            mInput.getPreviewMatchUrlSupplier().addSyncObserver(mOnPreviewMatchUrlChanged);
+            mInput.getPreviewMatchUrlSupplier()
+                    .addSyncObserverAndCallIfNonNull(mOnPreviewMatchUrlChanged);
         }
     }
 
@@ -526,7 +528,7 @@ import java.util.function.Supplier;
         boolean showRequestTypeButton = shouldShowRequestTypeButton();
         if (!isInInputSession()) {
             targetState = FuseboxState.DISABLED;
-        } else if (mInput.isStandby()) {
+        } else if (mInput.getAutocompleteState() == AutocompleteState.STANDBY_NO_FOCUS) {
             targetState = FuseboxState.DISABLED;
         } else {
             boolean isPopover =
