@@ -337,11 +337,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '8bf5378f2cf3f50a12e5d3962f41f0385a93c71e',
+  'src_internal_revision': '19ad6d527888265ed7a57abbdabc37296d9ee126',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '50452b13f05b2b3f4b2074487a0f58f1adcf4c05',
+  'skia_revision': '57968d087d18c203a59689c48f4ec707eb17a52b',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -3438,7 +3438,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/projector_app/app',
-        'version': 'lWXGw4P8HoOuGjOl7Syl-dFB9OGUgqa2-e0lleiZf5MC',
+        'version': '8oP-oqMMRtZYPrdo3R64fbtInp1zR6AB_hdOVmaD1ysC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -4090,7 +4090,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '1867daf5a3d008653a68c02898348e7270e6664b',
+        '40e8bea7a43d5729c01be8bbeba9bd684e09b8e8',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
