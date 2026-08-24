@@ -324,10 +324,6 @@ class BrowserWindowFeatures {
     return browser_select_file_dialog_controller_.get();
   }
 
-  BookmarksServiceFeature* bookmarks_service_feature() {
-    return bookmarks_service_feature_.get();
-  }
-
   media_router::CastBrowserController* cast_browser_controller() {
     return cast_browser_controller_.get();
   }
@@ -343,10 +339,6 @@ class BrowserWindowFeatures {
 
   content_settings::CookieControlsController* cookie_controls_controller() {
     return cookie_controls_controller_.get();
-  }
-
-  DevtoolsUIController* devtools_ui_controller() {
-    return devtools_ui_controller_.get();
   }
 
   ExclusiveAccessManager* exclusive_access_manager() {
@@ -486,16 +478,8 @@ class BrowserWindowFeatures {
     return signin_view_controller_.get();
   }
 
-  split_tabs::SplitTabHighlightController* split_tab_highlight_controller() {
-    return split_tab_highlight_controller_.get();
-  }
-
   BrowserSyncedWindowDelegate* synced_window_delegate() {
     return synced_window_delegate_.get();
-  }
-
-  TabDragServiceFeature* tab_drag_service_feature() {
-    return tab_drag_service_feature_.get();
   }
 
   tab_groups::DeletionDialogController* tab_group_deletion_dialog_controller() {
@@ -511,10 +495,6 @@ class BrowserWindowFeatures {
   // Only fetch the tab_strip_service to register a pending receiver.
   TabStripServiceFeature* tab_strip_service_feature() {
     return tab_strip_service_feature_.get();
-  }
-
-  tabs_api::TabStripUIControllerImpl* tab_strip_ui_controller() {
-    return tab_strip_ui_controller_.get();
   }
 
   TabsFromOtherDevicesSidePanelCoordinator*
