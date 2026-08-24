@@ -43,6 +43,14 @@
     "expiry_milestone": 170
   },
   {
+    "name": "actor-notification-intent-routing",
+    "owners": [
+      "bbetini@google.com",
+      "//chrome/browser/actor/OWNERS"
+    ],
+    "expiry_milestone": 160
+  },
+  {
     "name": "actor-observe-page-content-default",
     "owners": [
       "mfoltz@chromium.org",
@@ -77,6 +85,14 @@
   {
     "name": "actor-service-logging",
     "owners": [ "nicolasmacbeth@google.com", "bling-alchemy-eng@google.com" ],
+    "expiry_milestone": 160
+  },
+  {
+    "name": "actor-step-progress-notification",
+    "owners": [
+      "bbetini@google.com",
+      "//chrome/browser/actor/OWNERS"
+    ],
     "expiry_milestone": 160
   },
   {
@@ -1852,11 +1868,6 @@
     "name": "clank-default-browser-promo2",
     "owners": [ "eirage@chromium.org" ],
     "expiry_milestone": 150
-  },
-  {
-    "name": "classifier-api",
-    "owners": ["//chrome/browser/ai/OWNERS", "builtin-ai-team@google.com"],
-    "expiry_milestone": 155
   },
   {
     "name": "client-side-detection-server-model-for-scam-detection-android",
@@ -5653,6 +5664,22 @@
     "expiry_milestone": 160
   },
   {
+    "name": "glic-background-actuation",
+    "owners": [
+      "bbetini@google.com",
+      "//chrome/browser/glic/OWNERS"
+    ],
+    "expiry_milestone": 160
+  },
+  {
+    "name": "glic-background-triggering",
+    "owners": [
+      "bbetini@google.com",
+      "//chrome/browser/glic/OWNERS"
+    ],
+    "expiry_milestone": 160
+  },
+  {
     "name": "glic-bind-pinned-unbound-tab",
     "owners": [
       "basiaz@google.com",
@@ -6588,11 +6615,6 @@
     "expiry_milestone": 150
   },
   {
-    "name": "lens-block-fetch-objects-interaction-rpcs-on-separate-handshake",
-    "owners": ["cmyang@google.com", "brandonli@google.com"],
-    "expiry_milestone": 145
-  },
-  {
     "name": "lens-bypass-compression-for-c2pa",
     "owners": [
       "hujasonx@google.com"
@@ -6607,6 +6629,11 @@
   {
     "name": "lens-camera-unbinned-capture-formats-preferred",
     "owners": ["cmyang@google.com", "aruslan@google.com"],
+    "expiry_milestone": 165
+  },
+  {
+    "name": "lens-composebox-identity-delegation",
+    "owners": ["hujasonx@google.com"],
     "expiry_milestone": 165
   },
   {
@@ -6625,11 +6652,6 @@
       "hujasonx@google.com"
     ],
     "expiry_milestone": 150
-  },
-  {
-    "name": "lens-exact-matches-enabled",
-    "owners": ["cmyang@google.com", "brandonli@google.com", "lens-chrome@google.com"],
-    "expiry_milestone": 145
   },
   {
     "name": "lens-fetch-srp-api-enabled",
@@ -6654,11 +6676,6 @@
       "cmyang@google.com"
     ],
     "expiry_milestone": 160
-  },
-  {
-    "name": "lens-gesture-text-selection-disabled",
-    "owners": ["cmyang@google.com"],
-    "expiry_milestone": 145
   },
   {
     "name": "lens-initial-lvf-zoom-level-90-percent",
@@ -6714,16 +6731,6 @@
     "expiry_milestone": 145
   },
   {
-    "name": "lens-prewarm-hard-stickiness-in-input-selection",
-    "owners": ["cmyang@google.com", "brandonli@google.com"],
-    "expiry_milestone": 145
-  },
-  {
-    "name": "lens-prewarm-hard-stickiness-in-query-formulation",
-    "owners": ["cmyang@google.com", "brandonli@google.com"],
-    "expiry_milestone": 145
-  },
-  {
     "name": "lens-reinvocation-affordance",
     "owners": ["juanmojica@google.com", "lens-chrome@google.com"],
     "expiry_milestone": 152
@@ -6734,19 +6741,9 @@
     "expiry_milestone": 150
   },
   {
-    "name": "lens-single-tap-text-selection-disabled",
-    "owners": ["cmyang@google.com"],
-    "expiry_milestone": 145
-  },
-  {
     "name": "lens-stream-service-web-channel-transport-enabled",
     "owners": ["cmyang@google.com", "brandonli@google.com"],
     "expiry_milestone": 165
-  },
-  {
-    "name": "lens-strokes-api-enabled",
-    "owners": ["aboodmufti@google.com", "cmyang@google.com"],
-    "expiry_milestone": 145
   },
   {
     "name": "lens-translate-toogle-mode-enabled",
@@ -6757,11 +6754,6 @@
     "name": "lens-triple-camera-enabled",
     "owners": ["cmyang@google.com", "aruslan@google.com"],
     "expiry_milestone": 165
-  },
-  {
-    "name": "lens-unary-api-salient-text-enabled",
-    "owners": ["cmyang@google.com", "brandonli@google.com"],
-    "expiry_milestone": 145
   },
   {
     "name": "lens-updated-feedback-entrypoint",
@@ -7444,6 +7436,11 @@
     "name": "ntp-realbox-next",
     "owners": [ "romanarora@chromium.com", "chrome-desktop-ntp@google.com" ],
     "expiry_milestone": 160
+  },
+  {
+    "name": "ntp-rich-image-suggestions",
+    "owners": [ "yvonneshi@google.com", "chrome-desktop-ntp@google.com" ],
+    "expiry_milestone": 165
   },
   {
     "name": "ntp-scaled-action-chips",
