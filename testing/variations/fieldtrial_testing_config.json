@@ -914,21 +914,6 @@
             ]
         }
     ],
-    "AndroidDesktopStyleScrollbars": [
-        {
-            "platforms": [
-                "android"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "AndroidDesktopStyleScrollbars"
-                    ]
-                }
-            ]
-        }
-    ],
     "AndroidDesktopUAPlatform": [
         {
             "platforms": [
@@ -17590,30 +17575,6 @@
                     "name": "Enabled",
                     "enable_features": [
                         "StarterPackIPH"
-                    ]
-                }
-            ]
-        }
-    ],
-    "OmniboxUseShortSuggestPathV1": [
-        {
-            "platforms": [
-                "android",
-                "chromeos",
-                "fuchsia",
-                "ios",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "params": {
-                        "OmniboxSuggestPathClient": "chrome-omni,chrome,chrome-ntp-action,chrome-cobrowse-compose,chrome-compose,chrome-mobile-aim,chrome-multimodal,chrome-contextual,chrome-android-search-resumption-module"
-                    },
-                    "enable_features": [
-                        "OmniboxUseShortSuggestPathV1"
                     ]
                 }
             ]
