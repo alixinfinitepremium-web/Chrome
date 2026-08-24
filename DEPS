@@ -341,15 +341,15 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': 'efd811199dab28342dbb045ab93cbc9683c3a7bb',
+  'skia_revision': '50452b13f05b2b3f4b2074487a0f58f1adcf4c05',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': 'fa21855250aa055909debfcd94c89917e797cc69',
+  'v8_revision': 'fd7622f9db572a2981847d074fc522a0306d4272',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': 'b4e56ad5850890b5eca9f8b6a573aa5dc4cc8b2d',
+  'angle_revision': '4b61de64bab8c25584724295f3b1f8f0fab01b38',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -401,7 +401,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': 'bf8192fe8b3eea4b3f3f6c1189d851e717856346',
+  'crossbench_revision': 'fe8621615553e8dbc2a9bf2167504d6f6963e055',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -421,7 +421,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '8e0b8de70d45eb453aab98004165796a0c5b8b83',
+  'devtools_frontend_revision': '5479b3e9fe3abbabdcf105d600726b89799d22e5',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -902,20 +902,6 @@ deps = {
         'sha256sum': 'a298af5fafd358179d6aec9a42f667902dbcdb03a42ee4a87a1bff83515e96b9',
         'size_bytes': 11320770,
         'generation': 1781805676756361,
-        'output_file': 'node_modules.tar.gz',
-      },
-    ],
-  },
-  # Pull NPM dependencies for chromium-bidi.
-  'src/third_party/chromium-bidi/node_modules': {
-    'dep_type': 'gcs',
-    'bucket': 'chromium-nodejs',
-    'objects': [
-      {
-        'object_name': 'chromium-bidi/e7aab7e5ac29d62f5c023d7e8ba5eedc09a11945a88b0e174fc42f64c0820071',
-        'sha256sum': 'e7aab7e5ac29d62f5c023d7e8ba5eedc09a11945a88b0e174fc42f64c0820071',
-        'size_bytes': 20034775,
-        'generation': 1787231196468746,
         'output_file': 'node_modules.tar.gz',
       },
     ],
@@ -3151,7 +3137,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/turbine',
-              'version': 'x7YCQkT0AvVA-g-D7_U-cmSVgjxgy3FefNyP30-KubkC',
+              'version': 'NMsWxRj3U9cmcgbzvmUXYRSRjJBlOor8fR9qE9R0TM8C',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -3257,7 +3243,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '14692c9ebb72a3c9e078df621dca059dac456000',
+    Var('webrtc_git') + '/src.git' + '@' + '54c6a235c8a806b57eeb0d65a40b1aa1fc8f830e',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -3397,7 +3383,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_app/app',
-        'version': 'OK6m0D0v08M4vuuwWGhZnJpiY1XGiw9ng2eJmWtGWt8C',
+        'version': '6-gOac6qZ8pPkuhdu5kfMXMQhIe5RZ0dLAQtKwIHWe8C',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
