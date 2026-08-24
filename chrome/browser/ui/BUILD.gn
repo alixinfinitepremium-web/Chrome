@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import("//build/config/buildflags_paint_preview.gni")
+import("//build/config/chrome_build.gni")
 import("//build/config/compiler/compiler.gni")
 import("//build/config/features.gni")
 import("//build/config/ozone.gni")
@@ -1412,7 +1413,6 @@ static_library("ui") {
       "//chrome/browser/ui/web_applications:launch_utils",
       "//chrome/browser/ui/webui/access_code_cast",
       "//chrome/browser/ui/webui/access_code_cast:impl",
-      "//chrome/browser/ui/webui/ai_overlay_dialog",
       "//chrome/browser/ui/webui/bookmarks",
       "//chrome/browser/ui/webui/data_sharing:impl",
       "//chrome/browser/ui/webui/drive_picker_host",
@@ -2214,6 +2214,10 @@ static_library("ui") {
     ]
   }
 
+  if (!is_android || is_desktop_android) {
+    public_deps += [ "//chrome/browser/ui/webui/ai_overlay_dialog" ]
+  }
+
   if (!is_android) {
     deps += [ "//chrome/browser/ui/webui/downloads" ]
   }
@@ -2515,15 +2519,10 @@ static_library("ui") {
       "views/autofill/payments/bnpl_issuer_linked_pill.h",
       "views/autofill/payments/bnpl_issuer_view.cc",
       "views/autofill/payments/bnpl_issuer_view.h",
-      "views/autofill/payments/filled_card_information_bubble_views.cc",
-      "views/autofill/payments/filled_card_information_bubble_views.h",
-      "views/autofill/payments/offer_notification_bubble_views.cc",
       "views/autofill/payments/omnibox_autofill_bubble_view.cc",
       "views/autofill/payments/omnibox_autofill_bubble_view.h",
       "views/autofill/payments/omnibox_autofill_suggestion_view.cc",
       "views/autofill/payments/omnibox_autofill_suggestion_view.h",
-      "views/autofill/payments/payments_churned_users_bubble_view.cc",
-      "views/autofill/payments/payments_churned_users_bubble_view.h",
       "views/autofill/payments/save_and_fill_view_desktop.cc",
       "views/autofill/payments/save_and_fill_view_desktop.h",
       "views/autofill/payments/save_card_bubble_views.cc",
@@ -2536,8 +2535,6 @@ static_library("ui") {
       "views/autofill/payments/save_payment_method_and_virtual_card_enroll_confirmation_bubble_views.h",
       "views/autofill/payments/select_bnpl_issuer_dialog.cc",
       "views/autofill/payments/select_bnpl_issuer_dialog.h",
-      "views/autofill/payments/virtual_card_enroll_bubble_views.cc",
-      "views/autofill/payments/virtual_card_enroll_bubble_views.h",
       "views/autofill/popup/popup_at_memory_ai_disclosure_view.cc",
       "views/autofill/popup/popup_at_memory_ai_disclosure_view.h",
       "views/autofill/popup/popup_base_view.cc",
@@ -2942,11 +2939,15 @@ static_library("ui") {
       "//chrome/browser/ui/views/autofill/payments:card_unmask_otp_input_dialog_views",
       "//chrome/browser/ui/views/autofill/payments:card_unmask_prompt_views",
       "//chrome/browser/ui/views/autofill/payments:dialog_view_ids",
+      "//chrome/browser/ui/views/autofill/payments:filled_card_information_bubble_views",
       "//chrome/browser/ui/views/autofill/payments:mandatory_reauth_confirmation_bubble_view",
       "//chrome/browser/ui/views/autofill/payments:mandatory_reauth_opt_in_bubble_view",
+      "//chrome/browser/ui/views/autofill/payments:offer_notification_bubble_views",
+      "//chrome/browser/ui/views/autofill/payments:payments_churned_users_bubble_view",
       "//chrome/browser/ui/views/autofill/payments:payments_window_user_consent_dialog_view",
       "//chrome/browser/ui/views/autofill/payments:promo_code_label_button",
       "//chrome/browser/ui/views/autofill/payments:save_and_fill_dialog",
+      "//chrome/browser/ui/views/autofill/payments:virtual_card_enroll_bubble_views",
       "//chrome/browser/ui/views/autofill/payments:wallet_reminder_notice_bubble_view",
       "//chrome/browser/ui/views/autofill/popup",
       "//chrome/browser/ui/views/autofill/popup:custom_cursor_suppressor",

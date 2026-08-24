@@ -1351,10 +1351,6 @@
       status: "experimental",
     },
     {
-      name: "ContainerTimingPrepaintTraversal",
-      depends_on: ["ContainerTiming"],
-    },
-    {
       name: "ContentIndex",
       status:  {"Android": "stable", "default": "experimental"},
     },
@@ -5740,7 +5736,7 @@
     {
       name: "SingleAxisScrollContainersForScrollSnap",
       depends_on: ["SingleAxisScrollContainers"],
-      status: "test",
+      status: "experimental",
     },
     {
       name: "SkipAd",

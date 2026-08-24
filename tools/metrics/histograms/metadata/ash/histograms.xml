@@ -5626,26 +5626,6 @@ chromium-metrics-reviews@google.com.
   </summary>
 </histogram>
 
-<histogram name="Ash.NotificationView.ImageDrag.EndState"
-    enum="NotificationImageDragEndState" expires_after="2024-09-22">
-  <owner>andrewxu@chromium.org</owner>
-  <owner>cros-status-area-eng@google.com</owner>
-  <summary>
-    Records the notification drag end state when the notification image drag
-    ends.
-  </summary>
-</histogram>
-
-<histogram name="Ash.NotificationView.ImageDrag.Start"
-    enum="NotificationCatalogName" expires_after="2024-09-22">
-  <owner>andrewxu@chromium.org</owner>
-  <owner>cros-status-area-eng@google.com</owner>
-  <summary>
-    Records the notification catalog name when the notification image drag
-    starts.
-  </summary>
-</histogram>
-
 <histogram name="Ash.NotificationView.NotificationAdded.Type"
     enum="NotificationViewType" expires_after="2026-02-01">
   <owner>newcomer@chromium.org</owner>
@@ -6396,16 +6376,6 @@ chromium-metrics-reviews@google.com.
     active. The latter can happen if a video theme is the default on that
     particular device model, or if the user had selected a video theme in the
     past when they last disabled screensaver.
-  </summary>
-</histogram>
-
-<histogram name="Ash.Personalization.App.Duration" units="ms"
-    expires_after="2025-06-30">
-  <owner>cowmoo@google.com</owner>
-  <owner>cros-p13n-eng@google.com</owner>
-  <summary>
-    Records the amount of time a user spends in the Personalization App on each
-    visit.
   </summary>
 </histogram>
 
@@ -7939,16 +7909,6 @@ chromium-metrics-reviews@google.com.
   </summary>
 </histogram>
 
-<histogram name="Ash.Shelf.ShowStackedHotseat" enum="Boolean"
-    expires_after="2024-09-24">
-  <owner>jiamingc@google.com</owner>
-  <owner>cros-status-area-eng@google.com</owner>
-  <summary>
-    Show stacked hotseat app bar above the shelf button panels/system tray when
-    there is no enough space for the app bar.
-  </summary>
-</histogram>
-
 <histogram name="Ash.Shelf.ShutdownConfirmationBubble.Action"
     enum="ShutdownConfirmationBubbleAction" expires_after="2027-02-07">
   <owner>antrim@google.com</owner>
@@ -8498,16 +8458,6 @@ chromium-metrics-reviews@google.com.
   <summary>
     Whether or not to use the kmeans algorithm to determine the user's color
     palette. This metric is recorded once per UMA upload.
-  </summary>
-</histogram>
-
-<histogram name="Ash.SwipeHomeToOverviewGesture"
-    enum="SwipeHomeToOverviewResult" expires_after="2024-09-22">
-  <owner>andrewxu@chromium.org</owner>
-  <owner>tbarzic@chromium.org</owner>
-  <summary>
-    Boolean indicating whether a swipe from hotseat on home screen resulted in a
-    transition to overview.
   </summary>
 </histogram>
 
