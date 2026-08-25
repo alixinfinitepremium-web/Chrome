@@ -178,6 +178,7 @@
 
 #if BUILDFLAG(IS_CHROMEOS)
 #include "ash/constants/ash_pref_names.h"
+#include "chrome/browser/ash/extensions/chromeos_extensions_browser_api_provider.h"
 #include "chrome/browser/media_galleries/media_file_system_registry.h"
 #include "components/password_manager/core/common/password_manager_pref_names.h"
 #include "components/soda/soda_installer_impl_chromeos.h"
@@ -424,6 +425,8 @@ void BrowserProcessImpl::Init() {
 #endif  // BUILDFLAG(ENABLE_EXTENSIONS)
 #if BUILDFLAG(IS_CHROMEOS)
   extensions_browser_client_->AddAPIProvider(
+      std::make_unique<ash::ChromeOSExtensionsBrowserAPIProvider>());
+  extensions_browser_client_->AddAPIProvider(
       std::make_unique<
           chromeos::ChromeOSTelemetryExtensionsBrowserAPIProvider>());
 #endif  // BUILDFLAG(IS_CHROMEOS)
@@ -614,9 +617,9 @@ void BrowserProcessImpl::StartTearDown() {
   }
 #endif  // !BUILDFLAG(IS_CHROMEOS)
 
-  // |hid_system_tray_icon_| and |usb_system_tray_icon_| must be destroyed
-  // before |system_notification_helper_| for ChromeOS and |status_tray_| for
-  // non-ChromeOS.
+  // `hid_system_tray_icon_` and `usb_system_tray_icon_` must be destroyed
+  // before `system_notification_helper_` for ChromeOS and `status_tray_` for
+  // non-ChromeOS, and before `profile_manager_`.
   hid_system_tray_icon_.reset();
   usb_system_tray_icon_.reset();
 

@@ -201,9 +201,6 @@ const base::FeatureParam<base::TimeDelta>
         &kNetworkQualityEstimator,
         "EffectiveConnectionTypeRecomputationInterval", base::Seconds(10)};
 
-BASE_FEATURE(kOnlyParseFirstContentDisposition,
-             base::FEATURE_ENABLED_BY_DEFAULT);
-
 BASE_FEATURE(kSplitCacheByIncludeCredentials,
              base::FEATURE_DISABLED_BY_DEFAULT);
 
@@ -383,10 +380,6 @@ inline constexpr auto kMigrateSessionsOnNetworkChangeV2Default =
 #endif  // BUILDFLAG(IS_ANDROID)
 BASE_FEATURE(kMigrateSessionsOnNetworkChangeV2,
              kMigrateSessionsOnNetworkChangeV2Default);
-
-#if BUILDFLAG(IS_LINUX)
-BASE_FEATURE(kAddressTrackerLinuxIsProxied, base::FEATURE_ENABLED_BY_DEFAULT);
-#endif  // BUILDFLAG(IS_LINUX)
 
 // Enables binding of cookies to the port that originally set them by default.
 BASE_FEATURE(kEnablePortBoundCookies, base::FEATURE_DISABLED_BY_DEFAULT);
