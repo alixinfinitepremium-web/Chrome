@@ -341,7 +341,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '5293d071794e9169918c8ebcb17a5a5ca5aa28b3',
+  'skia_revision': 'ffc2cc46d8ca69b8d5a3b2d4dd92c6b9df280e20',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -413,7 +413,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling fuzztest
   # and whatever else without interference from each other.
-  'fuzztest_revision': 'baf1cf3b4a8474b3cd6d94a50697b8a862f9d6f9',
+  'fuzztest_revision': '76e7eb9a63ad2de414707b00af7ab0e9e912684f',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling domato
   # and whatever else without interference from each other.
@@ -568,7 +568,7 @@ vars = {
   'libcxx_revision':       '97b436da4c33663581d394f4ee0a5977fc38c2f4',
 
   # GN CIPD package version.
-  'gn_version': 'git_revision:e0a6ab04a113b2dd039cab7c21c6f387e0d881ee',
+  'gn_version': 'git_revision:c7ffaf80713afbe5a4f4d95a605c0a98084374de',
 
   # ninja CIPD package.
   'ninja_package': 'infra/3pp/tools/ninja/',
@@ -2177,7 +2177,7 @@ deps = {
   # Tools used when building Chrome for Chrome OS. This affects both the Simple
   # Chrome workflow, as well as the chromeos-chrome ebuild.
   'src/third_party/chromite': {
-      'url': Var('chromium_git') + '/chromiumos/chromite.git' + '@' + 'ae351a7b1447580e48d50b6022753d4dc5514c8b',
+      'url': Var('chromium_git') + '/chromiumos/chromite.git' + '@' + 'cab702ff33af81b15a94f01c829ae2db0640bba8',
       'condition': 'checkout_chromeos',
   },
 
@@ -2814,7 +2814,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + 'f6b82160edd1eec08b3260691a8a1dc515fe5408',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '5dbeaad4ceb91470a835426b52e0cb43a3e5ef10',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
@@ -3257,7 +3257,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '9be6d6a88e8ae4bc91dd101dc4e1d473ae396dc1',
+    Var('webrtc_git') + '/src.git' + '@' + '567348ea6eb2b6ac2684c666f1580dcfb8e94322',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -3452,7 +3452,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/projector_app/app',
-        'version': '8oP-oqMMRtZYPrdo3R64fbtInp1zR6AB_hdOVmaD1ysC',
+        'version': 'B-UVAVvGzNzmcuiAUOWdzwBdQj1vLpzPlLW5cjVrMVIC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',

@@ -1667,6 +1667,7 @@ static_library("test_support") {
     "//chrome/browser/ui/toolbar",
     "//chrome/browser/ui/webui:theme_source",
     "//chrome/test/base:chrome_test_utils",
+    "//chrome/test/base:testing_browser_process",
     "//chrome/test/base:testing_profile",
     "//components/crx_file",
     "//components/feed:feature_list",
@@ -2440,6 +2441,7 @@ source_set("browser_tests") {
     "extension_keybinding_browsertest.cc",
     "extension_modules_apitest.cc",
     "extension_override_apitest.cc",
+    "extension_secure_context_browsertest.cc",
     "extension_tab_util_browsertest.cc",
     "extension_unload_browsertest.cc",
     "extension_url_loader_throttle_browsertest.cc",
@@ -2696,7 +2698,6 @@ source_set("browser_tests") {
   if (enable_extensions) {
     sources += [
       # TODO(crbug.com/469417243): Move to BUILD.gn files closer to sources.
-      "//chrome/browser/page_load_metrics/observers/serp_page_load_metrics_observer_browsertest.cc",
       "//chrome/browser/safe_browsing/extension_telemetry/extension_telemetry_service_browsertest.cc",
       "//chrome/browser/ui/views/autofill/popup/custom_cursor_suppressor_browsertest.cc",
       "//chrome/browser/ui/views/user_education/recent_session_observer_impl_browsertest.cc",

@@ -460,7 +460,9 @@ void BrowserWindowFeatures::Init(BrowserWindowInterface* browser) {
       location_bar_model_delegate_.get(), content::kMaxURLDisplayChars);
 
   memory_saver_bubble_controller_ =
-      std::make_unique<memory_saver::MemorySaverBubbleController>(browser);
+      GetUserDataFactory()
+          .CreateInstance<memory_saver::MemorySaverBubbleController>(*browser,
+                                                                     browser);
 
 #if BUILDFLAG(IS_CHROMEOS)
   locked_state_controller_ =
@@ -784,9 +786,10 @@ void BrowserWindowFeatures::InitPostWindowConstruction(Browser* browser) {
   // resolves to this WebUI-specific implementation for WebUIBrowserWindow).
   if (webui_browser_window) {
     webui_browser_exclusive_access_context_ =
-        std::make_unique<WebUIBrowserExclusiveAccessContext>(
-            browser->GetProfile(), browser_, browser->GetTabStripModel(),
-            webui_browser_window->widget(), webui_browser_window);
+        GetUserDataFactory().CreateInstance<WebUIBrowserExclusiveAccessContext>(
+            *browser, browser->GetProfile(), browser_,
+            browser->GetTabStripModel(), webui_browser_window->widget(),
+            webui_browser_window);
   }
 
   exclusive_access_manager_ = std::make_unique<ExclusiveAccessManager>(
@@ -967,8 +970,9 @@ void BrowserWindowFeatures::InitPostWindowConstruction(Browser* browser) {
       if (media_router::MediaRouterEnabled(
               browser_view->browser()->GetProfile())) {
         cast_browser_controller_ =
-            std::make_unique<media_router::CastBrowserController>(
-                browser_view->browser());
+            GetUserDataFactory()
+                .CreateInstance<media_router::CastBrowserController>(
+                    *browser, browser_view->browser());
       }
     }
 

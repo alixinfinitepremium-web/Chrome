@@ -323,10 +323,6 @@ class BrowserWindowFeatures {
     return browser_select_file_dialog_controller_.get();
   }
 
-  media_router::CastBrowserController* cast_browser_controller() {
-    return cast_browser_controller_.get();
-  }
-
   ContentsBorderController* contents_border_controller() {
     return contents_border_controller_.get();
   }
@@ -409,10 +405,6 @@ class BrowserWindowFeatures {
     location_bar_model->swap(location_bar_model_);
   }
 #endif
-
-  memory_saver::MemorySaverBubbleController* memory_saver_bubble_controller() {
-    return memory_saver_bubble_controller_.get();
-  }
 
   tab_groups::MostRecentSharedTabUpdateStore*
   most_recent_shared_tab_update_store() {
@@ -500,10 +492,6 @@ class BrowserWindowFeatures {
   // return nullptr for non-normal browser windows because toasts are not
   // supported for those cases.
   ToastService* toast_service() { return toast_service_.get(); }
-
-  WebUIBrowserExclusiveAccessContext* webui_browser_exclusive_access_context() {
-    return webui_browser_exclusive_access_context_.get();
-  }
 
 #if BUILDFLAG(IS_CHROMEOS)
   chromeos::LockedStateController* locked_state_controller() {

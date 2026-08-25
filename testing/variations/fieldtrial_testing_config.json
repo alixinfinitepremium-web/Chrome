@@ -7604,21 +7604,6 @@
             ]
         }
     ],
-    "EnableClientCertificateProvisioningOnAndroid": [
-        {
-            "platforms": [
-                "android"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "EnableClientCertificateProvisioningOnAndroid"
-                    ]
-                }
-            ]
-        }
-    ],
     "EnableClipboardDataControlsAndroid": [
         {
             "platforms": [
@@ -8936,6 +8921,24 @@
                     "name": "Enabled",
                     "enable_features": [
                         "FluidResize"
+                    ]
+                }
+            ]
+        }
+    ],
+    "FontDataServiceChromeOS": [
+        {
+            "platforms": [
+                "chromeos"
+            ],
+            "experiments": [
+                {
+                    "name": "EnabledFontations_20260819",
+                    "params": {
+                        "typeface": "Fontations"
+                    },
+                    "enable_features": [
+                        "FontDataServiceChromeOS"
                     ]
                 }
             ]
@@ -10413,6 +10416,25 @@
             ]
         }
     ],
+    "HeliosFREExperiment": [
+        {
+            "platforms": [
+                "ios"
+            ],
+            "experiments": [
+                {
+                    "name": "VisualRich",
+                    "params": {
+                        "variant": "visual-rich"
+                    },
+                    "enable_features": [
+                        "GeminiFREExperiment",
+                        "GeminiFRERefactor"
+                    ]
+                }
+            ]
+        }
+    ],
     "HeliosMultiTabContext": [
         {
             "platforms": [
@@ -10438,22 +10460,6 @@
                     "name": "Enabled",
                     "enable_features": [
                         "PageContextPdf"
-                    ]
-                }
-            ]
-        }
-    ],
-    "HeliosUpdatedEligibility": [
-        {
-            "platforms": [
-                "ios"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "GeminiUpdatedConsent",
-                        "GeminiUpdatedEligibility"
                     ]
                 }
             ]
@@ -14371,6 +14377,29 @@
                     "name": "Enabled",
                     "enable_features": [
                         "OsSyncAccessibilitySettingsBatch3"
+                    ]
+                }
+            ]
+        }
+    ],
+    "OutOfProcessPrintDriversPrint": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled_20230912",
+                    "params": {
+                        "EarlyStart": "false",
+                        "JobPrint": "true",
+                        "Sandbox": "false"
+                    },
+                    "enable_features": [
+                        "EnableOopPrintDrivers"
                     ]
                 }
             ]
@@ -18659,6 +18688,21 @@
             ]
         }
     ],
+    "TabStripStopSpinnerOnLoadStop": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "TabStripStopSpinnerOnLoadStop"
+                    ]
+                }
+            ]
+        }
+    ],
     "TaiyakiAllUsers": [
         {
             "platforms": [
@@ -20353,6 +20397,26 @@
                     "name": "Enabled",
                     "enable_features": [
                         "WebGPUUseSpirv14"
+                    ]
+                }
+            ]
+        }
+    ],
+    "WebHistoryUseNewApi": [
+        {
+            "platforms": [
+                "android",
+                "chromeos",
+                "ios",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled_20260617",
+                    "enable_features": [
+                        "WebHistoryUseNewApi"
                     ]
                 }
             ]

@@ -1989,14 +1989,6 @@ inline constexpr char kEnableAiSubscriptionAvatarRingDescription[] =
     "Enables the AI subscription level decorative ring around the user's "
     "avatar.";
 
-inline constexpr char kEnableClientCertificateProvisioningOnAndroidName[] =
-    "Enable client certificate provisioning on Android";
-inline constexpr char
-    kEnableClientCertificateProvisioningOnAndroidDescription[] =
-        "When enabled, client certificate provisioning from the cloud is "
-        "allowed "
-        "for enterprise users on Android.";
-
 inline constexpr char kEnableContentAnalysisClipboardCopyName[] =
     "Enable content analysis clipboard copy";
 inline constexpr char kEnableContentAnalysisClipboardCopyDescription[] =
@@ -4086,6 +4078,11 @@ inline constexpr char kOverscrollHistoryNavigationName[] =
 inline constexpr char kOverscrollHistoryNavigationDescription[] =
     "History navigation in response to horizontal overscroll.";
 
+inline constexpr char kPageActionsElevatedToolbarName[] =
+    "Page Actions Elevated Toolbar";
+inline constexpr char kPageActionsElevatedToolbarDescription[] =
+    "Enables the elevated capsule container for page action icons in the "
+    "location bar.";
 inline constexpr char kPageContentCacheName[] = "Page content cache";
 inline constexpr char kPageContentCacheDescription[] =
     "Enables caching of the annotated page content and screenshot";
