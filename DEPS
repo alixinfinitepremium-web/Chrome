@@ -337,7 +337,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '34d0faff399d9cef6892f9c04617585aa32f9621',
+  'src_internal_revision': '9f52bf62688e8a0f4d313d9c72af8f1bb452881a',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -2210,7 +2210,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + 'ef0919b1d76d1af6c7de45f3d01f7480e7bc8b86',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + 'b3875193e509d51282f08a14e82fbcf5debfd164',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '17a56409b86d0da5e01ca38f6498e13b2db16bc3',
@@ -2774,7 +2774,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/cisco/openh264' + '@' + 'fca40fc19f5fb854609d297ae4bde71df72787c9',
 
   'src/third_party/openscreen/src':
-    Var('chromium_git') + '/openscreen' + '@' + '2c756bb7f4b80ee2d60960fb545a7098140246b5',
+    Var('chromium_git') + '/openscreen' + '@' + 'f241b38117389e9ea5f415f231ee58bf1962cb0e',
 
   'src/third_party/openxr/src': {
     'url': Var('chromium_git') + '/external/github.com/KhronosGroup/OpenXR-SDK' + '@' + '75c53b6e853dc12c7b3c771edc9c9c841b15faaa',
@@ -4090,7 +4090,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '7ab89ec2014d5cabfa633bdd11b0e6bd490f098f',
+        'd5a03276b95af5e85e6f391a7b85b9e345c36f6c',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
