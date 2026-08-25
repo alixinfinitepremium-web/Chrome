@@ -1627,11 +1627,6 @@
       status: "stable",
     },
     {
-      // https://chromestatus.com/feature/5157805733183488
-      name: "CSSGapDecoration",
-      status: "stable",
-    },
-    {
       name: "CSSGridLanesLayout",
       status: "experimental",
       public: true,
@@ -6084,6 +6079,10 @@
     },
     {
       name: "SvgSupportMediaFragments",
+      status: "experimental",
+    },
+    {
+      name: "SVGTextPathSideAttribute",
       status: "experimental",
     },
     {

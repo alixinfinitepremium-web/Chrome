@@ -472,9 +472,11 @@ void BrowserWindowFeatures::Init(BrowserWindowInterface* browser) {
 #endif  // BUILDFLAG(IS_CHROMEOS)
 
 #if defined(USE_AURA)
-  overscroll_pref_manager_ = std::make_unique<OverscrollPrefManager>(
-      tab_strip_model_,
-      browser->GetType() == BrowserWindowInterface::Type::TYPE_DEVTOOLS);
+  overscroll_pref_manager_ =
+      GetUserDataFactory().CreateInstance<OverscrollPrefManager>(
+          *browser, tab_strip_model_,
+          browser->GetType() == BrowserWindowInterface::Type::TYPE_DEVTOOLS,
+          browser->GetUnownedUserDataHost());
 #endif  // defined(USE_AURA)
 
 #if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC)
@@ -580,7 +582,8 @@ void BrowserWindowFeatures::Init(BrowserWindowInterface* browser) {
       if (glic::GlicKeyedService* glic_service =
               glic::GlicKeyedService::Get(profile)) {
         glic_iph_controller_ =
-            std::make_unique<glic::GlicIphController>(browser, *glic_service);
+            GetUserDataFactory().CreateInstance<glic::GlicIphController>(
+                *browser, browser, *glic_service);
         glic_split_button_controller_ =
             std::make_unique<glic::GlicSplitButtonController>(browser,
                                                               glic_service);

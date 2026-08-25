@@ -349,7 +349,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '4b61de64bab8c25584724295f3b1f8f0fab01b38',
+  'angle_revision': '4cd68cf087a39609b1978339efca1243e1d7d318',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -361,7 +361,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': '269525eb7fcf610b8f9985f3de08d658bbd83f84',
+  'boringssl_revision': '385a112a349d27bcc20cd72c368dd1336555edd2',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -1731,7 +1731,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': 'kmYkxbPFdsTevNc-0CGLlODrvEOmrChKQSK_g5HJMuEC',
+        'version': 'mQ53JPJ3W8dCdt6VyK0nSg8qdj07XFPPLg_qSrKBOmUC',
       },
     ],
     'condition': 'non_git_source',

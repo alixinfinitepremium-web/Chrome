@@ -494,7 +494,6 @@ crbug.com/432153 external/wpt/svg/painting/reftests/display-none-mask.html [ Cra
 # WPT SVG Tests failing. Have not been investigated in all cases.
 crbug.com/1184034 external/wpt/svg/linking/reftests/href-filter-element.html [ Failure ]
 crbug.com/366559 external/wpt/svg/shapes/reftests/pathlength-003.svg [ Failure ]
-crbug.com/366559 external/wpt/svg/text/reftests/textpath-side-001.svg [ Failure ]
 crbug.com/366559 external/wpt/svg/text/reftests/textpath-shape-001.svg [ Failure ]
 crbug.com/863355 [ Mac ] external/wpt/svg/shapes/reftests/pathlength-002.svg [ Failure ]
 crbug.com/674797 external/wpt/svg/painting/reftests/marker-path-022.svg [ Failure ]
@@ -2484,8 +2483,6 @@ crbug.com/488071544 external/wpt/webrtc/RTCDTMFSender-ontonechange.https.html?in
 crbug.com/488071544 external/wpt/webrtc/RTCConfiguration-iceTransportPolicy.html?rest [ Failure Skip Timeout ]
 crbug.com/488071544 external/wpt/webrtc/RTCDataChannel-GC.html?interop-2026 [ Failure Skip Timeout ]
 crbug.com/488071544 external/wpt/webrtc/RTCDataChannel-GC.html?rest [ Failure Skip Timeout ]
-crbug.com/488071544 external/wpt/webrtc/RTCDtlsTransport-state.html?interop-2026 [ Failure Timeout ]
-crbug.com/488071544 external/wpt/webrtc/RTCDtlsTransport-state.html?rest [ Failure Timeout ]
 crbug.com/488071544 external/wpt/webrtc/RTCIceTransport.html?rest [ Failure Skip Timeout ]
 crbug.com/488071544 external/wpt/webrtc/RTCPeerConnection-createDataChannel.html?interop-2026 [ Failure Skip Timeout ]
 crbug.com/488071544 external/wpt/webrtc/RTCPeerConnection-createDataChannel.html?rest [ Failure Skip Timeout ]
@@ -2526,7 +2523,7 @@ crbug.com/499074021 external/wpt/paint-timing/fcp-only/fcp-broken-image.html [ F
 
 crbug.com/501198804 external/wpt/visual-viewport/viewport-scale-clamped.html [ Failure ]
 
-crbug.com/501209160 external/wpt/webrtc/RTCDtlsTransport-state.html [ Failure Timeout ]
+crbug.com/501209160 [ Mac ] external/wpt/webrtc/RTCDtlsTransport-state.html [ Timeout ]
 crbug.com/501209160 external/wpt/webrtc/RTCDTMFSender-ontonechange.https.html [ Failure Timeout ]
 crbug.com/501209160 external/wpt/webrtc/rtp-stats-lifetime.https.html [ Failure ]
 
@@ -2797,8 +2794,6 @@ crbug.com/501223525 [ Win ] external/wpt/shadow-dom/build-deep-detached-shadow-t
 crbug.com/501209160 [ Mac ] external/wpt/webrtc/RTCDataChannel-GC.html [ Skip Timeout ]
 crbug.com/501209160 [ Mac ] external/wpt/webrtc/RTCRtpSender-replaceTrack.https.html [ Skip Timeout ]
 crbug.com/499074022 external/wpt/html/rendering/the-details-element/details-content-pseudo-attr.html [ Failure ]
-crbug.com/499073687 external/wpt/svg/text/reftests/textpath-side-003.svg [ Failure ]
-crbug.com/499073687 external/wpt/svg/text/reftests/textpath-side-005.svg [ Failure ]
 crbug.com/499073530 external/wpt/webdriver/tests/bidi/browser/set_client_window_state/invalid.py [ Failure ]
 crbug.com/499073530 external/wpt/webdriver/tests/bidi/browser/set_client_window_state/state.py [ Failure ]
 crbug.com/497404481 [ Android ] external/wpt/webdriver/tests/classic/find_element/user_prompts.py [ Failure ]
@@ -5869,7 +5864,7 @@ crbug.com/402429384 virtual/select-parsing-filtering-disabled/external/wpt/html/
 crbug.com/440471997 [ Mac ] wpt_internal/html/semantics/forms/the-select-element/select-multiple-popup-auto-appearance.html [ Failure ]
 crbug.com/440471997 [ Mac ] wpt_internal/html/semantics/forms/the-select-element/select-multiple-popup-auto-appearance-dark-mode.html [ Failure ]
 
-### [css-gaps] Tests failing with CSSGapDecorations Enabled:
+### [css-gaps] Gap decoration test failures:
 # These tests are failing for multicol OOF items.
 crbug.com/429365670 external/wpt/css/css-break/out-of-flow-in-multicolumn-097.html [ Failure ]
 crbug.com/429365670 external/wpt/css/css-break/out-of-flow-in-multicolumn-098.html [ Failure ]
@@ -5890,7 +5885,7 @@ crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/row-gap-decorations-lis
 # Grid-lanes crossing gap width does not account for overlapping gutters.
 crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/column-gap-decorations-inset-overlapping-gutters-percentage.html [ Failure ]
 
-### End of tests failing with CSSGapDecorations Enabled
+### End of gap decoration test failures
 
 # I think these are just test issues, but at least the scrollbars are related:
 crbug.com/362536387 external/wpt/html/semantics/forms/the-select-element/select-many-options.tentative.html [ Failure ]
