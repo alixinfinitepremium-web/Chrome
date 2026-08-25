@@ -375,6 +375,16 @@ suite('AppContent', () => {
     assertStringContains(emptyState.imagePath, spinner);
   });
 
+  test('showLoading event triggers showLoading', async () => {
+    const spinner = 'throbber';
+
+    contentBrowserProxy.showLoading.callListeners();
+    await microtasksFinished();
+
+    assertStringContains(emptyState.darkImagePath, spinner);
+    assertStringContains(emptyState.imagePath, spinner);
+  });
+
   test('showLoading marks line focus showing if enabled', async () => {
     visualBrowserProxy.lineFocusEnabled = true;
     emitEvent(app, ToolbarEvent.LINE_FOCUS_TOGGLE, {detail: {data: true}});
@@ -494,6 +504,17 @@ suite('AppContent', () => {
       contentBrowserProxy.textContentMap = {2: text};
 
       app.updateContent();
+      await microtasksFinished();
+
+      assertTrue(contentController.hasContent());
+      assertEquals(text, app.$.container.textContent);
+    });
+
+    test('updateContent event calls updateContent', async () => {
+      const text = 'I guess I\'ve already won that';
+      contentBrowserProxy.textContentMap = {2: text};
+
+      contentBrowserProxy.updateContent.callListeners();
       await microtasksFinished();
 
       assertTrue(contentController.hasContent());
@@ -1185,7 +1206,7 @@ suite('AppContent', () => {
       setup(() => {
         scroller = app.$.containerScroller;
         assertTrue(!!scroller);
-        chrome.readingMode.onPresentationStateReceived(
+        visualBrowserProxy.onPresentationStateReceived.callListeners(
             visualBrowserProxy.inImmersiveOverlayPresentationState);
       });
 
@@ -1227,7 +1248,7 @@ suite('AppContent', () => {
       });
 
       test('mousemove does nothing if not in full page immersive mode', () => {
-        chrome.readingMode.onPresentationStateReceived(
+        visualBrowserProxy.onPresentationStateReceived.callListeners(
             visualBrowserProxy.inSidePanelPresentationState);
         scroller.getBoundingClientRect = () => {
           return {
@@ -1326,7 +1347,8 @@ suite('AppContent', () => {
 
           // Triggering the callback from C++ navigation should execute the
           // scroll.
-          chrome.readingMode.onMainFrameSameDocumentNavigation(targetUrl);
+          contentBrowserProxy.onMainFrameSameDocumentNavigation.callListeners(
+              targetUrl);
           assertTrue(scrollIntoViewCalled);
           assertTrue(!!scrollOptions);
           assertEquals('smooth', scrollOptions.behavior);
@@ -1661,7 +1683,8 @@ suite('AppContent', () => {
       };
 
       // Trigger same document navigation
-      chrome.readingMode.onMainFrameSameDocumentNavigation(targetUrl);
+      contentBrowserProxy.onMainFrameSameDocumentNavigation.callListeners(
+          targetUrl);
 
       assertTrue(scrollIntoViewCalled);
       assertTrue(!!scrollOptions);
@@ -1694,7 +1717,8 @@ suite('AppContent', () => {
           };
 
           // Trigger same document navigation back to top
-          chrome.readingMode.onMainFrameSameDocumentNavigation(targetUrl);
+          contentBrowserProxy.onMainFrameSameDocumentNavigation.callListeners(
+              targetUrl);
 
           assertTrue(scrollToCalled);
           assertTrue(!!scrollOptions);
@@ -1733,7 +1757,8 @@ suite('AppContent', () => {
           };
 
           // Trigger same document navigation for different page
-          chrome.readingMode.onMainFrameSameDocumentNavigation(targetUrl);
+          contentBrowserProxy.onMainFrameSameDocumentNavigation.callListeners(
+              targetUrl);
 
           assertFalse(scrollIntoViewCalled);
         });

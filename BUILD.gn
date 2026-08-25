@@ -153,8 +153,6 @@ group("gn_all") {
           "//chrome/browser/ui/actions:dump_actions",
           "//chrome/browser/ui/color:dump_colors",
           "//chrome/test:browser_tests",
-          "//third_party/chromium-bidi:webdriver_bidi_e2e_tests",
-          "//third_party/chromium-bidi:webdriver_bidi_unittests",
         ]
       }
       deps += [

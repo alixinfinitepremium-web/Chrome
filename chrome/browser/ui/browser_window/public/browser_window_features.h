@@ -355,10 +355,6 @@ class BrowserWindowFeatures {
 
   FindBarOwner* find_bar_owner() { return find_bar_owner_.get(); }
 
-  FullscreenControlHost* fullscreen_control_host() {
-    return fullscreen_control_host_.get();
-  }
-
   // Get the FindBarController for this browser window, creating it if it does
   // not yet exist.
   FindBarController* GetFindBarController();
@@ -410,10 +406,6 @@ class BrowserWindowFeatures {
   tab_groups::MostRecentSharedTabUpdateStore*
   most_recent_shared_tab_update_store() {
     return most_recent_shared_tab_update_store_.get();
-  }
-
-  new_tab_footer::NewTabFooterController* new_tab_footer_controller() {
-    return new_tab_footer_controller_.get();
   }
 
   omnibox::OmniboxPopupCloser* omnibox_popup_closer() {

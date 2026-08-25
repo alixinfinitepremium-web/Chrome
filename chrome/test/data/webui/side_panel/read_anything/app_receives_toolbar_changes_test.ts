@@ -684,4 +684,25 @@ suite('AppReceivesToolbarChanges', () => {
       assertTrue(!!currentHighlight!.textContent);
     });
   });
+
+  test('onPinStateReceived updates toolbar isReadAnythingPinned', async () => {
+    app.$.toolbar.isReadAnythingPinned = false;
+
+    visualBrowserProxy.onPinStateReceived.callListeners(true);
+    await microtasksFinished();
+    assertTrue(app.$.toolbar.isReadAnythingPinned);
+
+    visualBrowserProxy.onPinStateReceived.callListeners(false);
+    await microtasksFinished();
+    assertFalse(app.$.toolbar.isReadAnythingPinned);
+  });
+
+  test('languageChanged updates page language on toolbar', async () => {
+    audioBrowserProxy.baseLanguageForSpeech = 'fr';
+
+    audioBrowserProxy.languageChanged.callListeners();
+    await microtasksFinished();
+
+    assertEquals('fr', app.$.toolbar.pageLanguage);
+  });
 });

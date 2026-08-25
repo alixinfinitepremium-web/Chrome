@@ -843,8 +843,10 @@ void BrowserWindowFeatures::InitPostWindowConstruction(Browser* browser) {
 
   // Must be after exclusive_access_manager_.
   if (browser_view) {
-    fullscreen_control_host_ = std::make_unique<FullscreenControlHost>(
-        browser_view, exclusive_access_manager_.get());
+    fullscreen_control_host_ =
+        GetUserDataFactory().CreateInstance<FullscreenControlHost>(
+            *browser, browser_view, exclusive_access_manager_.get(),
+            browser->GetUnownedUserDataHost());
   }
 
   incognito_clear_browsing_data_dialog_coordinator_ =
@@ -859,9 +861,11 @@ void BrowserWindowFeatures::InitPostWindowConstruction(Browser* browser) {
   if (browser_view) {
     if (base::FeatureList::IsEnabled(ntp_features::kNtpFooter)) {
       new_tab_footer_controller_ =
-          std::make_unique<new_tab_footer::NewTabFooterController>(
-              browser_view->browser()->GetProfile(),
-              browser_view->GetContentsContainerViews());
+          GetUserDataFactory()
+              .CreateInstance<new_tab_footer::NewTabFooterController>(
+                  *browser, browser_view->browser()->GetProfile(),
+                  browser_view->GetContentsContainerViews(),
+                  browser->GetUnownedUserDataHost());
     }
   }
 

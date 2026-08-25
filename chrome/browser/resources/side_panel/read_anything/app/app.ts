@@ -32,7 +32,6 @@ import type {LanguageToastElement} from '../read_aloud/language_toast.js';
 import type {Segment} from '../read_aloud/read_aloud_types.js';
 import {SpeechController} from '../read_aloud/speech_controller.js';
 import type {SpeechListener} from '../read_aloud/speech_controller.js';
-import {TextSegmenter} from '../read_aloud/text_segmenter.js';
 import {VoiceLanguageController} from '../read_aloud/voice_language_controller.js';
 import type {VoiceLanguageListener} from '../read_aloud/voice_language_controller.js';
 import {VoiceNotificationManager} from '../read_aloud/voice_notification_manager.js';
@@ -98,6 +97,7 @@ export class AppElement extends AppElementBase implements SpeechListener,
       lineFocusMovement_: {type: Number},
       isDocsLoadMoreButtonVisible_: {type: Boolean},
       hasValidSelection_: {type: Boolean},
+      isReadAnythingPinned_: {type: Boolean},
     };
   }
 
@@ -110,6 +110,7 @@ export class AppElement extends AppElementBase implements SpeechListener,
 
   protected accessor isDocsLoadMoreButtonVisible_: boolean = false;
   protected accessor hasValidSelection_: boolean = false;
+  protected accessor isReadAnythingPinned_: boolean = false;
   protected isImmersiveEnabled_: boolean = false;
   protected isReadAnythingImprovedUiEnabled_: boolean = false;
 
@@ -178,8 +179,6 @@ export class AppElement extends AppElementBase implements SpeechListener,
     this.styleUpdater_ = new AppStyleUpdater(this);
     this.nodeStore_.clear();
     ColorChangeUpdater.forDocument().start();
-    TextSegmenter.getInstance().updateLanguage(
-        this.audioBrowserProxy_.getBaseLanguageForSpeech());
     this.contentState_ = this.contentController_.getState();
     if (this.contentBrowserProxy_.isReadabilityEnabled()) {
       this.contentController_.configureTrustedTypes();
@@ -267,67 +266,40 @@ export class AppElement extends AppElementBase implements SpeechListener,
 
     document.onkeydown = this.onKeyDown_.bind(this);
 
+    this.contentBrowserProxy_.onAnchorsReadyForReadability.addListener(
+        this.onReadabilityAnchorsReady_.bind(this));
+    this.contentBrowserProxy_.onMainFrameSameDocumentNavigation.addListener(
+        this.onMainFrameSameDocumentNavigation_.bind(this));
+    this.contentBrowserProxy_.onRenderedTextMappingReady.addListener(
+        this.onRenderedTextMappingReady_.bind(this));
+    this.contentBrowserProxy_.updateImages.addListener(
+        this.updateImages_.bind(this));
+    this.contentBrowserProxy_.updateLinks.addListener(
+        this.updateLinks_.bind(this));
+    this.contentBrowserProxy_.updateSelection.addListener(() => {
+      this.selectionController_.updateSelection(
+          this.getSelection(), this.$.container);
+    });
+    this.contentBrowserProxy_.updateContent.addListener(
+        this.updateContent.bind(this));
+    this.contentBrowserProxy_.showLoading.addListener(
+        this.showLoading.bind(this));
+    this.visualBrowserProxy_.onPinStateReceived.addListener(
+        (pinState: boolean) => {
+          this.isReadAnythingPinned_ = pinState;
+        });
+    this.visualBrowserProxy_.onPresentationStateReceived.addListener(
+        this.onPresentationStateReceived_.bind(this));
+    this.audioBrowserProxy_.languageChanged.addListener(
+        this.languageChanged.bind(this));
+    this.audioBrowserProxy_.setPlayOnOpen.addListener(
+        this.setPlayOnOpen.bind(this));
+
     /////////////////////////////////////////////////////////////////////
     // Called by ReadAnythingAppController via callback router. //
     /////////////////////////////////////////////////////////////////////
-    chrome.readingMode.updateContent = () => {
-      this.updateContent();
-    };
-
-    chrome.readingMode.updateLinks = () => {
-      this.updateLinks_();
-    };
-
-    chrome.readingMode.updateImages = () => {
-      this.updateImages_();
-    };
-
-    chrome.readingMode.updateSelection = () => {
-      this.selectionController_.updateSelection(
-          this.getSelection(), this.$.container);
-    };
-
-    chrome.readingMode.showLoading = () => {
-      this.showLoading();
-    };
-
     chrome.readingMode.restoreSettingsFromPrefs = () => {
       this.restoreSettingsFromPrefs_();
-    };
-
-    chrome.readingMode.languageChanged = () => {
-      this.languageChanged();
-    };
-
-    chrome.readingMode.onAnchorsReadyForReadability = () => {
-      this.onReadabilityAnchorsReady_();
-    };
-
-    chrome.readingMode.onPresentationStateReceived =
-        (presentationState: number) => {
-          // TODO (crbug.com/450950100): The Read Anything app should determine
-          // which content to display based on the presentation state.
-          this.presentationState_ = presentationState;
-          this.logger_.setHidden(
-              presentationState ===
-              this.visualBrowserProxy_.getInHiddenPresentationState());
-        };
-
-    chrome.readingMode.onPinStateReceived = (pinState: boolean) => {
-      this.$.toolbar.isReadAnythingPinned = pinState;
-    };
-
-    chrome.readingMode.onRenderedTextMappingReady = () => {
-      this.contentController_.onRenderedTextMappingReady();
-    };
-
-    chrome.readingMode.onMainFrameSameDocumentNavigation = (url: string) => {
-      assert(this.shadowRoot);
-      this.contentController_.scrollToAnchor(url, this.shadowRoot);
-    };
-
-    chrome.readingMode.setPlayOnOpen = (playOnOpen: boolean) => {
-      this.setPlayOnOpen(playOnOpen);
     };
   }
 
@@ -460,8 +432,26 @@ export class AppElement extends AppElementBase implements SpeechListener,
     this.contentController_.updateImages(this.shadowRoot);
   }
 
+  private onMainFrameSameDocumentNavigation_(url: string) {
+    assert(this.shadowRoot);
+    this.contentController_.scrollToAnchor(url, this.shadowRoot);
+  }
+
+  private onRenderedTextMappingReady_() {
+    this.contentController_.onRenderedTextMappingReady();
+    this.selectionController_.updateSelection(
+        this.getSelection(), this.$.container);
+  }
+
   private onRenderedTextBlocksAvailable_() {
     this.contentController_.onRenderedTextBlocksAvailable(this.$.container);
+  }
+
+  private onPresentationStateReceived_(presentationState: number) {
+    this.presentationState_ = presentationState;
+    this.logger_.setHidden(
+        presentationState ===
+        this.visualBrowserProxy_.getInHiddenPresentationState());
   }
 
   protected onDocsLoadMoreButtonClick_() {
@@ -840,10 +830,8 @@ export class AppElement extends AppElementBase implements SpeechListener,
 
   languageChanged() {
     this.pageLanguage_ = this.audioBrowserProxy_.getBaseLanguageForSpeech();
-    this.voiceLanguageController_.onPageLanguageChanged();
     // Update the font to ensure the font is valid for the page language.
     this.styleUpdater_.setFont();
-    TextSegmenter.getInstance().updateLanguage(this.pageLanguage_);
   }
 
   protected computeHasContent(): boolean {
