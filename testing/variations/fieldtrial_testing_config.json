@@ -6686,37 +6686,6 @@
             ]
         }
     ],
-    "DesktopOmniboxActionButtonRefinements": [
-        {
-            "platforms": [
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "EnabledBoth",
-                    "enable_features": [
-                        "AiModeSpaceDoesNotActivate",
-                        "HideAimEntrypointForUrlSuggestions"
-                    ]
-                },
-                {
-                    "name": "EnabledHideAimEntrypoint",
-                    "enable_features": [
-                        "HideAimEntrypointForUrlSuggestions"
-                    ]
-                },
-                {
-                    "name": "EnabledSpaceDoesNotSubmit",
-                    "enable_features": [
-                        "AiModeSpaceDoesNotActivate"
-                    ]
-                }
-            ]
-        }
-    ],
     "DesktopOmniboxCalculatorProvider": [
         {
             "platforms": [
@@ -9830,6 +9799,25 @@
                         "TabStripDeclutter",
                         "ToolbarGlowUp",
                         "WebuiRefresh2026"
+                    ]
+                }
+            ]
+        }
+    ],
+    "GmailOtpBackendInfrastructure": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "GmailOtpRetrievalService",
+                        "OneTimeTokenBackendNotification"
                     ]
                 }
             ]
@@ -14406,6 +14394,25 @@
             ]
         }
     ],
+    "PMLoadingPageVoter": [
+        {
+            "platforms": [
+                "android",
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "PMLoadingPageVoter"
+                    ]
+                }
+            ]
+        }
+    ],
     "PMProcessPriorityPolicy": [
         {
             "platforms": [
@@ -17250,12 +17257,12 @@
             "experiments": [
                 {
                     "//0": "Prod-like config: trigger at most once (==0), only if never accepted (used == 0), and session_rate is 0.",
-                    "name": "Enabled_ArmB",
+                    "name": "Enabled_Install",
                     "params": {
-                        "arm": "arm_b",
+                        "action": "install",
                         "availability": "any",
                         "event_trigger": "name:search_promotion_trigger;comparator:==0;window:360;storage:360",
-                        "event_used": "name:search_promotion_used;comparator:==0;window:360;storage:360",
+                        "event_used": "name:search_promotion_accepted;comparator:==0;window:360;storage:360",
                         "extension_id": "dakcooigljlhlgibgdfadgphfnoooacj",
                         "instructions_url": "https://www.google.com/chrome/landing/google-search-extension-edge/",
                         "session_rate": "==0"

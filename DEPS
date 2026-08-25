@@ -341,7 +341,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': 'b1a31575c3730d5b6dbeb3b671350559456e8207',
+  'skia_revision': '480540178356a7ac6e1adec999912c76a926af7a',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -401,7 +401,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': '84edffc57f708686da425e2e0bdcf377a3b78f1b',
+  'crossbench_revision': '1b4126d2b3009b33e98c7f5cff0d78bf48634bf4',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -1745,7 +1745,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': 'mQ53JPJ3W8dCdt6VyK0nSg8qdj07XFPPLg_qSrKBOmUC',
+        'version': 'RFDG3vE-cHDUlvC5l-1q5jSFHlpAh6g71Nm12iUtgiQC',
       },
     ],
     'condition': 'non_git_source',
@@ -1937,7 +1937,7 @@ deps = {
       'packages': [
           {
                'package': 'chromium/third_party/android_build_tools/error_prone',
-               'version': 'p2NUwIFqZVJRZYDTJojc9xjs-8wDtq5-2bO8gDP1CvAC',
+               'version': 'E88U2kkRI8lzHhxGpBEbZN4mCXkUdpfthRzlzSir2G8C',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -2665,7 +2665,7 @@ deps = {
     Var('chromium_git') + '/webm/libwebp.git' + '@' +  'b43b2caa710c0c997c066cb32c7fea1391fad70a',
 
   'src/third_party/libyuv':
-    Var('chromium_git') + '/libyuv/libyuv.git' + '@' + '26e56be0f984af3dae4d0c0ab7a0bac8ac20e1b0',
+    Var('chromium_git') + '/libyuv/libyuv.git' + '@' + 'a0fa6329391922faca64955c1a7bf635ab87d833',
 
   'src/third_party/lss': {
       'url': Var('chromium_git') + '/linux-syscall-support.git' + '@' + Var('lss_revision'),
