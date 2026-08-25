@@ -375,6 +375,16 @@ if (!is_android) {
     ]
   }
 
+  source_set("ui_controller_factory") {
+    public = [ "ui_controller_factory.h" ]
+    sources = [ "ui_controller_factory.cc" ]
+    public_deps = [ "//ui/base/unowned_user_data" ]
+    deps = [
+      "//chrome/browser/ui/bookmarks/controllers:impl",
+      "//chrome/browser/ui/browser_window",
+    ]
+  }
+
   source_set("browser_tab_strip_tracker") {
     sources = [ "browser_tab_strip_tracker.cc" ]
     deps = [
@@ -919,6 +929,7 @@ static_library("ui") {
 
   if (!is_android) {
     deps += [
+      ":ui_controller_factory",
       "//chrome/browser/ui/browser_active_state_manager",
       "//chrome/browser/ui/infobars",
       "//chrome/browser/ui/views/frame:glass_frame_service",
@@ -2182,8 +2193,6 @@ static_library("ui") {
 
   if (is_win || is_mac || is_linux || is_chromeos) {
     sources += [
-      "views/autofill/payments/webauthn_dialog_view.cc",
-      "views/autofill/payments/webauthn_dialog_view.h",
       "views/profiles/incognito_menu_view.cc",
       "views/profiles/incognito_menu_view.h",
       "views/profiles/profile_menu_coordinator.cc",
@@ -2521,30 +2530,20 @@ static_library("ui") {
       "views/autofill/payments/bnpl_issuer_view.h",
       "views/autofill/payments/omnibox_autofill_bubble_view.cc",
       "views/autofill/payments/omnibox_autofill_bubble_view.h",
-      "views/autofill/payments/omnibox_autofill_suggestion_view.cc",
-      "views/autofill/payments/omnibox_autofill_suggestion_view.h",
-      "views/autofill/payments/save_card_bubble_views.cc",
-      "views/autofill/payments/save_card_bubble_views.h",
       "views/autofill/payments/save_card_manage_cards_bubble_views.cc",
       "views/autofill/payments/save_card_manage_cards_bubble_views.h",
       "views/autofill/payments/save_card_offer_bubble_views.cc",
       "views/autofill/payments/save_card_offer_bubble_views.h",
-      "views/autofill/payments/save_payment_method_and_virtual_card_enroll_confirmation_bubble_views.cc",
-      "views/autofill/payments/save_payment_method_and_virtual_card_enroll_confirmation_bubble_views.h",
       "views/autofill/payments/select_bnpl_issuer_dialog.cc",
       "views/autofill/payments/select_bnpl_issuer_dialog.h",
       "views/autofill/popup/popup_at_memory_ai_disclosure_view.cc",
       "views/autofill/popup/popup_at_memory_ai_disclosure_view.h",
       "views/autofill/popup/popup_base_view.cc",
-      "views/autofill/popup/popup_cell_utils.cc",
-      "views/autofill/popup/popup_cell_utils.h",
       "views/autofill/popup/popup_loading_view.cc",
       "views/autofill/popup/popup_loading_view.h",
       "views/autofill/popup/popup_row_factory_utils.cc",
       "views/autofill/popup/popup_row_factory_utils.h",
       "views/autofill/popup/popup_row_view.cc",
-      "views/autofill/popup/popup_row_with_button_view.cc",
-      "views/autofill/popup/popup_row_with_button_view.h",
       "views/autofill/popup/popup_view_utils.cc",
       "views/autofill/popup/popup_view_views.cc",
       "views/autofill/popup/popup_view_views.h",
@@ -2676,8 +2675,6 @@ static_library("ui") {
       "views/frame/vertical_tab_strip_background_blur_backdrop.h",
       "views/frame/vertical_tab_strip_region_view.cc",
       "views/frame/vertical_tab_strip_region_view.h",
-      "views/frame/web_contents_close_handler.cc",
-      "views/frame/web_contents_close_handler.h",
       "views/global_error_bubble_view.cc",
       "views/global_error_bubble_view.h",
       "views/idle_bubble.cc",
@@ -2907,22 +2904,28 @@ static_library("ui") {
       "//chrome/browser/ui/views/autofill/payments:mandatory_reauth_confirmation_bubble_view",
       "//chrome/browser/ui/views/autofill/payments:mandatory_reauth_opt_in_bubble_view",
       "//chrome/browser/ui/views/autofill/payments:offer_notification_bubble_views",
+      "//chrome/browser/ui/views/autofill/payments:omnibox_autofill_suggestion_view",
       "//chrome/browser/ui/views/autofill/payments:payments_churned_users_bubble_view",
       "//chrome/browser/ui/views/autofill/payments:payments_window_user_consent_dialog_view",
       "//chrome/browser/ui/views/autofill/payments:promo_code_label_button",
       "//chrome/browser/ui/views/autofill/payments:save_and_fill_dialog",
       "//chrome/browser/ui/views/autofill/payments:save_and_fill_view_desktop",
+      "//chrome/browser/ui/views/autofill/payments:save_card_bubble_views",
+      "//chrome/browser/ui/views/autofill/payments:save_payment_method_and_virtual_card_enroll_confirmation_bubble_views",
       "//chrome/browser/ui/views/autofill/payments:virtual_card_enroll_bubble_views",
       "//chrome/browser/ui/views/autofill/payments:wallet_reminder_notice_bubble_view",
+      "//chrome/browser/ui/views/autofill/payments:webauthn_dialog_view",
       "//chrome/browser/ui/views/autofill/popup",
       "//chrome/browser/ui/views/autofill/popup:custom_cursor_suppressor",
       "//chrome/browser/ui/views/autofill/popup:lazy_loading_image_view",
       "//chrome/browser/ui/views/autofill/popup:password_favicon_loader",
       "//chrome/browser/ui/views/autofill/popup:popup_bnpl_footnote_view",
+      "//chrome/browser/ui/views/autofill/popup:popup_cell_utils",
       "//chrome/browser/ui/views/autofill/popup:popup_centered_text_view",
       "//chrome/browser/ui/views/autofill/popup:popup_interactive_row_view",
       "//chrome/browser/ui/views/autofill/popup:popup_notice_view",
       "//chrome/browser/ui/views/autofill/popup:popup_row_content_view",
+      "//chrome/browser/ui/views/autofill/popup:popup_row_with_button_view",
       "//chrome/browser/ui/views/autofill/popup:popup_search_bar_view",
       "//chrome/browser/ui/views/autofill/popup:popup_separator_view",
       "//chrome/browser/ui/views/autofill/popup:popup_title_view",
@@ -2958,6 +2961,7 @@ static_library("ui") {
       "//chrome/browser/ui/views/frame:opaque_browser_frame_view_layout_delegate",
       "//chrome/browser/ui/views/frame:scrim_view",
       "//chrome/browser/ui/views/frame:shadow",
+      "//chrome/browser/ui/views/frame:web_contents_close_handler",
       "//chrome/browser/ui/views/frame:web_contents_close_handler_delegate",
       "//chrome/browser/ui/views/frame:windows_icon_painter",
       "//chrome/browser/ui/views/fullscreen_control",
@@ -3401,11 +3405,11 @@ static_library("ui") {
     }
 
     if (is_win || is_linux || is_chromeos) {
-      sources += [
-        "views/native_widget_factory.cc",
-        "views/native_widget_factory.h",
-      ]
       deps += [ "//chrome/browser/ui/views:bluetooth_dialogs" ]
+    }
+
+    if (use_aura && !is_chromeos) {
+      deps += [ "//chrome/browser/ui/views:native_widget_factory" ]
     }
 
     if (is_mac) {
@@ -3454,9 +3458,9 @@ static_library("ui") {
         "views/frame/opaque_browser_frame_view.h",
         "views/frame/opaque_browser_frame_view_layout.cc",
         "views/frame/opaque_browser_frame_view_layout.h",
-        "views/screen_capture_notification_ui_views.cc",
       ]
       deps += [
+        "//chrome/browser/ui/views:screen_capture_notification_ui_views",
         "//chrome/browser/ui/views/policy:enterprise_startup_dialog",
         "//chrome/browser/ui/views/policy:idle_dialog",
         "//chrome/browser/ui/views/shortcuts",

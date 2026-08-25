@@ -401,7 +401,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': '82aa32b5c4c237e3f077f5d2e01ada8fa9227da8',
+  'crossbench_revision': 'a39b59ec78f675af4eb692da080159974a998fc8',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -902,20 +902,6 @@ deps = {
         'sha256sum': 'a298af5fafd358179d6aec9a42f667902dbcdb03a42ee4a87a1bff83515e96b9',
         'size_bytes': 11320770,
         'generation': 1781805676756361,
-        'output_file': 'node_modules.tar.gz',
-      },
-    ],
-  },
-  # Pull NPM dependencies for chromium-bidi.
-  'src/third_party/chromium-bidi/node_modules': {
-    'dep_type': 'gcs',
-    'bucket': 'chromium-nodejs',
-    'objects': [
-      {
-        'object_name': 'chromium-bidi/e7aab7e5ac29d62f5c023d7e8ba5eedc09a11945a88b0e174fc42f64c0820071',
-        'sha256sum': 'e7aab7e5ac29d62f5c023d7e8ba5eedc09a11945a88b0e174fc42f64c0820071',
-        'size_bytes': 20034775,
-        'generation': 1787231196468746,
         'output_file': 'node_modules.tar.gz',
       },
     ],
@@ -2209,7 +2195,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '8057f9d7caa9661c3f38ea4c67bd0544e4e4a126',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'a3b8ad62a7db1a87434a23117c94ce9013d04d5e',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
