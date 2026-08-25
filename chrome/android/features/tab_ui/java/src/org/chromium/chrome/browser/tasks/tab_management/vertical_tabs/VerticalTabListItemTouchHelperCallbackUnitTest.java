@@ -15,6 +15,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -43,6 +44,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowSystemClock;
 
 import org.chromium.base.Token;
 import org.chromium.base.test.BaseRobolectricTestRunner;
@@ -64,6 +66,7 @@ import org.chromium.ui.modelutil.PropertyModel;
 import org.chromium.ui.modelutil.SimpleRecyclerViewAdapter;
 import org.chromium.ui.recyclerview.widget.ItemTouchHelper2;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -471,7 +474,7 @@ public class VerticalTabListItemTouchHelperCallbackUnitTest {
                 TabListModel.AnimationStatus.SELECTED_CARD_ZOOM_IN,
                 mPropertyModel.get(TabListModel.CardProperties.CARD_ANIMATION_STATUS));
         assertEquals(0.8f, mPropertyModel.get(TabListModel.CardProperties.CARD_ALPHA), 0.01f);
-        verify(mTabModel).setIndex(0, TabSelectionType.FROM_USER);
+        verify(mTabModel).setIndex(0, TabSelectionType.FROM_DRAG);
     }
 
     @Test
@@ -658,6 +661,9 @@ public class VerticalTabListItemTouchHelperCallbackUnitTest {
         RecyclerView.OnItemTouchListener listener =
                 mCallback.createMouseDragDetector(mItemTouchHelper);
 
+        Runnable dragStartCallback = Mockito.mock(Runnable.class);
+        mCallback.setOnDragStartCallback(dragStartCallback);
+
         // 1. ACTION_DOWN.
         MotionEvent downEvent = createMouseEvent(MotionEvent.ACTION_DOWN, 10f, 10f);
         when(mRecyclerView.findChildViewUnder(10f, 10f)).thenReturn(mChildView);
@@ -676,9 +682,52 @@ public class VerticalTabListItemTouchHelperCallbackUnitTest {
 
         assertFalse(listener.onInterceptTouchEvent(mRecyclerView, moveEvent));
         verify(mItemTouchHelper).startDrag(mViewHolder);
+        verify(dragStartCallback).run();
 
         downEvent.recycle();
         moveEvent.recycle();
+    }
+
+    @Test
+    @SmallTest
+    public void testOnChildDraw_TriggersDragStartCallbackOnDisplacement() {
+        Runnable dragStartCallback = Mockito.mock(Runnable.class);
+        mCallback.setOnDragStartCallback(dragStartCallback);
+        mCallback.setTabGridItemLongPressOrchestratorForTesting(mOrchestrator);
+
+        // Displacement within threshold (e.g. 1dp <= threshold).
+        mCallback.onChildDraw(
+                mCanvas,
+                mRecyclerView,
+                mViewHolder,
+                /* dX= */ 1f,
+                /* dY= */ 1f,
+                ItemTouchHelper.ACTION_STATE_DRAG,
+                /* isCurrentlyActive= */ true);
+        verify(dragStartCallback, never()).run();
+
+        // Displacement exceeding threshold (> cancel threshold).
+        float largeDisplacement = mCallback.getLongPressDpCancelThresholdForTesting() + 5f;
+        mCallback.onChildDraw(
+                mCanvas,
+                mRecyclerView,
+                mViewHolder,
+                /* dX= */ 0f,
+                /* dY= */ largeDisplacement,
+                ItemTouchHelper.ACTION_STATE_DRAG,
+                /* isCurrentlyActive= */ true);
+        verify(dragStartCallback).run();
+
+        // Subsequent onChildDraw calls should not re-trigger the callback (one-shot latch).
+        mCallback.onChildDraw(
+                mCanvas,
+                mRecyclerView,
+                mViewHolder,
+                /* dX= */ 0f,
+                /* dY= */ largeDisplacement + 10f,
+                ItemTouchHelper.ACTION_STATE_DRAG,
+                /* isCurrentlyActive= */ true);
+        verify(dragStartCallback, times(1)).run();
     }
 
     @Test
@@ -1765,6 +1814,129 @@ public class VerticalTabListItemTouchHelperCallbackUnitTest {
         mCallback.clearView(mRecyclerView, mViewHolder);
 
         histogramWatcher.assertExpected();
+    }
+
+    @Test
+    @SmallTest
+    public void testDragDropTimeToUngroup_RecordedWhenUngroupedAfterGroup() {
+        var timeToUngroupWatcher =
+                HistogramWatcher.newSingleRecordWatcher(
+                        "Android.VerticalTabs.DragDropTimeToUngroup");
+
+        // 1. Group Tab 1.
+        mPropertyModel.set(TabProperties.TAB_ID, 1);
+        mPropertyModel.set(TabProperties.TAB_GROUP_ID, null);
+        when(mViewHolder.getItemViewType()).thenReturn(TabProperties.UiType.TAB);
+        mTargetPropertyModel.set(TabProperties.TAB_ID, 2);
+        Token destGroupId = new Token(1L, 2L);
+        mTargetPropertyModel.set(TabProperties.TAB_GROUP_HEADER_ID, destGroupId);
+        when(mTargetViewHolder.getItemViewType()).thenReturn(TabProperties.UiType.TAB_GROUP);
+        when(mTabModel.getTabById(1)).thenReturn(mTab1);
+        when(mTabModel.getTabById(2)).thenReturn(mTab2);
+        when(mTabModel.indexOf(mTab1)).thenReturn(0);
+        when(mViewHolder.getBindingAdapterPosition()).thenReturn(0);
+        when(mTargetViewHolder.getBindingAdapterPosition()).thenReturn(1);
+
+        mCallback.onSelectedChanged(mViewHolder, ItemTouchHelper.ACTION_STATE_DRAG);
+        mCallback.onMove(mRecyclerView, mViewHolder, mTargetViewHolder);
+        when(mTab1.getTabGroupId()).thenReturn(destGroupId);
+        mCallback.clearView(mRecyclerView, mViewHolder);
+
+        // 2. Ungroup Tab 1.
+        mPropertyModel.set(TabProperties.TAB_GROUP_ID, destGroupId);
+        when(mTab1.getId()).thenReturn(1);
+        when(mTab2.getId()).thenReturn(2);
+        when(mTab2.getTabGroupId()).thenReturn(destGroupId);
+        when(mTabModel.indexOf(mTab1)).thenReturn(1);
+        when(mTabModel.getRelatedTabList(1)).thenReturn(List.of(mTab1, mTab2));
+        when(mViewHolder.itemView.getHeight()).thenReturn(100);
+        when(mViewHolder.itemView.getTop()).thenReturn(200);
+
+        mCallback.onSelectedChanged(mViewHolder, ItemTouchHelper.ACTION_STATE_DRAG);
+        assertTrue(mCallback.hasDragEscapedBounds(mRecyclerView, mViewHolder, 0, 140, 0, -10));
+        when(mTab1.getTabGroupId()).thenReturn(null);
+        mCallback.clearView(mRecyclerView, mViewHolder);
+
+        timeToUngroupWatcher.assertExpected();
+    }
+
+    @Test
+    @SmallTest
+    public void testDragDropTimeToUngroup_NotRecordedWhenUngroupedWithoutPriorGroup() {
+        var timeToUngroupWatcher =
+                HistogramWatcher.newBuilder()
+                        .expectNoRecords("Android.VerticalTabs.DragDropTimeToUngroup")
+                        .build();
+
+        when(mViewHolder.getItemViewType()).thenReturn(TabProperties.UiType.TAB);
+        Token groupId = new Token(1L, 2L);
+        mPropertyModel.set(TabProperties.TAB_GROUP_ID, groupId);
+        mPropertyModel.set(TabProperties.TAB_ID, 1);
+        when(mTab1.getId()).thenReturn(1);
+        when(mTab2.getId()).thenReturn(2);
+        when(mTab1.getTabGroupId()).thenReturn(groupId);
+        when(mTab2.getTabGroupId()).thenReturn(groupId);
+        when(mTabModel.getTabById(1)).thenReturn(mTab1);
+        when(mTabModel.indexOf(mTab1)).thenReturn(1);
+        when(mTabModel.getRelatedTabList(1)).thenReturn(List.of(mTab1, mTab2));
+        when(mViewHolder.itemView.getHeight()).thenReturn(100);
+        when(mViewHolder.itemView.getTop()).thenReturn(200);
+
+        mCallback.onSelectedChanged(mViewHolder, ItemTouchHelper.ACTION_STATE_DRAG);
+        assertTrue(mCallback.hasDragEscapedBounds(mRecyclerView, mViewHolder, 0, 140, 0, -10));
+        when(mTab1.getTabGroupId()).thenReturn(null);
+        mCallback.clearView(mRecyclerView, mViewHolder);
+
+        timeToUngroupWatcher.assertExpected();
+    }
+
+    @Test
+    @SmallTest
+    @Config(shadows = {ShadowSystemClock.class})
+    public void testDragDropTimeToUngroup_ExpiredAfter3Minutes_NotRecorded() {
+        var timeToUngroupWatcher =
+                HistogramWatcher.newBuilder()
+                        .expectNoRecords("Android.VerticalTabs.DragDropTimeToUngroup")
+                        .build();
+
+        // 1. Group Tab 1.
+        mPropertyModel.set(TabProperties.TAB_ID, 1);
+        mPropertyModel.set(TabProperties.TAB_GROUP_ID, null);
+        when(mViewHolder.getItemViewType()).thenReturn(TabProperties.UiType.TAB);
+        mTargetPropertyModel.set(TabProperties.TAB_ID, 2);
+        Token destGroupId = new Token(1L, 2L);
+        mTargetPropertyModel.set(TabProperties.TAB_GROUP_HEADER_ID, destGroupId);
+        when(mTargetViewHolder.getItemViewType()).thenReturn(TabProperties.UiType.TAB_GROUP);
+        when(mTabModel.getTabById(1)).thenReturn(mTab1);
+        when(mTabModel.getTabById(2)).thenReturn(mTab2);
+        when(mTabModel.indexOf(mTab1)).thenReturn(0);
+        when(mViewHolder.getBindingAdapterPosition()).thenReturn(0);
+        when(mTargetViewHolder.getBindingAdapterPosition()).thenReturn(1);
+
+        mCallback.onSelectedChanged(mViewHolder, ItemTouchHelper.ACTION_STATE_DRAG);
+        mCallback.onMove(mRecyclerView, mViewHolder, mTargetViewHolder);
+        when(mTab1.getTabGroupId()).thenReturn(destGroupId);
+        mCallback.clearView(mRecyclerView, mViewHolder);
+
+        // Advance clock past 3 minutes (e.g. 4 minutes).
+        ShadowSystemClock.advanceBy(Duration.ofMinutes(4));
+
+        // 2. Ungroup Tab 1.
+        mPropertyModel.set(TabProperties.TAB_GROUP_ID, destGroupId);
+        when(mTab1.getId()).thenReturn(1);
+        when(mTab2.getId()).thenReturn(2);
+        when(mTab2.getTabGroupId()).thenReturn(destGroupId);
+        when(mTabModel.indexOf(mTab1)).thenReturn(1);
+        when(mTabModel.getRelatedTabList(1)).thenReturn(List.of(mTab1, mTab2));
+        when(mViewHolder.itemView.getHeight()).thenReturn(100);
+        when(mViewHolder.itemView.getTop()).thenReturn(200);
+
+        mCallback.onSelectedChanged(mViewHolder, ItemTouchHelper.ACTION_STATE_DRAG);
+        assertTrue(mCallback.hasDragEscapedBounds(mRecyclerView, mViewHolder, 0, 140, 0, -10));
+        when(mTab1.getTabGroupId()).thenReturn(null);
+        mCallback.clearView(mRecyclerView, mViewHolder);
+
+        timeToUngroupWatcher.assertExpected();
     }
 
     @Test

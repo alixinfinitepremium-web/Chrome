@@ -9,6 +9,9 @@ import static org.chromium.build.NullUtil.assumeNonNull;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Rect;
+import android.os.SystemClock;
+import android.text.format.DateUtils;
+import android.util.SparseLongArray;
 import android.view.InputDevice;
 import android.view.MotionEvent;
 import android.view.View;
@@ -81,10 +84,12 @@ public class VerticalTabListItemTouchHelperCallback extends TabListItemTouchHelp
     // LINT.ThenChange(//tools/metrics/histograms/metadata/android/enums.xml:AndroidVerticalTabsDragDropResult)
 
     private static final long CONTEXT_MENU_ORCHESTRATOR_DELAY_MS = 10L;
+    private static final long MAX_UNGROUP_TRACKING_DURATION_MS = 3 * DateUtils.MINUTE_IN_MILLIS;
     private final int mMouseDragThresholdSquared;
     private final Set<Integer> mDraggedChildTabIds = new HashSet<>();
     private final List<Integer> mSelectedGroupTabIds = new ArrayList<>();
     private final List<RecyclerView.ViewHolder> mDraggedChildViewHolders = new ArrayList<>();
+    private final SparseLongArray mGroupedTabTimestamps = new SparseLongArray();
     private final @Nullable UndoBarThrottle mUndoBarThrottle;
     // State snapshot captured at drag start to diff against the final state on drop.
     private int mDragStartTabId = Tab.INVALID_TAB_ID;
@@ -93,6 +98,8 @@ public class VerticalTabListItemTouchHelperCallback extends TabListItemTouchHelp
     private boolean mIsOSNewWindowDrop;
     private RecyclerView.@Nullable ViewHolder mSelectedViewHolder;
     private @Nullable OnDragOutListener mOnDragOutListener;
+    private @Nullable Runnable mOnDragStartCallback;
+    private boolean mHasFiredDragMovementCallback;
     private int mUndoBarThrottleToken = TokenHolder.INVALID_TOKEN;
     private float mDragStartX;
 
@@ -132,6 +139,11 @@ public class VerticalTabListItemTouchHelperCallback extends TabListItemTouchHelp
     /** Sets the listener for outward drag events. */
     public void setOnDragOutListener(OnDragOutListener listener) {
         mOnDragOutListener = listener;
+    }
+
+    /** Sets the listener for when drag reordering starts. */
+    public void setOnDragStartCallback(@Nullable Runnable callback) {
+        mOnDragStartCallback = callback;
     }
 
     /**
@@ -557,6 +569,7 @@ public class VerticalTabListItemTouchHelperCallback extends TabListItemTouchHelp
         }
 
         if (actionState == ItemTouchHelper.ACTION_STATE_DRAG) {
+            mHasFiredDragMovementCallback = false;
             TabModel tabModel = mCurrentTabModelSupplier.get();
             if (tabModel == null || !hasTabPropertiesModel(viewHolder)) return;
 
@@ -609,7 +622,7 @@ public class VerticalTabListItemTouchHelperCallback extends TabListItemTouchHelp
                     }
                 }
             } else {
-                selectTab(viewHolder);
+                selectTab(viewHolder, TabSelectionType.FROM_DRAG);
             }
         } else if (actionState == ItemTouchHelper.ACTION_STATE_IDLE) {
             stopThrottling();
@@ -688,9 +701,19 @@ public class VerticalTabListItemTouchHelperCallback extends TabListItemTouchHelp
 
         super.onChildDraw(
                 c, recyclerView, viewHolder, renderDx, renderDy, actionState, isCurrentlyActive);
-        if (mTabGridItemLongPressOrchestrator != null && !mIsMouseInputSource) {
+        if (!mIsMouseInputSource) {
             float displacementSquared = calcMagnitudeSquared(dX, dY);
-            mTabGridItemLongPressOrchestrator.processChildDisplacement(displacementSquared);
+            if (mTabGridItemLongPressOrchestrator != null) {
+                mTabGridItemLongPressOrchestrator.processChildDisplacement(displacementSquared);
+            }
+            if (!mHasFiredDragMovementCallback
+                    && displacementSquared
+                            > mLongPressDpCancelThreshold * mLongPressDpCancelThreshold) {
+                mHasFiredDragMovementCallback = true;
+                if (mOnDragStartCallback != null) {
+                    mOnDragStartCallback.run();
+                }
+            }
         }
 
         if (actionState == ItemTouchHelper.ACTION_STATE_DRAG) {
@@ -827,6 +850,7 @@ public class VerticalTabListItemTouchHelperCallback extends TabListItemTouchHelp
         if (mTabGridItemLongPressOrchestrator != null) {
             mTabGridItemLongPressOrchestrator.cancel();
         }
+        mHasFiredDragMovementCallback = false;
         setDraggingY(viewHolder, null);
         // When the drag completely finishes, clean up all manual visual overrides on children.
         if (viewHolder.getItemViewType() == TabProperties.UiType.TAB_GROUP
@@ -854,6 +878,24 @@ public class VerticalTabListItemTouchHelperCallback extends TabListItemTouchHelp
             @DragDropResult int dragResult = computeDragDropResult(viewHolder);
             RecordHistogram.recordEnumeratedHistogram(
                     "Android.VerticalTabs.DragDropResult", dragResult, DragDropResult.COUNT);
+            long now = SystemClock.elapsedRealtime();
+            pruneExpiredGroupTimestamps(now);
+            if (dragResult == DragDropResult.GROUPED) {
+                mGroupedTabTimestamps.put(mDragStartTabId, now);
+                for (int childTabId : mDraggedChildTabIds) {
+                    mGroupedTabTimestamps.put(childTabId, now);
+                }
+            } else if (dragResult == DragDropResult.UNGROUPED) {
+                int index = mGroupedTabTimestamps.indexOfKey(mDragStartTabId);
+                if (index >= 0) {
+                    long durationMs = now - mGroupedTabTimestamps.valueAt(index);
+                    if (durationMs <= MAX_UNGROUP_TRACKING_DURATION_MS) {
+                        RecordHistogram.recordMediumTimesHistogram(
+                                "Android.VerticalTabs.DragDropTimeToUngroup", durationMs);
+                    }
+                    mGroupedTabTimestamps.removeAt(index);
+                }
+            }
             mDragStartTabId = Tab.INVALID_TAB_ID;
             mDragStartGroupId = null;
             mDragStartTabModelIndex = TabModel.INVALID_TAB_INDEX;
@@ -1336,7 +1378,7 @@ public class VerticalTabListItemTouchHelperCallback extends TabListItemTouchHelp
         return assumeNonNull(((ViewHolder) viewHolder).model).get(TabProperties.TAB_ID);
     }
 
-    private void selectTab(RecyclerView.ViewHolder viewHolder) {
+    private void selectTab(RecyclerView.ViewHolder viewHolder, @TabSelectionType int type) {
         if (viewHolder.getItemViewType() == TabProperties.UiType.TAB_GROUP) {
             return;
         }
@@ -1345,7 +1387,7 @@ public class VerticalTabListItemTouchHelperCallback extends TabListItemTouchHelp
 
         int tabId = getTabId(viewHolder);
         Tab tab = tabModel.getTabById(tabId);
-        selectTabInternal(tabModel, tab, TabSelectionType.FROM_USER);
+        selectTabInternal(tabModel, tab, type);
     }
 
     /**
@@ -1473,7 +1515,7 @@ public class VerticalTabListItemTouchHelperCallback extends TabListItemTouchHelp
                                 // onClick).
                                 MotionEventInfo info = MotionEventInfo.fromMotionEvent(e);
                                 if (!info.hasCtrlOrMeta() && !info.hasShift()) {
-                                    selectTab(mActiveViewHolder);
+                                    selectTab(mActiveViewHolder, TabSelectionType.FROM_USER);
                                 }
                             }
                         }
@@ -1488,6 +1530,9 @@ public class VerticalTabListItemTouchHelperCallback extends TabListItemTouchHelp
                                 itemTouchHelper.startDrag(mActiveViewHolder);
                                 mTrackingMouseDrag = false;
                                 mActiveViewHolder = null;
+                                if (mOnDragStartCallback != null) {
+                                    mOnDragStartCallback.run();
+                                }
                             }
                         }
                         break;
@@ -1555,6 +1600,14 @@ public class VerticalTabListItemTouchHelperCallback extends TabListItemTouchHelp
         return DragDropResult.ABORTED_NO_CHANGE;
     }
 
+    private void pruneExpiredGroupTimestamps(long now) {
+        for (int i = mGroupedTabTimestamps.size() - 1; i >= 0; i--) {
+            if (now - mGroupedTabTimestamps.valueAt(i) > MAX_UNGROUP_TRACKING_DURATION_MS) {
+                mGroupedTabTimestamps.removeAt(i);
+            }
+        }
+    }
+
     /** Sets the tab grid item long press orchestrator for testing. */
     void setTabGridItemLongPressOrchestratorForTesting(
             TabGridItemLongPressOrchestrator orchestrator) {
@@ -1564,5 +1617,15 @@ public class VerticalTabListItemTouchHelperCallback extends TabListItemTouchHelp
     /** Returns the drag out listener for testing. */
     @Nullable OnDragOutListener getOnDragOutListenerForTesting() {
         return mOnDragOutListener;
+    }
+
+    /** Returns the drag start callback for testing. */
+    @Nullable Runnable getOnDragStartCallbackForTesting() {
+        return mOnDragStartCallback;
+    }
+
+    /** Returns the long-press DP cancellation threshold for testing. */
+    float getLongPressDpCancelThresholdForTesting() {
+        return mLongPressDpCancelThreshold;
     }
 }

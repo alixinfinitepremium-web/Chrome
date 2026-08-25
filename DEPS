@@ -1507,7 +1507,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_mac_amd64',
-          'version': 'version:2@1679006',
+          'version': 'version:2@1680001',
         },
       ],
   },
@@ -1518,7 +1518,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_mac_arm64',
-          'version': 'version:2@1679011',
+          'version': 'version:2@1680001',
         },
       ],
   },
@@ -1651,7 +1651,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_linux64',
-          'version': 'WGfIP_LC4zgbaC5LhRcGEyMoN_GUFa2CLZ5F6g48InIC',
+          'version': 'x9H48Cw3KAt2K6RjfXNujhlfF1KhXI8A8llLPis8rfsC',
         },
       ],
   },
@@ -1673,7 +1673,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_mac_arm64',
-          'version': 'FkpJtLkKUkoo48RSwQZ4KVxRPr8jx4phf3IocBnX0TUC',
+          'version': 'm8PWGY6HYg8tndoRhre5B-Lz1aa-KZX4Z8xJfUKMi2oC',
         },
       ],
   },
@@ -1695,7 +1695,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_win_x86_64',
-          'version': '0hCXzx9m5o6s9y6C8YhN67U08SxgF8CVSN_hcYsWcJ4C',
+          'version': 'P68m1xS6t1_wkdG5D3YigiloPOrxm8RcKZD1gT2mEMEC',
         },
       ],
   },
@@ -2195,7 +2195,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'e2c05e263f4223d9b5e2ca6185bf3d2cce90fded',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'ab9a80dd1ec669b1586e3b7a0197aafb5088c325',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -2410,7 +2410,7 @@ deps = {
   },
 
   'src/third_party/hunspell_dictionaries':
-    Var('chromium_git') + '/chromium/deps/hunspell_dictionaries.git' + '@' + 'cccf64a8acc951afe3f47fee023908e55699bc58',
+    Var('chromium_git') + '/chromium/deps/hunspell_dictionaries.git' + '@' + 'cee14e319bb7603a1157bb4d1e216be64ee82b77',
 
   'src/third_party/icu':
     Var('chromium_git') + '/chromium/deps/icu.git' + '@' + '8cc91d9b6ab9991802fd208ee03a69714fd0251c',
@@ -2774,7 +2774,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/cisco/openh264' + '@' + 'fca40fc19f5fb854609d297ae4bde71df72787c9',
 
   'src/third_party/openscreen/src':
-    Var('chromium_git') + '/openscreen' + '@' + '922e4f83c54c9351544591a31d9dd27a009a237c',
+    Var('chromium_git') + '/openscreen' + '@' + 'fe7f765e39992175785011385d1fe073efe89d55',
 
   'src/third_party/openxr/src': {
     'url': Var('chromium_git') + '/external/github.com/KhronosGroup/OpenXR-SDK' + '@' + '75c53b6e853dc12c7b3c771edc9c9c841b15faaa',
