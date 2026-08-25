@@ -185,10 +185,10 @@ vars = {
   'checkout_bazelisk': False,
   'bazelisk_version': 'version:3@1.29.0',
 
-  # By default checkout the OpenXR loader library only on Windows and Android.
-  # The OpenXR backend for VR in Chromium is currently only supported for these
-  # platforms, but support for other platforms may be added in the future.
-  'checkout_openxr' : 'checkout_win or checkout_android',
+  # By default checkout the OpenXR loader library on Windows, Linux and Android.
+  # The OpenXR backend for VR in Chromium is supported on these platforms;
+  # support for other platforms may be added in the future.
+  'checkout_openxr' : 'checkout_win or checkout_linux or checkout_android',
 
   # By default, do not check out instrumented libraries. These prebuilt
   # binaries are only consumed by MSan builds (`is_msan = true` in GN).
@@ -337,11 +337,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '740ab3853bddff053bb53b8caf4df1cc505cef0e',
+  'src_internal_revision': '34d0faff399d9cef6892f9c04617585aa32f9621',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': 'ffc2cc46d8ca69b8d5a3b2d4dd92c6b9df280e20',
+  'skia_revision': '84195105bf14766d3adf4d8758abf3b5eb589401',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -349,7 +349,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '71973a8e7cdecfa1038c6d07e94bdd2965b6f703',
+  'angle_revision': '7d7ec5882d7609ee1ba1782cdea3a73a35770455',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -357,11 +357,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling PDFium
   # and whatever else without interference from each other.
-  'pdfium_revision': '784a524ddaa26d86c0f499625b97902095c26dfe',
+  'pdfium_revision': 'bd682d8a6d97d70f055a5591658475bd2043924a',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': '7445debaaac66522eaa1db3d8ff1ebcb40e1c0c2',
+  'boringssl_revision': '789ccba3db6314d9e24e97ea9e96e4dcf28c2345',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -401,7 +401,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': '1b4126d2b3009b33e98c7f5cff0d78bf48634bf4',
+  'crossbench_revision': '82aa32b5c4c237e3f077f5d2e01ada8fa9227da8',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -2209,7 +2209,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '7a43d88503fcde98e77f971b79737ff35345c5fc',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '8057f9d7caa9661c3f38ea4c67bd0544e4e4a126',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -3397,7 +3397,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_app/app',
-        'version': '6-gOac6qZ8pPkuhdu5kfMXMQhIe5RZ0dLAQtKwIHWe8C',
+        'version': 'iq9a5HkjnFus8o6O2cSTPv_ZoThIBzq0W1MPtT7prfAC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -4104,7 +4104,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '72cd4152f601160efc7c1d8d8530895022ed49c9',
+        '7ab89ec2014d5cabfa633bdd11b0e6bd490f098f',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 

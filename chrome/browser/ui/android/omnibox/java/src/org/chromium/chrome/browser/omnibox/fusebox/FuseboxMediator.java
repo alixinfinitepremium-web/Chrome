@@ -75,6 +75,7 @@ import org.chromium.components.feature_engagement.Tracker;
 import org.chromium.components.omnibox.AimModelsProto.ModelMode;
 import org.chromium.components.omnibox.AutocompleteInput;
 import org.chromium.components.omnibox.AutocompleteInput.AutocompleteState;
+import org.chromium.components.omnibox.AutocompleteInput.DisplayState;
 import org.chromium.components.omnibox.AutocompleteInput.SiteSearchData;
 import org.chromium.components.omnibox.AutocompleteRequestType;
 import org.chromium.components.omnibox.IconResourceIdsProto.IconResourceIds;
@@ -123,6 +124,8 @@ import java.util.function.Supplier;
     private final Callback<@Nullable SiteSearchData> mOnSiteSearchDataChanged =
             this::onSiteSearchDataChanged;
     private final Callback<@AutocompleteState Integer> mOnAutocompleteStateChanged =
+            (state) -> updateFuseboxState();
+    private final Callback<@DisplayState Integer> mOnDisplayStateChanged =
             (state) -> updateFuseboxState();
     private final Callback<InputState> mOnInputStateChanged = this::onInputStateChange;
     private final Callback<List<SuggestedTabInfo>> mOnSuggestedTabsChanged =
@@ -421,6 +424,7 @@ import java.util.function.Supplier;
             mInput.getSiteSearchDataSupplier().removeObserver(mOnSiteSearchDataChanged);
             mInput.getAutocompleteStateSupplier().removeObserver(mOnAutocompleteStateChanged);
             mInput.getPreviewMatchUrlSupplier().removeObserver(mOnPreviewMatchUrlChanged);
+            mInput.getDisplayStateSupplier().removeObserver(mOnDisplayStateChanged);
         }
         mInput = input;
         if (mInput == null) {
@@ -445,6 +449,8 @@ import java.util.function.Supplier;
                     .addSyncObserverAndCallIfNonNull(mOnAutocompleteStateChanged);
             mInput.getPreviewMatchUrlSupplier()
                     .addSyncObserverAndCallIfNonNull(mOnPreviewMatchUrlChanged);
+            mInput.getDisplayStateSupplier()
+                    .addSyncObserverAndCallIfNonNull(mOnDisplayStateChanged);
         }
     }
 
@@ -549,7 +555,8 @@ import java.util.function.Supplier;
         boolean showRequestTypeButton = shouldShowRequestTypeButton();
         if (!isInInputSession()) {
             targetState = FuseboxState.DISABLED;
-        } else if (mInput.getAutocompleteState() == AutocompleteState.STANDBY_NO_FOCUS) {
+        } else if (mInput.getAutocompleteState() == AutocompleteState.STANDBY_NO_FOCUS
+                || mInput.getDisplayState() == DisplayState.DRAFTING_NO_FOCUS) {
             targetState = FuseboxState.DISABLED;
         } else {
             boolean isPopover =
@@ -1337,6 +1344,7 @@ import java.util.function.Supplier;
             // reimplement this runnable to navigate via the current input state, instead of reading
             // from the views.
             mOnActivationChipClickedWithQuery.run();
+            return;
         }
 
         // Enable autocomplete only after updating the request type and URL text so suggestions
