@@ -160,7 +160,6 @@
 #include "components/autofill/core/common/unique_ids.h"
 #include "components/personal_context/core/personal_context_types.h"
 #include "components/prefs/pref_service.h"
-#include "components/security_interstitials/core/pref_names.h"
 #include "components/strings/grit/components_strings.h"
 #include "services/metrics/public/cpp/ukm_source_id.h"
 #include "third_party/abseil-cpp/absl/container/flat_hash_map.h"
@@ -322,7 +321,6 @@ FillDataType GetEventTypeFromSingleFieldSuggestionType(SuggestionType type) {
     case SuggestionType::kManageLoyaltyCard:
     case SuggestionType::kManageEnhancedAutofill:
     case SuggestionType::kMaximizeCreditCardBenefitsEntry:
-    case SuggestionType::kMixedFormMessage:
     case SuggestionType::kOneTimePasswordEntry:
     case SuggestionType::kPasswordEntry:
     case SuggestionType::kPasswordFieldByFieldFilling:
@@ -1192,10 +1190,7 @@ void BrowserAutofillManager::OnIndividualSuggestionsGenerated(
     base::ScopedClosureRunner scoped_on_after,
     std::vector<SuggestionGenerator::ReturnedSuggestions>
         returned_suggestions) {
-  using SuggestionDataSource = SuggestionGenerator::SuggestionDataSource;
-
-  // Suggestion generators lifespan should be limited to only when they are
-  // needed.
+  // `SuggestionGenerator`s' lifespan is limited to only when they are needed.
   suggestion_generators_.clear();
 
   // In case we cannot fetch the parsed `FormStructure` and `AutofillField`, we
@@ -1206,28 +1201,15 @@ void BrowserAutofillManager::OnIndividualSuggestionsGenerated(
       FindMutableFormAndField(form.global_id(), field.global_id())
           .autofill_field;
 
-  base::flat_map<SuggestionDataSource, std::vector<Suggestion>> all_suggestions(
-      std::move(returned_suggestions));
-
-  // Clear some of the suggestions based on the ablation study.
-  if (autofill_field &&
-      all_suggestions.contains(SuggestionDataSource::kAddress) &&
-      !all_suggestions[SuggestionDataSource::kAddress].empty() &&
-      EvaluateAblationStudy(*autofill_field, FillingProduct::kAddress,
-                            /*has_suggestions=*/true)) {
-    all_suggestions[SuggestionDataSource::kAddress].clear();
-  }
-  if (autofill_field &&
-      all_suggestions.contains(SuggestionDataSource::kCreditCard) &&
-      !all_suggestions[SuggestionDataSource::kCreditCard].empty() &&
-      EvaluateAblationStudy(*autofill_field, FillingProduct::kCreditCard,
-                            /*has_suggestions=*/true)) {
-    all_suggestions[SuggestionDataSource::kCreditCard].clear();
-  }
-
   std::map<FillingProduct, std::vector<Suggestion>> prioritized_suggestions =
-      FilterSuggestionsByPrioritization(std::move(all_suggestions));
+      FilterSuggestionsByPrioritization(std::move(returned_suggestions));
 
+  if (autofill_field &&
+      EvaluateAblationStudy(prioritized_suggestions, *autofill_field)) {
+    prioritized_suggestions.clear();
+  }
+
+  // Handle passkeys separately, since they merge with any suggestions.
   auto passkey_suggestions =
       prioritized_suggestions.extract(FillingProduct::kPasskey);
 
@@ -1244,9 +1226,6 @@ void BrowserAutofillManager::OnIndividualSuggestionsGenerated(
                                         std::move(scoped_on_after));
           return;
         }
-
-        // Handle passkeys separately, since they can merge with every
-        // suggestion.
         if (!passkey_suggestions.empty()) {
           MergePasskeysAndExistingSuggestions(
               suggestions, std::move(passkey_suggestions.mapped()));
@@ -1422,27 +1401,6 @@ void BrowserAutofillManager::GenerateSuggestionsAndMaybeShowUIPhase2(
       form, field, trigger_source, suggestion_generation_start_time,
       std::move(scoped_on_after));
 
-  // If this is a mixed content form, we show a warning message and don't offer
-  // autofill. The warning is shown even if there are no autofill suggestions
-  // available.
-  if (IsFormMixedContent(client(), form) &&
-      client().GetPrefs()->FindPreference(
-          ::prefs::kMixedFormsWarningsEnabled) &&
-      client().GetPrefs()->GetBoolean(::prefs::kMixedFormsWarningsEnabled)) {
-    LOG_AF(log_manager()) << LoggingScope::kFilling
-                          << LogMessage::kSuggestionSuppressed
-                          << " Reason: Insecure form";
-    // If the user begins typing, we interpret that as dismissing the warning.
-    // No suggestions are allowed, but the warning is no longer shown.
-    std::vector<Suggestion> suggestions;
-    if (!(field.properties_mask() & kUserTyped)) {
-      suggestions.emplace_back(
-          l10n_util::GetStringUTF16(IDS_AUTOFILL_WARNING_MIXED_FORM),
-          SuggestionType::kMixedFormMessage);
-    }
-    std::move(callback).Run(/*show_suggestions=*/true, suggestions);
-    return;
-  }
   const bool do_not_generate_autofill_suggestions =
       !form_structure || !autofill_field ||
       SuppressSuggestionsForAutocompleteUnrecognizedField(
@@ -3029,6 +2987,28 @@ void BrowserAutofillManager::UpdateInitialInteractionTimestamp(
       interaction_timestamp < metrics_->initial_interaction_timestamp) {
     metrics_->initial_interaction_timestamp = interaction_timestamp;
   }
+}
+
+bool BrowserAutofillManager::EvaluateAblationStudy(
+    const std::map<FillingProduct, std::vector<Suggestion>>& suggestions,
+    AutofillField& field) {
+  if (const std::vector<Suggestion>* address_suggestions =
+          base::FindOrNull(suggestions, FillingProduct::kAddress);
+      address_suggestions &&
+      EvaluateAblationStudy(field, FillingProduct::kAddress,
+                            /*has_suggestions=*/true)) {
+    CHECK(!address_suggestions->empty());
+    return true;
+  }
+  if (const std::vector<Suggestion>* credit_card_suggestions =
+          base::FindOrNull(suggestions, FillingProduct::kCreditCard);
+      credit_card_suggestions &&
+      EvaluateAblationStudy(field, FillingProduct::kCreditCard,
+                            /*has_suggestions=*/true)) {
+    CHECK(!credit_card_suggestions->empty());
+    return true;
+  }
+  return false;
 }
 
 bool BrowserAutofillManager::EvaluateAblationStudy(

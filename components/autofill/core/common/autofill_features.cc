@@ -567,6 +567,7 @@ BASE_FEATURE(kAutofillAtMemoryInactivityNudge,
              base::FEATURE_DISABLED_BY_DEFAULT);
 
 // Controls whether the previously filled suggestions from AtMemory are shown.
+// Takes no effect when `kAutofillAtMemorySearchStatefulness` is disabled.
 BASE_FEATURE(kAutofillAtMemoryPreviouslyFilled,
              base::FEATURE_DISABLED_BY_DEFAULT);
 
@@ -792,6 +793,11 @@ BASE_FEATURE(kAutofillEnableSkippingUnrecognizedAttribute,
 // nodes where required.
 // TODO(crbug.com/447111009): Remove when launched.
 BASE_FEATURE(kAutofillEnableStreetAddressMergeModes,
+             base::FEATURE_DISABLED_BY_DEFAULT);
+
+// When enabled, shows the Wallet Reminder Notice after submitting a form with a
+// non-private (public) pass.
+BASE_FEATURE(kAutofillEnableWalletReminderNoticePublicPass,
              base::FEATURE_DISABLED_BY_DEFAULT);
 
 // Enables extended zip code validation.

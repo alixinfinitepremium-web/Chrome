@@ -1194,10 +1194,17 @@ inline constexpr char kAutofillEnableWalletDirectOffersDescription[] =
     "for autofill into merchant promo code fields during checkout.";
 
 inline constexpr char kAutofillEnableWalletReminderNoticeName[] =
-    "Enable Wallet Reminder Notice";
+    "Enable Wallet Reminder Notice for cards";
 inline constexpr char kAutofillEnableWalletReminderNoticeDescription[] =
     "When enabled, shows the Wallet Reminder Notice prompt or bottom sheet "
-    "after the payment form submission.";
+    "for cards after payment form submission.";
+
+inline constexpr char kAutofillEnableWalletReminderNoticePublicPassName[] =
+    "Enable Wallet Reminder Notice for public passes";
+inline constexpr char
+    kAutofillEnableWalletReminderNoticePublicPassDescription[] =
+        "When enabled, shows the Wallet Reminder Notice prompt or bottom sheet "
+        "after submitting a form with a public pass.";
 
 inline constexpr char
     kAutofillIgnorePaymentsChurnedUsersStrikesForTestingName[] =
@@ -6494,6 +6501,12 @@ inline constexpr char kShowTabListAnimationsName[] =
     "Show Tab List Animations (Android XR)";
 inline constexpr char kShowTabListAnimationsDescription[] =
     "Shows animations for each tab on the tab switcher on Android XR.";
+
+inline constexpr char kSigninButtonProfileMenuName[] =
+    "Signin Button Profile Menu";
+inline constexpr char kSigninButtonProfileMenuDescription[] =
+    "Opens a desktop-like profile menu when tapping the toolbar sign-in button "
+    "on Desktop Android.";
 
 inline constexpr char kSigninLevelUpButtonName[] = "Signin Level Up Button";
 inline constexpr char kSigninLevelUpButtonDescription[] =
