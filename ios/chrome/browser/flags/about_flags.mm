@@ -1404,18 +1404,35 @@ constexpr FeatureEntry::FeatureVariation kAimButtonRefactorVariations[] = {
 const FeatureEntry::FeatureParam
     kGeminiContextualSuggestionsCuesWithOnDeviceClassifierCPU[] = {
         {kGeminiContextualSuggestionsCuesOnDeviceClassifierParam, "true"},
-        {kGeminiContextualSuggestionsCuesAllowGpuExecutionParam, "false"}};
+        {kGeminiContextualSuggestionsCuesAllowGpuExecutionParam, "false"},
+        {kGeminiContextualSuggestionsCuesTitleAndUrlOnlyParam, "true"}};
 const FeatureEntry::FeatureParam
     kGeminiContextualSuggestionsCuesWithOnDeviceClassifierGPU[] = {
         {kGeminiContextualSuggestionsCuesOnDeviceClassifierParam, "true"},
-        {kGeminiContextualSuggestionsCuesAllowGpuExecutionParam, "true"}};
+        {kGeminiContextualSuggestionsCuesAllowGpuExecutionParam, "true"},
+        {kGeminiContextualSuggestionsCuesTitleAndUrlOnlyParam, "true"}};
+const FeatureEntry::FeatureParam
+    kGeminiContextualSuggestionsCuesWithOnDeviceClassifierApcCPU[] = {
+        {kGeminiContextualSuggestionsCuesOnDeviceClassifierParam, "true"},
+        {kGeminiContextualSuggestionsCuesAllowGpuExecutionParam, "false"},
+        {kGeminiContextualSuggestionsCuesTitleAndUrlOnlyParam, "false"}};
+const FeatureEntry::FeatureParam
+    kGeminiContextualSuggestionsCuesWithOnDeviceClassifierApcGPU[] = {
+        {kGeminiContextualSuggestionsCuesOnDeviceClassifierParam, "true"},
+        {kGeminiContextualSuggestionsCuesAllowGpuExecutionParam, "true"},
+        {kGeminiContextualSuggestionsCuesTitleAndUrlOnlyParam, "false"}};
 
 const FeatureEntry::FeatureVariation
     kGeminiContextualSuggestionsCuesVariations[] = {
-        {"with on-device classifier (CPU)",
+        {"with on-device classifier (CPU - Title and URL)",
          kGeminiContextualSuggestionsCuesWithOnDeviceClassifierCPU, nullptr},
-        {"with on-device classifier (GPU / ANE)",
-         kGeminiContextualSuggestionsCuesWithOnDeviceClassifierGPU, nullptr}};
+        {"with on-device classifier (GPU / ANE - Title and URL)",
+         kGeminiContextualSuggestionsCuesWithOnDeviceClassifierGPU, nullptr},
+        {"with on-device classifier (CPU - APC and Passages)",
+         kGeminiContextualSuggestionsCuesWithOnDeviceClassifierApcCPU, nullptr},
+        {"with on-device classifier (GPU / ANE - APC and Passages)",
+         kGeminiContextualSuggestionsCuesWithOnDeviceClassifierApcGPU,
+         nullptr}};
 
 const FeatureEntry::FeatureParam
     kNewTabPageRedesignStaticFakeboxParamEnabled[] = {
@@ -2963,6 +2980,10 @@ constexpr auto kFeatureEntries = std::to_array<flags_ui::FeatureEntry>({
     {"ios-signal-sharing", flag_descriptions::kIOSSignalSharingName,
      flag_descriptions::kIOSSignalSharingDescription, flags_ui::kOsIos,
      FEATURE_VALUE_TYPE(enterprise_reporting::kIOSSignalSharingEnabled)},
+    {"metrickit-defer-registration",
+     flag_descriptions::kMetrickitDeferRegistrationName,
+     flag_descriptions::kMetrickitDeferRegistrationDescription,
+     flags_ui::kOsIos, FEATURE_VALUE_TYPE(kMetrickitDeferRegistration)},
 });
 
 bool SkipConditionalFeatureEntry(const flags_ui::FeatureEntry& entry) {
