@@ -251,6 +251,7 @@ class AtMemoryManagerTestBase : public Test,
   // returns a pair of the form's id and its first field's id.
   std::pair<FormGlobalId, FieldGlobalId> SeeForm() {
     FormData form = test::CreateTestPersonalInformationFormData();
+    form.set_host_frame(autofill_driver().GetFrameToken());
     std::vector<FormFieldData> fields = form.ExtractFields();
     for (FormFieldData& field : fields) {
       field.set_origin(form_origin());
@@ -282,7 +283,7 @@ class AtMemoryManagerTestBase : public Test,
           parent_suggestion_metadata = std::nullopt,
       ukm::SourceId ukm_source_id = ukm::kInvalidSourceId) {
     auto [form_id, field_id] = SeeForm();
-    manager().GetInitialStateForField(field_id);
+    manager().GetStateForField(field_id, form_origin());
     manager().OnPopupShown(form_id, field_id, trigger_source,
                            parent_suggestion_metadata, update_callback_.Get(),
                            ukm_source_id);
@@ -1708,7 +1709,7 @@ TEST_P(AtMemoryManagerTest, FillOverlappingPopups) {
   // 4. Show Popup 2 (overlapping with the pending async fill of Popup 1).
   base::MockCallback<AtMemoryManager::UpdateSuggestionsCallback>
       update_callback_2;
-  manager().GetInitialStateForField(field_id);
+  manager().GetStateForField(field_id, form_origin());
   manager().OnPopupShown(
       form_id, field_id, AutofillSuggestionTriggerSource::kAtMemoryContextMenu,
       std::nullopt, update_callback_2.Get(), ukm::kInvalidSourceId);
@@ -2567,16 +2568,22 @@ TEST_P(AtMemoryManagerTest, OnPopupShown_SubPopup_NoCrashWhenRecorderMovedOut) {
   EXPECT_EQ(test_api(manager()).at_memory_metrics_recorder(), nullptr);
 }
 
-// Tests that when a field is not in the cache, the target field origin
-// is used when filling sensitive data.
+// Tests that when a field is not in the cache, the target field origin is
+// reset and filling sensitive data falls back to the primary main frame origin.
 TEST_P(AtMemoryManagerTest,
        FillSensitiveData_UncachedField_UsesTargetFieldOrigin) {
   // Form and field not added to autofill_manager() cache.
-  FormGlobalId uncached_form_id = test::MakeFormGlobalId();
+  FormGlobalId uncached_form_id = {autofill_driver().GetFrameToken(),
+                                   test::MakeFormRendererId()};
   FieldGlobalId uncached_field_id = test::MakeFieldGlobalId();
+  // Use an origin distinct from `form_origin()` (main frame origin) to ensure
+  // that target field origin is genuinely used rather than falling back to
+  // the main frame origin when the target field origin is opaque.
+  url::Origin uncached_origin =
+      url::Origin::Create(GURL("https://uncached-field.com"));
+  ASSERT_TRUE(form_origin() != uncached_origin);
 
-  manager().set_target_field_origin(form_origin());
-  manager().GetInitialStateForField(uncached_field_id);
+  manager().GetStateForField(uncached_field_id, uncached_origin);
   manager().OnPopupShown(
       uncached_form_id, uncached_field_id,
       AutofillSuggestionTriggerSource::kAtMemoryTriggerString,
@@ -2603,7 +2610,7 @@ TEST_P(AtMemoryManagerTest,
   EXPECT_CALL(
       mock_query_service(),
       AuthenticateAndFetchPiiEntity(
-          Ref(autofill_client()), GetAuthenticationMessage(form_origin()),
+          Ref(autofill_client()), GetAuthenticationMessage(uncached_origin),
           std::u16string_view(u"1234"), MemoryDataType::kPassportNumber, _, _))
       .WillOnce(RunOnceCallback<5>(u"1234"));
 
@@ -2619,7 +2626,9 @@ TEST_P(AtMemoryManagerTest,
   FormGlobalId uncached_form_id = test::MakeFormGlobalId();
   FieldGlobalId uncached_field_id = test::MakeFieldGlobalId();
 
-  manager().GetInitialStateForField(uncached_field_id);
+  // Pass an opaque origin (default-constructed url::Origin()) to verify
+  // fallback to the primary main frame origin.
+  manager().GetStateForField(uncached_field_id, url::Origin());
   manager().OnPopupShown(
       uncached_form_id, uncached_field_id,
       AutofillSuggestionTriggerSource::kAtMemoryTriggerString,
@@ -2669,7 +2678,9 @@ TEST_F(AtMemoryManagerTestBase, SearchStatefulness_PersistsAndResetsState) {
   FieldGlobalId other_field_id = test::MakeFieldGlobalId();
 
   // 1. Initial state for a new field returns default 0-state suggestions.
-  EXPECT_TRUE(manager().GetInitialStateForField(field_id).filter.empty());
+  EXPECT_TRUE(manager()
+                  .GetStateForField(field_id, form_origin())
+                  .filter.empty());
 
   // Opening and closing without editing still leaves 0-state suggestions.
   manager().OnPopupShown(
@@ -2678,7 +2689,9 @@ TEST_F(AtMemoryManagerTestBase, SearchStatefulness_PersistsAndResetsState) {
       /*parent_suggestion_metadata=*/std::nullopt, update_callback_.Get(),
       ukm::kInvalidSourceId);
   manager().OnPopupHidden();
-  EXPECT_TRUE(manager().GetInitialStateForField(field_id).filter.empty());
+  EXPECT_TRUE(manager()
+                  .GetStateForField(field_id, form_origin())
+                  .filter.empty());
 
   manager().OnPopupShown(
       form_id, field_id,
@@ -2701,16 +2714,20 @@ TEST_F(AtMemoryManagerTestBase, SearchStatefulness_PersistsAndResetsState) {
   manager().OnPopupHidden();
 
   AtMemoryManagerState restored_state =
-      manager().GetInitialStateForField(field_id);
+      manager().GetStateForField(field_id, form_origin());
   EXPECT_EQ(restored_state.filter, u"john");
   ASSERT_EQ(restored_state.suggestions.size(), 1u);
   EXPECT_EQ(restored_state.suggestions[0].main_text.value, u"John Doe");
 
   // 4. Accessing a different field resets state.
-  EXPECT_TRUE(manager().GetInitialStateForField(other_field_id).filter.empty());
+  EXPECT_TRUE(manager()
+                  .GetStateForField(other_field_id, form_origin())
+                  .filter.empty());
 
   // 5. Going back to the original field initializes a new empty state.
-  EXPECT_TRUE(manager().GetInitialStateForField(field_id).filter.empty());
+  EXPECT_TRUE(manager()
+                  .GetStateForField(field_id, form_origin())
+                  .filter.empty());
 }
 
 // Tests that when search statefulness is enabled and a suggestion is accepted,
@@ -2723,7 +2740,9 @@ TEST_F(AtMemoryManagerTestBase,
   FormGlobalId form_id = test::MakeFormGlobalId();
   FieldGlobalId field_id = test::MakeFieldGlobalId();
 
-  EXPECT_TRUE(manager().GetInitialStateForField(field_id).filter.empty());
+  EXPECT_TRUE(manager()
+                  .GetStateForField(field_id, form_origin())
+                  .filter.empty());
 
   manager().OnPopupShown(
       form_id, field_id,
@@ -2745,7 +2764,9 @@ TEST_F(AtMemoryManagerTestBase,
                                       field_id, final_suggestions[0]);
 
   // After suggestion acceptance, state for field_id is reset.
-  EXPECT_TRUE(manager().GetInitialStateForField(field_id).filter.empty());
+  EXPECT_TRUE(manager()
+                  .GetStateForField(field_id, form_origin())
+                  .filter.empty());
 }
 
 INSTANTIATE_TEST_SUITE_P(All, AtMemoryManagerTest, testing::Bool());

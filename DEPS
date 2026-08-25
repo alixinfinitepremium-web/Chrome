@@ -341,15 +341,15 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': 'cfae2af1bfeba8fd95f1aa10f2634ddfc9b66fbc',
+  'skia_revision': 'bfa276ed9ac5605b230eac0693b713ac5d2d161f',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': 'bd140ce8527b53507266d26982ac044c7bb8ddeb',
+  'v8_revision': '69a5832e31435659a4c5da2fafb618b06586c469',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '375920dad65ac3b722095e1cb6953231191a8ce6',
+  'angle_revision': '4cbac1820a9ba2cf643c8b3dd0308f493cfa90e4',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -401,7 +401,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': 'fe8621615553e8dbc2a9bf2167504d6f6963e055',
+  'crossbench_revision': '84edffc57f708686da425e2e0bdcf377a3b78f1b',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -445,11 +445,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': '0cda6f325438d6930852cd8481a48f5fe76adb2c',
+  'dawn_revision': '9b469831fc488d49751238278d9f5cf020544120',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'quiche_revision': '01408281e0d4541113cd8c15185d70f30c773b36',
+  'quiche_revision': '0dbe72730e67268e1312b4716049704871664d74',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ink
   # and whatever else without interference from each other.
@@ -1554,7 +1554,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_x86',
-          'version': 'version:2@1679040',
+          'version': 'version:2@1680039',
         },
       ],
   },
@@ -2788,7 +2788,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/cisco/openh264' + '@' + 'fca40fc19f5fb854609d297ae4bde71df72787c9',
 
   'src/third_party/openscreen/src':
-    Var('chromium_git') + '/openscreen' + '@' + 'b103839017f8d9b88d15f3c1d48207756a492cb2',
+    Var('chromium_git') + '/openscreen' + '@' + '2c756bb7f4b80ee2d60960fb545a7098140246b5',
 
   'src/third_party/openxr/src': {
     'url': Var('chromium_git') + '/external/github.com/KhronosGroup/OpenXR-SDK' + '@' + '75c53b6e853dc12c7b3c771edc9c9c841b15faaa',
@@ -4020,7 +4020,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        'd723373d749ce8f21d3861afb8fe7923f9df7393',
+        'df7b0ea3913028fc5f9e94c50614ad88b9f765d3',
       'condition': 'checkout_src_internal',
   },
 

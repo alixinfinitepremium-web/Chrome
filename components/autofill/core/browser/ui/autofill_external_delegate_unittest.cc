@@ -472,7 +472,8 @@ class AutofillExternalDelegateTest : public testing::Test,
                         kDefaultSuggestionTriggerSource,
                     FieldType trigger_field_type = NAME_FIRST,
                     const std::string& autocomplete_attribute = "given-name") {
-    FormGlobalId form_id = test::MakeFormGlobalId();
+    FormGlobalId form_id = {autofill_driver().GetFrameToken(),
+                            test::MakeFormRendererId()};
     FieldGlobalId field_id = test::MakeFieldGlobalId();
     IssueOnQuery(
         test::GetFormData({
@@ -495,7 +496,8 @@ class AutofillExternalDelegateTest : public testing::Test,
   }
 
   void IssueOnQuery(std::vector<SelectOption> datalist_options) {
-    FormGlobalId form_id = test::MakeFormGlobalId();
+    FormGlobalId form_id = {autofill_driver().GetFrameToken(),
+                            test::MakeFormRendererId()};
     FieldGlobalId field_id = test::MakeFieldGlobalId();
     IssueOnQuery(
         test::GetFormData({
@@ -802,7 +804,7 @@ TEST_F(AutofillExternalDelegateTest, AtMemoryUsesCaretAnchorWithValidCaret) {
       {CreateAutofillSuggestion(SuggestionType::kAddressEntry, u"suggestion")});
 }
 
-// Tests that @memory trigger source uses the bottom sheet anchor type.
+// Tests that AtMemory trigger source uses the bottom sheet anchor type.
 TEST_F(AutofillExternalDelegateTest, AtMemoryUsesBottomSheetAnchor) {
   gfx::RectF field_bounds(0, 0, 100, 20);
   gfx::Rect empty_caret_bounds;
@@ -932,7 +934,7 @@ TEST_F(AutofillExternalDelegateTest,
                                       true, 1);
 }
 
-// Tests that @memory search results from first-party sources include metadata
+// Tests that AtMemory search results from first-party sources include metadata
 // as child suggestions with source attribution in the flyout menu.
 TEST_F(AutofillExternalDelegateTest, AtMemoryFlyoutChildrenFirstPartySources) {
   StartAtMemorySession();
@@ -981,7 +983,7 @@ TEST_F(AutofillExternalDelegateTest, AtMemoryFlyoutChildrenFirstPartySources) {
   external_delegate().OnSearchSubmitted(u"shoe size");
 }
 
-// Tests that @memory search results from the Autofill source show a management
+// Tests that AtMemory search results from the Autofill source show a management
 // option in the flyout menu.
 TEST_F(AutofillExternalDelegateTest, AtMemoryFlyoutChildrenAutofillSource) {
   StartAtMemorySession();
@@ -4757,7 +4759,7 @@ TEST_F(AutofillExternalDelegateTest, ShouldDiscardOutdatedSuggestions) {
 }
 #endif
 
-// Tests that @memory search results use the kReplaceSelectionForAtMemory
+// Tests that AtMemory search results use the kReplaceSelectionForAtMemory
 // action.
 TEST_F(AutofillExternalDelegateTest, AtMemorySearchResult_UsesSpecialAction) {
   StartAtMemorySession();
