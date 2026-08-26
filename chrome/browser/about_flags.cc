@@ -6886,6 +6886,14 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kOmniboxAsyncViewInflationDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(omnibox::kOmniboxAsyncViewInflation)},
 
+    {"omnibox-prefetch-selected-suggestions-omt-android",
+     flag_descriptions::kOmniboxPrefetchSelectedSuggestionsOmtAndroidName,
+     flag_descriptions::
+         kOmniboxPrefetchSelectedSuggestionsOmtAndroidDescription,
+     kOsAndroid,
+     FEATURE_VALUE_TYPE(
+         omnibox::kOmniboxPrefetchSelectedSuggestionsOmtAndroid)},
+
     {"omnibox-debounce-keyboard-visibility",
      flag_descriptions::kOmniboxDebounceKeyboardVisibilityName,
      flag_descriptions::kOmniboxDebounceKeyboardVisibilityDescription,
@@ -11684,12 +11692,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kFwupdDeveloperModeDescription, kOsCrOS,
      FEATURE_VALUE_TYPE(ash::features::kFwupdDeveloperMode)},
 #endif  // BUILDFLAG(IS_CHROMEOS)
-
-#if BUILDFLAG(IS_ANDROID)
-    {"android-sms-otp-filling", flag_descriptions::kAndroidSmsOtpFillingName,
-     flag_descriptions::kAndroidSmsOtpFillingDescription, kOsAndroid,
-     FEATURE_VALUE_TYPE(password_manager::features::kAndroidSmsOtpFilling)},
-#endif  // BUILDFLAG(IS_ANDROID)
 
 #if BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_WIN) || \
     BUILDFLAG(IS_CHROMEOS)

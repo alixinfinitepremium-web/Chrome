@@ -19254,6 +19254,21 @@
             ]
         }
     ],
+    "UiaDisconnectRootProviders": [
+        {
+            "platforms": [
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "UiaDisconnectRootProviders"
+                    ]
+                }
+            ]
+        }
+    ],
     "UnexportableKeysSpareKeyPoolWindows": [
         {
             "platforms": [
@@ -19617,6 +19632,27 @@
                     "name": "Enabled_20260810",
                     "enable_features": [
                         "UtfConversionAsciiFastPath"
+                    ]
+                }
+            ]
+        }
+    ],
+    "V8DateTimePatternGeneratorCacheEviction": [
+        {
+            "platforms": [
+                "android",
+                "android_webview",
+                "chromeos",
+                "fuchsia",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "V8Flag_intl_date_time_pattern_generator_cache_eviction"
                     ]
                 }
             ]

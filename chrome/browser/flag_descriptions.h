@@ -13,7 +13,6 @@
 #include "components/paint_preview/buildflags/buildflags.h"
 #include "components/signin/public/base/signin_buildflags.h"
 #include "components/webui/flags/feature_entry.h"
-#include "content/public/common/content_features.h"
 #include "device/vr/buildflags/buildflags.h"
 #include "extensions/buildflags/buildflags.h"
 #include "media/gpu/buildflags.h"
@@ -244,10 +243,6 @@ inline constexpr char kAndroidProgressBarVisualUpdateName[] =
     "Enable updated progress bar";
 inline constexpr char kAndroidProgressBarVisualUpdateDescription[] =
     "Enable the new updated progress bar";
-
-inline constexpr char kAndroidSmsOtpFillingName[] = "Enable SMS OTP filling";
-inline constexpr char kAndroidSmsOtpFillingDescription[] =
-    "Enables filling of OTPs received via SMS on Android";
 
 inline constexpr char kApiContextualTasksPrivateName[] =
     "Extensions Contextual Tasks API";
@@ -3710,6 +3705,13 @@ inline constexpr char kOmniboxNumWebZpsMostVisitedUrlsName[] =
 inline constexpr char kOmniboxNumWebZpsMostVisitedUrlsDescription[] =
     "Controls presence/volume of Most Visited URLs shown in zero-prefix "
     "context on the Web";
+
+inline constexpr char kOmniboxPrefetchSelectedSuggestionsOmtAndroidName[] =
+    "Omnibox off-main-thread suggestion prefetch";
+inline constexpr char
+    kOmniboxPrefetchSelectedSuggestionsOmtAndroidDescription[] =
+        "Enables off-main-thread touch-down interception to trigger "
+        "prefetching of search suggestions on Android.";
 
 inline constexpr char kOmniboxSearchPrefetchOnEnterKeyDownName[] =
     "Omnibox search prefetch on Enter KeyDown";

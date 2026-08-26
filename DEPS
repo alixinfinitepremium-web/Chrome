@@ -341,7 +341,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': 'cacf77bdba7ba7df8ea7236d7e14b08c658ff368',
+  'skia_revision': '0d5e61d9d6ecd446f5d358794205a1ca743a5649',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -401,7 +401,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': 'a39b59ec78f675af4eb692da080159974a998fc8',
+  'crossbench_revision': 'f08ece6a24c82348c9a719f86082cdfaef2a3a2d',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -1758,7 +1758,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    'f74da83561c3beb8b71e0c15e95928c8f1d5ad74',
+    '88507b0de7b92dc2bd4a123a198f941129157591',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -2225,7 +2225,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '494f45bf5605786d54925a6433f3ea0685c1226c',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '9358bc786b0754f55f9004e986a8bce625065228',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '17a56409b86d0da5e01ca38f6498e13b2db16bc3',
@@ -4028,12 +4028,6 @@ deps = {
   'src/components/personal_context/core/resources/internal': {
       'url': Var('chrome_git') + '/chrome/components/personal_context/core/resources/internal.git' + '@' +
         'c901bb10e5eead4fb1754cdafd9627c3393f7384',
-      'condition': 'checkout_src_internal',
-  },
-
-  'src/components/plus_addresses/core/browser/resources/internal': {
-      'url': Var('chrome_git') + '/chrome/components/plus_addresses/resources.git' + '@' +
-        '29d0d43a7adc0619ff902f05a3aae0f9512efa36',
       'condition': 'checkout_src_internal',
   },
 

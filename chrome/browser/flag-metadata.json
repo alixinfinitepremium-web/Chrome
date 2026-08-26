@@ -454,11 +454,7 @@
     "owners": [ "agazal@google.com", "clank-app-team@google.com" ],
     "expiry_milestone": 155
   },
-  {
-    "name": "android-sms-otp-filling",
-    "owners": ["koerber@google.com", "lottermann@google.com", "chrome-otp-team@google.com"],
-    "expiry_milestone": 152
-  },
+
   {
     "name": "android-surface-color-update",
     "owners": [ "jtanaristy@google.com", "wenyufu@google.com" ],
@@ -2073,6 +2069,11 @@
     "name": "composebox-uses-chrome-compose-client",
     "owners": ["niharm@google.com", "chrome-desktop-ntp@google.com"],
     "expiry_milestone": 150
+  },
+  {
+    "name": "composebox-verbatim-suggestion-in-aim",
+    "owners": [ "radunitescu@google.com", "bling-search@google.com" ],
+    "expiry_milestone": 160
   },
   {
     "name": "composebox-voice-search-coherence",
@@ -7858,6 +7859,14 @@
     "name": "omnibox-paste-promo-experiment",
     "owners": [ "lilybalas@google.com", "bling-mony-pod@google.com" ],
     "expiry_milestone": 160
+  },
+  {
+    "name": "omnibox-prefetch-selected-suggestions-omt-android",
+    "owners": [
+      "thesalsa@google.com",
+      "chrome-prerendering@google.com"
+    ],
+    "expiry_milestone": 165
   },
   {
     "name": "omnibox-rich-autocompletion-promising",
