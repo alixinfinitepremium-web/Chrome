@@ -452,7 +452,8 @@ void BrowserWindowFeatures::Init(BrowserWindowInterface* browser) {
                                                                  browser);
 
   lens_region_search_controller_ =
-      std::make_unique<lens::LensRegionSearchController>();
+      GetUserDataFactory().CreateInstance<lens::LensRegionSearchController>(
+          *browser, browser->GetUnownedUserDataHost());
 
   // Must be before location_bar_model_.
   location_bar_model_delegate_ =
@@ -509,7 +510,9 @@ void BrowserWindowFeatures::Init(BrowserWindowInterface* browser) {
       GetUserDataFactory().CreateInstance<ReadingListSidePanelCoordinator>(
           *browser, browser, profile, browser->GetTabStripModel());
 
-  searchbox_context_data_ = std::make_unique<SearchboxContextData>();
+  searchbox_context_data_ =
+      GetUserDataFactory().CreateInstance<SearchboxContextData>(
+          *browser, browser->GetUnownedUserDataHost());
 
   session_service_browser_helper_ =
       std::make_unique<SessionServiceBrowserHelper>(
@@ -533,17 +536,20 @@ void BrowserWindowFeatures::Init(BrowserWindowInterface* browser) {
   }
 
   tab_group_deletion_dialog_controller_ =
-      std::make_unique<tab_groups::DeletionDialogController>(browser, profile,
-                                                             tab_strip_model_);
+      GetUserDataFactory().CreateInstance<tab_groups::DeletionDialogController>(
+          *browser, browser, profile, tab_strip_model_);
 
   tab_menu_model_delegate_ =
       std::make_unique<chrome::BrowserTabMenuModelDelegate>(
           browser->GetSessionID(), profile, app_browser_controller_.get(),
           tab_groups::TabGroupSyncServiceFactory::GetForProfile(profile));
 
-  tab_strip_service_feature_ = std::make_unique<TabStripServiceFeature>(
-      std::make_unique<tabs_api::tab_strip_model::TabStripModelInjector>(
-          browser, tab_strip_model_));
+  tab_strip_service_feature_ =
+      GetUserDataFactory().CreateInstance<TabStripServiceFeature>(
+          *browser,
+          std::make_unique<tabs_api::tab_strip_model::TabStripModelInjector>(
+              browser, tab_strip_model_),
+          browser->GetUnownedUserDataHost());
 
   tab_strip_ui_controller_ =
       GetUserDataFactory().CreateInstance<tabs_api::TabStripUIControllerImpl>(
@@ -837,10 +843,12 @@ void BrowserWindowFeatures::InitPostWindowConstruction(Browser* browser) {
       std::make_unique<extensions::BrowserExtensionWindowController>(browser);
 
   if (browser_view) {
-    find_bar_owner_ = std::make_unique<FindBarOwnerViews>(browser_view);
+    find_bar_owner_ = GetUserDataFactory().CreateInstance<FindBarOwnerViews>(
+        *browser, browser_view, browser->GetUnownedUserDataHost());
   } else if (webui_browser_window) {
     find_bar_owner_ =
-        std::make_unique<FindBarOwnerWebUIBrowser>(webui_browser_window);
+        GetUserDataFactory().CreateInstance<FindBarOwnerWebUIBrowser>(
+            *browser, webui_browser_window, browser->GetUnownedUserDataHost());
   }
 
   // Must be after exclusive_access_manager_.

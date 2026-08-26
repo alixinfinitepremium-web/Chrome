@@ -352,8 +352,6 @@ class BrowserWindowFeatures {
     return extension_side_panel_manager_.get();
   }
 
-  FindBarOwner* find_bar_owner() { return find_bar_owner_.get(); }
-
   // Get the FindBarController for this browser window, creating it if it does
   // not yet exist.
   FindBarController* GetFindBarController();
@@ -377,10 +375,6 @@ class BrowserWindowFeatures {
   IncognitoClearBrowsingDataDialogCoordinator*
   incognito_clear_browsing_data_dialog_coordinator() {
     return incognito_clear_browsing_data_dialog_coordinator_.get();
-  }
-
-  lens::LensRegionSearchController* lens_region_search_controller() {
-    return lens_region_search_controller_.get();
   }
 
   sessions::LiveTabContext* live_tab_context();
@@ -422,10 +416,6 @@ class BrowserWindowFeatures {
     return profile_menu_coordinator_.get();
   }
 
-  SearchboxContextData* searchbox_context_data() {
-    return searchbox_context_data_.get();
-  }
-
   SessionServiceBrowserHelper* session_service_browser_helper() {
     return session_service_browser_helper_.get();
   }
@@ -451,20 +441,11 @@ class BrowserWindowFeatures {
     return synced_window_delegate_.get();
   }
 
-  tab_groups::DeletionDialogController* tab_group_deletion_dialog_controller() {
-    return tab_group_deletion_dialog_controller_.get();
-  }
-
   TabMenuModelDelegate* tab_menu_model_delegate() {
     return tab_menu_model_delegate_.get();
   }
 
   TabStripModel* tab_strip_model() { return tab_strip_model_; }
-
-  // Only fetch the tab_strip_service to register a pending receiver.
-  TabStripServiceFeature* tab_strip_service_feature() {
-    return tab_strip_service_feature_.get();
-  }
 
   TabsFromOtherDevicesSidePanelCoordinator*
   tabs_from_other_devices_side_panel_coordinator() {

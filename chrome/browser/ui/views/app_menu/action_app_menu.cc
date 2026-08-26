@@ -142,6 +142,9 @@ void ActionAppMenu::PopulateMenu(views::MenuItemView* view_parent,
       // Recursive call using the same parent to keep the children in
       // the same menu section as the header.
       PopulateMenu(view_parent, child_base);
+    } else if (child_ptr->GetProperty(ActionAppMenuManager::kDisplayTypeKey) ==
+               ActionAppMenuManager::DisplayType::kDivider) {
+      view_parent->AppendSeparator();
     } else {
       // Otherwise, append it as a MenuItemView that represents an action item.
       std::optional<actions::ActionId> action_id = child_ptr->GetActionId();
@@ -184,7 +187,7 @@ void ActionAppMenu::PopulateMenu(views::MenuItemView* view_parent,
           menu_item->SetMinorText(accel.GetShortcutText());
         }
         // Recursively populate the menu item with the ActionItem's children.
-        PopulateMenu(menu_item, child_ptr);
+        PopulateMenu(menu_item, child_base);
       }
 
       // Set the border radius depending on the position a menu item has in

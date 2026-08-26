@@ -183,6 +183,7 @@
 #include "components/segmentation_platform/public/features.h"
 #include "components/send_tab_to_self/features.h"
 #include "components/sensitive_content/features.h"
+#include "components/services/heap_profiling/public/cpp/switches.h"
 #include "components/services/storage/dom_storage/features.h"
 #include "components/sessions/core/command_storage_features.h"
 #include "components/shared_highlighting/core/common/shared_highlighting_features.h"
@@ -1281,6 +1282,57 @@ const FeatureEntry::Choice kForceColorProfileChoices[] = {
      switches::kForceDisplayColorProfile, "scrgb-linear"},
     {flag_descriptions::kForceColorProfileHDR10,
      switches::kForceDisplayColorProfile, "hdr10"},
+};
+
+const FeatureEntry::Choice kMemlogModeChoices[] = {
+    {flags_ui::kGenericExperimentChoiceDisabled, "", ""},
+    {flag_descriptions::kMemlogModeMinimal, heap_profiling::kMemlogMode,
+     heap_profiling::kMemlogModeMinimal},
+    {flag_descriptions::kMemlogModeAll, heap_profiling::kMemlogMode,
+     heap_profiling::kMemlogModeAll},
+    {flag_descriptions::kMemlogModeBrowser, heap_profiling::kMemlogMode,
+     heap_profiling::kMemlogModeBrowser},
+    {flag_descriptions::kMemlogModeGpu, heap_profiling::kMemlogMode,
+     heap_profiling::kMemlogModeGpu},
+    {flag_descriptions::kMemlogModeAllRenderers, heap_profiling::kMemlogMode,
+     heap_profiling::kMemlogModeAllRenderers},
+    {flag_descriptions::kMemlogModeRendererSampling,
+     heap_profiling::kMemlogMode, heap_profiling::kMemlogModeRendererSampling},
+    {flag_descriptions::kMemlogModeUtilitySampling, heap_profiling::kMemlogMode,
+     heap_profiling::kMemlogModeUtilitySampling},
+    {flag_descriptions::kMemlogModeAllUtilities, heap_profiling::kMemlogMode,
+     heap_profiling::kMemlogModeAllUtilities},
+};
+
+const FeatureEntry::Choice kMemlogStackModeChoices[] = {
+    {flags_ui::kGenericExperimentChoiceDefault, "", ""},
+    {flag_descriptions::kMemlogStackModeNative,
+     heap_profiling::kMemlogStackMode, heap_profiling::kMemlogStackModeNative},
+    {flag_descriptions::kMemlogStackModeNativeWithThreadNames,
+     heap_profiling::kMemlogStackMode,
+     heap_profiling::kMemlogStackModeNativeWithThreadNames},
+};
+
+const FeatureEntry::Choice kMemlogSamplingRateChoices[] = {
+    {flags_ui::kGenericExperimentChoiceDefault, "", ""},
+    {flag_descriptions::kMemlogSamplingRate10KB,
+     heap_profiling::kMemlogSamplingRate,
+     heap_profiling::kMemlogSamplingRate10KB},
+    {flag_descriptions::kMemlogSamplingRate50KB,
+     heap_profiling::kMemlogSamplingRate,
+     heap_profiling::kMemlogSamplingRate50KB},
+    {flag_descriptions::kMemlogSamplingRate100KB,
+     heap_profiling::kMemlogSamplingRate,
+     heap_profiling::kMemlogSamplingRate100KB},
+    {flag_descriptions::kMemlogSamplingRate500KB,
+     heap_profiling::kMemlogSamplingRate,
+     heap_profiling::kMemlogSamplingRate500KB},
+    {flag_descriptions::kMemlogSamplingRate1MB,
+     heap_profiling::kMemlogSamplingRate,
+     heap_profiling::kMemlogSamplingRate1MB},
+    {flag_descriptions::kMemlogSamplingRate5MB,
+     heap_profiling::kMemlogSamplingRate,
+     heap_profiling::kMemlogSamplingRate5MB},
 };
 
 #if BUILDFLAG(IS_WIN)
@@ -6932,6 +6984,18 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kHdrAgtmDescription, kOsAll,
      FEATURE_VALUE_TYPE(features::kHdrAgtm)},
 
+    {"memlog", flag_descriptions::kMemlogName,
+     flag_descriptions::kMemlogDescription, kOsAll,
+     MULTI_VALUE_TYPE(kMemlogModeChoices)},
+
+    {"memlog-sampling-rate", flag_descriptions::kMemlogSamplingRateName,
+     flag_descriptions::kMemlogSamplingRateDescription, kOsAll,
+     MULTI_VALUE_TYPE(kMemlogSamplingRateChoices)},
+
+    {"memlog-stack-mode", flag_descriptions::kMemlogStackModeName,
+     flag_descriptions::kMemlogStackModeDescription, kOsAll,
+     MULTI_VALUE_TYPE(kMemlogStackModeChoices)},
+
 #if !BUILDFLAG(IS_ANDROID)
     {"notebooks", flag_descriptions::kNotebooksName,
      flag_descriptions::kNotebooksDescription, kOsDesktop,
@@ -7101,10 +7165,6 @@ const FeatureEntry kFeatureEntries[] = {
     {"tab-group-ribbon", flag_descriptions::kTabGroupRibbonName,
      flag_descriptions::kTabGroupRibbonDescription, kOsDesktop,
      FEATURE_VALUE_TYPE(features::kTabGroupRibbon)},
-
-    {"split-view-tab-restore", flag_descriptions::kSplitViewTabRestoreName,
-     flag_descriptions::kSplitViewTabRestoreDescription, kOsDesktop,
-     FEATURE_VALUE_TYPE(tabs::kSplitViewTabRestore)},
 
     {"tab-strip-unification", flag_descriptions::kTabStripUnificationName,
      flag_descriptions::kTabStripUnificationDescription, kOsDesktop,
@@ -13866,6 +13926,11 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kSigninButtonProfileMenuName,
      flag_descriptions::kSigninButtonProfileMenuDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(switches::kSigninButtonProfileMenu)},
+
+    {"google-pay-via-android-intents",
+     flag_descriptions::kGooglePayViaAndroidIntentsName,
+     flag_descriptions::kGooglePayViaAndroidIntentsDescription, kOsAndroid,
+     FEATURE_VALUE_TYPE(payments::android::kGooglePayViaAndroidIntents)},
 #endif
     // Add new entries above this line.
     // NOTE: Adding a new flag requires adding a corresponding entry to enum

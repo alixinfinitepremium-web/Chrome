@@ -2372,6 +2372,54 @@ inline constexpr char kDeprecateAltClickDescription[] =
     "Start providing notifications about Alt+Click deprecation and enable "
     "Search+Click as an alternative.";
 
+inline constexpr char kMemlogName[] = "Chrome heap profiler start mode.";
+inline constexpr char kMemlogDescription[] =
+    "Starts heap profiling service that records sampled memory allocation "
+    "profile having each sample attributed with a callstack. "
+    "The sampling resolution is controlled with --memlog-sampling-rate flag. "
+    "Recorded heap dumps can be obtained at chrome://tracing "
+    "[category:memory-infra] and chrome://memory-internals. This setting "
+    "controls which processes will be profiled since their start. To profile "
+    "any given process at a later time use chrome://memory-internals page.";
+inline constexpr char kMemlogModeMinimal[] = "Browser and GPU";
+inline constexpr char kMemlogModeAll[] = "All processes";
+inline constexpr char kMemlogModeAllRenderers[] = "All renderers";
+inline constexpr char kMemlogModeRendererSampling[] = "Single renderer";
+inline constexpr char kMemlogModeBrowser[] = "Browser only";
+inline constexpr char kMemlogModeGpu[] = "GPU only";
+inline constexpr char kMemlogModeUtilitySampling[] = "Single utility";
+inline constexpr char kMemlogModeAllUtilities[] = "All utilities";
+
+inline constexpr char kMemlogSamplingRateName[] =
+    "Heap profiling sampling interval (in bytes).";
+inline constexpr char kMemlogSamplingRateDescription[] =
+    "Heap profiling service uses Poisson process to sample allocations. "
+    "Default value for the interval between samples is 1000000 (1MB). "
+    "This results in low noise for large and/or frequent allocations "
+    "[size * frequency >> 1MB]. This means that aggregate numbers [e.g. "
+    "total size of malloc-ed objects] and large and/or frequent allocations "
+    "can be trusted with high fidelity. "
+    "Lower intervals produce higher samples resolution, but come at a cost of "
+    "higher performance overhead.";
+inline constexpr char kMemlogSamplingRate10KB[] = "10KB";
+inline constexpr char kMemlogSamplingRate50KB[] = "50KB";
+inline constexpr char kMemlogSamplingRate100KB[] = "100KB";
+inline constexpr char kMemlogSamplingRate500KB[] = "500KB";
+inline constexpr char kMemlogSamplingRate1MB[] = "1MB";
+inline constexpr char kMemlogSamplingRate5MB[] = "5MB";
+
+inline constexpr char kMemlogStackModeName[] =
+    "Heap profiling stack traces type.";
+inline constexpr char kMemlogStackModeDescription[] =
+    "By default heap profiling service records native stacks. "
+    "A post-processing step is required to symbolize the stacks. "
+    "'Native with thread names' adds the thread name as the first frame of "
+    "each native stack. It's also possible to record a pseudo stack using "
+    "trace events as identifiers. It's also possible to do a mix of both.";
+inline constexpr char kMemlogStackModeNative[] = "Native";
+inline constexpr char kMemlogStackModeNativeWithThreadNames[] =
+    "Native with thread names";
+
 inline constexpr char kEnableDevtoolsDeepLinkViaExtensibilityApiName[] =
     "Extensibility API support for deep-links within DevTools";
 inline constexpr char kEnableDevtoolsDeepLinkViaExtensibilityApiDescription[] =
@@ -4503,10 +4551,6 @@ inline constexpr char kSplitViewHorizontalName[] = "Stacked Split Views";
 inline constexpr char kSplitViewHorizontalDescription[] =
     "Whether split views can be arranged in a stacked layout.";
 
-inline constexpr char kSplitViewTabRestoreName[] = "Split View Tab Restore";
-inline constexpr char kSplitViewTabRestoreDescription[] =
-    "Whether or not a split view should restore together.";
-
 inline constexpr char kVerticalTabsExpandOnHoverName[] =
     "Vertical Tabs Expand On Hover";
 inline constexpr char kVerticalTabsExpandOnHoverDescription[] =
@@ -6221,6 +6265,12 @@ inline constexpr char kGestureUserEducationBackSwipeName[] =
     "Gesture user education back swipe";
 inline constexpr char kGestureUserEducationBackSwipeDescription[] =
     "Enables gesture user education for back swipe.";
+
+inline constexpr char kGooglePayViaAndroidIntentsName[] =
+    "Google Pay via Android intents";
+inline constexpr char kGooglePayViaAndroidIntentsDescription[] =
+    "When enabled, use Android intents for Google Pay payment methods "
+    "(https://google.com/pay and https://pay.google.com/authentication).";
 
 inline constexpr char kGridTabSwitcherSurfaceColorUpdateName[] =
     "Grid tab switcher surface color update";

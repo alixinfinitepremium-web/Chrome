@@ -5972,6 +5972,11 @@
     "expiry_milestone": 116
   },
   {
+    "name": "google-pay-via-android-intents",
+    "owners": [ "xuehuichen@google.com", "chrome-payments-eng@google.com" ],
+    "expiry_milestone": 157
+  },
+  {
     "name": "grid-tab-switcher-surface-color-update",
     "owners": [ "jtanaristy@google.org", "wenyufu@chromium.org" ],
     "expiry_milestone": 150
@@ -7042,6 +7047,33 @@
     // cast to work, but enabling this behavior has security implications that
     // aren't easily understood. It is primarily used by support to help
     // individual users get cast working.
+    "expiry_milestone": -1
+  },
+  {
+    "name": "memlog",
+    "owners": [ "erikchen@chromium.org", "ssid@chromium.org", "etienneb@chromium.org", "alph@chromium.org" ],
+    // Memlog is Chrome's heap profiler. It is used for both automated and
+    // manual performance analysis. This flag allows a user or developer to
+    // capture a memlog without disturbing the situation under test by
+    // restarting to apply a switch. It should not be removed.
+    "expiry_milestone": -1
+  },
+  {
+    "name": "memlog-sampling-rate",
+    "owners": [ "erikchen@chromium.org", "ssid@chromium.org", "etienneb@chromium.org", "alph@chromium.org" ],
+    // Memlog is Chrome's heap profiler. It is used for both automated and
+    // manual performance analysis. This flag allows a user or developer to
+    // capture a memlog without disturbing the situation under test by
+    // restarting to apply a switch. It should not be removed.
+    "expiry_milestone": -1
+  },
+  {
+    "name": "memlog-stack-mode",
+    "owners": [ "erikchen@chromium.org", "ssid@chromium.org", "etienneb@chromium.org", "alph@chromium.org" ],
+    // Memlog is Chrome's heap profiler. It is used for both automated and
+    // manual performance analysis. This flag allows a user or developer to
+    // capture a memlog without disturbing the situation under test by
+    // restarting to apply a switch. It should not be removed.
     "expiry_milestone": -1
   },
   {
@@ -9361,12 +9393,6 @@
   {
     "name": "split-view-horizontal",
     "owners": [ "charlesmeng@google.com", "top-chrome-desktop-ui@google.com" ],
-    "expiry_milestone": 155
-
-  },
-  {
-    "name": "split-view-tab-restore",
-    "owners": [ "kunaldaftari@google.com", "top-chrome-desktop-ui@google.com" ],
     "expiry_milestone": 155
   },
   {
