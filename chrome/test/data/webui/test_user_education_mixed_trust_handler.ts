@@ -2,12 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import type {FeaturePromoFeatureUsedAction, FeaturePromoParams, UserEducationBrowserProxy, UserEducationMixedTrustHandlerInterface} from 'chrome-untrusted://read-anything-side-panel.top-chrome/read_anything.js';
-import {TestBrowserProxy} from 'chrome-untrusted://webui-test/test_browser_proxy.js';
+import type {FeaturePromoFeatureUsedAction, FeaturePromoParams, UserEducationMixedTrustHandlerInterface} from '//resources/mojo/components/user_education/webui/user_education.mojom-webui.js';
 
-export class TestUserEducationBrowserProxy extends TestBrowserProxy implements
-    UserEducationBrowserProxy {
-  handler: UserEducationMixedTrustHandlerInterface;
+import {TestBrowserProxy} from './test_browser_proxy.js';
+
+export class TestUserEducationMixedTrustHandler extends TestBrowserProxy
+    implements UserEducationMixedTrustHandlerInterface {
   private showNewBadgeResponses_: Map<string, boolean> = new Map();
 
   constructor() {
@@ -15,9 +15,9 @@ export class TestUserEducationBrowserProxy extends TestBrowserProxy implements
       'notifyFeaturePromoFeatureUsed',
       'notifyAdditionalConditionEvent',
       'notifyNewBadgeFeatureUsed',
+      'maybeShowFeaturePromo',
       'maybeShowNewBadgeFor',
     ]);
-    this.handler = this;
   }
 
   maybeShowFeaturePromo(params: FeaturePromoParams) {

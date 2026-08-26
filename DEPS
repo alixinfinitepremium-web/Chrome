@@ -349,7 +349,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '8d273b266600311193360dd7203ba6aea81a5433',
+  'angle_revision': 'e1115ff958b92ce2a65d5c0f3b3e991d983a018a',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -421,7 +421,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '2dcf33a9fe907bcf737d048258d415ea92b3b5e5',
+  'devtools_frontend_revision': '843cc0298b46117caf45fd01c0cef17eae26f1fe',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1758,7 +1758,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '61cde6712f2238912c490bc6d8166da576749764',
+    'f74da83561c3beb8b71e0c15e95928c8f1d5ad74',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -2498,7 +2498,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/kotlin_stdlib',
-              'version': 'SIPWzmLroYhNIP7dAhJR_hoF00Yyq8F5nFE9pYk4hh0C',
+              'version': 'Zett4kz3XUfunfZAYOieN0CNpnplLVgv8k-Ha7xC7NgC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -2634,7 +2634,7 @@ deps = {
   },
 
   'src/third_party/libphonenumber/src':
-    Var('chromium_git') + '/external/libphonenumber.git' + '@' + 'ba2a029f8f22dd24455c72ed1f558061a7ec98cf',
+    Var('chromium_git') + '/external/libphonenumber.git' + '@' + 'dba03901d523cc358310859a3d3c34d11b92f0bf',
 
   'src/third_party/libprotobuf-mutator/src':
     Var('chromium_git') + '/external/github.com/google/libprotobuf-mutator.git' + '@' +  Var('libprotobuf-mutator'),
@@ -3228,7 +3228,7 @@ deps = {
 
   # Wayland protocols that add functionality not available in the core protocol.
   'src/third_party/wayland-protocols/src': {
-      'url': Var('chromium_git') + '/external/anongit.freedesktop.org/git/wayland/wayland-protocols.git' + '@' + 'efbc060534be948b63e1f395d69b583eebba3235',
+      'url': Var('chromium_git') + '/external/anongit.freedesktop.org/git/wayland/wayland-protocols.git' + '@' + 'ee78491a237eaff9389a0ccf8680521d074407d3',
       'condition': 'checkout_linux',
   },
 
@@ -3258,7 +3258,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '5731072669fa92317112c3146b9147f51d2ac0d7',
+    Var('webrtc_git') + '/src.git' + '@' + '6ded79875c0aef8e08d7e79a44744736fc96cf6e',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -4105,7 +4105,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '7994f064cdcd05ce7060b81cf1dadf9d81edb9de',
+        '59b92497b4d18ebbdfeca08e97fc62f943f63efb',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 

@@ -6322,6 +6322,11 @@
     "expiry_milestone": 155
   },
   {
+    "name": "ios-backend-promo-custom-ui",
+    "owners": [ "joemerramos@google.com", "bling-flags@google.com" ],
+    "expiry_milestone": 165
+  },
+  {
     "name": "ios-backend-promo-service-integration",
     "owners": [ "gayane@google.com", "bling-flags@google.com" ],
     "expiry_milestone": 160
@@ -7246,6 +7251,11 @@
   {
     "name": "new-tab-page-customization-v2",
     "owners": ["hanxi@chromium.org", "clank-start@google.com"],
+    "expiry_milestone": 160
+  },
+  {
+    "name": "new-tab-page-pinned-omnibox-color-update",
+    "owners": [ "bmcclure@google.com", "bling-pandamonium@google.com" ],
     "expiry_milestone": 160
   },
   {
