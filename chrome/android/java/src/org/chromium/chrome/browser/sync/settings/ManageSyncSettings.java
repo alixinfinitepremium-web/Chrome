@@ -920,10 +920,14 @@ public class ManageSyncSettings extends ChromeBaseSettingsFragment
         notifyPreferencesUpdated();
     }
 
-    private boolean isEeaChoiceCountry() {
+    private static boolean isEeaChoiceCountry(Profile profile) {
         RegionalCapabilitiesService regionalCapabilities =
-                RegionalCapabilitiesServiceFactory.getForProfile(getProfile());
+                RegionalCapabilitiesServiceFactory.getForProfile(profile);
         return regionalCapabilities.isInEeaCountry();
+    }
+
+    private boolean isEeaChoiceCountry() {
+        return isEeaChoiceCountry(getProfile());
     }
 
     /**
@@ -967,6 +971,10 @@ public class ManageSyncSettings extends ChromeBaseSettingsFragment
 
                 @Override
                 public int getXmlRes(Profile profile) {
+                    if (!SignInPreference.isSignedIn(profile)) {
+                        return 0;
+                    }
+
                     return R.xml.unified_account_settings_preferences;
                 }
 
@@ -986,6 +994,23 @@ public class ManageSyncSettings extends ChromeBaseSettingsFragment
                     }
                     if (!shouldShowSwitchToIncognitoPref(profile)) {
                         indexData.removeEntryForKey(frag, PREF_SWITCH_TO_INCOGNITO);
+                    }
+                    if (isEeaChoiceCountry(profile)) {
+                        String activityControlsId = getUniqueId(PREF_GOOGLE_ACTIVITY_CONTROLS);
+                        SettingsIndexData.Entry entry = indexData.getEntry(activityControlsId);
+                        if (entry != null) {
+                            indexData.updateEntry(
+                                    activityControlsId,
+                                    new SettingsIndexData.Entry.Builder(entry)
+                                            .setTitle(
+                                                    context.getString(
+                                                            R.string
+                                                                    .sign_in_personalize_google_services_title_eea))
+                                            .setFragment(
+                                                    PersonalizeGoogleServicesSettings.class
+                                                            .getName())
+                                            .build());
+                        }
                     }
                 }
             };

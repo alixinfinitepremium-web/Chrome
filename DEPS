@@ -477,7 +477,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling crabbyavif
   # and whatever else without interference from each other.
-  'crabbyavif_revision': 'a7505b8ee543b82576ee8f294189bfe3ec5d9ad2',
+  'crabbyavif_revision': '8f2b74b4d8be956395f527020c2190762e086f98',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Speedometer main
   # and whatever else without interference from each other.
@@ -545,7 +545,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
-  'llvm_libc_revision':    '43b582e162cb555e5325f5ba2ae9c21b6d01819e',
+  'llvm_libc_revision':    '0edc5109b70f43ebd99bd4388203b19ad4af88c6',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
@@ -1511,7 +1511,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_linux64',
-          'version': 'version:2@1680009',
+          'version': 'version:2@1681021',
         },
       ],
   },
@@ -1566,7 +1566,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_x86_64',
-          'version': 'version:2@1680031',
+          'version': 'version:2@1681026',
         },
       ],
   },
@@ -3258,7 +3258,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + 'c61ae8271bce637cfab6fdf6fd9712ed3118af8b',
+    Var('webrtc_git') + '/src.git' + '@' + '6919c7af2397f47ad8f9cc02aac472af033ea0d5',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -3387,7 +3387,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_receiver_app/app',
-        'version': '2RswBc8M0kRY7Wbk643E9hKQ0tHk5eqMQUMmKPhzhvYC',
+        'version': 'wp5_oOwrF7nHSzWDrFfUX6XmNDjlXDAROgHcL_SDdBwC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3398,7 +3398,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_app/app',
-        'version': 'iq9a5HkjnFus8o6O2cSTPv_ZoThIBzq0W1MPtT7prfAC',
+        'version': 'Bos7gz8ppAwdi86kaVP075WazSAPR_5qCRAJ-8stL2sC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3453,7 +3453,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/projector_app/app',
-        'version': 'B-UVAVvGzNzmcuiAUOWdzwBdQj1vLpzPlLW5cjVrMVIC',
+        'version': 'Y8bivNfjxg3-XNzbyp7WkEEubWzcogrmqA79i_NZiOoC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
