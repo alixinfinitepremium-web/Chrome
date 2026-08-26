@@ -263,7 +263,7 @@ vars = {
   # luci-go CIPD package version.
   # Make sure the revision is uploaded by infra-packagers builder.
   # https://ci.chromium.org/p/infra-internal/g/infra-packagers/console
-  'luci_go': 'git_revision:0e4cb6152e3aee32eca411edf436f6017c39068a',
+  'luci_go': 'git_revision:e542efa8463e91dc579bfd68003d3e5fa45cf79a',
 
   # This can be overridden, e.g. with custom_vars, to build clang from HEAD
   # instead of downloading the prebuilt pinned revision.
@@ -341,7 +341,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '0d5e61d9d6ecd446f5d358794205a1ca743a5649',
+  'skia_revision': '9e176f4ff0ea3260b59831d36586b84c568f465f',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -349,7 +349,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': 'e1115ff958b92ce2a65d5c0f3b3e991d983a018a',
+  'angle_revision': '154be1f12a8702ed71795adf7092bb410137913a',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -361,7 +361,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': '789ccba3db6314d9e24e97ea9e96e4dcf28c2345',
+  'boringssl_revision': 'b8ea4d58f70ca892c882c787f3040cf77735cfe2',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -401,11 +401,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': 'f08ece6a24c82348c9a719f86082cdfaef2a3a2d',
+  'crossbench_revision': 'b5fb76f7bd8805df6b541bf67bec653f359eafc2',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_web_tests_revision': 'b9000ed38c9a012d961d72918b4b33000309bb06',
+  'crossbench_web_tests_revision': '617427d6989f627a35406751a6b0232c08a11986',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libFuzzer
   # and whatever else without interference from each other.
@@ -421,7 +421,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '843cc0298b46117caf45fd01c0cef17eae26f1fe',
+  'devtools_frontend_revision': '08337928f402b995beec80df914cd13b499d59e6',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -453,7 +453,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ink
   # and whatever else without interference from each other.
-  'ink_revision': '66b1db31d937fe4b2d07cfa9e4627d11f8e208f5',
+  'ink_revision': 'c8f7f94dfb4fcb84f52d61542b43d50687839a47',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ios_webkit
   # and whatever else without interference from each other.
@@ -477,7 +477,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling crabbyavif
   # and whatever else without interference from each other.
-  'crabbyavif_revision': '8f2b74b4d8be956395f527020c2190762e086f98',
+  'crabbyavif_revision': '2b7fd5fa96ff1dad047324d843cc95b7c6a06dfe',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Speedometer main
   # and whatever else without interference from each other.
@@ -1758,7 +1758,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '88507b0de7b92dc2bd4a123a198f941129157591',
+    '322829715187c9a8cf507c86ea04c1dda187002c',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -1862,7 +1862,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': 'e6tTIJmON421GgrlIsMIzqUwZuTN5cxE_d6MCKwU60IC',
+          'version': 'Fya0KHJjzG2_SkDpCiZ_1QFFW_f39sG-m0C5FgwQKNYC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
@@ -2210,7 +2210,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '50dfc838053981ae5d84530fce6822c30f37a9ab',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '8439f61cfa0dc41c9fea03749527883a1fa0a16a',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -2666,7 +2666,7 @@ deps = {
     Var('chromium_git') + '/webm/libwebp.git' + '@' +  'b43b2caa710c0c997c066cb32c7fea1391fad70a',
 
   'src/third_party/libyuv':
-    Var('chromium_git') + '/libyuv/libyuv.git' + '@' + 'a0fa6329391922faca64955c1a7bf635ab87d833',
+    Var('chromium_git') + '/libyuv/libyuv.git' + '@' + '50031d294e4e921c4a3dac7bcaa2f8f3df83cbd0',
 
   'src/third_party/lss': {
       'url': Var('chromium_git') + '/linux-syscall-support.git' + '@' + Var('lss_revision'),
@@ -4021,7 +4021,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        '9f6882bce4c1ab1be563f79ff8a0e6923bdc10c9',
+        '36acf60f983ca6ae28875c8b8a75a10f2866bfc1',
       'condition': 'checkout_src_internal',
   },
 

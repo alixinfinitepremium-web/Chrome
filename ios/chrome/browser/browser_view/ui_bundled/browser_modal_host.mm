@@ -20,6 +20,7 @@
 #import "ios/chrome/browser/authentication/ui_bundled/enterprise/enterprise_prompt/enterprise_prompt_coordinator.h"
 #import "ios/chrome/browser/autofill/authentication/coordinator/card_unmask_authentication_coordinator.h"
 #import "ios/chrome/browser/autofill/autofill_ai/coordinator/ambient_autofill_notice_coordinator.h"
+#import "ios/chrome/browser/autofill/autofill_ai/coordinator/autofill_ai_private_inference_notice_coordinator.h"
 #import "ios/chrome/browser/autofill/autofill_ai/coordinator/autofill_ai_save_entity_coordinator.h"
 #import "ios/chrome/browser/autofill/autofill_ai/error_dialog/coordinator/autofill_ai_error_dialog_coordinator.h"
 #import "ios/chrome/browser/autofill/autofill_ai/error_dialog/model/autofill_ai_error_dialog_context.h"
@@ -135,7 +136,6 @@
 #import "ios/chrome/browser/shared/public/features/features.h"
 #import "ios/chrome/browser/shared/ui/layout_guide/layout_guide_swift.h"
 #import "ios/chrome/browser/shared/ui/util/layout_guide_names.h"
-#import "ios/chrome/browser/shared/ui/util/top_view_controller.h"
 #import "ios/chrome/browser/shared/ui/util/uikit_ui_util.h"
 #import "ios/chrome/browser/sharing/ui_bundled/sharing_coordinator.h"
 #import "ios/chrome/browser/sharing/ui_bundled/sharing_params.h"
@@ -225,6 +225,8 @@ const char kChromeAppStoreUrl[] =
   ActorOverlayCoordinator* _actorOverlayCoordinator;
   AddContactsCoordinator* _addContactsCoordinator;
   AmbientAutofillNoticeCoordinator* _ambientAutofillNoticeCoordinator;
+  AutofillAIPrivateInferenceNoticeCoordinator*
+      _autofillAIPrivateInferenceNoticeCoordinator;
   AutofillAiErrorDialogCoordinator* _autofillAiErrorDialogCoordinator;
   AutofillAISaveEntityCoordinator* _autofillAISaveEntityCoordinator;
   AutofillEditProfileCoordinator* _autofillEditProfileCoordinator;
@@ -319,6 +321,7 @@ const char kChromeAppStoreUrl[] =
   [self dismissAutofillProgressDialog];
   [self dismissSaveEntityDialog];
   [self dismissAmbientAutofillNotice];
+  [self dismissAutofillAIPrivateInferenceNotice];
   [_paymentsScanCoordinator stop];
   _paymentsScanCoordinator = nil;
   [_paymentsSuggestionBottomSheetCoordinator stop];
@@ -386,6 +389,13 @@ const char kChromeAppStoreUrl[] =
 }
 
 #pragma mark - Private helpers
+
+// Returns the active view controller from the scene UI provider, falling back
+// to `_baseViewController` if unavailable.
+- (UIViewController*)activeBaseViewController {
+  return _browser->GetSceneState().controller.activeViewController
+             ?: _baseViewController;
+}
 
 // Stops Send Tab To Self.
 - (void)stopSendTabToSelf {
@@ -927,6 +937,20 @@ const char kChromeAppStoreUrl[] =
   [_ambientAutofillNoticeCoordinator markNoticeShown];
   [_ambientAutofillNoticeCoordinator stop];
   _ambientAutofillNoticeCoordinator = nil;
+}
+
+- (void)showAutofillAIPrivateInferenceNotice {
+  [_autofillAIPrivateInferenceNoticeCoordinator stop];
+  _autofillAIPrivateInferenceNoticeCoordinator =
+      [[AutofillAIPrivateInferenceNoticeCoordinator alloc]
+          initWithBaseViewController:_baseViewController
+                             browser:_browser];
+  [_autofillAIPrivateInferenceNoticeCoordinator start];
+}
+
+- (void)dismissAutofillAIPrivateInferenceNotice {
+  [_autofillAIPrivateInferenceNoticeCoordinator stop];
+  _autofillAIPrivateInferenceNoticeCoordinator = nil;
 }
 
 #pragma mark - CobaltCommands
@@ -1600,16 +1624,7 @@ const char kChromeAppStoreUrl[] =
 - (void)showPictureInPictureWithConfig:(PictureInPictureConfiguration*)config {
   [_pictureInPictureCoordinator stop];
 
-  // Use the scene's active view controller if available (e.g., when in
-  // Incognito mode) so that presentation is performed on a view controller
-  // that is currently in the window hierarchy. Fall back to the coordinator's
-  // default view controller if the active scene UI is not fully initialized
-  // (e.g., in unit testing environments or early startup).
-  // TODO(crbug.com/545522613): Don't do a cast here.
-  id<SceneUIProvider> sceneUIProvider =
-      (id<SceneUIProvider>)_browser->GetSceneState().controller;
-  UIViewController* baseViewController =
-      sceneUIProvider.activeViewController ?: _baseViewController;
+  UIViewController* baseViewController = [self activeBaseViewController];
   _pictureInPictureCoordinator = [[PictureInPictureCoordinator alloc]
       initWithConfiguration:config
          baseViewController:baseViewController
@@ -1833,8 +1848,9 @@ const char kChromeAppStoreUrl[] =
                           entryPoint:
                               (send_tab_to_self::ShareEntryPoint)entryPoint {
   [self stopSendTabToSelf];
+  UIViewController* baseViewController = [self activeBaseViewController];
   _sendTabToSelfCoordinator = [[SendTabToSelfCoordinator alloc]
-      initWithBaseViewController:_baseViewController
+      initWithBaseViewController:baseViewController
                          browser:_browser
                              url:url
                            title:title
@@ -1849,7 +1865,7 @@ const char kChromeAppStoreUrl[] =
       ^{
         [weakSendTabToSelfCoordinator start];
       },
-      _baseViewController);
+      baseViewController);
 }
 
 #pragma mark - SendTabToSelfCoordinatorDelegate

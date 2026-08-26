@@ -3679,6 +3679,21 @@
             ]
         }
     ],
+    "CalculateDeadlineDerivedInterval": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "CalculateDeadlineDerivedInterval"
+                    ]
+                }
+            ]
+        }
+    ],
     "CanvasAccessibility": [
         {
             "platforms": [
@@ -6533,9 +6548,9 @@
             ],
             "experiments": [
                 {
-                    "name": "OmniboxDynamicColorRealboxDynamic",
+                    "name": "OmniboxDynamicColorAnimationRealboxDynamic_",
                     "params": {
-                        "Omnibox_DynamicAnimation": "false",
+                        "Omnibox_DynamicAnimation": "true",
                         "Omnibox_DynamicColorScheme": "true"
                     },
                     "enable_features": [
@@ -10984,9 +10999,9 @@
             ],
             "experiments": [
                 {
-                    "name": "Enabled_ANE_execution",
+                    "name": "Enabled_CPU_execution",
                     "params": {
-                        "allow_gpu_execution": "true",
+                        "allow_gpu_execution": "false",
                         "enable_on_device_classifier": "true"
                     },
                     "enable_features": [
