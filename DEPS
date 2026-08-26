@@ -337,7 +337,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': 'f21d35534bcd02706089de0229bbab1e31f7d439',
+  'src_internal_revision': 'a829b0437618e2729f051f36bfe3a380388a9aee',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -477,7 +477,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling crabbyavif
   # and whatever else without interference from each other.
-  'crabbyavif_revision': '1e3d09b96dd7bb55d107ec1436f4d25cdb1d6e74',
+  'crabbyavif_revision': 'a7505b8ee543b82576ee8f294189bfe3ec5d9ad2',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Speedometer main
   # and whatever else without interference from each other.
@@ -2209,7 +2209,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'a445689c2a77eef88bf088f2b909a693c3f16e99',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '3fc94e05e80d4ccba382f0b489a84322726d7e7d',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -2224,7 +2224,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + 'b3875193e509d51282f08a14e82fbcf5debfd164',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '9c7867072373f2b6fbcf66f63ab456957d952517',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '17a56409b86d0da5e01ca38f6498e13b2db16bc3',
@@ -4020,7 +4020,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        '5fdf9ee6a1170cdc0e6722bdc28a27c778c317eb',
+        '9f6882bce4c1ab1be563f79ff8a0e6923bdc10c9',
       'condition': 'checkout_src_internal',
   },
 
