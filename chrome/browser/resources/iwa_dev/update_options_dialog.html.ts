@@ -29,6 +29,36 @@ export function getHtml(this: IwaDevUpdateOptionsDialogElement) {
         `)}
       </datalist>
     </div>
+    <div class="dropdown-container">
+      <label for="pinnedVersionInput">
+        Pinned Version
+      </label>
+      <div class="input-container">
+        <input id="pinnedVersionInput"
+            list="pinnedVersionList"
+            class="dropdown-select"
+            .value="${this.selectedPinnedVersion_}"
+            @input="${this.onPinnedVersionInput_}"
+            ?disabled="${this.isFetching_}"
+            placeholder="${this.getVersionPlaceholder_()}">
+        ${this.selectedPinnedVersion_ ? html`
+          <cr-icon-button id="clearPinnedVersionButton"
+              iron-icon="cr:close"
+              title="Clear pinned version"
+              aria-label="Clear pinned version"
+              ?disabled="${this.isFetching_}"
+              @click="${this.onClearPinnedVersionClick_}">
+          </cr-icon-button>
+        ` : ''}
+      </div>
+      <datalist id="pinnedVersionList">
+        ${this.versions_.map(v => html`
+          <option value="${v.version}">
+            ${v.version}
+          </option>
+        `)}
+      </datalist>
+    </div>
     ${this.fetchError_ ? html`
       <div class="error-message" aria-live="polite">${this.fetchError_}</div>
     ` : ''}
