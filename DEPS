@@ -337,11 +337,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': 'a829b0437618e2729f051f36bfe3a380388a9aee',
+  'src_internal_revision': 'a2994b0766d9b7ee8584ade467b3cad5efdbab6e',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '75b536c1ea2996eac730c59b6fa4270b629a2acf',
+  'skia_revision': 'fa5791fcb6a74ce3e0bc309320a8135f44674580',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -1745,7 +1745,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': 'RFDG3vE-cHDUlvC5l-1q5jSFHlpAh6g71Nm12iUtgiQC',
+        'version': 'eErFBB-peENWehmpqn5r1S8Y5jYwmKUFczqs21LVi30C',
       },
     ],
     'condition': 'non_git_source',
@@ -1757,7 +1757,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '1ddefca8b2d7b57b3776f579165117d592c3f27c',
+    '053c4b33f92cdd4b907b17d3f7e5318ee77b9a76',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
