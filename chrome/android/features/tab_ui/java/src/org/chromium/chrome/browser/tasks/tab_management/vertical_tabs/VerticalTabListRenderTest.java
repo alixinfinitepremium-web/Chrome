@@ -53,6 +53,7 @@ import org.chromium.chrome.browser.tabmodel.TabModel;
 import org.chromium.chrome.browser.tabmodel.TabModelSelector;
 import org.chromium.chrome.browser.tasks.tab_management.TabActionButtonData;
 import org.chromium.chrome.browser.tasks.tab_management.TabActionButtonData.TabActionButtonType;
+import org.chromium.chrome.browser.tasks.tab_management.TabGroupHoverCardView;
 import org.chromium.chrome.browser.tasks.tab_management.TabListModel;
 import org.chromium.chrome.browser.tasks.tab_management.TabListRecyclerView;
 import org.chromium.chrome.browser.tasks.tab_management.TabProperties;
@@ -115,6 +116,7 @@ public class VerticalTabListRenderTest {
     private final boolean mIsIncognito;
     private Activity mActivity;
     private FrameLayout mRenderView;
+    private int mPinnedItemWidthPx;
 
     public VerticalTabListRenderTest(boolean isNightModeEnabled, boolean isIncognito) {
         mIsIncognito = isIncognito;
@@ -127,9 +129,17 @@ public class VerticalTabListRenderTest {
         mActivityTestRule.launchActivity(null);
         mActivity = mActivityTestRule.getActivity();
         mActivity.setTheme(R.style.Theme_BrowserUI_DayNight);
+        mPinnedItemWidthPx =
+                mActivity
+                        .getResources()
+                        .getDimensionPixelSize(R.dimen.vertical_tab_pinned_item_width);
     }
 
     private ViewGroup inflateAndAttachView(int layoutResId) {
+        return inflateAndAttachView(layoutResId, ViewGroup.LayoutParams.WRAP_CONTENT);
+    }
+
+    private ViewGroup inflateAndAttachView(int layoutResId, int contentWidthPx) {
         FrameLayout parent = new FrameLayout(mActivity);
         mActivity.setContentView(
                 parent,
@@ -148,7 +158,10 @@ public class VerticalTabListRenderTest {
 
         ViewGroup view = inflateView(layoutResId, mRenderView);
         mRenderView.addView(view);
-        int width = ViewGroup.LayoutParams.WRAP_CONTENT;
+        int width =
+                contentWidthPx == ViewGroup.LayoutParams.WRAP_CONTENT
+                        ? ViewGroup.LayoutParams.WRAP_CONTENT
+                        : contentWidthPx + 2 * padding;
 
         parent.addView(
                 mRenderView,
@@ -471,7 +484,9 @@ public class VerticalTabListRenderTest {
         ViewGroup[] view = new ViewGroup[1];
         ThreadUtils.runOnUiThreadBlocking(
                 () -> {
-                    view[0] = inflateAndAttachView(R.layout.vertical_tab_pinned_item);
+                    view[0] =
+                            inflateAndAttachView(
+                                    R.layout.vertical_tab_pinned_item, mPinnedItemWidthPx);
                     PropertyModel model =
                             createTabListItemModelBuilder(
                                             (mIsIncognito ? "Incognito " : "") + "Pinned Tab",
@@ -488,7 +503,7 @@ public class VerticalTabListRenderTest {
                 mIsIncognito
                         ? "pinned_tab_glic_indicator_active_incognito"
                         : "pinned_tab_glic_indicator_active";
-        mRenderTestRule.render(view[0], finalGoldenName);
+        mRenderTestRule.render(mRenderView, finalGoldenName);
     }
 
     @Test
@@ -714,6 +729,67 @@ public class VerticalTabListRenderTest {
                 mRenderView, "vertical_tab_collapsed_rail" + (mIsIncognito ? "_incognito" : ""));
     }
 
+    // =========================================================================================
+    // Tab Group Hover Card Tests
+    // =========================================================================================
+
+    @Test
+    @MediumTest
+    @Feature({"RenderTest"})
+    public void testTabGroupHoverCard_Standard() throws IOException {
+        testTabGroupHoverCard(
+                "Standard Group",
+                List.of("Google Search", "Wikipedia", "Chromium Issue Tracker"),
+                /* excessCount= */ 0,
+                "tab_group_hover_card_standard");
+    }
+
+    @Test
+    @MediumTest
+    @Feature({"RenderTest"})
+    public void testTabGroupHoverCard_SingleTab() throws IOException {
+        testTabGroupHoverCard(
+                "Single Tab Group",
+                List.of("YouTube - Video"),
+                /* excessCount= */ 0,
+                "tab_group_hover_card_single_tab");
+    }
+
+    @Test
+    @MediumTest
+    @Feature({"RenderTest"})
+    public void testTabGroupHoverCard_MaxPreview_NoExcess() throws IOException {
+        testTabGroupHoverCard(
+                "Max Preview Group",
+                List.of("Tab 1", "Tab 2", "Tab 3", "Tab 4", "Tab 5"),
+                /* excessCount= */ 0,
+                "tab_group_hover_card_max_preview");
+    }
+
+    @Test
+    @MediumTest
+    @Feature({"RenderTest"})
+    public void testTabGroupHoverCard_LargeGroup_WithExcessTabs() throws IOException {
+        testTabGroupHoverCard(
+                "Large Group",
+                List.of("Tab 1", "Tab 2", "Tab 3", "Tab 4", "Tab 5"),
+                /* excessCount= */ 7,
+                "tab_group_hover_card_excess_tabs");
+    }
+
+    @Test
+    @MediumTest
+    @Feature({"RenderTest"})
+    public void testTabGroupHoverCard_LongTitles() throws IOException {
+        testTabGroupHoverCard(
+                "Very Long Tab Group Title That Truncates With Ellipsis In Hover Card",
+                List.of(
+                        "Very Long Tab Title 1 That Exceeds The Maximum Allowed Card Width Limit",
+                        "Very Long Tab Title 2 That Exceeds The Maximum Allowed Card Width Limit"),
+                /* excessCount= */ 10,
+                "tab_group_hover_card_long_titles");
+    }
+
     private void testTabGroupSpine(boolean isCollapsed, boolean isRtl, boolean isHeaderOffScreen)
             throws IOException {
         if (mIsIncognito) {
@@ -867,7 +943,9 @@ public class VerticalTabListRenderTest {
         ViewGroup[] view = new ViewGroup[1];
         ThreadUtils.runOnUiThreadBlocking(
                 () -> {
-                    view[0] = inflateAndAttachView(R.layout.vertical_tab_pinned_item);
+                    view[0] =
+                            inflateAndAttachView(
+                                    R.layout.vertical_tab_pinned_item, mPinnedItemWidthPx);
                     PropertyModel model =
                             createTabListItemModelBuilder(
                                             (mIsIncognito ? "Incognito " : "") + title,
@@ -933,6 +1011,34 @@ public class VerticalTabListRenderTest {
         String finalGoldenName =
                 mIsIncognito
                         ? goldenName.replace("tab_group_header_", "tab_group_header_incognito_")
+                        : goldenName;
+        mRenderTestRule.render(mRenderView, finalGoldenName);
+    }
+
+    private void testTabGroupHoverCard(
+            String title, List<String> childTabTitles, int excessCount, String goldenName)
+            throws IOException {
+        if (mIsIncognito) {
+            mActivity.setTheme(R.style.ThemeOverlay_BrowserUI_TabbedMode_Incognito);
+        }
+        ViewGroup[] view = new ViewGroup[1];
+        ThreadUtils.runOnUiThreadBlocking(
+                () -> {
+                    view[0] = inflateAndAttachView(R.layout.tab_group_hover_card_holder);
+                    TabGroupHoverCardView hoverCardView = (TabGroupHoverCardView) view[0];
+                    hoverCardView.bindData(
+                            (mIsIncognito ? "Incognito " : "") + title,
+                            childTabTitles,
+                            excessCount,
+                            mIsIncognito);
+                    hoverCardView.show(/* x= */ 0, /* y= */ 0);
+                });
+        CriteriaHelper.pollUiThread(() -> view[0].getHeight() > 0);
+
+        String finalGoldenName =
+                mIsIncognito
+                        ? goldenName.replace(
+                                "tab_group_hover_card_", "tab_group_hover_card_incognito_")
                         : goldenName;
         mRenderTestRule.render(mRenderView, finalGoldenName);
     }

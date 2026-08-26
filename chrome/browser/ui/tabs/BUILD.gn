@@ -403,6 +403,7 @@ if (!is_android) {
   source_set("tabs") {
     sources = [
       "features.h",
+      "horizontal_tab_strip_metrics.h",
       "hover_tab_selector.h",
       "new_tab_grouping_user_data.h",
       "pinned_tab_codec.h",
@@ -454,10 +455,12 @@ if (!is_android) {
       "//ui/base",
       "//ui/base/unowned_user_data",
       "//ui/color:color_headers",
+      "//ui/events",
       "//ui/gfx",
       "//ui/gfx:color_utils",
       "//ui/gfx/geometry",
       "//ui/menus",
+      "//ui/views",
       "//url",
     ]
 
@@ -472,6 +475,7 @@ if (!is_android) {
     ]
 
     sources = [
+      "horizontal_tab_strip_metrics.cc",
       "hover_tab_selector.cc",
       "pinned_tab_codec.cc",
       "pinned_tab_service.cc",
@@ -509,6 +513,7 @@ if (!is_android) {
       "//chrome/app/vector_icons",
       "//chrome/browser/actor",
       "//chrome/browser/actor/ui",
+      "//chrome/browser/banners",
       "//chrome/browser/bookmarks",
       "//chrome/browser/collaboration/messaging",
       "//chrome/browser/commerce",
