@@ -3866,6 +3866,8 @@ void Element::AttributeChanged(const AttributeModificationParams& params) {
                           StyleChangeReasonForTracing::FromAttribute(name));
     }
   } else if (name == html_names::kDrawableAttr) {
+    SetNeedsStyleRecalc(kLocalStyleChange,
+                        StyleChangeReasonForTracing::FromAttribute(name));
     if (auto* layout_object = GetLayoutObject()) {
       layout_object->SetNeedsPaintPropertyUpdate();
     }
@@ -4500,9 +4502,8 @@ bool Element::IsCanvasOrInCanvasSubtree() const {
 void Element::DidChangeIsInCanvasSubtree() {
   if (auto* layout_object = GetLayoutObject()) {
     layout_object->SetNeedsPaintPropertyUpdate();
-    ObjectPaintInvalidator(*layout_object)
-        .SlowSetPaintingLayerNeedsRepaintAndInvalidateDisplayItemClient(
-            *layout_object, PaintInvalidationReason::kUncacheable);
+    layout_object->SetShouldDoFullPaintInvalidation();
+    layout_object->SetBackgroundNeedsFullPaintInvalidation();
   }
 }
 

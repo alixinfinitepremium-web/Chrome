@@ -871,7 +871,8 @@ void BrowserWindowFeatures::InitPostWindowConstruction(Browser* browser) {
 
   if (browser_view) {
     omnibox_popup_closer_ =
-        std::make_unique<omnibox::OmniboxPopupCloser>(browser_view);
+        GetUserDataFactory().CreateInstance<omnibox::OmniboxPopupCloser>(
+            *browser, browser_view, browser->GetUnownedUserDataHost());
   }
 
   profile_menu_coordinator_ =
@@ -1255,6 +1256,10 @@ actions::ActionItem* BrowserWindowFeatures::GetRootActionItem() {
 
 ToastController* BrowserWindowFeatures::toast_controller() {
   return browser_ ? ToastController::From(browser_) : nullptr;
+}
+
+sessions::LiveTabContext* BrowserWindowFeatures::live_tab_context() {
+  return live_tab_context_.get();
 }
 
 LocationBar* BrowserWindowFeatures::location_bar() {

@@ -144,6 +144,7 @@ import org.chromium.content_public.browser.LoadUrlParams;
 import org.chromium.content_public.browser.WebContents;
 import org.chromium.content_public.common.ResourceRequestBody;
 import org.chromium.ui.base.DeviceFormFactor;
+import org.chromium.ui.base.DeviceInput;
 import org.chromium.ui.base.KeyNavigationUtil;
 import org.chromium.ui.base.PageTransition;
 import org.chromium.ui.base.WindowAndroid;
@@ -823,7 +824,7 @@ class LocationBarMediator
         // While a hardware keyboard is connected, loading the NTP should cause the URL bar to gain
         // focus with a blinking cursor and without focus animations. Loading a non-NTP URL should
         // clear such focus if it exists.
-        if (OmniboxCapabilities.hasDesktopExperience(mContext)) {
+        if (DeviceInput.supportsAlphabeticKeyboard()) {
             if (onNtp) {
                 showUrlBarCursorWithoutFocusAnimations();
             } else {
@@ -1637,6 +1638,14 @@ class LocationBarMediator
         mToolbarParent.removeView(mLocationBarLayout);
         suggestionsContainer.addView(mLocationBarLayout, 0, marginLayoutParams);
         mDropdown = suggestionsContainer.takeDropdownView();
+        // Ensure mDropdown is detached from any previous parent before adding. During
+        // reparentToToolbar(), if mLocationBarLayout is in layout, removing mDropdown is
+        // posted asynchronously. If reparentToSuggestionsContainer() is subsequently invoked
+        // synchronously before that posted task executes, mDropdown remains attached to its
+        // prior parent and calling addView() would throw an IllegalStateException.
+        if (mDropdown.getParent() != null) {
+            ((ViewGroup) mDropdown.getParent()).removeView(mDropdown);
+        }
         int dropdownIndex =
                 mLocationBarLayout.indexOfChild(
                         mLocationBarLayout.findViewById(R.id.suggestions_container_placeholder));
