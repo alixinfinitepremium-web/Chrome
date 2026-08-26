@@ -413,7 +413,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling fuzztest
   # and whatever else without interference from each other.
-  'fuzztest_revision': '76e7eb9a63ad2de414707b00af7ab0e9e912684f',
+  'fuzztest_revision': '94c3cf3a4391eb0bb12999128e29cbe625bad2f3',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling domato
   # and whatever else without interference from each other.
@@ -902,20 +902,6 @@ deps = {
         'sha256sum': 'a298af5fafd358179d6aec9a42f667902dbcdb03a42ee4a87a1bff83515e96b9',
         'size_bytes': 11320770,
         'generation': 1781805676756361,
-        'output_file': 'node_modules.tar.gz',
-      },
-    ],
-  },
-  # Pull NPM dependencies for chromium-bidi.
-  'src/third_party/chromium-bidi/node_modules': {
-    'dep_type': 'gcs',
-    'bucket': 'chromium-nodejs',
-    'objects': [
-      {
-        'object_name': 'chromium-bidi/e7aab7e5ac29d62f5c023d7e8ba5eedc09a11945a88b0e174fc42f64c0820071',
-        'sha256sum': 'e7aab7e5ac29d62f5c023d7e8ba5eedc09a11945a88b0e174fc42f64c0820071',
-        'size_bytes': 20034775,
-        'generation': 1787231196468746,
         'output_file': 'node_modules.tar.gz',
       },
     ],
@@ -1665,7 +1651,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_linux64',
-          'version': 'x9H48Cw3KAt2K6RjfXNujhlfF1KhXI8A8llLPis8rfsC',
+          'version': '0dfvOe3g537_alOLEXWboY6gtg5xZ-dO6bM57OzZDDwC',
         },
       ],
   },
@@ -2209,7 +2195,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '3fc94e05e80d4ccba382f0b489a84322726d7e7d',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '50dfc838053981ae5d84530fce6822c30f37a9ab',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
