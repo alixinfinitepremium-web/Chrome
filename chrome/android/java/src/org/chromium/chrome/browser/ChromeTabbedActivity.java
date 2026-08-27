@@ -1656,8 +1656,7 @@ public class ChromeTabbedActivity extends ChromeActivity implements PreAttachInt
 
             super.finishNativeInitialization();
 
-            TabbedStartupWindowPolicyDelegate.getInstance()
-                    .initializeWithNative(UserPrefs.get(profile));
+            TabbedStartupWindowPolicyDelegate.getInstance().initializeWithNative(profile);
 
             if (!ChromeFeatureList.sAndroidStartupImprovements.isEnabled()) {
                 recordFirstAppLaunchTimestampIfNeeded();
@@ -3528,7 +3527,8 @@ public class ChromeTabbedActivity extends ChromeActivity implements PreAttachInt
         mModuleRegistrySupplier.set(moduleRegistry);
     }
 
-    private EducationTipModuleActionDelegate createEducationTipModuleActionDelegate() {
+    @VisibleForTesting
+    EducationTipModuleActionDelegate createEducationTipModuleActionDelegate() {
         return new EducationTipModuleActionDelegate() {
             @Override
             public Context getContext() {
@@ -3552,7 +3552,7 @@ public class ChromeTabbedActivity extends ChromeActivity implements PreAttachInt
 
             @Override
             public void openHubPane(int paneId) {
-                if (mLayoutManager == null) return;
+                if (mLayoutManager == null || TabSwitcherUtils.isGridTabSwitcherDisabled()) return;
 
                 // Opens the tab switcher and displays a specific pane.
                 HubShowPaneHelper hubShowPaneHelper = mHubProvider.getHubShowPaneHelper();
@@ -3562,6 +3562,8 @@ public class ChromeTabbedActivity extends ChromeActivity implements PreAttachInt
 
             @Override
             public void openTabGroupIphDialog() {
+                if (TabSwitcherUtils.isGridTabSwitcherDisabled()) return;
+
                 TabGridIphDialogCoordinator tabGridIphDialogCoordinator =
                         new TabGridIphDialogCoordinator(
                                 ChromeTabbedActivity.this, getModalDialogManager());
@@ -3732,7 +3734,8 @@ public class ChromeTabbedActivity extends ChromeActivity implements PreAttachInt
         };
     }
 
-    private VerticalTabsActionDelegate createVerticalTabsActionDelegate() {
+    @VisibleForTesting
+    VerticalTabsActionDelegate createVerticalTabsActionDelegate() {
         return new VerticalTabsActionDelegate() {
             @Override
             public void openTabSearch() {
@@ -3744,6 +3747,7 @@ public class ChromeTabbedActivity extends ChromeActivity implements PreAttachInt
 
             @Override
             public void openHubSearch() {
+                if (TabSwitcherUtils.isGridTabSwitcherDisabled()) return;
                 onMenuOrKeyboardAction(R.id.tab_search, /* fromMenu= */ false);
             }
         };

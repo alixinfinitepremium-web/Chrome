@@ -2322,6 +2322,7 @@ if (!is_android) {
       "//chrome/browser/ui/views/accessibility",
       "//chrome/browser/ui/views/app_menu:browser_tests",
       "//chrome/browser/ui/views/apps/app_info_dialog:browser_tests",
+      "//chrome/browser/ui/views/autofill/popup:browser_tests",
       "//chrome/browser/ui/views/autofill/popup:popup_bnpl_footnote_view",
       "//chrome/browser/ui/views/autofill/popup:popup_notice_view",
       "//chrome/browser/ui/views/bookmarks:test_support",
@@ -5950,6 +5951,7 @@ test("unit_tests") {
   }
 
   if (is_win || is_mac) {
+    sources += [ "../browser/ui/webui/omnibox_everywhere/omnibox_everywhere_handler_unittest.cc" ]
     deps += [
       "//chrome/browser/enterprise/platform_auth:test_utils",
       "//chrome/browser/ui/omnibox/omnibox_everywhere:unit_tests",
@@ -6423,7 +6425,7 @@ test("unit_tests") {
       "../browser/ui/views/context_hub/save_to_memory_bank_bubble_view_unittest.cc",
       "../browser/ui/views/infobars/infobar_view_unittest.cc",
       "../browser/ui/views/side_panel/tabs_from_other_devices/tabs_from_other_devices_side_panel_metrics_unittest.cc",
-      "../browser/ui/webui/omnibox_everywhere/omnibox_everywhere_handler_unittest.cc",
+      "../browser/ui/webui/tab_search/search_handler_unittest.cc",
       "../renderer/accessibility/phrase_segmentation/dependency_parser_model_unittest.cc",
       "../renderer/accessibility/phrase_segmentation/dependency_tree_unittest.cc",
       "../renderer/accessibility/phrase_segmentation/phrase_segmenter_unittest.cc",
@@ -6587,6 +6589,7 @@ test("unit_tests") {
       "//chrome/browser/ui/webui/signin:unit_tests",
       "//chrome/browser/ui/webui/skills:unit_tests",
       "//chrome/browser/ui/webui/support_tool:unit_tests",
+      "//chrome/browser/ui/webui/tab_search",
       "//chrome/browser/ui/webui/user_education:unit_tests",
       "//chrome/browser/ui/webui/util:unit_tests",
       "//chrome/browser/ui/webui/version",

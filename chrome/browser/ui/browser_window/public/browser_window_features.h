@@ -364,11 +364,6 @@ class BrowserWindowFeatures {
     return history_clusters_side_panel_coordinator_.get();
   }
 
-  IncognitoClearBrowsingDataDialogCoordinator*
-  incognito_clear_browsing_data_dialog_coordinator() {
-    return incognito_clear_browsing_data_dialog_coordinator_.get();
-  }
-
   sessions::LiveTabContext* live_tab_context();
 
   // Returns the LocationBar for this browser window. Currently delegates to
@@ -392,24 +387,8 @@ class BrowserWindowFeatures {
     return pinned_toolbar_actions_;
   }
 
-#if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_LINUX)
-  ProfileCustomizationBubbleSyncController*
-  profile_customization_bubble_sync_controller() {
-    return profile_customization_bubble_sync_controller_.get();
-  }
-#endif  // BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_LINUX)
-
   ProfileMenuCoordinator* profile_menu_coordinator() {
     return profile_menu_coordinator_.get();
-  }
-
-  SessionServiceBrowserHelper* session_service_browser_helper() {
-    return session_service_browser_helper_.get();
-  }
-
-  tab_groups::SharedTabGroupFeedbackController*
-  shared_tab_group_feedback_controller() {
-    return shared_tab_group_feedback_controller_.get();
   }
 
   // TODO(crbug.com/346158959): For historical reasons, side_panel_ui is an
@@ -433,11 +412,6 @@ class BrowserWindowFeatures {
   }
 
   TabStripModel* tab_strip_model() { return tab_strip_model_; }
-
-  TabsFromOtherDevicesSidePanelCoordinator*
-  tabs_from_other_devices_side_panel_coordinator() {
-    return tabs_from_other_devices_side_panel_coordinator_.get();
-  }
 
   // Returns a pointer to the ToastController for the browser window. This can
   // return nullptr for non-normal browser windows because toasts are not

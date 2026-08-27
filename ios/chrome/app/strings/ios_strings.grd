@@ -2384,6 +2384,9 @@
       <message name="IDS_IOS_CREDENTIAL_IMPORT_CONFLICT_RESOLUTION_TITLE" desc="Title modal that enables user to resolve conflict between existing credentials in Google Password Manager and those that are currently being imported. [iOS only]">
         Merge duplicates
       </message>
+      <message name="IDS_IOS_CREDENTIAL_IMPORT_PASSKEY_CREATION_DATE" desc="Creation date of a passkey in the credential import conflict resolution screen. [iOS only]">
+        Passkey created on <ph name="Date"><ex>2023/12/31</ex>$1</ph>
+      </message>
       <message name="IDS_IOS_CREDENTIAL_PROVIDER_NEW_PASSWORD_SUGGEST_STRONG_PASSWORD" desc="Button allowing users to request Chrome suggest a strong password">
         Suggest strong password
       </message>
@@ -3584,6 +3587,24 @@ To continue from your computer, switch to <ph name="OTHER_EMAIL">$2<ex>john.doe@
       <message name="IDS_IOS_GEMINI_PERMISSION_MICROPHONE_PROMPT_TITLE" desc="Title of the Gemini-specific microphone permission prompt.">
         “Chrome” would like to access your microphone
       </message>
+      <message name="IDS_IOS_GEMINI_PROMO_CAROUSEL_PLANNING_FLOATY_TEXT" desc="Text inside the floaty bubble in the Planning carousel slide animation.">
+          Add this to my calendar
+      </message>
+      <message name="IDS_IOS_GEMINI_PROMO_CAROUSEL_PLANNING_TAB_TEXT" desc="Text inside the browser tab in the Planning carousel slide animation.">
+          Dan’s Birthday
+      </message>
+      <message name="IDS_IOS_GEMINI_PROMO_CAROUSEL_SHOPPING_FLOATY_TEXT" desc="Text inside the floaty bubble in the Shopping carousel slide animation.">
+          Which should I buy?
+      </message>
+      <message name="IDS_IOS_GEMINI_PROMO_CAROUSEL_SHOPPING_TAB_TEXT" desc="Text inside the browser tab in the Shopping carousel slide animation.">
+          Headphones
+      </message>
+      <message name="IDS_IOS_GEMINI_PROMO_CAROUSEL_SUMMARIZE_FLOATY_TEXT" desc="Text inside the floaty bubble in the Summarize carousel slide animation.">
+          Summarize this article
+      </message>
+      <message name="IDS_IOS_GEMINI_PROMO_CAROUSEL_SUMMARIZE_TAB_TEXT" desc="Text inside the browser tab in the Summarize carousel slide animation.">
+          Market Report
+      </message>
       <message name="IDS_IOS_GEMINI_PROMO_REMIX_IMAGE_BOX_BODY" desc="'Remix an image' body text for the Gemini Promo page.">
         Long press an image on the web to edit with Gemini
       </message>
@@ -4608,17 +4629,17 @@ To continue from your computer, switch to <ph name="OTHER_EMAIL">$2<ex>john.doe@
       <message name="IDS_IOS_LEVEL_UP_PROMO_CONTENT_3" desc="Text for the Level Up promo content checklist item 3. [iOS only]">
         Use AI to get more done
       </message>
-      <message name="IDS_IOS_LEVEL_UP_PROMO_PRIVACY_DISCLAIMER" desc="Text for the Level Up promo privacy disclaimer. [iOS only]">
-        Google uses your feature usage data to recommend tasks and update progress. You can turn off Level Up at any time.
-      </message>
-      <message name="IDS_IOS_LEVEL_UP_PROMO_TITLE" desc="Text for the Level Up promo title. [iOS only]">
-        Level up your browsing
-      </message>
       <message name="IDS_IOS_LEVEL_UP_PROMO_PRIMARY_BUTTON" desc="Text for the Level Up promo primary button. [iOS only]">
         Get started
       </message>
+      <message name="IDS_IOS_LEVEL_UP_PROMO_PRIVACY_DISCLAIMER" desc="Text for the Level Up promo privacy disclaimer. [iOS only]">
+        Google uses your feature usage data to recommend tasks and update progress. You can turn off Level Up at any time.
+      </message>
       <message name="IDS_IOS_LEVEL_UP_PROMO_SECONDARY_BUTTON" desc="Text for the Level Up promo secondary button. [iOS only]">
         Not now
+      </message>
+      <message name="IDS_IOS_LEVEL_UP_PROMO_TITLE" desc="Text for the Level Up promo title. [iOS only]">
+        Level up your browsing
       </message>
       <message name="IDS_IOS_LEVEL_UP_SEE_ALL" desc="Link button to open all available level-up tasks. [iOS only]">
         See All
@@ -4675,16 +4696,16 @@ To continue from your computer, switch to <ph name="OTHER_EMAIL">$2<ex>john.doe@
       <message name="IDS_IOS_LEVEL_UP_TASK_COMPLETED_AUTOFILL" desc="Completion snackbar message for the Autofill task. [iOS only]">
         Passwords and Autofill completed!
       </message>
-      <message name="IDS_IOS_LEVEL_UP_TASK_COMPLETED_CAMERA_SEARCH" desc="Completion snackbar message for the Camera Search task. [iOS only]">
-        Search with camera completed!
-      </message>
       <message name="IDS_IOS_LEVEL_UP_TASK_COMPLETED_GEMINI" desc="Completion snackbar message for the Gemini task. [iOS only]">
         Use Gemini in Chrome completed!
       </message>
       <message name="IDS_IOS_LEVEL_UP_TASK_COMPLETED_INCOGNITO" desc="Completion snackbar message for the Incognito task. [iOS only]">
         Go Incognito completed!
       </message>
-      <message name="IDS_IOS_LEVEL_UP_TASK_COMPLETED_LENS_SEARCH" desc="Completion snackbar message for the Lens Search task. [iOS only]">
+      <message name="IDS_IOS_LEVEL_UP_TASK_COMPLETED_LENS_CAMERA_SEARCH" desc="Completion snackbar message for the Lens Camera Search task. [iOS only]">
+        Search with camera completed!
+      </message>
+      <message name="IDS_IOS_LEVEL_UP_TASK_COMPLETED_LENS_WEBSITE_SEARCH" desc="Completion snackbar message for the Lens Website Search task. [iOS only]">
         Google Lens completed!
       </message>
       <message name="IDS_IOS_LEVEL_UP_TASK_COMPLETED_PASSWORD_CHECKUP" desc="Completion snackbar message for the Password Checkup task. [iOS only]">
@@ -5661,6 +5682,9 @@ Handoff must also be enabled in the General section of Settings, and your device
       </message>
       <message name="IDS_IOS_PASSKEY_INCOGNITO_INTERSTITIAL_DIALOG_TITLE" desc="Title of the dialog shown when a user tries to create a passkey while in Incognito mode.">
         Create a passkey outside of Incognito?
+      </message>
+      <message name="IDS_IOS_PASSKEY_LABEL" desc="Label indicating that the credential is a passkey. Refer to Glossary for the meaning of 'passkey', do not translate it as 'password' [iOS only]">
+        Passkey
       </message>
       <message name="IDS_IOS_PASSKEY_PARTIAL_BOOTSTRAPPING_TITLE" desc="Title of the screen shown when the user needs to create their Google Password Manager pin to set up passkeys on their device.">
         Set up passkeys for this device
@@ -7944,9 +7968,6 @@ Handoff must also be enabled in the General section of Settings, and your device
       </message>
       <message name="IDS_IOS_SHOW_ME_HOW_FIRST_RUN_TITLE" desc="Tertiary action button text that leads to a list of instructions">
           Show me how
-      </message>
-      <message name="IDS_IOS_SHOW_PASSKEY_CREATION_DATE" desc="Label indicating that the text displayed below is the date at which the passkey was created. [Length: 20em] [iOS only]">
-        Passkey
       </message>
       <message name="IDS_IOS_SHOW_PASSKEY_DISPLAY_NAME" desc="Label indicating that the text displayed below is the display name (usually a legal name, as opposed to username, which is usually an email address) to which a saved passkey corresponds. [Length: 20em] [iOS only]">
         Display name

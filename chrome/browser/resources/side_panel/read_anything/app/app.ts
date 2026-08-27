@@ -35,7 +35,7 @@ import type {SpeechListener} from '../read_aloud/speech_controller.js';
 import {VoiceLanguageController} from '../read_aloud/voice_language_controller.js';
 import type {VoiceLanguageListener} from '../read_aloud/voice_language_controller.js';
 import {VoiceNotificationManager} from '../read_aloud/voice_notification_manager.js';
-import {getWordCount, isDistilledByReadability, minOverflowLengthToScroll} from '../shared/common.js';
+import {getWordCount, isDistilledByReadability} from '../shared/common.js';
 import {isPlayPauseShortcut} from '../shared/keyboard_util.js';
 import {ReadAnythingLogger, TimeFrom} from '../shared/read_anything_logger.js';
 
@@ -111,7 +111,6 @@ export class AppElement extends AppElementBase implements SpeechListener,
   protected accessor isDocsLoadMoreButtonVisible_: boolean = false;
   protected accessor hasValidSelection_: boolean = false;
   protected accessor isReadAnythingPinned_: boolean = false;
-  protected isImmersiveEnabled_: boolean = false;
   protected isReadAnythingImprovedUiEnabled_: boolean = false;
 
   // If the speech engine is considered "loaded." If it is, we should display
@@ -183,7 +182,6 @@ export class AppElement extends AppElementBase implements SpeechListener,
     if (this.contentBrowserProxy_.isReadabilityEnabled()) {
       this.contentController_.configureTrustedTypes();
     }
-    this.isImmersiveEnabled_ = this.visualBrowserProxy_.isImmersiveEnabled();
     this.isReadAnythingImprovedUiEnabled_ =
         this.visualBrowserProxy_.isReadAnythingImprovedUiEnabled();
   }
@@ -349,15 +347,13 @@ export class AppElement extends AppElementBase implements SpeechListener,
     this.selectionController_.onScroll();
     this.speechController_.onScroll();
     // Add fading effect to Immersive Mode text when scrolling.
-    if (this.isImmersiveEnabled_) {
-      const fontSize = Number.parseInt(window.getComputedStyle(this.$.container)
-                                           .getPropertyValue('font-size'));
-      // Add fade to scroller after the first line of text to avoid fading the
-      // top of the text.
-      this.$.containerScroller.scrollTop > fontSize ?
-          this.$.containerScroller.classList.add('fade') :
-          this.$.containerScroller.classList.remove('fade');
-    }
+    const fontSize = Number.parseInt(window.getComputedStyle(this.$.container)
+                                         .getPropertyValue('font-size'));
+    // Add fade to scroller after the first line of text to avoid fading the
+    // top of the text.
+    this.$.containerScroller.scrollTop > fontSize ?
+        this.$.containerScroller.classList.add('fade') :
+        this.$.containerScroller.classList.remove('fade');
     this.onTextLocationsChange_();
   }
 
@@ -736,16 +732,6 @@ export class AppElement extends AppElementBase implements SpeechListener,
     }
   }
 
-  protected onResetToolbar_() {
-    this.styleUpdater_.resetToolbar();
-  }
-
-  protected onToolbarOverflow_(event: CustomEvent<{overflowLength: number}>) {
-    const shouldScroll =
-        (event.detail.overflowLength >= minOverflowLengthToScroll);
-    this.styleUpdater_.overflowToolbar(shouldScroll);
-  }
-
   protected onHighlightChange_(event: CustomEvent<{data: number}>) {
     this.speechController_.onHighlightGranularityChange(event.detail.data);
     // Apply highlighting changes to the DOM.
@@ -890,10 +876,6 @@ export class AppElement extends AppElementBase implements SpeechListener,
   }
 
   protected getImmersiveClass_(): string {
-    if (!this.isImmersiveEnabled_) {
-      return '';
-    }
-
     const immersiveClass = 'immersive';
     return this.isImmersiveMode() ? `${immersiveClass} full-page` :
                                     immersiveClass;

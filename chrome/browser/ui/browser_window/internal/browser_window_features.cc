@@ -92,7 +92,6 @@
 #include "chrome/browser/ui/side_panel/side_panel_ui.h"
 #include "chrome/browser/ui/signin/signin_view_controller.h"
 #include "chrome/browser/ui/sync/browser_synced_window_delegate.h"
-#include "chrome/browser/ui/tabs/features.h"
 #include "chrome/browser/ui/tabs/organizer/organizer_panel_state_controller.h"
 #include "chrome/browser/ui/tabs/saved_tab_groups/most_recent_shared_tab_update_store.h"
 #include "chrome/browser/ui/tabs/saved_tab_groups/saved_tab_group_utils.h"
@@ -497,8 +496,9 @@ void BrowserWindowFeatures::Init(BrowserWindowInterface* browser) {
 
 #if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_LINUX)
   profile_customization_bubble_sync_controller_ =
-      std::make_unique<ProfileCustomizationBubbleSyncController>(browser,
-                                                                 profile);
+      GetUserDataFactory()
+          .CreateInstance<ProfileCustomizationBubbleSyncController>(
+              *browser, browser, profile);
   session_restore_infobar_controller_ =
       GetUserDataFactory()
           .CreateInstance<
@@ -515,10 +515,11 @@ void BrowserWindowFeatures::Init(BrowserWindowInterface* browser) {
           *browser, browser->GetUnownedUserDataHost());
 
   session_service_browser_helper_ =
-      std::make_unique<SessionServiceBrowserHelper>(
-          browser->GetTabStripModel(), browser->GetSessionID(),
+      GetUserDataFactory().CreateInstance<SessionServiceBrowserHelper>(
+          *browser, browser->GetTabStripModel(), browser->GetSessionID(),
           browser->GetType(), browser->GetProfile(),
-          &BrowserInitState::From(browser)->browser_window_create_params());
+          &BrowserInitState::From(browser)->browser_window_create_params(),
+          browser->GetUnownedUserDataHost());
 
   // Must be after session_service_browser_helper_:
   //   tab_list_bridge_ depends on initialized session tab/window state.
@@ -560,8 +561,9 @@ void BrowserWindowFeatures::Init(BrowserWindowInterface* browser) {
 
   if (TabsFromOtherDevicesSidePanelCoordinator::IsSupported(profile)) {
     tabs_from_other_devices_side_panel_coordinator_ =
-        std::make_unique<TabsFromOtherDevicesSidePanelCoordinator>(browser,
-                                                                   profile);
+        GetUserDataFactory()
+            .CreateInstance<TabsFromOtherDevicesSidePanelCoordinator>(
+                *browser, browser, profile);
   }
 
   translate_bubble_controller_ =
@@ -626,32 +628,29 @@ void BrowserWindowFeatures::Init(BrowserWindowInterface* browser) {
               *browser, browser, browser_actions_->root_action_item());
     }
 
-    if (tabs::IsVerticalTabsFeatureEnabled()) {
-      std::optional<bool> restored_state_collapsed =
-          BrowserInitState::From(browser)
-              ->is_vertical_tabs_initially_collapsed();
-      std::optional<int> restored_state_uncollapsed_width =
-          BrowserInitState::From(browser)
-              ->get_vertical_tabs_initial_uncollapsed_width();
+    std::optional<bool> restored_state_collapsed =
+        BrowserInitState::From(browser)->is_vertical_tabs_initially_collapsed();
+    std::optional<int> restored_state_uncollapsed_width =
+        BrowserInitState::From(browser)
+            ->get_vertical_tabs_initial_uncollapsed_width();
 
-      if (!restored_state_collapsed.has_value() &&
-          !restored_state_uncollapsed_width.has_value() &&
-          !browser->CreatedBySessionRestore()) {
-        restored_state_collapsed =
-            profile->GetPrefs()->GetBoolean(prefs::kVerticalTabsCollapsedState);
-        restored_state_uncollapsed_width = profile->GetPrefs()->GetInteger(
-            prefs::kVerticalTabsUncollapsedWidth);
-      }
-
-      vertical_tab_strip_state_controller_ =
-          GetUserDataFactory()
-              .CreateInstance<tabs::VerticalTabStripStateController>(
-                  *browser, browser, profile->GetPrefs(),
-                  browser_actions_->root_action_item(),
-                  SessionServiceFactory::GetForProfile(browser_->GetProfile()),
-                  browser_->GetSessionID(), restored_state_collapsed,
-                  restored_state_uncollapsed_width);
+    if (!restored_state_collapsed.has_value() &&
+        !restored_state_uncollapsed_width.has_value() &&
+        !browser->CreatedBySessionRestore()) {
+      restored_state_collapsed =
+          profile->GetPrefs()->GetBoolean(prefs::kVerticalTabsCollapsedState);
+      restored_state_uncollapsed_width =
+          profile->GetPrefs()->GetInteger(prefs::kVerticalTabsUncollapsedWidth);
     }
+
+    vertical_tab_strip_state_controller_ =
+        GetUserDataFactory()
+            .CreateInstance<tabs::VerticalTabStripStateController>(
+                *browser, browser, profile->GetPrefs(),
+                browser_actions_->root_action_item(),
+                SessionServiceFactory::GetForProfile(browser_->GetProfile()),
+                browser_->GetSessionID(), restored_state_collapsed,
+                restored_state_uncollapsed_width);
   }
 
   // Constructed last, out of alphabetical order:
@@ -862,7 +861,9 @@ void BrowserWindowFeatures::InitPostWindowConstruction(Browser* browser) {
   }
 
   incognito_clear_browsing_data_dialog_coordinator_ =
-      std::make_unique<IncognitoClearBrowsingDataDialogCoordinator>(profile);
+      GetUserDataFactory()
+          .CreateInstance<IncognitoClearBrowsingDataDialogCoordinator>(
+              *browser, profile, browser->GetUnownedUserDataHost());
 
   live_tab_context_ = std::make_unique<BrowserLiveTabContext>(
       browser, browser->GetTabStripModel(), profile, browser->GetWindow(),
@@ -1061,8 +1062,9 @@ void BrowserWindowFeatures::InitPostWindowConstruction(Browser* browser) {
         tab_groups::TabGroupSyncServiceFactory::GetForProfile(profile)) {
       if (browser_view) {
         shared_tab_group_feedback_controller_ =
-            std::make_unique<tab_groups::SharedTabGroupFeedbackController>(
-                browser_view->browser());
+            GetUserDataFactory()
+                .CreateInstance<tab_groups::SharedTabGroupFeedbackController>(
+                    *browser, browser_view->browser());
         shared_tab_group_feedback_controller_->Init();
       }
       recent_activity_bubble_coordinator_ =

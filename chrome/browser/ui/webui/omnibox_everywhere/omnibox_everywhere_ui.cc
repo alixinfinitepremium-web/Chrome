@@ -228,6 +228,15 @@ OmniboxEverywhereUI::OmniboxEverywhereUI(content::WebUI* web_ui)
   };
   source->AddLocalizedStrings(kStrings);
 
+  bool initial_show_fre =
+      base::FeatureList::IsEnabled(omnibox::kOmniboxEverywhereFre) &&
+      !profile_->GetPrefs()->GetBoolean(
+          omnibox_everywhere::prefs::kFreDismissed) &&
+      (profile_->GetPrefs()->GetInteger(
+           omnibox_everywhere::prefs::kFreImpressionCount) <
+       omnibox_everywhere::prefs::kMaxFreImpressions);
+  source->AddBoolean("initialShowFre", initial_show_fre);
+
   // Sanitized image and favicon source initialization
   content::URLDataSource::Add(profile_,
                               std::make_unique<SanitizedImageSource>(profile_));
@@ -427,10 +436,11 @@ void OmniboxEverywhereUI::OnScreensharePickerClosed() {
 
 void OmniboxEverywhereUI::ShowRegionSelectOverlay(
     const SkBitmap& screenshot,
+    const RegionCaptureSource& source,
     RegionSelectedCallback callback) {
   if (auto* service =
           OmniboxEverywhereServiceFactory::GetForProfile(profile_)) {
-    service->ShowRegionSelectOverlay(screenshot, std::move(callback));
+    service->ShowRegionSelectOverlay(screenshot, source, std::move(callback));
     return;
   }
   std::move(callback).Run(SkBitmap());

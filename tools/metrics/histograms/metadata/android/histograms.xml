@@ -161,6 +161,7 @@ chromium-metrics-reviews@google.com.
   <variant name=".DesktopSiteWindowSetting"/>
   <variant name=".DownloadIncognitoWarning"/>
   <variant name=".DownloadProgress"/>
+  <variant name=".EmailVerified"/>
   <variant name=".ExtensionDevTools"/>
   <variant name=".ExtensionsRequestAccess"/>
   <variant name=".ExternalNavigation"/>
@@ -7253,6 +7254,23 @@ chromium-metrics-reviews@google.com.
     This histogram logs whether the asset path workaround was needed during
     startup so that we can determine if it's safe to remove. This is logged once
     during WebViewChromiumAwInit#startChromium.
+  </summary>
+</histogram>
+
+<histogram
+    name="Android.WebView.AwBrowserContext.CreateAwPrefetchManager.Duration"
+    units="ms" expires_after="2027-03-01">
+  <owner>taiyo@chromium.org</owner>
+  <owner>wbjacksonjr@chromium.org</owner>
+  <owner>src/android_webview/OWNERS</owner>
+  <summary>
+    Records the time taken to instantiate an `AwPrefetchManager` object on the
+    UI thread during `AwBrowserContext` profile initialization.
+
+    Emitted synchronously during `AwBrowserContext` construction when
+    initializing `AwPrefetchManager`.
+
+    Only emitted for Android WebView.
   </summary>
 </histogram>
 

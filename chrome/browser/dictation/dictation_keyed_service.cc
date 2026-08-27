@@ -4,6 +4,8 @@
 
 #include "chrome/browser/dictation/dictation_keyed_service.h"
 
+#include <optional>
+
 #include "base/check.h"
 #include "base/feature_list.h"
 #include "base/functional/bind.h"
@@ -73,6 +75,26 @@ tabs::TabInterface* GetTabFromTargetId(
   }
 
   return nullptr;
+}
+
+std::optional<DictationUrlCategory> GetUrlCategoryFromTargetId(
+    const content::GlobalDOMNodeId& target_id) {
+  content::RenderFrameHost* rfh = target_id.document.AsRenderFrameHostIfValid();
+  if (!rfh) {
+    return std::nullopt;
+  }
+
+  content::WebContents* web_contents =
+      content::WebContents::FromRenderFrameHost(rfh);
+  if (!web_contents) {
+    return std::nullopt;
+  }
+
+  if (glic::IsGlicGuest(web_contents) || glic::IsGlicWebUI(web_contents)) {
+    return DictationUrlCategory::kGlic;
+  }
+
+  return DictationUrlCategory::kWeb;
 }
 
 }  // namespace
@@ -166,6 +188,10 @@ void DictationKeyedService::StartSession(
   }
 
   RecordDictationSessionStartSource(entry_point);
+  if (std::optional<DictationUrlCategory> url_category =
+          GetUrlCategoryFromTargetId(target_details.target_id)) {
+    RecordDictationSessionUrlCategory(*url_category);
+  }
 
   session_.emplace(*this, tab);
   dictation_tab_changed_callbacks_.Notify(&tab);
@@ -217,7 +243,8 @@ void DictationKeyedService::TriggerSession(
   } else {
     // Always stop existing stream before starting a new one.
     if (session_->controller_.attached_stream_provider()) {
-      session_->controller_.EndDictationStream();
+      session_->controller_.EndDictationStream(
+          DictationStreamEndTrigger::kNewSessionTriggered);
     }
 
     tabs::TabInterface* old_tab = session_->tab_.get();
@@ -276,7 +303,8 @@ void DictationKeyedService::ToggleHotkeyHandler() {
     bool tab_changed = (active_tab != old_tab);
 
     if (!tab_changed && session_->controller_.attached_stream_provider()) {
-      session_->controller_.EndDictationStream();
+      session_->controller_.EndDictationStream(
+          DictationStreamEndTrigger::kHotkeyToggle);
       return;
     }
   }

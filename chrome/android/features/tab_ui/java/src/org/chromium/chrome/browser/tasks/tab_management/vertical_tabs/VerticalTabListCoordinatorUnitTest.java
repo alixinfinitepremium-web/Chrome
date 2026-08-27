@@ -583,6 +583,34 @@ public class VerticalTabListCoordinatorUnitTest {
 
     @Test
     @SmallTest
+    public void testEmptySpaceContextClickListener_OverChildItem_ConsumesWithoutShowingMenu() {
+        TabListRecyclerView recyclerViewSpy = setupMockRecyclerViewWithTab(mMockTab1, TAB_ID_1);
+
+        // Position the coordinates over the mock child view.
+        mCoordinator.getLastTouchPointForTesting().set(150, 250);
+        when(recyclerViewSpy.findChildViewUnder(150f, 250f)).thenReturn(mMockChildView);
+
+        mCoordinator.setTabContextMenuCoordinatorForTesting(mTabContextMenuCoordinator);
+
+        // Invoke createEmptySpaceContextClickListener with recyclerViewSpy.
+        View.OnContextClickListener listener =
+                mCoordinator.createEmptySpaceContextClickListenerForTesting(
+                        mActivity, recyclerViewSpy);
+
+        boolean consumed = listener.onContextClick(recyclerViewSpy);
+
+        // Verify the event was consumed (returns true) and no context menus of any kind were
+        // launched because the mouse is over an actual child, so the context click is already
+        // consumed via onInterceptTouchEvent.
+        assertTrue("Context click over a tab child item should be consumed.", consumed);
+        verify(mTabContextMenuCoordinator, never()).showMenu(any(), any());
+        assertNull(
+                "Empty space menu must not be launched when click is over a tab item.",
+                mCoordinator.getTabStripContextMenuCoordinatorForTesting());
+    }
+
+    @Test
+    @SmallTest
     public void testVTHeaderContainerLongPress_LaunchesEmptySpaceContextMenu() {
         createCoordinator();
         // vertical_tab_rail_container.
@@ -2536,6 +2564,77 @@ public class VerticalTabListCoordinatorUnitTest {
         delegate.handleDragStart(0f, 0f);
         assertEquals(expectedMinHeight, mainRecyclerView.getMinimumHeight());
         delegate.handleInternalDragEnd();
+        assertEquals(0, mainRecyclerView.getMinimumHeight());
+    }
+
+    @Test
+    @SmallTest
+    public void testOriginatingDrag_DragEnterExitOnNonListViews_DoesNotToggleShadowOrMinHeight() {
+        prepareMockTab(mMockTab1, TAB_ID_1);
+        when(mTabModel.getCount()).thenReturn(1);
+        when(mTabModel.getPinnedTabsCount()).thenReturn(0);
+        when(mTabModel.getTabById(TAB_ID_1)).thenReturn(mMockTab1);
+
+        createCoordinator();
+        PropertyModel model = createTabPropertyModel();
+        model.set(TabProperties.TAB_ID, TAB_ID_1);
+        model.set(TabProperties.IS_PINNED, false);
+
+        getOnDragOutListener().onDragOut(createViewHolder(model), /* dX= */ 100f, /* dY= */ 50f);
+
+        ArgumentCaptor<TabSwitcherDragHandler.DragHandlerDelegate> delegateCaptor =
+                ArgumentCaptor.forClass(TabSwitcherDragHandler.DragHandlerDelegate.class);
+        verify(mMainTabSwitcherDragHandler, atLeastOnce())
+                .setDragHandlerDelegate(delegateCaptor.capture());
+        TabSwitcherDragHandler.DragHandlerDelegate delegate = delegateCaptor.getValue();
+
+        View container = mCoordinator.getView();
+        TabListRecyclerView mainRecyclerView = container.findViewById(R.id.tab_list_recycler_view);
+        View newTabButton = container.findViewById(R.id.new_tab_button);
+        assertNotNull(newTabButton);
+        int expectedMinHeight =
+                mActivity
+                        .getResources()
+                        .getDimensionPixelSize(R.dimen.pinned_tab_strip_item_favicon_height);
+
+        delegate.handleDragStart(0f, 0f);
+        assertEquals(expectedMinHeight, mainRecyclerView.getMinimumHeight());
+
+        // Exiting the main RecyclerView should show shadow and maintain list min height.
+        clearInvocations(mMainTabSwitcherDragHandler);
+        delegate.handleDragExit(mainRecyclerView);
+        verify(mMainTabSwitcherDragHandler).showDragShadow(eq(mainRecyclerView), eq(true));
+        assertEquals(expectedMinHeight, mainRecyclerView.getMinimumHeight());
+
+        // Entering newTabButton or container (non-list views) should NOT hide shadow or clear min
+        // height.
+        clearInvocations(mMainTabSwitcherDragHandler);
+        delegate.handleDragEnter(newTabButton);
+        verify(mMainTabSwitcherDragHandler, never()).showDragShadow(any(), anyBoolean());
+        assertEquals(expectedMinHeight, mainRecyclerView.getMinimumHeight());
+
+        // Exiting newTabButton should NOT re-trigger shadow or collapse logic.
+        clearInvocations(mMainTabSwitcherDragHandler);
+        delegate.handleDragExit(newTabButton);
+        verify(mMainTabSwitcherDragHandler, never()).showDragShadow(any(), anyBoolean());
+        assertEquals(expectedMinHeight, mainRecyclerView.getMinimumHeight());
+
+        // Entering container should NOT hide shadow.
+        clearInvocations(mMainTabSwitcherDragHandler);
+        delegate.handleDragEnter(container);
+        verify(mMainTabSwitcherDragHandler, never()).showDragShadow(any(), anyBoolean());
+        assertEquals(expectedMinHeight, mainRecyclerView.getMinimumHeight());
+
+        // Exiting container should NOT re-trigger shadow.
+        clearInvocations(mMainTabSwitcherDragHandler);
+        delegate.handleDragExit(container);
+        verify(mMainTabSwitcherDragHandler, never()).showDragShadow(any(), anyBoolean());
+        assertEquals(expectedMinHeight, mainRecyclerView.getMinimumHeight());
+
+        // Re-entering mainRecyclerView SHOULD hide shadow and restore min height.
+        clearInvocations(mMainTabSwitcherDragHandler);
+        delegate.handleDragEnter(mainRecyclerView);
+        verify(mMainTabSwitcherDragHandler).showDragShadow(eq(mainRecyclerView), eq(false));
         assertEquals(0, mainRecyclerView.getMinimumHeight());
     }
 

@@ -38,7 +38,7 @@ export class TestVisualBrowserProxy extends TestBrowserProxy implements
   activeDistillationMethod: number = 0;
   distillationTypeScreen2x: number = 0;
   distillationTypeReadability: number = 1;
-  lineFocusEnabled: boolean = false;
+  lineFocusEnabled: boolean = true;
   lineFocusOn: boolean = false;
   lineFocusOff: number = 50;
   lineFocusSmallStaticWindow: number = 51;
@@ -51,7 +51,6 @@ export class TestVisualBrowserProxy extends TestBrowserProxy implements
   lineFocusCursorLine: number = 58;
   lineFocusValue: number = 50;
   lineFocusLastNonDisabledValue: number = 50;
-  immersiveEnabled: boolean = true;
   activePresentationState: number = 1;
   pdf: boolean = false;
   keyPointsSection: boolean = false;
@@ -125,7 +124,6 @@ export class TestVisualBrowserProxy extends TestBrowserProxy implements
       'getLastNonDisabledLineFocus',
       'isLineFocusOn',
       'close',
-      'isImmersiveEnabled',
       'isReadAnythingImprovedUiEnabled',
       'isImagesEnabled',
       'isLinksEnabled',
@@ -357,11 +355,6 @@ export class TestVisualBrowserProxy extends TestBrowserProxy implements
 
   togglePresentation(): void {
     this.methodCalled('togglePresentation');
-  }
-
-  isImmersiveEnabled(): boolean {
-    this.methodCalled('isImmersiveEnabled');
-    return this.immersiveEnabled;
   }
 
   isImagesEnabled(): boolean {

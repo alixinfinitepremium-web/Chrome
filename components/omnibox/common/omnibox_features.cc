@@ -197,6 +197,10 @@ BASE_FEATURE(kOmniboxMultimodalInput, ENABLED);
 // An additional gate to the behavior of OmniboxMultimodalInput on desktop.
 BASE_FEATURE(kAndroidDesktopAimGate, ENABLED);
 
+// Disables tab attachments for Canvas requests and disables Canvas if tabs are
+// attached.
+BASE_FEATURE(kOmniboxDisableTabsForCanvas, ENABLED);
+
 // Enables the AIM entrypoint for third party search engines.
 BASE_FEATURE(kAim3pEntrypoint, ENABLED);
 const base::FeatureParam<bool> kAim3pEntrypointDebug{
@@ -219,6 +223,12 @@ BASE_FEATURE(kOmniboxWebUIDeferShowUntilVisualStateReady, DISABLED);
 // with a stale frame.
 // TODO(b/549125538): Figure out why timeout is consistently being hit.
 BASE_FEATURE(kOmniboxFullWebUIDeferShowUntilVisualStateReady, DISABLED);
+// When enabled, the Omnibox WebUI popup will debounce auto-resize events.
+BASE_FEATURE(kOmniboxWebUIDebounceResize, ENABLED);
+// When enabled, the AIM WebUI popup will debounce auto-resize events.
+BASE_FEATURE(kOmniboxAimDebounceResize, DISABLED);
+// When enabled, the Omnibox Full WebUI popup will debounce auto-resize events.
+BASE_FEATURE(kOmniboxFullWebUIDebounceResize, ENABLED);
 // If enabled, stabilizes the popup showing behavior on startup by forcing
 // layout with a 1px height and hiding it initially to avoid visual artifacts.
 BASE_FEATURE(kOmniboxWebUIPopupStabilizeStartupShow, ENABLED);
@@ -543,6 +553,7 @@ static int64_t JNI_OmniboxFeatureMap_GetNativeMap(JNIEnv* env) {
       &kOmniboxSearchPrefetchOnEnterKeyDown,
       &kOmniboxAimImageDownscaling,
       &kOmniboxDebounceKeyboardVisibility,
+      &kOmniboxDisableTabsForCanvas,
       &kOmniboxSessionlessVoiceSearch};
   static base::NoDestructor<base::android::FeatureMap> kFeatureMap(
       kFeaturesExposedToJava);
@@ -618,6 +629,8 @@ const base::FeatureParam<bool> kAskGComposeboxPlaceholder{
     &kWebUIOmniboxAskGAboutThisPage, "Omnibox_AskGComposeboxPlaceholder", false};
 const base::FeatureParam<bool> kAskGBypassPrivacyNotice{
     &kWebUIOmniboxAskGAboutThisPage, "Omnibox_AskGBypassPrivacyNotice", false};
+const base::FeatureParam<bool> kAskGShowChip{
+    &kWebUIOmniboxAskGAboutThisPage, "Omnibox_AskGShowChip", false};
 
 // Note: no new flags beyond this point.
 

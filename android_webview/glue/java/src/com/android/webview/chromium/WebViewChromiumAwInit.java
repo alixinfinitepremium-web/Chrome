@@ -4,7 +4,6 @@
 
 package com.android.webview.chromium;
 
-import android.app.compat.CompatChanges;
 import android.content.Context;
 import android.content.res.Resources;
 import android.os.Build;
@@ -13,7 +12,6 @@ import android.os.SystemClock;
 import android.webkit.CookieManager;
 import android.webkit.SelectionActionMenuClient;
 import android.webkit.WebIconDatabase;
-import android.webkit.WebSettings;
 import android.webkit.WebViewDatabase;
 
 import androidx.annotation.GuardedBy;
@@ -54,7 +52,6 @@ import org.chromium.build.BuildConfig;
 import org.chromium.content_public.browser.BrowserStartupController;
 import org.chromium.ui.base.DeviceFormFactor;
 
-import java.util.ArrayDeque;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -151,17 +148,6 @@ public class WebViewChromiumAwInit {
                 }
 
                 @Override
-                public boolean isSimplifiedDarkModeEnabled() {
-                    int targetSdkVersion =
-                            ContextUtils.getApplicationContext()
-                                    .getApplicationInfo()
-                                    .targetSdkVersion;
-                    return (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
-                            ? CompatChanges.isChangeEnabled(WebSettings.ENABLE_SIMPLIFIED_DARK_MODE)
-                            : targetSdkVersion >= Build.VERSION_CODES.TIRAMISU;
-                }
-
-                @Override
                 public void initThreadUnsafeSingletons() {
                     try (DualTraceEvent e =
                             DualTraceEvent.scoped(
@@ -199,11 +185,40 @@ public class WebViewChromiumAwInit {
                 }
             };
 
-    private final StartupController mStartupController = new StartupController(mStartupDelegate);
+    private final StartupTasksRunner.Delegate mStartupTasksRunnerDelegate =
+            new StartupTasksRunner.Delegate() {
+                @Override
+                public void onStartupComplete(StartupTasksRunner.StartupTimings timings) {
+                    mStartupDiagnostics.setStartupTimings(timings);
+                    recordStartupMetrics(timings);
+                }
+
+                @Override
+                public void onStartupFailed(RuntimeException e) {
+                    mStartupException = e;
+                }
+
+                @Override
+                public void onStartupFailed(Error e) {
+                    mStartupError = e;
+                }
+
+                @Override
+                public boolean isStartupFinished() {
+                    return mInitState.get() == INIT_FINISHED;
+                }
+
+                @Override
+                public void doAsyncBrowserStartup(
+                        BrowserStartupController.StartupCallback callback) {
+                    AwBrowserProcess.triggerAsyncBrowserProcess(callback);
+                }
+            };
+
+    private final StartupController mStartupController =
+            new StartupController(mStartupDelegate, mStartupTasksRunnerDelegate);
     private final AtomicInteger mChromiumFirstStartupRequestMode =
             new AtomicInteger(StartupTasksRunner.StartupRequestMode.UNSET);
-    // Only accessed from the UI thread
-    private StartupTasksRunner mStartupTasksRunner;
     private RuntimeException mStartupException;
     private Error mStartupError;
 
@@ -228,66 +243,12 @@ public class WebViewChromiumAwInit {
             throw mStartupError;
         }
 
-        // This can be non-null for async-then-sync or multiple-async calls.
-        if (mStartupTasksRunner == null) {
-            mStartupTasksRunner = initializeStartupTasksRunner();
-        }
-
-        mStartupTasksRunner.run(callSite, triggeredFromUIThread);
+        mStartupController.runStartupTasks(
+                callSite, triggeredFromUIThread, mChromiumFirstStartupRequestMode.get());
     }
 
     void setProviderInitOnMainLooperLocation(Throwable t) {
         mStartupDiagnostics.setProviderInitOnMainLooperLocation(t);
-    }
-
-    // Initializes a new StartupTaskRunner with a list of tasks to run for chromium startup.
-    // Postcondition of calling `.run` on the returned StartupTasksRunner is that Chromium startup
-    // is finished.
-    // Note: You should abstract any logic that is not strictly dependent on glue layer code into
-    // a static method in AwBrowserProcess so they can be unit-tested.
-    private StartupTasksRunner initializeStartupTasksRunner() {
-        ArrayDeque<Runnable> preBrowserProcessStartTasks = new ArrayDeque<>();
-        ArrayDeque<Runnable> postBrowserProcessStartTasks = new ArrayDeque<>();
-
-        preBrowserProcessStartTasks.addLast(mStartupController::preBrowserProcessStartTask);
-        preBrowserProcessStartTasks.addLast(AwBrowserProcess::runPreBrowserProcessStart);
-        postBrowserProcessStartTasks.addLast(
-                mStartupController::immediatePostBrowserProcessStartTask);
-        postBrowserProcessStartTasks.addLast(mStartupController::postBrowserProcessStartTask);
-
-        // Initialize the decoupled StartupTasksRunner with a Delegate interface implementation.
-        return new StartupTasksRunner(
-                new StartupTasksRunner.Delegate() {
-                    @Override
-                    public void onStartupComplete(StartupTasksRunner.StartupTimings timings) {
-                        mStartupDiagnostics.setStartupTimings(timings);
-                        recordStartupMetrics(timings);
-                    }
-
-                    @Override
-                    public void onStartupFailed(RuntimeException e) {
-                        mStartupException = e;
-                    }
-
-                    @Override
-                    public void onStartupFailed(Error e) {
-                        mStartupError = e;
-                    }
-
-                    @Override
-                    public boolean isStartupFinished() {
-                        return mInitState.get() == INIT_FINISHED;
-                    }
-
-                    @Override
-                    public void doAsyncBrowserStartup(
-                            BrowserStartupController.StartupCallback callback) {
-                        AwBrowserProcess.triggerAsyncBrowserProcess(callback);
-                    }
-                },
-                preBrowserProcessStartTasks,
-                postBrowserProcessStartTasks,
-                mChromiumFirstStartupRequestMode.get());
     }
 
     private void recordStartupMetrics(StartupTasksRunner.StartupTimings timings) {

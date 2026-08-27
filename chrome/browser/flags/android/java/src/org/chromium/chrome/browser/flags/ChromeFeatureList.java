@@ -410,7 +410,6 @@ public abstract class ChromeFeatureList {
     public static final String BOOKMARK_PANE_ANDROID = "BookmarkPaneAndroid";
     public static final String BOTTOM_SHEET_AS_BROWSER_CONTROLS = "BottomSheetAsBrowserControls";
     public static final String BOTTOM_SHEET_ON_DESKTOP_WINDOWING = "BottomSheetOnDesktopWindowing";
-    public static final String BOTTOM_SHEET_TYPES = "BottomSheetTypes";
     public static final String BROWSER_CONTROLS_DEBUGGING = "BrowserControlsDebugging";
     public static final String BROWSER_CONTROLS_EARLY_RESIZE = "BrowserControlsEarlyResize";
     public static final String BROWSER_CONTROLS_HIDING_TOKEN = "BrowserControlsHidingToken";
@@ -518,7 +517,11 @@ public abstract class ChromeFeatureList {
     public static final String DEFAULT_BROWSER_PROMO_FRE = "DefaultBrowserPromoFre";
     public static final String DEFER_NAVIGATION_STATE_CHANGED = "DeferNavigationStateChanged";
     public static final String DESKTOP_ANDROID_LINK_CAPTURING = "DesktopAndroidLinkCapturing";
+    public static final String DESKTOP_ANDROID_TWA_DELETE_BROWSER_DATA =
+            "DesktopAndroidTWADeleteBrowserData";
     public static final String DESKTOP_ANDROID_TWA_DISCLOSURES = "DesktopAndroidTWADisclosures";
+    public static final String DESKTOP_ANDROID_TWA_DISCLOSURES_HELP_LINK =
+            "DesktopAndroidTWADisclosuresHelpLink";
     public static final String DESKTOP_UA_ON_CONNECTED_DISPLAY = "DesktopUAOnConnectedDisplay";
     public static final String DETAILED_LANGUAGE_SETTINGS = "DetailedLanguageSettings";
     public static final String DISABLE_GRID_TAB_SWITCHER = "DisableGridTabSwitcher";
@@ -1106,8 +1109,12 @@ public abstract class ChromeFeatureList {
                     /* defaultValueInTests= */ true);
     public static final CachedFlag sDesktopAndroidLinkCapturing =
             newCachedFlag(DESKTOP_ANDROID_LINK_CAPTURING, true);
+    public static final CachedFlag sDesktopAndroidTWADeleteBrowserData =
+            newCachedFlag(DESKTOP_ANDROID_TWA_DELETE_BROWSER_DATA, false);
     public static final CachedFlag sDesktopAndroidTWADisclosures =
             newCachedFlag(DESKTOP_ANDROID_TWA_DISCLOSURES, false);
+    public static final CachedFlag sDesktopAndroidTWADisclosuresHelpLink =
+            newCachedFlag(DESKTOP_ANDROID_TWA_DISCLOSURES_HELP_LINK, false);
     public static final CachedFlag sDesktopUAOnConnectedDisplay =
             newCachedFlag(
                     DESKTOP_UA_ON_CONNECTED_DISPLAY,
@@ -1340,7 +1347,7 @@ public abstract class ChromeFeatureList {
     // Do not use this flag directly. Use SettingsInTab.isEnabled(), which takes into account both
     // the feature flag and device form factor.
     public static final CachedFlag sSettingsInTab =
-            newCachedFlag(SETTINGS_IN_TAB, /* defaultValue= */ true);
+            newCachedFlag(SETTINGS_IN_TAB, /* defaultValue= */ false);
     public static final CachedFlag sSettingsInTabUrlNav =
             newCachedFlag(SETTINGS_IN_TAB_URL_NAV, /* defaultValue= */ false);
     public static final CachedFlag sSettingsMultiColumn =
@@ -1547,7 +1554,9 @@ public abstract class ChromeFeatureList {
                     sCrossDeviceTabPaneAndroid,
                     sDefaultBrowserPromoEntryPoint,
                     sDesktopAndroidLinkCapturing,
+                    sDesktopAndroidTWADeleteBrowserData,
                     sDesktopAndroidTWADisclosures,
+                    sDesktopAndroidTWADisclosuresHelpLink,
                     sDesktopUAOnConnectedDisplay,
                     sDisablePartnerHomepageAndroid,
                     sDocumentPictureInPictureAPI,
@@ -1707,8 +1716,6 @@ public abstract class ChromeFeatureList {
             newMutableFlagWithSafeDefault(BOOKMARKS_BAR_CONTEXT_MENU, false);
     public static final MutableFlagWithSafeDefault sBookmarksBarNTP =
             newMutableFlagWithSafeDefault(BOOKMARKS_BAR_NTP, false);
-    public static final MutableFlagWithSafeDefault sBottomSheetTypes =
-            newMutableFlagWithSafeDefault(BOTTOM_SHEET_TYPES, false);
     public static final MutableFlagWithSafeDefault sBrowserControlsEarlyResize =
             newMutableFlagWithSafeDefault(BROWSER_CONTROLS_EARLY_RESIZE, false);
     public static final MutableFlagWithSafeDefault sBrowserControlsPersistsOnCvh =
@@ -2371,6 +2378,10 @@ public abstract class ChromeFeatureList {
     public static final MutableBooleanParamWithSafeDefault
             sAndroidTabDeclutterArchiveOnDesktopForceDisable =
                     sAndroidTabDeclutterArchiveOnDesktop.newBooleanParam("force_disable", false);
+    public static final MutableBooleanParamWithSafeDefault
+            sCrossWindowTabGroupOperationsRemoteGroupOperations =
+                    sCrossWindowTabGroupOperations.newBooleanParam(
+                            "remote_group_operations", false);
     public static final MutableBooleanParamWithSafeDefault sInlinePdfV2EnableFormFilling =
             sInlinePdfV2.newBooleanParam("enable_form_filling", false);
     public static final MutableBooleanParamWithSafeDefault

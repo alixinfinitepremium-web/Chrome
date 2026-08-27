@@ -99,6 +99,7 @@
 #include "components/bookmarks/common/bookmark_features.h"
 #include "components/browser_actuator/public/features.h"
 #include "components/browser_sync/browser_sync_switches.h"
+#include "components/browser_ui/bottomsheet/android/features.h"
 #include "components/browser_ui/contacts_picker/android/features.h"
 #include "components/browser_ui/modaldialog/android/features.h"
 #include "components/browsing_data/core/features.h"
@@ -1101,6 +1102,7 @@ const FeatureEntry::FeatureParam
         {"Omnibox_AskGCurrentTabChip", "false"},
         {"Omnibox_AskGLensIcon", "true"},
         {"Omnibox_AskGLensSearchHintText", "true"},
+        {"Omnibox_AskGShowChip", "false"},
         {"Omnibox_AskGComposeboxLensChip", "false"},
         {"Omnibox_AskGBlockAutoTabZeroStateSuggestions", "false"},
         {"Omnibox_AskGShowFirstDescription", "false"},
@@ -1117,6 +1119,7 @@ const FeatureEntry::FeatureParam
         {"Omnibox_AskGCurrentTabChip", "false"},
         {"Omnibox_AskGLensIcon", "false"},
         {"Omnibox_AskGLensSearchHintText", "true"},
+        {"Omnibox_AskGShowChip", "false"},
         {"Omnibox_AskGComposeboxLensChip", "false"},
         {"Omnibox_AskGBlockAutoTabZeroStateSuggestions", "false"},
         {"Omnibox_AskGShowFirstDescription", "false"},
@@ -1133,6 +1136,7 @@ const FeatureEntry::FeatureParam
         {"Omnibox_AskGCurrentTabChip", "false"},
         {"Omnibox_AskGLensIcon", "false"},
         {"Omnibox_AskGLensSearchHintText", "true"},
+        {"Omnibox_AskGShowChip", "false"},
         {"Omnibox_AskGComposeboxLensChip", "true"},
         {"Omnibox_AskGBlockAutoTabZeroStateSuggestions", "true"},
         {"Omnibox_AskGShowFirstDescription", "false"},
@@ -1149,6 +1153,7 @@ const FeatureEntry::FeatureParam
         {"Omnibox_AskGCurrentTabChip", "false"},
         {"Omnibox_AskGLensIcon", "true"},
         {"Omnibox_AskGLensSearchHintText", "true"},
+        {"Omnibox_AskGShowChip", "false"},
         {"Omnibox_AskGComposeboxLensChip", "false"},
         {"Omnibox_AskGBlockAutoTabZeroStateSuggestions", "true"},
         {"Omnibox_AskGShowFirstDescription", "false"},
@@ -1165,6 +1170,7 @@ const FeatureEntry::FeatureParam
         {"Omnibox_AskGCurrentTabChip", "true"},
         {"Omnibox_AskGLensIcon", "true"},
         {"Omnibox_AskGLensSearchHintText", "true"},
+        {"Omnibox_AskGShowChip", "true"},
         {"Omnibox_AskGComposeboxLensChip", "false"},
         {"Omnibox_AskGBlockAutoTabZeroStateSuggestions", "true"},
         {"Omnibox_AskGShowFirstDescription", "true"},
@@ -4431,6 +4437,14 @@ const FeatureEntry::FeatureVariation kCrossDeviceSigninVariations[] = {
     {"Default URL (https://www.google.com/chrome/go-mobile)",
      kCrossDeviceSigninDefaultUrl, nullptr},
 };
+
+const FeatureEntry::FeatureParam kCrossWindowTabGroupOperationsRemoteGroup[] = {
+    {"remote_group_operations", "true"}};
+
+const FeatureEntry::FeatureVariation
+    kCrossWindowTabGroupOperationsVariations[] = {
+        {"Remote group operations", kCrossWindowTabGroupOperationsRemoteGroup,
+         nullptr}};
 #endif  // BUILDFLAG(IS_ANDROID)
 
 #if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_LINUX)
@@ -4840,9 +4854,13 @@ const FeatureEntry::FeatureParam kSplitViewHorizontalDirectAccess[] = {
     {"split_view_horizontal_direct_access", "true"}};
 const FeatureEntry::FeatureParam kSplitViewHorizontalIndirectAccess[] = {
     {"split_view_horizontal_direct_access", "false"}};
+const FeatureEntry::FeatureParam kSplitViewHorizontalDirectTabAccess[] = {
+    {"split_view_horizontal_direct_tab_access", "true"}};
 const FeatureEntry::FeatureVariation kSplitViewHorizontalVariations[] = {
     {"Direct Access", kSplitViewHorizontalDirectAccess, nullptr},
-    {"Indirect Access", kSplitViewHorizontalIndirectAccess, nullptr}};
+    {"Indirect Access", kSplitViewHorizontalIndirectAccess, nullptr},
+    {"Direct Access for Tab Context Menu", kSplitViewHorizontalDirectTabAccess,
+     nullptr}};
 #endif
 
 const FeatureEntry::FeatureParam kToolbarGlowUpNoReload[] = {
@@ -6912,6 +6930,11 @@ const FeatureEntry kFeatureEntries[] = {
     {"android-desktop-aim-gate", flag_descriptions::kAndroidDesktopAimGateName,
      flag_descriptions::kAndroidDesktopAimGateDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(omnibox::kAndroidDesktopAimGate)},
+
+    {"omnibox-disable-tabs-for-canvas",
+     flag_descriptions::kOmniboxDisableTabsForCanvasName,
+     flag_descriptions::kOmniboxDisableTabsForCanvasDescription, kOsAndroid,
+     FEATURE_VALUE_TYPE(omnibox::kOmniboxDisableTabsForCanvas)},
 
     {"omnibox-aim-suppress-verbatim-match",
      flag_descriptions::kAIMSuppressVerbatimMatchName,
@@ -10243,7 +10266,7 @@ const FeatureEntry kFeatureEntries[] = {
 
     {"bottom-sheet-types", flag_descriptions::kBottomSheetTypesName,
      flag_descriptions::kBottomSheetTypesDescription, kOsAndroid,
-     FEATURE_VALUE_TYPE(chrome::android::kBottomSheetTypes)},
+     FEATURE_VALUE_TYPE(browser_ui::kBottomSheetTypes)},
 
     {"dialogs-on-large-form-factors",
      flag_descriptions::kDialogsOnLargeFormFactorsName,
@@ -10312,7 +10335,10 @@ const FeatureEntry kFeatureEntries[] = {
     {"cross-window-tab-group-operations",
      flag_descriptions::kCrossWindowTabGroupOperationsName,
      flag_descriptions::kCrossWindowTabGroupOperationsDescription, kOsAndroid,
-     FEATURE_VALUE_TYPE(chrome::android::kCrossWindowTabGroupOperations)},
+     FEATURE_WITH_PARAMS_VALUE_TYPE(
+         chrome::android::kCrossWindowTabGroupOperations,
+         kCrossWindowTabGroupOperationsVariations,
+         "CrossWindowTabGroupOperations")},
 
     {"history-pane-android", flag_descriptions::kHistoryPaneAndroidName,
      flag_descriptions::kHistoryPaneAndroidDescription, kOsAndroid,
@@ -10914,6 +10940,11 @@ const FeatureEntry kFeatureEntries[] = {
     {"ai-overlay-dialog", flag_descriptions::kAiOverlayDialogName,
      flag_descriptions::kAiOverlayDialogDescription, kOsDesktop,
      FEATURE_VALUE_TYPE(features::kAiOverlayDialog)},
+    {"ai-overlay-disable-navigation-context",
+     flag_descriptions::kAiOverlayDisableNavigationContextName,
+     flag_descriptions::kAiOverlayDisableNavigationContextDescription,
+     kOsDesktop,
+     FEATURE_VALUE_TYPE(features::kAiOverlayDisableNavigationContext)},
 #endif  // !BUILDFLAG(IS_ANDROID)
 
     {"glic", flag_descriptions::kGlicName, flag_descriptions::kGlicDescription,
@@ -12822,10 +12853,21 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kDesktopAndroidLinkCapturingName,
      flag_descriptions::kDesktopAndroidLinkCapturingDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(chrome::android::kDesktopAndroidLinkCapturing)},
+    {"desktop-android-twa-delete-browser-data",
+     flag_descriptions::kDesktopAndroidTWADeleteBrowserDataName,
+     flag_descriptions::kDesktopAndroidTWADeleteBrowserDataDescription,
+     kOsAndroid,
+     FEATURE_VALUE_TYPE(chrome::android::kDesktopAndroidTWADeleteBrowserData)},
     {"desktop-android-twa-disclosures",
      flag_descriptions::kDesktopAndroidTWADisclosuresName,
      flag_descriptions::kDesktopAndroidTWADisclosuresDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(chrome::android::kDesktopAndroidTWADisclosures)},
+    {"desktop-android-twa-disclosures-help-link",
+     flag_descriptions::kDesktopAndroidTWADisclosuresHelpLinkName,
+     flag_descriptions::kDesktopAndroidTWADisclosuresHelpLinkDescription,
+     kOsAndroid,
+     FEATURE_VALUE_TYPE(
+         chrome::android::kDesktopAndroidTWADisclosuresHelpLink)},
 #endif
 
 #if BUILDFLAG(IS_ANDROID)
@@ -13929,6 +13971,13 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kGooglePayViaAndroidIntentsDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(payments::android::kGooglePayViaAndroidIntents)},
 #endif
+
+    {"autofill-add-chrome-user-context-fields",
+     flag_descriptions::kAutofillAddChromeUserContextFieldsName,
+     flag_descriptions::kAutofillAddChromeUserContextFieldsDescription, kOsAll,
+     FEATURE_VALUE_TYPE(
+         autofill::features::kAutofillAddChromeUserContextFields)},
+
     // Add new entries above this line.
     // NOTE: Adding a new flag requires adding a corresponding entry to enum
     // "LoginCustomFlags" in tools/metrics/histograms/enums.xml. See "Flag

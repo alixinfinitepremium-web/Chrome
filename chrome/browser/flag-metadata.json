@@ -126,6 +126,15 @@
     "expiry_milestone": 160
   },
   {
+    "name": "ai-overlay-disable-navigation-context",
+    "owners": [
+      "gklassen@chromium.org",
+      "bokan@chromium.org",
+      "//chrome/browser/ui/webui/ai_overlay_dialog/OWNERS"
+    ],
+    "expiry_milestone": 160
+  },
+  {
     "name": "aim-3p-entrypoint",
     "owners": [ "manukh@chromium.org", "chrome-desktop-search@google.com" ],
     "expiry_milestone": 160
@@ -859,6 +868,11 @@
     "expiry_milestone": 147
   },
   {
+    "name": "autofill-add-chrome-user-context-fields",
+    "owners": [ "osaul@google.com", "payments-autofill-team@google.com" ],
+    "expiry_milestone": 160
+  },
+  {
     "name": "autofill-ai-always-show-private-ai-notice",
     "owners": [ "brunobraga@google.com", "tchudakov@google.com" ],
     "expiry_milestone": 160
@@ -1443,7 +1457,7 @@
   {
     "name": "bottom-sheet-types",
     "owners": [ "hitarthkothari@chromium.org", "clank-app-team@google.com" ],
-    "expiry_milestone": 150
+    "expiry_milestone": 160
   },
   {
     "name": "boundary-event-dispatch-tracks-node-removal",
@@ -2669,7 +2683,17 @@
     "expiry_milestone": 152
   },
   {
+    "name": "desktop-android-twa-delete-browser-data",
+    "owners": [ "aixba@chromium.org", "pwa-team@google.com" ],
+    "expiry_milestone": 165
+  },
+  {
     "name": "desktop-android-twa-disclosures",
+    "owners": [ "aixba@chromium.org", "pwa-team@google.com" ],
+    "expiry_milestone": 165
+  },
+  {
+    "name": "desktop-android-twa-disclosures-help-link",
     "owners": [ "aixba@chromium.org", "pwa-team@google.com" ],
     "expiry_milestone": 165
   },
@@ -2938,6 +2962,11 @@
       "//content/browser/dom_storage/OWNERS"
     ],
     "expiry_milestone": 160
+  },
+  {
+    "name": "domain-level-site-permissions",
+    "owners": [ "scottyoder@google.com", "bling-pandamonium@google.com" ],
+    "expiry_milestone": 162
   },
   {
     "name": "double-buffer-compositing",
@@ -5421,6 +5450,14 @@
     "expiry_milestone": 151
   },
   {
+    "name": "gemini-aureus",
+    "owners": [
+      "hamzamoh@google.com",
+      "bling-alchemy-eng@google.com"
+    ],
+    "expiry_milestone": 170
+  },
+  {
     "name": "gemini-backend-migration",
     "owners": [
       "nicolasmacbeth@google.com",
@@ -5476,6 +5513,11 @@
     "name": "gemini-fre-refactor",
     "owners": [ "hamzamoh@google.com", "bling-alchemy-eng@google.com" ],
     "expiry_milestone": 160
+  },
+  {
+    "name": "gemini-insights-chip-ablation",
+    "owners": [ "adamta@google.com", "bling-alchemy-eng@google.com" ],
+    "expiry_milestone": 170
   },
   {
     "name": "gemini-live",
@@ -6648,11 +6690,6 @@
     "expiry_milestone": 150
   },
   {
-    "name": "lens-block-fetch-objects-interaction-rpcs-on-separate-handshake",
-    "owners": ["cmyang@google.com", "brandonli@google.com"],
-    "expiry_milestone": 145
-  },
-  {
     "name": "lens-bypass-compression-for-c2pa",
     "owners": [
       "hujasonx@google.com"
@@ -6692,11 +6729,6 @@
     "expiry_milestone": 150
   },
   {
-    "name": "lens-exact-matches-enabled",
-    "owners": ["cmyang@google.com", "brandonli@google.com", "lens-chrome@google.com"],
-    "expiry_milestone": 145
-  },
-  {
     "name": "lens-fetch-srp-api-enabled",
     "owners": ["cmyang@google.com", "brandonli@google.com"],
     "expiry_milestone": 145
@@ -6719,11 +6751,6 @@
       "cmyang@google.com"
     ],
     "expiry_milestone": 160
-  },
-  {
-    "name": "lens-gesture-text-selection-disabled",
-    "owners": ["cmyang@google.com"],
-    "expiry_milestone": 145
   },
   {
     "name": "lens-initial-lvf-zoom-level-90-percent",
@@ -6779,16 +6806,6 @@
     "expiry_milestone": 145
   },
   {
-    "name": "lens-prewarm-hard-stickiness-in-input-selection",
-    "owners": ["cmyang@google.com", "brandonli@google.com"],
-    "expiry_milestone": 145
-  },
-  {
-    "name": "lens-prewarm-hard-stickiness-in-query-formulation",
-    "owners": ["cmyang@google.com", "brandonli@google.com"],
-    "expiry_milestone": 145
-  },
-  {
     "name": "lens-reinvocation-affordance",
     "owners": ["juanmojica@google.com", "lens-chrome@google.com"],
     "expiry_milestone": 152
@@ -6799,19 +6816,9 @@
     "expiry_milestone": 150
   },
   {
-    "name": "lens-single-tap-text-selection-disabled",
-    "owners": ["cmyang@google.com"],
-    "expiry_milestone": 145
-  },
-  {
     "name": "lens-stream-service-web-channel-transport-enabled",
     "owners": ["cmyang@google.com", "brandonli@google.com"],
     "expiry_milestone": 165
-  },
-  {
-    "name": "lens-strokes-api-enabled",
-    "owners": ["aboodmufti@google.com", "cmyang@google.com"],
-    "expiry_milestone": 145
   },
   {
     "name": "lens-translate-toogle-mode-enabled",
@@ -6822,11 +6829,6 @@
     "name": "lens-triple-camera-enabled",
     "owners": ["cmyang@google.com", "aruslan@google.com"],
     "expiry_milestone": 165
-  },
-  {
-    "name": "lens-unary-api-salient-text-enabled",
-    "owners": ["cmyang@google.com", "brandonli@google.com"],
-    "expiry_milestone": 145
   },
   {
     "name": "lens-updated-feedback-entrypoint",
@@ -7689,6 +7691,11 @@
     "owners": ["ender@google.com", "chrome-mobile-search@google.com"],
     // Provides a way to turn on various diagnostic facilities in the Omnibox component.
     "expiry_milestone": 300
+  },
+  {
+    "name": "omnibox-disable-tabs-for-canvas",
+    "owners": [ "skym@chromium.org", "chrome-mobile-search@google.com" ],
+    "expiry_milestone": 160
   },
   {
     "name": "omnibox-dui-prerendering",
@@ -10328,11 +10335,6 @@
       "top-chrome-desktop-ui@google.com",
       "//chrome/browser/default_browser/OWNERS"
     ],
-    "expiry_milestone": 160
-  },
-  {
-    "name": "voice-search-mic-permissions",
-    "owners": [ "scottyoder@google.com", "bling-pandamonium@google.com" ],
     "expiry_milestone": 160
   },
   {

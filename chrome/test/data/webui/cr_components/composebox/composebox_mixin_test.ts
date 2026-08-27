@@ -1004,6 +1004,28 @@ suite('ComposeboxMixinTest', () => {
     assertEquals(-1, element.activeQueryId);
   });
 
+  test('clearAutocompleteMatches preserves typed draft input', async () => {
+    element.input = 'Draft text';
+    element.lastQueriedInput = 'Draft text';
+    element.activeQueryId = 1;
+
+    const matches = [
+      {fillIntoEdit: 'Draft text suggestion', supportsDeletion: false} as
+          AutocompleteMatch,
+    ];
+    element.result = {input: 'Draft text', matches} as AutocompleteResult;
+    element.selectedMatchIndex = 0;
+    await element.updateComplete;
+
+    element.clearAutocompleteMatches();
+    await element.updateComplete;
+
+    assertEquals('Draft text', element.input);
+    assertEquals(-1, element.selectedMatchIndex);
+    assertEquals(null, element.result);
+    assertEquals(-1, element.activeQueryId);
+  });
+
   test('smartComposeInlineHint is sliced on sequential typing', async () => {
     element.smartComposeEnabled = true;
     element.input = 'hello';
@@ -1726,6 +1748,7 @@ suite('ComposeboxMixinTest', () => {
           menuLabel: 'Regular',
           hintText: 'Hint Regular',
           menuTooltip: '',
+          icon: 0,
         },
         {
           model: ModelMode.kGeminiPro,
@@ -1733,6 +1756,7 @@ suite('ComposeboxMixinTest', () => {
           menuLabel: 'Pro',
           hintText: 'Hint Pro',
           menuTooltip: '',
+          icon: 0,
         },
       ],
       modelSectionConfig: null,

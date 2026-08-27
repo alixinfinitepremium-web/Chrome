@@ -844,6 +844,12 @@ inline constexpr char kAutoDocPiPPermissionPromptAndroidDescription[] =
     "Enables the Auto Document Picture-in-Picture permission prompt on "
     "Android.";
 
+inline constexpr char kAutofillAddChromeUserContextFieldsName[] =
+    "Add client type and version to request context in Payments calls";
+inline constexpr char kAutofillAddChromeUserContextFieldsDescription[] =
+    "When enabled, calls to Google Payments include the Chrome client type and "
+    "major version, instead of parsing the user agent.";
+
 inline constexpr char kAutofillAndroidDesktopSuppressAccessoryOnEmptyName[] =
     "Enable suppressing keyboard accessory on android desktop";
 inline constexpr char
@@ -3664,6 +3670,12 @@ inline constexpr char kAndroidDesktopAimGateDescription[] =
     "Gates the behavior of Omnibox Multimodal Input on android desktop "
     "devices.";
 
+inline constexpr char kOmniboxDisableTabsForCanvasName[] =
+    "Omnibox Disable Tabs For Canvas";
+inline constexpr char kOmniboxDisableTabsForCanvasDescription[] =
+    "Disables tab attachments when Canvas is active and disables Canvas tool "
+    "when tabs are attached.";
+
 inline constexpr char kOmniboxNumNtpZpsRecentSearchesName[] =
     "Omnibox: Recent Searches on new tab page ZPS";
 inline constexpr char kOmniboxNumNtpZpsRecentSearchesDescription[] =
@@ -6115,12 +6127,26 @@ inline constexpr char kDesktopAndroidLinkCapturingName[] =
 inline constexpr char kDesktopAndroidLinkCapturingDescription[] =
     "Enables Link Capturing on desktop Android.";
 
+inline constexpr char kDesktopAndroidTWADeleteBrowserDataName[] =
+    "Desktop Android TWA Delete Browser Data";
+inline constexpr char kDesktopAndroidTWADeleteBrowserDataDescription[] =
+    "Triggers a notification on TWA uninstall that provides the opportunity "
+    "for deleting browser data. This is a follow up to the "
+    "DesktopAndroidTWADisclosures feature.";
+
 inline constexpr char kDesktopAndroidTWADisclosuresName[] =
     "Desktop Android TWA Disclosures Suppression";
 inline constexpr char kDesktopAndroidTWADisclosuresDescription[] =
     "Enables replacement for TWA disclosures for desktop Android. "
     "This suppresses the FRE disclosures, displays the origin on the app "
     "header, and provides a new uninstall dialog to delete browser data.";
+
+inline constexpr char kDesktopAndroidTWADisclosuresHelpLinkName[] =
+    "Desktop Android TWA Disclosures Help Link";
+inline constexpr char kDesktopAndroidTWADisclosuresHelpLinkDescription[] =
+    "Enables linking to the help article from the TWA 3-dot menu footer on "
+    "desktop Android. This is a follow up feature to Desktop Android TWA "
+    "Disclosures Suppression.";
 
 inline constexpr char kDesktopFlingCurveOnAndroidName[] =
     "Desktop Fling Curve on Android";
@@ -8776,6 +8802,11 @@ inline constexpr char kComposeSelectionNudgeDescription[] =
 inline constexpr char kAiOverlayDialogName[] = "AI Overlay Dialog";
 inline constexpr char kAiOverlayDialogDescription[] =
     "Enables the AI overlay dialog.";
+
+inline constexpr char kAiOverlayDisableNavigationContextName[] =
+    "AI Overlay Disable Navigation Context";
+inline constexpr char kAiOverlayDisableNavigationContextDescription[] =
+    "Disables sharing navigation history.";
 
 inline constexpr char kGlicName[] = "Glic";
 inline constexpr char kGlicDescription[] = "Enables glic";

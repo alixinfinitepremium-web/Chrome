@@ -79,7 +79,6 @@
 #include "components/vector_icons/vector_icons.h"
 #include "content/public/browser/web_ui_data_source.h"
 #include "content/public/common/url_constants.h"
-#include "third_party/omnibox_proto/answer_type.pb.h"
 #include "third_party/omnibox_proto/chrome_searchbox_stats.pb.h"
 #include "third_party/omnibox_proto/groups.pb.h"
 #include "third_party/omnibox_proto/input_type.pb.h"
@@ -561,6 +560,9 @@ base::DictValue SearchboxHandler::GetWebUIDataSourceDict(
 #endif
   dict.Set("contextualMenuUsePecApi",
            base::FeatureList::IsEnabled(omnibox::kAimUsePecApi));
+  dict.Set(
+      "useSearchboxConfigIconIds",
+      base::FeatureList::IsEnabled(omnibox::kAimUseSearchboxConfigIconIds));
   dict.Set("ShowContextMenuHeaders",
            ntp_composebox::kShowContextMenuHeaders.Get());
   dict.Set("composeboxSmartTabSharingVisible",
@@ -977,7 +979,6 @@ SearchboxHandler::CreateAutocompleteMatch(
   mojom_match->is_rich_suggestion =
       !mojom_match->image_url.empty() ||
       match.type == AutocompleteMatchType::CALCULATOR ||
-      match.answer_type != omnibox::ANSWER_TYPE_UNSPECIFIED ||
       match.enterprise_search_aggregator_type ==
           AutocompleteMatch::EnterpriseSearchAggregatorType::PEOPLE;
   if (!match.from_keyword) {
@@ -1258,6 +1259,7 @@ void SearchboxHandler::QueryAutocomplete(
       input_with_keyword, cursor_position, page_classification,
       ChromeAutocompleteSchemeClassifier(profile_));
   autocomplete_input.set_current_url(client()->GetURL());
+  autocomplete_input.set_current_title(client()->GetTitle());
   autocomplete_input.set_focus_type(
       is_on_focus ? metrics::OmniboxFocusType::INTERACTION_FOCUS
                   : metrics::OmniboxFocusType::INTERACTION_DEFAULT);

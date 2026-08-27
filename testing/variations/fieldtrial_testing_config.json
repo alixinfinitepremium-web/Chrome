@@ -802,6 +802,21 @@
             ]
         }
     ],
+    "AndroidResizeLargeNotificationBitmaps": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "AndroidResizeLargeNotificationBitmaps"
+                    ]
+                }
+            ]
+        }
+    ],
     "AndroidResourceMemoryOptimization": [
         {
             "platforms": [
@@ -8408,6 +8423,21 @@
             ]
         }
     ],
+    "ExcludePipFromScreenCapture": [
+        {
+            "platforms": [
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "ExcludePipFromScreenCapture"
+                    ]
+                }
+            ]
+        }
+    ],
     "ExpandCompositedCullRectMobile": [
         {
             "platforms": [
@@ -10423,6 +10453,26 @@
             ]
         }
     ],
+    "HeapProfilerChurnReporting": [
+        {
+            "platforms": [
+                "android",
+                "chromeos",
+                "ios",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "HeapProfilerChurnReporting"
+                    ]
+                }
+            ]
+        }
+    ],
     "HeapProfilerIncludeResidency": [
         {
             "platforms": [
@@ -10438,6 +10488,25 @@
                     "name": "Enabled",
                     "enable_features": [
                         "HeapProfilerIncludeResidency"
+                    ]
+                }
+            ]
+        }
+    ],
+    "HeliosFREExperiment": [
+        {
+            "platforms": [
+                "ios"
+            ],
+            "experiments": [
+                {
+                    "name": "VisualRich",
+                    "params": {
+                        "variant": "visual-rich"
+                    },
+                    "enable_features": [
+                        "GeminiFREExperiment",
+                        "GeminiFRERefactor"
                     ]
                 }
             ]
@@ -17832,6 +17901,21 @@
                     },
                     "enable_features": [
                         "SkiaGraphiteSmallPathAtlas"
+                    ]
+                }
+            ]
+        }
+    ],
+    "SkiaGraphiteUsePersistentCache": [
+        {
+            "platforms": [
+                "mac"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "SkiaGraphiteUsePersistentCache"
                     ]
                 }
             ]

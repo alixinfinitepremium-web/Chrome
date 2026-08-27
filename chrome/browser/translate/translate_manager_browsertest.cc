@@ -60,6 +60,7 @@
 #include "ui/accessibility/accessibility_features.h"
 #include "ui/events/base_event_utils.h"
 #include "ui/views/controls/button/label_button.h"
+#include "ui/views/controls/button/md_text_button.h"
 #include "ui/views/test/button_test_api.h"
 #include "url/gurl.h"
 
@@ -404,7 +405,7 @@ class TranslateManagerBrowserTest : public InProcessBrowserTest {
 
   virtual void InitFeatures() {
     scoped_feature_list_.InitWithFeatures(
-        {toast_features::kTranslateToast, features::kImmersiveReadAnything},
+        {toast_features::kTranslateToast, features::kReadAnythingImprovedUi},
         {});
   }
 

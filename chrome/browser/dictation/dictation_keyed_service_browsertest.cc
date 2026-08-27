@@ -5,6 +5,7 @@
 #include "chrome/browser/dictation/dictation_keyed_service.h"
 
 #include "base/memory/weak_ptr.h"
+#include "base/test/metrics/histogram_tester.h"
 #include "base/test/run_until.h"
 #include "base/test/scoped_feature_list.h"
 #include "chrome/app/chrome_command_ids.h"
@@ -12,6 +13,7 @@
 #include "chrome/browser/dictation/dictation_keyed_service_factory.h"
 #include "chrome/browser/dictation/features.h"
 #include "chrome/browser/dictation/listener_stream_provider.h"
+#include "chrome/browser/dictation/metrics.h"
 #include "chrome/browser/dictation/stream_provider.h"
 #include "chrome/browser/dictation/target.h"
 #include "chrome/browser/dictation/test_util.h"
@@ -334,7 +336,7 @@ IN_PROC_BROWSER_TEST_P(DictationKeyedServiceBrowserTest,
 
   // Stop the provider from the browser side and confirm the state change from
   // the extension API.
-  provider->Stop();
+  provider->Stop(DictationStreamEndTrigger::kTest);
   ExtensionSendStreamStateUpdate(profile(), provider->stream_id_for_testing(),
                                  ExtensionStreamState::kComplete);
   EXPECT_TRUE(base::test::RunUntil(
@@ -455,7 +457,7 @@ IN_PROC_BROWSER_TEST_P(DictationKeyedServiceBrowserTest,
 
   // Stop the provider and confirm the state change from the extension. This
   // should trigger a deletion task.
-  provider->Stop();
+  provider->Stop(DictationStreamEndTrigger::kTest);
   ExtensionSendStreamStateUpdate(profile(), provider->stream_id_for_testing(),
                                  ExtensionStreamState::kComplete);
   EXPECT_TRUE(base::test::RunUntil([&]() { return provider_weak == nullptr; }));
@@ -534,7 +536,7 @@ IN_PROC_BROWSER_TEST_P(DictationKeyedServiceBrowserTest,
   EXPECT_EQ(provider->GetLatestTranscriptionForTesting(), "Hello World");
   EXPECT_TRUE(provider->IsTranscriptionFinalForTesting());
 
-  provider->Stop();
+  provider->Stop(DictationStreamEndTrigger::kTest);
   ExtensionSendStreamStateUpdate(profile(), provider->stream_id_for_testing(),
                                  ExtensionStreamState::kComplete);
 
@@ -838,6 +840,33 @@ IN_PROC_BROWSER_TEST_F(DictationGlicBrowserTest,
 
   // The underline should become hidden because navigation ends dictation.
   EXPECT_FALSE(underline->IsShowing());
+}
+
+// Ensure session URL category metric is recorded as Glic for sessions started
+// in Glic guest.
+IN_PROC_BROWSER_TEST_F(DictationGlicBrowserTest,
+                       RecordsSessionUrlCategoryGlic) {
+  base::HistogramTester histogram_tester;
+
+  ASSERT_OK_AND_ASSIGN(auto* instance, OpenGlicForActiveTab());
+  ASSERT_OK(WaitForGlicClient(instance));
+
+  content::RenderFrameHost* glic_rfh = instance->host().GetGuestMainFrame();
+  ASSERT_TRUE(glic_rfh);
+
+  // Start a session using the Glic guest document.
+  content::GlobalDOMNodeId target_id(glic_rfh->GetWeakDocumentPtr(),
+                                     blink::DOMNodeIdType(123));
+
+  tabs::TabInterface* tab = GetTabListInterface()->GetActiveTab();
+  ASSERT_TRUE(tab);
+  dictation_service().StartSessionForTesting(
+      *tab, TargetDetails(target_id), DictationSessionEntryPoint::kContextMenu);
+
+  histogram_tester.ExpectUniqueSample(kSessionUrlCategoryHistogramName,
+                                      DictationUrlCategory::kGlic, 1);
+
+  dictation_service().EndSession();
 }
 
 }  // namespace

@@ -5138,6 +5138,14 @@ should be able to be added at any place in this file.
   </description>
 </action>
 
+<action name="Android.Pdf.DiscardAnnotations">
+  <owner>rathomas@google.com</owner>
+  <owner>clank-large-form-factors@google.com</owner>
+  <description>
+    User confirmed discarding PDF annotations during page reload or navigation.
+  </description>
+</action>
+
 <action name="Android.Pdf.EditFab">
   <owner>rathomas@google.com</owner>
   <owner>clank-large-form-factors@google.com</owner>
@@ -19292,6 +19300,17 @@ should be able to be added at any place in this file.
   </description>
 </action>
 
+<action name="IOS.AtMemory.UnsupportedQueryTapped">
+  <owner>leozhao@google.com</owner>
+  <owner>novakovica@google.com</owner>
+  <owner>sugoi@google.com</owner>
+  <owner>tmartino@chromium.org</owner>
+  <description>
+    The user tapped the unsupported query item in the AtMemory search view to
+    open Gemini. iOS only.
+  </description>
+</action>
+
 <action name="IOS.AutoDeletion.ActionSheet.AcceptDownloadEnrollment">
   <owner>danieltwhite@chromium.org</owner>
   <owner>bling-fundamentals@google.com</owner>
@@ -30007,6 +30026,21 @@ should be able to be added at any place in this file.
 <action name="MobileMenuDataSaverOpened">
   <owner>megjablon@chromium.org</owner>
   <description>User opened the data saver item in the app menu.</description>
+</action>
+
+<action name="MobileMenuDefaultBrowser">
+  <owner>cheickcisse@google.com</owner>
+  <description>
+    User pressed 'Use Chrome as Default' destination in the overflow menu.
+  </description>
+</action>
+
+<action name="MobileMenuDefaultBrowserOnNTP">
+  <owner>cheickcisse@google.com</owner>
+  <description>
+    User pressed 'Use Chrome as Default' destination in the overflow menu from a
+    NTP page. Logged in addition to the general metric.
+  </description>
 </action>
 
 <action name="MobileMenuDefaultBrowserPromo">

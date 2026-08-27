@@ -227,6 +227,7 @@
 #include "pdf/buildflags.h"
 #include "printing/buildflags/buildflags.h"
 #include "rlz/buildflags/buildflags.h"
+#include "ui/accessibility/accessibility_prefs.h"
 #include "ui/webui/buildflags.h"
 
 #if BUILDFLAG(ENABLE_WEBUI_NTP)
@@ -251,6 +252,8 @@
 #include "chrome/browser/extensions/extension_url_overrides.h"
 #include "chrome/browser/extensions/extension_util.h"
 #include "chrome/browser/extensions/preinstalled_extensions.h"
+#include "chrome/browser/ui/extensions/extension_settings_overridden_dialog.h"
+#include "chrome/browser/ui/extensions/settings_api_bubble_helpers.h"
 #include "chrome/browser/ui/webui/extensions/extensions_ui_prefs.h"
 #include "extensions/browser/api/runtime/runtime_api.h"
 #include "extensions/browser/extension_prefs.h"
@@ -260,8 +263,6 @@
 
 #if BUILDFLAG(ENABLE_EXTENSIONS)
 #include "chrome/browser/accessibility/animation_policy_prefs.h"
-#include "chrome/browser/ui/extensions/extension_settings_overridden_dialog.h"
-#include "chrome/browser/ui/extensions/settings_api_bubble_helpers.h"
 #include "extensions/browser/api/audio/audio_api.h"
 #endif  // BUILDFLAG(ENABLE_EXTENSIONS)
 
@@ -1004,6 +1005,12 @@ constexpr char kTrackingProtection3pcdEnabled[] =
 constexpr char kBlockAll3pcToggleEnabled[] =
     "tracking_protection.block_all_3pc_toggle_enabled";
 
+#if !BUILDFLAG(IS_ANDROID)
+// Deprecated 08/2026.
+constexpr char kEverythingMenuPinnedToTabstripMigrationComplete[] =
+    "everything_menu.pinned_to_tabstrip_migration_complete";
+#endif  // !BUILDFLAG(IS_ANDROID)
+
 #if BUILDFLAG(IS_CHROMEOS)
 // Deprecated 07/2026.
 inline constexpr char kPluginVmAllowed[] = "plugin_vm.allowed";
@@ -1424,6 +1431,12 @@ void RegisterProfilePrefsForMigration(
   // Deprecated 08/2026.
   registry->RegisterStringPref(kUkmLoggingUserSecret, std::string());
   registry->RegisterTimePref(kUkmLoggingUserSecretCreationTime, base::Time());
+
+#if !BUILDFLAG(IS_ANDROID)
+  // Deprecated 08/2026.
+  registry->RegisterBooleanPref(
+      kEverythingMenuPinnedToTabstripMigrationComplete, false);
+#endif  // !BUILDFLAG(IS_ANDROID)
 }
 
 }  // namespace
@@ -1771,6 +1784,7 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry,
   TRACE_EVENT0("browser", "chrome::RegisterProfilePrefs");
   // User prefs. Please keep this list alphabetized.
   AccessibilityLabelsService::RegisterProfilePrefs(registry);
+  registry->RegisterBooleanPref(prefs::kRendererAccessibilityEnabled, true);
   AccessibilityUIMessageHandler::RegisterProfilePrefs(registry);
   AimEligibilityService::RegisterProfilePrefs(registry);
   AnnouncementNotificationService::RegisterProfilePrefs(registry);
@@ -1941,17 +1955,17 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry,
 #if BUILDFLAG(IS_ANDROID)
   registry->RegisterBooleanPref(prefs::kPinExtensionsMenuButton, true);
 #endif
+  // TODO(devlin): This would be more inline with the other calls here if it
+  // were nested in either a class or separate namespace with a simple
+  // Register[Profile]Prefs() name.
+  extensions::RegisterSettingsOverriddenUiPrefs(registry);
+  ExtensionSettingsOverriddenDialog::RegisterProfilePrefs(registry);
 
 #endif  // BUILDFLAG(ENABLE_EXTENSIONS_CORE)
 
 #if BUILDFLAG(ENABLE_EXTENSIONS)
   RegisterAnimationPolicyPrefs(registry);
   extensions::AudioAPI::RegisterUserPrefs(registry);
-  // TODO(devlin): This would be more inline with the other calls here if it
-  // were nested in either a class or separate namespace with a simple
-  // Register[Profile]Prefs() name.
-  extensions::RegisterSettingsOverriddenUiPrefs(registry);
-  ExtensionSettingsOverriddenDialog::RegisterProfilePrefs(registry);
 #endif  // BUILDFLAG(ENABLE_EXTENSIONS)
 
 #if BUILDFLAG(ENABLE_PDF)
@@ -2701,11 +2715,6 @@ void MigrateObsoleteProfilePrefs(PrefService* profile_prefs,
   profile_prefs->ClearPref(kMV2DeprecationDisabledAcknowledgedGlobally);
 #endif  // BUILDFLAG(ENABLE_EXTENSIONS_CORE)
 
-#if !BUILDFLAG(IS_ANDROID)
-  // Added 07/2026.
-  tabs::MigrateEverythingMenuPinnedToTabstripPref(profile_prefs);
-#endif
-
   // Added 07/2026.
   profile_prefs->ClearPref(kObsoleteManagementProfileLastLogTime);
 
@@ -2771,6 +2780,11 @@ void MigrateObsoleteProfilePrefs(PrefService* profile_prefs,
   // Added 08/2026.
   profile_prefs->ClearPref(kUkmLoggingUserSecret);
   profile_prefs->ClearPref(kUkmLoggingUserSecretCreationTime);
+
+#if !BUILDFLAG(IS_ANDROID)
+  // Added 08/2026.
+  profile_prefs->ClearPref(kEverythingMenuPinnedToTabstripMigrationComplete);
+#endif  // !BUILDFLAG(IS_ANDROID)
 
   // Please don't delete the following line. It is used by PRESUBMIT.py.
   // END_MIGRATE_OBSOLETE_PROFILE_PREFS

@@ -23,6 +23,7 @@
 #include "chrome/browser/tab_list/tab_list_interface.h"
 #include "chrome/browser/tab_list/tab_list_interface_observer.h"
 #include "chrome/browser/ui/omnibox/omnibox_controller.h"
+#include "chrome/browser/ui/omnibox/omnibox_everywhere_service.h"
 #include "chrome/browser/ui/webui/cr_components/searchbox/searchbox_handler.h"
 #include "chrome/browser/ui/webui/cr_components/searchbox/searchbox_omnibox_client.h"
 #include "components/contextual_search/contextual_search_context_controller.h"
@@ -165,11 +166,16 @@ class ContextualSearchboxHandler
     // Invoked when the screenshare picker is opened or closed.
     virtual void OnScreensharePickerOpened() {}
     virtual void OnScreensharePickerClosed() {}
+
+    using RegionCaptureSource = OmniboxEverywhereService::RegionCaptureSource;
     using RegionSelectedCallback =
         base::OnceCallback<void(const SkBitmap& result_bitmap)>;
     virtual void ShowRegionSelectOverlay(const SkBitmap& screenshot,
+                                         const RegionCaptureSource& source,
                                          RegionSelectedCallback callback) {}
   };
+
+  using RegionCaptureSource = ScreenshareDelegate::RegionCaptureSource;
 
   struct ProcessedScreenshot {
     std::vector<uint8_t> png_bytes;
@@ -587,10 +593,16 @@ class ContextualSearchboxHandler
                                     StartScreenshareCallback callback,
                                     webrtc::DesktopCapturer::Source source);
   void OnNativePickerCancelled(StartScreenshareCallback callback);
-  void CaptureAndUploadScreenshot(content::DesktopMediaID source,
-                                  StartScreenshareCallback callback);
-  void OnScreenshotCaptured(StartScreenshareCallback callback,
-                            const SkBitmap& bitmap);
+  void CaptureAndUploadScreenshot(
+      content::DesktopMediaID source,
+      StartScreenshareCallback callback,
+      std::optional<RegionCaptureSource> region_capture_source = std::nullopt);
+  void OnScreenshotCaptured(
+      StartScreenshareCallback callback,
+      std::optional<RegionCaptureSource> region_capture_source,
+      const SkBitmap& bitmap);
+  void OnRegionSelected(StartScreenshareCallback callback,
+                        const SkBitmap& region_bitmap);
   void OnScreenshotProcessed(StartScreenshareCallback callback,
                              ProcessedScreenshot result);
   void NotifyScreensharePickerOpened();

@@ -405,6 +405,7 @@ public class TabbedRootUiCoordinator extends RootUiCoordinator {
     private final OneshotSupplierImpl<SideUiStateProvider> mSideUiStateProviderSupplier =
             new OneshotSupplierImpl<>();
     private @Nullable ViewMarginAdjusterForSideUi mSecondaryUiContainerMarginAdjuster;
+    private @Nullable ViewMarginAdjusterForSideUi mSheetContainerMarginAdjuster;
     private @Nullable ContextualTasksBridge mContextualTasksBridge;
     private @Nullable GlicUiCoordinator mGlicUiCoordinator;
     private @Nullable ForcedSigninController mForcedSigninController;
@@ -2283,14 +2284,6 @@ public class TabbedRootUiCoordinator extends RootUiCoordinator {
         ViewStub webContentHairlineContainerStub =
                 mActivity.findViewById(R.id.side_ui_web_content_hairline_container_stub);
 
-        NonNullObservableSupplier<Integer> stripBottomPxSupplier = null;
-        assumeNonNull(mLayoutManager);
-        StripLayoutHelperManager stripLayoutHelperManager =
-                mLayoutManager.getStripLayoutHelperManager();
-        if (stripLayoutHelperManager != null) {
-            stripBottomPxSupplier = stripLayoutHelperManager.getStripBottomPxSupplier();
-        }
-
         if (ChromeFeatureList.sTabSearchForDesktop.isEnabled()) {
             mTabSearchOverlayCoordinator =
                     new TabSearchOverlayCoordinator(
@@ -2322,7 +2315,6 @@ public class TabbedRootUiCoordinator extends RootUiCoordinator {
                         sideUiStartAnchorContainerStub,
                         sideUiEndAnchorContainerStub,
                         webContentHairlineContainerStub,
-                        stripBottomPxSupplier,
                         mIncognitoStateProvider);
         if (mSideUiCoordinator == null) {
             return;
@@ -2403,6 +2395,12 @@ public class TabbedRootUiCoordinator extends RootUiCoordinator {
         View secondaryUiContainer = mActivity.findViewById(R.id.secondary_ui_container);
         mSecondaryUiContainerMarginAdjuster = new ViewMarginAdjusterForSideUi(secondaryUiContainer);
         mSideUiCoordinator.addObserver(mSecondaryUiContainerMarginAdjuster);
+
+        View sheetContainer = mActivity.findViewById(R.id.sheet_container);
+        if (sheetContainer != null) {
+            mSheetContainerMarginAdjuster = new ViewMarginAdjusterForSideUi(sheetContainer);
+            mSideUiCoordinator.addObserver(mSheetContainerMarginAdjuster);
+        }
     }
 
     @SuppressWarnings("UseSharedPreferencesManagerFromChromeCheck")
@@ -2619,6 +2617,9 @@ public class TabbedRootUiCoordinator extends RootUiCoordinator {
         if (mSideUiCoordinator != null) {
             if (mSecondaryUiContainerMarginAdjuster != null) {
                 mSideUiCoordinator.removeObserver(mSecondaryUiContainerMarginAdjuster);
+            }
+            if (mSheetContainerMarginAdjuster != null) {
+                mSideUiCoordinator.removeObserver(mSheetContainerMarginAdjuster);
             }
             mSideUiCoordinator.destroy();
             mSideUiCoordinator = null;
@@ -2994,7 +2995,10 @@ public class TabbedRootUiCoordinator extends RootUiCoordinator {
     public boolean handleMenuOrKeyboardAction(int id, boolean fromMenu) {
         if (super.handleMenuOrKeyboardAction(id, fromMenu)) return true;
         if (id == R.id.switch_keyboard_focus_row) {
-            mKeyboardFocusRowManager.onKeyboardFocusRowSwitch();
+            mKeyboardFocusRowManager.onKeyboardFocusRowSwitch(/* forward= */ true);
+            return true;
+        } else if (id == R.id.switch_keyboard_focus_row_reverse) {
+            mKeyboardFocusRowManager.onKeyboardFocusRowSwitch(/* forward= */ false);
             return true;
         } else if (id == R.id.open_tab_strip_context_menu) {
             if (mVerticalTabsSideUiCoordinator != null
