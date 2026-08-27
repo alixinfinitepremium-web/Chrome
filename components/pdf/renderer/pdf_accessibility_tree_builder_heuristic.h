@@ -8,7 +8,6 @@
 #include <cstddef>
 #include <cstdint>
 #include <map>
-#include <optional>
 #include <vector>
 
 #include "base/containers/span.h"
@@ -35,7 +34,6 @@ struct AXNodeData;
 namespace pdf {
 
 class PdfAccessibilityTreeBuilder;
-enum class HeadingClassifier;
 
 // Heuristic-based accessibility tree building for untagged PDFs.
 //
@@ -50,6 +48,22 @@ enum class HeadingClassifier;
 //    spacing, and spatial relationships.
 //
 
+// Heuristic rules used to classify a text block as a heading.
+enum class HeadingClassifier {
+  // Not classified as a heading.
+  kNone,
+  // Classified based on font size.
+  kFontSize,
+  // Classified based on bold styling.
+  kBoldStyle,
+  // Classified because all characters are uppercase.
+  kAllUppercase,
+  // Classified due to semi-bold font weight (600).
+  kSemiBoldWeight,
+  // Classified by looking at the font name to determine styling.
+  kFontName,
+};
+
 // Bundles raw page layout data (text runs, characters, start indices) used by
 // the heuristic tree builder.
 struct PageLayoutData {
@@ -63,11 +77,15 @@ struct PageLayoutData {
   base::raw_span<const uint32_t> text_run_start_indices;
 };
 
-// Computed page-specific metrics, styling properties, and classification
-// thresholds used as decision factors by the heuristic tree builder.
-struct HeuristicPageProperties {
+// Computed page-specific metrics and classification thresholds used as
+// decision factors by the heuristic tree builder.
+struct HeuristicThresholds {
   // The line spacing threshold above which a paragraph break is identified.
   float paragraph_spacing_threshold;
+
+  // A mapping from a text run's font size to its heading level (ranges from 1
+  // to 6).
+  const raw_ref<const std::map<float, int>> heading_font_size_mapping;
 
   // The median font size on the page.
   float median_font_size;
@@ -75,14 +93,6 @@ struct HeuristicPageProperties {
   // The minimum font size threshold required for a run to be considered a
   // heading.
   float heading_font_size_threshold;
-
-  // The dominant body text color on the page (in ARGB format), if multiple
-  // colors exist.
-  std::optional<uint32_t> body_text_color;
-
-  // A mapping from a text run's font size to its heading level (ranges from 1
-  // to 6).
-  std::map<float, int> heading_font_size_mapping;
 };
 
 // This class implements the complete heuristic accessibility tree building
@@ -108,7 +118,7 @@ class PdfAccessibilityTreeBuilderHeuristic {
       const chrome_pdf::AccessibilityTextRunInfo& current_run,
       const chrome_pdf::AccessibilityTextRunInfo* next_run,
       base::span<const chrome_pdf::AccessibilityCharInfo> current_run_chars,
-      const HeuristicPageProperties& page_properties,
+      const HeuristicThresholds& thresholds,
       HeadingClassifier* out_heading_classifier);
 
   void AddTextToAXNode(size_t start_text_run_index,

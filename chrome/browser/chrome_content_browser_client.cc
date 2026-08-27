@@ -133,6 +133,7 @@
 #include "chrome/browser/performance_manager/public/chrome_content_browser_client_performance_manager_part.h"
 #include "chrome/browser/picture_in_picture/picture_in_picture_window_manager.h"
 #include "chrome/browser/picture_in_picture/scoped_tuck_picture_in_picture.h"
+#include "chrome/browser/picture_in_picture/video_overlay_window.h"
 #include "chrome/browser/plugins/plugin_utils.h"
 #include "chrome/browser/policy/chrome_policy_blocklist_service_factory.h"
 #include "chrome/browser/policy/policy_util.h"
@@ -166,7 +167,6 @@
 #include "chrome/browser/renderer_preferences_util.h"
 #include "chrome/browser/safe_browsing/url_checker_delegate_impl.h"
 #include "chrome/browser/search/search.h"
-#include "chrome/browser/search_engines/template_url_service_factory.h"
 #include "chrome/browser/sensor/chrome_sensor_delegate.h"
 #include "chrome/browser/serial/chrome_serial_delegate.h"
 #include "chrome/browser/service_worker/service_worker_prewarm.h"
@@ -275,7 +275,6 @@
 #include "components/error_page/common/error_page_switches.h"
 #include "components/error_page/common/localized_error.h"
 #include "components/google/core/common/google_switches.h"
-#include "components/google/core/common/google_util.h"
 #include "components/guest_view/browser/guest_view_base.h"
 #include "components/guest_view/buildflags/buildflags.h"
 #include "components/heap_profiling/in_process/heap_profiler_controller.h"
@@ -332,7 +331,6 @@
 #include "components/safe_browsing/core/common/safe_browsing_prefs.h"
 #include "components/search/ntp_features.h"
 #include "components/search_engines/search_engines_switches.h"
-#include "components/search_engines/template_url_service.h"
 #include "components/security_state/core/security_state.h"
 #include "components/site_isolation/features.h"
 #include "components/site_isolation/pref_names.h"
@@ -366,7 +364,6 @@
 #include "content/public/browser/legacy_tech_cookie_issue_details.h"
 #include "content/public/browser/navigation_handle.h"
 #include "content/public/browser/network_service_instance.h"
-#include "content/public/browser/overlay_window.h"
 #include "content/public/browser/permission_controller.h"
 #include "content/public/browser/permission_descriptor_util.h"
 #include "content/public/browser/render_frame_host.h"
@@ -2307,6 +2304,11 @@ bool ChromeContentBrowserClient::HasWebRequestAPIProxy(
   } else if (base::FeatureList::IsEnabled(
                  features::
                      kOptimizeWebRequestProxyForServiceWorkerAutoPreload)) {
+    if (features::
+            kOptimizeWebRequestProxyForServiceWorkerAutoPreloadAllowDeclarativeNetRequest
+                .Get()) {
+      return web_request_api->HasWebRequestExtension();
+    }
     return web_request_api->HasWebRequestOrDeclarativeWebRequestExtension();
   } else {
     return web_request_api->MayHaveProxies();
@@ -3123,7 +3125,7 @@ void ChromeContentBrowserClient::AppendExtraCommandLineSwitches(
         autofill::switches::kIgnoreAutocompleteOffForAutofill,
         autofill::switches::kShowAutofillSignatures,
 #if BUILDFLAG(IS_CHROMEOS)
-        switches::kShortMergeSessionTimeoutForTest,  // For tests only.
+        ash::switches::kShortMergeSessionTimeoutForTest,  // For tests only.
 #endif
 #if BUILDFLAG(ENABLE_EXTENSIONS_CORE)
         extensions::switches::kAllowHTTPBackgroundPage,
@@ -6699,7 +6701,7 @@ ChromeContentBrowserClient::
   // that loader must respect the Connection Allowlist of that context.
   SearchPrefetchURLLoader::RequestHandler prefetch_handler =
       SearchPrefetchURLLoaderInterceptor::MaybeCreateLoaderForRequest(
-          resource_request, frame_tree_node_id);
+          resource_request, frame_tree_node_id, navigation_id);
   if (prefetch_handler) {
     prefetch_handler =
         SearchPrefetchURLLoaderInterceptor::MaybeProxyRequestHandler(
@@ -7252,13 +7254,7 @@ bool ChromeContentBrowserClient::HandleExternalProtocol(
 std::unique_ptr<content::VideoOverlayWindow>
 ChromeContentBrowserClient::CreateWindowForVideoPictureInPicture(
     content::VideoPictureInPictureWindowController* controller) {
-  // Note: content::VideoOverlayWindow::Create() is defined by platform-specific
-  // implementation in chrome/browser/ui/views. This layering hack, which goes
-  // through //content and ContentBrowserClient, allows us to work around the
-  // dependency constraints that disallow directly calling
-  // chrome/browser/ui/views code either from here or from other code in
-  // chrome/browser.
-  return content::VideoOverlayWindow::Create(controller);
+  return CreateVideoOverlayWindow(controller);
 }
 
 base::ScopedClosureRunner
@@ -9528,24 +9524,8 @@ bool ChromeContentBrowserClient::ShouldAllowPrefetchRedirection(
     content::BrowserContext& browser_context,
     const GURL& url,
     const std::string& embedder_histogram_suffix) {
-  // TODO(crbug.com/413259638): Use the constant in `preloading_utils` once it
-  // is created, currently this is set to be the same constant in
-  // c/b/p/b_p/bookmarkbar_preload_pipeline.cc.
-  // This function is only interested in specific triggers. The related triggers
-  // don't generate parameters to be identified by search results providers, so
-  // the triggering search related urls is avoided. See crbug.com/40282403 for
-  // more details.
-  if (embedder_histogram_suffix != preloading_utils::kBookmarkBarMetricSuffix &&
-      embedder_histogram_suffix != preloading_utils::kNewTabPageMetricSuffix) {
-    return true;
-  }
-  auto* profile = Profile::FromBrowserContext(&browser_context);
-  TemplateURLService* template_url_service =
-      TemplateURLServiceFactory::GetForProfile(profile);
-  return !((template_url_service &&
-            template_url_service->IsSearchResultsPageFromDefaultSearchProvider(
-                url)) ||
-           google_util::IsGoogleSearchUrl(url));
+  return preloading_utils::ShouldAllowPrefetchRedirection(
+      browser_context, url, embedder_histogram_suffix);
 }
 
 void ChromeContentBrowserClient::ModifyRequestHeadersForPrefetch(

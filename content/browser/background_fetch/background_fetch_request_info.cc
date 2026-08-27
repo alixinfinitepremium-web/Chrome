@@ -127,8 +127,8 @@ void BackgroundFetchRequestInfo::SetEmptyResultWithFailureReason(
 
 void BackgroundFetchRequestInfo::PopulateWithResponse(
     std::unique_ptr<BackgroundFetchResponse> response) {
-  DCHECK_CURRENTLY_ON(BrowserThread::UI);
-  DCHECK(response);
+  CHECK_CURRENTLY_ON(BrowserThread::UI, base::NotFatalUntil::M158);
+  CHECK(response, base::NotFatalUntil::M158);
 
   url_chain_ = response->url_chain;
 
@@ -171,8 +171,8 @@ const std::vector<GURL>& BackgroundFetchRequestInfo::GetURLChain() const {
 void BackgroundFetchRequestInfo::CreateResponseBlobDataHandle(
     scoped_refptr<ChromeBlobStorageContext> blob_storage_context) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
-  DCHECK(result_);
-  DCHECK(!io_blob_data_);
+  CHECK(result_, base::NotFatalUntil::M158);
+  CHECK(!io_blob_data_, base::NotFatalUntil::M158);
 
   if (!result_->blob_handle && result_->file_path.empty())
     return;
@@ -196,7 +196,7 @@ void BackgroundFetchRequestInfo::CreateResponseBlobDataHandle(
 
 std::unique_ptr<storage::BlobDataHandle>
 BackgroundFetchRequestInfo::TakeResponseBlobDataHandleOnIO() {
-  DCHECK_CURRENTLY_ON(BrowserThread::IO);
+  CHECK_CURRENTLY_ON(BrowserThread::IO, base::NotFatalUntil::M158);
 
   if (!io_blob_data_)
     return nullptr;
@@ -205,19 +205,19 @@ BackgroundFetchRequestInfo::TakeResponseBlobDataHandleOnIO() {
 
 uint64_t BackgroundFetchRequestInfo::GetResponseSize() const {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
-  DCHECK(result_);
+  CHECK(result_, base::NotFatalUntil::M158);
   return response_size_;
 }
 
 const base::Time& BackgroundFetchRequestInfo::GetResponseTime() const {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
-  DCHECK(result_);
+  CHECK(result_, base::NotFatalUntil::M158);
   return result_->response_time;
 }
 
 bool BackgroundFetchRequestInfo::IsResultSuccess() const {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
-  DCHECK(result_);
+  CHECK(result_, base::NotFatalUntil::M158);
   return result_->failure_reason == BackgroundFetchResult::FailureReason::NONE;
 }
 

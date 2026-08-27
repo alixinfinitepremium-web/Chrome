@@ -10,6 +10,7 @@
 #import "base/test/metrics/histogram_tester.h"
 #import "base/test/scoped_feature_list.h"
 #import "base/test/simple_test_tick_clock.h"
+#import "base/test/test_future.h"
 #import "base/values.h"
 #import "components/keyed_service/core/service_access_type.h"
 #import "components/optimization_guide/core/delivery/optimization_guide_model_provider.h"
@@ -17,8 +18,11 @@
 #import "components/safe_browsing/core/browser/intelligent_scan_delegate.h"
 #import "components/safe_browsing/core/browser/verdict_cache_manager.h"
 #import "components/safe_browsing/core/common/features.h"
+#import "components/safe_browsing/core/common/phishing_classifier/phishing_image_embedder.h"
 #import "components/safe_browsing/core/common/phishing_classifier/scorer.h"
 #import "components/safe_browsing/core/common/safe_browsing_prefs.h"
+#import "components/safe_browsing/core/common/threat_enums.h"
+#import "components/safe_browsing/core/common/visual_utils.h"
 #import "components/safe_browsing/ios/browser/client_side_detection_feature_cache.h"
 #import "components/safe_browsing/ios/browser/safe_browsing_url_allow_list.h"
 #import "components/signin/public/identity_manager/identity_manager.h"
@@ -51,6 +55,8 @@ namespace safe_browsing {
 namespace {
 
 constexpr char kExampleUrl[] = "https://example.com";
+constexpr char kPhishingUrl[] = "https://phishing.example.com";
+constexpr char kReferrerUrl[] = "https://referrer.example.com/";
 constexpr char kLoopbackIpStr[] = "127.0.0.1";
 constexpr char kLoopbackIpUrl[] = "http://127.0.0.1";
 constexpr char kPrivateIpStr[] = "192.168.1.1";
@@ -157,12 +163,35 @@ class MockClientSideDetectionService
               (const net::IPAddress&),
               (const, override));
   MOCK_METHOD(bool, AtPhishingReportLimit, (), (override));
+  MOCK_METHOD(bool, HasImageEmbeddingModel, (), (const, override));
+  MOCK_METHOD(bool,
+              IsModelMetadataImageEmbeddingVersionMatching,
+              (),
+              (const, override));
+};
+
+class MockPhishingImageEmbedder : public safe_browsing::PhishingImageEmbedder {
+ public:
+  MOCK_METHOD(void,
+              BeginImageEmbedding,
+              (const gfx::Image& image,
+               bool can_extract_visual_features,
+               DoneCallback callback),
+              (override));
+  MOCK_METHOD(void, CancelPendingImageEmbedding, (), (override));
 };
 
 std::unique_ptr<KeyedService> BuildMockClientSideDetectionService(
     ProfileIOS* profile) {
   return std::make_unique<MockClientSideDetectionService>(profile->GetPrefs(),
                                                           nullptr);
+}
+
+UIImage* CreateTestImage() {
+  UIGraphicsImageRenderer* renderer =
+      [[UIGraphicsImageRenderer alloc] initWithSize:CGSizeMake(1, 1)];
+  return [renderer imageWithActions:^(UIGraphicsImageRendererContext* context){
+  }];
 }
 
 }  // namespace
@@ -261,6 +290,72 @@ class ClientSideDetectionHostIOSTest : public PlatformTest {
     host->send_sample_ping_ = value;
   }
 
+  gfx::Image classification_image(ClientSideDetectionHostIOS* host) {
+    return host->classification_image_;
+  }
+
+  void set_classification_image(ClientSideDetectionHostIOS* host,
+                                const gfx::Image& image) {
+    host->classification_image_ = image;
+  }
+
+  void OnSnapshotReceived(ClientSideDetectionHostIOS* host,
+                          const GURL& url,
+                          UIImage* ui_image) {
+    host->OnSnapshotReceived(url, ui_image);
+  }
+
+  void OnClassificationDone(ClientSideDetectionHostIOS* host,
+                            const GURL& url,
+                            const gfx::Image& image,
+                            safe_browsing::ClientSideDetectionType request_type,
+                            base::TimeTicks classification_start_time,
+                            const safe_browsing::ClientPhishingRequest& verdict,
+                            safe_browsing::PhishingClassifier::Result result) {
+    host->OnClassificationDone(url, image, request_type,
+                               classification_start_time, verdict, result);
+  }
+
+  visual_utils::CanExtractVisualFeaturesResult
+  DetermineVisualFeaturesExtraction(ClientSideDetectionHostIOS* host) {
+    return host->DetermineVisualFeaturesExtraction();
+  }
+
+  void OnImageEmbeddingDone(
+      ClientSideDetectionHostIOS* host,
+      std::unique_ptr<safe_browsing::ClientPhishingRequest> verdict,
+      std::optional<bool> did_match_high_confidence_allowlist,
+      bool is_invalid_ip,
+      safe_browsing::PhishingImageEmbedder::Result result,
+      const safe_browsing::ImageFeatureEmbedding& image_embedding,
+      const safe_browsing::VisualFeatures& visual_features) {
+    host->OnImageEmbeddingDone(
+        std::move(verdict), did_match_high_confidence_allowlist, is_invalid_ip,
+        result, image_embedding, visual_features);
+  }
+
+  void set_image_embedder(
+      ClientSideDetectionHostIOS* host,
+      std::unique_ptr<safe_browsing::PhishingImageEmbedder> embedder) {
+    host->image_embedder_ = std::move(embedder);
+  }
+
+  base::TimeTicks image_embedding_start_time(ClientSideDetectionHostIOS* host) {
+    return host->image_embedding_start_time();
+  }
+
+  void MaybeStartImageEmbedding(
+      ClientSideDetectionHostIOS* host,
+      std::unique_ptr<safe_browsing::ClientPhishingRequest> verdict,
+      std::optional<bool> did_match_high_confidence_allowlist = std::nullopt,
+      bool is_invalid_ip = false,
+      safe_browsing::PhishingDetectorResult result =
+          safe_browsing::PhishingDetectorResult::CLASSIFICATION_SUCCESS) {
+    host->MaybeStartImageEmbedding(std::move(verdict),
+                                   did_match_high_confidence_allowlist,
+                                   is_invalid_ip, result);
+  }
+
   // Expects bucket count for both the unsuffixed and request-type-suffixed
   // event histograms.
   void ExpectClientSideDetectionEvent(
@@ -339,6 +434,131 @@ TEST_F(ClientSideDetectionHostIOSTest, GetFeatureCacheNullWebState) {
   EXPECT_EQ(host->GetFeatureCache(), nullptr);
 }
 
+// Tests that snapshot failure prevents visual classification and logs
+// kSnapshotFailed.
+TEST_F(ClientSideDetectionHostIOSTest, SnapshotFailedPreventsClassification) {
+  std::unique_ptr<ClientSideDetectionHostIOS> host = CreateHost();
+
+  // Create SnapshotTabHelper but don't set a delegate or view, so snapshot
+  // fails.
+  SnapshotTabHelper::CreateForWebState(&web_state_);
+
+  web_state_.SetCurrentURL(GURL(kExampleUrl));
+  web_state_.SetContentsMimeType("text/html");
+
+  EXPECT_CALL(mock_service_, ClassifyPhishingThroughThresholds(testing::_))
+      .Times(0);
+
+  // Trigger page load.
+  host->PageLoaded(&web_state_, web::PageLoadCompletionStatus::SUCCESS);
+
+  // Fast-forward mock time to trigger the stabilization delay.
+  task_environment_.FastForwardBy(base::Milliseconds(750));
+
+  ExpectPreClassificationEvents(
+      safe_browsing::ClientSideDetectionType::TRIGGER_MODELS);
+  histogram_tester_.ExpectBucketCount(
+      "SBClientPhishing.ClientSideDetectionEvent",
+      ClientSideDetectionEvent::kImageClassificationBegin, 0);
+  histogram_tester_.ExpectUniqueSample(
+      "SBClientPhishing.iOS.VisualClassificationEarlyReturnReason",
+      VisualClassificationEarlyReturnReason::kSnapshotFailed, 1);
+  EXPECT_FALSE(is_csd_running(host.get()));
+}
+
+// Tests that missing SnapshotTabHelper prevents visual classification and logs
+// kSnapshotHelperMissing.
+TEST_F(ClientSideDetectionHostIOSTest,
+       SnapshotHelperMissingPreventsClassification) {
+  std::unique_ptr<ClientSideDetectionHostIOS> host = CreateHost();
+
+  web_state_.SetCurrentURL(GURL(kExampleUrl));
+  web_state_.SetContentsMimeType("text/html");
+
+  EXPECT_CALL(mock_service_, ClassifyPhishingThroughThresholds(testing::_))
+      .Times(0);
+
+  host->PageLoaded(&web_state_, web::PageLoadCompletionStatus::SUCCESS);
+
+  // Fast-forward mock time to trigger the stabilization delay.
+  task_environment_.FastForwardBy(base::Milliseconds(750));
+
+  ExpectPreClassificationEvents(
+      safe_browsing::ClientSideDetectionType::TRIGGER_MODELS);
+  histogram_tester_.ExpectBucketCount(
+      "SBClientPhishing.ClientSideDetectionEvent",
+      ClientSideDetectionEvent::kImageClassificationBegin, 0);
+  histogram_tester_.ExpectUniqueSample(
+      "SBClientPhishing.iOS.VisualClassificationEarlyReturnReason",
+      VisualClassificationEarlyReturnReason::kSnapshotHelperMissing, 1);
+  EXPECT_FALSE(is_csd_running(host.get()));
+}
+
+TEST_F(ClientSideDetectionHostIOSTest,
+       OnSnapshotReceivedLogsImageClassificationBegin) {
+  std::unique_ptr<ClientSideDetectionHostIOS> host = CreateHost();
+  set_last_request_type(host.get(),
+                        safe_browsing::ClientSideDetectionType::TRIGGER_MODELS);
+
+  UIImage* test_image = CreateTestImage();
+
+  OnSnapshotReceived(host.get(), GURL(kExampleUrl), test_image);
+
+  ExpectClientSideDetectionEvent(
+      ClientSideDetectionEvent::kImageClassificationBegin,
+      safe_browsing::ClientSideDetectionType::TRIGGER_MODELS);
+}
+
+// Tests that `OnSnapshotReceived` early-returns when the scorer is missing.
+TEST_F(ClientSideDetectionHostIOSTest,
+       NoScorerAfterSnapshotPreventsClassification) {
+  mock_service_.SetScorerForTesting(nullptr);
+  std::unique_ptr<ClientSideDetectionHostIOS> host = CreateHost();
+  set_last_request_type(host.get(),
+                        safe_browsing::ClientSideDetectionType::TRIGGER_MODELS);
+
+  UIImage* test_image = CreateTestImage();
+
+  OnSnapshotReceived(host.get(), GURL(kExampleUrl), test_image);
+
+  ExpectClientSideDetectionEvent(
+      ClientSideDetectionEvent::kImageClassificationBegin,
+      safe_browsing::ClientSideDetectionType::TRIGGER_MODELS,
+      /*expected_count=*/0);
+  histogram_tester_.ExpectUniqueSample(
+      "SBClientPhishing.iOS.VisualClassificationEarlyReturnReason",
+      VisualClassificationEarlyReturnReason::kScorerMissingAfterSnapshot, 1);
+  EXPECT_FALSE(is_csd_running(host.get()));
+}
+
+TEST_F(ClientSideDetectionHostIOSTest,
+       NoScorerBeforeSnapshotPreventsClassification) {
+  mock_service_.SetScorerForTesting(nullptr);
+  std::unique_ptr<ClientSideDetectionHostIOS> host = CreateHost();
+
+  // Create SnapshotTabHelper.
+  SnapshotTabHelper::CreateForWebState(&web_state_);
+
+  web_state_.SetCurrentURL(GURL(kExampleUrl));
+  web_state_.SetContentsMimeType("text/html");
+
+  EXPECT_CALL(mock_service_, ClassifyPhishingThroughThresholds(testing::_))
+      .Times(0);
+
+  host->PageLoaded(&web_state_, web::PageLoadCompletionStatus::SUCCESS);
+
+  // Fast-forward mock time to trigger the stabilization delay.
+  task_environment_.FastForwardBy(base::Milliseconds(750));
+
+  histogram_tester_.ExpectBucketCount(
+      "SBClientPhishing.ClientSideDetectionEvent",
+      ClientSideDetectionEvent::kImageClassificationBegin, 0);
+  histogram_tester_.ExpectUniqueSample(
+      "SBClientPhishing.iOS.VisualClassificationEarlyReturnReason",
+      VisualClassificationEarlyReturnReason::kScorerMissingBeforeSnapshot, 1);
+  EXPECT_FALSE(is_csd_running(host.get()));
+}
+
 TEST_F(ClientSideDetectionHostIOSTest, NavigationErrorNoClassification) {
   std::unique_ptr<ClientSideDetectionHostIOS> host = CreateHost();
 
@@ -350,6 +570,84 @@ TEST_F(ClientSideDetectionHostIOSTest, NavigationErrorNoClassification) {
 
   histogram_tester_.ExpectTotalCount(
       "SBClientPhishing.PreClassificationCheckResult", 0);
+}
+
+// Tests that if ClassifyPhishingThroughThresholds sets is_phishing for
+// TRIGGER_MODELS, a client phishing report will be dispatched.
+TEST_F(ClientSideDetectionHostIOSTest,
+       OnVisualClassificationDoneTriggersReport) {
+  std::unique_ptr<ClientSideDetectionHostIOS> host = CreateHost();
+  set_last_request_type(host.get(),
+                        safe_browsing::ClientSideDetectionType::TRIGGER_MODELS);
+
+  GURL url("https://example.com");
+  std::vector<double> scores = {0.9, 0.8};
+
+  EXPECT_CALL(mock_service_, ClassifyPhishingThroughThresholds(testing::_))
+      .WillOnce([](safe_browsing::ClientPhishingRequest* verdict) {
+        verdict->set_is_phishing(true);
+        verdict->set_client_side_detection_type(
+            safe_browsing::ClientSideDetectionType::TRIGGER_MODELS);
+      });
+
+  EXPECT_CALL(mock_service_, SendClientReportPhishingRequest(
+                                 testing::_, testing::_, testing::_))
+      .Times(1);
+
+  host->OnVisualClassificationDoneForTesting(url, scores);
+
+  histogram_tester_.ExpectBucketCount(
+      "SBClientPhishing.ClientSideDetectionEvent",
+      ClientSideDetectionEvent::kImageClassificationComplete, 1);
+  histogram_tester_.ExpectBucketCount(
+      "SBClientPhishing.ClientSideDetectionEvent",
+      ClientSideDetectionEvent::kVerdictProtoParseComplete, 1);
+
+  histogram_tester_.ExpectUniqueSample(
+      "SBClientPhishing.LocalModelDetectsPhishing.TriggerModel", true, 1);
+  histogram_tester_.ExpectBucketCount(
+      "SBClientPhishing.ClientSideDetectionEvent",
+      ClientSideDetectionEvent::kLocalModelResultComplete, 1);
+
+  histogram_tester_.ExpectBucketCount(
+      "SBClientPhishing.ClientSideDetectionEvent",
+      ClientSideDetectionEvent::kMiscellaneousFieldsAdded, 1);
+  histogram_tester_.ExpectBucketCount(
+      "SBClientPhishing.ClientSideDetectionEvent",
+      ClientSideDetectionEvent::kNetworkRequestSent, 1);
+}
+
+// Tests that sample pings are correctly tagged with SAMPLE_REPORT type when
+// send_sample_ping is enabled.
+TEST_F(ClientSideDetectionHostIOSTest, SamplePingPropagation) {
+  std::unique_ptr<ClientSideDetectionHostIOS> host = CreateHost();
+  set_last_request_type(host.get(),
+                        safe_browsing::ClientSideDetectionType::TRIGGER_MODELS);
+
+  set_send_sample_ping(host.get(), true);
+
+  GURL url("https://example.com");
+  std::vector<double> scores = {0.9, 0.8};
+
+  EXPECT_CALL(mock_service_, ClassifyPhishingThroughThresholds(testing::_))
+      .WillOnce([](safe_browsing::ClientPhishingRequest* verdict) {
+        verdict->set_is_phishing(false);
+        verdict->set_client_side_detection_type(
+            safe_browsing::ClientSideDetectionType::TRIGGER_MODELS);
+      });
+
+  EXPECT_CALL(mock_service_, SendClientReportPhishingRequest(
+                                 testing::_, testing::_, testing::_))
+      .WillOnce(
+          [](std::unique_ptr<safe_browsing::ClientPhishingRequest> verdict,
+             safe_browsing::ClientSideDetectionServiceBase::
+                 ClientReportPhishingRequestCallback callback,
+             const std::string& access_token) {
+            EXPECT_EQ(verdict->report_type(),
+                      safe_browsing::ClientPhishingRequest::SAMPLE_REPORT);
+          });
+
+  host->OnVisualClassificationDoneForTesting(url, scores);
 }
 
 TEST_F(ClientSideDetectionHostIOSTest, CacheHitPreventsClassification) {
@@ -597,6 +895,7 @@ TEST_F(ClientSideDetectionHostIOSTest,
       .WillRepeatedly(testing::Return(false));
   EXPECT_CALL(mock_service_, AtPhishingReportLimit())
       .WillRepeatedly(testing::Return(false));
+  mock_service_.SetScorerForTesting(std::make_unique<safe_browsing::Scorer>());
 
   std::unique_ptr<ClientSideDetectionHostIOS> host = CreateHost();
   host->set_sample_ping_rate_for_testing(1.0);
@@ -619,7 +918,6 @@ TEST_F(ClientSideDetectionHostIOSTest,
   histogram_tester_.ExpectUniqueSample(
       "SBClientPhishing.PreClassificationCheckResult",
       safe_browsing::PreClassificationCheckResult::CLASSIFY, 1);
-  EXPECT_TRUE(is_csd_running(host.get()));
 
   ClientSideDetectionFeatureCache* feature_cache =
       ClientSideDetectionFeatureCache::FromWebState(&web_state_);
@@ -876,6 +1174,78 @@ TEST_F(ClientSideDetectionHostIOSTest,
       1);
 }
 
+// Tests that ShowBlockingPage does NOT store an unsafe resource and does NOT
+// trigger reload when kCsdEnforceIos is disabled (default).
+TEST_F(ClientSideDetectionHostIOSTest,
+       ShowBlockingPageEnforcementDisabledByDefault) {
+  SafeBrowsingUnsafeResourceContainer::CreateForWebState(&web_state_);
+
+  std::unique_ptr<ClientSideDetectionHostIOS> host = CreateHost();
+
+  GURL phishing_url(kPhishingUrl);
+  host->ShowBlockingPage(phishing_url,
+                         safe_browsing::ClientSideDetectionType::TRIGGER_MODELS,
+                         /*intelligent_scan_verdict=*/std::nullopt,
+                         /*should_show_scam_warning=*/false);
+
+  SafeBrowsingUnsafeResourceContainer* container =
+      SafeBrowsingUnsafeResourceContainer::FromWebState(&web_state_);
+  ASSERT_TRUE(container);
+  EXPECT_EQ(container->GetMainFrameUnsafeResource(), nullptr);
+
+  web::FakeNavigationManager* nav_manager =
+      static_cast<web::FakeNavigationManager*>(
+          web_state_.GetNavigationManager());
+  EXPECT_FALSE(nav_manager->ReloadWasCalled());
+  histogram_tester_.ExpectBucketCount(
+      "SBClientPhishing.ClientSideDetectionEvent",
+      ClientSideDetectionEvent::kWarningShown, 0);
+}
+
+// Tests that ShowBlockingPage stores an unsafe resource and triggers reload
+// when kCsdEnforceIos is enabled.
+TEST_F(ClientSideDetectionHostIOSTest, ShowBlockingPageEnforcementEnabled) {
+  base::test::ScopedFeatureList feature_list;
+  feature_list.InitAndEnableFeatureWithParameters(
+      safe_browsing::kClientSideDetectionEnabledIos,
+      {{"CsdEnforceIos", "true"}});
+
+  std::unique_ptr<ClientSideDetectionHostIOS> host = CreateHost();
+
+  GURL phishing_url(kPhishingUrl);
+  host->ShowBlockingPage(phishing_url,
+                         safe_browsing::ClientSideDetectionType::TRIGGER_MODELS,
+                         /*intelligent_scan_verdict=*/std::nullopt,
+                         /*should_show_scam_warning=*/false);
+
+  SafeBrowsingUnsafeResourceContainer* container =
+      SafeBrowsingUnsafeResourceContainer::FromWebState(&web_state_);
+  ASSERT_TRUE(container);
+  const security_interstitials::UnsafeResource* resource =
+      container->GetMainFrameUnsafeResource();
+  ASSERT_TRUE(resource);
+  EXPECT_EQ(resource->url, phishing_url);
+  EXPECT_EQ(resource->original_url, phishing_url);
+  EXPECT_EQ(resource->navigation_url, phishing_url);
+  EXPECT_EQ(
+      resource->threat_type,
+      safe_browsing::SBThreatType::SB_THREAT_TYPE_URL_CLIENT_SIDE_PHISHING);
+  EXPECT_EQ(resource->threat_source,
+            safe_browsing::ThreatSource::CLIENT_SIDE_DETECTION);
+
+  web::FakeNavigationManager* nav_manager =
+      static_cast<web::FakeNavigationManager*>(
+          web_state_.GetNavigationManager());
+  EXPECT_TRUE(nav_manager->ReloadWasCalled());
+
+  histogram_tester_.ExpectUniqueSample(
+      "SBClientPhishing.ClientSideDetectionEvent",
+      ClientSideDetectionEvent::kWarningShown, 1);
+  histogram_tester_.ExpectUniqueSample(
+      "SBClientPhishing.ClientSideDetectionEvent.TriggerModel",
+      ClientSideDetectionEvent::kWarningShown, 1);
+}
+
 // Tests that MaybeStartPreClassification returns early without performing any
 // checks when kClientSideDetectionKillswitch is enabled.
 TEST_F(ClientSideDetectionHostIOSTest, PreClassificationKillswitchEarlyReturn) {
@@ -975,6 +1345,93 @@ TEST_F(ClientSideDetectionHostIOSTest,
       safe_browsing::ClientSideDetectionType::TRIGGER_MODELS);
 
   ExpectPreClassificationEvents(
+      safe_browsing::ClientSideDetectionType::TRIGGER_MODELS);
+}
+
+// Tests that `OnSnapshotReceived` converts `TRIGGER_MODELS` to
+// `IMAGE_EMBEDDING_MATCH` when `kClientSideDetectionImageEmbeddingMatch` is
+// enabled and the user has enhanced protection enabled.
+TEST_F(ClientSideDetectionHostIOSTest,
+       OnSnapshotReceivedConvertsToImageEmbeddingMatchWhenEnabled) {
+  base::test::ScopedFeatureList feature_list;
+  feature_list.InitWithFeatures(
+      {safe_browsing::kClientSideDetectionImageEmbeddingMatch,
+       safe_browsing::kClientSideDetectionOnlyESBClassification},
+      {});
+
+  safe_browsing::SetSafeBrowsingState(
+      profile_->GetPrefs(),
+      safe_browsing::SafeBrowsingState::ENHANCED_PROTECTION);
+  mock_service_.SetScorerForTesting(std::make_unique<safe_browsing::Scorer>());
+
+  std::unique_ptr<ClientSideDetectionHostIOS> host = CreateHost();
+  set_last_request_type(host.get(),
+                        safe_browsing::ClientSideDetectionType::TRIGGER_MODELS);
+
+  base::test::TestFuture<safe_browsing::ClientSideDetectionType> future;
+  EXPECT_CALL(mock_service_, ClassifyPhishingThroughThresholds(testing::_))
+      .WillOnce([&](safe_browsing::ClientPhishingRequest* verdict) {
+        ASSERT_TRUE(verdict);
+        verdict->set_is_phishing(false);
+        future.SetValue(verdict->client_side_detection_type());
+      });
+
+  UIImage* test_image = CreateTestImage();
+
+  OnSnapshotReceived(host.get(), GURL(kExampleUrl), test_image);
+
+  ExpectClientSideDetectionEvent(
+      ClientSideDetectionEvent::kImageClassificationBegin,
+      safe_browsing::ClientSideDetectionType::TRIGGER_MODELS);
+
+  EXPECT_EQ(future.Get(),
+            safe_browsing::ClientSideDetectionType::IMAGE_EMBEDDING_MATCH);
+
+  ExpectClientSideDetectionEvent(
+      ClientSideDetectionEvent::kImageClassificationComplete,
+      safe_browsing::ClientSideDetectionType::IMAGE_EMBEDDING_MATCH);
+}
+
+// Tests that `OnSnapshotReceived` does not convert `TRIGGER_MODELS` to
+// `IMAGE_EMBEDDING_MATCH` when enhanced protection is disabled.
+TEST_F(ClientSideDetectionHostIOSTest,
+       OnSnapshotReceivedRemainsTriggerModelsWhenStandardProtection) {
+  base::test::ScopedFeatureList feature_list;
+  feature_list.InitWithFeatures(
+      {safe_browsing::kClientSideDetectionImageEmbeddingMatch,
+       safe_browsing::kClientSideDetectionOnlyESBClassification},
+      {});
+
+  safe_browsing::SetSafeBrowsingState(
+      profile_->GetPrefs(),
+      safe_browsing::SafeBrowsingState::STANDARD_PROTECTION);
+  mock_service_.SetScorerForTesting(std::make_unique<safe_browsing::Scorer>());
+
+  std::unique_ptr<ClientSideDetectionHostIOS> host = CreateHost();
+  set_last_request_type(host.get(),
+                        safe_browsing::ClientSideDetectionType::TRIGGER_MODELS);
+
+  base::test::TestFuture<safe_browsing::ClientSideDetectionType> future;
+  EXPECT_CALL(mock_service_, ClassifyPhishingThroughThresholds(testing::_))
+      .WillOnce([&](safe_browsing::ClientPhishingRequest* verdict) {
+        ASSERT_TRUE(verdict);
+        verdict->set_is_phishing(false);
+        future.SetValue(verdict->client_side_detection_type());
+      });
+
+  UIImage* test_image = CreateTestImage();
+
+  OnSnapshotReceived(host.get(), GURL(kExampleUrl), test_image);
+
+  ExpectClientSideDetectionEvent(
+      ClientSideDetectionEvent::kImageClassificationBegin,
+      safe_browsing::ClientSideDetectionType::TRIGGER_MODELS);
+
+  EXPECT_EQ(future.Get(),
+            safe_browsing::ClientSideDetectionType::TRIGGER_MODELS);
+
+  ExpectClientSideDetectionEvent(
+      ClientSideDetectionEvent::kImageClassificationComplete,
       safe_browsing::ClientSideDetectionType::TRIGGER_MODELS);
 }
 
@@ -1083,24 +1540,24 @@ TEST_F(ClientSideDetectionHostIOSTest, TierPrioritizationAndCancellation) {
 
   std::unique_ptr<ClientSideDetectionHostIOS> host = CreateHost();
 
-  // 1. Simulate TRIGGER_MODELS (tier 3) running.
+  // Simulate TRIGGER_MODELS (tier 3) running.
   set_last_request_type(host.get(),
                         safe_browsing::ClientSideDetectionType::TRIGGER_MODELS);
   set_is_csd_running(host.get(), true);
   EXPECT_EQ(last_request_type(host.get()),
             safe_browsing::ClientSideDetectionType::TRIGGER_MODELS);
 
-  // 2. Start FORCE_REQUEST (tier 1 - higher priority). Should preempt
+  // Start FORCE_REQUEST (tier 1 - higher priority). Should preempt
   // TRIGGER_MODELS.
   host->MaybeStartPreClassification(
       safe_browsing::ClientSideDetectionType::FORCE_REQUEST);
   EXPECT_EQ(last_request_type(host.get()),
             safe_browsing::ClientSideDetectionType::FORCE_REQUEST);
 
-  // 3. Simulate FORCE_REQUEST running.
+  // Simulate FORCE_REQUEST running.
   set_is_csd_running(host.get(), true);
 
-  // 4. Attempt TRIGGER_MODELS (tier 3 - lower priority) while FORCE_REQUEST is
+  // Attempt TRIGGER_MODELS (tier 3 - lower priority) while FORCE_REQUEST is
   // running. Should be blocked and emit BlockingRequestType.
   host->MaybeStartPreClassification(
       safe_browsing::ClientSideDetectionType::TRIGGER_MODELS);
@@ -1141,6 +1598,79 @@ TEST_F(ClientSideDetectionHostIOSTest, TickClockUsageForTimingMetrics) {
 
   histogram_tester_.ExpectTotalCount(
       "SBClientPhishing.HighConfidenceAllowlistCheckDuration", 1);
+}
+
+// Tests that referrer chain is added only when Enhanced Protection is enabled,
+// and omitted when Standard Protection is enabled.
+TEST_F(ClientSideDetectionHostIOSTest, ReferrerChainGatedOnEnhancedProtection) {
+  web::FakeNavigationManager* nav_manager =
+      static_cast<web::FakeNavigationManager*>(
+          web_state_.GetNavigationManager());
+  auto item = web::NavigationItem::Create();
+  item->SetURL(GURL(kExampleUrl));
+  item->SetReferrer(
+      web::Referrer(GURL(kReferrerUrl), web::ReferrerPolicyDefault));
+  nav_manager->SetLastCommittedItem(item.get());
+
+  std::unique_ptr<ClientSideDetectionHostIOS> host = CreateHost();
+
+  // Enhanced Protection enabled: Referrer chain is added.
+  safe_browsing::SetSafeBrowsingState(
+      profile_->GetPrefs(),
+      safe_browsing::SafeBrowsingState::ENHANCED_PROTECTION);
+
+  safe_browsing::ClientPhishingRequest verdict_esb;
+  verdict_esb.set_url(kExampleUrl);
+  host->AddReferrerChain(&verdict_esb);
+
+  ASSERT_EQ(verdict_esb.referrer_chain_size(), 1);
+  EXPECT_EQ(verdict_esb.referrer_chain(0).url(), kExampleUrl);
+  EXPECT_EQ(verdict_esb.referrer_chain(0).referrer_url(), kReferrerUrl);
+
+  // Standard Protection: Referrer chain is NOT added.
+  safe_browsing::SetSafeBrowsingState(
+      profile_->GetPrefs(),
+      safe_browsing::SafeBrowsingState::STANDARD_PROTECTION);
+
+  safe_browsing::ClientPhishingRequest verdict_standard;
+  verdict_standard.set_url(kExampleUrl);
+  host->AddReferrerChain(&verdict_standard);
+
+  EXPECT_EQ(verdict_standard.referrer_chain_size(), 0);
+}
+
+// Tests that ShowBlockingPage invokes OnScamWarningShown on the intelligent
+// scan delegate when should_show_scam_warning is true.
+TEST_F(ClientSideDetectionHostIOSTest,
+       ShowBlockingPageNotifiesScamWarningShown) {
+  base::test::ScopedFeatureList feature_list;
+  feature_list.InitAndEnableFeatureWithParameters(
+      safe_browsing::kClientSideDetectionEnabledIos,
+      {{"CsdEnforceIos", "true"}});
+
+  MockIntelligentScanDelegate mock_delegate;
+  std::unique_ptr<ClientSideDetectionHostIOS> host = CreateHost();
+  host->set_intelligent_scan_delegate_for_testing(&mock_delegate);
+
+  EXPECT_CALL(mock_delegate, OnScamWarningShown()).Times(1);
+
+  GURL phishing_url(kPhishingUrl);
+  safe_browsing::IntelligentScanVerdict scan_verdict =
+      safe_browsing::IntelligentScanVerdict::SCAM_EXPERIMENT_VERDICT_1;
+
+  host->ShowBlockingPage(phishing_url,
+                         safe_browsing::ClientSideDetectionType::TRIGGER_MODELS,
+                         scan_verdict,
+                         /*should_show_scam_warning=*/true);
+
+  SafeBrowsingUnsafeResourceContainer* container =
+      SafeBrowsingUnsafeResourceContainer::FromWebState(&web_state_);
+  ASSERT_TRUE(container);
+  const security_interstitials::UnsafeResource* resource =
+      container->GetMainFrameUnsafeResource();
+  ASSERT_TRUE(resource);
+  EXPECT_EQ(resource->threat_subtype,
+            safe_browsing::ThreatSubtype::SCAM_EXPERIMENT_VERDICT_1);
 }
 
 // Tests that High Confidence and CSD allowlist telemetry metrics are emitted.
@@ -1343,6 +1873,87 @@ TEST_F(ClientSideDetectionHostIOSTest,
             safe_browsing::ClientSideDetectionType::FORCE_REQUEST);
 }
 
+// Tests that classification duration timing is recorded using `tick_clock()`
+// by advancing the mock clock between snapshot receipt and classification
+// completion.
+TEST_F(ClientSideDetectionHostIOSTest,
+       ClassificationDurationTimingWithMockClock) {
+  safe_browsing::SetSafeBrowsingState(
+      profile_->GetPrefs(),
+      safe_browsing::SafeBrowsingState::ENHANCED_PROTECTION);
+  mock_service_.SetScorerForTesting(std::make_unique<safe_browsing::Scorer>());
+
+  std::unique_ptr<ClientSideDetectionHostIOS> host = CreateHost();
+  host->set_tick_clock_for_testing(task_environment_.GetMockTickClock());
+  set_last_request_type(host.get(),
+                        safe_browsing::ClientSideDetectionType::TRIGGER_MODELS);
+
+  const GURL url(kExampleUrl);
+
+  const base::TimeDelta elapsed = base::Milliseconds(200);
+  base::test::TestFuture<void> future;
+  EXPECT_CALL(mock_service_, ClassifyPhishingThroughThresholds(testing::_))
+      .WillOnce([&](safe_browsing::ClientPhishingRequest* verdict) {
+        ASSERT_TRUE(verdict);
+        verdict->set_is_phishing(false);
+        future.SetValue();
+      });
+
+  UIImage* test_image = CreateTestImage();
+  OnSnapshotReceived(host.get(), url, test_image);
+
+  // Advance mock time and tick clock during async classification.
+  task_environment_.AdvanceClock(elapsed);
+  EXPECT_TRUE(future.Wait());
+
+  histogram_tester_.ExpectTimeBucketCount(
+      "SBClientPhishing.PhishingDetectionDuration", elapsed, 1);
+  histogram_tester_.ExpectTimeBucketCount(
+      "SBClientPhishing.PhishingDetectionDuration.TriggerModel", elapsed, 1);
+}
+
+// Tests that visual extraction failure does not cache the snapshot image.
+TEST_F(ClientSideDetectionHostIOSTest,
+       OnClassificationDoneVisualExtractionFailedPreventsImageCaching) {
+  std::unique_ptr<ClientSideDetectionHostIOS> host = CreateHost();
+  set_last_request_type(host.get(),
+                        safe_browsing::ClientSideDetectionType::TRIGGER_MODELS);
+
+  const GURL url(kExampleUrl);
+  gfx::Image test_image = gfx::Image(CreateTestImage());
+  safe_browsing::ClientPhishingRequest verdict;
+
+  EXPECT_CALL(mock_service_, ClassifyPhishingThroughThresholds(testing::_))
+      .Times(0);
+
+  OnClassificationDone(
+      host.get(), url, test_image,
+      safe_browsing::ClientSideDetectionType::TRIGGER_MODELS,
+      /*classification_start_time=*/base::TimeTicks::Now(), verdict,
+      safe_browsing::PhishingClassifier::Result::kVisualExtractionFailed);
+
+  EXPECT_TRUE(classification_image(host.get()).IsEmpty());
+}
+
+// Tests that navigating while visual classification is in flight cancels
+// pending requests and clears classification state.
+TEST_F(ClientSideDetectionHostIOSTest, ClassificationCancelledOnNavigation) {
+  std::unique_ptr<ClientSideDetectionHostIOS> host = CreateHost();
+  set_is_classifying(host.get(), true);
+  set_is_csd_running(host.get(), true);
+
+  web::FakeNavigationContext context;
+  context.SetUrl(GURL(kExampleUrl));
+  context.SetHasCommitted(true);
+  context.SetIsSameDocument(false);
+  web_state_.SetCurrentURL(GURL(kExampleUrl));
+  web_state_.OnNavigationFinished(&context);
+
+  EXPECT_FALSE(is_classifying(host.get()));
+  EXPECT_FALSE(is_csd_running(host.get()));
+  EXPECT_TRUE(classification_image(host.get()).IsEmpty());
+}
+
 // Tests that CLIPBOARD_COPY_API pre-classification stops when the sample rate
 // is 0.0.
 TEST_F(ClientSideDetectionHostIOSTest,
@@ -1501,6 +2112,623 @@ TEST_F(ClientSideDetectionHostIOSTest,
       safe_browsing::PreClassificationCheckResult::
           NO_CLASSIFY_ALLOWLISTED_BY_POLICY,
       1);
+}
+
+// Tests that ShowBlockingPage handles should_show_scam_warning=true with a null
+// intelligent_scan_verdict safely without crashing or dereferencing nullopt.
+TEST_F(ClientSideDetectionHostIOSTest,
+       ShowBlockingPageWithScamWarningAndNullVerdictDoesNotCrash) {
+  base::test::ScopedFeatureList feature_list;
+  feature_list.InitAndEnableFeatureWithParameters(
+      safe_browsing::kClientSideDetectionEnabledIos,
+      {{"CsdEnforceIos", "true"}});
+
+  MockIntelligentScanDelegate mock_delegate;
+  std::unique_ptr<ClientSideDetectionHostIOS> host = CreateHost();
+  host->set_intelligent_scan_delegate_for_testing(&mock_delegate);
+
+  EXPECT_CALL(mock_delegate, OnScamWarningShown()).Times(0);
+
+  GURL phishing_url(kPhishingUrl);
+  host->ShowBlockingPage(phishing_url,
+                         safe_browsing::ClientSideDetectionType::TRIGGER_MODELS,
+                         /*intelligent_scan_verdict=*/std::nullopt,
+                         /*should_show_scam_warning=*/true);
+
+  SafeBrowsingUnsafeResourceContainer* container =
+      SafeBrowsingUnsafeResourceContainer::FromWebState(&web_state_);
+  ASSERT_TRUE(container);
+  const security_interstitials::UnsafeResource* resource =
+      container->GetMainFrameUnsafeResource();
+  ASSERT_TRUE(resource);
+  EXPECT_EQ(resource->url, phishing_url);
+  EXPECT_EQ(resource->original_url, phishing_url);
+  EXPECT_EQ(resource->navigation_url, phishing_url);
+  EXPECT_EQ(
+      resource->threat_type,
+      safe_browsing::SBThreatType::SB_THREAT_TYPE_URL_CLIENT_SIDE_PHISHING);
+  EXPECT_EQ(resource->threat_source,
+            safe_browsing::ThreatSource::CLIENT_SIDE_DETECTION);
+  // Threat subtype defaults to UNKNOWN because intelligent_scan_verdict is
+  // nullopt.
+  EXPECT_EQ(resource->threat_subtype, safe_browsing::ThreatSubtype::UNKNOWN);
+
+  web::FakeNavigationManager* nav_manager =
+      static_cast<web::FakeNavigationManager*>(
+          web_state_.GetNavigationManager());
+  EXPECT_TRUE(nav_manager->ReloadWasCalled());
+}
+
+// Tests that DetermineVisualFeaturesExtraction emits Viewport metrics and
+// returns the visual extraction result when a valid view is present, and
+// emits metrics when view is null.
+TEST_F(ClientSideDetectionHostIOSTest,
+       DetermineVisualFeaturesExtractionEmitsViewportMetrics) {
+  safe_browsing::SetSafeBrowsingState(
+      profile_->GetPrefs(),
+      safe_browsing::SafeBrowsingState::ENHANCED_PROTECTION);
+
+  std::unique_ptr<ClientSideDetectionHostIOS> host = CreateHost();
+
+  // With no view attached, viewport dimensions are -1 and result is
+  // kBelowMinFrame.
+  EXPECT_EQ(DetermineVisualFeaturesExtraction(host.get()),
+            visual_utils::CanExtractVisualFeaturesResult::kBelowMinFrame);
+  histogram_tester_.ExpectBucketCount("SBClientPhishing.Viewport.Width", -1, 1);
+  histogram_tester_.ExpectBucketCount("SBClientPhishing.Viewport.Height", -1,
+                                      1);
+  histogram_tester_.ExpectBucketCount(
+      "SBClientPhishing.VisualFeaturesClearReason2",
+      visual_utils::CanExtractVisualFeaturesResult::kBelowMinFrame, 1);
+  histogram_tester_.ExpectTotalCount(
+      "SBClientPhishing.Viewport.EncodedResolution", 0);
+
+  // With a valid view attached, dimensions are extracted and visual features
+  // can be extracted.
+  UIView* view = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 800, 600)];
+  web_state_.SetView(view);
+
+  visual_utils::CanExtractVisualFeaturesResult result =
+      DetermineVisualFeaturesExtraction(host.get());
+  EXPECT_EQ(
+      result,
+      visual_utils::CanExtractVisualFeaturesResult::kCanExtractVisualFeatures);
+
+  histogram_tester_.ExpectBucketCount("SBClientPhishing.Viewport.Width", 800,
+                                      1);
+  histogram_tester_.ExpectBucketCount("SBClientPhishing.Viewport.Height", 600,
+                                      1);
+  histogram_tester_.ExpectBucketCount(
+      "SBClientPhishing.VisualFeaturesClearReason2",
+      visual_utils::CanExtractVisualFeaturesResult::kCanExtractVisualFeatures,
+      1);
+  histogram_tester_.ExpectTotalCount(
+      "SBClientPhishing.Viewport.EncodedResolution", 1);
+}
+
+// Tests that OnImageEmbeddingDone correctly populates visual features and image
+// embedding in ClientPhishingRequest and clears classification_image_ on
+// success.
+TEST_F(ClientSideDetectionHostIOSTest,
+       OnImageEmbeddingDoneSuccessPopulatesFeaturesAndClearsImage) {
+  std::unique_ptr<ClientSideDetectionHostIOS> host = CreateHost();
+  set_last_request_type(host.get(),
+                        safe_browsing::ClientSideDetectionType::TRIGGER_MODELS);
+  set_classification_image(host.get(), gfx::Image(CreateTestImage()));
+
+  auto verdict = std::make_unique<safe_browsing::ClientPhishingRequest>();
+  verdict->set_url(kExampleUrl);
+  verdict->set_client_side_detection_type(
+      safe_browsing::ClientSideDetectionType::TRIGGER_MODELS);
+
+  safe_browsing::ImageFeatureEmbedding embedding;
+  embedding.add_embedding_value(0.42f);
+
+  safe_browsing::VisualFeatures visual_features;
+  visual_features.mutable_image()->set_width(100);
+
+  EXPECT_CALL(mock_service_, SendClientReportPhishingRequest(
+                                 testing::_, testing::_, testing::_))
+      .WillOnce(
+          [](std::unique_ptr<safe_browsing::ClientPhishingRequest> request,
+             safe_browsing::ClientSideDetectionServiceBase::
+                 ClientReportPhishingRequestCallback callback,
+             const std::string& access_token) {
+            ASSERT_TRUE(request);
+            EXPECT_TRUE(request->has_image_feature_embedding());
+            ASSERT_EQ(request->image_feature_embedding().embedding_value_size(),
+                      1);
+            EXPECT_FLOAT_EQ(
+                request->image_feature_embedding().embedding_value(0), 0.42f);
+            EXPECT_TRUE(request->has_visual_features());
+            EXPECT_EQ(request->visual_features().image().width(), 100);
+          });
+
+  OnImageEmbeddingDone(host.get(), std::move(verdict),
+                       /*did_match_high_confidence_allowlist=*/false,
+                       /*is_invalid_ip=*/false,
+                       safe_browsing::PhishingImageEmbedder::Result::kSuccess,
+                       embedding, visual_features);
+
+  EXPECT_TRUE(classification_image(host.get()).IsEmpty());
+}
+
+// Tests that OnImageEmbeddingDone clears classification_image_ without
+// attaching visual features or image embedding on extraction failure.
+TEST_F(ClientSideDetectionHostIOSTest,
+       OnImageEmbeddingDoneFailureOmitsFeaturesAndClearsImage) {
+  std::unique_ptr<ClientSideDetectionHostIOS> host = CreateHost();
+  set_last_request_type(host.get(),
+                        safe_browsing::ClientSideDetectionType::TRIGGER_MODELS);
+  set_classification_image(host.get(), gfx::Image(CreateTestImage()));
+
+  auto failed_verdict =
+      std::make_unique<safe_browsing::ClientPhishingRequest>();
+  failed_verdict->set_url(kExampleUrl);
+  failed_verdict->set_client_side_detection_type(
+      safe_browsing::ClientSideDetectionType::TRIGGER_MODELS);
+
+  EXPECT_CALL(mock_service_, SendClientReportPhishingRequest(
+                                 testing::_, testing::_, testing::_))
+      .WillOnce(
+          [](std::unique_ptr<safe_browsing::ClientPhishingRequest> request,
+             safe_browsing::ClientSideDetectionServiceBase::
+                 ClientReportPhishingRequestCallback callback,
+             const std::string& access_token) {
+            ASSERT_TRUE(request);
+            EXPECT_FALSE(request->has_image_feature_embedding());
+            EXPECT_FALSE(request->has_visual_features());
+          });
+
+  OnImageEmbeddingDone(
+      host.get(), std::move(failed_verdict),
+      /*did_match_high_confidence_allowlist=*/false,
+      /*is_invalid_ip=*/false,
+      safe_browsing::PhishingImageEmbedder::Result::kVisualExtractionFailed,
+      safe_browsing::ImageFeatureEmbedding(), safe_browsing::VisualFeatures());
+
+  EXPECT_TRUE(classification_image(host.get()).IsEmpty());
+}
+
+// Tests that OnImageEmbeddingDone attaches image embedding and omits visual
+// features when visual features are empty.
+TEST_F(ClientSideDetectionHostIOSTest,
+       OnImageEmbeddingDoneSuccessWithEmptyVisualFeatures) {
+  std::unique_ptr<ClientSideDetectionHostIOS> host = CreateHost();
+  set_last_request_type(host.get(),
+                        safe_browsing::ClientSideDetectionType::TRIGGER_MODELS);
+  set_classification_image(host.get(), gfx::Image(CreateTestImage()));
+
+  auto verdict = std::make_unique<safe_browsing::ClientPhishingRequest>();
+  verdict->set_url(kExampleUrl);
+  verdict->set_client_side_detection_type(
+      safe_browsing::ClientSideDetectionType::TRIGGER_MODELS);
+
+  safe_browsing::ImageFeatureEmbedding embedding;
+  embedding.add_embedding_value(0.42f);
+
+  EXPECT_CALL(mock_service_, SendClientReportPhishingRequest(
+                                 testing::_, testing::_, testing::_))
+      .WillOnce(
+          [](std::unique_ptr<safe_browsing::ClientPhishingRequest> request,
+             safe_browsing::ClientSideDetectionServiceBase::
+                 ClientReportPhishingRequestCallback callback,
+             const std::string& access_token) {
+            ASSERT_TRUE(request);
+            EXPECT_TRUE(request->has_image_feature_embedding());
+            EXPECT_FALSE(request->visual_features().has_image());
+          });
+
+  OnImageEmbeddingDone(host.get(), std::move(verdict),
+                       /*did_match_high_confidence_allowlist=*/false,
+                       /*is_invalid_ip=*/false,
+                       safe_browsing::PhishingImageEmbedder::Result::kSuccess,
+                       embedding, safe_browsing::VisualFeatures());
+
+  EXPECT_TRUE(classification_image(host.get()).IsEmpty());
+}
+
+// Tests that MaybeStartImageEmbedding triggers image embedding and emits
+// kImageEmbeddingBegin event when all preconditions are met and a valid view
+// is attached.
+TEST_F(ClientSideDetectionHostIOSTest,
+       MaybeStartImageEmbeddingTriggersEmbeddingWhenEligible) {
+  safe_browsing::SetSafeBrowsingState(
+      profile_->GetPrefs(),
+      safe_browsing::SafeBrowsingState::ENHANCED_PROTECTION);
+
+  EXPECT_CALL(mock_service_, HasImageEmbeddingModel())
+      .WillRepeatedly(testing::Return(true));
+  EXPECT_CALL(mock_service_, IsModelMetadataImageEmbeddingVersionMatching())
+      .WillRepeatedly(testing::Return(true));
+
+  UIView* view = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 800, 600)];
+  web_state_.SetView(view);
+
+  std::unique_ptr<ClientSideDetectionHostIOS> host = CreateHost();
+  set_last_request_type(host.get(),
+                        safe_browsing::ClientSideDetectionType::TRIGGER_MODELS);
+  set_classification_image(host.get(), gfx::Image(CreateTestImage()));
+
+  auto mock_embedder = std::make_unique<MockPhishingImageEmbedder>();
+  EXPECT_CALL(*mock_embedder,
+              BeginImageEmbedding(
+                  testing::_, /*can_extract_visual_features=*/true, testing::_))
+      .Times(1);
+  set_image_embedder(host.get(), std::move(mock_embedder));
+
+  auto verdict = std::make_unique<safe_browsing::ClientPhishingRequest>();
+  verdict->set_url(kExampleUrl);
+  verdict->set_client_side_detection_type(
+      safe_browsing::ClientSideDetectionType::TRIGGER_MODELS);
+  verdict->mutable_visual_features()->mutable_image()->set_width(100);
+
+  MaybeStartImageEmbedding(
+      host.get(), std::move(verdict),
+      /*did_match_high_confidence_allowlist=*/false,
+      /*is_invalid_ip=*/false,
+      safe_browsing::PhishingDetectorResult::CLASSIFICATION_SUCCESS);
+
+  histogram_tester_.ExpectUniqueSample(
+      "SBClientPhishing.HasVisualFeaturesImage2", true, 1);
+  ExpectClientSideDetectionEvent(
+      ClientSideDetectionEvent::kImageEmbeddingBegin,
+      safe_browsing::ClientSideDetectionType::TRIGGER_MODELS);
+  EXPECT_TRUE(classification_image(host.get()).IsEmpty());
+}
+
+// Tests that MaybeStartImageEmbedding clears the blurred image from visual
+// features when visual features extraction is disallowed and passes
+// can_extract_visual_features=false to BeginImageEmbedding.
+TEST_F(ClientSideDetectionHostIOSTest,
+       MaybeStartImageEmbeddingClearsVisualFeaturesWhenExtractionDisallowed) {
+  safe_browsing::SetSafeBrowsingState(
+      profile_->GetPrefs(),
+      safe_browsing::SafeBrowsingState::ENHANCED_PROTECTION);
+
+  EXPECT_CALL(mock_service_, HasImageEmbeddingModel())
+      .WillRepeatedly(testing::Return(true));
+  EXPECT_CALL(mock_service_, IsModelMetadataImageEmbeddingVersionMatching())
+      .WillRepeatedly(testing::Return(true));
+
+  // No view attached so DetermineVisualFeaturesExtraction returns
+  // kBelowMinFrame.
+  std::unique_ptr<ClientSideDetectionHostIOS> host = CreateHost();
+  set_last_request_type(host.get(),
+                        safe_browsing::ClientSideDetectionType::TRIGGER_MODELS);
+  set_classification_image(host.get(), gfx::Image(CreateTestImage()));
+
+  auto mock_embedder = std::make_unique<MockPhishingImageEmbedder>();
+  EXPECT_CALL(
+      *mock_embedder,
+      BeginImageEmbedding(testing::_, /*can_extract_visual_features=*/false,
+                          testing::_))
+      .Times(1);
+  set_image_embedder(host.get(), std::move(mock_embedder));
+
+  auto verdict = std::make_unique<safe_browsing::ClientPhishingRequest>();
+  verdict->set_url(kExampleUrl);
+  verdict->set_client_side_detection_type(
+      safe_browsing::ClientSideDetectionType::TRIGGER_MODELS);
+  verdict->mutable_visual_features()->mutable_image()->set_width(100);
+
+  MaybeStartImageEmbedding(
+      host.get(), std::move(verdict),
+      /*did_match_high_confidence_allowlist=*/false,
+      /*is_invalid_ip=*/false,
+      safe_browsing::PhishingDetectorResult::CLASSIFICATION_SUCCESS);
+
+  histogram_tester_.ExpectTotalCount("SBClientPhishing.HasVisualFeaturesImage2",
+                                     0);
+  ExpectClientSideDetectionEvent(
+      ClientSideDetectionEvent::kImageEmbeddingBegin,
+      safe_browsing::ClientSideDetectionType::TRIGGER_MODELS);
+  EXPECT_TRUE(classification_image(host.get()).IsEmpty());
+}
+
+// Tests that MaybeStartImageEmbedding passes can_extract_visual_features=true
+// to BeginImageEmbedding when result is CLASSIFICATION_SKIPPED even if
+// viewport extraction result is not kCanExtractVisualFeatures.
+TEST_F(ClientSideDetectionHostIOSTest,
+       MaybeStartImageEmbeddingClassificationSkippedAllowsVisualFeatures) {
+  safe_browsing::SetSafeBrowsingState(
+      profile_->GetPrefs(),
+      safe_browsing::SafeBrowsingState::ENHANCED_PROTECTION);
+
+  EXPECT_CALL(mock_service_, HasImageEmbeddingModel())
+      .WillRepeatedly(testing::Return(true));
+  EXPECT_CALL(mock_service_, IsModelMetadataImageEmbeddingVersionMatching())
+      .WillRepeatedly(testing::Return(true));
+
+  // No view attached so DetermineVisualFeaturesExtraction returns
+  // kBelowMinFrame.
+  std::unique_ptr<ClientSideDetectionHostIOS> host = CreateHost();
+  set_last_request_type(host.get(),
+                        safe_browsing::ClientSideDetectionType::TRIGGER_MODELS);
+  set_classification_image(host.get(), gfx::Image(CreateTestImage()));
+
+  auto mock_embedder = std::make_unique<MockPhishingImageEmbedder>();
+  EXPECT_CALL(*mock_embedder,
+              BeginImageEmbedding(
+                  testing::_, /*can_extract_visual_features=*/true, testing::_))
+      .Times(1);
+  set_image_embedder(host.get(), std::move(mock_embedder));
+
+  auto verdict = std::make_unique<safe_browsing::ClientPhishingRequest>();
+  verdict->set_url(kExampleUrl);
+  verdict->set_client_side_detection_type(
+      safe_browsing::ClientSideDetectionType::TRIGGER_MODELS);
+
+  MaybeStartImageEmbedding(
+      host.get(), std::move(verdict),
+      /*did_match_high_confidence_allowlist=*/false,
+      /*is_invalid_ip=*/false,
+      safe_browsing::PhishingDetectorResult::CLASSIFICATION_SKIPPED);
+
+  ExpectClientSideDetectionEvent(
+      ClientSideDetectionEvent::kImageEmbeddingBegin,
+      safe_browsing::ClientSideDetectionType::TRIGGER_MODELS);
+  EXPECT_TRUE(classification_image(host.get()).IsEmpty());
+}
+
+// Tests that MaybeStartImageEmbedding skips image embedding when Enhanced
+// Protection is disabled, clears classification_image_, and proceeds to
+// intelligent scan / report sending.
+TEST_F(ClientSideDetectionHostIOSTest,
+       MaybeStartImageEmbeddingSkipsWhenStandardProtection) {
+  safe_browsing::SetSafeBrowsingState(
+      profile_->GetPrefs(),
+      safe_browsing::SafeBrowsingState::STANDARD_PROTECTION);
+
+  EXPECT_CALL(mock_service_, HasImageEmbeddingModel())
+      .WillRepeatedly(testing::Return(true));
+  EXPECT_CALL(mock_service_, IsModelMetadataImageEmbeddingVersionMatching())
+      .WillRepeatedly(testing::Return(true));
+
+  std::unique_ptr<ClientSideDetectionHostIOS> host = CreateHost();
+  set_last_request_type(host.get(),
+                        safe_browsing::ClientSideDetectionType::TRIGGER_MODELS);
+  set_classification_image(host.get(), gfx::Image(CreateTestImage()));
+
+  auto mock_embedder = std::make_unique<MockPhishingImageEmbedder>();
+  EXPECT_CALL(*mock_embedder,
+              BeginImageEmbedding(testing::_, testing::_, testing::_))
+      .Times(0);
+  set_image_embedder(host.get(), std::move(mock_embedder));
+
+  auto verdict = std::make_unique<safe_browsing::ClientPhishingRequest>();
+  verdict->set_url(kExampleUrl);
+  verdict->set_client_side_detection_type(
+      safe_browsing::ClientSideDetectionType::TRIGGER_MODELS);
+
+  EXPECT_CALL(mock_service_, SendClientReportPhishingRequest(
+                                 testing::_, testing::_, testing::_))
+      .Times(1);
+
+  MaybeStartImageEmbedding(
+      host.get(), std::move(verdict),
+      /*did_match_high_confidence_allowlist=*/false,
+      /*is_invalid_ip=*/false,
+      safe_browsing::PhishingDetectorResult::CLASSIFICATION_SUCCESS);
+
+  histogram_tester_.ExpectBucketCount(
+      "SBClientPhishing.ClientSideDetectionEvent",
+      ClientSideDetectionEvent::kImageEmbeddingBegin, 0);
+  EXPECT_TRUE(classification_image(host.get()).IsEmpty());
+}
+
+// Tests that MaybeStartImageEmbedding skips image embedding when the image
+// embedding model is not available.
+TEST_F(ClientSideDetectionHostIOSTest,
+       MaybeStartImageEmbeddingSkipsWhenModelMissing) {
+  safe_browsing::SetSafeBrowsingState(
+      profile_->GetPrefs(),
+      safe_browsing::SafeBrowsingState::ENHANCED_PROTECTION);
+
+  EXPECT_CALL(mock_service_, HasImageEmbeddingModel())
+      .WillRepeatedly(testing::Return(false));
+  EXPECT_CALL(mock_service_, IsModelMetadataImageEmbeddingVersionMatching())
+      .WillRepeatedly(testing::Return(true));
+
+  std::unique_ptr<ClientSideDetectionHostIOS> host = CreateHost();
+  set_last_request_type(host.get(),
+                        safe_browsing::ClientSideDetectionType::TRIGGER_MODELS);
+  set_classification_image(host.get(), gfx::Image(CreateTestImage()));
+
+  auto mock_embedder = std::make_unique<MockPhishingImageEmbedder>();
+  EXPECT_CALL(*mock_embedder,
+              BeginImageEmbedding(testing::_, testing::_, testing::_))
+      .Times(0);
+  set_image_embedder(host.get(), std::move(mock_embedder));
+
+  auto verdict = std::make_unique<safe_browsing::ClientPhishingRequest>();
+  verdict->set_url(kExampleUrl);
+  verdict->set_client_side_detection_type(
+      safe_browsing::ClientSideDetectionType::TRIGGER_MODELS);
+
+  EXPECT_CALL(mock_service_, SendClientReportPhishingRequest(
+                                 testing::_, testing::_, testing::_))
+      .Times(1);
+
+  MaybeStartImageEmbedding(
+      host.get(), std::move(verdict),
+      /*did_match_high_confidence_allowlist=*/false,
+      /*is_invalid_ip=*/false,
+      safe_browsing::PhishingDetectorResult::CLASSIFICATION_SUCCESS);
+
+  EXPECT_TRUE(classification_image(host.get()).IsEmpty());
+}
+
+// Tests that MaybeStartImageEmbedding skips image embedding when the image
+// embedding model metadata version does not match.
+TEST_F(ClientSideDetectionHostIOSTest,
+       MaybeStartImageEmbeddingSkipsWhenModelVersionMismatch) {
+  safe_browsing::SetSafeBrowsingState(
+      profile_->GetPrefs(),
+      safe_browsing::SafeBrowsingState::ENHANCED_PROTECTION);
+
+  EXPECT_CALL(mock_service_, HasImageEmbeddingModel())
+      .WillRepeatedly(testing::Return(true));
+  EXPECT_CALL(mock_service_, IsModelMetadataImageEmbeddingVersionMatching())
+      .WillRepeatedly(testing::Return(false));
+
+  std::unique_ptr<ClientSideDetectionHostIOS> host = CreateHost();
+  set_last_request_type(host.get(),
+                        safe_browsing::ClientSideDetectionType::TRIGGER_MODELS);
+  set_classification_image(host.get(), gfx::Image(CreateTestImage()));
+
+  auto mock_embedder = std::make_unique<MockPhishingImageEmbedder>();
+  EXPECT_CALL(*mock_embedder,
+              BeginImageEmbedding(testing::_, testing::_, testing::_))
+      .Times(0);
+  set_image_embedder(host.get(), std::move(mock_embedder));
+
+  auto verdict = std::make_unique<safe_browsing::ClientPhishingRequest>();
+  verdict->set_url(kExampleUrl);
+  verdict->set_client_side_detection_type(
+      safe_browsing::ClientSideDetectionType::TRIGGER_MODELS);
+
+  EXPECT_CALL(mock_service_, SendClientReportPhishingRequest(
+                                 testing::_, testing::_, testing::_))
+      .Times(1);
+
+  MaybeStartImageEmbedding(
+      host.get(), std::move(verdict),
+      /*did_match_high_confidence_allowlist=*/false,
+      /*is_invalid_ip=*/false,
+      safe_browsing::PhishingDetectorResult::CLASSIFICATION_SUCCESS);
+
+  EXPECT_TRUE(classification_image(host.get()).IsEmpty());
+}
+
+// Tests that MaybeStartImageEmbedding skips image embedding when verdict
+// already has image feature embedding.
+TEST_F(ClientSideDetectionHostIOSTest,
+       MaybeStartImageEmbeddingSkipsWhenVerdictAlreadyHasEmbedding) {
+  safe_browsing::SetSafeBrowsingState(
+      profile_->GetPrefs(),
+      safe_browsing::SafeBrowsingState::ENHANCED_PROTECTION);
+
+  EXPECT_CALL(mock_service_, HasImageEmbeddingModel())
+      .WillRepeatedly(testing::Return(true));
+  EXPECT_CALL(mock_service_, IsModelMetadataImageEmbeddingVersionMatching())
+      .WillRepeatedly(testing::Return(true));
+
+  std::unique_ptr<ClientSideDetectionHostIOS> host = CreateHost();
+  set_last_request_type(host.get(),
+                        safe_browsing::ClientSideDetectionType::TRIGGER_MODELS);
+  set_classification_image(host.get(), gfx::Image(CreateTestImage()));
+
+  auto mock_embedder = std::make_unique<MockPhishingImageEmbedder>();
+  EXPECT_CALL(*mock_embedder,
+              BeginImageEmbedding(testing::_, testing::_, testing::_))
+      .Times(0);
+  set_image_embedder(host.get(), std::move(mock_embedder));
+
+  auto verdict = std::make_unique<safe_browsing::ClientPhishingRequest>();
+  verdict->set_url(kExampleUrl);
+  verdict->set_client_side_detection_type(
+      safe_browsing::ClientSideDetectionType::TRIGGER_MODELS);
+  verdict->mutable_image_feature_embedding()->add_embedding_value(0.5f);
+
+  EXPECT_CALL(mock_service_, SendClientReportPhishingRequest(
+                                 testing::_, testing::_, testing::_))
+      .Times(1);
+
+  MaybeStartImageEmbedding(
+      host.get(), std::move(verdict),
+      /*did_match_high_confidence_allowlist=*/false,
+      /*is_invalid_ip=*/false,
+      safe_browsing::PhishingDetectorResult::CLASSIFICATION_SUCCESS);
+
+  EXPECT_TRUE(classification_image(host.get()).IsEmpty());
+}
+
+// Tests that MaybeStartImageEmbedding skips image embedding when the
+// classification snapshot image is empty.
+TEST_F(ClientSideDetectionHostIOSTest,
+       MaybeStartImageEmbeddingSkipsWhenClassificationImageIsEmpty) {
+  safe_browsing::SetSafeBrowsingState(
+      profile_->GetPrefs(),
+      safe_browsing::SafeBrowsingState::ENHANCED_PROTECTION);
+
+  EXPECT_CALL(mock_service_, HasImageEmbeddingModel())
+      .WillRepeatedly(testing::Return(true));
+  EXPECT_CALL(mock_service_, IsModelMetadataImageEmbeddingVersionMatching())
+      .WillRepeatedly(testing::Return(true));
+
+  std::unique_ptr<ClientSideDetectionHostIOS> host = CreateHost();
+  set_last_request_type(host.get(),
+                        safe_browsing::ClientSideDetectionType::TRIGGER_MODELS);
+  // classification_image_ is empty by default.
+
+  auto mock_embedder = std::make_unique<MockPhishingImageEmbedder>();
+  EXPECT_CALL(*mock_embedder,
+              BeginImageEmbedding(testing::_, testing::_, testing::_))
+      .Times(0);
+  set_image_embedder(host.get(), std::move(mock_embedder));
+
+  auto verdict = std::make_unique<safe_browsing::ClientPhishingRequest>();
+  verdict->set_url(kExampleUrl);
+  verdict->set_client_side_detection_type(
+      safe_browsing::ClientSideDetectionType::TRIGGER_MODELS);
+
+  EXPECT_CALL(mock_service_, SendClientReportPhishingRequest(
+                                 testing::_, testing::_, testing::_))
+      .Times(1);
+
+  MaybeStartImageEmbedding(
+      host.get(), std::move(verdict),
+      /*did_match_high_confidence_allowlist=*/false,
+      /*is_invalid_ip=*/false,
+      safe_browsing::PhishingDetectorResult::CLASSIFICATION_SUCCESS);
+
+  EXPECT_TRUE(classification_image(host.get()).IsEmpty());
+}
+
+// Tests that MaybeStartImageEmbedding records image embedding start time using
+// the configured tick clock.
+TEST_F(ClientSideDetectionHostIOSTest,
+       MaybeStartImageEmbeddingRecordsStartTimeWithTickClock) {
+  base::SimpleTestTickClock test_clock;
+  test_clock.SetNowTicks(base::TimeTicks::Now());
+
+  safe_browsing::SetSafeBrowsingState(
+      profile_->GetPrefs(),
+      safe_browsing::SafeBrowsingState::ENHANCED_PROTECTION);
+
+  EXPECT_CALL(mock_service_, HasImageEmbeddingModel())
+      .WillRepeatedly(testing::Return(true));
+  EXPECT_CALL(mock_service_, IsModelMetadataImageEmbeddingVersionMatching())
+      .WillRepeatedly(testing::Return(true));
+
+  std::unique_ptr<ClientSideDetectionHostIOS> host = CreateHost();
+  host->set_tick_clock_for_testing(&test_clock);
+  set_last_request_type(host.get(),
+                        safe_browsing::ClientSideDetectionType::TRIGGER_MODELS);
+  set_classification_image(host.get(), gfx::Image(CreateTestImage()));
+
+  auto mock_embedder = std::make_unique<MockPhishingImageEmbedder>();
+  EXPECT_CALL(*mock_embedder,
+              BeginImageEmbedding(testing::_, testing::_, testing::_))
+      .Times(1);
+  set_image_embedder(host.get(), std::move(mock_embedder));
+
+  test_clock.Advance(base::Milliseconds(123));
+  base::TimeTicks expected_start_time = test_clock.NowTicks();
+
+  auto verdict = std::make_unique<safe_browsing::ClientPhishingRequest>();
+  verdict->set_url(kExampleUrl);
+  verdict->set_client_side_detection_type(
+      safe_browsing::ClientSideDetectionType::TRIGGER_MODELS);
+
+  MaybeStartImageEmbedding(
+      host.get(), std::move(verdict),
+      /*did_match_high_confidence_allowlist=*/false,
+      /*is_invalid_ip=*/false,
+      safe_browsing::PhishingDetectorResult::CLASSIFICATION_SUCCESS);
+
+  EXPECT_EQ(image_embedding_start_time(host.get()), expected_start_time);
 }
 
 }  // namespace safe_browsing

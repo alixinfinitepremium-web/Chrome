@@ -8847,34 +8847,13 @@
     "FirstRunDesktopChoiceScreenRefresh": [
         {
             "platforms": [
-                "windows",
-                "linux",
-                "mac"
+                "windows"
             ],
             "experiments": [
                 {
                     "name": "Enabled",
                     "enable_features": [
                         "FirstRunDesktopChoiceScreenRefresh"
-                    ]
-                }
-            ]
-        }
-    ],
-    "FirstRunDesktopRefresh": [
-        {
-            "platforms": [
-                "linux",
-                "mac"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "params": {
-                        "sign-in-promo-variation": "default"
-                    },
-                    "enable_features": [
-                        "FirstRunDesktopRefresh"
                     ]
                 }
             ]
@@ -9851,6 +9830,21 @@
                     "name": "Disabled",
                     "disable_features": [
                         "GmsCoreUlp"
+                    ]
+                }
+            ]
+        }
+    ],
+    "GooglePayViaAndroidIntents": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "GooglePayViaAndroidIntents"
                     ]
                 }
             ]
@@ -11748,27 +11742,6 @@
             ]
         }
     ],
-    "IncognitoStaticStorageQuota": [
-        {
-            "platforms": [
-                "android",
-                "android_webview",
-                "chromeos",
-                "ios",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "IncognitoStaticStorageQuota"
-                    ]
-                }
-            ]
-        }
-    ],
     "IncreaseHttp3Usage": [
         {
             "platforms": [
@@ -12671,24 +12644,6 @@
             ]
         }
     ],
-    "MacTabSwitchRegressionFix": [
-        {
-            "platforms": [
-                "mac"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "params": {
-                        "SendAllSavedFramesToDelegatedFrameHost": "true"
-                    },
-                    "enable_features": [
-                        "UseHadSavedFrameAtStart"
-                    ]
-                }
-            ]
-        }
-    ],
     "MachIPCVouchersHoldback": [
         {
             "platforms": [
@@ -13078,6 +13033,7 @@
                         "NetTaskScheduler"
                     ],
                     "disable_features": [
+                        "BindURLLoaderFactoryToHighPriorityTaskRunner",
                         "NetTaskScheduler2",
                         "NetTaskSchedulerHostResolver",
                         "NetworkServicePerPriorityTaskQueues"
@@ -13090,6 +13046,7 @@
                         "http_cache_transaction": "true"
                     },
                     "enable_features": [
+                        "BindURLLoaderFactoryToHighPriorityTaskRunner",
                         "DrainSpdySessionSynchronouslyOnRemoteEndpointDisconnect",
                         "NetTaskScheduler",
                         "NetTaskScheduler2",
@@ -21315,6 +21272,21 @@
                     },
                     "enable_features": [
                         "AndroidThreadPriority"
+                    ]
+                }
+            ]
+        }
+    ],
+    "WebViewBoostRendererPriorityOnNavigation": [
+        {
+            "platforms": [
+                "android_webview"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "WebViewBoostRendererPriorityOnNavigation"
                     ]
                 }
             ]
