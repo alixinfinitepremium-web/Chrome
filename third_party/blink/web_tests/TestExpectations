@@ -386,9 +386,6 @@ crbug.com/400841 media/video-canvas-draw.html [ Failure ]
 # Tests crashing due to Dawn->Vulkan->Swiftshader limitations. Dawn's R10X6BG10X6Biplanar420Unorm format is not supported.
 crbug.com/395910472 [ Mac ] wpt_internal/html/canvas/smpte-st-2094-50/drawImage-from-video.html [ Crash Failure ]
 
-
-crbug.com/433324167 external/wpt/html/canvas/element/text/2d.text.writingmode.html [ Failure ]
-
 crbug.com/430125748 [ Mac ] external/wpt/html/canvas/element/text/2d.text.measure.width.nullCharacter.html [ Failure ]
 crbug.com/430125748 [ Mac ] external/wpt/html/canvas/offscreen/text/2d.text.measure.width.nullCharacter.html [ Failure ]
 crbug.com/430125748 [ Mac ] external/wpt/html/canvas/offscreen/text/2d.text.measure.width.nullCharacter.worker.html [ Failure ]
@@ -2641,7 +2638,7 @@ crbug.com/536952792 external/wpt/html/semantics/scripting-1/the-script-element/m
 crbug.com/540322301 external/wpt/webaudio/the-audio-api/the-oscillatornode-interface/sub-sample-start.html [ Failure ]
 
 # ====== New tests from wpt-importer added here ======
-external/wpt/html/syntax/parsing/custom-element-reparenting-shadow-cycle.html [ Crash ]
+crbug.com/553095398 external/wpt/html/syntax/parsing/custom-element-reparenting-shadow-cycle.html [ Crash ]
 crbug.com/552761891 external/wpt/css/css-borders/corner-shape/corner-shape-box-shadow-spread-bevel.html [ Failure ]
 crbug.com/552761891 external/wpt/css/css-borders/corner-shape/corner-shape-box-shadow-spread-elliptical.html [ Failure ]
 crbug.com/552761891 external/wpt/css/css-borders/corner-shape/corner-shape-outline-offset-bevel.html [ Failure ]
@@ -2995,12 +2992,6 @@ crbug.com/469618144 external/wpt/webdriver/tests/bidi/emulation/set_touch_overri
 crbug.com/469618144 external/wpt/webdriver/tests/bidi/emulation/set_touch_override/invalid.py [ Failure ]
 crbug.com/469618144 external/wpt/webdriver/tests/bidi/emulation/set_touch_override/user_contexts.py [ Failure Timeout ]
 crbug.com/469481151 external/wpt/css/css-anchor-position/scroll-to-anchored-fixed-000.html [ Failure ]
-crbug.com/469481151 external/wpt/css/css-anchor-position/scroll-to-anchored-fixed-001.html [ Failure ]
-crbug.com/469481151 external/wpt/css/css-anchor-position/scroll-to-anchored-fixed-002.html [ Failure ]
-crbug.com/469481151 external/wpt/css/css-anchor-position/scroll-to-anchored-fixed-003.html [ Failure ]
-crbug.com/469481151 external/wpt/css/css-anchor-position/scroll-to-anchored-fixed-004.html [ Failure ]
-crbug.com/469481151 external/wpt/css/css-anchor-position/scroll-to-anchored-fixed-005.html [ Failure ]
-crbug.com/469481151 external/wpt/css/css-anchor-position/scroll-to-anchored-fixed-006.html [ Failure ]
 crbug.com/469481567 external/wpt/css/css-text-decor/text-decoration-thickness-length-rounding-002.html [ Failure ]
 crbug.com/469467862 [ Win ] external/wpt/css/motion/animation/offset-path-interpolation-002.html [ Pass Timeout ]
 crbug.com/469460898 external/wpt/editing/run/delete.html?7001-last [ Crash Failure Timeout ]
@@ -9078,13 +9069,13 @@ crbug.com/515194597 [ Release Win11-arm64 ] virtual/text-antialias/font-fallback
 crbug.com/513985436 [ Release Win11-arm64 ] virtual/text-antialias/selection/khmer-selection.html [ Failure Pass ]
 
 
-# TODO(crbug.com/493947412): Failing on all platforms (Linux/Mac/Win). Re-enable once extension WPT infra is implemented.
-crbug.com/493947412 external/wpt/web-extensions/browser.runtime.extension.html [ Failure ]
-crbug.com/527385398 external/wpt/web-extensions/browser.alarms.extension.html [ Failure ]
-crbug.com/527385398 external/wpt/web-extensions/browser.bookmarks.extension.html [ Failure ]
-crbug.com/527385398 external/wpt/web-extensions/browser.browsingData.extension.html [ Failure ]
-crbug.com/527385398 external/wpt/web-extensions/browser.idle.extension.html [ Failure ]
-crbug.com/527385398 external/wpt/web-extensions/browser.storage.extension.html [ Failure ]
+# TODO(crbug.com/493947412): Failing on Windows. Re-enable once extension WPT infra is fixed.
+crbug.com/493947412 [ Win ] external/wpt/web-extensions/browser.runtime.extension.html [ Failure ]
+crbug.com/493947412 [ Win ] external/wpt/web-extensions/browser.alarms.extension.html [ Failure ]
+crbug.com/493947412 [ Win ] external/wpt/web-extensions/browser.bookmarks.extension.html [ Failure ]
+crbug.com/493947412 [ Win ] external/wpt/web-extensions/browser.browsingData.extension.html [ Failure ]
+crbug.com/493947412 [ Win ] external/wpt/web-extensions/browser.idle.extension.html [ Failure ]
+crbug.com/493947412 [ Win ] external/wpt/web-extensions/browser.storage.extension.html [ Failure ]
 
 # Gardener 2026-06-01
 crbug.com/517759858 [ Win11-arm64 ] external/wpt/webrtc-encoded-transform/tentative/RTCEncodedFrame-timestamps.html [ Failure ]

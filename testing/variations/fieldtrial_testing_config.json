@@ -190,6 +190,21 @@
             ]
         }
     ],
+    "AccessibilityGoogleTtsAutomaticReconnect": [
+        {
+            "platforms": [
+                "chromeos"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled_20260825",
+                    "enable_features": [
+                        "AccessibilityGoogleTtsAutomaticReconnect"
+                    ]
+                }
+            ]
+        }
+    ],
     "AccessibilityHandleOccludingViews": [
         {
             "platforms": [
@@ -6972,6 +6987,9 @@
             "experiments": [
                 {
                     "name": "Enabled",
+                    "params": {
+                        "session_ends_on_stream_end": "true"
+                    },
                     "enable_features": [
                         "Dictation"
                     ]
@@ -7629,21 +7647,6 @@
                     "name": "Enabled",
                     "enable_features": [
                         "EnableChromeFatalCrashEventsObserver"
-                    ]
-                }
-            ]
-        }
-    ],
-    "EnableClipboardDataControlsAndroid": [
-        {
-            "platforms": [
-                "android"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled_140",
-                    "enable_features": [
-                        "EnableClipboardDataControlsAndroid"
                     ]
                 }
             ]
@@ -20291,6 +20294,21 @@
                     "name": "Enabled",
                     "enable_features": [
                         "WaylandExternalBeginFrameSource"
+                    ]
+                }
+            ]
+        }
+    ],
+    "WaylandTouchpadUnscaledScrolling": [
+        {
+            "platforms": [
+                "linux"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled_20260824",
+                    "enable_features": [
+                        "WaylandUnscaledTouchpadScrolling"
                     ]
                 }
             ]

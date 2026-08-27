@@ -56,6 +56,8 @@
 #include "chrome/browser/ui/views/toolbar/webui_toolbar_web_view_test_base.h"
 #include "chrome/browser/ui/waap/initial_web_ui_manager.h"
 #include "chrome/browser/ui/webui/webui_toolbar/webui_toolbar_extensions_container.h"
+#include "chrome/browser/user_education/user_education_service.h"
+#include "chrome/browser/user_education/user_education_service_factory.h"
 #include "chrome/common/chrome_features.h"
 #include "chrome/common/pref_names.h"
 #include "chrome/grit/generated_resources.h"
@@ -66,6 +68,7 @@
 #include "components/prefs/pref_service.h"
 #include "components/translate/core/browser/translate_step.h"
 #include "components/translate/core/common/translate_errors.h"
+#include "components/user_education/common/help_bubble/help_bubble_params.h"
 #include "content/public/browser/browser_thread.h"
 #include "content/public/browser/navigation_handle.h"
 #include "content/public/browser/web_contents_observer.h"
@@ -102,6 +105,7 @@
 #include "ui/views/interaction/interaction_test_util_views.h"
 #include "ui/views/metrics.h"
 #include "ui/views/test/view_skia_gold_pixel_diff.h"
+#include "ui/webui/tracked_element/tracked_element_handler.h"
 
 namespace {
 
@@ -1082,6 +1086,70 @@ IN_PROC_BROWSER_TEST_P(WebUIToolbarViewsInteractiveUiTest,
   EXPECT_EQ(observer.num_committed_navigations(), 2u);
 }
 
+// Test that closing a WebUI help bubble does not cause a CHECK(!iterating_)
+// crash when element hidden callbacks (such as sequence abort or tutorial
+// reset) destroy the help bubble during visibility lock cleanup.
+IN_PROC_BROWSER_TEST_P(WebUIToolbarViewsInteractiveUiTest,
+                       CloseBrowserWithHelpBubbleShowing) {
+  if (!IsWebUIReloadButtonEnabled()) {
+    GTEST_SKIP() << "Test requires WebUI toolbar buttons enabled";
+  }
+
+  ui::TrackedElement* element = nullptr;
+  RunTestSequence(
+      SetUpReloadButtonTest(),
+      InAnyContext(WaitForShow(kReloadButtonElementId)), Do([&]() {
+        element =
+            ui::ElementTracker::GetElementTracker()->GetElementInAnyContext(
+                kReloadButtonElementId);
+        ASSERT_NE(nullptr, element);
+        ASSERT_NE(nullptr, element->AsA<ui::TrackedElementWebUI>());
+      }));
+
+  user_education::HelpBubbleParams params;
+  params.body_text = u"Test help bubble";
+  auto* user_education_service =
+      UserEducationServiceFactory::GetForBrowserContext(
+          browser()->GetProfile());
+  std::unique_ptr<user_education::HelpBubble> help_bubble =
+      user_education_service->help_bubble_factory_registry().CreateHelpBubble(
+          element, std::move(params));
+  ASSERT_NE(nullptr, help_bubble);
+
+  // Hide WebContents. Because visibility_lock is held by HelpBubbleHandlerBase,
+  // effective_visibility remains true until visibility_lock is released.
+  auto* webui_element = element->AsA<ui::TrackedElementWebUI>();
+  webui_element->handler()->OnVisibilityChanged(content::Visibility::HIDDEN);
+
+  // Simulate TutorialService / InteractionSequence behavior: when element
+  // hidden notification fires (triggered when visibility_lock is released while
+  // WebContents is hidden), destroy the help_bubble.
+  base::RunLoop run_loop;
+  auto subscription =
+      ui::ElementTracker::GetElementTracker()->AddElementHiddenCallback(
+          kReloadButtonElementId, element->context(),
+          base::BindLambdaForTesting([&](ui::TrackedElement*) {
+            help_bubble.reset();
+            run_loop.Quit();
+          }));
+
+  // Close the help bubble. Without the PostTask fix in
+  // TrackedElementVisibilityLock, resetting visibility_lock inside
+  // OnFloatingHelpBubbleClosed synchronously fires
+  // ElementTracker::NotifyElementHidden (since WebContents is hidden), which
+  // invokes the callback above to destroy help_bubble while its
+  // on_closing_callbacks_ list is iterating, causing a CHECK(!iterating_)
+  // crash.
+  help_bubble->Close(
+      user_education::HelpBubble::CloseReason::kProgrammaticallyClosed);
+
+  // Wait for the deferred visibility lock destruction task to run and trigger
+  // the hidden callback.
+  run_loop.Run();
+
+  EXPECT_EQ(nullptr, help_bubble);
+}
+
 #if BUILDFLAG(IS_MAC)
 // Regression test for the GlassFrame click-through bug: NSGlassEffectView
 // was intercepting clicks on the WebUI reload button.
@@ -1646,9 +1714,13 @@ IN_PROC_BROWSER_TEST_F(WebUIToolbarViewsLocationBarInteractiveUiTest,
 #endif
 }
 
-// TODO(crbug.com/538459286): Flaky on MSan due to clipboard synchronization
-// timeouts.
-#if defined(USE_AURA) && !BUILDFLAG(IS_CHROMEOS) && !defined(MEMORY_SANITIZER)
+class WebUIToolbarViewsLocationBarClipboardInteractiveUiTest
+    : public WebUIToolbarViewsLocationBarInteractiveUiTest {
+ private:
+  content::BrowserTestClipboardScope test_clipboard_scope_;
+};
+
+#if defined(USE_AURA) && !BUILDFLAG(IS_CHROMEOS)
 #define MAYBE_CopyTextFromWebUIOmnibox CopyTextFromWebUIOmnibox
 #define MAYBE_CopyUrlFromWebUIOmnibox CopyUrlFromWebUIOmnibox
 #define MAYBE_CutUrlFromWebUIOmnibox CutUrlFromWebUIOmnibox
@@ -1667,7 +1739,7 @@ IN_PROC_BROWSER_TEST_F(WebUIToolbarViewsLocationBarInteractiveUiTest,
   DISABLED_CopyPartialUrlFromWebUIOmnibox
 #endif
 
-IN_PROC_BROWSER_TEST_F(WebUIToolbarViewsLocationBarInteractiveUiTest,
+IN_PROC_BROWSER_TEST_F(WebUIToolbarViewsLocationBarClipboardInteractiveUiTest,
                        MAYBE_CopyTextFromWebUIOmnibox) {
 #if defined(USE_AURA) && !BUILDFLAG(IS_CHROMEOS)
   const char kAdjustTextScript[] = R"(
@@ -1687,32 +1759,36 @@ IN_PROC_BROWSER_TEST_F(WebUIToolbarViewsLocationBarInteractiveUiTest,
 #endif
 }
 
-IN_PROC_BROWSER_TEST_F(WebUIToolbarViewsLocationBarInteractiveUiTest,
+IN_PROC_BROWSER_TEST_F(WebUIToolbarViewsLocationBarClipboardInteractiveUiTest,
                        MAYBE_CopyUrlFromWebUIOmnibox) {
 #if defined(USE_AURA) && !BUILDFLAG(IS_CHROMEOS)
   const GURL initial_url = embedded_test_server()->GetURL("/title1.html");
-  RunTestSequence(RunClipboardSetTest(kClipboardOp::kCopy, initial_url,
-                                      "title1",
-                                      "(el) => { el.focus(); el.select(); }",
-                                      "el => el.adjustedCopyResult !== null",
-                                      base::UTF8ToUTF16(initial_url.spec())));
+  RunTestSequence(RunClipboardSetTest(
+      kClipboardOp::kCopy, initial_url, "title1",
+      "(el) => { el.focus(); el.select(); }",
+      base::StringPrintf("el => el.adjustedCopyResult?.adjustedText === '%s'",
+                         initial_url.spec().c_str()),
+      base::UTF8ToUTF16(initial_url.spec())));
 #endif
 }
 
-IN_PROC_BROWSER_TEST_F(WebUIToolbarViewsLocationBarInteractiveUiTest,
+IN_PROC_BROWSER_TEST_F(WebUIToolbarViewsLocationBarClipboardInteractiveUiTest,
                        MAYBE_CutUrlFromWebUIOmnibox) {
 #if defined(USE_AURA) && !BUILDFLAG(IS_CHROMEOS)
   const GURL initial_url = embedded_test_server()->GetURL("/title1.html");
-  RunTestSequence(RunClipboardSetTest(kClipboardOp::kCut, initial_url, "title1",
-                                      "(el) => { el.focus(); el.select(); }",
-                                      "el => el.adjustedCopyResult !== null",
-                                      base::UTF8ToUTF16(initial_url.spec())),
+  RunTestSequence(RunClipboardSetTest(
+                      kClipboardOp::kCut, initial_url, "title1",
+                      "(el) => { el.focus(); el.select(); }",
+                      base::StringPrintf(
+                          "el => el.adjustedCopyResult?.adjustedText === '%s'",
+                          initial_url.spec().c_str()),
+                      base::UTF8ToUTF16(initial_url.spec())),
                   WaitForJsResultAt(WebUIToolbarId(), kTextInputDeepQuery,
                                     "el => el.value === ''"));
 #endif
 }
 
-IN_PROC_BROWSER_TEST_F(WebUIToolbarViewsLocationBarInteractiveUiTest,
+IN_PROC_BROWSER_TEST_F(WebUIToolbarViewsLocationBarClipboardInteractiveUiTest,
                        MAYBE_CopyJavascriptFromWebUIOmnibox) {
 #if defined(USE_AURA) && !BUILDFLAG(IS_CHROMEOS)
   const char kAdjustTextTemplate[] = R"(
@@ -1734,35 +1810,39 @@ IN_PROC_BROWSER_TEST_F(WebUIToolbarViewsLocationBarInteractiveUiTest,
 #endif
 }
 
-IN_PROC_BROWSER_TEST_F(WebUIToolbarViewsLocationBarInteractiveUiTest,
+IN_PROC_BROWSER_TEST_F(WebUIToolbarViewsLocationBarClipboardInteractiveUiTest,
                        MAYBE_CopyChromeUrlFromWebUIOmnibox) {
 #if defined(USE_AURA) && !BUILDFLAG(IS_CHROMEOS)
   const std::string chrome_url_to_copy = "chrome://version/";
-  RunTestSequence(RunClipboardSetTest(kClipboardOp::kCopy,
-                                      GURL("chrome://version/"), "version",
-                                      "(el) => { el.focus(); el.select(); }",
-                                      "el => el.adjustedCopyResult !== null",
-                                      base::UTF8ToUTF16(chrome_url_to_copy)));
+  RunTestSequence(RunClipboardSetTest(
+      kClipboardOp::kCopy, GURL("chrome://version/"), "version",
+      "(el) => { el.focus(); el.select(); }",
+      base::StringPrintf("el => el.adjustedCopyResult?.adjustedText === '%s'",
+                         chrome_url_to_copy.c_str()),
+      base::UTF8ToUTF16(chrome_url_to_copy)));
 #endif
 }
 
-IN_PROC_BROWSER_TEST_F(WebUIToolbarViewsLocationBarInteractiveUiTest,
+IN_PROC_BROWSER_TEST_F(WebUIToolbarViewsLocationBarClipboardInteractiveUiTest,
                        MAYBE_CopyPartialUrlFromWebUIOmnibox) {
 #if defined(USE_AURA) && !BUILDFLAG(IS_CHROMEOS)
   const GURL initial_url =
       embedded_test_server()->GetURL("a.test", "/title1.html");
+  const std::string expected_text = initial_url.GetWithEmptyPath().spec();
   RunTestSequence(RunClipboardSetTest(
       kClipboardOp::kCopy, initial_url, "title1",
       R"(
         (el) => {
           el.focus();
+          el.adjustedCopyResult = null;
           const slashIndex = el.value.indexOf('/');
           const selectEnd = slashIndex !== -1 ? slashIndex + 1 : el.value.length;
           el.setSelectionRange(0, selectEnd);
         }
       )",
-      "el => el.adjustedCopyResult !== null",
-      base::UTF8ToUTF16(initial_url.GetWithEmptyPath().spec())));
+      base::StringPrintf("el => el.adjustedCopyResult?.adjustedText === '%s'",
+                         expected_text.c_str()),
+      base::UTF8ToUTF16(expected_text)));
 #endif
 }
 

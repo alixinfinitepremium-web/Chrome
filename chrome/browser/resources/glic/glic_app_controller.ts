@@ -7,9 +7,10 @@ import {assert, assertNotReachedCase} from 'chrome://resources/js/assert.js';
 import {getRequiredElement} from 'chrome://resources/js/util.js';
 
 import type {BrowserProxyImpl} from './browser_proxy.js';
-import type {ZoomAction} from './glic.mojom-webui.js';
-import {GuestPageType, HelpCenterTopic, PanelStateKind, PrepareForClientResult, ProfileReadyState, WebUiState} from './glic.mojom-webui.js';
+import {PanelStateKind} from './glic.mojom-webui.js';
 import {WebClientState} from './glic_api_impl/host/glic_api_host.js';
+import type {ZoomAction} from './glic_webui.mojom-webui.js';
+import {GuestPageType, HelpCenterTopic, PrepareForClientResult, ProfileReadyState, WebUiState} from './glic_webui.mojom-webui.js';
 import type {WebviewDelegate} from './webview.js';
 import {WebviewController, WebviewPersistentState} from './webview.js';
 
@@ -557,6 +558,8 @@ export class GlicAppController implements WebviewDelegate {
   }
 
   private async load(): Promise<void> {
+    this.destroyWebview();
+
     // profileReadyState isn't available right away. Wait until it's ready.
     this.trackLoadingStageStart(LoadingStage.AWAITING_PROFILE_READY);
     await this.profileReadyInitialState.promise;
@@ -614,7 +617,6 @@ export class GlicAppController implements WebviewDelegate {
 
     // Load the web client only after cookie sync is complete.
     this.trackLoadingStageStart(LoadingStage.LOADING_WEB_CLIENT);
-    this.destroyWebview();
     this.webview = new WebviewController(
         $.webviewContainer, this.browserProxy, this,
         this.webviewPersistentState);

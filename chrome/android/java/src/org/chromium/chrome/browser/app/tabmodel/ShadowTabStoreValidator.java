@@ -44,6 +44,7 @@ public class ShadowTabStoreValidator {
     private final StoreMetricsObserver mShadowObserver;
     private final String mWindowTag;
     private final String mOrchestratorTag;
+    private final boolean mIsShadowStoreCaughtUpAtStart;
 
     /**
      * @param profile The profile associated with this validator.
@@ -81,6 +82,9 @@ public class ShadowTabStoreValidator {
         authoritativeStore.addObserver(mAuthoritativeObserver);
         shadowStore.addObserver(mShadowObserver);
 
+        // Retrieve shadow store catch up state prior to any clearing operation.
+        mIsShadowStoreCaughtUpAtStart = mPersistentStoreMigrationManager.isShadowStoreCaughtUp();
+
         if (!isTabStateStoreShadowing()) {
             shadowTabCreator.stopRecording();
             authoritativeTabCreator.stopRecording();
@@ -114,8 +118,11 @@ public class ShadowTabStoreValidator {
     }
 
     private void recordDiffMetrics() {
-        boolean isShadowStoreCaughtUp = mPersistentStoreMigrationManager.isShadowStoreCaughtUp();
-        if (!isShadowStoreCaughtUp || !isTabStateStoreShadowing()) return;
+        if (!mIsShadowStoreCaughtUpAtStart || !isTabStateStoreShadowing()) return;
+        if (mShadowStore instanceof TabStateStore tabStateStore
+                && tabStateStore.hasLoadWarnings()) {
+            return;
+        }
 
         List<TabCreationData> authoritativeFrozenData =
                 mAuthoritativeTabCreator.getFrozenTabCreationData();
@@ -130,7 +137,6 @@ public class ShadowTabStoreValidator {
                         authoritativeNewTabData,
                         mShadowTabCreator.createFrozenTabArgumentsList,
                         mShadowTabCreator.createNewTabArgumentsList,
-                        isShadowStoreCaughtUp,
                         mAuthoritativeTabCreator.getRegularFallbackTabs());
     }
 
