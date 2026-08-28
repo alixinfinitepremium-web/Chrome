@@ -176,15 +176,6 @@ The project uses Chromium build toolchains (`gn` and `ninja`/`autoninja`) for co
    autoninja -C ../../out/Default third_party/chromium-bidi:webdriver_bidi_unittests third_party/chromium-bidi:webdriver_bidi_e2e_tests
    ```
 
-### `cargo`
-
-<!-- TODO(jrandolf): Remove after binaries get published -->
-
-We use [cddlconv](https://github.com/google/cddlconv) to generate our WebDriverBiDi types before building.
-
-1.  Install [Rust](https://rustup.rs/).
-2.  Run `cargo install cddlconv@0.1.9`
-
 ### Code Formatting & Linting
 
 We use a suite of tools to format and lint the codebase:
@@ -291,9 +282,16 @@ To run the browser in headful mode:
 
 ## Running
 
+Testing in Chromium uses GN `script_test` targets:
+
+- `third_party/chromium-bidi:webdriver_bidi_unittests`
+- `third_party/chromium-bidi:webdriver_bidi_e2e_tests`
+
+When built, these targets produce executable runner wrappers in the build directory (`out/Default/bin/`).
+
 ### Unit tests
 
-First, build the test target:
+First, build the unit test target:
 
 ```sh
 autoninja -C ../../out/Default third_party/chromium-bidi:webdriver_bidi_unittests
@@ -305,11 +303,40 @@ Run all unit tests:
 ../../out/Default/bin/run_webdriver_bidi_unittests
 ```
 
-Filter unit tests by name:
+Filter unit tests by test name:
 
 ```sh
 ../../out/Default/bin/run_webdriver_bidi_unittests -- --test-name-pattern="<test_name>"
 ```
+
+Filter unit tests by file path:
+
+```sh
+../../out/Default/bin/run_webdriver_bidi_unittests -- --test-path-pattern="<path_pattern>"
+```
+
+Filter unit tests using ResultDB / Chromium test filter (`--test-filter` / `--isolated-script-test-filter`):
+
+```sh
+../../out/Default/bin/run_webdriver_bidi_unittests --test-filter=':chromium-bidi!mocha:src/utils/:assert.test.ts#assert:should not throw an error when the predicate is truthy'
+```
+
+Multiple tests can be separated with `::`:
+
+```sh
+../../out/Default/bin/run_webdriver_bidi_unittests --test-filter=':chromium-bidi!mocha:src/utils/:assert.test.ts#assert:should not throw an error when the predicate is truthy:::chromium-bidi!mocha:src/utils/:DefaultMap.test.ts#DefaultMap:sets and gets properly'
+```
+
+Or using filter files (`--test-filter-file` / `--isolated-script-test-filter-file`):
+
+```sh
+../../out/Default/bin/run_webdriver_bidi_unittests --test-filter-file=path/to/filter_file.txt
+```
+
+> [!NOTE]
+> When running in `zsh` or other shells that interpret `!`, `#`, or `[`/`]`, make sure to wrap the filter argument in single quotes `'...'` to prevent history expansion (`event not found`) or glob expansion (`no matches found`).
+>
+> When running from the Chromium repository root (`src/`), use `out/Default/bin/run_webdriver_bidi_unittests`.
 
 ### E2E tests
 
@@ -338,10 +365,37 @@ Run all E2E tests:
 ../../out/Default/bin/run_webdriver_bidi_e2e_tests
 ```
 
+Filter E2E tests using ResultDB / Chromium test filter (`--test-filter` / `--isolated-script-test-filter`):
+
+```sh
+../../out/Default/bin/run_webdriver_bidi_e2e_tests --test-filter=':chromium-bidi!pytest:tests/bluetooth/:test_characteristic_emulation.py#test_bluetooth_add_same_characteristic_uuid_twice'
+```
+
+Legacy pytest node IDs and multiple `::`-separated test IDs are also supported:
+
+```sh
+../../out/Default/bin/run_webdriver_bidi_e2e_tests --isolated-script-test-filter='tests/bluetooth/test_characteristic_emulation.py::test_bluetooth_add_same_characteristic_uuid_twice::tests/browser/test_create_user_context.py::test_browser_create_user_context_proxy[True]'
+```
+
+Or using filter files (`--test-filter-file` / `--isolated-script-test-filter-file`):
+
+```sh
+../../out/Default/bin/run_webdriver_bidi_e2e_tests --test-filter-file=path/to/filter_file.txt
+```
+
+> [!NOTE]
+> When running in `zsh` or other shells that interpret `!`, `#`, or `[`/`]`, make sure to wrap the filter argument in single quotes `'...'` to prevent history expansion (`event not found`) or glob expansion (`no matches found`).
+>
+> When running from the Chromium repository root (`src/`), use `out/Default/bin/run_webdriver_bidi_e2e_tests`.
+
 Additionally the output is recorded under `./logs/<DATE>.e2e.log`, which will contain
 both the PyTest logs and in the event of `FAILED` test all the Chromium-BiDi logs.
 
-If you need to see the logs for all tests run the command with `VERBOSE=true`.
+If you need to see the logs for all tests run the command with `VERBOSE=true`:
+
+```sh
+VERBOSE=true ../../out/Default/bin/run_webdriver_bidi_e2e_tests
+```
 
 Pass a test file path to run only the selected file:
 
@@ -373,6 +427,9 @@ Values: `true`, `old`, `false`, default: `true`.
 ```sh
 HEADLESS=true ../../out/Default/bin/run_webdriver_bidi_e2e_tests
 ```
+
+> [!NOTE]
+> When running from the Chromium repository root (`src/`), use `out/Default/bin/run_webdriver_bidi_e2e_tests`.
 
 #### Updating snapshots
 
@@ -453,8 +510,9 @@ new command, add it to `_processCommand`, write and call the module processor fo
    - Or update within semver ranges: `npm update --ignore-scripts`
 2. Build and run tests to ensure dependencies work properly:
    ```sh
-   autoninja -C ../../out/Default third_party/chromium-bidi:default third_party/chromium-bidi:webdriver_bidi_unittests
+   autoninja -C ../../out/Default third_party/chromium-bidi:default third_party/chromium-bidi:webdriver_bidi_unittests third_party/chromium-bidi:webdriver_bidi_e2e_tests
    ../../out/Default/bin/run_webdriver_bidi_unittests
+   ../../out/Default/bin/run_webdriver_bidi_e2e_tests
    ```
 3. Upload the filtered `node_modules` to Google Cloud Storage and update `DEPS`:
    ```sh
@@ -495,6 +553,32 @@ TODO(crbug.com/549520316): Automate the sync process.
    copybara third_party/chromium-bidi/copy.bara.sky default
    ```
 
+## Update CDDL types
+
+### Prerequisites
+
+- **cddlconv**: We use [cddlconv](https://github.com/google/cddlconv) to generate our WebDriverBiDi types.
+  1. Install [Rust](https://rustup.rs/).
+  2. Run `cargo install cddlconv@0.1.10`
+- **parse5**: [parse5](https://github.com/inikulin/parse5) is required by the `webdriver-bidi` specification repository to extract CDDL definitions from specifications.
+  1. Run `npm install -g parse5`
+
+Run the following steps from the `third_party/chromium-bidi` directory:
+
+1. (Optional) If you want to add a new specification, add it to the `tools/update-bidi-types.sh` script.
+2. Run the `tools/update-bidi-types.sh` script.
+3. Build the project (`autoninja -C ../../out/Default third_party/chromium-bidi:default`). If a new WebDriver BiDi command was added, compilation will fail with `Switch is not exhaustive. Cases not matched ...`.
+4. Add the new BiDi command to `CommandProcessor.#processCommand` in `src/bidiMapper/CommandProcessor.ts`. For now, just have it throw an UnknownErrorException.
+
+```typescript
+case '{NEW_COMMAND_NAME}':
+  throw new UnknownErrorException(
+    `Method ${command.method} is not implemented.`,
+  );
+```
+
+5. Upload a CL and have it reviewed and landed via Gerrit.
+
 ## Adding new command
 
 Want to add a shiny new command to WebDriver BiDi for Chromium? Here's the playbook:
@@ -515,20 +599,7 @@ Make sure Chromium already has the CDP methods your command will rely on.
 
 ### Update CDDL types
 
-1. Checkout a new branch in Chromium `src/`.
-2. If your command lives in a separate spec, add a link to that spec in the `tools/update-bidi-types.sh` script.
-3. Run the `tools/update-bidi-types.sh` script.
-4. Build the project (`autoninja -C ../../out/Default third_party/chromium-bidi:default`). If a new WebDriver BiDi command was added, compilation will fail with `Switch is not exhaustive. Cases not matched ...`.
-5. Add the new BiDi command to `CommandProcessor.#processCommand` in `src/bidiMapper/CommandProcessor.ts`. For now, just have it throw an UnknownErrorException.
-
-```typescript
-case '{NEW_COMMAND_NAME}':
-  throw new UnknownErrorException(
-    `Method ${command.method} is not implemented.`,
-  );
-```
-
-6. Upload a CL and have it reviewed and landed via Gerrit.
+Follow the steps in [Update CDDL types](#update-cddl-types) to update the protocol types before implementing the command.
 
 ### Implement the new command
 
@@ -549,6 +620,13 @@ Call your new module processor method from `CommandProcessor.#processCommand`, p
 #### Add e2e tests
 
 Write end-to-end tests for your command, including the happy path and any edge cases that might trip things up. Focus on testing the code in the mapper.
+
+Build the E2E test target and run your test:
+
+```sh
+autoninja -C ../../out/Default third_party/chromium-bidi:webdriver_bidi_e2e_tests
+../../out/Default/bin/run_webdriver_bidi_e2e_tests -- -k <TestName>
+```
 
 #### Update WPT expectations
 

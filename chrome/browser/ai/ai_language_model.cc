@@ -53,10 +53,23 @@ namespace {
 
 using ::on_device_model::mojom::InputPiece;
 using ::on_device_model::mojom::InputPiecePtr;
+using ::on_device_model::mojom::ToolCall;
+using ::on_device_model::mojom::ToolCallPtr;
 using ::on_device_model::mojom::ToolDeclaration;
 using ::on_device_model::mojom::ToolResponse;
 using ::on_device_model::mojom::ToolResponsePtr;
 using ::optimization_guide::proto::PromptApiMetadata;
+
+ToolCallPtr GetToolCallFromDict(const base::DictValue& dict) {
+  const std::string* call_id = dict.FindString("callID");
+  const std::string* name = dict.FindString("name");
+  const base::DictValue* arguments = dict.FindDict("arguments");
+  if (!call_id || !name || !arguments) {
+    return nullptr;
+  }
+
+  return ToolCall::New(*call_id, *name, arguments->Clone());
+}
 
 ToolResponsePtr GetToolResponseFromDict(const base::DictValue& dict) {
   const std::string* call_id = dict.FindString("callID");
@@ -134,9 +147,17 @@ on_device_model::mojom::InputPtr ConvertToInput(
               InputPiece::NewAudio(content->get_audio().Clone()));
           break;
         }
-        case blink::mojom::AILanguageModelPromptContent::Tag::kToolCall:
-          // TODO(crbug.com/422803232): Support on_device_model tool use.
-          return nullptr;
+        case blink::mojom::AILanguageModelPromptContent::Tag::kToolCall: {
+          if (!capabilities.Has(on_device_model::CapabilityFlags::kToolUse)) {
+            return nullptr;
+          }
+          auto call = GetToolCallFromDict(content->get_tool_call());
+          if (!call) {
+            return nullptr;
+          }
+          input->pieces.push_back(InputPiece::NewToolCall(std::move(call)));
+          break;
+        }
         case blink::mojom::AILanguageModelPromptContent::Tag::kToolResponse: {
           if (!capabilities.Has(on_device_model::CapabilityFlags::kToolUse)) {
             return nullptr;
@@ -298,6 +319,9 @@ class AILanguageModel::PromptState
   }
 
   on_device_model::mojom::InputPtr TakeInput() { return std::move(input_); }
+  std::vector<on_device_model::mojom::ToolCallPtr> TakeToolCalls() {
+    return std::move(tool_calls_);
+  }
   const std::string& response() const { return full_response_; }
   // The total token count for this request including input and output tokens.
   uint32_t token_count() const { return token_count_; }
@@ -407,6 +431,7 @@ class AILanguageModel::PromptState
     std::vector<blink::mojom::ToolCallPtr> blink_tool_calls;
     blink_tool_calls.reserve(tool_calls.size());
     for (auto& tc : tool_calls) {
+      tool_calls_.push_back(tc->Clone());
       auto blink_tc = blink::mojom::ToolCall::New();
       blink_tc->call_id = std::move(tc->call_id);
       blink_tc->name = std::move(tc->name);
@@ -534,6 +559,8 @@ class AILanguageModel::PromptState
   std::string full_response_;
   // Number of tokens in the response.
   uint32_t output_tokens_ = 0;
+  // Generated tool calls retained for context replay.
+  std::vector<on_device_model::mojom::ToolCallPtr> tool_calls_;
   // The response since safety check was last run.
   std::string unchecked_response_;
   // Number of tokens since safety check was last run.
@@ -844,6 +871,7 @@ AILanguageModel::GetLanguageModelInstanceInfo() {
       case on_device_model::CapabilityFlags::kToolUse:
         // TODO(crbug.com/422803232): Expose tool support as a dedicated
         // bool field on AILanguageModelInstanceInfo instead of an input type.
+        input_types.insert(blink::mojom::AILanguageModelPromptType::kToolCall);
         input_types.insert(
             blink::mojom::AILanguageModelPromptType::kToolResponse);
         break;
@@ -1116,6 +1144,10 @@ void AILanguageModel::OnPromptOutputComplete() {
   if (prompt_state_->mode() == PromptState::Mode::kAppendAndGenerate) {
     item.input->pieces.push_back(
         InputPiece::NewText(prompt_state_->response()));
+    for (auto& tool_call : prompt_state_->TakeToolCalls()) {
+      item.input->pieces.push_back(
+          InputPiece::NewToolCall(std::move(tool_call)));
+    }
     item.input->pieces.push_back(InputPiece::NewToken(ml::Token::kEnd));
   }
 

@@ -376,6 +376,8 @@ public abstract class ChromeFeatureList {
             "AutofillEnableNewFopDisplayAndroid";
     public static final String AUTOFILL_ENABLE_PAY_NOW_PAY_LATER_TABS =
             "AutofillEnablePayNowPayLaterTabs";
+    public static final String AUTOFILL_ENABLE_SCAN_CARD_OPTION_WHEN_NO_CARDS_SAVED =
+            "AutofillEnableScanCardOptionWhenNoCardsSaved";
     public static final String AUTOFILL_ENABLE_SECURITY_TOUCH_EVENT_FILTERING_ANDROID =
             "AutofillEnableSecurityTouchEventFilteringAndroid";
     public static final String AUTOFILL_ENABLE_SEPARATE_PIX_PREFERENCE_ITEM =
@@ -1816,6 +1818,7 @@ public abstract class ChromeFeatureList {
     public static final String ANDROID_THEME_MODULE_FORCE_DEPENDENCIES =
             "force_theme_module_dependencies";
     public static final String ANDROID_THEME_RESOURCE_PROVIDER_FORCE_LIGHT = "force_light_theme";
+    public static final String XPLAT_SYNCED_SETUP_THEMES_OBSERVATION_ONLY = "observation_only";
 
     // keep-sorted end
 
@@ -1833,7 +1836,10 @@ public abstract class ChromeFeatureList {
                             Map.of(ANDROID_THEME_MODULE_FORCE_DEPENDENCIES, "false")),
                     Map.entry(
                             ANDROID_THEME_RESOURCE_PROVIDER,
-                            Map.of(ANDROID_THEME_RESOURCE_PROVIDER_FORCE_LIGHT, "false")));
+                            Map.of(ANDROID_THEME_RESOURCE_PROVIDER_FORCE_LIGHT, "false")),
+                    Map.entry(
+                            XPLAT_SYNCED_SETUP_THEMES,
+                            Map.of(XPLAT_SYNCED_SETUP_THEMES_OBSERVATION_ONLY, "false")));
 
     /**
      * This map contains each parameter's default value in tests. This is what gets returned when
@@ -1849,7 +1855,10 @@ public abstract class ChromeFeatureList {
                                     Map.of(ANDROID_THEME_MODULE_FORCE_DEPENDENCIES, "false")),
                             Map.entry(
                                     ANDROID_THEME_RESOURCE_PROVIDER,
-                                    Map.of(ANDROID_THEME_RESOURCE_PROVIDER_FORCE_LIGHT, "false")));
+                                    Map.of(ANDROID_THEME_RESOURCE_PROVIDER_FORCE_LIGHT, "false")),
+                            Map.entry(
+                                    XPLAT_SYNCED_SETUP_THEMES,
+                                    Map.of(XPLAT_SYNCED_SETUP_THEMES_OBSERVATION_ONLY, "false")));
 
     // CachedFeatureParam instances.
     /* Alphabetical order by feature name, arbitrary order by param name: */
@@ -1882,8 +1891,6 @@ public abstract class ChromeFeatureList {
                     LOW_END_MEMORY_EXPERIMENT,
                     "LowMemoryDeviceThresholdMB",
                     SysUtils.LOW_MEMORY_DEVICE_THRESHOLD_MB);
-    public static final BooleanCachedFeatureParam sAndroidAppIntegrationModuleForceCardShow =
-            newBooleanCachedFeatureParam(ANDROID_APP_INTEGRATION_MODULE, "force_card_shown", false);
 
     public static final BooleanCachedFeatureParam sAndroidAppIntegrationModuleShowThirdPartyCard =
             newBooleanCachedFeatureParam(
@@ -2271,7 +2278,6 @@ public abstract class ChromeFeatureList {
                     sAndroidAnimatedProgressBarFpsCap,
                     sAndroidApbJumpToCompletionNoFade,
                     sAndroidApbJumpToCompletionWithFade,
-                    sAndroidAppIntegrationModuleForceCardShow,
                     sAndroidAppIntegrationModuleShowThirdPartyCard,
                     sAndroidAppIntegrationMultiDataSourceSkipDeviceCheck,
                     sAndroidAppIntegrationMultiDataSourceSkipSchemaCheck,
@@ -2387,4 +2393,7 @@ public abstract class ChromeFeatureList {
     public static final MutableBooleanParamWithSafeDefault
             sTabBottomSheetSuppressBottomToolbarWhileOpen =
                     sTabBottomSheet.newBooleanParam("suppress_bottom_toolbar_while_open", false);
+    public static final MutableBooleanParamWithSafeDefault sXplatSyncedSetupThemesObservationOnly =
+            sXplatSyncedSetupThemes.newBooleanParam(
+                    XPLAT_SYNCED_SETUP_THEMES_OBSERVATION_ONLY, false);
 }

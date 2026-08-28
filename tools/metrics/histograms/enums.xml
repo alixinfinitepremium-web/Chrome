@@ -10962,6 +10962,7 @@ from previous Chrome versions.
   <int value="-1170030520" label="WebUIOmniboxAimPopup:enabled"/>
   <int value="-1169743270" label="TabBottomSheetFullHeight:enabled"/>
   <int value="-1169571217" label="SharingDesktopScreenshotsEdit:disabled"/>
+  <int value="-1169092883" label="SymphoniaDemuxing:enabled"/>
   <int value="-1168910727"
       label="enable-experimental-accessibility-language-detection-dynamic"/>
   <int value="-1168836114" label="AndroidTabDeclutterAutoDelete:enabled"/>
@@ -20764,6 +20765,7 @@ from previous Chrome versions.
   <int value="1867437206" label="XplatSyncedSetupThemes:disabled"/>
   <int value="1870023694" label="AccessibilityDeprecateChromeVoxTabs:enabled"/>
   <int value="1870187746" label="TabStripTransitionInDesktopWindow:enabled"/>
+  <int value="1870858634" label="SymphoniaDemuxing:disabled"/>
   <int value="1870973833" label="AssistantEnableStereoAudioInput:enabled"/>
   <int value="1872034472" label="TabletTabStripAnimation:enabled"/>
   <int value="1872185826" label="LocationHardReload:enabled"/>
@@ -23615,6 +23617,19 @@ Called by update_net_error_codes.py.-->
   <int value="2" label="Rejected due to browser window resize"/>
   <int value="3" label="Not rejected or not shown"/>
 </enum>
+
+<!-- LINT.IfChange(PdfAccessibilityHeadingClassifier) -->
+
+<enum name="PdfAccessibilityHeadingClassifier">
+  <int value="1" label="Font Size"/>
+  <int value="2" label="Bold Style"/>
+  <int value="3" label="All Uppercase"/>
+  <int value="4" label="Semi-Bold Weight"/>
+  <int value="5" label="Font Name"/>
+  <int value="6" label="Text Color"/>
+</enum>
+
+<!-- LINT.ThenChange(//components/pdf/renderer/pdf_accessibility_tree.h:HeadingClassifier) -->
 
 <enum name="PerformanceMonitor.UsageScenario.LongInterval">
   <int value="1" label="All Tabs Hidden Audio"/>

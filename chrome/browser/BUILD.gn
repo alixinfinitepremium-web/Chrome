@@ -154,6 +154,7 @@ source_set("global_features") {
   public_deps = [
     "//base",
     "//build:branding_buildflags",
+    "//chrome/common/request_header_integrity:buildflags",
   ]
 }
 
@@ -1371,6 +1372,7 @@ source_set("core") {
       "//chrome/browser/ui/tabs:features",
       "//chrome/browser/ui/tabs:tab_strip",
       "//chrome/browser/ui/toasts",
+      "//chrome/browser/ui/views:chrome_browser_main_extra_parts_views",
       "//chrome/browser/ui/views/app_menu:impl",
       "//chrome/browser/ui/views/location_bar:impl",
       "//chrome/browser/ui/views/side_panel",
@@ -3002,10 +3004,6 @@ source_set("browser") {
       "//ui/wm/public",
     ]
 
-    if (enable_server_based_recognition) {
-      deps += [ "//chrome/services/speech/internal:lib" ]
-    }
-
     if (use_cups) {
       deps += [ "//chrome/browser/chromeos/printing" ]
     }
@@ -3277,7 +3275,10 @@ source_set("browser") {
   }
 
   if (enable_request_header_integrity) {
-    deps += [ "//chrome/common/request_header_integrity" ]
+    deps += [
+      "//chrome/browser/request_header_integrity",
+      "//chrome/common/request_header_integrity",
+    ]
   }
 
   if (enable_service_discovery) {

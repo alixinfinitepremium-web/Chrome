@@ -90,10 +90,31 @@ bool IsModifierKey(const WebKeyboardEvent& event) {
     case ui::VKEY_ALTGR:
     case ui::VKEY_LWIN:  // VKEY_LWIN is an alias Mac's VKEY_COMMAND.
     case ui::VKEY_RWIN:
+    case ui::VKEY_RIGHT_COMMAND:
     case ui::VKEY_CAPITAL:
     case ui::VKEY_NUMLOCK:
     case ui::VKEY_SCROLL:
       return true;
+    default:
+      return false;
+  }
+}
+
+bool IsSingleCtrlKey(const WebKeyboardEvent& event) {
+  switch (event.windows_key_code) {
+#if BUILDFLAG(IS_MAC)
+    // On Mac, we use Command instead of Ctrl.
+    case ui::VKEY_COMMAND:
+    case ui::VKEY_RIGHT_COMMAND:
+      return (event.GetModifiers() & WebKeyboardEvent::kKeyModifiers) ==
+             WebKeyboardEvent::kMetaKey;
+#else
+    case ui::VKEY_CONTROL:
+    case ui::VKEY_LCONTROL:
+    case ui::VKEY_RCONTROL:
+      return (event.GetModifiers() & WebKeyboardEvent::kKeyModifiers) ==
+             WebKeyboardEvent::kControlKey;
+#endif
     default:
       return false;
   }
@@ -187,14 +208,15 @@ bool AtMemoryHandler::DidReceiveKeyDown(const WebElement& field,
   if (!base::FeatureList::IsEnabled(features::kAutofillAtMemory)) {
     return false;
   }
-  if (DidReceiveKeyDownForAtMemoryShortcut(field, event)) {
+  if (DidReceiveKeyDownForTriggerShortcut(field, event)) {
     return true;
   }
-  DidReceiveKeyDownForAtMemoryTriggerString(field, event);
+  DidReceiveKeyDownForTriggerString(field, event);
+  DidReceiveKeyDownForDoubleCtrl(field, event);
   return false;
 }
 
-bool AtMemoryHandler::DidReceiveKeyDownForAtMemoryShortcut(
+bool AtMemoryHandler::DidReceiveKeyDownForTriggerShortcut(
     const WebElement& field,
     const WebKeyboardEvent& event) {
   if (!base::FeatureList::IsEnabled(
@@ -239,7 +261,7 @@ bool AtMemoryHandler::DidReceiveKeyDownForAtMemoryShortcut(
   return false;
 }
 
-void AtMemoryHandler::DidReceiveKeyDownForAtMemoryTriggerString(
+void AtMemoryHandler::DidReceiveKeyDownForTriggerString(
     const WebElement& field,
     const WebKeyboardEvent& event) {
   if (IsModifierKey(event)) {
@@ -345,14 +367,64 @@ void AtMemoryHandler::DidReceiveKeyDownForAtMemoryTriggerString(
           weak_ptr_factory_.GetWeakPtr(), field_id));
 }
 
+void AtMemoryHandler::DidReceiveKeyDownForDoubleCtrl(
+    const WebElement& field,
+    const WebKeyboardEvent& event) {
+  if (!base::FeatureList::IsEnabled(features::kAutofillAtMemoryDoubleCtrl)) {
+    return;
+  }
+
+  if (!IsSingleCtrlKey(event) ||
+      (event.GetModifiers() & blink::WebInputEvent::kIsAutoRepeat)) {
+    ctrl_state_ = {};
+    return;
+  }
+
+  const size_t offset = GetCaretOffset(field);
+  if (offset == std::string::npos) {
+    ctrl_state_ = {};
+    return;
+  }
+
+  const FieldRendererId field_id = form_util::GetFieldRendererId(field);
+  const base::TimeTicks now = base::TimeTicks::Now();
+
+  if (ctrl_state_.last_ctrl_dom_code != event.dom_code ||
+      ctrl_state_.last_field_id != field_id ||
+      ctrl_state_.last_offset != offset ||
+      now - ctrl_state_.last_time > kCoherentKeyDownThreshold) {
+    ctrl_state_ = {.last_ctrl_dom_code = event.dom_code,
+                   .last_time = now,
+                   .last_field_id = field_id,
+                   .last_offset = offset};
+    // The double Ctrl sequence isn't complete yet.
+    return;
+  }
+
+  // The double Ctrl sequence is complete. We trigger AtMemory suggestions.
+  ctrl_state_ = {};
+
+  if (auto form_control = field.DynamicTo<WebFormControlElement>()) {
+    agent_->ShowSuggestions(
+        form_control, AutofillSuggestionTriggerSource::kAtMemoryDoubleCtrl,
+        SynchronousFormCache(), std::nullopt);
+  } else {
+    DCHECK(field.IsContentEditable());
+    agent_->ShowSuggestionsForContentEditable(
+        field, AutofillSuggestionTriggerSource::kAtMemoryDoubleCtrl);
+  }
+}
+
 void AtMemoryHandler::FocusedElementChanged(
     const WebElement& new_focused_element) {
   trigger_state_ = {};
+  ctrl_state_ = {};
 }
 
 void AtMemoryHandler::DidReceiveLeftMouseDownOrGestureTapInNode(
     const blink::WebNode& node) {
   trigger_state_ = {};
+  ctrl_state_ = {};
 }
 
 void AtMemoryHandler::ReplaceSelectionForAtMemory(WebElement field,

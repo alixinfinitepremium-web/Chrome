@@ -20955,6 +20955,21 @@ should be able to be added at any place in this file.
   </description>
 </action>
 
+<action name="IsolatedModeMenu_ExitClicked">
+  <owner>szpotekagata@google.com</owner>
+  <description>
+    User clicked on the Close Isolated window button in the Isolated Mode
+    profile menu.
+  </description>
+</action>
+
+<action name="IsolatedModeMenu_Show">
+  <owner>szpotekagata@google.com</owner>
+  <description>
+    Recorded when the Isolated Mode profile menu is opened.
+  </description>
+</action>
+
 <action name="Italic">
   <owner>Please list the metric's owners. Add more owner tags as needed.</owner>
   <description>Please enter the description of this user action.</description>
@@ -35623,13 +35638,20 @@ should be able to be added at any place in this file.
 <action name="NewIncognitoWindow">
   <owner>rhalavati@chromium.org</owner>
   <description>
-    The user opened an off-the-record window (Incognito or Guest).
+    The user opened an off-the-record window (Incognito, Guest, or Enterprise
+    Isolated).
   </description>
 </action>
 
 <action name="NewIncognitoWindow2">
   <owner>rhalavati@chromium.org</owner>
   <description>The user opened an Incognito window.</description>
+</action>
+
+<action name="NewIsolatedWindow">
+  <owner>przybytniowska@google.com</owner>
+  <owner>chrome-enterprise@google.com</owner>
+  <description>The user opened an Enterprise Isolated window.</description>
 </action>
 
 <action name="NewProfileWindowByIndex">

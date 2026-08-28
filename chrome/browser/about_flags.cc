@@ -4445,6 +4445,14 @@ const FeatureEntry::FeatureVariation
     kCrossWindowTabGroupOperationsVariations[] = {
         {"Remote group operations", kCrossWindowTabGroupOperationsRemoteGroup,
          nullptr}};
+
+const FeatureEntry::FeatureParam kXplatSyncedSetupThemes_ObservationOnly[] = {
+    {"observation_only", "true"},
+};
+
+const FeatureEntry::FeatureVariation kXplatSyncedSetupThemesVariations[] = {
+    {"Observation only", kXplatSyncedSetupThemes_ObservationOnly, nullptr},
+};
 #endif  // BUILDFLAG(IS_ANDROID)
 
 #if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_LINUX)
@@ -4710,6 +4718,21 @@ const FeatureEntry::Choice kSymphoniaAudioDecodingChoices[] = {
     {"Disabled (Overrides Finch)", switches::kDisableFeatures,
      "SymphoniaAudioDecoding,SymphoniaMp3Decoding,SymphoniaPcmDecoding,"
      "SymphoniaVorbisDecoding"}};
+#endif
+
+#if BUILDFLAG(ENABLE_SYMPHONIA_DEMUXER)
+constexpr char kSymphoniaDemuxingFeatureList[] =
+    "SymphoniaDemuxing,SymphoniaAacDemuxing,SymphoniaFlacDemuxing,"
+    "SymphoniaIsomDemuxing,SymphoniaMkvDemuxing,SymphoniaMp3Demuxing,"
+    "SymphoniaOggDemuxing,SymphoniaRiffDemuxing";
+
+// The choices for the Symphonia demuxer feature.
+const FeatureEntry::Choice kSymphoniaDemuxingChoices[] = {
+    {flags_ui::kGenericExperimentChoiceDefault, "", ""},
+    {"Enabled (All Containers)", switches::kEnableFeatures,
+     kSymphoniaDemuxingFeatureList},
+    {"Disabled (All Containers)", switches::kDisableFeatures,
+     kSymphoniaDemuxingFeatureList}};
 #endif
 
 // Proofreader requires LiteRT-LM and Manifest Broker.
@@ -9555,6 +9578,12 @@ const FeatureEntry kFeatureEntries[] = {
      MULTI_VALUE_TYPE(kSymphoniaAudioDecodingChoices)},
 #endif
 
+#if BUILDFLAG(ENABLE_SYMPHONIA_DEMUXER)
+    {"symphonia-demuxing", flag_descriptions::kSymphoniaDemuxingName,
+     flag_descriptions::kSymphoniaDemuxingDescription, kOsAll,
+     MULTI_VALUE_TYPE(kSymphoniaDemuxingChoices)},
+#endif
+
     {"safety-check-unused-site-permissions",
      flag_descriptions::kSafetyCheckUnusedSitePermissionsName,
      flag_descriptions::kSafetyCheckUnusedSitePermissionsDescription, kOsAll,
@@ -13875,7 +13904,9 @@ const FeatureEntry kFeatureEntries[] = {
     {"xplat-synced-setup-themes",
      flag_descriptions::kXplatSyncedSetupThemesName,
      flag_descriptions::kXplatSyncedSetupThemesDescription, kOsAndroid,
-     FEATURE_VALUE_TYPE(chrome::android::kXplatSyncedSetupThemes)},
+     FEATURE_WITH_PARAMS_VALUE_TYPE(chrome::android::kXplatSyncedSetupThemes,
+                                    kXplatSyncedSetupThemesVariations,
+                                    "XplatSyncedSetupThemes")},
     {"cct-tab-switcher-enabled-for-chrome-experiment",
      flag_descriptions::kCCTTabSwitcherEnabledForChromeExperimentName,
      flag_descriptions::kCCTTabSwitcherEnabledForChromeExperimentDescription,

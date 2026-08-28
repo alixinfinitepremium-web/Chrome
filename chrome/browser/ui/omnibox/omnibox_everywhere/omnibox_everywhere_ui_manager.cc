@@ -31,6 +31,7 @@
 #include "chrome/browser/ui/webui/top_chrome/webui_contents_wrapper.h"
 #include "chrome/browser/ui/webui/webui_embedding_context.h"
 #include "chrome/common/webui_url_constants.h"
+#include "chrome/grit/branded_strings.h"
 #include "chrome/grit/generated_resources.h"
 #include "components/input/native_web_keyboard_event.h"
 #include "components/keep_alive_registry/keep_alive_registry.h"
@@ -527,29 +528,30 @@ void OmniboxEverywhereUIManager::Close() {
 void OmniboxEverywhereUIManager::Demote() {
   last_shown_time_.reset();
   deactivation_task_.Cancel();
-  if (HasOpenModalDialog()) {
+  if (!widget_ || !widget_->IsVisible() || is_demoted_ ||
+      HasOpenModalDialog()) {
     return;
   }
   if (is_context_menu_open_ && context_menu_runner_) {
     context_menu_runner_->Cancel();
     is_context_menu_open_ = false;
   }
-  if (widget_) {
-    is_demoted_ = true;
-    widget_->SetZOrderLevel(ui::ZOrderLevel::kNormal);
-    // Deactivate first so that the next window is activated before sending the
-    // widget to the bottom.
+  is_demoted_ = true;
+  widget_->SetZOrderLevel(ui::ZOrderLevel::kNormal);
+  // Deactivate only if the widget is currently active to avoid deactivating
+  // other windows in the application.
+  if (widget_->IsActive()) {
     widget_->Deactivate();
-    // TODO(b/532195081): Add support for macOS to demote/send the widget to the
-    // background in persistent mode.
-#if BUILDFLAG(IS_WIN)
-    HWND hwnd = views::HWNDForWidget(widget_.get());
-    if (hwnd) {
-      ::SetWindowPos(hwnd, HWND_BOTTOM, 0, 0, 0, 0,
-                     SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
-    }
-#endif
   }
+  // TODO(b/532195081): Add support for macOS to demote/send the widget to the
+  // background in persistent mode.
+#if BUILDFLAG(IS_WIN)
+  HWND hwnd = views::HWNDForWidget(widget_.get());
+  if (hwnd) {
+    ::SetWindowPos(hwnd, HWND_BOTTOM, 0, 0, 0, 0,
+                   SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+  }
+#endif
 }
 
 void OmniboxEverywhereUIManager::CleanUpWidget() {

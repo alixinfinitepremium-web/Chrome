@@ -661,6 +661,22 @@ const AtomicString& V8ShadowRootModeToString(V8ShadowRootMode::Enum mode) {
   return keywords::kClosed;
 }
 
+void InvalidateForCanvasTransformChange(LayoutObject* layout_object) {
+  if (layout_object) {
+    layout_object->SetNeedsPaintPropertyUpdate();
+    const auto* box = DynamicTo<LayoutBox>(layout_object);
+    if (box && box->TransformsChangeMayRequireLayout()) {
+      layout_object->SetNeedsLayout(layout_invalidation_reason::kDomChanged);
+    } else {
+      if (layout_object->HasLayer()) {
+        // Directly update the PaintLayer transform to avoid a repaint from
+        // layout invalidation.
+        To<LayoutBoxModelObject>(layout_object)->Layer()->UpdateTransform();
+      }
+    }
+  }
+}
+
 }  // namespace
 
 Element::Element(const QualifiedName& tag_name,
@@ -4557,18 +4573,13 @@ void Element::SetCanvasTransformInternal(const gfx::Transform& transform) {
   }
   data_ = EnsureRareData().SetWrappedField<gfx::Transform>(
       NodeRareData::FieldId::kCanvasTransform, transform);
-  if (LayoutObject* layout_object = GetLayoutObject()) {
-    layout_object->SetNeedsPaintPropertyUpdate();
-    const auto* box = DynamicTo<LayoutBox>(layout_object);
-    if (box && box->TransformsChangeMayRequireLayout()) {
-      layout_object->SetNeedsLayout(layout_invalidation_reason::kDomChanged);
-    } else {
-      if (layout_object->HasLayer()) {
-        // Directly update the PaintLayer transform to avoid a repaint from
-        // layout invalidation.
-        To<LayoutBoxModelObject>(layout_object)->Layer()->UpdateTransform();
-      }
-    }
+  InvalidateForCanvasTransformChange(GetLayoutObject());
+}
+
+void Element::ClearCanvasTransform() {
+  if (RareData()) {
+    RareData()->SetFieldToNullIfExists(NodeRareData::FieldId::kCanvasTransform);
+    InvalidateForCanvasTransformChange(GetLayoutObject());
   }
 }
 
@@ -7502,14 +7513,12 @@ void Element::SetIsEligibleForElementCapture(bool value) {
         HasElementFlag(ElementFlags::kIsEligibleForElementCapture);
 
     if (value != old_value) {
-      AddConsoleMessage(mojom::blink::ConsoleMessageSource::kRendering,
-                        mojom::blink::ConsoleMessageLevel::kInfo,
-                        UNSAFE_TODO(String::Format(
-                            "restrictTo(): Element %s restriction eligibility. "
-                            "For eligibility conditions, see "
-                            "https://screen-share.github.io/element-capture/"
-                            "#elements-eligible-for-restriction",
-                            value ? "gained" : "lost")));
+      AddConsoleMessage(
+          ConsoleMessage::Source::kRendering, ConsoleMessage::Level::kInfo,
+          StrCat({"restrictTo(): Element ", value ? "gained" : "lost",
+                  " restriction eligibility. For eligibility conditions, see "
+                  "https://screen-share.github.io/element-capture/"
+                  "#elements-eligible-for-restriction"}));
     }
   } else {
     // We want to issue a different log message if the element is not eligible

@@ -36,6 +36,7 @@
 #include "third_party/blink/public/web/web_local_frame.h"
 #include "third_party/blink/public/web/web_view.h"
 #include "ui/events/event_constants.h"
+#include "ui/events/keycodes/dom/dom_code.h"
 #include "ui/events/keycodes/keyboard_codes.h"
 
 namespace autofill {
@@ -1120,6 +1121,257 @@ TEST_F(AtMemoryHandlerContentEditableTest, AtMemoryShortcutTrigger) {
   SendWebKeyboardEvent(event);
 
   task_environment_.RunUntilIdle();
+}
+
+class AtMemoryHandlerDoubleCtrlTest : public AtMemoryHandlerTest {
+ public:
+  enum class CommandKey { kLeft, kRight };
+
+  AtMemoryHandlerDoubleCtrlTest() {
+    feature_list_.InitAndEnableFeature(features::kAutofillAtMemoryDoubleCtrl);
+  }
+
+  // On Mac, we treat the Command (aka Windows aka Meta aka Super) key as the
+  // Ctrl key.
+  void SendCtrlKeyDown(CommandKey key = CommandKey::kLeft,
+                       bool is_auto_repeat = false) {
+    int modifiers = [] {
+      if constexpr (BUILDFLAG(IS_MAC)) {
+        return blink::WebInputEvent::kMetaKey;
+      } else {
+        return blink::WebInputEvent::kControlKey;
+      }
+    }();
+    if (is_auto_repeat) {
+      modifiers |= blink::WebInputEvent::kIsAutoRepeat;
+    }
+
+    blink::WebKeyboardEvent event(blink::WebInputEvent::Type::kRawKeyDown,
+                                  modifiers, base::TimeTicks::Now());
+
+    event.windows_key_code = [](CommandKey key) {
+      if constexpr (BUILDFLAG(IS_MAC)) {
+        switch (key) {
+          case CommandKey::kLeft:
+            return ui::VKEY_COMMAND;
+          case CommandKey::kRight:
+            return ui::VKEY_RIGHT_COMMAND;
+        }
+      } else {
+        // The WebKeyboardEvent::windows_key_code does not distinguish between
+        // left and right Ctrl buttons.
+        return ui::VKEY_CONTROL;
+      }
+    }(key);
+
+    event.dom_code = static_cast<int>([&key] {
+      if constexpr (BUILDFLAG(IS_MAC)) {
+        switch (key) {
+          case CommandKey::kLeft:
+            return ui::DomCode::META_LEFT;
+          case CommandKey::kRight:
+            return ui::DomCode::META_RIGHT;
+        }
+      } else {
+        switch (key) {
+          case CommandKey::kLeft:
+            return ui::DomCode::CONTROL_LEFT;
+          case CommandKey::kRight:
+            return ui::DomCode::CONTROL_RIGHT;
+        }
+      }
+      NOTREACHED();
+    }());
+
+    SendWebKeyboardEvent(event);
+  }
+
+ private:
+  base::test::ScopedFeatureList feature_list_;
+};
+
+// Tests that pressing Ctrl twice triggers AtMemory in an <input>.
+TEST_F(AtMemoryHandlerDoubleCtrlTest, DoubleCtrlTriggersAtMemoryInInput) {
+  LoadHTML(R"(<input id="f">)");
+  WaitForFormsSeen();
+  Focus("f");
+
+  EXPECT_CALL(autofill_driver(),
+              AskForValuesToFill(
+                  _, _, _,
+                  Eq(AutofillSuggestionTriggerSource::kAtMemoryDoubleCtrl), _));
+
+  SendCtrlKeyDown();
+  SendCtrlKeyDown();
+  task_environment_.RunUntilIdle();
+}
+
+// Tests that pressing Ctrl twice triggers AtMemory in a <textarea>.
+TEST_F(AtMemoryHandlerDoubleCtrlTest, DoubleCtrlTriggersAtMemoryInTextArea) {
+  LoadHTML(R"(<textarea id="f"></textarea>)");
+  WaitForFormsSeen();
+  Focus("f");
+
+  EXPECT_CALL(autofill_driver(),
+              AskForValuesToFill(
+                  _, _, _,
+                  Eq(AutofillSuggestionTriggerSource::kAtMemoryDoubleCtrl), _));
+
+  SendCtrlKeyDown();
+  SendCtrlKeyDown();
+  task_environment_.RunUntilIdle();
+}
+
+// Tests that pressing Ctrl twice triggers AtMemory in a contenteditable.
+TEST_F(AtMemoryHandlerDoubleCtrlTest,
+       DoubleCtrlTriggersAtMemoryInContentEditable) {
+  LoadHTML(R"(<div contenteditable id="f"></div>)");
+  WaitForFormsSeen();
+  Focus("f");
+
+  EXPECT_CALL(autofill_driver(),
+              AskForValuesToFill(
+                  _, _, _,
+                  Eq(AutofillSuggestionTriggerSource::kAtMemoryDoubleCtrl), _));
+
+  SendCtrlKeyDown();
+  SendCtrlKeyDown();
+  task_environment_.RunUntilIdle();
+}
+
+// Tests that typing an intervening character cancels the double Ctrl sequence.
+TEST_F(AtMemoryHandlerDoubleCtrlTest, InterveningKeyCancelsDoubleCtrl) {
+  LoadHTML(R"(<input id="f">)");
+  WaitForFormsSeen();
+  Focus("f");
+
+  EXPECT_CALL(
+      autofill_driver(),
+      AskForValuesToFill(
+          _, _, _, Eq(AutofillSuggestionTriggerSource::kAtMemoryDoubleCtrl), _))
+      .Times(0);
+  EXPECT_CALL(
+      autofill_driver(),
+      AskForValuesToFill(
+          _, _, _, Ne(AutofillSuggestionTriggerSource::kAtMemoryDoubleCtrl), _))
+      .Times(AnyNumber());
+
+  SendCtrlKeyDown();
+  SimulateUserTypingAsciiCharacter('a', /*flush_message_loop=*/true);
+  SendCtrlKeyDown();
+  task_environment_.RunUntilIdle();
+}
+
+// Tests that exceeding the timeout cancels the double Ctrl sequence.
+TEST_F(AtMemoryHandlerDoubleCtrlTest, TimeoutCancelsDoubleCtrl) {
+  LoadHTML(R"(<input id="f">)");
+  WaitForFormsSeen();
+  Focus("f");
+
+  EXPECT_CALL(
+      autofill_driver(),
+      AskForValuesToFill(
+          _, _, _, Eq(AutofillSuggestionTriggerSource::kAtMemoryDoubleCtrl), _))
+      .Times(0);
+  EXPECT_CALL(
+      autofill_driver(),
+      AskForValuesToFill(
+          _, _, _, Ne(AutofillSuggestionTriggerSource::kAtMemoryDoubleCtrl), _))
+      .Times(AnyNumber());
+
+  SendCtrlKeyDown();
+  task_environment_.FastForwardBy(base::Milliseconds(600));
+  SendCtrlKeyDown();
+  task_environment_.RunUntilIdle();
+}
+
+// Tests that an auto-repeat Ctrl keydown event does not trigger AtMemory.
+TEST_F(AtMemoryHandlerDoubleCtrlTest, AutoRepeatDoesNotTrigger) {
+  LoadHTML(R"(<input id="f">)");
+  WaitForFormsSeen();
+  Focus("f");
+
+  EXPECT_CALL(
+      autofill_driver(),
+      AskForValuesToFill(
+          _, _, _, Eq(AutofillSuggestionTriggerSource::kAtMemoryDoubleCtrl), _))
+      .Times(0);
+  EXPECT_CALL(
+      autofill_driver(),
+      AskForValuesToFill(
+          _, _, _, Ne(AutofillSuggestionTriggerSource::kAtMemoryDoubleCtrl), _))
+      .Times(AnyNumber());
+
+  SendCtrlKeyDown();
+  SendCtrlKeyDown(CommandKey::kLeft, /*is_auto_repeat=*/true);
+  task_environment_.RunUntilIdle();
+}
+
+// Tests that changing focus cancels the double Ctrl sequence.
+TEST_F(AtMemoryHandlerDoubleCtrlTest, FocusChangeCancelsDoubleCtrl) {
+  LoadHTML(R"(<input id="f1"><input id="f2">)");
+  WaitForFormsSeen();
+  Focus("f1");
+
+  EXPECT_CALL(
+      autofill_driver(),
+      AskForValuesToFill(
+          _, _, _, Eq(AutofillSuggestionTriggerSource::kAtMemoryDoubleCtrl), _))
+      .Times(0);
+  EXPECT_CALL(
+      autofill_driver(),
+      AskForValuesToFill(
+          _, _, _, Ne(AutofillSuggestionTriggerSource::kAtMemoryDoubleCtrl), _))
+      .Times(AnyNumber());
+
+  SendCtrlKeyDown();
+  Focus("f2");
+  SendCtrlKeyDown();
+  task_environment_.RunUntilIdle();
+}
+
+// Tests that Left Ctrl followed by Right Ctrl does not trigger AtMemory, but
+// Left Ctrl followed by two Right Ctrls does.
+TEST_F(AtMemoryHandlerDoubleCtrlTest, LeftCtrlFollowedByRightCtrl) {
+  LoadHTML(R"(<input id="f">)");
+  WaitForFormsSeen();
+  Focus("f");
+
+  testing::MockFunction<void(int)> check_point;
+  {
+    testing::InSequence s;
+    EXPECT_CALL(
+        autofill_driver(),
+        AskForValuesToFill(
+            _, _, _, Eq(AutofillSuggestionTriggerSource::kAtMemoryDoubleCtrl),
+            _))
+        .Times(0);
+    EXPECT_CALL(check_point, Call(1));
+    EXPECT_CALL(
+        autofill_driver(),
+        AskForValuesToFill(
+            _, _, _, Eq(AutofillSuggestionTriggerSource::kAtMemoryDoubleCtrl),
+            _))
+        .Times(1);
+    EXPECT_CALL(check_point, Call(2));
+  }
+
+  EXPECT_CALL(
+      autofill_driver(),
+      AskForValuesToFill(
+          _, _, _, Ne(AutofillSuggestionTriggerSource::kAtMemoryDoubleCtrl), _))
+      .Times(AnyNumber());
+
+  // 1. Left Ctrl followed by Right Ctrl does not trigger.
+  SendCtrlKeyDown(CommandKey::kLeft);
+  SendCtrlKeyDown(CommandKey::kRight);
+  task_environment_.RunUntilIdle();
+  check_point.Call(1);
+
+  // 2. A second Right Ctrl completes the Right Ctrl pair and triggers.
+  SendCtrlKeyDown(CommandKey::kRight);
+  task_environment_.RunUntilIdle();
+  check_point.Call(2);
 }
 
 class AtMemoryHandlerInactivityNudgeTest : public AtMemoryHandlerTest {
