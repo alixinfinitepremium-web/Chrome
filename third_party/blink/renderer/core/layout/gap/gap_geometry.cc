@@ -286,9 +286,6 @@ bool GapGeometry::IsMultiColSpanner(wtf_size_t gap_index,
 
 LayoutUnit GapGeometry::ComputeInsetEnd(
     const ComputedStyle& style,
-    wtf_size_t gap_index,
-    wtf_size_t intersection_index,
-    const Vector<GapIntersection>& intersections,
     bool is_cap_intersection,
     bool is_column_gap,
     bool is_main,
@@ -314,9 +311,6 @@ LayoutUnit GapGeometry::ComputeInsetEnd(
 
 LayoutUnit GapGeometry::ComputeInsetStart(
     const ComputedStyle& style,
-    wtf_size_t gap_index,
-    wtf_size_t intersection_index,
-    const Vector<GapIntersection>& intersections,
     bool is_cap_intersection,
     bool is_column_gap,
     bool is_main,
@@ -1077,21 +1071,8 @@ GapSegmentState GapGeometry::GetIntersectionGapSegmentState(
     GridTrackSizingDirection track_direction,
     wtf_size_t primary_index,
     wtf_size_t secondary_index) const {
-  const GapSegmentStateRanges* gap_segment_state_ranges = nullptr;
-
-  if (IsMainDirection(track_direction)) {
-    CHECK(primary_index < main_gaps_.size());
-    if (main_gaps_[primary_index].HasGapSegmentStateRanges()) {
-      gap_segment_state_ranges =
-          &main_gaps_[primary_index].GetGapSegmentStateRanges();
-    }
-  } else {
-    CHECK(primary_index < cross_gaps_.size());
-    if (cross_gaps_[primary_index].HasGapSegmentStateRanges()) {
-      gap_segment_state_ranges =
-          &cross_gaps_[primary_index].GetGapSegmentStateRanges();
-    }
-  }
+  const GapSegmentStateRanges* gap_segment_state_ranges =
+      GetGapSegmentStateRangesForGap(track_direction, primary_index);
 
   // If no ranges exist for this gap, assume `kNone` (both sides
   // occupied).

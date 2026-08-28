@@ -317,15 +317,8 @@ class BrowserWindowFeatures {
     return accelerator_provider_;
   }
 
-  BrowserActions* browser_actions() { return browser_actions_.get(); }
-
   chrome::BrowserCommandController* browser_command_controller() const {
     return browser_command_controller_.get();
-  }
-
-  BrowserContentSettingBubbleModelDelegate*
-  content_setting_bubble_model_delegate() {
-    return content_setting_bubble_model_delegate_.get();
   }
 
   content_settings::CookieControlsController* cookie_controls_controller() {

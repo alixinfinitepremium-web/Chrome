@@ -17,8 +17,8 @@ as an attribute to the <action> tag.
 
 Please run extract_actions.py to add new actions and pretty-print this file.
 
-If a user action is not being used any more, put an <obsolete> tag under
-the <action> tag with necessary explanation. Don't delete things in this file.
+If a user action is not being used any more, it can now be deleted instead of
+marked osolete..
 
 Please send CLs to chromium-metrics-reviews@google.com rather than to specific
 individuals. These CLs will be automatically reassigned to a reviewer within
@@ -500,6 +500,8 @@ should be able to be added at any place in this file.
       summary="For Global Media Controls Cast start and stop feature."/>
   <variant name="_GMCLocalMediaCasting"
       summary="For GMC local media cast start feature."/>
+  <variant name="_GMCSaveVideoFrame"
+      summary="For GMC save video frame feature."/>
   <variant name="_GoogleOneOfferNotification"
       summary="For google one offer notification feature."/>
   <variant name="_HighEfficiencyInfoMode"
@@ -708,6 +710,9 @@ should be able to be added at any place in this file.
   <variant name="_NewTabPageThemeCustomization"
       summary="In product help for NewTabPage theme customization feature."/>
   <variant name="_NewTabTip" summary="For NewTabTip feature."/>
+  <variant name="_OmniboxEverywhereLensPromo"
+      summary="In product help for the Lens search feature in Omnibox
+               Everywhere."/>
   <variant name="_PageInfo" summary="In product help for opening PageInfo."/>
   <variant name="_PageInfoStoreInfo" summary="For PageInfoStoreInfo feature."/>
   <variant name="_PageSummaryPdfMenu"
@@ -8529,6 +8534,16 @@ should be able to be added at any place in this file.
 <action name="BookmarkBubble_Unstar">
   <owner>Please list the metric's owners. Add more owner tags as needed.</owner>
   <description>Please enter the description of this user action.</description>
+</action>
+
+<action name="BookmarkEdit.FolderPickerOpened">
+  <owner>wylieb@google.com</owner>
+  <owner>evanluo@google.com</owner>
+  <owner>chrome-collections@google.com</owner>
+  <description>
+    Recorded when the user taps on the folder selection row in the bookmark edit
+    screen or dialog to open the folder picker.
+  </description>
 </action>
 
 <action name="BookmarkManager_Command_AddPage">
@@ -44939,6 +44954,15 @@ should be able to be added at any place in this file.
   </description>
 </action>
 
+<action name="Settings.SitePermissions">
+  <owner>scottyoder@google.com</owner>
+  <owner>bling-pandamonium@google.com</owner>
+  <description>
+    Reported when user navigates to the Site Permissions Settings page. iOS
+    only.
+  </description>
+</action>
+
 <action name="Settings.SuggestionsFromGemini">
   <owner>alimariam@google.com</owner>
   <owner>bling-transactions@google.com</owner>
@@ -45295,64 +45319,6 @@ should be able to be added at any place in this file.
   <description>
     The user selected the &quot;Only Show on NTP&quot; option for the bookmark
     bar visibility setting in the Settings appearance page.
-  </description>
-</action>
-
-<action name="SettingsAppMonitor.AppFocused">
-  <owner>grt@chromium.org</owner>
-  <description>The Windows Settings app became focused.</description>
-</action>
-
-<action name="SettingsAppMonitor.CheckItOut">
-  <owner>grt@chromium.org</owner>
-  <owner>pmonette@chromium.org</owner>
-  <description>
-    The user clicked the &quot;Check it out&quot; button in the Edge promo.
-  </description>
-</action>
-
-<action name="SettingsAppMonitor.ChooserInvoked">
-  <owner>grt@chromium.org</owner>
-  <description>
-    The user opened the Windows Settings app's browser chooser.
-  </description>
-</action>
-
-<action name="SettingsAppMonitor.ChromeBrowserChosen">
-  <owner>grt@chromium.org</owner>
-  <description>
-    The user selected Chrome from the Windows Settings app's browser chooser.
-  </description>
-</action>
-
-<action name="SettingsAppMonitor.Initialized">
-  <owner>grt@chromium.org</owner>
-  <description>
-    The Windows Settings app monitor initialized successfully. This action can
-    be used as an anchor representing the start of a user's interactions with
-    the app regardless of what UX in Chrome initiated the flow.
-  </description>
-</action>
-
-<action name="SettingsAppMonitor.OtherBrowserChosen">
-  <owner>grt@chromium.org</owner>
-  <description>
-    The user selected a different browser from the Windows Settings app's
-    browser chooser.
-  </description>
-</action>
-
-<action name="SettingsAppMonitor.PromoFocused">
-  <owner>grt@chromium.org</owner>
-  <owner>pmonette@chromium.org</owner>
-  <description>The Edge promo became focused.</description>
-</action>
-
-<action name="SettingsAppMonitor.SwitchAnyway">
-  <owner>grt@chromium.org</owner>
-  <owner>pmonette@chromium.org</owner>
-  <description>
-    The user clicked the &quot;Switch Anyway&quot; button in the Edge promo.
   </description>
 </action>
 

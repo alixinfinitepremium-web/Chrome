@@ -870,12 +870,6 @@ inline constexpr char kAutofillAmbientAutofillName[] =
 inline constexpr char kAutofillAmbientAutofillDescription[] =
     "Enables Ambient Autofill.";
 
-inline constexpr char kAutofillAndPasswordsRemoveSignInPromoName[] =
-    "Autofill and passwords remove sign-in promo";
-inline constexpr char kAutofillAndPasswordsRemoveSignInPromoDescription[] =
-    "When enabled, removes the sign-in promo component from the Autofill and "
-    "passwords settings page.";
-
 inline constexpr char kAutofillDisableBnplCountryCheckForTestingName[] =
     "Disable the country check for BNPL testing";
 inline constexpr char kAutofillDisableBnplCountryCheckForTestingDescription[] =
@@ -1896,6 +1890,12 @@ inline constexpr char kGlicContextualCueingV2AutoSubmitName[] =
 inline constexpr char kGlicContextualCueingV2AutoSubmitDescription[] =
     "Enable automatically submitting a suggested prompt when the v2 contextual "
     "cue UI for Glic is clicked.";
+
+inline constexpr char kGlicMessageFirstFreForContextualCueName[] =
+    "Glic Message First FRE for Contextual Cue";
+inline constexpr char kGlicMessageFirstFreForContextualCueDescription[] =
+    "Enables the message-first first run experience (FRE) when auto-submitting "
+    "from a contextual cue.";
 
 inline constexpr char kEnterprisePublishedSkillsPolicyEnabledName[] =
     "Enable EnterprisePublishedSkills policy";
@@ -5351,6 +5351,10 @@ inline constexpr char kPromptAPIMultimodalInputDescription[] =
     "(e.g. answering knowledge questions). "
     "Please refer to the built-in AI documentation [1] for details.";
 
+inline constexpr char kPromptAPIToolUseName[] = "Prompt API Tool Use";
+inline constexpr char kPromptAPIToolUseDescription[] =
+    "Extends the Prompt API with tool use (function calling) capabilities.";
+
 inline constexpr char kPromptAPISamplingModeName[] = "Prompt API Sampling Mode";
 inline constexpr char kPromptAPISamplingModeDescription[] =
     "Enables setting the sampling mode option during session creation. "
@@ -6954,6 +6958,28 @@ inline constexpr char kRealboxVirtualFocusNavigationDescription[] =
     "elements within suggestions (actions, buttons) without losing focus "
     "from the searchbox, unifying behavior with the Omnibox and improving "
     "accessibility.";
+
+inline constexpr char kOmniboxPopupVirtualFocusNavigationName[] =
+    "Enable WebUI Omnibox Popup Virtual Focus Navigation";
+inline constexpr char kOmniboxPopupVirtualFocusNavigationDescription[] =
+    "Enables virtual focus keyboard navigation within the WebUI Omnibox Popup.";
+
+inline constexpr char kLensOverlayVirtualFocusNavigationName[] =
+    "Enable Lens Overlay Virtual Focus Navigation";
+inline constexpr char kLensOverlayVirtualFocusNavigationDescription[] =
+    "Enables virtual focus keyboard navigation within the Lens Overlay "
+    "searchbox.";
+
+inline constexpr char kOmniboxEverywhereVirtualFocusNavigationName[] =
+    "Enable Omnibox Everywhere Virtual Focus Navigation";
+inline constexpr char kOmniboxEverywhereVirtualFocusNavigationDescription[] =
+    "Enables virtual focus keyboard navigation within Omnibox Everywhere.";
+
+inline constexpr char kWebuiBrowserVirtualFocusNavigationName[] =
+    "Enable WebUI Browser Virtual Focus Navigation";
+inline constexpr char kWebuiBrowserVirtualFocusNavigationDescription[] =
+    "Enables virtual focus keyboard navigation within the WebUI Browser "
+    "searchbox.";
 
 inline constexpr char kMarkAllCredentialsAsLeakedName[] =
     "Mark all credential as leaked";

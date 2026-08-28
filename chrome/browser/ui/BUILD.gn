@@ -1528,6 +1528,7 @@ static_library("ui") {
       "//chrome/browser/ui/webui/metrics_reporter:impl",
       "//chrome/browser/ui/webui/new_tab_footer",
       "//chrome/browser/ui/webui/new_tab_footer:impl",
+      "//chrome/browser/ui/webui/organizer_panel",
       "//chrome/browser/ui/webui/page_action_internals",
       "//chrome/browser/ui/webui/settings",
       "//chrome/browser/ui/webui/settings:impl",
@@ -1588,7 +1589,7 @@ static_library("ui") {
       "//chrome/browser/importer:impl",
       "//chrome/browser/personal_context/first_run",
       "//chrome/browser/ui/commerce",
-      "//chrome/browser/ui/read_anything",
+      "//chrome/browser/ui/read_anything:impl",
       "//chrome/browser/ui/views/side_panel",
       "//chrome/browser/ui/waap:manager",
       "//chrome/browser/ui/webui/data_sharing",
@@ -1668,7 +1669,7 @@ static_library("ui") {
       "//chrome/browser/apps/app_service",
 
       # TODO(crbug.com/345487716): Remove circular dependencies.
-      "//chrome/browser/ui/read_anything",
+      "//chrome/browser/ui/read_anything:impl",
       "//chrome/browser/ui/views/side_panel",
 
       # TODO(crbug/com/387527798): Remove circular dependencies.
@@ -2524,7 +2525,6 @@ static_library("ui") {
       "views/frame/browser_widget.h",
       "views/frame/browser_window_factory.cc",
       "views/frame/contents_border_controller.cc",
-      "views/frame/contents_border_controller.h",
       "views/frame/contents_capture_border_view.cc",
       "views/frame/contents_capture_border_view.h",
       "views/frame/contents_container_view.cc",
@@ -2571,9 +2571,7 @@ static_library("ui") {
       "views/frame/system_menu_model_builder.cc",
       "views/frame/system_menu_model_builder.h",
       "views/frame/system_menu_model_delegate.cc",
-      "views/frame/system_menu_model_delegate.h",
       "views/frame/tab_modal_dialog_host.cc",
-      "views/frame/tab_modal_dialog_host.h",
       "views/frame/themed_background.cc",
       "views/frame/themed_background.h",
       "views/frame/top_container_view.cc",
@@ -2595,20 +2593,8 @@ static_library("ui") {
       "views/session_crashed_bubble_view.h",
       "views/tab_search_bubble_host.cc",
       "views/tab_search_bubble_host.h",
-      "views/tabs/browser_tab_strip_controller.cc",
-      "views/tabs/browser_tab_strip_controller.h",
       "views/tabs/new_tab_button.cc",
       "views/tabs/new_tab_button.h",
-      "views/tabs/tab.cc",
-      "views/tabs/tab.h",
-      "views/tabs/tab_strip.cc",
-      "views/tabs/tab_strip.h",
-      "views/tabs/tab_strip_action_container.cc",
-      "views/tabs/tab_strip_action_container.h",
-      "views/tabs/tab_strip_control_button.cc",
-      "views/tabs/tab_strip_control_button.h",
-      "views/tabs/tab_strip_nudge_button.cc",
-      "views/tabs/tab_strip_nudge_button.h",
       "views/task_manager_view.cc",
       "views/task_manager_view.h",
       "views/upgrade_notification_controller.cc",
@@ -2803,6 +2789,7 @@ static_library("ui") {
       "//chrome/browser/ui/views/frame:browser_native_widget_factory",
       "//chrome/browser/ui/views/frame:browser_view_layout_delegate",
       "//chrome/browser/ui/views/frame:caption_button_placeholder_container",
+      "//chrome/browser/ui/views/frame:contents_border_controller",
       "//chrome/browser/ui/views/frame:contents_container_outline",
       "//chrome/browser/ui/views/frame:contents_separator",
       "//chrome/browser/ui/views/frame:contents_web_view",
@@ -2813,6 +2800,8 @@ static_library("ui") {
       "//chrome/browser/ui/views/frame:opaque_browser_frame_view_layout_delegate",
       "//chrome/browser/ui/views/frame:scrim_view",
       "//chrome/browser/ui/views/frame:shadow",
+      "//chrome/browser/ui/views/frame:system_menu_model_delegate",
+      "//chrome/browser/ui/views/frame:tab_modal_dialog_host",
       "//chrome/browser/ui/views/frame:web_contents_close_handler",
       "//chrome/browser/ui/views/frame:windows_icon_painter",
       "//chrome/browser/ui/views/fullscreen_control",
@@ -2865,10 +2854,16 @@ static_library("ui") {
       "//chrome/browser/ui/views/tabs:base_impl",
       "//chrome/browser/ui/views/tabs:new_tab_button_menu_model",
       "//chrome/browser/ui/views/tabs:new_tab_button_menu_model_impl",
+      "//chrome/browser/ui/views/tabs:tab",
       "//chrome/browser/ui/views/tabs:tab_container",
       "//chrome/browser/ui/views/tabs:tab_container_impl",
       "//chrome/browser/ui/views/tabs:tab_group",
       "//chrome/browser/ui/views/tabs:tab_group_impl",
+      "//chrome/browser/ui/views/tabs:tab_impl",
+      "//chrome/browser/ui/views/tabs:tab_strip",
+      "//chrome/browser/ui/views/tabs:tab_strip_button",
+      "//chrome/browser/ui/views/tabs:tab_strip_button_impl",
+      "//chrome/browser/ui/views/tabs:tab_strip_impl",
       "//chrome/browser/ui/views/tabs:tab_style_views",
       "//chrome/browser/ui/views/tabs:tab_style_views_impl",
       "//chrome/browser/ui/views/tabs/common",
@@ -3138,15 +3133,9 @@ static_library("ui") {
       "//chrome/browser/ui/views/tabs/common:impl",
 
       # TODO(crbug.com/353332589): Remove this circular dependency when the
-      # following headers get componentized:
-      # - c/b/ui/views/frame/browser_view.h
-      # - c/b/ui/views/tabs/tab.h
-      "//chrome/browser/ui/views/tabs/tab:impl",
-
-      # TODO(crbug.com/451609048): Remove this circular dependency when the
       # following header gets componentized:
-      # - c/b/ui/views/tabs/tab_strip_control_button.h
-      "//chrome/browser/ui/views/tabs/horizontal",
+      # - c/b/ui/views/frame/browser_view.h
+      "//chrome/browser/ui/views/tabs/tab:impl",
 
       # TODO(crbug.com/451609048): Remove this circular dependency when the
       # following header gets componentized:
@@ -3155,43 +3144,41 @@ static_library("ui") {
 
       # TODO(crbug.com/451609048): Remove this circular dependency when the
       # following headers get componentized:
-      # - c/b/ui/views/tabs/tab.h
-      # - c/b/ui/views/tabs/tab_strip.h
-      "//chrome/browser/ui/views/tabs:tab_group_impl",
+      # - c/b/ui/views/frame/browser_frame_view.h
+      # - c/b/ui/views/frame/browser_view.h
+      # - c/b/ui/views/frame/themed_background.h
+      "//chrome/browser/ui/views/tabs:tab_style_views_impl",
+
+      # TODO(crbug.com/353332589): Remove this circular dependency when the
+      # following headers get componentized:
+      # - c/b/ui/views/frame/browser_frame_view.h
+      # - c/b/ui/views/frame/browser_view.h
+      "//chrome/browser/ui/views/tabs:tab_impl",
 
       # TODO(crbug.com/451609048): Remove this circular dependency when the
       # following headers get componentized:
       # - c/b/ui/views/frame/browser_frame_view.h
       # - c/b/ui/views/frame/browser_view.h
-      # - c/b/ui/views/frame/themed_background.h
-      # - c/b/ui/views/tabs/tab.h
-      "//chrome/browser/ui/views/tabs:tab_style_views_impl",
-
-      # TODO(crbug.com/451609048): Remove this circular dependency when the
-      # following header gets componentized:
-      # - c/b/ui/views/tabs/tab.h
-      "//chrome/browser/ui/views/tabs:tab_container",
+      "//chrome/browser/ui/views/tabs:tab_strip_button_impl",
 
       # TODO(crbug.com/451609048): Remove this circular dependency when the
       # following headers get componentized:
-      # - c/b/ui/views/tabs/tab.h
-      # - c/b/ui/views/tabs/tab_strip.h
-      "//chrome/browser/ui/views/tabs:tab_container_impl",
-
-      # TODO(crbug.com/451609048): Remove this circular dependency - no
-      # blockers.
-      "//chrome/browser/ui/views/tabs/hovercard",
-
-      # TODO(crbug.com/451609048): Remove this circular dependency - no
-      # blockers.
-      "//chrome/browser/ui/views/tabs/dragging",
+      # - c/b/ui/browser_command_controller.h
+      # - c/b/ui/browser_commands.h
+      # - c/b/ui/browser_tabstrip.h
+      # - c/b/ui/browser_window.h
+      # - c/b/ui/tab_ui_helper.h
+      # - c/b/ui/unload_controller.h
+      # - c/b/ui/views/frame/browser_frame_view.h
+      # - c/b/ui/views/frame/browser_view.h
+      # - c/b/ui/views/frame/browser_widget.h
+      # - c/b/ui/views/frame/horizontal_tab_strip_region_view.h
+      "//chrome/browser/ui/views/tabs:tab_strip_impl",
 
       # TODO(crbug.com/451609048): Remove this circular dependency when the
       # following headers get componentized:
       # - c/b/ui/browser_commands.h
       # - c/b/ui/views/frame/browser_view.h
-      # - c/b/ui/views/tabs/tab.h
-      # - c/b/ui/views/tabs/tab_strip.h
       "//chrome/browser/ui/views/tabs/dragging:impl",
 
       # TODO(crbug.com/451609048): Remove this circular dependency when the
@@ -3200,7 +3187,6 @@ static_library("ui") {
       # - c/b/ui/browser_window.h
       # - c/b/ui/tab_ui_helper.h
       # - c/b/ui/views/frame/browser_view.h
-      # - c/b/ui/views/tabs/tab_strip.h
       "//chrome/browser/ui/views/tabs/groups:impl",
 
       # TODO(crbug.com/451609048): Remove this circular dependency when the

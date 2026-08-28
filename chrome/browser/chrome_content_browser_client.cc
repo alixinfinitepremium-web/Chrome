@@ -56,6 +56,7 @@
 #include "build/build_config.h"
 #include "build/config/chromebox_for_meetings/buildflags.h"  // PLATFORM_CFM
 #include "chrome/browser/accessibility/caption_settings_dialog.h"
+#include "chrome/browser/actor/actor_commit_deferring_condition.h"
 #include "chrome/browser/after_startup_task_utils.h"
 #include "chrome/browser/ai/ai_manager.h"
 #include "chrome/browser/app_mode/app_mode_utils.h"
@@ -188,7 +189,6 @@
 #include "chrome/browser/ssl/ssl_client_certificate_selector.h"
 #include "chrome/browser/subresource_filter/subresource_filter_navigation_download_policy.h"
 #include "chrome/browser/tab_group_sync/tab_group_sync_utils.h"
-#include "chrome/browser/task_manager/sampling/task_manager_impl.h"
 #include "chrome/browser/task_manager/task_manager_interface.h"
 #include "chrome/browser/tracing/chrome_tracing_delegate.h"
 #include "chrome/browser/translate/translate_service.h"
@@ -5501,14 +5501,17 @@ std::vector<std::unique_ptr<content::CommitDeferringCondition>>
 ChromeContentBrowserClient::CreateCommitDeferringConditionsForNavigation(
     content::NavigationHandle* navigation_handle,
     content::CommitDeferringCondition::NavigationType navigation_type) {
-  auto conditions =
-      std::vector<std::unique_ptr<content::CommitDeferringCondition>>();
+  std::vector<std::unique_ptr<content::CommitDeferringCondition>> conditions;
 
 #if BUILDFLAG(SAFE_BROWSING_AVAILABLE)
   MaybeAddCondition(
       safe_browsing::MaybeCreateCommitDeferringCondition(*navigation_handle),
       &conditions);
 #endif
+
+  MaybeAddCondition(actor::ActorCommitDeferringCondition::MaybeCreate(
+                        *navigation_handle, navigation_type),
+                    &conditions);
 
   return conditions;
 }
@@ -6848,21 +6851,8 @@ void ChromeContentBrowserClient::OnNetworkServiceCreated(
     local_state = startup_data_.chrome_feature_list_creator()->local_state();
   }
 
-  // Create SystemNetworkContextManager if it has not been created yet. We need
-  // to set up global NetworkService state before anything else uses it and this
-  // is the first opportunity to initialize SystemNetworkContextManager with the
-  // NetworkService.
-  if (!SystemNetworkContextManager::HasInstance()) {
-    SystemNetworkContextManager::CreateInstance(local_state);
-  }
-
-  SystemNetworkContextManager::GetInstance()->OnNetworkServiceCreated(
-      network_service);
-
-  if (task_manager::TaskManagerImpl::IsCreated() &&
-      task_manager::TaskManagerImpl::GetInstance()->is_running()) {
-    network_service->EnableDataUseUpdates(true);
-  }
+  SystemNetworkContextManager::OnNetworkServiceCreated(network_service,
+                                                       local_state);
 }
 
 void ChromeContentBrowserClient::ConfigureNetworkContextParams(

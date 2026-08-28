@@ -953,11 +953,6 @@
     "expiry_milestone": 160
   },
   {
-    "name": "autofill-and-passwords-remove-sign-in-promo",
-    "owners": [ "mikhe@google.com", "josefraska@google.com", "jsobiech@google.com" ],
-    "expiry_milestone": 162
-  },
-  {
     "name": "autofill-android-desktop-keyboard-accessory-revamp",
     "owners": [ "piotrkotynia@google.com", "luchenpeng@google.com" ],
     "expiry_milestone": 156
@@ -4116,7 +4111,12 @@
     "owners": [ "mercerd@google.com", "lens-chrome@google.com" ],
     "expiry_milestone": 140
   },
-    {
+  {
+    "name": "enable-lens-overlay-virtual-focus",
+    "owners": [ "adamyao@google.com", "chrome-desktop-search@google.com" ],
+    "expiry_milestone": 160
+  },
+  {
     "name": "enable-lens-search-aim-m3",
     "owners": [ "mercerd@google.com", "lens-chrome@google.com" ],
     "expiry_milestone": 142
@@ -4244,6 +4244,16 @@
   {
     "name": "enable-oauth-multilogin-youtube-cookies-binding",
     "owners": [ "alexilin@chromium.org", "chrome-signin-team@google.com" ],
+    "expiry_milestone": 160
+  },
+  {
+    "name": "enable-omnibox-everywhere-virtual-focus",
+    "owners": [ "adamyao@google.com", "chrome-desktop-search@google.com" ],
+    "expiry_milestone": 160
+  },
+  {
+    "name": "enable-omnibox-popup-virtual-focus",
+    "owners": [ "adamyao@google.com", "chrome-desktop-search@google.com" ],
     "expiry_milestone": 160
   },
   {
@@ -4739,6 +4749,11 @@
     "name": "enable-webrtc-use-min-max-vea-dimensions",
     "owners": [ "mcasas@chromium.org", "chromeos-gfx-video@google.com" ],
     "expiry_milestone": 88
+  },
+  {
+    "name": "enable-webui-browser-virtual-focus",
+    "owners": [ "adamyao@google.com", "chrome-desktop-search@google.com" ],
+    "expiry_milestone": 160
   },
   {
     "name": "enable-webusb-device-detection",
@@ -5906,6 +5921,11 @@
     "name": "glic-live-mode-only-glow",
     "owners": [ "wry@chromium.org", "//chrome/browser/glic/OWNERS" ],
     "expiry_milestone": 150
+  },
+  {
+    "name": "glic-message-first-fre-for-contextual-cue",
+    "owners": [ "iwells@chromium.org", "//chrome/browser/glic/OWNERS" ],
+    "expiry_milestone": 160
   },
   {
     "name": "glic-opt-in-dialog-a11y-fix",
@@ -8571,7 +8591,7 @@
   },
   {
     "name": "prompt-api",
-   "owners": ["//chrome/browser/ai/OWNERS", "builtin-ai-team@google.com"],
+    "owners": ["//chrome/browser/ai/OWNERS", "builtin-ai-team@google.com"],
     "expiry_milestone": 160
   },
   {
@@ -8581,6 +8601,11 @@
   },
   {
     "name": "prompt-api-sampling-mode",
+    "owners": ["//chrome/browser/ai/OWNERS", "builtin-ai-team@google.com"],
+    "expiry_milestone": 160
+  },
+  {
+    "name": "prompt-api-tool-use",
     "owners": ["//chrome/browser/ai/OWNERS", "builtin-ai-team@google.com"],
     "expiry_milestone": 160
   },

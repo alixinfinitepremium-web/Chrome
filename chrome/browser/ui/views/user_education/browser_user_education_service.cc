@@ -63,6 +63,7 @@
 #include "chrome/browser/ui/views/frame/browser_view.h"
 #include "chrome/browser/ui/views/frame/contents_web_view.h"
 #include "chrome/browser/ui/views/frame/toolbar_button_provider.h"
+#include "chrome/browser/ui/views/global_media_controls/media_dialog_view.h"
 #include "chrome/browser/ui/views/page_action/page_action_view.h"
 #include "chrome/browser/ui/views/tabs/horizontal/tab_scroll_button_container.h"
 #include "chrome/browser/ui/views/tabs/tab/tab_icon.h"
@@ -970,6 +971,17 @@ void MaybeRegisterChromeFeaturePromos(
       IDS_GMC_LOCAL_MEDIA_CAST_START_PROMO,
       FeaturePromoSpecification::AcceleratorInfo()));
 
+  // kIPHGMCSaveVideoFrameFeature:
+  registry.RegisterFeature(std::move(
+      FeaturePromoSpecification::CreateForTutorialPromo(
+          feature_engagement::kIPHGMCSaveVideoFrameFeature,
+          kToolbarMediaButtonElementId, IDS_GMC_SAVE_VIDEO_FRAME_PROMO_TEXT,
+          kSaveVideoFrameTutorialId)
+          .SetBubbleIcon(kLightbulbOutlineIcon)
+          .SetBubbleArrow(HelpBubbleArrow::kTopRight)
+          .SetMetadata(153, "vpasupathy@chromium.org",
+                       "Triggered when Save Video Frame IPH timer fires.")));
+
   // kIPHPasswordsSavePrimingPromo:
   registry.RegisterFeature(std::move(
       FeaturePromoSpecification::CreateForToastPromo(
@@ -1851,6 +1863,22 @@ void MaybeRegisterChromeFeaturePromos(
                        "Triggered to inform users of the availability of the "
                        "new translate screen feature on the Lens Overlay.")));
 
+  // kIPHOmniboxEverywhereLensPromoFeature:
+  registry.RegisterFeature(std::move(
+      FeaturePromoSpecification::CreateForSnoozePromo(
+          feature_engagement::kIPHOmniboxEverywhereLensPromoFeature,
+          kOmniboxEverywhereLensButtonElementId,
+          IDS_OMNIBOX_EVERYWHERE_LENS_PROMO_BODY,
+          IDS_OMNIBOX_EVERYWHERE_LENS_PROMO_ACCESSIBLE_TEXT,
+          FeaturePromoSpecification::AcceleratorInfo())
+          .SetBubbleArrow(HelpBubbleArrow::kTopRight)
+          .OverrideFocusOnShow(false)
+          .SetInAnyContext(true)
+          .SetMetadata(
+              154, "abhmadan@google.com",
+              "Triggered to inform users of the Lens search feature in "
+              "Omnibox Everywhere.")));
+
 #if BUILDFLAG(IS_MAC) || BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_WIN) || \
     BUILDFLAG(IS_CHROMEOS)
   // kIPHDesktopPWAsLinkCapturingLaunch:
@@ -2503,6 +2531,48 @@ void MaybeRegisterChromeTutorials(
     tutorial_registry.AddTutorial(kContextualTasksTutorialId,
                                   std::move(contextual_tasks_tutorial));
   }
+
+  {  // Save Video Frame tutorial
+    auto save_video_frame_tutorial =
+        TutorialDescription::Create<kSaveVideoFrameTutorialMetricPrefix>(
+            // Step 1 (IPH-2): BubbleStep pointing to GMC toolbar icon.
+            BubbleStep(kToolbarMediaButtonElementId)
+                .SetBubbleBodyText(IDS_GMC_SAVE_VIDEO_FRAME_TUTORIAL_STEP_1)
+                .SetBubbleArrow(HelpBubbleArrow::kTopRight),
+
+            // Step 2: HiddenStep observing
+            // MediaDialogView::kMediaItemUIUpdatedViewElementId becoming
+            // visible.
+            HiddenStep::WaitForShown(
+                MediaDialogView::kMediaItemUIUpdatedViewElementId)
+                .InAnyContext(),
+
+            // Step 3 (IPH-3): BubbleStep pointing to Save Video Frame button
+            // in GMC panel.
+            BubbleStep(MediaDialogView::kSaveVideoFrameButtonElementId)
+                .SetBubbleBodyText(IDS_GMC_SAVE_VIDEO_FRAME_TUTORIAL_STEP_2)
+                .SetBubbleArrow(HelpBubbleArrow::kTopLeft)
+                .InAnyContext(),
+
+            // Step 4: EventStep waiting for the video frame image file to
+            // finish downloading/saving.
+            EventStep(kDownloadEndedCustomEventId).InAnyContext(),
+
+            // Step 5 (IPH-4): Final step with celebration icon explaining
+            // right-click shortcut (unanchored, without caret).
+            BubbleStep(kToolbarMediaButtonElementId)
+                .SetBubbleTitleText(IDS_TUTORIAL_GENERIC_SUCCESS_TITLE)
+                .SetBubbleBodyText(IDS_GMC_SAVE_VIDEO_FRAME_TUTORIAL_SUCCESS)
+                .SetBubbleArrow(HelpBubbleArrow::kNone));
+
+    save_video_frame_tutorial.metadata.additional_description =
+        "Tutorial for Save Video Frame feature in Global Media Controls.";
+    save_video_frame_tutorial.metadata.launch_milestone = 153;
+    save_video_frame_tutorial.metadata.owners = "vpasupathy@chromium.org";
+
+    tutorial_registry.AddTutorial(kSaveVideoFrameTutorialId,
+                                  std::move(save_video_frame_tutorial));
+  }
 }
 
 // NOTES FOR FEATURE TEAMS:
@@ -2645,7 +2715,7 @@ CreateUserEducationResources(UserEducationService& user_education_service) {
       &user_education_service.user_education_storage_service(),
       &user_education_service.feature_promo_session_policy(),
       &user_education_service.tutorial_service(),
-      &user_education_service.product_messaging_controller());
+      user_education_service.product_messaging_controller());
   result->Init();
   return result;
 }

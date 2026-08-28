@@ -378,7 +378,9 @@ void BrowserWindowFeatures::Init(BrowserWindowInterface* browser) {
   }
 
   content_setting_bubble_model_delegate_ =
-      std::make_unique<BrowserContentSettingBubbleModelDelegate>(browser);
+      GetUserDataFactory()
+          .CreateInstance<BrowserContentSettingBubbleModelDelegate>(*browser,
+                                                                    browser);
 
   context_highlight_window_feature_ =
       std::make_unique<ContextHighlightWindowFeature>(*browser);
@@ -1266,7 +1268,7 @@ SidePanelUI* BrowserWindowFeatures::side_panel_ui() {
 }
 
 actions::ActionItem* BrowserWindowFeatures::GetRootActionItem() {
-  return browser_actions() ? browser_actions()->root_action_item() : nullptr;
+  return browser_actions_ ? browser_actions_->root_action_item() : nullptr;
 }
 
 ToastController* BrowserWindowFeatures::toast_controller() {

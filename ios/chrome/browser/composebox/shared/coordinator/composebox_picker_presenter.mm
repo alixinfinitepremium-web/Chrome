@@ -6,6 +6,8 @@
 
 #import <PhotosUI/PhotosUI.h>
 
+#import "base/check.h"
+#import "base/check_op.h"
 #import "base/feature_list.h"
 #import "base/memory/weak_ptr.h"
 #import "components/contextual_search/input_state_model.h"
@@ -148,13 +150,12 @@
   if (!_browser) {
     return;
   }
+  CHECK_EQ(_browser->type(), Browser::Type::kRegular);
 
-  ProfileIOS* profile = _browser->GetProfile();
-  PrefService* prefService = profile->GetPrefs();
-  AuthenticationService* authService =
-      AuthenticationServiceFactory::GetForProfile(profile);
-  id<SystemIdentity> identity = authService->GetPrimaryIdentity();
+  id<SystemIdentity> identity = [self driveFilePickerIdentity];
+  CHECK(identity);
 
+  PrefService* prefService = _browser->GetProfile()->GetPrefs();
   auto consentState = static_cast<contextual_search::DriveConsentState>(
       prefService->GetInteger(contextual_search::kDriveConsentState));
 
@@ -164,8 +165,7 @@
   if (base::FeatureList::IsEnabled(
           omnibox::kComposeboxDriveContextMenuOptionDisclaimer) &&
       !base::FeatureList::IsEnabled(omnibox::kForceDriveDisclaimerAccepted) &&
-      consentState != contextual_search::DriveConsentState::kConsent &&
-      identity) {
+      consentState != contextual_search::DriveConsentState::kConsent) {
     PrivacyPrimitiveConfiguration* config =
         [[PrivacyPrimitiveConfiguration alloc] init];
     config.identity = identity;
@@ -196,7 +196,7 @@
 
 - (void)privacyPrimitiveFlowCompletedWithSuccess:(BOOL)success {
   self.privacyPrimitiveService = nil;
-  if (!success || !_browser) {
+  if (!success || ![self canShowDriveFilePicker]) {
     return;
   }
   PrefService* prefs = _browser->GetProfile()->GetPrefs();
@@ -207,7 +207,7 @@
 }
 
 - (void)showDriveFilePickerInternal {
-  if (!_browser) {
+  if (!_browser || ![self canShowDriveFilePicker]) {
     return;
   }
   id<DriveFilePickerCommands> driveFilePickerCommands = HandlerForProtocol(
@@ -292,6 +292,25 @@
 }
 
 #pragma mark - Private
+
+/// Returns the primary identity if the browser is regular and the user is
+/// signed in; otherwise returns nil.
+- (id<SystemIdentity>)driveFilePickerIdentity {
+  if (!_browser || _browser->type() != Browser::Type::kRegular) {
+    return nil;
+  }
+  AuthenticationService* authService =
+      AuthenticationServiceFactory::GetForProfile(_browser->GetProfile());
+  if (!authService || !authService->HasPrimaryIdentity()) {
+    return nil;
+  }
+  return authService->GetPrimaryIdentity();
+}
+
+/// Returns whether the Drive file picker can be presented.
+- (BOOL)canShowDriveFilePicker {
+  return [self driveFilePickerIdentity] != nil;
+}
 
 - (void)createSnackbarPresenterIfNeeded {
   if (_snackbarPresenter || !_browser) {

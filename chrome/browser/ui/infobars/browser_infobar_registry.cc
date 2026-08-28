@@ -81,6 +81,26 @@ void RegisterInfoBars() {
     browser_infobar_manager->Register(std::move(spec));
   }
 
+#if !BUILDFLAG(IS_CHROMEOS)
+  if (IsInfoBarMigrated(
+          InfoBarDelegate::ENABLE_LINK_CAPTURING_INFOBAR_DELEGATE)) {
+    auto spec = InfoBarSpec::Builder(
+                    InfoBarDelegate::ENABLE_LINK_CAPTURING_INFOBAR_DELEGATE)
+                    .SetIcon(features::IsRoundedIconsEnabled()
+                                 ? vector_icons::kSettingsFilledIcon
+                                 : vector_icons::kSettingsOldIcon)
+                    .SetScope(InfoBarScope::kTab)
+                    .AddOkButton(
+                        l10n_util::GetStringUTF16(
+                            IDR_INTENT_PICKER_SUPPORTED_LINKS_INFOBAR_OK_LABEL),
+                        base::DoNothing())
+                    .AddCancelButton(l10n_util::GetStringUTF16(IDS_NO_THANKS),
+                                     base::DoNothing())
+                    .Build();
+    browser_infobar_manager->Register(std::move(spec));
+  }
+#endif
+
   if (IsInfoBarMigrated(InfoBarDelegate::GOOGLE_API_KEYS_INFOBAR_DELEGATE)) {
     auto spec =
         InfoBarSpec::Builder(InfoBarDelegate::GOOGLE_API_KEYS_INFOBAR_DELEGATE)
@@ -219,6 +239,18 @@ void RegisterInfoBars() {
               extensions::ExtensionDevToolsInfoBarController::
                   OnInfoBarAction();
             }))
+            .Build();
+    browser_infobar_manager->Register(std::move(spec));
+  }
+
+  if (IsInfoBarMigrated(InfoBarDelegate::INSTALLATION_ERROR_INFOBAR_DELEGATE)) {
+    auto spec =
+        InfoBarSpec::Builder(
+            InfoBarDelegate::INSTALLATION_ERROR_INFOBAR_DELEGATE)
+            .SetScope(InfoBarScope::kTab)
+            .SetLinkNavigationUrl(GURL(
+                "https://support.google.com/chrome_webstore/?p=crx_warning"))
+            .AddOkButton(std::u16string(), base::DoNothing())
             .Build();
     browser_infobar_manager->Register(std::move(spec));
   }

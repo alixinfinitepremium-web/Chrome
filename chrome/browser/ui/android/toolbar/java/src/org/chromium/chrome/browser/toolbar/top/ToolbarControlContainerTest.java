@@ -36,6 +36,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.MarginLayoutParams;
+import android.view.ViewStub;
 import android.view.ViewTreeObserver;
 
 import androidx.annotation.LayoutRes;
@@ -762,6 +763,13 @@ public class ToolbarControlContainerTest {
 
     private void checkSetToolbarContainerTopMarginForAutoHiddenVerticalTab() {
         initControlContainer(R.layout.toolbar_tablet);
+        SettableNonNullObservableSupplier<Boolean> isVerticalTabsActiveSupplier =
+                ObservableSuppliers.createNonNull(true);
+        mControlContainer.setIsVerticalTabsActiveSupplier(isVerticalTabsActiveSupplier);
+        var appHeaderState =
+                new AppHeaderState(new Rect(0, 0, 100, 100), new Rect(10, 0, 80, 100), true);
+        when(mDesktopWindowStateManager.getAppHeaderState()).thenReturn(appHeaderState);
+
         View toolbarContainer = mControlContainer.findViewById(R.id.toolbar_container);
         assertNotNull(toolbarContainer);
 
@@ -777,6 +785,44 @@ public class ToolbarControlContainerTest {
         assertEquals(tabStripHeight, lp.topMargin);
 
         mControlContainer.setToolbarContainerTopMarginForAutoHiddenVerticalTab(false);
+        mControlContainer.onMeasure(0, 0);
+        assertEquals(0, lp.topMargin);
+    }
+
+    @Test
+    public void testSetToolbarContainerTopMarginForAutoHiddenVerticalTab_NotInDesktopWindow() {
+        initControlContainer(R.layout.toolbar_tablet);
+        SettableNonNullObservableSupplier<Boolean> isVerticalTabsActiveSupplier =
+                ObservableSuppliers.createNonNull(true);
+        mControlContainer.setIsVerticalTabsActiveSupplier(isVerticalTabsActiveSupplier);
+        var appHeaderState =
+                new AppHeaderState(new Rect(0, 0, 100, 100), new Rect(0, 0, 100, 100), false);
+        when(mDesktopWindowStateManager.getAppHeaderState()).thenReturn(appHeaderState);
+
+        View toolbarContainer = mControlContainer.findViewById(R.id.toolbar_container);
+        assertNotNull(toolbarContainer);
+
+        MarginLayoutParams lp = (MarginLayoutParams) toolbarContainer.getLayoutParams();
+        mControlContainer.setToolbarContainerTopMarginForAutoHiddenVerticalTab(true);
+        mControlContainer.onMeasure(0, 0);
+        assertEquals(0, lp.topMargin);
+    }
+
+    @Test
+    public void testSetToolbarContainerTopMarginForAutoHiddenVerticalTab_InactiveVerticalTabs() {
+        initControlContainer(R.layout.toolbar_tablet);
+        SettableNonNullObservableSupplier<Boolean> isVerticalTabsActiveSupplier =
+                ObservableSuppliers.createNonNull(false);
+        mControlContainer.setIsVerticalTabsActiveSupplier(isVerticalTabsActiveSupplier);
+        var appHeaderState =
+                new AppHeaderState(new Rect(0, 0, 100, 100), new Rect(10, 0, 80, 100), true);
+        when(mDesktopWindowStateManager.getAppHeaderState()).thenReturn(appHeaderState);
+
+        View toolbarContainer = mControlContainer.findViewById(R.id.toolbar_container);
+        assertNotNull(toolbarContainer);
+
+        MarginLayoutParams lp = (MarginLayoutParams) toolbarContainer.getLayoutParams();
+        mControlContainer.setToolbarContainerTopMarginForAutoHiddenVerticalTab(true);
         mControlContainer.onMeasure(0, 0);
         assertEquals(0, lp.topMargin);
     }
@@ -1135,7 +1181,11 @@ public class ToolbarControlContainerTest {
         assertFalse(controlContainer.onInterceptTouchEvent(toolbarClickEvent));
         assertTrue(controlContainer.onTouchEvent(toolbarClickEvent));
 
-        // Click below the toolbar container (e.g. on bookmark bar or web contents).
+        // Click below the toolbar container when tablet find in page is open.
+        ViewStub findToolbarStub = controlContainer.findViewById(R.id.find_toolbar_tablet_stub);
+        View findToolbar = findToolbarStub.inflate();
+        findToolbar.setVisibility(View.VISIBLE);
+
         MotionEvent belowToolbarClickEvent =
                 MotionEvent.obtain(0, 0, MotionEvent.ACTION_DOWN, 100, 150, 0);
         assertFalse(controlContainer.onInterceptTouchEvent(belowToolbarClickEvent));

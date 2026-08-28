@@ -37,6 +37,7 @@
 #include "chrome/browser/safe_browsing/safe_browsing_service.h"
 #include "chrome/browser/ssl/sct_reporting_service.h"
 #include "chrome/browser/ssl/ssl_config_service_manager.h"
+#include "chrome/browser/task_manager/sampling/task_manager_impl.h"
 #include "chrome/common/channel_info.h"
 #include "chrome/common/chrome_features.h"
 #include "chrome/common/chrome_switches.h"
@@ -788,7 +789,27 @@ SystemNetworkContextManager::GetStubResolverConfigReader() {
   return &GetInstance()->stub_resolver_config_reader_;
 }
 
+// static
 void SystemNetworkContextManager::OnNetworkServiceCreated(
+    network::mojom::NetworkService* network_service,
+    PrefService* pref_service) {
+  // Create SystemNetworkContextManager if it has not been created yet. We need
+  // to set up global NetworkService state before anything else uses it and this
+  // is the first opportunity to initialize SystemNetworkContextManager with the
+  // NetworkService.
+  if (!HasInstance()) {
+    CreateInstance(pref_service);
+  }
+
+  GetInstance()->OnNetworkServiceCreatedInternal(network_service);
+
+  if (task_manager::TaskManagerImpl::IsCreated() &&
+      task_manager::TaskManagerImpl::GetInstance()->is_running()) {
+    network_service->EnableDataUseUpdates(true);
+  }
+}
+
+void SystemNetworkContextManager::OnNetworkServiceCreatedInternal(
     network::mojom::NetworkService* network_service) {
   // On network service restart, it's possible for |url_loader_factory_| to not
   // be disconnected yet (so any consumers of GetURLLoaderFactory() in network
@@ -1039,12 +1060,12 @@ SystemNetworkContextManager::GetNetExportFileWriter() {
 }
 
 void SystemNetworkContextManager::UpdateTrustAnchorIDs(
-    std::vector<std::vector<uint8_t>> trust_anchor_ids,
-    std::vector<std::vector<uint8_t>> mtc_trust_anchor_ids,
-    int64_t mtc_update_time_seconds) {
+    base::span<const std::vector<uint8_t>> classic_trust_anchor_ids,
+    base::span<const std::vector<uint8_t>> mtc_standalone_only_trust_anchor_ids,
+    std::optional<SSLConfigServiceMtcLandmarkInfo> mtc_landmark_info) {
   ssl_config_service_manager_.UpdateTrustAnchorIDs(
-      std::move(trust_anchor_ids), std::move(mtc_trust_anchor_ids),
-      mtc_update_time_seconds);
+      classic_trust_anchor_ids, mtc_standalone_only_trust_anchor_ids,
+      std::move(mtc_landmark_info));
 }
 
 // static

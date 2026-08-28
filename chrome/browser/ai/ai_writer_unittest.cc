@@ -21,6 +21,7 @@
 #include "chrome/browser/ai/features.h"
 #include "chrome/browser/optimization_guide/mock_optimization_guide_keyed_service.h"
 #include "components/optimization_guide/core/model_execution/manifest_broker/test/scenario_builder.h"
+#include "components/optimization_guide/core/model_execution/test/feature_config_builder.h"
 #include "components/optimization_guide/core/model_execution/test/mock_on_device_capability.h"
 #include "components/optimization_guide/core/model_execution/test/substitution_builder.h"
 #include "components/optimization_guide/core/optimization_guide_proto_util.h"
@@ -284,9 +285,9 @@ TEST_F(AIWriterTest, CanCreateUnIsLanguagesSupported) {
 TEST_F(AIWriterTest, ToProtoOptionsLanguagesSupported) {
   // Writer proto expects base language display names in English.
   std::vector<std::pair<std::string, std::string>> languages = {
-      {"en", "English"},  {"en-us", "English"},  {"en-uk", "English"},
-      {"es", "Spanish"},  {"es-sp", "Spanish"},  {"es-mx", "Spanish"},
-      {"ja", "Japanese"}, {"ja-jp", "Japanese"}, {"ja-foo", "Japanese"},
+      {"en", "English"},  {"en-us", "English"},  {"en-gb", "English"},
+      {"es", "Spanish"},  {"es-es", "Spanish"},  {"es-mx", "Spanish"},
+      {"ja", "Japanese"}, {"ja-jp", "Japanese"},
   };
   blink::mojom::AIWriterCreateOptionsPtr options = GetDefaultOptions();
   for (const auto& language : languages) {

@@ -87,7 +87,6 @@
 #include "chrome/common/chrome_switches.h"
 #include "components/actor/core/actor_features.h"
 #include "components/actor/core/actor_switches.h"
-#include "components/android_autofill/browser/android_autofill_features.h"
 #include "components/assist_ranker/predictor_config_definitions.h"
 #include "components/autofill/core/browser/manual_testing_import.h"
 #include "components/autofill/core/browser/studies/autofill_experiments.h"
@@ -99,9 +98,6 @@
 #include "components/bookmarks/common/bookmark_features.h"
 #include "components/browser_actuator/public/features.h"
 #include "components/browser_sync/browser_sync_switches.h"
-#include "components/browser_ui/bottomsheet/android/features.h"
-#include "components/browser_ui/contacts_picker/android/features.h"
-#include "components/browser_ui/modaldialog/android/features.h"
 #include "components/browsing_data/core/features.h"
 #include "components/collaboration/public/features.h"
 #include "components/commerce/core/commerce_feature_list.h"
@@ -296,6 +292,10 @@
 #if BUILDFLAG(IS_ANDROID)
 #include "chrome/browser/flags/android/chrome_feature_list.h"
 #include "chrome/browser/notifications/chime/android/features.h"
+#include "components/android_autofill/browser/android_autofill_features.h"
+#include "components/browser_ui/bottomsheet/android/features.h"
+#include "components/browser_ui/contacts_picker/android/features.h"
+#include "components/browser_ui/modaldialog/android/features.h"
 #include "components/credential_management/android/features.h"
 #include "components/external_intents/android/external_intents_features.h"
 #include "components/facilitated_payments/core/features/features.h"
@@ -2593,19 +2593,15 @@ const FeatureEntry::FeatureVariation kEphemeralCardRankerCardOverrideOptions[] =
         {"- Force hide ntp theme promo", kNtpThemePromoHideArm, nullptr},
 };
 
-const FeatureEntry::FeatureParam kAndroidVerticalTabs_ExternalDrag[] = {
-    {"external_drag", "true"}};
 const FeatureEntry::FeatureParam kAndroidVerticalTabs_IncognitoButton[] = {
     {"incognito_button", "true"}};
 const FeatureEntry::FeatureParam kAndroidVerticalTabs_All[] = {
-    {"external_drag", "true"},
     {"group_hover_card", "true"},
     {"incognito_button", "true"}};
 const FeatureEntry::FeatureParam kAndroidVerticalTabs_EnableByDefault[] = {
     {"enable_by_default", "true"}};
 
 const FeatureEntry::FeatureVariation kAndroidVerticalTabsVariations[] = {
-    {"with external-drag", kAndroidVerticalTabs_ExternalDrag, nullptr},
     {"with incognito-button", kAndroidVerticalTabs_IncognitoButton, nullptr},
     {"with all experimental features", kAndroidVerticalTabs_All, nullptr},
     {"with enabled-by-default", kAndroidVerticalTabs_EnableByDefault, nullptr},
@@ -4755,6 +4751,11 @@ const FeatureEntry::Choice kAISemanticEmbedderChoices[] = {
     {flags_ui::kGenericExperimentChoiceEnabled, switches::kEnableFeatures,
      "AIEmbeddingsAPI,AIEmbeddingsAPIForWorkers"}};
 
+const FeatureEntry::Choice kPromptAPIToolUseChoices[] = {
+    {flags_ui::kGenericExperimentChoiceDefault, "", ""},
+    {flags_ui::kGenericExperimentChoiceEnabled, switches::kEnableFeatures,
+     "AIPromptAPIToolUse,OnDeviceModelConversationBackend,"
+     "AIApiFoundationalModel:model_version/v4"}};
 
 const FeatureEntry::Choice kGemma4Choices[] = {
     {flags_ui::kGenericExperimentChoiceDefault, "", ""},
@@ -4895,20 +4896,6 @@ const FeatureEntry::FeatureVariation kToolbarGlowUpVariations[] = {
     {"no reload animation", kToolbarGlowUpNoReload, nullptr},
     {"no reload, back, or forward animations",
      kToolbarGlowUpNoReloadBackForward, nullptr}};
-
-const FeatureEntry::FeatureParam kGlassFrameEoHOpaque[] = {
-    {"GlassExpandOnHoverOpacity", "1.0"}};
-const FeatureEntry::FeatureParam kGlassFrameEoH95[] = {
-    {"GlassExpandOnHoverOpacity", "0.95"}};
-const FeatureEntry::FeatureParam kGlassFrameEoH925[] = {
-    {"GlassExpandOnHoverOpacity", "0.925"}};
-const FeatureEntry::FeatureParam kGlassFrameEoH90[] = {
-    {"GlassExpandOnHoverOpacity", "0.90"}};
-const FeatureEntry::FeatureVariation kGlassFrameVariations[] = {
-    {"expand-on-hover opaque", kGlassFrameEoHOpaque, nullptr},
-    {"expand-on-hover 5% glass", kGlassFrameEoH95, nullptr},
-    {"expand-on-hover 7.5% glass", kGlassFrameEoH925, nullptr},
-    {"expand-on-hover 10% glass", kGlassFrameEoH90, nullptr}};
 
 #if !BUILDFLAG(IS_ANDROID)
 const FeatureEntry::FeatureParam kDictationEvalModeParam[] = {
@@ -7361,6 +7348,30 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kRealboxVirtualFocusNavigationName,
      flag_descriptions::kRealboxVirtualFocusNavigationDescription, kOsDesktop,
      FEATURE_VALUE_TYPE(features::kRealboxVirtualFocusNavigation)},
+
+    {"enable-omnibox-popup-virtual-focus",
+     flag_descriptions::kOmniboxPopupVirtualFocusNavigationName,
+     flag_descriptions::kOmniboxPopupVirtualFocusNavigationDescription,
+     kOsDesktop,
+     FEATURE_VALUE_TYPE(features::kOmniboxPopupVirtualFocusNavigation)},
+
+    {"enable-lens-overlay-virtual-focus",
+     flag_descriptions::kLensOverlayVirtualFocusNavigationName,
+     flag_descriptions::kLensOverlayVirtualFocusNavigationDescription,
+     kOsDesktop,
+     FEATURE_VALUE_TYPE(features::kLensOverlayVirtualFocusNavigation)},
+
+    {"enable-omnibox-everywhere-virtual-focus",
+     flag_descriptions::kOmniboxEverywhereVirtualFocusNavigationName,
+     flag_descriptions::kOmniboxEverywhereVirtualFocusNavigationDescription,
+     kOsDesktop,
+     FEATURE_VALUE_TYPE(features::kOmniboxEverywhereVirtualFocusNavigation)},
+
+    {"enable-webui-browser-virtual-focus",
+     flag_descriptions::kWebuiBrowserVirtualFocusNavigationName,
+     flag_descriptions::kWebuiBrowserVirtualFocusNavigationDescription,
+     kOsDesktop,
+     FEATURE_VALUE_TYPE(features::kWebuiBrowserVirtualFocusNavigation)},
 
     {"ntp-next-features", flag_descriptions::kNtpNextFeaturesName,
      flag_descriptions::kNtpNextFeaturesDescription, kOsDesktop | kOsAndroid,
@@ -9962,9 +9973,7 @@ const FeatureEntry kFeatureEntries[] = {
 
     {"glass-frame", flag_descriptions::kGlassFrameName,
      flag_descriptions::kGlassFrameDescription, kOsMac,
-     FEATURE_WITH_PARAMS_VALUE_TYPE(features::kGlassFrame,
-                                    kGlassFrameVariations,
-                                    "GlassFrame")},
+     FEATURE_VALUE_TYPE(features::kGlassFrame)},
 
     {"desktop-glow-up", flag_descriptions::kDesktopGlowUpName,
      flag_descriptions::kDesktopGlowUpDescription, kOsDesktop,
@@ -10551,6 +10560,11 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kPromptAPIMultimodalInputName,
      flag_descriptions::kPromptAPIMultimodalInputDescription, kOsDesktop,
      FEATURE_VALUE_TYPE(blink::features::kAIPromptAPIMultimodalInput),
+     flag_descriptions::kAIAPIsLinks},
+
+    {"prompt-api-tool-use", flag_descriptions::kPromptAPIToolUseName,
+     flag_descriptions::kPromptAPIToolUseDescription, kOsDesktop,
+     MULTI_VALUE_TYPE(kPromptAPIToolUseChoices),
      flag_descriptions::kAIAPIsLinks},
 
     {"prompt-api-sampling-mode", flag_descriptions::kPromptAPISamplingModeName,
@@ -11236,6 +11250,11 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kGlicContextualCueingV2AutoSubmitDescription,
      kOsDesktop,
      FEATURE_VALUE_TYPE(features::kGlicContextualCueingV2AutoSubmit)},
+    {"glic-message-first-fre-for-contextual-cue",
+     flag_descriptions::kGlicMessageFirstFreForContextualCueName,
+     flag_descriptions::kGlicMessageFirstFreForContextualCueDescription,
+     kOsDesktop,
+     FEATURE_VALUE_TYPE(features::kGlicMessageFirstFreForContextualCue)},
 
 #if !BUILDFLAG(IS_ANDROID)
     {"enterprise-published-skills-policy-enabled",
@@ -13930,13 +13949,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kAutofillEnableWalletDirectOffersDescription,
      kOsDesktop,
      FEATURE_VALUE_TYPE(autofill::features::kAutofillEnableWalletDirectOffers)},
-
-    {"autofill-and-passwords-remove-sign-in-promo",
-     flag_descriptions::kAutofillAndPasswordsRemoveSignInPromoName,
-     flag_descriptions::kAutofillAndPasswordsRemoveSignInPromoDescription,
-     kOsAll,
-     FEATURE_VALUE_TYPE(
-         autofill::features::kAutofillAndPasswordsRemoveSignInPromo)},
 
     {"universal-opt-out-settings",
      flag_descriptions::kUniversalOptOutSettingsName,

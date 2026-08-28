@@ -130,7 +130,6 @@ const base::Feature* const kFeaturesExposedToJava[] = {
     &autofill::features::kAutofillAiWalletShopping,
     &autofill::features::kAutofillAiWithDataSchema,
     &autofill::features::kAutofillAmbientAutofill,
-    &autofill::features::kAutofillAndPasswordsRemoveSignInPromo,
     &autofill::features::kAutofillAndroidDesktopKeyboardAccessoryRevamp,
     &autofill::features::kAutofillAndroidDesktopSuppressAccessoryOnEmpty,
     &autofill::features::kAutofillAndroidKeyboardAccessoryDynamicPositioning,
@@ -424,7 +423,6 @@ const base::Feature* const kFeaturesExposedToJava[] = {
     &kMostVisitedTilesReselect,
     &kMoveToFrontInLaunchIntentDispatcher,
     &kMultiInstanceSharedPrefsMigration,
-    &kMvcUpdateViewWhenModelChanged,
     &kNavigationListMenu,
     &kNotificationPermissionVariant,
     &kNotificationTrampoline,
@@ -840,7 +838,6 @@ BASE_FEATURE(kMostVisitedTilesCustomization, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kMostVisitedTilesReselect, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kMoveToFrontInLaunchIntentDispatcher, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kMultiInstanceSharedPrefsMigration, base::FEATURE_ENABLED_BY_DEFAULT);
-BASE_FEATURE(kMvcUpdateViewWhenModelChanged, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kNavigationListMenu, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kNotificationPermissionVariant, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kNotificationTrampoline, base::FEATURE_DISABLED_BY_DEFAULT);

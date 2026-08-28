@@ -7497,6 +7497,12 @@ Keep your key file in a safe place. You will need it to create new versions of y
           Settings
         </message>
       </if>
+      <message name="IDS_OMNIBOX_EVERYWHERE_LENS_PROMO_BODY" desc="Body text for the promo highlighting screen sharing and Google Lens search in Omnibox Everywhere." translateable="false">
+        Ask about what's on your screen
+      </message>
+      <message name="IDS_OMNIBOX_EVERYWHERE_LENS_PROMO_ACCESSIBLE_TEXT" desc="Accessible text for the promo highlighting screen sharing and Google Lens search in Omnibox Everywhere." translateable="false">
+        Ask anything about what's on your screen by sharing your screen.
+      </message>
 
 
       <!-- NTP -->
@@ -16579,8 +16585,8 @@ Please help our engineers fix this problem. Tell us what happened right before y
       <message name="IDS_DESKTOP_MEDIA_PICKER_TITLE_WINDOW_ONLY" desc="Title for the window picker dialog shown when desktop capture of an application window is requested by an app.">
         Share an application window
       </message>
-      <message name="IDS_SEARCHBOX_PICKER_HEADLINE" desc="Title of the searchbox screen or window picker dialog.">
-        Choose what to share
+      <message name="IDS_SEARCHBOX_PICKER_DESCRIPTION" desc="Text on the searchbox screen picker dialog explaining capture privacy.">
+        Google will only see what's visible to you
       </message>
       <message name="IDS_DESKTOP_MEDIA_PICKER_TEXT" desc="Text for the window picker dialog shown when desktop capture is requested by an app to be used by the app itself.">
         <ph name="APP_NAME">$1<ex>Google Hangouts</ex></ph> wants to share the contents of your screen.
@@ -19246,10 +19252,16 @@ Please help our engineers fix this problem. Tell us what happened right before y
       Window
     </message>
     <message name="IDS_OMNIBOX_EVERYWHERE_REGION" desc="Label of the option to capture a region screenshot.">
-      Region
+      Select from screen
     </message>
     <message name="IDS_OMNIBOX_EVERYWHERE_REGION_SELECT_ACCESSIBLE_NAME" desc="Accessible name for the region screenshot capture overlay." is_accessibility_with_no_ui="true">
       Region select screenshot
+    </message>
+    <message name="IDS_OMNIBOX_EVERYWHERE_SCREENSHOT_DISCLOSURE_TITLE" desc="Title of the screenshot sharing disclosure dialog in Omnibox Everywhere.">
+      How screenshot sharing works
+    </message>
+    <message name="IDS_OMNIBOX_EVERYWHERE_SCREENSHOT_DISCLOSURE_BODY" desc="Body text explaining how screenshot sharing works in Omnibox Everywhere.">
+      You can share a screenshot with Google to reference its content in your search. When you share a screenshot of your entire screen, Google will only see what’s visible to you.
     </message>
 
     <!-- Responsive Toolbar -->
