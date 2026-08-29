@@ -728,6 +728,47 @@ public class PdfPageUnitTest {
     }
 
     @Test
+    @EnableFeatures(ChromeFeatureList.PDF_REUSE_FRAGMENT)
+    public void testUpdateForUrl_IdenticalUrl_WithoutChanges_DoesNotShowReloadDialog()
+            throws Exception {
+        String encodedUrl = PdfUtils.encodePdfPageUrl(CONTENT_URL);
+        PdfPage pdfPage =
+                new PdfPage(
+                        mMockNativePageHost,
+                        mMockTab,
+                        mActivity,
+                        encodedUrl,
+                        mPdfInfo,
+                        DEFAULT_TAB_TITLE,
+                        mPdfFragmentViewTracker);
+
+        View view = pdfPage.mPdfCoordinator.getView();
+        ViewGroup contentView = mActivity.findViewById(android.R.id.content);
+        contentView.addView(view);
+        ShadowLooper.idleMainLooper();
+
+        Assert.assertTrue(
+                "Pdf should be loaded when attached to window.",
+                ((PdfCoordinator) pdfPage.mPdfCoordinator).getIsPdfLoadedForTesting());
+
+        // Calling updateForUrl with identical URL and no changes should return early (no-op).
+        pdfPage.updateForUrl(encodedUrl);
+        ShadowLooper.idleMainLooper();
+
+        AlertDialog latestDialog = (AlertDialog) ShadowDialog.getLatestDialog();
+        if (latestDialog != null) {
+            Assert.assertFalse("Dialog should not be showing", latestDialog.isShowing());
+        }
+
+        Assert.assertTrue(
+                "Pdf should remain loaded.",
+                ((PdfCoordinator) pdfPage.mPdfCoordinator).getIsPdfLoadedForTesting());
+
+        contentView.removeView(view);
+        pdfPage.destroy();
+    }
+
+    @Test
     @EnableFeatures(ChromeFeatureList.INLINE_PDF_V2)
     @Config(sdk = Build.VERSION_CODES.VANILLA_ICE_CREAM)
     public void testReload_WebPdf_WithChanges_ShowsDialog() throws Exception {

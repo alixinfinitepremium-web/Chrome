@@ -1056,6 +1056,11 @@
     "expiry_milestone": 150
   },
   {
+    "name": "autofill-enable-card-on-device-verification-enforcement",
+    "owners": [ "junhuihe@google.com", "payments-autofill-team@google.com" ],
+    "expiry_milestone": 170
+  },
+  {
     "name": "autofill-enable-cvc-storage-and-filling-standalone-form-enhancement",
     "owners": ["jialihuang@google.com", "payments-autofill-team@google.com"],
     "expiry_milestone": 150
@@ -1746,11 +1751,6 @@
     "expiry_milestone": 155
   },
   {
-    "name": "cct-nested-security-icon",
-    "owners": ["sinansahin@google.com"],
-    "expiry_milestone": 140
-  },
-  {
     "name": "cct-open-in-browser-button-if-allowed-by-embedder",
     "owners": ["kamalchoudhury@google.com", "edmundw@google.com"],
     "expiry_milestone": 140
@@ -2050,6 +2050,11 @@
     "expiry_milestone": 160
   },
   {
+    "name": "composebox-rich-image-suggestions",
+    "owners": [ "yvonneshi@google.com", "chrome-desktop-ntp@google.com" ],
+    "expiry_milestone": 165
+  },
+  {
     "name": "composebox-server-side-state",
     "owners": [ "radunitescu@google.com", "bling-search@google.com" ],
     "expiry_milestone": 160
@@ -2152,6 +2157,11 @@
   {
     "name": "contextual-cueing-v2",
     "owners": [ "iwells@chromium.org", "sophiechang@chromium.org"],
+    "expiry_milestone": 160
+  },
+  {
+    "name": "contextual-cueing-v2-multi-source",
+    "owners": [ "iwells@chromium.org", "sophiechang@chromium.org", "benedictwong@google.com" ],
     "expiry_milestone": 160
   },
   {
@@ -7267,6 +7277,14 @@
     "expiry_milestone": 160
   },
   {
+    "name": "new-horizontal-pinned-tab-styling",
+    "owners": [
+      "lugli@google.com",
+      "top-chrome-desktop-ui@google.com"
+    ],
+    "expiry_milestone": 160
+  },
+  {
     "name": "new-tab-page-customization-theme-sync",
     "owners": ["hanxi@google.com", "xinyiji@google.com", "clank-start@google.com"],
     "expiry_milestone": 160
@@ -7274,11 +7292,6 @@
   {
     "name": "new-tab-page-customization-v2",
     "owners": ["hanxi@chromium.org", "clank-start@google.com"],
-    "expiry_milestone": 160
-  },
-  {
-    "name": "new-tab-page-pinned-omnibox-color-update",
-    "owners": [ "bmcclure@google.com", "bling-pandamonium@google.com" ],
     "expiry_milestone": 160
   },
   {
@@ -7541,11 +7554,6 @@
     "name": "ntp-realbox-next",
     "owners": [ "romanarora@chromium.com", "chrome-desktop-ntp@google.com" ],
     "expiry_milestone": 160
-  },
-  {
-    "name": "ntp-rich-image-suggestions",
-    "owners": [ "yvonneshi@google.com", "chrome-desktop-ntp@google.com" ],
-    "expiry_milestone": 165
   },
   {
     "name": "ntp-scaled-action-chips",

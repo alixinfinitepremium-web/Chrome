@@ -111,10 +111,13 @@ public class PdfPage extends BasicNativePage {
     public void updateForUrl(String url) {
         super.updateForUrl(url);
         if (!PdfUtils.isReuseFragmentEnabled()) return;
-        if (TextUtils.equals(mUrl, url)) return;
+
+        boolean sameUrl = TextUtils.equals(mUrl, url);
+        if (sameUrl && !mPdfCoordinator.hasChanges()) {
+            return;
+        }
 
         boolean localPdf = PdfUtils.isDownloadedPdf(url);
-        boolean isReload = TextUtils.equals(mUrl, url);
         mUrl = url;
 
         Runnable doUpdate =
@@ -133,7 +136,7 @@ public class PdfPage extends BasicNativePage {
                             pdfUrl, PdfUtils.getFileNameFromUrl(pdfUrl, ""));
                 };
 
-        if (isReload && mPdfCoordinator.hasChanges()) {
+        if (sameUrl && mPdfCoordinator.hasChanges()) {
             mPdfCoordinator.showReloadConfirmationDialog(doUpdate);
         } else {
             doUpdate.run();

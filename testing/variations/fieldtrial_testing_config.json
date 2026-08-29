@@ -349,6 +349,21 @@
             ]
         }
     ],
+    "AccountPickerDialog": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "AccountPickerDialog"
+                    ]
+                }
+            ]
+        }
+    ],
     "ActivitylessSigninAllEntryPointClank": [
         {
             "platforms": [
@@ -1921,6 +1936,26 @@
                         "block": "[]"
                     },
                     "enable_features": []
+                }
+            ]
+        }
+    ],
+    "AutofillAddChromeUserContextFields": [
+        {
+            "platforms": [
+                "android",
+                "chromeos",
+                "ios",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "AutofillAddChromeUserContextFields"
+                    ]
                 }
             ]
         }
@@ -7045,9 +7080,6 @@
             "experiments": [
                 {
                     "name": "Enabled",
-                    "params": {
-                        "session_ends_on_stream_end": "true"
-                    },
                     "enable_features": [
                         "Dictation"
                     ]
@@ -13598,6 +13630,25 @@
             ]
         }
     ],
+    "NtpScaledActionChips": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled_DirectNavigation_AddTab",
+                    "enable_features": [
+                        "NtpScaledActionChips",
+                        "NtpScaledActionChipsSmall"
+                    ]
+                }
+            ]
+        }
+    ],
     "NtpUICleanup": [
         {
             "platforms": [
@@ -13610,7 +13661,6 @@
                         "new-tab-page-ui-cleanup-arm": "1"
                     },
                     "enable_features": [
-                        "NewTabPagePinnedOmniboxColorUpdate",
                         "NewTabPageUICleanup"
                     ]
                 }
@@ -14171,24 +14221,6 @@
                     },
                     "enable_features": [
                         "OnDeviceModelBackgroundDownload"
-                    ]
-                }
-            ]
-        }
-    ],
-    "OnDeviceModelLitertLmBackend": [
-        {
-            "platforms": [
-                "chromeos",
-                "windows",
-                "mac",
-                "linux"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "OnDeviceModelLitertLmBackend"
                     ]
                 }
             ]
@@ -18190,7 +18222,8 @@
                 {
                     "name": "Enabled",
                     "params": {
-                        "ContextualTasksContextSmartTabSharing": "true"
+                        "ContextualTasksContextSmartTabSharing": "true",
+                        "ContextualTasksEnablePreviousTabFallback": "true"
                     },
                     "enable_features": [
                         "ContextualTasksContext",
@@ -21877,21 +21910,6 @@
             ]
         }
     ],
-    "WebViewSingleSharedContextState": [
-        {
-            "platforms": [
-                "android_webview"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "WebViewSingleSharedContextState"
-                    ]
-                }
-            ]
-        }
-    ],
     "WebViewStartupNonBlockingWebViewConstructor": [
         {
             "platforms": [
@@ -22039,6 +22057,21 @@
                     ],
                     "disable_features": [
                         "BreakoutBoxConversionWithoutSinkSignal"
+                    ]
+                }
+            ]
+        }
+    ],
+    "WebviewSingleSharedContextState": [
+        {
+            "platforms": [
+                "android_webview"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "WebViewSingleSharedContextState"
                     ]
                 }
             ]

@@ -4731,19 +4731,17 @@ const FeatureEntry::Choice kSymphoniaDemuxingChoices[] = {
      kSymphoniaDemuxingFeatureList}};
 #endif
 
-// Proofreader requires LiteRT-LM and Manifest Broker.
+// Proofreader requires Manifest Broker.
 const FeatureEntry::Choice kAIProofreaderChoices[] = {
     {flags_ui::kGenericExperimentChoiceDefault, "", ""},
     {flags_ui::kGenericExperimentChoiceEnabled, switches::kEnableFeatures,
-     "AIProofreadingAPI,OnDeviceModelLitertLmBackend,"
-     "OptimizationGuideManifestBroker"}};
+     "AIProofreadingAPI,OptimizationGuideManifestBroker"}};
 
-// Summarizer Performance Preference requires LiteRT-LM and Manifest Broker.
+// Summarizer Performance Preference requires Manifest Broker.
 const FeatureEntry::Choice kAISummarizationPerformancePreferenceChoices[] = {
     {flags_ui::kGenericExperimentChoiceDefault, "", ""},
     {flags_ui::kGenericExperimentChoiceEnabled, switches::kEnableFeatures,
-     "AISummarizationPerformancePreference,OnDeviceModelLitertLmBackend,"
-     "OptimizationGuideManifestBroker"}};
+     "AISummarizationPerformancePreference,OptimizationGuideManifestBroker"}};
 
 // Semantic Embedder. Enables the API for both Window and Worker contexts.
 const FeatureEntry::Choice kAISemanticEmbedderChoices[] = {
@@ -4760,21 +4758,20 @@ const FeatureEntry::Choice kPromptAPIToolUseChoices[] = {
 const FeatureEntry::Choice kGemma4Choices[] = {
     {flags_ui::kGenericExperimentChoiceDefault, "", ""},
     {flags_ui::kGenericExperimentChoiceEnabled, switches::kEnableFeatures,
-     "OptimizationGuideManifestBroker,OnDeviceModelLitertLmBackend,"
+     "OptimizationGuideManifestBroker,"
      "AIApiFoundationalModel:model_version/v4"}};
 
 const FeatureEntry::Choice kSpeculativeDecodingChoices[] = {
     {flags_ui::kGenericExperimentChoiceDefault, "", ""},
     {flags_ui::kGenericExperimentChoiceEnabled, switches::kEnableFeatures,
      "OnDeviceModelSpeculativeDecoding,OptimizationGuideManifestBroker,"
-     "OnDeviceModelLitertLmBackend,AIApiFoundationalModel:model_version/v4,"
-     "AIPromptAPIParams"}};
+     "AIApiFoundationalModel:model_version/v4,AIPromptAPIParams"}};
 
 const FeatureEntry::Choice kOnDeviceWebSpeechSmallExpertModelChoices[] = {
     {flags_ui::kGenericExperimentChoiceDefault, "", ""},
     {flags_ui::kGenericExperimentChoiceEnabled, switches::kEnableFeatures,
      "OnDeviceWebSpeech,OnDeviceWebSpeechSmallExpertModel,"
-     "OptimizationGuideManifestBroker,OnDeviceModelLitertLmBackend"}};
+     "OptimizationGuideManifestBroker"}};
 
 const FeatureEntry::FeatureParam kWalletApiPrivatePassesUrl[] = {
     {"wallet_pass_save_url", "https://wallet1ppasses.pa.googleapis.com"}};
@@ -7200,6 +7197,11 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kTabStripUnificationDescription, kOsDesktop,
      FEATURE_VALUE_TYPE(tabs::kTabStripUnification)},
 
+    {"new-horizontal-pinned-tab-styling",
+     flag_descriptions::kNewHorizontalPinnedTabStylingName,
+     flag_descriptions::kNewHorizontalPinnedTabStylingDescription, kOsDesktop,
+     FEATURE_VALUE_TYPE(tabs::kNewHorizontalPinnedTabStyling)},
+
     {"vertical-tabs-expand-on-hover",
      flag_descriptions::kVerticalTabsExpandOnHoverName,
      flag_descriptions::kVerticalTabsExpandOnHoverDescription, kOsDesktop,
@@ -7293,6 +7295,11 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kNtpComposeboxUsesChromeComposeClientDescription,
      kOsDesktop | kOsAndroid,
      FEATURE_VALUE_TYPE(omnibox::kComposeboxUsesChromeComposeClient)},
+
+    {"composebox-rich-image-suggestions",
+     flag_descriptions::kComposeboxRichImageSuggestionsName,
+     flag_descriptions::kComposeboxRichImageSuggestionsDescription, kOsDesktop,
+     FEATURE_VALUE_TYPE(omnibox::kComposeboxRichImageSuggestions)},
 
     {"composebox-skills-contextual-tasks",
      flag_descriptions::kComposeboxSkillsContextualTasksName,
@@ -7519,11 +7526,6 @@ const FeatureEntry kFeatureEntries[] = {
      FEATURE_WITH_PARAMS_VALUE_TYPE(ntp_features::kRealboxCr23Theming,
                                     kNtpRealboxCr23ThemingVariations,
                                     "NtpRealboxCr23Theming")},
-
-    {"ntp-rich-image-suggestions",
-     flag_descriptions::kNtpRichImageSuggestionsName,
-     flag_descriptions::kNtpRichImageSuggestionsDescription, kOsDesktop,
-     FEATURE_VALUE_TYPE(ntp_features::kNtpRichImageSuggestions)},
 
     {"ntp-scaled-action-chips", flag_descriptions::kNtpScaledActionChipsName,
      flag_descriptions::kNtpScaledActionChipsDescription, kOsDesktop,
@@ -8022,9 +8024,6 @@ const FeatureEntry kFeatureEntries[] = {
     {"cct-navigation-metrics", flag_descriptions::kCCTNavigationMetricsName,
      flag_descriptions::kCCTNavigationMetricsDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(chrome::android::kCCTNavigationMetrics)},
-    {"cct-nested-security-icon", flag_descriptions::kCCTNestedSecurityIconName,
-     flag_descriptions::kCCTNestedSecurityIconDescription, kOsAndroid,
-     FEATURE_VALUE_TYPE(chrome::android::kCCTNestedSecurityIcon)},
     {"pcct-minimum-height", flag_descriptions::kPCCTMinimumHeightName,
      flag_descriptions::kPCCTMinimumHeightDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(chrome::android::kPCCTMinimumHeight)},
@@ -10913,6 +10912,11 @@ const FeatureEntry kFeatureEntries[] = {
      FEATURE_WITH_PARAMS_VALUE_TYPE(contextual_cueing::kContextualCueingV2,
                                     kContextualCueingV2Options,
                                     "ContextualCueingV2Options")},
+    {"contextual-cueing-v2-multi-source",
+     flag_descriptions::kContextualCueingV2MultiSourceName,
+     flag_descriptions::kContextualCueingV2MultiSourceDescription,
+     kOsDesktop | kOsAndroid,
+     FEATURE_VALUE_TYPE(contextual_cueing::kContextualCueingV2MultiSource)},
 
 #if PA_BUILDFLAG(USE_PARTITION_ALLOC_AS_MALLOC)
     {"partition-alloc-scheduler-loop-quarantine",
@@ -14021,6 +14025,14 @@ const FeatureEntry kFeatureEntries[] = {
      FEATURE_VALUE_TYPE(
          autofill::features::kAutofillAddChromeUserContextFields)},
 
+    {"autofill-enable-card-on-device-verification-enforcement",
+     flag_descriptions::kAutofillEnableCardOnDeviceVerificationEnforcementName,
+     flag_descriptions::
+         kAutofillEnableCardOnDeviceVerificationEnforcementDescription,
+     kOsAll,
+     FEATURE_VALUE_TYPE(
+         autofill::features::
+             kAutofillEnableCardOnDeviceVerificationEnforcement)},
     // Add new entries above this line.
     // NOTE: Adding a new flag requires adding a corresponding entry to enum
     // "LoginCustomFlags" in tools/metrics/histograms/enums.xml. See "Flag

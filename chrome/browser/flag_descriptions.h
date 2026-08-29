@@ -602,6 +602,11 @@ inline constexpr char kTabStripUnificationName[] = "Tab Strip Unification";
 inline constexpr char kTabStripUnificationDescription[] =
     "Unifies horizontal and vertical tab strips to share infrastructure.";
 
+inline constexpr char kNewHorizontalPinnedTabStylingName[] =
+    "New Horizontal Pinned Tab Styling";
+inline constexpr char kNewHorizontalPinnedTabStylingDescription[] =
+    "Enables the updated pinned tab style in the new horizontal tab strip.";
+
 inline constexpr char kEnableSeamlessSigninName[] = "Enable Seamless Sign-in";
 inline constexpr char kEnableSeamlessSigninDescription[] =
     "Enables the Seamless Sign-in flow that signs in the user without showing "
@@ -1033,6 +1038,14 @@ inline constexpr char
     kAutofillEnableBuyNowPayLaterUpdatedSuggestionSecondLineStringDescription
         [] = "When enabled, the second line of a BNPL suggestion is updated to "
              "include the issuer names for better brand recognition.";
+
+inline constexpr char kAutofillEnableCardOnDeviceVerificationEnforcementName[] =
+    "Enable Card-on-Device Verification Enforcement for Payments Autofill";
+inline constexpr char
+    kAutofillEnableCardOnDeviceVerificationEnforcementDescription[] =
+        "When enabled, server card retrieval will ensure a card is verified "
+        "via CVC on a device before proceeding with risk-based or biometric "
+        "authentication.";
 
 inline constexpr char
     kAutofillEnableCvcStorageAndFillingStandaloneFormEnhancementName[] =
@@ -1602,6 +1615,11 @@ inline constexpr char kCollaborationSharedTabGroupAccountDataName[] =
 inline constexpr char kCollaborationSharedTabGroupAccountDataDescription[] =
     "Enable the messaging sync backend for shared tab groups.";
 
+inline constexpr char kComposeboxRichImageSuggestionsName[] =
+    "Composebox Rich Image Suggestions";
+inline constexpr char kComposeboxRichImageSuggestionsDescription[] =
+    "Enables richer image suggestions in the Composebox for image generation.";
+
 inline constexpr char kComposeboxSkillsContextualTasksName[] =
     "Composebox/Searchbox Skills (Contextual Tasks)";
 inline constexpr char kComposeboxSkillsContextualTasksDescription[] =
@@ -1664,6 +1682,12 @@ inline constexpr char kGlicZeroStateSuggestionsDescription[] =
 inline constexpr char kContextualCueingV2Name[] = "Contextual cueing V2";
 inline constexpr char kContextualCueingV2Description[] =
     "Enables the contextual cueing system version 2.";
+
+inline constexpr char kContextualCueingV2MultiSourceName[] =
+    "Contextual cueing V2 multi-source";
+inline constexpr char kContextualCueingV2MultiSourceDescription[] =
+    "Enables parallel evaluation of all registered cue targets and selects the "
+    "winner with UCB scoring for contextual cueing V2.";
 
 inline constexpr char kGeicEnabledName[] = "GEiC enabled";
 inline constexpr char kGeicEnabledDescription[] =
@@ -5986,12 +6010,6 @@ inline constexpr char kCCTIncognitoAvailableToThirdPartyDescription[] =
     "Enabling it would allow third party apps to open incognito mode for "
     "Chrome Custom Tabs, on Android.";
 
-inline constexpr char kCCTNestedSecurityIconName[] =
-    "Nest the CCT security icon under the title.";
-inline constexpr char kCCTNestedSecurityIconDescription[] =
-    "When enabled, the CCT toolbar security icon will be nested under the "
-    "title.";
-
 inline constexpr char kCCTGoogleBottomBarName[] = "Google Bottom Bar";
 inline constexpr char kCCTGoogleBottomBarDescription[] =
     "Show bottom bar on Custom Tabs opened by the Android Google App.";
@@ -7136,12 +7154,6 @@ inline constexpr char kNtpRealboxCr23ThemingName[] =
     "Chrome Refresh Themed Realbox";
 inline constexpr char kNtpRealboxCr23ThemingDescription[] =
     "CR23 theming will be applied in Realbox when enabled.";
-
-inline constexpr char kNtpRichImageSuggestionsName[] =
-    "NTP Rich Image Suggestions";
-inline constexpr char kNtpRichImageSuggestionsDescription[] =
-    "Enables richer image suggestions in the NTP Composebox for image "
-    "generation.";
 
 inline constexpr char kNtpScaledActionChipsName[] = "NTP Scaled Action Chips";
 inline constexpr char kNtpScaledActionChipsDescription[] =

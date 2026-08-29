@@ -99,6 +99,7 @@ import org.chromium.chrome.browser.omnibox.suggestions.OmniboxAnimator;
 import org.chromium.chrome.browser.omnibox.suggestions.OmniboxLoadUrlParams;
 import org.chromium.chrome.browser.omnibox.suggestions.OmniboxSuggestionsContainer;
 import org.chromium.chrome.browser.omnibox.suggestions.OmniboxSuggestionsDropdownScrollListener;
+import org.chromium.chrome.browser.omnibox.suggestions.SelectionController.TraversalMode;
 import org.chromium.chrome.browser.omnibox.suggestions.SiteSearchActivationSource;
 import org.chromium.chrome.browser.omnibox.voice.VoiceRecognitionHandler;
 import org.chromium.chrome.browser.preferences.Pref;
@@ -2668,13 +2669,14 @@ class LocationBarMediator
 
     private void onDisplayStateChanged(@DisplayState int displayState) {
         if (displayState == DisplayState.SUGGESTIONS) {
-            mSelectionController.setSelectionMode(LocationBarSelectionController.Mode.WRAPPING);
+            mSelectionController.setSelectionMode(TraversalMode.WRAPPING);
         } else {
-            mSelectionController.setSelectionMode(LocationBarSelectionController.Mode.SATURATING);
+            mSelectionController.setSelectionMode(TraversalMode.SATURATING);
             mSelectionController.reset();
         }
         updateShowFocusRing();
         updateReparentingState();
+        updateActivationChip();
     }
 
     private void updateReparentingState() {
@@ -3728,7 +3730,8 @@ class LocationBarMediator
                         && mCurrentInput.getRequestType() == AutocompleteRequestType.SEARCH
                         && mCurrentInput.getSiteSearchData() == null
                         && (mCurrentInput.getPreviewMatchUrl() == null
-                                || mCurrentInput.isInZeroPrefixContext());
+                                || mCurrentInput.isInZeroPrefixContext())
+                        && mCurrentInput.getDisplayState() != DisplayState.DRAFTING_NO_FOCUS;
         Profile profile = mProfileSupplier.get();
         if (profile != null
                 && profile.getNativeBrowserContextPointer() != 0

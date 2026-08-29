@@ -8890,6 +8890,7 @@ from previous Chrome versions.
   <int value="-1812579951" label="ContentSuggestionsCategoryRanker:enabled"/>
   <int value="-1812547164"
       label="AutofillEnableCvcStorageAndFillingStandaloneFormEnhancement:enabled"/>
+  <int value="-1812477991" label="ComposeboxRichImageSuggestions:enabled"/>
   <int value="-1812105527" label="WarmUpCompositor:enabled"/>
   <int value="-1812091085" label="kEnableOidcProfileRemoteCommands:disabled"/>
   <int value="-1811949013" label="SameSiteByDefaultCookies:disabled"/>
@@ -9929,6 +9930,7 @@ from previous Chrome versions.
   <int value="-1488744539" label="QuickUnlockFingerprint:enabled"/>
   <int value="-1488329159" label="ScreenAI:enabled"/>
   <int value="-1487243228" label="NewUsbBackend:disabled"/>
+  <int value="-1487054143" label="contextual-cueing-v2-multi-source:disabled"/>
   <int value="-1486897951"
       label="PasswordCompromiseWarningInDetailsCard:enabled"/>
   <int value="-1486731455"
@@ -12827,7 +12829,6 @@ from previous Chrome versions.
   <int value="-588491904" label="glic-reset-mi-enabled-by-tier:disabled"/>
   <int value="-588245348"
       label="history-clusters-should-show-all-clusters-on-prominent-ui-surfaces"/>
-  <int value="-588197788" label="NtpRichImageSuggestions:disabled"/>
   <int value="-588163454"
       label="AccessibilitySelectToSpeakHoverTextImprovements:enabled"/>
   <int value="-587446483" label="(Obsolete) LacrosOnly:disabled"/>
@@ -13204,6 +13205,7 @@ from previous Chrome versions.
   <int value="-474322576" label="disable-quick-unlock-pin"/>
   <int value="-473087416" label="DragTabsInTabletMode:enabled"/>
   <int value="-473052940" label="ContextualSearchLegacyHttpPolicy:enabled"/>
+  <int value="-472845558" label="ComposeboxRichImageSuggestions:disabled"/>
   <int value="-472783446"
       label="BoundaryEventDispatchTracksNodeRemoval:disabled"/>
   <int value="-472477695" label="AutofillSaveCardImprovedUserConsent:enabled"/>
@@ -13935,6 +13937,7 @@ from previous Chrome versions.
   <int value="-252258023" label="ShimlessRMAFlow:enabled"/>
   <int value="-252186510" label="EnableAudioMonitoringOnAndroid:enabled"/>
   <int value="-252128826" label="ContextualSearchDelayedIntelligence:enabled"/>
+  <int value="-251751560" label="NewHorizontalPinnedTabStyling:disabled"/>
   <int value="-251167216" label="ArcUpdateO4CListViaA2C2:disabled"/>
   <int value="-250822813" label="PwaImprovedSplashScreen:enabled"/>
   <int value="-250810041" label="CrossWindowTabGroupOperations:disabled"/>
@@ -14009,6 +14012,7 @@ from previous Chrome versions.
   <int value="-226715863" label="SHA1ServerSignature:enabled"/>
   <int value="-226542943"
       label="AutofillMoveLegalTermsAndIconForNewCardEnrollment:disabled"/>
+  <int value="-225965227" label="ContextualCueingV2MultiSource:disabled"/>
   <int value="-225552103" label="SearchInCCT:enabled"/>
   <int value="-225505731" label="CCTModule:enabled"/>
   <int value="-225228149" label="ContentSettingsRedesign:enabled"/>
@@ -17392,6 +17396,7 @@ from previous Chrome versions.
   <int value="824961931" label="use-simple-cache-backend"/>
   <int value="824968180" label="SimLockPolicy:enabled"/>
   <int value="825381037" label="NtpFeatureOptimizationModuleRemoval:disabled"/>
+  <int value="825582537" label="ContextualCueingV2MultiSource:enabled"/>
   <int value="826644834" label="NtpRealboxCr23ConsistentRowHeight:disabled"/>
   <int value="826748470" label="NtpCalendarModule:enabled"/>
   <int value="828092263" label="TemporaryUnexpireFlagsM78:enabled"/>
@@ -17984,7 +17989,6 @@ from previous Chrome versions.
   <int value="1021573543" label="QuickSettingsPWA:disabled"/>
   <int value="1021848000" label="SharedHighlightingUseBlocklist:disabled"/>
   <int value="1022006626" label="DesktopAndroidTWADisclosures:enabled"/>
-  <int value="1022270409" label="NtpRichImageSuggestions:enabled"/>
   <int value="1022424308" label="SignedExchangeSubresourcePrefetch:enabled"/>
   <int value="1022504679" label="UseMultipleOverlays:enabled"/>
   <int value="1022853086"
@@ -18151,6 +18155,8 @@ from previous Chrome versions.
   <int value="1075535842" label="TabStripGroupContextMenuAndroid:enabled"/>
   <int value="1075637651" label="disable-tablet-splitview"/>
   <int value="1075862390" label="LauncherItemSuggest:enabled"/>
+  <int value="1075954379"
+      label="AutofillEnableCardOnDeviceVerificationEnforcement:disabled"/>
   <int value="1076335895" label="CrosPrivacyHubV0:enabled"/>
   <int value="1076439757" label="PasskeyUnlockErrorUi:disabled"/>
   <int value="1076477581"
@@ -18442,6 +18448,7 @@ from previous Chrome versions.
   <int value="1165682330" label="AutofillSaveAndFillVPA:disabled"/>
   <int value="1165691812" label="CCTDestroyTabWhenModelIsEmpty:disabled"/>
   <int value="1165828757" label="kAutofillEnableOffersInDownstream:disabled"/>
+  <int value="1166000396" label="NewHorizontalPinnedTabStyling:enabled"/>
   <int value="1166169237" label="disable-delay-agnostic-aec"/>
   <int value="1166789664" label="SyncPseudoUSSAppList:disabled"/>
   <int value="1166883356" label="CWSInfoFastCheck:enabled"/>
@@ -20247,6 +20254,7 @@ from previous Chrome versions.
   <int value="1713230497" label="ColorCorrectRendering:disabled"/>
   <int value="1713419708" label="ProjectorV2:disabled"/>
   <int value="1713509078" label="NewBaseUrlInheritanceBehavior:enabled"/>
+  <int value="1713787897" label="contextual-cueing-v2-multi-source:enabled"/>
   <int value="1713822664" label="WebXRHandInput:enabled"/>
   <int value="1714016217" label="EnableHeuristicPalmDetectionFilter:enabled"/>
   <int value="1714018180"
@@ -21532,6 +21540,8 @@ from previous Chrome versions.
   <int value="2108461166" label="LanguagePacksInSettings:disabled"/>
   <int value="2109456245" label="MobilePromoOnDesktopWithReminder:disabled"/>
   <int value="2109483186" label="OmniboxSteadyStateTextColor:disabled"/>
+  <int value="2109769029"
+      label="AutofillEnableCardOnDeviceVerificationEnforcement:enabled"/>
   <int value="2110109003" label="WebAssemblyRelaxedSimd:disabled"/>
   <int value="2110832901" label="OmniboxPedalsTranslationConsole:enabled"/>
   <int value="2111225495" label="NewTabPageTriggerForPrerender2:enabled"/>

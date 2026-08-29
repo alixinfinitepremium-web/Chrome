@@ -111,7 +111,7 @@ import org.chromium.chrome.browser.omnibox.suggestions.OmniboxAnimator;
 import org.chromium.chrome.browser.omnibox.suggestions.OmniboxLoadUrlParams;
 import org.chromium.chrome.browser.omnibox.suggestions.OmniboxSuggestionsContainer;
 import org.chromium.chrome.browser.omnibox.suggestions.OmniboxSuggestionsDropdown;
-import org.chromium.chrome.browser.omnibox.suggestions.SelectionController.Mode;
+import org.chromium.chrome.browser.omnibox.suggestions.SelectionController.TraversalMode;
 import org.chromium.chrome.browser.omnibox.suggestions.SiteSearchActivationSource;
 import org.chromium.chrome.browser.omnibox.voice.VoiceRecognitionHandler;
 import org.chromium.chrome.browser.preferences.Pref;
@@ -641,17 +641,17 @@ public class LocationBarMediatorUnitTest {
     public void testDisplayStateChanged_updatesSelectionMode() {
         LocationBarSelectionController selectionController =
                 mMediator.getSelectionControllerForTesting();
-        assertEquals(Mode.SATURATING, selectionController.getSelectionModeForTesting());
+        assertEquals(TraversalMode.SATURATING, selectionController.getSelectionModeForTesting());
 
         AutocompleteInput input = mSessionState.getAutocompleteInput();
         mMediator.beginInput(input);
-        assertEquals(Mode.SATURATING, selectionController.getSelectionModeForTesting());
+        assertEquals(TraversalMode.SATURATING, selectionController.getSelectionModeForTesting());
 
         input.setDisplayState(DisplayState.SUGGESTIONS);
-        assertEquals(Mode.WRAPPING, selectionController.getSelectionModeForTesting());
+        assertEquals(TraversalMode.WRAPPING, selectionController.getSelectionModeForTesting());
 
         input.setDisplayState(DisplayState.DRAFTING);
-        assertEquals(Mode.SATURATING, selectionController.getSelectionModeForTesting());
+        assertEquals(TraversalMode.SATURATING, selectionController.getSelectionModeForTesting());
     }
 
     @Test
@@ -5042,9 +5042,9 @@ public class LocationBarMediatorUnitTest {
         input.setInitialUserText("page.com");
         input.setUserText("page.com");
         input.setPreviewMatchUrl(new GURL("https://page.com"));
-
+        clearInvocations(mLocationBarLayout);
         mMediator.beginInput(input);
-        verify(mLocationBarLayout, times(2)).setActivationChipVisibility(true);
+        verify(mLocationBarLayout, never()).setActivationChipVisibility(false);
         clearInvocations(mLocationBarLayout);
 
         input.setSiteSearchData(new SiteSearchData("test", "Test"));
@@ -5074,9 +5074,10 @@ public class LocationBarMediatorUnitTest {
         AutocompleteInput input = mSessionState.getAutocompleteInput();
         input.setRequestType(AutocompleteRequestType.SEARCH);
         input.setPreviewMatchUrl(null);
+        clearInvocations(mLocationBarLayout);
         mMediator.beginInput(input);
 
-        verify(mLocationBarLayout, times(2)).setActivationChipVisibility(true);
+        verify(mLocationBarLayout, never()).setActivationChipVisibility(false);
         clearInvocations(mLocationBarLayout);
 
         mWindowHasFocusSupplier.set(false);
@@ -5093,9 +5094,10 @@ public class LocationBarMediatorUnitTest {
         AutocompleteInput input = mSessionState.getAutocompleteInput();
         input.setRequestType(AutocompleteRequestType.SEARCH);
         input.setPreviewMatchUrl(null);
+        clearInvocations(mLocationBarLayout);
         mMediator.beginInput(input);
 
-        verify(mLocationBarLayout, times(2)).setActivationChipVisibility(true);
+        verify(mLocationBarLayout, never()).setActivationChipVisibility(false);
         clearInvocations(mLocationBarLayout);
 
         doReturn(123L).when(mProfile).getNativeBrowserContextPointer();
@@ -5103,6 +5105,32 @@ public class LocationBarMediatorUnitTest {
         mMediator.updateActivationChip();
 
         verify(mLocationBarLayout).setActivationChipVisibility(false);
+    }
+
+    @Test
+    public void testUpdateActivationChip_draftingNoFocus() {
+        setUpMediatorAndCoordinator();
+        mFuseboxLayoutModeSupplier.set(FuseboxLayoutMode.SUGGESTIONS_POPOVER);
+        AutocompleteInput input = mSessionState.getAutocompleteInput();
+        input.setRequestType(AutocompleteRequestType.SEARCH);
+        input.setDisplayState(DisplayState.DRAFTING_NO_FOCUS);
+
+        mMediator.beginInput(input);
+        mMediator.updateActivationChip();
+
+        verify(mLocationBarLayout, never()).setActivationChipVisibility(true);
+    }
+
+    @Test
+    public void testOnUrlFocusChange_focusFromDraftingNoFocus_showsActivationChip() {
+        mFuseboxLayoutModeSupplier.set(FuseboxLayoutMode.SUGGESTIONS_POPOVER);
+        setupSession(DisplayState.DRAFTING_NO_FOCUS, /* textDiffers= */ true);
+        clearInvocations(mLocationBarLayout);
+
+        mMediator.onUrlFocusChange(true);
+
+        assertEquals(DisplayState.DRAFTING, mSessionState.getAutocompleteInput().getDisplayState());
+        verify(mLocationBarLayout).setActivationChipVisibility(true);
     }
 
     @Test
@@ -5209,10 +5237,10 @@ public class LocationBarMediatorUnitTest {
         input.setRequestType(AutocompleteRequestType.SEARCH);
         input.setInitialUserText("page.com");
         input.setUserText("page.com");
-
+        clearInvocations(mLocationBarLayout);
         mMediator.beginInput(input);
 
-        verify(mLocationBarLayout, times(2)).setActivationChipVisibility(true);
+        verify(mLocationBarLayout, never()).setActivationChipVisibility(false);
     }
 
     @Test

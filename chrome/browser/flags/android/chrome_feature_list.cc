@@ -193,6 +193,7 @@ const base::Feature* const kFeaturesExposedToJava[] = {
     &features::kBrowserControlsScrollSnapAnimation,
     &features::kDisplayEdgeToEdgeFullscreen,
     &features::kElasticOverscroll,
+    &features::kEmailVerificationProtocol,
     &features::kEnableExclusiveAccessManager,
     &features::kEnableFullscreenToAnyScreenAndroid,
     &features::kFluidResize,
@@ -322,7 +323,6 @@ const base::Feature* const kFeaturesExposedToJava[] = {
     &kCCTNavigationInfoScreenshot,
     &kCCTNavigationMetrics,
     &kCCTNavigationalPrefetch,
-    &kCCTNestedSecurityIcon,
     &kCCTOpenInBrowserButtonIfAllowedByEmbedder,
     &kCCTOpenInBrowserButtonIfEnabledByEmbedder,
     &kCCTPageContentRequestAllowed,
@@ -381,7 +381,6 @@ const base::Feature* const kFeaturesExposedToJava[] = {
     &kEdgeToEdgeTablet,
     &kEdgeToEdgeUseBackupNavbarInsets,
     &kEdgelessTopInset,
-    &kEmailVerificationAndroid,
     &kEnableAndroidSidePanel,
     &kEnableAndroidSidePanelDevFeature,
     &kEnableAndroidSidePanelLogs,
@@ -636,7 +635,7 @@ BASE_FEATURE(kAccountForSuppressedKeyboardInsets, base::FEATURE_ENABLED_BY_DEFAU
 BASE_FEATURE(kAccountPickerDialog, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kActorLiveNotification, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kActorNotificationIntentRouting, base::FEATURE_DISABLED_BY_DEFAULT);
-BASE_FEATURE(kActorStepProgressNotification, base::FEATURE_DISABLED_BY_DEFAULT);
+BASE_FEATURE(kActorStepProgressNotification, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kAllocInstanceIdIncreasedDefaultRange, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kAllowMultipleMediaNotifications, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kAlwaysDrawCompositedToolbarHairline, base::FEATURE_ENABLED_BY_DEFAULT);
@@ -731,7 +730,6 @@ BASE_FEATURE(kCCTMinimizedEnabledByDefault, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kCCTNavigationInfoScreenshot, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kCCTNavigationMetrics, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kCCTNavigationalPrefetch, base::FEATURE_DISABLED_BY_DEFAULT);
-BASE_FEATURE(kCCTNestedSecurityIcon, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kCCTOpenInBrowserButtonIfAllowedByEmbedder, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kCCTOpenInBrowserButtonIfEnabledByEmbedder, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kCCTPageContentRequestAllowed, base::FEATURE_ENABLED_BY_DEFAULT);
@@ -777,7 +775,7 @@ BASE_FEATURE(kDefaultBrowserPromoFre, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kDeferNavigationStateChanged, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kDesktopAndroidLinkCapturing, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kDesktopAndroidTWADeleteBrowserData, base::FEATURE_DISABLED_BY_DEFAULT);
-BASE_FEATURE(kDesktopAndroidTWADisclosures, base::FEATURE_DISABLED_BY_DEFAULT);
+BASE_FEATURE(kDesktopAndroidTWADisclosures, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kDesktopAndroidTWADisclosuresHelpLink, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kDesktopUAOnConnectedDisplay, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kDisableGridTabSwitcher, base::FEATURE_DISABLED_BY_DEFAULT);
@@ -793,7 +791,6 @@ BASE_FEATURE(kEdgeToEdgeMonitorConfigurations, base::FEATURE_ENABLED_BY_DEFAULT)
 BASE_FEATURE(kEdgeToEdgeTablet, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kEdgeToEdgeUseBackupNavbarInsets, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kEdgelessTopInset, base::FEATURE_DISABLED_BY_DEFAULT);
-BASE_FEATURE(kEmailVerificationAndroid, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kEnableAndroidSidePanel, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kEnableAndroidSidePanelDevFeature, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kEnableAndroidSidePanelLogs, base::FEATURE_DISABLED_BY_DEFAULT);
