@@ -341,7 +341,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': 'b392fb672d13c58cc859e30612b2000487e791e6',
+  'skia_revision': '3ae8e3d1e3358c2c805f17b1092d4d3ee5d4bb7b',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -445,7 +445,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': '2b4fd7ecca2caa2d4a112bf19709b972f77b6eb7',
+  'dawn_revision': '137316f17486d075645f4c74a72bbbf2a79f2420',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -545,7 +545,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
-  'llvm_libc_revision':    '92b4b50340b9f879bf684e1b9d575d95d42078ac',
+  'llvm_libc_revision':    '9dd191a2af70c4afc3f36f2742faceb27d30763f',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
@@ -1758,7 +1758,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '72f3f71ae4d95f1fb4a4494a0d7d97875fc417e4',
+    '3d77feb9429753a5bc7bd47b37d551d7fc322d4e',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -2225,7 +2225,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + 'bb0d32ade8ee8fdb71c92e2e7a29e20b6fcf5518',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + 'b26343a713571cc2f12e7c761eb93f521b621466',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '17a56409b86d0da5e01ca38f6498e13b2db16bc3',
@@ -2789,7 +2789,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/cisco/openh264' + '@' + '9547f96ea5c47f4d465d97b07264b997ecc4b4b6',
 
   'src/third_party/openscreen/src':
-    Var('chromium_git') + '/openscreen' + '@' + 'cc603d6ce008192ad74cbb5513581b4085207c25',
+    Var('chromium_git') + '/openscreen' + '@' + 'f564318962f2406a56bdf2a5ae5650114f0ac57a',
 
   'src/third_party/openxr/src': {
     'url': Var('chromium_git') + '/external/github.com/KhronosGroup/OpenXR-SDK' + '@' + '75c53b6e853dc12c7b3c771edc9c9c841b15faaa',
@@ -4099,7 +4099,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '8486344166858e08f02ec629515d57aa99b5db55',
+        '5bd355b27ef8215b3d49b603038d6a47fb2ee3c0',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
