@@ -337,7 +337,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '98d1b5f59b23c79833df0f1c5ea08271427452f5',
+  'src_internal_revision': 'd1ec59f5548e45c3e2973a21660b0a3abbbe39fe',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -1746,7 +1746,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': '7FdPfIsK7KN88DiHdzg8tweioLQJ3Dwu_bLfnrKo_-AC',
+        'version': 'sJ7-XSoIETmwNEwTl9HybpRD1IEXw-0NbujZdY0KV98C',
       },
     ],
     'condition': 'non_git_source',
@@ -1862,7 +1862,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': 'Ou_f8hUk8TwFRScgwiPcA6zbUcCnaFs0oyMmfZn6DrcC',
+          'version': 'lAUjd9z_zNZ0tBmI0SfXDdgc3YylTSz6pjrpEo4vSUAC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
@@ -3258,7 +3258,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '44d3a8877e710ba2cde7c9dd76b98af65cd1a8f9',
+    Var('webrtc_git') + '/src.git' + '@' + '341526e2caf9c24e856c9bbb2c57477e3c8618e4',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -3409,7 +3409,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/help_app/app',
-        'version': 'I9yVY_qugZNP4maQeosfCbvv4eVzBUews2tzCpdROIsC',
+        'version': '6WI7-gDzFzGTDiUo_fCb2ZI7G16ul0O9c2gJaLOPz10C',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3420,7 +3420,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/media_app/app',
-        'version': 'o7YfGqnD1mMbxkSVFQx57g1vKUT33-IM_efohBfti9cC',
+        'version': 'Y70Hk3nhs6t9OHcLmdSNVb4OWW8Inea4ijjs_sxFdIEC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -4021,7 +4021,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        'b7d4709170b08e9e7105451989bac3e33574a519',
+        'cea1b1f42a7e2a5799fa3c2091bc4d73ea22a7c7',
       'condition': 'checkout_src_internal',
   },
 
