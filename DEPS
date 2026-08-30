@@ -421,7 +421,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '2435e479c6c31827c0869c14cf00faaaa6d0ec94',
+  'devtools_frontend_revision': '40b4db2bf6bec102a6d1dc922cc961a6186cb3f2',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1758,7 +1758,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '3d77feb9429753a5bc7bd47b37d551d7fc322d4e',
+    '5a27bc3b02a7f6b3526f250f669cc5cd49691038',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -1862,7 +1862,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': 'lAUjd9z_zNZ0tBmI0SfXDdgc3YylTSz6pjrpEo4vSUAC',
+          'version': 'xsXXOuO4FGglpfUFgk0bdsNFqUDG2p6ZpXhGO-XMaFcC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
@@ -2225,7 +2225,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '3c195c2fc65c11c7483c5c26b6e3e01c6dfb34ba',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + 'f96618cd2cfa983e5390c666e4fca6cebc462e26',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '17a56409b86d0da5e01ca38f6498e13b2db16bc3',
@@ -3258,7 +3258,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '812c343446e6b2b585a2de072eb14986d6be098b',
+    Var('webrtc_git') + '/src.git' + '@' + '5f716febe001aa000b79acc4bfbe495df9d2947b',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -3387,7 +3387,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_receiver_app/app',
-        'version': 'Bfwk9ANUh7n40mQ3dd_amWO9LphLk796bcjGovukmOcC',
+        'version': 'NJyKM0ktoMWQ3hBCpPjqruVV_4_mQVxatjrOKmq9WmoC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3398,7 +3398,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_app/app',
-        'version': 'gWUBdXFAxbEq3LX_meD82KYIP6eQt2unqTCs7C9qqZMC',
+        'version': 'kgrwiFIBgfMjSa9-RGgAZbITu07lUQZI3gtOmHc1zegC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3453,7 +3453,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/projector_app/app',
-        'version': 'Av5nzCRCg5D1mdUYhF3TUE5z5B9Ugouo22-XL5vcZ4oC',
+        'version': 'aLHNyFNPvA-XxRAv5mid5zWgEXHJIU6VhGYIhkrnHrwC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -4099,7 +4099,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        'a26b0e9ad1777b8d99d722a840f50e4d4ace7588',
+        '59d3acb09851b9331ad60cd8b0081b263e82227f',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
