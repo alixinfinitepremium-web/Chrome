@@ -4373,46 +4373,6 @@ chromium-metrics-reviews@google.com.
 </histogram>
 
 <histogram
-    name="Ash.Glanceables.TimeManagement.{GlanceableBubble}.ChangeListToLoadTime.{Status}"
-    units="ms" expires_after="2025-12-31">
-  <owner>anasalazar@google.com</owner>
-  <owner>chromeos-launcher@google.com</owner>
-  <summary>
-    The amount of time in ms that the glanceables bubble takes to load up the
-    data from the API after the user triggered an update. Split by bubble type
-    and query status.
-  </summary>
-  <token key="GlanceableBubble">
-    <variant name="Classroom"/>
-    <variant name="Tasks"/>
-  </token>
-  <token key="Status">
-    <variant name="Fail"/>
-    <variant name="Success"/>
-  </token>
-</histogram>
-
-<histogram
-    name="Ash.Glanceables.TimeManagement.{GlanceableBubble}.OpenToInitialLoadTime.{Occurrence}"
-    units="ms" expires_after="2025-12-31">
-  <owner>anasalazar@google.com</owner>
-  <owner>chromeos-launcher@google.com</owner>
-  <summary>
-    The amount of time in ms that the glanceables bubble takes to load up the
-    initial data from the API after opened. Split by bubble type and whether the
-    time represent the first time the bubble was opened in the session or not.
-  </summary>
-  <token key="GlanceableBubble">
-    <variant name="Classroom"/>
-    <variant name="Tasks"/>
-  </token>
-  <token key="Occurrence">
-    <variant name="FirstOcurrence"/>
-    <variant name="SubsequentOccurence"/>
-  </token>
-</histogram>
-
-<histogram
     name="Ash.Glanceables.TimeManagement.{GlanceableBubble}.{ExpandState}.AnimationSmoothness"
     units="%" expires_after="2026-08-02">
   <owner>wcwang@google.com</owner>
@@ -6153,72 +6113,6 @@ chromium-metrics-reviews@google.com.
     a page that does not load google photos albums previews. Does not emit
     unless the user already has ambient mode enabled and Google Photos selected
     as the source upon first opening Personalization App.
-  </summary>
-</histogram>
-
-<histogram name="Ash.Personalization.Ambient.LinkToGooglePhotosClicked"
-    enum="BooleanHit" expires_after="2025-06-30">
-  <owner>cowmoo@google.com</owner>
-  <owner>cros-p13n-eng@google.com</owner>
-  <summary>
-    Emitted whenever the user clicks the hyperlink to config Google Photos from
-    the ambient UI albums selection subpage.
-  </summary>
-</histogram>
-
-<histogram name="Ash.Personalization.AmbientMode.AlbumsPath"
-    enum="AmbientModeTopicSource" expires_after="2025-08-31">
-  <owner>cowmoo@google.com</owner>
-  <owner>cros-p13n-eng@google.com</owner>
-  <summary>
-    Emitted when a user navigates to the ambient mode albums selection page in
-    the Personalization Hub. Record the type of albums the user visits.
-  </summary>
-</histogram>
-
-<histogram name="Ash.Personalization.AmbientMode.AnimationTheme2"
-    enum="AmbientModeAnimationTheme" expires_after="2025-06-30">
-  <owner>jasontt@chromium.org</owner>
-  <owner>cros-p13n-eng@google.com</owner>
-  <summary>
-    Emitted when a user selects an animation theme in screensaver subpage or
-    when screensaver is first enabled. In the latter case, the theme is recorded
-    here even without the user explicitly selecting it in the screensaver
-    subpage. The theme in this case will either be the default chosen by the
-    system, or the theme that the user had selected when they last disabled
-    screensaver.
-  </summary>
-</histogram>
-
-<histogram name="Ash.Personalization.AmbientMode.OptIn" enum="BooleanHit"
-    expires_after="2025-08-31">
-  <owner>jasontt@chromium.org</owner>
-  <owner>cros-p13n-eng@google.com</owner>
-  <summary>
-    Emitted when a user presses the `Turn on` button on ambient preview to
-    enable screen saver.
-  </summary>
-</histogram>
-
-<histogram name="Ash.Personalization.AmbientMode.ScreenSaverDuration"
-    enum="AmbientModeDurationOption" expires_after="2025-06-30">
-  <owner>cowmoo@google.com</owner>
-  <owner>cros-p13n-eng@google.com</owner>
-  <summary>
-    Emitted when a user selects a new screen saver duration option.
-  </summary>
-</histogram>
-
-<histogram name="Ash.Personalization.AmbientMode.Video2"
-    enum="AmbientModeVideo" expires_after="2025-06-30">
-  <owner>jasontt@chromium.org</owner>
-  <owner>cros-p13n-eng@google.com</owner>
-  <summary>
-    Emitted when a user selects the video theme, selects a new video in the
-    screensaver subpage, or enables screensaver with a video theme automatically
-    active. The latter can happen if a video theme is the default on that
-    particular device model, or if the user had selected a video theme in the
-    past when they last disabled screensaver.
   </summary>
 </histogram>
 

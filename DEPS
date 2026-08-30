@@ -445,7 +445,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': '034a05f99a55d7cd7b92092c96d0452f29c55f07',
+  'dawn_revision': '053ad3188bd2cda62388d2382626317dda275fe7',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -549,7 +549,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
-  'compiler_rt_revision': 'ef796e117995e0083d3f9438c44d748c453147c4',
+  'compiler_rt_revision': 'a931360f2073eaff84177c9d9f7cf42393c45678',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling clusterfuzz-data
   # and whatever else without interference from each other.
@@ -568,7 +568,7 @@ vars = {
   'libcxx_revision':       '97b436da4c33663581d394f4ee0a5977fc38c2f4',
 
   # GN CIPD package version.
-  'gn_version': 'git_revision:c1b663788ed1ecf2ffd53781c98ae2291ee002cf',
+  'gn_version': 'git_revision:d71c4a70bd2ece461a09cbd6321970b9247fdab2',
 
   # ninja CIPD package.
   'ninja_package': 'infra/3pp/tools/ninja/',
@@ -1746,7 +1746,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': 'sJ7-XSoIETmwNEwTl9HybpRD1IEXw-0NbujZdY0KV98C',
+        'version': 'iHfUlBEwvqB_nh_UJ6PFsNdWb1KVbAgXON3n2m7cO_QC',
       },
     ],
     'condition': 'non_git_source',
