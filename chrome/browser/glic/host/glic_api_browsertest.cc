@@ -941,8 +941,8 @@ IN_PROC_BROWSER_TEST_P(GlicApiTest, testGetPinCandidatesSingleTab) {
   ExecuteJsTest();
 }
 
-// Flaky on Android.
-#if BUILDFLAG(IS_ANDROID)
+// Flaky on Android and MSan.
+#if BUILDFLAG(IS_ANDROID) || defined(MEMORY_SANITIZER)
 #define MAYBE_testGetPinCandidatesWithPanelClosed \
   DISABLED_testGetPinCandidatesWithPanelClosed
 #else
@@ -1108,7 +1108,8 @@ IN_PROC_BROWSER_TEST_P(GlicApiTest,
       {second_tab->GetHandle()});
   ContinueJsTest();
 }
-IN_PROC_BROWSER_TEST_P(GlicApiTest, testGetZoomLevel) {
+// TODO(crbug.com/554315364): Fix flaky test.
+IN_PROC_BROWSER_TEST_P(GlicApiTest, DISABLED_testGetZoomLevel) {
   // Confirm that the observer is notified through getZoomLevel of the initial
   // state, i.e. zoom level of 1.0.
   ASSERT_OK_AND_ASSIGN(auto* instance, OpenGlicForActiveTab());
@@ -2307,12 +2308,16 @@ IN_PROC_BROWSER_TEST_P(GlicApiTest, testCreateTabSimple) {
 // foreground requests (background request gating intercepts and returns empty
 // response). Also, tab group inheritance is not supported by default on
 // Android.
-#if BUILDFLAG(IS_ANDROID)
+#if BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS)
 #define MAYBE_testActivateTabWithUrl DISABLED_testActivateTabWithUrl
+#else
+#define MAYBE_testActivateTabWithUrl testActivateTabWithUrl
+#endif
+
+#if BUILDFLAG(IS_ANDROID)
 #define MAYBE_testCreateTab DISABLED_testCreateTab
 #define MAYBE_testCreateTabInBackground DISABLED_testCreateTabInBackground
 #else
-#define MAYBE_testActivateTabWithUrl testActivateTabWithUrl
 #define MAYBE_testCreateTab testCreateTab
 #define MAYBE_testCreateTabInBackground testCreateTabInBackground
 #endif

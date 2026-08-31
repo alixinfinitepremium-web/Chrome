@@ -3012,6 +3012,11 @@
       status: "stable",
     },
     {
+      // crbug.com/553136688 and crbug.com/553252820
+      name: "FindIgnoreSuggestionFix",
+      status: "stable",
+    },
+    {
       name: "FirstLineOnListItem",
       status: "stable",
     },
@@ -5883,7 +5888,7 @@
     },
     {
       name: "SpellCheckChunking",
-      status: {"Android": "experimental"},
+      status: {"Android": "stable"},
     },
     {
       // API for accessing the Custom Dictionary for spell checking purpose.
