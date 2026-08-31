@@ -3198,6 +3198,24 @@ const FeatureEntry::FeatureVariation kWebRtcApmDownmixMethodVariations[] = {
      nullptr},
     {"- Use first channel", kWebRtcApmDownmixMethodFirstChannel, nullptr}};
 
+#if BUILDFLAG(IS_WIN)
+const FeatureEntry::FeatureParam kSPCDiscoveryModeDatabaseOnly[] = {
+    {"mode",
+     payments::features::CredentialDiscoveryModeToString(
+         payments::features::CredentialDiscoveryMode::kUserDatabaseOnly)}};
+const FeatureEntry::FeatureParam kSPCDiscoveryModeHybrid[] = {
+    {"mode", payments::features::CredentialDiscoveryModeToString(
+                 payments::features::CredentialDiscoveryMode::kHybrid)}};
+const FeatureEntry::FeatureParam kSPCDiscoveryModeOsOnly[] = {
+    {"mode", payments::features::CredentialDiscoveryModeToString(
+                 payments::features::CredentialDiscoveryMode::kOsOnly)}};
+const FeatureEntry::FeatureVariation kSPCDiscoveryModeVariations[] = {
+    {"Database Only", kSPCDiscoveryModeDatabaseOnly, nullptr},
+    {"Hybrid (OS and Database)", kSPCDiscoveryModeHybrid, nullptr},
+    {"OS Store Only", kSPCDiscoveryModeOsOnly, nullptr},
+};
+#endif  // BUILDFLAG(IS_WIN)
+
 #if BUILDFLAG(IS_ANDROID)
 const FeatureEntry::FeatureParam kTextClassifierTimeout100ms[] = {
     {"timeout_ms", "100"}};
@@ -13156,11 +13174,6 @@ const FeatureEntry kFeatureEntries[] = {
      FEATURE_VALUE_TYPE(chrome::android::kApb144Patch4)},
 #endif
 
-#if BUILDFLAG(IS_ANDROID)
-    {"apb144-patch5", flag_descriptions::kApb144Patch5Name,
-     flag_descriptions::kApb144Patch5Description, kOsAndroid,
-     FEATURE_VALUE_TYPE(chrome::android::kApb144Patch5)},
-#endif
 
     {"autofill-enable-wallet-branding-v2",
      flag_descriptions::kAutofillEnableWalletBrandingV2Name,
@@ -13969,6 +13982,19 @@ const FeatureEntry kFeatureEntries[] = {
      FEATURE_VALUE_TYPE(
          autofill::features::
              kAutofillEnableCardOnDeviceVerificationEnforcement)},
+
+#if BUILDFLAG(IS_WIN)
+    {"secure-payment-confirmation-credential-discovery-mode",
+     flag_descriptions::kSecurePaymentConfirmationCredentialDiscoveryModeName,
+     flag_descriptions::
+         kSecurePaymentConfirmationCredentialDiscoveryModeDescription,
+     kOsWin,
+     FEATURE_WITH_PARAMS_VALUE_TYPE(
+         payments::features::kSecurePaymentConfirmationCredentialDiscoveryMode,
+         kSPCDiscoveryModeVariations,
+         "SecurePaymentConfirmationCredentialDiscoveryMode")},
+#endif  // BUILDFLAG(IS_WIN)
+
     // Add new entries above this line.
     // NOTE: Adding a new flag requires adding a corresponding entry to enum
     // "LoginCustomFlags" in tools/metrics/histograms/enums.xml. See "Flag

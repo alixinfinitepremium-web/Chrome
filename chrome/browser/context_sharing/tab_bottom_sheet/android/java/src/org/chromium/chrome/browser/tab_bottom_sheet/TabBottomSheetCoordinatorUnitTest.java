@@ -323,6 +323,30 @@ public class TabBottomSheetCoordinatorUnitTest {
     }
 
     @Test
+    public void testMaxResizeContentHeightRatio_Default() {
+        simulateShowSuccessAndGetObserver();
+        verify(mMockBottomSheetController)
+                .requestShowContent(mBottomSheetContentArgumentCaptor.capture(), eq(true));
+        TabBottomSheetContent content = mBottomSheetContentArgumentCaptor.getValue();
+        assertNotNull(content);
+        assertEquals(
+                BottomSheetContent.MAX_HEIGHT_RATIO,
+                content.getMaxResizeContentHeightRatio(),
+                EPSILON);
+    }
+
+    @Test
+    @EnableFeatures(ChromeFeatureList.TAB_BOTTOM_SHEET_FULL_HEIGHT + ":full_height_ratio/0.85")
+    public void testMaxResizeContentHeightRatio_WithCustomFinchParam() {
+        simulateShowSuccessAndGetObserver();
+        verify(mMockBottomSheetController)
+                .requestShowContent(mBottomSheetContentArgumentCaptor.capture(), eq(true));
+        TabBottomSheetContent content = mBottomSheetContentArgumentCaptor.getValue();
+        assertNotNull(content);
+        assertEquals(0.85f, content.getMaxResizeContentHeightRatio(), EPSILON);
+    }
+
+    @Test
     public void testCorrectFullHeightRatio_WithKeyboard() {
         when(mKeyboardDelegate.isKeyboardShowing(eq(mView))).thenReturn(true);
         simulateShowSuccessAndGetObserver();
@@ -1220,66 +1244,5 @@ public class TabBottomSheetCoordinatorUnitTest {
 
         // Verify onBottomSheetOpened(false) was called because height was insufficient.
         verify(mMockSheetEventsCallback).onBottomSheetOpened(false);
-    }
-
-    @Test
-    public void testGetDefaultHeightRatio_Landscape() {
-        Configuration landscapeConfig = new Configuration();
-        landscapeConfig.orientation = Configuration.ORIENTATION_LANDSCAPE;
-        Resources resources = mock(Resources.class);
-        when(mContext.getResources()).thenReturn(resources);
-        when(resources.getConfiguration()).thenReturn(landscapeConfig);
-
-        assertEquals(
-                TabBottomSheetUtils.SMALL_SCREEN_HEIGHT_RATIO,
-                TabBottomSheetUtils.getDefaultHeightRatio(mContext, /* isKeyboardShowing= */ false),
-                EPSILON);
-        assertEquals(
-                TabBottomSheetUtils.SMALL_SCREEN_HEIGHT_RATIO,
-                TabBottomSheetUtils.getDefaultHeightRatio(mContext, /* isKeyboardShowing= */ true),
-                EPSILON);
-    }
-
-    @Test
-    public void testGetDefaultHeightRatio_KeyboardShowing() {
-        Configuration portraitConfig = new Configuration();
-        portraitConfig.orientation = Configuration.ORIENTATION_PORTRAIT;
-        Resources resources = mock(Resources.class);
-        when(mContext.getResources()).thenReturn(resources);
-        when(resources.getConfiguration()).thenReturn(portraitConfig);
-
-        assertEquals(
-                TabBottomSheetUtils.SMALL_SCREEN_HEIGHT_RATIO,
-                TabBottomSheetUtils.getDefaultHeightRatio(mContext, /* isKeyboardShowing= */ true),
-                EPSILON);
-    }
-
-    @Test
-    public void testGetDefaultHeightRatio_PortraitFallback() {
-        Configuration portraitConfig = new Configuration();
-        portraitConfig.orientation = Configuration.ORIENTATION_PORTRAIT;
-        Resources resources = mock(Resources.class);
-        when(mContext.getResources()).thenReturn(resources);
-        when(resources.getConfiguration()).thenReturn(portraitConfig);
-
-        assertEquals(
-                TabBottomSheetUtils.DEFAULT_HEIGHT_RATIO,
-                TabBottomSheetUtils.getDefaultHeightRatio(mContext, /* isKeyboardShowing= */ false),
-                EPSILON);
-    }
-
-    @Test
-    @EnableFeatures(ChromeFeatureList.TAB_BOTTOM_SHEET_HALF_HEIGHT + ":half_height_ratio/0.6")
-    public void testGetDefaultHeightRatio_CustomFinchParam() {
-        Configuration portraitConfig = new Configuration();
-        portraitConfig.orientation = Configuration.ORIENTATION_PORTRAIT;
-        Resources resources = mock(Resources.class);
-        when(mContext.getResources()).thenReturn(resources);
-        when(resources.getConfiguration()).thenReturn(portraitConfig);
-
-        assertEquals(
-                0.6f,
-                TabBottomSheetUtils.getDefaultHeightRatio(mContext, /* isKeyboardShowing= */ false),
-                EPSILON);
     }
 }

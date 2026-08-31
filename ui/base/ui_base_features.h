@@ -334,6 +334,8 @@ BASE_DECLARE_FEATURE(kDesktopGlowUp);
 COMPONENT_EXPORT(UI_BASE_FEATURES)
 BASE_DECLARE_FEATURE(kGlassFrame);
 COMPONENT_EXPORT(UI_BASE_FEATURES)
+BASE_DECLARE_FEATURE_PARAM(bool, kGlassExpandOnHoverEnabled);
+COMPONENT_EXPORT(UI_BASE_FEATURES)
 BASE_DECLARE_FEATURE(kRoundedIcons);
 COMPONENT_EXPORT(UI_BASE_FEATURES)
 BASE_DECLARE_FEATURE(kWebUIRoundedIcons);
@@ -357,14 +359,6 @@ BASE_DECLARE_FEATURE(kThemeChangeOptimization);
 
 COMPONENT_EXPORT(UI_BASE_FEATURES)
 BASE_DECLARE_FEATURE(kColorIdCssStyleSheetOptimization);
-
-// Kill switch for removing
-// RenderFrameHostManager::EnsureRenderFrameHostVisibilityConsistent.
-//
-// A RenderFrameHost will now either be made visible when navigation commits, or
-// when the WebContents is focused (if the WebContents is visible).
-COMPONENT_EXPORT(UI_BASE_FEATURES)
-BASE_DECLARE_FEATURE(kRemoveEnsureRFHVisibilityConsistent);
 
 COMPONENT_EXPORT(UI_BASE_FEATURES)
 bool IsGlassFrameEnabled();

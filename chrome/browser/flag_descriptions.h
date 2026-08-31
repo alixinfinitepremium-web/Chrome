@@ -5150,6 +5150,13 @@ inline constexpr char kAppStoreBillingDebugDescription[] =
     "requested using the Payment Request API. This flag removes the "
     "restriction that the TWA has to be installed from the app-store.";
 
+inline constexpr char kSecurePaymentConfirmationCredentialDiscoveryModeName[] =
+    "Secure Payment Confirmation Credential Discovery Mode";
+inline constexpr char
+    kSecurePaymentConfirmationCredentialDiscoveryModeDescription[] =
+        "Controls the strategy for discovering Secure Payment Confirmation "
+        "credentials (e.g. database-only, hybrid, or OS store only).";
+
 inline constexpr char kWebrtcHideLocalIpsWithMdnsName[] =
     "Anonymize local IPs exposed by WebRTC.";
 inline constexpr char kWebrtcHideLocalIpsWithMdnsDecription[] =
@@ -5852,9 +5859,6 @@ inline constexpr char kApb144Patch4Name[] = "Apb144Patch4";
 inline constexpr char kApb144Patch4Description[] =
     "Enables the fourth patch for APB in 144.";
 
-inline constexpr char kApb144Patch5Name[] = "Apb144Patch5";
-inline constexpr char kApb144Patch5Description[] =
-    "Enables the fifth patch for APB in 144.";
 
 inline constexpr char kApb144Patch6Name[] = "Apb144Patch6";
 inline constexpr char kApb144Patch6Description[] =

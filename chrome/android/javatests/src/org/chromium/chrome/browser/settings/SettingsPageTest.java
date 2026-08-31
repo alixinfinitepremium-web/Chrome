@@ -418,6 +418,38 @@ public class SettingsPageTest {
         onViewWaiting(withId(R.id.search_box)).check(matches(isFocused()));
     }
 
+    /** Regression test for https://crbug.com/551620206. */
+    @Test
+    @MediumTest
+    @Restriction(DeviceFormFactor.ONLY_TABLET)
+    public void testSearchBoxFocusAfterExitingSearch() {
+        // Ensure starting in portrait (single-column mode on tablet).
+        ensureActivityOrientation(Configuration.ORIENTATION_PORTRAIT);
+
+        mActivityTestRule.loadUrl("chrome-native://settings/");
+        onViewWaiting(withId(R.id.search_box)).check(matches(isDisplayed()));
+
+        // Rotate display to landscape.
+        ensureActivityOrientation(Configuration.ORIENTATION_LANDSCAPE);
+        ensureTwoColumnMode();
+
+        onViewWaiting(withId(R.id.search_box)).check(matches(isDisplayed()));
+
+        // Tap on search box to enter search state.
+        onViewWaiting(withId(R.id.search_box)).perform(click());
+        onViewWaiting(withId(R.id.search_query)).check(matches(isDisplayed()));
+        onViewWaiting(withId(R.id.search_query)).check(matches(isFocused()));
+
+        // Tap on the back button in the search box to exit search state.
+        onViewWaiting(withId(R.id.back_arrow_icon)).perform(click());
+        onViewWaiting(withId(R.id.search_box)).check(matches(isDisplayed()));
+
+        // Tap on search box a second time and verify search query is focused.
+        onViewWaiting(withId(R.id.search_box)).perform(click());
+        onViewWaiting(withId(R.id.search_query)).check(matches(isDisplayed()));
+        onViewWaiting(withId(R.id.search_query)).check(matches(isFocused()));
+    }
+
     /** Regression test for https://crbug.com/549509308. */
     @Test
     @MediumTest
@@ -444,15 +476,12 @@ public class SettingsPageTest {
     @MediumTest
     @Restriction(DeviceFormFactor.ONLY_TABLET)
     public void testSearchInSingleColumnThenRotateToLandscapeAndExitSearch() {
+        // Ensure starting in portrait (usually single-column mode on tablet).
+        ensureActivityOrientation(Configuration.ORIENTATION_PORTRAIT);
+
         mActivityTestRule.loadUrl("chrome-native://settings/");
 
         // Wait for settings page to load.
-        onViewWaiting(withText(R.string.search_engine_settings)).check(matches(isDisplayed()));
-
-        // Ensure portrait.
-        ensureActivityOrientation(Configuration.ORIENTATION_PORTRAIT);
-
-        // Wait for settings page in portrait.
         onViewWaiting(withText(R.string.search_engine_settings)).check(matches(isDisplayed()));
 
         // Skip test if portrait mode happens to be wide enough for two-column mode.

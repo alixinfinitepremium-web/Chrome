@@ -10606,22 +10606,6 @@
             ]
         }
     ],
-    "HeliosLive": [
-        {
-            "platforms": [
-                "ios"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "GeminiLive",
-                        "GeminiLiveDormantReasons"
-                    ]
-                }
-            ]
-        }
-    ],
     "HeliosMultiTabContext": [
         {
             "platforms": [
@@ -16809,6 +16793,21 @@
                     },
                     "enable_features": [
                         "RecordLockAcquisitionTime"
+                    ]
+                }
+            ]
+        }
+    ],
+    "RecoverTabsOfLastClosedWindow": [
+        {
+            "platforms": [
+                "ios"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "RecoverTabsOfLastClosedWindow"
                     ]
                 }
             ]

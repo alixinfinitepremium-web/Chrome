@@ -154,7 +154,6 @@ const base::Feature* const kFeaturesExposedToJava[] = {
     &autofill::features::kResetNativePointerInCreditCardAuthDialog,
     &base::features::kBackgroundThreadPoolFieldTrial,
     &base::features::kLowEndMemoryExperiment,
-    &base::features::kPostGetMyMemoryStateToBackground,
     &base::features::kShutdownPreNativeThreadPoolAfterStartup,
     &blink::features::kDocumentPictureInPictureAPI,
     &blink::features::kForceWebContentsDarkMode,
@@ -281,7 +280,6 @@ const base::Feature* const kFeaturesExposedToJava[] = {
     &kApb144Patch2,
     &kApb144Patch3,
     &kApb144Patch4,
-    &kApb144Patch5,
     &kApb144Patch6,
     &kApb144Patch7,
     &kApb144Patch8,
@@ -538,6 +536,7 @@ const base::Feature* const kFeaturesExposedToJava[] = {
     &language::kCctAutoTranslate,
     &language::kDetailedLanguageSettings,
     &language::kGmsCoreUlp,
+    &lens::features::kLensBypassCompressionForC2pa,
     &lens::features::kLensOverlayAndroid,
     &lens::features::kLensSendRawFileMediaTypes,
     &media::kAutoDocPiPPermissionPromptAndroid,
@@ -688,7 +687,6 @@ BASE_FEATURE(kApb144Patch1, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kApb144Patch2, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kApb144Patch3, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kApb144Patch4, base::FEATURE_ENABLED_BY_DEFAULT);
-BASE_FEATURE(kApb144Patch5, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kApb144Patch6, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kApb144Patch7, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kApb144Patch8, base::FEATURE_ENABLED_BY_DEFAULT);

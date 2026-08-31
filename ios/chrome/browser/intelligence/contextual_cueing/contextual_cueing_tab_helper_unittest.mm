@@ -11,8 +11,10 @@
 #import "base/test/scoped_feature_list.h"
 #import "components/optimization_guide/core/delivery/test_optimization_guide_model_provider.h"
 #import "components/page_content_annotations/core/page_content_annotation_type.h"
+#import "ios/chrome/browser/intelligence/contextual_cueing/contextual_cueing_cap_tracker_service_factory.h"
 #import "ios/chrome/browser/intelligence/features/features.h"
 #import "ios/chrome/browser/intelligence/on_device_category_classifier/in_process_category_classification_service.h"
+#import "ios/chrome/browser/intelligence/on_device_category_classifier/in_process_category_classification_service_factory.h"
 #import "ios/chrome/browser/intelligence/on_device_category_classifier/on_device_page_classification_service.h"
 #import "ios/chrome/browser/intelligence/on_device_category_classifier/on_device_page_classification_service_factory.h"
 #import "ios/chrome/browser/shared/model/profile/test/test_profile_ios.h"
@@ -39,7 +41,7 @@ std::unique_ptr<KeyedService> BuildTestInProcessClassificationService(
 std::unique_ptr<KeyedService> BuildTestPageClassificationService(
     ProfileIOS* profile) {
   InProcessCategoryClassificationService* in_process_service =
-      InProcessCategoryClassificationService::GetForProfile(profile);
+      InProcessCategoryClassificationServiceFactory::GetForProfile(profile);
   return std::make_unique<OnDevicePageClassificationService>(
       in_process_service);
 }
@@ -73,11 +75,14 @@ class ContextualCueingTabHelperTest : public PlatformTest {
 
     TestProfileIOS::Builder builder;
     builder.AddTestingFactory(
-        InProcessCategoryClassificationService::GetFactory(),
+        InProcessCategoryClassificationServiceFactory::GetInstance(),
         base::BindRepeating(&BuildTestInProcessClassificationService));
     builder.AddTestingFactory(
         OnDevicePageClassificationServiceFactory::GetInstance(),
         base::BindRepeating(&BuildTestPageClassificationService));
+    builder.AddTestingFactory(
+        ContextualCueingCapTrackerServiceFactory::GetInstance(),
+        ContextualCueingCapTrackerServiceFactory::GetDefaultFactory());
     profile_ = std::move(builder).Build();
 
     web_state_ = std::make_unique<web::FakeWebState>();

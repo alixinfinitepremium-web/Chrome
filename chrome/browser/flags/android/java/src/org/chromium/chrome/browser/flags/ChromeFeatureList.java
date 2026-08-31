@@ -320,7 +320,6 @@ public abstract class ChromeFeatureList {
     public static final String APB144_PATCH2 = "Apb144Patch2";
     public static final String APB144_PATCH3 = "Apb144Patch3";
     public static final String APB144_PATCH4 = "Apb144Patch4";
-    public static final String APB144_PATCH5 = "Apb144Patch5";
     public static final String APB144_PATCH6 = "Apb144Patch6";
     public static final String APB144_PATCH7 = "Apb144Patch7";
     public static final String APB144_PATCH8 = "Apb144Patch8";
@@ -610,6 +609,7 @@ public abstract class ChromeFeatureList {
     public static final String IN_APP_WINDOW_MANAGER_DEPRECATION = "InAppWindowManagerDeprecation";
     public static final String KEYBOARD_ESC_BACK_NAVIGATION = "KeyboardEscBackNavigation";
     public static final String LAUNCH_CAUSE_SCREEN_OFF_FIX = "LaunchCauseScreenOffFix";
+    public static final String LENS_BYPASS_COMPRESSION_FOR_C2PA = "LensBypassCompressionForC2pa";
     public static final String LENS_ON_QUICK_ACTION_SEARCH_WIDGET = "LensOnQuickActionSearchWidget";
     public static final String LENS_OVERLAY_ANDROID = "LensOverlayAndroid";
     public static final String LENS_SEND_RAW_FILE_MEDIA_TYPES = "LensSendRawFileMediaTypes";
@@ -680,8 +680,6 @@ public abstract class ChromeFeatureList {
             "PermissionDedicatedCpssSettingAndroid";
     public static final String PERSIST_ACROSS_REBOOTS = "PersistAcrossReboots";
     public static final String PERSIST_ACROSS_REBOOTS_DEBUG_LOGS = "PersistAcrossRebootsDebugLogs";
-    public static final String POST_GET_MEMORY_PRESSURE_TO_BACKGROUND =
-            BaseFeatures.POST_GET_MY_MEMORY_STATE_TO_BACKGROUND;
     public static final String POWER_SAVING_MODE_BROADCAST_RECEIVER_IN_BACKGROUND =
             "PowerSavingModeBroadcastReceiverInBackground";
     public static final String PRECONNECT_ON_TAB_CREATION = "PreconnectOnTabCreation";
@@ -913,7 +911,6 @@ public abstract class ChromeFeatureList {
     public static final CachedFlag sAndroidApb144Patch2 = newCachedFlag(APB144_PATCH2, true);
     public static final CachedFlag sAndroidApb144Patch3 = newCachedFlag(APB144_PATCH3, true);
     public static final CachedFlag sAndroidApb144Patch4 = newCachedFlag(APB144_PATCH4, true);
-    public static final CachedFlag sAndroidApb144Patch5 = newCachedFlag(APB144_PATCH5, true);
     public static final CachedFlag sAndroidApb144Patch6 = newCachedFlag(APB144_PATCH6, true);
     public static final CachedFlag sAndroidApb144Patch7 = newCachedFlag(APB144_PATCH7, true);
     public static final CachedFlag sAndroidApb144Patch8 = newCachedFlag(APB144_PATCH8, true);
@@ -1230,6 +1227,11 @@ public abstract class ChromeFeatureList {
                     LAUNCH_CAUSE_SCREEN_OFF_FIX,
                     /* defaultValue= */ false,
                     /* defaultValueInTests= */ true);
+    public static final CachedFlag sLensBypassCompressionForC2pa =
+            newCachedFlag(
+                    LENS_BYPASS_COMPRESSION_FOR_C2PA,
+                    /* defaultValue= */ true,
+                    /* defaultValueInTests= */ true);
     public static final CachedFlag sLensSendRawFileMediaTypes =
             newCachedFlag(
                     LENS_SEND_RAW_FILE_MEDIA_TYPES,
@@ -1300,8 +1302,6 @@ public abstract class ChromeFeatureList {
             newCachedFlag(PERSIST_ACROSS_REBOOTS, true);
     public static final CachedFlag sPersistAcrossRebootsDebugLogs =
             newCachedFlag(PERSIST_ACROSS_REBOOTS_DEBUG_LOGS, false);
-    public static final CachedFlag sPostGetMyMemoryStateToBackground =
-            newCachedFlag(POST_GET_MEMORY_PRESSURE_TO_BACKGROUND, true);
     public static final CachedFlag sPowerSavingModeBroadcastReceiverInBackground =
             newCachedFlag(POWER_SAVING_MODE_BROADCAST_RECEIVER_IN_BACKGROUND, true);
     public static final CachedFlag sPriceChangeModule = newCachedFlag(PRICE_CHANGE_MODULE, true);
@@ -1463,7 +1463,6 @@ public abstract class ChromeFeatureList {
                     sAndroidApb144Patch2,
                     sAndroidApb144Patch3,
                     sAndroidApb144Patch4,
-                    sAndroidApb144Patch5,
                     sAndroidApb144Patch6,
                     sAndroidApb144Patch7,
                     sAndroidApb144Patch8,
@@ -1583,6 +1582,7 @@ public abstract class ChromeFeatureList {
                     sIncognitoThemeOverlayTesting,
                     sKeyboardEscBackNavigation,
                     sLaunchCauseScreenOffFix,
+                    sLensBypassCompressionForC2pa,
                     sLensSendRawFileMediaTypes,
                     sLoadAllTabsAtStartup,
                     sLockTopControlsOnLargeTabletsV2,
@@ -1608,7 +1608,6 @@ public abstract class ChromeFeatureList {
                     sPdfReuseFragment,
                     sPersistAcrossReboots,
                     sPersistAcrossRebootsDebugLogs,
-                    sPostGetMyMemoryStateToBackground,
                     sPowerSavingModeBroadcastReceiverInBackground,
                     sPriceChangeModule,
                     sProtectRecentlyVisibleTab,
