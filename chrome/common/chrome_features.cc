@@ -1401,9 +1401,6 @@ BASE_FEATURE(kInstantUsesSpareRenderer, base::FEATURE_DISABLED_BY_DEFAULT);
 // install untrusted Isolated Web Apps.
 BASE_FEATURE(kIsolatedWebAppDevMode, base::FEATURE_DISABLED_BY_DEFAULT);
 
-// Enables the chrome://iwa-dev WebUI page.
-BASE_FEATURE(kIsolatedWebAppDevUi, base::FEATURE_ENABLED_BY_DEFAULT);
-
 // Enables fast update checks for Isolated Web Apps, reducing the update check
 // interval to 1 minute.
 BASE_FEATURE(kIsolatedWebAppFastUpdateCheck, base::FEATURE_DISABLED_BY_DEFAULT);
@@ -1450,8 +1447,13 @@ BASE_FEATURE(kLazyKeyedServiceInstantiation, base::FEATURE_DISABLED_BY_DEFAULT);
 // lazily.
 BASE_FEATURE_PARAM(bool,
                    kLazyKeyedServiceInstantiationAutofillAndPassword,
-                   &features::kLazyKeyedServiceInstantiation,
-                   "autofill_and_password",
+                   &kLazyKeyedServiceInstantiation,
+                   true);
+
+// When enabled, extension keyed services are instantiated lazily.
+BASE_FEATURE_PARAM(bool,
+                   kLazyKeyedServiceInstantiationExtensions,
+                   &kLazyKeyedServiceInstantiation,
                    true);
 
 // When enabled, Optimization Guide and related keyed services are instantiated

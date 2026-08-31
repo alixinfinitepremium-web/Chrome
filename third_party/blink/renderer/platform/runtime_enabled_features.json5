@@ -6052,6 +6052,10 @@
       status: "stable",
     },
     {
+      name: "SvgIgnoreOuterTransforms",
+      status: "stable",
+    },
+    {
       name: "SvgImageAnimationReset",
       status: "stable",
     },
@@ -6238,10 +6242,6 @@
     // For unit tests.
     {
       name: "TestFeatureStable",
-      status: "stable",
-    },
-    {
-      name: "TextAreaEmptyPlaceholderBreak",
       status: "stable",
     },
     {

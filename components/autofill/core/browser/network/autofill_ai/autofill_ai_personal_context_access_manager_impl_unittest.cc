@@ -63,6 +63,8 @@ using ::testing::MockFunction;
 using ::testing::Not;
 using ::testing::Optional;
 using ::testing::Property;
+using ::testing::Ref;
+using ::testing::Return;
 using ::testing::Truly;
 using ::testing::UnorderedElementsAre;
 using ::testing::UnorderedElementsAreArray;
@@ -160,10 +162,10 @@ class AutofillAiPersonalContextAccessManagerImplTest : public testing::Test {
             subscription_eligibility_service_.get(), &pref_service_,
             &fake_device_info_sync_service_, &suppression_manager_);
     ON_CALL(mock_eligibility_service_, GetEligibilityState)
-        .WillByDefault(testing::Return(
+        .WillByDefault(Return(
             personal_context::PersonalContextEligibilityState::kEligible));
     ON_CALL(mock_eligibility_service_, GetNonEligibilityReason)
-        .WillByDefault(testing::Return(
+        .WillByDefault(Return(
             personal_context::PersonalContextNonEligibilityReason::kEligible));
     observation_.Observe(access_manager_.get());
   }
@@ -1995,6 +1997,90 @@ TEST_F(AutofillAiPersonalContextAccessManagerImplTest,
   access_manager().PrefetchContext({kOrderType});
 }
 
+// Tests that prefetched personal context entities that are suppressed in the
+// `EntitySuppressionManager` are filtered out before notifying observers.
+TEST_F(AutofillAiPersonalContextAccessManagerImplTest,
+       PrefetchContext_SuppressedEntitiesAreFiltered) {
+  personal_context::proto::ContextMemoryAmbientAutofillResponse response;
+  response.add_entities()->mutable_order()->set_order_id("ORD1");
+  response.add_entities()->mutable_order()->set_order_id("ORD2");
+
+  suppression_manager().SuppressEntity(
+      *PersonalContextEntityToEntityInstance(response.entities(0)));
+
+  EXPECT_CALL(mock_observer(),
+              OnPrefetchContextComplete(
+                  _, Optional(ElementsAre(HasAttributeWithValue(
+                         AttributeTypeName::kOrderId, u"ORD2")))));
+
+  PrefetchContextSync({EntityType(EntityTypeName::kOrder)}, {}, response);
+}
+
+// Tests that suppressing an entity evicts cached masked entities and re-emits
+// the remaining unsuppressed entities.
+TEST_F(AutofillAiPersonalContextAccessManagerImplTest,
+       OnEntitySuppressionsChanged_SuppressEntityEvictsAndReemits) {
+  personal_context::proto::ContextMemoryAmbientAutofillResponse response;
+  response.add_entities()->mutable_order()->set_order_id("ORD1");
+  response.add_entities()->mutable_order()->set_order_id("ORD2");
+
+  EXPECT_CALL(mock_observer(), OnPrefetchContextComplete);
+  PrefetchContextSync({EntityType(EntityTypeName::kOrder)}, {}, response);
+
+  InSequence s;
+  EXPECT_CALL(mock_observer(),
+              OnMaskedEntityTypeEvicted(Ref(access_manager()),
+                                        EntityType(EntityTypeName::kOrder)));
+  EXPECT_CALL(mock_observer(),
+              OnPrefetchContextComplete(
+                  _, Optional(ElementsAre(HasAttributeWithValue(
+                         AttributeTypeName::kOrderId, u"ORD2")))));
+
+  suppression_manager().SuppressEntity(
+      *PersonalContextEntityToEntityInstance(response.entities(0)));
+}
+
+// Tests that unsuppressing an entity evicts cached masked entities and re-emits
+// all newly unsuppressed entities.
+TEST_F(AutofillAiPersonalContextAccessManagerImplTest,
+       OnEntitySuppressionsChanged_UnsuppressEntityEvictsAndReemits) {
+  personal_context::proto::ContextMemoryAmbientAutofillResponse response;
+  response.add_entities()->mutable_order()->set_order_id("ORD1");
+  response.add_entities()->mutable_order()->set_order_id("ORD2");
+
+  EntityInstance order1 =
+      *PersonalContextEntityToEntityInstance(response.entities(0));
+  suppression_manager().SuppressEntity(order1);
+
+  EXPECT_CALL(mock_observer(), OnPrefetchContextComplete);
+  PrefetchContextSync({EntityType(EntityTypeName::kOrder)}, {}, response);
+
+  InSequence s;
+  EXPECT_CALL(mock_observer(),
+              OnMaskedEntityTypeEvicted(Ref(access_manager()),
+                                        EntityType(EntityTypeName::kOrder)));
+  EXPECT_CALL(
+      mock_observer(),
+      OnPrefetchContextComplete(
+          _,
+          Optional(UnorderedElementsAre(
+              HasAttributeWithValue(AttributeTypeName::kOrderId, u"ORD1"),
+              HasAttributeWithValue(AttributeTypeName::kOrderId, u"ORD2")))));
+
+  suppression_manager().UnsuppressEntity(order1);
+}
+
+// Tests that OnEntitySuppressionsChanged is a no-op when the proto cache is
+// empty.
+TEST_F(AutofillAiPersonalContextAccessManagerImplTest,
+       OnEntitySuppressionsChanged_EmptyCacheIsNoOp) {
+  EXPECT_CALL(mock_observer(), OnMaskedEntityTypeEvicted).Times(0);
+  EXPECT_CALL(mock_observer(), OnPrefetchContextComplete).Times(0);
+
+  EntityInstance passport = test::GetPassportEntityInstance();
+  suppression_manager().SuppressEntity(passport);
+}
+
 class AutofillAiPersonalContextAccessManagerImplSpiiCacheTest
     : public AutofillAiPersonalContextAccessManagerImplTest {
  public:
@@ -2072,7 +2158,7 @@ class AutofillAiPersonalContextAccessManagerImplSpiiCacheTest
 
     EXPECT_CALL(mock_personal_context_service(),
                 DecryptEntity(MatchEncryptedEntity(encrypted_bytes)))
-        .WillOnce(testing::Return(
+        .WillOnce(Return(
             CreateDecryptedPassportEntity(passport_number, passport_name)));
 
     std::vector<EntityInstance> entities;
@@ -2103,8 +2189,7 @@ TEST_F(AutofillAiPersonalContextAccessManagerImplSpiiCacheTest,
 
   EXPECT_CALL(mock_personal_context_service(),
               DecryptEntity(MatchEncryptedEntity("encrypted_passport_data")))
-      .WillOnce(
-          testing::Return(CreateDecryptedPassportEntity("P12345", "Jane Doe")));
+      .WillOnce(Return(CreateDecryptedPassportEntity("P12345", "Jane Doe")));
 
   std::vector<EntityInstance> entities;
   EXPECT_CALL(mock_observer(),
@@ -2145,8 +2230,7 @@ TEST_F(AutofillAiPersonalContextAccessManagerImplSpiiCacheTest,
 
   EXPECT_CALL(mock_personal_context_service(),
               DecryptEntity(MatchEncryptedEntity("encrypted_passport_bytes")))
-      .WillOnce(
-          testing::Return(CreateDecryptedPassportEntity("P5678", "Alice")));
+      .WillOnce(Return(CreateDecryptedPassportEntity("P5678", "Alice")));
 
   std::vector<EntityInstance> entities;
   EXPECT_CALL(mock_observer(),
@@ -2188,7 +2272,7 @@ TEST_F(AutofillAiPersonalContextAccessManagerImplSpiiCacheTest,
 
   EXPECT_CALL(mock_personal_context_service(),
               DecryptEntity(MatchEncryptedEntity("corrupt_encrypted_data")))
-      .WillOnce(testing::Return(std::nullopt));
+      .WillOnce(Return(std::nullopt));
 
   std::vector<EntityInstance> entities;
   EXPECT_CALL(mock_observer(),
@@ -2214,8 +2298,7 @@ TEST_F(AutofillAiPersonalContextAccessManagerImplSpiiCacheTest,
 
   EXPECT_CALL(mock_personal_context_service(),
               DecryptEntity(MatchEncryptedEntity("encrypted_dl_data")))
-      .WillOnce(testing::Return(
-          CreateDecryptedDriversLicenseEntity("DL12345", "Bob")));
+      .WillOnce(Return(CreateDecryptedDriversLicenseEntity("DL12345", "Bob")));
 
   std::vector<EntityInstance> entities;
   EXPECT_CALL(mock_observer(),
@@ -2244,11 +2327,10 @@ TEST_F(AutofillAiPersonalContextAccessManagerImplSpiiCacheTest,
 
   EXPECT_CALL(mock_personal_context_service(),
               DecryptEntity(MatchEncryptedEntity("passport_enc_bytes")))
-      .WillOnce(testing::Return(CreateDecryptedPassportEntity("P100", "John")));
+      .WillOnce(Return(CreateDecryptedPassportEntity("P100", "John")));
   EXPECT_CALL(mock_personal_context_service(),
               DecryptEntity(MatchEncryptedEntity("dl_enc_bytes")))
-      .WillOnce(testing::Return(
-          CreateDecryptedDriversLicenseEntity("DL200", "John")));
+      .WillOnce(Return(CreateDecryptedDriversLicenseEntity("DL200", "John")));
 
   std::vector<EntityInstance> entities;
   EXPECT_CALL(mock_observer(),
@@ -2307,8 +2389,7 @@ TEST_F(AutofillAiPersonalContextAccessManagerImplSpiiCacheTest,
   // GetUnmaskedSpiiEntity should call `DecryptEntity`.
   EXPECT_CALL(mock_personal_context_service(),
               DecryptEntity(MatchEncryptedEntity("enc_bytes")))
-      .WillOnce(
-          testing::Return(CreateDecryptedPassportEntity("P123", "John Doe")));
+      .WillOnce(Return(CreateDecryptedPassportEntity("P123", "John Doe")));
 
   // Call GetUnmaskedSpiiEntity.
   std::optional<EntityInstance> unmasked =
@@ -2341,95 +2422,11 @@ TEST_F(AutofillAiPersonalContextAccessManagerImplSpiiCacheTest,
   // GetUnmaskedSpiiEntity's decryption call fails.
   EXPECT_CALL(mock_personal_context_service(),
               DecryptEntity(MatchEncryptedEntity("enc_bytes")))
-      .WillOnce(testing::Return(std::nullopt));
+      .WillOnce(Return(std::nullopt));
   EXPECT_EQ(GetUnmaskedSpiiEntitySync(passport_guid), std::nullopt);
   histogram_tester().ExpectUniqueSample(
       "Autofill.Ai.Unmask.Result.PersonalContext",
       AutofillAiUnmaskResult::kDecryptionFailed, 1);
-}
-
-// Tests that prefetched personal context entities that are suppressed in the
-// `EntitySuppressionManager` are filtered out before notifying observers.
-TEST_F(AutofillAiPersonalContextAccessManagerImplTest,
-       PrefetchContext_SuppressedEntitiesAreFiltered) {
-  personal_context::proto::ContextMemoryAmbientAutofillResponse response;
-  response.add_entities()->mutable_order()->set_order_id("ORD1");
-  response.add_entities()->mutable_order()->set_order_id("ORD2");
-
-  suppression_manager().SuppressEntity(
-      *PersonalContextEntityToEntityInstance(response.entities(0)));
-
-  EXPECT_CALL(mock_observer(),
-              OnPrefetchContextComplete(
-                  _, Optional(ElementsAre(HasAttributeWithValue(
-                         AttributeTypeName::kOrderId, u"ORD2")))));
-
-  PrefetchContextSync({EntityType(EntityTypeName::kOrder)}, {}, response);
-}
-
-// Tests that suppressing an entity evicts cached masked entities and re-emits
-// the remaining unsuppressed entities.
-TEST_F(AutofillAiPersonalContextAccessManagerImplTest,
-       OnEntitySuppressionsChanged_SuppressEntityEvictsAndReemits) {
-  personal_context::proto::ContextMemoryAmbientAutofillResponse response;
-  response.add_entities()->mutable_order()->set_order_id("ORD1");
-  response.add_entities()->mutable_order()->set_order_id("ORD2");
-
-  EXPECT_CALL(mock_observer(), OnPrefetchContextComplete);
-  PrefetchContextSync({EntityType(EntityTypeName::kOrder)}, {}, response);
-
-  InSequence s;
-  EXPECT_CALL(mock_observer(),
-              OnMaskedEntityTypeEvicted(testing::Ref(access_manager()),
-                                        EntityType(EntityTypeName::kOrder)));
-  EXPECT_CALL(mock_observer(),
-              OnPrefetchContextComplete(
-                  _, Optional(ElementsAre(HasAttributeWithValue(
-                         AttributeTypeName::kOrderId, u"ORD2")))));
-
-  suppression_manager().SuppressEntity(
-      *PersonalContextEntityToEntityInstance(response.entities(0)));
-}
-
-// Tests that unsuppressing an entity evicts cached masked entities and re-emits
-// all newly unsuppressed entities.
-TEST_F(AutofillAiPersonalContextAccessManagerImplTest,
-       OnEntitySuppressionsChanged_UnsuppressEntityEvictsAndReemits) {
-  personal_context::proto::ContextMemoryAmbientAutofillResponse response;
-  response.add_entities()->mutable_order()->set_order_id("ORD1");
-  response.add_entities()->mutable_order()->set_order_id("ORD2");
-
-  EntityInstance order1 =
-      *PersonalContextEntityToEntityInstance(response.entities(0));
-  suppression_manager().SuppressEntity(order1);
-
-  EXPECT_CALL(mock_observer(), OnPrefetchContextComplete);
-  PrefetchContextSync({EntityType(EntityTypeName::kOrder)}, {}, response);
-
-  InSequence s;
-  EXPECT_CALL(mock_observer(),
-              OnMaskedEntityTypeEvicted(testing::Ref(access_manager()),
-                                        EntityType(EntityTypeName::kOrder)));
-  EXPECT_CALL(
-      mock_observer(),
-      OnPrefetchContextComplete(
-          _,
-          Optional(UnorderedElementsAre(
-              HasAttributeWithValue(AttributeTypeName::kOrderId, u"ORD1"),
-              HasAttributeWithValue(AttributeTypeName::kOrderId, u"ORD2")))));
-
-  suppression_manager().UnsuppressEntity(order1);
-}
-
-// Tests that OnEntitySuppressionsChanged is a no-op when the proto cache is
-// empty.
-TEST_F(AutofillAiPersonalContextAccessManagerImplTest,
-       OnEntitySuppressionsChanged_EmptyCacheIsNoOp) {
-  EXPECT_CALL(mock_observer(), OnMaskedEntityTypeEvicted).Times(0);
-  EXPECT_CALL(mock_observer(), OnPrefetchContextComplete).Times(0);
-
-  EntityInstance passport = test::GetPassportEntityInstance();
-  suppression_manager().SuppressEntity(passport);
 }
 
 }  // namespace

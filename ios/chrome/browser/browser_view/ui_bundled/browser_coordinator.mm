@@ -25,7 +25,6 @@
 #import "build/config/ios/swift_buildflags.h"
 #import "components/autofill/core/browser/metrics/autofill_settings_metrics.h"
 #import "components/autofill/core/browser/payments/autofill_error_dialog_context.h"
-#import "components/collaboration/public/collaboration_flow_type.h"
 #import "components/collaboration/public/collaboration_service.h"
 #import "components/commerce/core/commerce_feature_list.h"
 #import "components/commerce/core/feature_utils.h"
@@ -51,7 +50,6 @@
 #import "components/webauthn/ios/ios_passkey_client_commands.h"
 #import "ios/chrome/browser/app_launcher/model/app_launcher_tab_helper_browser_presentation_provider.h"
 #import "ios/chrome/browser/app_store_rating/model/features.h"
-#import "ios/chrome/browser/authentication/signin/non_modal_promo/coordinator/non_modal_signin_promo_coordinator.h"
 #import "ios/chrome/browser/authentication/trusted_vault_reauthentication/coordinator/trusted_vault_reauthentication_coordinator.h"
 #import "ios/chrome/browser/authentication/trusted_vault_reauthentication/coordinator/trusted_vault_reauthentication_coordinator_delegate.h"
 #import "ios/chrome/browser/authentication/ui_bundled/continuation.h"
@@ -85,7 +83,6 @@
 #import "ios/chrome/browser/bubble/ui_bundled/bubble_presenter_delegate.h"
 #import "ios/chrome/browser/bubble/ui_bundled/bubble_view_controller_presenter.h"
 #import "ios/chrome/browser/collaboration/model/collaboration_service_factory.h"
-#import "ios/chrome/browser/collaboration/model/ios_collaboration_controller_delegate.h"
 #import "ios/chrome/browser/commerce/model/push_notification/push_notification_feature.h"
 #import "ios/chrome/browser/commerce/model/shopping_service_factory.h"
 #import "ios/chrome/browser/composebox/coordinator/composebox_coordinator.h"
@@ -201,7 +198,6 @@
 #import "ios/chrome/browser/shared/public/commands/auto_deletion_commands.h"
 #import "ios/chrome/browser/shared/public/commands/autofill_commands.h"
 #import "ios/chrome/browser/shared/public/commands/browser_coordinator_commands.h"
-#import "ios/chrome/browser/shared/public/commands/collaboration_group_commands.h"
 #import "ios/chrome/browser/shared/public/commands/command_dispatcher.h"
 #import "ios/chrome/browser/shared/public/commands/contextual_panel_entrypoint_commands.h"
 #import "ios/chrome/browser/shared/public/commands/contextual_panel_entrypoint_iph_commands.h"
@@ -214,7 +210,6 @@
 #import "ios/chrome/browser/shared/public/commands/help_commands.h"
 #import "ios/chrome/browser/shared/public/commands/lens_overlay_commands.h"
 #import "ios/chrome/browser/shared/public/commands/new_tab_page_commands.h"
-#import "ios/chrome/browser/shared/public/commands/non_modal_signin_promo_commands.h"
 #import "ios/chrome/browser/shared/public/commands/omnibox_commands.h"
 #import "ios/chrome/browser/shared/public/commands/open_new_tab_command.h"
 #import "ios/chrome/browser/shared/public/commands/popup_menu_commands.h"
@@ -232,7 +227,6 @@
 #import "ios/chrome/browser/shared/public/commands/snackbar_commands.h"
 #import "ios/chrome/browser/shared/public/commands/sync_presenter_commands.h"
 #import "ios/chrome/browser/shared/public/commands/synced_set_up_commands.h"
-#import "ios/chrome/browser/shared/public/commands/tab_picker_commands.h"
 #import "ios/chrome/browser/shared/public/commands/text_zoom_commands.h"
 #import "ios/chrome/browser/shared/public/commands/toolbar_commands.h"
 #import "ios/chrome/browser/shared/public/commands/web_content_commands.h"
@@ -265,7 +259,6 @@
 #import "ios/chrome/browser/sync/model/sync_error_browser_agent.h"
 #import "ios/chrome/browser/sync/model/sync_service_factory.h"
 #import "ios/chrome/browser/tab_insertion/model/tab_insertion_browser_agent.h"
-#import "ios/chrome/browser/tab_picker/coordinator/tab_picker_coordinator.h"
 #import "ios/chrome/browser/tab_switcher/ui_bundled/tab_group_action_type.h"
 #import "ios/chrome/browser/tabs/model/tab_title_util.h"
 #import "ios/chrome/browser/text_zoom/ui_bundled/text_zoom_coordinator.h"
@@ -324,7 +317,6 @@
     AutofillSettingsNavigator,
     BrowserCoordinatorCommands,
     BubblePresenterDelegate,
-    CollaborationGroupCommands,
     ContextualPanelEntrypointIPHCommands,
     DefaultBrowserGenericPromoCommands,
     DefaultBrowserPromoNonModalCommands,
@@ -333,8 +325,6 @@
     FindInPageCommands,
     NetExportTabHelperDelegate,
     NewTabPageCommands,
-    NonModalSignInPromoCommands,
-    NonModalSignInPromoCoordinatorDelegate,
     NotificationsOptInCoordinatorDelegate,
     OverscrollActionsControllerDelegate,
     PasswordControllerDelegate,
@@ -355,7 +345,6 @@
     SnapshotGeneratorDelegate,
     StoreKitCoordinatorDelegate,
     SyncPresenterCommands,
-    TabPickerCommands,
     TextZoomCommands,
     TrustedVaultReauthenticationCoordinatorDelegate,
     URLLoadingDelegate,
@@ -481,9 +470,6 @@
 // Coordinator for presenting SKStoreProductViewController.
 @property(nonatomic, strong) StoreKitCoordinator* storeKitCoordinator;
 
-// Coordinator for the tab picker.
-@property(nonatomic, strong) TabPickerCoordinator* tabPickerCoordinator;
-
 // Coordinator for Text Zoom.
 @property(nonatomic, strong) TextZoomCoordinator* textZoomCoordinator;
 
@@ -496,10 +482,6 @@
 
 // The webState of the active tab.
 @property(nonatomic, readonly) web::WebState* activeWebState;
-
-// The coordinator in charge of the non modal sign in promo.
-@property(nonatomic, strong)
-    NonModalSignInPromoCoordinator* nonModalSignInPromoCoordinator;
 
 // Coordinator for the composebox.
 @property(nonatomic, strong) ComposeboxCoordinator* composeboxCoordinator;
@@ -915,12 +897,6 @@
   self.storeKitCoordinator = nil;
 }
 
-// Stops the tab picker coordinator.
-- (void)stopTabPickerCoordinator {
-  [self.tabPickerCoordinator stop];
-  self.tabPickerCoordinator = nil;
-}
-
 // Stops the coordinator for password manager settings.
 - (void)stopPasswordSettingsCoordinator {
   [self.passwordSettingsCoordinator stop];
@@ -1019,17 +995,14 @@
   NSArray<Protocol*>* protocols = @[
     @protocol(AutoDeletionCommands),
     @protocol(BrowserCoordinatorCommands),
-    @protocol(CollaborationGroupCommands),
     @protocol(ContextualPanelEntrypointIPHCommands),
     @protocol(DefaultBrowserPromoNonModalCommands),
     @protocol(PromosManagerCommands),
     @protocol(FindInPageCommands),
     @protocol(ReaderModeCommands),
     @protocol(NewTabPageCommands),
-    @protocol(NonModalSignInPromoCommands),
     @protocol(QuickDeleteCommands),
     @protocol(SyncPresenterCommands),
-    @protocol(TabPickerCommands),
     @protocol(TextZoomCommands),
     @protocol(WebContentCommands),
     @protocol(DefaultBrowserGenericPromoCommands),
@@ -1317,8 +1290,6 @@
   [self.snackbarCoordinator stop];
   self.snackbarCoordinator = nil;
 
-  [self stopTabPickerCoordinator];
-
   _keyCommandsProvider = nil;
   _dispatcher = nil;
   _layoutGuideCenter = nil;
@@ -1410,9 +1381,6 @@
    * `showSetTabReminderUI:` and stopped via delegate */
 
   /* RepostFormCoordinator is created and started by a delegate method */
-
-  /* NonModalSignInPromoCoordinator is created and started by a BrowserCommand
-   */
 
   // TODO(crbug.com/40823248): Should start when the Sad Tab UI appears.
   self.sadTabCoordinator =
@@ -1512,9 +1480,6 @@
 
   [self.choiceCoordinator stop];
   self.choiceCoordinator = nil;
-
-  [self.nonModalSignInPromoCoordinator stop];
-  self.nonModalSignInPromoCoordinator = nil;
 
   [_quickDeleteCoordinator stop];
   _quickDeleteCoordinator = nil;
@@ -2257,7 +2222,6 @@
   [self cancelCollaborationFlows];
   [self.NTPCoordinator clearPresentedState];
   [self dismissMultimodalActionsMenu];
-  [self stopTabPickerCoordinator];
   // The composebox replaces the omnibox.
   if (dismissOmnibox) {
     [self hideComposebox];
@@ -2722,31 +2686,6 @@
 - (void)repostFormTabHelperDismissRepostFormDialog:
     (RepostFormTabHelper*)helper {
   [self stopRepostFormCoordinator];
-}
-
-#pragma mark - TabPickerCommands
-
-- (void)showTabPickerWithParams:(TabPickerParams*)params
-                     completion:(TabPickerCompletionBlock)completion {
-  if (self.tabPickerCoordinator) {
-    return;
-  }
-
-  UIViewController* baseViewController = params.baseViewController
-                                             ? params.baseViewController
-                                             : self.viewController;
-
-  self.tabPickerCoordinator = [[TabPickerCoordinator alloc]
-      initWithBaseViewController:baseViewController
-                         browser:self.browser];
-  self.tabPickerCoordinator.params = params;
-  self.tabPickerCoordinator.tabPickerCompletionBlock = completion;
-  self.tabPickerCoordinator.tabPickerHandler = self;
-  [self.tabPickerCoordinator start];
-}
-
-- (void)hideTabPicker {
-  [self stopTabPickerCoordinator];
 }
 
 #pragma mark - TextZoomCommands
@@ -3734,50 +3673,6 @@
     (NotificationsOptInCoordinator*)coordinator {
   CHECK_EQ(coordinator, _notificationsOptInCoordinator);
   [self dismissNotificationsOptIn];
-}
-
-#pragma mark - NonModalSignInPromoCommands
-
-- (void)showNonModalSignInPromoWithType:(NonModalSignInPromoType)promoType {
-  if (self.nonModalSignInPromoCoordinator || !self.isStarted) {
-    return;
-  }
-  self.nonModalSignInPromoCoordinator = [[NonModalSignInPromoCoordinator alloc]
-      initWithBaseViewController:self.viewController
-                         browser:signin::GetRegularBrowser(self.browser)
-                       promoType:promoType];
-  [self.nonModalSignInPromoCoordinator start];
-  self.nonModalSignInPromoCoordinator.delegate = self;
-}
-
-#pragma mark - NonModalSignInPromoCoordinatorDelegate
-
-- (void)dismissNonModalSignInPromo:
-    (NonModalSignInPromoCoordinator*)coordinator {
-  CHECK_EQ(self.nonModalSignInPromoCoordinator, coordinator);
-  [self.nonModalSignInPromoCoordinator stop];
-  self.nonModalSignInPromoCoordinator.delegate = nil;
-  self.nonModalSignInPromoCoordinator = nil;
-}
-
-#pragma mark - CollaborationGroupCommands
-
-- (void)
-    shareOrManageTabGroup:(const TabGroup*)tabGroup
-               entryPoint:
-                   (collaboration::CollaborationServiceShareOrManageEntryPoint)
-                       entryPoint {
-  Browser* browser = self.browser;
-
-  std::unique_ptr<collaboration::IOSCollaborationControllerDelegate> delegate =
-      std::make_unique<collaboration::IOSCollaborationControllerDelegate>(
-          browser, CreateControllerDelegateParamsFromProfile(
-                       self.profile, self.viewController,
-                       collaboration::FlowType::kShareOrManage));
-  collaboration::CollaborationService* collaborationService =
-      collaboration::CollaborationServiceFactory::GetForProfile(self.profile);
-  collaborationService->StartShareOrManageFlow(
-      std::move(delegate), tabGroup->tab_group_id(), entryPoint);
 }
 
 #pragma mark - TrustedVaultReauthenticationCoordinatorDelegate
