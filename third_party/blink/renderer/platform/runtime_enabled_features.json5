@@ -1614,6 +1614,10 @@
       status: "experimental",
     },
     {
+      name: "CSSCustomHighlightUniversalSelector",
+      status: "experimental",
+    },
+    {
       name: "CSSCustomMedia",
       status: "test",
     },
@@ -3414,6 +3418,7 @@
     },
     {
       name: "HarfRustShaping",
+      status: "test",
     },
     {
       name: "HasUAVisualTransition",

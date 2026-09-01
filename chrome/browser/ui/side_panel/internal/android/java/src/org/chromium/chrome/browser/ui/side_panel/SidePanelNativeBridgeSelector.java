@@ -7,7 +7,6 @@ package org.chromium.chrome.browser.ui.side_panel;
 import static org.chromium.build.NullUtil.assertNonNull;
 import static org.chromium.chrome.browser.ui.side_panel.SidePanelUtils.log;
 
-import android.graphics.Rect;
 import android.util.ArrayMap;
 import android.view.View;
 
@@ -15,6 +14,7 @@ import org.chromium.base.ApplicationStatus;
 import org.chromium.build.annotations.NullMarked;
 import org.chromium.build.annotations.Nullable;
 import org.chromium.chrome.browser.profiles.Profile;
+import org.chromium.chrome.browser.tab.Tab;
 import org.chromium.chrome.browser.tabmodel.TabModel;
 import org.chromium.chrome.browser.tabmodel.TabModelSelector;
 import org.chromium.chrome.browser.tabmodel.TabModelSelectorTabModelObserver;
@@ -226,19 +226,26 @@ final class SidePanelNativeBridgeSelector {
                 && mSidePanelContainerCoordinator.canShow();
     }
 
+    /** Returns whether the side panel has content to show for the given {@link Tab}. */
+    boolean hasContentToShow(Tab tab) {
+        TabModel currentTabModel = mTabModelSelector.getCurrentModel();
+        if (currentTabModel.getTabById(tab.getId()) != tab) {
+            // The given tab isn't in the current tab model.
+            return false;
+        }
+
+        var coordinatorBridge = getCurrentCoordinatorBridge();
+        return coordinatorBridge != null && coordinatorBridge.hasContentToShow(tab);
+    }
+
     /**
      * See {@link SidePanelContainerCoordinatorImpl#startOpeningPanel}.
      *
      * <p>The given {@link Profile} must be the current {@link Profile}.
      */
-    void startOpeningPanel(
-            Profile profile,
-            SidePanelContent content,
-            @Nullable Rect initialContentBounds,
-            boolean suppressAnimations) {
+    void startOpeningPanel(Profile profile, SidePanelContent content, boolean suppressAnimations) {
         assertCurrentProfile(profile);
-        mSidePanelContainerCoordinator.startOpeningPanel(
-                content, initialContentBounds, suppressAnimations);
+        mSidePanelContainerCoordinator.startOpeningPanel(content, suppressAnimations);
     }
 
     /**

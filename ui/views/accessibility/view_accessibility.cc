@@ -1608,7 +1608,20 @@ void ViewAccessibility::SetMaxValueForRange(float value) {
 
 void ViewAccessibility::SetDefaultActionVerb(
     const ax::mojom::DefaultActionVerb default_action_verb) {
+  if (data_.GetDefaultActionVerb() == default_action_verb) {
+    return;
+  }
+
+  if (default_action_verb == ax::mojom::DefaultActionVerb::kNone) {
+    RemoveDefaultActionVerb();
+    return;
+  }
+
   data_.SetDefaultActionVerb(default_action_verb);
+
+  OnIntAttributeChanged(ax::mojom::IntAttribute::kDefaultActionVerb,
+                        static_cast<int32_t>(default_action_verb));
+  NotifyDataChanged();
 }
 
 ax::mojom::DefaultActionVerb ViewAccessibility::GetDefaultActionVerb() const {
@@ -2315,7 +2328,9 @@ void ViewAccessibility::SetDataForClosedWidget(ui::AXNodeData* data) const {
 }
 
 void ViewAccessibility::OnRoleChanged(ax::mojom::Role role) {
-  GetOrCreateAXAttributeChangedCallbacks()->NotifyRoleChanged(role);
+  if (attribute_changed_callbacks_) {
+    attribute_changed_callbacks_->NotifyRoleChanged(role);
+  }
 }
 
 base::CallbackListSubscription ViewAccessibility::AddRoleChangedCallback(
@@ -2327,8 +2342,10 @@ base::CallbackListSubscription ViewAccessibility::AddRoleChangedCallback(
 void ViewAccessibility::OnStringAttributeChanged(
     ax::mojom::StringAttribute attribute,
     const std::optional<std::string>& value) {
-  GetOrCreateAXAttributeChangedCallbacks()->NotifyStringAttributeChanged(
-      attribute, value);
+  if (attribute_changed_callbacks_) {
+    attribute_changed_callbacks_->NotifyStringAttributeChanged(attribute,
+                                                               value);
+  }
 }
 
 base::CallbackListSubscription
@@ -2341,8 +2358,9 @@ ViewAccessibility::AddStringAttributeChangedCallback(
 
 void ViewAccessibility::OnIntAttributeChanged(ax::mojom::IntAttribute attribute,
                                               std::optional<int> value) {
-  GetOrCreateAXAttributeChangedCallbacks()->NotifyIntAttributeChanged(attribute,
-                                                                      value);
+  if (attribute_changed_callbacks_) {
+    attribute_changed_callbacks_->NotifyIntAttributeChanged(attribute, value);
+  }
 }
 
 base::CallbackListSubscription
@@ -2356,8 +2374,9 @@ ViewAccessibility::AddIntAttributeChangedCallback(
 void ViewAccessibility::OnBoolAttributeChanged(
     ax::mojom::BoolAttribute attribute,
     std::optional<bool> value) {
-  GetOrCreateAXAttributeChangedCallbacks()->NotifyBoolAttributeChanged(
-      attribute, value);
+  if (attribute_changed_callbacks_) {
+    attribute_changed_callbacks_->NotifyBoolAttributeChanged(attribute, value);
+  }
 }
 
 base::CallbackListSubscription
@@ -2369,7 +2388,9 @@ ViewAccessibility::AddBoolAttributeChangedCallback(
 }
 
 void ViewAccessibility::OnStateChanged(ax::mojom::State state, bool value) {
-  GetOrCreateAXAttributeChangedCallbacks()->NotifyStateChanged(state, value);
+  if (attribute_changed_callbacks_) {
+    attribute_changed_callbacks_->NotifyStateChanged(state, value);
+  }
 }
 
 base::CallbackListSubscription ViewAccessibility::AddStateChangedCallback(
@@ -2382,8 +2403,10 @@ base::CallbackListSubscription ViewAccessibility::AddStateChangedCallback(
 void ViewAccessibility::OnIntListAttributeChanged(
     ax::mojom::IntListAttribute attribute,
     const std::optional<std::vector<int>>& value) {
-  GetOrCreateAXAttributeChangedCallbacks()->NotifyIntListAttributeChanged(
-      attribute, value);
+  if (attribute_changed_callbacks_) {
+    attribute_changed_callbacks_->NotifyIntListAttributeChanged(attribute,
+                                                                value);
+  }
 }
 
 base::CallbackListSubscription

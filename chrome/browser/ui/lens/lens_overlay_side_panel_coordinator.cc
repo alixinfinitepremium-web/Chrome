@@ -115,10 +115,8 @@ bool IsSiteTrusted(const GURL& url) {
 }
 
 SidePanelUI* GetSidePanelUI(LensSearchController* controller) {
-  return controller->GetTabInterface()
-      ->GetBrowserWindowInterface()
-      ->GetFeatures()
-      .side_panel_ui();
+  return SidePanelUI::From(
+      controller->GetTabInterface()->GetBrowserWindowInterface());
 }
 
 }  // namespace
@@ -1000,24 +998,6 @@ void LensOverlaySidePanelCoordinator::DOMContentLoaded(
 
   SetSidePanelNewTabUrl(render_frame_host->GetLastCommittedURL());
   SetSidePanelIsLoadingResults(false);
-}
-
-void LensOverlaySidePanelCoordinator::DidFinishNavigation(
-    content::NavigationHandle* navigation_handle) {
-  // Ignore navigations that are not the final results frame navigation
-  // initiated by the user.
-  if (!IsIframesResultsNavigation(navigation_handle)) {
-    return;
-  }
-
-  // Ignore navigations that were aborted due to user input. I.e the user
-  // issued a new query.
-  if (navigation_handle->GetNetErrorCode() == net::ERR_ABORTED) {
-    return;
-  }
-
-  lens::RecordIframeLoadStatus(navigation_handle->IsErrorPage(),
-                               navigation_handle->GetNetErrorCode());
 }
 
 web_modal::WebContentsModalDialogHost*

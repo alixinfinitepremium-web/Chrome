@@ -668,26 +668,6 @@
             ]
         }
     ],
-    "AndroidDesktopBookmarkImprovements": [
-        {
-            "platforms": [
-                "android"
-            ],
-            "form_factors": [
-                "desktop"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "AndroidDesktopBookmarkPopup",
-                        "BookmarksBarContextMenu",
-                        "BookmarksBarNTP"
-                    ]
-                }
-            ]
-        }
-    ],
     "AndroidDesktopUAPlatform": [
         {
             "platforms": [
@@ -6867,24 +6847,6 @@
             ]
         }
     ],
-    "DesktopRealboxContextualSearchIPH": [
-        {
-            "platforms": [
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "IPH_DesktopRealboxContextualSearchFeature"
-                    ]
-                }
-            ]
-        }
-    ],
     "DesktopToMobilePromos": [
         {
             "platforms": [
@@ -8262,7 +8224,10 @@
             ],
             "experiments": [
                 {
-                    "name": "Treatment",
+                    "name": "EnergyEffectFusebox",
+                    "params": {
+                        "EnergyEffectVariantParam": "energy-effect-fusebox"
+                    },
                     "enable_features": [
                         "EnergyEffect"
                     ]
@@ -10459,6 +10424,28 @@
                     "name": "Enabled",
                     "enable_features": [
                         "HappyEyeballsV2"
+                    ]
+                }
+            ]
+        }
+    ],
+    "HarfRustShaping": [
+        {
+            "platforms": [
+                "android",
+                "android_webview",
+                "chromeos",
+                "fuchsia",
+                "ios",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "HarfRustShaping"
                     ]
                 }
             ]
@@ -15011,6 +14998,26 @@
                     "name": "Enabled",
                     "enable_features": [
                         "PartitionAllocPermissiveMte"
+                    ]
+                }
+            ]
+        }
+    ],
+    "PartitionAllocTighterAlignedAllocBound": [
+        {
+            "platforms": [
+                "android",
+                "chromeos",
+                "ios",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "PartitionAllocTighterAlignedAllocBound"
                     ]
                 }
             ]

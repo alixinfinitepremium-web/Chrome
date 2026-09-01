@@ -26,6 +26,7 @@ import androidx.window.layout.WindowMetricsCalculator;
 
 import org.chromium.base.Callback;
 import org.chromium.base.CallbackController;
+import org.chromium.base.DeviceInfo;
 import org.chromium.base.ThreadUtils;
 import org.chromium.base.supplier.OneshotSupplier;
 import org.chromium.build.annotations.NullMarked;
@@ -45,6 +46,7 @@ import org.chromium.chrome.browser.lifecycle.ActivityLifecycleDispatcher;
 import org.chromium.chrome.browser.lifecycle.ConfigurationChangedObserver;
 import org.chromium.chrome.browser.tab.Tab;
 import org.chromium.chrome.browser.tabmodel.IncognitoStateProvider;
+import org.chromium.chrome.browser.tabmodel.TabModelSelector;
 import org.chromium.chrome.browser.ui.side_ui.SideUiCoordinator.SideUiSpecs.SideUiSize;
 import org.chromium.ui.base.ViewUtils;
 import org.chromium.ui.util.TokenHolder;
@@ -88,6 +90,7 @@ final class SideUiCoordinatorImpl
             new SideUiTransitionListener();
 
     private final SideUiWebContentHairlineManager mWebContentsHairlineManager;
+    private final TabModelSelector mTabModelSelector;
 
     private int mBrowserControlsToken = TokenHolder.INVALID_TOKEN;
 
@@ -117,6 +120,7 @@ final class SideUiCoordinatorImpl
      * @param webContentHairlineContainerStub The {@link ViewStub} for the web content hairline
      *     container.
      * @param incognitoStateProvider The {@link IncognitoStateProvider} to observe incognito state.
+     * @param tabModelSelector The {@link TabModelSelector} to query tabs.
      */
     /* package */ SideUiCoordinatorImpl(
             Activity parentActivity,
@@ -129,13 +133,15 @@ final class SideUiCoordinatorImpl
             ViewStub leftAnchorContainerStub,
             ViewStub rightAnchorContainerStub,
             ViewStub webContentHairlineContainerStub,
-            IncognitoStateProvider incognitoStateProvider) {
+            IncognitoStateProvider incognitoStateProvider,
+            TabModelSelector tabModelSelector) {
         mParentActivity = parentActivity;
         mActivityLifecycleDispatcher = activityLifecycleDispatcher;
         mBrowserControlsVisibilityManager = browserControlVisibilityManager;
         mFullscreenManager = fullscreenManager;
         mTopControlsStacker = topControlsStacker;
         mAnchorContainerParent = anchorContainerParent;
+        mTabModelSelector = tabModelSelector;
 
         mBrowserControlsVisibilityDelegate =
                 browserControlVisibilityManager.getBrowserVisibilityDelegate();
@@ -258,6 +264,15 @@ final class SideUiCoordinatorImpl
     public SideUiSpecs getCurrentSideUiSpecs() {
         ThreadUtils.assertOnUiThread();
         return getCurrentSideUiSpecsInternal();
+    }
+
+    @Override
+    public SideUiSpecs getExpectedSideUiSpecsForTab(Tab tab) {
+        ThreadUtils.assertOnUiThread();
+        @Px int windowWidth = getWindowWidth();
+        @Px int minWebContentsWidth = ViewUtils.dpToPx(mParentActivity, MIN_WEB_CONTENTS_WIDTH_DP);
+        boolean isFullscreen = mFullscreenManager.getPersistentFullscreenMode();
+        return determineSideUiSpecs(windowWidth, minWebContentsWidth, isFullscreen, tab);
     }
 
     @Override
@@ -547,6 +562,14 @@ final class SideUiCoordinatorImpl
         List<@SideUiId Integer> showableSideUiIds = new ArrayList<>();
         List<@SideUiId Integer> unShowableSideUiIds = new ArrayList<>();
 
+        @Nullable Tab currentTab = mTabModelSelector.getCurrentTab();
+        if (currentTab == null) {
+            for (var container : mSideUiContainers) {
+                unShowableSideUiIds.add(container.getSideUiId());
+            }
+            return new SideUiShowability(showableSideUiIds, unShowableSideUiIds);
+        }
+
         for (var container : mSideUiContainers) {
             int showableWidth =
                     container.determineShowableSize(availableWidth, windowWidth, isFullscreen)
@@ -559,7 +582,7 @@ final class SideUiCoordinatorImpl
 
             // If a SideUiContainer is showable and has content to show, it will be shown.
             // Therefore, we should subtract the showable width from the available width.
-            if (showableWidth > 0 && container.hasContentToShow()) {
+            if (showableWidth > 0 && container.hasContentToShow(currentTab)) {
                 availableWidth = Math.max(availableWidth - showableWidth, 0);
             }
         }
@@ -568,7 +591,7 @@ final class SideUiCoordinatorImpl
     }
 
     /**
-     * Determines {@link SideUiSpecs}.
+     * Determines {@link SideUiSpecs} for the current active UI.
      *
      * @param windowWidth The current window width (in px).
      * @param minWebContentsWidth The minimum width reserved for {@code WebContents} (in px).
@@ -577,6 +600,24 @@ final class SideUiCoordinatorImpl
      */
     private SideUiSpecs determineSideUiSpecs(
             @Px int windowWidth, @Px int minWebContentsWidth, boolean isFullscreen) {
+        return determineSideUiSpecs(
+                windowWidth, minWebContentsWidth, isFullscreen, mTabModelSelector.getCurrentTab());
+    }
+
+    /**
+     * Determines {@link SideUiSpecs} for a given {@link Tab}.
+     *
+     * @param windowWidth The current window width (in px).
+     * @param minWebContentsWidth The minimum width reserved for {@code WebContents} (in px).
+     * @param isFullscreen Whether the app is in persistent fullscreen mode.
+     * @param tab The target {@link Tab} to compute specs for, or {@code null} for the current tab.
+     * @return The new {@link SideUiSpecs}.
+     */
+    private SideUiSpecs determineSideUiSpecs(
+            @Px int windowWidth,
+            @Px int minWebContentsWidth,
+            boolean isFullscreen,
+            @Nullable Tab tab) {
         int availableWidth = windowWidth - minWebContentsWidth;
         Map<@AnchorSide Integer, SideUiSize> sideUiSpecs = new ArrayMap<>(); // anchorSide -> spec
 
@@ -584,9 +625,14 @@ final class SideUiCoordinatorImpl
         for (@AnchorSide int side : mAnchorContainers.keySet()) {
             sideUiSpecs.put(side, new SideUiSize(0, HeightType.NOT_APPLICABLE));
         }
+
+        if (tab == null) {
+            return new SideUiSpecs(sideUiSpecs);
+        }
+
         for (var container : mSideUiContainers) {
             SideUiSize newSideUiSize =
-                    container.hasContentToShow()
+                    container.hasContentToShow(tab)
                             ? container.determineShowableSize(
                                     availableWidth, windowWidth, isFullscreen)
                             : new SideUiSize(0, HeightType.NOT_APPLICABLE);
@@ -675,12 +721,20 @@ final class SideUiCoordinatorImpl
             @AnchorSide int side = marginDiff.getKey();
             @Px int topMargin = marginDiff.getValue();
 
-            // Currently, only the SidePanel can be anchored on the right side. If not in
-            // fullscreen, assert that we have a nonzero top margin for SidePanel.
-            if (side == AnchorSide.RIGHT && !mFullscreenManager.getPersistentFullscreenMode()) {
-                assert topMargin != 0
-                        : "Right anchor container topMargin should be non-zero. See"
-                                + " crbug.com/544876870";
+            // The following check is for catching crbug.com/544876870.
+            // Side panel's anchor container should always have a positive top margin, if the window
+            // isn't in fullscreen or on Android Automotive.
+            // The symptom of crbug.com/544876870 is that side panel's anchor container has 0 top
+            // margin. The bug was hard to reproduce so we only landed a speculative fix. The
+            // check here will catch the bug if it happens again.
+            var sideUiContainer = assumeNonNull(getSideUiContainerBySide(side));
+            if (sideUiContainer.getSideUiId() == SideUiId.SIDE_PANEL
+                    && !mFullscreenManager.getPersistentFullscreenMode()
+                    && !DeviceInfo.isAutomotive()
+                    && topMargin <= 0) {
+                throw new IllegalStateException(
+                        "Side panel's anchor container should have a positive top margin. See"
+                                + " crbug.com/544876870");
             }
 
             boolean willUpdateWidth =

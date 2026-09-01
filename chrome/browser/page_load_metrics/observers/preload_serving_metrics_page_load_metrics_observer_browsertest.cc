@@ -119,6 +119,8 @@ IN_PROC_BROWSER_TEST_F(PreloadServingMetricsPageLoadMetricsObserverBrowserTest,
   auto waiter = CreatePageLoadMetricsTestWaiter();
   waiter->AddPageExpectation(
       PageLoadMetricsTestWaiter::TimingField::kFirstContentfulPaint);
+  waiter->AddPageExpectation(
+      PageLoadMetricsTestWaiter::TimingField::kLargestContentfulPaint);
   NavigateViaLinkClick(web_contents(), target_url);
   waiter->Wait();
 
@@ -135,6 +137,15 @@ IN_PROC_BROWSER_TEST_F(PreloadServingMetricsPageLoadMetricsObserverBrowserTest,
   histogram_tester.ExpectTotalCount(
       "PreloadServingMetrics.PageLoad.Clients.PaintTiming."
       "NavigationToFirstContentfulPaint.LinkClick.All.NoInstantLoad",
+      1);
+
+  histogram_tester.ExpectTotalCount(
+      "PreloadServingMetrics.PageLoad.Clients.PaintTiming."
+      "NavigationToLargestContentfulPaint2.LinkClick.All.All",
+      1);
+  histogram_tester.ExpectTotalCount(
+      "PreloadServingMetrics.PageLoad.Clients.PaintTiming."
+      "NavigationToLargestContentfulPaint2.LinkClick.All.NoInstantLoad",
       1);
 }
 
@@ -155,6 +166,8 @@ IN_PROC_BROWSER_TEST_F(PreloadServingMetricsPageLoadMetricsObserverBrowserTest,
   auto waiter = CreatePageLoadMetricsTestWaiter();
   waiter->AddPageExpectation(
       PageLoadMetricsTestWaiter::TimingField::kFirstContentfulPaint);
+  waiter->AddPageExpectation(
+      PageLoadMetricsTestWaiter::TimingField::kLargestContentfulPaint);
   NavigateViaLinkClick(web_contents(), target_url);
   waiter->Wait();
 
@@ -174,6 +187,15 @@ IN_PROC_BROWSER_TEST_F(PreloadServingMetricsPageLoadMetricsObserverBrowserTest,
       "PreloadServingMetrics.PageLoad.Clients.PaintTiming."
       "NavigationToFirstContentfulPaint.LinkClick.All.Prefetch",
       1);
+
+  histogram_tester.ExpectTotalCount(
+      "PreloadServingMetrics.PageLoad.Clients.PaintTiming."
+      "NavigationToLargestContentfulPaint2.LinkClick.All.All",
+      1);
+  histogram_tester.ExpectTotalCount(
+      "PreloadServingMetrics.PageLoad.Clients.PaintTiming."
+      "NavigationToLargestContentfulPaint2.LinkClick.All.Prefetch",
+      1);
 }
 
 // Verifies metrics recording for a navigation using prerender.
@@ -190,6 +212,8 @@ IN_PROC_BROWSER_TEST_F(PreloadServingMetricsPageLoadMetricsObserverBrowserTest,
   auto waiter = CreatePageLoadMetricsTestWaiter();
   waiter->AddPageExpectation(
       PageLoadMetricsTestWaiter::TimingField::kFirstContentfulPaint);
+  waiter->AddPageExpectation(
+      PageLoadMetricsTestWaiter::TimingField::kLargestContentfulPaint);
   NavigateViaLinkClick(web_contents(), target_url);
   waiter->Wait();
 
@@ -206,6 +230,15 @@ IN_PROC_BROWSER_TEST_F(PreloadServingMetricsPageLoadMetricsObserverBrowserTest,
   histogram_tester.ExpectTotalCount(
       "PreloadServingMetrics.PageLoad.Clients.PaintTiming."
       "NavigationToFirstContentfulPaint.LinkClick.All.Prerender",
+      1);
+
+  histogram_tester.ExpectTotalCount(
+      "PreloadServingMetrics.PageLoad.Clients.PaintTiming."
+      "NavigationToLargestContentfulPaint2.LinkClick.All.All",
+      1);
+  histogram_tester.ExpectTotalCount(
+      "PreloadServingMetrics.PageLoad.Clients.PaintTiming."
+      "NavigationToLargestContentfulPaint2.LinkClick.All.Prerender",
       1);
 }
 
@@ -228,6 +261,8 @@ IN_PROC_BROWSER_TEST_F(PreloadServingMetricsPageLoadMetricsObserverBrowserTest,
   auto waiter_a = CreatePageLoadMetricsTestWaiter();
   waiter_a->AddPageExpectation(
       PageLoadMetricsTestWaiter::TimingField::kFirstContentfulPaint);
+  waiter_a->AddPageExpectation(
+      PageLoadMetricsTestWaiter::TimingField::kLargestContentfulPaint);
   ASSERT_TRUE(ui_test_utils::NavigateToURL(browser(), url_a));
   waiter_a->Wait();
   content::RenderFrameHost* rfh_a = web_contents().GetPrimaryMainFrame();
@@ -252,9 +287,91 @@ IN_PROC_BROWSER_TEST_F(PreloadServingMetricsPageLoadMetricsObserverBrowserTest,
   histogram_tester.ExpectBucketCount("PreloadServingMetrics.Backward.All",
                                      3 /* kBFCache */, 1);
 
-  // FCP is not recorded for the BFCache restore.
+  // FCP and LCP are not recorded for the BFCache restore.
   histogram_tester.ExpectTotalCount(
       "PreloadServingMetrics.PageLoad.Clients.PaintTiming."
       "NavigationToFirstContentfulPaint.Backward.All.All",
       0);
+
+  histogram_tester.ExpectTotalCount(
+      "PreloadServingMetrics.PageLoad.Clients.PaintTiming."
+      "NavigationToLargestContentfulPaint2.Backward.All.All",
+      0);
+}
+
+// Browser test for `PreloadServingMetricsPageLoadMetricsObserver` with prefetch
+// ahead of prerender enabled.
+class
+    PreloadServingMetricsPageLoadMetricsObserverPrefetchAheadOfPrerenderBrowserTest
+    : public PreloadServingMetricsPageLoadMetricsObserverBrowserTest {
+ public:
+  PreloadServingMetricsPageLoadMetricsObserverPrefetchAheadOfPrerenderBrowserTest() {
+    feature_list_.InitWithFeaturesAndParameters(
+        {{features::kPrerender2FallbackPrefetchSpecRules, {}}}, {});
+  }
+
+ private:
+  base::test::ScopedFeatureList feature_list_;
+};
+
+// Verifies metrics recording for a navigation using prerender when prefetch
+// is served ahead of prerender.
+IN_PROC_BROWSER_TEST_F(
+    PreloadServingMetricsPageLoadMetricsObserverPrefetchAheadOfPrerenderBrowserTest,
+    PrerenderWithPrefetchAheadOfPrerender) {
+  base::HistogramTester histogram_tester;
+
+  GURL initial_url = https_server().GetURL("a.test", "/empty.html");
+  ASSERT_TRUE(ui_test_utils::NavigateToURL(browser(), initial_url));
+
+  GURL target_url = https_server().GetURL("a.test", "/title1.html");
+  prerender_helper().AddPrerender(target_url);
+
+  auto waiter = CreatePageLoadMetricsTestWaiter();
+  waiter->AddPageExpectation(
+      PageLoadMetricsTestWaiter::TimingField::kFirstContentfulPaint);
+  waiter->AddPageExpectation(
+      PageLoadMetricsTestWaiter::TimingField::kLargestContentfulPaint);
+  NavigateViaLinkClick(web_contents(), target_url);
+  waiter->Wait();
+
+  // Navigate away to flush PreloadServingMetrics.
+  ASSERT_TRUE(ui_test_utils::NavigateToURL(browser(), GURL("about:blank")));
+
+  histogram_tester.ExpectUniqueSample("PreloadServingMetrics.LinkClick.All",
+                                      2 /* kPrerender */, 1);
+
+  histogram_tester.ExpectTotalCount(
+      "PreloadServingMetrics.PageLoad.Clients.PaintTiming."
+      "NavigationToFirstContentfulPaint.LinkClick.All.All",
+      1);
+  histogram_tester.ExpectTotalCount(
+      "PreloadServingMetrics.PageLoad.Clients.PaintTiming."
+      "NavigationToFirstContentfulPaint.LinkClick.All.Prerender",
+      1);
+  histogram_tester.ExpectTotalCount(
+      "PreloadServingMetrics.PageLoad.Clients.PaintTiming."
+      "NavigationToFirstContentfulPaint.LinkClick.All.Prefetch",
+      0);
+
+  histogram_tester.ExpectTotalCount(
+      "PreloadServingMetrics.PageLoad.Clients.PaintTiming."
+      "NavigationToLargestContentfulPaint2.LinkClick.All.All",
+      1);
+  histogram_tester.ExpectTotalCount(
+      "PreloadServingMetrics.PageLoad.Clients.PaintTiming."
+      "NavigationToLargestContentfulPaint2.LinkClick.All.Prerender",
+      1);
+  histogram_tester.ExpectTotalCount(
+      "PreloadServingMetrics.PageLoad.Clients.PaintTiming."
+      "NavigationToLargestContentfulPaint2.LinkClick.All.Prefetch",
+      0);
+
+  // Ensure prefetch response and serving to prerender occurred.
+  histogram_tester.ExpectUniqueSample(
+      "PrefetchProxy.Prefetch.Mainframe.RespCode", 200, 1);
+  histogram_tester.ExpectTotalCount(
+      "Prefetch.BlockUntilHeadDuration.PerMatchingCandidate.Prerender.Served."
+      "SpeculationRule_Immediate2",
+      1);
 }

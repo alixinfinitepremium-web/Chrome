@@ -860,7 +860,8 @@ inline constexpr char kAutofillAndroidDesktopSuppressAccessoryOnEmptyName[] =
 inline constexpr char
     kAutofillAndroidDesktopSuppressAccessoryOnEmptyDescription[] =
         "When enabled, Autofill will suppress keyboard accessory when the form "
-        "field does not have any autofill suggestions.";
+        "field is not a username/password field and does not have any autofill "
+        "suggestions. ";
 
 inline constexpr char kAutofillEnableAutofillSettingsEnterprisePolicyName[] =
     "Enable Autofill settings enterprise policy";
@@ -1758,6 +1759,10 @@ inline constexpr char kGlicActorEnableScriptToolsName[] =
     "Glic actor script tools";
 inline constexpr char kGlicActorEnableScriptToolsDescription[] =
     "Enables script tools for the Glic actor.";
+inline constexpr char kGlicActorLocalhostIsSensitiveName[] =
+    "Treat localhost URLs as sensitive";
+inline constexpr char kGlicActorLocalhostIsSensitiveDescription[] =
+    "When enabled, treats localhost URLs as sensitive origins for the actor.";
 inline constexpr char kGlicActorTransientTasksName[] =
     "Glic actor transient tasks";
 inline constexpr char kGlicActorTransientTasksDescription[] =

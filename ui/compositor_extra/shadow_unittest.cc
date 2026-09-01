@@ -131,7 +131,7 @@ TEST_F(ShadowTest, AdjustElevationForSmallContents) {
   shadow.Init(kElevationLarge);
 
   // Test with corner radius 0.
-  shadow.SetRoundedCornerRadius(0);
+  shadow.SetRoundedCorners(gfx::RoundedCornersF());
   {
     gfx::Rect content_bounds(100, 100, 300, 300);
     shadow.SetContentBounds(content_bounds);
@@ -159,7 +159,7 @@ TEST_F(ShadowTest, AdjustElevationForSmallContents) {
   }
 
   // Test with default corner radius 2.
-  shadow.SetRoundedCornerRadius(2);
+  shadow.SetRoundedCorners(gfx::RoundedCornersF(2));
   {
     constexpr int kWidth = 80;
     gfx::Rect content_bounds(100, 100, kWidth, 300);
@@ -179,7 +179,7 @@ TEST_F(ShadowTest, AdjustElevationForSmallContents) {
   }
 
   // Test with pill shaped contents.
-  shadow.SetRoundedCornerRadius(40);
+  shadow.SetRoundedCorners(gfx::RoundedCornersF(40));
   {
     constexpr int kWidth = 80;
     gfx::Rect content_bounds(100, 100, kWidth, 300);
@@ -220,7 +220,7 @@ TEST_F(ShadowTest, AdjustRoundedCorners) {
   shadow.SetContentBounds(content_bounds);
   EXPECT_EQ(content_bounds, shadow.content_bounds());
 
-  shadow.SetRoundedCornerRadius(0);
+  shadow.SetRoundedCorners(gfx::RoundedCornersF());
   gfx::Rect shadow_bounds(content_bounds);
   shadow_bounds.Inset(InsetsForElevation(kElevationSmall));
   EXPECT_EQ(shadow_bounds, shadow.layer()->bounds());
@@ -233,7 +233,7 @@ TEST_F(ShadowTest, AdjustRoundedCorners) {
   EXPECT_EQ(GetNineboxImageSize(6, radii),
             shadow.details_for_testing()->nine_patch_image.size());
 
-  shadow.SetRoundedCornerRadius(150);
+  shadow.SetRoundedCorners(gfx::RoundedCornersF(150));
   EXPECT_EQ(GetNineboxImageSize(6, gfx::RoundedCornersF(150),
                                 /*is_pill_shaped=*/true),
             shadow.details_for_testing()->nine_patch_image.size());
@@ -269,7 +269,7 @@ TEST_F(ShadowTest, EvictUniquelyOwnedDetail) {
   {
     Shadow shadow_new;
     shadow_new.Init(kElevationUnique);
-    shadow_new.SetRoundedCornerRadius(2);
+    shadow_new.SetRoundedCorners(gfx::RoundedCornersF(2));
 
     const gfx::Size min_content_size = GetMinContentSize(kElevationUnique);
     shadow_new.SetContentBounds(gfx::Rect(min_content_size));
@@ -279,7 +279,7 @@ TEST_F(ShadowTest, EvictUniquelyOwnedDetail) {
     // Creating a shadow with the same detail won't increase the cache size.
     Shadow shadow_same;
     shadow_same.Init(kElevationUnique);
-    shadow_same.SetRoundedCornerRadius(2);
+    shadow_same.SetRoundedCorners(gfx::RoundedCornersF(2));
     shadow_same.SetContentBounds(
         gfx::Rect(gfx::Point(10, 10), min_content_size + gfx::Size(50, 50)));
     // The cache size is unchanged.
@@ -293,26 +293,26 @@ TEST_F(ShadowTest, EvictUniquelyOwnedDetail) {
     // detail.
     Shadow shadow_small;
     shadow_small.Init(kElevationSmall);
-    shadow_small.SetRoundedCornerRadius(2);
+    shadow_small.SetRoundedCorners(gfx::RoundedCornersF(2));
     shadow_small.SetContentBounds(
         gfx::Rect(GetMinContentSize(kElevationSmall)));
     EXPECT_EQ(2u, gfx::ShadowDetails::GetDetailsCacheSizeForTest());
 
     // Changing the shadow appearance will insert a new detail in the cache and
     // make the old detail uniquely owned.
-    shadow_small.SetRoundedCornerRadius(3);
+    shadow_small.SetRoundedCorners(gfx::RoundedCornersF(3));
     EXPECT_EQ(3u, gfx::ShadowDetails::GetDetailsCacheSizeForTest());
 
     // Changing the shadow with another appearance will replace the uniquely
     // owned detail.
-    shadow_small.SetRoundedCornerRadius(4);
+    shadow_small.SetRoundedCorners(gfx::RoundedCornersF(4));
     EXPECT_EQ(3u, gfx::ShadowDetails::GetDetailsCacheSizeForTest());
 
     // Changing the shadow to be pill shaped will replace the uniquely owned
     // detail.
     shadow_small.SetContentBounds(gfx::Rect(GetMinContentSize(
         kElevationSmall, gfx::RoundedCornersF(14), /*is_pill_shaped=*/true)));
-    shadow_small.SetRoundedCornerRadius(14);
+    shadow_small.SetRoundedCorners(gfx::RoundedCornersF(14));
     EXPECT_EQ(3u, gfx::ShadowDetails::GetDetailsCacheSizeForTest());
   }
 
@@ -323,7 +323,7 @@ TEST_F(ShadowTest, EvictUniquelyOwnedDetail) {
   // After inserting a new detail, the uniquely owned details will be evicted.
   Shadow shadow_large;
   shadow_large.Init(kElevationLarge);
-  shadow_large.SetRoundedCornerRadius(2);
+  shadow_large.SetRoundedCorners(gfx::RoundedCornersF(2));
   shadow_large.SetContentBounds(gfx::Rect(GetMinContentSize(kElevationLarge)));
   // The cache size is unchanged.
   EXPECT_EQ(1u, gfx::ShadowDetails::GetDetailsCacheSizeForTest());
@@ -354,9 +354,10 @@ INSTANTIATE_TEST_SUITE_P(
 
 // Tests the shadow colors are updated when setting elevation to colors map.
 TEST_P(ShadowColorTest, ElevationToColorsMap) {
+  using ElevationColors = Shadow::ElevationColors;
   Shadow shadow;
   shadow.Init(kElevationSmall);
-  shadow.SetShadowStyle(GetParam());
+  shadow.SetStyle(GetParam());
   // Set the content bounds which is big enough for the large elevation.
   shadow.SetContentBounds(gfx::Rect(GetMinContentSize(kElevationLarge)));
 
@@ -372,33 +373,32 @@ TEST_P(ShadowColorTest, ElevationToColorsMap) {
   const SkColor large_ambient_color = SkColorSetA(SK_ColorYELLOW, 0x26);
   Shadow::ElevationToColorsMap color_map;
   color_map[kElevationSmall] =
-      std::make_pair(small_key_color, small_ambient_color);
+      ElevationColors{small_key_color, small_ambient_color};
   color_map[kElevationLarge] =
-      std::make_pair(large_key_color, large_ambient_color);
-  shadow.SetElevationToColorsMap(color_map);
+      ElevationColors{large_key_color, large_ambient_color};
+  shadow.SetColorMap(color_map);
 
   // A lambda to get key and ambient shadow colors.
-  auto get_colors =
-      [](const ui::Shadow& shadow) -> std::pair<SkColor, SkColor> {
+  auto get_colors = [](const ui::Shadow& shadow) -> ElevationColors {
     const auto& values = shadow.details_for_testing()->values;
-    return std::make_pair(values[0].color(), values[1].color());
+    return ElevationColors{values[0].color(), values[1].color()};
   };
 
   // Check if shadow colors are updated.
-  EXPECT_THAT(get_colors(shadow),
-              FieldsAre(small_key_color, small_ambient_color));
+  EXPECT_EQ(get_colors(shadow),
+            (ElevationColors{small_key_color, small_ambient_color}));
 
   // Check if shadow colors are updated when the shadow changes to another
   // specified elevation.
   shadow.SetElevation(kElevationLarge);
-  EXPECT_THAT(get_colors(shadow),
-              FieldsAre(large_key_color, large_ambient_color));
+  EXPECT_EQ(get_colors(shadow),
+            (ElevationColors{large_key_color, large_ambient_color}));
 
   // Check if the shadow colors change back to default colors when the shadow
   // changes to a non-specified elevation.
   shadow.SetElevation(kElevationSmall + 1);
-  EXPECT_THAT(get_colors(shadow),
-              FieldsAre(default_key_color, default_ambient_color));
+  EXPECT_EQ(get_colors(shadow),
+            (ElevationColors{default_key_color, default_ambient_color}));
 }
 
 }  // namespace

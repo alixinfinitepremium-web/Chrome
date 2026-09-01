@@ -127,7 +127,6 @@ tast.inputs.VirtualKeyboardTypingUserMode.guest
 tast.inputs.InputMethodManagement.guest
 
 # b/451624782
-tast.secagentd.NetworkEvents.relaxed_icmp@chromeos-betty-cfi-thin-lto-chrome
 tast.secagentd.NetworkEvents.relaxed_udp@chromeos-betty-cfi-thin-lto-chrome
 
 # b/488388275
@@ -138,8 +137,5 @@ tast.hwsec.CrossVersionChromeLogin.ti50_r112
 tast.hwsec.CrossVersionChromeLogin.ti50_r114
 tast.hwsec.CrossVersionChromeLogin.ti50_r120
 tast.hwsec.CrossVersionChromeLogin.ti50_r125
-
-# b/539379110
-tast.cryptohome.UssMigrationChallengeCredential.rsassa_all
 
 # READ COMMENT AT TOP BEFORE ADDING NEW TESTS HERE.
