@@ -337,11 +337,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': 'f9f9e9001c0c51546a5e5fceeb1ac20ced0912c4',
+  'src_internal_revision': '6e85895543b9de2ccf98d245b532c49b122a0077',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '47df2ae3226c179ac79dc11e53fb8aeaf2ad9693',
+  'skia_revision': '6be7f8547c3c0843762d54153e88791d05135343',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -349,7 +349,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '30e6caa5f6be2a5ee1a931573887012c78aa4a80',
+  'angle_revision': 'd80bb21cc0cfdbf2645792b0542c30cc61365791',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -401,7 +401,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': '8382e5d0708e4cd5b9c600430a7ed70c9896323b',
+  'crossbench_revision': '4db7fce6cebd7b4b589c1de2ab7fc42a270856a4',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -421,7 +421,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '7e1411dd1eaa5357ea3bf8e62c19eff14a71be86',
+  'devtools_frontend_revision': '48b228da1d5c1cfb57c3e0919e04f1bca0c1db42',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -445,7 +445,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': '8f25b9c7064ae89802c8db4e7daab9d1fd3e77ca',
+  'dawn_revision': '44c91d06ec8ce50e764b3393a94947453d9cd327',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -470,6 +470,10 @@ vars = {
   # the commit queue can handle CLs rolling jetstream-v2.2
   # and whatever else without interference from each other.
   'jetstream_2.2_revision': '2145cedef4ca2777b792cb0059d3400ee2a6153c',
+  # Three lines of non-changing comments so that
+  # the commit queue can handle CLs rolling jetstream-v3.0
+  # and whatever else without interference from each other.
+  'jetstream_3.0_revision': '06785cf861ac44855f168cbbe829278c2802e6de',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling wuffs
   # and whatever else without interference from each other.
@@ -1224,10 +1228,10 @@ deps = {
     'condition': 'checkout_gpu_meet_effects and non_git_source',
     'objects': [
       {
-        'object_name': 'meet-gpu-tests/973638191.tar.gz',
-        'sha256sum': 'c5129647bbb079956fed33e0810c2e6577f346eb0e841468faaadaccf3a90071',
-        'size_bytes': 278369924,
-        'generation': 1788166336177310,
+        'object_name': 'meet-gpu-tests/974251295.tar.gz',
+        'sha256sum': '6456021fc86a7345ae21c5eb9347fe2fb25045cf0b3301de842065b22ad07ca7',
+        'size_bytes': 278370153,
+        'generation': 1788252534284595,
       },
     ],
   },
@@ -1758,7 +1762,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '6eb339e32ddb1430d40bb654501cd961694be902',
+    '90c5f49da9eb74e6f6738776527e1e881a224305',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -2561,6 +2565,11 @@ deps = {
 
   'src/third_party/jetstream/v2.2': {
     'url': Var('chromium_git') + '/external/github.com/WebKit/JetStream.git' + '@' + Var('jetstream_2.2_revision'),
+    'condition': 'checkout_press_benchmarks',
+  },
+
+  'src/third_party/jetstream/v3.0': {
+    'url': Var('chromium_git') + '/external/github.com/WebKit/JetStream.git' + '@' + Var('jetstream_3.0_revision'),
     'condition': 'checkout_press_benchmarks',
   },
 
@@ -4099,7 +4108,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '8a91bfd1ae46f5c93f72b1bebcaa2038e8df9814',
+        'be057be6e5afd1cc859421837dc34046e8f3f091',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 

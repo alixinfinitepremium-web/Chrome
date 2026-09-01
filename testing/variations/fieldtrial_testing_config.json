@@ -11008,7 +11008,9 @@
                 {
                     "name": "Enabled",
                     "enable_features": [
-                        "ComposeboxDriveContextMenuOption"
+                        "ComposeboxConnectedAppsSetting",
+                        "ComposeboxDriveContextMenuOption",
+                        "ComposeboxDriveContextMenuOptionDisclaimer"
                     ]
                 }
             ]
@@ -14381,7 +14383,35 @@
             ]
         }
     ],
-    "OptimisticDNSForTCP": [
+    "OptimisticDnsForQuic": [
+        {
+            "platforms": [
+                "android",
+                "android_webview",
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "params": {
+                        "QuicSlowTimerDelay": "100ms",
+                        "QuicSlowTimerMax": "1500ms",
+                        "QuicSlowTimerMin": "50ms",
+                        "QuicSlowTimerRTTMultiplier": "1.5"
+                    },
+                    "enable_features": [
+                        "AdjustQuicSlowTimerDelay",
+                        "OptimisticDnsForQuic",
+                        "QuicSlowTimerBasedOnRTT"
+                    ]
+                }
+            ]
+        }
+    ],
+    "OptimisticDnsForTcp": [
         {
             "platforms": [
                 "android",
@@ -16164,6 +16194,7 @@
                 {
                     "name": "Enabled_20260320",
                     "enable_features": [
+                        "ApplySearchEngineTypeMigration",
                         "PrepopulatedEnginesMigration"
                     ]
                 }
@@ -20657,6 +20688,26 @@
                     },
                     "disable_features": [
                         "WebContentsDiscard"
+                    ]
+                }
+            ]
+        }
+    ],
+    "WebGLMemoryExperiments": [
+        {
+            "platforms": [
+                "android",
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled_20260828",
+                    "enable_features": [
+                        "OffscreenCanvasPropagateVisibility",
+                        "WebGLDiscardBackBuffer"
                     ]
                 }
             ]
