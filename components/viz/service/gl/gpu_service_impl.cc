@@ -117,8 +117,8 @@
 #endif
 
 #if BUILDFLAG(ENABLE_VULKAN)
-#include "components/viz/common/gpu/vulkan_context_provider.h"
-#include "components/viz/common/gpu/vulkan_in_process_context_provider.h"
+#include "gpu/command_buffer/service/vulkan_context_provider.h"
+#include "gpu/command_buffer/service/vulkan_in_process_context_provider.h"
 #endif
 
 #if BUILDFLAG(IS_OZONE)
@@ -249,7 +249,7 @@ GpuServiceImpl::GpuServiceImpl(
 
     // If GL is using a real GPU, the gpu_info will be passed in and vulkan will
     // use the same GPU.
-    vulkan_context_provider_ = VulkanInProcessContextProvider::Create(
+    vulkan_context_provider_ = gpu::VulkanInProcessContextProvider::Create(
         vulkan_implementation_, gpu_preferences_.vulkan_heap_memory_limit,
         gpu_preferences_.vulkan_sync_cpu_memory_limit, is_thread_safe,
         (is_native_vulkan && is_native_gl) ? &gpu_info_ : nullptr);
@@ -1048,23 +1048,6 @@ void GpuServiceImpl::WakeUpGpuOnMainThread() {
     NOTREACHED() << "WakeUpGpu() not supported on this platform.";
 #endif
   }
-}
-
-void GpuServiceImpl::GpuSwitched() {
-  if (!main_runner_->BelongsToCurrentThread()) {
-    main_runner_->PostTask(
-        FROM_HERE, base::BindOnce(&GpuServiceImpl::GpuSwitched, weak_ptr_));
-    return;
-  }
-  DVLOG(1) << "GPU: GPU has switched";
-
-  if (watchdog_thread_)
-    watchdog_thread_->ReportProgress();
-
-  if (!in_host_process()) {
-    ui::GpuSwitchingManager::GetInstance()->NotifyGpuSwitched();
-  }
-  GpuServiceImpl::UpdateGPUInfoGL();
 }
 
 void GpuServiceImpl::DisplayAdded() {

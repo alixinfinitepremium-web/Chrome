@@ -609,6 +609,7 @@ public abstract class ChromeFeatureList {
     public static final String INLINE_PDF_V2 = "InlinePdfV2";
     public static final String INLINE_PDF_V2_DOWNLOAD = "InlinePdfV2Download";
     public static final String INLINE_PDF_V2_INCOGNITO = "InlinePdfV2Incognito";
+    public static final String IN_APP_UPDATE_FLOW = "InAppUpdateFlow";
     public static final String IN_APP_WINDOW_MANAGER_DEPRECATION = "InAppWindowManagerDeprecation";
     public static final String KEYBOARD_ESC_BACK_NAVIGATION = "KeyboardEscBackNavigation";
     public static final String LAUNCH_CAUSE_SCREEN_OFF_FIX = "LaunchCauseScreenOffFix";
@@ -1441,7 +1442,7 @@ public abstract class ChromeFeatureList {
     public static final CachedFlag sUseLibunwindstackNativeUnwinderAndroid =
             newCachedFlag(USE_LIBUNWINDSTACK_NATIVE_UNWINDER_ANDROID, true);
     public static final CachedFlag sUseWebUiNtpAndroid =
-            newCachedFlag(USE_WEB_UI_NTP_ANDROID, BuildConfig.IS_DESKTOP_ANDROID);
+            newCachedFlag(USE_WEB_UI_NTP_ANDROID, false);
     public static final CachedFlag sVirtualKeyboardResizesContentTransientOvershootFix =
             newCachedFlag(VIRTUAL_KEYBOARD_RESIZES_CONTENT_TRANSIENT_OVERSHOOT_FIX, true);
     public static final CachedFlag sVirtualKeyboardTransientInnerHeightFix =
@@ -1454,7 +1455,7 @@ public abstract class ChromeFeatureList {
                     /* defaultValue= */ false,
                     /* defaultValueInTests= */ true);
     public static final CachedFlag sWebUiAndroidTheming =
-            newCachedFlag(WEB_UI_ANDROID_THEMING, BuildConfig.IS_DESKTOP_ANDROID);
+            newCachedFlag(WEB_UI_ANDROID_THEMING, false);
     // keep-sorted end
 
     public static final List<CachedFlag> sFlagsCachedFullBrowser =

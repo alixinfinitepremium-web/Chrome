@@ -830,6 +830,7 @@ export class OmniboxPopupSearchboxElement extends
    * focus.
    */
   private onSetInputState_(state: OmniboxInputState) {
+    const isTabSwitch = this.tabId_ !== state.tabId;
     this.$.input.setInputText(state.text);
     this.userInputInProgress_ = state.userInputInProgress;
     this.hasUserInput_ = !!state.text.trim();
@@ -843,9 +844,9 @@ export class OmniboxPopupSearchboxElement extends
     this.lastInputText_ = state.text;
     this.lastInputSelection_ = state.selection;
     // Clear edit history and set baseline text on hard state resets (e.g. tab
-    // switch, revert), but preserve active edit history if the user is in the
-    // middle of typing when state handoff IPC arrives.
-    if (!state.userInputInProgress || !this.userInputInProgress_) {
+    // switch, revert), but preserve active edit history if an IPC arrives
+    // while the user is actively typing in the same tab.
+    if (isTabSwitch || !state.userInputInProgress) {
       this.textfieldModel_.setInitialText(state.text, state.selection);
     }
     this.updateEditHistoryState_();
@@ -1239,15 +1240,17 @@ export class OmniboxPopupSearchboxElement extends
       return;
     }
 
-    if (e.key === 'Tab' && this.$.input === this.shadowRoot?.activeElement) {
+    if (!this.virtualFocusEnabled && e.key === 'Tab' &&
+        this.$.input === this.shadowRoot?.activeElement) {
       if (!e.shiftKey &&
           this.keywordModeManager.acceptTab(
-              this.selectedMatch, this.selectedMatchIndex)) {
+              this.selectedMatch, this.matchIndex)) {
         e.preventDefault();
         return;
       }
-      this.acceptInlineAutocomplete(e);
-      return;
+      if (this.acceptInlineAutocomplete(e)) {
+        return;
+      }
     }
 
     super.handleKeyNavigation(e);

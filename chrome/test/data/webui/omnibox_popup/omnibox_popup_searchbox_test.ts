@@ -93,6 +93,46 @@ suite('OmniboxPopupSearchboxTest', function() {
     assertEquals(1, testProxy.handler.getCallCount('stopAutocomplete'));
   });
 
+  test('ResetsEditHistoryOnTabSwitch', async () => {
+    // Initial state on Tab 1.
+    callbackRouter.setInputState(createDefaultOmniboxInputState({
+      tabId: 1,
+      text: 'tab 1 draft',
+      userInputInProgress: true,
+    }));
+    await microtasksFinished();
+    handler.reset();
+
+    // Simulate typing in Tab 1 to create undo history.
+    searchbox.$.input.dispatchEvent(
+        new CustomEvent('searchbox-input-text-updated', {
+          bubbles: true,
+          composed: true,
+          detail: {value: 'tab 1 draft edited', isComposing: false},
+        }));
+    await microtasksFinished();
+
+    // Verify edit history has undoable edits on Tab 1.
+    let [canUndo, canRedo] = await handler.whenCalled('setEditHistoryState');
+    assertTrue(canUndo);
+    assertFalse(canRedo);
+    handler.resetResolver('setEditHistoryState');
+
+    // Switch to Tab 2 with an in-progress draft.
+    callbackRouter.setInputState(createDefaultOmniboxInputState({
+      tabId: 2,
+      text: 'tab 2 draft',
+      userInputInProgress: true,
+    }));
+    await microtasksFinished();
+
+    // Tab 2 must have its edit history reset, preventing Tab 1 edits from
+    // leaking.
+    [canUndo, canRedo] = await handler.whenCalled('setEditHistoryState');
+    assertFalse(canUndo);
+    assertFalse(canRedo);
+  });
+
   test('EnterKeySubmitsVerbatimMatchWhenNoMatchSelected', async () => {
     callbackRouter.setInputState(createDefaultOmniboxInputState({
       text: 'chrome://version',
@@ -2300,5 +2340,42 @@ suite('OmniboxPopupSearchboxTest', function() {
    assertFalse(isVisible(composeButton));
    assertEquals(
        'temporary text', searchbox.getInputElement().inputElement.value);
+ });
+
+ test('TabKeyWithVirtualFocusNavigatesToKeywordChip', async () => {
+   loadTimeData.overrideValues({realboxVirtualFocusNavigation: true});
+   searchbox.virtualFocusEnabled = true;
+
+   const match = createSearchMatchForTesting({
+     allowedToBeDefaultMatch: true,
+     fillIntoEdit: 'youtube.com',
+     keywordModel: createMatchKeywordModelForTesting({
+       type: KeywordType.kChip,
+       keyword: 'youtube.com',
+       chipHint: 'Search YouTube',
+     }),
+   });
+   searchbox.activeQueryId = 0;
+   searchbox.onAutocompleteResultChanged(createAutocompleteResultForTesting({
+     queryId: 0,
+     input: 'youtube.com',
+     matches: [match],
+   }));
+   await microtasksFinished();
+
+   searchbox.focusInput();
+   const tabEvent = new KeyboardEvent('keydown', {
+     key: 'Tab',
+     cancelable: true,
+     bubbles: true,
+   });
+   await searchbox.handleKeyNavigation(tabEvent);
+   await microtasksFinished();
+
+   assertEquals(0, searchbox.selection.line);
+   assertEquals(SelectionLineState.kKeywordMode, searchbox.selection.state);
+   assertTrue(searchbox.keywordModeManager.isInKeywordMode);
+   assertEquals('youtube.com', searchbox.inputKeywordModel?.keyword);
+   assertEquals('', searchbox.getInputElement().inputElement.value);
  });
 });

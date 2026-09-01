@@ -1081,12 +1081,6 @@ inline constexpr char kContextMenuAnimationLimitingDescription[] =
     "When enabled, the impressions of the context menu animation "
     "will be limited.";
 
-inline constexpr char kAutofillEnableDownstreamCardAwarenessIphName[] =
-    "Enable showing in-product help UI for downstream card awareness";
-inline constexpr char kAutofillEnableDownstreamCardAwarenessIphDescription[] =
-    "When enabled, in-product help UI will be shown the first time a card "
-    "added outside of Chrome appears in Autofill card suggestions.";
-
 inline constexpr char kAutofillEnableEwalletNewAccountLinkingName[] =
     "Enable eWallet New Account Linking";
 inline constexpr char kAutofillEnableEwalletNewAccountLinkingDescription[] =
@@ -5773,6 +5767,10 @@ inline constexpr char kEdgeToEdgeAutomotiveDescription[] =
 inline constexpr char kHomeButtonRemovalName[] = "Home Button Removal";
 inline constexpr char kHomeButtonRemovalDescription[] =
     "Enables the Home Button Removal feature.";
+
+inline constexpr char kInAppUpdateFlowName[] = "In-App Updates flow";
+inline constexpr char kInAppUpdateFlowDescription[] =
+    "Enables Google Play In-App Updates flow on Android.";
 
 inline constexpr char kLongScreenshotsNoMemoryCheckName[] =
     "Long Screenshots No Memory Check";

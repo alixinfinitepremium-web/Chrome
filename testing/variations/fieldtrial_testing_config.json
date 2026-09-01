@@ -2325,6 +2325,24 @@
             ]
         }
     ],
+    "AutofillEnableOmniboxAutofill": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "AutofillEnableOmniboxAutofill"
+                    ]
+                }
+            ]
+        }
+    ],
     "AutofillEnablePayNowPayLaterTabs": [
         {
             "platforms": [
@@ -5626,24 +5644,6 @@
                     "enable_features": [
                         "ContextManagementInComposebox",
                         "ContextManagementInOmnibox"
-                    ]
-                }
-            ]
-        }
-    ],
-    "ContextMenuAnimationLimiting": [
-        {
-            "platforms": [
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled_20260421",
-                    "enable_features": [
-                        "ContextMenuAnimationLimiting"
                     ]
                 }
             ]
@@ -12798,23 +12798,6 @@
             ]
         }
     ],
-    "MacOptimizeCachedFirstRect": [
-        {
-            "platforms": [
-                "mac"
-            ],
-            "experiments": [
-                {
-                    "name": "EnabledAll_20260508",
-                    "enable_features": [
-                        "CachedFirstRectAllowInvalidSelection",
-                        "CachedFirstRectAllowRangeOutsideSelection",
-                        "CachedFirstRectMoreSelectionFallbacks"
-                    ]
-                }
-            ]
-        }
-    ],
     "MachIPCVouchersHoldback": [
         {
             "platforms": [
@@ -16870,21 +16853,6 @@
             ]
         }
     ],
-    "RecoverTabsOfLastClosedWindow": [
-        {
-            "platforms": [
-                "ios"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "RecoverTabsOfLastClosedWindow"
-                    ]
-                }
-            ]
-        }
-    ],
     "RedWarningSurvey": [
         {
             "platforms": [
@@ -19121,6 +19089,24 @@
             ]
         }
     ],
+    "ThemeChangeOptimization": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "ThemeChangeOptimization"
+                    ]
+                }
+            ]
+        }
+    ],
     "ThreadPoolForegroundBlockingTimeouts": [
         {
             "platforms": [
@@ -19183,21 +19169,6 @@
                     "name": "Enabled",
                     "enable_features": [
                         "ThrottleMainFrameTo60HzDesktopAndroid"
-                    ]
-                }
-            ]
-        }
-    ],
-    "ThrottleResizeIpc": [
-        {
-            "platforms": [
-                "mac"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "ThrottleResizeIpc"
                     ]
                 }
             ]

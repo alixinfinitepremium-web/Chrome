@@ -7718,6 +7718,9 @@ const FeatureEntry kFeatureEntries[] = {
      FEATURE_VALUE_TYPE(segmentation_platform::features::
                             kSegmentationPlatformAndroidHomeModuleRankerV2)},
 
+    {"in-app-update-flow", flag_descriptions::kInAppUpdateFlowName,
+     flag_descriptions::kInAppUpdateFlowDescription, kOsAndroid,
+     FEATURE_VALUE_TYPE(chrome::android::kInAppUpdateFlow)},
     {"in-app-window-manager-deprecation",
      flag_descriptions::kInAppWindowManagerDeprecationName,
      flag_descriptions::kInAppWindowManagerDeprecationDescription, kOsAndroid,
@@ -11877,16 +11880,7 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kLensOverlayPermissionBubbleAltName,
      flag_descriptions::kLensOverlayPermissionBubbleAltDescription, kOsDesktop,
      FEATURE_VALUE_TYPE(lens::features::kLensOverlayPermissionBubbleAlt)},
-#endif  // !BUILDFLAG(IS_ANDROID)
 
-    {"autofill-enable-downstream-card-awareness-iph",
-     flag_descriptions::kAutofillEnableDownstreamCardAwarenessIphName,
-     flag_descriptions::kAutofillEnableDownstreamCardAwarenessIphDescription,
-     kOsDesktop,
-     FEATURE_VALUE_TYPE(
-         autofill::features::kAutofillEnableDownstreamCardAwarenessIph)},
-
-#if !BUILDFLAG(IS_ANDROID)
     {"enable-ntp-browser-promos",
      flag_descriptions::kEnableNtpBrowserPromosName,
      flag_descriptions::kEnableNtpBrowserPromosDescription, kOsDesktop,

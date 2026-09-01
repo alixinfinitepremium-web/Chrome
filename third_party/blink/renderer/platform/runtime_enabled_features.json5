@@ -3979,7 +3979,7 @@
     {
       // CSS margin-trim property: https://drafts.csswg.org/css-box-4/#margin-trim
       name: "MarginTrim",
-      status: "experimental",
+      status: "stable",
     },
     {
       name: "MaskDeserializationTimeForCrossOriginMessages",
@@ -5143,10 +5143,6 @@
     },
     {
       name: "RequestIsReloadNavigation",
-      status: "stable",
-    },
-    {
-      name: "RequestMainFrameAfterFirstVideoFrame",
       status: "stable",
     },
     {

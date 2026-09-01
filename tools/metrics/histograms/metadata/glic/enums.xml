@@ -467,7 +467,7 @@ chromium-metrics-reviews@google.com.
   <int value="104" label="OpenPinnedTabPicker"/>
 </enum>
 
-<!-- LINT.ThenChange(//chrome/browser/resources/glic/glic_api_impl/request_types.ts:ApiRequestType) -->
+<!-- LINT.ThenChange(//chrome/browser/glic/public/glic_api_metrics.h:GlicHostApiRequestId) -->
 
 <!-- LINT.IfChange(GlicHotkeyUsage) -->
 
@@ -1478,7 +1478,7 @@ chromium-metrics-reviews@google.com.
   <int value="2" label="AutoPlay granted for other RFH"/>
 </enum>
 
-<!-- LINT.ThenChange(//chrome/browser/glic/host/guest_util.cc:WebViewAutoPlayProgress) -->
+<!-- LINT.ThenChange(//chrome/browser/glic/host/glic_guest_observer.cc:WebViewAutoPlayProgress) -->
 
 </enums>
 

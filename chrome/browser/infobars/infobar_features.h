@@ -18,11 +18,14 @@ BASE_DECLARE_FEATURE(kCentralizedInfoBarFramework);
 
 BASE_DECLARE_FEATURE_PARAM(bool, kEnableAll);
 BASE_DECLARE_FEATURE_PARAM(bool, kMigratedAutomation);
+BASE_DECLARE_FEATURE_PARAM(bool, kMigratedBadFlags);
 BASE_DECLARE_FEATURE_PARAM(bool, kMigratedCollectedCookies);
 BASE_DECLARE_FEATURE_PARAM(bool, kMigratedDefaultBrowser);
+BASE_DECLARE_FEATURE_PARAM(bool, kMigratedDevToolsConfirm);
 BASE_DECLARE_FEATURE_PARAM(bool, kMigratedDevToolsSharedProcess);
 BASE_DECLARE_FEATURE_PARAM(bool, kMigratedGoogleApiKeys);
 BASE_DECLARE_FEATURE_PARAM(bool, kMigratedInstallerDownloader);
+BASE_DECLARE_FEATURE_PARAM(bool, kMigratedKeystonePromotion);
 BASE_DECLARE_FEATURE_PARAM(bool, kMigratedKnownInterceptionDisclosure);
 BASE_DECLARE_FEATURE_PARAM(bool, kMigratedLinkCapturing);
 BASE_DECLARE_FEATURE_PARAM(bool, kMigratedPageInfo);

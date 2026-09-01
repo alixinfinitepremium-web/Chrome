@@ -610,6 +610,12 @@ inline constexpr char kDefaultBrowserPictureInPictureDescription[] =
     "When enabled, default browser instructions will be displayed in "
     "picture-in-picture format over the iOS settings.";
 
+inline constexpr char kDefaultBrowserPipTextVideoName[] =
+    "Default Browser PiP Text Video";
+inline constexpr char kDefaultBrowserPipTextVideoDescription[] =
+    "When enabled, displays a text video in the default browser "
+    "picture-in-picture instead of the current one.";
+
 inline constexpr char kDefaultBrowserPromoIpadInstructionsName[] =
     "Default Browser Promo iPad Instructions";
 inline constexpr char kDefaultBrowserPromoIpadInstructionsDescription[] =
@@ -897,11 +903,6 @@ inline constexpr char kGeminiAureusName[] = "Gemini Aureus";
 inline constexpr char kGeminiAureusDescription[] =
     "Enables Project Aureus quota enforcement and usage limits for Gemini.";
 
-inline constexpr char kGeminiBackendMigrationName[] =
-    "Gemini Backend Migration";
-inline constexpr char kGeminiBackendMigrationDescription[] =
-    "Enables the backend migration for Gemini.";
-
 inline constexpr char kGeminiBinaryMigrationName[] = "Gemini Binary Migration";
 inline constexpr char kGeminiBinaryMigrationDescription[] =
     "Enables the binary network migration for Gemini.";
@@ -973,11 +974,6 @@ inline constexpr char kGeminiPreciseLocationDescription[] =
 inline constexpr char kGeminiQuizzesName[] = "GeminiQuizzes";
 inline constexpr char kGeminiQuizzesDescription[] =
     "Enables the GeminiQuizzes feature.";
-
-inline constexpr char kGeminiRichAPCExtractionName[] =
-    "Gemini Rich APC Extraction";
-inline constexpr char kGeminiRichAPCExtractionDescription[] =
-    "Enables rich APC extraction for Gemini.";
 
 inline constexpr char kGeminiScreenContextMigrationName[] =
     "Gemini Screen Context Migration";
@@ -1851,12 +1847,6 @@ inline constexpr char kSearchEngineChoiceScreenSnackbarName[] =
     "Search Engine Choice Screen Snackbar";
 inline constexpr char kSearchEngineChoiceScreenSnackbarDescription[] =
     "Enables a snackbar after the search engine choice screen.";
-
-inline constexpr char kSegmentationPlatformEphemeralCardRankerName[] =
-    "Enable Segmentation Ranking for Ephemeral Cards";
-inline constexpr char kSegmentationPlatformEphemeralCardRankerDescription[] =
-    "Enables the segmentation platform to rank ephemeral cards in the Magic "
-    "Stack";
 
 inline constexpr char kSendTabToSelfEnhancedHandoffName[] =
     "Send Tab To Self enhanced handoff";

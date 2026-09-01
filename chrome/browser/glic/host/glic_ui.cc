@@ -19,6 +19,8 @@
 #include "chrome/browser/glic/glic_pref_names.h"
 #include "chrome/browser/glic/host/auth_controller.h"
 #include "chrome/browser/glic/host/glic_internals_page_handler.h"
+#include "chrome/browser/glic/host/glic_internals_ui.h"
+#include "chrome/browser/glic/host/glic_overlay_ui.h"
 #include "chrome/browser/glic/host/glic_page_handler.h"
 #include "chrome/browser/glic/host/glic_web_client_manager.h"
 #include "chrome/browser/glic/host/guest_source.h"
@@ -167,8 +169,14 @@ bool GlicUIConfig::IsWebUIEnabled(content::BrowserContext* browser_context) {
 std::unique_ptr<content::WebUIController> GlicUIConfig::CreateWebUIController(
     content::WebUI* web_ui,
     const GURL& url) {
-  return content::DefaultWebUIConfig<GlicUI>::CreateWebUIController(web_ui,
-                                                                    url);
+  std::string_view path = url.path();
+  if (path == "/internals" || path.starts_with("/internals/")) {
+    return std::make_unique<GlicInternalsUI>(web_ui);
+  }
+  if (path == "/overlay" || path.starts_with("/overlay/")) {
+    return std::make_unique<GlicOverlayUI>(web_ui);
+  }
+  return std::make_unique<GlicUI>(web_ui);
 }
 
 GlicUI::GlicUI(content::WebUI* web_ui)
@@ -258,6 +266,8 @@ GlicUI::GlicUI(content::WebUI* web_ui)
   // Setup chrome://glic/internals debug UI.
   source->AddResourcePath("internals/", IDR_GLIC_INTERNALS_GLIC_INTERNALS_HTML);
   source->AddResourcePath("internals", IDR_GLIC_INTERNALS_GLIC_INTERNALS_HTML);
+  source->AddResourcePath("overlay/", IDR_GLIC_GLIC_OVERLAY_HTML);
+  source->AddResourcePath("overlay", IDR_GLIC_GLIC_OVERLAY_HTML);
 
   // Add localized strings.
   source->AddLocalizedStrings(kStrings);
@@ -353,7 +363,9 @@ GlicUI::GlicUI(content::WebUI* web_ui)
       "enableStructuredYieldMetadata",
       base::FeatureList::IsEnabled(features::kGlicStructuredYieldMetadata));
 
-  web_client_manager_ = std::make_unique<GlicWebClientManager>();
+  if (!base::FeatureList::IsEnabled(features::kGlicNoWebview)) {
+    web_client_manager_ = std::make_unique<GlicWebClientManager>();
+  }
 }
 
 WEB_UI_CONTROLLER_TYPE_IMPL(GlicUI)
@@ -399,6 +411,9 @@ void GlicUI::BindInterface(
 }
 
 void GlicUI::AttachToHost(Host* host) {
+  // GlicUI should not be attached to Host in NoWebview mode, where
+  // NoWebviewContentsContainerImpl owns and manages the web client.
+  CHECK(web_client_manager_);
   if (host_) {
     // This might be called multiple times, but it's not allowed to change the
     // attached host.
@@ -408,23 +423,11 @@ void GlicUI::AttachToHost(Host* host) {
   CHECK(host);
   host_ = host;
   web_client_manager_->AttachToHost(host);
-  if (pending_web_client_receiver_) {
-    host->CreateWebClient(std::move(pending_web_client_receiver_));
-  }
   if (pending_receiver_.is_valid()) {
     page_handler_ = std::make_unique<GlicPageHandler>(
         web_ui()->GetWebContents(), host, std::move(pending_receiver_),
         std::move(pending_page_));
     std::move(pending_callback_).Run(host->GetInstanceId().value());
-  }
-}
-
-void GlicUI::SetPendingWebClientReceiver(
-    mojo::PendingReceiver<glic::mojom::WebClientHandler> receiver) {
-  if (host_) {
-    host_->CreateWebClient(std::move(receiver));
-  } else {
-    pending_web_client_receiver_ = std::move(receiver);
   }
 }
 
@@ -447,9 +450,6 @@ void GlicUI::CreatePageHandler(
   }
   page_handler_ = std::make_unique<GlicPageHandler>(
       web_ui()->GetWebContents(), host_, std::move(receiver), std::move(page));
-  if (pending_web_client_receiver_) {
-    host_->CreateWebClient(std::move(pending_web_client_receiver_));
-  }
   std::move(callback).Run(host_->GetInstanceId().value());
 }
 
@@ -470,7 +470,7 @@ void GlicUI::CreatePreloadHandler(
       web_ui()->GetWebContents()->GetBrowserContext();
   GlicKeyedService* service =
       GlicKeyedServiceFactory::GetGlicKeyedService(browser_context);
-  if (!service) {
+  if (!service || !web_client_manager_) {
     return;
   }
   preload_handler_ = std::make_unique<GlicPreloadHandler>(
