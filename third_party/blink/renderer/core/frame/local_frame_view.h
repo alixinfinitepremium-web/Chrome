@@ -203,7 +203,7 @@ class CORE_EXPORT LocalFrameView final
   bool IsInPerformLayout() const;
 
   // Methods to capture forced layout metrics.
-  void WillStartForcedLayout(DocumentUpdateReason);
+  void WillStartForcedLayout(DocumentUpdateReason, bool is_potentially_clean);
   void DidFinishForcedLayout();
 
   void ClearLayoutSubtreeRoot(const LayoutObject&);
@@ -1116,6 +1116,8 @@ class CORE_EXPORT LocalFrameView final
   bool NotifyResizeObservers();
   bool RunResizeObserverSteps(DocumentLifecycle::LifecycleState target_state);
   void ClearResizeObserverLimit();
+
+  bool RunContainerQueryListSteps();
 
   bool RunViewTransitionSteps(DocumentLifecycle::LifecycleState target_state);
 

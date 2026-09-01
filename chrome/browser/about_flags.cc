@@ -1290,15 +1290,16 @@ const FeatureEntry::Choice kForceColorProfileChoices[] = {
 };
 
 #if BUILDFLAG(IS_WIN)
-const FeatureEntry::FeatureParam kStartupLaunchForegroundEnabledParams[] = {
-    {features::kLaunchOnStartupModeParam.name, "foreground"},
-    {features::kLaunchOnStartupDefaultPreferenceParam.name, "enabled"},
+constexpr FeatureEntry::FeatureParam kStartupLaunchForegroundEnabledParams[] = {
+    {features::kLaunchOnStartupModeParamName, "foreground"},
+    {features::kLaunchOnStartupDefaultPreferenceParamName, "enabled"},
 };
-const FeatureEntry::FeatureParam kStartupLaunchForegroundDisabledParams[] = {
-    {features::kLaunchOnStartupModeParam.name, "foreground"},
-    {features::kLaunchOnStartupDefaultPreferenceParam.name, "disabled"},
+constexpr FeatureEntry::FeatureParam kStartupLaunchForegroundDisabledParams[] =
+    {
+        {features::kLaunchOnStartupModeParamName, "foreground"},
+        {features::kLaunchOnStartupDefaultPreferenceParamName, "disabled"},
 };
-const FeatureEntry::FeatureVariation kStartupLaunchVariations[] = {
+constexpr FeatureEntry::FeatureVariation kStartupLaunchVariations[] = {
     {"with Foreground launch enabled by default",
      kStartupLaunchForegroundEnabledParams, nullptr},
     {"with Foreground launch disabled by default",
@@ -2543,16 +2544,9 @@ const FeatureEntry::FeatureVariation kEphemeralCardRankerCardOverrideOptions[] =
 
 const FeatureEntry::FeatureParam kAndroidVerticalTabs_IncognitoButton[] = {
     {"incognito_button", "true"}};
-const FeatureEntry::FeatureParam kAndroidVerticalTabs_All[] = {
-    {"group_hover_card", "true"},
-    {"incognito_button", "true"}};
-const FeatureEntry::FeatureParam kAndroidVerticalTabs_EnableByDefault[] = {
-    {"enable_by_default", "true"}};
 
 const FeatureEntry::FeatureVariation kAndroidVerticalTabsVariations[] = {
     {"with incognito-button", kAndroidVerticalTabs_IncognitoButton, nullptr},
-    {"with all experimental features", kAndroidVerticalTabs_All, nullptr},
-    {"with enabled-by-default", kAndroidVerticalTabs_EnableByDefault, nullptr},
 };
 #endif  // BUILDFLAG(IS_ANDROID)
 #if BUILDFLAG(IS_ANDROID)
@@ -5961,11 +5955,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kMacCatapLoopbackAudioForCastName,
      flag_descriptions::kMacCatapLoopbackAudioForCastDescription, kOsMac,
      FEATURE_VALUE_TYPE(media::kMacCatapLoopbackAudioForCast)},
-
-    {"mac-catap-loopback-audio-for-screen-share",
-     flag_descriptions::kMacCatapLoopbackAudioForScreenShareName,
-     flag_descriptions::kMacCatapLoopbackAudioForScreenShareDescription, kOsMac,
-     FEATURE_VALUE_TYPE(media::kMacCatapLoopbackAudioForScreenShare)},
 
     {"use-sc-content-sharing-picker",
      flag_descriptions::kUseSCContentSharingPickerName,

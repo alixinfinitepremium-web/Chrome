@@ -3448,21 +3448,6 @@
             ]
         }
     ],
-    "BottomSheetOnDesktopWindowing": [
-        {
-            "platforms": [
-                "android"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "BottomSheetOnDesktopWindowing"
-                    ]
-                }
-            ]
-        }
-    ],
     "BrokenAlternativeServiceDelays": [
         {
             "platforms": [
@@ -15850,6 +15835,23 @@
             ]
         }
     ],
+    "PreFirstRunDesktopRefresh": [
+        {
+            "platforms": [
+                "windows",
+                "linux",
+                "mac"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "PreFirstRunDesktopRefresh"
+                    ]
+                }
+            ]
+        }
+    ],
     "PrecomputeSiteInfo": [
         {
             "platforms": [
@@ -18436,27 +18438,6 @@
                     "name": "EnableFeatureForTests",
                     "enable_features": [
                         "SplitCacheByNetworkIsolationKey"
-                    ]
-                }
-            ]
-        }
-    ],
-    "SplitViewHorizontal": [
-        {
-            "platforms": [
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "EnabledIndirectAccess_20260706",
-                    "params": {
-                        "split_view_horizontal_direct_access": "false"
-                    },
-                    "enable_features": [
-                        "SplitViewHorizontal"
                     ]
                 }
             ]
