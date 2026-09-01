@@ -269,6 +269,13 @@ inline constexpr char kAutofillEnableWalletBrandingV2Description[] =
     "When enabled, further brings certain strings and images referencing "
     "Google Pay and Google Wallet into consistency with branding requirements.";
 
+inline constexpr char kAutofillEnableWalletDisclosureNoticePublicPassName[] =
+    "Enable Wallet Disclosure Notice for public passes";
+inline constexpr char
+    kAutofillEnableWalletDisclosureNoticePublicPassDescription[] =
+        "When enabled, shows the Wallet Disclosure Notice at the end of the "
+        "save prompt for public passes.";
+
 inline constexpr char kAutofillEnableWalletReminderNoticeName[] =
     "Enable Wallet Reminder Notice for cards";
 inline constexpr char kAutofillEnableWalletReminderNoticeDescription[] =
@@ -780,11 +787,6 @@ inline constexpr char kEnableLensInOmniboxCopiedImageDescription[] =
     "when Google is the selected search engine, accessible from the omnibox or "
     "popup menu.";
 
-inline constexpr char kEnableNTPBackgroundImageCacheName[] =
-    "Enable NTP Background Image Cache";
-inline constexpr char kEnableNTPBackgroundImageCacheDescription[] =
-    "Enables the NTP background image cache service to improve performance.";
-
 inline constexpr char kEnableNewStartupFlowName[] = "EnableNewStartupFlow";
 inline constexpr char kEnableNewStartupFlowDescription[] =
     "Enables the EnableNewStartupFlow feature.";
@@ -1075,10 +1077,11 @@ inline constexpr char kIOSDateToCalendarSignedOutDescription[] =
     "When enabled, signed-out users can long-press detected dates to access "
     "the 'Add to Google Calendar' feature.";
 
-inline constexpr char kIOSDockingPromoV2Name[] = "Docking Promo V2";
-inline constexpr char kIOSDockingPromoV2Description[] =
-    "When enabled, the user will be presented an animated, instructional "
-    "promo V2 showing how to move Chrome to their native iOS dock.";
+inline constexpr char kIOSEnableCloudProfileReportingName[] =
+    "Enable profile reporting on iOS";
+inline constexpr char kIOSEnableCloudProfileReportingDescription[] =
+    "When enabled, profile reports will be reported to the user's "
+    "organization.";
 
 inline constexpr char kIOSEnableRealtimeEventReportingName[] =
     "Enable realtime event reporting on iOS";

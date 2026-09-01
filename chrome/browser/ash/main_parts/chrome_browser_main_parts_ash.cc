@@ -69,6 +69,7 @@
 #include "chrome/browser/ash/browser_delegate/keyed_service_provider/identity_manager_provider_impl.h"
 #include "chrome/browser/ash/browser_delegate/keyed_service_provider/sync_service_provider_impl.h"
 #include "chrome/browser/ash/browser_delegate/keyed_service_provider/template_url_service_provider_impl.h"
+#include "chrome/browser/ash/browser_delegate/keyed_service_provider/wifi_configuration_sync_service_provider_impl.h"
 #include "chrome/browser/ash/camera/camera_general_survey_handler.h"
 #include "chrome/browser/ash/certs/system_token_cert_db_initializer.h"
 #include "chrome/browser/ash/child_accounts/parent_access_code/parent_access_service.h"
@@ -192,6 +193,7 @@
 #include "chrome/browser/ui/ash/keyboard/chrome_keyboard_controller_client.h"
 #include "chrome/browser/ui/ash/login/user_adding_screen.h"
 #include "chrome/browser/ui/ash/session/session_controller_client_impl.h"
+#include "chrome/browser/ui/webui/ash/config/ash_web_ui_config_manager.h"
 #include "chrome/browser/ui/webui/ash/emoji/emoji_ui.h"
 #include "chrome/common/chrome_constants.h"
 #include "chrome/common/chrome_paths.h"
@@ -962,6 +964,8 @@ void ChromeBrowserMainPartsAsh::PreProfileInit() {
   sync_service_provider_ = std::make_unique<SyncServiceProviderImpl>();
   template_url_service_provider_ =
       std::make_unique<TemplateURLServiceProviderImpl>();
+  wifi_configuration_sync_service_provider_ =
+      std::make_unique<WifiConfigurationSyncServiceProviderImpl>();
 
   token_handle_store_factory_ = std::make_unique<TokenHandleStoreFactory>(
       g_browser_process->local_state());
@@ -1224,6 +1228,8 @@ void ChromeBrowserMainPartsAsh::PreProfileInit() {
   local_printer_ = std::make_unique<LocalPrinterImpl>(
       g_browser_process->GetFeatures()->application_locale_storage());
 #endif
+
+  ash_web_ui_config_manager_ = std::make_unique<AshWebUIConfigManager>();
 }
 
 class GuestLanguageSetCallbackData {
@@ -1830,6 +1836,8 @@ void ChromeBrowserMainPartsAsh::PostMainMessageLoopRun() {
   // NOTE: Closes ash and destroys `Shell`.
   ChromeBrowserMainPartsLinux::PostMainMessageLoopRun();
 
+  ash_web_ui_config_manager_.reset();
+
 #if BUILDFLAG(USE_CUPS)
   local_printer_.reset();
 #endif
@@ -1877,6 +1885,7 @@ void ChromeBrowserMainPartsAsh::PostMainMessageLoopRun() {
 
   bluetooth_log_controller_.reset();
 
+  wifi_configuration_sync_service_provider_.reset();
   template_url_service_provider_.reset();
   sync_service_provider_.reset();
   identity_manager_provider_.reset();

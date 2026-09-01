@@ -12361,6 +12361,8 @@ from previous Chrome versions.
   <int value="-733155387"
       label="SafetyHubAbusiveNotificationRevocation:enabled"/>
   <int value="-733016172" label="GlicTabRestoration:disabled"/>
+  <int value="-732746906"
+      label="AutofillEnableWalletDisclosureNoticePublicPass:enabled"/>
   <int value="-731967727" label="OmahaMinSdkVersionAndroid:disabled"/>
   <int value="-731502579" label="CupsPrintersUiOverhaul:disabled"/>
   <int value="-731133967" label="AutofillSettingsCardTypeSplit:disabled"/>
@@ -17426,6 +17428,8 @@ from previous Chrome versions.
   <int value="840057845" label="HardwareMediaKeyHandling:enabled"/>
   <int value="840222947"
       label="AutofillEnableOfferNotificationForPromoCodes:enabled"/>
+  <int value="840637331"
+      label="AutofillEnableWalletDisclosureNoticePublicPass:disabled"/>
   <int value="841098208" label="ThrottleForegroundTimers:enabled"/>
   <int value="841276069" label="ChromeHomeDoodle:disabled"/>
   <int value="841343322" label="disable-new-korean-ime"/>
@@ -23917,12 +23921,6 @@ Called by update_net_error_codes.py.-->
   <int value="1" label="Library unavailable"/>
   <int value="2" label="Success"/>
   <int value="3" label="Failure"/>
-</enum>
-
-<enum name="PlusAddressCountBucket">
-  <int value="0" label="No plus address"/>
-  <int value="1" label="1-3 plus addresses"/>
-  <int value="2" label="More than 3 plus addresses"/>
 </enum>
 
 <enum name="PointerPrimaryButton">

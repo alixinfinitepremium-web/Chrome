@@ -10218,6 +10218,14 @@ const FeatureEntry kFeatureEntries[] = {
      FEATURE_VALUE_TYPE(
          autofill::features::kAutofillEnableVcn3dsAuthentication)},
 
+    {"autofill-enable-wallet-disclosure-notice-public-pass",
+     flag_descriptions::kAutofillEnableWalletDisclosureNoticePublicPassName,
+     flag_descriptions::
+         kAutofillEnableWalletDisclosureNoticePublicPassDescription,
+     kOsAll,
+     FEATURE_VALUE_TYPE(
+         autofill::features::kAutofillEnableWalletDisclosureNoticePublicPass)},
+
     {"autofill-enable-wallet-reminder-notice",
      flag_descriptions::kAutofillEnableWalletReminderNoticeName,
      flag_descriptions::kAutofillEnableWalletReminderNoticeDescription, kOsAll,
@@ -14182,7 +14190,7 @@ bool ShouldSkipConditionalFeatureEntry(const flags_ui::FlagsStorage* storage,
           entry.internal_name ||
       std::string_view(kBorealisZinkGlDriverInternalName) ==
           entry.internal_name) {
-    return !base::FeatureList::IsEnabled(features::kBorealis);
+    return !base::FeatureList::IsEnabled(ash::features::kBorealis);
   }
 
   // Only show wallpaper fast refresh flag if channel is one of
