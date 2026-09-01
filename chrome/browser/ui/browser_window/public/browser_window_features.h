@@ -352,7 +352,6 @@ class BrowserWindowFeatures {
   // Returns true if a FindBarController exists for this browser window.
   bool HasFindBarController() const;
 
-  sessions::LiveTabContext* live_tab_context();
 
   // Returns the LocationBar for this browser window. Currently delegates to
   // BrowserWindow::GetLocationBar() via downcast, but should eventually become
@@ -375,10 +374,6 @@ class BrowserWindowFeatures {
     return pinned_toolbar_actions_;
   }
 
-  ProfileMenuCoordinator* profile_menu_coordinator() {
-    return profile_menu_coordinator_.get();
-  }
-
   // TODO(crbug.com/346158959): For historical reasons, side_panel_ui is an
   // abstract base class that contains some, but not all of the public interface
   // of SidePanelCoordinator. One of the accessors side_panel_ui() or
@@ -393,10 +388,6 @@ class BrowserWindowFeatures {
 
   BrowserSyncedWindowDelegate* synced_window_delegate() {
     return synced_window_delegate_.get();
-  }
-
-  TabMenuModelDelegate* tab_menu_model_delegate() {
-    return tab_menu_model_delegate_.get();
   }
 
   TabStripModel* tab_strip_model() { return tab_strip_model_; }

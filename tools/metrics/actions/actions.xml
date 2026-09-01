@@ -19327,6 +19327,16 @@ should be able to be added at any place in this file.
   </description>
 </action>
 
+<action name="MobileBookmarkManagerSidePanelFolderOpened">
+  <owner>wylieb@google.com</owner>
+  <owner>evanluo@google.com</owner>
+  <owner>chrome-collections@google.com</owner>
+  <description>
+    Recorded when a user clicks a folder item in the desktop bookmarks side
+    navigation pane to open/navigate to that folder.
+  </description>
+</action>
+
 <action name="MobileBookmarkManagerTapToggleSelect">
   <owner>twellington@google.com</owner>
   <owner>clank-app-team@google.com</owner>
@@ -39514,6 +39524,17 @@ should be able to be added at any place in this file.
     Recorded when the user clicks on the toast's close button. {Toast_Type}
   </description>
   <token key="Toast_Type" variants="Toast_Type"/>
+</action>
+
+<action name="Toast.EmailVerified.ManageClicked">
+  <owner>ryqin@chromium.org</owner>
+  <owner>yigu@chromium.org</owner>
+  <owner>mamir@chromium.org</owner>
+  <owner>web-identity-eng@google.com</owner>
+  <description>
+    Recorded when the user clicks the Manage menu item from the Email Verified
+    toast menu.
+  </description>
 </action>
 
 <action name="ToggleBold">

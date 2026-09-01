@@ -2364,6 +2364,21 @@
             ]
         }
     ],
+    "AutofillEnableScanCardOptionWhenNoCardsSaved": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "AutofillEnableScanCardOptionWhenNoCardsSaved"
+                    ]
+                }
+            ]
+        }
+    ],
     "AutofillEnableTravelCategoryAndMerchantBenefitsFromCurinos": [
         {
             "platforms": [
@@ -12017,24 +12032,6 @@
                     ],
                     "disable_features": [
                         "DiscardOnCommitLimit"
-                    ]
-                }
-            ]
-        }
-    ],
-    "InfoBarInlineLinks": [
-        {
-            "platforms": [
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "InfoBarInlineLinks"
                     ]
                 }
             ]

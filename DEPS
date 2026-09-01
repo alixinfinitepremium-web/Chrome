@@ -341,7 +341,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '3911a1fe7f7a61356f505a25357951e0005e6002',
+  'skia_revision': '63d13ec4df6d1dd771f5473a8fb629ceb51fd965',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -409,7 +409,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libFuzzer
   # and whatever else without interference from each other.
-  'libfuzzer_revision': '5811dc57603eac1fa0e76addedb77f72f62bfa2d',
+  'libfuzzer_revision': '0c7e676c31406858959ad31f2954dcbf0e18319e',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling fuzztest
   # and whatever else without interference from each other.
@@ -421,7 +421,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '48b228da1d5c1cfb57c3e0919e04f1bca0c1db42',
+  'devtools_frontend_revision': 'da97eec27511514557700bef3595f616e669deed',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1866,7 +1866,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': '1slV3JULxLuCC5b5Akilm4kkoPTUe-XEjr4zeeXt7acC',
+          'version': 'CI27gjeoOrzFmaamg_m-nmlDDfM8XSHBE9-o1G1SiFEC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
@@ -2304,7 +2304,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/google/ink.git' + '@' + Var('ink_revision'),
 
   'src/third_party/instrumented_libs': {
-    'url': Var('chromium_git') + '/chromium/third_party/instrumented_libraries.git' + '@' + 'd15c278eed5d38d9acf2d8054cf37baba93cef8e',
+    'url': Var('chromium_git') + '/chromium/third_party/instrumented_libraries.git' + '@' + '51898bc68243bf1f096b49420f96312df48c363f',
     'condition': 'checkout_instrumented_libraries',
   },
 
@@ -2321,7 +2321,7 @@ deps = {
     Var('chromium_git') + '/codecs/libgav1.git' + '@' + 'c1deec657b32b911920c78e078cfd089faa77200',
 
   'src/third_party/google-truth/src': {
-      'url': Var('chromium_git') + '/external/github.com/google/truth.git' + '@' + '2b95613636f4d612006f4b5811f7971d5c13b489',
+      'url': Var('chromium_git') + '/external/github.com/google/truth.git' + '@' + 'e0acc30c82a5976c09e894d926752a3a83b3bc6b',
       'condition': 'checkout_android',
   },
 
@@ -3267,7 +3267,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + 'c75b66ca37178b1d62591fc1a835120943afae28',
+    Var('webrtc_git') + '/src.git' + '@' + '17c6ed323acc09bd305318b557f9c50aa438a624',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -3418,7 +3418,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/help_app/app',
-        'version': 'pPxxTHlzKdVUbyee9RfYIrD3xPzYTA3gDgMb_S9au44C',
+        'version': '1DTQjyHl8jR9MmjkHMqWLNP677W2OOfaOUp98Rno2RsC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3429,7 +3429,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/media_app/app',
-        'version': 'Riy9kLxJejrsFyiZlzLkKnpMAW-6csy-oaX46N5Th1gC',
+        'version': 'm9lMp3oVRTj_F7HtPRrAAlrNX2TZLPIC19yRelE1TzwC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -4108,7 +4108,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '3e7fad5be7b0336a80aed85194fd696c911c1ff0',
+        '71647756716d839c3da37dba45147affa747d711',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
