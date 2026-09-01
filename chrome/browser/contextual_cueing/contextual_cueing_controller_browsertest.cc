@@ -29,6 +29,7 @@
 #include "chrome/browser/sync/sync_service_factory.h"
 #include "chrome/browser/ui/browser_actions.h"
 #include "chrome/browser/ui/browser_commands.h"
+#include "chrome/browser/ui/browser_tabstrip.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_features.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
 #include "chrome/browser/ui/page_action/page_action_controller.h"
@@ -2343,6 +2344,29 @@ IN_PROC_BROWSER_TEST_F(ContextualCueingControllerMultiSourceBrowserTest,
 }
 
 IN_PROC_BROWSER_TEST_F(ContextualCueingControllerMultiSourceBrowserTest,
+                       Navigation_EvaluatesCuesWithEarlySignals) {
+  base::HistogramTester histogram_tester;
+  ukm::TestAutoSetUkmRecorder ukm_recorder;
+
+  cue_target()->eligible = false;
+  auto test_source_target = std::make_unique<TestCueTarget>();
+  test_source_target->eligible = true;
+  test_source_target->generate_result =
+      MakeCompleteResponse().contextual_cues(0);
+  contextual_cueing_controller()->RegisterCueTarget(
+      CueTargetType::kTestSource, std::move(test_source_target));
+
+  ASSERT_TRUE(ui_test_utils::NavigateToURL(
+      browser(), GURL("https://www.activetab.com/abc")));
+
+  optimization_guide::RetryForHistogramUntilCountReached(
+      &histogram_tester, "ContextualCueing.V2.Decision", 1);
+  histogram_tester.ExpectUniqueSample("ContextualCueing.V2.Decision",
+                                      ContextualCueingDecision::kSuccess, 1);
+  VerifyProactiveCueDecision(ukm_recorder, ContextualCueingDecision::kSuccess);
+}
+
+IN_PROC_BROWSER_TEST_F(ContextualCueingControllerMultiSourceBrowserTest,
                        TabActivation_DoesNotTriggerEvaluation) {
   base::HistogramTester histogram_tester;
 
@@ -2381,6 +2405,152 @@ IN_PROC_BROWSER_TEST_F(ContextualCueingControllerMultiSourceBrowserTest,
 
   // Total count should still be 2.
   histogram_tester.ExpectTotalCount("ContextualCueing.V2.Decision", 2);
+}
+
+class TargetRegisteringObserver : public TabStripModelObserver {
+ public:
+  explicit TargetRegisteringObserver(TabStripModel* tab_strip_model)
+      : tab_strip_model_(tab_strip_model) {
+    tab_strip_model_->AddObserver(this);
+  }
+  ~TargetRegisteringObserver() override {
+    tab_strip_model_->RemoveObserver(this);
+  }
+
+  void OnTabStripModelChanged(
+      TabStripModel* tab_strip_model,
+      const TabStripModelChange& change,
+      const TabStripSelectionChange& selection) override {
+    if (change.type() == TabStripModelChange::kInserted) {
+      for (const auto& contents : change.GetInsert()->contents) {
+        auto non_mes_target = std::make_unique<TestCueTarget>();
+        non_mes_target->requires_model_execution = false;
+        non_mes_target->supported_intrusiveness = {CueIntrusiveness::kLoud,
+                                                   CueIntrusiveness::kQuiet};
+        non_mes_target->generate_result =
+            MakeCompleteResponse().contextual_cues(0);
+        contents.tab->GetTabFeatures()
+            ->contextual_cueing_controller()
+            ->RegisterCueTarget(CueTargetType::kTestSource,
+                                std::move(non_mes_target));
+      }
+    }
+  }
+
+ private:
+  raw_ptr<TabStripModel> tab_strip_model_;
+};
+
+IN_PROC_BROWSER_TEST_F(ContextualCueingControllerMultiSourceBrowserTest,
+                       InactiveTab_EvaluatesQuietCuesButNotLoudCues) {
+  base::HistogramTester histogram_tester;
+
+  ASSERT_TRUE(embedded_test_server()->Start());
+  SeedExecutionResult(MakeCompleteResponse());
+
+  // 1. Open a background tab with only Glic target (which only supports loud
+  // cues). Because the tab is inactive, intrusiveness is downgraded from loud
+  // to quiet. Since Glic target does not support quiet cues, no candidate
+  // targets are eligible.
+  GURL url1 = embedded_test_server()->GetURL("/title1.html");
+  ASSERT_TRUE(ui_test_utils::NavigateToURLWithDisposition(
+      browser(), url1, WindowOpenDisposition::NEW_BACKGROUND_TAB,
+      ui_test_utils::BROWSER_TEST_WAIT_FOR_LOAD_STOP));
+
+  optimization_guide::RetryForHistogramUntilCountReached(
+      &histogram_tester, "ContextualCueing.V2.Decision", 1);
+  histogram_tester.ExpectUniqueSample(
+      "ContextualCueing.V2.Decision",
+      ContextualCueingDecision::kTargetFeatureNotEligible, 1);
+
+  // 2. Set up observer to register quiet-capable target on newly inserted tabs.
+  TargetRegisteringObserver target_observer(browser()->tab_strip_model());
+
+  // 3. Open a background tab with quiet-capable target.
+  // Even though service allowed tier is loud, it is downgraded to quiet because
+  // tab is inactive. The quiet-capable target evaluates successfully.
+  GURL url2 = embedded_test_server()->GetURL("/title2.html");
+  ASSERT_TRUE(ui_test_utils::NavigateToURLWithDisposition(
+      browser(), url2, WindowOpenDisposition::NEW_BACKGROUND_TAB,
+      ui_test_utils::BROWSER_TEST_WAIT_FOR_LOAD_STOP));
+
+  // The background tab navigated to url2 and triggered quiet cue evaluation on
+  // load.
+  optimization_guide::RetryForHistogramUntilCountReached(
+      &histogram_tester, "ContextualCueing.V2.Decision", 2);
+  histogram_tester.ExpectBucketCount("ContextualCueing.V2.Decision",
+                                     ContextualCueingDecision::kSuccess, 1);
+}
+
+class AsyncTestCueTarget : public TestCueTarget {
+ public:
+  void CheckEligibility(base::WeakPtr<content::WebContents> web_contents,
+                        CueIntrusiveness intrusiveness,
+                        EligibilityCallback callback) override {
+    saved_callback_ = std::move(callback);
+  }
+
+  void ReplyEligibility(bool eligible, ContentGenerator generator) {
+    if (saved_callback_) {
+      std::move(saved_callback_).Run(eligible, std::move(generator));
+    }
+  }
+
+ private:
+  EligibilityCallback saved_callback_;
+};
+
+IN_PROC_BROWSER_TEST_F(
+    ContextualCueingControllerMultiSourceBrowserTest,
+    TabDeactivatedDuringEligibilityChecks_FiltersOutLoudOnlyTargetsAndEvaluatesQuiet) {
+  base::HistogramTester histogram_tester;
+
+  ASSERT_TRUE(embedded_test_server()->Start());
+  SeedExecutionResult(MakeCompleteResponse());
+
+  GURL url1 = embedded_test_server()->GetURL("/title1.html");
+  ASSERT_TRUE(ui_test_utils::NavigateToURL(browser(), url1));
+
+  auto loud_target = std::make_unique<AsyncTestCueTarget>();
+  loud_target->supported_intrusiveness = {CueIntrusiveness::kLoud};
+  auto* loud_target_ptr = loud_target.get();
+  contextual_cueing_controller()->RegisterCueTarget(CueTargetType::kGlic,
+                                                    std::move(loud_target));
+
+  auto quiet_target = std::make_unique<AsyncTestCueTarget>();
+  quiet_target->supported_intrusiveness = {CueIntrusiveness::kLoud,
+                                           CueIntrusiveness::kQuiet};
+  auto* quiet_target_ptr = quiet_target.get();
+  contextual_cueing_controller()->RegisterCueTarget(CueTargetType::kTestSource,
+                                                    std::move(quiet_target));
+
+  // Trigger evaluation on active tab (intrusiveness is loud).
+  contextual_cueing_controller()->EvaluateCues();
+
+  // Deactivate tab 0 by opening a new foreground tab.
+  GURL url2 = embedded_test_server()->GetURL("/title2.html");
+  ASSERT_TRUE(ui_test_utils::NavigateToURLWithDisposition(
+      browser(), url2, WindowOpenDisposition::NEW_FOREGROUND_TAB,
+      ui_test_utils::BROWSER_TEST_WAIT_FOR_LOAD_STOP));
+
+  // Complete async eligibility checks for tab 0 while it is inactive.
+  loud_target_ptr->ReplyEligibility(true, base::NullCallback());
+  quiet_target_ptr->ReplyEligibility(
+      true,
+      base::BindOnce(
+          [](optimization_guide::proto::ContextualCue cue,
+             base::OnceCallback<void(
+                 std::optional<optimization_guide::proto::ContextualCue>)> cb) {
+            std::move(cb).Run(std::move(cue));
+          },
+          MakeCompleteResponse().contextual_cues(0)));
+
+  // Quiet target should be selected and succeed on tab 0 despite tab 0 becoming
+  // inactive.
+  optimization_guide::RetryForHistogramUntilCountReached(
+      &histogram_tester, "ContextualCueing.V2.Decision", 3);
+  histogram_tester.ExpectBucketCount("ContextualCueing.V2.Decision",
+                                     ContextualCueingDecision::kSuccess, 1);
 }
 
 class ContextualCueingControllerMultiSourceWithAgeRestrictionBrowserTest
@@ -2568,6 +2738,7 @@ IN_PROC_BROWSER_TEST_F(ContextualCueingControllerMultiSourceBrowserTest,
   non_mes_target->supported_intrusiveness = {CueIntrusiveness::kLoud,
                                              CueIntrusiveness::kQuiet};
   non_mes_target->generate_result = MakeCompleteResponse().contextual_cues(0);
+  TestCueTarget* target_ptr = non_mes_target.get();
   browser()
       ->GetActiveTabInterface()
       ->GetTabFeatures()
@@ -2611,6 +2782,7 @@ IN_PROC_BROWSER_TEST_F(ContextualCueingControllerMultiSourceBrowserTest,
   // The chip should still be visible, but anchored message is NOT showing.
   EXPECT_TRUE(observer.visible_);
   EXPECT_FALSE(observer.anchored_message_showing_);
+  EXPECT_TRUE(target_ptr->chip_shown);
 
   // When clicking the suggestion chip, it should expand out into an anchored
   // message.
@@ -2621,6 +2793,9 @@ IN_PROC_BROWSER_TEST_F(ContextualCueingControllerMultiSourceBrowserTest,
 
   EXPECT_TRUE(observer.visible_);
   EXPECT_TRUE(observer.anchored_message_showing_);
+  EXPECT_TRUE(target_ptr->chip_clicked);
+  EXPECT_EQ(target_ptr->anchored_message_shown_priority,
+            page_actions::PageActionPriorityCategory::kUserInteraction);
 }
 
 }  // namespace

@@ -87,6 +87,7 @@
 #include "chrome/browser/ui/omnibox/ai_mode_page_action_controller.h"
 #include "chrome/browser/ui/performance_controls/memory_saver_bubble_controller.h"
 #include "chrome/browser/ui/performance_controls/memory_saver_opt_in_iph_controller.h"
+#include "chrome/browser/ui/send_tab_to_self/send_tab_to_self_iph_controller.h"
 #include "chrome/browser/ui/sessions/session_service_browser_helper.h"
 #include "chrome/browser/ui/sharing_hub/sharing_hub_window_controller.h"
 #include "chrome/browser/ui/side_panel/side_panel_registry.h"
@@ -543,9 +544,11 @@ void BrowserWindowFeatures::Init(BrowserWindowInterface* browser) {
           *browser, browser, profile, tab_strip_model_);
 
   tab_menu_model_delegate_ =
-      std::make_unique<chrome::BrowserTabMenuModelDelegate>(
-          browser->GetSessionID(), profile, app_browser_controller_.get(),
-          tab_groups::TabGroupSyncServiceFactory::GetForProfile(profile));
+      GetUserDataFactory().CreateInstance<chrome::BrowserTabMenuModelDelegate>(
+          *browser, browser->GetSessionID(), profile,
+          app_browser_controller_.get(),
+          tab_groups::TabGroupSyncServiceFactory::GetForProfile(profile),
+          browser->GetUnownedUserDataHost());
 
   tab_strip_service_feature_ =
       GetUserDataFactory().CreateInstance<TabStripServiceFeature>(
@@ -867,11 +870,12 @@ void BrowserWindowFeatures::InitPostWindowConstruction(Browser* browser) {
           .CreateInstance<IncognitoClearBrowsingDataDialogCoordinator>(
               *browser, profile, browser->GetUnownedUserDataHost());
 
-  live_tab_context_ = std::make_unique<BrowserLiveTabContext>(
-      browser, browser->GetTabStripModel(), profile, browser->GetWindow(),
-      browser->GetType(),
-      BrowserInitState::From(browser)->create_params().app_name,
-      browser->GetSessionID());
+  live_tab_context_ =
+      GetUserDataFactory().CreateInstance<BrowserLiveTabContext>(
+          *browser, browser, browser->GetTabStripModel(), profile,
+          browser->GetWindow(), browser->GetType(),
+          BrowserInitState::From(browser)->create_params().app_name,
+          browser->GetSessionID());
 
   if (browser_view) {
     if (base::FeatureList::IsEnabled(ntp_features::kNtpFooter)) {
@@ -1107,6 +1111,14 @@ void BrowserWindowFeatures::InitPostWindowConstruction(Browser* browser) {
           GetUserDataFactory().CreateInstance<VerticalTabIphController>(
               *browser, browser);
     }
+
+    if (base::FeatureList::IsEnabled(
+            feature_engagement::kIPHSendTabToSelfTutorialFeature)) {
+      send_tab_to_self_iph_controller_ =
+          GetUserDataFactory()
+              .CreateInstance<send_tab_to_self::SendTabToSelfIphController>(
+                  *browser, browser);
+    }
   }
 
   // Initialize post-window dependent embedder features last.
@@ -1137,6 +1149,7 @@ void BrowserWindowFeatures::TearDownPreBrowserWindowDestruction() {
   // InitPostWindowConstruction (reverse).
 
   // TYPE_NORMAL members.
+  send_tab_to_self_iph_controller_.reset();
   vertical_tab_iph_controller_.reset();
   split_view_iph_controller_.reset();
   split_tab_highlight_controller_.reset();
