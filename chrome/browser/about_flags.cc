@@ -123,6 +123,7 @@
 #include "components/enterprise/isolated_mode/isolated_mode_features.h"
 #include "components/enterprise/network_header_injection/core/features.h"
 #include "components/error_page/common/error_page_switches.h"
+#include "components/facilitated_payments/core/features/features.h"
 #include "components/feature_engagement/public/feature_constants.h"
 #include "components/feature_engagement/public/feature_list.h"
 #include "components/feed/feed_feature_list.h"
@@ -296,7 +297,6 @@
 #include "components/browser_ui/modaldialog/android/features.h"
 #include "components/credential_management/android/features.h"
 #include "components/external_intents/android/external_intents_features.h"
-#include "components/facilitated_payments/core/features/features.h"
 #include "components/messages/android/messages_feature.h"
 #include "components/payments/content/android/payment_feature_map.h"
 #include "components/permissions/android/permissions_android_feature_map.h"
@@ -11944,6 +11944,11 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kAndroidOpenIncognitoAsWindowDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(feed::kAndroidOpenIncognitoAsWindow)},
 
+    {"android-desktop-bookmark-dialog",
+     flag_descriptions::kAndroidDesktopBookmarkDialogName,
+     flag_descriptions::kAndroidDesktopBookmarkDialogDescription, kOsAndroid,
+     FEATURE_VALUE_TYPE(chrome::android::kAndroidDesktopBookmarkDialog)},
+
     {"android-desktop-bookmark-popup",
      flag_descriptions::kAndroidDesktopBookmarkPopupName,
      flag_descriptions::kAndroidDesktopBookmarkPopupDescription, kOsAndroid,
@@ -14061,6 +14066,10 @@ const FeatureEntry kFeatureEntries[] = {
      kOsAndroid,
      FEATURE_VALUE_TYPE(blink::features::kAutoResizeMinimumPageScaleFactor)},
 #endif
+    {"enable-desktop-qr-code-detection",
+     flag_descriptions::kEnableDesktopQrCodeDetectionName,
+     flag_descriptions::kEnableDesktopQrCodeDetectionDescription, kOsDesktop,
+     FEATURE_VALUE_TYPE(payments::facilitated::kEnableDesktopQrCodeDetection)},
 
     // Add new entries above this line.
     // NOTE: Adding a new flag requires adding a corresponding entry to enum
