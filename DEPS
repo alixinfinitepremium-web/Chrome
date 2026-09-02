@@ -341,7 +341,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '0a00000ba355697fc14e017a2c4269ed642a4b53',
+  'skia_revision': '3bd3310143c3674945e6a8c92492a5c14496dc62',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -349,7 +349,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '7e69771950039263145ee0f3544b4e5241fcbbbd',
+  'angle_revision': 'a97f31f5a6b0c5d28816bf35473a1949f5fd86a9',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -381,7 +381,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling freetype
   # and whatever else without interference from each other.
-  'freetype_revision': '4800589f76dc62fbe523a74a59e0d4850a5dd7df',
+  'freetype_revision': '3db2c32d6ef2a3ac94d61585b65417ec7bf454e1',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling HarfBuzz
   # and whatever else without interference from each other.
@@ -401,7 +401,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': 'e42ad9715bd266bc05e1a3adcf7c29303a28f576',
+  'crossbench_revision': 'bb3736b5091357dd97056fc30b1567244233cd1b',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -413,7 +413,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling fuzztest
   # and whatever else without interference from each other.
-  'fuzztest_revision': '80288aa1b0dfb8a182d95b186f79430ccb8fc0bd',
+  'fuzztest_revision': '55c8b305f5dcbed496e2e5ccff682d8d0173684e',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling domato
   # and whatever else without interference from each other.
@@ -421,7 +421,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '520318a0fc4a0d784ea28028deeaa37a43c48cd1',
+  'devtools_frontend_revision': '7080aea85a063cd046ad7dd364191eda542ea214',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1866,7 +1866,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': '5m9tudXXBkzB2nMkzvTPOeYP3WU2IVI5Ym2VSV79ca8C',
+          'version': 'cRPg0srzI8cwovvW9fq8baxX1DonKIvfIAakc9yqdGAC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
@@ -2214,7 +2214,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '0833022c601133d858cbee4faf6bc5ce556afb14',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'aeec4295c7aac566f730aaac13ab9f061f9c48d5',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -3396,7 +3396,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_receiver_app/app',
-        'version': 'R0Tk0dW-qD-VwI33hjgTc4_AVA8LV6DV4uXFiIH2NNIC',
+        'version': 'ytDYYlOb5daJm7aW9b-2-FqViuLPvOA7Px1pZbG31zIC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3407,7 +3407,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_app/app',
-        'version': '7XuBH-3WuMfAlhyiKfOMen8k9O8zFbdgpGnb6WliEU8C',
+        'version': 'iuzXgFmdpMBNqX1YAbkruvO81CidKRFVeI4e1M8NIH0C',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
