@@ -348,7 +348,13 @@ public class LocationBarMediatorUnitTest {
         lenient().doReturn(true).when(mComposeboxBridgeJni).isFuseboxEligibleForProfile(any());
         MultiInstanceOrchestratorFactory.setInstanceForTesting(mMultiInstanceOrchestrator);
 
-        mUrlBarData = UrlBarData.create(null, "text", 0, 0, "text");
+        mUrlBarData =
+                UrlBarData.create(
+                        /* url= */ null,
+                        /* displayText= */ "text",
+                        /* originStartIndex= */ 0,
+                        /* originEndIndex= */ 0,
+                        /* editingText= */ "text");
         lenient().doReturn(true).when(mSearchEngineService).shouldShowSearchEngineLogo();
         lenient().doReturn(true).when(mSearchEngineService).isDefaultSearchEngineGoogle();
         lenient().doReturn("Google").when(mSearchEngineService).getSearchEngineName();
@@ -1211,7 +1217,7 @@ public class LocationBarMediatorUnitTest {
         assertNull(null, params.postData);
         assertTrue(params.extraHeaders.isEmpty());
         assertFalse(params.openInNewTab);
-        verify(mTab, times(0)).loadUrl(any());
+        verify(mTab, never()).loadUrl(any());
     }
 
     private void testLoadUrl_openInNewTab_base() {
@@ -2051,7 +2057,13 @@ public class LocationBarMediatorUnitTest {
         mTabletMediator.addUrlFocusChangeListener(mUrlCoordinator);
         doReturn(true).when(mLocationBarDataProvider).hasTab();
         doReturn(mTab).when(mLocationBarDataProvider).getTab();
-        UrlBarData urlBarData = UrlBarData.create(null, "text", 0, 0, "text");
+        UrlBarData urlBarData =
+                UrlBarData.create(
+                        /* url= */ null,
+                        /* displayText= */ "text",
+                        /* originStartIndex= */ 0,
+                        /* originEndIndex= */ 0,
+                        /* editingText= */ "text");
         doReturn(urlBarData).when(mLocationBarDataProvider).getUrlBarData();
         mTabletMediator.onUrlFocusChange(true);
         clearInvocations(mStatusCoordinator);
@@ -2634,7 +2646,7 @@ public class LocationBarMediatorUnitTest {
 
         // In the streamlined architecture, onTouchAfterFocus transitions state without
         // calling beginOrResumeInput again.
-        verify(mAutocompleteCoordinator, times(1)).beginInput(any());
+        verify(mAutocompleteCoordinator).beginInput(any());
     }
 
     @Test
@@ -3917,7 +3929,7 @@ public class LocationBarMediatorUnitTest {
     @Test
     public void testOnAttachmentListChanged_withAttachments_promotesDisplayStateToSuggestions() {
         OmniboxCapabilities.setIsDesktopPlatformForTesting(false);
-        setupSession(DisplayState.DRAFTING, false);
+        setupSession(DisplayState.DRAFTING, /* textDiffers= */ false);
 
         doReturn(false).when(mFuseboxAttachmentModelList).isEmpty();
         mMediator.setAttachmentModelList(mFuseboxAttachmentModelList);
@@ -3929,7 +3941,7 @@ public class LocationBarMediatorUnitTest {
     @Test
     public void testOnAttachmentListChanged_emptyAttachments_doesNotPromoteDisplayState() {
         OmniboxCapabilities.setIsDesktopPlatformForTesting(false);
-        setupSession(DisplayState.DRAFTING, false);
+        setupSession(DisplayState.DRAFTING, /* textDiffers= */ false);
 
         doReturn(true).when(mFuseboxAttachmentModelList).isEmpty();
         mMediator.setAttachmentModelList(mFuseboxAttachmentModelList);
@@ -4965,7 +4977,7 @@ public class LocationBarMediatorUnitTest {
         mMediator.beginInput(input);
 
         // Verify beginInput is called only once.
-        verify(mUrlCoordinator, times(1)).beginInput(any());
+        verify(mUrlCoordinator).beginInput(any());
     }
 
     @Test

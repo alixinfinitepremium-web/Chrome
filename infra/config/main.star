@@ -142,7 +142,9 @@ luci.project(
 )
 
 luci.cq(
-    submit_max_burst = 2,
+    # TODO(crbug.com/555875021): Drop submit_max_burst back down to 2 if/when
+    # CV has caught up.
+    submit_max_burst = 10,
     submit_burst_delay = time.minute,
     status_host = "chromium-cq-status.appspot.com",
     honor_gerrit_linked_accounts = True,
@@ -260,6 +262,7 @@ chromium_luci.configure_targets(
             "intel_uhd_630_or_770": True,
             "ios_runtime_cache_18_5": True,
             "use-ios-simulator-cache": True,
+            "legacy_gpu_webgl_conformance_shards": True,
             "linux_gpu_high_tier_ai_wpt_dimensions": True,
             "linux_gpu_high_tier_gemma4_ai_wpt_dimensions": targets.IGNORE_UNUSED,
             "long_skylab_timeout": True,

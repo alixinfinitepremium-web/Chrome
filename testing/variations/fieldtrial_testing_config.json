@@ -743,6 +743,24 @@
             ]
         }
     ],
+    "AndroidDownloadImprovements": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "EnableDownloadSaveAsContextMenu",
+                        "OpenDownloadInFilesAppIfNoHandlerFound",
+                        "OpenDownloadInNewTab",
+                        "OpenDownloadInPreferredApp"
+                    ]
+                }
+            ]
+        }
+    ],
     "AndroidMediaInsertion": [
         {
             "platforms": [
@@ -9374,6 +9392,24 @@
             ]
         }
     ],
+    "GlicBackgroundActuation": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "ActorLiveNotification",
+                        "ActorNotificationIntentRouting",
+                        "ActorStepProgressNotification",
+                        "GlicBackgroundActuation"
+                    ]
+                }
+            ]
+        }
+    ],
     "GlicCSPConfig_Dogfood": [
         {
             "platforms": [
@@ -14257,36 +14293,6 @@
             ]
         }
     ],
-    "OpenDownloadInFilesAppIfNoHandlerFound": [
-        {
-            "platforms": [
-                "android"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "OpenDownloadInFilesAppIfNoHandlerFound"
-                    ]
-                }
-            ]
-        }
-    ],
-    "OpenDownloadInPreferredApp": [
-        {
-            "platforms": [
-                "android"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "OpenDownloadInPreferredApp"
-                    ]
-                }
-            ]
-        }
-    ],
     "OpenEditGroupViewByTappingTitle": [
         {
             "platforms": [
@@ -18872,6 +18878,24 @@
                     "name": "Enabled",
                     "enable_features": [
                         "TabAndroidGracefulShutdown"
+                    ]
+                }
+            ]
+        }
+    ],
+    "TabGroupColorRefresh": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "TabGroupColorRefresh"
                     ]
                 }
             ]

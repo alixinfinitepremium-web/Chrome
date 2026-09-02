@@ -5506,12 +5506,6 @@ inline constexpr char kAccessibilityTextChangeTypesDescription[] =
     "When enabled, text change types will be set alongside with text changed "
     "events to Android a11y services for finely-grained a11y feedback";
 
-inline constexpr char kAccessibilityUnifiedSnapshotsName[] =
-    "Accessibility Unified Snapshots";
-inline constexpr char kAccessibilityUnifiedSnapshotsDescription[] =
-    "When enabled, use the experimental unified code path for AXTree "
-    "snapshots.";
-
 inline constexpr char kAllowMultipleMediaNotificationsName[] =
     "Allow multiple media notifications";
 inline constexpr char kAllowMultipleMediaNotificationsDescription[] =
@@ -5618,6 +5612,11 @@ inline constexpr char kAndroidGrammarCheckName[] =
 inline constexpr char kAndroidGrammarCheckDescription[] =
     "When typing, allows spellcheckers to highlight grammar errors and suggest "
     "corrections on browser text input.";
+
+inline constexpr char kAndroidKeyboardShortcutOpenFileName[] =
+    "Android Keyboard Shortcut Open File";
+inline constexpr char kAndroidKeyboardShortcutOpenFileDescription[] =
+    "Enables the Android Keyboard Shortcut Open File feature.";
 
 inline constexpr char kAndroidMediaInsertionName[] =
     "Enable IME media insertion";
