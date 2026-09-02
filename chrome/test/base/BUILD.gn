@@ -87,31 +87,32 @@ source_set("chrome_test_path_utils") {
   ]
 }
 
-# Thin header-only target that exposes chrome_test_utils.h for gn check. The
-# implementation (chrome_test_utils.cc) still lives in
-# //chrome/test:test_support until the TestingBrowserProcessDeathTestMixin
-# dependency cycle is resolved.
-#
-# TODO(crbug.com/353332589): Add chrome_test_utils.cc as a source and remove
-# from //chrome/test:test_support once testing_browser_process is split into a
-# thin header + impl target (Pattern A), breaking the dep cycle through
-# //chrome/browser/extensions:test_support.
 source_set("chrome_test_utils") {
   testonly = true
-  sources = [ "chrome_test_utils.h" ]
+  sources = [
+    "chrome_test_utils.cc",
+    "chrome_test_utils.h",
+  ]
   public_deps = [
     ":chrome_test_path_utils",
     "//components/tabs:public",
     "//content/public/browser",
   ]
+  deps = [ "//content/test:test_support" ]
   if (is_android) {
     # TODO(crbug.com/353332589): Remove once android_browser_test.cc no longer
     # includes chrome_test_utils.h, or the android_browser_test functions it
     # calls are moved to a dep-graph-safe separate target.
     allow_circular_includes_from = [ "//chrome/test:test_support_ui_android" ]
     public_deps += [ "//chrome/test:test_support_ui_android" ]
+    deps += [
+      "//chrome/browser/android:tabs_public",
+      "//chrome/browser/ui/android/tab_model",
+      "//chrome/browser/ui/browser_window",
+    ]
   } else {
     public_deps += [ ":platform_browser_test" ]
+    deps += [ "//chrome/browser/ui/tabs:tab_strip" ]
   }
 }
 
@@ -377,6 +378,7 @@ source_set("testing_browser_process") {
   testonly = true
   sources = [
     "testing_browser_process.h",
+    "testing_browser_process_death_test_mixin.h",
     "testing_browser_process_platform_part.h",
   ]
 
@@ -400,6 +402,7 @@ source_set("testing_browser_process_impl") {
   testonly = true
   sources = [
     "testing_browser_process.cc",
+    "testing_browser_process_death_test_mixin.cc",
     "testing_browser_process_platform_part.cc",
   ]
   public_deps = [
@@ -535,15 +538,147 @@ source_set("profile_lifecycle_test_utils") {
   deps = [ "//chrome/browser:browser_process" ]
 }
 
+source_set("chrome_unit_test_suite") {
+  testonly = true
+  sources = [
+    "chrome_unit_test_suite.cc",
+    "chrome_unit_test_suite.h",
+  ]
+  public_deps = [
+    ":chrome_test_suite",
+    "//base/test:test_support",
+  ]
+  deps = [
+    ":testing_browser_process",
+    "//base",
+    "//chrome/browser:browser_process",
+    "//chrome/browser/lifetime",
+    "//chrome/browser/profiles:profile_manager",
+    "//chrome/browser/ui/webui:chrome_web_ui_controller_factory",
+    "//chrome/browser/ui/webui:configs",
+    "//chrome/browser/update_client",
+    "//chrome/common",
+    "//components/component_updater",
+    "//components/startup_metric_utils",
+    "//components/update_client",
+    "//components/web_package",
+    "//content/public/browser",
+    "//content/public/common",
+    "//content/test:test_support",
+    "//extensions/buildflags",
+    "//gpu/ipc/service",
+    "//testing/gtest",
+    "//ui/accessibility",
+    "//ui/base",
+    "//ui/gfx",
+    "//ui/gl:test_support",
+  ]
+  if (is_chromeos) {
+    deps += [
+      "//ash/constants",
+      "//chrome/browser/ash/arc:arc_util",
+      "//chromeos/dbus/constants",
+      "//crypto",
+    ]
+  }
+  if (!is_android) {
+    deps += [
+      "//chrome/browser/apps/app_service",
+      "//chrome/browser/apps/app_service/publishers",
+      "//chrome/browser/web_applications",
+    ]
+  }
+  if (enable_extensions) {
+    deps += [ "//extensions/common" ]
+  }
+}
+
+source_set("chrome_render_view_test") {
+  testonly = true
+  sources = [
+    "chrome_render_view_test.cc",
+    "chrome_render_view_test.h",
+  ]
+  public_deps = [
+    "//base",
+    "//content/test:test_support",
+    "//services/service_manager/public/cpp",
+    "//third_party/blink/public/common:headers",
+  ]
+  deps = [
+    ":chrome_unit_test_suite",
+    "//chrome/browser:chrome_content_browser_client",
+    "//chrome/common",
+    "//chrome/renderer",
+    "//components/autofill/content/renderer:test_support",
+    "//components/input",
+    "//components/record_replay/core/common",
+    "//components/spellcheck:buildflags",
+    "//components/spellcheck/renderer",
+    "//extensions/buildflags",
+    "//testing/gmock",
+    "//third_party/blink/public:blink_headers",
+  ]
+  if (enable_extensions_core) {
+    deps += [
+      "//chrome/renderer/extensions",
+      "//extensions/browser",
+      "//extensions/renderer",
+    ]
+  }
+  if (enable_extensions) {
+    deps += [
+      "//extensions/browser",
+      "//extensions/common",
+    ]
+  }
+  if (!is_android) {
+    deps += [
+      "//chrome/renderer:process_state",
+      "//components/record_replay/content/renderer",
+    ]
+  }
+}
+
 source_set("chrome_test_suite") {
   testonly = true
-  sources = [ "chrome_test_suite.h" ]
+  sources = [
+    "chrome_test_suite.cc",
+    "chrome_test_suite.h",
+  ]
   public_deps = [
     "//base",
     "//content/test:test_support",
   ]
+  deps = [
+    "//chrome/browser:browser_process",
+    "//chrome/browser/signin",
+    "//chrome/common",
+    "//components/content_settings/core/common",
+    "//components/signin/public/identity_manager:test_support",
+    "//media",
+    "//testing/gtest",
+  ]
   if (is_android) {
     public_deps += [ "//components/gcm_driver/instance_id:test_support" ]
+
+    # Android uses //chrome:chrome_android_core instead of the //chrome/app
+    # target.
+    deps += [ "//chrome:chrome_android_core" ]
+  } else {
+    deps += [ "//chrome/app:test_support" ]
+  }
+  if (enable_extensions_core) {
+    deps += [ "//extensions/common" ]
+  }
+  if (is_chromeos) {
+    deps += [ "//ash/constants" ]
+  }
+  if (is_mac) {
+    deps += [
+      "//chrome/browser:app_controller_mac",
+      "//chrome/browser:chrome_browser_application_mac",
+    ]
   }
 }
 
@@ -935,6 +1070,74 @@ if (!is_android) {
       "//ui/color",
       "//ui/views",
     ]
+  }
+
+  source_set("browser_with_test_window_test") {
+    testonly = true
+    configs += [ "//build/config/compiler:no_exit_time_destructors" ]
+    sources = [
+      "browser_with_test_window_test.cc",
+      "browser_with_test_window_test.h",
+    ]
+    public_deps = [
+      ":test_browser_window",
+      ":testing_profile",
+      "//base",
+      "//chrome/browser/performance_manager:test_support",
+      "//chrome/browser/profiles:profile_manager",
+      "//chrome/browser/ui",
+      "//chrome/browser/ui/views:chrome_constrained_window_views_client",
+      "//components/variations:test_support",
+      "//content/test:test_support",
+      "//services/network:test_support",
+      "//testing/gtest",
+    ]
+    deps = [
+      ":testing_browser_process",
+      "//base",
+      "//chrome/browser:browser_process",
+      "//chrome/browser/net",
+      "//chrome/browser/profiles",
+      "//chrome/browser/ui/browser_window",
+      "//chrome/browser/ui/browser_window:create_browser_window",
+      "//chrome/browser/ui/navigator",
+      "//chrome/browser/ui/tabs:tab_strip",
+      "//chrome/common",
+      "//components/sync_preferences",
+      "//content/public/browser",
+    ]
+    if (toolkit_views) {
+      public_deps += [ "//chrome/test/views" ]
+      deps += [
+        "//components/constrained_window",
+        "//ui/views:test_support",
+      ]
+      if (is_chromeos) {
+        public_deps += [ "//ash:test_support" ]
+      }
+    }
+    if (is_chromeos) {
+      public_deps += [
+        "//chrome/browser/ash/app_mode",
+        "//chrome/browser/ash/settings:test_support",
+        "//chromeos/ash/components/install_attributes:test_support",
+        "//components/session_manager/core",
+        "//components/session_manager/core:test_support",
+        "//components/user_manager",
+        "//services/network/public/cpp",
+      ]
+      deps += [
+        "//chrome/browser/ash/profiles",
+        "//chromeos/ash/components/browser_context_helper",
+        "//chromeos/ash/components/dbus/cros_disks",
+        "//chromeos/ash/components/disks:test_support",
+        "//components/user_manager:test_support",
+        "//google_apis",
+      ]
+    }
+    if (is_win) {
+      deps += [ "//ui/base" ]
+    }
   }
 
   source_set("save_desktop_snapshot") {

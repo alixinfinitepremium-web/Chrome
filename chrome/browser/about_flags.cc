@@ -2760,6 +2760,23 @@ const FeatureEntry::FeatureParam kPdfV2EnableFormFillingParam[] = {
 const FeatureEntry::FeatureVariation kInlinePdfV2Variations[] = {
     {"with form filling", kPdfV2EnableFormFillingParam, nullptr}};
 
+const FeatureEntry::FeatureParam
+    kOnDemandBackgroundTabContextCaptureOptimization_ZeroDelay[] = {
+        {"enable_first_paint", "true"},
+        {"first_paint_delay_ms", "0"}};
+const FeatureEntry::FeatureParam
+    kOnDemandBackgroundTabContextCaptureOptimization_1000MsDelay[] = {
+        {"enable_first_paint", "true"},
+        {"first_paint_delay_ms", "1000"}};
+
+const FeatureEntry::FeatureVariation
+    kOnDemandBackgroundTabContextCaptureOptimizationVariations[] = {
+        {"EnableFirstPaintWithZeroDelay",
+         kOnDemandBackgroundTabContextCaptureOptimization_ZeroDelay, nullptr},
+        {"EnableFirstPaintWith1000MsDelay",
+         kOnDemandBackgroundTabContextCaptureOptimization_1000MsDelay,
+         nullptr}};
+
 #endif  // BUILDFLAG(IS_ANDROID)
 
 const FeatureEntry::FeatureParam kRenderDocument_Subframe[] = {
@@ -7589,6 +7606,14 @@ const FeatureEntry kFeatureEntries[] = {
      kOsAndroid,
      FEATURE_VALUE_TYPE(
          download::features::kDownloadNotificationServiceUnifiedAPI)},
+#if BUILDFLAG(IS_ANDROID)
+    {"enable-download-save-as-system-file-dialog",
+     flag_descriptions::kEnableDownloadSaveAsSystemFileDialogName,
+     flag_descriptions::kEnableDownloadSaveAsSystemFileDialogDescription,
+     kOsAndroid,
+     FEATURE_VALUE_TYPE(
+         download::features::kEnableDownloadSaveAsSystemFileDialog)},
+#endif  // BUILDFLAG(IS_ANDROID)
 
     {"enable-network-logging-to-file",
      flag_descriptions::kEnableNetworkLoggingToFileName,
@@ -13970,8 +13995,10 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::
          kOnDemandBackgroundTabContextCaptureOptimizationDescription,
      kOsAndroid,
-     FEATURE_VALUE_TYPE(
-         chrome::android::kOnDemandBackgroundTabContextCaptureOptimization)},
+     FEATURE_WITH_PARAMS_VALUE_TYPE(
+         chrome::android::kOnDemandBackgroundTabContextCaptureOptimization,
+         kOnDemandBackgroundTabContextCaptureOptimizationVariations,
+         "OnDemandBackgroundTabContextCaptureOptimization")},
     {"web-hid-on-android", flag_descriptions::kWebHidOnAndroidName,
      flag_descriptions::kWebHidOnAndroidDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(blink::features::kWebHID)},

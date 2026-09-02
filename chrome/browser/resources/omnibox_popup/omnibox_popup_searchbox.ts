@@ -15,7 +15,7 @@ import {kDefaultSelection} from '//resources/cr_components/searchbox/searchbox_m
 import type {SearchboxMixinInterface} from '//resources/cr_components/searchbox/searchbox_mixin.js';
 import {SearchboxMixin} from '//resources/cr_components/searchbox/searchbox_mixin.js';
 import {selectionIsNativelySupported} from '//resources/cr_components/searchbox/searchbox_selection_mixin.js';
-import {sanitizeTextForPaste} from '//resources/cr_components/searchbox/utils.js';
+import {markOnce, sanitizeTextForPaste} from '//resources/cr_components/searchbox/utils.js';
 import {I18nMixinLit} from '//resources/cr_elements/i18n_mixin_lit.js';
 import {WebUiListenerMixinLit} from '//resources/cr_elements/web_ui_listener_mixin_lit.js';
 import {EventTracker} from '//resources/js/event_tracker.js';
@@ -830,6 +830,7 @@ export class OmniboxPopupSearchboxElement extends
    * focus.
    */
   private onSetInputState_(state: OmniboxInputState) {
+    markOnce('OmniboxPopupSearchboxElement::onSetInputState_');
     const isTabSwitch = this.tabId_ !== state.tabId;
     this.$.input.setInputText(state.text);
     this.userInputInProgress_ = state.userInputInProgress;
@@ -896,16 +897,23 @@ export class OmniboxPopupSearchboxElement extends
    * document is visible, focuses and selects all input text immediately.
    * If hidden, defers the action until `visibilitychange`.
    */
-  private onSetFocus_(isFocused: boolean) {
+  private onSetFocus_(isFocused: boolean, queryZps: boolean = false) {
     this.isLogicallyFocused_ = isFocused;
     if (isFocused) {
       if (document.visibilityState === 'visible') {
         this.deferredFocusAction_ = null;
         this.$.input.focus();
+        this.getInputElement().select();
       } else {
         // Defer focusing and selecting text if the document is currently
         // hidden, as DOM focus calls on hidden documents may be ignored.
         this.deferredFocusAction_ = DeferredFocusAction.FOCUS_AND_SELECT;
+      }
+      if (queryZps && !this.userInputInProgress_ && !this.dropdownIsVisible) {
+        this.queryAutocomplete(
+            this.getInputElement().inputElement.value,
+            /*preventInlineAutocomplete=*/ false,
+            /*isOnFocus=*/ true);
       }
     } else {
       this.deferredFocusAction_ = null;

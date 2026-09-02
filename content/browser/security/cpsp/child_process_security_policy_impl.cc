@@ -3182,12 +3182,11 @@ void ChildProcessSecurityPolicyImpl::AddIsolatedOriginInternal(
     }
     // If the added origin already exists for the same BrowserContext and
     // covers the same BrowsingInstances, don't re-add it.
-    if (entry.browser_context_id() == browser_context_id) {
-      if (entry.applies_to_future_browsing_instances() &&
-          entry.browsing_instance_id() <= browsing_instance_id) {
-        // If the existing entry applies to future BrowsingInstances, and it
-        // has a lower/same BrowsingInstance ID, don't re-add the origin.  Note
-        // that if the new isolated origin is also requested to apply to future
+    if (entry.browser_context_id() == browser_context_id &&
+        entry.MatchesBrowsingInstance(browsing_instance_id)) {
+      if (entry.applies_to_future_browsing_instances()) {
+        // If the existing entry applies to future BrowsingInstances, and the
+        // new isolated origin is also requested to apply to future
         // BrowsingInstances, the threshold ID must necessarily be greater than
         // the old ID, since NextBrowsingInstanceId() returns monotonically
         // increasing IDs.
@@ -3195,23 +3194,17 @@ void ChildProcessSecurityPolicyImpl::AddIsolatedOriginInternal(
           CHECK_LE(entry.browsing_instance_id(), browsing_instance_id,
                    base::NotFatalUntil::M159);
         }
-        should_add = false;
-        break;
-      } else if (!entry.applies_to_future_browsing_instances() &&
-                 entry.browsing_instance_id() == browsing_instance_id) {
-        // Otherwise, don't re-add the origin if the existing entry is for the
-        // same BrowsingInstance ID.  Note that if an origin had been added for
-        // a specific BrowsingInstance, we can't later receive a request to
-        // isolate that origin within future BrowsingInstances that start at
-        // the same (or lower) BrowsingInstance. Requests to isolate future
-        // BrowsingInstances should always reference
-        // SiteInstanceImpl::NextBrowsingInstanceId(), which always refers to
-        // an ID that's greater than any existing BrowsingInstance ID.
+      } else {
+        // If an origin had been added for a specific BrowsingInstance, we can't
+        // later receive a request to isolate that origin within future
+        // BrowsingInstances that start at the same (or lower) BrowsingInstance.
+        // Requests to isolate future BrowsingInstances should always reference
+        // SiteInstanceImpl::NextBrowsingInstanceId(), which always refers to an
+        // ID that's greater than any existing BrowsingInstance ID.
         CHECK(!applies_to_future_browsing_instances, base::NotFatalUntil::M159);
-
-        should_add = false;
-        break;
       }
+      should_add = false;
+      break;
     }
 
     // Otherwise, allow the origin to be added again for a different profile
@@ -3318,11 +3311,9 @@ std::vector<url::Origin> ChildProcessSecurityPolicyImpl::GetIsolatedOrigins(
       // the browser_context is not specified, only consider entries that are
       // not associated with a profile (i.e., which apply globally to the
       // entire browser).
-      bool matches_profile =
-          browser_context ? isolated_origin_entry.MatchesProfile(
-                                browser_context->UniqueToken())
-                          : isolated_origin_entry.AppliesToAllBrowserContexts();
-      if (!matches_profile) {
+      if (!isolated_origin_entry.MatchesProfile(
+              browser_context ? browser_context->UniqueToken()
+                              : base::UnguessableToken())) {
         continue;
       }
 
@@ -3849,7 +3840,7 @@ void ChildProcessSecurityPolicyImpl::
   // available (and is only safe to be retrieved) on the UI thread, such as
   // BrowserContext.
   // TODO(crbug.com/482216433): Support this check on the Rust side.
-  DCHECK_CURRENTLY_ON(BrowserThread::UI);
+  CHECK_CURRENTLY_ON(BrowserThread::UI, base::NotFatalUntil::M159);
 
   RUST_CPP_VOID_FUNCTION(
       rust::child_process_security_policy::
@@ -3874,7 +3865,8 @@ void ChildProcessSecurityPolicyImpl::
   // We should only be registering an isolation state if it deviates from the
   // default isolation state (e.g., if it's explicitly requested by a header or
   // if an ad frame's process isolation is being bypassed).
-  DCHECK(oac_isolation_state != default_isolation_state);
+  CHECK(oac_isolation_state != default_isolation_state,
+        base::NotFatalUntil::M159);
 
   // We ought to have validated the origin prior to getting here.  If the
   // origin isn't valid at this point, something has gone wrong.
@@ -4208,7 +4200,7 @@ void ChildProcessSecurityPolicyImpl::ProcessStateMaps::RemoveProcessReference(
     return;
   }
 
-  DCHECK_EQ(itr->second, 1);
+  CHECK_EQ(itr->second, 1, base::NotFatalUntil::M159);
   process_reference_counts_.erase(itr);
 
   // TODO(crbug.com/522872468): Figure out ProcessState lifetime management in
@@ -4237,7 +4229,7 @@ void ChildProcessSecurityPolicyImpl::ProcessStateMaps::RemoveProcessReference(
       FROM_HERE,
       base::BindOnce(
           [](ChildProcessId child_id) {
-            DCHECK_CURRENTLY_ON(BrowserThread::IO);
+            CHECK_CURRENTLY_ON(BrowserThread::IO, base::NotFatalUntil::M159);
             auto* policy = ChildProcessSecurityPolicyImpl::GetInstance();
             base::AutoLock lock(policy->lock_);
             policy->process_states_.CompletePendingStateRemoval(child_id);
@@ -4247,19 +4239,19 @@ void ChildProcessSecurityPolicyImpl::ProcessStateMaps::RemoveProcessReference(
 
 void ChildProcessSecurityPolicyImpl::ProcessStateMaps::
     CompletePendingStateRemoval(ChildProcessId child_id) {
-  DCHECK_CURRENTLY_ON(BrowserThread::IO);
+  CHECK_CURRENTLY_ON(BrowserThread::IO, base::NotFatalUntil::M159);
   pending_remove_state_.erase(child_id);
 }
 
 void ChildProcessSecurityPolicyImpl::AddCommittedOrigin(
     int child_id,
     const url::Origin& origin) {
-  DCHECK_CURRENTLY_ON(BrowserThread::UI);
+  CHECK_CURRENTLY_ON(BrowserThread::UI, base::NotFatalUntil::M159);
   base::AutoLock lock(lock_);
   // TODO(crbug.com/379869738) Remove FromUnsafeValue.
   auto* state = process_states_.GetProcessStateForMutation(
       ChildProcessId::FromUnsafeValue(child_id));
-  DCHECK(state);
+  CHECK(state, base::NotFatalUntil::M159);
   state->AddCommittedOrigin(origin);
 }
 

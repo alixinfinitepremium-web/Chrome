@@ -194,9 +194,11 @@ static_library("test_support") {
     "//chrome/test/base:browser_feature_test_waiters",
     "//chrome/test/base:browser_window_waiters",
     "//chrome/test/base:chrome_render_view_host_test_harness",
+    "//chrome/test/base:chrome_render_view_test",
     "//chrome/test/base:chrome_test_scoped_utils",
     "//chrome/test/base:chrome_test_suite",
     "//chrome/test/base:chrome_test_utils",
+    "//chrome/test/base:chrome_unit_test_suite",
     "//chrome/test/base:menu_model_test",
     "//chrome/test/base:profile_lifecycle_test_utils",
     "//chrome/test/base:scoped_metrics_service_for_synthetic_trials",
@@ -214,15 +216,7 @@ static_library("test_support") {
     public_deps += [ "//chrome/test/base:android_ui_test_utils" ]
   }
 
-  sources = [
-    "../app/startup_timestamps.h",
-    "base/chrome_render_view_test.cc",
-    "base/chrome_render_view_test.h",
-    "base/chrome_test_suite.cc",
-    "base/chrome_test_utils.cc",
-    "base/chrome_unit_test_suite.cc",
-    "base/chrome_unit_test_suite.h",
-  ]
+  sources = [ "../app/startup_timestamps.h" ]
 
   if (enable_guest_view) {
     public_deps += [ "//components/guest_view/browser:test_support" ]
@@ -600,11 +594,10 @@ static_library("test_support") {
       deps += [ "//chrome/browser/compose" ]
     }
 
-    sources += [
-      "../test/base/browser_with_test_window_test.cc",
-      "../test/base/browser_with_test_window_test.h",
+    public_deps += [
+      "//chrome/test/base:browser_with_test_window_test",
+      "//chrome/test/base:test_browser_window",
     ]
-    public_deps += [ "//chrome/test/base:test_browser_window" ]
     allow_circular_includes_from += [
       ":test_support_ui",
       "//chrome/browser/ui/views/tabs/common:impl",
@@ -3723,6 +3716,7 @@ if (!is_android) {
         "//chrome/browser/ui/views:javascript_tab_modal_dialog_view_views",
         "//chrome/browser/ui/views:media_picker_utils",
         "//chrome/browser/ui/views:upgrade_notification_controller",
+        "//chrome/browser/ui/views/autofill:autofill_field_promo_view_impl",
         "//chrome/browser/ui/views/autofill/autofill_ai",
         "//chrome/browser/ui/views/autofill/payments:autofill_error_dialog_view_native_views",
         "//chrome/browser/ui/views/autofill/payments:bnpl_tos_view_desktop",
@@ -3747,6 +3741,9 @@ if (!is_android) {
         "//chrome/browser/ui/views/profiles:profiles_pixel_test_utils",
         "//chrome/browser/ui/views/search_engines",
         "//chrome/browser/ui/views/web_apps",
+        "//chrome/browser/ui/views/web_apps:create_shortcut_confirmation_view",
+        "//chrome/browser/ui/views/web_apps:image_carousel_view",
+        "//chrome/browser/ui/views/web_apps:web_app_uninstall_dialog_view",
         "//chrome/browser/ui/views/web_apps/frame_toolbar:test_support",
         "//chrome/browser/ui/views/web_apps/frame_toolbar:web_app_content_settings_container",
         "//chrome/browser/ui/views/web_apps/isolated_web_apps:isolated_web_app_identity_view",
@@ -3818,7 +3815,10 @@ if (!is_android) {
         "//chrome/browser/ui/views/context_hub:save_to_memory_bank_bubble_view",
         "//chrome/browser/ui/views/frame:multi_contents_background_view",
         "//chrome/browser/ui/views/frame:multi_contents_resize_area",
+        "//chrome/browser/ui/views/web_apps:create_shortcut_confirmation_view",
+        "//chrome/browser/ui/views/web_apps:image_carousel_view",
         "//chrome/browser/ui/views/web_apps:view_visible_in_active_widget_notifier",
+        "//chrome/browser/ui/views/web_apps:web_app_uninstall_dialog_view",
       ]
       if (is_win) {
         deps +=
@@ -7944,7 +7944,10 @@ test("unit_tests") {
       "//chrome/browser/ui/views/autofill/popup:popup_title_view",
       "//chrome/browser/ui/views/autofill/popup:popup_warning_view",
       "//chrome/browser/ui/views/context_hub:save_to_memory_bank_bubble_view",
+      "//chrome/browser/ui/views/web_apps:create_shortcut_confirmation_view",
+      "//chrome/browser/ui/views/web_apps:image_carousel_view",
       "//chrome/browser/ui/views/web_apps:view_visible_in_active_widget_notifier",
+      "//chrome/browser/ui/views/web_apps:web_app_uninstall_dialog_view",
     ]
 
     deps += [
