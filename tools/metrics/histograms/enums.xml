@@ -3736,6 +3736,7 @@ shown properly on the user-facing crash UI.
   <int value="2" label="No credentials needed"/>
   <int value="3" label="Credential fetch success"/>
   <int value="4" label="Credential fetch failure"/>
+  <int value="5" label="Sign-in required"/>
 </enum>
 
 <!-- LINT.ThenChange(//components/enterprise/net/core/enterprise_proxy_service.h:ProxyAuthChallengeResult) -->
@@ -9514,6 +9515,7 @@ from previous Chrome versions.
   <int value="-1613863020" label="MlUrlScoreCaching:enabled"/>
   <int value="-1613833640" label="ClipboardHistoryWebContentsPaste:disabled"/>
   <int value="-1613583483" label="UseNewAcceptLanguageHeader:enabled"/>
+  <int value="-1613442602" label="GlicMarketingAutoOpen:enabled"/>
   <int value="-1612641543" label="CCTRealTimeEngagementSignals:disabled"/>
   <int value="-1612418793"
       label="ExperimentalAccessibilitySwitchAccessSetupGuide:enabled"/>
@@ -12186,6 +12188,7 @@ from previous Chrome versions.
   <int value="-787238455" label="OmniboxZeroSuggestionsOnSERP:disabled"/>
   <int value="-787176861" label="CaptureModeEducationBypassLimits:enabled"/>
   <int value="-785528415" label="FedCm:disabled"/>
+  <int value="-784980201" label="GlicMarketingAutoOpen:disabled"/>
   <int value="-784584916" label="SyncEnableHistoryDataType:enabled"/>
   <int value="-784199026" label="EnableFilesAppCopyImage:enabled"/>
   <int value="-784165332"
@@ -18232,6 +18235,7 @@ from previous Chrome versions.
   <int value="1095061640" label="enable-prominent-url-app-flow"/>
   <int value="1095166532" label="PasspointARCSupport:disabled"/>
   <int value="1095706700" label="NavigationPredictor:enabled"/>
+  <int value="1096037167" label="AndroidUnknownGamepadExtraAxes:disabled"/>
   <int value="1096462052" label="TabGroupsSaveV2:enabled"/>
   <int value="1096477444" label="AssistantVoiceMatch:enabled"/>
   <int value="1096958492" label="(Obsolete) LacrosColorManagement:disabled"/>
@@ -20417,6 +20421,7 @@ from previous Chrome versions.
       label="RevokeNotificationsPermissionIfDisabledOnAppLevel:enabled"/>
   <int value="1763256921" label="PerformanceNavigateSystemEntropy:disabled"/>
   <int value="1763791860" label="CastMessageLogging:enabled"/>
+  <int value="1764208497" label="AndroidUnknownGamepadExtraAxes:enabled"/>
   <int value="1764243510"
       label="EnableClientCertificateProvisioningOnAndroid:enabled"/>
   <int value="1764618580" label="MojoLinuxChannelSharedMem:disabled"/>

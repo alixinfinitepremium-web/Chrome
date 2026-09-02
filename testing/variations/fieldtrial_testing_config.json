@@ -1491,21 +1491,6 @@
             ]
         }
     ],
-    "AppSwitcherAISummarization": [
-        {
-            "platforms": [
-                "ios"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "AppSwitcherAISummarization"
-                    ]
-                }
-            ]
-        }
-    ],
     "ApplyDeviceChoiceRenewal": [
         {
             "platforms": [
@@ -9694,6 +9679,9 @@
             "experiments": [
                 {
                     "name": "Enabled",
+                    "params": {
+                        "allowlisted_urls": "https://www.google.com/chrome/ai-innovations/gemini-in-chrome/,https://www.google.com/chrome/campaigns/gic-on-android/"
+                    },
                     "enable_features": [
                         "GlicMarketingAutoOpen"
                     ]
@@ -11034,6 +11022,21 @@
                     "name": "Enabled",
                     "enable_features": [
                         "IDBDatabaseDumpOnHighConnectionCount"
+                    ]
+                }
+            ]
+        }
+    ],
+    "IOSAppSwitcherAISummarization": [
+        {
+            "platforms": [
+                "ios"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "AppSwitcherAISummarization"
                     ]
                 }
             ]

@@ -521,6 +521,15 @@
     "expiry_milestone": 158
   },
   {
+    "name": "android-unknown-gamepad-extra-axes",
+    "owners": [
+      "deviceapi-team@google.com",
+      "helmut@januschka.com",
+      "mattreynolds@chromium.org"
+    ],
+    "expiry_milestone": 160
+  },
+  {
     "name": "android-use-correct-display-work-area",
     "owners": [
       "renkens@google.com",
@@ -3151,11 +3160,6 @@
     "expiry_milestone": 170
   },
   {
-    "name": "enable-accessibility-flash-screen-feature",
-    "owners": [ "katie@chromium.org", "//ash/accessibility/OWNERS" ],
-    "expiry_milestone": 149
-  },
-  {
     "name": "enable-accessibility-google-tts-automatic-reconnect",
     "owners": [ "katydek@chromium.org", "//ui/accessibility/OWNERS" ],
     "expiry_milestone": 160
@@ -3196,7 +3200,7 @@
       "katie@chromium.org",
       "//ui/accessibility/OWNERS"
     ],
-    "expiry_milestone": 155
+    "expiry_milestone": 170
   },
   {
     "name": "enable-accessibility-manifest-v3-espeakng",
@@ -4823,7 +4827,7 @@
       "ruoxih@google.com",
       "shomizoe@google.com"
     ],
-    "expiry_milestone": 154
+    "expiry_milestone": 160
   },
   {
     "name": "energy-effect-animation",
@@ -4831,7 +4835,7 @@
       "ruoxih@google.com",
       "shomizoe@google.com"
     ],
-    "expiry_milestone": 154
+    "expiry_milestone": 160
   },
   {
     "name": "enforce-can-sign-in-to-chrome-capability",
@@ -5872,15 +5876,6 @@
     "expiry_milestone": 156
   },
   {
-    "name": "glic-experimental-triggering-suppress-done-notification",
-    "owners": [
-      "sauski@google.com",
-      "rosiey@google.com",
-      "//chrome/browser/glic/OWNERS"
-    ],
-    "expiry_milestone": 154
-  },
-  {
     "name": "glic-gemini-enterprise-consent-enabled",
     "owners": [
       "esalma@google.com",
@@ -5941,6 +5936,11 @@
     "name": "glic-live-mode-only-glow",
     "owners": [ "wry@chromium.org", "//chrome/browser/glic/OWNERS" ],
     "expiry_milestone": 150
+  },
+  {
+    "name": "glic-marketing-auto-open",
+    "owners": [ "ssid@chromium.org", "//chrome/browser/glic/OWNERS" ],
+    "expiry_milestone": 160
   },
   {
     "name": "glic-message-first-fre-for-contextual-cue",
@@ -6407,7 +6407,7 @@
   {
     "name": "ios-actor-tools",
     "owners": [ "ginnyhuang@chromium.org", "kaklilu@chromium.org" ],
-    "expiry_milestone": 155
+    "expiry_milestone": 180
   },
   {
     "name": "ios-backend-promo-custom-ui",
@@ -9761,7 +9761,7 @@
   {
     "name": "test-third-party-cookie-phaseout",
     "owners": [ "selya@google.com" , "dylancutler@google.com" ],
-    "expiry_milestone": 155
+    "expiry_milestone": 160
   },
   {
     "name": "tethering-experimental-functionality",

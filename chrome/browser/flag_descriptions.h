@@ -1710,13 +1710,6 @@ inline constexpr char kGlicExperimentalTriggeringScreenshotName[] =
 inline constexpr char kGlicExperimentalTriggeringScreenshotDescription[] =
     "Enables secure client-side screenshot capture and encryption on yield "
     "for Glic experimental triggering tasks.";
-inline constexpr char
-    kGlicExperimentalTriggeringSuppressDoneNotificationName[] =
-        "Glic experimental triggering suppress done notification";
-inline constexpr char
-    kGlicExperimentalTriggeringSuppressDoneNotificationDescription[] =
-        "Suppresses the done notification for GLIC experimental triggering "
-        "tasks";
 inline constexpr char kGlicBackgroundActuationName[] =
     "Glic background actuation";
 inline constexpr char kGlicBackgroundActuationDescription[] =
@@ -1911,6 +1904,10 @@ inline constexpr char kGlicContextualCueingV2AutoSubmitName[] =
 inline constexpr char kGlicContextualCueingV2AutoSubmitDescription[] =
     "Enable automatically submitting a suggested prompt when the v2 contextual "
     "cue UI for Glic is clicked.";
+
+inline constexpr char kGlicMarketingAutoOpenName[] = "Glic Marketing Auto Open";
+inline constexpr char kGlicMarketingAutoOpenDescription[] =
+    "Enables Glic to auto-open on promotion pages.";
 
 inline constexpr char kGlicMessageFirstFreForContextualCueName[] =
     "Glic Message First FRE for Contextual Cue";
@@ -2196,12 +2193,6 @@ inline constexpr char kAccessibilityDisableTouchpadName[] =
     "Accessibility disable trackpad";
 inline constexpr char kAccessibilityDisableTouchpadDescription[] =
     "Adds a setting that allows the user to disable the built-in trackpad.";
-
-inline constexpr char kAccessibilityFlashScreenFeatureName[] =
-    "Accessibility feature to flash the screen for each notification";
-inline constexpr char kAccessibilityFlashScreenFeatureDescription[] =
-    "Allows the user to use a feature which flashes the screen for each "
-    "notification.";
 
 inline constexpr char kAccessibilityGoogleTtsAutomaticReconnectName[] =
     "Google TTS Automatic Reconnect";
@@ -5699,6 +5690,13 @@ inline constexpr char kAndroidTipsNotificationsV2Name[] =
     "Android Tips Notifications V2";
 inline constexpr char kAndroidTipsNotificationsV2Description[] =
     "Enable tips notifications V2 for supported features on Android.";
+
+inline constexpr char kAndroidUnknownGamepadExtraAxesName[] =
+    "Extra axes for unknown gamepads";
+inline constexpr char kAndroidUnknownGamepadExtraAxesDescription[] =
+    "Exposes axes without a standard mapping as extra axes for gamepads with "
+    "unknown mappings, instead of dropping them or mapping multiple input "
+    "axes to the same canonical axis.";
 
 inline constexpr char kAndroidUseCorrectDisplayWorkAreaName[] =
     "Enable accounting system UI for computing the display work area";

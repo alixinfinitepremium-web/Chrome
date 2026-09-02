@@ -341,7 +341,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '2c74a8b690591539717874e7a4b79236af1d7fce',
+  'skia_revision': '59dbd1fc1e0fad65a543592cc497bc21ff7b9af9',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -409,7 +409,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libFuzzer
   # and whatever else without interference from each other.
-  'libfuzzer_revision': '0c7e676c31406858959ad31f2954dcbf0e18319e',
+  'libfuzzer_revision': '8c09a8f461575f5fc009c4053a18611e23e3879c',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling fuzztest
   # and whatever else without interference from each other.
@@ -421,7 +421,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'bbef50cfef7bd63aceeb1d4138d361ca209456ec',
+  'devtools_frontend_revision': '1d3e71a681dbea922b4fcbd8ac550e08abe6a091',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -2214,7 +2214,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '8be1125f74ccca1e2a0823d6f92bcec92f0fd65b',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '7e4a19b2ea2947816a8ae68a86fb002fb2f4ce20',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -2666,7 +2666,7 @@ deps = {
     Var('chromium_git') + '/chromiumos/platform/libva-fake-driver.git' + '@' + 'a9bcab9cd6b15d4e3634ca44d5e5f7652c612194',
 
   'src/third_party/libvpx/source/libvpx':
-    Var('chromium_git') + '/webm/libvpx.git' + '@' +  '3ffe23d874a1b454e02be57f3e025d4aa70d6de0',
+    Var('chromium_git') + '/webm/libvpx.git' + '@' +  '5c880e08d21386049adec8e5537c4e726458b563',
 
   'src/third_party/libwebm/source':
     Var('chromium_git') + '/webm/libwebm.git' + '@' + '6184f4484a826724b5293837134ab9492261b941',
@@ -2798,7 +2798,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/cisco/openh264' + '@' + '9547f96ea5c47f4d465d97b07264b997ecc4b4b6',
 
   'src/third_party/openscreen/src':
-    Var('chromium_git') + '/openscreen' + '@' + 'fb748e428dfda43d3b55f3fb8c98d933ef66aa1c',
+    Var('chromium_git') + '/openscreen' + '@' + 'f7965132ccdfb7c3e6751cdd753cc41aa923509c',
 
   'src/third_party/openxr/src': {
     'url': Var('chromium_git') + '/external/github.com/KhronosGroup/OpenXR-SDK' + '@' + '75c53b6e853dc12c7b3c771edc9c9c841b15faaa',
@@ -2824,7 +2824,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + 'fc6a7ef8e2192bd4c2c96a62fd42d2155f280a17',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + 'feb4ef454b237907554fd747867dff9d8f76ed71',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
@@ -3215,8 +3215,8 @@ deps = {
       ],
   },
 
-  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@60b84f4d67ea14d773cb4c01477de787898c0a25',
-  'src/third_party/glslang/src': '{chromium_git}/external/github.com/KhronosGroup/glslang@e7e245dd9f759862bd7dda7fc6a2953e0f0384f6',
+  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@2c36c53082d3a80f18a325609c42619d560336c4',
+  'src/third_party/glslang/src': '{chromium_git}/external/github.com/KhronosGroup/glslang@3b7ce5726527dd665c564ed0aa9ef1ee6b992ab9',
   'src/third_party/spirv-cross/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Cross@b8fcf307f1f347089e3c46eb4451d27f32ebc8d3',
   'src/third_party/spirv-headers/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Headers@496543121ce6419f23d6fa5d7194ba66c36212d2',
   'src/third_party/spirv-tools/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Tools@8f573649bca4158325f394a9c4951a6eb5de8f7f',
@@ -3803,7 +3803,7 @@ deps = {
 
   'src/chrome/browser/glic/e2e_test/internal': {
       'url': Var('chrome_git') + '/chrome/browser/glic/test/internal.git' + '@' +
-        '8d0aa1b2fbc4e53936a3c3d53979a3916c183a02',
+        'ec71611726e48f993ae7ce0216cb10f604581068',
       'condition': 'checkout_glic_e2e_tests',
   },
 
@@ -4108,7 +4108,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '8660050509a9c2f49af81a902b78f3c81808221c',
+        'abc50299aec15c204420fd856817a3069a11bed3',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 

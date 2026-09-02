@@ -34,7 +34,6 @@ import org.mockito.junit.MockitoRule;
 import org.chromium.base.Token;
 import org.chromium.base.test.BaseRobolectricTestRunner;
 import org.chromium.base.test.util.UserActionTester;
-import org.chromium.chrome.browser.tab.MediaState;
 import org.chromium.chrome.browser.tab.Tab;
 import org.chromium.chrome.browser.tab.TabLaunchType;
 import org.chromium.chrome.browser.tab.TabSelectionType;
@@ -42,7 +41,6 @@ import org.chromium.chrome.browser.tab_ui.TabListFaviconProvider.TabFaviconFetch
 import org.chromium.chrome.browser.tabmodel.TabGroupObserver;
 import org.chromium.chrome.browser.tabmodel.TabModel;
 import org.chromium.chrome.browser.tasks.tab_management.TabListMediator.TabGridAccessibilityHelper;
-import org.chromium.chrome.browser.tasks.tab_management.TabListMediator.TabGridDialogHandler;
 import org.chromium.chrome.browser.tasks.tab_management.TabListModel.CardProperties.ModelType;
 import org.chromium.chrome.tab_ui.R;
 import org.chromium.components.tabs.TabAlert;
@@ -65,7 +63,6 @@ public class FlatLayoutDelegateUnitTest {
     @Rule public MockitoRule mMockitoRule = MockitoJUnit.rule();
 
     @Mock private TabListMediator mMediator;
-    @Mock private TabGridDialogHandler mTabGridDialogHandler;
     @Mock private TabGridAccessibilityHelper mAccessibilityHelper;
     @Mock private TabModel mTabModel;
     @Mock private Tab mTab1;
@@ -79,7 +76,7 @@ public class FlatLayoutDelegateUnitTest {
     @Before
     public void setUp() {
         mModelList = new TabListModel();
-        mDelegate = new FlatLayoutDelegate(mMediator, mModelList, mTabGridDialogHandler);
+        mDelegate = new FlatLayoutDelegate(mMediator, mModelList);
 
         when(mMediator.getCurrentTabModelChecked()).thenReturn(mTabModel);
         when(mMediator.isShowingTabs()).thenReturn(true);
@@ -232,7 +229,6 @@ public class FlatLayoutDelegateUnitTest {
         mDelegate.onAlertStateChanged(mTab1, TabAlert.AUDIO_PLAYING);
 
         assertEquals(TabAlert.AUDIO_PLAYING, model.get(TabProperties.ALERT_STATE));
-        assertEquals(MediaState.AUDIBLE, model.get(TabProperties.MEDIA_INDICATOR));
     }
 
     @Test
@@ -418,7 +414,6 @@ public class FlatLayoutDelegateUnitTest {
 
         // Flat layout does not display tab group headers, so no updates should occur.
         verifyNoInteractions(mMediator);
-        verifyNoInteractions(mTabGridDialogHandler);
     }
 
     @Test
@@ -427,7 +422,6 @@ public class FlatLayoutDelegateUnitTest {
 
         // Flat layout does not display tab group headers, so no updates should occur.
         verifyNoInteractions(mMediator);
-        verifyNoInteractions(mTabGridDialogHandler);
     }
 
     @Test
@@ -436,7 +430,6 @@ public class FlatLayoutDelegateUnitTest {
 
         // Flat layout does not display tab group headers, so no updates should occur.
         verifyNoInteractions(mMediator);
-        verifyNoInteractions(mTabGridDialogHandler);
     }
 
     @Test
@@ -468,52 +461,33 @@ public class FlatLayoutDelegateUnitTest {
     }
 
     @Test
-    public void testDidMoveTabOutOfGroup_Dialog() {
+    public void testDidMoveTabOutOfGroup() {
         addTabsToModelList(TAB1_ID, TAB2_ID);
-        when(mTabModel.getRepresentativeTabAt(0)).thenReturn(mTab2);
 
         // Execute moving mTab1 out.
         mDelegate.didMoveTabOutOfGroup(mTab1, 0);
 
         assertModelListTabIds(TAB2_ID);
-        verify(mTabGridDialogHandler).updateDialogContent(TAB2_ID);
     }
 
     @Test
-    public void testDidMoveTabOutOfGroup_Dialog_LastTab() {
+    public void testDidMoveTabOutOfGroup_LastTab() {
         addTabsToModelList(TAB1_ID);
-        when(mTabModel.getRepresentativeTabAt(0)).thenReturn(mTab1);
 
         // Execute moving mTab1 (last tab) out.
         mDelegate.didMoveTabOutOfGroup(mTab1, 0);
 
         assertModelListTabIds();
-        verify(mTabGridDialogHandler).updateDialogContent(Tab.INVALID_TAB_ID);
     }
 
     @Test
-    public void testDidMoveTabOutOfGroup_Strip() {
-        // Recreate delegate without dialog handler to simulate Strip.
-        mDelegate = new FlatLayoutDelegate(mMediator, mModelList, null);
-        addTabsToModelList(1, 2);
-        when(mTabModel.getRepresentativeTabAt(0)).thenReturn(mTab2);
-
-        mDelegate.didMoveTabOutOfGroup(mTab1, 0);
-
-        assertModelListTabIds(2);
-    }
-
-    @Test
-    public void testDidMoveTabOutOfGroup_Strip_Undo() {
-        // Recreate delegate without dialog handler to simulate Strip.
-        mDelegate = new FlatLayoutDelegate(mMediator, mModelList, null);
+    public void testDidMoveTabOutOfGroup_NotInModelList() {
         addTabsToModelList(TAB2_ID);
-        when(mTabModel.getRepresentativeTabAt(0)).thenReturn(mTab2);
+
         mDelegate.didMoveTabOutOfGroup(mTab1, 0);
 
-        // Verify no-op.
+        // Verify no-op when tab is not in model list.
         assertModelListTabIds(TAB2_ID);
-        verifyNoInteractions(mTabGridDialogHandler);
     }
 
     @Test
@@ -532,7 +506,6 @@ public class FlatLayoutDelegateUnitTest {
 
         verify(mMediator).addObserversForTab(mTab2);
         verify(mMediator).addTabCardToModel(mTab2, 1);
-        verify(mTabGridDialogHandler).updateDialogContent(TAB1_ID);
     }
 
     @Test
@@ -548,7 +521,6 @@ public class FlatLayoutDelegateUnitTest {
 
         verify(mMediator).getCurrentTabModelChecked();
         verifyNoMoreInteractions(mMediator);
-        verifyNoInteractions(mTabGridDialogHandler);
     }
 
     @Test
@@ -558,7 +530,6 @@ public class FlatLayoutDelegateUnitTest {
 
         verify(mMediator).getCurrentTabModelChecked();
         verifyNoMoreInteractions(mMediator);
-        verifyNoInteractions(mTabGridDialogHandler);
     }
 
     @Test
@@ -567,7 +538,6 @@ public class FlatLayoutDelegateUnitTest {
 
         // Flat layout does not display tab group headers, so no updates should occur.
         verifyNoInteractions(mMediator);
-        verifyNoInteractions(mTabGridDialogHandler);
     }
 
     @Test
@@ -576,7 +546,6 @@ public class FlatLayoutDelegateUnitTest {
 
         // Flat layout does not display tab group headers, so no updates should occur.
         verifyNoInteractions(mMediator);
-        verifyNoInteractions(mTabGridDialogHandler);
     }
 
     @Test
@@ -585,7 +554,6 @@ public class FlatLayoutDelegateUnitTest {
 
         // Flat layout does not display tab group headers, so no updates should occur.
         verifyNoInteractions(mMediator);
-        verifyNoInteractions(mTabGridDialogHandler);
     }
 
     @Test

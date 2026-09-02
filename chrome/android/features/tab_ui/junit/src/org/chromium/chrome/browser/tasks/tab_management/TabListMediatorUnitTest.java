@@ -146,7 +146,6 @@ import org.chromium.chrome.browser.tab.TabCreationState;
 import org.chromium.chrome.browser.tab.TabLaunchType;
 import org.chromium.chrome.browser.tab.TabObserver;
 import org.chromium.chrome.browser.tab.TabSelectionType;
-import org.chromium.chrome.browser.tab.TabUtils;
 import org.chromium.chrome.browser.tab.state.PersistedTabDataConfiguration;
 import org.chromium.chrome.browser.tab.state.ShoppingPersistedTabData;
 import org.chromium.chrome.browser.tab.state.ShoppingPersistedTabData.PriceDrop;
@@ -176,8 +175,8 @@ import org.chromium.chrome.browser.tabmodel.TabUngrouper;
 import org.chromium.chrome.browser.tasks.tab_management.PriceMessageService.PriceTabData;
 import org.chromium.chrome.browser.tasks.tab_management.TabActionButtonData.TabActionButtonType;
 import org.chromium.chrome.browser.tasks.tab_management.TabGridItemLongPressOrchestrator.OnLongPressTabItemEventListener;
+import org.chromium.chrome.browser.tasks.tab_management.TabGridItemTouchHelperCallback.UngroupBarStatusHandler;
 import org.chromium.chrome.browser.tasks.tab_management.TabListMediator.ShoppingPersistedTabDataFetcher;
-import org.chromium.chrome.browser.tasks.tab_management.TabListMediator.TabGridDialogHandler;
 import org.chromium.chrome.browser.tasks.tab_management.TabListMediator.TabListItemOnClickListenerProvider;
 import org.chromium.chrome.browser.tasks.tab_management.TabListMediator.TabListLayoutType;
 import org.chromium.chrome.browser.tasks.tab_management.TabListModel.AnimationStatus;
@@ -358,7 +357,7 @@ public class TabListMediatorUnitTest {
     @Mock TabUngrouper mIncognitoTabUngrouper;
     @Mock TabRemover mTabRemover;
     @Mock TabRemover mIncognitoTabRemover;
-    @Mock TabListMediator.TabGridDialogHandler mTabGridDialogHandler;
+    @Mock UngroupBarStatusHandler mUngroupBarStatusHandler;
     @Mock TabListMediator.TabListItemOnClickListenerProvider mTabListItemOnClickListenerProvider;
     @Mock TabFavicon mFavicon;
     @Mock Bitmap mFaviconBitmap;
@@ -450,7 +449,7 @@ public class TabListMediatorUnitTest {
                 TabListMediatorUnitTest.this.mTabListItemOnClickListenerProvider;
         private @Nullable TabListConfig mTabListConfig =
                 TabListMediatorUnitTest.this.mTabListConfig;
-        private @Nullable TabGridDialogHandler mDialogHandler;
+        private @Nullable UngroupBarStatusHandler mUngroupBarStatusHandler;
         private @TabComponentId int mComponentId = TabComponentId.GRID_TAB_SWITCHER;
         private @TabActionState int mTabActionState = TabActionState.CLOSABLE;
         private @Nullable UndoBarExplicitTrigger mUndoBarExplicitTrigger =
@@ -474,8 +473,9 @@ public class TabListMediatorUnitTest {
             return this;
         }
 
-        public MediatorBuilder setDialogHandler(@Nullable TabGridDialogHandler dialogHandler) {
-            mDialogHandler = dialogHandler;
+        public MediatorBuilder setUngroupBarStatusHandler(
+                @Nullable UngroupBarStatusHandler ungroupBarStatusHandler) {
+            mUngroupBarStatusHandler = ungroupBarStatusHandler;
             return this;
         }
 
@@ -516,7 +516,7 @@ public class TabListMediatorUnitTest {
                     () -> mSelectionDelegate,
                     mTabListItemOnClickListenerProvider,
                     mTabListConfig,
-                    mDialogHandler,
+                    mUngroupBarStatusHandler,
                     /* priceWelcomeMessageControllerSupplier= */ null,
                     mComponentId,
                     mTabActionState,
@@ -6752,8 +6752,8 @@ public class TabListMediatorUnitTest {
         doNothing().when(mTabModel).addTabGroupObserver(mTabGroupObserverCaptor.capture());
         doNothing().when(mTabModel).addObserver(mTabModelObserverCaptor.capture());
 
-        TabListMediator.TabGridDialogHandler handler =
-                type == TabListMediatorType.TAB_GRID_DIALOG ? mTabGridDialogHandler : null;
+        UngroupBarStatusHandler handler =
+                type == TabListMediatorType.TAB_GRID_DIALOG ? mUngroupBarStatusHandler : null;
         mThumbnailProvider = mode == TabListMode.GRID ? getTabThumbnailCallback() : null;
         @TabComponentId
         int componentId =
@@ -6835,7 +6835,7 @@ public class TabListMediatorUnitTest {
         mMediator =
                 new MediatorBuilder()
                         .setThumbnailProvider(mThumbnailProvider)
-                        .setDialogHandler(handler)
+                        .setUngroupBarStatusHandler(handler)
                         .setComponentId(componentId)
                         .setTabListConfig(mTabListConfig)
                         .build();
@@ -6999,7 +6999,6 @@ public class TabListMediatorUnitTest {
 
     private void updateTabAlertState(Tab tab, @TabAlert int alertState) {
         when(tab.getAlertState()).thenReturn(alertState);
-        when(tab.getMediaState()).thenReturn(TabUtils.getMediaStateForAlert(alertState));
         mTabObserverCaptor.getValue().onAlertStateChanged(tab, alertState);
     }
 
