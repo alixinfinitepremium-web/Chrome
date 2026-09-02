@@ -1212,10 +1212,6 @@
       status: "test",
     },
     {
-      name: "CollapseZeroWidthSpaceWhenReuseItem",
-      status: "stable",
-    },
-    {
       // Allows <input type=color> to accept any valid CSS color value
       // (named colors, rgb(), hsl(), system colors, etc.) in addition to
       // the legacy 7-character hex format (#rrggbb).
@@ -2048,11 +2044,6 @@
     {
       // crbug.com/417306102
       name: "CssTextFitReshaping",
-    },
-    {
-      // crbug.com/434361099
-      name: "CssTextIndent",
-      status: "stable",
     },
     {
       // crbug.com/1463890, crbug.com/1463891: CSS `text-spacing` shorthand
@@ -5782,10 +5773,6 @@
       status: "stable",
     },
     {
-      name: "SkipOofItemForBreakCandidate",
-      status: "stable",
-    },
-    {
       // crbug.com/517761566
       name: "SkipStaleUndoStepsInIdleSpellCheck",
       status: "stable",
@@ -6164,10 +6151,6 @@
     {
       name: "TableIsAutoFixedLayout",
       status: "test",
-    },
-    {
-      name: "TabSizeAncestor",
-      status: "stable",
     },
     {
       name: "TabSizeInRubyBase",
