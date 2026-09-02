@@ -36,10 +36,10 @@ BASE_FEATURE(kSafetyCheckModuleHiddenIfNoIssuesKillswitch,
 
 BASE_FEATURE(kOmahaServiceRefactor, base::FEATURE_DISABLED_BY_DEFAULT);
 
-BASE_FEATURE(kHideToolbarsInOverflowMenu, base::FEATURE_DISABLED_BY_DEFAULT);
+BASE_FEATURE(kHideToolbar, base::FEATURE_DISABLED_BY_DEFAULT);
 
 bool IsHideToolbarEnabled() {
-  return base::FeatureList::IsEnabled(kHideToolbarsInOverflowMenu);
+  return base::FeatureList::IsEnabled(kHideToolbar);
 }
 BASE_FEATURE(kHideFuseboxVoiceLensActions, base::FEATURE_DISABLED_BY_DEFAULT);
 
@@ -1242,4 +1242,10 @@ BASE_FEATURE(kDomainLevelSitePermissions, base::FEATURE_DISABLED_BY_DEFAULT);
 
 bool IsDomainLevelSitePermissionsEnabled() {
   return base::FeatureList::IsEnabled(kDomainLevelSitePermissions);
+}
+
+BASE_FEATURE(kAimHistoryThreadsManagement, base::FEATURE_DISABLED_BY_DEFAULT);
+
+bool IsAimHistoryThreadsManagementEnabled() {
+  return base::FeatureList::IsEnabled(kAimHistoryThreadsManagement);
 }

@@ -439,7 +439,6 @@ const base::Feature* const kFeaturesExposedToJava[] = {
     &kOnStartupWindowPolicy,
     &kOneStepAimAccess,
     &kOpenDownloadInPreferredApp,
-    &kOptionalButtonNoHardwareLayerKillswitch,
     &kPCCTMinimumHeight,
     &kPageAnnotationsService,
     &kPageContentProvider,
@@ -642,6 +641,9 @@ BASE_FEATURE(kActorNotificationIntentRouting, base::FEATURE_DISABLED_BY_DEFAULT)
 BASE_FEATURE(kActorStepProgressNotification, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kAllocInstanceIdIncreasedDefaultRange, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kAllowMultipleMediaNotifications, base::FEATURE_DISABLED_BY_DEFAULT);
+// Don't clean up this flag yet, BCIV is launched, so this needs to be enabled by
+// default, but some render tests need to disable this so that the hairline isn't
+// included in the screenshot. See crbug.com/394842006 for more details.
 BASE_FEATURE(kAlwaysDrawCompositedToolbarHairline, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kAndroidActorTaskTimeout, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kAndroidAppIntegrationMultiDataSource, base::FEATURE_ENABLED_BY_DEFAULT);
@@ -663,7 +665,7 @@ BASE_FEATURE(kAndroidFirstRunLaunchBounds, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kAndroidFreLayoutUpdate, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kAndroidHistoryClustering, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kAndroidKeyboardShortcutOpenFile, base::FEATURE_DISABLED_BY_DEFAULT);
-BASE_FEATURE(kAndroidNoCaptureWhenScrollingDisabledOnDesktop, base::FEATURE_ENABLED_BY_DEFAULT);
+BASE_FEATURE(kAndroidNoCaptureWhenScrollingDisabledOnDesktop, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kAndroidNoVisibleHintForDifferentTLD, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kAndroidOmniboxFocusedNewTabPage, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kAndroidOpenIncognitoAsWindowRestrictions, base::FEATURE_ENABLED_BY_DEFAULT);
@@ -855,7 +857,6 @@ BASE_FEATURE(kOnDemandBackgroundTabContextCaptureOptimization, base::FEATURE_DIS
 BASE_FEATURE(kOnStartupWindowPolicy, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kOneStepAimAccess, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kOpenDownloadInPreferredApp, base::FEATURE_DISABLED_BY_DEFAULT);
-BASE_FEATURE(kOptionalButtonNoHardwareLayerKillswitch, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kPCCTMinimumHeight, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kPageAnnotationsService, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kPageContentProvider, base::FEATURE_ENABLED_BY_DEFAULT);

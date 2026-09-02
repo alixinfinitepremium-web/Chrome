@@ -107,8 +107,8 @@ BASE_DECLARE_FEATURE(kNonModalDefaultBrowserPromoImpressionLimit);
 extern const base::FeatureParam<int>
     kNonModalDefaultBrowserPromoImpressionLimitParam;
 
-// Feature flag the "Hide Toolbar" button in the overflow menu.
-BASE_DECLARE_FEATURE(kHideToolbarsInOverflowMenu);
+// Feature flag for the "Hide Toolbar" button.
+BASE_DECLARE_FEATURE(kHideToolbar);
 
 // Returns true if the "Hide Toolbar" button is enabled.
 bool IsHideToolbarEnabled();
@@ -1009,5 +1009,11 @@ BASE_DECLARE_FEATURE(kDomainLevelSitePermissions);
 
 // Returns true if DomainLevelSitePermissions is enabled.
 bool IsDomainLevelSitePermissionsEnabled();
+
+// Enables the AimHistoryThreadsManagement feature.
+BASE_DECLARE_FEATURE(kAimHistoryThreadsManagement);
+
+// Returns true if the AimHistoryThreadsManagement feature is enabled.
+bool IsAimHistoryThreadsManagementEnabled();
 
 #endif  // IOS_CHROME_BROWSER_SHARED_PUBLIC_FEATURES_FEATURES_H_

@@ -991,21 +991,6 @@
             ]
         }
     ],
-    "AndroidSystemTracing": [
-        {
-            "platforms": [
-                "android"
-            ],
-            "experiments": [
-                {
-                    "name": "EnablePerfettoSystemTracing",
-                    "enable_features": [
-                        "EnablePerfettoSystemTracing"
-                    ]
-                }
-            ]
-        }
-    ],
     "AndroidThreadPriority": [
         {
             "platforms": [
@@ -3498,6 +3483,21 @@
             ]
         }
     ],
+    "BottomSheetOnDesktopWindowing": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "BottomSheetOnDesktopWindowing"
+                    ]
+                }
+            ]
+        }
+    ],
     "BrokenAlternativeServiceDelays": [
         {
             "platforms": [
@@ -4958,6 +4958,24 @@
                     "name": "Enabled_20260320",
                     "enable_features": [
                         "ClankDefaultSearchApi"
+                    ]
+                }
+            ]
+        }
+    ],
+    "ClankDesktopFieldSystemTracing": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "form_factors": [
+                "desktop"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled_20260901",
+                    "enable_features": [
+                        "EnablePerfettoSystemTracing"
                     ]
                 }
             ]
@@ -6598,6 +6616,23 @@
             ]
         }
     ],
+    "DesktopAndroidAccountSettingsRefinements": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "SignOutDeletesBrowsingData",
+                        "SignOutOfChrome",
+                        "SwitchToIncognitoInSettings"
+                    ]
+                }
+            ]
+        }
+    ],
     "DesktopAndroidLinkCapturing": [
         {
             "platforms": [
@@ -6934,6 +6969,24 @@
             ]
         }
     ],
+    "DevToolsAiV2Architecture": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "DevToolsAiV2Architecture"
+                    ]
+                }
+            ]
+        }
+    ],
     "DevToolsConsoleInsightsTeasers": [
         {
             "platforms": [
@@ -7114,6 +7167,21 @@
                         "DisableBruschettaInstallChecks"
                     ],
                     "min_os_version": "131.0.6740.0"
+                }
+            ]
+        }
+    ],
+    "DisableGridTabSwitcher": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "DisableGridTabSwitcher"
+                    ]
                 }
             ]
         }
@@ -10689,7 +10757,7 @@
             ]
         }
     ],
-    "HideToolbarsInOverflowMenu": [
+    "HideToolbar": [
         {
             "platforms": [
                 "ios"
@@ -10698,7 +10766,7 @@
                 {
                     "name": "Enabled",
                     "enable_features": [
-                        "HideToolbarsInOverflowMenu"
+                        "HideToolbar"
                     ]
                 }
             ]
@@ -13044,6 +13112,26 @@
                     "name": "Enabled",
                     "enable_features": [
                         "MetrickitDeferRegistration"
+                    ]
+                }
+            ]
+        }
+    ],
+    "MetricsLogTrimmingLimitsWebView": [
+        {
+            "platforms": [
+                "android_webview"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled_20260901",
+                    "params": {
+                        "log_bytes_trim_threshold": "3145728",
+                        "max_ongoing_log_size_bytes": "1048576"
+                    },
+                    "enable_features": [
+                        "AwMetricsLogTrimming",
+                        "MetricsLogTrimming"
                     ]
                 }
             ]
@@ -17872,36 +17960,6 @@
             ]
         }
     ],
-    "SignOutDeletesBrowsingData": [
-        {
-            "platforms": [
-                "android"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "SignOutDeletesBrowsingData"
-                    ]
-                }
-            ]
-        }
-    ],
-    "SignOutOfChrome": [
-        {
-            "platforms": [
-                "android"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "SignOutOfChrome"
-                    ]
-                }
-            ]
-        }
-    ],
     "SigninPromoLimitsExperiment": [
         {
             "platforms": [
@@ -18732,21 +18790,6 @@
                     "name": "WarpDisabledForWindowsTests",
                     "disable_features": [
                         "AllowD3D11WarpFallback"
-                    ]
-                }
-            ]
-        }
-    ],
-    "SwitchToIncognitoInSettings": [
-        {
-            "platforms": [
-                "android"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "SwitchToIncognitoInSettings"
                     ]
                 }
             ]
@@ -19765,6 +19808,7 @@
         {
             "platforms": [
                 "android",
+                "ios",
                 "linux",
                 "mac",
                 "windows"

@@ -61,6 +61,11 @@ inline constexpr char kAimCobrowseName[] = "AimCobrowse";
 inline constexpr char kAimCobrowseDescription[] =
     "Enables the AimCobrowse feature.";
 
+inline constexpr char kAimHistoryThreadsManagementName[] =
+    "AimHistoryThreadsManagement";
+inline constexpr char kAimHistoryThreadsManagementDescription[] =
+    "Enables the AimHistoryThreadsManagement feature.";
+
 inline constexpr char kAimUrlNavigationFetchEnabledName[] =
     "AimUrlNavigationFetchEnabled";
 inline constexpr char kAimUrlNavigationFetchEnabledDescription[] =
@@ -1007,11 +1012,10 @@ inline constexpr char kHideFuseboxVoiceLensActionsName[] =
 inline constexpr char kHideFuseboxVoiceLensActionsDescription[] =
     "Hides voice and lens shortcuts in fusebox.";
 
-inline constexpr char kHideToolbarsInOverflowMenuName[] =
-    "Hide Toolbars in Overflow menu";
-inline constexpr char kHideToolbarsInOverflowMenuDescription[] =
-    "When enabled, adds a button in the overflow menu that force the "
-    "fullscreen mode on iOS.";
+inline constexpr char kHideToolbarName[] = "Hide Toolbar";
+inline constexpr char kHideToolbarDescription[] =
+    "When enabled, adds a button in the long press omnibox menu that forces "
+    "the fullscreen mode on iOS.";
 
 inline constexpr char kHttpsUpgradesName[] = "HTTPS Upgrades";
 inline constexpr char kHttpsUpgradesDescription[] =

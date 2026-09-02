@@ -1429,6 +1429,10 @@ const FeatureEntry::FeatureParam
         {"KeepMenuOpenOnTabSelectForRealboxComposebox", "true"},
         {"enable_tab_deselection", "true"}};
 
+const FeatureEntry::FeatureParam
+    kContextManagementEnableContextMenuTooltipsParams[] = {
+        {"enable_context_menu_tooltips", "true"}};
+
 // Normal 'Enabled' option is just the flag enabled with param 'realbox closes
 // menu on tab select' enabled by default. 'Disabled' option disables the flag,
 // and thus the context menu and 'realbox closes menu on tab select'.
@@ -1443,7 +1447,9 @@ const FeatureEntry::FeatureVariation
          kContextManagementEnableTabDeselectionParams, nullptr},
         {"Context Management in composebox (keeps menu open, with tab "
          "deselection)",
-         kContextManagementKeepMenuOpenAndTabDeselectionParams, nullptr}};
+         kContextManagementKeepMenuOpenAndTabDeselectionParams, nullptr},
+        {"Context Management in composebox (with tooltips)",
+         kContextManagementEnableContextMenuTooltipsParams, nullptr}};
 
 #if BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_MAC) || \
     BUILDFLAG(IS_WIN)
@@ -12915,13 +12921,6 @@ const FeatureEntry kFeatureEntries[] = {
 #endif
 
 #if BUILDFLAG(IS_ANDROID)
-    {"enable-payment-request-deduplicate-native-payment-apps",
-     flag_descriptions::kDeduplicateNativePaymentAppsName,
-     flag_descriptions::kDeduplicateNativePaymentAppsDescription, kOsAndroid,
-     FEATURE_VALUE_TYPE(payments::android::kDeduplicateNativePaymentApps)},
-#endif
-
-#if BUILDFLAG(IS_ANDROID)
     {"enable-android-side-panel",
      flag_descriptions::kEnableAndroidSidePanelName,
      flag_descriptions::kEnableAndroidSidePanelDescription, kOsAndroid,
@@ -14054,6 +14053,15 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kAndroidKeyboardShortcutOpenFileDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(chrome::android::kAndroidKeyboardShortcutOpenFile)},
 #endif
+
+#if BUILDFLAG(IS_ANDROID)
+    {"auto-resize-minimum-page-scale-factor",
+     flag_descriptions::kAutoResizeMinimumPageScaleFactorName,
+     flag_descriptions::kAutoResizeMinimumPageScaleFactorDescription,
+     kOsAndroid,
+     FEATURE_VALUE_TYPE(blink::features::kAutoResizeMinimumPageScaleFactor)},
+#endif
+
     // Add new entries above this line.
     // NOTE: Adding a new flag requires adding a corresponding entry to enum
     // "LoginCustomFlags" in tools/metrics/histograms/enums.xml. See "Flag

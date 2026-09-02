@@ -2177,8 +2177,6 @@ static_library("ui") {
       "views/profiles/profile_menu_coordinator.h",
       "views/profiles/profile_menu_view_base.cc",
       "views/profiles/profile_menu_view_base.h",
-      "views/profiles/signin_view_controller_delegate_views.cc",
-      "views/profiles/signin_view_controller_delegate_views.h",
     ]
     deps += [
       "//chrome/browser/lifetime:termination_notification",
@@ -2190,12 +2188,18 @@ static_library("ui") {
       "//chrome/browser/ui/views/hats",
       "//chrome/browser/ui/views/hats:impl",
       "//chrome/browser/ui/views/profiles:avatar_badge_view",
+      "//chrome/browser/ui/views/profiles:signin_view_controller_delegate_views",
+      "//chrome/browser/ui/views/profiles:signin_view_controller_delegate_views_impl",
       "//chrome/browser/ui/wallet",
     ]
 
     allow_circular_includes_from += [
       "//chrome/browser/ui/wallet",
       "//chrome/browser/ui/views/hats:impl",
+
+      # TODO(crbug.com/353332589): signin_view_controller_delegate_views.cc
+      # includes browser_view.h.
+      "//chrome/browser/ui/views/profiles:signin_view_controller_delegate_views_impl",
     ]
   }
 
@@ -2209,8 +2213,6 @@ static_library("ui") {
 
   if (is_win || is_mac || is_linux) {
     sources += [
-      "views/profiles/profile_customization_bubble_sync_controller.cc",
-      "views/profiles/profile_customization_bubble_sync_controller.h",
       "views/profiles/profile_management_flow_controller.cc",
       "views/profiles/profile_management_flow_controller_impl.cc",
       "views/profiles/profile_management_flow_controller_impl.h",
@@ -2238,6 +2240,8 @@ static_library("ui") {
       "//chrome/browser/ui/startup/default_browser_prompt",
       "//chrome/browser/ui/startup/default_browser_prompt:impl",
       "//chrome/browser/ui/views/profiles:badged_profile_photo",
+      "//chrome/browser/ui/views/profiles:profile_customization_bubble_sync_controller",
+      "//chrome/browser/ui/views/profiles:profile_customization_bubble_sync_controller_impl",
       "//chrome/browser/ui/views/profiles:profile_management_types",
       "//chrome/browser/ui/views/profiles:profile_picker_feature_promo_controller",
       "//chrome/browser/ui/views/profiles:profile_picker_web_contents_host",
@@ -2259,6 +2263,10 @@ static_library("ui") {
       "//chrome/browser/ui/startup/default_browser_prompt:impl",
       "//chrome/browser/ui/webui/signin:profile_impl",
 
+      # TODO(crbug.com/353332589):
+      # profile_customization_bubble_sync_controller.cc includes browser_view.h.
+      "//chrome/browser/ui/views/profiles:profile_customization_bubble_sync_controller_impl",
+
       # TODO(crbug.com/364667551): It includes quite a few files from //c/b/ui's
       # subdirectories such as views and webui which are not modularized yet.
       "//chrome/browser/ui/webui/app_home:impl",
@@ -2275,21 +2283,19 @@ static_library("ui") {
     if (enable_dice_support) {
       sources += [
         "views/profiles/cross_device_signin_qr_bubble_views.cc",
-        "views/profiles/dice_web_signin_interception_bubble_view.cc",
-        "views/profiles/dice_web_signin_interception_bubble_view.h",
         "views/profiles/first_run_flow_controller.cc",
         "views/profiles/first_run_flow_controller.h",
-        "views/profiles/profile_picker_glic_flow_controller.cc",
-        "views/profiles/profile_picker_glic_flow_controller.h",
-        "views/profiles/profile_picker_omnibox_everywhere_flow_controller.cc",
-        "views/profiles/profile_picker_omnibox_everywhere_flow_controller.h",
         "views/profiles/profile_picker_reauth_provider.cc",
         "views/profiles/profile_picker_sign_in_provider.cc",
       ]
       deps += [
         "webui/signin/batch_upload:mojo_bindings",
+        "//chrome/browser/ui/views/profiles:dice_web_signin_interception_bubble_view",
+        "//chrome/browser/ui/views/profiles:dice_web_signin_interception_bubble_view_impl",
         "//chrome/browser/ui/views/profiles:profile_management_flow_controller",
         "//chrome/browser/ui/views/profiles:profile_management_step_controller",
+        "//chrome/browser/ui/views/profiles:profile_picker_glic_flow_controller",
+        "//chrome/browser/ui/views/profiles:profile_picker_omnibox_everywhere_flow_controller",
         "//chrome/browser/ui/views/profiles:profile_picker_reauth_provider",
         "//chrome/browser/ui/views/profiles:profile_picker_sign_in_provider",
         "//chrome/browser/ui/views/profiles:profile_picker_toolbar",
@@ -2301,8 +2307,12 @@ static_library("ui") {
 
       # batch_upload includes headers from //chrome/browser/ui (e.g. browser.h)
       # that can't be split out yet.
-      allow_circular_includes_from +=
-          [ "//chrome/browser/ui/webui/signin:batch_upload" ]
+      allow_circular_includes_from += [
+        # TODO(crbug.com/353332589): dice_web_signin_interception_bubble_view.cc
+        # includes browser_view.h.
+        "//chrome/browser/ui/views/profiles:dice_web_signin_interception_bubble_view_impl",
+        "//chrome/browser/ui/webui/signin:batch_upload",
+      ]
     }
   }
 
@@ -2489,18 +2499,12 @@ static_library("ui") {
       "views/browser_dialogs_views.cc",
       "views/bubble_anchor_util_views.cc",
       "views/constrained_web_dialog_delegate_views.cc",
-      "views/extensions/extension_install_dialog_view.cc",
-      "views/extensions/extension_install_dialog_view.h",
       "views/extensions/extension_view_utils.cc",
       "views/extensions/extensions_menu_coordinator.cc",
       "views/extensions/extensions_menu_coordinator.h",
       "views/extensions/extensions_menu_delegate_desktop.cc",
       "views/extensions/extensions_menu_view.cc",
       "views/extensions/extensions_menu_view.h",
-      "views/extensions/extensions_request_access_button.cc",
-      "views/extensions/extensions_request_access_button.h",
-      "views/extensions/extensions_toolbar_button.cc",
-      "views/extensions/extensions_toolbar_button.h",
       "views/extensions/extensions_toolbar_coordinator.cc",
       "views/extensions/extensions_toolbar_desktop.cc",
       "views/extensions/extensions_toolbar_desktop.h",
@@ -2556,6 +2560,7 @@ static_library("ui") {
       "views/frame/multi_contents_view_mini_toolbar.h",
       "views/frame/picture_in_picture_browser_frame_view.cc",
       "views/frame/picture_in_picture_browser_frame_view.h",
+      "views/frame/safe_invoke/safe_invoke.h",
       "views/frame/scrim_view_controller.cc",
       "views/frame/scrim_view_controller.h",
       "views/frame/shadow_overlay_view.cc",
@@ -2759,6 +2764,8 @@ static_library("ui") {
       "//chrome/browser/ui/views/download",
       "//chrome/browser/ui/views/exclusive_access",
       "//chrome/browser/ui/views/exclusive_access:impl",
+      "//chrome/browser/ui/views/extensions:extension_install_dialog_view",
+      "//chrome/browser/ui/views/extensions:extension_install_dialog_view_impl",
       "//chrome/browser/ui/views/extensions:extension_view_utils",
       "//chrome/browser/ui/views/extensions:extensions_container_views",
       "//chrome/browser/ui/views/extensions:extensions_menu_delegate_desktop",
@@ -2766,7 +2773,11 @@ static_library("ui") {
       "//chrome/browser/ui/views/extensions:extensions_menu_item_view",
       "//chrome/browser/ui/views/extensions:extensions_menu_main_page_view",
       "//chrome/browser/ui/views/extensions:extensions_menu_site_permissions_page_view",
+      "//chrome/browser/ui/views/extensions:extensions_request_access_button",
+      "//chrome/browser/ui/views/extensions:extensions_request_access_button_impl",
       "//chrome/browser/ui/views/extensions:extensions_request_access_hover_card_coordinator",
+      "//chrome/browser/ui/views/extensions:extensions_toolbar_button",
+      "//chrome/browser/ui/views/extensions:extensions_toolbar_button_impl",
       "//chrome/browser/ui/views/extensions:extensions_toolbar_coordinator",
       "//chrome/browser/ui/views/extensions:security_dialog_tracker",
       "//chrome/browser/ui/views/extensions:windows_utils_views",
@@ -2990,6 +3001,21 @@ static_library("ui") {
       # following header gets componentized:
       # c/b/ui/views/extensions/extension_keybinding_registry_views.h
       "//chrome/browser/ui/views/apps:impl",
+
+      # TODO(crbug.com/353332589): Remove this circular dependency when the
+      # following header gets componentized:
+      # c/b/ui/scoped_tabbed_browser_displayer.h
+      "//chrome/browser/ui/views/extensions:extension_install_dialog_view_impl",
+
+      # TODO(crbug.com/353332589): Remove this circular dependency when the
+      # following header gets componentized:
+      # c/b/ui/views/extensions/extensions_toolbar_desktop.h
+      "//chrome/browser/ui/views/extensions:extensions_request_access_button_impl",
+
+      # TODO(crbug.com/353332589): Remove this circular dependency when the
+      # following header gets componentized:
+      # c/b/ui/views/extensions/extensions_toolbar_desktop.h
+      "//chrome/browser/ui/views/extensions:extensions_toolbar_button_impl",
 
       # TODO(crbug.com/353332589): Remove this circular dependency when the
       # following headers get componentized:
@@ -3410,11 +3436,16 @@ static_library("ui") {
   }
 
   if (enable_extensions) {
+    public_deps +=
+        [ "//chrome/browser/ui/views/extensions:extension_view_views" ]
     deps += [
       "//chrome/browser/apps:icon_standardizer",
       "//chrome/browser/apps/platform_apps",
       "//chrome/browser/apps/platform_apps/api",
       "//chrome/browser/ui/views/extensions:extension_action_delegate_desktop",
+      "//chrome/browser/ui/views/extensions:extension_popup",
+      "//chrome/browser/ui/views/extensions:extension_popup_impl",
+      "//chrome/browser/ui/views/extensions:extension_view_views_impl",
       "//chrome/browser/ui/webui/extensions_zero_state_promo",
       "//chrome/browser/web_applications/app_service",
       "//extensions/browser",
@@ -3426,19 +3457,17 @@ static_library("ui") {
     allow_circular_includes_from += [
       "//chrome/browser/apps/platform_apps",
 
+      # TODO(crbug.com/353332589): extension_popup.cc includes browser_view.h.
+      "//chrome/browser/ui/views/extensions:extension_popup_impl",
+      "//chrome/browser/ui/views/extensions:extension_view_views_impl",
+
       # TODO(crbug.com/353332589): zero_state_promo_ui.h and page_handler.cc
       # include browser.h and custom_webui_help_bubble_controller.h from
       # //chrome/browser/ui:ui.
       "//chrome/browser/ui/webui/extensions_zero_state_promo",
     ]
 
-    sources += [
-      "views/extensions/extension_action_delegate_desktop.cc",
-      "views/extensions/extension_popup.cc",
-      "views/extensions/extension_popup.h",
-      "views/extensions/extension_view_views.cc",
-      "views/extensions/extension_view_views.h",
-    ]
+    sources += [ "views/extensions/extension_action_delegate_desktop.cc" ]
 
     if (use_aura) {
       sources += [ "views/javascript_app_modal_event_blocker_aura.cc" ]
@@ -3853,11 +3882,13 @@ static_library("test_support") {
     deps += [
       "//chrome/browser/ui/extensions:test_support",
       "//chrome/browser/ui/views/controls",
+      "//chrome/browser/ui/views/extensions:extension_popup",
       "//chrome/browser/ui/views/extensions:extensions_menu_button",
       "//chrome/browser/ui/views/extensions:extensions_menu_delegate_desktop",
       "//chrome/browser/ui/views/extensions:extensions_menu_entry_view",
       "//chrome/browser/ui/views/extensions:extensions_menu_item_view",
       "//chrome/browser/ui/views/extensions:extensions_menu_main_page_view",
+      "//chrome/browser/ui/views/extensions:extensions_toolbar_button",
       "//chrome/browser/ui/views/extensions:extensions_toolbar_coordinator",
       "//chrome/browser/ui/views/web_apps/isolated_web_apps:installer_base",
       "//components/constrained_window",

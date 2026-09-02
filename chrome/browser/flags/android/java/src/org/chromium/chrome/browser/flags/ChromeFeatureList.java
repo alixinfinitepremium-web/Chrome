@@ -673,8 +673,6 @@ public abstract class ChromeFeatureList {
             "OpenDownloadInFilesAppIfNoHandlerFound";
     public static final String OPEN_DOWNLOAD_IN_NEW_TAB = "OpenDownloadInNewTab";
     public static final String OPEN_DOWNLOAD_IN_PREFERRED_APP = "OpenDownloadInPreferredApp";
-    public static final String OPTIONAL_BUTTON_NO_HARDWARE_LAYER_KILLSWITCH =
-            "OptionalButtonNoHardwareLayerKillswitch";
     public static final String PAGE_CONTENT_PROVIDER = "PageContentProvider";
     public static final String PAGE_INFO_ABOUT_THIS_SITE_MORE_LANGS =
             "PageInfoAboutThisSiteMoreLangs";
@@ -943,7 +941,7 @@ public abstract class ChromeFeatureList {
     public static final CachedFlag sAndroidElegantTextHeight =
             newCachedFlag(ANDROID_ELEGANT_TEXT_HEIGHT, true);
     public static final CachedFlag sAndroidNoCaptureWhenScrollingDisabledOnDesktop =
-            newCachedFlag(ANDROID_NO_CAPTURE_WHEN_SCROLLING_DISABLED_ON_DESKTOP, true);
+            newCachedFlag(ANDROID_NO_CAPTURE_WHEN_SCROLLING_DISABLED_ON_DESKTOP, false);
     public static final CachedFlag sAndroidOpenIncognitoAsWindow =
             newCachedFlag(ANDROID_OPEN_INCOGNITO_AS_WINDOW, true);
     public static final CachedFlag sAndroidOpenIncognitoAsWindowRestrictions =
@@ -1019,7 +1017,7 @@ public abstract class ChromeFeatureList {
             newCachedFlag(BOTTOM_SHEET_AS_BROWSER_CONTROLS, true);
     public static final CachedFlag sBottomSheetOnDesktopWindowing =
             newCachedFlag(
-                    BOTTOM_SHEET_ON_DESKTOP_WINDOWING, false, /* defaultValueInTests= */ false);
+                    BOTTOM_SHEET_ON_DESKTOP_WINDOWING, false, /* defaultValueInTests= */ true);
     public static final CachedFlag sBrowserControlsDebugging =
             newCachedFlag(BROWSER_CONTROLS_DEBUGGING, false);
     public static final CachedFlag sBrowserControlsHidingToken =
@@ -1301,8 +1299,6 @@ public abstract class ChromeFeatureList {
             newCachedFlag(ON_STARTUP_WINDOW_POLICY, /* defaultValue= */ true);
     public static final CachedFlag sOneStepAimAccess =
             newCachedFlag(ONE_STEP_AIM_ACCESS, /* defaultValue= */ false);
-    public static final CachedFlag sOptionalButtonNoHardwareLayerKillswitch =
-            newCachedFlag(OPTIONAL_BUTTON_NO_HARDWARE_LAYER_KILLSWITCH, /* defaultValue= */ true);
     public static final CachedFlag sPCctMinimumHeight = newCachedFlag(PCCT_MINIMUM_HEIGHT, true);
     public static final CachedFlag sPaintPreviewDemo = newCachedFlag(PAINT_PREVIEW_DEMO, false);
     public static final CachedFlag sPdfReuseFragment =
@@ -1613,7 +1609,6 @@ public abstract class ChromeFeatureList {
                     sNtpVision,
                     sOnStartupWindowPolicy,
                     sOneStepAimAccess,
-                    sOptionalButtonNoHardwareLayerKillswitch,
                     sPCctMinimumHeight,
                     sPaintPreviewDemo,
                     sPdfReuseFragment,

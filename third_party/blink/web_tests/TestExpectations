@@ -2633,9 +2633,6 @@ crbug.com/536952792 external/wpt/html/semantics/scripting-1/the-script-element/m
 # Floating point output likely flaky
 crbug.com/540322301 external/wpt/webaudio/the-audio-api/the-oscillatornode-interface/sub-sample-start.html [ Failure ]
 
-crbug.com/555949816 external/wpt/svg/animations/animateMotion-path-moveto-only.html [ Failure Pass ]
-crbug.com/555949816 external/wpt/svg/animations/animateMotion-path-zero-length-subpaths.html [ Failure Pass ]
-
 # ====== New tests from wpt-importer added here ======
 crbug.com/555801460 external/wpt/css/css-anchor-position/position-anchor-match-parent-dynamic.html [ Failure ]
 crbug.com/555801460 external/wpt/css/css-anchor-position/position-anchor-match-parent-rendering.html [ Failure ]
@@ -5862,22 +5859,6 @@ crbug.com/429365670 external/wpt/css/css-multicol/multicol-nested-column-rule-00
 
 crbug.com/445971864 external/wpt/css/css-gaps/multicol/multicol-gap-decorations-007.html [ Failure ]
 
-# Grid-lanes gap decoration lists are not assigned independently per lane.
-crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/column-gap-decorations-036.html [ Failure ]
-crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/column-gap-decorations-list-dense-order.html [ Failure ]
-crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/column-gap-decorations-list-fill-reverse.html [ Failure ]
-crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/column-gap-decorations-list-fill-track-reverse.html [ Failure ]
-crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/column-gap-decorations-list-repeat-auto-stacking.html [ Failure ]
-crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/column-gap-decorations-list-repeat-integer-stacking.html [ Failure ]
-crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/column-gap-decorations-list-spanner-independent.html [ Failure ]
-crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/column-gap-decorations-list-stacking-types.html [ Failure ]
-crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/column-gap-decorations-list-track-reverse.html [ Failure ]
-crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/row-gap-decorations-list-fill-reverse.html [ Failure ]
-crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/row-gap-decorations-list-fill-track-reverse.html [ Failure ]
-crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/row-gap-decorations-list-repeat-integer-stacking.html [ Failure ]
-crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/row-gap-decorations-list-stacking-axis.html [ Failure ]
-crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/row-gap-decorations-list-track-reverse.html [ Failure ]
-
 # Grid-lanes crossing gap width does not account for overlapping gutters.
 crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/column-gap-decorations-inset-overlapping-gutters-percentage.html [ Failure ]
 crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/row-gap-decorations-inset-overlapping-gutters-percentage.html [ Failure ]
@@ -7880,7 +7861,6 @@ crbug.com/40336192 external/wpt/css/css-overflow/line-clamp/block-ellipsis-030.h
 crbug.com/40336192 external/wpt/css/css-overflow/line-clamp/block-ellipsis-034.html [ Failure ]
 crbug.com/40336192 external/wpt/css/css-overflow/line-clamp/block-ellipsis-035.html [ Failure ]
 crbug.com/40336192 external/wpt/css/css-overflow/line-clamp/block-ellipsis-038.html [ Failure ]
-crbug.com/40336192 external/wpt/css/css-overflow/line-clamp/block-ellipsis-039.html [ Failure ]
 crbug.com/40336192 external/wpt/css/css-overflow/line-clamp/block-ellipsis-bidi-003.html [ Failure ]
 crbug.com/40336192 external/wpt/css/css-overflow/line-clamp/block-ellipsis-bidi-004.html [ Failure ]
 crbug.com/40336192 external/wpt/css/css-overflow/line-clamp/webkit-line-clamp-035.html [ Failure ]
@@ -7926,6 +7906,7 @@ crbug.com/40336192 virtual/disable-css-line-clamp-line-breaking-ellipsis/externa
 crbug.com/40336192 virtual/disable-css-line-clamp-line-breaking-ellipsis/external/wpt/css/css-overflow/line-clamp/block-ellipsis-032.html [ Failure ]
 crbug.com/40336192 virtual/disable-css-line-clamp-line-breaking-ellipsis/external/wpt/css/css-overflow/line-clamp/block-ellipsis-033.html [ Failure ]
 crbug.com/40336192 virtual/disable-css-line-clamp-line-breaking-ellipsis/external/wpt/css/css-overflow/line-clamp/block-ellipsis-036.html [ Failure ]
+crbug.com/40336192 virtual/disable-css-line-clamp-line-breaking-ellipsis/external/wpt/css/css-overflow/line-clamp/block-ellipsis-039.html [ Failure ]
 crbug.com/40336192 virtual/disable-css-line-clamp-line-breaking-ellipsis/external/wpt/css/css-overflow/line-clamp/block-ellipsis-040.html [ Failure ]
 crbug.com/40336192 virtual/disable-css-line-clamp-line-breaking-ellipsis/external/wpt/css/css-overflow/line-clamp/block-ellipsis-041.html [ Failure ]
 crbug.com/40336192 virtual/disable-css-line-clamp-line-breaking-ellipsis/external/wpt/css/css-overflow/line-clamp/block-ellipsis-bidi-002.html [ Failure ]
@@ -8130,6 +8111,7 @@ crbug.com/40336192 virtual/disable-css-line-clamp/external/wpt/css/css-overflow/
 crbug.com/40336192 virtual/disable-css-line-clamp/external/wpt/css/css-overflow/line-clamp/block-ellipsis-033.html [ Failure ]
 crbug.com/40336192 virtual/disable-css-line-clamp/external/wpt/css/css-overflow/line-clamp/block-ellipsis-036.html [ Failure ]
 crbug.com/40336192 virtual/disable-css-line-clamp/external/wpt/css/css-overflow/line-clamp/block-ellipsis-037.html [ Failure ]
+crbug.com/40336192 virtual/disable-css-line-clamp/external/wpt/css/css-overflow/line-clamp/block-ellipsis-039.html [ Failure ]
 crbug.com/40336192 virtual/disable-css-line-clamp/external/wpt/css/css-overflow/line-clamp/block-ellipsis-040.html [ Failure ]
 crbug.com/40336192 virtual/disable-css-line-clamp/external/wpt/css/css-overflow/line-clamp/block-ellipsis-041.html [ Failure ]
 crbug.com/40336192 virtual/disable-css-line-clamp/external/wpt/css/css-overflow/line-clamp/block-ellipsis-bidi-001.html [ Failure ]

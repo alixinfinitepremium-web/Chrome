@@ -19,9 +19,6 @@
 # https://crbug.com/1307940
 tast.policy.URLCheck.blocklist
 
-# https://crbug.com/1312121
-tast.policy.CookiesBlockedForUrls
-
 # http://crbug.com/1335213
 tast.arc.WindowState.clamshell
 
@@ -61,9 +58,6 @@ tast.ui.WebUIJSErrors.field_trial_on
 # b/394409115
 tast.network.AllowCACertificateManagement
 tast.network.AllowClientCertificateManagement
-
-#b/400849446
-tast.network.ARCCreateWifiInShillByCmd.manual_proxy
 
 # b/408102591
 tast.network.ARCEAPWifiProvisioning.eap_wifi_tls

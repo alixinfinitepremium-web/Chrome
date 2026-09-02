@@ -176,6 +176,11 @@
     "expiry_milestone": 150
   },
   {
+    "name": "aim-history-threads-management",
+    "owners": [ "ameurhosni@google.com", "bling-search@google.com" ],
+    "expiry_milestone": 160
+  },
+  {
     "name": "aim-server-eligibility",
     "owners": ["ameurhosni@google.com", "mahmadi@chromium.org"],
     "expiry_milestone": 160
@@ -259,7 +264,7 @@
   {
     "name": "always-draw-composited-toolbar-hairline",
     "owners": ["peilinwang@google.com"],
-    "expiry_milestone": 155
+    "expiry_milestone": 180
   },
   {
     "name": "always-enable-hdcp",
@@ -861,6 +866,11 @@
     "name": "auto-picture-in-picture-on-window-occluded",
     "owners": [ "steimel@chromium.org", "media-dev@chromium.org" ],
     "expiry_milestone": 170
+  },
+  {
+    "name": "auto-resize-minimum-page-scale-factor",
+    "owners": [ "massan@google.com", "nya@google.com", "lokeric@google.com" ],
+    "expiry_milestone": 165
   },
   {
     "name": "auto-revoke-suspicious-notification",
@@ -4003,7 +4013,7 @@
   {
     "name": "enable-input-protection",
     "owners": [ "bkeen@google.com", "media-dev@chromium.org"],
-    "expiry_milestone": 155
+    "expiry_milestone": 165
   },
   {
     "name": "enable-isolated-sandboxed-iframes",
@@ -4288,11 +4298,6 @@
     // This flag is used by dev teams on Android to disable this feature, since
     // it can badly break pages under test.
     "expiry_milestone": -1
-  },
-  {
-    "name": "enable-payment-request-deduplicate-native-payment-apps",
-    "owners": [ "smcgruer@chromium.org", "chrome-payments-eng@google.com" ],
-    "expiry_milestone": 155
   },
   {
     "name": "enable-perfetto-system-tracing",
@@ -6131,10 +6136,10 @@
     "expiry_milestone": 150
   },
   {
-    "name": "hide-toolbars-in-overflow-menu",
+    "name": "hide-toolbar",
     "owners": [
     "alionadangla@chromium.org", "bling-flags@google.com"],
-    "expiry_milestone": 150
+    "expiry_milestone": 160
   },
   {
     "name": "history-embeddings",
@@ -10479,7 +10484,7 @@
   {
     "name": "webium",
     "owners": [ "robliao@chromium.org", "kerenzhu@chromium.org" ],
-    "expiry_milestone": 155
+    "expiry_milestone": 160
   },
   {
     "name": "webnn-coreml",

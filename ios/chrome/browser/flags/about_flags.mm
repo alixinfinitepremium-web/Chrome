@@ -2059,10 +2059,9 @@ constexpr auto kFeatureEntries = std::to_array<flags_ui::FeatureEntry>({
      flag_descriptions::kHideFuseboxVoiceLensActionsName,
      flag_descriptions::kHideFuseboxVoiceLensActionsDescription,
      flags_ui::kOsIos, FEATURE_VALUE_TYPE(kHideFuseboxVoiceLensActions)},
-    {"hide-toolbars-in-overflow-menu",
-     flag_descriptions::kHideToolbarsInOverflowMenuName,
-     flag_descriptions::kHideToolbarsInOverflowMenuDescription,
-     flags_ui::kOsIos, FEATURE_VALUE_TYPE(kHideToolbarsInOverflowMenu)},
+    {"hide-toolbar", flag_descriptions::kHideToolbarName,
+     flag_descriptions::kHideToolbarDescription, flags_ui::kOsIos,
+     FEATURE_VALUE_TYPE(kHideToolbar)},
     {"smart-tab-grouping", flag_descriptions::kSmartTabGroupingName,
      flag_descriptions::kSmartTabGroupingDescription, flags_ui::kOsIos,
      FEATURE_VALUE_TYPE(kSmartTabGrouping)},
@@ -2819,6 +2818,10 @@ constexpr auto kFeatureEntries = std::to_array<flags_ui::FeatureEntry>({
      flag_descriptions::kEnableAccountPreviewPreferredAccountDescription,
      flags_ui::kOsIos,
      FEATURE_VALUE_TYPE(switches::kEnableAccountPreviewPreferredAccount)},
+    {"aim-history-threads-management",
+     flag_descriptions::kAimHistoryThreadsManagementName,
+     flag_descriptions::kAimHistoryThreadsManagementDescription,
+     flags_ui::kOsIos, FEATURE_VALUE_TYPE(kAimHistoryThreadsManagement)},
 });
 
 bool SkipConditionalFeatureEntry(const flags_ui::FeatureEntry& entry) {

@@ -18,8 +18,6 @@ import org.chromium.build.annotations.Nullable;
 import org.chromium.chrome.browser.app.tabmodel.TabCache;
 import org.chromium.chrome.browser.app.tabmodel.TabCacheKey;
 import org.chromium.chrome.browser.app.tabmodel.TabCacheManager;
-import org.chromium.chrome.browser.profiles.Profile;
-import org.chromium.chrome.browser.profiles.ProfileResolver;
 import org.chromium.chrome.browser.tab.StorageLoadedData.LoadedTabState;
 import org.chromium.chrome.browser.tab.Tab;
 import org.chromium.chrome.browser.tab.TabId;
@@ -46,39 +44,41 @@ public class BackgroundTabPool
     private static final String TAG = "BgTabPool";
     private static final String ACTOR_DIR_TAG_PREFIX = "actor_tabs_";
 
-    private final Profile mProfile;
+    private final String mProfileToken;
     private final TabCache mTabCache;
     private final Runnable mOnEmptyCallback;
     private final ArrayMap<Integer, LiveBackgroundTab> mLiveEntries = new ArrayMap<>();
     private boolean mIsDestroyed;
 
     /**
-     * Constructs a {@link BackgroundTabPool} for the given profile and on-empty callback.
+     * Constructs a {@link BackgroundTabPool} for the given profile token and on-empty callback.
      *
-     * @param profile The {@link Profile} associated with this pool.
+     * @param profileToken The token string associated with the profile.
      * @param onEmptyCallback Callback invoked when the pool transitions to empty.
      */
-    public BackgroundTabPool(Profile profile, Runnable onEmptyCallback) {
+    public BackgroundTabPool(String profileToken, Runnable onEmptyCallback) {
         assertOnUiThread();
-        assert !profile.isOffTheRecord() : "BackgroundTabPool does not support OTR profiles.";
-        mProfile = profile;
+        mProfileToken = profileToken;
         mTabCache =
                 TabCacheManager.create(
-                        ACTOR_DIR_TAG_PREFIX + new ProfileResolver().tokenize(profile),
-                        /* cipherFactory= */ null);
+                        ACTOR_DIR_TAG_PREFIX + profileToken, /* cipherFactory= */ null);
         mOnEmptyCallback = onEmptyCallback;
     }
 
-    /** Returns the Profile associated with this pool. */
-    public Profile getProfile() {
+    /** Returns the profile token associated with this pool. */
+    public String getProfileToken() {
         checkNotDestroyed();
-        return mProfile;
+        return mProfileToken;
     }
 
-    /** Returns whether the pool has zero live in-memory tabs. */
+    /**
+     * Checks if the pool has any tabs (either live in-memory or persisted in TabCache).
+     *
+     * @return True if the pool has no live tabs and no cached tabs, false otherwise.
+     */
     public boolean isEmpty() {
         checkNotDestroyed();
-        return mLiveEntries.isEmpty();
+        return mLiveEntries.isEmpty() && mTabCache.getAllTabIds().isEmpty();
     }
 
     /** Returns the number of active live in-memory tabs in the pool. */
@@ -147,24 +147,22 @@ public class BackgroundTabPool
      */
     public @Nullable BackgroundPoolTab loadTab(@TabId int tabId, @TabId int placeholderTabId) {
         checkNotDestroyed();
-        LiveBackgroundTab liveTab = mLiveEntries.remove(tabId);
+        LiveBackgroundTab liveTab = mLiveEntries.get(tabId);
         if (liveTab != null) {
-            removeTabObserver(liveTab.getTab());
-            notifyIfEmptied();
             return liveTab;
         }
 
         TabCacheKey key = getCacheKey(tabId);
         LoadedTabState loaded = mTabCache.getPreLoadedTabOrLoad(key);
         if (loaded != null && loaded.tabState != null) {
-            return new ColdBackgroundTab(tabId, loaded.tabState, placeholderTabId);
+            return new ColdBackgroundTab(this, tabId, loaded.tabState, placeholderTabId);
         }
         Log.w(TAG, "Failed to load background tab %d from TabCache. Loaded: %s", tabId, loaded);
         return null;
     }
 
     /**
-     * Removes a tab from live in-memory entries and unregisters observers.
+     * Removes a tab from live in-memory entries, unregisters observers, and clears cached state.
      *
      * @param tabId The ID of the tab to remove.
      */
@@ -174,6 +172,7 @@ public class BackgroundTabPool
         if (liveTab != null) {
             removeTabObserver(liveTab.getTab());
         }
+        mTabCache.clear(getCacheKey(tabId));
         notifyIfEmptied();
     }
 
@@ -190,17 +189,6 @@ public class BackgroundTabPool
                 mTabCache.preloadTab(getCacheKey(tabId));
             }
         }
-    }
-
-    /**
-     * Clears cached state and removes any live in-memory representation for the given tab ID.
-     *
-     * @param tabId The ID of the tab to clear.
-     */
-    public void clearTab(@TabId int tabId) {
-        checkNotDestroyed();
-        removeTab(tabId);
-        mTabCache.clear(getCacheKey(tabId));
     }
 
     /** Clears all live and cached tabs in the pool. */
@@ -238,6 +226,11 @@ public class BackgroundTabPool
             removeTabObserver(liveTab.getTab());
         }
         mLiveEntries.clear();
+    }
+
+    /** Returns whether this pool has been destroyed. */
+    public boolean isDestroyed() {
+        return mIsDestroyed;
     }
 
     private void notifyIfEmptied() {

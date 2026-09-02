@@ -2765,12 +2765,7 @@ IN_PROC_BROWSER_TEST_P(GlicApiTest, testInitiallyNotResizable) {
 #endif
 
 #if !BUILDFLAG(IS_ANDROID)
-#if BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS)
-#define MAYBE_testSetMinimumWidgetSize DISABLED_testSetMinimumWidgetSize
-#else
-#define MAYBE_testSetMinimumWidgetSize testSetMinimumWidgetSize
-#endif
-IN_PROC_BROWSER_TEST_P(GlicApiTest, MAYBE_testSetMinimumWidgetSize) {
+IN_PROC_BROWSER_TEST_P(GlicApiTest, testSetMinimumWidgetSize) {
   ASSERT_OK(OpenGlicForActiveTabAndDetach());
   ExecuteJsTest();
   ASSERT_TRUE(step_data().has_value() && step_data()->is_dict());
@@ -2782,7 +2777,8 @@ IN_PROC_BROWSER_TEST_P(GlicApiTest, MAYBE_testSetMinimumWidgetSize) {
   expected_size.SetToMax(gfx::Size(width, height));
   GlicWidget* glic_widget = GetGlicWidget();
   ASSERT_TRUE(glic_widget);
-  EXPECT_EQ(glic_widget->GetMinimumSize(), expected_size);
+  ASSERT_OK(RunUntilEqual([&]() { return glic_widget->GetMinimumSize(); },
+                          expected_size));
 
   ContinueJsTest();
 }
@@ -3036,12 +3032,19 @@ IN_PROC_BROWSER_TEST_P(GlicApiTest, MAYBE_testSorryPageBeforeInitialize) {
   ASSERT_OK(WaitForWebUiState(mojom::WebUiState::kGuestError));
   ASSERT_TRUE(instance->IsShowing());
 
+  auto* old_frame = FindGlicGuestMainFrame();
+  ASSERT_TRUE(old_frame);
+  content::GlobalRenderFrameHostId old_frame_id = old_frame->GetGlobalId();
   // Simulate completing a captcha, navigating back.
   ASSERT_EQ(true,
-            content::EvalJs(FindGlicGuestMainFrame(),
+            content::EvalJs(old_frame,
                             std::string("(()=>{window.location = '") +
                                 GetGuestURL().spec() + "'; return true;})()"));
 
+  ASSERT_TRUE(base::test::RunUntil([&]() {
+    auto* frame = FindGlicGuestMainFrame();
+    return frame && frame->GetGlobalId() != old_frame_id;
+  }));
   ASSERT_OK(WaitForWebUiState(mojom::WebUiState::kFinishLoading));
   ExecuteJsTest({
       .params = base::Value(base::DictValue().Set("failWith", "none")),
@@ -3063,12 +3066,19 @@ IN_PROC_BROWSER_TEST_P(GlicApiTest, MAYBE_testSorryPageAfterInitialize) {
   ASSERT_OK(WaitForWebUiState(mojom::WebUiState::kGuestError));
   ASSERT_TRUE(instance->IsShowing());
 
+  auto* old_frame = FindGlicGuestMainFrame();
+  ASSERT_TRUE(old_frame);
+  content::GlobalRenderFrameHostId old_frame_id = old_frame->GetGlobalId();
   // Simulate completing a captcha, navigating back.
   ASSERT_EQ(true,
-            content::EvalJs(FindGlicGuestMainFrame(),
+            content::EvalJs(old_frame,
                             std::string("(()=>{window.location = '") +
                                 GetGuestURL().spec() + "'; return true;})()"));
 
+  ASSERT_TRUE(base::test::RunUntil([&]() {
+    auto* frame = FindGlicGuestMainFrame();
+    return frame && frame->GetGlobalId() != old_frame_id;
+  })) << "Glic guest frame never changed.";
   ASSERT_OK(WaitForWebUiState(mojom::WebUiState::kFinishLoading));
   ExecuteJsTest({
       .params = base::Value(base::DictValue().Set("failWith", "none")),

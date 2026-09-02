@@ -4173,14 +4173,6 @@ inline constexpr char kPaymentHandlerCameraAccessUxDescription[] =
     "Enables camera access with integrated permission prompt and "
     "capture indicator in web-based Payment Handlers on desktop.";
 
-inline constexpr char kDeduplicateNativePaymentAppsName[] =
-    "Enables de-duplication of Payment Request native payment apps";
-inline constexpr char kDeduplicateNativePaymentAppsDescription[] =
-    "When enabled, Payment Request will de-duplicate native payment apps "
-    "that are known to have 'internal' apps, such as Google Pay. This avoids "
-    "multiple factories (internal and external) processing the same underlying "
-    "app.";
-
 inline constexpr char kSPCLocaleValidationName[] =
     "Secure Payment Confirmation Locale Validation";
 inline constexpr char kSPCLocaleValidationDescription[] =
@@ -5732,6 +5724,11 @@ inline constexpr char kAndroidWindowOcclusionDescription[] =
     "Enables occlusion tracking on Android, which can save CPU and memory in "
     "multi-window environments.";
 
+inline constexpr char kAutoResizeMinimumPageScaleFactorName[] =
+    "Auto resize minimum page scale factor";
+inline constexpr char kAutoResizeMinimumPageScaleFactorDescription[] =
+    "Enables setting the minimum page scale factor to 1.0 during auto-resize.";
+
 inline constexpr char kCctTabResumptionName[] = "Custom Tabs Tab Resumption";
 inline constexpr char kCctTabResumptionDescription[] =
     "Enables showing tab resumption suggestions within Custom Tabs.";
@@ -5770,7 +5767,7 @@ inline constexpr char kNtpAuroraName[] = "New Tab Page Aurora";
 inline constexpr char kNtpAuroraDescription[] =
     "Enable the new Aurora design of the new tab page.";
 
-inline constexpr char kNtpAuroraV2Name[] = "New Tab Page Aurora";
+inline constexpr char kNtpAuroraV2Name[] = "New Tab Page Aurora V2";
 inline constexpr char kNtpAuroraV2Description[] =
     "Enables Phase 2 of the Aurora design for the new tab page";
 
