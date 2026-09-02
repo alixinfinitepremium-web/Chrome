@@ -290,13 +290,6 @@ inline constexpr char
         "When enabled, shows the Wallet Reminder Notice after submitting a "
         "form with a public pass.";
 
-inline constexpr char kAutofillManualTestingDataName[] =
-    "Autofill manual testing data";
-inline constexpr char kAutofillManualTestingDataDescription[] =
-    "When set, imports the addresses and cards specified on startup. WARNING: "
-    "If at least one address/card is specified, all other existing "
-    "addresses/cards are overwritten.";
-
 inline constexpr char kAutofillPaymentsFieldSwappingName[] =
     "Swap credit card suggestions";
 inline constexpr char kAutofillPaymentsFieldSwappingDescription[] =
@@ -495,10 +488,6 @@ inline constexpr char
 inline constexpr char kComposeboxForceTopName[] = "ComposeboxForceTop";
 inline constexpr char kComposeboxForceTopDescription[] =
     "Forces the composebox to be at the top.";
-
-inline constexpr char kComposeboxIpadName[] = "ComposeboxIpad";
-inline constexpr char kComposeboxIpadDescription[] =
-    "Enables the composeboxIpad feature.";
 
 inline constexpr char kComposeboxPlusButtonBottomSheetName[] =
     "Enable the bottom sheet for plus button in Composebox";
