@@ -337,7 +337,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '09ddf3b92dba589fbb9720047e6d76a17a42cff0',
+  'src_internal_revision': 'dc62488ababb1853bcd3d6f6135bd1a07e896480',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -361,7 +361,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': '0ce57bbf06a35864fa39e3b9346d41e833683383',
+  'boringssl_revision': '5d6989e1e2bfbc592876a5d88c4d1d7591a462ec',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -4030,7 +4030,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        '20562d31236b9777aed621f1f4f260a3688533c6',
+        '592b29bd2ab2357435f60d5301de75d3917b6f73',
       'condition': 'checkout_src_internal',
   },
 
