@@ -1208,6 +1208,15 @@
     "expiry_milestone": 165
   },
   {
+    "name": "autofill-enable-wallet-direct-offers-notification-bubble",
+    "owners": [
+      "wilsonlow@google.com",
+      "vinnypersky@google.com",
+      "payments-autofill-team@google.com"
+    ],
+    "expiry_milestone": 165
+  },
+  {
     "name": "autofill-enable-wallet-disclosure-notice-public-pass",
     "owners": [
       "brunobraga@google.com",
@@ -5363,14 +5372,6 @@
     "name": "fractional-scroll-offsets",
     "owners": [ "bokan@chromium.org" ],
     "expiry_milestone": 81
-  },
-  {
-    "name": "fre-sign-in-header-text-update",
-    "owners": [
-      "pabouchard@google.com",
-      "bling-mony-pod@google.com"
-    ],
-    "expiry_milestone": 151
   },
   {
     "name": "fs-no-broadcast-experiment",
