@@ -1601,7 +1601,7 @@
       // The symbols() function for defining an anonymous counter style inline.
       // https://drafts.csswg.org/css-counter-styles-3/#symbols-function
       name: "CSSCounterStyleSymbolsFunction",
-      status: "experimental",
+      status: "stable",
     },
     {
       // Unprefixed cross-fade() (in addition to the existing -webkit-cross-fade()).
@@ -3858,6 +3858,10 @@
       status: "stable",
     },
     {
+      name: "LineBreakBidiControlEnter",
+      status: "stable",
+    },
+    {
       name: "LineBreakerHanKerningEnd",
       status: "stable",
     },
@@ -4796,6 +4800,12 @@
       // Used to allow preloading data: URLs with link rel=preload.
       // https://crbug.com/348442535
       name: "PreloadLinkRelDataUrls",
+      status: "stable",
+    },
+    {
+      // Kill switch for skipping MathML <script src> and simulating the HTML
+      // breakout tags in the HTML preload scanner. https://crbug.com/40728681
+      name: "PreloadScannerSkipMathMLScript",
       status: "stable",
     },
     {

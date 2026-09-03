@@ -8363,11 +8363,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kAccessibilityReducedAnimationsDescription, kOsCrOS,
      FEATURE_VALUE_TYPE(features::kAccessibilityReducedAnimations)},
 
-    {"enable-accessibility-reduced-animations-in-kiosk",
-     flag_descriptions::kAccessibilityReducedAnimationsInKioskName,
-     flag_descriptions::kAccessibilityReducedAnimationsInKioskDescription,
-     kOsCrOS,
-     FEATURE_VALUE_TYPE(features::kAccessibilityReducedAnimationsInKiosk)},
 
     {"enable-accessibility-magnifier-follows-chromevox",
      flag_descriptions::kAccessibilityMagnifierFollowsChromeVoxName,
@@ -11034,11 +11029,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kGlicHandoffButtonHideWhenModalUIShownDescription,
      kOsDesktop,
      FEATURE_VALUE_TYPE(features::kGlicHandoffButtonHideWhenModalUIShown)},
-    {"glic-experimental-triggering",
-     flag_descriptions::kGlicExperimentalTriggeringName,
-     flag_descriptions::kGlicExperimentalTriggeringDescription,
-     kOsDesktop | kOsAndroid,
-     FEATURE_VALUE_TYPE(features::kGlicExperimentalTriggering)},
     {"browser-actuator", flag_descriptions::kBrowserActuatorName,
      flag_descriptions::kBrowserActuatorDescription, kOsDesktop | kOsAndroid,
      FEATURE_VALUE_TYPE(browser_actuator::kBrowserActuator)},

@@ -3239,11 +3239,6 @@
     "expiry_milestone": 142
   },
   {
-    "name": "enable-accessibility-reduced-animations-in-kiosk",
-    "owners": [ "katie@chromium.org", "//ash/accessibility/OWNERS" ],
-    "expiry_milestone": 142
-  },
-  {
     "name": "enable-accessibility-request-scoped-content-changed-events",
     "owners": ["gmarcoesau@chromium.org", "//ui/accessibility/OWNERS"],
     "expiry_milestone": 150
@@ -5853,14 +5848,6 @@
       "//chrome/browser/glic/OWNERS"
     ],
     "expiry_milestone": 156
-  },
-  {
-    "name": "glic-experimental-triggering",
-    "owners": [
-      "sauski@google.com",
-      "//chrome/browser/glic/OWNERS"
-    ],
-    "expiry_milestone": 154
   },
   {
     "name": "glic-experimental-triggering-screenshot",

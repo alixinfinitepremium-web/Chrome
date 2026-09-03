@@ -415,6 +415,16 @@ class GlicWebClientHandler
     return host().GetSharingManagerInternal();
   }
 
+  void LogApiRequest(GlicHostApiRequestId request_type_id) {
+    LogApiRequestCount(request_type_id,
+                       mojom::GlicRequestEvent::kRequestReceived);
+    if (!active_state_calculator_.IsActive()) {
+      LogApiRequestCount(
+          request_type_id,
+          mojom::GlicRequestEvent::kRequestReceivedWhileInactive);
+    }
+  }
+
   // glic::mojom::WebClientHandler implementation.
   void SwitchConversation(glic::mojom::ConversationInfoPtr info,
                           SwitchConversationCallback callback) override {
@@ -643,6 +653,7 @@ class GlicWebClientHandler
   void CreateTab(const ::GURL& url,
                  glic::mojom::CreateTabOptionsPtr create_options,
                  CreateTabCallback callback) override {
+    LogApiRequest(GlicHostApiRequestId::kCreateTab);
     bool open_in_background = create_options->open_in_background;
     std::optional<int32_t> window_id = create_options->window_id;
     if (base::FeatureList::IsEnabled(media::kMediaLinkHelpers)) {
@@ -664,6 +675,7 @@ class GlicWebClientHandler
   void ActivateTabWithUrl(const ::GURL& exact_url,
                           glic::mojom::ActivateTabOptionsPtr options,
                           ActivateTabWithUrlCallback callback) override {
+    LogApiRequestCount(GlicHostApiRequestId::kActivateTabWithUrl);
     tabs::TabInterface* exact_match_tab = nullptr;
     tabs::TabInterface* pattern_match_tab = nullptr;
     std::string pattern_str = options ? options->pattern : "";
@@ -1423,6 +1435,7 @@ class GlicWebClientHandler
   void SubscribeToPinCandidates(
       mojom::GetPinCandidatesOptionsPtr options,
       mojo::PendingRemote<mojom::PinCandidatesObserver> observer) override {
+    LogApiRequest(GlicHostApiRequestId::kSubscribeToPinCandidates);
     host().pin_candidate_provider().SubscribeToPinCandidates(
         std::move(options), std::move(observer));
   }
