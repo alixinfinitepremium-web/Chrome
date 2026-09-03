@@ -341,7 +341,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '8d3e197531c637e2aff23bebc4ce1799fc93e13c',
+  'skia_revision': '51b9cd35d40fca4f3a5f0ae9bf03bc90637f785d',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -1964,7 +1964,7 @@ deps = {
       'packages': [
           {
                'package': 'chromium/third_party/android_build_tools/lint',
-               'version': 'shZaQXDisB__Mvjbw0UHhr_ykIkaBA8Gdx-gWTqJiH0C',
+               'version': 'OC5s2lVRF-HIZ1jTPeBpfvi1vP6b6N3QVqvDVn5ZkR0C',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -1975,7 +1975,7 @@ deps = {
       'packages': [
           {
                'package': 'chromium/third_party/android_build_tools/manifest_merger',
-               'version': 'gpDlPxcIZ-FAZcuSGAxvdvO63zPQUwtEapxfOwjIWgIC',
+               'version': '8mN5PA56vTCsifJO3G_2Y615rGX0csOApteqjMVBbV4C',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -2214,7 +2214,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'fa754cb8cf5e2f181b070e9eb4f93083cc367696',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '809bc62f681364be4453932783da29f4752768ba',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
