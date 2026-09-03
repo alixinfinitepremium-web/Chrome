@@ -8,8 +8,11 @@
 #include <memory>
 #include <vector>
 
+#include "base/memory/raw_ref.h"
 #include "base/sequence_checker.h"
 #include "url/gurl.h"
+
+class ApplicationLocaleStorage;
 
 namespace content {
 class WebUIConfig;
@@ -27,21 +30,17 @@ class AshWebUIConfigManager {
   // Returns the singleton instance pointer or nullptr (e.g., in unit tests).
   static AshWebUIConfigManager* GetInstance();
 
-  AshWebUIConfigManager();
+  // `application_locale_storage` must not be null and must outlive `this`.
+  explicit AshWebUIConfigManager(
+      const ApplicationLocaleStorage* application_locale_storage);
   AshWebUIConfigManager(const AshWebUIConfigManager&) = delete;
   AshWebUIConfigManager& operator=(const AshWebUIConfigManager&) = delete;
   ~AshWebUIConfigManager();
 
   // Registers all trusted Ash WebUIConfigs with content::WebUIConfigMap.
-  // TODO(crbug.com/404133902): Move the definition to
-  // ash_web_ui_config_manager.cc. It is currently kept in
-  // chrome_web_ui_configs_chromeos.cc.
   void RegisterWebUIConfigs();
 
   // Registers all untrusted Ash WebUIConfigs with content::WebUIConfigMap.
-  // TODO(crbug.com/404133902): Move the definition to
-  // ash_web_ui_config_manager.cc. It is currently kept in
-  // chrome_untrusted_web_ui_configs_chromeos.cc.
   void RegisterUntrustedWebUIConfigs();
 
  private:
@@ -56,6 +55,8 @@ class AshWebUIConfigManager {
   // Unregisters all tracked WebUI configs from content::WebUIConfigMap in
   // reverse order.
   void Unregister();
+
+  const raw_ref<const ApplicationLocaleStorage> application_locale_storage_;
 
   std::vector<GURL> registered_urls_to_unregister_;
 
