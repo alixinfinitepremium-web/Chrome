@@ -4082,15 +4082,6 @@ inline constexpr char kPartitionAllocWithAdvancedChecksName[] =
 inline constexpr char kPartitionAllocWithAdvancedChecksDescription[] =
     "Enables an extra security layer on PartitionAlloc.";
 
-inline constexpr char kPartitionVisitedLinkDatabaseWithSelfLinksName[] =
-    "Partition the Visited Link Database, including 'self-links'";
-inline constexpr char kPartitionVisitedLinkDatabaseWithSelfLinksDescription[] =
-    "Style links as visited only if they have been clicked from this top-level "
-    "site and frame origin before. Additionally, style links pointing to the "
-    "same URL as the page it is displayed on, which have been :visited from "
-    "any top-level site and frame origin, if they are displayed in a top-level "
-    "frame or same-origin subframe.";
-
 inline constexpr char kPasskeyUnlockErrorUiName[] = "Passkey Unlock Error UI";
 inline constexpr char kPasskeyUnlockErrorUiDescription[] =
     "Enables showing the passkey unlock error UI to passkey users in case when "
@@ -6275,6 +6266,11 @@ inline constexpr char kGridTabSwitcherSurfaceColorUpdateDescription[] =
 inline constexpr char kHistoryPaneAndroidName[] = "History Pane Android";
 inline constexpr char kHistoryPaneAndroidDescription[] =
     "Enables showing a new pane in the hub that displays History.";
+
+inline constexpr char kHighPrioritySiteNotificationsName[] =
+    "High priority site notifications";
+inline constexpr char kHighPrioritySiteNotificationsDescription[] =
+    "Enables high priority notifications for all sites on Desktop Android.";
 
 inline constexpr char kLongScreenshotsLenientMemoryCheckName[] =
     "Long Screenshots Lenient Memory Check";

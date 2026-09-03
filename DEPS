@@ -349,7 +349,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '99ed84a1aabf593c30e86e4f7507990582ae7f54',
+  'angle_revision': 'cac0efa537430c13c9f9ce391cd07545c3c7e153',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -361,7 +361,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': '4ebe638cbfa7c4d317ddd4808f92b487714bde64',
+  'boringssl_revision': '0ce57bbf06a35864fa39e3b9346d41e833683383',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -421,7 +421,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'f84f0a2dc45b592cc42449c4e815cb9be1be1f02',
+  'devtools_frontend_revision': '416f6cf44ea6615cd9fed10ff165a53365598910',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1750,7 +1750,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': 'VhBZUhZFXIOZRnmn40mCgMcNwekUT-qpUnZX-j1JIq4C',
+        'version': 'Y1zCJUUSHjaju6SnRcsXghOfsGOQX3BUDCCrJAq72d4C',
       },
     ],
     'condition': 'non_git_source',
@@ -2229,7 +2229,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + 'deee822a0cf80c274de2c3cc7c60e924992ae5a5',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + 'f04783e3cc40c15bdd6cf17bcb23d45bc6327b68',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '17a56409b86d0da5e01ca38f6498e13b2db16bc3',
@@ -2798,7 +2798,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/cisco/openh264' + '@' + '9547f96ea5c47f4d465d97b07264b997ecc4b4b6',
 
   'src/third_party/openscreen/src':
-    Var('chromium_git') + '/openscreen' + '@' + '3f6e46abdcb4a2593fdbc8f9364b08b2b9b3ac23',
+    Var('chromium_git') + '/openscreen' + '@' + '91926a22dd8256d59b3d6f6cb44a58e27b197ec7',
 
   'src/third_party/openxr/src': {
     'url': Var('chromium_git') + '/external/github.com/KhronosGroup/OpenXR-SDK' + '@' + '75c53b6e853dc12c7b3c771edc9c9c841b15faaa',
@@ -3215,7 +3215,7 @@ deps = {
       ],
   },
 
-  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@1f015da43f9caec715b5996013edb524cac0ad86',
+  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@db532bb39dfe058178861680f7d849cc3043f57e',
   'src/third_party/glslang/src': '{chromium_git}/external/github.com/KhronosGroup/glslang@3b7ce5726527dd665c564ed0aa9ef1ee6b992ab9',
   'src/third_party/spirv-cross/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Cross@b8fcf307f1f347089e3c46eb4451d27f32ebc8d3',
   'src/third_party/spirv-headers/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Headers@496543121ce6419f23d6fa5d7194ba66c36212d2',
@@ -3224,7 +3224,7 @@ deps = {
   'src/third_party/vulkan-loader/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Loader@7039da75fd815d54d61406da24e6ce14db69fb2b',
   'src/third_party/vulkan-tools/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Tools@af0452ed9eedc16acbe58ef378177057d67a8d84',
   'src/third_party/vulkan-utility-libraries/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Utility-Libraries@634022187b2cd1e02e4793e75cdc569ed90e1f51',
-  'src/third_party/vulkan-validation-layers/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-ValidationLayers@568b92448a2445aab53cc2a8a68f8cc987813847',
+  'src/third_party/vulkan-validation-layers/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-ValidationLayers@d87c57d394d48d1c5edd3f2aa0afcfb5eb21533b',
 
   'src/third_party/vulkan_memory_allocator':
     Var('chromium_git') + '/external/github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git' + '@' + '82a9d47e4f9d91f0e32d2b6acd9714fcee1933a0',
@@ -4030,7 +4030,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        '1aee1a4de39834ff1c96180cf70353ef21173579',
+        '37f00c92305eaf4ccbd70601b0213bc9b13bb2a0',
       'condition': 'checkout_src_internal',
   },
 
@@ -4108,7 +4108,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        'a213792bac97419df6d82caeaa1bbfbcec52ba28',
+        '5bc43a6dcf3615d8196ac54621e187384f318098',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 

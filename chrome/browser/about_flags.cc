@@ -6068,6 +6068,10 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kReengagementNotificationName,
      flag_descriptions::kReengagementNotificationDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(chrome::android::kReengagementNotification)},
+    {"high-priority-site-notifications",
+     flag_descriptions::kHighPrioritySiteNotificationsName,
+     flag_descriptions::kHighPrioritySiteNotificationsDescription, kOsAndroid,
+     FEATURE_VALUE_TYPE(chrome::android::kHighPrioritySiteNotifications)},
 
     // Android Edge to edge
     {"edgeless-top-inset", flag_descriptions::kEdgelessTopInsetName,
@@ -10931,13 +10935,6 @@ const FeatureEntry kFeatureEntries[] = {
          kPartitionAllocWithAdvancedChecksEnabledProcessesOptions,
          "PartitionAllocWithAdvancedChecks")},
 #endif  //  PA_BUILDFLAG(USE_PARTITION_ALLOC_AS_MALLOC)
-
-    {"partition-visited-link-database-with-self-links",
-     flag_descriptions::kPartitionVisitedLinkDatabaseWithSelfLinksName,
-     flag_descriptions::kPartitionVisitedLinkDatabaseWithSelfLinksDescription,
-     kOsAll,
-     FEATURE_VALUE_TYPE(
-         blink::features::kPartitionVisitedLinkDatabaseWithSelfLinks)},
 
     {"predictable-reported-quota",
      flag_descriptions::kPredictableReportedQuotaName,

@@ -2005,11 +2005,6 @@
     "expiry_milestone": 149
   },
   {
-    "name": "composebox-compact-mode",
-    "owners": [ "christianxu@google.com", "bling-search@google.com" ],
-    "expiry_milestone": 160
-  },
-  {
     "name": "composebox-conditional-plus-button",
     "owners": [ "christianxu@google.com", "bling-search@google.com" ],
     "expiry_milestone": 155
@@ -6133,6 +6128,14 @@
     "alionadangla@chromium.org", "bling-flags@google.com"],
     "expiry_milestone": 160
   },
+    {
+      "name": "high-priority-site-notifications",
+      "owners": [
+        "dibyapal@chromium.org",
+        "pwa-team@chromium.org"
+      ],
+      "expiry_milestone": 165
+    },
   {
     "name": "history-embeddings",
     "owners": [ "mahmadi@chromium.org", "orinj@chromium.org", "manukh@chromium.org", "johntlee@chromium.org" ],
@@ -8152,11 +8155,6 @@
     "name": "partition-alloc-with-advanced-checks",
     "owners": [ "mikt@google.com", "chrome-memory-safety@google.com" ],
     "expiry_milestone": 156
-  },
-  {
-    "name": "partition-visited-link-database-with-self-links",
-    "owners": ["miketaylr@chromium.org", "kyraseevers@chromium.org"],
-    "expiry_milestone": 150
   },
   {
     "name": "passkey-unlock-error-ui",
