@@ -1319,6 +1319,11 @@ inline constexpr char kBrowserActuatorName[] = "Browser Actuator";
 inline constexpr char kBrowserActuatorDescription[] =
     "Enables the Browser Actuator service for remote browser automation.";
 
+inline constexpr char kBrowserActuatorInternalsName[] =
+    "Browser Actuator Internals";
+inline constexpr char kBrowserActuatorInternalsDescription[] =
+    "Enables the chrome://browser-actuator-internals diagnostic dashboard.";
+
 inline constexpr char
     kEnableBrowserActuatorForGlicExperimentalTriggeringName[] =
         "Enable Browser Actuator for Glic Experimental Triggering";
@@ -2184,11 +2189,6 @@ inline constexpr char kAccessibilityAcceleratorName[] =
     "Experimental Accessibility accelerator";
 inline constexpr char kAccessibilityAcceleratorDescription[] =
     "This option enables the Accessibility accelerator.";
-
-inline constexpr char kAccessibilityDisableTouchpadName[] =
-    "Accessibility disable trackpad";
-inline constexpr char kAccessibilityDisableTouchpadDescription[] =
-    "Adds a setting that allows the user to disable the built-in trackpad.";
 
 inline constexpr char kAccessibilityGoogleTtsAutomaticReconnectName[] =
     "Google TTS Automatic Reconnect";
@@ -5295,8 +5295,7 @@ inline constexpr char kOnDeviceModelSpeculativeDecodingDescription[] =
     "Enables speculative decoding enhancements for built-in AI APIs. Also "
     "enables requisite LiteRT-LM, Gemma 4, and Sampling Mode features. "
     "Prompt API sessions must specify compatible sampling options, i.e. "
-    "`samplingMode:'most-predictable'` or `topK:1` or `temperature:0`. "
-    "Constrained decoding is not supported for now.";
+    "`samplingMode:'most-predictable'` or `topK:1` or `temperature:0`.";
 
 inline constexpr char kPromptAPIMultimodalInputName[] =
     "Prompt API Multimodal Input";

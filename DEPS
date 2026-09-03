@@ -341,7 +341,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '13ed848ed4a0a8d8dd606318ce44f6c904a23e1f',
+  'skia_revision': '731fe9af4c0b32d9268f082fc844c4e579a8783e',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -405,7 +405,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_web_tests_revision': 'df7f538dbac4b62cb503179a0e2f1e304fc3096d',
+  'crossbench_web_tests_revision': '23a43c9b595d9d8e51621ffd3e2b4c4b7c424cd6',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libFuzzer
   # and whatever else without interference from each other.
@@ -445,11 +445,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': '4b91cc49287d0e127bbf58492fd9922ab7cca20e',
+  'dawn_revision': 'dd10c8dfe06a40a2055170c55f831c080eda8d81',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'quiche_revision': '8b62a428bced4a61eb5e1c8c1243cfbb5f9e7b28',
+  'quiche_revision': 'efdf29da0168bc8277df5d94419c8cc04876581b',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ink
   # and whatever else without interference from each other.
@@ -1750,7 +1750,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': 'sxIQ04TpWyPTPLGVBHMwp_9jw9MnzQ8DIkMN_BLRcl8C',
+        'version': 'VhBZUhZFXIOZRnmn40mCgMcNwekUT-qpUnZX-j1JIq4C',
       },
     ],
     'condition': 'non_git_source',
@@ -2214,7 +2214,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '15fb5cc2ef0bb828061c3011bad07047c9ed6579',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'fa754cb8cf5e2f181b070e9eb4f93083cc367696',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -2229,7 +2229,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '67cc641cebd82822b5155c258f317e710398c30e',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + 'deee822a0cf80c274de2c3cc7c60e924992ae5a5',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '17a56409b86d0da5e01ca38f6498e13b2db16bc3',
@@ -2798,7 +2798,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/cisco/openh264' + '@' + '9547f96ea5c47f4d465d97b07264b997ecc4b4b6',
 
   'src/third_party/openscreen/src':
-    Var('chromium_git') + '/openscreen' + '@' + 'f7965132ccdfb7c3e6751cdd753cc41aa923509c',
+    Var('chromium_git') + '/openscreen' + '@' + '3f6e46abdcb4a2593fdbc8f9364b08b2b9b3ac23',
 
   'src/third_party/openxr/src': {
     'url': Var('chromium_git') + '/external/github.com/KhronosGroup/OpenXR-SDK' + '@' + '75c53b6e853dc12c7b3c771edc9c9c841b15faaa',
@@ -2824,7 +2824,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + 'feb4ef454b237907554fd747867dff9d8f76ed71',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '78c48fcab714ccbd4330e177394867693999b56d',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',

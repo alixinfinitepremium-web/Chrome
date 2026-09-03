@@ -8339,11 +8339,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kAccessibilityAcceleratorDescription, kOsCrOS,
      FEATURE_VALUE_TYPE(features::kAccessibilityAccelerator)},
 
-    {"enable-accessibility-disable-touchpad",
-     flag_descriptions::kAccessibilityDisableTouchpadName,
-     flag_descriptions::kAccessibilityDisableTouchpadDescription, kOsCrOS,
-     FEATURE_VALUE_TYPE(features::kAccessibilityDisableTouchpad)},
-
     {"enable-accessibility-google-tts-automatic-reconnect",
      flag_descriptions::kAccessibilityGoogleTtsAutomaticReconnectName,
      flag_descriptions::kAccessibilityGoogleTtsAutomaticReconnectDescription,
@@ -11032,6 +11027,11 @@ const FeatureEntry kFeatureEntries[] = {
     {"browser-actuator", flag_descriptions::kBrowserActuatorName,
      flag_descriptions::kBrowserActuatorDescription, kOsDesktop | kOsAndroid,
      FEATURE_VALUE_TYPE(browser_actuator::kBrowserActuator)},
+    {"browser-actuator-internals",
+     flag_descriptions::kBrowserActuatorInternalsName,
+     flag_descriptions::kBrowserActuatorInternalsDescription,
+     kOsDesktop | kOsAndroid,
+     FEATURE_VALUE_TYPE(browser_actuator::kBrowserActuatorInternals)},
     {"enable-browser-actuator-for-glic-experimental-triggering",
      flag_descriptions::kEnableBrowserActuatorForGlicExperimentalTriggeringName,
      flag_descriptions::
