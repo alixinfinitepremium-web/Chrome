@@ -481,10 +481,6 @@ inline constexpr char
     kComposeboxFetchContextualSuggestionsForMultipleAttachmentsDescription[] =
         "Enables showing suggestions for multiple attachments";
 
-inline constexpr char kComposeboxForceTopName[] = "ComposeboxForceTop";
-inline constexpr char kComposeboxForceTopDescription[] =
-    "Forces the composebox to be at the top.";
-
 inline constexpr char kComposeboxPlusButtonBottomSheetName[] =
     "Enable the bottom sheet for plus button in Composebox";
 inline constexpr char kComposeboxPlusButtonBottomSheetDescription[] =
@@ -1331,11 +1327,6 @@ inline constexpr char kLensOverlayNavigationHistoryName[] =
 inline constexpr char kLensOverlayNavigationHistoryDescription[] =
     "When enabled, web navigation in the Lens overlay are recorded in browser "
     "history.";
-
-inline constexpr char kLensSearchHeadersCheckEnabledName[] =
-    "Lens search headers check";
-inline constexpr char kLensSearchHeadersCheckEnabledDescription[] =
-    "When enabled, ensures headers are attached to Lens search requests.";
 
 inline constexpr char kLensStreamServiceWebChannelTransportEnabledName[] =
     "Lens stream service web channel transport";
