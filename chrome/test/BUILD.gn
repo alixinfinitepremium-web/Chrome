@@ -3629,6 +3629,8 @@ if (!is_android) {
         "//chrome/browser/ui/views/web_apps:image_carousel_view",
         "//chrome/browser/ui/views/web_apps:view_visible_in_active_widget_notifier",
         "//chrome/browser/ui/views/web_apps:web_app_uninstall_dialog_view",
+        "//chrome/browser/ui/views/web_apps/isolated_web_apps:isolated_web_app_installer_coordinator",
+        "//chrome/browser/ui/views/web_apps/isolated_web_apps:isolated_web_app_installer_view_controller",
         "//chrome/browser/ui/wallet:browser_tests",
       ]
       if (is_win) {
@@ -3973,7 +3975,6 @@ if (!is_android) {
         "//chrome/browser/ash/arc/test:arc_test_support",
         "//chrome/browser/ash/arc/tracing",
         "//chrome/browser/ash/arc/tracing/test:test_support",
-        "//chrome/browser/ash/arc/user_session",
         "//chrome/browser/ash/arc/vmm",
         "//chrome/browser/ash/attestation",
         "//chrome/browser/ash/attestation:test_support",
@@ -4921,6 +4922,7 @@ test("unit_tests") {
     "../renderer/instant_restricted_id_cache_unittest.cc",
     "../renderer/media/flash_embed_rewrite_unittest.cc",
     "../renderer/net/net_error_helper_core_unittest.cc",
+    "../renderer/tab_context_decryption_token_extension_unittest.cc",
     "../renderer/v8_unwinder_unittest.cc",
   ]
 
@@ -5653,6 +5655,7 @@ test("unit_tests") {
     "//device/fido",
     "//device/fido:test_support",
     "//gin",
+    "//gin:gin_test",
     "//google_apis",
     "//google_apis/gcm",
     "//gpu:test_support",
@@ -7730,6 +7733,8 @@ test("unit_tests") {
       "//chrome/browser/ui/views/frame:web_contents_close_handler",
       "//chrome/browser/ui/views/profiles:avatar_badge_view",
       "//chrome/browser/ui/views/relaunch_notification:unit_tests",
+      "//chrome/browser/ui/views/web_apps/isolated_web_apps:isolated_web_app_installer_view_controller",
+      "//chrome/browser/ui/views/web_apps/isolated_web_apps:isolated_web_app_installer_view_impl",
     ]
     if (is_win || is_mac || is_linux) {
       deps += [ "//chrome/browser/ui/views/scheduled_restart:unit_tests" ]

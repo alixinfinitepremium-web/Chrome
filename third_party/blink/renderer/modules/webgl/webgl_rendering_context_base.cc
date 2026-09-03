@@ -4643,8 +4643,8 @@ ScriptValue WebGLRenderingContextBase::getUniform(
         name_builder.Append(']');
       }
       // Now need to look this up by name again to find its location
-      GLint loc = ContextGL()->GetUniformLocation(
-          ObjectOrZero(program), name_builder.ToString().Utf8().c_str());
+      GLint loc = ContextGL()->GetUniformLocation(ObjectOrZero(program),
+                                                  name_builder.Utf8().c_str());
       if (loc == location) {
         // Found it. Use the type in the ActiveInfo to determine the return
         // type.
@@ -8182,7 +8182,7 @@ bool WebGLRenderingContextBase::ValidateLocationLength(
   if (string.length() > max_web_gl_location_length) {
     StringBuilder builder;
     builder.Append("location length > ");
-    builder.Append(String::Format("%d", max_web_gl_location_length));
+    builder.AppendNumber(max_web_gl_location_length);
     SynthesizeGLError(GL_INVALID_VALUE, function_name,
                       builder.ToString().Ascii().c_str());
     return false;

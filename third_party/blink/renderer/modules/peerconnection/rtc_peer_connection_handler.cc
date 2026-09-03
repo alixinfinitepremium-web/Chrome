@@ -897,8 +897,6 @@ bool RTCPeerConnectionHandler::Initialize(
   // Apply 40 ms worth of bursting. See webrtc::TaskQueuePacedSender.
   configuration_.pacer_burst_interval = webrtc::TimeDelta::Millis(40);
 
-  configuration_.set_stats_timestamp_with_environment_clock(true);
-
   peer_connection_observer_ =
       MakeGarbageCollected<Observer>(weak_factory_.GetWeakPtr(), task_runner_);
   native_peer_connection_ = dependency_factory_->CreatePeerConnection(
@@ -1103,7 +1101,7 @@ void RTCPeerConnectionHandler::SetLocalDescription(
     // https://crbug.com/1005251.
     if (request) {
       request->RequestFailed(webrtc::RTCError(
-          webrtc::RTCErrorType::INTERNAL_ERROR, reason_str.ToString().Utf8()));
+          webrtc::RTCErrorType::INTERNAL_ERROR, reason_str.Utf8()));
     }
     return;
   }
@@ -1178,9 +1176,8 @@ void RTCPeerConnectionHandler::SetRemoteDescription(
     // possible for |this| to be deleted after this line. See
     // https://crbug.com/1005251.
     if (request) {
-      request->RequestFailed(
-          webrtc::RTCError(webrtc::RTCErrorType::UNSUPPORTED_OPERATION,
-                           reason_str.ToString().Utf8()));
+      request->RequestFailed(webrtc::RTCError(
+          webrtc::RTCErrorType::UNSUPPORTED_OPERATION, reason_str.Utf8()));
     }
     return;
   }

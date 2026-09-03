@@ -1985,11 +1985,6 @@
     "expiry_milestone": 160
   },
   {
-    "name": "composebox-aim-disabled",
-    "owners": [ "christianxu@google.com", "bling-search@google.com" ],
-    "expiry_milestone": 160
-  },
-  {
     "name": "composebox-aim-nudge",
     "owners": [ "christianxu@google.com", "bling-search@google.com" ],
     "expiry_milestone": 160
@@ -2794,11 +2789,6 @@
     "name": "devtools-source-map-scopes-in-sources-panel",
     "owners": [ "szuend@chromium.org" ],
     "expiry_milestone": 160
-  },
-  {
-    "name": "devtools-webmcp-support",
-    "owners": [ "pfaffe@chromium.org" ],
-    "expiry_milestone": 155
   },
   {
     "name": "dialogs-on-large-form-factors",
@@ -8526,7 +8516,7 @@
       "crowleso@google.com",
       "chrome-signin-mobile-team@google.com"
     ],
-    "expiry_milestone": 155
+    "expiry_milestone": 158
   },
   {
     "name": "profile-signals-reporting-enabled",
@@ -9286,7 +9276,7 @@
       "crowleso@google.com",
       "chrome-signin-mobile-team@google.com"
     ],
-    "expiry_milestone": 155
+    "expiry_milestone": 158
   },
   {
     "name": "signin-promo-on-avatar-pill",

@@ -633,6 +633,12 @@
       name: "AnimationWorklet",
     },
     {
+      // crbug.com/538260158
+      name: "AnnotationSpaceForMultiCol",
+      status: "experimental",
+      depends_on: ["AnnotationSpaceOnStart"],
+    },
+    {
       // crbug.com/445727139
       name: "AnnotationSpaceOnStart",
       status: "stable",
@@ -6173,10 +6179,6 @@
       status: "stable",
     },
     {
-      name: "TabSizeWithSpacing",
-      status: "stable",
-    },
-    {
       // When checking the shadow tree during invoke(),
       // use the invocationTargetInShadowTree saved before
       // calling the listener.
@@ -7368,10 +7370,6 @@
     {
       // Fixes an issue where Ctrl+Right Arrow skips punctuation before a newline.
       name: "WordSkipSpacesPunctuationFix",
-      status: "stable",
-    },
-    {
-      name: "WordSpacingWhiteSpacePre",
       status: "stable",
     },
     {

@@ -32,10 +32,6 @@ BASE_DECLARE_FEATURE(kSafetyCheckAutorunByManagerKillswitch);
 // Stack if no issues are found.
 BASE_DECLARE_FEATURE(kSafetyCheckModuleHiddenIfNoIssuesKillswitch);
 
-// Feature to enable the refactored implementation of the `OmahaService`, using
-// new `OmahaServiceObserver`(s) for Omaha clients. Acts as a killswitch.
-BASE_DECLARE_FEATURE(kOmahaServiceRefactor);
-
 // Feature flag to enable Shared Highlighting (Link to Text).
 BASE_DECLARE_FEATURE(kSharedHighlightingIOS);
 
@@ -121,9 +117,6 @@ bool IsSafetyCheckAutorunByManagerEnabled();
 
 // Whether the Safety Check module is hidden when no issues are found.
 bool ShouldHideSafetyCheckModuleIfNoIssues();
-
-// Whether the refactored implementation of the `OmahaService` is enabled.
-bool IsOmahaServiceRefactorEnabled();
 
 // Feature flag enabling Choose from Drive for signed out users.
 BASE_DECLARE_FEATURE(kIOSChooseFromDriveSignedOut);
@@ -349,15 +342,6 @@ BASE_DECLARE_FEATURE(kSeparateProfilesForManagedAccounts);
 
 // Killswitch for the reauth-first step in AuthenticationFlowInProfile.
 BASE_DECLARE_FEATURE(kAuthenticationFlowReauthFirstKillswitch);
-// Feature flag to control force-migrating the primary managed account to its
-// own separate profile.
-BASE_DECLARE_FEATURE(kSeparateProfilesForManagedAccountsForceMigration);
-
-// Feature flag to control force-migrating the primary managed account to its
-// own separate profile *immediately*, i.e. without the usual grace period
-// that's observed by `kSeparateProfilesForManagedAccountsForceMigration`.
-BASE_DECLARE_FEATURE(
-    kSeparateProfilesForManagedAccountsImmediateForceMigration);
 
 // Feature to control resyncing the omaha ping timer on foregrounding.
 BASE_DECLARE_FEATURE(kOmahaResyncTimerOnForeground);
@@ -415,7 +399,6 @@ extern const std::string_view kFRESignInHeaderTextUpdateParamArm1;
 
 // Returns whether 'kFRESignInHeaderTextUpdate' is enabled.
 bool FRESignInHeaderTextUpdate();
-
 
 // Enables Profile-specific push notification handling logic. When enabled, this
 // routes incoming notifications to the PushNotificationClientManager associated
@@ -704,7 +687,6 @@ bool IsAssistantContainerDebugEnabled();
 // Returns 0 if no experimental percentage is selected.
 NSInteger GetAssistantMediumDetentPercentage();
 
-
 // Enables the ComposeboxPlusButtonBottomSheet feature.
 BASE_DECLARE_FEATURE(kComposeboxPlusButtonBottomSheet);
 
@@ -726,12 +708,6 @@ bool IsChromeNextIaLensIconVisible();
 
 // Returns true if Share icon should be visible in ChromeNextIa.
 bool IsChromeNextIaShareIconVisible();
-
-// Enables the ComposeboxAIMDisabled feature.
-BASE_DECLARE_FEATURE(kComposeboxAIMDisabled);
-
-// Returns true if the ComposeboxAIMDisabled feature is enabled.
-bool IsComposeboxAIMDisabled();
 
 // Enables the EnableNewStartupFlow feature.
 BASE_DECLARE_FEATURE(kEnableNewStartupFlow);

@@ -34,8 +34,6 @@ BASE_FEATURE(kSafetyCheckAutorunByManagerKillswitch,
 BASE_FEATURE(kSafetyCheckModuleHiddenIfNoIssuesKillswitch,
              base::FEATURE_ENABLED_BY_DEFAULT);
 
-BASE_FEATURE(kOmahaServiceRefactor, base::FEATURE_DISABLED_BY_DEFAULT);
-
 BASE_FEATURE(kHideToolbar, base::FEATURE_DISABLED_BY_DEFAULT);
 
 bool IsHideToolbarEnabled() {
@@ -100,10 +98,6 @@ bool IsSafetyCheckAutorunByManagerEnabled() {
 bool ShouldHideSafetyCheckModuleIfNoIssues() {
   return base::FeatureList::IsEnabled(
       kSafetyCheckModuleHiddenIfNoIssuesKillswitch);
-}
-
-bool IsOmahaServiceRefactorEnabled() {
-  return base::FeatureList::IsEnabled(kOmahaServiceRefactor);
 }
 
 BASE_FEATURE(kIOSChooseFromDriveSignedOut, base::FEATURE_DISABLED_BY_DEFAULT);
@@ -359,12 +353,6 @@ BASE_FEATURE(kSeparateProfilesForManagedAccounts,
 
 BASE_FEATURE(kAuthenticationFlowReauthFirstKillswitch,
              base::FEATURE_DISABLED_BY_DEFAULT);
-
-BASE_FEATURE(kSeparateProfilesForManagedAccountsForceMigration,
-             base::FEATURE_ENABLED_BY_DEFAULT);
-
-BASE_FEATURE(kSeparateProfilesForManagedAccountsImmediateForceMigration,
-             base::FEATURE_ENABLED_BY_DEFAULT);
 
 BASE_FEATURE(kOmahaResyncTimerOnForeground, base::FEATURE_ENABLED_BY_DEFAULT);
 
@@ -878,7 +866,6 @@ NSInteger GetAssistantMediumDetentPercentage() {
       kAssistantContainer, kAssistantContainerMediumDetentPercentParam, 0);
 }
 
-
 BASE_FEATURE(kComposeboxPlusButtonBottomSheet,
              base::FEATURE_DISABLED_BY_DEFAULT);
 
@@ -907,12 +894,6 @@ bool IsChromeNextIaLensIconVisible() {
 
 bool IsChromeNextIaShareIconVisible() {
   return IsChromeNextIaEnabled() && kChromeNextIaShareIconVisible.Get();
-}
-
-BASE_FEATURE(kComposeboxAIMDisabled, base::FEATURE_DISABLED_BY_DEFAULT);
-
-bool IsComposeboxAIMDisabled() {
-  return base::FeatureList::IsEnabled(kComposeboxAIMDisabled);
 }
 
 NSString* const kNewStartupFlowKey = @"IsEnableNewStartupFlowEnabled";
@@ -1109,7 +1090,7 @@ BASE_FEATURE(kPlusButtonInFakebox, base::FEATURE_DISABLED_BY_DEFAULT);
 
 // Returns true if the plus button in NTP fakebox is enabled.
 bool IsPlusButtonInFakeboxEnabled() {
-  if (IsComposeboxAIMDisabled() || !IsComposeboxIOSEnabled()) {
+  if (!IsComposeboxIOSEnabled()) {
     return false;
   }
 
