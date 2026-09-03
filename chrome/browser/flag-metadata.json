@@ -1152,11 +1152,6 @@
     "expiry_milestone": 160
   },
   {
-    "name": "autofill-enable-save-and-fill",
-    "owners": ["siyua@chromium.org", "averina@google.com", "payments-autofill-team@google.com"],
-    "expiry_milestone": 155
-  },
-  {
     "name": "autofill-enable-scan-card-option-when-no-cards-saved",
     "owners": [ "benphillips@google.com", "siashah@google.com", "payments-autofill-team@google.com" ],
     "expiry_milestone": 160
@@ -7324,14 +7319,6 @@
     "name": "ntp-aurora-v2",
     "owners": ["yanlinghu@google.com", "hanxi@chromium.org", "clank-start@google.com"],
     "expiry_milestone": 161
-  },
-  {
-    "name": "ntp-background-color-slider",
-    "owners": [
-      "pabouchard@google.com",
-      "bling-mony-pod@google.com"
-    ],
-    "expiry_milestone": 151
   },
   {
     "name": "ntp-background-downsample-image",
