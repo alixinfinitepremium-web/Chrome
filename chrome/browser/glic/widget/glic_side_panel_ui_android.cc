@@ -104,13 +104,20 @@ GlicSidePanelUi::GlicSidePanelUi(Profile* profile,
         browser_window->GetWindow()->IsActive());
   }
 
+  // In NoWebview mode, PrivilegedWebContents owns the WebContentsDelegate.
+  // We must not overwrite or clear it.
+  // TODO(crbug.com/534807813): Plumb required delegate callbacks via
+  // PrivilegedWebContents APIs instead of setting the delegate directly.
   content::WebContents* web_contents = delegate_->host().webui_contents();
-  if (web_contents) {
-    web_contents->SetDelegate(this);
+  if (!base::FeatureList::IsEnabled(features::kGlicNoWebview)) {
+    if (web_contents) {
+      web_contents->SetDelegate(this);
+    }
   }
 
   glic_side_panel_coordinator->SetWebContents(web_contents);
 
+  host_observation_.Observe(&delegate_->host());
   panel_state_.kind = mojom::PanelStateKind::kAttached;
 }
 
@@ -120,9 +127,11 @@ GlicSidePanelUi::~GlicSidePanelUi() {
   // `panel_` weak pointers) is still valid.
   panel_focus_dependent_hotkey_manager_.reset();
   panel_visibility_dependent_hotkey_manager_.reset();
-  content::WebContents* web_contents = delegate_->host().webui_contents();
-  if (web_contents && web_contents->GetDelegate() == this) {
-    web_contents->SetDelegate(nullptr);
+  if (!base::FeatureList::IsEnabled(features::kGlicNoWebview)) {
+    content::WebContents* web_contents = delegate_->host().webui_contents();
+    if (web_contents && web_contents->GetDelegate() == this) {
+      web_contents->SetDelegate(nullptr);
+    }
   }
 }
 
@@ -243,6 +252,18 @@ void GlicSidePanelUi::OnReload() {
   if (glic_side_panel_coordinator) {
     glic_side_panel_coordinator->SetWebContents(
         delegate_->host().webui_contents());
+  }
+}
+
+void GlicSidePanelUi::ActiveWebContentsChanged(
+    content::WebContents* new_contents) {
+  if (auto* glic_side_panel_coordinator = GetGlicSidePanelCoordinator()) {
+    if (!base::FeatureList::IsEnabled(features::kGlicNoWebview)) {
+      if (new_contents) {
+        new_contents->SetDelegate(this);
+      }
+    }
+    glic_side_panel_coordinator->SetWebContents(new_contents);
   }
 }
 

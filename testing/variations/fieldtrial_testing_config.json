@@ -3462,6 +3462,21 @@
             ]
         }
     ],
+    "BottomControlsJankImprovement": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "BottomControlsJankImprovement"
+                    ]
+                }
+            ]
+        }
+    ],
     "BottomSheetOnDesktopWindowing": [
         {
             "platforms": [
@@ -6310,6 +6325,21 @@
                     },
                     "enable_features": [
                         "DefaultBrowserFramework"
+                    ]
+                }
+            ]
+        }
+    ],
+    "DefaultBrowserPipTextVideo": [
+        {
+            "platforms": [
+                "ios"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "DefaultBrowserPipTextVideo"
                     ]
                 }
             ]

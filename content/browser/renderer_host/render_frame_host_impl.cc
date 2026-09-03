@@ -93,6 +93,7 @@
 #include "content/browser/devtools/devtools_instrumentation.h"
 #include "content/browser/digital_credentials/digital_identity_request_impl.h"
 #include "content/browser/dom_storage/dom_storage_context_wrapper.h"
+#include "content/browser/dom_storage/session_storage_namespace_handle_impl.h"
 #include "content/browser/download/data_url_blob_reader.h"
 #include "content/browser/feature_observer.h"
 #include "content/browser/fenced_frame/automatic_beacon_info.h"
@@ -10686,13 +10687,13 @@ void RenderFrameHostImpl::CreateNewWindow(
       static_cast<DOMStorageContextWrapper*>(
           storage_partition->GetDOMStorageContext());
 
-  scoped_refptr<SessionStorageNamespaceImpl> cloned_namespace;
+  scoped_refptr<SessionStorageNamespaceHandleImpl> cloned_namespace;
   if (!params->clone_from_session_storage_namespace_id.empty()) {
-    cloned_namespace = SessionStorageNamespaceImpl::CloneFrom(
+    cloned_namespace = SessionStorageNamespaceHandleImpl::CloneFrom(
         dom_storage_context, params->session_storage_namespace_id,
         params->clone_from_session_storage_namespace_id);
   } else {
-    cloned_namespace = SessionStorageNamespaceImpl::Create(
+    cloned_namespace = SessionStorageNamespaceHandleImpl::Create(
         dom_storage_context, params->session_storage_namespace_id);
   }
 
@@ -13846,7 +13847,9 @@ void RenderFrameHostImpl::BindBlobUrlStoreReceiver(
 }
 
 bool RenderFrameHostImpl::IsFocused() {
-  if (!GetMainFrame()->GetRenderWidgetHost()->is_focused()) {
+  const bool focus_emulated =
+      render_view_host_->GetWidget()->IsFocusEmulationEnabled();
+  if (!focus_emulated && !GetMainFrame()->GetRenderWidgetHost()->is_focused()) {
     return false;
   }
 
@@ -13854,7 +13857,8 @@ bool RenderFrameHostImpl::IsFocused() {
   // focused subframe, treat the main frame as focused by default.
   FrameTreeNode* focused_frame = frame_tree_->GetFocusedFrame();
   if (!focused_frame) {
-    if (base::FeatureList::IsEnabled(
+    if (focus_emulated ||
+        base::FeatureList::IsEnabled(
             features::kDefaultToMainFrameFocusWhenNoSubframeFocused)) {
       return this == GetMainFrame();
     }
