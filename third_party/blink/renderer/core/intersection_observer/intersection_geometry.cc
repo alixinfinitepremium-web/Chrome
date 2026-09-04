@@ -114,8 +114,9 @@ gfx::RectF GetBoxBounds(const LayoutBox* box, bool use_overflow_clip_edge) {
 }
 
 // Return the bounding box of target in target's own coordinate system.
-gfx::RectF InitializeTargetRect(const LayoutObject* target, unsigned flags) {
-  if (flags & IntersectionGeometry::kForFrameViewportIntersection) {
+gfx::RectF InitializeTargetRect(const LayoutObject* target,
+                                IntersectionGeometry::Flags flags) {
+  if (flags.Has(IntersectionGeometry::kForFrameViewportIntersection)) {
     return gfx::RectF(To<LayoutEmbeddedContent>(target)->ReplacedContentRect());
   }
   if (target->IsSVGChild()) {
@@ -123,7 +124,7 @@ gfx::RectF InitializeTargetRect(const LayoutObject* target, unsigned flags) {
   }
   if (auto* layout_box = DynamicTo<LayoutBox>(target)) {
     return GetBoxBounds(layout_box,
-                        flags & IntersectionGeometry::kUseOverflowClipEdge);
+                        flags.Has(IntersectionGeometry::kUseOverflowClipEdge));
   }
   if (auto* layout_inline = DynamicTo<LayoutInline>(target)) {
     return layout_inline->LocalBoundingBoxRectF();
@@ -146,7 +147,7 @@ struct VisibilityInfo {
 VisibilityInfo ComputeVisibilityInfo(
     const LayoutObject* target,
     const PhysicalRect& rect,
-    unsigned flags,
+    IntersectionGeometry::Flags flags,
     std::optional<IntersectionGeometry::HitNodeCb> hit_node_cb) {
   if (!target->GetDocument().GetFrame() ||
       target->GetDocument().GetFrame()->LocalFrameRoot().GetOcclusionState() !=
@@ -185,7 +186,7 @@ VisibilityInfo ComputeVisibilityInfo(
   if (!hit_node || hit_node == target->GetNode())
     return {true, kInvalidDOMNodeId};
   bool should_expose_occluder_id =
-      flags & IntersectionGeometry::kShouldExposeOccluderNodeId;
+      flags.Has(IntersectionGeometry::kShouldExposeOccluderNodeId);
   // TODO(layout-dev): This IsDescendantOf tree walk could be optimized by
   // stopping when hit_node's containing LayoutBlockFlow is reached.
   if (target->IsLayoutInline()) {
@@ -202,24 +203,12 @@ VisibilityInfo ComputeVisibilityInfo(
 // containing view's coordinates. Note that this doesn't work if `object` has
 // multiple block fragments.
 gfx::Transform ObjectToViewTransform(const LayoutObject& object) {
-  // Use faster GeometryMapper when possible.
-  PropertyTreeStateOrAlias container_properties(
-      PropertyTreeState::kUninitialized);
-  const LayoutObject* property_container =
-      IntersectionGeometry::CanUseGeometryMapper(object)
-          ? object.GetPropertyContainer(nullptr, &container_properties)
-          : nullptr;
-  if (property_container) {
-    gfx::Transform transform = GeometryMapper::SourceToDestinationProjection(
-        container_properties.Transform(),
-        object.View()->FirstFragment().LocalBorderBoxProperties().Transform());
-    transform.Translate(gfx::Vector2dF(object.FirstFragment().PaintOffset()));
-    return transform;
+  MapCoordinatesFlags map_flags = {};
+  if (IntersectionGeometry::CanUseGeometryMapper(object)) {
+    map_flags = {MapCoordinatesMode::kUseGeometryMapper};
   }
-
-  // Fall back to MapLocalToAncestor.
   TransformState transform_state(TransformState::kApplyTransformDirection);
-  object.MapLocalToAncestor(nullptr, transform_state, {});
+  object.MapLocalToAncestor(nullptr, transform_state, map_flags);
   return transform_state.AccumulatedTransform();
 }
 
@@ -229,17 +218,6 @@ void ScrollingContentsToBorderBoxSpace(const LayoutBox* box, gfx::RectF& rect) {
   CHECK(scrollable_area);
   rect.Offset(-scrollable_area->ScrollPosition().OffsetFromOrigin());
 }
-
-static const unsigned kConstructorFlagsMask =
-    IntersectionGeometry::kShouldReportRootBounds |
-    IntersectionGeometry::kShouldComputeVisibility |
-    IntersectionGeometry::kShouldTrackFractionOfRoot |
-    IntersectionGeometry::kForFrameViewportIntersection |
-    IntersectionGeometry::kShouldConvertToCSSPixels |
-    IntersectionGeometry::kUseOverflowClipEdge |
-    IntersectionGeometry::kRespectFilters |
-    IntersectionGeometry::kScrollAndVisibilityOnly |
-    IntersectionGeometry::kShouldExposeOccluderNodeId;
 
 }  // namespace
 
@@ -286,17 +264,18 @@ IntersectionGeometry::IntersectionGeometry(
     const Vector<float>& thresholds,
     const Vector<Length>& target_margin,
     const Vector<Length>& scroll_margin,
-    unsigned flags,
+    Flags flags,
     std::optional<RootGeometry>& root_geometry,
     CachedRects* cached_rects,
     std::optional<HitNodeCb> hit_node_cb)
-    : flags_(flags & kConstructorFlagsMask),
-      hit_node_cb_(std::move(hit_node_cb)) {
+    : flags_(flags), hit_node_cb_(std::move(hit_node_cb)) {
+  flags_.RetainAll(
+      Flags::FromRange(kConstructorFlagFirst, kConstructorFlagLast));
   // Only one of root_margin or target_margin can be specified.
   DCHECK(root_margin.empty() || target_margin.empty());
 
   if (!root_node) {
-    flags_ |= kRootIsImplicit;
+    flags_.Put(kRootIsImplicit);
   }
 
   RootAndTarget root_and_target(root_node, target_element,
@@ -518,7 +497,7 @@ void IntersectionGeometry::UpdateShouldUseCachedRects(
     return;
   }
 
-  if (!(flags_ & kScrollAndVisibilityOnly)) {
+  if (!flags_.Has(kScrollAndVisibilityOnly)) {
     return;
   }
   // Cached rects can be used if the there are no scrollable objects in the
@@ -530,7 +509,7 @@ void IntersectionGeometry::UpdateShouldUseCachedRects(
     return;
   }
 
-  flags_ |= kShouldUseCachedRects;
+  flags_.Put(kShouldUseCachedRects);
 }
 
 void IntersectionGeometry::ComputeGeometry(const RootGeometry& root_geometry,
@@ -541,7 +520,7 @@ void IntersectionGeometry::ComputeGeometry(const RootGeometry& root_geometry,
                                            CachedRects* cached_rects) {
   CHECK_GE(thresholds.size(), 1u);
   DCHECK(cached_rects || !ShouldUseCachedRects());
-  flags_ |= kDidComputeGeometry;
+  flags_.Put(kDidComputeGeometry);
 
   const LayoutObject* root = root_and_target.root;
   const LayoutObject* target = root_and_target.target;
@@ -596,10 +575,15 @@ void IntersectionGeometry::ComputeGeometry(const RootGeometry& root_geometry,
       // the absolute coordinates of the target document.
       TransformState implicit_root_to_target_document_transform(
           TransformState::kUnapplyInverseTransformDirection);
+      MapCoordinatesFlags map_flags = {
+          MapCoordinatesMode::kTraverseDocumentBoundaries,
+          MapCoordinatesMode::kApplyRemoteMainFrameTransform};
+      if (RuntimeEnabledFeatures::UsePaintGeometryForIntersectionEnabled() &&
+          CanUseGeometryMapper(*target)) {
+        map_flags.Put(MapCoordinatesMode::kUseGeometryMapper);
+      }
       target->View()->MapAncestorToLocal(
-          nullptr, implicit_root_to_target_document_transform,
-          {MapCoordinatesMode::kTraverseDocumentBoundaries,
-           MapCoordinatesMode::kApplyRemoteMainFrameTransform});
+          nullptr, implicit_root_to_target_document_transform, map_flags);
       gfx::Transform matrix =
           implicit_root_to_target_document_transform.AccumulatedTransform()
               .InverseOrIdentity();
@@ -676,7 +660,7 @@ void IntersectionGeometry::ComputeGeometry(const RootGeometry& root_geometry,
         std::move(hit_node_cb_));
     occluder_node_id_ = visiblity_info.occluder_node_id;
     if (visiblity_info.is_visible) {
-      flags_ |= kIsVisible;
+      flags_.Put(kIsVisible);
     }
   } else {
     occluder_node_id_ = kInvalidDOMNodeId;
@@ -687,7 +671,7 @@ void IntersectionGeometry::ComputeGeometry(const RootGeometry& root_geometry,
   }
 
   // This must be the last step after all calculations in zoomed coordinates.
-  if (flags_ & kShouldConvertToCSSPixels) {
+  if (flags_.Has(kShouldConvertToCSSPixels)) {
     AdjustForAbsoluteZoom::AdjustRectMaybeExcludingCSSZoom(target_rect_,
                                                            *target);
     AdjustForAbsoluteZoom::AdjustRectMaybeExcludingCSSZoom(intersection_rect_,
