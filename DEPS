@@ -3418,7 +3418,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/help_app/app',
-        'version': '8k2hV8dl3MtqtVutMI_snjl6RB-d6dROpfIhGn4S1BcC',
+        'version': 'KctmaUdXMc1dWrp7f6ciiaOvi_uUiR6-dpOyEMDckQsC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3429,7 +3429,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/media_app/app',
-        'version': '5XJJmT6_j2TjWL8IpBz63DX2CpBZo97fyRz59dSvG20C',
+        'version': 'rCd3HF9rDmMaK6yk2zVRQv0M46qmWx5qZxdGOceIg2AC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -4108,7 +4108,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '6a1205dcfeb8c97a0573a21ab2d1629aa4b174be',
+        '6a527b5189faec629ff4df4de9f112f43abc49fd',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
