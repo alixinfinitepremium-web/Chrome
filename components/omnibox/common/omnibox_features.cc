@@ -277,6 +277,11 @@ BASE_FEATURE(kOmniboxWebUISizeWebViewToPreferredHeight, DISABLED);
 // preferred height in RoundedOmniboxResultsFrame and eliminates transient
 // height resets on hide/tab switch.
 BASE_FEATURE(kOmniboxFullWebUISizeWebViewToPreferredHeight, DISABLED);
+
+// When enabled, the Omnibox WebUI popup presenter will explicitly hide the
+// widget upon creation, preventing pre-warmed child widgets from inheriting
+// parent window visibility and locking compositor frames.
+BASE_FEATURE(kOmniboxWebUIPopupHideOnCreation, DISABLED);
 // When enabled, the WebUI searchbox will bypass OmniboxController and
 // OmniboxEditModel.
 BASE_FEATURE(kWebUISearchboxWithoutModelController, DISABLED);
@@ -374,7 +379,7 @@ BASE_FEATURE(kReportApplicationLanguageInSearchRequest, ENABLED);
 BASE_FEATURE(kOmniboxAppendInvocationSource, DISABLED);
 
 // Enable asynchronous Omnibox/Suggest view inflation.
-BASE_FEATURE(kOmniboxAsyncViewInflation, DISABLED);
+BASE_FEATURE(kOmniboxAsyncViewInflation, ENABLED);
 
 // Enable asynchronous Fusebox view inflation.
 BASE_FEATURE(kOmniboxFuseboxAsyncInflation, DISABLED);

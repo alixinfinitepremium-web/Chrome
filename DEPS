@@ -2214,7 +2214,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'd12ecdacde28c037ae8288eb0905e00323d4b8d1',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'c56fec68473515b44f1ddaea7a23fb66d88e4048',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -2798,7 +2798,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/cisco/openh264' + '@' + '9547f96ea5c47f4d465d97b07264b997ecc4b4b6',
 
   'src/third_party/openscreen/src':
-    Var('chromium_git') + '/openscreen' + '@' + '6fdc8aee059212df84916043adfb4c8f073c92ec',
+    Var('chromium_git') + '/openscreen' + '@' + '3e252691f2d93051b7b05d2a6910b14824e07794',
 
   'src/third_party/openxr/src': {
     'url': Var('chromium_git') + '/external/github.com/KhronosGroup/OpenXR-SDK' + '@' + '75c53b6e853dc12c7b3c771edc9c9c841b15faaa',
