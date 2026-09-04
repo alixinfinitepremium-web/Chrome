@@ -3025,17 +3025,9 @@
       status: "stable",
     },
     {
-      name: "FirstLineOnListItem",
-      status: "stable",
-    },
-    {
       // It turned out that this fix was wrong. The plan is to turn it off, and
       // remove if that goes well. crbug.com/41362700
       name: "FirstLineTextMetrics",
-    },
-    {
-      name: "FirstLineTextTransform",
-      status: "stable",
     },
     // When enabled, HTMLFormControlElement::IsReadOnly() returns false for
     // types that don't support readonly.
