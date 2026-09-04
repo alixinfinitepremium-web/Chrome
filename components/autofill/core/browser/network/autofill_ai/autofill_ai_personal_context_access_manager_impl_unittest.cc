@@ -6,6 +6,7 @@
 
 #include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "base/scoped_observation.h"
@@ -59,6 +60,7 @@ using ::personal_context::MockPersonalContextService;
 using ::personal_context::proto::SensitivePiiPresence;
 using ::testing::_;
 using ::testing::AllOf;
+using ::testing::ElementsAre;
 using ::testing::ElementsAreArray;
 using ::testing::Eq;
 using ::testing::InSequence;
@@ -69,7 +71,6 @@ using ::testing::Optional;
 using ::testing::Property;
 using ::testing::Ref;
 using ::testing::Return;
-using ::testing::Truly;
 using ::testing::UnorderedElementsAre;
 using ::testing::UnorderedElementsAreArray;
 using ::testing::WithArg;
@@ -83,6 +84,8 @@ using test::CreateOrderProto;
 using test::CreatePassportProto;
 using test::CreateShipmentProto;
 using test::CreateVehicleProto;
+using test::HasAttributeWithValue;
+using test::HasEntityType;
 
 // Cache TTL values initialized directly from production feature defaults.
 const base::TimeDelta kPrefetchCacheTTL =
@@ -90,15 +93,6 @@ const base::TimeDelta kPrefetchCacheTTL =
         .default_value;
 const base::TimeDelta kUnmaskedSpiiCacheTTL =
     features::kAutofillAmbientAutofillUnmaskedSpiiCacheTTL.default_value;
-
-[[nodiscard]] auto HasAttributeWithValue(AttributeTypeName attribute_type_name,
-                                         std::u16string value) {
-  return Truly([=](const EntityInstance& entity) {
-    base::optional_ref<const AttributeInstance> attribute =
-        entity.attribute(AttributeType(attribute_type_name));
-    return attribute && attribute->GetCompleteInfo(/*app_locale=*/"") == value;
-  });
-}
 
 // Checks that ContextMemoryAmbientAutofillRequest matches the `expected_types`
 // and `expected_presence`.
@@ -382,8 +376,7 @@ TEST_F(AutofillAiPersonalContextAccessManagerImplTest, PrefetchContextSuccess) {
       access_manager().IsTypePrefetched(EntityType(EntityTypeName::kOrder)));
   EXPECT_THAT(entities,
               UnorderedElementsAre(AllOf(
-                  Property(&EntityInstance::type,
-                           Property(&EntityType::name, EntityTypeName::kOrder)),
+                  HasEntityType(EntityTypeName::kOrder),
                   HasAttributeWithValue(AttributeTypeName::kOrderId, u"12345"),
                   HasAttributeWithValue(AttributeTypeName::kOrderMerchantName,
                                         u"Amazon"))));
@@ -422,8 +415,7 @@ TEST_F(AutofillAiPersonalContextAccessManagerImplTest,
   // The returned entities should only contain the requested kOrder.
   EXPECT_THAT(entities,
               UnorderedElementsAre(AllOf(
-                  Property(&EntityInstance::type,
-                           Property(&EntityType::name, EntityTypeName::kOrder)),
+                  HasEntityType(EntityTypeName::kOrder),
                   HasAttributeWithValue(AttributeTypeName::kOrderId, u"12345"),
                   HasAttributeWithValue(AttributeTypeName::kOrderMerchantName,
                                         u"Amazon"))));
@@ -650,79 +642,6 @@ TEST_F(AutofillAiPersonalContextAccessManagerImplTest,
       PersonalContextPrefetchTriggerResult::kInitiated, 1);
 }
 
-// Tests that request latency and total prefetch latency for SPII entity types
-// (which require two requests to complete) are correctly recorded.
-TEST_F(AutofillAiPersonalContextAccessManagerImplTest,
-       PrefetchRequestLatencyLogging) {
-  const EntityType passport_type(EntityTypeName::kPassport);
-
-  personal_context::proto::ContextMemoryAmbientAutofillResponse
-      presence_response;
-  personal_context::proto::ContextMemoryAmbientAutofillResponse spii_response;
-  personal_context::proto::Passport* passport =
-      spii_response.add_entities()->mutable_passport();
-  passport->set_number("12345");
-  *passport->mutable_expiration_date() = TodayWithDelta(base::Days(365));
-
-  base::OnceCallback<void(personal_context::FetchContextResult)>
-      presence_callback;
-  base::OnceCallback<void(personal_context::FetchContextResult)> spii_callback;
-
-  // Expect the request for Non-SPII (masked) entities and SPII presence.
-  EXPECT_CALL(
-      mock_personal_context_service(),
-      FetchContext(
-          personal_context::proto::CONTEXT_MEMORY_FEATURE_AMBIENT_AUTOFILL,
-          MatchContextFetchRequest(
-              std::vector<personal_context::proto::EntityType>{
-                  AutofillEntityTypeToPersonalContextEntityType(passport_type)},
-              true),
-          _, _))
-      .WillOnce(MoveArg<3>(&presence_callback));
-
-  // Expect the request to fetch SPII (masked) entities.
-  EXPECT_CALL(
-      mock_personal_context_service(),
-      FetchContext(
-          personal_context::proto::CONTEXT_MEMORY_FEATURE_AMBIENT_AUTOFILL,
-          MatchContextFetchRequest(
-              std::vector<personal_context::proto::EntityType>{
-                  AutofillEntityTypeToPersonalContextEntityType(passport_type)},
-              false),
-          _, _))
-      .WillOnce(MoveArg<3>(&spii_callback));
-
-  // Trigger prefetch.
-  access_manager().PrefetchContext({passport_type});
-
-  // Fast forward by 100ms.
-  FastForwardBy(base::Milliseconds(100));
-
-  // Complete the Non-SPII and presence request.
-  std::move(presence_callback).Run(FetchContextSuccess(presence_response));
-
-  // Verify NonSpiiAndPresence latency is recorded.
-  histogram_tester().ExpectUniqueTimeSample(
-      "Autofill.Ai.PersonalContext.RequestLatency.PrefetchNonSpiiAndPresence",
-      base::Milliseconds(100), 1);
-  histogram_tester().ExpectTotalCount(
-      "Autofill.Ai.PersonalContext.RequestLatency.PrefetchSpiiMasked", 0);
-
-  // Fast forward by another 50ms (total 150ms).
-  FastForwardBy(base::Milliseconds(50));
-
-  // Complete the SPII masked data request.
-  std::move(spii_callback).Run(FetchContextSuccess(spii_response));
-
-  // Verify SpiiMasked latency is recorded.
-  histogram_tester().ExpectUniqueTimeSample(
-      "Autofill.Ai.PersonalContext.RequestLatency.PrefetchSpiiMasked",
-      base::Milliseconds(150), 1);
-  histogram_tester().ExpectTotalCount(
-      "Autofill.Ai.PersonalContext.RequestLatency.PrefetchNonSpiiAndPresence",
-      1);
-}
-
 // Tests that request latency for unmasking sensitive PII entities is correctly
 // recorded.
 TEST_F(AutofillAiPersonalContextAccessManagerImplTest,
@@ -830,6 +749,8 @@ TEST_F(AutofillAiPersonalContextAccessManagerImplTest,
   histogram_tester().ExpectUniqueTimeSample(
       "Autofill.Ai.PersonalContext.RequestLatency.PrefetchNonSpiiAndPresence",
       base::Milliseconds(100), 1);
+  histogram_tester().ExpectTotalCount(
+      "Autofill.Ai.PersonalContext.RequestLatency.PrefetchSpiiMasked", 0);
   // Total latency is not logged yet.
   histogram_tester().ExpectTotalCount(
       "Autofill.Ai.PersonalContext.Prefetch.TotalLatency.Passport", 0);
@@ -844,6 +765,9 @@ TEST_F(AutofillAiPersonalContextAccessManagerImplTest,
   histogram_tester().ExpectUniqueTimeSample(
       "Autofill.Ai.PersonalContext.RequestLatency.PrefetchSpiiMasked",
       base::Milliseconds(150), 1);
+  histogram_tester().ExpectTotalCount(
+      "Autofill.Ai.PersonalContext.RequestLatency.PrefetchNonSpiiAndPresence",
+      1);
   // Verify that the total prefetch latency (150ms) is recorded.
   histogram_tester().ExpectUniqueTimeSample(
       "Autofill.Ai.PersonalContext.Prefetch.TotalLatency.Passport",
@@ -2238,7 +2162,7 @@ class AutofillAiPersonalContextAccessManagerImplSpiiCacheTest
 // SPII types sends a single request that does not ask for SPII presence, and
 // directly marks the type as prefetched.
 TEST_F(AutofillAiPersonalContextAccessManagerImplSpiiCacheTest,
-       PrefetchContext_SpiiTypesOnlySendsSingleRequest) {
+       PrefetchContext_SpiiTypesOnlySendsSingleRequestWithMaskedSpii) {
   const DenseSet<EntityType> requested_types = {
       EntityType(EntityTypeName::kPassport)};
 
@@ -2263,9 +2187,9 @@ TEST_F(AutofillAiPersonalContextAccessManagerImplSpiiCacheTest,
   EXPECT_THAT(
       entities,
       UnorderedElementsAre(AllOf(
-          Property(&EntityInstance::type,
-                   Property(&EntityType::name, EntityTypeName::kPassport)),
+          HasEntityType(EntityTypeName::kPassport),
           HasAttributeWithValue(AttributeTypeName::kPassportName, u"Jane Doe"),
+          // Note that the passport number is masked.
           HasAttributeWithValue(AttributeTypeName::kPassportNumber, u"45"))));
 }
 
@@ -2305,14 +2229,12 @@ TEST_F(AutofillAiPersonalContextAccessManagerImplSpiiCacheTest,
   EXPECT_THAT(
       entities,
       UnorderedElementsAre(
-          AllOf(Property(&EntityInstance::type,
-                         Property(&EntityType::name, EntityTypeName::kOrder)),
+          AllOf(HasEntityType(EntityTypeName::kOrder),
                 HasAttributeWithValue(AttributeTypeName::kOrderId, u"ORD-999"),
                 HasAttributeWithValue(AttributeTypeName::kOrderMerchantName,
                                       u"BestBuy")),
           AllOf(
-              Property(&EntityInstance::type,
-                       Property(&EntityType::name, EntityTypeName::kPassport)),
+              HasEntityType(EntityTypeName::kPassport),
               HasAttributeWithValue(AttributeTypeName::kPassportName, u"Alice"),
               HasAttributeWithValue(AttributeTypeName::kPassportNumber,
                                     u"78"))));
@@ -2402,18 +2324,14 @@ TEST_F(AutofillAiPersonalContextAccessManagerImplSpiiCacheTest,
   EXPECT_TRUE(access_manager().IsTypePrefetched(
       EntityType(EntityTypeName::kDriversLicense)));
   ASSERT_EQ(entities.size(), 2u);
-  EXPECT_THAT(
-      entities,
-      UnorderedElementsAre(
-          AllOf(
-              Property(&EntityInstance::type,
-                       Property(&EntityType::name, EntityTypeName::kPassport)),
-              HasAttributeWithValue(AttributeTypeName::kPassportNumber, u"0")),
-          AllOf(Property(&EntityInstance::type,
-                         Property(&EntityType::name,
-                                  EntityTypeName::kDriversLicense)),
-                HasAttributeWithValue(AttributeTypeName::kDriversLicenseNumber,
-                                      u"00"))));
+  EXPECT_THAT(entities,
+              UnorderedElementsAre(
+                  AllOf(HasEntityType(EntityTypeName::kPassport),
+                        HasAttributeWithValue(
+                            AttributeTypeName::kPassportNumber, u"0")),
+                  AllOf(HasEntityType(EntityTypeName::kDriversLicense),
+                        HasAttributeWithValue(
+                            AttributeTypeName::kDriversLicenseNumber, u"00"))));
 }
 
 // Tests that prefetched encrypted entities expire after the 30-minute TTL.
@@ -2455,8 +2373,7 @@ TEST_F(AutofillAiPersonalContextAccessManagerImplSpiiCacheTest,
   EXPECT_FALSE(unmasked->IsMaskedEntity());
   EXPECT_THAT(
       *unmasked,
-      AllOf(Property(&EntityInstance::type,
-                     Property(&EntityType::name, EntityTypeName::kPassport)),
+      AllOf(HasEntityType(EntityTypeName::kPassport),
             HasAttributeWithValue(AttributeTypeName::kPassportNumber, u"P123"),
             HasAttributeWithValue(AttributeTypeName::kPassportName,
                                   u"John Doe")));
@@ -2484,33 +2401,6 @@ TEST_F(AutofillAiPersonalContextAccessManagerImplSpiiCacheTest,
   histogram_tester().ExpectUniqueSample(
       "Autofill.Ai.Unmask.Result.PersonalContext",
       AutofillAiUnmaskResult::kDecryptionFailed, 1);
-}
-
-TEST_F(AutofillAiPersonalContextAccessManagerImplSpiiCacheTest,
-       ConvertProtoToEntityInstance_MaskSpii) {
-  personal_context::proto::ContextMemoryAmbientAutofillResponse response;
-  *response.add_entities() = CreateEncryptedEntity("enc_passport");
-  const DenseSet<EntityType> requested_types = {
-      EntityType(EntityTypeName::kPassport)};
-
-  EXPECT_CALL(mock_personal_context_service(),
-              DecryptEntity(MatchEncryptedEntity("enc_passport")))
-      .WillOnce(Return(CreateDecryptedPassportEntity("P12345", "Jane Doe")));
-  std::vector<EntityInstance> entities;
-  EXPECT_CALL(mock_observer(),
-              OnPrefetchContextComplete(_, Optional(Not(IsEmpty()))))
-      .WillOnce(SaveOptSpanToVector<1>(&entities));
-
-  PrefetchContextSync(requested_types, response);
-  ASSERT_EQ(entities.size(), 1u);
-  EXPECT_TRUE(entities[0].IsMaskedEntity());
-  EXPECT_THAT(
-      entities,
-      UnorderedElementsAre(AllOf(
-          Property(&EntityInstance::type,
-                   Property(&EntityType::name, EntityTypeName::kPassport)),
-          HasAttributeWithValue(AttributeTypeName::kPassportName, u"Jane Doe"),
-          HasAttributeWithValue(AttributeTypeName::kPassportNumber, u"45"))));
 }
 
 TEST_F(AutofillAiPersonalContextAccessManagerImplTest,
