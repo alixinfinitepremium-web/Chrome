@@ -549,7 +549,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
-  'llvm_libc_revision':    '939d22db6b65ba6e08b2a1e207f675501cd688aa',
+  'llvm_libc_revision':    'fae87475a0a1aecebdf1c1f6048404777394c588',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
@@ -2214,7 +2214,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'c56fec68473515b44f1ddaea7a23fb66d88e4048',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'd723957ed5ffa35ec8db432305007c1790d81652',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
