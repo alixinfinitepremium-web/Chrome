@@ -572,7 +572,7 @@ vars = {
   'libcxx_revision':       '97b436da4c33663581d394f4ee0a5977fc38c2f4',
 
   # GN CIPD package version.
-  'gn_version': 'git_revision:356ee8a865882bb3615422539ef262e32b102030',
+  'gn_version': 'git_revision:4f6a76b64b8279e98004f541f8e136307efe5e01',
 
   # ninja CIPD package.
   'ninja_package': 'infra/3pp/tools/ninja/',
@@ -2432,7 +2432,7 @@ deps = {
     Var('chromium_git') + '/chromium/deps/hunspell_dictionaries.git' + '@' + 'cee14e319bb7603a1157bb4d1e216be64ee82b77',
 
   'src/third_party/icu':
-    Var('chromium_git') + '/chromium/deps/icu.git' + '@' + '8cc91d9b6ab9991802fd208ee03a69714fd0251c',
+    Var('chromium_git') + '/chromium/deps/icu.git' + '@' + '6ebb40c594776cc2c21ea14df85a2a89a328b364',
 
   'src/third_party/icu4j/cipd': {
       'packages': [
