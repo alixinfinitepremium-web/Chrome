@@ -345,7 +345,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': 'caf5121683e17b14def24216b438ca249448ab54',
+  'v8_revision': '1668bf101bc098f96245da5ca044e2bba4a8e213',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -1714,7 +1714,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_win_x86_64',
-          'version': 't3onEZuFkKibCljdFwQpXntPh4DHUjCUW9AcT1FiuIgC',
+          'version': 'pEN2knCg2-36i-8TXwg6Es4gxi2oHXiENc0TzugR-FUC',
         },
       ],
   },
