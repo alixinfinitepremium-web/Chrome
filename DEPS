@@ -349,7 +349,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '66572e084ab78732c657466c092185472d0295c0',
+  'angle_revision': 'b3965a9756fb9033c2ab95d4d3962148af6440bd',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -361,7 +361,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': '4ae8cf504e4b27e6fd27f4aea9fe15c886c3f78f',
+  'boringssl_revision': 'c5c273f34640aeacdd73ce502e5072202777ceb5',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -421,7 +421,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '93ef9999eb3cf193271eaa11ea4e0c611f807608',
+  'devtools_frontend_revision': '262ef5fed0ccc18b66ba0abe40f4a3c99c4be2ba',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -3267,7 +3267,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '6bc6a2f437ef5922bb2831341084995703fc9de9',
+    Var('webrtc_git') + '/src.git' + '@' + '623cf7be86c70c66232dc2185546be378eee99e7',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -4108,7 +4108,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '42f6eadd07aa14dbaeb70fb88fabc7ce7d0a451f',
+        '8d74acfb3c0fbd916403c9a052ebd155ed650fc5',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
