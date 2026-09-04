@@ -341,7 +341,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '2e3f7e07eee6a5a7dc634dd3412f6c8b94bd40c0',
+  'skia_revision': 'eb0e1acde085f90ef7602efac7de5f032ee957c1',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -1537,7 +1537,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_mac_arm64',
-          'version': 'version:2@1686015',
+          'version': 'version:2@1687004',
         },
       ],
   },
@@ -1559,7 +1559,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_x86',
-          'version': 'version:2@1686058',
+          'version': 'version:2@1687005',
         },
       ],
   },
@@ -1866,7 +1866,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': '_L7RqKFi_advE-EStokyz8xCh4i4-_WPeh-6Jxa67g4C',
+          'version': 'HBZ1R79Own5TD1FZXMwatwUvBqPA6LswSIeM2X3eGvQC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
