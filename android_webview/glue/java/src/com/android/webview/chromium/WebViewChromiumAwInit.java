@@ -21,7 +21,6 @@ import com.android.webview.chromium.ApiCallLogger.ApiCallUserAction;
 
 import org.chromium.android_webview.AwBrowserContext;
 import org.chromium.android_webview.AwCookieManager;
-import org.chromium.android_webview.AwProxyController;
 import org.chromium.android_webview.AwTracingController;
 import org.chromium.android_webview.DualTraceEvent;
 import org.chromium.android_webview.HttpAuthDatabase;
@@ -77,11 +76,6 @@ public class WebViewChromiumAwInit {
 
     private final ProfileStore mProfileStore = new ProfileStore(this);
 
-    // Volatile to guard for incorrectly trying to use this without calling `startChromium`.
-    // TODO(crbug.com/389871700): Consider hiding the variable where it can't be incorrectly
-    // accessed. See crrev.com/c/6081452/comment/9dff4e5e_c049d778/ for context.
-    private volatile ChromiumStartedGlobals mChromiumStartedGlobals;
-
     private final DefaultProfileHolder mDefaultProfileHolder = new DefaultProfileHolder();
 
     // This is only accessed during WebViewChromiumFactoryProvider.initialize() which is guarded by
@@ -96,8 +90,6 @@ public class WebViewChromiumAwInit {
     private final Object mLazyInitLock = new Object();
 
     private final WebViewChromiumFactoryProvider mFactory;
-    private final WebViewChromiumRunQueue mWebViewStartUpCallbackRunQueue =
-            new WebViewChromiumRunQueue();
 
     private final StartupController.Delegate mStartupDelegate =
             new StartupController.Delegate() {
@@ -126,15 +118,6 @@ public class WebViewChromiumAwInit {
                 }
 
                 @Override
-                public void initThreadUnsafeSingletons() {
-                    try (DualTraceEvent e =
-                            DualTraceEvent.scoped(
-                                    "WebViewChromiumAwInit.initThreadUnsafeSingletons")) {
-                        mChromiumStartedGlobals = new ChromiumStartedGlobals();
-                    }
-                }
-
-                @Override
                 public @Nullable SelectionActionMenuClientWrapper getSelectionActionMenuClient() {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.CINNAMON_BUN) {
                         SelectionActionMenuClient client =
@@ -157,7 +140,6 @@ public class WebViewChromiumAwInit {
                             mDefaultProfileHolder.initializeDefaultProfileOnUI();
                         }
                     }
-                    mFactory.getRunQueue().notifyChromiumStarted();
                 }
 
                 @Override
@@ -181,8 +163,6 @@ public class WebViewChromiumAwInit {
     }
 
     private void recordStartupMetrics(StartupTasksRunner.StartupTimings timings) {
-        mWebViewStartUpCallbackRunQueue.notifyChromiumStarted();
-
         // Stop early trace event collection.
         // They have already been emitted if a trace session was started to capture startup.
         EarlyTraceEvent.reset();
@@ -323,12 +303,7 @@ public class WebViewChromiumAwInit {
 
     public AwTracingController getAwTracingController() {
         triggerAndWaitForChromiumStarted(StartupCallSite.GET_AW_TRACING_CONTROLLER);
-        return mChromiumStartedGlobals.mAwTracingController;
-    }
-
-    public AwProxyController getAwProxyController() {
-        triggerAndWaitForChromiumStarted(StartupCallSite.GET_AW_PROXY_CONTROLLER);
-        return mChromiumStartedGlobals.mAwProxyController;
+        return AwTracingController.getInstance();
     }
 
     public ProfileStore getProfileStore() {
@@ -379,7 +354,7 @@ public class WebViewChromiumAwInit {
     }
 
     public WebViewChromiumRunQueue getRunQueue() {
-        return mFactory.getRunQueue();
+        return mStartupController.getRunQueue();
     }
 
     public Object getLazyInitLock() {
@@ -411,8 +386,8 @@ public class WebViewChromiumAwInit {
             return;
         }
 
-        mWebViewStartUpCallbackRunQueue.addTask(
-                () -> {
+        mStartupController.requestAsyncStartup(
+                diagnostics -> {
                     Set<String> profilesCopy =
                             profilesToLoad != null
                                     ? profilesToLoad
@@ -422,21 +397,8 @@ public class WebViewChromiumAwInit {
                         mProfileStore.getOrCreateProfile(
                                 context, ProfileStore.CallSite.ASYNC_WEBVIEW_STARTUP);
                     }
-                    callback.onSuccess(mStartupController.getStartupDiagnostics());
+                    callback.onSuccess(diagnostics);
                 });
-        postChromiumStartupIfNeeded(StartupCallSite.ASYNC_WEBVIEW_STARTUP);
-    }
-
-    // These are objects that need to be created on the UI thread and after chromium has started.
-    // Thus created during startChromium for ease.
-    private static final class ChromiumStartedGlobals {
-        final AwTracingController mAwTracingController;
-        final AwProxyController mAwProxyController;
-
-        ChromiumStartedGlobals() {
-            mAwProxyController = new AwProxyController();
-            mAwTracingController = new AwTracingController();
-        }
     }
 
     public Profile getDefaultProfile(@StartupCallSite int callSite) {
