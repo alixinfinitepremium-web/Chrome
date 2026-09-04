@@ -349,7 +349,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': 'a404d7f7f8178202b3ee9850e3a615a03c5db646',
+  'angle_revision': '66572e084ab78732c657466c092185472d0295c0',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -361,7 +361,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': '1175b7e1fa2144bab5f359ebf387548f7e4b5cdf',
+  'boringssl_revision': '4ae8cf504e4b27e6fd27f4aea9fe15c886c3f78f',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
