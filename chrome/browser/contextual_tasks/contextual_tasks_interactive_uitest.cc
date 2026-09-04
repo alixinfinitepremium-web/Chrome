@@ -454,6 +454,18 @@ class ContextualTasksInteractiveUiTest : public InteractiveBrowserTest {
     return WaitForStateChange(contents_id, change);
   }
 
+  static auto WaitForElementVisible(const ui::ElementIdentifier& contents_id,
+                                    const DeepQuery& element) {
+    StateChange change;
+    change.type = StateChange::Type::kExistsAndConditionTrue;
+    change.where = element;
+    change.test_function =
+        "(el) => { const r = el.getBoundingClientRect(); return r.width > 0 && "
+        "r.height > 0; }";
+    change.event = kElementExistsEvent;
+    return WaitForStateChange(contents_id, change);
+  }
+
   static auto ClickButton(const ui::ElementIdentifier& contents_id,
                           const DeepQuery& element) {
     return ExecuteJsAt(contents_id, element, "el => el.click()");
@@ -1106,8 +1118,8 @@ class ContextualTasksInteractiveUiTest : public InteractiveBrowserTest {
 };
 
 // TODO(crbug.com/500717050): Parameterize this test suite on the feature flag.
-// TODO(crbug.com/524797987): Re-enable this test.
-#if BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_WIN)
+// TODO(crbug.com/524797987): Re-enable this test on ChromeOS.
+#if BUILDFLAG(IS_CHROMEOS)
 #define MAYBE_AddAndRemovePdfChipFromComposebox \
   DISABLED_AddAndRemovePdfChipFromComposebox
 #else
@@ -1155,8 +1167,10 @@ IN_PROC_BROWSER_TEST_F(ContextualTasksInteractiveUiTest,
                   ForceClickMenuButton(kPrimaryTab, "fileUpload"),
 
                   WaitForDocumentChipWithTitle(kPrimaryTab, "download.pdf"),
+                  WaitForElementVisible(kPrimaryTab, kDocumentChip),
                   WaitForComposeboxFilesCount(1),
 
+                  WaitForElementVisible(kPrimaryTab, kRemoveDocumentButton),
                   ClickButton(kPrimaryTab, kRemoveDocumentButton),
                   WaitForElementDoesNotExist(kPrimaryTab, kDocumentChip),
                   WaitForComposeboxFilesCount(0));
@@ -1346,18 +1360,8 @@ IN_PROC_BROWSER_TEST_F(ContextualTasksInteractiveUiTest,
           lens::LensOverlayRequestId::MEDIA_TYPE_DEFAULT_IMAGE));
 }
 
-// TODO(crbug.com/516333831): Re-enable this test on Windows.
-// TODO(crbug.com/543925663): Re-enable this test on Linux TSAN.
-#if BUILDFLAG(IS_WIN) || (BUILDFLAG(IS_LINUX) && defined(THREAD_SANITIZER))
-#define MAYBE_AddAndSubmitMultipleContextsFromComposebox \
-  DISABLED_AddAndSubmitMultipleContextsFromComposebox
-#else
-#define MAYBE_AddAndSubmitMultipleContextsFromComposebox \
-  AddAndSubmitMultipleContextsFromComposebox
-#endif
-
 IN_PROC_BROWSER_TEST_F(ContextualTasksInteractiveUiTest,
-                       MAYBE_AddAndSubmitMultipleContextsFromComposebox) {
+                       AddAndSubmitMultipleContextsFromComposebox) {
   const GURL kInterceptionUrl("https://www.google.com/search?udm=50");
   const GURL kGenericPageUrl1 = embedded_test_server()->GetURL("/title1.html");
   const GURL kGenericPageUrl2 = embedded_test_server()->GetURL("/title2.html");
@@ -1426,6 +1430,7 @@ IN_PROC_BROWSER_TEST_F(ContextualTasksInteractiveUiTest,
       WaitForComposeboxFilesCount(5),
 
       // 6. Submit
+      WaitForSubmitButtonEnabled(kPrimaryTab),
       ClickButton(kPrimaryTab, kSubmitButton),
 
       // 7. Verify multiple inputs in the final message
