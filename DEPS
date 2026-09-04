@@ -357,7 +357,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling PDFium
   # and whatever else without interference from each other.
-  'pdfium_revision': '047ef29f007170ed5ccfa2f6f90dc1c41eba9518',
+  'pdfium_revision': '017295ab72663c736ed6b8820528f965708089bd',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
@@ -4108,7 +4108,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        'cff1ca7e3aa4a91b63844f033f4103f6ea1c7ecd',
+        'd66349564c9b549834fa8dbefebf7468db3665f0',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
