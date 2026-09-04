@@ -361,7 +361,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': '876bb72c99b4c082d8c3aed6efeacf28baf2f25c',
+  'boringssl_revision': '4a92579453b35319e2707eab68a0b7d1f8d5d053',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -445,7 +445,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': '36aba720f488788ca1981f3fbcd0dcdaa3566739',
+  'dawn_revision': 'b121eff3f1da9064155fcf8fdb88b01c0c78575b',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -2824,7 +2824,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '269b4e55f8486d9ad461dedd1cfbe07c8de42b0e',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + 'd0d8c6fa5f7411b59fccacf99233e79bcf94e3fc',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
@@ -4108,7 +4108,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '18747d5a0f89cd925cd87701b4b89e264d81b110',
+        '1ed90028ea1a73b2408c2ef763e0e698128a4fd8',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 

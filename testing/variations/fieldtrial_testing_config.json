@@ -16870,18 +16870,21 @@
                 {
                     "name": "Enabled",
                     "enable_features": [
+                        "IPH_ReadingModeLineFocus",
                         "ReadAnythingLineFocus"
                     ]
                 },
                 {
                     "name": "Enabled_Dogfood",
                     "enable_features": [
+                        "IPH_ReadingModeLineFocus",
                         "ReadAnythingLineFocus"
                     ]
                 },
                 {
                     "name": "Disabled",
                     "disable_features": [
+                        "IPH_ReadingModeLineFocus",
                         "ReadAnythingLineFocus"
                     ]
                 }
@@ -17871,6 +17874,25 @@
                     },
                     "enable_features": [
                         "IPH_DesktopSharedHighlighting"
+                    ]
+                }
+            ]
+        }
+    ],
+    "SharedStorageDeprecation": [
+        {
+            "platforms": [
+                "android",
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Disabled",
+                    "disable_features": [
+                        "SharedStorageAPI"
                     ]
                 }
             ]
