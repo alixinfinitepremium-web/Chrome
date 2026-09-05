@@ -413,7 +413,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling fuzztest
   # and whatever else without interference from each other.
-  'fuzztest_revision': '5ce9c5d64e9dce2a12665c3f8cdbedfe64aa384a',
+  'fuzztest_revision': '25f6bff894a558fd6b7076a22f9e881d807304e6',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling domato
   # and whatever else without interference from each other.
@@ -421,7 +421,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '036dd84bc4fdfb0fd4be2a5ddb3fe37ef24939cd',
+  'devtools_frontend_revision': '5ad641a1d5a21f956173faa5b4ad71ec1192875b',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1767,7 +1767,7 @@ deps = {
   },
 
   'src/docs/website': {
-    'url': Var('chromium_git') + '/website.git' + '@' + '69c45223b335de173a9ddb17304401446560ac4b',
+    'url': Var('chromium_git') + '/website.git' + '@' + 'eed565f73ec8d2879e2d7a30d339e1a43056f048',
   },
 
   'src/ios/third_party/earl_grey2/src': {
