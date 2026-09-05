@@ -341,7 +341,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '86ada7c148298d0ade540beee7f8efa8eee4d156',
+  'skia_revision': '124b17e6bb649e7583b0076834125425fd6a2bc1',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -349,7 +349,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '766b970cf50e37c003deff313f382ee51ea33954',
+  'angle_revision': 'd006b276e94d5a1eb9000d86a258ffabe4684c27',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -1762,7 +1762,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    'a5c18a80af9d85e15585e436641cdaea954da09b',
+    '4e3a4c64064be39f6e4039296b0671a5d429c94a',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -1866,7 +1866,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': '8O9ATXHOvoo9bJL35QPAeeAqw2JaLWPS80_Mkqz7pv0C',
+          'version': '3oqr0OHhjMloCfvFdbPt6rRSyEWAR9cgUVMiQlb7nO8C',
       },
     ],
     'condition': 'checkout_android and non_git_source',
