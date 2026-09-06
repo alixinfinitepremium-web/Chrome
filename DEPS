@@ -553,7 +553,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
-  'compiler_rt_revision': '839401d90fd05d8060c94b4e74aaef883411cff5',
+  'compiler_rt_revision': '16f8fb0f6e20c6d4e87ffa01b47c0fadbb108fa8',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling clusterfuzz-data
   # and whatever else without interference from each other.
@@ -1570,7 +1570,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_x86_64',
-          'version': 'version:2@1687020',
+          'version': 'version:2@1688037',
         },
       ],
   },
@@ -1714,7 +1714,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_win_x86_64',
-          'version': 'pEN2knCg2-36i-8TXwg6Es4gxi2oHXiENc0TzugR-FUC',
+          'version': '4sP6RJU-6dJUhgBUIcAzZleCy_ciI7F-dnXk8TgLdVEC',
         },
       ],
   },
@@ -4108,7 +4108,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '03eca7764856b8625c52ad3b37deb1daa07cce2a',
+        '7c3f9d998386a85f8387dfa58110383a63227931',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
