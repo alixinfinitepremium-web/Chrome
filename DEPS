@@ -1515,7 +1515,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_linux64',
-          'version': 'version:2@1687003',
+          'version': 'version:2@1688021',
         },
       ],
   },
@@ -1670,7 +1670,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_linux64',
-          'version': 'GMe1NrXWkGOe32BBW4B9kht2CE0wwwKsIDIBgStmwREC',
+          'version': 'G4rx3OQKaoGKx032wwBgHAu1gM19ng43OEnQqcdNEfEC',
         },
       ],
   },
@@ -4108,7 +4108,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '538847a42cdc1aa5aa030708093687a78862e51a',
+        '03eca7764856b8625c52ad3b37deb1daa07cce2a',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
