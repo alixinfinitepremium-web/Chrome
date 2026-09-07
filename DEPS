@@ -341,7 +341,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': 'b3fa80a0e16882402ffe8194c315295b9b2f2b60',
+  'skia_revision': '355d5197aa27cb1adcb8122e1de2dee94927e8f0',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -361,7 +361,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': '4a92579453b35319e2707eab68a0b7d1f8d5d053',
+  'boringssl_revision': '86101b72bbb93913a00a79ac614b138633c1f4a4',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
