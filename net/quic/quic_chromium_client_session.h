@@ -46,6 +46,7 @@
 #include "net/quic/quic_connection_logger.h"
 #include "net/quic/quic_crypto_client_config_handle.h"
 #include "net/quic/quic_http3_logger.h"
+#include "net/quic/quic_migration_attempt_context.h"
 #include "net/quic/quic_session_alias_key.h"
 #include "net/quic/quic_session_key.h"
 #include "net/socket/socket_performance_watcher.h"
@@ -103,21 +104,6 @@ enum class ConnectionMigrationMode {
   FULL_MIGRATION_V1,
   NO_MIGRATION_ON_PATH_DEGRADING_V2,
   FULL_MIGRATION_V2
-};
-
-// Cause of a migration.
-enum MigrationCause {
-  UNKNOWN_CAUSE,
-  ON_NETWORK_CONNECTED,                       // No probing.
-  ON_NETWORK_DISCONNECTED,                    // No probing.
-  ON_WRITE_ERROR,                             // No probing.
-  ON_NETWORK_MADE_DEFAULT,                    // With probing.
-  ON_MIGRATE_BACK_TO_DEFAULT_NETWORK,         // With probing.
-  CHANGE_NETWORK_ON_PATH_DEGRADING,           // With probing.
-  CHANGE_PORT_ON_PATH_DEGRADING,              // With probing.
-  NEW_NETWORK_CONNECTED_POST_PATH_DEGRADING,  // With probing.
-  ON_SERVER_PREFERRED_ADDRESS_AVAILABLE,      // With probing.
-  MIGRATION_CAUSE_MAX
 };
 
 // Result of connection migration.
@@ -510,23 +496,21 @@ class NET_EXPORT_PRIVATE QuicChromiumClientSession
    public:
     QuicChromiumPathValidationContext(
         const quic::QuicSocketAddress& self_address,
-        const quic::QuicSocketAddress& peer_address,
-        handles::NetworkHandle network,
-        std::unique_ptr<QuicChromiumPacketWriter> writer,
-        std::unique_ptr<QuicChromiumPacketReader> reader);
+        std::unique_ptr<QuicMigrationAttemptContext> migration_context);
     ~QuicChromiumPathValidationContext() override;
 
-    handles::NetworkHandle network();
+    handles::NetworkHandle network() const;
     quic::QuicPacketWriter* WriterToUse() override;
 
-    // Transfer the ownership from |this| to the caller.
-    std::unique_ptr<QuicChromiumPacketWriter> ReleaseWriter();
-    std::unique_ptr<QuicChromiumPacketReader> ReleaseReader();
+    // Consumes `context` and returns the underlying migration context.
+    static std::unique_ptr<QuicMigrationAttemptContext> ReleaseMigrationContext(
+        std::unique_ptr<quic::QuicPathValidationContext> context);
+    QuicMigrationAttemptContext* migration_context() const {
+      return migration_context_.get();
+    }
 
    private:
-    handles::NetworkHandle network_handle_;
-    std::unique_ptr<QuicChromiumPacketReader> reader_;
-    std::unique_ptr<QuicChromiumPacketWriter> writer_;
+    std::unique_ptr<QuicMigrationAttemptContext> migration_context_;
   };
 
   // This class implements Chrome logic for path validation events associated
@@ -749,25 +733,16 @@ class NET_EXPORT_PRIVATE QuicChromiumClientSession
   void OnWriteUnblocked() override;
 
   void OnConnectionMigrationProbeSucceeded(
-      handles::NetworkHandle network,
-      const quic::QuicSocketAddress& peer_address,
       const quic::QuicSocketAddress& self_address,
-      std::unique_ptr<QuicChromiumPacketWriter> writer,
-      std::unique_ptr<QuicChromiumPacketReader> reader);
+      std::unique_ptr<QuicMigrationAttemptContext> migration_context);
 
   void OnPortMigrationProbeSucceeded(
-      handles::NetworkHandle network,
-      const quic::QuicSocketAddress& peer_address,
       const quic::QuicSocketAddress& self_address,
-      std::unique_ptr<QuicChromiumPacketWriter> writer,
-      std::unique_ptr<QuicChromiumPacketReader> reader);
+      std::unique_ptr<QuicMigrationAttemptContext> migration_context);
 
   void OnServerPreferredAddressProbeSucceeded(
-      handles::NetworkHandle network,
-      const quic::QuicSocketAddress& peer_address,
       const quic::QuicSocketAddress& self_address,
-      std::unique_ptr<QuicChromiumPacketWriter> writer,
-      std::unique_ptr<QuicChromiumPacketReader> reader);
+      std::unique_ptr<QuicMigrationAttemptContext> migration_context);
 
   void OnProbeFailed(handles::NetworkHandle network,
                      const quic::QuicSocketAddress& peer_address);
@@ -843,7 +818,7 @@ class NET_EXPORT_PRIVATE QuicChromiumClientSession
   // ConnectAndConfigureSocket and uses it to create the multiport path context.
   void FinishCreateContextForMultiPortPath(
       std::unique_ptr<quic::MultiPortPathContextObserver> context_observer,
-      std::unique_ptr<DatagramClientSocket> probing_socket,
+      std::unique_ptr<QuicMigrationAttemptContext> context,
       int rv);
 
   // Performs a crypto handshake with the server.
@@ -910,8 +885,8 @@ class NET_EXPORT_PRIVATE QuicChromiumClientSession
   // Attempts to migrate session when writer with `writer_generation` encounters
   // a write error. If the writer is no longer actively used, abort migration.
   void MigrateSessionOnWriteError(int error_code, uint64_t writer_generation);
-  // Called when the Migrate() call from MigrateSessionOnWriteError completes.
-  // Always called asynchronously.
+  // Called when the MigrateWithoutProbing() call from
+  // MigrateSessionOnWriteError completes. Always called asynchronously.
   void FinishMigrateSessionOnWriteError(handles::NetworkHandle new_network,
                                         MigrationResult result);
 
@@ -925,17 +900,17 @@ class NET_EXPORT_PRIVATE QuicChromiumClientSession
   // the migration fails and |close_session_on_error| is true, session will be
   // closed.
   using MigrationCallback = base::OnceCallback<void(MigrationResult)>;
-  void Migrate(handles::NetworkHandle network,
-               IPEndPoint peer_address,
-               bool close_session_on_error,
-               MigrationCallback migration_callback);
+  void MigrateWithoutProbing(handles::NetworkHandle network,
+                             IPEndPoint peer_address,
+                             bool close_session_on_error,
+                             MigrationCallback migration_callback);
   // Helper to finish session migration once a socket has been opened. Always
   // called asynchronously.
-  void FinishMigrate(std::unique_ptr<DatagramClientSocket> socket,
-                     IPEndPoint peer_address,
-                     bool close_session_on_error,
-                     MigrationCallback callback,
-                     int rv);
+  void FinishMigrateWithoutProbing(
+      std::unique_ptr<QuicMigrationAttemptContext> migration_context,
+      bool close_session_on_error,
+      MigrationCallback callback,
+      int rv);
 
   void DoMigrationCallback(MigrationCallback callback, MigrationResult rv);
 
@@ -1069,12 +1044,8 @@ class NET_EXPORT_PRIVATE QuicChromiumClientSession
 
   // Helper to finish network probe once socket has been opened. Always called
   // asynchronously.
-  // TODO(crbug.com/518753285): Stop accepting a `network` parameter. Instead,
-  // require `probing_socket` to have already been bound at creation time.
   void FinishStartProbing(ProbingCallback probing_callback,
-                          std::unique_ptr<DatagramClientSocket> probing_socket,
-                          handles::NetworkHandle network,
-                          const quic::QuicSocketAddress& peer_address,
+                          std::unique_ptr<QuicMigrationAttemptContext> context,
                           int rv);
 
   // Perform a few checks before StartProbing. If any of those checks fails,
@@ -1101,8 +1072,8 @@ class NET_EXPORT_PRIVATE QuicChromiumClientSession
   //    network.
   void MigrateNetworkImmediately(handles::NetworkHandle network);
 
-  // Called when Migrate() call from MigrateNetworkImmediately completes. Always
-  // called asynchronously.
+  // Called when MigrateWithoutProbing() call from MigrateNetworkImmediately
+  // completes. Always called asynchronously.
   void FinishMigrateNetworkImmediately(handles::NetworkHandle network,
                                        MigrationResult result);
 
