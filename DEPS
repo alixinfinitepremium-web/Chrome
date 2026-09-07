@@ -397,7 +397,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling catapult
   # and whatever else without interference from each other.
-  'catapult_revision': '6ef72859fa1cbdd2aeaa4147467ab3896ff098ed',
+  'catapult_revision': 'bc8f307a4d44148a31e34ab48c77d0834a404d20',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -421,7 +421,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'af7b57fae9f98572961a8cb0f4d8f1413c7fc163',
+  'devtools_frontend_revision': 'dd44b4107687fe7c242ea05756c84d475ceb0778',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
