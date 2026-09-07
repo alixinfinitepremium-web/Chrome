@@ -349,7 +349,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '7e509492909c694e2052b4738579bd9e2d9b5c74',
+  'angle_revision': '082d85ba19efba24d3c25108dc1f0cad9cf149f9',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -421,7 +421,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'dd44b4107687fe7c242ea05756c84d475ceb0778',
+  'devtools_frontend_revision': '2509d2885b7e8d160c328c2a4d7f71650c5507a5',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -445,7 +445,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': '857098c36c748264cf7dbbaca6decba23700202f',
+  'dawn_revision': '2ca8cbfe0f8275aa0f739e7b6b4345a16e2f0378',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -1134,7 +1134,6 @@ deps = {
   'src/third_party/llvm-libclang': {
     'dep_type': 'gcs',
     'bucket': 'chromium-browser-clang',
-    'condition': 'not rust_force_head_revision',
     'objects': [
       {
         'object_name': 'Linux_x64/rust-libclang-c33d8f3b5a50b56466998e8c5ed8a077d2caed84-1-llvmorg-24-init-7283-g640ab6c4.tar.xz',
@@ -4108,7 +4107,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        'de9d1f46b48496f785a884bd4981bd43f78257db',
+        'c4b89b8e50547dce69422589452bfe1c2b4bcaef',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
