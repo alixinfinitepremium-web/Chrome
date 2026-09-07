@@ -7,6 +7,9 @@
 #import <AVFoundation/AVFoundation.h>
 #import <PhotosUI/PhotosUI.h>
 
+#import <optional>
+#import <utility>
+
 #import "base/check.h"
 #import "base/check_op.h"
 #import "base/feature_list.h"
@@ -40,7 +43,8 @@ namespace {
 constexpr int kChromeIOSProductId = 71720513;
 }  // namespace
 
-@interface ComposeboxPickerPresenter () <PHPickerViewControllerDelegate,
+@interface ComposeboxPickerPresenter () <DriveFilePickerResponseCommands,
+                                         PHPickerViewControllerDelegate,
                                          UIDocumentPickerDelegate,
                                          UIImagePickerControllerDelegate,
                                          UINavigationControllerDelegate>
@@ -161,11 +165,8 @@ constexpr int kChromeIOSProductId = 71720513;
 
   __weak __typeof(self) weakSelf = self;
   TabPickerCompletionBlock completionBlock =
-      ^(std::set<web::WebStateID> selectedIDs,
-        std::set<web::WebStateID> cachedIDs) {
-        [weakSelf.delegate composeboxPickerPresenter:weakSelf
-                   handleSelectedTabsWithWebStateIDs:selectedIDs
-                                   cachedWebStateIDs:cachedIDs];
+      ^(std::optional<TabPickerSelection> selection) {
+        [weakSelf userDidPickTabs:std::move(selection)];
       };
 
   id<TabPickerCommands> tabPickerHandler =
@@ -302,10 +303,20 @@ constexpr int kChromeIOSProductId = 71720513;
   id<DriveFilePickerCommands> driveFilePickerCommands = HandlerForProtocol(
       _browser->GetCommandDispatcher(), DriveFilePickerCommands);
   [driveFilePickerCommands
-      showDriveFilePickerWithComposeboxDelegate:self.delegate
-                             baseViewController:_baseViewController
-                             maxAttachmentCount:maxDriveAttachmentCount
-                              snackbarPresenter:_snackbarPresenter];
+      showDriveFilePickerWithResponseHandler:self
+                          baseViewController:_baseViewController
+                          maxAttachmentCount:maxDriveAttachmentCount
+                           snackbarPresenter:_snackbarPresenter];
+}
+
+#pragma mark - DriveFilePickerResponseCommands
+
+- (void)driveFilePickerDidPickItems:
+    (NSArray<ComposeboxPickerDriveResult*>*)items {
+  [self.delegate composeboxPickerPresenter:self didPickDriveItems:items];
+}
+
+- (void)driveFilePickerDidCancel {
 }
 
 #pragma mark - UIImagePickerControllerDelegate
@@ -413,6 +424,15 @@ constexpr int kChromeIOSProductId = 71720513;
 }
 
 #pragma mark - Private
+
+/// Handles tab picker completion with `selection`.
+- (void)userDidPickTabs:(std::optional<TabPickerSelection>)selection {
+  if (selection.has_value()) {
+    [self.delegate composeboxPickerPresenter:self
+           handleSelectedTabsWithWebStateIDs:selection->selected_ids
+                           cachedWebStateIDs:selection->cached_ids];
+  }
+}
 
 /// Returns the primary identity if the browser is regular and the user is
 /// signed in; otherwise returns nil.

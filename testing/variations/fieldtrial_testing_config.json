@@ -2596,6 +2596,26 @@
             ]
         }
     ],
+    "AutofillOptimizeIsNormalizedNameVariantOf": [
+        {
+            "platforms": [
+                "android",
+                "chromeos",
+                "ios",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "AutofillOptimizeIsNormalizedNameVariantOf"
+                    ]
+                }
+            ]
+        }
+    ],
     "AutofillPasswordUserPerceptionSurvey": [
         {
             "platforms": [
@@ -13187,6 +13207,26 @@
             ]
         }
     ],
+    "MetricsLogTrimmingLimitsMobile": [
+        {
+            "platforms": [
+                "android",
+                "ios"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled_20260901",
+                    "params": {
+                        "log_bytes_trim_threshold": "3145728",
+                        "max_ongoing_log_size_bytes": "1048576"
+                    },
+                    "enable_features": [
+                        "MetricsLogTrimming"
+                    ]
+                }
+            ]
+        }
+    ],
     "MetricsLogTrimmingLimitsWebView": [
         {
             "platforms": [
@@ -20862,31 +20902,6 @@
                     "name": "Enabled_20260824",
                     "enable_features": [
                         "WaylandUnscaledTouchpadScrolling"
-                    ]
-                }
-            ]
-        }
-    ],
-    "WebApkBackupAndRestore": [
-        {
-            "platforms": [
-                "android"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "PwaRestoreUi",
-                        "WebApkBackupAndRestoreBackend"
-                    ]
-                },
-                {
-                    "name": "BackendOnly",
-                    "enable_features": [
-                        "WebApkBackupAndRestoreBackend"
-                    ],
-                    "disable_features": [
-                        "PwaRestoreUi"
                     ]
                 }
             ]
