@@ -10603,28 +10603,6 @@
             ]
         }
     ],
-    "HarfRustShaping": [
-        {
-            "platforms": [
-                "android",
-                "android_webview",
-                "chromeos",
-                "fuchsia",
-                "ios",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "HarfRustShaping"
-                    ]
-                }
-            ]
-        }
-    ],
     "HatsAudio": [
         {
             "platforms": [
@@ -14350,6 +14328,26 @@
                     "name": "Enabled_20260730",
                     "enable_features": [
                         "HideDelegatedFrameHostMac"
+                    ]
+                }
+            ]
+        }
+    ],
+    "OnDemandSpellcheckInitialization": [
+        {
+            "platforms": [
+                "android",
+                "android_webview",
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "OnDemandSpellcheckInitialization"
                     ]
                 }
             ]

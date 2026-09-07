@@ -296,6 +296,7 @@
 #include "net/base/network_change_notifier_passive.h"
 #include "printing/backend/print_backend.h"
 #include "services/audio/public/cpp/sounds/global_sounds_manager.h"
+#include "services/network/public/cpp/shared_url_loader_factory.h"
 #include "third_party/cros_system_api/dbus/service_constants.h"
 #include "third_party/cros_system_api/dbus/vm_launch/dbus-constants.h"
 #include "third_party/cros_system_api/dbus/vm_wl/dbus-constants.h"
@@ -1233,6 +1234,7 @@ void ChromeBrowserMainPartsAsh::PreProfileInit() {
 #endif
 
   ash_web_ui_config_manager_ = std::make_unique<AshWebUIConfigManager>(
+      g_browser_process->local_state(),
       g_browser_process->GetFeatures()->application_locale_storage());
 }
 
