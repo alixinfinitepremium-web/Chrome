@@ -481,7 +481,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling crabbyavif
   # and whatever else without interference from each other.
-  'crabbyavif_revision': '6dcab82c0389d1d1eb0978702c9faafcb89238d4',
+  'crabbyavif_revision': 'ccb3559e6643c532d5ddc103338c369e6a3893b5',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Speedometer main
   # and whatever else without interference from each other.
@@ -1228,10 +1228,10 @@ deps = {
     'condition': 'checkout_gpu_meet_effects and non_git_source',
     'objects': [
       {
-        'object_name': 'meet-gpu-tests/975511373.tar.gz',
-        'sha256sum': 'bb243747638e123495575f95f15152d291bcad13d9e9fa5a80899d6ff39b7be0',
-        'size_bytes': 278370428,
-        'generation': 1788425365501813,
+        'object_name': 'meet-gpu-tests/977239864.tar.gz',
+        'sha256sum': '3f41dbfb5dd82245836e021d112a266e5ff446b82ec82aac22e69a4de0ab0ea2',
+        'size_bytes': 278376183,
+        'generation': 1788770808868665,
       },
     ],
   },
