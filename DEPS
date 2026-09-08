@@ -349,7 +349,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': 'd63ac3c3e43c9989a5408acd4965a61b2d3c9be1',
+  'angle_revision': '45c55079f225fc28866da673dc3bd03325f4285f',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -2797,7 +2797,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/cisco/openh264' + '@' + '9547f96ea5c47f4d465d97b07264b997ecc4b4b6',
 
   'src/third_party/openscreen/src':
-    Var('chromium_git') + '/openscreen' + '@' + 'da87ca55e53616a4fec031f515ea44e83251bc31',
+    Var('chromium_git') + '/openscreen' + '@' + '04c0c021bbe1d1845ec4a25832a4d03bf305353d',
 
   'src/third_party/openxr/src': {
     'url': Var('chromium_git') + '/external/github.com/KhronosGroup/OpenXR-SDK' + '@' + '75c53b6e853dc12c7b3c771edc9c9c841b15faaa',
@@ -4107,7 +4107,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '311aa9f9d0a8d5550fd6136a0d0ca445ee1aa63e',
+        '34adb379b83d3023a677e8d63460987950a8610f',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
