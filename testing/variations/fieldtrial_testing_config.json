@@ -15343,6 +15343,7 @@
     "PasswordSaveInContextErrorResolution": [
         {
             "platforms": [
+                "android",
                 "chromeos",
                 "ios",
                 "linux",
@@ -17028,6 +17029,21 @@
                     },
                     "enable_features": [
                         "RecordLockAcquisitionTime"
+                    ]
+                }
+            ]
+        }
+    ],
+    "RecoverTabsOfLastClosedWindow": [
+        {
+            "platforms": [
+                "ios"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "RecoverTabsOfLastClosedWindow"
                     ]
                 }
             ]

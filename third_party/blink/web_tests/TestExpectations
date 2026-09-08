@@ -7438,6 +7438,7 @@ crbug.com/356930166 [ Mac ] external/wpt/webrtc/RTCPeerConnection-remote-track-m
 crbug.com/356930166 [ Mac ] fast/peerconnection/RTCPeerConnection-without-rtcpmux.html [ Skip Timeout ]
 crbug.com/356930166 [ Mac ] external/wpt/webrtc/RTCSctpTransport-maxMessageSize.html [ Skip Timeout ]
 crbug.com/356930166 [ Mac ] wpt_internal/webrtc-encoded-transform/RTCRtpSender-createEncodedSource-video.https.html [ Skip Timeout ]
+crbug.com/356930166 [ Mac ] wpt_internal/webrtc-encoded-transform/RTCRtpSender-createEncodedSource-audio.https.html [ Skip Timeout ]
 
 # Mac15/arm64 - Other timeouts
 [ Mac15 ] external/wpt/fetch/api/abort/serviceworker-intercepted.https.html [ Timeout ]
@@ -9323,3 +9324,6 @@ crbug.com/554722975 [ Win11-arm64 ] external/wpt/webtransport/stats.https.any.ht
 
 # Gardener 2026-09-04
 crbug.com/40940279 [ Debug ] external/wpt/css/css-anchor-position/anchor-position-multicol-nested-001.html [ Crash Pass ]
+
+# Gardener 2026-09-08
+crbug.com/558562090 http/tests/inspector-protocol/fenced-frame/device-emulation-commands-fenced-frame.https.js [ Failure Pass ]
