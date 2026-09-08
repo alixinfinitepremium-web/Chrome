@@ -1026,7 +1026,7 @@ public abstract class ChromeFeatureList {
     public static final CachedFlag sBookmarkPaneAndroid =
             newCachedFlag(BOOKMARK_PANE_ANDROID, false);
     public static final CachedFlag sBottomControlsJankImprovement =
-            newCachedFlag(BOTTOM_CONTROLS_JANK_IMPROVEMENT, false, true);
+            newCachedFlag(BOTTOM_CONTROLS_JANK_IMPROVEMENT, false, false);
     public static final CachedFlag sBottomSheetAsBrowserControls =
             newCachedFlag(BOTTOM_SHEET_AS_BROWSER_CONTROLS, true);
     public static final CachedFlag sBottomSheetOnDesktopWindowing =
@@ -1471,7 +1471,7 @@ public abstract class ChromeFeatureList {
     public static final CachedFlag sUseWebUiNtp3PDSE =
             newCachedFlag(USE_WEB_UI_NTP_3P_DSE, false);
     public static final CachedFlag sUseWebUiNtpAndroid =
-            newCachedFlag(USE_WEB_UI_NTP_ANDROID, false);
+            newCachedFlag(USE_WEB_UI_NTP_ANDROID, BuildConfig.IS_DESKTOP_ANDROID);
     public static final CachedFlag sVirtualKeyboardResizesContentTransientOvershootFix =
             newCachedFlag(VIRTUAL_KEYBOARD_RESIZES_CONTENT_TRANSIENT_OVERSHOOT_FIX, true);
     public static final CachedFlag sVirtualKeyboardTransientInnerHeightFix =
@@ -1484,7 +1484,7 @@ public abstract class ChromeFeatureList {
                     /* defaultValue= */ false,
                     /* defaultValueInTests= */ true);
     public static final CachedFlag sWebUiAndroidTheming =
-            newCachedFlag(WEB_UI_ANDROID_THEMING, false);
+            newCachedFlag(WEB_UI_ANDROID_THEMING, BuildConfig.IS_DESKTOP_ANDROID);
     // keep-sorted end
 
     public static final List<CachedFlag> sFlagsCachedFullBrowser =

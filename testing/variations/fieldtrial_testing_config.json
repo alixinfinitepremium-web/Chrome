@@ -631,21 +631,6 @@
             ]
         }
     ],
-    "AndroidDesktopAimGate": [
-        {
-            "platforms": [
-                "android"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "AndroidDesktopAimGate"
-                    ]
-                }
-            ]
-        }
-    ],
     "AndroidDesktopUAPlatform": [
         {
             "platforms": [
@@ -3476,21 +3461,6 @@
                     "name": "Enabled",
                     "enable_features": [
                         "BorealisProvision"
-                    ]
-                }
-            ]
-        }
-    ],
-    "BottomControlsJankImprovement": [
-        {
-            "platforms": [
-                "android"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "BottomControlsJankImprovement"
                     ]
                 }
             ]
@@ -7783,11 +7753,10 @@
             ],
             "experiments": [
                 {
-                    "name": "MigrationAndBackgroundRefreshAndMetricsEnabled_20260727",
+                    "name": "BackgroundRefreshAndMetricsEnabled_20260907",
                     "enable_features": [
                         "EnableAppBackgroundRefresh",
-                        "IOSBackgroundMetrics",
-                        "MigrateIOSKeychainAccessibility"
+                        "IOSBackgroundMetrics"
                     ]
                 }
             ]
