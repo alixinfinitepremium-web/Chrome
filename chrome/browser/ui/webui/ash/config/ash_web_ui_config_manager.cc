@@ -381,7 +381,8 @@ void AshWebUIConfigManager::RegisterWebUIConfigs() {
   AddWebUIConfig(std::make_unique<chromeos::ChromeURLDisabledUIConfig>());
   AddWebUIConfig(std::make_unique<AccountManagerErrorUIConfig>());
   AddWebUIConfig(std::make_unique<AccountMigrationWelcomeUIConfig>());
-  AddWebUIConfig(std::make_unique<AddSupervisionUIConfig>());
+  AddWebUIConfig(std::make_unique<AddSupervisionUIConfig>(
+      &application_locale_storage_.get()));
   AddWebUIConfig(std::make_unique<app_install::AppInstallDialogUIConfig>());
   AddWebUIConfig(std::make_unique<ArcOverviewTracingUIConfig>(
       &application_locale_storage_.get()));
@@ -461,7 +462,7 @@ void AshWebUIConfigManager::RegisterWebUIConfigs() {
                                       ChromeSanitizeUIDelegate>());
   AddWebUIConfig(MakeComponentConfigWithDelegate<ScanningUIConfig, ScanningUI,
                                                  ChromeScanningAppDelegate>());
-  AddWebUIConfig(std::make_unique<SetTimeUIConfig>());
+  AddWebUIConfig(std::make_unique<SetTimeUIConfig>(&local_state_.get()));
   AddWebUIConfig(MakeComponentConfigWithDelegate<
                  ShimlessRMADialogUIConfig, ShimlessRMADialogUI,
                  shimless_rma::ChromeShimlessRmaDelegate>());
