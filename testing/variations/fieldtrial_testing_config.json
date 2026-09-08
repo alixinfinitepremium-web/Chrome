@@ -7185,6 +7185,9 @@
             "experiments": [
                 {
                     "name": "Enabled",
+                    "params": {
+                        "auto_session_end_delay": "300ms"
+                    },
                     "enable_features": [
                         "Dictation"
                     ]
@@ -19165,6 +19168,24 @@
                     "name": "Enabled",
                     "enable_features": [
                         "TabSearchCjkWordBoundary"
+                    ]
+                }
+            ]
+        }
+    ],
+    "TabSearchPerformanceImprovements": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled_20260903",
+                    "enable_features": [
+                        "TabSearchPerformanceImprovements"
                     ]
                 }
             ]

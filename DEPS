@@ -361,7 +361,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': '86101b72bbb93913a00a79ac614b138633c1f4a4',
+  'boringssl_revision': 'f00ee8085f98bcca5991926ea0c6383068ee6d2a',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -445,7 +445,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': 'a71b86e7d7e7a1de319e0d98be08f1b00ba1f6c7',
+  'dawn_revision': '27e16a376b294d58c6ebca602297604d42bb4350',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -481,7 +481,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling crabbyavif
   # and whatever else without interference from each other.
-  'crabbyavif_revision': '2d9fc3dd9aab06a046ad780d4353d0c12f1e1838',
+  'crabbyavif_revision': '265bc6beba2e77efc57e5b49d17fd1f15091e3b5',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Speedometer main
   # and whatever else without interference from each other.
