@@ -915,9 +915,10 @@ void QuicChromiumClientSession::ConnectionMigrationValidationResultDelegate::
     OnPathValidationSuccess(
         std::unique_ptr<quic::QuicPathValidationContext> context,
         quic::QuicTime start_time) {
+  auto self_address = context->self_address();
   session_->OnConnectionMigrationProbeSucceeded(
-      QuicChromiumPathValidationContext::ReleaseMigrationContext(
-          std::move(context)));
+      self_address, QuicChromiumPathValidationContext::ReleaseMigrationContext(
+                        std::move(context)));
 }
 
 void QuicChromiumClientSession::ConnectionMigrationValidationResultDelegate::
@@ -935,9 +936,10 @@ void QuicChromiumClientSession::PortMigrationValidationResultDelegate::
     OnPathValidationSuccess(
         std::unique_ptr<quic::QuicPathValidationContext> context,
         quic::QuicTime start_time) {
+  auto self_address = context->self_address();
   session_->OnPortMigrationProbeSucceeded(
-      QuicChromiumPathValidationContext::ReleaseMigrationContext(
-          std::move(context)));
+      self_address, QuicChromiumPathValidationContext::ReleaseMigrationContext(
+                        std::move(context)));
 }
 
 void QuicChromiumClientSession::PortMigrationValidationResultDelegate::
@@ -956,9 +958,10 @@ void QuicChromiumClientSession::ServerPreferredAddressValidationResultDelegate::
     OnPathValidationSuccess(
         std::unique_ptr<quic::QuicPathValidationContext> context,
         quic::QuicTime start_time) {
+  auto self_address = context->self_address();
   session_->OnServerPreferredAddressProbeSucceeded(
-      QuicChromiumPathValidationContext::ReleaseMigrationContext(
-          std::move(context)));
+      self_address, QuicChromiumPathValidationContext::ReleaseMigrationContext(
+                        std::move(context)));
 }
 
 void QuicChromiumClientSession::ServerPreferredAddressValidationResultDelegate::
@@ -2451,12 +2454,11 @@ void QuicChromiumClientSession::MigrateSessionOnWriteError(
       NetLogEventType::QUIC_CONNECTION_MIGRATION_TRIGGERED, "trigger",
       "WriteError");
   pending_migrate_session_on_write_error_ = true;
-  MigrateWithoutProbing(
-      new_network, ToIPEndPoint(connection()->peer_address()),
-      /*close_session_on_error=*/false,
-      base::BindOnce(
-          &QuicChromiumClientSession::FinishMigrateSessionOnWriteError,
-          weak_factory_.GetWeakPtr(), new_network));
+  Migrate(new_network, ToIPEndPoint(connection()->peer_address()),
+          /*close_session_on_error=*/false,
+          base::BindOnce(
+              &QuicChromiumClientSession::FinishMigrateSessionOnWriteError,
+              weak_factory_.GetWeakPtr(), new_network));
   net_log_.EndEvent(NetLogEventType::QUIC_CONNECTION_MIGRATION_TRIGGERED);
 }
 
@@ -2533,6 +2535,7 @@ void QuicChromiumClientSession::OnMigrationTimeout(size_t num_sockets) {
 }
 
 void QuicChromiumClientSession::OnPortMigrationProbeSucceeded(
+    const quic::QuicSocketAddress& self_address,
     std::unique_ptr<QuicMigrationAttemptContext> migration_context) {
   CHECK(migration_context);
 
@@ -2567,7 +2570,11 @@ void QuicChromiumClientSession::OnPortMigrationProbeSucceeded(
     return;
   }
 
-  if (!CommitMigration(std::move(migration_context))) {
+  // Migrate to the probed socket immediately: socket, writer and reader will
+  // be acquired by connection and used as default on success.
+  if (!MigrateToSocket(self_address, migration_context->target_peer_address(),
+                       migration_context->ReleaseReader(),
+                       migration_context->ReleaseWriter())) {
     LogMigrateToSocketStatus(false);
     net_log_.AddEvent(
         NetLogEventType::QUIC_CONNECTION_MIGRATION_FAILURE_AFTER_PROBING);
@@ -2581,6 +2588,7 @@ void QuicChromiumClientSession::OnPortMigrationProbeSucceeded(
 }
 
 void QuicChromiumClientSession::OnConnectionMigrationProbeSucceeded(
+    const quic::QuicSocketAddress& self_address,
     std::unique_ptr<QuicMigrationAttemptContext> migration_context) {
   CHECK(migration_context);
   handles::NetworkHandle network = migration_context->target_network();
@@ -2622,7 +2630,11 @@ void QuicChromiumClientSession::OnConnectionMigrationProbeSucceeded(
     return;
   }
 
-  if (!CommitMigration(std::move(migration_context))) {
+  // Migrate to the probed socket immediately: socket, writer and reader will
+  // be acquired by connection and used as default on success.
+  if (!MigrateToSocket(self_address, peer_address,
+                       migration_context->ReleaseReader(),
+                       migration_context->ReleaseWriter())) {
     LogMigrateToSocketStatus(false);
     net_log_.AddEvent(
         NetLogEventType::QUIC_CONNECTION_MIGRATION_FAILURE_AFTER_PROBING);
@@ -2656,6 +2668,7 @@ void QuicChromiumClientSession::OnConnectionMigrationProbeSucceeded(
 }
 
 void QuicChromiumClientSession::OnServerPreferredAddressProbeSucceeded(
+    const quic::QuicSocketAddress& self_address,
     std::unique_ptr<QuicMigrationAttemptContext> migration_context) {
   CHECK(migration_context);
 
@@ -2678,7 +2691,11 @@ void QuicChromiumClientSession::OnServerPreferredAddressProbeSucceeded(
       ->set_delegate(nullptr);
   migration_context->writer()->set_delegate(this);
 
-  if (!CommitMigration(std::move(migration_context))) {
+  // Migrate to the probed socket immediately: socket, writer and reader will
+  // be acquired by connection and used as default on success.
+  if (!MigrateToSocket(self_address, migration_context->target_peer_address(),
+                       migration_context->ReleaseReader(),
+                       migration_context->ReleaseWriter())) {
     LogMigrateToSocketStatus(false);
     net_log_.AddEvent(
         NetLogEventType::QUIC_CONNECTION_MIGRATION_FAILURE_AFTER_PROBING);
@@ -2947,12 +2964,11 @@ void QuicChromiumClientSession::MigrateNetworkImmediately(
     connection()->CancelPathValidation();
   }
   pending_migrate_network_immediately_ = true;
-  MigrateWithoutProbing(
-      network, ToIPEndPoint(connection()->peer_address()),
-      /*close_session_on_error=*/true,
-      base::BindOnce(
-          &QuicChromiumClientSession::FinishMigrateNetworkImmediately,
-          weak_factory_.GetWeakPtr(), network));
+  Migrate(network, ToIPEndPoint(connection()->peer_address()),
+          /*close_session_on_error=*/true,
+          base::BindOnce(
+              &QuicChromiumClientSession::FinishMigrateNetworkImmediately,
+              weak_factory_.GetWeakPtr(), network));
 }
 
 void QuicChromiumClientSession::FinishMigrateNetworkImmediately(
@@ -3410,6 +3426,8 @@ void QuicChromiumClientSession::FinishCreateContextForMultiPortPath(
 void QuicChromiumClientSession::MigrateToMultiPortPath(
     std::unique_ptr<quic::QuicPathValidationContext> context) {
   DCHECK_NE(nullptr, context);
+  quic::QuicSocketAddress self_address = context->self_address();
+  quic::QuicSocketAddress peer_address = context->peer_address();
   auto migration_context =
       QuicChromiumPathValidationContext::ReleaseMigrationContext(
           std::move(context));
@@ -3421,7 +3439,9 @@ void QuicChromiumClientSession::MigrateToMultiPortPath(
       ->set_delegate(nullptr);
   migration_context->writer()->set_delegate(this);
 
-  if (!CommitMigration(std::move(migration_context))) {
+  if (!MigrateToSocket(self_address, peer_address,
+                       migration_context->ReleaseReader(),
+                       migration_context->ReleaseWriter())) {
     LogMigrateToSocketStatus(false);
     return;
   }
@@ -4057,11 +4077,10 @@ void QuicChromiumClientSession::OnCryptoHandshakeComplete() {
   }
 }
 
-void QuicChromiumClientSession::MigrateWithoutProbing(
-    handles::NetworkHandle network,
-    IPEndPoint peer_address,
-    bool close_session_on_error,
-    MigrationCallback migration_callback) {
+void QuicChromiumClientSession::Migrate(handles::NetworkHandle network,
+                                        IPEndPoint peer_address,
+                                        bool close_session_on_error,
+                                        MigrationCallback migration_callback) {
   quic_connection_migration_attempted_ = true;
   quic_connection_migration_successful_ = false;
   if (!session_pool_) {
@@ -4102,22 +4121,13 @@ void QuicChromiumClientSession::MigrateWithoutProbing(
   std::unique_ptr<DatagramClientSocket> socket(session_pool_->CreateSocket(
       handles::kInvalidNetworkHandle, net_log_.net_log(), net_log_.source()));
   DatagramClientSocket* socket_ptr = socket.get();
-
-  auto migration_context = std::make_unique<QuicMigrationAttemptContext>(
-      current_migration_cause_, GetCurrentNetwork(), network,
-      ToQuicSocketAddress(peer_address),
-      std::make_unique<QuicChromiumPacketReader>(
-          std::move(socket), clock_, this, yield_after_packets_,
-          yield_after_duration_, net_log_),
-      std::make_unique<QuicChromiumPacketWriter>(socket_ptr, task_runner_));
-
   DVLOG(1) << "Force blocking the packet writer";
   static_cast<QuicChromiumPacketWriter*>(connection()->writer())
       ->set_force_write_blocked(true);
-  CompletionOnceCallback connect_callback =
-      base::BindOnce(&QuicChromiumClientSession::FinishMigrateWithoutProbing,
-                     weak_factory_.GetWeakPtr(), std::move(migration_context),
-                     close_session_on_error, std::move(migration_callback));
+  CompletionOnceCallback connect_callback = base::BindOnce(
+      &QuicChromiumClientSession::FinishMigrate, weak_factory_.GetWeakPtr(),
+      std::move(socket), peer_address, close_session_on_error,
+      std::move(migration_callback));
 
   if (!MidMigrationCallbackForTesting().is_null()) {
     std::move(MidMigrationCallbackForTesting()).Run();  // IN-TEST
@@ -4128,8 +4138,9 @@ void QuicChromiumClientSession::MigrateWithoutProbing(
                                            session_key_.socket_tag());
 }
 
-void QuicChromiumClientSession::FinishMigrateWithoutProbing(
-    std::unique_ptr<QuicMigrationAttemptContext> migration_context,
+void QuicChromiumClientSession::FinishMigrate(
+    std::unique_ptr<DatagramClientSocket> socket,
+    IPEndPoint peer_address,
     bool close_session_on_error,
     MigrationCallback callback,
     int rv) {
@@ -4152,13 +4163,24 @@ void QuicChromiumClientSession::FinishMigrateWithoutProbing(
     return;
   }
 
-  migration_context->reader()->StartReading();
+  // Create new packet reader and writer on the new socket.
+  auto new_reader = std::make_unique<QuicChromiumPacketReader>(
+      std::move(socket), clock_, this, yield_after_packets_,
+      yield_after_duration_, net_log_);
+  new_reader->StartReading();
+  auto new_writer = std::make_unique<QuicChromiumPacketWriter>(
+      new_reader->socket(), task_runner_);
 
   static_cast<QuicChromiumPacketWriter*>(connection()->writer())
       ->set_delegate(nullptr);
-  migration_context->writer()->set_delegate(this);
+  new_writer->set_delegate(this);
 
-  if (!CommitMigration(std::move(migration_context))) {
+  IPEndPoint self_address;
+  new_reader->socket()->GetLocalAddress(&self_address);
+  // Migrate to the new socket.
+  if (!MigrateToSocket(ToQuicSocketAddress(self_address),
+                       ToQuicSocketAddress(peer_address), std::move(new_reader),
+                       std::move(new_writer))) {
     task_runner_->PostTask(
         FROM_HERE,
         base::BindOnce(&QuicChromiumClientSession::DoMigrationCallback,
@@ -4184,9 +4206,16 @@ void QuicChromiumClientSession::DoMigrationCallback(MigrationCallback callback,
   std::move(callback).Run(rv);
 }
 
-bool QuicChromiumClientSession::CommitMigration(
-    std::unique_ptr<QuicMigrationAttemptContext> migration_context) {
-  DCHECK(migration_context);
+bool QuicChromiumClientSession::MigrateToSocket(
+    const quic::QuicSocketAddress& self_address,
+    const quic::QuicSocketAddress& peer_address,
+    std::unique_ptr<QuicChromiumPacketReader> reader,
+    std::unique_ptr<QuicChromiumPacketWriter> writer) {
+  // Writer must be destroyed before reader, since it points to the socket owned
+  // by reader. C++ doesn't have any guarantees about destruction order of
+  // arguments.
+  std::unique_ptr<QuicChromiumPacketWriter> writer_moved = std::move(writer);
+
   // Sessions carried via a proxy should never migrate, and that is ensured
   // elsewhere (for each possible migration trigger).
   DUMP_WILL_BE_CHECK(session_key_.proxy_chain().is_direct());
@@ -4201,23 +4230,18 @@ bool QuicChromiumClientSession::CommitMigration(
     return false;
   }
 
-  IPEndPoint local_address;
-  migration_context->reader()->socket()->GetLocalAddress(&local_address);
-  quic::QuicSocketAddress self_address = ToQuicSocketAddress(local_address);
-
-  packet_readers_.push_back(migration_context->ReleaseReader());
+  packet_readers_.push_back(std::move(reader));
   // Force the writer to be blocked to prevent it being used until
   // WriteToNewSocket completes.
   DVLOG(1) << "Force blocking the packet writer";
-  migration_context->writer()->set_force_write_blocked(true);
+  writer_moved->set_force_write_blocked(true);
 
   // UnregisterQuicConnectionClosePayload must be called before MigratePath, and
   // RegisterQuicConnectionClosePayload must be called after. MigratePath
   // replaces the packet writer, and these unregister/register methods operate
   // on the current writer.
   UnregisterQuicConnectionClosePayload();
-  int rv = MigratePath(self_address, migration_context->target_peer_address(),
-                       migration_context->ReleaseWriter().release(),
+  int rv = MigratePath(self_address, peer_address, writer_moved.release(),
                        /*owns_writer=*/true);
   RegisterQuicConnectionClosePayload();
   ++packet_writer_generation_;
