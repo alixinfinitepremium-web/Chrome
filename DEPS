@@ -337,11 +337,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': 'b76a269fc55f0bff7f7df6eaa126bf9c8100e806',
+  'src_internal_revision': '63e2504bf699859a605a7b91d59d32aaa6039a54',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '0fa1d82c8814d29e0db52c9ad54df1950719712d',
+  'skia_revision': '61fe60dcb43a92946440203d97b5131fddee1a02',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -421,7 +421,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'e882517cf3f1fc8792bbfb5f309e27ce23d09d3f',
+  'devtools_frontend_revision': 'd1a4fbfd673fecf19981c27b3a461f9881eebe8e',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1749,7 +1749,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': 'lxnh5Z8U25frUwMdc6S_tgGIWM0AEZxwIn5nRdi8QvEC',
+        'version': '6WnIWWo7Bn6t3yEu-QBinLCdzszUtLUJbNgvUYhIWhsC',
       },
     ],
     'condition': 'non_git_source',
