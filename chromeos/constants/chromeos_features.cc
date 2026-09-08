@@ -48,9 +48,6 @@ BASE_FEATURE(kCrosIsolatedWebAppSetShapeAllowlist,
 BASE_FEATURE(kDataControlsFileAccessDefaultDeny,
              base::FEATURE_DISABLED_BY_DEFAULT);
 
-// Enables Essential Search in Omnibox for both launcher and browser.
-BASE_FEATURE(kEssentialSearch, base::FEATURE_ENABLED_BY_DEFAULT);
-
 // Feature flag used to enable external display event telemetry.
 BASE_FEATURE(kExternalDisplayEventTelemetry, base::FEATURE_ENABLED_BY_DEFAULT);
 
@@ -247,10 +244,6 @@ BASE_FEATURE(kFileSystemProviderCloudFileSystem,
 BASE_FEATURE(kFileSystemProviderContentCache,
              base::FEATURE_DISABLED_BY_DEFAULT);
 
-// Enables hiding apps disabled by SystemFeaturesDisableList policy by default
-// in user sessions.
-BASE_FEATURE(kSystemFeaturesDisableListHidden,
-             base::FEATURE_ENABLED_BY_DEFAULT);
 
 // Controls whether Vids is preinstalled.
 BASE_FEATURE(kVidsAppPreinstall, base::FEATURE_ENABLED_BY_DEFAULT);
@@ -298,10 +291,6 @@ bool IsDataControlsFileAccessDefaultDenyEnabled() {
   return base::FeatureList::IsEnabled(kDataControlsFileAccessDefaultDeny);
 }
 
-bool IsEssentialSearchEnabled() {
-  return base::FeatureList::IsEnabled(kEssentialSearch);
-}
-
 bool IsFileSystemProviderCloudFileSystemEnabled() {
   return base::FeatureList::IsEnabled(kFileSystemProviderCloudFileSystem);
 }
@@ -315,9 +304,6 @@ bool IsFileSystemProviderContentCacheEnabled() {
   return base::FeatureList::IsEnabled(kFileSystemProviderContentCache);
 }
 
-bool IsSystemFeaturesDisableListHiddenEnabled() {
-  return base::FeatureList::IsEnabled(kSystemFeaturesDisableListHidden);
-}
 
 bool IsGeminiAppPreinstallFeatureManagementEnabled() {
   return base::FeatureList::IsEnabled(kFeatureManagementGeminiAppPreinstall);
