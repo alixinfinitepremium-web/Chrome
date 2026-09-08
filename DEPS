@@ -381,7 +381,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling freetype
   # and whatever else without interference from each other.
-  'freetype_revision': '3db2c32d6ef2a3ac94d61585b65417ec7bf454e1',
+  'freetype_revision': '5c79d6cd1ac73d70a55f3d963fb568aa32f6d794',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling HarfBuzz
   # and whatever else without interference from each other.
@@ -3417,7 +3417,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/help_app/app',
-        'version': 'KheQrUOlibl5U9GDwqXLd0XK0EfMsGerHaNey87X-ucC',
+        'version': 'LmizIl2tWcUVu0FXsGKmGG1vLHhNPUhWMciTLLr6gsYC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
