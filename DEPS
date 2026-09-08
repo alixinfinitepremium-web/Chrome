@@ -341,7 +341,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '2981c80c23014311793a0eaaea12ce430d457370',
+  'skia_revision': 'c8df93271798976c83b6df2a3b2c12944b27c3cf',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -2213,7 +2213,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '2cea9cdd785391335d448773124631cb711225e2',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'ed9c87f6f12f6b87210e7025d4a36a5a72a2ccd4',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
