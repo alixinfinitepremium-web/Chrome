@@ -526,9 +526,20 @@ class TabImpl implements Tab, TabInternal {
             updateWindowAndroid(window);
 
             // Reload the NativePage (if any), since the old NativePage has a reference to the old
-            // activity.
+            // activity. If hidden, freeze the native page to avoid eager instantiation of
+            // background native pages. If the native page was not frozen (e.g. because it is open
+            // and has a parent view, or because it wasn't hidden), reload it so that it binds to
+            // the new Activity and destroys the old native page to fix the Activity leak.
             if (isNativePage()) {
-                maybeShowNativePage(getUrl().getSpec(), true, PdfUtils.getPdfInfo(getNativePage()));
+                if (isHidden()) {
+                    freezeNativePage();
+                }
+                if (mNativePage != null && !mNativePage.isFrozen()) {
+                    maybeShowNativePage(
+                            getUrl().getSpec(),
+                            /* forceReload= */ true,
+                            PdfUtils.getPdfInfo(getNativePage()));
+                }
             }
         } else {
             updateIsDetachedFromActivity(window);
@@ -864,7 +875,8 @@ class TabImpl implements Tab, TabInternal {
         try {
             TraceEvent.begin("Tab.loadUrl");
             if (maybeHandleBeforeUnload(() -> loadUrl(params))) {
-                return new LoadUrlResult(TabLoadStatus.DEFAULT_PAGE_LOAD, null);
+                return new LoadUrlResult(
+                        TabLoadStatus.DEFAULT_PAGE_LOAD, /* navigationHandle= */ null);
             }
 
             // TODO(tedchoc): When showing the android NTP, delay the call to
@@ -1449,6 +1461,8 @@ class TabImpl implements Tab, TabInternal {
 
         // Update the title before destroying the tab. http://b/5783092
         updateTitle();
+
+        onAlertStateChanged(TabAlert.NONE);
 
         for (TabObserver observer : mObservers) observer.onDestroyed(this);
         boolean abortNavigationsFromTabClosures =
@@ -2323,10 +2337,9 @@ class TabImpl implements Tab, TabInternal {
     }
 
     @CalledByNative
-    private ByteBuffer getWebContentsStateByteBuffer() {
-        // Return a temp byte buffer if the state is null.
+    private @Nullable ByteBuffer getWebContentsStateByteBuffer() {
         if (mWebContentsState == null) {
-            return ByteBuffer.allocateDirect(0);
+            return null;
         }
         assert mWebContentsState.buffer().isDirect();
         return mWebContentsState.buffer();

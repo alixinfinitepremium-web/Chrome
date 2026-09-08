@@ -337,7 +337,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '63e2504bf699859a605a7b91d59d32aaa6039a54',
+  'src_internal_revision': 'c5b4c639cd0d1abbd5acb5e3e4c5e8af25f60dba',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -401,7 +401,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': '808b075286832e7891f18cee17b7c77e9d1921e0',
+  'crossbench_revision': 'e64dab2ad45e3ddd838cbf02c6a9eed0c3c3c46b',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -481,7 +481,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling crabbyavif
   # and whatever else without interference from each other.
-  'crabbyavif_revision': '623cabf0581fcbd4c4173c153aebe73c767bb4b8',
+  'crabbyavif_revision': '2d9fc3dd9aab06a046ad780d4353d0c12f1e1838',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Speedometer main
   # and whatever else without interference from each other.
@@ -572,7 +572,7 @@ vars = {
   'libcxx_revision':       '97b436da4c33663581d394f4ee0a5977fc38c2f4',
 
   # GN CIPD package version.
-  'gn_version': 'git_revision:5b0f88306254204d364088e0231f35c0d9202929',
+  'gn_version': 'git_revision:5df47e556efde72cc576d8a3af23b58b614345bd',
 
   # ninja CIPD package.
   'ninja_package': 'infra/3pp/tools/ninja/',
@@ -3214,7 +3214,7 @@ deps = {
       ],
   },
 
-  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@be5f76912bad00e18e415493e7af4021fd546666',
+  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@e08b7c74395407149638ba75ec11ac4c51656b40',
   'src/third_party/glslang/src': '{chromium_git}/external/github.com/KhronosGroup/glslang@ee3ae4686aa3de82344309c085645e34f9ad8205',
   'src/third_party/spirv-cross/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Cross@b8fcf307f1f347089e3c46eb4451d27f32ebc8d3',
   'src/third_party/spirv-headers/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Headers@496543121ce6419f23d6fa5d7194ba66c36212d2',
@@ -3223,7 +3223,7 @@ deps = {
   'src/third_party/vulkan-loader/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Loader@b8b96a2862bff1eed468e602d43f706beae89cf1',
   'src/third_party/vulkan-tools/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Tools@462d9819e5953e064e1dcdc04d3edc5fc6bc9431',
   'src/third_party/vulkan-utility-libraries/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Utility-Libraries@2176ec8c5f5d2272161277ab96fe5b8f7633113e',
-  'src/third_party/vulkan-validation-layers/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-ValidationLayers@538f91f14cd39274263eb15e6b4228f355370353',
+  'src/third_party/vulkan-validation-layers/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-ValidationLayers@e3d1780d47fe56b72040a23db88eeb83129bba16',
 
   'src/third_party/vulkan_memory_allocator':
     Var('chromium_git') + '/external/github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git' + '@' + '82a9d47e4f9d91f0e32d2b6acd9714fcee1933a0',
@@ -3266,7 +3266,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '83c2ab9ac62dbfb96cf58d66622ed645c6f50215',
+    Var('webrtc_git') + '/src.git' + '@' + '88fae9df4f35ffe4df089ab9ee3bc8bc99a208ae',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -4107,7 +4107,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '34adb379b83d3023a677e8d63460987950a8610f',
+        'f892f76c02c10acf107a8bc3034142c0d8f5a99b',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
