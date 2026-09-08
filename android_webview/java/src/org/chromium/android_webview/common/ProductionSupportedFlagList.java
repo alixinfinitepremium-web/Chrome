@@ -467,6 +467,10 @@ public final class ProductionSupportedFlagList {
         Flag.baseFeature(
                 MetricsFeatures.METRICS_LOG_TRIMMING, "Controls trimming for metrics logs."),
         Flag.baseFeature(
+                "HistogramDenylist",
+                "Disables or overrides the denylist for UMA histogram uploads "
+                        + "(e.g. Variations.FeatureAccess)."),
+        Flag.baseFeature(
                 ContentFeatures.REDUCE_SUBRESOURCE_RESPONSE_STARTED_IPC,
                 "When enabled, reduces SubresourceResponseStarted IPC by sending"
                         + " subresource notifications only if the user has allowed"
@@ -1293,9 +1297,6 @@ public final class ProductionSupportedFlagList {
                 BlinkFeatures.UNTHROTTLE_ASYNC_TOUCH_MOVES,
                 "When enabled, touch move events to javascript handlers are unthrottled if "
                         + "they are sent as async to Renderer."),
-        Flag.baseFeature(
-                BlinkFeatures.RUSTY_BMP_FEATURE,
-                "When enabled, uses Rust `image` crate to decode BMP images."),
         Flag.baseFeature(
                 "NoSequenceForLevelDBCleanupTasks",
                 "When enabled, LevelDB cleanup tasks are run concurrently instead of in sequence."),
