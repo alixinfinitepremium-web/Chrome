@@ -15,7 +15,6 @@
 
 #include "base/compiler_specific.h"
 #include "base/functional/bind.h"
-#include "base/i18n/rtl.h"
 #include "base/location.h"
 #include "base/logging.h"
 #include "base/memory/weak_ptr.h"
@@ -331,6 +330,14 @@ bool DisconnectWindowWin::BeginDialog() {
     return false;
   }
 
+  // IDD_DISCONNECT must have WS_EX_TOOLWINDOW and must NOT have
+  // WS_EX_APPWINDOW. Unowned WS_EX_TOOLWINDOW popups are excluded from Windows
+  // Shell Virtual Desktop management, ensuring Desktop Window Manager (DWM)
+  // never cloaks the disconnect window when switching virtual desktops
+  // (Win+Ctrl+D). See crbug.com/556259957.
+  DCHECK(GetWindowLong(hwnd_, GWL_EXSTYLE) & WS_EX_TOOLWINDOW);
+  DCHECK(!(GetWindowLong(hwnd_, GWL_EXSTYLE) & WS_EX_APPWINDOW));
+
   // Set up handler for Ctrl-Alt-Esc shortcut.
   if (!has_hotkey_ && RegisterHotKey(hwnd_, DISCONNECT_HOTKEY_ID,
                                      MOD_ALT | MOD_CONTROL, VK_ESCAPE)) {
@@ -604,14 +611,8 @@ bool DisconnectWindowWin::SetStrings() {
   }
 
   // Format "Your desktop is shared with ..." message.
-  std::u16string email = base::UTF8ToUTF16(email_);
-  email = base::CollapseWhitespace(email,
-                                   /*trim_sequences_with_line_breaks=*/true);
-  email = ElideEmail(email);
-  base::i18n::SanitizeUserSuppliedString(&email);
-
   message_text = base::AsWString(base::ReplaceStringPlaceholders(
-      base::AsString16(message_text), email, nullptr));
+      base::AsString16(message_text), FormatEmailForDisplay(email_), nullptr));
 
   if (!SetWindowText(hwnd_message, message_text.c_str())) {
     return false;
