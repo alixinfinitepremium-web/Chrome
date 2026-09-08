@@ -43,6 +43,7 @@
 #include "ash/webui/vc_background_ui/vc_background_ui.h"
 #include "base/check.h"
 #include "base/check_deref.h"
+#include "base/check_is_test.h"
 #include "base/check_op.h"
 #include "base/containers/adapters.h"
 #include "base/functional/bind.h"
@@ -346,9 +347,14 @@ AshWebUIConfigManager* AshWebUIConfigManager::GetInstance() {
 
 AshWebUIConfigManager::AshWebUIConfigManager(
     PrefService* local_state,
-    const ApplicationLocaleStorage* application_locale_storage)
+    const ApplicationLocaleStorage* application_locale_storage,
+    const policy::BrowserPolicyConnectorAsh* browser_policy_connector_ash)
     : local_state_(CHECK_DEREF(local_state)),
-      application_locale_storage_(CHECK_DEREF(application_locale_storage)) {
+      application_locale_storage_(CHECK_DEREF(application_locale_storage)),
+      browser_policy_connector_ash_(browser_policy_connector_ash) {
+  if (!browser_policy_connector_ash_) {
+    CHECK_IS_TEST();
+  }
   CHECK_EQ(g_instance, nullptr);
   g_instance = this;
 }
@@ -362,6 +368,7 @@ AshWebUIConfigManager::~AshWebUIConfigManager() {
 
 void AshWebUIConfigManager::RegisterWebUIConfigs() {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  CHECK(browser_policy_connector_ash_);
   // Add trusted `WebUIConfig`s (chrome://) for Ash ChromeOS to the list here.
   //
   // All `WebUIConfig`s should be registered here, irrespective of whether their
@@ -369,14 +376,17 @@ void AshWebUIConfigManager::RegisterWebUIConfigs() {
   // developers should override `WebUIConfig::IsWebUIEnabled()`.
   AddWebUIConfig(MakeComponentConfigWithDelegate<CameraAppUIConfig, CameraAppUI,
                                                  ChromeCameraAppUIDelegate>());
-  AddWebUIConfig(std::make_unique<cellular_setup::MobileSetupUIConfig>());
+  AddWebUIConfig(std::make_unique<cellular_setup::MobileSetupUIConfig>(
+      &application_locale_storage_.get()));
   AddWebUIConfig(std::make_unique<chromeos::ChromeURLDisabledUIConfig>());
   AddWebUIConfig(std::make_unique<AccountManagerErrorUIConfig>());
   AddWebUIConfig(std::make_unique<AccountMigrationWelcomeUIConfig>());
   AddWebUIConfig(std::make_unique<AddSupervisionUIConfig>());
   AddWebUIConfig(std::make_unique<app_install::AppInstallDialogUIConfig>());
-  AddWebUIConfig(std::make_unique<ArcOverviewTracingUIConfig>());
-  AddWebUIConfig(std::make_unique<ArcPowerControlUIConfig>());
+  AddWebUIConfig(std::make_unique<ArcOverviewTracingUIConfig>(
+      &application_locale_storage_.get()));
+  AddWebUIConfig(std::make_unique<ArcPowerControlUIConfig>(
+      &application_locale_storage_.get()));
   AddWebUIConfig(std::make_unique<BluetoothPairingDialogUIConfig>());
   AddWebUIConfig(std::make_unique<BocaReceiverUIConfig>());
   AddWebUIConfig(std::make_unique<borealis::BorealisMOTDUIConfig>());
@@ -431,7 +441,8 @@ void AshWebUIConfigManager::RegisterWebUIConfigs() {
   AddWebUIConfig(std::make_unique<ParentAccessUIConfig>(
       &application_locale_storage_.get()));
   AddWebUIConfig(std::make_unique<PasswordChangeUIConfig>());
-  AddWebUIConfig(std::make_unique<reporting::EnterpriseReportingUIConfig>());
+  AddWebUIConfig(std::make_unique<reporting::EnterpriseReportingUIConfig>(
+      browser_policy_connector_ash_.get()));
   AddWebUIConfig(
       std::make_unique<personalization_app::PersonalizationAppUIConfig>(
           base::BindRepeating(
