@@ -349,7 +349,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '45c55079f225fc28866da673dc3bd03325f4285f',
+  'angle_revision': '178f4584c0ebc08c45d76dcda2e5763c2c51cf2b',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -1865,7 +1865,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': 'lOPALhnO3FBbFRzb8lMkPO7jYNDPJnH1wm52Z95oKyIC',
+          'version': 'Rg9_sdmO5bXsm0hDMRb82l4v9Wu0RwZFmpTGVMnMkVMC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
@@ -2219,7 +2219,7 @@ deps = {
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
 
   'src/third_party/dom_distiller_js/dist':
-    Var('chromium_git') + '/chromium/dom-distiller/dist.git' + '@' + '199de96b345ada7c6e7e6ba3d2fa7a6911b8767d',
+    Var('chromium_git') + '/chromium/dom-distiller/dist.git' + '@' + '015cda307cf81e293889c0887cffff4f0aa090ce',
 
   'src/third_party/ds_store/src':
     Var('chromium_git') + '/external/github.com/dmgbuild/ds_store.git' + '@' + '6f971c764a511f609615c6c4f5ae2a9403ff32cb',
