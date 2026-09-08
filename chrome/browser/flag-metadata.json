@@ -3744,8 +3744,8 @@
   },
   {
     "name": "enable-drdc",
-    "owners": [ "vikassoni@chromium.org", "sunnyps@chromium.org" ],
-    "expiry_milestone": 130
+    "owners": [ "magchen@chromium.org", "vikassoni@chromium.org" ],
+    "expiry_milestone": 170
   },
   {
     "name": "enable-dynamic-route-fetching",
@@ -4569,6 +4569,16 @@
     "name": "enable-trait-collection-registration",
     "owners": [ "danieltwhite@google.com", "bling-flags@google.com" ],
     "expiry_milestone": 141
+  },
+  {
+    "name": "enable-translate-pdf",
+    "owners": [
+      "ammedina@google.com",
+      "ktlu@google.com",
+      "paugomez@google.com",
+      "//components/translate/OWNERS"
+    ],
+    "expiry_milestone": 165
   },
   {
     "name": "enable-ui-devtools",
@@ -5730,6 +5740,14 @@
     "owners": [
       "bbetini@google.com",
       "//chrome/browser/glic/OWNERS"
+    ],
+    "expiry_milestone": 160
+  },
+  {
+    "name": "glic-background-actuation-tab-group-sync",
+    "owners": [
+      "ritikagup@google.com",
+      "//chrome/browser/actor/OWNERS"
     ],
     "expiry_milestone": 160
   },

@@ -205,6 +205,7 @@
 #include "components/tracing/common/tracing_switches.h"
 #include "components/translate/core/browser/translate_prefs.h"
 #include "components/translate/core/browser/translate_ranker_impl.h"
+#include "components/translate/core/common/translate_features.h"
 #include "components/translate/core/common/translate_util.h"
 #include "components/trusted_vault/features.h"
 #include "components/ui_devtools/switches.h"
@@ -5188,7 +5189,7 @@ const FeatureEntry kFeatureEntries[] = {
     {"fractional-scroll-offsets",
      flag_descriptions::kFractionalScrollOffsetsName,
      flag_descriptions::kFractionalScrollOffsetsDescription, kOsAll,
-     FEATURE_VALUE_TYPE(features::kFractionalScrollOffsets)},
+     FEATURE_VALUE_TYPE(blink::features::kFractionalScrollOffsets)},
     {"overlay-scrollbars", flag_descriptions::kOverlayScrollbarsName,
      flag_descriptions::kOverlayScrollbarsDescription, kOsDesktop,
      FEATURE_WITH_PARAMS_VALUE_TYPE(features::kOverlayScrollbar,
@@ -11097,6 +11098,11 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kActorNotificationIntentRoutingName,
      flag_descriptions::kActorNotificationIntentRoutingDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(chrome::android::kActorNotificationIntentRouting)},
+    {"glic-background-actuation-tab-group-sync",
+     flag_descriptions::kGlicBackgroundActuationTabGroupSyncName,
+     flag_descriptions::kGlicBackgroundActuationTabGroupSyncDescription,
+     kOsAndroid,
+     FEATURE_VALUE_TYPE(chrome::android::kGlicBackgroundActuationTabGroupSync)},
 #endif  // BUILDFLAG(IS_ANDROID)
     {"actor-observe-screenshot-default",
      flag_descriptions::kActorObserveScreenshotDefaultName,
@@ -14048,6 +14054,9 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kEnableDesktopQrCodeDetectionName,
      flag_descriptions::kEnableDesktopQrCodeDetectionDescription, kOsDesktop,
      FEATURE_VALUE_TYPE(payments::facilitated::kEnableDesktopQrCodeDetection)},
+    {"enable-translate-pdf", flag_descriptions::kTranslatePdfName,
+     flag_descriptions::kTranslatePdfDescription, kOsDesktop,
+     FEATURE_VALUE_TYPE(translate::kEnableTranslatePdf)},
 
 #if BUILDFLAG(IS_ANDROID)
     {"android-unknown-gamepad-extra-axes",

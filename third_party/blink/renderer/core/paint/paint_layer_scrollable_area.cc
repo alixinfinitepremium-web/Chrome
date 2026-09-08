@@ -619,10 +619,6 @@ bool PaintLayerScrollableArea::BackgroundNeedsRepaintOnScroll() const {
   return false;
 }
 
-gfx::Vector2d PaintLayerScrollableArea::PixelSnappedScrollOffset() const {
-  return SnapScrollOffsetToPhysicalPixels(scroll_offset_);
-}
-
 ScrollOffset PaintLayerScrollableArea::GetScrollOffset() const {
   return scroll_offset_;
 }
@@ -1847,12 +1843,11 @@ void PaintLayerScrollableArea::ComputeScrollbarExistence(
     if (h_mode == mojom::blink::ScrollbarMode::kAuto) {
       // Don't add auto scrollbars if the box contents aren't visible.
       needs_horizontal_scrollbar =
-          GetLayoutBox()->IsRooted() && HasHorizontalOverflow() &&
+          HasHorizontalOverflow() &&
           VisibleContentRect(kIncludeScrollbars).height();
     }
     if (v_mode == mojom::blink::ScrollbarMode::kAuto) {
-      needs_vertical_scrollbar = GetLayoutBox()->IsRooted() &&
-                                 HasVerticalOverflow() &&
+      needs_vertical_scrollbar = HasVerticalOverflow() &&
                                  VisibleContentRect(kIncludeScrollbars).width();
     }
   }

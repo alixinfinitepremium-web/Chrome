@@ -298,6 +298,7 @@ const base::Feature* const kFeaturesExposedToJava[] = {
     &kAuxiliarySearchDonation,
     &kAuxiliarySearchHistoryDonation,
     &kAvoidDoubleMultiwindowChanges,
+    &kAvoidRecreateOnTouchscreenOrColorModeChange,
     &kBackGestureReflectsDesktopBehavior,
     &kBlockIntentsWhileLocked,
     &kBookmarkPaneAndroid,
@@ -403,6 +404,7 @@ const base::Feature* const kFeaturesExposedToJava[] = {
     &kFullscreenInsetsApiMigration,
     &kFullscreenInsetsApiMigrationOnAutomotive,
     &kGestureUserEducationBackSwipe,
+    &kGlicBackgroundActuationTabGroupSync,
     &kGmsCoreBindServiceOptimization,
     &kGridTabSwitcherSurfaceColorUpdate,
     &kHighPrioritySiteNotifications,
@@ -717,6 +719,7 @@ BASE_FEATURE(kAutomotiveBackButtonBarStreamline, base::FEATURE_ENABLED_BY_DEFAUL
 BASE_FEATURE(kAuxiliarySearchDonation, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kAuxiliarySearchHistoryDonation, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kAvoidDoubleMultiwindowChanges, base::FEATURE_ENABLED_BY_DEFAULT);
+BASE_FEATURE(kAvoidRecreateOnTouchscreenOrColorModeChange, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kBackGestureReflectsDesktopBehavior, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kBlockIntentsWhileLocked, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kBookmarkPaneAndroid, base::FEATURE_DISABLED_BY_DEFAULT);
@@ -826,6 +829,7 @@ BASE_FEATURE(kForceTranslucentNotificationTrampoline, base::FEATURE_DISABLED_BY_
 BASE_FEATURE(kFullscreenInsetsApiMigration, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kFullscreenInsetsApiMigrationOnAutomotive, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kGestureUserEducationBackSwipe, base::FEATURE_DISABLED_BY_DEFAULT);
+BASE_FEATURE(kGlicBackgroundActuationTabGroupSync, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kGmsCoreBindServiceOptimization, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kGridTabSwitcherSurfaceColorUpdate, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kHighPrioritySiteNotifications, base::FEATURE_DISABLED_BY_DEFAULT);

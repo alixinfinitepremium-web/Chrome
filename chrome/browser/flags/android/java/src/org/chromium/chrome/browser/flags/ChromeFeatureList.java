@@ -404,6 +404,8 @@ public abstract class ChromeFeatureList {
             "AutoRevokeSuspiciousNotification";
     public static final String AUXILIARY_SEARCH_HISTORY_DONATION = "AuxiliarySearchHistoryDonation";
     public static final String AVOID_DOUBLE_MULTIWINDOW_CHANGES = "AvoidDoubleMultiwindowChanges";
+    public static final String AVOID_RECREATE_ON_TOUCHSCREEN_OR_COLOR_MODE_CHANGE =
+            "AvoidRecreateOnTouchscreenOrColorModeChange";
     public static final String BACKGROUND_THREAD_POOL_FIELD_TRIAL =
             "BackgroundThreadPoolFieldTrial";
     public static final String BACK_FORWARD_CACHE = "BackForwardCache";
@@ -600,6 +602,8 @@ public abstract class ChromeFeatureList {
     public static final String GESTURE_USER_EDUCATION_BACK_SWIPE = "GestureUserEducationBackSwipe";
     public static final String GLIC = "Glic";
     public static final String GLIC_BACKGROUND_ACTUATION = "GlicBackgroundActuation";
+    public static final String GLIC_BACKGROUND_ACTUATION_TAB_GROUP_SYNC =
+            "GlicBackgroundActuationTabGroupSync";
     public static final String GLIC_BACKGROUND_TRIGGERING = "GlicBackgroundTriggering";
     public static final String GMSCORE_BIND_SERVICE_OPTIMIZATION = "GmsCoreBindServiceOptimization";
     public static final String GMS_CORE_ULP = "GmsCoreUlp";
@@ -1012,6 +1016,9 @@ public abstract class ChromeFeatureList {
             newCachedFlag(AUTO_DOC_PIP_PERMISSION_PROMPT_ANDROID, true);
     public static final CachedFlag sAutomotiveBackButtonBarStreamline =
             newCachedFlag(AUTOMOTIVE_BACK_BUTTON_BAR_STREAMLINE, /* defaultValue= */ true);
+    public static final CachedFlag sAvoidRecreateOnTouchscreenOrColorModeChange =
+            newCachedFlag(
+                    AVOID_RECREATE_ON_TOUCHSCREEN_OR_COLOR_MODE_CHANGE, /* defaultValue= */ true);
     public static final CachedFlag sBackGestureReflectsDesktopBehavior =
             newCachedFlag(BACK_GESTURE_REFLECTS_DESKTOP_BEHAVIOR, /* defaultValue= */ true);
     public static final CachedFlag sBackgroundThreadPoolFieldTrial =
@@ -1221,6 +1228,8 @@ public abstract class ChromeFeatureList {
                     GLIC_BACKGROUND_ACTUATION,
                     /* defaultValue= */ false,
                     /* defaultValueInTests= */ true);
+    public static final CachedFlag sGlicBackgroundActuationTabGroupSync =
+            newCachedFlag(GLIC_BACKGROUND_ACTUATION_TAB_GROUP_SYNC, /* defaultValue= */ false);
     public static final CachedFlag sGlicBackgroundTriggering =
             newCachedFlag(GLIC_BACKGROUND_TRIGGERING, false);
     public static final CachedFlag sGmscoreBindServiceOptimization =
@@ -1528,6 +1537,7 @@ public abstract class ChromeFeatureList {
                     sAsyncNotificationManager,
                     sAutoDocPipPermissionPromptAndroid,
                     sAutomotiveBackButtonBarStreamline,
+                    sAvoidRecreateOnTouchscreenOrColorModeChange,
                     sBackGestureReflectsDesktopBehavior,
                     sBackgroundThreadPoolFieldTrial,
                     sBlockIntentsWhileLocked,
@@ -1608,6 +1618,7 @@ public abstract class ChromeFeatureList {
                     sGestureUserEducationBackSwipe,
                     sGlic,
                     sGlicBackgroundActuation,
+                    sGlicBackgroundActuationTabGroupSync,
                     sGlicBackgroundTriggering,
                     sGmscoreBindServiceOptimization,
                     sGridTabSwitcherSurfaceColorUpdate,

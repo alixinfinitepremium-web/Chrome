@@ -48,9 +48,6 @@ BASE_FEATURE(kCrosIsolatedWebAppSetShapeAllowlist,
 BASE_FEATURE(kDataControlsFileAccessDefaultDeny,
              base::FEATURE_DISABLED_BY_DEFAULT);
 
-// Feature flag used to enable external display event telemetry.
-BASE_FEATURE(kExternalDisplayEventTelemetry, base::FEATURE_ENABLED_BY_DEFAULT);
-
 // Feature flag used to gate preinstallation of the Gemini app.
 BASE_FEATURE(kGeminiAppPreinstall, base::FEATURE_ENABLED_BY_DEFAULT);
 
@@ -111,11 +108,6 @@ BASE_FEATURE(kGlicEnableFor8GbDevices, base::FEATURE_DISABLED_BY_DEFAULT);
 // feature management module.
 BASE_FEATURE(kFeatureManagementRoundedWindows,
              base::FEATURE_DISABLED_BY_DEFAULT);
-
-// Enables the reworked implementation of usage indicators for the
-// `getAllScreensMedia` API.
-BASE_FEATURE(kMultiCaptureReworkedUsageIndicators,
-             base::FEATURE_ENABLED_BY_DEFAULT);
 
 // Enables the first wave of new features for the chrome.enterprise.platformKeys
 // API. That includes:
