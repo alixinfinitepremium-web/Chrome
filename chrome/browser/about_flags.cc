@@ -7334,10 +7334,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kContextManagementInOmniboxDescription, kOsDesktop,
      FEATURE_VALUE_TYPE(omnibox::kContextManagementInOmnibox)},
 
-    {"context-menu-tool-tips", flag_descriptions::kContextMenuToolTipsName,
-     flag_descriptions::kContextMenuToolTipsDescription, kOsDesktop,
-     FEATURE_VALUE_TYPE(omnibox::kContextMenuToolTips)},
-
     {"tab-favicon-chips-to-coins",
      flag_descriptions::kTabFaviconChipsToCoinsName,
      flag_descriptions::kTabFaviconChipsToCoinsDescription, kOsDesktop,
@@ -11250,6 +11246,12 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kGlicMessageFirstFreForContextualCueDescription,
      kOsDesktop,
      FEATURE_VALUE_TYPE(features::kGlicMessageFirstFreForContextualCue)},
+    {"glic-no-webview", flag_descriptions::kGlicNoWebviewName,
+     flag_descriptions::kGlicNoWebviewDescription, kOsDesktop,
+     ENABLE_DISABLE_VALUE_TYPE_AND_VALUE(switches::kEnableFeatures,
+                                         "GlicNoWebview,PrivilegedWebContents",
+                                         switches::kDisableFeatures,
+                                         "GlicNoWebview")},
 
 #if !BUILDFLAG(IS_ANDROID)
     {"enterprise-published-skills-policy-enabled",

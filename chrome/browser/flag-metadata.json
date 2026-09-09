@@ -2155,11 +2155,6 @@
     "expiry_milestone": 155
   },
   {
-    "name": "context-menu-tool-tips",
-    "owners": [ "ananyaseelam@google.com", "chrome-desktop-search@google.com" ],
-    "expiry_milestone": 160
-  },
-  {
     "name": "contextual-cueing",
     "owners": [ "sophiechang@chromium.org","jeffreycohen@chromium.org"],
     "expiry_milestone": 160
@@ -5910,6 +5905,14 @@
   {
     "name": "glic-message-first-fre-for-contextual-cue",
     "owners": [ "iwells@chromium.org", "//chrome/browser/glic/OWNERS" ],
+    "expiry_milestone": 160
+  },
+  {
+    "name": "glic-no-webview",
+    "owners": [
+      "harringtond@chromium.org",
+      "//chrome/browser/glic/OWNERS"
+    ],
     "expiry_milestone": 160
   },
   {

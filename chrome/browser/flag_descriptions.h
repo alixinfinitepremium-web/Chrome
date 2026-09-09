@@ -1670,11 +1670,6 @@ inline constexpr char kContextManagementInOmniboxName[] =
 inline constexpr char kContextManagementInOmniboxDescription[] =
     "Enables context menu and favicon coins for omnibox";
 
-inline constexpr char kContextMenuToolTipsName[] =
-    "Composebox context menu tooltips";
-inline constexpr char kContextMenuToolTipsDescription[] =
-    "Enables tooltips in the Composebox context menu.";
-
 inline constexpr char kContextualCueingName[] = "Contextual cueing";
 inline constexpr char kContextualCueingDescription[] =
     "Enables the contextual cueing system to support showing actions.";
@@ -1932,6 +1927,10 @@ inline constexpr char kGlicMessageFirstFreForContextualCueName[] =
 inline constexpr char kGlicMessageFirstFreForContextualCueDescription[] =
     "Enables the message-first first run experience (FRE) when auto-submitting "
     "from a contextual cue.";
+
+inline constexpr char kGlicNoWebviewName[] = "Glic No Webview";
+inline constexpr char kGlicNoWebviewDescription[] =
+    "Runs the Glic client in a PrivilegedWebContents instead of a webview.";
 
 inline constexpr char kEnterprisePublishedSkillsPolicyEnabledName[] =
     "Enable EnterprisePublishedSkills policy";
