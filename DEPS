@@ -61,7 +61,7 @@ gclient_gn_args = [
 vars = {
   # The version of the NDK. Set here, to allow the autoroller to update this
   # value when updating the CIPD hash.
-  'android_ndk_version': Str('2@30.0.16138531'),
+  'android_ndk_version': Str('2@30.0.16248370'),
 
   # Variable that can be used to support multiple build scenarios, like having
   # Chromium specific targets in a client project's GN file or sync dependencies
@@ -2501,7 +2501,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/kotlin_stdlib',
-              'version': 'tREWTj1c-I92lnTyxtvu1x27iavBPFGz8qu8MtI_f44C',
+              'version': 'xZvZppwL7Lkb5f13yBHk95ZhkVeA0LQ9cZdkeprDf2IC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
