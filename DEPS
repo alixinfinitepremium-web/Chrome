@@ -311,11 +311,11 @@ vars = {
   'reclient_version': 're_client_version:0.185.0.db415f21-gomaip',
 
   # screen-ai CIPD packages
-  'screen_ai_linux': 'version:153.01',
-  'screen_ai_macos_amd64': 'version:153.01',
-  'screen_ai_macos_arm64': 'version:153.01',
-  'screen_ai_windows_amd64': 'version:153.01',
-  'screen_ai_windows_386': 'version:153.01',
+  'screen_ai_linux': 'version:153.02',
+  'screen_ai_macos_amd64': 'version:153.02',
+  'screen_ai_macos_arm64': 'version:153.02',
+  'screen_ai_windows_amd64': 'version:153.02',
+  'screen_ai_windows_386': 'version:153.02',
 
   # download libaom test data
   'download_libaom_testdata': False,
@@ -1702,7 +1702,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_win_x86',
-          'version': 'FWeYDlF_Rn0XxZb1Pi001zwz0fQcblS-mwBsCXLcBGoC',
+          'version': '__B27A0zUfbGSYy5V5Wmm_REnSthmqqNEr-wm96ngMUC',
         },
       ],
   },
@@ -1770,7 +1770,7 @@ deps = {
   },
 
   'src/ios/third_party/earl_grey2/src': {
-      'url': Var('chromium_git') + '/external/github.com/google/EarlGrey.git' + '@' + 'b5dba76907b916c22576747cbd9dab4061b7f285',
+      'url': Var('chromium_git') + '/external/github.com/google/EarlGrey.git' + '@' + '490bfbdfebf0b1771194ca3f2451557b457e6174',
       'condition': 'checkout_ios',
   },
 
@@ -2228,7 +2228,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + 'c93cc5c0b7a14e4a304875bd713e747e52bd2f91',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '9ecb8f6fbc3e2ececf804e9db2f6b2c47767e9f0',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '17a56409b86d0da5e01ca38f6498e13b2db16bc3',
@@ -2797,7 +2797,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/cisco/openh264' + '@' + '9547f96ea5c47f4d465d97b07264b997ecc4b4b6',
 
   'src/third_party/openscreen/src':
-    Var('chromium_git') + '/openscreen' + '@' + 'b05b349214ccb58977846ddfe09947e943f3a9e6',
+    Var('chromium_git') + '/openscreen' + '@' + 'e6acbfad0aa60b55d84712e778f9a8e95406e270',
 
   'src/third_party/openxr/src': {
     'url': Var('chromium_git') + '/external/github.com/KhronosGroup/OpenXR-SDK' + '@' + '75c53b6e853dc12c7b3c771edc9c9c841b15faaa',
