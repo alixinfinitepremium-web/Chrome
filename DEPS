@@ -337,7 +337,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '48d3a238ebfde4fb8c92fa7b88f80349075750dc',
+  'src_internal_revision': '6ea9910ef44323b4d2ce3ea77fee2d6adcbcda23',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -1525,7 +1525,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_mac_amd64',
-          'version': 'version:2@1688007',
+          'version': 'version:2@1689004',
         },
       ],
   },
