@@ -28,6 +28,7 @@
 #include "mojo/public/cpp/bindings/callback_helpers.h"
 #include "third_party/blink/public/mojom/choosers/file_chooser.mojom.h"
 #include "third_party/blink/public/mojom/mediastream/media_stream.mojom.h"
+#include "third_party/blink/public/mojom/page/draggable_region.mojom.h"
 #include "ui/base/window_open_disposition.h"
 #include "url/origin.h"
 
@@ -163,6 +164,13 @@ PrivilegedWebContents::~PrivilegedWebContents() {
   web_contents_.reset();
 }
 
+content::KeyboardEventProcessingResult
+PrivilegedWebContents::EmbedderDelegate::PreHandleKeyboardEvent(
+    content::WebContents* source,
+    const input::NativeWebKeyboardEvent& event) {
+  return content::KeyboardEventProcessingResult::NOT_HANDLED;
+}
+
 bool PrivilegedWebContents::EmbedderDelegate::HandleKeyboardEvent(
     content::WebContents* source,
     const input::NativeWebKeyboardEvent& event) {
@@ -202,6 +210,10 @@ bool PrivilegedWebContents::EmbedderDelegate::CanDragEnter(
   return false;
 }
 
+void PrivilegedWebContents::EmbedderDelegate::DraggableRegionsChanged(
+    const std::vector<blink::mojom::DraggableRegionPtr>& regions,
+    content::WebContents* contents) {}
+
 content::PreloadingEligibility PrivilegedWebContents::IsPrerender2Supported(
     content::WebContents& web_contents,
     content::PreloadingTriggerType trigger_type) {
@@ -223,6 +235,21 @@ content::WebContents* PrivilegedWebContents::AddNewContents(
   // (ChromeContentBrowserClient::CanCreateWindow), so a new WebContents should
   // never be handed to this delegate. Drop it loudly if it ever is.
   NOTREACHED();
+}
+
+content::KeyboardEventProcessingResult
+PrivilegedWebContents::PreHandleKeyboardEvent(
+    content::WebContents* source,
+    const input::NativeWebKeyboardEvent& event) {
+  if (source != web_contents_.get()) {
+    return content::KeyboardEventProcessingResult::NOT_HANDLED;
+  }
+
+  if (embedder_delegate_) {
+    return embedder_delegate_->PreHandleKeyboardEvent(source, event);
+  }
+
+  return content::KeyboardEventProcessingResult::NOT_HANDLED;
 }
 
 bool PrivilegedWebContents::HandleKeyboardEvent(
@@ -317,6 +344,18 @@ bool PrivilegedWebContents::CanDragEnter(
   }
 
   return false;
+}
+
+void PrivilegedWebContents::DraggableRegionsChanged(
+    const std::vector<blink::mojom::DraggableRegionPtr>& regions,
+    content::WebContents* contents) {
+  if (contents != web_contents_.get()) {
+    return;
+  }
+
+  if (embedder_delegate_) {
+    embedder_delegate_->DraggableRegionsChanged(regions, contents);
+  }
 }
 
 bool PrivilegedWebContents::IsPrimaryMainFrame(

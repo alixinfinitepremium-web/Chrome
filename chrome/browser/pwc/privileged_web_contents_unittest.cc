@@ -15,6 +15,7 @@
 #include "chrome/test/base/chrome_render_view_host_test_harness.h"
 #include "components/input/native_web_keyboard_event.h"
 #include "content/public/browser/file_select_listener.h"
+#include "content/public/browser/keyboard_event_processing_result.h"
 #include "content/public/browser/media_stream_request.h"
 #include "content/public/browser/preloading.h"
 #include "content/public/browser/preloading_trigger_type.h"
@@ -30,6 +31,8 @@
 #include "third_party/blink/public/common/page/drag_operation.h"
 #include "third_party/blink/public/mojom/choosers/file_chooser.mojom.h"
 #include "third_party/blink/public/mojom/mediastream/media_stream.mojom.h"
+#include "third_party/blink/public/mojom/page/draggable_region.mojom.h"
+#include "ui/gfx/geometry/rect.h"
 #include "url/gurl.h"
 #include "url/origin.h"
 
@@ -190,6 +193,15 @@ class TestEmbedderDelegate : public PrivilegedWebContents::EmbedderDelegate {
     }
   }
 
+  content::KeyboardEventProcessingResult PreHandleKeyboardEvent(
+      content::WebContents* source,
+      const input::NativeWebKeyboardEvent& event) override {
+    last_pre_keyboard_source_ = source;
+    last_pre_event_type_ = event.GetType();
+    pre_keyboard_event_count_++;
+    return pre_handle_keyboard_return_value_;
+  }
+
   bool CanDragEnter(content::WebContents* source,
                     const content::DropData& data,
                     blink::DragOperationsMask operations_allowed) override {
@@ -197,6 +209,14 @@ class TestEmbedderDelegate : public PrivilegedWebContents::EmbedderDelegate {
     last_drag_operations_allowed_ = operations_allowed;
     drag_enter_count_++;
     return can_drag_enter_return_value_;
+  }
+
+  void DraggableRegionsChanged(
+      const std::vector<blink::mojom::DraggableRegionPtr>& regions,
+      content::WebContents* contents) override {
+    draggable_regions_count_++;
+    last_draggable_regions_contents_ = contents;
+    last_draggable_regions_size_ = regions.size();
   }
 
   raw_ptr<content::WebContents> last_keyboard_source_ = nullptr;
@@ -230,6 +250,18 @@ class TestEmbedderDelegate : public PrivilegedWebContents::EmbedderDelegate {
   std::optional<blink::DragOperationsMask> last_drag_operations_allowed_;
   int drag_enter_count_ = 0;
   bool can_drag_enter_return_value_ = true;
+
+  raw_ptr<content::WebContents, DisableDanglingPtrDetection>
+      last_draggable_regions_contents_ = nullptr;
+  size_t last_draggable_regions_size_ = 0;
+  int draggable_regions_count_ = 0;
+
+  raw_ptr<content::WebContents, DisableDanglingPtrDetection>
+      last_pre_keyboard_source_ = nullptr;
+  std::optional<blink::WebInputEvent::Type> last_pre_event_type_;
+  int pre_keyboard_event_count_ = 0;
+  content::KeyboardEventProcessingResult pre_handle_keyboard_return_value_ =
+      content::KeyboardEventProcessingResult::HANDLED;
 };
 
 content::MediaResponseCallback BindResultToFuture(
@@ -294,6 +326,74 @@ TEST_F(PrivilegedWebContentsTest, ForwardsKeyboardEventToEmbedderDelegate) {
   EXPECT_FALSE(pwc->web_contents()->GetDelegate()->HandleKeyboardEvent(
       web_contents, event));
   EXPECT_EQ(delegate.keyboard_event_count_, 2);
+}
+
+TEST_F(PrivilegedWebContentsTest,
+       ForwardsPreHandleKeyboardEventToEmbedderDelegate) {
+  std::unique_ptr<PrivilegedWebContents> pwc = PrivilegedWebContents::Create(
+      PrivilegedComponent::kTestComponent, profile(), MakeTestDelegate());
+  TestEmbedderDelegate delegate;
+  content::WebContents* pwc_contents = pwc->web_contents();
+  input::NativeWebKeyboardEvent event(blink::WebInputEvent::Type::kRawKeyDown,
+                                      blink::WebInputEvent::kNoModifiers,
+                                      base::TimeTicks::Now());
+
+  // 1. Returns NOT_HANDLED when no embedder delegate is set.
+  EXPECT_EQ(
+      pwc_contents->GetDelegate()->PreHandleKeyboardEvent(pwc_contents, event),
+      content::KeyboardEventProcessingResult::NOT_HANDLED);
+
+  pwc->SetEmbedderDelegate(&delegate);
+
+  // 2. Embedder delegate handles and returns HANDLED.
+  delegate.pre_handle_keyboard_return_value_ =
+      content::KeyboardEventProcessingResult::HANDLED;
+  EXPECT_EQ(
+      pwc_contents->GetDelegate()->PreHandleKeyboardEvent(pwc_contents, event),
+      content::KeyboardEventProcessingResult::HANDLED);
+  EXPECT_EQ(delegate.last_pre_keyboard_source_, pwc_contents);
+  EXPECT_EQ(delegate.last_pre_event_type_,
+            blink::WebInputEvent::Type::kRawKeyDown);
+  EXPECT_EQ(delegate.pre_keyboard_event_count_, 1);
+
+  // 3. Embedder delegate returns NOT_HANDLED.
+  delegate.pre_handle_keyboard_return_value_ =
+      content::KeyboardEventProcessingResult::NOT_HANDLED;
+  EXPECT_EQ(
+      pwc_contents->GetDelegate()->PreHandleKeyboardEvent(pwc_contents, event),
+      content::KeyboardEventProcessingResult::NOT_HANDLED);
+  EXPECT_EQ(delegate.pre_keyboard_event_count_, 2);
+
+  // 4. Clearing the delegate stops forwarding.
+  pwc->SetEmbedderDelegate(nullptr);
+  EXPECT_EQ(
+      pwc_contents->GetDelegate()->PreHandleKeyboardEvent(pwc_contents, event),
+      content::KeyboardEventProcessingResult::NOT_HANDLED);
+  EXPECT_EQ(delegate.pre_keyboard_event_count_, 2);
+}
+
+TEST_F(PrivilegedWebContentsTest,
+       PreHandleKeyboardEvent_RejectsNonMatchingWebContents) {
+  std::unique_ptr<PrivilegedWebContents> pwc = PrivilegedWebContents::Create(
+      PrivilegedComponent::kTestComponent, profile(), MakeTestDelegate());
+  TestEmbedderDelegate delegate;
+  pwc->SetEmbedderDelegate(&delegate);
+  input::NativeWebKeyboardEvent event(blink::WebInputEvent::Type::kRawKeyDown,
+                                      blink::WebInputEvent::kNoModifiers,
+                                      base::TimeTicks::Now());
+
+  // 1. Unrelated WebContents is rejected.
+  content::WebContents* unrelated_contents = web_contents();
+  EXPECT_EQ(pwc->web_contents()->GetDelegate()->PreHandleKeyboardEvent(
+                unrelated_contents, event),
+            content::KeyboardEventProcessingResult::NOT_HANDLED);
+  EXPECT_EQ(delegate.pre_keyboard_event_count_, 0);
+
+  // 2. Null WebContents is rejected.
+  EXPECT_EQ(pwc->web_contents()->GetDelegate()->PreHandleKeyboardEvent(nullptr,
+                                                                       event),
+            content::KeyboardEventProcessingResult::NOT_HANDLED);
+  EXPECT_EQ(delegate.pre_keyboard_event_count_, 0);
 }
 
 TEST_F(PrivilegedWebContentsTest,
@@ -722,6 +822,17 @@ TEST_F(PrivilegedWebContentsTest, DefaultEmbedderDelegateMethods) {
   content::DropData drop_data;
   EXPECT_FALSE(default_delegate.CanDragEnter(web_contents(), drop_data,
                                              blink::kDragOperationCopy));
+
+  // Default DraggableRegionsChanged is a no-op.
+  std::vector<blink::mojom::DraggableRegionPtr> regions;
+  default_delegate.DraggableRegionsChanged(regions, web_contents());
+
+  // Default PreHandleKeyboardEvent returns NOT_HANDLED.
+  input::NativeWebKeyboardEvent key_event(
+      blink::WebInputEvent::Type::kRawKeyDown,
+      blink::WebInputEvent::kNoModifiers, base::TimeTicks::Now());
+  EXPECT_EQ(default_delegate.PreHandleKeyboardEvent(web_contents(), key_event),
+            content::KeyboardEventProcessingResult::NOT_HANDLED);
 }
 
 TEST_F(PrivilegedWebContentsTest, ForwardsCanDragEnterToEmbedderDelegate) {
@@ -777,6 +888,55 @@ TEST_F(PrivilegedWebContentsTest, CanDragEnter_RejectsNonMatchingWebContents) {
   EXPECT_FALSE(pwc->web_contents()->GetDelegate()->CanDragEnter(
       nullptr, drop_data, ops));
   EXPECT_EQ(delegate.drag_enter_count_, 0);
+}
+
+TEST_F(PrivilegedWebContentsTest,
+       ForwardsDraggableRegionsChangedToEmbedderDelegate) {
+  std::unique_ptr<PrivilegedWebContents> pwc = PrivilegedWebContents::Create(
+      PrivilegedComponent::kTestComponent, profile(), MakeTestDelegate());
+  TestEmbedderDelegate delegate;
+  content::WebContents* pwc_contents = pwc->web_contents();
+  std::vector<blink::mojom::DraggableRegionPtr> regions;
+  auto region = blink::mojom::DraggableRegion::New();
+  region->bounds = gfx::Rect(0, 0, 100, 50);
+  region->draggable = true;
+  regions.push_back(std::move(region));
+
+  // 1. When no embedder delegate is set, does nothing and does not crash.
+  pwc_contents->GetDelegate()->DraggableRegionsChanged(regions, pwc_contents);
+  EXPECT_EQ(delegate.draggable_regions_count_, 0);
+
+  pwc->SetEmbedderDelegate(&delegate);
+
+  // 2. Embedder delegate handles DraggableRegionsChanged.
+  pwc_contents->GetDelegate()->DraggableRegionsChanged(regions, pwc_contents);
+  EXPECT_EQ(delegate.draggable_regions_count_, 1);
+  EXPECT_EQ(delegate.last_draggable_regions_contents_, pwc_contents);
+  EXPECT_EQ(delegate.last_draggable_regions_size_, 1u);
+
+  // 3. Clearing the delegate stops forwarding.
+  pwc->SetEmbedderDelegate(nullptr);
+  pwc_contents->GetDelegate()->DraggableRegionsChanged(regions, pwc_contents);
+  EXPECT_EQ(delegate.draggable_regions_count_, 1);
+}
+
+TEST_F(PrivilegedWebContentsTest,
+       DraggableRegionsChanged_RejectsNonMatchingWebContents) {
+  std::unique_ptr<PrivilegedWebContents> pwc = PrivilegedWebContents::Create(
+      PrivilegedComponent::kTestComponent, profile(), MakeTestDelegate());
+  TestEmbedderDelegate delegate;
+  pwc->SetEmbedderDelegate(&delegate);
+  std::vector<blink::mojom::DraggableRegionPtr> regions;
+
+  // 1. Unrelated WebContents is rejected.
+  content::WebContents* unrelated_contents = web_contents();
+  pwc->web_contents()->GetDelegate()->DraggableRegionsChanged(
+      regions, unrelated_contents);
+  EXPECT_EQ(delegate.draggable_regions_count_, 0);
+
+  // 2. Null WebContents is rejected.
+  pwc->web_contents()->GetDelegate()->DraggableRegionsChanged(regions, nullptr);
+  EXPECT_EQ(delegate.draggable_regions_count_, 0);
 }
 
 }  // namespace

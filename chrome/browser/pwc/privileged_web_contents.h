@@ -9,12 +9,14 @@
 
 #include "base/memory/raw_ptr.h"
 #include "chrome/browser/pwc/pwc_component_policy.h"
+#include "content/public/browser/keyboard_event_processing_result.h"
 #include "content/public/browser/preloading.h"
 #include "content/public/browser/preloading_trigger_type.h"
 #include "content/public/browser/web_contents_delegate.h"
 #include "content/public/browser/web_contents_observer.h"
 #include "third_party/blink/public/mojom/choosers/file_chooser.mojom-forward.h"
 #include "third_party/blink/public/mojom/mediastream/media_stream.mojom-shared.h"
+#include "third_party/blink/public/mojom/page/draggable_region.mojom-forward.h"
 #include "ui/base/unowned_user_data/unowned_user_data_host.h"
 
 namespace content {
@@ -102,6 +104,9 @@ class PrivilegedWebContents : public content::WebContentsDelegate,
   class EmbedderDelegate {
    public:
     virtual ~EmbedderDelegate() = default;
+    virtual content::KeyboardEventProcessingResult PreHandleKeyboardEvent(
+        content::WebContents* source,
+        const input::NativeWebKeyboardEvent& event);
     virtual bool HandleKeyboardEvent(
         content::WebContents* source,
         const input::NativeWebKeyboardEvent& event);
@@ -121,6 +126,9 @@ class PrivilegedWebContents : public content::WebContentsDelegate,
     virtual bool CanDragEnter(content::WebContents* source,
                               const content::DropData& data,
                               blink::DragOperationsMask operations_allowed);
+    virtual void DraggableRegionsChanged(
+        const std::vector<blink::mojom::DraggableRegionPtr>& regions,
+        content::WebContents* contents);
   };
 
   void SetEmbedderDelegate(EmbedderDelegate* delegate) {
@@ -148,6 +156,9 @@ class PrivilegedWebContents : public content::WebContentsDelegate,
       const blink::mojom::WindowFeatures& window_features,
       bool user_gesture,
       bool* was_blocked) override;
+  content::KeyboardEventProcessingResult PreHandleKeyboardEvent(
+      content::WebContents* source,
+      const input::NativeWebKeyboardEvent& event) override;
   bool HandleKeyboardEvent(content::WebContents* source,
                            const input::NativeWebKeyboardEvent& event) override;
   void ContentsZoomChange(bool zoom_in) override;
@@ -164,6 +175,9 @@ class PrivilegedWebContents : public content::WebContentsDelegate,
   bool CanDragEnter(content::WebContents* source,
                     const content::DropData& data,
                     blink::DragOperationsMask operations_allowed) override;
+  void DraggableRegionsChanged(
+      const std::vector<blink::mojom::DraggableRegionPtr>& regions,
+      content::WebContents* contents) override;
 
   // content::WebContentsObserver:
   // Disables the back-forward cache for every committed document, so a
