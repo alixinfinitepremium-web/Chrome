@@ -349,7 +349,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '533f31483041be831a92f16b8c375b58bc28422a',
+  'angle_revision': '147caf2299c1bba8ad5c4aec126f35ac58a363b2',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -1761,7 +1761,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    'da96ec7b18d94f3ce359935c86c4b3c9510322cf',
+    'cd1c36032b045792e7f18355e8fa974ab23c5459',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -1974,7 +1974,7 @@ deps = {
       'packages': [
           {
                'package': 'chromium/third_party/android_build_tools/manifest_merger',
-               'version': '8mN5PA56vTCsifJO3G_2Y615rGX0csOApteqjMVBbV4C',
+               'version': 'rbN6Z4kNrab4oL7d2Vn86ZSPTCZiaOjM0HAgtUvKSiYC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
