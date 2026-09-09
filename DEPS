@@ -337,7 +337,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': 'e9a4ec33a6d74445e89ef6fafa417343101891c2',
+  'src_internal_revision': 'd807c0e6f840d1dde7d44f92d110a00f12f707d0',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -421,7 +421,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'f031939e7c3124ec933408f3d3494658d6d1f2c8',
+  'devtools_frontend_revision': 'a3143e7065f1d8303fbd5a2e11216b7db647262d',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -3417,7 +3417,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/help_app/app',
-        'version': 'LmizIl2tWcUVu0FXsGKmGG1vLHhNPUhWMciTLLr6gsYC',
+        'version': '7amP7ZBvvkfiDWpiGkdIbnzmfHxIebA9MgROY6StcNgC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3428,7 +3428,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/media_app/app',
-        'version': '_RXqW81jSMyEpXBvxjLL8xbC6CkZs5aHY08qQTZv7GEC',
+        'version': 'DuGiUjRsx3hv06NuoPJzJBuFpZzTgBT-bPmAsKjkQAUC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
