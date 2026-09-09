@@ -357,7 +357,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling PDFium
   # and whatever else without interference from each other.
-  'pdfium_revision': '4a36628222bb647c23b4ef3b8f3fc64e93e1dd3b',
+  'pdfium_revision': '482ed62233d7fde7e3bd35a26a0af26f03e228b9',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
@@ -1536,7 +1536,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_mac_arm64',
-          'version': 'version:2@1688007',
+          'version': 'version:2@1689001',
         },
       ],
   },
@@ -1569,7 +1569,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_x86_64',
-          'version': 'version:2@1688037',
+          'version': 'version:2@1689004',
         },
       ],
   },
@@ -1691,7 +1691,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_mac_arm64',
-          'version': '5BasggiGvJ0mSrN3tj1UblI7Csiarkj6-wk3aFUARHwC',
+          'version': 'Z1Q2mRds0R7BGzLVGcJbgzG2ags9JbGl8jfoygA-wP8C',
         },
       ],
   },
