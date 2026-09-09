@@ -337,11 +337,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '286ce72e772913031d32bf718e1f655edca02326',
+  'src_internal_revision': '145fab8c5ee69bae876c1a1a37a2635169b7d5fd',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '70977ebbdbc111776199920c8c25243ba5dc71db',
+  'skia_revision': 'c1f0fc38e971d86276f0686725f3ea7f6040b762',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -2213,7 +2213,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'da08833a5dfea59cd32248f0ed27a60cfd310e40',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'c04f810a76c5fe34760d4de90d40197780df1fd7',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -2228,7 +2228,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '9ecb8f6fbc3e2ececf804e9db2f6b2c47767e9f0',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '68db0e246aeea98fe8d323cd63375d99cd20102e',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '17a56409b86d0da5e01ca38f6498e13b2db16bc3',
