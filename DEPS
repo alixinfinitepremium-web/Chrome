@@ -345,7 +345,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': 'c0305e3e1264c7c9bb6edf1288b6c03cd72b2c3d',
+  'v8_revision': '42f91abd5e765bd4e006853c84b055c0f5f864e6',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -421,7 +421,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '66cbff3fcf324246508e64bc8c1e4ad83ed147b3',
+  'devtools_frontend_revision': '43da958084f40550c2eff6a6281263fa10c1cf78',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -4107,7 +4107,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '60457409f02309d47be33167fae5eae7f5bd4ae3',
+        'd48d9e7d5efbb43778e26bc4c3f2c29eb3ec3c60',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
