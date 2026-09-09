@@ -337,7 +337,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '6ea9910ef44323b4d2ce3ea77fee2d6adcbcda23',
+  'src_internal_revision': '313234db2746f20d0fc2bba2d6794e79ae570139',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -421,7 +421,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '43da958084f40550c2eff6a6281263fa10c1cf78',
+  'devtools_frontend_revision': 'a71e5ed0b80c9ea9a83032d36b2c752456e32365',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -2642,7 +2642,7 @@ deps = {
   },
 
   'src/third_party/libphonenumber/src':
-    Var('chromium_git') + '/external/libphonenumber.git' + '@' + 'cef6ae1479b50a20bd96f9092c545e8bc9ce7760',
+    Var('chromium_git') + '/external/libphonenumber.git' + '@' + 'bdd84065061f36e5c0c392ecd8454dfae4965f3c',
 
   'src/third_party/libprotobuf-mutator/src':
     Var('chromium_git') + '/external/github.com/google/libprotobuf-mutator.git' + '@' +  Var('libprotobuf-mutator'),
