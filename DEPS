@@ -565,7 +565,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling agents-public
   # and whatever else without interference from each other.
-  'agents_public_revision': '73470db4a7810560ec92e8aa27ff3c6a8a36bea5',
+  'agents_public_revision': '4e0a8bacdfcc6b6303540aa466b05a508f349486',
 
   # If you change this, also update the libc++ revision in
   # //buildtools/deps_revisions.gni.
@@ -1865,7 +1865,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': 'kAeO7XP24qroYiiADUQh5JjpYqdQ-gLOJBc1Golmn4sC',
+          'version': 'm2IdlD4IcWtEdjnBBz-NP7D3PjjD9wicibkIu2SWZxMC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
@@ -2823,7 +2823,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '8665a1fa48ac395bedbffa543e2330354cf717eb',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + 'ced94af64d7e4a779acb73b580726ea1e81fc1c8',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
