@@ -349,7 +349,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '147caf2299c1bba8ad5c4aec126f35ac58a363b2',
+  'angle_revision': 'dfa67386b323391a1e564077eb64671365f92a91',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -445,7 +445,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': '98f810add4b74251838a3849f5894891dffeda1a',
+  'dawn_revision': '94c3c9cc0d5fb2e85aebb370fa8d37b71aa34655',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -3461,7 +3461,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/projector_app/app',
-        'version': 'aoN0Ar5XYBes43qgBgG7qc-fO-7v2Vwqx7Mn48rd6LwC',
+        'version': '4SeYNiNrOar6XLeFzjrP05joMfFXGunizeqgNJq0fXAC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
