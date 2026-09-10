@@ -445,7 +445,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': 'ff22fddb182c1e39e97fd659758f4cdec6afc60b',
+  'dawn_revision': 'ab7c8f170cc62b2a9f0ca71609f812ebea4fa5db',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -549,7 +549,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
-  'llvm_libc_revision':    '4c5b71179128c90a696bcdd11ffd4c67bad0e0de',
+  'llvm_libc_revision':    '8db6cf6029e4b42459ce47551a54d4b6f89bd35a',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
