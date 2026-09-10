@@ -733,15 +733,12 @@ class NET_EXPORT_PRIVATE QuicChromiumClientSession
   void OnWriteUnblocked() override;
 
   void OnConnectionMigrationProbeSucceeded(
-      const quic::QuicSocketAddress& self_address,
       std::unique_ptr<QuicMigrationAttemptContext> migration_context);
 
   void OnPortMigrationProbeSucceeded(
-      const quic::QuicSocketAddress& self_address,
       std::unique_ptr<QuicMigrationAttemptContext> migration_context);
 
   void OnServerPreferredAddressProbeSucceeded(
-      const quic::QuicSocketAddress& self_address,
       std::unique_ptr<QuicMigrationAttemptContext> migration_context);
 
   void OnProbeFailed(handles::NetworkHandle network,
@@ -885,8 +882,8 @@ class NET_EXPORT_PRIVATE QuicChromiumClientSession
   // Attempts to migrate session when writer with `writer_generation` encounters
   // a write error. If the writer is no longer actively used, abort migration.
   void MigrateSessionOnWriteError(int error_code, uint64_t writer_generation);
-  // Called when the Migrate() call from MigrateSessionOnWriteError completes.
-  // Always called asynchronously.
+  // Called when the MigrateWithoutProbing() call from
+  // MigrateSessionOnWriteError completes. Always called asynchronously.
   void FinishMigrateSessionOnWriteError(handles::NetworkHandle new_network,
                                         MigrationResult result);
 
@@ -900,32 +897,25 @@ class NET_EXPORT_PRIVATE QuicChromiumClientSession
   // the migration fails and |close_session_on_error| is true, session will be
   // closed.
   using MigrationCallback = base::OnceCallback<void(MigrationResult)>;
-  void Migrate(handles::NetworkHandle network,
-               IPEndPoint peer_address,
-               bool close_session_on_error,
-               MigrationCallback migration_callback);
+  void MigrateWithoutProbing(handles::NetworkHandle network,
+                             IPEndPoint peer_address,
+                             bool close_session_on_error,
+                             MigrationCallback migration_callback);
   // Helper to finish session migration once a socket has been opened. Always
   // called asynchronously.
-  void FinishMigrate(std::unique_ptr<DatagramClientSocket> socket,
-                     IPEndPoint peer_address,
-                     bool close_session_on_error,
-                     MigrationCallback callback,
-                     int rv);
+  void FinishMigrateWithoutProbing(
+      std::unique_ptr<QuicMigrationAttemptContext> migration_context,
+      bool close_session_on_error,
+      MigrationCallback callback,
+      int rv);
 
   void DoMigrationCallback(MigrationCallback callback, MigrationResult rv);
 
-  // Migrates session onto new socket, i.e., sets |writer| to be the new
-  // default writer and post a task to write to |socket|. |reader| *must*
-  // has been started reading from the socket. Returns true if
-  // socket was successfully added to the session and the session was
-  // successfully migrated to using the new socket. Returns true on
-  // successful migration, or false if number of migrations exceeds
-  // kMaxReadersPerQuicSession. Takes ownership of |socket|, |reader|,
-  // and |writer|.
-  bool MigrateToSocket(const quic::QuicSocketAddress& self_address,
-                       const quic::QuicSocketAddress& peer_address,
-                       std::unique_ptr<QuicChromiumPacketReader> reader,
-                       std::unique_ptr<QuicChromiumPacketWriter> writer);
+  // Commits an in-flight migration attempt, adopting `migration_context`'s
+  // contents. Returns true if the migration was successfully committed, false
+  // otherwise.
+  bool CommitMigration(
+      std::unique_ptr<QuicMigrationAttemptContext> migration_context);
 
   // Called when NetworkChangeNotifier notifies observers of a newly
   // connected network. Migrates this session to the newly connected
@@ -1072,8 +1062,8 @@ class NET_EXPORT_PRIVATE QuicChromiumClientSession
   //    network.
   void MigrateNetworkImmediately(handles::NetworkHandle network);
 
-  // Called when Migrate() call from MigrateNetworkImmediately completes. Always
-  // called asynchronously.
+  // Called when MigrateWithoutProbing() call from MigrateNetworkImmediately
+  // completes. Always called asynchronously.
   void FinishMigrateNetworkImmediately(handles::NetworkHandle network,
                                        MigrationResult result);
 
