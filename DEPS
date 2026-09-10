@@ -341,7 +341,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '5a02b34d86cf0d27f4443e9b5a886f854f19c1ee',
+  'skia_revision': '1a8eb233d5f158b26fa1b557883568dd2652c36a',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -1558,7 +1558,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_x86',
-          'version': 'version:2@1689024',
+          'version': 'version:2@1690053',
         },
       ],
   },
@@ -1569,7 +1569,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_x86_64',
-          'version': 'version:2@1689004',
+          'version': 'version:2@1690035',
         },
       ],
   },
@@ -1713,7 +1713,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_win_x86_64',
-          'version': 'Kq9bgfjlCedCG8Npn9w5NX2O1G4JqOhyMUh7CSvvC_8C',
+          'version': 'FqFXSG0VnpCchHaHzIRqifHCTv6WkzU3i7JSYyRBWHEC',
         },
       ],
   },
