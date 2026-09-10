@@ -1669,7 +1669,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_linux64',
-          'version': 'zticdh6HHM0o6qnL4y_RfvuccMdbz4PCUR0Xmhb44BMC',
+          'version': 'fm8sRGWWdyQZY6yZ5i8iBwjzulsCMXZlI32lCoP9keMC',
         },
       ],
   },
@@ -1680,7 +1680,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_mac_amd64',
-          'version': 'NH3Qofi5TyrT5m5txvlxz94efNYfaEEuKdmbR0U3PfEC',
+          'version': 'HpdT6wMe5CSQZvmjXM2ec0AdY2vwGRVE7MA-_Du-qBgC',
         },
       ],
   },
