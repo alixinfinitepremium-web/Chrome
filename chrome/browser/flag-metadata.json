@@ -2055,6 +2055,16 @@
     "expiry_milestone": 150
   },
   {
+    "name": "composebox-persistent-aim-button",
+    "owners": [ "yvonneshi@google.com", "chrome-desktop-ntp@google.com" ],
+    "expiry_milestone": 165
+  },
+  {
+    "name": "composebox-persistent-aim-button-with-x",
+    "owners": [ "yvonneshi@google.com", "chrome-desktop-ntp@google.com" ],
+    "expiry_milestone": 165
+  },
+  {
     "name": "composebox-plus-button-bottom-sheet",
     "owners": [ "radunitescu@google.com", "bling-search@google.com" ],
     "expiry_milestone": 160
@@ -8576,11 +8586,6 @@
     "expiry_milestone": 130
   },
   {
-    "name": "quick-share-v2",
-    "owners": [ "brandosocarras@google.com", "chromeos-cross-device-eng@google.com"],
-    "expiry_milestone": 140
-  },
-  {
     "name": "read-aloud-native",
     "owners": [
       "andresmolina@google.com",
@@ -10349,11 +10354,6 @@
     "name": "web-app-migrate-preinstalled-chat",
     "owners": [ "pwa-team@google.com", "mek@chromium.org" ],
     "expiry_milestone": 150
-  },
-  {
-    "name": "web-app-migration-api",
-    "owners": [ "mek@chromium.org", "pwa-team@google.com" ],
-    "expiry_milestone": 155
   },
   {
     "name": "web-app-short-edges-cutout-mode",

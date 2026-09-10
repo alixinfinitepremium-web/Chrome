@@ -1625,6 +1625,17 @@ inline constexpr char kComposeboxRichImageSuggestionsName[] =
 inline constexpr char kComposeboxRichImageSuggestionsDescription[] =
     "Enables richer image suggestions in the Composebox for image generation.";
 
+inline constexpr char kComposeboxPersistentAimButtonName[] =
+    "Composebox Persistent AIM Button";
+inline constexpr char kComposeboxPersistentAimButtonDescription[] =
+    "Persists the AIM button in the Composebox.";
+
+inline constexpr char kComposeboxPersistentAimButtonWithXName[] =
+    "Composebox Persistent AIM Button With X";
+inline constexpr char kComposeboxPersistentAimButtonWithXDescription[] =
+    "Shows an X icon on the persistent AIM button. Only effective if "
+    "persistent AIM button is also enabled.";
+
 inline constexpr char kComposeboxSkillsContextualTasksName[] =
     "Composebox/Searchbox Skills (Contextual Tasks)";
 inline constexpr char kComposeboxSkillsContextualTasksDescription[] =
@@ -4337,12 +4348,6 @@ inline constexpr char kQuicName[] = "Experimental QUIC protocol";
 inline constexpr char kQuicDescription[] =
     "Enable experimental QUIC protocol support.";
 
-inline constexpr char kQuickShareV2Name[] = "Quick Share v2";
-inline constexpr char kQuickShareV2Description[] =
-    "Enables Quick Share v2, which defaults Quick Share to 'Your Devices' "
-    "visibility, removes the 'Selected Contacts' visibility, removes the Quick "
-    "Share On/Off toggle.";
-
 inline constexpr char kSendTabToSelfEnhancedHandoffName[] =
     "Send Tab To Self enhanced handoff";
 inline constexpr char kSendTabToSelfEnhancedHandoffDescription[] =
@@ -5008,10 +5013,6 @@ inline constexpr char kWebAppInstallationApiName[] = "Web App Installation API";
 inline constexpr char kWebAppInstallationApiDescription[] =
     "Enables the Web App Installation API which allows web apps to be "
     "installed programmatically using navigator.install().";
-
-inline constexpr char kWebAppMigrationApiName[] = "Web App Migration API";
-inline constexpr char kWebAppMigrationApiDescription[] =
-    "Enables the API for same-site web app migrations.";
 
 inline constexpr char kWebAppInstallDialogName[] = "Web App install dialog";
 inline constexpr char kWebAppInstallDialogDescription[] =

@@ -7301,6 +7301,17 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kComposeboxRichImageSuggestionsDescription, kOsDesktop,
      FEATURE_VALUE_TYPE(omnibox::kComposeboxRichImageSuggestions)},
 
+    {"composebox-persistent-aim-button",
+     flag_descriptions::kComposeboxPersistentAimButtonName,
+     flag_descriptions::kComposeboxPersistentAimButtonDescription, kOsDesktop,
+     FEATURE_VALUE_TYPE(omnibox::kComposeboxPersistentAimButton)},
+
+    {"composebox-persistent-aim-button-with-x",
+     flag_descriptions::kComposeboxPersistentAimButtonWithXName,
+     flag_descriptions::kComposeboxPersistentAimButtonWithXDescription,
+     kOsDesktop,
+     FEATURE_VALUE_TYPE(omnibox::kComposeboxPersistentAimButtonWithX)},
+
     {"composebox-skills-contextual-tasks",
      flag_descriptions::kComposeboxSkillsContextualTasksName,
      flag_descriptions::kComposeboxSkillsContextualTasksDescription, kOsDesktop,
@@ -8627,9 +8638,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kShimlessRMAHideGoogleSKUName,
      flag_descriptions::kShimlessRMAHideGoogleSKUDescription, kOsCrOS,
      FEATURE_VALUE_TYPE(ash::features::kShimlessRMAHideGoogleSKU)},
-    {"quick-share-v2", flag_descriptions::kQuickShareV2Name,
-     flag_descriptions::kQuickShareV2Description, kOsCrOS,
-     FEATURE_VALUE_TYPE(chromeos::features::kQuickShareV2)},
 #endif  // BUILDFLAG(IS_CHROMEOS)
 
     {"enable-experimental-cookie-features",
@@ -11843,10 +11851,6 @@ const FeatureEntry kFeatureEntries[] = {
     {"web-app-installation-api", flag_descriptions::kWebAppInstallationApiName,
      flag_descriptions::kWebAppInstallationApiDescription, kOsDesktop,
      FEATURE_VALUE_TYPE(blink::features::kWebAppInstallation)},
-
-    {"web-app-migration-api", flag_descriptions::kWebAppMigrationApiName,
-     flag_descriptions::kWebAppMigrationApiDescription, kOsDesktop,
-     FEATURE_VALUE_TYPE(blink::features::kWebAppMigrationApi)},
 #endif  // !BUILDFLAG(IS_ANDROID)
 
 #if BUILDFLAG(IS_ANDROID)

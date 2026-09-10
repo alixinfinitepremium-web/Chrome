@@ -1714,7 +1714,7 @@ public class TabListMediator implements TabListNotificationHandler {
         model.set(
                 TabProperties.TAB_CONTEXT_CLICK_LISTENER,
                 getTabContextClickListener(tabActionState));
-        model.set(TabProperties.TAB_HOVER_CARD_LISTENER, mTabListConfig.tabHoverCardListener);
+        model.set(TabProperties.TAB_HOVER_LISTENER, mTabListConfig.tabHoverListener);
 
         if (mTabActionState != TabActionState.SELECTABLE) {
             updateDescriptionString(model);
@@ -2640,7 +2640,7 @@ public class TabListMediator implements TabListNotificationHandler {
         }
     }
 
-    private void removeObserversForTab(Tab tab) {
+    void removeObserversForTab(Tab tab) {
         mObserverManager.removeTabObserver(tab);
 
         ActorUiTabController controller = ActorUiTabController.from(tab);
