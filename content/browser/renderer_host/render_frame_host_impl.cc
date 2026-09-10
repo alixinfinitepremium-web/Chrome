@@ -42,6 +42,7 @@
 #include "base/notreached.h"
 #include "base/numerics/safe_conversions.h"
 #include "base/process/kill.h"
+#include "base/process/memory.h"
 #include "base/rand_util.h"
 #include "base/state_transitions.h"
 #include "base/strings/escape.h"
@@ -270,6 +271,7 @@
 #include "net/http/http_util.h"
 #include "net/net_buildflags.h"
 #include "net/storage_access_api/status.h"
+#include "partition_alloc/page_allocator.h"
 #include "services/metrics/public/cpp/ukm_builders.h"
 #include "services/metrics/public/cpp/ukm_source_id.h"
 #include "services/network/public/cpp/connection_allowlist.h"
@@ -374,6 +376,10 @@
 
 #if BUILDFLAG(IS_MAC)
 #include "content/browser/renderer_host/popup_menu_helper_mac.h"
+#endif
+
+#if BUILDFLAG(IS_WIN)
+#include "base/win/windows_types.h"
 #endif
 
 #if BUILDFLAG(USE_EXTERNAL_POPUP_MENU)
@@ -8560,11 +8566,13 @@ void RenderFrameHostImpl::DidChangeBackgroundColor(
 
 void RenderFrameHostImpl::DidChangeName(const std::string& name,
                                         const std::string& unique_name) {
-  // Frame name updates used to occur in the FrameTreeNode; however, as they
-  // now occur in RenderFrameHostImpl (and by extension, BrowsingContextState),
-  // ensure that invalid updates (i.e. when in the BackForwardCache or in a
-  // pending deletion state) are not applied.
-  if (IsInBackForwardCache() || IsPendingDeletion()) {
+  // Frame name updates used to occur in the FrameTreeNode; however, as they now
+  // occur in RenderFrameHostImpl (and by extension, BrowsingContextState),
+  // ensure that invalid updates (i.e. when in speculative, pending deletion, or
+  // back/forward cached state) are not applied.
+  if (!CanApplyFrameReplicationUpdate(
+          this,
+          BackForwardCacheMetrics::NotRestoredReason::kRfhDidChangeName)) {
     return;
   }
   if (GetParent() != nullptr) {
@@ -10123,9 +10131,9 @@ void RenderFrameHostImpl::DidChangeFrameOwnerProperties(
 
 void RenderFrameHostImpl::DidChangeOpener(
     const std::optional<blink::LocalFrameToken>& opener_frame_token) {
-  // `owner_` could be null when we get this message asynchronously from the
-  // renderer in pending deletion state.
-  if (!owner_) {
+  if (!CanApplyFrameReplicationUpdate(
+          this,
+          BackForwardCacheMetrics::NotRestoredReason::kRfhDidChangeOpener)) {
     return;
   }
 
@@ -17413,6 +17421,14 @@ void RenderFrameHostImpl::MaybeGenerateCrashReport(
   }
   CHECK(is_local_root());
 
+  const bool is_oom =
+#if BUILDFLAG(IS_WIN)
+      static_cast<DWORD>(exit_code) == base::win::kOomExceptionCode ||
+      static_cast<DWORD>(exit_code) == base::win::kSandboxFatalMemoryExceeded ||
+#endif
+      exit_code ==
+          static_cast<int>(partition_alloc::kTerminateOnCommitFailureExitCode);
+
   // All frames in the same renderer process share the main thread and V8
   // isolate. If one frame hangs, the entire process is blocked and killed.
   // Therefore, unresponsiveness is attributed to all local root frames in this
@@ -17424,20 +17440,27 @@ void RenderFrameHostImpl::MaybeGenerateCrashReport(
       !GetProcess()->GetUnresponsiveDocumentJavascriptCallStack().empty();
 
   // Check the termination status to see if a crash occurred (and potentially
-  // determine the |reason| for the crash).
+  // determine the |reason| for the crash). Note: |is_oom| takes precedence over
+  // |is_unresponsive| because a renderer exhausting memory often becomes
+  // unresponsive prior to termination.
   std::string reason;
   switch (status) {
     case base::TERMINATION_STATUS_ABNORMAL_TERMINATION:
-      break;
     case base::TERMINATION_STATUS_PROCESS_CRASHED:
-      if (is_unresponsive) {
+      if (is_oom) {
+        reason = "oom";
+      } else if (is_unresponsive) {
         reason = "unresponsive";
       }
       break;
     case base::TERMINATION_STATUS_PROCESS_WAS_KILLED:
-      if (is_unresponsive) {
+      if (is_oom) {
+        reason = "oom";
+      } else if (is_unresponsive) {
         reason = "unresponsive";
       } else {
+        // A kill that is neither OOM nor unresponsive is an intentional
+        // termination and should not be reported.
         return;
       }
       break;
