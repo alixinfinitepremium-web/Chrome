@@ -568,7 +568,7 @@ chromium-metrics-reviews@google.com.
 </histogram>
 
 <histogram name="CustomTabs.Navigation.FinishReason" enum="FinishReason"
-    expires_after="2026-09-06">
+    expires_after="2027-09-06">
   <owner>adelm@google.com</owner>
   <owner>chrome-connective-tissue@google.com</owner>
   <summary>
@@ -1045,18 +1045,6 @@ chromium-metrics-reviews@google.com.
   <summary>
     Records the usage of reload button when running a web app. This is recorded
     only for minimal ui display mode in Trusted Web Activities and WebAPKs.
-  </summary>
-</histogram>
-
-<histogram name="CustomTabs.WebContentsStateOnLaunch" enum="WebContentsState"
-    expires_after="2026-08-23">
-  <owner>lizeb@chromium.org</owner>
-  <owner>mthiesse@chromium.org</owner>
-  <summary>
-    Android: When a CustomTabActivity creates its Tab, whether we use a
-    prerendered WebContents, a spare renderer or create a new WebContents.
-
-    Note: Expired from April 13-25, 2025.
   </summary>
 </histogram>
 
