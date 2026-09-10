@@ -245,8 +245,9 @@ export class HistoryItemElement extends HistoryItemElementBase {
   }
 
   /**
-   * Actions menu is described by the title and domain of the row and may
-   * include the date to make sure users know if they have jumped between dates.
+   * Actions menu and critical actions expand button are described by the title
+   * and domain of the row and may include the date to make sure users know if
+   * they have jumped between dates.
    */
   protected getAriaDescribedByForActions_(): string {
     return this.isCardStart || this.isCardEnd ?
@@ -288,6 +289,11 @@ export class HistoryItemElement extends HistoryItemElementBase {
 
   protected getCriticalActions_(): CriticalAction[] {
     return this.item?.criticalActions || [];
+  }
+
+  protected getCriticalActionAriaLabel_(action: CriticalAction): string {
+    return loadTimeData.getStringF(
+        'criticalActionLinkoutA11yLabel', action.tooltip);
   }
 
   protected onCriticalActionClick_(e: Event) {
