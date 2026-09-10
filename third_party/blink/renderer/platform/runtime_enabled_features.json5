@@ -3271,6 +3271,7 @@
     {
       name: "FractionalScrollOffsets",
       implied_by: ["FractionalScrollOffsetsForWebAPI"],
+      status: "experimental",
     },
     {
       // https://crbug.com/40384509.
@@ -5476,6 +5477,11 @@
     // and its caller.
     {
       name: "ScrollTopLeftInterop",
+      status: "stable",
+    },
+    // Limits the number of scroll-to-text-fragment directives parsed per URL.
+    {
+      name: "ScrollToTextFragmentDirectiveLimit",
       status: "stable",
     },
     // Only consider unique case-insensitive scroll-to-text fragments.
