@@ -421,7 +421,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'bc32a8747805ea5bd391ad67e19605ceaf2a0d49',
+  'devtools_frontend_revision': '8d53c4c3d15d4f030d4956a00f20ce3a08a5361e',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -557,7 +557,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling clusterfuzz-data
   # and whatever else without interference from each other.
-  'clusterfuzz_data_revision':'9f1e9addf2f609b6995830526e9ea61ca58fe934',
+  'clusterfuzz_data_revision':'2480f92838658249a445b7abca105f6aa5a905ec',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling agents-internal
   # and whatever else without interference from each other.
