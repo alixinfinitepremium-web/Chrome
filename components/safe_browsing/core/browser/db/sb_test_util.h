@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef COMPONENTS_SAFE_BROWSING_CORE_BROWSER_DB_V4_TEST_UTIL_H_
-#define COMPONENTS_SAFE_BROWSING_CORE_BROWSER_DB_V4_TEST_UTIL_H_
+#ifndef COMPONENTS_SAFE_BROWSING_CORE_BROWSER_DB_SB_TEST_UTIL_H_
+#define COMPONENTS_SAFE_BROWSING_CORE_BROWSER_DB_SB_TEST_UTIL_H_
 
 // Contains classes and methods useful for tests.
 
@@ -40,7 +40,7 @@ class TestV4Store : public V4Store {
 
   void MarkPrefixAsBad(HashPrefixStr prefix);
 
-  // |prefixes| does not need to be sorted.
+  // `prefixes` does not need to be sorted.
   void SetPrefixes(std::vector<HashPrefixStr> prefixes, PrefixSize size);
 
   HashPrefixStr GetMatchingHashPrefix(const FullHashStr& full_hash) override;
@@ -154,8 +154,8 @@ struct TestV4HashResponseInfo {
  private:
   TestV4HashResponseInfo();
 };
-// Converts the |response_infos| into a serialized version of a
-// |FindFullHashesResponse|. It also adds values for the cache durations.
+// Converts the `response_infos` into a serialized version of a
+// `FindFullHashesResponse`. It also adds values for the cache durations.
 std::string GetV4HashResponse(
     std::vector<TestV4HashResponseInfo> response_infos);
 
@@ -172,4 +172,4 @@ FullHashInfo GetFullHashInfoWithMetadata(const GURL& url,
 
 }  // namespace safe_browsing
 
-#endif  // COMPONENTS_SAFE_BROWSING_CORE_BROWSER_DB_V4_TEST_UTIL_H_
+#endif  // COMPONENTS_SAFE_BROWSING_CORE_BROWSER_DB_SB_TEST_UTIL_H_

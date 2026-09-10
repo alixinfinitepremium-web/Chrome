@@ -409,7 +409,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libFuzzer
   # and whatever else without interference from each other.
-  'libfuzzer_revision': '42af2c9785432da898f3a990156f9fb4499af2a0',
+  'libfuzzer_revision': 'adc3407201e641a73a551d2f1181c684c33eea56',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling fuzztest
   # and whatever else without interference from each other.
@@ -1766,7 +1766,7 @@ deps = {
   },
 
   'src/docs/website': {
-    'url': Var('chromium_git') + '/website.git' + '@' + 'ec8f4135ff1a1edba906f464cf47b46604bfa481',
+    'url': Var('chromium_git') + '/website.git' + '@' + '949eb2224436ba9fce28aec7cb7faec26665c086',
   },
 
   'src/ios/third_party/earl_grey2/src': {
