@@ -341,7 +341,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': 'c1f0fc38e971d86276f0686725f3ea7f6040b762',
+  'skia_revision': '5a02b34d86cf0d27f4443e9b5a886f854f19c1ee',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -349,7 +349,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': 'fc6d824990759b265559ab7eba7ea1080dc2543d',
+  'angle_revision': 'd8fbcbf5daa7d600cc45178702e1dddcfa641fc1',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -409,7 +409,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libFuzzer
   # and whatever else without interference from each other.
-  'libfuzzer_revision': 'f35e2ead3419b75ddbcc43ed74f870b0d161951c',
+  'libfuzzer_revision': '42af2c9785432da898f3a990156f9fb4499af2a0',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling fuzztest
   # and whatever else without interference from each other.
@@ -2213,7 +2213,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '67a6b1780ee718985d0cae86de140d008d72444a',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '1e5e3539fa466cb2e2e203f9eff5886bb581145d',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -2823,7 +2823,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + 'b1ec541e01db0d9f37b4be8040c5111f95ce1bac',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '5bf94268225caaad92a7551721218fb3d6afbdfc',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
@@ -3214,8 +3214,8 @@ deps = {
       ],
   },
 
-  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@c05f2f719c02ae8e0cff5ce04db10f76778b5bb5',
-  'src/third_party/glslang/src': '{chromium_git}/external/github.com/KhronosGroup/glslang@ebe60e331c21d5c7f09734fbdcebbc46ee5d8507',
+  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@b20ca3260f24e1a168f0c9ee02eea35d1a29e2c6',
+  'src/third_party/glslang/src': '{chromium_git}/external/github.com/KhronosGroup/glslang@83bc342ad741773f1ec12a591d845b7cac6e95ab',
   'src/third_party/spirv-cross/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Cross@b8fcf307f1f347089e3c46eb4451d27f32ebc8d3',
   'src/third_party/spirv-headers/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Headers@04fd3caa1e8267e4d95c806cad901181728e1006',
   'src/third_party/spirv-tools/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Tools@e265f557e3db20843c6d135d2b9eeb51ecc79d73',
