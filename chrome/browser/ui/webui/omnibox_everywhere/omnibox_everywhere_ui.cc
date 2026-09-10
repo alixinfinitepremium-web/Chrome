@@ -79,24 +79,24 @@ namespace {
 // Minimum preferred width for the screenshot Views menu, matching UX specs
 // and the previous dropdown implementation (320px).
 constexpr int kScreenshotMenuWidth = 320;
-bool IsAimEligible(Profile* profile) {
-  auto* aim_eligibility_service =
-      AimEligibilityServiceFactory::GetForProfile(profile);
-  return aim_eligibility_service && aim_eligibility_service->IsAimEligible();
-}
 
 bool IsFuseboxEligible(Profile* profile) {
-  return IsAimEligible(profile) &&
-         AimEligibilityServiceFactory::GetForProfile(profile)
-             ->IsFuseboxEligible();
+  if (!profile) {
+    return false;
+  }
+  auto* aim_eligibility_service =
+      AimEligibilityServiceFactory::GetForProfile(profile);
+  return aim_eligibility_service &&
+         aim_eligibility_service->IsFuseboxEligible();
 }
 
 bool IsFuseboxEnabled(Profile* profile) {
-  const bool show_ai_mode =
-      !profile || !profile->GetPrefs() ||
-      profile->GetPrefs()->GetBoolean(
-          omnibox_everywhere::prefs::kOmniboxEverywhereShowAiMode);
-  return IsFuseboxEligible(profile) && show_ai_mode;
+  if (!IsFuseboxEligible(profile)) {
+    return false;
+  }
+  return !profile || !profile->GetPrefs() ||
+         profile->GetPrefs()->GetBoolean(
+             omnibox_everywhere::prefs::kOmniboxEverywhereShowAiMode);
 }
 
 class OmniboxEverywhereMostVisitedPrefObserver
@@ -264,6 +264,7 @@ OmniboxEverywhereUI::OmniboxEverywhereUI(content::WebUI* web_ui)
        IDS_LOOMNIBOX_FRE_WHERE_TO_FIND_PRIMARY},
       {"managedByYourOrganization", IDS_MANAGED},
       {"profileButtonLabel", IDS_OVERFLOW_MENU_ITEM_TEXT_PROFILE},
+      {"profileTooltipHeader", IDS_OMNIBOX_EVERYWHERE_PROFILE_TOOLTIP},
       {"screenshotEntireScreenLabel", IDS_OMNIBOX_EVERYWHERE_ENTIRE_SCREEN},
       {"screenshotRegionLabel", IDS_OMNIBOX_EVERYWHERE_REGION},
       {"screenshotWindowLabel", IDS_OMNIBOX_EVERYWHERE_WINDOW},
