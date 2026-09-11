@@ -421,7 +421,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '1e6dbd734558f28efc2187cfc2a683efd0033e90',
+  'devtools_frontend_revision': 'eec2088362a485bf76bbab7b459b4ddf8f1cc4d9',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -529,7 +529,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'libunwind_revision':    'a8be4de7dec999dafd1857f3516a7f87ffbe0b22',
+  'libunwind_revision':    '24a407d5353ad38f948f107c7d6bc2bcbb4bca24',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -4107,7 +4107,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        'c744d622d56cd62a4a9501e6ef33b9754553324e',
+        'a55418f12b9660655e2501824a63a5da51426852',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
