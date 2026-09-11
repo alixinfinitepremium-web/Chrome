@@ -129,6 +129,13 @@ class OmniboxEverywhereUI
   // button. `anchor_rect` is in WebUI viewport coordinates (CSS DIPs).
   void ShowContextActionMenu(const gfx::Rect& anchor_rect);
 
+  // Computes the screen point for anchoring the native context menu given the
+  // entrypoint bounding box in WebUI viewport coordinates and container bounds.
+  // Handles both LTR and RTL anchor_rect bounds.
+  static gfx::Point CalculateContextMenuAnchorPoint(
+      const gfx::Rect& anchor_rect,
+      const gfx::Rect& container_bounds);
+
   // omnibox_everywhere_debug::mojom::PageHandlerFactory:
   void BindInterface(
       mojo::PendingReceiver<omnibox_everywhere_debug::mojom::PageHandlerFactory>
@@ -189,7 +196,7 @@ class OmniboxEverywhereUI
   void OnContextMenuClosed();
 
   bool is_composebox_mode() const { return is_composebox_mode_; }
-  void set_is_composebox_mode(bool mode);
+  void SetIsComposebox(bool is_composebox);
 
   void AddFileContext(const base::UnguessableToken& token,
                       searchbox::mojom::SelectedFileInfoPtr file_info);

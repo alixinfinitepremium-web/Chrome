@@ -8,8 +8,10 @@
 #include <string>
 
 #include "base/functional/callback_helpers.h"
+#include "base/i18n/rtl.h"
 #include "base/memory/raw_ptr.h"
 #include "base/test/bind.h"
+#include "base/test/icu_test_util.h"
 #include "base/test/scoped_feature_list.h"
 #include "chrome/browser/autocomplete/aim_eligibility_service_factory.h"
 #include "chrome/browser/autocomplete/chrome_aim_eligibility_service.h"
@@ -18,6 +20,8 @@
 #include "chrome/browser/ui/omnibox/omnibox_everywhere/omnibox_everywhere_prefs.h"
 #include "chrome/browser/ui/omnibox/omnibox_everywhere_service.h"
 #include "chrome/browser/ui/omnibox/omnibox_next_features.h"
+#include "chrome/browser/ui/webui/omnibox_everywhere/mojom/omnibox_everywhere.mojom.h"
+#include "chrome/browser/ui/webui/omnibox_everywhere/omnibox_everywhere_page_handler.h"
 #include "chrome/browser/ui/webui/omnibox_everywhere/omnibox_everywhere_ui.h"
 #include "chrome/browser/ui/webui/searchbox/contextual_searchbox_test_utils.h"
 #include "chrome/browser/ui/webui/searchbox/searchbox_test_utils.h"
@@ -480,6 +484,57 @@ TEST_F(OmniboxEverywhereHandlerTest,
   EXPECT_CALL(mock_page, UpdateAimPopupEligibility(true)).Times(1);
   aim_service->SetFuseboxEligible(true);
   mock_page.FlushForTesting();
+}
+
+TEST_F(OmniboxEverywhereHandlerTest,
+       SetIsComposeboxDoesNotCrashWithNullController) {
+  mojo::Remote<omnibox_everywhere::mojom::PageHandler> page_handler_remote;
+  OmniboxEverywherePageHandler page_handler(
+      page_handler_remote.BindNewPipeAndPassReceiver(), mojo::NullRemote(),
+      /*web_ui_controller=*/nullptr);
+
+  page_handler.SetIsComposebox(true);
+  page_handler.SetIsComposebox(false);
+}
+
+TEST_F(OmniboxEverywhereHandlerTest, CalculateContextMenuAnchorPoint_LTR) {
+  base::test::ScopedRestoreICUDefaultLocale locale("en_US");
+  ASSERT_FALSE(base::i18n::IsRTL());
+
+  gfx::Rect anchor_rect(10, 20, 30, 40);
+  gfx::Rect container_bounds(100, 200, 800, 600);
+
+  // In LTR, anchor point should be anchor_rect.bottom_left() + container
+  // offset. anchor_rect.bottom_left() is (10, 60), container offset is (100,
+  // 200) -> (110, 260).
+  gfx::Point expected_point =
+      anchor_rect.bottom_left() + container_bounds.OffsetFromOrigin();
+  EXPECT_EQ(OmniboxEverywhereUI::CalculateContextMenuAnchorPoint(
+                anchor_rect, container_bounds),
+            expected_point);
+  EXPECT_EQ(OmniboxEverywhereUI::CalculateContextMenuAnchorPoint(
+                anchor_rect, container_bounds),
+            gfx::Point(110, 260));
+}
+
+TEST_F(OmniboxEverywhereHandlerTest, CalculateContextMenuAnchorPoint_RTL) {
+  base::test::ScopedRestoreICUDefaultLocale locale("ar");
+  ASSERT_TRUE(base::i18n::IsRTL());
+
+  gfx::Rect anchor_rect(10, 20, 30, 40);
+  gfx::Rect container_bounds(100, 200, 800, 600);
+
+  // In RTL, anchor point should be anchor_rect.bottom_right() + container
+  // offset. anchor_rect.bottom_right() is (40, 60), container offset is (100,
+  // 200) -> (140, 260).
+  gfx::Point expected_point =
+      anchor_rect.bottom_right() + container_bounds.OffsetFromOrigin();
+  EXPECT_EQ(OmniboxEverywhereUI::CalculateContextMenuAnchorPoint(
+                anchor_rect, container_bounds),
+            expected_point);
+  EXPECT_EQ(OmniboxEverywhereUI::CalculateContextMenuAnchorPoint(
+                anchor_rect, container_bounds),
+            gfx::Point(140, 260));
 }
 
 }  // namespace
