@@ -421,7 +421,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'eec2088362a485bf76bbab7b459b4ddf8f1cc4d9',
+  'devtools_frontend_revision': '3306ec5870f0da91f2a2af4205e976d25e9bd154',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -2797,7 +2797,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/cisco/openh264' + '@' + '9547f96ea5c47f4d465d97b07264b997ecc4b4b6',
 
   'src/third_party/openscreen/src':
-    Var('chromium_git') + '/openscreen' + '@' + '298db45a78b3c36afd45d6badf2666882ca1b741',
+    Var('chromium_git') + '/openscreen' + '@' + '359881de03dd4bb265331421078bdfca85733997',
 
   'src/third_party/openxr/src': {
     'url': Var('chromium_git') + '/external/github.com/KhronosGroup/OpenXR-SDK' + '@' + '75c53b6e853dc12c7b3c771edc9c9c841b15faaa',
@@ -3417,7 +3417,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/help_app/app',
-        'version': '81iQrf8FWiZopdbhO3X8XSI6BYKPBXlQF_MZ8-bm7JUC',
+        'version': 'YEv6SznNpH-gaTrYrf8zxx7rbs7NQDySsQyFJnnnK0gC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -4107,7 +4107,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        'd0de4023eab2b567aeda64fbf4c1e33407ca2a6f',
+        'f037a5c119eeaf7de194fd6dcc7056eaf1303ad7',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 

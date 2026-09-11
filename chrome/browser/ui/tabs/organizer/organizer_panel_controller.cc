@@ -2,9 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "chrome/browser/ui/tabs/organizer/organizer_panel_state_controller.h"
+#include "chrome/browser/ui/tabs/organizer/organizer_panel_controller.h"
 
 #include "base/functional/bind.h"
+#include "base/metrics/histogram_functions.h"
+#include "base/time/time.h"
 #include "chrome/browser/ui/actions/actions_util.h"
 #include "chrome/browser/ui/actions/chrome_action_id.h"
 #include "chrome/browser/ui/animation/browser_animation_controller.h"
@@ -16,9 +18,9 @@
 #include "ui/actions/actions.h"
 #include "ui/base/l10n/l10n_util.h"
 
-DEFINE_USER_DATA(OrganizerPanelStateController);
+DEFINE_USER_DATA(OrganizerPanelController);
 
-OrganizerPanelStateController::OrganizerPanelStateController(
+OrganizerPanelController::OrganizerPanelController(
     BrowserWindowInterface& browser_window,
     actions::ActionItem* root_action_item)
     : browser_window_(browser_window),
@@ -28,19 +30,19 @@ OrganizerPanelStateController::OrganizerPanelStateController(
   UpdateOrganizerActionItem();
 }
 
-OrganizerPanelStateController::~OrganizerPanelStateController() = default;
+OrganizerPanelController::~OrganizerPanelController() = default;
 
 // static
-OrganizerPanelStateController* OrganizerPanelStateController::From(
+OrganizerPanelController* OrganizerPanelController::From(
     BrowserWindowInterface* browser_window) {
   return Get(browser_window->GetUnownedUserDataHost());
 }
 
-bool OrganizerPanelStateController::IsOrganizerPanelVisible() const {
+bool OrganizerPanelController::IsOrganizerPanelVisible() const {
   return is_visible_;
 }
 
-void OrganizerPanelStateController::SetOrganizerVisible(bool visible) {
+void OrganizerPanelController::SetOrganizerVisible(bool visible) {
   if (is_visible_ == visible) {
     return;
   }
@@ -55,11 +57,21 @@ void OrganizerPanelStateController::SetOrganizerVisible(bool visible) {
       ->Start(OrganizerPanelAnimations::kOrganizerPanel,
               is_visible_ ? OrganizerPanelAnimations::kShow
                           : OrganizerPanelAnimations::kHide);
+
+  if (is_visible_) {
+    last_opened_time_ = base::TimeTicks::Now();
+  } else {
+    base::TimeDelta open_duration = base::TimeTicks::Now() - last_opened_time_;
+    base::UmaHistogramCustomCounts("Projects.ProjectsPanel.TimeOpen",
+                                   open_duration.InSeconds(), 1,
+                                   base::Minutes(5).InSeconds(), 50);
+  }
+
   NotifyStateChanged();
 }
 
 #if BUILDFLAG(ENABLE_EXTENSIONS)
-void OrganizerPanelStateController::OpenForExtension(
+void OrganizerPanelController::OpenForExtension(
     const extensions::ExtensionId& extension_id) {
   if (is_visible_ && active_extension_id_ == extension_id) {
     return;
@@ -69,7 +81,7 @@ void OrganizerPanelStateController::OpenForExtension(
   SetOrganizerVisible(true);
 }
 
-void OrganizerPanelStateController::ToggleForExtension(
+void OrganizerPanelController::ToggleForExtension(
     const extensions::ExtensionId& extension_id) {
   if (is_visible_ && active_extension_id_ == extension_id) {
     SetOrganizerVisible(false);
@@ -78,7 +90,7 @@ void OrganizerPanelStateController::ToggleForExtension(
   OpenForExtension(extension_id);
 }
 
-void OrganizerPanelStateController::CloseForExtension(
+void OrganizerPanelController::CloseForExtension(
     const extensions::ExtensionId& extension_id) {
   if (!is_visible_ || active_extension_id_ != extension_id) {
     return;
@@ -87,18 +99,17 @@ void OrganizerPanelStateController::CloseForExtension(
 }
 #endif
 
-base::CallbackListSubscription
-OrganizerPanelStateController::RegisterOnStateChanged(
+base::CallbackListSubscription OrganizerPanelController::RegisterOnStateChanged(
     StateChangedCallback callback) {
   return on_state_changed_callback_list_.Add(std::move(callback));
 }
 
-void OrganizerPanelStateController::NotifyStateChanged() {
+void OrganizerPanelController::NotifyStateChanged() {
   UpdateOrganizerActionItem();
   on_state_changed_callback_list_.Notify(this);
 }
 
-void OrganizerPanelStateController::UpdateOrganizerActionItem() {
+void OrganizerPanelController::UpdateOrganizerActionItem() {
   actions::ActionItem* organizer_action =
       actions::ActionManager::Get().FindAction(kActionToggleOrganizerPanel,
                                                root_action_item_);

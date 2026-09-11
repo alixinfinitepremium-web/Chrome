@@ -2,14 +2,15 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef CHROME_BROWSER_UI_TABS_ORGANIZER_ORGANIZER_PANEL_STATE_CONTROLLER_H_
-#define CHROME_BROWSER_UI_TABS_ORGANIZER_ORGANIZER_PANEL_STATE_CONTROLLER_H_
+#ifndef CHROME_BROWSER_UI_TABS_ORGANIZER_ORGANIZER_PANEL_CONTROLLER_H_
+#define CHROME_BROWSER_UI_TABS_ORGANIZER_ORGANIZER_PANEL_CONTROLLER_H_
 
 #include <optional>
 
 #include "base/callback_list.h"
 #include "base/functional/callback_forward.h"
 #include "base/memory/raw_ptr.h"
+#include "base/time/time.h"
 #include "extensions/buildflags/buildflags.h"
 #include "ui/base/unowned_user_data/scoped_unowned_user_data.h"
 
@@ -23,19 +24,17 @@ namespace actions {
 class ActionItem;
 }  // namespace actions
 
-class OrganizerPanelStateController {
+class OrganizerPanelController {
  public:
-  DECLARE_USER_DATA(OrganizerPanelStateController);
+  DECLARE_USER_DATA(OrganizerPanelController);
 
-  explicit OrganizerPanelStateController(BrowserWindowInterface& browser_window,
-                                         actions::ActionItem* root_action_item);
-  OrganizerPanelStateController(const OrganizerPanelStateController&) = delete;
-  OrganizerPanelStateController& operator=(
-      const OrganizerPanelStateController&) = delete;
-  virtual ~OrganizerPanelStateController();
+  explicit OrganizerPanelController(BrowserWindowInterface& browser_window,
+                                    actions::ActionItem* root_action_item);
+  OrganizerPanelController(const OrganizerPanelController&) = delete;
+  OrganizerPanelController& operator=(const OrganizerPanelController&) = delete;
+  virtual ~OrganizerPanelController();
 
-  static OrganizerPanelStateController* From(
-      BrowserWindowInterface* browser_window);
+  static OrganizerPanelController* From(BrowserWindowInterface* browser_window);
 
   bool IsOrganizerPanelVisible() const;
 
@@ -52,7 +51,7 @@ class OrganizerPanelStateController {
 #endif
 
   using StateChangedCallback =
-      base::RepeatingCallback<void(OrganizerPanelStateController*)>;
+      base::RepeatingCallback<void(OrganizerPanelController*)>;
   base::CallbackListSubscription RegisterOnStateChanged(
       StateChangedCallback callback);
 
@@ -75,13 +74,16 @@ class OrganizerPanelStateController {
   const raw_ref<BrowserWindowInterface> browser_window_;
   const raw_ptr<actions::ActionItem> root_action_item_;
 
-  // Callback list for state changes to the visibility.
-  base::RepeatingCallbackList<void(OrganizerPanelStateController*)>
-      on_state_changed_callback_list_;
-  ui::ScopedUnownedUserData<OrganizerPanelStateController>
-      scoped_unowned_user_data_;
+  // Records the last time the panel was opened. Used for recording how long the
+  // panel was open.
+  base::TimeTicks last_opened_time_;
 
-  base::WeakPtrFactory<OrganizerPanelStateController> weak_ptr_factory_{this};
+  // Callback list for state changes to the visibility.
+  base::RepeatingCallbackList<void(OrganizerPanelController*)>
+      on_state_changed_callback_list_;
+  ui::ScopedUnownedUserData<OrganizerPanelController> scoped_unowned_user_data_;
+
+  base::WeakPtrFactory<OrganizerPanelController> weak_ptr_factory_{this};
 };
 
-#endif  // CHROME_BROWSER_UI_TABS_ORGANIZER_ORGANIZER_PANEL_STATE_CONTROLLER_H_
+#endif  // CHROME_BROWSER_UI_TABS_ORGANIZER_ORGANIZER_PANEL_CONTROLLER_H_
