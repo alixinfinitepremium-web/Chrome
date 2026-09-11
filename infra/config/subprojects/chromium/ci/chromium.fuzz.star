@@ -337,6 +337,7 @@ def fuzz_target_builder(
         clusterfuzz_v8_targets_only = None,
         clusterfuzz_archive_path = None,
         contact_team_email = "chrome-fuzzing-core@google.com",
+        args_to_exclude_from_test_builder = [],
         **kwargs):
     if not name and not test_builder_name:
         fail("Must specify at least one of name or test_builder_name.")
@@ -413,6 +414,8 @@ def fuzz_target_builder(
 
     if not test_builder_name:
         return
+    for arg in args_to_exclude_from_test_builder:
+        kwargs.pop(arg, None)
 
     # Ensure that the test builder names follow a strict convention, but let
     # the caller specify the literal string for codesearchability.
@@ -431,6 +434,7 @@ def fuzz_target_builder(
     description = "Builds and runs fuzz target tests."
     if name:
         description += " Mirrors the build configuration of \"" + name + "\"."
+    kwargs["description_html"] = description
 
     if "ssd" in kwargs:
         kwargs["ssd"] = use_ssd_for_test_builder
@@ -440,7 +444,6 @@ def fuzz_target_builder(
 
     ci_builder(
         name = test_builder_name,
-        description_html = description,
         # We have 1 machine per builder.
         max_concurrent_invocations = 1,
         # Use the builderless machine pool.
@@ -1267,29 +1270,16 @@ libfuzzer_mac_asan_builder(
     schedule = "triggered",
     triggered_by = [],
     builderless = True,
-    cores = 8,
+    cores = None,  # Use any bot in the builderless pool.
     cpu = cpu.ARM64,
     # TODO(b/538747304): Enable gardening once green enough.
     gardener_rotations = args.ignore_default(None),
     target_arch = builder_config.target_arch.ARM,
+    args_to_exclude_from_test_builder = ["schedule", "triggered_by", "gardener_rotations"],
     clusterfuzz_archive_path = "mac-release-asan/libfuzzer-mac-arm64-release",
     console_short_name = "arm64",
     execution_timeout = 4 * time.hour,
     swarming_mixins = ["mac_default_arm64"],
-)
-
-libfuzzer_mac_asan_builder(
-    # TODO(https://crbug.com/431089340): Stand up a builder that uploads fuzz
-    # targets to GCS for ClusterFuzz to fuzz with.
-    name = None,
-    builderless = True,
-    cores = None,  # Use any bot in the builderless pool.
-    cpu = cpu.ARM64,
-    target_arch = builder_config.target_arch.ARM,
-    console_short_name = "arm64",
-    swarming_mixins = ["mac_default_arm64"],
-    # Even if we don't actively fuzz this build configuration yet, it is useful
-    # to test that things nominally work and do not regress.
     test_builder_name = "mac-arm64-libfuzzer-asan-rel-tests",
 )
 
