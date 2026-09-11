@@ -345,7 +345,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': '7930003d1227d38c4ba1ab010d2cea6851ef553f',
+  'v8_revision': '745ef8ec2d84974b86dedad4ffa2bcf345fe1e7b',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -361,7 +361,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': 'ed9366662de30f2f1383ecf79e5d83bbb3375f20',
+  'boringssl_revision': '902518a787630d88a43f3492b72c2b4f231dcf85',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -4107,7 +4107,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '9d91974d5c17e147cb4824d6ede787b1150e9a7c',
+        '50f7a4d6dcbd440889f8f6e7c7f4025bdbc4ec35',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
