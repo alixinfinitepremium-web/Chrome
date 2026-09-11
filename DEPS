@@ -349,7 +349,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': 'a913c254758f584bf7ad876407acc861ec790592',
+  'angle_revision': '94d4f670423864edba94040e9d1498b13ade6cc5',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -1749,7 +1749,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': 'p5sGV-852XedvcLdQip_qGubyqf4nCcPUU9sOpSzbp4C',
+        'version': 'ryW3yVxHnCtT9YJrc9j5r6WthngaMLEz2itZBICfLxIC',
       },
     ],
     'condition': 'non_git_source',
@@ -3260,13 +3260,13 @@ deps = {
     Var('chromium_git') + '/external/khronosgroup/webgl.git' + '@' + '064aaf18207438d4f6dd10c98b02b25778257b7f',
 
   'src/third_party/webgpu-cts/src':
-    Var('chromium_git') + '/external/github.com/gpuweb/cts.git' + '@' + 'a2134bc7916dc6004781a137690b8741aef9aae1',
+    Var('chromium_git') + '/external/github.com/gpuweb/cts.git' + '@' + '32cc9f03ad14135b5f6f833dba83e7e80edc256f',
 
   'src/third_party/webpagereplay':
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '22dfd42c3a74d3ad240cd95cfc1d289625e3116f',
+    Var('webrtc_git') + '/src.git' + '@' + 'c2099d1bf116bc3dcd330431f9971ee023cec602',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
