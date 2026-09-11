@@ -421,7 +421,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '77fc0fc7fdbe5c73414bb83af7a6b1d615296be4',
+  'devtools_frontend_revision': '7657510ee87b8b879c67865dfc3b6e3619235165',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -3477,7 +3477,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/android_deps/autorolled',
-              'version': 'M5geAdO5h5u6qMhI5HJjtl2hy2rurxM_De07GBeU8rQC',
+              'version': 'Ra4uY18mjgX-auWJfZIrL_1e0QkPtVEJUBgn54LcZ1EC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
