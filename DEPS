@@ -1761,7 +1761,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '3a1773d8c2233b0995503b9b37948c896b1b44da',
+    '8e19171c7fbbb66d6ff0daaf633706027b134e31',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -3288,7 +3288,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/google/XNNPACK.git' + '@' + '3c4596adb505f51c042ee14e76731b9004524b1a',
 
   'src/third_party/libei/src': {
-      'url': Var('chromium_git') + '/external/gitlab.freedesktop.org/libinput/libei.git' + '@' + 'cae398c13266540ca67eaeb588cc8fa32e560bfe',
+      'url': Var('chromium_git') + '/external/gitlab.freedesktop.org/libinput/libei.git' + '@' + 'bacd62cae0043e2c4f98cc5e728d8f458b20e8d8',
       'condition': 'checkout_linux',
   },
 
