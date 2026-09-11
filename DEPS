@@ -349,7 +349,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': 'b9f2e4295af4ce07803f0744d43c573ca1b7df57',
+  'angle_revision': 'a913c254758f584bf7ad876407acc861ec790592',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -1514,7 +1514,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_linux64',
-          'version': 'version:2@1690013',
+          'version': 'version:2@1691006',
         },
       ],
   },
@@ -1536,7 +1536,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_mac_arm64',
-          'version': 'version:2@1690006',
+          'version': 'version:2@1691004',
         },
       ],
   },
@@ -1547,7 +1547,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_arm64',
-          'version': 'version:2@1690042',
+          'version': 'version:2@1691009',
         },
       ],
   },
@@ -1569,7 +1569,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_x86_64',
-          'version': 'version:2@1690035',
+          'version': 'version:2@1691046',
         },
       ],
   },
