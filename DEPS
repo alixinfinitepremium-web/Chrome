@@ -341,7 +341,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '3dd439f8c18d264547c2ae5d9d1c20611232425a',
+  'skia_revision': 'd4102253995155b8912e1c71eabe2dc06f25682b',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -421,7 +421,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '55f414b8f536b27498cfbbf7e08fac389e79399c',
+  'devtools_frontend_revision': 'd4950e0e0cd499b90799f834cf7dc1493d8af77f',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -2213,7 +2213,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '63a4bef6268181e8d81168242d9861598ffa1665',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '73fc5a4d6bd051f1fd58404e62dfb83f734b0cfa',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
