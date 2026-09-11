@@ -1669,7 +1669,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_linux64',
-          'version': 'fm8sRGWWdyQZY6yZ5i8iBwjzulsCMXZlI32lCoP9keMC',
+          'version': '2bd4ls6Yj_Al_JdvYy5QJWxVnMOkXUCFhSt8haMEVBYC',
         },
       ],
   },
@@ -1680,7 +1680,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_mac_amd64',
-          'version': 'HpdT6wMe5CSQZvmjXM2ec0AdY2vwGRVE7MA-_Du-qBgC',
+          'version': '4q4y0wnNEQO-ZSehakqUxWaKCzPuqKJ70L9vjAmylrsC',
         },
       ],
   },
@@ -1691,7 +1691,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_mac_arm64',
-          'version': 'sYY7ClL99d1Bryf5psvnNiq27ps_RZOSok_CK9nzRyMC',
+          'version': 'KUJsJdlFD6CyLdd_3EeioChX5yhpMgUKkWsQfc9_TL8C',
         },
       ],
   },
@@ -1713,7 +1713,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_win_x86_64',
-          'version': 'FqFXSG0VnpCchHaHzIRqifHCTv6WkzU3i7JSYyRBWHEC',
+          'version': 'Uqa6jUEMmsq3Yy_CSDGD8Q69mYkAZKtDt28T_t6R2cUC',
         },
       ],
   },
@@ -4107,7 +4107,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        'ef9045f184c961765db58c95c5e7e33984516c6c',
+        'c744d622d56cd62a4a9501e6ef33b9754553324e',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
