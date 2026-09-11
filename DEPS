@@ -1766,7 +1766,7 @@ deps = {
   },
 
   'src/docs/website': {
-    'url': Var('chromium_git') + '/website.git' + '@' + '949eb2224436ba9fce28aec7cb7faec26665c086',
+    'url': Var('chromium_git') + '/website.git' + '@' + 'a88b32e46218523463a769f0ecfcb4da46649ce5',
   },
 
   'src/ios/third_party/earl_grey2/src': {
@@ -4107,7 +4107,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        'f037a5c119eeaf7de194fd6dcc7056eaf1303ad7',
+        'e2e414e129f70bd16cadf1d0bcf084f5736dbe1d',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
