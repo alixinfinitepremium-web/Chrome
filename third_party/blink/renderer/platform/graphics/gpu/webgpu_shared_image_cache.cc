@@ -11,13 +11,13 @@
 #include "base/trace_event/trace_event.h"
 #include "build/build_config.h"
 #include "cc/paint/display_item_list.h"
+#include "cc/paint/paint_recorder.h"
 #include "components/viz/common/resources/shared_image_format_utils.h"
 #include "gpu/command_buffer/client/raster_interface.h"
 #include "gpu/command_buffer/client/shared_image_interface.h"
 #include "gpu/command_buffer/common/capabilities.h"
 #include "third_party/blink/renderer/platform/graphics/canvas_image_provider.h"
 #include "third_party/blink/renderer/platform/graphics/gpu/shared_gpu_context.h"
-#include "third_party/blink/renderer/platform/graphics/memory_managed_paint_recorder.h"
 #include "third_party/blink/renderer/platform/graphics/skia/skia_utils.h"
 #include "third_party/blink/renderer/platform/wtf/functional.h"
 
@@ -124,12 +124,10 @@ void WebGpuSharedImageLease::DrawToBackingSharedImage(
     return;
   }
 
-  MemoryManagedPaintRecorder recorder(resource_.shared_image_->size(),
-                                      /*client=*/nullptr);
-  draw_callback(recorder.getRecordingCanvas());
-  if (recorder.HasReleasableDrawOps()) {
-    cc::PaintRecord last_recording = recorder.ReleaseMainRecording();
-
+  cc::PaintRecorder recorder;
+  draw_callback(*recorder.beginRecording());
+  if (cc::PaintRecord last_recording = recorder.finishRecordingAsPicture();
+      last_recording.has_draw_ops()) {
     auto access = resource_.shared_image_->BeginRasterAccess(
         RasterInterface(), resource_.sync_token_, /*readonly=*/false);
 
@@ -196,24 +194,6 @@ void WebGpuSharedImageLease::DrawToBackingSharedImage(
     image_provider.ReleaseLockedImages();
     image_provider.UnbindTextureBackedImages();
   }
-}
-
-void WebGpuSharedImageLease::WriteToBackingSharedImage(
-    base::FunctionRef<
-        gpu::SyncToken(const scoped_refptr<gpu::ClientSharedImage>&,
-                       const gpu::SyncToken&)> overwrite_callback) {
-  if (IsGpuContextLost()) {
-    return;
-  }
-
-  gpu::SyncToken external_write_sync_token =
-      overwrite_callback(resource_.shared_image_, resource_.sync_token_);
-
-  if (IsGpuContextLost()) {
-    return;
-  }
-
-  WaitSyncToken(external_write_sync_token);
 }
 
 std::optional<gpu::SyncToken> WebGpuSharedImageLease::CopyToBackingSharedImage(
