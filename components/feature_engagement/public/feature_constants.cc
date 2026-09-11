@@ -365,7 +365,7 @@ BASE_FEATURE(kIPHAndroidBottomBarPromoDialog,
              base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kIPHAndroidTabDeclutter,
              "IPH_AndroidTabDeclutter",
-             base::FEATURE_ENABLED_BY_DEFAULT);
+             base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kIPHAndroidVerticalTabsNewLabel,
              "IPH_AndroidVerticalTabsNewLabel",
              base::FEATURE_ENABLED_BY_DEFAULT);
@@ -461,7 +461,7 @@ BASE_FEATURE(kIPHDefaultBrowserPromoSettingCardFeature,
              base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kIPHDownloadHomeFeature,
              "IPH_DownloadHome",
-             base::FEATURE_ENABLED_BY_DEFAULT);
+             base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kIPHDownloadIndicatorFeature,
              "IPH_DownloadIndicator",
              base::FEATURE_DISABLED_BY_DEFAULT);

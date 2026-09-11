@@ -1015,6 +1015,36 @@
             ]
         }
     ],
+    "AndroidTabDeclutterIPH": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "IPH_AndroidTabDeclutter"
+                    ],
+                    "disable_features": []
+                },
+                {
+                    "name": "Enabled_IPHTrackingOnly",
+                    "params": {
+                        "IPH_AndroidTabDeclutter_availability": "any",
+                        "IPH_AndroidTabDeclutter_event_1": "name:android_tab_declutter_iph_triggered;comparator:<3;window:360;storage:360",
+                        "IPH_AndroidTabDeclutter_event_trigger": "name:android_tab_declutter_iph_triggered;comparator:==0;window:7;storage:7",
+                        "IPH_AndroidTabDeclutter_event_used": "name:android_tab_declutter_button_clicked;comparator:==0;window:360;storage:360",
+                        "IPH_AndroidTabDeclutter_session_rate": "==0"
+                    },
+                    "enable_features": [
+                        "IPH_AndroidTabDeclutter"
+                    ],
+                    "disable_features": []
+                }
+            ]
+        }
+    ],
     "AndroidThreadPriority": [
         {
             "platforms": [
@@ -7531,6 +7561,66 @@
                     "enable_features": [
                         "DomStorageSqliteNewDatabases"
                     ]
+                }
+            ]
+        }
+    ],
+    "DownloadHomeIPH": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "IPH_DownloadHome"
+                    ],
+                    "disable_features": []
+                },
+                {
+                    "name": "Enabled_IPHTrackingOnly",
+                    "params": {
+                        "IPH_DownloadHome_availability": ">=14",
+                        "IPH_DownloadHome_event_1": "name:download_completed;comparator:>=1;window:90;storage:360",
+                        "IPH_DownloadHome_event_trigger": "name:download_home_iph_trigger;comparator:==0;window:90;storage:360",
+                        "IPH_DownloadHome_event_used": "name:download_home_opened;comparator:==0;window:90;storage:360",
+                        "IPH_DownloadHome_session_rate": "==0",
+                        "IPH_DownloadHome_snooze_params": "max_limit:3,snooze_interval:7"
+                    },
+                    "enable_features": [
+                        "IPH_DownloadHome"
+                    ],
+                    "disable_features": []
+                }
+            ]
+        }
+    ],
+    "DownloadIndicatorIPH": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "IPH_DownloadIndicator"
+                    ],
+                    "disable_features": []
+                },
+                {
+                    "name": "Enabled_IPHTrackingOnly",
+                    "params": {
+                        "IPH_DownloadIndicator_availability": "any",
+                        "IPH_DownloadIndicator_event_trigger": "name:download_indicator_iph_trigger;comparator:<2;window:360;storage:360",
+                        "IPH_DownloadIndicator_event_used": "name:download_home_opened;comparator:==0;window:90;storage:360",
+                        "IPH_DownloadIndicator_session_rate": "any"
+                    },
+                    "enable_features": [
+                        "IPH_DownloadIndicator"
+                    ],
+                    "disable_features": []
                 }
             ]
         }
@@ -19282,6 +19372,36 @@
                     "enable_features": [
                         "TabStripStopSpinnerOnLoadStop"
                     ]
+                }
+            ]
+        }
+    ],
+    "TabSwitcherButtonSwitchIncognitoIPH": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "IPH_TabSwitcherButtonSwitchIncognito"
+                    ],
+                    "disable_features": []
+                },
+                {
+                    "name": "Enabled_IPHTrackingOnly",
+                    "params": {
+                        "IPH_TabSwitcherButtonSwitchIncognito_availability": "any",
+                        "IPH_TabSwitcherButtonSwitchIncognito_event_trigger": "name:tab_switcher_switch_incognito_iph_triggered;comparator:==0;window:90;storage:90",
+                        "IPH_TabSwitcherButtonSwitchIncognito_event_used": "name:tab_switcher_button_long_clicked;comparator:==0;window:14;storage:90",
+                        "IPH_TabSwitcherButtonSwitchIncognito_session_rate": "<1",
+                        "IPH_TabSwitcherButtonSwitchIncognito_snooze_params": "max_limit:3,snooze_interval:7"
+                    },
+                    "enable_features": [
+                        "IPH_TabSwitcherButtonSwitchIncognito"
+                    ],
+                    "disable_features": []
                 }
             ]
         }
