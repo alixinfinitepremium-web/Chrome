@@ -361,7 +361,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': '2b60ed4ed5bd9b3c99eec9b579ad331a6a3c5d92',
+  'boringssl_revision': 'ed9366662de30f2f1383ecf79e5d83bbb3375f20',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -2213,7 +2213,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'cd1b9c9b123bdadedc2523d5c69a6313e88f3996',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '63a4bef6268181e8d81168242d9861598ffa1665',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
