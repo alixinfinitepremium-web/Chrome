@@ -1761,7 +1761,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '81456ce89ed42874e4005570547bf72d03273502',
+    '7f7c0d1c9e444e77135d4c298964ac16759f1d52',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -3266,7 +3266,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + 'd9bd07ba5f614156021df666ba4052ac73cf7953',
+    Var('webrtc_git') + '/src.git' + '@' + '374754dfa1ae49c7e7f6cc0eb75a1f68d53a76ed',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
