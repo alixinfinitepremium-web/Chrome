@@ -1761,7 +1761,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    'bd0ebdde9e63971f47aca6ec7bdfd883a6b673b8',
+    '1b3fd09e64cc4ddeaef6d41bf596ac1ed6cec03a',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -3214,7 +3214,7 @@ deps = {
       ],
   },
 
-  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@e0fbe595b9e6f4a57cb66b88513b35fbe8760d0e',
+  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@652d56ad7d623227767e3b01b6f1f0ce421b5a58',
   'src/third_party/glslang/src': '{chromium_git}/external/github.com/KhronosGroup/glslang@516724d96aa3b06dda3de642d55581adf8c2fdf3',
   'src/third_party/spirv-cross/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Cross@b8fcf307f1f347089e3c46eb4451d27f32ebc8d3',
   'src/third_party/spirv-headers/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Headers@04fd3caa1e8267e4d95c806cad901181728e1006',
@@ -3223,7 +3223,7 @@ deps = {
   'src/third_party/vulkan-loader/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Loader@bde79ad2dd832db9180c4a6eca2e84ceb12b1bb0',
   'src/third_party/vulkan-tools/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Tools@462d9819e5953e064e1dcdc04d3edc5fc6bc9431',
   'src/third_party/vulkan-utility-libraries/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Utility-Libraries@2176ec8c5f5d2272161277ab96fe5b8f7633113e',
-  'src/third_party/vulkan-validation-layers/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-ValidationLayers@2ed5c393d87d0f507a538c70cfdefd9141a46437',
+  'src/third_party/vulkan-validation-layers/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-ValidationLayers@b00461b6c183fbe6fae4f103a9a1d7855258dd61',
 
   'src/third_party/vulkan_memory_allocator':
     Var('chromium_git') + '/external/github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git' + '@' + '82a9d47e4f9d91f0e32d2b6acd9714fcee1933a0',
@@ -3266,7 +3266,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '374754dfa1ae49c7e7f6cc0eb75a1f68d53a76ed',
+    Var('webrtc_git') + '/src.git' + '@' + 'd9ec82c89d94c319e2a1f547c1bdd58591828455',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -3395,7 +3395,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_receiver_app/app',
-        'version': '28KssZ0frz4a9wr-eo1U_NiS2T8InGadLKmo3pTWBwcC',
+        'version': 'RUR2hMZi4MB-VOPLtKNEhTIgXeq2Ft25p2woH0A5HIcC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3406,7 +3406,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_app/app',
-        'version': 'mrEYXLQEOupaszOiGsDz9Qof9mqf0gxXsC7TJGAKankC',
+        'version': 'Mzl-39GdJZeo-HYoxS0G4_Ol-PwciCV3QRoVcb7XD8kC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3461,7 +3461,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/projector_app/app',
-        'version': 'yLri-A29s5Vs2Ck-kYso0UAFtJYccRSAIeoFVc3kNWsC',
+        'version': 'e6AuAXbrLAoTsubZLNhyvZbop17AD7aTbYW5uKd6_KoC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -4107,7 +4107,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '50f7a4d6dcbd440889f8f6e7c7f4025bdbc4ec35',
+        'b75f2c84b54b9550697f13d8568e8250114608c4',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
