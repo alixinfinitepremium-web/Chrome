@@ -2797,7 +2797,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/cisco/openh264' + '@' + '9547f96ea5c47f4d465d97b07264b997ecc4b4b6',
 
   'src/third_party/openscreen/src':
-    Var('chromium_git') + '/openscreen' + '@' + '359881de03dd4bb265331421078bdfca85733997',
+    Var('chromium_git') + '/openscreen' + '@' + 'b16d8fa4dbb4f53c9f1d7882dce3a24b55028c5c',
 
   'src/third_party/openxr/src': {
     'url': Var('chromium_git') + '/external/github.com/KhronosGroup/OpenXR-SDK' + '@' + '75c53b6e853dc12c7b3c771edc9c9c841b15faaa',
@@ -3214,8 +3214,8 @@ deps = {
       ],
   },
 
-  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@7848e53100d427dc6ca1dfee908af455cbf6aa55',
-  'src/third_party/glslang/src': '{chromium_git}/external/github.com/KhronosGroup/glslang@59c4e114196ad8315cbb6d079af46ec56aa31f39',
+  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@e0fbe595b9e6f4a57cb66b88513b35fbe8760d0e',
+  'src/third_party/glslang/src': '{chromium_git}/external/github.com/KhronosGroup/glslang@516724d96aa3b06dda3de642d55581adf8c2fdf3',
   'src/third_party/spirv-cross/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Cross@b8fcf307f1f347089e3c46eb4451d27f32ebc8d3',
   'src/third_party/spirv-headers/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Headers@04fd3caa1e8267e4d95c806cad901181728e1006',
   'src/third_party/spirv-tools/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Tools@562ff5b020f594f29c39d6117da67b0fbced70d8',
@@ -4029,7 +4029,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        '4f8ef690710e8eda0090cd899fa51d1fb77ca4fd',
+        '1e2d42b6f9c099d511181cbcad0cb0b2943cacd3',
       'condition': 'checkout_src_internal',
   },
 
