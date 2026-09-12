@@ -28,14 +28,10 @@ class ProfileDynamicMenu {
   }
 
   void BuildProfileActions(actions::BaseAction* parent_item);
+  void BuildOtherProfiles(actions::BaseAction* parent_item);
 
  private:
   bool BuildSyncSection(actions::BaseAction* parent_item, Profile* profile);
-  void BuildManageGoogleAccountRow(actions::BaseAction* parent_item,
-                                   Profile* profile);
-  void BuildCustomizeProfileRow(actions::BaseAction* parent_item,
-                                Profile* profile);
-  void BuildCloseProfileRow(actions::BaseAction* parent_item, Profile* profile);
   void BuildOtherProfilesSection(actions::BaseAction* parent_item,
                                  Profile* profile,
                                  const ui::ColorProvider* color_provider);
