@@ -1761,7 +1761,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    'd2042a6e0d028ca88453dcf2ff810475b9e83e17',
+    'c93797d1038113b52f692dd103d5ce034837ca47',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -3417,7 +3417,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/help_app/app',
-        'version': 'A_aUH2m4LDRHWiobkrOayOcvWmM2g4ExbYXsGH_4ZJkC',
+        'version': 'Gexvh0X1IidqWKP8JPKGXbxAlPZBva4DFaTeiTK5vaQC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
