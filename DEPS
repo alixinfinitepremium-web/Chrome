@@ -341,7 +341,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '6f85503e50b433f0a1053456d7b3ca0220845a48',
+  'skia_revision': 'eaf9f82813ebb65546de238278f344de52fe8306',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -1761,7 +1761,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '18cd4f6064fcb334aba7552991195188e4e2674d',
+    '82e96c75d91fed813a5f7f4c056fe59a46f715c0',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -3395,7 +3395,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_receiver_app/app',
-        'version': 'RUR2hMZi4MB-VOPLtKNEhTIgXeq2Ft25p2woH0A5HIcC',
+        'version': 'VuYXfP1vQRUB8wZM5vHcfO8vV4vmBSotDArWjTbNHgIC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3461,7 +3461,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/projector_app/app',
-        'version': 'e6AuAXbrLAoTsubZLNhyvZbop17AD7aTbYW5uKd6_KoC',
+        'version': '9OoAwpbTycdwWeCeHxu8Xl46cnnWaAyPBQ4yVB68FbYC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
