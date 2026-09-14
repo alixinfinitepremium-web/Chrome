@@ -341,7 +341,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': 'eaf9f82813ebb65546de238278f344de52fe8306',
+  'skia_revision': '7a6fd7ff72d5d2d2ecf08b0a98823583888042b3',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -3396,7 +3396,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_receiver_app/app',
-        'version': 'VuYXfP1vQRUB8wZM5vHcfO8vV4vmBSotDArWjTbNHgIC',
+        'version': 'NddMl3ixfUW3mt9iiyljc7QEuZuTrFFrJRxAqitettoC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3407,7 +3407,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_app/app',
-        'version': '6w_qzuQHbgrQVcPwkwtmPVdWhpCOhr_wlMq7WiLoltAC',
+        'version': '9KV7-TjjtpEU68d96ydwyFzS-0A2cLQF8Qj3RTqwYDgC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -4108,7 +4108,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        'ad53cc1a2a56c33d6da67d5836d36faeefd94310',
+        'f3ac56b60076911cc217f42140edfb162d532f56',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
