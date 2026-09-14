@@ -421,7 +421,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'a1c284f3e84400a4c9527c02b0b4b9157a98f66d',
+  'devtools_frontend_revision': '9bf8dc808ad9825495a5b6a96a8491fa533f1d64',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1749,7 +1749,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': 'LpV8JJsNwa52r4-NuJ-TqTxpxIfv8yzMiwV8dUQtfSEC',
+        'version': '12AAlRt-4WKNtmiPIv0IVWeAue2U2f6LUvqDs1Mi7RAC',
       },
     ],
     'condition': 'non_git_source',
@@ -1761,7 +1761,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    'a687a2898aed3bc47037e629924a5ef9dab53983',
+    '7080b2216dafebbe955396cd588f4dbaaac16235',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -3288,7 +3288,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/google/XNNPACK.git' + '@' + '3c4596adb505f51c042ee14e76731b9004524b1a',
 
   'src/third_party/libei/src': {
-      'url': Var('chromium_git') + '/external/gitlab.freedesktop.org/libinput/libei.git' + '@' + 'bacd62cae0043e2c4f98cc5e728d8f458b20e8d8',
+      'url': Var('chromium_git') + '/external/gitlab.freedesktop.org/libinput/libei.git' + '@' + '401ed364fd68a81988d0fd1234358dda1262e5f0',
       'condition': 'checkout_linux',
   },
 
