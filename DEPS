@@ -337,7 +337,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '09e807d4bfbbba73bfae2a5f8b92a51e517fe70e',
+  'src_internal_revision': '186752e2a8e629ef5d7c9aeb87d9cbefd9bcc571',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -561,7 +561,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling agents-internal
   # and whatever else without interference from each other.
-  'agents_internal_revision': 'fbd26bb4531eaaecfc8cb80a6eab3c85a6e672dd',
+  'agents_internal_revision': 'df215dd50c93657e9b8d27dbdefde1f6b8589ed6',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling agents-public
   # and whatever else without interference from each other.
@@ -1713,7 +1713,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_win_x86_64',
-          'version': 'Uqa6jUEMmsq3Yy_CSDGD8Q69mYkAZKtDt28T_t6R2cUC',
+          'version': 'dg-k5THNyITm66pN7P1B6OBHTrkR6Iqzd9SqyIVSpScC',
         },
       ],
   },
@@ -3418,7 +3418,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/help_app/app',
-        'version': 'Gexvh0X1IidqWKP8JPKGXbxAlPZBva4DFaTeiTK5vaQC',
+        'version': 'OfBrvUxnvwiH9tGAlTLMQzbbLai3TJqOIngb9GMaqPoC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
