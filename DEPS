@@ -421,7 +421,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '9bf8dc808ad9825495a5b6a96a8491fa533f1d64',
+  'devtools_frontend_revision': '132dfe19ed0ad1aed67bb5ba500c6d9493292c1e',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -3252,7 +3252,8 @@ deps = {
       'condition': 'checkout_linux',
   },
 
-  # Keep this to the same revision as the one .vpython3.
+  # Keep this version (currently 4.33.0) synchronized with the selenium wheel
+  # in both //vpython.toml and //.vpython3.
   'src/third_party/webdriver/pylib':
     Var('chromium_git') + '/external/github.com/SeleniumHQ/selenium/py.git' + '@' + '1e954903022e9386b9acf452c24f4458dd4c4fc1',
 
@@ -3266,7 +3267,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '3bbfdf3f54610fabeedd8ef287036b0cc8fe4c2d',
+    Var('webrtc_git') + '/src.git' + '@' + '1079dd2b0f1baee1e73012ad8413830a3c2fda7c',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -4419,7 +4420,7 @@ hooks = [
     'name': 'vpython3_common',
     'pattern': '.',
     'action': [ 'vpython3',
-                '-vpython-spec', 'src/.vpython3',
+                '-vpython-spec', 'src/vpython.toml',
                 '-vpython-tool', 'install',
     ],
   },
