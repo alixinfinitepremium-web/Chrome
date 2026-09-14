@@ -4028,7 +4028,8 @@
                         "MigratedObsoleteSystem": "true",
                         "MigratedPageInfo": "true",
                         "MigratedPdf": "true",
-                        "MigratedPinInfoBar": "true"
+                        "MigratedPinInfoBar": "true",
+                        "MigratedSessionRestore": "true"
                     },
                     "enable_features": [
                         "CentralizedInfoBarFramework"
@@ -7811,27 +7812,6 @@
                     "name": "Enabled",
                     "enable_features": [
                         "EnableASWebAuthenticationSession"
-                    ]
-                }
-            ]
-        }
-    ],
-    "EnableAccountPreviewData": [
-        {
-            "platforms": [
-                "android",
-                "chromeos",
-                "ios",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled_20260805",
-                    "enable_features": [
-                        "EnableAccountPreviewData",
-                        "EnableAccountPreviewEntityPreviews"
                     ]
                 }
             ]
