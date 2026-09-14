@@ -337,7 +337,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '66dee5d8d20c124dd13cd2e9a93a4e8d1b196102',
+  'src_internal_revision': '09e807d4bfbbba73bfae2a5f8b92a51e517fe70e',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -2213,7 +2213,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '36a8df4ad006eaa0572fb446edb8145fe5403592',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '48e2effc16e57e40185b4793dd00017c15540fd0',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -3429,7 +3429,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/media_app/app',
-        'version': 'd-zcUHaQ-tqe6YMgQ5p6mwfjHYZSrUfxfDTuSsOb5rEC',
+        'version': 'o2N9qLaHqkWHSNXbqMpBG4Efj19bofd_RNzG5VeEeP4C',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
