@@ -293,7 +293,7 @@ vars = {
   # binary available on `PATH`, or absolute path.
   'reapi_credential_helper': Str(''),
   # siso CIPD package version.
-  'siso_version': 'git_revision:2f0eb0113740f469481a64760ab8feabe529a5b1',
+  'siso_version': 'git_revision:d38036b64e81c5fdb5d25a92081e6f98a020163d',
 
   # CPython 3 CIPD package version for Siso hermetic toolchain.
   'cpython3_version': 'version:3@3.11.9.chromium.38',
@@ -1761,7 +1761,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    'c640a9220ea4527c4eb5e76b820ef2c37ec3810b',
+    'a687a2898aed3bc47037e629924a5ef9dab53983',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
