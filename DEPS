@@ -337,7 +337,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': 'a469d77c71f90ffd6bca7a156ff60ed35f879850',
+  'src_internal_revision': '76df0b3952891e1057f5797b5b89891dc1d69ae9',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -345,11 +345,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': '745ef8ec2d84974b86dedad4ffa2bcf345fe1e7b',
+  'v8_revision': '17abeb50acb4563e253edebd0db09062d39c8c91',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '748d1ec06732e22b1468bf4bb7e65fc4b895d80e',
+  'angle_revision': '8194b221b0147b167c559fdec6a37ac70586d0e2',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -1691,7 +1691,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_mac_arm64',
-          'version': 'KUJsJdlFD6CyLdd_3EeioChX5yhpMgUKkWsQfc9_TL8C',
+          'version': 'HPaQbkavrM-x68z36Gs2CVdxqI8UzG3FX-HcfnZfzjQC',
         },
       ],
   },
@@ -1749,7 +1749,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': '12AAlRt-4WKNtmiPIv0IVWeAue2U2f6LUvqDs1Mi7RAC',
+        'version': '_yH9uv8n86zX9Jf6OfrYRCJIx_A1oEHoPtmQdxUPv3cC',
       },
     ],
     'condition': 'non_git_source',
@@ -2797,7 +2797,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/cisco/openh264' + '@' + '9547f96ea5c47f4d465d97b07264b997ecc4b4b6',
 
   'src/third_party/openscreen/src':
-    Var('chromium_git') + '/openscreen' + '@' + '669453b5b8cf11b51462b791be1a580c15139ffb',
+    Var('chromium_git') + '/openscreen' + '@' + 'd11342d20e542b48cc63e2d932a273c20cc99820',
 
   'src/third_party/openxr/src': {
     'url': Var('chromium_git') + '/external/github.com/KhronosGroup/OpenXR-SDK' + '@' + '75c53b6e853dc12c7b3c771edc9c9c841b15faaa',
@@ -3050,11 +3050,13 @@ deps = {
   'src/third_party/robolectric/cipd': {
       'packages': [
           {
-              'package': 'chromium/third_party/robolectric',
-              'version': '2VsyOy5QqREpP3T_yBOVM23M7Te5o0vz6oHubhKzYbsC',
+              'package': 'chromium/third_party/robolectric/${{platform}}',
+              'version': 'version:2@android-all-17-robolectric-15733970-2921868143',
           },
       ],
-      'condition': 'checkout_android and non_git_source',
+      'condition': 'checkout_android and non_git_source and '
+                   '((host_os == "linux" and host_cpu == "x64") or '
+                   '(host_os == "mac" and host_cpu == "arm64"))',
       'dep_type': 'cipd',
   },
 

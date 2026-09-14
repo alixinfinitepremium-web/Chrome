@@ -106,7 +106,7 @@ TEST_F(SBProtocolManagerUtilTest, TestGetRequestUrlAndUpdateHeaders) {
   net::HttpRequestHeaders headers;
   GURL gurl;
   SBProtocolManagerUtil::GetRequestUrlAndHeaders("request_base64", "someMethod",
-                                                 GetTestV4ProtocolConfig(),
+                                                 GetTestSBProtocolConfig(),
                                                  &gurl, &headers);
   std::string expectedUrl =
       "https://safebrowsing.googleapis.com/v4/someMethod?"
@@ -386,8 +386,7 @@ TEST_F(SBProtocolManagerUtilTest, TestGetHashPrefix) {
 }
 
 TEST_F(SBProtocolManagerUtilTest, SetV5UserAgentHeader) {
-  // TODO(crbug.com/362791941): Replace v4 references.
-  V4ProtocolConfig config(/*client_name=*/"client",
+  SBProtocolConfig config(/*client_name=*/"client",
                           /*disable_auto_update=*/false,
                           /*key_param=*/"",
                           /*version=*/"1.0");

@@ -1038,12 +1038,12 @@ ChromeExtensionsBrowserClient::GetSafeBrowsingDatabaseManager() const {
 #endif
 }
 
-std::optional<safe_browsing::V4ProtocolConfig>
-ChromeExtensionsBrowserClient::GetV4ProtocolConfig() const {
+std::optional<safe_browsing::SBProtocolConfig>
+ChromeExtensionsBrowserClient::GetSBProtocolConfig() const {
 #if BUILDFLAG(SAFE_BROWSING_AVAILABLE)
   return g_browser_process && g_browser_process->safe_browsing_service()
              ? std::optional(g_browser_process->safe_browsing_service()
-                                 ->GetV4ProtocolConfig())
+                                 ->GetSBProtocolConfig())
              : std::nullopt;
 #else
   return std::nullopt;
