@@ -349,7 +349,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': 'df75ba985c640a466df30a95b8f600eb58595230',
+  'angle_revision': '748d1ec06732e22b1468bf4bb7e65fc4b895d80e',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -421,7 +421,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '67527d106f6c8f872d64b79a390214cc41244d27',
+  'devtools_frontend_revision': '2a3a496f068f4e1d32e850469e46c98a2879872a',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1761,7 +1761,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '865585d7710747cf8398cd8edc3577043d9cf702',
+    'e2583b27f3d46c4e3104c30a5cbb27d4073fb68c',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -2265,7 +2265,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/google/flatbuffers.git' + '@' + 'a86afae9399bbe631d1ea0783f8816e780e236cc',
 
   'src/third_party/fontconfig/src': {
-      'url': Var('chromium_git') + '/external/fontconfig.git' + '@' + 'd17ee184e436712c2abbe14a9c0ec02fb6acf5c5',
+      'url': Var('chromium_git') + '/external/fontconfig.git' + '@' + '478e7774a514244469424eda870ad2c029bf62a6',
       'condition': 'checkout_linux',
   },
 
@@ -3267,7 +3267,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + 'b9eac311d17be91267f94c380bc324fe3ef5e937',
+    Var('webrtc_git') + '/src.git' + '@' + '559db48e3c46485e2d449eb2f5b5539e6ead45e8',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -4108,7 +4108,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '1027986f7779f5d3397ab2380714e35c06d844af',
+        '595766376aa7f32d2404e2d09371d395b7c977f3',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 

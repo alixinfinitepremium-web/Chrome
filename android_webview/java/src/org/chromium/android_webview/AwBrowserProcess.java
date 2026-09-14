@@ -4,65 +4,26 @@
 
 package org.chromium.android_webview;
 
-import android.Manifest;
-import android.content.ComponentName;
-import android.content.Context;
-import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.os.IBinder;
 import android.os.StrictMode;
-import android.os.SystemClock;
-import android.os.storage.StorageManager;
-
-import androidx.annotation.IntDef;
-
-import com.google.protobuf.InvalidProtocolBufferException;
 
 import org.jni_zero.JNINamespace;
 import org.jni_zero.JniType;
 import org.jni_zero.NativeMethods;
 
 import org.chromium.android_webview.accessibility.AwAccessibilityStateVisibilityManager;
-import org.chromium.android_webview.common.AwFeatureMap;
-import org.chromium.android_webview.common.AwFeatures;
-import org.chromium.android_webview.common.AwSwitches;
 import org.chromium.android_webview.common.Lifetime;
-import org.chromium.android_webview.common.WebViewCachedFlags;
-import org.chromium.android_webview.common.services.IMetricsBridgeService;
-import org.chromium.android_webview.common.services.ServiceConnectionDelayRecorder;
-import org.chromium.android_webview.common.services.ServiceNames;
-import org.chromium.android_webview.metrics.AwNonembeddedUmaReplayer;
-import org.chromium.android_webview.proto.MetricsBridgeRecords.HistogramRecord;
-import org.chromium.base.CommandLine;
 import org.chromium.base.ContextUtils;
-import org.chromium.base.FieldTrialList;
-import org.chromium.base.Log;
 import org.chromium.base.PathUtils;
-import org.chromium.base.TimeUtils;
 import org.chromium.base.library_loader.LibraryLoader;
-import org.chromium.base.library_loader.LibraryPrefetcher;
 import org.chromium.base.library_loader.LibraryProcessType;
-import org.chromium.base.metrics.RecordHistogram;
-import org.chromium.base.task.PostTask;
-import org.chromium.base.task.TaskTraits;
 import org.chromium.build.annotations.Nullable;
 import org.chromium.content_public.browser.ChildProcessCreationParams;
-import org.chromium.net.NetworkChangeNotifier;
-
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 /** Wrapper for the steps needed to initialize the java and native sides of webview chromium. */
 @JNINamespace("android_webview")
 @Lifetime.Singleton
 public final class AwBrowserProcess {
-    private static final String TAG = "AwBrowserProcess";
-
     private static final String WEBVIEW_DIR_BASENAME = "webview";
-
-    private static final int MINUTES_PER_DAY =
-            (int) TimeUnit.SECONDS.toMinutes(TimeUtils.SECONDS_PER_DAY);
 
     private static String sWebViewPackageName;
     private static @Nullable String sProcessDataDirSuffix;
@@ -187,231 +148,6 @@ public final class AwBrowserProcess {
 
     public static boolean isDataDirBasePathOverridden() {
         return sDataDirBasePathOverridden;
-    }
-
-    // These values are persisted to logs. Entries should not be renumbered and
-    // numeric values should never be reused.
-    @IntDef({
-        TransmissionResult.SUCCESS,
-        TransmissionResult.MALFORMED_PROTOBUF,
-        TransmissionResult.REMOTE_EXCEPTION
-    })
-    private @interface TransmissionResult {
-        int SUCCESS = 0;
-        int MALFORMED_PROTOBUF = 1;
-        int REMOTE_EXCEPTION = 2;
-        int COUNT = 3;
-    }
-
-    private static void logTransmissionResult(@TransmissionResult int sample) {
-        RecordHistogram.recordEnumeratedHistogram(
-                "Android.WebView.NonEmbeddedMetrics.TransmissionResult",
-                sample,
-                TransmissionResult.COUNT);
-    }
-
-    /**
-     * Record very long times UMA histogram up to 4 days.
-     *
-     * @param name histogram name.
-     * @param time time sample in millis.
-     */
-    private static void recordVeryLongTimesHistogram(String name, long time) {
-        long timeMins = TimeUnit.MILLISECONDS.toMinutes(time);
-        int sample;
-        // Safely convert to int to avoid positive or negative overflow.
-        if (timeMins > Integer.MAX_VALUE) {
-            sample = Integer.MAX_VALUE;
-        } else if (timeMins < Integer.MIN_VALUE) {
-            sample = Integer.MIN_VALUE;
-        } else {
-            sample = (int) timeMins;
-        }
-        RecordHistogram.recordCustomCountHistogram(name, sample, 1, 4 * MINUTES_PER_DAY, 50);
-    }
-
-    /**
-     * Connect to {@link org.chromium.android_webview.services.MetricsBridgeService} to retrieve any
-     * recorded UMA metrics from nonembedded WebView services and transmit them back using UMA APIs.
-     */
-    public static void collectNonembeddedMetrics() {
-        if (ManifestMetadataUtil.isAppOptedOutFromMetricsCollection()) {
-            Log.d(TAG, "App opted out from metrics collection, not connecting to metrics service");
-            return;
-        }
-
-        final Intent intent = new Intent();
-        intent.setClassName(getWebViewPackageName(), ServiceNames.METRICS_BRIDGE_SERVICE);
-
-        ServiceConnectionDelayRecorder connection =
-                new ServiceConnectionDelayRecorder() {
-                    private boolean mHasConnected;
-
-                    @Override
-                    public void onServiceConnectedImpl(ComponentName className, IBinder service) {
-                        if (mHasConnected) return;
-                        mHasConnected = true;
-                        // onServiceConnected is called on the UI thread, so punt this back to the
-                        // background thread.
-                        PostTask.postTask(
-                                TaskTraits.BEST_EFFORT,
-                                () -> {
-                                    sendMetricsToService(service);
-                                    ContextUtils.getApplicationContext().unbindService(this);
-                                });
-                    }
-
-                    @Override
-                    public void onServiceDisconnected(ComponentName className) {}
-                };
-
-        Context appContext = ContextUtils.getApplicationContext();
-        if (!connection.bind(appContext, intent, Context.BIND_AUTO_CREATE)) {
-            Log.d(TAG, "Could not bind to MetricsBridgeService %s", intent);
-        }
-    }
-
-    // AIDL returns a raw List because List<byte[]> is not a supported AIDL type.
-    @SuppressWarnings("unchecked")
-    private static void sendMetricsToService(IBinder service) {
-        try {
-            IMetricsBridgeService metricsService = IMetricsBridgeService.Stub.asInterface(service);
-
-            List<byte[]> data = metricsService.retrieveNonembeddedMetrics();
-            RecordHistogram.recordCount1000Histogram(
-                    "Android.WebView.NonEmbeddedMetrics.NumHistograms", data.size());
-            long systemTime = System.currentTimeMillis();
-            for (byte[] recordData : data) {
-                HistogramRecord record = HistogramRecord.parseFrom(recordData);
-                AwNonembeddedUmaReplayer.replayMethodCall(record);
-                if (record.hasMetadata()) {
-                    long timeRecorded = record.getMetadata().getTimeRecorded();
-                    recordVeryLongTimesHistogram(
-                            "Android.WebView.NonEmbeddedMetrics.HistogramRecordAge",
-                            systemTime - timeRecorded);
-                }
-            }
-            logTransmissionResult(TransmissionResult.SUCCESS);
-        } catch (InvalidProtocolBufferException e) {
-            Log.d(TAG, "Malformed metrics log proto", e);
-            logTransmissionResult(TransmissionResult.MALFORMED_PROTOBUF);
-        } catch (Exception e) {
-            // RemoteException, IllegalArgumentException
-            // (https://crbug.com/1403976)
-            Log.d(TAG, "Remote Exception in MetricsBridgeService#retrieveMetrics", e);
-            logTransmissionResult(TransmissionResult.REMOTE_EXCEPTION);
-        }
-    }
-
-    public static void doNetworkInitializations(Context applicationContext) {
-        try (DualTraceEvent e =
-                DualTraceEvent.scoped("AwBrowserProcess.doNetworkInitializations")) {
-            if (applicationContext.checkSelfPermission(Manifest.permission.ACCESS_NETWORK_STATE)
-                    == PackageManager.PERMISSION_GRANTED) {
-                NetworkChangeNotifier.init();
-                NetworkChangeNotifier.setAutoDetectConnectivityState(
-                        new AwNetworkChangeNotifierRegistrationPolicy());
-            }
-        }
-    }
-
-    /**
-     * Post tasks that need to run in the background thread after the browser process has started.
-     */
-    public static void postBackgroundTasks() {
-        if (CommandLine.getInstance().hasSwitch(AwSwitches.WEBVIEW_VERBOSE_LOGGING)) {
-            // Log extra information, for debugging purposes.
-            PostTask.postTask(
-                    TaskTraits.BEST_EFFORT,
-                    () -> {
-                        // TODO(ntfschr): CommandLine can change at any time. For simplicity, only
-                        // log it once during startup.
-                        AwContentsStatics.logCommandLineForDebugging();
-                        // Field trials can be activated at any time. We'll continue logging them as
-                        // they're activated.
-                        FieldTrialList.logActiveTrials();
-                    });
-        }
-
-        PostTask.postTask(
-                TaskTraits.BEST_EFFORT,
-                () -> {
-                    WebViewCachedFlags.get().onStartupCompleted();
-                });
-
-        if (AwFeatureMap.isEnabled(AwFeatures.WEBVIEW_PREFETCH_NATIVE_LIBRARY)
-                && !AwFeatureMap.getInstance()
-                        .getFieldTrialParamByFeatureAsBoolean(
-                                AwFeatures.WEBVIEW_PREFETCH_NATIVE_LIBRARY,
-                                "WebViewPrefetchFromRenderer",
-                                true)) {
-            PostTask.postTask(
-                    TaskTraits.BEST_EFFORT,
-                    () -> {
-                        LibraryPrefetcher.prefetchNativeLibraryForWebView();
-                    });
-        }
-
-        if (AwFeatureMap.isEnabled(AwFeatures.WEBVIEW_RECORD_APP_CACHE_HISTOGRAMS)) {
-            PostTask.postDelayedTask(
-                    TaskTraits.BEST_EFFORT_MAY_BLOCK,
-                    () -> {
-                        StorageManager storageManager =
-                                (StorageManager)
-                                        ContextUtils.getApplicationContext()
-                                                .getSystemService(Context.STORAGE_SERVICE);
-                        UUID storageUuid =
-                                ContextUtils.getApplicationContext()
-                                        .getApplicationInfo()
-                                        .storageUuid;
-                        long startTimeGetCacheQuotaMs = SystemClock.uptimeMillis();
-                        long cacheQuotaKiloBytes = -1;
-                        try {
-                            // This can throw `SecurityException` if the app doesn't
-                            // have sufficient privileges.
-                            // See crbug.com/422174715
-                            cacheQuotaKiloBytes =
-                                    storageManager.getCacheQuotaBytes(storageUuid) / 1024;
-                            RecordHistogram.recordCount1MHistogram(
-                                    "Android.WebView.CacheQuotaSize", (int) cacheQuotaKiloBytes);
-                        } catch (Exception e) {
-                        } finally {
-                            RecordHistogram.recordTimesHistogram(
-                                    "Android.WebView.GetCacheQuotaSizeTime",
-                                    SystemClock.uptimeMillis() - startTimeGetCacheQuotaMs);
-                        }
-
-                        long startTimeGetCacheSizeMs = SystemClock.uptimeMillis();
-                        long cacheSizeKiloBytes = -1;
-                        try {
-                            // This can throw `SecurityException` if the app doesn't
-                            // have sufficient privileges.
-                            // See crbug.com/422174715
-                            cacheSizeKiloBytes =
-                                    storageManager.getCacheSizeBytes(storageUuid) / 1024;
-                            RecordHistogram.recordCount1MHistogram(
-                                    "Android.WebView.CacheSize", (int) cacheSizeKiloBytes);
-                        } catch (Exception e) {
-                        } finally {
-                            RecordHistogram.recordTimesHistogram(
-                                    "Android.WebView.GetCacheSizeTime",
-                                    SystemClock.uptimeMillis() - startTimeGetCacheSizeMs);
-                        }
-                        if (cacheQuotaKiloBytes != -1 && cacheSizeKiloBytes != -1) {
-                            long quotaRemainingKiloBytes = cacheQuotaKiloBytes - cacheSizeKiloBytes;
-                            if (quotaRemainingKiloBytes >= 0) {
-                                RecordHistogram.recordCount1MHistogram(
-                                        "Android.WebView.CacheSizeWithinQuota",
-                                        (int) quotaRemainingKiloBytes);
-                            } else {
-                                RecordHistogram.recordCount1MHistogram(
-                                        "Android.WebView.CacheSizeExceedsQuota",
-                                        -1 * (int) quotaRemainingKiloBytes);
-                            }
-                        }
-                    },
-                    5000);
-        }
     }
 
     /**
