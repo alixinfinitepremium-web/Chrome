@@ -337,7 +337,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '186752e2a8e629ef5d7c9aeb87d9cbefd9bcc571',
+  'src_internal_revision': 'a469d77c71f90ffd6bca7a156ff60ed35f879850',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -449,7 +449,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'quiche_revision': 'efdf29da0168bc8277df5d94419c8cc04876581b',
+  'quiche_revision': '0b2bc13f4fdad122a0ffc163b182a9b0f9cfdfbd',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ink
   # and whatever else without interference from each other.
@@ -565,7 +565,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling agents-public
   # and whatever else without interference from each other.
-  'agents_public_revision': '4e0a8bacdfcc6b6303540aa466b05a508f349486',
+  'agents_public_revision': 'b61aca5681312269c2a2bb46ceb6b6f65fdd94dd',
 
   # If you change this, also update the libc++ revision in
   # //buildtools/deps_revisions.gni.
@@ -1514,7 +1514,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_linux64',
-          'version': 'version:2@1691006',
+          'version': 'version:2@1692008',
         },
       ],
   },
@@ -1525,7 +1525,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_mac_amd64',
-          'version': 'version:2@1691004',
+          'version': 'version:2@1692022',
         },
       ],
   },
@@ -1547,7 +1547,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_arm64',
-          'version': 'version:2@1691009',
+          'version': 'version:2@1692053',
         },
       ],
   },
@@ -1558,7 +1558,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_x86',
-          'version': 'version:2@1690053',
+          'version': 'version:2@1692018',
         },
       ],
   },
@@ -1569,7 +1569,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_x86_64',
-          'version': 'version:2@1691046',
+          'version': 'version:2@1692043',
         },
       ],
   },
@@ -1669,7 +1669,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_linux64',
-          'version': '2bd4ls6Yj_Al_JdvYy5QJWxVnMOkXUCFhSt8haMEVBYC',
+          'version': 'ftwfxPcEK7loR-ZabrzTPlfTKY4Egirbf3lanHq0vw0C',
         },
       ],
   },
@@ -1680,7 +1680,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_mac_amd64',
-          'version': '4q4y0wnNEQO-ZSehakqUxWaKCzPuqKJ70L9vjAmylrsC',
+          'version': 'JhMnmGnRRZEottP3I__ySNYZ0JZdahqpIm7fdWalmg8C',
         },
       ],
   },
@@ -1702,7 +1702,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_win_x86',
-          'version': 'oB8Uz4HtupljXeXFRhDsuzBELFnNgy1drnhwmih08HgC',
+          'version': '1ecosvZqqc9HDtgyIDa83ynzQBXWJTDWRE5aAD4nMxUC',
         },
       ],
   },
@@ -1761,7 +1761,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    'c3f18027dede7d3a1742024752447c555863adf5',
+    'c997fda17120599f3eafad36574b0c5687c327af',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -2823,7 +2823,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + 'd3b1841f171c17161cb4faa1489052a09d8545d9',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + 'd10115a34cfa887efd75606c460f541d1b854e23',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
@@ -3160,7 +3160,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/turbine',
-              'version': 'sHLfSSp2p_yO8ZDYrIcXaxhg14bMk1e5cqkYS-v664kC',
+              'version': '962n3CvRk8aEByuyx7pFpfeVdQlbk9Y2IsmKDNTddasC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -3267,7 +3267,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '4c108c70b457cda76b760f0bc9613344871fc2fb',
+    Var('webrtc_git') + '/src.git' + '@' + '8d208e76fb1ad2b92d557f752e9d1d7d49059efa',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.

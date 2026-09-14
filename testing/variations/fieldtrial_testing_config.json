@@ -691,6 +691,27 @@
             ]
         }
     ],
+    "AndroidDesktopBookmarkImprovements": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "form_factors": [
+                "desktop"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "AndroidDesktopBookmarkDialog",
+                        "AndroidDesktopBookmarkPopup",
+                        "BookmarksBarContextMenu",
+                        "BookmarksBarNTP"
+                    ]
+                }
+            ]
+        }
+    ],
     "AndroidDesktopUAPlatform": [
         {
             "platforms": [
@@ -4025,6 +4046,7 @@
                         "MigratedInstallationError": "true",
                         "MigratedInstallerDownloader": "true",
                         "MigratedKnownInterceptionDisclosure": "true",
+                        "MigratedLocalTestPolicies": "true",
                         "MigratedOSCryptAsyncAvailability": "true",
                         "MigratedObsoleteSystem": "true",
                         "MigratedPageInfo": "true",
@@ -4053,6 +4075,36 @@
                     "name": "Enabled",
                     "enable_features": [
                         "CheckAutoCommitInCommitAndRollback"
+                    ]
+                }
+            ]
+        }
+    ],
+    "ChildProcessSecurityPolicyRust": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled_RustAndCpp",
+                    "params": {
+                        "policy": "rust-and-cpp"
+                    },
+                    "enable_features": [
+                        "ChildProcessSecurityPolicyRust"
+                    ]
+                },
+                {
+                    "name": "Enabled_RustOnly",
+                    "params": {
+                        "policy": "rust-only"
+                    },
+                    "enable_features": [
+                        "ChildProcessSecurityPolicyRust"
                     ]
                 }
             ]
