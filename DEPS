@@ -341,7 +341,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': 'e803b62a89c72ae0ab2007de187e7743f28b0423',
+  'skia_revision': '42fcb5faafb8c890b97b62883408bae2eba1c868',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -561,7 +561,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling agents-internal
   # and whatever else without interference from each other.
-  'agents_internal_revision': '14a44497346d9ed786eed31445a649feedefd3b4',
+  'agents_internal_revision': '79ff29c61f3fcfd51da0a5be8579b01b4f6f61b3',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling agents-public
   # and whatever else without interference from each other.
