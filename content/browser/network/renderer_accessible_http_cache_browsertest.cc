@@ -65,7 +65,7 @@ std::unique_ptr<net::test_server::HttpResponse> HandleCustomResponse(
   }
   if (path == "/custom_resource/acao_origin.js") {
     auto response = CreateScriptResponse();
-    response->AddCustomHeader("Access-Control-Allow-Origin", "http://a.test");
+    response->AddCustomHeader("Access-Control-Allow-Origin", "https://a.test");
     return response;
   }
   if (path == "/custom_resource/corp_same_origin.js") {
@@ -82,6 +82,13 @@ std::unique_ptr<net::test_server::HttpResponse> HandleCustomResponse(
     auto response = CreateScriptResponse(net::HTTP_PARTIAL_CONTENT);
     response->AddCustomHeader("Access-Control-Allow-Origin", "*");
     response->AddCustomHeader("Content-Range", "bytes 0-21/22");
+    return response;
+  }
+  if (path == "/custom_resource/redirect.js") {
+    auto response = std::make_unique<net::test_server::BasicHttpResponse>();
+    response->set_code(net::HTTP_FOUND);
+    response->AddCustomHeader("Location", "/custom_resource/acao_wildcard.js");
+    response->AddCustomHeader("Access-Control-Allow-Origin", "*");
     return response;
   }
   return nullptr;
@@ -141,10 +148,13 @@ class RendererAccessibleHttpCacheBrowserTestBase : public ContentBrowserTest {
 
   void SetUpOnMainThread() override {
     host_resolver()->AddRule("*", "127.0.0.1");
-    embedded_test_server()->RegisterRequestHandler(
+    embedded_https_test_server().SetSSLConfig(
+        net::EmbeddedTestServer::CERT_TEST_NAMES);
+    embedded_https_test_server().RegisterRequestHandler(
         base::BindRepeating(&HandleCustomResponse));
-    embedded_test_server()->ServeFilesFromSourceDirectory("content/test/data");
-    ASSERT_TRUE(embedded_test_server()->Start());
+    embedded_https_test_server().ServeFilesFromSourceDirectory(
+        "content/test/data");
+    ASSERT_TRUE(embedded_https_test_server().Start());
     ContentBrowserTest::SetUpOnMainThread();
     // When creating a network context,
     // ContentBrowserClient::ConfigureNetworkContextParams() is called, where
@@ -163,7 +173,7 @@ class RendererAccessibleHttpCacheBrowserTestBase : public ContentBrowserTest {
 
  protected:
   GURL GetURL(std::string_view path) {
-    return embedded_test_server()->GetURL("a.test", path);
+    return embedded_https_test_server().GetURL("a.test", path);
   }
 
   network::mojom::NetworkContext* GetNetworkContext() {
@@ -435,6 +445,23 @@ IN_PROC_BROWSER_TEST_P(RendererAccessibleHttpCacheBrowserTest, RangeRequest) {
   // TODO(crbug.com/473666511): Once reading from the Renderer Accessible HTTP
   // Cache (RegisterHttpCacheClient) is implemented, verify that responses for
   // range requests are not stored in the Renderer Accessible HTTP Cache.
+}
+
+IN_PROC_BROWSER_TEST_P(RendererAccessibleHttpCacheBrowserTest,
+                       RedirectedResponse) {
+  GURL page_url = GetURL("/loader/blank.html");
+  EXPECT_TRUE(NavigateToURL(shell()->web_contents(), page_url));
+
+  GURL redirect_url = GetURL("/custom_resource/redirect.js");
+  FetchScript(redirect_url);
+
+  FlushSharedCacheEligibleEntries();
+
+  // TODO(crbug.com/473666511): Once reading from the Renderer Accessible HTTP
+  // Cache (RegisterHttpCacheClient) is implemented, verify that redirected
+  // responses are not stored in the Renderer Accessible HTTP Cache.
+  ReloadInNewProcess(page_url);
+  FetchScript(redirect_url);
 }
 
 }  // namespace
