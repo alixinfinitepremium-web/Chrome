@@ -566,6 +566,10 @@ should be able to be added at any place in this file.
       summary="For iOSGeminiFullscreenPromoFeature feature"/>
   <variant name="_iOSGeminiImageRemix"
       summary="For iOSGeminiImageRemix IPH feature"/>
+  <variant name="_iOSGeminiLiveIPHFeature"
+      summary="For Gemini Live IPH tooltip feature."/>
+  <variant name="_iOSGeminiLiveNewBadgeFeature"
+      summary="For Gemini Live New badge feature."/>
   <variant name="_iOSHistoryOnOverflowMenuFeature"
       summary="For iOSHistoryOnOverflowMenuFeature feature"/>
   <variant name="_iOSHomepageCustomizationNewBadge"
@@ -38021,6 +38025,15 @@ should be able to be added at any place in this file.
   <owner>top-chrome-desktop-ui@google.com</owner>
   <description>
     User selected Focus This Tab from the tab context menu.
+  </description>
+</action>
+
+<action name="TabContextMenu_FocusNonGroupTabs">
+  <owner>kunaldaftari@google.com</owner>
+  <owner>top-chrome-desktop-ui@google.com</owner>
+  <description>
+    User selected Focus Tab or Focus Tabs from the tab context menu for
+    non-grouped tabs.
   </description>
 </action>
 
