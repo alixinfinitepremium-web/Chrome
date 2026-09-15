@@ -864,7 +864,7 @@
       "philyan@chromium.org",
       "media-dev@chromium.org"
     ],
-    "expiry_milestone": 156
+    "expiry_milestone": 170
   },
   {
     "name": "auto-picture-in-picture-on-window-occluded",
@@ -1667,7 +1667,7 @@
   {
     "name": "canvas-draw-element",
     "owners": [ "schenney@chromium.org", "pdr@chromium.org", "chrishtr@chromium.org" ],
-    "expiry_milestone": 156
+    "expiry_milestone": 165
   },
   {
     "name": "capability-delegation-digital-credentials",
@@ -5845,7 +5845,7 @@
       "mcnee@chromium.org",
       "//chrome/browser/glic/OWNERS"
     ],
-    "expiry_milestone": 156
+    "expiry_milestone": 172
   },
   {
     "name": "glic-experimental-triggering-os-notification",

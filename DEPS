@@ -445,7 +445,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': '64f9d221be0da1f910e067ec99cb1544d65504f3',
+  'dawn_revision': 'cfef9491663b6e754c73dd9e480eadc61bdf760c',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -1514,7 +1514,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_linux64',
-          'version': 'version:2@1692008',
+          'version': 'version:2@1693002',
         },
       ],
   },
@@ -1525,7 +1525,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_mac_amd64',
-          'version': 'version:2@1692022',
+          'version': 'version:2@1693001',
         },
       ],
   },
@@ -1536,7 +1536,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_mac_arm64',
-          'version': 'version:2@1692010',
+          'version': 'version:2@1693001',
         },
       ],
   },
@@ -1547,7 +1547,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_arm64',
-          'version': 'version:2@1692053',
+          'version': 'version:2@1693005',
         },
       ],
   },
@@ -1558,7 +1558,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_x86',
-          'version': 'version:2@1692018',
+          'version': 'version:2@1693005',
         },
       ],
   },
@@ -1669,7 +1669,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_linux64',
-          'version': 'ftwfxPcEK7loR-ZabrzTPlfTKY4Egirbf3lanHq0vw0C',
+          'version': 'g0B9275oFMYU75v4ChnSnr25pcjc6grVe_MCNJ7EC7IC',
         },
       ],
   },
@@ -1680,7 +1680,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_mac_amd64',
-          'version': 'JhMnmGnRRZEottP3I__ySNYZ0JZdahqpIm7fdWalmg8C',
+          'version': 'GMo6sp_p-k7NCwQbKlmF6uN4-anPqAItOO-1fjbZvdEC',
         },
       ],
   },
@@ -1713,7 +1713,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_win_x86_64',
-          'version': 'dg-k5THNyITm66pN7P1B6OBHTrkR6Iqzd9SqyIVSpScC',
+          'version': 'zKFVB01J2jpiUn03sXqLNjUkh0bVLr7752h9w1C0h9QC',
         },
       ],
   },
@@ -2797,7 +2797,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/cisco/openh264' + '@' + '9547f96ea5c47f4d465d97b07264b997ecc4b4b6',
 
   'src/third_party/openscreen/src':
-    Var('chromium_git') + '/openscreen' + '@' + 'db3cefdd7a95ab87ebea035213125c04eabecfe9',
+    Var('chromium_git') + '/openscreen' + '@' + 'a904f5b8a37bc4c2aa8615e038cab03cc3adc0cf',
 
   'src/third_party/openxr/src': {
     'url': Var('chromium_git') + '/external/github.com/KhronosGroup/OpenXR-SDK' + '@' + '75c53b6e853dc12c7b3c771edc9c9c841b15faaa',
@@ -2823,7 +2823,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + 'd5cda445c1149decac382fa22a437778e431e6f5',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + 'bf392516c5fc7e4313b30ed18e008290dcbeaec7',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
@@ -3155,9 +3155,9 @@ deps = {
     Var('chromium_git') + '/external/github.com/GoogleChromeLabs/text-fragments-polyfill.git' + '@' + 'abc6ed408b3f20e91d9cbda9977748459f5e3877',
 
   'src/third_party/tflite/src':
-    Var('chromium_git') + '/external/github.com/tensorflow/tensorflow.git' + '@' + 'bf3e7d28d4e95c73044c538381235758004ed18c',
+    Var('chromium_git') + '/external/github.com/tensorflow/tensorflow.git' + '@' + 'a757345c62ee326e7e72a4bb6c12dde76352744b',
   'src/third_party/litert/src':
-    Var('chromium_git') + '/external/github.com/google-ai-edge/LiteRT.git' + '@' + 'e0dbf4d47f2e50652496479bd3bca678231b2062',
+    Var('chromium_git') + '/external/github.com/google-ai-edge/LiteRT.git' + '@' + 'fb79aee2c41068a6a628350334d6568a6599b6eb',
   'src/third_party/turbine/cipd': {
       'packages': [
           {
@@ -3288,7 +3288,7 @@ deps = {
   },
 
   'src/third_party/xnnpack/src':
-    Var('chromium_git') + '/external/github.com/google/XNNPACK.git' + '@' + '3c4596adb505f51c042ee14e76731b9004524b1a',
+    Var('chromium_git') + '/external/github.com/google/XNNPACK.git' + '@' + '4d7c3317c711fcfc9d164ddc43229a0af1664b11',
 
   'src/third_party/libei/src': {
       'url': Var('chromium_git') + '/external/gitlab.freedesktop.org/libinput/libei.git' + '@' + '401ed364fd68a81988d0fd1234358dda1262e5f0',

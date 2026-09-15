@@ -205,14 +205,6 @@
       value_type: "bool",
     },
 
-    // is_protected_feature indicates whether the feature enablement state should
-    // be tracked using a base::ProtectedMemory<bool> value or just a regular bool
-    // value.
-    is_protected_feature: {
-      default: false,
-      value_type: "bool",
-    },
-
     // `custom_enable_check` declares a method on `RuntimeEnabledFeaturesBase`;
     // authors must provide a corresponding definition of the method in
     // runtime_enabled_feature_checks.cc. Typically used to guard powerful or
@@ -839,7 +831,7 @@
     {
       // Killswitch M153.
       name: "AvoidEmbeddedContentViewLocation",
-      status: "experimental",
+      status: "test",
     },
     {
       // Don't use a position inside non-selectable content as a selection
@@ -3952,10 +3944,6 @@
       status: "stable",
     },
     {
-      name: "ListOwnerMustHaveCSSBox",
-      status: "stable",
-    },
-    {
       // Reverse origin trial allowing sites to opt out of Local Network Access
       // restrictions for WebRTC.
       name: "LocalNetworkAccessForWebRTCOptOut",
@@ -4277,7 +4265,7 @@
     {
       name: "MojoJS",
       status: "test",
-      is_protected_feature: true,
+      custom_enable_check: "CanEnableMojoJS",
     },
     // MojoJSTest is used exclusively in testing environments, whereas MojoJS
     // may also be used elsewhere.
@@ -4285,7 +4273,7 @@
       name: "MojoJSTest",
       status: "test",
       base_feature: "none",
-      is_protected_feature: true,
+      custom_enable_check: "CanEnableMojoJSTest",
     },
     // Move the selection to the last position in the list item. See
     // https://crbug.com/331841851
@@ -4995,34 +4983,6 @@
       name: "PropagateOverscrollBehaviorFromRoot",
       status: "stable"
     },
-    // Protected memory varariant of the sample API for testing integration with
-    // the Origin Trials Framework. This is used only in unit tests.
-    // Do not change this flag to stable, as it exists
-    // solely to generate code used by the sample API implementation.
-    {
-      name: "ProtectedOriginTrialsSampleAPI",
-      base_feature: "none",
-      origin_trial_feature_name: "Frobulate",
-      is_protected_feature: "true",
-    },
-    // As above. Do not change this flag to stable, as it exists solely to
-    // generate code used by the origin trials sample API implementation.
-    // TODO(yashard): Add tests for this feature.
-    {
-      name: "ProtectedOriginTrialsSampleAPIDependent",
-      depends_on: ["ProtectedOriginTrialsSampleAPI"],
-      base_feature: "none",
-      is_protected_feature: "true",
-    },
-    // As above. Do not change this flag to stable, as it exists solely to
-    // generate code used by the origin trials sample API implementation.
-    {
-      name: "ProtectedOriginTrialsSampleAPIImplied",
-      base_feature: "none",
-      origin_trial_feature_name: "FrobulateImplied",
-      implied_by: ["ProtectedOriginTrialsSampleAPI"],
-      is_protected_feature: "true",
-    },
     {
       // Allowing pseudo-elements to have focus.
       name: "PseudoElementsFocusable",
@@ -5072,11 +5032,7 @@
     },
     {
       name: "RasterInducingScroll",
-      status: {
-        "Linux": "stable",
-        "Win": "stable",
-        "default": "test",
-      }
+      status: "stable",
     },
     {
       // Used as a kill switch in case the rate limiting causes issues.
@@ -6331,26 +6287,6 @@
     },
     // For unit tests.
     {
-      name: "TestFeatureProtected",
-      base_feature: "none",
-      is_protected_feature: true,
-    },
-    // For unit tests.
-    {
-      name: "TestFeatureProtectedDependent",
-      depends_on: ["TestFeatureProtectedImplied"],
-      base_feature: "none",
-      is_protected_feature: true,
-    },
-    // For unit tests.
-    {
-      name: "TestFeatureProtectedImplied",
-      implied_by: ["TestFeatureProtected"],
-      base_feature: "none",
-      is_protected_feature: true,
-    },
-    // For unit tests.
-    {
       name: "TestFeatureStable",
       status: "stable",
     },
@@ -6390,11 +6326,6 @@
     {
       name: "TextEmphasisPunctuationExceptions",
       status: "stable"
-    },
-    {
-      // crbug.com/442481227
-      name: "TextEmphasisWithRuby",
-      status: "stable",
     },
     {
       name: "TextFragmentAPI",
