@@ -337,7 +337,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': 'bd22bb6c8dd334fbf92b9eaf8dc12c636852998e',
+  'src_internal_revision': '7062eae54f30c7a2ec06533e27f24cd7c381a433',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -1691,7 +1691,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_mac_arm64',
-          'version': 'HPaQbkavrM-x68z36Gs2CVdxqI8UzG3FX-HcfnZfzjQC',
+          'version': 'DZF_0b8YbxdoMJRcDocCeYlw6bPs6ypt6WXYgVIVbkEC',
         },
       ],
   },
@@ -2213,7 +2213,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '6b4cf2cdab13cb3766682eb635e3e73cdd65c215',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'eac62a11aceb10154174c6d59521864f3b4ba5bb',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
