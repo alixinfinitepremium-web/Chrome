@@ -228,21 +228,6 @@ class DisabledAccelerationCounterSupplement final
 const char DisabledAccelerationCounterSupplement::kSupplementName[] =
     "DisabledAccelerationCounterSupplement";
 
-// viz::ReleaseCallback for CanvasResource
-void ReleaseCanvasResource(scoped_refptr<CanvasResource> canvas_resource,
-                           const gpu::SyncToken& sync_token,
-                           bool is_lost) {
-  CHECK(canvas_resource);
-  canvas_resource->WaitSyncToken(sync_token);
-  if (is_lost) {
-    canvas_resource->NotifyResourceLost();
-  }
-
-  CanvasResource::DropRefOnOwningThread(std::move(canvas_resource));
-}
-
-
-
 }  // namespace
 
 HTMLCanvasElement::HTMLCanvasElement(Document& document)
@@ -302,9 +287,12 @@ bool HTMLCanvasElement::PrepareTransferableResource(
     return false;
   }
 
-  if (!frame->PrepareTransferableResource(out_resource,
-                                          /*needs_verified_synctoken=*/false)) {
-    CanvasResource::DropRefOnOwningThread(std::move(frame));
+  auto exported_resource =
+      base::MakeRefCounted<ExportedCanvasResource>(std::move(frame));
+
+  if (!exported_resource->PrepareTransferableResource(
+          out_resource,
+          /*needs_verified_synctoken=*/false)) {
     return false;
   }
   // TODO(https://crbug.com/1475955): HDR metadata should be propagated to
@@ -315,15 +303,16 @@ bool HTMLCanvasElement::PrepareTransferableResource(
   out_resource->hdr_metadata = hdr_metadata_;
 
   if (*out_resource == cc_layer_->current_transferable_resource()) {
-    // If the resource did not change, the release will be handled correctly
-    // when the callback from the previous frame is dispatched. But we need to
-    // drop ref to the current resource.
-    CanvasResource::DropRefOnOwningThread(std::move(frame));
+    // If resource didn't change, we don't need to trigger the update.
     return false;
   }
   // Note: frame is kept alive via a reference kept in out_release_callback.
-  *out_release_callback =
-      blink::BindOnce(ReleaseCanvasResource, std::move(frame));
+  *out_release_callback = blink::BindOnce(
+      [](scoped_refptr<ExportedCanvasResource> exported_resource,
+         const gpu::SyncToken& sync_token, bool is_lost) {
+        exported_resource->EndDisplayCompositorAccess(sync_token, is_lost);
+      },
+      std::move(exported_resource));
 
   return true;
 }

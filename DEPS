@@ -337,11 +337,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '6d1531d08d0413ed646e9743239f515168658a90',
+  'src_internal_revision': 'bd22bb6c8dd334fbf92b9eaf8dc12c636852998e',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': 'c440712584c76492566d92b5a1dabc4b68e6cf79',
+  'skia_revision': 'e803b62a89c72ae0ab2007de187e7743f28b0423',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -349,7 +349,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '513d6b0877d62de601538e8fa0a4941b60cc7109',
+  'angle_revision': 'abfd97807a165c4cf553cf8a08add193fa2379ae',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -421,7 +421,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '4495bcf7ac94aebaaedb0aa1d1231997af1c8c25',
+  'devtools_frontend_revision': '44ed95fcdf9fe4e86bf7edcb624b03a08f4b8068',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -3216,7 +3216,7 @@ deps = {
       ],
   },
 
-  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@831bf5d88ec1287a0a76f484cc472e2d01af4a89',
+  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@f90cd06dfcd97ccc3b0b81d955d7311fee18c299',
   'src/third_party/glslang/src': '{chromium_git}/external/github.com/KhronosGroup/glslang@37cf206d6771a067dd72c82712521ed66df8f73c',
   'src/third_party/spirv-cross/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Cross@b8fcf307f1f347089e3c46eb4451d27f32ebc8d3',
   'src/third_party/spirv-headers/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Headers@04fd3caa1e8267e4d95c806cad901181728e1006',
@@ -3225,7 +3225,7 @@ deps = {
   'src/third_party/vulkan-loader/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Loader@bde79ad2dd832db9180c4a6eca2e84ceb12b1bb0',
   'src/third_party/vulkan-tools/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Tools@462d9819e5953e064e1dcdc04d3edc5fc6bc9431',
   'src/third_party/vulkan-utility-libraries/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Utility-Libraries@930a38bce146cf85c5bd7cb00fa33a66c640c0c6',
-  'src/third_party/vulkan-validation-layers/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-ValidationLayers@81baac4c3bcfe52483399ad9a50f0ffd221097a4',
+  'src/third_party/vulkan-validation-layers/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-ValidationLayers@07c454397e2011926bb50378a5c9d58635b0f0bd',
 
   'src/third_party/vulkan_memory_allocator':
     Var('chromium_git') + '/external/github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git' + '@' + '82a9d47e4f9d91f0e32d2b6acd9714fcee1933a0',
@@ -3805,7 +3805,7 @@ deps = {
 
   'src/chrome/browser/glic/e2e_test/internal': {
       'url': Var('chrome_git') + '/chrome/browser/glic/test/internal.git' + '@' +
-        '13dd31261de6ba19aa30ac509d8f740c2c7548ac',
+        '8354a8eadf6fcd1abaa41140807fac5a075ae7d0',
       'condition': 'checkout_glic_e2e_tests',
   },
 

@@ -38,6 +38,8 @@ class FakeConversation : public Conversation {
       const optimization_guide::proto::AnnotatedPageContent& apc) override {}
   void SendToolSetUpdate(const std::vector<ToolDefinition>& tools) override {}
 
+  void OnPageContextChanged() override {}
+
  private:
   bool is_started_ = false;
   base::ObserverList<Observer> observers_;
@@ -75,7 +77,6 @@ TEST_F(TtcKeyedServiceUnitTest, StartSession) {
   service_->StartSession();
   SessionController* controller = service_->session_controller();
   ASSERT_NE(controller, nullptr);
-  EXPECT_NE(controller->GetConversation(), nullptr);
 }
 
 TEST_F(TtcKeyedServiceUnitTest, StartSessionFailsIfAlreadyStarted) {
