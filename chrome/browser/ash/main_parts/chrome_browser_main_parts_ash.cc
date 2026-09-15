@@ -1478,15 +1478,9 @@ void ChromeBrowserMainPartsAsh::PostProfileInit(Profile* profile,
                        shill::kDisconnectWiFiOnEthernetProperty));
 
     // Notify patchpanel and shill about QoS feature enabled flag.
-    bool wifi_qos_enabled =
-        base::FeatureList::IsEnabled(features::kEnableWifiQos);
-    if (InstallAttributes::Get()->IsEnterpriseManaged()) {
-      // For an Enterprise enrolled device, enable the feature only if the
-      // separate flag for enterprise is also on.
-      wifi_qos_enabled =
-          wifi_qos_enabled &&
-          base::FeatureList::IsEnabled(features::kEnableWifiQosEnterprise);
-    }
+    // WiFi QoS is enabled by default for non-enterprise devices.
+    const bool wifi_qos_enabled =
+        !InstallAttributes::Get()->IsEnterpriseManaged();
     ash::PatchPanelClient::Get()->SetFeatureFlag(
         patchpanel::SetFeatureFlagRequest::WIFI_QOS, wifi_qos_enabled);
     ash::ShillManagerClient::Get()->SetProperty(
