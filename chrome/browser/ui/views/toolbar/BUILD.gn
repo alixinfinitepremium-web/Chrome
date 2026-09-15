@@ -83,7 +83,7 @@ source_set("toolbar") {
     "//chrome/browser/ui/views/app_menu",
     "//chrome/browser/ui/views/bookmarks",
     "//chrome/browser/ui/views/bookmarks/saved_tab_groups",
-    "//chrome/browser/ui/views/frame",
+    "//chrome/browser/ui/views/frame:browser_root_view",
     "//chrome/browser/ui/views/frame:toolbar_button_provider",
     "//chrome/browser/ui/views/glic",
     "//chrome/browser/ui/views/global_media_controls:media_toolbar_button",
@@ -447,6 +447,7 @@ if (!is_android) {
       deps += [
         "//chrome/browser/ui:toolbar_controller_util",
         "//chrome/browser/ui/global_media_controls",
+        "//chrome/browser/ui/views/contextual_tasks",
         "//chrome/browser/ui/views/global_media_controls",
         "//chrome/browser/ui/views/performance_controls",
         "//chrome/browser/ui/views/profiles:avatar_toolbar_button",

@@ -2062,26 +2062,38 @@ const FeatureEntry::FeatureParam kOmniboxAimNtpPlusMenuPopupWithFocus[] = {
 const FeatureEntry::FeatureParam kOmniboxAimNtpPlusMenuBottomSheet[] = {
     {"show_bottom_sheet_popup", "true"},
     {"show_ntp_plus_button", "true"}};
-const FeatureEntry::FeatureParam kOmniboxAimContextMenuNoAccordion[] = {
+const FeatureEntry::FeatureParam kOmniboxFuseboxContextMenuNoAccordion[] = {
     {"show_bottom_sheet_popup", "false"},
     {"fusebox_popup_carousel_ui", "false"},
     {"fusebox_popup_use_accordion_ui", "false"}};
-const FeatureEntry::FeatureParam kOmniboxAimContextMenuAccordion[] = {
+const FeatureEntry::FeatureParam kOmniboxFuseboxContextMenuAccordion[] = {
     {"show_bottom_sheet_popup", "false"},
     {"fusebox_popup_carousel_ui", "false"},
     {"fusebox_popup_use_accordion_ui", "true"}};
-const FeatureEntry::FeatureParam kOmniboxAimBottomSheetCarouselAccordion[] = {
+const FeatureEntry::FeatureParam kOmniboxFuseboxBottomSheetCarouselAccordion[] = {
     {"show_bottom_sheet_popup", "true"},
     {"fusebox_popup_carousel_ui", "true"},
     {"fusebox_popup_use_accordion_ui", "true"}};
-const FeatureEntry::FeatureParam kOmniboxAimBottomSheetListAccordion[] = {
+const FeatureEntry::FeatureParam kOmniboxFuseboxBottomSheetListAccordion[] = {
     {"show_bottom_sheet_popup", "true"},
     {"fusebox_popup_carousel_ui", "false"},
     {"fusebox_popup_use_accordion_ui", "true"}};
-const FeatureEntry::FeatureParam kOmniboxAimBottomSheetCarouselNoAccordion[] = {
+const FeatureEntry::FeatureParam kOmniboxFuseboxBottomSheetCarouselNoAccordion[] = {
     {"show_bottom_sheet_popup", "true"},
     {"fusebox_popup_carousel_ui", "true"},
     {"fusebox_popup_use_accordion_ui", "false"}};
+
+const FeatureEntry::FeatureVariation kOmniboxFuseboxPopupVariationsVariants[] = {
+    {"Context Menu: No Accordion", kOmniboxFuseboxContextMenuNoAccordion, nullptr},
+    {"Context Menu: With Accordion", kOmniboxFuseboxContextMenuAccordion, nullptr},
+    {"Bottom Sheet: Carousel + Accordion",
+     kOmniboxFuseboxBottomSheetCarouselAccordion, nullptr},
+    {"Bottom Sheet: List + Accordion", kOmniboxFuseboxBottomSheetListAccordion,
+     nullptr},
+    {"Bottom Sheet: Carousel, No Accordion",
+     kOmniboxFuseboxBottomSheetCarouselNoAccordion, nullptr},
+};
+
 const FeatureEntry::FeatureParam kOmniboxAimHint[] = {
     {"use_ask_hint_for_ntp", "true"}};
 
@@ -2091,14 +2103,6 @@ const FeatureEntry::FeatureVariation kOmniboxMultimodalInputVariants[] = {
     {"NTP Plus Menu: Popup with Focus", kOmniboxAimNtpPlusMenuPopupWithFocus,
      nullptr},
     {"NTP Plus Menu: Bottom Sheet", kOmniboxAimNtpPlusMenuBottomSheet, nullptr},
-    {"Context Menu: No Accordion", kOmniboxAimContextMenuNoAccordion, nullptr},
-    {"Context Menu: With Accordion", kOmniboxAimContextMenuAccordion, nullptr},
-    {"Bottom Sheet: Carousel + Accordion",
-     kOmniboxAimBottomSheetCarouselAccordion, nullptr},
-    {"Bottom Sheet: List + Accordion", kOmniboxAimBottomSheetListAccordion,
-     nullptr},
-    {"Bottom Sheet: Carousel, No Accordion",
-     kOmniboxAimBottomSheetCarouselNoAccordion, nullptr},
     {"Ask Hint", kOmniboxAimHint, nullptr},
 };
 
@@ -4569,11 +4573,22 @@ const FeatureEntry::FeatureParam kEphemeralBrandedEntryPointWithRightDock[] = {
     {"ContextualTasksEntryPoint", "toolbar-ephemeral-branded"},
     {"enable-right-hand-contextual-tasks-ephemeral-button", "true"}};
 
+const FeatureEntry::FeatureParam
+    kEphemeralBrandedEntryPointWithCircularNextToBatterySaver[] = {
+        {"ContextualTasksEntryPoint", "toolbar-ephemeral-branded"},
+        // contextual_tasks::kEnableCircularEphemeralButtonNextToBatterySaver
+        // .name. Spelled out as a literal because reading `.name` from another
+        // translation unit forces dynamic initialization of this array, which
+        // adds a static initializer to the binary.
+        {"EnableCircularEphemeralButtonNextToBatterySaver", "true"}};
+
 const FeatureEntry::FeatureVariation kEphemeralBrandedEntryPointVariations[] = {
     {"Enabled with branded entry point", kEphemeralBrandedEntryPointEnabled,
      nullptr},
     {"Enabled with right dock button",
-     kEphemeralBrandedEntryPointWithRightDock, nullptr}};
+     kEphemeralBrandedEntryPointWithRightDock, nullptr},
+    {"Enabled with circular button next to battery saver",
+     kEphemeralBrandedEntryPointWithCircularNextToBatterySaver, nullptr}};
 
 #if BUILDFLAG(IS_ANDROID)
 const FeatureEntry::FeatureParam kAnimatedProgressBar30FpsCap[] = {
@@ -6953,6 +6968,13 @@ const FeatureEntry kFeatureEntries[] = {
      FEATURE_WITH_PARAMS_VALUE_TYPE(omnibox::kOmniboxMultimodalInput,
                                     kOmniboxMultimodalInputVariants,
                                     "OmniboxMultiModalInput")},
+
+    {"omnibox-fusebox-popup-variations",
+     flag_descriptions::kOmniboxFuseboxPopupVariationsName,
+     flag_descriptions::kOmniboxFuseboxPopupVariationsDescription, kOsAndroid,
+     FEATURE_WITH_PARAMS_VALUE_TYPE(omnibox::kOmniboxFuseboxPopupVariations,
+                                    kOmniboxFuseboxPopupVariationsVariants,
+                                    "OmniboxFuseboxPopupVariations")},
 
     {"omnibox-aim-image-downscaling",
      flag_descriptions::kOmniboxAimImageDownscalingName,
