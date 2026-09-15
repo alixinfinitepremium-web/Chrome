@@ -337,11 +337,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '76df0b3952891e1057f5797b5b89891dc1d69ae9',
+  'src_internal_revision': 'a696f9902f61233ba317e746121d5d096d70d3fc',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '9077171ce693d4947e74d6fecfb83468334c2dd3',
+  'skia_revision': '4b76697065b23c5dd6e522a5808ecb035919a6ff',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -401,7 +401,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': '5f23e003e7a5b4d3492e6c96b9e33a584f34680b',
+  'crossbench_revision': 'f7f0c7296b7cc355eb9424402549ba5746fb159c',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -421,7 +421,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '0c6c2e300615411b0453547b7c9b51c70f926b52',
+  'devtools_frontend_revision': 'f68b5cd10f159c78c0c8c3a865f95efe1c2c6857',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1227,10 +1227,10 @@ deps = {
     'condition': 'checkout_gpu_meet_effects and non_git_source',
     'objects': [
       {
-        'object_name': 'meet-gpu-tests/980883532.tar.gz',
-        'sha256sum': '9a4d1a48c6c5172ae813194f8329092af7e63818020dfd9c7702e64e2a4965c2',
-        'size_bytes': 278376303,
-        'generation': 1789375653779456,
+        'object_name': 'meet-gpu-tests/981530498.tar.gz',
+        'sha256sum': '5e3b12b0ac9ccc18e586af4bcd2fdf396be249263339bd596f1fdf8f1a5f350c',
+        'size_bytes': 278377044,
+        'generation': 1789462031443764,
       },
     ],
   },
@@ -1761,7 +1761,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '44fb6ad4fdbf1e5ce6ca4e368fd60dd9ba38919d',
+    'f92314aa372947f5298fef3022049ee03c53957d',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -2213,7 +2213,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'fa2db090ee6cf5a1e8b35395719e89d14119b014',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '46afe8bfbb57583700c01d1584e7a49638d586ed',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -2228,7 +2228,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '2d148dc468bbf12d1292410a19ba82351fe99992',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + 'c0d6e9944d37e954638dc96752f0c4e5066c1fbd',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '17a56409b86d0da5e01ca38f6498e13b2db16bc3',
@@ -3464,7 +3464,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/projector_app/app',
-        'version': '6P7mkMv3vcKA9Y44vUuu5C0ptSmUdkhLNLnhMZxb9CIC',
+        'version': 'kyWjgAzNXjWtHz1yzbu-HJiWUlrCgSMJ_2MX4Zvwh5IC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
