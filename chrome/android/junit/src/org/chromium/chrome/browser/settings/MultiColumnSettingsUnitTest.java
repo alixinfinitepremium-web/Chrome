@@ -11,14 +11,9 @@ import org.junit.runner.RunWith;
 
 import org.chromium.base.test.BaseRobolectricTestRunner;
 
-/**
- * Robolectric unit tests for {@link MultiColumnSettings}.
- *
- * <p>TODO(crbug.com/521895796): Rename MultiColumnSettingsUnitTest to MultiColumnSettingsTest
- * (since it is not a unit test), then rename this class to MultiColumnSettingsUnitTest.
- */
+/** Robolectric unit tests for {@link MultiColumnSettings}. */
 @RunWith(BaseRobolectricTestRunner.class)
-public class MultiColumnSettingsRobolectricTest {
+public class MultiColumnSettingsUnitTest {
     /**
      * Regression test for crbug.com/561275965: A theme change destroys the settings activity and
      * detaches its fragments, but a pending layout pass on the old view hierarchy can still query
