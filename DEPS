@@ -445,7 +445,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': '7fe336654eb579575caf4a35075b8512bc47de8d',
+  'dawn_revision': '47a5943a2006839d0af8016074efa45db51ff334',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -2823,7 +2823,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + 'd10115a34cfa887efd75606c460f541d1b854e23',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '3484eec36700597f769b1a1d395a283bc3278109',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
@@ -4110,7 +4110,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '0e6e0ef30d0ba2e17aee9a593519c059d44d043f',
+        '49a24407b94f667e5289b6604c0a2ac2508576e4',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
