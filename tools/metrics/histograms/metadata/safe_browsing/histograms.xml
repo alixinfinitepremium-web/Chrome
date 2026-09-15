@@ -712,8 +712,6 @@ useful for Chirp alerts (go/crca-alerts). -->
   <token key="ReportType">
     <variant name="AdSample" summary="AdSample"/>
     <variant name="APKDownload" summary="APKDownload"/>
-    <variant name="BlockedAdPopup" summary="BlockedAdPopup"/>
-    <variant name="BlockedAdRedirect" summary="BlockedAdRedirect"/>
     <variant name="DangerousDownloadAutoDeleted"
         summary="DangerousDownloadAutoDeleted"/>
     <variant name="DangerousDownloadByAPI" summary="DangerousDownloadByAPI"/>
@@ -829,7 +827,7 @@ useful for Chirp alerts (go/crca-alerts). -->
 </histogram>
 
 <histogram name="SafeBrowsing.ClientSafeBrowsingReport.RequestHasToken"
-    enum="BooleanSent" expires_after="2026-10-26">
+    enum="BooleanSent" expires_after="2027-04-26">
   <owner>thefrog@chromium.org</owner>
   <owner>chrome-counter-abuse-alerts@google.com</owner>
   <summary>
