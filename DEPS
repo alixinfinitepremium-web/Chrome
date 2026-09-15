@@ -361,7 +361,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': 'd83e36e24cecff12d39b7bc31990abf263f27193',
+  'boringssl_revision': 'ac08bbda6a295e2994f857563b33cd2882db1578',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -1569,7 +1569,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_x86_64',
-          'version': 'version:2@1692043',
+          'version': 'version:2@1693005',
         },
       ],
   },
@@ -4032,7 +4032,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        '6533bc3ce3eb94dfa8fa0b668a22d7fe8d329992',
+        '16ad55bf7d11e7bedfe8312ea3e94957d5ffb63e',
       'condition': 'checkout_src_internal',
   },
 
