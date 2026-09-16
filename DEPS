@@ -421,7 +421,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'c019098c65b06ad37c1c150866f2fa8551e61d53',
+  'devtools_frontend_revision': 'bd7706cc2c1117c4a201c379dcd52a6818297572',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -3066,7 +3066,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/google/ruy.git' + '@' + '2264753777198e4393fb83c44c693462d57a2be1',
 
   'src/third_party/search_engines_data/resources':
-    Var('chromium_git') + '/external/search_engines_data.git' + '@' + '1d39fffec1e14bf6f430a65b8de65669cb1479e6',
+    Var('chromium_git') + '/external/search_engines_data.git' + '@' + 'effde84e73491653b245b68ac65835ad2fc4e1de',
 
   'src/third_party/search_engines_data/resources_internal': {
     'url': Var('chrome_git') + '/external/search_engines_data_internal.git' + '@' + '94bdfa556c13afdea210a36181b2e35bc72210f2',
@@ -4034,7 +4034,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        'e9319062f3797ee5317bb8e499f565dfc8c8fbde',
+        '3b036b4fedbbd25ace08602f39fde8f90a3eaded',
       'condition': 'checkout_src_internal',
   },
 
