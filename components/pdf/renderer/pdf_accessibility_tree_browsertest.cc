@@ -2051,8 +2051,8 @@ TEST_F(PdfAccessibilityTreeTest,
   page_info_.bounds = gfx::Rect(0, 0, 800, 1000);
 
   // Run 0: Bold numbered section heading in the top margin (bottom = 70 <=
-  // 100). Matches IsPageNumber because it contains a digit and is narrow, but
-  // IsPureNumber is false.
+  // 100). Classified as kNarrowWithDigit because it contains a digit and is
+  // narrow, but not as kPureNumber.
   //
   // Runs 1-3: Normal body text below the top margin with normal line spacing.
   SetUpHeuristicAccessibilityTreeDetailed(
@@ -2079,6 +2079,301 @@ TEST_F(PdfAccessibilityTreeTest,
   const ui::AXNode* second_block = page->GetChildAtIndex(1u);
   ASSERT_NE(nullptr, second_block);
   EXPECT_EQ(ax::mojom::Role::kParagraph, second_block->GetRole());
+}
+
+TEST_F(PdfAccessibilityTreeTest,
+       HeuristicSectionNumberInTopMarginNotClassifiedAsHeader) {
+  base::test::ScopedFeatureList feature_list;
+  feature_list.InitWithFeatures(
+      {::features::kPdfAccessibilityHeuristicEnhancements},
+      {chrome_pdf::features::kPdfTags});
+
+  chrome_pdf::AccessibilityTextStyleInfo bold_style = CreateBoldStyle();
+  chrome_pdf::AccessibilityTextStyleInfo normal_style = CreateNormalStyle();
+  page_info_.bounds = gfx::Rect(0, 0, 800, 1000);
+
+  // PDFium splits a numbered section heading at the wide gap between the
+  // number and the title, so "1 Introduction" arrives as two runs. Run 0 is
+  // therefore a pure number, and it sits in the top margin (bottom = 98 <=
+  // 100) because the heading opens the page. It must not be mistaken for a
+  // page number: it is set at 14, above the body text median of 10.
+  //
+  // Runs 2-4: Normal body text below the top margin.
+  SetUpHeuristicAccessibilityTreeDetailed(
+      /*font_sizes=*/{14.0f, 14.0f, 10.0f, 10.0f, 10.0f},
+      {bold_style, bold_style, normal_style, normal_style, normal_style},
+      MakeCharVector(
+          {"1", "Introduction", "body text one", "body text two", "the end"}),
+      {gfx::RectF(72.0f, 85.0f, 8.0f, 13.0f),
+       gfx::RectF(100.0f, 85.0f, 117.0f, 13.0f),
+       gfx::RectF(72.0f, 150.0f, 200.0f, 20.0f),
+       gfx::RectF(72.0f, 170.0f, 200.0f, 20.0f),
+       gfx::RectF(72.0f, 190.0f, 200.0f, 20.0f)});
+
+  const ui::AXNode* pdf_root = pdf_accessibility_tree_->GetRoot();
+  ASSERT_GT(pdf_root->GetChildCount(), 1u);
+  const ui::AXNode* page = pdf_root->GetChildAtIndex(1u);
+  ASSERT_NE(nullptr, page);
+  ASSERT_EQ(2u, page->GetChildCount());
+
+  // The section heading must stay a heading, not become a section header.
+  const ui::AXNode* first_block = page->GetChildAtIndex(0u);
+  ASSERT_NE(nullptr, first_block);
+  EXPECT_EQ(ax::mojom::Role::kHeading, first_block->GetRole());
+
+  const ui::AXNode* second_block = page->GetChildAtIndex(1u);
+  ASSERT_NE(nullptr, second_block);
+  EXPECT_EQ(ax::mojom::Role::kParagraph, second_block->GetRole());
+}
+
+TEST_F(PdfAccessibilityTreeTest,
+       HeuristicBoldPureNumberInMarginClassifiedAsFooterNotHeading) {
+  base::test::ScopedFeatureList feature_list;
+  feature_list.InitWithFeatures(
+      {::features::kPdfAccessibilityHeuristicEnhancements},
+      {chrome_pdf::features::kPdfTags});
+
+  chrome_pdf::AccessibilityTextStyleInfo bold_style = CreateBoldStyle();
+  chrome_pdf::AccessibilityTextStyleInfo normal_style = CreateNormalStyle();
+  page_info_.bounds = gfx::Rect(0, 0, 800, 1000);
+
+  // Runs 0-2: Normal body text.
+  // Run 3: Bold pure page number in the bottom margin (y = 920 >= 900).
+  SetUpHeuristicAccessibilityTreeDetailed(
+      /*font_sizes=*/{10.0f, 10.0f, 10.0f, 10.0f},
+      {normal_style, normal_style, normal_style, bold_style},
+      MakeCharVector({"body1", "body2", "end", "42"}),
+      {gfx::RectF(50.0f, 150.0f, 200.0f, 20.0f),
+       gfx::RectF(50.0f, 170.0f, 200.0f, 20.0f),
+       gfx::RectF(50.0f, 190.0f, 200.0f, 20.0f),
+       gfx::RectF(50.0f, 920.0f, 20.0f, 20.0f)});
+
+  const ui::AXNode* pdf_root = pdf_accessibility_tree_->GetRoot();
+  ASSERT_GT(pdf_root->GetChildCount(), 1u);
+  const ui::AXNode* page = pdf_root->GetChildAtIndex(1u);
+  ASSERT_NE(nullptr, page);
+  ASSERT_EQ(2u, page->GetChildCount());
+
+  const ui::AXNode* body_block = page->GetChildAtIndex(0u);
+  ASSERT_NE(nullptr, body_block);
+  EXPECT_EQ(ax::mojom::Role::kParagraph, body_block->GetRole());
+
+  // The bold pure number in the bottom margin must be classified as a footer,
+  // not a heading.
+  const ui::AXNode* footer_block = page->GetChildAtIndex(1u);
+  ASSERT_NE(nullptr, footer_block);
+  EXPECT_EQ(ax::mojom::Role::kSectionFooter, footer_block->GetRole());
+}
+
+TEST_F(PdfAccessibilityTreeTest,
+       HeuristicBoldPureNumberInMarginClassifiedAsHeaderNotHeading) {
+  base::test::ScopedFeatureList feature_list;
+  feature_list.InitWithFeatures(
+      {::features::kPdfAccessibilityHeuristicEnhancements},
+      {chrome_pdf::features::kPdfTags});
+
+  chrome_pdf::AccessibilityTextStyleInfo bold_style = CreateBoldStyle();
+  chrome_pdf::AccessibilityTextStyleInfo normal_style = CreateNormalStyle();
+  page_info_.bounds = gfx::Rect(0, 0, 800, 1000);
+
+  // Run 0: Bold pure page number in the top margin (bottom = 70 <= 100).
+  // Runs 1-3: Normal body text.
+  SetUpHeuristicAccessibilityTreeDetailed(
+      /*font_sizes=*/{10.0f, 10.0f, 10.0f, 10.0f},
+      {bold_style, normal_style, normal_style, normal_style},
+      MakeCharVector({"42", "body1", "body2", "end"}),
+      {gfx::RectF(50.0f, 50.0f, 20.0f, 20.0f),
+       gfx::RectF(50.0f, 150.0f, 200.0f, 20.0f),
+       gfx::RectF(50.0f, 170.0f, 200.0f, 20.0f),
+       gfx::RectF(50.0f, 190.0f, 200.0f, 20.0f)});
+
+  const ui::AXNode* pdf_root = pdf_accessibility_tree_->GetRoot();
+  ASSERT_GT(pdf_root->GetChildCount(), 1u);
+  const ui::AXNode* page = pdf_root->GetChildAtIndex(1u);
+  ASSERT_NE(nullptr, page);
+  ASSERT_EQ(2u, page->GetChildCount());
+
+  // The bold pure number in the top margin must be classified as a section
+  // header, not a heading.
+  const ui::AXNode* header_block = page->GetChildAtIndex(0u);
+  ASSERT_NE(nullptr, header_block);
+  EXPECT_EQ(ax::mojom::Role::kSectionHeader, header_block->GetRole());
+
+  const ui::AXNode* body_block = page->GetChildAtIndex(1u);
+  ASSERT_NE(nullptr, body_block);
+  EXPECT_EQ(ax::mojom::Role::kParagraph, body_block->GetRole());
+}
+
+TEST_F(PdfAccessibilityTreeTest,
+       HeuristicLargePureNumberInMarginClassifiedAsFooterNotHeading) {
+  base::test::ScopedFeatureList feature_list;
+  feature_list.InitWithFeatures(
+      {::features::kPdfAccessibilityHeuristicEnhancements},
+      {chrome_pdf::features::kPdfTags});
+
+  chrome_pdf::AccessibilityTextStyleInfo normal_style = CreateNormalStyle();
+  page_info_.bounds = gfx::Rect(0, 0, 800, 1000);
+
+  // Runs 0-2: Normal body text, establishing a median font size of 10.
+  // Run 3: Pure page number in the bottom margin (y = 920 >= 900), set larger
+  // than body text. A bare digit in a margin is a page number at any size.
+  SetUpHeuristicAccessibilityTreeDetailed(
+      /*font_sizes=*/{10.0f, 10.0f, 10.0f, 14.0f},
+      {normal_style, normal_style, normal_style, normal_style},
+      MakeCharVector({"body1", "body2", "end", "42"}),
+      {gfx::RectF(50.0f, 150.0f, 200.0f, 20.0f),
+       gfx::RectF(50.0f, 170.0f, 200.0f, 20.0f),
+       gfx::RectF(50.0f, 190.0f, 200.0f, 20.0f),
+       gfx::RectF(50.0f, 920.0f, 20.0f, 20.0f)});
+
+  const ui::AXNode* pdf_root = pdf_accessibility_tree_->GetRoot();
+  ASSERT_GT(pdf_root->GetChildCount(), 1u);
+  const ui::AXNode* page = pdf_root->GetChildAtIndex(1u);
+  ASSERT_NE(nullptr, page);
+  ASSERT_EQ(2u, page->GetChildCount());
+
+  const ui::AXNode* body_block = page->GetChildAtIndex(0u);
+  ASSERT_NE(nullptr, body_block);
+  EXPECT_EQ(ax::mojom::Role::kParagraph, body_block->GetRole());
+
+  // The larger pure number in the bottom margin must be classified as a
+  // footer, not a heading.
+  const ui::AXNode* footer_block = page->GetChildAtIndex(1u);
+  ASSERT_NE(nullptr, footer_block);
+  EXPECT_EQ(ax::mojom::Role::kSectionFooter, footer_block->GetRole());
+}
+
+TEST_F(PdfAccessibilityTreeTest,
+       HeuristicSuperscriptFootnoteMarkerInBottomMarginNotClassifiedAsFooter) {
+  base::test::ScopedFeatureList feature_list;
+  feature_list.InitWithFeatures(
+      {::features::kPdfAccessibilityHeuristicEnhancements},
+      {chrome_pdf::features::kPdfTags});
+
+  chrome_pdf::AccessibilityTextStyleInfo normal_style = CreateNormalStyle();
+  page_info_.bounds = gfx::Rect(0, 0, 800, 1000);
+
+  // Runs 0-1: Body text. Median font size is 10.
+  // Runs 2 and 4: Superscript footnote markers "1" and "2" at font size 6,
+  // inside the bottom 10% page-number margin (y = 920 and y = 940 >= 900).
+  // Both are pure numbers, so without marker detection they would each be
+  // classified as a page number and start a footer block.
+  // Runs 3 and 5: The footnote text each marker annotates, sharing the marker's
+  // visual line at font size 10. The 6/10 = 0.6 size ratio is below the 0.85
+  // marker threshold, so the markers must stay unclassified.
+  SetUpHeuristicAccessibilityTreeDetailed(
+      /*font_sizes=*/{10.0f, 10.0f, 6.0f, 10.0f, 6.0f, 10.0f},
+      {normal_style, normal_style, normal_style, normal_style, normal_style,
+       normal_style},
+      MakeCharVector({"body1", "body2", "1", "first note", "2", "second note"}),
+      {gfx::RectF(50.0f, 100.0f, 200.0f, 15.0f),
+       gfx::RectF(50.0f, 115.0f, 200.0f, 15.0f),
+       gfx::RectF(50.0f, 920.0f, 8.0f, 10.0f),
+       gfx::RectF(60.0f, 920.0f, 300.0f, 15.0f),
+       gfx::RectF(50.0f, 940.0f, 8.0f, 10.0f),
+       gfx::RectF(60.0f, 940.0f, 300.0f, 15.0f)});
+
+  const ui::AXNode* pdf_root = pdf_accessibility_tree_->GetRoot();
+  ASSERT_GT(pdf_root->GetChildCount(), 1u);
+  const ui::AXNode* page = pdf_root->GetChildAtIndex(1u);
+  ASSERT_NE(nullptr, page);
+  ASSERT_EQ(3u, page->GetChildCount());
+
+  // All blocks must be paragraphs: the bare digits are footnote markers
+  // annotating body content, not footers.
+  for (size_t i = 0; i < page->GetChildCount(); ++i) {
+    SCOPED_TRACE(::testing::Message() << "block index " << i);
+    const ui::AXNode* block = page->GetChildAtIndex(i);
+    ASSERT_NE(nullptr, block);
+    EXPECT_EQ(ax::mojom::Role::kParagraph, block->GetRole());
+  }
+}
+
+TEST_F(PdfAccessibilityTreeTest,
+       HeuristicSuperscriptFootnoteMarkerInTopMarginNotClassifiedAsHeader) {
+  base::test::ScopedFeatureList feature_list;
+  feature_list.InitWithFeatures(
+      {::features::kPdfAccessibilityHeuristicEnhancements},
+      {chrome_pdf::features::kPdfTags});
+
+  chrome_pdf::AccessibilityTextStyleInfo normal_style = CreateNormalStyle();
+  page_info_.bounds = gfx::Rect(0, 0, 800, 1000);
+
+  // Run 0: Superscript marker "1" at font size 6 inside the top 10% margin
+  // (bottom = 60 <= 100), sharing its visual line with run 1.
+  // Run 1: The larger text the marker annotates. The 6/10 = 0.6 size ratio is
+  // below the 0.85 marker threshold, so the marker must not become a header.
+  // Runs 2-4: Body text establishing a median font size of 10.
+  SetUpHeuristicAccessibilityTreeDetailed(
+      /*font_sizes=*/{6.0f, 10.0f, 10.0f, 10.0f, 10.0f},
+      {normal_style, normal_style, normal_style, normal_style, normal_style},
+      MakeCharVector({"1", "annotated text", "body1", "body2", "end"}),
+      {gfx::RectF(50.0f, 50.0f, 8.0f, 10.0f),
+       gfx::RectF(60.0f, 50.0f, 200.0f, 15.0f),
+       gfx::RectF(50.0f, 300.0f, 200.0f, 15.0f),
+       gfx::RectF(50.0f, 315.0f, 200.0f, 15.0f),
+       gfx::RectF(50.0f, 330.0f, 200.0f, 15.0f)});
+
+  const ui::AXNode* pdf_root = pdf_accessibility_tree_->GetRoot();
+  ASSERT_GT(pdf_root->GetChildCount(), 1u);
+  const ui::AXNode* page = pdf_root->GetChildAtIndex(1u);
+  ASSERT_NE(nullptr, page);
+  ASSERT_EQ(2u, page->GetChildCount());
+
+  // The marker annotates body content, so it must not be classified as a
+  // header even though a bare digit in the top margin is normally a page
+  // number.
+  const ui::AXNode* first_block = page->GetChildAtIndex(0u);
+  ASSERT_NE(nullptr, first_block);
+  EXPECT_EQ(ax::mojom::Role::kParagraph, first_block->GetRole());
+
+  const ui::AXNode* second_block = page->GetChildAtIndex(1u);
+  ASSERT_NE(nullptr, second_block);
+  EXPECT_EQ(ax::mojom::Role::kParagraph, second_block->GetRole());
+}
+
+TEST_F(PdfAccessibilityTreeTest,
+       HeuristicBoldSuperscriptFootnoteMarkerNotPromotedToHeading) {
+  base::test::ScopedFeatureList feature_list;
+  feature_list.InitWithFeatures(
+      {::features::kPdfAccessibilityHeuristicEnhancements},
+      {chrome_pdf::features::kPdfTags});
+
+  chrome_pdf::AccessibilityTextStyleInfo normal_style = CreateNormalStyle();
+  chrome_pdf::AccessibilityTextStyleInfo bold_style = CreateBoldStyle();
+  page_info_.bounds = gfx::Rect(0, 0, 800, 1000);
+
+  // Runs 0-2: Body text establishing a median font size of 10.
+  // Run 3: A bold superscript marker "1" at font size 6 in the bottom margin
+  // (y = 920 >= 900). `CreateBlockLevelNode()` resolves the header and footer
+  // role for bare digits before classifying headings, and that check now
+  // declines to classify markers. The marker must not fall through and be
+  // promoted to a heading on the strength of its bold styling instead.
+  // Run 4: The larger footnote text the marker annotates, on the same line.
+  SetUpHeuristicAccessibilityTreeDetailed(
+      /*font_sizes=*/{10.0f, 10.0f, 10.0f, 6.0f, 10.0f},
+      {normal_style, normal_style, normal_style, bold_style, normal_style},
+      MakeCharVector({"body1", "body2", "end", "1", "footnote text"}),
+      {gfx::RectF(50.0f, 150.0f, 200.0f, 15.0f),
+       gfx::RectF(50.0f, 165.0f, 200.0f, 15.0f),
+       gfx::RectF(50.0f, 180.0f, 200.0f, 15.0f),
+       gfx::RectF(50.0f, 920.0f, 8.0f, 10.0f),
+       gfx::RectF(60.0f, 920.0f, 200.0f, 15.0f)});
+
+  const ui::AXNode* pdf_root = pdf_accessibility_tree_->GetRoot();
+  ASSERT_GT(pdf_root->GetChildCount(), 1u);
+  const ui::AXNode* page = pdf_root->GetChildAtIndex(1u);
+  ASSERT_NE(nullptr, page);
+  ASSERT_EQ(2u, page->GetChildCount());
+
+  const ui::AXNode* body_block = page->GetChildAtIndex(0u);
+  ASSERT_NE(nullptr, body_block);
+  EXPECT_EQ(ax::mojom::Role::kParagraph, body_block->GetRole());
+
+  // The marker is body content: neither a footer nor a heading.
+  const ui::AXNode* marker_block = page->GetChildAtIndex(1u);
+  ASSERT_NE(nullptr, marker_block);
+  EXPECT_EQ(ax::mojom::Role::kParagraph, marker_block->GetRole());
 }
 
 TEST_F(PdfAccessibilityTreeTest,
@@ -2120,7 +2415,7 @@ TEST_F(PdfAccessibilityTreeTest,
   EXPECT_EQ(ax::mojom::Role::kParagraph, body_block->GetRole());
 }
 
-TEST_F(PdfAccessibilityTreeTest, HeuristicFooterInBottomMargin) {
+TEST_F(PdfAccessibilityTreeTest, HeuristicNonPageNumberFooterInBottomMargin) {
   base::test::ScopedFeatureList feature_list;
   feature_list.InitWithFeatures(
       {::features::kPdfAccessibilityHeuristicEnhancements},
@@ -2141,6 +2436,83 @@ TEST_F(PdfAccessibilityTreeTest, HeuristicFooterInBottomMargin) {
        gfx::RectF(50.0f, 115.0f, 200.0f, 15.0f),
        gfx::RectF(50.0f, 130.0f, 200.0f, 15.0f),
        gfx::RectF(50.0f, 960.0f, 100.0f, 15.0f)});
+
+  const ui::AXNode* pdf_root = pdf_accessibility_tree_->GetRoot();
+  ASSERT_GT(pdf_root->GetChildCount(), 1u);
+  const ui::AXNode* page = pdf_root->GetChildAtIndex(1u);
+  ASSERT_NE(nullptr, page);
+  ASSERT_EQ(2u, page->GetChildCount());
+
+  const ui::AXNode* body_block = page->GetChildAtIndex(0u);
+  ASSERT_NE(nullptr, body_block);
+  EXPECT_EQ(ax::mojom::Role::kParagraph, body_block->GetRole());
+
+  const ui::AXNode* footer_block = page->GetChildAtIndex(1u);
+  ASSERT_NE(nullptr, footer_block);
+  EXPECT_EQ(ax::mojom::Role::kSectionFooter, footer_block->GetRole());
+}
+
+TEST_F(PdfAccessibilityTreeTest,
+       HeuristicNonPageNumberBetween90And95PercentNotClassifiedAsFooter) {
+  base::test::ScopedFeatureList feature_list;
+  feature_list.InitWithFeatures(
+      {::features::kPdfAccessibilityHeuristicEnhancements},
+      {chrome_pdf::features::kPdfTags});
+
+  chrome_pdf::AccessibilityTextStyleInfo normal_style = CreateNormalStyle();
+  page_info_.bounds = gfx::Rect(0, 0, 800, 1000);
+
+  // Runs 0-2: Body text at font size 10 (establishing median font size = 10).
+  // Run 3: Text footer "Confidential" at font size 8 at y = 920.
+  // Because it contains no digits, it is subject to the 95% non-page-number
+  // margin (y >= 950). At y = 920, it is outside that band and must not be
+  // classified as a section footer.
+  SetUpHeuristicAccessibilityTreeDetailed(
+      /*font_sizes=*/{10.0f, 10.0f, 10.0f, 8.0f},
+      {normal_style, normal_style, normal_style, normal_style},
+      MakeCharVector({"body1", "body2", "end", "Confidential"}),
+      {gfx::RectF(50.0f, 100.0f, 200.0f, 15.0f),
+       gfx::RectF(50.0f, 115.0f, 200.0f, 15.0f),
+       gfx::RectF(50.0f, 130.0f, 200.0f, 15.0f),
+       gfx::RectF(50.0f, 920.0f, 100.0f, 15.0f)});
+
+  const ui::AXNode* pdf_root = pdf_accessibility_tree_->GetRoot();
+  ASSERT_GT(pdf_root->GetChildCount(), 1u);
+  const ui::AXNode* page = pdf_root->GetChildAtIndex(1u);
+  ASSERT_NE(nullptr, page);
+  ASSERT_EQ(2u, page->GetChildCount());
+
+  const ui::AXNode* body_block = page->GetChildAtIndex(0u);
+  ASSERT_NE(nullptr, body_block);
+  EXPECT_EQ(ax::mojom::Role::kParagraph, body_block->GetRole());
+
+  const ui::AXNode* second_block = page->GetChildAtIndex(1u);
+  ASSERT_NE(nullptr, second_block);
+  EXPECT_EQ(ax::mojom::Role::kParagraph, second_block->GetRole());
+}
+
+TEST_F(PdfAccessibilityTreeTest,
+       HeuristicPageNumberBetween90And95PercentClassifiedAsFooter) {
+  base::test::ScopedFeatureList feature_list;
+  feature_list.InitWithFeatures(
+      {::features::kPdfAccessibilityHeuristicEnhancements},
+      {chrome_pdf::features::kPdfTags});
+
+  chrome_pdf::AccessibilityTextStyleInfo normal_style = CreateNormalStyle();
+  page_info_.bounds = gfx::Rect(0, 0, 800, 1000);
+
+  // Runs 0-2: Body text at font size 10 (establishing median font size = 10).
+  // Run 3: Narrow text containing digits ("Page 1") at font size 8 at y = 920.
+  // Because it is a page number, it qualifies under the 90% margin (y >= 900),
+  // and must be classified as a section footer.
+  SetUpHeuristicAccessibilityTreeDetailed(
+      /*font_sizes=*/{10.0f, 10.0f, 10.0f, 8.0f},
+      {normal_style, normal_style, normal_style, normal_style},
+      MakeCharVector({"body1", "body2", "end", "Page 1"}),
+      {gfx::RectF(50.0f, 100.0f, 200.0f, 15.0f),
+       gfx::RectF(50.0f, 115.0f, 200.0f, 15.0f),
+       gfx::RectF(50.0f, 130.0f, 200.0f, 15.0f),
+       gfx::RectF(50.0f, 920.0f, 50.0f, 15.0f)});
 
   const ui::AXNode* pdf_root = pdf_accessibility_tree_->GetRoot();
   ASSERT_GT(pdf_root->GetChildCount(), 1u);
