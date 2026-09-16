@@ -2045,19 +2045,20 @@ void BrowserCommandController::UpdateSharedCommandsForIncognitoAvailability(
     CommandUpdater* command_updater,
     Profile* profile) {
   policy::IncognitoModeAvailability incognito_availability =
-      IncognitoModePrefs::GetAvailability(profile->GetPrefs());
+      IncognitoModePrefs::GetAvailability(profile);
   command_updater->UpdateCommandEnabled(
       IDC_NEW_WINDOW,
       incognito_availability != policy::IncognitoModeAvailability::kForced);
-  bool isolated_mode_enabled =
-      enterprise_isolated_mode::IsolatedModeReplacesIncognito(profile);
 
   command_updater->UpdateCommandEnabled(
       IDC_NEW_INCOGNITO_WINDOW,
-      IncognitoModePrefs::IsIncognitoAllowed(profile));
+      IncognitoModePrefs::IsIncognitoTypeAllowed(
+          profile, IncognitoModePrefs::IncognitoModeType::kStandard));
 
-  command_updater->UpdateCommandEnabled(IDC_NEW_ISOLATED_WINDOW,
-                                        isolated_mode_enabled);
+  command_updater->UpdateCommandEnabled(
+      IDC_NEW_ISOLATED_WINDOW,
+      IncognitoModePrefs::IsIncognitoTypeAllowed(
+          profile, IncognitoModePrefs::IncognitoModeType::kEnterprise));
 
   const bool forced_incognito =
       incognito_availability == policy::IncognitoModeAvailability::kForced;
