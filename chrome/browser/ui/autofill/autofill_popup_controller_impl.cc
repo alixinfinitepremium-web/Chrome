@@ -333,20 +333,17 @@ void AutofillPopupControllerImpl::Show(
   content::RenderFrameHost* rfh = nullptr;
   if (base::FeatureList::IsEnabled(features::kAutofillSimplifyFocusCheck)) {
     rfh = FindRenderFrameHostByToken(*web_contents_,
-                                     controller_common_.frame_token);
+                                     controller_common_.anchor_frame_token);
   } else {
-    // The focused frame may be different from the one one the controller is
-    // anchored to. This happens in two scenarios:
-    // - With frame-transcending forms: the focused frame is a subframe whose
-    //   form has been flattened into an ancestor form.
-    // - With race conditions: while Autofill parsed the form, the focus may
-    //   have moved to another frame.
+    // The focused frame may be different from the one the controller is
+    // anchored to. This happens with race conditions: while Autofill parsed the
+    // form, the focus may have moved to another frame.
     // We support the case where the focused frame is a descendant of the
     // `delegate_`'s frame. We observe the focused frame's RenderFrameDeleted()
     // event.
     rfh = web_contents_->GetFocusedFrame();
     content::RenderFrameHost* anchor_rfh = FindRenderFrameHostByToken(
-        *web_contents_, controller_common_.frame_token);
+        *web_contents_, controller_common_.anchor_frame_token);
 
     const bool focus_is_in_descendant =
         rfh && delegate_ && IsAncestorOf(anchor_rfh, rfh);
@@ -483,8 +480,9 @@ void AutofillPopupControllerImpl::UpdateDataListValues(
   }
 }
 
-const LocalFrameToken& AutofillPopupControllerImpl::GetFrameToken() const {
-  return controller_common_.frame_token;
+const LocalFrameToken& AutofillPopupControllerImpl::GetAnchorFrameToken()
+    const {
+  return controller_common_.anchor_frame_token;
 }
 
 bool AutofillPopupControllerImpl::IsViewVisibilityAcceptingThresholdEnabled()
