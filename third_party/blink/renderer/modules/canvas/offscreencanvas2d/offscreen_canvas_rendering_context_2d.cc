@@ -279,8 +279,7 @@ bool OffscreenCanvasRenderingContext2D::InitializeResourceProvider() {
   }
 
   if (shared_image_provider_ || bitmap_provider_) {
-    recorder_ =
-        std::make_unique<MemoryManagedPaintRecorder>(host->Size(), this);
+    CreateRecorder(host->Size());
     UpdateRecordingLimits(shared_image_provider_ &&
                           shared_image_provider_->IsGraphite());
   }
@@ -289,7 +288,7 @@ bool OffscreenCanvasRenderingContext2D::InitializeResourceProvider() {
 
   if (shared_image_provider_) {
     if (shared_image_provider_->IsGraphite()) {
-      recorder_->DisableLineDrawingAsPaths();
+      Recorder()->DisableLineDrawingAsPaths();
     }
     base::UmaHistogramBoolean("Blink.Canvas.ResourceProviderIsAccelerated",
                               shared_image_provider_->IsAccelerated());
@@ -442,11 +441,6 @@ OffscreenCanvasRenderingContext2D::GetPaintCanvas() const {
   return recorder ? &recorder->getRecordingCanvas() : nullptr;
 }
 
-const MemoryManagedPaintRecorder* OffscreenCanvasRenderingContext2D::Recorder()
-    const {
-  return recorder_.get();
-}
-
 void OffscreenCanvasRenderingContext2D::RecordingCleared() {
   BaseRenderingContext2D::RecordingCleared();
   if (shared_image_provider_) {
@@ -472,21 +466,6 @@ void OffscreenCanvasRenderingContext2D::WillDraw(
   }
 }
 
-void OffscreenCanvasRenderingContext2D::FlushIfRecordingLimitExceeded() {
-  if (Host()->IsPrinting() && clear_frame()) {
-    return;
-  }
-  const MemoryManagedPaintRecorder* recorder = Recorder();
-  if (!recorder) {
-    return;
-  }
-  if (recorder->ReleasableOpBytesUsed() > max_recorded_op_bytes() ||
-      recorder->ReleasableImageBytesUsed() > max_pinned_image_bytes())
-      [[unlikely]] {
-    FlushCanvas(FlushReason::kOther);
-  }
-}
-
 sk_sp<PaintFilter> OffscreenCanvasRenderingContext2D::StateGetFilter() {
   return GetState().GetFilterForOffscreenCanvas(Host()->Size(), this);
 }
@@ -494,8 +473,7 @@ sk_sp<PaintFilter> OffscreenCanvasRenderingContext2D::StateGetFilter() {
 void OffscreenCanvasRenderingContext2D::ResetResourceProvider() {
   shared_image_provider_.reset();
   bitmap_provider_.reset();
-  recorder_.reset();
-  UpdateRecordingLimits(/*is_graphite=*/false);
+  ResetRecorder();
 }
 
 void OffscreenCanvasRenderingContext2D::Dispose() {
@@ -582,7 +560,7 @@ std::optional<cc::PaintRecord> OffscreenCanvasRenderingContext2D::FlushCanvas(
 void OffscreenCanvasRenderingContext2D::OnFlushForImage(
     cc::PaintImage::ContentId content_id) {
   if (shared_image_provider_ && !shared_image_provider_->IsSoftware()) {
-    if (recorder_->getRecordingCanvas().IsCachingImage(content_id)) {
+    if (Recorder()->getRecordingCanvas().IsCachingImage(content_id)) {
       FlushCanvas(FlushReason::kOther);
     }
     shared_image_provider_->OnFlushForImage(content_id);

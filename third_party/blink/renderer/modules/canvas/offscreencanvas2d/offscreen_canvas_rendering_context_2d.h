@@ -100,14 +100,10 @@ class MODULES_EXPORT OffscreenCanvasRenderingContext2D final
   MemoryManagedPaintCanvas* GetOrCreatePaintCanvas() final;
   using BaseRenderingContext2D::GetPaintCanvas;  // Pull the non-const overload.
   const MemoryManagedPaintCanvas* GetPaintCanvas() const final;
-  using BaseRenderingContext2D::Recorder;  // Pull the non-const overload.
-  const MemoryManagedPaintRecorder* Recorder() const final;
   void RecordingCleared() override;
 
   void WillDraw(const gfx::Rect& dirty_rect,
                 CanvasPerformanceMonitor::DrawType) final;
-
-  void FlushIfRecordingLimitExceeded();
 
   // FlushForImageObserver implementation
   void OnFlushForImage(cc::PaintImage::ContentId content_id) override;
@@ -160,7 +156,6 @@ class MODULES_EXPORT OffscreenCanvasRenderingContext2D final
 
   std::unique_ptr<Canvas2DResourceProvider> shared_image_provider_;
   std::unique_ptr<Canvas2DBitmapProvider> bitmap_provider_;
-  std::unique_ptr<MemoryManagedPaintRecorder> recorder_;
 };
 
 }  // namespace blink

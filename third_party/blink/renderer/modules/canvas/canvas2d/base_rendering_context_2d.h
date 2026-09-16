@@ -84,6 +84,9 @@ class MODULES_EXPORT BaseRenderingContext2D
   void InitializeForRecording(cc::PaintCanvas* canvas) const override;
   void RecordingCleared() override;
 
+  using Canvas2DRecorderContext::Recorder;
+  const MemoryManagedPaintRecorder* Recorder() const final;
+
   bool clear_frame() const { return clear_frame_; }
   void set_clear_frame(bool clear_frame) { clear_frame_ = clear_frame; }
 
@@ -147,6 +150,8 @@ class MODULES_EXPORT BaseRenderingContext2D
 
   virtual bool CanCreateResourceProvider() = 0;
   virtual bool InitializeResourceProvider() = 0;
+
+  std::optional<cc::PaintRecord> FlushCanvas(FlushReason) override = 0;
 
   String lang() const;
   void setLang(const String&);
@@ -292,6 +297,13 @@ class MODULES_EXPORT BaseRenderingContext2D
       Canvas2DBitmapProvider* bitmap_provider,
       FlushReason reason);
 
+  void FlushIfRecordingLimitExceeded();
+
+  void CreateRecorder(const gfx::Size& size);
+  void ResetRecorder();
+  std::unique_ptr<MemoryManagedPaintRecorder> ReleaseRecorder();
+  void SetRecorder(std::unique_ptr<MemoryManagedPaintRecorder> recorder);
+
   explicit BaseRenderingContext2D(
       CanvasRenderingContextHost* canvas,
       const CanvasContextCreationAttributesCore& attrs,
@@ -358,6 +370,7 @@ class MODULES_EXPORT BaseRenderingContext2D
 
   void WillUseCurrentFont() const;
 
+  std::unique_ptr<MemoryManagedPaintRecorder> recorder_;
   bool clear_frame_ = true;
   size_t max_recorded_op_bytes_ = 0;
   size_t max_pinned_image_bytes_ = 0;

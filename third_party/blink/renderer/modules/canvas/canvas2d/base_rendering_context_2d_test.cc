@@ -4,6 +4,7 @@
 
 #include "third_party/blink/renderer/modules/canvas/canvas2d/base_rendering_context_2d.h"
 
+#include <memory>
 #include <optional>
 #include <string>
 
@@ -24,6 +25,7 @@
 #include "third_party/blink/renderer/core/css/css_property_value_set.h"
 #include "third_party/blink/renderer/core/css/parser/css_parser.h"
 #include "third_party/blink/renderer/core/css/resolver/font_style_resolver.h"
+#include "third_party/blink/renderer/core/dom/document.h"
 #include "third_party/blink/renderer/core/execution_context/execution_context.h"
 #include "third_party/blink/renderer/core/geometry/dom_matrix.h"
 #include "third_party/blink/renderer/core/html/canvas/canvas_performance_monitor.h"
@@ -81,12 +83,13 @@ class TestRenderingContext2D final
             MakeGarbageCollected<HTMLCanvasElement>(scope.GetDocument()),
             CanvasContextCreationAttributesCore(),
             scheduler::GetSingleThreadTaskRunnerForTesting()),
-        execution_context_(scope.GetExecutionContext()),
-        recorder_(gfx::Size(Width(), Height()), this) {}
+        execution_context_(scope.GetExecutionContext()) {
+    CreateRecorder(gfx::Size(Width(), Height()));
+  }
   ~TestRenderingContext2D() override = default;
 
   // Returns the content of the paint recorder, leaving it empty.
-  cc::PaintRecord FlushRecorder() { return recorder_.ReleaseMainRecording(); }
+  cc::PaintRecord FlushRecorder() { return Recorder()->ReleaseMainRecording(); }
 
   bool OriginClean() const override { return true; }
   void SetOriginTainted() override {}
@@ -109,11 +112,12 @@ class TestRenderingContext2D final
       return nullptr;
     }
 
-    return &recorder_.getRecordingCanvas();
+    return &Recorder()->getRecordingCanvas();
   }
+  using BaseRenderingContext2D::FlushIfRecordingLimitExceeded;
   using BaseRenderingContext2D::GetPaintCanvas;  // Pull the non-const overload.
   const MemoryManagedPaintCanvas* GetPaintCanvas() const override {
-    return &recorder_.getRecordingCanvas();
+    return &Recorder()->getRecordingCanvas();
   }
   void WillDraw(const gfx::Rect& dirty_rect,
                 CanvasPerformanceMonitor::DrawType) override {}
@@ -149,11 +153,7 @@ class TestRenderingContext2D final
   }
 
   std::optional<cc::PaintRecord> FlushCanvas(FlushReason) override {
-    return recorder_.ReleaseMainRecording();
-  }
-
-  const MemoryManagedPaintRecorder* Recorder() const override {
-    return &recorder_;
+    return Recorder()->ReleaseMainRecording();
   }
 
   bool ResolveFont(const String& new_font) override {
@@ -195,7 +195,6 @@ class TestRenderingContext2D final
 
   Member<ExecutionContext> execution_context_;
   bool restore_matrix_enabled_ = true;
-  MemoryManagedPaintRecorder recorder_;
 };
 
 BeginLayerOptions* FilterOption(blink::V8TestingScope& scope,
@@ -280,6 +279,47 @@ TEST(BaseRenderingContext2DTest, RecordingLimits) {
   context->UpdateRecordingLimits(/*is_graphite=*/false);
   EXPECT_EQ(context->max_recorded_op_bytes(),
             static_cast<size_t>(features::kMaxRecordedOpKB.Get()) * 1024);
+}
+
+TEST(BaseRenderingContext2DTest, FlushIfRecordingLimitExceeded) {
+  test::TaskEnvironment task_environment;
+  V8TestingScope scope;
+  auto* context = MakeGarbageCollected<TestRenderingContext2D>(scope);
+  const size_t initial_op_count = context->Recorder()->TotalOpCount();
+
+  // Under limit: no flush.
+  context->fillRect(0, 0, 1, 1);
+  EXPECT_GT(context->Recorder()->TotalOpCount(), initial_op_count);
+  const size_t op_count_under_limit = context->Recorder()->TotalOpCount();
+  context->FlushIfRecordingLimitExceeded();
+  EXPECT_EQ(context->Recorder()->TotalOpCount(), op_count_under_limit);
+
+  // Exceed op budget: FlushIfRecordingLimitExceeded flushes.
+  while (context->Recorder()->TotalOpBytesUsed() <=
+         context->max_recorded_op_bytes()) {
+    context->fillRect(0, 0, 1, 1);
+  }
+  context->FlushIfRecordingLimitExceeded();
+  EXPECT_EQ(context->Recorder()->TotalOpCount(), initial_op_count);
+
+  // When printing and clear_frame() is true, no flush occurs even if over
+  // limit.
+  scope.GetDocument().SetPrinting(Document::kPrinting);
+  while (context->Recorder()->TotalOpBytesUsed() <=
+         context->max_recorded_op_bytes()) {
+    context->fillRect(0, 0, 1, 1);
+  }
+  EXPECT_TRUE(context->clear_frame());
+  const size_t printing_op_count = context->Recorder()->TotalOpCount();
+  EXPECT_GT(printing_op_count, initial_op_count);
+  context->FlushIfRecordingLimitExceeded();
+  EXPECT_EQ(context->Recorder()->TotalOpCount(), printing_op_count);
+
+  // When printing but clear_frame() is false, flushing does occur when over
+  // limit.
+  context->set_clear_frame(false);
+  context->FlushIfRecordingLimitExceeded();
+  EXPECT_EQ(context->Recorder()->TotalOpCount(), initial_op_count);
 }
 
 }  // namespace

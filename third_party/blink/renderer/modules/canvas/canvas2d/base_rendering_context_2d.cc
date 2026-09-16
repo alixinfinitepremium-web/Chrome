@@ -153,8 +153,38 @@ BaseRenderingContext2D::BaseRenderingContext2D(
       color_params_(attrs.color_space,
                     attrs.hdr_metadata,
                     attrs.pixel_format,
-                    attrs.alpha) {
+                    attrs.alpha),
+      max_pinned_image_bytes_(
+          static_cast<size_t>(features::kMaxPinnedImageKB.Get()) * 1024) {
   UpdateRecordingLimits(/*is_graphite=*/false);
+}
+
+const MemoryManagedPaintRecorder* BaseRenderingContext2D::Recorder() const {
+  return recorder_.get();
+}
+
+void BaseRenderingContext2D::CreateRecorder(const gfx::Size& size) {
+  recorder_ = std::make_unique<MemoryManagedPaintRecorder>(size, this);
+}
+
+void BaseRenderingContext2D::ResetRecorder() {
+  recorder_.reset();
+}
+
+std::unique_ptr<MemoryManagedPaintRecorder>
+BaseRenderingContext2D::ReleaseRecorder() {
+  if (recorder_) {
+    recorder_->SetClient(nullptr);
+  }
+  return std::move(recorder_);
+}
+
+void BaseRenderingContext2D::SetRecorder(
+    std::unique_ptr<MemoryManagedPaintRecorder> recorder) {
+  if (recorder) {
+    recorder->SetClient(this);
+  }
+  recorder_ = std::move(recorder);
 }
 
 void BaseRenderingContext2D::UpdateRecordingLimits(bool is_graphite) {
@@ -162,8 +192,6 @@ void BaseRenderingContext2D::UpdateRecordingLimits(bool is_graphite) {
       static_cast<size_t>(is_graphite ? features::kMaxRecordedOpGraphiteKB.Get()
                                       : features::kMaxRecordedOpKB.Get()) *
       1024;
-  max_pinned_image_bytes_ =
-      static_cast<size_t>(features::kMaxPinnedImageKB.Get()) * 1024;
 }
 
 void BaseRenderingContext2D::ResetInternal() {
@@ -777,6 +805,21 @@ std::optional<cc::PaintRecord> BaseRenderingContext2D::FlushCanvasInternal(
     Host()->DidFlush();
   }
   return recording;
+}
+
+void BaseRenderingContext2D::FlushIfRecordingLimitExceeded() {
+  if (Host()->IsPrinting() && clear_frame()) {
+    return;
+  }
+  const MemoryManagedPaintRecorder* recorder = Recorder();
+  if (!recorder) {
+    return;
+  }
+  if (recorder->ReleasableOpBytesUsed() > max_recorded_op_bytes() ||
+      recorder->ReleasableImageBytesUsed() > max_pinned_image_bytes())
+      [[unlikely]] {
+    FlushCanvas(FlushReason::kOther);
+  }
 }
 
 void BaseRenderingContext2D::WillUseCurrentFont() const {
