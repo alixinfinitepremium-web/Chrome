@@ -16,12 +16,13 @@
   --cr-composebox-grid-min-item-width: 100px;
   --cr-composebox-grid-padding-bottom: 10px;
   --cr-composebox-grid-row-gap: 16px;
-  --cr-composebox-header-color: #474747;
+  --cr-composebox-header-color: var(--color-sys-on-surface-subtle);
   --cr-composebox-header-font-size: 12px;
   --cr-composebox-header-font-weight: 500;
   --cr-composebox-header-line-height: 18px;
   --cr-composebox-image-card-aspect-ratio: 4 / 3;
   --cr-composebox-image-card-border-radius: 16px;
+  --cr-composebox-image-card-text-color: var(--color-sys-on-surface);
   --input-bottom-spacing: 10px;
   --text-input-top-spacing: 10px;
   --text-input-inline-end-spacing: 80px;
@@ -61,6 +62,7 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
+  reading-flow: flex-visual;
 }
 
 #contextEntrypoint::part(entrypoint-button) {
@@ -180,4 +182,30 @@ cr-composebox-tool-chip {
 :host([energy-effect-enabled][submit-enabled][searchbox-layout-mode='TallBottomContext']:not([show-dropdown]))
     cr-composebox-submit::part(submit) {
   bottom: 10px;
+}
+
+.divider-and-dropdown {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* Rich image suggestions state: context menu moves above image grid */
+:host([has-grid]) .divider-and-dropdown {
+  order: 1;
+
+  .carousel-divider {
+    --contextual-entrypoint-and-carousel-carousel-divider-margin-top: 8px;
+    --contextual-entrypoint-and-carousel-carousel-divider-margin-bottom: 12px;
+  }
+}
+
+:host([searchbox-layout-mode='TallBottomContext'][show-dropdown][has-grid]) #voiceSearchButton {
+  bottom: unset;
+  top: var(--cr-composebox-voice-icon-top, 60px);
+}
+
+:host([searchbox-layout-mode='TallBottomContext'][show-dropdown][has-grid]) cr-composebox-submit::part(submit) {
+  bottom: unset;
+  top: var(--cr-composebox-submit-container-top, 58px);
 }
