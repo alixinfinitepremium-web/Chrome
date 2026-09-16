@@ -1691,7 +1691,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_mac_arm64',
-          'version': 'DZF_0b8YbxdoMJRcDocCeYlw6bPs6ypt6WXYgVIVbkEC',
+          'version': 'DG5KdxsyKcnWmfRXbcZvWKJu5R8OV17cloHFS_Ghnr4C',
         },
       ],
   },
@@ -4034,7 +4034,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        '3b036b4fedbbd25ace08602f39fde8f90a3eaded',
+        'fa5e3d615b8cbcf9dfed9719eb7fd0a1ff1e0abc',
       'condition': 'checkout_src_internal',
   },
 
