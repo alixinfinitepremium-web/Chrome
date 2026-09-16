@@ -481,7 +481,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling crabbyavif
   # and whatever else without interference from each other.
-  'crabbyavif_revision': '237ebe0d35639ebe1e8ef83ea9f90875f9ac66c3',
+  'crabbyavif_revision': 'af60fa980a55cffa938daa911e15f42b7775c467',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Speedometer main
   # and whatever else without interference from each other.
@@ -1761,7 +1761,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '7a680ba0237bb2e4dbc9b25442c1bdc3c26e9ed8',
+    'a537d179831ee0d4926b65e4fc49545ca1284b0f',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -4112,7 +4112,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        'faa243ed716b4f169c25768cef06ccac15d65f86',
+        '10e1d8bdc58270f3b95f12939e76c9121cea89a6',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
