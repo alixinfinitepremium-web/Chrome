@@ -1669,7 +1669,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_linux64',
-          'version': 'g0B9275oFMYU75v4ChnSnr25pcjc6grVe_MCNJ7EC7IC',
+          'version': 'MHYCUUw_7v1wkH-Ir2_NxZdSG8NuWh3hHyYaPJXjSTgC',
         },
       ],
   },
@@ -2799,7 +2799,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/cisco/openh264' + '@' + '9547f96ea5c47f4d465d97b07264b997ecc4b4b6',
 
   'src/third_party/openscreen/src':
-    Var('chromium_git') + '/openscreen' + '@' + '9f8669be5fc84d28c1124dfae21265e773139c19',
+    Var('chromium_git') + '/openscreen' + '@' + '029cf0637d7d63373bafe949f0a4c37cd11da343',
 
   'src/third_party/openxr/src': {
     'url': Var('chromium_git') + '/external/github.com/KhronosGroup/OpenXR-SDK' + '@' + '75c53b6e853dc12c7b3c771edc9c9c841b15faaa',
