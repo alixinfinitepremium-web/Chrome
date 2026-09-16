@@ -337,7 +337,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': 'de687861c590148eb39bc26e5c362d66d5e2fd5e',
+  'src_internal_revision': 'c6b851c769f467e2210735fe6d64584c02674c9d',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -3422,7 +3422,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/help_app/app',
-        'version': '8QPrsaIhLdl-QYHNhyGxpRKeLLKq-ENA2AOk3K51GsUC',
+        'version': 'ESNF10SuZo2OOk8BJW9aDlPxYPzefCXEabjzafEBETkC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3433,7 +3433,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/media_app/app',
-        'version': '16vpNG3rW0tdhppyRML-_Gf-pU3sefA3MR7B3sJyXIcC',
+        'version': 'fXFuqRTjpt6iw_52PXE8KutVw_brtYMjcAadls54EpwC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
