@@ -405,7 +405,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_web_tests_revision': '09be80c9651d9c58ca3a249e74908d0ff6e5fdb7',
+  'crossbench_web_tests_revision': 'e8fe4edde2789a5a35b3dc3d28492c5d3f3e9083',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libFuzzer
   # and whatever else without interference from each other.
@@ -1865,7 +1865,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': 'rYfXO8qZSUMpXQo8LImGEW3VacVhKoLaDfUugh9ch3wC',
+          'version': 'iF4C7MvSSf-3djGQN1yJcEoOgEuvKZGSrE1ixoau9MMC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
