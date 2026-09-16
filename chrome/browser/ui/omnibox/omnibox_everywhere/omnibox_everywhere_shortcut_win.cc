@@ -14,11 +14,14 @@
 #include "base/strings/utf_string_conversions.h"
 #include "base/win/shortcut.h"
 #include "chrome/browser/shell_integration_win.h"
+#include "chrome/common/channel_info.h"
 #include "chrome/common/chrome_constants.h"
 #include "chrome/common/chrome_icon_resources_win.h"
 #include "chrome/common/chrome_paths.h"
 #include "chrome/common/chrome_switches.h"
 #include "chrome/grit/branded_strings.h"
+#include "chrome/install_static/install_details.h"
+#include "components/version_info/channel.h"
 #include "ui/base/l10n/l10n_util.h"
 #include "ui/base/win/shell.h"
 
@@ -44,13 +47,22 @@ base::FilePath GetChromeProxyPath() {
   return chrome_dir.Append(FILE_PATH_LITERAL("chrome_proxy.exe"));
 }
 
-std::wstring GetDisplayName() {
-  return base::UTF16ToWide(
-      l10n_util::GetStringUTF16(IDS_OMNIBOX_EVERYWHERE_NAME));
+int GetDisplayNameMessageId() {
+  if (install_static::InstallDetails::Get().is_primary_mode()) {
+    return IDS_OMNIBOX_EVERYWHERE_NAME;
+  }
+  switch (chrome::GetChannel()) {
+    case version_info::Channel::BETA:
+      return IDS_OMNIBOX_EVERYWHERE_NAME_BETA;
+    case version_info::Channel::DEV:
+      return IDS_OMNIBOX_EVERYWHERE_NAME_DEV;
+    case version_info::Channel::CANARY:
+      return IDS_OMNIBOX_EVERYWHERE_NAME_CANARY;
+    default:
+      return IDS_OMNIBOX_EVERYWHERE_NAME;
+  }
 }
 
-// TODO(crbug.com/562072483): Make the file name channel-aware; channels
-// currently share one Start Menu entry. Land before crbug.com/562073179.
 std::wstring GetShortcutName() {
   return base::StrCat({GetDisplayName(), L".lnk"});
 }
@@ -65,7 +77,35 @@ base::FilePath GetStartMenuShortcutPath() {
   return start_menu_dir.Append(GetShortcutName());
 }
 
+// Returns whether the shortcut at `shortcut_path` already resolves to the
+// launch properties in `expected`.
+bool ShortcutMatches(const base::FilePath& shortcut_path,
+                     const base::win::ShortcutProperties& expected) {
+  base::win::ShortcutProperties existing;
+  if (!base::win::ResolveShortcutProperties(
+          shortcut_path,
+          base::win::ShortcutProperties::PROPERTIES_TARGET |
+              base::win::ShortcutProperties::PROPERTIES_ARGUMENTS |
+              base::win::ShortcutProperties::PROPERTIES_ICON |
+              base::win::ShortcutProperties::PROPERTIES_APP_ID,
+          &existing)) {
+    return false;
+  }
+  return base::FilePath::CompareEqualIgnoreCase(existing.target.value(),
+                                                expected.target.value()) &&
+         existing.arguments == expected.arguments &&
+         existing.app_id == expected.app_id &&
+         base::FilePath::CompareEqualIgnoreCase(existing.icon.value(),
+                                                expected.icon.value()) &&
+         existing.icon_index == expected.icon_index;
+}
+
 }  // namespace
+
+std::wstring GetDisplayName() {
+  return base::UTF16ToWide(
+      l10n_util::GetStringUTF16(GetDisplayNameMessageId()));
+}
 
 std::wstring GetAppUserModelId() {
   return shell_integration::win::GetAppUserModelIdForApp(
@@ -116,11 +156,6 @@ bool OmniboxEverywhereShortcutHelperWin::CreateStartMenuShortcut() {
   if (shortcut_path.empty()) {
     return false;
   }
-  // TODO(crbug.com/562073179): Also rewrite the shortcut when its properties
-  // are stale, via base::win::ResolveShortcutProperties.
-  if (base::PathExists(shortcut_path)) {
-    return true;
-  }
 
   base::FilePath chrome_proxy_path = GetChromeProxyPath();
   if (chrome_proxy_path.empty()) {
@@ -135,6 +170,13 @@ bool OmniboxEverywhereShortcutHelperWin::CreateStartMenuShortcut() {
   shortcut_properties.set_icon(GetChromeExePath(),
                                icon_resources::kOmniboxEverywhereIndex);
   shortcut_properties.set_description(GetDisplayName());
+
+  // A shortcut left by an older install may point at a stale target or AUMID,
+  // which breaks taskbar pinning, so rewrite anything that does not match.
+  if (base::PathExists(shortcut_path) &&
+      ShortcutMatches(shortcut_path, shortcut_properties)) {
+    return true;
+  }
 
   return base::win::CreateOrUpdateShortcutLink(
       shortcut_path, shortcut_properties,

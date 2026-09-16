@@ -11,6 +11,10 @@
 
 namespace omnibox_everywhere {
 
+// Returns the channel-suffixed name shown for Omnibox Everywhere (e.g.
+// "Search with Chrome Canary"), used for the Start Menu shortcut and taskbar.
+std::wstring GetDisplayName();
+
 // Returns the AppUserModelId for the Omnibox Everywhere application.
 std::wstring GetAppUserModelId();
 
@@ -33,8 +37,8 @@ class OmniboxEverywhereShortcutHelperWin {
   OmniboxEverywhereShortcutHelperWin& operator=(
       const OmniboxEverywhereShortcutHelperWin&) = delete;
 
-  // Creates the Start Menu shortcut if absent, and returns whether a usable
-  // one exists. Must run on a COM STA thread supporting blocking I/O.
+  // Creates the Start Menu shortcut if absent or stale, and returns whether a
+  // usable one exists. Must run on a COM STA thread supporting blocking I/O.
   bool CreateStartMenuShortcut();
 };
 

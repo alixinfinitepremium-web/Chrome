@@ -1741,7 +1741,7 @@ IN_PROC_BROWSER_TEST_F(ExecutionEngineOriginGatingBrowserTest,
 }
 
 IN_PROC_BROWSER_TEST_F(ExecutionEngineOriginGatingBrowserTest,
-                       ActorContainerConfig_Navigation) {
+                       TaskPolicyConfig_Navigation) {
   optimization_guide::proto::AgentContainerConfig config_proto;
   optimization_guide::proto::LocationRule* rule =
       config_proto.add_location_rules();
@@ -1793,7 +1793,7 @@ IN_PROC_BROWSER_TEST_F(ExecutionEngineOriginGatingBrowserTest,
 }
 
 IN_PROC_BROWSER_TEST_F(ExecutionEngineOriginGatingBrowserTest,
-                       ActorContainerConfig_TaskStart) {
+                       TaskPolicyConfig_TaskStart) {
   optimization_guide::proto::AgentContainerConfig config_proto;
   optimization_guide::proto::LocationRule* rule =
       config_proto.add_location_rules();
@@ -2438,9 +2438,10 @@ class ExecutionEngineOriginGatingSlowResponseBrowserTest
         /*enabled_features=*/
         {
             {features::kGlicActor,
-             {{features::kGlicActorPolicyControlExemption.name, "true"},
-              {features::kGlicActorPageStabilityTimeout.name, "300ms"},
-              {features::kActorObservationDelayTimeout.name, "1s"}}},
+             {{features::kGlicActorPolicyControlExemption.name, "true"}}},
+            {kActorPageStability, {{kActorPageStabilityTimeout.name, "300ms"}}},
+            {kActorObservationDelay,
+             {{kActorObservationDelayTimeout.name, "1s"}}},
         },
         /*disabled_features=*/{});
   }
