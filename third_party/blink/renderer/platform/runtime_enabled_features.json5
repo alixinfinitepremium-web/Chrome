@@ -1643,11 +1643,6 @@
       status: "stable",
     },
     {
-      // https://drafts.csswg.org/css-color-5/#contrast-color
-      name: "CSSContrastColor",
-      status: "stable",
-    },
-    {
       // https://drafts.csswg.org/css-borders-4/#corner-shaping
       name: "CSSCornersShorthand",
       status: "experimental",
@@ -1796,6 +1791,11 @@
     {
       name: "CSSLineClampLineBreakingEllipsis",
       depends_on: ["CSSLineClamp"],
+      status: "experimental",
+    },
+    {
+      // https://chromestatus.com/feature/5095153430822912
+      name: "CSSLinkParametersProperty",
       status: "experimental",
     },
     {
