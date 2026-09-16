@@ -3249,10 +3249,6 @@
       // a Chromium level feature (kFontDataServiceForCSSLocalFonts).
     },
     {
-      name: "FontFallbackForTabSize",
-      status: "stable",
-    },
-    {
       name: "FontFamilyPostscriptMatchingCTMigration",
     },
     {
@@ -6320,10 +6316,6 @@
       // crbug.com/368657256
       name: "TextEmphasisPositionAuto",
       status: "experimental",
-    },
-    {
-      name: "TextEmphasisPunctuationExceptions",
-      status: "stable"
     },
     {
       name: "TextFragmentAPI",
