@@ -17,8 +17,6 @@ namespace chromeos::features {
 // being rolled out via Finch, add a comment in the .cc file.
 
 COMPONENT_EXPORT(CHROMEOS_CONSTANTS)
-BASE_DECLARE_FEATURE(kBatteryBadgeIcon);
-COMPONENT_EXPORT(CHROMEOS_CONSTANTS)
 BASE_DECLARE_FEATURE(kBluetoothWifiQSPodRefresh);
 COMPONENT_EXPORT(CHROMEOS_CONSTANTS)
 BASE_DECLARE_FEATURE(kCachedLocationProvider);
@@ -58,7 +56,6 @@ BASE_DECLARE_FEATURE(kGlicEnableFor8GbDevices);
 COMPONENT_EXPORT(CHROMEOS_CONSTANTS)
 BASE_DECLARE_FEATURE(kFeatureManagementRoundedWindows);
 COMPONENT_EXPORT(CHROMEOS_CONSTANTS)
-BASE_DECLARE_FEATURE(kNotificationWidthIncrease);
 COMPONENT_EXPORT(CHROMEOS_CONSTANTS)
 COMPONENT_EXPORT(CHROMEOS_CONSTANTS)
 BASE_DECLARE_FEATURE(kPlatformKeysChangesWave1);
@@ -77,8 +74,6 @@ BASE_DECLARE_FEATURE(kWebAppManifestProtocolHandlerSupport);
 
 // Keep alphabetized.
 
-COMPONENT_EXPORT(CHROMEOS_CONSTANTS)
-bool IsBatteryBadgeIconEnabled();
 COMPONENT_EXPORT(CHROMEOS_CONSTANTS)
 bool IsBluetoothWifiQSPodRefreshEnabled();
 COMPONENT_EXPORT(CHROMEOS_CONSTANTS) bool IsCachedLocationProviderEnabled();
@@ -105,7 +100,6 @@ COMPONENT_EXPORT(CHROMEOS_CONSTANTS)
 bool IsMagicBoostRevampForQuickAnswersEnabled();
 COMPONENT_EXPORT(CHROMEOS_CONSTANTS) bool IsMahiEnabled();
 COMPONENT_EXPORT(CHROMEOS_CONSTANTS) bool IsPlatformKeysChangesWave1Enabled();
-COMPONENT_EXPORT(CHROMEOS_CONSTANTS) bool IsNotificationWidthIncreaseEnabled();
 COMPONENT_EXPORT(CHROMEOS_CONSTANTS) bool IsRoundedWindowsEnabled();
 COMPONENT_EXPORT(CHROMEOS_CONSTANTS) int RoundedWindowsRadius();
 COMPONENT_EXPORT(CHROMEOS_CONSTANTS) extern const char kRoundedWindowsRadius[];

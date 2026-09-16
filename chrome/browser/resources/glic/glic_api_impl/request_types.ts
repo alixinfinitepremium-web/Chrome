@@ -2,15 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import type {AdditionalContext, AdditionalContextPart, AnnotatedPageData, CaptureRegionErrorReason, CaptureRegionParams, CaptureRegionResult, ClientErrorDialogType, ConversationInfo, CounterAbuseVerdict, ErrorReasonTypes, ErrorWithReason, ExperimentalTriggeringUpdate, FocusedTabDataHasFocus, FocusedTabDataHasNoFocus, InvokeOptions, MetricUserInputReactionType, MicrophoneStatus, OnResponseStoppedDetails, OpenPinnedTabPickerOptions, PageMetadata, PdfDocumentData, PinTabsOptions, PromptType, ResumeActorTaskResult, Screenshot, TabContextOptions, TabContextResult, TabData, UnpinTabsOptions, UserProfileInfo, WebClientMode, ZeroStateSuggestions} from '../glic_api/glic_api.js';
+import type {AdditionalContext, AdditionalContextPart, AnnotatedPageData, ClientErrorDialogType, ConversationInfo, CounterAbuseVerdict, ErrorReasonTypes, ErrorWithReason, FocusedTabDataHasFocus, FocusedTabDataHasNoFocus, InvokeOptions, MetricUserInputReactionType, MicrophoneStatus, OnResponseStoppedDetails, OpenPinnedTabPickerOptions, PageMetadata, PdfDocumentData, PinTabsOptions, PromptType, ResumeActorTaskResult, Screenshot, TabContextOptions, TabContextResult, TabData, UnpinTabsOptions, UserProfileInfo, WebClientMode, ZeroStateSuggestions} from '../glic_api/glic_api.js';
 
-import type {ExperimentalTriggeringClient} from './experimental_triggering/experimental_triggering_types.js';
 import type {InterfaceDef, InterfaceDefMethods} from './transport/messaging.js';
 import {defInterface, defMessage} from './transport/messaging.js';
 import type {ErrorCodec, PendingRemote, TransferableException} from './transport/post_message_transport.js';
-export type {
-  ExperimentalTriggeringClient,
-};
 
 /*
 This file defines messages sent over postMessage in-between the Glic WebUI
@@ -32,15 +28,6 @@ export const WebClientHostDef = defInterface({
         // (success is false).
         exception?: GlicException,
       }>(),
-    },
-    {
-      name: 'onExperimentalTriggeringUpdate',
-      request: defMessage<{
-        observationId: number,
-        update?: ExperimentalTriggeringUpdate,
-              observation: SubscriberObservationType,
-      }>(),
-      histogram: {id: 98},
     },
     {
       name: 'getModelQualityClientId',
@@ -324,14 +311,6 @@ export const WebClientHostDef = defInterface({
       histogram: {id: 104},
     },
     {
-      name: 'subscribeToCaptureRegion',
-      request: defMessage<{
-        remote: PendingRemote<WebClientRegionCapture>,
-        params?: CaptureRegionParams,
-      }>(),
-      histogram: {id: 71},
-    },
-    {
       name: 'deleteCapturedRegion',
       request: defMessage<{
         tabId: string,
@@ -440,20 +419,6 @@ export const WebClientDef = defInterface({
 
 export type WebClient = typeof WebClientDef;
 
-export const WebClientRegionCaptureDef = defInterface({
-  name: 'WebClientRegionCapture',
-  methods: [
-    {
-      name: 'captureRegionUpdate',
-      request: defMessage<{
-        result?: CaptureRegionResult,
-        reason?: CaptureRegionErrorReason,
-      }>(),
-    },
-  ],
-});
-export type WebClientRegionCapture = typeof WebClientRegionCaptureDef;
-
 export const WebClientTabDataObserverDef = defInterface({
   name: 'WebClientTabDataObserver',
   methods: [
@@ -480,8 +445,7 @@ export const WebClientTabFaviconObserverDef = defInterface({
 });
 export type WebClientTabFaviconObserver = typeof WebClientTabFaviconObserverDef;
 
-export type WebClientRequestTypes =
-    InterfaceDefMethods<WebClient>&InterfaceDefMethods<WebClientRegionCapture>&
+export type WebClientRequestTypes = InterfaceDefMethods<WebClient>&
     InterfaceDefMethods<WebClientTabDataObserver>&
     InterfaceDefMethods<WebClientTabFaviconObserver>;
 
@@ -569,7 +533,7 @@ export const RECORDED_REQUEST_IDS = {
   OnContextUploadStarted: 68,
   SetActuationOnWebSetting: 69,
   OnModeChange: 70,
-  SubscribeToCaptureRegion: 71,
+  // Do not reuse deleted request ID: 71,
   // Do not reuse deleted request ID: 72,
   // Do not reuse deleted request ID: 73,
   // Do not reuse deleted request ID: 74,
@@ -595,7 +559,7 @@ export const RECORDED_REQUEST_IDS = {
   // Do not reuse deleted request ID: 95,
   // Do not reuse deleted request ID: 96,
   // Do not reuse deleted request ID: 97,
-  OnExperimentalTriggeringUpdate: 98,
+  // Do not reuse deleted request ID: 98,
   OnOptinImpression: 99,
   ProcessCounterAbuseVerdict: 100,
   GetImageBytesFromTab: 101,
@@ -671,15 +635,6 @@ export enum ImageColorType {
   RGBA = 1,
 }
 
-// Types of subscriber observations that may be observed.
-export enum SubscriberObservationType {
-  // An update was observed.
-  UPDATE = 0,
-  // Completed all observations.
-  COMPLETE = 1,
-  // An unexpected error was observed.
-  ERROR = 2,
-}
 
 // FocusedTabData data for postMessage transport.
 export declare interface FocusedTabDataPrivate {
