@@ -421,7 +421,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '611d89174898b44acfab08c76c03ae1a6c9f1a0e',
+  'devtools_frontend_revision': '961c6068b1ce2b212150ac6c7588750ce07b6b62',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -3400,7 +3400,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_receiver_app/app',
-        'version': '8VjoxRsH3Ekb_A9VU9TNpdEgQfbpv3K580MiKb-PX0oC',
+        'version': 'HD3Lv3FGCddV4kuccwXh3WLU8zxW9S9uLD_-F1uoDMIC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
