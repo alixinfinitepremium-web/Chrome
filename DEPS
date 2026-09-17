@@ -401,7 +401,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': 'a3239f2d51f5b20a629926e215bcf73606ee5108',
+  'crossbench_revision': '1c009715bd7f9dc72971f56b974678b148947ede',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -1702,7 +1702,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_win_x86',
-          'version': 'VaRXpDd5qB-_vImoNB3Btw3V6cLsZVP-xULgY-7P60UC',
+          'version': '-_rPjwISDQA2pp8VKk-NP-XMumiNkgf_S9Rlo-JeIOMC',
         },
       ],
   },
