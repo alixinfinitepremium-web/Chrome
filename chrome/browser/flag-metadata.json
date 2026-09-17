@@ -1149,10 +1149,6 @@
     ],
     "expiry_milestone": 160
   },
-  { "name": "autofill-enable-touch-to-fill-reshow-for-bnpl",
-    "owners": [ "ferny@google.com", "payments-autofill-team@google.com"],
-    "expiry_milestone": 155
-  },
   {
     "name": "autofill-enable-travel-category-and-merchant-benefits-from-curinos",
     "owners": [ "ferny@google.com", "payments-autofill-team@google.com" ],
@@ -6930,11 +6926,6 @@
       "ssolarewicz@chromium.com", "cec-growth-eng@google.com"
     ],
     "expiry_milestone": 155
-  },
-  {
-    "name": "magic-boost-revamp-for-quick-answers",
-    "owners": [ "hdchuong@chromium.org", "yawano@google.com", "assistive-eng@google.com" ],
-    "expiry_milestone": 144
   },
   {
     "name": "magichrome-passkey-signin",

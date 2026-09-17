@@ -1177,12 +1177,6 @@ inline constexpr char kAutofillEnableSeparatePixPreferenceItemDescription[] =
     "menu "
     "item.";
 
-inline constexpr char kAutofillEnableTouchToFillReshowForBnplName[] =
-    "Enable the Touch To Fill bottom sheet to be reshown on Android for BNPL.";
-inline constexpr char kAutofillEnableTouchToFillReshowForBnplDescription[] =
-    "When enabled, the Touch To Fill bottom sheet on Android can be reshown "
-    "after a BNPL flow is dismissed by a user.";
-
 inline constexpr char
     kAutofillEnableTravelCategoryAndMerchantBenefitsFromCurinosName[] =
         "Enable travel category and merchant benefits from Curinos";
@@ -1596,12 +1590,6 @@ inline constexpr char kDoubleBufferCompositingDescription[] =
     "Use double buffer for compositing (instead of triple-buffering). "
     "Latency should be reduced in some cases. On the other hand, more skipped "
     "frames are expected.";
-
-inline constexpr char kMagicBoostUpdateForQuickAnswersName[] =
-    "Magic Boost Update for Quick Answers";
-inline constexpr char kMagicBoostUpdateForQuickAnswersDescription[] =
-    "Enables to show the new Quick Answers card with chips in the revamped "
-    "Magic Boost opt-in flow";
 
 inline constexpr char kMagiChromePasskeySignInName[] =
     "MagiChrome Passkey Sign-in";

@@ -8175,10 +8175,6 @@ const FeatureEntry kFeatureEntries[] = {
     {"quick-answers-rich-card", flag_descriptions::kQuickAnswersRichCardName,
      flag_descriptions::kQuickAnswersRichCardDescription, kOsCrOS,
      FEATURE_VALUE_TYPE(chromeos::features::kQuickAnswersRichCard)},
-    {"magic-boost-revamp-for-quick-answers",
-     flag_descriptions::kMagicBoostUpdateForQuickAnswersName,
-     flag_descriptions::kMagicBoostUpdateForQuickAnswersDescription, kOsCrOS,
-     FEATURE_VALUE_TYPE(chromeos::features::kMagicBoostRevampForQuickAnswers)},
 #endif  // BUILDFLAG(IS_CHROMEOS)
 
     {"enable-gamepad-multitouch",
@@ -12682,15 +12678,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kOverscrollEffectOnNonRootScrollersDescription,
      kOsMac | kOsAndroid | kOsWin,
      FEATURE_VALUE_TYPE(features::kOverscrollEffectOnNonRootScrollers)},
-
-#if BUILDFLAG(IS_ANDROID)
-    {"autofill-enable-touch-to-fill-reshow-for-bnpl",
-     flag_descriptions::kAutofillEnableTouchToFillReshowForBnplName,
-     flag_descriptions::kAutofillEnableTouchToFillReshowForBnplDescription,
-     kOsAndroid,
-     FEATURE_VALUE_TYPE(
-         autofill::features::kAutofillEnableTouchToFillReshowForBnpl)},
-#endif  // BUILDFLAG(IS_ANDROID)
 
 #if BUILDFLAG(IS_MAC)
     {"enable-accessibility-text-operation",
