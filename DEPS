@@ -421,7 +421,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '6288792011f66e5b8a969de5a63d118e7032ccc4',
+  'devtools_frontend_revision': 'b22294fbbd201fb7d423e0a4b04383228080a24c',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -2548,7 +2548,7 @@ deps = {
     Var('chromium_git') + '/external/libaddressinput.git' + '@' + '81eb9628382b07d371d8ea0b11badf7de3857fd5',
 
   'src/third_party/libaom/source/libaom':
-    Var('aomedia_git') + '/aom.git' + '@' +  '023743a7d78d9c7d33390c5c45b35495ea013a21',
+    Var('aomedia_git') + '/aom.git' + '@' +  '822f287f60cc99775d0293baa8f20dd8af88f2c4',
 
   'src/third_party/crabbyavif/src':
     Var('chromium_git') + '/external/github.com/webmproject/CrabbyAvif.git' + '@' + Var('crabbyavif_revision'),
@@ -3433,7 +3433,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/media_app/app',
-        'version': 'fXFuqRTjpt6iw_52PXE8KutVw_brtYMjcAadls54EpwC',
+        'version': 'omCe_nc6WQD7sHkZ3mJQ2GMMDCXrKJji8Rq81SiHjjoC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
