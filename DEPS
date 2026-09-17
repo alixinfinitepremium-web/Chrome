@@ -445,7 +445,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': '625f9f17f6ed4967cbe1ba507aaebc94250e3700',
+  'dawn_revision': '9e4eea9dd3f0538ca6cd6c9a2b2302303fa3a877',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -481,7 +481,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling crabbyavif
   # and whatever else without interference from each other.
-  'crabbyavif_revision': 'b48171ef36edc30ad85968c17d8346c67704c014',
+  'crabbyavif_revision': 'ba205fd4c324c69712e34cc0798a76560f6feec9',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Speedometer main
   # and whatever else without interference from each other.
@@ -4034,7 +4034,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        'b92e79654f20f08e9e3d4b4ae474898ab841e445',
+        '8a239ac1cb66f3daa6aa41219a7cae6efb48f505',
       'condition': 'checkout_src_internal',
   },
 
