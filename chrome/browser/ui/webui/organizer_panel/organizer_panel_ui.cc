@@ -31,8 +31,6 @@
 #if !BUILDFLAG(OPTIMIZE_WEBUI)
 #include "chrome/grit/tab_group_shared_resources.h"
 #include "chrome/grit/tab_group_shared_resources_map.h"
-#include "chrome/grit/tab_search_shared_resources.h"
-#include "chrome/grit/tab_search_shared_resources_map.h"
 #endif  // !BUILDFLAG(OPTIMIZE_WEBUI)
 
 OrganizerPanelUIConfig::OrganizerPanelUIConfig()
@@ -48,6 +46,7 @@ OrganizerPanelUI::OrganizerPanelUI(content::WebUI* web_ui)
   static constexpr webui::LocalizedString kStrings[] = {
       {"clearSearch", IDS_CLEAR_SEARCH},
       {"closeTab", IDS_TAB_SEARCH_CLOSE_TAB},
+      {"noResults", IDS_ORGANIZER_PANEL_NO_RESULTS},
       {"openTabs", IDS_TAB_SEARCH_OPEN_TABS},
       {"oneTab", IDS_TAB_SEARCH_ONE_TAB},
       {"recentlyClosed", IDS_TAB_SEARCH_RECENTLY_CLOSED},
@@ -71,7 +70,6 @@ OrganizerPanelUI::OrganizerPanelUI(content::WebUI* web_ui)
                               IDR_ORGANIZER_PANEL_ORGANIZER_PANEL_HTML);
 #if !BUILDFLAG(OPTIMIZE_WEBUI)
   source->AddResourcePaths(kTabGroupSharedResources);
-  source->AddResourcePaths(kTabSearchSharedResources);
 #endif
 
   content::URLDataSource::Add(
