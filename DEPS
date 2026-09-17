@@ -361,7 +361,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': 'ff8b4679f66830b129df77f61fe1fdb31205213e',
+  'boringssl_revision': '8626998e7fdd6d779f37b7ba0b726631bbb76266',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -1749,7 +1749,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': 'mvR3gZgGZU9rZYK5jHW9pw4wCzW4oI8vzSwOP5MealAC',
+        'version': 'dYYHkrq6Rc-5iKLwKQMC9F1O2Oa-1Ki31rpQo1-CJqwC',
       },
     ],
     'condition': 'non_git_source',
@@ -1761,7 +1761,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    'e11ab6d93daf76652f054b8fe68ed192fe976497',
+    'e92286c7becace2392c637b18210380348a55224',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -2181,7 +2181,7 @@ deps = {
   # Tools used when building Chrome for Chrome OS. This affects both the Simple
   # Chrome workflow, as well as the chromeos-chrome ebuild.
   'src/third_party/chromite': {
-      'url': Var('chromium_git') + '/chromiumos/chromite.git' + '@' + '9e2da7eb01bd58d1e6ff9b4733bf9d57e6ea17de',
+      'url': Var('chromium_git') + '/chromiumos/chromite.git' + '@' + '1348f8a039413aaa3d22aed9fa8fd9731d0b82a5',
       'condition': 'checkout_chromeos',
   },
 
