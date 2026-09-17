@@ -106,6 +106,7 @@ using mojom::blink::FormControlType;
 using ui::mojom::blink::DragOperation;
 
 namespace {
+
 constexpr int kMaxOriginalImageArea = 1500 * 1500;
 constexpr int kLinkDragBorderInset = 2;
 #if BUILDFLAG(IS_ANDROID)
@@ -116,7 +117,7 @@ constexpr float kDragImageAlpha = 0.75f;
 #endif
 
 #if DCHECK_IS_ON()
-static bool DragTypeIsValid(DragSourceAction action) {
+bool DragTypeIsValid(DragSourceAction action) {
   switch (action) {
     case kDragSourceActionDHTML:
     case kDragSourceActionImage:
@@ -130,28 +131,28 @@ static bool DragTypeIsValid(DragSourceAction action) {
 }
 #endif  // DCHECK_IS_ON()
 
-static WebMouseEvent CreateMouseEvent(const DragData* drag_data) {
+WebMouseEvent CreateMouseEvent(const DragData& drag_data) {
   WebMouseEvent result(
-      WebInputEvent::Type::kMouseMove, drag_data->ClientPosition(),
-      drag_data->GlobalPosition(), WebPointerProperties::Button::kLeft, 0,
-      static_cast<WebInputEvent::Modifiers>(drag_data->GetModifiers()),
+      WebInputEvent::Type::kMouseMove, drag_data.ClientPosition(),
+      drag_data.GlobalPosition(), WebPointerProperties::Button::kLeft, 0,
+      static_cast<WebInputEvent::Modifiers>(drag_data.GetModifiers()),
       base::TimeTicks::Now());
   result.SetFrameScale(1);
   return result;
 }
 
-static DataTransfer* CreateDraggingDataTransfer(DataTransferAccessPolicy policy,
-                                                const DragData* drag_data) {
+DataTransfer* CreateDraggingDataTransfer(DataTransferAccessPolicy policy,
+                                         const DragData& drag_data) {
   return DataTransfer::Create(DataTransfer::kDragAndDrop, policy,
-                              drag_data->PlatformData());
+                              drag_data.PlatformData());
 }
 
-static void SetSourceEffectAllowedForDragData(DataTransfer* data_transfer,
-                                              const DragData* drag_data) {
+void SetSourceEffectAllowedForDragData(DataTransfer* data_transfer,
+                                       const DragData& drag_data) {
   const String& source_effect_allowed =
-      drag_data->PlatformData()->SourceEffectAllowed();
+      drag_data.PlatformData()->SourceEffectAllowed();
   const DragOperationsMask source_operation_mask =
-      drag_data->DraggingSourceOperationMask();
+      drag_data.DraggingSourceOperationMask();
   if (source_effect_allowed.empty()) {
     data_transfer->SetSourceOperation(source_operation_mask);
   } else {
@@ -172,35 +173,36 @@ DragController::DragController(Page* page)
       drag_destination_action_(kDragDestinationActionNone),
       did_initiate_drag_(false) {}
 
-static DocumentFragment* DocumentFragmentFromDragData(
-    const DragData* drag_data,
+namespace {
+
+DocumentFragment* DocumentFragmentFromDragData(
+    const DragData& drag_data,
     LocalFrame* frame,
     const Range* context,
     bool allow_plain_text,
     DragSourceType& drag_source_type,
     bool is_richly_editable_position) {
-  DCHECK(drag_data);
   drag_source_type = DragSourceType::kHtmlSource;
 
   Document& document = context->OwnerDocument();
-  if (drag_data->ContainsCompatibleContent()) {
-    if (DocumentFragment* fragment = drag_data->AsFragment(frame)) {
+  if (drag_data.ContainsCompatibleContent()) {
+    if (DocumentFragment* fragment = drag_data.AsFragment(frame)) {
       return fragment;
     }
 
     if (is_richly_editable_position &&
-        drag_data->ContainsURL(DragData::kDoNotConvertFilenames)) {
+        drag_data.ContainsURL(DragData::kDoNotConvertFilenames)) {
       String title;
       const String url =
-          drag_data->AsURL(DragData::kDoNotConvertFilenames, &title);
+          drag_data.AsURL(DragData::kDoNotConvertFilenames, &title);
       if (!url.empty()) {
         auto* anchor = MakeGarbageCollected<HTMLAnchorElement>(document);
         anchor->SetHref(AtomicString(url));
         if (title.empty()) {
           // Try the plain text first because the url might be normalized or
           // escaped.
-          if (drag_data->ContainsPlainText()) {
-            title = drag_data->AsPlainText();
+          if (drag_data.ContainsPlainText()) {
+            title = drag_data.AsPlainText();
           }
           if (title.empty()) {
             title = url;
@@ -214,17 +216,18 @@ static DocumentFragment* DocumentFragmentFromDragData(
       }
     }
   }
-  if (allow_plain_text && drag_data->ContainsPlainText()) {
+  if (allow_plain_text && drag_data.ContainsPlainText()) {
     drag_source_type = DragSourceType::kPlainTextSource;
     return CreateFragmentFromText(EphemeralRange(context),
-                                  drag_data->AsPlainText());
+                                  drag_data.AsPlainText());
   }
 
   return nullptr;
 }
+}  // namespace
 
 bool DragController::DragIsMove(const FrameSelection& selection,
-                                const DragData* drag_data) const {
+                                const DragData& drag_data) const {
   if (document_under_mouse_ !=
           (drag_initiator_ ? drag_initiator_->document() : nullptr) ||
       !selection.SelectionHasFocus()) {
@@ -255,10 +258,8 @@ void DragController::DragEnded() {
   drag_origin_hit_test_result_ = HitTestResult();
 }
 
-void DragController::DragExited(const DragData* drag_data,
+void DragController::DragExited(const DragData& drag_data,
                                 LocalFrame& local_root) {
-  DCHECK(drag_data);
-
   LocalFrameView* frame_view(local_root.View());
   if (frame_view) {
     const DataTransferAccessPolicy policy =
@@ -278,19 +279,18 @@ void DragController::DragExited(const DragData* drag_data,
   file_input_element_under_mouse_ = nullptr;
 }
 
-void DragController::PerformDrop(DragData* drag_data,
+void DragController::PerformDrop(DragData& drag_data,
                                  LocalFrame& local_root,
                                  const Operation& browser_drag_operation) {
-  DCHECK(drag_data);
   document_under_mouse_ = local_root.DocumentAtPoint(
-      PhysicalOffset::FromPointFRound(drag_data->ClientPosition()));
+      PhysicalOffset::FromPointFRound(drag_data.ClientPosition()));
   LocalFrame::NotifyUserActivation(
       document_under_mouse_ ? document_under_mouse_->GetFrame() : nullptr,
       mojom::blink::UserActivationNotificationType::kInteraction);
   if ((drag_destination_action_ & kDragDestinationActionDHTML) &&
       document_is_handling_drag_) {
     bool prevented_default = false;
-    if (drag_data->ForceDefaultAction()) {
+    if (drag_data.ForceDefaultAction()) {
       // Tell the document that the drag has left the building.
       DragExited(drag_data, local_root);
     } else if (local_root.View()) {
@@ -307,7 +307,7 @@ void DragController::PerformDrop(DragData* drag_data,
         // When drop target is plugin element and it can process drag, we
         // should prevent default behavior.
         const HitTestLocation location(local_root.View()->ConvertFromRootFrame(
-            PhysicalOffset::FromPointFRound(drag_data->ClientPosition())));
+            PhysicalOffset::FromPointFRound(drag_data.ClientPosition())));
         const HitTestResult result =
             event_handler.HitTestResultAtLocation(location);
         auto* html_plugin_element =
@@ -336,9 +336,9 @@ void DragController::PerformDrop(DragData* drag_data,
     Vector<String> urls;
     if (base::FeatureList::IsEnabled(
             blink::features::kOpenAllUrlsOrFilesOnDrop)) {
-      urls = drag_data->AsURLs();
+      urls = drag_data.AsURLs();
     } else {
-      urls.push_back(drag_data->AsURL());
+      urls.push_back(drag_data.AsURL());
     }
     const bool has_transient_user_activation =
         LocalFrame::HasTransientUserActivation(
@@ -398,12 +398,10 @@ void DragController::MouseMovedIntoDocument(Document* new_document) {
 }
 
 DragController::Operation DragController::DragEnteredOrUpdated(
-    const DragData* drag_data,
+    const DragData& drag_data,
     LocalFrame& local_root) {
-  DCHECK(drag_data);
-
   MouseMovedIntoDocument(local_root.DocumentAtPoint(
-      PhysicalOffset::FromPointFRound(drag_data->ClientPosition())));
+      PhysicalOffset::FromPointFRound(drag_data.ClientPosition())));
 
   // TODO(crbug.com/331682039): Replace `AcceptsLoadDrops` with a Setting used
   // in core.
@@ -426,7 +424,9 @@ DragController::Operation DragController::DragEnteredOrUpdated(
   return drag_operation;
 }
 
-static HTMLInputElement* AsFileInput(Node* node) {
+namespace {
+
+HTMLInputElement* AsFileInput(Node* node) {
   DCHECK(node);
   for (; node; node = node->OwnerShadowHost()) {
     auto* html_input_element = DynamicTo<HTMLInputElement>(node);
@@ -439,8 +439,8 @@ static HTMLInputElement* AsFileInput(Node* node) {
 }
 
 // This can return null if an empty document is loaded.
-static Element* ElementUnderMouse(Document* document_under_mouse,
-                                  const PhysicalOffset& point) {
+Element* ElementUnderMouse(Document* document_under_mouse,
+                           const PhysicalOffset& point) {
   const HitTestRequest request(HitTestRequest::kReadOnly |
                                HitTestRequest::kActive);
   const HitTestLocation location(point);
@@ -458,12 +458,12 @@ static Element* ElementUnderMouse(Document* document_under_mouse,
   return To<Element>(n);
 }
 
-bool DragController::TryDocumentDrag(const DragData* drag_data,
+}  // namespace
+
+bool DragController::TryDocumentDrag(const DragData& drag_data,
                                      DragDestinationAction action_mask,
                                      DragOperation& drag_operation,
                                      LocalFrame& local_root) {
-  DCHECK(drag_data);
-
   if (!document_under_mouse_) {
     return false;
   }
@@ -513,7 +513,7 @@ bool DragController::TryDocumentDrag(const DragData* drag_data,
   if ((action_mask & kDragDestinationActionEdit) &&
       CanProcessDrag(drag_data, local_root)) {
     const PhysicalOffset point = frame_view->ConvertFromRootFrame(
-        PhysicalOffset::FromPointFRound(drag_data->ClientPosition()));
+        PhysicalOffset::FromPointFRound(drag_data.ClientPosition()));
     Element* element = ElementUnderMouse(document_under_mouse_.Get(), point);
     if (!element) {
       return false;
@@ -540,8 +540,8 @@ bool DragController::TryDocumentDrag(const DragData* drag_data,
       bool can_receive_dropped_files = false;
       if (!file_input_element_under_mouse_->IsDisabledFormControl()) {
         can_receive_dropped_files = file_input_element_under_mouse_->Multiple()
-                                        ? drag_data->NumberOfFiles() > 0
-                                        : drag_data->NumberOfFiles() == 1;
+                                        ? drag_data.NumberOfFiles() > 0
+                                        : drag_data.NumberOfFiles() == 1;
       }
       if (!can_receive_dropped_files) {
         drag_operation = DragOperation::kNone;
@@ -563,11 +563,10 @@ bool DragController::TryDocumentDrag(const DragData* drag_data,
   return false;
 }
 
-DragOperation DragController::OperationForLoad(const DragData* drag_data,
+DragOperation DragController::OperationForLoad(const DragData& drag_data,
                                                LocalFrame& local_root) const {
-  DCHECK(drag_data);
   Document* doc = local_root.DocumentAtPoint(
-      PhysicalOffset::FromPointFRound(drag_data->ClientPosition()));
+      PhysicalOffset::FromPointFRound(drag_data.ClientPosition()));
 
   if (doc &&
       (did_initiate_drag_ || IsA<PluginDocument>(doc) || IsEditable(*doc))) {
@@ -576,12 +575,14 @@ DragOperation DragController::OperationForLoad(const DragData* drag_data,
   return GetDragOperation(drag_data);
 }
 
+namespace {
+
 // Returns true if node at |point| is editable with populating |dragCaret| and
 // |range|, otherwise returns false.
-static bool SetSelectionToDragCaret(LocalFrame* frame,
-                                    const SelectionInDomTree& drag_caret,
-                                    Range*& range,
-                                    const PhysicalOffset& point) {
+bool SetSelectionToDragCaret(LocalFrame* frame,
+                             const SelectionInDomTree& drag_caret,
+                             Range*& range,
+                             const PhysicalOffset& point) {
   frame->Selection().SetSelection(drag_caret, SetSelectionOptions());
   // TODO(crbug.com/40458806): Audit the usage of `UpdateStyleAndLayout`.
   frame->GetDocument()->UpdateStyleAndLayout(DocumentUpdateReason::kEditing);
@@ -606,15 +607,17 @@ static bool SetSelectionToDragCaret(LocalFrame* frame,
   return !visible_selection.IsNone() && visible_selection.IsContentEditable();
 }
 
+}  // namespace
+
 DispatchEventResult DragController::DispatchTextInputEventFor(
     LocalFrame* inner_frame,
-    const DragData* drag_data) const {
+    const DragData& drag_data) const {
   // Layout should be clean due to a hit test performed in |elementUnderMouse|.
   DCHECK(!inner_frame->GetDocument()->NeedsLayoutTreeUpdate());
   DCHECK(page_->GetDragCaret().HasCaret());
   const String text = page_->GetDragCaret().IsContentRichlyEditable()
                           ? ""
-                          : drag_data->AsPlainText();
+                          : drag_data.AsPlainText();
   const PositionWithAffinity& caret_position =
       page_->GetDragCaret().CaretPosition();
   DCHECK(caret_position.IsConnected()) << caret_position;
@@ -629,9 +632,7 @@ DispatchEventResult DragController::DispatchTextInputEventFor(
       *TextEvent::CreateForDrop(inner_frame->DomWindow(), text));
 }
 
-bool DragController::ConcludeEditDrag(DragData* drag_data) {
-  DCHECK(drag_data);
-
+bool DragController::ConcludeEditDrag(DragData& drag_data) {
   HTMLInputElement* file_input = file_input_element_under_mouse_;
   if (file_input_element_under_mouse_) {
     file_input_element_under_mouse_->SetCanReceiveDroppedFiles(false);
@@ -644,7 +645,7 @@ bool DragController::ConcludeEditDrag(DragData* drag_data) {
 
   const PhysicalOffset point =
       document_under_mouse_->View()->ConvertFromRootFrame(
-          PhysicalOffset::FromPointFRound(drag_data->ClientPosition()));
+          PhysicalOffset::FromPointFRound(drag_data.ClientPosition()));
   Element* element = ElementUnderMouse(document_under_mouse_.Get(), point);
   if (!element) {
     return false;
@@ -658,7 +659,7 @@ bool DragController::ConcludeEditDrag(DragData* drag_data) {
     return true;
   }
 
-  if (drag_data->ContainsFiles() && file_input) {
+  if (drag_data.ContainsFiles() && file_input) {
     // fileInput should be the element we hit tested for, unless it was made
     // display:none in a drop event handler.
     if (file_input->GetLayoutObject()) {
@@ -668,7 +669,7 @@ bool DragController::ConcludeEditDrag(DragData* drag_data) {
       return false;
     }
 
-    return file_input->ReceiveDroppedFiles(drag_data);
+    return file_input->ReceiveDroppedFiles(&drag_data);
   }
 
   if (!page_->GetDragController().CanProcessDrag(
@@ -747,7 +748,7 @@ bool DragController::ConcludeEditDrag(DragData* drag_data) {
       const InsertMode insert_mode =
           (delete_mode == DeleteMode::kSmart &&
            inner_frame->Selection().Granularity() == TextGranularity::kWord &&
-           drag_data->CanSmartReplace())
+           drag_data.CanSmartReplace())
               ? InsertMode::kSmart
               : InsertMode::kSimple;
 
@@ -768,7 +769,7 @@ bool DragController::ConcludeEditDrag(DragData* drag_data) {
       if (inner_frame->Selection().IsAvailable()) {
         DCHECK(document_under_mouse_);
         if (!inner_frame->GetEditor().ReplaceSelectionAfterDraggingWithEvents(
-                element, drag_data, fragment, range, insert_mode,
+                element, &drag_data, fragment, range, insert_mode,
                 drag_source_type)) {
           return false;
         }
@@ -778,16 +779,16 @@ bool DragController::ConcludeEditDrag(DragData* drag_data) {
                                   point)) {
         DCHECK(document_under_mouse_);
         if (!inner_frame->GetEditor().ReplaceSelectionAfterDraggingWithEvents(
-                element, drag_data, fragment, range,
-                drag_data->CanSmartReplace() ? InsertMode::kSmart
-                                             : InsertMode::kSimple,
+                element, &drag_data, fragment, range,
+                drag_data.CanSmartReplace() ? InsertMode::kSmart
+                                            : InsertMode::kSimple,
                 drag_source_type)) {
           return false;
         }
       }
     }
   } else {
-    const String text = drag_data->AsPlainText();
+    const String text = drag_data.AsPlainText();
     if (text.empty()) {
       return false;
     }
@@ -796,7 +797,7 @@ bool DragController::ConcludeEditDrag(DragData* drag_data) {
                                 point)) {
       DCHECK(document_under_mouse_);
       if (!inner_frame->GetEditor().ReplaceSelectionAfterDraggingWithEvents(
-              element, drag_data,
+              element, &drag_data,
               CreateFragmentFromText(EphemeralRange(range), text), range,
               InsertMode::kSimple, DragSourceType::kPlainTextSource)) {
         return false;
@@ -814,11 +815,9 @@ bool DragController::ConcludeEditDrag(DragData* drag_data) {
   return true;
 }
 
-bool DragController::CanProcessDrag(const DragData* drag_data,
+bool DragController::CanProcessDrag(const DragData& drag_data,
                                     LocalFrame& local_root) const {
-  DCHECK(drag_data);
-
-  if (!drag_data->ContainsCompatibleContent()) {
+  if (!drag_data.ContainsCompatibleContent()) {
     return false;
   }
 
@@ -828,7 +827,7 @@ bool DragController::CanProcessDrag(const DragData* drag_data,
 
   const PhysicalOffset point_in_local_root =
       local_root.View()->ConvertFromRootFrame(
-          PhysicalOffset::FromPointFRound(drag_data->ClientPosition()));
+          PhysicalOffset::FromPointFRound(drag_data.ClientPosition()));
 
   const HitTestResult result =
       local_root.GetEventHandler().HitTestResultAtLocation(
@@ -838,7 +837,7 @@ bool DragController::CanProcessDrag(const DragData* drag_data,
     return false;
   }
 
-  if (drag_data->ContainsFiles() && AsFileInput(result.InnerNode())) {
+  if (drag_data.ContainsFiles() && AsFileInput(result.InnerNode())) {
     return true;
   }
 
@@ -859,14 +858,16 @@ bool DragController::CanProcessDrag(const DragData* drag_data,
             .GetFrame()
             ->View()
             ->ConvertFromRootFrame(
-                PhysicalOffset::FromPointFRound(drag_data->ClientPosition()));
+                PhysicalOffset::FromPointFRound(drag_data.ClientPosition()));
     return !result.IsSelected(HitTestLocation(point_in_frame));
   }
 
   return true;
 }
 
-static DragOperation DefaultOperationForDrag(DragOperationsMask src_op_mask) {
+namespace {
+
+DragOperation DefaultOperationForDrag(DragOperationsMask src_op_mask) {
   // This is designed to match IE's operation fallback for the case where
   // the page calls preventDefault() in a drag event but doesn't set dropEffect.
   if (src_op_mask == kDragOperationEvery) {
@@ -888,10 +889,11 @@ static DragOperation DefaultOperationForDrag(DragOperationsMask src_op_mask) {
   return DragOperation::kNone;
 }
 
-bool DragController::TryDHTMLDrag(const DragData* drag_data,
+}  // namespace
+
+bool DragController::TryDHTMLDrag(const DragData& drag_data,
                                   DragOperation& operation,
                                   LocalFrame& local_root) const {
-  DCHECK(drag_data);
   DCHECK(document_under_mouse_);
   if (!local_root.View()) {
     return false;
@@ -901,7 +903,7 @@ bool DragController::TryDHTMLDrag(const DragData* drag_data,
       DataTransferAccessPolicy::kTypesReadable;
   DataTransfer* data_transfer = CreateDraggingDataTransfer(policy, drag_data);
   const DragOperationsMask src_op_mask =
-      drag_data->DraggingSourceOperationMask();
+      drag_data.DraggingSourceOperationMask();
   SetSourceEffectAllowedForDragData(data_transfer, drag_data);
 
   const WebMouseEvent event = CreateMouseEvent(drag_data);
@@ -929,6 +931,8 @@ bool DragController::TryDHTMLDrag(const DragData* drag_data,
   return true;
 }
 
+namespace {
+
 bool SelectTextInsteadOfDrag(const Node& node) {
   if (!node.IsTextNode()) {
     return false;
@@ -949,6 +953,8 @@ bool SelectTextInsteadOfDrag(const Node& node) {
 
   return node.CanStartSelection();
 }
+
+}  // namespace
 
 Node* DragController::DraggableNode(const LocalFrame* src,
                                     Node* start_node,
@@ -1035,12 +1041,14 @@ Node* DragController::DraggableNode(const LocalFrame* src,
   return node;
 }
 
-static void PrepareDataTransferForImageDrag(LocalFrame* source,
-                                            DataTransfer* data_transfer,
-                                            Element* node,
-                                            const KURL& link_url,
-                                            const KURL& image_url,
-                                            const String& label) {
+namespace {
+
+void PrepareDataTransferForImageDrag(LocalFrame* source,
+                                     DataTransfer* data_transfer,
+                                     Element* node,
+                                     const KURL& link_url,
+                                     const KURL& image_url,
+                                     const String& label) {
   node->GetDocument().UpdateStyleAndLayoutTree();
   if (IsRichlyEditable(*node)) {
     // TODO(crbug.com/331666850): Replace `EphemeralRange` usage with `Range`.
@@ -1054,8 +1062,6 @@ static void PrepareDataTransferForImageDrag(LocalFrame* source,
   }
   data_transfer->DeclareAndWriteDragImage(node, link_url, image_url, label);
 }
-
-namespace {
 
 gfx::Point DragLocationForDHTMLDrag(const gfx::Point& mouse_dragged_point,
                                     const gfx::Point& drag_initiation_location,
@@ -1557,18 +1563,17 @@ void DragController::DoSystemDrag(const gfx::Point& drag_initiation_location,
 }
 
 DragOperation DragController::GetDragOperation(
-    const DragData* drag_data) const {
+    const DragData& drag_data) const {
   // FIXME: To match the MacOS behaviour we should return DragOperation::kNone
   // if we are a modal window, we are the drag source, or the window is an
   // attached sheet If this can be determined from within WebCore
   // operationForDrag can be pulled into WebCore itself
-  DCHECK(drag_data);
-  return drag_data->ContainsURL() && !did_initiate_drag_ ? DragOperation::kCopy
-                                                         : DragOperation::kNone;
+  return drag_data.ContainsURL() && !did_initiate_drag_ ? DragOperation::kCopy
+                                                        : DragOperation::kNone;
 }
 
-bool DragController::IsCopyKeyDown(const DragData* drag_data) const {
-  const int modifiers = drag_data->GetModifiers();
+bool DragController::IsCopyKeyDown(const DragData& drag_data) const {
+  const int modifiers = drag_data.GetModifiers();
 
 #if BUILDFLAG(IS_MAC)
   return modifiers & WebInputEvent::kAltKey;
