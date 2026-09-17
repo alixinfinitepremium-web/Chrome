@@ -1865,7 +1865,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': 'TNs6PjiLrNviA8GuG0fJWs4t0htWUpt4CSMftYKZyagC',
+          'version': 'hYROtem4SuMP9UjudAjzXzOTddpBcitmVyUQKCHxu8QC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
@@ -3411,7 +3411,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_app/app',
-        'version': 'tZxd1Ei4cJg0t8uyU6B5Y11AddvlvZk9xpPmD2f79UEC',
+        'version': 'eE3WTqv6ixhAjpey2DI2oz_6fsp-nm5QHeQziHjOm08C',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3466,7 +3466,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/projector_app/app',
-        'version': 'iZF_YxwIaangLKIkp_gRv42-Y3RPbYIT8Uev7M6PiEsC',
+        'version': '-tkiPmEWL8w9cBT9Cr4vlQOFf618op2qdTLThixYd1QC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
