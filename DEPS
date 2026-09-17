@@ -1761,7 +1761,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    'a50bfce921e3e5f39faaa3014a526b5f414ddf9a',
+    '20b6e79971d4d73c8210b2065f9f07614c7d537f',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -1865,7 +1865,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': 'hndtDBcuoxUC1XdYMjuqHU14PeNG_byfAMkW6fJcia0C',
+          'version': 'TNs6PjiLrNviA8GuG0fJWs4t0htWUpt4CSMftYKZyagC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
