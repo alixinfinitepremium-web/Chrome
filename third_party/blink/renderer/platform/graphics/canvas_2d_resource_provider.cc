@@ -425,7 +425,7 @@ void Canvas2DResourceProvider::EndWriteAccess() {
     // CopyOnWrite.
     must_preserve_content_on_copy_on_write_ = true;
   } else {
-    if (ShouldReplaceTargetBuffer()) {
+    if (!resource() || resource()->IsLost() || !resource()->HasOneRef()) {
       resource_ = NewOrRecycledResource();
     }
     if (!resource() || !GetSkSurface()) {
@@ -952,6 +952,9 @@ Canvas2DResourceProvider::Canvas2DResourceProvider(
     EnsureWriteAccess();
   }
   CanvasMemoryDumpProvider::Instance()->RegisterClient(this);
+
+  // Single buffered mode supported only for accelerated canvas.
+  CHECK(!IsSingleBuffered() || is_accelerated_);
 }
 
 void Canvas2DResourceProvider::RecordingCleared() {
