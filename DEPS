@@ -349,7 +349,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': 'cd26970bfada33ab7d869868441cc8665555fdf8',
+  'angle_revision': 'bbb8cd2399aaa289917a866e90ebdff404fbeda9',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -1514,7 +1514,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_linux64',
-          'version': 'version:2@1693002',
+          'version': 'version:2@1694007',
         },
       ],
   },
@@ -1974,7 +1974,7 @@ deps = {
       'packages': [
           {
                'package': 'chromium/third_party/android_build_tools/manifest_merger',
-               'version': 'qjmS9O_Iyhx3jsBE8eIvzjzwKK7pn4fRVX8QH2H_2Y8C',
+               'version': 'r7wMd-8RyANGbCzeGeSWrfyfZjCsxTjNb9rnrECVBs8C',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -2228,7 +2228,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '15f22717866165e381d36d52209400daaf39a386',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '20f5a26ba4d90b17762ed78415dad33afb17e9a3',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '17a56409b86d0da5e01ca38f6498e13b2db16bc3',
