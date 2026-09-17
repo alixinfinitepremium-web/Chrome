@@ -337,7 +337,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '9081c907dcf99e51e32b71371056d5f8d54e55db',
+  'src_internal_revision': '7b619e6966b96a00c8f2fd4a763c14bda63e8b62',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -401,7 +401,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': '5949e4705da0e67dcda8ed2a99a621afd61b6514',
+  'crossbench_revision': 'a35e210f5fecd3152fe652fa130a4dbafb9370e3',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -1865,7 +1865,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': 'hYROtem4SuMP9UjudAjzXzOTddpBcitmVyUQKCHxu8QC',
+          'version': 'M1ocGaXQ1ZYIhYNWrxjFykV43-M8LLnoNCggQE3d9M4C',
       },
     ],
     'condition': 'checkout_android and non_git_source',
