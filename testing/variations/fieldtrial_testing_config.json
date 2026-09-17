@@ -16365,6 +16365,28 @@
             ]
         }
     ],
+    "PredictionModelComponentDelivery": [
+        {
+            "platforms": [
+                "android",
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "params": {
+                        "targets": "20"
+                    },
+                    "enable_features": [
+                        "PredictionModelComponentDelivery"
+                    ]
+                }
+            ]
+        }
+    ],
     "PreemptiveSodaDownload": [
         {
             "platforms": [
@@ -21109,6 +21131,21 @@
                     },
                     "enable_features": [
                         "VoiceSearchCoherenceSearchbox"
+                    ]
+                }
+            ]
+        }
+    ],
+    "WasapiImproveGlitchDetection": [
+        {
+            "platforms": [
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "WasapiImproveGlitchDetection"
                     ]
                 }
             ]
