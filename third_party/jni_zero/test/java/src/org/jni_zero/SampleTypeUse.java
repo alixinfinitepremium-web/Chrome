@@ -14,6 +14,11 @@ public class SampleTypeUse {
     @CalledByNative
     public static void baz(JniPtr<SampleTypeDefine.Nested> ptr) {}
 
+    @CalledByNative
+    public static JniPtr<SampleTypeDefine> lendIt() {
+        return null;
+    }
+
     @NativeMethods
     interface Natives {
         JniUniquePtr<SampleTypeDefine> makeOwned();
