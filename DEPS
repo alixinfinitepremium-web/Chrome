@@ -345,7 +345,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': '2b17056c3a0eb046af4534e7a8d87da2b91f5b80',
+  'v8_revision': 'c9f1a2cdf5adeb08d5d071835909a5d07d0deb56',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -2213,7 +2213,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'd43e639576a50c57697c27dd86945abdc349222f',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '1a91c4bb802179b50776aabcc7d8aa53901a8e80',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -3807,7 +3807,7 @@ deps = {
 
   'src/chrome/browser/glic/e2e_test/internal': {
       'url': Var('chrome_git') + '/chrome/browser/glic/test/internal.git' + '@' +
-        '8354a8eadf6fcd1abaa41140807fac5a075ae7d0',
+        '5039f49a8c49feb95154cfa43aa139e25d0bf4db',
       'condition': 'checkout_glic_e2e_tests',
   },
 
@@ -4112,7 +4112,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '8615381c1a6a87a5200a06edb5252882d2a3f88f',
+        '8d87bfdb25fcf05a4cd0ca34da569318982625c5',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
