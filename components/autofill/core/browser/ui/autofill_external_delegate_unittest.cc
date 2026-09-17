@@ -23,6 +23,7 @@
 #include "base/test/metrics/user_action_tester.h"
 #include "base/test/scoped_feature_list.h"
 #include "base/test/task_environment.h"
+#include "base/test/with_feature_override.h"
 #include "base/time/time.h"
 #include "base/uuid.h"
 #include "build/branding_buildflags.h"
@@ -4375,6 +4376,51 @@ TEST_F(AutofillExternalDelegateTest, AutocompleteShown_MetricsEmitted) {
                               1);
 }
 
+// Tests that showing an autocomplete suggestion with a matching type emits to
+// the corresponding matching-type histogram.
+TEST_F(AutofillExternalDelegateTest,
+       AutocompleteShown_LabelSensitiveMetricsEmitted) {
+  base::test::ScopedFeatureList feature_list(
+      features::kAutofillLabelSensitiveAutocomplete);
+  base::HistogramTester histogram;
+  IssueOnQuery();
+
+  Suggestion suggestion(u"name_val", SuggestionType::kAutocompleteEntry);
+  suggestion.payload = AutocompleteSearchResultLabelSensitive(
+      u"name_val", MatchingType::kName, /*query_name=*/u"name",
+      /*query_label=*/u"label", /*count=*/1);
+
+  std::vector<Suggestion> suggestions = {suggestion};
+  OnSuggestionsReturned(queried_field(), suggestions);
+  external_delegate().OnSuggestionsShown(suggestions, /*metadata=*/{});
+
+  histogram.ExpectUniqueSample("Autocomplete.NameBasedSuggestions",
+                               AutofillMetrics::AUTOCOMPLETE_SUGGESTIONS_SHOWN,
+                               1);
+}
+
+// Tests that accepting an autocomplete suggestion with a matching type emits to
+// the corresponding matching-type histogram.
+TEST_F(AutofillExternalDelegateTest,
+       AutocompleteSelected_LabelSensitiveMetricsEmitted) {
+  base::test::ScopedFeatureList feature_list(
+      features::kAutofillLabelSensitiveAutocomplete);
+  base::HistogramTester histogram;
+  IssueOnQuery();
+
+  Suggestion suggestion(u"label_val", SuggestionType::kAutocompleteEntry);
+  suggestion.payload = AutocompleteSearchResultLabelSensitive(
+      u"label_val", MatchingType::kLabel, /*query_name=*/u"name",
+      /*query_label=*/u"label", /*count=*/1);
+
+  external_delegate().DidAcceptSuggestion(
+      suggestion, SuggestionPosition{.multi_index = {0}});
+
+  histogram.ExpectUniqueSample(
+      "Autocomplete.LabelBasedSuggestions",
+      AutofillMetrics::AUTOCOMPLETE_SUGGESTION_SELECTED, 1);
+}
+
 TEST_F(AutofillExternalDelegateTest, ScanCreditCard_FillForm) {
   IssueOnQuery();
   CreditCard card = test::GetCreditCard();
@@ -4410,7 +4456,23 @@ TEST_F(AutofillExternalDelegateTest, IgnoreAutocompleteOffForAutofill) {
   OnSuggestionsReturned(field, autofill_items);
 }
 
-TEST_F(AutofillExternalDelegateTest,
+class AutofillExternalDelegateLabelSensitiveTest
+    : public base::test::WithFeatureOverride,
+      public AutofillExternalDelegateTest {
+ public:
+  AutofillExternalDelegateLabelSensitiveTest()
+      : base::test::WithFeatureOverride(
+            features::kAutofillLabelSensitiveAutocomplete) {}
+
+  bool IsLabelSensitiveAutocompleteEnabled() const {
+    return IsParamFeatureEnabled();
+  }
+};
+
+INSTANTIATE_FEATURE_OVERRIDE_TEST_SUITE(
+    AutofillExternalDelegateLabelSensitiveTest);
+
+TEST_P(AutofillExternalDelegateLabelSensitiveTest,
        ExternalDelegateFillFieldWithValue_Autocomplete) {
   EXPECT_CALL(autofill_client(),
               HideSuggestions(SuggestionHidingReason::kAcceptSuggestion,
@@ -4418,9 +4480,16 @@ TEST_F(AutofillExternalDelegateTest,
   IssueOnQuery();
 
   base::HistogramTester histogram_tester;
-  std::u16string dummy_autocomplete_string(u"autocomplete");
-  Suggestion suggestion(SuggestionType::kAutocompleteEntry);
-  suggestion.main_text.value = dummy_autocomplete_string;
+  const std::u16string dummy_autocomplete_string(u"autocomplete");
+  const Suggestion suggestion =
+      IsLabelSensitiveAutocompleteEnabled()
+          ? CreateAutofillSuggestion(
+                SuggestionType::kAutocompleteEntry, dummy_autocomplete_string,
+                AutocompleteSearchResultLabelSensitive(
+                    dummy_autocomplete_string, MatchingType::kNameAndLabel,
+                    u"name", u"label", /*count=*/1))
+          : CreateAutofillSuggestion(SuggestionType::kAutocompleteEntry,
+                                     dummy_autocomplete_string);
   EXPECT_CALL(
       autofill_manager(),
       FillOrPreviewField(
@@ -4434,9 +4503,7 @@ TEST_F(AutofillExternalDelegateTest,
               OnSingleFieldSuggestionSelected(suggestion));
 
   external_delegate().DidAcceptSuggestion(
-      CreateAutofillSuggestion(SuggestionType::kAutocompleteEntry,
-                               dummy_autocomplete_string),
-      SuggestionPosition{.multi_index = {0}});
+      suggestion, SuggestionPosition{.multi_index = {0}});
 
   histogram_tester.ExpectUniqueSample(
       "Autofill.SuggestionAcceptedIndex.Autocomplete", 0, 1);
