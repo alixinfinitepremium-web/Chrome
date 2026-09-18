@@ -21,12 +21,6 @@
 #include "ui/gfx/color_space.h"
 #include "ui/gfx/geometry/size.h"
 
-namespace gpu {
-namespace raster {
-class RasterInterface;
-}  // namespace raster
-}  // namespace gpu
-
 namespace blink {
 
 class WebGraphicsContext3DProviderWrapper;
@@ -153,21 +147,11 @@ class PLATFORM_EXPORT WebGpuSharedImageLease final
   scoped_refptr<gpu::ClientSharedImage> GetSharedImage() const;
   gpu::SyncToken GetSyncToken() const;
 
-  scoped_refptr<gpu::ClientSharedImage> shared_image() const {
-    return resource_.shared_image_;
-  }
-  gpu::SyncToken sync_token() const { return resource_.sync_token_; }
   void SetSyncToken(const gpu::SyncToken& sync_token) {
     resource_.sync_token_ = sync_token;
   }
   bool is_cleared() const { return resource_.is_cleared_; }
   void SetCleared() { resource_.is_cleared_ = true; }
-  base::WeakPtr<WebGraphicsContext3DProviderWrapper> context_provider_wrapper()
-      const {
-    return resource_.context_provider_wrapper_;
-  }
-  gpu::raster::RasterInterface* RasterInterface() const;
-  bool IsGpuContextLost() const;
 
   void WaitSyncToken(const gpu::SyncToken& sync_token);
 
@@ -176,6 +160,8 @@ class PLATFORM_EXPORT WebGpuSharedImageLease final
   size_t GetSize() const override;
 
  private:
+  bool IsGpuContextLost() const;
+
   Resource resource_;
   base::WeakPtr<WebGpuSharedImageCache> cache_;
 };
