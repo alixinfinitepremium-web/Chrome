@@ -1865,7 +1865,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': 'alTMVSUBiOhjfssBiU0HIcuWsaUY1BytEzr6H-f_SFcC',
+          'version': '1Ce_Bd1JjfifRzogC_1UrvxAYuWp80RXcCEfnst42tUC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
@@ -2213,7 +2213,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '1a91c4bb802179b50776aabcc7d8aa53901a8e80',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'b026e66c799d113ef18aa7921559e77dd5167aa4',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -3400,7 +3400,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_receiver_app/app',
-        'version': 'HD3Lv3FGCddV4kuccwXh3WLU8zxW9S9uLD_-F1uoDMIC',
+        'version': 'PxpVjCvq2mCpmS8XkVC8DVSMWGhh3XfwkagcMyV-OdMC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -4112,7 +4112,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '8d87bfdb25fcf05a4cd0ca34da569318982625c5',
+        'a0341b8ae1638a6d7e5e76bd1327996c9d298a66',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
