@@ -341,7 +341,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '9d17584f02c5b39dd89be729a409987922111aa1',
+  'skia_revision': '169a307c80e6cb9b87df0e05fc9631a74e3fb662',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -1766,7 +1766,7 @@ deps = {
   },
 
   'src/docs/website': {
-    'url': Var('chromium_git') + '/website.git' + '@' + '9a04123b0e0a549f4d286515feb70b7ba9b6eeeb',
+    'url': Var('chromium_git') + '/website.git' + '@' + 'c79d6810b20a76fbeaf2a8ffbb7d0b537a60756c',
   },
 
   'src/ios/third_party/earl_grey2/src': {
