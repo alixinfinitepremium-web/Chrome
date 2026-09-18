@@ -1010,6 +1010,10 @@ inline constexpr char kPluginVmEngagementTimeDayId[] =
 // Deprecated 09/2026.
 constexpr char kNSSCertsMigratedToServerCertDb[] =
     "certificates.nss_certs_migrated_to_server_cert_db";
+inline constexpr char kHatsLauncherAppsSurveyCycleEndTs[] =
+    "hats_launcher_apps_cycle_end_timestamp";
+inline constexpr char kHatsLauncherAppsSurveyIsSelected[] =
+    "hats_launcher_apps_is_selected";
 #endif  // BUILDFLAG(IS_CHROMEOS)
 
 // Deprecated 09/2026.
@@ -1017,6 +1021,16 @@ inline constexpr char kInvalidationPerSenderRegisteredForInvalidation[] =
     "invalidation.per_sender_registered_for_invalidation";
 inline constexpr char kInvalidationPerSenderActiveRegistrationTokens[] =
     "invalidation.per_sender_active_registration_tokens";
+
+#if BUILDFLAG(IS_CHROMEOS)
+// Deprecated 09/2026.
+inline constexpr char kHatsBorealisGamesSurveyCycleEndTs[] =
+    "hats_borealis_games_end_timestamp";
+inline constexpr char kHatsBorealisGamesSurveyIsSelected[] =
+    "hats_borealis_games_is_selected";
+inline constexpr char kHatsBorealisGamesLastInteractionTimestamp[] =
+    "hats_borealis_games_last_interaction_timestamp";
+#endif  // BUILDFLAG(IS_CHROMEOS)
 
 // Register local state used only for migration (clearing or moving to a new
 // key).
@@ -1392,6 +1406,8 @@ void RegisterProfilePrefsForMigration(
 #if BUILDFLAG(IS_CHROMEOS)
   // Deprecated 09/2026.
   registry->RegisterIntegerPref(kNSSCertsMigratedToServerCertDb, 0);
+  registry->RegisterInt64Pref(kHatsLauncherAppsSurveyCycleEndTs, 0);
+  registry->RegisterBooleanPref(kHatsLauncherAppsSurveyIsSelected, false);
 #endif  // BUILDFLAG(IS_CHROMEOS)
 
   // Deprecated 09/2026.
@@ -1399,6 +1415,14 @@ void RegisterProfilePrefsForMigration(
       kInvalidationPerSenderRegisteredForInvalidation);
   registry->RegisterDictionaryPref(
       kInvalidationPerSenderActiveRegistrationTokens);
+
+#if BUILDFLAG(IS_CHROMEOS)
+  // Deprecated 09/2026.
+  registry->RegisterInt64Pref(kHatsBorealisGamesSurveyCycleEndTs, 0);
+  registry->RegisterBooleanPref(kHatsBorealisGamesSurveyIsSelected, false);
+  registry->RegisterTimePref(kHatsBorealisGamesLastInteractionTimestamp,
+                             base::Time());
+#endif  // BUILDFLAG(IS_CHROMEOS)
 }
 
 }  // namespace
@@ -2732,6 +2756,8 @@ void MigrateObsoleteProfilePrefs(PrefService* profile_prefs,
 #if BUILDFLAG(IS_CHROMEOS)
   // Added 09/2026.
   profile_prefs->ClearPref(kNSSCertsMigratedToServerCertDb);
+  profile_prefs->ClearPref(kHatsLauncherAppsSurveyCycleEndTs);
+  profile_prefs->ClearPref(kHatsLauncherAppsSurveyIsSelected);
 #endif  // BUILDFLAG(IS_CHROMEOS)
 
   // Added 09/2026.
@@ -2742,6 +2768,13 @@ void MigrateObsoleteProfilePrefs(PrefService* profile_prefs,
   // Added 09/2026.
   CdmPrefServiceHelper::MigrateObsoleteProfilePrefs(profile_prefs);
 #endif  // BUILDFLAG(IS_WIN)
+
+#if BUILDFLAG(IS_CHROMEOS)
+  // Added 09/2026.
+  profile_prefs->ClearPref(kHatsBorealisGamesSurveyCycleEndTs);
+  profile_prefs->ClearPref(kHatsBorealisGamesSurveyIsSelected);
+  profile_prefs->ClearPref(kHatsBorealisGamesLastInteractionTimestamp);
+#endif  // BUILDFLAG(IS_CHROMEOS)
 
   // Please don't delete the following line. It is used by PRESUBMIT.py.
   // END_MIGRATE_OBSOLETE_PROFILE_PREFS
