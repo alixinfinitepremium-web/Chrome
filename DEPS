@@ -421,7 +421,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'b28a73009af9eed808a034f735594d8db99494d2',
+  'devtools_frontend_revision': '3798957e8d5f6b8cb52a83f1eb66095de9bd392c',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -2687,7 +2687,7 @@ deps = {
       'packages': [
           {
               'package': 'infra/3pp/tools/7z/${{platform}}',
-              'version': 'version:3@26.03',
+              'version': 'version:3@26.01',
           },
       ],
       'condition': 'checkout_win',
@@ -2698,7 +2698,7 @@ deps = {
       'packages': [
           {
               'package': 'infra/3pp/tools/7z/windows-amd64',
-              'version': 'version:3@26.03',
+              'version': 'version:3@26.01',
           },
       ],
       'condition': 'checkout_win',
