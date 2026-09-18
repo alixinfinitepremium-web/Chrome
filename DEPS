@@ -1761,7 +1761,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '8cfd846ba7d7654e1e987b6b6ce525e5dcdc5bee',
+    'fb11a5d08570186909611888631d8c985eb4f75e',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -3411,7 +3411,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_app/app',
-        'version': 'eE3WTqv6ixhAjpey2DI2oz_6fsp-nm5QHeQziHjOm08C',
+        'version': '-qyR9-40EsxOE6klsmezj0em_5hCiAYGUyEarURsn64C',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
