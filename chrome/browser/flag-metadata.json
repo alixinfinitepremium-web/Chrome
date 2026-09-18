@@ -2645,7 +2645,7 @@
   {
     "name": "default-browser-picture-in-picture",
     "owners": [ "cheickcisse@google.com", "bling-mony-pod@google.com" ],
-    "expiry_milestone": 155
+    "expiry_milestone": 158
   },
   {
     "name": "default-browser-pip-text-video",
@@ -2663,17 +2663,12 @@
     "expiry_milestone": 162
   },
   {
-    "name": "default-browser-promo-ipad-instructions",
-    "owners": [ "cheickcisse@google.com", "bling-mony-pod@google.com" ],
-    "expiry_milestone": 155
-  },
-  {
     "name": "default-browser-promo-overflow-menu",
     "owners": [
       "cheickcisse@google.com",
       "bling-mony-pod@google.com"
     ],
-    "expiry_milestone": 156
+    "expiry_milestone": 158
   },
   {
     "name": "default-browser-prompt-surfaces",
@@ -6511,7 +6506,7 @@
       "cheickcisse@google.com",
       "bling-mony-pod@google.com"
     ],
-    "expiry_milestone": 156
+    "expiry_milestone": 158
   },
   {
     "name": "ios-signal-sharing",
