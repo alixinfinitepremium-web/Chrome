@@ -349,7 +349,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': 'f0fea6e82ebe82ccfa923a5b26d78ac6f8210392',
+  'angle_revision': '40b709be4f1f62cab5fac9d888cd5e8b9259d068',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -401,7 +401,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': 'c38809fec914ab477d8548c8210323d6ec25487b',
+  'crossbench_revision': '6ed6226141319a8ef454d8e2c2deeae0f0a36817',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -2181,7 +2181,7 @@ deps = {
   # Tools used when building Chrome for Chrome OS. This affects both the Simple
   # Chrome workflow, as well as the chromeos-chrome ebuild.
   'src/third_party/chromite': {
-      'url': Var('chromium_git') + '/chromiumos/chromite.git' + '@' + '1348f8a039413aaa3d22aed9fa8fd9731d0b82a5',
+      'url': Var('chromium_git') + '/chromiumos/chromite.git' + '@' + 'dd1ce686d2489ff6225a84dba82986313334f31f',
       'condition': 'checkout_chromeos',
   },
 
