@@ -345,7 +345,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': '310398b386703d9b94860f228be0eb29b2ff07bf',
+  'v8_revision': '843684ab4932acab5a80cc4c805d915927b4374a',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -401,7 +401,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': 'fef95387649af20e789048c101770ae0e3fc2edd',
+  'crossbench_revision': '460a7b72a027233f126bb528af09b1a467050838',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -553,7 +553,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
-  'compiler_rt_revision': 'b2aa510d2f0268163608b783d69023dfdb3ffaed',
+  'compiler_rt_revision': 'd1cc7ffad56358d150298d0f0981e6aeafc0a8b2',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling clusterfuzz-data
   # and whatever else without interference from each other.
@@ -1514,7 +1514,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_linux64',
-          'version': 'version:2@1694007',
+          'version': 'version:2@1695014',
         },
       ],
   },
@@ -1525,7 +1525,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_mac_amd64',
-          'version': 'version:2@1694011',
+          'version': 'version:2@1695012',
         },
       ],
   },
@@ -1547,7 +1547,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_arm64',
-          'version': 'version:2@1694037',
+          'version': 'version:2@1695002',
         },
       ],
   },
@@ -4034,7 +4034,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        'bdefc52d66ca395188b43af56b024dac413b5797',
+        'fe4ec542dbaa56a468cb85fed3724635daf5b7eb',
       'condition': 'checkout_src_internal',
   },
 
