@@ -17,9 +17,13 @@
 #include "chrome/browser/ttc/core/session_controller.h"
 #include "chrome/test/base/testing_profile.h"
 #include "content/public/test/browser_task_environment.h"
+#include "media/audio/audio_system_impl.h"
+#include "media/audio/mock_audio_manager.h"
+#include "media/audio/test_audio_thread.h"
 #include "media/base/audio_bus.h"
 #include "media/base/audio_parameters.h"
 #include "media/base/audio_sample_types.h"
+#include "media/base/channel_layout.h"
 #include "testing/gmock/include/gmock/gmock.h"
 #include "testing/gtest/include/gtest/gtest.h"
 
@@ -46,7 +50,7 @@ class MockTtcBackend : public TtcBackend {
   MOCK_METHOD(void, Connect, (), (override));
   MOCK_METHOD(void, Close, (), (override));
   MOCK_METHOD(bool, is_connected, (), (const, override));
-  MOCK_METHOD(void, SendAudioChunk, (const std::vector<uint8_t>&), (override));
+  MOCK_METHOD(void, SendAudioChunk, (base::span<const int16_t>), (override));
   MOCK_METHOD(void, SendTextInput, (const std::string&), (override));
   MOCK_METHOD(void,
               SendContextUpdate,
@@ -126,13 +130,31 @@ class FakeSessionController : public SessionController {
 
 class ConversationImplTest : public testing::Test {
  public:
-  ConversationImplTest() = default;
-  ~ConversationImplTest() override = default;
+  ConversationImplTest() {
+    audio_manager_.SetHasInputDevices(true);
+    audio_manager_.SetInputStreamParameters(
+        media::AudioParameters(media::AudioParameters::AUDIO_PCM_LOW_LATENCY,
+                               media::ChannelLayoutConfig::Mono(),
+                               /*sample_rate=*/48000,
+                               /*frames_per_buffer=*/480));
+  }
+
+  ~ConversationImplTest() override { audio_manager_.Shutdown(); }
 
  protected:
+  // Returns a factory handing out AudioSystems backed by `audio_manager_`.
+  AudioController::AudioSystemFactory GetAudioSystemFactory() {
+    return base::BindLambdaForTesting(
+        [this]() -> std::unique_ptr<media::AudioSystem> {
+          return std::make_unique<media::AudioSystemImpl>(&audio_manager_);
+        });
+  }
+
   content::BrowserTaskEnvironment task_environment_;
   TestingProfile profile_;
   FakeSessionController session_controller_{&profile_};
+  media::MockAudioManager audio_manager_{
+      std::make_unique<media::TestAudioThread>()};
 };
 
 TEST_F(ConversationImplTest, DefaultConstructorInitializesComponents) {
@@ -151,7 +173,7 @@ TEST_F(ConversationImplTest, AudioOutputPlaysToAudioController) {
                                 std::move(audio_controller),
                                 session_controller_);
 
-  std::vector<uint8_t> audio_data(3200, 0x15);
+  std::vector<int16_t> audio_data(1600, 0x1515);
   EXPECT_FALSE(audio_controller_ptr->is_playing());
 
   conversation.OnAudioOutput(audio_data, /*sequence_number=*/1);
@@ -173,7 +195,7 @@ TEST_F(ConversationImplTest, InterruptionClearsAudioQueue) {
                                 std::move(audio_controller),
                                 session_controller_);
 
-  std::vector<uint8_t> audio_data(3200, 0x25);
+  std::vector<int16_t> audio_data(1600, 0x2525);
   conversation.OnAudioOutput(audio_data, /*sequence_number=*/2);
   EXPECT_TRUE(audio_controller_ptr->is_playing());
 
@@ -234,49 +256,11 @@ TEST_F(ConversationImplTest, ToolCallForwardedToSessionController) {
   EXPECT_TRUE(response->Ok());
 }
 
-TEST_F(ConversationImplTest, Downsample48kHzTo16kHz) {
-  // Test basic downsampling: 6 samples downsampled to 2.
-  // Group 1: 300, 300, 300 -> 300
-  // Group 2: -300, -300, -300 -> -300
-  std::vector<int16_t> samples_48k = {300, 300, 300, -300, -300, -300};
-  auto input_span = base::as_byte_span(samples_48k);
-  std::vector<uint8_t> downsampled = Downsample48kHzTo16kHz(input_span);
-
-  ASSERT_EQ(downsampled.size(), 2 * sizeof(int16_t));
-  int16_t out[2] = {};
-  base::as_writable_byte_span(out).copy_from(downsampled);
-  EXPECT_EQ(out[0], 300);
-  EXPECT_EQ(out[1], -300);
-}
-
-TEST_F(ConversationImplTest, Downsample48kHzTo16kHzEdgeCases) {
-  // Empty span
-  EXPECT_TRUE(Downsample48kHzTo16kHz(base::span<const uint8_t>()).empty());
-
-  // Less than 3 samples (< 6 bytes)
-  std::vector<int16_t> one_sample = {100};
-  EXPECT_TRUE(Downsample48kHzTo16kHz(base::as_byte_span(one_sample)).empty());
-
-  // Odd number of bytes (unaligned)
-  std::vector<uint8_t> unaligned_bytes = {1, 2, 3, 4, 5};
-  EXPECT_TRUE(Downsample48kHzTo16kHz(unaligned_bytes).empty());
-
-  // Remainder samples not divisible by 3 (e.g. 7 samples -> 2 downsampled
-  // output samples)
-  std::vector<int16_t> seven_samples = {300, 300, 300, -300, -300, -300, 1000};
-  std::vector<uint8_t> downsampled_seven =
-      Downsample48kHzTo16kHz(base::as_byte_span(seven_samples));
-  ASSERT_EQ(downsampled_seven.size(), 2 * sizeof(int16_t));
-  int16_t out_seven[2] = {};
-  base::as_writable_byte_span(out_seven).copy_from(downsampled_seven);
-  EXPECT_EQ(out_seven[0], 300);
-  EXPECT_EQ(out_seven[1], -300);
-}
-
 TEST_F(ConversationImplTest, StartAndStopWiring) {
   auto fake_binder = base::BindLambdaForTesting(
       [](mojo::PendingReceiver<media::mojom::AudioStreamFactory>) {});
-  auto audio_controller = std::make_unique<AudioController>(fake_binder);
+  auto audio_controller =
+      std::make_unique<AudioController>(fake_binder, GetAudioSystemFactory());
   AudioController* audio_controller_ptr = audio_controller.get();
 
   auto mock_backend = std::make_unique<MockTtcBackend>();
@@ -295,7 +279,7 @@ TEST_F(ConversationImplTest, StartAndStopWiring) {
   EXPECT_FALSE(audio_controller_ptr->is_capturing());
 }
 
-TEST_F(ConversationImplTest, CapturedAudioRouting16kHzPassthrough) {
+TEST_F(ConversationImplTest, CapturedAudioRoutedToBackend) {
   auto audio_controller = std::make_unique<AudioController>();
   AudioController* audio_controller_ptr = audio_controller.get();
   auto mock_backend = std::make_unique<MockTtcBackend>();
@@ -309,64 +293,10 @@ TEST_F(ConversationImplTest, CapturedAudioRouting16kHzPassthrough) {
   // Use values that have exact representations in float:
   // e.g. 4096 = 4096/32768 = 0.125f, 8192 = 0.25f, 16384 = 0.5f.
   std::vector<int16_t> samples = {4096, 8192, 16384};
-  auto sample_bytes = base::as_byte_span(samples);
-  std::vector<uint8_t> expected_bytes(sample_bytes.begin(), sample_bytes.end());
 
   base::RunLoop run_loop;
-#if BUILDFLAG(IS_MAC) || BUILDFLAG(IS_ANDROID)
-  // On Mac and Android, AudioController::Capture produces 48kHz audio.
-  // 3 samples at 48kHz downsamples to 1 sample: (4096+8192+16384)/3 = 9557.
-  std::vector<int16_t> downsampled_sample = {9557};
-  auto downsampled_bytes = base::as_byte_span(downsampled_sample);
-  std::vector<uint8_t> expected_downsampled(downsampled_bytes.begin(),
-                                            downsampled_bytes.end());
-  EXPECT_CALL(*backend_ptr, SendAudioChunk(expected_downsampled))
+  EXPECT_CALL(*backend_ptr, SendAudioChunk(testing::ElementsAreArray(samples)))
       .WillOnce([&run_loop] { run_loop.Quit(); });
-#else
-  EXPECT_CALL(*backend_ptr, SendAudioChunk(expected_bytes))
-      .WillOnce([&run_loop] { run_loop.Quit(); });
-#endif
-
-  auto bus = media::AudioBus::Create(1, samples.size());
-  for (size_t i = 0; i < samples.size(); ++i) {
-    bus->channel(0)[i] =
-        media::SignedInt16SampleTypeTraits::ToFloat(samples[i]);
-  }
-  audio_controller_ptr->Capture(bus.get(), base::TimeTicks::Now(), {}, 1.0);
-  run_loop.Run();
-}
-
-TEST_F(ConversationImplTest, CapturedAudioRouting48kHzDownsampling) {
-  auto audio_controller = std::make_unique<AudioController>();
-  AudioController* audio_controller_ptr = audio_controller.get();
-  auto mock_backend = std::make_unique<MockTtcBackend>();
-  MockTtcBackend* backend_ptr = mock_backend.get();
-
-  ConversationImpl conversation(std::move(mock_backend),
-                                std::move(audio_controller),
-                                session_controller_);
-  conversation.Start();
-
-  // 6 samples with exact float representations
-  std::vector<int16_t> samples = {1024, 2048, 4096, -1024, -2048, -4096};
-  // (1024+2048+4096)/3 = 2389, (-1024-2048-4096)/3 = -2389
-  std::vector<int16_t> expected_downsampled = {2389, -2389};
-  auto expected_bytes_span = base::as_byte_span(expected_downsampled);
-  std::vector<uint8_t> expected_bytes(expected_bytes_span.begin(),
-                                      expected_bytes_span.end());
-
-  base::RunLoop run_loop;
-#if BUILDFLAG(IS_MAC) || BUILDFLAG(IS_ANDROID)
-  EXPECT_CALL(*backend_ptr, SendAudioChunk(expected_bytes))
-      .WillOnce([&run_loop] { run_loop.Quit(); });
-#else
-  // On platforms where capture is 16kHz, passthrough occurs
-  auto sample_bytes = base::as_byte_span(samples);
-  std::vector<uint8_t> raw_bytes(sample_bytes.begin(), sample_bytes.end());
-  EXPECT_CALL(*backend_ptr, SendAudioChunk(raw_bytes)).WillOnce([&run_loop] {
-    run_loop.Quit();
-  });
-#endif
 
   auto bus = media::AudioBus::Create(1, samples.size());
   for (size_t i = 0; i < samples.size(); ++i) {
@@ -394,8 +324,7 @@ TEST_F(ConversationImplTest, OnPlaybackCompletedReportsStatus) {
   });
 
   std::vector<int16_t> samples(100, 1000);
-  audio_controller_ptr->PlayAudio(base::as_byte_span(samples),
-                                  /*sequence_number=*/42);
+  audio_controller_ptr->PlayAudio(samples, /*sequence_number=*/42);
 
   auto bus = media::AudioBus::Create(1, 100);
   audio_controller_ptr->Render(base::TimeDelta(), base::TimeTicks::Now(), {},

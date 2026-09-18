@@ -8,7 +8,6 @@
 
 #include "base/functional/bind.h"
 #include "base/notimplemented.h"
-#include "base/numerics/byte_conversions.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/ttc/app/audio_controller.h"
 #include "chrome/browser/ttc/app/ttc_mes_client.h"
@@ -109,37 +108,9 @@ void ConversationImpl::OnPageContextChanged() {
   NOTIMPLEMENTED();
 }
 
-std::vector<uint8_t> Downsample48kHzTo16kHz(
-    base::span<const uint8_t> pcm_data) {
-  if (pcm_data.size() < sizeof(int16_t) * 3 ||
-      pcm_data.size() % sizeof(int16_t) != 0) {
-    return {};
-  }
-  size_t num_samples = pcm_data.size() / sizeof(int16_t);
-  size_t out_samples = num_samples / 3;
-  std::vector<int16_t> downsampled_samples(out_samples);
-  for (size_t i = 0; i < out_samples; ++i) {
-    int16_t s0 = base::I16FromLittleEndian(
-        pcm_data.subspan((i * 3) * sizeof(int16_t)).first<2>());
-    int16_t s1 = base::I16FromLittleEndian(
-        pcm_data.subspan((i * 3 + 1) * sizeof(int16_t)).first<2>());
-    int16_t s2 = base::I16FromLittleEndian(
-        pcm_data.subspan((i * 3 + 2) * sizeof(int16_t)).first<2>());
-    int32_t sum = static_cast<int32_t>(s0) + static_cast<int32_t>(s1) +
-                  static_cast<int32_t>(s2);
-    downsampled_samples[i] = static_cast<int16_t>(sum / 3);
-  }
-  auto out_bytes = base::as_byte_span(downsampled_samples);
-  return std::vector<uint8_t>(out_bytes.begin(), out_bytes.end());
-}
-
-void ConversationImpl::OnCapturedAudio(const std::vector<uint8_t>& pcm_data,
+void ConversationImpl::OnCapturedAudio(base::span<const int16_t> pcm_data,
                                        const media::AudioParameters& params) {
   if (!backend_) {
-    return;
-  }
-  if (params.sample_rate() == 48000 && pcm_data.size() >= sizeof(int16_t) * 3) {
-    backend_->SendAudioChunk(Downsample48kHzTo16kHz(pcm_data));
     return;
   }
   backend_->SendAudioChunk(pcm_data);
@@ -184,7 +155,7 @@ void ConversationImpl::OnTranscriptions(
   }
 }
 
-void ConversationImpl::OnAudioOutput(const std::vector<uint8_t>& audio_data,
+void ConversationImpl::OnAudioOutput(base::span<const int16_t> audio_data,
                                      int64_t sequence_number) {
   if (audio_controller_) {
     audio_controller_->PlayAudio(audio_data, sequence_number);
