@@ -401,7 +401,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': '8fa6d18ca5b27b89cf127a0c4f3dbd80281f7aa8',
+  'crossbench_revision': 'c38809fec914ab477d8548c8210323d6ec25487b',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -1761,7 +1761,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '7406d8c9675b133061c738a1c7349c9d8b57dfd8',
+    '822304522b05e1c3bc598d92ec15083f71540257',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -4112,7 +4112,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '50e41456fc10ea417c8e0d0275dc6ede4341524e',
+        'a425d28f4c9ad2efcc4f5d9a0151bc0094f11a96',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
