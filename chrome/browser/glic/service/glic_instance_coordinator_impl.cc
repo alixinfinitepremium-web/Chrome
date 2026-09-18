@@ -742,6 +742,26 @@ base::WeakPtr<GlicInstanceImpl> GlicInstanceCoordinatorImpl::InvokeInternal(
     return nullptr;
   }
 
+  // Leave the conversation in the floaty instead of pulling it into the
+  // targeted tab's side panel.
+  if (options.preserve_active_surface && tab &&
+      instance->IsActiveEmbedder(FloatingEmbedderKey{})) {
+    // A `DefaultConversation` only resolves to a floating instance when the tab
+    // is already bound to it. An explicitly targeted one may still need to
+    // adopt the tab.
+    if (GetInstanceImplForTab(tab) != instance) {
+      // Bind first: rewriting the surface below discards the tab.
+      // TODO(b/562983414): Infer a more specific pin trigger from the
+      // invocation source.
+      instance->BindTabWithoutShowing(tab, GlicPinTrigger::kInstanceCreation,
+                                      options.pin_on_bind);
+    }
+    options.target.surface = Floating();
+    if (!resolve_surface()) {
+      return nullptr;
+    }
+  }
+
   // Now that the instance is fully resolved, we can safely resolve the
   // `LastActiveOrNew` surface and mutate `options.target.surface` to point to
   // the appropriate final target, before running the surface resolver.
@@ -1150,6 +1170,38 @@ void GlicInstanceCoordinatorImpl::InvokeAndLogToggle(
     Target::Surface surface,
     const EmbedderKey& key,
     std::unique_ptr<GlicWindowInvocationTracker> invocation_tracker) {
+  if (!GlicEnabling::IsEnabledForProfile(profile_)) {
+    // TODO(b/520041903): Remove this temporary workaround and route through
+    // `InvokeInternal` once the `ClientLoadState` signal lands.
+    // When the entrypoint is anchored for an onboarded user
+    // (`ShouldShowGlicButton` is true while `IsEnabledForProfile` is false),
+    // show the panel directly so the WebUI can render the `ProfileReadyState`
+    // error screen (e.g. `kLocationMismatch` / `kIneligibleAccount`) without
+    // starting a client invocation.
+    if (!GlicEnabling::ShouldShowGlicButton(profile_)) {
+      return;
+    }
+    GlicInstanceImpl* instance = nullptr;
+    if (std::holds_alternative<Floating>(surface)) {
+      instance = GetOrCreateInstanceImplForFloaty();
+      ShowOptions show_options =
+          ShowOptions::ForFloating(/*source_tab=*/tabs::TabHandle::Null());
+      show_options.invocation_source = source;
+      instance->Show(std::move(show_options));
+    } else if (auto* tab_handle = std::get_if<tabs::TabHandle>(&surface)) {
+      if (tabs::TabInterface* tab = tab_handle->Get()) {
+        instance = GetOrCreateGlicInstanceImplForTab(tab);
+        instance->Show(ShowOptions::ForSidePanel(
+            *tab, GlicPinTrigger::kInstanceCreation, source));
+      }
+    }
+    if (instance) {
+      instance->instance_metrics().OnToggle(source, key, /*is_showing=*/false,
+                                            std::move(invocation_tracker));
+    }
+    return;
+  }
+
   GlicInvokeOptions invoke_options(source);
   invoke_options.target.surface = std::move(surface);
   invoke_options.fre_completion_wait_mode = FreCompletionWaitMode::kNever;

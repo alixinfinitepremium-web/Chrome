@@ -195,6 +195,41 @@ IN_PROC_BROWSER_TEST_F(GlicInvokeBrowserTest,
   EXPECT_EQ(error_future.Get(), GlicInvokeError::kProfileNotEnabled);
 }
 
+IN_PROC_BROWSER_TEST_F(GlicInvokeBrowserTest,
+                       ToggleOpensSidePanelForAnchoredIneligibleUser) {
+  GlicHistogramTester histogram_tester;
+  ScopedGlicCapability scoped_glic_capability(GetProfile(), false);
+  ASSERT_TRUE(GlicEnabling::HasConsentedForProfile(GetProfile()));
+  ASSERT_TRUE(GlicEnabling::ShouldShowGlicButton(GetProfile()));
+  ASSERT_FALSE(GlicEnabling::IsEnabledForProfile(GetProfile()));
+  ASSERT_EQ(GlicEnabling::GetProfileReadyState(GetProfile()),
+            mojom::ProfileReadyState::kIneligibleAccount);
+
+  tabs::TabInterface* tab = GetTabListInterface()->GetActiveTab();
+  ASSERT_TRUE(tab);
+
+  service()->ToggleUI(tab->GetBrowserWindowInterface(),
+                      /*prevent_close=*/false,
+                      mojom::InvocationSource::kTopChromeButton);
+
+  ASSERT_TRUE(base::test::RunUntil([&]() {
+    return coordinator().IsPanelShowingForBrowser(
+        *tab->GetBrowserWindowInterface());
+  }));
+  histogram_tester.ExpectBucketCount("Glic.InvokeResult",
+                                     GlicInvokeError::kProfileNotEnabled, 0);
+
+  // Toggling a second time should close the side panel cleanly.
+  service()->ToggleUI(tab->GetBrowserWindowInterface(),
+                      /*prevent_close=*/false,
+                      mojom::InvocationSource::kTopChromeButton);
+
+  ASSERT_TRUE(base::test::RunUntil([&]() {
+    return !coordinator().IsPanelShowingForBrowser(
+        *tab->GetBrowserWindowInterface());
+  }));
+}
+
 IN_PROC_BROWSER_TEST_F(GlicInvokeBrowserTest, InvokeWithInvalidInstanceId) {
   base::test::TestFuture<GlicInvokeError> error_future;
   InstanceId invalid_id("non-existent-instance-id");
@@ -1477,6 +1512,111 @@ IN_PROC_BROWSER_TEST_F(GlicInvokeBrowserTest, InvokeWithFloatingTarget) {
 
   EXPECT_TRUE(success_future.Wait());
   EXPECT_TRUE(instance->IsDetached());
+}
+
+// The floaty is kept when the targeted tab is already bound to it.
+IN_PROC_BROWSER_TEST_F(GlicInvokeBrowserTest,
+                       PreserveActiveSurfaceKeepsBoundTabInFloaty) {
+  tabs::TabInterface* tab = GetTabListInterface()->GetActiveTab();
+  ASSERT_OK_AND_ASSIGN(GlicInstanceImpl * instance,
+                       OpenGlicForActiveTabAndDetach());
+  ASSERT_TRUE(instance->IsActiveEmbedder(FloatingEmbedderKey{}));
+
+  // Detaching leaves the tab bound to the instance.
+  ASSERT_EQ(GetInstanceForTab(tab), instance);
+
+  base::test::TestFuture<void> success_future;
+  GlicInvokeOptions options(glic::Target(*tab),
+                            mojom::InvocationSource::kOsButton);
+  options.preserve_active_surface = true;
+  options.on_success = success_future.GetCallback();
+  coordinator().Invoke(std::move(options));
+  ASSERT_TRUE(success_future.Wait());
+
+  EXPECT_TRUE(instance->IsActiveEmbedder(FloatingEmbedderKey{}));
+  EXPECT_FALSE(instance->IsActiveEmbedder(SidePanelEmbedderKey(tab)));
+}
+
+// The option is opt-in; the same invocation without it moves to the tab.
+IN_PROC_BROWSER_TEST_F(GlicInvokeBrowserTest,
+                       WithoutPreserveActiveSurfaceFloatyMovesToSidePanel) {
+  tabs::TabInterface* tab = GetTabListInterface()->GetActiveTab();
+  ASSERT_OK_AND_ASSIGN(GlicInstanceImpl * instance,
+                       OpenGlicForActiveTabAndDetach());
+  ASSERT_TRUE(instance->IsActiveEmbedder(FloatingEmbedderKey{}));
+  ASSERT_EQ(GetInstanceForTab(tab), instance);
+
+  base::test::TestFuture<void> success_future;
+  GlicInvokeOptions options(glic::Target(*tab),
+                            mojom::InvocationSource::kOsButton);
+  options.on_success = success_future.GetCallback();
+  coordinator().Invoke(std::move(options));
+  ASSERT_TRUE(success_future.Wait());
+
+  ASSERT_OK(WaitForActiveEmbedderToMatchTab(instance, tab));
+  EXPECT_FALSE(instance->IsActiveEmbedder(FloatingEmbedderKey{}));
+}
+
+// Targeting the floaty's conversation explicitly binds the tab to it.
+IN_PROC_BROWSER_TEST_F(GlicInvokeBrowserTest,
+                       PreserveActiveSurfaceBindsTargetedTabToFloaty) {
+  // Stop the instance from binding new tabs on its own.
+  GetProfile()->GetPrefs()->SetBoolean(
+      glic::prefs::kGlicKeepSidepanelOpenOnNewTabsEnabled, false);
+
+  ASSERT_OK_AND_ASSIGN(GlicInstanceImpl * instance,
+                       OpenGlicForActiveTabAndDetach());
+  ASSERT_TRUE(instance->IsActiveEmbedder(FloatingEmbedderKey{}));
+
+  tabs::TabInterface* tab = CreateAndActivateTab(GURL("about:blank"));
+  ASSERT_TRUE(tab);
+  ASSERT_FALSE(GetInstanceForTab(tab));
+
+  base::test::TestFuture<void> success_future;
+  GlicInvokeOptions options(
+      glic::Target(*tab, glic::InstanceId(instance->id())),
+      mojom::InvocationSource::kOsButton);
+  options.preserve_active_surface = true;
+  options.on_success = success_future.GetCallback();
+  coordinator().Invoke(std::move(options));
+  ASSERT_TRUE(success_future.Wait());
+
+  EXPECT_TRUE(instance->IsActiveEmbedder(FloatingEmbedderKey{}));
+  EXPECT_FALSE(instance->IsActiveEmbedder(SidePanelEmbedderKey(tab)));
+  EXPECT_EQ(GetInstanceForTab(tab), instance);
+  EXPECT_EQ(coordinator().GetInstances().size(), 1u);
+}
+
+// `DefaultConversation` asks for the tab's own conversation, so an unbound tab
+// is not adopted by the floaty.
+IN_PROC_BROWSER_TEST_F(GlicInvokeBrowserTest,
+                       PreserveActiveSurfaceLeavesUnboundTabOnItsOwnInstance) {
+  // Stop the instance from binding new tabs on its own.
+  GetProfile()->GetPrefs()->SetBoolean(
+      glic::prefs::kGlicKeepSidepanelOpenOnNewTabsEnabled, false);
+
+  ASSERT_OK_AND_ASSIGN(GlicInstanceImpl * instance,
+                       OpenGlicForActiveTabAndDetach());
+  ASSERT_TRUE(instance->IsActiveEmbedder(FloatingEmbedderKey{}));
+
+  tabs::TabInterface* tab = CreateAndActivateTab(GURL("about:blank"));
+  ASSERT_TRUE(tab);
+  ASSERT_FALSE(GetInstanceForTab(tab));
+
+  base::test::TestFuture<void> success_future;
+  GlicInvokeOptions options(glic::Target(*tab),
+                            mojom::InvocationSource::kOsButton);
+  options.preserve_active_surface = true;
+  options.on_success = success_future.GetCallback();
+  coordinator().Invoke(std::move(options));
+  ASSERT_TRUE(success_future.Wait());
+
+  EXPECT_TRUE(instance->IsActiveEmbedder(FloatingEmbedderKey{}));
+  ASSERT_OK_AND_ASSIGN(GlicInstanceImpl * tab_instance,
+                       WaitForGlicInstanceBoundToTab(tab));
+  EXPECT_NE(tab_instance, instance);
+  ASSERT_OK(WaitForActiveEmbedderToMatchTab(tab_instance, tab));
+  EXPECT_EQ(coordinator().GetInstances().size(), 2u);
 }
 
 // An instance can be bound to several tabs at once, but only one of its side
