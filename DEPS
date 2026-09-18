@@ -341,7 +341,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '0889c010a4fb1b29bc6292a1ff08990a9225cc46',
+  'skia_revision': '554b67456a442ca4059d131ce5691edc7822d55b',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -445,7 +445,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': '9e4eea9dd3f0538ca6cd6c9a2b2302303fa3a877',
+  'dawn_revision': 'f04b18e6ccd67c66de41d75e514ad23ef7152ff8',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -2799,7 +2799,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/cisco/openh264' + '@' + '9547f96ea5c47f4d465d97b07264b997ecc4b4b6',
 
   'src/third_party/openscreen/src':
-    Var('chromium_git') + '/openscreen' + '@' + '029cf0637d7d63373bafe949f0a4c37cd11da343',
+    Var('chromium_git') + '/openscreen' + '@' + 'fb5e19f0af45699482f94479f15c137bd16fcd3e',
 
   'src/third_party/openxr/src': {
     'url': Var('chromium_git') + '/external/github.com/KhronosGroup/OpenXR-SDK' + '@' + '75c53b6e853dc12c7b3c771edc9c9c841b15faaa',
