@@ -337,7 +337,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '1df1a15532761159df17da9a601597106a6d2397',
+  'src_internal_revision': 'ddb0aa4e2bc7a4f54f8766e28e2b59571a97fd9a',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -345,11 +345,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': '8f1ed8977d00ae7739053128aac993295775eae3',
+  'v8_revision': 'b62260205898796247970abce31120b0be54bd39',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': 'c5ec3fabc84f0942caccab84a7ba1f77020c4b2f',
+  'angle_revision': 'f0fea6e82ebe82ccfa923a5b26d78ac6f8210392',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -4112,7 +4112,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        'a0341b8ae1638a6d7e5e76bd1327996c9d298a66',
+        '0029d4db2dd632977ef6baf0668c3e029c71be86',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
