@@ -345,7 +345,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': 'c9f1a2cdf5adeb08d5d071835909a5d07d0deb56',
+  'v8_revision': '310398b386703d9b94860f228be0eb29b2ff07bf',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -1691,7 +1691,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_mac_arm64',
-          'version': 'DG5KdxsyKcnWmfRXbcZvWKJu5R8OV17cloHFS_Ghnr4C',
+          'version': '7PE2zWQoYOotqmU7viQlsGOrLhqkhukzBW637VT34sEC',
         },
       ],
   },
@@ -1702,7 +1702,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_win_x86',
-          'version': '-_rPjwISDQA2pp8VKk-NP-XMumiNkgf_S9Rlo-JeIOMC',
+          'version': 'nkcoIVgkr_I8JjV-slbWBuupvmmgKMQUnnpfJFolz-cC',
         },
       ],
   },
@@ -2687,7 +2687,7 @@ deps = {
       'packages': [
           {
               'package': 'infra/3pp/tools/7z/${{platform}}',
-              'version': 'version:3@26.01',
+              'version': 'version:3@26.03',
           },
       ],
       'condition': 'checkout_win',
@@ -2698,7 +2698,7 @@ deps = {
       'packages': [
           {
               'package': 'infra/3pp/tools/7z/windows-amd64',
-              'version': 'version:3@26.01',
+              'version': 'version:3@26.03',
           },
       ],
       'condition': 'checkout_win',
