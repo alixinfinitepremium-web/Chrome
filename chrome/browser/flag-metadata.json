@@ -3184,11 +3184,6 @@
     "expiry_milestone": 155
   },
   {
-    "name": "enable-accessibility-inverted-mouse-cursor",
-    "owners": [ "katie@chromium.org", "//ash/accessibility/OWNERS" ],
-    "expiry_milestone": 150
-  },
-  {
     "name": "enable-accessibility-labeledby",
     "owners": [ "lucasradaelli@google.com", "//ui/accessibility/OWNERS" ],
     "expiry_milestone": 144
@@ -9805,6 +9800,11 @@
     "name": "universal-keyboard-handling",
     "owners": ["mschillaci@google.com", "clank-app-team@google.com"],
     "expiry_milestone": 159
+  },
+  {
+    "name": "universal-opt-out-extension",
+    "owners": [ "olivierrobin@chromium.org", "zalmashni@google.com", "bling-flags@google.com" ],
+    "expiry_milestone": 180
   },
   {
     "name": "universal-opt-out-settings",
