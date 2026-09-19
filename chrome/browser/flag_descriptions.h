@@ -6889,11 +6889,6 @@ inline constexpr char kReadAnythingDistillerRefactorDescription[] =
     "Optimizes how web page content is prepared and processed for Reading "
     "Mode.";
 
-inline constexpr char kReadAnythingDocsIntegrationName[] =
-    "Reading Mode Google Docs Integration";
-inline constexpr char kReadAnythingDocsIntegrationDescription[] =
-    "Allows Reading Mode to work on Google Docs.";
-
 inline constexpr char kReadAnythingReadabilitySelectTextName[] =
     "Reading Mode Select Text with Readability";
 inline constexpr char kReadAnythingReadabilitySelectTextDescription[] =
@@ -8602,6 +8597,10 @@ inline constexpr char kPaintPreviewDemoName[] = "Paint Preview Demo";
 inline constexpr char kPaintPreviewDemoDescription[] =
     "If enabled a menu item is added to the Android main menu to demo paint "
     "previews.";
+inline constexpr char kPdfAccessibilityHeuristicEnhancementsName[] =
+    "PDF Accessibility Heuristic Enhancements";
+inline constexpr char kPdfAccessibilityHeuristicEnhancementsDescription[] =
+    "Enables heuristic enhancements for PDF accessibility.";
 
 inline constexpr char kPdfBrotliDecodeName[] = "PDF Brotli Decode";
 inline constexpr char kPdfBrotliDecodeDescription[] =
