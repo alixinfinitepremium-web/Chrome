@@ -337,7 +337,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': 'a8363ad146938c9df9ec0c975c81849a6494d175',
+  'skia_revision': '5456aa926156029fac5cdf5cf5a863cbe9cf3a75',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -3429,7 +3429,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/media_app/app',
-        'version': 's3GqPfdx5b8Ucx_4u3_MM8nOrZw18TuI5DlndU6GNpAC',
+        'version': 'kBqD5V4eaBqNbrFt4A-G3tpebnm_St9XXyw6c2_oNFcC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
