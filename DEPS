@@ -341,7 +341,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': '37fb84941c9be9f9914ee50b1ad366f06a1bd764',
+  'v8_revision': '036aa7eb7170dce9118b6c6cbd9d7c0f98d02577',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -3407,7 +3407,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_app/app',
-        'version': 'ymKtBBpSWwk7nLh0j-f7RNNIoe5N5wqd4pvXYeGSb9QC',
+        'version': 'gd4HC804uwrOckZzuYn9BbV3BvkWzkQTukly2UYcfhwC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
