@@ -353,7 +353,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling PDFium
   # and whatever else without interference from each other.
-  'pdfium_revision': '3f30d5dca87d120a853f3fc8d42945ffdaf601dc',
+  'pdfium_revision': '4a9b3d668e1ac05625b6576c0c1862e12cbe2ed4',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
@@ -1745,7 +1745,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': 'VPgV9u31nON7WNiDfz_2yCWXLYCTTMyb2f73CKHyoD4C',
+        'version': 'fy8jFxOpoW5-P4AHjzFHYwVdv2c_YNU3E2Z_n19xwgoC',
       },
     ],
     'condition': 'non_git_source',
@@ -2224,7 +2224,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '7051b1f9a4b4b4f42e3f1e8dfa387b1d6d2142cd',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '1b5286a2c827043a4ef9b82ee5589e61ea68bfa1',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '17a56409b86d0da5e01ca38f6498e13b2db16bc3',
