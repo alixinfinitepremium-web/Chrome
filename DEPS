@@ -337,11 +337,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '848a3b8b6c488dd27c5cc6615b5504b5d7494ee3',
+  'skia_revision': '2959dfce1a8883ac2ca93b68be6ae2485dca0e09',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': '1f31991797b6e381745dfdbf1ce792529528c7ad',
+  'v8_revision': 'd7a7b47dff452f4d5e0780c03926167c3823a22c',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -561,7 +561,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling agents-public
   # and whatever else without interference from each other.
-  'agents_public_revision': 'b61aca5681312269c2a2bb46ceb6b6f65fdd94dd',
+  'agents_public_revision': '09da8780044de1a8977e1d9c6adba1298b92f99e',
 
   # If you change this, also update the libc++ revision in
   # //buildtools/deps_revisions.gni.
