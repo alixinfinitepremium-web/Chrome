@@ -417,7 +417,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'e49fbd9f36e7d23a88cbaaaaa7f16b781557072f',
+  'devtools_frontend_revision': '70c5c077edf5d9fe53030346cfbfb599d6ff45ec',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -3429,7 +3429,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/media_app/app',
-        'version': 'kBqD5V4eaBqNbrFt4A-G3tpebnm_St9XXyw6c2_oNFcC',
+        'version': 'N3xZ5xQzmqTRs3kwKBqxhq-oOD9-DV9Z3Dof-yModLIC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
