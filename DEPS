@@ -353,7 +353,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling PDFium
   # and whatever else without interference from each other.
-  'pdfium_revision': '4a9b3d668e1ac05625b6576c0c1862e12cbe2ed4',
+  'pdfium_revision': 'c2dfc74bf998759ff5709017876e3832afe1ed2d',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
@@ -417,7 +417,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '70c5c077edf5d9fe53030346cfbfb599d6ff45ec',
+  'devtools_frontend_revision': 'cdb3111995c2b96700edab265efd268d12c3c7ff',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -3396,7 +3396,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_receiver_app/app',
-        'version': 'NNZQx8OpcwS0z0DOXoFEQ0J1PUUR7gQkY01Vfp4TeIgC',
+        'version': 'bCnNHR1AaB5TQBg94N2YhiHJszbarvCZmVlwIMtMi2EC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3407,7 +3407,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_app/app',
-        'version': 'gd4HC804uwrOckZzuYn9BbV3BvkWzkQTukly2UYcfhwC',
+        'version': 'at529F-OihxxumL689bEIcW3IkumgRDD8J6G_TddbM0C',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -4108,7 +4108,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '17fc41a676ac37df2e8d78d2114aff628461820f',
+        'c518285530d481e954ba55676055cfcea13653c6',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 

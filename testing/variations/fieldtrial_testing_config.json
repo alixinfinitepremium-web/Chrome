@@ -3644,26 +3644,6 @@
             ]
         }
     ],
-    "BrowsingHistoryImprovedHostnameSuffixMatching": [
-        {
-            "platforms": [
-                "android",
-                "chromeos",
-                "ios",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "BrowsingHistoryImprovedHostnameSuffixMatching"
-                    ]
-                }
-            ]
-        }
-    ],
     "BundledSecuritySettingsAskBeforeHttp": [
         {
             "platforms": [
@@ -12464,28 +12444,6 @@
                         "SendTabToSelfOpenNativeApp",
                         "SendTabToSelfSupportAutoOpenInTabGrid",
                         "SyncDisambiguateDeviceNamesWithChannel"
-                    ]
-                }
-            ]
-        }
-    ],
-    "JavaScriptImportText": [
-        {
-            "platforms": [
-                "android",
-                "android_webview",
-                "chromeos",
-                "fuchsia",
-                "ios",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "JavaScriptImportText"
                     ]
                 }
             ]
