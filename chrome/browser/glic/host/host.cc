@@ -50,7 +50,6 @@
 #endif
 
 namespace glic {
-BASE_FEATURE(kGlicReloadUsesFreshWebContents, base::FEATURE_ENABLED_BY_DEFAULT);
 
 void Host::EmbedderDelegate::Resize(const gfx::Size& size,
                                     base::TimeDelta duration,
@@ -167,20 +166,14 @@ void Host::Close() {
 }
 
 void Host::Reload() {
-  auto* contents = webui_contents();
-  if (!contents) {
+  if (!contents_) {
     return;
   }
 
-  if (base::FeatureList::IsEnabled(kGlicReloadUsesFreshWebContents)) {
-    UnsetWebClient();
-    Hibernate();
-    Awaken();
-    delegate_->OnReload();
-  } else {
-    contents->GetController().Reload(content::ReloadType::BYPASSING_CACHE,
-                                     /*check_for_repost=*/false);
-  }
+  UnsetWebClient();
+  Hibernate();
+  Awaken();
+  delegate_->OnReload();
 }
 
 void Host::OnWebContentsNavigated() {
@@ -341,6 +334,12 @@ GlicPageHandler* Host::FindPageHandlerForWebUiContents(
 }
 
 void Host::NotifyWindowIntentToShow() {
+  if (features::IsGlicNoWebviewEnabled()) {
+    if (contents_ && contents_->ShouldReloadOnShow()) {
+      Reload();
+      return;
+    }
+  }
   if (page_handler_) {
     page_handler_->NotifyWindowIntentToShow();
   }
