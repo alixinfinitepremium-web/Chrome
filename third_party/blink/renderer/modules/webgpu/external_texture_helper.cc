@@ -425,7 +425,7 @@ std::optional<ExternalTexture> CreateExternalTexture(
     gpu::SyncToken sync_token = video_renderer->CopyVideoFrameToSharedImage(
         raster_context_provider, std::move(media_video_frame), shared_image,
         lease->GetSyncToken(), /*use_visible_rect=*/true);
-    lease->WaitSyncToken(sync_token);
+    lease->SetSyncToken(sync_token);
   } else {
     // Delegate video transformation to Dawn.
     if (media_video_frame->HasSharedImage()) {
@@ -476,13 +476,10 @@ std::optional<ExternalTexture> CreateExternalTexture(
     return {};
   }
 
-  gpu::SyncToken sync_token = lease->GetSyncToken();
-
   scoped_refptr<WebGPUMailboxTexture> mailbox_texture =
       WebGPUMailboxTexture::FromCanvasResource(
           device->GetDawnControlClient(), device->GetHandle(),
-          wgpu::TextureUsage::TextureBinding, std::move(shared_image),
-          sync_token, std::move(lease));
+          wgpu::TextureUsage::TextureBinding, std::move(lease));
   if (!mailbox_texture) {
     return {};
   }
