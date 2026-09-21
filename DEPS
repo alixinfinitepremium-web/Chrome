@@ -441,7 +441,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': 'b669564519369191e3345195f382f3932e46beaf',
+  'dawn_revision': '905cba91b3432c013a3e98d7dfa3c1f818441ace',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -1676,7 +1676,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_mac_amd64',
-          'version': '9cxfq_-mJS1BNJPx_-QTkzNsHB5x3mWly7O07JkXg5UC',
+          'version': 'gqG_BFWvq2-fkvKyujzsckrEtbnUm1y_-SSqRAFsd6UC',
         },
       ],
   },
@@ -2224,7 +2224,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '8c6b5162b55ad4b8520afeae8f3f9b2e2922accc',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '647bc59a945f548219cae458423de965bf9198e8',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '17a56409b86d0da5e01ca38f6498e13b2db16bc3',
