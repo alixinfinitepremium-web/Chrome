@@ -349,7 +349,6 @@ Canvas2DResourceProvider::ProduceCanvasResource() {
 
     output_resource->UploadSoftwareRenderingResults(GetSkSurface());
 
-    CHECK(!output_resource->CreatesAcceleratedTransferableResources());
     return output_resource;
   }
 
@@ -361,10 +360,6 @@ Canvas2DResourceProvider::ProduceCanvasResource() {
   // backing SharedImage). Hence, we must make sure that we give up any write
   // access.
   EndWriteAccess();
-
-  if (resource_) {
-    CHECK(resource_->CreatesAcceleratedTransferableResources());
-  }
 
   return resource_;
 }
@@ -438,7 +433,6 @@ void Canvas2DResourceProvider::EndWriteAccess() {
   }
 
   current_resource_has_write_access_ = false;
-  CHECK(resource()->ContextProviderWrapper());
 }
 
 scoped_refptr<StaticBitmapImage> Canvas2DResourceProvider::Snapshot(

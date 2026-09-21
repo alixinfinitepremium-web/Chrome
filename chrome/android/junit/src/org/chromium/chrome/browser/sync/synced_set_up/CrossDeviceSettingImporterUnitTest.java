@@ -68,6 +68,7 @@ import org.chromium.chrome.browser.ntp_customization.theme.theme_collections.Cus
 import org.chromium.chrome.browser.ntp_customization.theme_sync.CrossDeviceThemeTracker;
 import org.chromium.chrome.browser.ntp_customization.theme_sync.data.NtpBackgroundDataBase;
 import org.chromium.chrome.browser.ntp_customization.theme_sync.data.NtpBackgroundDataColor;
+import org.chromium.chrome.browser.ntp_customization.theme_sync.data.NtpBackgroundDataCustomizedColor;
 import org.chromium.chrome.browser.ntp_customization.theme_sync.data.NtpBackgroundDataThemeCollection;
 import org.chromium.chrome.browser.ntp_customization.theme_sync.data.PlatformType;
 import org.chromium.chrome.browser.preferences.ChromePreferenceKeys;
@@ -139,7 +140,6 @@ public class CrossDeviceSettingImporterUnitTest {
     @Captor private ArgumentCaptor<Snackbar> mSnackbarCaptor;
     @Captor private ArgumentCaptor<CrossDevicePrefTrackerObserver> mPrefTrackerObserverCaptor;
     @Captor private ArgumentCaptor<CrossDeviceThemeTracker.Observer> mThemeTrackerObserverCaptor;
-    @Captor private ArgumentCaptor<TabObserver> mTabObserverCaptor;
 
     private final SettableNullableObservableSupplier<Tab> mActivityTabSupplier =
             ObservableSuppliers.createNullable();
@@ -214,6 +214,7 @@ public class CrossDeviceSettingImporterUnitTest {
         // Clear static pending snackbar state so snackbars scheduled by production code paths in
         // tests do not leak across test cases (mock SnackbarManager does not trigger auto-dismiss).
         CrossDeviceSettingImporter.setPendingSnackbarForTesting(null);
+        RobolectricUtil.runAllBackgroundAndUi();
         if (mUserActionTester != null) {
             mUserActionTester.tearDown();
         }
@@ -517,6 +518,24 @@ public class CrossDeviceSettingImporterUnitTest {
         } finally {
             NtpThemeStateProvider.getInstance().removeObserver(observer);
         }
+    }
+
+    @Test
+    @EnableFeatures(ChromeFeatureList.XPLAT_SYNCED_SETUP_THEMES)
+    public void testApplyThemeSettings_customizedColor() {
+        NtpBackgroundDataBase theme =
+                new NtpBackgroundDataCustomizedColor(
+                        mActivity,
+                        PlatformType.DESKTOP,
+                        /* primaryColorLight= */ 0xFF112233,
+                        /* primaryColorDark= */ 0xFF445566,
+                        /* ntpBackgroundColorLight= */ 0xFF778899,
+                        /* ntpBackgroundColorDark= */ 0xFFAABBCC);
+        initializeCrossDeviceSettingImporter().applyThemeSettings(theme);
+
+        verify(mNtpCustomizationConfigManager).onBackgroundDataChanged(any(), eq(theme));
+        verify(mNtpCustomizationConfigManager)
+                .maybeSaveUserSelectedBackgroundTypeToSharedPreference(any());
     }
 
     @Test
@@ -1132,10 +1151,11 @@ public class CrossDeviceSettingImporterUnitTest {
         initializeCrossDeviceSettingImporter();
         RobolectricUtil.runAllBackgroundAndUi();
 
-        verify(mTab).addObserver(mTabObserverCaptor.capture());
+        ArgumentCaptor<TabObserver> tabObserverCaptor = ArgumentCaptor.forClass(TabObserver.class);
+        verify(mTab).addObserver(tabObserverCaptor.capture());
 
-        mTabObserverCaptor.getValue().onDestroyed(mTab);
-        verify(mTab).removeObserver(mTabObserverCaptor.getValue());
+        tabObserverCaptor.getValue().onDestroyed(mTab);
+        verify(mTab).removeObserver(tabObserverCaptor.getValue());
     }
 
     @Test

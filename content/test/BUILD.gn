@@ -1129,7 +1129,10 @@ static_library("browsertest_support") {
       "../public/test/content_browser_test_utils_mac.mm",
       "content_browser_test_utils_internal_mac.mm",
     ]
-    deps += [ "//ui/base/mojom" ]
+    deps += [
+      "//ui/base:test_support",
+      "//ui/base/mojom",
+    ]
   }
 
   configs += [ "//v8:external_startup_data" ]
@@ -3205,7 +3208,10 @@ test("content_unittests") {
   }
 
   if (is_linux) {
-    sources += [ "../browser/accessibility/browser_accessibility_state_impl_auralinux_unittest.cc" ]
+    sources += [
+      "../browser/accessibility/browser_accessibility_state_impl_auralinux_unittest.cc",
+      "../services/isolated_xr_device/xr_sandbox_hook_linux_unittest.cc",
+    ]
   }
 
   if (is_android || is_linux || is_chromeos || is_mac || is_win || is_fuchsia) {
@@ -3460,6 +3466,10 @@ test("content_unittests") {
     ]
   }
 
+  if (is_linux) {
+    deps += [ "//content/services/isolated_xr_device:xr_sandbox_hook" ]
+  }
+
   if (is_fuchsia) {
     deps += [ "//third_party/fuchsia-sdk/sdk/fidl/fuchsia.accessibility.semantics:fuchsia.accessibility.semantics_cpp" ]
   }
@@ -3540,6 +3550,7 @@ test("content_unittests") {
   }
   if (is_win) {
     sources += [
+      "../app/sandbox_helper_win_unittest.cc",
       "../browser/child_process_sandbox_support_win_unittest.cc",
       "../browser/device_posture/device_posture_registry_watcher_win_unittest.cc",
       "../browser/haptics/haptics_manager_impl_win_unittest.cc",
@@ -3556,6 +3567,7 @@ test("content_unittests") {
     deps += [
       "//components/services/font_data/public/mojom",
       "//components/stylus_handwriting/win",
+      "//content:sandbox_helper_win",
       "//sandbox/policy:sandbox_test_utils",
       "//sandbox/win:sandbox",
       "//third_party/blink/public/common",

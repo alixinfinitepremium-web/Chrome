@@ -10,6 +10,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
@@ -98,7 +99,6 @@ public class SigninPromoDelegateTest {
     private @Mock SigninManager mSigninManager;
     private @Mock SyncService mSyncService;
     private @Mock HistorySyncHelper mHistorySyncHelper;
-    @Mock private Drawable mDrawable;
 
     private Context mContext;
     private SigninPromoDelegate mDelegate;
@@ -158,7 +158,7 @@ public class SigninPromoDelegateTest {
                 new DisplayableProfileData(
                         new CoreAccountId(new GaiaId("accountId")),
                         "testemail@gmail.com",
-                        mDrawable,
+                        mock(Drawable.class),
                         "TestName LastName",
                         "TestName",
                         /* hasDisplayableEmailAddress= */ true,
@@ -589,7 +589,7 @@ public class SigninPromoDelegateTest {
     }
 
     @Test
-    public void testNtpPromo_seamlessFlow_accountOnDevice_secondaryButtonShowsSnackbar() {
+    public void testNtpPromo_seamlessFlow_accountOnDevice_accountPickerShowsSnackbar() {
         doReturn(true).when(mSigninManager).isSigninAllowed();
         mAccountManagerTestRule.addAccount(TestAccounts.ACCOUNT1);
         doReturn(TestAccounts.ACCOUNT1)
@@ -600,7 +600,7 @@ public class SigninPromoDelegateTest {
                 TestDisplayableProfileData.profileDataOf(TestAccounts.ACCOUNT1));
         assertTrue(mDelegate.canShowPromo());
 
-        BottomSheetSigninAndHistorySyncConfig config = mDelegate.getConfigForSecondaryButtonClick();
+        BottomSheetSigninAndHistorySyncConfig config = mDelegate.getConfigForAccountPickerClick();
 
         assertEquals(
                 WithAccountSigninMode.CHOOSE_ACCOUNT_BOTTOM_SHEET, config.withAccountSigninMode);

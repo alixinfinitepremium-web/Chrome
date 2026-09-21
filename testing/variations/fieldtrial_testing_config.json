@@ -3275,23 +3275,6 @@
             ]
         }
     ],
-    "BrowserLaunchMetadataReporting": [
-        {
-            "platforms": [
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "BrowserLaunchMetadataReporting"
-                    ]
-                }
-            ]
-        }
-    ],
     "BrowserSignalsReportingEnabled": [
         {
             "platforms": [
@@ -6320,7 +6303,6 @@
                         "StaleModulesCountThreshold": "14"
                     },
                     "enable_features": [
-                        "NtpFeatureOptimizationDismissModulesRemoval",
                         "NtpFeatureOptimizationModuleRemoval"
                     ]
                 }
@@ -16631,21 +16613,6 @@
                     "enable_features": [
                         "ServiceWorkerSyntheticResponse",
                         "URLLoaderUseProvidedResponseBodyStream"
-                    ]
-                }
-            ]
-        }
-    ],
-    "SessionRestoreAfterCrash": [
-        {
-            "platforms": [
-                "android"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "SessionRestoreAfterCrash"
                     ]
                 }
             ]

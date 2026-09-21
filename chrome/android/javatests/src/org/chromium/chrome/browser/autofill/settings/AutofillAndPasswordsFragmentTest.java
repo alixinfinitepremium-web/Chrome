@@ -44,7 +44,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
@@ -119,7 +118,6 @@ public class AutofillAndPasswordsFragmentTest {
     @Mock private SettingsNavigation mSettingsNavigation;
     @Mock private BottomSheetSigninAndHistorySyncCoordinator mSettingsSigninCoordinator;
     @Mock private BottomSheetSigninAndHistorySyncCoordinator mAutofillAndPasswordsSigninCoordinator;
-    @Captor private ArgumentCaptor<Bundle> mBundleCaptor;
 
     private final FakeCredentialManagerLauncherFactoryImpl mFakeLauncherFactory =
             new FakeCredentialManagerLauncherFactoryImpl();
@@ -204,10 +202,7 @@ public class AutofillAndPasswordsFragmentTest {
 
     @Test
     @SmallTest
-    @EnableFeatures({
-        SigninFeatures.ENABLE_SEAMLESS_SIGNIN,
-        ChromeFeatureList.YOUR_SAVED_INFO_SETTINGS_PAGE_ANDROID
-    })
+    @EnableFeatures({ChromeFeatureList.YOUR_SAVED_INFO_SETTINGS_PAGE_ANDROID})
     public void testSignInPromoVisible_noAccount() {
         signInPromoDeclined(false);
 
@@ -223,15 +218,13 @@ public class AutofillAndPasswordsFragmentTest {
                                         R.string
                                                 .signin_promo_description_autofill_and_passwords_seamless)));
         onView(withId(R.id.signin_promo_primary_button)).check(matches(isDisplayed()));
-        onView(withId(R.id.signin_promo_secondary_button)).check(doesNotExist());
+        onView(withId(R.id.account_picker_selected_account))
+                .check(matches(withEffectiveVisibility(Visibility.GONE)));
     }
 
     @Test
     @SmallTest
-    @EnableFeatures({
-        SigninFeatures.ENABLE_SEAMLESS_SIGNIN,
-        ChromeFeatureList.YOUR_SAVED_INFO_SETTINGS_PAGE_ANDROID
-    })
+    @EnableFeatures({ChromeFeatureList.YOUR_SAVED_INFO_SETTINGS_PAGE_ANDROID})
     public void testSignInPromoNotSelectable() {
         signInPromoDeclined(false);
 
@@ -246,10 +239,7 @@ public class AutofillAndPasswordsFragmentTest {
 
     @Test
     @SmallTest
-    @EnableFeatures({
-        SigninFeatures.ENABLE_SEAMLESS_SIGNIN,
-        ChromeFeatureList.YOUR_SAVED_INFO_SETTINGS_PAGE_ANDROID
-    })
+    @EnableFeatures({ChromeFeatureList.YOUR_SAVED_INFO_SETTINGS_PAGE_ANDROID})
     public void testSignInPromoVisible_withAccount() {
         mSigninTestRule.addAccount(TestAccounts.ACCOUNT1);
         signInPromoDeclined(false);
@@ -266,34 +256,12 @@ public class AutofillAndPasswordsFragmentTest {
                                         R.string
                                                 .signin_promo_description_autofill_and_passwords_seamless)));
         onView(withId(R.id.signin_promo_primary_button)).check(matches(isDisplayed()));
-        onView(withId(R.id.signin_promo_secondary_button)).check(doesNotExist());
+        onView(withId(R.id.account_picker_selected_account)).check(matches(isDisplayed()));
     }
 
     @Test
     @SmallTest
     @EnableFeatures({ChromeFeatureList.YOUR_SAVED_INFO_SETTINGS_PAGE_ANDROID})
-    @DisableFeatures(SigninFeatures.ENABLE_SEAMLESS_SIGNIN)
-    public void testSignInPromoVisible_seamlessDisabled() {
-        mSigninTestRule.addAccount(TestAccounts.ACCOUNT1);
-        signInPromoDeclined(false);
-
-        mSettingsTestRule.startSettingsActivity(createFragmentArgs());
-
-        onView(withId(R.id.signin_promo_view_container)).check(matches(isDisplayed()));
-        onView(withId(R.id.sync_promo_title))
-                .check(matches(withText(R.string.signin_promo_title_autofill_and_passwords)));
-        onView(withId(R.id.sync_promo_description))
-                .check(matches(withText(R.string.signin_promo_description_autofill_and_passwords)));
-        onView(withId(R.id.sync_promo_choose_account_button)).check(matches(isDisplayed()));
-        onView(withId(R.id.sync_promo_signin_button)).check(matches(isDisplayed()));
-    }
-
-    @Test
-    @SmallTest
-    @EnableFeatures({
-        SigninFeatures.ENABLE_SEAMLESS_SIGNIN,
-        ChromeFeatureList.YOUR_SAVED_INFO_SETTINGS_PAGE_ANDROID
-    })
     public void testSignInPromoDismiss() {
         signInPromoDeclined(false);
 
@@ -312,10 +280,7 @@ public class AutofillAndPasswordsFragmentTest {
 
     @Test
     @SmallTest
-    @EnableFeatures({
-        SigninFeatures.ENABLE_SEAMLESS_SIGNIN,
-        ChromeFeatureList.YOUR_SAVED_INFO_SETTINGS_PAGE_ANDROID
-    })
+    @EnableFeatures({ChromeFeatureList.YOUR_SAVED_INFO_SETTINGS_PAGE_ANDROID})
     public void testSignInPromoClick() {
         signInPromoDeclined(false);
 
@@ -329,10 +294,7 @@ public class AutofillAndPasswordsFragmentTest {
 
     @Test
     @SmallTest
-    @EnableFeatures({
-        SigninFeatures.ENABLE_SEAMLESS_SIGNIN,
-        ChromeFeatureList.YOUR_SAVED_INFO_SETTINGS_PAGE_ANDROID
-    })
+    @EnableFeatures({ChromeFeatureList.YOUR_SAVED_INFO_SETTINGS_PAGE_ANDROID})
     public void testSignInPromoMaxImpressions() {
         signInPromoDeclined(false);
         ChromeSharedPreferences.getInstance()
@@ -548,15 +510,13 @@ public class AutofillAndPasswordsFragmentTest {
 
         testItemClick(R.string.autofill_settings_title, AutofillOptionsFragment.class);
 
+        ArgumentCaptor<Bundle> bundleCaptor = ArgumentCaptor.forClass(Bundle.class);
         verify(mSettingsNavigation)
                 .startSettings(
-                        any(),
-                        eq(AutofillOptionsFragment.class),
-                        mBundleCaptor.capture(),
-                        eq(true));
+                        any(), eq(AutofillOptionsFragment.class), bundleCaptor.capture(), eq(true));
         assertEquals(
                 AutofillOptionsReferrer.AUTOFILL_AND_PASSWORDS_FRAGMENT,
-                mBundleCaptor.getValue().getInt(AutofillOptionsFragment.AUTOFILL_OPTIONS_REFERRER));
+                bundleCaptor.getValue().getInt(AutofillOptionsFragment.AUTOFILL_OPTIONS_REFERRER));
     }
 
     @Test
@@ -568,15 +528,13 @@ public class AutofillAndPasswordsFragmentTest {
 
         testItemClick(R.string.autofill_options_title, AutofillOptionsFragment.class);
 
+        ArgumentCaptor<Bundle> bundleCaptor = ArgumentCaptor.forClass(Bundle.class);
         verify(mSettingsNavigation)
                 .startSettings(
-                        any(),
-                        eq(AutofillOptionsFragment.class),
-                        mBundleCaptor.capture(),
-                        eq(true));
+                        any(), eq(AutofillOptionsFragment.class), bundleCaptor.capture(), eq(true));
         assertEquals(
                 AutofillOptionsReferrer.AUTOFILL_AND_PASSWORDS_FRAGMENT,
-                mBundleCaptor.getValue().getInt(AutofillOptionsFragment.AUTOFILL_OPTIONS_REFERRER));
+                bundleCaptor.getValue().getInt(AutofillOptionsFragment.AUTOFILL_OPTIONS_REFERRER));
     }
 
     @Test

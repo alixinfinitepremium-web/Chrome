@@ -333,15 +333,15 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '6ad0ab9de9de4569374a6cb1dd22102e2c0b2641',
+  'src_internal_revision': 'e15f2a025b753a792a6a53e07414a9651bd1ab59',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': 'a6869c5125cf098b79604fe2c254cb2d4236ee1f',
+  'skia_revision': '5b5070480a2de08aae6f4f24f5f6547700d75d13',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': 'fee71b6933ae5b5d1a92ec1347554d2c5b12e11b',
+  'v8_revision': '05cbef9093c80a49b19609dc725f011c1af081bf',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -393,11 +393,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling catapult
   # and whatever else without interference from each other.
-  'catapult_revision': 'e39ded11ffe971d360160c9d185a7e0ef98fb9a3',
+  'catapult_revision': '30de54364b0168e3ef6bc4b781533b5da41fc69c',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': '21162bd61a7ab722f933df6d69ae704315cd002c',
+  'crossbench_revision': '2eb1a477c91c669a287d1bf7ac5bde108febb31d',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -409,7 +409,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling fuzztest
   # and whatever else without interference from each other.
-  'fuzztest_revision': '853cda93a76d449b86965dde77780fc4ab2959d8',
+  'fuzztest_revision': '21a54bce88b3edf76a9e7c74eaab76854228f63a',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling domato
   # and whatever else without interference from each other.
@@ -417,7 +417,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '0666569a144aefc06228adaa9f9bdad9ef79bed0',
+  'devtools_frontend_revision': '3b670ee38ee9fb5884a901c4ba1565e597cecd93',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -3214,11 +3214,11 @@ deps = {
       ],
   },
 
-  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@08808121c23452a577f5b72bca80d8d4b26627be',
+  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@9591aac0ac449282c66abd77d74a61b049382150',
   'src/third_party/glslang/src': '{chromium_git}/external/github.com/KhronosGroup/glslang@5494791363451eb51b959544728c8d204b567fd2',
   'src/third_party/spirv-cross/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Cross@b8fcf307f1f347089e3c46eb4451d27f32ebc8d3',
   'src/third_party/spirv-headers/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Headers@2b7475f6d664efbad4d4315c94ecec9640831e5b',
-  'src/third_party/spirv-tools/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Tools@af4f54c8d4deb15e6aa532c5c1a56fffbb6daaea',
+  'src/third_party/spirv-tools/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Tools@2907cbbc344b5f550567d8c11b7e872000352aec',
   'src/third_party/vulkan-headers/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Headers@6802bb4733b63ed5efd3adb308a6c885ef180ea1',
   'src/third_party/vulkan-loader/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Loader@bad58e021bfb6bff9f90428ca75ac35f1d5a9546',
   'src/third_party/vulkan-tools/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Tools@6fe2055cf2fa921d52a4c6a31528cfc279a6977f',
@@ -3267,7 +3267,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + 'd55353311ea8aaa224550823568264cdd41d0159',
+    Var('webrtc_git') + '/src.git' + '@' + '7b286887483d99ecb25e1181e342089d606f1a82',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -3893,7 +3893,7 @@ deps = {
 
   'src/chrome/common/request_header_integrity/internal': {
       'url': Var('chrome_git') + '/chrome/browser/request_header_integrity/internal.git' + '@' +
-        'b028ae5cdaa5742c6e3e99de422e93a21e96e208',
+        '1cb2c5fc30aebc581f3ee53cd5cfcf39fa4d895f',
       'condition': 'checkout_src_internal',
   },
 
@@ -4079,7 +4079,7 @@ deps = {
 
   'src/components/vector_icons/google_chrome': {
       'url': Var('chrome_git') + '/chrome/vector_icons/google_chrome.git' + '@' +
-        'd6253da60c723636ed6e60a7a38596f93ce02dc9',
+        '7f77c4aec7b85fde9938ccc59d1d985ad828aad4',
       'condition': 'checkout_src_internal',
   },
 
@@ -4097,7 +4097,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '71a6951f969255a0ce2cc85c4de471f747ae477b',
+        'b07ece30e64c79a1db535817b0cedbc1fa4cde02',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 

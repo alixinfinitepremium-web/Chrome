@@ -7,6 +7,7 @@ package org.chromium.chrome.browser.password_manager;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.isNull;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -52,7 +53,7 @@ import java.util.Set;
 @RunWith(BaseRobolectricTestRunner.class)
 public class PasswordCheckupLauncherTest {
     private static final AccountInfo TEST_ACCOUNT = TestAccounts.ACCOUNT1;
-    private static final String TEST_NO_EMAIL_ADDRESS = null;
+    private static final String TEST_NO_EMAIL_ADDRESS = "";
 
     @Rule public MockitoRule mMockitoRule = MockitoJUnit.rule();
 
@@ -71,7 +72,6 @@ public class PasswordCheckupLauncherTest {
     @Mock private PendingIntent mMockPendingIntentForLocalCheckup;
 
     @Mock private PendingIntent mMockPendingIntentForAccountCheckup;
-    @Mock private ModalDialogManager.Presenter mModalDialogManagerPresenter;
 
     private final FakePasswordManagerBackendSupportHelper mFakeBackendSupportHelper =
             new FakePasswordManagerBackendSupportHelper();
@@ -116,7 +116,8 @@ public class PasswordCheckupLauncherTest {
         when(mMockWindowAndroid.getContext()).thenReturn(new WeakReference<>(mContext));
         mModalDialogManager =
                 new ModalDialogManager(
-                        mModalDialogManagerPresenter, ModalDialogManager.ModalDialogType.APP);
+                        mock(ModalDialogManager.Presenter.class),
+                        ModalDialogManager.ModalDialogType.APP);
         when(mMockWindowAndroid.getModalDialogManager()).thenReturn(mModalDialogManager);
     }
 
