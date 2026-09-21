@@ -11258,6 +11258,21 @@
             ]
         }
     ],
+    "IOSAutofillIgnoreTabIndexForFocusability": [
+        {
+            "platforms": [
+                "ios"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "AutofillIgnoreTabIndexForFocusabilityIos"
+                    ]
+                }
+            ]
+        }
+    ],
     "IOSBackendPromoCustomUI": [
         {
             "platforms": [
@@ -20455,21 +20470,6 @@
                     "name": "Enabled",
                     "enable_features": [
                         "UseStrongRefToSharedImageInterface"
-                    ]
-                }
-            ]
-        }
-    ],
-    "UserPolicyFetchRequiresAcceptance": [
-        {
-            "platforms": [
-                "android"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "UserPolicyFetchRequiresAcceptance"
                     ]
                 }
             ]

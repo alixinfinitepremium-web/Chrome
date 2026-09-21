@@ -307,11 +307,11 @@ vars = {
   'reclient_version': 're_client_version:0.185.0.db415f21-gomaip',
 
   # screen-ai CIPD packages
-  'screen_ai_linux': 'version:153.02',
-  'screen_ai_macos_amd64': 'version:153.02',
-  'screen_ai_macos_arm64': 'version:153.02',
-  'screen_ai_windows_amd64': 'version:153.02',
-  'screen_ai_windows_386': 'version:153.02',
+  'screen_ai_linux': 'version:153.03',
+  'screen_ai_macos_amd64': 'version:153.03',
+  'screen_ai_macos_arm64': 'version:153.03',
+  'screen_ai_windows_amd64': 'version:153.03',
+  'screen_ai_windows_386': 'version:153.03',
 
   # download libaom test data
   'download_libaom_testdata': False,
@@ -345,7 +345,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '2bb28bbcef760ede0c084f4cf3341f495887f1f5',
+  'angle_revision': 'bea9f5ec4d253a3435ecb2b08e6054f220aeb80d',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -357,7 +357,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': 'b75f405cde1cc3c9fb811be155eecabe38f379bb',
+  'boringssl_revision': '81913f592dcbcfb3d636e3183d08fe5264fa1cb7',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -373,7 +373,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling breakpad
   # and whatever else without interference from each other.
-  'breakpad_revision': '9a2ad67542a4a40b0fdf558c0059a63d6cc5e359',
+  'breakpad_revision': '868abe6f016cfeabfb7208681e89031ae667c336',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling freetype
   # and whatever else without interference from each other.
@@ -417,7 +417,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '2f888a3287d9ecb58acbf3ca42cb1b94bfd83894',
+  'devtools_frontend_revision': '0666569a144aefc06228adaa9f9bdad9ef79bed0',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -2198,7 +2198,7 @@ deps = {
 
   # For Linux and Chromium OS.
   'src/third_party/cros_system_api': {
-      'url': Var('chromium_git') + '/chromiumos/platform2/system_api.git' + '@' + 'e9f9883d1e8849276db2df228d59a84c911696e4',
+      'url': Var('chromium_git') + '/chromiumos/platform2/system_api.git' + '@' + '530e8b8bc967e72a65e4e913e9bc22f7c5cf6d20',
       'condition': 'checkout_linux or checkout_chromeos',
   },
 
@@ -3580,17 +3580,6 @@ deps = {
           {
               'package': 'chromium/third_party/android_deps/libs/org_ccil_cowan_tagsoup_tagsoup',
               'version': 'version:2@1.2.1.cr2',
-          },
-      ],
-      'condition': 'checkout_android and non_git_source',
-      'dep_type': 'cipd',
-  },
-
-  'src/third_party/android_deps/cipd/libs/org_checkerframework_checker_compat_qual': {
-      'packages': [
-          {
-              'package': 'chromium/third_party/android_deps/libs/org_checkerframework_checker_compat_qual',
-              'version': 'version:2@2.5.5.cr2',
           },
       ],
       'condition': 'checkout_android and non_git_source',
