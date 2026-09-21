@@ -345,7 +345,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': 'bea9f5ec4d253a3435ecb2b08e6054f220aeb80d',
+  'angle_revision': 'fd9ac29c6973d98337d8f5398b10de792f4efb5e',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -1687,7 +1687,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_mac_arm64',
-          'version': '7PE2zWQoYOotqmU7viQlsGOrLhqkhukzBW637VT34sEC',
+          'version': 'Jc_K3QrWc-vfTnFFYBfRSohaVPpppfXbXD3BVvPrBHcC',
         },
       ],
   },
@@ -1698,7 +1698,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_win_x86',
-          'version': 'nkcoIVgkr_I8JjV-slbWBuupvmmgKMQUnnpfJFolz-cC',
+          'version': 'BmjeKmvgFwoT17UVEVL9GULe86Td8NX9XdAH2h9sP_4C',
         },
       ],
   },
@@ -1709,7 +1709,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_win_x86_64',
-          'version': 'jW4VEYSPDKeyiEsNsfK0QguGkY8yfHiiqRe-KiAHWSAC',
+          'version': 'GHkB8Znr1ptwj_ZZb3t6zVjZxcI_Hn73jSA1eftbxxgC',
         },
       ],
   },
@@ -2672,7 +2672,7 @@ deps = {
     Var('chromium_git') + '/webm/libwebp.git' + '@' +  'b43b2caa710c0c997c066cb32c7fea1391fad70a',
 
   'src/third_party/libyuv':
-    Var('chromium_git') + '/libyuv/libyuv.git' + '@' + '749f9742bb0e8a191316691860f48c42d651f755',
+    Var('chromium_git') + '/libyuv/libyuv.git' + '@' + '715a84778eb0ff95944dd5b6ef2a724ca648eefb',
 
   'src/third_party/lss': {
       'url': Var('chromium_git') + '/linux-syscall-support.git' + '@' + Var('lss_revision'),
@@ -3160,7 +3160,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/turbine',
-              'version': '962n3CvRk8aEByuyx7pFpfeVdQlbk9Y2IsmKDNTddasC',
+              'version': 'rqbGMhci4trzUCXgMBzoRMpTKADs_F5sWUKJXxsu6BYC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
