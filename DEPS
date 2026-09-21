@@ -557,7 +557,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling agents-internal
   # and whatever else without interference from each other.
-  'agents_internal_revision': '79ff29c61f3fcfd51da0a5be8579b01b4f6f61b3',
+  'agents_internal_revision': 'ebb8af05f5a3c21b128521693d796319a6fd00fd',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling agents-public
   # and whatever else without interference from each other.
@@ -1510,7 +1510,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_linux64',
-          'version': 'version:2@1695014',
+          'version': 'version:2@1696004',
         },
       ],
   },
@@ -1521,7 +1521,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_mac_amd64',
-          'version': 'version:2@1695012',
+          'version': 'version:2@1696006',
         },
       ],
   },
@@ -1532,7 +1532,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_mac_arm64',
-          'version': 'version:2@1695012',
+          'version': 'version:2@1696004',
         },
       ],
   },
@@ -1554,7 +1554,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_x86',
-          'version': 'version:2@1694025',
+          'version': 'version:2@1696742',
         },
       ],
   },
@@ -2209,7 +2209,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '7ccadeaefc68d1711a1187ea57b07f1aaee57538',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '55a39e603bee1ad299545508bc96e2a5d29d3cc4',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -3261,13 +3261,13 @@ deps = {
     Var('chromium_git') + '/external/khronosgroup/webgl.git' + '@' + '714857a28445e8f5d8d6ae1c78498578009534d8',
 
   'src/third_party/webgpu-cts/src':
-    Var('chromium_git') + '/external/github.com/gpuweb/cts.git' + '@' + '28e3eafba3160fd088c5b23a677f4d127745c43a',
+    Var('chromium_git') + '/external/github.com/gpuweb/cts.git' + '@' + '297e3f339b00f34f184d7cb9483313ee6faf2215',
 
   'src/third_party/webpagereplay':
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '7b286887483d99ecb25e1181e342089d606f1a82',
+    Var('webrtc_git') + '/src.git' + '@' + '23df7ef65bc831dfe10c5150146bf9e6bebe7194',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -4019,7 +4019,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        'd6d72a359c8d1b38ba249fd69f48de0c345a8a57',
+        'c8f8b8b83024279e6fbb5f2b9557e373a1c12530',
       'condition': 'checkout_src_internal',
   },
 
