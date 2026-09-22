@@ -341,7 +341,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': '5059feaf6f83dd8b2c0258d43b2f84d0fb354e4e',
+  'v8_revision': 'cd4ba1d3dfeb3c640cf365632b64eaedd06abd43',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -417,7 +417,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '6d967b16d828ab11dbeed042327a1bc9db886559',
+  'devtools_frontend_revision': 'bb1fef95360e58c0933e1a2d281a6b20d62095b0',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1715,7 +1715,7 @@ deps = {
   },
 
   'src/chrome/test/data/autofill/captured_sites/artifacts': {
-    'url': Var('chrome_git') + '/chrome/test/captured_sites/autofill.git' + '@' + '27a2afc9520a5a1ee6298ee116ae6ed51364cf1c',
+    'url': Var('chrome_git') + '/chrome/test/captured_sites/autofill.git' + '@' + '2a9fb59b5ff65eb3ce98946af93cf96b838bf04b',
     'condition': 'checkout_chromium_autofill_test_dependencies',
   },
 
@@ -1757,7 +1757,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '4993c1de511e171da2090c5744c41dc6c5913137',
+    '58c66117020e3978d8a8c608e53f06071e604d6e',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -3267,7 +3267,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + 'acf66074c577664403f2f6b98ab38826cf18af52',
+    Var('webrtc_git') + '/src.git' + '@' + 'a3553f1c82a5580c91ad1f82baab4b11ed4b34b6',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
