@@ -341,7 +341,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': 'cd4ba1d3dfeb3c640cf365632b64eaedd06abd43',
+  'v8_revision': '8492fb4e93365e94453c93fd551b2cc4c08ecf94',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -417,7 +417,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'bb1fef95360e58c0933e1a2d281a6b20d62095b0',
+  'devtools_frontend_revision': '25a66de8d4f304fba90439955a48b8e68841a6c1',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -441,7 +441,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': '555fb8a3dd5c1882167f85fa5c7e1f0861200c13',
+  'dawn_revision': '42a517fc1fc721921659f02533d1aace7e969d4b',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -3267,7 +3267,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + 'a3553f1c82a5580c91ad1f82baab4b11ed4b34b6',
+    Var('webrtc_git') + '/src.git' + '@' + '767dd4d83168d99f65a323b4602e343d7db35935',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -4097,7 +4097,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        'c34cd7ab0e358957e0642b7d87fef2693e6f20ae',
+        '19e8589e91444d083e2142c0b5663c27cea4596b',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
