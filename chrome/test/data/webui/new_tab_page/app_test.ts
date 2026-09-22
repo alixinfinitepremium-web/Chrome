@@ -21,6 +21,7 @@ import {Command, CommandHandlerRemote} from 'chrome://resources/js/browser_comma
 import {loadTimeData} from 'chrome://resources/js/load_time_data.js';
 import {isMac} from 'chrome://resources/js/platform.js';
 import {PromiseResolver} from 'chrome://resources/js/promise_resolver.js';
+import {getDeepActiveElement} from 'chrome://resources/js/util.js';
 import {SuggestInventory} from 'chrome://resources/mojo/components/omnibox/browser/fusebox_action.mojom-webui.js';
 import {PageCallbackRouter as SearchboxPageCallbackRouter, PageHandlerRemote as SearchboxPageHandlerRemote} from 'chrome://resources/mojo/components/omnibox/browser/searchbox.mojom-webui.js';
 import {assertDeepEquals, assertEquals, assertFalse, assertNotEquals, assertTrue} from 'chrome://webui-test/chai_assert.js';
@@ -3814,6 +3815,55 @@ suite('NewTabPageAppTest', () => {
         });
 
     test(
+        'focuses dialog container so initial tab focuses stop button ' +
+            'first in voice search dialog',
+        async () => {
+          loadTimeData.overrideValues({
+            googleBaseUrl: 'chrome://new-tab-page/',
+            voiceSearchCoherenceAnySearchboxExperimentEnabled: true,
+            voiceSearchCoherenceSearchboxWithLiveTranscriptionEnabled: true,
+            voiceSearchCoherenceRealboxAutoEndpointEnabled: false,
+          });
+          await recreateApp();
+
+          const realbox = $$(app, '#searchbox')!;
+          realbox.dispatchEvent(new Event('open-voice-search'));
+          await microtasksFinished();
+
+          const dialog = app.shadowRoot.querySelector<HTMLDialogElement>(
+              '#voiceSearchDialog');
+          assertTrue(!!dialog);
+          assertTrue(dialog.open);
+
+          // The dialog container itself is focused rather than any inner
+          // button, so pressing Tab starts sequential navigation at the first
+          // child (#stopButton).
+          assertEquals(dialog, getDeepActiveElement());
+
+          const voiceSearch =
+              app.shadowRoot.querySelector('cr-composebox-voice-search')!;
+          assertTrue(!!voiceSearch);
+          await voiceSearch.updateComplete;
+
+          const stopButton =
+              voiceSearch.shadowRoot.querySelector<HTMLElement>('#stopButton')!;
+          assertTrue(!!stopButton);
+          assertEquals(0, stopButton.tabIndex);
+          assertEquals(stopButton.title, stopButton.getAttribute('aria-label'));
+
+          const submitButton =
+              voiceSearch.shadowRoot.querySelector<HTMLElement>(
+                  '#submitButton')!;
+          assertTrue(!!submitButton);
+
+          // Verify stop button precedes submit button in DOM tab order.
+          assertTrue(Boolean(
+              stopButton.compareDocumentPosition(submitButton) &
+              Node.DOCUMENT_POSITION_FOLLOWING));
+        });
+
+
+    test(
         'dialog handles cancel, error, and final result when NTP searchbox ' +
             '(realbox) voice search coherence with live transcription is enabled',
         async () => {
@@ -4249,35 +4299,36 @@ suite('NewTabPageAppTest', () => {
           waveOverlay.style.setProperty('transition', 'none', 'important');
 
           // Simulate multiline transcript (3 lines) where voiceSearch moves
-          // wave to 102px and expands dialog height to 206px.
+          // wave to 102px and expands dialog height to 214px, keeping bottom
+          // actions padding at 16px.
           voiceSearch.toggleAttribute('has-multiline-transcript', true);
           voiceSearch.setAttribute('transcript-lines', '3');
           assertEquals('102px', window.getComputedStyle(waveOverlay).top);
           assertEquals(
-              '206px',
+              '214px',
               window.getComputedStyle(dialog)
                   .getPropertyValue('height')
                   .trim());
           assertEquals(
-              '8px',
+              '16px',
               window.getComputedStyle(voiceSearch)
                   .getPropertyValue('--voice-bottom-actions-bottom')
                   .trim());
 
-          // Verify 7 lines expands dialog to 302px and wave to 198px.
+          // Verify 7 lines expands dialog to 310px and wave to 198px.
           voiceSearch.setAttribute('transcript-lines', '7');
           assertEquals('198px', window.getComputedStyle(waveOverlay).top);
           assertEquals(
-              '302px',
+              '310px',
               window.getComputedStyle(dialog)
                   .getPropertyValue('height')
                   .trim());
 
-          // Verify 2 lines expands dialog to 182px and wave to 78px.
+          // Verify 2 lines expands dialog to 190px and wave to 78px.
           voiceSearch.setAttribute('transcript-lines', '2');
           assertEquals('78px', window.getComputedStyle(waveOverlay).top);
           assertEquals(
-              '182px',
+              '190px',
               window.getComputedStyle(dialog)
                   .getPropertyValue('height')
                   .trim());

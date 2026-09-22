@@ -337,7 +337,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '5b5070480a2de08aae6f4f24f5f6547700d75d13',
+  'skia_revision': 'd363ceb6584352b2dfb929060a172d41f04a2d99',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -345,7 +345,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': 'e1d22eff1e8f285139ffbac6637b6c2f0aa06979',
+  'angle_revision': '7c4ce32df88b814f7aff3a8ad008c66bf53a06e0',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -397,7 +397,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': '2eb1a477c91c669a287d1bf7ac5bde108febb31d',
+  'crossbench_revision': '002cab590c17f6205ef2764cb36172e70b4520ac',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -441,7 +441,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': '905cba91b3432c013a3e98d7dfa3c1f818441ace',
+  'dawn_revision': '47eea07427877f1f89ff19bfbee414c941427143',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -1745,7 +1745,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': 'v0QxJwivnKWS1ZeCkuaDPUtShX_61Kvq4M6-h9ExbIMC',
+        'version': 'bg5sWtSPCWbMU8hDWHnes24RocPrB6h0pOU-UFxkK-8C',
       },
     ],
     'condition': 'non_git_source',
@@ -2224,7 +2224,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + 'd32e9702b652bc7ceb6ed1ee70d9973b4a9247b8',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + 'ab4f7316dc90a936ba06463d241a765d9ce9e0ba',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '17a56409b86d0da5e01ca38f6498e13b2db16bc3',
@@ -4019,7 +4019,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        '1fed9f8cd3c97571683bdf879a87b60c212a46c3',
+        '8ea1b670dba04169e577bb3d91a5d79966a40333',
       'condition': 'checkout_src_internal',
   },
 
