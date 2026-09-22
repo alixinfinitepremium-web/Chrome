@@ -216,7 +216,8 @@ WebGpuSharedImageCache::LeaseSharedImage(viz::SharedImageFormat format,
 }
 
 void WebGpuSharedImageCache::ReturnResource(Resource resource) {
-  if (context_provider_) {
+  if (context_provider_ &&
+      !IsGpuContextLost(resource.context_provider_wrapper_.get())) {
     resource.timer_id_ = current_timer_id_;
     total_unused_resources_in_bytes_ += resource.resource_size_;
     unused_resources_.push_front(std::move(resource));
@@ -255,6 +256,13 @@ WebGpuSharedImageCache::AcquireCachedResource(
     const viz::SharedImageFormat& format,
     SkAlphaType alpha_type,
     const gfx::ColorSpace& color_space) {
+  if (!unused_resources_.empty() &&
+      IsGpuContextLost(
+          unused_resources_.front().context_provider_wrapper_.get())) {
+    unused_resources_.clear();
+    total_unused_resources_in_bytes_ = 0;
+  }
+
   // Loop from MRU to LRU
   DequeResource::iterator it;
   for (it = unused_resources_.begin(); it != unused_resources_.end(); ++it) {
