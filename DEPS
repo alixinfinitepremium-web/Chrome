@@ -337,7 +337,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '61d4db8a807f34c021c94544abdb2f5761e4d286',
+  'skia_revision': 'b8599ca68c142225346b5fc28668f80e2c73d05e',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -417,7 +417,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '8514ad4d291842dc4adf515e72bce61206b4f54b',
+  'devtools_frontend_revision': 'fcb67626ccbab7411cd0275d60c0aa438d44ef32',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -545,7 +545,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
-  'llvm_libc_revision':    'a11b920092aefc76c15f92c5ad725c339b183a99',
+  'llvm_libc_revision':    'a169eadb01cd31f36b97e92c3ecf69bbbbb47cec',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
@@ -2307,7 +2307,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/google/emoji-segmenter.git' + '@' + Var('emoji_segmenter_revision'),
 
   'src/third_party/oak/src':
-    Var('chromium_git') + '/external/github.com/project-oak/oak.git' + '@' + 'd3e0f13998b13628fa8b55be52c9ddf31244668d',
+    Var('chromium_git') + '/external/github.com/project-oak/oak.git' + '@' + '14031232cec7d3d454e89bbae36404d74abf18dc',
 
   'src/third_party/ots/src':
     Var('chromium_git') + '/external/github.com/khaledhosny/ots.git' + '@' + Var('ots_revision'),
@@ -3267,7 +3267,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '48de43219ddc3a47188814d512875eaeb0bcf0d0',
+    Var('webrtc_git') + '/src.git' + '@' + 'acf66074c577664403f2f6b98ab38826cf18af52',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -3396,7 +3396,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_receiver_app/app',
-        'version': 'bCnNHR1AaB5TQBg94N2YhiHJszbarvCZmVlwIMtMi2EC',
+        'version': 'pXgDiP7lx4c1vJYL86a1CfRkcTo9BBYKS2zMaGW8CQkC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3407,7 +3407,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_app/app',
-        'version': 'at529F-OihxxumL689bEIcW3IkumgRDD8J6G_TddbM0C',
+        'version': 'rP8oRSivpT0KJ9CTwoI3Wr0gT-StGhJ_e4LFPyMOfZsC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3462,7 +3462,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/projector_app/app',
-        'version': 'rtGdWOxpSFQQV2fYteSU_t3WOgZQBvXM-MOxuvoOUxsC',
+        'version': 'cBK5xpQQaDvXJ4_bCHXB4WylsAxXlq1d9WCj5QVx8kQC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3750,13 +3750,13 @@ deps = {
 
   'src/chrome/app/theme/default_100_percent/google_chrome': {
       'url': Var('chrome_git') + '/chrome/theme/default_100_percent/google_chrome.git' + '@' +
-        'bac56a5ba9930cd5213409d2fde3c93e9b680110',
+        '7ee202378c4a9f7f27ee414d9279aed17dc0405d',
       'condition': 'checkout_src_internal',
   },
 
   'src/chrome/app/theme/default_200_percent/google_chrome': {
       'url': Var('chrome_git') + '/chrome/theme/default_200_percent/google_chrome.git' + '@' +
-        '8336a7128e5e9c928eeeba30e1c443e0104f7ada',
+        'ef57d258616e413be4280d12e946a6251867765a',
       'condition': 'checkout_src_internal',
   },
 
@@ -4097,7 +4097,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        'b07ece30e64c79a1db535817b0cedbc1fa4cde02',
+        'c34cd7ab0e358957e0642b7d87fef2693e6f20ae',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 

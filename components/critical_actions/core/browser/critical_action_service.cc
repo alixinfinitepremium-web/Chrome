@@ -45,6 +45,24 @@ void LogVisitIdResolutionOutcome(const CriticalActionEntry& entry,
       outcome);
 }
 
+void LogConversationIdResolutionOutcome(
+    ActionSource source,
+    ConversationIdResolutionOutcome outcome) {
+  base::UmaHistogramEnumeration(
+      base::StrCat({"CriticalActions.ConversationIdResolutionOutcome.",
+                    ActionSourceToString(source)}),
+      outcome);
+}
+
+void LogConversationIdDeferredResolutionOutcome(
+    ActionSource source,
+    ConversationIdDeferredResolutionOutcome outcome) {
+  base::UmaHistogramEnumeration(
+      base::StrCat({"CriticalActions.ConversationIdDeferredResolutionOutcome.",
+                    ActionSourceToString(source)}),
+      outcome);
+}
+
 }  // namespace
 
 CriticalActionService::CriticalActionService(
@@ -54,7 +72,9 @@ CriticalActionService::CriticalActionService(
     : backend_(backend_task_runner, db_path),
       navigation_cache_(features::kMaxNavigationCacheCapacity.Get()),
       task_to_conversation_cache_(
-          features::kMaxTaskToConversationCacheCapacity.Get()) {
+          features::kMaxTaskToConversationCacheCapacity.Get()),
+      task_to_critical_action_ids_cache_(
+          features::kMaxTaskToCriticalActionIdsCacheCapacity.Get()) {
   backend_.AsyncCall(&CriticalActionBackend::Init);
   if (history_service) {
     history_service_observation_.Observe(history_service);
@@ -74,6 +94,15 @@ void CriticalActionService::Shutdown() {
   }
   navigation_cache_.Clear();
   task_to_conversation_cache_.Clear();
+
+  for (const auto& [_, actions] : task_to_critical_action_ids_cache_) {
+    for (const auto& pending_action : actions) {
+      LogConversationIdDeferredResolutionOutcome(
+          pending_action.action_source,
+          ConversationIdDeferredResolutionOutcome::kEvictedServiceShutdown);
+    }
+  }
+  task_to_critical_action_ids_cache_.Clear();
   backend_.Reset();
 }
 
@@ -132,7 +161,10 @@ void CriticalActionService::AddCriticalAction(
     return;
   }
   CriticalActionEntry resolved_entry = entry;
-  MaybeSetConversationId(resolved_entry);
+  ConversationIdResolutionOutcome conversation_id_outcome =
+      MaybeSetConversationId(resolved_entry);
+  LogConversationIdResolutionOutcome(resolved_entry.action_source,
+                                     conversation_id_outcome);
 
   base::UmaHistogramEnumeration(
       base::StrCat({"CriticalActions.EventLogged.",
@@ -152,12 +184,31 @@ void CriticalActionService::SetCriticalActionsConversationId(
 
   // TODO(b/561944228): CriticalActionService needs conversation_id, this is a
   // temporary solution while b/494212836 is in place; remove once fixed.
+  std::vector<std::string> critical_action_ids_to_update;
   for (const std::string& task_id : actor_task_ids) {
+    // Always populate `task_to_conversation_cache_` so that any subsequent
+    // critical actions logged for this task ID can immediately resolve their
+    // conversation ID.
     task_to_conversation_cache_.Put(task_id, std::string(conversation_id));
+
+    auto it = task_to_critical_action_ids_cache_.Get(task_id);
+    if (it != task_to_critical_action_ids_cache_.end()) {
+      for (const auto& pending_action : it->second) {
+        LogConversationIdDeferredResolutionOutcome(
+            pending_action.action_source,
+            ConversationIdDeferredResolutionOutcome::kBackfilled);
+        critical_action_ids_to_update.push_back(
+            pending_action.critical_action_id);
+      }
+      task_to_critical_action_ids_cache_.Erase(it);
+    }
   }
 
-  backend_.AsyncCall(&CriticalActionBackend::SetCriticalActionsConversationId)
-      .WithArgs(actor_task_ids, std::string(conversation_id));
+  if (!critical_action_ids_to_update.empty()) {
+    backend_.AsyncCall(&CriticalActionBackend::SetCriticalActionsConversationId)
+        .WithArgs(std::move(critical_action_ids_to_update),
+                  std::string(conversation_id));
+  }
 }
 
 void CriticalActionService::AddCriticalActionWithNavigationId(
@@ -269,13 +320,45 @@ void CriticalActionService::DropPendingActions(
   state.pending_actions.clear();
 }
 
-void CriticalActionService::MaybeSetConversationId(CriticalActionEntry& entry) {
-  if (entry.conversation_id.empty() && !entry.actor_task_id.empty()) {
-    auto it = task_to_conversation_cache_.Get(entry.actor_task_id);
-    if (it != task_to_conversation_cache_.end()) {
-      entry.conversation_id = it->second;
+ConversationIdResolutionOutcome CriticalActionService::MaybeSetConversationId(
+    CriticalActionEntry& entry) {
+  if (!entry.conversation_id.empty()) {
+    return ConversationIdResolutionOutcome::kAlreadyPresent;
+  }
+  if (entry.actor_task_id.empty()) {
+    return ConversationIdResolutionOutcome::kMissingTaskId;
+  }
+
+  auto it = task_to_conversation_cache_.Get(entry.actor_task_id);
+  if (it != task_to_conversation_cache_.end()) {
+    entry.conversation_id = it->second;
+    return ConversationIdResolutionOutcome::kResolvedFromCache;
+  }
+
+  auto critical_action_it =
+      task_to_critical_action_ids_cache_.Get(entry.actor_task_id);
+  if (critical_action_it != task_to_critical_action_ids_cache_.end()) {
+    critical_action_it->second.push_back(
+        PendingCriticalAction{entry.critical_action_id, entry.action_source});
+    return ConversationIdResolutionOutcome::kDeferredCacheMiss;
+  }
+
+  if (task_to_critical_action_ids_cache_.size() >=
+          task_to_critical_action_ids_cache_.max_size() &&
+      task_to_critical_action_ids_cache_.max_size() > 0) {
+    for (const auto& pending_action :
+         task_to_critical_action_ids_cache_.rbegin()->second) {
+      LogConversationIdDeferredResolutionOutcome(
+          pending_action.action_source,
+          ConversationIdDeferredResolutionOutcome::kEvictedCapacityExceeded);
     }
   }
+  task_to_critical_action_ids_cache_.Put(
+      entry.actor_task_id,
+      std::vector<PendingCriticalAction>{
+          {entry.critical_action_id, entry.action_source}});
+
+  return ConversationIdResolutionOutcome::kDeferredCacheMiss;
 }
 
 }  // namespace critical_actions
