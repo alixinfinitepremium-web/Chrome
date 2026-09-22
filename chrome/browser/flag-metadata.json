@@ -1938,14 +1938,6 @@
     "expiry_milestone": 160
   },
   {
-    "name": "client-side-detection-server-model-for-scam-detection-android",
-    "owners": [
-      "xinghuilu@chromium.org",
-      "chrome-counter-abuse-alerts@google.com"
-    ],
-    "expiry_milestone": 150
-  },
-  {
     "name": "client-side-detection-server-model-for-scam-detection-desktop",
     "owners": [
       "tiffanysong@google.com",
@@ -2682,6 +2674,14 @@
   },
   {
     "name": "default-browser-setter-selection",
+    "owners": [
+      "top-chrome-desktop-ui@google.com",
+      "//chrome/browser/default_browser/OWNERS"
+    ],
+    "expiry_milestone": 160
+  },
+  {
+    "name": "default-browser-sticky-modal",
     "owners": [
       "top-chrome-desktop-ui@google.com",
       "//chrome/browser/default_browser/OWNERS"
@@ -4918,11 +4918,6 @@
       "cbe-eng@google.com"
     ],
     "expiry_milestone": 162
-  },
-  {
-    "name": "extension-disable-unsupported-developer-mode-extensions",
-    "owners": [ "richche@google.com" ],
-    "expiry_milestone": 143
   },
   {
     "name": "extension-tab-context-menu",

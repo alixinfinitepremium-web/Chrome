@@ -554,6 +554,11 @@ inline constexpr char kDefaultBrowserSetterSelectionDescription[] =
 inline constexpr char kDefaultBrowserSetterSelectionName[] =
     "Default Browser Setter Selection";
 
+inline constexpr char kDefaultBrowserStickyModalDescription[] =
+    "Enables the sticky modal dialog for the default browser prompt.";
+inline constexpr char kDefaultBrowserStickyModalName[] =
+    "Default Browser Sticky Modal";
+
 inline constexpr char kDefaultSearchEnginePrewarmName[] =
     "Default search engine prewarm";
 inline constexpr char kDefaultSearchEnginePrewarmDescription[] =
@@ -2627,10 +2632,6 @@ inline constexpr char kCWSReviewPromptingNativeUIDescription[] =
     "management page) for leaving reviews on installed Chrome Web Store "
     "extensions.";
 
-inline constexpr char kExtensionDisableUnsupportedDeveloperName[] =
-    "Extension Disable Unsupported Developer";
-inline constexpr char kExtensionDisableUnsupportedDeveloperDescription[] =
-    "When enabled, disable unpacked extensions if developer mode is off.";
 
 inline constexpr char kExtensionsOnChromeUrlsName[] =
     "Extensions on chrome:// URLs";
@@ -6026,13 +6027,6 @@ inline constexpr char kClankDefaultBrowserPromoRoleManagerName[] =
 inline constexpr char kClankDefaultBrowserPromoRoleManagerDescription[] =
     "Sets the Role Manager Default Browser Promo for testing the new "
     "Default Browser Promo Feature";
-
-inline constexpr char
-    kClientSideDetectionServerModelForScamDetectionAndroidName[] =
-        "Client Side Detection Server Model for Scam Detection on Android";
-inline constexpr char
-    kClientSideDetectionServerModelForScamDetectionAndroidDescription[] =
-        "Enables server model for scam detection on Android.";
 
 inline constexpr char kCompositorViewRemeasureFixName[] =
     "compositor-view-remeasure-fix";

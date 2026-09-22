@@ -826,6 +826,7 @@ source_set("unit_tests") {
     "//chrome/browser/background/glic",
     "//chrome/browser/content_settings:content_settings_factory",
     "//chrome/browser/glic/actor",
+    "//chrome/browser/glic/browser_ui:unit_tests",
     "//chrome/browser/glic/gemini_enterprise:unit_tests",
     "//chrome/browser/glic/suggestions:test_support",
     "//chrome/browser/glic/suggestions:unit_tests",
@@ -880,7 +881,6 @@ source_set("unit_tests") {
     deps += [
       "//chrome/browser/actor:test_support",
       "//chrome/browser/background",
-      "//chrome/browser/glic/browser_ui:unit_tests",
       "//chrome/browser/glic/media:unit_tests",
       "//chrome/browser/prefs",
       "//chrome/browser/status_icons",
@@ -1022,9 +1022,14 @@ source_set("browser_tests") {
       "widget/glic_side_panel_coordinator_browsertest.cc",
     ]
 
+    if (!is_mac) {
+      sources += [ "host/glic_drag_and_drop_browsertest.cc" ]
+      deps += [ "//chrome/test/base:drag_and_drop_test_utils" ]
+    }
+
     if (!is_mac && enterprise_cloud_content_analysis) {
       sources += [
-        "host/glic_drag_and_drop_browsertest.cc",
+        "host/glic_drag_and_drop_policy_browsertest.cc",
         "host/glic_web_drag_and_drop_browsertest.cc",
       ]
     }

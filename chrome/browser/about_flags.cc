@@ -481,6 +481,21 @@ const FeatureEntry::FeatureVariation kDefaultBrowserPromptSurfacesVariations[] =
       nullptr}};
 
 const FeatureEntry::FeatureParam
+    kDefaultBrowserStickyModal_WithSettingsIllustration[] = {
+        {"IsSticky", "true"},
+        {"WithSettingsIllustration", "true"}};
+const FeatureEntry::FeatureParam
+    kDefaultBrowserStickyModal_WithoutSettingsIllustration[] = {
+        {"IsSticky", "true"},
+        {"WithSettingsIllustration", "false"}};
+
+const FeatureEntry::FeatureVariation kDefaultBrowserStickyModalVariations[] = {
+    {"with Settings Illustration",
+     kDefaultBrowserStickyModal_WithSettingsIllustration, nullptr},
+    {"without Settings Illustration",
+     kDefaultBrowserStickyModal_WithoutSettingsIllustration, nullptr}};
+
+const FeatureEntry::FeatureParam
     kDefaultBrowserSetterSelection_ShellIntegration[] = {
         {"setter_option", "shell_integration"}};
 const FeatureEntry::FeatureParam kDefaultBrowserSetterSelection_VisualGuide[] =
@@ -9948,12 +9963,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kCWSInfoFastCheckDescription, kOsDesktop,
      FEATURE_VALUE_TYPE(extensions::kCWSInfoFastCheck)},
 
-    {"extension-disable-unsupported-developer-mode-extensions",
-     flag_descriptions::kExtensionDisableUnsupportedDeveloperName,
-     flag_descriptions::kExtensionDisableUnsupportedDeveloperDescription,
-     kOsDesktop,
-     FEATURE_VALUE_TYPE(
-         extensions_features::kExtensionDisableUnsupportedDeveloper)},
 #endif  // BUILDFLAG(ENABLE_EXTENSIONS)
 
 #if BUILDFLAG(IS_CHROMEOS)
@@ -11333,17 +11342,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kThrottleRepeatedNoDamageFramesDescription, kOsAll,
      FEATURE_VALUE_TYPE(features::kThrottleRepeatedNoDamageFrames)},
 
-#if BUILDFLAG(IS_ANDROID)
-    {"client-side-detection-server-model-for-scam-detection-android",
-     flag_descriptions::
-         kClientSideDetectionServerModelForScamDetectionAndroidName,
-     flag_descriptions::
-         kClientSideDetectionServerModelForScamDetectionAndroidDescription,
-     kOsAndroid,
-     FEATURE_VALUE_TYPE(
-         safe_browsing::
-             kClientSideDetectionServerModelForScamDetectionAndroid)},
-#endif  // BUILDFLAG(IS_ANDROID)
 #if !BUILDFLAG(IS_ANDROID)
     {"client-side-detection-server-model-for-scam-detection-desktop",
      flag_descriptions::
@@ -11467,6 +11465,13 @@ const FeatureEntry kFeatureEntries[] = {
          default_browser::kDefaultBrowserPromptSurfaces,
          kDefaultBrowserPromptSurfacesVariations,
          "DefaultBrowserPromptSurfaces")},
+
+    {"default-browser-sticky-modal",
+     flag_descriptions::kDefaultBrowserStickyModalName,
+     flag_descriptions::kDefaultBrowserStickyModalDescription, kOsWin,
+     FEATURE_WITH_PARAMS_VALUE_TYPE(default_browser::kDefaultBrowserStickyModal,
+                                    kDefaultBrowserStickyModalVariations,
+                                    "DefaultBrowserStickyModal")},
 
     {"default-browser-setter-selection",
      flag_descriptions::kDefaultBrowserSetterSelectionName,
