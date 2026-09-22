@@ -11301,12 +11301,10 @@
                     "enable_features": [
                         "SendTabToSelfAutoOpen",
                         "SendTabToSelfEnhancedBottomsheet",
-                        "SendTabToSelfEnhancedDesktopUI",
                         "SendTabToSelfExtraEntryPoints",
                         "SendTabToSelfImprovedLastActiveLabels",
                         "SendTabToSelfPostSendToast",
-                        "SendTabToSelfPropagateFormFields",
-                        "SendTabToSelfPropagateScrollPosition"
+                        "SendTabToSelfPropagateFormFields"
                     ]
                 }
             ]
@@ -14234,24 +14232,6 @@
                     ],
                     "disable_features": [
                         "ThreeButtonPasswordSaveDialog"
-                    ]
-                }
-            ]
-        }
-    ],
-    "PasswordsSyncErrorMessageAlternatives": [
-        {
-            "platforms": [
-                "android"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled_SyncEnablePasswordsSyncErrorMessageAlternative",
-                    "params": {
-                        "version": "3"
-                    },
-                    "enable_features": [
-                        "SyncEnablePasswordsSyncErrorMessageAlternative"
                     ]
                 }
             ]
