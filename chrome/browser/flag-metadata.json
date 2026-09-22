@@ -1972,14 +1972,6 @@
     "expiry_milestone": 160
   },
   {
-    "name": "collaboration-shared-tab-group-account-data",
-    "owners": [
-      "mickeyburks@chromium.org",
-      "shaktisahu@google.com"
-    ],
-    "expiry_milestone": 160
-  },
-  {
     "name": "collapse-tab-group-during-drag",
     "owners": [
       "lugli@chromium.org",
@@ -5151,6 +5143,11 @@
     "expiry_milestone": 149
   },
   {
+    "name": "feedback-disabled-dialog",
+    "owners": [ "jlebel@google.com", "chrome-regionalcapabilities@google.com" ],
+    "expiry_milestone": 160
+  },
+  {
     "name": "feedback-entry-points-require-can-submit-feedback-capability",
     "owners": [ "jlebel@google.com", "chrome-signin-team@google.com" ],
     "expiry_milestone": 160
@@ -5805,6 +5802,14 @@
       "//chrome/browser/glic/OWNERS"
     ],
     "expiry_milestone": 156
+  },
+  {
+    "name": "glic-experimental-triggering-script-tools",
+    "owners": [
+      "mek@chromium.org",
+      "//chrome/browser/glic/OWNERS"
+    ],
+    "expiry_milestone": 162
   },
   {
     "name": "glic-gemini-enterprise-consent-enabled",
@@ -8387,14 +8392,6 @@
     "expiry_milestone": -1
   },
   {
-    "name": "privileged-web-contents",
-    "owners": [
-      "//chrome/browser/pwc/OWNERS",
-      "erikchen@chromium.org"
-    ],
-    "expiry_milestone": 160
-  },
-  {
     "name": "proactive-suggestions-framework",
     "owners": [
       "kanouche@google.com",
@@ -8926,7 +8923,7 @@
   {
     "name": "searchbox-embedded-permission",
     "owners": [ "jamesleung@google.com", "chrome-desktop-search@google.com"],
-    "expiry_milestone": 160
+    "expiry_milestone": 180
   },
   {
     "name": "secure-payment-confirmation-credential-discovery-mode",
@@ -9883,11 +9880,6 @@
     "name": "use-chime-android-sdk",
     "owners": [ "xingliu@chromium.org" ],
     "expiry_milestone": 102
-  },
-  {
-    "name": "use-default-apps-page-for-promos",
-    "owners": [ "gujen@google.com", "bling-mony-pod@google.com" ],
-    "expiry_milestone": 155
   },
   {
     "name" : "use-default-deadline-when-animating-bounds",

@@ -62,7 +62,6 @@
 #include "chrome/browser/preloading/prefetch/search_prefetch/field_trial_settings.h"
 #include "chrome/browser/preloading/preloading_features.h"
 #include "chrome/browser/preloading/search_preload/search_preload_features.h"
-#include "chrome/browser/pwc/pwc_features.mojom-features.h"
 #include "chrome/browser/sharing_hub/sharing_hub_features.h"
 #include "chrome/browser/site_isolation/about_flags.h"
 #include "chrome/browser/task_manager/common/task_manager_features.h"
@@ -4141,6 +4140,22 @@ const FeatureEntry::FeatureVariation kAndroidTipsNotificationsV2Variations[] = {
      nullptr},
     {" - Utility and Organization",
      kAndroidTipsNotificationsV2UtilityAndOrganization, nullptr},
+};
+
+const FeatureEntry::FeatureParam kTipsSelfServiceScheduleInstantNotification[] =
+    {{"start_time_minutes", "0"},
+     {"window_time_minutes", "1"},
+     {"instant_scheduling", "true"}};
+const FeatureEntry::FeatureParam kTipsSelfServiceScheduleDelayedNotification[] =
+    {{"start_time_minutes", "2"},
+     {"window_time_minutes", "4"},
+     {"instant_scheduling", "true"}};
+
+const FeatureEntry::FeatureVariation kTipsSelfServiceVariations[] = {
+    {" - Schedule Instant Notification",
+     kTipsSelfServiceScheduleInstantNotification, nullptr},
+    {" - Schedule Delayed Notification",
+     kTipsSelfServiceScheduleDelayedNotification, nullptr},
 };
 
 const FeatureEntry::FeatureParam
@@ -10290,7 +10305,9 @@ const FeatureEntry kFeatureEntries[] = {
 
     {"tips-self-service", flag_descriptions::kTipsSelfServiceName,
      flag_descriptions::kTipsSelfServiceDescription, kOsAndroid,
-     FEATURE_VALUE_TYPE(chrome::android::kTipsSelfService)},
+     FEATURE_WITH_PARAMS_VALUE_TYPE(chrome::android::kTipsSelfService,
+                                    kTipsSelfServiceVariations,
+                                    "TipsSelfService")},
 
     {"tab-strip-height-transition-glitch-fix",
      flag_descriptions::kTabStripHeightTransitionGlitchFixName,
@@ -10630,11 +10647,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kCollaborationEntrepriseV2Name,
      flag_descriptions::kCollaborationEntrepriseV2Description, kOsAll,
      FEATURE_VALUE_TYPE(data_sharing::features::kCollaborationEntrepriseV2)},
-
-    {"collaboration-shared-tab-group-account-data",
-     flag_descriptions::kCollaborationSharedTabGroupAccountDataName,
-     flag_descriptions::kCollaborationSharedTabGroupAccountDataDescription,
-     kOsAll, FEATURE_VALUE_TYPE(syncer::kSyncSharedTabGroupAccountData)},
 
     {"data-sharing-join-only", flag_descriptions::kDataSharingJoinOnlyName,
      flag_descriptions::kDataSharingJoinOnlyDescription, kOsAll,
@@ -10978,6 +10990,11 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kGlicExperimentalTriggeringScreenshotDescription,
      kOsDesktop,
      FEATURE_VALUE_TYPE(features::kGlicExperimentalTriggeringScreenshot)},
+    {"glic-experimental-triggering-script-tools",
+     flag_descriptions::kGlicExperimentalTriggeringScriptToolsName,
+     flag_descriptions::kGlicExperimentalTriggeringScriptToolsDescription,
+     kOsDesktop,
+     FEATURE_VALUE_TYPE(features::kGlicExperimentalTriggeringScriptTools)},
     {"glic-spark-settings-accessible-labels",
      flag_descriptions::kGlicSparkSettingsAccessibleLabelsName,
      flag_descriptions::kGlicSparkSettingsAccessibleLabelsDescription,
@@ -11201,11 +11218,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kSkillsAppMenuDescription, kOsDesktop,
      FEATURE_VALUE_TYPE(features::kSkillsAppMenu)},
 #endif  // !BUILDFLAG(IS_ANDROID)
-
-    {"privileged-web-contents", flag_descriptions::kPrivilegedWebContentsName,
-     flag_descriptions::kPrivilegedWebContentsDescription,
-     kOsDesktop | kOsAndroid,
-     FEATURE_VALUE_TYPE(pwc::mojom::features::kPrivilegedWebContents)},
 
 #if BUILDFLAG(IS_ANDROID)
     {"default-browser-promo-entry-point",
@@ -13621,6 +13633,10 @@ const FeatureEntry kFeatureEntries[] = {
          policy::features::kDeviceSignalsBackfillDisclaimer,
          kDeviceSignalsBackfillDisclaimerVariations,
          "DeviceSignalsBackfillDisclaimer")},
+    {"feedback-disabled-dialog", flag_descriptions::kFeedbackDisabledDialogName,
+     flag_descriptions::kFeedbackDisabledDialogDescription,
+     kOsWin | kOsMac | kOsLinux,
+     FEATURE_VALUE_TYPE(features::kFeedbackDisabledDialog)},
 #endif
 #if BUILDFLAG(IS_ANDROID)
     {"enable-android-enterprise-screenshot-protection",

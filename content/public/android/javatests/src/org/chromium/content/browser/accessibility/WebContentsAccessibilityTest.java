@@ -133,6 +133,8 @@ import android.view.accessibility.AccessibilityEvent;
 import android.widget.Button;
 
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat;
+import androidx.core.view.accessibility.AccessibilityNodeInfoCompat.SelectionCompat;
+import androidx.core.view.accessibility.AccessibilityNodeInfoCompat.SelectionPositionCompat;
 import androidx.test.filters.LargeTest;
 import androidx.test.filters.MediumTest;
 import androidx.test.filters.SmallTest;
@@ -161,6 +163,7 @@ import org.chromium.base.test.util.MinAndroidSdkLevel;
 import org.chromium.base.test.util.Restriction;
 import org.chromium.base.test.util.TestAnimations;
 import org.chromium.base.test.util.UrlUtils;
+import org.chromium.build.annotations.Nullable;
 import org.chromium.content.browser.webcontents.WebContentsImpl;
 import org.chromium.content_public.browser.ContentFeatureList;
 import org.chromium.content_public.browser.HostZoomMap;
@@ -717,6 +720,25 @@ public class WebContentsAccessibilityTest {
                         endNodeId,
                         endNodeOffset,
                         endOffsetType);
+
+        if (!successful) {
+            return false;
+        }
+        // Poll until selection event is received.
+        CriteriaHelper.pollUiThread(
+                () -> {
+                    return mTestData.hasReceivedSelectionEvent();
+                },
+                TEXT_SELECTION_ERROR);
+        return true;
+    }
+
+    private boolean selectTextOnUiThreadAndWaitForSelectionEvent(int viewId, @Nullable Bundle args)
+            throws ExecutionException {
+        // Reset value for selection event.
+        mTestData.setReceivedSelectionEvent(false);
+
+        boolean successful = mActivityTestRule.setSelectionOnUiThread(viewId, args);
 
         if (!successful) {
             return false;
@@ -4405,6 +4427,44 @@ public class WebContentsAccessibilityTest {
         // Expected result: root#getSelection should be null
         Object[] selection = getExtendedSelectionOnUiThread(rootVvid);
         Assert.assertNull(selection);
+
+        // The previous calls invoke native C++ JNI methods directly and work on all Android
+        // versions. The following test cases exercise performAction(ACTION_SET_EXTENDED_SELECTION)
+        // and the underlying AccessibilityNodeInfo.Selection parcelable, which are only supported
+        // starting from Android 16.1 (BAKLAVA_1).
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.BAKLAVA
+                || Build.VERSION.SDK_INT_FULL < Build.VERSION_CODES_FULL.BAKLAVA_1) {
+            return;
+        }
+
+        // Select and clear with null arguments.
+        setAndAssertExtendedSelection(
+                rootVvid, paragraph1Vvid, 1, OFFSET_TYPE_TEXT, paragraph1Vvid, 5, OFFSET_TYPE_TEXT);
+        Assert.assertTrue(selectTextOnUiThreadAndWaitForSelectionEvent(rootVvid, null));
+        Assert.assertNull(getExtendedSelectionOnUiThread(rootVvid));
+
+        // Select and clear with missing selection argument (empty bundle).
+        setAndAssertExtendedSelection(
+                rootVvid, paragraph1Vvid, 1, OFFSET_TYPE_TEXT, paragraph1Vvid, 5, OFFSET_TYPE_TEXT);
+        Assert.assertTrue(selectTextOnUiThreadAndWaitForSelectionEvent(rootVvid, new Bundle()));
+        Assert.assertNull(getExtendedSelectionOnUiThread(rootVvid));
+
+        // Select without explicit offset types does not clear the selection and defaults to
+        // OFFSET_TYPE_TEXT.
+        Bundle defaultOffsetTypeArgs = new Bundle();
+        SelectionCompat selectionCompat =
+                new SelectionCompat(
+                        new SelectionPositionCompat(
+                                mActivityTestRule.getContainerView(), paragraph1Vvid, 1),
+                        new SelectionPositionCompat(
+                                mActivityTestRule.getContainerView(), paragraph1Vvid, 5));
+        defaultOffsetTypeArgs.putParcelable(
+                AccessibilityNodeInfoCompat.ACTION_ARGUMENT_SELECTION_PARCELABLE,
+                selectionCompat.unwrap());
+        Assert.assertTrue(
+                selectTextOnUiThreadAndWaitForSelectionEvent(rootVvid, defaultOffsetTypeArgs));
+        assertExtendedSelection(
+                rootVvid, paragraph1Vvid, 1, OFFSET_TYPE_TEXT, paragraph1Vvid, 5, OFFSET_TYPE_TEXT);
     }
 
     /** Test extended selection cross frames. */
@@ -4791,6 +4851,35 @@ public class WebContentsAccessibilityTest {
                 rootVvid,
                 containerIndex + 1,
                 OFFSET_TYPE_CHILD);
+    }
+
+    /**
+     * Test extended selection when an ignored tree position adjusts backward into a childless
+     * iframe root whose unignored parent within its own AXTree is null.
+     */
+    @Test
+    @SmallTest
+    public void testGetExtendedSelection_allDescendantsIgnored() throws Throwable {
+        setupTestWithHTML(
+                """
+                <iframe id='f'></iframe>
+                <p id='p' aria-hidden='true'>Hello</p>
+                """);
+
+        int rootVvid = waitForNodeMatching(sClassNameMatcher, "android.webkit.WebView");
+
+        mTestData.setReceivedSelectionEvent(false);
+        JavaScriptUtils.executeJavaScriptAndWaitForResult(
+                mActivityTestRule.getWebContents(),
+                """
+                document.getElementById('f').contentDocument.documentElement.remove();
+                window.getSelection().collapse(document.getElementById('p'), 0);
+                """);
+        CriteriaHelper.pollUiThread(
+                () -> mTestData.hasReceivedSelectionEvent(), TEXT_SELECTION_ERROR);
+
+        Object[] selection = getExtendedSelectionOnUiThread(rootVvid);
+        Assert.assertNull(selection);
     }
 
     /** Test that the performAction for ACTION_CUT works properly with accessibility. */

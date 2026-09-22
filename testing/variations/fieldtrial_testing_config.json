@@ -582,6 +582,27 @@
             ]
         }
     ],
+    "AndroidDesktopBookmarkImprovements": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "form_factors": [
+                "desktop"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "AndroidDesktopBookmarkDialog",
+                        "AndroidDesktopBookmarkPopup",
+                        "BookmarksBarContextMenu",
+                        "BookmarksBarNTP"
+                    ]
+                }
+            ]
+        }
+    ],
     "AndroidDesktopGlicContextMenu": [
         {
             "platforms": [
@@ -2134,6 +2155,24 @@
                     "name": "Enabled",
                     "enable_features": [
                         "AutofillFixLabelGenerationForStreetAddress"
+                    ]
+                }
+            ]
+        }
+    ],
+    "AutofillGmailOtpPreLaunchMetrics": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "AutofillGmailOtpPreLaunchMetrics"
                     ]
                 }
             ]
@@ -7404,21 +7443,6 @@
                     "name": "Enabled",
                     "enable_features": [
                         "EnableDynamicRouteFetching"
-                    ]
-                }
-            ]
-        }
-    ],
-    "EnableExtensionInstallPolicyFetchingChromeOS": [
-        {
-            "platforms": [
-                "chromeos"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "EnableExtensionInstallPolicyFetching"
                     ]
                 }
             ]
@@ -12808,6 +12832,23 @@
             ]
         }
     ],
+    "OmniboxEverywhere": [
+        {
+            "platforms": [
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "IPH_OmniboxEverywhereLensPromo",
+                        "OmniboxEverywhere"
+                    ]
+                }
+            ]
+        }
+    ],
     "OmniboxFuseboxAsyncInflation": [
         {
             "platforms": [
@@ -12939,29 +12980,6 @@
                     "name": "Enabled",
                     "enable_features": [
                         "OmniboxOnDeviceTailModel"
-                    ]
-                }
-            ]
-        }
-    ],
-    "OmniboxOnDeviceHeadModelSelectionFix": [
-        {
-            "platforms": [
-                "android",
-                "chromeos",
-                "ios",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Fix",
-                    "params": {
-                        "SelectionFix ": "true"
-                    },
-                    "enable_features": [
-                        "OmniboxOnDeviceHeadProviderNonIncognito"
                     ]
                 }
             ]

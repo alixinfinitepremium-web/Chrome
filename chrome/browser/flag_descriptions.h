@@ -1622,11 +1622,6 @@ inline constexpr char kCollaborationMessagingDescription[] =
     "including features such as recent activity, dirty dots, and description "
     "action chips.";
 
-inline constexpr char kCollaborationSharedTabGroupAccountDataName[] =
-    "Shared Tab Group messaging sync";
-inline constexpr char kCollaborationSharedTabGroupAccountDataDescription[] =
-    "Enable the messaging sync backend for shared tab groups.";
-
 inline constexpr char kComposeboxRichImageSuggestionsName[] =
     "Composebox Rich Image Suggestions";
 inline constexpr char kComposeboxRichImageSuggestionsDescription[] =
@@ -1714,7 +1709,11 @@ inline constexpr char kContextualCueingV2MultiSourceDescription[] =
 
 inline constexpr char kGeicEnabledName[] = "GEiC enabled";
 inline constexpr char kGeicEnabledDescription[] =
-    "Enables Gemini Enterprise in Chrome (GEiC) side panel integration.";
+    "Controls Gemini Enterprise in Chrome (GEiC) side panel integration. Set "
+    "to Enabled to apply a GeminiEnterpriseSettings policy even if this "
+    "profile is not detected as a managed account. Set to Disabled to opt out "
+    "of GEiC and fall back to consumer Gemini, even if a Gemini Enterprise "
+    "policy or experiment applies to this profile.";
 
 inline constexpr char kGlassFrameName[] = "Glass Frame";
 inline constexpr char kGlassFrameDescription[] =
@@ -1740,6 +1739,11 @@ inline constexpr char kGlicExperimentalTriggeringScreenshotName[] =
 inline constexpr char kGlicExperimentalTriggeringScreenshotDescription[] =
     "Enables secure client-side screenshot capture and encryption on yield "
     "for Glic experimental triggering tasks.";
+inline constexpr char kGlicExperimentalTriggeringScriptToolsName[] =
+    "Glic experimental triggering script tool execution";
+inline constexpr char kGlicExperimentalTriggeringScriptToolsDescription[] =
+    "Enables direct ScriptTool action execution for Glic experimental "
+    "triggering tasks.";
 inline constexpr char kGlicBackgroundActuationName[] =
     "Glic background actuation";
 inline constexpr char kGlicBackgroundActuationDescription[] =
@@ -3831,8 +3835,8 @@ inline constexpr char kEmbeddedPermissionEnabledName[] =
     "Searchbox embedded permission dialogue";
 inline constexpr char kEmbeddedPermissionEnabledDescription[] =
     "Enables embedded permission dialogues for New Tab Page, omnibox popup, "
-    "and contextual "
-    "tasks' permission requests.";
+    "and 'chrome://contextual-tasks' (pre-rearchitecture) contextual tasks' "
+    "permission requests.";
 
 inline constexpr char kVoiceSearchCoherenceComposeboxName[] =
     "Composebox Voice Search Coherence";
@@ -4254,10 +4258,6 @@ inline constexpr char kNtpComposeboxUsesChromeComposeClientName[] =
 inline constexpr char kNtpComposeboxUsesChromeComposeClientDescription[] =
     "Composebox will use chrome-compose client when querying suggest for "
     "unimodal typed inputs instead of chrome-omni.";
-
-inline constexpr char kPrivilegedWebContentsName[] = "Privileged WebContents";
-inline constexpr char kPrivilegedWebContentsDescription[] =
-    "Enables Privileged WebContents capability infrastructure.";
 
 inline constexpr char kProfileDiscOnAllPagesName[] =
     "Profile Disc on All Pages";
@@ -6828,6 +6828,11 @@ inline constexpr char kEnableInputProtectionDescription[] =
     "currently or were recently obscured by always-on-top windows, and "
     "prevents unintended events on security-sensitive UI that appears and "
     "activates unexpectedly.";
+
+inline constexpr char kFeedbackDisabledDialogName[] =
+    "Feedback Disabled Dialog";
+inline constexpr char kFeedbackDisabledDialogDescription[] =
+    "Enables the dialog shown when user feedback is disabled.";
 
 inline constexpr char kForceDriveDisclaimerAcceptedName[] =
     "Force Drive Disclaimer Accepted";

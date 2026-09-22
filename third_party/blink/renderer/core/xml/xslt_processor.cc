@@ -28,6 +28,8 @@
 #include "third_party/blink/public/common/switches.h"
 #include "third_party/blink/public/mojom/frame/frame.mojom-blink.h"
 #include "third_party/blink/public/mojom/origin_trials/origin_trial_feature.mojom-shared.h"
+#include "third_party/blink/public/strings/grit/blink_strings.h"
+#include "third_party/blink/renderer/bindings/core/v8/v8_binding_for_core.h"
 #include "third_party/blink/renderer/core/dom/document.h"
 #include "third_party/blink/renderer/core/dom/document_encoding_data.h"
 #include "third_party/blink/renderer/core/dom/document_fragment.h"
@@ -53,6 +55,8 @@
 #include "third_party/blink/renderer/core/xml/document_xslt.h"
 #include "third_party/blink/renderer/core/xml/parser/xml_document_parser.h"
 #include "third_party/blink/renderer/platform/bindings/exception_state.h"
+#include "third_party/blink/renderer/platform/bindings/script_state.h"
+#include "third_party/blink/renderer/platform/text/platform_locale.h"
 #include "third_party/blink/renderer/platform/weborigin/security_origin.h"
 
 namespace blink {
@@ -273,6 +277,42 @@ static Element* CreateBannerLink(Document& document,
   return link;
 }
 
+struct BannerLink {
+  const char* href;
+  String text;
+};
+
+// Appends `message` to `banner`, replacing its "$1" and "$2" placeholders with
+// links to `link1` and `link2` respectively. The placeholders are expanded into
+// elements rather than substituted as text, so the message is split here rather
+// than by Locale::QueryString(). A translation may place the placeholders in
+// any order, or leave one out.
+static void AppendLocalizedBannerText(Document& document,
+                                      Element* banner,
+                                      const String& message,
+                                      const BannerLink& link1,
+                                      const BannerLink& link2) {
+  wtf_size_t text_start = 0;
+  for (int i = 0; i < 2; ++i) {
+    wtf_size_t position1 = message.find("$1", text_start);
+    wtf_size_t position2 = message.find("$2", text_start);
+    wtf_size_t position = std::min(position1, position2);
+    if (position == String::npos) {
+      break;
+    }
+    if (position > text_start) {
+      banner->appendChild(document.createTextNode(
+          message.substr(text_start, position - text_start)));
+    }
+    const BannerLink& link = position == position1 ? link1 : link2;
+    banner->appendChild(CreateBannerLink(document, link.href, link.text));
+    text_start = position + 2;
+  }
+  if (text_start < message.length()) {
+    banner->appendChild(document.createTextNode(message.substr(text_start)));
+  }
+}
+
 // Appends the "Never show this warning" checkbox and the close button. The
 // checkbox state is only acted on when the close button is clicked.
 static void AppendDismissControls(Document& document, Element* banner) {
@@ -288,7 +328,9 @@ static void AppendDismissControls(Document& document, Element* banner) {
       html_names::kLabelTag, CreateElementFlags::ByCreateElement());
   label->setAttribute(html_names::kStyleAttr, AtomicString(kDismissLabelStyle));
   label->appendChild(checkbox);
-  label->appendChild(document.createTextNode("Never show this warning"));
+  label->appendChild(
+      document.createTextNode(Locale::DefaultLocale().QueryString(
+          IDS_XSLT_DEPRECATION_BANNER_NEVER_SHOW_AGAIN)));
   banner->appendChild(label);
 
   Element* close_button = document.CreateRawElement(
@@ -375,6 +417,34 @@ static bool SourceHasPolyfillScript(Document& owner_document) {
   return false;
 }
 
+// Returns true if the main world global object of `context` has a
+// `createXSLTTransformModule` property. That function is installed by the XSLT
+// polyfill, so its presence means the page can keep working without native
+// XSLT, and the deprecation banner would be a false alarm.
+static bool ContextHasPolyfillGlobal(ExecutionContext* context) {
+  if (!context) {
+    return false;
+  }
+  ScriptState* script_state = ToScriptStateForMainWorld(context);
+  if (!script_state || !script_state->ContextIsValid()) {
+    return false;
+  }
+  ScriptState::Scope scope(script_state);
+  v8::Isolate* isolate = script_state->GetIsolate();
+  v8::Local<v8::Context> v8_context = script_state->GetContext();
+  // The lookup runs page script if the property has a getter, so swallow any
+  // exception it throws.
+  v8::TryCatch try_catch(isolate);
+  v8::Local<v8::Value> value;
+  if (!v8_context->Global()
+           ->Get(v8_context,
+                 V8AtomicString(isolate, "createXSLTTransformModule"))
+           .ToLocal(&value)) {
+    return false;
+  }
+  return !value->IsUndefined() && !value->IsNull();
+}
+
 // Document::GetSettings() returns null for a frameless document, which is what
 // XSLTProcessor.transformToDocument() produces, so the caller can't use it.
 // The execution context is the window that created the document, which does
@@ -410,43 +480,31 @@ static void InjectXSLTWarningBanner(bool is_cap_alert_xslt,
       context->FeatureEnabled(mojom::blink::OriginTrialFeature::kXSLT)) {
     return;
   }
-  if (source_has_polyfill_script) {
+  if (source_has_polyfill_script || ContextHasPolyfillGlobal(context)) {
     return;
   }
+  Locale& locale = Locale::DefaultLocale();
+  const BannerLink extension_link = {
+      "https://chromewebstore.google.com/search/XSLT%20Polyfill",
+      locale.QueryString(IDS_XSLT_DEPRECATION_BANNER_EXTENSION_LINK)};
   if (is_cap_alert_xslt) {
-    CreateAndAppendBanner(document, [&document](Element* banner) {
-      banner->appendChild(
-          document.createTextNode("This CAP alert uses technology called XSLT; "
-                                  "that functionality is being "));
-      banner->appendChild(CreateBannerLink(
-          document, "https://chromestatus.com/feature/4709671889534976",
-          "removed from this browser"));
-      banner->appendChild(document.createTextNode(
-          ". When that happens, this alert will be shown "
-          "as raw XML data. You might "
-          "be able to "));
-      banner->appendChild(CreateBannerLink(
-          document, "https://chromewebstore.google.com/search/XSLT%20Polyfill",
-          "install a browser extension"));
-      banner->appendChild(
-          document.createTextNode(" that allows you to continue viewing it."));
+    const BannerLink removal_link = {
+        "https://chromestatus.com/feature/4709671889534976",
+        locale.QueryString(IDS_XSLT_DEPRECATION_BANNER_CAP_ALERT_REMOVAL_LINK)};
+    String message =
+        locale.QueryString(IDS_XSLT_DEPRECATION_BANNER_CAP_ALERT_TEXT);
+    CreateAndAppendBanner(document, [&](Element* banner) {
+      AppendLocalizedBannerText(document, banner, message, removal_link,
+                                extension_link);
     });
   } else {
-    CreateAndAppendBanner(document, [&document](Element* banner) {
-      banner->appendChild(document.createTextNode(
-          "This site uses XSLT; that functionality is being "));
-      banner->appendChild(CreateBannerLink(
-          document, "https://chromestatus.com/feature/4709671889534976",
-          "removed from this browser very soon"));
-      banner->appendChild(document.createTextNode(
-          ". When that happens, this page will likely no longer display "
-          "correctly. You might be able to "));
-      banner->appendChild(CreateBannerLink(
-          document, "https://chromewebstore.google.com/search/XSLT%20Polyfill",
-          "install a browser extension"));
-      banner->appendChild(document.createTextNode(
-          " that allows you to continue viewing it. Otherwise, you should "
-          "contact the maintainer of the site for further information."));
+    const BannerLink removal_link = {
+        "https://chromestatus.com/feature/4709671889534976",
+        locale.QueryString(IDS_XSLT_DEPRECATION_BANNER_REMOVAL_LINK)};
+    String message = locale.QueryString(IDS_XSLT_DEPRECATION_BANNER_TEXT);
+    CreateAndAppendBanner(document, [&](Element* banner) {
+      AppendLocalizedBannerText(document, banner, message, removal_link,
+                                extension_link);
     });
   }
 }

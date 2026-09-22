@@ -40,6 +40,7 @@
 #include "chrome/browser/glic/host/context/glic_tab_favicon_observer.h"
 #include "chrome/browser/glic/host/glic.mojom.h"
 #include "chrome/browser/glic/host/glic_features.mojom-features.h"
+#include "chrome/browser/glic/host/glic_no_webview_contents_manager.h"
 #include "chrome/browser/glic/host/glic_web_client_manager.h"
 #include "chrome/browser/glic/host/glic_web_contents_manager.h"
 #include "chrome/browser/glic/host/glic_web_contents_warming_pool.h"
@@ -64,7 +65,6 @@
 #include "chrome/browser/policy/profile_policy_connector.h"
 #include "chrome/browser/profiles/profile_manager.h"
 #include "chrome/browser/profiles/profile_test_util.h"
-#include "chrome/browser/pwc/pwc_features.mojom-features.h"
 #include "chrome/browser/signin/chrome_signin_client_factory.h"
 #include "chrome/browser/signin/chrome_signin_client_test_util.h"
 #include "chrome/browser/signin/identity_manager_factory.h"
@@ -235,7 +235,6 @@ class WithTestParams : public testing::WithParamInterface<TestParams> {
     std::vector<base::test::FeatureRef> disabled_features;
     if (GetParam().no_webview) {
       enabled_features.push_back(features::kGlicNoWebview);
-      enabled_features.push_back(pwc::mojom::features::kPrivilegedWebContents);
     } else {
       disabled_features.push_back(features::kGlicNoWebview);
     }
@@ -3815,9 +3814,6 @@ IN_PROC_BROWSER_TEST_P(GlicApiTest, testRefreshSignInCookies) {
 }
 
 IN_PROC_BROWSER_TEST_P(GlicApiTest, testSignInPauseState) {
-  if (GetParam().no_webview) {
-    GTEST_SKIP() << "Test doesn't yet work in kGlicNoWebview";
-  }
   ASSERT_OK(OpenGlicForActiveTab());
   // Check that Glic web client is open and can retrieve the user's info.
   ExecuteJsTest();
@@ -3827,10 +3823,16 @@ IN_PROC_BROWSER_TEST_P(GlicApiTest, testSignInPauseState) {
       IdentityManagerFactory::GetForProfile(GetProfile());
   signin::SetInvalidRefreshTokenForPrimaryAccount(identity_manager);
 
-  // The guest frame should be destroyed, and the WebUI should show the sign-in
-  // panel.
-  ASSERT_OK(RunUntilNull([&]() { return FindGlicGuestMainFrame(); }));
-  ASSERT_OK(WaitForWebUiState(mojom::WebUiState::kSignIn));
+  if (GetParam().no_webview) {
+    // In NoWebview mode, invalidating account credentials transitions Glic to
+    // the kSignIn error panel on the overlay WebUI.
+    ASSERT_OK(WaitForErrorPanelType(mojom::ErrorPanelType::kSignIn));
+  } else {
+    // The guest frame should be destroyed, and the WebUI should show the
+    // sign-in panel.
+    ASSERT_OK(RunUntilNull([&]() { return FindGlicGuestMainFrame(); }));
+    ASSERT_OK(WaitForWebUiState(mojom::WebUiState::kSignIn));
+  }
 }
 
 IN_PROC_BROWSER_TEST_P(GlicApiTest, testInvoke) {

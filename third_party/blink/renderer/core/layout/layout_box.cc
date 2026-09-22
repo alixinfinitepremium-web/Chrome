@@ -467,22 +467,6 @@ int HypotheticalScrollbarThickness(const LayoutBox& box,
                                   box.StyleRef().UsedScrollbarWidth());
 }
 
-void RecalcFragmentScrollableOverflow(RecalcScrollableOverflowResult& result,
-                                      const PhysicalBoxFragment& fragment) {
-  for (const auto& child : fragment.PostLayoutChildren()) {
-    if (child->GetLayoutObject()) {
-      if (const auto* box = DynamicTo<PhysicalBoxFragment>(child.get())) {
-        if (LayoutBox* owner_box = box->MutableOwnerLayoutBox())
-          result.Unite(owner_box->RecalcScrollableOverflow());
-      }
-    } else if (const auto* child_box_fragment =
-                   DynamicTo<PhysicalBoxFragment>(child.get())) {
-      // We enter this branch when the |child| is a fragmentainer.
-      RecalcFragmentScrollableOverflow(result, *child_box_fragment);
-    }
-  }
-}
-
 const PhysicalBoxFragment* FragmentForEdge(const LayoutBox& box,
                                            const PhysicalBoxSides& edges) {
   // Should only be here if there are multiple fragments. There's a fast-path
@@ -2480,23 +2464,6 @@ bool LayoutBox::PhysicalFragmentList::SlowHasFragmentItems() const {
   return false;
 }
 
-wtf_size_t LayoutBox::PhysicalFragmentList::IndexOf(
-    const PhysicalBoxFragment& fragment) const {
-  wtf_size_t index = 0;
-  for (const auto& result : layout_results_) {
-    if (&result->GetPhysicalFragment() == &fragment) {
-      return index;
-    }
-    ++index;
-  }
-  return kNotFound;
-}
-
-bool LayoutBox::PhysicalFragmentList::Contains(
-    const PhysicalBoxFragment& fragment) const {
-  return IndexOf(fragment) != kNotFound;
-}
-
 void LayoutBox::AddMeasureLayoutResult(const LayoutResult* result) {
   NOT_DESTROYED();
   // Ensure the given result is valid for the measure cache.
@@ -3258,7 +3225,7 @@ void LayoutBox::SetScrollableOverflowFromLayoutResults() {
   overflow_->scrollable_overflow.emplace(*scrollable_overflow);
 }
 
-RecalcScrollableOverflowResult LayoutBox::RecalcScrollableOverflowNG() {
+RecalcScrollableOverflowResult LayoutBox::RecalcScrollableOverflow() {
   NOT_DESTROYED();
 
   RecalcScrollableOverflowResult child_result;
@@ -3268,12 +3235,13 @@ RecalcScrollableOverflowResult LayoutBox::RecalcScrollableOverflowNG() {
     return RecalcScrollableOverflowResult();
 
   if (ChildNeedsScrollableOverflowRecalc()) {
-    child_result = RecalcChildScrollableOverflowNG();
+    child_result = RecalcChildScrollableOverflow();
   }
 
-  bool should_recalculate_scrollable_overflow =
-      SelfNeedsScrollableOverflowRecalc() ||
-      child_result.scrollable_overflow_changed;
+  const bool should_recalculate_scrollable_overflow =
+      (SelfNeedsScrollableOverflowRecalc() ||
+       child_result.scrollable_overflow_changed) &&
+      !IsLayoutReplaced();
   bool rebuild_fragment_tree = child_result.rebuild_fragment_tree;
   bool scrollable_overflow_changed = false;
 
@@ -3330,7 +3298,25 @@ RecalcScrollableOverflowResult LayoutBox::RecalcScrollableOverflowNG() {
   return {scrollable_overflow_changed, rebuild_fragment_tree};
 }
 
-RecalcScrollableOverflowResult LayoutBox::RecalcChildScrollableOverflowNG() {
+void LayoutBox::RecalcFragmentScrollableOverflow(
+    const PhysicalBoxFragment& fragment,
+    RecalcScrollableOverflowResult& result) {
+  for (const auto& child : fragment.PostLayoutChildren()) {
+    if (child->GetLayoutObject()) {
+      if (const auto* box = DynamicTo<PhysicalBoxFragment>(child.get())) {
+        if (LayoutBox* owner_box = box->MutableOwnerLayoutBox()) {
+          result.Unite(owner_box->RecalcScrollableOverflow());
+        }
+      }
+    } else if (const auto* child_box_fragment =
+                   DynamicTo<PhysicalBoxFragment>(child.get())) {
+      // We enter this branch when the |child| is a fragmentainer.
+      RecalcFragmentScrollableOverflow(*child_box_fragment, result);
+    }
+  }
+}
+
+RecalcScrollableOverflowResult LayoutBox::RecalcChildScrollableOverflow() {
   NOT_DESTROYED();
   DCHECK(ChildNeedsScrollableOverflowRecalc());
   ClearChildNeedsScrollableOverflowRecalc();
@@ -3355,7 +3341,7 @@ RecalcScrollableOverflowResult LayoutBox::RecalcChildScrollableOverflowNG() {
       }
     }
 
-    RecalcFragmentScrollableOverflow(result, fragment);
+    RecalcFragmentScrollableOverflow(fragment, result);
   }
 
   return result;

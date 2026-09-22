@@ -347,6 +347,9 @@ OmniboxEverywhereUI::OmniboxEverywhereUI(content::WebUI* web_ui)
       base::FeatureList::IsEnabled(omnibox::kWebUIOmniboxPopupDebug));
   source->AddBoolean("searchboxMultiline",
                      omnibox::kOmniboxEverywhereMultilineParam.Get());
+  source->AddBoolean(
+      "singleLineOnInlineAutocomplete",
+      omnibox::kOmniboxEverywhereSingleLineOnInlineAutocompleteParam.Get());
 
   source->AddBoolean("reportMetrics", true);
   source->AddString("charTypedToPaintMetricName",
@@ -387,6 +390,9 @@ OmniboxEverywhereUI::OmniboxEverywhereUI(content::WebUI* web_ui)
   AddMostVisitedSourceStrings(source);
   source->AddBoolean("smallLoomnibox",
                      omnibox::kOmniboxEverywhereSmallLoomniboxParam.Get());
+
+  source->AddBoolean("isPersistentMode",
+                     !omnibox_everywhere::prefs::IsEphemeralModelEnabled());
 
   const bool is_fusebox_enabled = IsFuseboxEnabled(profile_);
   source->AddBoolean("searchboxShowComposeEntrypoint", is_fusebox_enabled);

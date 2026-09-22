@@ -79,6 +79,8 @@ BASE_DECLARE_FEATURE(kOmniboxKeepOpenOnFileSelection);
 extern const base::FeatureParam<bool> kWebUIOmniboxPopupDebugSxSParam;
 extern const base::FeatureParam<bool> kOmniboxEverywhereProfilePickerParam;
 extern const base::FeatureParam<bool> kOmniboxEverywhereMultilineParam;
+extern const base::FeatureParam<bool>
+    kOmniboxEverywhereSingleLineOnInlineAutocompleteParam;
 
 // The serialized base64 encoded `omnibox::NTPComposeboxConfig`.
 extern const base::FeatureParam<std::string> kConfigParam;
@@ -158,6 +160,13 @@ bool IsAimPopupFeatureEnabled();
 // both sides rather than recombining the underlying flags.
 bool ShouldDrawAimShadowInWebUI();
 bool ShouldDrawFullPopupShadowInWebUI();
+
+// Enables the use of separate flags for pre/post Full WebUI Omnibox. There
+// are new flicker issues with AIM + Full WebUI and these functions will allow
+// us to control the fixes independently of if Full WebUI is enabled.
+bool ShouldDeferAimShowUntilVisualStateReady();
+bool ShouldApplyAimHeightWorkarounds();
+bool ShouldAimEvictOnHide();
 
 // Returns true if the AIM Popup feature is fully enabled for the given
 // `profile`. This is the correct function for external code to use, as it

@@ -5,6 +5,7 @@
 #include "chrome/browser/glic/service/glic_instance_coordinator_impl.h"
 
 #include <algorithm>
+#include <cmath>
 #include <cstdint>
 #include <functional>
 
@@ -14,7 +15,9 @@
 #include "base/functional/bind.h"
 #include "base/logging.h"
 #include "base/memory_coordinator/memory_coordinator_features.h"
+#include "base/memory_coordinator/utils.h"
 #include "base/metrics/histogram_functions.h"
+#include "base/numerics/safe_conversions.h"
 #include "base/rand_util.h"
 #include "base/task/sequenced_task_runner.h"
 #include "base/task/single_thread_task_runner.h"
@@ -105,19 +108,11 @@ bool CanLiveModeBehaviorTakeEffect(const Target& target) {
 
 }  // namespace
 
-BASE_FEATURE(kGlicMaxAwakeInstances, base::FEATURE_ENABLED_BY_DEFAULT);
-constexpr base::FeatureParam<int> kGlicMaxAwakeInstancesLimit{
-    &kGlicMaxAwakeInstances, "limit", 15};
-constexpr base::FeatureParam<size_t>
-    kGlicMaxAwakeInstancesModeratePressureLimit{&kGlicMaxAwakeInstances,
-                                                "moderate_pressure_limit", 8};
-constexpr base::FeatureParam<size_t>
-    kGlicMaxAwakeInstancesCriticalPressureLimit{&kGlicMaxAwakeInstances,
-                                                "critical_pressure_limit", 0};
-
 GlicInstanceCoordinatorImpl::GlicInstanceCoordinatorImpl(
-    Profile* profile, signin::IdentityManager* identity_manager,
-    GlicKeyedService* service, GlicEnabling* enabling,
+    Profile* profile,
+    signin::IdentityManager* identity_manager,
+    GlicKeyedService* service,
+    GlicEnabling* enabling,
     ContextualCueingService* contextual_cueing_service)
     : coordinator_uid_(
           base::RandGenerator(std::numeric_limits<int64_t>::max())),
@@ -125,14 +120,16 @@ GlicInstanceCoordinatorImpl::GlicInstanceCoordinatorImpl(
       service_(service),
       contextual_cueing_service_(contextual_cueing_service),
       memory_pressure_listener_registration_(
-          FROM_HERE, base::MemoryPressureListenerTag::kGlicKeyedService, this),
+          FROM_HERE,
+          base::MemoryPressureListenerTag::kGlicKeyedService,
+          this),
       metrics_(this),
       web_contents_warming_pool_(
-          std::make_unique<GlicWebContentsWarmingPool>(profile)),
+          std::make_unique<GlicWebContentsWarmingPool>(profile, enabling)),
       active_instance_sharing_manager_(
           std::make_unique<GlicActiveInstanceSharingManager>(profile,
                                                              enabling)) {
-  if (memory_pressure_level() != base::MEMORY_PRESSURE_LEVEL_NONE) {
+  if (GetMemoryLimit() <= base::kModerateMemoryPressureThreshold) {
     OnMemoryPressure(memory_pressure_level());
   }
   if (identity_manager) {
@@ -1108,19 +1105,7 @@ size_t GlicInstanceCoordinatorImpl::GetCurrentMaxAwakeInstancesLimit() const {
     return baseline_limit;
   }
 
-  const size_t moderate_limit = std::min(
-      baseline_limit, kGlicMaxAwakeInstancesModeratePressureLimit.Get());
-  const size_t critical_limit = std::min(
-      moderate_limit, kGlicMaxAwakeInstancesCriticalPressureLimit.Get());
-
-  switch (memory_pressure_level()) {
-    case base::MEMORY_PRESSURE_LEVEL_NONE:
-      return baseline_limit;
-    case base::MEMORY_PRESSURE_LEVEL_MODERATE:
-      return moderate_limit;
-    case base::MEMORY_PRESSURE_LEVEL_CRITICAL:
-      return critical_limit;
-  }
+  return CalculateAwakeInstancesLimit(baseline_limit, GetMemoryLimit());
 }
 
 void GlicInstanceCoordinatorImpl::TrimAwakeInstancesTo(
@@ -1612,24 +1597,21 @@ void GlicInstanceCoordinatorImpl::MaybeDaisyChainNewTab(
 
 void GlicInstanceCoordinatorImpl::OnMemoryPressure(
     base::MemoryPressureLevel level) {
-  metrics_.OnMemoryPressure(level);
+  const int memory_limit = GetMemoryLimit();
 
-  web_contents_warming_pool_->OnMemoryPressure(level);
-
-  if (level == base::MEMORY_PRESSURE_LEVEL_NONE) {
-    return;
-  }
+  metrics_.OnMemoryPressure(memory_limit);
+  web_contents_warming_pool_->OnMemoryPressure(memory_limit);
 
   if (!base::FeatureList::IsEnabled(kGlicMaxAwakeInstances) ||
       !base::FeatureList::IsEnabled(base::kStatefulMemoryPressure)) {
-    if (level >= base::MEMORY_PRESSURE_LEVEL_CRITICAL) {
+    if (memory_limit <= base::kCriticalMemoryPressureThreshold) {
       TrimAwakeInstancesTo(0u);
     }
     return;
   }
 
   // Both features are enabled; dynamically trim awake instances to the limit
-  // configured for the current memory pressure level.
+  // configured for the current memory limit.
   TrimAwakeInstancesTo(GetCurrentMaxAwakeInstancesLimit());
 }
 

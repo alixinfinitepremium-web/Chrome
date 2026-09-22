@@ -75,6 +75,7 @@ suite('OmniboxEverywhereOmniboxTest', () => {
       isEnterpriseProfile: false,
       searchboxLayoutMode: 'TallBottomContext',
       searchboxMultiline: true,
+      singleLineOnInlineAutocomplete: true,
     });
     testProxy = new TestSearchboxBrowserProxy();
     SearchboxBrowserProxy.setInstance(testProxy);
@@ -790,6 +791,36 @@ suite('OmniboxEverywhereOmniboxTest', () => {
             'showContextActionMenu');
         assertTrue(args !== undefined);
       });
+
+  test(
+      'singleLineOnInlineAutocomplete keeps input single line ' +
+          'with inline autocompletion',
+      async () => {
+        omnibox.multiLineEnabled = true;
+        await omnibox.updateComplete;
+        await omnibox.$.input.updateComplete;
+
+        assertTrue(omnibox.singleLineOnInlineAutocomplete);
+        assertTrue(omnibox.$.input.singleLineOnInlineAutocomplete);
+
+        omnibox.$.input.setInput({text: 'm', inline: 'essages.google.com'});
+        await omnibox.$.input.updateComplete;
+
+        assertTrue(omnibox.$.input.hasAttribute('force-single-line'));
+        assertFalse(omnibox.$.input.isMultiline());
+
+        omnibox.result = createAutocompleteResultForTesting({
+          input: 'm',
+          matches: [createSearchMatchForTesting({
+            allowedToBeDefaultMatch: true,
+            inlineAutocompletion: 'essages.google.com',
+          })],
+        });
+        omnibox.dropdownIsVisible = true;
+
+        omnibox.updateDropdownVisibility();
+        assertTrue(omnibox.dropdownIsVisible);
+      });
 });
 
 
@@ -1273,6 +1304,7 @@ suite('OmniboxEverywhereAppTest', () => {
       profileEmail: 'test@example.com',
       omniboxEverywhereProfilePickerEnabled: false,
       smallLoomnibox: true,
+      isPersistentMode: true,
       omniboxEverywhereMostVisitedHideTitle: true,
       initialFreStage: 0,
       composeboxCancelButtonTitle: 'Close AI Mode',
@@ -2313,11 +2345,8 @@ suite('OmniboxEverywhereAppTest', () => {
       async () => {
         const searchbox =
             app.shadowRoot.querySelector('omnibox-everywhere-omnibox')!;
-        searchbox.dispatchEvent(new CustomEvent('open-composebox', {
-          detail: {text: '', files: [], mode: 0, model: 0},
-          bubbles: true,
-          composed: true,
-        }));
+        searchbox.fire(
+            'open-composebox', {text: '', files: [], mode: 0, model: 0});
         await microtasksFinished();
 
         window.dispatchEvent(new Event('focus'));
@@ -2415,8 +2444,7 @@ suite('OmniboxEverywhereAppTest', () => {
       async () => {
         const searchbox =
             app.shadowRoot.querySelector('omnibox-everywhere-omnibox')!;
-        searchbox.dispatchEvent(new CustomEvent(
-            'open-voice-search', {bubbles: true, composed: true}));
+        searchbox.fire('open-voice-search');
         await microtasksFinished();
 
         window.dispatchEvent(new Event('focus'));
@@ -2568,11 +2596,9 @@ suite('OmniboxEverywhereAppTest', () => {
       async () => {
         const searchbox =
             app.shadowRoot.querySelector('omnibox-everywhere-omnibox')!;
-        searchbox.dispatchEvent(new CustomEvent('open-composebox', {
-          detail: {text: 'hello world', files: [], mode: 0, model: 0},
-          bubbles: true,
-          composed: true,
-        }));
+        searchbox.fire(
+            'open-composebox',
+            {text: 'hello world', files: [], mode: 0, model: 0});
         await microtasksFinished();
 
         const composebox =
@@ -2595,11 +2621,8 @@ suite('OmniboxEverywhereAppTest', () => {
       async () => {
         const searchbox =
             app.shadowRoot.querySelector('omnibox-everywhere-omnibox')!;
-        searchbox.dispatchEvent(new CustomEvent('open-composebox', {
-          detail: {text: '', files: [], mode: 0, model: 0},
-          bubbles: true,
-          composed: true,
-        }));
+        searchbox.fire(
+            'open-composebox', {text: '', files: [], mode: 0, model: 0});
         await microtasksFinished();
 
         const composebox =
@@ -2730,6 +2753,29 @@ suite('OmniboxEverywhereAppTest', () => {
           document.hasFocus = nativeHasFocus;
         }
       });
+
+  test('inactive state on blur is gated by isPersistentMode', async () => {
+    // In persistent mode (default in setup), blur removes is-active.
+    window.dispatchEvent(new Event('focus'));
+    await microtasksFinished();
+    assertTrue(app.hasAttribute('is-active'));
+
+    window.dispatchEvent(new Event('blur'));
+    await microtasksFinished();
+    assertFalse(app.hasAttribute('is-active'));
+
+    // In ephemeral mode, blur never removes is-active.
+    document.body.innerHTML = window.trustedTypes!.emptyHTML;
+    loadTimeData.overrideValues({isPersistentMode: false});
+    const ephemeralApp = document.createElement('omnibox-everywhere-app');
+    document.body.appendChild(ephemeralApp);
+    await microtasksFinished();
+    assertTrue(ephemeralApp.hasAttribute('is-active'));
+
+    window.dispatchEvent(new Event('blur'));
+    await microtasksFinished();
+    assertTrue(ephemeralApp.hasAttribute('is-active'));
+  });
 });
 
 suite('OmniboxEverywhereProfileIconTest', () => {
@@ -2838,6 +2884,7 @@ suite('OmniboxEverywhereContextMenuTest', () => {
       profileEmail: 'test@example.com',
       omniboxEverywhereProfilePickerEnabled: false,
       searchboxLayoutMode: 'TallBottomContext',
+      isPersistentMode: true,
     });
     testProxy = new TestSearchboxBrowserProxy();
     SearchboxBrowserProxy.setInstance(testProxy);

@@ -100,6 +100,11 @@ BASE_FEATURE(kOmniboxEverywhere, DISABLED);
 // Controls multiline searchbox support in OmniboxEverywhere.
 const base::FeatureParam<bool> kOmniboxEverywhereMultilineParam{
     &kOmniboxEverywhere, "Multiline", true};
+// Controls keeping the searchbox single line during inline autocomplete in
+// OmniboxEverywhere.
+const base::FeatureParam<bool>
+    kOmniboxEverywhereSingleLineOnInlineAutocompleteParam{
+        &kOmniboxEverywhere, "SingleLineOnInlineAutocomplete", true};
 // Controls showing the profile picker menu on profile avatar click in
 // OmniboxEverywhere.
 const base::FeatureParam<bool> kOmniboxEverywhereProfilePickerParam{
@@ -289,6 +294,26 @@ bool ShouldDrawAimShadowInWebUI() {
 
 bool ShouldDrawFullPopupShadowInWebUI() {
   return base::FeatureList::IsEnabled(kOmniboxFullWebUIShadow);
+}
+
+bool ShouldDeferAimShowUntilVisualStateReady() {
+  return base::FeatureList::IsEnabled(
+      IsWebUIOmniboxFullPopupEnabled()
+          ? kOmniboxAimDeferShowUntilVisualStateReadyWithFullWebUI
+          : kOmniboxAimDeferShowUntilVisualStateReady);
+}
+
+bool ShouldApplyAimHeightWorkarounds() {
+  return base::FeatureList::IsEnabled(
+      IsWebUIOmniboxFullPopupEnabled()
+          ? kOmniboxAimHeightWorkaroundsWithFullWebUI
+          : kOmniboxAimHeightWorkarounds);
+}
+
+bool ShouldAimEvictOnHide() {
+  return base::FeatureList::IsEnabled(IsWebUIOmniboxFullPopupEnabled()
+                                          ? kOmniboxAimEvictOnHideWithFullWebUI
+                                          : kOmniboxAimEvictOnHide);
 }
 
 bool IsAimPopupEnabled(Profile* profile) {

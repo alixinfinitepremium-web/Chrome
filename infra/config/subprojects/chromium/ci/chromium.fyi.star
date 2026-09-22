@@ -1194,6 +1194,7 @@ ci.builder(
     ),
     builderless = True,
     os = os.WINDOWS_DEFAULT,
+    ssd = None,
     console_view_entry = consoles.console_view_entry(
         category = "win",
     ),
@@ -1520,6 +1521,7 @@ ci.builder(
     ),
     builderless = True,
     os = os.WINDOWS_DEFAULT,
+    ssd = None,
     console_view_entry = consoles.console_view_entry(
         category = "perfetto",
         short_name = "win",
@@ -2065,8 +2067,8 @@ fyi_mac_builder(
     ),
     builderless = True,
     cores = None,
-    # TODO(crbug.com/543006750): Revert to MAC_DEFAULT after arm migration.
-    os = os.MAC_15,
+    os = os.MAC_DEFAULT,
+    cpu = cpu.ARM64,
     console_view_entry = consoles.console_view_entry(
         category = "deterministic|mac",
         short_name = "rel",
@@ -2087,8 +2089,8 @@ fyi_mac_builder(
     ),
     builderless = True,
     cores = None,
-    # TODO(crbug.com/543006750): Revert to MAC_DEFAULT after arm migration.
-    os = os.MAC_15,
+    os = os.MAC_DEFAULT,
+    cpu = cpu.ARM64,
     console_view_entry = consoles.console_view_entry(
         category = "deterministic|mac",
         short_name = "dbg",
@@ -2199,6 +2201,7 @@ ci.builder(
     ),
     builderless = True,
     os = os.WINDOWS_10,
+    ssd = None,
     console_view_entry = consoles.console_view_entry(
         category = "win10",
     ),
@@ -2309,6 +2312,7 @@ ci.builder(
     ),
     builderless = True,
     os = os.WINDOWS_DEFAULT,
+    ssd = None,
     console_view_entry = consoles.console_view_entry(
         category = "network|traffic|annotations",
         short_name = "win",
@@ -2363,6 +2367,7 @@ ci.builder(
     ),
     builderless = True,
     os = os.WINDOWS_DEFAULT,
+    ssd = None,
     console_view_entry = consoles.console_view_entry(
         category = "misc",
         short_name = "nosb",
@@ -2523,6 +2528,7 @@ ci.builder(
         },
     ),
     os = os.WINDOWS_DEFAULT,
+    ssd = None,
     console_view_entry = [
         consoles.console_view_entry(
             category = "treesinviz",
@@ -2842,6 +2848,7 @@ ci.builder(
         },
     ),
     os = os.WINDOWS_DEFAULT,
+    ssd = None,
     console_view_entry = consoles.console_view_entry(
         category = "webdriver",
     ),
@@ -2897,6 +2904,7 @@ ci.builder(
         },
     ),
     os = os.WINDOWS_DEFAULT,
+    ssd = None,
     console_view_entry = consoles.console_view_entry(
         category = "win|separate-renderer",
         short_name = "tst",
