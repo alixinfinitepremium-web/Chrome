@@ -345,7 +345,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': 'fd9ac29c6973d98337d8f5398b10de792f4efb5e',
+  'angle_revision': 'e1d22eff1e8f285139ffbac6637b6c2f0aa06979',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -409,7 +409,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling fuzztest
   # and whatever else without interference from each other.
-  'fuzztest_revision': '21a54bce88b3edf76a9e7c74eaab76854228f63a',
+  'fuzztest_revision': 'a8861f3aa71443dabaf42dc9cba78b3982524a51',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling domato
   # and whatever else without interference from each other.
@@ -2224,7 +2224,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '647bc59a945f548219cae458423de965bf9198e8',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + 'd32e9702b652bc7ceb6ed1ee70d9973b4a9247b8',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '17a56409b86d0da5e01ca38f6498e13b2db16bc3',
@@ -3214,16 +3214,16 @@ deps = {
       ],
   },
 
-  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@9591aac0ac449282c66abd77d74a61b049382150',
+  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@dbabb135ea055490c8581dad900733f90ef195b1',
   'src/third_party/glslang/src': '{chromium_git}/external/github.com/KhronosGroup/glslang@5494791363451eb51b959544728c8d204b567fd2',
   'src/third_party/spirv-cross/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Cross@b8fcf307f1f347089e3c46eb4451d27f32ebc8d3',
   'src/third_party/spirv-headers/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Headers@2b7475f6d664efbad4d4315c94ecec9640831e5b',
-  'src/third_party/spirv-tools/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Tools@2907cbbc344b5f550567d8c11b7e872000352aec',
+  'src/third_party/spirv-tools/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Tools@bfd26b275278028d5d726d5bed02ce438cebda85',
   'src/third_party/vulkan-headers/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Headers@6802bb4733b63ed5efd3adb308a6c885ef180ea1',
-  'src/third_party/vulkan-loader/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Loader@bad58e021bfb6bff9f90428ca75ac35f1d5a9546',
+  'src/third_party/vulkan-loader/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Loader@320c4e0d66149b1c37e526c9bb14ef6525ef5aaf',
   'src/third_party/vulkan-tools/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Tools@6fe2055cf2fa921d52a4c6a31528cfc279a6977f',
   'src/third_party/vulkan-utility-libraries/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Utility-Libraries@57f01541b3959f2528f769043396e882851a7e75',
-  'src/third_party/vulkan-validation-layers/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-ValidationLayers@f4aee8234270d83593b6f5768ce972f3106725c4',
+  'src/third_party/vulkan-validation-layers/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-ValidationLayers@3e50955605cfe1efe2e3ce729ea19777ee200ee0',
 
   'src/third_party/vulkan_memory_allocator':
     Var('chromium_git') + '/external/github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git' + '@' + '82a9d47e4f9d91f0e32d2b6acd9714fcee1933a0',
@@ -4019,7 +4019,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        'c8f8b8b83024279e6fbb5f2b9557e373a1c12530',
+        '1fed9f8cd3c97571683bdf879a87b60c212a46c3',
       'condition': 'checkout_src_internal',
   },
 
