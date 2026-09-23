@@ -2237,7 +2237,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + 'f26a444af3b7bfcac0fd908d2753e2452a863729',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '45e88a56d7f7380f95120efa430bc287b391b76e',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '17a56409b86d0da5e01ca38f6498e13b2db16bc3',
@@ -2685,7 +2685,7 @@ deps = {
     Var('chromium_git') + '/webm/libwebp.git' + '@' +  'b43b2caa710c0c997c066cb32c7fea1391fad70a',
 
   'src/third_party/libyuv':
-    Var('chromium_git') + '/libyuv/libyuv.git' + '@' + '7c85a3a0820fab29abb502c207d8b9a394e352cc',
+    Var('chromium_git') + '/libyuv/libyuv.git' + '@' + 'a09d909f63888d6513c47886d00eb37f28205983',
 
   'src/third_party/lss': {
       'url': Var('chromium_git') + '/linux-syscall-support.git' + '@' + Var('lss_revision'),
