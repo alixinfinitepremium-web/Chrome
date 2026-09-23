@@ -357,7 +357,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': '62fb8ab5bd611e4a9fbc54151adb951af1d45c72',
+  'boringssl_revision': '5fbad2285b096858fc9afa3e4c949fde39452070',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -409,7 +409,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling fuzztest
   # and whatever else without interference from each other.
-  'fuzztest_revision': '487de66b54298c1949a47e6a8a242dda9da92703',
+  'fuzztest_revision': 'd4da83d43ae1b6f4ee88c556bb256510f8a0e462',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling domato
   # and whatever else without interference from each other.
@@ -3280,7 +3280,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '86ef7fa42dc3429bb4813aa98699c70ad570cac9',
+    Var('webrtc_git') + '/src.git' + '@' + 'c246fef6f336f36d4861ade1d198b9a279d2b47e',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
