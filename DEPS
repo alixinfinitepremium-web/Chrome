@@ -341,7 +341,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': 'af58e5b304ce1c914197582523c9c8ed0cac65fc',
+  'v8_revision': '80c7959bf02b485afebcba24e34f87d0d801bc11',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -417,7 +417,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '56f16d158a1d67db3d9dd92dfb1d7020a3c98558',
+  'devtools_frontend_revision': '5e0f2886541b25c27d1a23204047daa19ffd48da',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1861,7 +1861,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': '2dsEI33MPTAv4FzDyj8iDpa9PQ_Us0xrMiuFFMyJAT0C',
+          'version': '0LRTx3XriodsH8TrCMp_bc21hJF3LdLJAclcV5uCPdEC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
