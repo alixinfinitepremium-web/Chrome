@@ -333,7 +333,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': 'fe6b424bffd80be5b49bd60b2d6a010ce6555afa',
+  'src_internal_revision': '74047cb6562185c33379ed3aa0ec0fafb0bf5cf8',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -3491,7 +3491,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/android_deps/autorolled',
-              'version': 'utnZOPMcM7TaPdmt2mux4VdB3JseQogC93syIOdsmMcC',
+              'version': 'cAIV9KhFHhVi86frHZTKiaGYkbGSn1bRoxYkD1NWyI4C',
           },
       ],
       'condition': 'checkout_android and non_git_source',
