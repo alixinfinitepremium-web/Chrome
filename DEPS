@@ -333,11 +333,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': 'd594a42c8ce16e0a3681ec452e9513321a4b3823',
+  'src_internal_revision': 'fe6b424bffd80be5b49bd60b2d6a010ce6555afa',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '67b96f6d1987dbb0cc864cf671525c6d96b3234f',
+  'skia_revision': 'f9588bbae88e12f3bf7f9a17591f431f15ee5bac',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -2834,7 +2834,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '12115cb2650fd043a4c05d66cd1de50183a28b11',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '08b5fe1489e8cf9b266a824618a4528edfd9cb75',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
@@ -3280,7 +3280,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '10d1c51150cd44e69a909a58efdae42d2e47ad84',
+    Var('webrtc_git') + '/src.git' + '@' + 'd354a0dda4a61dd0ab25ced9b1a445b39a2cb54f',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -3856,7 +3856,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        '0d77af731e3f5023a0ddf18ba797fdebb03c6ad1',
+        'd461522aaa5604e7b1f6a338cc4b16c350d51b47',
       'condition': 'checkout_src_internal',
   },
 
