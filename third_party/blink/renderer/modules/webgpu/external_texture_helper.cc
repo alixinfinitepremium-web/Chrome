@@ -408,10 +408,7 @@ std::optional<ExternalTexture> CreateExternalTexture(
     return {};
   }
 
-  scoped_refptr<gpu::ClientSharedImage> shared_image = lease->GetSharedImage();
-  if (!shared_image) {
-    return {};
-  }
+  scoped_refptr<gpu::ClientSharedImage> shared_image = lease->shared_image();
 
   viz::RasterContextProvider* raster_context_provider =
       context_provider_wrapper->ContextProvider().RasterContextProvider();
@@ -424,7 +421,7 @@ std::optional<ExternalTexture> CreateExternalTexture(
     // SharedImage, completely overwriting the SharedImage.
     gpu::SyncToken sync_token = video_renderer->CopyVideoFrameToSharedImage(
         raster_context_provider, std::move(media_video_frame), shared_image,
-        lease->GetSyncToken(), /*use_visible_rect=*/true);
+        lease->sync_token(), /*use_visible_rect=*/true);
     lease->SetSyncToken(sync_token);
   } else {
     // Delegate video transformation to Dawn.
@@ -462,7 +459,7 @@ std::optional<ExternalTexture> CreateExternalTexture(
           context_provider_wrapper);
 
       lease->SetSyncToken(context_provider.RasterInterface()->RasterSharedImage(
-          shared_image, lease->GetSyncToken(), std::move(last_recording),
+          shared_image, lease->sync_token(), std::move(last_recording),
           &image_provider, needs_clear));
 
       image_provider.ReleaseLockedImages();

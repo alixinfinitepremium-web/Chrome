@@ -50,25 +50,6 @@ void WebGpuSharedImageLease::SetSyncToken(const gpu::SyncToken& sync_token) {
   resource_.shared_image_->UpdateDestructionSyncToken(resource_.sync_token_);
 }
 
-scoped_refptr<gpu::ClientSharedImage> WebGpuSharedImageLease::GetSharedImage()
-    const {
-  if (IsGpuContextLost()) {
-    return nullptr;
-  }
-  return resource_.shared_image_;
-}
-
-gpu::SyncToken WebGpuSharedImageLease::GetSyncToken() const {
-  if (IsGpuContextLost()) {
-    return gpu::SyncToken();
-  }
-  return resource_.sync_token_;
-}
-
-bool WebGpuSharedImageLease::IsGpuContextLost() const {
-  return ::blink::IsGpuContextLost(resource_.context_provider_wrapper_.get());
-}
-
 void WebGpuSharedImageLease::OnMemoryDump(
     base::trace_event::ProcessMemoryDump* pmd) {
   std::string path = base::StringPrintf("canvas/ResourceProvider_0x%" PRIXPTR,
