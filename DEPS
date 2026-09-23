@@ -1223,10 +1223,10 @@ deps = {
     'condition': 'checkout_gpu_meet_effects and non_git_source',
     'objects': [
       {
-        'object_name': 'meet-gpu-tests/985674474.tar.gz',
-        'sha256sum': 'e21e535d6acfa1889c062fb5de3b29d5d79d34b6e10bbc9f4a72574d86157850',
-        'size_bytes': 276996231,
-        'generation': 1790066927186348,
+        'object_name': 'meet-gpu-tests/986423431.tar.gz',
+        'sha256sum': 'cbd29a685a33771475e80ef28016bf5cb028744c85dcca9d0142032b1b49e42b',
+        'size_bytes': 276998685,
+        'generation': 1790153500355173,
       },
     ],
   },
@@ -2834,7 +2834,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '99234d73fe356bf7edf6b2cb7afcf2a9eefc5368',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + 'aa8f09763db9c02111af36ef3e219ef94f6e5ca9',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
