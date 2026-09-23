@@ -437,7 +437,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling android_sdk_platforms_version
   # and whatever else without interference from each other.
-  'android_sdk_platforms_version': 'WhtP32Q46ZHdTmgCgdauM3ws_H9iPoGKEZ_cPggcQ6wC',
+  'android_sdk_platforms_version': 'JsUGMsJK2pkQxVKr7EcJbxbwjJEIWjEPLqcbv7ifdmcC',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -1687,7 +1687,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_mac_arm64',
-          'version': 'Jc_K3QrWc-vfTnFFYBfRSohaVPpppfXbXD3BVvPrBHcC',
+          'version': 'EmyXAqJ8qluLyKwy5rEDbhuBvqDLfxxHklEZMP4U6j8C',
         },
       ],
   },
@@ -1698,7 +1698,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_win_x86',
-          'version': 'BmjeKmvgFwoT17UVEVL9GULe86Td8NX9XdAH2h9sP_4C',
+          'version': 'Q-R0zGbwxCBg4-UE9Ddk9VDYzhlMfWGBldgxZi0zwlYC',
         },
       ],
   },
@@ -1709,7 +1709,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_win_x86_64',
-          'version': 'GHkB8Znr1ptwj_ZZb3t6zVjZxcI_Hn73jSA1eftbxxgC',
+          'version': 'gMn6r8p_W0Emb1K54Z1uyHJg8xNETmNcd4dVca5sfqIC',
         },
       ],
   },
@@ -3032,7 +3032,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/r8',
-              'version': 'IftCs1-T5uV7FcoEpDBQyEzPJr0DguIcmwK2BrNjsMYC',
+              'version': 'w54n0EzIuf2nxIQEJKv3LqGFqg_hJ-HDBOAxQWcu46IC',
           },
       ],
       'condition': 'checkout_android and non_git_source',

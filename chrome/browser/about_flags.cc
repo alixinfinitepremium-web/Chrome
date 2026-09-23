@@ -7241,6 +7241,10 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kTabGroupRibbonDescription, kOsDesktop,
      FEATURE_VALUE_TYPE(features::kTabGroupRibbon)},
 
+    {"focus-selection", flag_descriptions::kFocusSelectionName,
+     flag_descriptions::kFocusSelectionDescription, kOsDesktop,
+     FEATURE_VALUE_TYPE(features::kNonGroupFocus)},
+
     {"tab-strip-unification", flag_descriptions::kTabStripUnificationName,
      flag_descriptions::kTabStripUnificationDescription, kOsDesktop,
      FEATURE_VALUE_TYPE(tabs::kTabStripUnification)},
@@ -9710,7 +9714,7 @@ const FeatureEntry kFeatureEntries[] = {
 
     {"webui-omnibox-full-popup", flag_descriptions::kWebUIOmniboxFullPopupName,
      flag_descriptions::kWebUIOmniboxFullPopupDescription, kOsAll,
-     FEATURE_WITH_PARAMS_VALUE_TYPE(omnibox::kWebUIOmniboxFullPopup,
+     FEATURE_WITH_PARAMS_VALUE_TYPE(omnibox::internal::kWebUIOmniboxFullPopup,
                                     kWebUIOmniboxFullPopupVariations,
                                     "WebUIOmniboxFullPopup")},
 
