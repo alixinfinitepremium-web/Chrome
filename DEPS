@@ -3409,7 +3409,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_receiver_app/app',
-        'version': 'pXgDiP7lx4c1vJYL86a1CfRkcTo9BBYKS2zMaGW8CQkC',
+        'version': '1GZBdVFmFEarZn4AUBgRXPbP3mYyNO8rT6HQ-cTrFvAC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -4110,7 +4110,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '55a14a2febd1dfdd30ff5ff3640584c8f8eda85d',
+        'c54fb618495dcf76915858df454d445d46974d37',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
