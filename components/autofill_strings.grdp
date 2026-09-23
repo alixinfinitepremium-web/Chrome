@@ -1638,23 +1638,21 @@
     Got it
   </message>
 
-  <message name="IDS_AUTOFILL_AI_ENTITY_SUPPRESSION_UNDO_TOAST_TEXT" desc="Text displayed in a toast notification when an Autofill AI suggestion has been removed by the user, explaining that the suggestion is removed and the original source data is not deleted." translateable="false">
-    <!-- TODO(crbug.com/501036619): Make string translateable once finalized. -->
-    Suggestion removed. Your original source won't be deleted.
+  <message name="IDS_AUTOFILL_AI_ENTITY_SUPPRESSION_UNDO_TOAST_TEXT" desc="Text displayed in a toast notification when an Autofill AI suggestion has been removed by the user, explaining that the suggestion is removed and the original source data is not deleted. The plural selector is the number of such sources. [ICU Syntax]">
+    {NUM_SOURCES, plural,
+     =1 {Suggestion removed. Your original source won't be deleted.}
+     other {Suggestion removed. Your original sources won't be deleted.}}
   </message>
 
-  <message name="IDS_AUTOFILL_AI_ENTITY_SUPPRESSION_CONFIRMATION_TITLE" desc="Title of the dialog that asks the user to confirm that an Autofill AI suggestion should no longer be suggested by Chrome." translateable="false">
-    <!-- TODO(crbug.com/501036619): Make string translateable once finalized. -->
+  <message name="IDS_AUTOFILL_AI_ENTITY_SUPPRESSION_CONFIRMATION_TITLE" desc="Title of the dialog that asks the user to confirm that an Autofill AI suggestion should no longer be suggested by Chrome.">
     Remove from Chrome?
   </message>
-  <message name="IDS_AUTOFILL_AI_ENTITY_SUPPRESSION_CONFIRMATION_BODY" desc="Body text of the dialog that asks the user to confirm that an Autofill AI suggestion should no longer be suggested by Chrome. It explains that only the suggestion disappears, while the data that the suggestion was extracted from (e.g. an email or a photo) is untouched. The plural selector is the number of such sources. [ICU Syntax]" translateable="false">
-    <!-- TODO(crbug.com/501036619): Make string translateable once finalized. -->
+  <message name="IDS_AUTOFILL_AI_ENTITY_SUPPRESSION_CONFIRMATION_BODY" desc="Body text of the dialog that asks the user to confirm that an Autofill AI suggestion should no longer be suggested by Chrome. It explains that only the suggestion disappears, while the data that the suggestion was extracted from (e.g. an email or a photo) is untouched. The plural selector is the number of such sources. [ICU Syntax]">
     {NUM_SOURCES, plural,
      =1 {Chrome will stop suggesting this info. Your original source won't be deleted.}
      other {Chrome will stop suggesting this info. Your original sources won't be deleted.}}
   </message>
-  <message name="IDS_AUTOFILL_AI_ENTITY_SUPPRESSION_CONFIRMATION_ACCEPT_BUTTON" desc="Label of the button that confirms that Chrome should stop suggesting an Autofill AI suggestion." translateable="false">
-    <!-- TODO(crbug.com/501036619): Make string translateable once finalized. -->
+  <message name="IDS_AUTOFILL_AI_ENTITY_SUPPRESSION_CONFIRMATION_ACCEPT_BUTTON" desc="Label of the button that confirms that Chrome should stop suggesting an Autofill AI suggestion.">
     Remove
   </message>
 
