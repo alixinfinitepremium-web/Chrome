@@ -417,7 +417,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '5e0f2886541b25c27d1a23204047daa19ffd48da',
+  'devtools_frontend_revision': '204f53441cf9b6939c17900a6d34eb32f436d8d1',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -3475,7 +3475,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/projector_app/app',
-        'version': 'cBK5xpQQaDvXJ4_bCHXB4WylsAxXlq1d9WCj5QVx8kQC',
+        'version': 'CceOViQI0Low7zbEgklTCoVmQ6QwoLcqb3K_WmeHpp4C',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
