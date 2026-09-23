@@ -441,7 +441,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': 'fbf02008ef624c12e9eaf791a937b8809ffa40ea',
+  'dawn_revision': '8c8d96a819e43434482e0d8cee2c2adeceec4cec',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -1510,7 +1510,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_linux64',
-          'version': 'version:2@1696004',
+          'version': 'version:2@1698003',
         },
       ],
   },
@@ -1665,7 +1665,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_linux64',
-          'version': '4XY1lbDqheDGGZZGHkWDI362oWtNXlG5MqZ8DKkX3ecC',
+          'version': '0g0S0QiLCz4HRXY1KwGKp4VKgphj1Oet61-RZnQ-lVwC',
         },
       ],
   },
