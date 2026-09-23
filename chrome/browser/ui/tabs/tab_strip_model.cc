@@ -2857,13 +2857,7 @@ void TabStripModel::ExecuteContextMenuCommand(int context_index,
                                    selection_model_.size());
       base::RecordAction(UserMetricsAction("TabContextMenu_CloseTab"));
 
-      std::optional<split_tabs::SplitTabId> split_id =
-          GetSplitForTab(context_index);
-      if (split_id.has_value()) {
-        delegate_->WillCloseSplit(split_id.value());
-      }
-
-      ExecuteCloseTabs(
+      ExecuteCloseTabsCommand(
           base::BindRepeating(&TabStripModel::GetTabsForCommand,
                               base::Unretained(this), context_index),
           /*delete_groups=*/true);
@@ -3740,6 +3734,9 @@ std::vector<int> TabStripModel::GetIndicesForCommand(int index) const {
 
 std::vector<tabs::TabInterface*> TabStripModel::GetTabsForCommand(
     int index) const {
+  if (!ContainsIndex(index)) {
+    return {};
+  }
   tabs::TabInterface* tab = GetTabAtIndex(index);
 
   if (!selection_model_.IsSelected(tab)) {
@@ -4906,10 +4903,11 @@ void TabStripModel::InsertTabAtIndexImpl(
                     SplitTabChange::SplitTabRemoveReason::kSplitTabRemoved);
   }
 
-  // If a tab is added that does not belong to the focused group (and is not
-  // a pinned tab allowed in focus mode), drop focus mode so the tab is visible.
+  // If an active tab is added that does not belong to the focused group (and
+  // is not a pinned tab allowed in focus mode), drop focus mode so the tab is
+  // visible.
   const std::optional<tab_groups::TabGroupId> focused_group = GetFocusedGroup();
-  if (focused_group.has_value() && group != focused_group && !pin) {
+  if (active && focused_group.has_value() && group != focused_group && !pin) {
     ExitFocusMode(TabGroupFocusExitReason::kActiveTabGroupOperation);
   }
 
@@ -4965,15 +4963,6 @@ std::unique_ptr<tabs::TabModel> TabStripModel::RemoveTabFromIndexImpl(
 
   if (tab_detach_reason == tabs::TabInterface::DetachReason::kDelete) {
     tab_to_remove->DestroyTabFeatures();
-  }
-
-  // If a tab is removed that does not belong to the focused group (and is not
-  // a pinned tab allowed in focus mode), drop focus mode.
-  std::optional<tab_groups::TabGroupId> focused_group = GetFocusedGroup();
-  if (focused_group.has_value() &&
-      !tabs::TabStripModelSelectionState::IsTabValidInFocusedGroup(
-          tab_to_remove, focused_group)) {
-    ExitFocusMode(TabGroupFocusExitReason::kTabOutsideGroupClosed);
   }
 
   tabs::TabInterface* old_active_tab = GetActiveTab();
