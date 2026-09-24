@@ -333,7 +333,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': 'e863864723ced8e556a8c834bfec68c8ea59e175',
+  'src_internal_revision': '4922550bc9787fce1ff2435edfc40b80967cb315',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -1950,7 +1950,7 @@ deps = {
       'packages': [
           {
                'package': 'chromium/third_party/android_build_tools/error_prone',
-               'version': 'HLl1c2Gry_NXi-iC0l0MVfQ7C-vumHJOs1-Qd35ghAEC',
+               'version': 'RGU_pYZ7wIDYsomPZurJEevS4IVfXFNvxf_2KIpV_40C',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -3409,7 +3409,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_receiver_app/app',
-        'version': '1GZBdVFmFEarZn4AUBgRXPbP3mYyNO8rT6HQ-cTrFvAC',
+        'version': 'lMqaERv8Y8kh1YxGUmOPWDQ2dORmaWp07lVekBaq2-AC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
