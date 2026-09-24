@@ -341,7 +341,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': '33fca9fcb2a034e850e102fb405ec42af9f027b0',
+  'v8_revision': '913b47f38fee67281e30e4e631995d67f74dbba1',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -1554,7 +1554,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_x86',
-          'version': 'version:2@1696742',
+          'version': 'version:2@1698009',
         },
       ],
   },
@@ -3856,7 +3856,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        'd461522aaa5604e7b1f6a338cc4b16c350d51b47',
+        '7b858efefd3a7dec354b3e06897bc16eefeb4e76',
       'condition': 'checkout_src_internal',
   },
 
