@@ -333,7 +333,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '6c4bbae9ed63ba715c098922cf278d3c66a3bf36',
+  'src_internal_revision': '56f7e5c1bede9c7429ccff36d13f0f5f8b6fa43a',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -353,7 +353,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling PDFium
   # and whatever else without interference from each other.
-  'pdfium_revision': '7dfadb98db46d2d8a6d30d45eea8fd56dfe8c650',
+  'pdfium_revision': '58d357aac701c85d5ffc004656d1ccb9ca91c280',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
