@@ -24,8 +24,6 @@
                 {
                     "name": "Enabled",
                     "enable_features": [
-                        "AIOmniboxAskPlaceholder",
-                        "ComposeboxPlusButtonBottomSheet",
                         "PlusButtonInFakebox"
                     ]
                 }
@@ -1482,6 +1480,27 @@
                     "enable_features": [
                         "AsyncNotificationManager",
                         "AsyncNotificationManagerForDownload"
+                    ]
+                }
+            ]
+        }
+    ],
+    "AsyncThreadPoolInit": [
+        {
+            "platforms": [
+                "android",
+                "android_webview",
+                "chromeos",
+                "ios",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "AsyncThreadPoolInit"
                     ]
                 }
             ]
@@ -6797,6 +6816,24 @@
                     },
                     "enable_features": [
                         "DiscountDialogAutoPopupBehaviorSetting"
+                    ]
+                }
+            ]
+        }
+    ],
+    "DiscoverActionUploadOptimisationsBling": [
+        {
+            "platforms": [
+                "ios"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled_20260907",
+                    "enable_features": [
+                        "IOSGCR_disable_action_upload_post_refresh",
+                        "IOSGCR_enable_full_reload_check_fix",
+                        "IOSGCR_enable_pending_actions_check_fix",
+                        "IOSGCR_enable_view_action_provider_fix"
                     ]
                 }
             ]
