@@ -401,7 +401,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_web_tests_revision': 'e8fe4edde2789a5a35b3dc3d28492c5d3f3e9083',
+  'crossbench_web_tests_revision': '4c332933c95bc771645be2baed925fe26ad9a679',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libFuzzer
   # and whatever else without interference from each other.
@@ -525,7 +525,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'libunwind_revision':    '0f1248103c64a9828e73fb4dc93e7714694fc5a1',
+  'libunwind_revision':    'ac5dcbe905e60d730bff7c5a11667571f3d0bca5',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -2222,7 +2222,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '0a0d605e721d239e913a8b9b3317894f8b04cb5d',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'a5b1df38b31c0df028347a9ca956e95d91f1dac9',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -3856,7 +3856,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        '7b858efefd3a7dec354b3e06897bc16eefeb4e76',
+        '3dab0b8e83911a8da20dc7c2e8b5c46606cb293a',
       'condition': 'checkout_src_internal',
   },
 
