@@ -409,7 +409,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling fuzztest
   # and whatever else without interference from each other.
-  'fuzztest_revision': 'c7efaf2bdfb934e49b515c1db04774480bd6f82c',
+  'fuzztest_revision': '7a8e9056de2a4f745082a4b3861a67ada47ced36',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling domato
   # and whatever else without interference from each other.
@@ -568,7 +568,7 @@ vars = {
   'libcxx_revision':       '97b436da4c33663581d394f4ee0a5977fc38c2f4',
 
   # GN CIPD package version.
-  'gn_version': 'git_revision:56c22442ee369ddc6f44c2ff5e0664d47a3c6b0e',
+  'gn_version': 'git_revision:2dfb8cbd3b749242ee4492a7f15eba6889d52c7f',
 
   # ninja CIPD package.
   'ninja_package': 'infra/3pp/tools/ninja/',
@@ -1983,7 +1983,7 @@ deps = {
       'packages': [
           {
                'package': 'chromium/third_party/android_build_tools/manifest_merger',
-               'version': 'O0KQQ1A1r1qMudJFEkycDqz-hab-YkLj97zZJD-UdUoC',
+               'version': 'kjf9USoIN-2IGART4tsug5q5zWnhL3pGAJY7vmGK_GsC',
           },
       ],
       'condition': 'checkout_android and non_git_source',

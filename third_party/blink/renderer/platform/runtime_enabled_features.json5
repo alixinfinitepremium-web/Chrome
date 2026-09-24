@@ -4288,6 +4288,10 @@
       base_feature: "none",
       custom_enable_check: "CanEnableMojoJSTest",
     },
+    // Optimization for monospace text.
+    {
+      name: "MonospaceGlyphCompaction",
+    },
     // Move the selection to the last position in the list item. See
     // https://crbug.com/331841851
     {
@@ -6113,6 +6117,14 @@
     },
     {
       name: "SubApps",
+      status: "stable",
+    },
+    {
+      // Require the requesting view to have focus before allowing it go
+      // fullscreen, unless it has a fullscreen token through capability
+      // delegation.
+      // https://crbug.com/347495359
+      name: "SuppressFullscreenFromUnfocusedView",
       status: "stable",
     },
     // 'pointercancel' and boundary leave ('pointerout' and 'pointerleave')
