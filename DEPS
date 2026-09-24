@@ -521,7 +521,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'libcxxabi_revision':    '08130b4e4fe2ee394125a3b1c68b034f4b19204c',
+  'libcxxabi_revision':    '136b7ca4a0a837995584e728758a07a502dd4a08',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -1762,7 +1762,7 @@ deps = {
   },
 
   'src/docs/website': {
-    'url': Var('chromium_git') + '/website.git' + '@' + 'f787546fb26be3df8a08bcd534ae37732a165f73',
+    'url': Var('chromium_git') + '/website.git' + '@' + '70bb13377fed8671966ab9565b7627f2e73ae1a2',
   },
 
   'src/ios/third_party/earl_grey2/src': {
@@ -3934,7 +3934,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '68407d459db68e14241072b3868b854bfbecfff7',
+        '3712fceb3097bc9be3e7284669ed0d27304b3100',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
