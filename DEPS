@@ -345,7 +345,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '0b43596f51170a3cbddc86ed9913efee4fcaecea',
+  'angle_revision': 'f8951da3905a45aa765d588d64f5ecd1b57a9484',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -3916,7 +3916,7 @@ deps = {
 
   'src/components/vector_icons/google_chrome': {
       'url': Var('chrome_git') + '/chrome/vector_icons/google_chrome.git' + '@' +
-        '7f77c4aec7b85fde9938ccc59d1d985ad828aad4',
+        'b9ab0d24177148a8246af8a2848b7b87ea4df34d',
       'condition': 'checkout_src_internal',
   },
 
