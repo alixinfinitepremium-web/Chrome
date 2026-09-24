@@ -345,7 +345,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '386bb0e11d39ae46d1367c9e9e8b50f46b27ca90',
+  'angle_revision': '6283bed8e6877444d6f74526b6a6adc2578e87ce',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -545,7 +545,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
-  'llvm_libc_revision':    'cd4309f8c525b566b918296653e9a1c8d41be129',
+  'llvm_libc_revision':    'ffb2c561c35da92f5f7b11c1b6934de43ba2baac',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
@@ -3934,7 +3934,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        'd4c545a08ca0e70763cf0bb0e3b358a8c7c11d52',
+        '24d1e5b5e158b599cddc7491c12648d64c739a38',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
