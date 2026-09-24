@@ -2222,7 +2222,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'f8d44cce2ee508274f018d1bc0afb4754ed974f8',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '349b317591691a0b0bc8d2e7588eba8fbf0c2380',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -3280,7 +3280,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '05d6bc269c816c7619be9d54e697c8c0b94599d5',
+    Var('webrtc_git') + '/src.git' + '@' + '65e9395a000fac568737925a0d82096409d6b11d',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -3491,7 +3491,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/android_deps/autorolled',
-              'version': 'gDS_f-3foKUmcuifytnd9_t-5Jp8XmWll0MIbRY0CP4C',
+              'version': '-VG0wmSq86E_kYUtjovcWcZ9CHJExiXYLZW21pDxZ6sC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
