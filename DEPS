@@ -441,7 +441,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': '8c8d96a819e43434482e0d8cee2c2adeceec4cec',
+  'dawn_revision': '9de0fd67086127228e8aa28e69616da37220cfc3',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -2512,7 +2512,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/kotlin_stdlib',
-              'version': '3fkLyuaFyyjyFYZjKpQlH4R1c4H570IYGjOFGm_PMggC',
+              'version': 'iWMJm1LfMLY_mVk7xBPapaJZCyXZrrm4KI7iJP3bXvIC',
           },
       ],
       'condition': 'checkout_android and non_git_source',

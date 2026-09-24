@@ -195,8 +195,7 @@ bool Canvas2DResourceProvider::ShouldReplaceTargetBuffer(
   return !resource_->HasOneRef();
 }
 
-std::unique_ptr<gpu::RasterScopedAccess>
-Canvas2DResourceProvider::WillDrawInternal() {
+void Canvas2DResourceProvider::EnsureResourceReadyForDraw() {
   DCHECK(resource_);
 
   // Since the resource will be updated, the cached snapshot is no longer
@@ -222,14 +221,13 @@ Canvas2DResourceProvider::WillDrawInternal() {
 
     resource_ = NewOrRecycledResource();
     if (must_preserve_content_on_copy_on_write_) {
-      auto dst_access = resource_->BeginAccess(/*readonly=*/false);
-      auto old_mailbox = old_resource_shared_image->GetSharedImage()->mailbox();
-      auto mailbox = resource()->GetSharedImage()->mailbox();
-      auto src_access = old_resource->BeginAccess(/*readonly=*/true);
-      RasterInterface()->CopySharedImage(old_mailbox, mailbox, 0, 0, 0, 0,
-                                         Size().width(), Size().height());
-      old_resource_shared_image->EndAccess(std::move(src_access));
-      resource_->EndAccess(std::move(dst_access));
+      auto [src_token, dst_token] = RasterInterface()->CopySharedImage(
+          old_resource_shared_image->GetSharedImage(),
+          old_resource_shared_image->acquire_sync_token(),
+          resource()->GetSharedImage(), resource()->acquire_sync_token(),
+          gfx::Rect(Size()), gfx::Point(0, 0));
+      old_resource_shared_image->SetReleaseSyncToken(src_token);
+      resource_->SetReleaseSyncToken(dst_token);
     } else {
       // If we're not copying over the previous contents, we need to ensure
       // that the image is cleared on the next BeginRasterCHROMIUM.
@@ -242,6 +240,11 @@ Canvas2DResourceProvider::WillDrawInternal() {
     // subsequent CopyOnWrite.
     must_preserve_content_on_copy_on_write_ = true;
   }
+}
+
+std::unique_ptr<gpu::RasterScopedAccess>
+Canvas2DResourceProvider::WillDrawInternal() {
+  EnsureResourceReadyForDraw();
   return resource_->BeginAccess(/*readonly=*/false);
 }
 
@@ -285,7 +288,7 @@ bool Canvas2DResourceProvider::WritePixels(const SkImageInfo& orig_info,
     return false;
   }
 
-  auto access = WillDrawInternal();
+  EnsureResourceReadyForDraw();
 
   // The below  write to the resource's SharedImage will need to be preserved in
   // the case of a subsequent CopyOnWrite.
@@ -295,11 +298,10 @@ bool Canvas2DResourceProvider::WritePixels(const SkImageInfo& orig_info,
   // Verify that this is the case and update the code here.
   must_preserve_content_on_copy_on_write_ = true;
 
-  auto client_si = resource()->GetSharedImage();
-  RasterInterface()->WritePixels(client_si->mailbox(), x, y,
-                                 client_si->GetTextureTarget(),
-                                 SkPixmap(orig_info, pixels, row_bytes));
-  resource()->EndAccess(std::move(access));
+  gpu::SyncToken sync_token = RasterInterface()->WritePixels(
+      resource()->GetSharedImage(), resource()->acquire_sync_token(), x, y,
+      SkPixmap(orig_info, pixels, row_bytes));
+  resource()->SetReleaseSyncToken(sync_token);
 
   // If the overdraw optimization kicked in, we need to indicate that the
   // pixels do not need to be cleared, otherwise the subsequent
