@@ -534,8 +534,6 @@ public class FlatLayoutDelegateUnitTest {
         when(mTab1.getTabGroupId()).thenReturn(TAB_GROUP_ID);
         when(mTab2.getTabGroupId()).thenReturn(TAB_GROUP_ID);
         when(mTabModel.getTabById(TAB1_ID)).thenReturn(mTab1);
-        when(mTabModel.getGroupLastShownTabId(TAB_GROUP_ID)).thenReturn(TAB1_ID);
-
         when(mMediator.getRelatedTabsForId(TAB1_ID)).thenReturn(List.of(mTab1, mTab2));
 
         // Execute merging mTab2.
@@ -580,8 +578,7 @@ public class FlatLayoutDelegateUnitTest {
 
     @Test
     public void testDidRemoveTabGroup_NoOp() {
-        mDelegate.didRemoveTabGroup(
-                1, TAB_GROUP_ID, TabGroupObserver.DidRemoveTabGroupReason.MERGE);
+        mDelegate.didRemoveTabGroup(TAB_GROUP_ID, TabGroupObserver.DidRemoveTabGroupReason.MERGE);
 
         // Flat layout does not display tab group headers, so no updates should occur.
         verifyNoInteractions(mMediator);
