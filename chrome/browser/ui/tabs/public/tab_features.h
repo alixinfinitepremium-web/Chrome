@@ -44,6 +44,7 @@ class ConnectionHelpTabHelper;
 class CookieControlsPageActionController;
 class FileSystemAccessPageActionController;
 class FocusTabAfterNavigationHelper;
+class FontPrewarmerTabHelper;
 class FramebustBlockTabHelper;
 
 class FormInteractionTabHelper;
@@ -70,11 +71,13 @@ class SadTabHelper;
 class SearchEngineChoiceTabHelper;
 class SearchPromotionNavigationObserver;
 class SecurityStateEventObserver;
+class SharedHighlightingPromo;
 class SidePanelRegistry;
 class TabResourceUsageTabHelper;
 class TabUIHelper;
 class ThumbnailTabHelper;
 class TranslatePageActionController;
+class UMABrowsingActivityTabHelper;
 class ZeroSuggestPrefetchTabHelper;
 
 namespace skills {
@@ -212,6 +215,12 @@ namespace lens {
 class TabContextualizationController;
 }  // namespace lens
 
+#if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_LINUX)
+namespace metrics {
+class DesktopSessionDurationObserver;
+}  // namespace metrics
+#endif
+
 #if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_LINUX) || \
     BUILDFLAG(IS_CHROMEOS)
 namespace wallet {
@@ -220,6 +229,11 @@ class ChromeWalletablePassClient;
 #endif
 
 #if BUILDFLAG(IS_CHROMEOS)
+class CampaignsManagerSessionTabHelper;
+class GoogleOneOfferIphTabHelper;
+namespace ash {
+class CrosIsolatedWebAppEnabler;
+}  // namespace ash
 namespace web_app {
 class ProtocolHandlerPickerCoordinator;
 }  // namespace web_app
@@ -700,11 +714,17 @@ class TabFeatures {
   std::unique_ptr<skills::SkillsUpdateObserver> skills_update_observer_;
 #endif  //  !BUILDFLAG(IS_ANDROID)
 
+#if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_LINUX)
+  std::unique_ptr<metrics::DesktopSessionDurationObserver>
+      desktop_session_duration_observer_;
+#endif
+
 #if BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_WIN) || \
     BUILDFLAG(IS_CHROMEOS)
   std::unique_ptr<enterprise_reporting::SaasUsageNavigationObserver>
       saas_usage_navigation_observer_;
   std::unique_ptr<HatsHelper> hats_helper_;
+  std::unique_ptr<SharedHighlightingPromo> shared_highlighting_promo_;
 #endif  // BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_WIN)
 
 #if BUILDFLAG(IS_WIN)
@@ -712,6 +732,15 @@ class TabFeatures {
       search_promotion_navigation_observer_;
   std::unique_ptr<CommitLimitOOMRecoveryTracker>
       commit_limit_oom_recovery_tracker_;
+  std::unique_ptr<FontPrewarmerTabHelper> font_prewarmer_tab_helper_;
+#endif
+
+#if BUILDFLAG(IS_CHROMEOS)
+  std::unique_ptr<GoogleOneOfferIphTabHelper> google_one_offer_iph_tab_helper_;
+  std::unique_ptr<CampaignsManagerSessionTabHelper>
+      campaigns_manager_session_tab_helper_;
+  std::unique_ptr<ash::CrosIsolatedWebAppEnabler>
+      cros_isolated_web_app_enabler_;
 #endif
 
 #if !BUILDFLAG(IS_ANDROID)
@@ -738,6 +767,9 @@ class TabFeatures {
 
   // Observes changes in web contents for web payments.
   std::unique_ptr<payments::WebPaymentsObserver> web_payments_observer_;
+
+  std::unique_ptr<UMABrowsingActivityTabHelper>
+      uma_browsing_activity_tab_helper_;
 
   // Must be the last member.
   base::WeakPtrFactory<TabFeatures> weak_factory_{this};

@@ -104,6 +104,7 @@
 #include "chrome/browser/ui/toolbar/pinned_toolbar/pinned_toolbar_actions_model.h"
 #include "chrome/browser/ui/toolbar/pinned_toolbar/pinned_translate_action_listener.h"
 #include "chrome/browser/ui/ui_features.h"
+#include "chrome/browser/ui/uma_browsing_activity_observer.h"
 #include "chrome/browser/ui/views/bookmarks/bookmark_page_action_controller.h"
 #include "chrome/browser/ui/views/commerce/discounts_page_action_view_controller.h"
 #include "chrome/browser/ui/views/commerce/price_insights_page_action_view_controller.h"
@@ -127,6 +128,10 @@
 #include "components/payments/core/features.h"
 #include "components/skills/features.h"
 #include "content/public/browser/navigation_controller.h"
+#if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_LINUX)
+#include "chrome/browser/metrics/desktop_session_duration/desktop_session_duration_observer.h"
+#endif
+
 #if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_LINUX) || \
     BUILDFLAG(IS_CHROMEOS)
 #include "chrome/browser/contextual_tasks/contextual_tasks_tab_visit_tracker.h"
@@ -175,13 +180,21 @@
 
 #if BUILDFLAG(IS_CHROMEOS)
 #include "chrome/browser/apps/app_service/app_service_proxy_factory.h"  // nogncheck
+#include "chrome/browser/ash/growth/campaigns_manager_session_tab_helper.h"
+#include "chrome/browser/ui/ash/google_one/google_one_offer_iph_tab_helper.h"
 #include "chrome/browser/ui/views/web_apps/protocol_handler_picker_coordinator.h"
+#include "chromeos/ash/experiences/isolated_web_app/cros_isolated_web_app_enabler.h"
 #endif
 
 #if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_LINUX) || \
     BUILDFLAG(IS_CHROMEOS)
 #include "chrome/browser/ui/hats/hats_helper.h"
 #include "chrome/browser/ui/performance_controls/performance_controls_hats_service_factory.h"
+#include "chrome/browser/ui/shared_highlighting/shared_highlighting_promo.h"
+#endif
+
+#if BUILDFLAG(IS_WIN)
+#include "chrome/browser/font_prewarmer_tab_helper.h"
 #endif
 
 namespace tabs {
@@ -606,6 +619,11 @@ void TabFeatures::Init(TabInterface& tab, Profile* profile) {
 
   task_manager::WebContentsTags::CreateForTabContents(tab.GetContents());
 
+#if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_LINUX)
+  desktop_session_duration_observer_ =
+      metrics::DesktopSessionDurationObserver::MaybeCreate(tab.GetContents());
+#endif
+
 #if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_LINUX) || \
     BUILDFLAG(IS_CHROMEOS)
   inactive_window_mouse_event_controller_ =
@@ -635,6 +653,8 @@ void TabFeatures::Init(TabInterface& tab, Profile* profile) {
   commit_limit_oom_recovery_tracker_ =
       GetUserDataFactory().CreateInstance<CommitLimitOOMRecoveryTracker>(tab,
                                                                          tab);
+  font_prewarmer_tab_helper_ =
+      std::make_unique<FontPrewarmerTabHelper>(tab.GetContents());
 #endif
 
   if (base::FeatureList::IsEnabled(net::features::kVerifyQWACs)) {
@@ -692,6 +712,15 @@ void TabFeatures::Init(TabInterface& tab, Profile* profile) {
             .CreateInstance<web_app::ProtocolHandlerPickerCoordinator>(
                 tab, tab, apps::AppServiceProxyFactory::GetForProfile(profile));
   }
+  google_one_offer_iph_tab_helper_ =
+      std::make_unique<GoogleOneOfferIphTabHelper>(tab.GetContents());
+  // Do not create for Incognito mode.
+  if (!profile->IsOffTheRecord()) {
+    campaigns_manager_session_tab_helper_ =
+        std::make_unique<CampaignsManagerSessionTabHelper>(tab.GetContents());
+  }
+  cros_isolated_web_app_enabler_ =
+      std::make_unique<ash::CrosIsolatedWebAppEnabler>(tab.GetContents());
 #endif
 
   // The controller is created for all tabs but only affects back button
@@ -715,6 +744,8 @@ void TabFeatures::Init(TabInterface& tab, Profile* profile) {
       PerformanceControlsHatsServiceFactory::IsAnySurveyFeatureEnabled()) {
     hats_helper_ = std::make_unique<HatsHelper>(tab.GetContents());
   }
+  shared_highlighting_promo_ =
+      std::make_unique<SharedHighlightingPromo>(tab.GetContents());
 #endif
 
 #if BUILDFLAG(IS_MAC) || BUILDFLAG(IS_WIN) || BUILDFLAG(IS_LINUX) || \
@@ -749,6 +780,9 @@ void TabFeatures::Init(TabInterface& tab, Profile* profile) {
     web_payments_observer_ =
         std::make_unique<payments::WebPaymentsObserver>(tab.GetContents());
   }
+
+  uma_browsing_activity_tab_helper_ =
+      std::make_unique<UMABrowsingActivityTabHelper>(tab.GetContents());
 }
 
 TabUIHelper* TabFeatures::SetTabUIHelperForTesting(
@@ -952,11 +986,37 @@ void TabFeatures::WillDiscardContents(tabs::TabInterface* tab,
         std::make_unique<payments::WebPaymentsObserver>(new_contents);
   }
 
+  uma_browsing_activity_tab_helper_ =
+      std::make_unique<UMABrowsingActivityTabHelper>(new_contents);
+
 #if BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_WIN) || \
     BUILDFLAG(IS_CHROMEOS)
   if (hats_helper_) {
     hats_helper_ = std::make_unique<HatsHelper>(new_contents);
   }
+  shared_highlighting_promo_ =
+      std::make_unique<SharedHighlightingPromo>(new_contents);
+#endif
+
+#if BUILDFLAG(IS_WIN)
+  font_prewarmer_tab_helper_ =
+      std::make_unique<FontPrewarmerTabHelper>(new_contents);
+#endif
+
+#if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_LINUX)
+  desktop_session_duration_observer_ =
+      metrics::DesktopSessionDurationObserver::MaybeCreate(new_contents);
+#endif
+
+#if BUILDFLAG(IS_CHROMEOS)
+  google_one_offer_iph_tab_helper_ =
+      std::make_unique<GoogleOneOfferIphTabHelper>(new_contents);
+  if (campaigns_manager_session_tab_helper_) {
+    campaigns_manager_session_tab_helper_ =
+        std::make_unique<CampaignsManagerSessionTabHelper>(new_contents);
+  }
+  cros_isolated_web_app_enabler_ =
+      std::make_unique<ash::CrosIsolatedWebAppEnabler>(new_contents);
 #endif
 }
 

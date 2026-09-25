@@ -575,6 +575,7 @@ if (!is_android) {
       "//chrome/browser/ui:sad_tab",
       "//chrome/browser/ui:tab_ui_helper",
       "//chrome/browser/ui:ui_features",
+      "//chrome/browser/ui:uma_browsing_activity_observer",
       "//chrome/browser/ui/actions:actions_util",
       "//chrome/browser/ui/autofill",
       "//chrome/browser/ui/blocked_content",
@@ -670,18 +671,25 @@ if (!is_android) {
         "//chrome/browser/multistep_filter",
         "//chrome/browser/multistep_filter/ui",
         "//chrome/browser/ui/hats",
+        "//chrome/browser/ui/shared_highlighting",
         "//chrome/browser/wallet",
       ]
     }
 
     if (is_win) {
-      deps += [ "//chrome/browser/ui/search_promotion" ]
+      deps += [
+        "//chrome/browser:font_prewarmer_tab_helper",
+        "//chrome/browser/ui/search_promotion",
+      ]
     }
 
     if (is_chromeos) {
       deps += [
         "//chrome/browser/apps/app_service",
+        "//chrome/browser/ash/growth",
+        "//chrome/browser/ui/ash/google_one",
         "//chrome/browser/ui/views/web_apps:protocol_handler_picker_coordinator",
+        "//chromeos/ash/experiences/isolated_web_app",
       ]
     }
   }
