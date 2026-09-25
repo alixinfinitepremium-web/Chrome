@@ -29,7 +29,7 @@ class TabModelObserver {
   virtual ~TabModelObserver();
 
   // Called when a |tab| is selected.
-  virtual void DidSelectTab(TabAndroid* tab, TabModel::TabSelectionType type);
+  virtual void DidSelectTab(TabAndroid* tab);
 
   // Called before tabs are removed from the TabModel for closure.
   virtual void WillCloseTabs(const std::vector<TabAndroid*>& tabs,
@@ -57,9 +57,6 @@ class TabModelObserver {
                                    bool is_all_tabs,
                                    bool can_restore,
                                    TabModel::TabClosingSource source);
-
-  // Called before a |tab| is added to the TabModel.
-  virtual void WillAddTab(TabAndroid* tab, TabModel::TabLaunchType type);
 
   // Called after a |tab| has been added to the TabModel.
   virtual void DidAddTab(TabAndroid* tab, TabModel::TabLaunchType type);

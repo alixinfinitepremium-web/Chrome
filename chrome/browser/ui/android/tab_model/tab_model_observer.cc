@@ -12,8 +12,7 @@ TabModelObserver::TabModelObserver() = default;
 
 TabModelObserver::~TabModelObserver() = default;
 
-void TabModelObserver::DidSelectTab(TabAndroid* tab,
-                                    TabModel::TabSelectionType type) {}
+void TabModelObserver::DidSelectTab(TabAndroid* tab) {}
 
 void TabModelObserver::WillCloseTabs(const std::vector<TabAndroid*>& tabs,
                                      bool is_all_tabs,
@@ -36,9 +35,6 @@ void TabModelObserver::OnTabCloseCommitted(
     bool is_all_tabs,
     bool can_restore,
     TabModel::TabClosingSource source) {}
-
-void TabModelObserver::WillAddTab(TabAndroid* tab,
-                                  TabModel::TabLaunchType type) {}
 
 void TabModelObserver::DidAddTab(TabAndroid* tab,
                                  TabModel::TabLaunchType type) {}
