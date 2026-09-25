@@ -345,7 +345,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '2c5e2a5229a7858b5d06063c6e8dea5d34fb145b',
+  'angle_revision': 'bbf320aa343f7cb9b3dff790828b258710b3c20f',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -561,7 +561,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling agents-public
   # and whatever else without interference from each other.
-  'agents_public_revision': '09da8780044de1a8977e1d9c6adba1298b92f99e',
+  'agents_public_revision': '865684c4f7092e4ab05adcd3fcf068672ff28d27',
 
   # If you change this, also update the libc++ revision in
   # //buildtools/deps_revisions.gni.
@@ -1517,7 +1517,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_linux64',
-          'version': 'version:2@1699006',
+          'version': 'version:2@1700028',
         },
       ],
   },
@@ -1528,7 +1528,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_mac_amd64',
-          'version': 'version:2@1699008',
+          'version': 'version:2@1700037',
         },
       ],
   },
@@ -1868,7 +1868,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': 'zrRsMnczDry6t2oNY3Q23dIsJeyp5c_ubZXJcp4cdyUC',
+          'version': 'SnyXsWDV2SEtzO0Uy2bAhtSy1EHi3ZGsvnEM5FO9SCQC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
