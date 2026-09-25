@@ -183,7 +183,6 @@ public class NewTabPageCoordinator implements ModuleDelegateHost {
             mAiModeButtonUiConfigSupplier;
     private @Nullable Callback<@Nullable AiModeButtonUiConfig>
             mAiModeButtonUiConfigSupplierObserver;
-    private @Nullable AiModeButtonUiConfig mAiModeButtonUiConfig;
     private @Nullable HomeModulesCoordinator mHomeModulesCoordinator;
     private @Nullable ViewGroup mHomeModulesContainer;
     private SetupListManager.@Nullable Observer mSetupListObserver;
@@ -586,7 +585,8 @@ public class NewTabPageCoordinator implements ModuleDelegateHost {
                     && ComposeplateUtils.canShowComposeplateButtonOnNtp(mProfile);
         }
 
-        return ComposeplateUtils.canShowComposeplateButtonOnNtp(mAiModeButtonUiConfig != null);
+        return ComposeplateUtils.canShowComposeplateButtonOnNtp(
+                mSearchProviderInfoDelegate.hasAiModeEntryPoint());
     }
 
     @VisibleForTesting
@@ -605,6 +605,10 @@ public class NewTabPageCoordinator implements ModuleDelegateHost {
                 this::onComposeplateButtonClicked);
 
         updateComposeplateBackground();
+
+        // A new NTP receives the AiModeButtonUiConfig during #initialize(), before the
+        // composeplate exists, so apply it now rather than leaving the layout's default strings.
+        maybeUpdateAiModeButton();
     }
 
     private void onComposeplateButtonClicked(View view) {
@@ -881,13 +885,12 @@ public class NewTabPageCoordinator implements ModuleDelegateHost {
     /** Called when the default search engine's AiModeButtonUiConfig is changed. */
     private void onAiModeButtonUiConfigChanged(
             @Nullable AiModeButtonUiConfig aiModeButtonUiConfig) {
-        if (mAiModeButtonUiConfig == aiModeButtonUiConfig) return;
-
-        mAiModeButtonUiConfig = aiModeButtonUiConfig;
+        // The config must be cached before any early return below, since
+        // #initializeComposeplateFlags() relies on it.
+        if (!mSearchProviderInfoDelegate.setAiModeButtonUiConfig(aiModeButtonUiConfig)) return;
 
         // Skips if the flag hasn't been initialized since the initialization of the following
-        // components will be called again in #initialize(). Note that the config above must be
-        // cached before this early return, since #initializeComposeplateFlags() relies on it.
+        // components will be called again in #initialize().
         if (mCanShowComposeplateButton == TriState.NOT_SET) return;
 
         // When search engine is changed, the visibility of the composeplate button and
@@ -902,9 +905,7 @@ public class NewTabPageCoordinator implements ModuleDelegateHost {
             initializeComposeplate();
         }
 
-        if (mCanShowComposeplateButton == TriState.TRUE && mAiModeButtonUiConfig != null) {
-            maybeUpdateAiModeButton();
-        }
+        maybeUpdateAiModeButton();
 
         if (previousCanShowComposeplateButton != mCanShowComposeplateButton) {
             // When the AI mode button's visibility is changed, the height of search box might be
@@ -915,9 +916,21 @@ public class NewTabPageCoordinator implements ModuleDelegateHost {
         }
     }
 
-    /** Updates the icon and text for AI Mode button. */
+    /**
+     * Updates the icon and text for AI Mode button, if the third party AI Mode entry point is
+     * enabled, the button can be shown and the default search engine offers an AI Mode entry point.
+     */
     private void maybeUpdateAiModeButton() {
-        // TODO(https://crbug.com/561995440): Updates the icon and text for AI Mode button.
+        if (!mIsAim3pEntrypointEnabled
+                || mComposeplateCoordinator == null
+                || mCanShowComposeplateButton != TriState.TRUE
+                || !mSearchProviderInfoDelegate.hasAiModeEntryPoint()) {
+            return;
+        }
+
+        // TODO(https://crbug.com/561995440): Updates the icon for the AI Mode button.
+        mComposeplateCoordinator.updateAiModeButtonUiConfig(
+                assumeNonNull(mSearchProviderInfoDelegate.getAiModeButtonUiConfig()));
     }
 
     /** Updates the margins for the most visited tiles layout based on what is shown above it. */
