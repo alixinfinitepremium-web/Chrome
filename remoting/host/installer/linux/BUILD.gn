@@ -78,6 +78,7 @@ if (enable_me2me_host && target_cpu == "x64") {
       "//remoting/host/linux/pipewire.conf.template",
       "//remoting/host/linux/pipewire-media-session.conf.template",
       "//remoting/host/linux/pipewire-pulse.conf.template",
+      "//remoting/host/linux/shared_lib.py",
       "//remoting/host/linux/wireplumber.conf.fragment",
       "//remoting/host/linux/wireplumber.conf.template",
       "//remoting/resources/chromoting128.png",
