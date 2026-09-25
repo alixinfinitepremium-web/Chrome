@@ -1606,20 +1606,6 @@ chromium-metrics-reviews@google.com.
   <token key="ModelExecutionFeature" variants="ModelExecutionFeature"/>
 </histogram>
 
-<histogram
-    name="OptimizationGuide.ModelExecution.TimeToProcessRedactions.{ModelExecutionFeature}"
-    units="microseconds" expires_after="M145">
-  <owner>holte@chromium.org</owner>
-  <owner>wittman@chromium.org</owner>
-  <summary>
-    Records amount of time it takes to process redactions. This is called every
-    time text is received from the model.
-
-    Note: This metric is dropped for clients without high-precision clocks.
-  </summary>
-  <token key="ModelExecutionFeature" variants="ModelExecutionFeature"/>
-</histogram>
-
 <histogram name="OptimizationGuide.ModelExecutionFetcher.NetErrorCode"
     enum="NetErrorCodes" expires_after="2027-04-14">
   <owner>freedjm@google.com</owner>
@@ -1801,20 +1787,6 @@ chromium-metrics-reviews@google.com.
     Records the time duration between runs of the model for
     {OptimizationTarget}. Recorded once for every model run after the first. In
     M115+ if batch execution is used, this is recorded once per batch.
-  </summary>
-  <token key="OptimizationTarget" variants="OptimizationTarget"/>
-</histogram>
-
-<histogram name="OptimizationGuide.ModelFilesVerified.{OptimizationTarget}"
-    enum="BooleanValid" expires_after="M145">
-  <owner>wittman@chromium.org</owner>
-  <owner>rajendrant@chromium.org</owner>
-  <summary>
-    Records whether all model files existed on disk when the model was requested
-    to be loaded for {OptimizationTarget}. The model file itself and any
-    additional files must be present on disk for this check to report success.
-    Recorded once per attempted model load, which happens when a feature is
-    registered with the Optimization Guide.
   </summary>
   <token key="OptimizationTarget" variants="OptimizationTarget"/>
 </histogram>
@@ -2943,7 +2915,7 @@ chromium-metrics-reviews@google.com.
 
 <histogram name="OptimizationGuide.PredictionModelStore.ModelRemovalReason"
     enum="OptimizationGuidePredictionModelStoreModelRemovalReason"
-    expires_after="M145">
+    expires_after="2027-04-14">
   <owner>rajendrant@chromium.org</owner>
   <owner>wittman@chromium.org</owner>
   <summary>
