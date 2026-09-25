@@ -201,7 +201,6 @@
 #include "chrome/browser/ash/boot_times_recorder/boot_times_recorder_tab_helper.h"
 #include "chrome/browser/ash/child_accounts/time_limits/web_time_navigation_observer.h"
 #include "chrome/browser/ash/mahi/web_contents/mahi_tab_helper.h"
-#include "chrome/browser/chromeos/gemini_app/gemini_app_tab_helper.h"
 #include "chrome/browser/chromeos/policy/dlp/dlp_content_tab_helper.h"
 #endif
 
@@ -223,7 +222,6 @@
 #include "chrome/browser/extensions/tab_helper.h"
 #include "extensions/browser/view_type_utils.h"
 #if !BUILDFLAG(IS_ANDROID)
-#include "chrome/browser/web_applications/isolated_web_apps/window_management/window_management_content_setting_observer.h"
 #include "chrome/browser/web_applications/policy/pre_redirection_url_observer.h"
 #include "chrome/browser/web_applications/web_app_utils.h"
 #endif  // !BUILDFLAG(IS_ANDROID)
@@ -733,7 +731,6 @@ void TabHelpers::AttachTabHelpers(WebContents* web_contents,
 #if BUILDFLAG(IS_CHROMEOS)
   ash::BootTimesRecorderTabHelper::MaybeCreateForWebContents(web_contents);
 
-  GeminiAppTabHelper::MaybeCreateForWebContents(web_contents);
   mahi::MahiTabHelper::MaybeCreateForWebContents(web_contents);
   policy::DlpContentTabHelper::MaybeCreateForWebContents(web_contents);
   ash::app_time::WebTimeNavigationObserver::MaybeCreateForWebContents(
@@ -772,11 +769,6 @@ void TabHelpers::AttachTabHelpers(WebContents* web_contents,
 #endif
 
 #if BUILDFLAG(ENABLE_EXTENSIONS_CORE)
-#if !BUILDFLAG(IS_ANDROID)
-  web_app::WindowManagementContentSettingObserver::CreateForWebContents(
-      web_contents);
-#endif
-
   // These helpers are used on Win/Mac/Linux and also desktop Android.
   extensions::NavigationExtensionEnabler::CreateForWebContents(web_contents);
   extensions::WebNavigationTabObserver::CreateForWebContents(web_contents);
