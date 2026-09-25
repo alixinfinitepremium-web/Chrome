@@ -1880,26 +1880,6 @@ chromium-metrics-reviews@google.com.
   </summary>
 </histogram>
 
-<histogram name="Blink.FedCm.CloseVerifySheet.Android" enum="Boolean"
-    expires_after="2027-02-14">
-  <owner>yigu@chromium.org</owner>
-  <owner>web-identity-eng@google.com</owner>
-  <summary>
-    Records whether the UI that a user is closing is the verify sheet or not on
-    Android. Records at most one sample per API call.
-  </summary>
-</histogram>
-
-<histogram name="Blink.FedCm.CloseVerifySheet.Desktop" enum="Boolean"
-    expires_after="2027-02-28">
-  <owner>yigu@chromium.org</owner>
-  <owner>web-identity-eng@google.com</owner>
-  <summary>
-    Records whether the UI that a user is closing is the verify sheet or not on
-    desktop. Records at most one sample per API call.
-  </summary>
-</histogram>
-
 <histogram name="Blink.FedCm.ContinueOn.PopupWindowResult"
     enum="FedCmContinueOnPopupResult" expires_after="2027-09-05">
   <owner>yigu@chromium.org</owner>
@@ -6329,6 +6309,30 @@ chromium-metrics-reviews@google.com.
     <variant name="WebGL2"/>
     <variant name="WebGPU"/>
   </token>
+</histogram>
+
+<histogram name="MemoryCache.PruneStrongReferences.Time" units="ms"
+    expires_after="2027-03-14">
+  <owner>aattar@google.com</owner>
+  <owner>src/third_party/blink/renderer/platform/loader/OWNERS</owner>
+  <summary>
+    Measures the time spent pruning strong references in the Blink MemoryCache
+    using the standard FIFO eviction policy. Recorded each time
+    MemoryCache::PruneStrongReferences() runs when strong reference pruning is
+    needed.
+  </summary>
+</histogram>
+
+<histogram name="MemoryCache.PruneTieredStrongReferences.Time" units="ms"
+    expires_after="2027-03-14">
+  <owner>aattar@google.com</owner>
+  <owner>src/third_party/blink/renderer/platform/loader/OWNERS</owner>
+  <summary>
+    Measures the time spent pruning strong references in the Blink MemoryCache
+    using the value-based tiered eviction policy. Recorded each time
+    MemoryCache::PruneTieredStrongReferences() runs when strong reference
+    pruning is needed.
+  </summary>
 </histogram>
 
 </histograms>

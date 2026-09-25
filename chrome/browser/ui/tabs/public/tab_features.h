@@ -32,6 +32,7 @@
 #include "base/callback_list.h"
 #include "base/memory/weak_ptr.h"
 #include "chrome/common/buildflags.h"
+#include "components/signin/public/base/signin_buildflags.h"
 #include "content/public/common/buildflags.h"
 #include "rlz/buildflags/buildflags.h"
 #include "ui/base/unowned_user_data/user_data_factory.h"
@@ -75,6 +76,7 @@ class SearchPromotionNavigationObserver;
 class SecurityStateEventObserver;
 class SharedHighlightingPromo;
 class SidePanelRegistry;
+class TabCaptureContentsBorderHelper;
 class TabResourceUsageTabHelper;
 class TabUIHelper;
 class ThumbnailTabHelper;
@@ -142,6 +144,9 @@ class ContextualCueingWebContentsObserver;
 
 namespace contextual_tasks {
 class ContextualTasksTabVisitTracker;
+#if BUILDFLAG(ENABLE_DICE_SUPPORT)
+class SearchAiModePromoTabHelper;
+#endif
 }  // namespace contextual_tasks
 
 namespace customize_chrome {
@@ -241,6 +246,9 @@ class GoogleOneOfferIphTabHelper;
 namespace ash {
 class CrosIsolatedWebAppEnabler;
 }  // namespace ash
+namespace ash::app_time {
+class WebTimeNavigationObserver;
+}  // namespace ash::app_time
 namespace mahi {
 class MahiTabHelper;
 }  // namespace mahi
@@ -761,6 +769,8 @@ class TabFeatures {
       cros_isolated_web_app_enabler_;
   std::unique_ptr<GeminiAppTabHelper> gemini_app_tab_helper_;
   std::unique_ptr<mahi::MahiTabHelper> mahi_tab_helper_;
+  std::unique_ptr<ash::app_time::WebTimeNavigationObserver>
+      web_time_navigation_observer_;
 #endif
 
 #if BUILDFLAG(ENABLE_RLZ)
@@ -770,6 +780,11 @@ class TabFeatures {
 
 #if BUILDFLAG(ENABLE_PLUGINS)
   std::unique_ptr<PluginObserver> plugin_observer_;
+#endif
+
+#if BUILDFLAG(ENABLE_DICE_SUPPORT)
+  std::unique_ptr<contextual_tasks::SearchAiModePromoTabHelper>
+      search_ai_mode_promo_tab_helper_;
 #endif
 
 #if !BUILDFLAG(IS_ANDROID)
@@ -802,6 +817,9 @@ class TabFeatures {
 
   std::unique_ptr<web_app::WindowManagementContentSettingObserver>
       window_management_content_setting_observer_;
+
+  std::unique_ptr<TabCaptureContentsBorderHelper>
+      tab_capture_contents_border_helper_;
 
   // Must be the last member.
   base::WeakPtrFactory<TabFeatures> weak_factory_{this};

@@ -1024,7 +1024,6 @@ source_set("tab_helpers_impl") {
     "//components/compose:buildflags",
     "//components/content_capture/common",
     "//components/content_settings/browser",
-    "//components/contextual_tasks/public:feature_list",
     "//components/dom_distiller/core:dom_distiller_features",
     "//components/download/content/factory",
     "//components/download/content/public",
@@ -1051,7 +1050,6 @@ source_set("tab_helpers_impl") {
     "//components/search",
     "//components/sessions",
     "//components/sessions:session_id",
-    "//components/signin/public/base:signin_buildflags",
     "//components/site_engagement/content",
     "//components/tabs:public",
     "//components/tracing:tracing_config",
@@ -1089,7 +1087,6 @@ source_set("tab_helpers_impl") {
       "//chrome/browser/ui/passwords",
       "//chrome/browser/ui/read_anything",
       "//chrome/browser/ui/search",
-      "//chrome/browser/ui/views/tab_sharing",
       "//components/image_fetcher/core",
       "//components/omnibox/browser",
       "//components/web_modal",
@@ -1099,7 +1096,6 @@ source_set("tab_helpers_impl") {
   if (is_chromeos) {
     deps += [
       "//chrome/browser/ash/boot_times_recorder",
-      "//chrome/browser/ash/child_accounts/time_limits",
       "//chrome/browser/ash/growth",
       "//chrome/browser/chromeos/policy/dlp",
       "//chrome/browser/ui/ash/google_one",
@@ -1143,13 +1139,6 @@ source_set("tab_helpers_impl") {
     deps += [
       "//components/safe_browsing/content/browser:client_side_detection",
       "//components/safe_browsing/content/browser:safe_browsing_blocking_page",
-    ]
-  }
-
-  if (enable_dice_support) {
-    deps += [
-      "//chrome/browser/contextual_tasks:ui",
-      "//components/signin/public/base:signin_switches",
     ]
   }
 }

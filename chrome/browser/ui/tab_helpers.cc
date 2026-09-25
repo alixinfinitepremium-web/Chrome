@@ -94,7 +94,6 @@
 #include "chrome/browser/ui/search_engines/search_engine_tab_helper.h"
 #include "chrome/browser/ui/tab_contents/core_tab_helper.h"
 #include "chrome/browser/ui/tab_dialogs.h"
-#include "chrome/browser/ui/views/tab_sharing/tab_capture_contents_border_helper.h"
 #include "chrome/browser/v8_compile_hints/v8_compile_hints_tab_helper.h"
 #include "chrome/browser/vr/vr_tab_helper.h"
 #include "chrome/common/buildflags.h"
@@ -199,7 +198,6 @@
 
 #if BUILDFLAG(IS_CHROMEOS)
 #include "chrome/browser/ash/boot_times_recorder/boot_times_recorder_tab_helper.h"
-#include "chrome/browser/ash/child_accounts/time_limits/web_time_navigation_observer.h"
 #include "chrome/browser/chromeos/policy/dlp/dlp_content_tab_helper.h"
 #endif
 
@@ -249,12 +247,6 @@
 #include "chrome/browser/safe_browsing/trigger_creator.h"
 #include "components/safe_browsing/content/browser/safe_browsing_tab_observer.h"
 #endif
-
-#if BUILDFLAG(ENABLE_DICE_SUPPORT)
-#include "chrome/browser/contextual_tasks/search_ai_mode_promo_tab_helper.h"
-#include "components/contextual_tasks/public/features.h"
-#include "components/signin/public/base/signin_switches.h"
-#endif  // BUILDFLAG(ENABLE_DICE_SUPPORT)
 
 using content::WebContents;
 
@@ -576,13 +568,6 @@ void TabHelpers::AttachTabHelpers(WebContents* web_contents,
 #endif  // BUILDFLAG(SAFE_BROWSING_AVAILABLE)
   SafetyTipWebContentsObserver::CreateForWebContents(web_contents);
   SearchEngineTabHelper::CreateForWebContents(web_contents);
-#if BUILDFLAG(ENABLE_DICE_SUPPORT)
-  if (base::FeatureList::IsEnabled(switches::kEnableSearchAIModeSigninPromo) &&
-      base::FeatureList::IsEnabled(contextual_tasks::kContextualTasks)) {
-    contextual_tasks::SearchAiModePromoTabHelper::CreateForWebContents(
-        web_contents);
-  }
-#endif  // BUILDFLAG(ENABLE_DICE_SUPPORT)
   if (site_engagement::SiteEngagementService::IsEnabled()) {
     site_engagement::SiteEngagementService::Helper::CreateForWebContents(
         web_contents,
@@ -605,9 +590,6 @@ void TabHelpers::AttachTabHelpers(WebContents* web_contents,
   }
 #endif
   tasks::TaskTabHelper::CreateForWebContents(web_contents);
-#if !BUILDFLAG(IS_ANDROID)
-  TabCaptureContentsBorderHelper::CreateForWebContents(web_contents);
-#endif  // BUILDFLAG(IS_ANDROID)
   TabContextDecryptionTokenTabHelper::CreateForWebContents(web_contents);
   TrustedVaultEncryptionKeysTabHelper::CreateForWebContents(web_contents);
   auto* service = RevokedPermissionsServiceFactory::GetForProfile(profile);
@@ -719,8 +701,6 @@ void TabHelpers::AttachTabHelpers(WebContents* web_contents,
   ash::BootTimesRecorderTabHelper::MaybeCreateForWebContents(web_contents);
 
   policy::DlpContentTabHelper::MaybeCreateForWebContents(web_contents);
-  ash::app_time::WebTimeNavigationObserver::MaybeCreateForWebContents(
-      web_contents);
 #endif
 
 #if !BUILDFLAG(IS_ANDROID)

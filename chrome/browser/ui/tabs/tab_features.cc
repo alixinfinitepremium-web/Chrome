@@ -115,6 +115,7 @@
 #include "chrome/browser/ui/views/location_bar/lens_overlay_homework_page_action_controller.h"
 #include "chrome/browser/ui/views/passwords/manage_passwords_page_action_controller.h"
 #include "chrome/browser/ui/views/side_panel/customize_chrome/side_panel_controller_views.h"
+#include "chrome/browser/ui/views/tab_sharing/tab_capture_contents_border_helper.h"
 #include "chrome/browser/ui/views/translate/translate_page_action_controller.h"
 #include "chrome/browser/ui/views/zoom/zoom_view_controller.h"
 #include "chrome/browser/ui/web_applications/pwa_install_page_action.h"
@@ -181,6 +182,7 @@
 
 #if BUILDFLAG(IS_CHROMEOS)
 #include "chrome/browser/apps/app_service/app_service_proxy_factory.h"  // nogncheck
+#include "chrome/browser/ash/child_accounts/time_limits/web_time_navigation_observer.h"
 #include "chrome/browser/ash/growth/campaigns_manager_session_tab_helper.h"
 #include "chrome/browser/ash/mahi/web_contents/mahi_tab_helper.h"
 #include "chrome/browser/chromeos/gemini_app/gemini_app_tab_helper.h"
@@ -206,6 +208,11 @@
 
 #if BUILDFLAG(ENABLE_PLUGINS)
 #include "chrome/browser/plugins/plugin_observer.h"
+#endif
+
+#if BUILDFLAG(ENABLE_DICE_SUPPORT)
+#include "chrome/browser/contextual_tasks/search_ai_mode_promo_tab_helper.h"
+#include "components/signin/public/base/signin_switches.h"
 #endif
 
 namespace tabs {
@@ -734,6 +741,9 @@ void TabFeatures::Init(TabInterface& tab, Profile* profile) {
       std::make_unique<ash::CrosIsolatedWebAppEnabler>(tab.GetContents());
   gemini_app_tab_helper_ = GeminiAppTabHelper::MaybeCreate(tab.GetContents());
   mahi_tab_helper_ = mahi::MahiTabHelper::MaybeCreate(tab.GetContents());
+  web_time_navigation_observer_ =
+      ash::app_time::WebTimeNavigationObserver::MaybeCreate(tab,
+                                                            tab.GetContents());
 #endif
 
   // The controller is created for all tabs but only affects back button
@@ -809,6 +819,20 @@ void TabFeatures::Init(TabInterface& tab, Profile* profile) {
 #if BUILDFLAG(ENABLE_PLUGINS)
   plugin_observer_ = GetUserDataFactory().CreateInstance<PluginObserver>(
       tab, tab, tab.GetContents());
+#endif
+
+  tab_capture_contents_border_helper_ =
+      GetUserDataFactory().CreateInstance<TabCaptureContentsBorderHelper>(tab,
+                                                                          tab);
+
+#if BUILDFLAG(ENABLE_DICE_SUPPORT)
+  if (base::FeatureList::IsEnabled(switches::kEnableSearchAIModeSigninPromo) &&
+      base::FeatureList::IsEnabled(contextual_tasks::kContextualTasks)) {
+    search_ai_mode_promo_tab_helper_ =
+        GetUserDataFactory()
+            .CreateInstance<contextual_tasks::SearchAiModePromoTabHelper>(
+                tab, tab, tab.GetContents());
+  }
 #endif
 }
 
@@ -1050,6 +1074,9 @@ void TabFeatures::WillDiscardContents(tabs::TabInterface* tab,
       std::make_unique<ash::CrosIsolatedWebAppEnabler>(new_contents);
   gemini_app_tab_helper_ = GeminiAppTabHelper::MaybeCreate(new_contents);
   mahi_tab_helper_ = mahi::MahiTabHelper::MaybeCreate(new_contents);
+  if (web_time_navigation_observer_) {
+    web_time_navigation_observer_->OnDiscardContents(new_contents);
+  }
 #endif
 
 #if BUILDFLAG(ENABLE_RLZ)
@@ -1061,6 +1088,17 @@ void TabFeatures::WillDiscardContents(tabs::TabInterface* tab,
   plugin_observer_.reset();
   plugin_observer_ = GetUserDataFactory().CreateInstance<PluginObserver>(
       *tab, *tab, new_contents);
+#endif
+
+#if BUILDFLAG(ENABLE_DICE_SUPPORT)
+  search_ai_mode_promo_tab_helper_.reset();
+  if (base::FeatureList::IsEnabled(switches::kEnableSearchAIModeSigninPromo) &&
+      base::FeatureList::IsEnabled(contextual_tasks::kContextualTasks)) {
+    search_ai_mode_promo_tab_helper_ =
+        GetUserDataFactory()
+            .CreateInstance<contextual_tasks::SearchAiModePromoTabHelper>(
+                *tab, *tab, new_contents);
+  }
 #endif
 }
 

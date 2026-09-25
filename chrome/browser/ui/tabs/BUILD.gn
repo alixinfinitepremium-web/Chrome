@@ -5,6 +5,7 @@
 assert(is_win || is_mac || is_linux || is_chromeos || is_android)
 
 import("//chrome/common/features.gni")
+import("//components/signin/features.gni")
 import("//content/public/common/features.gni")
 import("//rlz/buildflags/buildflags.gni")
 
@@ -21,6 +22,7 @@ source_set("tabs_public") {
   public_deps = [
     "//base",
     "//chrome/common:buildflags",
+    "//components/signin/public/base:signin_buildflags",
     "//components/tab_groups",
     "//components/tabs:public",
     "//content/public/common:buildflags",
@@ -667,6 +669,7 @@ if (!is_android) {
         "//chrome/browser/selection",
         "//chrome/browser/ui/views/frame:browser_view_header",
         "//chrome/browser/ui/views/js_optimization:impl",
+        "//chrome/browser/ui/views/tab_sharing",
         "//chrome/browser/ui/views/zoom",
       ]
     }
@@ -691,6 +694,7 @@ if (!is_android) {
     if (is_chromeos) {
       deps += [
         "//chrome/browser/apps/app_service",
+        "//chrome/browser/ash/child_accounts/time_limits",
         "//chrome/browser/ash/growth",
         "//chrome/browser/ash/mahi/web_contents",
         "//chrome/browser/chromeos/gemini_app",
@@ -706,6 +710,13 @@ if (!is_android) {
 
     if (enable_plugins) {
       deps += [ "//chrome/browser/plugins" ]
+    }
+
+    if (enable_dice_support) {
+      deps += [
+        "//chrome/browser/contextual_tasks:ui",
+        "//components/signin/public/base:signin_switches",
+      ]
     }
   }
 
