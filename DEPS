@@ -2229,7 +2229,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'ddeab23ad1ffbdbe1ecfac9ad20df125f5849073',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '56b8271b3f10e046bffac2cfc44b2f81162cd97e',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -3941,7 +3941,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '8c06d93cc43d3f645322bbee91ecda6202cef4f1',
+        'e4c6f46d3115e203b482a0d33ee642d669f3360b',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
