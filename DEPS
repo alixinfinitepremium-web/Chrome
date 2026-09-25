@@ -1764,7 +1764,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '771b633d1f43dfff7405971d7fa3bb961e990c9b',
+    '98ac53629d609284a7ec26e09f897e33d513ddae',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -2541,7 +2541,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/ktfmt',
-              'version': '8JPLHuYpiImlJ00s48xzyugV2KnDgo_b2FRkSYIUk20C',
+              'version': 'Ysp7OxGSQ3F91gTf-uhFrFbCZdzcQWLIUCvDxXhRVyIC',
           },
       ],
       'condition': '(checkout_android or checkout_linux) and non_git_source',
@@ -3180,7 +3180,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/turbine',
-              'version': 'rqbGMhci4trzUCXgMBzoRMpTKADs_F5sWUKJXxsu6BYC',
+              'version': 'T806Gn7Jc3ZfzxWoKZsx8ta3_X225VfIeMi3ZMQdGTIC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -3287,7 +3287,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + 'fc12d47a84b7fbc54ddbaf6b520f9e80f2bdff66',
+    Var('webrtc_git') + '/src.git' + '@' + 'cae4027d86edc8f1278098c4aa1fea909a23c6f4',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
