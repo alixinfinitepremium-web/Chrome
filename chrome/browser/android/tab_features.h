@@ -58,6 +58,7 @@ class SaasUsageNavigationObserver;
 namespace glic {
 class ContextualCueingHelper;
 class GlicInstanceHelper;
+class GlicMarketingPageTabHelper;
 class GlicSidePanelCoordinator;
 }  // namespace glic
 
@@ -73,9 +74,16 @@ namespace payments {
 class WebPaymentsObserver;
 }  // namespace payments
 
+namespace v8_compile_hints {
+class V8CompileHintsTabHelper;
+}  // namespace v8_compile_hints
+
 class ConnectionHelpTabHelper;
 class HttpAuthCacheStatus;
+class RevokedPermissionsTabHelper;
 class SecurityStateEventObserver;
+class StorageAccessAPITabHelper;
+class TabContextDecryptionTokenTabHelper;
 
 #if BUILDFLAG(ENABLE_WEBUI_NTP)
 namespace customize_chrome {
@@ -165,11 +173,19 @@ class TabFeatures {
   std::unique_ptr<tabs::PageContextEligibilityHelper>
       page_context_eligibility_helper_;
   std::unique_ptr<glic::GlicInstanceHelper> glic_instance_helper_;
+  std::unique_ptr<glic::GlicMarketingPageTabHelper>
+      glic_marketing_page_tab_helper_;
   std::unique_ptr<glic::GlicSidePanelCoordinator> glic_side_panel_coordinator_;
   std::unique_ptr<actor::ui::ActorUiTabControllerInterface>
       actor_ui_tab_controller_;
 
   std::unique_ptr<payments::WebPaymentsObserver> web_payments_observer_;
+  std::unique_ptr<TabContextDecryptionTokenTabHelper>
+      tab_context_decryption_token_tab_helper_;
+  std::unique_ptr<v8_compile_hints::V8CompileHintsTabHelper>
+      v8_compile_hints_tab_helper_;
+  std::unique_ptr<StorageAccessAPITabHelper> storage_access_api_tab_helper_;
+  std::unique_ptr<RevokedPermissionsTabHelper> revoked_permissions_tab_helper_;
 
   // Holds the WebUI embedding context subscription.
   base::CallbackListSubscription tab_subscription_;

@@ -71,13 +71,16 @@ class QwacWebContentsObserver;
 class ReadAnythingController;
 class ReadAnythingSidePanelController;
 class RecordReplayPageActionController;
+class RevokedPermissionsTabHelper;
 class SadTabHelper;
 class SearchEngineChoiceTabHelper;
 class SearchPromotionNavigationObserver;
 class SecurityStateEventObserver;
 class SharedHighlightingPromo;
 class SidePanelRegistry;
+class StorageAccessAPITabHelper;
 class TabCaptureContentsBorderHelper;
+class TabContextDecryptionTokenTabHelper;
 class TabResourceUsageTabHelper;
 class TabUIHelper;
 class ThumbnailTabHelper;
@@ -165,6 +168,7 @@ namespace glic {
 class ContextualCueingHelper;
 class GlicCueTabState;
 class GlicInstanceHelper;
+class GlicMarketingPageTabHelper;
 class GlicPromotionSourceNavigationObserver;
 class GlicTabIndicatorHelper;
 class GlicSidePanelCoordinator;
@@ -184,6 +188,10 @@ class ZoomViewController;
 namespace permissions {
 class PermissionIndicatorsTabData;
 }  // namespace permissions
+
+namespace v8_compile_hints {
+class V8CompileHintsTabHelper;
+}  // namespace v8_compile_hints
 
 namespace webapps {
 class AppBannerManagerDesktop;
@@ -608,6 +616,8 @@ class TabFeatures {
       glic_selection_overlay_controller_;
 
   std::unique_ptr<glic::GlicPageFeaturesManager> glic_page_features_manager_;
+  std::unique_ptr<glic::GlicMarketingPageTabHelper>
+      glic_marketing_page_tab_helper_;
   std::unique_ptr<glic::GlicPromotionSourceNavigationObserver>
       glic_promotion_source_navigation_observer_;
 
@@ -829,6 +839,16 @@ class TabFeatures {
 
   std::unique_ptr<TabCaptureContentsBorderHelper>
       tab_capture_contents_border_helper_;
+
+  std::unique_ptr<TabContextDecryptionTokenTabHelper>
+      tab_context_decryption_token_tab_helper_;
+
+  std::unique_ptr<v8_compile_hints::V8CompileHintsTabHelper>
+      v8_compile_hints_tab_helper_;
+
+  std::unique_ptr<StorageAccessAPITabHelper> storage_access_api_tab_helper_;
+
+  std::unique_ptr<RevokedPermissionsTabHelper> revoked_permissions_tab_helper_;
 
   // Must be the last member.
   base::WeakPtrFactory<TabFeatures> weak_factory_{this};

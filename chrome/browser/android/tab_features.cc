@@ -18,6 +18,7 @@
 #include "chrome/browser/enterprise/reporting/saas_usage/saas_usage_navigation_observer.h"
 #include "chrome/browser/enterprise/util/managed_browser_utils.h"
 #include "chrome/browser/flags/android/chrome_feature_list.h"
+#include "chrome/browser/glic/glic_marketing_page_tab_helper.h"
 #include "chrome/browser/glic/public/features.h"
 #include "chrome/browser/glic/public/glic_enabling.h"
 #include "chrome/browser/glic/public/widget/glic_side_panel_coordinator_android.h"
@@ -32,16 +33,23 @@
 #include "chrome/browser/ssl/ask_before_http_dialog_controller.h"
 #include "chrome/browser/ssl/connection_help_tab_helper.h"
 #include "chrome/browser/ssl/security_state_event_observer.h"
+#include "chrome/browser/storage_access_api/storage_access_api_service_factory.h"
+#include "chrome/browser/storage_access_api/storage_access_api_service_impl.h"
+#include "chrome/browser/storage_access_api/storage_access_api_tab_helper.h"
 #include "chrome/browser/sync/sessions/sync_sessions_router_tab_helper.h"
 #include "chrome/browser/sync/sessions/sync_sessions_web_contents_router_factory.h"
+#include "chrome/browser/sync_tab_context/tab_context_decryption_token_tab_helper.h"
 #include "chrome/browser/translate/chrome_translate_client.h"
 #include "chrome/browser/ui/contextual_search/tab_contextualization_controller.h"
+#include "chrome/browser/ui/safety_hub/revoked_permissions_service.h"
+#include "chrome/browser/ui/safety_hub/revoked_permissions_service_factory.h"
 #include "chrome/browser/ui/side_panel/android/android_side_panel_enabled_fn.h"
 #include "chrome/browser/ui/side_panel/internal/android/dev/side_panel_tab_scoped_dev_feature.h"
 #include "chrome/browser/ui/side_panel/side_panel_registry.h"
 #include "chrome/browser/ui/side_panel/side_panel_ui.h"
 #include "chrome/browser/ui/tabs/page_context_eligibility_helper.h"
 #include "chrome/browser/ui/webui/webui_embedding_context.h"
+#include "chrome/browser/v8_compile_hints/v8_compile_hints_tab_helper.h"
 #include "chrome/common/buildflags.h"
 #include "chrome/common/chrome_features.h"
 #include "components/actor/core/actor_features.h"
@@ -212,6 +220,11 @@ TabFeatures::TabFeatures(content::WebContents* web_contents, Profile* profile) {
 
   contextual_cueing_helper_ = glic::ContextualCueingHelper::MaybeCreate(tab);
 
+  if (base::FeatureList::IsEnabled(features::kGlicMarketingAutoOpen)) {
+    glic_marketing_page_tab_helper_ =
+        std::make_unique<glic::GlicMarketingPageTabHelper>(web_contents);
+  }
+
 #if BUILDFLAG(ENABLE_WEBUI_NTP)
   if (base::FeatureList::IsEnabled(ntp_features::kNtpCustomizeWebUiAndroid)) {
     customize_chrome_side_panel_controller_ =
@@ -229,6 +242,22 @@ TabFeatures::TabFeatures(content::WebContents* web_contents, Profile* profile) {
           payments::features::kThreeDSecureTelemetry)) {
     web_payments_observer_ =
         std::make_unique<payments::WebPaymentsObserver>(web_contents);
+  }
+
+  tab_context_decryption_token_tab_helper_ =
+      TabContextDecryptionTokenTabHelper::MaybeCreate(web_contents);
+
+  v8_compile_hints_tab_helper_ =
+      v8_compile_hints::V8CompileHintsTabHelper::MaybeCreate(web_contents);
+
+  storage_access_api_tab_helper_ = std::make_unique<StorageAccessAPITabHelper>(
+      web_contents,
+      StorageAccessAPIServiceFactory::GetForBrowserContext(profile));
+
+  if (auto* service =
+          RevokedPermissionsServiceFactory::GetForProfile(profile)) {
+    revoked_permissions_tab_helper_ =
+        std::make_unique<RevokedPermissionsTabHelper>(web_contents, service);
   }
 }
 

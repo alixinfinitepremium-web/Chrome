@@ -48,9 +48,13 @@
 #include "chrome/browser/ssl/ask_before_http_dialog_controller.h"
 #include "chrome/browser/ssl/connection_help_tab_helper.h"
 #include "chrome/browser/ssl/security_state_event_observer.h"
+#include "chrome/browser/storage_access_api/storage_access_api_service_factory.h"
+#include "chrome/browser/storage_access_api/storage_access_api_service_impl.h"
+#include "chrome/browser/storage_access_api/storage_access_api_tab_helper.h"
 #include "chrome/browser/sync/sessions/sync_sessions_router_tab_helper.h"
 #include "chrome/browser/sync/sessions/sync_sessions_web_contents_router_factory.h"
 #include "chrome/browser/sync/sync_service_factory.h"
+#include "chrome/browser/sync_tab_context/tab_context_decryption_token_tab_helper.h"
 #include "chrome/browser/tab_contents/form_interaction_tab_helper.h"
 #include "chrome/browser/tab_group_sync/tab_group_sync_service_factory.h"
 #include "chrome/browser/task_manager/web_contents_tags.h"
@@ -82,6 +86,8 @@
 #include "chrome/browser/ui/performance_controls/tab_resource_usage_tab_helper.h"
 #include "chrome/browser/ui/read_anything/read_anything_controller.h"
 #include "chrome/browser/ui/sad_tab_helper.h"
+#include "chrome/browser/ui/safety_hub/revoked_permissions_service.h"
+#include "chrome/browser/ui/safety_hub/revoked_permissions_service_factory.h"
 #include "chrome/browser/ui/search_engine_choice/search_engine_choice_tab_helper.h"
 #include "chrome/browser/ui/side_panel/side_panel_registry.h"
 #include "chrome/browser/ui/sync/browser_synced_tab_delegate.h"
@@ -148,6 +154,7 @@
 #include "components/feature_engagement/public/feature_constants.h"
 #endif
 #include "chrome/browser/glic/browser_ui/glic_tab_indicator_helper.h"
+#include "chrome/browser/glic/glic_marketing_page_tab_helper.h"
 #include "chrome/browser/glic/glic_promotion_source_navigation_observer.h"
 #include "chrome/browser/glic/glic_selection_observer.h"
 #include "chrome/browser/glic/public/features.h"
@@ -162,6 +169,7 @@
 #include "chrome/browser/ui/contextual_search/tab_contextualization_controller.h"
 #include "chrome/browser/ui/tabs/features.h"
 #include "chrome/browser/ui/tabs/tab_attachment_tracker.h"
+#include "chrome/browser/v8_compile_hints/v8_compile_hints_tab_helper.h"
 #include "chrome/browser/web_applications/isolated_web_apps/window_management/window_management_content_setting_observer.h"
 #include "chrome/browser/web_applications/web_app_tab_helper.h"
 #include "chrome/browser/web_applications/web_app_utils.h"
@@ -841,6 +849,28 @@ void TabFeatures::Init(TabInterface& tab, Profile* profile) {
       std::make_unique<extensions::NavigationExtensionEnabler>(
           tab.GetContents());
 #endif
+
+  if (base::FeatureList::IsEnabled(features::kGlicMarketingAutoOpen)) {
+    glic_marketing_page_tab_helper_ =
+        std::make_unique<glic::GlicMarketingPageTabHelper>(tab.GetContents());
+  }
+
+  tab_context_decryption_token_tab_helper_ =
+      TabContextDecryptionTokenTabHelper::MaybeCreate(tab.GetContents());
+
+  v8_compile_hints_tab_helper_ =
+      v8_compile_hints::V8CompileHintsTabHelper::MaybeCreate(tab.GetContents());
+
+  storage_access_api_tab_helper_ = std::make_unique<StorageAccessAPITabHelper>(
+      tab.GetContents(),
+      StorageAccessAPIServiceFactory::GetForBrowserContext(profile));
+
+  if (auto* service =
+          RevokedPermissionsServiceFactory::GetForProfile(profile)) {
+    revoked_permissions_tab_helper_ =
+        std::make_unique<RevokedPermissionsTabHelper>(tab.GetContents(),
+                                                      service);
+  }
 }
 
 TabUIHelper* TabFeatures::SetTabUIHelperForTesting(
@@ -1112,6 +1142,27 @@ void TabFeatures::WillDiscardContents(tabs::TabInterface* tab,
   navigation_extension_enabler_ =
       std::make_unique<extensions::NavigationExtensionEnabler>(new_contents);
 #endif
+
+  if (glic_marketing_page_tab_helper_) {
+    glic_marketing_page_tab_helper_ =
+        std::make_unique<glic::GlicMarketingPageTabHelper>(new_contents);
+  }
+
+  tab_context_decryption_token_tab_helper_ =
+      TabContextDecryptionTokenTabHelper::MaybeCreate(new_contents);
+
+  v8_compile_hints_tab_helper_ =
+      v8_compile_hints::V8CompileHintsTabHelper::MaybeCreate(new_contents);
+
+  storage_access_api_tab_helper_ = std::make_unique<StorageAccessAPITabHelper>(
+      new_contents,
+      StorageAccessAPIServiceFactory::GetForBrowserContext(profile));
+
+  if (auto* service =
+          RevokedPermissionsServiceFactory::GetForProfile(profile)) {
+    revoked_permissions_tab_helper_ =
+        std::make_unique<RevokedPermissionsTabHelper>(new_contents, service);
+  }
 }
 
 customize_chrome::SidePanelController*

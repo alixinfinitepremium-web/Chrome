@@ -33,8 +33,6 @@
 #include "chrome/browser/file_system_access/file_system_access_features.h"
 #include "chrome/browser/file_system_access/file_system_access_permission_request_manager.h"
 #include "chrome/browser/file_system_access/file_system_access_tab_helper.h"
-#include "chrome/browser/glic/glic_marketing_page_tab_helper.h"
-#include "chrome/browser/glic/public/features.h"
 #include "chrome/browser/history/history_tab_helper.h"
 #include "chrome/browser/history/top_sites_factory.h"
 #include "chrome/browser/history_clusters/history_clusters_tab_helper.h"
@@ -71,14 +69,10 @@
 #include "chrome/browser/site_protection/site_protection_metrics_observer.h"
 #include "chrome/browser/ssl/chrome_security_blocking_page_factory.h"
 #include "chrome/browser/ssl/https_only_mode_tab_helper.h"
-#include "chrome/browser/storage_access_api/storage_access_api_service_factory.h"
-#include "chrome/browser/storage_access_api/storage_access_api_service_impl.h"
-#include "chrome/browser/storage_access_api/storage_access_api_tab_helper.h"
 #include "chrome/browser/subresource_filter/chrome_content_subresource_filter_web_contents_helper_factory.h"
 #include "chrome/browser/supervised_user/supervised_user_navigation_observer.h"
 #include "chrome/browser/sync/sessions/sync_sessions_router_tab_helper.h"
 #include "chrome/browser/sync/sessions/sync_sessions_web_contents_router_factory.h"
-#include "chrome/browser/sync_tab_context/tab_context_decryption_token_tab_helper.h"
 #include "chrome/browser/tab_contents/navigation_metrics_recorder.h"
 #include "chrome/browser/task_manager/web_contents_tags.h"
 #include "chrome/browser/translate/chrome_translate_client.h"
@@ -89,12 +83,9 @@
 #include "chrome/browser/ui/passwords/manage_passwords_ui_controller.h"
 #include "chrome/browser/ui/prefs/prefs_tab_helper.h"
 #include "chrome/browser/ui/recently_audible_helper.h"
-#include "chrome/browser/ui/safety_hub/revoked_permissions_service.h"
-#include "chrome/browser/ui/safety_hub/revoked_permissions_service_factory.h"
 #include "chrome/browser/ui/search_engines/search_engine_tab_helper.h"
 #include "chrome/browser/ui/tab_contents/core_tab_helper.h"
 #include "chrome/browser/ui/tab_dialogs.h"
-#include "chrome/browser/v8_compile_hints/v8_compile_hints_tab_helper.h"
 #include "chrome/browser/vr/vr_tab_helper.h"
 #include "chrome/common/buildflags.h"
 #include "chrome/common/chrome_features.h"
@@ -301,9 +292,6 @@ void TabHelpers::AttachTabHelpers(WebContents* web_contents,
   // infobars::ContentInfoBarManager comes before common tab helpers since
   // ChromeSubresourceFilterClient has it as a dependency.
   infobars::ContentInfoBarManager::CreateForWebContents(web_contents);
-  if (base::FeatureList::IsEnabled(features::kGlicMarketingAutoOpen)) {
-    glic::GlicMarketingPageTabHelper::CreateForWebContents(web_contents);
-  }
 
   Profile* profile =
       Profile::FromBrowserContext(web_contents->GetBrowserContext());
@@ -574,9 +562,6 @@ void TabHelpers::AttachTabHelpers(WebContents* web_contents,
             profile));
   }
   SoundContentSettingObserver::CreateForWebContents(web_contents);
-  StorageAccessAPITabHelper::CreateForWebContents(
-      web_contents, StorageAccessAPIServiceFactory::GetForBrowserContext(
-                        web_contents->GetBrowserContext()));
 #if BUILDFLAG(IS_CHROMEOS)
   // Do not create for Incognito and Isolated  mode.
   if (!profile->IsPrimaryOTRProfileWithRegularParent()) {
@@ -589,16 +574,8 @@ void TabHelpers::AttachTabHelpers(WebContents* web_contents,
   }
 #endif
   tasks::TaskTabHelper::CreateForWebContents(web_contents);
-  TabContextDecryptionTokenTabHelper::CreateForWebContents(web_contents);
   TrustedVaultEncryptionKeysTabHelper::CreateForWebContents(web_contents);
-  auto* service = RevokedPermissionsServiceFactory::GetForProfile(profile);
-  if (service) {
-    RevokedPermissionsService::TabHelper::CreateForWebContents(web_contents,
-                                                               service);
-  }
   ukm::InitializeSourceUrlRecorderForWebContents(web_contents);
-  v8_compile_hints::V8CompileHintsTabHelper::MaybeCreateForWebContents(
-      web_contents);
   vr::VrTabHelper::CreateForWebContents(web_contents);
   OneTimePermissionsTrackerHelper::CreateForWebContents(web_contents);
 
