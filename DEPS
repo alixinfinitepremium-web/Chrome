@@ -333,7 +333,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': 'c0e3b637e12d40eeeb185d3711cceb98cef0192b',
+  'src_internal_revision': 'e45b049f6bd69750bab946e8853199be680bd918',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -1979,7 +1979,7 @@ deps = {
       'packages': [
           {
                'package': 'chromium/third_party/android_build_tools/lint',
-               'version': '3oFQ8OFx7osCcreSu-wYIafXGm3Sx2_JZohUqpXP1EoC',
+               'version': 'syW6gU9n3z1cwY90mrSYn6L4BRViwA4X5ZJRw6Bo6aEC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
