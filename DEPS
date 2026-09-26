@@ -1539,7 +1539,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_mac_arm64',
-          'version': 'version:2@1699008',
+          'version': 'version:2@1700003',
         },
       ],
   },
@@ -1694,7 +1694,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_mac_arm64',
-          'version': 'ZP9EmuhbbN18yEjn92EkLtaqFRfc4rTQ0r2dG48osBEC',
+          'version': 'hEQ_QfmrSQuSVKUWkL1cREsChnJ5nQAk97YoBIMwMkQC',
         },
       ],
   },
@@ -2519,7 +2519,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/kotlin_stdlib',
-              'version': 'iWMJm1LfMLY_mVk7xBPapaJZCyXZrrm4KI7iJP3bXvIC',
+              'version': 'rJTVrnOehPyhmBDOd-pvkp3ifABI1gJ1NNZVOv_3EJwC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -2541,7 +2541,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/ktfmt',
-              'version': 'Ysp7OxGSQ3F91gTf-uhFrFbCZdzcQWLIUCvDxXhRVyIC',
+              'version': 'sTkE6WR0B2Wmkvp6QinHRFm1AUtZBKBom1haRKkV_rMC',
           },
       ],
       'condition': '(checkout_android or checkout_linux) and non_git_source',
@@ -2692,7 +2692,7 @@ deps = {
     Var('chromium_git') + '/webm/libwebp.git' + '@' +  'b43b2caa710c0c997c066cb32c7fea1391fad70a',
 
   'src/third_party/libyuv':
-    Var('chromium_git') + '/libyuv/libyuv.git' + '@' + '2124173f34062726761163018f79df085d911460',
+    Var('chromium_git') + '/libyuv/libyuv.git' + '@' + '08bae156693597db03433aa28976a0ee02127439',
 
   'src/third_party/lss': {
       'url': Var('chromium_git') + '/linux-syscall-support.git' + '@' + Var('lss_revision'),
