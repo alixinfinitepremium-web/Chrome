@@ -337,7 +337,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': 'beee9b77441e1bbe3242e537d94cb4e67de739bc',
+  'skia_revision': '3a1baf677e658f2a29de94930cb986a5696d6032',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -545,7 +545,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
-  'llvm_libc_revision':    '40030fb6a930ef4b1f9c8f2cc9bc2e084a9512de',
+  'llvm_libc_revision':    '4a49d5ee5efe7adc286cbddf1cef48bacab771e6',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
@@ -1764,7 +1764,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    'c167707bb93afadae43b4445b1aad850a9bbf91b',
+    'ca410300e955c753f2ba105643a9ec9838fcb24f',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -1957,7 +1957,7 @@ deps = {
       'packages': [
           {
                'package': 'chromium/third_party/android_build_tools/error_prone',
-               'version': 'fkvSKO3nFXE4ZVeObbUp1VpVvlpKyzPZGb0Cb-s3UUoC',
+               'version': 'rIY7ZYmTOEV0YjdmnBKroh76dzAcnsblPrRjbjNZWqgC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -1979,7 +1979,7 @@ deps = {
       'packages': [
           {
                'package': 'chromium/third_party/android_build_tools/lint',
-               'version': 'bzRPHEhD9f0CcGC7CaLtWeXKvigHm7eVZkzisVLIAeIC',
+               'version': 'wSP5bTsPcihO0wGOvj-ARVR7W9kvrtAMf76EcPhoM7UC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -1990,7 +1990,7 @@ deps = {
       'packages': [
           {
                'package': 'chromium/third_party/android_build_tools/manifest_merger',
-               'version': '4gnaU5urj_20QbcpiNkK71vMNM7zbT0wohIq9s7GgzAC',
+               'version': 'Vc4BKkdVHw4m69aWJxpHLIH3NbRxJxQDpL_P5-ECEhAC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -2244,7 +2244,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '2dce125ec1f4d799f83cfa5ac40279d04842fa85',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '91c8a4d8b96c2c795197e08f2f4bf2df98d512e4',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '17a56409b86d0da5e01ca38f6498e13b2db16bc3',
@@ -2519,7 +2519,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/kotlin_stdlib',
-              'version': 'qvcM9mPW-yayPNQSEAbFbfqdWTzSlfIjPgzDnN90llAC',
+              'version': 'ShsF1XH7kjKZ9Tq3ym_u9jKNmiQvTohe87kljffX1IkC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -2841,7 +2841,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '18543368b264fea4b93212a54751d2c34fac8181',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '9db562055f368e2a986b42c6506fb86fed850f5c',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
@@ -3180,7 +3180,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/turbine',
-              'version': 'CXuXM7_sksl-F38YOWgD8XxY0vhVk58Qv6YSSZsVy7cC',
+              'version': '3Vs4Z6J5NY3lF9MdcCtQwB1iXZFB7P1hQH15ZzA4SecC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
