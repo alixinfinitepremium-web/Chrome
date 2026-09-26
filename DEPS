@@ -417,7 +417,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '93dce17110a3c55eda314ca6b1cac890baf784f8',
+  'devtools_frontend_revision': 'acdb80fe7580aad72d6a711a8be440a42af35aa1',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1957,7 +1957,7 @@ deps = {
       'packages': [
           {
                'package': 'chromium/third_party/android_build_tools/error_prone',
-               'version': 'dmIuDMHpnsdLgE2tQwAyejYYE3VkPLuxe8eoYmBQJ9YC',
+               'version': 'fkvSKO3nFXE4ZVeObbUp1VpVvlpKyzPZGb0Cb-s3UUoC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -1979,7 +1979,7 @@ deps = {
       'packages': [
           {
                'package': 'chromium/third_party/android_build_tools/lint',
-               'version': 'wvop79_v0UFnWPiXg3-OztODDUIRTGoAFOwf2cS-xRkC',
+               'version': 'bzRPHEhD9f0CcGC7CaLtWeXKvigHm7eVZkzisVLIAeIC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -2519,7 +2519,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/kotlin_stdlib',
-              'version': 'clBEkDh-i_R2pnOZsb6nxShsPNBOm2YWvhF_A-FADnkC',
+              'version': 'qvcM9mPW-yayPNQSEAbFbfqdWTzSlfIjPgzDnN90llAC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -3482,7 +3482,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/projector_app/app',
-        'version': 'r8uNcnXNfcZOu0IGbO5DRoo0J0SK7QTUNWfye41p7rIC',
+        'version': 'azBSeKPi4i1AF2Z4M-xVdNZzz7nftQAMHajGI7OYVroC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
