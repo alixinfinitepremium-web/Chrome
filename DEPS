@@ -1550,7 +1550,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_arm64',
-          'version': 'version:2@1699103',
+          'version': 'version:2@1700001',
         },
       ],
   },
@@ -1561,7 +1561,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_x86',
-          'version': 'version:2@1699173',
+          'version': 'version:2@1700043',
         },
       ],
   },
@@ -1705,7 +1705,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_win_x86',
-          'version': 'rNE4476uqmxS3cKpcXH8nH23YvITrvszpgMb52xWQqsC',
+          'version': 'OL4h9iYXN9M0cC7YI_TZkGKMraNCf1j21kZGd9sfP5gC',
         },
       ],
   },
