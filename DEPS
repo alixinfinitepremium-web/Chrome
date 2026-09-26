@@ -1868,7 +1868,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': 'SnyXsWDV2SEtzO0Uy2bAhtSy1EHi3ZGsvnEM5FO9SCQC',
+          'version': 'RJ4IFWmUc2AfObkF-XFen_Y9IvqOoz7Plhbke45f00QC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
@@ -3180,7 +3180,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/turbine',
-              'version': 'EsfhG0sjVBz5GrXdhvTKIT22heS-7ckJXkFHjGQ3C5wC',
+              'version': 'kaUrRjsG9kEY55vObSY0YVwro9pBVPgvpWxr2FZo9aEC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
