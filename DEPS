@@ -1868,7 +1868,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': 'RJ4IFWmUc2AfObkF-XFen_Y9IvqOoz7Plhbke45f00QC',
+          'version': 'npRLyqHNPxzpbTjFf-J92KjfAwDKcqJFjwcPtXM0UacC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
@@ -3416,7 +3416,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_receiver_app/app',
-        'version': 'sFv_EUveM9DD9G0U3J8kfPleZWOg37KYa9wRV6xI8JcC',
+        'version': 'g00qNWaZl-qqwbkNnH4qalBQDDsuYUvvP9Ft0oJ6RGkC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3941,7 +3941,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '0fe6212fd7440e301ad410c82de98380a45338bb',
+        '2e773900e5631fe47a0f21fab7ac42c80ab934c8',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
