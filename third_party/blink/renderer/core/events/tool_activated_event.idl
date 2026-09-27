@@ -4,12 +4,13 @@
 
 [
     Exposed=Window,
+    SecureContext,
     RuntimeEnabled=WebMCP
-] interface WebMCPEvent : Event {
-    constructor(DOMString type, optional WebMCPEventInit eventInitDict = {});
+] interface ToolActivatedEvent : Event {
+    constructor(DOMString type, optional ToolActivatedEventInit eventInitDict = {});
     readonly attribute DOMString toolName;
 };
 
-dictionary WebMCPEventInit : EventInit {
+dictionary ToolActivatedEventInit : EventInit {
     DOMString toolName = "";
 };
