@@ -41,7 +41,6 @@
 #include "chrome/browser/login_detection/login_detection_tab_helper.h"
 #include "chrome/browser/lookalikes/safety_tip_web_contents_observer.h"
 #include "chrome/browser/media/media_engagement_service.h"
-#include "chrome/browser/navigation_predictor/navigation_predictor_preconnect_client.h"
 #include "chrome/browser/net/net_error_tab_helper.h"
 #include "chrome/browser/optimization_guide/optimization_guide_keyed_service.h"
 #include "chrome/browser/optimization_guide/optimization_guide_keyed_service_factory.h"
@@ -71,7 +70,6 @@
 #include "chrome/browser/supervised_user/supervised_user_navigation_observer.h"
 #include "chrome/browser/sync/sessions/sync_sessions_router_tab_helper.h"
 #include "chrome/browser/sync/sessions/sync_sessions_web_contents_router_factory.h"
-#include "chrome/browser/tab_contents/navigation_metrics_recorder.h"
 #include "chrome/browser/task_manager/web_contents_tags.h"
 #include "chrome/browser/translate/chrome_translate_client.h"
 #include "chrome/browser/trusted_vault/trusted_vault_encryption_keys_tab_helper.h"
@@ -435,8 +433,6 @@ void TabHelpers::AttachTabHelpers(WebContents* web_contents,
         metrics_services_manager->GetOnRendererUnresponsiveCb());
   }
   MixedContentSettingsTabHelper::CreateForWebContents(web_contents);
-  NavigationMetricsRecorder::CreateForWebContents(web_contents);
-  NavigationPredictorPreconnectClient::CreateForWebContents(web_contents);
   if (optimization_guide::features::IsOptimizationHintsEnabled()) {
     OptimizationGuideWebContentsObserver::CreateForWebContents(web_contents);
   }

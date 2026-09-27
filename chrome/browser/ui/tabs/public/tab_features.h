@@ -64,6 +64,8 @@ class LensOverlayHomeworkPageActionController;
 class LensSearchController;
 class ManagePasswordsPageActionController;
 class MemorySaverChipTabHelper;
+class NavigationMetricsRecorder;
+class NavigationPredictorPreconnectClient;
 class NewTabPagePreloadPipelineManager;
 class PinnedTranslateActionListener;
 class Profile;
@@ -859,6 +861,11 @@ class TabFeatures {
 
   std::unique_ptr<prerender::NoStatePrefetchTabHelper>
       no_state_prefetch_tab_helper_;
+
+  std::unique_ptr<NavigationPredictorPreconnectClient>
+      navigation_predictor_preconnect_client_;
+
+  std::unique_ptr<NavigationMetricsRecorder> navigation_metrics_recorder_;
 
   // Must be the last member.
   base::WeakPtrFactory<TabFeatures> weak_factory_{this};
