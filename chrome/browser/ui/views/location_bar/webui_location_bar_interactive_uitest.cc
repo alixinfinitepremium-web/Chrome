@@ -1280,7 +1280,7 @@ IN_PROC_BROWSER_TEST_P(WebUILocationBarInteractiveUiTest,
         AutocompleteMatch::DocumentType::NONE, "www.cnn.com/index.html", "0,1",
         "CNN.com - Breaking News, U.S., World, Weather, Entertainment & Video",
         "0,0,19,2,23,0,38,2,45,0", ui::PAGE_TRANSITION_TYPED,
-        AutocompleteMatchType::HISTORY_TITLE, "", 1, 10}}};
+        omnibox::AutocompleteMatchType::kHistoryTitle, "", 1, 10}}};
   PopulateShortcutsBackendWithTestData(shortcuts_backend, test_shortcut);
 
   ui::Accelerator accelerator;
@@ -1370,7 +1370,7 @@ IN_PROC_BROWSER_TEST_P(WebUILocationBarInteractiveUiTest, AdditionalText) {
         AutocompleteMatch::DocumentType::NONE, "www.cnn.com/index.html", "0,1",
         "CNN.com - Breaking News, U.S., World, Weather, Entertainment & Video",
         "0,0,19,2,23,0,38,2,45,0", ui::PAGE_TRANSITION_TYPED,
-        AutocompleteMatchType::HISTORY_TITLE, "", 1, 10}}};
+        omnibox::AutocompleteMatchType::kHistoryTitle, "", 1, 10}}};
   PopulateShortcutsBackendWithTestData(shortcuts_backend, test_shortcut);
 
   RunTestSequence(InstrumentTab(kTabId), WaitForWebContentsReady(kTabId),

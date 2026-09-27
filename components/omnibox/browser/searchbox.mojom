@@ -107,7 +107,7 @@ struct AutocompleteMatch {
   // Used to determine if the match is an enterprise search aggregator people
   // suggestion.
   bool is_enterprise_search_aggregator_people_type;
-  string type;  // Result of AutocompleteMatchType::ToString().
+  string type;  // Result of omnibox::AutocompleteMatchTypeToString().
   mojo_base.mojom.String16 remove_button_a11y_label;
   bool swap_contents_and_description;
   // Whether to show the description for a contextual match.

@@ -2501,13 +2501,13 @@ TEST(AutocompleteGrouperSectionsTest,
 
   auto make_search = [](int score) {
     auto match = CreateMatch(score, omnibox::GROUP_SEARCH);
-    match.type = AutocompleteMatchType::SEARCH_HISTORY;
+    match.type = omnibox::AutocompleteMatchType::kSearchHistory;
     return match;
   };
 
   auto make_url = [](int score) {
     auto match = CreateMatch(score, omnibox::GROUP_OTHER_NAVS);
-    match.type = AutocompleteMatchType::NAVSUGGEST;
+    match.type = omnibox::AutocompleteMatchType::kNavsuggest;
     return match;
   };
 

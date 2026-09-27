@@ -163,6 +163,10 @@ void SetRecentFiles(TestingProfile* profile, std::vector<Volume> volumes) {
       base::BindRepeating(BuildTestRecentModelFactory, std::move(volumes)));
 }
 
+bool HasType(int types, AutocompleteProvider::Type type) {
+  return types & static_cast<int>(type);
+}
+
 class QuickInsertClientImplTest : public BrowserWithTestWindowTest {
  public:
   QuickInsertClientImplTest() = default;
@@ -752,13 +756,13 @@ TEST_F(QuickInsertClientImplEditorTest, LauncherSearchProviderTypesAll) {
       client.LauncherSearchProviderTypes(/*bookmarks=*/true, /*history=*/true,
                                          /*open_tabs=*/true);
 
-  EXPECT_TRUE(types & AutocompleteProvider::TYPE_BOOKMARK);
-  EXPECT_TRUE(types & AutocompleteProvider::TYPE_HISTORY_FUZZY);
-  EXPECT_TRUE(types & AutocompleteProvider::TYPE_HISTORY_QUICK);
-  EXPECT_TRUE(types & AutocompleteProvider::TYPE_HISTORY_URL);
-  EXPECT_TRUE(types & AutocompleteProvider::TYPE_OPEN_TAB);
-  EXPECT_FALSE(types & AutocompleteProvider::TYPE_DOCUMENT);
-  EXPECT_FALSE(types & AutocompleteProvider::TYPE_SEARCH);
+  EXPECT_TRUE(HasType(types, AutocompleteProvider::Type::kBookmark));
+  EXPECT_TRUE(HasType(types, AutocompleteProvider::Type::kHistoryFuzzy));
+  EXPECT_TRUE(HasType(types, AutocompleteProvider::Type::kHistoryQuick));
+  EXPECT_TRUE(HasType(types, AutocompleteProvider::Type::kHistoryUrl));
+  EXPECT_TRUE(HasType(types, AutocompleteProvider::Type::kOpenTab));
+  EXPECT_FALSE(HasType(types, AutocompleteProvider::Type::kDocument));
+  EXPECT_FALSE(HasType(types, AutocompleteProvider::Type::kSearch));
 }
 
 TEST_F(QuickInsertClientImplEditorTest, LauncherSearchProviderTypesBookmarks) {
@@ -769,13 +773,13 @@ TEST_F(QuickInsertClientImplEditorTest, LauncherSearchProviderTypesBookmarks) {
   const int types =
       client.LauncherSearchProviderTypes(/*bookmarks=*/true, /*history=*/false,
                                          /*open_tabs=*/false);
-  EXPECT_TRUE(types & AutocompleteProvider::TYPE_BOOKMARK);
-  EXPECT_FALSE(types & AutocompleteProvider::TYPE_HISTORY_FUZZY);
-  EXPECT_FALSE(types & AutocompleteProvider::TYPE_HISTORY_QUICK);
-  EXPECT_FALSE(types & AutocompleteProvider::TYPE_HISTORY_URL);
-  EXPECT_FALSE(types & AutocompleteProvider::TYPE_OPEN_TAB);
-  EXPECT_FALSE(types & AutocompleteProvider::TYPE_DOCUMENT);
-  EXPECT_FALSE(types & AutocompleteProvider::TYPE_SEARCH);
+  EXPECT_TRUE(HasType(types, AutocompleteProvider::Type::kBookmark));
+  EXPECT_FALSE(HasType(types, AutocompleteProvider::Type::kHistoryFuzzy));
+  EXPECT_FALSE(HasType(types, AutocompleteProvider::Type::kHistoryQuick));
+  EXPECT_FALSE(HasType(types, AutocompleteProvider::Type::kHistoryUrl));
+  EXPECT_FALSE(HasType(types, AutocompleteProvider::Type::kOpenTab));
+  EXPECT_FALSE(HasType(types, AutocompleteProvider::Type::kDocument));
+  EXPECT_FALSE(HasType(types, AutocompleteProvider::Type::kSearch));
 }
 
 TEST_F(QuickInsertClientImplEditorTest, LauncherSearchProviderTypesHistory) {
@@ -786,13 +790,13 @@ TEST_F(QuickInsertClientImplEditorTest, LauncherSearchProviderTypesHistory) {
   const int types =
       client.LauncherSearchProviderTypes(/*bookmarks=*/false, /*history=*/true,
                                          /*open_tabs=*/false);
-  EXPECT_FALSE(types & AutocompleteProvider::TYPE_BOOKMARK);
-  EXPECT_TRUE(types & AutocompleteProvider::TYPE_HISTORY_FUZZY);
-  EXPECT_TRUE(types & AutocompleteProvider::TYPE_HISTORY_QUICK);
-  EXPECT_TRUE(types & AutocompleteProvider::TYPE_HISTORY_URL);
-  EXPECT_FALSE(types & AutocompleteProvider::TYPE_OPEN_TAB);
-  EXPECT_FALSE(types & AutocompleteProvider::TYPE_DOCUMENT);
-  EXPECT_FALSE(types & AutocompleteProvider::TYPE_SEARCH);
+  EXPECT_FALSE(HasType(types, AutocompleteProvider::Type::kBookmark));
+  EXPECT_TRUE(HasType(types, AutocompleteProvider::Type::kHistoryFuzzy));
+  EXPECT_TRUE(HasType(types, AutocompleteProvider::Type::kHistoryQuick));
+  EXPECT_TRUE(HasType(types, AutocompleteProvider::Type::kHistoryUrl));
+  EXPECT_FALSE(HasType(types, AutocompleteProvider::Type::kOpenTab));
+  EXPECT_FALSE(HasType(types, AutocompleteProvider::Type::kDocument));
+  EXPECT_FALSE(HasType(types, AutocompleteProvider::Type::kSearch));
 }
 
 TEST_F(QuickInsertClientImplEditorTest, LauncherSearchProviderTypesOpenTab) {
@@ -803,13 +807,13 @@ TEST_F(QuickInsertClientImplEditorTest, LauncherSearchProviderTypesOpenTab) {
   const int types =
       client.LauncherSearchProviderTypes(/*bookmarks=*/false, /*history=*/false,
                                          /*open_tabs=*/true);
-  EXPECT_FALSE(types & AutocompleteProvider::TYPE_BOOKMARK);
-  EXPECT_FALSE(types & AutocompleteProvider::TYPE_HISTORY_FUZZY);
-  EXPECT_FALSE(types & AutocompleteProvider::TYPE_HISTORY_QUICK);
-  EXPECT_FALSE(types & AutocompleteProvider::TYPE_HISTORY_URL);
-  EXPECT_TRUE(types & AutocompleteProvider::TYPE_OPEN_TAB);
-  EXPECT_FALSE(types & AutocompleteProvider::TYPE_DOCUMENT);
-  EXPECT_FALSE(types & AutocompleteProvider::TYPE_SEARCH);
+  EXPECT_FALSE(HasType(types, AutocompleteProvider::Type::kBookmark));
+  EXPECT_FALSE(HasType(types, AutocompleteProvider::Type::kHistoryFuzzy));
+  EXPECT_FALSE(HasType(types, AutocompleteProvider::Type::kHistoryQuick));
+  EXPECT_FALSE(HasType(types, AutocompleteProvider::Type::kHistoryUrl));
+  EXPECT_TRUE(HasType(types, AutocompleteProvider::Type::kOpenTab));
+  EXPECT_FALSE(HasType(types, AutocompleteProvider::Type::kDocument));
+  EXPECT_FALSE(HasType(types, AutocompleteProvider::Type::kSearch));
 }
 
 }  // namespace

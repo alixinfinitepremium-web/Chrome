@@ -45,7 +45,7 @@ using ::ash::string_matching::TokenizedString;
 
 // Returns true if the match is a calculator answer.
 bool IsCalculator(const AutocompleteMatch& match) {
-  return match.type == AutocompleteMatchType::CALCULATOR;
+  return match.type == omnibox::AutocompleteMatchType::kCalculator;
 }
 
 // Returns the history service for `profile`'s account. OmniboxProvider is only
@@ -124,14 +124,15 @@ void OmniboxProvider::PopulateFromACResult(const AutocompleteResult& result) {
     //   provider surfaces Drive results.
     // - The URL points to a local file. The Local file search provider handles
     //   local file results, even if they've been opened in the browser.
-    const bool is_drive = IsDriveUrl(match.destination_url) &&
-                          match.type != AutocompleteMatchType::OPEN_TAB;
+    const bool is_drive =
+        IsDriveUrl(match.destination_url) &&
+        match.type != omnibox::AutocompleteMatchType::kOpenTab;
     if (!match.destination_url.is_valid() || is_drive ||
         match.destination_url.SchemeIsFile()) {
       continue;
     }
 
-    if (match.type == AutocompleteMatchType::OPEN_TAB) {
+    if (match.type == omnibox::AutocompleteMatchType::kOpenTab) {
       // Filters out open tab results if web is disabled in launcher search
       // controls.
       if (!IsControlCategoryEnabled(profile_, ControlCategory::kWeb)) {

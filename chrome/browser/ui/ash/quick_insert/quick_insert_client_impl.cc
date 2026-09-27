@@ -617,18 +617,20 @@ int QuickInsertClientImpl::LauncherSearchProviderTypes(bool bookmarks,
   int providers = 0;
 
   if (bookmarks) {
-    providers |= AutocompleteProvider::TYPE_BOOKMARK;
+    providers |= static_cast<int>(AutocompleteProvider::Type::kBookmark);
   }
 
   if (history) {
-    providers |= AutocompleteProvider::TYPE_HISTORY_QUICK |
-                 AutocompleteProvider::TYPE_HISTORY_URL |
-                 AutocompleteProvider::TYPE_HISTORY_FUZZY |
-                 AutocompleteProvider::TYPE_HISTORY_EMBEDDINGS;
+    // `AutocompleteProvider::Type` defines bitwise `operator|`.
+    providers |=
+        static_cast<int>(AutocompleteProvider::Type::kHistoryQuick |
+                         AutocompleteProvider::Type::kHistoryUrl |
+                         AutocompleteProvider::Type::kHistoryFuzzy |
+                         AutocompleteProvider::Type::kHistoryEmbeddings);
   }
 
   if (open_tabs) {
-    providers |= AutocompleteProvider::TYPE_OPEN_TAB;
+    providers |= static_cast<int>(AutocompleteProvider::Type::kOpenTab);
   }
 
   return providers;

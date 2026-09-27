@@ -2626,8 +2626,8 @@ void ContextualSearchboxHandler::OpenUrl(
         lens_search_controller->IssueContextualSearchRequest(
             invocation_source, url,
             query_text.empty()
-                ? AutocompleteMatchType::Type::SEARCH_SUGGEST
-                : AutocompleteMatchType::Type::SEARCH_WHAT_YOU_TYPED,
+                ? omnibox::AutocompleteMatchType::kSearchSuggest
+                : omnibox::AutocompleteMatchType::kSearchWhatYouTyped,
             /*is_zero_prefix_suggestion=*/query_text.empty());
         active_web_contents->Focus();
         return;

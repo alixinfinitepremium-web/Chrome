@@ -90,7 +90,7 @@ void OpenUrlFromEditBox(OmniboxController* controller,
                         bool is_autocompleted) {
   AutocompleteMatch match(
       controller->autocomplete_controller()->search_provider(), 0, false,
-      AutocompleteMatchType::OPEN_TAB);
+      omnibox::AutocompleteMatchType::kOpenTab);
   match.destination_url = GURL(url_text);
   match.allowed_to_be_default_match = true;
   if (is_autocompleted) {
@@ -356,7 +356,7 @@ TEST_F(OmniboxEditModelTest, FullWebUISuppressesZeroSuggestRequest) {
 TEST_F(OmniboxEditModelTest, AlternateNavHasHTTP) {
   AutocompleteMatch match(
       controller()->autocomplete_controller()->search_provider(), 0, false,
-      AutocompleteMatchType::SEARCH_WHAT_YOU_TYPED);
+      omnibox::AutocompleteMatchType::kSearchWhatYouTyped);
   // |match.destination_url| has to be set to ensure that OnAutocompleteAccept
   // is called and |alternate_nav_match| is populated.
   match.destination_url = GURL("https://foo/");
@@ -394,7 +394,7 @@ TEST_F(OmniboxEditModelTest, CurrentMatch) {
     EXPECT_EQ(u"example.com", view()->GetText());
 
     AutocompleteMatch match = model()->CurrentMatch();
-    EXPECT_EQ(AutocompleteMatchType::URL_WHAT_YOU_TYPED, match.type);
+    EXPECT_EQ(omnibox::AutocompleteMatchType::kUrlWhatYouTyped, match.type);
     EXPECT_TRUE(model()->CurrentTextIsURL());
     EXPECT_EQ("http://www.example.com/", match.destination_url.spec());
   }
@@ -410,7 +410,7 @@ TEST_F(OmniboxEditModelTest, CurrentMatch) {
     EXPECT_EQ(u"google.com", view()->GetText());
 
     AutocompleteMatch match = model()->CurrentMatch();
-    EXPECT_EQ(AutocompleteMatchType::URL_WHAT_YOU_TYPED, match.type);
+    EXPECT_EQ(omnibox::AutocompleteMatchType::kUrlWhatYouTyped, match.type);
     EXPECT_TRUE(model()->CurrentTextIsURL());
 
     // Additionally verify we aren't accidentally dropping the HTTPS scheme.
@@ -849,7 +849,7 @@ TEST_F(OmniboxEditModelPopupTest, SetSelectedLine) {
   ACMatches matches;
   for (size_t i = 0; i < 2; ++i) {
     AutocompleteMatch match(nullptr, 1000, false,
-                            AutocompleteMatchType::URL_WHAT_YOU_TYPED);
+                            omnibox::AutocompleteMatchType::kUrlWhatYouTyped);
     match.keyword = u"match";
     match.allowed_to_be_default_match = true;
     matches.push_back(match);
@@ -900,17 +900,18 @@ TEST_F(OmniboxEditModelPopupTest,
 
   // Create matches
   AutocompleteMatch gemini_match(nullptr, 0, false,
-                                 AutocompleteMatchType::STARTER_PACK);
+                                 omnibox::AutocompleteMatchType::kStarterPack);
   gemini_match.keyword = u"@gemini";
   gemini_match.associated_keyword = u"@gemini";
 
   AutocompleteMatch sitesearch_featured_match(
-      nullptr, 0, false, AutocompleteMatchType::FEATURED_ENTERPRISE_SEARCH);
+      nullptr, 0, false,
+      omnibox::AutocompleteMatchType::kFeaturedEnterpriseSearch);
   sitesearch_featured_match.keyword = u"@sitesearch";
   sitesearch_featured_match.associated_keyword = u"@sitesearch";
 
   AutocompleteMatch sitesearch_nonfeatured_match(
-      nullptr, 0, false, AutocompleteMatchType::SEARCH_WHAT_YOU_TYPED);
+      nullptr, 0, false, omnibox::AutocompleteMatchType::kSearchWhatYouTyped);
   sitesearch_nonfeatured_match.keyword = u"google.com";
   sitesearch_nonfeatured_match.associated_keyword = u"sitesearch";
 
@@ -948,7 +949,7 @@ TEST_F(OmniboxEditModelPopupTest,
        GetPopupAccessibilityLabelForCurrentSelection_NullResultMessage) {
   ACMatches matches;
   AutocompleteMatch match(nullptr, 1000, false,
-                          AutocompleteMatchType::NULL_RESULT_MESSAGE);
+                          omnibox::AutocompleteMatchType::kNullResultMessage);
   match.contents = u"Disclaimer Text";
   matches.push_back(match);
 
@@ -972,7 +973,7 @@ TEST_F(OmniboxEditModelPopupTest, SetSelectedLineWithNoDefaultMatches) {
   ACMatches matches;
   for (size_t i = 0; i < 2; ++i) {
     AutocompleteMatch match(nullptr, 1000, false,
-                            AutocompleteMatchType::URL_WHAT_YOU_TYPED);
+                            omnibox::AutocompleteMatchType::kUrlWhatYouTyped);
     match.keyword = u"match";
     matches.push_back(match);
   }
@@ -1006,7 +1007,7 @@ TEST_F(OmniboxEditModelPopupTest, PopupPositionChanging) {
   ACMatches matches;
   for (size_t i = 0; i < 3; ++i) {
     AutocompleteMatch match(nullptr, 1000, false,
-                            AutocompleteMatchType::URL_WHAT_YOU_TYPED);
+                            omnibox::AutocompleteMatchType::kUrlWhatYouTyped);
     match.keyword = u"match";
     match.allowed_to_be_default_match = true;
     matches.push_back(match);
@@ -1038,13 +1039,13 @@ TEST_F(OmniboxEditModelPopupTest, PopupStepSelection) {
   ACMatches matches;
   for (size_t i = 0; i < 6; ++i) {
     AutocompleteMatch match(nullptr, 1000, false,
-                            AutocompleteMatchType::URL_WHAT_YOU_TYPED);
+                            omnibox::AutocompleteMatchType::kUrlWhatYouTyped);
     match.keyword = u"match";
     match.allowed_to_be_default_match = true;
     matches.push_back(match);
   }
   // Make the thumbs up/down selection available on match index 1.
-  matches[1].type = AutocompleteMatchType::HISTORY_EMBEDDINGS;
+  matches[1].type = omnibox::AutocompleteMatchType::kHistoryEmbeddings;
   // Make match index 1 deletable to verify we can step to that.
   matches[1].deletable = true;
   // Make match index 2 only have an associated keyword to verify we can step
@@ -1155,15 +1156,15 @@ TEST_F(OmniboxEditModelPopupTest, PopupStepSelectionWithActions) {
   ACMatches matches;
   for (size_t i = 0; i < 4; ++i) {
     AutocompleteMatch match(nullptr, 1000, false,
-                            AutocompleteMatchType::URL_WHAT_YOU_TYPED);
+                            omnibox::AutocompleteMatchType::kUrlWhatYouTyped);
     match.keyword = u"match";
     match.allowed_to_be_default_match = true;
     matches.push_back(match);
   }
 
   // The toolbelt match has three normal actions.
-  AutocompleteMatch toolbelt_match(nullptr, 1000, false,
-                                   AutocompleteMatchType::NULL_RESULT_MESSAGE);
+  AutocompleteMatch toolbelt_match(
+      nullptr, 1000, false, omnibox::AutocompleteMatchType::kNullResultMessage);
   toolbelt_match.actions.push_back(base::MakeRefCounted<OmniboxAction>(
       OmniboxAction::LabelStrings(u"", u"", u"", u"foo"), GURL()));
   toolbelt_match.actions.push_back(base::MakeRefCounted<OmniboxAction>(
@@ -1273,7 +1274,7 @@ TEST_F(OmniboxEditModelPopupTest, PopupInlineAutocompleteAndTemporaryText) {
   ACMatches matches;
   for (size_t i = 0; i < 3; ++i) {
     AutocompleteMatch match(nullptr, 1000, false,
-                            AutocompleteMatchType::SEARCH_SUGGEST);
+                            omnibox::AutocompleteMatchType::kSearchSuggest);
     match.allowed_to_be_default_match = true;
     matches.push_back(match);
   }
@@ -1340,7 +1341,7 @@ TEST_F(OmniboxEditModelPopupTest, PopupInlineAutocompleteAndTemporaryText) {
 TEST_F(OmniboxEditModelPopupTest, ResetFocusOnResultChange) {
   ACMatches matches;
   AutocompleteMatch match(nullptr, 1000, false,
-                          AutocompleteMatchType::URL_WHAT_YOU_TYPED);
+                          omnibox::AutocompleteMatchType::kUrlWhatYouTyped);
   match.contents = u"match1.com";
   match.destination_url = GURL("http://match1.com");
   match.allowed_to_be_default_match = true;
@@ -1418,7 +1419,7 @@ TEST_F(OmniboxEditModelPopupTest, OpenActionSelectionLogsOmniboxEvent) {
   ACMatches matches;
   for (size_t i = 0; i < 4; ++i) {
     AutocompleteMatch match(nullptr, 1000, false,
-                            AutocompleteMatchType::URL_WHAT_YOU_TYPED);
+                            omnibox::AutocompleteMatchType::kUrlWhatYouTyped);
     match.keyword = u"match";
     match.allowed_to_be_default_match = true;
     matches.push_back(match);
@@ -1454,7 +1455,7 @@ TEST_F(OmniboxEditModelPopupTest, OpenThumbsDownSelectionShowsFeedback) {
   ACMatches matches;
   {
     AutocompleteMatch match(nullptr, 1000, false,
-                            AutocompleteMatchType::SEARCH_SUGGEST);
+                            omnibox::AutocompleteMatchType::kSearchSuggest);
     match.allowed_to_be_default_match = true;
     match.fill_into_edit = u"a1";
     match.inline_autocompletion = u"1";
@@ -1462,7 +1463,7 @@ TEST_F(OmniboxEditModelPopupTest, OpenThumbsDownSelectionShowsFeedback) {
   }
   {
     AutocompleteMatch match(nullptr, 999, false,
-                            AutocompleteMatchType::HISTORY_EMBEDDINGS);
+                            omnibox::AutocompleteMatchType::kHistoryEmbeddings);
     match.fill_into_edit = u"a2";
     match.destination_url = GURL("https://foo/");
     matches.push_back(match);
@@ -1549,7 +1550,7 @@ TEST_F(OmniboxEditModelPopupTest,
   EXPECT_CALL(*client(), GetFaviconForKeywordSearchProvider(_, _)).Times(0);
 
   AutocompleteMatch match;
-  match.type = AutocompleteMatchType::URL_WHAT_YOU_TYPED;
+  match.type = omnibox::AutocompleteMatchType::kUrlWhatYouTyped;
   match.destination_url = kUrl;
 
   gfx::Image image = model()->GetMatchIcon(match, 0);
@@ -1580,7 +1581,7 @@ TEST_F(OmniboxEditModelPopupTest,
   ASSERT_TRUE(turl);
 
   AutocompleteMatch match;
-  match.type = AutocompleteMatchType::FEATURED_ENTERPRISE_SEARCH;
+  match.type = omnibox::AutocompleteMatchType::kFeaturedEnterpriseSearch;
   match.destination_url = GURL("https://sitesearch.com");
   match.keyword = u"sitesearch";
   match.associated_keyword = u"sitesearch";
@@ -1613,13 +1614,14 @@ TEST_F(OmniboxEditModelPopupTest,
   // Creates a set of matches.
   ACMatches matches;
   AutocompleteMatch search_aggregator_match(
-      nullptr, 1350, false, AutocompleteMatchType::FEATURED_ENTERPRISE_SEARCH);
+      nullptr, 1350, false,
+      omnibox::AutocompleteMatchType::kFeaturedEnterpriseSearch);
   search_aggregator_match.keyword = u"searchaggregator";
   search_aggregator_match.associated_keyword = u"searchaggregator";
   search_aggregator_match.icon_url = GURL("https://aggregator.com/icon.png");
   matches.push_back(search_aggregator_match);
   AutocompleteMatch url_match(nullptr, 1000, false,
-                              AutocompleteMatchType::URL_WHAT_YOU_TYPED);
+                              omnibox::AutocompleteMatchType::kUrlWhatYouTyped);
   url_match.keyword = u"match";
   matches.push_back(url_match);
   AutocompleteResult* result = &AutocompleteControllerPublishedResult();
@@ -1644,7 +1646,7 @@ TEST_F(OmniboxEditModelPopupTest,
   // Creates a set of matches.
   ACMatches matches;
   AutocompleteMatch content_match(nullptr, 1000, false,
-                                  AutocompleteMatchType::NAVSUGGEST);
+                                  omnibox::AutocompleteMatchType::kNavsuggest);
   content_match.icon_url = GURL("https://example.com/icon.png");
   matches.push_back(content_match);
   AutocompleteResult* result = &AutocompleteControllerPublishedResult();
@@ -1682,7 +1684,7 @@ TEST_F(OmniboxEditModelPopupTest, GetIconForExtensionWithNoImageURL) {
 
   AutocompleteMatch match(
       controller()->autocomplete_controller()->unscoped_extension_provider(), 0,
-      false, AutocompleteMatchType::SEARCH_OTHER_ENGINE);
+      false, omnibox::AutocompleteMatchType::kSearchOtherEngine);
   match.keyword = u"api";
 
   gfx::Image image = model()->GetMatchIcon(match, 0);
@@ -1713,7 +1715,7 @@ TEST_F(OmniboxEditModelPopupTest, GetIconForExtensionWithImageURL) {
 
   AutocompleteMatch match(
       controller()->autocomplete_controller()->unscoped_extension_provider(), 0,
-      false, AutocompleteMatchType::SEARCH_OTHER_ENGINE);
+      false, omnibox::AutocompleteMatchType::kSearchOtherEngine);
   match.keyword = u"api";
   match.image_url = GURL("https://www.google-icon.com");
   match.provider =
@@ -1738,7 +1740,7 @@ TEST_F(OmniboxEditModelTest, OmniboxEscapeHistogram) {
   // Escape should incrementally revert temporary text, close the popup, clear
   // input, and blur the omnibox.
   AutocompleteMatch match;
-  match.type = AutocompleteMatchType::NAVSUGGEST;
+  match.type = omnibox::AutocompleteMatchType::kNavsuggest;
   match.destination_url = GURL("https://google.com");
   model()->SetCurrentMatchForTest(match);
 
@@ -1840,7 +1842,7 @@ TEST_F(OmniboxEditModelTest, OpenTabMatch) {
   // the disposition should be set to SWITCH_TO_TAB.
   AutocompleteMatch match(
       controller()->autocomplete_controller()->open_tab_provider(), 0, false,
-      AutocompleteMatchType::OPEN_TAB);
+      omnibox::AutocompleteMatchType::kOpenTab);
   match.destination_url = GURL("https://foo/");
   match.from_keyword = true;
 
@@ -1868,7 +1870,7 @@ TEST_F(OmniboxEditModelTest, OpenTabMatch) {
       .WillOnce(SaveArg<2>(&disposition));
 
   match.provider = controller()->autocomplete_controller()->search_provider();
-  match.type = AutocompleteMatchType::SEARCH_WHAT_YOU_TYPED;
+  match.type = omnibox::AutocompleteMatchType::kSearchWhatYouTyped;
   match.from_keyword = true;
   model()->OpenMatchForTesting(match, WindowOpenDisposition::CURRENT_TAB,
                                GURL(), std::u16string(), 0);
@@ -1889,7 +1891,7 @@ TEST_F(OmniboxEditModelTest, OpenAiModeTriggersContextualize) {
   model()->SetQueryContextualizerForTesting(std::move(mock_contextualizer));
 
   AutocompleteMatch match;
-  match.type = AutocompleteMatchType::SEARCH_SUGGEST;
+  match.type = omnibox::AutocompleteMatchType::kSearchSuggest;
   match.contents = u"test query";
   model()->SetCurrentMatchForTest(match);
 
@@ -1912,7 +1914,7 @@ TEST_F(OmniboxEditModelTest, OpenAiModeTriggersContextualizeWithoutService) {
   model()->SetQueryContextualizerForTesting(std::move(mock_contextualizer));
 
   AutocompleteMatch match;
-  match.type = AutocompleteMatchType::SEARCH_SUGGEST;
+  match.type = omnibox::AutocompleteMatchType::kSearchSuggest;
   match.contents = u"test query";
   model()->SetCurrentMatchForTest(match);
 
@@ -1932,7 +1934,7 @@ TEST_F(OmniboxEditModelPopupTest,
   // Setup match with no bitmap.
   ACMatches matches;
   AutocompleteMatch match_without_associated_keyword(
-      nullptr, 1000, false, AutocompleteMatchType::URL_WHAT_YOU_TYPED);
+      nullptr, 1000, false, omnibox::AutocompleteMatchType::kUrlWhatYouTyped);
   match_without_associated_keyword.keyword =
       u"match_without_associated_keyword";
   matches.push_back(match_without_associated_keyword);
@@ -1956,12 +1958,12 @@ TEST_F(OmniboxEditModelPopupTest,
   // Setup matches and add to result.
   ACMatches matches;
   AutocompleteMatch match_without_bitmap(
-      nullptr, 1000, false, AutocompleteMatchType::URL_WHAT_YOU_TYPED);
+      nullptr, 1000, false, omnibox::AutocompleteMatchType::kUrlWhatYouTyped);
   match_without_bitmap.keyword = u"match_without_bitmap";
   match_without_bitmap.associated_keyword = u"match_without_bitmap";
   matches.push_back(match_without_bitmap);
   AutocompleteMatch match_with_bitmap(
-      nullptr, 1000, false, AutocompleteMatchType::URL_WHAT_YOU_TYPED);
+      nullptr, 1000, false, omnibox::AutocompleteMatchType::kUrlWhatYouTyped);
   match_with_bitmap.keyword = u"match_with_bitmap";
   match_with_bitmap.associated_keyword = u"match_with_bitmap";
   matches.push_back(match_with_bitmap);
@@ -1986,30 +1988,30 @@ TEST_F(OmniboxEditModelPopupTest,
        MaybeGetPopupAccessibilityLabelForIPHSuggestion) {
   ACMatches matches;
   // Match 0: regular search match.
-  matches.push_back(AutocompleteMatch(nullptr, 1000, false,
-                                      AutocompleteMatchType::SEARCH_SUGGEST));
+  matches.push_back(AutocompleteMatch(
+      nullptr, 1000, false, omnibox::AutocompleteMatchType::kSearchSuggest));
   // Match 1: regular IPH tip.
-  AutocompleteMatch regular_iph(nullptr, 900, false,
-                                AutocompleteMatchType::NULL_RESULT_MESSAGE);
+  AutocompleteMatch regular_iph(
+      nullptr, 900, false, omnibox::AutocompleteMatchType::kNullResultMessage);
   regular_iph.iph_type = IphType::kGemini;
   regular_iph.contents = u"Chrome Tip";
   matches.push_back(regular_iph);
   // Match 2: regular search match.
-  matches.push_back(AutocompleteMatch(nullptr, 800, false,
-                                      AutocompleteMatchType::SEARCH_SUGGEST));
+  matches.push_back(AutocompleteMatch(
+      nullptr, 800, false, omnibox::AutocompleteMatchType::kSearchSuggest));
   // Match 3: IPH disclaimer.
-  AutocompleteMatch disclaimer_iph(nullptr, 700, false,
-                                   AutocompleteMatchType::NULL_RESULT_MESSAGE);
+  AutocompleteMatch disclaimer_iph(
+      nullptr, 700, false, omnibox::AutocompleteMatchType::kNullResultMessage);
   disclaimer_iph.iph_type = IphType::kHistoryEmbeddingsDisclaimer;
   disclaimer_iph.iph_link_url = GURL("chrome://settings");
   disclaimer_iph.contents = u"Disclaimer Text";
   matches.push_back(disclaimer_iph);
   // Match 4: regular search match.
-  matches.push_back(AutocompleteMatch(nullptr, 600, false,
-                                      AutocompleteMatchType::SEARCH_SUGGEST));
+  matches.push_back(AutocompleteMatch(
+      nullptr, 600, false, omnibox::AutocompleteMatchType::kSearchSuggest));
   // Match 5: IPH settings promo.
   AutocompleteMatch settings_promo_iph(
-      nullptr, 500, false, AutocompleteMatchType::NULL_RESULT_MESSAGE);
+      nullptr, 500, false, omnibox::AutocompleteMatchType::kNullResultMessage);
   settings_promo_iph.iph_type = IphType::kHistoryEmbeddingsSettingsPromo;
   settings_promo_iph.iph_link_url = GURL("chrome://settings");
   settings_promo_iph.contents = u"Settings Promo Text";
@@ -2347,7 +2349,7 @@ TEST_F(OmniboxEditModelPopupTest,
   // Set up a match with additional_info (the field that triggers the crash).
   ACMatches matches;
   AutocompleteMatch match(nullptr, 1000, false,
-                          AutocompleteMatchType::URL_WHAT_YOU_TYPED);
+                          omnibox::AutocompleteMatchType::kUrlWhatYouTyped);
   match.allowed_to_be_default_match = true;
   match.additional_info["key"] = "value";
   matches.push_back(match);
@@ -2383,11 +2385,11 @@ TEST_F(OmniboxEditModelPopupTest,
   // 1. Start with 2 matches.
   ACMatches matches;
   AutocompleteMatch match1(nullptr, 1000, false,
-                           AutocompleteMatchType::URL_WHAT_YOU_TYPED);
+                           omnibox::AutocompleteMatchType::kUrlWhatYouTyped);
   match1.allowed_to_be_default_match = true;
   matches.push_back(match1);
   AutocompleteMatch match2(nullptr, 500, false,
-                           AutocompleteMatchType::SEARCH_SUGGEST);
+                           omnibox::AutocompleteMatchType::kSearchSuggest);
   matches.push_back(match2);
 
   auto* result = &AutocompleteControllerPublishedResult();
@@ -2439,7 +2441,7 @@ TEST_F(OmniboxEditModelPopupTest, OpenFeaturedSearchMatch) {
 
   // Create a featured search match.
   AutocompleteMatch match(nullptr, 1000, false,
-                          AutocompleteMatchType::STARTER_PACK);
+                          omnibox::AutocompleteMatchType::kStarterPack);
   match.keyword = u"@bookmarks";
   match.associated_keyword = u"@bookmarks";
   match.destination_url = GURL("chrome://bookmarks");
@@ -2601,7 +2603,7 @@ TEST_F(OmniboxEditModelTest, OpenMatchWithActionPreservesPopupState) {
 
   AutocompleteMatch match(
       controller()->autocomplete_controller()->search_provider(), 1000, false,
-      AutocompleteMatchType::SEARCH_SUGGEST);
+      omnibox::AutocompleteMatchType::kSearchSuggest);
   match.takeover_action = base::MakeRefCounted<TestAimAction>();
 
   EXPECT_NE(controller()->popup_state_manager()->popup_state(),

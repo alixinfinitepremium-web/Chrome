@@ -389,7 +389,7 @@ void OmniboxResultView::SetMatch(const AutocompleteMatch& match) {
 
   button_row_->UpdateFromModel();
 
-  if (match_.type == AutocompleteMatchType::Type::HISTORY_EMBEDDINGS_ANSWER) {
+  if (match_.type == omnibox::AutocompleteMatchType::kHistoryEmbeddingsAnswer) {
     if (!local_answer_header_) {
       local_answer_header_ =
           local_answer_header_and_suggestion_and_buttons_->AddChildViewAt(
@@ -485,7 +485,7 @@ void OmniboxResultView::ApplyThemeAndRefreshIcons(bool force_reapply_styles) {
   // TODO(crbug.com/430318151): We should finish migrating this logic to live
   // entirely within OmniboxTextView, which should keep track of its own
   // OmniboxPart.
-  if (match_.type == AutocompleteMatchType::NULL_RESULT_MESSAGE) {
+  if (match_.type == omnibox::AutocompleteMatchType::kNullResultMessage) {
     suggestion_view_->content()->ApplyTextColor(
         match_.IsIphSuggestion() || match_.IsToolbelt()
             ? kColorOmniboxResultsTextDimmed
@@ -561,7 +561,7 @@ OmniboxPartState OmniboxResultView::GetThemeState() const {
   // NULL_RESULT_MESSAGE matches are no-op suggestions that only deliver a
   // message. The selected and hovered states imply an action can be taken from
   // that suggestion, so do not allow those states for this result.
-  if (match_.type == AutocompleteMatchType::NULL_RESULT_MESSAGE) {
+  if (match_.type == omnibox::AutocompleteMatchType::kNullResultMessage) {
     if (match_.IsToolbelt()) {
       return OmniboxPartState::TOOLBELT;
     }
@@ -679,11 +679,12 @@ gfx::Image OmniboxResultView::GetIcon() const {
   // kColorOmniboxResultsUrl[Selected] color which is intended for the URL text
   // in suggestion texts.
   ui::ColorId vector_icon_color_id;
-  if (match_.type == AutocompleteMatchType::STARTER_PACK ||
-      match_.type == AutocompleteMatchType::FEATURED_ENTERPRISE_SEARCH) {
+  if (match_.type == omnibox::AutocompleteMatchType::kStarterPack ||
+      match_.type ==
+          omnibox::AutocompleteMatchType::kFeaturedEnterpriseSearch) {
     vector_icon_color_id = kColorOmniboxResultsStarterPackIcon;
-  } else if (match_.type == AutocompleteMatchType::HISTORY_CLUSTER ||
-             match_.type == AutocompleteMatchType::PEDAL) {
+  } else if (match_.type == omnibox::AutocompleteMatchType::kHistoryCluster ||
+             match_.type == omnibox::AutocompleteMatchType::kPedal) {
     vector_icon_color_id = kColorOmniboxAnswerIconGM3Foreground;
   } else {
     vector_icon_color_id = GetMatchSelected() ? kColorOmniboxResultsIconSelected
@@ -802,7 +803,7 @@ void OmniboxResultView::UpdateAccessibleName() {
                    ->edit_model()
                    ->MaybeGetPopupAccessibilityLabelForIPHSuggestion();
     } else {
-      label = AutocompleteMatchType::ToAccessibilityLabel(
+      label = omnibox::AutocompleteMatchToAccessibilityLabel(
           raw_match,
           popup_view_->controller()
               ->autocomplete_controller()

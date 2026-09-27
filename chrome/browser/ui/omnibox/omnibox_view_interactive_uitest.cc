@@ -860,7 +860,7 @@ IN_PROC_BROWSER_TEST_F(OmniboxViewTest, DISABLED_EnterToSearch) {
   ASSERT_NO_FATAL_FAILURE(SendKeySequence(kSearchTextKeys));
   ASSERT_NO_FATAL_FAILURE(WaitForAutocompleteControllerDone());
   ASSERT_TRUE(GetOmniboxController()->IsPopupOpen());
-  ASSERT_EQ(AutocompleteMatchType::SEARCH_WHAT_YOU_TYPED,
+  ASSERT_EQ(omnibox::AutocompleteMatchType::kSearchWhatYouTyped,
             GetOmniboxController()
                 ->autocomplete_controller()
                 ->result()
@@ -874,7 +874,7 @@ IN_PROC_BROWSER_TEST_F(OmniboxViewTest, DISABLED_EnterToSearch) {
   ASSERT_NO_FATAL_FAILURE(SendKey(ui::VKEY_Z, 0));
   ASSERT_NO_FATAL_FAILURE(WaitForAutocompleteControllerDone());
   ASSERT_TRUE(GetOmniboxController()->IsPopupOpen());
-  ASSERT_EQ(AutocompleteMatchType::SEARCH_WHAT_YOU_TYPED,
+  ASSERT_EQ(omnibox::AutocompleteMatchType::kSearchWhatYouTyped,
             GetOmniboxController()
                 ->autocomplete_controller()
                 ->result()
@@ -1179,7 +1179,8 @@ IN_PROC_BROWSER_TEST_F(OmniboxViewTest, NonDefaultSubstitutingKeywordTest) {
                             ->autocomplete_controller()
                             ->result()
                             .default_match();
-  EXPECT_EQ(default_match->type, AutocompleteMatchType::SEARCH_WHAT_YOU_TYPED);
+  EXPECT_EQ(default_match->type,
+            omnibox::AutocompleteMatchType::kSearchWhatYouTyped);
   EXPECT_EQ(default_match->destination_url.spec(), kSearchTextURL);
 
   omnibox_view->SetUserText(std::u16string());
@@ -1215,7 +1216,8 @@ IN_PROC_BROWSER_TEST_F(OmniboxViewTest, NonSubstitutingKeywordTest) {
                             ->autocomplete_controller()
                             ->result()
                             .default_match();
-  EXPECT_EQ(default_match->type, AutocompleteMatchType::HISTORY_KEYWORD);
+  EXPECT_EQ(default_match->type,
+            omnibox::AutocompleteMatchType::kHistoryKeyword);
   EXPECT_EQ(default_match->destination_url.spec(), "http://abc.com/");
 
   omnibox_view->SetUserText(std::u16string());

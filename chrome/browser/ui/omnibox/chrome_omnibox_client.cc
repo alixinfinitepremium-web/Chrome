@@ -531,7 +531,7 @@ void ChromeOmniboxClient::ProcessExtensionMatch(
   // In unscoped mode, the input is sent verbatim. In scoped (keyword) mode, the
   // keyword and input are split, and only the input after the keyword is sent.
   std::string input =
-      match.provider->type() == AutocompleteProvider::TYPE_UNSCOPED_EXTENSION
+      match.provider->type() == AutocompleteProvider::Type::kUnscopedExtension
           ? base::UTF16ToUTF8(match.fill_into_edit)
           : base::UTF16ToUTF8(remaining_input);
   extensions::ExtensionOmniboxEventRouter::OnInputEntered(
@@ -948,7 +948,7 @@ void ChromeOmniboxClient::OnAutocompleteAccept(
     TemplateURLRef::PostContent* post_content,
     WindowOpenDisposition disposition,
     ui::PageTransition transition,
-    AutocompleteMatchType::Type match_type,
+    omnibox::AutocompleteMatchType match_type,
     base::TimeTicks match_selection_timestamp,
     bool destination_url_entered_without_scheme,
     bool destination_url_entered_with_http_scheme,

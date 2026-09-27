@@ -123,7 +123,7 @@ void ZpsSection::InitFromMatches(ACMatches& matches) {
     size_t current_group_index = std::distance(groups_.begin(), group_itr);
     if (current_group_index < last_group_index) {
       const std::string match_type =
-          AutocompleteMatchType::ToString(match.type);
+          omnibox::AutocompleteMatchTypeToString(match.type);
       const std::string match_group_id =
           omnibox::GroupId_Name(match.suggestion_group_id.value());
       const std::string match_relevance = base::NumberToString(match.relevance);

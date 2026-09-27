@@ -44,9 +44,9 @@ TEST_F(OmniboxPopupSelectionTest, SelectionWithKeywordMode) {
   AutocompleteInput input;
   AutocompleteResult result;
   result.AppendMatches({
-      {nullptr, 1000, false, AutocompleteMatchType::SEARCH_SUGGEST},
-      {nullptr, 900, false, AutocompleteMatchType::STARTER_PACK},
-      {nullptr, 800, false, AutocompleteMatchType::HISTORY_EMBEDDINGS},
+      {nullptr, 1000, false, omnibox::AutocompleteMatchType::kSearchSuggest},
+      {nullptr, 900, false, omnibox::AutocompleteMatchType::kStarterPack},
+      {nullptr, 800, false, omnibox::AutocompleteMatchType::kHistoryEmbeddings},
   });
   result.match_at(1u)->associated_keyword = test_keyword;
 
@@ -109,9 +109,9 @@ TEST_F(OmniboxPopupSelectionTest, SelectionWithAIMButton) {
   AutocompleteInput input;
   AutocompleteResult result;
   result.AppendMatches({
-      {nullptr, 1000, false, AutocompleteMatchType::SEARCH_SUGGEST},
-      {nullptr, 900, false, AutocompleteMatchType::HISTORY_URL},
-      {nullptr, 800, false, AutocompleteMatchType::HISTORY_TITLE},
+      {nullptr, 1000, false, omnibox::AutocompleteMatchType::kSearchSuggest},
+      {nullptr, 900, false, omnibox::AutocompleteMatchType::kHistoryUrl},
+      {nullptr, 800, false, omnibox::AutocompleteMatchType::kHistoryTitle},
   });
 
   // In the typed input (non-zero suggest) case, the first match in the list
@@ -161,9 +161,9 @@ TEST_F(OmniboxPopupSelectionTest, SelectionWithAIMButtonZeroInput) {
   input.set_focus_type(metrics::OmniboxFocusType::INTERACTION_FOCUS);
   AutocompleteResult result;
   result.AppendMatches({
-      {nullptr, 1000, false, AutocompleteMatchType::SEARCH_SUGGEST},
-      {nullptr, 900, false, AutocompleteMatchType::HISTORY_URL},
-      {nullptr, 800, false, AutocompleteMatchType::HISTORY_TITLE},
+      {nullptr, 1000, false, omnibox::AutocompleteMatchType::kSearchSuggest},
+      {nullptr, 900, false, omnibox::AutocompleteMatchType::kHistoryUrl},
+      {nullptr, 800, false, omnibox::AutocompleteMatchType::kHistoryTitle},
   });
 
   // In the zero suggest case, there is no default match, which is represented
@@ -210,10 +210,10 @@ TEST_F(OmniboxPopupSelectionTest, SelectionWithIphDisclaimer) {
   AutocompleteInput input;
   AutocompleteResult result;
   result.AppendMatches({
-      {nullptr, 1000, false, AutocompleteMatchType::SEARCH_SUGGEST},
-      {nullptr, 900, false, AutocompleteMatchType::NULL_RESULT_MESSAGE},
-      {nullptr, 800, false, AutocompleteMatchType::NULL_RESULT_MESSAGE},
-      {nullptr, 700, false, AutocompleteMatchType::NULL_RESULT_MESSAGE},
+      {nullptr, 1000, false, omnibox::AutocompleteMatchType::kSearchSuggest},
+      {nullptr, 900, false, omnibox::AutocompleteMatchType::kNullResultMessage},
+      {nullptr, 800, false, omnibox::AutocompleteMatchType::kNullResultMessage},
+      {nullptr, 700, false, omnibox::AutocompleteMatchType::kNullResultMessage},
   });
   // Regular IPH tip (not a disclaimer).
   result.match_at(1u)->iph_type = IphType::kGemini;
@@ -283,10 +283,10 @@ TEST_F(OmniboxPopupSelectionTest, SelectionWithIphDisclaimer) {
 TEST_F(OmniboxPopupSelectionTest, IsControlPresentOnMatch) {
   AutocompleteResult result;
   result.AppendMatches({
-      {nullptr, 1000, false, AutocompleteMatchType::SEARCH_SUGGEST},
-      {nullptr, 900, false, AutocompleteMatchType::NULL_RESULT_MESSAGE},
-      {nullptr, 800, false, AutocompleteMatchType::NULL_RESULT_MESSAGE},
-      {nullptr, 700, false, AutocompleteMatchType::NULL_RESULT_MESSAGE},
+      {nullptr, 1000, false, omnibox::AutocompleteMatchType::kSearchSuggest},
+      {nullptr, 900, false, omnibox::AutocompleteMatchType::kNullResultMessage},
+      {nullptr, 800, false, omnibox::AutocompleteMatchType::kNullResultMessage},
+      {nullptr, 700, false, omnibox::AutocompleteMatchType::kNullResultMessage},
   });
   // Regular IPH tip (not a disclaimer).
   result.match_at(1u)->iph_type = IphType::kGemini;

@@ -3638,9 +3638,9 @@ IN_PROC_BROWSER_TEST_P(HttpsUpgradesBrowserTest,
   content::TestNavigationObserver nav_observer(contents, 1);
   omnibox_client->OnAutocompleteAccept(
       http_url, nullptr, WindowOpenDisposition::CURRENT_TAB,
-      ui::PAGE_TRANSITION_TYPED, AutocompleteMatchType::URL_WHAT_YOU_TYPED,
-      base::TimeTicks(), false, true, std::u16string(), AutocompleteMatch(),
-      AutocompleteMatch());
+      ui::PAGE_TRANSITION_TYPED,
+      omnibox::AutocompleteMatchType::kUrlWhatYouTyped, base::TimeTicks(),
+      false, true, std::u16string(), AutocompleteMatch(), AutocompleteMatch());
   nav_observer.Wait();
 
   if (IsStrictInterstitialEnabledForTest()) {
@@ -3671,7 +3671,7 @@ IN_PROC_BROWSER_TEST_P(HttpsUpgradesBrowserTest,
   content::TestNavigationObserver nav_observer(contents, 1);
   omnibox_client->OnAutocompleteAccept(
       http_url, nullptr, WindowOpenDisposition::CURRENT_TAB,
-      ui::PAGE_TRANSITION_TYPED, AutocompleteMatchType::NAVSUGGEST,
+      ui::PAGE_TRANSITION_TYPED, omnibox::AutocompleteMatchType::kNavsuggest,
       base::TimeTicks(), false, false, std::u16string(), AutocompleteMatch(),
       AutocompleteMatch());
   nav_observer.Wait();
@@ -3706,9 +3706,9 @@ IN_PROC_BROWSER_TEST_P(HttpsUpgradesBrowserTest,
   content::TestNavigationObserver nav_observer(contents, 1);
   omnibox_client->OnAutocompleteAccept(
       http_url, nullptr, WindowOpenDisposition::CURRENT_TAB,
-      ui::PAGE_TRANSITION_TYPED, AutocompleteMatchType::URL_WHAT_YOU_TYPED,
-      base::TimeTicks(), false, true, std::u16string(), AutocompleteMatch(),
-      AutocompleteMatch());
+      ui::PAGE_TRANSITION_TYPED,
+      omnibox::AutocompleteMatchType::kUrlWhatYouTyped, base::TimeTicks(),
+      false, true, std::u16string(), AutocompleteMatch(), AutocompleteMatch());
   nav_observer.Wait();
 
   // URL should not have been upgraded, and site should now be in the allowlist.
@@ -3753,9 +3753,9 @@ IN_PROC_BROWSER_TEST_P(HttpsUpgradesBrowserTest,
   content::TestNavigationObserver nav_observer(contents, 1);
   omnibox_client->OnAutocompleteAccept(
       initial_url, nullptr, WindowOpenDisposition::CURRENT_TAB,
-      ui::PAGE_TRANSITION_TYPED, AutocompleteMatchType::URL_WHAT_YOU_TYPED,
-      base::TimeTicks(), false, true, std::u16string(), AutocompleteMatch(),
-      AutocompleteMatch());
+      ui::PAGE_TRANSITION_TYPED,
+      omnibox::AutocompleteMatchType::kUrlWhatYouTyped, base::TimeTicks(),
+      false, true, std::u16string(), AutocompleteMatch(), AutocompleteMatch());
   nav_observer.Wait();
 
   // None of the hops should have been upgraded.
@@ -3896,8 +3896,8 @@ IN_PROC_BROWSER_TEST_F(
       http_url, nullptr, WindowOpenDisposition::CURRENT_TAB,
       ui::PageTransitionFromInt(ui::PAGE_TRANSITION_TYPED |
                                 ui::PAGE_TRANSITION_FROM_ADDRESS_BAR),
-      AutocompleteMatchType::URL_WHAT_YOU_TYPED, base::TimeTicks(), true, false,
-      std::u16string(), AutocompleteMatch(), AutocompleteMatch());
+      omnibox::AutocompleteMatchType::kUrlWhatYouTyped, base::TimeTicks(), true,
+      false, std::u16string(), AutocompleteMatch(), AutocompleteMatch());
   nav_observer.Wait();
 
   // The navigation should have been upgraded to HTTPS, and failed there.
@@ -3946,8 +3946,8 @@ IN_PROC_BROWSER_TEST_F(
       http_url, nullptr, WindowOpenDisposition::CURRENT_TAB,
       ui::PageTransitionFromInt(ui::PAGE_TRANSITION_TYPED |
                                 ui::PAGE_TRANSITION_FROM_ADDRESS_BAR),
-      AutocompleteMatchType::URL_WHAT_YOU_TYPED, base::TimeTicks(), true, false,
-      std::u16string(), AutocompleteMatch(), AutocompleteMatch());
+      omnibox::AutocompleteMatchType::kUrlWhatYouTyped, base::TimeTicks(), true,
+      false, std::u16string(), AutocompleteMatch(), AutocompleteMatch());
   nav_observer.Wait();
 
   // The navigation should have been upgraded to HTTPS, failed (cert error), and
@@ -3998,8 +3998,8 @@ IN_PROC_BROWSER_TEST_F(
       http_url, nullptr, WindowOpenDisposition::CURRENT_TAB,
       ui::PageTransitionFromInt(ui::PAGE_TRANSITION_TYPED |
                                 ui::PAGE_TRANSITION_FROM_ADDRESS_BAR),
-      AutocompleteMatchType::URL_WHAT_YOU_TYPED, base::TimeTicks(), true, false,
-      std::u16string(), AutocompleteMatch(), AutocompleteMatch());
+      omnibox::AutocompleteMatchType::kUrlWhatYouTyped, base::TimeTicks(), true,
+      false, std::u16string(), AutocompleteMatch(), AutocompleteMatch());
   nav_observer.Wait();
 
   // The navigation should have been upgraded to HTTPS, and succeeded.
@@ -4059,8 +4059,8 @@ IN_PROC_BROWSER_TEST_F(
       http_url, nullptr, WindowOpenDisposition::CURRENT_TAB,
       ui::PageTransitionFromInt(ui::PAGE_TRANSITION_TYPED |
                                 ui::PAGE_TRANSITION_FROM_ADDRESS_BAR),
-      AutocompleteMatchType::URL_WHAT_YOU_TYPED, base::TimeTicks(), true, false,
-      std::u16string(), AutocompleteMatch(), AutocompleteMatch());
+      omnibox::AutocompleteMatchType::kUrlWhatYouTyped, base::TimeTicks(), true,
+      false, std::u16string(), AutocompleteMatch(), AutocompleteMatch());
   nav_observer.Wait();
 
   // The navigation should have been upgraded to HTTPS, failed, and fell back to
@@ -4112,8 +4112,8 @@ IN_PROC_BROWSER_TEST_F(
       http_url, nullptr, WindowOpenDisposition::CURRENT_TAB,
       ui::PageTransitionFromInt(ui::PAGE_TRANSITION_TYPED |
                                 ui::PAGE_TRANSITION_FROM_ADDRESS_BAR),
-      AutocompleteMatchType::URL_WHAT_YOU_TYPED, base::TimeTicks(), true, false,
-      std::u16string(), AutocompleteMatch(), AutocompleteMatch());
+      omnibox::AutocompleteMatchType::kUrlWhatYouTyped, base::TimeTicks(), true,
+      false, std::u16string(), AutocompleteMatch(), AutocompleteMatch());
   nav_observer.Wait();
 
   // The navigation should have been upgraded to HTTPS, failed (timeout), and
@@ -4193,8 +4193,8 @@ IN_PROC_BROWSER_TEST_F(
       http_url, nullptr, WindowOpenDisposition::CURRENT_TAB,
       ui::PageTransitionFromInt(ui::PAGE_TRANSITION_TYPED |
                                 ui::PAGE_TRANSITION_FROM_ADDRESS_BAR),
-      AutocompleteMatchType::URL_WHAT_YOU_TYPED, base::TimeTicks(), true, false,
-      std::u16string(), AutocompleteMatch(), AutocompleteMatch());
+      omnibox::AutocompleteMatchType::kUrlWhatYouTyped, base::TimeTicks(), true,
+      false, std::u16string(), AutocompleteMatch(), AutocompleteMatch());
   nav_observer.Wait();
 
   // The navigation should have been upgraded to HTTPS, and failed there.
@@ -4238,8 +4238,8 @@ IN_PROC_BROWSER_TEST_F(
       http_url, nullptr, WindowOpenDisposition::CURRENT_TAB,
       ui::PageTransitionFromInt(ui::PAGE_TRANSITION_TYPED |
                                 ui::PAGE_TRANSITION_FROM_ADDRESS_BAR),
-      AutocompleteMatchType::URL_WHAT_YOU_TYPED, base::TimeTicks(), true, false,
-      std::u16string(), AutocompleteMatch(), AutocompleteMatch());
+      omnibox::AutocompleteMatchType::kUrlWhatYouTyped, base::TimeTicks(), true,
+      false, std::u16string(), AutocompleteMatch(), AutocompleteMatch());
   nav_observer.Wait();
 
   // The navigation should have been upgraded to HTTPS, failed (cert error), and

@@ -55,7 +55,7 @@ AutocompleteMatch NewOmniboxResult(const std::string& url) {
   result.stripped_destination_url = GURL(url);
   result.contents = u"contents";
   result.description = u"description";
-  result.type = AutocompleteMatchType::BOOKMARK_TITLE;
+  result.type = omnibox::AutocompleteMatchType::kBookmarkTitle;
 
   return result;
 }
@@ -68,7 +68,7 @@ AutocompleteMatch NewCalculatorResult(const std::string& url) {
   result.stripped_destination_url = GURL(url);
   result.contents = u"contents";
   result.description = u"description";
-  result.type = AutocompleteMatchType::CALCULATOR;
+  result.type = omnibox::AutocompleteMatchType::kCalculator;
 
   return result;
 }
@@ -81,7 +81,7 @@ AutocompleteMatch NewOpenTabResult(const std::string& url) {
   result.stripped_destination_url = GURL(url);
   result.contents = u"contents";
   result.description = u"description";
-  result.type = AutocompleteMatchType::OPEN_TAB;
+  result.type = omnibox::AutocompleteMatchType::kOpenTab;
 
   return result;
 }
@@ -285,7 +285,7 @@ TEST_F(OmniboxProviderTest, Deduplicate) {
   auto history_result = NewOmniboxResult("https://example.com/result_1");
   history_result.contents = u"history";
   history_result.description = u"history description";
-  history_result.type = AutocompleteMatchType::SEARCH_HISTORY;
+  history_result.type = omnibox::AutocompleteMatchType::kSearchHistory;
 
   std::vector<AutocompleteMatch> to_produce;
   AutocompleteResult result;

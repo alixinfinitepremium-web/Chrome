@@ -1387,8 +1387,8 @@ IN_PROC_BROWSER_TEST_F(ContextualTasksComposeboxHandlerTest,
   handler_->GetOmniboxClientForTesting()->OnAutocompleteAccept(
       GURL("https://www.google.com/search?q=test query"), nullptr,
       WindowOpenDisposition::CURRENT_TAB, ui::PAGE_TRANSITION_TYPED,
-      AutocompleteMatchType::SEARCH_SUGGEST, base::TimeTicks::Now(), false,
-      false, u"test query", match, match);
+      omnibox::AutocompleteMatchType::kSearchSuggest, base::TimeTicks::Now(),
+      false, false, u"test query", match, match);
 
   EXPECT_EQ(1, user_action_tester.GetActionCount(
                    "ContextualTasks.Composebox.UserAction.QuerySubmitted"));
@@ -1426,8 +1426,8 @@ IN_PROC_BROWSER_TEST_F(ContextualTasksComposeboxHandlerTest,
   handler_->GetOmniboxClientForTesting()->OnAutocompleteAccept(
       GURL("https://www.google.com/search?q=extracted%20query"), nullptr,
       WindowOpenDisposition::CURRENT_TAB, ui::PAGE_TRANSITION_TYPED,
-      AutocompleteMatchType::SEARCH_SUGGEST, base::TimeTicks::Now(), false,
-      false, u"extracted query", match, match);
+      omnibox::AutocompleteMatchType::kSearchSuggest, base::TimeTicks::Now(),
+      false, false, u"extracted query", match, match);
 }
 
 IN_PROC_BROWSER_TEST_F(ContextualTasksComposeboxHandlerTest,
@@ -1445,8 +1445,8 @@ IN_PROC_BROWSER_TEST_F(ContextualTasksComposeboxHandlerTest,
   handler_->GetOmniboxClientForTesting()->OnAutocompleteAccept(
       GURL("https://www.google.com/search?other=param"), nullptr,
       WindowOpenDisposition::CURRENT_TAB, ui::PAGE_TRANSITION_TYPED,
-      AutocompleteMatchType::SEARCH_SUGGEST, base::TimeTicks::Now(), false,
-      false, u"other param", match, match);
+      omnibox::AutocompleteMatchType::kSearchSuggest, base::TimeTicks::Now(),
+      false, false, u"other param", match, match);
 }
 
 struct ToolModeTestParam {

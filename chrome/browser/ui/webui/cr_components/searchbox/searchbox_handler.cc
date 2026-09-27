@@ -943,7 +943,7 @@ SearchboxHandler::CreateAutocompleteMatch(
   if (MatchHasSideTypeAndRenderType(
           match, omnibox::GroupConfig_SideType_SECONDARY,
           omnibox::GroupConfig_RenderType_HORIZONTAL, suggestion_groups_map) &&
-      (match.type != AutocompleteMatchType::SEARCH_SUGGEST_ENTITY ||
+      (match.type != omnibox::AutocompleteMatchType::kSearchSuggestEntity ||
        !match.image_url.is_valid())) {
     return std::nullopt;
   }
@@ -1000,11 +1000,11 @@ SearchboxHandler::CreateAutocompleteMatch(
   mojom_match->swap_contents_and_description =
       match.swap_contents_and_description;
   mojom_match->show_contextual_description = false;
-  mojom_match->type = AutocompleteMatchType::ToString(match.type);
+  mojom_match->type = omnibox::AutocompleteMatchTypeToString(match.type);
   mojom_match->supports_deletion = match.SupportsDeletion();
   mojom_match->is_two_row_suggestion =
       !mojom_match->image_url.empty() ||
-      match.type == AutocompleteMatchType::CALCULATOR ||
+      match.type == omnibox::AutocompleteMatchType::kCalculator ||
       match.enterprise_search_aggregator_type ==
           AutocompleteMatch::EnterpriseSearchAggregatorType::PEOPLE;
   if (match.suggest_template) {
@@ -1041,13 +1041,13 @@ SearchboxHandler::CreateAutocompleteMatch(
   std::u16string header_text =
       autocomplete_controller()->GetSuggestionGroupHeaderText(
           match.suggestion_group_id);
-  mojom_match->a11y_label = AutocompleteMatchType::ToAccessibilityLabel(
+  mojom_match->a11y_label = omnibox::AutocompleteMatchToAccessibilityLabel(
       match, header_text, match.contents, line, 0,
       GetAdditionalA11yMessage(match,
                                searchbox::mojom::SelectionLineState::kNormal));
 
   mojom_match->remove_button_a11y_label =
-      AutocompleteMatchType::ToAccessibilityLabel(
+      omnibox::AutocompleteMatchToAccessibilityLabel(
           match, header_text, match.contents, line, 0,
           GetAdditionalA11yMessage(match, searchbox::mojom::SelectionLineState::
                                               kFocusedButtonRemoveSuggestion));

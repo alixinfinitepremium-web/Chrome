@@ -237,7 +237,7 @@ class MockLensSearchboxClient : public LensSearchboxClient {
   MOCK_METHOD(void, OnThumbnailRemoved, (), (override));
   MOCK_METHOD(void,
               OnSuggestionAccepted,
-              (const GURL&, AutocompleteMatchType::Type, bool),
+              (const GURL&, omnibox::AutocompleteMatchType, bool),
               (override));
   MOCK_METHOD(void, OnFocusChanged, (bool focused), (override));
   MOCK_METHOD(void, OnPageBound, (), (override));

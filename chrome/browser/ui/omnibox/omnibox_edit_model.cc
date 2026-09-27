@@ -1967,9 +1967,11 @@ gfx::Image OmniboxEditModel::GetMatchIcon(const AutocompleteMatch& match,
       return agentspace_icon;
     }
   } else if (!AutocompleteMatch::IsSearchType(match.type) &&
-             match.type != AutocompleteMatchType::DOCUMENT_SUGGESTION &&
-             match.type != AutocompleteMatchType::HISTORY_CLUSTER &&
-             match.type != AutocompleteMatchType::HISTORY_EMBEDDINGS_ANSWER &&
+             match.type !=
+                 omnibox::AutocompleteMatchType::kDocumentSuggestion &&
+             match.type != omnibox::AutocompleteMatchType::kHistoryCluster &&
+             match.type !=
+                 omnibox::AutocompleteMatchType::kHistoryEmbeddingsAnswer &&
              !AutocompleteMatch::IsStarterPackType(match.type)) {
     // Because the Views UI code calls GetMatchIcon in both the layout and
     // painting code, we may generate multiple `OnFaviconFetched` callbacks,
@@ -2015,7 +2017,8 @@ gfx::Image OmniboxEditModel::GetMatchIconIfExtension(
   // in the rich suggestions bitmaps. Fall back to the extension icon if empty
   // or not found.
   if (match.provider &&
-      match.provider->type() == AutocompleteProvider::TYPE_UNSCOPED_EXTENSION &&
+      match.provider->type() ==
+          AutocompleteProvider::Type::kUnscopedExtension &&
       !match.ImageUrl().is_empty()) {
     const SkBitmap* bitmap = GetPopupRichSuggestionBitmap(match.image_url);
     if (bitmap) {
@@ -2204,14 +2207,14 @@ std::u16string OmniboxEditModel::GetPopupAccessibilityLabelForCurrentSelection(
   const AutocompleteMatch& match =
       autocomplete_controller()->result().match_at(line);
 
-  if (match.type == AutocompleteMatchType::HISTORY_EMBEDDINGS_ANSWER) {
+  if (match.type == omnibox::AutocompleteMatchType::kHistoryEmbeddingsAnswer) {
     // This match type is a special case that puts its primary meaningful
     // content (the answer) into the `description` and repurposes other fields.
     // So using `fill_into_edit` or `inline_autocompletion` or even just match
     // `contents` doesn't make sense in this case. Instead, we provide the
     // screen reader with the header ("Summary") and then the answer in
     // `description`, and finally the URL details in `contents` (includes date).
-    return AutocompleteMatchType::ToAccessibilityLabel(
+    return omnibox::AutocompleteMatchToAccessibilityLabel(
         match,
         autocomplete_controller()->GetSuggestionGroupHeaderText(
             match.suggestion_group_id),
@@ -2321,7 +2324,7 @@ std::u16string OmniboxEditModel::GetPopupAccessibilityLabelForCurrentSelection(
     case OmniboxPopupSelection::LineState::kFocusedIphLink:
       return base::StrCat(
           {match_text, u" ",
-           AutocompleteMatchType::ToAccessibilityLabel(
+           omnibox::AutocompleteMatchToAccessibilityLabel(
                match,
                autocomplete_controller()->GetSuggestionGroupHeaderText(
                    match.suggestion_group_id),
@@ -2345,10 +2348,11 @@ std::u16string OmniboxEditModel::GetPopupAccessibilityLabelForCurrentSelection(
 
   // For informational matches, the relevant text is in contents.
   std::u16string announcement_text =
-      match.type == AutocompleteMatchType::NULL_RESULT_MESSAGE ? match.contents
-                                                               : match_text;
+      match.type == omnibox::AutocompleteMatchType::kNullResultMessage
+          ? match.contents
+          : match_text;
   // If there's a button focused, we don't want the "n of m" message announced.
-  std::u16string label = AutocompleteMatchType::ToAccessibilityLabel(
+  std::u16string label = omnibox::AutocompleteMatchToAccessibilityLabel(
       match,
       autocomplete_controller()->GetSuggestionGroupHeaderText(
           match.suggestion_group_id),
@@ -2647,7 +2651,7 @@ void OmniboxEditModel::AcceptInput(WindowOpenDisposition disposition,
   }
 
   if (paste_state_ != PasteState::kNone &&
-      match.type == AutocompleteMatchType::URL_WHAT_YOU_TYPED) {
+      match.type == omnibox::AutocompleteMatchType::kUrlWhatYouTyped) {
     // When the user pasted in a URL and hit enter, score it like a link click
     // rather than a normal typed URL, so it doesn't get inline autocompleted
     // as aggressively later.
@@ -2766,7 +2770,7 @@ void OmniboxEditModel::OpenMatch(
   // upon. Immediately return when attempting to open one.
   // When the toolbelt is enabled, a non-selectable match may still have
   // selectable actions on it, and these can still be executed.
-  if (match.type == AutocompleteMatchType::NULL_RESULT_MESSAGE &&
+  if (match.type == omnibox::AutocompleteMatchType::kNullResultMessage &&
       (!omnibox_feature_configs::Toolbelt::Get().enabled || !action)) {
     return;
   }
@@ -2776,7 +2780,8 @@ void OmniboxEditModel::OpenMatch(
   // starter pack's tab search (@tabs) feature, which should open all
   // suggestions in the existing open tab.
   bool is_open_tab_match =
-      match.from_keyword && match.type == AutocompleteMatchType::OPEN_TAB;
+      match.from_keyword &&
+      match.type == omnibox::AutocompleteMatchType::kOpenTab;
   // Also switch the window disposition for tab switch actions. The action
   // itself will already open with SWITCH_TO_TAB disposition, but the change
   // is needed earlier for metrics.
@@ -2790,7 +2795,7 @@ void OmniboxEditModel::OpenMatch(
               "disposition", disposition, "alternate_nav_url",
               alternate_nav_url, "pasted_text", pasted_text, "is_search",
               AutocompleteMatch::IsSearchType(match.type), "match_type",
-              AutocompleteMatchType::ToString(match.type));
+              omnibox::AutocompleteMatchTypeToString(match.type));
   const base::TimeTicks& now(base::TimeTicks::Now());
   base::TimeDelta elapsed_time_since_user_first_modified_omnibox(
       now - metrics_tracker_.time_user_first_modified_omnibox());
@@ -2949,7 +2954,7 @@ void OmniboxEditModel::OpenMatch(
     if (ui::PageTransitionTypeIncludingQualifiersIs(
             match.transition, ui::PAGE_TRANSITION_KEYWORD) ||
         match.provider->type() ==
-            AutocompleteProvider::TYPE_UNSCOPED_EXTENSION) {
+            AutocompleteProvider::Type::kUnscopedExtension) {
       // User is in keyword mode or accepted an unscoped extension suggestion,
       // increment usage count for the keyword.
       searchbox::EmitAcceptedKeywordSuggestionHistogram(
@@ -3028,7 +3033,7 @@ void OmniboxEditModel::OpenMatch(
           match.type, match_selection_timestamp,
           input.added_default_scheme_to_typed_url(),
           input.typed_url_had_http_scheme() &&
-              match.type == AutocompleteMatchType::URL_WHAT_YOU_TYPED,
+              match.type == omnibox::AutocompleteMatchType::kUrlWhatYouTyped,
           input_text, match,
           VerbatimMatchForInput(
               autocomplete_controller()->history_url_provider(),
@@ -3318,7 +3323,7 @@ void OmniboxEditModel::RecordAiModeMetrics(const std::u16string& query,
 
 bool OmniboxEditModel::ShouldOpenAimPopup(
     AimActivation activation,
-    AutocompleteMatchType::Type current_match_type) {
+    omnibox::AutocompleteMatchType current_match_type) {
   if (!controller_->client()->IsAimPopupEnabled()) {
     return false;
   }

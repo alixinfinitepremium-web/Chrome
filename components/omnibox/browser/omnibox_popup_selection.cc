@@ -68,7 +68,7 @@ bool OmniboxPopupSelection::IsControlPresentOnMatch(
       // `NULL_RESULT_MESSAGE` cannot be focused, except for IPH suggestions
       // that contain links (such as the disclaimer or setting promo) which
       // need to be navigable by screen readers.
-      return match.type != AutocompleteMatchType::NULL_RESULT_MESSAGE ||
+      return match.type != omnibox::AutocompleteMatchType::kNullResultMessage ||
              (match.IsIphSuggestion() && !match.iph_link_url.is_empty());
     }
     case LineState::kKeywordMode:
@@ -79,7 +79,7 @@ bool OmniboxPopupSelection::IsControlPresentOnMatch(
     }
     case LineState::kFocusedButtonThumbsUp:
     case LineState::kFocusedButtonThumbsDown:
-      return match.type == AutocompleteMatchType::HISTORY_EMBEDDINGS;
+      return match.type == omnibox::AutocompleteMatchType::kHistoryEmbeddings;
     case LineState::kFocusedButtonRemoveSuggestion:
       return match.SupportsDeletion();
     case LineState::kFocusedIphLink:

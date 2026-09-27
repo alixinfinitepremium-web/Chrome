@@ -204,8 +204,9 @@ void FindsTabHelper::OnURLOpenedFromOmnibox(OmniboxLog* log) {
   }
   const AutocompleteMatch& match = log->result->match_at(log->selection.line);
   // Identify recent search suggestions styled with the history clock icon.
-  if (match.type == AutocompleteMatchType::SEARCH_HISTORY ||
-      match.type == AutocompleteMatchType::SEARCH_SUGGEST_PERSONALIZED) {
+  if (match.type == omnibox::AutocompleteMatchType::kSearchHistory ||
+      match.type ==
+          omnibox::AutocompleteMatchType::kSearchSuggestPersonalized) {
     // Signal that a recent search suggestion navigation is pending.
     pending_omnibox_recent_search_suggestion_navigation_ = true;
   }

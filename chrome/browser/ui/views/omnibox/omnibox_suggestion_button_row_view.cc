@@ -503,8 +503,8 @@ void OmniboxSuggestionButtonRowView::UpdateFromModel() {
     BuildViews();
   }
 
-  embeddings_chip_->SetVisible(match().type ==
-                               AutocompleteMatchType::HISTORY_EMBEDDINGS);
+  embeddings_chip_->SetVisible(
+      match().type == omnibox::AutocompleteMatchType::kHistoryEmbeddings);
 
   if (match().HasInstantKeyword(
           popup_view_->controller()->client()->GetTemplateURLService())) {
