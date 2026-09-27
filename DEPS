@@ -2519,7 +2519,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/kotlin_stdlib',
-              'version': 'ShsF1XH7kjKZ9Tq3ym_u9jKNmiQvTohe87kljffX1IkC',
+              'version': 'mq4hyN-Cz6ZNQBQL3WEJ059rzvTirdqxXw5Ol2cFLwcC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -3941,7 +3941,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '6174162c37a0718b3d2649746fe66e3f17870d2e',
+        '15a15475172a770490d6c29a5abf9b758896a365',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
