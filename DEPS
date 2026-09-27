@@ -1764,7 +1764,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    'ca410300e955c753f2ba105643a9ec9838fcb24f',
+    '3536ce1541d031cfd6bea8f5675857098ccb27b6',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -1957,7 +1957,7 @@ deps = {
       'packages': [
           {
                'package': 'chromium/third_party/android_build_tools/error_prone',
-               'version': 'rIY7ZYmTOEV0YjdmnBKroh76dzAcnsblPrRjbjNZWqgC',
+               'version': '1e8D_e9K1EXkHSAfaSoVY-Y9QDomE3HeuQKfoi3AiOsC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
