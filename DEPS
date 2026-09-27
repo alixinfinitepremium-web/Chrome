@@ -1384,7 +1384,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chrome_linux64',
-          'version': 'version:2@152.0.7933.0',
+          'version': 'version:2@156.0.8067.0',
         },
       ],
   },
@@ -1395,7 +1395,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chrome_mac_universal',
-          'version': 'version:2@152.0.7933.0',
+          'version': 'version:2@156.0.8067.0',
         },
       ],
   },
@@ -1417,7 +1417,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chrome_win_arm64',
-          'version': 'version:2@152.0.7933.0',
+          'version': 'version:2@156.0.8067.0',
         },
       ],
   },
@@ -1428,7 +1428,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chrome_win_x86',
-          'version': 'version:2@152.0.7933.0',
+          'version': 'version:2@156.0.8067.0',
         },
       ],
   },
@@ -1439,7 +1439,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chrome_win_x86_64',
-          'version': 'version:2@152.0.7933.0',
+          'version': 'version:2@156.0.8067.0',
         },
       ],
   },
@@ -1764,7 +1764,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '57a3da9e78aa673cda00f33eaa4d2feb9f5add6d',
+    'e551f481bf831e34349acdd734f1ead99a393e68',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -1957,7 +1957,7 @@ deps = {
       'packages': [
           {
                'package': 'chromium/third_party/android_build_tools/error_prone',
-               'version': 'NTsobxxZSFczO0OrRad1bkf2FdOir2uee6ZtYgAarvYC',
+               'version': 'vxwFpy8ZwdjQkMwTCMbApJj9wQzOtdEwQTi68R2t-YgC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -1990,7 +1990,7 @@ deps = {
       'packages': [
           {
                'package': 'chromium/third_party/android_build_tools/manifest_merger',
-               'version': 'XAxW-CqzJytpLlBiMZfBqLjEGoV7F719LSr45sXh-e8C',
+               'version': 'rCioOKPJM_uLsXCM5DXXjhiZ6AXbgtNVMFE38XmLJpMC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -3180,7 +3180,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/turbine',
-              'version': '-KEJ6KQOFwLYU3tvm2HtSdq37vBVlImwb5Q5h6dEBvwC',
+              'version': '5ElMvUwbKTxpH_NvYTecMY1FUMLR2fInCarc3OokZtgC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
