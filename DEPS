@@ -2519,7 +2519,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/kotlin_stdlib',
-              'version': 'KrRQWlwxtQ-z261ju-gxPmykQk1S6nlfWoBaSL-p0IkC',
+              'version': 'UrqwJgsq8XsK4YAlbtzfpNt0XvkAq163kX5ix0wCHkYC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -3180,7 +3180,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/turbine',
-              'version': 'OxGnVLf4_PEkqWQlxEj8HKSEYsQFAJL5eFIQzRihjaEC',
+              'version': '-KEJ6KQOFwLYU3tvm2HtSdq37vBVlImwb5Q5h6dEBvwC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
