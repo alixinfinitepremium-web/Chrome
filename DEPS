@@ -3416,7 +3416,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_receiver_app/app',
-        'version': 'g00qNWaZl-qqwbkNnH4qalBQDDsuYUvvP9Ft0oJ6RGkC',
+        'version': 'YoX1vhOklqid4mdb92Ac6kuvpdApLv06NCwiefKSMRcC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3482,7 +3482,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/projector_app/app',
-        'version': 'azBSeKPi4i1AF2Z4M-xVdNZzz7nftQAMHajGI7OYVroC',
+        'version': 'C8BCvPLAXg6dbrs-nNIviYdqVbTS1iwpsLGiTlxT7WMC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
