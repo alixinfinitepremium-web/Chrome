@@ -1957,7 +1957,7 @@ deps = {
       'packages': [
           {
                'package': 'chromium/third_party/android_build_tools/error_prone',
-               'version': 'fsxUm5gzwaV8uNMW0QoBVkPSU-DrJRc0ptxE6xYC-WUC',
+               'version': 'NTsobxxZSFczO0OrRad1bkf2FdOir2uee6ZtYgAarvYC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -2244,7 +2244,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + 'ff14588356c1efc885fdde7041a7af01a818fa39',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + 'd142522b7a90160218deb8faa8e4c754931544ee',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '17a56409b86d0da5e01ca38f6498e13b2db16bc3',
@@ -3941,7 +3941,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        'c66a7a33c714c8e975aec2207b84719246045d30',
+        '5ed412923bd25ba89fe2b88a5407145e2997746c',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
