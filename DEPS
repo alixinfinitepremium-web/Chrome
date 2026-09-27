@@ -441,7 +441,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': '723d1f04c9d4bae31e67ca7a33589aeb0849efab',
+  'dawn_revision': '6c1e27710cd182e794b1c97a08b27f1778713957',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -1979,7 +1979,7 @@ deps = {
       'packages': [
           {
                'package': 'chromium/third_party/android_build_tools/lint',
-               'version': 'wSP5bTsPcihO0wGOvj-ARVR7W9kvrtAMf76EcPhoM7UC',
+               'version': 'ihZU4Vh0jGXL3aKEyT2Ngn2zfbBPc4gR8_M9cLCxqVIC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -1990,7 +1990,7 @@ deps = {
       'packages': [
           {
                'package': 'chromium/third_party/android_build_tools/manifest_merger',
-               'version': 'Vc4BKkdVHw4m69aWJxpHLIH3NbRxJxQDpL_P5-ECEhAC',
+               'version': 'O6-KiErsxK5s09Z7lT8JtM4LcuqrPZWHRDdMwrUbkrEC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -3180,7 +3180,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/turbine',
-              'version': '3Vs4Z6J5NY3lF9MdcCtQwB1iXZFB7P1hQH15ZzA4SecC',
+              'version': 'LsBIK50QvxT1EyuSdov-upiEkIxdGSTpNTSv0qDcsZoC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -3234,7 +3234,7 @@ deps = {
       ],
   },
 
-  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@75ca20075f57041fb36df0238363b80cd39e904b',
+  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@35afb4e67a9497a4d9379b6f1b42d932dcbb6a81',
   'src/third_party/glslang/src': '{chromium_git}/external/github.com/KhronosGroup/glslang@2ff6f609379ce43c4291c732cf6a19dd2461a680',
   'src/third_party/spirv-cross/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Cross@b8fcf307f1f347089e3c46eb4451d27f32ebc8d3',
   'src/third_party/spirv-headers/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Headers@cb42dec3830d3ac67fa449ecdc0c0f73d5e74498',
@@ -3243,7 +3243,7 @@ deps = {
   'src/third_party/vulkan-loader/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Loader@3270cf8a1349306f0ddee1b500ee2b0d552e1c82',
   'src/third_party/vulkan-tools/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Tools@69ca4d4b6590ab32e7a398725bfc90f81e6338e6',
   'src/third_party/vulkan-utility-libraries/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Utility-Libraries@d3c1125eb2e89919f8ed97ff21da8d1a31aa3f6a',
-  'src/third_party/vulkan-validation-layers/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-ValidationLayers@fdc78a1f3b51bed7ee6a1e3e2ee5a4c06953eda7',
+  'src/third_party/vulkan-validation-layers/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-ValidationLayers@76893b361b72cea23e6f2322e63716075af2bf86',
 
   'src/third_party/vulkan_memory_allocator':
     Var('chromium_git') + '/external/github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git' + '@' + '82a9d47e4f9d91f0e32d2b6acd9714fcee1933a0',
