@@ -2694,14 +2694,7 @@ IN_PROC_BROWSER_TEST_P(GlicApiTestWithNewTabDaisyChain,
       1));
 }
 
-// TODO(b/565497972): Re-enable once crash during teardown is resolved on Android.
-#if BUILDFLAG(IS_ANDROID)
-#define MAYBE_testNewTabMetrics DISABLED_testNewTabMetrics
-#else
-#define MAYBE_testNewTabMetrics testNewTabMetrics
-#endif
-IN_PROC_BROWSER_TEST_P(GlicApiTestWithNewTabDaisyChain,
-                       MAYBE_testNewTabMetrics) {
+IN_PROC_BROWSER_TEST_P(GlicApiTestWithNewTabDaisyChain, testNewTabMetrics) {
   // 1. Open Glic in first tab.
   ASSERT_OK(OpenGlicForActiveTab());
   base::HistogramTester histogram_tester;
@@ -3347,6 +3340,10 @@ IN_PROC_BROWSER_TEST_P(GlicGetHostCapabilityApiTest, testGetHostCapabilities) {
   if (base::FeatureList::IsEnabled(features::kGlicDynamicChromeTools)) {
     expected_capabilities.Append(
         std::to_underlying(mojom::HostCapability::kChromeTools));
+  }
+  if (features::IsGlicNoWebviewEnabled()) {
+    expected_capabilities.Append(
+        std::to_underlying(mojom::HostCapability::kNoWebview));
   }
 
   ASSERT_OK(OpenGlicForActiveTab());
@@ -5291,7 +5288,8 @@ INSTANTIATE_TEST_SUITE_P(
                     TestParams{.trust_first_onboarding_arm2 = true,
                                .auto_open_pdf = true},
                     TestParams{.skills_v2 = true},
-                    TestParams{.enable_embedded_pdf_bytes_extraction = true}),
+                    TestParams{.enable_embedded_pdf_bytes_extraction = true},
+                    TestParams{.no_webview = true}),
     &WithTestParams::PrintTestVariant);
 
 INSTANTIATE_TEST_SUITE_P(,

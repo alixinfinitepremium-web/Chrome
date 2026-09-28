@@ -357,7 +357,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': '5112448a24999caecfb6f04281379016ac79dc9a',
+  'boringssl_revision': '2ea3200c3a3ec176613ab7a0b9a4ffc6db846120',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -417,7 +417,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '741f3a55fff17c848e879397518bbd9d25d03ee0',
+  'devtools_frontend_revision': '2d671c506c4e5f8958b027e26047deb0acfbd7f9',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1517,7 +1517,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_linux64',
-          'version': 'version:2@1700028',
+          'version': 'version:2@1701057',
         },
       ],
   },
@@ -1539,7 +1539,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_mac_arm64',
-          'version': 'version:2@1700003',
+          'version': 'version:2@1701045',
         },
       ],
   },
@@ -1957,7 +1957,7 @@ deps = {
       'packages': [
           {
                'package': 'chromium/third_party/android_build_tools/error_prone',
-               'version': 'HtiYDDiGK1hi-tWdyajS44oj4dyWo7WTuaYjdd53u_IC',
+               'version': 'TP-iwhtizFRV0x62m6MtiWtm4Wh9cYsTCOTYQM0zIiYC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -1979,7 +1979,7 @@ deps = {
       'packages': [
           {
                'package': 'chromium/third_party/android_build_tools/lint',
-               'version': '3T3ef_x63C1LXjb7k30HSCAUOWSNWF1qulSU02gIswUC',
+               'version': 'ULu90pUJM0k7-pXHcOv1prPIBXRR6I2O2id_rrBPpXAC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -1990,7 +1990,7 @@ deps = {
       'packages': [
           {
                'package': 'chromium/third_party/android_build_tools/manifest_merger',
-               'version': '4gN_YtORZXreYoCbmAPh8-9FAlaTshLiz-5byLUfrC0C',
+               'version': 'UI1-nz58XA4IftX7frEhOBKof1qdVpX31Zjn4tE21f0C',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -2519,7 +2519,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/kotlin_stdlib',
-              'version': 'OGkIDhD6ShKnkYZe4T5NfZfSPgGD_lQUkHFNr-a4vAcC',
+              'version': '3nV_Q9kDGjtGirTcLT-4xFZ6vNG6ar9HNSkDQUEC7h8C',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -3287,7 +3287,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '574c6a5c276b560896dbc6d1aa9530b7cf1f6a29',
+    Var('webrtc_git') + '/src.git' + '@' + '3225248425fe2b3cafe389465b94ebc24968d9ba',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
