@@ -545,7 +545,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
-  'llvm_libc_revision':    '4a49d5ee5efe7adc286cbddf1cef48bacab771e6',
+  'llvm_libc_revision':    'b8b28272d32b75f0ee71acd2fa1144c8b5b95460',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
@@ -1979,7 +1979,7 @@ deps = {
       'packages': [
           {
                'package': 'chromium/third_party/android_build_tools/lint',
-               'version': 'LdJbQ43t9rW2CbG7-PEW_ZqAHFBfgNfn8Io2_jqU29wC',
+               'version': '2I_R_FSWKhomkEf-uehb9fQZrMqZBZ7Q6zSdR_ZHgqsC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -1990,7 +1990,7 @@ deps = {
       'packages': [
           {
                'package': 'chromium/third_party/android_build_tools/manifest_merger',
-               'version': 'IagGGtowPblpsbZWJF7vtptMX7xrBUixumbsiGQkdnsC',
+               'version': 'Xs7kLWNkzKrVtGQr3Xvb5sMJHs2lPhf8OSEPtRB5jmwC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -2519,7 +2519,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/kotlin_stdlib',
-              'version': 'HMM4K_lBCi872pPuO_Uomb98GVa1XdTZ0LQPre0zyX8C',
+              'version': 'AmMfMBuBMOtRSq1fK5guOMG878vCobeP489xNOMMRQ8C',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -3180,7 +3180,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/turbine',
-              'version': 'jjR2dbNUy3AT3it7QQIhMchDS4eT9tAoCFPTdCO2rRIC',
+              'version': 'THVhHmymK2X4XVR_0-i0qSa5RqOCfLJ388IGDJi603IC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -3863,7 +3863,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        '702d1e206f93a4842f60e106c4ed731f8fe58a9f',
+        '9e9b20d6fbe76e4e0644fb1c61dd955c56bfd04e',
       'condition': 'checkout_src_internal',
   },
 
