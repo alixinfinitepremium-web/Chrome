@@ -1528,7 +1528,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_mac_amd64',
-          'version': 'version:2@1700037',
+          'version': 'version:2@1701051',
         },
       ],
   },
@@ -1764,7 +1764,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    'be80aaec18809e180be5976a72cc913770d60995',
+    '9007551c3eee767e3c2351769ba6c9920d2774f8',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -3863,7 +3863,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        '9e9b20d6fbe76e4e0644fb1c61dd955c56bfd04e',
+        'bf79161b862791461b0f9d90bd10677bc8de3f4a',
       'condition': 'checkout_src_internal',
   },
 
