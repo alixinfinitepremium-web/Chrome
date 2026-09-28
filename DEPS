@@ -289,7 +289,7 @@ vars = {
   # binary available on `PATH`, or absolute path.
   'reapi_credential_helper': Str(''),
   # siso CIPD package version.
-  'siso_version': 'git_revision:22353054fea20f637c8fa302a90daf9e2cc10497',
+  'siso_version': 'git_revision:c574896b272b40aac6e44c228ee0b471ea7e3d7d',
 
   # CPython 3 CIPD package version for Siso hermetic toolchain.
   'cpython3_version': 'version:3@3.11.9.chromium.38',
@@ -337,7 +337,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '30ff12f0e3031c536b9b1e4dd073ffe7979f9ecc',
+  'skia_revision': 'baf1231c43cc9c1613702698ea64b33ba5d9c9aa',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -1990,7 +1990,7 @@ deps = {
       'packages': [
           {
                'package': 'chromium/third_party/android_build_tools/manifest_merger',
-               'version': 'rCioOKPJM_uLsXCM5DXXjhiZ6AXbgtNVMFE38XmLJpMC',
+               'version': 'IagGGtowPblpsbZWJF7vtptMX7xrBUixumbsiGQkdnsC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
