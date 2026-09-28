@@ -337,7 +337,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': 'baf1231c43cc9c1613702698ea64b33ba5d9c9aa',
+  'skia_revision': '9fde7efbbbda63dd6ffb8968787404c0de7d108a',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -345,7 +345,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': 'c495bc4963f9a5e276be759653f2dde8994e7b4a',
+  'angle_revision': '3796c6cb739503fba75ebc416a3c6b55c2fce783',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -445,7 +445,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'quiche_revision': '535a2730e77d47e0dc03746555cc9c34b17bc9e9',
+  'quiche_revision': 'a1628192cf32ba40d21e0dd80f485d68c24ff87a',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ink
   # and whatever else without interference from each other.
@@ -1764,7 +1764,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '365ee890e6f53107387e67f664a7d703d82dba21',
+    '61e2a08b739c969f6ac48c77f6b4bebbf049385f',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -3416,7 +3416,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_receiver_app/app',
-        'version': 'YoX1vhOklqid4mdb92Ac6kuvpdApLv06NCwiefKSMRcC',
+        'version': 'LbVhAaeUR5zcWIWpfHFvE1eprcf5OIE7YpSw6HuJ1mYC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3482,7 +3482,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/projector_app/app',
-        'version': 'C8BCvPLAXg6dbrs-nNIviYdqVbTS1iwpsLGiTlxT7WMC',
+        'version': 'yiQiHn5u9_4zYOncUkRKr03c6Vye5ff41D26igxa3RsC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
