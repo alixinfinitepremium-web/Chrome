@@ -930,11 +930,6 @@
     "expiry_milestone": 160
   },
   {
-    "name": "autofill-ai-always-trigger-server-model",
-    "owners": [ "brunobraga@google.com", "tchudakov@google.com" ],
-    "expiry_milestone": 160
-  },
-  {
     "name": "autofill-ai-available-by-default",
     "owners": [ "brunobraga@google.com", "tchudakov@google.com" ],
     "expiry_milestone": 160
@@ -1314,11 +1309,6 @@
     "name": "autofill-throttle-filtered-doc-form-scan",
     "owners": ["vincb@google.com", "tmartino@google.com", "bling-transactions@google.com"],
     "expiry_milestone": 165
-  },
-  {
-    "name": "autofill-touch-to-fill-show-manual-fill-for-vcn-fix",
-    "owners": ["viplavkadam@google.com", "payments-autofill-team@google.com"],
-    "expiry_milestone": 155
   },
   {
     "name": "autofill-upstream-enforce-strike-delay",
@@ -3191,11 +3181,6 @@
    "expiry_milestone": 156
   },
   {
-    "name": "enable-accessibility-deprecate-type-announce",
-    "owners": ["kyraseevers@chromium.org", "zork@chromium.org", "//ui/accessibility/OWNERS"],
-    "expiry_milestone": 155
-  },
-  {
     "name": "enable-accessibility-extended-selection",
     "owners": ["rhalavati@chromium.org", "//ui/accessibility/OWNERS"],
     "expiry_milestone": 170
@@ -3209,11 +3194,6 @@
     "name": "enable-accessibility-handle-occluding-views",
     "owners": [ "gmarcoesau@google.com", "//ui/accessibility/OWNERS" ],
     "expiry_milestone": 152
-  },
-  {
-    "name": "enable-accessibility-improve-live-region-announce",
-    "owners": ["kyraseevers@chromium.org", "//ui/accessibility/OWNERS"],
-    "expiry_milestone": 155
   },
   {
     "name": "enable-accessibility-labeledby",
@@ -9144,6 +9124,14 @@
       "chrome-signin-mobile-team@google.com"
     ],
     "expiry_milestone": 160
+  },
+  {
+    "name": "signin-button-profile-menu-refinements",
+    "owners": [
+      "crowleso@google.com",
+      "chrome-signin-mobile-team@google.com"
+    ],
+    "expiry_milestone": 165
   },
   {
     "name": "signin-level-up-button",

@@ -919,12 +919,6 @@ inline constexpr char
         "for testing purposes, regardless of the actual stored user "
         "preference.";
 
-inline constexpr char kAutofillAiAlwaysTriggerServerModelName[] =
-    "Autofill AI always trigger server model";
-inline constexpr char kAutofillAiAlwaysTriggerServerModelDescription[] =
-    "Queries the server model for every form encountered, ignoring server-side "
-    "instructions. Intended for testing only.";
-
 inline constexpr char kAutofillAiAlwaysShowPrivateAiNoticeName[] =
     "Autofill AI always show Private AI notice";
 inline constexpr char kAutofillAiAlwaysShowPrivateAiNoticeDescription[] =
@@ -1265,14 +1259,6 @@ inline constexpr char kAutofillPreferBuyNowPayLaterBlocklistsDescription[] =
     "When enabled, Payments Autofill Buy Now Pay Later (BNPL) will use each "
     "corresponding issuer's blocklist instead of allowlist to check for "
     "website eligibility.";
-
-inline constexpr char kAutofillTouchToFillShowManualFillForVcnFixName[] =
-    "Ensures showing of the BNPL VCN on manual fallback sheet in the Touch To "
-    "Fill flow";
-inline constexpr char kAutofillTouchToFillShowManualFillForVcnFixDescription[] =
-    "When enabled, it successfully shows the VCN when the BNPL flow is "
-    "successful and the user clicks on the 'show card' button to fill the card "
-    "manually.";
 
 inline constexpr char kAutofillUpstreamEnforceStrikeDelayName[] =
     "Require a week between offers to save credit cards";
@@ -5354,24 +5340,11 @@ inline constexpr char kAccessibilityAndroidMathDescription[] =
     "Exposes additional MathML information in "
     "AccessibilityNodeInfoCompat.MathInfoCompat to screen readers.";
 
-inline constexpr char kAccessibilityDeprecateTypeAnnounceName[] =
-    "Accessibility Deprecate TYPE_ANNOUNCE";
-inline constexpr char kAccessibilityDeprecateTypeAnnounceDescription[] =
-    "When enabled, TYPE_ANNOUNCE events will no longer be sent for live "
-    "regions in the web contents.";
-
 inline constexpr char kAccessibilityExtendedSelectionName[] =
     "Accessibility Extended Selection";
 inline constexpr char kAccessibilityExtendedSelectionDescription[] =
     "When enabled, extended selections are sent to Android through "
     "setSelection API add received using ACTION_SET_EXTENDED_SELECTION.";
-
-inline constexpr char kAccessibilityImproveLiveRegionAnnounceName[] =
-    "Accessibility Improve Live Region Announcement";
-inline constexpr char kAccessibilityImproveLiveRegionAnnounceDescription[] =
-    "When enabled, live region announcements will be sent to Android via "
-    "WINDOW_CONTENT_CHANGED events corresponding to each live region element "
-    "change rather than via TYPE_ANNOUNCEMENT.";
 
 inline constexpr char kAccessibilityAtomicLiveRegionsName[] =
     "Accessibility Atomic Live Regions";
@@ -6525,6 +6498,12 @@ inline constexpr char kSigninButtonProfileMenuName[] =
 inline constexpr char kSigninButtonProfileMenuDescription[] =
     "Opens a desktop-like profile menu when tapping the toolbar sign-in button "
     "on Desktop Android.";
+
+inline constexpr char kSigninButtonProfileMenuRefinementsName[] =
+    "Signin Button Profile Menu Refinements";
+inline constexpr char kSigninButtonProfileMenuRefinementsDescription[] =
+    "Enables fast-follow refinements and visual adjustments for the desktop "
+    "profile menu on Desktop Android.";
 
 inline constexpr char kSigninLevelUpButtonName[] = "Signin Level Up Button";
 inline constexpr char kSigninLevelUpButtonDescription[] =

@@ -6303,20 +6303,10 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kAccessibilityAndroidMathName,
      flag_descriptions::kAccessibilityAndroidMathDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(features::kAccessibilityAndroidMath)},
-    {"enable-accessibility-deprecate-type-announce",
-     flag_descriptions::kAccessibilityDeprecateTypeAnnounceName,
-     flag_descriptions::kAccessibilityDeprecateTypeAnnounceDescription,
-     kOsAndroid,
-     FEATURE_VALUE_TYPE(features::kAccessibilityDeprecateTypeAnnounce)},
     {"enable-accessibility-extended-selection",
      flag_descriptions::kAccessibilityExtendedSelectionName,
      flag_descriptions::kAccessibilityExtendedSelectionDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(features::kAccessibilityExtendedSelection)},
-    {"enable-accessibility-improve-live-region-announce",
-     flag_descriptions::kAccessibilityImproveLiveRegionAnnounceName,
-     flag_descriptions::kAccessibilityImproveLiveRegionAnnounceDescription,
-     kOsAndroid,
-     FEATURE_VALUE_TYPE(features::kAccessibilityImproveLiveRegionAnnounce)},
     {"enable-accessibility-atomic-live-regions",
      flag_descriptions::kAccessibilityAtomicLiveRegionsName,
      flag_descriptions::kAccessibilityAtomicLiveRegionsDescription, kOsAndroid,
@@ -12758,12 +12748,6 @@ const FeatureEntry kFeatureEntries[] = {
          autofill::features::
              kAutofillAiBasedAmountExtractionIgnoreSeenTermsForTesting)},
 
-    {"autofill-ai-always-trigger-server-model",
-     flag_descriptions::kAutofillAiAlwaysTriggerServerModelName,
-     flag_descriptions::kAutofillAiAlwaysTriggerServerModelDescription, kOsAll,
-     FEATURE_VALUE_TYPE(
-         autofill::features::kAutofillAiAlwaysTriggerServerModel)},
-
     {"autofill-ai-always-show-private-ai-notice",
      flag_descriptions::kAutofillAiAlwaysShowPrivateAiNoticeName,
      flag_descriptions::kAutofillAiAlwaysShowPrivateAiNoticeDescription, kOsAll,
@@ -13073,15 +13057,6 @@ const FeatureEntry kFeatureEntries[] = {
      FEATURE_WITH_PARAMS_VALUE_TYPE(kMobileNTPPromoOnDesktop,
                                     kMobileNTPPromoOnDesktopVariations,
                                     "MobileNTPPromoOnDesktop")},
-#if BUILDFLAG(IS_ANDROID)
-    {"autofill-touch-to-fill-show-manual-fill-for-vcn-fix",
-     flag_descriptions::kAutofillTouchToFillShowManualFillForVcnFixName,
-     flag_descriptions::kAutofillTouchToFillShowManualFillForVcnFixDescription,
-     kOsAndroid,
-     FEATURE_VALUE_TYPE(
-         autofill::features::kAutofillTouchToFillShowManualFillForVcnFix)},
-#endif  // BUILDFLAG(IS_ANDROID)
-
 #if BUILDFLAG(IS_ANDROID)
     {"apb144-patch1", flag_descriptions::kApb144Patch1Name,
      flag_descriptions::kApb144Patch1Description, kOsAndroid,
@@ -14091,6 +14066,13 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kSearchSettingsWithMoreEnginesName,
      flag_descriptions::kSearchSettingsWithMoreEnginesDescription, kOsDesktop,
      FEATURE_VALUE_TYPE(switches::kSearchSettingsWithMoreEngines)},
+#if BUILDFLAG(IS_ANDROID)
+    {"signin-button-profile-menu-refinements",
+     flag_descriptions::kSigninButtonProfileMenuRefinementsName,
+     flag_descriptions::kSigninButtonProfileMenuRefinementsDescription,
+     kOsAndroid,
+     FEATURE_VALUE_TYPE(switches::kSigninButtonProfileMenuRefinements)},
+#endif  // BUILDFLAG(IS_ANDROID)
 
 #if BUILDFLAG(IS_ANDROID)
     {"android-auto-projected", flag_descriptions::kAndroidAutoProjectedName,
