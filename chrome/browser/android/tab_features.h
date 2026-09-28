@@ -56,6 +56,10 @@ namespace enterprise_reporting {
 class SaasUsageNavigationObserver;
 }  // namespace enterprise_reporting
 
+namespace finds {
+class FindsTabHelper;
+}  // namespace finds
+
 namespace glic {
 class ContextualCueingHelper;
 class GlicInstanceHelper;
@@ -98,6 +102,8 @@ class ExternalProtocolObserver;
 class HttpAuthCacheStatus;
 class NavigationMetricsRecorder;
 class NavigationPredictorPreconnectClient;
+class OomInterventionTabHelper;
+class PolicyAuditorBridge;
 class RevokedPermissionsTabHelper;
 class SecurityStateEventObserver;
 class StorageAccessAPITabHelper;
@@ -216,6 +222,9 @@ class TabFeatures {
   std::unique_ptr<safe_browsing::TailoredSecurityUrlObserver>
       tailored_security_url_observer_;
 #endif
+  std::unique_ptr<OomInterventionTabHelper> oom_intervention_tab_helper_;
+  std::unique_ptr<PolicyAuditorBridge> policy_auditor_bridge_;
+  std::unique_ptr<finds::FindsTabHelper> finds_tab_helper_;
 
   // Holds the WebUI embedding context subscription.
   base::CallbackListSubscription tab_subscription_;

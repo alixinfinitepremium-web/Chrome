@@ -37,12 +37,66 @@ source_set("tabs_public") {
   ]
 }
 
+source_set("oom_intervention") {
+  sources = [
+    "oom_intervention/near_oom_reduction_message_delegate.cc",
+    "oom_intervention/near_oom_reduction_message_delegate.h",
+    "oom_intervention/oom_intervention_config.cc",
+    "oom_intervention/oom_intervention_config.h",
+    "oom_intervention/oom_intervention_decider.cc",
+    "oom_intervention/oom_intervention_decider.h",
+    "oom_intervention/oom_intervention_tab_helper.cc",
+    "oom_intervention/oom_intervention_tab_helper.h",
+  ]
+  public_deps = [
+    "//base",
+    "//chrome/browser/ui/interventions",
+    "//components/crash/content/browser",
+    "//components/messages/android",
+    "//content/public/browser",
+    "//content/public/common",
+    "//mojo/public/cpp/bindings",
+    "//services/service_manager/public/cpp",
+    "//third_party/blink/public/mojom:android_mojo_bindings_blink",
+  ]
+  deps = [
+    ":resource_mapper",
+    "//chrome/app:generated_resources",
+    "//chrome/browser:browser_process",
+    "//chrome/browser/profiles:profile",
+    "//chrome/common:chrome_features",
+    "//components/messages/android:feature_flags",
+    "//components/metrics",
+    "//components/pref_registry",
+    "//components/prefs",
+    "//components/strings:components_strings",
+    "//components/subresource_filter/core/common",
+    "//third_party/blink/public/common",
+    "//ui/base",
+  ]
+}
+
+source_set("policy_auditor_bridge") {
+  sources = [
+    "policy/policy_auditor_bridge.cc",
+    "policy/policy_auditor_bridge.h",
+  ]
+  public_deps = [
+    "//base",
+    "//content/public/browser",
+    "//url",
+  ]
+  deps = [ "//chrome/android:chrome_jni_headers" ]
+}
+
 source_set("tabs_impl") {
   # TODO(crbug.com/486820940): Split tab_android.cc into smaller build target
   # files.
   sources = [ "tab_features.cc" ]
 
   deps = [
+    ":oom_intervention",
+    ":policy_auditor_bridge",
     ":tabs_public",
     "//chrome/browser/actor",
     "//chrome/browser/actor/android",
@@ -50,14 +104,18 @@ source_set("tabs_impl") {
     "//chrome/browser/contextual_tasks",
     "//chrome/browser/enterprise",
     "//chrome/browser/external_protocol",
+    "//chrome/browser/finds",
+    "//chrome/browser/finds/core",
     "//chrome/browser/glic",
     "//chrome/browser/navigation_predictor",
     "//chrome/browser/net",
+    "//chrome/browser/optimization_guide",
     "//chrome/browser/payments",
     "//chrome/browser/preloading/new_tab_page_preload",
     "//chrome/browser/preloading/prefetch/no_state_prefetch",
     "//chrome/browser/profiles:profile",
     "//chrome/browser/safe_browsing",
+    "//chrome/browser/search_engines",
     "//chrome/browser/site_protection",
     "//chrome/browser/storage_access_api",
     "//chrome/browser/sync",
@@ -356,14 +414,6 @@ if (is_android) {
       "omnibox/suggestions_omt_input_anchor.h",
       "omnibox/tab_context_capture_request.cc",
       "omnibox/tab_context_capture_request.h",
-      "oom_intervention/near_oom_reduction_message_delegate.cc",
-      "oom_intervention/near_oom_reduction_message_delegate.h",
-      "oom_intervention/oom_intervention_config.cc",
-      "oom_intervention/oom_intervention_config.h",
-      "oom_intervention/oom_intervention_decider.cc",
-      "oom_intervention/oom_intervention_decider.h",
-      "oom_intervention/oom_intervention_tab_helper.cc",
-      "oom_intervention/oom_intervention_tab_helper.h",
       "overlay_panel/overlay_panel_content.cc",
       "overlay_panel/overlay_panel_content.h",
       "partner_browser_customizations.cc",
@@ -382,8 +432,6 @@ if (is_android) {
       "persisted_tab_data/sensitivity_persisted_tab_data_android.cc",
       "persisted_tab_data/sensitivity_persisted_tab_data_android.h",
       "policy/policy_auditor.cc",
-      "policy/policy_auditor_bridge.cc",
-      "policy/policy_auditor_bridge.h",
       "preferences/about_settings_bridge.cc",
       "preferences/autofill/autofill_payment_methods_delegate.cc",
       "preferences/autofill/autofill_payment_methods_delegate.h",
@@ -490,6 +538,8 @@ if (is_android) {
     deps = [
       ":delta_file_proto",
       ":language_data_proto",
+      ":oom_intervention",
+      ":policy_auditor_bridge",
       ":profile_key_startup_accessor",
       ":profile_token",
       ":sensitivity_data_proto",
@@ -1042,6 +1092,7 @@ source_set("unit_tests") {
   configs += [ "//build/config/compiler:no_exit_time_destructors" ]
   deps = [
     ":android",
+    ":oom_intervention",
     ":tabs_public",
     ":usage_stats_proto",
     "//base/test:test_support",
