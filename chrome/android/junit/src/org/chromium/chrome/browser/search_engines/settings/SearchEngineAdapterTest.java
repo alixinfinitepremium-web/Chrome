@@ -45,6 +45,7 @@ import org.chromium.components.favicon.LargeIconBridgeJni;
 import org.chromium.components.omnibox.OmniboxFeatureList;
 import org.chromium.components.regional_capabilities.RegionalCapabilitiesService;
 import org.chromium.components.search_engines.PrepopulatedAndRecentlyVisitedTemplateURLs;
+import org.chromium.components.search_engines.SearchEngineSettingsDataProvider;
 import org.chromium.components.search_engines.TemplateUrl;
 import org.chromium.components.search_engines.TemplateUrlService;
 import org.chromium.ui.base.TestActivity;
@@ -67,6 +68,7 @@ public class SearchEngineAdapterTest {
 
     private @Mock Profile mProfile;
     private @Mock TemplateUrlService mTemplateUrlService;
+    private @Mock SearchEngineSettingsDataProvider mSettingsDataProvider;
     private @Mock RegionalCapabilitiesService mRegionalCapabilities;
     private @Mock LargeIconBridge.Natives mLargeIconBridgeNativeMock;
     private Context mContext;
@@ -75,6 +77,9 @@ public class SearchEngineAdapterTest {
     public void setUp() {
         LargeIconBridgeJni.setInstanceForTesting(mLargeIconBridgeNativeMock);
         mActivityScenarioRule.getScenario().onActivity(activity -> mContext = activity);
+        doReturn(mSettingsDataProvider).when(mTemplateUrlService).createSettingsDataProvider();
+        TemplateUrlServiceFactory.setInstanceForTesting(mTemplateUrlService);
+        RegionalCapabilitiesServiceFactory.setInstanceForTesting(mRegionalCapabilities);
     }
 
     @Test
@@ -251,7 +256,7 @@ public class SearchEngineAdapterTest {
 
         doReturn(true).when(mTemplateUrlService).isLoaded();
         doReturn(new PrepopulatedAndRecentlyVisitedTemplateURLs(List.of(p1, p2), List.of(c1)))
-                .when(mTemplateUrlService)
+                .when(mSettingsDataProvider)
                 .getPrepopulatedAndRecentlyVisitedTemplateURLs();
         doReturn(p2).when(mTemplateUrlService).getDefaultSearchEngineTemplateUrl();
         TemplateUrlServiceFactory.setInstanceForTesting(mTemplateUrlService);
@@ -297,7 +302,7 @@ public class SearchEngineAdapterTest {
 
         doReturn(true).when(mTemplateUrlService).isLoaded();
         doReturn(new PrepopulatedAndRecentlyVisitedTemplateURLs(List.of(p1, p2), List.of()))
-                .when(mTemplateUrlService)
+                .when(mSettingsDataProvider)
                 .getPrepopulatedAndRecentlyVisitedTemplateURLs();
         doReturn(unknownDse).when(mTemplateUrlService).getDefaultSearchEngineTemplateUrl();
         TemplateUrlServiceFactory.setInstanceForTesting(mTemplateUrlService);
@@ -312,6 +317,14 @@ public class SearchEngineAdapterTest {
         assertEquals(p2.getKeyword(), adapter.getItem(1).getKeyword());
         // Item 2 is a divider.
         assertEquals(unknownDse.getKeyword(), adapter.getItem(3).getKeyword());
+        assertEquals("3", adapter.getValueForTesting());
+
+        // Subsequent refreshes with the same engines should exit early via didSearchEnginesChange
+        // without re-snapshotting or duplicating the fallback DSE.
+        clearInvocations(p1, p2, unknownDse);
+        adapter.onTemplateURLServiceChanged();
+        assertEquals(4, adapter.getCount());
+        verify(unknownDse, never()).getShortName();
     }
 
     @Test
@@ -325,7 +338,7 @@ public class SearchEngineAdapterTest {
 
         doReturn(true).when(mTemplateUrlService).isLoaded();
         doReturn(new PrepopulatedAndRecentlyVisitedTemplateURLs(List.of(p1, p2), List.of()))
-                .when(mTemplateUrlService)
+                .when(mSettingsDataProvider)
                 .getPrepopulatedAndRecentlyVisitedTemplateURLs();
         doReturn(null).when(mTemplateUrlService).getDefaultSearchEngineTemplateUrl();
         TemplateUrlServiceFactory.setInstanceForTesting(mTemplateUrlService);
@@ -411,6 +424,7 @@ public class SearchEngineAdapterTest {
         assertEquals(p2.getKeyword(), adapter.getItem(1).getKeyword());
         // Item 2 is a divider.
         assertEquals(unknownDse.getKeyword(), adapter.getItem(3).getKeyword());
+        assertEquals("3", adapter.getValueForTesting());
 
         // Test for EEA country.
         doReturn(true).when(mRegionalCapabilities).isInEeaCountry();
@@ -425,6 +439,7 @@ public class SearchEngineAdapterTest {
         assertEquals(p2.getKeyword(), adapter.getItem(1).getKeyword());
         // Item 2 is a divider.
         assertEquals(unknownDse.getKeyword(), adapter.getItem(3).getKeyword());
+        assertEquals("3", adapter.getValueForTesting());
     }
 
     @Test
@@ -463,7 +478,7 @@ public class SearchEngineAdapterTest {
 
         doReturn(true).when(mTemplateUrlService).isLoaded();
         doReturn(new PrepopulatedAndRecentlyVisitedTemplateURLs(List.of(p1), List.of(r1)))
-                .when(mTemplateUrlService)
+                .when(mSettingsDataProvider)
                 .getPrepopulatedAndRecentlyVisitedTemplateURLs();
         TemplateUrlServiceFactory.setInstanceForTesting(mTemplateUrlService);
 
@@ -473,7 +488,7 @@ public class SearchEngineAdapterTest {
         // New list: r1 is replaced by r2.
         TemplateUrl r2 = buildMockTemplateUrl("r2", 0);
         doReturn(new PrepopulatedAndRecentlyVisitedTemplateURLs(List.of(p1), List.of(r2)))
-                .when(mTemplateUrlService)
+                .when(mSettingsDataProvider)
                 .getPrepopulatedAndRecentlyVisitedTemplateURLs();
 
         // Simulate r1 being freed in native.
@@ -518,5 +533,25 @@ public class SearchEngineAdapterTest {
         verify(r1, never()).getKeyword();
         verify(r1, never()).getShortName();
         verify(r1, never()).getIsPrepopulated();
+    }
+
+    @Test
+    @EnableFeatures(ChromeFeatureList.SEARCH_SETTINGS_UPDATE_V2)
+    public void startAndDestroy_usesAndClosesProvider() {
+        TemplateUrl p1 = buildMockTemplateUrl("p1", 1);
+        doReturn(true).when(mTemplateUrlService).isLoaded();
+        doReturn(new PrepopulatedAndRecentlyVisitedTemplateURLs(List.of(p1), List.of()))
+                .when(mSettingsDataProvider)
+                .getPrepopulatedAndRecentlyVisitedTemplateURLs();
+
+        var adapter = new SearchEngineAdapter(mContext, mProfile, null);
+        adapter.start();
+
+        // The engine lists come from the data provider.
+        verify(mSettingsDataProvider).getPrepopulatedAndRecentlyVisitedTemplateURLs();
+
+        // Destroying the adapter closes the data provider.
+        adapter.destroy();
+        verify(mSettingsDataProvider).close();
     }
 }
