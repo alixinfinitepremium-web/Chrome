@@ -337,11 +337,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '9fde7efbbbda63dd6ffb8968787404c0de7d108a',
+  'skia_revision': 'a02d4982d7658aa18fbbdc8f136776a76e6d771f',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': 'a9cbe4972e94fe812c130a31aef46c92ba921ecd',
+  'v8_revision': '27621e0b50f235c753b70e8f7d84a6ceca18385e',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -393,11 +393,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling catapult
   # and whatever else without interference from each other.
-  'catapult_revision': '7cce2c2359d9951315aa25b99f9bda09942d90ad',
+  'catapult_revision': 'f411808cd159db5e47be79ebee59fffca3da1bd4',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': 'cb28c397719e22ff2445ea781d256c8389d75002',
+  'crossbench_revision': '05d512a615222883b5ee43bdefaa95d5ee4308d1',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -441,7 +441,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': '531028367c60ce07251ec0231c1b95bedb4495bc',
+  'dawn_revision': '0a2c7df818e285d6db0f085135139cda04cee8bb',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -1764,7 +1764,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '8f5138eb46ada150ae46e715e13387421f961492',
+    'be80aaec18809e180be5976a72cc913770d60995',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -2229,7 +2229,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '2f55ae8ab76ec888d02c8626a4e53f61a4e4deb6',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'a07c06fe67a1a9d64ac4728df3a11c1ceb0cf73e',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -3082,7 +3082,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/google/ruy.git' + '@' + '2264753777198e4393fb83c44c693462d57a2be1',
 
   'src/third_party/search_engines_data/resources':
-    Var('chromium_git') + '/external/search_engines_data.git' + '@' + 'effde84e73491653b245b68ac65835ad2fc4e1de',
+    Var('chromium_git') + '/external/search_engines_data.git' + '@' + '5dc9f1afd38a8ac2b26b1972eb4fc1bbd5754e8c',
 
   'src/third_party/search_engines_data/resources_internal': {
     'url': Var('chrome_git') + '/external/search_engines_data_internal.git' + '@' + 'd7f5f2e72e509baeec2fae8982b06571019373b7',

@@ -129,27 +129,6 @@
             ]
         }
     ],
-    "AccessibilityHandleOccludingViews": [
-        {
-            "platforms": [
-                "android"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "AccessibilityHandleOccludingViews"
-                    ]
-                },
-                {
-                    "name": "Control",
-                    "disable_features": [
-                        "AccessibilityHandleOccludingViews"
-                    ]
-                }
-            ]
-        }
-    ],
     "AccessibilityManifestV3ChromeVox": [
         {
             "platforms": [
@@ -8279,7 +8258,7 @@
             ]
         }
     ],
-    "FetchAccountInfoOnRestart": [
+    "FetchAccountCapabilitiesOnRestart": [
         {
             "platforms": [
                 "android",
@@ -8293,7 +8272,7 @@
                 {
                     "name": "Enabled",
                     "enable_features": [
-                        "FetchAccountInfoOnRestart"
+                        "FetchAccountCapabilitiesOnRestart"
                     ]
                 }
             ]
@@ -16834,6 +16813,25 @@
                     "name": "Enabled",
                     "enable_features": [
                         "SettingsInTab"
+                    ]
+                }
+            ]
+        }
+    ],
+    "ShareEventArgsOnDispatch": [
+        {
+            "platforms": [
+                "android",
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "ShareEventArgsOnDispatch"
                     ]
                 }
             ]

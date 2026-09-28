@@ -114,6 +114,7 @@
 #include "content/public/common/content_features.h"
 #include "content/public/test/browser_test.h"
 #include "content/public/test/browser_test_utils.h"
+#include "content/public/test/memory_coordinator_browsertest_util.h"
 #include "content/public/test/test_navigation_observer.h"
 #include "google_apis/gaia/gaia_auth_util.h"
 #include "mojo/public/cpp/base/big_buffer.h"
@@ -1296,7 +1297,7 @@ IN_PROC_BROWSER_TEST_P(GlicApiTest, MAYBE_testThereCanOnlyBeOneFloaty) {
   // Verify that the first tab instance is detached before opening the second
   // tab.
   ASSERT_EQ(mojom::PanelStateKind::kDetached,
-            tab0_instance->GetPanelState().kind);
+            tab0_instance->GetPanelState()->kind);
 
   // Select the second tab, open Floaty, and execute the test on the second
   // instance.
@@ -1310,9 +1311,9 @@ IN_PROC_BROWSER_TEST_P(GlicApiTest, MAYBE_testThereCanOnlyBeOneFloaty) {
   ContinueJsTest({.instance = tab0_instance});
 
   ASSERT_EQ(mojom::PanelStateKind::kDetached,
-            tab1_instance->GetPanelState().kind);
+            tab1_instance->GetPanelState()->kind);
   ASSERT_EQ(mojom::PanelStateKind::kHidden,
-            tab0_instance->GetPanelState().kind);
+            tab0_instance->GetPanelState()->kind);
 }
 
 #if defined(NOT_VETTED_ON_ANDROID)
@@ -5244,8 +5245,10 @@ IN_PROC_BROWSER_TEST_P(GlicApiTest, testHibernateAllOnMemoryPressure) {
                   .HasWarmedContainerForTesting());
 
   // Simulate memory pressure.
-  base::MemoryPressureListener::NotifyMemoryPressure(
-      base::MEMORY_PRESSURE_LEVEL_CRITICAL);
+  content::test::ScopedMemoryLimitOverride scoped_memory_limit_override(
+      GlicInstanceCoordinatorImpl::kMemoryConsumerName);
+  scoped_memory_limit_override.SetLimit(base::kCriticalMemoryPressureThreshold);
+  scoped_memory_limit_override.NotifyReleaseMemory();
 
   // Wait for the non-showing instances to hibernate.
   ASSERT_OK(WaitForGlicHibernated(instance2));
