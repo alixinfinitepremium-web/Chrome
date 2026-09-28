@@ -1024,14 +1024,6 @@ public class TabCollectionTabModelImpl extends TabModelJniBridge {
     }
 
     @Override
-    protected boolean containsTabGroup(Token tabGroupId) {
-        assertOnUiThread();
-        if (mNativeTabCollectionTabModelImplPtr == 0) return false;
-        return TabCollectionTabModelImplJni.get()
-                .tabGroupExists(mNativeTabCollectionTabModelImplPtr, tabGroupId);
-    }
-
-    @Override
     protected List<Token> listTabGroups() {
         assertOnUiThread();
         if (mNativeTabCollectionTabModelImplPtr == 0) return Collections.emptyList();
@@ -1371,8 +1363,7 @@ public class TabCollectionTabModelImpl extends TabModelJniBridge {
     }
 
     @Override
-    public void mergeTabsToGroup(
-            @TabId int sourceTabId, @TabId int destinationTabId, boolean skipUpdateTabModel) {
+    public void mergeTabsToGroup(@TabId int sourceTabId, @TabId int destinationTabId) {
         Tab sourceTab = getTabById(sourceTabId);
         if (sourceTab == null) return;
 
@@ -1386,14 +1377,8 @@ public class TabCollectionTabModelImpl extends TabModelJniBridge {
         } else {
             tabsToMerge = getTabsInGroup(sourceTabGroupId);
         }
-        // TODO(crbug.com/441933200): skipUpdateTabModel should be renamed to "notify" to match the
-        // signature of mergeListOfTabsToGroupInternal(). It is no longer used to skip updating the
-        // tab model as that often left the tab model in an invalid intermediate state.
         try (ScopedStorageBatch ignored = mBatchFactory.get()) {
-            mergeListOfTabsToGroup(
-                    tabsToMerge,
-                    destinationTab,
-                    skipUpdateTabModel ? DONT_NOTIFY : NOTIFY_IF_NOT_NEW_GROUP);
+            mergeListOfTabsToGroup(tabsToMerge, destinationTab, NOTIFY_IF_NOT_NEW_GROUP);
         }
     }
 
@@ -1510,13 +1495,6 @@ public class TabCollectionTabModelImpl extends TabModelJniBridge {
     }
 
     @Override
-    public String getTabGroupTitle(Tab groupedTab) {
-        Token tabGroupId = groupedTab.getTabGroupId();
-        assert tabGroupId != null;
-        return getTabGroupTitle(tabGroupId);
-    }
-
-    @Override
     public void setTabGroupTitle(Token tabGroupId, String title) {
         assertOnUiThread();
         updateTabGroupVisualData(
@@ -1545,13 +1523,6 @@ public class TabCollectionTabModelImpl extends TabModelJniBridge {
     public @TabGroupColorId int getTabGroupColorWithFallback(Token tabGroupId) {
         int color = getTabGroupColor(tabGroupId);
         return color == TabGroupColorUtils.INVALID_COLOR_ID ? TabGroupColorId.GREY : color;
-    }
-
-    @Override
-    public @TabGroupColorId int getTabGroupColorWithFallback(Tab groupedTab) {
-        Token tabGroupId = groupedTab.getTabGroupId();
-        assert tabGroupId != null;
-        return getTabGroupColorWithFallback(tabGroupId);
     }
 
     @Override

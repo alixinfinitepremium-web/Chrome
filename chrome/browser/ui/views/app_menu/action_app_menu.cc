@@ -24,6 +24,7 @@
 #include "chrome/browser/ui/views/chrome_layout_provider.h"
 #include "chrome/browser/user_education/user_education_service.h"
 #include "ui/actions/actions.h"
+#include "ui/base/l10n/l10n_util.h"
 #include "ui/base/models/image_model.h"
 #include "ui/base/models/menu_separator_types.h"
 #include "ui/base/mojom/menu_source_type.mojom.h"
@@ -31,6 +32,8 @@
 #include "ui/color/color_id.h"
 #include "ui/color/color_provider.h"
 #include "ui/menus/simple_menu_model.h"
+#include "ui/strings/grit/ax_strings.h"
+#include "ui/views/accessibility/view_accessibility.h"
 #include "ui/views/border.h"
 #include "ui/views/controls/button/image_button.h"
 #include "ui/views/controls/button/menu_button_controller.h"
@@ -191,14 +194,13 @@ void ActionAppMenu::ExecuteCommand(int id, int mouse_event_flags) {
 
 void ActionAppMenu::OnMenuClosed(views::MenuItemView* menu) {
   actions::ActionItem* action_to_execute = nullptr;
-  int action_param = -1;
+  actions::ActionInvocationContext action_context;
   if (action_to_execute_on_close_) {
     auto action_iterator =
-        command_to_action_map_.find(action_to_execute_on_close_.value());
+        command_to_action_map_.find(action_to_execute_on_close_->action_id);
     CHECK(action_iterator != command_to_action_map_.end());
     action_to_execute = action_iterator->second->GetActionItem();
-    action_param = action_iterator->second->GetProperty(
-        AppMenuActionItem::kActionParamKey);
+    action_context = std::move(action_to_execute_on_close_->context);
   }
 
   search_bar_ = nullptr;
@@ -212,10 +214,7 @@ void ActionAppMenu::OnMenuClosed(views::MenuItemView* menu) {
   menu_manager_->OnMenuClosed();
 
   if (action_to_execute) {
-    action_to_execute->InvokeAction(
-        actions::ActionInvocationContext::Builder()
-            .SetProperty(AppMenuActionItem::kActionParamKey, action_param)
-            .Build());
+    action_to_execute->InvokeAction(std::move(action_context));
   }
 }
 
@@ -286,12 +285,23 @@ int ActionAppMenu::GetMaxWidthForMenu(views::MenuItemView* menu) {
       DISTANCE_ACTION_APP_MENU_MAX_WIDTH);
 }
 
-void ActionAppMenu::CancelAndEvaluate(actions::ActionId action_id) {
+void ActionAppMenu::CancelAndEvaluate(actions::ActionId action_id,
+                                      int mouse_event_flags) {
   if (!action_to_execute_on_close_.has_value()) {
     auto action_iterator = command_to_action_map_.find(action_id);
     CHECK(action_iterator != command_to_action_map_.end());
-    metrics_.LogMenuAction(action_iterator->second);
-    action_to_execute_on_close_ = action_id;
+    actions::BaseAction* base_action = action_iterator->second;
+    metrics_.LogMenuAction(base_action);
+    action_to_execute_on_close_ = {
+        .action_id = action_id,
+        .context =
+            actions::ActionInvocationContext::Builder()
+                .SetProperty(chrome::kDispositionKey,
+                             ui::DispositionFromEventFlags(mouse_event_flags))
+                .SetProperty(AppMenuActionItem::kActionParamKey,
+                             base_action->GetProperty(
+                                 AppMenuActionItem::kActionParamKey))
+                .Build()};
     CloseMenu();
   }
 }
@@ -478,23 +488,6 @@ void ActionAppMenu::ConfigureMenuItem(views::MenuItemView* menu_item,
 
   // Get the styling from the ActionItem and apply it to its menu item.
   if (container_color != ui::kColorMenuBackground) {
-    // Add extra top and bottom vertical padding to the first and last items of
-    // multi-row section containers (e.g., "Your Chrome" and "Tools and
-    // actions"). `kActionPasswordsAndAutofillSubmenu` is explicitly included as
-    // the first row below the expanded Profile row.
-    if (item_height == AppMenuActionItem::ItemHeight::kDefault) {
-      const int container_vertical_padding = provider->GetDistanceMetric(
-          DISTANCE_ACTION_APP_MENU_CONTAINER_VERTICAL_PADDING);
-      if ((round_top_corners && !round_bottom_corners) ||
-          action_item->GetActionId() == kActionPasswordsAndAutofillSubmenu) {
-        menu_item->set_top_margin(vertical_padding +
-                                  container_vertical_padding);
-      } else if (round_bottom_corners && !round_top_corners) {
-        menu_item->set_bottom_margin(vertical_padding +
-                                     container_vertical_padding);
-      }
-    }
-
     const int top_radius =
         round_top_corners
             ? provider->GetDistanceMetric(
@@ -572,6 +565,9 @@ void ActionAppMenu::PopulateHeader(views::MenuItemView* view_parent,
       DISTANCE_ACTION_APP_MENU_HEADER_VERTICAL_MARGIN);
   header_menu_item->set_vertical_margin(default_margin);
   header_menu_item->SetEnabled(false);
+  header_menu_item->GetViewAccessibility().SetRoleDescription(
+      l10n_util::GetStringUTF16(IDS_AX_ROLE_HEADING));
+  header_menu_item->GetViewAccessibility().SetIsEnabled(true);
   if (header_menu_item->GetParentMenuItem() == root_) {
     header_menu_item->SetBorder(
         views::CreateEmptyBorder(ChromeLayoutProvider::Get()->GetInsetsMetric(

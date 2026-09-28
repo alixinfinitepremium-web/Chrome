@@ -20714,6 +20714,21 @@
             ]
         }
     ],
+    "WebViewIgnoreDefaultVideoPoster": [
+        {
+            "platforms": [
+                "android_webview"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "WebViewIgnoreDefaultVideoPoster"
+                    ]
+                }
+            ]
+        }
+    ],
     "WebViewIgnoreDuplicateNavs": [
         {
             "platforms": [
@@ -20742,6 +20757,21 @@
                     "name": "Enabled",
                     "enable_features": [
                         "WebViewInitInConstructor"
+                    ]
+                }
+            ]
+        }
+    ],
+    "WebViewInitRendererDuringWebContentsCreation": [
+        {
+            "platforms": [
+                "android_webview"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "WebViewInitRendererDuringWebContentsCreation"
                     ]
                 }
             ]

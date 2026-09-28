@@ -1709,7 +1709,6 @@ public class TabCollectionTabModelImplTest {
                     mCollectionModel.addTabGroupObserver(titleObserver);
                     mCollectionModel.setTabGroupTitle(tabGroupId, testTitle);
                     assertEquals(testTitle, mCollectionModel.getTabGroupTitle(tabGroupId));
-                    assertEquals(testTitle, mCollectionModel.getTabGroupTitle(tab0));
                     mCollectionModel.removeTabGroupObserver(titleObserver);
                 });
         titleChangedHelper.waitForOnly("setTabGroupTitle failed");
@@ -1753,7 +1752,6 @@ public class TabCollectionTabModelImplTest {
                     assertEquals(testColor, mCollectionModel.getTabGroupColor(tabGroupId));
                     assertEquals(
                             testColor, mCollectionModel.getTabGroupColorWithFallback(tabGroupId));
-                    assertEquals(testColor, mCollectionModel.getTabGroupColorWithFallback(tab0));
                     mCollectionModel.removeTabGroupObserver(colorObserver);
                 });
         colorChangedHelper.waitForOnly("setTabGroupColor failed");
@@ -2702,8 +2700,7 @@ public class TabCollectionTabModelImplTest {
 
         ThreadUtils.runOnUiThreadBlocking(
                 () -> {
-                    mCollectionModel.mergeTabsToGroup(
-                            tab0.getId(), tab1.getId(), /* skipUpdateTabModel= */ false);
+                    mCollectionModel.mergeTabsToGroup(tab0.getId(), tab1.getId());
 
                     assertNotNull(tab1.getTabGroupId());
                     assertEquals(tab1.getTabGroupId(), tab0.getTabGroupId());
@@ -2727,8 +2724,7 @@ public class TabCollectionTabModelImplTest {
                     Token groupId = tab1.getTabGroupId();
                     assertNotNull(groupId);
 
-                    mCollectionModel.mergeTabsToGroup(
-                            tab0.getId(), tab1.getId(), /* skipUpdateTabModel= */ false);
+                    mCollectionModel.mergeTabsToGroup(tab0.getId(), tab1.getId());
 
                     assertEquals(groupId, tab0.getTabGroupId());
                     assertEquals(3, mCollectionModel.getTabsInGroup(groupId).size());
@@ -2751,8 +2747,7 @@ public class TabCollectionTabModelImplTest {
                     Token groupId = tab0.getTabGroupId();
                     assertNotNull(groupId);
 
-                    mCollectionModel.mergeTabsToGroup(
-                            tab0.getId(), tab2.getId(), /* skipUpdateTabModel= */ false);
+                    mCollectionModel.mergeTabsToGroup(tab0.getId(), tab2.getId());
 
                     assertEquals(groupId, tab2.getTabGroupId());
                     assertEquals(3, mCollectionModel.getTabsInGroup(groupId).size());
