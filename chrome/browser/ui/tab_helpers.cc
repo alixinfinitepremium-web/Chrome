@@ -22,11 +22,9 @@
 #include "chrome/browser/chained_back_navigation_tracker.h"
 #include "chrome/browser/chrome_content_browser_client.h"
 #include "chrome/browser/commerce/shopping_service_factory.h"
-#include "chrome/browser/complex_tasks/task_tab_helper.h"
 #include "chrome/browser/content_settings/host_content_settings_map_factory.h"
 #include "chrome/browser/content_settings/mixed_content_settings_tab_helper.h"
 #include "chrome/browser/content_settings/page_specific_content_settings_delegate.h"
-#include "chrome/browser/content_settings/sound_content_setting_observer.h"
 #include "chrome/browser/enterprise/connectors/referrer_cache_utils.h"
 #include "chrome/browser/favicon/favicon_utils.h"
 #include "chrome/browser/file_system_access/file_system_access_features.h"
@@ -48,8 +46,6 @@
 #include "chrome/browser/page_content_annotations/multi_source_page_context_fetcher.h"
 #include "chrome/browser/page_content_annotations/page_content_annotations_service_factory.h"
 #include "chrome/browser/page_content_annotations/page_content_extraction_service_factory.h"
-#include "chrome/browser/page_info/about_this_site_tab_helper.h"
-#include "chrome/browser/page_info/page_info_features.h"
 #include "chrome/browser/page_load_metrics/page_load_metrics_initialize.h"
 #include "chrome/browser/password_manager/chrome_password_manager_client.h"
 #include "chrome/browser/permissions/one_time_permissions_tracker_helper.h"
@@ -155,7 +151,6 @@
 #include "chrome/browser/content_settings/request_desktop_site_web_contents_observer_android.h"
 #include "chrome/browser/facilitated_payments/ui/chrome_facilitated_payments_client.h"
 #include "chrome/browser/flags/android/chrome_feature_list.h"
-#include "chrome/browser/plugins/plugin_observer_android.h"
 #include "chrome/browser/ui/android/context_menu_helper.h"
 #include "chrome/browser/ui/javascript_dialogs/javascript_tab_modal_dialog_manager_delegate_android.h"
 #include "components/content_capture/common/content_capture_features.h"
@@ -282,13 +277,6 @@ void TabHelpers::AttachTabHelpers(WebContents* web_contents,
       Profile::FromBrowserContext(web_contents->GetBrowserContext());
 
   // --- Section 1: Common tab helpers ---
-  if (page_info::IsAboutThisSiteFeatureEnabled()) {
-    if (auto* optimization_guide_decider =
-            OptimizationGuideKeyedServiceFactory::GetForProfile(profile)) {
-      AboutThisSiteTabHelper::CreateForWebContents(web_contents,
-                                                   optimization_guide_decider);
-    }
-  }
   // AutofillClientProvider initializes ContentAutofillClient for web_contents,
   // which is gated by enable_browser_autofill.
   if (enable_browser_autofill) {
@@ -534,7 +522,6 @@ void TabHelpers::AttachTabHelpers(WebContents* web_contents,
         prerender::NoStatePrefetchManagerFactory::GetForBrowserContext(
             profile));
   }
-  SoundContentSettingObserver::CreateForWebContents(web_contents);
 #if BUILDFLAG(IS_CHROMEOS)
   // Do not create for Incognito and Isolated  mode.
   if (!profile->IsPrimaryOTRProfileWithRegularParent()) {
@@ -546,7 +533,6 @@ void TabHelpers::AttachTabHelpers(WebContents* web_contents,
     SupervisedUserNavigationObserver::CreateForWebContents(web_contents);
   }
 #endif
-  tasks::TaskTabHelper::CreateForWebContents(web_contents);
   TrustedVaultEncryptionKeysTabHelper::CreateForWebContents(web_contents);
   ukm::InitializeSourceUrlRecorderForWebContents(web_contents);
   vr::VrTabHelper::CreateForWebContents(web_contents);
@@ -572,7 +558,6 @@ void TabHelpers::AttachTabHelpers(WebContents* web_contents,
       web_contents,
       std::make_unique<JavaScriptTabModalDialogManagerDelegateAndroid>(
           web_contents));
-  PluginObserverAndroid::CreateForWebContents(web_contents);
   task_manager::WebContentsTags::CreateForTabContents(web_contents);
 
   // ChromeFacilitatedPaymentsClient requires ContentAutofillClient / payments

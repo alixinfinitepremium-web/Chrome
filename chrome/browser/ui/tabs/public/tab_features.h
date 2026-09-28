@@ -39,6 +39,7 @@
 #include "rlz/buildflags/buildflags.h"
 #include "ui/base/unowned_user_data/user_data_factory.h"
 
+class AboutThisSiteTabHelper;
 class AskBeforeHttpDialogController;
 class BookmarkBarPreloadPipelineManager;
 class BookmarkPageActionController;
@@ -82,6 +83,7 @@ class SearchPromotionNavigationObserver;
 class SecurityStateEventObserver;
 class SharedHighlightingPromo;
 class SidePanelRegistry;
+class SoundContentSettingObserver;
 class StorageAccessAPITabHelper;
 class TabCaptureContentsBorderHelper;
 class TabContextDecryptionTokenTabHelper;
@@ -239,6 +241,10 @@ class WebPaymentsObserver;
 namespace tab_groups {
 class CollaborationMessagingTabData;
 }  // namespace tab_groups
+
+namespace tasks {
+class TaskTabHelper;
+}  // namespace tasks
 
 #if !BUILDFLAG(IS_ANDROID)
 namespace record_replay {
@@ -885,6 +891,12 @@ class TabFeatures {
   std::unique_ptr<safe_browsing::TailoredSecurityUrlObserver>
       tailored_security_url_observer_;
 #endif
+
+  std::unique_ptr<AboutThisSiteTabHelper> about_this_site_tab_helper_;
+
+  std::unique_ptr<SoundContentSettingObserver> sound_content_setting_observer_;
+
+  std::unique_ptr<tasks::TaskTabHelper> task_tab_helper_;
 
   // Must be the last member.
   base::WeakPtrFactory<TabFeatures> weak_factory_{this};
