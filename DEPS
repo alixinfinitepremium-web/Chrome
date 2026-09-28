@@ -1764,7 +1764,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    'e551f481bf831e34349acdd734f1ead99a393e68',
+    '1a5a2bd983ab14dd479dc93ca7ebf256a7d09b7c',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -1957,7 +1957,7 @@ deps = {
       'packages': [
           {
                'package': 'chromium/third_party/android_build_tools/error_prone',
-               'version': 'vxwFpy8ZwdjQkMwTCMbApJj9wQzOtdEwQTi68R2t-YgC',
+               'version': 'b4Lv-3eKv2h89-fsiUSR4ogffQ_EtHhfbKWfPzo2a64C',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -1979,7 +1979,7 @@ deps = {
       'packages': [
           {
                'package': 'chromium/third_party/android_build_tools/lint',
-               'version': 'oPMQGj3PJBSlwgHbmNL_2xnY_SBDay7zo66oQH12mdoC',
+               'version': 'LdJbQ43t9rW2CbG7-PEW_ZqAHFBfgNfn8Io2_jqU29wC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -2519,7 +2519,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/kotlin_stdlib',
-              'version': 'bGRqN_lvQlHC0Vo_yCuobXPASO3y7gxiDjYv12m9-S4C',
+              'version': 'HMM4K_lBCi872pPuO_Uomb98GVa1XdTZ0LQPre0zyX8C',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -3180,7 +3180,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/turbine',
-              'version': '5ElMvUwbKTxpH_NvYTecMY1FUMLR2fInCarc3OokZtgC',
+              'version': 'jjR2dbNUy3AT3it7QQIhMchDS4eT9tAoCFPTdCO2rRIC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
