@@ -401,7 +401,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_web_tests_revision': 'ac05ce6c7fa6a243f6e6a78a376afdc8b21bd688',
+  'crossbench_web_tests_revision': '4483f71db32259409d9c5f7c4c95e2605b7a3b13',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libFuzzer
   # and whatever else without interference from each other.
@@ -913,10 +913,10 @@ deps = {
     'condition': 'non_git_source',
     'objects': [
       {
-        'object_name': 'chromium-bidi/b7f78d23fcdaf37e93f92e5d32f8880385454ccbe7b169a7c386e888791f6ae6',
-        'sha256sum': 'b7f78d23fcdaf37e93f92e5d32f8880385454ccbe7b169a7c386e888791f6ae6',
-        'size_bytes': 19768744,
-        'generation': 1789572457248128,
+        'object_name': 'chromium-bidi/028c7baf9de02f6ae103b1911ab13d1aeb48f0ddd8fa702f9c150cdaf8cb5f5b',
+        'sha256sum': '028c7baf9de02f6ae103b1911ab13d1aeb48f0ddd8fa702f9c150cdaf8cb5f5b',
+        'size_bytes': 20652261,
+        'generation': 1790318403990383,
         'output_file': 'node_modules.tar.gz',
       },
     ],
@@ -1764,7 +1764,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '1a5a2bd983ab14dd479dc93ca7ebf256a7d09b7c',
+    '365ee890e6f53107387e67f664a7d703d82dba21',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -1868,7 +1868,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': 'F-SJDlKewaomqkghIWFLSD4A8Ghnwj_1Covk7-q_shMC',
+          'version': 'd3E1seZ5-3iZWoizRTLJZ_FngGMuwq1zzjbbuZ0TEt0C',
       },
     ],
     'condition': 'checkout_android and non_git_source',
@@ -1957,7 +1957,7 @@ deps = {
       'packages': [
           {
                'package': 'chromium/third_party/android_build_tools/error_prone',
-               'version': 'b4Lv-3eKv2h89-fsiUSR4ogffQ_EtHhfbKWfPzo2a64C',
+               'version': '6KM-XJUPjCdo9Qnr0K2aHwj_cNGJTCzHez39xgt4e-MC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
