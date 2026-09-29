@@ -326,7 +326,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '9adb58630cdd780c9274ef6c70a9b20c17648ff4',
+  'src_internal_revision': '0fc46df63c21299b5ecb7c4754ad690e914c4498',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -338,7 +338,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '0abe29721a6140839b2f2f9dc7c6cab65b5ac9a9',
+  'angle_revision': '909b5799e6c1531ccbb70e29285fe7d33e9684e2',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -3299,7 +3299,7 @@ deps = {
   },
 
   'src/third_party/xnnpack/src':
-    Var('chromium_git') + '/external/github.com/google/XNNPACK.git' + '@' + '3336938e565e991ae671b2e0a65a9708723bfd11',
+    Var('chromium_git') + '/external/github.com/google/XNNPACK.git' + '@' + 'fe7ec2cdb9347a88efcd77db9e936b3f9f9a609c',
 
   'src/third_party/libei/src': {
       'url': Var('chromium_git') + '/external/gitlab.freedesktop.org/libinput/libei.git' + '@' + 'a9bf31da06f06bfce73702191c3db93aae289459',
