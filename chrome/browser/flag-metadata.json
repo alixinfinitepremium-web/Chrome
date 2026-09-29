@@ -706,7 +706,7 @@
   {
     "name": "app-background-refresh-ios",
     "owners": [ "fedegermi@google.com", "marq@chromium.org" ],
-    "expiry_milestone": 156
+    "expiry_milestone": 172
   },
   {
     "name": "app-menu-glow-up",
@@ -1378,8 +1378,8 @@
   },
   {
     "name": "biometric-reauth-password-filling",
-    "owners": [ "ioanap@chromium.org", "izuzic@google.com"],
-    "expiry_milestone": 125
+    "owners": [ "salmaabdelaziz@google.com", "ioanap@chromium.org"],
+    "expiry_milestone": 158
   },
   {
     "name": "block-cross-partition-blob-url-fetching",
@@ -6233,7 +6233,7 @@
   {
     "name": "identity-awareness",
     "owners": [ "jlebel@google.com", "chrome-signin-mobile-team@google.com" ],
-    "expiry_milestone": 155
+    "expiry_milestone": 160
   },
   {
     "name": "ignore-gpu-blocklist",
@@ -8294,6 +8294,11 @@
   },
   {
     "name": "plus-button-menu-in-fakebox",
+    "owners": [ "radunitescu@google.com", "bling-search@google.com" ],
+    "expiry_milestone": 160
+  },
+  {
+    "name": "plus-button-menu-more-options-submenu",
     "owners": [ "radunitescu@google.com", "bling-search@google.com" ],
     "expiry_milestone": 160
   },
