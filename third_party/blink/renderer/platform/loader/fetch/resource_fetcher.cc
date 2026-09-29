@@ -1385,6 +1385,10 @@ Resource* ResourceFetcher::RequestResource(FetchParameters& params,
   resource_request.SetInspectorId(identifier);
   resource_request.SetFromOriginDirtyStyleSheet(
       params.IsFromOriginDirtyStyleSheet());
+
+  // TODO(crbug.com/563000235): Centralize `SetSkipServiceWorker()` call here
+  // for Isolated World Resources.
+
   TRACE_EVENT_BEGIN(TRACE_DISABLED_BY_DEFAULT("network"), "ResourceLoad",
                     perfetto::NamedTrack("BlinkResourceID", identifier), "url",
                     resource_request.Url());
@@ -2002,6 +2006,12 @@ void ResourceFetcher::PrintPreloadMismatch(Resource* resource,
       break;
     case Resource::MatchStatus::kSkipServiceWorkerDoesNotMatch:
       builder.Append("because the Service Worker skip policy does not match.");
+      break;
+    case Resource::MatchStatus::kPreventAllCrossWorldForCspReuse:
+      builder.Append("because it is a cross-world-for-csp resource mismatch.");
+      break;
+    case Resource::MatchStatus::kPreventAllCrossTargetWorldReuse:
+      builder.Append("because it is a cross-target-world resource mismatch.");
       break;
   }
   console_logger_->AddConsoleMessage(mojom::ConsoleMessageSource::kOther,
@@ -3241,6 +3251,12 @@ void ResourceFetcher::RevalidateStaleResource(Resource* stale_resource) {
   // requests.
   ResourceRequest request;
   request.CopyHeadFrom(stale_resource->GetResourceRequest());
+  if (stale_resource->Options().TargetWorld()) {
+    // Do not revalidate Isolated World Resources, to limit the triggering
+    // points of Isolated World Resources to simplify security considerations.
+    // Perhaps such revalidation is safe, but prioritizing the safety for now.
+    return;
+  }
   FetchParameters params(
       std::move(request),
       ResourceLoaderOptions(stale_resource->Options().WorldForCsp()));

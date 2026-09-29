@@ -326,11 +326,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '904568bbea065fcf22a68a50269c938009de301f',
+  'src_internal_revision': 'c74ba4b89bd88b921dc5d5c13e60b4763e1d824c',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': 'bc9d601de51da6778f52cce05eba978e7374af5c',
+  'skia_revision': '077e1205f2d8eef4b12c44108b6dcc285a52c4b5',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -410,7 +410,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '4a4f418f0bd9aa08a19557d392c47a16a69faa6d',
+  'devtools_frontend_revision': '67a6814ac807646b1197b33d5bf8ed5db7225a06',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -434,7 +434,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': '03db1842b89e85a8bdf59e28ec44f1112d8edac0',
+  'dawn_revision': 'baf355b413b71d899107f64ed5f423edc25c2141',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -1983,7 +1983,7 @@ deps = {
       'packages': [
           {
                'package': 'chromium/third_party/android_build_tools/manifest_merger',
-               'version': 'aEzCsNb1xLbEtjRk96gmfMTWeTTFn_t1ErMZp2ZrezYC',
+               'version': 'J2Amuh9BcM2a1ikEXhTYaW7IYKYk2nUFDQEjNEkQq9cC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -2222,7 +2222,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '81cd9246b97db54a82d89983cedba8759064e15e',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '1e7c5e8deb41323f762b4298a92409cb91bf1a8d',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -2512,7 +2512,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/kotlin_stdlib',
-              'version': 'We8C8n9zwIeiMKhfq40Vn7IOhD3rimK8KNC5f-ZnHJMC',
+              'version': 'HHT0hNijHGDjcWmlCF4lzncCTB6oROz82p5Z_88tS3gC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -3227,7 +3227,7 @@ deps = {
       ],
   },
 
-  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@9d65e6a96a1a21a73de0752d284593d5c1feb7a2',
+  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@efff13af459b9942ba0e263d5fed1d31bfedf6c1',
   'src/third_party/glslang/src': '{chromium_git}/external/github.com/KhronosGroup/glslang@c0e1dbb69ac53f77102d813844f235fbf00776f3',
   'src/third_party/spirv-cross/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Cross@b8fcf307f1f347089e3c46eb4451d27f32ebc8d3',
   'src/third_party/spirv-headers/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Headers@cb42dec3830d3ac67fa449ecdc0c0f73d5e74498',
@@ -3236,7 +3236,7 @@ deps = {
   'src/third_party/vulkan-loader/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Loader@3270cf8a1349306f0ddee1b500ee2b0d552e1c82',
   'src/third_party/vulkan-tools/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Tools@69ca4d4b6590ab32e7a398725bfc90f81e6338e6',
   'src/third_party/vulkan-utility-libraries/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Utility-Libraries@666fdaa0f87b9d49ae576473227b4b4cf428ba7e',
-  'src/third_party/vulkan-validation-layers/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-ValidationLayers@da7669ad94110c7e7e89ab36defabff4baa507c0',
+  'src/third_party/vulkan-validation-layers/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-ValidationLayers@51f1fb08d5b55d7d1484a41d1d2c0460874e7980',
 
   'src/third_party/vulkan_memory_allocator':
     Var('chromium_git') + '/external/github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git' + '@' + '82a9d47e4f9d91f0e32d2b6acd9714fcee1933a0',
@@ -3280,7 +3280,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '32e8bb9eed5d58488cecbfb79a01b62f4d9d015f',
+    Var('webrtc_git') + '/src.git' + '@' + '038a6b172d17c2e99337f2d78d43422f8f5df554',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -3897,7 +3897,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '6e1123b30fe61acb291955e7e53f8dc3e0d02c30',
+        '8b0c75c76e25e57b02ce07bfbae1e406e6177776',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
