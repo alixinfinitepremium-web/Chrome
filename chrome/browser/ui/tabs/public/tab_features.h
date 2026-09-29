@@ -82,6 +82,7 @@ class RecordReplayPageActionController;
 class RevokedPermissionsTabHelper;
 class SadTabHelper;
 class SearchEngineChoiceTabHelper;
+class SearchEngineTabHelper;
 class SearchPromotionNavigationObserver;
 class SecurityStateEventObserver;
 class SharedHighlightingPromo;
@@ -394,11 +395,6 @@ class TabFeatures {
   JsOptimizationsPageActionController*
   js_optimizations_page_action_controller() {
     return js_optimizations_page_action_controller_.get();
-  }
-
-  IntentPickerViewPageActionController*
-  intent_picker_view_page_action_controller() {
-    return intent_picker_view_page_action_controller_.get();
   }
 
   FileSystemAccessPageActionController*
@@ -931,6 +927,8 @@ class TabFeatures {
       chained_back_navigation_tracker_;
 
   std::unique_ptr<FileSystemAccessTabHelper> file_system_access_tab_helper_;
+
+  std::unique_ptr<SearchEngineTabHelper> search_engine_tab_helper_;
 
   // Must be the last member.
   base::WeakPtrFactory<TabFeatures> weak_factory_{this};

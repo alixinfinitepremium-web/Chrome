@@ -105,6 +105,7 @@
 #include "chrome/browser/ui/safety_hub/revoked_permissions_service.h"
 #include "chrome/browser/ui/safety_hub/revoked_permissions_service_factory.h"
 #include "chrome/browser/ui/search_engine_choice/search_engine_choice_tab_helper.h"
+#include "chrome/browser/ui/search_engines/search_engine_tab_helper.h"
 #include "chrome/browser/ui/side_panel/side_panel_registry.h"
 #include "chrome/browser/ui/sync/browser_synced_tab_delegate.h"
 #include "chrome/browser/ui/tab_ui_helper.h"
@@ -333,7 +334,8 @@ void TabFeatures::Init(TabInterface& tab, Profile* profile) {
 
   if (page_action_controller_->ActionExists(kActionShowIntentPicker)) {
     intent_picker_view_page_action_controller_ =
-        std::make_unique<IntentPickerViewPageActionController>(tab);
+        GetUserDataFactory()
+            .CreateInstance<IntentPickerViewPageActionController>(tab, tab);
   }
 
   if (page_action_controller_->ActionExists(kActionShowFileSystemAccess)) {
@@ -971,6 +973,10 @@ void TabFeatures::Init(TabInterface& tab, Profile* profile) {
 
   file_system_access_tab_helper_ =
       std::make_unique<FileSystemAccessTabHelper>(tab.GetContents());
+
+  search_engine_tab_helper_ =
+      GetUserDataFactory().CreateInstance<SearchEngineTabHelper>(
+          tab, tab, tab.GetContents());
 }
 
 TabUIHelper* TabFeatures::SetTabUIHelperForTesting(
@@ -1336,6 +1342,11 @@ void TabFeatures::WillDiscardContents(tabs::TabInterface* tab,
 
   file_system_access_tab_helper_ =
       std::make_unique<FileSystemAccessTabHelper>(new_contents);
+
+  search_engine_tab_helper_.reset();
+  search_engine_tab_helper_ =
+      GetUserDataFactory().CreateInstance<SearchEngineTabHelper>(*tab, *tab,
+                                                                 new_contents);
 }
 
 customize_chrome::SidePanelController*
