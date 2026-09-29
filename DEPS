@@ -1990,7 +1990,7 @@ deps = {
       'packages': [
           {
                'package': 'chromium/third_party/android_build_tools/manifest_merger',
-               'version': 'UI1-nz58XA4IftX7frEhOBKof1qdVpX31Zjn4tE21f0C',
+               'version': 'FVWY5Y7pD6oyoHZK-05YDwjMDUaVsXB9SbnGud_-BN0C',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -2519,7 +2519,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/kotlin_stdlib',
-              'version': '3nV_Q9kDGjtGirTcLT-4xFZ6vNG6ar9HNSkDQUEC7h8C',
+              'version': 'XH_Xsaf-TMURIJ7HmVEEPMtCorXJlDOFc-aO0jQUw0kC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
