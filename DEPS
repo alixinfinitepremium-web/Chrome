@@ -1745,7 +1745,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': 'Voe8CwQHmgZRogp7bLS2Vd5XUPeVJzjJKNS_kxQJ5ZoC',
+        'version': '60UiZ195Fuu1-EewQ3l5yz4CbTsMFvmh2WYFV5B5E1EC',
       },
     ],
     'condition': 'non_git_source',
@@ -3420,7 +3420,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_app/app',
-        'version': 'zNsELdQMoVR-K_TSK4gSTBlpluszKC7pn3nyKwU-CrIC',
+        'version': 'OIViC3PNkk-O3Bd7GP5h6D_6KMoYSS459K-vzLgYpvMC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3475,7 +3475,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/projector_app/app',
-        'version': 'yiQiHn5u9_4zYOncUkRKr03c6Vye5ff41D26igxa3RsC',
+        'version': 'THKellW0GWhz7DPnQ4DNEh2s4feER_resljfxvUeYJkC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
