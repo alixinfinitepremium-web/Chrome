@@ -16933,6 +16933,23 @@
             ]
         }
     ],
+    "SharedMemorySystemProfileMinidump": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "SharedMemorySystemProfileMinidump"
+                    ]
+                }
+            ]
+        }
+    ],
     "SharedStorageDeprecation": [
         {
             "platforms": [
@@ -19591,26 +19608,6 @@
                         "HappinessTrackingSurveysForDownloadJourney",
                         "ViewDownloadedFileFromAppMenuJourney",
                         "ViewDownloadedFileJourney"
-                    ]
-                }
-            ]
-        }
-    ],
-    "VisitCustomSearchOnUndefaulting": [
-        {
-            "platforms": [
-                "android",
-                "chromeos",
-                "ios",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled_20260707",
-                    "enable_features": [
-                        "VisitCustomSearchOnUndefaulting"
                     ]
                 }
             ]

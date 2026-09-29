@@ -326,7 +326,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': 'e177e00ca97e25649fbbef607073ee97818e06b7',
+  'src_internal_revision': 'b47056e7da2b021499a4c7ea68d96693d3fd728c',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -390,7 +390,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': '368807074e69debddfbf47ec9298db760488bfad',
+  'crossbench_revision': '1ed4466750348c69069cbba5715dcee91ba43574',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -410,7 +410,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'ca7414c03869032cfb89bb9ff5f97b1c97eb7cf7',
+  'devtools_frontend_revision': '089d291d11d4ce81d7760cd5e407b47e6688e742',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -538,7 +538,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
-  'llvm_libc_revision':    'b8b28272d32b75f0ee71acd2fa1144c8b5b95460',
+  'llvm_libc_revision':    '5dbe1703ba9e6669cfcbcfc6fa6085b5115dd7cc',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
@@ -1543,7 +1543,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_arm64',
-          'version': 'version:2@1700001',
+          'version': 'version:2@1701062',
         },
       ],
   },
@@ -2222,7 +2222,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '2496ca61b825a47a7e98893c9dea8c118aa1e6c3',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '81cd9246b97db54a82d89983cedba8759064e15e',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -3409,7 +3409,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_receiver_app/app',
-        'version': 'LbVhAaeUR5zcWIWpfHFvE1eprcf5OIE7YpSw6HuJ1mYC',
+        'version': 'auRFlun6w8VuRSITHy9Kfj-sxyjW77iRABtGKaU6hXYC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
