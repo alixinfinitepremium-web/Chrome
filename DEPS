@@ -178,13 +178,6 @@ vars = {
   # Fetch clangd into the same bin/ directory as our clang binary.
   'checkout_clangd': False,
 
-  # Fetch prebuilt and prepackaged Bazelisk tool/executable. Bazelisk is currently
-  # only needed by `chromium/src/tools/rust/build_crubit.py` when building and
-  # packaging `//third_party/rust-toolchain` - it is *not* needed during regular
-  # Chromium builds.
-  'checkout_bazelisk': False,
-  'bazelisk_version': 'version:3@1.29.0',
-
   # By default checkout the OpenXR loader library on Windows, Linux and Android.
   # The OpenXR backend for VR in Chromium is supported on these platforms;
   # support for other platforms may be added in the future.
@@ -337,7 +330,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': 'd875f614bb65a562b840ebc618cd71f3509c8f5d',
+  'skia_revision': 'f84e47d12c46a056675153cfea62af3453740ad1',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -353,7 +346,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling PDFium
   # and whatever else without interference from each other.
-  'pdfium_revision': '8ca5b735df4263f43c830479b78213854a392c22',
+  'pdfium_revision': '05ea56c8847468cbd8ae96a6cba99583104602e7',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
@@ -401,7 +394,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_web_tests_revision': '4483f71db32259409d9c5f7c4c95e2605b7a3b13',
+  'crossbench_web_tests_revision': '4d0588a43fd037a5fb2efe7c5ca27425aeff485c',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libFuzzer
   # and whatever else without interference from each other.
@@ -568,7 +561,7 @@ vars = {
   'libcxx_revision':       '97b436da4c33663581d394f4ee0a5977fc38c2f4',
 
   # GN CIPD package version.
-  'gn_version': 'git_revision:510ec7992c30f172205792f190e96111a896ba8f',
+  'gn_version': 'git_revision:dc685a2b72b24234ba5cbc821375c3d2ac4f0409',
 
   # ninja CIPD package.
   'ninja_package': 'infra/3pp/tools/ninja/',
@@ -1561,7 +1554,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_x86',
-          'version': 'version:2@1700043',
+          'version': 'version:2@1701169',
         },
       ],
   },
@@ -2244,7 +2237,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '04bfe22876d3bab4260f39491cce7a8df17daa40',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '851458df874ced2cf88b7e5b412475d2005e7e35',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '173b9b26e8fcbcbe64e1ecbf073a21a96b95c6b1',
@@ -2841,7 +2834,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + 'db245a1e96f448fd1df570185f6de7ea5aae45ca',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '97276ad200c738d293f80524e53512ed2a173823',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
@@ -3518,43 +3511,6 @@ deps = {
       ],
       'condition': 'non_git_source',
       'dep_type': 'cipd',
-  },
-
-  # Bazelisk
-  'src/tools/bazelisk/linux-amd64': {
-    'packages': [{
-       'package': 'infra/3pp/tools/bazelisk/linux-amd64',
-       'version': Var('bazelisk_version'),
-    }],
-    'dep_type': 'cipd',
-    'condition': 'host_os == "linux" and checkout_bazelisk and non_git_source',
-  },
-
-  'src/tools/bazelisk/mac-amd64': {
-    'packages': [{
-       'package': 'infra/3pp/tools/bazelisk/mac-amd64',
-       'version': Var('bazelisk_version'),
-    }],
-    'dep_type': 'cipd',
-    'condition': 'host_os == "mac" and host_cpu == "x64" and checkout_bazelisk',
-  },
-
-  'src/tools/bazelisk/mac-arm64': {
-    'packages': [{
-       'package': 'infra/3pp/tools/bazelisk/mac-arm64',
-       'version': Var('bazelisk_version'),
-    }],
-    'dep_type': 'cipd',
-    'condition': 'host_os == "mac" and host_cpu == "arm64" and checkout_bazelisk',
-  },
-
-  'src/tools/bazelisk/windows-amd64': {
-    'packages': [{
-       'package': 'infra/3pp/tools/bazelisk/windows-amd64',
-       'version': Var('bazelisk_version'),
-    }],
-    'dep_type': 'cipd',
-    'condition': 'host_os == "win" and checkout_bazelisk',
   },
 
   # Dependencies from src_internal
