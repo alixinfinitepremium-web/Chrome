@@ -539,6 +539,8 @@ should be able to be added at any place in this file.
   <variant name="_iOSAddressPromoDesktop"
       summary="For iOSAddressPromoDesktop feature"/>
   <variant name="_iOSAIHubNewBadge" summary="For AI Hub New Badge feature."/>
+  <variant name="_iOSBackgroundNewBadge"
+      summary="For iOSBackgroundNewBadge feature"/>
   <variant name="_IOSBWGPromoFeature" summary="For IOSBWGPromoFeature feature"/>
   <variant name="_iOSChoiceScreen"
       summary="(obsolete) For iOSChoiceScreen feature"/>
@@ -1075,6 +1077,7 @@ should be able to be added at any place in this file.
   <variant name=".SyncEsbOn"
       summary="Enhanced Protection setting has been synced to On"/>
   <variant name=".Translate" summary="Translate"/>
+  <variant name=".TtcGenericError" summary="TTC generic error"/>
 </variants>
 
 <variants name="UserEducation_WhatsNew_Module_Type">

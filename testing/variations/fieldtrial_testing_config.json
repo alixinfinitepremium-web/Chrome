@@ -5283,9 +5283,11 @@
                     },
                     "enable_features": [
                         "ContextualCueingV2",
+                        "ContextualCueingV2AllowOverridingUcbScoring",
                         "ContextualCueingV2MultiSource",
                         "GlicContextualCueV2ActiveUserBackoff",
                         "GlicContextualCueingV2AutoSubmit",
+                        "IndigoContextualCueingV2",
                         "PrivateInsightsFeature"
                     ]
                 }
@@ -18027,24 +18029,6 @@
                     "name": "Enabled",
                     "enable_features": [
                         "TabHoverCardImages"
-                    ]
-                }
-            ]
-        }
-    ],
-    "TabSearchCjkWordBoundary": [
-        {
-            "platforms": [
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "TabSearchCjkWordBoundary"
                     ]
                 }
             ]

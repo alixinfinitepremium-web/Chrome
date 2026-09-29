@@ -52,6 +52,7 @@ class ExternalProtocolObserver;
 class FileSystemAccessPageActionController;
 class FocusTabAfterNavigationHelper;
 class FontPrewarmerTabHelper;
+class ChainedBackNavigationTracker;
 class FramebustBlockTabHelper;
 
 class FormInteractionTabHelper;
@@ -148,6 +149,10 @@ namespace enterprise_reporting {
 class SaasUsageNavigationObserver;
 }  // namespace enterprise_reporting
 
+namespace client_hints {
+class ClientHintsWebContentsObserver;
+}  // namespace client_hints
+
 namespace content {
 class WebContents;
 }  // namespace content
@@ -191,6 +196,10 @@ class GlicSelectionObserver;
 class SelectionOverlayController;
 class GlicPageFeaturesManager;
 }  // namespace glic
+
+namespace history {
+class WebContentsTopSitesObserver;
+}  // namespace history
 
 namespace memory_saver {
 class MemorySaverChipController;
@@ -907,6 +916,15 @@ class TabFeatures {
 
   std::unique_ptr<download::DownloadNavigationObserver>
       download_navigation_observer_;
+
+  std::unique_ptr<history::WebContentsTopSitesObserver>
+      web_contents_top_sites_observer_;
+
+  std::unique_ptr<client_hints::ClientHintsWebContentsObserver>
+      client_hints_web_contents_observer_;
+
+  std::unique_ptr<ChainedBackNavigationTracker>
+      chained_back_navigation_tracker_;
 
   // Must be the last member.
   base::WeakPtrFactory<TabFeatures> weak_factory_{this};
