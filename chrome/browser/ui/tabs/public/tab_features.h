@@ -89,6 +89,7 @@ class SharedHighlightingPromo;
 class SidePanelRegistry;
 class SoundContentSettingObserver;
 class StorageAccessAPITabHelper;
+class SupervisedUserNavigationObserver;
 class TabCaptureContentsBorderHelper;
 class TabContextDecryptionTokenTabHelper;
 class TabResourceUsageTabHelper;
@@ -131,6 +132,10 @@ class ActorTabData;
 namespace actor::ui {
 class ActorUiTabControllerInterface;
 }  // namespace actor::ui
+
+namespace chrome_browser_net {
+class NetErrorTabHelper;
+}  // namespace chrome_browser_net
 
 namespace commerce {
 class CommerceUiTabHelper;
@@ -409,10 +414,6 @@ class TabFeatures {
 
   zoom::ZoomViewController* zoom_view_controller() {
     return zoom_view_controller_.get();
-  }
-
-  memory_saver::MemorySaverChipController* memory_saver_chip_controller() {
-    return memory_saver_chip_controller_.get();
   }
 
   LensOverlayController* lens_overlay_controller();
@@ -929,6 +930,11 @@ class TabFeatures {
   std::unique_ptr<FileSystemAccessTabHelper> file_system_access_tab_helper_;
 
   std::unique_ptr<SearchEngineTabHelper> search_engine_tab_helper_;
+
+  std::unique_ptr<chrome_browser_net::NetErrorTabHelper> net_error_tab_helper_;
+
+  std::unique_ptr<SupervisedUserNavigationObserver>
+      supervised_user_navigation_observer_;
 
   // Must be the last member.
   base::WeakPtrFactory<TabFeatures> weak_factory_{this};

@@ -3598,10 +3598,6 @@ component("ash") {
       "//chromeos/ash/resources/internal/strings",
     ]
   }
-
-  # TODO(crbug.com/40031409): Fix code that adds exit-time destructors and
-  # enable the diagnostic by removing this line.
-  configs += [ "//build/config/compiler:no_exit_time_destructors" ]
 }
 
 action("dbus_service_files") {
@@ -4669,6 +4665,7 @@ test("ash_unittests") {
     "//components/services/app_service",
     "//components/session_manager/core",
     "//components/session_manager/core:test_support",
+    "//components/session_manager/test:test_support",
     "//components/soda",
     "//components/strings:components_strings_grit",
     "//components/sync:test_support",
@@ -4800,10 +4797,6 @@ test("ash_unittests") {
       "//chromeos/ash/resources/internal/strings",
     ]
   }
-
-  # TODO(crbug.com/40031409): Fix code that adds exit-time destructors and
-  # enable the diagnostic by removing this line.
-  configs += [ "//build/config/compiler:no_exit_time_destructors" ]
 }
 
 test("ash_pixeltests") {
@@ -4901,11 +4894,13 @@ test("ash_pixeltests") {
     "//chromeos/dbus/power",
     "//chromeos/dbus/power:power_manager_proto",
     "//chromeos/services/network_config/public/cpp:test_support",
+    "//components/account_id:test_support",
     "//components/app_constants",
     "//components/feature_engagement/public",
     "//components/history/core/browser",
     "//components/history/core/test",
     "//components/prefs:test_support",
+    "//components/session_manager/test:test_support",
     "//components/strings:components_strings_grit",
     "//components/sync_preferences:test_support",
     "//components/user_education/common",

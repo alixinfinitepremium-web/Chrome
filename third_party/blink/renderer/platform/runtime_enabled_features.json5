@@ -2752,6 +2752,10 @@
       depends_on: ["CSSPseudoElementInterface"],
     },
     {
+      name: "EventPseudoTargetViewTransitionName",
+      status: "stable",
+    },
+    {
 
       // Kill-switch for https://chromestatus.com/feature/5153386492198912
       // Added in M144, can be removed in M146.
@@ -3757,6 +3761,13 @@
       // non-trivial.
       name: "InnerHTMLParserFastpathLogFailure",
       status: "experimental",
+    },
+    {
+      // Text fields leave the inline padding out of their client rect and
+      // scroll size, matching where they clip their text. Kill switch.
+      // https://github.com/w3c/csswg-drafts/issues/13502
+      name: "InputClientRectWithoutInlinePadding",
+      status: "stable",
     },
     {
       // Prevents running DefaultEventHandler on disabled input elements.

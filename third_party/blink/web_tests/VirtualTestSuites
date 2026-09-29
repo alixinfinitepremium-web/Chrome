@@ -1150,7 +1150,6 @@
     ],
     "owners": [
       "cbiesinger@chromium.org",
-      "npm@chromium.org",
       "goto@chromium.org"
     ],
     "expires": "Dec 1, 2026"
@@ -1170,7 +1169,6 @@
       "--enable-features=FedCmWellKnownEndpointValidation,FedCmPreservePortsForTesting"
     ],
     "owners": [
-      "npm@chromium.org",
       "cbiesinger@chromium.org",
       "goto@chromium.org"
     ],
@@ -1191,7 +1189,6 @@
       "--enable-features=FedCmIdPRegistration"
     ],
     "owners": [
-      "npm@chromium.org",
       "cbiesinger@chromium.org",
       "goto@chromium.org"
     ],
@@ -3032,8 +3029,7 @@
   {
     "prefix": "single-renderer-process",
     "owners": [
-      "nrosenthal@chromium.org",
-      "npm@chromium.org"
+      "nrosenthal@chromium.org"
     ],
     "platforms": [
       "Linux",
@@ -3495,6 +3491,9 @@
       "external/wpt/css/css-anchor-position/transform-015.html",
       "external/wpt/css/css-backgrounds",
       "external/wpt/css/css-navigation",
+      "external/wpt/css/css-pseudo/CSSPseudoElement-view-transitions-scoped.tentative.html",
+      "external/wpt/css/css-pseudo/CSSPseudoElement-view-transitions.tentative.html",
+      "external/wpt/css/css-pseudo/events-on-view-transition-pseudos.tentative.html",
       "external/wpt/css/css-view-transitions",
       "external/wpt/css/css-overflow/scroll-markers/scroll-markers-updated-by-programmatic-scroll.html",
       "external/wpt/css/cssom-view/overflow-hidden-smooth-scroll-crash.html",
@@ -3548,6 +3547,9 @@
       "external/wpt/container-timing/tentative/iframe-isolation-cross-origin.sub.html",
       "external/wpt/container-timing/tentative/iframe-isolation-same-origin.html",
       "external/wpt/css/css-navigation",
+      "external/wpt/css/css-pseudo/CSSPseudoElement-view-transitions-scoped.tentative.html",
+      "external/wpt/css/css-pseudo/CSSPseudoElement-view-transitions.tentative.html",
+      "external/wpt/css/css-pseudo/events-on-view-transition-pseudos.tentative.html",
       "external/wpt/fetch/compression-dictionary/dictionary-fetch-timing-001.tentative.https.html",
       "external/wpt/fetch/compression-dictionary/dictionary-fetch-timing-002.tentative.https.html",
       "external/wpt/fetch/compression-dictionary/dictionary-fetch-with-link-element.tentative.https.html",

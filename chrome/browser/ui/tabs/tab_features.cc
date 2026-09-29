@@ -46,6 +46,7 @@
 #include "chrome/browser/multistep_filter/ui/filter_ui_controller.h"
 #include "chrome/browser/navigation_predictor/navigation_predictor_preconnect_client.h"
 #include "chrome/browser/net/http_auth_cache_status.h"
+#include "chrome/browser/net/net_error_tab_helper.h"
 #include "chrome/browser/net/qwac_web_contents_observer.h"
 #include "chrome/browser/optimization_guide/optimization_guide_keyed_service.h"
 #include "chrome/browser/optimization_guide/optimization_guide_keyed_service_factory.h"
@@ -66,6 +67,7 @@
 #include "chrome/browser/storage_access_api/storage_access_api_service_factory.h"
 #include "chrome/browser/storage_access_api/storage_access_api_service_impl.h"
 #include "chrome/browser/storage_access_api/storage_access_api_tab_helper.h"
+#include "chrome/browser/supervised_user/supervised_user_navigation_observer.h"
 #include "chrome/browser/sync/sessions/sync_sessions_router_tab_helper.h"
 #include "chrome/browser/sync/sessions/sync_sessions_web_contents_router_factory.h"
 #include "chrome/browser/sync/sync_service_factory.h"
@@ -328,8 +330,9 @@ void TabFeatures::Init(TabInterface& tab, Profile* profile) {
 
   if (page_action_controller_->ActionExists(kActionShowMemorySaverChip)) {
     memory_saver_chip_controller_ =
-        std::make_unique<memory_saver::MemorySaverChipController>(
-            *page_action_controller_);
+        GetUserDataFactory()
+            .CreateInstance<memory_saver::MemorySaverChipController>(
+                tab, tab, *page_action_controller_);
   }
 
   if (page_action_controller_->ActionExists(kActionShowIntentPicker)) {
@@ -977,6 +980,27 @@ void TabFeatures::Init(TabInterface& tab, Profile* profile) {
   search_engine_tab_helper_ =
       GetUserDataFactory().CreateInstance<SearchEngineTabHelper>(
           tab, tab, tab.GetContents());
+
+  net_error_tab_helper_ =
+      GetUserDataFactory()
+          .CreateInstance<chrome_browser_net::NetErrorTabHelper>(
+              tab, tab, tab.GetContents());
+
+#if BUILDFLAG(IS_CHROMEOS)
+  // Do not create for Incognito and Isolated mode.
+  if (!profile->IsPrimaryOTRProfileWithRegularParent()) {
+    supervised_user_navigation_observer_ =
+        GetUserDataFactory().CreateInstance<SupervisedUserNavigationObserver>(
+            tab, tab, tab.GetContents());
+  }
+#else
+  // Do not create for OTR.
+  if (!profile->IsOffTheRecord()) {
+    supervised_user_navigation_observer_ =
+        GetUserDataFactory().CreateInstance<SupervisedUserNavigationObserver>(
+            tab, tab, tab.GetContents());
+  }
+#endif
 }
 
 TabUIHelper* TabFeatures::SetTabUIHelperForTesting(
@@ -1347,6 +1371,19 @@ void TabFeatures::WillDiscardContents(tabs::TabInterface* tab,
   search_engine_tab_helper_ =
       GetUserDataFactory().CreateInstance<SearchEngineTabHelper>(*tab, *tab,
                                                                  new_contents);
+
+  net_error_tab_helper_.reset();
+  net_error_tab_helper_ =
+      GetUserDataFactory()
+          .CreateInstance<chrome_browser_net::NetErrorTabHelper>(*tab, *tab,
+                                                                 new_contents);
+
+  if (supervised_user_navigation_observer_) {
+    supervised_user_navigation_observer_.reset();
+    supervised_user_navigation_observer_ =
+        GetUserDataFactory().CreateInstance<SupervisedUserNavigationObserver>(
+            *tab, *tab, new_contents);
+  }
 }
 
 customize_chrome::SidePanelController*

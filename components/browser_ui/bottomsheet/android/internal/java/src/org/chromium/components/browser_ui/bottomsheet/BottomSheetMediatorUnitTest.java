@@ -15,6 +15,7 @@ import static org.mockito.Mockito.when;
 
 import android.graphics.Color;
 import android.graphics.Rect;
+import android.view.MotionEvent;
 import android.view.View;
 
 import androidx.core.view.WindowInsetsCompat;
@@ -36,6 +37,7 @@ import org.chromium.ui.modelutil.PropertyModel;
 
 /** Unit tests for {@link BottomSheetMediator}. */
 @RunWith(BaseRobolectricTestRunner.class)
+@SuppressWarnings("DoNotMock") // TODO(567604165): Remove mocking of Views / Activities
 public class BottomSheetMediatorUnitTest {
     @Rule public final MockitoRule mMockitoRule = MockitoJUnit.rule();
 
@@ -499,6 +501,25 @@ public class BottomSheetMediatorUnitTest {
         // When content specifies skipHalfStateOnScrollingDown is true.
         when(mContent.skipHalfStateOnScrollingDown()).thenReturn(true);
         assertTrue(mMediator.shouldSkipHalfStateOnScrollingDown());
+    }
+
+    @Test
+    public void testTouchHandlerInterceptionAndTouchEvents() {
+        MotionEvent downInside = MotionEvent.obtain(0, 0, MotionEvent.ACTION_DOWN, 100, 100, 0);
+        MotionEvent downOutside = MotionEvent.obtain(0, 0, MotionEvent.ACTION_DOWN, 100, -10, 0);
+
+        // Outside usable area ignores DOWN.
+        assertFalse(mMediator.onInterceptTouchEvent(downOutside));
+        assertFalse(mMediator.onTouchEvent(downOutside));
+
+        // Touch disabled acts as black hole.
+        mMediator.setTouchEnabled(false);
+        assertTrue(mMediator.onInterceptTouchEvent(downInside));
+        assertTrue(mMediator.onTouchEvent(downInside));
+
+        mMediator.setTouchEnabled(true);
+        mMediator.setIsHidingSupplier(() -> true);
+        assertFalse(mMediator.onInterceptTouchEvent(downInside));
     }
 
     @Test

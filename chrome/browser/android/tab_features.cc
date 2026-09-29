@@ -42,6 +42,7 @@
 #include "chrome/browser/loader/from_gws_navigation_and_keep_alive_request_observer.h"
 #include "chrome/browser/navigation_predictor/navigation_predictor_preconnect_client.h"
 #include "chrome/browser/net/http_auth_cache_status.h"
+#include "chrome/browser/net/net_error_tab_helper.h"
 #include "chrome/browser/net/qwac_web_contents_observer.h"
 #include "chrome/browser/offline_pages/android/auto_fetch_page_load_watcher.h"
 #include "chrome/browser/optimization_guide/optimization_guide_keyed_service.h"
@@ -62,6 +63,7 @@
 #include "chrome/browser/storage_access_api/storage_access_api_service_factory.h"
 #include "chrome/browser/storage_access_api/storage_access_api_service_impl.h"
 #include "chrome/browser/storage_access_api/storage_access_api_tab_helper.h"
+#include "chrome/browser/supervised_user/supervised_user_navigation_observer.h"
 #include "chrome/browser/sync/sessions/sync_sessions_router_tab_helper.h"
 #include "chrome/browser/sync/sessions/sync_sessions_web_contents_router_factory.h"
 #include "chrome/browser/sync_tab_context/tab_context_decryption_token_tab_helper.h"
@@ -416,6 +418,17 @@ TabFeatures::TabFeatures(content::WebContents* web_contents, Profile* profile) {
   search_engine_tab_helper_ =
       GetUserDataFactory().CreateInstance<SearchEngineTabHelper>(*tab, *tab,
                                                                  web_contents);
+
+  net_error_tab_helper_ =
+      GetUserDataFactory()
+          .CreateInstance<chrome_browser_net::NetErrorTabHelper>(*tab, *tab,
+                                                                 web_contents);
+
+  if (!profile->IsOffTheRecord()) {
+    supervised_user_navigation_observer_ =
+        GetUserDataFactory().CreateInstance<SupervisedUserNavigationObserver>(
+            *tab, *tab, web_contents);
+  }
 }
 
 TabFeatures::~TabFeatures() = default;

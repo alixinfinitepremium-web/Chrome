@@ -35,7 +35,6 @@
 #include "chrome/browser/login_detection/login_detection_tab_helper.h"
 #include "chrome/browser/lookalikes/safety_tip_web_contents_observer.h"
 #include "chrome/browser/media/media_engagement_service.h"
-#include "chrome/browser/net/net_error_tab_helper.h"
 #include "chrome/browser/optimization_guide/optimization_guide_keyed_service.h"
 #include "chrome/browser/optimization_guide/optimization_guide_keyed_service_factory.h"
 #include "chrome/browser/optimization_guide/optimization_guide_web_contents_observer.h"
@@ -58,7 +57,6 @@
 #include "chrome/browser/ssl/chrome_security_blocking_page_factory.h"
 #include "chrome/browser/ssl/https_only_mode_tab_helper.h"
 #include "chrome/browser/subresource_filter/chrome_content_subresource_filter_web_contents_helper_factory.h"
-#include "chrome/browser/supervised_user/supervised_user_navigation_observer.h"
 #include "chrome/browser/sync/sessions/sync_sessions_router_tab_helper.h"
 #include "chrome/browser/sync/sessions/sync_sessions_web_contents_router_factory.h"
 #include "chrome/browser/translate/chrome_translate_client.h"
@@ -305,7 +303,6 @@ void TabHelpers::AttachTabHelpers(WebContents* web_contents,
   if (breadcrumbs::IsEnabled(g_browser_process->local_state())) {
     BreadcrumbManagerTabHelper::CreateForWebContents(web_contents);
   }
-  chrome_browser_net::NetErrorTabHelper::CreateForWebContents(web_contents);
   // Password manager and password reuse detection rely on ChromeAutofillClient
   // initialized by browser autofill, which is gated by enable_browser_autofill.
   if (enable_browser_autofill) {
@@ -495,17 +492,6 @@ void TabHelpers::AttachTabHelpers(WebContents* web_contents,
         prerender::NoStatePrefetchManagerFactory::GetForBrowserContext(
             profile));
   }
-#if BUILDFLAG(IS_CHROMEOS)
-  // Do not create for Incognito and Isolated  mode.
-  if (!profile->IsPrimaryOTRProfileWithRegularParent()) {
-    SupervisedUserNavigationObserver::CreateForWebContents(web_contents);
-  }
-#else
-  // Do not create for OTR.
-  if (!profile->IsOffTheRecord()) {
-    SupervisedUserNavigationObserver::CreateForWebContents(web_contents);
-  }
-#endif
   TrustedVaultEncryptionKeysTabHelper::CreateForWebContents(web_contents);
   ukm::InitializeSourceUrlRecorderForWebContents(web_contents);
   vr::VrTabHelper::CreateForWebContents(web_contents);
