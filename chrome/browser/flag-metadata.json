@@ -6696,23 +6696,6 @@
     "expiry_milestone": 165
   },
   {
-    "name": "lens-fetch-srp-api-enabled",
-    "owners": ["cmyang@google.com", "brandonli@google.com"],
-    "expiry_milestone": 145
-  },
-  {
-    "name": "lens-filter-toggle-enabled",
-    "owners": [
-      "cmyang@google.com"
-    ],
-    "expiry_milestone": 153
-  },
-  {
-    "name": "lens-filters-ablation-mode-enabled",
-    "owners": ["cmyang@google.com", "ericappelbaum@google.com"],
-    "expiry_milestone": 145
-  },
-  {
     "name": "lens-followups-full-height-enabled",
     "owners": [
       "cmyang@google.com"
@@ -6783,11 +6766,6 @@
     "expiry_milestone": 165
   },
   {
-    "name": "lens-translate-toogle-mode-enabled",
-    "owners": ["cmyang@google.com", "ericappelbaum@google.com"],
-    "expiry_milestone": 145
-  },
-  {
     "name": "lens-triple-camera-enabled",
     "owners": ["cmyang@google.com", "aruslan@google.com"],
     "expiry_milestone": 165
@@ -6822,7 +6800,7 @@
       "hchao@chromium.org",
       "chrome-secure-web-and-net@chromium.org"
     ],
-    "expiry_milestone": 156
+    "expiry_milestone": 163
   },
   {
     "name": "local-network-access-check-webrtc",
@@ -6831,7 +6809,7 @@
       "ortuno@chromium.org",
       "chrome-secure-web-and-net@chromium.org"
     ],
-    "expiry_milestone": 156
+    "expiry_milestone": 163
   },
   {
     "name": "local-network-access-check-websockets",
@@ -6840,7 +6818,7 @@
       "hchao@chromium.org",
       "chrome-secure-web-and-net@chromium.org"
     ],
-    "expiry_milestone": 156
+    "expiry_milestone": 163
   },
   {
     "name": "local-network-access-check-webtransport",
@@ -6849,7 +6827,7 @@
       "hchao@chromium.org",
       "chrome-secure-web-and-net@chromium.org"
     ],
-    "expiry_milestone": 156
+    "expiry_milestone": 163
   },
   {
     "name": "location-bar-badge-migration",
@@ -6929,7 +6907,7 @@
   {
     "name": "malicious-apk-download-check",
     "owners": [ "yawfrempong@google.com", "//components/safe_browsing/OWNERS"],
-    "expiry_milestone": 156
+    "expiry_milestone": 160
   },
   {
     "name": "management-promotion-banner-flag",
@@ -10252,7 +10230,7 @@
   {
     "name": "web-app-install-dialog",
     "owners": [ "aixba@chromium.org", "pwa-team@google.com" ],
-    "expiry_milestone": 155
+    "expiry_milestone": 165
   },
   {
     "name": "web-app-install-dialog-win-pin",

@@ -330,11 +330,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '077e1205f2d8eef4b12c44108b6dcc285a52c4b5',
+  'skia_revision': 'da1919bd3a7c75e84379c88a84cdec3e6836d4eb',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': 'd7b6704c019d522b04823ad34afa787b17f46287',
+  'v8_revision': 'c55c1d8b83191ef3d407fdafbebe5f208a3b1dfa',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -350,7 +350,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': '697ee71a13f6c2f6a9626337131a6bb78f31e68b',
+  'boringssl_revision': '1ac6cdd31d02523a9aac6fe4ac35b83d7b5da202',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -2190,7 +2190,7 @@ deps = {
   # Tools used when building Chrome for Chrome OS. This affects both the Simple
   # Chrome workflow, as well as the chromeos-chrome ebuild.
   'src/third_party/chromite': {
-      'url': Var('chromium_git') + '/chromiumos/chromite.git' + '@' + '4e13c8d57812f7e784f6b19442d41d64df083bcf',
+      'url': Var('chromium_git') + '/chromiumos/chromite.git' + '@' + '96f605d1c37db24794053663f487baebf6a64ff7',
       'condition': 'checkout_chromeos',
   },
 
@@ -2329,7 +2329,7 @@ deps = {
     Var('chromium_git') + '/codecs/libgav1.git' + '@' + '085032331f60c10055d32ab52932bd7bd77e6f53',
 
   'src/third_party/google-truth/src': {
-      'url': Var('chromium_git') + '/external/github.com/google/truth.git' + '@' + '838b9b3ed5181c96dcde04bd71a6c1351f7882a8',
+      'url': Var('chromium_git') + '/external/github.com/google/truth.git' + '@' + '9b67395136655c1eaef4a88b70d1da9532515172',
       'condition': 'checkout_android',
   },
 
@@ -2834,7 +2834,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '6b3de7f1702b1189308b77f3934170b8d9ea5487',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + 'f1811be19d6a6c44cdaab2b092695d34158d72fe',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
@@ -3280,7 +3280,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '520484914d62c8b80412c6a4b705d75ffce3642b',
+    Var('webrtc_git') + '/src.git' + '@' + '6f2034eabb8b13e220e41ecb0173ef941ae3afcd',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -3431,7 +3431,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/help_app/app',
-        'version': 'fHDOW-21r3F8YAdXhEBgsb9f_j1nvjWBjmpmIaxFq-oC',
+        'version': '_AuUG1csfWAME2sMdvBPuYTgKbwsBHiH2mYtaJin91gC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3819,7 +3819,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        '279baa0968ee88a964a6c8ddb26de11b8c793e51',
+        '92de7c1235d90d5e12e841d1d8e94af09fc67736',
       'condition': 'checkout_src_internal',
   },
 
@@ -3897,7 +3897,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        'a6f58e54429f27cf6914d4ccccc853c0d5b96305',
+        'f7e2ab29501a46430b9855dda87764b189f87cf1',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
