@@ -745,7 +745,7 @@ chromium-metrics-reviews@google.com.
 
 <histogram name="ComponentUpdater.PlatformRuntime.InstallTrigger"
     enum="PlatformRuntimeInstallTrigger" expires_after="2027-03-07">
-  <owner>marwant@google.com</owner>
+  <owner>quarz@chromium.org</owner>
   <owner>src/chrome/browser/component_updater/OWNERS</owner>
   <summary>
     Counts the different reasons/ways the platform runtime component got
@@ -754,13 +754,39 @@ chromium-metrics-reviews@google.com.
   </summary>
 </histogram>
 
-<histogram name="ComponentUpdater.PlatformRuntime.RequestHeaderIntegrityResult"
-    enum="PlatformRuntimeIntegrityResult" expires_after="2027-03-07">
+<histogram name="ComponentUpdater.PlatformRuntime.ProcessHeadersStatus"
+    enum="PlatformRuntimeProcessHeadersStatus" expires_after="2027-03-07">
   <owner>quarz@chromium.org</owner>
-  <owner>src/chrome/common/platform_runtime/OWNERS</owner>
+  <owner>src/chrome/services/platform_runtime/OWNERS</owner>
   <summary>
-    Counts the different outcomes when processing request headers for integrity
-    checks.
+    The outcome of one invocation of the Platform Runtime library in the utility
+    process. Recorded by the browser once per refresh, currently every few
+    minutes, not per network request.
+  </summary>
+</histogram>
+
+<histogram name="ComponentUpdater.PlatformRuntime.RefreshTimedOut"
+    enum="BooleanTimedOut" expires_after="2027-03-07">
+  <owner>quarz@chromium.org</owner>
+  <owner>src/chrome/services/platform_runtime/OWNERS</owner>
+  <summary>
+    Whether a Platform Runtime refresh gave up waiting for the utility process
+    instead of receiving a reply. Recorded once per refresh attempt that reaches
+    a conclusion. A refresh that ends in a crash or other disconnect is not
+    recorded here at all, so the true bucket isolates the case where the service
+    is alive but not answering.
+  </summary>
+</histogram>
+
+<histogram name="ComponentUpdater.PlatformRuntime.RequestHeaderApplyResult"
+    enum="PlatformRuntimeApplyResult" expires_after="2027-03-07">
+  <owner>quarz@chromium.org</owner>
+  <owner>src/chrome/services/platform_runtime/OWNERS</owner>
+  <summary>
+    Whether the most recently distributed Platform Runtime header block was
+    applied to an outgoing request or redirect, in whichever process issues it.
+    Subsampled: recorded for a random 1% of requests, so absolute counts are not
+    meaningful, only the relative bucket proportions.
   </summary>
 </histogram>
 

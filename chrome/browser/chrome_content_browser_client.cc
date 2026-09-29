@@ -184,7 +184,9 @@
 #include "chrome/browser/site_protection/site_familiarity_process_selection_deferring_condition.h"
 #include "chrome/browser/site_protection/site_familiarity_process_selection_user_data.h"
 #include "chrome/browser/site_protection/site_familiarity_utils.h"
+#include "chrome/browser/site_token_provider/site_token_proxying_url_loader_factory.h"
 #include "chrome/browser/site_token_provider/site_token_url_loader_factory.h"
+#include "chrome/browser/site_token_provider/site_token_url_loader_header_client.h"
 #include "chrome/browser/speech/chrome_speech_recognition_manager_delegate.h"
 #include "chrome/browser/speech/on_device_speech_recognition_util.h"
 #include "chrome/browser/ssl/chrome_security_blocking_page_factory.h"
@@ -6088,7 +6090,14 @@ std::unique_ptr<blink::URLLoaderThrottle> CreateGoogleURLLoaderThrottle(
               policy::policy_prefs::kForceGoogleSafeSearch),
           profile->GetPrefs()->GetInteger(
               policy::policy_prefs::kForceYouTubeRestrict),
-          profile->GetPrefs()->GetString(prefs::kAllowedDomainsForApps));
+          profile->GetPrefs()->GetString(prefs::kAllowedDomainsForApps)
+#if BUILDFLAG(ENABLE_REQUEST_HEADER_INTEGRITY) && !BUILDFLAG(IS_ANDROID)
+              ,
+          // Only the copy pushed to renderers carries this; the throttle
+          // built here reads the block from its own process instead.
+          net::HttpRequestHeaders()
+#endif
+      );
   return std::make_unique<GoogleURLLoaderThrottle>(
 #if BUILDFLAG(IS_ANDROID)
       client_data_header,
@@ -6870,6 +6879,18 @@ void ChromeContentBrowserClient::WillCreateURLLoaderFactory(
 
   MaybeSetTargetNetwork(GetBoundNetworkFromRenderFrameHost(frame),
                         factory_builder, is_for_network_service);
+
+  // The proxying factory only sets kURLLoadOptionUseHeaderClient on matching
+  // requests, so it does nothing without a header client. Site token headers
+  // are only injected for top-level document navigations (not subresources or
+  // iframes).
+  if (header_client && type == URLLoaderFactoryType::kNavigation && frame &&
+      !frame->GetParentOrOuterDocument()) {
+    site_token_provider::SiteTokenProxyingURLLoaderFactory::MaybeProxyRequest(
+        browser_context, factory_builder);
+    site_token_provider::SiteTokenURLLoaderHeaderClient::MaybeWrap(
+        browser_context, header_client);
+  }
 
 #if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_LINUX) || \
     BUILDFLAG(IS_CHROMEOS)
