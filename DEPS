@@ -337,7 +337,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': 'a02d4982d7658aa18fbbdc8f136776a76e6d771f',
+  'skia_revision': 'd875f614bb65a562b840ebc618cd71f3509c8f5d',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -2841,7 +2841,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '403906f4adfbf287a02e5546f8430dcc9d56b649',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + 'db245a1e96f448fd1df570185f6de7ea5aae45ca',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
@@ -3863,7 +3863,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        'bf79161b862791461b0f9d90bd10677bc8de3f4a',
+        '04e619606ec20733fb1a052fa4021bc88357cfa3',
       'condition': 'checkout_src_internal',
   },
 

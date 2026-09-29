@@ -494,11 +494,6 @@
     "expiry_milestone": 170
   },
   {
-    "name": "android-settings-containment",
-    "owners": [ "agazal@google.com", "clank-app-team@google.com" ],
-    "expiry_milestone": 150
-  },
-  {
     "name": "android-settings-url",
     "owners": [ "jinsukkim@chromium.org", "clank-app-team@google.com" ],
     "expiry_milestone": 152
@@ -10271,7 +10266,7 @@
   {
     "name": "web-app-short-edges-cutout-mode",
     "owners": [ "pwa-team@google.com", "helmut@januschka.com" ],
-    "expiry_milestone": 156
+    "expiry_milestone": 157
   },
   {
     "name": "web-authentication-ambient-signin",

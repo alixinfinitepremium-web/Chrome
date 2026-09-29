@@ -1405,11 +1405,6 @@ inline constexpr char kBorealisZinkGlDriverDescription[] =
     "Enables zink driver for GL rendering in Borealis. Can be enabled for "
     "recommended GL apps only or for all GL apps. Defaults to recommended.";
 
-inline constexpr char kAndroidSettingsContainmentName[] =
-    "Android Settings Containment";
-inline constexpr char kAndroidSettingsContainmentDescription[] =
-    "Enables the Android Settings Containment feature.";
-
 inline constexpr char kAndroidSettingsUrlName[] = "Android Settings URL";
 inline constexpr char kAndroidSettingsUrlDescription[] =
     "Enables the use of chrome://settings on Android.";
@@ -6140,11 +6135,12 @@ inline constexpr char kEdgeToEdgeExtraLogsDescription[] =
 inline constexpr char kWebAppShortEdgesCutoutModeName[] =
     "Web App Short Edges Cutout Mode";
 inline constexpr char kWebAppShortEdgesCutoutModeDescription[] =
-    "When enabled, installed PWAs (display: standalone or display: fullscreen) "
-    "that opt in via viewport-fit=cover draw under the status and navigation "
-    "bars on Android, with non-zero CSS env(safe-area-inset-*) values for "
-    "controls. Standalone webapps that do not declare viewport-fit=cover are "
-    "unaffected.";
+    "When enabled, installed fullscreen PWAs can draw into display cutouts "
+    "on Android. Standalone PWAs only opt in to edge-to-edge with "
+    "viewport-fit=cover with the \"Enabled (Standalone also enabled)\" "
+    "option, which sets the enable_standalone feature parameter. This flag "
+    "and its parameter are cached, so changes apply after restarting "
+    "Chrome twice.";
 
 inline constexpr char kEnableAccessibilityLabeledByName[] =
     "Enable Accessibility LabeledBy";
