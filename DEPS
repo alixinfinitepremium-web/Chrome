@@ -1676,7 +1676,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_mac_amd64',
-          'version': 'rS1qtwKmH6SIUzWeONWFLRnru-VrY7ahLEw-gqHgcG0C',
+          'version': 'sZAGuoUWdC4wCqBIbx2QSMsOJZ4nNwQF2za_p7tRhREC',
         },
       ],
   },
@@ -2173,7 +2173,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/checkstyle',
-              'version': 'vnbLn0H_kr5nVeziAzIlGqjH1LhxEslL7O0w-UKTHh4C',
+              'version': 'udEqw9ygTuIy4x8w97hBz9uRD-oh6wnXR4O0B5sXmPMC',
           },
       ],
       # Needed on Linux for use on chromium_presubmit.
@@ -3173,7 +3173,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/turbine',
-              'version': 'pq6SN2IpgxerC8rRrLlm4TmmBG3Y-yF_MF9rgf-x2IsC',
+              'version': 'D2oHO_90HU8hdDGLDWBdX91BIuH6D7XyVLcGvWoNb4EC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
