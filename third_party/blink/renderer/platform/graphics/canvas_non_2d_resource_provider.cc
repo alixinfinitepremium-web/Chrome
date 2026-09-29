@@ -577,23 +577,30 @@ bool CanvasNon2DResourceProvider::ShouldReplaceTargetBuffer(
 scoped_refptr<gpu::ClientSharedImage>
 CanvasNon2DResourceProvider::BeginExternalOverwrite(
     gpu::SyncToken& internal_access_sync_token) {
-  DCHECK(!is_software_);
+  CHECK(!is_software_);
 
   if (IsGpuContextLost()) {
     return nullptr;
   }
 
-  // End the internal write access before calling WillDrawInternal(), which
-  // has a precondition that there should be no current write access on the
-  // resource.
+  // End the internal write access before calling EnsureResourceReadyForDraw(),
+  // which has a precondition that there should be no current write access on
+  // the resource.
   EndWriteAccess();
 
-  // NOTE: Invoking WillDrawInternal() ensures that this invocation of
-  // EndAccess() will generate a new sync token.
-  auto access = WillDrawInternal();
-  resource_->EndAccess(std::move(access));
+  EnsureResourceReadyForDraw();
+
+  // NOTE: Performing a raster access here ensures that any pending
+  // acquire_sync_token() is waited on and that a new release sync token is
+  // generated on the raster interface.
+  auto client_si = resource_->GetSharedImage();
+  auto access = client_si->BeginRasterAccess(
+      RasterInterface(), resource_->acquire_sync_token(), /*readonly=*/false);
+  auto sync_token = gpu::RasterScopedAccess::EndAccess(std::move(access));
+  resource_->SetReleaseSyncToken(sync_token);
+  client_si->UpdateDestructionSyncToken(sync_token);
   internal_access_sync_token = resource_->sync_token();
-  return resource_->GetSharedImage();
+  return client_si;
 }
 
 void CanvasNon2DResourceProvider::EndExternalWrite(
@@ -662,6 +669,7 @@ CanvasNon2DResourceProvider::DoExternalOverdrawAndSnapshot(
 }
 
 void CanvasNon2DResourceProvider::EnsureResourceReadyForDraw() {
+  CHECK(!is_software_);
   DCHECK(resource_);
 
   // Since the resource will be updated, the cached snapshot is no longer valid.
@@ -670,10 +678,8 @@ void CanvasNon2DResourceProvider::EnsureResourceReadyForDraw() {
   // for these writes.
   cached_snapshot_.reset();
 
-  // Determine if a new resource is needed for accelerated resources. Note that
-  // for unaccelerated resources, writes to the SharedImage are deferred to
-  // ProduceCanvasResource.
-  if (!is_software_ && ShouldReplaceTargetBuffer(cached_content_id_)) {
+  // Determine if a new resource is needed.
+  if (ShouldReplaceTargetBuffer(cached_content_id_)) {
     cached_content_id_ = PaintImage::kInvalidContentId;
     DCHECK(!current_resource_has_write_access_)
         << "Write access must be released before sharing the resource";
@@ -687,13 +693,6 @@ void CanvasNon2DResourceProvider::EnsureResourceReadyForDraw() {
     is_cleared_ = false;
   }
 }
-
-std::unique_ptr<gpu::RasterScopedAccess>
-CanvasNon2DResourceProvider::WillDrawInternal() {
-  EnsureResourceReadyForDraw();
-  return resource_->BeginAccess(/*readonly=*/false);
-}
-
 
 scoped_refptr<CanvasResource>
 CanvasNon2DResourceProvider::ProduceCanvasResource() {
@@ -769,8 +768,8 @@ scoped_refptr<StaticBitmapImage> CanvasNon2DResourceProvider::Snapshot(
     cached_snapshot_ = resource_->Bitmap();
 
     // We'll record its content_id to be used by the FlushForImageListener.
-    // This will be needed in WillDrawInternal, but we are doing it now, as we
-    // don't know if later on we will be in the same thread the
+    // This will be needed in EnsureResourceReadyForDraw(), but we are doing it
+    // now, as we don't know if later on we will be in the same thread the
     // cached_snapshot_ was created and we wouldn't be able to
     // PaintImageForCurrentFrame in AcceleratedStaticBitmapImage just to check
     // the content_id. ShouldReplaceTargetBuffer needs this ID in order to let

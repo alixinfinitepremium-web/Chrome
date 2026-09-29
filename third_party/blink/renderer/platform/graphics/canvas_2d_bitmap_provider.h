@@ -68,7 +68,6 @@ class PLATFORM_EXPORT Canvas2DBitmapProvider final
 
   ~Canvas2DBitmapProvider() override;
 
-  bool IsValid() const { return GetSkSurface(); }
   void SetDelegate(CanvasResourceProviderDelegate* delegate) {
     delegate_ = delegate;
   }
@@ -92,20 +91,14 @@ class PLATFORM_EXPORT Canvas2DBitmapProvider final
     return base::ByteSize(format_.EstimatedSizeInBytes(size_));
   }
 
-  void RestoreBackBuffer(const cc::PaintImage&);
-
  private:
-  Canvas2DBitmapProvider(gfx::Size size,
+  Canvas2DBitmapProvider(sk_sp<SkSurface> surface,
+                         gfx::Size size,
                          viz::SharedImageFormat format,
                          SkAlphaType alpha_type,
                          const gfx::ColorSpace& color_space,
                          const gfx::HDRMetadata& hdr_metadata,
                          CanvasResourceProviderDelegate* delegate);
-
-  // Should only be called from static Create*() methods.
-  // TODO(crbug.com/352263194): Eliminate this method by inlining its body at
-  // callsites.
-  void ClearAtCreation();
 
   // CanvasMemoryDumpClient implementation.
   void OnMemoryDump(base::trace_event::ProcessMemoryDump*) override;
@@ -116,10 +109,6 @@ class PLATFORM_EXPORT Canvas2DBitmapProvider final
 
   void ApplyAnimatedImageFrameIndexesForId(SkCanvas* canvas, uint32_t id);
 
-  SkSurfaceProps GetSkSurfaceProps() const;
-  SkSurface* GetSkSurface() const;
-  sk_sp<SkSurface> CreateSkSurface() const;
-
   CanvasImageProvider* GetOrCreateSWCanvasImageProvider();
 
   std::unique_ptr<CanvasImageProvider> canvas_image_provider_;
@@ -129,7 +118,7 @@ class PLATFORM_EXPORT Canvas2DBitmapProvider final
   gfx::ColorSpace color_space_;
   gfx::HDRMetadata hdr_metadata_;
   raw_ptr<CanvasResourceProviderDelegate> delegate_ = nullptr;
-  mutable sk_sp<SkSurface> surface_;
+  const sk_sp<SkSurface> surface_;
   std::unique_ptr<cc::SkiaPaintCanvas> skia_canvas_;
   const cc::PaintImage::Id snapshot_paint_image_id_;
   cc::PaintImage::ContentId snapshot_paint_image_content_id_ =

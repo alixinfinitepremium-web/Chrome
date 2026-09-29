@@ -9,6 +9,7 @@
 #include "chrome/browser/actor/actor_keyed_service.h"
 #include "chrome/browser/actor/actor_tab_data.h"
 #include "chrome/browser/actor/android/ui/actor_ui_tab_controller_android.h"
+#include "chrome/browser/android/media_state_observer.h"
 #include "chrome/browser/android/oom_intervention/oom_intervention_tab_helper.h"
 #include "chrome/browser/android/policy/policy_auditor_bridge.h"
 #include "chrome/browser/android/tab_android.h"
@@ -23,6 +24,7 @@
 #include "chrome/browser/enterprise/reporting/saas_usage/saas_usage_navigation_observer.h"
 #include "chrome/browser/enterprise/util/managed_browser_utils.h"
 #include "chrome/browser/external_protocol/external_protocol_observer.h"
+#include "chrome/browser/file_system_access/file_system_access_tab_helper.h"
 #include "chrome/browser/finds/core/finds_features.h"
 #include "chrome/browser/finds/core/finds_tab_helper.h"
 #include "chrome/browser/finds/finds_service_factory.h"
@@ -64,6 +66,7 @@
 #include "chrome/browser/sync/sessions/sync_sessions_web_contents_router_factory.h"
 #include "chrome/browser/sync_tab_context/tab_context_decryption_token_tab_helper.h"
 #include "chrome/browser/tab_contents/navigation_metrics_recorder.h"
+#include "chrome/browser/task_manager/web_contents_tags.h"
 #include "chrome/browser/translate/chrome_translate_client.h"
 #include "chrome/browser/ui/contextual_search/tab_contextualization_controller.h"
 #include "chrome/browser/ui/safety_hub/revoked_permissions_service.h"
@@ -401,6 +404,13 @@ TabFeatures::TabFeatures(content::WebContents* web_contents, Profile* profile) {
   chained_back_navigation_tracker_ =
       GetUserDataFactory().CreateInstance<ChainedBackNavigationTracker>(
           *tab, *tab, web_contents);
+
+  task_manager::WebContentsTags::CreateForTabContents(web_contents);
+
+  media_state_observer_ = std::make_unique<MediaStateObserver>(web_contents);
+
+  file_system_access_tab_helper_ =
+      std::make_unique<FileSystemAccessTabHelper>(web_contents);
 }
 
 TabFeatures::~TabFeatures() = default;

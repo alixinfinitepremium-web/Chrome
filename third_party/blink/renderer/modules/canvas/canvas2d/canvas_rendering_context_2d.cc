@@ -1221,10 +1221,7 @@ bool CanvasRenderingContext2D::IsResourceProviderValid() const {
   if (shared_image_provider_) {
     return shared_image_provider_->IsValid();
   }
-  if (bitmap_provider_) {
-    return bitmap_provider_->IsValid();
-  }
-  return false;
+  return bitmap_provider_ != nullptr;
 }
 
 Canvas2DResourceProvider* CanvasRenderingContext2D::GetSharedImageProvider()
@@ -1266,9 +1263,6 @@ bool CanvasRenderingContext2D::InitializeResourceProvider() {
     return true;
   }
   if (bitmap_provider_) {
-    if (!bitmap_provider_->IsValid()) {
-      return false;
-    }
     return true;
   }
 
@@ -1343,13 +1337,7 @@ void CanvasRenderingContext2D::DropAndRecreateExistingResourceProvider() {
     return;
   }
 
-  if (shared_image_provider_) {
-    shared_image_provider_->RestoreBackBuffer(
-        image->PaintImageForCurrentFrame());
-
-  } else {
-    bitmap_provider_->RestoreBackBuffer(image->PaintImageForCurrentFrame());
-  }
+  RestoreBackBuffer(image->PaintImageForCurrentFrame());
 
   canvas()->UpdateMemoryUsage();
 }
@@ -1389,6 +1377,23 @@ void CanvasRenderingContext2D::RecreateResourceProvider() {
   }
 }
 
+void CanvasRenderingContext2D::RestoreBackBuffer(const cc::PaintImage& image) {
+  DCHECK_EQ(image.height(), Host()->Size().height());
+  DCHECK_EQ(image.width(), Host()->Size().width());
+
+  auto sk_image = image.GetSwSkImage();
+  DCHECK(sk_image);
+  SkPixmap map;
+  sk_image->peekPixels(&map);
+  if (shared_image_provider_) {
+    shared_image_provider_->WritePixels(map.info(), map.addr(), map.rowBytes(),
+                                        /*x=*/0, /*y=*/0);
+  } else if (bitmap_provider_) {
+    bitmap_provider_->WritePixels(map.info(), map.addr(), map.rowBytes(),
+                                  /*x=*/0, /*y=*/0);
+  }
+}
+
 void CanvasRenderingContext2D::WakeUpFromHibernation() {
   TRACE_EVENT0("base", "Canvas2dWakeUpFromHibernation");
 
@@ -1415,12 +1420,7 @@ void CanvasRenderingContext2D::WakeUpFromHibernation() {
   builder.set_image(hibernation_handler->GetImage(),
                     PaintImage::GetNextContentId());
   builder.set_id(PaintImage::GetNextId());
-  if (shared_image_provider_) {
-    shared_image_provider_->RestoreBackBuffer(builder.TakePaintImage());
-
-  } else if (bitmap_provider_) {
-    bitmap_provider_->RestoreBackBuffer(builder.TakePaintImage());
-  }
+  RestoreBackBuffer(builder.TakePaintImage());
   // The hibernation image is no longer valid, clear it.
   hibernation_handler->Clear();
   DCHECK(!hibernation_handler->IsHibernating());
