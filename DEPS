@@ -338,7 +338,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '1e54a587602e5605692a21991740652effb7ad51',
+  'angle_revision': '9e2513be4eb84a8b42d7610e684b3b93b117dea5',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -410,7 +410,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '658be7fcdcc82acbc35d694bc3d9ccfb05967f29',
+  'devtools_frontend_revision': '4a4f418f0bd9aa08a19557d392c47a16a69faa6d',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1972,7 +1972,7 @@ deps = {
       'packages': [
           {
                'package': 'chromium/third_party/android_build_tools/lint',
-               'version': 'IiPNkWu3BEYzB14u6SEIooPW6ZAdaldo2e9Xm3jb958C',
+               'version': 'lfp4PYpI9aVKyjt_w6E3mu48PTutqVbgAF1Efn9-RQsC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
