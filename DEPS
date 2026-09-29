@@ -1950,7 +1950,7 @@ deps = {
       'packages': [
           {
                'package': 'chromium/third_party/android_build_tools/error_prone',
-               'version': 'W3kh0CZSST1B0JH-TiW4RV05LYLKl5Q_JFARRE9lC6UC',
+               'version': '49l-IIRUfqRzUDZhpILtHGNbB4MwGF1YGJsVe6NO49EC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -3173,7 +3173,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/turbine',
-              'version': 'kq9Lo6XN5IAImBa9qU6G5Wkg5Pai2X4XfeJ54JwVBEwC',
+              'version': 'pq6SN2IpgxerC8rRrLlm4TmmBG3Y-yF_MF9rgf-x2IsC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -3897,7 +3897,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '8b9627d508cc9031bee4df0cdb00feee29fdfa9b',
+        '6e1123b30fe61acb291955e7e53f8dc3e0d02c30',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 

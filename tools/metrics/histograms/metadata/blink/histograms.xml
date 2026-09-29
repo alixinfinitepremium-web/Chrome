@@ -676,6 +676,18 @@ chromium-metrics-reviews@google.com.
   </summary>
 </histogram>
 
+<histogram name="Blink.CapabilityElement.Geolocation.AccuracyMode"
+    enum="CapabilityElementGeolocationAccuracyMode" expires_after="2027-04-01">
+  <owner>tungnh@chromium.org</owner>
+  <owner>ravjit@chromium.org</owner>
+  <owner>src/components/permissions/PERMISSIONS_OWNERS</owner>
+  <summary>
+    Records the accuracy mode requested when a geolocation element requests
+    location. Recorded once per geolocation request when the element initiates a
+    geolocation query.
+  </summary>
+</histogram>
+
 <histogram name="Blink.CapabilityElement.Geolocation.PositionError.Reason"
     enum="CapabilityElementGeolocationPositionErrorReason"
     expires_after="2027-04-01">
@@ -686,6 +698,19 @@ chromium-metrics-reviews@google.com.
     Records the error reason when a geolocation element's location query fails.
     Recorded once per failed geolocation request when the initial error callback
     is invoked.
+  </summary>
+</histogram>
+
+<histogram name="Blink.CapabilityElement.Geolocation.RequestInitiationFlow"
+    enum="CapabilityElementGeolocationRequestFlow" expires_after="2027-04-01">
+  <owner>tungnh@chromium.org</owner>
+  <owner>ravjit@chromium.org</owner>
+  <owner>src/components/permissions/PERMISSIONS_OWNERS</owner>
+  <summary>
+    Records how a location query is initiated from a geolocation element:
+    whether by a user click with permission already granted, a user click
+    requiring a permission prompt that was granted, or autolocate on page load.
+    Recorded once per geolocation request when the request is initiated.
   </summary>
 </histogram>
 
