@@ -1383,7 +1383,6 @@ source_set("tab_helpers_impl") {
     "//components/commerce/content/browser",
     "//components/commerce/core:feature_list",
     "//components/compose:buildflags",
-    "//components/content_capture/common",
     "//components/content_settings/browser",
     "//components/dom_distiller/core:dom_distiller_features",
     "//components/download/content/factory",
@@ -1452,15 +1451,6 @@ source_set("tab_helpers_impl") {
 
   if (enable_webui_ntp) {
     deps += [ "//chrome/browser/ui/search" ]
-  }
-
-  if (is_chromeos) {
-    deps += [
-      "//chrome/browser/ash/boot_times_recorder",
-      "//chrome/browser/ash/growth",
-      "//chrome/browser/chromeos/policy/dlp",
-      "//chrome/browser/ui/ash/google_one",
-    ]
   }
 
   if (enable_captive_portal_detection) {

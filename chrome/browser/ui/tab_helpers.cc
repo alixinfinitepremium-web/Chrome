@@ -133,8 +133,6 @@
 #include "base/android/android_info.h"
 #include "base/functional/bind.h"
 #include "base/memory/ptr_util.h"
-#include "chrome/browser/android/persisted_tab_data/language_persisted_tab_data_android.h"
-#include "chrome/browser/android/persisted_tab_data/sensitivity_persisted_tab_data_android.h"
 #include "chrome/browser/android/tab_android.h"
 #include "chrome/browser/android/tab_web_contents_delegate_android.h"
 #include "chrome/browser/banners/android/chrome_app_banner_manager_android.h"
@@ -143,7 +141,6 @@
 #include "chrome/browser/flags/android/chrome_feature_list.h"
 #include "chrome/browser/ui/android/context_menu_helper.h"
 #include "chrome/browser/ui/javascript_dialogs/javascript_tab_modal_dialog_manager_delegate_android.h"
-#include "components/content_capture/common/content_capture_features.h"
 #include "components/facilitated_payments/core/features/features.h"
 #include "components/sensitive_content/android/android_sensitive_content_client.h"
 #include "components/sensitive_content/features.h"
@@ -158,11 +155,6 @@
 #include "components/omnibox/browser/omnibox_field_trial.h"
 #include "components/web_modal/web_contents_modal_dialog_manager.h"
 #endif  // BUILDFLAG(IS_ANDROID)
-
-#if BUILDFLAG(IS_CHROMEOS)
-#include "chrome/browser/ash/boot_times_recorder/boot_times_recorder_tab_helper.h"
-#include "chrome/browser/chromeos/policy/dlp/dlp_content_tab_helper.h"
-#endif
 
 #if BUILDFLAG(ENABLE_CAPTIVE_PORTAL_DETECTION)
 #include "chrome/browser/captive_portal/captive_portal_service_factory.h"
@@ -181,7 +173,6 @@
 #include "chrome/browser/extensions/tab_helper.h"
 #include "extensions/browser/view_type_utils.h"
 #if !BUILDFLAG(IS_ANDROID)
-#include "chrome/browser/web_applications/policy/pre_redirection_url_observer.h"
 #include "chrome/browser/web_applications/web_app_utils.h"
 #endif  // !BUILDFLAG(IS_ANDROID)
 #endif  // BUILDFLAG(ENABLE_EXTENSIONS_CORE)
@@ -317,37 +308,6 @@ void TabHelpers::AttachTabHelpers(WebContents* web_contents,
   }
   CreateSubresourceFilterWebContentsHelper(web_contents);
   ChromeTranslateClient::CreateForWebContents(web_contents);
-#if BUILDFLAG(IS_ANDROID)
-  // Register LanguagePersistedTabDataAndroid for non-incognito tabs to
-  // persist language details.
-  if (!profile->IsOffTheRecord() &&
-      content_capture::features::ShouldSendMetadataForDataShare()) {
-    if (auto* tab = TabAndroid::FromWebContents(web_contents); tab) {
-      LanguagePersistedTabDataAndroid::From(
-          tab,
-          base::BindOnce(
-              [](base::WeakPtr<content::WebContents> web_contents,
-                 PersistedTabDataAndroid* persisted_tab_data) {
-                if (!web_contents) {
-                  return;
-                }
-                ChromeTranslateClient* chrome_translate_client =
-                    ChromeTranslateClient::FromWebContents(web_contents.get());
-
-                if (!chrome_translate_client) {
-                  return;
-                }
-
-                auto* language_persisted_tab_data_android =
-                    static_cast<LanguagePersistedTabDataAndroid*>(
-                        persisted_tab_data);
-                language_persisted_tab_data_android->RegisterTranslateDriver(
-                    chrome_translate_client->translate_driver());
-              },
-              web_contents->GetWeakPtr()));
-    }
-  }
-#endif  // BUILDFLAG(IS_ANDROID)
   commerce::CommerceTabHelper::CreateForWebContents(
       web_contents, profile->IsOffTheRecord(),
       commerce::ShoppingServiceFactory::GetForBrowserContext(profile),
@@ -401,29 +361,6 @@ void TabHelpers::AttachTabHelpers(WebContents* web_contents,
               base::BindRepeating(&page_content_annotations::FetchPageContext),
               base::BindRepeating(&GetPageContentAnnotationsTabId));
     }
-
-#if BUILDFLAG(IS_ANDROID)
-    // If enabled, save sensitivity data for each non-incognito android tab.
-    // TODO(crbug.com/40276584): Consider moving check conditions or the
-    // registration logic to sensitivity_persisted_tab_data_android.*
-    if (!profile->IsOffTheRecord()) {
-      if (auto* tab = TabAndroid::FromWebContents(web_contents); tab) {
-        SensitivityPersistedTabDataAndroid::From(
-            tab,
-            base::BindOnce(
-                [](page_content_annotations::PageContentAnnotationsService*
-                       page_content_annotations_service,
-                   PersistedTabDataAndroid* persisted_tab_data) {
-                  auto* sensitivity_persisted_tab_data_android =
-                      static_cast<SensitivityPersistedTabDataAndroid*>(
-                          persisted_tab_data);
-                  sensitivity_persisted_tab_data_android->RegisterPCAService(
-                      page_content_annotations_service);
-                },
-                page_content_annotations_service));
-      }
-    }
-#endif  // BUILDFLAG(IS_ANDROID)
   }
   InitializePageLoadMetricsForWebContents(web_contents);
   if (auto* pm_registry =
@@ -584,16 +521,6 @@ void TabHelpers::AttachTabHelpers(WebContents* web_contents,
   if (enable_browser_autofill && !profile->IsOffTheRecord()) {
     ChromeComposeClient::CreateForWebContents(web_contents);
   }
-#endif
-
-#if BUILDFLAG(IS_CHROMEOS)
-  ash::BootTimesRecorderTabHelper::MaybeCreateForWebContents(web_contents);
-
-  policy::DlpContentTabHelper::MaybeCreateForWebContents(web_contents);
-#endif
-
-#if !BUILDFLAG(IS_ANDROID)
-  webapps::PreRedirectionURLObserver::CreateForWebContents(web_contents);
 #endif
 
   // --- Section 3: Feature tab helpers behind BUILDFLAGs ---

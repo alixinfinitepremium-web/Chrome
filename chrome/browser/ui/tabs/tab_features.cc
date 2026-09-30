@@ -195,6 +195,7 @@
 #include "chrome/browser/ui/tabs/tab_attachment_tracker.h"
 #include "chrome/browser/v8_compile_hints/v8_compile_hints_tab_helper.h"
 #include "chrome/browser/web_applications/isolated_web_apps/window_management/window_management_content_setting_observer.h"
+#include "chrome/browser/web_applications/policy/pre_redirection_url_observer.h"
 #include "chrome/browser/web_applications/web_app_tab_helper.h"
 #include "chrome/browser/web_applications/web_app_utils.h"
 #include "chrome/common/chrome_features.h"
@@ -215,10 +216,12 @@
 
 #if BUILDFLAG(IS_CHROMEOS)
 #include "chrome/browser/apps/app_service/app_service_proxy_factory.h"  // nogncheck
+#include "chrome/browser/ash/boot_times_recorder/boot_times_recorder_tab_helper.h"
 #include "chrome/browser/ash/child_accounts/time_limits/web_time_navigation_observer.h"
 #include "chrome/browser/ash/growth/campaigns_manager_session_tab_helper.h"
 #include "chrome/browser/ash/mahi/web_contents/mahi_tab_helper.h"
 #include "chrome/browser/chromeos/gemini_app/gemini_app_tab_helper.h"
+#include "chrome/browser/chromeos/policy/dlp/dlp_content_tab_helper.h"
 #include "chrome/browser/ui/ash/google_one/google_one_offer_iph_tab_helper.h"
 #include "chrome/browser/ui/views/web_apps/protocol_handler_picker_coordinator.h"
 #include "chromeos/ash/experiences/isolated_web_app/cros_isolated_web_app_enabler.h"
@@ -793,6 +796,9 @@ void TabFeatures::Init(TabInterface& tab, Profile* profile) {
   web_time_navigation_observer_ =
       ash::app_time::WebTimeNavigationObserver::MaybeCreate(tab,
                                                             tab.GetContents());
+  boot_times_recorder_tab_helper_ =
+      ash::BootTimesRecorderTabHelper::MaybeCreate(tab.GetContents());
+  policy::DlpContentTabHelper::MaybeCreateForWebContents(tab.GetContents());
 #endif
 
   // The controller is created for all tabs but only affects back button
@@ -1011,6 +1017,8 @@ void TabFeatures::Init(TabInterface& tab, Profile* profile) {
       GetUserDataFactory().CreateInstance<offline_pages::RecentTabHelper>(
           tab, tab, tab.GetContents());
 #endif
+
+  webapps::PreRedirectionURLObserver::CreateForWebContents(tab.GetContents());
 }
 
 TabUIHelper* TabFeatures::SetTabUIHelperForTesting(
@@ -1254,6 +1262,9 @@ void TabFeatures::WillDiscardContents(tabs::TabInterface* tab,
   if (web_time_navigation_observer_) {
     web_time_navigation_observer_->OnDiscardContents(new_contents);
   }
+  boot_times_recorder_tab_helper_ =
+      ash::BootTimesRecorderTabHelper::MaybeCreate(new_contents);
+  policy::DlpContentTabHelper::MaybeCreateForWebContents(new_contents);
 #endif
 
 #if BUILDFLAG(ENABLE_RLZ)
@@ -1401,6 +1412,8 @@ void TabFeatures::WillDiscardContents(tabs::TabInterface* tab,
       GetUserDataFactory().CreateInstance<offline_pages::RecentTabHelper>(
           *tab, *tab, new_contents);
 #endif
+
+  webapps::PreRedirectionURLObserver::CreateForWebContents(new_contents);
 }
 
 customize_chrome::SidePanelController*
