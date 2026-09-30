@@ -469,6 +469,11 @@
     "expiry_milestone": 170
   },
   {
+    "name": "android-new-tab-button-tabstrip-webui",
+    "owners": [ "acondor@chromium.org", "clank-performance-team@google.com" ],
+    "expiry_milestone": 170
+  },
+  {
     "name": "android-open-incognito-as-window",
     "owners": [ "shuyng@google.com", "clank-large-form-factors@google.com" ],
     "expiry_milestone": 170
@@ -2189,6 +2194,11 @@
     "name": "context-menu-animation-limiting",
     "owners": [ "dhruvkathpalia@google.com", "rtatum@google.com" ],
     "expiry_milestone": 155
+  },
+  {
+    "name": "context-menu-preview-downsample-image",
+    "owners": [ "danieltwhite@google.com", "bling-flags@google.com" ],
+    "expiry_milestone": 160
   },
   {
     "name": "contextual-cueing",

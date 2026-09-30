@@ -195,7 +195,7 @@ TEST_P(SafetyListManagerTest, ParseSafetyLists_NulloptProducer) {
   manager().SetLoadSafetyListsClosure(base::BindOnce(
       []() -> std::optional<std::string> { return std::nullopt; }));
   EXPECT_EQ(Find(GURL("https://a.com"), GURL("https://b.com")),
-            Decision::kNone);
+            Decision::kAllow);
   histogram_tester.ExpectTotalCount(
       "Actor.SafetyListParseResult.NavigationAllowed", 0);
   histogram_tester.ExpectTotalCount(
@@ -292,21 +292,19 @@ TEST_P(SafetyListManagerTest,
             Decision::kNone);
   EXPECT_EQ(nullopt_producer_calls, 1);
 
-  // Transition from failed state to Parsed state.
+  // Transition from empty state to populated state.
   SetSafetyLists(R"json({
     "navigation_allowed": [{ "from": "a.com", "to": "b.com" }]
   })json");
   EXPECT_EQ(Find(GURL("https://a.com"), GURL("https://b.com")),
             Decision::kAllow);
 
-  // Transition from Parsed state to failed state via invalid JSON.
+  // Invalid JSON doesn't overwrite valid data.
   SetSafetyLists("not valid json");
   EXPECT_EQ(Find(GURL("https://a.com"), GURL("https://b.com")),
-            Decision::kNone);
-  EXPECT_EQ(Find(GURL("https://a.com"), GURL("https://b.com")),
-            Decision::kNone);
+            Decision::kAllow);
 
-  // Transition back to Parsed state with a new list.
+  // New data can overwrite old data.
   SetSafetyLists(R"json({
     "navigation_allowed": [{ "from": "c.com", "to": "d.com" }]
   })json");
@@ -897,6 +895,58 @@ TEST_P(SafetyListManagerTest, Find) {
           Decision::kNone,
       },
       {
+          "no wildcard origin-scoped match",
+          R"json(
+            {
+              "navigation_blocked": [
+                { "from": "https://a.com", "to": "https://b.com" }
+              ]
+            }
+          )json",
+          "https://a.com/foo/bar",
+          "https://b.com:443",
+          ExpectedBlocklistDecision(),
+      },
+      {
+          "no wildcard origin-scoped host mismatch",
+          R"json(
+            {
+              "navigation_blocked": [
+                { "from": "https://a.com", "to": "https://b.com" }
+              ]
+            }
+          )json",
+          "https://a.com",
+          "https://other.com",
+          Decision::kNone,
+      },
+      {
+          "no wildcard origin-scoped scheme mismatch",
+          R"json(
+            {
+              "navigation_blocked": [
+                { "from": "https://a.com", "to": "https://b.com" }
+              ]
+            }
+          )json",
+          "https://a.com",
+          "http://b.com",
+          Decision::kNone,
+      },
+      {
+          "no wildcard origin-scoped port omitted means wildcard",
+          R"json(
+            {
+              "navigation_blocked": [
+                { "from": "https://a.com", "to": "https://b.com" }
+              ]
+            }
+          )json",
+          "https://a.com",
+          "https://b.com:8080",
+          ExpectedBlocklistDecision(),
+      },
+      {
           "both mismatch",
           R"json(
             {
@@ -922,6 +972,24 @@ TEST_P(SafetyListManagerTest, Find) {
           "https://c.com",
           "https://d.com",
           ExpectedBlocklistDecision(),
+      },
+      {
+          "multiple origin-scoped entries, both lists, match one",
+          R"json(
+            {
+              "navigation_blocked": [
+                { "from": "https://a.com", "to": "https://b.com" },
+                { "from": "https://c.com", "to": "https://d.com" }
+              ],
+              "navigation_allowed": [
+                { "from": "https://e.com", "to": "https://f.com" },
+                { "from": "https://g.com", "to": "https://h.com" }
+              ]
+            }
+          )json",
+          "https://e.com",
+          "https://f.com",
+          Decision::kAllow,
       },
       {
           "multiple entries, both lists, match one",
@@ -989,6 +1057,38 @@ TEST_P(SafetyListManagerTest, Find) {
           "https://b.com",
           ExpectedBlocklistDecision(),
       },
+      {
+          "origin-scoped overlapping entries -> blocklist wins",
+          R"json(
+            {
+              "navigation_allowed": [
+                { "from": "https://a.com", "to": "https://b.com" }
+              ],
+              "navigation_blocked": [
+                { "from": "https://a.com", "to": "https://b.com" }
+              ]
+            }
+          )json",
+          "https://a.com",
+          "https://b.com",
+          ExpectedBlocklistDecision(),
+      },
+      {
+          "origin-scoped allowlist overrides more general setting",
+          R"json(
+            {
+              "navigation_blocked": [
+                { "from": "a.com", "to": "b.com" }
+              ],
+              "navigation_allowed": [
+                { "from": "https://a.com:443", "to": "https://b.com:443" }
+              ]
+            }
+          )json",
+          "https://a.com",
+          "https://b.com",
+          Decision::kAllow,
+      },
   };
 
   for (const auto& test_case : kTestCases) {
@@ -1006,7 +1106,7 @@ TEST_P(SafetyListManagerTest, Find_SameOrigin) {
     Decision expected;
   } kTestCases[] = {
       {
-          "no wildcards",
+          "wildcard scheme",
           R"json(
             {
               "navigation_blocked": [
@@ -1044,6 +1144,17 @@ TEST_P(SafetyListManagerTest, Find_SameOrigin) {
             {
               "navigation_blocked": [
                 { "from": "*", "to": "*" }
+              ]
+            }
+          )json",
+          ExpectedBlocklistDecision(),
+      },
+      {
+          "origin scoped",
+          R"json(
+            {
+              "navigation_blocked": [
+                { "from": "https://a.com", "to": "https://a.com" }
               ]
             }
           )json",
