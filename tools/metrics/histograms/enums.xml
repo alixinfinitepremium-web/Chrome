@@ -10513,6 +10513,7 @@ from previous Chrome versions.
   <int value="-1346261029" label="PageInfoAboutThisSiteMoreLangs:disabled"/>
   <int value="-1346055284" label="WebSerialWiredDevicesAndroid:enabled"/>
   <int value="-1345931804" label="TabbedAppOverflowMenuIcons:disabled"/>
+  <int value="-1345569802" label="GlicMessageFirstFre:enabled"/>
   <int value="-1345471133" label="JourneysOmniboxAction:enabled"/>
   <int value="-1344775211"
       label="SyncChromeOSExplicitPassphraseSharing:disabled"/>
@@ -12478,6 +12479,7 @@ from previous Chrome versions.
   <int value="-743590125" label="TabEngagementReportingAndroid:enabled"/>
   <int value="-743504893" label="MobilePromoOnDesktopWithQRCode:enabled"/>
   <int value="-743103250" label="enable-linkable-ephemeral-apps"/>
+  <int value="-743021832" label="EdgeToEdgeTopInset:enabled"/>
   <int value="-742730757" label="VulkanFromANGLE:disabled"/>
   <int value="-742469530" label="DriveFS:disabled"/>
   <int value="-742455458"
@@ -15029,6 +15031,7 @@ from previous Chrome versions.
   <int value="35364948" label="SafetyHubFollowup:enabled"/>
   <int value="35716183" label="MagnifierNewFocusFollowing:disabled"/>
   <int value="36110634" label="AllowScrollSettings:disabled"/>
+  <int value="36364890" label="EdgeToEdgeTopInset:disabled"/>
   <int value="36422284"
       label="AutofillSaveCardDialogUnlabeledExpirationDate:enabled"/>
   <int value="36536806"
@@ -19896,6 +19899,7 @@ from previous Chrome versions.
   <int value="1519067750" label="ActionableContentSettings:disabled"/>
   <int value="1519228932" label="OmniboxAnswerActions:enabled"/>
   <int value="1519310490" label="FloatingSnackbar:disabled"/>
+  <int value="1519509694" label="GlicMessageFirstFre:disabled"/>
   <int value="1520181151" label="PrintServerScaling:disabled"/>
   <int value="1520232917" label="NewTabPageTriggerForPrefetch:enabled"/>
   <int value="1520754417" label="ConfirmationChip:enabled"/>
