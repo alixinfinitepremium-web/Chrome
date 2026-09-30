@@ -1565,7 +1565,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_x86_64',
-          'version': 'version:2@1701071',
+          'version': 'version:2@1702037',
         },
       ],
   },
@@ -1983,7 +1983,7 @@ deps = {
       'packages': [
           {
                'package': 'chromium/third_party/android_build_tools/manifest_merger',
-               'version': '7SY6cgIW3GhldVnltMTqfHz2Zq1VhG_YUf65iCMyjaYC',
+               'version': '5f4ZMkBLOExsPIkCAlCB1EsUUjEP5RYFFTmfdZk-hOoC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -2222,7 +2222,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '09ba4a10826ab5c878adf243194acc47d453221f',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '969ccab6a7a40e5affd7c81e2c744658dcbb7efa',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
