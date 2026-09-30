@@ -1972,7 +1972,7 @@ deps = {
       'packages': [
           {
                'package': 'chromium/third_party/android_build_tools/lint',
-               'version': '5_azY8YfJWOC6ONEsrMYUO6TVyS6p6savMt50M8mVJYC',
+               'version': 'OSfbNyFi4DXCOCC2m7nhgW-eDZSUzu6msSU8N75Wk1AC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -1983,7 +1983,7 @@ deps = {
       'packages': [
           {
                'package': 'chromium/third_party/android_build_tools/manifest_merger',
-               'version': '5f4ZMkBLOExsPIkCAlCB1EsUUjEP5RYFFTmfdZk-hOoC',
+               'version': 'fCy45OMlHs_Cyr_hN_vtJcD1jxz0NthsdBytNmiu6okC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -2512,7 +2512,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/kotlin_stdlib',
-              'version': 'rUzLixnx5Fo3LqPjDTiujS-m_nHy8H9LI97u0cYZPMcC',
+              'version': '8KGHmtOn0KgzGGd6kDQIuuYH32y3vdkDSb6zUmncLvUC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -3032,7 +3032,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/r8',
-              'version': 'kzCVQZYn5qKR-4wEJ9__4yrIWrCS9VFv8kPharQ-WMgC',
+              'version': '6PGP6SgGJTfCDjMT9KOorpcdUncMA7jYaWOOyNOXkfsC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
