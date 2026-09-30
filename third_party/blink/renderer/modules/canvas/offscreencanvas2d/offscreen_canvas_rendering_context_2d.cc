@@ -497,10 +497,6 @@ void OffscreenCanvasRenderingContext2D::LoseContext(LostContextMode lost_mode) {
                                                   FROM_HERE);
 }
 
-bool OffscreenCanvasRenderingContext2D::IsPaintable() const {
-  return shared_image_provider_ != nullptr || bitmap_provider_ != nullptr;
-}
-
 bool OffscreenCanvasRenderingContext2D::WritePixels(
     const SkImageInfo& orig_info,
     const void* pixels,
@@ -553,8 +549,7 @@ bool OffscreenCanvasRenderingContext2D::ResolveFont(const String& new_font) {
 
 std::optional<cc::PaintRecord> OffscreenCanvasRenderingContext2D::FlushCanvas(
     FlushReason reason) {
-  return FlushCanvasInternal(shared_image_provider_.get(),
-                             bitmap_provider_.get(), reason);
+  return FlushCanvasInternal(reason);
 }
 
 void OffscreenCanvasRenderingContext2D::OnFlushForImage(

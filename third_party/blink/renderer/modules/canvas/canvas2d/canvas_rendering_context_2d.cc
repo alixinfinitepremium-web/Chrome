@@ -538,8 +538,7 @@ std::optional<cc::PaintRecord> CanvasRenderingContext2D::FlushCanvas(
   if (!canvas()) {
     return std::nullopt;
   }
-  return FlushCanvasInternal(shared_image_provider_.get(),
-                             bitmap_provider_.get(), reason);
+  return FlushCanvasInternal(reason);
 }
 
 void CanvasRenderingContext2D::DidFlushRecording(
@@ -888,7 +887,7 @@ ExecutionContext* CanvasRenderingContext2D::GetTopExecutionContext() const {
 }
 
 bool CanvasRenderingContext2D::IsPaintable() const {
-  return canvas() && HasResourceProvider();
+  return canvas() && BaseRenderingContext2D::IsPaintable();
 }
 
 bool CanvasRenderingContext2D::IsHibernating() const {
@@ -1231,7 +1230,7 @@ Canvas2DResourceProvider* CanvasRenderingContext2D::GetSharedImageProvider()
 }
 
 bool CanvasRenderingContext2D::HasResourceProvider() const {
-  return shared_image_provider_ != nullptr || bitmap_provider_ != nullptr;
+  return BaseRenderingContext2D::HasResourceProvider();
 }
 
 bool CanvasRenderingContext2D::InitializeResourceProvider() {
