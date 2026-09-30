@@ -338,7 +338,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '909b5799e6c1531ccbb70e29285fe7d33e9684e2',
+  'angle_revision': '43af4e71d4c59ef0af2ca283347d93c34c18d34c',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -1698,7 +1698,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_win_x86',
-          'version': 'PKeKJSOFzg021xxy7OPEW3SnRLgUy3dvfkMC9-wFFSMC',
+          'version': 'z7ZE0-cRCWi0-I_uhd4um0Zpa0LOVknExdUTDcrtgmAC',
         },
       ],
   },
@@ -2685,7 +2685,7 @@ deps = {
     Var('chromium_git') + '/webm/libwebp.git' + '@' +  'b43b2caa710c0c997c066cb32c7fea1391fad70a',
 
   'src/third_party/libyuv':
-    Var('chromium_git') + '/libyuv/libyuv.git' + '@' + 'b25fa8992056629c99d7815516e7be6b82509897',
+    Var('chromium_git') + '/libyuv/libyuv.git' + '@' + '18835bfb35cf75a61fc5ce4d19777f0fd4d6530a',
 
   'src/third_party/lss': {
       'url': Var('chromium_git') + '/linux-syscall-support.git' + '@' + Var('lss_revision'),
