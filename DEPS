@@ -326,7 +326,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '0fc46df63c21299b5ecb7c4754ad690e914c4498',
+  'src_internal_revision': '04444c7d5011445905356a24ea4644e81e6a66af',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -350,7 +350,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': 'e46ba018b038a37440b130d05b619c366ae09d5b',
+  'boringssl_revision': '98df68178dcf8a75b230503951b8a3b4f5c51aa6',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -561,7 +561,7 @@ vars = {
   'libcxx_revision':       '97b436da4c33663581d394f4ee0a5977fc38c2f4',
 
   # GN CIPD package version.
-  'gn_version': 'git_revision:dc685a2b72b24234ba5cbc821375c3d2ac4f0409',
+  'gn_version': 'git_revision:054c9865a0fe4074122022bfd4458fc08305a1d5',
 
   # ninja CIPD package.
   'ninja_package': 'infra/3pp/tools/ninja/',
@@ -2222,7 +2222,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'e1705face979e29370ff393177db19397782f568',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '9b264039190fa270f3fc44779b4e26b43008ba41',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -3409,7 +3409,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_receiver_app/app',
-        'version': 'auRFlun6w8VuRSITHy9Kfj-sxyjW77iRABtGKaU6hXYC',
+        'version': 'xvUISC2xlnEEJLnDcPSy_W--XvgGR9LCOIkZD-_RHCkC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3420,7 +3420,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_app/app',
-        'version': 'OIViC3PNkk-O3Bd7GP5h6D_6KMoYSS459K-vzLgYpvMC',
+        'version': 'ZbGirCcmzNzYIFnwpwloBJ92PayKSbF4cxtWEzMDEugC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
