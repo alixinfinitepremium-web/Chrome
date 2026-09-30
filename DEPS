@@ -1764,7 +1764,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '7791ccb6d734d396ba636b5ff578c719a8ee0eeb',
+    '2b183e4d32cf62bf2f46f1377893d0425d6e378b',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -2683,7 +2683,7 @@ deps = {
     Var('chromium_git') + '/chromiumos/platform/libva-fake-driver.git' + '@' + '04f902b9ba9f8083b19d22e7b55591bbcaae31c0',
 
   'src/third_party/libvpx/source/libvpx':
-    Var('chromium_git') + '/webm/libvpx.git' + '@' +  '5e680f30801d03c21078f8c4b772464752516211',
+    Var('chromium_git') + '/webm/libvpx.git' + '@' +  'deaac25491db2edc430c2a71031109b65c23d1f1',
 
   'src/third_party/libwebm/source':
     Var('chromium_git') + '/webm/libwebm.git' + '@' + '6184f4484a826724b5293837134ab9492261b941',
