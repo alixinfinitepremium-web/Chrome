@@ -242,9 +242,6 @@ class PLATFORM_EXPORT CanvasNon2DResourceProvider
 
   SkSurfaceProps GetSkSurfaceProps() const;
 
-  void EnsureWriteAccess();
-  void EndWriteAccess();
-
   scoped_refptr<CanvasResourceSharedImage> NewOrRecycledResource();
 
   // FlushForImageObserver implementation:
@@ -273,8 +270,7 @@ class PLATFORM_EXPORT CanvasNon2DResourceProvider
   // BitmapGpuChannelLostObserver implementation.
   void OnGpuChannelLost() override;
 
-  bool ShouldReplaceTargetBuffer(
-      PaintImage::ContentId content_id = PaintImage::kInvalidContentId);
+  bool ShouldReplaceTargetBuffer(PaintImage::ContentId content_id);
   void FlushRecording(cc::PaintRecord last_recording);
 
   void EnsureResourceReadyForDraw();
@@ -303,8 +299,6 @@ class PLATFORM_EXPORT CanvasNon2DResourceProvider
   std::unique_ptr<gpu::SharedImagePool<CanvasResourceSharedImage>> image_pool_;
 
   scoped_refptr<CanvasResourceSharedImage> resource_;
-
-  bool current_resource_has_write_access_ = false;
 
   cc::PaintImage::ContentId cached_content_id_ =
       cc::PaintImage::kInvalidContentId;
