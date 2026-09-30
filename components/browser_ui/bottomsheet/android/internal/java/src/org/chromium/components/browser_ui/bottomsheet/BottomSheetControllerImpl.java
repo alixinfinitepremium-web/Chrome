@@ -42,10 +42,10 @@ import java.util.PriorityQueue;
 import java.util.function.Supplier;
 
 /**
- * This class is responsible for managing the content shown by the {@link BottomSheet}. Features
- * wishing to show content in the {@link BottomSheet} UI must implement {@link BottomSheetContent}
- * and call {@link #requestShowContent(BottomSheetContent, boolean)} which will return true if the
- * content was actually shown (see full doc on method).
+ * This class is responsible for managing the content shown by the {@link BottomSheetCoordinator}.
+ * Features wishing to show content in the {@link BottomSheetCoordinator} UI must implement {@link
+ * BottomSheetContent} and call {@link #requestShowContent(BottomSheetContent, boolean)} which will
+ * return true if the content was actually shown (see full doc on method).
  */
 @NullMarked
 class BottomSheetControllerImpl implements ManagedBottomSheetController {
@@ -92,8 +92,10 @@ class BottomSheetControllerImpl implements ManagedBottomSheetController {
     private final Callback<Boolean> mContentBackPressStateChangedObserver =
             contentWillHandleBackPress -> updateBackPressStateChangedSupplier();
 
-    /** A handle to the {@link BottomSheet} that this class controls. */
-    private @MonotonicNonNull BottomSheet mBottomSheet;
+    /** A handle to the {@link BottomSheetCoordinator} that this class controls. */
+    private @MonotonicNonNull BottomSheetCoordinator mBottomSheet;
+
+    private @Nullable BottomSheetCoordinator mBottomSheetForTesting;
 
     /**
      * The container that the sheet exists in. This is one layer inside of the root coordinator view
@@ -101,7 +103,7 @@ class BottomSheetControllerImpl implements ManagedBottomSheetController {
      */
     private @MonotonicNonNull ViewGroup mBottomSheetContainer;
 
-    /** A queue for content that is waiting to be shown in the {@link BottomSheet}. */
+    /** A queue for content that is waiting to be shown in the {@link BottomSheetCoordinator}. */
     private @MonotonicNonNull PriorityQueue<BottomSheetContent> mContentQueue;
 
     /** Whether the controller is already processing a hide request for the tab. */
@@ -233,10 +235,15 @@ class BottomSheetControllerImpl implements ManagedBottomSheetController {
         }
         mBottomSheetContainer.setVisibility(View.VISIBLE);
 
-        var rootView = root.get();
-        int layoutId = isLargeFormFactor() ? R.layout.bottom_sheet_desktop : R.layout.bottom_sheet;
-        LayoutInflater.from(rootView.getContext()).inflate(layoutId, mBottomSheetContainer);
-        mBottomSheet = rootView.findViewById(R.id.bottom_sheet);
+        if (mBottomSheetForTesting != null) {
+            mBottomSheet = mBottomSheetForTesting;
+        } else {
+            var rootView = root.get();
+            int layoutId =
+                    isLargeFormFactor() ? R.layout.bottom_sheet_desktop : R.layout.bottom_sheet;
+            LayoutInflater.from(rootView.getContext()).inflate(layoutId, mBottomSheetContainer);
+            mBottomSheet = new BottomSheet(rootView.findViewById(R.id.bottom_sheet));
+        }
 
         mBottomSheet.init(
                 window,
@@ -283,6 +290,7 @@ class BottomSheetControllerImpl implements ManagedBottomSheetController {
                             scrimProperties.set(
                                     ScrimProperties.BACKGROUND_COLOR,
                                     mBottomSheet
+                                            .getView()
                                             .getContext()
                                             .getColor(R.color.bottom_sheet_desktop_scrim));
                         }
@@ -384,7 +392,7 @@ class BottomSheetControllerImpl implements ManagedBottomSheetController {
     public PropertyModel createScrimParams() {
         return new PropertyModel.Builder(ScrimProperties.ALL_KEYS)
                 .with(ScrimProperties.AFFECTS_STATUS_BAR, true)
-                .with(ScrimProperties.ANCHOR_VIEW, mBottomSheet)
+                .with(ScrimProperties.ANCHOR_VIEW, assumeNonNull(mBottomSheet).getView())
                 .with(ScrimProperties.CLICK_DELEGATE, this::onScrimClicked)
                 .with(ScrimProperties.VISIBILITY_CALLBACK, this::onScrimVisibilityChanged)
                 .build();
@@ -554,8 +562,16 @@ class BottomSheetControllerImpl implements ManagedBottomSheetController {
         assumeNonNull(mBottomSheet).setSheetState(state, animate);
     }
 
-    View getBottomSheetViewForTesting() {
+    void setBottomSheetForTesting(BottomSheetCoordinator bottomSheet) {
+        mBottomSheetForTesting = bottomSheet;
+    }
+
+    BottomSheetCoordinator getBottomSheetForTesting() {
         return assumeNonNull(mBottomSheet);
+    }
+
+    BottomSheet getBottomSheetViewForTesting() {
+        return (BottomSheet) assumeNonNull(mBottomSheet);
     }
 
     ViewGroup getBottomSheetContainerForTesting() {

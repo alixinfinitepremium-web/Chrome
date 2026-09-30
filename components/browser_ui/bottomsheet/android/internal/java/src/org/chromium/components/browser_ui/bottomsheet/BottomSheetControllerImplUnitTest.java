@@ -68,24 +68,26 @@ public class BottomSheetControllerImplUnitTest {
     private static final int APP_HEADER_HEIGHT = 42;
     @Rule public MockitoRule mMockitoRule = MockitoJUnit.rule();
 
-    @Mock private ScrimManager mScrimManager;
-    @Mock private KeyboardVisibilityDelegate mKeyboardVisibilityDelegate;
-    @Mock private ViewGroup mRoot;
-    @Mock private DesktopWindowStateManager mDesktopWindowStateManager;
-    @Mock private AppHeaderState mAppHeaderState;
-    @Mock private BottomSheet mBottomSheet;
-    @Mock private BottomSheetContent mSheetContent;
-    @Mock private InsetObserver mInsetObserver;
-    @Captor ArgumentCaptor<BottomSheetObserver> mBottomSheetObserverCaptor;
-    @Captor ArgumentCaptor<PropertyModel> mScrimPropertyModelCaptor;
-
-    private BottomSheetControllerImpl mController;
     private final OneshotSupplierImpl<ScrimManager> mScrimManagerSupplier =
             new OneshotSupplierImpl<>();
-    private Window mWindow;
     private final OneshotSupplierImpl<ViewGroup> mRootSupplier = new OneshotSupplierImpl<>();
     private final SettableMonotonicObservableSupplier<Integer> mEdgeToEdgeBottomInsetSupplier =
             ObservableSuppliers.createMonotonic();
+
+    private @Mock ScrimManager mScrimManager;
+    private @Mock KeyboardVisibilityDelegate mKeyboardVisibilityDelegate;
+    private @Mock ViewGroup mRoot;
+    private @Mock DesktopWindowStateManager mDesktopWindowStateManager;
+    private @Mock AppHeaderState mAppHeaderState;
+    private @Mock BottomSheetCoordinator mBottomSheet;
+    private @Mock BottomSheetView mBottomSheetView;
+    private @Mock BottomSheetContent mSheetContent;
+    private @Mock InsetObserver mInsetObserver;
+    private @Captor ArgumentCaptor<BottomSheetObserver> mBottomSheetObserverCaptor;
+    private @Captor ArgumentCaptor<PropertyModel> mScrimPropertyModelCaptor;
+
+    private BottomSheetControllerImpl mController;
+    private Window mWindow;
 
     @Before
     public void setUp() {
@@ -93,7 +95,8 @@ public class BottomSheetControllerImplUnitTest {
         activity.setTheme(R.style.Theme_BrowserUI_DayNight);
         mWindow = activity.getWindow();
         when(mRoot.getContext()).thenReturn(activity);
-        when(mRoot.findViewById(R.id.bottom_sheet)).thenReturn(mBottomSheet);
+        when(mBottomSheet.getView()).thenReturn(mBottomSheetView);
+        when(mBottomSheetView.getContext()).thenReturn(activity);
         mScrimManagerSupplier.set(mScrimManager);
         mRootSupplier.set(mRoot);
         mController =
@@ -107,6 +110,7 @@ public class BottomSheetControllerImplUnitTest {
                         mDesktopWindowStateManager,
                         mInsetObserver,
                         /* enableLargeFormFactorUi= */ false);
+        mController.setBottomSheetForTesting(mBottomSheet);
     }
 
     @Test
@@ -117,7 +121,7 @@ public class BottomSheetControllerImplUnitTest {
         mController.onAppHeaderStateChanged(mAppHeaderState);
 
         // Simulate sheet initialization, this should kick off
-        // BottomSheet#onAppHeaderHeightChange().
+        // BottomSheetCoordinator#onAppHeaderHeightChange().
         mController.runSheetInitializerForTesting();
         verify(mBottomSheet)
                 .init(
