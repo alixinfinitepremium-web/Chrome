@@ -810,7 +810,7 @@ deps = {
       'condition': 'host_os == "linux" and non_git_source',
       'dep_type': 'cipd',
   },
-  'src/third_party/data_sharing_sdk': {
+  'src/third_party/data_sharing_sdk/cipd': {
       'packages': [
           {
               'package': 'chrome_internal/third_party/google3/data_sharing_sdk',
@@ -1861,7 +1861,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': 'xf9E-XVrL4wu4qc8OsXyGQWF3BazpkVQngZu7uldkBgC',
+          'version': 'U0qQ6tG00uYz5t7pO9x9oNRofwdX0UrPPV2lBRPTbq4C',
       },
     ],
     'condition': 'checkout_android and non_git_source',
@@ -2834,7 +2834,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '463208cbc8b3e23310f3a5fe8b4756613657d716',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '2a9c760a2bcaa51f5dd7d8097bea87812775e93a',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
