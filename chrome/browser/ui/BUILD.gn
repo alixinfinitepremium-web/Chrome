@@ -1382,7 +1382,6 @@ source_set("tab_helpers_impl") {
     "//components/client_hints/browser",
     "//components/commerce/content/browser",
     "//components/commerce/core:feature_list",
-    "//components/compose:buildflags",
     "//components/content_settings/browser",
     "//components/dom_distiller/core:dom_distiller_features",
     "//components/download/content/factory",
@@ -1440,7 +1439,6 @@ source_set("tab_helpers_impl") {
     ]
   } else {
     deps += [
-      "//chrome/browser/ui/bookmarks",
       "//chrome/browser/ui/passwords",
       "//chrome/browser/ui/read_anything",
       "//components/image_fetcher/core",
@@ -1451,13 +1449,6 @@ source_set("tab_helpers_impl") {
 
   if (enable_webui_ntp) {
     deps += [ "//chrome/browser/ui/search" ]
-  }
-
-  if (enable_captive_portal_detection) {
-    deps += [
-      "//chrome/browser/captive_portal",
-      "//components/captive_portal/content",
-    ]
   }
 
   if (enable_extensions_core) {
@@ -1478,10 +1469,6 @@ source_set("tab_helpers_impl") {
 
   if (enable_printing) {
     deps += [ "//chrome/browser/printing" ]
-  }
-
-  if (enable_compose) {
-    deps += [ "//chrome/browser/compose" ]
   }
 
   if (safe_browsing_mode > 0) {

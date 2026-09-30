@@ -86,6 +86,7 @@
 #include "chrome/browser/ui/autofill/payments/wallet_reminder_notice_bubble_controller.h"
 #include "chrome/browser/ui/autofill/payments/wallet_reminder_notice_page_action_controller.h"
 #include "chrome/browser/ui/blocked_content/framebust_block_tab_helper.h"
+#include "chrome/browser/ui/bookmarks/bookmark_tab_helper.h"
 #include "chrome/browser/ui/browser_actions.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
 #include "chrome/browser/ui/commerce/commerce_ui_tab_helper.h"
@@ -251,6 +252,19 @@
 #include "components/signin/public/base/signin_switches.h"
 #endif
 
+#include "components/captive_portal/core/buildflags.h"
+#if BUILDFLAG(ENABLE_CAPTIVE_PORTAL_DETECTION)
+#include "chrome/browser/captive_portal/captive_portal_service_factory.h"
+#include "chrome/browser/ssl/chrome_security_blocking_page_factory.h"
+#include "components/captive_portal/content/captive_portal_tab_helper.h"
+#endif
+
+#include "components/compose/buildflags.h"
+#if BUILDFLAG(ENABLE_COMPOSE)
+#include "chrome/browser/compose/chrome_compose_client.h"
+#include "components/autofill/content/browser/content_autofill_client.h"
+#endif
+
 #if BUILDFLAG(ENABLE_EXTENSIONS)
 #include "chrome/browser/extensions/app_tab_helper.h"
 #endif
@@ -395,6 +409,7 @@ void TabFeatures::Init(TabInterface& tab, Profile* profile) {
                 tab, tab, *profile, *page_action_controller_);
   }
 
+  BookmarkTabHelper::CreateForWebContents(tab.GetContents());
   if (tab.GetBrowserWindowInterface()->GetType() ==
           BrowserWindowInterface::TYPE_NORMAL &&
       page_action_controller_->ActionExists(kActionBookmarkThisTab)) {
@@ -894,6 +909,26 @@ void TabFeatures::Init(TabInterface& tab, Profile* profile) {
   }
 #endif
 
+#if BUILDFLAG(ENABLE_CAPTIVE_PORTAL_DETECTION)
+  captive_portal::CaptivePortalTabHelper::CreateForWebContents(
+      tab.GetContents(), CaptivePortalServiceFactory::GetForProfile(profile),
+      base::BindRepeating(
+          &ChromeSecurityBlockingPageFactory::OpenLoginTabForWebContents,
+          tab.GetContents(), false));
+#endif
+
+#if BUILDFLAG(ENABLE_COMPOSE)
+  // We need to create the ChromeComposeClient to listen for the feature
+  // being turned on, even if it is not enabled yet.
+  // FieldChangeObserver in ChromeComposeClient uses
+  // ScopedAutofillManagersObservation which expects ContentAutofillClient.
+  if (!profile->IsOffTheRecord() &&
+      autofill::ContentAutofillClient::FromWebContents(tab.GetContents())) {
+    compose_client_ = GetUserDataFactory().CreateInstance<ChromeComposeClient>(
+        tab, tab, tab.GetContents());
+  }
+#endif
+
 #if BUILDFLAG(ENABLE_EXTENSIONS)
   app_tab_helper_ =
       std::make_unique<extensions::AppTabHelper>(tab, tab.GetContents());
@@ -1069,6 +1104,8 @@ void TabFeatures::WillDiscardContents(tabs::TabInterface* tab,
           tab->GetBrowserWindowInterface()->GetProfile())) {
     web_app::WebAppTabHelper::Create(tab, new_contents);
   }
+
+  BookmarkTabHelper::CreateForWebContents(new_contents);
 
   focus_tab_after_navigation_helper_ =
       std::make_unique<FocusTabAfterNavigationHelper>(new_contents);
@@ -1295,6 +1332,23 @@ void TabFeatures::WillDiscardContents(tabs::TabInterface* tab,
         GetUserDataFactory()
             .CreateInstance<contextual_tasks::SearchAiModePromoTabHelper>(
                 *tab, *tab, new_contents);
+  }
+#endif
+
+#if BUILDFLAG(ENABLE_CAPTIVE_PORTAL_DETECTION)
+  captive_portal::CaptivePortalTabHelper::CreateForWebContents(
+      new_contents, CaptivePortalServiceFactory::GetForProfile(profile),
+      base::BindRepeating(
+          &ChromeSecurityBlockingPageFactory::OpenLoginTabForWebContents,
+          new_contents, false));
+#endif
+
+#if BUILDFLAG(ENABLE_COMPOSE)
+  compose_client_.reset();
+  if (!profile->IsOffTheRecord() &&
+      autofill::ContentAutofillClient::FromWebContents(new_contents)) {
+    compose_client_ = GetUserDataFactory().CreateInstance<ChromeComposeClient>(
+        *tab, *tab, new_contents);
   }
 #endif
 
