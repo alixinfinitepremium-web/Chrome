@@ -1764,7 +1764,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '2b183e4d32cf62bf2f46f1377893d0425d6e378b',
+    'c2e295464488874860ad0e5d177d4574846c3326',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -2564,7 +2564,7 @@ deps = {
     Var('chromium_git') + '/external/libaddressinput.git' + '@' + '81eb9628382b07d371d8ea0b11badf7de3857fd5',
 
   'src/third_party/libaom/source/libaom':
-    Var('aomedia_git') + '/aom.git' + '@' +  'c8aad2b43b92858bc95b534257109e9533c71036',
+    Var('aomedia_git') + '/aom.git' + '@' +  '34c31c532e45dda358a955a2fbd4d4a8d5c4ad66',
 
   'src/third_party/crabbyavif/src':
     Var('chromium_git') + '/external/github.com/webmproject/CrabbyAvif.git' + '@' + Var('crabbyavif_revision'),
