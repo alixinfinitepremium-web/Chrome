@@ -4,7 +4,9 @@
 
 package org.chromium.chrome.browser.tab;
 
+import org.chromium.base.SysUtils;
 import org.chromium.build.annotations.NullMarked;
+import org.chromium.ui.base.PageTransition;
 
 /** Utility methods for querying behavioral traits and predicates of {@link TabLaunchType}. */
 @NullMarked
@@ -221,6 +223,126 @@ public final class TabLaunchTypeUtils {
                 assert false : "Unexpected serialization of tabLaunchType: " + tabLaunchType;
                 yield "TypeUnknown";
             }
+        };
+    }
+
+    /**
+     * Returns the default {@link PageTransition} for a tab launched with the given {@link
+     * TabLaunchType}, prior to any intent-specific transition overrides.
+     *
+     * @param type The {@link TabLaunchType} with which the tab is launched.
+     * @param originalTransitionType The initial transition type from {@code LoadUrlParams}.
+     * @return The resolved {@link PageTransition} bitmask.
+     */
+    @SuppressWarnings("WrongConstant")
+    @PageTransition
+    public static int getDefaultPageTransition(
+            @TabLaunchType int type, int originalTransitionType) {
+        assertValidLaunchType(type);
+        return switch (type) {
+            case TabLaunchType.FROM_OMNIBOX, TabLaunchType.FROM_OMNIBOX_BACKGROUND ->
+                    originalTransitionType;
+            case TabLaunchType.FROM_RESTORE,
+                    TabLaunchType.FROM_LINK,
+                    TabLaunchType.FROM_LINK_CREATING_NEW_WINDOW,
+                    TabLaunchType.FROM_EXTERNAL_APP,
+                    TabLaunchType.FROM_BROWSER_ACTIONS ->
+                    // FROM_API ensures intent handling isn't used.
+                    PageTransition.LINK | PageTransition.FROM_API;
+            case TabLaunchType.FROM_CHROME_UI,
+                    TabLaunchType.FROM_TAB_SWITCHER_UI,
+                    TabLaunchType.FROM_RESTORE_TABS_UI,
+                    TabLaunchType.FROM_TAB_GROUP_UI,
+                    TabLaunchType.FROM_STARTUP,
+                    TabLaunchType.FROM_SESSION_STARTUP_WITH_URLS_PREF,
+                    TabLaunchType.FROM_LAUNCHER_SHORTCUT,
+                    TabLaunchType.FROM_LAUNCH_NEW_INCOGNITO_TAB,
+                    TabLaunchType.FROM_APP_WIDGET,
+                    TabLaunchType.FROM_READING_LIST,
+                    TabLaunchType.FROM_SYNC_BACKGROUND,
+                    TabLaunchType.FROM_REPARENTING,
+                    TabLaunchType.FROM_START_SURFACE ->
+                    PageTransition.AUTO_TOPLEVEL;
+            case TabLaunchType.FROM_LONGPRESS_FOREGROUND,
+                    TabLaunchType.FROM_LONGPRESS_FOREGROUND_IN_GROUP,
+                    TabLaunchType.FROM_LONGPRESS_INCOGNITO,
+                    TabLaunchType.FROM_HISTORY_NAVIGATION_FOREGROUND ->
+                    PageTransition.LINK;
+            case TabLaunchType.FROM_LONGPRESS_BACKGROUND,
+                    TabLaunchType.FROM_LONGPRESS_BACKGROUND_IN_GROUP,
+                    TabLaunchType.FROM_COLLABORATION_BACKGROUND_IN_GROUP,
+                    TabLaunchType.FROM_RECENT_TABS,
+                    TabLaunchType.FROM_RECENT_TABS_FOREGROUND,
+                    TabLaunchType.FROM_BOOKMARK_BAR_BACKGROUND,
+                    TabLaunchType.FROM_HISTORY_NAVIGATION_BACKGROUND,
+                    TabLaunchType.FROM_REPARENTING_BACKGROUND,
+                    TabLaunchType.FROM_SPECULATIVE_BACKGROUND_CREATION,
+                    TabLaunchType.FROM_TAB_LIST_INTERFACE,
+                    TabLaunchType.FROM_TIPS_NOTIFICATIONS,
+                    TabLaunchType.FROM_TAB_LIST_INTERFACE_BACKGROUND ->
+                    // On low end devices tabs are backgrounded in a frozen state, so we set the
+                    // transition type to RELOAD to avoid handling intents when the tab is
+                    // foregrounded. (https://crbug.com/40536523)
+                    SysUtils.isLowEndDevice() ? PageTransition.RELOAD : PageTransition.LINK;
+            case TabLaunchType.UNSET -> {
+                assert false : "Unexpected TabLaunchType.UNSET in getDefaultPageTransition";
+                yield PageTransition.LINK;
+            }
+            default -> {
+                assert false : "Unexpected TabLaunchType: " + type;
+                yield PageTransition.LINK;
+            }
+        };
+    }
+
+    /**
+     * Returns true if the launch type represents a tab opened in the foreground from the longpress
+     * context menu (either ungrouped or within a tab group).
+     *
+     * @param type The launch type to inspect.
+     * @return True if the tab is launched in the foreground from a longpress context menu.
+     */
+    public static boolean isLongpressForegroundLaunch(@TabLaunchType int type) {
+        assertValidLaunchType(type);
+        return switch (type) {
+            case TabLaunchType.FROM_LONGPRESS_FOREGROUND,
+                    TabLaunchType.FROM_LONGPRESS_FOREGROUND_IN_GROUP ->
+                    true;
+            default -> false;
+        };
+    }
+
+    /**
+     * Returns true if the launch type represents a tab opened in the background from the longpress
+     * context menu (either ungrouped or within a tab group).
+     *
+     * @param type The launch type to inspect.
+     * @return True if the tab is launched in the background from a longpress context menu.
+     */
+    public static boolean isLongpressBackgroundLaunch(@TabLaunchType int type) {
+        assertValidLaunchType(type);
+        return switch (type) {
+            case TabLaunchType.FROM_LONGPRESS_BACKGROUND,
+                    TabLaunchType.FROM_LONGPRESS_BACKGROUND_IN_GROUP ->
+                    true;
+            default -> false;
+        };
+    }
+
+    /**
+     * Returns true if the new tab animation layout should keep the current tab selected without
+     * switching to the newly created tab.
+     *
+     * @param type The launch type to inspect.
+     * @return True if the current tab should remain selected during animation.
+     */
+    public static boolean shouldKeepCurrentTabOnAnimation(@TabLaunchType int type) {
+        assertValidLaunchType(type);
+        return switch (type) {
+            case TabLaunchType.FROM_COLLABORATION_BACKGROUND_IN_GROUP,
+                    TabLaunchType.FROM_TIPS_NOTIFICATIONS ->
+                    true;
+            default -> false;
         };
     }
 }
