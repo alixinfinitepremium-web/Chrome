@@ -316,16 +316,6 @@ bool OffscreenCanvasRenderingContext2D::InitializeResourceProvider() {
   return false;
 }
 
-base::ByteSize OffscreenCanvasRenderingContext2D::AllocatedBufferSize() const {
-  if (shared_image_provider_) {
-    return shared_image_provider_->EstimatedSizeInBytes();
-  }
-  if (bitmap_provider_) {
-    return bitmap_provider_->EstimatedSizeInBytes();
-  }
-  return base::ByteSize();
-}
-
 void OffscreenCanvasRenderingContext2D::Reset() {
   ResetResourceProvider();
   ResetRecorder();
@@ -400,19 +390,6 @@ scoped_refptr<StaticBitmapImage> OffscreenCanvasRenderingContext2D::GetImage() {
   FinalizeFrame(FlushReason::kOther);
   if (!IsPaintable())
     return nullptr;
-  if (shared_image_provider_) {
-    return shared_image_provider_->Snapshot();
-  }
-  return bitmap_provider_->Snapshot();
-}
-
-scoped_refptr<StaticBitmapImage>
-OffscreenCanvasRenderingContext2D::PaintRenderingResultsToSnapshot(
-    SourceDrawingBuffer source_buffer) {
-  if (!IsResourceProviderValid()) {
-    return nullptr;
-  }
-  FlushCanvas(FlushReason::kOther);
   if (shared_image_provider_) {
     return shared_image_provider_->Snapshot();
   }
@@ -543,23 +520,6 @@ bool OffscreenCanvasRenderingContext2D::ResolveFont(const String& new_font) {
 std::optional<cc::PaintRecord> OffscreenCanvasRenderingContext2D::FlushCanvas(
     FlushReason reason) {
   return FlushCanvasInternal(reason);
-}
-
-void OffscreenCanvasRenderingContext2D::OnFlushForImage(
-    cc::PaintImage::ContentId content_id) {
-  if (shared_image_provider_ && !shared_image_provider_->IsSoftware()) {
-    if (Recorder()->getRecordingCanvas().IsCachingImage(content_id)) {
-      FlushCanvas(FlushReason::kOther);
-    }
-    shared_image_provider_->OnFlushForImage(content_id);
-  }
-}
-
-bool OffscreenCanvasRenderingContext2D::IsResourceProviderValid() const {
-  if (shared_image_provider_) {
-    return shared_image_provider_->IsValid();
-  }
-  return bitmap_provider_ != nullptr;
 }
 
 OffscreenCanvas* OffscreenCanvasRenderingContext2D::HostAsOffscreenCanvas()

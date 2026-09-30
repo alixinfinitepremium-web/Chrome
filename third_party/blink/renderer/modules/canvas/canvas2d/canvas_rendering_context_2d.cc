@@ -40,6 +40,7 @@
 #include <string_view>
 #include <utility>
 
+#include "base/byte_size.h"
 #include "base/check.h"
 #include "base/check_op.h"
 #include "base/feature_list.h"
@@ -548,16 +549,6 @@ void CanvasRenderingContext2D::DidFlushRecording(
   }
 }
 
-void CanvasRenderingContext2D::OnFlushForImage(
-    cc::PaintImage::ContentId content_id) {
-  if (shared_image_provider_ && !shared_image_provider_->IsSoftware()) {
-    if (Recorder()->getRecordingCanvas().IsCachingImage(content_id)) {
-      FlushCanvas(FlushReason::kOther);
-    }
-    shared_image_provider_->OnFlushForImage(content_id);
-  }
-}
-
 bool CanvasRenderingContext2D::WillSetFont() const {
   // The style resolution required for fonts is not available in frame-less
   // documents.
@@ -770,19 +761,6 @@ CanvasRenderingContext2D::PaintRenderingResultsToResource(
 
   FlushCanvas(reason);
   return si_provider->ProduceCanvasResource();
-}
-
-scoped_refptr<StaticBitmapImage>
-CanvasRenderingContext2D::PaintRenderingResultsToSnapshot(
-    SourceDrawingBuffer source_buffer) {
-  if (!IsResourceProviderValid()) {
-    return nullptr;
-  }
-  FlushCanvas(FlushReason::kOther);
-  if (shared_image_provider_) {
-    return shared_image_provider_->Snapshot();
-  }
-  return bitmap_provider_->Snapshot();
 }
 
 const std::optional<cc::PaintRecord>&
@@ -1195,11 +1173,8 @@ void CanvasRenderingContext2D::CreateProvider() {
 }
 
 base::ByteSize CanvasRenderingContext2D::AllocatedBufferSize() const {
-  if (shared_image_provider_) {
-    return shared_image_provider_->EstimatedSizeInBytes();
-  }
-  if (bitmap_provider_) {
-    return bitmap_provider_->EstimatedSizeInBytes();
+  if (HasResourceProvider()) {
+    return BaseRenderingContext2D::AllocatedBufferSize();
   }
   if (hibernation_handler_ && hibernation_handler_->IsHibernating()) {
     return base::ByteSize(hibernation_handler_->memory_size());
@@ -1208,13 +1183,7 @@ base::ByteSize CanvasRenderingContext2D::AllocatedBufferSize() const {
 }
 
 bool CanvasRenderingContext2D::IsResourceProviderValid() const {
-  if (!canvas()) {
-    return false;
-  }
-  if (shared_image_provider_) {
-    return shared_image_provider_->IsValid();
-  }
-  return bitmap_provider_ != nullptr;
+  return canvas() && BaseRenderingContext2D::IsResourceProviderValid();
 }
 
 Canvas2DResourceProvider* CanvasRenderingContext2D::GetSharedImageProvider()

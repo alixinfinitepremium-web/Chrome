@@ -29,8 +29,7 @@ class MemoryManagedPaintCanvas;
 
 class MODULES_EXPORT OffscreenCanvasRenderingContext2D final
     : public ScriptWrappable,
-      public BaseRenderingContext2D,
-      public FlushForImageObserver {
+      public BaseRenderingContext2D {
   DEFINE_WRAPPERTYPEINFO();
 
  public:
@@ -66,8 +65,6 @@ class MODULES_EXPORT OffscreenCanvasRenderingContext2D final
   V8OffscreenRenderingContext* AsV8OffscreenRenderingContext() final;
   void Stop() final { NOTREACHED(); }
   scoped_refptr<StaticBitmapImage> GetImage() final;
-  scoped_refptr<StaticBitmapImage> PaintRenderingResultsToSnapshot(
-      SourceDrawingBuffer source_buffer) override;
   void Reset() override;
   // CanvasRenderingContext - ActiveScriptWrappable
   // This method will avoid this class to be garbage collected, as soon as
@@ -102,9 +99,6 @@ class MODULES_EXPORT OffscreenCanvasRenderingContext2D final
   void WillDraw(const gfx::Rect& dirty_rect,
                 CanvasPerformanceMonitor::DrawType) final;
 
-  // FlushForImageObserver implementation
-  void OnFlushForImage(cc::PaintImage::ContentId content_id) override;
-
   sk_sp<PaintFilter> StateGetFilter() final;
 
   bool HasAlpha() const final { return CreationAttributes().alpha; }
@@ -126,7 +120,6 @@ class MODULES_EXPORT OffscreenCanvasRenderingContext2D final
   ExecutionContext* GetTopExecutionContext() const override;
 
   std::optional<cc::PaintRecord> FlushCanvas(FlushReason) override;
-  base::ByteSize AllocatedBufferSize() const override;
 
  protected:
   OffscreenCanvas* HostAsOffscreenCanvas() const final;
@@ -146,7 +139,6 @@ class MODULES_EXPORT OffscreenCanvasRenderingContext2D final
   scoped_refptr<CanvasResource> ProduceCanvasResource(FlushReason);
 
   bool InitializeResourceProvider() override;
-  bool IsResourceProviderValid() const;
   void ResetResourceProvider();
 };
 

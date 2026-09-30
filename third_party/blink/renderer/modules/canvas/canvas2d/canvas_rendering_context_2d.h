@@ -32,6 +32,7 @@
 #include <memory>
 #include <optional>
 
+#include "base/byte_size.h"
 #include "base/check.h"
 #include "base/gtest_prod_util.h"
 #include "base/memory/scoped_refptr.h"
@@ -94,8 +95,7 @@ class MODULES_EXPORT CanvasRenderingContext2D final
     : public ScriptWrappable,
       public BaseRenderingContext2D,
       public SVGResourceClient,
-      public CanvasHibernationHandler::Delegate,
-      public FlushForImageObserver {
+      public CanvasHibernationHandler::Delegate {
   DEFINE_WRAPPERTYPEINFO();
 
  public:
@@ -151,9 +151,6 @@ class MODULES_EXPORT CanvasRenderingContext2D final
   // SVGResourceClient implementation
   void ResourceContentChanged(SVGResource*) override;
 
-  // FlushForImageObserver implementation
-  void OnFlushForImage(cc::PaintImage::ContentId content_id) override;
-
   void UpdateFilterReferences(const FilterOperations&);
   void ClearFilterReferences();
 
@@ -191,8 +188,6 @@ class MODULES_EXPORT CanvasRenderingContext2D final
   scoped_refptr<CanvasResource> PaintRenderingResultsToResource(
       SourceDrawingBuffer source_buffer,
       FlushReason reason) override;
-  scoped_refptr<StaticBitmapImage> PaintRenderingResultsToSnapshot(
-      SourceDrawingBuffer source_buffer) override;
   const std::optional<cc::PaintRecord>& GetLastRecording() override;
 
   int Width() const final;
@@ -259,7 +254,7 @@ class MODULES_EXPORT CanvasRenderingContext2D final
   void EnableAccelerationIfPossible() override;
   base::ByteSize AllocatedBufferSize() const override;
 
-  bool IsResourceProviderValid() const;
+  bool IsResourceProviderValid() const override;
 
  protected:
   HTMLCanvasElement* HostAsHTMLCanvasElement() const final;
