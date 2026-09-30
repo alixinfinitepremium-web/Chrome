@@ -410,7 +410,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'bd11eeaa46b27addea39b2db6469c7a2d5749bc0',
+  'devtools_frontend_revision': 'a9cbbd1b6522f549e87733733d7f54f227392551',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1223,10 +1223,10 @@ deps = {
     'condition': 'checkout_gpu_meet_effects and non_git_source',
     'objects': [
       {
-        'object_name': 'meet-gpu-tests/989382331.tar.gz',
-        'sha256sum': 'be3da8cf0ccaca852bfa465c6c9903b53d5ad89d39bec611a30a1b6ecc651301',
-        'size_bytes': 321597675,
-        'generation': 1790585496253598,
+        'object_name': 'meet-gpu-tests/990705341.tar.gz',
+        'sha256sum': '0ba6618eafa546a1e2ac3afbd331b9f9290ec1a3b17a11021d75fc9787abe187',
+        'size_bytes': 321605256,
+        'generation': 1790758049488198,
       },
     ],
   },
