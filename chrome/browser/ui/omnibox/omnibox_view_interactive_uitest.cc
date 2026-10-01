@@ -30,7 +30,7 @@
 #include "chrome/browser/contextual_search/contextual_search_web_contents_helper.h"
 #include "chrome/browser/contextual_tasks/contextual_tasks_service_factory.h"
 #include "chrome/browser/history/history_service_factory.h"
-#include "chrome/browser/page_load_metrics/chrome_initiator_location.h"
+#include "chrome/browser/page_load_metrics/chrome_navigation_initiator.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/search_engines/template_url_service_factory.h"
 #include "chrome/browser/signin/identity_test_environment_profile_adaptor.h"
@@ -69,7 +69,7 @@
 #include "components/omnibox/browser/omnibox_popup_selection.h"
 #include "components/omnibox/browser/test_location_bar_model.h"
 #include "components/omnibox/common/omnibox_features.h"
-#include "components/page_load_metrics/browser/navigation_handle_user_data.h"
+#include "components/page_load_metrics/browser/navigation_initiator.h"
 #include "components/policy/core/browser/browser_policy_connector.h"
 #include "components/policy/core/common/mock_configuration_policy_provider.h"
 #include "components/policy/policy_constants.h"
@@ -1614,17 +1614,12 @@ class TestOmniboxNavigationObserver : public content::WebContentsObserver {
   void DidFinishNavigation(
       content::NavigationHandle* navigation_handle) override {
     if (navigation_handle->HasCommitted()) {
-      auto* user_data =
-          page_load_metrics::NavigationHandleUserData::GetForNavigationHandle(
-              *navigation_handle);
-      if (user_data) {
-        navigation_type_ =
-            GetChromeInitiatorLocation(user_data->navigation_type());
-      }
+      navigation_initiator_ =
+          page_load_metrics::GetNavigationInitiator(*navigation_handle);
     }
   }
 
-  std::optional<ChromeInitiatorLocation> navigation_type_;
+  std::optional<page_load_metrics::NavigationInitiator> navigation_initiator_;
 };
 
 }  // namespace
@@ -1651,9 +1646,9 @@ IN_PROC_BROWSER_TEST_F(OmniboxViewTest,
   ASSERT_NO_FATAL_FAILURE(SendKey(ui::VKEY_RETURN, 0));
   observer.Wait();
 
-  ASSERT_TRUE(omnibox_observer.navigation_type_.has_value());
-  EXPECT_EQ(omnibox_observer.navigation_type_.value(),
-            ChromeInitiatorLocation::kOmniboxDirectUrlInput);
+  ASSERT_TRUE(omnibox_observer.navigation_initiator_.has_value());
+  EXPECT_EQ(omnibox_observer.navigation_initiator_.value(),
+            chrome_navigation_initiator::kOmniboxDirectUrlInput);
 }
 
 IN_PROC_BROWSER_TEST_F(OmniboxViewTest,
@@ -1678,9 +1673,9 @@ IN_PROC_BROWSER_TEST_F(OmniboxViewTest,
   ASSERT_NO_FATAL_FAILURE(SendKey(ui::VKEY_RETURN, 0));
   observer.Wait();
 
-  ASSERT_TRUE(omnibox_observer.navigation_type_.has_value());
-  EXPECT_EQ(omnibox_observer.navigation_type_.value(),
-            ChromeInitiatorLocation::kOmniboxDefaultSearchEngine);
+  ASSERT_TRUE(omnibox_observer.navigation_initiator_.has_value());
+  EXPECT_EQ(omnibox_observer.navigation_initiator_.value(),
+            chrome_navigation_initiator::kOmniboxDefaultSearchEngine);
 }
 
 IN_PROC_BROWSER_TEST_F(OmniboxViewTest, Paste) {
