@@ -398,7 +398,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libFuzzer
   # and whatever else without interference from each other.
-  'libfuzzer_revision': '9951014982324338ea932dfdba259aeb1cca70f7',
+  'libfuzzer_revision': '0b3fee09950deb348b0490c19a0a3f9b0cd51526',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling fuzztest
   # and whatever else without interference from each other.
@@ -3914,7 +3914,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '33d807efc478d44eb839d8ff85815345eae34bd9',
+        '375f15ab94b4c6594d23c0db16452b5b0437f871',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
