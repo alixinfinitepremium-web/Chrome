@@ -38,7 +38,6 @@
 #include "third_party/skia/include/core/SkRefCnt.h"
 
 namespace cc {
-class AnimatedImageFrameIndexMap;
 class PaintCanvas;
 class SkiaPaintCanvas;
 }  // namespace cc
@@ -151,10 +150,6 @@ class PLATFORM_EXPORT CanvasNon2DResourceProvider
 
   bool IsSoftware() const { return is_software_; }
 
-  CanvasImageProvider* GetOrCreateImageProvider();
-  void SetAnimatedImageFrameIndexes(
-      scoped_refptr<const cc::AnimatedImageFrameIndexMap>);
-
   gfx::Size Size() const { return size_; }
   viz::SharedImageFormat GetSharedImageFormat() const { return format_; }
   const gfx::ColorSpace& GetColorSpace() const { return color_space_; }
@@ -208,12 +203,6 @@ class PLATFORM_EXPORT CanvasNon2DResourceProvider
     return static_cast<const CanvasResourceSharedImage*>(resource_.get());
   }
 
-  void FlushRecording(cc::PaintRecord last_recording);
-
-  MemoryManagedPaintRecorder* recorder_for_external_draws() {
-    return recorder_for_external_draws_.get();
-  }
-
  private:
   CanvasNon2DResourceProvider(
       gfx::Size,
@@ -232,6 +221,7 @@ class PLATFORM_EXPORT CanvasNon2DResourceProvider
                               WebGraphicsSharedImageInterfaceProvider*,
                               CanvasResourceProviderDelegate*);
 
+  CanvasImageProvider* GetOrCreateImageProvider();
   void ClearUnusedResources();
   bool IsGpuContextLost() const;
 
@@ -278,6 +268,7 @@ class PLATFORM_EXPORT CanvasNon2DResourceProvider
   void OnGpuChannelLost() override;
 
   bool ShouldReplaceTargetBuffer(PaintImage::ContentId content_id);
+  void FlushRecording(cc::PaintRecord last_recording);
 
   void EnsureResourceReadyForDraw();
 
