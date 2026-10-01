@@ -410,7 +410,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '7835fdc15b7e179d35ed2076f4586b36fec621fa',
+  'devtools_frontend_revision': 'f50818629db72a1934006d5527714ea69e678de6',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -568,7 +568,7 @@ vars = {
   'libcxx_revision':       '97b436da4c33663581d394f4ee0a5977fc38c2f4',
 
   # GN CIPD package version.
-  'gn_version': 'git_revision:054c9865a0fe4074122022bfd4458fc08305a1d5',
+  'gn_version': 'git_revision:841e072bef419ae1116477dc75e8c5a662c0212c',
 
   # ninja CIPD package.
   'ninja_package': 'infra/3pp/tools/ninja/',
@@ -3287,7 +3287,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + 'b3a6f9baeed72d4766676176f2f4c9a9594d3a3c',
+    Var('webrtc_git') + '/src.git' + '@' + '85189b1e776697afdd40532ad8c7129f8486f8f8',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -3416,7 +3416,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_receiver_app/app',
-        'version': 'xvUISC2xlnEEJLnDcPSy_W--XvgGR9LCOIkZD-_RHCkC',
+        'version': 'rbB3gEPlG65KH35ADFV79Mfve-Si-5M1AE6pxHdgUFAC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
