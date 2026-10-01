@@ -160,6 +160,7 @@ class MODULES_EXPORT BaseRenderingContext2D
   virtual bool InitializeResourceProvider() = 0;
   bool HasResourceProvider() const;
   virtual bool IsResourceProviderValid() const;
+  virtual void ResetResourceProvider();
 
   std::optional<cc::PaintRecord> FlushCanvas(FlushReason) override = 0;
 
@@ -276,6 +277,7 @@ class MODULES_EXPORT BaseRenderingContext2D
     return color_params_.GetAlphaType() == kOpaque_SkAlphaType;
   }
   bool IsPaintable() const override;
+  bool Is2DCanvasAccelerated() const override;
   base::ByteSize AllocatedBufferSize() const override;
   scoped_refptr<StaticBitmapImage> PaintRenderingResultsToSnapshot(
       SourceDrawingBuffer source_buffer) override;
@@ -322,6 +324,11 @@ class MODULES_EXPORT BaseRenderingContext2D
                            int y) {
     NOTREACHED();
   }
+  bool WritePixelsToProvider(const SkImageInfo& orig_info,
+                             const void* pixels,
+                             size_t row_bytes,
+                             int x,
+                             int y);
 
   PredefinedColorSpace GetDefaultImageDataColorSpace() const final {
     return color_params_.ColorSpace();
@@ -345,6 +352,8 @@ class MODULES_EXPORT BaseRenderingContext2D
   virtual void DidFlushRecording(const cc::PaintRecord& recording,
                                  bool clear_frame,
                                  FlushReason reason) {}
+
+  scoped_refptr<StaticBitmapImage> Snapshot() const;
 
   bool context_restorable_{true};
   Canvas2DColorParams color_params_;

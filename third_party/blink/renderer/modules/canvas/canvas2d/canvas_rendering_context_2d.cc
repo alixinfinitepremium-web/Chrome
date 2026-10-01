@@ -256,21 +256,10 @@ bool CanvasRenderingContext2D::IsComposited() const {
 }
 
 bool CanvasRenderingContext2D::Is2DCanvasAccelerated() const {
-  if (IsHibernating()) {
+  if (IsHibernating() || !canvas()) {
     return false;
   }
-  if (canvas()) {
-    if (shared_image_provider_) {
-      return shared_image_provider_->IsAccelerated();
-    }
-    if (bitmap_provider_) {
-      return false;
-    }
-  }
-  if (!Host()) {
-    return false;
-  }
-  return Host()->ShouldTryToUseGpuRaster();
+  return BaseRenderingContext2D::Is2DCanvasAccelerated();
 }
 
 void CanvasRenderingContext2D::Stop() {
@@ -382,13 +371,7 @@ bool CanvasRenderingContext2D::WritePixels(const SkImageInfo& orig_info,
     }
   }
 
-  bool result = false;
-  if (shared_image_provider_) {
-    result =
-        shared_image_provider_->WritePixels(orig_info, pixels, row_bytes, x, y);
-  } else {
-    result = bitmap_provider_->WritePixels(orig_info, pixels, row_bytes, x, y);
-  }
+  bool result = WritePixelsToProvider(orig_info, pixels, row_bytes, x, y);
   if (result) {
     // WritePixels content is not saved in the recording. Thus, WritePixels()
     // must invalidate the last recording and ensure that any subsequent
@@ -489,7 +472,7 @@ MemoryManagedPaintCanvas* CanvasRenderingContext2D::GetOrCreatePaintCanvas() {
     return nullptr;
   }
 
-  if (shared_image_provider_ || bitmap_provider_) {
+  if (HasResourceProvider()) {
     if (layer_count_ == 0) [[likely]] {
       // TODO(crbug.com/1246486): Make auto-flushing layer friendly.
       FlushIfRecordingLimitExceeded();
@@ -507,7 +490,7 @@ MemoryManagedPaintCanvas* CanvasRenderingContext2D::GetOrCreatePaintCanvas() {
 void CanvasRenderingContext2D::WillDraw(
     const gfx::Rect& dirty_rect,
     CanvasPerformanceMonitor::DrawType draw_type) {
-  CHECK(shared_image_provider_ || bitmap_provider_);
+  CHECK(HasResourceProvider());
   if (ShouldAntialias()) {
     gfx::Rect inflated_dirty_rect = dirty_rect;
     inflated_dirty_rect.Outset(1);
@@ -778,15 +761,7 @@ scoped_refptr<StaticBitmapImage> blink::CanvasRenderingContext2D::GetImage() {
         GetHibernationHandler()->GetImage());
   }
 
-  if (!IsResourceProviderValid()) {
-    return nullptr;
-  }
-
-  FlushCanvas(FlushReason::kOther);
-  if (shared_image_provider_) {
-    return shared_image_provider_->Snapshot();
-  }
-  return bitmap_provider_->Snapshot();
+  return PaintRenderingResultsToSnapshot(kBackBuffer);
 }
 
 ImageData* CanvasRenderingContext2D::getImageDataInternal(
@@ -1102,7 +1077,7 @@ void CanvasRenderingContext2D::Dispose() {
 }
 
 void CanvasRenderingContext2D::CreateProvider() {
-  CHECK(!shared_image_provider_ && !bitmap_provider_);
+  CHECK(!HasResourceProvider());
 
   canvas()->GetOrCreateResourceDispatcher();
 
@@ -1165,7 +1140,7 @@ void CanvasRenderingContext2D::CreateProvider() {
         canvas()->Size(), format, alpha_type, color_space, hdr_metadata,
         canvas());
   }
-  if (shared_image_provider_ || bitmap_provider_) {
+  if (HasResourceProvider()) {
     ConfigureRecorder(
         canvas()->Size(),
         shared_image_provider_ && shared_image_provider_->IsGraphite());
@@ -1202,8 +1177,7 @@ bool CanvasRenderingContext2D::InitializeResourceProvider() {
   }
 
   if (isContextLost() && !IsContextBeingRestored()) {
-    DCHECK(!shared_image_provider_);
-    DCHECK(!bitmap_provider_);
+    DCHECK(!HasResourceProvider());
     return false;
   }
 
@@ -1259,7 +1233,7 @@ bool CanvasRenderingContext2D::InitializeResourceProvider() {
 
 void CanvasRenderingContext2D::ResetResourceProvider() {
   auto old_shared = std::move(shared_image_provider_);
-  bitmap_provider_.reset();
+  BaseRenderingContext2D::ResetResourceProvider();
   last_recording_ = std::nullopt;
   if (canvas()) {
     canvas()->UpdateMemoryUsage();
@@ -1270,7 +1244,7 @@ void CanvasRenderingContext2D::ResetResourceProvider() {
 }
 
 void CanvasRenderingContext2D::DropAndRecreateExistingResourceProvider() {
-  if (!canvas() || (!shared_image_provider_ && !bitmap_provider_)) {
+  if (!canvas() || !HasResourceProvider()) {
     return;
   }
 
@@ -1292,7 +1266,7 @@ void CanvasRenderingContext2D::DropAndRecreateExistingResourceProvider() {
 
   // Bail out if it's not possible to create a new provider.
   RecreateResourceProvider();
-  if (!shared_image_provider_ && !bitmap_provider_) {
+  if (!HasResourceProvider()) {
     return;
   }
 
@@ -1303,7 +1277,7 @@ void CanvasRenderingContext2D::DropAndRecreateExistingResourceProvider() {
 
 void CanvasRenderingContext2D::RecreateResourceProvider() {
   CHECK(GetHibernationHandler());
-  CHECK(!shared_image_provider_ && !bitmap_provider_);
+  CHECK(!HasResourceProvider());
 
   if (did_fail_to_create_resource_provider_) {
     ResetRecorder();
@@ -1344,13 +1318,8 @@ void CanvasRenderingContext2D::RestoreBackBuffer(const cc::PaintImage& image) {
   DCHECK(sk_image);
   SkPixmap map;
   sk_image->peekPixels(&map);
-  if (shared_image_provider_) {
-    shared_image_provider_->WritePixels(map.info(), map.addr(), map.rowBytes(),
-                                        /*x=*/0, /*y=*/0);
-  } else if (bitmap_provider_) {
-    bitmap_provider_->WritePixels(map.info(), map.addr(), map.rowBytes(),
-                                  /*x=*/0, /*y=*/0);
-  }
+  WritePixelsToProvider(map.info(), map.addr(), map.rowBytes(), /*x=*/0,
+                        /*y=*/0);
 }
 
 void CanvasRenderingContext2D::WakeUpFromHibernation() {

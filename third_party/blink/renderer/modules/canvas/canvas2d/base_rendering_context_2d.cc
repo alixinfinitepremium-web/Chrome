@@ -177,8 +177,26 @@ bool BaseRenderingContext2D::IsResourceProviderValid() const {
   return bitmap_provider_ != nullptr;
 }
 
+void BaseRenderingContext2D::ResetResourceProvider() {
+  shared_image_provider_.reset();
+  bitmap_provider_.reset();
+}
+
 bool BaseRenderingContext2D::IsPaintable() const {
   return HasResourceProvider();
+}
+
+bool BaseRenderingContext2D::Is2DCanvasAccelerated() const {
+  if (shared_image_provider_) {
+    return shared_image_provider_->IsAccelerated();
+  }
+  if (bitmap_provider_) {
+    return false;
+  }
+  if (!Host()) {
+    return false;
+  }
+  return Host()->ShouldTryToUseGpuRaster();
 }
 
 base::ByteSize BaseRenderingContext2D::AllocatedBufferSize() const {
@@ -191,6 +209,28 @@ base::ByteSize BaseRenderingContext2D::AllocatedBufferSize() const {
   return base::ByteSize();
 }
 
+scoped_refptr<StaticBitmapImage> BaseRenderingContext2D::Snapshot() const {
+  if (shared_image_provider_) {
+    return shared_image_provider_->Snapshot();
+  }
+  return bitmap_provider_->Snapshot();
+}
+
+bool BaseRenderingContext2D::WritePixelsToProvider(const SkImageInfo& orig_info,
+                                                   const void* pixels,
+                                                   size_t row_bytes,
+                                                   int x,
+                                                   int y) {
+  if (shared_image_provider_) {
+    return shared_image_provider_->WritePixels(orig_info, pixels, row_bytes, x,
+                                               y);
+  }
+  if (bitmap_provider_) {
+    return bitmap_provider_->WritePixels(orig_info, pixels, row_bytes, x, y);
+  }
+  return false;
+}
+
 scoped_refptr<StaticBitmapImage>
 BaseRenderingContext2D::PaintRenderingResultsToSnapshot(
     SourceDrawingBuffer source_buffer) {
@@ -198,10 +238,7 @@ BaseRenderingContext2D::PaintRenderingResultsToSnapshot(
     return nullptr;
   }
   FlushCanvas(FlushReason::kOther);
-  if (shared_image_provider_) {
-    return shared_image_provider_->Snapshot();
-  }
-  return bitmap_provider_->Snapshot();
+  return Snapshot();
 }
 
 const MemoryManagedPaintCanvas* BaseRenderingContext2D::GetPaintCanvas() const {

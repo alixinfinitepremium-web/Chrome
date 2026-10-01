@@ -172,19 +172,6 @@ bool OffscreenCanvasRenderingContext2D::CanCreateResourceProvider() {
   return InitializeResourceProvider();
 }
 
-bool OffscreenCanvasRenderingContext2D::Is2DCanvasAccelerated() const {
-  if (shared_image_provider_) {
-    return shared_image_provider_->IsAccelerated();
-  }
-  if (bitmap_provider_) {
-    return false;
-  }
-  if (!Host()) {
-    return false;
-  }
-  return Host()->ShouldTryToUseGpuRaster();
-}
-
 bool OffscreenCanvasRenderingContext2D::InitializeResourceProvider() {
   DCHECK(Host() && Host()->IsOffscreenCanvas());
   OffscreenCanvas* host = HostAsOffscreenCanvas();
@@ -287,7 +274,7 @@ bool OffscreenCanvasRenderingContext2D::InitializeResourceProvider() {
         host->Size(), format, alpha_type, color_space, hdr_metadata, host);
   }
 
-  if (shared_image_provider_ || bitmap_provider_) {
+  if (HasResourceProvider()) {
     ConfigureRecorder(host->Size(), shared_image_provider_ &&
                                         shared_image_provider_->IsGraphite());
   } else {
@@ -390,10 +377,7 @@ scoped_refptr<StaticBitmapImage> OffscreenCanvasRenderingContext2D::GetImage() {
   FinalizeFrame(FlushReason::kOther);
   if (!IsPaintable())
     return nullptr;
-  if (shared_image_provider_) {
-    return shared_image_provider_->Snapshot();
-  }
-  return bitmap_provider_->Snapshot();
+  return Snapshot();
 }
 
 V8RenderingContext* OffscreenCanvasRenderingContext2D::AsV8RenderingContext() {
@@ -420,7 +404,7 @@ OffscreenCanvasRenderingContext2D::GetOrCreatePaintCanvas() {
 void OffscreenCanvasRenderingContext2D::WillDraw(
     const gfx::Rect& dirty_rect,
     CanvasPerformanceMonitor::DrawType draw_type) {
-  CHECK(shared_image_provider_ || bitmap_provider_);
+  CHECK(HasResourceProvider());
   gfx::Rect adjusted_dirty_rect = dirty_rect;
   if (GetState().ShouldAntialias()) {
     adjusted_dirty_rect.Outset(1);
@@ -437,11 +421,6 @@ void OffscreenCanvasRenderingContext2D::WillDraw(
 
 sk_sp<PaintFilter> OffscreenCanvasRenderingContext2D::StateGetFilter() {
   return GetState().GetFilterForOffscreenCanvas(Host()->Size(), this);
-}
-
-void OffscreenCanvasRenderingContext2D::ResetResourceProvider() {
-  shared_image_provider_.reset();
-  bitmap_provider_.reset();
 }
 
 void OffscreenCanvasRenderingContext2D::Dispose() {
@@ -480,11 +459,7 @@ bool OffscreenCanvasRenderingContext2D::WritePixels(
   if (!IsResourceProviderValid()) {
     return false;
   }
-  if (shared_image_provider_) {
-    return shared_image_provider_->WritePixels(orig_info, pixels, row_bytes, x,
-                                               y);
-  }
-  return bitmap_provider_->WritePixels(orig_info, pixels, row_bytes, x, y);
+  return WritePixelsToProvider(orig_info, pixels, row_bytes, x, y);
 }
 
 bool OffscreenCanvasRenderingContext2D::ResolveFont(const String& new_font) {
