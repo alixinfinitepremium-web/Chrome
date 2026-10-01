@@ -1514,10 +1514,6 @@ crbug.com/1371431 printing/fixed-positioned-headers-and-footers-clipped.html [ F
 
 crbug.com/1204498 external/wpt/service-workers/service-worker/client-navigate.https.html [ Failure Pass Timeout ]
 
-# On all platforms media tests don't currently use gpu-accelerated (proprietary)
-# codecs, so no benefit to running them again with gpu acceleration enabled.
-crbug.com/555703 virtual/media-gpu-accelerated/* [ Failure Skip ]
-
 # switching to apache-win32: needs triaging.
 crbug.com/528062 [ Win ] http/tests/css/missing-repaint-after-slow-style-sheet.pl [ Failure ]
 crbug.com/528062 [ Win ] http/tests/local/blob/send-data-blob.html [ Failure Timeout ]
@@ -1908,7 +1904,6 @@ crbug.com/40244183 [ Linux ] external/wpt/css/css-fonts/font-variant-emoji-2.htm
 
 # ::first-line issues
 crbug.com/1085772 external/wpt/css/css-pseudo/first-line-opacity-001.html [ Failure ]
-crbug.com/519984271 external/wpt/css/css-pseudo/first-line-input-textarea.tentative.html [ Failure ]
 
 
 # Various css-values WPT failures
