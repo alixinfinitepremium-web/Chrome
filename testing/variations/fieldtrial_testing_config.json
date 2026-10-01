@@ -4853,6 +4853,21 @@
             ]
         }
     ],
+    "ClientSideDetectionServerModelForScamDetectionIos": [
+        {
+            "platforms": [
+                "ios"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "ClientSideDetectionServerModelForScamDetectionIos"
+                    ]
+                }
+            ]
+        }
+    ],
     "ClipboardDeemphasisAndroid": [
         {
             "platforms": [
@@ -13780,6 +13795,27 @@
                     },
                     "enable_features": [
                         "PMProcessPriorityPolicy"
+                    ]
+                }
+            ]
+        }
+    ],
+    "PMWithheldFromViewVoter": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "PMWithheldFromViewVoter"
+                    ],
+                    "disable_features": [
+                        "PMSidePanelLoadingVoter"
                     ]
                 }
             ]
