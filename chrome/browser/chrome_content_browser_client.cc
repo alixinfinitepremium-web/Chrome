@@ -393,6 +393,7 @@
 #include "content/public/common/content_features.h"
 #include "content/public/common/content_switches.h"
 #include "content/public/common/url_constants.h"
+#include "content/public/common/url_utils.h"
 #include "content/public/common/window_container_type.mojom-shared.h"
 #include "device/vr/buildflags/buildflags.h"
 #include "extensions/browser/browser_frame_context_data.h"
@@ -812,6 +813,7 @@
 
 #if BUILDFLAG(ENABLE_ON_DEVICE_TRANSLATION)
 #include "components/on_device_translation/component_manager.h"
+#include "components/on_device_translation/installer.h"
 #endif  // BUILDFLAG(ENABLE_ON_DEVICE_TRANSLATION)
 
 #if BUILDFLAG(ENABLE_REQUEST_HEADER_INTEGRITY)
@@ -8591,10 +8593,20 @@ bool ChromeContentBrowserClient::SetupEmbedderSandboxParameters(
         sandbox::policy::kParamScreenAiComponentPath,
         screen_ai_binary_path.value());
   }
+#if BUILDFLAG(ENABLE_ON_DEVICE_TRANSLATION)
   if (sandbox_type == sandbox::mojom::Sandbox::kOnDeviceTranslation) {
-    auto translatekit_binary_path =
-        on_device_translation::ComponentManager::GetInstance()
-            .GetTranslateKitComponentPath();
+    base::FilePath translatekit_binary_path;
+    if (auto* installer = on_device_translation::OnDeviceTranslationInstaller::
+            GetInstance()) {
+      if (installer->IsInit()) {
+        translatekit_binary_path = installer->GetLibraryPath().DirName();
+      }
+    }
+    if (translatekit_binary_path.empty()) {
+      translatekit_binary_path =
+          on_device_translation::ComponentManager::GetInstance()
+              .GetTranslateKitComponentPath();
+    }
     if (translatekit_binary_path.empty()) {
       VLOG(1) << "TranslationKit component not found.";
       return false;
@@ -8603,6 +8615,7 @@ bool ChromeContentBrowserClient::SetupEmbedderSandboxParameters(
         sandbox::policy::kParamTranslatekitComponentPath,
         translatekit_binary_path.value());
   }
+#endif  // BUILDFLAG(ENABLE_ON_DEVICE_TRANSLATION)
 
   return false;
 }
@@ -9276,6 +9289,27 @@ bool ChromeContentBrowserClient::
   // If the pref is not found or not managed, BFCaching CCNS page should be
   // enabled by default.
   return true;
+}
+
+bool ChromeContentBrowserClient::IsUrlAllowedForBackForwardCache(
+    content::BrowserContext* browser_context,
+    const GURL& url) {
+  DCHECK_CURRENTLY_ON(BrowserThread::UI);
+  // Match PolicyBlocklistNavigationThrottle, which never checks URLs that don't
+  // go through the network stack (e.g. about:blank, about:srcdoc) or blob:
+  // URLs.
+  if (!content::IsURLHandledByNetworkStack(url) ||
+      url.SchemeIs(url::kBlobScheme)) {
+    return true;
+  }
+  Profile* profile = Profile::FromBrowserContext(browser_context);
+  PolicyBlocklistService* service =
+      ChromePolicyBlocklistServiceFactory::GetForProfile(profile);
+  if (!service) {
+    return true;
+  }
+  return service->GetURLBlocklistState(url) !=
+         policy::URLBlocklist::URLBlocklistState::URL_IN_BLOCKLIST;
 }
 
 bool ChromeContentBrowserClient::IsBlobUrlPartitioningEnabled(
