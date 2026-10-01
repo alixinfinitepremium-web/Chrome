@@ -30,7 +30,6 @@
 #include "third_party/blink/renderer/core/workers/worker_settings.h"
 #include "third_party/blink/renderer/modules/canvas/htmlcanvas/canvas_context_creation_attributes_helpers.h"
 #include "third_party/blink/renderer/platform/bindings/exception_state.h"
-#include "third_party/blink/renderer/platform/graphics/canvas_2d_bitmap_provider.h"
 #include "third_party/blink/renderer/platform/graphics/canvas_2d_resource_provider.h"
 #include "third_party/blink/renderer/platform/graphics/canvas_resource.h"
 #include "third_party/blink/renderer/platform/graphics/gpu/canvas_utils.h"
@@ -182,24 +181,18 @@ bool OffscreenCanvasRenderingContext2D::InitializeResourceProvider() {
     return false;
   }
 
-  if (shared_image_provider_) {
-    if (!shared_image_provider_->IsValid()) {
-      // The canvas context is not lost but the provider is invalid. This
-      // happens if the GPU process dies in the middle of a render task. The
-      // canvas is notified of GPU context losses via the `NotifyGpuContextLost`
-      // callback and restoration happens in `TryRestoreContextEvent`. Both
-      // callbacks are executed in their own separate task. If the GPU context
-      // goes invalid in the middle of a render task, the canvas won't
-      // immediately know about it and canvas APIs will continue using the
-      // provider that is now invalid. We can early return here, trying to
-      // re-create the provider right away would just fail. We need to let
-      // `TryRestoreContextEvent` wait for the GPU process to up again.
-      return false;
-    }
-    return true;
-  }
-  if (bitmap_provider_) {
-    return true;
+  if (HasResourceProvider()) {
+    // The canvas context is not lost but the provider may be invalid if the
+    // GPU process dies in the middle of a render task. The canvas is notified
+    // of GPU context losses via the `NotifyGpuContextLost` callback and
+    // restoration happens in `TryRestoreContextEvent`. Both callbacks are
+    // executed in their own separate task. If the GPU context goes invalid in
+    // the middle of a render task, the canvas won't immediately know about it
+    // and canvas APIs will continue using the provider that is now invalid. We
+    // can early return here, trying to re-create the provider right away would
+    // just fail. We need to let `TryRestoreContextEvent` wait for the GPU
+    // process to up again.
+    return IsResourceProviderValid();
   }
 
   if (!host->IsValidImageSize() && !host->Size().IsEmpty()) {
@@ -270,8 +263,7 @@ bool OffscreenCanvasRenderingContext2D::InitializeResourceProvider() {
     // visible on screen, but at least readbacks will work. Failure to create
     // another type of resource prover above is a sign that the graphics
     // pipeline is in a bad state (e.g. gpu process crashed, out of memory)
-    bitmap_provider_ = Canvas2DBitmapProvider::CreateWithClear(
-        host->Size(), format, alpha_type, color_space, hdr_metadata, host);
+    CreateBitmapProvider();
   }
 
   if (HasResourceProvider()) {
@@ -291,7 +283,7 @@ bool OffscreenCanvasRenderingContext2D::InitializeResourceProvider() {
     host->DidDraw();
     return true;
   }
-  if (bitmap_provider_) {
+  if (HasResourceProvider()) {
     base::UmaHistogramBoolean("Blink.Canvas.ResourceProviderIsAccelerated",
                               false);
     base::UmaHistogramEnumeration("Blink.Canvas.ResourceProviderType",

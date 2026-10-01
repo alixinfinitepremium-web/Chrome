@@ -38,13 +38,11 @@ namespace blink {
 
 Canvas2DBitmapProvider::Canvas2DBitmapProvider(
     sk_sp<SkSurface> surface,
-    gfx::Size size,
     viz::SharedImageFormat format,
     const gfx::ColorSpace& color_space,
     const gfx::HDRMetadata& hdr_metadata,
     CanvasResourceProviderDelegate* delegate)
-    : size_(size),
-      format_(format),
+    : format_(format),
       color_space_(color_space),
       hdr_metadata_(hdr_metadata),
       delegate_(delegate),
@@ -151,13 +149,6 @@ scoped_refptr<StaticBitmapImage> Canvas2DBitmapProvider::Snapshot(
                                                 orientation);
 }
 
-void Canvas2DBitmapProvider::ReleaseImageProviderImages() {
-  if (canvas_image_provider_) {
-    canvas_image_provider_->ReleaseLockedImages();
-    canvas_image_provider_->UnbindTextureBackedImages();
-  }
-}
-
 void Canvas2DBitmapProvider::ApplyAnimatedImageFrameIndexesForId(
     SkCanvas* canvas,
     uint32_t id) {
@@ -181,6 +172,10 @@ void Canvas2DBitmapProvider::RasterRecord(cc::PaintRecord last_recording) {
         base::Unretained(this));
   }
   skia_canvas_->drawPicture(std::move(last_recording), custom_callback);
+  if (canvas_image_provider_) {
+    canvas_image_provider_->ReleaseLockedImages();
+    canvas_image_provider_->UnbindTextureBackedImages();
+  }
 }
 
 bool Canvas2DBitmapProvider::WritePixels(const SkImageInfo& orig_info,
@@ -213,7 +208,7 @@ std::unique_ptr<Canvas2DBitmapProvider> Canvas2DBitmapProvider::CreateWithClear(
       alpha_type == kOpaque_SkAlphaType ? SkColors::kBlack
                                         : SkColors::kTransparent);
   return base::WrapUnique<Canvas2DBitmapProvider>(new Canvas2DBitmapProvider(
-      std::move(surface), size, format, color_space, hdr_metadata, delegate));
+      std::move(surface), format, color_space, hdr_metadata, delegate));
 }
 
 std::unique_ptr<Canvas2DBitmapProvider>

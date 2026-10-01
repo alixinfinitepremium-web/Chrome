@@ -104,7 +104,6 @@
 #include "third_party/blink/renderer/platform/geometry/path_builder.h"
 #include "third_party/blink/renderer/platform/geometry/physical_offset.h"
 #include "third_party/blink/renderer/platform/geometry/stroke_data.h"
-#include "third_party/blink/renderer/platform/graphics/canvas_2d_bitmap_provider.h"
 #include "third_party/blink/renderer/platform/graphics/canvas_2d_resource_provider.h"
 #include "third_party/blink/renderer/platform/graphics/canvas_deferred_paint_record.h"
 #include "third_party/blink/renderer/platform/graphics/canvas_hibernation_handler.h"
@@ -1136,9 +1135,7 @@ void CanvasRenderingContext2D::CreateProvider() {
     // The final fallback is to raster into a bitmap that will then either be
     // uploaded into GPU memory (for GPU compositing) or copied into the Viz
     // process (for software compositing).
-    bitmap_provider_ = Canvas2DBitmapProvider::CreateWithClear(
-        canvas()->Size(), format, alpha_type, color_space, hdr_metadata,
-        canvas());
+    CreateBitmapProvider();
   }
   if (HasResourceProvider()) {
     ConfigureRecorder(
@@ -1181,25 +1178,18 @@ bool CanvasRenderingContext2D::InitializeResourceProvider() {
     return false;
   }
 
-  if (shared_image_provider_) {
-    if (!shared_image_provider_->IsValid()) {
-      // The canvas context is not lost but the provider is invalid. This
-      // happens if the GPU process dies in the middle of a render task. The
-      // canvas is notified of GPU context losses via the
-      // `NotifyGpuContextLost` callback and restoration happens in
-      // `TryRestoreContextEvent`. Both callbacks are executed in their own
-      // separate task. If the GPU context goes invalid in the middle of a
-      // render task, the canvas won't immediately know about it and canvas
-      // APIs will continue using the provider that is now invalid. We can
-      // early return here, trying to re-create the provider right away would
-      // just fail. We need to let `TryRestoreContextEvent` wait for the GPU
-      // process to up again.
-      return false;
-    }
-    return true;
-  }
-  if (bitmap_provider_) {
-    return true;
+  if (HasResourceProvider()) {
+    // The canvas context is not lost but the provider may be invalid if the
+    // GPU process dies in the middle of a render task. The canvas is notified
+    // of GPU context losses via the `NotifyGpuContextLost` callback and
+    // restoration happens in `TryRestoreContextEvent`. Both callbacks are
+    // executed in their own separate task. If the GPU context goes invalid in
+    // the middle of a render task, the canvas won't immediately know about it
+    // and canvas APIs will continue using the provider that is now invalid. We
+    // can early return here, trying to re-create the provider right away would
+    // just fail. We need to let `TryRestoreContextEvent` wait for the GPU
+    // process to up again.
+    return IsResourceProviderValid();
   }
 
   if (did_fail_to_create_resource_provider_) {
@@ -1294,7 +1284,7 @@ void CanvasRenderingContext2D::RecreateResourceProvider() {
                               shared_image_provider_->IsAccelerated());
     base::UmaHistogramEnumeration("Blink.Canvas.ResourceProviderType",
                                   CanvasResourceProviderType::kSharedImage);
-  } else if (bitmap_provider_) {
+  } else if (HasResourceProvider()) {
     base::UmaHistogramBoolean("Blink.Canvas.ResourceProviderIsAccelerated",
                               false);
     base::UmaHistogramEnumeration("Blink.Canvas.ResourceProviderType",
@@ -1371,17 +1361,14 @@ void CanvasRenderingContext2D::SetCanvas2DResourceProviderForTesting(
   }
 }
 
-void CanvasRenderingContext2D::SetBitmapProviderForTesting(
-    std::unique_ptr<Canvas2DBitmapProvider> provider,
-    const gfx::Size& size) {
+void CanvasRenderingContext2D::CreateBitmapProviderForTesting() {
   canvas()->DiscardResources();
-  canvas()->SetSize(size);
   hibernation_handler_ = std::make_unique<CanvasHibernationHandler>(*this);
   ResetResourceProvider();
   ResetRecorder();
-  bitmap_provider_ = std::move(provider);
-  if (bitmap_provider_) {
-    ConfigureRecorder(size, /*is_graphite=*/false);
+  CreateBitmapProvider();
+  if (HasResourceProvider()) {
+    ConfigureRecorder(canvas()->Size(), /*is_graphite=*/false);
   }
 }
 

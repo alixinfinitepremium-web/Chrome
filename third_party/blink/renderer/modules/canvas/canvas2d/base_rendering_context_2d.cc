@@ -204,9 +204,18 @@ base::ByteSize BaseRenderingContext2D::AllocatedBufferSize() const {
     return shared_image_provider_->EstimatedSizeInBytes();
   }
   if (bitmap_provider_) {
-    return bitmap_provider_->EstimatedSizeInBytes();
+    return base::ByteSize(
+        color_params_.GetSharedImageFormat().EstimatedSizeInBytes(
+            Host()->Size()));
   }
   return base::ByteSize();
+}
+
+void BaseRenderingContext2D::CreateBitmapProvider() {
+  bitmap_provider_ = Canvas2DBitmapProvider::CreateWithClear(
+      Host()->Size(), color_params_.GetSharedImageFormat(),
+      color_params_.GetAlphaType(), color_params_.GetGfxColorSpace(),
+      color_params_.GetGfxHdrMetadata(), Host());
 }
 
 scoped_refptr<StaticBitmapImage> BaseRenderingContext2D::Snapshot() const {
@@ -892,7 +901,6 @@ std::optional<cc::PaintRecord> BaseRenderingContext2D::FlushCanvasInternal(
   } else if (bitmap_provider_) {
     ScopedRasterTimer timer(nullptr, nullptr);
     bitmap_provider_->RasterRecord(recording);
-    bitmap_provider_->ReleaseImageProviderImages();
   }
   if (Host()) {
     Host()->DidFlush();
