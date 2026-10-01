@@ -411,6 +411,21 @@
             ]
         }
     ],
+    "AiSubscriptionAvatarRingFollowupIOS": [
+        {
+            "platforms": [
+                "ios"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "AiSubscriptionAvatarRingFollowupIOS"
+                    ]
+                }
+            ]
+        }
+    ],
     "AiSubscriptionAvatarRingIOS": [
         {
             "platforms": [
@@ -1714,26 +1729,6 @@
                     "name": "Enabled",
                     "enable_features": [
                         "AutofillAiEditEntitiesFromSaveUpdatePrompt"
-                    ]
-                }
-            ]
-        }
-    ],
-    "AutofillAiImportConstraintsForSync": [
-        {
-            "platforms": [
-                "android",
-                "chromeos",
-                "ios",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "AutofillAiImportConstraintsForSync"
                     ]
                 }
             ]

@@ -222,7 +222,7 @@ BASE_FEATURE_PARAM(std::string,
 // received through AUTOFILL_VALUABLE.
 // TODO(crbug.com/542468992): Clean up when launched.
 BASE_FEATURE(kAutofillAiImportConstraintsForSync,
-             base::FEATURE_DISABLED_BY_DEFAULT);
+             base::FEATURE_ENABLED_BY_DEFAULT);
 
 // If enabled, Autofill AI suggestion width can be limited.
 BASE_FEATURE(kAutofillAiLimitSuggestionWidth,
@@ -933,6 +933,8 @@ BASE_FEATURE(kAutofillPaymentsFieldSwapping, base::FEATURE_DISABLED_BY_DEFAULT);
 // experience and the perceived trust they have in the features.
 // TODO(crbug.com/543741063): Transform to killswitch after some time.
 BASE_FEATURE(kAutofillPersonalizationAndTrustAddressSurvey,
+             base::FEATURE_DISABLED_BY_DEFAULT);
+BASE_FEATURE(kAutofillPersonalizationAndTrustAtMemorySurvey,
              base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kAutofillPersonalizationAndTrustAutofillAiSurvey,
              base::FEATURE_DISABLED_BY_DEFAULT);
