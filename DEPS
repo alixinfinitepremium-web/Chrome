@@ -390,7 +390,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': 'a7871dbe7a54d571848b73c1761fc316630678dd',
+  'crossbench_revision': '1b0ae8c99e14b86f5d662d737b3a4b9fed253096',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -1572,7 +1572,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_x86_64',
-          'version': 'version:2@1702037',
+          'version': 'version:2@1703143',
         },
       ],
   },
@@ -1752,7 +1752,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': 'OfWgyLmAtfJDDYyAN9UMEIlckxPp0tr1NlVu77dwSNkC',
+        'version': 'FB1DOPlNYknWMqTdqxqNMbvZEe8R1CV1-sDglcCU3-4C',
       },
     ],
     'condition': 'non_git_source',
