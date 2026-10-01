@@ -6,10 +6,10 @@
 #define COMPONENTS_PAGE_LOAD_METRICS_BROWSER_NAVIGATION_INITIATOR_H_
 
 #include <compare>
-#include <optional>
 #include <string_view>
 
 #include "base/check.h"
+#include "base/functional/callback_forward.h"
 #include "content/public/browser/navigation_handle_user_data.h"
 
 namespace content {
@@ -83,16 +83,59 @@ class NavigationInitiator final {
 // LINT.IfChange(PageLoadMetricsNavigationInitiator)
 namespace navigation_initiator {
 
-// The trigger of the navigation is unknown, or is not interesting enough to
-// have a dedicated `NavigationInitiator`.
+// The fallback initiator.
+//
+// Used when the trigger of the navigation is unknown, or is not classified into
+// any dedicated `NavigationInitiator`. Also used when a navigation has a
+// relevant page transition (like link click or form submission) but lacks
+// renderer initiation or user gesture, or when a history navigation has an
+// offset of 0.
 inline constexpr NavigationInitiator kOther{0, "Other"};
 
-// The following are derived from `ui::PageTransition`, not attached by a
-// trigger. See the comment of `NavigationInitiator`.
+// The following are derived from `ui::PageTransition` in
+// `GetNavigationInitiator()`, not attached by a trigger. See the comment of
+// `NavigationInitiator`.
+
+// Navigation triggered by clicking a link on a web page.
+//
+// Classified in `GetNavigationInitiator()` when
+// `ui::PageTransitionCoreTypeIs(PAGE_TRANSITION_LINK)` holds, and the
+// navigation is renderer-initiated (`navigation_handle.IsRendererInitiated()`)
+// with a user gesture (`navigation_handle.HasUserGesture()`). If without a user
+// gesture (e.g. script-driven link clicks), falls back to `kOther`.
 inline constexpr NavigationInitiator kLinkClick{5, "LinkClick"};
+
+// Navigation to a forward history entry or a BFCache restore.
+//
+// Classified in `GetNavigationInitiator()` when
+// `(navigation_handle.GetPageTransition() & ui::PAGE_TRANSITION_FORWARD_BACK)`
+// holds or `navigation_handle.IsServedFromBackForwardCache()` is true, and
+// `navigation_handle.GetNavigationEntryOffset() > 0`.
 inline constexpr NavigationInitiator kForward{6, "Forward"};
+
+// Navigation to a backward history entry or a BFCache restore.
+//
+// Classified in `GetNavigationInitiator()` when
+// `(navigation_handle.GetPageTransition() & ui::PAGE_TRANSITION_FORWARD_BACK)`
+// holds or `navigation_handle.IsServedFromBackForwardCache()` is true, and
+// `navigation_handle.GetNavigationEntryOffset() < 0`.
 inline constexpr NavigationInitiator kBackward{7, "Backward"};
+
+// Navigation triggered by reloading the page.
+//
+// Classified in `GetNavigationInitiator()` when
+// `ui::PageTransitionCoreTypeIs(PAGE_TRANSITION_RELOAD)` holds, provided that
+// it is not classified as a forward/backward navigation (since pages restored
+// from BFCache preserve the previous transition type).
 inline constexpr NavigationInitiator kReload{8, "Reload"};
+
+// Navigation triggered by submitting an HTML form.
+//
+// Classified in `GetNavigationInitiator()` when
+// `ui::PageTransitionCoreTypeIs(PAGE_TRANSITION_FORM_SUBMIT)` holds, and the
+// navigation is renderer-initiated (`navigation_handle.IsRendererInitiated()`)
+// with a user gesture (`navigation_handle.HasUserGesture()`). If without a user
+// gesture, falls back to `kOther`.
 inline constexpr NavigationInitiator kFormSubmission{11, "FormSubmission"};
 
 }  // namespace navigation_initiator
@@ -111,6 +154,11 @@ class NavigationInitiatorHolder
  public:
   ~NavigationInitiatorHolder() override;
 
+  // Returns a callback that attaches `initiator` to the navigation it is run
+  // with, for the `navigation_handle_callback` of `PageNavigator::OpenURL()`.
+  static base::RepeatingCallback<void(content::NavigationHandle&)>
+  AttacherCallback(NavigationInitiator initiator);
+
   const NavigationInitiator& initiator() const { return initiator_; }
 
  private:
@@ -123,31 +171,15 @@ class NavigationInitiatorHolder
   NAVIGATION_HANDLE_USER_DATA_KEY_DECL();
 };
 
-// Returns the `NavigationInitiator` that the trigger of `navigation_handle`
-// attached, if any.
+// Returns the `NavigationInitiator` for `navigation_handle`, derived from
+// `ui::PageTransition` or an attached `NavigationInitiatorHolder`, falling back
+// to `kOther`.
 //
-// Timing of availability: The same as `NavigationHandleUserData`, i.e. the
-// attachment is not guaranteed to be done at
-// `PageLoadMetricsObserver::OnStart()`.
-// `PageLoadMetricsObserver::OnCommit()` (or `DidActivatePrerenderedPage()` for
-// prerender activation) is a reliable timing.
-//
-// TODO(https://crbug.com/517725655): This returns nullopt if the trigger is
-// not yet migrated to `NavigationInitiatorHolder`, and callers have to fall
-// back to the legacy path. Make this return `NavigationInitiator`, deriving
-// one from `ui::PageTransition` as the fallback, once all the triggers are
-// migrated.
-std::optional<NavigationInitiator> GetNavigationInitiator(
-    content::NavigationHandle& navigation_handle);
-
-// Returns the id of the initiator of `navigation_handle`, falling back
-// to the legacy `NavigationHandleUserData` and then to
-// `navigation_initiator::kOther`.
-//
-// TODO(https://crbug.com/517725655): Remove this and use
-// `GetNavigationInitiator()` once all the triggers are migrated to
-// `NavigationInitiatorHolder`.
-int64_t GetAttachedNavigationInitiatorId(
+// Timing of availability: The attachment is not guaranteed to be done at
+// `PageLoadMetricsObserver::OnStart()`. `PageLoadMetricsObserver::OnCommit()`
+// (or `DidActivatePrerenderedPage()` for prerender activation) is a reliable
+// timing.
+NavigationInitiator GetNavigationInitiator(
     content::NavigationHandle& navigation_handle);
 
 }  // namespace page_load_metrics

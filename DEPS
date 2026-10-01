@@ -390,7 +390,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': 'e4e7088fef83f8098765053bc1fd950cc19b51a0',
+  'crossbench_revision': '4fd55061f7447b7f8d8f143cee6c34b0c83362c2',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -410,7 +410,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'f50818629db72a1934006d5527714ea69e678de6',
+  'devtools_frontend_revision': 'b6c084038caffd29059a649cac490b3577061f34',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1764,7 +1764,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '34b6567d5067f817e3fdea56f1ee9268933f1f00',
+    '22f0be66520e192c3c13f4ad5268b22462e2817d',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -2841,7 +2841,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + 'c7bb4aa0b210b95701f18c98c59bf8f4c4785d61',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '6d9970596831a70aa4870858ae049dbaa7542341',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
@@ -3287,7 +3287,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '85189b1e776697afdd40532ad8c7129f8486f8f8',
+    Var('webrtc_git') + '/src.git' + '@' + 'b753a9ab31c500fe76f1fd75a53f9cd11f80e4c9',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
