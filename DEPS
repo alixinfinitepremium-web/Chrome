@@ -1868,7 +1868,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': 'h_Cd_g9a1JORayzOllNNH9oTq6pSXyjb9elBdcRyaxUC',
+          'version': '3ynGALiSrzMdTuik41ztFqHVxAhN8rEyGCqXny309u0C',
       },
     ],
     'condition': 'checkout_android and non_git_source',
@@ -2541,7 +2541,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/ktfmt',
-              'version': 'TdzRadhhFiAemt1hEoGPfWB0xlhkXmJUNAF8Gi6d-aYC',
+              'version': '1zClPHVrxh2Vup3dCdggogcm8VBDCq3Jr1TGNUqPEtYC',
           },
       ],
       'condition': '(checkout_android or checkout_linux) and non_git_source',
