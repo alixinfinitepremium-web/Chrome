@@ -386,7 +386,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling catapult
   # and whatever else without interference from each other.
-  'catapult_revision': 'ccd0b9c6b2ab9b038842e7d22ca15c695b089147',
+  'catapult_revision': 'a62bdd9c72d5ef9264c04c5576a2e81342f9260d',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -441,7 +441,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': '51652e966047f67fab59b52057ad4d96c7acdf36',
+  'dawn_revision': '8ca6e73b0e3bbc2b3ba32202bd74c156c86874bf',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -1230,10 +1230,10 @@ deps = {
     'condition': 'checkout_gpu_meet_effects and non_git_source',
     'objects': [
       {
-        'object_name': 'meet-gpu-tests/990705341.tar.gz',
-        'sha256sum': '0ba6618eafa546a1e2ac3afbd331b9f9290ec1a3b17a11021d75fc9787abe187',
-        'size_bytes': 321605256,
-        'generation': 1790758049488198,
+        'object_name': 'meet-gpu-tests/992081707.tar.gz',
+        'sha256sum': '39738d631c677fc83c967fd136178ea76a789016782953dd3b102434764accd7',
+        'size_bytes': 321584734,
+        'generation': 1790930886436315,
       },
     ],
   },
