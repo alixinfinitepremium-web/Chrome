@@ -128,6 +128,9 @@ scoped_refptr<StaticBitmapImage> AcceleratedStaticBitmapImage::CreateFromRaster(
     return nullptr;
   }
 
+  auto shared_image = resource_provider->resource()->GetSharedImage();
+  gpu::SyncToken sync_token =
+      resource_provider->resource()->acquire_sync_token();
   MemoryManagedPaintRecorder recorder(size, /*client=*/nullptr);
   draw_callback(recorder.getRecordingCanvas());
   if (recorder.HasReleasableDrawOps()) {
@@ -149,20 +152,30 @@ scoped_refptr<StaticBitmapImage> AcceleratedStaticBitmapImage::CreateFromRaster(
           std::move(animated_image_frame_index_map));
     }
 
-    gpu::SyncToken sync_token =
-        resource_provider->RasterInterface()->RasterSharedImage(
-            resource_provider->resource()->GetSharedImage(),
-            resource_provider->resource()->acquire_sync_token(),
-            recorder.ReleaseMainRecording(), &image_provider,
-            /*needs_clear=*/true);
-    resource_provider->resource()->SetReleaseSyncToken(sync_token);
+    sync_token = resource_provider->RasterInterface()->RasterSharedImage(
+        shared_image, sync_token, recorder.ReleaseMainRecording(),
+        &image_provider, /*needs_clear=*/true);
     image_provider.ReleaseLockedImages();
     image_provider.UnbindTextureBackedImages();
   }
   if (!resource_provider->IsValid()) {
     return nullptr;
   }
-  return resource_provider->resource()->Bitmap();
+
+  auto release_callback = blink::BindOnce(
+      [](scoped_refptr<gpu::ClientSharedImage> shared_image,
+         const gpu::SyncToken& sync_token, bool is_lost) {
+        if (sync_token.HasData()) {
+          shared_image->UpdateDestructionSyncToken(sync_token);
+        }
+      },
+      shared_image);
+
+  return CreateFromCanvasSharedImage(
+      std::move(shared_image), sync_token, alpha_type, hdr_metadata,
+      std::move(context_provider_wrapper), base::PlatformThread::CurrentRef(),
+      ThreadScheduler::Current()->CleanupTaskRunner(),
+      std::move(release_callback));
 }
 
 AcceleratedStaticBitmapImage::AcceleratedStaticBitmapImage(
