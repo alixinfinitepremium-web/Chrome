@@ -1752,7 +1752,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': 'a0bRwsrq_4NM6XZjvVHDASgojQJhSsD7jIarp1aUGXAC',
+        'version': 'OWeUrKn56A-PPRAH8THiB6MovuKhcKJ957WxtLrE7QUC',
       },
     ],
     'condition': 'non_git_source',
@@ -2182,7 +2182,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/checkstyle',
-              'version': 'vnbLn0H_kr5nVeziAzIlGqjH1LhxEslL7O0w-UKTHh4C',
+              'version': 'udEqw9ygTuIy4x8w97hBz9uRD-oh6wnXR4O0B5sXmPMC',
           },
       ],
       # Needed on Linux for use on chromium_presubmit.
