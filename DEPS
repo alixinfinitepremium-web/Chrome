@@ -2246,7 +2246,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '3cf99491898063e8256e61af25fe1b397a2bd46e',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '210e0a609ba8c160bb2f6e7c99c740a9cf1a00b5',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '173b9b26e8fcbcbe64e1ecbf073a21a96b95c6b1',
@@ -2338,7 +2338,7 @@ deps = {
     Var('chromium_git') + '/codecs/libgav1.git' + '@' + '085032331f60c10055d32ab52932bd7bd77e6f53',
 
   'src/third_party/google-truth/src': {
-      'url': Var('chromium_git') + '/external/github.com/google/truth.git' + '@' + '9b67395136655c1eaef4a88b70d1da9532515172',
+      'url': Var('chromium_git') + '/external/github.com/google/truth.git' + '@' + '6125ea1aa5ae423a6c56b4f6038cf479a04b6e19',
       'condition': 'checkout_android',
   },
 
