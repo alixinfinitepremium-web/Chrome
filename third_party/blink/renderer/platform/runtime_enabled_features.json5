@@ -3852,10 +3852,8 @@
       // Enables InputMultipleFieldsUI on all platforms by tweaking the inner
       // fields to be non-focusable and making the whole input element
       // focusable for coarse input devices. When this flag is removed, the
-      // InputMultipleFieldsUI flag can also be removed. Enabled in M154, safe
-      // to remove in M158.
+      // InputMultipleFieldsUI flag can also be removed.
       name: "InputMultipleFieldsUIWithPointerChecks",
-      status: "stable",
     },
     // Enables the `alpha` and `colorspace` content/IDL attributes on
     // <input type=color>, allowing alpha and Display P3 color values.
@@ -6261,13 +6259,6 @@
     {
       name: "SubframeMouseCaptureOwner",
       status: "stable",
-    },
-    {
-      // Require the requesting view to have focus before allowing it go
-      // fullscreen, unless it has a fullscreen token through capability
-      // delegation.
-      // https://crbug.com/347495359
-      name: "SuppressFullscreenFromUnfocusedView",
     },
     // 'pointercancel' and boundary leave ('pointerout' and 'pointerleave')
     // events would now fire after a mouse drag start, matching the spec's
