@@ -366,7 +366,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling breakpad
   # and whatever else without interference from each other.
-  'breakpad_revision': '868abe6f016cfeabfb7208681e89031ae667c336',
+  'breakpad_revision': '6598c9c33fc02da7805401f3b0f1a733e6a24071',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling freetype
   # and whatever else without interference from each other.
@@ -1517,7 +1517,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_linux64',
-          'version': 'version:2@1704003',
+          'version': 'version:2@1705049',
         },
       ],
   },

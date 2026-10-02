@@ -85,6 +85,7 @@ class WebContentsTopSitesObserver;
 
 namespace offline_pages {
 class AutoFetchNavigationObserver;
+class OfflinePageTabHelper;
 class RecentTabHelper;
 }  // namespace offline_pages
 
@@ -129,6 +130,7 @@ class MLInstallabilityPromoter;
 class AboutThisSiteTabHelper;
 class AutoPictureInPictureTabHelper;
 class ChainedBackNavigationTracker;
+class ChromeFacilitatedPaymentsClient;
 class ConnectionHelpTabHelper;
 class ExternalProtocolObserver;
 class FileSystemAccessTabHelper;
@@ -290,11 +292,14 @@ class TabFeatures {
   std::unique_ptr<chrome_browser_net::NetErrorTabHelper> net_error_tab_helper_;
   std::unique_ptr<SupervisedUserNavigationObserver>
       supervised_user_navigation_observer_;
+  std::unique_ptr<offline_pages::OfflinePageTabHelper> offline_page_tab_helper_;
   std::unique_ptr<offline_pages::RecentTabHelper> recent_tab_helper_;
   std::unique_ptr<AutoPictureInPictureTabHelper>
       auto_picture_in_picture_tab_helper_;
   std::unique_ptr<webapps::MLInstallabilityPromoter>
       ml_installability_promoter_;
+  std::unique_ptr<ChromeFacilitatedPaymentsClient>
+      chrome_facilitated_payments_client_;
 
   // Holds the WebUI embedding context subscription.
   base::CallbackListSubscription tab_subscription_;

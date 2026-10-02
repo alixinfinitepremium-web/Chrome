@@ -47,6 +47,7 @@ class AutoPictureInPictureTabHelper;
 class BookmarkBarPreloadPipelineManager;
 class BookmarkPageActionController;
 class BrowserSyncedTabDelegate;
+class ChromeFacilitatedPaymentsClient;
 class CollaborationMessagingPageActionController;
 class CommitLimitOOMRecoveryTracker;
 class ConnectionHelpTabHelper;
@@ -334,6 +335,7 @@ class ChromeComposeClient;
 
 #if BUILDFLAG(ENABLE_OFFLINE_PAGES)
 namespace offline_pages {
+class OfflinePageTabHelper;
 class RecentTabHelper;
 }  // namespace offline_pages
 #endif
@@ -974,6 +976,7 @@ class TabFeatures {
       supervised_user_navigation_observer_;
 
 #if BUILDFLAG(ENABLE_OFFLINE_PAGES)
+  std::unique_ptr<offline_pages::OfflinePageTabHelper> offline_page_tab_helper_;
   std::unique_ptr<offline_pages::RecentTabHelper> recent_tab_helper_;
 #endif
 
@@ -985,6 +988,9 @@ class TabFeatures {
   std::unique_ptr<TabDialogs> tab_dialogs_;
 
   std::unique_ptr<ManagePasswordsUIController> manage_passwords_ui_controller_;
+
+  std::unique_ptr<ChromeFacilitatedPaymentsClient>
+      chrome_facilitated_payments_client_;
 
   // Must be the last member.
   base::WeakPtrFactory<TabFeatures> weak_factory_{this};
