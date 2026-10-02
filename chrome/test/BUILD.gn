@@ -178,6 +178,11 @@ static_library("test_support") {
     "//chrome/browser/safe_browsing:test_database_helper",
     "//chrome/browser/search_engines:test_support",
     "//chrome/browser/signin:identity_test_support",
+
+    # TODO(crbug.com/353332589): c/b/signin:identity_test_support needs
+    # TestingProfile::TestingFactory but can't dep on testing_profile_impl
+    # directly due to cycle: testing_profile_impl -> extensions:test_support ->
+    # identity_test_support. Remove once that cycle is fixed.
     "//chrome/test/base:testing_profile_impl",
   ]
 
@@ -476,10 +481,6 @@ static_library("test_support") {
       deps += [ "//chrome/browser/compose" ]
     }
 
-    public_deps += [
-      "//chrome/test/base:browser_with_test_window_test",
-      "//chrome/test/base:test_browser_window",
-    ]
     allow_circular_includes_from += [
       ":test_support_ui",
       "//chrome/browser/ui/views/tabs/common:impl",
@@ -2230,6 +2231,7 @@ if (!is_android) {
       "//chrome/services/removable_storage_writer:lib",
       "//chrome/test/base:browser_tests",
       "//chrome/test/base:browser_tests_runner",
+      "//chrome/test/base:test_browser_window",
       "//chrome/test/base:testing_browser_process",
       "//chrome/test/base:testing_browser_process_impl",
       "//chrome/test/components_tests:browser_tests",
@@ -8189,6 +8191,7 @@ if (!is_android && !is_chromeos_device) {
       "//chrome/test/base:browser_test_waiters",
       "//chrome/test/base:chrome_test_launcher",
       "//chrome/test/base:chrome_test_suite",
+      "//chrome/test/base:test_browser_window",
       "//chrome/test/base:testing_browser_process",
       "//chrome/test/base:testing_browser_process_impl",
       "//chrome/test/media:performance_tests",
