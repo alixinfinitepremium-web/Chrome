@@ -5752,14 +5752,6 @@
     "expiry_milestone": 160
   },
   {
-    "name": "glic-bind-pinned-unbound-tab",
-    "owners": [
-      "basiaz@google.com",
-      "//chrome/browser/glic/OWNERS"
-    ],
-    "expiry_milestone": 150
-  },
-  {
     "name": "glic-button-pressed-state",
     "owners": [
       "iwells@chromium.org",
@@ -5803,7 +5795,7 @@
   {
     "name": "glic-contextual-cueing-v2-auto-submit",
     "owners": [ "iwells@chromium.org", "sophiechang@chromium.org" ],
-    "expiry_milestone": 152
+    "expiry_milestone": 160
   },
   {
     "name": "glic-daisy-chain-new-tabs",
