@@ -101,6 +101,7 @@
 #include "chrome/browser/ui/page_action/page_action_controller.h"
 #include "chrome/browser/ui/page_action/page_action_icon_type.h"
 #include "chrome/browser/ui/page_action/page_action_properties_provider.h"
+#include "chrome/browser/ui/passwords/manage_passwords_ui_controller.h"
 #include "chrome/browser/ui/performance_controls/memory_saver_chip_controller.h"
 #include "chrome/browser/ui/performance_controls/memory_saver_chip_tab_helper.h"
 #include "chrome/browser/ui/performance_controls/tab_resource_usage_tab_helper.h"
@@ -113,6 +114,7 @@
 #include "chrome/browser/ui/search_engines/search_engine_tab_helper.h"
 #include "chrome/browser/ui/side_panel/side_panel_registry.h"
 #include "chrome/browser/ui/sync/browser_synced_tab_delegate.h"
+#include "chrome/browser/ui/tab_dialogs.h"
 #include "chrome/browser/ui/tab_ui_helper.h"
 #include "chrome/browser/ui/tabs/alert/child_tab_alert_helper.h"
 #include "chrome/browser/ui/tabs/alert/tab_alert_controller.h"
@@ -396,6 +398,7 @@ void TabFeatures::Init(TabInterface& tab, Profile* profile) {
                 tab, tab, *page_action_controller_);
   }
 
+  tab_dialogs_ = TabDialogs::Create(tab, tab.GetContents());
   if (page_action_controller_->ActionExists(kActionShowPasswordsBubbleOrPage)) {
     manage_passwords_page_action_controller_ =
         std::make_unique<ManagePasswordsPageActionController>(
@@ -1080,6 +1083,10 @@ void TabFeatures::Init(TabInterface& tab, Profile* profile) {
   auto_picture_in_picture_tab_helper_ =
       GetUserDataFactory().CreateInstance<AutoPictureInPictureTabHelper>(
           tab, tab, tab.GetContents());
+
+  manage_passwords_ui_controller_ =
+      GetUserDataFactory().CreateInstance<ManagePasswordsUIController>(
+          tab, tab, tab.GetContents());
 }
 
 TabUIHelper* TabFeatures::SetTabUIHelperForTesting(
@@ -1517,6 +1524,13 @@ void TabFeatures::WillDiscardContents(tabs::TabInterface* tab,
   auto_picture_in_picture_tab_helper_.reset();
   auto_picture_in_picture_tab_helper_ =
       GetUserDataFactory().CreateInstance<AutoPictureInPictureTabHelper>(
+          *tab, *tab, new_contents);
+
+  manage_passwords_ui_controller_.reset();
+  tab_dialogs_.reset();
+  tab_dialogs_ = TabDialogs::Create(*tab, new_contents);
+  manage_passwords_ui_controller_ =
+      GetUserDataFactory().CreateInstance<ManagePasswordsUIController>(
           *tab, *tab, new_contents);
 }
 
