@@ -330,7 +330,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '42fe32bbfa9b25ab714e4a20891199ad5e5cc3f7',
+  'skia_revision': '73ea3c76dc95ee004a552dddb7a3b0235652a2bc',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -973,7 +973,7 @@ deps = {
         'sha256sum': 'ad3042a17255b065a75fa7f9d80be2eb07df0902bd762cec53b9f2f5c3beba87',
         'size_bytes': 5925392,
         'generation': 1790797381953168,
-        'condition': '((checkout_linux or checkout_mac or checkout_android) and host_os == "linux") and non_git_source',
+        'condition': '((checkout_linux or checkout_mac or checkout_ios or checkout_android) and host_os == "linux") and non_git_source',
       },
       {
         'object_name': 'Mac/clang-llvmorg-24-init-7747-g62397f8b-57.tar.xz',
@@ -987,7 +987,7 @@ deps = {
         'sha256sum': '31569c5a0a8e133ea5033d3a462273ce65100e0402307319af644ee4fb78d77c',
         'size_bytes': 978876,
         'generation': 1790797399057345,
-        'condition': 'checkout_mac and not host_os == "mac"',
+        'condition': '(checkout_mac or checkout_ios) and not host_os == "mac"',
       },
       {
         'object_name': 'Mac/clang-tidy-llvmorg-24-init-7747-g62397f8b-57.tar.xz',
@@ -1716,7 +1716,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_win_x86_64',
-          'version': 'QiYuXNNz6ogoOkL8iPd12v3XWeHp0agtzoUU3E2noogC',
+          'version': 'YdG4tDbWWCdea9iow-uQHuVywP4rSyxu4uv6xTi2eZsC',
         },
       ],
   },
@@ -2229,7 +2229,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '67065f22c1a317c649851450707a6a47229c6fbe',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '9a2cacfa65e2ea5c689c9da522926fcd23998f72',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -2751,7 +2751,7 @@ deps = {
               'version': '4wxov_ILjFdgBumBqgUgOgIcr4kcMh7i4b4oJi_cLjcC',
           },
       ],
-      'condition': 'host_os == "linux" and checkout_mac',
+      'condition': 'host_os == "linux" and (checkout_mac or checkout_ios)',
       'dep_type': 'cipd',
   },
 
