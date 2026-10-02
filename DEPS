@@ -1528,7 +1528,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_mac_amd64',
-          'version': 'version:2@1704005',
+          'version': 'version:2@1705003',
         },
       ],
   },
@@ -1694,7 +1694,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_mac_arm64',
-          'version': 'tVGW4OXxO3PsUPnHAQ2Tej7gH4cdQG-3f2-ZroHEmFkC',
+          'version': 'tTKH7tKvKP2VULl2ptgfChVRrsC7aI0JUKJAgJ2kFE4C',
         },
       ],
   },
@@ -1764,7 +1764,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '5bbe33659150a2831d998e8e48329a248e5fef46',
+    'f16a76a6845ffde138a01189504b79355b3a6802',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
