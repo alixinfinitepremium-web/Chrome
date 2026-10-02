@@ -6754,6 +6754,23 @@
             ]
         }
     ],
+    "DisableDragDropForUnneededWidgets": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "DisableDragDropForUnneededWidgets"
+                    ]
+                }
+            ]
+        }
+    ],
     "DisableGlicActorUiMagicCursorAnimation": [
         {
             "platforms": [
@@ -17891,26 +17908,6 @@
             ]
         }
     ],
-    "StructuredHeadersInRust": [
-        {
-            "platforms": [
-                "android",
-                "android_webview",
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled_20260730",
-                    "enable_features": [
-                        "StructuredHeadersInRust"
-                    ]
-                }
-            ]
-        }
-    ],
     "SubmenusInAppMenuLff": [
         {
             "platforms": [
@@ -18984,6 +18981,21 @@
                         "UseFrameIntervalDeciderAdaptiveFrameRate"
                     ],
                     "min_os_version": "15"
+                }
+            ]
+        }
+    ],
+    "UseNewEtc1Decoder": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "UseNewEtc1Decoder"
+                    ]
                 }
             ]
         }
