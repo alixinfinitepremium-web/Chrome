@@ -326,7 +326,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': 'ae273fe3fb2e94ad79b3a278db222f536ebc9433',
+  'src_internal_revision': '23fa3e49a8c4cf16696e63ea2c05a3faef1c0412',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -1868,7 +1868,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': 'RJPp3hBW6VPfntrICRJn31SayWOhW7eXoU-bvEdxajQC',
+          'version': 'L2v03UauZ714Au-QohOFoxT_BcyxCaW8PkJKL9wy32AC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
@@ -3916,7 +3916,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        'c336d5cc638d265d3d2d3c42afb3a6e02d9dd1bf',
+        '837113a0ba7753fea2d9c454b8040f7db88b5563',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
