@@ -119,7 +119,6 @@ scoped_refptr<StaticBitmapImage> AcceleratedStaticBitmapImage::CreateFromRaster(
     base::WeakPtr<WebGraphicsContext3DProviderWrapper> context_provider_wrapper,
     gpu::SharedImageUsageSet shared_image_usage_flags,
     base::FunctionRef<void(cc::PaintCanvas&)> draw_callback,
-    ImageOrientation orientation,
     scoped_refptr<const cc::AnimatedImageFrameIndexMap>
         animated_image_frame_index_map) {
   auto resource_provider = CanvasNon2DResourceProvider::Create(
@@ -160,7 +159,10 @@ scoped_refptr<StaticBitmapImage> AcceleratedStaticBitmapImage::CreateFromRaster(
     image_provider.ReleaseLockedImages();
     image_provider.UnbindTextureBackedImages();
   }
-  return resource_provider->Snapshot(orientation);
+  if (!resource_provider->IsValid()) {
+    return nullptr;
+  }
+  return resource_provider->resource()->Bitmap();
 }
 
 AcceleratedStaticBitmapImage::AcceleratedStaticBitmapImage(

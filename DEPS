@@ -445,7 +445,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'quiche_revision': '0ff8c4882c6fc09d56f41d9946b28c9a0ef5f19e',
+  'quiche_revision': '218d29acdf6c71aff4565f2bf8ff2d2902534f6c',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ink
   # and whatever else without interference from each other.
@@ -568,7 +568,7 @@ vars = {
   'libcxx_revision':       '97b436da4c33663581d394f4ee0a5977fc38c2f4',
 
   # GN CIPD package version.
-  'gn_version': 'git_revision:0e7d98e041b01eb5fed29a9a80482ed8ca9efe5b',
+  'gn_version': 'git_revision:9fe99e262126467c4cb2f44cf941767d29fb33d8',
 
   # ninja CIPD package.
   'ninja_package': 'infra/3pp/tools/ninja/',
