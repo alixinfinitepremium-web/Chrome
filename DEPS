@@ -441,7 +441,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': '183331ca3985a560b0d378dea98ab561b5eb6581',
+  'dawn_revision': '51652e966047f67fab59b52057ad4d96c7acdf36',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -2692,7 +2692,7 @@ deps = {
     Var('chromium_git') + '/webm/libwebp.git' + '@' +  'b43b2caa710c0c997c066cb32c7fea1391fad70a',
 
   'src/third_party/libyuv':
-    Var('chromium_git') + '/libyuv/libyuv.git' + '@' + '98fa761478cf820bd75b37329533ca9fddf06eb6',
+    Var('chromium_git') + '/libyuv/libyuv.git' + '@' + '20b0a91bc1fc76370568ea53c2fb862b1bffb51a',
 
   'src/third_party/lss': {
       'url': Var('chromium_git') + '/linux-syscall-support.git' + '@' + Var('lss_revision'),
