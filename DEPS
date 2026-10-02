@@ -370,7 +370,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling freetype
   # and whatever else without interference from each other.
-  'freetype_revision': '891f904e2e7b4289f615598cd4b69832f87d2f3a',
+  'freetype_revision': 'a3f35254a447374960db535d8fc044591b4da83f',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling HarfBuzz
   # and whatever else without interference from each other.
@@ -1683,7 +1683,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_mac_amd64',
-          'version': 'TA7Gz6vo7vBgpiOIAh9VlvDBpGIlksi16LKi-jiGQRQC',
+          'version': 'JJFwEumQiCFsnEG7OrE5J58RFxX2aal_JeUDVnDP_cEC',
         },
       ],
   },
