@@ -330,7 +330,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '9671522d5a8cfeb0e8eef14d7f8eee29a476a933',
+  'skia_revision': '92b1f4ed4c32e0d52ef09690da4d7c015d74dace',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -410,7 +410,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '7370c150a855c97838ce545ae2c40b01c2650b00',
+  'devtools_frontend_revision': 'c637ae5f74a67b4e6295b73c10c2d9ea05d8d426',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -3416,7 +3416,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_receiver_app/app',
-        'version': 'rbB3gEPlG65KH35ADFV79Mfve-Si-5M1AE6pxHdgUFAC',
+        'version': 'E5H6sXyHCt4KtiAw1YYjQNjUbZLljM_Xq3inSLHBKX8C',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3427,7 +3427,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_app/app',
-        'version': 'xTWd08LJa62i34Y7ohQM--2CiQoJyhgz4KR6dXp720QC',
+        'version': 'U2twaBquCahabxD4bWxo90U4WOQqyR-Ib4s3dSRWPkkC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
