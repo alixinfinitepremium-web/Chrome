@@ -346,7 +346,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling PDFium
   # and whatever else without interference from each other.
-  'pdfium_revision': '3c9748bd64022a43c6abb6df84ff8ccdd6344aab',
+  'pdfium_revision': '4ff932d1649ae2745339c44f73d03a8df6aad24a',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
@@ -425,7 +425,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling android_deps_autorolled_version
   # and whatever else without interference from each other.
-  'android_deps_autorolled_version': '7I3R2vpJ325qi08EMOgR3AiMWm_4Z7iuFHT7vEOXgN4C',
+  'android_deps_autorolled_version': 'N43Rp9KJw3jV2OlM-WqeYaETbdX_xtzdX_FLHAfRHC8C',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling android_sdk_emulator_version
   # and whatever else without interference from each other.
@@ -1752,7 +1752,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': 'CU1WXyUi_kXa_GTFV5p2IgOSE2l2Ll_6d2hhJuBGP0IC',
+        'version': 'a0bRwsrq_4NM6XZjvVHDASgojQJhSsD7jIarp1aUGXAC',
       },
     ],
     'condition': 'non_git_source',
