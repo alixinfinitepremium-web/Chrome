@@ -346,7 +346,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling PDFium
   # and whatever else without interference from each other.
-  'pdfium_revision': '4ff932d1649ae2745339c44f73d03a8df6aad24a',
+  'pdfium_revision': '190a9673fe7dd888dc26734b7159976edd18f514',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
@@ -3404,7 +3404,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_receiver_app/app',
-        'version': 'E5H6sXyHCt4KtiAw1YYjQNjUbZLljM_Xq3inSLHBKX8C',
+        'version': 'yUQt-AKVjxo38f6wSTE-uPZR7-1xT77TyM-IY7mHt3AC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3415,7 +3415,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_app/app',
-        'version': 'U2twaBquCahabxD4bWxo90U4WOQqyR-Ib4s3dSRWPkkC',
+        'version': 'rETobNpra2y88k7qtt9G4aqLtJ1jfkkvxMC-m-9HKJcC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
