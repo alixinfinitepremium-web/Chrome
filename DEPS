@@ -330,7 +330,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '1b95d35ba26d4bd3761ddb1120ce112359a00df7',
+  'skia_revision': '8643b1d64cff21b5e6f8d65ca98204c6eecb0098',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -1752,7 +1752,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': 'y-ThTxe6l3OYu2ZHvsCKxQ2fDiOpxKbiQ4r7zSYGKPkC',
+        'version': 'yHT70S1RsGYoTcIEmLVOK16TvmPt8nbZnkiPvyeRhF8C',
       },
     ],
     'condition': 'non_git_source',
@@ -3902,7 +3902,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '859bec361dd097d8fb138aae01dd57adde62566a',
+        'be4c21371dcf7b2c5815b637bca361b8ab55a5e6',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
