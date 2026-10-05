@@ -330,11 +330,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '71a054615b7253a93c7fe5453bc8a574d12012f4',
+  'skia_revision': '51a2c0709c30f08e560101e720248546ab962056',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': '94f805acf4e4ec36d284cd1782a7292872dc9b68',
+  'v8_revision': '219d5f3186c91088682d3f74b9cb53ad2e6f745a',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -410,7 +410,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'c68df895babb193c1d3fd805d3c3affa80cd6f5a',
+  'devtools_frontend_revision': '828ccd43dab24cdf6483a7864994cf7757f8284f',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -549,7 +549,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
-  'compiler_rt_revision': '9fff27a7969e0d0867cab40947dccc367f30b063',
+  'compiler_rt_revision': '0ef909b82bfe943be4ec1fe76a067f759d76c6bc',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling clusterfuzz-data
   # and whatever else without interference from each other.
@@ -1868,7 +1868,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': 'sT3etXgwHmMgIIfG-lkBJlswQu9zgE_XvfXj_HaO-VsC',
+          'version': 'mCxwxusfOiCXmn9waLCholwEgdQhHVOEbv51rZUh20wC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
