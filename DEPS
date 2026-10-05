@@ -346,7 +346,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling PDFium
   # and whatever else without interference from each other.
-  'pdfium_revision': '190a9673fe7dd888dc26734b7159976edd18f514',
+  'pdfium_revision': '2fd6cff57d9412cc42ef1a7e4e0a59b13a1e7cec',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
@@ -410,7 +410,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'ae714aac9f0a7c8683fa4dff5a7dcaf55c233ad4',
+  'devtools_frontend_revision': '2ced50150800884638db12e1a647a914b8404687',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -2240,7 +2240,7 @@ deps = {
     Var('chromium_git') + '/chromium/dom-distiller/dist.git' + '@' + '015cda307cf81e293889c0887cffff4f0aa090ce',
 
   'src/third_party/ds_store/src':
-    Var('chromium_git') + '/external/github.com/dmgbuild/ds_store.git' + '@' + '6f971c764a511f609615c6c4f5ae2a9403ff32cb',
+    Var('chromium_git') + '/external/github.com/dmgbuild/ds_store.git' + '@' + '3a85d45dbb9dc08a6d74770010e5053e0561e538',
 
   'src/third_party/dragonbox/src':
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
@@ -2724,7 +2724,7 @@ deps = {
   },
 
   'src/third_party/mac_alias/src': {
-      'url': Var('chromium_git') + '/external/github.com/dmgbuild/mac_alias.git' + '@' + 'd0c076b4562541c1509d9874f42880378245d268',
+      'url': Var('chromium_git') + '/external/github.com/dmgbuild/mac_alias.git' + '@' + 'ecc3ad82459ec92894de5994d1b5c4adacbbc7a7',
   },
 
   'src/third_party/material_color_utilities/src': {
