@@ -9021,23 +9021,6 @@
             ]
         }
     ],
-    "GlicEligibilitySeparateAccountCapability": [
-        {
-            "platforms": [
-                "chromeos",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "GlicEligibilitySeparateAccountCapability"
-                    ]
-                }
-            ]
-        }
-    ],
     "GlicEmbeddedPdfBytesExtraction": [
         {
             "platforms": [
@@ -10443,6 +10426,24 @@
                     },
                     "enable_features": [
                         "AimButtonRefactor"
+                    ]
+                }
+            ]
+        }
+    ],
+    "IOSAimCobrowse": [
+        {
+            "platforms": [
+                "ios"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "AimCobrowse",
+                        "AimCobrowseWebSelectionSearch",
+                        "ContextManagementInComposebox",
+                        "ContextualTasks"
                     ]
                 }
             ]

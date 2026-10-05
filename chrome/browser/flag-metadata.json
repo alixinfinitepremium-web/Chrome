@@ -5752,14 +5752,6 @@
     "expiry_milestone": 160
   },
   {
-    "name": "glic-button-pressed-state",
-    "owners": [
-      "iwells@chromium.org",
-      "//chrome/browser/glic/OWNERS"
-    ],
-    "expiry_milestone": 150
-  },
-  {
     "name": "glic-caa-guest-error",
     "owners": [
       "birnie@google.com",
@@ -5907,11 +5899,6 @@
       "//chrome/browser/glic/OWNERS"
     ],
     "expiry_milestone": 160
-  },
-  {
-    "name": "glic-live-mode-only-glow",
-    "owners": [ "wry@chromium.org", "//chrome/browser/glic/OWNERS" ],
-    "expiry_milestone": 150
   },
   {
     "name": "glic-marketing-auto-open",
@@ -8642,6 +8629,11 @@
   {
     "name": "reader-mode-toggle-links",
     "owners": ["wylieb@google.com", "evanluo@google.com", "chrome-reader-mode-team@google.com"],
+    "expiry_milestone": 165
+  },
+  {
+    "name": "reauth-skip-identifier-page",
+    "owners": ["ddac@google.com", "chrome-signin-team@google.com"],
     "expiry_milestone": 165
   },
   {
