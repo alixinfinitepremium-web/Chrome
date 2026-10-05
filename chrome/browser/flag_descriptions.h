@@ -112,6 +112,11 @@ inline constexpr char kCapabilityDelegationDigitalCredentialsDescription[] =
     "credentials (via both create and get requests of the Digital Credentials "
     "API) to trusted cross-origin iframes.";
 
+inline constexpr char kCapabilityElementIconOnlyModeName[] =
+    "CapabilityElementIconOnlyMode";
+inline constexpr char kCapabilityElementIconOnlyModeDescription[] =
+    "Enables icon-only mode for capability elements.";
+
 inline constexpr char kCaptureHandleForStandalonePwasAndIwasName[] =
     "Capture Handle for Standalone PWAs and IWAs";
 inline constexpr char kCaptureHandleForStandalonePwasAndIwasDescription[] =
@@ -3099,11 +3104,6 @@ inline constexpr char kInlinePdfV2IncognitoName[] = "Inline PDF V2 Incognito";
 inline constexpr char kInlinePdfV2IncognitoDescription[] =
     "Enables inline PDF V2 in Incognito mode.";
 
-inline constexpr char kInlineScriptCacheName[] = "Inline Script Cache";
-inline constexpr char kInlineScriptCacheDescription[] =
-    "Enables caching of inline scripts. This flag only works if "
-    "#use-persistent-cache-for-code-cache is enabled.";
-
 inline constexpr char kInProductHelpDemoModeChoiceName[] =
     "In-Product Help Demo Mode";
 inline constexpr char kInProductHelpDemoModeChoiceDescription[] =
@@ -5209,12 +5209,6 @@ inline constexpr char kUsePassthroughCommandDecoderName[] =
 inline constexpr char kUsePassthroughCommandDecoderDescription[] =
     "Use chrome passthrough command decoder instead of validating command "
     "decoder.";
-
-inline constexpr char kUsePersistentCacheForCodeCacheName[] =
-    "Use PersistentCache for Code Cache";
-inline constexpr char kUsePersistentCacheForCodeCacheDescription[] =
-    "Use PersistentCache backend for code cache for JavaScript and "
-    "WebAssembly.";
 
 inline constexpr char kUsePLinkInHelpName[] =
     "Use P-links for Google Help Pages";

@@ -13234,15 +13234,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kImportExportFlagsDescription, kOsAll,
      FEATURE_VALUE_TYPE(features::kImportExportFlags)},
 
-    {"use-persistent-cache-for-code-cache",
-     flag_descriptions::kUsePersistentCacheForCodeCacheName,
-     flag_descriptions::kUsePersistentCacheForCodeCacheDescription, kOsAll,
-     FEATURE_VALUE_TYPE(blink::features::kUsePersistentCacheForCodeCache)},
-
-    {"inline-script-cache", flag_descriptions::kInlineScriptCacheName,
-     flag_descriptions::kInlineScriptCacheDescription, kOsAll,
-     FEATURE_VALUE_TYPE(blink::features::kInlineScriptCache)},
-
 #if BUILDFLAG(IS_ANDROID)
     {"enforce-incognito-isolation",
      flag_descriptions::kEnforceIncognitoIsolationName,
@@ -14163,6 +14154,12 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kUseNewEtc1DecoderDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(ui::kUseNewEtc1Decoder)},
 #endif
+
+    {"capability-element-icon-only-mode",
+     flag_descriptions::kCapabilityElementIconOnlyModeName,
+     flag_descriptions::kCapabilityElementIconOnlyModeDescription,
+     kOsMac | kOsWin | kOsLinux | kOsAndroid,
+     FEATURE_VALUE_TYPE(blink::features::kCapabilityElementIconOnlyMode)},
 
     // Add new entries above this line.
     // NOTE: Adding a new flag requires adding a corresponding entry to enum
