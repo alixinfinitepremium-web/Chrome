@@ -334,7 +334,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': '219d5f3186c91088682d3f74b9cb53ad2e6f745a',
+  'v8_revision': 'b28c8d4e58e3cb125e1245c765e9cf6359bc088c',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -1517,7 +1517,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_linux64',
-          'version': 'version:2@1705049',
+          'version': 'version:2@1706032',
         },
       ],
   },
@@ -1528,7 +1528,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_mac_amd64',
-          'version': 'version:2@1705003',
+          'version': 'version:2@1706005',
         },
       ],
   },
@@ -1672,7 +1672,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_linux64',
-          'version': '159I4VcaQx15p5OJR_mx7O9NXbGkulLhAI9lhTlxowQC',
+          'version': 'Vges4IKIt0VI_PfF66PPUJ076BFAnxJoAAlHPOAC_ZEC',
         },
       ],
   },
@@ -1683,7 +1683,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_mac_amd64',
-          'version': 'JJFwEumQiCFsnEG7OrE5J58RFxX2aal_JeUDVnDP_cEC',
+          'version': '7GHn3uqkt2OhjU0gwRBPTwlI0p3X2U6y5Nc-Hg5lAjUC',
         },
       ],
   },
@@ -2843,7 +2843,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + 'a95aa5d50c3c33cdf34ab85bec24ffee6f79007a',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '654db860ac114f19874f94eb46fb7c4f9d86e12b',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
@@ -3222,7 +3222,7 @@ deps = {
       ],
   },
 
-  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@f029f0f45eaaf01d76d4584afe79ea094e30bb0a',
+  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@b36b0c80377ea2528e5d0781590dbd423d8759cf',
   'src/third_party/glslang/src': '{chromium_git}/external/github.com/KhronosGroup/glslang@c8095022ee39c7482071bc3177f93f4bca42a6d9',
   'src/third_party/spirv-cross/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Cross@b8fcf307f1f347089e3c46eb4451d27f32ebc8d3',
   'src/third_party/spirv-headers/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Headers@86f980c731e62ae4eaf383d320449d71687936bf',
@@ -3231,7 +3231,7 @@ deps = {
   'src/third_party/vulkan-loader/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Loader@b82e310e99c20bfac8dd3123c9e939f81ce54b89',
   'src/third_party/vulkan-tools/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Tools@c213647e7c363f7447d0fea9b53316da9b52ac6a',
   'src/third_party/vulkan-utility-libraries/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Utility-Libraries@f91385f84e1c82d744b3050d1919edb3eaa32827',
-  'src/third_party/vulkan-validation-layers/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-ValidationLayers@8db72be6579b788a93d9e55833749462909c20cf',
+  'src/third_party/vulkan-validation-layers/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-ValidationLayers@b0a1d9bd9a3da6d0d3f90cc4b3533a965ddbf349',
 
   'src/third_party/vulkan_memory_allocator':
     Var('chromium_git') + '/external/github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git' + '@' + '82a9d47e4f9d91f0e32d2b6acd9714fcee1933a0',
@@ -3275,7 +3275,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '7c6b661c155102d160ab77af556b4a7d719da330',
+    Var('webrtc_git') + '/src.git' + '@' + '1a16b16a8993cd7a9ab2cd880dc8902d935a50c0',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
