@@ -8581,6 +8581,25 @@
             ]
         }
     ],
+    "ForceSaveToCloudDeferredReporting": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "ApiEnterpriseReportingPrivateReportForceSaveToCloudEventHandled",
+                        "EnableForceSaveToCloudDeferredReporting"
+                    ]
+                }
+            ]
+        }
+    ],
     "FullscreenSignInPromoUseDate": [
         {
             "platforms": [
@@ -17971,6 +17990,26 @@
                     "name": "Enabled",
                     "enable_features": [
                         "StreamlineRendererInit"
+                    ]
+                }
+            ]
+        }
+    ],
+    "StructuredHeadersInRust": [
+        {
+            "platforms": [
+                "android",
+                "android_webview",
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled_20260730",
+                    "enable_features": [
+                        "StructuredHeadersInRust"
                     ]
                 }
             ]
