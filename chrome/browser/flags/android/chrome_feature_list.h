@@ -56,6 +56,7 @@ BASE_DECLARE_FEATURE(kAndroidElegantTextHeight);
 BASE_DECLARE_FEATURE(kAndroidFirstRunLaunchBounds);
 BASE_DECLARE_FEATURE(kAndroidFreLayoutUpdate);
 BASE_DECLARE_FEATURE(kAndroidHistoryClustering);
+BASE_DECLARE_FEATURE(kAndroidKeyboardShortcutHints);
 BASE_DECLARE_FEATURE(kAndroidKeyboardShortcutOpenFile);
 BASE_DECLARE_FEATURE(kAndroidNewManagementNotice);
 BASE_DECLARE_FEATURE(kAndroidNewTabButtonTabstripWebUI);
@@ -368,6 +369,11 @@ BASE_DECLARE_FEATURE(kYourSavedInfoSettingsPageAndroid);
 // clang-format on
 
 // For FeatureParam, Alphabetical:
+inline constexpr base::FeatureParam<bool> kAndroidBottomBarShowDomainOnlyParam(
+    &kAndroidBottomBar,
+    "show_domain_only",
+    false);
+
 inline constexpr base::FeatureParam<int> kAppIntegrationMaxDonationCountParam(
     &kAndroidAppIntegrationMultiDataSource,
     "max_donation_count",
