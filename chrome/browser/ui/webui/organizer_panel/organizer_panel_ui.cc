@@ -55,6 +55,8 @@ OrganizerPanelUI::OrganizerPanelUI(content::WebUI* web_ui)
       {"oneTab", IDS_TAB_SEARCH_ONE_TAB},
       {"recentlyClosed", IDS_TAB_SEARCH_RECENTLY_CLOSED},
       {"searchTabs", IDS_TAB_SEARCH_SEARCH_TABS},
+      {"showAll", IDS_ORGANIZER_PANEL_SHOW_ALL},
+      {"showSome", IDS_ORGANIZER_PANEL_SHOW_SOME},
       {"tabCount", IDS_TAB_SEARCH_TAB_COUNT},
       {"tabGroupMoreOptions", IDS_TAB_GROUP_MORE_OPTIONS},
       {"tabGroups", IDS_ORGANIZER_PANEL_TAB_GROUPS},
@@ -118,9 +120,15 @@ void OrganizerPanelUI::BindInterface(
 }
 
 void OrganizerPanelUI::CreatePageHandler(
+    mojo::PendingRemote<organizer_panel::mojom::Page> page,
     mojo::PendingReceiver<organizer_panel::mojom::PageHandler> receiver) {
+  if (!page.is_valid() || !receiver.is_valid()) {
+    organizer_panel_page_factory_receiver_.ReportBadMessage(
+        "Invalid page pending remote or receiver in CreatePageHandler");
+    return;
+  }
   organizer_panel_page_handler_ = std::make_unique<OrganizerPanelPageHandler>(
-      std::move(receiver), web_ui()->GetWebContents());
+      std::move(receiver), std::move(page), web_ui()->GetWebContents());
 }
 
 void OrganizerPanelUI::CreatePageHandler(

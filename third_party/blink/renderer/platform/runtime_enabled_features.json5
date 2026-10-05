@@ -6360,16 +6360,16 @@
       status: "stable",
     },
     {
-      name: "SvgIgnoreOuterTransforms",
-      status: "stable",
-    },
-    {
       name: "SvgImageAnimationReset",
       status: "stable",
     },
     {
       name: "SvgImageNonUniformScalingFix",
       status: "stable",
+    },
+    {
+      name: "SvgIncrementalStyle",
+      status: "test",
     },
     {
       name: "SvgInlineRootPixelSnappingScaleAdjustment",

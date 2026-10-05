@@ -3,18 +3,17 @@
 // found in the LICENSE file.
 
 import '//resources/cr_elements/cr_collapse/cr_collapse.js';
-import '//resources/cr_elements/cr_expand_button/cr_expand_button.js';
+import './organizer_list_section_header.js';
 import './organizer_list_section_item.js';
 
-import type {CrExpandButtonElement} from '//resources/cr_elements/cr_expand_button/cr_expand_button.js';
 import {assert} from '//resources/js/assert.js';
-import {FocusOutlineManager} from '//resources/js/focus_outline_manager.js';
 import type {PropertyValues, TemplateResult} from '//resources/lit/v3_0/lit.rollup.js';
 import {CrLitElement} from '//resources/lit/v3_0/lit.rollup.js';
 
 import {getCss} from './organizer_list_section.css.js';
 import {getHtml} from './organizer_list_section.html.js';
 import type {OrganizerListSectionClient, OrganizerListSectionDelegate} from './organizer_list_section_delegate.js';
+import type {OrganizerListSectionHeaderElement} from './organizer_list_section_header.js';
 import type {HighlightableOrganizerListSectionItem, OrganizerListSectionItem, OrganizerListSectionItemElement} from './organizer_list_section_item.js';
 import type {BrowserProxy} from './organizer_panel.mojom-webui.js';
 import {browserProxyFactory} from './organizer_panel.mojom-webui.js';
@@ -23,7 +22,7 @@ import {search} from './search_utils.js';
 
 export interface OrganizerListSectionElement {
   $: {
-    header: CrExpandButtonElement,
+    header: OrganizerListSectionHeaderElement,
   };
 }
 
@@ -46,6 +45,7 @@ export class OrganizerListSectionElement extends CrLitElement implements
       delegate: {type: Object},
       items: {type: Array},
       expanded_: {type: Boolean},
+      noAnimation_: {type: Boolean},
       searchQuery: {type: String},
       filteredItems_: {type: Array},
       filteredSearchQuery_: {type: String},
@@ -53,9 +53,11 @@ export class OrganizerListSectionElement extends CrLitElement implements
   }
 
   private browserProxy_: BrowserProxy = browserProxyFactory.getInstance();
+  private expandedChangedListenerId_: number|null = null;
   accessor delegate: OrganizerListSectionDelegate<unknown>|null = null;
   accessor items: Array<OrganizerListSectionItem<unknown>> = [];
   protected accessor expanded_: boolean = true;
+  protected accessor noAnimation_: boolean = false;
   accessor searchQuery: string = '';
   protected accessor filteredItems_:
       Array<HighlightableOrganizerListSectionItem<unknown>> = [];
@@ -92,17 +94,27 @@ export class OrganizerListSectionElement extends CrLitElement implements
   private onVisibilityChange_: () => void = () => {
     if (document.visibilityState === 'visible') {
       this.updateItems_();
+      this.updateExpanded_();
     }
   };
 
   override connectedCallback() {
     super.connectedCallback();
     document.addEventListener('visibilitychange', this.onVisibilityChange_);
+    this.expandedChangedListenerId_ =
+        this.browserProxy_.callbackRouter.onSectionsExpandedChanged.addListener(
+            (sectionsExpanded: Record<string, boolean>) => {
+              this.onSectionsExpandedChanged_(sectionsExpanded);
+            });
   }
 
   override disconnectedCallback() {
     super.disconnectedCallback();
     document.removeEventListener('visibilitychange', this.onVisibilityChange_);
+    assert(this.expandedChangedListenerId_ !== null);
+    this.browserProxy_.callbackRouter.removeListener(
+        this.expandedChangedListenerId_);
+    this.expandedChangedListenerId_ = null;
   }
 
   override willUpdate(changedProperties: PropertyValues<this>) {
@@ -111,20 +123,13 @@ export class OrganizerListSectionElement extends CrLitElement implements
     if (changedProperties.has('delegate')) {
       this.delegate?.init(this);
       this.updateItems_();
+      this.updateExpanded_();
     }
 
     if (changedProperties.has('items') ||
         changedProperties.has('searchQuery')) {
       this.updateFilteredItems_();
     }
-  }
-
-  override firstUpdated(changedProperties: PropertyValues<this>) {
-    super.firstUpdated(changedProperties);
-    // Clicking the header label focuses the inner icon button via script, which
-    // still triggers :focus-visible; track keyboard vs mouse input so CSS can
-    // hide the focus ring on mouse clicks.
-    FocusOutlineManager.forDocument(document);
   }
 
   onItemsChanged(items: Array<OrganizerListSectionItem<unknown>>) {
@@ -137,6 +142,30 @@ export class OrganizerListSectionElement extends CrLitElement implements
       return;
     }
     this.items = await this.delegate.getItems();
+  }
+
+  private async updateExpanded_() {
+    if (!this.delegate) {
+      this.expanded_ = true;
+      return;
+    }
+    const delegate = this.delegate;
+    const {expanded} =
+        await this.browserProxy_.handler.isSectionExpanded(delegate.getId());
+    if (this.delegate !== delegate) {
+      return;
+    }
+    // Disable the transition when the expanded state is loaded from prefs.
+    this.noAnimation_ = true;
+    this.expanded_ = expanded;
+    await this.updateComplete;
+    this.noAnimation_ = false;
+  }
+
+  private onSectionsExpandedChanged_(
+      sectionsExpanded: Record<string, boolean>) {
+    assert(this.delegate);
+    this.expanded_ = sectionsExpanded[this.delegate.getId()] ?? true;
   }
 
   private async updateFilteredItems_() {
@@ -168,9 +197,13 @@ export class OrganizerListSectionElement extends CrLitElement implements
   }
 
   protected onExpandedChanged_(e: CustomEvent<{value: boolean}>) {
-    if (!this.isSearching_()) {
-      this.expanded_ = e.detail.value;
+    if (this.isSearching_() || this.expanded_ === e.detail.value) {
+      return;
     }
+    this.expanded_ = e.detail.value;
+    assert(this.delegate);
+    this.browserProxy_.handler.setSectionExpanded(
+        this.delegate.getId(), this.expanded_);
   }
 
   protected hasZeroState_(): boolean {

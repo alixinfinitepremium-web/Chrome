@@ -3730,7 +3730,6 @@
                 {
                     "name": "Enabled",
                     "params": {
-                        "MigratedAutomation": "true",
                         "MigratedBadFlags": "true",
                         "MigratedChromeForTesting": "true",
                         "MigratedCollectedCookies": "true",
@@ -8599,6 +8598,22 @@
             ]
         }
     ],
+    "FormInputAccessoryIOS27InputAssistantHostViewWorkaround": [
+        {
+            "platforms": [
+                "ios"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled_20261005",
+                    "enable_features": [
+                        "FormInputAccessoryIOS27InputAssistantHostViewWorkaround"
+                    ],
+                    "min_os_version": "155"
+                }
+            ]
+        }
+    ],
     "FullscreenSignInPromoUseDate": [
         {
             "platforms": [
@@ -10425,24 +10440,6 @@
                     },
                     "enable_features": [
                         "AimButtonRefactor"
-                    ]
-                }
-            ]
-        }
-    ],
-    "IOSAimCobrowse": [
-        {
-            "platforms": [
-                "ios"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "AimCobrowse",
-                        "AimCobrowseWebSelectionSearch",
-                        "ContextManagementInComposebox",
-                        "ContextualTasks"
                     ]
                 }
             ]

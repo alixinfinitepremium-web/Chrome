@@ -5,7 +5,7 @@
 import 'chrome://organizer-panel.top-chrome/organizer_panel.js';
 
 import {organizerPanelBrowserProxyFactory, OrganizerPanelPageHandlerRemote, SearchApiProxyImpl} from 'chrome://organizer-panel.top-chrome/organizer_panel.js';
-import type {OrganizerListSectionElement, OrganizerListSectionItem, OrganizerListSectionItemElement} from 'chrome://organizer-panel.top-chrome/organizer_panel.js';
+import type {OrganizerListSectionElement, OrganizerListSectionItem, OrganizerListSectionItemElement, OrganizerPanelPageRemote} from 'chrome://organizer-panel.top-chrome/organizer_panel.js';
 import type {CrCollapseElement} from 'chrome://resources/cr_elements/cr_collapse/cr_collapse.js';
 import {html} from 'chrome://resources/lit/v3_0/lit.rollup.js';
 import {assertDeepEquals, assertEquals, assertFalse, assertTrue} from 'chrome://webui-test/chai_assert.js';
@@ -19,12 +19,17 @@ suite('OrganizerListSectionTest', () => {
   let listSection: OrganizerListSectionElement;
   let mockHandler: TestMock<OrganizerPanelPageHandlerRemote>&
       OrganizerPanelPageHandlerRemote;
+  let remotePage: OrganizerPanelPageRemote;
   let testSearchProxy: TestSearchApiProxy;
 
   setup(async () => {
     document.body.innerHTML = window.trustedTypes!.emptyHTML;
     mockHandler = TestMock.fromClass(OrganizerPanelPageHandlerRemote);
-    organizerPanelBrowserProxyFactory.setInstance({handler: mockHandler});
+    mockHandler.setPromiseResolveFor('isSectionExpanded', {expanded: true});
+    const {instance, remote} =
+        organizerPanelBrowserProxyFactory.createForTest(mockHandler);
+    organizerPanelBrowserProxyFactory.setInstance(instance);
+    remotePage = remote;
     testSearchProxy = new TestSearchApiProxy();
     SearchApiProxyImpl.setInstance(testSearchProxy);
     listSection = document.createElement('organizer-list-section');
@@ -90,11 +95,11 @@ suite('OrganizerListSectionTest', () => {
       {title: ['Tab 3'], description: [{text: 'tab3.com'}]},
       {title: ['Tab 4'], description: [{text: 'tab4.com'}]},
     ];
-    listSection.delegate = new TestSectionDelegate('Open Tabs', items);
+    listSection.delegate =
+        new TestSectionDelegate('Open Tabs', items, undefined, 'open-tabs');
     await microtasksFinished();
 
     const header = listSection.$.header;
-    const headerIcon = header.$.icon;
     const itemsContainer =
         listSection.shadowRoot.querySelector<CrCollapseElement>('#items')!;
 
@@ -104,25 +109,78 @@ suite('OrganizerListSectionTest', () => {
     assertEquals(4, renderedItems.length);
     assertTrue(header.expanded);
     assertTrue(itemsContainer.opened);
-    assertEquals('cr:keyboard-arrow-up', headerIcon.ironIcon);
-    assertEquals('true', headerIcon.getAttribute('aria-expanded'));
+    assertEquals(0, mockHandler.getCallCount('setSectionExpanded'));
 
-    header.click();
+    header.$.expandButton.click();
     await microtasksFinished();
 
     assertFalse(header.expanded);
     assertFalse(itemsContainer.opened);
-    assertEquals('cr:keyboard-arrow-down', headerIcon.ironIcon);
-    assertEquals('false', headerIcon.getAttribute('aria-expanded'));
+    assertEquals(1, mockHandler.getCallCount('setSectionExpanded'));
+    assertDeepEquals(
+        ['open-tabs', false], mockHandler.getArgs('setSectionExpanded')[0]);
 
-    header.click();
+    header.$.expandButton.click();
     await microtasksFinished();
 
     assertTrue(header.expanded);
     assertTrue(itemsContainer.opened);
-    assertEquals('cr:keyboard-arrow-up', headerIcon.ironIcon);
-    assertEquals('true', headerIcon.getAttribute('aria-expanded'));
+    assertEquals(2, mockHandler.getCallCount('setSectionExpanded'));
+    assertDeepEquals(
+        ['open-tabs', true], mockHandler.getArgs('setSectionExpanded')[1]);
   });
+
+  test(
+      'initializes collapsed when isSectionExpanded returns false',
+      async () => {
+        mockHandler.setPromiseResolveFor(
+            'isSectionExpanded', {expanded: false});
+        const items: Array<OrganizerListSectionItem<unknown>> = [
+          {title: ['Tab 1'], description: [{text: 'tab1.com'}]},
+        ];
+        listSection.delegate =
+            new TestSectionDelegate('Open Tabs', items, undefined, 'open-tabs');
+        await microtasksFinished();
+
+        const header = listSection.$.header;
+        const itemsContainer =
+            listSection.shadowRoot.querySelector<CrCollapseElement>('#items')!;
+        assertEquals('open-tabs', mockHandler.getArgs('isSectionExpanded')[0]);
+        assertFalse(header.expanded);
+        assertFalse(itemsContainer.opened);
+        assertEquals(0, mockHandler.getCallCount('setSectionExpanded'));
+      });
+
+  test(
+      'updates expanded state when onSectionsExpandedChanged is called',
+      async () => {
+        const items: Array<OrganizerListSectionItem<unknown>> = [
+          {title: ['Tab 1'], description: [{text: 'tab1.com'}]},
+        ];
+        listSection.delegate =
+            new TestSectionDelegate('Open Tabs', items, undefined, 'open-tabs');
+        await microtasksFinished();
+
+        const header = listSection.$.header;
+        const itemsContainer =
+            listSection.shadowRoot.querySelector<CrCollapseElement>('#items')!;
+        assertTrue(header.expanded);
+        assertTrue(itemsContainer.opened);
+
+        remotePage.onSectionsExpandedChanged({'open-tabs': false});
+        await microtasksFinished();
+
+        assertFalse(header.expanded);
+        assertFalse(itemsContainer.opened);
+        assertEquals(0, mockHandler.getCallCount('setSectionExpanded'));
+
+        remotePage.onSectionsExpandedChanged({'open-tabs': true});
+        await microtasksFinished();
+
+        assertTrue(header.expanded);
+        assertTrue(itemsContainer.opened);
+        assertEquals(0, mockHandler.getCallCount('setSectionExpanded'));
+      });
 
   test(
       'notifies delegate and closes panel when an item is clicked',
@@ -289,17 +347,15 @@ suite('OrganizerListSectionTest', () => {
         await microtasksFinished();
 
         const header = listSection.$.header;
-        const headerIcon = header.$.icon;
         const itemsContainer =
             listSection.shadowRoot.querySelector<CrCollapseElement>('#items')!;
 
-        header.click();
+        header.$.expandButton.click();
         await microtasksFinished();
 
         assertFalse(header.expanded);
         assertFalse(header.disabled);
         assertFalse(itemsContainer.opened);
-        assertEquals('flex', getComputedStyle(headerIcon).display);
 
         listSection.searchQuery = 'Tab';
         await microtasksFinished();
@@ -307,7 +363,6 @@ suite('OrganizerListSectionTest', () => {
         assertTrue(header.expanded);
         assertTrue(header.disabled);
         assertTrue(itemsContainer.opened);
-        assertEquals('none', getComputedStyle(headerIcon).display);
         const listItems = listSection.shadowRoot.querySelectorAll(
             'organizer-list-section-item');
         assertEquals(4, listItems.length);
@@ -318,7 +373,6 @@ suite('OrganizerListSectionTest', () => {
         assertFalse(header.expanded);
         assertFalse(header.disabled);
         assertFalse(itemsContainer.opened);
-        assertEquals('flex', getComputedStyle(headerIcon).display);
       });
 
   test('highlights matching text when searching', async () => {
