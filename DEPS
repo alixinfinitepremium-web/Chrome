@@ -386,7 +386,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling catapult
   # and whatever else without interference from each other.
-  'catapult_revision': '938c524d05870f2469f167c3cf39b62496315969',
+  'catapult_revision': 'dfbb1cd421b6413762071ee8d29c76c0d55bc4d1',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -553,7 +553,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling clusterfuzz-data
   # and whatever else without interference from each other.
-  'clusterfuzz_data_revision':'283825fdd81d83698ae199d7731fa9cfbb04a22b',
+  'clusterfuzz_data_revision':'d97a4ac211bdf4ecf56c9cf862467e9ff904bcc4',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling agents-internal
   # and whatever else without interference from each other.
