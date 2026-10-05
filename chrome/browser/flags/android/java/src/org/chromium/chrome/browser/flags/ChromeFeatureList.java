@@ -719,8 +719,6 @@ public abstract class ChromeFeatureList {
     public static final String PERSIST_ACROSS_REBOOTS_DEBUG_LOGS = "PersistAcrossRebootsDebugLogs";
     public static final String PICTURE_IN_PICTURE_MOVES_TOOLBAR_ANDROID =
             "PictureInPictureMovesToolbarAndroid";
-    public static final String POWER_SAVING_MODE_BROADCAST_RECEIVER_IN_BACKGROUND =
-            "PowerSavingModeBroadcastReceiverInBackground";
     public static final String PRECONNECT_ON_TAB_CREATION = "PreconnectOnTabCreation";
     public static final String PREPOPULATED_ENGINES_SHADOW_VARIANTS =
             "PrepopulatedEnginesShadowVariants";
@@ -894,8 +892,6 @@ public abstract class ChromeFeatureList {
     public static final String USE_APP_TASK_FOR_CUSTOM_TAB_ACTIVATION =
             "UseAppTaskForCustomTabActivation";
     public static final String USE_CHIME_ANDROID_SDK = "UseChimeAndroidSdk";
-    public static final String USE_LIBUNWINDSTACK_NATIVE_UNWINDER_ANDROID =
-            "UseLibunwindstackNativeUnwinderAndroid";
     public static final String USE_P_LINK_IN_HELP = "UsePLinkInHelp";
     public static final String USE_WEB_UI_BOOKMARKS_ANDROID = "UseWebUiBookmarksAndroid";
     public static final String USE_WEB_UI_NTP_3P_DSE = "UseWebUiNtp3PDSE";
@@ -1171,7 +1167,7 @@ public abstract class ChromeFeatureList {
     public static final CachedFlag sDocumentPictureInPictureAPI =
             newCachedFlag(DOCUMENT_PICTURE_IN_PICTURE_API, false, /* defaultValueInTests= */ true);
     public static final CachedFlag sEdgeToEdgeAutomotive =
-            newCachedFlag(EDGE_TO_EDGE_AUTOMOTIVE, /* defaultValue= */ false);
+            newCachedFlag(EDGE_TO_EDGE_AUTOMOTIVE, /* defaultValue= */ true);
     public static final CachedFlag sEdgeToEdgeBottomChin =
             newCachedFlag(EDGE_TO_EDGE_BOTTOM_CHIN, /* defaultValue= */ true);
     public static final CachedFlag sEdgeToEdgeEverywhere =
@@ -1352,8 +1348,6 @@ public abstract class ChromeFeatureList {
                     PICTURE_IN_PICTURE_MOVES_TOOLBAR_ANDROID,
                     /* defaultValue= */ false,
                     /* defaultValueInTests= */ true);
-    public static final CachedFlag sPowerSavingModeBroadcastReceiverInBackground =
-            newCachedFlag(POWER_SAVING_MODE_BROADCAST_RECEIVER_IN_BACKGROUND, true);
     public static final CachedFlag sPriceChangeModule = newCachedFlag(PRICE_CHANGE_MODULE, true);
     public static final CachedFlag sProtectRecentlyVisibleTab =
             newCachedFlag(PROTECT_RECENTLY_VISIBLE_TAB, false);
@@ -1472,8 +1466,6 @@ public abstract class ChromeFeatureList {
             newCachedFlag(USE_APP_TASK_FOR_CUSTOM_TAB_ACTIVATION, /* defaultValue= */ true);
     public static final CachedFlag sUseChimeAndroidSdk =
             newCachedFlag(USE_CHIME_ANDROID_SDK, false);
-    public static final CachedFlag sUseLibunwindstackNativeUnwinderAndroid =
-            newCachedFlag(USE_LIBUNWINDSTACK_NATIVE_UNWINDER_ANDROID, true);
     public static final CachedFlag sUseWebUiBookmarksAndroid =
             newCachedFlag(USE_WEB_UI_BOOKMARKS_ANDROID, /* defaultValue= */ false);
     public static final CachedFlag sUseWebUiNtp3PDSE = newCachedFlag(USE_WEB_UI_NTP_3P_DSE, false);
@@ -1653,7 +1645,6 @@ public abstract class ChromeFeatureList {
                     sPersistAcrossReboots,
                     sPersistAcrossRebootsDebugLogs,
                     sPictureInPictureMovesToolbarAndroid,
-                    sPowerSavingModeBroadcastReceiverInBackground,
                     sPriceChangeModule,
                     sProtectRecentlyVisibleTab,
                     sQueuedCompositorWebContentsUpdates,
@@ -1692,7 +1683,6 @@ public abstract class ChromeFeatureList {
                     sUseActivityManagerForTabActivation,
                     sUseAppTaskForCustomTabActivation,
                     sUseChimeAndroidSdk,
-                    sUseLibunwindstackNativeUnwinderAndroid,
                     sUseWebUiBookmarksAndroid,
                     sUseWebUiNtp3PDSE,
                     sUseWebUiNtpAndroid,
@@ -1989,7 +1979,7 @@ public abstract class ChromeFeatureList {
 
     // go/keep-sorted start
     public static final BooleanCachedFeatureParam sAndroidBottomBarAlwaysUseFilledGlicIcon =
-            newBooleanCachedFeatureParam(ANDROID_BOTTOM_BAR, "always_use_filled_glic_icon", false);
+            newBooleanCachedFeatureParam(ANDROID_BOTTOM_BAR, "always_use_filled_glic_icon", true);
     public static final BooleanCachedFeatureParam sAndroidBottomBarBypassGlicGeofencing =
             newBooleanCachedFeatureParam(ANDROID_BOTTOM_BAR, "bypass_glic_geofencing", false);
     public static final BooleanCachedFeatureParam sAndroidBottomBarDisableOnNtp =

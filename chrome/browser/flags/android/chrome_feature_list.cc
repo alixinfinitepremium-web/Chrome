@@ -467,7 +467,6 @@ const base::Feature* const kFeaturesExposedToJava[] = {
     &kPersistAcrossReboots,
     &kPersistAcrossRebootsDebugLogs,
     &kPictureInPictureMovesToolbarAndroid,
-    &kPowerSavingModeBroadcastReceiverInBackground,
     &kPreconnectOnTabCreation,
     &kPriceChangeModule,
     &kPrintFallbackToPrimaryMainFrame,
@@ -544,7 +543,6 @@ const base::Feature* const kFeaturesExposedToJava[] = {
     &kUnparcelIntentFileDescriptors,
     &kUseActivityManagerForTabActivation,
     &kUseAppTaskForCustomTabActivation,
-    &kUseLibunwindstackNativeUnwinderAndroid,
     &kUsePLinkInHelp,
     &kUseWebUiBookmarksAndroid,
     &kUseWebUiNtp3PDSE,
@@ -827,7 +825,7 @@ BASE_FEATURE(kDisableScrollbarOfFadingEdgeScrollView, base::FEATURE_ENABLED_BY_D
 BASE_FEATURE(kDiscardPageWithCrashedSubframePolicy, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kDontAutoHideBrowserControls, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kDownloadToolbarButtonForDesktop, base::FEATURE_DISABLED_BY_DEFAULT);
-BASE_FEATURE(kEdgeToEdgeAutomotive, base::FEATURE_DISABLED_BY_DEFAULT);
+BASE_FEATURE(kEdgeToEdgeAutomotive, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kEdgeToEdgeBottomChin, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kEdgeToEdgeEverywhere, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kEdgeToEdgeExtraLogs, base::FEATURE_DISABLED_BY_DEFAULT);
@@ -903,7 +901,6 @@ BASE_FEATURE(kPdfReuseFragment, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kPersistAcrossReboots, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kPersistAcrossRebootsDebugLogs, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kPictureInPictureMovesToolbarAndroid, base::FEATURE_DISABLED_BY_DEFAULT);
-BASE_FEATURE(kPowerSavingModeBroadcastReceiverInBackground, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kPreconnectOnTabCreation, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kPriceChangeModule, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kPrintFallbackToPrimaryMainFrame, base::FEATURE_ENABLED_BY_DEFAULT);
@@ -986,9 +983,6 @@ BASE_FEATURE(kUnparcelIntentFileDescriptors, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kUseActivityManagerForTabActivation, base::FEATURE_ENABLED_BY_DEFAULT);
 // Use AppTask.startActivity to bypass Background Activity Launch (BAL) restrictions.
 BASE_FEATURE(kUseAppTaskForCustomTabActivation, base::FEATURE_ENABLED_BY_DEFAULT);
-// Use the LibunwindstackNativeUnwinderAndroid for only browser main thread, and
-// only on Android.
-BASE_FEATURE(kUseLibunwindstackNativeUnwinderAndroid, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kUsePLinkInHelp, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kUseWebUiBookmarksAndroid, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kUseWebUiNtp3PDSE, base::FEATURE_DISABLED_BY_DEFAULT);

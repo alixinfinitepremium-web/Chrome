@@ -1365,21 +1365,6 @@
             ]
         }
     ],
-    "ApplyDeviceChoiceRenewal": [
-        {
-            "platforms": [
-                "android"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled_20260706",
-                    "enable_features": [
-                        "ApplyDeviceChoiceRenewal"
-                    ]
-                }
-            ]
-        }
-    ],
     "ArcBlockIoScheduler": [
         {
             "platforms": [
@@ -3745,6 +3730,7 @@
                 {
                     "name": "Enabled",
                     "params": {
+                        "MigratedAutomation": "true",
                         "MigratedBadFlags": "true",
                         "MigratedChromeForTesting": "true",
                         "MigratedCollectedCookies": "true",
@@ -10129,6 +10115,21 @@
                     "name": "Enabled",
                     "enable_features": [
                         "PageContextPdf"
+                    ]
+                }
+            ]
+        }
+    ],
+    "HeliosQuizzes": [
+        {
+            "platforms": [
+                "ios"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "GeminiQuizzes"
                     ]
                 }
             ]
