@@ -368,6 +368,7 @@ const base::Feature* const kFeaturesExposedToJava[] = {
     &kClearIntentWhenRecreated,
     &kCommandLineOnNonRooted,
     &kCompositorViewRemeasureFix,
+    &kCompositorViewShrinkWhenKeyboardHidden,
     &kContextualPanelCloseButton,
     &kContextualSearchDisableOnlineDetection,
     &kContextualSearchSuppressShortView,
@@ -438,6 +439,7 @@ const base::Feature* const kFeaturesExposedToJava[] = {
     &kLockTopControlsOnLargeTabletsV2,
     &kLongScreenshotsLenientMemoryCheck,
     &kLongScreenshotsNoMemoryCheck,
+    &kLongScreenshotsNumViewports,
     &kMayLaunchUrlUsesSeparateStoragePartition,
     &kMostVisitedTilesCustomization,
     &kMostVisitedTilesReselect,
@@ -796,6 +798,7 @@ BASE_FEATURE(kClankWhatsNew, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kClearIntentWhenRecreated, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kCommandLineOnNonRooted, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kCompositorViewRemeasureFix, base::FEATURE_ENABLED_BY_DEFAULT);
+BASE_FEATURE(kCompositorViewShrinkWhenKeyboardHidden, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kContextualPanelCloseButton, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kContextualSearchDisableOnlineDetection, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kContextualSearchSuppressShortView, base::FEATURE_DISABLED_BY_DEFAULT);
@@ -868,6 +871,7 @@ BASE_FEATURE(kLoadAllTabsAtStartup, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kLockTopControlsOnLargeTabletsV2, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kLongScreenshotsLenientMemoryCheck, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kLongScreenshotsNoMemoryCheck, base::FEATURE_DISABLED_BY_DEFAULT);
+BASE_FEATURE(kLongScreenshotsNumViewports, base::FEATURE_DISABLED_BY_DEFAULT);
 // Enables an experimental feature which forces mayLaunchUrl to use a different
 // storage partition. This may reduce performance. This should not be enabled by
 // default.

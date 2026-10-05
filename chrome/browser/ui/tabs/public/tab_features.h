@@ -122,6 +122,10 @@ namespace back_to_opener {
 class BackToOpenerController;
 }  // namespace back_to_opener
 
+namespace blocked_content {
+class PopupOpenerTabHelper;
+}  // namespace blocked_content
+
 namespace autofill {
 class BubbleManager;
 class GmailOtpOptInBubbleController;
@@ -345,6 +349,7 @@ class RecentTabHelper;
 
 #if BUILDFLAG(SAFE_BROWSING_AVAILABLE)
 namespace safe_browsing {
+class SafeBrowsingTabObserver;
 class TailoredSecurityUrlObserver;
 }  // namespace safe_browsing
 #endif
@@ -951,6 +956,8 @@ class TabFeatures {
       site_protection_metrics_observer_;
 
 #if BUILDFLAG(SAFE_BROWSING_AVAILABLE)
+  std::unique_ptr<safe_browsing::SafeBrowsingTabObserver>
+      safe_browsing_tab_observer_;
   std::unique_ptr<safe_browsing::TailoredSecurityUrlObserver>
       tailored_security_url_observer_;
 #endif
@@ -1003,6 +1010,9 @@ class TabFeatures {
 
   std::unique_ptr<metrics::MetricsServicesWebContentsObserver>
       metrics_services_web_contents_observer_;
+
+  std::unique_ptr<blocked_content::PopupOpenerTabHelper>
+      popup_opener_tab_helper_;
 
   // Must be the last member.
   base::WeakPtrFactory<TabFeatures> weak_factory_{this};

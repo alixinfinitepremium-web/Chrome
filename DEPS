@@ -326,7 +326,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '886f92e7d6df831e696873af9e97dddd47b4c156',
+  'src_internal_revision': '485d561fc90423257d31a32262f46081529cd13f',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -338,7 +338,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '906ad3fd30715befeb5a6fb01a4fabf1c9cdb15a',
+  'angle_revision': 'ed4af189c9d11ebb4c4ad3aab313d79a73ce6340',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -386,11 +386,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling catapult
   # and whatever else without interference from each other.
-  'catapult_revision': 'dfbb1cd421b6413762071ee8d29c76c0d55bc4d1',
+  'catapult_revision': 'b73cee3883e7282583f9ce2ebab22a5d7b5e542e',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': '3d2deaf5e428e05b1e5e712d1412cc929c72a97b',
+  'crossbench_revision': '93adfc471d7642fe33153f7b6cdf2e625b16309a',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -1550,7 +1550,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_arm64',
-          'version': 'version:2@1705036',
+          'version': 'version:2@1706061',
         },
       ],
   },
@@ -1561,7 +1561,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_x86',
-          'version': 'version:2@1705072',
+          'version': 'version:2@1706065',
         },
       ],
   },
@@ -1572,7 +1572,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_x86_64',
-          'version': 'version:2@1705212',
+          'version': 'version:2@1706066',
         },
       ],
   },
@@ -1900,7 +1900,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/android_build_tools/aapt2/${{platform}}',
-              'version': 'version:2@9.5.0-alpha07-15978811',
+              'version': 'version:2@9.5.0-alpha08-16409357',
           },
       ],
       'condition': 'checkout_android and non_git_source and '
@@ -2246,7 +2246,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '07d4528c89767a7d3b5b8aab6bc942c4aabd3f6d',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '0013bcb18ef75f4bfde65099a1a82c7bbe0dfd0d',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '173b9b26e8fcbcbe64e1ecbf073a21a96b95c6b1',

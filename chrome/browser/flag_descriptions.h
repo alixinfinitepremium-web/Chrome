@@ -1853,9 +1853,6 @@ inline constexpr char kActorStepProgressNotificationDescription[] =
 inline constexpr char kGlicCaptureRegionDescription[] =
     "Enables Glic to capture a region of the screen.";
 inline constexpr char kGlicCaptureRegionName[] = "Glic Capture Region";
-inline constexpr char kGlicChromeStatusIconName[] = "Glic Chrome Status Icon";
-inline constexpr char kGlicChromeStatusIconDescription[] =
-    "Use the Chrome logo as glic OS status bar icon on Mac.";
 inline constexpr char kGlicOSIconVariantName[] = "Glic OS Status Icon Variant";
 inline constexpr char kGlicOSIconVariantDescription[] =
     "Select the variant of the Glic OS status bar icon on Mac.";
@@ -1885,10 +1882,6 @@ inline constexpr char kGlicPdfSummarizeDescription[] =
 inline constexpr char kGlicWarmingName[] = "Glic Pre-Warming";
 inline constexpr char kGlicWarmingDescription[] =
     "Enables the pre-warming of the Glic panel's web client.";
-inline constexpr char kGlicContextualCueBubbleName[] =
-    "Glic contextual cue bubble";
-inline constexpr char kGlicContextualCueBubbleDescription[] =
-    "Show glic contextual cues in a bubble UI.";
 
 inline constexpr char kGlicDaisyChainNewTabsName[] =
     "Glic Daisy chain new tabs";
@@ -6041,6 +6034,13 @@ inline constexpr char kCompositorViewRemeasureFixDescription[] =
     "When this is enabled, the CompositorView will use different calculations "
     "in its onMeasure pass, with the goal of fixing certain measure "
     "calculations.";
+
+inline constexpr char kCompositorViewShrinkWhenKeyboardHiddenName[] =
+    "compositor-view-shrink-when-keyboard-hidden";
+inline constexpr char kCompositorViewShrinkWhenKeyboardHiddenDescription[] =
+    "When enabled, the CompositorView only keeps its largest measured height "
+    "while the soft keyboard is showing, and shrinks to the requested height "
+    "once the keyboard is hidden.";
 
 inline constexpr char kContextualSearchSuppressShortViewName[] =
     "Contextual Search suppress short view";

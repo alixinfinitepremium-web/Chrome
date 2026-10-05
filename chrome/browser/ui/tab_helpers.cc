@@ -12,7 +12,6 @@
 #include "base/command_line.h"
 #include "base/feature_list.h"
 #include "base/logging.h"
-#include "base/time/default_tick_clock.h"
 #include "base/trace_event/trace_event.h"
 #include "build/build_config.h"
 #include "chrome/browser/bookmarks/bookmark_model_factory.h"
@@ -65,7 +64,6 @@
 #include "chrome/common/chrome_features.h"
 #include "chrome/common/chrome_switches.h"
 #include "components/blocked_content/popup_blocker_tab_helper.h"
-#include "components/blocked_content/popup_opener_tab_helper.h"
 #include "components/breadcrumbs/core/breadcrumbs_status.h"
 #include "components/content_settings/browser/page_specific_content_settings.h"
 #include "components/dom_distiller/core/dom_distiller_features.h"
@@ -142,10 +140,8 @@
 
 #if BUILDFLAG(SAFE_BROWSING_AVAILABLE)
 #include "chrome/browser/safe_browsing/chrome_password_reuse_detection_manager_client.h"
-#include "chrome/browser/safe_browsing/chrome_safe_browsing_tab_observer_delegate.h"
 #include "chrome/browser/safe_browsing/safe_browsing_service.h"
 #include "chrome/browser/safe_browsing/trigger_creator.h"
-#include "components/safe_browsing/content/browser/safe_browsing_tab_observer.h"
 #endif
 
 using content::WebContents;
@@ -301,9 +297,6 @@ void TabHelpers::AttachTabHelpers(WebContents* web_contents,
   // The PopupBlockerTabHelper has an implicit dependency on
   // ChromeSubresourceFilterClient being available in its constructor.
   blocked_content::PopupBlockerTabHelper::CreateForWebContents(web_contents);
-  blocked_content::PopupOpenerTabHelper::CreateForWebContents(
-      web_contents, base::DefaultTickClock::GetInstance(),
-      HostContentSettingsMapFactory::GetForProfile(profile));
   if (predictors::LoadingPredictorFactory::GetForProfile(profile)) {
     predictors::LoadingPredictorTabHelper::CreateForWebContents(web_contents);
   }
@@ -332,19 +325,6 @@ void TabHelpers::AttachTabHelpers(WebContents* web_contents,
         web_contents, g_browser_process->safe_browsing_service()->ui_manager(),
         safe_browsing::AsyncCheckTracker::
             IsPlatformEligibleForSyncCheckerCheckAllowlist());
-  }
-  // SafeBrowsingTabObserver creates a ClientSideDetectionHost, which observes
-  // events from PermissionRequestManager and AsyncCheckTracker in its
-  // constructor. Therefore, PermissionRequestManager and AsyncCheckTracker need
-  // to be created before SafeBrowsingTabObserver is created.
-  // ClientSideDetectionHost uses ScopedAutofillManagersObservation which
-  // expects ContentAutofillClient (gated by enable_browser_autofill) to be
-  // created.
-  if (enable_browser_autofill) {
-    safe_browsing::SafeBrowsingTabObserver::CreateForWebContents(
-        web_contents,
-        std::make_unique<
-            safe_browsing::ChromeSafeBrowsingTabObserverDelegate>());
   }
   safe_browsing::TriggerCreator::MaybeCreateTriggersForWebContents(
       profile, web_contents);

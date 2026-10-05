@@ -2177,6 +2177,11 @@
     "expiry_milestone": 155
   },
   {
+    "name": "compositor-view-shrink-when-keyboard-hidden",
+    "owners": ["ckitagawa@chromium.org", "clank-tab-dev@google.com"],
+    "expiry_milestone": 162
+  },
+  {
     "name": "conch",
     "owners": ["hsuanling@google.com", "chromeos-recorder-app@google.com"],
     "expiry_milestone": 160
@@ -5770,19 +5775,9 @@
     "expiry_milestone": 160
   },
   {
-    "name": "glic-chrome-status-icon",
-    "owners": [ "iwells@chromium.org", "//chrome/browser/glic/OWNERS" ],
-    "expiry_milestone": 150
-  },
-  {
     "name": "glic-context-menu-below-search",
     "owners": [ "sanaakbani@google.com", "//chrome/browser/glic/OWNERS" ],
     "expiry_milestone": 160
-  },
-  {
-    "name": "glic-contextual-cue-bubble",
-    "owners": [ "iwells@chromium.org" ],
-    "expiry_milestone": 150
   },
   {
     "name": "glic-contextual-cue-v2-active-user-backoff",

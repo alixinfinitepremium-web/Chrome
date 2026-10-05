@@ -33,6 +33,10 @@ namespace actor::ui {
 class ActorUiTabControllerInterface;
 }  // namespace actor::ui
 
+namespace blocked_content {
+class PopupOpenerTabHelper;
+}  // namespace blocked_content
+
 namespace chrome_browser_net {
 class NetErrorTabHelper;
 }  // namespace chrome_browser_net
@@ -115,6 +119,7 @@ class NoStatePrefetchTabHelper;
 
 #if BUILDFLAG(SAFE_BROWSING_AVAILABLE)
 namespace safe_browsing {
+class SafeBrowsingTabObserver;
 class TailoredSecurityUrlObserver;
 }  // namespace safe_browsing
 #endif
@@ -271,6 +276,8 @@ class TabFeatures {
   std::unique_ptr<site_protection::SiteProtectionMetricsObserver>
       site_protection_metrics_observer_;
 #if BUILDFLAG(SAFE_BROWSING_AVAILABLE)
+  std::unique_ptr<safe_browsing::SafeBrowsingTabObserver>
+      safe_browsing_tab_observer_;
   std::unique_ptr<safe_browsing::TailoredSecurityUrlObserver>
       tailored_security_url_observer_;
 #endif
@@ -311,6 +318,8 @@ class TabFeatures {
   std::unique_ptr<commerce::CommerceTabHelper> commerce_tab_helper_;
   std::unique_ptr<metrics::MetricsServicesWebContentsObserver>
       metrics_services_web_contents_observer_;
+  std::unique_ptr<blocked_content::PopupOpenerTabHelper>
+      popup_opener_tab_helper_;
 
   // Holds the WebUI embedding context subscription.
   base::CallbackListSubscription tab_subscription_;
