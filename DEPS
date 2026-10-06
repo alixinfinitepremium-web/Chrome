@@ -1868,7 +1868,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': 'F-zm1xVx0Jv57JfJSiX4vpzU4MedagyImLl715RhHJgC',
+          'version': 'YGSKZzADkLcbOLQK_JqRj9c39AFT8CryZzsrcAQ1cKQC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
@@ -2843,7 +2843,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '769b565fbfbea38436296918a474e8dd02dddab8',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '314e6ee50176aacc158e94b894ad3babb19ca829',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
