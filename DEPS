@@ -334,7 +334,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': '962d53a08198f075f86ae0a46fa418d1dffd027e',
+  'v8_revision': '98af42ef1c57893c49b19f78eea417e35acc6afe',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -553,7 +553,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling clusterfuzz-data
   # and whatever else without interference from each other.
-  'clusterfuzz_data_revision':'06cee52d93052178192b820aca54ceac00cc1149',
+  'clusterfuzz_data_revision':'33059d9930a436dd085fb06debfb53e9b0c9fdcb',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling agents-internal
   # and whatever else without interference from each other.
