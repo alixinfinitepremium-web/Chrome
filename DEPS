@@ -330,7 +330,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '84068ebf574dd6c8503ac3e6a02a1ff2f0633fbd',
+  'skia_revision': '5fd6b15d84501ce94f04d4f91a29cf9ba5ffa9cd',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -390,7 +390,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': '11384fe6f4af28f41006588b2876da943649c20b',
+  'crossbench_revision': 'c89617981b3ded6b3f3600258cd9868730e80087',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -2029,8 +2029,8 @@ deps = {
               'version': Var('android_sdk_platforms_version'),
           },
           {
-              'package': 'chromium/third_party/android_sdk/public/cmdline-tools/linux',
-              'version': 'wHWB9RnuqfRvgikpCf-UwlPHuGRuBzvxzVBMQI0tHtEC',
+              'package': 'chromium/third_party/android_sdk/public/cmdline-tools/${{os}}',
+              'version': 'version_23.0.0',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -3275,7 +3275,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '82b9f73de3245aa7ad3009b3c75cec89d44fa277',
+    Var('webrtc_git') + '/src.git' + '@' + '84f4318ae74235f9b46c12991ab54d8d1e3eec5b',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.

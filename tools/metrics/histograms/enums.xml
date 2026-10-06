@@ -17081,6 +17081,7 @@ from previous Chrome versions.
   <int value="659051425"
       label="AdaptiveButtonInTopToolbarCustomizationV2:disabled"/>
   <int value="659086147" label="OverlayScrollbarFlashWhenMouseEnter:enabled"/>
+  <int value="659345844" label="GlicReuseCookies:enabled"/>
   <int value="659775785" label="(Obsolete) disable-simplified-fullscreen-ui"/>
   <int value="660018273"
       label="Prerender2EarlyDocumentLifecycleUpdate:enabled"/>
@@ -18075,6 +18076,7 @@ from previous Chrome versions.
       label="AutofillDropNamesWithInvalidCharactersForCardUpload:enabled"/>
   <int value="960883599" label="IPH_SupervisedUserProfileSignin:enabled"/>
   <int value="961019394" label="IOSPromoRefreshedPasswordBubble:disabled"/>
+  <int value="961134466" label="GlicReuseCookies:disabled"/>
   <int value="962191833" label="StopAppIndexingReport:disabled"/>
   <int value="963054071" label="MlUrlPiecewiseMappedSearchBlending:enabled"/>
   <int value="963457392" label="ChromeHomeModernLayout:disabled"/>
@@ -25123,6 +25125,7 @@ Called by update_net_error_codes.py.-->
   <int value="7" label="Failed: BSA Other"/>
   <int value="8" label="Failed: OAuth Token Transient"/>
   <int value="9" label="Failed: OAuth Token Persistent"/>
+  <int value="10" label="Failed: Account in Error State"/>
 </enum>
 
 <!-- LINT.ThenChange(//components/private_ai/phosphor/data_types.h:GetAuthnTokensResult) -->
@@ -25158,6 +25161,7 @@ Called by update_net_error_codes.py.-->
   <int value="22" label="ClientAttestationFailedRequestNotSent"/>
   <int value="23" label="ClientAttestationPresumedRejectedByServer"/>
   <int value="24" label="ClientAttestationFailedConnectionAborted"/>
+  <int value="25" label="AccountNotAvailable"/>
 </enum>
 
 <!-- LINT.ThenChange(//components/private_ai/status_code.h:StatusCode) -->
