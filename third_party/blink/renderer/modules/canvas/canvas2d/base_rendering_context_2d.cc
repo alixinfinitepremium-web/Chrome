@@ -40,6 +40,7 @@
 #include "cc/paint/skia_paint_canvas.h"
 #include "components/viz/common/resources/shared_image_format.h"
 #include "components/viz/common/resources/shared_image_format_utils.h"
+#include "gpu/command_buffer/common/shared_image_usage.h"
 #include "skia/ext/legacy_display_globals.h"
 #include "third_party/abseil-cpp/absl/cleanup/cleanup.h"
 #include "third_party/blink/public/common/features.h"
@@ -192,6 +193,11 @@ const MemoryManagedPaintRecorder* BaseRenderingContext2D::Recorder() const {
   return recorder_.get();
 }
 
+Canvas2DResourceProvider* BaseRenderingContext2D::GetSharedImageProvider()
+    const {
+  return shared_image_provider_.get();
+}
+
 bool BaseRenderingContext2D::HasResourceProvider() const {
   return shared_image_provider_ != nullptr || surface_ != nullptr;
 }
@@ -245,6 +251,31 @@ base::ByteSize BaseRenderingContext2D::AllocatedBufferSize() const {
   return base::ByteSize();
 }
 
+void BaseRenderingContext2D::CreateSharedImageProvider(
+    RasterMode raster_mode,
+    gpu::SharedImageUsageSet shared_image_usage_flags) {
+  shared_image_provider_ = Canvas2DResourceProvider::CreateWithClear(
+      Host()->Size(), color_params_.GetSharedImageFormat(),
+      color_params_.GetAlphaType(), color_params_.GetGfxColorSpace(),
+      color_params_.GetGfxHdrMetadata(),
+      SharedGpuContext::ContextProviderWrapper(), raster_mode,
+      shared_image_usage_flags, Host());
+}
+
+void BaseRenderingContext2D::CreateSharedImageProviderForSoftwareCompositor() {
+  shared_image_provider_ =
+      Canvas2DResourceProvider::CreateWithClearForSoftwareCompositor(
+          Host()->Size(), color_params_.GetSharedImageFormat(),
+          color_params_.GetAlphaType(), color_params_.GetGfxColorSpace(),
+          color_params_.GetGfxHdrMetadata(),
+          SharedGpuContext::SharedImageInterfaceProvider(), Host());
+}
+
+void BaseRenderingContext2D::SetSharedImageProviderForTesting(
+    std::unique_ptr<Canvas2DResourceProvider> provider) {
+  shared_image_provider_ = std::move(provider);
+}
+
 void BaseRenderingContext2D::CreateBitmapProvider() {
   const gfx::Size size = Host()->Size();
   const viz::SharedImageFormat format = color_params_.GetSharedImageFormat();
@@ -267,6 +298,21 @@ void BaseRenderingContext2D::CreateBitmapProvider() {
   sw_snapshot_paint_image_id_ = cc::PaintImage::GetNextId();
   sw_snapshot_paint_image_content_id_ = cc::PaintImage::kInvalidContentId;
   sw_snapshot_sk_image_id_ = 0u;
+}
+
+void BaseRenderingContext2D::RecordResourceProviderHistograms() {
+  CHECK(HasResourceProvider());
+  if (shared_image_provider_) {
+    base::UmaHistogramBoolean("Blink.Canvas.ResourceProviderIsAccelerated",
+                              shared_image_provider_->IsAccelerated());
+    base::UmaHistogramEnumeration("Blink.Canvas.ResourceProviderType",
+                                  CanvasResourceProviderType::kSharedImage);
+  } else {
+    base::UmaHistogramBoolean("Blink.Canvas.ResourceProviderIsAccelerated",
+                              false);
+    base::UmaHistogramEnumeration("Blink.Canvas.ResourceProviderType",
+                                  CanvasResourceProviderType::kBitmap);
+  }
 }
 
 void BaseRenderingContext2D::OnMemoryDump(

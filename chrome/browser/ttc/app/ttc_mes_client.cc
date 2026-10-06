@@ -83,6 +83,8 @@ ServerJournalEvent::Type ToServerJournalEventType(
       return ServerJournalEvent::Type::kAsyncBegin;
     case optimization_guide::proto::JournalEvent::JOURNAL_EVENT_TYPE_ASYNC_END:
       return ServerJournalEvent::Type::kAsyncEnd;
+    case optimization_guide::proto::JournalEvent::JOURNAL_EVENT_TYPE_CLOCK_SYNC:
+      return ServerJournalEvent::Type::kClockSync;
     case optimization_guide::proto::JournalEvent::
         JOURNAL_EVENT_TYPE_UNSPECIFIED:
     default:
@@ -90,10 +92,17 @@ ServerJournalEvent::Type ToServerJournalEventType(
   }
 }
 
+base::Time ToTime(const optimization_guide::proto::Timestamp& proto_timestamp) {
+  return base::Time::UnixEpoch() + base::Seconds(proto_timestamp.seconds()) +
+         base::Nanoseconds(proto_timestamp.nanos());
+}
+
 ServerJournalEvent ToServerJournalEvent(
     const optimization_guide::proto::JournalEvent& proto_event) {
   ServerJournalEvent event;
-  event.timestamp_us = proto_event.timestamp_us();
+  if (proto_event.has_timestamp()) {
+    event.timestamp = ToTime(proto_event.timestamp());
+  }
   event.type = ToServerJournalEventType(proto_event.type());
   event.name = proto_event.name();
   event.details.reserve(proto_event.details_size());
@@ -101,6 +110,9 @@ ServerJournalEvent ToServerJournalEvent(
     event.details.push_back({detail.key(), detail.value()});
   }
   event.async_event_id = proto_event.async_event_id();
+  if (proto_event.has_sync_timestamp()) {
+    event.sync_timestamp = ToTime(proto_event.sync_timestamp());
+  }
   return event;
 }
 
