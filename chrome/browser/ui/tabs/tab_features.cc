@@ -181,6 +181,7 @@
 #if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_LINUX) || \
     BUILDFLAG(IS_CHROMEOS)
 #include "chrome/browser/contextual_tasks/contextual_tasks_tab_visit_tracker.h"
+#include "chrome/browser/contextual_tasks/copy_search_journey_tab_feature.h"
 #include "chrome/browser/record_replay/chrome_record_replay_client.h"
 #include "chrome/browser/ui/views/location_bar/record_replay_page_action_controller.h"
 #include "chrome/browser/wallet/chrome_walletable_pass_client.h"
@@ -300,6 +301,11 @@
 #if BUILDFLAG(ENABLE_OFFLINE_PAGES)
 #include "chrome/browser/offline_pages/offline_page_tab_helper.h"
 #include "chrome/browser/offline_pages/recent_tab_helper.h"
+#endif
+
+#include "printing/buildflags/buildflags.h"
+#if BUILDFLAG(ENABLE_PRINTING)
+#include "chrome/browser/printing/printing_init.h"
 #endif
 
 #if BUILDFLAG(SAFE_BROWSING_AVAILABLE)
@@ -772,6 +778,13 @@ void TabFeatures::Init(TabInterface& tab, Profile* profile) {
             .CreateInstance<contextual_tasks::ContextualTasksTabVisitTracker>(
                 tab, tab);
   }
+
+  if (contextual_tasks::IsCopyTextJourneysEnabled()) {
+    copy_search_journey_tab_feature_ =
+        GetUserDataFactory()
+            .CreateInstance<contextual_tasks::CopySearchJourneyTabFeature>(tab,
+                                                                           tab);
+  }
 #endif
 
 #if BUILDFLAG(IS_WIN)
@@ -1185,6 +1198,10 @@ void TabFeatures::Init(TabInterface& tab, Profile* profile) {
   if (MediaEngagementService::IsEnabled()) {
     MediaEngagementService::CreateWebContentsObserver(tab.GetContents());
   }
+
+#if BUILDFLAG(ENABLE_PRINTING)
+  printing::InitializePrintingForWebContents(tab.GetContents());
+#endif
 }
 
 TabUIHelper* TabFeatures::SetTabUIHelperForTesting(
@@ -1702,6 +1719,10 @@ void TabFeatures::WillDiscardContents(tabs::TabInterface* tab,
   if (MediaEngagementService::IsEnabled()) {
     MediaEngagementService::CreateWebContentsObserver(new_contents);
   }
+
+#if BUILDFLAG(ENABLE_PRINTING)
+  printing::InitializePrintingForWebContents(new_contents);
+#endif
 }
 
 customize_chrome::SidePanelController*

@@ -1812,10 +1812,6 @@ BASE_FEATURE(kVcSegmentationModel,
 // conferencing face retouch models.
 BASE_FEATURE(kVcRetouchInferenceBackend, base::FEATURE_DISABLED_BY_DEFAULT);
 
-// Enables or disables Studio Look and VC settings for ChromeOS video
-// conferencing.
-BASE_FEATURE(kVcStudioLook, base::FEATURE_ENABLED_BY_DEFAULT);
-
 // Enables or disables mic indicator inside VC tray title header
 BASE_FEATURE(kVcTrayMicIndicator,
              "VCTrayMicIndicator",
@@ -1977,18 +1973,6 @@ BASE_FEATURE(kHappinessTrackingSystemAudio,
 // Enables or disables the Happiness Tracking System for Bluetooth Audio survey.
 BASE_FEATURE(kHappinessTrackingSystemBluetoothAudio,
              "HappinessTrackingBluetoothAudio",
-             base::FEATURE_DISABLED_BY_DEFAULT);
-
-// Enables the Happiness Tracking System for Personalization Avatar survey.
-BASE_FEATURE(kHappinessTrackingPersonalizationAvatar,
-             base::FEATURE_DISABLED_BY_DEFAULT);
-
-// Enables the Happiness Tracking System for Personalization Screensaver survey.
-BASE_FEATURE(kHappinessTrackingPersonalizationScreensaver,
-             base::FEATURE_DISABLED_BY_DEFAULT);
-
-// Enables the Happiness Tracking System for Personalization Wallpaper survey.
-BASE_FEATURE(kHappinessTrackingPersonalizationWallpaper,
              base::FEATURE_DISABLED_BY_DEFAULT);
 
 // Enables the Happiness Tracking System for Media App PDF survey.
@@ -3036,10 +3020,6 @@ bool IsVcPortraitRelightEnabled() {
 
 bool IsVcControlsUiFakeEffectsEnabled() {
   return base::FeatureList::IsEnabled(kVcControlsUiFakeEffects);
-}
-
-bool IsVcStudioLookEnabled() {
-  return base::FeatureList::IsEnabled(kVcStudioLook);
 }
 
 bool IsVcTrayMicIndicatorEnabled() {
