@@ -533,6 +533,7 @@ source_set("ui_impl") {
         "contextual_tasks_extensions_container.h",
       ]
       deps += [
+        "//chrome/browser/ui/views/extensions:extension_action_delegate_desktop",
         "//chrome/browser/ui/views/extensions:extensions_container_views",
         "//chrome/browser/ui/views/extensions:extensions_menu_coordinator",
         "//chrome/browser/ui/views/extensions:extensions_menu_view",
@@ -905,9 +906,11 @@ source_set("interactive_ui_tests") {
       "//chrome/browser/ui:browser_actions",
       "//chrome/browser/ui:browser_commands",
       "//chrome/browser/ui:browser_tabstrip",
+      "//chrome/browser/ui/actions:actions_headers",
       "//chrome/browser/ui/contextual_search",
       "//chrome/browser/ui/lens",
       "//chrome/browser/ui/lens:test_support",
+      "//chrome/browser/ui/toolbar/pinned_toolbar",
       "//chrome/browser/ui/views/frame:browser_view_header",
       "//chrome/browser/ui/views/toolbar",
       "//chrome/browser/ui/webui/new_tab_page/composebox/variations",
