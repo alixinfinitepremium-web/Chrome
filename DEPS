@@ -2338,7 +2338,7 @@ deps = {
     Var('chromium_git') + '/codecs/libgav1.git' + '@' + '085032331f60c10055d32ab52932bd7bd77e6f53',
 
   'src/third_party/google-truth/src': {
-      'url': Var('chromium_git') + '/external/github.com/google/truth.git' + '@' + '6125ea1aa5ae423a6c56b4f6038cf479a04b6e19',
+      'url': Var('chromium_git') + '/external/github.com/google/truth.git' + '@' + '5e8a47806fc16b8ae7e581ca33d904da40d9afca',
       'condition': 'checkout_android',
   },
 
@@ -2694,7 +2694,7 @@ deps = {
     Var('chromium_git') + '/webm/libwebp.git' + '@' +  'b43b2caa710c0c997c066cb32c7fea1391fad70a',
 
   'src/third_party/libyuv':
-    Var('chromium_git') + '/libyuv/libyuv.git' + '@' + '42eb3a552f7cf75f8b17a9d67a4070f063ac0070',
+    Var('chromium_git') + '/libyuv/libyuv.git' + '@' + '2b7ecc0aad70fe1db1456b0d851525a500f91617',
 
   'src/third_party/lss': {
       'url': Var('chromium_git') + '/linux-syscall-support.git' + '@' + Var('lss_revision'),
