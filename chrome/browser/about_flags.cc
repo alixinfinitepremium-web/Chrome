@@ -5996,7 +5996,7 @@ const FeatureEntry kFeatureEntries[] = {
 
     {"mac-sandbox-logging", flag_descriptions::kMacSandboxLoggingName,
      flag_descriptions::kMacSandboxLoggingDescription, kOsMac,
-     STRING_VALUE_TYPE(sandbox::policy::switches::kEnableSandboxLogging, "")},
+     FEATURE_VALUE_TYPE(sandbox::policy::features::kEnableSandboxLogging)},
 
     {"use-sc-content-sharing-picker",
      flag_descriptions::kUseSCContentSharingPickerName,
@@ -6280,10 +6280,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kAccessibilityExtendedSelectionName,
      flag_descriptions::kAccessibilityExtendedSelectionDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(features::kAccessibilityExtendedSelection)},
-    {"enable-accessibility-atomic-live-regions",
-     flag_descriptions::kAccessibilityAtomicLiveRegionsName,
-     flag_descriptions::kAccessibilityAtomicLiveRegionsDescription, kOsAndroid,
-     FEATURE_VALUE_TYPE(features::kAccessibilityAtomicLiveRegions)},
     {"enable-accessibility-labeledby",
      flag_descriptions::kEnableAccessibilityLabeledByName,
      flag_descriptions::kEnableAccessibilityLabeledByDescription, kOsAndroid,
