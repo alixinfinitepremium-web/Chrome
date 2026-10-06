@@ -489,15 +489,15 @@ void ActionAppMenuMetrics::LogMenuActionWithId(actions::ActionId action_id) {
       RecordAction(MENU_ACTION_TAKE_SCREENSHOT, "TakeScreenshot");
       break;
 
-    // Actions present in the menu that do not have a per-action TimeToAction
-    // variant in histograms.xml, but still record the overall
-    // WrenchMenu.TimeToAction histogram (and WrenchMenu.MenuAction if defined).
-    // TODO(crbug.com/565832018): Add TimeToAction and MenuAction entries for
-    // each of these.
-    case kActionNameWindow:
     case kActionTabSearch:
+      RecordAction(MENU_ACTION_TAB_SEARCH, "TabSearch");
+      break;
     case kActionToggleVerticalTabs:
-      RecordTimeToAction();
+      RecordAction(MENU_ACTION_TOGGLE_VERTICAL_TABS, "ToggleVerticalTabs");
+      break;
+
+    case kActionNameWindow:
+      RecordAction(MENU_ACTION_NAME_WINDOW, "NameWindow");
       break;
 
     default:
