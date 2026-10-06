@@ -52,6 +52,7 @@ class CollaborationMessagingPageActionController;
 class CommitLimitOOMRecoveryTracker;
 class ConnectionHelpTabHelper;
 class CookieControlsPageActionController;
+class CoreTabHelper;
 class ExternalProtocolObserver;
 class FileSystemAccessPageActionController;
 class FileSystemAccessTabHelper;
@@ -83,6 +84,7 @@ class PwaInstallPageActionController;
 class QwacWebContentsObserver;
 class ReadAnythingController;
 class ReadAnythingSidePanelController;
+class RecentlyAudibleHelper;
 class RecordReplayPageActionController;
 class RevokedPermissionsTabHelper;
 class SadTabHelper;
@@ -244,6 +246,10 @@ class NoStatePrefetchTabHelper;
 namespace v8_compile_hints {
 class V8CompileHintsTabHelper;
 }  // namespace v8_compile_hints
+
+namespace vr {
+class VrTabHelper;
+}  // namespace vr
 
 namespace webapps {
 class AppBannerManagerDesktop;
@@ -737,6 +743,10 @@ class TabFeatures {
 
   std::unique_ptr<MemorySaverChipTabHelper> memory_saver_chip_helper_;
 
+  std::unique_ptr<vr::VrTabHelper> vr_tab_helper_;
+
+  std::unique_ptr<RecentlyAudibleHelper> recently_audible_helper_;
+
   std::unique_ptr<ChildTabAlertHelper> child_tab_alert_helper_;
 
   std::unique_ptr<TabAlertController> tab_alert_controller_;
@@ -1021,6 +1031,8 @@ class TabFeatures {
   std::unique_ptr<
       page_content_annotations::PageContentAnnotationsWebContentsObserver>
       page_content_annotations_web_contents_observer_;
+
+  std::unique_ptr<CoreTabHelper> core_tab_helper_;
 
   // Must be the last member.
   base::WeakPtrFactory<TabFeatures> weak_factory_{this};

@@ -140,6 +140,10 @@ namespace v8_compile_hints {
 class V8CompileHintsTabHelper;
 }  // namespace v8_compile_hints
 
+namespace vr {
+class VrTabHelper;
+}  // namespace vr
+
 namespace webapps {
 class MLInstallabilityPromoter;
 }  // namespace webapps
@@ -149,6 +153,7 @@ class AutoPictureInPictureTabHelper;
 class ChainedBackNavigationTracker;
 class ChromeFacilitatedPaymentsClient;
 class ConnectionHelpTabHelper;
+class CoreTabHelper;
 class ExternalProtocolObserver;
 class FileSystemAccessTabHelper;
 class FromGWSNavigationAndKeepAliveRequestObserver;
@@ -160,6 +165,7 @@ class NavigationPredictorPreconnectClient;
 class OomInterventionTabHelper;
 class PluginObserverAndroid;
 class PolicyAuditorBridge;
+class RecentlyAudibleHelper;
 class RevokedPermissionsTabHelper;
 class SearchEngineTabHelper;
 class SecurityStateEventObserver;
@@ -294,6 +300,7 @@ class TabFeatures {
       auto_fetch_navigation_observer_;
   std::unique_ptr<PluginObserverAndroid> plugin_observer_android_;
   std::unique_ptr<AboutThisSiteTabHelper> about_this_site_tab_helper_;
+  std::unique_ptr<RecentlyAudibleHelper> recently_audible_helper_;
   std::unique_ptr<SoundContentSettingObserver> sound_content_setting_observer_;
   std::unique_ptr<tasks::TaskTabHelper> task_tab_helper_;
   std::unique_ptr<HistoryEmbeddingsTabHelper> history_embeddings_tab_helper_;
@@ -327,6 +334,8 @@ class TabFeatures {
   std::unique_ptr<
       page_content_annotations::PageContentAnnotationsWebContentsObserver>
       page_content_annotations_web_contents_observer_;
+  std::unique_ptr<CoreTabHelper> core_tab_helper_;
+  std::unique_ptr<vr::VrTabHelper> vr_tab_helper_;
 
   // Holds the WebUI embedding context subscription.
   base::CallbackListSubscription tab_subscription_;
