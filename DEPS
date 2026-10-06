@@ -1550,7 +1550,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_arm64',
-          'version': 'version:2@1706061',
+          'version': 'version:2@1707104',
         },
       ],
   },
@@ -3824,7 +3824,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        'e6987ac7cf607fc785213c4ad98d693182be70e2',
+        '7133d470ba38ead0155fd2ce311e05bf3dc5b17b',
       'condition': 'checkout_src_internal',
   },
 
