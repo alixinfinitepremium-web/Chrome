@@ -330,7 +330,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '5fd6b15d84501ce94f04d4f91a29cf9ba5ffa9cd',
+  'skia_revision': '8feff57fcc93eb7b8b969368c4d5e46aca97d647',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -445,7 +445,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'quiche_revision': '218d29acdf6c71aff4565f2bf8ff2d2902534f6c',
+  'quiche_revision': '541aa2a7889b7ea7651e41afc58211f2a256850a',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ink
   # and whatever else without interference from each other.
@@ -2030,7 +2030,7 @@ deps = {
           },
           {
               'package': 'chromium/third_party/android_sdk/public/cmdline-tools/${{os}}',
-              'version': 'version_23.0.0',
+              'version': 'version:23.0.0',
           },
       ],
       'condition': 'checkout_android and non_git_source',

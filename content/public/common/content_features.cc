@@ -417,6 +417,11 @@ BASE_FEATURE(kFedCm, base::FEATURE_ENABLED_BY_DEFAULT);
 // API.
 BASE_FEATURE(kFedCmAutofill, base::FEATURE_DISABLED_BY_DEFAULT);
 
+// Enables showing FedCM accounts for passive mode requests in an ambient
+// bubble, instead of the regular FedCM dialog. This is separate from
+// kFedCmAmbientUI, which shows FedCM in the omnibox.
+BASE_FEATURE(kFedCmAmbientBubble, base::FEATURE_DISABLED_BY_DEFAULT);
+
 // Enables the FedCM ambient UI.
 BASE_FEATURE(kFedCmAmbientUI, base::FEATURE_DISABLED_BY_DEFAULT);
 
@@ -1603,12 +1608,7 @@ const base::FeatureParam<CapturingState>::Option kNavigationCapturingParams[] =
 
 const base::FeatureParam<CapturingState> kNavigationCapturingDefaultState{
     &kPwaNavigationCapturing, "link_capturing_state",
-#if BUILDFLAG(IS_CHROMEOS)
-    CapturingState::kReimplDefaultOff,
-#else
-    CapturingState::kReimplDefaultOn,
-#endif
-    &kNavigationCapturingParams};
+    CapturingState::kReimplDefaultOn, &kNavigationCapturingParams};
 
 const base::FeatureParam<std::string> kForcedOffCapturingAppsOnFirstNavigation{
     &kPwaNavigationCapturing, "initial_nav_forced_off_apps", ""};
