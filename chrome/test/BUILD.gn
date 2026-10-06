@@ -1155,6 +1155,7 @@ if (is_android) {
         "//chrome/browser/ui/browser_window:browser_tests",
         "//chrome/browser/ui/browser_window/internal:android_browsertests",
         "//chrome/browser/ui/browser_window/test:android_browser_test_support",
+        "//chrome/browser/ui/webui/ai_overlay_dialog:browser_tests",
         "//chrome/browser/ui/webui/omnibox/aim_eligibility_extension:browser_tests",
       ]
     }
@@ -8186,6 +8187,7 @@ if (!is_android && !is_chromeos_device) {
         "../browser/ui/views/location_bar/webui_location_bar_interactive_uitest_mac.h",
         "../browser/ui/views/location_bar/webui_location_bar_interactive_uitest_mac.mm",
         "//ui/display/mac/test/virtual_display_util_mac_interactive_uitest.mm",
+        "base/in_process_browser_test_mac_interactive_uitest.mm",
       ]
 
       data_deps += [
