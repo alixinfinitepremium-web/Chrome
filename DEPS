@@ -326,19 +326,19 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '43f56c2305a982e761df48bf27d697ee6daf136b',
+  'src_internal_revision': 'faf83a0317dfa6836eeb0b66b042e99948876a3f',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '00987348988a7355d6437a917fa153dde9ce6c82',
+  'skia_revision': '84068ebf574dd6c8503ac3e6a02a1ff2f0633fbd',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': '2dfa39e6620081ea397ace93dd43f88312a23bb1',
+  'v8_revision': '962d53a08198f075f86ae0a46fa418d1dffd027e',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '348688cd339ef7e30e3fe6b10126ab5f9e7dee5b',
+  'angle_revision': 'fe46d949a80bb19991e5e1b259e6c881d4a61290',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -390,7 +390,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': '8ef79a36c74dbd8e46cec3830f8d1a6bb473caa1',
+  'crossbench_revision': '11384fe6f4af28f41006588b2876da943649c20b',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -410,7 +410,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'bf26822453790a8bc01c234cd7654580e3187edd',
+  'devtools_frontend_revision': 'd6de1d11eacbf3591d76b2c1a94c8a61657461c1',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1517,7 +1517,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_linux64',
-          'version': 'version:2@1706032',
+          'version': 'version:2@1707013',
         },
       ],
   },
@@ -1528,7 +1528,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_mac_amd64',
-          'version': 'version:2@1706005',
+          'version': 'version:2@1707010',
         },
       ],
   },
@@ -1539,7 +1539,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_mac_arm64',
-          'version': 'version:2@1706005',
+          'version': 'version:2@1707003',
         },
       ],
   },
@@ -1572,7 +1572,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_x86_64',
-          'version': 'version:2@1706066',
+          'version': 'version:2@1707016',
         },
       ],
   },
@@ -1672,7 +1672,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_linux64',
-          'version': 'Vges4IKIt0VI_PfF66PPUJ076BFAnxJoAAlHPOAC_ZEC',
+          'version': 'iRSvviVQEX2-rsDwFQgShCVEnO3OSSlT-CFDrcavAWkC',
         },
       ],
   },
@@ -1683,7 +1683,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_mac_amd64',
-          'version': '7GHn3uqkt2OhjU0gwRBPTwlI0p3X2U6y5Nc-Hg5lAjUC',
+          'version': 'ssRji7cAq4F7x17D_-npjHkJGuQueR4djxQXAiQ3evkC',
         },
       ],
   },
@@ -1694,7 +1694,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_mac_arm64',
-          'version': '0QWakhSbqIdpweq-G9DmJvygu4AzqcZWiJjyQbg4HK8C',
+          'version': 'xKv7-33AhprgWLdQs4tl49-vA55KnaKOgjs3S4yhOkQC',
         },
       ],
   },
@@ -1705,7 +1705,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_win_x86',
-          'version': '5pm2ot1c-HTWQeoV1msOcta6yuid6GZZARt2Acf5p5cC',
+          'version': '8r2CpBd2qgQkwOKDEVGpaf0robd_wRfuK4q9_YM0cXsC',
         },
       ],
   },
@@ -1716,7 +1716,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_win_x86_64',
-          'version': 'fU2AQOsPgxfjUQUmLFxMjvY4kFlXqtphmnG0pOFDOSoC',
+          'version': 'J0vfx7bRv9cPO_lzu9a4rse8oB4ELXpAaqJ5sybMfIgC',
         },
       ],
   },
@@ -2843,7 +2843,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + 'fd9c7de6e0c57bee61ee1a4113e60af975881cee',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '713a241c6a67a98bebe07db388a53bd8a8354795',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
@@ -3275,7 +3275,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '784067dba2bedeb753cd05ea8a6ccdb94160cc23',
+    Var('webrtc_git') + '/src.git' + '@' + '82b9f73de3245aa7ad3009b3c75cec89d44fa277',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -3902,7 +3902,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '9dc6061fda66f0e1ae16394710b569d6f110f508',
+        'c26114fec10ec276c825e0b99164cf2cf0ecd6b9',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 

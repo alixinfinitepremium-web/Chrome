@@ -1531,6 +1531,9 @@ features through Chrome Labs. -->
     <variant name=".AppInfo"/>
     <variant name=".BetaForum"/>
     <variant name=".BookmarkAllTabs"/>
+    <variant name=".BookmarkBarAlwaysHide"/>
+    <variant name=".BookmarkBarAlwaysShow"/>
+    <variant name=".BookmarkBarOnlyOnNtp"/>
     <variant name=".BookmarkPage"/>
     <variant name=".Cast"/>
     <variant name=".ChromeOSRestart"/>
@@ -1541,6 +1544,7 @@ features through Chrome Labs. -->
     <variant name=".Copy"/>
     <variant name=".CopyUrl"/>
     <variant name=".CreateHostedApp"/>
+    <variant name=".CreateNewTabGroup"/>
     <variant name=".CreateQrCode"/>
     <variant name=".CustomizeChrome"/>
     <variant name=".Cut"/>
@@ -1561,6 +1565,7 @@ features through Chrome Labs. -->
     <variant name=".ManageExtensions"/>
     <variant name=".ManageGoogleAccount"/>
     <variant name=".NewIncognitoWindow"/>
+    <variant name=".NewIsolatedWindow"/>
     <variant name=".NewTab"/>
     <variant name=".NewWindow"/>
     <variant name=".OpenBookmark"/>
@@ -1580,6 +1585,10 @@ features through Chrome Labs. -->
     <variant name=".SafetyHubNotificationManageExtensions"/>
     <variant name=".SafetyHubNotificationOpenSafetyHub"/>
     <variant name=".SafetyHubNotificationPasswordCheck"/>
+    <variant name=".SavedTabGroupDelete"/>
+    <variant name=".SavedTabGroupOpenInBrowser"/>
+    <variant name=".SavedTabGroupOpenInNewWindow"/>
+    <variant name=".SavedTabGroupPin"/>
     <variant name=".SavePage"/>
     <variant name=".SeeDeviceTabs"/>
     <variant name=".SendToDevices"/>
@@ -1613,6 +1622,7 @@ features through Chrome Labs. -->
     <variant name=".SwitchToAnotherProfile"/>
     <variant name=".TaskManager"/>
     <variant name=".TtcAppMenu"/>
+    <variant name=".UpgradeDialog"/>
     <variant name=".ViewSource"/>
     <variant name=".VisitChromeWebStore"/>
     <variant name=".Win8MetroRestart"/>

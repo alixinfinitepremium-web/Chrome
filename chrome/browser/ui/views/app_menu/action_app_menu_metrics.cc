@@ -414,36 +414,64 @@ void ActionAppMenuMetrics::LogMenuActionWithId(actions::ActionId action_id) {
                    "SafetyHubNotificationManageExtensions");
       break;
 
+    case kActionUpgradeDialog:
+      RecordAction(MENU_ACTION_UPGRADE_DIALOG, "UpgradeDialog");
+      break;
+
+    case kActionNewIsolatedWindow:
+      RecordAction(MENU_ACTION_NEW_ISOLATED_WINDOW, "NewIsolatedWindow");
+      break;
+
+    // Saved tab groups submenu.
+    case kActionCreateNewTabGroup:
+      base::RecordAction(base::UserMetricsAction(
+          "TabGroups_SavedTabGroups_"
+          "CreateNewGroupTriggeredFromTabGroupsAppMenu"));
+      RecordAction(MENU_ACTION_CREATE_NEW_TAB_GROUP, "CreateNewTabGroup");
+      break;
+
+    case kActionTabGroupDelete:
+      base::RecordAction(base::UserMetricsAction(
+          "TabGroups_SavedTabGroups_OpenedFromAppMenu"));
+      RecordAction(MENU_ACTION_SAVED_TAB_GROUP_DELETE, "SavedTabGroupDelete");
+      break;
+    case kActionTabGroupOpenInBrowser:
+      base::RecordAction(base::UserMetricsAction(
+          "TabGroups_SavedTabGroups_OpenedFromAppMenu"));
+      RecordAction(MENU_ACTION_SAVED_TAB_GROUP_OPEN_IN_BROWSER,
+                   "SavedTabGroupOpenInBrowser");
+      break;
+    case kActionTabGroupOpenInNewWindow:
+      base::RecordAction(base::UserMetricsAction(
+          "TabGroups_SavedTabGroups_OpenedFromAppMenu"));
+      RecordAction(MENU_ACTION_SAVED_TAB_GROUP_OPEN_IN_NEW_WINDOW,
+                   "SavedTabGroupOpenInNewWindow");
+      break;
+    case kActionTabGroupPin:
+      base::RecordAction(base::UserMetricsAction(
+          "TabGroups_SavedTabGroups_OpenedFromAppMenu"));
+      RecordAction(MENU_ACTION_SAVED_TAB_GROUP_PIN, "SavedTabGroupPin");
+      break;
+
+    // Bookmark bar visibility submenu.
+    case kActionBookmarkBarSubmenuAlwaysHide:
+      RecordAction(MENU_ACTION_BOOKMARK_BAR_ALWAYS_HIDE,
+                   "BookmarkBarAlwaysHide");
+      break;
+    case kActionBookmarkBarSubmenuAlwaysShow:
+      RecordAction(MENU_ACTION_BOOKMARK_BAR_ALWAYS_SHOW,
+                   "BookmarkBarAlwaysShow");
+      break;
+    case kActionBookmarkBarSubmenuOnlyOnNtp:
+      RecordAction(MENU_ACTION_BOOKMARK_BAR_ONLY_ON_NTP,
+                   "BookmarkBarOnlyOnNtp");
+      break;
+
     // Actions present in the menu that do not have a per-action TimeToAction
     // variant in histograms.xml, but still record the overall
     // WrenchMenu.TimeToAction histogram (and WrenchMenu.MenuAction if defined).
     // TODO(crbug.com/565832018): Add TimeToAction and MenuAction entries for
     // each of these.
-    case kActionUpgradeDialog:
-      RecordTimeToAction();
-      LogMenuActionHistogram(MENU_ACTION_UPGRADE_DIALOG);
-      break;
-    case kActionNewIsolatedWindow:
-      RecordTimeToAction();
-      LogMenuActionHistogram(MENU_ACTION_NEW_ISOLATED_WINDOW);
-      break;
-    case kActionCreateNewTabGroup:
-      base::RecordAction(base::UserMetricsAction(
-          "TabGroups_SavedTabGroups_"
-          "CreateNewGroupTriggeredFromTabGroupsAppMenu"));
-      RecordTimeToAction();
-      break;
-    case kActionTabGroupDelete:
-    case kActionTabGroupOpenInBrowser:
-    case kActionTabGroupOpenInNewWindow:
-    case kActionTabGroupPin:
-      base::RecordAction(base::UserMetricsAction(
-          "TabGroups_SavedTabGroups_OpenedFromAppMenu"));
-      RecordTimeToAction();
-      break;
-    case kActionBookmarkBarSubmenuAlwaysHide:
-    case kActionBookmarkBarSubmenuAlwaysShow:
-    case kActionBookmarkBarSubmenuOnlyOnNtp:
     case kActionGlobalError:
     case kActionNameWindow:
     case kActionReportUnsafeSite:
