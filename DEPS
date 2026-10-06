@@ -338,7 +338,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '4f696266375bd56964d3a112d6f057c7fb68d54d',
+  'angle_revision': '54b571c6322fb869d91cf0c7b75f1060f52a6b34',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -410,7 +410,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'de3f9cab87fe8a2f045e2cd199383be5d8ec85a5',
+  'devtools_frontend_revision': '7b3c05341267f698ada2852501dcbded8d64db33',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -477,7 +477,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling crabbyavif
   # and whatever else without interference from each other.
-  'crabbyavif_revision': '7d1cb2d1ccc6f5dfd369e51232ec2e4a41fe5892',
+  'crabbyavif_revision': '5a494fc5f3c01ae56c323e042ace5a96b77fe137',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Speedometer main
   # and whatever else without interference from each other.
@@ -2532,7 +2532,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/kotlinc',
-              'version': 'R1b_2VmAdxUjLeGb_lDhzK_ytUCBeWaGnCjwzsbgr6MC',
+              'version': 'ORWhScy8Cver9GZArXLg8NTd2UhKMovYt7kwqm7-XvwC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -2543,7 +2543,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/ktfmt',
-              'version': 'TRRjU5e-O9hFbxZiT9-4Jq_MX8yOnjUhJYrcRIsJufUC',
+              'version': 'Fc81aUYYl0uIkV3CTiyfU9cjWPI2bCc6VbJq_M4Uz7oC',
           },
       ],
       'condition': '(checkout_android or checkout_linux) and non_git_source',
@@ -2843,7 +2843,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '314e6ee50176aacc158e94b894ad3babb19ca829',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + 'fd9c7de6e0c57bee61ee1a4113e60af975881cee',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',

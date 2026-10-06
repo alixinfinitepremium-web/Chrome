@@ -5,6 +5,8 @@
 #ifndef CHROME_BROWSER_TTC_CORE_SESSION_JOURNAL_H_
 #define CHROME_BROWSER_TTC_CORE_SESSION_JOURNAL_H_
 
+#include <stdint.h>
+
 #include <memory>
 #include <string_view>
 #include <vector>
@@ -13,8 +15,11 @@
 #include "components/actor/core/aggregated_journal.h"
 #include "components/actor/core/task_id.h"
 #include "components/actor/public/mojom/actor_types.mojom.h"
+#include "third_party/abseil-cpp/absl/container/flat_hash_map.h"
 
 namespace ttc {
+
+struct ServerJournalEvent;
 
 // Records a TTC session's events in the actor journal, on the "Front End"
 // track of the session's current actor task.
@@ -55,11 +60,16 @@ class SessionJournal {
       std::string_view event_name,
       std::vector<actor::mojom::JournalDetailsPtr> details);
 
+  // Records a journal event received from the server.
+  void HandleServerJournalEvent(const ServerJournalEvent& event);
+
   actor::TaskId task_id() const { return task_id_; }
 
  private:
   const raw_ref<actor::AggregatedJournal> journal_;
   actor::TaskId task_id_;
+  absl::flat_hash_map<int32_t, std::unique_ptr<PendingAsyncEvent>>
+      pending_server_async_events_;
 };
 
 }  // namespace ttc

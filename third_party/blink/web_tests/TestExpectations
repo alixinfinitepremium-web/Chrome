@@ -348,6 +348,7 @@ crbug.com/400841 media/video-canvas-draw.html [ Failure ]
 
 # Multicast loopback does not deliver on the Mac bots, like the disabled browsertests.
 crbug.com/443716695 [ Mac ] virtual/direct-sockets/external/wpt/direct-sockets/udp_socket_multicast.https.html [ Timeout ]
+crbug.com/570251397 [ Linux ] virtual/direct-sockets/external/wpt/direct-sockets/udp_socket_multicast.https.html [ Failure Pass ]
 
 # Tests crashing due to Dawn->Vulkan->Swiftshader limitations. Dawn's R10X6BG10X6Biplanar420Unorm format is not supported.
 crbug.com/395910472 [ Mac ] wpt_internal/html/canvas/smpte-st-2094-50/drawImage-from-video.html [ Crash Failure ]
@@ -4492,9 +4493,6 @@ crbug.com/874302 external/wpt/wasm/serialization/module/broadcastchannel-success
 crbug.com/874302 external/wpt/wasm/serialization/module/broadcastchannel-success.html [ Timeout ]
 
 crbug.com/1380554 external/wpt/content-security-policy/wasm-unsafe-eval/postMessage-wasm-module.html [ Timeout ]
-
-## Disable layout tests to land crrev.com/c/8501306
-crbug.com/504117169 http/tests/devtools/user-agent-setting-major-version.js [ Failure Pass ]
 
 # ====== Random order flaky tests from here ======
 # These tests are flaky when run in random order, which is the default on Linux & Mac since since 2016-12-16.
