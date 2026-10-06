@@ -11295,6 +11295,7 @@
         {
             "platforms": [
                 "chromeos",
+                "ios",
                 "linux",
                 "mac",
                 "windows"
@@ -15720,22 +15721,6 @@
                     "name": "Enabled",
                     "enable_features": [
                         "ProcessReuseOnPrerenderCOOPSwap"
-                    ]
-                }
-            ]
-        }
-    ],
-    "ProfileDiscOnAllPages": [
-        {
-            "platforms": [
-                "android"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "ProfileDiscOnAllPages",
-                        "SigninLevelUpButton"
                     ]
                 }
             ]
