@@ -326,7 +326,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': 'e92c351a8e2f2a2daa7fdf44de1b6dca99ab92d4',
+  'src_internal_revision': '5655c3eb0981c9da25908bfe35914c7d69755872',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -334,7 +334,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': '8d05bb3670a610f0f7318a032b2822cb60233b61',
+  'v8_revision': 'a5d2d30b1f5b480cbeae5b39feb9581660bdab08',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -390,7 +390,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': '6e7aad85d3e79d2543a08eb27d1c9ed6239a38e8',
+  'crossbench_revision': '1096837a0bfadd8f77d746b5e06739ec537908c1',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -521,7 +521,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'libcxxabi_revision':    '72436c63c0640a4bca909a13d49392962c10a7dc',
+  'libcxxabi_revision':    '0e691bb69ac90450d8d53bc8ee5968c62f9c15a7',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -3902,7 +3902,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        'e6941ce6e5af41345e387daa55f9cc3c15600cc4',
+        'b82e0455f75b1e274916c569660d3f09bdcf2fc5',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
