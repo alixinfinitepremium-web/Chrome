@@ -330,7 +330,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': 'e31d5073ddec4b646759f5bf84100029c307f195',
+  'skia_revision': 'c8844875f056dd760b8d89134d93fe34705a6b8d',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -3824,7 +3824,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        'a395e577d5b6c884a3a39ef19bd36ed0e4dec7f7',
+        'e4d5e9561c2d57c45b0f4b14123dc0f212cb21c0',
       'condition': 'checkout_src_internal',
   },
 
