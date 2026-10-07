@@ -3384,6 +3384,11 @@
     "expiry_milestone": 160
   },
   {
+    "name": "enable-account-preview-switching-account",
+    "owners": [ "rsult@google.com", "chrome-signin-team@google.com" ],
+    "expiry_milestone": 160
+  },
+  {
     "name": "enable-account-preview-use-app-account",
     "owners": [ "myuu@google.com", "rsult@google.com", "chrome-signin-team@google.com" ],
     "expiry_milestone": 160
@@ -3715,11 +3720,6 @@
     "name": "enable-cros-ime-assist-multi-word",
     "owners": [ "curtismcmullan@chromium.org", "essential-inputs-team@google.com" ],
     "expiry_milestone": 130
-  },
-  {
-    "name": "enable-cros-ime-switch-check-connection-status",
-    "owners": [ "zacpartridge@chromium.org", "essential-inputs-team@google.com" ],
-    "expiry_milestone": 135
   },
   {
     "name": "enable-cros-ime-system-emoji-picker-mojo-search",
@@ -8695,11 +8695,6 @@
       "anki-team@google.com"
     ],
     "expiry_milestone": 160
-  },
-  {
-    "name": "render-arc-notifications-by-chrome",
-    "owners": [ "shuminghao@google.com", "arc-framework@google.com" ],
-    "expiry_milestone": 152
   },
   {
     "name": "render-document",

@@ -2055,7 +2055,7 @@ inline constexpr char kEnableAccountPreviewEntityPreviewsDescription[] =
 inline constexpr char kEnableAccountPreviewPreferredAccountName[] =
     "Enable Account Preview Preferred Account";
 inline constexpr char kEnableAccountPreviewPreferredAccountDescription[] =
-    "Controls whether computing and storing the preferred account is enabled.";
+    "Controls whether storing and exposing the preferred account is enabled.";
 
 inline constexpr char kEnableAccountPreviewPreferredAccountFollowupName[] =
     "Enable Account Preview Preferred Account Followup";
@@ -2063,6 +2063,12 @@ inline constexpr char
     kEnableAccountPreviewPreferredAccountFollowupDescription[] =
         "Controls whether followup features for preferred account preview "
         "(promos, and updated strings) are enabled.";
+
+inline constexpr char kEnableAccountPreviewSwitchingAccountName[] =
+    "Enable Account Preview Switching Account";
+inline constexpr char kEnableAccountPreviewSwitchingAccountDescription[] =
+    "Controls whether storing and exposing the preferred account for "
+    "switching is enabled.";
 
 inline constexpr char kEnableAccountPreviewUseAppAccountName[] =
     "Use 1P App Account for Preferred Account Computing";
@@ -7945,12 +7951,6 @@ inline constexpr char kImeAssistMultiWordName[] =
 inline constexpr char kImeAssistMultiWordDescription[] =
     "Enable assistive multi word suggestions for native IME";
 
-inline constexpr char kImeSwitchCheckConnectionStatusName[] =
-    "Enable IME switching using global boolean";
-inline constexpr char kImeSwitchCheckConnectionStatusDescription[] =
-    "When enabled and swapping between input methods, this prevents a race "
-    "condition.";
-
 inline constexpr char kIppFirstSetupForUsbPrintersName[] =
     "Try to setup USB printers with IPP first";
 inline constexpr char kIppFirstSetupForUsbPrintersDescription[] =
@@ -8051,12 +8051,6 @@ inline constexpr char kReleaseNotesNotificationAlwaysEligibleDescription[] =
     "Makes the release notes notification always appear regardless of channel, "
     "profile type, and whether or not the notification had already been shown "
     "this milestone. For testing.";
-
-inline constexpr char kRenderArcNotificationsByChromeName[] =
-    "Render ARC notifications by ChromeOS";
-inline constexpr char kRenderArcNotificationsByChromeDescription[] =
-    "Enables rendering ARC notifications using ChromeOS notification framework "
-    "if supported";
 
 inline constexpr char kArcWindowPredictorName[] = "Enable ARC window predictor";
 inline constexpr char kArcWindowPredictorDescription[] =
