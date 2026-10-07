@@ -940,6 +940,39 @@ suite('ComposeboxAutocomplete', () => {
     });
 
     test(
+        'Tab on last dropdown match unselects active match when flag enabled',
+        async () => {
+          element = createTestElement({unselectMatchOnTabExit: true});
+          await microtasksFinished();
+
+          const matchesElement = element.getDropdownElement();
+          const matches = [
+            createAutocompleteMatch(
+                {fillIntoEdit: 'match1', supportsDeletion: false}),
+            createAutocompleteMatch(
+                {fillIntoEdit: 'match2', supportsDeletion: false}),
+          ];
+          element.result = {input: 'm', matches} as AutocompleteResult;
+          await microtasksFinished();
+
+          matchesElement.selectNext();
+          matchesElement.selectNext();
+          assertEquals(1, matchesElement.selectedMatchIndex);
+
+          await microtasksFinished();
+          element.setActiveElement(matchesElement);
+
+          const tabEvent = new KeyboardEvent(
+              'keydown',
+              {key: 'Tab', bubbles: true, cancelable: true, composed: true});
+          matchesElement.dispatchEvent(tabEvent);
+          await microtasksFinished();
+
+          assertEquals(-1, matchesElement.selectedMatchIndex);
+          assertFalse(tabEvent.defaultPrevented);
+        });
+
+    test(
         'Tab in dropdown is ignored when key modifiers are active',
         async () => {
           element = createTestElement();
@@ -968,6 +1001,158 @@ suite('ComposeboxAutocomplete', () => {
           matchesElement.dispatchEvent(tabEventCtrl);
           await microtasksFinished();
           assertEquals(1, matchesElement.selectedMatchIndex);
+        });
+
+    test(
+        'Shift-Tab on first dropdown match unselects active match in ' +
+            'zero-state',
+        async () => {
+          element = createTestElement({unselectMatchOnTabExit: true});
+          await microtasksFinished();
+
+          const matchesElement = element.getDropdownElement();
+          const matches = [
+            createAutocompleteMatch(
+                {fillIntoEdit: 'image1', supportsDeletion: false}),
+            createAutocompleteMatch(
+                {fillIntoEdit: 'image2', supportsDeletion: false}),
+          ];
+          element.result = {input: '', matches} as AutocompleteResult;
+          await microtasksFinished();
+
+          matchesElement.selectFirst();
+          assertEquals(0, matchesElement.selectedMatchIndex);
+
+          await microtasksFinished();
+          element.setActiveElement(matchesElement);
+
+          const shiftTabEvent = new KeyboardEvent('keydown', {
+            key: 'Tab',
+            shiftKey: true,
+            bubbles: true,
+            cancelable: true,
+            composed: true,
+          });
+          matchesElement.dispatchEvent(shiftTabEvent);
+          await microtasksFinished();
+
+          assertEquals(-1, matchesElement.selectedMatchIndex);
+          assertFalse(shiftTabEvent.defaultPrevented);
+        });
+
+    test(
+        'Shift-Tab on first dropdown match does not unselect when flag ' +
+            'disabled',
+        async () => {
+          element = createTestElement({unselectMatchOnTabExit: false});
+          await microtasksFinished();
+
+          const matchesElement = element.getDropdownElement();
+          const matches = [
+            createAutocompleteMatch(
+                {fillIntoEdit: 'image1', supportsDeletion: false}),
+            createAutocompleteMatch(
+                {fillIntoEdit: 'image2', supportsDeletion: false}),
+          ];
+          element.result = {input: '', matches} as AutocompleteResult;
+          await microtasksFinished();
+
+          matchesElement.selectFirst();
+          assertEquals(0, matchesElement.selectedMatchIndex);
+
+          await microtasksFinished();
+          element.setActiveElement(matchesElement);
+
+          const shiftTabEvent = new KeyboardEvent('keydown', {
+            key: 'Tab',
+            shiftKey: true,
+            bubbles: true,
+            cancelable: true,
+            composed: true,
+          });
+          matchesElement.dispatchEvent(shiftTabEvent);
+          await microtasksFinished();
+
+          assertEquals(0, matchesElement.selectedMatchIndex);
+        });
+
+    test(
+        'Shift-Tab on first dropdown match unselects active match for typed ' +
+            'suggest',
+        async () => {
+          element = createTestElement({unselectMatchOnTabExit: true});
+          await microtasksFinished();
+
+          const matchesElement = element.getDropdownElement();
+          const matches = [
+            createAutocompleteMatch({
+              fillIntoEdit: 'm',
+              allowedToBeDefaultMatch: true,
+              supportsDeletion: false,
+            }),
+            createAutocompleteMatch(
+                {fillIntoEdit: 'match1', supportsDeletion: false}),
+            createAutocompleteMatch(
+                {fillIntoEdit: 'match2', supportsDeletion: false}),
+          ];
+          element.result = {input: 'm', matches} as AutocompleteResult;
+          await microtasksFinished();
+
+          matchesElement.selectIndex(1);
+          assertEquals(1, matchesElement.selectedMatchIndex);
+
+          await microtasksFinished();
+          element.setActiveElement(matchesElement);
+
+          const shiftTabEvent = new KeyboardEvent('keydown', {
+            key: 'Tab',
+            shiftKey: true,
+            bubbles: true,
+            cancelable: true,
+            composed: true,
+          });
+          matchesElement.dispatchEvent(shiftTabEvent);
+          await microtasksFinished();
+
+          assertEquals(-1, matchesElement.selectedMatchIndex);
+          assertFalse(shiftTabEvent.defaultPrevented);
+        });
+
+    test(
+        'Shift-Tab on non-first dropdown match does not unselect active match',
+        async () => {
+          element = createTestElement({unselectMatchOnTabExit: true});
+          await microtasksFinished();
+
+          const matchesElement = element.getDropdownElement();
+          const matches = [
+            createAutocompleteMatch(
+                {fillIntoEdit: 'image1', supportsDeletion: false}),
+            createAutocompleteMatch(
+                {fillIntoEdit: 'image2', supportsDeletion: false}),
+            createAutocompleteMatch(
+                {fillIntoEdit: 'image3', supportsDeletion: false}),
+          ];
+          element.result = {input: '', matches} as AutocompleteResult;
+          await microtasksFinished();
+
+          matchesElement.selectIndex(2);
+          assertEquals(2, matchesElement.selectedMatchIndex);
+
+          await microtasksFinished();
+          element.setActiveElement(matchesElement);
+
+          const shiftTabEvent = new KeyboardEvent('keydown', {
+            key: 'Tab',
+            shiftKey: true,
+            bubbles: true,
+            cancelable: true,
+            composed: true,
+          });
+          matchesElement.dispatchEvent(shiftTabEvent);
+          await microtasksFinished();
+
+          assertEquals(2, matchesElement.selectedMatchIndex);
         });
 
     test(
