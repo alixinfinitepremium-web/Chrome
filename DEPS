@@ -390,7 +390,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': '94c6248c6b4caf29c6cb27d953d727039ac518de',
+  'crossbench_revision': '33e752bf19780a8062dffaf3936321308e0768d7',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -898,10 +898,10 @@ deps = {
     'condition': 'non_git_source',
     'objects': [
       {
-        'object_name': 'b7465443d88523b28fd3b4895b17ed1b37b095b0',
-        'sha256sum': 'e13967e45b6726576a59a1c80e6d47000acea1d9fe260a0ff81191a297e8bbea',
-        'size_bytes': 11435613,
-        'generation': 1789162314018541,
+        'object_name': '605b17899d6503df7f2ce96d5458976b36c5e456',
+        'sha256sum': 'f7d15a9ba38b018602496cde9b094c34c5876c75723d3a5497682fd2e71fcdf3',
+        'size_bytes': 11492257,
+        'generation': 1791258586019361,
         'output_file': 'node_modules.tar.gz',
       },
     ],
@@ -2231,7 +2231,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '988a011bcb1e012c943b23239eb179c3b3989388',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'f7ea32ec994dbfd43c61edfcf276af6f98662878',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
