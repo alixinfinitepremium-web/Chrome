@@ -411,7 +411,7 @@ void CanvasHibernationHandler::Hibernate(
 
   Canvas2DResourceProvider* provider = delegate_->GetSharedImageProvider();
   if (!provider) {
-    if (delegate_->HasResourceProvider()) {
+    if (delegate_->HasBacking()) {
       ReportHibernationEvent(
           HibernationEvent::
               kHibernationAbortedDueToSwitchToUnacceleratedRendering);
@@ -428,7 +428,7 @@ void CanvasHibernationHandler::Hibernate(
     return;
   }
 
-  if (!provider->IsValid() || delegate_->IsContextLost()) {
+  if (!delegate_->IsBackingValid() || delegate_->IsContextLost()) {
     ReportHibernationEvent(
         HibernationEvent::kHibernationAbortedDueGpuContextLoss);
     return;
@@ -446,7 +446,7 @@ void CanvasHibernationHandler::Hibernate(
   // non-complementary stats. Each HibernationScheduled event is paired with
   // exactly one failure or exit event.
   delegate_->FlushCanvas(FlushReason::kOther);
-  scoped_refptr<StaticBitmapImage> snapshot = provider->Snapshot();
+  scoped_refptr<StaticBitmapImage> snapshot = delegate_->Snapshot();
   if (!snapshot) {
     ReportHibernationEvent(
         HibernationEvent::kHibernationAbortedDueSnapshotFailure);
@@ -461,7 +461,7 @@ void CanvasHibernationHandler::Hibernate(
   }
   SaveForHibernation(std::move(sw_image), context, delay);
 
-  delegate_->ResetResourceProvider();
+  delegate_->ResetBacking();
   delegate_->ClearCanvas2DLayerTexture();
 
   // shouldBeDirectComposited() may have changed.

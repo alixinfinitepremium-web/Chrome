@@ -341,7 +341,7 @@ class CanvasRenderingContext2DTestBase : public ::testing::Test,
   }
 
   void DrawSomething() {
-    Context2D()->InitializeResourceProvider();
+    Context2D()->InitializeBacking();
     CanvasElement().DidDraw();
     Context2D()->FinalizeFrame(FlushReason::kOther);
     CanvasElement().PostFinalizeFrame(FlushReason::kOther);
@@ -482,7 +482,7 @@ class CanvasRenderingContext2DTestAccelerated
           canvas);
       auto* context =
           static_cast<CanvasRenderingContext2D*>(canvas->RenderingContext());
-      context->InitializeResourceProvider();
+      context->InitializeBacking();
       // Expect that at least the first 10 are accelerated. The exact number
       // depends on the feature params.
       if (i < 10) {
@@ -667,7 +667,7 @@ bool SetUpFullAccelerationAndCcLayer(HTMLCanvasElement& canvas_element,
   // Install a CanvasResourceProvider that is accelerated and supports direct
   // compositing (the latter is necessary for
   // GetOrCreateCcLayerForCanvas2DIfNeeded() to succeed).
-  CHECK(context->InitializeResourceProvider());
+  CHECK(context->InitializeBacking());
 
   // Put the host in GPU compositing mode.
   canvas_element.SetPreferred2DRasterMode(RasterModeHint::kPreferGPU);
@@ -685,7 +685,7 @@ MATCHER(IsValid, "") {
 
 TEST_P(CanvasRenderingContext2DTest, NoRecreationOfResourceProviderAfterDraw) {
   CreateContext(kNonOpaque);
-  ASSERT_TRUE(Context2D()->InitializeResourceProvider());
+  ASSERT_TRUE(Context2D()->InitializeBacking());
   if (Context2D()->GetSharedImageProvider()) {
     auto* provider = Context2D()->GetSharedImageProvider();
     Context2D()->fillRect(3, 3, 1, 1);
@@ -718,7 +718,7 @@ TEST_P(CanvasRenderingContext2DTest,
   EXPECT_FALSE(!!CanvasElement().RateLimiter());
 
   CanvasElement().SetIsDisplayed(false);
-  Context2D()->InitializeResourceProvider();
+  Context2D()->InitializeBacking();
   EXPECT_FALSE(!!CanvasElement().RateLimiter());
 
   // Invoking FinalizeFrame() twice should not result in rate limiting as the
@@ -748,9 +748,8 @@ TEST_P(CanvasRenderingContext2DTest,
   CreateContext(kNonOpaque);
   EXPECT_FALSE(!!CanvasElement().RateLimiter());
 
-  // Install a Canvas2DBitmapProvider, which does not support direct
-  // compositing.
-  Context2D()->CreateBitmapProviderForTesting();
+  // Install a software surface, which does not support direct compositing.
+  Context2D()->CreateSoftwareSurfaceForTesting();
 
   CanvasElement().SetIsDisplayed(true);
   EXPECT_FALSE(!!CanvasElement().RateLimiter());
@@ -760,7 +759,7 @@ TEST_P(CanvasRenderingContext2DTest,
   Context2D()->FinalizeFrame(FlushReason::kCanvasPushFrame);
   Context2D()->FinalizeFrame(FlushReason::kCanvasPushFrame);
   EXPECT_FALSE(!!CanvasElement().RateLimiter());
-  Context2D()->ResetResourceProvider();
+  Context2D()->ResetBacking();
 }
 
 TEST_P(CanvasRenderingContext2DTestAccelerated,
@@ -860,9 +859,8 @@ TEST_P(CanvasRenderingContext2DTest, FlushNotDeferredWhenNonComposited) {
   ScopedCanvas2dDeferredFlushForTest enable_feature(true);
   CreateContext(kNonOpaque);
 
-  // Install a Canvas2DBitmapProvider, which does not support direct
-  // compositing.
-  Context2D()->CreateBitmapProviderForTesting();
+  // Install a software surface, which does not support direct compositing.
+  Context2D()->CreateSoftwareSurfaceForTesting();
   ASSERT_FALSE(Context2D()->IsComposited());
 
   // Non-composited canvas flushes immediately on kCanvasPushFrame.
@@ -872,7 +870,7 @@ TEST_P(CanvasRenderingContext2DTest, FlushNotDeferredWhenNonComposited) {
   Context2D()->FinalizeFrame(FlushReason::kCanvasPushFrame);
   EXPECT_FALSE(Context2D()->Recorder()->HasRecordedDrawOps());
 
-  Context2D()->ResetResourceProvider();
+  Context2D()->ResetBacking();
 }
 
 TEST_P(CanvasRenderingContext2DTest, GetImageWithAccelerationDisabled) {
@@ -890,7 +888,7 @@ TEST_P(CanvasRenderingContext2DTest, GetImageWithAccelerationDisabled) {
   // The GetImage() call should have preserved the rasterization mode as well as
   // the validity of the resource.
   EXPECT_EQ(CanvasElement().GetRasterModeForCanvas2D(), RasterMode::kCPU);
-  EXPECT_TRUE(Context2D()->IsResourceProviderValid());
+  EXPECT_TRUE(Context2D()->IsBackingValid());
 }
 
 TEST_P(CanvasRenderingContext2DTest, FillRect_FullCoverage) {
@@ -1752,7 +1750,7 @@ TEST_P(CanvasRenderingContext2DTest,
       .texture_format_bgra8888 = true;
 
   CreateContext(kNonOpaque);
-  EXPECT_TRUE(Context2D()->InitializeResourceProvider());
+  EXPECT_TRUE(Context2D()->InitializeBacking());
 
   // Draw to the canvas and verify that the canvas is composited.
   Context2D()->fillRect(0, 0, 1, 1);
@@ -1766,7 +1764,7 @@ TEST_P(CanvasRenderingContext2DTest,
   SetUseMappableSharedImagesForCanvas2DForTesting(false);
 
   CreateContext(kNonOpaque);
-  EXPECT_TRUE(Context2D()->InitializeResourceProvider());
+  EXPECT_TRUE(Context2D()->InitializeBacking());
 
   // Ensure that support for BGRA overlays is present, as otherwise compositing
   // will not occur regardless.
@@ -1819,7 +1817,7 @@ TEST_P(CanvasRenderingContext2DTest, TextRenderingTest) {
 TEST_P(CanvasRenderingContext2DTestAccelerated, GetImage) {
   CreateContext(kNonOpaque);
 
-  ASSERT_TRUE(Context2D()->InitializeResourceProvider());
+  ASSERT_TRUE(Context2D()->InitializeBacking());
   ASSERT_EQ(CanvasElement().GetRasterModeForCanvas2D(), RasterMode::kGPU);
 
   // Verify that CanvasRenderingContext2D::GetImage() creates an accelerated
@@ -1830,14 +1828,14 @@ TEST_P(CanvasRenderingContext2DTestAccelerated, GetImage) {
   // The GetImage() call should have preserved the rasterization mode as well as
   // the validity of the resource.
   EXPECT_EQ(CanvasElement().GetRasterModeForCanvas2D(), RasterMode::kGPU);
-  EXPECT_TRUE(Context2D()->IsResourceProviderValid());
+  EXPECT_TRUE(Context2D()->IsBackingValid());
 }
 
 TEST_P(CanvasRenderingContext2DTestAccelerated,
        ReleaseLostTransferableResource) {
   CreateContext(kNonOpaque);
 
-  ASSERT_TRUE(Context2D()->InitializeResourceProvider());
+  ASSERT_TRUE(Context2D()->InitializeBacking());
 
   // Invoking PrepareTransferableResource() has a precondition that a CC layer
   // is present.
@@ -1859,7 +1857,7 @@ TEST_P(CanvasRenderingContext2DTestAccelerated,
        NoRegenerationOfTransferableResourceWhenAlreadyInCcLayer) {
   CreateContext(kNonOpaque);
 
-  ASSERT_TRUE(Context2D()->InitializeResourceProvider());
+  ASSERT_TRUE(Context2D()->InitializeBacking());
 
   // Invoking PrepareTransferableResource() has a precondition that a CC layer
   // is present.
@@ -1887,7 +1885,7 @@ TEST_P(CanvasRenderingContext2DTestAccelerated,
 TEST_P(CanvasRenderingContext2DTestAccelerated,
        ContextLostAndRestoredEventsAreEmittedAfterGPUContextLost) {
   CreateContext(kNonOpaque);
-  Context2D()->InitializeResourceProvider();
+  Context2D()->InitializeBacking();
   EXPECT_EQ(CanvasElement().GetRasterModeForCanvas2D(), RasterMode::kGPU);
   EXPECT_THAT(Context2D()->GetSharedImageProvider(), Pointee(IsValid()));
 
@@ -1916,7 +1914,7 @@ TEST_P(CanvasRenderingContext2DTestAccelerated,
   CreateContextProvider(SetIsContextLost::kNotModifyValue);
 
   CreateContext(kNonOpaque);
-  Context2D()->InitializeResourceProvider();
+  Context2D()->InitializeBacking();
   EXPECT_EQ(CanvasElement().GetRasterModeForCanvas2D(), RasterMode::kGPU);
   EXPECT_THAT(Context2D()->GetSharedImageProvider(), Pointee(IsValid()));
 
@@ -1943,17 +1941,17 @@ TEST_P(CanvasRenderingContext2DTestAccelerated,
        GetResourceProviderAfterContextLoss) {
   CreateContext(kNonOpaque);
 
-  EXPECT_TRUE(Context2D()->InitializeResourceProvider());
+  EXPECT_TRUE(Context2D()->InitializeBacking());
 
   test_context_provider_->GetTestRasterInterface()->set_context_lost(true);
-  EXPECT_FALSE(Context2D()->InitializeResourceProvider());
+  EXPECT_FALSE(Context2D()->InitializeBacking());
 }
 
 TEST_P(CanvasRenderingContext2DTestAccelerated,
        PrepareTransferableResourceAfterContextLoss) {
   CreateContext(kNonOpaque);
 
-  ASSERT_TRUE(Context2D()->InitializeResourceProvider());
+  ASSERT_TRUE(Context2D()->InitializeBacking());
 
   // Invoking PrepareTransferableResource() has a precondition that a CC layer
   // is present.
@@ -1977,7 +1975,7 @@ TEST_P(CanvasRenderingContext2DTestAccelerated,
        ReleaseLostTransferableResourceWithLostContext) {
   CreateContext(kNonOpaque);
 
-  ASSERT_TRUE(Context2D()->InitializeResourceProvider());
+  ASSERT_TRUE(Context2D()->InitializeBacking());
 
   // Invoking PrepareTransferableResource() has a precondition that a CC layer
   // is present.
@@ -2009,10 +2007,10 @@ TEST_P(CanvasRenderingContext2DTestAccelerated,
 
   test_context_provider_->GetTestRasterInterface()->set_context_lost(true);
 
-  ASSERT_TRUE(Context2D()->InitializeResourceProvider());
+  ASSERT_TRUE(Context2D()->InitializeBacking());
 
   EXPECT_EQ(CanvasElement().GetRasterModeForCanvas2D(), RasterMode::kCPU);
-  EXPECT_TRUE(Context2D()->IsResourceProviderValid());
+  EXPECT_TRUE(Context2D()->IsBackingValid());
 }
 
 TEST_P(CanvasRenderingContext2DTestAccelerated, GetImageAfterContextLoss) {
@@ -2023,7 +2021,7 @@ TEST_P(CanvasRenderingContext2DTestAccelerated, GetImageAfterContextLoss) {
   // accelerated raster/compositing and a CC layer.
   ASSERT_TRUE(SetUpFullAccelerationAndCcLayer(CanvasElement(), Context2D()));
 
-  EXPECT_TRUE(Context2D()->IsResourceProviderValid());
+  EXPECT_TRUE(Context2D()->IsBackingValid());
   EXPECT_TRUE(Context2D()->GetImage());
 
   test_context_provider_->GetTestRasterInterface()->set_context_lost(true);
@@ -2041,7 +2039,7 @@ TEST_P(CanvasRenderingContext2DTestAccelerated,
   ASSERT_TRUE(SetUpFullAccelerationAndCcLayer(CanvasElement(), Context2D()));
 
   // The resource should start off valid.
-  EXPECT_TRUE(Context2D()->IsResourceProviderValid());
+  EXPECT_TRUE(Context2D()->IsBackingValid());
 
   viz::TransferableResource resource;
   viz::ReleaseCallback release_callback;
@@ -2051,7 +2049,7 @@ TEST_P(CanvasRenderingContext2DTestAccelerated,
   // Losing the context should result in the resource becoming invalid and the
   // host being unable to produce a TransferableResource from it.
   test_context_provider_->GetTestRasterInterface()->set_context_lost(true);
-  EXPECT_FALSE(Context2D()->IsResourceProviderValid());
+  EXPECT_FALSE(Context2D()->IsBackingValid());
   EXPECT_FALSE(CanvasElement().PrepareTransferableResource(&resource,
                                                            &release_callback));
 
@@ -2060,7 +2058,7 @@ TEST_P(CanvasRenderingContext2DTestAccelerated,
   // unit tests. This simulates what would happen when attempting to restore
   // while the GPU process is down.
   Context2D()->TryRestoreContextEvent(/*timer=*/nullptr);
-  EXPECT_FALSE(Context2D()->IsResourceProviderValid());
+  EXPECT_FALSE(Context2D()->IsBackingValid());
   EXPECT_FALSE(CanvasElement().PrepareTransferableResource(&resource,
                                                            &release_callback));
 }
@@ -2090,7 +2088,7 @@ TEST_P(CanvasRenderingContext2DTestAccelerated,
   scoped_feature_list.InitWithFeatures({features::kCanvas2DHibernation}, {});
 
   CreateContext(kNonOpaque);
-  Context2D()->InitializeResourceProvider();
+  Context2D()->InitializeBacking();
 
   auto& handler = CHECK_DEREF(Context2D()->GetHibernationHandler());
   ASSERT_FALSE(handler.IsHibernating());
@@ -2114,7 +2112,7 @@ TEST_P(CanvasRenderingContext2DTestAccelerated,
   scoped_feature_list.InitWithFeatures({features::kCanvas2DHibernation}, {});
 
   CreateContext(kNonOpaque);
-  Context2D()->InitializeResourceProvider();
+  Context2D()->InitializeBacking();
 
   auto& handler = CHECK_DEREF(Context2D()->GetHibernationHandler());
   ASSERT_FALSE(handler.IsHibernating());
@@ -2256,7 +2254,7 @@ TEST_P(CanvasRenderingContext2DTestAccelerated, NoHibernationForSmallCanvas) {
       features::kCanvas2DHibernation};
   CreateContext(kNonOpaque);
   canvas_element_->SetSize(gfx::Size(64, 64));
-  Context2D()->InitializeResourceProvider();
+  Context2D()->InitializeBacking();
   ASSERT_EQ(CanvasElement().GetRasterModeForCanvas2D(), RasterMode::kGPU);
   auto& handler = CHECK_DEREF(Context2D()->GetHibernationHandler());
 
@@ -2289,7 +2287,7 @@ TEST_P(CanvasRenderingContext2DTestAccelerated, AlwaysHibernateLargeCanvas) {
       {});
   CreateContext(kNonOpaque);
   canvas_element_->SetSize(gfx::Size(200, 200));
-  Context2D()->InitializeResourceProvider();
+  Context2D()->InitializeBacking();
   ASSERT_EQ(CanvasElement().GetRasterModeForCanvas2D(), RasterMode::kGPU);
   auto& handler = CHECK_DEREF(Context2D()->GetHibernationHandler());
 
@@ -2304,7 +2302,7 @@ TEST_P(CanvasRenderingContext2DTestAccelerated,
   scoped_feature_list.InitWithFeatures({features::kCanvas2DHibernation}, {});
 
   CreateContext(kNonOpaque);
-  Context2D()->InitializeResourceProvider();
+  Context2D()->InitializeBacking();
   EXPECT_EQ(CanvasElement().GetRasterModeForCanvas2D(), RasterMode::kGPU);
 
   auto& handler = CHECK_DEREF(Context2D()->GetHibernationHandler());
@@ -2325,7 +2323,7 @@ TEST_P(CanvasRenderingContext2DTestAccelerated,
 
   EXPECT_EQ(CanvasElement().GetRasterModeForCanvas2D(), RasterMode::kCPU);
   EXPECT_TRUE(handler.IsHibernating());
-  EXPECT_FALSE(Context2D()->IsResourceProviderValid());
+  EXPECT_FALSE(Context2D()->IsBackingValid());
 
   // Verify that coming to the foreground ends hibernation synchronously.
   {
@@ -2338,7 +2336,7 @@ TEST_P(CanvasRenderingContext2DTestAccelerated,
         1);
     EXPECT_EQ(CanvasElement().GetRasterModeForCanvas2D(), RasterMode::kGPU);
     EXPECT_FALSE(handler.IsHibernating());
-    EXPECT_TRUE(Context2D()->IsResourceProviderValid());
+    EXPECT_TRUE(Context2D()->IsBackingValid());
   }
 }
 
@@ -2347,7 +2345,7 @@ TEST_P(CanvasRenderingContext2DTestAccelerated,
   base::test::ScopedFeatureList scoped_feature_list;
   scoped_feature_list.InitWithFeatures({features::kCanvas2DHibernation}, {});
   CreateContext(kNonOpaque);
-  Context2D()->InitializeResourceProvider();
+  Context2D()->InitializeBacking();
   CanvasHibernationHandler* handler = Context2D()->GetHibernationHandler();
   viz::TestContextSupport* context_support = test_context_provider_->support();
 
@@ -2375,7 +2373,7 @@ TEST_P(CanvasRenderingContext2DTestAccelerated,
   base::test::ScopedFeatureList scoped_feature_list;
   scoped_feature_list.InitWithFeatures({features::kCanvas2DHibernation}, {});
   CreateContext(kNonOpaque);
-  Context2D()->InitializeResourceProvider();
+  Context2D()->InitializeBacking();
   CanvasHibernationHandler* handler = Context2D()->GetHibernationHandler();
   viz::TestContextSupport* context_support = test_context_provider_->support();
 
@@ -2419,7 +2417,7 @@ TEST_P(CanvasRenderingContext2DTestAccelerated,
   scoped_feature_list.InitWithFeatures({features::kCanvas2DHibernation}, {});
 
   CreateContext(kNonOpaque);
-  Context2D()->InitializeResourceProvider();
+  Context2D()->InitializeBacking();
   EXPECT_EQ(CanvasElement().GetRasterModeForCanvas2D(), RasterMode::kGPU);
 
   auto& handler = CHECK_DEREF(Context2D()->GetHibernationHandler());
@@ -2465,7 +2463,7 @@ TEST_P(CanvasRenderingContext2DTestAccelerated,
 
   EXPECT_EQ(CanvasElement().GetRasterModeForCanvas2D(), RasterMode::kCPU);
   EXPECT_TRUE(handler.IsHibernating());
-  EXPECT_FALSE(Context2D()->IsResourceProviderValid());
+  EXPECT_FALSE(Context2D()->IsBackingValid());
 
   // Verify that coming to the foreground ends hibernation synchronously.
   {
@@ -2478,7 +2476,7 @@ TEST_P(CanvasRenderingContext2DTestAccelerated,
         1);
     EXPECT_EQ(CanvasElement().GetRasterModeForCanvas2D(), RasterMode::kGPU);
     EXPECT_FALSE(handler.IsHibernating());
-    EXPECT_TRUE(Context2D()->IsResourceProviderValid());
+    EXPECT_TRUE(Context2D()->IsBackingValid());
   }
 }
 
@@ -2487,7 +2485,7 @@ TEST_P(CanvasRenderingContext2DTestAccelerated, TeardownEndsHibernation) {
   scoped_feature_list.InitWithFeatures({features::kCanvas2DHibernation}, {});
 
   CreateContext(kNonOpaque);
-  Context2D()->InitializeResourceProvider();
+  Context2D()->InitializeBacking();
   EXPECT_EQ(CanvasElement().GetRasterModeForCanvas2D(), RasterMode::kGPU);
 
   auto& handler = CHECK_DEREF(Context2D()->GetHibernationHandler());
@@ -2508,7 +2506,7 @@ TEST_P(CanvasRenderingContext2DTestAccelerated, TeardownEndsHibernation) {
 
   EXPECT_EQ(CanvasElement().GetRasterModeForCanvas2D(), RasterMode::kCPU);
   EXPECT_TRUE(handler.IsHibernating());
-  EXPECT_FALSE(Context2D()->IsResourceProviderValid());
+  EXPECT_FALSE(Context2D()->IsBackingValid());
 
   // Verify that tearing down the page ends hibernation synchronously.
   {
@@ -2530,7 +2528,7 @@ TEST_P(CanvasRenderingContext2DTestAccelerated,
   scoped_feature_list.InitWithFeatures({features::kCanvas2DHibernation}, {});
 
   CreateContext(kNonOpaque);
-  Context2D()->InitializeResourceProvider();
+  Context2D()->InitializeBacking();
   EXPECT_EQ(CanvasElement().GetRasterModeForCanvas2D(), RasterMode::kGPU);
 
   auto& handler = CHECK_DEREF(Context2D()->GetHibernationHandler());
@@ -2571,7 +2569,7 @@ TEST_P(CanvasRenderingContext2DTestAccelerated,
   scoped_feature_list.InitWithFeatures({features::kCanvas2DHibernation}, {});
 
   CreateContext(kNonOpaque);
-  Context2D()->InitializeResourceProvider();
+  Context2D()->InitializeBacking();
   ASSERT_EQ(CanvasElement().GetRasterModeForCanvas2D(), RasterMode::kGPU);
 
   ASSERT_FALSE(Context2D()->IsHibernating());
@@ -2612,7 +2610,7 @@ TEST_P(CanvasRenderingContext2DTestAccelerated,
   scoped_feature_list.InitWithFeatures({features::kCanvas2DHibernation}, {});
 
   CreateContext(kNonOpaque);
-  Context2D()->InitializeResourceProvider();
+  Context2D()->InitializeBacking();
   EXPECT_EQ(CanvasElement().GetRasterModeForCanvas2D(), RasterMode::kGPU);
   auto& handler = CHECK_DEREF(Context2D()->GetHibernationHandler());
 
@@ -2635,7 +2633,7 @@ TEST_P(CanvasRenderingContext2DTestAccelerated,
         CanvasHibernationHandler::HibernationEvent::
             kHibernationEndedWithFallbackToSW,
         1);
-    EXPECT_TRUE(Context2D()->IsResourceProviderValid());
+    EXPECT_TRUE(Context2D()->IsBackingValid());
     EXPECT_FALSE(handler.IsHibernating());
     EXPECT_EQ(CanvasElement().GetRasterModeForCanvas2D(), RasterMode::kCPU);
   }
@@ -2648,7 +2646,7 @@ TEST_P(
   scoped_feature_list.InitWithFeatures({features::kCanvas2DHibernation}, {});
 
   CreateContext(kNonOpaque);
-  Context2D()->InitializeResourceProvider();
+  Context2D()->InitializeBacking();
   ASSERT_EQ(CanvasElement().GetRasterModeForCanvas2D(), RasterMode::kGPU);
   ASSERT_FALSE(Context2D()->IsHibernating());
 
@@ -2678,7 +2676,7 @@ TEST_P(CanvasRenderingContext2DTestAccelerated,
   scoped_feature_list.InitWithFeatures({features::kCanvas2DHibernation}, {});
 
   CreateContext(kNonOpaque);
-  Context2D()->InitializeResourceProvider();
+  Context2D()->InitializeBacking();
   EXPECT_EQ(CanvasElement().GetRasterModeForCanvas2D(), RasterMode::kGPU);
 
   auto& handler = CHECK_DEREF(Context2D()->GetHibernationHandler());
@@ -2712,7 +2710,7 @@ TEST_P(CanvasRenderingContext2DTestAccelerated,
         1);
     EXPECT_EQ(CanvasElement().GetRasterModeForCanvas2D(), RasterMode::kGPU);
     EXPECT_FALSE(handler.IsHibernating());
-    EXPECT_TRUE(Context2D()->IsResourceProviderValid());
+    EXPECT_TRUE(Context2D()->IsBackingValid());
   }
 }
 
@@ -2727,7 +2725,7 @@ TEST_P(CanvasRenderingContext2DTestAccelerated, ContextLossAbortsHibernation) {
   // accelerated raster/compositing and a CC layer.
   ASSERT_TRUE(SetUpFullAccelerationAndCcLayer(CanvasElement(), Context2D()));
 
-  EXPECT_TRUE(Context2D()->IsResourceProviderValid());
+  EXPECT_TRUE(Context2D()->IsBackingValid());
 
   auto& handler = CHECK_DEREF(Context2D()->GetHibernationHandler());
   EXPECT_FALSE(handler.IsHibernating());
@@ -2760,7 +2758,7 @@ TEST_P(CanvasRenderingContext2DTestAccelerated, ContextLossAbortsHibernation) {
         1);
     EXPECT_EQ(CanvasElement().GetRasterModeForCanvas2D(), RasterMode::kGPU);
     EXPECT_FALSE(handler.IsHibernating());
-    EXPECT_FALSE(Context2D()->IsResourceProviderValid());
+    EXPECT_FALSE(Context2D()->IsBackingValid());
   }
 }
 
@@ -2770,7 +2768,7 @@ TEST_P(CanvasRenderingContext2DTestAccelerated,
   scoped_feature_list.InitWithFeatures({features::kCanvas2DHibernation}, {});
 
   CreateContext(kNonOpaque);
-  Context2D()->InitializeResourceProvider();
+  Context2D()->InitializeBacking();
   EXPECT_EQ(CanvasElement().GetRasterModeForCanvas2D(), RasterMode::kGPU);
   auto& handler = CHECK_DEREF(Context2D()->GetHibernationHandler());
 
@@ -2798,7 +2796,7 @@ TEST_P(CanvasRenderingContext2DTestAccelerated,
 
   EXPECT_FALSE(Context2D()->IsContextLost());
   EXPECT_FALSE(handler.IsHibernating());
-  EXPECT_TRUE(Context2D()->IsResourceProviderValid());
+  EXPECT_TRUE(Context2D()->IsBackingValid());
   EXPECT_EQ(CanvasElement().GetRasterModeForCanvas2D(), RasterMode::kGPU);
 }
 
@@ -2811,7 +2809,7 @@ TEST_P(CanvasRenderingContext2DTestAccelerated,
   CreateContextProvider(SetIsContextLost::kNotModifyValue);
 
   CreateContext(kNonOpaque);
-  Context2D()->InitializeResourceProvider();
+  Context2D()->InitializeBacking();
   EXPECT_EQ(CanvasElement().GetRasterModeForCanvas2D(), RasterMode::kGPU);
   auto& handler = CHECK_DEREF(Context2D()->GetHibernationHandler());
 
@@ -2853,7 +2851,7 @@ TEST_P(CanvasRenderingContext2DTestAccelerated,
   CreateContextProvider(SetIsContextLost::kNotModifyValue);
 
   CreateContext(kNonOpaque);
-  Context2D()->InitializeResourceProvider();
+  Context2D()->InitializeBacking();
   EXPECT_EQ(CanvasElement().GetRasterModeForCanvas2D(), RasterMode::kGPU);
   auto& handler = CHECK_DEREF(Context2D()->GetHibernationHandler());
 
@@ -2896,7 +2894,7 @@ TEST_P(CanvasRenderingContext2DTestAccelerated,
   CreateContextProvider(SetIsContextLost::kNotModifyValue);
 
   CreateContext(kNonOpaque);
-  Context2D()->InitializeResourceProvider();
+  Context2D()->InitializeBacking();
   EXPECT_EQ(CanvasElement().GetRasterModeForCanvas2D(), RasterMode::kGPU);
   auto& handler = CHECK_DEREF(Context2D()->GetHibernationHandler());
 
@@ -2934,7 +2932,7 @@ TEST_P(CanvasRenderingContext2DTestAccelerated,
   scoped_feature_list.InitWithFeatures({features::kCanvas2DHibernation}, {});
 
   CreateContext(kNonOpaque);
-  Context2D()->InitializeResourceProvider();
+  Context2D()->InitializeBacking();
   EXPECT_EQ(CanvasElement().GetRasterModeForCanvas2D(), RasterMode::kGPU);
   auto& handler = CHECK_DEREF(Context2D()->GetHibernationHandler());
 
@@ -2942,19 +2940,19 @@ TEST_P(CanvasRenderingContext2DTestAccelerated,
   SetDocumentVisibility(GetDocument(), PageVisibilityState::kHidden);
   WaitForHibernation();
   EXPECT_TRUE(handler.IsHibernating());
-  EXPECT_FALSE(Context2D()->IsResourceProviderValid());
+  EXPECT_FALSE(Context2D()->IsBackingValid());
 
-  // Recreate a provider to simulate background rendering.
+  // Recreate a backing to simulate background rendering.
   {
     base::HistogramTester histogram_tester;
-    Context2D()->InitializeResourceProvider();
+    Context2D()->InitializeBacking();
     histogram_tester.ExpectUniqueSample(
         kCanvasHibernationEventHistogramName,
         CanvasHibernationHandler::HibernationEvent::
             kHibernationEndedWithSwitchToBackgroundRendering,
         1);
     EXPECT_FALSE(handler.IsHibernating());
-    EXPECT_TRUE(Context2D()->IsResourceProviderValid());
+    EXPECT_TRUE(Context2D()->IsBackingValid());
   }
 }
 
@@ -2963,7 +2961,7 @@ TEST_P(CanvasRenderingContext2DTestAccelerated, ResizeEndsHibernation) {
   scoped_feature_list.InitWithFeatures({features::kCanvas2DHibernation}, {});
 
   CreateContext(kNonOpaque);
-  Context2D()->InitializeResourceProvider();
+  Context2D()->InitializeBacking();
   EXPECT_EQ(CanvasElement().GetRasterModeForCanvas2D(), RasterMode::kGPU);
   auto& handler = CHECK_DEREF(Context2D()->GetHibernationHandler());
 
@@ -2990,7 +2988,7 @@ TEST_P(CanvasRenderingContext2DTestAccelerated, ResetEndsHibernation) {
   scoped_feature_list.InitWithFeatures({features::kCanvas2DHibernation}, {});
 
   CreateContext(kNonOpaque);
-  Context2D()->InitializeResourceProvider();
+  Context2D()->InitializeBacking();
   const MemoryManagedPaintRecorder* initial_recorder = Context2D()->Recorder();
   ASSERT_NE(initial_recorder, nullptr);
   EXPECT_EQ(CanvasElement().GetRasterModeForCanvas2D(), RasterMode::kGPU);
@@ -3020,7 +3018,7 @@ TEST_P(CanvasRenderingContext2DTestAccelerated, ResizeAbortsHibernation) {
   scoped_feature_list.InitWithFeatures({features::kCanvas2DHibernation}, {});
 
   CreateContext(kNonOpaque);
-  Context2D()->InitializeResourceProvider();
+  Context2D()->InitializeBacking();
   EXPECT_EQ(CanvasElement().GetRasterModeForCanvas2D(), RasterMode::kGPU);
   auto& handler = CHECK_DEREF(Context2D()->GetHibernationHandler());
 
@@ -3052,7 +3050,7 @@ TEST_P(CanvasRenderingContext2DTestAccelerated, ResetDoesntAbortHibernation) {
   scoped_feature_list.InitWithFeatures({features::kCanvas2DHibernation}, {});
 
   CreateContext(kNonOpaque);
-  Context2D()->InitializeResourceProvider();
+  Context2D()->InitializeBacking();
   EXPECT_EQ(CanvasElement().GetRasterModeForCanvas2D(), RasterMode::kGPU);
   auto& handler = CHECK_DEREF(Context2D()->GetHibernationHandler());
 
@@ -3215,7 +3213,7 @@ TEST_P(CanvasRenderingContext2DTestAccelerated,
   EXPECT_FALSE(CanvasElement().PrepareTransferableResource(&resource,
                                                            &release_callback));
   EXPECT_TRUE(handler.IsHibernating());
-  EXPECT_FALSE(Context2D()->IsResourceProviderValid());
+  EXPECT_FALSE(Context2D()->IsBackingValid());
 }
 
 TEST_P(CanvasRenderingContext2DTestAccelerated,
@@ -3224,7 +3222,7 @@ TEST_P(CanvasRenderingContext2DTestAccelerated,
   scoped_feature_list.InitWithFeatures({features::kCanvas2DHibernation}, {});
 
   CreateContext(kNonOpaque);
-  Context2D()->InitializeResourceProvider();
+  Context2D()->InitializeBacking();
 
   auto& handler = CHECK_DEREF(Context2D()->GetHibernationHandler());
 
@@ -3262,7 +3260,7 @@ TEST_P(CanvasRenderingContext2DTestAccelerated,
   scoped_feature_list.InitWithFeatures({features::kCanvas2DHibernation}, {});
 
   CreateContext(kNonOpaque);
-  ASSERT_TRUE(Context2D()->InitializeResourceProvider());
+  ASSERT_TRUE(Context2D()->InitializeBacking());
   ASSERT_EQ(CanvasElement().GetRasterModeForCanvas2D(), RasterMode::kGPU);
 
   auto& handler = CHECK_DEREF(Context2D()->GetHibernationHandler());
@@ -3420,8 +3418,8 @@ TEST_P(CanvasRenderingContext2DTestAccelerated,
   EXPECT_TRUE(painting_layer);
   UpdateAllLifecyclePhasesForTest();
 
-  // The resource provider gets lazily created. Force it to be dropped.
-  Context2D()->ResetResourceProvider();
+  // The backing gets lazily created. Force it to be dropped.
+  Context2D()->ResetBacking();
 
   // Hide element to trigger hibernation (if enabled).
   SetDocumentVisibility(GetDocument(), PageVisibilityState::kHidden);
@@ -3448,7 +3446,7 @@ TEST_P(CanvasRenderingContext2DTestAccelerated, DrawImage_Video_Flush) {
 
   CreateContext(kNonOpaque);
   // No need to set-up the layer bridge when testing low latency mode.
-  Context2D()->InitializeResourceProvider();
+  Context2D()->InitializeBacking();
   EXPECT_EQ(CanvasElement().GetRasterModeForCanvas2D(), RasterMode::kGPU);
 
   gfx::Size visible_size(10, 10);
@@ -3477,7 +3475,7 @@ TEST_P(CanvasRenderingContext2DTestAccelerated, DrawImage_RotatedVideoFrame) {
   V8TestingScope scope;
 
   CreateContext(kNonOpaque);
-  Context2D()->InitializeResourceProvider();
+  Context2D()->InitializeBacking();
   EXPECT_EQ(CanvasElement().GetRasterModeForCanvas2D(), RasterMode::kGPU);
 
   gfx::Size visible_size(16, 8);
@@ -3536,8 +3534,8 @@ TEST_P(CanvasRenderingContext2DTestAccelerated, DrawImage_RotatedVideoFrame) {
 TEST_P(CanvasRenderingContext2DTest, FlushRestoresClipStack) {
   CreateContext(kNonOpaque);
 
-  // Ensure that the ResourceProvider and canvas are created.
-  Context2D()->InitializeResourceProvider();
+  // Ensure that the backing and canvas are created.
+  Context2D()->InitializeBacking();
 
   // Set a transform.
   Context2D()->translate(5, 0);
@@ -3556,8 +3554,8 @@ TEST_P(CanvasRenderingContext2DTest, FlushRestoresClipStack) {
 TEST_P(CanvasRenderingContext2DTest, PutImageDataRestoresClipStack) {
   CreateContext(kNonOpaque);
 
-  // Ensure that the ResourceProvider and canvas are created.
-  Context2D()->InitializeResourceProvider();
+  // Ensure that the backing and canvas are created.
+  Context2D()->InitializeBacking();
 
   // Set a transform.
   Context2D()->translate(5, 0);
@@ -3599,7 +3597,7 @@ TEST_P(CanvasRenderingContext2DTestAccelerated,
   ScopedCanvas2dLayersForTest layer_feature{/*enabled=*/true};
   CreateContext(kNonOpaque);
 
-  Context2D()->InitializeResourceProvider();
+  Context2D()->InitializeBacking();
   const MemoryManagedPaintRecorder* initial_recorder = Context2D()->Recorder();
   ASSERT_NE(initial_recorder, nullptr);
 
@@ -3644,7 +3642,7 @@ class CanvasRenderingContext2DTestAcceleratedMultipleDisables
           canvas);
       auto* context =
           static_cast<CanvasRenderingContext2D*>(canvas->RenderingContext());
-      context->InitializeResourceProvider();
+      context->InitializeBacking();
       EXPECT_TRUE(canvas->IsAccelerated());
       context->DisableAcceleration();
     }
@@ -3660,7 +3658,7 @@ TEST_P(CanvasRenderingContext2DTestAcceleratedMultipleDisables,
   CreateContext(
       kNonOpaque, kNormalLatency,
       CanvasContextCreationAttributesCore::WillReadFrequently::kUndefined);
-  Context2D()->InitializeResourceProvider();
+  Context2D()->InitializeBacking();
   // Because a bunch of canvases had acceleration explicitly disabled, canvases
   // created with `kUndefined` should start with acceleration disabled.
   EXPECT_FALSE(CanvasElement().IsAccelerated());
@@ -3672,7 +3670,7 @@ TEST_P(CanvasRenderingContext2DTestAcceleratedMultipleDisables,
   CreateContext(
       kNonOpaque, kNormalLatency,
       CanvasContextCreationAttributesCore::WillReadFrequently::kFalse);
-  Context2D()->InitializeResourceProvider();
+  Context2D()->InitializeBacking();
   // Canvases created with `kFalse` should always start with acceleration
   // enabled regardless of how many canvases had acceleration disabled.
   EXPECT_TRUE(CanvasElement().IsAccelerated());
@@ -3683,7 +3681,7 @@ TEST_P(CanvasRenderingContext2DTestAcceleratedMultipleDisables,
   CreateAlotOfCanvasesWithAccelerationExplicitlyDisabled();
   CreateContext(kNonOpaque, kNormalLatency,
                 CanvasContextCreationAttributesCore::WillReadFrequently::kTrue);
-  Context2D()->InitializeResourceProvider();
+  Context2D()->InitializeBacking();
   // Canvases created with `kTrue` should always start with acceleration
   // disabled regardless of how many canvases had acceleration explicitly
   // disabled.
@@ -4012,7 +4010,7 @@ TEST_P(CanvasRenderingContext2DTest, AccessibilityCanvasAnnotation_MaxWidth) {
 TEST_P(CanvasRenderingContext2DTestAccelerated, FlushForImage) {
   CreateContext(kNonOpaque);
   CanvasElement().SetSize(gfx::Size(10, 10));
-  CHECK(Context2D()->InitializeResourceProvider());
+  CHECK(Context2D()->InitializeBacking());
 
   auto* src_canvas_element =
       To<HTMLCanvasElement>(GetDocument().getElementById(AtomicString("d")));
@@ -4023,7 +4021,7 @@ TEST_P(CanvasRenderingContext2DTestAccelerated, FlushForImage) {
       src_canvas_element);
   auto* src_context = static_cast<CanvasRenderingContext2D*>(
       src_canvas_element->RenderingContext());
-  CHECK(src_context->InitializeResourceProvider());
+  CHECK(src_context->InitializeBacking());
 
   src_context->fillRect(0, 0, 10, 10);
 

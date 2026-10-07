@@ -165,11 +165,11 @@ class MODULES_EXPORT BaseRenderingContext2D
                     int dirty_height,
                     ExceptionState&);
 
-  virtual bool CanCreateResourceProvider() = 0;
-  virtual bool InitializeResourceProvider() = 0;
-  bool HasResourceProvider() const;
-  virtual bool IsResourceProviderValid() const;
-  virtual void ResetResourceProvider();
+  virtual bool CanCreateBacking() = 0;
+  virtual bool InitializeBacking() = 0;
+  bool HasBacking() const;
+  virtual bool IsBackingValid() const;
+  virtual void ResetBacking();
 
   std::optional<cc::PaintRecord> FlushCanvas(FlushReason) override = 0;
 
@@ -334,11 +334,11 @@ class MODULES_EXPORT BaseRenderingContext2D
                            int y) {
     NOTREACHED();
   }
-  bool WritePixelsToProvider(const SkImageInfo& orig_info,
-                             const void* pixels,
-                             size_t row_bytes,
-                             int x,
-                             int y);
+  bool WritePixelsToBacking(const SkImageInfo& orig_info,
+                            const void* pixels,
+                            size_t row_bytes,
+                            int x,
+                            int y);
 
   PredefinedColorSpace GetDefaultImageDataColorSpace() const final {
     return color_params_.ColorSpace();
@@ -370,8 +370,8 @@ class MODULES_EXPORT BaseRenderingContext2D
   void CreateSharedImageProviderForSoftwareCompositor();
   void SetSharedImageProviderForTesting(
       std::unique_ptr<Canvas2DResourceProvider> provider);
-  void CreateBitmapProvider();
-  void RecordResourceProviderHistograms();
+  void CreateSoftwareSurface();
+  void RecordBackingHistograms();
   scoped_refptr<StaticBitmapImage> Snapshot();
 
   bool context_restorable_{true};
