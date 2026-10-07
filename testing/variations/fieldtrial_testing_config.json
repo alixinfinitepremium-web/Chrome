@@ -2028,6 +2028,26 @@
             ]
         }
     ],
+    "AutofillHideSuggestionsOnFocusChange": [
+        {
+            "platforms": [
+                "android",
+                "chromeos",
+                "ios",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "AutofillHideSuggestionsOnFocusChange"
+                    ]
+                }
+            ]
+        }
+    ],
     "AutofillImproveClassificationForTwoWordLastNames": [
         {
             "platforms": [
@@ -8632,6 +8652,27 @@
                     "name": "Enabled",
                     "enable_features": [
                         "GooglePayViaAndroidIntents"
+                    ]
+                }
+            ]
+        }
+    ],
+    "GpuInitOptimization": [
+        {
+            "platforms": [
+                "android",
+                "android_webview",
+                "chromeos",
+                "ios",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "GpuInitOptimization"
                     ]
                 }
             ]
