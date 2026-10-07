@@ -334,7 +334,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': 'e7037d95390fe66353164a3eb22a013bdd87ae4d',
+  'v8_revision': '65e7f05387324b133ca95baee303617d1a54a9a0',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -1705,7 +1705,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_win_x86',
-          'version': '8r2CpBd2qgQkwOKDEVGpaf0robd_wRfuK4q9_YM0cXsC',
+          'version': '74gzmp0s4U92N3snHGZGDqkZAGMRuK3PLRf5az_d-18C',
         },
       ],
   },
@@ -3902,7 +3902,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '07fe5fdfd802c932d4e02c9c40e9673a4733d7fa',
+        'f239fdd0a3475e19729cd3298d6d08a7c0690543',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
