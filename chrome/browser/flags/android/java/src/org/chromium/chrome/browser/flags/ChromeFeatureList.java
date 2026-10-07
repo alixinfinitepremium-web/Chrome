@@ -803,10 +803,8 @@ public abstract class ChromeFeatureList {
     public static final String SETTINGS_IN_TAB = "SettingsInTab";
     public static final String SETTINGS_IN_TAB_DESKTOP = "SettingsInTabDesktop";
     public static final String SETTINGS_IN_TAB_URL_NAV = "SettingsInTabUrlNav";
-    public static final String SETTINGS_MULTI_COLUMN = "SettingsMultiColumn";
     public static final String SETTINGS_SEARCH_COLLAPSIBLE_SEARCH_BOX =
             "SettingsSearchCollapsibleSearchBox";
-    public static final String SETTINGS_SINGLE_ACTIVITY = "SettingsSingleActivity";
     public static final String SHARE_CUSTOM_ACTIONS_IN_CCT = "ShareCustomActionsInCCT";
     public static final String SHOW_BLOCKED_SENSITIVE_DOWNLOAD = "ShowBlockedSensitiveDownload";
     public static final String SHOW_DOWNLOAD_SCANNING_STATE = "ShowDownloadScanningState";
@@ -964,10 +962,7 @@ public abstract class ChromeFeatureList {
     public static final CachedFlag sAndroidBottomBar =
             newCachedFlag(ANDROID_BOTTOM_BAR, false, /* defaultValueInTests= */ true);
     public static final CachedFlag sAndroidDesktopWebUiHistory =
-            newCachedFlag(
-                    ANDROID_DESKTOP_WEB_UI_HISTORY,
-                    /* defaultValue= */ false,
-                    /* defaultValueInTests= */ true);
+            newCachedFlag(ANDROID_DESKTOP_WEB_UI_HISTORY, /* defaultValue= */ false);
     public static final CachedFlag sAndroidElegantTextHeight =
             newCachedFlag(ANDROID_ELEGANT_TEXT_HEIGHT, true);
     public static final CachedFlag sAndroidKeyboardShortcutOpenFile =
@@ -1374,12 +1369,8 @@ public abstract class ChromeFeatureList {
             newCachedFlag(SETTINGS_IN_TAB_DESKTOP, /* defaultValue= */ true);
     public static final CachedFlag sSettingsInTabUrlNav =
             newCachedFlag(SETTINGS_IN_TAB_URL_NAV, /* defaultValue= */ true);
-    public static final CachedFlag sSettingsMultiColumn =
-            newCachedFlag(SETTINGS_MULTI_COLUMN, /* defaultValue= */ true);
     public static final CachedFlag sSettingsSearchCollapsibleSearchBox =
             newCachedFlag(SETTINGS_SEARCH_COLLAPSIBLE_SEARCH_BOX, /* defaultValue= */ false);
-    public static final CachedFlag sSettingsSingleActivity =
-            newCachedFlag(SETTINGS_SINGLE_ACTIVITY, /* defaultValue= */ true);
     public static final CachedFlag sShutdownPreNativeThreadPoolAfterStartup =
             newCachedFlag(
                     BaseFeatures.SHUTDOWN_PRE_NATIVE_THREAD_POOL_AFTER_STARTUP,
@@ -1644,9 +1635,7 @@ public abstract class ChromeFeatureList {
                     sSettingsInTab,
                     sSettingsInTabDesktop,
                     sSettingsInTabUrlNav,
-                    sSettingsMultiColumn,
                     sSettingsSearchCollapsibleSearchBox,
-                    sSettingsSingleActivity,
                     sShutdownPreNativeThreadPoolAfterStartup,
                     sStartSurfaceReturnTime,
                     sSyncRestoreOnStartupPref,
