@@ -152,6 +152,7 @@ public class NewTabPageCoordinator implements ModuleDelegateHost {
     private final SearchEngineService mSearchEngineService;
     private final BackPressManager mBackPressManager;
     private final SearchProviderInfoDelegate mSearchProviderInfoDelegate;
+    private final boolean mIsIncognitoModeEnabled;
 
     /**
      * The predefined baseline vertical scroll distance before the fake search box reaches the top
@@ -315,6 +316,7 @@ public class NewTabPageCoordinator implements ModuleDelegateHost {
 
         mIsAim3pEntrypointEnabled = OmniboxFeatures.isAim3pEntrypointEnabled();
         mIsAiModeButtonRedirectEnabled = NewTabPageUtils.isAiModeButtonRedirectEnabled();
+        mIsIncognitoModeEnabled = IncognitoUtils.isIncognitoModeEnabled(mProfile);
 
         Resources resources = mActivity.getResources();
         mNtpSearchBoxTopMarginWithoutLogo =
@@ -574,7 +576,10 @@ public class NewTabPageCoordinator implements ModuleDelegateHost {
     }
 
     private void initializeComposeplateFlags(Profile profile) {
-        mCanShowComposeplateButton = TriStateUtils.from(canShowAiModeButtonOnNtp());
+        // The composeplate hosts the incognito button, so it's only shown when incognito mode is
+        // enabled.
+        mCanShowComposeplateButton =
+                TriStateUtils.from(mIsIncognitoModeEnabled && canShowAiModeButtonOnNtp());
         mIsComposeplatePolicyEnabled =
                 mCanShowComposeplateButton == TriState.TRUE
                         && ComposeplateUtils.isEnabledByPolicy(profile);
@@ -607,12 +612,14 @@ public class NewTabPageCoordinator implements ModuleDelegateHost {
                 this::onComposeplateButtonClicked);
         @NewTabPageUtils.ActionChips int chipType = NewTabPageUtils.getMerchandisingChipsType();
         if (chipType == NewTabPageUtils.ActionChips.CREATE_IMAGE) {
-            mComposeplateCoordinator.setOptionalButtonClickListener(this::onCreateButtonClicked);
+            mComposeplateCoordinator.setOptionalButtonClickListener(
+                    this::onCreateButtonClicked, chipType);
             mComposeplateCoordinator.setOptionalButtonIcon(R.drawable.image_create_24dp);
             mComposeplateCoordinator.setOptionalButtonText(
                     mActivity.getString(R.string.ntp_action_chip_create_image));
         } else if (chipType == NewTabPageUtils.ActionChips.CANVAS) {
-            mComposeplateCoordinator.setOptionalButtonClickListener(this::onCanvasButtonClicked);
+            mComposeplateCoordinator.setOptionalButtonClickListener(
+                    this::onCanvasButtonClicked, chipType);
         }
 
         updateComposeplateBackground();
@@ -653,7 +660,7 @@ public class NewTabPageCoordinator implements ModuleDelegateHost {
     }
 
     private void onIncognitoButtonClicked(View view) {
-        if (!IncognitoUtils.isIncognitoModeEnabled(mProfile)) return;
+        if (!mIsIncognitoModeEnabled) return;
 
         UrlConstantResolver resolver = UrlConstantResolverFactory.getForProfile(mProfile);
         mManager.loadUrl(new LoadUrlParams(resolver.getNtpUrl()), /* incognito= */ true);
@@ -1236,9 +1243,7 @@ public class NewTabPageCoordinator implements ModuleDelegateHost {
         // As long as mComposeplateCoordinator has been initialized, we should update its
         // visibility.
         if (mComposeplateCoordinator != null) {
-            shouldShowComposeplateButton =
-                    mCanShowComposeplateButton == TriState.TRUE
-                            && IncognitoUtils.isIncognitoModeEnabled(mProfile);
+            shouldShowComposeplateButton = mCanShowComposeplateButton == TriState.TRUE;
             mComposeplateCoordinator.setVisibility(
                     shouldShowComposeplateButton, mManager.isCurrentPage());
         }
