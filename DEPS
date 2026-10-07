@@ -334,7 +334,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': '65e7f05387324b133ca95baee303617d1a54a9a0',
+  'v8_revision': '7e0263a29c11943fb81cd25068084424367e7000',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -2662,7 +2662,7 @@ deps = {
   },
 
   'src/third_party/libphonenumber/src':
-    Var('chromium_git') + '/external/libphonenumber.git' + '@' + '0ae309f1940227efe688f5eb1815ef45a6fbee8d',
+    Var('chromium_git') + '/external/libphonenumber.git' + '@' + 'd1457634c3d95e570dad433ee0ab400beb343a56',
 
   'src/third_party/libprotobuf-mutator/src':
     Var('chromium_git') + '/external/github.com/google/libprotobuf-mutator.git' + '@' +  Var('libprotobuf-mutator'),
@@ -2843,7 +2843,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + 'ca60b2255c6833b324e886ed5d8129f5ce783bac',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '37cd9ab148767cfd0c00eb9ee8398cb75ce46063',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
