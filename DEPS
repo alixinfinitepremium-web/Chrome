@@ -326,7 +326,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': 'faf83a0317dfa6836eeb0b66b042e99948876a3f',
+  'src_internal_revision': '017d6da06d96cfad784314615ab057ceaede88a6',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -1959,7 +1959,7 @@ deps = {
       'packages': [
           {
                'package': 'chromium/third_party/android_build_tools/error_prone',
-               'version': 'VtrBaqQdSQvAxXzQmZ9NxFDw6KODCoK2Z7q7cG8DI6cC',
+               'version': 'lg_jGJxA0mPnJOcLVyKPKD2Vo96a993Kh-UOrMvaRx4C',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -2246,7 +2246,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '324e2a29f29aa3acd466076b5aec795d830823d3',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '4ca5cc58da8655fb10b001cb89b846171210c251',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '173b9b26e8fcbcbe64e1ecbf073a21a96b95c6b1',
@@ -2566,7 +2566,7 @@ deps = {
     Var('chromium_git') + '/external/libaddressinput.git' + '@' + '81eb9628382b07d371d8ea0b11badf7de3857fd5',
 
   'src/third_party/libaom/source/libaom':
-    Var('aomedia_git') + '/aom.git' + '@' +  'ae410fe8b7bd45f3cf61dc8f112dc783e2a08089',
+    Var('aomedia_git') + '/aom.git' + '@' +  'b10eed72ebc006292fa26d5f132bf03ef66e7a04',
 
   'src/third_party/crabbyavif/src':
     Var('chromium_git') + '/external/github.com/webmproject/CrabbyAvif.git' + '@' + Var('crabbyavif_revision'),
