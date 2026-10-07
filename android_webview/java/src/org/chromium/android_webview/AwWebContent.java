@@ -2,13 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-package com.android.webview.chromium;
+package org.chromium.android_webview;
 
 import android.content.Context;
-import android.webkit.WebView;
+import android.view.ViewGroup;
 
-import org.chromium.android_webview.AwBrowserContext;
-import org.chromium.android_webview.AwContents;
 import org.chromium.android_webview.AwContents.DependencyFactory;
 import org.chromium.android_webview.AwContents.InternalAccessDelegate;
 import org.chromium.android_webview.gfx.AwDrawFnImpl.DrawFnAccess;
@@ -17,18 +15,39 @@ import org.chromium.build.annotations.Nullable;
 
 /** Represents underlying Chromium web contents state that can survive moving across WebViews. */
 @NullMarked
-public class WebContent {
+public class AwWebContent {
     /**
-     * Listener notified when the {@link AwContents} associated with this {@link WebContent}
+     * Listener notified when the {@link AwContents} associated with this {@link AwWebContent}
      * changes, or {@code null} when detached or not yet initialized.
      */
     public interface SurfaceBindingListener {
         void onAwContentsChanged(@Nullable AwContents awContents);
     }
 
-    @Nullable private AwContents mAwContents;
-    @Nullable private WebViewChromium mCurrentWebViewChromium;
-    @Nullable private SurfaceBindingListener mSurfaceBindingListener;
+    /** The current owner of this {@link AwWebContent}. There is at most one host at a time. */
+    public interface ViewHost {
+        /**
+         * Called when `AwSettings` is available during adoption.
+         *
+         * <p>`AwContents` owns the `AwSettings` object so in an ideal world, we shouldn't be
+         * passing this to the host. But we observed that during `AwContents` construction,
+         * depending on the app's implementation, it is possible that there is a call to
+         * `WebViewChromium.getSettings()`. Since `AwContents` is not fully initialized at that
+         * point, `getSettings()` would return `null`. Therefore, we pass the settings to the host
+         * as soon as the settings are available. Refer: b/556721003
+         */
+        void initSettings(AwSettings settings);
+
+        /**
+         * Called when this {@link AwWebContent} is adopted by a new host, before the new host's
+         * adoption begins.
+         */
+        void onDetached();
+    }
+
+    private @Nullable AwContents mAwContents;
+    private @Nullable ViewHost mCurrentHost;
+    private @Nullable SurfaceBindingListener mSurfaceBindingListener;
     private boolean mIsDestroyed;
 
     public boolean isInitialized() {
@@ -49,9 +68,9 @@ public class WebContent {
     }
 
     public AwContents adopt(
-            WebViewChromium webViewChromium,
+            ViewHost host,
             AwBrowserContext browserContext,
-            WebView webView,
+            ViewGroup containerView,
             Context context,
             InternalAccessDelegate internalAccessAdapter,
             DrawFnAccess drawFnAccess,
@@ -59,31 +78,30 @@ public class WebContent {
             DependencyFactory dependencyFactory) {
         if (mIsDestroyed) {
             throw new IllegalStateException(
-                    "Cannot adopt a WebContent instance after destroy() has been called.");
+                    "Cannot adopt an AwWebContent instance after destroy() has been called.");
         }
 
-        assert mCurrentWebViewChromium != webViewChromium
-                : "Cannot adopt a WebContent into the same WebView twice.";
+        assert mCurrentHost != host : "Cannot adopt an AwWebContent into the same host twice.";
 
-        if (mCurrentWebViewChromium != null) {
-            mCurrentWebViewChromium.detachForTransfer();
+        if (mCurrentHost != null) {
+            mCurrentHost.onDetached();
         }
-        mCurrentWebViewChromium = webViewChromium;
+        mCurrentHost = host;
 
         if (mAwContents == null) {
             mAwContents =
                     new AwContents(
                             browserContext,
-                            webView,
+                            containerView,
                             context,
                             internalAccessAdapter,
                             drawFnAccess,
                             clientFactory,
-                            webViewChromium::initSettings,
+                            host::initSettings,
                             dependencyFactory);
         } else {
-            webViewChromium.initSettings(mAwContents.getSettings());
-            mAwContents.adopt(webView, internalAccessAdapter);
+            host.initSettings(mAwContents.getSettings());
+            mAwContents.adopt(containerView, internalAccessAdapter);
         }
 
         if (mSurfaceBindingListener != null) {
@@ -100,7 +118,7 @@ public class WebContent {
             mSurfaceBindingListener.onAwContentsChanged(null);
             mSurfaceBindingListener = null;
         }
-        mCurrentWebViewChromium = null;
+        mCurrentHost = null;
         if (mAwContents != null) {
             mAwContents.destroy();
             mAwContents = null;

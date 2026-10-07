@@ -56,7 +56,8 @@
                 {
                     "name": "Enabled",
                     "enable_features": [
-                        "ANGLEPurgeableBufferPool"
+                        "ANGLEPurgeableBufferPool",
+                        "ANGLETrimMemoryOnIdle"
                     ]
                 }
             ]
@@ -1524,28 +1525,6 @@
             ]
         }
     ],
-    "AutofillAddressUserPerceptionSurveyUS": [
-        {
-            "platforms": [
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "params": {
-                        "en_site_id": "Q13fLRHym0ugnJ3q1cK0Tm5d8fMW",
-                        "probability": "1"
-                    },
-                    "enable_features": [
-                        "AutofillAddressUserPerceptionSurvey"
-                    ]
-                }
-            ]
-        }
-    ],
     "AutofillAiEditEntitiesFromSaveUpdatePrompt": [
         {
             "platforms": [
@@ -1695,6 +1674,26 @@
             ]
         }
     ],
+    "AutofillAiWalletServerProvidedDeepLink": [
+        {
+            "platforms": [
+                "android",
+                "chromeos",
+                "ios",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled_20261007",
+                    "enable_features": [
+                        "AutofillAiWalletServerProvidedDeepLink"
+                    ]
+                }
+            ]
+        }
+    ],
     "AutofillAndroidKeyboardAccessoryDynamicPositioning": [
         {
             "platforms": [
@@ -1781,28 +1780,6 @@
                     "name": "Enabled",
                     "enable_features": [
                         "AutofillComplementCountryUsingPhoneNumber"
-                    ]
-                }
-            ]
-        }
-    ],
-    "AutofillCreditCardUserPerceptionSurvey": [
-        {
-            "platforms": [
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "params": {
-                        "en_site_id": "Q13fLRHym0ugnJ3q1cK0Tm5d8fMW",
-                        "probability": "1"
-                    },
-                    "enable_features": [
-                        "AutofillCreditCardUserPerceptionSurvey"
                     ]
                 }
             ]
@@ -2191,28 +2168,6 @@
                     "name": "Enabled",
                     "enable_features": [
                         "AutofillOptimizeIsNormalizedNameVariantOf"
-                    ]
-                }
-            ]
-        }
-    ],
-    "AutofillPasswordUserPerceptionSurvey": [
-        {
-            "platforms": [
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "params": {
-                        "en_site_id": "cLnNGzEX59NNVVEtwumiSF",
-                        "probability": "1"
-                    },
-                    "enable_features": [
-                        "AutofillPasswordUserPerceptionSurvey"
                     ]
                 }
             ]
@@ -5284,24 +5239,6 @@
                     "name": "Enabled",
                     "enable_features": [
                         "CreateSpareRendererForDefaultProfile"
-                    ]
-                }
-            ]
-        }
-    ],
-    "CredentialManagementUnifiedUi": [
-        {
-            "platforms": [
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "CredentialManagementUnifiedUi"
                     ]
                 }
             ]
@@ -8472,6 +8409,25 @@
             ]
         }
     ],
+    "GlicReuseCookies": [
+        {
+            "platforms": [
+                "android",
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "GlicReuseCookies"
+                    ]
+                }
+            ]
+        }
+    ],
     "GlicShareImage": [
         {
             "platforms": [
@@ -9381,6 +9337,26 @@
                     },
                     "enable_features": [
                         "HistoryEmbeddings"
+                    ]
+                }
+            ]
+        }
+    ],
+    "HistoryQueryBatchedLookups": [
+        {
+            "platforms": [
+                "android",
+                "chromeos",
+                "ios",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "HistoryQueryBatchedLookups"
                     ]
                 }
             ]
@@ -10301,21 +10277,6 @@
                     },
                     "enable_features": [
                         "IdbSqliteOnDiskRollout"
-                    ]
-                }
-            ]
-        }
-    ],
-    "IdentityAwareness": [
-        {
-            "platforms": [
-                "ios"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "IdentityAwareness"
                     ]
                 }
             ]
@@ -18432,6 +18393,7 @@
                     "name": "Enabled_20260828",
                     "enable_features": [
                         "OffscreenCanvasPropagateVisibility",
+                        "WebGLDeleteBuffersInBackground",
                         "WebGLDiscardBackBuffer"
                     ]
                 }

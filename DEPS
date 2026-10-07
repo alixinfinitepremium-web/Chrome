@@ -326,7 +326,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': 'da375d5177ad248e137898a03b0157fc5e413aae',
+  'src_internal_revision': 'c21acf5e7105fba5653f2e7f7870faec747d3abb',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -338,7 +338,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '36b74e4dd47d2704de451621e57573ec8dd3c9be',
+  'angle_revision': '173baa6b780daddd3816ee5bd75196d377b2fce2',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -410,7 +410,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '8f393315846eb4befc59f5390840b7550c32ffe0',
+  'devtools_frontend_revision': 'd8fc2837f6905dd0fdbe69a1520ba5c5df9104a3',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1764,7 +1764,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '85331c60fe4fa5cb437a8ff610383fa4e3127319',
+    '86bdd8d09c2c0037370e7851ae8975e2d965001f',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -3275,7 +3275,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + 'f18608fb694e40881c36cf8236141d423cb0607a',
+    Var('webrtc_git') + '/src.git' + '@' + 'b8f0e986d08b71ed2185349428beb58adc1f361d',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -3437,7 +3437,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/media_app/app',
-        'version': '6BgA7FJNXvHoqQnMjIXYob3fPmlvq3i4wnzXIQ9O7wMC',
+        'version': '_yVTRfvvXTB-M874V2c0IVXbco9b_T0Wa0OvwsHf14UC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',

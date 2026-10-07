@@ -71,6 +71,7 @@ import org.chromium.android_webview.AwLayoutSizer;
 import org.chromium.android_webview.AwPrintDocumentAdapter;
 import org.chromium.android_webview.AwSettings;
 import org.chromium.android_webview.AwThreadUtils;
+import org.chromium.android_webview.AwWebContent;
 import org.chromium.android_webview.DarkModeHelper;
 import org.chromium.android_webview.DualTraceEvent;
 import org.chromium.android_webview.ManifestMetadataUtil;
@@ -133,6 +134,19 @@ class WebViewChromium
     private ContentSettingsAdapter mWebSettings;
     // The WebView wrapper for WebContents and required browser components.
     AwContents mAwContents;
+    // Receives callbacks from the AwWebContent that this WebViewChromium adopts.
+    private final AwWebContent.ViewHost mWebContentHost =
+            new AwWebContent.ViewHost() {
+                @Override
+                public void initSettings(AwSettings settings) {
+                    WebViewChromium.this.initSettings(settings);
+                }
+
+                @Override
+                public void onDetached() {
+                    WebViewChromium.this.detachForTransfer();
+                }
+            };
 
     private final WebView.HitTestResult mHitTestResult;
 
@@ -269,15 +283,15 @@ class WebViewChromium
                                 AwBrowserContext.getDefaultContextName(), true);
             }
 
-            WebContent webContent = WebContentContextWrapper.getWebContent(mContext);
+            AwWebContent webContent = WebContentContextWrapper.getWebContent(mContext);
             if (webContent == null) {
-                webContent = new WebContent();
+                webContent = new AwWebContent();
             }
             boolean isTransfer = webContent.isInitialized();
 
             mAwContents =
                     webContent.adopt(
-                            this,
+                            mWebContentHost,
                             browserContext,
                             mWebView,
                             mContext,
