@@ -26,6 +26,7 @@
 #include "chrome/browser/commerce/shopping_service_factory.h"
 #include "chrome/browser/complex_tasks/task_tab_helper.h"
 #include "chrome/browser/content_settings/host_content_settings_map_factory.h"
+#include "chrome/browser/content_settings/mixed_content_settings_tab_helper.h"
 #include "chrome/browser/content_settings/sound_content_setting_observer.h"
 #include "chrome/browser/contextual_tasks/contextual_tasks_tab_visit_tracker.h"
 #include "chrome/browser/enterprise/data_protection/data_protection_features.h"
@@ -36,6 +37,7 @@
 #include "chrome/browser/enterprise/util/managed_browser_utils.h"
 #include "chrome/browser/external_protocol/external_protocol_observer.h"
 #include "chrome/browser/facilitated_payments/ui/chrome_facilitated_payments_client.h"
+#include "chrome/browser/file_system_access/file_system_access_permission_request_manager.h"
 #include "chrome/browser/file_system_access/file_system_access_tab_helper.h"
 #include "chrome/browser/finds/core/finds_features.h"
 #include "chrome/browser/finds/core/finds_tab_helper.h"
@@ -87,6 +89,7 @@
 #include "chrome/browser/tab_contents/navigation_metrics_recorder.h"
 #include "chrome/browser/task_manager/web_contents_tags.h"
 #include "chrome/browser/translate/chrome_translate_client.h"
+#include "chrome/browser/trusted_vault/trusted_vault_encryption_keys_tab_helper.h"
 #include "chrome/browser/ui/contextual_search/tab_contextualization_controller.h"
 #include "chrome/browser/ui/find_bar/find_bar_state.h"
 #include "chrome/browser/ui/recently_audible_helper.h"
@@ -124,6 +127,7 @@
 #include "components/metrics_services_manager/metrics_services_manager.h"
 #include "components/page_content_annotations/content/page_content_annotations_web_contents_observer.h"
 #include "components/payments/core/features.h"
+#include "components/permissions/permission_recovery_success_rate_tracker.h"
 #include "components/search/ntp_features.h"
 #include "components/search/search.h"
 #include "components/security_interstitials/core/features.h"
@@ -158,6 +162,7 @@
 #endif
 
 #if BUILDFLAG(SAFE_BROWSING_AVAILABLE)
+#include "chrome/browser/safe_browsing/chrome_password_reuse_detection_manager_client.h"
 #include "chrome/browser/safe_browsing/chrome_safe_browsing_tab_observer_delegate.h"
 #include "chrome/browser/safe_browsing/tailored_security/tailored_security_service_factory.h"
 #include "chrome/browser/safe_browsing/tailored_security/tailored_security_url_observer.h"
@@ -381,6 +386,9 @@ TabFeatures::TabFeatures(content::WebContents* web_contents, Profile* profile) {
 
 #if BUILDFLAG(SAFE_BROWSING_AVAILABLE)
   if (autofill::ContentAutofillClient::FromWebContents(web_contents)) {
+    // Attach password reuse detection client when Autofill is present.
+    ChromePasswordReuseDetectionManagerClient::CreateForWebContents(
+        web_contents);
     safe_browsing_tab_observer_ =
         GetUserDataFactory()
             .CreateInstance<safe_browsing::SafeBrowsingTabObserver>(
@@ -474,6 +482,9 @@ TabFeatures::TabFeatures(content::WebContents* web_contents, Profile* profile) {
   task_manager::WebContentsTags::CreateForTabContents(web_contents);
 
   media_state_observer_ = std::make_unique<MediaStateObserver>(web_contents);
+
+  // Attach FileSystemAccessPermissionRequestManager to the tab.
+  FileSystemAccessPermissionRequestManager::CreateForWebContents(web_contents);
 
   file_system_access_tab_helper_ =
       std::make_unique<FileSystemAccessTabHelper>(web_contents);
@@ -596,6 +607,18 @@ TabFeatures::TabFeatures(content::WebContents* web_contents, Profile* profile) {
     sensitive_content::AndroidSensitiveContentClient::CreateForWebContents(
         web_contents, "SensitiveContent.Chrome.");
   }
+
+  // Attach MixedContentSettingsTabHelper to the tab.
+  mixed_content_settings_tab_helper_ =
+      GetUserDataFactory().CreateInstance<MixedContentSettingsTabHelper>(
+          *tab, *tab, web_contents);
+
+  // Track permission recovery success rate for the tab.
+  permissions::PermissionRecoverySuccessRateTracker::CreateForWebContents(
+      web_contents);
+
+  // Attach TrustedVaultEncryptionKeysTabHelper to the tab.
+  TrustedVaultEncryptionKeysTabHelper::CreateForWebContents(web_contents);
 
   // Register LanguagePersistedTabDataAndroid for non-incognito Android tabs to
   // persist language details.

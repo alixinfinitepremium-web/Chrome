@@ -19,12 +19,9 @@
 #include "chrome/browser/buildflags.h"
 #include "chrome/browser/chrome_content_browser_client.h"
 #include "chrome/browser/content_settings/host_content_settings_map_factory.h"
-#include "chrome/browser/content_settings/mixed_content_settings_tab_helper.h"
 #include "chrome/browser/content_settings/page_specific_content_settings_delegate.h"
 #include "chrome/browser/enterprise/connectors/referrer_cache_utils.h"
 #include "chrome/browser/favicon/favicon_utils.h"
-#include "chrome/browser/file_system_access/file_system_access_features.h"
-#include "chrome/browser/file_system_access/file_system_access_permission_request_manager.h"
 #include "chrome/browser/history/history_tab_helper.h"
 #include "chrome/browser/history_clusters/history_clusters_tab_helper.h"
 #include "chrome/browser/login_detection/login_detection_tab_helper.h"
@@ -50,7 +47,6 @@
 #include "chrome/browser/sync/sessions/sync_sessions_router_tab_helper.h"
 #include "chrome/browser/sync/sessions/sync_sessions_web_contents_router_factory.h"
 #include "chrome/browser/translate/chrome_translate_client.h"
-#include "chrome/browser/trusted_vault/trusted_vault_encryption_keys_tab_helper.h"
 #include "chrome/browser/ui/autofill/autofill_client_provider.h"
 #include "chrome/browser/ui/autofill/autofill_client_provider_factory.h"
 #include "chrome/browser/ui/prefs/prefs_tab_helper.h"
@@ -72,8 +68,6 @@
 #include "components/password_manager/core/browser/password_manager.h"
 #include "components/performance_manager/embedder/performance_manager_registry.h"
 #include "components/performance_manager/public/features.h"
-#include "components/permissions/features.h"
-#include "components/permissions/permission_recovery_success_rate_tracker.h"
 #include "components/permissions/permission_request_manager.h"
 #include "components/safe_browsing/content/browser/async_check_tracker.h"
 #include "components/safe_browsing/content/browser/safe_browsing_navigation_observer.h"
@@ -122,7 +116,6 @@
 #endif  // BUILDFLAG(ENABLE_EXTENSIONS_CORE)
 
 #if BUILDFLAG(SAFE_BROWSING_AVAILABLE)
-#include "chrome/browser/safe_browsing/chrome_password_reuse_detection_manager_client.h"
 #include "chrome/browser/safe_browsing/safe_browsing_service.h"
 #include "chrome/browser/safe_browsing/trigger_creator.h"
 #endif
@@ -197,18 +190,14 @@ void TabHelpers::AttachTabHelpers(WebContents* web_contents,
   if (breadcrumbs::IsEnabled(g_browser_process->local_state())) {
     BreadcrumbManagerTabHelper::CreateForWebContents(web_contents);
   }
-  // Password manager and password reuse detection rely on ChromeAutofillClient
-  // initialized by browser autofill, which is gated by enable_browser_autofill.
+  // Password manager relies on ChromeAutofillClient initialized by browser
+  // autofill, which is gated by enable_browser_autofill.
   if (enable_browser_autofill) {
     autofill::AutofillClientProvider& autofill_client_provider =
         autofill::AutofillClientProviderFactory::GetForProfile(profile);
     if (!autofill_client_provider.uses_platform_autofill()) {
       ChromePasswordManagerClient::CreateForWebContents(web_contents);
     }
-#if BUILDFLAG(SAFE_BROWSING_AVAILABLE)
-    ChromePasswordReuseDetectionManagerClient::CreateForWebContents(
-        web_contents);
-#endif
   }
   CreateSubresourceFilterWebContentsHelper(web_contents);
   ChromeTranslateClient::CreateForWebContents(web_contents);
@@ -216,7 +205,6 @@ void TabHelpers::AttachTabHelpers(WebContents* web_contents,
       web_contents,
       std::make_unique<PageSpecificContentSettingsDelegate>(web_contents));
   favicon::CreateContentFaviconDriverForWebContents(web_contents);
-  FileSystemAccessPermissionRequestManager::CreateForWebContents(web_contents);
   if (!profile->IsOffTheRecord()) {
     auto* history_tab_helper =
         HistoryTabHelper::GetOrCreateForWebContents(web_contents);
@@ -227,7 +215,6 @@ void TabHelpers::AttachTabHelpers(WebContents* web_contents,
   webapps::InstallableManager::CreateForWebContents(web_contents);
   login_detection::LoginDetectionTabHelper::MaybeCreateForWebContents(
       web_contents);
-  MixedContentSettingsTabHelper::CreateForWebContents(web_contents);
   if (optimization_guide::features::IsOptimizationHintsEnabled()) {
     OptimizationGuideWebContentsObserver::CreateForWebContents(web_contents);
   }
@@ -253,8 +240,6 @@ void TabHelpers::AttachTabHelpers(WebContents* web_contents,
     pm_registry->SetPageType(web_contents, performance_manager::PageType::kTab);
   }
   permissions::PermissionRequestManager::CreateForWebContents(web_contents);
-  permissions::PermissionRecoverySuccessRateTracker::CreateForWebContents(
-      web_contents);
   // The PopupBlockerTabHelper has an implicit dependency on
   // ChromeSubresourceFilterClient being available in its constructor.
   blocked_content::PopupBlockerTabHelper::CreateForWebContents(web_contents);
@@ -296,7 +281,6 @@ void TabHelpers::AttachTabHelpers(WebContents* web_contents,
         prerender::NoStatePrefetchManagerFactory::GetForBrowserContext(
             profile));
   }
-  TrustedVaultEncryptionKeysTabHelper::CreateForWebContents(web_contents);
   ukm::InitializeSourceUrlRecorderForWebContents(web_contents);
   OneTimePermissionsTrackerHelper::CreateForWebContents(web_contents);
 

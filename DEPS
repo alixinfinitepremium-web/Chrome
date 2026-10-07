@@ -568,7 +568,7 @@ vars = {
   'libcxx_revision':       '97b436da4c33663581d394f4ee0a5977fc38c2f4',
 
   # GN CIPD package version.
-  'gn_version': 'git_revision:3fef1f00031be0d3505e5338ca671ea3752e6fd8',
+  'gn_version': 'git_revision:f9eca75ae5549af4a6d4a2e2a912c652590de9da',
 
   # ninja CIPD package.
   'ninja_package': 'infra/3pp/tools/ninja/',
@@ -2231,7 +2231,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'f7ea32ec994dbfd43c61edfcf276af6f98662878',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'ce92a2e156beaaf1f2ed3a651a5c96f55bb78b80',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -2246,7 +2246,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '4ca5cc58da8655fb10b001cb89b846171210c251',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '02cafd09aafc45b15d8ff1c96ad7f07cca1dc42a',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '173b9b26e8fcbcbe64e1ecbf073a21a96b95c6b1',
@@ -2694,7 +2694,7 @@ deps = {
     Var('chromium_git') + '/webm/libwebp.git' + '@' +  'b43b2caa710c0c997c066cb32c7fea1391fad70a',
 
   'src/third_party/libyuv':
-    Var('chromium_git') + '/libyuv/libyuv.git' + '@' + '5323bab29e8d2623e77be549450a4f852c95a18f',
+    Var('chromium_git') + '/libyuv/libyuv.git' + '@' + '98697ab033ff9fb56dbe42c6bb214e1d285640c4',
 
   'src/third_party/lss': {
       'url': Var('chromium_git') + '/linux-syscall-support.git' + '@' + Var('lss_revision'),
@@ -3269,7 +3269,7 @@ deps = {
     Var('chromium_git') + '/external/khronosgroup/webgl.git' + '@' + '714857a28445e8f5d8d6ae1c78498578009534d8',
 
   'src/third_party/webgpu-cts/src':
-    Var('chromium_git') + '/external/github.com/gpuweb/cts.git' + '@' + 'a5e5d7440fa036b74ea13c3c5cb6b618a3c884e9',
+    Var('chromium_git') + '/external/github.com/gpuweb/cts.git' + '@' + '96e70a545f336fd96f61317a6c30dd030fbb8253',
 
   'src/third_party/webpagereplay':
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
@@ -3765,7 +3765,7 @@ deps = {
   },
 
   'src/chrome/services/speech/internal': {
-      'url': Var('chrome_git') + '/chromeos/speech.git' + '@' + '99f29b9ba78884e2ec8367f04fce0cd8b1502747',
+      'url': Var('chrome_git') + '/chromeos/speech.git' + '@' + 'f91ccbafcc61e509b1f4727ed05cb03b952531a9',
       'condition': 'checkout_chromeos and checkout_src_internal',
    },
 

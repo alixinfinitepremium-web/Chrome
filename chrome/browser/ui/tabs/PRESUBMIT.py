@@ -25,15 +25,33 @@ _ALLOWED_CREATE_FOR_CALLS = (
   # is also attached to non-tab GuestView WebContents in
   # ChromeGuestViewManagerDelegate, so the WebContents must own it.
   'captive_portal::CaptivePortalTabHelper::CreateForWebContents',
+  # ChromePasswordReuseDetectionManagerClient is also attached to non-tab
+  # WebContents in ChromeWebUILoginView, ProfilePickerSignInProvider,
+  # SimpleWebViewDialog, and ChromeSafeBrowsingDelegate, so the WebContents
+  # must own it.
+  'ChromePasswordReuseDetectionManagerClient::CreateForWebContents',
   # DlpContentTabHelper is also attached to non-tab Chrome App window
   # WebContents in ChromeAppDelegate and looked up from arbitrary WebContents
   # by DlpContentManager, so the WebContents must own it.
   'policy::DlpContentTabHelper::MaybeCreateForWebContents',
+  # FileSystemAccessPermissionRequestManager is also attached to non-tab
+  # Chrome App window WebContents in ChromeAppDelegate::InitWebContents, so
+  # the WebContents must own it.
+  'FileSystemAccessPermissionRequestManager::CreateForWebContents',
+  # PermissionRecoverySuccessRateTracker lives in //components/permissions and
+  # is also attached to non-tab WebContents in
+  # PaymentHandlerWebFlowViewController::PopulateSheet, DocumentPipHost, and
+  # GlicSidePanelUi, so the WebContents must own it.
+  'permissions::PermissionRecoverySuccessRateTracker::CreateForWebContents',
   # The task manager tag is looked up from WebContents user data by
   # WebContentsTaskProvider, is swapped in place by WebAppTabHelper, and is
   # also attached to non-tab WebContents (e.g. payment handler WebViews) and
   # to Android tabs, so the WebContents must own it.
   'task_manager::WebContentsTags::CreateForTabContents',
+  # TrustedVaultEncryptionKeysTabHelper is also attached to non-tab profile
+  # picker sign-in WebContents in ProfilePickerSignInProvider, so the
+  # WebContents must own it.
+  'TrustedVaultEncryptionKeysTabHelper::CreateForWebContents',
   # PreRedirectionURLObserver lives in //components/webapps and is also
   # attached to non-tab WebContents in web_app::CreateWebAppInstallTabHelpers
   # for background web-app installation, so the WebContents must own it.

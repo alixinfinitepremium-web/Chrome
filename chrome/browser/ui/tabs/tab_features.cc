@@ -24,6 +24,7 @@
 #include "chrome/browser/commerce/shopping_service_factory.h"
 #include "chrome/browser/complex_tasks/task_tab_helper.h"
 #include "chrome/browser/content_settings/host_content_settings_map_factory.h"
+#include "chrome/browser/content_settings/mixed_content_settings_tab_helper.h"
 #include "chrome/browser/content_settings/sound_content_setting_observer.h"
 #include "chrome/browser/contextual_cueing/contextual_cueing_controller.h"
 #include "chrome/browser/contextual_cueing/contextual_cueing_service_factory.h"
@@ -36,6 +37,7 @@
 #include "chrome/browser/enterprise/reporting/saas_usage/saas_usage_navigation_observer.h"
 #include "chrome/browser/external_protocol/external_protocol_observer.h"
 #include "chrome/browser/facilitated_payments/ui/chrome_facilitated_payments_client.h"
+#include "chrome/browser/file_system_access/file_system_access_permission_request_manager.h"
 #include "chrome/browser/file_system_access/file_system_access_tab_helper.h"
 #include "chrome/browser/glic/host/context/glic_page_features_manager.h"
 #include "chrome/browser/glic/suggestions/contextual_cueing_helper.h"
@@ -86,6 +88,7 @@
 #include "chrome/browser/tab_group_sync/tab_group_sync_service_factory.h"
 #include "chrome/browser/task_manager/web_contents_tags.h"
 #include "chrome/browser/themes/theme_service_factory.h"
+#include "chrome/browser/trusted_vault/trusted_vault_encryption_keys_tab_helper.h"
 #include "chrome/browser/ui/actions/chrome_action_id.h"
 #include "chrome/browser/ui/autofill/bubble_manager.h"
 #include "chrome/browser/ui/autofill/one_time_tokens/gmail_otp_opt_in_bubble_controller.h"
@@ -234,6 +237,7 @@
 #include "components/page_content_annotations/content/page_content_annotations_web_contents_observer.h"
 #include "components/passage_embeddings/core/passage_embeddings_features.h"
 #include "components/permissions/permission_indicators_tab_data.h"
+#include "components/permissions/permission_recovery_success_rate_tracker.h"
 #include "components/privacy_sandbox/privacy_sandbox_features.h"
 #include "components/security_interstitials/core/features.h"
 #include "components/tabs/public/tab_interface.h"
@@ -312,6 +316,7 @@
 #endif
 
 #if BUILDFLAG(SAFE_BROWSING_AVAILABLE)
+#include "chrome/browser/safe_browsing/chrome_password_reuse_detection_manager_client.h"
 #include "chrome/browser/safe_browsing/chrome_safe_browsing_tab_observer_delegate.h"
 #include "chrome/browser/safe_browsing/tailored_security/tailored_security_service_factory.h"
 #include "chrome/browser/safe_browsing/tailored_security/tailored_security_url_observer.h"
@@ -405,6 +410,8 @@ void TabFeatures::Init(TabInterface& tab, Profile* profile) {
             .CreateInstance<IntentPickerViewPageActionController>(tab, tab);
   }
 
+  FileSystemAccessPermissionRequestManager::CreateForWebContents(
+      tab.GetContents());
   if (page_action_controller_->ActionExists(kActionShowFileSystemAccess)) {
     file_system_access_page_action_controller_ =
         std::make_unique<FileSystemAccessPageActionController>(tab);
@@ -1054,6 +1061,8 @@ void TabFeatures::Init(TabInterface& tab, Profile* profile) {
 
 #if BUILDFLAG(SAFE_BROWSING_AVAILABLE)
   if (autofill::ContentAutofillClient::FromWebContents(tab.GetContents())) {
+    ChromePasswordReuseDetectionManagerClient::CreateForWebContents(
+        tab.GetContents());
     safe_browsing_tab_observer_ =
         GetUserDataFactory()
             .CreateInstance<safe_browsing::SafeBrowsingTabObserver>(
@@ -1211,6 +1220,16 @@ void TabFeatures::Init(TabInterface& tab, Profile* profile) {
 #if BUILDFLAG(ENABLE_PRINTING)
   printing::InitializePrintingForWebContents(tab.GetContents());
 #endif
+
+  mixed_content_settings_tab_helper_ =
+      GetUserDataFactory().CreateInstance<MixedContentSettingsTabHelper>(
+          tab, tab, tab.GetContents());
+
+  permissions::PermissionRecoverySuccessRateTracker::CreateForWebContents(
+      tab.GetContents());
+
+  // Attach TrustedVaultEncryptionKeysTabHelper to the tab.
+  TrustedVaultEncryptionKeysTabHelper::CreateForWebContents(tab.GetContents());
 }
 
 TabUIHelper* TabFeatures::SetTabUIHelperForTesting(
@@ -1559,6 +1578,8 @@ void TabFeatures::WillDiscardContents(tabs::TabInterface* tab,
 #if BUILDFLAG(SAFE_BROWSING_AVAILABLE)
   safe_browsing_tab_observer_.reset();
   if (autofill::ContentAutofillClient::FromWebContents(new_contents)) {
+    ChromePasswordReuseDetectionManagerClient::CreateForWebContents(
+        new_contents);
     safe_browsing_tab_observer_ =
         GetUserDataFactory()
             .CreateInstance<safe_browsing::SafeBrowsingTabObserver>(
@@ -1617,6 +1638,8 @@ void TabFeatures::WillDiscardContents(tabs::TabInterface* tab,
   chained_back_navigation_tracker_ =
       GetUserDataFactory().CreateInstance<ChainedBackNavigationTracker>(
           *tab, *tab, new_contents);
+
+  FileSystemAccessPermissionRequestManager::CreateForWebContents(new_contents);
 
   file_system_access_tab_helper_ =
       std::make_unique<FileSystemAccessTabHelper>(new_contents);
@@ -1732,6 +1755,16 @@ void TabFeatures::WillDiscardContents(tabs::TabInterface* tab,
 #if BUILDFLAG(ENABLE_PRINTING)
   printing::InitializePrintingForWebContents(new_contents);
 #endif
+
+  mixed_content_settings_tab_helper_.reset();
+  mixed_content_settings_tab_helper_ =
+      GetUserDataFactory().CreateInstance<MixedContentSettingsTabHelper>(
+          *tab, *tab, new_contents);
+
+  permissions::PermissionRecoverySuccessRateTracker::CreateForWebContents(
+      new_contents);
+
+  TrustedVaultEncryptionKeysTabHelper::CreateForWebContents(new_contents);
 }
 
 customize_chrome::SidePanelController*
