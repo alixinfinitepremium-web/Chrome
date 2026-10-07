@@ -108,6 +108,7 @@
 #include "chrome/browser/ui/find_bar/find_bar_state.h"
 #include "chrome/browser/ui/focus_tab_after_navigation_helper.h"
 #include "chrome/browser/ui/intent_picker_tab_helper.h"
+#include "chrome/browser/ui/javascript_dialogs/javascript_tab_modal_dialog_manager_delegate_desktop.h"
 #include "chrome/browser/ui/lens/lens_overlay_controller.h"
 #include "chrome/browser/ui/lens/lens_search_controller.h"
 #include "chrome/browser/ui/page_action/action_ids.h"
@@ -175,6 +176,7 @@
 #include "components/enterprise/net/content/enterprise_proxy_tab_helper.h"
 #include "components/history/content/browser/web_contents_top_sites_observer.h"
 #include "components/history/core/browser/top_sites.h"
+#include "components/javascript_dialogs/tab_modal_dialog_manager.h"
 #include "components/multistep_filter/core/features.h"
 #include "components/payments/core/features.h"
 #include "components/search/search.h"
@@ -242,6 +244,7 @@
 #include "components/security_interstitials/core/features.h"
 #include "components/tabs/public/tab_interface.h"
 #include "components/wallet/core/common/wallet_features.h"
+#include "components/web_modal/web_contents_modal_dialog_manager.h"
 #include "components/webapps/browser/installable/ml_installability_promoter.h"
 #include "net/base/features.h"
 #include "ui/accessibility/accessibility_features.h"
@@ -302,7 +305,11 @@
 #endif
 
 #if BUILDFLAG(ENABLE_EXTENSIONS_CORE)
+#include "chrome/browser/extensions/api/web_navigation/web_navigation_tab_observer.h"
 #include "chrome/browser/extensions/navigation_extension_enabler.h"
+#include "chrome/browser/extensions/tab_helper.h"
+#include "extensions/browser/view_type_utils.h"
+#include "extensions/common/mojom/view_type.mojom.h"
 #endif
 
 #if BUILDFLAG(ENABLE_OFFLINE_PAGES)
@@ -1016,6 +1023,17 @@ void TabFeatures::Init(TabInterface& tab, Profile* profile) {
 #endif
 
 #if BUILDFLAG(ENABLE_EXTENSIONS_CORE)
+  // If the web contents already have a view type, don't overwrite it here. One
+  // case where this can happen is when the user opens undocked developer tools.
+  // For all developer tools web contents, the view type is set to
+  // `kDeveloperTools` by the `DevToolsWindow` before tab helpers are attached.
+  if (extensions::GetViewType(tab.GetContents()) ==
+      extensions::mojom::ViewType::kInvalid) {
+    extensions::SetViewType(tab.GetContents(),
+                            extensions::mojom::ViewType::kTabContents);
+  }
+  extensions::WebNavigationTabObserver::CreateForWebContents(tab.GetContents());
+  extensions::TabHelper::CreateForWebContents(tab.GetContents());
   navigation_extension_enabler_ =
       std::make_unique<extensions::NavigationExtensionEnabler>(
           tab.GetContents());
@@ -1226,6 +1244,14 @@ void TabFeatures::Init(TabInterface& tab, Profile* profile) {
           tab, tab, tab.GetContents());
 
   permissions::PermissionRecoverySuccessRateTracker::CreateForWebContents(
+      tab.GetContents());
+
+  javascript_dialogs::TabModalDialogManager::CreateForWebContents(
+      tab.GetContents(),
+      std::make_unique<JavaScriptTabModalDialogManagerDelegateDesktop>(
+          tab.GetContents()));
+
+  web_modal::WebContentsModalDialogManager::CreateForWebContents(
       tab.GetContents());
 
   // Attach TrustedVaultEncryptionKeysTabHelper to the tab.
@@ -1558,6 +1584,13 @@ void TabFeatures::WillDiscardContents(tabs::TabInterface* tab,
 #endif
 
 #if BUILDFLAG(ENABLE_EXTENSIONS_CORE)
+  if (extensions::GetViewType(new_contents) ==
+      extensions::mojom::ViewType::kInvalid) {
+    extensions::SetViewType(new_contents,
+                            extensions::mojom::ViewType::kTabContents);
+  }
+  extensions::WebNavigationTabObserver::CreateForWebContents(new_contents);
+  extensions::TabHelper::CreateForWebContents(new_contents);
   navigation_extension_enabler_ =
       std::make_unique<extensions::NavigationExtensionEnabler>(new_contents);
 #endif
@@ -1788,6 +1821,13 @@ void TabFeatures::WillDiscardContents(tabs::TabInterface* tab,
 
   permissions::PermissionRecoverySuccessRateTracker::CreateForWebContents(
       new_contents);
+
+  javascript_dialogs::TabModalDialogManager::CreateForWebContents(
+      new_contents,
+      std::make_unique<JavaScriptTabModalDialogManagerDelegateDesktop>(
+          new_contents));
+
+  web_modal::WebContentsModalDialogManager::CreateForWebContents(new_contents);
 
   TrustedVaultEncryptionKeysTabHelper::CreateForWebContents(new_contents);
 }

@@ -34,10 +34,25 @@ _ALLOWED_CREATE_FOR_CALLS = (
   # WebContents in ChromeAppDelegate and looked up from arbitrary WebContents
   # by DlpContentManager, so the WebContents must own it.
   'policy::DlpContentTabHelper::MaybeCreateForWebContents',
+  # extensions::TabHelper is also attached to non-tab and pre-tab WebContents
+  # (such as DocumentPipHost, ConstrainedWebDialogUI, NetworkUI, OobeUI,
+  # InlineLoginUI, ContextualTasksSidePanelCoordinator, and Prerender /
+  # NoStatePrefetch WebContents), so the WebContents must own it.
+  'extensions::TabHelper::CreateForWebContents',
+  # WebNavigationTabObserver is also attached to pre-tab PrerenderNewTabHandle
+  # WebContents in PrerenderWebContentsDelegateImpl and is looked up on
+  # old_contents by WebNavigationEventRouter::TabReplaced after
+  # TabFeatures::WillDiscardContents swaps in new_contents, so the WebContents
+  # must own it.
+  'extensions::WebNavigationTabObserver::CreateForWebContents',
   # FileSystemAccessPermissionRequestManager is also attached to non-tab
   # Chrome App window WebContents in ChromeAppDelegate::InitWebContents, so
   # the WebContents must own it.
   'FileSystemAccessPermissionRequestManager::CreateForWebContents',
+  # TabModalDialogManager lives in //components/javascript_dialogs and is also
+  # attached to non-tab Document Picture-in-Picture WebContents in
+  # DocumentPipHost, so the WebContents must own it.
+  'javascript_dialogs::TabModalDialogManager::CreateForWebContents',
   # PermissionRecoverySuccessRateTracker lives in //components/permissions and
   # is also attached to non-tab WebContents in
   # PaymentHandlerWebFlowViewController::PopulateSheet, DocumentPipHost, and
@@ -56,6 +71,11 @@ _ALLOWED_CREATE_FOR_CALLS = (
   # attached to non-tab WebContents in web_app::CreateWebAppInstallTabHelpers
   # for background web-app installation, so the WebContents must own it.
   'webapps::PreRedirectionURLObserver::CreateForWebContents',
+  # WebContentsModalDialogManager lives in //components/web_modal and is also
+  # attached to non-tab WebContents (such as DocumentPipHost,
+  # WebUIContentsWrapper, SimpleWebViewDialog, and DevToolsWindowViews), so
+  # the WebContents must own it.
+  'web_modal::WebContentsModalDialogManager::CreateForWebContents',
 )
 
 

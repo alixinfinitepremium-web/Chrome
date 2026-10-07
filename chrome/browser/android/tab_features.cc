@@ -93,6 +93,7 @@
 #include "chrome/browser/ui/android/context_menu_helper.h"
 #include "chrome/browser/ui/contextual_search/tab_contextualization_controller.h"
 #include "chrome/browser/ui/find_bar/find_bar_state.h"
+#include "chrome/browser/ui/javascript_dialogs/javascript_tab_modal_dialog_manager_delegate_android.h"
 #include "chrome/browser/ui/recently_audible_helper.h"
 #include "chrome/browser/ui/safety_hub/revoked_permissions_service.h"
 #include "chrome/browser/ui/safety_hub/revoked_permissions_service_factory.h"
@@ -124,6 +125,7 @@
 #include "components/favicon/content/content_favicon_driver.h"
 #include "components/history/content/browser/web_contents_top_sites_observer.h"
 #include "components/history/core/browser/top_sites.h"
+#include "components/javascript_dialogs/tab_modal_dialog_manager.h"
 #include "components/metrics/content/metrics_services_web_contents_observer.h"
 #include "components/metrics_services_manager/metrics_services_manager.h"
 #include "components/page_content_annotations/content/page_content_annotations_web_contents_observer.h"
@@ -148,8 +150,12 @@
 #include "ui/webui/buildflags.h"
 
 #if BUILDFLAG(ENABLE_EXTENSIONS_CORE)
+#include "chrome/browser/extensions/api/web_navigation/web_navigation_tab_observer.h"
 #include "chrome/browser/extensions/navigation_extension_enabler.h"
+#include "chrome/browser/extensions/tab_helper.h"
 #include "chrome/browser/ui/extensions/extension_side_panel_manager.h"
+#include "extensions/browser/view_type_utils.h"
+#include "extensions/common/mojom/view_type.mojom.h"
 #endif
 
 #if BUILDFLAG(ENABLE_WEBUI_NTP)
@@ -235,6 +241,13 @@ TabFeatures::TabFeatures(content::WebContents* web_contents, Profile* profile) {
           : nullptr;
 
 #if BUILDFLAG(ENABLE_EXTENSIONS_CORE)
+  if (extensions::GetViewType(web_contents) ==
+      extensions::mojom::ViewType::kInvalid) {
+    extensions::SetViewType(web_contents,
+                            extensions::mojom::ViewType::kTabContents);
+  }
+  extensions::WebNavigationTabObserver::CreateForWebContents(web_contents);
+  extensions::TabHelper::CreateForWebContents(web_contents);
   if (tab_scoped_side_panel_registry_) {
     extension_side_panel_manager_ =
         std::make_unique<extensions::ExtensionSidePanelManager>(
@@ -619,6 +632,11 @@ TabFeatures::TabFeatures(content::WebContents* web_contents, Profile* profile) {
       web_contents);
 
   ContextMenuHelper::CreateForWebContents(web_contents);
+
+  javascript_dialogs::TabModalDialogManager::CreateForWebContents(
+      web_contents,
+      std::make_unique<JavaScriptTabModalDialogManagerDelegateAndroid>(
+          web_contents));
 
   // Attach TrustedVaultEncryptionKeysTabHelper to the tab.
   TrustedVaultEncryptionKeysTabHelper::CreateForWebContents(web_contents);

@@ -59,7 +59,6 @@
 #include "components/dom_distiller/core/dom_distiller_features.h"
 #include "components/enterprise/buildflags/buildflags.h"
 #include "components/infobars/content/content_infobar_manager.h"
-#include "components/javascript_dialogs/tab_modal_dialog_manager.h"
 #include "components/omnibox/common/omnibox_feature_configs.h"
 #include "components/optimization_guide/core/optimization_guide_features.h"
 #include "components/page_content_annotations/content/annotate_page_content_request.h"
@@ -100,19 +99,8 @@
 #include "chrome/browser/android/tab_android.h"
 #include "chrome/browser/content_settings/request_desktop_site_web_contents_observer_android.h"
 #include "chrome/browser/flags/android/chrome_feature_list.h"
-#include "chrome/browser/ui/javascript_dialogs/javascript_tab_modal_dialog_manager_delegate_android.h"
 #include "content/public/common/content_features.h"
-#else
-#include "chrome/browser/ui/javascript_dialogs/javascript_tab_modal_dialog_manager_delegate_desktop.h"
-#include "components/web_modal/web_contents_modal_dialog_manager.h"
 #endif  // BUILDFLAG(IS_ANDROID)
-
-#if BUILDFLAG(ENABLE_EXTENSIONS_CORE)
-#include "chrome/browser/extensions/api/web_navigation/web_navigation_tab_observer.h"
-#include "chrome/browser/extensions/tab_helper.h"
-#include "extensions/browser/view_type_utils.h"
-#include "extensions/common/mojom/view_type.mojom.h"
-#endif  // BUILDFLAG(ENABLE_EXTENSIONS_CORE)
 
 #if BUILDFLAG(SAFE_BROWSING_AVAILABLE)
 #include "chrome/browser/safe_browsing/safe_browsing_service.h"
@@ -285,43 +273,6 @@ void TabHelpers::AttachTabHelpers(WebContents* web_contents,
 
   // NO! Do not just add your tab helper here. This is a large alphabetized
   // block; please insert your tab helper above in alphabetical order.
-
-  // --- Section 2: Platform-specific tab helpers ---
-
-#if BUILDFLAG(IS_ANDROID)
-  javascript_dialogs::TabModalDialogManager::CreateForWebContents(
-      web_contents,
-      std::make_unique<JavaScriptTabModalDialogManagerDelegateAndroid>(
-          web_contents));
-#else   // BUILDFLAG(IS_ANDROID)
-  javascript_dialogs::TabModalDialogManager::CreateForWebContents(
-      web_contents,
-      std::make_unique<JavaScriptTabModalDialogManagerDelegateDesktop>(
-          web_contents));
-
-  web_modal::WebContentsModalDialogManager::CreateForWebContents(web_contents);
-#endif  // BUILDFLAG(IS_ANDROID)
-
-  // --- Section 3: Feature tab helpers behind BUILDFLAGs ---
-  // NOT for "if enabled"; put those in section 1.
-
-#if BUILDFLAG(ENABLE_EXTENSIONS_CORE)
-  // If the web contents already have a view type, don't overwrite it here. One
-  // case where this can happen is when the user opens undocked developer tools.
-  // For all developer tools web contents, the view type is set to
-  // `kDeveloperTools` by the `DevToolsWindow` before tab helpers are attached.
-  if (extensions::GetViewType(web_contents) ==
-      extensions::mojom::ViewType::kInvalid) {
-    extensions::SetViewType(web_contents,
-                            extensions::mojom::ViewType::kTabContents);
-  }
-#endif
-
-#if BUILDFLAG(ENABLE_EXTENSIONS_CORE)
-  // These helpers are used on Win/Mac/Linux and also desktop Android.
-  extensions::WebNavigationTabObserver::CreateForWebContents(web_contents);
-  extensions::TabHelper::CreateForWebContents(web_contents);
-#endif  // BUILDFLAG(ENABLE_EXTENSIONS_CORE)
 
   // --- Section 4: The warning ---
 
