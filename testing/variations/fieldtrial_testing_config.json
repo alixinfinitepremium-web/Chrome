@@ -573,6 +573,21 @@
             ]
         }
     ],
+    "AndroidDesktopWebUiHistory": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "AndroidDesktopWebUiHistory"
+                    ]
+                }
+            ]
+        }
+    ],
     "AndroidDevToolsFrontend": [
         {
             "platforms": [
@@ -19472,6 +19487,24 @@
                     "enable_features": [
                         "PrefetchOffTheMainThread",
                         "WebViewPrefetchOffTheMainThread"
+                    ]
+                }
+            ]
+        }
+    ],
+    "WebViewPrewarmDictionaryOnPreconnect": [
+        {
+            "platforms": [
+                "android_webview"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled_EventsOnly_20261007",
+                    "params": {
+                        "CleanupMode": "events_only"
+                    },
+                    "enable_features": [
+                        "WebViewPrewarmDictionaryOnPreconnect"
                     ]
                 }
             ]

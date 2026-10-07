@@ -163,6 +163,7 @@ source_set("glic") {
     ]
 
     public_deps += [
+      "//chrome/browser/glic/browser_ui:selection_widget_controller_delegate",
       "//chrome/browser/glic/resources:browser_resources",
       "//chrome/browser/glic/selection:shake_trigger",
       "//chrome/browser/optimization_guide",
@@ -883,7 +884,6 @@ source_set("unit_tests") {
     "//pdf:buildflags",
     "//testing/gmock",
     "//testing/gtest",
-    "//ui/base/clipboard:clipboard_test_support",
   ]
   if (!is_android) {
     sources += [
