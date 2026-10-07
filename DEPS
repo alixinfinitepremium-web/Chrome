@@ -549,7 +549,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
-  'compiler_rt_revision': '1784cf080679803fd49d18443e70f51c1cac9a3a',
+  'compiler_rt_revision': 'e79a15a5fcea6e844f1536de8f7ff98d99032c88',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling clusterfuzz-data
   # and whatever else without interference from each other.
@@ -3470,7 +3470,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/projector_app/app',
-        'version': '6YsxxUT_R_J7JhTK6v9Rf31l43VqD1RhKlUX1O65AloC',
+        'version': 'QrTNhXHB8Emql0P3Z5g75axcNDjBV9ZR9DB3hxkyB4QC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
