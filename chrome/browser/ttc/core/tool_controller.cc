@@ -14,12 +14,14 @@
 #include "base/check_deref.h"
 #include "base/functional/bind.h"
 #include "base/json/json_writer.h"
+#include "base/types/expected.h"
 #include "base/values.h"
 #include "build/build_config.h"
 #include "chrome/browser/actor/actor_task.h"
 #include "chrome/browser/actor/actor_task_metadata.h"
 #include "chrome/browser/actor/enterprise_policy_checker.h"
 #include "chrome/browser/actor/tab_observation_strategy.h"
+#include "chrome/browser/actor/tools/click_tool_request.h"
 #include "chrome/browser/actor/tools/find_and_highlight_tool_request.h"
 #include "chrome/browser/actor/tools/history_tool_request.h"
 #include "chrome/browser/actor/tools/media_control_tool_request.h"
@@ -27,13 +29,16 @@
 #include "chrome/browser/actor/tools/perform_search_tool_request.h"
 #include "chrome/browser/actor/tools/tool_request.h"
 #include "chrome/browser/actor/tools/translate_page_tool_request.h"
+#include "chrome/browser/actor/tools/type_tool_request.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/ttc/core/session_controller_impl.h"
 #include "chrome/browser/ttc/core/session_journal.h"
 #include "chrome/browser/ttc/core/ttc_actor_ui_state_manager.h"
 #include "chrome/browser/ttc/core/ttc_keyed_service.h"
+#include "chrome/common/actor.mojom.h"
 #include "chrome/common/actor/action_result.h"
 #include "components/actor/core/journal_details_builder.h"
+#include "components/actor/core/shared_types.h"
 #include "components/tabs/public/tab_interface.h"
 #include "content/public/browser/web_contents.h"
 #include "url/gurl.h"
@@ -67,6 +72,26 @@ void OnToolCallFinished(
   }
   journal_event->EndEntry(std::move(details).Build());
   std::move(callback).Run(std::move(response));
+}
+
+// Parses the `node_id` argument sent by the server. The model sees `node_id`
+// as an integer, but the server post-processes it into a dictionary of the
+// form {"document_id": <serialized_token>, "dom_node_id": <int>}.
+base::expected<actor::PageTarget, std::string> ParseNodeIdArgument(
+    const base::DictValue& arguments) {
+  const base::DictValue* node_id = arguments.FindDict("node_id");
+  if (!node_id) {
+    return base::unexpected("Missing node_id argument");
+  }
+
+  std::optional<int> dom_node_id = node_id->FindInt("dom_node_id");
+  const std::string* document_id = node_id->FindString("document_id");
+  if (!dom_node_id || !document_id) {
+    return base::unexpected("node_id must contain dom_node_id and document_id");
+  }
+
+  return actor::PageTarget(actor::DomNode{.node_id = *dom_node_id,
+                                          .document_identifier = *document_id});
 }
 
 }  // namespace
@@ -183,6 +208,16 @@ void ToolController::ProcessToolCall(const ToolRequest& tool_request,
 #if !BUILDFLAG(IS_ANDROID)
   if (tool_request.name == "set_fullscreen") {
     SetFullscreen(tool_request.arguments, std::move(callback));
+    return;
+  }
+
+  if (tool_request.name == "click_element") {
+    ClickElement(tool_request.arguments, std::move(callback));
+    return;
+  }
+
+  if (tool_request.name == "set_text") {
+    SetText(tool_request.arguments, std::move(callback));
     return;
   }
 #endif
@@ -417,6 +452,52 @@ std::vector<ToolDefinition> ToolController::GetToolDefinitions() {
   set_fullscreen.behavior = ToolDefinition::Behavior::kBlocking;
   set_fullscreen.verbalization = ToolDefinition::Verbalization::kSilentAction;
   tools.push_back(std::move(set_fullscreen));
+
+  ToolDefinition click_element;
+  click_element.name = "click_element";
+  click_element.description =
+      "Click or toggle an interactive element (such as a button, radio "
+      "button, or checkbox) on the active webpage.";
+  click_element.parameters_json_schema =
+      base::DictValue()
+          .Set("type", "object")
+          .Set("properties",
+               base::DictValue().Set("node_id",
+                                     base::DictValue()
+                                         .Set("type", "integer")
+                                         .Set("description",
+                                              "The numeric node ID of the "
+                                              "target element (e.g. 101).")))
+          .Set("required", base::ListValue().Append("node_id"));
+  click_element.behavior = ToolDefinition::Behavior::kBlocking;
+  click_element.verbalization = ToolDefinition::Verbalization::kSilentAction;
+  tools.push_back(std::move(click_element));
+
+  ToolDefinition set_text;
+  set_text.name = "set_text";
+  set_text.description =
+      "Replace the contents of a text input field (such as a text box or text "
+      "area) on the active webpage with the given text.";
+  set_text.parameters_json_schema =
+      base::DictValue()
+          .Set("type", "object")
+          .Set("properties",
+               base::DictValue()
+                   .Set("node_id",
+                        base::DictValue()
+                            .Set("type", "integer")
+                            .Set("description",
+                                 "The numeric node ID of the target input "
+                                 "field (e.g. 101)."))
+                   .Set("text",
+                        base::DictValue()
+                            .Set("type", "string")
+                            .Set("description",
+                                 "The text to enter into the input field.")))
+          .Set("required", base::ListValue().Append("node_id").Append("text"));
+  set_text.behavior = ToolDefinition::Behavior::kBlocking;
+  set_text.verbalization = ToolDefinition::Verbalization::kSilentAction;
+  tools.push_back(std::move(set_text));
 #endif
 
   return tools;
@@ -659,6 +740,56 @@ void ToolController::TranslatePage(const base::DictValue& arguments,
           tabs::TabHandle tab_handle) -> std::unique_ptr<actor::ToolRequest> {
         return std::make_unique<actor::TranslatePageToolRequest>(
             tab_handle, *target_language);
+      },
+      std::move(callback));
+}
+
+void ToolController::ClickElement(const base::DictValue& arguments,
+                                  ToolResponseCallback callback) {
+  base::expected<actor::PageTarget, std::string> page_target =
+      ParseNodeIdArgument(arguments);
+  if (!page_target.has_value()) {
+    std::move(callback).Run(
+        ToolResponse::Error(actor::mojom::ActionResultCode::kArgumentsInvalid,
+                            page_target.error()));
+    return;
+  }
+
+  PerformActionOnTrackedContents(
+      [&page_target](
+          tabs::TabHandle tab_handle) -> std::unique_ptr<actor::ToolRequest> {
+        return std::make_unique<actor::ClickToolRequest>(
+            tab_handle, *page_target, actor::mojom::ClickType::kLeft,
+            actor::mojom::ClickCount::kSingle);
+      },
+      std::move(callback));
+}
+
+void ToolController::SetText(const base::DictValue& arguments,
+                             ToolResponseCallback callback) {
+  base::expected<actor::PageTarget, std::string> page_target =
+      ParseNodeIdArgument(arguments);
+  if (!page_target.has_value()) {
+    std::move(callback).Run(
+        ToolResponse::Error(actor::mojom::ActionResultCode::kArgumentsInvalid,
+                            page_target.error()));
+    return;
+  }
+
+  const std::string* text = arguments.FindString("text");
+  if (!text) {
+    std::move(callback).Run(
+        ToolResponse::Error(actor::mojom::ActionResultCode::kArgumentsInvalid,
+                            "Missing text argument"));
+    return;
+  }
+
+  PerformActionOnTrackedContents(
+      [&page_target, &text](
+          tabs::TabHandle tab_handle) -> std::unique_ptr<actor::ToolRequest> {
+        return std::make_unique<actor::TypeToolRequest>(
+            tab_handle, *page_target, *text,
+            /*follow_by_enter=*/false, actor::TypeToolRequest::Mode::kReplace);
       },
       std::move(callback));
 }
