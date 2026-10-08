@@ -22,6 +22,7 @@ import android.view.ViewGroup;
 import android.view.ViewStub;
 import android.view.Window;
 
+import androidx.annotation.IntDef;
 import androidx.annotation.VisibleForTesting;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -31,6 +32,7 @@ import org.chromium.base.CallbackUtils;
 import org.chromium.base.MathUtils;
 import org.chromium.base.ResettersForTesting;
 import org.chromium.base.Token;
+import org.chromium.base.metrics.RecordHistogram;
 import org.chromium.base.metrics.RecordUserAction;
 import org.chromium.base.supplier.MonotonicObservableSupplier;
 import org.chromium.base.supplier.NonNullObservableSupplier;
@@ -132,6 +134,8 @@ import org.chromium.ui.modelutil.SimpleRecyclerViewAdapter;
 import org.chromium.ui.recyclerview.widget.ItemTouchHelper2;
 import org.chromium.ui.widget.RectProvider;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -141,6 +145,24 @@ import java.util.function.Supplier;
 /** Coordinator to manage and display the Vertical Tab List. */
 @NullMarked
 public class VerticalTabListCoordinator {
+    /**
+     * Where on the rail a drop landed. The rail is not only its two lists: between and around them
+     * sit the header, the new tab button and the rail's own margin, and a drop there is currently
+     * accepted and reparented against the nearest item. This records how often that happens, which
+     * is the input to deciding whether it should.
+     */
+    // LINT.IfChange(AndroidVerticalTabsDropRegion)
+    @IntDef({DropRegion.MAIN_LIST, DropRegion.PINNED_GRID, DropRegion.OUTSIDE_BOTH_LISTS})
+    @Retention(RetentionPolicy.SOURCE)
+    public @interface DropRegion {
+        int MAIN_LIST = 0;
+        int PINNED_GRID = 1;
+        int OUTSIDE_BOTH_LISTS = 2;
+        int COUNT = 3;
+    }
+
+    // LINT.ThenChange(//tools/metrics/histograms/metadata/android/enums.xml:AndroidVerticalTabsDropRegion)
+
     private static @Nullable Supplier<TabSwitcherDragHandler>
             sTabSwitcherDragHandlerSupplierForTesting;
     private final VerticalTabRailLayout mContainerView;
@@ -208,10 +230,10 @@ public class VerticalTabListCoordinator {
     /**
      * The per-{@link RecyclerView} drag machinery that the coordinator routes between.
      *
-     * <p>The handler is shared because the OS delivers a drag event to whichever view is under the
-     * pointer, and a handler bound to one list cannot answer for the other. The {@link
-     * ItemTouchHelper2} and its callback stay strictly one per list: they own that list's item
-     * positions, so driving one with the other's coordinates is crbug.com/509226293.
+     * <p>The drag handler is not part of a surface: a single listener on the rail container
+     * receives every drag event for both lists. The {@link ItemTouchHelper2} and its callback stay
+     * strictly one per list: they own that list's item positions, so driving one with the other's
+     * coordinates is crbug.com/509226293.
      */
     static class DragSurface {
         public final RecyclerView recyclerView;
@@ -245,7 +267,6 @@ public class VerticalTabListCoordinator {
             recyclerView.removeOnItemTouchListener(mBeforeTouchListener);
             recyclerView.removeOnItemTouchListener(mMouseDragDetector);
             recyclerView.removeOnItemTouchListener(mAfterTouchListener);
-            recyclerView.setOnDragListener(null);
             itemTouchHelper.attachToRecyclerView(null);
         }
     }
@@ -533,6 +554,11 @@ public class VerticalTabListCoordinator {
         mNonOriginatingDragHandlerDelegate =
                 createNonOriginatingDragHandlerDelegate(mTabSwitcherDragHandler);
         mTabSwitcherDragHandler.setDragHandlerDelegate(mNonOriginatingDragHandlerDelegate);
+        // The only drag listener on the rail. The container spans the header, both lists, the new
+        // tab button and the rail margin, so ACTION_DRAG_EXITED means the pointer left the rail. No
+        // descendant may claim drags: a droppable child wins over its parent in
+        // ViewGroup#findFrontmostDroppableChildAt and would take LOCATION and DROP away from here.
+        mContainerView.setOnDragListener(this::onRailDrag);
 
         setupItemTouchHelper(activity, recyclerView, mModelList, tabModelSelector);
 
@@ -923,12 +949,8 @@ public class VerticalTabListCoordinator {
             mBackPressManager.removeHandler(BackPressHandler.Type.CANCEL_TAB_SWITCHER_DRAG);
         }
         removeDragEndRelay();
-        mTabSwitcherDragHandler.destroy();
         mContainerView.setOnDragListener(null);
-        View newTabButton = mContainerView.findViewById(R.id.new_tab_button);
-        if (newTabButton != null) {
-            newTabButton.setOnDragListener(null);
-        }
+        mTabSwitcherDragHandler.destroy();
 
         mTabItemHoverController.destroy();
 
@@ -1236,14 +1258,7 @@ public class VerticalTabListCoordinator {
         touchHelperCallback.setOnDragStateChangedCallback(
                 mTabSwitcherDragHandler::onDragStateChanged);
 
-        recyclerView.setOnDragListener(mTabSwitcherDragHandler);
-        if (recyclerView == mRecyclerView) {
-            mContainerView.setOnDragListener(mTabSwitcherDragHandler);
-            View newTabButton = mContainerView.findViewById(R.id.new_tab_button);
-            if (newTabButton != null) {
-                newTabButton.setOnDragListener(mTabSwitcherDragHandler);
-            }
-        }
+        // No setOnDragListener on the list: the rail container's listener serves both lists.
 
         touchHelperCallback.setOnDragOutListener(
                 (viewHolder, dX, dY) -> {
@@ -1417,15 +1432,14 @@ public class VerticalTabListCoordinator {
 
     /**
      * Installs a relay on the window's decor view that forwards {@code ACTION_DRAG_ENDED} to {@code
-     * dragHandler} when no rail view is able to receive it.
+     * dragHandler} when the rail is unable to receive it.
      *
-     * <p>Every drag listener of the rail lives on a rail view: the two {@link RecyclerView}s, the
-     * rail container and the new tab button. All of them sit in the subtree that {@code
-     * SideUiCoordinatorImpl} removes from the anchor container ({@code
+     * <p>The rail's only drag listener lives on the rail container, which sits in the subtree that
+     * {@code SideUiCoordinatorImpl} removes from the anchor container ({@code
      * anchorContainer.removeView(sideUiContainerView)}) when the window is resized below the width
      * that shows vertical tabs. {@code ViewGroup#removeViewInternal()} drops the removed child from
      * {@code mChildrenInterestedInDrag} and {@code ViewGroup#dispatchDetachedFromWindow()} clears
-     * the detached subtree's own drag bookkeeping, so from then on no rail view is sent {@code
+     * the detached subtree's own drag bookkeeping, so from then on the container is not sent {@code
      * ACTION_DRAG_ENDED}: {@link TabSwitcherDragHandler} never reaches {@code finishDrag()}, the
      * process-wide {@link DragDropGlobalState} is never released, and the tabbed activity's drag
      * touch observer ({@code e -> DragDropGlobalState.hasValue()}) then swallows every touch in
@@ -1498,6 +1512,44 @@ public class VerticalTabListCoordinator {
             }
         }
         return null;
+    }
+
+    /**
+     * The rail container's drag listener. The hover controller observes each event before the drag
+     * handler; see {@link VerticalTabRailHoverController#onDragEvent}.
+     */
+    private boolean onRailDrag(View view, DragEvent event) {
+        mRailHoverController.onDragEvent(event);
+        return mTabSwitcherDragHandler.onDrag(view, event);
+    }
+
+    /**
+     * Records where on the rail a drop landed.
+     *
+     * <p>Split intra- vs cross-window because the two are different interactions with different
+     * aim: an intra-window drop is a reorder the user is watching indicators for, a cross-window
+     * drop is a reparent aimed at a rail in another window. Averaging them hides whichever is
+     * rarer.
+     *
+     * @param view The view the drop event was dispatched to, which the coordinates are relative to.
+     * @param isCrossWindow Whether the drag started in a different window.
+     */
+    private void recordRailDropRegion(View view, float xPx, float yPx, boolean isCrossWindow) {
+        @DropRegion int region;
+        if (VerticalTabDragUtils.isPointInsideView(view, xPx, yPx, mRecyclerView)) {
+            region = DropRegion.MAIN_LIST;
+        } else if (VerticalTabDragUtils.isPointInsideView(
+                view, xPx, yPx, mPinnedTabsRecyclerView)) {
+            region = DropRegion.PINNED_GRID;
+        } else {
+            region = DropRegion.OUTSIDE_BOTH_LISTS;
+        }
+        RecordHistogram.recordEnumeratedHistogram(
+                isCrossWindow
+                        ? "Android.VerticalTabs.DropRegion.CrossWindow"
+                        : "Android.VerticalTabs.DropRegion.IntraWindow",
+                region,
+                DropRegion.COUNT);
     }
 
     private void clearDropIndicators() {
@@ -1581,6 +1633,8 @@ public class VerticalTabListCoordinator {
 
             @Override
             public boolean handleDrop(View view, float xPx, float yPx) {
+                recordRailDropRegion(
+                        view, xPx, yPx, /* isCrossWindow= */ !dragHandler.isDragSourceInstance());
                 boolean result = handleDropInternal(view, xPx, yPx);
                 clearDropIndicators();
                 return result;
@@ -1925,6 +1979,14 @@ public class VerticalTabListCoordinator {
                 }
 
                 dragHandler.setDragHandlerDelegate(nonOriginatingDelegate);
+                return true;
+            }
+
+            @Override
+            public boolean handleDrop(View view, float xPx, float yPx) {
+                // Always intra-window: this delegate is only installed while a drag that started
+                // from this rail is in flight.
+                recordRailDropRegion(view, xPx, yPx, /* isCrossWindow= */ false);
                 return true;
             }
         };
