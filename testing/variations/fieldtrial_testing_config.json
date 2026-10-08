@@ -2558,21 +2558,6 @@
             ]
         }
     ],
-    "AutofillYourSavedInfoIos": [
-        {
-            "platforms": [
-                "ios"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "YourSavedInfoSettingsPageIos"
-                    ]
-                }
-            ]
-        }
-    ],
     "AutomatedPasswordChangeWithPrivateInferenceLoginCheck": [
         {
             "platforms": [
@@ -10676,6 +10661,7 @@
                         "IPH_SendTabToSelfTutorial",
                         "SendTabToSelfDynamicShortcuts",
                         "SendTabToSelfEnhancedDesktopUIv2",
+                        "SendTabToSelfMultiTabShare",
                         "SendTabToSelfOpenNativeApp",
                         "SendTabToSelfSupportAutoOpenInTabGrid",
                         "SyncDisambiguateDeviceNamesWithChannel"
@@ -15051,6 +15037,26 @@
                     "name": "Enabled",
                     "enable_features": [
                         "ResampleScrollEventsForFling"
+                    ]
+                }
+            ]
+        }
+    ],
+    "ResourcePoolResize": [
+        {
+            "platforms": [
+                "android",
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "InvalidateResourcesOnSizeChange",
+                        "ResourcePoolPreferExactSizeReuse"
                     ]
                 }
             ]
