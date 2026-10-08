@@ -386,7 +386,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling catapult
   # and whatever else without interference from each other.
-  'catapult_revision': '77162db7a6e4e201e9cc643ed9f1bb72de9b9862',
+  'catapult_revision': 'cf3c60ca67d683df9f10fba641eb1fe4ab92e008',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -2842,7 +2842,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + 'f34010eccc090f9e6cd03821b78316aa64ac1327',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '57535203f3e588fa3ef19fd7a393e1c24cb7c285',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
