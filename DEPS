@@ -1528,7 +1528,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_mac_amd64',
-          'version': 'version:2@1708002',
+          'version': 'version:2@1709001',
         },
       ],
   },
@@ -1694,7 +1694,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_mac_arm64',
-          'version': 'PKAt4l4YxsE_jK2UwumbtRIQAYAwi3SJhfj8LZfqaIQC',
+          'version': 'igR7izJQf6lbwSNAlalnj0vfo93V00t5inPItQSdVRQC',
         },
       ],
   },
@@ -1868,7 +1868,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': 'i2cJ0LSaBHKraPl819R0SFi28Fv_6kmb-rHDw58t5SEC',
+          'version': '32eoUxHE52pckMyssM07UoDnUQL51H4pzJ847VJX6YkC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
