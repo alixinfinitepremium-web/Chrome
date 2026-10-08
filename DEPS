@@ -334,7 +334,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': 'c86df94e394ca95f5b5b884cde5b0cc9d7be34f8',
+  'v8_revision': '03f0a9e97f21af68f1359f011f7d44ddbc2e7130',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -1752,7 +1752,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': 'J830VaMedEI94V53yS6dMt8NXA2t84RVykXgCHL8WfAC',
+        'version': 'GUnaLat_NHy5kwrdgdjwgvVBgrwA_Bdw4-0ZOQTo-wUC',
       },
     ],
     'condition': 'non_git_source',
@@ -2843,7 +2843,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + 'af85d803266f07b6fe996d6eafea15229a8aa1e7',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + 'ff741d59ba38e6c95075fe14b9fd236ea633628f',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
