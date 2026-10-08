@@ -440,7 +440,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': '4cc3cd3ff59f585a5ccfd5ac17203fd08acbacf1',
+  'dawn_revision': 'ab3c12305e776fa707503f7ecfab07364e9c7697',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -2198,7 +2198,7 @@ deps = {
   # Tools used when building Chrome for Chrome OS. This affects both the Simple
   # Chrome workflow, as well as the chromeos-chrome ebuild.
   'src/third_party/chromite': {
-      'url': Var('chromium_git') + '/chromiumos/chromite.git' + '@' + 'f8dc6d6bde9f72b74eec60eb8caf6f8d0e663e09',
+      'url': Var('chromium_git') + '/chromiumos/chromite.git' + '@' + 'd550cfb81362517d336fd3505ebf8893ca4ed6cb',
       'condition': 'checkout_chromeos',
   },
 
