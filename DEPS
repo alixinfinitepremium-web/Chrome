@@ -1981,7 +1981,7 @@ deps = {
       'packages': [
           {
                'package': 'chromium/third_party/android_build_tools/lint',
-               'version': 'b2PS8Yyw1BEV-ncnetpxmX5CfQaRcmUPHLgz6dmbeDQC',
+               'version': 'Zof5xPeiL6icsW3VUhp-vdD4Y4NzVol7qORgkuWtUIkC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -2694,7 +2694,7 @@ deps = {
     Var('chromium_git') + '/webm/libwebp.git' + '@' +  'b43b2caa710c0c997c066cb32c7fea1391fad70a',
 
   'src/third_party/libyuv':
-    Var('chromium_git') + '/libyuv/libyuv.git' + '@' + '1ddb18fb6b6cc91f852648a6e64d2dee31b11a80',
+    Var('chromium_git') + '/libyuv/libyuv.git' + '@' + '9456b062277d2809c97f4633c116ffa8d485afdd',
 
   'src/third_party/lss': {
       'url': Var('chromium_git') + '/linux-syscall-support.git' + '@' + Var('lss_revision'),
