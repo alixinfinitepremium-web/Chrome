@@ -1539,7 +1539,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_mac_arm64',
-          'version': 'version:2@1708005',
+          'version': 'version:2@1709004',
         },
       ],
   },
@@ -1716,7 +1716,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_win_x86_64',
-          'version': 'J0vfx7bRv9cPO_lzu9a4rse8oB4ELXpAaqJ5sybMfIgC',
+          'version': 'w2Yg-ohGUCHRb14YlamI0GKSvriuP3EdBQL_-BFe8IUC',
         },
       ],
   },
