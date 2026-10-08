@@ -1868,7 +1868,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': '32eoUxHE52pckMyssM07UoDnUQL51H4pzJ847VJX6YkC',
+          'version': '07wP1c7iv44AwQeUXT0_KbvPwwOFKtb4ObvfcNPQbZAC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
@@ -3437,7 +3437,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/media_app/app',
-        'version': '_yVTRfvvXTB-M874V2c0IVXbco9b_T0Wa0OvwsHf14UC',
+        'version': '1nr5wtmMmN_ujyWKEnFxTpL3C-vs4hqjy9cyVvZrR4wC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3902,7 +3902,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '0beee0b40afd558049c40556aa96124ba51db002',
+        'eee94b1d2c2d97a20538a0c88f9c2e5b6c54d4a0',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
