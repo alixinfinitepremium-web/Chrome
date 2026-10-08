@@ -334,11 +334,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': '75e65c8533e720d4400cbf6c9696b34f9094a08c',
+  'v8_revision': 'f51c1a987ddb58ba5931aa29e089b87e471dbdfb',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '12a3a02c6eab529eec2046198fb62d33fc29ee1e',
+  'angle_revision': 'da00bb96a32086dc252bb1e4396670ccabdee727',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -410,7 +410,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '88b5a3395f788e5e6ad4370304adaf36e0a2412b',
+  'devtools_frontend_revision': 'd1ddcbdd27be09962589b76dbc5f95f399e1e860',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -549,7 +549,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
-  'compiler_rt_revision': 'e79a15a5fcea6e844f1536de8f7ff98d99032c88',
+  'compiler_rt_revision': 'd129ef467025b3c97fbddc0462699ab01500f05c',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling clusterfuzz-data
   # and whatever else without interference from each other.
@@ -2817,7 +2817,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/cisco/openh264' + '@' + '9547f96ea5c47f4d465d97b07264b997ecc4b4b6',
 
   'src/third_party/openscreen/src':
-    Var('chromium_git') + '/openscreen' + '@' + '3e2b65f2128bbc315ec1966874d8ce77c98944ab',
+    Var('chromium_git') + '/openscreen' + '@' + '70e0f0baee6f4ae5ad5f1e8b48edceb6d7fe38ca',
 
   'src/third_party/openxr/src': {
     'url': Var('chromium_git') + '/external/github.com/KhronosGroup/OpenXR-SDK' + '@' + '75c53b6e853dc12c7b3c771edc9c9c841b15faaa',
@@ -3275,7 +3275,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + 'df21b0a5548fd4631d39fb723d16ead30144c4b2',
+    Var('webrtc_git') + '/src.git' + '@' + '52022620d7f1f97eed6bcfbfcb2744fb26acc86f',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
