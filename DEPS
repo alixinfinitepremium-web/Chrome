@@ -346,7 +346,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling PDFium
   # and whatever else without interference from each other.
-  'pdfium_revision': '00a936084c7872bb970d442eef837209a290374f',
+  'pdfium_revision': 'e2a8e09798a3c1fc93236cffba5b03b122671569',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
@@ -386,7 +386,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling catapult
   # and whatever else without interference from each other.
-  'catapult_revision': '2d7a9d3be37107543898f21ee6aa0c275bc64c7d',
+  'catapult_revision': '77162db7a6e4e201e9cc643ed9f1bb72de9b9862',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -1764,7 +1764,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    'e156c984aab6961f7310778856247d12ad2f8990',
+    'ddafeb3107e415c038a665ecc936662f99ddaa05',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
