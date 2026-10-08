@@ -5430,10 +5430,6 @@ crbug.com/1231989 [ Linux ] external/wpt/html/cross-origin-embedder-policy/share
 crbug.com/1234057 external/wpt/css/css-paint-api/no-op-animation.https.html [ Failure Pass ]
 
 
-# Sheriff 2021-07-29
-crbug.com/626703 http/tests/security/cross-frame-access-put.html [ Failure Pass ]
-
-
 # Sheriff 2021-08-12
 crbug.com/1239175 http/tests/navigation/same-and-different-back.html [ Failure Pass ]
 
@@ -5730,8 +5726,6 @@ crbug.com/1321293 fast/forms/calendar-picker/week-picker-choose-default-value-af
 crbug.com/384752759 [ Win11 ] fast/dom/HTMLScriptElement/script-sync-load-failure.html [ Failure Skip Timeout ]
 crbug.com/1295890 [ Win11 ] http/tests/eventsource/eventsource-cors-no-server.html [ Skip Timeout ]
 crbug.com/1295890 [ Win11 ] http/tests/eventsource/workers/eventsource-cors-no-server.html [ Skip Timeout ]
-crbug.com/1295890 [ Win11 ] http/tests/security/document-domain-canonicalizes-iframe.html [ Skip Timeout ]
-crbug.com/1464614 [ Win11-arm64 ] http/tests/security/document-domain-canonicalizes-iframe.html [ Skip Timeout ]
 crbug.com/385026277 [ Win11-arm64 ] fast/dom/HTMLScriptElement/script-sync-load-failure.html [ Pass Timeout ]
 
 crbug.com/1322405 external/wpt/fetch/metadata/generated/window-history.https.sub.html [ Pass Timeout ]
