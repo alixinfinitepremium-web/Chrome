@@ -5,10 +5,13 @@
 #include "chrome/browser/actor/tools/history_tool_request.h"
 
 #include <memory>
+#include <optional>
 #include <string_view>
 
 #include "base/check.h"
 #include "chrome/browser/actor/tools/history_tool.h"
+#include "chrome/browser/actor/tools/registry/tool_definition.h"
+#include "chrome/browser/actor/tools/registry/tool_definition_builder.h"
 #include "chrome/browser/actor/tools/tool_request_visitor_functor.h"
 #include "chrome/common/actor.mojom.h"
 #include "chrome/common/actor/action_result.h"
@@ -21,6 +24,18 @@ using ::tabs::TabHandle;
 using ::tabs::TabInterface;
 
 namespace {
+
+// Default description for the `go_back` tool.
+constexpr std::string_view kGoBackToolDescription =
+    "Go back to the previous page in history.";
+
+// Default description for the `go_forward` tool.
+constexpr std::string_view kGoForwardToolDescription =
+    "Go forward to the next page in history.";
+
+// Default description for the `reload_page` tool.
+constexpr std::string_view kReloadPageToolDescription =
+    "Reload the current page.";
 
 ToolRequest::CreateToolResult CreateHistoryTool(
     TaskId task_id,
@@ -47,6 +62,13 @@ HistoryBackToolRequest::HistoryBackToolRequest(TabHandle tab_handle)
     : TabToolRequest(tab_handle) {}
 HistoryBackToolRequest::~HistoryBackToolRequest() = default;
 
+// static
+std::optional<ToolDefinition> HistoryBackToolRequest::GetToolDefinition() {
+  return ToolDefinitionBuilder(ToolId::kGoBack, kModelFacingName,
+                               kGoBackToolDescription)
+      .Build();
+}
+
 ToolRequest::CreateToolResult HistoryBackToolRequest::CreateTool(
     TaskId task_id,
     ToolDelegate& tool_delegate) const {
@@ -71,6 +93,13 @@ bool HistoryBackToolRequest::RequiresUrlCheckInCurrentTab() const {
 HistoryForwardToolRequest::HistoryForwardToolRequest(TabHandle tab_handle)
     : TabToolRequest(tab_handle) {}
 HistoryForwardToolRequest::~HistoryForwardToolRequest() = default;
+
+// static
+std::optional<ToolDefinition> HistoryForwardToolRequest::GetToolDefinition() {
+  return ToolDefinitionBuilder(ToolId::kGoForward, kModelFacingName,
+                               kGoForwardToolDescription)
+      .Build();
+}
 
 ToolRequest::CreateToolResult HistoryForwardToolRequest::CreateTool(
     TaskId task_id,
@@ -97,6 +126,13 @@ ReloadPageToolRequest::ReloadPageToolRequest(TabHandle tab_handle,
                                              bool bypass_cache)
     : TabToolRequest(tab_handle), bypass_cache_(bypass_cache) {}
 ReloadPageToolRequest::~ReloadPageToolRequest() = default;
+
+// static
+std::optional<ToolDefinition> ReloadPageToolRequest::GetToolDefinition() {
+  return ToolDefinitionBuilder(ToolId::kReloadPage, kModelFacingName,
+                               kReloadPageToolDescription)
+      .Build();
+}
 
 ToolRequest::CreateToolResult ReloadPageToolRequest::CreateTool(
     TaskId task_id,
