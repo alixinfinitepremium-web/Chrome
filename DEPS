@@ -425,7 +425,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling android_deps_autorolled_version
   # and whatever else without interference from each other.
-  'android_deps_autorolled_version': 'sWinIz0qSwFnThEilrOQcExeE0wYOiqSZvlDujf9RHsC',
+  'android_deps_autorolled_version': '9nQ_9KETeXJwMaKTFL5zYOjrxsNSFgFn5IAyDwDyI94C',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling android_sdk_emulator_version
   # and whatever else without interference from each other.
@@ -2532,7 +2532,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/kotlinc',
-              'version': 'xOK-oOtTYaYQsT7YIIfiFTw4-dLWNDKtqkFG5b9b1GgC',
+              'version': 'ul3j0bjkmhE2k1TNK8eAp_KHZLlu3Tvwjxkn9vIdozwC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -3902,7 +3902,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        'eee94b1d2c2d97a20538a0c88f9c2e5b6c54d4a0',
+        'a4c3f2c0269c98d61ccf5345b9baf4f98b0fd124',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
