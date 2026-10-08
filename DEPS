@@ -338,7 +338,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '2af043b23a22c277533836cf571e862810a7b36d',
+  'angle_revision': '5ee23021470e2a36cec7abd9d6e44ebf7caf3d3f',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -3222,7 +3222,7 @@ deps = {
       ],
   },
 
-  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@9ee35a4dbde4d40a79314bf42245eac7de4dd041',
+  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@a65482f1a2a75056ed3668b7e796a37c77e1476b',
   'src/third_party/glslang/src': '{chromium_git}/external/github.com/KhronosGroup/glslang@ef01d8b8ed832dda67d717153bd908df7c9ea6bc',
   'src/third_party/spirv-cross/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Cross@b8fcf307f1f347089e3c46eb4451d27f32ebc8d3',
   'src/third_party/spirv-headers/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Headers@86f980c731e62ae4eaf383d320449d71687936bf',
@@ -3231,7 +3231,7 @@ deps = {
   'src/third_party/vulkan-loader/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Loader@6a5ae1ea5f55d52be776663dc7f765f5a8502e4c',
   'src/third_party/vulkan-tools/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Tools@ff0f9145bd909a92eeac8c03a23c1497068dba56',
   'src/third_party/vulkan-utility-libraries/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Utility-Libraries@90738f6edfa19561a978fc5f97543ba37075ba9d',
-  'src/third_party/vulkan-validation-layers/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-ValidationLayers@321e85b607124bd04490a2d9b4dd2f8b46a18d88',
+  'src/third_party/vulkan-validation-layers/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-ValidationLayers@d266b01c102aebdf68da7e3edbc70bfc62aeed48',
 
   'src/third_party/vulkan_memory_allocator':
     Var('chromium_git') + '/external/github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git' + '@' + '82a9d47e4f9d91f0e32d2b6acd9714fcee1933a0',
