@@ -2231,7 +2231,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'abb41e00d327656e9cbce99b640ed77e937e4392',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '071d5b9d91e06cb2a9c9ce926d6ee666df185b49',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -2843,7 +2843,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + 'ff741d59ba38e6c95075fe14b9fd236ea633628f',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + 'b642b0016614a50d0174299473feb691566aaa00',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
