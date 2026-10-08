@@ -390,7 +390,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': '238cb9c967e94e448d247f1b694844947dc156af',
+  'crossbench_revision': '9fb09373647de03b782f91058b95bcf062b4edee',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -2220,7 +2220,7 @@ deps = {
 
   # For Linux and Chromium OS.
   'src/third_party/cros_system_api': {
-      'url': Var('chromium_git') + '/chromiumos/platform2/system_api.git' + '@' + '0af149cadb77d8e4002cd5e9162043a498db494a',
+      'url': Var('chromium_git') + '/chromiumos/platform2/system_api.git' + '@' + 'c21834b66e85db8f93d7da9b9173bb640f9a6e51',
       'condition': 'checkout_linux or checkout_chromeos',
   },
 
@@ -3275,7 +3275,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '852150686748f5cce0c1c96f4fde50e6be43ef73',
+    Var('webrtc_git') + '/src.git' + '@' + 'e40a408898b7ea16e59ebc8ea96c6d42c8f8753d',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
