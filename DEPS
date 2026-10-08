@@ -326,7 +326,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '92c4e76d66f9fccf2e9b3cbe4b466bed5bc6cd1b',
+  'src_internal_revision': 'c5edf9891242dd43f03f478cf32f69a5199a24bb',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -425,7 +425,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling android_deps_autorolled_version
   # and whatever else without interference from each other.
-  'android_deps_autorolled_version': 'uoeWa7U7m-ywyhJmWdRWVGn5J2zoAcd5WuMyQzj7XCcC',
+  'android_deps_autorolled_version': 'sMLOGZEqur573ALUymnenwq5qAAgAU4EQBawXyQ9RMkC',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling android_sdk_emulator_version
   # and whatever else without interference from each other.
@@ -1764,7 +1764,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '655693e171cf45a94c40b4ef404ce029efe63f28',
+    '0cd1255cdb54778f56da86479e42405b11381694',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -1868,7 +1868,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': 'oHWUQoqNOIVoWmQm9cl35IhAopXDTgyQF2BMi4Amum4C',
+          'version': 'i2cJ0LSaBHKraPl819R0SFi28Fv_6kmb-rHDw58t5SEC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
@@ -2231,7 +2231,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '8fde4c37e275c97eaca2c25e62f489505e94c0b6',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'abb41e00d327656e9cbce99b640ed77e937e4392',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -2338,7 +2338,7 @@ deps = {
     Var('chromium_git') + '/codecs/libgav1.git' + '@' + '085032331f60c10055d32ab52932bd7bd77e6f53',
 
   'src/third_party/google-truth/src': {
-      'url': Var('chromium_git') + '/external/github.com/google/truth.git' + '@' + '5e8a47806fc16b8ae7e581ca33d904da40d9afca',
+      'url': Var('chromium_git') + '/external/github.com/google/truth.git' + '@' + '5ab1cb80bf2013d824167a68d4041a67e32a2d3c',
       'condition': 'checkout_android',
   },
 
