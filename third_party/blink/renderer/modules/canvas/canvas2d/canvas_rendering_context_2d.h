@@ -160,9 +160,9 @@ class MODULES_EXPORT CanvasRenderingContext2D final
   bool ShouldDisableAccelerationBecauseOfReadback() const override;
 
   // CanvasHibernationHandler::Delegate implementation
-  Canvas2DResourceProvider* GetSharedImageProvider() const override;
   bool HasBacking() const override;
   bool IsBackingValid() const override;
+  bool IsBackingAccelerated() const override;
   bool IsContextLost() const override { return isContextLost(); }
   bool IsPageVisible() const override {
     return canvas() && canvas()->IsPageVisible();

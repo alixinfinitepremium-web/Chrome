@@ -293,12 +293,14 @@ class MODULES_EXPORT BaseRenderingContext2D
   void DisableAccelerationForCanvas2D() final { DisableAcceleration(); }
   void PageVisibilityChanged() override {}
   void Reset() override;
-  void DidFlush() override;
 
   void SetRestoreFailedCallbackForTesting(base::RepeatingClosure callback) {
     on_restore_failed_callback_for_testing_ = std::move(callback);
   }
   SkSurface* GetSoftwareSurfaceForTesting() const { return surface_.get(); }
+  Canvas2DResourceProvider* GetSharedImageProviderForTesting() const {
+    return GetSharedImageProvider();
+  }
 
   HeapTaskRunnerTimer<BaseRenderingContext2D>
       dispatch_context_lost_event_timer_;
