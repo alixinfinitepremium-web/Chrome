@@ -3426,7 +3426,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/help_app/app',
-        'version': 'npzCWHDIsF_n23foMJNidpxiclnXVV8WZv6rCKyJ40AC',
+        'version': 'GKQkBTUn-mhF6BVqbfiwwqRJRjkyp0gfJH0NEWO3jB8C',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3902,7 +3902,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        'a4c3f2c0269c98d61ccf5345b9baf4f98b0fd124',
+        '18d3581dcbf74b21db8e9d5fb4821ff044b974b7',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
