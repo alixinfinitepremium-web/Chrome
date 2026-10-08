@@ -477,7 +477,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling crabbyavif
   # and whatever else without interference from each other.
-  'crabbyavif_revision': '8bba67ff210a18e0b5abccbe4b483b8d3a24a192',
+  'crabbyavif_revision': '9413f41418944da3345eb01547c986f22e78108c',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Speedometer main
   # and whatever else without interference from each other.
@@ -3275,7 +3275,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '92d011ec2e8fbf27348ca078057f2e75cf77514c',
+    Var('webrtc_git') + '/src.git' + '@' + '852150686748f5cce0c1c96f4fde50e6be43ef73',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -3902,7 +3902,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '0edf250ca13641c63dc1d29854fa98e822ed325f',
+        '0beee0b40afd558049c40556aa96124ba51db002',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
