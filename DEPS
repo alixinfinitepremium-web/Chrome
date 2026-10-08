@@ -334,7 +334,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': '03f0a9e97f21af68f1359f011f7d44ddbc2e7130',
+  'v8_revision': '75e65c8533e720d4400cbf6c9696b34f9094a08c',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -410,7 +410,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '6b33c325343689d13edcac486785778a441a58b4',
+  'devtools_frontend_revision': '88b5a3395f788e5e6ad4370304adaf36e0a2412b',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -425,7 +425,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling android_deps_autorolled_version
   # and whatever else without interference from each other.
-  'android_deps_autorolled_version': 'sMLOGZEqur573ALUymnenwq5qAAgAU4EQBawXyQ9RMkC',
+  'android_deps_autorolled_version': 'sWinIz0qSwFnThEilrOQcExeE0wYOiqSZvlDujf9RHsC',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling android_sdk_emulator_version
   # and whatever else without interference from each other.
@@ -3404,7 +3404,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_receiver_app/app',
-        'version': 'Dzdj-RLXsKwQNeK1F9cL2n09FCEFGa3uGFKRgU24VwMC',
+        'version': 'JDFmaeed9K_v3YN5khx4hSHzudYgy6h3ZusvPD6X8F4C',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3902,7 +3902,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        'b30338173d06460b4b5d9dfff24fc695b8801a88',
+        '9e743cde29911d034dbc9dc097b1adf031746454',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
