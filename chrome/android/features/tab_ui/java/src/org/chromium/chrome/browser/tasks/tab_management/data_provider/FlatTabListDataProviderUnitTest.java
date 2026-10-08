@@ -36,6 +36,7 @@ import org.chromium.chrome.browser.tab.Tab;
 import org.chromium.chrome.browser.tab.TabCreationState;
 import org.chromium.chrome.browser.tab.TabId;
 import org.chromium.chrome.browser.tab.TabLaunchType;
+import org.chromium.chrome.browser.tabmodel.TabGroupObserver;
 import org.chromium.chrome.browser.tabmodel.TabList;
 import org.chromium.chrome.browser.tabmodel.TabModel;
 import org.chromium.chrome.browser.tabmodel.TabModelObserver;
@@ -67,6 +68,7 @@ public class FlatTabListDataProviderUnitTest {
     @Mock private TabListDataObserver mSecondObserver;
 
     @Captor private ArgumentCaptor<TabModelObserver> mTabModelObserverCaptor;
+    @Captor private ArgumentCaptor<TabGroupObserver> mTabGroupObserverCaptor;
 
     private final List<Tab> mModelTabs = new ArrayList<>();
     private final List<Tab> mOtherModelTabs = new ArrayList<>();
@@ -77,6 +79,7 @@ public class FlatTabListDataProviderUnitTest {
     private @Nullable Token mCurrentTabGroupId = TAB_GROUP_ID;
     private @Nullable Tab mSelectedTab;
     private TabModelObserver mTabModelObserver;
+    private TabGroupObserver mTabGroupObserver;
     private FlatTabListDataProvider mProvider;
 
     @Before
@@ -89,6 +92,10 @@ public class FlatTabListDataProviderUnitTest {
         stubBackedTabModel(mTabModel, mModelTabs);
         stubBackedTabModel(mOtherTabModel, mOtherModelTabs);
     }
+
+    // ============================================================================================
+    // Value Semantics Tests
+    // ============================================================================================
 
     @Test
     public void testTabItem_ValueSemantics() {
@@ -120,6 +127,10 @@ public class FlatTabListDataProviderUnitTest {
         assertNotEquals(base, pinnedItem);
         assertNotEquals(base, multiSelectedItem);
     }
+
+    // ============================================================================================
+    // Lifecycle & Reset Tests
+    // ============================================================================================
 
     @Test
     public void testRequestDataReset_NoTabModel_EmitsEmptyReset() {
@@ -192,6 +203,7 @@ public class FlatTabListDataProviderUnitTest {
         mProvider.requestDataReset();
         captureObserver(mTabModel);
         TabModelObserver firstModelObserver = mTabModelObserver;
+        TabGroupObserver firstGroupObserver = mTabGroupObserver;
         assertResetWithItems(item(TAB1_ID), item(TAB2_ID));
 
         // Switching to mOtherTabModel detaches from mTabModel and waits for the next
@@ -200,7 +212,9 @@ public class FlatTabListDataProviderUnitTest {
         mOtherModelTabs.add(mTab3);
         mTabModelSupplier.set(mOtherTabModel);
         verify(mTabModel).removeObserver(firstModelObserver);
+        verify(mTabModel).removeTabGroupObserver(firstGroupObserver);
         verify(mOtherTabModel, never()).addObserver(any());
+        verify(mOtherTabModel, never()).addTabGroupObserver(any());
         verifyNoInteractions(mObserver);
         assertItems();
 
@@ -214,11 +228,13 @@ public class FlatTabListDataProviderUnitTest {
         clearInvocations(mObserver);
         mProvider.stop();
         verify(mOtherTabModel).removeObserver(mTabModelObserver);
+        verify(mOtherTabModel).removeTabGroupObserver(mTabGroupObserver);
         verifyNoInteractions(mObserver);
         assertItems();
 
         mProvider.requestDataReset();
         verify(mOtherTabModel, times(2)).addObserver(mTabModelObserver);
+        verify(mOtherTabModel, times(2)).addTabGroupObserver(mTabGroupObserver);
         assertResetWithItems(item(TAB3_ID));
     }
 
@@ -230,10 +246,11 @@ public class FlatTabListDataProviderUnitTest {
         mProvider.addObserver(defaultObserver);
         mProvider.addObserver(mSecondObserver);
 
-        // Repeated requestDataReset() on the same TabModel does not re-register mTabModelObserver.
+        // Repeated requestDataReset() on the same TabModel does not re-register observers.
         mProvider.requestDataReset();
         List<TabListItem> expected = List.of(item(TAB1_ID), item(TAB2_ID));
         verify(mTabModel, times(1)).addObserver(mTabModelObserver);
+        verify(mTabModel, times(1)).addTabGroupObserver(mTabGroupObserver);
         verify(mObserver).onDataReset(expected);
         verify(mSecondObserver).onDataReset(expected);
 
@@ -248,11 +265,16 @@ public class FlatTabListDataProviderUnitTest {
         clearInvocations(mSecondObserver);
         mProvider.destroy();
         verify(mTabModel).removeObserver(mTabModelObserver);
+        verify(mTabModel).removeTabGroupObserver(mTabGroupObserver);
         assertItems();
 
         mProvider.requestDataReset();
         verifyNoInteractions(mSecondObserver);
     }
+
+    // ============================================================================================
+    // TabModelObserver: didAddTab
+    // ============================================================================================
 
     @Test
     public void testDidAddTab_InsertsAtHeadMiddleAndEnd_EmitsPredecessorAnchor() {
@@ -328,6 +350,75 @@ public class FlatTabListDataProviderUnitTest {
         assertItems(item(TAB1_ID));
     }
 
+    // ============================================================================================
+    // TabModelObserver: didMoveTab
+    // ============================================================================================
+
+    @Test
+    public void testDidMoveTab_StandaloneTab_MovesDown() {
+        setUpProviderWithTabs(/* filter= */ null, mTab1, mTab2, mTab3);
+        assertItems(item(TAB1_ID), item(TAB2_ID), item(TAB3_ID));
+
+        // Moving mTab1 down after mTab3 emits onItemsMoved with after=mTab3.
+        moveTab(mTab1, /* newIndex= */ 2);
+
+        verify(mObserver).onItemsMoved(List.of(item(TAB1_ID)), /* after= */ item(TAB3_ID));
+        assertItems(item(TAB2_ID), item(TAB3_ID), item(TAB1_ID));
+    }
+
+    @Test
+    public void testDidMoveTab_StandaloneTab_MovesUp() {
+        setUpProviderWithTabs(/* filter= */ null, mTab1, mTab2, mTab3);
+        assertItems(item(TAB1_ID), item(TAB2_ID), item(TAB3_ID));
+
+        // Moving mTab3 up to the start emits onItemsMoved with after=null.
+        moveTab(mTab3, /* newIndex= */ 0);
+
+        verify(mObserver).onItemsMoved(List.of(item(TAB3_ID)), /* after= */ null);
+        assertItems(item(TAB3_ID), item(TAB1_ID), item(TAB2_ID));
+    }
+
+    @Test
+    public void testDidMoveTab_GroupedTab_Ignored() {
+        groupTabs(TAB_GROUP_ID, mTab1);
+        setUpProviderWithTabs(/* filter= */ null, mTab1, mTab2, mTab3);
+        assertItems(item(TAB1_ID), item(TAB2_ID), item(TAB3_ID));
+
+        // didMoveTab ignores grouped tabs (handled by didMoveWithinGroup).
+        moveTab(mTab1, /* newIndex= */ 2);
+
+        verifyNoInteractions(mObserver);
+        assertItems(item(TAB1_ID), item(TAB2_ID), item(TAB3_ID));
+    }
+
+    @Test
+    public void testDidMoveTab_FilteredOutTab_NoOps() {
+        setUpProviderWithTabs(mInCurrentGroupFilter, mTab1, mTab2, mTab3);
+        assertItems();
+
+        // Moving a tab that does not satisfy the filter is ignored.
+        moveTab(mTab1, /* newIndex= */ 2);
+
+        verifyNoInteractions(mObserver);
+        assertItems();
+    }
+
+    @Test
+    public void testDidMoveTab_SamePosition_NoOps() {
+        setUpProviderWithTabs(/* filter= */ null, mTab1, mTab2, mTab3);
+        assertItems(item(TAB1_ID), item(TAB2_ID), item(TAB3_ID));
+
+        // Moving a tab to its current position no-ops.
+        mTabModelObserver.didMoveTab(mTab1, /* newIndex= */ 0, /* curIndex= */ 0);
+
+        verifyNoInteractions(mObserver);
+        assertItems(item(TAB1_ID), item(TAB2_ID), item(TAB3_ID));
+    }
+
+    // ============================================================================================
+    // TabModelObserver: didRemoveTabForClosure / tabRemoved
+    // ============================================================================================
+
     @Test
     public void testDidRemoveTabForClosure_RemovesItem() {
         setUpProviderWithTabs(/* filter= */ null, mTab1, mTab2, mTab3);
@@ -360,6 +451,146 @@ public class FlatTabListDataProviderUnitTest {
         assertItems(item(TAB1_ID));
     }
 
+    // ============================================================================================
+    // TabGroupObserver: didMergeTabToGroup
+    // ============================================================================================
+
+    @Test
+    public void testDidMergeTabToGroup_MatchingGroup_InsertsTab() {
+        groupTabs(TAB_GROUP_ID, mTab2);
+        setUpProviderWithTabs(mInCurrentGroupFilter, mTab1, mTab2);
+        assertItems(item(TAB2_ID));
+
+        // Merging mTab1 into the active group satisfies the filter and inserts the item.
+        groupTabs(TAB_GROUP_ID, mTab1);
+        mTabGroupObserver.didMergeTabToGroup(mTab1, /* isDestinationTab= */ false);
+
+        verify(mObserver).onItemsInserted(List.of(item(TAB1_ID)), /* after= */ null);
+        assertItems(item(TAB1_ID), item(TAB2_ID));
+    }
+
+    @Test
+    public void testDidMergeTabToGroup_DifferentGroup_NoOps() {
+        groupTabs(TAB_GROUP_ID, mTab2);
+        setUpProviderWithTabs(mInCurrentGroupFilter, mTab1, mTab2);
+        assertItems(item(TAB2_ID));
+
+        // Merging mTab1 into a different group does not satisfy the filter and emits no events.
+        groupTabs(TAB_GROUP_ID_2, mTab1);
+        mTabGroupObserver.didMergeTabToGroup(mTab1, /* isDestinationTab= */ false);
+
+        verifyNoInteractions(mObserver);
+        assertItems(item(TAB2_ID));
+    }
+
+    @Test
+    public void testDidMergeTabToGroup_AlreadyPresent_NoOps() {
+        groupTabs(TAB_GROUP_ID, mTab1, mTab2);
+        setUpProviderWithTabs(mInCurrentGroupFilter, mTab1, mTab2);
+        assertItems(item(TAB1_ID), item(TAB2_ID));
+
+        // Re-merging an already-present tab no-ops.
+        mTabGroupObserver.didMergeTabToGroup(mTab1, /* isDestinationTab= */ false);
+
+        verifyNoInteractions(mObserver);
+        assertItems(item(TAB1_ID), item(TAB2_ID));
+    }
+
+    // ============================================================================================
+    // TabGroupObserver: didMoveWithinGroup
+    // ============================================================================================
+
+    @Test
+    public void testDidMoveWithinGroup_MovesDown() {
+        groupTabs(TAB_GROUP_ID, mTab1, mTab2, mTab3);
+        setUpProviderWithTabs(mInCurrentGroupFilter, mTab1, mTab2, mTab3);
+        assertItems(item(TAB1_ID), item(TAB2_ID), item(TAB3_ID));
+
+        // Moving mTab1 down after mTab3 emits onItemsMoved with after=mTab3.
+        moveTabWithinGroup(mTab1, /* newIndex= */ 2);
+
+        verify(mObserver).onItemsMoved(List.of(item(TAB1_ID)), /* after= */ item(TAB3_ID));
+        assertItems(item(TAB2_ID), item(TAB3_ID), item(TAB1_ID));
+    }
+
+    @Test
+    public void testDidMoveWithinGroup_MovesUp() {
+        groupTabs(TAB_GROUP_ID, mTab1, mTab2, mTab3);
+        setUpProviderWithTabs(mInCurrentGroupFilter, mTab1, mTab2, mTab3);
+        assertItems(item(TAB1_ID), item(TAB2_ID), item(TAB3_ID));
+
+        // Moving mTab3 up to the start emits onItemsMoved with after=null.
+        moveTabWithinGroup(mTab3, /* newIndex= */ 0);
+
+        verify(mObserver).onItemsMoved(List.of(item(TAB3_ID)), /* after= */ null);
+        assertItems(item(TAB3_ID), item(TAB1_ID), item(TAB2_ID));
+    }
+
+    @Test
+    public void testDidMoveWithinGroup_UnprojectedGroup_NoOps() {
+        groupTabs(TAB_GROUP_ID, mTab1);
+        groupTabs(TAB_GROUP_ID_2, mTab2, mTab3);
+        setUpProviderWithTabs(mInCurrentGroupFilter, mTab1, mTab2, mTab3);
+        assertItems(item(TAB1_ID));
+
+        // Moving a tab in another group is ignored by this provider.
+        moveTabWithinGroup(mTab2, /* newIndex= */ 2);
+
+        verifyNoInteractions(mObserver);
+        assertItems(item(TAB1_ID));
+    }
+
+    @Test
+    public void testDidMoveWithinGroup_SamePosition_NoOps() {
+        groupTabs(TAB_GROUP_ID, mTab1, mTab2, mTab3);
+        setUpProviderWithTabs(mInCurrentGroupFilter, mTab1, mTab2, mTab3);
+        assertItems(item(TAB1_ID), item(TAB2_ID), item(TAB3_ID));
+
+        // Moving a tab to its current position no-ops.
+        mTabGroupObserver.didMoveWithinGroup(
+                mTab1, /* tabModelOldIndex= */ 0, /* tabModelNewIndex= */ 0);
+
+        verifyNoInteractions(mObserver);
+        assertItems(item(TAB1_ID), item(TAB2_ID), item(TAB3_ID));
+    }
+
+    // ============================================================================================
+    // TabGroupObserver: didMoveTabOutOfGroup
+    // ============================================================================================
+
+    @Test
+    public void testDidMoveTabOutOfGroup_FromMatchingGroup_RemovesTab() {
+        groupTabs(TAB_GROUP_ID, mTab1, mTab2);
+        setUpProviderWithTabs(mInCurrentGroupFilter, mTab1, mTab2);
+        assertItems(item(TAB1_ID), item(TAB2_ID));
+
+        // Moving mTab1 out of the group makes it fail the filter and removes it.
+        groupTabs(/* groupId= */ null, mTab1);
+        mTabGroupObserver.didMoveTabOutOfGroup(mTab1, TAB_GROUP_ID);
+
+        verify(mObserver).onItemsRemoved(List.of(item(TAB1_ID)));
+        assertItems(item(TAB2_ID));
+    }
+
+    @Test
+    public void testDidMoveTabOutOfGroup_FromDifferentGroup_NoOps() {
+        groupTabs(TAB_GROUP_ID, mTab2);
+        groupTabs(TAB_GROUP_ID_2, mTab3);
+        setUpProviderWithTabs(mInCurrentGroupFilter, mTab1, mTab2, mTab3);
+        assertItems(item(TAB2_ID));
+
+        // Moving mTab3 out of an unrelated group is ignored.
+        groupTabs(/* groupId= */ null, mTab3);
+        mTabGroupObserver.didMoveTabOutOfGroup(mTab3, TAB_GROUP_ID_2);
+
+        verifyNoInteractions(mObserver);
+        assertItems(item(TAB2_ID));
+    }
+
+    // ============================================================================================
+    // Test Helpers
+    // ============================================================================================
+
     private void stubBackedTabModel(TabModel model, List<Tab> tabs) {
         when(model.isTabStateInitialized()).thenReturn(true);
         when(model.iterator()).thenAnswer(invocation -> tabs.iterator());
@@ -381,6 +612,8 @@ public class FlatTabListDataProviderUnitTest {
     private void captureObserver(TabModel model) {
         verify(model).addObserver(mTabModelObserverCaptor.capture());
         mTabModelObserver = mTabModelObserverCaptor.getValue();
+        verify(model).addTabGroupObserver(mTabGroupObserverCaptor.capture());
+        mTabGroupObserver = mTabGroupObserverCaptor.getValue();
     }
 
     private void setModelTabs(Tab... tabs) {
@@ -395,6 +628,20 @@ public class FlatTabListDataProviderUnitTest {
                 TabLaunchType.FROM_CHROME_UI,
                 TabCreationState.LIVE_IN_FOREGROUND,
                 /* markedForSelection= */ false);
+    }
+
+    private void moveTab(Tab tab, int newIndex) {
+        int curIndex = mModelTabs.indexOf(tab);
+        mModelTabs.remove(curIndex);
+        mModelTabs.add(newIndex, tab);
+        mTabModelObserver.didMoveTab(tab, newIndex, curIndex);
+    }
+
+    private void moveTabWithinGroup(Tab tab, int newIndex) {
+        int curIndex = mModelTabs.indexOf(tab);
+        mModelTabs.remove(curIndex);
+        mModelTabs.add(newIndex, tab);
+        mTabGroupObserver.didMoveWithinGroup(tab, curIndex, newIndex);
     }
 
     private void closeTab(Tab tab) {
