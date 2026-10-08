@@ -19,7 +19,10 @@
 #include "chrome/browser/actor/tools/registry/tool_definition.h"
 #include "chrome/browser/actor/tools/registry/tool_definition_test_util.h"
 #include "chrome/browser/actor/tools/scroll_tool_request.h"
+#include "chrome/browser/actor/tools/select_tool_request.h"
 #include "chrome/browser/actor/tools/tool_request.h"
+#include "chrome/browser/actor/tools/translate_page_tool_request.h"
+#include "chrome/browser/actor/tools/type_tool_request.h"
 #include "chrome/common/buildflags.h"
 #include "chrome/common/chrome_features.h"
 #include "chrome/test/base/testing_profile.h"
@@ -92,6 +95,50 @@ TEST(ToolRegistryTest, ScrollToolDefinition) {
   EXPECT_THAT(*definition, RequiresParam(ScrollToolRequest::kDomNodeIdParam));
 }
 
+TEST(ToolRegistryTest, SelectOptionToolDefinition) {
+  const std::optional<ToolDefinition> definition =
+      SelectToolRequest::GetToolDefinition();
+  ASSERT_TRUE(definition.has_value());
+  EXPECT_EQ(definition->id, ToolId::kSelectOption);
+  EXPECT_EQ(definition->name, SelectToolRequest::kModelFacingName);
+  EXPECT_THAT(*definition,
+              HasParamOfType(SelectToolRequest::kDomNodeIdParam, "integer"));
+  EXPECT_THAT(*definition, RequiresParam(SelectToolRequest::kDomNodeIdParam));
+  EXPECT_THAT(*definition,
+              HasParamOfType(SelectToolRequest::kValueParam, "string"));
+  EXPECT_THAT(*definition, RequiresParam(SelectToolRequest::kValueParam));
+}
+
+TEST(ToolRegistryTest, TypeToolDefinition) {
+  const std::optional<ToolDefinition> definition =
+      TypeToolRequest::GetToolDefinition();
+  ASSERT_TRUE(definition.has_value());
+  EXPECT_EQ(definition->id, ToolId::kType);
+  EXPECT_EQ(definition->name, TypeToolRequest::kModelFacingName);
+  EXPECT_THAT(*definition,
+              HasParamOfType(TypeToolRequest::kDomNodeIdParam, "integer"));
+  EXPECT_THAT(*definition, RequiresParam(TypeToolRequest::kDomNodeIdParam));
+  EXPECT_THAT(*definition,
+              HasParamOfType(TypeToolRequest::kTextParam, "string"));
+  EXPECT_THAT(*definition, RequiresParam(TypeToolRequest::kTextParam));
+  EXPECT_THAT(*definition,
+              HasParamOfType(TypeToolRequest::kFollowByEnterParam, "boolean"));
+  EXPECT_THAT(*definition, RequiresParam(TypeToolRequest::kFollowByEnterParam));
+}
+
+TEST(ToolRegistryTest, TranslatePageToolDefinition) {
+  const std::optional<ToolDefinition> definition =
+      TranslatePageToolRequest::GetToolDefinition();
+  ASSERT_TRUE(definition.has_value());
+  EXPECT_EQ(definition->id, ToolId::kTranslatePage);
+  EXPECT_EQ(definition->name, TranslatePageToolRequest::kModelFacingName);
+  EXPECT_THAT(
+      *definition,
+      HasParamOfType(TranslatePageToolRequest::kTargetLanguageParam, "string"));
+  EXPECT_THAT(*definition,
+              RequiresParam(TranslatePageToolRequest::kTargetLanguageParam));
+}
+
 TEST(ToolRegistryTest, GetAllToolsContainsNavigateTool) {
   base::test::ScopedFeatureList scoped_feature_list(features::kGlicActor);
   content::BrowserTaskEnvironment task_environment;
@@ -126,6 +173,42 @@ TEST(ToolRegistryTest, GetAllToolsContainsScrollTool) {
   EXPECT_TRUE(std::ranges::contains(service->tool_registry().GetAllTools(),
                                     ToolId::kScroll, &ToolDefinition::id));
 }
+
+TEST(ToolRegistryTest, GetAllToolsContainsSelectOptionTool) {
+  base::test::ScopedFeatureList scoped_feature_list(features::kGlicActor);
+  content::BrowserTaskEnvironment task_environment;
+  TestingProfile profile;
+  ActorKeyedService* service = ActorKeyedService::Get(&profile);
+  CHECK(service);
+
+  EXPECT_TRUE(std::ranges::contains(service->tool_registry().GetAllTools(),
+                                    ToolId::kSelectOption,
+                                    &ToolDefinition::id));
+}
+
+TEST(ToolRegistryTest, GetAllToolsContainsTypeTool) {
+  base::test::ScopedFeatureList scoped_feature_list(features::kGlicActor);
+  content::BrowserTaskEnvironment task_environment;
+  TestingProfile profile;
+  ActorKeyedService* service = ActorKeyedService::Get(&profile);
+  CHECK(service);
+
+  EXPECT_TRUE(std::ranges::contains(service->tool_registry().GetAllTools(),
+                                    ToolId::kType, &ToolDefinition::id));
+}
+
+TEST(ToolRegistryTest, GetAllToolsContainsTranslatePageTool) {
+  base::test::ScopedFeatureList scoped_feature_list(features::kGlicActor);
+  content::BrowserTaskEnvironment task_environment;
+  TestingProfile profile;
+  ActorKeyedService* service = ActorKeyedService::Get(&profile);
+  CHECK(service);
+
+  EXPECT_TRUE(std::ranges::contains(service->tool_registry().GetAllTools(),
+                                    ToolId::kTranslatePage,
+                                    &ToolDefinition::id));
+}
+
 TEST(ToolRegistryTest, ToolIdToNameReturnsEmptyForUnrecognizedId) {
   EXPECT_TRUE(ToolRegistry::ToolIdToName(kUnrecognizedToolId).empty());
 }
