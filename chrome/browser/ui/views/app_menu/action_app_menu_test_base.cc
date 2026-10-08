@@ -103,7 +103,10 @@ void ActionAppMenuTestBase::SetUp() {
              BrowserActions::GetCleanTitleAndTooltipText(
                  l10n_util::GetStringUTF16(IDS_NEW_INCOGNITO_WINDOW)),
              l10n_util::GetStringUTF16(IDS_APP_MENU_INCOGNITO));
-  add_action(kActionNewIsolatedWindow, u"New Isolated Window");
+  add_action(kActionNewIsolatedWindow,
+             BrowserActions::GetCleanTitleAndTooltipText(
+                 l10n_util::GetStringUTF16(IDS_NEW_ISOLATED_WINDOW)),
+             l10n_util::GetStringUTF16(IDS_ISOLATED));
   add_action(kActionProfileSubmenu, u"Profile");
   add_action(kActionManageGoogleAccount, u"Manage your Google Account");
   add_action(kActionCustomizeChrome, u"Customize Chrome");
@@ -152,7 +155,6 @@ void ActionAppMenuTestBase::SetUp() {
   add_action(kActionFindExtensions, u"Find Extensions");
   add_action(kActionSkillsAndExtensionsSubmenu, u"Extensions and Skills");
   add_action(kActionManageSkills, u"Your skills");
-  add_action(kActionBrowseSkills, u"Browse skills");
   add_action(kActionClearBrowsingData, u"Clear Browsing Data");
   add_action(kActionSavedTabGroupsSubmenu, u"Tab Groups");
   add_action(kActionCreateNewTabGroup, u"New Tab Group");
