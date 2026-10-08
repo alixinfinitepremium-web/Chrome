@@ -326,7 +326,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': 'c0435f6a509bfde158ac46fe0e06f4823459de6c',
+  'src_internal_revision': '5c9d39737ca622f08a25b0a279ba10d3ded7f001',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -477,7 +477,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling crabbyavif
   # and whatever else without interference from each other.
-  'crabbyavif_revision': '2fbef8b3f101bb1b2900b8e40dc434528843203e',
+  'crabbyavif_revision': '8bba67ff210a18e0b5abccbe4b483b8d3a24a192',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Speedometer main
   # and whatever else without interference from each other.
@@ -1752,7 +1752,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': 'GUnaLat_NHy5kwrdgdjwgvVBgrwA_Bdw4-0ZOQTo-wUC',
+        'version': 'nyKnF8ihwHclh__MHE515vVthy0jL7HoesfoXLYyrowC',
       },
     ],
     'condition': 'non_git_source',
@@ -3275,7 +3275,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '52022620d7f1f97eed6bcfbfcb2744fb26acc86f',
+    Var('webrtc_git') + '/src.git' + '@' + '92d011ec2e8fbf27348ca078057f2e75cf77514c',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
