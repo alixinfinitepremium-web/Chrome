@@ -91,7 +91,8 @@ bool ShouldShowNewBadge(BrowserWindowInterface* browser_window_interface,
 bool ShouldRoundBottomCorners(size_t index,
                               const actions::ActionListVector& items) {
   // An item rounds its bottom corners if it is the last non-divider item in
-  // its list, if it is a notification item, OR if it is the zoom submenu.
+  // its list, if it is a notification item, OR if it is or precedes the zoom
+  // submenu.
   actions::BaseAction* const base_item = items[index].get();
   if (base_item->GetActionItem()->GetActionId() == kActionZoomSubmenu ||
       base_item->GetProperty(AppMenuActionItem::kDisplayTypeKey) ==
@@ -106,7 +107,7 @@ bool ShouldRoundBottomCorners(size_t index,
         items[i]->GetProperty(AppMenuActionItem::kDisplayTypeKey);
     if (display_type != AppMenuActionItem::DisplayType::kDivider &&
         display_type != AppMenuActionItem::DisplayType::kHeader) {
-      return false;
+      return items[i]->GetActionItem()->GetActionId() == kActionZoomSubmenu;
     }
   }
   return true;
@@ -150,9 +151,7 @@ bool ShouldAddTopPadding(size_t index, const actions::ActionListVector& items) {
         display_type == AppMenuActionItem::DisplayType::kHeader) {
       continue;
     }
-    if (SupportsVerticalPadding(prev_base)) {
-      return false;
-    }
+    return !SupportsVerticalPadding(prev_base);
   }
   return true;
 }
@@ -815,6 +814,10 @@ void ActionAppMenu::ConfigureMenuItem(views::MenuItemView* menu_item,
       target_item_height = provider->GetDistanceMetric(
           DISTANCE_ACTION_APP_MENU_MEDIUM_ITEM_HEIGHT);
       break;
+    case AppMenuActionItem::ItemHeight::kLarge:
+      target_item_height = provider->GetDistanceMetric(
+          DISTANCE_ACTION_APP_MENU_LARGE_ITEM_HEIGHT);
+      break;
     case AppMenuActionItem::ItemHeight::kExpanded:
       target_item_height = provider->GetDistanceMetric(
           DISTANCE_ACTION_APP_MENU_EXPANDED_ITEM_HEIGHT);
@@ -828,11 +831,10 @@ void ActionAppMenu::ConfigureMenuItem(views::MenuItemView* menu_item,
 
   menu_item->set_vertical_margin(vertical_padding);
 
-  const ui::ColorId container_color =
-      child_base->GetProperty(AppMenuActionItem::kContainerColorKey);
-
   // Get the styling from the ActionItem and apply it to its menu item.
-  if (container_color != ui::kColorMenuBackground) {
+  if (menu_item->GetParentMenuItem() == root_) {
+    const ui::ColorId container_color =
+        child_base->GetProperty(AppMenuActionItem::kContainerColorKey);
     const int top_radius = round_top_corners
                                ? provider->GetCornerRadiusMetric(
                                      kActionAppMenuContainerCornerRadius)
