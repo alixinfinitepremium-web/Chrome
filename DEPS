@@ -334,7 +334,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': '630bc86edc80f1c09f01f9f9aedad7fa87b35e70',
+  'v8_revision': '4a2bd1ec566f468a2ed96cfd3bfc437d7881cb87',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -1516,7 +1516,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_linux64',
-          'version': 'version:2@1709005',
+          'version': 'version:2@1710014',
         },
       ],
   },
@@ -1560,7 +1560,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_x86',
-          'version': 'version:2@1709123',
+          'version': 'version:2@1710120',
         },
       ],
   },
@@ -1571,7 +1571,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_x86_64',
-          'version': 'version:2@1709088',
+          'version': 'version:2@1710081',
         },
       ],
   },

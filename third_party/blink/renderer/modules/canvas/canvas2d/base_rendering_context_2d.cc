@@ -262,7 +262,9 @@ void BaseRenderingContext2D::CreateSharedImageProvider(
       color_params_.GetAlphaType(), color_params_.GetGfxColorSpace(),
       color_params_.GetGfxHdrMetadata(),
       SharedGpuContext::ContextProviderWrapper(), raster_mode,
-      shared_image_usage_flags, Host());
+      shared_image_usage_flags,
+      blink::BindOnce(&CanvasRenderingContextHost::NotifyGpuContextLost,
+                      WrapWeakPersistent(Host())));
 }
 
 void BaseRenderingContext2D::CreateSharedImageProviderForSoftwareCompositor() {
@@ -271,7 +273,9 @@ void BaseRenderingContext2D::CreateSharedImageProviderForSoftwareCompositor() {
           Host()->Size(), color_params_.GetSharedImageFormat(),
           color_params_.GetAlphaType(), color_params_.GetGfxColorSpace(),
           color_params_.GetGfxHdrMetadata(),
-          SharedGpuContext::SharedImageInterfaceProvider(), Host());
+          SharedGpuContext::SharedImageInterfaceProvider(),
+          blink::BindOnce(&CanvasRenderingContextHost::NotifyGpuContextLost,
+                          WrapWeakPersistent(Host())));
 }
 
 void BaseRenderingContext2D::SetSharedImageProviderForTesting(
@@ -388,6 +392,11 @@ BaseRenderingContext2D::GetOrCreateSWCanvasImageProvider() {
 void BaseRenderingContext2D::ApplyAnimatedImageFrameIndexesForId(
     SkCanvas* canvas,
     uint32_t id) {
+  if (shared_image_provider_) {
+    shared_image_provider_->SetAnimatedImageFrameIndexes(
+        GetAnimatedImageFrameIndexMap(id));
+    return;
+  }
   CHECK(canvas_image_provider_);
   canvas_image_provider_->SetAnimatedImageFrameIndexes(
       GetAnimatedImageFrameIndexMap(id));
@@ -1113,15 +1122,17 @@ std::optional<cc::PaintRecord> BaseRenderingContext2D::FlushCanvasInternal(
                                 ? shared_image_provider_->RasterInterface()
                                 : nullptr,
                             shared_image_provider_.get());
-    shared_image_provider_->RasterRecord(recording);
+    cc::PlaybackCallbacks::CustomDataRasterCallback custom_callback =
+        blink::BindRepeating(
+            &BaseRenderingContext2D::ApplyAnimatedImageFrameIndexesForId,
+            WrapWeakPersistent(this));
+    shared_image_provider_->RasterRecord(recording, std::move(custom_callback));
     shared_image_provider_->ReleaseImageProviderImages();
   } else if (surface_) {
     ScopedRasterTimer timer(nullptr, nullptr);
     RasterRecordToSoftwareSurface(recording);
   }
-  if (Host() && Host()->RenderingContext()) {
-    animated_image_frame_index_maps_.clear();
-  }
+  animated_image_frame_index_maps_.clear();
   return recording;
 }
 
