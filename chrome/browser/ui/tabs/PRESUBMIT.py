@@ -21,6 +21,11 @@ _ALLOWED_CREATE_FOR_CALLS = (
   # extensions::BookmarkManagerPrivateDragEventRouter, so the WebContents
   # must own it.
   'BookmarkTabHelper::CreateForWebContents',
+  # PopupBlockerTabHelper lives in //components/blocked_content and is looked up
+  # from arbitrary WebContents by PopupBlocker,
+  # ChromeContentBrowserClient::CanCreateWindow, and PopupOpenerTabHelper, so
+  # the WebContents must own it.
+  'blocked_content::PopupBlockerTabHelper::CreateForWebContents',
   # BreadcrumbManagerTabHelper is looked up on old_contents by
   # BreadcrumbManagerBrowserAgent::OnTabStripModelChanged
   # (TabStripModelChange::kReplaced) after TabFeatures::WillDiscardContents
@@ -86,12 +91,31 @@ _ALLOWED_CREATE_FOR_CALLS = (
   # glic::OnGuestAdded, WebUIContentsPreloadManager, and WebUIContentsWrapper,
   # so WebContents must own it.
   'PrefsTabHelper::CreateForWebContents',
+  # RequestDesktopSiteWebContentsObserverAndroid is also attached synchronously
+  # to pre-tab WebContents on Android in ChromeExtensionHostDelegate::CreateTab,
+  # TabWebContentsDelegateAndroid::AddNewContents, and
+  # PrerenderWebContentsDelegateImpl::PrerenderWebContentsCreated before
+  # TabAndroid exists so DidStartNavigation can override the user agent for the
+  # initial load, so the WebContents must own it.
+  'RequestDesktopSiteWebContentsObserverAndroid::CreateForWebContents',
+  # ResourceCoordinatorTabHelper is also attached directly to WebContents in
+  # TabLifecycleUnit for unit tests and stops TabLoadTracker tracking in
+  # WebContentsDestroyed() after TabFeatures is destroyed, so WebContents must
+  # own it.
+  'resource_coordinator::ResourceCoordinatorTabHelper::CreateForWebContents',
   # SafetyTipWebContentsObserver is queried on WebContents by
   # chrome_security_state::GetVisibleSecurityState during
   # SecurityStatePageLoadMetricsObserver::OnComplete in
   # WebContentsDestroyed() after TabFeatures is destroyed, so the
   # the WebContents must own it.
   'SafetyTipWebContentsObserver::CreateForWebContents',
+  # SafeBrowsingNavigationObserver lives in
+  # //components/safe_browsing/content/browser, is looked up on WebContents by
+  # BrowserURLLoaderThrottle::WillRedirectRequest and
+  # SafeBrowsingNavigationObserverManager, and cleans up in
+  # WebContentsDestroyed() after TabFeatures is destroyed, so WebContents must
+  # own it.
+  'safe_browsing::SafeBrowsingNavigationObserver::MaybeCreateForWebContents',
   # SiteEngagementService::Helper lives in //components/site_engagement/content
   # and is also attached to non-tab WebContents in WebUIContentsWrapper, so
   # WebContents must own it.

@@ -19,7 +19,6 @@
 #include "chrome/browser/chrome_content_browser_client.h"
 #include "chrome/browser/content_settings/host_content_settings_map_factory.h"
 #include "chrome/browser/content_settings/page_specific_content_settings_delegate.h"
-#include "chrome/browser/enterprise/connectors/referrer_cache_utils.h"
 #include "chrome/browser/favicon/favicon_utils.h"
 #include "chrome/browser/history/history_tab_helper.h"
 #include "chrome/browser/optimization_guide/optimization_guide_web_contents_observer.h"
@@ -30,8 +29,6 @@
 #include "chrome/browser/password_manager/chrome_password_manager_client.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/profiles/profile_key.h"
-#include "chrome/browser/resource_coordinator/tab_helper.h"
-#include "chrome/browser/safe_browsing/safe_browsing_navigation_observer_manager_factory.h"
 #include "chrome/browser/search_engines/template_url_service_factory.h"
 #include "chrome/browser/sessions/session_tab_helper_factory.h"
 #include "chrome/browser/subresource_filter/chrome_content_subresource_filter_web_contents_helper_factory.h"
@@ -43,7 +40,6 @@
 #include "chrome/common/buildflags.h"
 #include "chrome/common/chrome_features.h"
 #include "chrome/common/chrome_switches.h"
-#include "components/blocked_content/popup_blocker_tab_helper.h"
 #include "components/content_settings/browser/page_specific_content_settings.h"
 #include "components/dom_distiller/core/dom_distiller_features.h"
 #include "components/enterprise/buildflags/buildflags.h"
@@ -58,7 +54,6 @@
 #include "components/performance_manager/public/features.h"
 #include "components/permissions/permission_request_manager.h"
 #include "components/safe_browsing/content/browser/async_check_tracker.h"
-#include "components/safe_browsing/content/browser/safe_browsing_navigation_observer.h"
 #include "components/safe_browsing/content/browser/ui_manager.h"
 #include "components/safe_browsing/core/common/features.h"
 #include "components/search/ntp_features.h"
@@ -83,7 +78,6 @@
 #include "base/functional/bind.h"
 #include "base/memory/ptr_util.h"
 #include "chrome/browser/android/tab_android.h"
-#include "chrome/browser/content_settings/request_desktop_site_web_contents_observer_android.h"
 #include "chrome/browser/flags/android/chrome_feature_list.h"
 #include "content/public/common/content_features.h"
 #endif  // BUILDFLAG(IS_ANDROID)
@@ -203,25 +197,6 @@ void TabHelpers::AttachTabHelpers(WebContents* web_contents,
     pm_registry->SetPageType(web_contents, performance_manager::PageType::kTab);
   }
   permissions::PermissionRequestManager::CreateForWebContents(web_contents);
-  // The PopupBlockerTabHelper has an implicit dependency on
-  // ChromeSubresourceFilterClient being available in its constructor.
-  blocked_content::PopupBlockerTabHelper::CreateForWebContents(web_contents);
-#if BUILDFLAG(IS_ANDROID)
-  RequestDesktopSiteWebContentsObserverAndroid::CreateForWebContents(
-      web_contents);
-#endif  // BUILDFLAG(IS_ANDROID)
-  // TODO(siggi): Remove this once the Resource Coordinator refactoring is done.
-  //     See https://crbug.com/40604438.
-  resource_coordinator::ResourceCoordinatorTabHelper::CreateForWebContents(
-      web_contents);
-#if BUILDFLAG(SAFE_BROWSING_AVAILABLE)
-  safe_browsing::SafeBrowsingNavigationObserver::MaybeCreateForWebContents(
-      web_contents, HostContentSettingsMapFactory::GetForProfile(profile),
-      safe_browsing::SafeBrowsingNavigationObserverManagerFactory::
-          GetForBrowserContext(profile),
-      profile->GetPrefs(), g_browser_process->safe_browsing_service(),
-      enterprise_connectors::IsReferrerChainNeededForEnterprise(profile));
-#endif
 
 #if BUILDFLAG(SAFE_BROWSING_AVAILABLE)
   if (g_browser_process->safe_browsing_service()) {
