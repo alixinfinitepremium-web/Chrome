@@ -350,7 +350,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': 'cee89849ad5e88c1bc84177951950cbbb184f5d9',
+  'boringssl_revision': '44979b8a96e43671e1283fdfc6757724248978bc',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -440,7 +440,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': 'ab3c12305e776fa707503f7ecfab07364e9c7697',
+  'dawn_revision': 'bbb48cc804565d85120a5d9a04fc6d73b3ba621f',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -1538,7 +1538,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_mac_arm64',
-          'version': 'version:2@1709004',
+          'version': 'version:2@1710016',
         },
       ],
   },
@@ -1682,7 +1682,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_mac_amd64',
-          'version': 'RusDY50OfRh7SyU_p00CTEkD1AisyMOFIb0rkn-MyoUC',
+          'version': 'NF6xk3aHYhbqd2xIhSvODmdE1VU1ScSh70ZlZah4Ag8C',
         },
       ],
   },
@@ -1693,7 +1693,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_mac_arm64',
-          'version': 'igR7izJQf6lbwSNAlalnj0vfo93V00t5inPItQSdVRQC',
+          'version': 'Vg7voq1po4fSdp2fnxE_u9nOEV4Y6yJ4ElU4u-3eSUwC',
         },
       ],
   },
@@ -1867,7 +1867,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': 'TcNXyIlmYfUq71pL6mkrXIoD5OVIdcpMPJEjUbOT_e0C',
+          'version': 'c121Ei3T5f_rFGrk7yhP3Gof0n8GjVsF95WUT89fhAUC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
