@@ -440,7 +440,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': '1d869a000845385050cae73fc5c7ca30e5a8ff73',
+  'dawn_revision': 'bfb3df20f90257e27b4e937d156f35abfdd900d0',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -552,7 +552,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling clusterfuzz-data
   # and whatever else without interference from each other.
-  'clusterfuzz_data_revision':'777c3b981b57ba3bafc824c7a9d23db3a343591c',
+  'clusterfuzz_data_revision':'f91a4ef9fa0be9eeba94c542cdbb728d108e583c',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling agents-internal
   # and whatever else without interference from each other.
@@ -2565,7 +2565,7 @@ deps = {
     Var('chromium_git') + '/external/libaddressinput.git' + '@' + '81eb9628382b07d371d8ea0b11badf7de3857fd5',
 
   'src/third_party/libaom/source/libaom':
-    Var('aomedia_git') + '/aom.git' + '@' +  '4cea455cabe16fabad4a8020b4dee269d157f0ef',
+    Var('aomedia_git') + '/aom.git' + '@' +  'd53e6d0b14568ddbd36ad7354bfb9a59a127346e',
 
   'src/third_party/crabbyavif/src':
     Var('chromium_git') + '/external/github.com/webmproject/CrabbyAvif.git' + '@' + Var('crabbyavif_revision'),
