@@ -1751,7 +1751,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': 'eCtIGyRY2yAPSTIwJ98KadO7hKQj6A2PrpT33mi8u1EC',
+        'version': 'semGlV1kRicjc2YfW5bRvpvwRn7UHS98UtPRA46QIIsC',
       },
     ],
     'condition': 'non_git_source',
@@ -3425,7 +3425,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/help_app/app',
-        'version': 'GKQkBTUn-mhF6BVqbfiwwqRJRjkyp0gfJH0NEWO3jB8C',
+        'version': 'NVE09UPZ_UEGPCsSBv_08lnqYrhTUZ5QL2EzKisraT0C',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
