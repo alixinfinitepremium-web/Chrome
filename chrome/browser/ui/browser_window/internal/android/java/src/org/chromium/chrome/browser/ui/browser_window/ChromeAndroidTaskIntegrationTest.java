@@ -43,7 +43,6 @@ import org.chromium.base.test.util.CallbackHelper;
 import org.chromium.base.test.util.CommandLineFlags;
 import org.chromium.base.test.util.Criteria;
 import org.chromium.base.test.util.CriteriaHelper;
-import org.chromium.base.test.util.DisableIf;
 import org.chromium.base.test.util.DoNotBatch;
 import org.chromium.base.test.util.Features.DisableFeatures;
 import org.chromium.base.test.util.MinAndroidSdkLevel;
@@ -1391,7 +1390,7 @@ public class ChromeAndroidTaskIntegrationTest {
                                     .getPendingActionManagerForTesting()
                                     .getFutureBoundsInDp(),
                             Matchers.nullValue());
-                    assertBoundsCloseEnoughInDp(newBoundsInDp, chromeAndroidTask.getBoundsInDp());
+                    checkBoundsCloseEnoughInDp(newBoundsInDp, chromeAndroidTask.getBoundsInDp());
                 });
     }
 
@@ -1483,7 +1482,6 @@ public class ChromeAndroidTaskIntegrationTest {
     @MinAndroidSdkLevel(Build.VERSION_CODES.CINNAMON_BUN)
     @RequiresApi(Build.VERSION_CODES.CINNAMON_BUN)
     @Restriction(DeviceFormFactor.DESKTOP_FREEFORM)
-    @DisableIf.Device(DeviceFormFactor.DESKTOP) // https://crbug.com/571612288
     public void createPendingTask_withInitialBounds_createsTaskWithCorrectBounds() {
         assumeBrowserRole();
         // Arrange: Start on blank page to have a profile.
@@ -1505,25 +1503,29 @@ public class ChromeAndroidTaskIntegrationTest {
                 ThreadUtils.runOnUiThreadBlocking(ChromeAndroidTaskTrackerImpl::getInstance);
         assertNotNull(chromeAndroidTaskTracker);
 
-        Set<Integer> currentTaskIds = getTabbedActivityTaskIds();
-
         // Act: Create pending task and keep the reference.
         var chromeAndroidTask =
                 ThreadUtils.runOnUiThreadBlocking(
                         () -> chromeAndroidTaskTracker.createPendingTask(createParams, null));
         assertNotNull(chromeAndroidTask);
 
-        // Wait for the new activity to be created.
-        var newActivity = waitForNewTabbedActivity(currentTaskIds);
-
-        // Assert: Verify that the new activity has the correct bounds using the kept reference.
+        // Assert:
+        // (1) Wait for the pending Task to become idle, which means the pending Task has been
+        // backed by a real Activity;
+        // (2) The Task reports it has the correct bounds.
+        //
+        // Note: we should wait longer than CriteriaHelper's default timeout since new Task/Activity
+        // creation takes time.
         CriteriaHelper.pollUiThread(
                 () ->
-                        assertBoundsCloseEnoughInDp(
-                                initialBoundsInDp, chromeAndroidTask.getBoundsInDp()));
+                        chromeAndroidTask.getState() == ChromeAndroidTaskImpl.State.IDLE
+                                && areBoundsCloseEnough(
+                                        initialBoundsInDp, chromeAndroidTask.getBoundsInDp()),
+                /* maxTimeoutMs= */ 10_000L,
+                /* checkIntervalMs= */ 1_000L);
 
         // Cleanup.
-        newActivity.finishAndRemoveTask();
+        ThreadUtils.runOnUiThreadBlocking(chromeAndroidTask::close);
     }
 
     @Test
@@ -1580,16 +1582,16 @@ public class ChromeAndroidTaskIntegrationTest {
         CriteriaHelper.pollUiThread(
                 () -> {
                     var newActivityWindowAndroid = newTask.getTopActivityWindowAndroid();
-                    assertNotNull(newActivityWindowAndroid);
+                    Criteria.checkThat(newActivityWindowAndroid, Matchers.notNullValue());
 
-                    var newActivity = newActivityWindowAndroid.getActivity().get();
-                    assertNotNull(newActivity);
+                    var newActivity = assumeNonNull(newActivityWindowAndroid).getActivity().get();
+                    Criteria.checkThat(newActivity, Matchers.notNullValue());
 
-                    var windowManager = newActivity.getWindowManager();
+                    var windowManager = assumeNonNull(newActivity).getWindowManager();
                     var currentBounds = windowManager.getCurrentWindowMetrics().getBounds();
                     var maximizedBounds =
                             ChromeAndroidTaskBoundsConstraints.getMaxBoundsInPx(windowManager);
-                    assertEquals(maximizedBounds, currentBounds);
+                    Criteria.checkThat(currentBounds, Matchers.is(maximizedBounds));
                 });
 
         // Cleanup.
@@ -1636,6 +1638,21 @@ public class ChromeAndroidTaskIntegrationTest {
                         expected,
                         actual),
                 areBoundsCloseEnough(expected, actual));
+    }
+
+    /**
+     * Like {@link #assertBoundsCloseEnoughInDp}, but throws {@link CriteriaNotSatisfiedException}
+     * so it can be retried inside {@link CriteriaHelper#pollUiThread}.
+     */
+    private static void checkBoundsCloseEnoughInDp(Rect expected, Rect actual) {
+        Criteria.checkThat(
+                String.format(
+                        Locale.US,
+                        "Bounds not close enough. Expected: %s; Actual: %s",
+                        expected,
+                        actual),
+                areBoundsCloseEnough(expected, actual),
+                Matchers.is(true));
     }
 
     private AppTask getAppTask(Activity activity) {
