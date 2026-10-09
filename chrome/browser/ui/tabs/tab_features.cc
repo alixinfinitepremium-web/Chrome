@@ -258,6 +258,7 @@
 #include "components/privacy_sandbox/privacy_sandbox_features.h"
 #include "components/security_interstitials/core/features.h"
 #include "components/tabs/public/tab_interface.h"
+#include "components/ukm/content/source_url_recorder.h"
 #include "components/wallet/core/common/wallet_features.h"
 #include "components/web_modal/web_contents_modal_dialog_manager.h"
 #include "components/webapps/browser/installable/ml_installability_promoter.h"
@@ -340,10 +341,13 @@
 #if BUILDFLAG(SAFE_BROWSING_AVAILABLE)
 #include "chrome/browser/safe_browsing/chrome_password_reuse_detection_manager_client.h"
 #include "chrome/browser/safe_browsing/chrome_safe_browsing_tab_observer_delegate.h"
+#include "chrome/browser/safe_browsing/safe_browsing_service.h"
 #include "chrome/browser/safe_browsing/tailored_security/tailored_security_service_factory.h"
 #include "chrome/browser/safe_browsing/tailored_security/tailored_security_url_observer.h"
 #include "chrome/browser/safe_browsing/trigger_creator.h"
+#include "components/safe_browsing/content/browser/async_check_tracker.h"
 #include "components/safe_browsing/content/browser/safe_browsing_tab_observer.h"
+#include "components/safe_browsing/content/browser/ui_manager.h"
 #include "components/safe_browsing/core/common/features.h"
 #endif
 
@@ -1095,6 +1099,13 @@ void TabFeatures::Init(TabInterface& tab, Profile* profile) {
           tab.GetContents());
 
 #if BUILDFLAG(SAFE_BROWSING_AVAILABLE)
+  if (g_browser_process->safe_browsing_service()) {
+    safe_browsing::AsyncCheckTracker::CreateForWebContents(
+        tab.GetContents(),
+        g_browser_process->safe_browsing_service()->ui_manager(),
+        safe_browsing::AsyncCheckTracker::
+            IsPlatformEligibleForSyncCheckerCheckAllowlist());
+  }
   if (autofill::ContentAutofillClient::FromWebContents(tab.GetContents())) {
     ChromePasswordReuseDetectionManagerClient::CreateForWebContents(
         tab.GetContents());
@@ -1312,6 +1323,8 @@ void TabFeatures::Init(TabInterface& tab, Profile* profile) {
         tab.GetContents(),
         HistoryTabHelper::FromWebContents(tab.GetContents()));
   }
+
+  ukm::InitializeSourceUrlRecorderForWebContents(tab.GetContents());
 }
 
 TabUIHelper* TabFeatures::SetTabUIHelperForTesting(
@@ -1690,6 +1703,12 @@ void TabFeatures::WillDiscardContents(tabs::TabInterface* tab,
           new_contents);
 
 #if BUILDFLAG(SAFE_BROWSING_AVAILABLE)
+  if (g_browser_process->safe_browsing_service()) {
+    safe_browsing::AsyncCheckTracker::CreateForWebContents(
+        new_contents, g_browser_process->safe_browsing_service()->ui_manager(),
+        safe_browsing::AsyncCheckTracker::
+            IsPlatformEligibleForSyncCheckerCheckAllowlist());
+  }
   safe_browsing_tab_observer_.reset();
   if (autofill::ContentAutofillClient::FromWebContents(new_contents)) {
     ChromePasswordReuseDetectionManagerClient::CreateForWebContents(
@@ -1926,6 +1945,8 @@ void TabFeatures::WillDiscardContents(tabs::TabInterface* tab,
     HistoryClustersTabHelper::CreateForWebContents(
         new_contents, HistoryTabHelper::FromWebContents(new_contents));
   }
+
+  ukm::InitializeSourceUrlRecorderForWebContents(new_contents);
 }
 
 customize_chrome::SidePanelController*
