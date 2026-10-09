@@ -22,9 +22,6 @@
 #include "chrome/browser/enterprise/connectors/referrer_cache_utils.h"
 #include "chrome/browser/favicon/favicon_utils.h"
 #include "chrome/browser/history/history_tab_helper.h"
-#include "chrome/browser/history_clusters/history_clusters_tab_helper.h"
-#include "chrome/browser/login_detection/login_detection_tab_helper.h"
-#include "chrome/browser/lookalikes/safety_tip_web_contents_observer.h"
 #include "chrome/browser/optimization_guide/optimization_guide_web_contents_observer.h"
 #include "chrome/browser/page_content_annotations/multi_source_page_context_fetcher.h"
 #include "chrome/browser/page_content_annotations/page_content_annotations_service_factory.h"
@@ -37,7 +34,6 @@
 #include "chrome/browser/safe_browsing/safe_browsing_navigation_observer_manager_factory.h"
 #include "chrome/browser/search_engines/template_url_service_factory.h"
 #include "chrome/browser/sessions/session_tab_helper_factory.h"
-#include "chrome/browser/ssl/https_only_mode_tab_helper.h"
 #include "chrome/browser/subresource_filter/chrome_content_subresource_filter_web_contents_helper_factory.h"
 #include "chrome/browser/sync/sessions/sync_sessions_router_tab_helper.h"
 #include "chrome/browser/sync/sessions/sync_sessions_web_contents_router_factory.h"
@@ -180,15 +176,9 @@ void TabHelpers::AttachTabHelpers(WebContents* web_contents,
       std::make_unique<PageSpecificContentSettingsDelegate>(web_contents));
   favicon::CreateContentFaviconDriverForWebContents(web_contents);
   if (!profile->IsOffTheRecord()) {
-    auto* history_tab_helper =
-        HistoryTabHelper::GetOrCreateForWebContents(web_contents);
-    HistoryClustersTabHelper::CreateForWebContents(web_contents,
-                                                   history_tab_helper);
+    HistoryTabHelper::GetOrCreateForWebContents(web_contents);
   }
-  HttpsOnlyModeTabHelper::CreateForWebContents(web_contents);
   webapps::InstallableManager::CreateForWebContents(web_contents);
-  login_detection::LoginDetectionTabHelper::MaybeCreateForWebContents(
-      web_contents);
   if (optimization_guide::features::IsOptimizationHintsEnabled()) {
     OptimizationGuideWebContentsObserver::CreateForWebContents(web_contents);
   }
@@ -242,7 +232,6 @@ void TabHelpers::AttachTabHelpers(WebContents* web_contents,
             IsPlatformEligibleForSyncCheckerCheckAllowlist());
   }
 #endif  // BUILDFLAG(SAFE_BROWSING_AVAILABLE)
-  SafetyTipWebContentsObserver::CreateForWebContents(web_contents);
   ukm::InitializeSourceUrlRecorderForWebContents(web_contents);
 
   // NO! Do not just add your tab helper here. This is a large alphabetized

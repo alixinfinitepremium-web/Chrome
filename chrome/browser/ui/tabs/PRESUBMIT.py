@@ -54,10 +54,27 @@ _ALLOWED_CREATE_FOR_CALLS = (
   # Chrome App window WebContents in ChromeAppDelegate::InitWebContents, so
   # the WebContents must own it.
   'FileSystemAccessPermissionRequestManager::CreateForWebContents',
+  # HistoryClustersTabHelper records final page-end metrics
+  # (RecordPageEndMetricsIfNeeded) in WebContentsDestroyed() after TabFeatures
+  # is destroyed, and is looked up on WebContents by
+  # UkmPageLoadMetricsObserver, so WebContents must own it.
+  'HistoryClustersTabHelper::CreateForWebContents',
+  # HttpsOnlyModeTabHelper is also attached to non-tab and pre-tab WebContents
+  # in HttpsUpgradesInterceptor::MaybeCreateLoader and
+  # HttpsUpgradesNavigationThrottle::MaybeCreateThrottleFor, and is queried on
+  # WebContents by chrome_security_state::GetVisibleSecurityState during
+  # WebContentsDestroyed() after TabFeatures is destroyed, so the WebContents
+  # must continue to own it.
+  'HttpsOnlyModeTabHelper::CreateForWebContents',
   # TabModalDialogManager lives in //components/javascript_dialogs and is also
   # attached to non-tab Document Picture-in-Picture WebContents in
   # DocumentPipHost, so the WebContents must own it.
   'javascript_dialogs::TabModalDialogManager::CreateForWebContents',
+  # LoginDetectionTabHelper is also attached to pre-tab popup WebContents in
+  # LoginDetectionTabHelper::DidOpenRequestedURL before a TabModel exists, and
+  # records popup-close metrics in WebContentsDestroyed() after TabFeatures is
+  # destroyed, so WebContents must own it.
+  'login_detection::LoginDetectionTabHelper::MaybeCreateForWebContents',
   # PermissionRecoverySuccessRateTracker lives in //components/permissions and
   # is also attached to non-tab WebContents in
   # PaymentHandlerWebFlowViewController::PopulateSheet, DocumentPipHost, and
@@ -69,6 +86,12 @@ _ALLOWED_CREATE_FOR_CALLS = (
   # glic::OnGuestAdded, WebUIContentsPreloadManager, and WebUIContentsWrapper,
   # so WebContents must own it.
   'PrefsTabHelper::CreateForWebContents',
+  # SafetyTipWebContentsObserver is queried on WebContents by
+  # chrome_security_state::GetVisibleSecurityState during
+  # SecurityStatePageLoadMetricsObserver::OnComplete in
+  # WebContentsDestroyed() after TabFeatures is destroyed, so the
+  # the WebContents must own it.
+  'SafetyTipWebContentsObserver::CreateForWebContents',
   # SiteEngagementService::Helper lives in //components/site_engagement/content
   # and is also attached to non-tab WebContents in WebUIContentsWrapper, so
   # WebContents must own it.

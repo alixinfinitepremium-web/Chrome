@@ -51,10 +51,14 @@
 #include "chrome/browser/glic/public/widget/glic_side_panel_coordinator_desktop_android.h"
 #include "chrome/browser/glic/service/glic_instance_helper.h"
 #include "chrome/browser/glic/suggestions/contextual_cueing_helper.h"
+#include "chrome/browser/history/history_tab_helper.h"
 #include "chrome/browser/history/top_sites_factory.h"
+#include "chrome/browser/history_clusters/history_clusters_tab_helper.h"
 #include "chrome/browser/history_embeddings/history_embeddings_service_factory.h"
 #include "chrome/browser/history_embeddings/history_embeddings_tab_helper.h"
 #include "chrome/browser/loader/from_gws_navigation_and_keep_alive_request_observer.h"
+#include "chrome/browser/login_detection/login_detection_tab_helper.h"
+#include "chrome/browser/lookalikes/safety_tip_web_contents_observer.h"
 #include "chrome/browser/media/media_engagement_service.h"
 #include "chrome/browser/navigation_predictor/navigation_predictor_preconnect_client.h"
 #include "chrome/browser/net/http_auth_cache_status.h"
@@ -83,6 +87,7 @@
 #include "chrome/browser/site_protection/site_protection_metrics_observer.h"
 #include "chrome/browser/ssl/ask_before_http_dialog_controller.h"
 #include "chrome/browser/ssl/connection_help_tab_helper.h"
+#include "chrome/browser/ssl/https_only_mode_tab_helper.h"
 #include "chrome/browser/ssl/security_state_event_observer.h"
 #include "chrome/browser/storage_access_api/storage_access_api_service_factory.h"
 #include "chrome/browser/storage_access_api/storage_access_api_service_impl.h"
@@ -678,6 +683,18 @@ TabFeatures::TabFeatures(content::WebContents* web_contents, Profile* profile) {
         web_contents,
         prerender::NoStatePrefetchManagerFactory::GetForBrowserContext(
             profile));
+  }
+
+  SafetyTipWebContentsObserver::CreateForWebContents(web_contents);
+
+  HttpsOnlyModeTabHelper::CreateForWebContents(web_contents);
+
+  login_detection::LoginDetectionTabHelper::MaybeCreateForWebContents(
+      web_contents);
+
+  if (!profile->IsOffTheRecord()) {
+    HistoryClustersTabHelper::CreateForWebContents(
+        web_contents, HistoryTabHelper::FromWebContents(web_contents));
   }
 
   // Register LanguagePersistedTabDataAndroid for non-incognito Android tabs to

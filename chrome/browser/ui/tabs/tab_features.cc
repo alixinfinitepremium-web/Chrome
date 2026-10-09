@@ -44,13 +44,17 @@
 #include "chrome/browser/glic/suggestions/contextual_cueing_helper.h"
 #include "chrome/browser/glic/suggestions/glic_cue_tab_state.h"
 #include "chrome/browser/glic/suggestions/glic_cue_target.h"
+#include "chrome/browser/history/history_tab_helper.h"
 #include "chrome/browser/history/top_sites_factory.h"
+#include "chrome/browser/history_clusters/history_clusters_tab_helper.h"
 #include "chrome/browser/history_embeddings/history_embeddings_service_factory.h"
 #include "chrome/browser/history_embeddings/history_embeddings_tab_helper.h"
 #include "chrome/browser/image_fetcher/image_fetcher_service_factory.h"
 #include "chrome/browser/indigo/indigo_cue_target.h"
 #include "chrome/browser/indigo/indigo_page_action_controller.h"
 #include "chrome/browser/loader/from_gws_navigation_and_keep_alive_request_observer.h"
+#include "chrome/browser/login_detection/login_detection_tab_helper.h"
+#include "chrome/browser/lookalikes/safety_tip_web_contents_observer.h"
 #include "chrome/browser/media/media_engagement_service.h"
 #include "chrome/browser/metrics/variations/google_groups_manager_factory.h"
 #include "chrome/browser/multistep_filter/chrome_filter_navigation_observer.h"
@@ -80,6 +84,7 @@
 #include "chrome/browser/site_protection/site_protection_metrics_observer.h"
 #include "chrome/browser/ssl/ask_before_http_dialog_controller.h"
 #include "chrome/browser/ssl/connection_help_tab_helper.h"
+#include "chrome/browser/ssl/https_only_mode_tab_helper.h"
 #include "chrome/browser/ssl/security_state_event_observer.h"
 #include "chrome/browser/storage_access_api/storage_access_api_service_factory.h"
 #include "chrome/browser/storage_access_api/storage_access_api_service_impl.h"
@@ -1294,6 +1299,19 @@ void TabFeatures::Init(TabInterface& tab, Profile* profile) {
         prerender::NoStatePrefetchManagerFactory::GetForBrowserContext(
             profile));
   }
+
+  SafetyTipWebContentsObserver::CreateForWebContents(tab.GetContents());
+
+  HttpsOnlyModeTabHelper::CreateForWebContents(tab.GetContents());
+
+  login_detection::LoginDetectionTabHelper::MaybeCreateForWebContents(
+      tab.GetContents());
+
+  if (!profile->IsOffTheRecord()) {
+    HistoryClustersTabHelper::CreateForWebContents(
+        tab.GetContents(),
+        HistoryTabHelper::FromWebContents(tab.GetContents()));
+  }
 }
 
 TabUIHelper* TabFeatures::SetTabUIHelperForTesting(
@@ -1895,6 +1913,18 @@ void TabFeatures::WillDiscardContents(tabs::TabInterface* tab,
         new_contents,
         prerender::NoStatePrefetchManagerFactory::GetForBrowserContext(
             profile));
+  }
+
+  SafetyTipWebContentsObserver::CreateForWebContents(new_contents);
+
+  HttpsOnlyModeTabHelper::CreateForWebContents(new_contents);
+
+  login_detection::LoginDetectionTabHelper::MaybeCreateForWebContents(
+      new_contents);
+
+  if (!profile->IsOffTheRecord()) {
+    HistoryClustersTabHelper::CreateForWebContents(
+        new_contents, HistoryTabHelper::FromWebContents(new_contents));
   }
 }
 
