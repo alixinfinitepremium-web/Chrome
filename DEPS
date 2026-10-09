@@ -334,11 +334,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': 'c2502b3f3e98cdc5f0b6ec352720bfa41e87a3f8',
+  'v8_revision': '2b859f52df3c62069649740c63ab4e314b38ab3f',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': 'a408a647ed0f31a1c53815c4bc101af3193d1efb',
+  'angle_revision': 'f65a434b6b3d14f0855e9467f1848401f1612668',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -390,7 +390,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': '97fb378e399f09e3bfcd9255656653c821b13b0e',
+  'crossbench_revision': '2c8c9f7659422c34b2eed095d7ceb5a077cadacf',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -2842,7 +2842,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + 'd11b8db914bbfbbbcb9576a99bd94bc87db46fb7',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '152b09b0f11064b747f195c07298df1fe14d2e87',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',

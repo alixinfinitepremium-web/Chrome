@@ -3500,6 +3500,7 @@
                         "MigratedPdf": "true",
                         "MigratedPinInfoBar": "true",
                         "MigratedSessionRestore": "true",
+                        "MigratedStartupLaunch": "true",
                         "MigratedTabSharing": "true",
                         "MigratedWebAppBlockedMigration": "true",
                         "MigratedWebAuthFlow": "true"
@@ -14944,44 +14945,6 @@
                     },
                     "enable_features": [
                         "RedWarningSurveyAndroid"
-                    ]
-                }
-            ]
-        }
-    ],
-    "ReduceAcceptLanguage": [
-        {
-            "platforms": [
-                "android",
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "ReduceAcceptLanguage"
-                    ]
-                }
-            ]
-        }
-    ],
-    "ReduceAcceptLanguageHTTP": [
-        {
-            "platforms": [
-                "android",
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "ReduceAcceptLanguageHTTP"
                     ]
                 }
             ]
