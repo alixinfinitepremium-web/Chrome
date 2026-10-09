@@ -2230,7 +2230,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '071d5b9d91e06cb2a9c9ce926d6ee666df185b49',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '23d65d589c64ef37a541a3b8b2a534ec4e171c9c',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -3040,7 +3040,7 @@ deps = {
       'packages': [
           {
               'package': 'chromium/third_party/r8',
-              'version': '1or9Fncc7YOJz7Oqu_TDtnoul4Sc40EFWEdyeBwnPs8C',
+              'version': 'P7Pq70iaBKGCBVqKGS1XPUFyG7yWFSBWVy7yOBsghLcC',
           },
       ],
       'condition': 'checkout_android and non_git_source',

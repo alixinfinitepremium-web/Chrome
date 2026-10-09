@@ -21,6 +21,11 @@ _ALLOWED_CREATE_FOR_CALLS = (
   # extensions::BookmarkManagerPrivateDragEventRouter, so the WebContents
   # must own it.
   'BookmarkTabHelper::CreateForWebContents',
+  # BreadcrumbManagerTabHelper is looked up on old_contents by
+  # BreadcrumbManagerBrowserAgent::OnTabStripModelChanged
+  # (TabStripModelChange::kReplaced) after TabFeatures::WillDiscardContents
+  # swaps in new_contents, so the WebContents must own it.
+  'BreadcrumbManagerTabHelper::CreateForWebContents',
   # CaptivePortalTabHelper lives in //components/captive_portal/content and
   # is also attached to non-tab GuestView WebContents in
   # ChromeGuestViewManagerDelegate, so the WebContents must own it.
@@ -58,6 +63,12 @@ _ALLOWED_CREATE_FOR_CALLS = (
   # PaymentHandlerWebFlowViewController::PopulateSheet, DocumentPipHost, and
   # GlicSidePanelUi, so the WebContents must own it.
   'permissions::PermissionRecoverySuccessRateTracker::CreateForWebContents',
+  # PrefsTabHelper is also attached to non-tab WebContents in DevToolsWindow,
+  # ChromeExtensionHostDelegate::OnExtensionHostCreated,
+  # GlicNoWebviewContentsManager, GlicWebUIContentsManager,
+  # glic::OnGuestAdded, WebUIContentsPreloadManager, and WebUIContentsWrapper,
+  # so WebContents must own it.
+  'PrefsTabHelper::CreateForWebContents',
   # The task manager tag is looked up from WebContents user data by
   # WebContentsTaskProvider, is swapped in place by WebAppTabHelper, and is
   # also attached to non-tab WebContents (e.g. payment handler WebViews) and

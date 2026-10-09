@@ -18,6 +18,7 @@
 #include "chrome/browser/actor/ui/actor_ui_tab_controller.h"
 #include "chrome/browser/banners/app_banner_manager_desktop.h"
 #include "chrome/browser/bookmarks/bookmark_model_factory.h"
+#include "chrome/browser/breadcrumbs/breadcrumb_manager_tab_helper.h"
 #include "chrome/browser/browser_process.h"
 #include "chrome/browser/chained_back_navigation_tracker.h"
 #include "chrome/browser/commerce/in_stock_notification/in_stock_notification_manager.h"
@@ -123,6 +124,7 @@
 #include "chrome/browser/ui/performance_controls/memory_saver_chip_controller.h"
 #include "chrome/browser/ui/performance_controls/memory_saver_chip_tab_helper.h"
 #include "chrome/browser/ui/performance_controls/tab_resource_usage_tab_helper.h"
+#include "chrome/browser/ui/prefs/prefs_tab_helper.h"
 #include "chrome/browser/ui/read_anything/read_anything_controller.h"
 #include "chrome/browser/ui/recently_audible_helper.h"
 #include "chrome/browser/ui/sad_tab_helper.h"
@@ -232,6 +234,7 @@
 #include "chrome/common/chrome_isolated_world_ids.h"
 #include "components/autofill/core/common/autofill_features.h"
 #include "components/blocked_content/popup_opener_tab_helper.h"
+#include "components/breadcrumbs/core/breadcrumbs_status.h"
 #include "components/client_hints/browser/client_hints_web_contents_observer.h"
 #include "components/commerce/content/browser/commerce_tab_helper.h"
 #include "components/commerce/core/commerce_feature_list.h"
@@ -1275,6 +1278,12 @@ void TabFeatures::Init(TabInterface& tab, Profile* profile) {
             .CreateInstance<predictors::LoadingPredictorTabHelper>(
                 tab, tab, tab.GetContents());
   }
+
+  if (breadcrumbs::IsEnabled(g_browser_process->local_state())) {
+    BreadcrumbManagerTabHelper::CreateForWebContents(tab.GetContents());
+  }
+
+  PrefsTabHelper::CreateForWebContents(tab.GetContents());
 }
 
 TabUIHelper* TabFeatures::SetTabUIHelperForTesting(
@@ -1864,6 +1873,12 @@ void TabFeatures::WillDiscardContents(tabs::TabInterface* tab,
             .CreateInstance<predictors::LoadingPredictorTabHelper>(
                 *tab, *tab, new_contents);
   }
+
+  if (breadcrumbs::IsEnabled(g_browser_process->local_state())) {
+    BreadcrumbManagerTabHelper::CreateForWebContents(new_contents);
+  }
+
+  PrefsTabHelper::CreateForWebContents(new_contents);
 }
 
 customize_chrome::SidePanelController*
