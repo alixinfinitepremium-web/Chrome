@@ -350,7 +350,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': 'fbb876dcee91c83a78d930dc9fab79db0c12053e',
+  'boringssl_revision': '3b39936f376ed568431fd3f95c3421f5b0726e70',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -410,7 +410,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'c97f22b250f8806b4584eb96311e924a96debb73',
+  'devtools_frontend_revision': 'c27e7052373241689df93aa677d4ac296d5bb4fd',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1763,7 +1763,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '1c5d25bd9462d1825800d8da381ffab2c2865d4f',
+    '865a3bf6aedead09057ed537cc892cea8b93f890',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -3274,7 +3274,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '505f76ab8a10dea13c88f736d87b2be4cabd2b69',
+    Var('webrtc_git') + '/src.git' + '@' + 'fba06dec2cb11bb7325559c1163aeb4eb752aba7',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
