@@ -706,6 +706,7 @@ ci.thin_tester(
                 args = [
                     "--additional-env-var=LLVM_PROFILE_FILE=${ISOLATED_OUTDIR}/profraw/default-%2m.profraw",
                 ],
+                enable_rts_filtering = True,
             ),
             "browser_tests": targets.mixin(
                 args = [
@@ -724,6 +725,9 @@ ci.thin_tester(
                     },
                     shards = 20,
                 ),
+            ),
+            "components_unittests": targets.mixin(
+                enable_rts_filtering = True,
             ),
             "content_browsertests": targets.mixin(
                 ci_only = True,
