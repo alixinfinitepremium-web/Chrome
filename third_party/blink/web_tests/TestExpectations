@@ -2279,7 +2279,6 @@ crbug.com/626703 external/wpt/service-workers/service-worker/navigation-timing-e
 crbug.com/626703 external/wpt/preload/preload-resource-match.https.html [ Failure ]
 crbug.com/1359555 external/wpt/speculation-rules/prerender/workers.https.html [ Failure Timeout ]
 crbug.com/324447993 external/wpt/web-locks/clientids.https.html [ Failure ]
-external/wpt/clear-site-data/clear-cache.https.html [ Failure ]  # Flaky output
 
 # These tests crash due to DCHECKs. Only CQ/debug CI builders enable DCHECKs;
 # `*-blink-rel` builders don't.
@@ -4108,7 +4107,6 @@ crbug.com/366553 external/wpt/svg/text/reftests/text-inline-size-006.svg [ Failu
 crbug.com/366553 external/wpt/svg/text/reftests/text-inline-size-003.svg [ Failure ]
 crbug.com/366558 external/wpt/svg/text/reftests/text-multiline-001.svg [ Failure ]
 crbug.com/366553 external/wpt/svg/text/reftests/text-inline-size-101.svg [ Failure ]
-crbug.com/626703 external/wpt/clear-site-data/executionContexts.sub.html [ Timeout ]
 crbug.com/626703 external/wpt/web-animations/timing-model/timelines/update-and-send-events.html [ Failure ]
 
 
@@ -5686,9 +5684,6 @@ crbug.com/1323246 external/wpt/web-animations/timing-model/timelines/sibling-ifr
 
 # introduce blink_wpt_tests
 crbug.com/1299834 [ Win ] wpt_internal/html/interaction/focus/the-autofocus-attribute/object-fallback.html [ Timeout ]
-
-# Sheriff 2022-05-20
-crbug.com/1291841 external/wpt/scroll-to-text-fragment/scroll-to-text-fragment-security.sub.html [ Pass Timeout ]
 
 # Sheriff 2022-05-26
 crbug.com/1329596 virtual/gpu-rasterization/images/jpeg-with-non-interleaved-dc-channels.html [ Failure Pass ]
