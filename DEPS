@@ -390,7 +390,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': '78ae222ab84843c568fc1a1957d2171719335f2f',
+  'crossbench_revision': 'd29098974a7b1ee31f331b66fc71768b86176a8a',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -410,7 +410,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '8b5be4baddea5568f938b894eed0c1f064b248bf',
+  'devtools_frontend_revision': '6edeef4221e3a2ef78b1627b820d8b5b9404821c',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
