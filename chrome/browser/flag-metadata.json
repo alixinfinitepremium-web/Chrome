@@ -2542,11 +2542,6 @@
     "expiry_milestone": 140
   },
   {
-    "name": "cros-switcher",
-    "owners": [ "assistive-eng@google.com" ],
-    "expiry_milestone": 135
-  },
-  {
     "name": "cross-device-signin",
     "owners": ["lbarczynski@google.com", "myuu@google.com", "chrome-signin-mobile-team@google.com" ],
     "expiry_milestone": 156
@@ -6079,11 +6074,6 @@
     // A debugging and demo flag to allow testing of heavy ads
     // interventions by the industry without per-page limitations.
     "expiry_milestone": -1
-  },
-  {
-    "name": "help-app-apps-list",
-    "owners": [ "//ash/webui/help_app_ui/OWNERS" ],
-    "expiry_milestone": 132
   },
   {
     "name": "help-app-auto-trigger-install-dialog",

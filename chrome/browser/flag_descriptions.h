@@ -444,10 +444,6 @@ inline constexpr char kCriticalActionHistoryDescription[] =
     "performed during user-initiated AI agent browsing sessions alongside "
     "page visits on the Chrome History page for transparency and auditing.";
 
-inline constexpr char kCrosSwitcherName[] = "ChromeOS Switcher feature.";
-inline constexpr char kCrosSwitcherDescription[] =
-    "Enable/Disable ChromeOS Switcher feature.";
-
 inline constexpr char kStylusHandwritingWinName[] =
     "Stylus Handwriting for Windows.";
 inline constexpr char kStylusHandwritingWinDescription[] =
@@ -7919,10 +7915,6 @@ inline constexpr char kGlanceablesTimeManagementTasksViewName[] =
 inline constexpr char kGlanceablesTimeManagementTasksViewDescription[] =
     "Enables Google Tasks integration on the Time Management Glanceables "
     "surface (via Calendar entry point).";
-
-inline constexpr char kHelpAppAppsListName[] = "Help App apps list";
-inline constexpr char kHelpAppAppsListDescription[] =
-    "If enabled, the Help app will render the Apps List page and entry point.";
 
 inline constexpr char kHelpAppAutoTriggerInstallDialogName[] =
     "Help App Auto Trigger Install Dialog";
