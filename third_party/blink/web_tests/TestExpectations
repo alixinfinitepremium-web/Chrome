@@ -1526,7 +1526,6 @@ crbug.com/1204498 external/wpt/service-workers/service-worker/client-navigate.ht
 crbug.com/528062 [ Win ] http/tests/css/missing-repaint-after-slow-style-sheet.pl [ Failure ]
 crbug.com/528062 [ Win ] http/tests/local/blob/send-data-blob.html [ Failure Timeout ]
 crbug.com/528062 [ Win ] http/tests/local/blob/send-hybrid-blob.html [ Failure Timeout ]
-crbug.com/528062 [ Win ] http/tests/security/XFrameOptions/x-frame-options-cached.html [ Failure ]
 
 # When drawing subpixel smoothed glyphs, CoreGraphics will fake bold the glyphs.
 # In this configuration, the pixel smoothed glyphs will be created from subpixel smoothed glyphs.
@@ -4936,9 +4935,6 @@ crbug.com/1059262 virtual/threaded/http/tests/worklet/webexposed/global-interfac
 # Sheriff 2020-04-01
 crbug.com/1066732 fast/events/platform-wheelevent-paging-x-in-scrolling-div.html [ Failure Pass ]
 crbug.com/1066732 fast/events/platform-wheelevent-paging-y-in-scrolling-div.html [ Failure Pass ]
-
-# COOP top navigation:
-crbug.com/1153648 external/wpt/html/cross-origin-opener-policy/navigate-top-to-aboutblank.https.html [ Failure ]
 
 # Stale revalidation shouldn't be blocked:
 
@@ -8790,7 +8786,6 @@ crbug.com/552043107 [ Win11-arm64 ] virtual/media-foundation-for-clear-dcomp/med
 
 # Gardener 2026-08-26
 crbug.com/552768634 external/wpt/html/canvas/element/manual/wide-gamut-canvas/canvas-display-p3-drawImage-ImageBitmap-Blob.html [ Failure Pass ]
-crbug.com/552768634 external/wpt/preload/subresource-integrity.html [ Failure Pass ]
 
 # Gardener 2026-09-03
 crbug.com/554722975 [ Win11-arm64 ] external/wpt/webtransport/stats.https.any.html [ Failure Pass ]
