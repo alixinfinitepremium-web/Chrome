@@ -330,7 +330,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '2f72c0c1feb2c0f0ccbf88427cc931bab2df9f2c',
+  'skia_revision': 'bfcbc2e0fd7caab4f949be52fcc2e0aaa49c546f',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -2693,7 +2693,7 @@ deps = {
     Var('chromium_git') + '/webm/libwebp.git' + '@' +  'b43b2caa710c0c997c066cb32c7fea1391fad70a',
 
   'src/third_party/libyuv':
-    Var('chromium_git') + '/libyuv/libyuv.git' + '@' + '9456b062277d2809c97f4633c116ffa8d485afdd',
+    Var('chromium_git') + '/libyuv/libyuv.git' + '@' + '4ce4edd50e5dc146c66648628848a9e08968a277',
 
   'src/third_party/lss': {
       'url': Var('chromium_git') + '/linux-syscall-support.git' + '@' + Var('lss_revision'),
