@@ -330,7 +330,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': 'f9043b7aa7985bf64bfabe3edb11e6007579ae44',
+  'skia_revision': '81b0dcfd94e99a2bccc54eaff53f03ba1ba8e381',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -552,7 +552,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling clusterfuzz-data
   # and whatever else without interference from each other.
-  'clusterfuzz_data_revision':'f91a4ef9fa0be9eeba94c542cdbb728d108e583c',
+  'clusterfuzz_data_revision':'0a871167e53f65d7b29ed24ac9c28a304bd523dc',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling agents-internal
   # and whatever else without interference from each other.
