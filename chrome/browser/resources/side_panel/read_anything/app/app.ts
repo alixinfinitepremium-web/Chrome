@@ -26,18 +26,20 @@ import {NodeStore} from '../content/node_store.js';
 import {DEFAULT_SETTINGS, LineFocusType} from '../content/read_anything_types.js';
 import type {LineFocusMovement, LineFocusStyle, SettingsPrefs} from '../content/read_anything_types.js';
 import {SelectionController} from '../content/selection_controller.js';
+import {RATE_OPTIONS} from '../menus/rate_menu.js';
 import type {AudioBrowserProxy} from '../read_aloud/audio_browser_proxy.js';
 import {AudioBrowserProxyImpl} from '../read_aloud/audio_browser_proxy.js';
 import type {LanguageToastElement} from '../read_aloud/language_toast.js';
 import type {Segment} from '../read_aloud/read_aloud_types.js';
 import {SpeechController} from '../read_aloud/speech_controller.js';
 import type {SpeechListener} from '../read_aloud/speech_controller.js';
+import {getCurrentSpeechRate} from '../read_aloud/speech_presentation_rules.js';
 import {VoiceLanguageController} from '../read_aloud/voice_language_controller.js';
 import type {VoiceLanguageListener} from '../read_aloud/voice_language_controller.js';
 import {VoiceNotificationManager} from '../read_aloud/voice_notification_manager.js';
 import {getWordCount, isDistilledByReadability} from '../shared/common.js';
 import {isPlayPauseShortcut} from '../shared/keyboard_util.js';
-import {ReadAnythingSettingsChange} from '../shared/metrics_browser_proxy.js';
+import {ReadAloudSettingsChange, ReadAnythingSettingsChange} from '../shared/metrics_browser_proxy.js';
 import {ReadAnythingLogger, TimeFrom} from '../shared/read_anything_logger.js';
 
 import {getCss} from './app.css.js';
@@ -86,6 +88,9 @@ export class AppElement extends AppElementBase implements SpeechListener,
       theme_: {type: Number},
       lineSpacing_: {type: Number},
       letterSpacing_: {type: Number},
+      font_: {type: String},
+      speechRate_: {type: Number},
+      highlightGranularity_: {type: Number},
       settingsPrefs_: {type: Object},
       selectedVoice_: {type: Object},
       availableVoices_: {type: Array},
@@ -173,6 +178,9 @@ export class AppElement extends AppElementBase implements SpeechListener,
   protected accessor theme_: number = 0;
   protected accessor lineSpacing_: number = 0;
   protected accessor letterSpacing_: number = 0;
+  protected accessor font_: string = '';
+  protected accessor speechRate_: number = 1;
+  protected accessor highlightGranularity_: number = 0;
 
   protected accessor isSpeechActive_: boolean = false;
   protected accessor isAudioCurrentlyPlaying_: boolean = false;
@@ -234,9 +242,6 @@ export class AppElement extends AppElementBase implements SpeechListener,
     this.showLoading();
 
     this.settingsPrefs_ = {
-      speechRate: this.audioBrowserProxy_.getSpeechRate(),
-      font: this.visualBrowserProxy_.getFontName(),
-      highlightGranularity: this.audioBrowserProxy_.getHighlightGranularity(),
       linksEnabled: this.visualBrowserProxy_.isLinksEnabled(),
       imagesEnabled: this.visualBrowserProxy_.isImagesEnabled(),
     };
@@ -703,23 +708,25 @@ export class AppElement extends AppElementBase implements SpeechListener,
     this.theme_ = this.visualBrowserProxy_.getColorTheme();
     this.lineSpacing_ = this.visualBrowserProxy_.getLineSpacing();
     this.letterSpacing_ = this.visualBrowserProxy_.getLetterSpacing();
+    this.font_ = this.visualBrowserProxy_.getFontName();
+    this.speechRate_ = getCurrentSpeechRate();
+    this.highlightGranularity_ =
+        this.audioBrowserProxy_.getHighlightGranularity();
   }
 
-  protected onSpeechRateChange_() {
-    // TODO(crbug.com/564638585): Replace manual settingsPrefs_ updates for each
-    // onChange_ method with automated updates.
-    this.settingsPrefs_ = {
-      ...this.settingsPrefs_,
-      speechRate: this.audioBrowserProxy_.getSpeechRate(),
-    };
+  protected onSpeechRateChange_(event: CustomEvent<{data: number}>) {
+    const rate = event.detail.data;
+    this.audioBrowserProxy_.onSpeechRateChange(rate);
+    this.logger_.logSpeechSettingsChange(
+        ReadAloudSettingsChange.VOICE_SPEED_CHANGE);
+    // Voice speed is logged by menu index, not by rate value.
+    this.logger_.logVoiceSpeed(RATE_OPTIONS.indexOf(rate));
+    this.syncSettings_();
     this.speechController_.onSpeechSettingsChange();
   }
 
   private restoreSettingsFromPrefs_() {
     this.settingsPrefs_ = {
-      speechRate: this.audioBrowserProxy_.getSpeechRate(),
-      font: this.visualBrowserProxy_.getFontName(),
-      highlightGranularity: this.audioBrowserProxy_.getHighlightGranularity(),
       linksEnabled: this.visualBrowserProxy_.isLinksEnabled(),
       imagesEnabled: this.visualBrowserProxy_.isImagesEnabled(),
     };
@@ -751,11 +758,10 @@ export class AppElement extends AppElementBase implements SpeechListener,
     this.onTextLocationsChange_();
   }
 
-  protected onFontChange_() {
-    this.settingsPrefs_ = {
-      ...this.settingsPrefs_,
-      font: this.visualBrowserProxy_.getFontName(),
-    };
+  protected onFontChange_(event: CustomEvent<{data: string}>) {
+    this.visualBrowserProxy_.onFontChange(event.detail.data);
+    this.logger_.logTextSettingsChange(ReadAnythingSettingsChange.FONT_CHANGE);
+    this.syncSettings_();
     this.styleUpdater_.setFont();
     this.onTextLocationsChange_();
   }
@@ -780,11 +786,13 @@ export class AppElement extends AppElementBase implements SpeechListener,
   }
 
   protected onHighlightChange_(event: CustomEvent<{data: number}>) {
-    this.settingsPrefs_ = {
-      ...this.settingsPrefs_,
-      highlightGranularity: event.detail.data,
-    };
-    this.speechController_.onHighlightGranularityChange(event.detail.data);
+    const granularity = event.detail.data;
+    this.audioBrowserProxy_.onHighlightGranularityChanged(granularity);
+    this.logger_.logSpeechSettingsChange(
+        ReadAloudSettingsChange.HIGHLIGHT_CHANGE);
+    this.logger_.logHighlightGranularity(granularity);
+    this.syncSettings_();
+    this.speechController_.onHighlightGranularityChange(granularity);
     // Apply highlighting changes to the DOM.
     this.styleUpdater_.setHighlight();
   }

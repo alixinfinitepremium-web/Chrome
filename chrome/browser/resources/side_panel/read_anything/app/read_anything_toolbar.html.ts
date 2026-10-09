@@ -104,11 +104,9 @@ export function getHtml(this: ReadAnythingToolbarElement) {
       @close-all-menus="${this.onCloseAllMenus_}">
   </presentation-menu>
   <font-size-menu id="fontSizeMenu"></font-size-menu>
-  <rate-menu id="rateMenu" .settingsPrefs="${this.settingsPrefs}"
-      @rate-change="${this.onRateChange_}">
-  </rate-menu>
+  <rate-menu id="rateMenu" .speechRate="${this.speechRate}"></rate-menu>
   <highlight-menu id="highlightMenu" class="settings-submenu"
-      .nonModal="${true}" .settingsPrefs="${this.settingsPrefs}"
+      .nonModal="${true}" .highlightGranularity="${this.highlightGranularity}"
       @close-all-menus="${this.onCloseAllMenus_}">
   </highlight-menu>
   <color-menu id="colorMenu" class="settings-submenu" .nonModal="${true}"
@@ -123,9 +121,8 @@ export function getHtml(this: ReadAnythingToolbarElement) {
       @close-all-menus="${this.onCloseAllMenus_}">
   </letter-spacing-menu>
   <font-menu id="fontMenu" class="settings-submenu" .nonModal="${true}"
-      .areFontsLoaded="${this.areFontsLoaded_}"
-      .settingsPrefs="${this.settingsPrefs}"
-      .pageLanguage="${this.pageLanguage}" @font-change="${this.onFontChange_}"
+      .areFontsLoaded="${this.areFontsLoaded_}" .font="${this.font}"
+      .pageLanguage="${this.pageLanguage}"
       @close-all-menus="${this.onCloseAllMenus_}">
   </font-menu>
   <line-focus-menu id="lineFocusMenu" class="settings-submenu"
@@ -140,7 +137,7 @@ export function getHtml(this: ReadAnythingToolbarElement) {
       @close-all-menus="${this.onCloseAllMenus_}">
   </appearance-menu>
   <audio-menu id="audioMenu" class="settings-submenu" non-modal
-      .settingsPrefs="${this.settingsPrefs}"
+      .highlightGranularity="${this.highlightGranularity}"
       .enabledLangs="${this.enabledLangs}"
       .availableVoices="${this.availableVoices}"
       .localeToDisplayName="${this.localeToDisplayName}"
@@ -150,7 +147,7 @@ export function getHtml(this: ReadAnythingToolbarElement) {
       @close-all-menus="${this.onCloseAllMenus_}">
   </audio-menu>
   <text-menu id="textMenu" class="settings-submenu" non-modal
-      .settingsPrefs="${this.settingsPrefs}" .lineSpacing="${this.lineSpacing}"
+      .font="${this.font}" .lineSpacing="${this.lineSpacing}"
       .letterSpacing="${this.letterSpacing}"
       .areFontsLoaded="${this.areFontsLoaded_}"
       .pageLanguage="${this.pageLanguage}"

@@ -53,7 +53,6 @@ import type {SettingsMenuElement} from '../menus/settings_menu.js';
 import type {TextMenuElement} from '../menus/text_menu.js';
 import type {AudioBrowserProxy} from '../read_aloud/audio_browser_proxy.js';
 import {AudioBrowserProxyImpl} from '../read_aloud/audio_browser_proxy.js';
-import {getCurrentSpeechRate} from '../read_aloud/speech_presentation_rules.js';
 import type {VoiceSelectionMenuElement} from '../read_aloud/voice_selection_menu.js';
 import {spinnerDebounceTimeout} from '../shared/common.js';
 import {getNewIndex, isHorizontalArrow} from '../shared/keyboard_util.js';
@@ -121,10 +120,12 @@ export class ReadAnythingToolbarElement extends ReadAnythingToolbarElementBase {
       theme: {type: Number},
       lineSpacing: {type: Number},
       letterSpacing: {type: Number},
+      font: {type: String},
+      speechRate: {type: Number},
+      highlightGranularity: {type: Number},
       areFontsLoaded_: {type: Boolean},
       textStyleOptions_: {type: Array},
       hideSpinner_: {type: Boolean},
-      speechRate_: {type: Number},
       pageLanguage: {type: String},
       presentationState: {type: Number},
       isImmersiveMode: {type: Boolean},
@@ -162,6 +163,9 @@ export class ReadAnythingToolbarElement extends ReadAnythingToolbarElementBase {
   accessor theme: number = 0;
   accessor lineSpacing: number = 0;
   accessor letterSpacing: number = 0;
+  accessor font: string = '';
+  accessor speechRate: number = 1;
+  accessor highlightGranularity: number = 0;
   accessor selectedVoice: SpeechSynthesisVoice|null = null;
   accessor pageLanguage: string = '';
   accessor isImmersiveMode: boolean = false;
@@ -172,7 +176,6 @@ export class ReadAnythingToolbarElement extends ReadAnythingToolbarElementBase {
   accessor isAiPlaybackActive: boolean = false;
   protected accessor hideSpinner_: boolean = true;
   protected accessor isAiPlaybackUiEnabled_: boolean = false;
-  protected accessor speechRate_: number = 1;
   // Buttons on the toolbar that open a menu of options.
   protected accessor textStyleOptions_: MenuButton[] = [];
   protected accessor areFontsLoaded_: boolean = false;
@@ -228,8 +231,6 @@ export class ReadAnythingToolbarElement extends ReadAnythingToolbarElementBase {
 
     this.loadFontsStylesheet();
     this.initializeMenuButtons_();
-    this.visualBrowserProxy_.restoreSettingsFromPrefs.addListener(
-        this.restoreSettingsFromPrefs.bind(this));
     this.isSetupComplete_ = true;
   }
 
@@ -255,6 +256,11 @@ export class ReadAnythingToolbarElement extends ReadAnythingToolbarElementBase {
 
   override updated(changedProperties: PropertyValues<this>) {
     super.updated(changedProperties);
+    if (changedProperties.has('font')) {
+      this.style.fontFamily =
+          this.visualBrowserProxy_.getValidatedFontName(this.font);
+    }
+
     if (changedProperties.has('isSpeechActive') ||
         changedProperties.has('isAudioCurrentlyPlaying')) {
       this.onSpeechPlayingStateChanged_();
@@ -293,11 +299,11 @@ export class ReadAnythingToolbarElement extends ReadAnythingToolbarElementBase {
   }
 
   protected getFormattedSpeechRate_(): string {
-    const includeSuffix = this.speechRate_ % 1 === 0;
+    const includeSuffix = this.speechRate % 1 === 0;
     return includeSuffix ?
         loadTimeData.getStringF(
-            'voiceSpeedOptionTitle', this.speechRate_.toLocaleString()) :
-        this.speechRate_.toLocaleString();
+            'voiceSpeedOptionTitle', this.speechRate.toLocaleString()) :
+        this.speechRate.toLocaleString();
   }
 
   protected onCloseClick_() {
@@ -327,11 +333,6 @@ export class ReadAnythingToolbarElement extends ReadAnythingToolbarElementBase {
 
   setFontsLoaded() {
     this.areFontsLoaded_ = true;
-  }
-
-  restoreSettingsFromPrefs() {
-    this.setFont_(this.visualBrowserProxy_.getFontName());
-    this.speechRate_ = getCurrentSpeechRate();
   }
 
   protected playPauseButtonAriaLabel_() {
@@ -385,19 +386,6 @@ export class ReadAnythingToolbarElement extends ReadAnythingToolbarElementBase {
     const target = event.target as HTMLElement;
     this.$.settingsMenu.open(target);
   }
-
-  private setFont_(font: string) {
-    this.style.fontFamily = this.visualBrowserProxy_.getValidatedFontName(font);
-  }
-
-  protected onFontChange_(event: CustomEvent<{data: string}>) {
-    this.setFont_(event.detail.data);
-  }
-
-  protected onRateChange_(event: CustomEvent<{data: number}>) {
-    this.speechRate_ = event.detail.data;
-  }
-
 
   protected onPlayPauseClick_() {
     this.logger_.logSpeechControlClick(
@@ -581,7 +569,7 @@ export class ReadAnythingToolbarElement extends ReadAnythingToolbarElementBase {
   }
 
   protected getVoiceSpeedLabel_(): string {
-    return loadTimeData.getStringF('voiceSpeedWithRateLabel', this.speechRate_);
+    return loadTimeData.getStringF('voiceSpeedWithRateLabel', this.speechRate);
   }
 
   protected shouldDisableGranularityNavButtons_(): boolean {
