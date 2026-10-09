@@ -394,7 +394,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_web_tests_revision': 'ac43ffc8fe90d6fed8671f89bdb3229cb65bcdf1',
+  'crossbench_web_tests_revision': 'ca67d07edc2937541c38bb57e680f3787c446d0d',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libFuzzer
   # and whatever else without interference from each other.
@@ -410,7 +410,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'f4923b265b7a3e700a99bc4c568d30916fe2bc89',
+  'devtools_frontend_revision': '864a963ad1e5c17c2217f4f01844a38b207f32a4',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -2245,7 +2245,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '3b2e6bcf91fc2d62ab20ddf6b0dd4ff51fbb39ef',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + 'd152f858c26aface74f1f155f2a377b2414c5137',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '173b9b26e8fcbcbe64e1ecbf073a21a96b95c6b1',
