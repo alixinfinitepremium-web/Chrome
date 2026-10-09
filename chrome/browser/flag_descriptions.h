@@ -5521,6 +5521,12 @@ inline constexpr char kAndroidGrammarCheckDescription[] =
     "When typing, allows spellcheckers to highlight grammar errors and suggest "
     "corrections on browser text input.";
 
+inline constexpr char kAndroidInstallAnyPageAsDiyAppStopgapName[] =
+    "Install any page as DIY app (stopgap)";
+inline constexpr char kAndroidInstallAnyPageAsDiyAppStopgapDescription[] =
+    "When enabled, Android installs any eligible page as a DIY WebAPK "
+    "instead of downgrading to a shortcut.";
+
 inline constexpr char kAndroidKeyboardShortcutHintsName[] =
     "Android Keyboard Shortcut Hints";
 inline constexpr char kAndroidKeyboardShortcutHintsDescription[] =
@@ -7921,12 +7927,6 @@ inline constexpr char kHelpAppAutoTriggerInstallDialogName[] =
 inline constexpr char kHelpAppAutoTriggerInstallDialogDescription[] =
     "Enables the logic that auto triggers the install dialog during the web "
     "app install flow initiated from the Help App.";
-
-inline constexpr char kHelpAppHomePageAppArticlesName[] =
-    "Help App home page app articles";
-inline constexpr char kHelpAppHomePageAppArticlesDescription[] =
-    "If enabled, the home page of the Help App will show a section containing"
-    "articles about apps.";
 
 inline constexpr char kIdbSqliteBackingStoreName[] = "IDB SQLite Backing Store";
 inline constexpr char kIdbSqliteBackingStoreDescription[] =

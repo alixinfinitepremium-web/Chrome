@@ -8421,10 +8421,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kHelpAppAutoTriggerInstallDialogName,
      flag_descriptions::kHelpAppAutoTriggerInstallDialogDescription, kOsCrOS,
      FEATURE_VALUE_TYPE(ash::features::kHelpAppAutoTriggerInstallDialog)},
-    {"help-app-home-page-app-articles",
-     flag_descriptions::kHelpAppHomePageAppArticlesName,
-     flag_descriptions::kHelpAppHomePageAppArticlesDescription, kOsCrOS,
-     FEATURE_VALUE_TYPE(ash::features::kHelpAppHomePageAppArticles)},
     {"on-device-app-controls", flag_descriptions::kOnDeviceAppControlsName,
      flag_descriptions::kOnDeviceAppControlsDescription, kOsCrOS,
      FEATURE_VALUE_TYPE(ash::features::kForceOnDeviceAppControlsForAllRegions)},
@@ -13971,6 +13967,12 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kClankStartupTabOptimizationsName,
      flag_descriptions::kClankStartupTabOptimizationsDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(chrome::android::kClankStartupTabOptimizations)},
+    {"android-install-any-page-as-diy-app-stopgap",
+     flag_descriptions::kAndroidInstallAnyPageAsDiyAppStopgapName,
+     flag_descriptions::kAndroidInstallAnyPageAsDiyAppStopgapDescription,
+     kOsAndroid,
+     FEATURE_VALUE_TYPE(
+         webapps::features::kAndroidInstallAnyPageAsDiyAppStopgap)},
 #endif  // BUILDFLAG(IS_ANDROID)
 
     {"browsing-history-filter-by-actor",
