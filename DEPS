@@ -1751,7 +1751,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': 'nyKnF8ihwHclh__MHE515vVthy0jL7HoesfoXLYyrowC',
+        'version': 'eCtIGyRY2yAPSTIwJ98KadO7hKQj6A2PrpT33mi8u1EC',
       },
     ],
     'condition': 'non_git_source',
@@ -2230,7 +2230,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '23d65d589c64ef37a541a3b8b2a534ec4e171c9c',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '04c1a455860dfe75e9bce450d9ad349606fe4dd6',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
