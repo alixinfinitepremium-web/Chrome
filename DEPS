@@ -410,7 +410,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '6edeef4221e3a2ef78b1627b820d8b5b9404821c',
+  'devtools_frontend_revision': 'c41bb0a36addec67e4663a49da1bef85daf43131',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1527,7 +1527,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_mac_amd64',
-          'version': 'version:2@1710023',
+          'version': 'version:2@1711005',
         },
       ],
   },
