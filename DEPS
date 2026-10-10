@@ -424,7 +424,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling android_deps_autorolled_version
   # and whatever else without interference from each other.
-  'android_deps_autorolled_version': 'oXv_SNIycaRfVpl9A5vMikc0lZ37HIpKI6lU_A8CsXMC',
+  'android_deps_autorolled_version': 'wo99R54Vc1pDkEPRbqfvY222A2vIWkmS1h0kfpvdfCYC',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling android_sdk_emulator_version
   # and whatever else without interference from each other.
@@ -440,7 +440,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': 'bfb3df20f90257e27b4e937d156f35abfdd900d0',
+  'dawn_revision': '088a8d00efd1c70b58c549d355401d115904b648',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -544,7 +544,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
-  'llvm_libc_revision':    '871e9711035462306890e8ecb8b68edb1ef25307',
+  'llvm_libc_revision':    '355f6e959e47b53f1341bc5593bd0d9af913572b',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
@@ -1763,7 +1763,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '152839e39086469c734759ef6e16d59372850115',
+    '96c282ea45806e90eee477699f4509562518ba81',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -1867,7 +1867,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': 'FXZqfexzLwd6AJ3qK31XV6GGL9xPoiFivaFCmu9N8wYC',
+          'version': 'zVdJxIASKG9JNodQRPmHabf6awv4cIFIzeG0_cJLfYEC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
