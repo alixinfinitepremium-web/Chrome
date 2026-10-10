@@ -1693,7 +1693,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_mac_arm64',
-          'version': 'Vg7voq1po4fSdp2fnxE_u9nOEV4Y6yJ4ElU4u-3eSUwC',
+          'version': 'ye-QltgXBHbqjpKHnZlGtWixRCBp1tryED_dwtVSADMC',
         },
       ],
   },
@@ -3274,7 +3274,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + 'd596672bf703089d988e0e90eebf45986983cd9d',
+    Var('webrtc_git') + '/src.git' + '@' + 'a05204958f9d94aaa4488313ace4086c52a075f4',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
