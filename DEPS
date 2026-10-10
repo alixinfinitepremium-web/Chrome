@@ -334,7 +334,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': 'a9e81502c7703c1a76a785ee3d8cb874d078bce2',
+  'v8_revision': 'f428bb00301e51385e63d1baed30ae006afb71e1',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -1538,7 +1538,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_mac_arm64',
-          'version': 'version:2@1710016',
+          'version': 'version:2@1711001',
         },
       ],
   },
