@@ -350,7 +350,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': '3fed4f207543470b3d639db6ed40737e30308b51',
+  'boringssl_revision': 'b4b1cee6652af14ff36c1ee6f52caa25a7bd5eed',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -548,7 +548,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
-  'compiler_rt_revision': 'dedd603cfe8abad7780ffcff3cc896571b83acab',
+  'compiler_rt_revision': '5ad76d13e9a724c8c29cd61bde4f1622e20f0566',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling clusterfuzz-data
   # and whatever else without interference from each other.
@@ -1763,7 +1763,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    'dcea4dd3e1db3044d4e2716eb3ed66f71cc0c5a4',
+    '86430abc7757d0880874e0748bca671c59632604',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
