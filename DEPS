@@ -1867,7 +1867,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': 'om9xqDTGAewNmtx0Io3Y_HVHHTWzRbMQshXSB7Yx-9YC',
+          'version': 'T2zebGH74u-YEUScR4VScW_wZg5vWxSg3Y6lRu1p0HgC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
@@ -3436,7 +3436,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/media_app/app',
-        'version': '-_69Jsg3RvpssUFYkbSKM9dwmQ-huejEgy-vF5Dey0gC',
+        'version': 'ZOWvG8E94X5655I9DdM16Rpcz0l14Rqm_6FWYz0r2ZQC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
