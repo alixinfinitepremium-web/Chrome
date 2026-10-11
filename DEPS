@@ -448,7 +448,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ink
   # and whatever else without interference from each other.
-  'ink_revision': '1d5a871aefe0a401685cd4388b9b92f9b1c5cadb',
+  'ink_revision': 'b6def591a73a6aa0ffce1e58dc69b39de31484ba',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ios_webkit
   # and whatever else without interference from each other.
@@ -544,7 +544,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
-  'llvm_libc_revision':    '355f6e959e47b53f1341bc5593bd0d9af913572b',
+  'llvm_libc_revision':    '5298998ba28e8052c3450e73126918afca731148',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
@@ -2565,7 +2565,7 @@ deps = {
     Var('chromium_git') + '/external/libaddressinput.git' + '@' + '81eb9628382b07d371d8ea0b11badf7de3857fd5',
 
   'src/third_party/libaom/source/libaom':
-    Var('aomedia_git') + '/aom.git' + '@' +  'd53e6d0b14568ddbd36ad7354bfb9a59a127346e',
+    Var('aomedia_git') + '/aom.git' + '@' +  '8fbd65b2f354e1d7059f8b1899f3f0373d1b3e2a',
 
   'src/third_party/crabbyavif/src':
     Var('chromium_git') + '/external/github.com/webmproject/CrabbyAvif.git' + '@' + Var('crabbyavif_revision'),
