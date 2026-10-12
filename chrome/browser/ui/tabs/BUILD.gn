@@ -165,8 +165,6 @@ if (!is_android) {
   }
 
   source_set("tab_menu_impl") {
-    public_deps = [ "//chrome/browser:browser_public_dependencies" ]
-
     sources = [
       "glic_tab_sub_menu_model.cc",
       "tab_menu_model.cc",
@@ -220,8 +218,6 @@ if (!is_android) {
   }
 
   source_set("tab_group_impl") {
-    public_deps = [ "//chrome/browser:browser_public_dependencies" ]
-
     sources = [
       "shared_tab_group_version_upgrade_modal.cc",
       "tab_group_attention_indicator.cc",
@@ -298,8 +294,6 @@ if (!is_android) {
   }
 
   source_set("tab_model_impl") {
-    public_deps = [ "//chrome/browser:browser_public_dependencies" ]
-
     sources = [
       "existing_base_sub_menu_model.cc",
       "existing_tab_group_sub_menu_model.cc",
@@ -371,8 +365,6 @@ if (!is_android) {
   }
 
   source_set("tab_strip_impl") {
-    public_deps = [ "//chrome/browser:browser_public_dependencies" ]
-
     sources = [
       "tab_close_types_data.cc",
       "tab_strip_model.cc",
@@ -497,7 +489,6 @@ if (!is_android) {
   source_set("impl") {
     public_deps = [
       ":page_context_eligibility_helper",
-      "//chrome/browser:browser_public_dependencies",
       "//chrome/browser/loader",
     ]
 
@@ -578,6 +569,8 @@ if (!is_android) {
       "//chrome/browser/net",
       "//chrome/browser/optimization_guide",
       "//chrome/browser/page_content_annotations",
+      "//chrome/browser/page_content_annotations:extraction_service",
+      "//chrome/browser/page_content_annotations:fetcher",
       "//chrome/browser/page_info",
       "//chrome/browser/page_load_metrics",
       "//chrome/browser/payments",
@@ -600,6 +593,7 @@ if (!is_android) {
       "//chrome/browser/skills:ui",
       "//chrome/browser/ssl",
       "//chrome/browser/storage_access_api",
+      "//chrome/browser/subresource_filter",
       "//chrome/browser/supervised_user",
       "//chrome/browser/sync",
       "//chrome/browser/sync:factories",
@@ -608,6 +602,7 @@ if (!is_android) {
       "//chrome/browser/tab_group_sync:factories",
       "//chrome/browser/task_manager",
       "//chrome/browser/themes",
+      "//chrome/browser/translate",
       "//chrome/browser/trusted_vault",
       "//chrome/browser/ui:accelerator_table",
       "//chrome/browser/ui:browser_actions",
@@ -688,6 +683,7 @@ if (!is_android) {
       "//components/client_hints/browser",
       "//components/commerce/content/browser",
       "//components/compose:buildflags",
+      "//components/content_settings/browser",
       "//components/content_settings/core/browser",
       "//components/contextual_tasks/public",
       "//components/download/content/factory",
@@ -706,7 +702,9 @@ if (!is_android) {
       "//components/metrics_services_manager",
       "//components/multistep_filter/core:features",
       "//components/optimization_guide/content/browser:page_context_eligibility",
+      "//components/optimization_guide/core:features",
       "//components/page_content_annotations/content",
+      "//components/page_content_annotations/core",
       "//components/passage_embeddings/core",
       "//components/payments/core",
       "//components/performance_manager",
@@ -720,6 +718,7 @@ if (!is_android) {
       "//components/search",
       "//components/security_interstitials/content:security_interstitial_page",
       "//components/sessions",
+      "//components/sessions:session_id",
       "//components/site_engagement/content",
       "//components/skills:features",
       "//components/sync_sessions",
@@ -854,7 +853,6 @@ if (!is_android) {
 
   source_set("tab_strip_model_observer_impl") {
     sources = [ "tab_strip_model_observer.cc" ]
-    public_deps = [ "//chrome/browser:browser_public_dependencies" ]
     deps = [
       ":tab_strip",
       ":tab_strip_model_observer",

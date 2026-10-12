@@ -18,45 +18,29 @@
 #include "chrome/browser/buildflags.h"
 #include "chrome/browser/chrome_content_browser_client.h"
 #include "chrome/browser/content_settings/host_content_settings_map_factory.h"
-#include "chrome/browser/content_settings/page_specific_content_settings_delegate.h"
-#include "chrome/browser/favicon/favicon_utils.h"
-#include "chrome/browser/history/history_tab_helper.h"
-#include "chrome/browser/optimization_guide/optimization_guide_web_contents_observer.h"
-#include "chrome/browser/page_content_annotations/multi_source_page_context_fetcher.h"
-#include "chrome/browser/page_content_annotations/page_content_annotations_service_factory.h"
-#include "chrome/browser/page_content_annotations/page_content_extraction_service_factory.h"
 #include "chrome/browser/password_manager/chrome_password_manager_client.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/profiles/profile_key.h"
 #include "chrome/browser/search_engines/template_url_service_factory.h"
 #include "chrome/browser/sessions/session_tab_helper_factory.h"
-#include "chrome/browser/subresource_filter/chrome_content_subresource_filter_web_contents_helper_factory.h"
 #include "chrome/browser/sync/sessions/sync_sessions_router_tab_helper.h"
 #include "chrome/browser/sync/sessions/sync_sessions_web_contents_router_factory.h"
-#include "chrome/browser/translate/chrome_translate_client.h"
 #include "chrome/browser/ui/autofill/autofill_client_provider.h"
 #include "chrome/browser/ui/autofill/autofill_client_provider_factory.h"
 #include "chrome/common/buildflags.h"
 #include "chrome/common/chrome_features.h"
 #include "chrome/common/chrome_switches.h"
-#include "components/content_settings/browser/page_specific_content_settings.h"
 #include "components/dom_distiller/core/dom_distiller_features.h"
 #include "components/enterprise/buildflags/buildflags.h"
 #include "components/infobars/content/content_infobar_manager.h"
 #include "components/omnibox/common/omnibox_feature_configs.h"
-#include "components/optimization_guide/core/optimization_guide_features.h"
-#include "components/page_content_annotations/content/annotate_page_content_request.h"
-#include "components/page_content_annotations/core/page_content_extraction_types.h"
 #include "components/page_info/core/features.h"
 #include "components/password_manager/core/browser/password_manager.h"
 #include "components/search/ntp_features.h"
 #include "components/search/search.h"
-#include "components/sessions/content/session_tab_helper.h"
-#include "components/sessions/core/session_id.h"
 #include "components/signin/public/base/signin_buildflags.h"
 #include "components/tabs/public/tab_interface.h"
 #include "components/tracing/common/tracing_switches.h"
-#include "components/webapps/browser/installable/installable_manager.h"
 #include "components/zoom/zoom_controller.h"
 #include "content/public/browser/web_contents.h"
 #include "content/public/common/buildflags.h"
@@ -70,7 +54,6 @@
 #if BUILDFLAG(IS_ANDROID)
 #include "base/functional/bind.h"
 #include "base/memory/ptr_util.h"
-#include "chrome/browser/android/tab_android.h"
 #include "chrome/browser/flags/android/chrome_feature_list.h"
 #include "content/public/common/content_features.h"
 #endif  // BUILDFLAG(IS_ANDROID)
@@ -81,21 +64,6 @@ namespace {
 
 const char kTabContentsAttachedTabHelpersUserDataKey[] =
     "TabContentsAttachedTabHelpers";
-
-std::optional<int64_t> GetPageContentAnnotationsTabId(
-    content::WebContents* web_contents) {
-#if BUILDFLAG(IS_ANDROID)
-  if (TabAndroid* tab = TabAndroid::FromWebContents(web_contents)) {
-    return tab->GetAndroidId();
-  }
-#else
-  SessionID id = sessions::SessionTabHelper::IdForTab(web_contents);
-  if (id.is_valid()) {
-    return id.id();
-  }
-#endif
-  return std::nullopt;
-}
 
 }  // namespace
 
@@ -149,35 +117,6 @@ void TabHelpers::AttachTabHelpers(WebContents* web_contents,
         autofill::AutofillClientProviderFactory::GetForProfile(profile);
     if (!autofill_client_provider.uses_platform_autofill()) {
       ChromePasswordManagerClient::CreateForWebContents(web_contents);
-    }
-  }
-  CreateSubresourceFilterWebContentsHelper(web_contents);
-  ChromeTranslateClient::CreateForWebContents(web_contents);
-  content_settings::PageSpecificContentSettings::CreateForWebContents(
-      web_contents,
-      std::make_unique<PageSpecificContentSettingsDelegate>(web_contents));
-  favicon::CreateContentFaviconDriverForWebContents(web_contents);
-  if (!profile->IsOffTheRecord()) {
-    HistoryTabHelper::GetOrCreateForWebContents(web_contents);
-  }
-  webapps::InstallableManager::CreateForWebContents(web_contents);
-  if (optimization_guide::features::IsOptimizationHintsEnabled()) {
-    OptimizationGuideWebContentsObserver::CreateForWebContents(web_contents);
-  }
-  page_content_annotations::PageContentAnnotationsService*
-      page_content_annotations_service =
-          PageContentAnnotationsServiceFactory::GetForProfile(profile);
-  if (page_content_annotations_service) {
-    // TODO(b/478883979): Consider decoupling this from
-    // PageContentAnnotationsService.
-    auto* page_content_extraction_service = page_content_annotations::
-        PageContentExtractionServiceFactory::GetForProfile(profile);
-    if (page_content_extraction_service) {
-      page_content_annotations::AnnotatedPageContentRequest::
-          CreateForWebContents(
-              web_contents, *page_content_extraction_service,
-              base::BindRepeating(&page_content_annotations::FetchPageContext),
-              base::BindRepeating(&GetPageContentAnnotationsTabId));
     }
   }
 

@@ -28,6 +28,7 @@
 #include "chrome/browser/complex_tasks/task_tab_helper.h"
 #include "chrome/browser/content_settings/host_content_settings_map_factory.h"
 #include "chrome/browser/content_settings/mixed_content_settings_tab_helper.h"
+#include "chrome/browser/content_settings/page_specific_content_settings_delegate.h"
 #include "chrome/browser/content_settings/request_desktop_site_web_contents_observer_android.h"
 #include "chrome/browser/content_settings/sound_content_setting_observer.h"
 #include "chrome/browser/contextual_tasks/contextual_tasks_tab_visit_tracker.h"
@@ -39,6 +40,7 @@
 #include "chrome/browser/enterprise/util/managed_browser_utils.h"
 #include "chrome/browser/external_protocol/external_protocol_observer.h"
 #include "chrome/browser/facilitated_payments/ui/chrome_facilitated_payments_client.h"
+#include "chrome/browser/favicon/favicon_utils.h"
 #include "chrome/browser/file_system_access/file_system_access_permission_request_manager.h"
 #include "chrome/browser/file_system_access/file_system_access_tab_helper.h"
 #include "chrome/browser/finds/core/finds_features.h"
@@ -70,7 +72,10 @@
 #include "chrome/browser/offline_pages/recent_tab_helper.h"
 #include "chrome/browser/optimization_guide/optimization_guide_keyed_service.h"
 #include "chrome/browser/optimization_guide/optimization_guide_keyed_service_factory.h"
+#include "chrome/browser/optimization_guide/optimization_guide_web_contents_observer.h"
+#include "chrome/browser/page_content_annotations/multi_source_page_context_fetcher.h"
 #include "chrome/browser/page_content_annotations/page_content_annotations_service_factory.h"
+#include "chrome/browser/page_content_annotations/page_content_extraction_service_factory.h"
 #include "chrome/browser/page_info/about_this_site_tab_helper.h"
 #include "chrome/browser/page_info/page_info_features.h"
 #include "chrome/browser/page_load_metrics/page_load_metrics_initialize.h"
@@ -95,6 +100,7 @@
 #include "chrome/browser/storage_access_api/storage_access_api_service_factory.h"
 #include "chrome/browser/storage_access_api/storage_access_api_service_impl.h"
 #include "chrome/browser/storage_access_api/storage_access_api_tab_helper.h"
+#include "chrome/browser/subresource_filter/chrome_content_subresource_filter_web_contents_helper_factory.h"
 #include "chrome/browser/supervised_user/supervised_user_navigation_observer.h"
 #include "chrome/browser/sync/sessions/sync_sessions_router_tab_helper.h"
 #include "chrome/browser/sync/sessions/sync_sessions_web_contents_router_factory.h"
@@ -132,6 +138,7 @@
 #include "components/client_hints/browser/client_hints_web_contents_observer.h"
 #include "components/commerce/content/browser/commerce_tab_helper.h"
 #include "components/content_capture/common/content_capture_features.h"
+#include "components/content_settings/browser/page_specific_content_settings.h"
 #include "components/contextual_tasks/public/features.h"
 #include "components/download/content/factory/navigation_monitor_factory.h"
 #include "components/download/content/public/download_navigation_observer.h"
@@ -145,7 +152,10 @@
 #include "components/javascript_dialogs/tab_modal_dialog_manager.h"
 #include "components/metrics/content/metrics_services_web_contents_observer.h"
 #include "components/metrics_services_manager/metrics_services_manager.h"
+#include "components/optimization_guide/core/optimization_guide_features.h"
+#include "components/page_content_annotations/content/annotate_page_content_request.h"
 #include "components/page_content_annotations/content/page_content_annotations_web_contents_observer.h"
+#include "components/page_content_annotations/core/page_content_extraction_types.h"
 #include "components/payments/core/features.h"
 #include "components/performance_manager/embedder/performance_manager_registry.h"
 #include "components/permissions/permission_recovery_success_rate_tracker.h"
@@ -210,6 +220,14 @@ namespace tabs {
 
 namespace {
 
+std::optional<int64_t> GetPageContentAnnotationsTabId(
+    content::WebContents* web_contents) {
+  if (TabAndroid* tab = TabAndroid::FromWebContents(web_contents)) {
+    return tab->GetAndroidId();
+  }
+  return std::nullopt;
+}
+
 // The data protection controller drives all per-navigation enterprise data
 // protection work on Android: screenshot restrictions and tab title reporting
 // for URL filtering events. It is only useful for managed profiles, and only
@@ -232,6 +250,35 @@ TabFeatures::TabFeatures(content::WebContents* web_contents, Profile* profile) {
   CHECK(tab);
   tab_subscription_ = webui::InitEmbeddingContext(tab);
 
+  CreateSubresourceFilterWebContentsHelper(web_contents);
+  ChromeTranslateClient::CreateForWebContents(web_contents);
+  if (!content_settings::PageSpecificContentSettings::GetDelegateForWebContents(
+          web_contents)) {
+    content_settings::PageSpecificContentSettings::CreateForWebContents(
+        web_contents,
+        std::make_unique<PageSpecificContentSettingsDelegate>(web_contents));
+  }
+  favicon::CreateContentFaviconDriverForWebContents(web_contents);
+  if (!profile->IsOffTheRecord()) {
+    HistoryTabHelper::GetOrCreateForWebContents(web_contents);
+  }
+  webapps::InstallableManager::CreateForWebContents(web_contents);
+  if (optimization_guide::features::IsOptimizationHintsEnabled()) {
+    OptimizationGuideWebContentsObserver::CreateForWebContents(web_contents);
+  }
+  if (PageContentAnnotationsServiceFactory::GetForProfile(profile)) {
+    // TODO(b/478883979): Consider decoupling this from
+    // PageContentAnnotationsService.
+    auto* page_content_extraction_service = page_content_annotations::
+        PageContentExtractionServiceFactory::GetForProfile(profile);
+    if (page_content_extraction_service) {
+      page_content_annotations::AnnotatedPageContentRequest::
+          CreateForWebContents(
+              web_contents, *page_content_extraction_service,
+              base::BindRepeating(&page_content_annotations::FetchPageContext),
+              base::BindRepeating(&GetPageContentAnnotationsTabId));
+    }
+  }
   InitializePageLoadMetricsForWebContents(web_contents);
 
   sync_sessions_router_ =

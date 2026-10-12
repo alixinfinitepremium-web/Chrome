@@ -93,6 +93,7 @@ import org.chromium.chrome.browser.KeyboardShortcuts;
 import org.chromium.chrome.browser.PlayServicesVersionInfo;
 import org.chromium.chrome.browser.TabStateThemeResourceProvider;
 import org.chromium.chrome.browser.WarmupManager;
+import org.chromium.chrome.browser.ZoomController;
 import org.chromium.chrome.browser.about_settings.AboutChromeSettings;
 import org.chromium.chrome.browser.actor.ActorMetrics;
 import org.chromium.chrome.browser.actor.ActorPictureInPictureController;
@@ -144,6 +145,7 @@ import org.chromium.chrome.browser.fullscreen.BrowserControlsManagerSupplier;
 import org.chromium.chrome.browser.fullscreen.FullscreenManager;
 import org.chromium.chrome.browser.glic.GlicEnabling;
 import org.chromium.chrome.browser.history.HistoryManagerUtils;
+import org.chromium.chrome.browser.homepage.HomepageManager;
 import org.chromium.chrome.browser.hub.HubUtils;
 import org.chromium.chrome.browser.init.AsyncInitializationActivity;
 import org.chromium.chrome.browser.init.ProcessInitializationHandler;
@@ -207,7 +209,10 @@ import org.chromium.chrome.browser.tab.TabSelectionType;
 import org.chromium.chrome.browser.tab.TabState;
 import org.chromium.chrome.browser.tab.TabUtils;
 import org.chromium.chrome.browser.tab_ui.TabContentManager;
+import org.chromium.chrome.browser.tabmodel.PinnedTabClosureManagerFactory;
 import org.chromium.chrome.browser.tabmodel.SupportedProfileType;
+import org.chromium.chrome.browser.tabmodel.TabClosingSource;
+import org.chromium.chrome.browser.tabmodel.TabClosureParams;
 import org.chromium.chrome.browser.tabmodel.TabCreator;
 import org.chromium.chrome.browser.tabmodel.TabCreatorManager;
 import org.chromium.chrome.browser.tabmodel.TabModel;
@@ -3126,6 +3131,44 @@ public abstract class ChromeActivity extends AsyncInitializationActivity
             return false;
         }
 
+        if (id == R.id.close_tab) {
+            if (fromMenu) {
+                // TODO(crbug.com/375468032): use triggeringMotion to decide
+                // TabClosureParams.allowUndo.
+                getCurrentTabModel()
+                        .getTabRemover()
+                        .closeTabs(
+                                TabClosureParams.closeTab(currentTab)
+                                        .tabClosingSource(TabClosingSource.GRID_TAB_SWITCHER)
+                                        .build(),
+                                /* allowDialog= */ true);
+                RecordUserAction.record("MobileTabClosed");
+            } else {
+                TabModel currentTabModel = getCurrentTabModel();
+                List<Tab> tabsToClose = currentTabModel.getOrderedMultiSelectedTabs();
+                Tab tab = TabModelUtils.getCurrentTab(currentTabModel);
+                if (tab != null) {
+                    // Pinned tabs require a second Ctrl+W to confirm closure unless part of a
+                    // bulk selection or already confirmed by the manager.
+                    boolean canClose =
+                            PinnedTabClosureManagerFactory.getInstance()
+                                    .shouldCloseTab(getTabModelSelector(), tab, tabsToClose);
+                    if (canClose) {
+                        currentTabModel
+                                .getTabRemover()
+                                .closeTabs(
+                                        TabClosureParams.closeTabs(tabsToClose)
+                                                .allowUndo(false)
+                                                .tabClosingSource(
+                                                        TabClosingSource.KEYBOARD_SHORTCUT)
+                                                .build(),
+                                        /* allowDialog= */ true);
+                    }
+                }
+            }
+            return true;
+        }
+
         if (id == R.id.toggle_bookmarks_bar_menu_id) {
             if (BookmarkBarUtils.isActivityStateBookmarkBarCompatible(this)) {
                 BookmarkBarUtils.toggleShowBookmarksBar(
@@ -3139,9 +3182,11 @@ public abstract class ChromeActivity extends AsyncInitializationActivity
         if (id == R.id.back_menu_id) {
             if (currentTab.canGoBack()) {
                 currentTab.goBack();
-                RecordUserAction.record("MobileMenuBack");
-                TrackerFactory.getTrackerForProfile(currentTab.getProfile())
-                        .notifyEvent(EventConstants.THREE_DOT_MENU_BACK_BUTTON_CLICKED);
+                if (fromMenu) {
+                    RecordUserAction.record("MobileMenuBack");
+                    TrackerFactory.getTrackerForProfile(currentTab.getProfile())
+                            .notifyEvent(EventConstants.THREE_DOT_MENU_BACK_BUTTON_CLICKED);
+                }
                 return true;
             }
             return false;
@@ -3150,10 +3195,36 @@ public abstract class ChromeActivity extends AsyncInitializationActivity
         if (id == R.id.forward_menu_id) {
             if (currentTab.canGoForward()) {
                 currentTab.goForward();
-                RecordUserAction.record("MobileMenuForward");
+                if (fromMenu) {
+                    RecordUserAction.record("MobileMenuForward");
+                }
                 return true;
             }
             return false;
+        }
+
+        if (id == R.id.open_home_page) {
+            String homePageUrl =
+                    HomepageManager.getInstance()
+                            .getHomepageGurl(currentTab.isIncognito())
+                            .getSpec();
+            currentTab.loadUrl(new LoadUrlParams(homePageUrl, PageTransition.HOME_PAGE));
+            return true;
+        }
+
+        if (id == R.id.zoom_in) {
+            ZoomController.zoomInPage(currentTab);
+            return true;
+        }
+
+        if (id == R.id.zoom_out) {
+            ZoomController.zoomOutPage(currentTab);
+            return true;
+        }
+
+        if (id == R.id.zoom_reset) {
+            ZoomController.zoomResetPage(currentTab, currentTab.getProfile().getOriginalProfile());
+            return true;
         }
 
         if (id == R.id.add_to_reading_list_menu_id) {
@@ -3269,13 +3340,24 @@ public abstract class ChromeActivity extends AsyncInitializationActivity
         }
 
         if (id == R.id.reload_menu_id) {
-            if (currentTab.isLoading()) {
-                currentTab.stopLoading();
-                RecordUserAction.record("MobileMenuStop");
+            if (fromMenu) {
+                if (currentTab.isLoading()) {
+                    currentTab.stopLoading();
+                    RecordUserAction.record("MobileMenuStop");
+                } else {
+                    currentTab.reload();
+                    RecordUserAction.record("MobileMenuReload");
+                }
             } else {
                 currentTab.reload();
-                RecordUserAction.record("MobileMenuReload");
+                updateToolbarAfterReloading(currentTab);
             }
+            return true;
+        }
+
+        if (id == R.id.reload_ignoring_cache) {
+            currentTab.reloadIgnoringCache();
+            updateToolbarAfterReloading(currentTab);
             return true;
         }
 
@@ -3431,6 +3513,18 @@ public abstract class ChromeActivity extends AsyncInitializationActivity
         }
 
         return false;
+    }
+
+    private void updateToolbarAfterReloading(Tab currentTab) {
+        ToolbarManager toolbarManager = getToolbarManager();
+        WebContents currentWebContents = currentTab.getWebContents();
+        if (toolbarManager != null
+                && currentWebContents != null
+                && currentWebContents.focusLocationBarByDefault()) {
+            toolbarManager.revertLocationBarChanges();
+        } else if (currentTab.getView() != null) {
+            currentTab.getView().requestFocus();
+        }
     }
 
     /**

@@ -1191,10 +1191,6 @@ IN_PROC_BROWSER_TEST_P(WebUILocationBarInteractiveUiTest, NavigateSuggestions) {
 // via Shift-Delete.
 IN_PROC_BROWSER_TEST_P(WebUILocationBarInteractiveUiTest,
                        NavigateSuggestionsTab) {
-  FAILS_IN_MODE(Mode::kFull,
-                "Shift-del to delete suggestion doesn't work in full "
-                "(crbug.com/559671477); also behavior on deleting with button "
-                " is different");
   history::HistoryService* history_service =
       HistoryServiceFactory::GetForProfile(this->browser()->GetProfile(),
                                            ServiceAccessType::EXPLICIT_ACCESS);
@@ -2082,19 +2078,16 @@ IN_PROC_BROWSER_TEST_P(WebUILocationBarInteractiveUiTest, PasteSanitizesText) {
     writer.WriteText(u"  javascript:javascript:alert(1)\r\nhello world\n");
   }
 
-  ui::Accelerator paste_accel(ui::VKEY_V,
-#if BUILDFLAG(IS_MAC)
-                              ui::EF_COMMAND_DOWN
-#else
-                              ui::EF_CONTROL_DOWN
-#endif
-  );
-
   RunTestSequence(
       InstrumentNonTabWebView(kWebUIToolbarId, GetToolbarWebView()),
-      HandleAutofocus(), WaitTillOmniboxViewText("about:blank"),
+      HandleAutofocus(), WaitTillOmniboxViewFocus(),
+      WaitTillOmniboxViewText("about:blank"),
       WaitTillOmniboxViewSelection("about:blank", gfx::Range(11, 0)),
-      InAnyContext(SendAccelerator(InputWebContents(), paste_accel)),
+      InAnyContext(
+          WithElement(InputWebContents(),
+                      [](ui::TrackedElement* el) {
+                        AsInstrumentedWebContents(el)->web_contents()->Paste();
+                      })),
       WaitTillOmniboxViewText("alert(1) hello world"));
 }
 

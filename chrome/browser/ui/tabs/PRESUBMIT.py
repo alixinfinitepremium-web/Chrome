@@ -17,6 +17,12 @@ _TAB_FEATURES_CC = 'tab_features.cc'
 # justified in the CL description and reviewed by chrome/browser/ui/tabs
 # OWNERS.
 _ALLOWED_CREATE_FOR_CALLS = (
+  # AnnotatedPageContentRequest lives in
+  # //components/page_content_annotations/content and is looked up on
+  # WebContents by
+  # PageContentExtractionService::GetAnnotatedPageContentRequestFromWebContents,
+  # so the WebContents must own it.
+  'AnnotatedPageContentRequest::CreateForWebContents',
   # BookmarkTabHelper is also attached to non-tab WebContents in
   # extensions::BookmarkManagerPrivateDragEventRouter, so the WebContents
   # must own it.
@@ -40,6 +46,17 @@ _ALLOWED_CREATE_FOR_CALLS = (
   # SimpleWebViewDialog, and ChromeSafeBrowsingDelegate, so the WebContents
   # must own it.
   'ChromePasswordReuseDetectionManagerClient::CreateForWebContents',
+  # ChromeTranslateClient is looked up on WebContents across //chrome/browser
+  # (e.g. RenderViewContextMenu, SyncSessionsRouterTabHelper, and
+  # ChromeCommandHandler) and detaches from ContentTranslateDriver in
+  # WebContentsDestroyed() after TabFeatures is destroyed, so WebContents must
+  # own it.
+  'ChromeTranslateClient::CreateForWebContents',
+  # PageSpecificContentSettings lives in //components/content_settings/browser
+  # and is also attached to non-tab and pre-tab WebContents (such as
+  # ChromeThinWebViewInitializer, GuestView, PrerenderNewTabHandle, and Android
+  # popup WebContents), so the WebContents must own it.
+  'content_settings::PageSpecificContentSettings::CreateForWebContents',
   # DlpContentTabHelper is also attached to non-tab Chrome App window
   # WebContents in ChromeAppDelegate and looked up from arbitrary WebContents
   # by DlpContentManager, so the WebContents must own it.
@@ -64,6 +81,11 @@ _ALLOWED_CREATE_FOR_CALLS = (
   # is destroyed, and is looked up on WebContents by
   # UkmPageLoadMetricsObserver, so WebContents must own it.
   'HistoryClustersTabHelper::CreateForWebContents',
+  # HistoryTabHelper is also attached to pre-tab Android WebContents in
+  # ChromeExtensionHostDelegate::CreateTab and
+  # TabWebContentsDelegateAndroid::AddNewContents, and is looked up on
+  # WebContents across //chrome/browser, so the WebContents must own it.
+  'HistoryTabHelper::GetOrCreateForWebContents',
   # HttpsOnlyModeTabHelper is also attached to non-tab and pre-tab WebContents
   # in HttpsUpgradesInterceptor::MaybeCreateLoader and
   # HttpsUpgradesNavigationThrottle::MaybeCreateThrottleFor, and is queried on
@@ -80,6 +102,11 @@ _ALLOWED_CREATE_FOR_CALLS = (
   # records popup-close metrics in WebContentsDestroyed() after TabFeatures is
   # destroyed, so WebContents must own it.
   'login_detection::LoginDetectionTabHelper::MaybeCreateForWebContents',
+  # OptimizationGuideWebContentsObserver is also attached to pre-tab
+  # PrerenderNewTabHandle and Android popup WebContents and flushes navigation
+  # metrics in WebContentsDestroyed() after TabFeatures is destroyed, so the
+  # WebContents must own it.
+  'OptimizationGuideWebContentsObserver::CreateForWebContents',
   # PermissionRecoverySuccessRateTracker lives in //components/permissions and
   # is also attached to non-tab WebContents in
   # PaymentHandlerWebFlowViewController::PopulateSheet, DocumentPipHost, and
@@ -142,6 +169,10 @@ _ALLOWED_CREATE_FOR_CALLS = (
   # picker sign-in WebContents in ProfilePickerSignInProvider, so the
   # WebContents must own it.
   'TrustedVaultEncryptionKeysTabHelper::CreateForWebContents',
+  # InstallableManager lives in //components/webapps/browser/installable and is
+  # also attached to non-tab WebContents in web_app::CreateWebAppInstallTabHelpers
+  # for background web-app installation, so the WebContents must own it.
+  'webapps::InstallableManager::CreateForWebContents',
   # PreRedirectionURLObserver lives in //components/webapps and is also
   # attached to non-tab WebContents in web_app::CreateWebAppInstallTabHelpers
   # for background web-app installation, so the WebContents must own it.

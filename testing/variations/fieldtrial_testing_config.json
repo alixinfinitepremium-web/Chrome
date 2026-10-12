@@ -9529,21 +9529,6 @@
             ]
         }
     ],
-    "HttpsFirstBalancedModeAutoEnableAndroid": [
-        {
-            "platforms": [
-                "android"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "HttpsFirstBalancedModeAutoEnable"
-                    ]
-                }
-            ]
-        }
-    ],
     "HttpsFirstModeV2ForTypicallySecureUsers": [
         {
             "platforms": [
@@ -15580,24 +15565,6 @@
                     "enable_features": [
                         "SearchEngineExplicitChoiceDialog",
                         "SearchEngineUnconditionalDialog"
-                    ]
-                }
-            ]
-        }
-    ],
-    "SearchInCCT": [
-        {
-            "platforms": [
-                "android"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "params": {
-                        "omnibox_allowed_package_names": "org.chromium.customtabsclient"
-                    },
-                    "enable_features": [
-                        "SearchInCCT"
                     ]
                 }
             ]

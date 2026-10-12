@@ -5,6 +5,7 @@
 #include "chrome/browser/ui/tabs/public/tab_features.h"
 
 #include <memory>
+#include <optional>
 
 #include "base/feature_list.h"
 #include "base/location.h"
@@ -26,6 +27,7 @@
 #include "chrome/browser/complex_tasks/task_tab_helper.h"
 #include "chrome/browser/content_settings/host_content_settings_map_factory.h"
 #include "chrome/browser/content_settings/mixed_content_settings_tab_helper.h"
+#include "chrome/browser/content_settings/page_specific_content_settings_delegate.h"
 #include "chrome/browser/content_settings/sound_content_setting_observer.h"
 #include "chrome/browser/contextual_cueing/contextual_cueing_controller.h"
 #include "chrome/browser/contextual_cueing/contextual_cueing_service_factory.h"
@@ -38,6 +40,7 @@
 #include "chrome/browser/enterprise/reporting/saas_usage/saas_usage_navigation_observer.h"
 #include "chrome/browser/external_protocol/external_protocol_observer.h"
 #include "chrome/browser/facilitated_payments/ui/chrome_facilitated_payments_client.h"
+#include "chrome/browser/favicon/favicon_utils.h"
 #include "chrome/browser/file_system_access/file_system_access_permission_request_manager.h"
 #include "chrome/browser/file_system_access/file_system_access_tab_helper.h"
 #include "chrome/browser/glic/host/context/glic_page_features_manager.h"
@@ -65,7 +68,10 @@
 #include "chrome/browser/net/qwac_web_contents_observer.h"
 #include "chrome/browser/optimization_guide/optimization_guide_keyed_service.h"
 #include "chrome/browser/optimization_guide/optimization_guide_keyed_service_factory.h"
+#include "chrome/browser/optimization_guide/optimization_guide_web_contents_observer.h"
+#include "chrome/browser/page_content_annotations/multi_source_page_context_fetcher.h"
 #include "chrome/browser/page_content_annotations/page_content_annotations_service_factory.h"
+#include "chrome/browser/page_content_annotations/page_content_extraction_service_factory.h"
 #include "chrome/browser/page_info/about_this_site_tab_helper.h"
 #include "chrome/browser/page_info/page_info_features.h"
 #include "chrome/browser/page_load_metrics/page_load_metrics_initialize.h"
@@ -91,6 +97,7 @@
 #include "chrome/browser/storage_access_api/storage_access_api_service_factory.h"
 #include "chrome/browser/storage_access_api/storage_access_api_service_impl.h"
 #include "chrome/browser/storage_access_api/storage_access_api_tab_helper.h"
+#include "chrome/browser/subresource_filter/chrome_content_subresource_filter_web_contents_helper_factory.h"
 #include "chrome/browser/supervised_user/supervised_user_navigation_observer.h"
 #include "chrome/browser/sync/sessions/sync_sessions_router_tab_helper.h"
 #include "chrome/browser/sync/sessions/sync_sessions_web_contents_router_factory.h"
@@ -101,6 +108,7 @@
 #include "chrome/browser/tab_group_sync/tab_group_sync_service_factory.h"
 #include "chrome/browser/task_manager/web_contents_tags.h"
 #include "chrome/browser/themes/theme_service_factory.h"
+#include "chrome/browser/translate/chrome_translate_client.h"
 #include "chrome/browser/trusted_vault/trusted_vault_encryption_keys_tab_helper.h"
 #include "chrome/browser/ui/actions/chrome_action_id.h"
 #include "chrome/browser/ui/autofill/bubble_manager.h"
@@ -205,7 +213,7 @@
 #if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_LINUX) || \
     BUILDFLAG(IS_CHROMEOS)
 #include "chrome/browser/contextual_tasks/contextual_tasks_tab_visit_tracker.h"
-#include "chrome/browser/contextual_tasks/copy_search_journey_tab_feature.h"
+#include "chrome/browser/contextual_tasks/search_journey_tab_feature.h"
 #include "chrome/browser/record_replay/chrome_record_replay_client.h"
 #include "chrome/browser/ui/views/location_bar/record_replay_page_action_controller.h"
 #include "chrome/browser/wallet/chrome_walletable_pass_client.h"
@@ -249,12 +257,16 @@
 #include "components/client_hints/browser/client_hints_web_contents_observer.h"
 #include "components/commerce/content/browser/commerce_tab_helper.h"
 #include "components/commerce/core/commerce_feature_list.h"
+#include "components/content_settings/browser/page_specific_content_settings.h"
 #include "components/facilitated_payments/core/features/features.h"
 #include "components/favicon/content/content_favicon_driver.h"
 #include "components/image_fetcher/core/image_fetcher_service.h"
 #include "components/metrics/content/metrics_services_web_contents_observer.h"
 #include "components/metrics_services_manager/metrics_services_manager.h"
+#include "components/optimization_guide/core/optimization_guide_features.h"
+#include "components/page_content_annotations/content/annotate_page_content_request.h"
 #include "components/page_content_annotations/content/page_content_annotations_web_contents_observer.h"
+#include "components/page_content_annotations/core/page_content_extraction_types.h"
 #include "components/passage_embeddings/core/passage_embeddings_features.h"
 #include "components/performance_manager/embedder/performance_manager_registry.h"
 #include "components/permissions/permission_indicators_tab_data.h"
@@ -262,10 +274,13 @@
 #include "components/permissions/permission_request_manager.h"
 #include "components/privacy_sandbox/privacy_sandbox_features.h"
 #include "components/security_interstitials/core/features.h"
+#include "components/sessions/content/session_tab_helper.h"
+#include "components/sessions/core/session_id.h"
 #include "components/tabs/public/tab_interface.h"
 #include "components/ukm/content/source_url_recorder.h"
 #include "components/wallet/core/common/wallet_features.h"
 #include "components/web_modal/web_contents_modal_dialog_manager.h"
+#include "components/webapps/browser/installable/installable_manager.h"
 #include "components/webapps/browser/installable/ml_installability_promoter.h"
 #include "net/base/features.h"
 #include "ui/accessibility/accessibility_features.h"
@@ -361,6 +376,21 @@
 
 namespace tabs {
 
+namespace {
+
+using page_content_annotations::AnnotatedPageContentRequest;
+
+std::optional<int64_t> GetPageContentAnnotationsTabId(
+    content::WebContents* web_contents) {
+  SessionID id = sessions::SessionTabHelper::IdForTab(web_contents);
+  if (id.is_valid()) {
+    return id.id();
+  }
+  return std::nullopt;
+}
+
+}  // namespace
+
 TabFeatures::TabFeatures() = default;
 TabFeatures::~TabFeatures() = default;
 
@@ -390,6 +420,40 @@ void TabFeatures::Init(TabInterface& tab, Profile* profile) {
       tab.RegisterWillDiscardContents(base::BindRepeating(
           &TabFeatures::WillDiscardContents, weak_factory_.GetWeakPtr())));
   tab_subscriptions_.push_back(webui::InitEmbeddingContext(&tab));
+
+  CreateSubresourceFilterWebContentsHelper(tab.GetContents());
+
+  ChromeTranslateClient::CreateForWebContents(tab.GetContents());
+
+  if (!content_settings::PageSpecificContentSettings::GetDelegateForWebContents(
+          tab.GetContents())) {
+    content_settings::PageSpecificContentSettings::CreateForWebContents(
+        tab.GetContents(),
+        std::make_unique<PageSpecificContentSettingsDelegate>(
+            tab.GetContents()));
+  }
+
+  favicon::CreateContentFaviconDriverForWebContents(tab.GetContents());
+
+  if (!profile->IsOffTheRecord()) {
+    HistoryTabHelper::GetOrCreateForWebContents(tab.GetContents());
+  }
+
+  webapps::InstallableManager::CreateForWebContents(tab.GetContents());
+
+  if (optimization_guide::features::IsOptimizationHintsEnabled()) {
+    OptimizationGuideWebContentsObserver::CreateForWebContents(
+        tab.GetContents());
+  }
+
+  auto* page_content_extraction_service = page_content_annotations::
+      PageContentExtractionServiceFactory::GetForProfile(profile);
+  if (page_content_extraction_service) {
+    AnnotatedPageContentRequest::CreateForWebContents(
+        tab.GetContents(), *page_content_extraction_service,
+        base::BindRepeating(&page_content_annotations::FetchPageContext),
+        base::BindRepeating(&GetPageContentAnnotationsTabId));
+  }
 
   InitializePageLoadMetricsForWebContents(tab.GetContents());
 
@@ -832,11 +896,11 @@ void TabFeatures::Init(TabInterface& tab, Profile* profile) {
                 tab, tab);
   }
 
-  if (contextual_tasks::IsCopyTextJourneysEnabled()) {
-    copy_search_journey_tab_feature_ =
+  if (contextual_tasks::IsABASearchJourneysEnabled()) {
+    search_journey_tab_feature_ =
         GetUserDataFactory()
-            .CreateInstance<contextual_tasks::CopySearchJourneyTabFeature>(tab,
-                                                                           tab);
+            .CreateInstance<contextual_tasks::SearchJourneyTabFeature>(tab,
+                                                                       tab);
   }
 #endif
 
@@ -1388,6 +1452,38 @@ void TabFeatures::WillDiscardContents(tabs::TabInterface* tab,
   DCHECK_EQ(old_contents, tab->GetContents());
 
   Profile* profile = tab->GetBrowserWindowInterface()->GetProfile();
+
+  CreateSubresourceFilterWebContentsHelper(new_contents);
+
+  ChromeTranslateClient::CreateForWebContents(new_contents);
+
+  if (!content_settings::PageSpecificContentSettings::GetDelegateForWebContents(
+          new_contents)) {
+    content_settings::PageSpecificContentSettings::CreateForWebContents(
+        new_contents,
+        std::make_unique<PageSpecificContentSettingsDelegate>(new_contents));
+  }
+
+  favicon::CreateContentFaviconDriverForWebContents(new_contents);
+
+  if (!profile->IsOffTheRecord()) {
+    HistoryTabHelper::GetOrCreateForWebContents(new_contents);
+  }
+
+  webapps::InstallableManager::CreateForWebContents(new_contents);
+
+  if (optimization_guide::features::IsOptimizationHintsEnabled()) {
+    OptimizationGuideWebContentsObserver::CreateForWebContents(new_contents);
+  }
+
+  auto* page_content_extraction_service = page_content_annotations::
+      PageContentExtractionServiceFactory::GetForProfile(profile);
+  if (page_content_extraction_service) {
+    AnnotatedPageContentRequest::CreateForWebContents(
+        new_contents, *page_content_extraction_service,
+        base::BindRepeating(&page_content_annotations::FetchPageContext),
+        base::BindRepeating(&GetPageContentAnnotationsTabId));
+  }
 
   InitializePageLoadMetricsForWebContents(new_contents);
 

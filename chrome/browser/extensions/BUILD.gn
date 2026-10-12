@@ -556,6 +556,7 @@ source_set("extensions") {
     "//chrome/browser/signin",
     "//chrome/browser/signin:google_accounts_private_api",
     "//chrome/browser/ssl",
+    "//chrome/browser/subresource_filter",
     "//chrome/browser/tab_group_sync:factories",
     "//chrome/browser/tab_list",
     "//chrome/browser/ui:accelerator_utils_headers",
@@ -698,8 +699,11 @@ source_set("extensions") {
     deps += [
       "//chrome/android:chrome_jni_headers",
       "//chrome/browser/content_settings",
+      "//chrome/browser/optimization_guide",
       "//chrome/browser/page_load_metrics",
       "//chrome/browser/ui/android/tab_model",
+      "//components/content_settings/browser",
+      "//components/optimization_guide/core:features",
     ]
 
     if (enable_desktop_android_extensions) {

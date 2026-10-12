@@ -3292,10 +3292,9 @@ public class ToolbarManager
      */
     @Override
     public void onUrlFocusChange(boolean hasFocus) {
-        // Detect and report Omnibox sessions originating from CCT if Search in CCT is disabled.
+        // Detect and report Omnibox sessions originating from CCT.
         // This is important to reduce CCT ActivityType bleeding into Chrome Browser.
-        if (!ChromeFeatureList.sSearchInCCT.isEnabled()
-                && UmaActivityObserver.getCurrentActivityType() == ActivityType.CUSTOM_TAB) {
+        if (UmaActivityObserver.getCurrentActivityType() == ActivityType.CUSTOM_TAB) {
             // TODO(b/339910285): Remove this once bleeding is negligile or eliminated completely.
             JavaExceptionReporter.reportException(
                     new Exception(
@@ -4067,28 +4066,6 @@ public class ToolbarManager
      */
     public boolean containsKeyboardFocus() {
         return mToolbar.containsKeyboardFocus();
-    }
-
-    /**
-     * Reorders the focused item, if there is one.
-     *
-     * @param toLeft Whether the focused item should be reordered to the left (note: this is still
-     *     left in RTL).
-     * @return Whether the item was reordered.
-     */
-    public boolean reorderKeyboardFocusedItem(boolean toLeft) {
-        if (mStripLayoutHelperManager == null) return false;
-        return mStripLayoutHelperManager.reorderKeyboardFocusedItem(toLeft);
-    }
-
-    /**
-     * Toggles multiselection on the keyboard focused tab.
-     *
-     * @return Whether a multiselect action was performed.
-     */
-    public boolean multiselectKeyboardFocusedItem() {
-        if (mStripLayoutHelperManager == null) return false;
-        return mStripLayoutHelperManager.multiselectKeyboardFocusedItem();
     }
 
     public void onXrSpaceModeChanged(Boolean fullSpaceMode) {
