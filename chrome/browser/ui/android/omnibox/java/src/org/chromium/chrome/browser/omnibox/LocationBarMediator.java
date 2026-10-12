@@ -1476,6 +1476,7 @@ public class LocationBarMediator
                 mContext,
                 mLocationBarDataProvider.getWebContents(),
                 mProfileSupplier,
+                mLocationBarDataProvider,
                 () -> {
                     if (mAutocompleteCoordinator == null || mCurrentInput == null) return;
 
@@ -3079,9 +3080,10 @@ public class LocationBarMediator
      */
     @Override
     public void beginInput(AutocompleteInput input) {
-        input.setPageClassification(mLocationBarDataProvider.getPageClassification(false));
-        input.setPageUrl(mLocationBarDataProvider.getCurrentGurl());
-        input.setPageTitle(mLocationBarDataProvider.getTitle());
+        // Stamp the request with the current page so that applying it to the session below never
+        // leaves the session with stale page metadata. FuseboxSessionState.activate() stamps the
+        // session again, which also covers sessions begun without a request, e.g. on focus.
+        FuseboxSessionState.applyPageMetadata(input, mLocationBarDataProvider);
         if (input.getDisplayState() == DisplayState.WEBSITE) {
             input.setDisplayState(DisplayState.DRAFTING);
         }
@@ -3229,11 +3231,13 @@ public class LocationBarMediator
     }
 
     /** Enter the DRAFTING_NO_FOCUS state, executing all necessary and convenient pre-processing. */
-    @VisibleForTesting
-    /* package */ void enterDraftingNoFocus() {
-        assert mCurrentInput != null;
-        if (displayStateEquals(DisplayState.DRAFTING_NO_FOCUS)) return;
+    @Override
+    public void enterDraftingNoFocus() {
+        if (displayStateEquals(DisplayState.DRAFTING_NO_FOCUS) || !userTextDiffersFromInitial()) {
+            return;
+        }
 
+        assert mCurrentInput != null;
         // We set the selection to SELECT_END so that on resume, when we set the selection to
         // SELECT_ALL in @see #beginOrResumeInput(boolean), a view update actually occurs (the
         // UrlBarMediator guards against duplicate updates.

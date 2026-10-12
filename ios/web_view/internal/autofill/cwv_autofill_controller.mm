@@ -17,11 +17,13 @@
 #import "base/notimplemented.h"
 #import "base/scoped_multi_source_observation.h"
 #import "base/strings/sys_string_conversions.h"
+#import "base/task/bind_post_task.h"
 #import "base/values.h"
 #import "components/autofill/core/browser/autofill_field.h"
 #import "components/autofill/core/browser/form_structure.h"
 #import "components/autofill/core/browser/foundations/autofill_manager.h"
 #import "components/autofill/core/browser/foundations/browser_autofill_manager.h"
+#import "components/autofill/core/browser/payments/autofill_error_dialog_context.h"
 #import "components/autofill/core/browser/payments/card_unmask_challenge_option.h"
 #import "components/autofill/core/browser/payments/credit_card_access_manager.h"
 #import "components/autofill/core/browser/payments/legal_message_line.h"
@@ -52,6 +54,7 @@
 #import "ios/web_view/internal/app/application_context.h"
 #import "ios/web_view/internal/autofill/cwv_autofill_controller+testing.h"
 #import "ios/web_view/internal/autofill/cwv_autofill_controller_internal.h"
+#import "ios/web_view/internal/autofill/cwv_autofill_error_dialog_context_internal.h"
 #import "ios/web_view/internal/autofill/cwv_autofill_form_internal.h"
 #import "ios/web_view/internal/autofill/cwv_autofill_prefs.h"
 #import "ios/web_view/internal/autofill/cwv_autofill_profile_internal.h"
@@ -915,6 +918,55 @@ struct FocusedFieldState {
 - (void)didReceiveUnmaskOtpVerificationResult:
     (autofill::OtpUnmaskResult)unmaskResult {
   [_OTPVerifier didReceiveUnmaskOtpVerificationResult:unmaskResult];
+}
+
+- (BOOL)canAuthenticateUser {
+  return [_delegate
+      respondsToSelector:@selector(
+                             autofillController:authenticateUserWithReason:
+                             completionHandler:)];
+}
+
+- (void)authenticateUserWithReason:(NSString*)reason
+                        completion:(base::OnceCallback<void(bool)>)completion {
+  // Embedders typically complete from a `LocalAuthentication` reply queue, so
+  // hop back to the current sequence. This also guarantees that `completion`
+  // is never run synchronously.
+  base::OnceCallback<void(bool)> postingCompletion =
+      base::BindPostTaskToCurrentDefault(std::move(completion));
+
+  if (![_delegate
+          respondsToSelector:@selector(
+                                 autofillController:authenticateUserWithReason:
+                                 completionHandler:)]) {
+    std::move(postingCompletion).Run(false);
+    return;
+  }
+
+  [_delegate autofillController:self
+      authenticateUserWithReason:reason
+               completionHandler:base::CallbackToBlock(
+                                     std::move(postingCompletion))];
+}
+
+- (BOOL)shouldRequireMandatoryReauth {
+  if (![_delegate
+          respondsToSelector:
+              @selector(autofillControllerShouldRequireMandatoryReauth:)]) {
+    return NO;
+  }
+  return [_delegate autofillControllerShouldRequireMandatoryReauth:self];
+}
+
+- (void)showAutofillErrorDialogWithContext:
+    (const autofill::AutofillErrorDialogContext&)context {
+  if (![_delegate respondsToSelector:@selector(autofillController:
+                                               showErrorDialogWithContext:)]) {
+    return;
+  }
+  CWVAutofillErrorDialogContext* errorContext =
+      [[CWVAutofillErrorDialogContext alloc] initWithContext:context];
+  [_delegate autofillController:self showErrorDialogWithContext:errorContext];
 }
 
 #pragma mark - AutofillDriverIOSBridge

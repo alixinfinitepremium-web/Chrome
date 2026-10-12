@@ -330,7 +330,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '5c03578cc73ccdd690ec0986fe4711e6a54f6674',
+  'skia_revision': 'fd8edd3ef1ea7bcca699edf7577dc08d59fb5308',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -370,7 +370,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling freetype
   # and whatever else without interference from each other.
-  'freetype_revision': '79d80cadfc3d992e307c15a3f7d3a2a1555235a5',
+  'freetype_revision': '37515cf56ba3349656049edbed89ffc6f6466f2d',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling HarfBuzz
   # and whatever else without interference from each other.
@@ -2842,7 +2842,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '6ed04b8b7c6655af801c671e15f691c1cce0a159',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '37b679b33a58fe4bbfae80108e20dad61e270bd8',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
@@ -3274,7 +3274,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + 'c743fa65f59479815d5715564d9caf6fca660cde',
+    Var('webrtc_git') + '/src.git' + '@' + '8bf6fb4d989e656e366613657b2a95b4b917bf15',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -3813,7 +3813,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        'e560804733a6752787e17e9c0f0f53c9a9187faa',
+        '5d15ecdd94dc11a779d4c99a36a165d6e3772ca8',
       'condition': 'checkout_src_internal',
   },
 
@@ -3891,7 +3891,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        'dd1a56083de5d0af4568e9f1b7ddec25b775dbd5',
+        'ce6beacdf2db343f0fac94942b646c3a4ebeb68a',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 

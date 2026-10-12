@@ -6595,6 +6595,12 @@ inline constexpr char kTabBottomSheetName[] = "Tab bottom sheet";
 inline constexpr char kTabBottomSheetDescription[] =
     "Enables the tab bottom sheet feature.";
 
+inline constexpr char kTabBottomSheetEdgeToEdgeName[] =
+    "Tab bottom sheet - Edge to Edge";
+inline constexpr char kTabBottomSheetEdgeToEdgeDescription[] =
+    "Enables edge-to-edge layout and safe area insets for the tab bottom "
+    "sheet.";
+
 inline constexpr char kTabBottomSheetFullHeightName[] =
     "Tab bottom sheet - Full height ratio";
 inline constexpr char kTabBottomSheetFullHeightDescription[] =
@@ -7075,7 +7081,9 @@ inline constexpr char kNtpDoodleMuralsDescription[] =
 
 inline constexpr char kNtpThreadsRailName[] = "NTP Threads Rail";
 inline constexpr char kNtpThreadsRailDescription[] =
-    "Enables the Threads Rail on the NTP.";
+    "Enables the Threads Rail on the NTP. The Hybrid variation renders the "
+    "folded state natively in Chrome while the expanded state is rendered by "
+    "Google Search.";
 
 inline constexpr char kNtpSimplificationBookmarkBarName[] =
     "NTP Simplification Bookmark Bar";
