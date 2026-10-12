@@ -1867,7 +1867,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': '8jvdprrH_-s8_riWqn7KfeKAb29eVB9wUR9Ga284S_MC',
+          'version': 'HsoC72-kY_MoL7IHHcm2vziswl9RIHjL254dHr5KDT4C',
       },
     ],
     'condition': 'checkout_android and non_git_source',
@@ -3274,7 +3274,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + 'da5e1be076e7807218c4d8c6bd5e532680fd0ee8',
+    Var('webrtc_git') + '/src.git' + '@' + '5e0a750143d94befeb1ddb1209a6571b8d84d58f',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
