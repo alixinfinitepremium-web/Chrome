@@ -338,7 +338,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': 'a95a8eed1dad2bf07944638415e58e55f326b904',
+  'angle_revision': '25078a7740fdebf86b5396ec971aaebf418ce01d',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -390,7 +390,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': 'fa248f0d69d4b3c1163b1263d6ba35025af9d602',
+  'crossbench_revision': '87113d767a7d9d4f1fbdaccfd877ee36d3f4b2c7',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -3274,7 +3274,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '8bf6fb4d989e656e366613657b2a95b4b917bf15',
+    Var('webrtc_git') + '/src.git' + '@' + 'b321f634929af0af61a8964487fbd7894a008f12',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -3664,7 +3664,7 @@ deps = {
 
   'src/chrome/browser/ttc/resources/internal': {
       'url': Var('chrome_git') + '/chrome/browser/ttc/resources/internal.git' + '@' +
-        '67d90198abac9f0f52daf4428b18a144e171a3a6',
+        '80569732bcceab65c8746c5b03bc1802c262f50c',
       'condition': 'checkout_src_internal',
   },
 
