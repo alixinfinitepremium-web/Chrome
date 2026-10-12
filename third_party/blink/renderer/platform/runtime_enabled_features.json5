@@ -3604,17 +3604,18 @@
     {
       name: "GlobalPrivacyControl",
       implied_by: [
-        "GlobalPrivacyControlForce",
-        "GlobalPrivacyControlTest"
+        "GlobalPrivacyControlApi",
+        "GlobalPrivacyControlForce"
       ],
       base_feature: "none",
     },
     {
-      name: "GlobalPrivacyControlForce",
+      // Gates the navigator.globalPrivacyControl JavaScript API.
+      name: "GlobalPrivacyControlApi",
+      status: "experimental",
     },
     {
-      name: "GlobalPrivacyControlTest",
-      status: "experimental",
+      name: "GlobalPrivacyControlForce",
     },
     {
       name: "GraphemeClusterBoundsCheck",
@@ -5671,12 +5672,6 @@
     },
     {
       name: "ScrollbarWidth",
-      status: "stable",
-    },
-    {
-      // Killswitch M151.
-      name: "ScrollingContentsCullRectOnScrollNode",
-      implied_by: ["MergeStickyLayers"],
       status: "stable",
     },
     {

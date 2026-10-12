@@ -7786,6 +7786,10 @@ const FeatureEntry kFeatureEntries[] = {
      kOsAndroid,
      FEATURE_VALUE_TYPE(chrome::android::kSettingsSearchCollapsibleSearchBox)},
 
+    {"on-startup-settings-ui", flag_descriptions::kOnStartupSettingsUiName,
+     flag_descriptions::kOnStartupSettingsUiDescription, kOsAndroid,
+     FEATURE_VALUE_TYPE(chrome::android::kOnStartupSettingsUi)},
+
     {"android-settings-url", flag_descriptions::kAndroidSettingsUrlName,
      flag_descriptions::kAndroidSettingsUrlDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(chrome::android::kAndroidSettingsUrl)},
@@ -12982,6 +12986,10 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kGlobalPrivacyControlName,
      flag_descriptions::kGlobalPrivacyControlDescription, kOsAll,
      FEATURE_VALUE_TYPE(blink::features::kGlobalPrivacyControlForce)},
+    {"enable-global-privacy-control-api",
+     flag_descriptions::kGlobalPrivacyControlApiName,
+     flag_descriptions::kGlobalPrivacyControlApiDescription, kOsAll,
+     FEATURE_VALUE_TYPE(blink::features::kGlobalPrivacyControlApi)},
 
 #if BUILDFLAG(IS_ANDROID)
     {"android-before-unload-support",

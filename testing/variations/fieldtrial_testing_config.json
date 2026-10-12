@@ -6329,22 +6329,6 @@
             ]
         }
     ],
-    "DiscardCompositionBackBuffersAndroid": [
-        {
-            "platforms": [
-                "android"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "PropagateOcclusionToVizAndroid",
-                        "VizBufferQueueDiscardOnVisibilityChange"
-                    ]
-                }
-            ]
-        }
-    ],
     "DiscardCompositionBackBuffersMac": [
         {
             "platforms": [
@@ -9632,6 +9616,24 @@
                     },
                     "enable_features": [
                         "AimButtonRefactor"
+                    ]
+                }
+            ]
+        }
+    ],
+    "IOSAimCobrowse": [
+        {
+            "platforms": [
+                "ios"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "AimCobrowse",
+                        "AimCobrowseWebSelectionSearch",
+                        "ContextManagementInComposebox",
+                        "ContextualTasks"
                     ]
                 }
             ]

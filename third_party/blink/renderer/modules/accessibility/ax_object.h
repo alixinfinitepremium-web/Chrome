@@ -77,7 +77,6 @@ enum class ScrollSourceType;
 
 namespace blink {
 
-class AbstractInlineTextBox;
 class AXObject;
 class AXObjectCacheImpl;
 class HTMLElement;
@@ -339,7 +338,6 @@ class MODULES_EXPORT AXObject : public GarbageCollected<AXObject> {
 
   // Wrappers that retrieve either an Accessibility Object Model property,
   // or the equivalent ARIA attribute, in that order.
-  virtual AbstractInlineTextBox* GetInlineTextBox() const { return nullptr; }
   virtual std::optional<AXBlockFlowIterator::FragmentIndex> GetFragmentIndex()
       const {
     return std::nullopt;
@@ -751,6 +749,9 @@ class MODULES_EXPORT AXObject : public GarbageCollected<AXObject> {
   // each word in the object's text.
   virtual void GetWordBoundaries(Vector<int>& word_starts,
                                  Vector<int>& word_ends) const;
+  static void GetWordBoundariesForText(Vector<int>& word_starts,
+                                       Vector<int>& word_ends,
+                                       const String& text);
 
   // For all inline text boxes and atomic text fields: Returns the length of the
   // inline's text or the field's value respectively.

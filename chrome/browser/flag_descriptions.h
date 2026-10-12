@@ -1472,6 +1472,10 @@ inline constexpr char kSessionRestoreAfterCrashDescription[] =
     "When enabled, Chrome provides a prompt to restore windows and tabs "
     "sequentially and maintains window sizes where supported.";
 
+inline constexpr char kOnStartupSettingsUiName[] = "On Startup Settings UI";
+inline constexpr char kOnStartupSettingsUiDescription[] =
+    "Enables the On startup settings UI surface on Android.";
+
 inline constexpr char kOnStartupWindowPolicyName[] = "On Startup Window Policy";
 inline constexpr char kOnStartupWindowPolicyDescription[] =
     "Enables updated on-startup window default behavior and settings on "
@@ -4225,6 +4229,13 @@ inline constexpr char kGlobalPrivacyControlName[] =
 inline constexpr char kGlobalPrivacyControlDescription[] =
     "Enables Global Privacy Control (GPC) signal. Sends Sec-GPC=1 header with "
     "requests to indicate privacy preferences to websites.";
+
+inline constexpr char kGlobalPrivacyControlApiName[] =
+    "Global Privacy Control API";
+inline constexpr char kGlobalPrivacyControlApiDescription[] =
+    "Enables Global Privacy Control (GPC) signal. Sends Sec-GPC=1 header "
+    "with requests and sets navigator.globalPrivacyControl JS API to indicate "
+    "privacy preferences to websites.";
 
 inline constexpr char kAnnotatedPageContentsForVirtualStructureName[] =
     "Use annotated page contents to populate virtual structure";

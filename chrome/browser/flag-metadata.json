@@ -4019,6 +4019,11 @@
     "expiry_milestone": 170
   },
   {
+    "name": "enable-global-privacy-control-api",
+    "owners": ["arichiv@chromium.org", "mcczarny@gmail.com"],
+    "expiry_milestone": 170
+  },
+  {
     "name": "enable-global-vaapi-lock",
     "owners": [
       "jeffcchen@chromium.org",
@@ -7859,6 +7864,11 @@
   {
     "name": "on-device-model-speculative-decoding",
     "owners": ["//services/on_device_model/OWNERS", "builtin-ai-team@google.com"],
+    "expiry_milestone": 160
+  },
+  {
+    "name": "on-startup-settings-ui",
+    "owners": ["aishwaryarj@google.com", "clank-large-form-factors@google.com"],
     "expiry_milestone": 160
   },
   {

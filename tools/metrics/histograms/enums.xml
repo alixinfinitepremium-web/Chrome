@@ -11582,6 +11582,7 @@ from previous Chrome versions.
   <int value="-1026466717" label="BlockInsecureDownloads:enabled"/>
   <int value="-1026261178" label="GlicNoWebview:enabled"/>
   <int value="-1026192558" label="OopRasterizationDDL:enabled"/>
+  <int value="-1026135258" label="OnStartupSettingsUi:enabled"/>
   <int value="-1025125875" label="AssistantTimersV2:disabled"/>
   <int value="-1024731815" label="MessagesForAndroidNearOomReduction:enabled"/>
   <int value="-1024687559" label="ShortcutCustomization:enabled"/>
@@ -12690,6 +12691,7 @@ from previous Chrome versions.
   <int value="-696693295" label="Canvas2DImageChromium:disabled"/>
   <int value="-696225611" label="UseSerialBusEnumerator:disabled"/>
   <int value="-695983716" label="SeaPenEnterprise:enabled"/>
+  <int value="-695889947" label="GlobalPrivacyControlApi:disabled"/>
   <int value="-695764575" label="NearbySharingBackgroundScanning:enabled"/>
   <int value="-695687521" label="double-buffer-compositing"/>
   <int value="-694943768" label="ContextualSearchSuppressShortView:disabled"/>
@@ -18116,6 +18118,7 @@ from previous Chrome versions.
   <int value="960883599" label="IPH_SupervisedUserProfileSignin:enabled"/>
   <int value="961019394" label="IOSPromoRefreshedPasswordBubble:disabled"/>
   <int value="961134466" label="GlicReuseCookies:disabled"/>
+  <int value="961875211" label="GlobalPrivacyControlApi:enabled"/>
   <int value="962191833" label="StopAppIndexingReport:disabled"/>
   <int value="963054071" label="MlUrlPiecewiseMappedSearchBlending:enabled"/>
   <int value="963457392" label="ChromeHomeModernLayout:disabled"/>
@@ -19656,6 +19659,7 @@ from previous Chrome versions.
   <int value="1414652547" label="LinkCapturingAutoDisplayIntentPicker:enabled"/>
   <int value="1414918327" label="enable-accelerated-video-decode"/>
   <int value="1415788025" label="force-drive-disclaimer-accepted:disabled"/>
+  <int value="1416196750" label="OnStartupSettingsUi:disabled"/>
   <int value="1416395000" label="CompanyEntityIconAdjustment:enabled"/>
   <int value="1416592483" label="ash-enable-mirrored-screen"/>
   <int value="1416845437" label="InstallPromptSegmentation:disabled"/>
