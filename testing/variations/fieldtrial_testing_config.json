@@ -2020,6 +2020,26 @@
             ]
         }
     ],
+    "AutofillFixIframeOwnership": [
+        {
+            "platforms": [
+                "android",
+                "android_webview",
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "AutofillFixIframeOwnership"
+                    ]
+                }
+            ]
+        }
+    ],
     "AutofillFixLabelGenerationForStreetAddress": [
         {
             "platforms": [
@@ -3490,6 +3510,7 @@
                         "MigratedCollectedCookies": "true",
                         "MigratedDefaultBrowser": "true",
                         "MigratedDevToolsConfirm": "true",
+                        "MigratedDevToolsRemoteDebugging": "true",
                         "MigratedDevToolsSharedProcess": "true",
                         "MigratedFileAccessDisabled": "true",
                         "MigratedGoogleApiKeys": "true",
@@ -6695,21 +6716,6 @@
                     "name": "Enabled",
                     "enable_features": [
                         "EarlyCookieLoadOnPreconnect"
-                    ]
-                }
-            ]
-        }
-    ],
-    "EarlyTopAppForSandboxedRenderer": [
-        {
-            "platforms": [
-                "android"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "EarlyTopAppForSandboxedRenderer"
                     ]
                 }
             ]
@@ -16023,6 +16029,21 @@
                     "name": "Enabled",
                     "enable_features": [
                         "SigninButtonProfileMenu"
+                    ]
+                }
+            ]
+        }
+    ],
+    "SigninButtonProfileMenuRefinements": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "SigninButtonProfileMenuRefinements"
                     ]
                 }
             ]

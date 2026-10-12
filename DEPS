@@ -390,7 +390,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': 'b08a44a38c4787dce727f2126dd965af7ce5bcc7',
+  'crossbench_revision': 'd1e13e3877dbe0896824cba98ac7d297b70d91c5',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -410,7 +410,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '0bd649f6d49c1fb6bf635520332108564b94b899',
+  'devtools_frontend_revision': 'd9427884c8f83b6566864ac85e80f6d48aa9f233',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1763,7 +1763,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    'b9ca998fbd062cbfbd0ee089ec1af08a675db4fd',
+    '01722b9007c06e7177afddc23b4501563fcecb60',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -2198,7 +2198,7 @@ deps = {
   # Tools used when building Chrome for Chrome OS. This affects both the Simple
   # Chrome workflow, as well as the chromeos-chrome ebuild.
   'src/third_party/chromite': {
-      'url': Var('chromium_git') + '/chromiumos/chromite.git' + '@' + 'd550cfb81362517d336fd3505ebf8893ca4ed6cb',
+      'url': Var('chromium_git') + '/chromiumos/chromite.git' + '@' + '1b07903c037285e9f543e8e896909456c9461f02',
       'condition': 'checkout_chromeos',
   },
 
@@ -2230,7 +2230,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '21ae2d24f8ee0ca3459bda416129d7791c4313f1',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '159aabc8235aeccb463493c999c182b6485a1381',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -3274,7 +3274,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + 'c50393086ecd443ddf456eef223d57f33384defe',
+    Var('webrtc_git') + '/src.git' + '@' + 'f10949a957cb5ffd1fab26f63cb2e82141f30ad6',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -3425,7 +3425,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/help_app/app',
-        'version': '-yaueUU66LEiPIFNkltft3n-ZXuEABB70mCvY2Kf1-gC',
+        'version': 'ca84KDFeG-wU9w3dbt8kXV9jeKzbcxQtZzCtGSNt1wsC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3436,7 +3436,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/media_app/app',
-        'version': 'ZOWvG8E94X5655I9DdM16Rpcz0l14Rqm_6FWYz0r2ZQC',
+        'version': 'fSPyYF6jS754rTSjx6XTNqGINA-UG7ztUsxYmq_egFoC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3628,7 +3628,7 @@ deps = {
 
   'src/chrome/browser/platform_experience/win': {
       'url': Var('chrome_git') + '/chrome/browser/platform_experience/win.git' + '@' +
-        '06cae3eb7dd1fde62d3b7f3860ddcc11ebbad086',
+        '1b84d873410cfc497c7987d2cd9084c75354993c',
       'condition': 'checkout_src_internal',
   },
 
