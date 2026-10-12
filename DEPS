@@ -390,7 +390,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': 'd29098974a7b1ee31f331b66fc71768b86176a8a',
+  'crossbench_revision': '43d39a590d8767875ac450861604858ef00f74df',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -410,7 +410,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'f10f5450f5e0a68436ad30a52589a2727b23e395',
+  'devtools_frontend_revision': '17d6a3d494053a72afa321be4dbd32131af96b7b',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1751,7 +1751,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': 'a9tNR91itBBs7-O6jEvhfhwsyVW6jykjTuc3TuC7nA8C',
+        'version': 'RPvNhnjJELrpH8ku9uvaRJSqlyOcb4iReipu2Hsp3_UC',
       },
     ],
     'condition': 'non_git_source',
