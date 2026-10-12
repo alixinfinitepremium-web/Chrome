@@ -88,6 +88,10 @@
 #include "ui/events/test/events_test_utils_x11.h"
 #endif
 
+#if BUILDFLAG(IS_MAC)
+#include "ui/views/controls/menu/menu_closure_animation_mac.h"
+#endif
+
 namespace views {
 namespace {
 
@@ -587,6 +591,12 @@ class MenuControllerTest : public ViewsTestBase,
   std::unique_ptr<test::TestMenuDelegate> menu_delegate_;
   raw_ptr<MenuController> menu_controller_ = nullptr;
   std::optional<base::i18n::ScopedRTLForTesting> scoped_rtl_;
+#if BUILDFLAG(IS_MAC)
+  // test::WaitForMenuClosureAnimation() only completes the closure when
+  // animations are disabled.
+  MenuClosureAnimationMac::ScopedDisableAnimationsForTesting
+      disable_closure_animations_;
+#endif
 };
 
 void MenuControllerTest::SetUp() {
@@ -625,12 +635,12 @@ void MenuControllerTest::CreateMenu(const CreateMenuOptions& options) {
     menu_controller_ =
         new MenuController(for_drop(), menu_controller_delegate_.get());
   }
-  menu_item_->set_controller(menu_controller_);
+  menu_item_->SetController(menu_controller_);
 
   if (options.show) {
     MenuItemView* root_item =
         options.item ? options.item.get() : menu_item_.get();
-    root_item->set_controller(menu_controller_);
+    root_item->SetController(menu_controller_);
     menu_controller_->Run(owner(), nullptr, root_item, gfx::Rect(),
                           options.position, ui::mojom::MenuSourceType::kNone,
                           options.menu_type);
@@ -775,7 +785,7 @@ void MenuControllerTest::TestMenuControllerReplacementDuringDrag() {
   menu_item()->GetSubmenu()->Close();
   menu_controller_ =
       new MenuController(/*for_drop=*/false, menu_controller_delegate_.get());
-  menu_item_->set_controller(menu_controller_);
+  menu_item_->SetController(menu_controller_);
   menu_controller_->Run(owner_.get(), nullptr, menu_item(), gfx::Rect(),
                         MenuAnchorPosition::kTopLeft);
   EXPECT_TRUE(showing());
@@ -1757,11 +1767,30 @@ TEST_F(MenuControllerTest, ChildButtonHotTrackedWhenNested) {
   EXPECT_EQ(button2, hot_button());
 }
 
+// Tests that destroying a non-root MenuItemView subtree notifies the
+// MenuController so it drops its references to the destroyed items. Only the
+// root item holds a direct controller pointer, so the destructor has to walk up
+// to the root. Regression test for crbug.com/571434516.
+TEST_F(MenuControllerTest, NonRootItemDestructionClearsControllerState) {
+  CreateMenu();
+  MenuItemView* const submenu_item = menu_item()->AppendSubMenu(10, u"Submenu");
+  MenuItemView* const child = submenu_item->AppendMenuItem(11, u"Child");
+  ShowSubmenu(submenu_item->GetSubmenu());
+  SetState(child);
+  ASSERT_EQ(child, pending_state_item());
+
+  // Detach and destroy the subtree directly, bypassing ChildrenChanged() (which
+  // would move the selection away first).
+  menu_item()->GetSubmenu()->RemoveChildViewT(submenu_item).reset();
+
+  EXPECT_EQ(nullptr, pending_state_item());
+  EXPECT_EQ(nullptr, menu_controller()->GetSelectedMenuItem());
+}
+
 // Tests that a menu opened asynchronously, will notify its
 // MenuControllerDelegate when Accept is called.
 TEST_F(MenuControllerTest, AsynchronousAccept) {
   CreateMenu();
-  views::test::DisableMenuClosureAnimations();
 
   EXPECT_EQ(0, menu_controller_delegate()->on_menu_closed_called());
 
@@ -2117,7 +2146,6 @@ TEST_F(MenuControllerTest, ForwardsEventsToNativeViewForGestures) {
 // gesture events to owner.
 TEST_F(MenuControllerTest, NoTouchCloseWhenSendingGesturesToOwner) {
   CreateMenu();
-  views::test::DisableMenuClosureAnimations();
 
   // Owner wants the gesture events.
   menu_controller()->set_send_gesture_events_to_owner(true);
@@ -2153,7 +2181,6 @@ TEST_F(MenuControllerTest, NoTouchCloseWhenSendingGesturesToOwner) {
 // occur.
 TEST_F(MenuControllerTest, AsynchronousRepostEvent) {
   CreateMenu();
-  views::test::DisableMenuClosureAnimations();
 
   auto nested_delegate = std::make_unique<TestMenuControllerDelegate>();
   menu_controller()->AddNestedDelegate(nested_delegate.get());
@@ -2192,7 +2219,6 @@ TEST_F(MenuControllerTest, AsynchronousRepostEvent) {
 // in-progress closure animation so the menu can reopen.
 TEST_F(MenuControllerTest, RepostEventReleasesPressedLockAndAllowsReopen) {
   CreateMenu();
-  views::test::DisableMenuClosureAnimations();
 
   bool reopened_while_not_showing = false;
   auto* button = owner()->SetContentsView(
@@ -2235,7 +2261,6 @@ TEST_F(MenuControllerTest, RepostEventReleasesPressedLockAndAllowsReopen) {
 // the bounds of the menu, and that the menu closes.
 TEST_F(MenuControllerTest, AsynchronousTouchEventRepostEvent) {
   CreateMenu();
-  views::test::DisableMenuClosureAnimations();
 
   // Show a sub menu to target with a touch event. However have the event
   // occur outside of the bounds of the entire menu.
@@ -2265,7 +2290,6 @@ TEST_F(MenuControllerTest, AsynchronousTouchEventRepostEvent) {
 TEST_F(MenuControllerTest, AsynchronousRepostEventDeletesController) {
   // Don't show menu yet; test adds nested delegate before running the menu.
   CreateMenu({.show = false});
-  views::test::DisableMenuClosureAnimations();
   auto nested_delegate = std::make_unique<TestMenuControllerDelegate>();
   menu_controller()->AddNestedDelegate(nested_delegate.get());
   EXPECT_EQ(nested_delegate.get(), current_controller_delegate());
@@ -2302,7 +2326,6 @@ TEST_F(MenuControllerTest, AsynchronousRepostEventDeletesController) {
 TEST_F(MenuControllerTest, AsynchronousGestureDeletesController) {
   // Don't show menu yet; test adds nested delegate before running the menu.
   CreateMenu({.show = false});
-  views::test::DisableMenuClosureAnimations();
 
   auto nested_delegate = std::make_unique<TestMenuControllerDelegate>();
   menu_controller()->AddNestedDelegate(nested_delegate.get());
@@ -2630,7 +2653,7 @@ TEST_F(MenuControllerTest, MouseAtMenuItemOnShow) {
   auto menu_item = std::make_unique<MenuItemView>(menu_delegate());
   const MenuItemView* const first_item = menu_item->AppendMenuItem(1, u"One");
   menu_item->AppendMenuItem(2, u"Two");
-  menu_item->set_controller(menu_controller());
+  menu_item->SetController(menu_controller());
 
   // Move the mouse to where the first menu item will be shown,
   // and show the menu.
@@ -2845,7 +2868,7 @@ TEST_F(MenuControllerTest, RepostEventToEmptyMenuItem) {
   auto nested_menu_delegate_1 = std::make_unique<test::TestMenuDelegate>();
   auto nested_menu_item_1 =
       std::make_unique<MenuItemView>(nested_menu_delegate_1.get());
-  nested_menu_item_1->set_controller(menu_controller());
+  nested_menu_item_1->SetController(menu_controller());
   SubmenuView* const nested_menu_submenu = nested_menu_item_1->CreateSubmenu();
   ShowSubmenu(nested_menu_submenu);
   menu_host_for_submenu(nested_menu_submenu)
@@ -2898,7 +2921,7 @@ TEST_F(MenuControllerTest, RepostEventToEmptyMenuItem) {
   auto nested_menu_delegate_2 = std::make_unique<test::TestMenuDelegate>();
   auto nested_menu_item_2 =
       std::make_unique<MenuItemView>(nested_menu_delegate_2.get());
-  nested_menu_item_2->set_controller(menu_controller());
+  nested_menu_item_2->SetController(menu_controller());
   auto nested_controller_delegate_2 =
       std::make_unique<TestMenuControllerDelegate>();
   menu_controller()->AddNestedDelegate(nested_controller_delegate_2.get());
@@ -2948,7 +2971,7 @@ TEST_F(MenuControllerTest,
   // Create context menu
   auto context_menu = std::make_unique<MenuItemView>(menu_delegate());
   context_menu->AppendMenuItem(1, u"Action");
-  context_menu->set_controller(menu_controller());
+  context_menu->SetController(menu_controller());
 
   auto context_delegate = std::make_unique<TestMenuControllerDelegate>();
   menu_controller()->AddNestedDelegate(context_delegate.get());
@@ -3202,7 +3225,7 @@ TEST_F(MenuControllerTest, NoUseAfterFreeWhenMenuCanceledOnMousePress) {
 
   // Creating own MenuItem for a minimal test environment.
   auto item = std::make_unique<MenuItemView>(menu_delegate());
-  item->set_controller(menu_controller());
+  item->SetController(menu_controller());
   item->SetBounds(0, 0, 50, 50);
 
   SubmenuView* const submenu = item->CreateSubmenu();
@@ -3656,7 +3679,6 @@ TEST_F(MenuControllerTest, SetSelectionIndices_ChildrenChanged) {
 // MenuControllerDelegate when accessibility performs a do default action.
 TEST_F(MenuControllerTest, AccessibilityDoDefaultCallsAccept) {
   CreateMenu();
-  views::test::DisableMenuClosureAnimations();
 
   EXPECT_EQ(0, menu_controller_delegate()->on_menu_closed_called());
 
@@ -3852,7 +3874,6 @@ class ExecuteCommandWithoutClosingMenuTest : public MenuControllerTest {
   void SetUp() override {
     MenuControllerTest::SetUp();
 
-    views::test::DisableMenuClosureAnimations();
     CreateMenu();
 
     ShowSubmenu();

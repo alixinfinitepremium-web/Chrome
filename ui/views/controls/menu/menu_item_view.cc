@@ -133,8 +133,12 @@ MenuItemView::MenuItemView(MenuDelegate* delegate)
 
 MenuItemView::~MenuItemView() {
   SetAnchorView(nullptr);
-  if (controller_) {
-    NotifyControllerOfDestructionRecursively(this, controller_.get());
+  // Only the root item holds `controller_`, so walk up to the root to also
+  // cover destruction of a non-root subtree (e.g. via RemoveMenuItem()). This
+  // is safe because each item clears its children's `parent_menu_item_` below,
+  // before those children are destroyed.
+  if (MenuController* controller = GetMenuController()) {
+    NotifyControllerOfDestructionRecursively(this, controller);
   }
   if (submenu_) {
     for (auto* item : submenu_->GetMenuItems()) {
@@ -395,6 +399,7 @@ std::u16string MenuItemView::GetAccessibleNameForMenuItem(
 }
 
 void MenuItemView::Cancel() {
+  CHECK(!parent_menu_item_);
   if (controller_ && !canceled_) {
     canceled_ = true;
     controller_->Cancel(MenuController::ExitType::kAll);
@@ -795,6 +800,17 @@ int MenuItemView::GetTrailingPadding() const {
   }
   return GetItemHorizontalBorder() +
          MenuConfig::instance().item_horizontal_padding;
+}
+
+void MenuItemView::SetController(MenuController* controller) {
+  // Only the root holds the controller; everything else goes through
+  // GetMenuController(), which walks up to the root.
+  CHECK(!parent_menu_item_);
+  if (controller) {
+    controller_ = controller->AsWeakPtr();
+  } else {
+    controller_.reset();
+  }
 }
 
 MenuController* MenuItemView::GetMenuController() {
