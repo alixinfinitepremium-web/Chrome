@@ -390,7 +390,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': '7e878b43999e7385d92918c391f7157725b2bb23',
+  'crossbench_revision': 'b08a44a38c4787dce727f2126dd965af7ce5bcc7',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -410,7 +410,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'bc2ef7e23ef50c826f199974bf207eb3e32f9e36',
+  'devtools_frontend_revision': '8d85196f529129c6c5d4940c59fd6ab5ba33ca3b',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -524,7 +524,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'libunwind_revision':    'c4438dd4178c627697459a12c54eb1f7f8eefd12',
+  'libunwind_revision':    '9c0490ec858b3201b9aedbe219b530b95dc0be7e',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -3274,7 +3274,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '8669b30a03cb29a21267787e692ec81d4e6a28b6',
+    Var('webrtc_git') + '/src.git' + '@' + '4e909fe722863a7a88a4401d3d682cc358783333',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
