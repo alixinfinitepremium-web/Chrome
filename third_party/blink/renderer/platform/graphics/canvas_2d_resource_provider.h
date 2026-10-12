@@ -38,10 +38,6 @@
 #include "third_party/skia/include/core/SkSurface.h"
 #include "third_party/skia/include/gpu/ganesh/GrTypes.h"
 
-namespace cc {
-class SkiaPaintCanvas;
-}  // namespace cc
-
 namespace gpu {
 
 struct SyncToken;
@@ -200,7 +196,6 @@ class PLATFORM_EXPORT Canvas2DResourceProvider
   bool IsValid() const;
   virtual scoped_refptr<StaticBitmapImage> Snapshot(
       ImageOrientation = ImageOrientationEnum::kDefault);
-  void ReleaseImageProviderImages();
 
   void SetAnimatedImageFrameIndexes(
       scoped_refptr<const cc::AnimatedImageFrameIndexMap>);
@@ -352,7 +347,6 @@ class PLATFORM_EXPORT Canvas2DResourceProvider
 
   base::OnceClosure context_lost_callback_;
   mutable sk_sp<SkSurface> surface_;
-  std::unique_ptr<cc::SkiaPaintCanvas> skia_canvas_;
   const cc::PaintImage::Id snapshot_paint_image_id_;
   cc::PaintImage::ContentId snapshot_paint_image_content_id_ =
       cc::PaintImage::kInvalidContentId;
