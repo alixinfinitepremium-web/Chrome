@@ -386,7 +386,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling catapult
   # and whatever else without interference from each other.
-  'catapult_revision': '3d4673f57764ba5f999699abf34a52a3584e8b6c',
+  'catapult_revision': '3f4c97f1fdf1d89a647b61d2ac72d9b97d5bdfac',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -1394,7 +1394,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chrome_mac_universal',
-          'version': 'version:2@156.0.8067.0',
+          'version': 'version:2@157.0.8089.0',
         },
       ],
   },
@@ -1693,7 +1693,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_mac_arm64',
-          'version': 'ye-QltgXBHbqjpKHnZlGtWixRCBp1tryED_dwtVSADMC',
+          'version': 'PAbk8PD20r71hpXq4PklcxbuaqJik-2MAwB_hKNHTL8C',
         },
       ],
   },
@@ -2230,7 +2230,7 @@ deps = {
 
   # For Linux and Chromium OS.
   'src/third_party/cros_system_api': {
-      'url': Var('chromium_git') + '/chromiumos/platform2/system_api.git' + '@' + 'c21834b66e85db8f93d7da9b9173bb640f9a6e51',
+      'url': Var('chromium_git') + '/chromiumos/platform2/system_api.git' + '@' + 'dcf85d78569bf84f9366b495f31bec441d85a40a',
       'condition': 'checkout_linux or checkout_chromeos',
   },
 
@@ -2256,7 +2256,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '80778f586abc56b544e92e5423e71991007c197f',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + 'fc7f87cd11830a428487b6039ebb1df73d199df1',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '173b9b26e8fcbcbe64e1ecbf073a21a96b95c6b1',
@@ -3318,7 +3318,7 @@ deps = {
       'packages': [
         {
           'package': 'skia/tools/goldctl/linux-amd64',
-          'version': 'HIU1GlRir_Ogs1oFupSL6h8h9wdBf-1LqvXEvqfjDZcC',
+          'version': 'ikH_dQq3KWZmWPxatQ8Hz2QtAbKnnGBjzjY2gBZDyFoC',
         },
       ],
       'dep_type': 'cipd',
@@ -3328,7 +3328,7 @@ deps = {
       'packages': [
         {
           'package': 'skia/tools/goldctl/windows-amd64',
-          'version': 'vG5RYUPwc-g4sB9zKx-yvAWIHHDTR28JinTO1i5t1J0C',
+          'version': 'Vif14snoe_-fKcMpj9JsqKN1Evu1iP1H9EJJwd3QVloC',
         },
       ],
       'dep_type': 'cipd',
@@ -3414,7 +3414,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_receiver_app/app',
-        'version': 'eNgPpE00xRAB6pBNtw8nE2I8dnlL8Jy1cm9Kk67CMZwC',
+        'version': 'QC5QcCxlXrPA5--fuaCN1CZN2IyH82-f2Ve1KQsRiVIC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
