@@ -329,6 +329,21 @@
             ]
         }
     ],
+    "AiSubscriptionAvatarRingFollowupAndroid": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "AiSubscriptionAvatarRingFollowup"
+                    ]
+                }
+            ]
+        }
+    ],
     "AiSubscriptionAvatarRingFollowupIOS": [
         {
             "platforms": [
@@ -3200,6 +3215,41 @@
                     },
                     "enable_features": [
                         "BrowserThreadPoolAdjustment"
+                    ]
+                }
+            ]
+        }
+    ],
+    "BrowsingHistoryFilterDropdownPhase1Clank": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "BrowsingHistoryFilterByActor",
+                        "BrowsingHistoryFilterByDevice"
+                    ]
+                }
+            ]
+        }
+    ],
+    "BrowsingHistoryFilterDropdownPhase1Desktop": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "BrowsingHistoryFilterByActor",
+                        "BrowsingHistoryFilterByDevice"
                     ]
                 }
             ]

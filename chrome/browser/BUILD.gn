@@ -1643,6 +1643,7 @@ source_set("core") {
       ":fullscreen",
       "//chrome/app:chrome_exe_main_exports",
       "//chrome/app/theme:chrome_unscaled_resources_grit",
+      "//chrome/browser/device_reauth",
       "//chrome/browser/install_verification:impl",
       "//chrome/browser/os_crypt",
       "//chrome/browser/platform_experience:prefs",
@@ -2038,6 +2039,8 @@ source_set("core") {
       "//chrome/browser/screen_ai:screen_ai_downloader",
       "//chrome/browser/screen_ai:screen_ai_install_state",
       "//chrome/browser/screen_ai:screen_ai_service_router_factory",
+      "//chrome/browser/text_detection",
+      "//services/shape_detection/public/mojom",
     ]
   }
 

@@ -505,7 +505,6 @@
 #include "chromeos/components/quick_answers/public/cpp/quick_answers_prefs.h"
 #include "chromeos/constants/pref_names.h"
 #include "chromeos/ui/wm/fullscreen/pref_names.h"
-#include "components/account_manager_core/chromeos/account_manager.h"
 #include "components/onc/onc_pref_names.h"  // nogncheck
 #include "components/quirks/quirks_manager.h"
 #include "components/user_manager/multi_user/multi_user_sign_in_policy_controller.h"
@@ -1155,6 +1154,8 @@ inline constexpr char kShownCountHistoryEmbeddingsSettingsPromo[] =
 
 // Deprecated 10/2026.
 constexpr char kSupervisedUserSafeSites[] = "profile.managed.safe_sites";
+constexpr char kSupervisedUserManualHosts[] = "profile.managed.manual_hosts";
+constexpr char kSupervisedUserManualUrls[] = "profile.managed.manual_urls";
 
 // Register local state used only for migration (clearing or moving to a new
 // key).
@@ -1641,6 +1642,8 @@ void RegisterProfilePrefsForMigration(
 
   // Deprecated 10/2026.
   registry->RegisterBooleanPref(kSupervisedUserSafeSites, false);
+  registry->RegisterDictionaryPref(kSupervisedUserManualHosts);
+  registry->RegisterDictionaryPref(kSupervisedUserManualUrls);
 }
 
 }  // namespace
@@ -2303,6 +2306,8 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry,
       PrefRegistry::PUBLIC);
   registry->RegisterBooleanPref(policy::policy_prefs::kFloatingWorkspaceEnabled,
                                 false);
+  registry->RegisterBooleanPref(
+      policy::policy_prefs::kSecondaryGoogleAccountSigninAllowed, true);
   ::reporting::RegisterProfilePrefs(registry);
   registry->RegisterBooleanPref(chromeos::prefs::kFloatingSsoEnabled, false);
   registry->RegisterListPref(chromeos::prefs::kFloatingSsoDomainBlocklist);
@@ -2322,7 +2327,6 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry,
   ArcAppListPrefs::RegisterProfilePrefs(registry);
   arc::ArcBootPhaseMonitorBridge::RegisterProfilePrefs(registry);
   ash::AccountAppsAvailability::RegisterPrefs(registry);
-  account_manager::AccountManager::RegisterPrefs(registry);
   ash::ApkWebAppService::RegisterProfilePrefs(registry);
   ash::app_time::AppActivityRegistry::RegisterProfilePrefs(registry);
   ash::app_time::AppTimeController::RegisterProfilePrefs(registry);
@@ -3077,6 +3081,8 @@ void MigrateObsoleteProfilePrefs(PrefService* profile_prefs,
 
   // Added 10/2026.
   profile_prefs->ClearPref(kSupervisedUserSafeSites);
+  profile_prefs->ClearPref(kSupervisedUserManualHosts);
+  profile_prefs->ClearPref(kSupervisedUserManualUrls);
 
   // Please don't delete the following line. It is used by PRESUBMIT.py.
   // END_MIGRATE_OBSOLETE_PROFILE_PREFS

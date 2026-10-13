@@ -11047,6 +11047,11 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kGlicActorSkipScreenshotName,
      flag_descriptions::kGlicActorSkipScreenshotDescription, kOsDesktop,
      FEATURE_VALUE_TYPE(actor::kGlicActorSkipScreenshot)},
+    {"glic-actor-incremental-typing",
+     flag_descriptions::kGlicActorIncrementalTypingName,
+     flag_descriptions::kGlicActorIncrementalTypingDescription,
+     kOsDesktop | kOsAndroid,
+     FEATURE_VALUE_TYPE(features::kGlicActorIncrementalTyping)},
 #if BUILDFLAG(IS_ANDROID)
     {"actor-live-notification", flag_descriptions::kActorLiveNotificationName,
      flag_descriptions::kActorLiveNotificationDescription, kOsAndroid,
@@ -13778,6 +13783,12 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kEnableAiSubscriptionAvatarRingDescription,
      kOsMac | kOsWin | kOsLinux | kOsAndroid,
      FEATURE_VALUE_TYPE(switches::kEnableAiSubscriptionAvatarRing)},
+
+    {"ai-subscription-avatar-ring-followup",
+     flag_descriptions::kAiSubscriptionAvatarRingFollowupName,
+     flag_descriptions::kAiSubscriptionAvatarRingFollowupDescription,
+     kOsMac | kOsWin | kOsLinux | kOsAndroid,
+     FEATURE_VALUE_TYPE(switches::kAiSubscriptionAvatarRingFollowup)},
 
     {"force-ai-subscription-tier",
      flag_descriptions::kForceAiSubscriptionTierName,

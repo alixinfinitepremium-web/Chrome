@@ -149,7 +149,7 @@ uploading your change for review.  These are checked by presubmit scripts.
 
 <enum name="ActivationList">
   <int value="0" label="No match"/>
-  <int value="1" label="Social Eng Ads Interstitial"/>
+  <int value="1" label="(Deprecated) Social Eng Ads Interstitial"/>
   <int value="2" label="Phishing Interstitial"/>
   <int value="3" label="(Deprecated) Subresource Filter"/>
   <int value="4" label="Better Ads Standard"/>
@@ -8371,6 +8371,7 @@ from previous Chrome versions.
       label="OmniboxGroupSuggestionsBySearchVsUrl:enabled"/>
   <int value="-1996087238" label="kAutofillEnableOffersInDownstream:enabled"/>
   <int value="-1995534832" label="DownloadProgressMessage:disabled"/>
+  <int value="-1995483968" label="GlicActorIncrementalTyping:disabled"/>
   <int value="-1995434464"
       label="ContextualTasksSidePanelRearchitecture:disabled"/>
   <int value="-1993967111" label="EnableRuntimeCountersTelemetry:enabled"/>
@@ -11569,6 +11570,7 @@ from previous Chrome versions.
   <int value="-1030530357" label="PwaInstallUseBottomSheet:disabled"/>
   <int value="-1030513821" label="DetectedSourceLanguageOption:disabled"/>
   <int value="-1030243491" label="ScalableIphDebug:disabled"/>
+  <int value="-1030183141" label="AiSubscriptionAvatarRingFollowup:enabled"/>
   <int value="-1029920490" label="IdleTimeSpellChecking:enabled"/>
   <int value="-1029870247" label="LockTopControlsOnLargeTabletsV2:enabled"/>
   <int value="-1028733699" label="MacViewsWebUIDialogs:disabled"/>
@@ -16426,6 +16428,7 @@ from previous Chrome versions.
       label="AutofillEnableCardInfoRuntimeRetrieval:enabled"/>
   <int value="437686060"
       label="AndroidForceTextInputStateUpdateUponFocus:disabled"/>
+  <int value="438039763" label="GlicActorIncrementalTyping:enabled"/>
   <int value="438220199"
       label="ReduceUserAgentDataLinuxPlatformVersion:enabled"/>
   <int value="438307192" label="FirstPartySets:disabled"/>
@@ -20513,6 +20516,7 @@ from previous Chrome versions.
   <int value="1673776797"
       label="ThrottleDisplayNoneAndVisibilityHiddenCrossOriginIframes:disabled"/>
   <int value="1673943701" label="UseSCContentSharingPicker:disabled"/>
+  <int value="1674774651" label="AiSubscriptionAvatarRingFollowup:disabled"/>
   <int value="1674803174"
       label="AddEduAccountFromAccountSettingsForSupervisedUsers:disabled"/>
   <int value="1675683700" label="PartitionVisitedLinkDatabase:enabled"/>

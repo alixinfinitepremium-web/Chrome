@@ -143,6 +143,11 @@
     "expiry_milestone": 175
   },
   {
+    "name": "ai-subscription-avatar-ring-followup",
+    "owners": [ "quacksort@google.com", "chrome-signin-team@google.com" ],
+    "expiry_milestone": 175
+  },
+  {
     "name": "ai-subscription-avatar-ring-ios",
     "owners": [
       "arthurmilchior@google.com",
@@ -5709,6 +5714,16 @@
     "owners": [
       "jacobstanley@google.com",
       "koilos@google.com"
+    ],
+    "expiry_milestone": 160
+  },
+  {
+    "name": "glic-actor-incremental-typing",
+    "owners": [
+      "yuhengh@google.com",
+      "ndestin@google.com",
+      "weiguo@google.com",
+      "//chrome/browser/actor/OWNERS"
     ],
     "expiry_milestone": 160
   },

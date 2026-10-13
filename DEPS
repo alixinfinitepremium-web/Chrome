@@ -548,7 +548,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
-  'compiler_rt_revision': '745ff42c0ef36daa46b309fb0de9b85bea856f54',
+  'compiler_rt_revision': 'e885b0b65f349491f18e1a30aabe1232d8b327b1',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling clusterfuzz-data
   # and whatever else without interference from each other.
@@ -1682,7 +1682,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_mac_amd64',
-          'version': '0ccmucdPLujvO6PyjgVOW459nOJgx4B_Ck7Tf0YgZhsC',
+          'version': 'AiKiZF8C7MI91otMdCHlyFYiDwLwdxNvRWeIzCslgioC',
         },
       ],
   },
@@ -1763,7 +1763,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '8fdc526e1cbbc3a6e01f1813695856650b9374b5',
+    'faac95a27dac76372ab3cfd630556ee48c8455bf',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -3425,7 +3425,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_app/app',
-        'version': '0TyLLcDc2g6R81J-dRWu9w4PeheC7U5mLM9UeBe6SBcC',
+        'version': 'GSXaEIQ0fmKoP4HIikpoQdnc4F-Ip3Q0CgkxjlfEfPIC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3902,7 +3902,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        'ce6beacdf2db343f0fac94942b646c3a4ebeb68a',
+        '871d9084332ae3a980bfe37b77b90e1d271b7eac',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
