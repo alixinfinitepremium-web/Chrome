@@ -1480,6 +1480,7 @@ crbug.com/73609 http/tests/media/video-play-stall.html [ Failure Pass Timeout ]
 
 # crbug.com/1218715 This fails when PartitionConnectionsByNetworkIsolationKey is enabled.
 crbug.com/1218715 external/wpt/content-security-policy/reporting-api/reporting-api-works-on-frame-ancestors.https.sub.html [ Failure ]
+crbug.com/1218715 wpt_internal/content-security-policy/reporting-api/reporting-api-works-on-frame-ancestors.https.sub.html [ Failure ]
 
 # Sheriff 2021-05-25
 
@@ -5725,7 +5726,6 @@ crbug.com/1344652 [ Mac ] external/wpt/webmessaging/with-ports/020.html [ Failur
 
 # Sheriff 2022-07-18
 crbug.com/1345192 accessibility/aria-combo-box-with-delay-add.html [ Crash Failure Pass Timeout ]
-crbug.com/1345235 external/wpt/content-security-policy/style-src/stylehash-basic-blocked.sub.html [ Crash Failure Pass Timeout ]
 
 # Sheriff 2022-07-26
 crbug.com/1347459 [ Fuchsia ] fast/css3-text/css3-text-decoration/text-decoration-style-inherit-links.html [ Crash Failure Pass Timeout ]
@@ -6356,9 +6356,6 @@ crbug.com/1431272 crbug.com/449283206 external/wpt/cookies/attributes/domain.sub
 crbug.com/1432763 [ Linux ] external/wpt/fetch/metadata/generated/element-picture.https.sub.html [ Crash Pass Timeout ]
 
 
-# Sheriff 2023-04-21
-crbug.com/1426534 wpt_internal/content-security-policy/reporting-api/reporting-api-works-on-frame-ancestors.https.sub.html [ Failure Pass ]
-
 # Fix importer 2023-04-28
 crbug.com/1502709 external/wpt/html/browsers/browsing-the-web/navigating-across-documents/replace-before-load/form-submit-cross-frame.html [ Failure Pass ]
 
@@ -6894,7 +6891,6 @@ crbug.com/374090995 [ Mac14-arm64 ] fast/webgl/offscreenCanvas-transferToImageBi
 [ Debug Mac14 ] editing/selection/editable-links.html [ Failure Pass ]
 [ Debug Mac14 ] external/wpt/clipboard-apis/async-html-script-removal.https.html [ Failure Pass ]
 [ Debug Mac14 ] external/wpt/clipboard-apis/async-write-blobs-read-blobs.https.html [ Failure Pass ]
-[ Debug Mac14 ] external/wpt/content-security-policy/inheritance/sandboxed-data-scheme.html [ Failure Pass ]
 [ Debug Mac14 ] external/wpt/css/css-contain/content-visibility/content-visibility-with-top-layer-008.html [ Failure Pass ]
 [ Debug Mac14 ] external/wpt/html/anonymous-iframe/embedding.tentative.https.window.html?10-10 [ Failure ]
 [ Debug Mac14 ] external/wpt/html/anonymous-iframe/embedding.tentative.https.window.html?13-last [ Failure ]
@@ -8300,7 +8296,6 @@ crbug.com/441912460 [ Mac ] external/wpt/webrtc-stats/video-psnr.https.html [ Sk
 crbug.com/440374233 [ Mac ] external/wpt/html/editing/dnd/drop/002.xhtml [ Timeout ]
 
 # Gardener 2025-08-18
-crbug.com/439456643 [ Linux ] external/wpt/content-security-policy/parsing/invalid-bytes.html [ Failure Timeout ]
 crbug.com/428101918 [ Linux ] external/wpt/service-workers/service-worker/same-site-cookies.https.html [ Failure Timeout ]
 crbug.com/395962971 [ Linux ] external/wpt/webdriver/tests/bidi/browsing_context/navigate/navigate_beforeunload.py [ Failure Timeout ]
 crbug.com/439269634 [ Linux ] external/wpt/webdriver/tests/classic/execute_script/arguments.py [ Failure ]
