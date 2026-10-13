@@ -5311,6 +5311,24 @@
             ]
         }
     ],
+    "CriticalActionsHistory": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled_20261009",
+                    "enable_features": [
+                        "CriticalActionHistory"
+                    ]
+                }
+            ]
+        }
+    ],
     "CrosBatterySaver": [
         {
             "platforms": [
@@ -7618,6 +7636,23 @@
                     "name": "Enabled",
                     "enable_features": [
                         "FeedSignedOutViewDemotion"
+                    ]
+                }
+            ]
+        }
+    ],
+    "FeedbackDisabledDialog": [
+        {
+            "platforms": [
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "FeedbackDisabledDialog"
                     ]
                 }
             ]
@@ -15528,6 +15563,24 @@
                     "enable_features": [
                         "SearchEngineExplicitChoiceDialog",
                         "SearchEngineUnconditionalDialog"
+                    ]
+                }
+            ]
+        }
+    ],
+    "SearchPrefetchHighPriorityPrefetches": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "SearchNavigationPrefetch"
                     ]
                 }
             ]

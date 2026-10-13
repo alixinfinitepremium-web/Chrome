@@ -160,6 +160,7 @@
 #include "third_party/blink/renderer/platform/heap/member.h"
 #include "third_party/blink/renderer/platform/runtime_enabled_features.h"
 #include "third_party/blink/renderer/platform/scheduler/public/post_cross_thread_task.h"
+#include "third_party/blink/renderer/platform/scheduler/public/thread_scheduler.h"
 #include "third_party/blink/renderer/platform/wtf/cross_thread_functional.h"
 #include "third_party/blink/renderer/platform/wtf/functional.h"
 #include "third_party/blink/renderer/platform/wtf/text/format.h"
@@ -956,24 +957,65 @@ scoped_refptr<StaticBitmapImage> WebGLRenderingContextBase::GetImage() {
                              gpu::SHARED_IMAGE_USAGE_RASTER_WRITE |
                              gpu::SHARED_IMAGE_USAGE_DISPLAY_READ;
 
-  std::unique_ptr<CanvasNon2DResourceProvider> resource_provider;
   if (SharedGpuContext::IsGpuCompositingEnabled()) {
+    base::WeakPtr<WebGraphicsContext3DProviderWrapper> shared_context_wrapper =
+        SharedGpuContext::ContextProviderWrapper();
     // Create an accelerated CRP in order to produce an accelerated snapshot.
-    resource_provider = CanvasNon2DResourceProvider::Create(
+    auto resource_provider = CanvasNon2DResourceProvider::Create(
         size, GetSharedImageFormat(), GetAlphaType(), GetColorSpace(),
+        drawing_buffer_tone_mapping_hdr_metadata_, shared_context_wrapper,
+        shared_image_usages);
+    if (!resource_provider) {
+      return nullptr;
+    }
+
+    gpu::raster::RasterInterface* raster_interface =
+        shared_context_wrapper->ContextProvider().RasterInterface();
+    auto client_si = resource_provider->resource()->GetSharedImage();
+    gpu::SyncToken sync_token =
+        resource_provider->resource()->acquire_sync_token();
+    auto access = client_si->BeginRasterAccess(raster_interface, sync_token,
+                                               /*readonly=*/false);
+    sync_token = gpu::RasterScopedAccess::EndAccess(std::move(access));
+    client_si->UpdateDestructionSyncToken(sync_token);
+
+    // TODO(xlai): Flush should not be necessary if the synchronization in
+    // CopyToPlatformTexture is done correctly. See crbug.com/794706.
+    raster_interface->Flush();
+
+    std::optional<gpu::SyncToken> external_sync_token =
+        GetDrawingBuffer()->CopyToPlatformSharedImage(
+            raster_interface, client_si, sync_token, kBackBuffer);
+    if (!external_sync_token) {
+      return nullptr;
+    }
+    sync_token = external_sync_token.value();
+    if (!shared_context_wrapper->ContextProvider().IsContextLost()) {
+      auto post_write_access = client_si->BeginRasterAccess(
+          raster_interface, sync_token, /*readonly=*/true);
+      sync_token =
+          gpu::RasterScopedAccess::EndAccess(std::move(post_write_access));
+      client_si->UpdateDestructionSyncToken(sync_token);
+    }
+    if (shared_context_wrapper->ContextProvider().IsContextLost()) {
+      return nullptr;
+    }
+
+    auto release_callback = blink::BindOnce(
+        [](scoped_refptr<gpu::ClientSharedImage> shared_image,
+           const gpu::SyncToken& sync_token, bool is_lost) {
+          if (sync_token.HasData()) {
+            shared_image->UpdateDestructionSyncToken(sync_token);
+          }
+        },
+        client_si);
+
+    return AcceleratedStaticBitmapImage::CreateFromCanvasSharedImage(
+        std::move(client_si), sync_token, GetAlphaType(),
         drawing_buffer_tone_mapping_hdr_metadata_,
-        SharedGpuContext::ContextProviderWrapper(), shared_image_usages);
-
-    if (!resource_provider || !resource_provider->IsValid()) {
-      return nullptr;
-    }
-
-    bool copy_succeeded = CopyRenderingResultsFromDrawingBufferAccelerated(
-        resource_provider.get(), kBackBuffer);
-    if (!copy_succeeded) {
-      return nullptr;
-    }
-    return resource_provider->Snapshot();
+        std::move(shared_context_wrapper), base::PlatformThread::CurrentRef(),
+        ThreadScheduler::Current()->CleanupTaskRunner(),
+        std::move(release_callback));
   } else {
     // Match the SBI configuration to that produced when using GPU compositing:
     // N32 and premul (as set by
