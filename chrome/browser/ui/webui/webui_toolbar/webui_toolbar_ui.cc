@@ -322,9 +322,7 @@ WebUIToolbarConfig::WebUIToolbarConfig()
 
 bool WebUIToolbarConfig::IsWebUIEnabled(
     content::BrowserContext* browser_context) {
-  return features::IsWebUIToolbarEnabled() ||
-         base::FeatureList::IsEnabled(
-             features::kWebUIToolbarProcessOverheadExperiment);
+  return features::IsWebUIToolbarEnabled();
 }
 
 bool WebUIToolbarConfig::ShouldKeepVisibleUntilFirstVisuallyNonEmptyPaint() {
@@ -619,7 +617,6 @@ WebUIToolbarUI::GetKnownElementIdentifiers() {
             kPinnedToolbarActionShowSidePanelBookmarksElementId,
             kPinnedToolbarActionShowSidePanelContextualTasksElementId,
             kPinnedToolbarActionSendTabToSelfElementId,
-            kPinnedToolbarActionTtcElementId,
             kToolbarAvatarButtonElementId,
             kGlicButtonElementId,
             kToolbarPerformanceInterventionButtonElementId,
