@@ -1872,6 +1872,12 @@ inline constexpr char kActorObservePageContentDefaultDescription[] =
     "If enabled, the actor framework will capture page content by default when "
     "requested.";
 
+inline constexpr char kActorPageStabilityName[] = "Actor page stability";
+inline constexpr char kActorPageStabilityDescription[] =
+    "Overrides how long the actor waits for the page to stabilize after an "
+    "action: the minimum wait and the initial and subsequent paint timeouts. "
+    "Each defaults to 1s.";
+
 inline constexpr char kActorScriptToolSkipScreenshotName[] =
     "Actor script tool skip screenshot";
 inline constexpr char kActorScriptToolSkipScreenshotDescription[] =
@@ -1887,6 +1893,14 @@ inline constexpr char kActorStepProgressNotificationName[] =
 inline constexpr char kActorStepProgressNotificationDescription[] =
     "Enables streaming Actor task step progress worklog notification updates "
     "on Android.";
+
+inline constexpr char kActorTypeToolObservationStartDelayName[] =
+    "Actor type tool observation start delay";
+inline constexpr char kActorTypeToolObservationStartDelayDescription[] =
+    "Controls how long the actor waits after a type action before it starts "
+    "waiting for the page to stabilize. Defaults to 1s; Disabled removes the "
+    "delay.";
+
 inline constexpr char kGlicCaptureRegionDescription[] =
     "Enables Glic to capture a region of the screen.";
 inline constexpr char kGlicCaptureRegionName[] = "Glic Capture Region";
@@ -6226,8 +6240,10 @@ inline constexpr char kWebAppShortEdgesCutoutModeDescription[] =
     "When enabled, installed fullscreen PWAs can draw into display cutouts "
     "on Android. Standalone PWAs only opt in to edge-to-edge with "
     "viewport-fit=cover with the \"Enabled (Standalone also enabled)\" "
-    "option, which sets the enable_standalone feature parameter. This flag "
-    "and its parameter are cached, so changes apply after restarting "
+    "option, which sets the enable_standalone feature parameter. Trusted "
+    "Web Activities additionally require the \"Enabled (TWA also "
+    "enabled)\" options, which set the enable_twa feature parameter. This "
+    "flag and its parameters are cached, so changes apply after restarting "
     "Chrome twice.";
 
 inline constexpr char kEnableAccessibilityLabeledByName[] =
@@ -6681,6 +6697,12 @@ inline constexpr char kTabClosureMethodRefactorName[] =
 inline constexpr char kTabClosureMethodRefactorDescription[] =
     "Enables the refactored changes for tab closure methods where existing "
     "methods usages are switched off and newly introduced are made active.";
+
+inline constexpr char kTabGroupActionsSubmenusName[] =
+    "Tab Group Actions Submenus";
+inline constexpr char kTabGroupActionsSubmenusDescription[] =
+    "Enables action items and section header in tab group submenus in the "
+    "app menu.";
 
 inline constexpr char kTabOpenerTrackingName[] = "Tab Opener Tracking";
 inline constexpr char kTabOpenerTrackingDescription[] =

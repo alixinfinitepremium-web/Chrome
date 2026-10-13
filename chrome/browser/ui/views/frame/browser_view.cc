@@ -914,9 +914,10 @@ BrowserView::BrowserView(BrowserWindowInterface* browser)
   // `create_params` to enable/disable specific size controls.
   if (IsRunningInForcedAppMode()) {
     SetHasWindowSizeControls(false);
-  } else if (GetIsPictureInPictureType()) {
-    // Picture in picture windows must always have a title, can never minimize,
-    // and can never maximize regardless of what the params say.
+  } else if (GetIsFloatingType()) {
+    // Picture in picture and always-on-top popup windows must always have a
+    // title, can never minimize, and can never maximize regardless of what the
+    // params say.
     SetShowTitle(true);
     SetCanMinimize(false);
     SetCanMaximize(false);
@@ -1550,9 +1551,12 @@ bool BrowserView::GetIsWebAppType() const {
   return web_app::AppBrowserController::IsWebApp(browser_.get());
 }
 
+bool BrowserView::GetIsFloatingType() const {
+  return browser_->GetType() == BrowserWindowInterface::Type::TYPE_FLOATING;
+}
+
 bool BrowserView::GetIsPictureInPictureType() const {
-  return browser_->GetType() ==
-         BrowserWindowInterface::Type::TYPE_PICTURE_IN_PICTURE;
+  return browser_->GetType() == BrowserWindowInterface::Type::TYPE_FLOATING;
 }
 
 std::optional<blink::mojom::PictureInPictureWindowOptions>
@@ -4185,18 +4189,8 @@ void BrowserView::OnWidgetActivationChanged(views::Widget* widget,
         restore_focus_on_activation_ = false;
 
         // Set initial focus change on the first activation if there is no
-        // modal dialog, unless the `FocusManager` will restore a stored view
-        // (e.g. one that requested focus while inactive). On Mac that restore
-        // runs after activation observers, so `RestoreFocus()` would override
-        // it.
-        views::FocusManager* focus_manager = GetFocusManager();
-        views::View* requested_view =
-            focus_manager ? focus_manager->GetStoredFocusView() : nullptr;
-        const bool has_pending_focus_request = requested_view &&
-                                               requested_view->IsFocusable() &&
-                                               !focus_manager->GetFocusedView();
-        if (!WidgetHasChildModalDialog(GetWidget()) &&
-            !has_pending_focus_request) {
+        // modal dialog.
+        if (!WidgetHasChildModalDialog(GetWidget())) {
           RestoreFocus();
         }
       }

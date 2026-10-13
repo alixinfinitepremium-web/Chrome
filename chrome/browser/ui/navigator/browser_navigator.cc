@@ -40,7 +40,6 @@
 #include "chrome/browser/ui/navigator/browser_navigator_params_utils.h"
 #include "chrome/browser/ui/singleton_tabs.h"
 #include "chrome/browser/ui/status_bubble.h"
-#include "chrome/browser/ui/tab_helpers.h"
 #include "chrome/browser/ui/tabs/split_tab_metrics.h"
 #include "chrome/browser/ui/tabs/tab_enums.h"
 #include "chrome/browser/ui/tabs/tab_strip_model.h"
@@ -750,10 +749,9 @@ base::WeakPtr<content::NavigationHandle> NavigateImpl(
   // that there's a pip window.
   if (params->disposition == WindowOpenDisposition::NEW_PICTURE_IN_PICTURE) {
     // Picture in picture windows may not be opened by other picture in
-    // picture windows, or without an opener.
-    if (!params->browser ||
-        params->browser->GetType() ==
-            BrowserWindowInterface::Type::TYPE_PICTURE_IN_PICTURE) {
+    // picture or floating windows, or without an opener.
+    if (!params->browser || params->browser->GetType() ==
+                                BrowserWindowInterface::Type::TYPE_FLOATING) {
       params->browser = nullptr;
       return nullptr;
     }

@@ -10284,6 +10284,34 @@
             ]
         }
     ],
+    "IOSSnapshotOptimization": [
+        {
+            "platforms": [
+                "ios"
+            ],
+            "experiments": [
+                {
+                    "name": "All_Enabled",
+                    "enable_features": [
+                        "SnapshotBackgroundDecode",
+                        "SnapshotConcurrentAccess"
+                    ]
+                },
+                {
+                    "name": "BackgroundDecodeEnabled",
+                    "enable_features": [
+                        "SnapshotBackgroundDecode"
+                    ]
+                },
+                {
+                    "name": "ConcurrentAccessEnabled",
+                    "enable_features": [
+                        "SnapshotConcurrentAccess"
+                    ]
+                }
+            ]
+        }
+    ],
     "IOSTabResumptionShopCard": [
         {
             "platforms": [
@@ -17678,27 +17706,6 @@
                     "name": "Enabled",
                     "enable_features": [
                         "ChromeOsUseConsentLevelSigninForNewUsers"
-                    ]
-                }
-            ]
-        }
-    ],
-    "UnoPhase2ChromeOSInfra": [
-        {
-            "platforms": [
-                "chromeos"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "EnablePreferencesAccountStorage",
-                        "ReadingListEnableSyncTransportModeUponSignIn",
-                        "ReplaceSyncPromosWithSignInPromos",
-                        "SeparateLocalAndAccountSearchEngines",
-                        "SeparateLocalAndAccountThemes",
-                        "SpellcheckSeparateLocalAndAccountDictionaries",
-                        "SyncEnableBookmarksInTransportMode"
                     ]
                 }
             ]

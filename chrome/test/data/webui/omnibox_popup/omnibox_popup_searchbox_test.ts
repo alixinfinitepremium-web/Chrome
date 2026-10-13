@@ -6,11 +6,12 @@ import {isMac} from '//resources/js/platform.js';
 import {OmniboxEscapeAction, omniboxPopupBrowserProxyFactory, OmniboxPopupPageHandlerRemote, sanitizeTextForPaste, SearchboxBrowserProxy, stripJavascriptSchemas, UrlDeemphasisMode} from 'chrome://omnibox-popup.top-chrome/omnibox_popup.js';
 import type {OmniboxInputState, OmniboxPopupContextualEntrypointButtonElement, OmniboxPopupPageRemote, OmniboxPopupSearchboxElement, UrlEmphasis} from 'chrome://omnibox-popup.top-chrome/omnibox_popup.js';
 import {KeywordModeEntryMethod} from 'chrome://resources/cr_components/searchbox/keyword_mode_manager.js';
-import {createAutocompleteResultForTesting, createMatchKeywordModelForTesting, createSearchMatchForTesting, createSuggestTemplateInfo} from 'chrome://resources/cr_components/searchbox/searchbox_browser_proxy.js';
+import {createAutocompleteResultForTesting, createMatchKeywordModelForTesting, createSearchMatchForTesting} from 'chrome://resources/cr_components/searchbox/searchbox_browser_proxy.js';
 import {loadTimeData} from 'chrome://resources/js/load_time_data.js';
 import {KeywordType, RenderType, SelectionDirection, SelectionLineState, SelectionStep, SideType} from 'chrome://resources/mojo/components/omnibox/browser/searchbox.mojom-webui.js';
 import type {TabInfo} from 'chrome://resources/mojo/components/omnibox/browser/searchbox.mojom-webui.js';
 import {assertDeepEquals, assertEquals, assertFalse, assertNotReached, assertTrue} from 'chrome://webui-test/chai_assert.js';
+import {createSuggestTemplateInfo} from 'chrome://webui-test/cr_components/searchbox/searchbox_test_utils.js';
 import {TestMock} from 'chrome://webui-test/test_mock.js';
 import {$$, isVisible, microtasksFinished} from 'chrome://webui-test/test_util.js';
 
@@ -75,6 +76,31 @@ function createDefaultOmniboxInputState(overrides?: Partial<OmniboxInputState>):
     unelidedUrlEmphasis: null,
     ...overrides,
   };
+}
+
+// Returns how far `offset` is from the start of `input`'s text, measured with
+// the input's font. Only valid for LTR text.
+function getTextOffsetLeft(
+    input: HTMLInputElement|HTMLTextAreaElement, offset: number): number {
+  const style = getComputedStyle(input);
+  const context = document.createElement('canvas').getContext('2d')!;
+  context.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+  return context.measureText(input.value.substring(0, offset)).width;
+}
+
+// Asserts that `offset` is inside the part of `input` that is scrolled into
+// view, allowing 1px for rounding.
+function assertTextOffsetVisible(
+    input: HTMLInputElement|HTMLTextAreaElement, offset: number) {
+  const style = getComputedStyle(input);
+  const visibleWidth = input.clientWidth - parseFloat(style.paddingLeft) -
+      parseFloat(style.paddingRight);
+  const offsetLeft = getTextOffsetLeft(input, offset);
+  assertTrue(
+      offsetLeft >= input.scrollLeft - 1 &&
+          offsetLeft <= input.scrollLeft + visibleWidth + 1,
+      `offset at ${offsetLeft}px is outside the visible ${
+          input.scrollLeft}px to ${input.scrollLeft + visibleWidth}px`);
 }
 
 const kDefaultSelection = {
@@ -938,6 +964,155 @@ suite('OmniboxPopupSearchboxTest', function() {
     assertEquals(
         inputElement.scrollWidth - inputElement.clientWidth,
         inputElement.scrollLeft);
+  });
+
+  test('SetInputStateScrollsBackToTextStart', async () => {
+    const text = 'abcdefghij'.repeat(40);
+    const input = searchbox.$.input.inputElement;
+    callbackRouter.setInputState(createDefaultOmniboxInputState({
+      text,
+      selection: {start: text.length, end: text.length},
+      isFocused: true,
+    }));
+    await microtasksFinished();
+    assertTrue(input.scrollLeft > 0);
+
+    // A drag in the unfocused native omnibox from near the start past its
+    // elided end. The native omnibox kept showing the start of the text.
+    callbackRouter.setInputState(createDefaultOmniboxInputState({
+      sequenceNumber: 2,
+      text,
+      selection: {start: 5, end: text.length},
+      isFocused: true,
+    }));
+    await microtasksFinished();
+
+    assertEquals(5, input.selectionStart);
+    assertEquals(text.length, input.selectionEnd);
+    assertEquals(0, input.scrollLeft);
+  });
+
+  test('SetInputStateKeepsTextStartOnFirstFocus', async () => {
+    // The first handoff from native Views focuses the input and applies the
+    // range in the same update.
+    const text = 'abcdefghij'.repeat(80);
+    const input = searchbox.$.input.inputElement;
+    callbackRouter.setInputState(createDefaultOmniboxInputState({
+      text,
+      selection: {start: 5, end: text.length},
+      isFocused: true,
+    }));
+    await microtasksFinished();
+
+    assertEquals(5, input.selectionStart);
+    assertEquals(text.length, input.selectionEnd);
+    assertEquals(0, input.scrollLeft);
+  });
+
+  test('SetInputStateScrollsToSelectionStart', async () => {
+    const text = 'abcdefghij'.repeat(40);
+    const input = searchbox.$.input.inputElement;
+    callbackRouter.setInputState(createDefaultOmniboxInputState({
+      text,
+      selection: {start: 0, end: 0},
+      isFocused: true,
+    }));
+    await microtasksFinished();
+    assertTrue(input.scrollWidth > input.clientWidth);
+    assertEquals(0, input.scrollLeft);
+
+    // A range that starts past the first screenful of text.
+    const start = text.length - 20;
+    const end = text.length - 10;
+    callbackRouter.setInputState(createDefaultOmniboxInputState({
+      sequenceNumber: 2,
+      text,
+      selection: {start, end},
+      isFocused: true,
+    }));
+    await microtasksFinished();
+
+    assertEquals(start, input.selectionStart);
+    assertEquals(end, input.selectionEnd);
+    assertTextOffsetVisible(input, start);
+    // Scroll only as far as the selection start needs.
+    assertTrue(input.scrollLeft < input.scrollWidth - input.clientWidth);
+  });
+
+  test('SetInputStateKeepsBackwardSelection', async () => {
+    const text = 'abcdefghij'.repeat(40);
+    const input = searchbox.$.input.inputElement;
+    callbackRouter.setInputState(createDefaultOmniboxInputState({
+      text,
+      selection: {start: text.length, end: text.length},
+      isFocused: true,
+    }));
+    await microtasksFinished();
+    assertTrue(input.scrollLeft > 0);
+
+    // A right-to-left range near the start. The caret (`end`) comes before the
+    // anchor (`start`), as in a native `gfx::Range`.
+    callbackRouter.setInputState(createDefaultOmniboxInputState({
+      sequenceNumber: 2,
+      text,
+      selection: {start: 15, end: 5},
+      isFocused: true,
+    }));
+    await microtasksFinished();
+
+    assertEquals(5, input.selectionStart);
+    assertEquals(15, input.selectionEnd);
+    assertEquals('backward', input.selectionDirection);
+    assertEquals(0, input.scrollLeft);
+  });
+
+  test('SetInputStateScrollsFocusedSelectAllToTextStart', async () => {
+    const text = 'abcdefghij'.repeat(80);
+    const input = searchbox.$.input.inputElement;
+    callbackRouter.setInputState(createDefaultOmniboxInputState({
+      text,
+      selection: {start: text.length, end: text.length},
+      isFocused: true,
+    }));
+    await microtasksFinished();
+    assertTrue(input.scrollLeft > 0);
+
+    // A native select-all, which is right-to-left so the start stays in view.
+    callbackRouter.setInputState(createDefaultOmniboxInputState({
+      sequenceNumber: 2,
+      text,
+      selection: {start: text.length, end: 0},
+      isFocused: true,
+    }));
+    await microtasksFinished();
+
+    assertEquals(0, input.selectionStart);
+    assertEquals(text.length, input.selectionEnd);
+    assertEquals(0, input.scrollLeft);
+  });
+
+  test('SetInputStateDoesNotScrollVisibleSelection', async () => {
+    const text = 'abcdefghij'.repeat(40);
+    const input = searchbox.$.input.inputElement;
+    callbackRouter.setInputState(createDefaultOmniboxInputState({
+      text,
+      selection: {start: 0, end: 0},
+      isFocused: true,
+    }));
+    await microtasksFinished();
+    assertEquals(0, input.scrollLeft);
+
+    callbackRouter.setInputState(createDefaultOmniboxInputState({
+      sequenceNumber: 2,
+      text,
+      selection: {start: 2, end: 8},
+      isFocused: true,
+    }));
+    await microtasksFinished();
+
+    assertEquals(2, input.selectionStart);
+    assertEquals(8, input.selectionEnd);
+    assertEquals(0, input.scrollLeft);
   });
 
   test('HandlesCopy', async () => {
@@ -3212,7 +3387,7 @@ suite('OmniboxPopupSearchboxTest', function() {
          searchbox.result!.matches[1], searchbox.$.input.selectedMatch);
      assertEquals(
          'example query',
-         searchbox.$.input.selectedMatch?.suggestTemplate.primaryText);
+         searchbox.$.input.selectedMatch?.suggestTemplate.primaryText.text);
 
      // When navigating to match 0, input's selectedMatch should be match 0.
      searchbox.selectedMatchIndex = 0;
@@ -3221,7 +3396,7 @@ suite('OmniboxPopupSearchboxTest', function() {
          searchbox.result!.matches[0], searchbox.$.input.selectedMatch);
      assertEquals(
          'example.com',
-         searchbox.$.input.selectedMatch?.suggestTemplate.primaryText);
+         searchbox.$.input.selectedMatch?.suggestTemplate.primaryText.text);
 
      // When navigating back to unselected, input's selectedMatch should return
      // to null.
@@ -3266,7 +3441,7 @@ suite('OmniboxPopupSearchboxTest', function() {
          searchbox.result!.matches[0], searchbox.$.input.selectedMatch);
      assertEquals(
          'example.com',
-         searchbox.$.input.selectedMatch?.suggestTemplate.primaryText);
+         searchbox.$.input.selectedMatch?.suggestTemplate.primaryText.text);
 
      searchbox.clearAutocompleteMatches();  // Closes the popup, as Esc does.
      await microtasksFinished();
@@ -3319,7 +3494,7 @@ suite('OmniboxPopupSearchboxTest', function() {
          await microtasksFinished();
          assertEquals(
              'example.com',
-             searchbox.$.input.selectedMatch?.suggestTemplate.primaryText);
+             searchbox.$.input.selectedMatch?.suggestTemplate.primaryText.text);
 
          // Defocus / blur the omnibox (handleFocusLost_ clears autocomplete
          // matches).
@@ -3335,7 +3510,7 @@ suite('OmniboxPopupSearchboxTest', function() {
          // user input is still in progress.
          assertEquals(
              'example.com',
-             searchbox.$.input.selectedMatch?.suggestTemplate.primaryText);
+             searchbox.$.input.selectedMatch?.suggestTemplate.primaryText.text);
 
          // When reverting (user input is no longer in progress), selectedMatch
          // for input is cleared.

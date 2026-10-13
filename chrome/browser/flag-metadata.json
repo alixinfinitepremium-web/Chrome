@@ -75,6 +75,16 @@
     "expiry_milestone": 170
   },
   {
+    "name": "actor-page-stability",
+    "owners": [
+      "yuhengh@google.com",
+      "ndestin@google.com",
+      "weiguo@google.com",
+      "//chrome/browser/actor/OWNERS"
+    ],
+    "expiry_milestone": 160
+  },
+  {
     "name": "actor-script-tool-skip-page-content",
     "owners": [
       "mfoltz@chromium.org",
@@ -99,6 +109,16 @@
     "name": "actor-step-progress-notification",
     "owners": [
       "bbetini@google.com",
+      "//chrome/browser/actor/OWNERS"
+    ],
+    "expiry_milestone": 160
+  },
+  {
+    "name": "actor-type-tool-observation-start-delay",
+    "owners": [
+      "yuhengh@google.com",
+      "ndestin@google.com",
+      "weiguo@google.com",
       "//chrome/browser/actor/OWNERS"
     ],
     "expiry_milestone": 160
@@ -3512,7 +3532,7 @@
       "skavuluru@google.com",
       "twellington@chromium.org"
     ],
-    "expiry_milestone": 158
+    "expiry_milestone": 164
   },
   {
     "name": "enable-android-side-panel-dev-feature",
@@ -8188,7 +8208,7 @@
   {
     "name": "pdf-oopif",
     "owners": [ "andyphan@chromium.org", "//pdf/OWNERS" ],
-    "expiry_milestone": 158
+    "expiry_milestone": 162
   },
   {
     "name": "pdf-portfolio",
@@ -9517,6 +9537,11 @@
   {
     "name": "tab-favicon-chips-to-coins",
     "owners": [ "ananyaseelam@google.com", "chrome-desktop-search@google.com" ],
+    "expiry_milestone": 160
+  },
+  {
+    "name": "tab-group-actions-submenus",
+    "owners": [ "mfiaz@google.com", "clank-tab-dev@google.com" ],
     "expiry_milestone": 160
   },
   {
