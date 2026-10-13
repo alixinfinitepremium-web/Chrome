@@ -5,10 +5,8 @@
 #ifndef CHROME_BROWSER_ACTOR_TOOLS_TOOL_REQUEST_VISITOR_FUNCTOR_H_
 #define CHROME_BROWSER_ACTOR_TOOLS_TOOL_REQUEST_VISITOR_FUNCTOR_H_
 
-#include "chrome/browser/actor/tools/attempt_form_filling_tool_request.h"
-#include "chrome/browser/actor/tools/attempt_otp_filling_tool_request.h"
+#include "chrome/browser/actor/tools/autofill/attempt_form_filling/attempt_form_filling_tool_request.h"
 #include "chrome/browser/actor/tools/bookmark_management_tool_request.h"
-#include "chrome/browser/actor/tools/change_password_tool_request.h"
 #include "chrome/browser/actor/tools/click_tool_request.h"
 #include "chrome/browser/actor/tools/drag_and_release_tool_request.h"
 #include "chrome/browser/actor/tools/file_upload_tool_request.h"
@@ -18,7 +16,9 @@
 #include "chrome/browser/actor/tools/media_control_tool_request.h"
 #include "chrome/browser/actor/tools/move_mouse_tool_request.h"
 #include "chrome/browser/actor/tools/navigate_tool_request.h"
+#include "chrome/browser/actor/tools/one_time_token/attempt_otp_filling_tool_request.h"
 #include "chrome/browser/actor/tools/password_manager/attempt_login/attempt_login_tool_request.h"
+#include "chrome/browser/actor/tools/password_manager/change_password/change_password_tool_request.h"
 #include "chrome/browser/actor/tools/perform_search_tool_request.h"
 #include "chrome/browser/actor/tools/script_tool_request.h"
 #include "chrome/browser/actor/tools/scroll_to_tool_request.h"
