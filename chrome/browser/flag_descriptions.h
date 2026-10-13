@@ -919,6 +919,15 @@ inline constexpr char kAutofillDisableBnplCountryCheckForTestingName[] =
 inline constexpr char kAutofillDisableBnplCountryCheckForTestingDescription[] =
     "Enables testing BNPL in countries where it would otherwise be disabled.";
 
+inline constexpr char
+    kAutofillDisableWalletDirectOffersLocaleCountryCheckForTestingName[] =
+        "Disable the locale and country check for Wallet direct offers testing";
+inline constexpr char
+    kAutofillDisableWalletDirectOffersLocaleCountryCheckForTestingDescription
+        [] = "Enables testing Wallet direct offers with locales and in "
+             "countries where they would otherwise be disabled. Requires "
+             "#autofill-enable-wallet-direct-offers.";
+
 inline constexpr char kAutofillEnableAiBasedAmountExtractionName[] =
     "Enable AI-based checkout amount extraction on Chrome";
 inline constexpr char kAutofillEnableAiBasedAmountExtractionDescription[] =
@@ -2146,10 +2155,10 @@ inline constexpr char kEnableDelegatedCompositingDescription[] =
     "system compositor.";
 
 inline constexpr char kEnableDesktopQrCodeDetectionName[] =
-    "Enable Desktop QR code detection";
+    "Enable payment QR code detection";
 inline constexpr char kEnableDesktopQrCodeDetectionDescription[] =
     "When enabled, QR code detection for facilitated payments will be "
-    "supported on Desktop.";
+    "supported on Desktop and Android.";
 
 inline constexpr char kEnablePixAccountLinkingName[] =
     "Enable Pix account linking";
@@ -2303,6 +2312,11 @@ inline constexpr char kAccessibilityGoogleTtsAutomaticReconnectName[] =
 inline constexpr char kAccessibilityGoogleTtsAutomaticReconnectDescription[] =
     "Automatically attempt to reconnect the Google TTS engine if it "
     "disconnects.";
+
+inline constexpr char kAccessibilityHoverTextName[] = "Hover Text";
+inline constexpr char kAccessibilityHoverTextDescription[] =
+    "Enables the Hover Text accessibility feature, which displays a "
+    "large-print floating text bubble for hovered or focused UI elements.";
 
 inline constexpr char kAccessibilityShakeToLocateName[] =
     "Adds shake cursor to locate feature";
@@ -7510,10 +7524,6 @@ inline constexpr char kAshSplitKeyboardRefactorName[] =
     "Split keyboard refactor";
 inline constexpr char kAshSplitKeyboardRefactorDescription[] =
     "Enable split keyboard refactor on ChromeOS.";
-
-inline constexpr char kAssistantIphName[] = "Assistant IPH";
-inline constexpr char kAssistantIphDescription[] =
-    "Enables showing Assistant IPH on ChromeOS.";
 
 inline constexpr char kAutoFramingOverrideName[] =
     "Auto-framing control override";

@@ -938,7 +938,6 @@ void UndoInSessionSuppressedEntity(
   _atMemoryCoordinator = [[AtMemoryCoordinator alloc]
       initWithBaseViewController:self.baseViewController
                          browser:self.browser
-                 contentInjector:self.injectionHandler
                          fieldId:fieldId];
 
   [self.childCoordinators addObject:_atMemoryCoordinator];
@@ -1118,9 +1117,13 @@ void UndoInSessionSuppressedEntity(
   // Copy the entity because suppressing it evicts it from the
   // `EntityDataManager`, which owns `*entity`.
   const autofill::EntityInstance entityCopy = *entity;
-  suppressionManager->SuppressEntity(entityCopy);
+  const bool suppressed = suppressionManager->SuppressEntity(entityCopy);
   [self resetSuggestions];
-  [self showUndoSnackbarForEntity:entityCopy];
+  // Only offer an undo if this call suppressed the entity, like on the other
+  // platforms.
+  if (suppressed) {
+    [self showUndoSnackbarForEntity:entityCopy];
+  }
 }
 
 // Shows a snackbar allowing the user to undo removing `entity`.
@@ -1138,6 +1141,8 @@ void UndoInSessionSuppressedEntity(
       self.profile ? self.profile->AsWeakPtr() : nullptr;
   autofill::EntityInstance::EntityId entityId = entity.guid();
   action.handler = ^{
+    base::UmaHistogramBoolean(
+        "Autofill.Snackbar.AutofillAiSuppressionUndo.ActionClicked", true);
     UndoInSessionSuppressedEntity(weakProfile, entityId);
     [weakSelf resetSuggestions];
   };
@@ -1148,6 +1153,8 @@ void UndoInSessionSuppressedEntity(
   message.action = action;
 
   [snackbarHandler showSnackbarMessageAfterDismissingKeyboard:message];
+  base::UmaHistogramBoolean("Autofill.Snackbar.AutofillAiSuppressionUndo.Shown",
+                            true);
 }
 
 // Resets suggestions in the form input accessory mediator.

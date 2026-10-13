@@ -296,10 +296,6 @@ void BrowserWindowFeatures::Init(BrowserWindowInterface* browser) {
     }
   }
 
-  bookmarks_side_panel_coordinator_ =
-      GetUserDataFactory().CreateInstance<BookmarksSidePanelCoordinator>(
-          *browser, *browser);
-
   if (breadcrumbs::IsEnabled(g_browser_process->local_state())) {
     breadcrumb_manager_browser_agent_ =
         std::make_unique<BreadcrumbManagerBrowserAgent>(
@@ -425,8 +421,9 @@ void BrowserWindowFeatures::Init(BrowserWindowInterface* browser) {
           *browser, browser, browser->GetProfile());
 
   if (HistorySidePanelCoordinator::IsSupported()) {
-    GetUserDataFactory().CreateInstance<HistorySidePanelCoordinator>(*browser,
-                                                                     browser);
+    history_side_panel_coordinator_ =
+        GetUserDataFactory().CreateInstance<HistorySidePanelCoordinator>(
+            *browser, browser);
   }
 
   // Must be after window_feature_controller_.
@@ -914,6 +911,10 @@ void BrowserWindowFeatures::InitPostWindowConstruction(
         std::make_unique<WebUIBrowserSidePanelUI>(browser);
   }
 
+  bookmarks_side_panel_coordinator_ =
+      GetUserDataFactory().CreateInstance<BookmarksSidePanelCoordinator>(
+          *browser, browser->GetUnownedUserDataHost(), *side_panel_registry_);
+
   if (browser_view) {
     skills_ui_window_controller_ =
         std::make_unique<skills::SkillsUiWindowController>(browser_);
@@ -1188,6 +1189,7 @@ void BrowserWindowFeatures::TearDownPreBrowserWindowDestruction() {
   toast_service_.reset();
   synced_window_delegate_.reset();
   skills_ui_window_controller_.reset();
+  bookmarks_side_panel_coordinator_.reset();
   // TODO(crbug.com/346148093): This logic should not be gated behind a
   // conditional.
   if (side_panel_coordinator_) {
@@ -1255,6 +1257,7 @@ void BrowserWindowFeatures::TearDownPreBrowserWindowDestruction() {
   lens_overlay_entry_point_controller_.reset();
   // Must be before window_feature_controller_ (raw pointer).
   immersive_mode_controller_.reset();
+  history_side_panel_coordinator_.reset();
   history_clusters_side_panel_coordinator_.reset();
   find_bar_controller_.reset();
   extension_installed_watcher_.reset();

@@ -1551,6 +1551,9 @@ are declared in tools/grit/grit_args.gni.
           <message name="IDS_RELAUNCH_TO_UPDATE_ALT_MINOR_TEXT" desc="Minor text for the alternate text label of the relaunch to update Chrome menu item">
             Your tabs will reopen
           </message>
+          <message name="IDS_SCHEDULED_RESTART_MENU_ITEM" desc="The text label of the relaunch later menu item in the 3-dot app menu. Selecting it opens a dialog where the user can schedule Chrome to relaunch later to apply a pending update. &quot;Relaunch&quot; is an imperative verb.">
+            Relaunch later...
+          </message>
         </if>
         <if expr="not use_titlecase">
           <message name="IDS_SHOW_AS_TAB" desc="The text label for the Show As tab menu item">
@@ -10703,6 +10706,9 @@ Keep your key file in a safe place. You will need it to create new versions of y
           <message name="IDS_ORGANIZER_PANEL_EXPAND_ALL" desc="In Title Case: The label for the context menu item in the organizer panel that expands all sections.">
             Expand All
           </message>
+          <message name="IDS_ORGANIZER_PANEL_COLLAPSE_ALL" desc="In Title Case: The label for the context menu item in the organizer panel that collapses all sections.">
+            Collapse All
+          </message>
         </then>
         <else>
           <message name="IDS_VIEW_ORGANIZER_PANEL" desc="The tooltip for the button in the top container that shows the organizer panel.">
@@ -10719,6 +10725,9 @@ Keep your key file in a safe place. You will need it to create new versions of y
           </message>
           <message name="IDS_ORGANIZER_PANEL_EXPAND_ALL" desc="The label for the context menu item in the organizer panel that expands all sections.">
             Expand all
+          </message>
+          <message name="IDS_ORGANIZER_PANEL_COLLAPSE_ALL" desc="The label for the context menu item in the organizer panel that collapses all sections.">
+            Collapse all
           </message>
         </else>
       </if>
