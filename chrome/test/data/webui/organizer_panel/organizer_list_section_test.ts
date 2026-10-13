@@ -152,6 +152,38 @@ suite('OrganizerListSectionTest', () => {
         assertEquals(0, mockHandler.getCallCount('setSectionExpanded'));
       });
 
+  test('expand() expands collapsed section and notifies handler', async () => {
+    mockHandler.setPromiseResolveFor(
+        'getSectionState', {state: {expanded: false, showAll: false}});
+    const items: Array<OrganizerListSectionItem<unknown>> = [
+      {title: ['Tab 1'], description: [{text: 'tab1.com'}]},
+    ];
+    listSection.delegate =
+        new TestSectionDelegate('Open Tabs', items, undefined, 'open-tabs');
+    await microtasksFinished();
+
+    const header = listSection.$.header;
+    const itemsContainer =
+        listSection.shadowRoot.querySelector<CrCollapseElement>('#items')!;
+    assertFalse(header.expanded);
+    assertFalse(itemsContainer.opened);
+    assertEquals(0, mockHandler.getCallCount('setSectionExpanded'));
+
+    listSection.expand();
+    await microtasksFinished();
+
+    assertTrue(header.expanded);
+    assertTrue(itemsContainer.opened);
+    assertEquals(1, mockHandler.getCallCount('setSectionExpanded'));
+    assertDeepEquals(
+        ['open-tabs', true], mockHandler.getArgs('setSectionExpanded')[0]);
+
+    // Calling expand() again when already expanded is a no-op.
+    listSection.expand();
+    await microtasksFinished();
+    assertEquals(1, mockHandler.getCallCount('setSectionExpanded'));
+  });
+
   test(
       'updates expanded state when onSectionsStateChanged is called',
       async () => {
@@ -207,6 +239,7 @@ suite('OrganizerListSectionTest', () => {
         assertDeepEquals(['Tab 2'], renderedItems[1]!.item.title);
         assertDeepEquals(['Tab 3'], renderedItems[2]!.item.title);
         assertEquals(0, mockHandler.getCallCount('setSectionShowAll'));
+        assertFalse(header.showAll);
 
         header.$.menuButton.click();
         await microtasksFinished();
@@ -219,6 +252,7 @@ suite('OrganizerListSectionTest', () => {
         assertEquals(1, mockHandler.getCallCount('setSectionShowAll'));
         assertDeepEquals(
             ['open-tabs', true], mockHandler.getArgs('setSectionShowAll')[0]);
+        assertTrue(header.showAll);
 
         header.$.menuButton.click();
         await microtasksFinished();
@@ -231,6 +265,7 @@ suite('OrganizerListSectionTest', () => {
         assertEquals(2, mockHandler.getCallCount('setSectionShowAll'));
         assertDeepEquals(
             ['open-tabs', false], mockHandler.getArgs('setSectionShowAll')[1]);
+        assertFalse(header.showAll);
 
         listSection.searchQuery = 'Tab';
         await microtasksFinished();
@@ -266,6 +301,7 @@ suite('OrganizerListSectionTest', () => {
         assertEquals('open-tabs', mockHandler.getArgs('getSectionState')[0]);
         assertEquals(5, renderedItems.length);
         assertEquals(0, mockHandler.getCallCount('setSectionShowAll'));
+        assertTrue(listSection.$.header.showAll);
       });
 
   test(
@@ -285,6 +321,7 @@ suite('OrganizerListSectionTest', () => {
         let renderedItems = listSection.shadowRoot.querySelectorAll(
             'organizer-list-section-item');
         assertEquals(INITIAL_ITEM_COUNT, renderedItems.length);
+        assertFalse(listSection.$.header.showAll);
 
         remotePage.onSectionsStateChanged(
             {'open-tabs': {expanded: true, showAll: true}});
@@ -294,6 +331,7 @@ suite('OrganizerListSectionTest', () => {
             'organizer-list-section-item');
         assertEquals(5, renderedItems.length);
         assertEquals(0, mockHandler.getCallCount('setSectionShowAll'));
+        assertTrue(listSection.$.header.showAll);
 
         remotePage.onSectionsStateChanged(
             {'open-tabs': {expanded: true, showAll: false}});
@@ -303,6 +341,7 @@ suite('OrganizerListSectionTest', () => {
             'organizer-list-section-item');
         assertEquals(INITIAL_ITEM_COUNT, renderedItems.length);
         assertEquals(0, mockHandler.getCallCount('setSectionShowAll'));
+        assertFalse(listSection.$.header.showAll);
       });
 
   test(
