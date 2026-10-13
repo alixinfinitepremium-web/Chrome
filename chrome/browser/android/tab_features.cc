@@ -175,6 +175,7 @@
 #include "components/webapps/browser/android/app_banner_manager_android.h"
 #include "components/webapps/browser/installable/installable_manager.h"
 #include "components/webapps/browser/installable/ml_installability_promoter.h"
+#include "components/zoom/zoom_controller.h"
 #include "content/public/browser/navigation_controller.h"
 #include "content/public/browser/web_contents_observer.h"
 #include "extensions/buildflags/buildflags.h"
@@ -253,8 +254,11 @@ TabFeatures::TabFeatures(content::WebContents* web_contents, Profile* profile) {
   CHECK(tab);
   tab_subscription_ = webui::InitEmbeddingContext(tab);
 
+  zoom::ZoomController::CreateForWebContents(web_contents);
+  infobars::ContentInfoBarManager::CreateForWebContents(web_contents);
   autofill::AutofillClientProvider& autofill_client_provider =
       autofill::AutofillClientProviderFactory::GetForProfile(profile);
+  autofill_client_provider.CreateClientForWebContents(web_contents);
   if (!autofill_client_provider.uses_platform_autofill()) {
     if (autofill::ContentAutofillClient::FromWebContents(web_contents)) {
       ChromePasswordManagerClient::CreateForWebContents(web_contents);

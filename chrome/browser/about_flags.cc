@@ -825,6 +825,14 @@ const FeatureEntry::Choice kAndroidTabDeclutterArchiveOnDesktopChoices[] = {
      "AndroidTabDeclutterArchiveOnDesktop"},
 };
 
+const FeatureEntry::Choice kSubmenuTypeOverrideChoices[] = {
+    {flags_ui::kGenericExperimentChoiceDefault, "", ""},
+    {"Force flyout (if supported)", switches::kEnableFeatures,
+     "SubmenuTypeOverride:force_drilldown/false"},
+    {"Force drilldown", switches::kEnableFeatures,
+     "SubmenuTypeOverride:force_drilldown/true"},
+};
+
 const FeatureEntry::Choice kReaderModeHeuristicsChoices[] = {
     {flags_ui::kGenericExperimentChoiceDefault, "", ""},
     {flag_descriptions::kReaderModeHeuristicsMarkup,
@@ -3851,6 +3859,17 @@ const FeatureEntry::FeatureParam kGlicActorTransientTasksForceTransient[] = {
 const FeatureEntry::FeatureVariation kGlicActorTransientTasksVariations[] = {
     {"(force transient)", kGlicActorTransientTasksForceTransient, nullptr}};
 
+// Makes cursor movement effectively instant. Uses 1ms rather than 0ms because
+// the actor overlay waits for `transitionend`, which zero-length CSS
+// transitions don't fire.
+const FeatureEntry::FeatureParam kGlicActorUiMagicCursorNoAnimation[] = {
+    {"magic-cursor-min-duration-ms", "1"},
+    {"magic-cursor-max-duration-ms", "1"}};
+
+const FeatureEntry::FeatureVariation kGlicActorUiMagicCursorVariations[] = {
+    {"(no cursor movement animation)", kGlicActorUiMagicCursorNoAnimation,
+     nullptr}};
+
 const FeatureEntry::FeatureParam kGlicToolbarButtonLocation_LeftOfProfile[] = {
     {"glic-toolbar-button-location", "LeftOfProfileChip"}};
 const FeatureEntry::FeatureParam kGlicToolbarButtonLocation_RightOfOmnibox[] = {
@@ -5724,6 +5743,9 @@ const FeatureEntry kFeatureEntries[] = {
     {"reader-mode-toggle-links", flag_descriptions::kReaderModeToggleLinksName,
      flag_descriptions::kReaderModeToggleLinksDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(dom_distiller::kReaderModeToggleLinks)},
+    {"submenu-type-override", flag_descriptions::kSubmenuTypeOverrideName,
+     flag_descriptions::kSubmenuTypeOverrideDescription, kOsAndroid,
+     MULTI_VALUE_TYPE(kSubmenuTypeOverrideChoices)},
     {"submenus-in-app-menu", flag_descriptions::kSubmenusInAppMenuName,
      flag_descriptions::kSubmenusInAppMenuDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(chrome::android::kSubmenusInAppMenu)},
@@ -10989,7 +11011,9 @@ const FeatureEntry kFeatureEntries[] = {
      FEATURE_VALUE_TYPE(features::kGlicActorAutofillPreClick)},
     {"glic-actor-cursor", flag_descriptions::kGlicActorCursorName,
      flag_descriptions::kGlicActorCursorDescription, kOsDesktop,
-     FEATURE_VALUE_TYPE(features::kGlicActorUiMagicCursor)},
+     FEATURE_WITH_PARAMS_VALUE_TYPE(features::kGlicActorUiMagicCursor,
+                                    kGlicActorUiMagicCursorVariations,
+                                    "GlicActorUiMagicCursor")},
     {"glic-actor-localhost-is-sensitive",
      flag_descriptions::kGlicActorLocalhostIsSensitiveName,
      flag_descriptions::kGlicActorLocalhostIsSensitiveDescription,
