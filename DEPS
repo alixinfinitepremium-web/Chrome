@@ -424,7 +424,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling android_deps_autorolled_version
   # and whatever else without interference from each other.
-  'android_deps_autorolled_version': 'wo99R54Vc1pDkEPRbqfvY222A2vIWkmS1h0kfpvdfCYC',
+  'android_deps_autorolled_version': 'QSEmgP0J_uNG4vrslz4QHdYMI7AN41I0zwy8kwPUttAC',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling android_sdk_emulator_version
   # and whatever else without interference from each other.
@@ -1867,7 +1867,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': 'HsoC72-kY_MoL7IHHcm2vziswl9RIHjL254dHr5KDT4C',
+          'version': '_QUXmje_C4aF-AUbKOIf2T_JfgjazhtFiDktQGh4n9MC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
