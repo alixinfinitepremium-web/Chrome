@@ -195,10 +195,6 @@ void DismissSendTabToSelfModal() {
 - (AppLaunchConfiguration)appConfigurationForTestCase {
   AppLaunchConfiguration config = [super appConfigurationForTestCase];
   config.features_enabled.push_back(
-      send_tab_to_self::kSendTabToSelfPropagateScrollPosition);
-  config.features_enabled.push_back(
-      send_tab_to_self::kSendTabToSelfPropagateFormFields);
-  config.features_enabled.push_back(
       send_tab_to_self::kSendTabToSelfExtraEntryPoints);
   config.features_enabled.push_back(
       send_tab_to_self::kSendTabToSelfEnhancedBottomsheet);
@@ -1021,10 +1017,6 @@ void DismissSendTabToSelfModal() {
 
 - (AppLaunchConfiguration)appConfigurationForTestCase {
   AppLaunchConfiguration config = [super appConfigurationForTestCase];
-  config.features_enabled.push_back(
-      send_tab_to_self::kSendTabToSelfPropagateScrollPosition);
-  config.features_enabled.push_back(
-      send_tab_to_self::kSendTabToSelfPropagateFormFields);
   config.features_enabled.push_back(
       send_tab_to_self::kSendTabToSelfExtraEntryPoints);
   config.features_enabled.push_back(send_tab_to_self::kSendTabToSelfAutoOpen);

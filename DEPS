@@ -330,7 +330,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': 'ea6781c5b6d191758958676cd8d0a4574e665c17',
+  'skia_revision': '128c983b12def45236217f7b9f3dd38b8148de11',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -390,7 +390,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': '09e75d0f0bb6ecf1dac7be654d162ac14a53eb30',
+  'crossbench_revision': '373eec8892da2cb0f052eda82baac147bda0fb97',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -410,7 +410,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '987498d5fe36fa624547d3a3fe2155990ea3d0da',
+  'devtools_frontend_revision': '4bb4a9685a70053685fb15934884419c03c65e5a',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -440,7 +440,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': 'ca338db0c2d10ae744a5da3e97b4cf2385013d76',
+  'dawn_revision': 'f63db59722e8c1c0da9a3bcea0e40fb5c817a059',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -2827,7 +2827,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/cisco/openh264' + '@' + '9547f96ea5c47f4d465d97b07264b997ecc4b4b6',
 
   'src/third_party/openscreen/src':
-    Var('chromium_git') + '/openscreen' + '@' + '69b2a5a5b9ad068248bb12f9e5f576c46a1fd0db',
+    Var('chromium_git') + '/openscreen' + '@' + '879f9a281368e2b59a8e90ae4945a5b1399ec3d8',
 
   'src/third_party/openxr/src': {
     'url': Var('chromium_git') + '/external/github.com/KhronosGroup/OpenXR-SDK' + '@' + '75c53b6e853dc12c7b3c771edc9c9c841b15faaa',
