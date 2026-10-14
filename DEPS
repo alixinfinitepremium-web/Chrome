@@ -390,7 +390,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': '914ac593192f5aec180f8bfb642a3d493711be87',
+  'crossbench_revision': '674575184f6ffc7d24213400c7a7029b49790cd7',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -3902,7 +3902,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '3a1f16791125131f33f0c110258085a9764e77e8',
+        'c709ee197be5eb528fae1391e333b3340d851af5',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
