@@ -278,28 +278,6 @@ void ResourceMultiBufferDataProvider::DidReceiveResponse(
     redirects_to_ = KURL();
   }
 
-  // Get the response URL since it can differ from the request URL when a
-  // service worker provided the response. Normally we would just use
-  // ResponseUrl(), but ResourceMultiBufferDataProvider disallows mixing
-  // constructed responses (new Response()) and native server responses, even if
-  // they have the same response URL.
-  KURL response_url;
-  if (!response.WasFetchedViaServiceWorker() ||
-      response.HasUrlListViaServiceWorker()) {
-    response_url = response.ResponseUrl();
-  }
-
-  // This test is vital for security! Ensure that both the original UrlData and
-  // any redirect destination UrlData are compatible with the response's origin
-  // before mutating metadata on `destination_url_data`, inserting into
-  // `UrlIndex`, or merging data across a redirect.
-  if (!old_url_data->ValidateDataOrigin(response_url) ||
-      !destination_url_data->ValidateDataOrigin(response_url)) {
-    active_loader_.reset();
-    url_data_->Fail();
-    return;  // "this" may be deleted now.
-  }
-
   base::Time last_modified;
   if (base::Time::FromString(
           response.HttpHeaderField("Last-Modified").Utf8().data(),
@@ -382,7 +360,6 @@ void ResourceMultiBufferDataProvider::DidReceiveResponse(
   if (!do_fail) {
     destination_url_data =
         url_data_->url_index()->TryInsert(destination_url_data);
-    CHECK(destination_url_data->ValidateDataOrigin(response_url));
   }
 
   // This is vital for security!
@@ -425,11 +402,28 @@ void ResourceMultiBufferDataProvider::DidReceiveResponse(
     if (!weak_this) {
       return;  // "this" may be deleted now.
     }
-    CHECK(destination_url_data->ValidateDataOrigin(response_url));
   }
 
   if (do_fail) {
     destination_url_data->Fail();
+    return;  // "this" may be deleted now.
+  }
+
+  // Get the response URL since it can differ from the request URL when a
+  // service worker provided the response. Normally we would just use
+  // ResponseUrl(), but ResourceMultiBufferDataProvider disallows mixing
+  // constructed responses (new Response()) and native server responses, even if
+  // they have the same response URL.
+  KURL response_url;
+  if (!response.WasFetchedViaServiceWorker() ||
+      response.HasUrlListViaServiceWorker()) {
+    response_url = response.ResponseUrl();
+  }
+
+  // This test is vital for security!
+  if (!url_data_->ValidateDataOrigin(response_url)) {
+    active_loader_.reset();
+    url_data_->Fail();
     return;  // "this" may be deleted now.
   }
 
@@ -536,26 +530,12 @@ void ResourceMultiBufferDataProvider::DidFail(const WebURLError& error) {
   DCHECK(active_loader_.get());
   active_loader_.reset();
 
-  // ORB, Cross-Origin-Resource-Policy / COEP / DIP enforcement
-  // (ERR_BLOCKED_BY_RESPONSE), and web security violations (CORS, LNA, CSP,
-  // etc.) block cross-origin responses. Record this so that the failure is not
-  // distinguishable from other opaque failures (e.g. via error messages exposed
-  // by the media element). These blocks (as well as request-blocked and
-  // certificate errors) are deterministic for a given request, so fail
-  // immediately rather than retrying: a retry can never succeed, and the retry
-  // cadence is observable (e.g. by a service worker counting fetch events),
-  // which would leak whether the cross-origin server answered 206 or 416.
-  if (error.reason() == net::ERR_BLOCKED_BY_ORB ||
-      error.reason() == net::ERR_BLOCKED_BY_RESPONSE ||
-      error.is_web_security_violation()) {
+  // ORB only blocks cross-origin no-cors responses, which are opaque. Record
+  // this so that the failure is not distinguishable from other opaque
+  // failures (e.g. via error messages exposed by the media element). An ORB
+  // block is also deterministic, so fail immediately rather than retrying.
+  if (error.reason() == net::ERR_BLOCKED_BY_ORB) {
     url_data_->set_is_cors_cross_origin(true);
-    url_data_->Fail();
-    return;  // "this" may be deleted now.
-  }
-
-  if (net::IsRequestBlockedError(error.reason()) ||
-      net::IsCertificateError(error.reason()) ||
-      net::IsClientCertificateError(error.reason())) {
     url_data_->Fail();
     return;  // "this" may be deleted now.
   }
