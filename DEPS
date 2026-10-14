@@ -334,7 +334,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': 'da55e51437bf753eccbd1953dc0ae67742d0eef9',
+  'v8_revision': '31c9b4ed8ba33f3e76859f6cac3eb2459e2d0037',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -410,11 +410,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '00c8c49be80f6af049378d9e1e8979d896e2f733',
+  'devtools_frontend_revision': 'd474329c85ee6a5868932a470fcc968580680519',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
-  'libprotobuf-mutator': '4373c81cd7d50a65f7fbd8dc3779c0c3b1dc9d72',
+  'libprotobuf-mutator': '7d13ce6de096c9c1dbd79abfe8b8a42390b3e951',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling android_sdk_build-tools_version
   # and whatever else without interference from each other.
@@ -1763,7 +1763,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    'a4431467157bdfe09dad453e9664efe5943e4001',
+    '4593c468e557066867a88e0e11263e862befde79',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -3285,7 +3285,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '0941d258e29ab1214d236d6702d61fdcb86f5d83',
+    Var('webrtc_git') + '/src.git' + '@' + 'd7862361c6c3942b5b96c8162ae4fa37666a2ea3',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -3824,7 +3824,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        'ad1d59a98683b6d608e2294e5557ab48b6fd77b3',
+        '11c4310d21f89d91e76fe4fc43c2a1233bb7dbdc',
       'condition': 'checkout_src_internal',
   },
 
