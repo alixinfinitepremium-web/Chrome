@@ -476,7 +476,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling crabbyavif
   # and whatever else without interference from each other.
-  'crabbyavif_revision': 'c4ba53c94510b7f08108ee6e32a221e30e636773',
+  'crabbyavif_revision': '8ed55834c6ca819888fc796f41c4003793510276',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Speedometer main
   # and whatever else without interference from each other.
@@ -1768,7 +1768,7 @@ deps = {
   },
 
   'src/docs/website': {
-    'url': Var('chromium_git') + '/website.git' + '@' + '16f4af85501c19390b58941aaa34304780ce788c',
+    'url': Var('chromium_git') + '/website.git' + '@' + '3aacabf0ced2ff7963b568e8d97549127a211b4d',
   },
 
   'src/ios/third_party/earl_grey2/src': {
@@ -3285,7 +3285,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '8b2e2d5e77e322100a5e2bd474eec5074869138d',
+    Var('webrtc_git') + '/src.git' + '@' + '546d2fbc9be241f810ec81f30fca81cb87aed06d',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
