@@ -291,6 +291,7 @@
 #include "third_party/blink/renderer/core/trustedtypes/trusted_html_parser_options.h"
 #include "third_party/blink/renderer/core/trustedtypes/trusted_types_names.h"
 #include "third_party/blink/renderer/core/trustedtypes/trusted_types_util.h"
+#include "third_party/blink/renderer/core/view_transition/view_transition.h"
 #include "third_party/blink/renderer/core/view_transition/view_transition_pseudo_element_base.h"
 #include "third_party/blink/renderer/core/view_transition/view_transition_skip_reason.h"
 #include "third_party/blink/renderer/core/view_transition/view_transition_supplement.h"
@@ -4513,8 +4514,11 @@ void Element::VerifySubtreeIsInCanvas(bool value) {
 }
 #endif
 
-void Element::SetIsInCanvasSubtree(bool value) {
-  if (value == IsInCanvasSubtree()) {
+void Element::SetIsInCanvasSubtree(
+    bool value,
+    CanvasSubtreePropagation propagation_behavior) {
+  if (propagation_behavior == CanvasSubtreePropagation::kOnlyIfChanged &&
+      value == IsInCanvasSubtree()) {
 #if DCHECK_IS_ON()
     if (!GetDocument().IsSlotAssignmentRecalcForbidden()) {
       VerifySubtreeIsInCanvas(value);
@@ -4525,7 +4529,7 @@ void Element::SetIsInCanvasSubtree(bool value) {
 
   SetElementFlag(ElementFlags::kIsInCanvasSubtree, value);
   // Note that this call leads to HTMLFrameOwnerElement updating iframes.
-  DidChangeIsInCanvasSubtree();
+  DidChangeIsInCanvasSubtree(propagation_behavior);
   if (!value && IsA<HTMLCanvasElement>(*this)) {
     // Nested canvas element must reset the value to true.
     value = true;
@@ -4540,7 +4544,7 @@ void Element::SetIsInCanvasSubtree(bool value) {
   //    this visits active fallback content).
   if (ShadowRoot* shadow_root = GetShadowRoot()) {
     for (Element& child : ElementTraversal::ChildrenOf(*shadow_root)) {
-      child.SetIsInCanvasSubtree(value);
+      child.SetIsInCanvasSubtree(value, propagation_behavior);
     }
   } else if (auto* slot = ToHTMLSlotElementIfSupportsAssignmentOrNull(*this)) {
     const HeapVector<Member<Node>> assigned_nodes =
@@ -4548,22 +4552,22 @@ void Element::SetIsInCanvasSubtree(bool value) {
     for (Node* node : assigned_nodes) {
       if (auto* child = DynamicTo<Element>(node);
           child && child->AssignedSlotWithoutRecalc() == slot) {
-        child->SetIsInCanvasSubtree(value);
+        child->SetIsInCanvasSubtree(value, propagation_behavior);
       }
     }
     // Fallback content
     for (Element& child : ElementTraversal::ChildrenOf(*this)) {
-      child.SetIsInCanvasSubtree(value &&
-                                 slot->AssignedNodesNoRecalc().empty());
+      child.SetIsInCanvasSubtree(value && slot->AssignedNodesNoRecalc().empty(),
+                                 propagation_behavior);
     }
   } else {
     for (Element& child : ElementTraversal::ChildrenOf(*this)) {
-      child.SetIsInCanvasSubtree(value);
+      child.SetIsInCanvasSubtree(value, propagation_behavior);
     }
   }
   if (const NodeRareData* rare_data = RareData()) {
     for (PseudoElement* pseudo_element : rare_data->GetPseudoElements()) {
-      pseudo_element->SetIsInCanvasSubtree(value);
+      pseudo_element->SetIsInCanvasSubtree(value, propagation_behavior);
     }
   }
 }
@@ -4578,7 +4582,7 @@ bool Element::IsCanvasOrInCanvasSubtree() const {
   return false;
 }
 
-void Element::DidChangeIsInCanvasSubtree() {
+void Element::DidChangeIsInCanvasSubtree(CanvasSubtreePropagation) {
   if (auto* layout_object = GetLayoutObject()) {
     layout_object->SetNeedsPaintPropertyUpdate();
     layout_object->SetSubtreeShouldDoFullPaintInvalidation();
@@ -11778,7 +11782,10 @@ const ComputedStyle* Element::StyleForSearchTextPseudoElement(
 
 bool Element::CanGeneratePseudoElement(PseudoId pseudo_id) const {
   if (pseudo_id == kPseudoIdViewTransition) {
-    return !!ViewTransitionUtils::GetTransition(*this) && !!GetComputedStyle();
+    const ViewTransition* transition =
+        ViewTransitionUtils::GetTransition(*this);
+    return transition && transition->GeneratesPseudoElementTree() &&
+           !!GetComputedStyle();
   }
   if (pseudo_id == kPseudoIdFirstLetter && IsSVGElement()) {
     return false;
@@ -12087,7 +12094,10 @@ void Element::SetIsInTopLayer(bool in_top_layer) {
     // A popover inside a canvas subtree does not render with privacy
     // protections when in the top layer. So treat transitioning between top
     // layer states as equivalent to moving in or out of the canvas subtree.
-    DidChangeIsInCanvasSubtree();
+    // Moving into or out of the top layer does not by itself imply a change in
+    // IsInCanvasSubtree state, so kAlways is used to force invalidation.
+    SetIsInCanvasSubtree(IsInCanvasSubtree(),
+                         CanvasSubtreePropagation::kAlways);
   }
 
   bool user_action_stops_at_top_layer =
