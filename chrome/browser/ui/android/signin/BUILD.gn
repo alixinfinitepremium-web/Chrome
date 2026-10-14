@@ -222,6 +222,7 @@ robolectric_library("junit") {
     "java/src/org/chromium/chrome/browser/ui/signin/signin_promo/SigninPromoDelegateTest.java",
     "java/src/org/chromium/chrome/browser/ui/signin/signin_promo/SigninPromoMediatorTest.java",
     "junit/src/org/chromium/chrome/browser/ui/signin/AccountPreviewPreferenceStringUtilsUnitTest.java",
+    "junit/src/org/chromium/chrome/browser/ui/signin/AiTierRingDimensTest.java",
     "junit/src/org/chromium/chrome/browser/ui/signin/BottomSheetSigninAndHistorySyncConfigTest.java",
     "junit/src/org/chromium/chrome/browser/ui/signin/ForcedSigninControllerTest.java",
     "junit/src/org/chromium/chrome/browser/ui/signin/FullscreenSigninPromoLauncherTest.java",
