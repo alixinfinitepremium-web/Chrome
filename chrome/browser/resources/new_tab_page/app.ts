@@ -178,6 +178,7 @@ export interface AppElement {
     oneGoogleBarClipPath: HTMLElement,
     logo: LogoElement,
     searchbox: NtpSearchboxElement,
+    rhsWrapper: HTMLElement,
   };
 }
 
@@ -207,16 +208,6 @@ export class AppElement extends AppElementBase {
       realboxCanShowSecondarySide: {
         type: Boolean,
         reflect: true,
-      },
-
-      /**
-       * Whether the searchbox secondary side was at any point available to
-       * be shown.
-       */
-      realboxHadSecondarySide: {
-        type: Boolean,
-        reflect: true,
-        notify: true,
       },
 
       composeButtonEnabled: {type: Boolean},
@@ -360,6 +351,8 @@ export class AppElement extends AppElementBase {
        */
       enableThreadsRail_: {type: Boolean},
 
+      rhsWrapper_: {type: Object},
+
       // =======================================================================
       // Private properties
       // =======================================================================
@@ -379,7 +372,6 @@ export class AppElement extends AppElementBase {
 
   accessor hasVoiceSearchError = false;
   accessor realboxCanShowSecondarySide: boolean = false;
-  accessor realboxHadSecondarySide: boolean = false;
   accessor composeButtonEnabled: boolean =
       loadTimeData.getBoolean('searchboxShowComposeEntrypoint');
   accessor composeboxEnabled: boolean =
@@ -507,6 +499,7 @@ export class AppElement extends AppElementBase {
   protected contextMenuAnimationLimitingEnabled_: boolean =
       loadTimeData.getBoolean('contextMenuAnimationLimitingEnabled');
   protected accessor searchboxCallbackRouter_: SearchboxPageCallbackRouter;
+  protected accessor rhsWrapper_: HTMLElement|null = null;
 
   private voiceSearchActivatedByKeyboard_: boolean = false;
   private accessor selectedCustomizeDialogPage_: string|null = null;
@@ -823,6 +816,8 @@ export class AppElement extends AppElementBase {
           ['#searchbox', '#context', '#entrypointButton', '#entrypoint'],
           {fixed: true});
     }
+
+    this.rhsWrapper_ = this.$.rhsWrapper;
   }
 
   override updated(changedProperties: PropertyValues<this>) {
@@ -1690,11 +1685,6 @@ export class AppElement extends AppElementBase {
 
   protected showThemeAttribution_(): boolean {
     return !!this.theme_?.backgroundImage?.attributionUrl;
-  }
-
-  protected onRealboxHadSecondarySideChanged_(
-      e: CustomEvent<{value: boolean}>) {
-    this.realboxHadSecondarySide = e.detail.value;
   }
 
   protected onSearchboxContainerFocusin_(e: FocusEvent) {
