@@ -410,16 +410,6 @@ void BrowserWindowFeatures::Init(BrowserWindowInterface* browser) {
   find_bar_controller_ = GetUserDataFactory().CreateInstance<FindBarController>(
       *browser, *browser, browser_command_controller_.get());
 
-  history_clusters_side_panel_coordinator_ =
-      GetUserDataFactory().CreateInstance<HistoryClustersSidePanelCoordinator>(
-          *browser, browser, browser->GetProfile());
-
-  if (HistorySidePanelCoordinator::IsSupported()) {
-    history_side_panel_coordinator_ =
-        GetUserDataFactory().CreateInstance<HistorySidePanelCoordinator>(
-            *browser, browser);
-  }
-
   // Must be after window_feature_controller_.
   immersive_mode_controller_ =
       GetUserDataFactory()
@@ -913,6 +903,17 @@ void BrowserWindowFeatures::InitPostWindowConstruction(
           GetUserDataFactory().CreateInstance<CommentsSidePanelCoordinator>(
               *browser, browser);
     }
+
+    if (HistorySidePanelCoordinator::IsSupported()) {
+      history_side_panel_coordinator_ =
+          GetUserDataFactory().CreateInstance<HistorySidePanelCoordinator>(
+              *browser, browser);
+    } else {
+      history_clusters_side_panel_coordinator_ =
+          GetUserDataFactory()
+              .CreateInstance<HistoryClustersSidePanelCoordinator>(
+                  *browser, browser, profile);
+    }
   }
 
   reading_list_side_panel_coordinator_ =
@@ -1194,6 +1195,8 @@ void BrowserWindowFeatures::TearDownPreBrowserWindowDestruction() {
   synced_window_delegate_.reset();
   skills_ui_window_controller_.reset();
   reading_list_side_panel_coordinator_.reset();
+  history_side_panel_coordinator_.reset();
+  history_clusters_side_panel_coordinator_.reset();
   comments_side_panel_coordinator_.reset();
   bookmarks_side_panel_coordinator_.reset();
   // TODO(crbug.com/346148093): This logic should not be gated behind a
@@ -1263,8 +1266,6 @@ void BrowserWindowFeatures::TearDownPreBrowserWindowDestruction() {
   lens_overlay_entry_point_controller_.reset();
   // Must be before window_feature_controller_ (raw pointer).
   immersive_mode_controller_.reset();
-  history_side_panel_coordinator_.reset();
-  history_clusters_side_panel_coordinator_.reset();
   find_bar_controller_.reset();
   extension_installed_watcher_.reset();
   context_highlight_window_feature_.reset();
