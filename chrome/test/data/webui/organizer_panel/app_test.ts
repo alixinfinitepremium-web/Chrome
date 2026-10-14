@@ -32,8 +32,10 @@ suite('OrganizerPanelAppTest', () => {
       closeTabSearch: isMac ? 'Close Tab Search' : 'Close tab search',
       collapseAll: isMac ? 'Collapse All' : 'Collapse all',
       createTabGroup: 'Create tab group',
+      currentlyPlaying: 'Currently playing',
       expandAll: isMac ? 'Expand All' : 'Expand all',
       foreignTabsEnabled: false,
+      goBackToOpenTabs: isMac ? 'Go Back to Open Tabs' : 'Go back to open tabs',
       isIncognitoMode: false,
       noRecentlyClosedTabs: 'No recently closed tabs',
       noResults: 'No results',
@@ -223,6 +225,18 @@ suite('OrganizerPanelAppTest', () => {
     const closeButton =
         app.$.menu.querySelector<HTMLButtonElement>('#closeTabSearchButton');
     assertTrue(!!closeButton);
+    assertEquals(
+        isMac ? 'Close Tab Search' : 'Close tab search',
+        closeButton.textContent.trim());
+
+    remotePage.onVerticalTabsEnabledChanged(true);
+    await microtasksFinished();
+    assertEquals(
+        isMac ? 'Go Back to Open Tabs' : 'Go back to open tabs',
+        closeButton.textContent.trim());
+
+    remotePage.onVerticalTabsEnabledChanged(false);
+    await microtasksFinished();
     assertEquals(
         isMac ? 'Close Tab Search' : 'Close tab search',
         closeButton.textContent.trim());
