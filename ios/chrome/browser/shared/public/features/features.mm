@@ -1229,6 +1229,12 @@ bool IsAppBarAssistantCustomizationEnabled() {
   return base::FeatureList::IsEnabled(kAppBarAssistantCustomization);
 }
 
+BASE_FEATURE(kGreyImageCIFilter, base::FEATURE_DISABLED_BY_DEFAULT);
+
+bool IsGreyImageCIFilterEnabled() {
+  return base::FeatureList::IsEnabled(kGreyImageCIFilter);
+}
+
 BASE_FEATURE(kLightAppBar, base::FEATURE_DISABLED_BY_DEFAULT);
 
 bool IsLightAppBarEnabled() {
@@ -1245,4 +1251,13 @@ BASE_FEATURE(kVoiceSearchEvolutionPhase1, base::FEATURE_DISABLED_BY_DEFAULT);
 
 bool IsVoiceSearchEvolutionPhase1Enabled() {
   return base::FeatureList::IsEnabled(kVoiceSearchEvolutionPhase1);
+}
+
+BASE_FEATURE(kFiveButtonAppBarLayout, base::FEATURE_DISABLED_BY_DEFAULT);
+
+bool IsFiveButtonAppBarLayoutEnabled() {
+  if (!IsNextOldDesignEnabled()) {
+    return false;
+  }
+  return base::FeatureList::IsEnabled(kFiveButtonAppBarLayout);
 }

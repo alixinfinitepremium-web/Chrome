@@ -880,6 +880,12 @@ inline constexpr char kFetchDeviceAuthorizationKeysName[] =
 inline constexpr char kFetchDeviceAuthorizationKeysDescription[] =
     "Enables fetching device authorization keys for password manager passkeys.";
 
+inline constexpr char kFiveButtonAppBarLayoutName[] =
+    "Five Button App Bar Layout";
+inline constexpr char kFiveButtonAppBarLayoutDescription[] =
+    "Enables a five-button layout for the App Bar, incorporating the forward "
+    "and back navigation buttons.";
+
 inline constexpr char kForceStartupSigninPromoName[] =
     "Display the startup sign-in promo";
 inline constexpr char kForceStartupSigninPromoDescription[] =
@@ -1019,6 +1025,11 @@ inline constexpr char kGlicActorAutofillName[] = "Actor autofill";
 inline constexpr char kGlicActorAutofillDescription[] =
     "Enables autofill actions for the actor tools on iOS. Specific fillable "
     "types may also need to be enabled.";
+
+inline constexpr char kGreyImageCIFilterName[] = "Grey Image CIFilter";
+inline constexpr char kGreyImageCIFilterDescription[] =
+    "Uses Core Image CIFilter instead of UIGraphicsImageRenderer for "
+    "grayscale image rendering.";
 
 inline constexpr char kHandleMdmErrorsForDasherAccountsName[] =
     "Mdm error handling for dasher accounts";

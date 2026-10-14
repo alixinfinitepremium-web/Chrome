@@ -1739,6 +1739,9 @@ constexpr auto kFeatureEntries = std::to_array<flags_ui::FeatureEntry>({
      flag_descriptions::kAutofillPaymentsFieldSwappingDescription,
      flags_ui::kOsIos,
      FEATURE_VALUE_TYPE(autofill::features::kAutofillPaymentsFieldSwapping)},
+    {"grey-image-cifilter", flag_descriptions::kGreyImageCIFilterName,
+     flag_descriptions::kGreyImageCIFilterDescription, flags_ui::kOsIos,
+     FEATURE_VALUE_TYPE(kGreyImageCIFilter)},
     {"https-upgrades-ios", flag_descriptions::kHttpsUpgradesName,
      flag_descriptions::kHttpsUpgradesDescription, flags_ui::kOsIos,
      FEATURE_VALUE_TYPE(security_interstitials::features::kHttpsUpgrades)},
@@ -2966,6 +2969,10 @@ constexpr auto kFeatureEntries = std::to_array<flags_ui::FeatureEntry>({
      flag_descriptions::kEnableAccountPreviewPreferredAccountFREDescription,
      flags_ui::kOsIos,
      FEATURE_VALUE_TYPE(switches::kEnableAccountPreviewPreferredAccountFRE)},
+    {"five-button-app-bar-layout",
+     flag_descriptions::kFiveButtonAppBarLayoutName,
+     flag_descriptions::kFiveButtonAppBarLayoutDescription, flags_ui::kOsIos,
+     FEATURE_VALUE_TYPE(kFiveButtonAppBarLayout)},
 });
 
 bool SkipConditionalFeatureEntry(const flags_ui::FeatureEntry& entry) {
