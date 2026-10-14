@@ -23,9 +23,11 @@
 #include "base/strings/utf_string_conversions.h"
 #include "build/build_config.h"
 #include "components/ntp_tiles/constants.h"
+#include "components/ntp_tiles/custom_links_pref_names.h"
 #include "components/ntp_tiles/features.h"
 #include "components/ntp_tiles/icon_cacher.h"
 #include "components/ntp_tiles/metrics.h"
+#include "components/ntp_tiles/popular_sites_pref_names.h"
 #include "components/ntp_tiles/pref_names.h"
 #include "components/ntp_tiles/switches.h"
 #include "components/pref_registry/pref_registry_syncable.h"
@@ -51,6 +53,7 @@
 
 #if BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC) || \
     BUILDFLAG(IS_CHROMEOS)
+#include "components/ntp_tiles/enterprise/enterprise_shortcuts_pref_names.h"
 #include "components/ntp_tiles/enterprise/enterprise_shortcuts_store.h"
 #endif
 
