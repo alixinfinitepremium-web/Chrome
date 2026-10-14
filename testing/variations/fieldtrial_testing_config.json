@@ -6066,8 +6066,9 @@
             ],
             "experiments": [
                 {
-                    "name": "Enabled",
+                    "name": "EnabledWithPrewarmer",
                     "enable_features": [
+                        "DeviceBoundSessionsDsePrewarmer",
                         "DeviceBoundSessionsForRestrictedSites",
                         "EnableOAuthMultiloginStandardCookiesBinding"
                     ]
@@ -14354,6 +14355,23 @@
                     },
                     "enable_features": [
                         "Prerender2FallbackPrefetchSpecRules"
+                    ]
+                }
+            ]
+        }
+    ],
+    "PreventReentrantInternalSetBounds": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "PreventReentrantInternalSetBounds"
                     ]
                 }
             ]

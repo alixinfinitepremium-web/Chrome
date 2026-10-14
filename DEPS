@@ -440,7 +440,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': '62fa0852b8dec9966d9621f2dd6e7aea51f1a01d',
+  'dawn_revision': '054f9e5d1a73a3ab75563db11fa16fa6711e2fb7',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -1867,7 +1867,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': 'wP5U3eOWSJUlJR92Se5cKGXxC1ifmAXNtdT9R24BB5MC',
+          'version': 'MWhR72NkTneyveR6Y2Gx1r_9Ea2iSZtYWFu5xlA1ZIAC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
