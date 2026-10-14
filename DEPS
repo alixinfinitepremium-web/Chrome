@@ -424,7 +424,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling android_deps_autorolled_version
   # and whatever else without interference from each other.
-  'android_deps_autorolled_version': 'gqlgdJbmK0qQlTKPjw8AS5xdeG5WGYmp5ONrQcp98VoC',
+  'android_deps_autorolled_version': 'W0VYm9Y5g3k6dHkqY1BVG6__YLk6NZhhIClW1kTRhFEC',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling android_sdk_emulator_version
   # and whatever else without interference from each other.
@@ -3414,7 +3414,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_receiver_app/app',
-        'version': 'QC5QcCxlXrPA5--fuaCN1CZN2IyH82-f2Ve1KQsRiVIC',
+        'version': 'my7XCl3EgMn31aRtjpr4qEXvgnfAdvlHDsAFVGYSda0C',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3425,7 +3425,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_app/app',
-        'version': 'GSXaEIQ0fmKoP4HIikpoQdnc4F-Ip3Q0CgkxjlfEfPIC',
+        'version': 'gv4J6UZg84Dy08TXIwrEutWj1AOebcujFWCyED_kx7gC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
