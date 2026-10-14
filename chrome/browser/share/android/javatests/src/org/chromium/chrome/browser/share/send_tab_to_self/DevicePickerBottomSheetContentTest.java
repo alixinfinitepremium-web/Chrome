@@ -22,9 +22,7 @@ import org.mockito.junit.MockitoRule;
 import org.robolectric.Robolectric;
 
 import org.chromium.base.test.BaseRobolectricTestRunner;
-import org.chromium.base.test.util.Features.DisableFeatures;
 import org.chromium.chrome.R;
-import org.chromium.chrome.browser.flags.ChromeFeatureList;
 import org.chromium.chrome.browser.profiles.Profile;
 import org.chromium.chrome.browser.signin.services.IdentityServicesProvider;
 import org.chromium.chrome.browser.tab.Tab;
@@ -33,6 +31,7 @@ import org.chromium.components.signin.identitymanager.IdentityManager;
 import org.chromium.components.signin.test.util.TestAccounts;
 import org.chromium.components.sync_device_info.FormFactor;
 import org.chromium.components.sync_device_info.OsType;
+import org.chromium.components.sync_device_info.RemoteDeviceInfo;
 import org.chromium.content_public.browser.WebContents;
 import org.chromium.content_public.browser.test.mock.MockWebContents;
 
@@ -52,7 +51,7 @@ public class DevicePickerBottomSheetContentTest {
     @Mock private IdentityManager mIdentityManager;
 
     private Activity mContext;
-    private List<TargetDeviceInfo> mDevices;
+    private List<RemoteDeviceInfo> mDevices;
 
     @Before
     public void setUp() {
@@ -73,7 +72,7 @@ public class DevicePickerBottomSheetContentTest {
 
         mDevices =
                 Arrays.asList(
-                        new TargetDeviceInfo(
+                        new RemoteDeviceInfo(
                                 "My Computer",
                                 "guid",
                                 FormFactor.DESKTOP,
@@ -83,8 +82,9 @@ public class DevicePickerBottomSheetContentTest {
         when(mTab.getWebContents()).thenReturn(mWebContents);
     }
 
+    // Verifies that clicking a device item hides the bottom sheet and sends the tab to the
+    // selected device.
     @Test
-    @DisableFeatures(ChromeFeatureList.SEND_TAB_TO_SELF_POST_SEND_TOAST)
     public void testOnItemClick() {
         DevicePickerBottomSheetContent content =
                 new DevicePickerBottomSheetContent(

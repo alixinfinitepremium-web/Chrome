@@ -410,7 +410,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '37eaa2290b17e2b9ece36f5d456f4a20d9967949',
+  'devtools_frontend_revision': '4f129662cc6f1f33714384e493faa4818d24dc7e',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1671,7 +1671,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_linux64',
-          'version': 'vdcDN81uXynUCeDbvzQYJgbON1ROUOiRwyrBz4pOrI4C',
+          'version': 'k-G0ov1No8HnfB-ihWVeJ3SQFgett1hetmH3Y6-YEW0C',
         },
       ],
   },
@@ -1704,7 +1704,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_win_x86',
-          'version': '8t8-bfAz_91U7kn-fSr2Jc8Zb4pr2-75BaUsfSG4KMQC',
+          'version': 'SRh--nBSmKDlLfi7ENuM7-rDoW7N0vz6ss6pYkYPA3YC',
         },
       ],
   },
