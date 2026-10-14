@@ -62,6 +62,7 @@ import org.chromium.base.IntentUtils;
 import org.chromium.base.Log;
 import org.chromium.base.MemoryPressureListener;
 import org.chromium.base.ThreadUtils;
+import org.chromium.base.TimeUtils;
 import org.chromium.base.Token;
 import org.chromium.base.TraceEvent;
 import org.chromium.base.lifetime.Destroyable;
@@ -242,6 +243,7 @@ import org.chromium.chrome.browser.profiles.Profile;
 import org.chromium.chrome.browser.profiles.ProfileManager;
 import org.chromium.chrome.browser.profiles.ProfileProvider;
 import org.chromium.chrome.browser.quick_delete.QuickDeleteController;
+import org.chromium.chrome.browser.quick_delete.QuickDeleteControllerProvider;
 import org.chromium.chrome.browser.quick_delete.QuickDeleteDelegateImpl;
 import org.chromium.chrome.browser.quick_delete.QuickDeleteMetricsDelegate;
 import org.chromium.chrome.browser.read_later.ReadingListBackPressHandler;
@@ -559,6 +561,9 @@ public class ChromeTabbedActivity extends ChromeActivity implements PreAttachInt
             new OneshotSupplierImpl<>();
     private final OneshotSupplierImpl<TabSwitcher> mTabSwitcherSupplier =
             new OneshotSupplierImpl<>();
+    // Held as a field so the same instance can be detached from the window on destroy.
+    private final Supplier<QuickDeleteController> mQuickDeleteControllerFactory =
+            this::createQuickDeleteController;
     private final OneshotSupplierImpl<TabSwitcher> mIncognitoTabSwitcherSupplier =
             new OneshotSupplierImpl<>();
     private final OneshotSupplierImpl<HubManager> mHubManagerSupplier = new OneshotSupplierImpl<>();
@@ -1860,13 +1865,20 @@ public class ChromeTabbedActivity extends ChromeActivity implements PreAttachInt
         if (ChromeFeatureList.isEnabled(ChromeFeatureList.GLIC_BACKGROUND_ACTUATION)) {
             TabModelSelector tabModelSelector = getTabModelSelector();
             assert tabModelSelector != null;
+            boolean isColdStart = !tabModelSelector.isTabStateInitialized();
+            long waitStartTimeMs = TimeUtils.uptimeMillis();
             TabModelUtils.runOnTabStateInitialized(
                     tabModelSelector,
                     (selector) -> {
+                        long waitDurationMs = TimeUtils.uptimeMillis() - waitStartTimeMs;
                         var windowAndroid = assertNonNull(getWindowAndroid());
                         ActorForegroundServiceController.get()
                                 .restoreActiveWindowBackgroundTabs(
-                                        selector, windowAndroid, getTabDelegateFactory());
+                                        selector,
+                                        windowAndroid,
+                                        getTabDelegateFactory(),
+                                        waitDurationMs,
+                                        isColdStart);
                     });
         }
 
@@ -3330,7 +3342,7 @@ public class ChromeTabbedActivity extends ChromeActivity implements PreAttachInt
                         mWindowId,
                         Collections.singletonList(tab),
                         /* destTabIndex= */ 0,
-                        /* destGroupTabId= */ TabList.INVALID_TAB_INDEX,
+                        /* destGroupTabId= */ Tab.INVALID_TAB_ID,
                         /* bringToFront= */ true);
 
         if (isTabInGroup) RecordUserAction.record("MobileToolbarReorderTab.TabRemovedFromGroup");
@@ -3373,7 +3385,7 @@ public class ChromeTabbedActivity extends ChromeActivity implements PreAttachInt
                         mWindowId,
                         tabs,
                         /* destTabIndex= */ 0,
-                        /* destGroupTabId= */ TabList.INVALID_TAB_INDEX,
+                        /* destGroupTabId= */ Tab.INVALID_TAB_ID,
                         /* bringToFront= */ true);
 
         DragDropMetricUtils.recordDragDropType(
@@ -3447,6 +3459,8 @@ public class ChromeTabbedActivity extends ChromeActivity implements PreAttachInt
         StartupPaintPreviewHelperSupplier.attach(
                 assumeNonNull(getWindowAndroid()).getUnownedUserDataHost(),
                 mStartupPaintPreviewHelperSupplier);
+        QuickDeleteControllerProvider.attach(
+                assumeNonNull(getWindowAndroid()), mQuickDeleteControllerFactory);
         mDseNewTabUrlManager = new DseNewTabUrlManager(mTabModelProfileSupplier);
 
         mHubProvider = createHubProvider();
@@ -5516,6 +5530,7 @@ public class ChromeTabbedActivity extends ChromeActivity implements PreAttachInt
             startupPaintPreviewHelper.destroy();
         }
         StartupPaintPreviewHelperSupplier.destroy(mStartupPaintPreviewHelperSupplier);
+        QuickDeleteControllerProvider.detach(mQuickDeleteControllerFactory);
 
         var moduleRegistry = mModuleRegistrySupplier.get();
         if (moduleRegistry != null) {
