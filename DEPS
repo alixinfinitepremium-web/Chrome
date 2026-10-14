@@ -1867,7 +1867,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': 'hKlkZiUg5hTFf7nBluSAfOxssMBNks8QKxylyfPVKbQC',
+          'version': 'wP5U3eOWSJUlJR92Se5cKGXxC1ifmAXNtdT9R24BB5MC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
@@ -3902,7 +3902,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '25d004d5cdd9ece0c96b533865661584fd869c75',
+        '3a1f16791125131f33f0c110258085a9764e77e8',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
