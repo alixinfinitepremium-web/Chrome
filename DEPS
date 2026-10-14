@@ -326,7 +326,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '4c1bd72f3142f40f35e6d9daea1a36a0f7e10037',
+  'src_internal_revision': 'a0f719b1e83bfb445592d766da506a8f01db6480',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -476,7 +476,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling crabbyavif
   # and whatever else without interference from each other.
-  'crabbyavif_revision': '8ed55834c6ca819888fc796f41c4003793510276',
+  'crabbyavif_revision': 'b539ff9359a5e1b06e9e0bbd063400d4f882fda4',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Speedometer main
   # and whatever else without interference from each other.
