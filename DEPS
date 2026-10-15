@@ -330,7 +330,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '9954a8508dd9826003de28624c9ceeb1a40fd22b',
+  'skia_revision': '54e1401f35367fef9f32a98521fe35dd318fafb3',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -338,7 +338,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '600ecdbcbc2fbbef6aed8329f5a68b88d6dd8680',
+  'angle_revision': 'a33b086f57848be2a5b8b55f6cf95df36e1d50b1',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -1538,7 +1538,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_mac_arm64',
-          'version': 'version:2@1713016',
+          'version': 'version:2@1714004',
         },
       ],
   },

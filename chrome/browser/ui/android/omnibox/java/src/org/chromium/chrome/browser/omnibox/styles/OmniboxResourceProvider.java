@@ -10,7 +10,6 @@ import android.content.ComponentCallbacks2;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
-import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
@@ -20,6 +19,7 @@ import android.graphics.drawable.StateListDrawable;
 import android.util.SparseArray;
 import android.util.TypedValue;
 
+import androidx.annotation.AttrRes;
 import androidx.annotation.ColorInt;
 import androidx.annotation.ColorRes;
 import androidx.annotation.DimenRes;
@@ -248,12 +248,16 @@ public class OmniboxResourceProvider implements ComponentCallbacks2 {
     }
 
     /**
-     * Resolve attribute to drawable.
+     * Returns a drawable for a given attribute depending on the current {@link BrandedColorScheme}.
      *
-     * @see #resolveAttributeToDrawable(Context, ...)
+     * @param attributeResId A resource ID of an attribute to resolve.
+     * @return A background drawable providing ripple effect.
      */
-    public Drawable resolveAttributeToDrawable(int attributeResId) {
-        return resolveAttributeToDrawable(mContext, getBrandedColorScheme(), attributeResId);
+    public Drawable resolveAttributeToDrawable(@AttrRes int attributeResId) {
+        Context wrappedContext =
+                maybeWrapContextForIncognitoColorScheme(mContext, getBrandedColorScheme());
+        @DrawableRes int resourceId = resolveAttributeToDrawableRes(wrappedContext, attributeResId);
+        return assumeNonNull(wrappedContext.getDrawable(resourceId));
     }
 
     /**
@@ -301,31 +305,28 @@ public class OmniboxResourceProvider implements ComponentCallbacks2 {
         return getUrlBarSecureColor(mContext, getBrandedColorScheme());
     }
 
-    /**
-     * Get suggestion primary text color.
-     *
-     * @see #getSuggestionPrimaryTextColor(Context, ...)
-     */
+    // Suggestions are only shown when the omnibox is focused, hence LIGHT_BRANDED_THEME and
+    // DARK_BRANDED_THEME are ignored by the suggestion text colors below.
+
+    /** Returns the primary text color for the suggestions. */
     public @ColorInt int getSuggestionPrimaryTextColor() {
-        return getSuggestionPrimaryTextColor(mContext, getBrandedColorScheme());
+        return isIncognito()
+                ? mCache.getColor(R.color.default_text_color_light)
+                : mCache.getColorAttr(R.attr.colorOnSurface);
     }
 
-    /**
-     * Get suggestion secondary text color.
-     *
-     * @see #getSuggestionSecondaryTextColor(Context, ...)
-     */
+    /** Returns the secondary text color for the suggestions. */
     public @ColorInt int getSuggestionSecondaryTextColor() {
-        return getSuggestionSecondaryTextColor(mContext, getBrandedColorScheme());
+        return isIncognito()
+                ? mCache.getColor(R.color.default_text_color_secondary_light)
+                : mCache.getColorAttr(R.attr.colorOnSurfaceVariant);
     }
 
-    /**
-     * Get suggestion url text color.
-     *
-     * @see #getSuggestionUrlTextColor(Context, ...)
-     */
+    /** Returns the URL text color for the suggestions. */
     public @ColorInt int getSuggestionUrlTextColor() {
-        return getSuggestionUrlTextColor(mContext, getBrandedColorScheme());
+        return isIncognito()
+                ? mCache.getColor(R.color.suggestion_url_color_incognito)
+                : SemanticColorUtils.getDefaultTextColorLink(mContext);
     }
 
     /** Get status separator color. */
@@ -431,7 +432,10 @@ public class OmniboxResourceProvider implements ComponentCallbacks2 {
     public @ColorInt int getSuggestionBackgroundColor(
             @FuseboxLayoutMode int layoutMode, boolean isDropdownContainer) {
         if (layoutMode == FuseboxLayoutMode.SUGGESTIONS_POPOVER) {
-            return getPopoverSuggestionBackgroundColor(mContext, getBrandedColorScheme());
+            return mCache.getColor(
+                    isIncognito()
+                            ? R.color.gm3_baseline_surface_container_dark
+                            : R.color.omnibox_popover_suggestion_bg_color);
         }
         return isDropdownContainer
                 ? getSuggestionsDropdownBackgroundColor(mContext, getBrandedColorScheme())
@@ -439,21 +443,22 @@ public class OmniboxResourceProvider implements ComponentCallbacks2 {
     }
 
     /**
-     * Get tablet toolbar text box background color.
-     *
-     * @see #getTabletToolbarTextBoxBackgroundColor(Context, ...)
+     * Returns the background color for the toolbar pill for tablets. Because tablets always ignore
+     * any branded theme, can collapse to if incog or not.
      */
     public @ColorInt int getTabletToolbarTextBoxBackgroundColor() {
-        return getTabletToolbarTextBoxBackgroundColor(mContext, getBrandedColorScheme());
+        return mCache.getColor(
+                isIncognito()
+                        ? R.color.toolbar_text_box_background_incognito
+                        : R.color.toolbar_text_box_bg_color);
     }
 
-    /**
-     * Get tablet toolbar text box standby background color.
-     *
-     * @see #getTabletToolbarTextBoxStandbyBackgroundColor(Context, ...)
-     */
+    /** Returns the background color for the toolbar pill when the omnibox is in standby. */
     public @ColorInt int getTabletToolbarTextBoxStandbyBackgroundColor() {
-        return getTabletToolbarTextBoxStandbyBackgroundColor(mContext, getBrandedColorScheme());
+        // Not cached: resolved against a night-mode wrapped context in incognito.
+        Context wrappedContext =
+                maybeWrapContextForIncognitoColorScheme(mContext, getBrandedColorScheme());
+        return SemanticColorUtils.getColorSurface(wrappedContext);
     }
 
     /** Gets the margin, in pixels, on either side of an omnibox suggestion list. */
@@ -701,7 +706,13 @@ public class OmniboxResourceProvider implements ComponentCallbacks2 {
      * @return Icon size in pixels.
      */
     public @Px int getFuseboxPopupIconSize(boolean isBottomSheet) {
-        return getFuseboxPopupIconSize(mContext, isBottomSheet);
+        if (isBottomSheet) {
+            return mCache.getDimen(R.dimen.fusebox_bottom_sheet_attachment_icon_size);
+        }
+        return mCache.getDimen(
+                OmniboxFeatures.sOmniboxFuseboxPopupVariations.isEnabled()
+                        ? R.dimen.fusebox_popup_item_large_icon_size
+                        : R.dimen.fusebox_popup_item_icon_size);
     }
 
     /**
@@ -737,22 +748,19 @@ public class OmniboxResourceProvider implements ComponentCallbacks2 {
         return IncognitoColors.getTextMediumThickPrimary(isIncognito());
     }
 
-    /**
-     * Get popup button text res.
-     *
-     * @see #getPopupButtonTextRes(Context, ...)
-     */
+    /** Resolves the text appearance for menu items in the popup. */
     public @StyleRes int getPopupButtonTextRes() {
-        return getPopupButtonTextRes(getBrandedColorScheme());
+        return OmniboxFeatures.sOmniboxFuseboxPopupVariations.isEnabled()
+                ? IncognitoColors.getTextLargePrimary(isIncognito())
+                : IncognitoColors.getTextMediumPrimary(isIncognito());
     }
 
     /**
-     * Get attachment button text res.
-     *
-     * @see #getAttachmentButtonTextRes(Context, ...)
+     * Resolves the text appearance for the label underneath carousel tiles in the popup. Unlike
+     * list rows, this stays medium when popup variations enlarge the list text.
      */
     public @StyleRes int getAttachmentButtonTextRes() {
-        return getAttachmentButtonTextRes(getBrandedColorScheme());
+        return IncognitoColors.getTextMediumPrimary(isIncognito());
     }
 
     /** Resolves the text appearance for header visibility text in the popup. */
@@ -852,22 +860,6 @@ public class OmniboxResourceProvider implements ComponentCallbacks2 {
                         context.getResources().getConfiguration().getLocales().get(0),
                         string,
                         (Object[]) args);
-    }
-
-    /**
-     * Returns a drawable for a given attribute depending on a {@link BrandedColorScheme}.
-     *
-     * @param context The {@link Context} used to retrieve resources.
-     * @param brandedColorScheme {@link BrandedColorScheme} to use.
-     * @param attributeResId A resource ID of an attribute to resolve.
-     * @return A background drawable resource ID providing ripple effect.
-     */
-    public static Drawable resolveAttributeToDrawable(
-            Context context, @BrandedColorScheme int brandedColorScheme, int attributeResId) {
-        Context wrappedContext =
-                maybeWrapContextForIncognitoColorScheme(context, brandedColorScheme);
-        @DrawableRes int resourceId = resolveAttributeToDrawableRes(wrappedContext, attributeResId);
-        return assumeNonNull(wrappedContext.getDrawable(resourceId));
     }
 
     /**
@@ -998,73 +990,12 @@ public class OmniboxResourceProvider implements ComponentCallbacks2 {
         return context.getColor(colorId);
     }
 
-    /**
-     * Returns the primary text color for the suggestions.
-     *
-     * @param context The context to retrieve the resources from.
-     * @param brandedColorScheme The {@link BrandedColorScheme}.
-     * @return Primary suggestion text color.
-     */
-    public static @ColorInt int getSuggestionPrimaryTextColor(
-            Context context, @BrandedColorScheme int brandedColorScheme) {
-        // Suggestions are only shown when the omnibox is focused, hence LIGHT_THEME and DARK_THEME
-        // are ignored as they don't change the result.
-        return brandedColorScheme == BrandedColorScheme.INCOGNITO
-                ? context.getColor(R.color.default_text_color_light)
-                : MaterialColors.getColor(context, R.attr.colorOnSurface, TAG);
-    }
-
-    /**
-     * Returns the secondary text color for the suggestions.
-     *
-     * @param context The context to retrieve the resources from.
-     * @param brandedColorScheme The {@link BrandedColorScheme}.
-     * @return Secondary suggestion text color.
-     */
-    public static @ColorInt int getSuggestionSecondaryTextColor(
-            Context context, @BrandedColorScheme int brandedColorScheme) {
-        // Suggestions are only shown when the omnibox is focused, hence LIGHT_THEME and DARK_THEME
-        // are ignored as they don't change the result.
-        return brandedColorScheme == BrandedColorScheme.INCOGNITO
-                ? context.getColor(R.color.default_text_color_secondary_light)
-                : MaterialColors.getColor(context, R.attr.colorOnSurfaceVariant, TAG);
-    }
-
-    /**
-     * Returns the URL text color for the suggestions.
-     *
-     * @param context The context to retrieve the resources from.
-     * @param brandedColorScheme The {@link BrandedColorScheme}.
-     * @return URL suggestion text color.
-     */
-    public static @ColorInt int getSuggestionUrlTextColor(
-            Context context, @BrandedColorScheme int brandedColorScheme) {
-        // Suggestions are only shown when the omnibox is focused, hence LIGHT_THEME and DARK_THEME
-        // are ignored as they don't change the result.
-        final @ColorInt int color =
-                brandedColorScheme == BrandedColorScheme.INCOGNITO
-                        ? context.getColor(R.color.suggestion_url_color_incognito)
-                        : SemanticColorUtils.getDefaultTextColorLink(context);
-        return color;
-    }
-
     /** Returns the background color for suggestions in the given color scheme and context. */
     public static @ColorInt int getStandardSuggestionBackgroundColor(
             Context context, @BrandedColorScheme int colorScheme) {
         return colorScheme == BrandedColorScheme.INCOGNITO
                 ? context.getColor(R.color.search_suggestion_bg_color_incognito)
                 : ContextCompat.getColor(context, R.color.search_suggestion_bg_color);
-    }
-
-    /**
-     * Returns the background color for popover suggestions for the given {@link BrandedColorScheme}
-     * with the given context.
-     */
-    public static @ColorInt int getPopoverSuggestionBackgroundColor(
-            Context context, @BrandedColorScheme int colorScheme) {
-        return colorScheme == BrandedColorScheme.INCOGNITO
-                ? context.getColor(R.color.gm3_baseline_surface_container_dark)
-                : ContextCompat.getColor(context, R.color.omnibox_popover_suggestion_bg_color);
     }
 
     /**
@@ -1076,25 +1007,6 @@ public class OmniboxResourceProvider implements ComponentCallbacks2 {
         return brandedColorScheme == BrandedColorScheme.INCOGNITO
                 ? context.getColor(R.color.omnibox_dropdown_bg_incognito)
                 : ContextCompat.getColor(context, R.color.omnibox_suggestion_dropdown_bg);
-    }
-
-    /**
-     * Returns the background color for the toolbar pill for tablets. Because tablets always ignore
-     * any branded theme, can collapse to if incog or not.
-     */
-    public static @ColorInt int getTabletToolbarTextBoxBackgroundColor(
-            Context context, @BrandedColorScheme int brandedColorScheme) {
-        return brandedColorScheme == BrandedColorScheme.INCOGNITO
-                ? context.getColor(R.color.toolbar_text_box_background_incognito)
-                : context.getColor(R.color.toolbar_text_box_bg_color);
-    }
-
-    /** Returns the background color for the toolbar pill when the omnibox is in standby. */
-    public static @ColorInt int getTabletToolbarTextBoxStandbyBackgroundColor(
-            Context context, @BrandedColorScheme int brandedColorScheme) {
-        Context wrappedContext =
-                maybeWrapContextForIncognitoColorScheme(context, brandedColorScheme);
-        return SemanticColorUtils.getColorSurface(wrappedContext);
     }
 
     /**
@@ -1165,39 +1077,6 @@ public class OmniboxResourceProvider implements ComponentCallbacks2 {
     public static @Nullable Bitmap getFaviconBitmapForTab(Tab tab) {
         if (sTabFaviconFactory == null) return null;
         return sTabFaviconFactory.apply(tab);
-    }
-
-    /**
-     * Resolves the icon dimension for Fusebox popup items (24dp for bottom sheet, 20dp for plus
-     * menu, or 24dp for both when popup variations are enabled).
-     */
-    public static @Px int getFuseboxPopupIconSize(Context context, boolean isBottomSheet) {
-        Resources res = context.getResources();
-        if (isBottomSheet) {
-            return res.getDimensionPixelSize(R.dimen.fusebox_bottom_sheet_attachment_icon_size);
-        }
-        return res.getDimensionPixelSize(
-                OmniboxFeatures.sOmniboxFuseboxPopupVariations.isEnabled()
-                        ? R.dimen.fusebox_popup_item_large_icon_size
-                        : R.dimen.fusebox_popup_item_icon_size);
-    }
-
-    /** Resolves the text appearance for menu items in the popup. */
-    public static @StyleRes int getPopupButtonTextRes(@BrandedColorScheme int brandedColorScheme) {
-        boolean isIncognito = brandedColorScheme == BrandedColorScheme.INCOGNITO;
-        return OmniboxFeatures.sOmniboxFuseboxPopupVariations.isEnabled()
-                ? IncognitoColors.getTextLargePrimary(isIncognito)
-                : IncognitoColors.getTextMediumPrimary(isIncognito);
-    }
-
-    /**
-     * Resolves the text appearance for the label underneath carousel tiles in the popup. Unlike
-     * list rows, this stays medium when popup variations enlarge the list text.
-     */
-    public static @StyleRes int getAttachmentButtonTextRes(
-            @BrandedColorScheme int brandedColorScheme) {
-        boolean isIncognito = brandedColorScheme == BrandedColorScheme.INCOGNITO;
-        return IncognitoColors.getTextMediumPrimary(isIncognito);
     }
 
     public static void setTabFaviconFactory(Function<Tab, @Nullable Bitmap> tabFaviconFactory) {
