@@ -440,7 +440,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': '92924972621d60cdb60c51ade7ad8c7af4b90c7d',
+  'dawn_revision': 'af01c4ef653550c1e9bf6c04065e7b4f054ea1e8',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -1751,7 +1751,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': '8WDf4LbkkAobFmZwcgrDYuRY5--0-AXUbBqEGfHypjgC',
+        'version': 'HC1RVuu4ZPLi0tfbmYtWhVEjt81QRua9U47hcUekB14C',
       },
     ],
     'condition': 'non_git_source',
