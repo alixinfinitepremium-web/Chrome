@@ -544,7 +544,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
-  'llvm_libc_revision':    '2da60f89605bb54621b2304ac52874733db8e8ba',
+  'llvm_libc_revision':    '677ea3f7af19f5cc7e7049fbca29639307cd43f6',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
@@ -3824,7 +3824,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        'd1d5f78ca330909a4fa0ac508e6ed1392d64bb64',
+        '2476a6e2a6e4d776075dbfa882cd5e68c609fca7',
       'condition': 'checkout_src_internal',
   },
 
