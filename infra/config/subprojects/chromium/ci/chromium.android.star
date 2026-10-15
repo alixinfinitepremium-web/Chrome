@@ -2602,6 +2602,9 @@ ci.builder(
                     shards = 4,
                 ),
             ),
+            "components_unittests": targets.mixin(
+                enable_rts_filtering = True,
+            ),
             "content_browsertests": targets.mixin(
                 args = [
                     "--test-launcher-filter-file=../../testing/buildbot/filters/android.emulator_10.content_browsertests.filter",
@@ -4150,6 +4153,7 @@ ci.builder(
                 ),
             ),
             "android_sync_integration_tests": targets.mixin(
+                enable_rts_filtering = True,
                 swarming = targets.swarming(
                     shards = 4,
                 ),
