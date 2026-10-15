@@ -10,6 +10,7 @@
 #include <string_view>
 #include <utility>
 
+#include "base/strings/string_util.h"
 #include "base/strings/utf_string_conversions.h"
 #include "base/types/expected.h"
 #include "chrome/browser/actor/tools/navigate_tool_request.h"
@@ -44,7 +45,9 @@ constexpr std::string_view kQueryParamDescription = "The terms to search for.";
 base::expected<GURL, mojom::ActionResultPtr> ResolveSearchUrl(
     Profile& profile,
     std::string_view query) {
-  if (query.empty()) {
+  const std::string_view trimmed_query =
+      base::TrimWhitespaceASCII(query, base::TRIM_ALL);
+  if (trimmed_query.empty()) {
     return base::unexpected(MakeResult(
         mojom::ActionResultCode::kArgumentsInvalid,
         /*requires_page_stabilization=*/false, "Search query is empty."));
@@ -68,8 +71,26 @@ base::expected<GURL, mojom::ActionResultPtr> ResolveSearchUrl(
                    "Default search provider is not set."));
   }
 
-  return default_provider->GenerateSearchURL(
-      template_url_service->search_terms_data(), base::UTF8ToUTF16(query));
+  if (!default_provider->url_ref().SupportsReplacement(
+          template_url_service->search_terms_data())) {
+    return base::unexpected(
+        MakeResult(mojom::ActionResultCode::kSearchUrlGenerationFailed,
+                   /*requires_page_stabilization=*/false,
+                   "Default search provider does not support search term "
+                   "replacement."));
+  }
+
+  GURL search_url = default_provider->GenerateSearchURL(
+      template_url_service->search_terms_data(),
+      base::UTF8ToUTF16(trimmed_query));
+  if (!search_url.is_valid()) {
+    return base::unexpected(
+        MakeResult(mojom::ActionResultCode::kSearchUrlGenerationFailed,
+                   /*requires_page_stabilization=*/false,
+                   "Default search provider generated an invalid search URL."));
+  }
+
+  return search_url;
 }
 
 }  // namespace
@@ -124,7 +145,7 @@ std::optional<url::Origin> PerformSearchToolRequest::AssociatedOriginGrant()
 
   const base::expected<GURL, mojom::ActionResultPtr> search_url =
       ResolveSearchUrl(*tab->GetProfile(), query_);
-  if (!search_url.has_value() || !search_url->is_valid()) {
+  if (!search_url.has_value()) {
     return std::nullopt;
   }
 
