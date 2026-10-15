@@ -1516,7 +1516,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_linux64',
-          'version': 'version:2@1713024',
+          'version': 'version:2@1714006',
         },
       ],
   },
@@ -1527,7 +1527,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_mac_amd64',
-          'version': 'version:2@1713018',
+          'version': 'version:2@1714006',
         },
       ],
   },
