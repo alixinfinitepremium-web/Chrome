@@ -65,13 +65,6 @@ CanvasResource::CanvasResource(
   subclass_manages_destruction_sync_token_ = true;
 }
 
-gpu::raster::RasterInterface* CanvasResourceSharedImage::RasterInterface()
-    const {
-  if (!ContextProviderWrapper())
-    return nullptr;
-  return ContextProviderWrapper()->ContextProvider().RasterInterface();
-}
-
 // static
 void CanvasResource::ReleaseFrameResources(
     scoped_refptr<CanvasResource>&& resource,
@@ -101,8 +94,6 @@ void CanvasResource::DropRefOnOwningThread(
 
 viz::TransferableResource CanvasResource::PrepareTransferableResource() {
   TRACE_EVENT0("blink", "CanvasResource::PrepareTransferableResource");
-
-  CHECK(!CreatesAcceleratedTransferableResources() || ContextProviderWrapper());
 
   auto resource = viz::TransferableResource::Make(
       GetSharedImage(), GetTransferableResourceSource(), sync_token());
@@ -314,10 +305,13 @@ void CanvasResourceSharedImage::EndExternalWrite(
   // internal interface as part of generating the TransferableResource. This new
   // sync token will be chained after `external_write_sync_token` thanks to the
   // wait above.
+  CHECK(ContextProviderWrapper());
+
   std::unique_ptr<gpu::RasterScopedAccess> access =
-      GetSharedImage()->BeginRasterAccess(RasterInterface(),
-                                          acquire_sync_token_,
-                                          /*readonly=*/true);
+      GetSharedImage()->BeginRasterAccess(
+          ContextProviderWrapper()->ContextProvider().RasterInterface(),
+          acquire_sync_token_,
+          /*readonly=*/true);
   auto sync_token = gpu::RasterScopedAccess::EndAccess(std::move(access));
   SetReleaseSyncToken(sync_token);
   GetSharedImage()->UpdateDestructionSyncToken(sync_token);
