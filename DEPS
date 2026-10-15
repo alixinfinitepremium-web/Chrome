@@ -2256,7 +2256,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + 'e776f3411d9556e2896f44a14189a2febf51fd2e',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '1888fad464fd2f25923cbd498f00aa51285c89c3',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '173b9b26e8fcbcbe64e1ecbf073a21a96b95c6b1',
@@ -3414,7 +3414,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_receiver_app/app',
-        'version': 'my7XCl3EgMn31aRtjpr4qEXvgnfAdvlHDsAFVGYSda0C',
+        'version': 'b5tqIlLEHYlorHs6eQ5HoFYCbc0jO6wwr0DgEbFSLOYC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
