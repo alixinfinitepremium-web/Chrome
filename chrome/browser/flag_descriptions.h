@@ -874,10 +874,6 @@ inline constexpr char kUseWallpaperStagingUrlDescription[] =
     "Use the staging server as part of the Wallpaper App to verify "
     "additions/removals of wallpapers.";
 
-inline constexpr char kUseDMSAAForTilesName[] = "Use DMSAA for tiles";
-inline constexpr char kUseDMSAAForTilesDescription[] =
-    "Switches skia to use DMSAA instead of MSAA for tile raster";
-
 inline constexpr char kIsolatedSandboxedIframesName[] =
     "Isolated sandboxed iframes";
 inline constexpr char kIsolatedSandboxedIframesDescription[] =
@@ -1759,7 +1755,7 @@ inline constexpr char kContextualCueingV2MultiSourceDescription[] =
 inline constexpr char kGeicEnabledName[] = "GEiC enabled";
 inline constexpr char kGeicEnabledDescription[] =
     "Controls Gemini Enterprise in Chrome (GEiC) side panel integration. Set "
-    "to Enabled to apply a GeminiEnterpriseSettings policy even if this "
+    "to Enabled to apply a GeminiEnterpriseUrl policy even if this "
     "profile is not detected as a managed account. Set to Disabled to opt out "
     "of GEiC and fall back to consumer Gemini, even if a Gemini Enterprise "
     "policy or experiment applies to this profile.";

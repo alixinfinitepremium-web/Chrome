@@ -410,7 +410,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'd53078800e632a5c13109a6ca3571245d95d3479',
+  'devtools_frontend_revision': 'a4045a9df190381fda44ce1203149f30b0ed940a',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -2245,7 +2245,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '97ed77526c27c08ad80437625ffde66dcbdd3b9c',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '7f885f604cef0f45937752073e0fc34c9e43ec83',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -2755,7 +2755,7 @@ deps = {
   },
 
   'src/third_party/material_color_utilities/src': {
-      'url': Var('chromium_git') + '/external/github.com/material-foundation/material-color-utilities.git' + '@' + '5b3618b16fdc3825e21d5679bafd144662088ea1',
+      'url': Var('chromium_git') + '/external/github.com/material-foundation/material-color-utilities.git' + '@' + 'dd62982dfdefdfc9232ce8d76e122fb1c6d188ae',
   },
 
   'src/third_party/microsoft_dxheaders/src': {
