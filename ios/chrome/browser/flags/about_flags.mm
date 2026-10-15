@@ -2283,14 +2283,6 @@ constexpr auto kFeatureEntries = std::to_array<flags_ui::FeatureEntry>({
      flag_descriptions::kIOSWebContextMenuNewTitleName,
      flag_descriptions::kIOSWebContextMenuNewTitleDescription, flags_ui::kOsIos,
      FEATURE_VALUE_TYPE(kIOSWebContextMenuNewTitle)},
-    {"composebox-fetch-contextual-suggestions-for-multiple-attachments",
-     flag_descriptions::
-         kComposeboxFetchContextualSuggestionsForMultipleAttachmentsName,
-     flag_descriptions::
-         kComposeboxFetchContextualSuggestionsForMultipleAttachmentsDescription,
-     flags_ui::kOsIos,
-     FEATURE_VALUE_TYPE(
-         kComposeboxFetchContextualSuggestionsForMultipleAttachments)},
     {"composebox-attachments-typed-state",
      flag_descriptions::kComposeboxAttachmentsTypedStateName,
      flag_descriptions::kComposeboxAttachmentsTypedStateDescription,
@@ -2980,6 +2972,11 @@ constexpr auto kFeatureEntries = std::to_array<flags_ui::FeatureEntry>({
      flag_descriptions::kFiveButtonAppBarLayoutName,
      flag_descriptions::kFiveButtonAppBarLayoutDescription, flags_ui::kOsIos,
      FEATURE_VALUE_TYPE(kFiveButtonAppBarLayout)},
+    {"migrate-to-signin-reauth-coordinator",
+     flag_descriptions::kMigrateToSigninReauthCoordinatorName,
+     flag_descriptions::kMigrateToSigninReauthCoordinatorDescription,
+     flags_ui::kOsIos,
+     FEATURE_VALUE_TYPE(switches::kMigrateToSigninReauthCoordinator)},
 });
 
 bool SkipConditionalFeatureEntry(const flags_ui::FeatureEntry& entry) {

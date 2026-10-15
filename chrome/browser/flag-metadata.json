@@ -2170,11 +2170,6 @@
     "expiry_milestone": 160
   },
   {
-    "name": "composebox-fetch-contextual-suggestions-for-multiple-attachments",
-    "owners": [ "ameurhosni@google.com", "bling-search@google.com" ],
-    "expiry_milestone": 150
-  },
-  {
     "name": "composebox-persistent-aim-button-omnibox",
     "owners": [ "yvonneshi@google.com", "chrome-desktop-ntp@google.com" ],
     "expiry_milestone": 165
@@ -7035,6 +7030,11 @@
     "name": "migrate-syncing-user-to-signed-in",
     "owners": [ "ankushkush@google.com", "chrome-sync-client-team+flags@google.com"],
     "expiry_milestone": 160
+  },
+  {
+    "name": "migrate-to-signin-reauth-coordinator",
+    "owners": [ "bsazonov@chromium.org", "chrome-signin-mobile-team@google.com" ],
+    "expiry_milestone": 162
   },
   {
     "name": "mobile-ntp-promo-on-desktop",
