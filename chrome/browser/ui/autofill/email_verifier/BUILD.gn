@@ -45,6 +45,7 @@ source_set("impl") {
     deps += [
       "//chrome/browser/ui/android/autofill",
       "//chrome/browser/ui/autofill",
+      "//components/messages/android",
     ]
   } else {
     sources += [
@@ -111,9 +112,14 @@ source_set("unit_tests") {
   if (is_android) {
     sources += [ "email_verification_controller_android_unittest.cc" ]
     deps += [
+      "//chrome/app:generated_resources",
       "//chrome/browser/ui/android/autofill",
       "//chrome/browser/ui/autofill",
       "//chrome/browser/ui/autofill:test_support",
+      "//components/messages/android",
+      "//components/messages/android:test_support",
+      "//components/strings",
+      "//ui/base",
     ]
   } else {
     sources += [
