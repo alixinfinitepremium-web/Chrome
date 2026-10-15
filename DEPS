@@ -1751,7 +1751,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': 'RJktWHs_cVLqLIsxJr4Zuqq4opS9lpWZx0p4m78iPd8C',
+        'version': '8WDf4LbkkAobFmZwcgrDYuRY5--0-AXUbBqEGfHypjgC',
       },
     ],
     'condition': 'non_git_source',
@@ -2241,7 +2241,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '62e584abc425b8b79f3f346471cff217d9fe1853',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '1657b7ae41b2af7b66ef10d58cc51d3877252065',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -2576,7 +2576,7 @@ deps = {
     Var('chromium_git') + '/external/libaddressinput.git' + '@' + '81eb9628382b07d371d8ea0b11badf7de3857fd5',
 
   'src/third_party/libaom/source/libaom':
-    Var('aomedia_git') + '/aom.git' + '@' +  '8fbd65b2f354e1d7059f8b1899f3f0373d1b3e2a',
+    Var('aomedia_git') + '/aom.git' + '@' +  'd6e868f44e202eb917503e2e850d7219575878f6',
 
   'src/third_party/crabbyavif/src':
     Var('chromium_git') + '/external/github.com/webmproject/CrabbyAvif.git' + '@' + Var('crabbyavif_revision'),
