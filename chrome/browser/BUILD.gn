@@ -4915,11 +4915,8 @@ static_library("test_support") {
   if (is_android) {
     deps += [ "//chrome/browser/android" ]
   } else {
-    sources += [
-      "apps/intent_helper/preferred_apps_test_util.cc",
-      "apps/intent_helper/preferred_apps_test_util.h",
-    ]
     public_deps += [
+      "//chrome/browser/apps/intent_helper:test_support",
       "//chrome/browser/privacy_sandbox:attestations_mixin",
       "//chrome/browser/sessions:test_support",
     ]
@@ -4936,11 +4933,8 @@ static_library("test_support") {
   }
 
   if (is_chromeos) {
-    sources += [
-      "media_galleries/media_galleries_test_util.cc",
-      "media_galleries/media_galleries_test_util.h",
-    ]
     configs += [ "//build/config/linux/dbus" ]
+    public_deps += [ "//chrome/browser/media_galleries:test_support" ]
     deps += [
       "//chrome/browser/ash/file_manager",
       "//chrome/browser/ash/login/oobe_quick_start",
@@ -5004,22 +4998,7 @@ static_library("test_support") {
   }
 
   if (has_spellcheck_panel) {
-    sources += [
-      "spellchecker/test/spellcheck_mock_panel_host.cc",
-      "spellchecker/test/spellcheck_mock_panel_host.h",
-      "spellchecker/test/spellcheck_panel_browsertest_helper.cc",
-      "spellchecker/test/spellcheck_panel_browsertest_helper.h",
-    ]
-    deps += [
-      "//chrome/browser/spellchecker",
-      "//components/spellcheck/common",
-    ]
-  }
-  if (enable_bound_session_credentials) {
-    sources += [
-      "../browser/signin/bound_session_credentials/bound_session_test_cookie_manager.cc",
-      "../browser/signin/bound_session_credentials/bound_session_test_cookie_manager.h",
-    ]
+    public_deps += [ "//chrome/browser/spellchecker:test_support" ]
   }
 
   if (toolkit_views) {
