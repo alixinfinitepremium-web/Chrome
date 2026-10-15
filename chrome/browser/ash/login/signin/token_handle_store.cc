@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "chrome/browser/ash/login/signin/token_handle_store_impl.h"
+#include "chrome/browser/ash/login/signin/token_handle_store.h"
 
 #include <utility>
 #include <vector>
@@ -21,12 +21,6 @@
 #include "components/user_manager/user.h"
 #include "components/user_manager/user_manager.h"
 #include "services/network/public/cpp/shared_url_loader_factory.h"
-
-// Enable VLOG level 1.
-// TODO(b/387248794): Remove after stabilizing, along with associated log
-// statements.
-#undef ENABLED_VLOG_LEVEL
-#define ENABLED_VLOG_LEVEL 1
 
 namespace ash {
 
@@ -62,33 +56,31 @@ bool IsReauthRequired(const TokenHandleChecker::Status& status,
 
 }  // namespace
 
-TokenHandleStoreImpl::TokenHandleStoreImpl(
+TokenHandleStore::TokenHandleStore(
     std::unique_ptr<user_manager::KnownUser> known_user,
     DoesUserHaveGaiaPasswordCallback does_user_have_gaia_password)
     : known_user_(std::move(known_user)),
       does_user_have_gaia_password_(std::move(does_user_have_gaia_password)) {}
 
-TokenHandleStoreImpl::~TokenHandleStoreImpl() = default;
+TokenHandleStore::~TokenHandleStore() = default;
 
 // static
-void TokenHandleStoreImpl::RegisterPrefs(PrefRegistrySimple* registry) {
+void TokenHandleStore::RegisterPrefs(PrefRegistrySimple* registry) {
   registry->RegisterDictionaryPref(/*path=*/kTokenHandleMap);
 }
 
-bool TokenHandleStoreImpl::HasToken(const AccountId& account_id) const {
+bool TokenHandleStore::HasToken(const AccountId& account_id) const {
   const std::string* token =
       known_user_->FindStringPath(account_id, kTokenHandlePref);
   return token && !token->empty();
 }
 
-bool TokenHandleStoreImpl::ShouldObtainHandle(
-    const AccountId& account_id) const {
+bool TokenHandleStore::ShouldObtainHandle(const AccountId& account_id) const {
   return !HasToken(account_id) || HasTokenStatusInvalid(account_id) ||
          IsTokenHandleStale(account_id);
 }
 
-bool TokenHandleStoreImpl::IsRecentlyChecked(
-    const AccountId& account_id) const {
+bool TokenHandleStore::IsRecentlyChecked(const AccountId& account_id) const {
   const base::Value* value =
       known_user_->FindPath(account_id, kTokenHandleLastCheckedPref);
   if (!value) {
@@ -103,12 +95,10 @@ bool TokenHandleStoreImpl::IsRecentlyChecked(
   return base::Time::Now() - last_checked.value() < kCacheStatusTime;
 }
 
-void TokenHandleStoreImpl::IsReauthRequired(
+void TokenHandleStore::IsReauthRequired(
     const AccountId& account_id,
     scoped_refptr<network::SharedURLLoaderFactory> url_loader_factory,
     TokenValidationCallback callback) {
-  VLOG(1) << "TokenHandleStoreImpl::IsReauthRequired";
-
   if (const user_manager::User* user =
           user_manager::UserManager::Get()->FindUser(account_id);
       !user) {
@@ -144,12 +134,11 @@ void TokenHandleStoreImpl::IsReauthRequired(
       account_id, *token, url_loader_factory);
 
   pending_checks_[account_id]->StartCheck(base::BindOnce(
-      &TokenHandleStoreImpl::OnCheckToken, weak_factory_.GetWeakPtr()));
+      &TokenHandleStore::OnCheckToken, weak_factory_.GetWeakPtr()));
 }
 
-void TokenHandleStoreImpl::StoreTokenHandle(const AccountId& account_id,
-                                            const std::string& handle) {
-  VLOG(1) << "TokenHandleStoreImpl::StoreTokenHandle";
+void TokenHandleStore::StoreTokenHandle(const AccountId& account_id,
+                                        const std::string& handle) {
   known_user_->SetStringPref(account_id, kTokenHandlePref, handle);
   known_user_->SetStringPref(account_id, kTokenHandleStatusPref,
                              kTokenHandleStatusValid);
@@ -157,29 +146,26 @@ void TokenHandleStoreImpl::StoreTokenHandle(const AccountId& account_id,
                        base::TimeToValue(base::Time::Now()));
 }
 
-void TokenHandleStoreImpl::SetTokenHandleStale(const AccountId& account_id) {
-  VLOG(1) << "TokenHandleStoreImpl::SetTokenHandleStale";
+void TokenHandleStore::SetTokenHandleStale(const AccountId& account_id) {
   known_user_->SetStringPref(account_id, kTokenHandleStatusPref,
                              kTokenHandleStatusStale);
 }
 
-void TokenHandleStoreImpl::MaybeFetchTokenHandle(
+void TokenHandleStore::MaybeFetchTokenHandle(
     PrefService* token_handle_mapping_store,
     scoped_refptr<network::SharedURLLoaderFactory> url_loader_factory,
     const AccountId& account_id,
     const std::string& access_token,
     const std::string& refresh_token_hash) {
-  VLOG(1) << "TokenHandleStoreImpl::MaybeFetchTokenHandle";
   // If the user doesn't have a token handle (new user), or the existing token
   // handle is stale, fetch a new token.
   if (!HasToken(account_id) || IsTokenHandleStale(account_id)) {
-    VLOG(1) << "TokenHandleStoreImpl::MaybeFetchTokenHandle: actually fetching";
     FetchTokenHandle(token_handle_mapping_store, url_loader_factory, account_id,
                      access_token, refresh_token_hash);
   }
 }
 
-void TokenHandleStoreImpl::FetchTokenHandle(
+void TokenHandleStore::FetchTokenHandle(
     PrefService* token_handle_mapping_store,
     scoped_refptr<network::SharedURLLoaderFactory> url_loader_factory,
     const AccountId& account_id,
@@ -194,17 +180,16 @@ void TokenHandleStoreImpl::FetchTokenHandle(
       std::make_unique<TokenHandleFetcher>(url_loader_factory, account_id);
   pending_fetches_[account_id]->Fetch(
       access_token, refresh_token_hash,
-      base::BindOnce(&TokenHandleStoreImpl::OnFetchToken,
+      base::BindOnce(&TokenHandleStore::OnFetchToken,
                      weak_factory_.GetWeakPtr(), token_handle_mapping_store,
                      refresh_token_hash));
 }
 
-void TokenHandleStoreImpl::OnFetchToken(PrefService* token_handle_mapping_store,
-                                        const std::string& refresh_token_hash,
-                                        const AccountId& account_id,
-                                        bool success,
-                                        const std::string& token) {
-  VLOG(1) << "TokenHandleStoreImpl::OnFetchToken: success=" << success;
+void TokenHandleStore::OnFetchToken(PrefService* token_handle_mapping_store,
+                                    const std::string& refresh_token_hash,
+                                    const AccountId& account_id,
+                                    bool success,
+                                    const std::string& token) {
   if (!success) {
     LOG(ERROR) << "OAuth2 token handle fetch failed.";
     return;
@@ -224,11 +209,11 @@ void TokenHandleStoreImpl::OnFetchToken(PrefService* token_handle_mapping_store,
   }
 
   base::SequencedTaskRunner::GetCurrentDefault()->PostTask(
-      FROM_HERE, base::BindOnce(&TokenHandleStoreImpl::ScheduleFetcherDelete,
+      FROM_HERE, base::BindOnce(&TokenHandleStore::ScheduleFetcherDelete,
                                 weak_factory_.GetWeakPtr(), account_id));
 }
 
-void TokenHandleStoreImpl::StoreTokenHandleMapping(
+void TokenHandleStore::StoreTokenHandleMapping(
     PrefService* token_handle_mapping_store,
     const std::string& token_handle,
     const std::string& refresh_token_hash) {
@@ -237,19 +222,19 @@ void TokenHandleStoreImpl::StoreTokenHandleMapping(
   update->Set(token_handle, refresh_token_hash);
 }
 
-void TokenHandleStoreImpl::DiagnoseTokenHandleMapping(
+void TokenHandleStore::DiagnoseTokenHandleMapping(
     PrefService* token_handle_mapping_store,
     account_manager::AccountManager* account_manager,
     const AccountId& account_id,
     const std::string& token) const {
   account_manager->GetTokenHash(
       account_manager::AccountKey::FromGaiaId(account_id.GetGaiaId()),
-      base::BindOnce(&TokenHandleStoreImpl::OnGetTokenHash,
+      base::BindOnce(&TokenHandleStore::OnGetTokenHash,
                      weak_factory_.GetWeakPtr(), token_handle_mapping_store,
                      token));
 }
 
-void TokenHandleStoreImpl::OnGetTokenHash(
+void TokenHandleStore::OnGetTokenHash(
     PrefService* token_handle_mapping_store,
     const std::string& token,
     const std::string& account_manager_stored_hash) const {
@@ -267,16 +252,14 @@ void TokenHandleStoreImpl::OnGetTokenHash(
       "Login.IsTokenHandleInSyncWithRefreshTokenPostRefactoring", hashes_match);
 }
 
-void TokenHandleStoreImpl::OnCheckToken(
-    const AccountId& account_id,
-    const std::string& token,
-    const TokenHandleChecker::Status& status) {
-  VLOG(1) << "TokenHandleStoreImpl::OnCheckToken";
+void TokenHandleStore::OnCheckToken(const AccountId& account_id,
+                                    const std::string& token,
+                                    const TokenHandleChecker::Status& status) {
   CHECK(pending_checks_.find(account_id) != pending_checks_.end());
 
   does_user_have_gaia_password_.Run(
       account_id,
-      base::BindOnce(&TokenHandleStoreImpl::ReplyToTokenHandleCheck,
+      base::BindOnce(&TokenHandleStore::ReplyToTokenHandleCheck,
                      weak_factory_.GetWeakPtr(), token, account_id, status));
 }
 
@@ -288,7 +271,7 @@ void TokenHandleStoreImpl::OnCheckToken(
 // - Setting a token handle's status to stale will defer replying to all pending
 // checks until we fetch a new token handle. At which point we'll reply to all
 // pending callbacks that the new token is valid.
-void TokenHandleStoreImpl::ReplyToTokenHandleCheck(
+void TokenHandleStore::ReplyToTokenHandleCheck(
     const std::string& token,
     const AccountId& account_id,
     const TokenHandleChecker::Status& status,
@@ -329,11 +312,11 @@ void TokenHandleStoreImpl::ReplyToTokenHandleCheck(
   }
 }
 
-void TokenHandleStoreImpl::ScheduleFetcherDelete(const AccountId& account_id) {
+void TokenHandleStore::ScheduleFetcherDelete(const AccountId& account_id) {
   pending_fetches_.erase(account_id);
 }
 
-bool TokenHandleStoreImpl::HasTokenStatusInvalid(
+bool TokenHandleStore::HasTokenStatusInvalid(
     const AccountId& account_id) const {
   const std::string* status =
       known_user_->FindStringPath(account_id, kTokenHandleStatusPref);
@@ -341,24 +324,19 @@ bool TokenHandleStoreImpl::HasTokenStatusInvalid(
   return status && *status == kTokenHandleStatusInvalid;
 }
 
-bool TokenHandleStoreImpl::IsTokenHandleStale(
-    const AccountId& account_id) const {
+bool TokenHandleStore::IsTokenHandleStale(const AccountId& account_id) const {
   const std::string* status =
       known_user_->FindStringPath(account_id, kTokenHandleStatusPref);
 
   return status && *status == kTokenHandleStatusStale;
 }
 
-void TokenHandleStoreImpl::SetInvalidTokenForTesting(const char* token) {
+void TokenHandleStore::SetInvalidTokenForTesting(const char* token) {
   if (!token) {
     invalid_token_for_testing_->clear();
     return;
   }
   invalid_token_for_testing_ = token;
 }
-
-void TokenHandleStoreImpl::SetLastCheckedPrefForTesting(
-    const AccountId& account_id,
-    base::Time time) {}
 
 }  // namespace ash
