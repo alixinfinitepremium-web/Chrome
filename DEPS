@@ -410,7 +410,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '6347b6ae18fbc1179747594ee24c56a2489d61d9',
+  'devtools_frontend_revision': '6ec4c71fd0436a389063a18d6ef663f00d1bfaee',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -424,7 +424,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling android_deps_autorolled_version
   # and whatever else without interference from each other.
-  'android_deps_autorolled_version': 'W0VYm9Y5g3k6dHkqY1BVG6__YLk6NZhhIClW1kTRhFEC',
+  'android_deps_autorolled_version': 'UkAX0LKyvE-1pW746OVRZZaeey5A6fVDU3Z9fum8tU4C',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling android_sdk_emulator_version
   # and whatever else without interference from each other.
