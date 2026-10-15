@@ -346,7 +346,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling PDFium
   # and whatever else without interference from each other.
-  'pdfium_revision': '69efacb11fa5bee156017811629ae996296fb7d4',
+  'pdfium_revision': 'f536928c24659ca3f669327b83b0af6e7cfb3826',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
@@ -1867,7 +1867,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': 'MWhR72NkTneyveR6Y2Gx1r_9Ea2iSZtYWFu5xlA1ZIAC',
+          'version': 'CpHDxl1xHgdsbSkt28uht-kg8o32vFLmt4JXnVX5S_QC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
@@ -3285,7 +3285,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '1c42989f395b1c916c76879eb35647046c456ed5',
+    Var('webrtc_git') + '/src.git' + '@' + '602d5fc23caaca7728ad5f3f0e68b92274d1a38a',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
