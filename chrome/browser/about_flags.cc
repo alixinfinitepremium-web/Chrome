@@ -4210,6 +4210,8 @@ constexpr char kWebUIToolbarEnableFeatures[] =
     "InitialWebUISurfaceSync:deadline_in_frames/12000/"
     "renderer_commit_delay_ms/100000,"
     "InitialWebUIWithoutExtensions,"
+    "InitialWebUIWithoutSpellCheckForNtp,"
+    "InitialWebUIWithoutTranslateForNtp,"
     "LazyKeyedServiceInstantiation,"
     "PerDependencyDeadlines,"
     "PrioritizeResizeTaskRunnerOnStartup,"
@@ -9156,6 +9158,15 @@ const FeatureEntry kFeatureEntries[] = {
     {"enable-drdc", flag_descriptions::kEnableDrDcName,
      flag_descriptions::kEnableDrDcDescription, kOsAll,
      FEATURE_VALUE_TYPE(features::kEnableDrDc)},
+
+#if BUILDFLAG(ENABLE_EXTENSIONS_CORE)
+    {"back-forward-cache-for-component-extension-frames",
+     flag_descriptions::kBackForwardCacheForComponentExtensionFramesName,
+     flag_descriptions::kBackForwardCacheForComponentExtensionFramesDescription,
+     kOsDesktop,
+     FEATURE_VALUE_TYPE(
+         extensions_features::kBackForwardCacheForComponentExtensionFrames)},
+#endif  // BUILDFLAG(ENABLE_EXTENSIONS_CORE)
 
 #if BUILDFLAG(ENABLE_EXTENSIONS)
     {"api-contextual-tasks-private",
