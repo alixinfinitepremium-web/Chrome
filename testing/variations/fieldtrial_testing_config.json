@@ -10753,25 +10753,6 @@
             ]
         }
     ],
-    "JumpStartOmnibox": [
-        {
-            "platforms": [
-                "android"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled_15",
-                    "params": {
-                        "jump_start_min_away_time_minutes": "15"
-                    },
-                    "enable_features": [
-                        "JumpStartOmnibox",
-                        "LocalHistoryZeroSuggestBeyondNTP"
-                    ]
-                }
-            ]
-        }
-    ],
     "KeyboardAccessoryPaymentOffer": [
         {
             "platforms": [
@@ -15537,7 +15518,12 @@
             "experiments": [
                 {
                     "name": "Enabled",
+                    "params": {
+                        "en_site_id": "QSt77E8pH0ugnJ3q1cK0Rf8H914u",
+                        "probability": "1.0"
+                    },
                     "enable_features": [
+                        "HappinessTrackingSurveysForDesktopScheduledRestart",
                         "ScheduledRestart"
                     ]
                 }
