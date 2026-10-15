@@ -552,7 +552,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling clusterfuzz-data
   # and whatever else without interference from each other.
-  'clusterfuzz_data_revision':'2e952490dd9974add2daf42aa5cb346be1ced874',
+  'clusterfuzz_data_revision':'e1bd2dccea7cb416c7164526879c6b44aff423dd',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling agents-internal
   # and whatever else without interference from each other.
@@ -1671,7 +1671,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_linux64',
-          'version': 'k-G0ov1No8HnfB-ihWVeJ3SQFgett1hetmH3Y6-YEW0C',
+          'version': 'jq7Y2dGh1iATOKmgynr0S-fnKr3rhGy9OGN0FSAxz68C',
         },
       ],
   },
@@ -1682,7 +1682,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_mac_amd64',
-          'version': 'nkSY5pbt13jl3lEN7b2teERLV77SFotyIUao1YCFarkC',
+          'version': 'JPQWchsXDSvW2l8pAJaIf64HSOmDmLDPz9qlmiAByYMC',
         },
       ],
   },
@@ -1693,7 +1693,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_mac_arm64',
-          'version': 'OPZjw89cTpxeC0WPfLBfzDsaPCaLG41_-EO52avny7sC',
+          'version': 'tlRTQR8PFy1Iufl4em6PHXARwQdtIY3ipBS2HkLmcaAC',
         },
       ],
   },
@@ -1715,7 +1715,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_win_x86_64',
-          'version': '2poI1NBrw12miSoSfjIIHROMQL02JfQvDW7BUIkDDicC',
+          'version': 'PkJtEjtaY1lHckslvUfeYRVhpQZj0UUjXk1efpq2Ro8C',
         },
       ],
   },

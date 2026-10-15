@@ -400,6 +400,27 @@ ScriptPromise<IDLUndefined> ModelContext::registerTool(
     }
   }
 
+  // Serializing `inputSchema` above can run script (e.g., a `toJSON()` method)
+  // that makes the document inactive, for example by removing its iframe. The
+  // rest of this method requires an active document (e.g., it uses the frame
+  // and `model_context_host_remote_`), so check again.
+  if (!document_->IsActive()) {
+    return ScriptPromise<IDLUndefined>::RejectWithDOMException(
+        script_state,
+        MakeGarbageCollected<DOMException>(DOMExceptionCode::kInvalidStateError,
+                                           kInactiveDocumentError));
+  }
+
+  // Likewise, that script could have registered a tool with the same name, so
+  // check for a duplicate again. Otherwise, the browser would receive two tools
+  // with the same name from this document, and kill the renderer.
+  if (tool_map_.find(tool->name()) != tool_map_.end()) {
+    return ScriptPromise<IDLUndefined>::RejectWithDOMException(
+        script_state,
+        MakeGarbageCollected<DOMException>(DOMExceptionCode::kInvalidStateError,
+                                           "Duplicate tool name"));
+  }
+
   auto* resolver =
       MakeGarbageCollected<ScriptPromiseResolver<IDLUndefined>>(script_state);
   ScriptPromise promise = resolver->Promise();
