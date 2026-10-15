@@ -567,7 +567,7 @@ vars = {
   'libcxx_revision':       '97b436da4c33663581d394f4ee0a5977fc38c2f4',
 
   # GN CIPD package version.
-  'gn_version': 'git_revision:0817afa577428da457b6482c027d7202cd01fcbf',
+  'gn_version': 'git_revision:ca14a831a82342fe28e372a8d25ee4fe31b920e4',
 
   # ninja CIPD package.
   'ninja_package': 'infra/3pp/tools/ninja/',
@@ -2827,7 +2827,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/cisco/openh264' + '@' + '9547f96ea5c47f4d465d97b07264b997ecc4b4b6',
 
   'src/third_party/openscreen/src':
-    Var('chromium_git') + '/openscreen' + '@' + '514cf239bf2ccaa2c89197623692a9ecda1ee89b',
+    Var('chromium_git') + '/openscreen' + '@' + '9bcf4c5b23327cc936b18f8db09582dc108b644b',
 
   'src/third_party/openxr/src': {
     'url': Var('chromium_git') + '/external/github.com/KhronosGroup/OpenXR-SDK' + '@' + '75c53b6e853dc12c7b3c771edc9c9c841b15faaa',
@@ -3285,7 +3285,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + 'be0b336fa368929971b3d01ab0b8eabcee26f5df',
+    Var('webrtc_git') + '/src.git' + '@' + '0820fe1ffae4c0c2f49be252cc8377cbbd38a9a1',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
