@@ -338,7 +338,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '57869b0a9d3af1d1ad5781fe3e2ad5e357ca6ee3',
+  'angle_revision': '33f8caff4b77667bc50d8484401af01291de119d',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -3694,7 +3694,7 @@ deps = {
 
   'src/chrome/browser/ttc/resources/internal': {
       'url': Var('chrome_git') + '/chrome/browser/ttc/resources/internal.git' + '@' +
-        '80569732bcceab65c8746c5b03bc1802c262f50c',
+        '82613cc46d9c4c58d00897ace17951abc0ed8565',
       'condition': 'checkout_src_internal',
   },
 
