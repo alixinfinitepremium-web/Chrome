@@ -1767,7 +1767,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '57b46c90b1f7cb245d4e813a6dee67c5319a7fed',
+    '8a5fb637d9bc503c317bbb3b0962267d1fe2a903',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -2844,7 +2844,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/cisco/openh264' + '@' + '9547f96ea5c47f4d465d97b07264b997ecc4b4b6',
 
   'src/third_party/openscreen/src':
-    Var('chromium_git') + '/openscreen' + '@' + '917d838c2a457da2dcccca70536b1cf1162b90bd',
+    Var('chromium_git') + '/openscreen' + '@' + '5e4d1c2c3e18490ff4c07c2888d5453ea85e4f87',
 
   'src/third_party/openxr/src': {
     'url': Var('chromium_git') + '/external/github.com/KhronosGroup/OpenXR-SDK' + '@' + '75c53b6e853dc12c7b3c771edc9c9c841b15faaa',
