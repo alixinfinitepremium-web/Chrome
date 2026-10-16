@@ -3146,10 +3146,6 @@ inline constexpr char kIncognitoScreenshotDescription[] =
     "Enables Incognito screenshots on Android. It will also make Incognito "
     "thumbnails visible.";
 
-inline constexpr char kInfoBarInlineLinksName[] = "InfoBar inline links";
-inline constexpr char kInfoBarInlineLinksDescription[] =
-    "Enables inline links in InfoBars when supported.";
-
 inline constexpr char kInfoBarQueuedCountPillName[] =
     "InfoBar queued count pill";
 inline constexpr char kInfoBarQueuedCountPillDescription[] =
@@ -4144,6 +4140,14 @@ inline constexpr char kPaymentHandlerCameraAccessUxName[] =
 inline constexpr char kPaymentHandlerCameraAccessUxDescription[] =
     "Enables camera access with integrated permission prompt and "
     "capture indicator in web-based Payment Handlers on desktop.";
+
+inline constexpr char kPaymentHandlerCustomSizeName[] =
+    "Payment Handler Custom Size";
+inline constexpr char kPaymentHandlerCustomSizeDescription[] =
+    "Lets a payment app customize the size of its Payment Handler window "
+    "statically through the preferredSize option of "
+    "PaymentRequestEvent.openWindow() and/or dynamically at runtime through "
+    "window.resizeTo().";
 
 inline constexpr char kSPCLocaleValidationName[] =
     "Secure Payment Confirmation Locale Validation";
