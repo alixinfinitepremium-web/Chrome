@@ -392,6 +392,10 @@
       status: "stable",
     },
     {
+      name: "AIPageContentIncludeMathML",
+      status: "stable",
+    },
+    {
       name: "AIPageContentIncludeSVGSubtree",
       status: "stable"
     },
@@ -6328,6 +6332,20 @@
       // observers while a stale cached image is revalidating.
       // https://crbug.com/40757070
       name: "StaleImageNaturalSizeDuringRevalidation",
+      status: "stable",
+    },
+    {
+      // Without this flag, an IntersectionObserver target inside a
+      // render-throttled iframe will continue to compute its intersection state
+      // as long as `NeedsLayout()` is `false` for its containing document. This
+      // is a faulty mechanism, as `NeedsLayout()` does not reliably indicate
+      // whether a document's rendering is out of date. When the flag is enabled
+      // all IntersectionObserver targets inside an iframe that becomes
+      // throttled will promptly generate a "not intersecting" notification.
+      // This is a web-visible change in behavior (though it does not reveal any
+      // new information), so it's hidden behind a flag to provide a kill switch
+      // in the event of breakage.
+      name: "StaleIntersectionGeometryForThrottledFrames",
       status: "stable",
     },
     {
