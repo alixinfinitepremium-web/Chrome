@@ -1995,7 +1995,7 @@ deps = {
       'packages': [
           {
                'package': 'chromium/third_party/android_build_tools/manifest_merger',
-               'version': 'RenR6Ihda10Ol84AGYhLu_JkEPpJIM36-3rcS7duH6cC',
+               'version': '7p-hClTmAvWaOJ3jlIpjhY3Z6fHNu0T6OpIFuShWhAEC',
           },
       ],
       'condition': 'checkout_android and non_git_source',
@@ -2844,7 +2844,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/cisco/openh264' + '@' + '9547f96ea5c47f4d465d97b07264b997ecc4b4b6',
 
   'src/third_party/openscreen/src':
-    Var('chromium_git') + '/openscreen' + '@' + 'd012daf2c41c0f3bca642f45237764d50b31b334',
+    Var('chromium_git') + '/openscreen' + '@' + '7905ee3dcb9ab51265171b5a51c86a4c7abc2d98',
 
   'src/third_party/openxr/src': {
     'url': Var('chromium_git') + '/external/github.com/KhronosGroup/OpenXR-SDK' + '@' + '75c53b6e853dc12c7b3c771edc9c9c841b15faaa',
