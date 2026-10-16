@@ -390,7 +390,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': '9c5f33ea4cc797b654b3c6db4edb0a2aac43156a',
+  'crossbench_revision': 'b08a6252a847d128334f9c7a1765e29c06804850',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -2260,7 +2260,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '1039c3ea3bf6ca486168c5eb392bc2ba1470fa83',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '3b70ae5bace4346e9607fa86853aa9ed28b59b7f',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '173b9b26e8fcbcbe64e1ecbf073a21a96b95c6b1',
