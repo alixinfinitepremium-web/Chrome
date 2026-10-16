@@ -1520,7 +1520,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_linux64',
-          'version': 'version:2@1714006',
+          'version': 'version:2@1715003',
         },
       ],
   },
@@ -1531,7 +1531,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_mac_amd64',
-          'version': 'version:2@1714006',
+          'version': 'version:2@1715005',
         },
       ],
   },
@@ -1686,7 +1686,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_mac_amd64',
-          'version': 'JPQWchsXDSvW2l8pAJaIf64HSOmDmLDPz9qlmiAByYMC',
+          'version': 'ehqm6FS-uOvISzntHyUguqyaC7oZwB0pANws1Z66avcC',
         },
       ],
   },
@@ -1697,7 +1697,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_mac_arm64',
-          'version': 'tlRTQR8PFy1Iufl4em6PHXARwQdtIY3ipBS2HkLmcaAC',
+          'version': 'nuowQ5p96DItJNwtU0KcsGpuC5hvxIcg3QRVi9PGCicC',
         },
       ],
   },
@@ -1708,7 +1708,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_win_x86',
-          'version': 'gf23cloOwSkjUQad6tsdM7i477-TwNlnkoSLGPyyWuQC',
+          'version': 'RmJSo-R5rRf4K20QPWuTFGMW0Q0mVxu4Env22dXIOd8C',
         },
       ],
   },
