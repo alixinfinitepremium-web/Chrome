@@ -394,7 +394,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_web_tests_revision': '4baa2589a864fe852237152f0bfaa6f51b9ab2a9',
+  'crossbench_web_tests_revision': '7b44c09a6186d62bdc81a9006e3a2e3058cff25a',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libFuzzer
   # and whatever else without interference from each other.
@@ -410,7 +410,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '1b32a08b7a10b43a7719f868db67278c507526bc',
+  'devtools_frontend_revision': '771e170d2ffb425d557e08ce82531961be22484e',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1772,7 +1772,7 @@ deps = {
   },
 
   'src/docs/website': {
-    'url': Var('chromium_git') + '/website.git' + '@' + '3aacabf0ced2ff7963b568e8d97549127a211b4d',
+    'url': Var('chromium_git') + '/website.git' + '@' + '86aee6baf468b192aa09091d5ed4064ab486e47a',
   },
 
   'src/ios/third_party/earl_grey2/src': {
