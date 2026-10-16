@@ -10,12 +10,22 @@
 
 #include "chrome/browser/actor/tools/registry/tool_definition.h"
 #include "chrome/browser/actor/tools/registry/tool_definition_builder.h"
+#include "chrome/browser/actor/tools/registry/tool_schema_builder.h"
 #include "chrome/browser/actor/tools/tool_request_visitor_functor.h"
 #include "chrome/browser/actor/tools/window_management_tool.h"
 #include "chrome/common/actor/action_result.h"
 
 namespace actor {
 namespace {
+
+constexpr std::string_view kCreateWindowToolDescription =
+    "Opens a new browser window.";
+
+constexpr std::string_view kActivateWindowToolDescription =
+    "Brings the specified window to the foreground.";
+
+constexpr std::string_view kWindowIdParamDescription =
+    "The ID of the window to activate.";
 
 constexpr std::string_view kEnterFullscreenToolDescription =
     "Enter full screen mode for the active browser window.";
@@ -28,6 +38,13 @@ constexpr std::string_view kExitFullscreenToolDescription =
 // CreateWindowToolRequest
 CreateWindowToolRequest::CreateWindowToolRequest() = default;
 CreateWindowToolRequest::~CreateWindowToolRequest() = default;
+
+// static
+std::optional<ToolDefinition> CreateWindowToolRequest::GetToolDefinition() {
+  return ToolDefinitionBuilder(ToolId::kCreateWindow, kModelFacingName,
+                               kCreateWindowToolDescription)
+      .Build();
+}
 
 ToolRequest::CreateToolResult CreateWindowToolRequest::CreateTool(
     TaskId task_id,
@@ -48,6 +65,15 @@ std::string_view CreateWindowToolRequest::Name() const {
 ActivateWindowToolRequest::ActivateWindowToolRequest(int32_t window_id)
     : window_id_(window_id) {}
 ActivateWindowToolRequest::~ActivateWindowToolRequest() = default;
+
+// static
+std::optional<ToolDefinition> ActivateWindowToolRequest::GetToolDefinition() {
+  return ToolDefinitionBuilder(ToolId::kActivateWindow, kModelFacingName,
+                               kActivateWindowToolDescription)
+      .SetToolParameterSchema(ToolSchemaBuilder().AddIntegerProperty(
+          kWindowIdParam, kWindowIdParamDescription))
+      .Build();
+}
 
 ToolRequest::CreateToolResult ActivateWindowToolRequest::CreateTool(
     TaskId task_id,
