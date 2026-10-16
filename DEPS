@@ -390,7 +390,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': 'b02dd8567090180c732b5019fc93495db8d35d45',
+  'crossbench_revision': 'a65475b65c9586d0c96eb178eca817f044275ec4',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -524,7 +524,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'libcxxabi_revision':    '60633c4b65478ae659ca4105e86fc4d6611e9f8d',
+  'libcxxabi_revision':    'eac1e333a6055ed9363d0d382c7bf1a9c7cf5b26',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
