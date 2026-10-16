@@ -346,7 +346,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling PDFium
   # and whatever else without interference from each other.
-  'pdfium_revision': 'f536928c24659ca3f669327b83b0af6e7cfb3826',
+  'pdfium_revision': '7c55203ed66b0461378323e3fcf2efaf76755241',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
@@ -560,7 +560,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling agents-internal
   # and whatever else without interference from each other.
-  'agents_internal_revision': '8f6ca7b4a66b74e21d77bca5c3e9b9be13391d28',
+  'agents_internal_revision': '2c64c63c733e2db8eb1e5b9389d4ecc4057b3539',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling agents-public
   # and whatever else without interference from each other.
@@ -2844,7 +2844,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/cisco/openh264' + '@' + '9547f96ea5c47f4d465d97b07264b997ecc4b4b6',
 
   'src/third_party/openscreen/src':
-    Var('chromium_git') + '/openscreen' + '@' + '7905ee3dcb9ab51265171b5a51c86a4c7abc2d98',
+    Var('chromium_git') + '/openscreen' + '@' + '1a294d1a893990b54bd82668d8680923107cee32',
 
   'src/third_party/openxr/src': {
     'url': Var('chromium_git') + '/external/github.com/KhronosGroup/OpenXR-SDK' + '@' + '75c53b6e853dc12c7b3c771edc9c9c841b15faaa',
