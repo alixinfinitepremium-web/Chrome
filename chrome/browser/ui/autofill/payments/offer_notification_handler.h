@@ -1,9 +1,9 @@
-// Copyright 2022 The Chromium Authors
+// Copyright 2026 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef COMPONENTS_AUTOFILL_CORE_BROWSER_PAYMENTS_OFFER_NOTIFICATION_HANDLER_H_
-#define COMPONENTS_AUTOFILL_CORE_BROWSER_PAYMENTS_OFFER_NOTIFICATION_HANDLER_H_
+#ifndef CHROME_BROWSER_UI_AUTOFILL_PAYMENTS_OFFER_NOTIFICATION_HANDLER_H_
+#define CHROME_BROWSER_UI_AUTOFILL_PAYMENTS_OFFER_NOTIFICATION_HANDLER_H_
 
 #include "base/memory/raw_ref.h"
 #include "url/gurl.h"
@@ -13,8 +13,10 @@ namespace autofill {
 class AutofillClient;
 class AutofillOfferManager;
 
-// The class to handle actions related to the offer notifications. It is owned
-// by the AutofillOfferManager and it is one per browser context.
+// Shows or dismisses the offer notification on a tab. There is one per tab,
+// owned by the tab's `ChromePaymentsAutofillClient`. It is only created if the
+// tab's browser context has an `AutofillOfferManager`, so there is none in
+// off-the-record tabs, e.g. in Incognito windows.
 class OfferNotificationHandler {
  public:
   explicit OfferNotificationHandler(AutofillOfferManager* offer_manager);
@@ -28,10 +30,10 @@ class OfferNotificationHandler {
  private:
   bool ValidOfferExistsForUrl(const GURL& url);
 
-  // The reference to the offer manager that owns |this|.
+  // The offer manager of the tab's browser context.
   raw_ref<AutofillOfferManager> offer_manager_;
 };
 
 }  // namespace autofill
 
-#endif  // COMPONENTS_AUTOFILL_CORE_BROWSER_PAYMENTS_OFFER_NOTIFICATION_HANDLER_H_
+#endif  // CHROME_BROWSER_UI_AUTOFILL_PAYMENTS_OFFER_NOTIFICATION_HANDLER_H_
