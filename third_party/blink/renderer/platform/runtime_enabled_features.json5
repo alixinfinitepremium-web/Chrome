@@ -392,10 +392,6 @@
       status: "stable",
     },
     {
-      name: "AIPageContentIncludeMathML",
-      status: "stable",
-    },
-    {
       name: "AIPageContentIncludeSVGSubtree",
       status: "stable"
     },
@@ -6514,7 +6510,7 @@
     },
     {
       name: "SVGTextPathSideAttribute",
-      status: "experimental",
+      status: "stable",
     },
     {
       name: "SvgUseNestedResourceDocuments",
