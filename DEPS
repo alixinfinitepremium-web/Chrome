@@ -330,7 +330,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': 'a577264dc087543e58dc81a10c7956dd66f2b2a5',
+  'skia_revision': '470b8816a2611c1d96bd3a1de2893eeeeb9b1486',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -1755,7 +1755,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': 'HC1RVuu4ZPLi0tfbmYtWhVEjt81QRua9U47hcUekB14C',
+        'version': 'QGxBsKECxFbqR6L55u65P3coXAtmpVM70m5v7DZcZbAC',
       },
     ],
     'condition': 'non_git_source',
@@ -3304,7 +3304,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + 'ee18f345bc4a05732fc64f804b96458cc4c3e27c',
+    Var('webrtc_git') + '/src.git' + '@' + '2f2246127ce24cdd6c3a1090021424b5bfd67b94',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
