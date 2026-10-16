@@ -1871,7 +1871,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': 'QuLH96kVCw_xivILVNCwCnGdAG0SxE_Tb_VGIA5w-1gC',
+          'version': 't_ZKZ7huTUnZG2ljsCWXb0PwGJ8Ve9bFQLahtd7aYP0C',
       },
     ],
     'condition': 'checkout_android and non_git_source',
@@ -2245,7 +2245,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '382c208a9973e1a6c0867b6d8664dc6dc9116e30',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '251c84c1f36498529399517014e8f7994f762e2e',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -3921,7 +3921,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '2b4e0ac2b851b62783a29713c8a5c3b4fc75adc9',
+        'f82059dbadf35442b65b686d0ca924938b12d29a',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
