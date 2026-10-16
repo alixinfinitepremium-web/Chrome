@@ -191,7 +191,7 @@ class ModelContext::ToolUnregisterAbortAlgorithm final
         signal_(signal) {}
 
   void Run() override {
-    model_context_->UnregisterImperativeTool(tool_id_);
+    model_context_->UnregisterTool(tool_id_);
     resolver_->Reject(signal_->reason(resolver_->GetScriptState()));
   }
 
@@ -483,43 +483,27 @@ ScriptPromise<IDLUndefined> ModelContext::registerTool(
   return promise;
 }
 
-void ModelContext::UnregisterImperativeTool(
-    const base::UnguessableToken& tool_id) {
-  // An imperative tool's `AbortSignal` aborts at most once, and nothing else
-  // unregisters imperative tools, so the tool must still be registered.
+void ModelContext::UnregisterTool(const base::UnguessableToken& tool_id) {
+  // The tool must still be registered:
+  //  - An imperative tool's `AbortSignal` aborts at most once, and nothing
+  //    else unregisters imperative tools.
+  //  - A form only holds onto a declarative tool that was successfully
+  //    registered with the `ModelContext` of its document, and unregisters it
+  //    from that same `ModelContext`.
   auto it = tool_map_.find(tool_id);
   CHECK(it != tool_map_.end());
-  CHECK(!it->value->DeclarativeTool());
 
   probe::WebMCPToolRemoved(document_, *it->value);
   tool_map_.erase(it);
   // An inactive document (e.g., one whose frame was removed) has no browser
   // host to notify: its `model_context_host_remote_` is reset when its
-  // execution context is destroyed. This is reachable from script, e.g., by
-  // aborting a tool's `AbortSignal` after the registering document's iframe is
-  // removed.
+  // execution context is destroyed. This is reachable, e.g., by aborting an
+  // imperative tool's `AbortSignal` after the registering document's iframe is
+  // removed, or by removing a declarative tool's form from a removed iframe's
+  // document, e.g., to adopt it into another document.
   if (document_->IsActive()) {
     model_context_host_remote_->UnregisterScriptTool(tool_id);
   }
-}
-
-void ModelContext::UnregisterDeclarativeTool(
-    const base::UnguessableToken& tool_id) {
-  auto it = tool_map_.find(tool_id);
-  if (it == tool_map_.end()) {
-    // Not finding `tool_id` is expected: `RegisterDeclarativeTool()` silently
-    // rejects some declarative tools (e.g., duplicate or invalid names), but
-    // the owning form still holds onto the tool and later unregisters it. Once
-    // those failures are surfaced to the form, we can prevent forms from
-    // holding their active tool whose registration failed, and therefore
-    // it will become impossible to reach this. See https://crbug.com/509983792.
-    return;
-  }
-
-  CHECK(it->value->DeclarativeTool());
-  probe::WebMCPToolRemoved(document_, *it->value);
-  tool_map_.erase(it);
-  model_context_host_remote_->UnregisterScriptTool(tool_id);
 }
 
 std::optional<ScriptToolDeclaration> ModelContext::GetScriptToolDeclaration(
@@ -878,7 +862,7 @@ bool ModelContext::ExecuteV8Tool(V8ToolExecuteCallback* tool_function,
   return true;
 }
 
-void ModelContext::RegisterDeclarativeTool(
+bool ModelContext::RegisterDeclarativeTool(
     DeclarativeWebMCPTool* declarative_tool) {
   // The form code must ensure the document has a frame before calling this.
   // Frameless documents do not have a bound ModelContextHost.
@@ -886,19 +870,15 @@ void ModelContext::RegisterDeclarativeTool(
           network::mojom::PermissionsPolicyFeature::kTools)) {
     // TODO(crbug.com/507724727) Surface an error if the `tools` permission
     // policy is not enabled
-    return;
+    return false;
   }
 
-  // TODO(https://crbug.com/509983792): Surface an error to the form when tool
-  // registration fails.
   if (FindToolDataByName(declarative_tool->ToolName())) {
-    return;
+    return false;
   }
 
-  // TODO(https://crbug.com/509983792): Surface an error if the tool's name is
-  // not valid.
   if (!IsValidScriptToolName(declarative_tool->ToolName().Utf8())) {
-    return;
+    return false;
   }
   UseCounter::Count(document_,
                     WebFeature::kModelContextRegisterDeclarativeTool);
@@ -920,6 +900,7 @@ void ModelContext::RegisterDeclarativeTool(
       tool_data->ScriptTool().Clone(), base::DoNothing());
   probe::WebMCPToolAdded(document_, *tool_data);
   MaybeRecordToolCount();
+  return true;
 }
 
 void ModelContext::OnToolExecuted(
