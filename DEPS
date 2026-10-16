@@ -326,7 +326,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '87db6a993fe05dec5d4dd9a82b7aa027a8bda893',
+  'src_internal_revision': '58c756980151fc3482387b87e590d0c44e58956b',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -1767,7 +1767,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '0ca4c96c2c7d539494a4846bbc3a359013e8bdd9',
+    '02372de25aff5400b26f3a545a5d310e625b0e97',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -2844,7 +2844,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/cisco/openh264' + '@' + '9547f96ea5c47f4d465d97b07264b997ecc4b4b6',
 
   'src/third_party/openscreen/src':
-    Var('chromium_git') + '/openscreen' + '@' + '5e4d1c2c3e18490ff4c07c2888d5453ea85e4f87',
+    Var('chromium_git') + '/openscreen' + '@' + '579d13144b0eb3ec88a4ee9105d591b33bc4d4f7',
 
   'src/third_party/openxr/src': {
     'url': Var('chromium_git') + '/external/github.com/KhronosGroup/OpenXR-SDK' + '@' + '75c53b6e853dc12c7b3c771edc9c9c841b15faaa',
