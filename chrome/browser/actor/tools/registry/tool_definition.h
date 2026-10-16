@@ -75,7 +75,17 @@ enum class ToolId {
   kCreateWindow = 27,
   // Brings the specified window to the foreground.
   kActivateWindow = 28,
-  kMaxValue = kActivateWindow,
+  // Closes the specified window.
+  kCloseWindow = 29,
+  // Moves the mouse pointer over an element on the page.
+  kMoveMouse = 30,
+  // Drags an element and drops it onto another element on the page.
+  kDragAndRelease = 31,
+  // Pauses execution for a specified duration in milliseconds.
+  kWait = 32,
+  // Executes a script tool in a document.
+  kScript = 33,
+  kMaxValue = kScript,
 };
 
 // In-memory metadata and parameter schema for a shared browser tool. Prefer

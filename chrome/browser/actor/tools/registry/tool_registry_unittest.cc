@@ -18,15 +18,18 @@
 #include "chrome/browser/actor/actor_keyed_service.h"
 #include "chrome/browser/actor/tools/bookmark_management_tool_request.h"
 #include "chrome/browser/actor/tools/click_tool_request.h"
+#include "chrome/browser/actor/tools/drag_and_release_tool_request.h"
 #include "chrome/browser/actor/tools/file_upload_tool_request.h"
 #include "chrome/browser/actor/tools/find_and_highlight_tool_request.h"
 #include "chrome/browser/actor/tools/history_tool_request.h"
 #include "chrome/browser/actor/tools/media_control_tool_request.h"
+#include "chrome/browser/actor/tools/move_mouse_tool_request.h"
 #include "chrome/browser/actor/tools/navigate_tool_request.h"
 #include "chrome/browser/actor/tools/one_time_token/attempt_otp_filling_tool_request.h"
 #include "chrome/browser/actor/tools/perform_search_tool_request.h"
 #include "chrome/browser/actor/tools/registry/tool_definition.h"
 #include "chrome/browser/actor/tools/registry/tool_definition_test_util.h"
+#include "chrome/browser/actor/tools/script_tool_request.h"
 #include "chrome/browser/actor/tools/scroll_to_tool_request.h"
 #include "chrome/browser/actor/tools/scroll_tool_request.h"
 #include "chrome/browser/actor/tools/select_tool_request.h"
@@ -34,6 +37,7 @@
 #include "chrome/browser/actor/tools/tool_request.h"
 #include "chrome/browser/actor/tools/translate_page_tool_request.h"
 #include "chrome/browser/actor/tools/type_tool_request.h"
+#include "chrome/browser/actor/tools/wait_tool_request.h"
 #include "chrome/common/buildflags.h"
 #include "chrome/common/chrome_features.h"
 #include "chrome/test/base/testing_profile.h"
@@ -307,6 +311,19 @@ TEST(ToolRegistryTest, ActivateWindowToolDefinition) {
   EXPECT_THAT(*definition,
               RequiresParam(ActivateWindowToolRequest::kWindowIdParam));
 }
+
+TEST(ToolRegistryTest, CloseWindowToolDefinition) {
+  const std::optional<ToolDefinition> definition =
+      CloseWindowToolRequest::GetToolDefinition();
+  ASSERT_TRUE(definition.has_value());
+  EXPECT_EQ(definition->id, ToolId::kCloseWindow);
+  EXPECT_EQ(definition->name, CloseWindowToolRequest::kModelFacingName);
+  EXPECT_THAT(
+      *definition,
+      HasParamOfType(CloseWindowToolRequest::kWindowIdParam, "integer"));
+  EXPECT_THAT(*definition,
+              RequiresParam(CloseWindowToolRequest::kWindowIdParam));
+}
 #endif
 
 TEST(ToolRegistryTest, FindAndHighlightToolDefinition) {
@@ -408,6 +425,64 @@ TEST(ToolRegistryTest, ScrollPageToolDefinition) {
               RequiresParam(ScrollPageToolRequest::kDomNodeIdParam));
 }
 
+TEST(ToolRegistryTest, MoveMouseToolDefinition) {
+  const std::optional<ToolDefinition> definition =
+      MoveMouseToolRequest::GetToolDefinition();
+  ASSERT_TRUE(definition.has_value());
+  EXPECT_EQ(definition->id, ToolId::kMoveMouse);
+  EXPECT_EQ(definition->name, MoveMouseToolRequest::kModelFacingName);
+  EXPECT_THAT(*definition,
+              HasParamOfType(MoveMouseToolRequest::kDomNodeIdParam, "integer"));
+  EXPECT_THAT(*definition,
+              RequiresParam(MoveMouseToolRequest::kDomNodeIdParam));
+}
+TEST(ToolRegistryTest, DragAndReleaseToolDefinition) {
+  const std::optional<ToolDefinition> definition =
+      DragAndReleaseToolRequest::GetToolDefinition();
+  ASSERT_TRUE(definition.has_value());
+  EXPECT_EQ(definition->id, ToolId::kDragAndRelease);
+  EXPECT_EQ(definition->name, DragAndReleaseToolRequest::kModelFacingName);
+  EXPECT_THAT(*definition,
+              HasParamOfType(DragAndReleaseToolRequest::kFromDomNodeIdParam,
+                             "integer"));
+  EXPECT_THAT(*definition,
+              RequiresParam(DragAndReleaseToolRequest::kFromDomNodeIdParam));
+  EXPECT_THAT(
+      *definition,
+      HasParamOfType(DragAndReleaseToolRequest::kToDomNodeIdParam, "integer"));
+  EXPECT_THAT(*definition,
+              RequiresParam(DragAndReleaseToolRequest::kToDomNodeIdParam));
+}
+TEST(ToolRegistryTest, WaitToolDefinition) {
+  const std::optional<ToolDefinition> definition =
+      WaitToolRequest::GetToolDefinition();
+  ASSERT_TRUE(definition.has_value());
+  EXPECT_EQ(definition->id, ToolId::kWait);
+  EXPECT_EQ(definition->name, WaitToolRequest::kModelFacingName);
+  EXPECT_THAT(*definition,
+              HasParamOfType(WaitToolRequest::kWaitTimeMsParam, "integer"));
+  EXPECT_THAT(*definition, RequiresParam(WaitToolRequest::kWaitTimeMsParam));
+}
+TEST(ToolRegistryTest, ScriptToolDefinition) {
+  const std::optional<ToolDefinition> definition =
+      ScriptToolRequest::GetToolDefinition();
+  ASSERT_TRUE(definition.has_value());
+  EXPECT_EQ(definition->id, ToolId::kScript);
+  EXPECT_EQ(definition->name, ScriptToolRequest::kModelFacingName);
+  EXPECT_THAT(
+      *definition,
+      HasParamOfType(ScriptToolRequest::kDocumentIdentifierParam, "string"));
+  EXPECT_THAT(*definition,
+              RequiresParam(ScriptToolRequest::kDocumentIdentifierParam));
+  EXPECT_THAT(*definition,
+              HasParamOfType(ScriptToolRequest::kToolNameParam, "string"));
+  EXPECT_THAT(*definition, RequiresParam(ScriptToolRequest::kToolNameParam));
+  EXPECT_THAT(
+      *definition,
+      HasParamOfType(ScriptToolRequest::kInputArgumentsParam, "string"));
+  EXPECT_THAT(*definition,
+              RequiresParam(ScriptToolRequest::kInputArgumentsParam));
+}
 TEST(ToolRegistryTest, GetAllToolsContainsNavigateTool) {
   base::test::ScopedFeatureList scoped_feature_list(features::kGlicActor);
   content::BrowserTaskEnvironment task_environment;
@@ -684,6 +759,17 @@ TEST(ToolRegistryTest, GetAllToolsContainsActivateWindowTool) {
                                     ToolId::kActivateWindow,
                                     &ToolDefinition::id));
 }
+
+TEST(ToolRegistryTest, GetAllToolsContainsCloseWindowTool) {
+  base::test::ScopedFeatureList scoped_feature_list(features::kGlicActor);
+  content::BrowserTaskEnvironment task_environment;
+  TestingProfile profile;
+  ActorKeyedService* service = ActorKeyedService::Get(&profile);
+  CHECK(service);
+
+  EXPECT_TRUE(std::ranges::contains(service->tool_registry().GetAllTools(),
+                                    ToolId::kCloseWindow, &ToolDefinition::id));
+}
 #endif
 
 TEST(ToolRegistryTest, GetAllToolsContainsFindAndHighlightTool) {
@@ -754,6 +840,47 @@ TEST(ToolRegistryTest, GetAllToolsContainsScrollPageTool) {
                                     ToolId::kScrollPage, &ToolDefinition::id));
 }
 
+TEST(ToolRegistryTest, GetAllToolsContainsMoveMouseTool) {
+  base::test::ScopedFeatureList scoped_feature_list(features::kGlicActor);
+  content::BrowserTaskEnvironment task_environment;
+  TestingProfile profile;
+  ActorKeyedService* service = ActorKeyedService::Get(&profile);
+  CHECK(service);
+
+  EXPECT_TRUE(std::ranges::contains(service->tool_registry().GetAllTools(),
+                                    ToolId::kMoveMouse, &ToolDefinition::id));
+}
+TEST(ToolRegistryTest, GetAllToolsContainsDragAndReleaseTool) {
+  base::test::ScopedFeatureList scoped_feature_list(features::kGlicActor);
+  content::BrowserTaskEnvironment task_environment;
+  TestingProfile profile;
+  ActorKeyedService* service = ActorKeyedService::Get(&profile);
+  CHECK(service);
+
+  EXPECT_TRUE(std::ranges::contains(service->tool_registry().GetAllTools(),
+                                    ToolId::kDragAndRelease,
+                                    &ToolDefinition::id));
+}
+TEST(ToolRegistryTest, GetAllToolsContainsWaitTool) {
+  base::test::ScopedFeatureList scoped_feature_list(features::kGlicActor);
+  content::BrowserTaskEnvironment task_environment;
+  TestingProfile profile;
+  ActorKeyedService* service = ActorKeyedService::Get(&profile);
+  CHECK(service);
+
+  EXPECT_TRUE(std::ranges::contains(service->tool_registry().GetAllTools(),
+                                    ToolId::kWait, &ToolDefinition::id));
+}
+TEST(ToolRegistryTest, GetAllToolsContainsScriptTool) {
+  base::test::ScopedFeatureList scoped_feature_list(features::kGlicActor);
+  content::BrowserTaskEnvironment task_environment;
+  TestingProfile profile;
+  ActorKeyedService* service = ActorKeyedService::Get(&profile);
+  CHECK(service);
+
+  EXPECT_TRUE(std::ranges::contains(service->tool_registry().GetAllTools(),
+                                    ToolId::kScript, &ToolDefinition::id));
+}
 TEST(ToolRegistryTest, ToolIdToNameReturnsEmptyForUnrecognizedId) {
   EXPECT_TRUE(ToolRegistry::ToolIdToName(kUnrecognizedToolId).empty());
 }
