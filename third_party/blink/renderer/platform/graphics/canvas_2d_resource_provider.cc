@@ -46,7 +46,6 @@
 #include "gpu/config/gpu_feature_info.h"
 #include "gpu/config/gpu_feature_type.h"
 #include "skia/buildflags.h"
-#include "skia/ext/legacy_display_globals.h"
 #include "third_party/blink/public/common/features.h"
 #include "third_party/blink/public/platform/platform.h"
 #include "third_party/blink/public/platform/web_graphics_shared_image_interface_provider.h"
@@ -309,9 +308,6 @@ base::ByteSize Canvas2DResourceProvider::EstimatedSizeInBytes() const {
   if (resource_) {
     result += resource_->EstimatedSizeInBytes() * num_inflight_resources_;
   }
-  if (surface_) {
-    result += base::ByteSize(GetSize());
-  }
   return result;
 }
 
@@ -355,17 +351,10 @@ bool Canvas2DResourceProvider::IsValid() const {
   if (IsSoftware()) {
     // Software compositing (which always uses software raster).
     return shared_image_interface_provider_ &&
-           shared_image_interface_provider_->SharedImageInterface() &&
-           GetSkSurface();
+           shared_image_interface_provider_->SharedImageInterface();
   }
 
-  if (is_accelerated_) {
-    // GPU compositing and GPU raster.
-    return !IsGpuContextLost();
-  }
-
-  // GPU compositing and software raster.
-  return !IsGpuContextLost() && GetSkSurface();
+  return !IsGpuContextLost();
 }
 
 gpu::SharedImageUsageSet Canvas2DResourceProvider::GetSharedImageUsageFlags()
@@ -591,9 +580,6 @@ void Canvas2DResourceProvider::OnMemoryDump(
 }
 
 SkSurface* Canvas2DResourceProvider::GetSkSurface() const {
-  if (!surface_) {
-    surface_ = CreateSkSurface();
-  }
   return surface_.get();
 }
 
@@ -717,7 +703,17 @@ Canvas2DResourceProvider::CreateWithClear(
     return nullptr;
   }
 
-  provider->ClearAtCreation();
+  if (is_accelerated) {
+    MemoryManagedPaintRecorder recorder(size, nullptr);
+    if (alpha_type == kOpaque_SkAlphaType) {
+      recorder.getRecordingCanvas().clear(SkColors::kBlack);
+    } else {
+      recorder.getRecordingCanvas().clear(SkColors::kTransparent);
+    }
+    provider->RasterRecord(recorder.ReleaseMainRecording(), {});
+  } else if (!provider->resource_) {
+    return nullptr;
+  }
 
   // An error might have occurred while clearing.
   return provider->IsValid() ? std::move(provider) : nullptr;
@@ -757,9 +753,6 @@ Canvas2DResourceProvider::CreateWithClearForSoftwareCompositor(
       size, format, alpha_type, color_space, hdr_metadata,
       shared_image_interface_provider, std::move(context_lost_callback)));
   if (provider->IsValid()) {
-    provider->ClearAtCreation();
-    // The ClearAtCreation() call cannot turn a SW CRPSI invalid.
-    CHECK(provider->IsValid());
     return provider;
   }
 
@@ -997,46 +990,6 @@ bool Canvas2DResourceProvider::IsGpuContextLost() const {
   auto* raster_interface = RasterInterface();
   return !raster_interface ||
          raster_interface->GetGraphicsResetStatusKHR() != GL_NO_ERROR;
-}
-
-sk_sp<SkSurface> Canvas2DResourceProvider::CreateSkSurface() const {
-  TRACE_EVENT0("blink", "Canvas2DResourceProvider::CreateSkSurface");
-
-  CHECK(!IsAccelerated());
-
-  if (!is_software_ && (IsGpuContextLost() || !resource_)) {
-    return nullptr;
-  }
-
-  // When using software raster, we render into CPU memory managed internally by
-  // SkSurface and copy the rendered results to the backing SharedImage before
-  // dispatching that SharedImage to the display compositor.
-  const bool can_use_lcd_text = alpha_type_ == kOpaque_SkAlphaType;
-  const auto props =
-      skia::LegacyDisplayGlobals::ComputeSurfaceProps(can_use_lcd_text);
-  const auto info = SkImageInfo::Make(
-      size_.width(), size_.height(), viz::ToClosestSkColorType(format_),
-      alpha_type_, color_space_.ToSkColorSpace());
-  return SkSurfaces::Raster(info, &props);
-}
-
-void Canvas2DResourceProvider::ClearAtCreation() {
-  DCHECK(IsValid());
-  if (!is_accelerated_) {
-    GetSkSurface()->getCanvas()->clear(GetAlphaType() == kOpaque_SkAlphaType
-                                           ? SkColors::kBlack
-                                           : SkColors::kTransparent);
-    return;
-  }
-
-  MemoryManagedPaintRecorder recorder(Size(), nullptr);
-  if (GetAlphaType() == kOpaque_SkAlphaType) {
-    recorder.getRecordingCanvas().clear(SkColors::kBlack);
-  } else {
-    recorder.getRecordingCanvas().clear(SkColors::kTransparent);
-  }
-
-  RasterRecord(recorder.ReleaseMainRecording(), {});
 }
 
 }  // namespace blink
