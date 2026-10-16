@@ -350,7 +350,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': '34ea2105ef7034bc0f5da539480732f797623acb',
+  'boringssl_revision': 'f48a469096bf26cbada437f2c4487ea1d9ff221b',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -390,7 +390,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': 'a65475b65c9586d0c96eb178eca817f044275ec4',
+  'crossbench_revision': '66ced8afc11780c0934d28d2eddb9159d39e6b08',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -410,7 +410,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '30165ac7bf01dc042f033311c1955799df93a040',
+  'devtools_frontend_revision': '7319be0db9730e0d0b48139bb03ac23dca36de64',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1767,7 +1767,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    'ff286fc145dcb3bc5c8af6a3bdd39c95f71a6064',
+    'f33876bc0aca230af389c2f9d16d89b9e158082c',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -3921,7 +3921,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        'acefba023fee6711ebade9d4802e0585c6e12ce7',
+        '71cf0ebd82b440215c34984dfbac5466c035b471',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
