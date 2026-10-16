@@ -410,7 +410,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': '771e170d2ffb425d557e08ce82531961be22484e',
+  'devtools_frontend_revision': 'b3391d54c3228ab1775d4bf0a2a0e0cd2bc915a4',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -3433,7 +3433,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_receiver_app/app',
-        'version': 'b5tqIlLEHYlorHs6eQ5HoFYCbc0jO6wwr0DgEbFSLOYC',
+        'version': 'OJIKlU1hDhTyDBR6QbiF-U9AavwCE1it3bOXXhSOuVMC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3444,7 +3444,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_app/app',
-        'version': 'WpQHfo8Xy6ZOXKx3hX6-uQkX3Ba7DV98p06PgM1xFSkC',
+        'version': 'K1BjUwuaNo4fthIJl_l6mlE8-6p2vezoziimtzOKSHAC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3921,7 +3921,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        'f82059dbadf35442b65b686d0ca924938b12d29a',
+        'fb4e9a2b82057edb46345dff04bf77acbadd83d5',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
