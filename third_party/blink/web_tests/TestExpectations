@@ -8767,6 +8767,10 @@ crbug.com/573053648 [ Android ] external/wpt/webdriver/tests/bidi/web_extension/
 crbug.com/571893816 [ Linux ] external/wpt/webdriver/tests/bidi/external/bluetooth/disable_simulation/context.py [ Failure ]
 crbug.com/571893816 [ Linux ] external/wpt/webdriver/tests/bidi/external/bluetooth/simulate_adapter/context.py [ Failure ]
 
+# Gardener 2026-09-15: BiDi tests timing out on Linux Tests (dbg)(1)
+crbug.com/562009743 [ Win ] fast/ruby/base-shorter-than-text.html [ Failure Pass ]
+
+
 # Gardener 2026-09-17
 crbug.com/562895059 external/wpt/streams/readable-byte-streams/crashtests/from-cross-realm.html [ Crash Failure ]
 
@@ -8819,3 +8823,6 @@ crbug.com/569679632 [ Win ] bindings/pass-as-span.html [ Pass Failure ]
 # Gardener 2026-10-09
 crbug.com/569736364 [ Linux ] external/wpt/webdriver/tests/bidi/browsing_context/navigation_started/navigation_interrupted.py [ Pass Timeout ]
 crbug.com/568343392 crbug.com/540619916 [ Debug Linux ] external/wpt/webdriver/tests/classic/element_clear/user_prompts.py [ Failure Pass ]
+
+# Gardener 2026-10-16
+crbug.com/522632542 [ Linux ] external/wpt/webdriver/tests/bidi/browsing_context/activate/activate.py [ Failure Pass ]
