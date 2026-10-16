@@ -325,9 +325,6 @@ crbug.com/1334900 http/tests/inspector-protocol/fetch/service-worker-module-upda
 crbug.com/1334900 http/tests/inspector-protocol/fetch/service-worker-module-update-network-id-disallowed-response-code.js [ Failure ]
 crbug.com/1334900 http/tests/inspector-protocol/fetch/service-worker-module-update-network-id-disallowed-service-worker-allowed-header.js [ Failure ]
 
-# This test was attributed to site isolation but times out with or without it. Broken test?
-crbug.com/1050826 external/wpt/mixed-content/gen/top.http-rp/opt-in/object-tag.https.html [ Skip Timeout ]
-
 # Mac doesn't support lowLatency/desynchronized Canvas Contexts.
 crbug.com/922218 [ Mac ] fast/canvas-api/canvas-lowlatency-getContext.html [ Failure ]
 
@@ -4921,8 +4918,6 @@ crbug.com/1130533 [ Mac ] external/wpt/xhr/xhr-timeout-longtask.any.worker.html 
 
 
 # Mixed content autoupgrades make these tests not applicable, since they check for mixed content images, the tests can be removed when cleaning up pre autoupgrades mixed content code.
-crbug.com/1042877 external/wpt/mixed-content/gen/top.meta/unset/img-tag.https.html [ Failure ]
-crbug.com/1042877 external/wpt/mixed-content/imageset.https.sub.html [ Failure ]
 crbug.com/1042877 external/wpt/upgrade-insecure-requests/gen/iframe-blank-inherit.meta/unset/img-tag.https.html [ Failure ]
 crbug.com/1042877 external/wpt/upgrade-insecure-requests/gen/srcdoc-inherit.meta/unset/img-tag.https.html [ Failure ]
 crbug.com/1042877 external/wpt/upgrade-insecure-requests/gen/top.meta/unset/img-tag.https.html [ Failure ]
@@ -8757,3 +8752,9 @@ crbug.com/568343392 crbug.com/540619916 [ Debug Linux ] external/wpt/webdriver/t
 
 # Gardener 2026-10-16
 crbug.com/522632542 [ Linux ] external/wpt/webdriver/tests/bidi/browsing_context/activate/activate.py [ Failure Pass ]
+crbug.com/551678154 external/wpt/fedcm/third-party-iframe/fedcm-third-party-iframe-active-mode.https.html [ Failure Pass ]
+crbug.com/550839289 external/wpt/fedcm/third-party-iframe/fedcm-third-party-iframe.https.html [ Failure Pass ]
+crbug.com/551670645 [ Linux ] external/wpt/fedcm/fedcm-disconnect-iframe.sub.https.html [ Failure Pass ]
+crbug.com/551670645 [ Mac ] external/wpt/fedcm/fedcm-disconnect-iframe.sub.https.html [ Failure Pass ]
+crbug.com/551670645 [ Win10.20h2 ] external/wpt/fedcm/fedcm-disconnect-iframe.sub.https.html [ Failure Pass ]
+crbug.com/551670645 [ Win11 ] external/wpt/fedcm/fedcm-disconnect-iframe.sub.https.html [ Failure Pass ]

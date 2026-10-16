@@ -173,6 +173,7 @@ class AssistantAIMUIStateProvider
                                   self.browser->GetProfile())];
 
   _mediator.delegate = self;
+  _mediator.metricsRecorder = _metricsRecorder;
   _mediator.sceneHandler =
       HandlerForProtocol(self.browser->GetCommandDispatcher(), SceneCommands);
   _mediator.consumer = _viewController;
@@ -197,6 +198,7 @@ class AssistantAIMUIStateProvider
                            isNTP:NO];
   ComposeboxFocusParams* focusParams = [[ComposeboxFocusParams alloc]
       initWithEntrypoint:ComposeboxEntrypoint::kCobrowse];
+  focusParams.assistantMetricsRecorder = _metricsRecorder;
   _inputPlateCoordinator = [[ComposeboxInputPlateCoordinator alloc]
       initWithBaseViewController:_viewController
                          browser:self.browser

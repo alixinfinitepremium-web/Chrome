@@ -35,6 +35,13 @@ enum class AssistantContainerDetent : NSInteger;
 // Finalizes and flushes all session-level metrics when the session ends.
 - (void)recordSessionEnded;
 
+// Records an outbound link click from the Assistant AIM.
+- (void)recordLinkClicked;
+
+// Records a follow-up query submission in the Assistant AIM bottom sheet and
+// whether the follow-up included an attachment (`hasAttachment`).
+- (void)recordFollowupSubmittedWithAttachment:(BOOL)hasAttachment;
+
 @end
 
 #endif  // IOS_CHROME_BROWSER_COBROWSE_SHARED_METRICS_ASSISTANT_AIM_METRICS_RECORDER_H_
