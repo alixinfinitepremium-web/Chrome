@@ -706,7 +706,7 @@
   {
     "name": "antivirus-telemetry-for-downloads",
     "owners": [ "yawfrempong@google.com", "chrome-counter-abuse-alerts@google.com" ],
-    "expiry_milestone": 157
+    "expiry_milestone": 160
   },
   {
     "name": "apb144-patch1",
@@ -5116,11 +5116,6 @@
       "gschen@chromium.org"
     ],
     "expiry_milestone": 150
-  },
-  {
-    "name": "favicon-disable-host-fallback",
-    "owners": [ "zheliooo@google.com", "ckitagawa@google.com", "clank-large-form-factors@google.com" ],
-    "expiry_milestone": 160
   },
   {
     "name": "fedcm-active-mode-multiple-identity-providers",
