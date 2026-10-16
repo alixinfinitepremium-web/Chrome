@@ -326,11 +326,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': 'f3239c41ee0fd43b46f4dd4876f2c8986023ec45',
+  'src_internal_revision': 'c1f1f2df861a5c1249e2c42d0c7bb03f3440c594',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '44cf4fd447b19c453949e2f52e11196df98d999d',
+  'skia_revision': '35618a580b732d28e858b69c0dd259b0a9b53751',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -338,7 +338,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '4e8c94ecb1486955454b85945fb89e8470807714',
+  'angle_revision': '6e521ed91b3d850f96089ec91ebdc40fa0acfea4',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -350,7 +350,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': 'f48a469096bf26cbada437f2c4487ea1d9ff221b',
+  'boringssl_revision': '06e9949682aab1eace7995b47a4dc1db36474a45',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -2260,7 +2260,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '3b70ae5bace4346e9607fa86853aa9ed28b59b7f',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '172426f06f1c8ad6b02f991f3b00de156f97d79b',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '173b9b26e8fcbcbe64e1ecbf073a21a96b95c6b1',
@@ -2870,7 +2870,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '501a3394e2f2ecc75fcead1d25ec83fa8e9dc198',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '34ab25188c3627d9071909bca535329e3200922b',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
