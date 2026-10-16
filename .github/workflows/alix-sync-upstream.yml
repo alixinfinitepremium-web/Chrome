@@ -1,9 +1,9 @@
 name: Sync Chromium upstream
 
 on:
-  # Explicit off-hour slots reduce schedule drops during GitHub Actions load.
+  # One run per hour at an off-peak minute: GitHub delays or drops scheduled runs under load, especially near the top of the hour.
   schedule:
-    - cron: "14,34,54 * * * *"
+    - cron: "37 * * * *"
   # A workflow-file push is also the recovery trigger when GitHub drops cron runs.
   # Cron reactivation: 2026-07-15T06:30:00Z (stale schedule watchdog).
   workflow_dispatch:
