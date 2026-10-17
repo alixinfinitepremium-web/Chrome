@@ -2049,19 +2049,6 @@ if (!is_android) {
       ]
     }
 
-    # TODO(crbug.com/353332589): Move this browsertest into
-    # //chrome/browser/ui/views/payments:browser_tests. It is left here for now
-    # because its "!is_android || enable_vr" guard interacts with the
-    # browser_tests target's conditional structure, and moving it risks
-    # regressions unrelated to the rest of the payments modularization.
-    if (!is_android || enable_vr) {
-      sources += [ "../browser/ui/views/payments/payment_handler_header_view_ui_browsertest.cc" ]
-      deps += [
-        "//chrome/browser/ui/views/payments:test_support",
-        "//components/payments/content/icon",
-      ]
-    }
-
     if ((is_linux || is_chromeos) && !is_component_build) {
       # Set rpath to find the CDM adapter even in a non-component build.
       configs += [ "//build/config/gcc:rpath_for_built_shared_libraries" ]
@@ -3820,8 +3807,6 @@ if (!is_android) {
       "../browser/ui/views/autofill/payments/offer_notification_bubble_views_test_base.cc",
       "../browser/ui/views/autofill/payments/offer_notification_bubble_views_test_base.h",
       "../browser/ui/views/autofill/popup/popup_view_views_test_api.h",
-      "../browser/ui/views/page_action/test_support/page_action_interactive_test_mixin.cc",
-      "../browser/ui/views/page_action/test_support/page_action_interactive_test_mixin.h",
     ]
 
     configs += [ "//build/config:precompiled_headers" ]
@@ -3852,6 +3837,7 @@ if (!is_android) {
       "//chrome/browser/ui/views/frame:toolbar_button_provider",
       "//chrome/browser/ui/views/interaction",
       "//chrome/browser/ui/views/location_bar:test_support",
+      "//chrome/browser/ui/views/page_action:interactive_test_support",
       "//chrome/browser/ui/views/page_action:page_action_test_support",
       "//chrome/browser/ui/views/side_panel",
       "//chrome/browser/ui/views/toolbar:test_support",
@@ -3923,16 +3909,7 @@ if (!is_android) {
       public_deps += [ "//chrome/browser/first_run:test_support" ]
     }
     if (enable_dice_support) {
-      sources += [
-        "../browser/ui/views/profiles/profile_picker_test_base.cc",
-        "../browser/ui/views/profiles/profile_picker_test_base.h",
-      ]
       public_deps += [ "//chrome/browser/ui/profiles" ]
-      deps += [
-        "//chrome/browser/ui/profiles:test_support",
-        "//chrome/browser/ui/views/profiles:profile_picker_sign_in_provider",
-        "//chrome/browser/ui/views/profiles:profile_picker_view",
-      ]
     }
 
     # TODO(crbug.com/40031409): Fix code that adds exit-time destructors and

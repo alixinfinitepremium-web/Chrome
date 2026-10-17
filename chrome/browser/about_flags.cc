@@ -3902,11 +3902,52 @@ const FeatureEntry::FeatureVariation
         {"with 100ms delay", kActorTypeToolObservationStartDelay100ms,
          nullptr}};
 
+const FeatureEntry::FeatureParam kActorScriptToolDelayObservation100ms[] = {
+    {"script_tool_delay_observation_ms", "100"}};
+const FeatureEntry::FeatureParam kActorScriptToolDelayObservation200ms[] = {
+    {"script_tool_delay_observation_ms", "200"}};
+const FeatureEntry::FeatureParam kActorScriptToolDelayObservation400ms[] = {
+    {"script_tool_delay_observation_ms", "400"}};
+const FeatureEntry::FeatureParam kActorScriptToolDelayObservation600ms[] = {
+    {"script_tool_delay_observation_ms", "600"}};
+const FeatureEntry::FeatureParam kActorScriptToolDelayObservation800ms[] = {
+    {"script_tool_delay_observation_ms", "800"}};
+const FeatureEntry::FeatureParam kActorScriptToolDelayObservation1000ms[] = {
+    {"script_tool_delay_observation_ms", "1000"}};
+
+const FeatureEntry::FeatureVariation
+    kActorScriptToolDelayObservationVariations[] = {
+        {"with 100ms delay", kActorScriptToolDelayObservation100ms, nullptr},
+        {"with 200ms delay", kActorScriptToolDelayObservation200ms, nullptr},
+        {"with 400ms delay", kActorScriptToolDelayObservation400ms, nullptr},
+        {"with 600ms delay", kActorScriptToolDelayObservation600ms, nullptr},
+        {"with 800ms delay", kActorScriptToolDelayObservation800ms, nullptr},
+        {"with 1000ms delay", kActorScriptToolDelayObservation1000ms, nullptr}};
+
 const FeatureEntry::FeatureParam kGlicActorTransientTasksForceTransient[] = {
     {"force_transient", "true"}};
 
 const FeatureEntry::FeatureVariation kGlicActorTransientTasksVariations[] = {
     {"(force transient)", kGlicActorTransientTasksForceTransient, nullptr}};
+
+const FeatureEntry::FeatureParam kActorLoginObservationStartDelay2500ms[] = {
+    {"start_delay", "2500ms"}};
+const FeatureEntry::FeatureParam kActorLoginObservationStartDelay2000ms[] = {
+    {"start_delay", "2000ms"}};
+const FeatureEntry::FeatureParam kActorLoginObservationStartDelay1500ms[] = {
+    {"start_delay", "1500ms"}};
+const FeatureEntry::FeatureParam kActorLoginObservationStartDelay1000ms[] = {
+    {"start_delay", "1000ms"}};
+const FeatureEntry::FeatureParam kActorLoginObservationStartDelay500ms[] = {
+    {"start_delay", "500ms"}};
+
+const FeatureEntry::FeatureVariation
+    kActorLoginObservationStartDelayVariations[] = {
+        {"with 2500ms delay", kActorLoginObservationStartDelay2500ms, nullptr},
+        {"with 2000ms delay", kActorLoginObservationStartDelay2000ms, nullptr},
+        {"with 1500ms delay", kActorLoginObservationStartDelay1500ms, nullptr},
+        {"with 1000ms delay", kActorLoginObservationStartDelay1000ms, nullptr},
+        {"with 500ms delay", kActorLoginObservationStartDelay500ms, nullptr}};
 
 // Makes cursor movement effectively instant. Uses 1ms rather than 0ms because
 // the actor overlay waits for `transitionend`, which zero-length CSS
@@ -11145,6 +11186,13 @@ const FeatureEntry kFeatureEntries[] = {
      kOsAndroid,
      FEATURE_VALUE_TYPE(chrome::android::kGlicBackgroundActuationTabGroupSync)},
 #endif  // BUILDFLAG(IS_ANDROID)
+    {"actor-login-observation-start-delay",
+     flag_descriptions::kActorLoginObservationStartDelayName,
+     flag_descriptions::kActorLoginObservationStartDelayDescription,
+     kOsDesktop | kOsAndroid,
+     FEATURE_WITH_PARAMS_VALUE_TYPE(actor::kActorLoginObservationStartDelay,
+                                    kActorLoginObservationStartDelayVariations,
+                                    "ActorLoginObservationStartDelay")},
     {"actor-observe-screenshot-default",
      flag_descriptions::kActorObserveScreenshotDefaultName,
      flag_descriptions::kActorObserveScreenshotDefaultDescription, kOsDesktop,
@@ -11153,6 +11201,13 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kActorObservePageContentDefaultName,
      flag_descriptions::kActorObservePageContentDefaultDescription, kOsDesktop,
      FEATURE_VALUE_TYPE(actor::kActorObservePageContentDefault)},
+    {"actor-script-tool-delay-observation",
+     flag_descriptions::kActorScriptToolDelayObservationName,
+     flag_descriptions::kActorScriptToolDelayObservationDescription,
+     kOsDesktop | kOsAndroid,
+     FEATURE_WITH_PARAMS_VALUE_TYPE(actor::kActorScriptToolDelayObservation,
+                                    kActorScriptToolDelayObservationVariations,
+                                    "ActorScriptToolDelayObservation")},
     {"actor-script-tool-skip-screenshot",
      flag_descriptions::kActorScriptToolSkipScreenshotName,
      flag_descriptions::kActorScriptToolSkipScreenshotDescription, kOsDesktop,
