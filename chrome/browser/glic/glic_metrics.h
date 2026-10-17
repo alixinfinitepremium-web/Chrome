@@ -5,8 +5,6 @@
 #ifndef CHROME_BROWSER_GLIC_GLIC_METRICS_H_
 #define CHROME_BROWSER_GLIC_GLIC_METRICS_H_
 
-#include <memory>
-#include <set>
 #include <vector>
 
 #include "base/callback_list.h"
@@ -18,9 +16,7 @@
 #include "chrome/browser/glic/glic_pref_names.h"
 #include "chrome/browser/glic/host/context/glic_tab_data.h"
 #include "chrome/browser/glic/host/glic.mojom.h"
-#include "chrome/browser/glic/public/glic_instance.h"
 #include "components/prefs/pref_change_registrar.h"
-#include "services/metrics/public/cpp/ukm_source_id.h"
 #include "ui/display/display.h"
 
 class Profile;
@@ -31,39 +27,6 @@ class GlicEnabling;
 
 // These values are persisted to logs. Entries should not be renumbered and
 // numeric values should never be reused.
-
-// LINT.IfChange(ChromeRelativePosition)
-enum class ChromeRelativePosition {
-  kAboveLeft = 0,
-  kCenterLeft = 1,
-  kBelowLeft = 2,
-  kAboveCenter = 3,
-  kOverlap = 4,
-  kBelowCenter = 5,
-  kAboveRight = 6,
-  kCenterRight = 7,
-  kBelowRight = 8,
-  kChromeOnOtherDisplay = 9,
-  kNoVisibleChromeBrowser = 10,
-  kMaxValue = kNoVisibleChromeBrowser,
-};
-// LINT.ThenChange(//tools/metrics/histograms/metadata/glic/enums.xml:ChromeRelativePosition)
-
-// LINT.IfChange(DisplayPosition)
-enum class DisplayPosition {
-  kTopLeft = 0,
-  kCenterLeft = 1,
-  kBottomLeft = 2,
-  kTopCenter = 3,
-  kCenterCenter = 4,
-  kBottomCenter = 5,
-  kTopRight = 6,
-  kCenterRight = 7,
-  kBottomRight = 8,
-  kUnknown = 9,
-  kMaxValue = kUnknown,
-};
-// LINT.ThenChange(//tools/metrics/histograms/metadata/glic/enums.xml:DisplayPosition)
 
 // LINT.IfChange(ShareImageResult)
 enum class ShareImageResult {
@@ -168,40 +131,20 @@ enum class OptInFlow {
 };
 // LINT.ThenChange(//tools/metrics/histograms/metadata/glic/enums.xml:GlicOptInFlowSource)
 
-class GlicSharingManagerInternal;
-
-namespace internal {
-class BrowserActivityObserver;
-}
-
 // Responsible for all glic web-client metrics, and all stateful glic metrics.
 // Some stateless glic metrics are logged inline in the relevant code for
 // convenience.
 class GlicMetrics {
  public:
-  class Delegate {
-   public:
-    virtual ~Delegate() {}
-    virtual gfx::Size GetWindowSize() const = 0;
-    virtual bool IsWindowShowing() const = 0;
-    virtual bool IsWindowAttached() const = 0;
-    virtual content::WebContents* GetFocusedWebContents() = 0;
-    virtual int32_t GetNumPinnedTabs() const = 0;
-    virtual std::vector<raw_ptr<content::WebContents>>
-    GetPinnedAndSharedWebContents() = 0;
-  };
-
   GlicMetrics(Profile* profile, GlicEnabling* enabling);
   GlicMetrics(const GlicMetrics&) = delete;
   GlicMetrics& operator=(const GlicMetrics&) = delete;
   ~GlicMetrics();
 
-  // Turn events from the web client.
-  void OnUserInputSubmitted(mojom::WebClientMode mode,
-                            mojom::PromptType prompt_type);
-  void OnResponseStarted();
-
-  void DidRequestContextFromTab(tabs::TabInterface& tab);
+  // Called when the web client reports submitted user input. Records the
+  // FRE-to-first-query metrics once if the FRE was accepted earlier in this
+  // browser session.
+  void OnUserInputSubmitted();
 
   // See glic.mojom for details. These are events from the web client. The
   // lifetime of the web client is scoped to that of the window, so if these
@@ -233,22 +176,6 @@ class GlicMetrics {
   // Called when the glic window starts to open.
   void OnGlicWindowStartedOpening(bool attached,
                                   mojom::InvocationSource source);
-  // Called to signal that the Glic window opening was interrupted for some
-  // reason (e.g, an error happened, reached a login page instead of the web
-  // client, etc).
-  void OnGlicWindowOpenInterrupted();
-  // Called just after the glic window has been loaded into the UI.
-  void OnGlicWindowShown(BrowserWindowInterface* browser,
-                         std::optional<display::Display> glic_display,
-                         const gfx::Rect& glic_bounds);
-  // Called when the glic window has been opened and is ready.
-  void OnGlicWindowOpenAndReady();
-  // Called when the glic window is resized.
-  void OnGlicWindowResize();
-  // Called when the glic window starts being resized by the user.
-  void OnWidgetUserResizeStarted();
-  // Called when the glic window stops being resized by the user.
-  void OnWidgetUserResizeEnded();
   // Called when the detached glic window finishes closing.
   void OnGlicWindowClose(BrowserWindowInterface* last_active_browser,
                          std::optional<display::Display> display,
@@ -286,17 +213,9 @@ class GlicMetrics {
   // arbitrary tab.
   void LogGetImageBytesFromTabError(GlicGetContextFromTabError error);
 
-  // One of these must be called immediately after constructor before any
-  // calls from glic.mojom.
-  void SetControllersWithInstance(GlicInstance* glic_instance,
-                                  GlicSharingManagerInternal* sharing_manager);
-  void ClearControllers();
-
   // Records user preferences for the profile. Called when the GlicKeyedService
   // for each profile is created.
   void RecordGlicProfilePreferences();
-
-  void SetDelegateForTesting(std::unique_ptr<Delegate> delegate);
 
   // Sets the input mode of the web client. Should be called when the panel is
   // opened and in every subsequent mode change.
@@ -311,9 +230,6 @@ class GlicMetrics {
   // Called when `impression_timer_` fires.
   void OnImpressionTimerFired();
 
-  // Called when `glic_window_size_timer_` fires.
-  void OnGlicWindowSizeTimerFired();
-
   // Stores the source id at the time that context is requested.
   void StoreSourceId();
 
@@ -326,44 +242,14 @@ class GlicMetrics {
   // Records the time from startup until Glic was enabled for the profile.
   void RecordStartupEnablement();
 
-  // Returns the area in the display a given center point is.
-  DisplayPosition GetDisplayPositionOfPoint(
-      std::optional<display::Display> display,
-      const gfx::Point& glic_center_point);
-
-#if !BUILDFLAG(IS_ANDROID)
-  // Returns the area relative to the given chrome browser a given center point
-  // is.
-  ChromeRelativePosition GetChromeRelativePositionOfPoint(
-      BrowserWindowInterface* browser,
-      const gfx::Point& glic_center_point);
-#endif
-
   base::TimeTicks fre_accepted_time_;
-
-  struct TurnInfo {
-    base::TimeTicks input_submitted_time_;
-    // A chosen source id from which context was requested.
-    ukm::SourceId chosen_source_id_ = ukm::NoURLSourceId();
-  };
-
-  // Tracks information related to individual request/response turns.
-  // It is reset when new user input is submitted and populated as the turn
-  // progresses.
-  TurnInfo turn_;
 
   // The last web client input mode used by the user.
   mojom::WebClientMode input_mode_ = mojom::WebClientMode::kUnknown;
-  std::set<mojom::WebClientMode> inputs_modes_used_;
-
-  // Tracks the source ID from the latest tab context requested by the web
-  // client. It is reset when user input is submitted.
-  ukm::SourceId last_tab_context_source_id_ = ukm::NoURLSourceId();
 
   // Session state. `session_start_time_` is a sentinel that is cleared in
   // OnGlicWindowClose() and is used to determine whether
   // OnGlicWindowStartedOpening was called.
-  int session_responses_ = 0;
   base::TimeTicks session_start_time_;
   mojom::InvocationSource invocation_source_ =
       mojom::InvocationSource::kUnsupported;
@@ -373,12 +259,6 @@ class GlicMetrics {
   // Used to record impressions of glic entry points.
   base::RepeatingTimer impression_timer_;
 
-  // Used to record metrics about the glic window size.
-  base::RepeatingTimer glic_window_size_timer_;
-
-  // The owner of this class is responsible for maintaining appropriate lifetime
-  // for controller_.
-  std::unique_ptr<Delegate> delegate_;
   raw_ptr<Profile> profile_;
   raw_ptr<GlicEnabling> enabling_;
 
@@ -397,11 +277,6 @@ class GlicMetrics {
   bool is_pinned_ = false;
   PrefChangeRegistrar pref_registrar_;
 
-  // The following two variables are used together for recording metrics and are
-  // reset together after the metric is recorded.
-  // The timestamp when the glic window starts to be shown.
-  base::TimeTicks show_start_time_;
-
   // The timestamp when the onboarding flow was shown.
   base::TimeTicks onboarding_shown_time_;
 
@@ -414,8 +289,6 @@ class GlicMetrics {
 
   // The time the last attempt to share an image started.
   base::TimeTicks share_image_start_time_;
-
-  std::unique_ptr<internal::BrowserActivityObserver> browser_activity_observer_;
 };
 
 // Records the hotkey cleared preference metric.
