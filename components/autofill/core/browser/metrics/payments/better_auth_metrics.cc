@@ -82,10 +82,19 @@ void LogUserPerceivedLatencyOnCardSelectionDuration(
       duration);
 }
 
-void LogUserPerceivedLatencyOnCardSelectionTimedOut(bool did_time_out) {
+void LogUserPerceivedLatencyOnCardSelectionTimedOutCvcFallback(
+    bool did_time_out) {
   base::UmaHistogramBoolean(
       "Autofill.BetterAuth.UserPerceivedLatencyOnCardSelection.OptedIn."
       "TimedOutCvcFallback",
+      did_time_out);
+}
+
+void LogUserPerceivedLatencyOnCardSelectionRiskBasedTimedOut(
+    bool did_time_out) {
+  base::UmaHistogramBoolean(
+      "Autofill.BetterAuth.UserPerceivedLatencyOnCardSelection.RiskBased."
+      "TimedOut",
       did_time_out);
 }
 

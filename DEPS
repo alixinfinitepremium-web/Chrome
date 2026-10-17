@@ -552,7 +552,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
-  'compiler_rt_revision': '6042becfa0ccbc2bd10049c2280973debba535a9',
+  'compiler_rt_revision': '34701f8295f0327b929e2d8b74926123f29570b4',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling clusterfuzz-data
   # and whatever else without interference from each other.
@@ -1767,7 +1767,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '02372de25aff5400b26f3a545a5d310e625b0e97',
+    'a39f9d09df3edba95cc0c0fc142423c79e946244',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -2715,7 +2715,7 @@ deps = {
     Var('chromium_git') + '/webm/libvpx.git' + '@' +  '63bcd588b50bd514c4590edaeae3d70813233ae7',
 
   'src/third_party/libwebm/source':
-    Var('chromium_git') + '/webm/libwebm.git' + '@' + '6184f4484a826724b5293837134ab9492261b941',
+    Var('chromium_git') + '/webm/libwebm.git' + '@' + 'a7c6662c68a90af18dd53dbb1f4262a346e9a547',
 
   'src/third_party/libwebp/src':
     Var('chromium_git') + '/webm/libwebp.git' + '@' +  '68dd1c3040d500f56fe7ffb754b1813fb64b5887',
@@ -2870,7 +2870,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '39fb5de173a938ef8c0c4d4f761cdccd48011363',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '3901fd73526edecf3e1cfa2d8e3db2a965e4f637',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
@@ -3251,7 +3251,7 @@ deps = {
       ],
   },
 
-  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@d5a686e6cebd5398c5eb6bd3db04aed92897d3de',
+  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@c634b9be3fb35a3859b515719b8012348ed3cfb6',
   'src/third_party/glslang/src': '{chromium_git}/external/github.com/KhronosGroup/glslang@5cf91e73b01ce835d281a9c3b3d9158f7f74ff86',
   'src/third_party/spirv-cross/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Cross@b8fcf307f1f347089e3c46eb4451d27f32ebc8d3',
   'src/third_party/spirv-headers/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Headers@86f980c731e62ae4eaf383d320449d71687936bf',
@@ -3260,7 +3260,7 @@ deps = {
   'src/third_party/vulkan-loader/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Loader@77406fdfcd5706fd2a5d8f4473a6408fa6218b32',
   'src/third_party/vulkan-tools/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Tools@a967170a2b8a1ded4dbdf82d533caaec89184efe',
   'src/third_party/vulkan-utility-libraries/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Utility-Libraries@90738f6edfa19561a978fc5f97543ba37075ba9d',
-  'src/third_party/vulkan-validation-layers/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-ValidationLayers@e96416879553ac86144ec4be24c8de42eeaa80be',
+  'src/third_party/vulkan-validation-layers/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-ValidationLayers@7a2239810ba35aed6f3a55748ad4f9e43e5f59a3',
 
   'src/third_party/vulkan_memory_allocator':
     Var('chromium_git') + '/external/github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git' + '@' + '82a9d47e4f9d91f0e32d2b6acd9714fcee1933a0',
