@@ -4162,6 +4162,7 @@ const FeatureEntry::FeatureParam kAndroidBottomBar1A60dpParam[] = {
     {"bottom_bar_height_dp", "60"}};
 const FeatureEntry::FeatureParam kAndroidBottomBarKeepAppMenuInToolbarParam[] =
     {{"keep_app_menu_in_toolbar", "true"},
+     {"remove_top_padding_for_bottom_omnibox", "false"},
      {"show_glic_setting_toggle", "true"}};
 const FeatureEntry::FeatureParam kAndroidBottomBarShowDomainOnlyParam[] = {
     {"show_glic_setting_toggle", "true"},
@@ -14443,6 +14444,12 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kPaymentHandlerCustomSizeDescription, kOsDesktop,
      MULTI_VALUE_TYPE(kPaymentHandlerCustomSizeChoices)},
 
+#if BUILDFLAG(IS_ANDROID)
+    {"android-bookmark-bar-drag-drop",
+     flag_descriptions::kAndroidBookmarkBarDragDropName,
+     flag_descriptions::kAndroidBookmarkBarDragDropDescription, kOsAndroid,
+     FEATURE_VALUE_TYPE(chrome::android::kAndroidBookmarkBarDragDrop)},
+#endif
     // Add new entries above this line.
     // NOTE: Adding a new flag requires adding a corresponding entry to enum
     // "LoginCustomFlags" in tools/metrics/histograms/enums.xml. See "Flag

@@ -85,7 +85,14 @@ enum class ToolId {
   kWait = 32,
   // Executes a script tool in a document.
   kScript = 33,
-  kMaxValue = kScript,
+  // Loads a set of URLs in background tabs and extracts their page content.
+  kLoadAndExtractContent = 34,
+  // Attempts to fill forms on the active webpage with user information.
+  kAttemptFormFilling = 35,
+  // Attempts to log in to the website using saved credentials or social login
+  // buttons.
+  kAttemptLogin = 36,
+  kMaxValue = kAttemptLogin,
 };
 
 // In-memory metadata and parameter schema for a shared browser tool. Prefer
