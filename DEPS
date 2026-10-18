@@ -1767,7 +1767,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '2b928bdbc3213a5eba85fbca303e3c6a88dd8b3b',
+    'd5fc35af778481076be1d1a240374ca47e6c267e',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -2844,7 +2844,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/cisco/openh264' + '@' + '9547f96ea5c47f4d465d97b07264b997ecc4b4b6',
 
   'src/third_party/openscreen/src':
-    Var('chromium_git') + '/openscreen' + '@' + 'ceeaa4fc90ba297d36e5bbb7bf3aba0885486f90',
+    Var('chromium_git') + '/openscreen' + '@' + 'ad28ac87783e2afdb081e1e24898b21d083f4f35',
 
   'src/third_party/openxr/src': {
     'url': Var('chromium_git') + '/external/github.com/KhronosGroup/OpenXR-SDK' + '@' + '75c53b6e853dc12c7b3c771edc9c9c841b15faaa',
@@ -2870,7 +2870,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + 'f3d3b6d6a17f075e972ed9a6d34aefb927c75398',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '594af1c30fcbbb0c3331fe1229c288f4425b9042',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
@@ -3455,7 +3455,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/help_app/app',
-        'version': 'XotLuN_v6gb_cHF_4hq16TqQuypWXa-dszjEY6VcdBAC',
+        'version': '_0pjW0jWndP88cS_WitpAW7XjEfYt3RU3EkWL0iCKusC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3466,7 +3466,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/media_app/app',
-        'version': 'mN5Tj2XA5LtO2cF42CJKPmbV5UCdG8ktaGKk1U2M1IAC',
+        'version': 'ubVscP20MfPLLycwxL6Sl4RtHXKJB3IBDUXZCPZFtSgC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
