@@ -350,7 +350,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': '64188f173d4bd19873db8a9d247470e9e1580ec2',
+  'boringssl_revision': '594a44291086dcc7cef06cabec4c0b47afd674c0',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -3921,7 +3921,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        'ab04a14db3db69bc4b3ca9d44bff9917838c2a61',
+        '91c99c9b4e697bda3b0bbad423db5dcfe287b9e7',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
