@@ -548,6 +548,7 @@ const base::Feature* const kFeaturesExposedToJava[] = {
     &kToolbarSnapshotRefactor,
     &kToolbarTabletResizeRefactor,
     &kTouchToSearchCallout,
+    &kTrimMemoryBackgroundIsSevere,
     &kTrustedWebActivityContactsDelegation,
     &kUmaBackgroundSessions,
     &kUmaSessionCorrectnessFixes,
@@ -637,6 +638,7 @@ const base::Feature* const kFeaturesExposedToJava[] = {
     &tab_groups::kUseAlternateHistorySyncIllustration,
     &themes::kCrossDeviceThemeTracker,
     &ttc::kTtc,
+    &ttc::kTtcFre,
     &universal_optout::features::kUniversalOptOut,
     &universal_optout::features::kUniversalOptOutSettings,
     &visited_url_ranking::features::kGroupSuggestionService,
@@ -982,6 +984,7 @@ BASE_FEATURE(kToolbarProgressBarRefactor, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kToolbarSnapshotRefactor, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kToolbarTabletResizeRefactor, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kTouchToSearchCallout, base::FEATURE_DISABLED_BY_DEFAULT);
+BASE_FEATURE(kTrimMemoryBackgroundIsSevere, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kTrustedWebActivityContactsDelegation, base::FEATURE_DISABLED_BY_DEFAULT);
 // If enabled, keep logging and reporting UMA while chrome is backgrounded.
 BASE_FEATURE(kUmaBackgroundSessions,"UMABackgroundSessions", base::FEATURE_ENABLED_BY_DEFAULT);

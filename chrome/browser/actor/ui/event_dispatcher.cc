@@ -90,8 +90,6 @@ constexpr absl::Overload PreToolEventsFn{
     NoUiEvents<ActivateWindowToolRequest>,
     NoUiEvents<CloseWindowToolRequest>,
     NoUiEvents<CreateWindowToolRequest>,
-    NoUiEvents<EnterFullscreenToolRequest>,
-    NoUiEvents<ExitFullscreenToolRequest>,
 #endif
     NoUiEvents<ActivateTabToolRequest>,
     NoUiEvents<AddBookmarkToolRequest>,
@@ -99,6 +97,8 @@ constexpr absl::Overload PreToolEventsFn{
     NoUiEvents<CloseTabToolRequest>,
     NoUiEvents<CreateTabToolRequest>,
     NoUiEvents<DragAndReleaseToolRequest>,
+    NoUiEvents<EnterFullscreenToolRequest>,
+    NoUiEvents<ExitFullscreenToolRequest>,
     NoUiEvents<FileUploadToolRequest>,
     NoUiEvents<FindAndHighlightToolRequest>,
     NoUiEvents<HistoryBackToolRequest>,
@@ -115,9 +115,7 @@ constexpr absl::Overload PreToolEventsFn{
       return EventSequence<AsyncUiEvent>{MouseMove(*tab, pt, source)};
     },
     NoUiEvents<NavigateToolRequest>,
-#if !BUILDFLAG(SKIP_ANDROID_UNMIGRATED_ACTOR_FILES)
     NoUiEvents<OpenKnownPageToolRequest>,
-#endif
     NoUiEvents<PauseMediaToolRequest>,
     NoUiEvents<PerformSearchToolRequest>,
     NoUiEvents<PlayMediaToolRequest>,
@@ -152,8 +150,6 @@ constexpr absl::Overload PostToolEventsFn{
     NoUiEvents<ActivateWindowToolRequest>,
     NoUiEvents<CloseWindowToolRequest>,
     NoUiEvents<CreateWindowToolRequest>,
-    NoUiEvents<EnterFullscreenToolRequest>,
-    NoUiEvents<ExitFullscreenToolRequest>,
 #endif
     NoUiEvents<ActivateTabToolRequest>,
     NoUiEvents<AddBookmarkToolRequest>,
@@ -162,6 +158,8 @@ constexpr absl::Overload PostToolEventsFn{
     NoUiEvents<CloseTabToolRequest>,
     NoUiEvents<CreateTabToolRequest>,
     NoUiEvents<DragAndReleaseToolRequest>,
+    NoUiEvents<EnterFullscreenToolRequest>,
+    NoUiEvents<ExitFullscreenToolRequest>,
     NoUiEvents<FileUploadToolRequest>,
     NoUiEvents<FindAndHighlightToolRequest>,
     NoUiEvents<HistoryBackToolRequest>,
@@ -171,9 +169,7 @@ constexpr absl::Overload PostToolEventsFn{
 #endif
     NoUiEvents<MoveMouseToolRequest>,
     NoUiEvents<NavigateToolRequest>,
-#if !BUILDFLAG(SKIP_ANDROID_UNMIGRATED_ACTOR_FILES)
     NoUiEvents<OpenKnownPageToolRequest>,
-#endif
     NoUiEvents<PauseMediaToolRequest>,
     NoUiEvents<PerformSearchToolRequest>,
     NoUiEvents<PlayMediaToolRequest>,

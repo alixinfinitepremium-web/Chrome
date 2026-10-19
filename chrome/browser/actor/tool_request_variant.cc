@@ -67,14 +67,12 @@ class ConvertToVariantFn : public ToolRequestVisitorFunctor {
   void Apply(const DragAndReleaseToolRequest& tr) override {
     var_ = ToolRequestVariant(tr);
   }
-#if !BUILDFLAG(SKIP_ANDROID_UNMIGRATED_ACTOR_FILES)
   void Apply(const EnterFullscreenToolRequest& tr) override {
     var_ = ToolRequestVariant(tr);
   }
   void Apply(const ExitFullscreenToolRequest& tr) override {
     var_ = ToolRequestVariant(tr);
   }
-#endif
   void Apply(const FileUploadToolRequest& tr) override {
     var_ = ToolRequestVariant(tr);
   }
@@ -98,11 +96,9 @@ class ConvertToVariantFn : public ToolRequestVisitorFunctor {
   void Apply(const NavigateToolRequest& tr) override {
     var_ = ToolRequestVariant(tr);
   }
-#if !BUILDFLAG(SKIP_ANDROID_UNMIGRATED_ACTOR_FILES)
   void Apply(const OpenKnownPageToolRequest& tr) override {
     var_ = ToolRequestVariant(tr);
   }
-#endif
   void Apply(const PauseMediaToolRequest& tr) override {
     var_ = ToolRequestVariant(tr);
   }

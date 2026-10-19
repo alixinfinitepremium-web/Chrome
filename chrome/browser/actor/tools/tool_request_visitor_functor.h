@@ -18,6 +18,7 @@
 #include "chrome/browser/actor/tools/move_mouse_tool_request.h"
 #include "chrome/browser/actor/tools/navigate_tool_request.h"
 #include "chrome/browser/actor/tools/one_time_token/attempt_otp_filling_tool_request.h"
+#include "chrome/browser/actor/tools/open_known_page_tool_request.h"
 #include "chrome/browser/actor/tools/password_manager/attempt_login/attempt_login_tool_request.h"
 #include "chrome/browser/actor/tools/password_manager/change_password/change_password_tool_request.h"
 #include "chrome/browser/actor/tools/perform_search_tool_request.h"
@@ -32,11 +33,8 @@
 #include "chrome/browser/actor/tools/translate_page_tool_request.h"
 #include "chrome/browser/actor/tools/type_tool_request.h"
 #include "chrome/browser/actor/tools/wait_tool_request.h"
-#include "chrome/common/buildflags.h"
-#if !BUILDFLAG(SKIP_ANDROID_UNMIGRATED_ACTOR_FILES)
-#include "chrome/browser/actor/tools/open_known_page_tool_request.h"
 #include "chrome/browser/actor/tools/window_management_tool_request.h"
-#endif
+#include "chrome/common/buildflags.h"
 
 namespace actor {
 
@@ -60,10 +58,10 @@ class ToolRequestVisitorFunctor {
   virtual void Apply(const CreateTabToolRequest&) = 0;
 #if !BUILDFLAG(SKIP_ANDROID_UNMIGRATED_ACTOR_FILES)
   virtual void Apply(const CreateWindowToolRequest&) = 0;
-  virtual void Apply(const EnterFullscreenToolRequest&) = 0;
-  virtual void Apply(const ExitFullscreenToolRequest&) = 0;
 #endif
   virtual void Apply(const DragAndReleaseToolRequest&) = 0;
+  virtual void Apply(const EnterFullscreenToolRequest&) = 0;
+  virtual void Apply(const ExitFullscreenToolRequest&) = 0;
   virtual void Apply(const FileUploadToolRequest&) = 0;
   virtual void Apply(const FindAndHighlightToolRequest&) = 0;
   virtual void Apply(const HistoryBackToolRequest&) = 0;
@@ -73,9 +71,7 @@ class ToolRequestVisitorFunctor {
 #endif
   virtual void Apply(const MoveMouseToolRequest&) = 0;
   virtual void Apply(const NavigateToolRequest&) = 0;
-#if !BUILDFLAG(SKIP_ANDROID_UNMIGRATED_ACTOR_FILES)
   virtual void Apply(const OpenKnownPageToolRequest&) = 0;
-#endif
   virtual void Apply(const PauseMediaToolRequest&) = 0;
   virtual void Apply(const PerformSearchToolRequest&) = 0;
   virtual void Apply(const PlayMediaToolRequest&) = 0;

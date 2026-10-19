@@ -37,6 +37,8 @@ BASE_DECLARE_FEATURE(kGlicAndroidOffscreenRendering);
 
 BASE_DECLARE_FEATURE(kGlicClearTurnIdOnPanelWillOpen);
 
+BASE_DECLARE_FEATURE(kGlicChromeStatusIconWin);
+
 BASE_DECLARE_FEATURE(kGlicOSIconVariant);
 extern const base::FeatureParam<int> kGlicOSIconVariantParam;
 
@@ -237,6 +239,9 @@ BASE_DECLARE_FEATURE(kGlicColdWarmingUsePerformanceManager);
 BASE_DECLARE_FEATURE(kGlicSsr);
 
 BASE_DECLARE_FEATURE(kGlicClientDataStorage);
+
+BASE_DECLARE_FEATURE(kGlicShowNotTellTutorials);
+extern const base::FeatureParam<int> kGlicShowNotTellTutorialsArm;
 }  // namespace features
 
 #endif  // CHROME_BROWSER_GLIC_PUBLIC_FEATURES_H_

@@ -47,6 +47,7 @@ class AskBeforeHttpDialogController;
 class AutoPictureInPictureTabHelper;
 class BookmarkBarPreloadPipelineManager;
 class BookmarkPageActionController;
+class BookmarkTabHelper;
 class BreadcrumbManagerTabHelper;
 class BrowserSyncedTabDelegate;
 class ChromeFacilitatedPaymentsClient;
@@ -129,6 +130,7 @@ class BackToOpenerController;
 }  // namespace back_to_opener
 
 namespace blocked_content {
+class PopupBlockerTabHelper;
 class PopupOpenerTabHelper;
 }  // namespace blocked_content
 
@@ -714,6 +716,8 @@ class TabFeatures {
   std::unique_ptr<LensOverlayHomeworkPageActionController>
       lens_overlay_homework_page_action_controller_;
 
+  std::unique_ptr<BookmarkTabHelper> bookmark_tab_helper_;
+
   // Manages the Bookmark page action.
   std::unique_ptr<BookmarkPageActionController>
       bookmark_page_action_controller_;
@@ -1065,6 +1069,8 @@ class TabFeatures {
   std::unique_ptr<metrics::MetricsServicesWebContentsObserver>
       metrics_services_web_contents_observer_;
 
+  std::unique_ptr<blocked_content::PopupBlockerTabHelper>
+      popup_blocker_tab_helper_;
   std::unique_ptr<blocked_content::PopupOpenerTabHelper>
       popup_opener_tab_helper_;
 

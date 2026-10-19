@@ -37,6 +37,7 @@
 #import "ios/chrome/browser/intelligence/bwg/model/gemini_shared_tabs_delegate.h"
 #import "ios/chrome/browser/intelligence/bwg/model/gemini_tab_helper.h"
 #import "ios/chrome/browser/intelligence/bwg/model/gemini_tab_helper_observer.h"
+#import "ios/chrome/browser/intelligence/bwg/model/gemini_tab_picker_handler.h"
 #import "ios/chrome/browser/intelligence/bwg/utils/gemini_constants.h"
 #import "ios/chrome/browser/intelligence/bwg/utils/gemini_feature_availability.h"
 #import "ios/chrome/browser/intelligence/bwg/utils/gemini_live_utils.h"
@@ -214,6 +215,7 @@ class GeminiContainerMediatorTabHelperObserver
     _actorService = actorService;
     _gatewayManager = [[GeminiGatewayManager alloc] initWithBrowser:browser
                                                   viewStateDelegate:self];
+    _gatewayManager.tabPickerHandler.sharedTabsDelegate = sharedTabsDelegate;
     _stateManager = [[GeminiContainerUIStateManager alloc] init];
     _stateManager.delegate = self;
   }
@@ -498,6 +500,9 @@ class GeminiContainerMediatorTabHelperObserver
   [_stateManager updateDetent:newDetent];
   [_sessionMetricsManager didChangeDetent:newDetent];
 
+  // TODO(crbug.com/574081190): Move setHasPadding to didChangeUIState
+  [self.consumer setHasPadding:!minimized];
+
   if (_stateManager.currentUIState.actuating) {
     [self.containerHandler setAssistantContainerGrabberHidden:NO animated:YES];
   } else if ([_stateManager shouldBeDismissed]) {
@@ -627,6 +632,35 @@ class GeminiContainerMediatorTabHelperObserver
 - (void)didFinishLoadingConversationWithID:(NSString*)conversationID
                                      error:(NSError*)error {
   [_stateManager didFinishLoadingConversationWithID:conversationID error:error];
+}
+
+- (void)didRequestToDetachTabWithID:(NSString*)tabID {
+  if (_sharedTabsDelegate) {
+    _sharedTabsDelegate->DetachTabWithID(tabID);
+  }
+}
+
+- (void)didAttachTabWithID:(NSString*)tabID {
+  if (_sharedTabsDelegate) {
+    _sharedTabsDelegate->UpdateLocalTabAttachmentState(
+        tabID, ios::provider::GeminiPageContextAttachmentState::kAttached);
+  }
+}
+
+- (void)didDetachTabWithID:(NSString*)tabID {
+  if (_sharedTabsDelegate) {
+    _sharedTabsDelegate->UpdateLocalTabAttachmentState(
+        tabID, ios::provider::GeminiPageContextAttachmentState::kDetached);
+  }
+}
+
+- (NSUInteger)attachedTabsCount {
+  return _sharedTabsDelegate ? _sharedTabsDelegate->SharedTabsCount() : 0;
+}
+
+- (BOOL)isMultiTabUsed {
+  return _sharedTabsDelegate &&
+         _sharedTabsDelegate->GetInactiveSharedTabs().count > 0;
 }
 
 - (void)setActuationActive:(BOOL)actuationActive {

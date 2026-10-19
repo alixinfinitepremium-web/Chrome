@@ -11356,6 +11356,12 @@ void RenderFrameHostImpl::RequestUnboundedSurface(
   }
   UnboundedElementAuth auth = GetUnboundedElementAuth();
   if (auth == UnboundedElementAuth::kDenied) {
+    // Note: RenderFrameImpl::DidCreateScriptContext() enables UnboundedElement
+    // for subframes of any privileged root frame without checking the temporary
+    // allowlist. If you hit this bad message from a subframe of a privileged
+    // WebUI or extension page, that root origin likely needs to be added to the
+    // allowlist in
+    // ChromeContentBrowserClient::IsUnboundedElementAllowedForSubframesOf().
     local_frame_host_receiver_.ReportBadMessage(
         "RequestUnboundedSurface is only supported from privileged contexts.");
     return;
@@ -16135,9 +16141,9 @@ bool RenderFrameHostImpl::ValidateURLAndOrigin(
   if ((navigation_request && navigation_request->IsLoadDataWithBaseURL()) ||
       (is_same_document_navigation &&
        renderer_url_info_.was_loaded_from_load_data_with_base_url) ||
-      (origin.opaque() && ChildProcessSecurityPolicyImpl::GetInstance()
-                              ->HasOriginCheckExemptionForWebView(
-                                  process->GetDeprecatedID(), origin))) {
+      (origin.opaque() &&
+       ChildProcessSecurityPolicyImpl::GetInstance()
+           ->HasOriginCheckExemptionForWebView(process->GetID(), origin))) {
     // Allow bypass if the process isn't locked. Otherwise run normal checks.
     if (!process->GetProcessLock().IsLockedToSite()) {
       return true;
@@ -16450,7 +16456,7 @@ bool RenderFrameHostImpl::DidCommitNavigationInternal(
       params->origin.opaque() &&
       !GetProcess()->GetProcessLock().IsLockedToSite()) {
     ChildProcessSecurityPolicyImpl::GetInstance()
-        ->GrantOriginCheckExemptionForWebView(GetProcess()->GetDeprecatedID(),
+        ->GrantOriginCheckExemptionForWebView(GetProcess()->GetID(),
                                               params->origin);
     // Log a crash key when LoadDataWithBaseURL is given an exemption, to help
     // diagnose any renderer kills that result from it.
@@ -16462,7 +16468,7 @@ bool RenderFrameHostImpl::DidCommitNavigationInternal(
   if (GetOrCreateWebPreferences().allow_universal_access_from_file_urls &&
       params->origin.scheme() == url::kFileScheme) {
     ChildProcessSecurityPolicyImpl::GetInstance()
-        ->GrantOriginCheckExemptionForWebView(GetProcess()->GetDeprecatedID(),
+        ->GrantOriginCheckExemptionForWebView(GetProcess()->GetID(),
                                               params->origin);
     // Log a crash key when universal access is given an exemption, to help
     // diagnose any renderer kills that result from it.

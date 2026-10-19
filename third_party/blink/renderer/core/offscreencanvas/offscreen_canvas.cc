@@ -320,31 +320,30 @@ void OffscreenCanvas::SetSize(gfx::Size size) {
   if (!context_) {
     return;
   }
-  // Setting size of a canvas also resets it.
-  if (size_ == old_size) {
-    if (context_->IsRenderingContext2D()) {
-      context_->Reset();
-      origin_clean_ = true;
-      // We need to trigger the draw, because we did reset the context.
+  if (context_->IsRenderingContext2D()) {
+    if (size_ != old_size && context_->isContextLost()) {
+      context_->RestoreFromInvalidSizeIfNeeded();
+    }
+
+    // Setting size of a canvas also resets it.
+    context_->Reset();
+    origin_clean_ = true;
+    context_->DidDraw(CanvasPerformanceMonitor::DrawType::kOther);
+  } else if (context_->IsWebGL()) {
+    context_->Reshape(old_size, Size());
+  } else if (context_->IsWebGPU()) {
+    if (old_size != size_) {
+      context_->Reshape(old_size, Size());
       context_->DidDraw(CanvasPerformanceMonitor::DrawType::kOther);
     }
-    return;
-  }
-
-  if (context_->isContextLost()) {
-    context_->RestoreFromInvalidSizeIfNeeded();
-  }
-
-  if (context_->IsWebGL() || IsWebGPU()) {
-    context_->Reshape(Size().width(), Size().height());
-  } else if (context_->IsRenderingContext2D() ||
-             context_->IsImageBitmapRenderingContext()) {
-    context_->Reset();
-    if (context_->IsRenderingContext2D()) {
-      origin_clean_ = true;
+  } else if (context_->IsImageBitmapRenderingContext()) {
+    if (old_size != size_) {
+      context_->Reset();
+      context_->DidDraw(CanvasPerformanceMonitor::DrawType::kOther);
     }
+  } else {
+    NOTREACHED();
   }
-  context_->DidDraw(CanvasPerformanceMonitor::DrawType::kOther);
 }
 
 void OffscreenCanvas::RecordTransfer() {

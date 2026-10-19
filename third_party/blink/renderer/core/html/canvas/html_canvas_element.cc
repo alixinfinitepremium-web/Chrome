@@ -909,17 +909,12 @@ void HTMLCanvasElement::OnWidthOrHeightAssigned() {
     }
   } else if (IsWebGL()) {
     size_ = new_size;
-    RenderingContext()->SizeChanged();
-    UpdateMemoryUsage();
-
-    if (old_size != Size()) {
-      context_->Reshape(width(), height());
-    }
+    context_->Reshape(old_size, new_size);
   } else if (IsWebGPU()) {
     size_ = new_size;
     RenderingContext()->SizeChanged();
     UpdateMemoryUsage();
-    context_->Reshape(width(), height());
+    context_->Reshape(old_size, new_size);
   } else if (IsImageBitmapRenderingContext()) {
     size_ = new_size;
     RenderingContext()->SizeChanged();

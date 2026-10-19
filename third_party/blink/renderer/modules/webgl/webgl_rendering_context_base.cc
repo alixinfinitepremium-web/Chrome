@@ -2456,9 +2456,29 @@ WebGLRenderingContextBase::GetRGBAUnacceleratedStaticBitmapImage(
       source_buffer);
 }
 
-void WebGLRenderingContextBase::Reshape(int width, int height) {
+void WebGLRenderingContextBase::Reshape(gfx::Size old_size,
+                                        gfx::Size new_size) {
+  if (Host()->IsOffscreenCanvas()) {
+    if (old_size == new_size) {
+      return;
+    }
+    if (isContextLost()) {
+      DidDraw(CanvasPerformanceMonitor::DrawType::kOther);
+      return;
+    }
+  } else {
+    SizeChanged();
+    Host()->UpdateMemoryUsage();
+    if (old_size == new_size) {
+      return;
+    }
+  }
+
   if (isContextLost())
     return;
+
+  int width = new_size.width();
+  int height = new_size.height();
 
   GLint buffer = 0;
   if (IsWebGL2()) {
@@ -2512,6 +2532,10 @@ void WebGLRenderingContextBase::Reshape(int width, int height) {
   if (buffer) {
     ContextGL()->BindBuffer(GL_PIXEL_UNPACK_BUFFER,
                             static_cast<GLuint>(buffer));
+  }
+
+  if (Host()->IsOffscreenCanvas()) {
+    DidDraw(CanvasPerformanceMonitor::DrawType::kOther);
   }
 }
 

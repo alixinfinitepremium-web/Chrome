@@ -39,6 +39,7 @@ suite('OrganizerPanelAppTest', () => {
       isIncognitoMode: false,
       noRecentlyClosedTabs: 'No recently closed tabs',
       noResults: 'No results',
+      options: 'Options',
       recentlyClosed: 'Recently Closed',
       recentlyVisited: 'Recently visited',
       searchTabs: 'Search Tabs',
@@ -415,5 +416,38 @@ suite('OrganizerPanelAppTest', () => {
     await microtasksFinished();
 
     assertFalse(app.$.menu.open);
+  });
+
+  test('resets search query and scroll position on hidden', async () => {
+    app.style.height = '100px';
+    app.style.width = '300px';
+    const dummy = document.createElement('div');
+    dummy.style.height = '500px';
+    app.$.list.shadowRoot.appendChild(dummy);
+    app.$.searchField.setValue('test search');
+    await microtasksFinished();
+
+    app.$.list.scrollTop = 50;
+    assertEquals('test search', app.$.searchField.getValue());
+    assertEquals('test search', app.$.list.searchQuery);
+    assertEquals(50, app.$.list.scrollTop);
+
+    Object.defineProperty(
+        document, 'visibilityState', {value: 'hidden', writable: true});
+    document.dispatchEvent(new Event('visibilitychange'));
+    await microtasksFinished();
+
+    assertEquals('', app.$.searchField.getValue());
+    assertEquals('', app.$.list.searchQuery);
+    assertEquals(0, app.$.list.scrollTop);
+
+    Object.defineProperty(
+        document, 'visibilityState', {value: 'visible', writable: true});
+    document.dispatchEvent(new Event('visibilitychange'));
+    await microtasksFinished();
+
+    assertEquals('', app.$.searchField.getValue());
+    assertEquals('', app.$.list.searchQuery);
+    assertEquals(0, app.$.list.scrollTop);
   });
 });

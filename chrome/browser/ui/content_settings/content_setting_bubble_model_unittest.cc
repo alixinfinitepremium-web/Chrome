@@ -13,6 +13,7 @@
 #include "base/functional/callback.h"
 #include "base/strings/utf_string_conversions.h"
 #include "base/test/metrics/histogram_tester.h"
+#include "base/test/metrics/user_action_tester.h"
 #include "base/test/scoped_feature_list.h"
 #include "build/build_config.h"
 #include "chrome/browser/content_settings/cookie_settings_factory.h"
@@ -51,6 +52,8 @@
 #include "components/permissions/permission_recovery_success_rate_tracker.h"
 #include "components/strings/grit/components_strings.h"
 #include "components/subresource_filter/content/browser/content_subresource_filter_throttle_manager.h"
+#include "components/tabs/public/mock_tab_interface.h"
+#include "components/tabs/public/tab_interface.h"
 #include "components/url_formatter/elide_url.h"
 #include "content/public/browser/web_contents.h"
 #include "content/public/common/content_features.h"
@@ -59,9 +62,11 @@
 #include "net/base/schemeful_site.h"
 #include "services/device/public/cpp/device_features.h"
 #include "services/device/public/cpp/geolocation/buildflags.h"
+#include "testing/gmock/include/gmock/gmock.h"
 #include "testing/gtest/include/gtest/gtest.h"
 #include "third_party/blink/public/mojom/mediastream/media_stream.mojom.h"
 #include "ui/base/l10n/l10n_util.h"
+#include "ui/base/unowned_user_data/unowned_user_data_host.h"
 #include "ui/base/window_open_disposition.h"
 
 #if !BUILDFLAG(IS_ANDROID)
@@ -1393,7 +1398,13 @@ TEST_F(ContentSettingBubbleModelTest, PopupBubbleModelListItems) {
           web_contents()->GetPrimaryMainFrame());
   content_settings->OnContentBlocked(ContentSettingsType::POPUPS);
 
-  blocked_content::PopupBlockerTabHelper::CreateForWebContents(web_contents());
+  ui::UnownedUserDataHost user_data_host;
+  tabs::MockTabInterface tab;
+  ON_CALL(tab, GetUnownedUserDataHost())
+      .WillByDefault(::testing::ReturnRef(user_data_host));
+  tabs::TabLookupFromWebContents::CreateForWebContents(web_contents(), &tab);
+  blocked_content::PopupBlockerTabHelper popup_blocker_tab_helper(
+      tab, web_contents());
   std::unique_ptr<ContentSettingBubbleModel> content_setting_bubble_model(
       ContentSettingBubbleModel::CreateContentSettingBubbleModel(
           nullptr, page(), ContentSettingsType::POPUPS));
@@ -1422,7 +1433,13 @@ TEST_F(ContentSettingBubbleModelTest, PopupBubbleModelListItems) {
 TEST_F(ContentSettingBubbleModelTest, PopupBubbleModelListItemsSpoofing) {
   const GURL url("https://www.example.test/");
   WebContentsTester::For(web_contents())->NavigateAndCommit(url);
-  blocked_content::PopupBlockerTabHelper::CreateForWebContents(web_contents());
+  ui::UnownedUserDataHost user_data_host;
+  tabs::MockTabInterface tab;
+  ON_CALL(tab, GetUnownedUserDataHost())
+      .WillByDefault(::testing::ReturnRef(user_data_host));
+  tabs::TabLookupFromWebContents::CreateForWebContents(web_contents(), &tab);
+  blocked_content::PopupBlockerTabHelper popup_blocker_tab_helper(
+      tab, web_contents());
 
   // Malicious URL
   GURL spoof_url("http://google.com:VeryLongString@evil.com");
@@ -2003,18 +2020,27 @@ TEST_F(ContentSettingBubbleModelTest, NotificationsBubbleModel_DontAllow) {
   hcsm->SetContentSettingDefaultScope(
       url, url, ContentSettingsType::NOTIFICATIONS, CONTENT_SETTING_ALLOW);
 
-  ContentSettingNotificationsBubbleModel bubble_model(nullptr, page());
-  const auto& content = bubble_model.bubble_content();
-  EXPECT_EQ(content.title,
-            l10n_util::GetStringUTF16(IDS_NOTIFICATIONS_TURNED_OFF_IN_MACOS));
-  EXPECT_EQ(content.done_button_text,
-            l10n_util::GetStringUTF16(IDS_OPEN_SETTINGS_LINK));
-  EXPECT_EQ(content.cancel_button_text,
-            l10n_util::GetStringUTF16(IDS_PERMISSION_DONT_ALLOW));
+  base::UserActionTester user_action_tester;
+  {
+    ContentSettingNotificationsBubbleModel bubble_model(nullptr, page());
+    EXPECT_EQ(1, user_action_tester.GetActionCount(
+                     "ContentSettings.NotificationsDialog.Shown"));
+    const auto& content = bubble_model.bubble_content();
+    EXPECT_EQ(content.title,
+              l10n_util::GetStringUTF16(IDS_NOTIFICATIONS_TURNED_OFF_IN_MACOS));
+    EXPECT_EQ(content.done_button_text,
+              l10n_util::GetStringUTF16(IDS_OPEN_SETTINGS_LINK));
+    EXPECT_EQ(content.cancel_button_text,
+              l10n_util::GetStringUTF16(IDS_PERMISSION_DONT_ALLOW));
 
-  bubble_model.OnCancelButtonClicked();
-  EXPECT_EQ(
-      CONTENT_SETTING_BLOCK,
-      hcsm->GetContentSetting(url, url, ContentSettingsType::NOTIFICATIONS));
+    bubble_model.OnCancelButtonClicked();
+    EXPECT_EQ(1, user_action_tester.GetActionCount(
+                     "ContentSettings.NotificationsDialog.DontAllowClicked"));
+    EXPECT_EQ(
+        CONTENT_SETTING_BLOCK,
+        hcsm->GetContentSetting(url, url, ContentSettingsType::NOTIFICATIONS));
+  }
+  EXPECT_EQ(1, user_action_tester.GetActionCount(
+                   "ContentSettings.NotificationsDialog.Closed"));
 }
 #endif  // BUILDFLAG(IS_MAC)

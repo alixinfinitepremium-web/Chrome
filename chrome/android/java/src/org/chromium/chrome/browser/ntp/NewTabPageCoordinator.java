@@ -105,6 +105,7 @@ import org.chromium.chrome.browser.util.BrowserUiUtils.ModuleTypeOnStartAndNtp;
 import org.chromium.components.browser_ui.bottomsheet.BottomSheetController;
 import org.chromium.components.browser_ui.widget.displaystyle.DisplayStyleObserver;
 import org.chromium.components.browser_ui.widget.displaystyle.UiConfig;
+import org.chromium.components.contextual_search.InputState;
 import org.chromium.components.embedder_support.util.UrlUtilities;
 import org.chromium.components.omnibox.AutocompleteRequestType;
 import org.chromium.components.omnibox.OmniboxCapabilities;
@@ -240,6 +241,9 @@ public class NewTabPageCoordinator implements ModuleDelegateHost {
     private boolean mIsComposeplatePolicyEnabled;
     private boolean mIsComposeplateViewInitialized;
     private @Nullable ComposeplateCoordinator mComposeplateCoordinator;
+    // Whether the image generation tool is allowed for mProfile. Lazily computed by
+    // #isImageGenToolAllowed(); TriState.NOT_SET until then.
+    private @TriState int mIsImageGenToolAllowed;
     // Previous visibility states for metrics.
     private @TriState int mPreviousVoiceSearchButtonVisible;
     private @TriState int mPreviousLensButtonVisible;
@@ -610,12 +614,15 @@ public class NewTabPageCoordinator implements ModuleDelegateHost {
 
     /** Returns whether the AI Mode button can be shown on NTPs. */
     private boolean canShowAiModeButtonOnNtp() {
+        // Returning false here disables the entire composeplate row, hiding both the AI Mode
+        // and Incognito buttons.
+        if (NewTabPageUtils.isComposeplateRemovedInAuroraV2()) return false;
+
         // In the default layout (when not placed beside the MVT), the AI Mode button
         // shares a row with the Incognito button. Consequently, it is hidden when
         // Incognito mode is disabled. However, in the layout where the AI Mode section is
         // positioned beside the MVT, the AI Mode button must remain visible even if Incognito mode
         // is disabled.
-
         if (!mIsBesideMvtModuleEnabled && !mIsIncognitoModeEnabled) {
             return false;
         }
@@ -1361,10 +1368,33 @@ public class NewTabPageCoordinator implements ModuleDelegateHost {
         return chipType;
     }
 
-    /** Returns whether either image generation tool is allowed for the current profile. */
+    /**
+     * Returns whether the image generation tool is allowed for the current profile. On first call,
+     * this starts a short-lived Composebox session to read the allowed tools from its initial
+     * {@link InputState}, then immediately closes it. The result is cached for the lifetime of this
+     * coordinator.
+     */
     private boolean isImageGenToolAllowed() {
-        return ComposeboxQueryControllerBridge.isToolAllowedForProfile(
-                mProfile, ToolMode.TOOL_MODE_IMAGE_GEN);
+        if (mIsImageGenToolAllowed == TriState.NOT_SET) {
+            mIsImageGenToolAllowed = TriStateUtils.from(computeIsImageGenToolAllowed());
+        }
+        return mIsImageGenToolAllowed == TriState.TRUE;
+    }
+
+    private boolean computeIsImageGenToolAllowed() {
+        ComposeboxQueryControllerBridge bridge =
+                ComposeboxQueryControllerBridge.create(mProfile, /* webContents= */ null);
+        // No session can be created if, e.g., AIM is ineligible or disabled by policy; no tools
+        // are available in that case.
+        if (bridge == null) return false;
+        try {
+            // The initial input state is delivered synchronously while the session is created.
+            InputState inputState = bridge.getInputStateSupplier().get();
+            return inputState != null
+                    && inputState.allowedTools.contains(ToolMode.TOOL_MODE_IMAGE_GEN);
+        } finally {
+            bridge.destroy();
+        }
     }
 
     /**

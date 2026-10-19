@@ -433,12 +433,12 @@
             ],
             "experiments": [
                 {
-                    "name": "Enabled_LongPageBoost_20260615",
+                    "name": "Enabled_LongInputBoost_20261016",
                     "params": {
                         "helper_mode": "affinity",
-                        "page_load_boost": "10s",
+                        "page_load_boost": "3s",
                         "scroll_boost": "0.2s",
-                        "user_input_boost": "0.5s"
+                        "user_input_boost": "2s"
                     },
                     "enable_features": [
                         "UsePerformanceHelper"
@@ -5491,7 +5491,8 @@
     "DefaultANGLEVulkan": [
         {
             "platforms": [
-                "android"
+                "android",
+                "android_webview"
             ],
             "form_factors": [
                 "phone",
@@ -8681,6 +8682,27 @@
             ]
         }
     ],
+    "GlicTutorialsStudy": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Arm1",
+                    "params": {
+                        "tutorials_arm": "1"
+                    },
+                    "enable_features": [
+                        "GlicShowNotTellTutorials"
+                    ]
+                }
+            ]
+        }
+    ],
     "GlicUserStatusCheckDogfood": [
         {
             "platforms": [
@@ -9383,25 +9405,6 @@
                     },
                     "enable_features": [
                         "GeminiAureus"
-                    ]
-                }
-            ]
-        }
-    ],
-    "HeliosFREExperiment": [
-        {
-            "platforms": [
-                "ios"
-            ],
-            "experiments": [
-                {
-                    "name": "VisualRich",
-                    "params": {
-                        "variant": "visual-rich"
-                    },
-                    "enable_features": [
-                        "GeminiFREExperiment",
-                        "GeminiFRERefactor"
                     ]
                 }
             ]
@@ -11466,28 +11469,6 @@
                     "name": "Enabled",
                     "enable_features": [
                         "MigrateAccountManagerDelegate"
-                    ]
-                }
-            ]
-        }
-    ],
-    "MigrateAutomaticJsOptimizer": [
-        {
-            "platforms": [
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "params": {
-                        "min_age_of_initial_visit": "24h",
-                        "min_site_engagement_score": "10"
-                    },
-                    "enable_features": [
-                        "MigrateToBlockV8OptimizerOnUnfamiliarSites"
                     ]
                 }
             ]
@@ -14588,24 +14569,6 @@
             ]
         }
     ],
-    "PrivateAI": [
-        {
-            "platforms": [
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "ZeroStateSuggestionsUsePrivateAi"
-                    ]
-                }
-            ]
-        }
-    ],
     "PrivateInsights": [
         {
             "platforms": [
@@ -14959,25 +14922,6 @@
                     },
                     "enable_features": [
                         "ReadAnythingMenuShuffleExperiment"
-                    ]
-                }
-            ]
-        }
-    ],
-    "ReadAnythingOmnibox": [
-        {
-            "platforms": [
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "IPH_ReadingModePageActionLabel",
-                        "ReadAnythingOmniboxChip"
                     ]
                 }
             ]
@@ -17861,21 +17805,6 @@
                     "name": "Enabled",
                     "enable_features": [
                         "UploadReportOnProfileOpen"
-                    ]
-                }
-            ]
-        }
-    ],
-    "UseAccountInfoFetcherIos": [
-        {
-            "platforms": [
-                "ios"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "UseAccountInfoFetcherIos"
                     ]
                 }
             ]

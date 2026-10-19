@@ -60,6 +60,8 @@
 #include "third_party/metrics_proto/omnibox_event.pb.h"
 #include "third_party/skia/include/core/SkRect.h"
 #include "third_party/skia/include/core/SkRegion.h"
+#include "ui/base/accelerators/accelerator.h"
+#include "ui/base/emoji/emoji_panel_helper.h"
 #include "ui/base/l10n/l10n_util.h"
 #include "ui/base/models/dialog_model.h"
 #include "ui/base/page_transition_types.h"
@@ -257,7 +259,7 @@ OmniboxEverywhereUIManager::OmniboxEverywhereUIManager(
 }
 
 OmniboxEverywhereUIManager::~OmniboxEverywhereUIManager() {
-  CleanUpWidget();
+  DestroyWidgetAndWebContents();
 }
 
 OmniboxEverywhereWidgetDelegate* OmniboxEverywhereUIManager::widget_delegate() {
@@ -319,7 +321,7 @@ void OmniboxEverywhereUIManager::ShowForProfile(Profile* profile,
 
   if (widget_) {
     // If a different profile is present, clean up first.
-    CleanUpWidget();
+    DestroyWidgetAndWebContents();
   }
 
   // Ensure any previous browser collection observation is cleanly reset if the
@@ -641,7 +643,7 @@ void OmniboxEverywhereUIManager::OnEphemeralModelPrefChanged() {
   }
   bool was_visible = IsVisible() || widget_->IsMinimized();
   Profile* profile = profile_;
-  CleanUpWidget();
+  DestroyWidgetAndWebContents();
   if (was_visible) {
     CHECK(profile);
     ShowForProfile(profile);
@@ -656,7 +658,7 @@ void OmniboxEverywhereUIManager::OnMostVisitedPrefChanged() {
   }
   // Clean up the widget when the pref changes so there is not flicker when the
   // omnibox is re-invoked.
-  CleanUpWidget();
+  DestroyWidgetAndWebContents();
 }
 
 // TODO(crbug.com/558851707): Move impression recording to the FRE WebUI
@@ -704,7 +706,14 @@ void OmniboxEverywhereUIManager::Close() {
   CancelPendingDeactivation();
   if (widget_) {
     if (HasOpenModalDialog()) {
-      CleanUpWidget();
+      // TODO(crbug.com/567673370): Ideally, we should only close the open
+      // modals and not destroy the widget or the WebContents here (preserving
+      // the widget's position). For now, destroy the widget to close dialogs
+      // that can't be dismissed directly (e.g. native file choosers), while
+      // keeping the WebContents alive in case Close() is reached from inside a
+      // call on it (e.g. OpenURLFromTab).
+      DestroyWidget();
+      ReleaseKeepAlives();
       return;
     }
     if (is_context_menu_open_ && context_menu_runner_) {
@@ -780,7 +789,16 @@ void OmniboxEverywhereUIManager::Minimize() {
 }
 #endif  // BUILDFLAG(IS_WIN)
 
-void OmniboxEverywhereUIManager::CleanUpWidget() {
+void OmniboxEverywhereUIManager::DestroyWidgetAndWebContents() {
+  DestroyWidget();
+  permission_prompt_observation_.Reset();
+  contents_wrapper_.reset();
+  draggable_region_.reset();
+  browser_collection_observation_.Reset();
+  ReleaseKeepAlives();
+}
+
+void OmniboxEverywhereUIManager::DestroyWidget() {
   capture_release_timer_.Stop();
   CancelPendingDeactivation();
   if (disclosure_dialog_widget_) {
@@ -811,8 +829,6 @@ void OmniboxEverywhereUIManager::CleanUpWidget() {
             },
             std::move(widget_), std::move(widget_delegate_)));
   }
-  permission_prompt_observation_.Reset();
-  contents_wrapper_.reset();
   if (context_menu_runner_) {
     context_menu_runner_->Cancel();
     base::SingleThreadTaskRunner::GetCurrentDefault()->DeleteSoon(
@@ -834,11 +850,8 @@ void OmniboxEverywhereUIManager::CleanUpWidget() {
   is_dragging_ = false;
   is_adjusting_bounds_ = false;
   pending_auto_resize_size_.reset();
-  draggable_region_.reset();
   region_select_overlay_.reset();
-  browser_collection_observation_.Reset();
   last_shown_time_.reset();
-  ReleaseKeepAlives();
 }
 
 void OmniboxEverywhereUIManager::CancelPendingDeactivation() {
@@ -863,7 +876,7 @@ void OmniboxEverywhereUIManager::Shutdown() {
   permission_prompt_observation_.Reset();
   browser_collection_observation_.Reset();
   profile_pref_change_registrar_.Reset();
-  CleanUpWidget();
+  DestroyWidgetAndWebContents();
   profile_ = nullptr;
 }
 
@@ -1020,12 +1033,12 @@ void OmniboxEverywhereUIManager::OnPendingDismissalPoll() {
 }
 
 void OmniboxEverywhereUIManager::OnWidgetDestroying(views::Widget* widget) {
-  CleanUpWidget();
+  DestroyWidgetAndWebContents();
 }
 
 void OmniboxEverywhereUIManager::OnWidgetClosed(
     views::Widget::ClosedReason reason) {
-  CleanUpWidget();
+  DestroyWidgetAndWebContents();
 }
 
 void OmniboxEverywhereUIManager::AdjustWidgetBoundsToWorkArea() {
@@ -1523,6 +1536,11 @@ bool OmniboxEverywhereUIManager::HandleContextMenu(
 
 void OmniboxEverywhereUIManager::BuildInputContextMenu(
     const content::ContextMenuParams& params) {
+  if (ui::IsEmojiPanelSupported()) {
+    context_menu_model_->AddItemWithStringId(kEmoji, IDS_CONTENT_CONTEXT_EMOJI);
+    context_menu_model_->AddSeparator(ui::NORMAL_SEPARATOR);
+  }
+
   context_menu_model_->AddItemWithStringId(kUndo, IDS_APP_UNDO);
   context_menu_model_->AddSeparator(ui::NORMAL_SEPARATOR);
 
@@ -1617,6 +1635,27 @@ bool OmniboxEverywhereUIManager::HandleKeyboardEvent(
 }
 
 // ui::SimpleMenuModel::Delegate:
+// Supplies the platform-native emoji picker keyboard shortcut hint displayed
+// alongside the Emoji item in the right-click context menu (Win + . on Windows,
+// Cmd + Ctrl + Space on macOS).
+bool OmniboxEverywhereUIManager::GetAcceleratorForCommandId(
+    int command_id,
+    ui::Accelerator* accelerator) const {
+  if (command_id == kEmoji) {
+#if BUILDFLAG(IS_WIN)
+    *accelerator = ui::Accelerator(ui::VKEY_OEM_PERIOD, ui::EF_COMMAND_DOWN);
+    return true;
+#elif BUILDFLAG(IS_MAC)
+    *accelerator = ui::Accelerator(ui::VKEY_SPACE,
+                                   ui::EF_COMMAND_DOWN | ui::EF_CONTROL_DOWN);
+    return true;
+#else
+    return false;
+#endif
+  }
+  return false;
+}
+
 // Dispatches standard text editing commands from the context menu to the
 // underlying WebContents. Explicitly focuses the WebContents beforehand so
 // that focus temporarily acquired by the context menu UI runner is returned
@@ -1644,6 +1683,11 @@ void OmniboxEverywhereUIManager::ExecuteCommand(int command_id,
   }
   web_contents()->Focus();
   switch (command_id) {
+    case kEmoji:
+      if (widget_) {
+        widget_->ShowEmojiPanel();
+      }
+      break;
     case kUndo:
       web_contents()->Undo();
       break;
@@ -1768,6 +1812,9 @@ bool OmniboxEverywhereUIManager::IsCommandIdEnabled(int command_id) const {
     return false;
   }
   switch (command_id) {
+    case kEmoji:
+      return ui::IsEmojiPanelSupported() && widget_ != nullptr &&
+             last_context_menu_params_.is_editable;
     case kUndo:
       return (last_context_menu_params_.edit_flags &
               blink::ContextMenuDataEditFlags::kCanUndo) != 0;

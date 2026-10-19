@@ -873,9 +873,11 @@ public abstract class ChromeFeatureList {
     public static final String TOOLBAR_SNAPSHOT_REFACTOR = "ToolbarSnapshotRefactor";
     public static final String TOOLBAR_TABLET_RESIZE_REFACTOR = "ToolbarTabletResizeRefactor";
     public static final String TOUCH_TO_SEARCH_CALLOUT = "TouchToSearchCallout";
+    public static final String TRIM_MEMORY_BACKGROUND_IS_SEVERE = "TrimMemoryBackgroundIsSevere";
     public static final String TRUSTED_WEB_ACTIVITY_CONTACTS_DELEGATION =
             "TrustedWebActivityContactsDelegation";
     public static final String TTC = "Ttc";
+    public static final String TTC_FRE = "TtcFre";
     public static final String UMA_SESSION_CORRECTNESS_FIXES = "UmaSessionCorrectnessFixes";
     public static final String UNDOABLE_TAB_CLOSURE_REWORK = "UndoableTabClosureRework";
     public static final String UNIVERSAL_KEYBOARD_HANDLING = "UniversalKeyboardHandling";
@@ -1843,6 +1845,8 @@ public abstract class ChromeFeatureList {
             newMutableFlagWithSafeDefault(TIPS_SELF_SERVICE, false);
     public static final MutableFlagWithSafeDefault sToolbarScrollAblation =
             newMutableFlagWithSafeDefault(TOOLBAR_SCROLL_ABLATION, false);
+    public static final MutableFlagWithSafeDefault sTrimMemoryBackgroundIsSevere =
+            newMutableFlagWithSafeDefault(TRIM_MEMORY_BACKGROUND_IS_SEVERE, false);
     public static final MutableFlagWithSafeDefault sUndoableTabClosureRework =
             newMutableFlagWithSafeDefault(UNDOABLE_TAB_CLOSURE_REWORK, false);
     public static final MutableFlagWithSafeDefault sXplatSyncedSetupThemes =
@@ -2359,14 +2363,6 @@ public abstract class ChromeFeatureList {
     public static final BooleanCachedFeatureParam sTouchToSearchCalloutSnippetAsSubtitle =
             newBooleanCachedFeatureParam(TOUCH_TO_SEARCH_CALLOUT, "snippet_as_subtitle", false);
 
-    public static final BooleanCachedFeatureParam sAndroidTipsNotificationsAlwaysShowOptInPromo =
-            newBooleanCachedFeatureParam(
-                    ANDROID_TIPS_NOTIFICATIONS, "always_show_opt_in_promo", false);
-
-    public static final BooleanCachedFeatureParam sAndroidTipsNotificationsResetFeatureTipShown =
-            newBooleanCachedFeatureParam(
-                    ANDROID_TIPS_NOTIFICATIONS, "reset_feature_tip_shown", false);
-
     public static final IntCachedFeatureParam sAndroidTipsNotificationsV2CooldownDays =
             newIntCachedFeatureParam(
                     ANDROID_TIPS_NOTIFICATIONS_V2, "tips_opt_in_promo_cooldown_days", 7);
@@ -2374,6 +2370,12 @@ public abstract class ChromeFeatureList {
     public static final IntCachedFeatureParam sAndroidTipsNotificationsV2MaxShowCount =
             newIntCachedFeatureParam(
                     ANDROID_TIPS_NOTIFICATIONS_V2, "max_tips_opt_in_promo_show_count", 2);
+
+    public static final BooleanCachedFeatureParam sTipsSelfServiceAlwaysShowOptInPromo =
+            newBooleanCachedFeatureParam(TIPS_SELF_SERVICE, "always_show_opt_in_promo", false);
+
+    public static final BooleanCachedFeatureParam sTipsSelfServiceResetFeatureTipShown =
+            newBooleanCachedFeatureParam(TIPS_SELF_SERVICE, "reset_feature_tip_shown", false);
 
     public static final BooleanCachedFeatureParam sWebAppShortEdgesCutoutModeStandalone =
             newBooleanCachedFeatureParam(
@@ -2406,8 +2408,6 @@ public abstract class ChromeFeatureList {
                     sAndroidBottomBarShowGlicSettingToggle,
                     sAndroidBottomBarShowSettingsToggle,
                     sAndroidBottomBarShowUpdateBadge,
-                    sAndroidTipsNotificationsAlwaysShowOptInPromo,
-                    sAndroidTipsNotificationsResetFeatureTipShown,
                     sAndroidTipsNotificationsV2CooldownDays,
                     sAndroidTipsNotificationsV2MaxShowCount,
                     sAndroidVerticalTabsBlockDrawOnColdStart,
@@ -2478,6 +2478,8 @@ public abstract class ChromeFeatureList {
                     sStartSurfaceReturnTimeTabletSecs,
                     sTabStorageSqlitePrototypePhase,
                     sTabWindowManagerReportIndicesMismatchTimeDiffThresholdMs,
+                    sTipsSelfServiceAlwaysShowOptInPromo,
+                    sTipsSelfServiceResetFeatureTipShown,
                     sTouchToSearchCalloutIph,
                     sTouchToSearchCalloutSnippetAsSubtitle,
                     sUseChimeAndroidSdkAlwaysRegister,

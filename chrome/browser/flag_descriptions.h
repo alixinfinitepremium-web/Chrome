@@ -1878,6 +1878,10 @@ inline constexpr char kActorNotificationIntentRoutingDescription[] =
 inline constexpr char kTtcName[] = "TTC";
 inline constexpr char kTtcDescription[] = "Enables the TTC feature.";
 
+inline constexpr char kTtcFreName[] = "TTC FRE";
+inline constexpr char kTtcFreDescription[] =
+    "Enables the first run experience for TTC.";
+
 inline constexpr char kActorObserveScreenshotDefaultName[] =
     "Actor observe screenshot default";
 inline constexpr char kActorObserveScreenshotDefaultDescription[] =
@@ -1929,6 +1933,10 @@ inline constexpr char kActorTypeToolObservationStartDelayDescription[] =
 inline constexpr char kGlicCaptureRegionDescription[] =
     "Enables Glic to capture a region of the screen.";
 inline constexpr char kGlicCaptureRegionName[] = "Glic Capture Region";
+inline constexpr char kGlicChromeStatusIconWinName[] =
+    "Glic Chrome Status Icon Windows";
+inline constexpr char kGlicChromeStatusIconWinDescription[] =
+    "Use an alt logo as glic OS status bar icon on Windows.";
 inline constexpr char kGlicOSIconVariantName[] = "Glic OS Status Icon Variant";
 inline constexpr char kGlicOSIconVariantDescription[] =
     "Select the variant of the Glic OS status bar icon on Mac.";
@@ -2053,6 +2061,11 @@ inline constexpr char kGlicReuseCookiesDescription[] =
 inline constexpr char kGlicSsrName[] = "Glic SSR";
 inline constexpr char kGlicSsrDescription[] =
     "Enables server-side rendering for Glic.";
+
+inline constexpr char kGlicShowNotTellTutorialsName[] =
+    "Glic Show, not Tell Tutorials";
+inline constexpr char kGlicShowNotTellTutorialsDescription[] =
+    "Enables Show, not Tell Tutorials in Gemini in Chrome.";
 
 inline constexpr char kEnterprisePublishedSkillsPolicyEnabledName[] =
     "Enable EnterprisePublishedSkills policy";
@@ -3357,6 +3370,12 @@ inline constexpr char kLensUpdatedFeedbackEntrypointName[] =
     "Lens updated feedback entrypoint";
 inline constexpr char kLensUpdatedFeedbackEntrypointDescription[] =
     "Enables an updated feedback entry point in the Lens side panel.";
+
+inline constexpr char kLensUseSeparateRequestIdForViewportImagesName[] =
+    "Lens Use Separate Request ID for Viewport Images";
+inline constexpr char kLensUseSeparateRequestIdForViewportImagesDescription[] =
+    "Enables using separate request IDs for page contents vs page viewport "
+    "uploads.";
 
 inline constexpr char kLensSidePanelUnificationName[] =
     "Lens Side Panel Unification";
@@ -5490,6 +5509,12 @@ inline constexpr char kAndroidDesktopUAPlatformDescription[] =
     "Enables the 'Android' platform client hint value for users on Desktop "
     "Android.";
 
+inline constexpr char kAndroidDesktopUAModelName[] =
+    "Device model client hint for Desktop Android";
+inline constexpr char kAndroidDesktopUAModelDescription[] =
+    "Enables sending the device model in the Sec-CH-UA-Model client hint for "
+    "users on Desktop Android devices.";
+
 inline constexpr char kAndroidDesktopUASpoofAsChromeOSName[] =
     "Spoof User-Agent as ChromeOS for Desktop Android";
 inline constexpr char kAndroidDesktopUASpoofAsChromeOSDescription[] =
@@ -5641,11 +5666,6 @@ inline constexpr char kAndroidThemeResourceProviderName[] =
     "Android Theme Resource Provider";
 inline constexpr char kAndroidThemeResourceProviderDescription[] =
     "Enables the Android theme resource provider.";
-
-inline constexpr char kAndroidTipsNotificationsName[] =
-    "Android Tips Notifications";
-inline constexpr char kAndroidTipsNotificationsDescription[] =
-    "Enable tips notifications for supported features on Android.";
 
 inline constexpr char kAndroidTipsNotificationsV2Name[] =
     "Android Tips Notifications V2";
@@ -6376,8 +6396,8 @@ inline constexpr char kMixedFixedIntervalMatcherName[] =
     "Refresh rate matching for mixed fixed-rate content";
 inline constexpr char kMixedFixedIntervalMatcherDescription[] =
     "Lowers the display refresh rate when a page only updates fixed-rate "
-    "content, such as videos, animated images, CSS steps() animations and "
-    "scrollbar fade-outs, even if they run at different rates.";
+    "content, such as videos, animated images and CSS steps() animations, "
+    "even if they run at different rates.";
 
 inline constexpr char kAndroidNavigationBlurTransitionAnimationName[] =
     "Blur transition animation for cross-site navigations";

@@ -448,6 +448,11 @@
     "expiry_milestone": 165
   },
   {
+    "name": "android-desktop-ua-model",
+    "owners": [ "miketaylr@chromium.org", "victortan@chromium.org" ],
+    "expiry_milestone": 180
+  },
+  {
     "name": "android-desktop-ua-platform",
     "owners": [ "victortan@chromium.org", "miketaylr@chromium.org", "skavuluru@google.com" ],
     "expiry_milestone": 165
@@ -613,11 +618,6 @@
     "name": "android-theme-resource-provider",
     "owners": [ "wenyufu@chromium.org", "clank-app-team@google.com" ],
     "expiry_milestone": 160
-  },
-  {
-    "name": "android-tips-notifications",
-    "owners": [ "bjfong@google.com", "wylieb@google.com", "clank-tab-dev@google.com" ],
-    "expiry_milestone": 166
   },
   {
     "name": "android-tips-notifications-v2",
@@ -5868,6 +5868,11 @@
     "expiry_milestone": 160
   },
   {
+    "name": "glic-chrome-status-icon-win",
+    "owners": [ "andreaxg@google.com", "//chrome/browser/glic/OWNERS" ],
+    "expiry_milestone": 160
+  },
+  {
     "name": "glic-context-menu-below-search",
     "owners": [ "sanaakbani@google.com", "//chrome/browser/glic/OWNERS" ],
     "expiry_milestone": 160
@@ -6053,6 +6058,11 @@
       "//chrome/browser/glic/OWNERS"
     ],
     "expiry_milestone": 180
+  },
+  {
+    "name": "glic-show-not-tell-tutorials",
+    "owners": [ "andreaxg@google.com", "//chrome/browser/glic/OWNERS" ],
+    "expiry_milestone": 160
   },
   {
     "name": "glic-spark-settings-accessible-labels",
@@ -6814,6 +6824,11 @@
     "name": "lens-updated-feedback-entrypoint",
     "owners": ["juanmojica@google.com", "lens-chrome@google.com"],
     "expiry_milestone": 152
+  },
+  {
+    "name": "lens-use-separate-request-id-for-viewport-images",
+    "owners": ["hujasonx@google.com", "lens-chrome@google.com"],
+    "expiry_milestone": 165
   },
   {
     "name": "lens-video-citations",
@@ -9828,6 +9843,11 @@
     "name": "ttc-enabled",
     "owners": [ "christianxu@chromium.org", "bling-search@google.com" ],
     "expiry_milestone": 161
+  },
+  {
+    "name": "ttc-fre",
+    "owners": [ "//chrome/browser/ttc/OWNERS" ],
+    "expiry_milestone": 162
   },
   {
     "name": "ui-debug-tools",

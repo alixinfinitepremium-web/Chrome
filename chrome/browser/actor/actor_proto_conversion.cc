@@ -1115,7 +1115,10 @@ constexpr absl::Overload kGetCapabilityFn{
     ToUnknown<AddBookmarkToolRequest>,
     ToUnknown<ChangePasswordToolRequest>,
     ToUnknown<CloseGeminiPanelToolRequest>,
+    ToUnknown<EnterFullscreenToolRequest>,
+    ToUnknown<ExitFullscreenToolRequest>,
     ToUnknown<FindAndHighlightToolRequest>,
+    ToUnknown<OpenKnownPageToolRequest>,
     ToUnknown<PerformSearchToolRequest>,
     ToUnknown<PromptGeminiPanelToolRequest>,
     ToUnknown<ReloadPageToolRequest>,
@@ -1123,11 +1126,6 @@ constexpr absl::Overload kGetCapabilityFn{
     ToUnknown<ScrollPageToolRequest>,
     ToUnknown<SiteBasedSearchToolRequest>,
     ToUnknown<SwitchTabToolRequest>,
-#if !BUILDFLAG(SKIP_ANDROID_UNMIGRATED_ACTOR_FILES)
-    ToUnknown<EnterFullscreenToolRequest>,
-    ToUnknown<ExitFullscreenToolRequest>,
-    ToUnknown<OpenKnownPageToolRequest>,
-#endif  // !BUILDFLAG(SKIP_ANDROID_UNMIGRATED_ACTOR_FILES)
 };
 
 }  // namespace

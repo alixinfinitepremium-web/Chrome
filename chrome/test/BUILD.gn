@@ -1280,7 +1280,6 @@ if (!is_android) {
   test("browser_tests") {
     use_xvfb = use_xvfb_in_this_config
 
-    configs += [ "//build/config:precompiled_headers" ]
     configs += [ ":disable_thinlto_cache_flags" ]
     defines = [ "HAS_OUT_OF_PROC_TEST_RUNNER" ]
 
@@ -2062,11 +2061,6 @@ if (!is_android) {
 
     # NOTE: This is the main "browser_tests" section for |is_chromeos|.
     if (is_chromeos) {
-      sources += [
-        "base/ash/web_ui_browser_test_browsertest.cc",
-        "data/webui/chromeos/async_gen.cc",
-        "data/webui/chromeos/async_gen.h",
-      ]
       data += [
         "//ash/webui/common/resources/cr.js",
         "//chrome/browser/resources/chromeos/arc_support/i18n_template_no_process.js",
@@ -2211,9 +2205,9 @@ if (!is_android) {
       deps += [ "//ui/webui/resources:code_cache_resources" ]
     }
 
-    # TODO(crbug.com/40031409): Fix code that adds exit-time destructors and
-    # enable the diagnostic by removing this line.
-    configs += [ "//build/config/compiler:no_exit_time_destructors" ]
+    # All browser_tests sources have been migrated into per-feature
+    # source_sets. Do not add new sources to //chrome/test:browser_tests.
+    sources = []
   }
 }
 

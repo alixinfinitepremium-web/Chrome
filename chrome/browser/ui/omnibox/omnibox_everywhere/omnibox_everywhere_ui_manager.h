@@ -116,6 +116,7 @@ class OmniboxEverywhereUIManager : public views::WidgetObserver,
     kSettings = 12,
     kMinimize = 13,
     kClose = 14,
+    kEmoji = 15,
   };
 
   using ContentsWrapperFactory =
@@ -202,6 +203,8 @@ class OmniboxEverywhereUIManager : public views::WidgetObserver,
                            const input::NativeWebKeyboardEvent& event) override;
 
   // ui::SimpleMenuModel::Delegate:
+  bool GetAcceleratorForCommandId(int command_id,
+                                  ui::Accelerator* accelerator) const override;
   void ExecuteCommand(int command_id, int event_flags) override;
   bool IsCommandIdEnabled(int command_id) const override;
   bool IsCommandIdChecked(int command_id) const override;
@@ -369,7 +372,14 @@ class OmniboxEverywhereUIManager : public views::WidgetObserver,
   void AppendWindowControlsContextMenu();
 #endif  // BUILDFLAG(IS_WIN)
 
-  void CleanUpWidget();
+  // Destroys the widget and the WebContents, and releases keep-alives.
+  void DestroyWidgetAndWebContents();
+
+  // Destroys the widget and the UI it owns (dialogs, menus, overlays) and
+  // resets transient UI state, but keeps the WebContents so the next widget
+  // reuses it. Unlike DestroyWidgetAndWebContents(), safe to call from within a
+  // call on the WebContents.
+  void DestroyWidget();
 
   // Cancels any pending deactivation tasks or deferred-dismissal poll timer.
   void CancelPendingDeactivation();

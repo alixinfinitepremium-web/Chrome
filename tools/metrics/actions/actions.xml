@@ -954,6 +954,8 @@ should be able to be added at any place in this file.
       summary="For tab switcher with tab groups."/>
   <variant name="_TabOrganizationSuccess"
       summary="For the tab organization feature. (obsolete)"/>
+  <variant name="_TabPickerSelectTabs"
+      summary="For the first-time tab selection IPH in the tab picker."/>
   <variant name="_TabPinnedFeature" summary="For tab pinned overflow hint."/>
   <variant name="_TabScrollButtonFeature"
       summary="For the tab scroll button feature."/>
@@ -9519,6 +9521,51 @@ should be able to be added at any place in this file.
   <description>
     The user clicked 'open preferences' from the content settings geolocation
     bubble .
+  </description>
+</action>
+
+<action name="ContentSettings.Notifications.SystemPermissionIconShown">
+  <owner>mek@chromium.org</owner>
+  <owner>pwa-team@google.com</owner>
+  <description>
+    The notifications blocked icon is shown because the macOS system-level
+    notification permission is not granted for the web app.
+  </description>
+</action>
+
+<action name="ContentSettings.NotificationsDialog.Closed">
+  <owner>mek@chromium.org</owner>
+  <owner>pwa-team@google.com</owner>
+  <description>
+    The content settings notifications bubble for macOS system permission is
+    closed.
+  </description>
+</action>
+
+<action name="ContentSettings.NotificationsDialog.DontAllowClicked">
+  <owner>mek@chromium.org</owner>
+  <owner>pwa-team@google.com</owner>
+  <description>
+    The user clicked 'Don't allow' from the content settings notifications
+    bubble to block notifications for the site in Chrome.
+  </description>
+</action>
+
+<action name="ContentSettings.NotificationsDialog.OpenSystemSettingsClicked">
+  <owner>mek@chromium.org</owner>
+  <owner>pwa-team@google.com</owner>
+  <description>
+    The user clicked 'Open System Settings' from the content settings
+    notifications bubble.
+  </description>
+</action>
+
+<action name="ContentSettings.NotificationsDialog.Shown">
+  <owner>mek@chromium.org</owner>
+  <owner>pwa-team@google.com</owner>
+  <description>
+    The content settings notifications bubble for macOS system permission was
+    shown, either automatically or by clicking the indicator icon.
   </description>
 </action>
 
@@ -31351,39 +31398,6 @@ should be able to be added at any place in this file.
   <description>
     The user clicked the three dotted menu in chrome://profile-picker.
   </description>
-</action>
-
-<action name="ProjectsPanel.TabGroups.CreateNewGroup.{HadExistingGroups}">
-  <owner>chazzy@chromium.org</owner>
-  <owner>top-chrome-desktop-ui@google.com</owner>
-  <description>
-    The user created a new tab group from the projects panel.
-  </description>
-  <token key="HadExistingGroups">
-    <variant name="WithExistingGroups"
-        summary="Existing groups were shown in the panel"/>
-    <variant name="WithoutExistingGroups"
-        summary="No existing groups were shown in the panel"/>
-  </token>
-</action>
-
-<action name="ProjectsPanel.TabGroups.OpenGroup">
-  <owner>chazzy@chromium.org</owner>
-  <owner>top-chrome-desktop-ui@google.com</owner>
-  <description>
-    The user opened an existing group from the projects panel.
-  </description>
-</action>
-
-<action name="ProjectsPanel.Threads.OpenThread.{ThreadType}">
-  <owner>chazzy@chromium.org</owner>
-  <owner>top-chrome-desktop-ui@google.com</owner>
-  <description>The user opened a thread from the projects panel.</description>
-  <token key="ThreadType">
-    <variant name="AiMode" summary="AI Mode chat thread"/>
-    <variant name="Gemini" summary="Gemini chat thread"/>
-    <variant name="Unknown" summary="Unknown chat thread type"/>
-  </token>
 </action>
 
 <action name="PWAInstallIcon">

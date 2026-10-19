@@ -902,18 +902,6 @@ crbug.com/1076027 external/wpt/css/css-grid/grid-lanes/subgrid/grid-lanes-subgri
 crbug.com/1076027 external/wpt/css/css-grid/grid-lanes/subgrid/grid-lanes-subgridded-to-grid/row/grid-lanes-subgrid-002a.html [ Failure ]
 crbug.com/1076027 external/wpt/css/css-grid/grid-lanes/subgrid/grid-lanes-subgridded-to-grid/row/independent-formatting-context.html [ Failure ]
 
-# Grid Lanes does not support reading flow through the stacking axis.
-crbug.com/1076027 external/wpt/shadow-dom/focus-navigation/reading-flow/tentative/grid-lanes-column-reading-flow-003.html [ Failure ]
-crbug.com/1076027 external/wpt/shadow-dom/focus-navigation/reading-flow/tentative/grid-lanes-column-reading-flow-004.html [ Failure ]
-crbug.com/1076027 external/wpt/shadow-dom/focus-navigation/reading-flow/tentative/grid-lanes-column-reading-flow-006.html [ Failure ]
-crbug.com/1076027 external/wpt/shadow-dom/focus-navigation/reading-flow/tentative/grid-lanes-column-reading-flow-007.html [ Failure ]
-crbug.com/1076027 external/wpt/shadow-dom/focus-navigation/reading-flow/tentative/grid-lanes-row-reading-flow-001.html [ Failure ]
-crbug.com/1076027 external/wpt/shadow-dom/focus-navigation/reading-flow/tentative/grid-lanes-row-reading-flow-003.html [ Failure ]
-
-# Grid Lanes reading flow with spanning items and dense packing.
-crbug.com/1076027 external/wpt/shadow-dom/focus-navigation/reading-flow/tentative/grid-lanes-column-reading-flow-008.html [ Failure ]
-crbug.com/1076027 external/wpt/shadow-dom/focus-navigation/reading-flow/tentative/grid-lanes-row-reading-flow-002.html [ Failure ]
-
 # external/wpt/css/css-fonts/... tests triaged away from the default WPT bug ID
 crbug.com/641861 [ Mac ] external/wpt/css/css-fonts/font-family-name-025.html [ Failure Timeout ]
 crbug.com/819816 external/wpt/css/css-fonts/font-kerning-03.html [ Failure ]
@@ -3826,8 +3814,6 @@ crbug.com/626703 [ Linux ] external/wpt/fetch/api/abort/serviceworker-intercepte
 crbug.com/626703 [ Mac13-arm64 ] external/wpt/fetch/api/abort/serviceworker-intercepted.https.html [ Timeout ]
 crbug.com/626703 [ Win ] external/wpt/fetch/api/abort/serviceworker-intercepted.https.html [ Timeout ]
 crbug.com/626703 external/wpt/avif/animated-avif-timeout.html [ Failure ]
-crbug.com/626703 [ Linux ] external/wpt/encoding/unsupported-labels.window.html [ Failure Timeout ]
-crbug.com/626703 [ Win ] external/wpt/encoding/unsupported-labels.window.html [ Failure Timeout ]
 # TODO(crbug.com/1358135, crbug.com/1358147): Re-enable this test: Re-enable this test
 crbug.com/626703 [ Linux ] external/wpt/service-workers/cache-storage/crashtests/cache-response-clone.https.html [ Timeout ]
 crbug.com/626703 [ Mac13-arm64 ] external/wpt/service-workers/cache-storage/crashtests/cache-response-clone.https.html [ Timeout ]
@@ -4199,6 +4185,8 @@ crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-anchor-posi
 crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-anchor-position/anchor-scroll-003.html [ Failure ]
 crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-anchor-position/position-try-fallbacks-multicol-001.html [ Failure ]
 crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-anchor-position/position-try-fallbacks-multicol-002.html [ Failure ]
+crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-break/abspos-001-print.html [ Failure ]
+crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-break/abspos-002-print.html [ Failure ]
 crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-break/abspos-in-clipped-overflow-print.html [ Failure ]
 crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-break/abspos-in-opacity-003.html [ Failure ]
 crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-break/firefox-bug-2021187-crash.html [ Crash ]
@@ -4254,6 +4242,8 @@ crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-break/out-o
 crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-break/out-of-flow-in-multicolumn-125.html [ Failure ]
 crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-break/out-of-flow-in-multicolumn-126.html [ Failure ]
 crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-break/out-of-flow-in-multicolumn-127.html [ Failure ]
+crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-break/out-of-flow-in-multicolumn-128.html [ Failure ]
+crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-break/out-of-flow-in-multicolumn-129.html [ Failure ]
 crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-break/out-of-flow-in-multicolumn-paint-order-001.html [ Failure ]
 crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-break/out-of-flow-in-multicolumn-paint-order-002.html [ Crash Timeout ]
 crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-break/out-of-flow-in-multicolumn-paint-order-003.html [ Crash Failure ]
@@ -5675,9 +5665,6 @@ crbug.com/1367113 paint/images/animated-gif-last-frame-crash.html [ Crash Failur
 
 # Sheriff 2022-09-26
 crbug.com/1367067 [ Linux ] external/wpt/preload/preload-dynamic-csp.html [ Crash Failure Pass Timeout ]
-
-# Sheriff 2022-09-29
-crbug.com/1369642 [ Mac13 ] external/wpt/encoding/unsupported-labels.window.html [ Failure Timeout ]
 
 crbug.com/1459038 [ Linux ] external/wpt/webmidi/idlharness.https.window.html [ Failure ]
 
@@ -7315,7 +7302,6 @@ crbug.com/455194902 [ Mac15-arm64 ] wpt_internal/speculation-rules/prefetch/no-v
 [ Mac14 ] external/wpt/css/css-text/text-transform/text-transform-capitalize-016.html [ Failure Pass ]
 [ Mac14 ] external/wpt/css/CSS2/floats/crashtests/float-rewind-parallel-flow-3-crash.html [ Timeout ]
 [ Mac14 ] external/wpt/encoding/single-byte-decoder.window.html?document [ Crash ]
-[ Mac14 ] external/wpt/encoding/unsupported-labels.window.html [ Timeout ]
 [ Mac14 ] external/wpt/html/browsers/browsing-the-web/overlapping-navigations-and-traversals/same-document-traversal-cross-document-nav.html [ Failure Pass ]
 [ Mac14 ] external/wpt/html/syntax/parsing/template/creating-an-element-for-the-token/template-owner-document.html [ Crash ]
 [ Mac14 ] external/wpt/import-maps/http-url-like-specifiers.sub.html [ Timeout ]
@@ -8592,7 +8578,6 @@ crbug.com/547617167 [ Linux ] external/wpt/webdriver/tests/classic/get_element_t
 crbug.com/547617167 external/wpt/webdriver/tests/classic/perform_actions/none.py [ Failure ]
 crbug.com/547617167 [ Linux ] external/wpt/webdriver/tests/classic/perform_actions/pointer_modifier_click.py [ Failure ]
 crbug.com/544117789 external/wpt/webdriver/tests/classic/perform_actions/pointer_touch.py [ Failure Timeout ]
-crbug.com/547617167 [ Linux ] external/wpt/webdriver/tests/classic/print/printcmd.py [ Failure ]
 
 # Gardener 2026-08-21
 crbug.com/550002440 http/tests/devtools/extensions/extensions-sidebar.js [ Failure Pass ]

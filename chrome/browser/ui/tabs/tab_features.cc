@@ -278,6 +278,7 @@
 #include "components/page_content_annotations/core/page_content_extraction_types.h"
 #include "components/passage_embeddings/core/passage_embeddings_features.h"
 #include "components/performance_manager/embedder/performance_manager_registry.h"
+#include "components/performance_manager/public/performance_manager.h"
 #include "components/permissions/permission_indicators_tab_data.h"
 #include "components/permissions/permission_recovery_success_rate_tracker.h"
 #include "components/permissions/permission_request_manager.h"
@@ -581,7 +582,8 @@ void TabFeatures::Init(TabInterface& tab, Profile* profile) {
                 tab, tab, *profile, *page_action_controller_);
   }
 
-  BookmarkTabHelper::CreateForWebContents(tab.GetContents());
+  bookmark_tab_helper_ =
+      GetUserDataFactory().CreateInstance<BookmarkTabHelper>(tab, tab);
   if (tab.GetBrowserWindowInterface()->GetType() ==
           BrowserWindowInterface::TYPE_NORMAL &&
       page_action_controller_->ActionExists(kActionBookmarkThisTab)) {
@@ -1444,17 +1446,26 @@ void TabFeatures::Init(TabInterface& tab, Profile* profile) {
         HistoryTabHelper::FromWebContents(tab.GetContents()));
   }
 
-  if (!blocked_content::PopupBlockerTabHelper::FromWebContents(
-          tab.GetContents())) {
-    if (auto* pm_registry =
-            performance_manager::PerformanceManagerRegistry::GetInstance()) {
+  if (auto* pm_registry =
+          performance_manager::PerformanceManagerRegistry::GetInstance()) {
+    // A WebContents reparented into a new TabModel (e.g. via
+    // web_app::ReparentWebContentsIntoBrowserImpl) already has its PageType set
+    // to kTab, and PageNodeImpl::SetType CHECKs that SetPageType is only called
+    // once per WebContents.
+    base::WeakPtr<performance_manager::PageNode> page_node =
+        performance_manager::PerformanceManager::
+            GetPrimaryPageNodeForWebContents(tab.GetContents());
+    if (page_node &&
+        page_node->GetType() != performance_manager::PageType::kTab) {
       pm_registry->SetPageType(tab.GetContents(),
                                performance_manager::PageType::kTab);
     }
   }
 
-  blocked_content::PopupBlockerTabHelper::CreateForWebContents(
-      tab.GetContents());
+  popup_blocker_tab_helper_ =
+      GetUserDataFactory()
+          .CreateInstance<blocked_content::PopupBlockerTabHelper>(
+              tab, tab, tab.GetContents());
 
   resource_coordinator::ResourceCoordinatorTabHelper::CreateForWebContents(
       tab.GetContents());
@@ -1551,7 +1562,7 @@ void TabFeatures::WillDiscardContents(tabs::TabInterface* tab,
     web_app::WebAppTabHelper::Create(tab, new_contents);
   }
 
-  BookmarkTabHelper::CreateForWebContents(new_contents);
+  bookmark_tab_helper_->DiscardContents(new_contents);
 
   focus_tab_after_navigation_helper_ =
       std::make_unique<FocusTabAfterNavigationHelper>(new_contents);
@@ -2152,15 +2163,23 @@ void TabFeatures::WillDiscardContents(tabs::TabInterface* tab,
         new_contents, HistoryTabHelper::FromWebContents(new_contents));
   }
 
-  if (!blocked_content::PopupBlockerTabHelper::FromWebContents(new_contents)) {
-    if (auto* pm_registry =
-            performance_manager::PerformanceManagerRegistry::GetInstance()) {
+  if (auto* pm_registry =
+          performance_manager::PerformanceManagerRegistry::GetInstance()) {
+    base::WeakPtr<performance_manager::PageNode> page_node =
+        performance_manager::PerformanceManager::
+            GetPrimaryPageNodeForWebContents(new_contents);
+    if (page_node &&
+        page_node->GetType() != performance_manager::PageType::kTab) {
       pm_registry->SetPageType(new_contents,
                                performance_manager::PageType::kTab);
     }
   }
 
-  blocked_content::PopupBlockerTabHelper::CreateForWebContents(new_contents);
+  popup_blocker_tab_helper_.reset();
+  popup_blocker_tab_helper_ =
+      GetUserDataFactory()
+          .CreateInstance<blocked_content::PopupBlockerTabHelper>(*tab, *tab,
+                                                                  new_contents);
 
   resource_coordinator::ResourceCoordinatorTabHelper::CreateForWebContents(
       new_contents);
