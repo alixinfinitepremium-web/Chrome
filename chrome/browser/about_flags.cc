@@ -9605,9 +9605,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kDesksTemplatesDescription, kOsCrOS,
      FEATURE_VALUE_TYPE(ash::features::kDesksTemplates)},
 
-    {"vc-background-replace", flag_descriptions::kVcBackgroundReplaceName,
-     flag_descriptions::kVcBackgroundReplaceDescription, kOsCrOS,
-     FEATURE_VALUE_TYPE(ash::features::kVcBackgroundReplace)},
 
     {"vc-relighting-inference-backend",
      flag_descriptions::kVcRelightingInferenceBackendName,
@@ -10566,12 +10563,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kDataSharingDebugLogsDescription, kOsAll,
      SINGLE_VALUE_TYPE(data_sharing::kDataSharingDebugLoggingEnabled)},
 
-#if BUILDFLAG(IS_CHROMEOS)
-    {"multi-calendar-in-quick-settings",
-     flag_descriptions::kMultiCalendarSupportName,
-     flag_descriptions::kMultiCalendarSupportDescription, kOsCrOS,
-     FEATURE_VALUE_TYPE(ash::features::kMultiCalendarSupport)},
-#endif  // BUILDFLAG(IS_CHROMEOS)
 
     {"multistep-filter", flag_descriptions::kMultistepFilterName,
      flag_descriptions::kMultistepFilterDescription, kOsDesktop,

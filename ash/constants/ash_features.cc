@@ -1139,9 +1139,6 @@ const base::FeatureParam<base::TimeDelta> kEcheScanningCycleOffTime{
     &kEcheShorterScanningDutyCycle, "EcheScanningCycleOffTime",
     base::Seconds(30)};
 
-// Enables events from multiple calendars to be displayed in the Quick
-// Settings Calendar.
-BASE_FEATURE(kMultiCalendarSupport, base::FEATURE_ENABLED_BY_DEFAULT);
 
 // Enables a limit on the number of notifications that can show.
 BASE_FEATURE(kNotificationLimit, base::FEATURE_ENABLED_BY_DEFAULT);
@@ -1675,10 +1672,6 @@ BASE_FEATURE(kUserActivityPrediction, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kFeatureManagementVideoConference,
              base::FEATURE_DISABLED_BY_DEFAULT);
 
-// Controls whether the vc background replace is enabled.
-BASE_FEATURE(kVcBackgroundReplace,
-             "VCBackgroundReplace",
-             base::FEATURE_ENABLED_BY_DEFAULT);
 
 // Controls whether the birch model provides lost video conference tab
 // suggestions.
@@ -2503,9 +2496,6 @@ bool IsMacAddressRandomizationEnabled() {
   return base::FeatureList::IsEnabled(kMacAddressRandomization);
 }
 
-bool IsMultiCalendarSupportEnabled() {
-  return base::FeatureList::IsEnabled(kMultiCalendarSupport);
-}
 
 bool IsEcheShorterScanningDutyCycleEnabled() {
   return base::FeatureList::IsEnabled(kEcheShorterScanningDutyCycle);
@@ -2844,10 +2834,6 @@ bool IsBirchVideoConferenceSuggestionsEnabled() {
   return base::FeatureList::IsEnabled(kBirchVideoConferenceSuggestions);
 }
 
-bool IsVcBackgroundReplaceEnabled() {
-  return base::FeatureList::IsEnabled(kVcBackgroundReplace) &&
-         IsVideoConferenceEnabled();
-}
 
 bool IsVcResizeThumbnailEnabled() {
   return base::FeatureList::IsEnabled(kVcResizeThumbnail);
