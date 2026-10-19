@@ -32,6 +32,7 @@
 #include "third_party/blink/renderer/modules/webgl/webgl_renderbuffer.h"
 #include "third_party/blink/renderer/modules/webgl/webgl_sampler.h"
 #include "third_party/blink/renderer/modules/webgl/webgl_shader.h"
+#include "third_party/blink/renderer/modules/webgl/webgl_shader_precision_format.h"
 #include "third_party/blink/renderer/modules/webgl/webgl_sync.h"
 #include "third_party/blink/renderer/modules/webgl/webgl_texture.h"
 #include "third_party/blink/renderer/modules/webgl/webgl_transform_feedback.h"
@@ -1473,8 +1474,13 @@ WebGLShaderPrecisionFormat*
 WebGLRenderingContextWebGPUBase::getShaderPrecisionFormat(
     GLenum shader_type,
     GLenum precision_type) {
-  NOTIMPLEMENTED();
-  return nullptr;
+  std::array<GLint, 2> range = {0, 0};
+  GLint precision = 0;
+  RETURN_IF_GL_ERROR(driver_gl_.fn.glGetShaderPrecisionFormatFn(
+                         shader_type, precision_type, range.data(), &precision),
+                     nullptr);
+  return MakeGarbageCollected<WebGLShaderPrecisionFormat>(range[0], range[1],
+                                                          precision);
 }
 
 String WebGLRenderingContextWebGPUBase::getShaderSource(WebGLShader* shader) {
@@ -1532,8 +1538,11 @@ ScriptValue WebGLRenderingContextWebGPUBase::getVertexAttrib(ScriptState*,
 
 int64_t WebGLRenderingContextWebGPUBase::getVertexAttribOffset(GLuint index,
                                                                GLenum pname) {
-  NOTIMPLEMENTED();
-  return 0;
+  void* pointer = nullptr;
+  RETURN_IF_GL_ERROR(driver_gl_.fn.glGetVertexAttribPointervRobustANGLEFn(
+                         index, pname, 1, nullptr, &pointer),
+                     0);
+  return static_cast<int64_t>(reinterpret_cast<intptr_t>(pointer));
 }
 
 void WebGLRenderingContextWebGPUBase::hint(GLenum target, GLenum mode) {

@@ -784,6 +784,11 @@
     "expiry_milestone": 160
   },
   {
+    "name": "app-bar-disable-long-press",
+    "owners": [ "gambard@chromium.org", "meridian@google.com" ],
+    "expiry_milestone": 163
+  },
+  {
     "name": "app-bar-static-symbol-when-hidden",
     "owners": [ "gambard@chromium.org", "meridian@google.com" ],
     "expiry_milestone": 163
@@ -8513,11 +8518,6 @@
     "name": "proofreader-api",
     "owners": ["//chrome/browser/ai/OWNERS", "builtin-ai-team@google.com", "queeniezhang@google.com"],
     "expiry_milestone": 160
-  },
-  {
-    "name": "pull-to-refresh",
-    "owners": [ "afakhry@chromium.org", "tclaiborne@chromium.org" ],
-    "expiry_milestone": 99
   },
   {
     "name": "pulseaudio-loopback-for-cast",

@@ -714,16 +714,19 @@ bool IsFullscreenNextIAEnabled() {
     return;
   }
   const BOOL offTheRecord = _isOffTheRecord;
+  self.ntpCoordinator.willFocusOmniboxAfterNewTabAnimation = focusOmnibox;
   ProceduralBlock oldForegroundTabWasAddedCompletionBlock =
       self.foregroundTabWasAddedCompletionBlock;
   __weak id<BrowserCoordinatorCommands> browserCoordinatorHandler =
       _browserCoordinatorHandler;
+  __weak NewTabPageCoordinator* ntpCoordinator = self.ntpCoordinator;
   self.foregroundTabWasAddedCompletionBlock = ^{
     if (oldForegroundTabWasAddedCompletionBlock) {
       oldForegroundTabWasAddedCompletionBlock();
     }
     if (focusOmnibox) {
       [browserCoordinatorHandler showComposebox];
+      ntpCoordinator.willFocusOmniboxAfterNewTabAnimation = NO;
     }
   };
 
@@ -1604,7 +1607,6 @@ bool IsFullscreenNextIAEnabled() {
     // TODO(crbug.com/40842406): -updateToolbar will move out of the BVC; make
     // sure this comment remains accurate. Hide findbar.  `updateToolbar` will
     // restore the findbar later.
-    [self.findInPageCommandsHandler hideFindUI];
     [self.textZoomHandler hideTextZoomUI];
 
     // Make new content visible, resizing it first as the orientation may
@@ -3152,6 +3154,9 @@ bool IsFullscreenNextIAEnabled() {
   // Return to required priority, otherwise UIKeyboardLayoutGuide would set the
   // toolbar minimum height to the bottom safe area.
   self.secondaryToolbarHeightConstraint.priority = UILayoutPriorityRequired - 1;
+  if (!IsSplitToolbarMode(self)) {
+    self.secondaryToolbarHeightConstraint.constant = 0;
+  }
 }
 
 - (void)adjustSecondaryToolbarForKeyboardHeight:(CGFloat)keyboardHeight

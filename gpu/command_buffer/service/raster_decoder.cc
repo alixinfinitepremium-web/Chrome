@@ -1089,8 +1089,9 @@ void RasterDecoderImpl::Destroy(bool have_context) {
 
 // Make this decoder's GL context current.
 bool RasterDecoderImpl::MakeCurrent() {
-  if (!shared_context_state_->GrContextIsGL())
+  if (!shared_context_state_->IsUsingGL()) {
     return true;
+  }
 
   if (context_lost_) {
     LOG(ERROR) << "  RasterDecoderImpl: Trying to make lost context current.";
@@ -1133,8 +1134,6 @@ Capabilities RasterDecoderImpl::GetCapabilities() {
       feature_info()->feature_flags().disable_mac_swangle_rgbx;
   caps.texture_rg = feature_info()->feature_flags().ext_texture_rg;
   caps.max_texture_size = shared_context_state_->GetMaxTextureSize();
-  caps.using_vulkan_context =
-      shared_context_state_->GrContextIsVulkan() ? true : false;
 
   caps.texture_format_etc1_npot =
       feature_info()->feature_flags().oes_compressed_etc1_rgb8_texture &&

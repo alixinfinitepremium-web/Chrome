@@ -181,7 +181,7 @@ BaseRenderingContext2D::BaseRenderingContext2D(
 }
 
 BaseRenderingContext2D::~BaseRenderingContext2D() {
-  if (surface_ && !shared_image_provider_) {
+  if (HasBacking()) {
     CanvasMemoryDumpProvider::Instance()->UnregisterClient(this);
   }
   if (context_provider_wrapper_) {
@@ -210,13 +210,11 @@ bool BaseRenderingContext2D::IsBackingValid() const {
 }
 
 void BaseRenderingContext2D::ResetBacking() {
-  if (surface_) {
-    if (!shared_image_provider_) {
-      CanvasMemoryDumpProvider::Instance()->UnregisterClient(this);
-    }
-    surface_.reset();
+  if (HasBacking()) {
+    CanvasMemoryDumpProvider::Instance()->UnregisterClient(this);
   }
   shared_image_provider_.reset();
+  surface_.reset();
   canvas_image_provider_.reset();
   if (context_provider_wrapper_) {
     context_provider_wrapper_->RemoveObserver(this);
@@ -260,6 +258,7 @@ base::ByteSize BaseRenderingContext2D::AllocatedBufferSize() const {
 void BaseRenderingContext2D::CreateSharedImageProvider(
     RasterMode raster_mode,
     gpu::SharedImageUsageSet shared_image_usage_flags) {
+  CHECK(!HasBacking());
   shared_image_provider_ = Canvas2DResourceProvider::CreateWithClear(
       Host()->Size(), color_params_.GetSharedImageFormat(),
       color_params_.GetAlphaType(), color_params_.GetGfxColorSpace(),
@@ -268,17 +267,21 @@ void BaseRenderingContext2D::CreateSharedImageProvider(
       shared_image_usage_flags,
       blink::BindOnce(&CanvasRenderingContextHost::NotifyGpuContextLost,
                       WrapWeakPersistent(Host())));
-  if (shared_image_provider_ && raster_mode == RasterMode::kCPU) {
+  if (!shared_image_provider_) {
+    return;
+  }
+  if (raster_mode == RasterMode::kCPU) {
     CreateSoftwareSurface();
     if (!surface_) {
       shared_image_provider_.reset();
-    } else {
-      shared_image_provider_->SetSkSurface(surface_);
     }
+    return;
   }
+  CanvasMemoryDumpProvider::Instance()->RegisterClient(this);
 }
 
 void BaseRenderingContext2D::CreateSharedImageProviderForSoftwareCompositor() {
+  CHECK(!HasBacking());
   shared_image_provider_ =
       Canvas2DResourceProvider::CreateWithClearForSoftwareCompositor(
           Host()->Size(), color_params_.GetSharedImageFormat(),
@@ -291,8 +294,6 @@ void BaseRenderingContext2D::CreateSharedImageProviderForSoftwareCompositor() {
     CreateSoftwareSurface();
     if (!surface_) {
       shared_image_provider_.reset();
-    } else {
-      shared_image_provider_->SetSkSurface(surface_);
     }
   }
 }
@@ -317,9 +318,7 @@ void BaseRenderingContext2D::CreateSoftwareSurface() {
   surface_->getCanvas()->clear(alpha_type == kOpaque_SkAlphaType
                                    ? SkColors::kBlack
                                    : SkColors::kTransparent);
-  if (!shared_image_provider_) {
-    CanvasMemoryDumpProvider::Instance()->RegisterClient(this);
-  }
+  CanvasMemoryDumpProvider::Instance()->RegisterClient(this);
   sw_snapshot_paint_image_id_ = cc::PaintImage::GetNextId();
   sw_snapshot_paint_image_content_id_ = cc::PaintImage::kInvalidContentId;
   sw_snapshot_sk_image_id_ = 0u;
@@ -345,8 +344,14 @@ void BaseRenderingContext2D::RecordBackingHistograms() {
 void BaseRenderingContext2D::OnMemoryDump(
     base::trace_event::ProcessMemoryDump* pmd) {
   // BaseRenderingContext2D is only registered with CanvasMemoryDumpProvider
-  // while `surface_` is non-null.
-  CHECK(surface_);
+  // while `HasBacking()` is true.
+  CHECK(HasBacking());
+  if (shared_image_provider_) {
+    shared_image_provider_->OnMemoryDump(pmd);
+  }
+  if (!surface_) {
+    return;
+  }
   std::string dump_name =
       base::StringPrintf("canvas/ResourceProvider/SkSurface/0x%" PRIXPTR,
                          reinterpret_cast<uintptr_t>(surface_.get()));
@@ -367,8 +372,11 @@ void BaseRenderingContext2D::OnMemoryDump(
 
 size_t BaseRenderingContext2D::GetSize() const {
   // BaseRenderingContext2D is only registered with CanvasMemoryDumpProvider
-  // while `surface_` is non-null.
-  CHECK(surface_);
+  // while `HasBacking()` is true.
+  CHECK(HasBacking());
+  if (!surface_) {
+    return 0;
+  }
   SkImageInfo info = surface_->imageInfo();
   return info.computeByteSize(info.minRowBytes());
 }
@@ -410,7 +418,7 @@ BaseRenderingContext2D::GetOrCreateSWCanvasImageProvider() {
 void BaseRenderingContext2D::ApplyAnimatedImageFrameIndexesForId(
     SkCanvas* canvas,
     uint32_t id) {
-  if (shared_image_provider_) {
+  if (shared_image_provider_ && shared_image_provider_->IsAccelerated()) {
     shared_image_provider_->SetAnimatedImageFrameIndexes(
         GetAnimatedImageFrameIndexMap(id));
     return;
@@ -422,6 +430,9 @@ void BaseRenderingContext2D::ApplyAnimatedImageFrameIndexesForId(
 
 void BaseRenderingContext2D::RasterRecordToSoftwareSurface(
     cc::PaintRecord last_recording) {
+  if (shared_image_provider_) {
+    shared_image_provider_->WillDrawUnaccelerated();
+  }
   cc::SkiaPaintCanvas skia_canvas(surface_->getCanvas(),
                                   GetOrCreateSWCanvasImageProvider());
   cc::PlaybackCallbacks::CustomDataRasterCallback custom_callback =
@@ -462,9 +473,16 @@ BaseRenderingContext2D::UnacceleratedSnapshot() {
 }
 
 scoped_refptr<StaticBitmapImage> BaseRenderingContext2D::Snapshot() {
-  if (shared_image_provider_) {
+  if (shared_image_provider_ && shared_image_provider_->IsAccelerated()) {
     return shared_image_provider_->Snapshot();
   }
+  if (!IsBackingValid()) {
+    return nullptr;
+  }
+  // When using CPU raster with a SharedImage provider, we do not need to end
+  // write access (which uploads the CPU rendering results to the SharedImage
+  // for compositing) because we are simply returning the CPU-side results to
+  // the client.
   return UnacceleratedSnapshot();
 }
 
@@ -473,11 +491,14 @@ bool BaseRenderingContext2D::WritePixelsToBacking(const SkImageInfo& orig_info,
                                                   size_t row_bytes,
                                                   int x,
                                                   int y) {
-  if (shared_image_provider_) {
+  if (shared_image_provider_ && shared_image_provider_->IsAccelerated()) {
     return shared_image_provider_->WritePixels(orig_info, pixels, row_bytes, x,
                                                y);
   }
   if (surface_) {
+    if (shared_image_provider_) {
+      shared_image_provider_->WillDrawUnaccelerated();
+    }
     return surface_->getCanvas()->writePixels(orig_info, pixels, row_bytes, x,
                                               y);
   }
@@ -1135,10 +1156,8 @@ std::optional<cc::PaintRecord> BaseRenderingContext2D::FlushCanvasInternal(
   cc::PaintRecord recording = recorder->ReleaseMainRecording();
   DidFlushRecording(recording, clear_frame_, reason);
   clear_frame_ = false;
-  if (shared_image_provider_) {
-    ScopedRasterTimer timer(shared_image_provider_->IsAccelerated()
-                                ? shared_image_provider_->RasterInterface()
-                                : nullptr,
+  if (shared_image_provider_ && shared_image_provider_->IsAccelerated()) {
+    ScopedRasterTimer timer(shared_image_provider_->RasterInterface(),
                             shared_image_provider_.get());
     cc::PlaybackCallbacks::CustomDataRasterCallback custom_callback =
         blink::BindRepeating(
