@@ -350,7 +350,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': '2752c13d111a7849d7396d964ecae9c4cda7f05b',
+  'boringssl_revision': '890a85a274947ba27b386f1af8ddf183ac5947fa',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -1755,7 +1755,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': 'RW4qJMjeIdPycODvZhbpZOTbPNXaDxnSm1I8gfww0eEC',
+        'version': 'F2Lx8IicGqybSrIA_2aaw5zDZrwcmPWedpK2m1mOdzgC',
       },
     ],
     'condition': 'non_git_source',
@@ -1767,7 +1767,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    'd5fc35af778481076be1d1a240374ca47e6c267e',
+    '8c0bac012217b7d2af573a322559155a1f91db58',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -2260,7 +2260,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '3c3bf4532bf9e059e3999827b00b7452c2bcde7d',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '70b785edc4d20517c75308acc128d324c65e3466',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '173b9b26e8fcbcbe64e1ecbf073a21a96b95c6b1',
@@ -2844,7 +2844,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/cisco/openh264' + '@' + '9547f96ea5c47f4d465d97b07264b997ecc4b4b6',
 
   'src/third_party/openscreen/src':
-    Var('chromium_git') + '/openscreen' + '@' + 'ad28ac87783e2afdb081e1e24898b21d083f4f35',
+    Var('chromium_git') + '/openscreen' + '@' + '978e90d34a539bb6580634e1e67b0d673869f11c',
 
   'src/third_party/openxr/src': {
     'url': Var('chromium_git') + '/external/github.com/KhronosGroup/OpenXR-SDK' + '@' + '75c53b6e853dc12c7b3c771edc9c9c841b15faaa',
@@ -3921,7 +3921,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '91c99c9b4e697bda3b0bbad423db5dcfe287b9e7',
+        '84607b99b8d8e063bae3f79984c7f8c781f1f5e1',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
