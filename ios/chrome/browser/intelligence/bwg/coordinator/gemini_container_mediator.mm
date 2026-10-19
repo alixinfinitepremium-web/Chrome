@@ -27,6 +27,7 @@
 #import "ios/chrome/browser/intelligence/bwg/coordinator/gemini_container_mediator_event_handler.h"
 #import "ios/chrome/browser/intelligence/bwg/coordinator/gemini_container_ui_state_manager.h"
 #import "ios/chrome/browser/intelligence/bwg/metrics/gemini_metrics.h"
+#import "ios/chrome/browser/intelligence/bwg/metrics/gemini_session_metrics_manager.h"
 #import "ios/chrome/browser/intelligence/bwg/model/gemini_configuration.h"
 #import "ios/chrome/browser/intelligence/bwg/model/gemini_gateway_manager.h"
 #import "ios/chrome/browser/intelligence/bwg/model/gemini_page_context.h"
@@ -168,6 +169,8 @@ class GeminiContainerMediatorTabHelperObserver
       _identityManagerObserverBridge;
   // Delegate for shared tabs in a Gemini session.
   raw_ptr<GeminiSharedTabsDelegate> _sharedTabsDelegate;
+  // Manager for tracking and recording Gemini session metrics.
+  GeminiSessionMetricsManager* _sessionMetricsManager;
   // Track if we have triggered feature engagement for Gemini Live IPH or New
   // Badge.
   BOOL _hasTriggeredGeminiLiveIPH;
@@ -187,16 +190,18 @@ class GeminiContainerMediatorTabHelperObserver
   LensOverlayStateNotifier* _lensOverlayStateNotifier;
 }
 
-- (instancetype)initWithBrowser:(Browser*)browser
-                   actorService:(actor::ActorService*)actorService
-          authenticationService:(AuthenticationService*)authService
-                   eventHandler:
-                       (GeminiContainerMediatorEventHandler*)eventHandler
-             sharedTabsDelegate:(GeminiSharedTabsDelegate*)sharedTabsDelegate {
+- (instancetype)
+          initWithBrowser:(Browser*)browser
+             actorService:(actor::ActorService*)actorService
+    authenticationService:(AuthenticationService*)authService
+             eventHandler:(GeminiContainerMediatorEventHandler*)eventHandler
+       sharedTabsDelegate:(GeminiSharedTabsDelegate*)sharedTabsDelegate
+    sessionMetricsManager:(GeminiSessionMetricsManager*)sessionMetricsManager {
   self = [super init];
   if (self) {
     _eventHandler = eventHandler;
     _sharedTabsDelegate = sharedTabsDelegate;
+    _sessionMetricsManager = sessionMetricsManager;
     _authService = authService;
     if (browser) {
       _webStateList = browser->GetWebStateList();
@@ -311,6 +316,10 @@ class GeminiContainerMediatorTabHelperObserver
 }
 
 - (void)onFloatyDismiss {
+  if (IsIOSGeminiBottomSheetMigrationEnabled()) {
+    [_sessionMetricsManager sessionDismissed];
+  }
+
   feature_engagement::Tracker* tracker =
       _profile ? feature_engagement::TrackerFactory::GetForProfile(_profile)
                : nullptr;
@@ -356,6 +365,7 @@ class GeminiContainerMediatorTabHelperObserver
   _containerHandler = nil;
   _geminiHandler = nil;
   _sharedTabsDelegate = nullptr;
+  _sessionMetricsManager = nil;
   _consumer = nil;
   _webStateList = nullptr;
   _profile = nullptr;
@@ -971,6 +981,9 @@ class GeminiContainerMediatorTabHelperObserver
 
 - (void)onActiveWebStateChanged:(web::WebState*)oldActive
                       newActive:(web::WebState*)newActive {
+  if (oldActive && newActive && oldActive != newActive) {
+    [_sessionMetricsManager activeTabSwitched];
+  }
   if (oldActive) {
     GeminiTabHelper* oldTabHelper = GeminiTabHelper::FromWebState(oldActive);
     if (oldTabHelper && _tabHelperObserver) {

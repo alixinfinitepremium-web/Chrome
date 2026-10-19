@@ -51,9 +51,6 @@ BASE_FEATURE(kAmbientModeDevUseProdFeature,
 // Adds support for allowing or disabling APN modification by policy.
 BASE_FEATURE(kAllowApnModificationPolicy, base::FEATURE_ENABLED_BY_DEFAULT);
 
-// Controls whether the annotator feature is enabled in ChromeOS.
-BASE_FEATURE(kAnnotatorMode, base::FEATURE_ENABLED_BY_DEFAULT);
-
 BASE_FEATURE(kApnRevamp, base::FEATURE_ENABLED_BY_DEFAULT);
 
 // Controls whether proxy settings from policy or extensions are applied
@@ -1681,10 +1678,6 @@ BASE_FEATURE(kBirchVideoConferenceSuggestions,
 // Whether to resize thumbnail in VcBackgroundApp.
 BASE_FEATURE(kVcResizeThumbnail, base::FEATURE_ENABLED_BY_DEFAULT);
 
-// Controls whether the DLC downloading UI for video conferencing tiles is
-// enabled.
-BASE_FEATURE(kVcDlcUi, base::FEATURE_ENABLED_BY_DEFAULT);
-
 // This is only used as a way to disable portrait relighting.
 BASE_FEATURE(kVcPortraitRelight, base::FEATURE_ENABLED_BY_DEFAULT);
 
@@ -1714,11 +1707,6 @@ BASE_FEATURE(kVcRetouchInferenceBackend, base::FEATURE_DISABLED_BY_DEFAULT);
 // Enables or disables mic indicator inside VC tray title header
 BASE_FEATURE(kVcTrayMicIndicator,
              "VCTrayMicIndicator",
-             base::FEATURE_ENABLED_BY_DEFAULT);
-
-// Enables or disables sidetone toggle inside VC tray title header
-BASE_FEATURE(kVcTrayTitleHeader,
-             "VCTrayTitleHeader",
              base::FEATURE_ENABLED_BY_DEFAULT);
 
 // Enables or disables web API support for ChromeOS video conferencing.
@@ -1941,10 +1929,6 @@ bool IsAmbientEQDefaultOff() {
 
 bool IsAmbientModeDevUseProdEnabled() {
   return base::FeatureList::IsEnabled(kAmbientModeDevUseProdFeature);
-}
-
-bool IsAnnotatorModeEnabled() {
-  return base::FeatureList::IsEnabled(kAnnotatorMode);
 }
 
 bool IsAllowApnModificationPolicyEnabled() {
@@ -2839,10 +2823,6 @@ bool IsVcResizeThumbnailEnabled() {
   return base::FeatureList::IsEnabled(kVcResizeThumbnail);
 }
 
-bool IsVcDlcUiEnabled() {
-  return base::FeatureList::IsEnabled(kVcDlcUi) && IsVideoConferenceEnabled();
-}
-
 bool IsVcPortraitRelightEnabled() {
   return base::FeatureList::IsEnabled(kVcPortraitRelight) &&
          IsVideoConferenceEnabled();
@@ -2854,10 +2834,6 @@ bool IsVcControlsUiFakeEffectsEnabled() {
 
 bool IsVcTrayMicIndicatorEnabled() {
   return base::FeatureList::IsEnabled(kVcTrayMicIndicator);
-}
-
-bool IsVcTrayTitleHeaderEnabled() {
-  return base::FeatureList::IsEnabled(kVcTrayTitleHeader);
 }
 
 bool IsVcWebApiEnabled() {

@@ -385,22 +385,6 @@
     "expiry_milestone": 160
   },
   {
-    "name": "android-block-grammar-suggestion-span-in-composition-mode",
-    "owners": [
-      "hdchuong@google.com",
-      "essential-inputs-team@google.com"
-    ],
-    "expiry_milestone": 155
-  },
-  {
-    "name": "android-block-misspelling-suggestion-span-in-composition-mode",
-    "owners": [
-      "hdchuong@google.com",
-      "essential-inputs-team@google.com"
-    ],
-    "expiry_milestone": 155
-  },
-  {
     "name": "android-bookmark-bar-drag-drop",
     "owners": ["nehasapre@google.com", "clank-app-team@google.com"],
     "expiry_milestone": 175
@@ -798,6 +782,11 @@
     "name": "app-bar-assistant-customization",
     "owners": [ "gambard@chromium.org", "bling-meridian@google.com" ],
     "expiry_milestone": 160
+  },
+  {
+    "name": "app-bar-static-symbol-when-hidden",
+    "owners": [ "gambard@chromium.org", "meridian@google.com" ],
+    "expiry_milestone": 163
   },
   {
     "name": "app-menu-glow-up",
@@ -3614,11 +3603,6 @@
     "name": "enable-annotated-page-contents-for-virtual-structure",
     "owners": ["ssid@chromium.org", "salg@google.com"],
     "expiry_milestone": 150
-  },
-  {
-    "name": "enable-annotator-mode",
-    "owners": [ "sanjaperisic@chromium.org", "cros-edu-eng@google.com" ],
-    "expiry_milestone": 140
   },
   {
     "name": "enable-arabic-indic-digit-input",
@@ -6710,11 +6694,6 @@
     "expiry_milestone": 150
   },
   {
-    "name": "left-hand-side-activity-indicators",
-    "owners": [ "elklm@chromium.org", "//components/permissions/PERMISSIONS_OWNERS" ],
-    "expiry_milestone": 135
-  },
-  {
     "name": "lens-aim-gradient-suggest-background",
     "owners": [ "dianaou@google.com", "lens-chrome@google.com" ],
     "expiry_milestone": 150
@@ -6897,6 +6876,11 @@
       "bling-alchemy@google.com"
     ],
     "expiry_milestone": 165
+  },
+  {
+    "name": "location-bar-performance-improvements",
+    "owners": [ "gambard@chromium.org", "bling-flags@google.com" ],
+    "expiry_milestone": 163
   },
   {
     "name": "lock-controls-on-tablets-v2",
@@ -10172,14 +10156,6 @@
     "expiry_milestone": 150
   },
   {
-    "name": "vc-dlc-ui",
-    "owners": [
-      "etuck@google.com",
-      "cros-status-area-eng@google.com"
-    ],
-    "expiry_milestone": 130
-  },
-  {
     "name": "vc-relighting-inference-backend",
     "owners": [
       "shik@chromium.org",
@@ -10219,11 +10195,6 @@
   },
   {
     "name": "vc-tray-mic-indicator",
-    "owners": [ "normanbt@chromium.org", "chromeos-audio@google.com"],
-    "expiry_milestone": 140
-  },
-  {
-    "name": "vc-tray-title-header",
     "owners": [ "normanbt@chromium.org", "chromeos-audio@google.com"],
     "expiry_milestone": 140
   },

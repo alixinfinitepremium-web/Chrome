@@ -305,10 +305,6 @@ inline constexpr char kAndroidHistoryClusteringName[] =
 inline constexpr char kAndroidHistoryClusteringDescription[] =
     "Enables history clustering UI on Android.";
 
-inline constexpr char kAnnotatorModeName[] = "Enable annotator tool";
-inline constexpr char kAnnotatorModeDescription[] =
-    "Enables the tool for annotating across the OS.";
-
 inline constexpr char kAudioRendererMixerImmediatePauseName[] =
     "AudioRendererMixer Immediate Pause";
 inline constexpr char kAudioRendererMixerImmediatePauseDescription[] =
@@ -4191,11 +4187,6 @@ inline constexpr char kForcedColorsName[] = "Forced Colors";
 inline constexpr char kForcedColorsDescription[] =
     "Enables forced colors mode for web content.";
 
-inline constexpr char kLeftHandSideActivityIndicatorsName[] =
-    "Left-hand side activity indicators";
-inline constexpr char kLeftHandSideActivityIndicatorsDescription[] =
-    "Moves activity indicators to the left-hand side of location bar.";
-
 inline constexpr char kPermissionsAIv4Name[] = "PermissionsAIv4";
 inline constexpr char kPermissionsAIv4Description[] =
     "Use the Permission Predictions Service and the AIv4 model to surface "
@@ -4967,11 +4958,6 @@ inline constexpr char kVcTrayMicIndicatorDescription[] =
     "captured by the microphone, after some effects like noise cancellation "
     "is applied.";
 
-inline constexpr char kVcTrayTitleHeaderName[] =
-    "Adds a sidetone toggle in VC tray";
-inline constexpr char kVcTrayTitleHeaderDescription[] =
-    "Displays a sidetone toggle in VC Tray Title header";
-
 inline constexpr char kVcWebApiName[] = "VC web API";
 inline constexpr char kVcWebApiDescription[] =
     "Allows web API support for video conferencing on Chromebooks.";
@@ -5633,22 +5619,6 @@ inline constexpr char kAndroidSpellcheckNativeUiName[] =
     "Enable native-like spellcheck underline UI";
 inline constexpr char kAndroidSpellcheckNativeUiDescription[] =
     "Makes the spellcheck underline style the same as native applications";
-
-inline constexpr char
-    kAndroidBlockMisspellingSuggestionSpanInCompositionModeName[] =
-        "Block Android misspelling suggestion span in composition mode";
-inline constexpr char
-    kAndroidBlockMisspellingSuggestionSpanInCompositionModeDescription[] =
-        "When enabled, misspelling suggestion spans will be blocked when "
-        "entering composition mode";
-
-inline constexpr char
-    kAndroidBlockGrammarSuggestionSpanInCompositionModeName[] =
-        "Block Android grammar suggestion span in composition mode";
-inline constexpr char
-    kAndroidBlockGrammarSuggestionSpanInCompositionModeDescription[] =
-        "When enabled, grammar suggestion spans will be blocked when "
-        "entering composition mode";
 
 inline constexpr char kAndroidStartupImprovementsName[] =
     "Android startup improvements";
@@ -8267,12 +8237,6 @@ inline constexpr char kUnicornChromeActivityReportingName[] =
     "Chrome app activity reporting for supervised users";
 inline constexpr char kUnicornChromeActivityReportingDescription[] =
     "Enables reporting Chrome app activity for supervised users.";
-
-inline constexpr char kVcDlcUiName[] = "VC DLC UI";
-inline constexpr char kVcDlcUiDescription[] =
-    "Enable UI for video conference effect toggle tiles in the video "
-    "conference controls bubble that indicates when required DLC is "
-    "downloading.";
 
 inline constexpr char kVirtualKeyboardName[] = "Virtual Keyboard";
 inline constexpr char kVirtualKeyboardDescription[] =

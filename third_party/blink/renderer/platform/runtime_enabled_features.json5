@@ -1652,6 +1652,10 @@
       name: "CSSBackgroundLayerCountIndependence",
       status: "experimental",
     },
+    {
+      name: "CSSBorderRadiusSideShorthands",
+      status: "experimental",
+    },
     // https://chromestatus.com/feature/5459864205393920
     {
       // https://chromestatus.com/feature/5125388091260928
@@ -5512,6 +5516,11 @@
       status: "stable",
     },
     {
+      // Kill switch for https://crbug.com/570579609.
+      name: "ResponsiveIframesShrink",
+      status: "stable",
+    },
+    {
       name: "RestrictGamepadAccess",
       public: true,
       status: "experimental",
@@ -6156,6 +6165,10 @@
       // Improves performance of event dispatching by skipping the capture
       // phase if there are no capture listeners registered on the page.
       name: "SkipEventCapture",
+      status: "stable",
+    },
+    {
+      name: "SkipHtmlInterchangeInForeignContent",
       status: "stable",
     },
     {

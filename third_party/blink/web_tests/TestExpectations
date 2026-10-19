@@ -2202,7 +2202,6 @@ crbug.com/480103606 [ Android ] external/wpt/visual-viewport/viewport-unscaled-s
 # ====== Test expectations added to unblock wpt-importer ======
 crbug.com/437034328 external/wpt/html/semantics/embedded-content/the-img-element/animated-webp-update.tentative.html [ Failure ]
 crbug.com/431542979 virtual/speech-with-unified-autoplay/external/wpt/speech-api/idlharness.window.html [ Failure ]
-crbug.com/431592647 external/wpt/webdriver/tests/bidi/browser/create_user_context/unhandled_prompt_behavior.py [ Failure Timeout ]
 crbug.com/431592647 external/wpt/webdriver/tests/classic/set_window_rect/set.py [ Failure ]
 crbug.com/406036293 [ Mac ] external/wpt/css/css-overflow/keyboard-scroll.html [ Failure Pass ]
 crbug.com/626703 [ Mac ] external/wpt/editing/plaintext-only/insertLineBreak.html?white-space=pre [ Failure ]
@@ -4368,8 +4367,6 @@ crbug.com/1380554 external/wpt/content-security-policy/wasm-unsafe-eval/postMess
 crbug.com/702837 virtual/text-antialias/aat-morx.html [ Crash Failure Pass Timeout ]
 
 crbug.com/688670 external/wpt/html/semantics/embedded-content/media-elements/track/track-element/track-cue-rendering-after-controls-removed.html [ Failure Pass ]
-
-crbug.com/40579361 http/tests/devtools/service-workers/service-worker-v8-cache.js [ Crash Failure Pass Timeout ]
 
 # ====== Random order flaky tests end here ======
 
@@ -7344,7 +7341,6 @@ crbug.com/455194902 [ Mac15-arm64 ] wpt_internal/speculation-rules/prefetch/no-v
 [ Mac14 ] virtual/view-transition-wide-gamut/external/wpt/css/css-view-transitions/pseudo-with-classes-match-ident.html [ Failure Pass ]
 [ Mac14 ] virtual/view-transition-wide-gamut/external/wpt/css/css-view-transitions/pseudo-with-classes-match-multiple-wildcard.html [ Failure Pass ]
 
-[ Android ] external/wpt/webdriver/tests/bidi/browsing_context/capture_screenshot/capture_screenshot.py [ Failure Pass ]
 [ Fuchsia ] external/wpt/webdriver/tests/bidi/browsing_context/set_viewport/viewport.py [ Failure Pass ]
 [ Mac ] external/wpt/webdriver/tests/bidi/browsing_context/set_viewport/viewport.py [ Failure Pass ]
 [ Win ] external/wpt/webdriver/tests/bidi/browsing_context/set_viewport/viewport.py [ Failure Pass ]
@@ -8674,15 +8670,12 @@ crbug.com/549199028 [ Android ] external/wpt/webdriver/tests/bidi/browsing_conte
 # WebDriver BiDi print, unhandledPromptBehavior, webExtension, and Bluetooth context failures
 crbug.com/571887196 external/wpt/webdriver/tests/bidi/browsing_context/print/frame_tentative.py [ Failure ]
 crbug.com/365046210 external/wpt/webdriver/tests/bidi/browsing_context/print/shrink_to_fit.py [ Failure ]
+crbug.com/574485364 external/wpt/webdriver/tests/bidi/browser/create_user_context/unhandled_prompt_behavior.py [ Failure ]
 crbug.com/42323841 [ Linux ] external/wpt/webdriver/tests/bidi/session/capabilities/unhandled_prompt_behavior/file/ignore.py [ Failure ]
 crbug.com/552881783 [ Android ] external/wpt/webdriver/tests/bidi/web_extension/install/install.py [ Failure ]
 crbug.com/573053648 [ Android ] external/wpt/webdriver/tests/bidi/web_extension/uninstall/uninstall.py [ Failure ]
 crbug.com/571893816 [ Linux ] external/wpt/webdriver/tests/bidi/external/bluetooth/disable_simulation/context.py [ Failure ]
 crbug.com/571893816 [ Linux ] external/wpt/webdriver/tests/bidi/external/bluetooth/simulate_adapter/context.py [ Failure ]
-
-# Gardener 2026-09-15: BiDi tests timing out on Linux Tests (dbg)(1)
-crbug.com/562009743 [ Win ] fast/ruby/base-shorter-than-text.html [ Failure Pass ]
-
 
 # Gardener 2026-09-17
 crbug.com/562895059 external/wpt/streams/readable-byte-streams/crashtests/from-cross-realm.html [ Crash Failure ]
@@ -8720,7 +8713,6 @@ crbug.com/527852129 [ Mac ] virtual/compositor-timeline-trigger/external/wpt/scr
 crbug.com/564804235 inspector-protocol/emulation/device-emulation-text-size-adjust-two-pages.js [ Failure ]
 
 # TODO(crbug.com/568343392): Re-enable these tests.
-crbug.com/568343392 [ Linux ] external/wpt/webdriver/tests/bidi/browsing_context/reload/wait.py [ Failure Pass Timeout ]
 crbug.com/568343392 [ Linux ] external/wpt/webdriver/tests/bidi/emulation/set_media_features_override/contexts.py [ Failure Pass ]
 crbug.com/568343392 [ Linux ] external/wpt/webdriver/tests/bidi/external/bluetooth/simulate_characteristic_response/invalid.py [ Failure Pass ]
 crbug.com/568343392 [ Linux ] external/wpt/webdriver/tests/classic/element_click/scroll_into_view.py [ Failure Pass ]
