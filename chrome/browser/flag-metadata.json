@@ -157,15 +157,6 @@
     "expiry_milestone": 155
   },
   {
-    "name": "ai-overlay-dialog",
-    "owners": [
-      "gklassen@chromium.org",
-      "bokan@chromium.org",
-      "//chrome/browser/ui/webui/ai_overlay_dialog/OWNERS"
-    ],
-    "expiry_milestone": 160
-  },
-  {
     "name": "ai-overlay-disable-navigation-context",
     "owners": [
       "gklassen@chromium.org",
@@ -1313,6 +1304,15 @@
       "yungyichen@google.com"
     ],
     "expiry_milestone": 161
+  },
+  {
+    "name": "autofill-enable-wallet-gmail-offers",
+    "owners": [
+      "wilsonlow@google.com",
+      "vinnypersky@google.com",
+      "payments-autofill-team@google.com"
+    ],
+    "expiry_milestone": 165
   },
   {
     "name": "autofill-enable-wallet-reminder-notice",
@@ -4408,7 +4408,7 @@
       "cjgrant@chromium.org",
       "dfried@chromium.org"
     ],
-    "expiry_milestone": 155
+    "expiry_milestone": 170
   },
   {
     "name": "enable-oauth-ipp",
@@ -5587,11 +5587,6 @@
     "expiry_milestone": 160
   },
   {
-    "name": "gemini-client-migration",
-    "owners": [ "adamta@google.com", "bling-alchemy-eng@google.com" ],
-    "expiry_milestone": 160
-  },
-  {
     "name": "gemini-contextual-suggestions-cues",
     "owners": [ "kanouche@google.com", "bling-alchemy-eng@google.com" ],
     "expiry_milestone": 172
@@ -5923,6 +5918,14 @@
       "//chrome/browser/glic/OWNERS"
     ],
     "expiry_milestone": 172
+  },
+  {
+    "name": "glic-disable-hfcr",
+    "owners": [
+      "harringtond@chromium.org",
+      "//chrome/browser/glic/OWNERS"
+    ],
+    "expiry_milestone": 160
   },
   {
     "name": "glic-experimental-triggering",
@@ -10451,6 +10454,16 @@
     "name": "webnn-onnxruntime",
     "owners": [ "reillyg@chromium.org", "rafael.cintron@microsoft.com" ],
     "expiry_milestone": 180
+  },
+  {
+    "name": "webpage-alternative-text-zoom",
+    "owners": [ "rkgibson@google.com", "bling-flags@google.com" ],
+    "expiry_milestone": 165
+  },
+  {
+    "name": "webpage-text-zoom-ipad",
+    "owners": [ "rkgibson@google.com", "bling-flags@google.com" ],
+    "expiry_milestone": 165
   },
   {
     "name": "webrtc-hw-decoding",

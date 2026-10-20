@@ -1158,11 +1158,11 @@ const FeatureEntry::FeatureParam
         {"Omnibox_AskGComposeboxPlaceholder", "true"},
         {"Omnibox_AskGBypassPrivacyNotice", "true"}};
 // This arm showcases the follow-up work for arm 1 (side panel + Lens icon). The
-// new param Omnibox_AskGSuggestionSidePanelDescription is not used in the
-// current LE state. It will either be added to the current LE or used in a
-// follow-up iteration.
+// new params Omnibox_AskGSuggestionSidePanelDescription and
+// Omnibox_AskGLensIconIph are not used in the current LE state. They will
+// either be added to the current LE or used in a follow-up iteration.
 const FeatureEntry::FeatureParam
-    kWebUiOmniboxAskGAboutThisPageCobrowseSidePanelDescription[] = {
+    kWebUiOmniboxAskGAboutThisPageCobrowseSidePanelDescAndIph[] = {
         {"Omnibox_AskGCoBrowse", "true"},
         {"Omnibox_AskGCoBrowseWithVisualSelection", "false"},
         {"Omnibox_AskGComposeBox", "false"},
@@ -1178,7 +1178,8 @@ const FeatureEntry::FeatureParam
         {"Omnibox_AskGShowFirstDescription", "false"},
         {"Omnibox_AskGComposeboxPlaceholder", "false"},
         {"Omnibox_AskGBypassPrivacyNotice", "true"},
-        {"Omnibox_AskGSuggestionSidePanelDescription", "true"}};
+        {"Omnibox_AskGSuggestionSidePanelDescription", "true"},
+        {"Omnibox_AskGLensIconIph", "true"}};
 
 const FeatureEntry::FeatureVariation
     kWebUiOmniboxAskGAboutThisPageVariations[] = {
@@ -1194,8 +1195,8 @@ const FeatureEntry::FeatureVariation
         {"Ask G - Omnibox Chip Composebox and Lens entrypoint",
          kWebUiOmniboxAskGAboutThisPageOmniboxChipComposeboxAndLensEntrypoint,
          nullptr},
-        {"Ask G - Cobrowse and Lens entrypoint + side panel description",
-         kWebUiOmniboxAskGAboutThisPageCobrowseSidePanelDescription, nullptr}};
+        {"Ask G - Cobrowse and Lens entrypoint + side panel description + IPH",
+         kWebUiOmniboxAskGAboutThisPageCobrowseSidePanelDescAndIph, nullptr}};
 #endif  // !BUILDFLAG(IS_ANDROID)
 
 const FeatureEntry::FeatureParam kWebUIOmniboxPopupDebugSxS[] = {
@@ -4038,21 +4039,6 @@ const FeatureEntry::FeatureVariation kGlicShowNotTellTutorialsVariations[] = {
     {"Arm 2", kGlicShowNotTellTutorialsArm2, nullptr},
 };
 
-const FeatureEntry::FeatureParam kAiOverlayDialog_Mes[] = {{"use_mes", "true"}};
-const FeatureEntry::FeatureParam kAiOverlayDialog_PageTools[] = {
-    {"enable_page_tools", "true"}};
-const FeatureEntry::FeatureParam kAiOverlayDialog_MesAndPageTools[] = {
-    {"use_mes", "true"},
-    {"enable_page_tools", "true"}};
-const FeatureEntry::FeatureParam kAiOverlayDialog_Next[] = {
-    {"enable_next", "true"}};
-
-const FeatureEntry::FeatureVariation kAiOverlayDialogVariations[] = {
-    {"with MES", kAiOverlayDialog_Mes, nullptr},
-    {"with Page Tools", kAiOverlayDialog_PageTools, nullptr},
-    {"with MES and Page Tools", kAiOverlayDialog_MesAndPageTools, nullptr},
-    {"Next", kAiOverlayDialog_Next, nullptr}};
-
 const FeatureEntry::FeatureParam kAutofillShowTypePredictionsAsTitle[] = {
     {"as-title", "true"}};
 const FeatureEntry::FeatureVariation kAutofillShowTypePredictionsVariations[] =
@@ -4188,19 +4174,13 @@ const FeatureEntry::FeatureParam kAndroidBottomBarEducationArm1Params[] = {
     {"show_glic_setting_toggle", "true"},
     {"show_settings_toggle", "true"}};
 const FeatureEntry::FeatureParam kAndroidBottomBarEducationArm2Params[] = {
-    {"default_user_enabled", "true"},
-    {"education_enabled", "true"},
-    {"education_gemini_focused", "true"},
-    {"keep_app_menu_in_toolbar", "true"},
-    {"show_glic_setting_toggle", "true"},
-    {"show_settings_toggle", "true"}};
+    {"default_user_enabled", "true"},     {"education_enabled", "true"},
+    {"education_gemini_focused", "true"}, {"keep_app_menu_in_toolbar", "true"},
+    {"show_glic_setting_toggle", "true"}, {"show_settings_toggle", "true"}};
 const FeatureEntry::FeatureParam kAndroidBottomBarEducationArm3Params[] = {
-    {"default_user_enabled", "true"},
-    {"education_enabled", "true"},
-    {"education_gemini_focused", "true"},
-    {"keep_app_menu_in_toolbar", "false"},
-    {"show_glic_setting_toggle", "true"},
-    {"show_settings_toggle", "true"}};
+    {"default_user_enabled", "true"},     {"education_enabled", "true"},
+    {"education_gemini_focused", "true"}, {"keep_app_menu_in_toolbar", "false"},
+    {"show_glic_setting_toggle", "true"}, {"show_settings_toggle", "true"}};
 const FeatureEntry::FeatureParam kAndroidBottomBarEducationArm4Params[] = {
     {"default_user_enabled", "false"},
     {"education_enabled", "true"},
@@ -11085,12 +11065,6 @@ const FeatureEntry kFeatureEntries[] = {
      FEATURE_VALUE_TYPE(features::kAiOverlayDisableNavigationContext)},
 #endif  // !BUILDFLAG(IS_ANDROID)
 
-    {"ai-overlay-dialog", flag_descriptions::kAiOverlayDialogName,
-     flag_descriptions::kAiOverlayDialogDescription, kOsDesktop | kOsAndroid,
-     FEATURE_WITH_PARAMS_VALUE_TYPE(features::kAiOverlayDialog,
-                                    kAiOverlayDialogVariations,
-                                    "AiOverlayDialog")},
-
     {"glic", flag_descriptions::kGlicName, flag_descriptions::kGlicDescription,
      kOsDesktop | kOsAndroid, FEATURE_VALUE_TYPE(features::kGlic)},
     {"glic-hotkey-local-scope", flag_descriptions::kGlicHotkeyLocalScopeName,
@@ -11346,6 +11320,10 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kGlicDisableActorSafetyChecksName,
      flag_descriptions::kGlicDisableActorSafetyChecksDescription, kOsDesktop,
      SINGLE_VALUE_TYPE(actor::switches::kDisableActorSafetyChecks)},
+
+    {"glic-disable-hfcr", flag_descriptions::kGlicDisableHfcrName,
+     flag_descriptions::kGlicDisableHfcrDescription, kOsDesktop | kOsAndroid,
+     FEATURE_VALUE_TYPE(features::kGlicDisableHfcr)},
 
     {"glic-horizontal-tab-toolbar-button",
      flag_descriptions::kGlicHorizontalTabToolbarButtonName,
@@ -14253,6 +14231,11 @@ const FeatureEntry kFeatureEntries[] = {
      FEATURE_VALUE_TYPE(
          autofill::features::
              kAutofillEnableWalletDirectOffersNotificationBubble)},
+
+    {"autofill-enable-wallet-gmail-offers",
+     flag_descriptions::kAutofillEnableWalletGmailOffersName,
+     flag_descriptions::kAutofillEnableWalletGmailOffersDescription, kOsDesktop,
+     FEATURE_VALUE_TYPE(autofill::features::kAutofillEnableWalletGmailOffers)},
 
 #if BUILDFLAG(IS_ANDROID)
     {"desktop-android-file-picker-for-media",

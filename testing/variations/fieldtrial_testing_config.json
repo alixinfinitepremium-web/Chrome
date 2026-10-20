@@ -3270,6 +3270,21 @@
             ]
         }
     ],
+    "CADisplayLinkInGpu": [
+        {
+            "platforms": [
+                "mac"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "CADisplayLinkInGpu"
+                    ]
+                }
+            ]
+        }
+    ],
     "CCTGoogleBottomBar": [
         {
             "platforms": [
@@ -3551,6 +3566,23 @@
                     },
                     "enable_features": [
                         "CentralizedInfoBarFramework"
+                    ]
+                }
+            ]
+        }
+    ],
+    "CertificateCollectionEnabled": [
+        {
+            "platforms": [
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "CertificateCollectionEnabled"
                     ]
                 }
             ]
@@ -8376,6 +8408,25 @@
             ]
         }
     ],
+    "GlicDisableHfcr": [
+        {
+            "platforms": [
+                "android",
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "GlicDisableHfcr"
+                    ]
+                }
+            ]
+        }
+    ],
     "GlicDogfood": [
         {
             "platforms": [
@@ -11936,6 +11987,24 @@
                     },
                     "enable_features": [
                         "NtpAurora"
+                    ]
+                }
+            ]
+        }
+    ],
+    "NtpAuroraV2": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled_IncognitoChip",
+                    "params": {
+                        "action_chips": "1"
+                    },
+                    "enable_features": [
+                        "NtpAuroraV2"
                     ]
                 }
             ]
@@ -17453,6 +17522,29 @@
             ]
         }
     ],
+    "TranslateAsyncDomTranslator": [
+        {
+            "platforms": [
+                "android",
+                "chromeos",
+                "ios",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "params": {
+                        "ef": "eadt"
+                    },
+                    "enable_features": [
+                        "TranslateElementExperimentFeatures"
+                    ]
+                }
+            ]
+        }
+    ],
     "TranslateLanguageSearchUIExperiment": [
         {
             "platforms": [
@@ -17466,29 +17558,6 @@
                     "name": "Enabled_20260528",
                     "enable_features": [
                         "TranslateLanguageSearchUI"
-                    ]
-                }
-            ]
-        }
-    ],
-    "TranslateShortTextStaticContext": [
-        {
-            "platforms": [
-                "android",
-                "chromeos",
-                "ios",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled_20260806",
-                    "params": {
-                        "ef": "ests"
-                    },
-                    "enable_features": [
-                        "TranslateElementExperimentFeatures"
                     ]
                 }
             ]
@@ -18706,6 +18775,27 @@
                         "OffscreenCanvasPropagateVisibility",
                         "WebGLDeleteBuffersInBackground",
                         "WebGLDiscardBackBuffer"
+                    ]
+                }
+            ]
+        }
+    ],
+    "WebGPU": [
+        {
+            "platforms": [
+                "android",
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "//0": "WebGPU kill switch. DO NOT REMOVE without first consulting ",
+                    "//1": "the WebGPU team (webgpu-dev-team@google.com).",
+                    "name": "Enabled",
+                    "enable_features": [
+                        "WebGPUService"
                     ]
                 }
             ]
@@ -19936,6 +20026,21 @@
                     "name": "Enabled",
                     "enable_features": [
                         "WebViewUseMetricsUploadServiceOnlySdkRuntime"
+                    ]
+                }
+            ]
+        }
+    ],
+    "WebViewUseWVLESForLayeredStudy": [
+        {
+            "platforms": [
+                "android_webview"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "WebViewUseWVLESForLayeredStudy"
                     ]
                 }
             ]

@@ -1250,6 +1250,12 @@ inline constexpr char
         "When enabled, shows the Wallet Disclosure Notice at the end of the "
         "save prompt for public passes.";
 
+inline constexpr char kAutofillEnableWalletGmailOffersName[] =
+    "Enable Wallet Gmail offers";
+inline constexpr char kAutofillEnableWalletGmailOffersDescription[] =
+    "When enabled, offers from Gmail are synced via Google Wallet in addition "
+    "to direct offers.";
+
 inline constexpr char kAutofillEnableWalletReminderNoticeName[] =
     "Enable Wallet Reminder Notice for cards";
 inline constexpr char kAutofillEnableWalletReminderNoticeDescription[] =
@@ -1997,6 +2003,10 @@ inline constexpr char kGlicDisableActorSafetyChecksName[] =
 inline constexpr char kGlicDisableActorSafetyChecksDescription[] =
     "Disables actor safety checks in Glic. Use with extreme caution, intended "
     "for testing only.";
+
+inline constexpr char kGlicDisableHfcrName[] = "Glic Disable HFCR";
+inline constexpr char kGlicDisableHfcrDescription[] =
+    "Disables the High Frequency Cookie Rotation frame in Glic.";
 inline constexpr char kGlicHorizontalTabToolbarButtonName[] =
     "Enable toolbar Gemini button on horizontal tab strip";
 inline constexpr char kGlicHorizontalTabToolbarButtonDescription[] =
@@ -4956,7 +4966,6 @@ inline constexpr char kNotificationOneTapUnsubscribeOnDesktopName[] =
 inline constexpr char kNotificationOneTapUnsubscribeOnDesktopDescription[] =
     "Enables an experimental UX  on Desktop that replaces the [Site settings]"
     "button on web push notifications with an [Unsubscribe] button.";
-
 
 inline constexpr char kVcRelightingInferenceBackendName[] =
     "Select relighting backend for video conferencing";
@@ -8050,7 +8059,6 @@ inline constexpr char kMicrophoneMuteSwitchDeviceDescription[] =
     "flag does not affect the toggle functionality, it only affects how the "
     "System UI handles the mute toggle state.";
 
-
 inline constexpr char kEnableNearbyBleV2Name[] = "Nearby BLE v2";
 inline constexpr char kEnableNearbyBleV2Description[] =
     "Enables Nearby BLE v2.";
@@ -8642,10 +8650,6 @@ inline constexpr char kEnableAudioFocusEnforcementDescription[] =
 inline constexpr char kComposeSelectionNudgeName[] = "Compose Selection Nudge";
 inline constexpr char kComposeSelectionNudgeDescription[] =
     "Enables nudge on selection for Compose";
-
-inline constexpr char kAiOverlayDialogName[] = "AI Overlay Dialog";
-inline constexpr char kAiOverlayDialogDescription[] =
-    "Enables the AI overlay dialog.";
 
 inline constexpr char kAiOverlayDisableNavigationContextName[] =
     "AI Overlay Disable Navigation Context";
