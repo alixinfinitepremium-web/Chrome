@@ -6802,15 +6802,6 @@ const FeatureEntry kFeatureEntries[] = {
     {"files-trash-drive", flag_descriptions::kFilesTrashDriveName,
      flag_descriptions::kFilesTrashDriveDescription, kOsCrOS,
      FEATURE_VALUE_TYPE(ash::features::kFilesTrashDrive)},
-    {"file-system-provider-cloud-file-system",
-     flag_descriptions::kFileSystemProviderCloudFileSystemName,
-     flag_descriptions::kFileSystemProviderCloudFileSystemDescription, kOsCrOS,
-     FEATURE_VALUE_TYPE(
-         chromeos::features::kFileSystemProviderCloudFileSystem)},
-    {"file-system-provider-content-cache",
-     flag_descriptions::kFileSystemProviderContentCacheName,
-     flag_descriptions::kFileSystemProviderContentCacheDescription, kOsCrOS,
-     FEATURE_VALUE_TYPE(chromeos::features::kFileSystemProviderContentCache)},
     {"spectre-v2-mitigation", flag_descriptions::kSpectreVariant2MitigationName,
      flag_descriptions::kSpectreVariant2MitigationDescription, kOsCrOS,
      FEATURE_VALUE_TYPE(sandbox::policy::features::kSpectreVariant2Mitigation)},
@@ -8419,12 +8410,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kUseAngleDescriptionAndroid, kOsAndroid,
      MULTI_VALUE_TYPE(kUseAngleChoicesAndroid)},
 #endif
-
-#if BUILDFLAG(IS_CHROMEOS)
-    {"quick-answers-rich-card", flag_descriptions::kQuickAnswersRichCardName,
-     flag_descriptions::kQuickAnswersRichCardDescription, kOsCrOS,
-     FEATURE_VALUE_TYPE(chromeos::features::kQuickAnswersRichCard)},
-#endif  // BUILDFLAG(IS_CHROMEOS)
 
     {"enable-gamepad-multitouch",
      flag_descriptions::kEnableGamepadMultitouchName,

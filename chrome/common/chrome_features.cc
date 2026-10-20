@@ -78,6 +78,12 @@ BASE_FEATURE(kAutofillPasswordSurvey, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kAndroidKeepProfilePartitionDirsInCacheDir,
              base::FEATURE_ENABLED_BY_DEFAULT);
 
+// Blocks navigations to content:// URIs served by Chrome's own
+// android:exported="false" content providers. Kill switch for
+// https://crbug.com/496190746.
+BASE_FEATURE(kBlockNonExportedContentProviderNavigation,
+             base::FEATURE_ENABLED_BY_DEFAULT);
+
 // Enable boarding pass detector on Chrome Android.
 BASE_FEATURE(kBoardingPassDetector, base::FEATURE_DISABLED_BY_DEFAULT);
 const char kBoardingPassDetectorUrlParamName[] = "boarding_pass_detector_urls";
@@ -363,6 +369,10 @@ const base::FeatureParam<int> kGlicActorUiMagicCursorMinDuration{
 // Default: 300ms
 const base::FeatureParam<int> kGlicActorUiMagicCursorMaxDuration{
     &kGlicActorUiMagicCursor, "magic-cursor-max-duration-ms", 300};
+
+// If enabled, a chip next to the magic cursor shows the actor task's step
+// progress text.
+BASE_FEATURE(kGlicActorUiMagicCursorChip, base::FEATURE_DISABLED_BY_DEFAULT);
 
 // If enabled, tool execution is split into separate Validate and Execute steps.
 // The Validate step initializes the tool in the renderer and returns the
@@ -1410,6 +1420,14 @@ bool IsLazyAfterStartupKeyedServicesEnabled() {
 // lazily.
 BASE_FEATURE_PARAM(bool,
                    kLazyKeyedServiceInstantiationAutofillAndPassword,
+                   &kLazyKeyedServiceInstantiation,
+                   true);
+
+// When enabled, the enterprise CertificateProvisioningService is created once
+// browser startup is complete (or on first use) rather than eagerly during
+// BrowserContext creation.
+BASE_FEATURE_PARAM(bool,
+                   kLazyKeyedServiceInstantiationCertificateProvisioning,
                    &kLazyKeyedServiceInstantiation,
                    true);
 

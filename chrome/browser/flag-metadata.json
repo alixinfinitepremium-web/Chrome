@@ -585,6 +585,11 @@
     "expiry_milestone": 168
   },
   {
+    "name": "android-switcher-default-browser-promo-in-fre",
+    "owners": [ "fernandex@google.com", "bling-squid-squad@google.com" ],
+    "expiry_milestone": 168
+  },
+  {
     "name": "android-tab-declutter-archive-on-desktop",
     "owners": [ "hitarthkothari@google.com", "ckitagawa@google.com", "clank-tab-dev@google.com" ],
     "expiry_milestone": 160
@@ -5280,16 +5285,6 @@
     "expiry_milestone": 146
   },
   {
-    "name": "file-system-provider-cloud-file-system",
-    "owners": [ "benreich@google.com", "cassycc@google.com", "simmonsjosh@google.com" ],
-    "expiry_milestone": 140
-  },
-  {
-    "name": "file-system-provider-content-cache",
-    "owners": [ "benreich@google.com", "cassycc@google.com", "simmonsjosh@google.com" ],
-    "expiry_milestone": 140
-  },
-  {
     "name": "files-local-image-search",
     "owners": [ "majewski@chromium.org", "//ui/file_manager/OWNERS" ],
     "expiry_milestone": 150
@@ -8583,11 +8578,6 @@
     "name": "queued-compositor-web-contents-updates",
     "owners": ["clhager@google.com", "twellington@chromium.org"],
     "expiry_milestone": 170
-  },
-  {
-    "name": "quick-answers-rich-card",
-    "owners": [ "croissant-eng@chromium.org" ],
-    "expiry_milestone": 130
   },
   {
     "name": "read-aloud-native",

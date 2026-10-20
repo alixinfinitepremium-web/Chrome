@@ -815,11 +815,6 @@ BASE_FEATURE(kAutofillEnableWalletDisclosureNoticePublicPass,
 BASE_FEATURE(kAutofillEnableWalletReminderNoticePublicPass,
              base::FEATURE_DISABLED_BY_DEFAULT);
 
-// Controls whether Autofill clears format strings assigned to a field where
-// none of the assigned field types are compatible with it.
-BASE_FEATURE(kAutofillEnforceFormatStringCompatibility,
-             base::FEATURE_ENABLED_BY_DEFAULT);
-
 // Enables extended zip code validation.
 // TODO(crbug.com/434140055): Clean up when launched.
 BASE_FEATURE(kAutofillExtendZipCodeValidation,
@@ -1014,6 +1009,13 @@ BASE_FEATURE(kAutofillPopupDontAcceptNonVisibleEnoughSuggestion,
 // guards against double destruction or showing while hiding.
 // TODO(crbug.com/524084900): Remove when launched.
 BASE_FEATURE(kAutofillPopupUseDeleteSoon, base::FEATURE_DISABLED_BY_DEFAULT);
+
+// When enabled, records Autocomplete table-level diagnostics and saturation
+// metrics on profile startup.
+// TODO(crbug.com/562921257): Remove this feature flag and the associated
+// startup diagnostic collection once the autocomplete analysis is concluded.
+BASE_FEATURE(kAutofillRecordAutocompleteTableStats,
+             base::FEATURE_DISABLED_BY_DEFAULT);
 
 // When enabled, shows the updated storage notice. This notice explains how
 // saved info is used across Google and links to the Privacy Policy when saving

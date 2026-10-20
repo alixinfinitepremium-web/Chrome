@@ -953,9 +953,6 @@ crbug.com/1219058 external/wpt/css/css-text/letter-spacing/letter-spacing-end-of
 crbug.com/429929881 external/wpt/css/css-text/line-breaking/line-breaking-019.html [ Failure ]
 crbug.com/1098801 external/wpt/css/css-text/overflow-wrap/overflow-wrap-normal-keep-all-001.html [ Failure ]
 
-# CSS Text: `text-spacing-trim`
-crbug.com/542686223 external/wpt/css/css-text/text-spacing-trim/text-spacing-trim-end-span-001.html [ Failure ]
-
 crbug.com/40260693 external/wpt/css/css-pseudo/first-letter-c0.tentative.html [ Failure ]
 
 # CSS Inline `initial-letter` property.
@@ -4118,7 +4115,6 @@ crbug.com/328483408 external/wpt/css/css-break/table/table-fragmentation-003d-pr
 crbug.com/1058792 external/wpt/css/css-break/transform-007.html [ Failure ]
 crbug.com/1224888 external/wpt/css/css-break/transform-009.html [ Failure ]
 crbug.com/636055 external/wpt/css/css-multicol/multicol-span-all-margin-nested-002.xht [ Failure ]
-crbug.com/964183 external/wpt/css/css-multicol/multicol-width-005.html [ Failure ]
 crbug.com/1191124 external/wpt/css/css-multicol/spanner-fragmentation-012.html [ Failure ]
 crbug.com/1224888 external/wpt/css/css-multicol/spanner-in-opacity.html [ Failure ]
 crbug.com/1078927 external/wpt/css/css-multicol/table/balance-table-with-border-spacing.html [ Failure ]
@@ -8135,7 +8131,6 @@ crbug.com/440374233 [ Mac ] external/wpt/html/editing/dnd/drop/002.xhtml [ Timeo
 # Gardener 2025-08-18
 crbug.com/428101918 [ Linux ] external/wpt/service-workers/service-worker/same-site-cookies.https.html [ Failure Timeout ]
 crbug.com/395962971 [ Linux ] external/wpt/webdriver/tests/bidi/browsing_context/navigate/navigate_beforeunload.py [ Failure Timeout ]
-crbug.com/439269634 [ Linux ] external/wpt/webdriver/tests/classic/execute_script/arguments.py [ Failure ]
 
 # Gardener 2025-08-28
 crbug.com/441519564 external/wpt/webrtc/RTCRtpParameters-codec.html?interop-2026 [ Failure Pass ]

@@ -68,6 +68,9 @@ COMPONENT_EXPORT(CHROME_FEATURES)
 BASE_DECLARE_FEATURE(kAndroidKeepProfilePartitionDirsInCacheDir);
 
 COMPONENT_EXPORT(CHROME_FEATURES)
+BASE_DECLARE_FEATURE(kBlockNonExportedContentProviderNavigation);
+
+COMPONENT_EXPORT(CHROME_FEATURES)
 BASE_DECLARE_FEATURE(kBoardingPassDetector);
 COMPONENT_EXPORT(CHROME_FEATURES)
 extern const base::FeatureParam<std::string> kBoardingPassDetectorUrlParam;
@@ -256,6 +259,8 @@ COMPONENT_EXPORT(CHROME_FEATURES)
 extern const base::FeatureParam<int> kGlicActorUiMagicCursorMinDuration;
 COMPONENT_EXPORT(CHROME_FEATURES)
 extern const base::FeatureParam<int> kGlicActorUiMagicCursorMaxDuration;
+COMPONENT_EXPORT(CHROME_FEATURES)
+BASE_DECLARE_FEATURE(kGlicActorUiMagicCursorChip);
 COMPONENT_EXPORT(CHROME_FEATURES)
 BASE_DECLARE_FEATURE(kGlicActorSplitValidateAndExecute);
 
@@ -989,6 +994,10 @@ bool IsLazyAfterStartupKeyedServicesEnabled();
 COMPONENT_EXPORT(CHROME_FEATURES)
 BASE_DECLARE_FEATURE_PARAM(bool,
                            kLazyKeyedServiceInstantiationAutofillAndPassword);
+COMPONENT_EXPORT(CHROME_FEATURES)
+BASE_DECLARE_FEATURE_PARAM(
+    bool,
+    kLazyKeyedServiceInstantiationCertificateProvisioning);
 COMPONENT_EXPORT(CHROME_FEATURES)
 BASE_DECLARE_FEATURE_PARAM(bool, kLazyKeyedServiceInstantiationCommerceAndUI);
 COMPONENT_EXPORT(CHROME_FEATURES)

@@ -1752,7 +1752,7 @@
     },
     {
       name: "CSSCustomHighlightUniversalSelector",
-      status: "experimental",
+      status: "stable",
     },
     {
       name: "CSSCustomMedia",
@@ -4152,6 +4152,7 @@
     {
       // crbug.com/542686223 crbug.com/568304685
       name: "LineBreakerHanKerningEnd",
+      status: "stable",
     },
     {
       // Reverse origin trial allowing sites to opt out of Local Network Access
@@ -4218,9 +4219,7 @@
       // PerformanceLongAnimationFrameTiming and forcedStyleDuration and
       // forcedLayoutDuration to PerformanceScriptTiming
       name: "LongAnimationFrameStyleDuration",
-      origin_trial_feature_name: "LongAnimationFrameStyleDuration",
-      origin_trial_allows_third_party: true,
-      status: "experimental",
+      status: "stable",
     },
     {
       // Extends the Long Animation Frame (LoAF) API to Web Workers. Reports a
@@ -4512,8 +4511,16 @@
       status: "stable",
     },
     {
+      // Clamp a column-count:auto multicol container's max-content inline
+      // size to column-width per css-sizing-4. Kill switch for
+      // crbug.com/41459384.
+      name: "MulticolColumnWidthMaxContentClamp",
+      status: "stable",
+    },
+    {
       // Support Nastaliq script. crbug.com/569667449
       name: "NastaliqScript",
+      status: "stable",
     },
     {
       name: "NavigateEventDeferCrossDocumentCommit",

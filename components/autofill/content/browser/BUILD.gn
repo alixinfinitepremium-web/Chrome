@@ -156,15 +156,14 @@ source_set("unit_tests") {
     "//testing/gmock",
     "//testing/gtest",
   ]
-
-  # TODO(crbug.com/40031409): Fix code that adds exit-time destructors and
-  # enable the diagnostic by removing this line.
-  configs += [ "//build/config/compiler:no_exit_time_destructors" ]
 }
 
 source_set("browser_tests") {
   testonly = true
-  sources = [ "risk/fingerprint_browsertest.cc" ]
+  sources = [
+    "content_autofill_driver_browsertest.cc",
+    "risk/fingerprint_browsertest.cc",
+  ]
 
   defines = [ "HAS_OUT_OF_PROC_TEST_RUNNER" ]
 
@@ -174,6 +173,7 @@ source_set("browser_tests") {
     "//content/public/browser",
     "//content/test:browsertest_support",
     "//content/test:test_support",
+    "//net:test_support",
     "//services/device/public/cpp:test_support",
     "//services/device/public/cpp/geolocation",
     "//services/device/public/mojom",
