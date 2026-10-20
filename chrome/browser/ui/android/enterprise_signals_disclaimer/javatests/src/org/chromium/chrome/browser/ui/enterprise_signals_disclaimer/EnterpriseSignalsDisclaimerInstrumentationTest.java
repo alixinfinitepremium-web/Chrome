@@ -40,7 +40,6 @@ import org.chromium.base.FakeTimeTestRule;
 import org.chromium.base.ThreadUtils;
 import org.chromium.base.metrics.HistogramBucket;
 import org.chromium.base.metrics.RecordHistogram;
-import org.chromium.base.test.util.ApplicationTestUtils;
 import org.chromium.base.test.util.CommandLineFlags;
 import org.chromium.base.test.util.CriteriaHelper;
 import org.chromium.base.test.util.DisableIf;
@@ -57,8 +56,8 @@ import org.chromium.chrome.browser.init.ChromeBrowserInitializer;
 import org.chromium.chrome.browser.profiles.Profile;
 import org.chromium.chrome.browser.profiles.ProfileManager;
 import org.chromium.chrome.browser.signin.services.IdentityServicesProvider;
+import org.chromium.chrome.browser.ui.enterprise_signals_disclaimer.EnterpriseSignalsDisclaimerController.ShownOn;
 import org.chromium.chrome.browser.ui.enterprise_signals_disclaimer.EnterpriseSignalsDisclaimerHost.DismissalCause;
-import org.chromium.chrome.browser.ui.enterprise_signals_disclaimer.MetricsHelper.ShownOn;
 import org.chromium.chrome.test.ChromeJUnit4ClassRunner;
 import org.chromium.chrome.test.transit.ChromeTransitTestRules;
 import org.chromium.chrome.test.transit.FreshCtaTransitTestRule;
@@ -82,7 +81,7 @@ import org.chromium.ui.modelutil.PropertyModel;
 
 import java.util.List;
 
-/** Instrumentation tests for {@link EnterpriseSignalsDisclaimerController}. */
+/** Instrumentation tests for {@link StartupEnterpriseSignalsDisclaimerController}. */
 @RunWith(ChromeJUnit4ClassRunner.class)
 @DoNotBatch(reason = "Testing browser startup prevents batching")
 @EnableFeatures(ChromeFeatureList.ANDROID_DEVICE_SIGNALS_DISCLAIMER)
@@ -178,11 +177,11 @@ public class EnterpriseSignalsDisclaimerInstrumentationTest {
         waitForNoView(withId(R.id.disclaimer_scroll_view));
     }
 
-    private EnterpriseSignalsDisclaimerController createController() {
+    private StartupEnterpriseSignalsDisclaimerController createController() {
         return ThreadUtils.runOnUiThreadBlocking(
                 () -> {
                     final var profile = ProfileManager.getLastUsedRegularProfile();
-                    return new EnterpriseSignalsDisclaimerController(
+                    return new StartupEnterpriseSignalsDisclaimerController(
                             IdentityServicesProvider.get().getSigninManager(profile),
                             activity(),
                             profile,
@@ -194,12 +193,12 @@ public class EnterpriseSignalsDisclaimerInstrumentationTest {
     }
 
     private boolean maybeShow(
-            EnterpriseSignalsDisclaimerController controller, @ShownOn int shownOn) {
+            StartupEnterpriseSignalsDisclaimerController controller, @ShownOn int shownOn) {
         return ThreadUtils.runOnUiThreadBlocking(() -> controller.maybeShow(shownOn));
     }
 
-    private EnterpriseSignalsDisclaimerController createControllerAndShowDisclaimer() {
-        final EnterpriseSignalsDisclaimerController controller = createController();
+    private StartupEnterpriseSignalsDisclaimerController createControllerAndShowDisclaimer() {
+        final StartupEnterpriseSignalsDisclaimerController controller = createController();
         Assert.assertNotNull(controller);
         Assert.assertTrue(maybeShow(controller, ShownOn.STARTUP));
         waitForDisclaimerVisible();
@@ -350,7 +349,7 @@ public class EnterpriseSignalsDisclaimerInstrumentationTest {
         return ThreadUtils.runOnUiThreadBlocking(
                 () ->
                         EnterpriseSignalsDisclaimerBridge.hasAccountAcknowledgedSignalsDisclaimer(
-                                account.getGaiaId()));
+                                ProfileManager.getLastUsedRegularProfile(), account.getGaiaId()));
     }
 
     private void acceptDisclaimerForAccount(CoreAccountInfo account) {
@@ -384,7 +383,7 @@ public class EnterpriseSignalsDisclaimerInstrumentationTest {
 
         Assert.assertTrue(ThreadUtils.runOnUiThreadBlocking(fakeDialog::isShowing));
 
-        final EnterpriseSignalsDisclaimerController controller = createController();
+        final StartupEnterpriseSignalsDisclaimerController controller = createController();
         Assert.assertNotNull(controller);
         Assert.assertTrue(maybeShow(controller, ShownOn.STARTUP));
 
@@ -417,7 +416,7 @@ public class EnterpriseSignalsDisclaimerInstrumentationTest {
         final FakeDialog fakeDialog = showFakeDialog();
         Assert.assertTrue(ThreadUtils.runOnUiThreadBlocking(fakeDialog::isShowing));
 
-        final EnterpriseSignalsDisclaimerController controller = createController();
+        final StartupEnterpriseSignalsDisclaimerController controller = createController();
         Assert.assertNotNull(controller);
 
         Assert.assertTrue(maybeShow(controller, ShownOn.STARTUP));
@@ -432,7 +431,7 @@ public class EnterpriseSignalsDisclaimerInstrumentationTest {
     @LargeTest
     @CommandLineFlags.Add(ChromeSwitches.DISABLE_FIRST_RUN_EXPERIENCE)
     public void destroyingControllerHidesDialog() {
-        final EnterpriseSignalsDisclaimerController controller =
+        final StartupEnterpriseSignalsDisclaimerController controller =
                 createControllerAndShowDisclaimer();
 
         // Destroy the controller and verify that the dialog is not being shown anymore.
@@ -447,7 +446,7 @@ public class EnterpriseSignalsDisclaimerInstrumentationTest {
     @LargeTest
     @CommandLineFlags.Add(ChromeSwitches.DISABLE_FIRST_RUN_EXPERIENCE)
     public void clickingAcceptHidesDialog() {
-        final EnterpriseSignalsDisclaimerController controller =
+        final StartupEnterpriseSignalsDisclaimerController controller =
                 createControllerAndShowDisclaimer();
 
         Assert.assertFalse(hasAccountAcknowledgedSignalsDisclaimer(TestAccounts.MANAGED_ACCOUNT));
@@ -475,7 +474,7 @@ public class EnterpriseSignalsDisclaimerInstrumentationTest {
     @DisableIf.Device(DeviceFormFactor.PHONE) // TODO(crbug.com/572884371): Re-enable.
     @CommandLineFlags.Add(ChromeSwitches.DISABLE_FIRST_RUN_EXPERIENCE)
     public void clickingSignOutSignsOutAndHidesDialog() {
-        final EnterpriseSignalsDisclaimerController controller =
+        final StartupEnterpriseSignalsDisclaimerController controller =
                 createControllerAndShowDisclaimer();
 
         var histogramWatcher =
@@ -499,7 +498,7 @@ public class EnterpriseSignalsDisclaimerInstrumentationTest {
     @Restriction(DeviceFormFactor.PHONE)
     @CommandLineFlags.Add(ChromeSwitches.DISABLE_FIRST_RUN_EXPERIENCE)
     public void swipingBottomSheetSignsOutAndHidesDialog() {
-        final EnterpriseSignalsDisclaimerController controller =
+        final StartupEnterpriseSignalsDisclaimerController controller =
                 createControllerAndShowDisclaimer();
 
         // Scroll to the top of the disclaimer so the swipe does not scroll instead of closing the
@@ -529,7 +528,7 @@ public class EnterpriseSignalsDisclaimerInstrumentationTest {
     @Restriction(DeviceFormFactor.PHONE)
     @CommandLineFlags.Add(ChromeSwitches.DISABLE_FIRST_RUN_EXPERIENCE)
     public void clickingOutsideSheetSignsOutAndHidesDialog() {
-        final EnterpriseSignalsDisclaimerController controller =
+        final StartupEnterpriseSignalsDisclaimerController controller =
                 createControllerAndShowDisclaimer();
 
         var histogramWatcher =
@@ -557,7 +556,7 @@ public class EnterpriseSignalsDisclaimerInstrumentationTest {
     @Restriction(DeviceFormFactor.TABLET_OR_DESKTOP)
     @CommandLineFlags.Add(ChromeSwitches.DISABLE_FIRST_RUN_EXPERIENCE)
     public void clickingOutsideModalDialogSignsOutAndHidesDialog() {
-        final EnterpriseSignalsDisclaimerController controller =
+        final StartupEnterpriseSignalsDisclaimerController controller =
                 createControllerAndShowDisclaimer();
 
         var histogramWatcher =
@@ -588,7 +587,7 @@ public class EnterpriseSignalsDisclaimerInstrumentationTest {
     @LargeTest
     @CommandLineFlags.Add(ChromeSwitches.DISABLE_FIRST_RUN_EXPERIENCE)
     public void backPressSignsOutAndHidesDialog() {
-        final EnterpriseSignalsDisclaimerController controller =
+        final StartupEnterpriseSignalsDisclaimerController controller =
                 createControllerAndShowDisclaimer();
 
         var histogramWatcher =
@@ -612,7 +611,7 @@ public class EnterpriseSignalsDisclaimerInstrumentationTest {
     @LargeTest
     @CommandLineFlags.Add(ChromeSwitches.DISABLE_FIRST_RUN_EXPERIENCE)
     public void implicitDismissalsRecordedBeforeAcceptance() {
-        final EnterpriseSignalsDisclaimerController controller =
+        final StartupEnterpriseSignalsDisclaimerController controller =
                 createControllerAndShowDisclaimer();
 
         var histogramWatcher =
@@ -753,7 +752,7 @@ public class EnterpriseSignalsDisclaimerInstrumentationTest {
     @CommandLineFlags.Add(ChromeSwitches.DISABLE_FIRST_RUN_EXPERIENCE)
     public void focusSearchConfinesFocusToDisclaimer() {
         InstrumentationRegistry.getInstrumentation().setInTouchMode(false);
-        final EnterpriseSignalsDisclaimerController controller =
+        final StartupEnterpriseSignalsDisclaimerController controller =
                 createControllerAndShowDisclaimer();
 
         ThreadUtils.runOnUiThreadBlocking(
@@ -827,42 +826,12 @@ public class EnterpriseSignalsDisclaimerInstrumentationTest {
 
     @Test
     @LargeTest
-    public void syncAcknowledgmentSetAfterRestart() {
-        // Accept the disclaimer for the first account.
-        acceptDisclaimerForAccount(TestAccounts.MANAGED_ACCOUNT);
-
-        // Switch to the second account.
-        mSigninTestRule.signOut();
-        waitForDisclaimerNotShowing();
-        mSigninTestRule.addAccountThenSignin(MANAGED_ACCOUNT_2);
-
-        // Accept the disclaimer for the second account.
-        acceptDisclaimerForAccount(MANAGED_ACCOUNT_2);
-
-        // Simulate a restart, the account is removed before the restart.
-        ThreadUtils.runOnUiThreadBlocking(EnterpriseSignalsDisclaimerAckSyncer::resetForTesting);
-        ApplicationTestUtils.finishActivity(activity());
-
-        mSigninTestRule.removeAccount(MANAGED_ACCOUNT_2.getId());
-
-        mActivityTestRule.startOnBlankPage();
-        ThreadUtils.runOnUiThreadBlocking(
-                () ->
-                        EnterpriseSignalsDisclaimerAckSyncer.initialize(
-                                ProfileManager.getLastUsedRegularProfile()));
-
-        // Verify that the second account is not acknowledged.
-        Assert.assertTrue(hasAccountAcknowledgedSignalsDisclaimer(TestAccounts.MANAGED_ACCOUNT));
-        Assert.assertFalse(hasAccountAcknowledgedSignalsDisclaimer(MANAGED_ACCOUNT_2));
-    }
-
-    @Test
-    @LargeTest
-    public void syncsAcksWhenAccountIsRemoved() {
+    public void removesAcknowledgmentWhenAccountIsRemoved() {
         // Accept the disclaimer shown on startup.
         acceptDisclaimerForAccount(TestAccounts.MANAGED_ACCOUNT);
 
-        // Remove the account. The acknowledgment should be removed in result.
+        // Remove the account. The acknowledgment is stored in SigninPrefs, which are cleaned up
+        // for accounts that are no longer known to Chrome.
         mSigninTestRule.removeAccount(TestAccounts.MANAGED_ACCOUNT.getId());
 
         CriteriaHelper.pollUiThread(

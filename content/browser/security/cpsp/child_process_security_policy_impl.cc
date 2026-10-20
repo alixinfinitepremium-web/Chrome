@@ -1512,24 +1512,15 @@ void ChildProcessSecurityPolicyImpl::GrantCommitURL(int child_id,
     return;
   }
 
-  base::AutoLock lock(lock_);
-
-  // TODO(crbug.com/379869738) Remove FromUnsafeValue.
-  auto* state = process_states_.GetProcessStateForMutation(
-      ChildProcessId::FromUnsafeValue(child_id));
-  if (!state) {
-    return;
-  }
-
   if (origin.opaque()) {
     // If it's impossible to grant commit rights to just the origin (among other
     // things, URLs with non-standard schemes will be treated as opaque
     // origins), then grant access to commit all URLs of that scheme.
-    state->GrantCommitScheme(url.GetScheme());
+    GrantCommitScheme(child_id, url.GetScheme());
   } else {
     // When the child process has been commanded to request this scheme, grant
     // it the capability to request all URLs of that scheme.
-    state->GrantRequestScheme(url.GetScheme());
+    GrantRequestScheme(child_id, url.GetScheme());
   }
 }
 
@@ -1799,6 +1790,16 @@ void ChildProcessSecurityPolicyImpl::GrantWebUIBindings_Cpp(
 void ChildProcessSecurityPolicyImpl::GrantOriginCheckExemptionForWebView(
     ChildProcessId child_id,
     const url::Origin& origin) {
+  RUST_CPP_PROCESS_STATE_VOID_FUNCTION(
+      rust::child_process_security_policy::
+          grant_origin_check_exemption_for_webview(
+              child_id, std::make_unique<url::Origin>(origin)),
+      GrantOriginCheckExemptionForWebView_Cpp(child_id, origin));
+}
+
+void ChildProcessSecurityPolicyImpl::GrantOriginCheckExemptionForWebView_Cpp(
+    ChildProcessId child_id,
+    const url::Origin& origin) {
   base::AutoLock lock(lock_);
 
   if (auto* state = process_states_.GetProcessStateForMutation(child_id)) {
@@ -1807,6 +1808,16 @@ void ChildProcessSecurityPolicyImpl::GrantOriginCheckExemptionForWebView(
 }
 
 bool ChildProcessSecurityPolicyImpl::HasOriginCheckExemptionForWebView(
+    ChildProcessId child_id,
+    const url::Origin& origin) {
+  RUST_CPP_PROCESS_STATE_RETURN_FUNCTION(
+      rust::child_process_security_policy::
+          has_origin_check_exemption_for_webview(
+              child_id, std::make_unique<url::Origin>(origin)),
+      HasOriginCheckExemptionForWebView_Cpp(child_id, origin));
+}
+
+bool ChildProcessSecurityPolicyImpl::HasOriginCheckExemptionForWebView_Cpp(
     ChildProcessId child_id,
     const url::Origin& origin) {
   base::AutoLock lock(lock_);
@@ -1948,6 +1959,11 @@ bool ChildProcessSecurityPolicyImpl::CanCommitSchemeInAnyProcess_Cpp(
 
 bool ChildProcessSecurityPolicyImpl::CanCommitURL(int child_id,
                                                   const GURL& url) {
+  return CanCommitURL(ChildProcessId::FromUnsafeValue(child_id), url);
+}
+
+bool ChildProcessSecurityPolicyImpl::CanCommitURL(ChildProcessId child_id,
+                                                  const GURL& url) {
   if (!url.is_valid()) {
     LogCanCommitUrlFailureReason("invalid_url");
     return false;  // Can't commit invalid URLs.
@@ -2006,10 +2022,8 @@ bool ChildProcessSecurityPolicyImpl::CanCommitURL(int child_id,
   // compute its expected process lock. We still verify in the
   // state->CanCommitURL call below that the process has actually been granted
   // access to this URL, rather than just returning true for it.
-  // TODO(crbug.com/379869738) Remove FromUnsafeValue.
   if (url != GURL(kUnreachableWebDataURL) &&
-      !CanAccessMaybeOpaqueOrigin(ChildProcessId::FromUnsafeValue(child_id),
-                                  url,
+      !CanAccessMaybeOpaqueOrigin(child_id, url,
                                   false /* url_is_precursor_of_opaque_origin */,
                                   AccessType::kCanCommitNewOrigin)) {
     LogCanCommitUrlFailureReason("cannot_access_origin");
@@ -2029,8 +2043,7 @@ bool ChildProcessSecurityPolicyImpl::CanCommitURL(int child_id,
       return true;
     }
 
-    auto* state = process_states_.GetProcessStateForQuery(
-        ChildProcessId::FromUnsafeValue(child_id));
+    auto* state = process_states_.GetProcessStateForQuery(child_id);
     if (!state) {
       LogCanCommitUrlFailureReason("no_security_state_found");
       return false;
@@ -2397,7 +2410,7 @@ bool ChildProcessSecurityPolicyImpl::MatchesCommittedOriginForTesting(
 }
 
 CanCommitStatus ChildProcessSecurityPolicyImpl::CanCommitOriginAndUrl(
-    int child_id,
+    ChildProcessId child_id,
     const IsolationContext& isolation_context,
     const UrlInfo& url_info) {
   CHECK(url_info.origin.has_value(), base::NotFatalUntil::M159);
@@ -2420,11 +2433,9 @@ CanCommitStatus ChildProcessSecurityPolicyImpl::CanCommitOriginAndUrl(
     // the universal access check, but in practice no apps in the wild seem to
     // be failing any other types of validation, so doing it here is a narrower
     // exemption.) See https://crbug.com/326250356.
-    // TODO(crbug.com/379869738) Remove FromUnsafeValue.
     bool exempt_due_to_webview_universal_access =
         (origin.scheme() == url::kFileScheme) &&
-        HasOriginCheckExemptionForWebView(
-            ChildProcessId::FromUnsafeValue(child_id), origin);
+        HasOriginCheckExemptionForWebView(child_id, origin);
     if (!exempt_due_to_webview_universal_access) {
       return CanCommitStatus::CANNOT_COMMIT_URL;
     }
@@ -2496,6 +2507,13 @@ bool ChildProcessSecurityPolicyImpl::HostsOrigin(int child_id,
 bool ChildProcessSecurityPolicyImpl::CanAccessOrigin(int child_id,
                                                      const url::Origin& origin,
                                                      AccessType access_type) {
+  return CanAccessOrigin(ChildProcessId::FromUnsafeValue(child_id), origin,
+                         access_type);
+}
+
+bool ChildProcessSecurityPolicyImpl::CanAccessOrigin(ChildProcessId child_id,
+                                                     const url::Origin& origin,
+                                                     AccessType access_type) {
   GURL url_to_check;
   if (origin.opaque()) {
     auto precursor_tuple = origin.GetTupleOrPrecursorTupleIfOpaque();
@@ -2506,10 +2524,8 @@ bool ChildProcessSecurityPolicyImpl::CanAccessOrigin(int child_id,
       // precursor information (or the process lock is compatible with a missing
       // precursor). Remove this logic once that has been completed.
       base::AutoLock lock(lock_);
-      // TODO(crbug.com/379869738) Remove FromUnsafeValue.
       const ProcessState* process_state =
-          process_states_.GetProcessStateForQuery(
-              ChildProcessId::FromUnsafeValue(child_id));
+          process_states_.GetProcessStateForQuery(child_id);
       return !!process_state;
     } else {
       url_to_check = precursor_tuple.GetURL();
@@ -2517,9 +2533,8 @@ bool ChildProcessSecurityPolicyImpl::CanAccessOrigin(int child_id,
   } else {
     url_to_check = origin.GetURL();
   }
-  bool success =
-      CanAccessMaybeOpaqueOrigin(ChildProcessId::FromUnsafeValue(child_id),
-                                 url_to_check, origin.opaque(), access_type);
+  bool success = CanAccessMaybeOpaqueOrigin(child_id, url_to_check,
+                                            origin.opaque(), access_type);
   if (success) {
     return true;
   }

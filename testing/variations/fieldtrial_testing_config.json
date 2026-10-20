@@ -6958,6 +6958,21 @@
             ]
         }
     ],
+    "EnableContactInfoForChromeOSCustomPassphraseUsers": [
+        {
+            "platforms": [
+                "chromeos"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "SyncEnableContactInfoDataTypeForCustomPassphraseUsers"
+                    ]
+                }
+            ]
+        }
+    ],
     "EnableCustomInputStreamBufferSize": [
         {
             "platforms": [
@@ -9925,7 +9940,10 @@
                 {
                     "name": "Enabled",
                     "params": {
-                        "cooldown-days": "14"
+                        "cooldown-days": "14",
+                        "log_model_result_and_show_promo": "false",
+                        "opportunity_experiment_cohort": "1",
+                        "score_threshold": "0.8"
                     },
                     "enable_features": [
                         "DefaultBrowserPromoPropensityModel"
@@ -14605,6 +14623,7 @@
                 {
                     "name": "Enabled",
                     "params": {
+                        "fcp_enable_privacy_id_v2": "true",
                         "fcp_population_name_contextual_cues": "chrome/private_insights/contextual_cues",
                         "fcp_server_uri": "https://federatedcompute-pa.googleapis.com/",
                         "fcp_use_attestation_transparency_verifier": "true",
@@ -17396,6 +17415,25 @@
             ]
         }
     ],
+    "TrackAnimatedSourcesForInheritedProperties": [
+        {
+            "platforms": [
+                "android",
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "TrackAnimatedSourcesForInheritedProperties"
+                    ]
+                }
+            ]
+        }
+    ],
     "TransientKeepAlivePolicy": [
         {
             "platforms": [
@@ -17500,6 +17538,21 @@
                     "name": "Enabled",
                     "enable_features": [
                         "TreesInViz"
+                    ]
+                }
+            ]
+        }
+    ],
+    "TrimMemoryBackgroundIsSevere": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled_20261020",
+                    "enable_features": [
+                        "TrimMemoryBackgroundIsSevere"
                     ]
                 }
             ]
@@ -17765,8 +17818,7 @@
                     "name": "Enabled",
                     "enable_features": [
                         "IPH_SignInBenefits",
-                        "ReplaceSyncPromosWithSignInPromos",
-                        "SyncEnableContactInfoDataTypeForCustomPassphraseUsers"
+                        "ReplaceSyncPromosWithSignInPromos"
                     ]
                 }
             ]

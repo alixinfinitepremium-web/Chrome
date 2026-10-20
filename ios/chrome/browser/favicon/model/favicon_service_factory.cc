@@ -15,8 +15,7 @@ namespace {
 std::unique_ptr<KeyedService> BuildFaviconService(ProfileIOS* profile) {
   return std::make_unique<favicon::FaviconServiceImpl>(
       std::make_unique<FaviconClientImpl>(),
-      ios::HistoryServiceFactory::GetForProfile(
-          profile, ServiceAccessType::EXPLICIT_ACCESS));
+      ios::HistoryServiceFactory::GetForProfile(profile));
 }
 
 }  // namespace
@@ -24,39 +23,19 @@ std::unique_ptr<KeyedService> BuildFaviconService(ProfileIOS* profile) {
 namespace ios {
 
 // static
-favicon::FaviconService* FaviconServiceFactory::GetForProfile(
-    ProfileIOS* profile,
-    ServiceAccessType access_type) {
-  if (profile->IsOffTheRecord()) {
-    if (access_type == ServiceAccessType::IMPLICIT_ACCESS) {
-      return nullptr;
-    }
-  }
-
-  return GetInstance()->GetServiceForProfileAs<favicon::FaviconService>(
-      profile, /*create=*/true);
-}
-
-// static
-FaviconServiceFactory* FaviconServiceFactory::GetInstance() {
-  static base::NoDestructor<FaviconServiceFactory> instance;
-  return instance.get();
-}
-
-// static
 FaviconServiceFactory::TestingFactory
 FaviconServiceFactory::GetDefaultFactory() {
   return base::BindOnce(&BuildFaviconService);
 }
 
-FaviconServiceFactory::FaviconServiceFactory()
-    : ProfileKeyedServiceFactoryIOS("FaviconService",
-                                    TestingCreation::kNoServiceForTests,
-                                    ProfileSelection::kRedirectedInIncognito) {
+FaviconServiceFactory::FaviconServiceFactory(PassKey key)
+    : TypedProfileKeyedServiceFactoryIOS(
+          std::move(key),
+          "FaviconService",
+          TestingCreation::kNoServiceForTests,
+          ProfileSelection::kRedirectedInIncognito) {
   DependsOn(ios::HistoryServiceFactory::GetInstance());
 }
-
-FaviconServiceFactory::~FaviconServiceFactory() = default;
 
 std::unique_ptr<KeyedService> FaviconServiceFactory::BuildServiceInstanceFor(
     ProfileIOS* profile) const {

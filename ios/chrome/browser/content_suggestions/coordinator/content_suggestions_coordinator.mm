@@ -22,7 +22,6 @@
 #import "components/commerce/core/shopping_service.h"
 #import "components/feed/core/v2/public/ios/pref_names.h"
 #import "components/image_fetcher/core/image_data_fetcher.h"
-#import "components/keyed_service/core/service_access_type.h"
 #import "components/ntp_tiles/features.h"
 #import "components/ntp_tiles/most_visited_sites.h"
 #import "components/ntp_tiles/pref_names.h"
@@ -331,8 +330,7 @@ using segmentation_platform::TipIdentifier;
       ChromeAccountManagerServiceFactory::GetForProfile(profile);
 
   history::HistoryService* historyService =
-      ios::HistoryServiceFactory::GetForProfile(
-          profile, ServiceAccessType::EXPLICIT_ACCESS);
+      ios::HistoryServiceFactory::GetForProfile(profile);
 
   feature_engagement::Tracker* engagementTracker =
       feature_engagement::TrackerFactory::GetForProfile(profile);
@@ -1500,7 +1498,9 @@ using segmentation_platform::TipIdentifier;
                     didFinishWithAccept:(BOOL)didAccept {
   [_tipsNTPCustomizationCoordinator stop];
   _tipsNTPCustomizationCoordinator = nil;
-  // TODO(crbug.com/571447764): Trigger the undo snackbar.
+  if (didAccept) {
+    [self.delegate applyFocusedNTPWithUndoSnackbar];
+  }
 }
 
 #pragma mark - Helpers

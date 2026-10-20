@@ -3506,8 +3506,7 @@ const flags_ui::FeatureEntry::FeatureVariation
 #if BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_WIN)
 const char kReplaceSyncPromosWithSignInPromosDesktopFeatures[] =
     "ReplaceSyncPromosWithSignInPromos,"
-    "IPH_SignInBenefits,"
-    "SyncEnableContactInfoDataTypeForCustomPassphraseUsers";
+    "IPH_SignInBenefits";
 
 const FeatureEntry::Choice kReplaceSyncPromosWithSignInPromosDesktopChoices[] =
     {{"Default", "", ""},
@@ -4756,6 +4755,17 @@ const FeatureEntry::FeatureVariation
          kContextualTasksEphemeralButtonContextMenuHideSidePanel, nullptr},
         {"with 'Close side panel'",
          kContextualTasksEphemeralButtonContextMenuCloseSidePanel, nullptr}};
+
+const FeatureEntry::FeatureParam kContextualTasksUnifyPinButtonLogosSpark[] = {
+    {"ContextualTasksUnifyPinButtonLogo", "spark"}};
+const FeatureEntry::FeatureParam kContextualTasksUnifyPinButtonLogosSuperG[] = {
+    {"ContextualTasksUnifyPinButtonLogo", "super-g"}};
+
+const FeatureEntry::FeatureVariation
+    kContextualTasksUnifyPinButtonLogosVariations[] = {
+        {"with Spark logo", kContextualTasksUnifyPinButtonLogosSpark, nullptr},
+        {"with Super G logo", kContextualTasksUnifyPinButtonLogosSuperG,
+         nullptr}};
 
 const FeatureEntry::FeatureParam
     kContextualTasksUpdatedEntryPointsSidePanelRouting[] = {
@@ -12434,6 +12444,17 @@ const FeatureEntry kFeatureEntries[] = {
          contextual_tasks::kContextualTasksEphemeralButtonAutoDismiss,
          kContextualTasksEphemeralButtonAutoDismissVariations,
          "ContextualTasksEphemeralButtonAutoDismiss")},
+
+    {"contextual-tasks-unify-pin-button-logos",
+     contextual_tasks::flag_descriptions::
+         kContextualTasksUnifyPinButtonLogosName,
+     contextual_tasks::flag_descriptions::
+         kContextualTasksUnifyPinButtonLogosDescription,
+     kOsDesktop,
+     FEATURE_WITH_PARAMS_VALUE_TYPE(
+         contextual_tasks::kContextualTasksUnifyPinButtonLogos,
+         kContextualTasksUnifyPinButtonLogosVariations,
+         "ContextualTasksUnifyPinButtonLogos")},
 
     {"contextual-tasks-private-api-no-animation",
      contextual_tasks::flag_descriptions::

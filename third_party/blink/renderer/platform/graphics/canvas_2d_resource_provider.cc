@@ -158,6 +158,8 @@ void Canvas2DResourceProvider::OnGpuChannelLost() {
 
 bool Canvas2DResourceProvider::ShouldReplaceTargetBuffer(
     PaintImage::ContentId content_id) {
+  CHECK(is_accelerated_);
+
   // If the canvas is single buffered, concurrent read/writes to the resource
   // are allowed. Note that we ignore the resource lost case as well since
   // that only indicates that we did not get a sync token for read/write
@@ -177,19 +179,15 @@ bool Canvas2DResourceProvider::ShouldReplaceTargetBuffer(
     return false;
   }
 
-  // Its possible to have deferred work in skia which uses this resource. Try
-  // flushing once to see if that releases the read refs. We can avoid a copy
-  // by queuing this work before writing to this resource.
-  if (is_accelerated_) {
-    // Another context may have a read reference to this resource. Flush the
-    // deferred queue in that context so that we don't need to copy.
-    FlushForImageListener::Get()->NotifyFlushForImage(content_id);
-  }
+  // Another context may have a read reference to this resource. Flush the
+  // deferred queue in that context so that we don't need to copy.
+  FlushForImageListener::Get()->NotifyFlushForImage(content_id);
 
   return !resource_->HasOneRef();
 }
 
 void Canvas2DResourceProvider::EnsureResourceReadyForDraw() {
+  CHECK(is_accelerated_);
   DCHECK(resource_);
 
   // Since the resource will be updated, the cached snapshot is no longer
@@ -200,11 +198,7 @@ void Canvas2DResourceProvider::EnsureResourceReadyForDraw() {
   // token for these writes.
   cached_snapshot_.reset();
 
-  // Determine if a copy is needed for accelerated resources. This is required
-  // if copy-on-write is required. Note that for unaccelerated resources, this
-  // does not apply: writes to the SharedImage are deferred to
-  // ProduceCanvasResource and hence copy-on-write is never needed here.
-  if (is_accelerated_ && ShouldReplaceTargetBuffer(cached_content_id_)) {
+  if (ShouldReplaceTargetBuffer(cached_content_id_)) {
     cached_content_id_ = PaintImage::kInvalidContentId;
     DCHECK(!current_resource_has_write_access_)
         << "Write access must be released before sharing the resource";
@@ -242,7 +236,6 @@ void Canvas2DResourceProvider::WillDrawUnaccelerated() {
   if (IsSoftware()) {
     return;
   }
-  cached_snapshot_.reset();
   EnsureWriteAccess();
 }
 
@@ -343,11 +336,6 @@ bool Canvas2DResourceProvider::IsValid() const {
   }
 
   return !IsGpuContextLost();
-}
-
-gpu::SharedImageUsageSet Canvas2DResourceProvider::GetSharedImageUsageFlags()
-    const {
-  return image_pool_->GetImageInfo().usage;
 }
 
 void Canvas2DResourceProvider::EnsureWriteAccess() {
@@ -511,11 +499,8 @@ Canvas2DResourceProvider::CreateWithClear(
     RasterMode raster_mode,
     gpu::SharedImageUsageSet shared_image_usage_flags,
     base::OnceClosure context_lost_callback) {
-  // IsGpuCompositingEnabled can re-create the context if it has been lost, do
-  // this up front so that we can fail early and not expose ourselves to
-  // use after free bugs (crbug.com/1126424)
-  const bool is_gpu_compositing_enabled =
-      SharedGpuContext::IsGpuCompositingEnabled();
+  CHECK(!shared_image_usage_flags.HasAny(gpu::SHARED_IMAGE_USAGE_WEBGPU_READ |
+                                         gpu::SHARED_IMAGE_USAGE_WEBGPU_WRITE));
 
   // If the context is lost we don't want to re-create it here, the resulting
   // resource provider would be invalid anyway
@@ -539,22 +524,12 @@ Canvas2DResourceProvider::CreateWithClear(
   // Overriding the info to use RGBA instead of N32 is needed because code
   // elsewhere assumes RGBA. OTOH the software path seems to be assuming N32
   // somewhere in the later pipeline but for offscreen canvas only.
-  bool should_force_bgra8_to_rgba =
-      !shared_image_usage_flags.HasAny(gpu::SHARED_IMAGE_USAGE_WEBGPU_READ |
-                                       gpu::SHARED_IMAGE_USAGE_WEBGPU_WRITE);
+  bool should_force_bgra8_to_rgba = true;
 #if BUILDFLAG(IS_WIN)
   // Concurrent read/write on Windows results in a swapchain backing, which
   // supports BGRA; hence there is no need to force to RGBA in this case.
-  should_force_bgra8_to_rgba =
-      should_force_bgra8_to_rgba &&
-      !shared_image_usage_flags.Has(
-          gpu::SHARED_IMAGE_USAGE_CONCURRENT_READ_WRITE);
-#endif
-
-#if BUILDFLAG(IS_LINUX)
-  // WebGpu preferred canvas on linux is RGBA and interop (vk on gl) is
-  // dependent on canvas copies being RGBA (not BGRA).
-  should_force_bgra8_to_rgba = true;
+  should_force_bgra8_to_rgba = !shared_image_usage_flags.Has(
+      gpu::SHARED_IMAGE_USAGE_CONCURRENT_READ_WRITE);
 #endif
 
   if (is_accelerated && format != viz::SinglePlaneFormat::kRGBA_F16 &&
@@ -563,7 +538,6 @@ Canvas2DResourceProvider::CreateWithClear(
   }
 
   const bool is_mappable_shared_image_allowed =
-      is_gpu_compositing_enabled &&
       IsScanoutSupportedForCanvasWithFormat(format, capabilities);
 
   if (raster_mode == RasterMode::kCPU && !is_mappable_shared_image_allowed) {
@@ -629,20 +603,6 @@ Canvas2DResourceProvider::CreateWithClear(
 }
 
 std::unique_ptr<Canvas2DResourceProvider>
-Canvas2DResourceProvider::CreateWithClear(
-    gfx::Size size,
-    const Canvas2DColorParams& color_params,
-    base::WeakPtr<WebGraphicsContext3DProviderWrapper> context_provider_wrapper,
-    RasterMode raster_mode,
-    gpu::SharedImageUsageSet shared_image_usage_flags) {
-  return CreateWithClear(
-      size, color_params.GetSharedImageFormat(), color_params.GetAlphaType(),
-      color_params.GetGfxColorSpace(), color_params.GetGfxHdrMetadata(),
-      std::move(context_provider_wrapper), raster_mode,
-      shared_image_usage_flags);
-}
-
-std::unique_ptr<Canvas2DResourceProvider>
 Canvas2DResourceProvider::CreateWithClearForSoftwareCompositor(
     gfx::Size size,
     viz::SharedImageFormat format,
@@ -651,9 +611,7 @@ Canvas2DResourceProvider::CreateWithClearForSoftwareCompositor(
     const gfx::HDRMetadata& hdr_metadata,
     WebGraphicsSharedImageInterfaceProvider* shared_image_interface_provider,
     base::OnceClosure context_lost_callback) {
-  if (SharedGpuContext::IsGpuCompositingEnabled()) {
-    return nullptr;
-  }
+  CHECK(!SharedGpuContext::IsGpuCompositingEnabled());
 
   CHECK(format == viz::SharedImageFormat::N32Format() ||
         format == viz::SinglePlaneFormat::kRGBA_F16);
@@ -692,7 +650,6 @@ Canvas2DResourceProvider::Canvas2DResourceProvider(
       context_provider_wrapper_(std::move(context_provider_wrapper)),
       size_(size),
       format_(format),
-      alpha_type_(alpha_type),
       color_space_(color_space),
       hdr_metadata_(hdr_metadata),
       context_lost_callback_(std::move(context_lost_callback)) {
@@ -797,7 +754,6 @@ Canvas2DResourceProvider::Canvas2DResourceProvider(
               : nullptr),
       size_(size),
       format_(format),
-      alpha_type_(alpha_type),
       color_space_(color_space),
       hdr_metadata_(hdr_metadata),
       context_lost_callback_(std::move(context_lost_callback)) {
