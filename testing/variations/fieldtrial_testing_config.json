@@ -760,7 +760,6 @@
                     "enable_features": [
                         "AndroidWarmUpSpareRendererWithTimeout",
                         "OverrideAndroidOmniboxSpareRendererDelay",
-                        "ResumeNavigationWithSpeculativeRFHProcessGone",
                         "SpareRendererProcessPriority"
                     ]
                 }
@@ -3467,6 +3466,27 @@
             ]
         }
     ],
+    "CastStreamingMaxVideoBitrate": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Max10Mbps",
+                    "params": {
+                        "max_bitrate_mbps": "10"
+                    },
+                    "enable_features": [
+                        "CastStreamingMaxVideoBitrate"
+                    ]
+                }
+            ]
+        }
+    ],
     "CctClientDataHeader": [
         {
             "platforms": [
@@ -5119,6 +5139,28 @@
                     "enable_features": [
                         "ApiContextualTasksPrivate",
                         "ContextualTasksPrivateApiNoAnimation"
+                    ]
+                }
+            ]
+        }
+    ],
+    "CookieMonsterPerKeyDelete": [
+        {
+            "platforms": [
+                "android",
+                "android_webview",
+                "chromeos",
+                "fuchsia",
+                "ios",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "CookieMonsterPerKeyDelete"
                     ]
                 }
             ]
@@ -7205,25 +7247,6 @@
                     },
                     "enable_features": [
                         "EnablePixAccountLinkingNative"
-                    ]
-                }
-            ]
-        }
-    ],
-    "EnableQuicReadMultipleAndUdpGRO": [
-        {
-            "platforms": [
-                "android",
-                "android_webview",
-                "chromeos",
-                "linux"
-            ],
-            "experiments": [
-                {
-                    "name": "EnabledQuicUseReadMultipleAndUdpGro_20260729",
-                    "enable_features": [
-                        "EnableUdpGro",
-                        "QuicUseReadMultiple"
                     ]
                 }
             ]
@@ -15228,26 +15251,6 @@
                     "name": "Enabled",
                     "enable_features": [
                         "RestrictPendingInputEventType"
-                    ]
-                }
-            ]
-        }
-    ],
-    "ResumeNavigationWithSpeculativeRFHProcessGone": [
-        {
-            "platforms": [
-                "android_webview",
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "ReportStuckThrottle",
-                        "ResumeNavigationWithSpeculativeRFHProcessGone"
                     ]
                 }
             ]

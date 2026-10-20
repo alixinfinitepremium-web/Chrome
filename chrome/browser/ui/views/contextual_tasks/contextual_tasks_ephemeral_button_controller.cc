@@ -8,6 +8,7 @@
 #include <optional>
 #include <utility>
 
+#include "base/auto_reset.h"
 #include "base/functional/bind.h"
 #include "base/location.h"
 #include "base/metrics/histogram_functions.h"
@@ -126,6 +127,10 @@ void ContextualTasksEphemeralButtonController::OnTaskUpdated(
 void ContextualTasksEphemeralButtonController::OnTaskRemoved(
     const base::Uuid& task_id,
     contextual_tasks::ContextualTasksService::TriggerSource source) {
+  std::optional<base::AutoReset<std::optional<RemovalReason>>> reset_reason;
+  if (!removal_reason_.has_value()) {
+    reset_reason.emplace(&removal_reason_, RemovalReason::kTaskDisassociated);
+  }
   MaybeNotifyVisibilityShouldChange();
 }
 
@@ -142,6 +147,10 @@ void ContextualTasksEphemeralButtonController::OnWillBeDestroyed() {
 void ContextualTasksEphemeralButtonController::OnTaskAssociatedToTab(
     const base::Uuid& task_id,
     SessionID tab_id) {
+  if (contextual_tasks::IsContextualTasksPinningV2Enabled() && IsPanelOpen() &&
+      GetCurrentTabSessionId() == tab_id) {
+    MarkActiveTaskTabsEligible();
+  }
   MaybeNotifyVisibilityShouldChange();
 }
 
@@ -150,6 +159,10 @@ void ContextualTasksEphemeralButtonController::OnTaskDisassociatedFromTab(
     SessionID tab_id) {
   std::erase(ephemeral_button_eligible_tabs_, tab_id);
   ephemeral_button_auto_dismiss_timers_.erase(tab_id);
+  std::optional<base::AutoReset<std::optional<RemovalReason>>> reset_reason;
+  if (!removal_reason_.has_value()) {
+    reset_reason.emplace(&removal_reason_, RemovalReason::kTaskDisassociated);
+  }
   MaybeNotifyVisibilityShouldChange();
 }
 
@@ -164,6 +177,9 @@ void ContextualTasksEphemeralButtonController::OnEntryShown(
       contextual_tasks::EntryPointOption::kToolbarEphemeralBranded) {
     is_contextual_tasks_panel_open_ = true;
     is_hiding_contextual_tasks_panel_ = false;
+    if (contextual_tasks::IsContextualTasksPinningV2Enabled()) {
+      MarkActiveTaskTabsEligible();
+    }
     CancelAutoDismissTimersForActiveTask();
     MaybeNotifyVisibilityShouldChange();
   }
@@ -173,11 +189,11 @@ void ContextualTasksEphemeralButtonController::OnEntryWillHide(
     SidePanelEntry* entry,
     SidePanelEntryHideReason reason) {
   is_hiding_contextual_tasks_panel_ = true;
-  if (!IsActiveTabAssociatedToTask()) {
-    return;
-  }
-
-  if (reason == SidePanelEntryHideReason::kBackgrounded) {
+  if (!IsActiveTabAssociatedToTask() ||
+      reason == SidePanelEntryHideReason::kBackgrounded) {
+    if (contextual_tasks::IsContextualTasksPinningV2Enabled()) {
+      MaybeNotifyVisibilityShouldChange();
+    }
     return;
   }
 
@@ -263,10 +279,11 @@ bool ContextualTasksEphemeralButtonController::ShouldShowEphemeralButton() {
     return false;
   }
 
+  const bool is_pinned = contextual_tasks::GetEffectivePinState(
+      browser_window_interface_->GetProfile());
   if (!base::FeatureList::IsEnabled(
           contextual_tasks::kEphemeralPinningVisibleWhenPermanentlyPinned) &&
-      contextual_tasks::GetEffectivePinState(
-          browser_window_interface_->GetProfile())) {
+      is_pinned) {
     return false;
   }
 
@@ -294,7 +311,7 @@ bool ContextualTasksEphemeralButtonController::ShouldShowEphemeralButton() {
   }
 
   // The ephemeral toolbar button should show if the contextual task side panel
-  // was closed on this tab, or on any other tab sharing its task.
+  // was shown or closed on this tab, or on any other tab sharing its task.
   bool should_show_button = std::ranges::any_of(
       GetContextualTasksService()->GetTabsAssociatedWithTask(
           current_task->GetTaskId()),
@@ -303,7 +320,8 @@ bool ContextualTasksEphemeralButtonController::ShouldShowEphemeralButton() {
       });
 
   if (contextual_tasks::kShowEntryPoint.Get() ==
-      contextual_tasks::EntryPointOption::kToolbarEphemeralBranded) {
+          contextual_tasks::EntryPointOption::kToolbarEphemeralBranded &&
+      (!contextual_tasks::IsContextualTasksPinningV2Enabled() || is_pinned)) {
     should_show_button &=
         (!is_contextual_tasks_panel_open_ || is_hiding_contextual_tasks_panel_);
   }
@@ -317,6 +335,9 @@ void ContextualTasksEphemeralButtonController::
           contextual_tasks::kContextualTasksEphemeralButtonContextMenu)) {
     return;
   }
+
+  base::AutoReset<std::optional<RemovalReason>> reset_reason(
+      &removal_reason_, RemovalReason::kContextMenu);
 
   std::optional<SessionID> current_tab_session_id = GetCurrentTabSessionId();
   if (current_tab_session_id.has_value()) {
@@ -360,6 +381,8 @@ void ContextualTasksEphemeralButtonController::OnAutoDismissTimerFired(
   base::UmaHistogramSparse(
       "ContextualTasks.EphemeralToolbarButton.AutoDismissed",
       GetAutoDismissDuration().InMinutes());
+  base::AutoReset<std::optional<RemovalReason>> reset_reason(
+      &removal_reason_, RemovalReason::kAutoDismissed);
   DismissEphemeralButtonForTab(tab_id);
 }
 
@@ -386,6 +409,15 @@ void ContextualTasksEphemeralButtonController::DismissEphemeralButtonForTab(
             browser_window_interface_->GetProfile());
     if (ui_service) {
       ui_service->DestroyClosedSidePanel(browser_window_interface_);
+    }
+    if (contextual_tasks::IsContextualTasksPinningV2Enabled()) {
+      if (auto* panel_controller =
+              contextual_tasks::ContextualTasksPanelController::From(
+                  browser_window_interface_);
+          panel_controller &&
+          panel_controller->IsPanelOpenForContextualTask()) {
+        panel_controller->Close();
+      }
     }
   } else if (task.has_value()) {
     service->DisassociateAllTabsFromTask(task->GetTaskId());
@@ -420,6 +452,27 @@ void ContextualTasksEphemeralButtonController::
   for (SessionID tab_id :
        service->GetTabsAssociatedWithTask(current_task->GetTaskId())) {
     ephemeral_button_auto_dismiss_timers_.erase(tab_id);
+  }
+}
+
+void ContextualTasksEphemeralButtonController::MarkActiveTaskTabsEligible() {
+  if (!IsActiveTabAssociatedToTask()) {
+    return;
+  }
+
+  contextual_tasks::ContextualTasksService* service =
+      GetContextualTasksService();
+  std::optional<contextual_tasks::ContextualTask> current_task =
+      service->GetContextualTaskForTab(GetCurrentTabSessionId().value());
+  if (!current_task.has_value()) {
+    return;
+  }
+
+  for (SessionID tab_id :
+       service->GetTabsAssociatedWithTask(current_task->GetTaskId())) {
+    if (!std::ranges::contains(ephemeral_button_eligible_tabs_, tab_id)) {
+      ephemeral_button_eligible_tabs_.emplace_back(tab_id);
+    }
   }
 }
 

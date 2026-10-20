@@ -4170,6 +4170,12 @@ bool NavigationRequest::HasSameSiteAdAncestor() {
     return false;
   }
 
+  // A main frame has no ad ancestor. Return before GetOriginToCommit(), which
+  // CHECKs for a RenderFrameHost that a page activation does not have yet.
+  if (!frame_tree_node_->parent()) {
+    return false;
+  }
+
   std::optional<url::Origin> target_origin =
       state_ < WILL_PROCESS_RESPONSE ? GetTentativeOriginAtRequestTime()
                                      : GetOriginToCommit();
@@ -4236,9 +4242,9 @@ void NavigationRequest::RecordAdExclusionResultHistogram() {
 
   // Only navigations that call OnResponseStarted() get an ad decision. Others
   // skip it. This includes commits without a URL loader (for example
-  // about:blank, about:srcdoc, and MHTML subframes from the archive), and
-  // back-forward cache and prerender activations. These navigations do not get
-  // a process from the ad exclusion, so there is no result to record.
+  // about:blank, about:srcdoc, and MHTML subframes from the archive). These
+  // navigations do not get a process from the ad exclusion, so there is no
+  // result to record.
   if (!exclude_ad_from_origin_keyed_process_.has_value()) {
     return;
   }
@@ -10779,9 +10785,10 @@ bool NavigationRequest::IsInPrimaryMainFrame() const {
   return GetNavigatingFrameType() == FrameType::kPrimaryMainFrame;
 }
 
-const std::optional<base::UnguessableToken>&
+const std::optional<blink::ToolInvocationToken>&
 NavigationRequest::GetScriptToolInvocationId() const {
-  static const std::optional<base::UnguessableToken> empty_id = std::nullopt;
+  static const std::optional<blink::ToolInvocationToken> empty_id =
+      std::nullopt;
   if (!begin_params_) {
     return empty_id;
   }

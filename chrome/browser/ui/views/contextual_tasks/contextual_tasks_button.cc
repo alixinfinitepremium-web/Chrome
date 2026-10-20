@@ -5,6 +5,7 @@
 #include "chrome/browser/ui/views/contextual_tasks/contextual_tasks_button.h"
 
 #include <string>
+#include <string_view>
 
 #include "base/check_op.h"
 #include "base/functional/bind.h"
@@ -12,6 +13,7 @@
 #include "base/metrics/user_metrics.h"
 #include "base/metrics/user_metrics_action.h"
 #include "base/notreached.h"
+#include "base/strings/strcat.h"
 #include "chrome/app/vector_icons/vector_icons.h"
 #include "chrome/browser/contextual_tasks/contextual_tasks_panel_controller.h"
 #include "chrome/browser/contextual_tasks/contextual_tasks_utils.h"
@@ -324,6 +326,7 @@ ContextualTasksButton::ContextualTasksButton(
 }
 
 ContextualTasksButton::~ContextualTasksButton() {
+  anchor_highlight_.reset();
   ClearDropShadow();
 }
 
@@ -450,6 +453,10 @@ void ContextualTasksButton::OnButtonPress() {
             : "ContextualTasks.EphemeralToolbarButton.UserAction.OpenSidePanel";
     base::RecordAction(base::UserMetricsAction(sub_action));
     base::UmaHistogramBoolean(sub_action, true);
+
+    if (!is_pinned) {
+      RecordShownDuration("Clicked");
+    }
 
     if (contextual_tasks::kShowEntryPoint.Get() ==
         contextual_tasks::EntryPointOption::kToolbarEphemeralBranded) {
@@ -594,6 +601,10 @@ ContextualTasksButton::Shape ContextualTasksButton::GetShape() const {
                                    : Shape::kFlatEdgeLeft;
 }
 
+bool ContextualTasksButton::IsHighlighted() const {
+  return anchor_highlight_.has_value();
+}
+
 ui::Layer* ContextualTasksButton::GetDropShadowLayerForTesting() const {
   return drop_shadow_painted_layer_ ? drop_shadow_painted_layer_->layer()
                                     : nullptr;
@@ -649,12 +660,32 @@ void ContextualTasksButton::MaybeUpdateVisibility() {
     ClearDropShadow();
     SetVisible(true);
     AnimateShow();
+    shown_time_ticks_ = base::TimeTicks::Now();
     base::RecordAction(base::UserMetricsAction(
         "ContextualTasks.EphemeralToolbarButton.Shown"));
     base::UmaHistogramBoolean("ContextualTasks.EphemeralToolbarButton.Shown",
                               true);
   } else {
     if (!will_be_visible) {
+      anchor_highlight_.reset();
+      if (const auto removal_reason = controller->removal_reason();
+          removal_reason.has_value()) {
+        switch (*removal_reason) {
+          case ContextualTasksEphemeralButtonController::RemovalReason::
+              kContextMenu:
+            RecordShownDuration("RemovedByContextMenu");
+            break;
+          case ContextualTasksEphemeralButtonController::RemovalReason::
+              kAutoDismissed:
+            RecordShownDuration("AutoDismissed");
+            break;
+          case ContextualTasksEphemeralButtonController::RemovalReason::
+              kTaskDisassociated:
+            RecordShownDuration("TaskDisassociated");
+            break;
+        }
+      }
+      shown_time_ticks_ = base::TimeTicks();
       if (layer() && layer()->GetAnimator()) {
         layer()->GetAnimator()->AbortAllAnimations();
       }
@@ -672,6 +703,44 @@ void ContextualTasksButton::MaybeUpdateVisibility() {
     }
     SetVisible(will_be_visible);
   }
+  UpdateHighlight();
+}
+
+void ContextualTasksButton::UpdateHighlight() {
+  if (!contextual_tasks::IsContextualTasksPinningV2Enabled()) {
+    anchor_highlight_.reset();
+    return;
+  }
+  ContextualTasksEphemeralButtonController* const ephemeral_controller =
+      ContextualTasksEphemeralButtonController::From(browser_window_interface_);
+  auto* const panel_controller =
+      contextual_tasks::ContextualTasksPanelController::From(
+          browser_window_interface_);
+  const bool should_highlight =
+      GetVisible() && ephemeral_controller &&
+      ephemeral_controller->IsPanelOpen() && panel_controller &&
+      panel_controller->IsPanelOpenForContextualTask();
+  if (should_highlight) {
+    if (!anchor_highlight_.has_value()) {
+      anchor_highlight_ = AddAnchorHighlight();
+    }
+  } else {
+    anchor_highlight_.reset();
+  }
+}
+
+void ContextualTasksButton::RecordShownDuration(std::string_view end_reason) {
+  if (shown_time_ticks_.is_null()) {
+    return;
+  }
+  const base::TimeDelta duration = base::TimeTicks::Now() - shown_time_ticks_;
+  shown_time_ticks_ = base::TimeTicks();
+  base::UmaHistogramLongTimes(
+      "ContextualTasks.EphemeralToolbarButton.ShownDuration", duration);
+  base::UmaHistogramLongTimes(
+      base::StrCat({"ContextualTasks.EphemeralToolbarButton.ShownDuration.",
+                    end_reason}),
+      duration);
 }
 
 void ContextualTasksButton::MaybeShowFeaturePromo() {
