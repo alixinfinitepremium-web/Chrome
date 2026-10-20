@@ -7878,6 +7878,11 @@
     "expiry_milestone": 150
   },
   {
+    "name": "omnibox-truncate-search-url",
+    "owners": [ "jdonnelly@chromium.org", "chrome-desktop-search@google.com" ],
+    "expiry_milestone": 165
+  },
+  {
     "name": "omnibox-ui-max-autocomplete-matches",
     "owners": [ "jdonnelly@chromium.org", "chrome-omnibox-team@google.com" ],
     "expiry_milestone": 120
@@ -8312,6 +8317,11 @@
     "name": "persist-tab-context",
     "owners": [ "cloutierc@google.com", "nicolasmacbeth@google.com", "bling-alchemy-eng@google.com" ],
     "expiry_milestone": 160
+  },
+  {
+    "name": "persistent-widget-api",
+    "owners": [ "jarhar@chromium.org", "dom@chromium.org", "khushalsagar@chromium.org" ],
+    "expiry_milestone": 170
   },
   {
     "name": "picture-in-picture-moves-toolbar-android",
@@ -8852,6 +8862,14 @@
   },
   {
     "name": "safe-browsing-no-protection-suppress-warnings",
+    "owners": [
+      "vakh@chromium.org",
+      "chrome-counter-abuse-alerts@google.com"
+    ],
+    "expiry_milestone": 160
+  },
+  {
+    "name": "safe-browsing-no-protection-temporary",
     "owners": [
       "vakh@chromium.org",
       "chrome-counter-abuse-alerts@google.com"

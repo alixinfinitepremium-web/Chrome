@@ -89,6 +89,12 @@ inline constexpr char kOmniboxLoomName[] = "Enable Loom";
 inline constexpr char kOmniboxLoomDescription[] =
     "Enables experimental Loom features.";
 
+inline constexpr char kOmniboxTruncateSearchUrlName[] =
+    "Omnibox Truncate Search URL";
+inline constexpr char kOmniboxTruncateSearchUrlDescription[] =
+    "Truncates search URLs for the original query ('oq') and query ('q') "
+    "parameters across various length limits.";
+
 inline constexpr char kZeroSuggestPrefetchingForComposeboxName[] =
     "Zero suggest prefetching for composebox";
 inline constexpr char kZeroSuggestPrefetchingForComposeboxDescription[] =
@@ -2634,6 +2640,12 @@ inline constexpr char kSafeBrowsingLocalListsUseSBv5Description[] =
     "Fetch and check local lists using the Safe Browsing v5 API instead of the "
     "v4 Update API.";
 
+inline constexpr char kSafeBrowsingNoProtectionTemporaryName[] =
+    "Safe Browsing Temporary No Protection";
+inline constexpr char kSafeBrowsingNoProtectionTemporaryDescription[] =
+    "Enables temporary 24-hour Safe Browsing opt-out mode with automatic "
+    "reversion to the previous protection level.";
+
 inline constexpr char kSafeBrowsingNoProtectionSuppressWarningsName[] =
     "Safe Browsing Suppress Dangerous File Warnings in No Protection";
 inline constexpr char kSafeBrowsingNoProtectionSuppressWarningsDescription[] =
@@ -4212,6 +4224,12 @@ inline constexpr char kPermissionsAIv4Description[] =
     "permission notification requests using a quieter UI when the likelihood "
     "of the user granting the permission is predicted to be low. Requires "
     "`Make Searches and Browsing Better` to be enabled.";
+
+inline constexpr char kPersistentWidgetAPIName[] = "Persistent Widget API";
+inline constexpr char kPersistentWidgetAPIDescription[] =
+    "Enables the <persistentwidget> element, which is like an <iframe> but "
+    "can stay alive without reloading when its opener/embedder navigates "
+    "from one same-origin document to another.";
 
 inline constexpr char kReportNotificationContentDetectionDataName[] =
     "Option to report notifications to Google";

@@ -260,6 +260,13 @@ void TabGroupView::OnAnimationEnded() {
   }
 }
 
+bool TabGroupView::IsAnimationAllowed() {
+  if (!collection_node_) {
+    return false;
+  }
+  return collection_node_->GetController()->IsAnimationAllowed();
+}
+
 bool TabGroupView::IsValid() const {
   return collection_node_;
 }
@@ -544,6 +551,10 @@ bool TabGroupView::IsGroupFocused() const {
   }
   return collection_node_->GetController()->GetFocusedGroup() ==
          GetTabGroup().id();
+}
+
+bool TabGroupView::IsUnfocusButtonFocused() const {
+  return unfocus_header_ && unfocus_header_->HasFocus();
 }
 
 HorizontalTabClosingHelper* TabGroupView::GetTabClosingHelper() const {

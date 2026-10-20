@@ -2199,6 +2199,39 @@ suite('OmniboxPopupSearchboxTest', function() {
    }
  });
 
+ test('EscapeStagedUnwinding_UnelidedUrlClosesDirectly', async () => {
+   // When the URL is unelided without user edits (`userInputInProgress: false`,
+   // `showFullUrl: true`) and the dropdown is closed, pressing Escape should
+   // skip Stage 3 (`kClearUserInput`) and directly execute Stage 4 (`kBlur`).
+   const permanentDisplayText = 'example.com';
+   const fullUrl = 'https://example.com/';
+   callbackRouter.setInputState(createDefaultOmniboxInputState({
+     sequenceNumber: 9,
+     text: permanentDisplayText,
+     selection: {start: 0, end: permanentDisplayText.length},
+     userInputInProgress: false,
+     fullUrl: fullUrl,
+     isFocused: true,
+     permanentDisplayText: permanentDisplayText,
+     showFullUrl: true,
+   }));
+   await microtasksFinished();
+
+   assertEquals(fullUrl, searchbox.getInputElement().inputElement.value);
+
+   await searchbox.handleKeyNavigation(new KeyboardEvent('keydown', {
+     key: 'Escape',
+     cancelable: true,
+   }));
+   await microtasksFinished();
+
+   assertEquals(1, handler.getCallCount('revert'));
+   assertEquals(1, handler.getCallCount('closeUI'));
+   assertEquals(1, handler.getCallCount('logEscapeAction'));
+   assertEquals(
+       OmniboxEscapeAction.kBlur, handler.getArgs('logEscapeAction')[0]);
+ });
+
  test('EscapeStagedUnwinding_ClearedInputNonEmptyUrl', async () => {
    // Input was manually cleared ('') on a page with a non-empty permanent URL.
    // ESC should restore the permanent URL ('example.com') without closing UI.
@@ -5736,6 +5769,111 @@ suite('OmniboxPopupSearchboxTest', function() {
    assertDeepEquals(emphasis, searchbox.$.input.urlEmphasis);
  });
 
+ // The #mirror (which renders unselected text with URL emphasis) sits beneath
+ // the input (which renders the caret and selected text). Both layers must
+ // share the same horizontal box and scroll offset, or else long text that
+ // overflows the input ends up drawn twice, misaligned. In RTL UIs, URLs are
+ // still laid out LTR (the input and #mirror get dir="ltr"), so these tests
+ // also check that the input stays flush with the icon on the leading side.
+
+ // Sets a URL long enough to overflow the input, with the caret at its end
+ // (which scrolls the input to its max scroll offset).
+ async function setLongUrlWithCaretAtEnd() {
+   const text = 'https://example.com/' +
+       'foo/bar/baz/eggs/spam/'.repeat(20);
+   callbackRouter.setInputState(createDefaultOmniboxInputState({
+     text,
+     urlEmphasis: {
+       deemphasisMode: UrlDeemphasisMode.kAllButHost,
+       textIsUrl: true,
+       schemeRange: {start: 0, end: 5},
+       hostRange: {start: 8, end: 19},
+       schemeStrikeThrough: false,
+       schemeDangerous: false,
+     },
+     selection: {start: text.length, end: text.length},
+     isFocused: true,
+   }));
+   await microtasksFinished();
+ }
+
+ function assertMirrorAlignedWithInput(uiDir: string, step: string) {
+   const input = searchbox.$.input.inputElement;
+   const mirror = $$<HTMLElement>(searchbox.$.input, '#mirror');
+   assertTrue(!!mirror, step);
+   assertTrue(isVisible(mirror), step);
+   // The UI direction applies to the container, while the URL itself is laid
+   // out LTR.
+   assertEquals(uiDir, getComputedStyle(mirror.parentElement!).direction, step);
+   assertEquals('ltr', getComputedStyle(input).direction, step);
+   assertEquals('ltr', getComputedStyle(mirror).direction, step);
+   assertTrue(input.scrollLeft > 0, `${step}: input should be scrolled`);
+
+   const iconRect = searchbox.$.input.$.icon.getBoundingClientRect();
+   const inputRect = input.getBoundingClientRect();
+   const mirrorRect = mirror.getBoundingClientRect();
+   assertEquals(
+       uiDir === 'ltr' ? iconRect.right : iconRect.left,
+       uiDir === 'ltr' ? inputRect.left : inputRect.right,
+       `${step}: leading edge`);
+   assertEquals(inputRect.left, mirrorRect.left, `${step}: left edge`);
+   assertEquals(inputRect.right, mirrorRect.right, `${step}: right edge`);
+   assertEquals(input.clientWidth, mirror.clientWidth, `${step}: clientWidth`);
+   assertEquals(input.scrollLeft, mirror.scrollLeft, `${step}: scrollLeft`);
+ }
+
+ [false, true].forEach(aimButtonVisible => {
+   ['ltr', 'rtl'].forEach(uiDir => {
+     test(
+         `MirrorAlignsWithScrolledInput_AimButton${
+             aimButtonVisible ? 'Visible' : 'Hidden'}_${uiDir.toUpperCase()}`,
+         async () => {
+           // `searchbox` is recreated for every test, so this doesn't leak.
+           searchbox.dir = uiDir;
+           testProxy.page.setAimButtonVisible(aimButtonVisible);
+           await microtasksFinished();
+
+           await setLongUrlWithCaretAtEnd();
+           assertEquals(aimButtonVisible, isVisible(searchbox.$.composeButton));
+
+           // The caret is at the end of the overflowing text, so the input is
+           // scrolled to (about) its max scroll offset. scrollLeft can be
+           // fractional while scrollWidth and clientWidth are rounded.
+           const input = searchbox.$.input.inputElement;
+           assertTrue(
+               input.scrollLeft >= input.scrollWidth - input.clientWidth - 1);
+           assertMirrorAlignedWithInput(uiDir, 'caret at end');
+         });
+   });
+ });
+
+ // The AIM button can be shown/hidden while a URL is already displayed (e.g.
+ // by toggling "Always show AI Mode" in the omnibox context menu), which
+ // resizes the input (and thus may re-clamp its scroll offset) in place.
+ ['ltr', 'rtl'].forEach(uiDir => {
+   test(
+       `MirrorAlignsWithScrolledInputWhenAimButtonToggled_${
+           uiDir.toUpperCase()}`,
+       async () => {
+         searchbox.dir = uiDir;
+         testProxy.page.setAimButtonVisible(true);
+         await microtasksFinished();
+         await setLongUrlWithCaretAtEnd();
+         assertTrue(isVisible(searchbox.$.composeButton));
+         assertMirrorAlignedWithInput(uiDir, 'initially visible');
+
+         testProxy.page.setAimButtonVisible(false);
+         await microtasksFinished();
+         assertFalse(isVisible(searchbox.$.composeButton));
+         assertMirrorAlignedWithInput(uiDir, 'after hiding');
+
+         testProxy.page.setAimButtonVisible(true);
+         await microtasksFinished();
+         assertTrue(isVisible(searchbox.$.composeButton));
+         assertMirrorAlignedWithInput(uiDir, 'after showing again');
+       });
+ });
+
  test('UpdatesUrlEmphasisFromAutocompleteMatchOnTextInput', async () => {
    const matchEmphasis: UrlEmphasis = {
      deemphasisMode: UrlDeemphasisMode.kAllButHost,
@@ -6192,32 +6330,20 @@ suite('OmniboxPopupSearchboxTest', function() {
      alignmentInsetHorizontal:
          loadTimeData.getInteger('alignmentInsetHorizontal'),
      alignmentInsetBottom: loadTimeData.getInteger('alignmentInsetBottom'),
-     locationBarHeight: loadTimeData.getInteger('locationBarHeight'),
-     locationBarFontSize: loadTimeData.getInteger('locationBarFontSize'),
-     locationBarIconSize: loadTimeData.getInteger('locationBarIconSize'),
-     locationBarPageInfoIconVerticalPadding:
-         loadTimeData.getInteger('locationBarPageInfoIconVerticalPadding'),
    };
 
    // Verify searchbox in `setup()` initialized its inline styles with the
-   // C++ layout constants provided by `OmniboxPopupUI`.
+   // C++ alignment insets provided by `OmniboxPopupUI`.
    assertEquals(
        `${originalConstants.alignmentInsetTop}px`,
        searchbox.style.getPropertyValue('--alignment-inset-top'));
-   assertEquals(
-       `${originalConstants.locationBarHeight}px`,
-       searchbox.style.getPropertyValue('--cr-searchbox-height'));
 
-   // Override `loadTimeData` with custom layout constants and verify a newly
+   // Override `loadTimeData` with custom alignment insets and verify a newly
    // connected searchbox applies them as inline style custom properties.
    loadTimeData.overrideValues({
      alignmentInsetTop: 10,
      alignmentInsetHorizontal: 12,
      alignmentInsetBottom: 8,
-     locationBarHeight: 40,
-     locationBarFontSize: 16,
-     locationBarIconSize: 22,
-     locationBarPageInfoIconVerticalPadding: 6,
    });
 
    const testSearchbox = document.createElement('omnibox-popup-searchbox');
@@ -6231,19 +6357,27 @@ suite('OmniboxPopupSearchboxTest', function() {
        testSearchbox.style.getPropertyValue('--alignment-inset-horizontal'));
    assertEquals(
        '8px', testSearchbox.style.getPropertyValue('--alignment-inset-bottom'));
+
+   // Shared layout constants come from `layout_constants_v0.css` and map to
+   // `--cr-searchbox-*` variables on the host.
+   testSearchbox.style.setProperty('--location-bar-height', '40px');
+   testSearchbox.style.setProperty('--omnibox-primary-font-size', '16px');
+   testSearchbox.style.setProperty('--location-bar-icon-size', '22px');
+   testSearchbox.style.setProperty(
+       '--location-bar-page-info-icon-vertical-padding', '6px');
+   const hostStyle = getComputedStyle(testSearchbox);
    assertEquals(
-       '40px', testSearchbox.style.getPropertyValue('--cr-searchbox-height'));
+       '40px', hostStyle.getPropertyValue('--cr-searchbox-height').trim());
    assertEquals(
-       '16px',
-       testSearchbox.style.getPropertyValue('--cr-searchbox-font-size'));
+       '16px', hostStyle.getPropertyValue('--cr-searchbox-font-size').trim());
    assertEquals(
        '22px',
-       testSearchbox.style.getPropertyValue(
-           '--cr-searchbox-icon-size-in-searchbox'));
+       hostStyle.getPropertyValue('--cr-searchbox-icon-size-in-searchbox')
+           .trim());
+   assertEquals('40px', hostStyle.height);
+   assertEquals('16px', hostStyle.fontSize);
    assertEquals(
-       '6px',
-       testSearchbox.style.getPropertyValue(
-           '--location-bar-page-info-icon-vertical-padding'));
+       '28px', getComputedStyle(testSearchbox.$.input.inputElement).height);
 
    testSearchbox.remove();
    // Restore original values so `loadTimeData` does not leak into other tests.

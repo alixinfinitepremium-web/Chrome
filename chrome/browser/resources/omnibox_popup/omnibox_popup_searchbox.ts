@@ -399,6 +399,8 @@ export class OmniboxPopupSearchboxElement extends
     if (!loadTimeData.valueExists('alignmentInsetTop')) {
       return;
     }
+    // Shared layout constants and fonts come from layout_constants_v0.css,
+    // linked in omnibox_popup_full.html.
     this.style.setProperty(
         '--alignment-inset-top',
         `${loadTimeData.getInteger('alignmentInsetTop')}px`);
@@ -408,20 +410,6 @@ export class OmniboxPopupSearchboxElement extends
     this.style.setProperty(
         '--alignment-inset-bottom',
         `${loadTimeData.getInteger('alignmentInsetBottom')}px`);
-    this.style.setProperty(
-        '--cr-searchbox-height',
-        `${loadTimeData.getInteger('locationBarHeight')}px`);
-    this.style.setProperty(
-        '--cr-searchbox-font-size',
-        `${loadTimeData.getInteger('locationBarFontSize')}px`);
-    this.style.setProperty(
-        '--cr-searchbox-icon-size-in-searchbox',
-        `${loadTimeData.getInteger('locationBarIconSize')}px`);
-    this.style.setProperty(
-        '--location-bar-page-info-icon-vertical-padding',
-        `${
-            loadTimeData.getInteger(
-                'locationBarPageInfoIconVerticalPadding')}px`);
   }
 
   override connectedCallback() {
@@ -2164,7 +2152,8 @@ export class OmniboxPopupSearchboxElement extends
     // Omnibox.
     const isInputDirty = this.userInputInProgress_ ||
         this.keywordModeManager.isInKeywordMode ||
-        inputEl.inputElement.value !== this.permanentDisplayText_;
+        inputEl.inputElement.value !==
+            (this.fullUrlShown_ ? this.fullUrl_ : this.permanentDisplayText_);
     if (isInputDirty) {
       const wasAlreadyEmpty = inputEl.inputElement.value.length === 0 &&
           !this.keywordModeManager.isInKeywordMode;
@@ -2194,6 +2183,11 @@ export class OmniboxPopupSearchboxElement extends
 
     // Stage 4 (`kBlur`): Blurs Omnibox and closes UI, returning focus to Web
     // Contents.
+    if (this.fullUrlShown_) {
+      // Revert the native omnibox view in case it was unelided (e.g. via drag)
+      // so closing the popup restores the elided URL.
+      this.popupPageHandler_.revert(this.currentSequenceNum_);
+    }
     inputEl.blur();
     this.popupPageHandler_.closeUI();
     this.popupPageHandler_.logEscapeAction(OmniboxEscapeAction.kBlur);

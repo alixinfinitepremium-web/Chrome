@@ -1583,7 +1583,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_x86_64',
-          'version': 'version:2@1716106',
+          'version': 'version:2@1717085',
         },
       ],
   },
@@ -1694,7 +1694,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_mac_amd64',
-          'version': 'yakLV2Rs4L8AYPmnPTaMYtBPi1ieVinYpKR9caT--ekC',
+          'version': '9b2xYMx5xtBL4dmJpP64XeWApVSljyhpYxBBV-KhQPsC',
         },
       ],
   },
@@ -1705,7 +1705,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_mac_arm64',
-          'version': 'bcbFK6YJa8fr5Qaby6n4vesuss8F2WsJGu6HljtaIsMC',
+          'version': 'e-9taQORsqwv2dNo3tBssHQw4f7z68HoT2-RcIfsDWEC',
         },
       ],
   },
@@ -1716,7 +1716,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/enterprise_companion/chromium_win_x86',
-          'version': 'XecqwxWJghLgpbkPvx_sX5Lf1pM-t86QGAopJ7eXUFIC',
+          'version': 'r1i5Azz7FLIlmnfuumi7-ySEUPambXNavoDcbSlL0M0C',
         },
       ],
   },
@@ -1763,7 +1763,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': '5gPOtIM8d4dCyIo9Kc0vkiNdEuZVk-j8TN7WzkO6vYUC',
+        'version': 'kyBtQvdvv5ZKrMoLfXQDsZPD0cMDYQob7ZB_ogXd_coC',
       },
     ],
     'condition': 'non_git_source',
@@ -2266,7 +2266,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'adc980f99321774eacdec2efe93308d7b23a6c12',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'b184a46054cc2ca5e4eff2ebf4de3dff7603b6f0',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -2281,7 +2281,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '10658a65d7c2dd988c1a8a81ed2efacdb4a355d3',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '73255cf0ecd4318ec10edb7a6ee7fffe12466c50',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '173b9b26e8fcbcbe64e1ecbf073a21a96b95c6b1',
@@ -2868,7 +2868,7 @@ deps = {
     Var('chromium_git') + '/chromium/third_party/openh264rs.git' + '@' + Var('openh264rs_revision'),
 
   'src/third_party/openscreen/src':
-    Var('chromium_git') + '/openscreen' + '@' + '5627a2f4b33e6ecbec61ff067fe29b30c4a8dbdf',
+    Var('chromium_git') + '/openscreen' + '@' + 'f254e6559f7557aafa8b454fa16cb72dd46c82c3',
 
   'src/third_party/openxr/src': {
     'url': Var('chromium_git') + '/external/github.com/KhronosGroup/OpenXR-SDK' + '@' + '75c53b6e853dc12c7b3c771edc9c9c841b15faaa',
@@ -3275,13 +3275,13 @@ deps = {
       ],
   },
 
-  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@95c2b76985fc9c94b8142a2dd4de5608db20687c',
-  'src/third_party/glslang/src': '{chromium_git}/external/github.com/KhronosGroup/glslang@5cf91e73b01ce835d281a9c3b3d9158f7f74ff86',
+  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@3bf4faecf9a5ad6fc45aba33dec59fb2db5bd466',
+  'src/third_party/glslang/src': '{chromium_git}/external/github.com/KhronosGroup/glslang@73b25650df6dc4545966674531e6b7cc8f5d2407',
   'src/third_party/spirv-cross/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Cross@b8fcf307f1f347089e3c46eb4451d27f32ebc8d3',
   'src/third_party/spirv-headers/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Headers@86f980c731e62ae4eaf383d320449d71687936bf',
   'src/third_party/spirv-tools/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Tools@71f287f18ed78d496e724fbfb1c3feae3a2af75a',
   'src/third_party/vulkan-headers/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Headers@acbb9391c0a597272800cd3f4363661c00a27c77',
-  'src/third_party/vulkan-loader/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Loader@52fc9f97bb62f9002a3498a48f2d2dcfd8b2df0f',
+  'src/third_party/vulkan-loader/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Loader@44b599a5c5fd3c29d86f1d05ffe9e72c65e5b743',
   'src/third_party/vulkan-tools/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Tools@a967170a2b8a1ded4dbdf82d533caaec89184efe',
   'src/third_party/vulkan-utility-libraries/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Utility-Libraries@90738f6edfa19561a978fc5f97543ba37075ba9d',
   'src/third_party/vulkan-validation-layers/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-ValidationLayers@f77d3508235dbec1da0e0ce958c675b0b62a8bab',
@@ -3640,7 +3640,7 @@ deps = {
 
   'src/chrome/browser/glic/e2e_test/internal': {
       'url': Var('chrome_git') + '/chrome/browser/glic/test/internal.git' + '@' +
-        '9beb61b8f7b366f4e38b4626eb61b8645e4f2fb9',
+        '05c3141646b47d2e915989db7f51ab09921e585b',
       'condition': 'checkout_glic_e2e_tests',
   },
 
@@ -3945,7 +3945,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '40c3cad32e789384d77d64a7eaf96e28ac20cbcc',
+        '25aab0376c978fb24809c3102c7bc6563e4f22ed',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 

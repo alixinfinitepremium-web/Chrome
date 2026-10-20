@@ -1728,6 +1728,11 @@ class ActionAppMenuWithSearchTest : public ActionAppMenuTest {
 
  protected:
   // Finds the search bar's child views by their element identifiers.
+  views::Textfield* GetSearchField(AppMenuSearchBarView* search_bar) {
+    return views::AsViewClass<views::Textfield>(search_bar->GetViewByElementId(
+        AppMenuSearchBarView::kSearchFieldElementId));
+  }
+
   views::View* GetSearchIcon(AppMenuSearchBarView* search_bar) {
     return search_bar->GetViewByElementId(
         AppMenuSearchBarView::kSearchIconElementId);
@@ -1765,12 +1770,14 @@ TEST_F(ActionAppMenuWithSearchTest, SearchBarEnabledWithFeatureFlag) {
   EXPECT_EQ(search_item->children()[0], search_bar);
   EXPECT_EQ(search_item->GetTopMargin(), 0);
 
-  const gfx::Insets* search_bar_margins =
-      search_bar->GetProperty(views::kMarginsKey);
-  ASSERT_TRUE(search_bar_margins);
-  EXPECT_EQ(*search_bar_margins, provider->GetInsetsMetric(
-                                     INSETS_ACTION_APP_MENU_SEARCH_BAR_MARGIN));
-  EXPECT_EQ(*search_bar_margins, gfx::Insets::TLBR(0, 12, 12, 12));
+  views::Textfield* search_field = GetSearchField(search_bar);
+  const gfx::Insets* search_field_margins =
+      search_field->GetProperty(views::kMarginsKey);
+  ASSERT_TRUE(search_field_margins);
+  EXPECT_EQ(
+      *search_field_margins,
+      provider->GetInsetsMetric(INSETS_ACTION_APP_MENU_SEARCH_BAR_MARGIN));
+  EXPECT_EQ(*search_field_margins, gfx::Insets::TLBR(0, 12, 12, 12));
 
   // The block section item follows the search bar and has 0dp top margin.
   views::MenuItemView* block_item = root->GetSubmenu()->GetMenuItemAt(1);
@@ -1793,33 +1800,33 @@ TEST_F(ActionAppMenuWithSearchTest, SearchBarEnabledWithFeatureFlag) {
   ASSERT_NE(icon, nullptr);
 
   EXPECT_TRUE(search_bar->GetText().empty());
-  EXPECT_EQ(search_bar->GetPlaceholderText(),
+  EXPECT_EQ(search_field->GetPlaceholderText(),
             l10n_util::GetStringUTF16(IDS_APP_MENU_SEARCH_PLACEHOLDER));
-  EXPECT_EQ(search_bar->GetPlaceholderText(),
+  EXPECT_EQ(search_field->GetPlaceholderText(),
             u"Search menu, or type an action");
-  EXPECT_EQ(search_bar->placeholder_text_color_id(),
+  EXPECT_EQ(search_field->placeholder_text_color_id(),
             ui::kColorTextfieldForegroundPlaceholder);
   EXPECT_TRUE(icon->GetVisible());
 
   // Verify empty border with insets and background is transparent.
-  ASSERT_NE(search_bar->GetBorder(), nullptr);
+  ASSERT_NE(search_field->GetBorder(), nullptr);
   int icon_size =
       provider->GetDistanceMetric(DISTANCE_ACTION_APP_MENU_DEFAULT_ICON_SIZE);
   int icon_padding = 12;
   int icon_text_spacing =
       provider->GetDistanceMetric(DISTANCE_RELATED_CONTROL_HORIZONTAL_SMALL);
   int left_inset = icon_padding + icon_size + icon_text_spacing;
-  EXPECT_EQ(search_bar->GetBorder()->GetInsets(),
+  EXPECT_EQ(search_field->GetBorder()->GetInsets(),
             gfx::Insets::TLBR(6, left_inset, 6, 12));
-  EXPECT_EQ(search_bar->GetBackgroundColor(), SK_ColorTRANSPARENT);
+  EXPECT_EQ(search_field->GetBackgroundColor(), SK_ColorTRANSPARENT);
 
-  // Verify inkdrop is enabled on the search bar.
-  EXPECT_EQ(views::InkDrop::Get(search_bar)->GetMode(),
+  // Verify inkdrop is enabled on the search field.
+  EXPECT_EQ(views::InkDrop::Get(search_field)->GetMode(),
             views::InkDropHost::InkDropMode::ON);
 
   // The search bar is active and focused initially when added to the menu.
   EXPECT_TRUE(search_bar->is_active_for_testing());
-  EXPECT_TRUE(search_bar->GetCursorEnabled());
+  EXPECT_TRUE(search_field->GetCursorEnabled());
 
   // Pressing Down arrow deactivates search bar focus for menu navigation.
   ui::KeyEvent down_key(ui::EventType::kKeyPressed, ui::VKEY_DOWN, ui::EF_NONE);
@@ -1827,11 +1834,11 @@ TEST_F(ActionAppMenuWithSearchTest, SearchBarEnabledWithFeatureFlag) {
   EXPECT_FALSE(search_bar->is_active_for_testing());
 
   // Mouse press re-focuses the textfield and enables the cursor.
-  EXPECT_TRUE(search_bar->OnMousePressed(ui::MouseEvent(
+  EXPECT_TRUE(search_field->OnMousePressed(ui::MouseEvent(
       ui::EventType::kMousePressed, gfx::Point(), gfx::Point(),
       base::TimeTicks(), ui::EF_LEFT_MOUSE_BUTTON, ui::EF_LEFT_MOUSE_BUTTON)));
   EXPECT_TRUE(search_bar->is_active_for_testing());
-  EXPECT_TRUE(search_bar->GetCursorEnabled());
+  EXPECT_TRUE(search_field->GetCursorEnabled());
 
   // Type text: icon remains visible and text appears.
   ui::KeyEvent key_event(ui::EventType::kKeyPressed, ui::VKEY_A, ui::EF_NONE);
@@ -2065,7 +2072,7 @@ TEST_F(ActionAppMenuWithSearchTest, BackButtonRestoresNormalMenu) {
   search_bar->SetText(u"Downloads");
   ASSERT_TRUE(GetBackButton(search_bar)->GetVisible());
   ASSERT_FALSE(search_bar->GetText().empty());
-  ASSERT_TRUE(search_bar->GetCursorEnabled());
+  ASSERT_TRUE(GetSearchField(search_bar)->GetCursorEnabled());
   ASSERT_EQ(root->GetMenuItemByID(kActionPrint), nullptr);
 
   views::test::ButtonTestApi(GetBackButton(search_bar))
@@ -2074,7 +2081,7 @@ TEST_F(ActionAppMenuWithSearchTest, BackButtonRestoresNormalMenu) {
   EXPECT_FALSE(GetBackButton(search_bar)->GetVisible());
   EXPECT_TRUE(GetSearchIcon(search_bar)->GetVisible());
   EXPECT_TRUE(search_bar->GetText().empty());
-  EXPECT_TRUE(search_bar->GetCursorEnabled());
+  EXPECT_TRUE(GetSearchField(search_bar)->GetCursorEnabled());
   EXPECT_EQ(submenu->children().size(), row_count_at_open);
   EXPECT_NE(root->GetMenuItemByID(kActionPrint), nullptr);
 
@@ -4364,6 +4371,113 @@ TEST_F(ActionAppMenuTest,
   EXPECT_EQ(
       split_action->GetChildren().children()[0]->GetActionItem()->GetText(),
       u"Restore split view");
+}
+
+TEST_F(ActionAppMenuTest, AllMenuItemsHandledInMetrics) {
+  FaviconServiceFactory::GetInstance()->SetTestingFactory(
+      profile_.get(), base::BindRepeating([](content::BrowserContext* context)
+                                              -> std::unique_ptr<KeyedService> {
+        return std::make_unique<
+            testing::NiceMock<favicon::MockFaviconService>>();
+      }));
+
+  base::HistogramTester histogram_tester;
+  base::MockCallback<base::RepeatingClosure> on_menu_closed;
+
+  EXPECT_CALL(mock_action_invoked_, Call(testing::_, testing::_, testing::_))
+      .Times(testing::AnyNumber());
+
+  // Populate dynamic menus with sample items so their child actions are
+  // created.
+  auto* sync_service = static_cast<tab_groups::FakeTabGroupSyncService*>(
+      tab_groups::TabGroupSyncServiceFactory::GetForProfile(profile_.get()));
+  ASSERT_TRUE(sync_service);
+
+  base::Uuid local_guid = base::Uuid::GenerateRandomV4();
+  tab_groups::SavedTabGroupTab tab1(GURL("https://example.com/1"), u"Local Tab",
+                                    local_guid,
+                                    /*position=*/0);
+  tab_groups::SavedTabGroup local_group(
+      u"Local Group", tab_groups::TabGroupColorId::kBlue, {tab1},
+      /*position=*/std::nullopt, local_guid,
+      tab_groups::TabGroupId::GenerateNew());
+  sync_service->AddGroup(std::move(local_group));
+
+  base::Uuid remote_guid = base::Uuid::GenerateRandomV4();
+  tab_groups::SavedTabGroupTab tab2(GURL("https://example.com/2"),
+                                    u"Remote Tab", remote_guid,
+                                    /*position=*/0);
+  tab_groups::SavedTabGroup remote_group(
+      u"Remote Group", tab_groups::TabGroupColorId::kRed, {tab2},
+      /*position=*/std::nullopt, remote_guid);
+  sync_service->AddGroup(std::move(remote_group));
+
+  ActionAppMenu menu(&mock_window_interface_, on_menu_closed.Get());
+  menu.RunMenu(button_->button_controller(), views::MenuRunner::NO_FLAGS);
+  ASSERT_TRUE(menu.IsShowing());
+
+  views::MenuItemView* root = menu.root_menu_item_for_testing();
+  ASSERT_NE(root, nullptr);
+
+  // Recursively expand all submenus so dynamic items are generated.
+  auto expand_submenus = [&](this auto& self,
+                             views::MenuItemView* parent) -> void {
+    if (!parent || !parent->HasSubmenu()) {
+      return;
+    }
+    for (views::MenuItemView* child : parent->GetSubmenu()->GetMenuItems()) {
+      if (child->GetType() == views::MenuItemView::Type::kSubMenu) {
+        menu.WillShowMenu(child);
+        self(child);
+      }
+    }
+  };
+  expand_submenus(root);
+
+  // Collect all actionable menu items.
+  std::vector<views::MenuItemView*> actionable_items;
+  auto collect_items = [&](this auto& self,
+                           views::MenuItemView* parent) -> void {
+    if (!parent || !parent->HasSubmenu()) {
+      return;
+    }
+    for (views::MenuItemView* child : parent->GetSubmenu()->GetMenuItems()) {
+      if (child->GetType() == views::MenuItemView::Type::kNormal ||
+          child->GetType() == views::MenuItemView::Type::kCheckbox) {
+        actionable_items.push_back(child);
+      } else if (child->GetType() == views::MenuItemView::Type::kSubMenu) {
+        self(child);
+      }
+    }
+  };
+  collect_items(root);
+
+  EXPECT_FALSE(actionable_items.empty());
+
+  // Verify that each actionable menu item is handled in ActionAppMenuMetrics
+  // without hitting NOTREACHED().
+  for (views::MenuItemView* item : actionable_items) {
+    actions::BaseAction* action = menu.GetActionForMenuItemForTesting(item);
+    ASSERT_NE(action, nullptr);
+    const auto display_type =
+        action->GetProperty(AppMenuActionItem::kDisplayTypeKey);
+    if (display_type == AppMenuActionItem::DisplayType::kCustom) {
+      for (const auto& child_action : action->GetChildren().children()) {
+        actions::ActionItem* child_ptr = child_action->GetActionItem();
+        // Skip non-actionable labels like zoom percentage.
+        if (child_ptr->GetActionId() == kActionZoomNormal) {
+          continue;
+        }
+        ActionAppMenuMetrics metrics;
+        metrics.LogMenuAction(child_action.get());
+      }
+      continue;
+    }
+    ActionAppMenuMetrics metrics;
+    metrics.LogMenuAction(action);
+  }
+
+  menu.CloseMenu();
 }
 
 }  // namespace
