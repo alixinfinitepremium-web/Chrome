@@ -44,6 +44,21 @@
   padding: 24px 12px 20px 12px;
 }
 
+#logo {
+  align-items: center;
+  border-radius: 12px;
+  cursor: pointer;
+  display: flex;
+  height: 40px;
+  justify-content: center;
+  width: 40px;
+}
+
+#iconsContainer {
+  display: flex;
+  flex-direction: column;
+}
+
 cr-icon-button {
   --cr-icon-button-icon-size: 24px;
   --cr-icon-button-size: 40px;
@@ -55,4 +70,25 @@ cr-icon-button {
   display: flex;
   justify-content: center;
   margin: 0;
+}
+
+cr-tooltip {
+  --paper-tooltip-duration-in: 150ms;
+  --paper-tooltip-duration-out: 150ms;
+  --paper-tooltip-opacity: 1;
+}
+
+cr-tooltip::part(tooltip) {
+  align-items: center;
+  border-radius: 4px;
+  box-shadow: var(--cr-elevation-2);
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 400;
+  gap: 8px;
+  justify-content: center;
+  line-height: 16px;
+  min-width: 0;
+  padding: 2px 6px;
+  white-space: nowrap;
 }

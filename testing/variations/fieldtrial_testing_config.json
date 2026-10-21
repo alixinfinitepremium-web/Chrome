@@ -1976,8 +1976,7 @@
                         "AutofillEnableAiBasedAmountExtraction",
                         "AutofillEnableAmountExtraction",
                         "AutofillEnableBuyNowPayLater",
-                        "AutofillEnablePayNowPayLaterTabs",
-                        "AutofillEnableTouchToFillReshowForBnpl"
+                        "AutofillEnablePayNowPayLaterTabs"
                     ]
                 }
             ]
@@ -7988,6 +7987,23 @@
                     },
                     "enable_features": [
                         "FontDataServiceChromeOS"
+                    ]
+                }
+            ]
+        }
+    ],
+    "FontDataServiceForCSSLocalFonts": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled_20261021",
+                    "enable_features": [
+                        "FontDataServiceForCSSLocalFonts"
                     ]
                 }
             ]
@@ -16414,7 +16430,6 @@
         },
         {
             "platforms": [
-                "android",
                 "windows"
             ],
             "experiments": [
@@ -16424,6 +16439,27 @@
                         "dawn_backend_validation": "false",
                         "dawn_skip_validation": "true",
                         "dawn_use_persistent_cache": "true"
+                    },
+                    "enable_features": [
+                        "SkiaGraphite"
+                    ]
+                }
+            ]
+        },
+        {
+            "platforms": [
+                "android"
+            ],
+            "form_factors": [
+                "phone",
+                "tablet"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "params": {
+                        "dawn_backend_validation": "false",
+                        "dawn_skip_validation": "true"
                     },
                     "enable_features": [
                         "SkiaGraphite"

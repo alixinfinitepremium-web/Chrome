@@ -2317,20 +2317,6 @@ const FeatureEntry::FeatureVariation kNumSrpZpsRelatedSearches[] = {
 };
 
 #if !BUILDFLAG(IS_ANDROID)
-const FeatureEntry::FeatureParam kSidePanelFlyoverAnimationDuration250Ms[] = {
-    {"flyover_animation_duration_ms", "250"}};
-const FeatureEntry::FeatureParam kSidePanelFlyoverAnimationDuration300Ms[] = {
-    {"flyover_animation_duration_ms", "300"}};
-const FeatureEntry::FeatureParam kSidePanelFlyoverAnimationDuration350Ms[] = {
-    {"flyover_animation_duration_ms", "350"}};
-
-const FeatureEntry::FeatureVariation kSidePanelFlyoverAnimationVariations[] = {
-    {"- 250ms Duration", kSidePanelFlyoverAnimationDuration250Ms},
-    {"- 300ms Duration", kSidePanelFlyoverAnimationDuration300Ms},
-    {"- 350ms Duration", kSidePanelFlyoverAnimationDuration350Ms}};
-#endif
-
-#if !BUILDFLAG(IS_ANDROID)
 const FeatureEntry::FeatureParam kNtpCalendarModuleFakeData[] = {
     {ntp_features::kNtpCalendarModuleDataParam, "fake"}};
 const FeatureEntry::FeatureVariation kNtpCalendarModuleVariations[] = {
@@ -5941,6 +5927,11 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kTabGroupActionsSubmenusName,
      flag_descriptions::kTabGroupActionsSubmenusDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(chrome::android::kTabGroupActionsSubmenus)},
+    {"tab-group-context-menu-live-title-update",
+     flag_descriptions::kTabGroupContextMenuLiveTitleUpdateName,
+     flag_descriptions::kTabGroupContextMenuLiveTitleUpdateDescription,
+     kOsAndroid,
+     FEATURE_VALUE_TYPE(chrome::android::kTabGroupContextMenuLiveTitleUpdate)},
 #endif  // BUILDFLAG(IS_ANDROID)
     {"in-product-help-demo-mode-choice",
      flag_descriptions::kInProductHelpDemoModeChoiceName,
@@ -7405,19 +7396,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kNewHorizontalPinnedTabStylingDescription, kOsDesktop,
      FEATURE_VALUE_TYPE(tabs::kNewHorizontalPinnedTabStyling)},
 
-    {"side-panel-flyover-animation",
-     flag_descriptions::kSidePanelFlyoverAnimationName,
-     flag_descriptions::kSidePanelFlyoverAnimationDescription, kOsDesktop,
-     FEATURE_WITH_PARAMS_VALUE_TYPE(features::kSidePanelFlyoverAnimation,
-                                    kSidePanelFlyoverAnimationVariations,
-                                    "SidePanelFlyoverAnimation")},
-
-    {"use-default-deadline-when-animating-bounds",
-     flag_descriptions::kUseDefaultDeadlineWhenAnimatingBoundsName,
-     flag_descriptions::kUseDefaultDeadlineWhenAnimatingBoundsDescription,
-     kOsDesktop,
-     FEATURE_VALUE_TYPE(features::kUseDefaultDeadlineWhenAnimatingBounds)},
-
 #endif
 
 #if BUILDFLAG(IS_ANDROID)
@@ -7435,13 +7413,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kByDateHistoryInSidePanelDescription, kOsDesktop,
      FEATURE_VALUE_TYPE(features::kByDateHistoryInSidePanel)},
 #endif  // !BUILDFLAG(IS_ANDROID)
-
-#if BUILDFLAG(IS_MAC)
-    {"ca-display-link-in-browser",
-     flag_descriptions::kCADisplayLinkInBrowserName,
-     flag_descriptions::kCADisplayLinkInBrowserDescription, kOsMac,
-     FEATURE_VALUE_TYPE(display::features::kCADisplayLinkInBrowser)},
-#endif
 
 #if BUILDFLAG(IS_ANDROID)
     {"enable-share-custom-actions-in-cct",

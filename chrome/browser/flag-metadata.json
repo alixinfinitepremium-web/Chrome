@@ -1762,15 +1762,6 @@
       "expiry_milestone": 140
   },
   {
-    "name": "ca-display-link-in-browser",
-    "owners": [
-      "magchen@google.com",
-      "chrome-gpu@google.com"
-    ],
-    "expiry_milestone": 160
-  },
-
-  {
     "name": "camera-and-microphone-elements",
     "owners": [ "ravjit@chromium.org", "tungnh@chromium.org" ],
     "expiry_milestone": 160
@@ -9158,11 +9149,6 @@
     "expiry_milestone": 139
   },
   {
-    "name" : "side-panel-flyover-animation",
-    "owners": [ "dfried@google.com", "estalin@chromium.org", "dljames@chromium.org" ],
-    "expiry_milestone" : 160
-  },
-  {
     "name": "side-panel-top-hairline-refactor-android",
     "owners": ["nemco@google.com"],
     "expiry_milestone": 160
@@ -9562,6 +9548,11 @@
     "name": "tab-group-color-refresh",
     "owners": [ "dominicaustria@google.com", "top-chrome-desktop-ui@google.com" ],
     "expiry_milestone": 160
+  },
+  {
+    "name": "tab-group-context-menu-live-title-update",
+    "owners": [ "zheliooo@google.com", "clank-large-form-factors@google.com" ],
+    "expiry_milestone": 170
   },
   {
     "name": "tab-group-home",
@@ -9987,11 +9978,6 @@
     "name": "use-chime-android-sdk",
     "owners": [ "xingliu@chromium.org" ],
     "expiry_milestone": 102
-  },
-  {
-    "name" : "use-default-deadline-when-animating-bounds",
-    "owners": [ "dfried@google.com", "estalin@chromium.org", "dljames@chromium.org" ],
-    "expiry_milestone" : 160
   },
   {
     "name": "use-dhcpcd10",

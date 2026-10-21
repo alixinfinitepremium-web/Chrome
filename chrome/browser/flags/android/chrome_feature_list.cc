@@ -524,6 +524,7 @@ const base::Feature* const kFeaturesExposedToJava[] = {
     &kTabClosureCommittedMethodRefactor,
     &kTabClosureMethodRefactor,
     &kTabGroupActionsSubmenus,
+    &kTabGroupContextMenuLiveTitleUpdate,
     &kTabOpenerTracking,
     &kTabSearchForDesktop,
     &kTabSharingToolbarAndroid,
@@ -710,7 +711,7 @@ BASE_FEATURE(kAndroidNewManagementNotice, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kAndroidNewTabButtonTabstripWebUI, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kAndroidOmniboxFocusedNewTabPage, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kAndroidOpenIncognitoAsWindowRestrictions, base::FEATURE_ENABLED_BY_DEFAULT);
-BASE_FEATURE(kAndroidPageInfoAsAppMenuItem, base::FEATURE_DISABLED_BY_DEFAULT);
+BASE_FEATURE(kAndroidPageInfoAsAppMenuItem, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kAndroidProgressBarVisualUpdate, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kAndroidSaveCardNonBlockingDialog, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kAndroidSetGoogleAccountInHelp, base::FEATURE_ENABLED_BY_DEFAULT);
@@ -957,6 +958,7 @@ BASE_FEATURE(kTabBottomSheetResizeWebview, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kTabClosureCommittedMethodRefactor, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kTabClosureMethodRefactor, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kTabGroupActionsSubmenus, base::FEATURE_DISABLED_BY_DEFAULT);
+BASE_FEATURE(kTabGroupContextMenuLiveTitleUpdate, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kTabOpenerTracking, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kTabSearchForDesktop, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kTabSharingToolbarAndroid, base::FEATURE_DISABLED_BY_DEFAULT);

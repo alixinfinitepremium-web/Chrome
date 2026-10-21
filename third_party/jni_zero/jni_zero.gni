@@ -4,12 +4,11 @@
 
 import("//build/config/android/config.gni")
 import("//build/config/compiler/compiler.gni")
-import("//third_party/jdk/jdk.gni")
 if (is_android) {
   import("//build/config/android/rules.gni")
 }
 
-_JAVAP_PATH = "$android_jdk_home/bin/javap"
+_JAVAP_PATH = "//third_party/jdk/current/bin/javap"
 
 declare_args() {
   # Enables JNI multiplexing to reduce JNI native methods overhead. Component
@@ -682,7 +681,7 @@ template("generate_jni_impl") {
         ]
         if (_kt_proxy_sources != []) {
           sources = _kt_proxy_sources
-          deps += [ "//third_party/kotlin_stdlib:kotlin_stdlib_java" ]
+          deps += [ "//third_party/android_deps:kotlin_stdlib_java" ]
 
           # kotlinc gets java.* from the Android SDK (it runs with -no-jdk).
           requires_android = true

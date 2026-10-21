@@ -361,12 +361,6 @@ inline constexpr char kByDateHistoryInSidePanelName[] =
 inline constexpr char kByDateHistoryInSidePanelDescription[] =
     "If enabled, shows the 'By Date' History in Side Panel";
 
-inline constexpr char kCADisplayLinkInBrowserName[] =
-    "Enable CADisplayLink in the browser process";
-inline constexpr char kCADisplayLinkInBrowserDescription[] =
-    "Enable CADisplayLink in the browser process to sync Chrome's rendering "
-    "with the display refresh rate.";
-
 inline constexpr char kBlockingFocusWithoutUserActivationName[] =
     "Blocking Focus Without User Activation";
 inline constexpr char kBlockingFocusWithoutUserActivationDescription[] =
@@ -4564,20 +4558,6 @@ inline constexpr char kSplitViewHorizontalName[] = "Stacked Split Views";
 inline constexpr char kSplitViewHorizontalDescription[] =
     "Whether split views can be arranged in a stacked layout.";
 
-inline constexpr char kSidePanelFlyoverAnimationName[] =
-    "Side Panel Flyover Animation";
-inline constexpr char kSidePanelFlyoverAnimationDescription[] =
-    "Simplifies contents animations while animating vertical tabstrip and side "
-    "panels, reducing jank on most platforms. When enabled, the animating "
-    "elements will appear to float over the contents, which resize at the "
-    "beginning or end of the animation.";
-
-inline constexpr char kUseDefaultDeadlineWhenAnimatingBoundsName[] =
-    "Use Default Deadline Resizing Policy";
-inline constexpr char kUseDefaultDeadlineWhenAnimatingBoundsDescription[] =
-    "Use Default Deadline Resizing Policy when animating vertical tabstrip "
-    "and side panels.";
-
 inline constexpr char kTabGroupColorRefreshName[] = "Tab Group Color Refresh";
 inline constexpr char kTabGroupColorRefreshDescription[] =
     "Update the color selection for tab groups.";
@@ -6713,6 +6693,12 @@ inline constexpr char kTabGroupActionsSubmenusName[] =
 inline constexpr char kTabGroupActionsSubmenusDescription[] =
     "Enables action items and section header in tab group submenus in the "
     "app menu.";
+
+inline constexpr char kTabGroupContextMenuLiveTitleUpdateName[] =
+    "Tab group context menu live title update";
+inline constexpr char kTabGroupContextMenuLiveTitleUpdateDescription[] =
+    "Enables live updating of the tab group title on the tab strip as the user "
+    "types in the context menu title editor.";
 
 inline constexpr char kTabOpenerTrackingName[] = "Tab Opener Tracking";
 inline constexpr char kTabOpenerTrackingDescription[] =

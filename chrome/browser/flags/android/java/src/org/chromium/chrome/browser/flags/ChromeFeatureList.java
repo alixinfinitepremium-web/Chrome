@@ -836,6 +836,8 @@ public abstract class ChromeFeatureList {
             "TabClosureCommittedMethodRefactor";
     public static final String TAB_CLOSURE_METHOD_REFACTOR = "TabClosureMethodRefactor";
     public static final String TAB_GROUP_ACTIONS_SUBMENUS = "TabGroupActionsSubmenus";
+    public static final String TAB_GROUP_CONTEXT_MENU_LIVE_TITLE_UPDATE =
+            "TabGroupContextMenuLiveTitleUpdate";
     public static final String TAB_OPENER_TRACKING = "TabOpenerTracking";
     public static final String TAB_SEARCH_FOR_DESKTOP = "TabSearchForDesktop";
     public static final String TAB_SHARING_TOOLBAR_ANDROID = "TabSharingToolbarAndroid";
@@ -979,7 +981,7 @@ public abstract class ChromeFeatureList {
     public static final CachedFlag sAndroidOpenIncognitoAsWindowRestrictions =
             newCachedFlag(ANDROID_OPEN_INCOGNITO_AS_WINDOW_RESTRICTIONS, true);
     public static final CachedFlag sAndroidPageInfoAsAppMenuItem =
-            newCachedFlag(ANDROID_PAGE_INFO_AS_APP_MENU_ITEM, false, true);
+            newCachedFlag(ANDROID_PAGE_INFO_AS_APP_MENU_ITEM, true);
     public static final CachedFlag sAndroidProgressBarVisualUpdate =
             newCachedFlag(
                     ANDROID_PROGRESS_BAR_VISUAL_UPDATE,

@@ -51,6 +51,9 @@ export interface OrganizerListSectionItemActionButton {
 
   // Accessibility label.
   ariaLabel: string;
+
+  // Optional: Tooltip to display on hover.
+  tooltip?: string;
 }
 
 // Model for a single item in an organizer list section.
@@ -75,6 +78,11 @@ export interface OrganizerListSectionItem<T> {
   // when the item is hovered. Clicking on the button will call
   // onItemActionButtonClicked on the delegate.
   hoveredActionButton?: OrganizerListSectionItemActionButton;
+
+  // Optional: Whether this item should be prioritized to be shown when the
+  // section is truncated. If at least one item has this set to true, the
+  // count of items shown is increased by 1 (up to 4). Defaults to false.
+  alwaysShow?: boolean;
 
   // The size to render. Defaults to medium.
   size?: CrUrlListItemSize;
