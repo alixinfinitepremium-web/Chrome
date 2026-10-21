@@ -11189,6 +11189,7 @@
                     },
                     "enable_features": [
                         "ContextualTasksSidePanel",
+                        "ContextualTasksSidePanelDefaultRight",
                         "LensSidePanelUnification"
                     ]
                 }
@@ -12736,6 +12737,28 @@
                     },
                     "enable_features": [
                         "OnDeviceModelBackgroundDownload"
+                    ]
+                }
+            ]
+        }
+    ],
+    "OnDeviceModelEviction": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled_20261020",
+                    "params": {
+                        "retention_period": "30d"
+                    },
+                    "enable_features": [
+                        "OnDeviceModelEviction",
+                        "OnDeviceModelUsageTracking"
                     ]
                 }
             ]
@@ -19600,6 +19623,21 @@
                     "name": "Disabled",
                     "disable_features": [
                         "ConstructableStylesheetCache"
+                    ]
+                }
+            ]
+        }
+    ],
+    "WebViewContentRestrictionSupport": [
+        {
+            "platforms": [
+                "android_webview"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "WebViewContentRestrictionSupport"
                     ]
                 }
             ]

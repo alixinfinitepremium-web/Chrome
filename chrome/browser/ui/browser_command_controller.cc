@@ -673,6 +673,17 @@ void BrowserCommandController::HandleCommandWithDisposition(
     base::TimeTicks time_stamp) {
   DCHECK(IsCommandEnabled(id)) << "Invalid/disabled command " << id;
 
+  // LINT.IfChange
+  // ===========================================================================
+  // When adding a new command below, you MUST also create a corresponding
+  // declarative ActionItem in the modern Actions framework. (Pure ActionItems
+  // added without legacy IDC_* commands are allowed).
+  //
+  // Quick Guide:
+  // 1. Map ID in //chrome/browser/ui/actions/chrome_action_id.h:
+  //    E(kActionFoo, IDC_FOO)
+  // 2. Wire callback in BrowserActions::Initialize...() (browser_actions.cc).
+  // ===========================================================================
   // The order of commands in this switch statement must match the function
   // declaration order in browser.h!
   switch (id) {
@@ -1644,6 +1655,7 @@ void BrowserCommandController::HandleCommandWithDisposition(
       LOG(WARNING) << "Received Unimplemented Command: " << id;
       break;
   }
+  // LINT.ThenChange(//chrome/browser/ui/actions/chrome_action_id.h)
 }
 
 void BrowserCommandController::AddCommandObserver(int id,
@@ -2468,8 +2480,6 @@ void BrowserCommandController::UpdateCommandsForFullscreenMode() {
   command_updater_->UpdateCommandEnabled(IDC_CHROME_TIPS, show_main_ui);
   command_updater_->UpdateCommandEnabled(IDC_CHROME_WHATS_NEW, show_main_ui);
 #endif
-  command_updater_->UpdateCommandEnabled(IDC_CONTENT_CONTEXT_SHARING_SUBMENU,
-                                         show_main_ui);
   command_updater_->UpdateCommandEnabled(IDC_SHARING_HUB, show_main_ui);
   command_updater_->UpdateCommandEnabled(IDC_SHARING_HUB_SCREENSHOT,
                                          show_main_ui);

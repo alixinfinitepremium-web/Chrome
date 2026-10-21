@@ -515,6 +515,7 @@ IN_PROC_BROWSER_TEST_P(OmniboxAimPopupKeepOpenBrowserTest,
                        FileChooserCancellationReleasesDeactivationBlocker) {
   auto* content = ShowPopupAndGetWebUIContent();
   ASSERT_TRUE(content);
+  ASSERT_TRUE(content::WaitForLoadStop(content->GetWebContents()));
   auto* presenter = location_bar()->GetOmniboxPopupAimPresenter();
   ASSERT_TRUE(presenter);
   // Wait for popup state transition delayed task to finish.
@@ -634,6 +635,7 @@ IN_PROC_BROWSER_TEST_P(OmniboxAimPopupKeepOpenBrowserTest,
                        FileChooserSelectionReleasesDeactivationBlocker) {
   auto* content = ShowPopupAndGetWebUIContent();
   ASSERT_TRUE(content);
+  ASSERT_TRUE(content::WaitForLoadStop(content->GetWebContents()));
   auto* presenter = location_bar()->GetOmniboxPopupAimPresenter();
   ASSERT_TRUE(presenter);
 
@@ -1381,20 +1383,4 @@ IN_PROC_BROWSER_TEST_F(OmniboxAimPopupDeferCreationPendingBrowserTest,
   auto* menu_controller = views::MenuController::GetActiveInstance();
   ASSERT_TRUE(menu_controller);
   menu_controller->Cancel(views::MenuController::ExitType::kAll);
-}
-
-// A location bar action that selects an AIM tool opens AI Mode, which creates
-// the pending AIM content.
-IN_PROC_BROWSER_TEST_F(OmniboxAimPopupDeferCreationPendingBrowserTest,
-                       LocationBarActionCreatesAimContent) {
-  auto* aim_presenter = location_bar()->GetOmniboxPopupAimPresenter();
-  ASSERT_TRUE(aim_presenter);
-  ASSERT_FALSE(aim_presenter->GetWebUIContent());
-
-  actions::ActionItem* action = actions::ActionManager::Get().FindAction(
-      kActionOmniboxContextDeepResearch,
-      BrowserActions::From(browser())->root_action_item());
-  ASSERT_TRUE(action);
-  action->InvokeAction();
-  EXPECT_TRUE(aim_presenter->GetWebUIContent());
 }

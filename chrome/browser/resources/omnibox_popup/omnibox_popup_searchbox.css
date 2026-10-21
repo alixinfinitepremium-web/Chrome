@@ -160,10 +160,21 @@ cr-searchbox-input::part(mirror) {
   padding-top: 0;
 }
 
-/* On the shared container, so the gap follows the UI direction, and the input
- * and #mirror (both dir="ltr" for URLs) keep the same box. */
-:host(:not([aim-button-visible_])) cr-searchbox-input::part(mirror-container) {
-  margin-inline-end: 18px;
+/* Pad the input and #mirror alike, rather than adding a margin outside the
+ * input, so that the gap is part of the input's hit area: like in the Views
+ * omnibox, a click in it places the caret. Uses physical sides keyed off the
+ * UI direction, since URLs are laid out LTR (the input and #mirror get
+ * dir="ltr"), so that the gap stays at the end of the field in RTL UIs. */
+:host(:not([aim-button-visible_]):dir(ltr))
+    cr-searchbox-input::part(searchbox-input),
+:host(:not([aim-button-visible_]):dir(ltr)) cr-searchbox-input::part(mirror) {
+  padding-right: 18px;
+}
+
+:host(:not([aim-button-visible_]):dir(rtl))
+    cr-searchbox-input::part(searchbox-input),
+:host(:not([aim-button-visible_]):dir(rtl)) cr-searchbox-input::part(mirror) {
+  padding-left: 18px;
 }
 
 /* When the window is inactive (top container has focus), the selection should
@@ -315,12 +326,12 @@ omnibox-popup-contextual-entrypoint {
 }
 
 #composeButton {
-  --cr-button-height: 24px;
+  --cr-button-height: var(--cr-searchbox-input-height);
   align-self: center;
 }
 
 #composeButton::part(glow-container) {
-  height: 24px;
+  height: var(--cr-searchbox-input-height);
   /* .glow-container in searchbox_compose_button.css adds
    * padding-inline: 2px, so subtract 2px to place the button's edge at
    * --location-bar-trailing-decoration-aim-edge-padding. */
@@ -410,7 +421,7 @@ omnibox-popup-contextual-entrypoint {
 :host([aim-button-icon-only_]) #composeButton::part(compose-button) {
   border-radius: 50%;
   padding: 0;
-  /* Match width to height (24px) for a 1:1 circular icon button. */
+  /* Match width to height for a 1:1 circular icon button. */
   min-width: var(--cr-button-height);
   width: var(--cr-button-height);
 }

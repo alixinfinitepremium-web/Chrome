@@ -62,7 +62,7 @@ void EnsureScreenTimeReady() {
           }
           return [settings_observer valueForKey:kWebBrowserSettingsKey] != nil;
         });
-    DLOG_IF(WARNING, !ready)
+    LOG_IF(WARNING, !ready)
         << "Timed out waiting for ScreenTime configuration to become ready.";
     [observer stopObserving];
   }
