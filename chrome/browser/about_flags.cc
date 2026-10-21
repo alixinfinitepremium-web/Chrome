@@ -127,7 +127,6 @@
 #include "components/heavy_ad_intervention/heavy_ad_features.h"
 #include "components/history/core/browser/features.h"
 #include "components/history_clusters/core/config.h"
-#include "components/history_clusters/core/features.h"
 #include "components/history_clusters/core/on_device_clustering_features.h"
 #include "components/input/features.h"
 #include "components/language/core/common/language_experiments.h"
@@ -1341,20 +1340,6 @@ constexpr FeatureEntry::FeatureVariation
         {"without Auto Prompt",
          kHappinessTrackingSurveysForDesktopDemoWithoutAutoPrompt, nullptr}};
 #endif  // !BUILDFLAG(IS_ANDROID)
-
-const FeatureEntry::FeatureParam kJourneysShowAllVisitsParams[] = {
-    {"JourneysLocaleOrLanguageAllowlist", "*"},
-    // To show all visits, set the number of visits above the fold to a very
-    // high number.
-    {"JourneysNumVisitsToAlwaysShowAboveTheFold", "200"},
-};
-const FeatureEntry::FeatureParam kJourneysAllLocalesParams[] = {
-    {"JourneysLocaleOrLanguageAllowlist", "*"},
-};
-const FeatureEntry::FeatureVariation kJourneysVariations[] = {
-    {"No 'Show More' - Show all visits", kJourneysShowAllVisitsParams, nullptr},
-    {"All Supported Locales", kJourneysAllLocalesParams, nullptr},
-};
 
 const FeatureEntry::FeatureParam
     kLensAimSuggestionsTypeContextualWith3Suggestions[] = {
@@ -2926,12 +2911,9 @@ const FeatureEntry::FeatureVariation kEnableAndroidSidePanelVariations[] = {
 // The choices for the Send Tab To Self enhanced handoff experiment.
 const FeatureEntry::Choice kSendTabToSelfEnhancedHandoffChoices[] = {
     {flags_ui::kGenericExperimentChoiceDefault, "", ""},
-    {flags_ui::kGenericExperimentChoiceEnabled, switches::kEnableFeatures,
-     "SendTabToSelfExtraEntryPoints"},
     {"Enabled with fast-follows", switches::kEnableFeatures,
      "IPH_SendTabToSelfOmnibox,"
      "IPH_SendTabToSelfTutorial,"
-     "SendTabToSelfExtraEntryPoints,"
      "SendTabToSelfEnhancedDesktopUIv2,"
      "SendTabToSelfDynamicShortcuts,"
      "SendTabToSelfOpenNativeApp,"
@@ -2940,7 +2922,6 @@ const FeatureEntry::Choice kSendTabToSelfEnhancedHandoffChoices[] = {
      "SendTabToSelfMultiTabShare"},
     {flags_ui::kGenericExperimentChoiceDisabled, switches::kDisableFeatures,
      "IPH_SendTabToSelfOmnibox,"
-     "SendTabToSelfExtraEntryPoints,"
      "SendTabToSelfEnhancedDesktopUIv2,"
      "SendTabToSelfDynamicShortcuts,"
      "SendTabToSelfOpenNativeApp,"
@@ -6796,9 +6777,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kEapGtcWifiAuthenticationName,
      flag_descriptions::kEapGtcWifiAuthenticationDescription, kOsCrOS,
      FEATURE_VALUE_TYPE(ash::features::kEapGtcWifiAuthentication)},
-    {"eche-swa", flag_descriptions::kEcheSWAName,
-     flag_descriptions::kEcheSWADescription, kOsCrOS,
-     FEATURE_VALUE_TYPE(ash::features::kEcheSWA)},
     {"eche-swa-debug-mode", flag_descriptions::kEcheSWADebugModeName,
      flag_descriptions::kEcheSWADebugModeDescription, kOsCrOS,
      FEATURE_VALUE_TYPE(ash::features::kEcheSWADebugMode)},
@@ -7376,12 +7354,6 @@ const FeatureEntry kFeatureEntries[] = {
          omnibox::kVoiceSearchCoherenceComposeboxes,
          kVoiceSearchCoherenceComposeboxVariations,
          "VoiceSearchCoherenceComposeboxVariations")},
-
-    {"history-journeys", flag_descriptions::kJourneysName,
-     flag_descriptions::kJourneysDescription, kOsDesktop | kOsAndroid,
-     FEATURE_WITH_PARAMS_VALUE_TYPE(history_clusters::internal::kJourneys,
-                                    kJourneysVariations,
-                                    "HistoryJourneys")},
 
     {"annotated-page-content-extraction",
      flag_descriptions::kAnnotatedPageContentExtractionName,
@@ -12087,6 +12059,11 @@ const FeatureEntry kFeatureEntries[] = {
      FEATURE_WITH_PARAMS_VALUE_TYPE(switches::kCrossDeviceSigninFromDesktop,
                                     kCrossDeviceSigninFromDesktopVariations,
                                     "CrossDeviceSigninFromDesktop")},
+    {"cross-device-signin-from-desktop-followup",
+     flag_descriptions::kCrossDeviceSigninFromDesktopFollowupName,
+     flag_descriptions::kCrossDeviceSigninFromDesktopFollowupDescription,
+     kOsMac | kOsWin | kOsLinux,
+     FEATURE_VALUE_TYPE(switches::kCrossDeviceSigninFromDesktopFollowup)},
 #endif
 
 #if BUILDFLAG(IS_ANDROID)
@@ -14461,6 +14438,13 @@ const FeatureEntry kFeatureEntries[] = {
     {"persistent-widget-api", flag_descriptions::kPersistentWidgetAPIName,
      flag_descriptions::kPersistentWidgetAPIDescription, kOsAll,
      FEATURE_VALUE_TYPE(blink::features::kPersistentWidgetAPI)},
+
+#if BUILDFLAG(IS_CHROMEOS)
+    {"cross-fade-bounds-change-animation",
+     flag_descriptions::kCrossFadeBoundsChangeAnimationName,
+     flag_descriptions::kCrossFadeBoundsChangeAnimationDescription, kOsCrOS,
+     FEATURE_VALUE_TYPE(ash::features::kCrossFadeBoundsChangeAnimation)},
+#endif  // BUILDFLAG(IS_CHROMEOS)
 
     // Add new entries above this line.
     // NOTE: Adding a new flag requires adding a corresponding entry to enum

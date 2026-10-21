@@ -1494,6 +1494,18 @@ crbug.com/500774800 accessibility/customizable-select-option-text-replaced-crash
 crbug.com/500774800 accessibility/customizable-select-option-element-removed-crash.html [ Crash Failure ]
 crbug.com/500774799 accessibility/customizable-select-option-hidden-text-replaced-crash.html [ Crash ]
 
+# Reproductions for an image map moving to another image
+crbug.com/500774800 accessibility/image-map-aria-owns-001.html [ Crash Failure Timeout ]
+crbug.com/500774800 accessibility/image-map-aria-owns-002.html [ Crash Failure Timeout ]
+crbug.com/500774800 accessibility/image-map-identifier-changed-001.html [ Crash Failure Timeout ]
+crbug.com/500774800 accessibility/image-map-identifier-changed-002.html [ Crash Failure Timeout ]
+crbug.com/500774800 accessibility/image-map-inserted-or-removed-001.html [ Failure ]
+crbug.com/500774800 accessibility/image-map-inserted-or-removed-002.html [ Crash Failure Timeout ]
+crbug.com/500774800 accessibility/image-map-inserted-or-removed-003.html [ Crash Failure Timeout ]
+crbug.com/500774800 accessibility/image-map-inserted-or-removed-004.html [ Crash Failure Timeout ]
+crbug.com/500774800 accessibility/image-map-usemap-changed-001.html [ Crash Failure Timeout ]
+crbug.com/500774800 accessibility/image-map-usemap-changed-002.html [ Crash Failure ]
+
 # Temporarily disabled after chromium change
 crbug.com/492511 [ Mac ] virtual/text-antialias/atsui-negative-spacing-features.html [ Failure ]
 crbug.com/492511 [ Mac ] virtual/text-antialias/international/arabic-justify.html [ Failure ]
@@ -8637,7 +8649,6 @@ crbug.com/562895059 external/wpt/streams/readable-byte-streams/crashtests/from-c
 # Gardener 2026-09-24
 crbug.com/565447575 [ Linux ] external/wpt/webdriver/tests/bidi/browsing_context/navigate/error.py [ Failure Pass Timeout ]
 crbug.com/565447575 [ Linux ] external/wpt/webdriver/tests/bidi/external/bluetooth/simulate_characteristic/simulate_characteristic.py [ Failure Pass ]
-crbug.com/565447575 [ Linux ] external/wpt/webdriver/tests/bidi/input/perform_actions/pointer_mouse_multiclick.py [ Failure Pass ]
 crbug.com/559885106 [ Linux ] external/wpt/webdriver/tests/classic/new_session/unhandled_prompt_behavior.py [ Failure Pass ]
 
 # Gardener 2026-09-28
@@ -8693,3 +8704,7 @@ crbug.com/551670645 [ Win11 ] external/wpt/fedcm/fedcm-disconnect-iframe.sub.htt
 
 # Gardener 2026-10-19
 crbug.com/570886829 [ Mac ] external/wpt/css/css-contain/contain-size-flexbox-002.html [ Failure Pass ]
+
+# Gardener 2026-10-21
+crbug.com/568614666 [ Linux ] fast/events/middleClickAutoscroll-nested-divs.html [ Failure Pass Timeout ]
+

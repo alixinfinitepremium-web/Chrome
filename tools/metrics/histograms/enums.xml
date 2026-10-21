@@ -2776,6 +2776,7 @@ shown properly on the user-facing crash UI.
   <int value="0" label="ProfileMenu"/>
   <int value="1" label="HistoryPage"/>
   <int value="2" label="SendTabToSelf"/>
+  <int value="3" label="WhatsNewPage"/>
 </enum>
 
 <!-- LINT.ThenChange(//chrome/browser/signin/cross_device_signin_promo_manager.h:CrossDeviceSigninPromoEntryPoint) -->
@@ -12833,6 +12834,8 @@ from previous Chrome versions.
   <int value="-660160292" label="enable-apps-show-on-first-paint"/>
   <int value="-659763527" label="AccessCodeCastTabSwitchingUI:disabled"/>
   <int value="-659583494" label="AndroidTabSearchRecentTabs:enabled"/>
+  <int value="-658807577"
+      label="CrossDeviceSigninFromDesktopFollowup:disabled"/>
   <int value="-658543308" label="AndroidTabDeclutterArchiveTabGroups:enabled"/>
   <int value="-658319177" label="VaapiAV1Decoder:disabled"/>
   <int value="-657824773"
@@ -15552,6 +15555,7 @@ from previous Chrome versions.
   <int value="165912610"
       label="PrivateNetworkAccessForWorkersWarningOnly:enabled"/>
   <int value="165962668" label="EnablePreferencesAccountStorage:enabled"/>
+  <int value="167352908" label="CrossFadeBoundsChangeAnimation:enabled"/>
   <int value="167951987" label="TabAndroidGracefulShutdown:disabled"/>
   <int value="168025622" label="EnableInputEventLogging:enabled"/>
   <int value="168052820" label="PermissionsAndroidClapperQuiet:disabled"/>
@@ -17059,6 +17063,7 @@ from previous Chrome versions.
   <int value="631136125" label="EnableDefaultAppsMigration:enabled"/>
   <int value="631315985" label="SyncSessionOnVisibilityChanged:disabled"/>
   <int value="631636867" label="OneStepAimAccess:enabled"/>
+  <int value="631793159" label="CrossDeviceSigninFromDesktopFollowup:enabled"/>
   <int value="632276726" label="ReadAnythingOmniboxChip:enabled"/>
   <int value="632324382"
       label="ExperimentalAccessibilityDictationListening:disabled"/>
@@ -21189,6 +21194,7 @@ from previous Chrome versions.
   <int value="1847024354" label="enable-hotword-hardware"/>
   <int value="1847658464" label="MeteredShowToggle:disabled"/>
   <int value="1848974467" label="DelayAsyncScriptExecution:disabled"/>
+  <int value="1849073772" label="CrossFadeBoundsChangeAnimation:disabled"/>
   <int value="1849379463" label="OfflinePagesCTV2:enabled"/>
   <int value="1849580433" label="disable-oop-rasterization"/>
   <int value="1850641630" label="ForceSecurePaymentConfirmationDialog:enabled"/>
@@ -27888,6 +27894,17 @@ Called by update_net_error_codes.py.-->
   <int value="1" label="Background"/>
   <int value="2" label="Closed"/>
 </enum>
+
+<!-- LINT.IfChange(TabsFromOtherDevicesSidePanelEvent) -->
+
+<enum name="TabsFromOtherDevicesSidePanelEvent">
+  <int value="0" label="Startup"/>
+  <int value="1" label="Opened"/>
+  <int value="2" label="Closed"/>
+  <int value="3" label="TabOpened"/>
+</enum>
+
+<!-- LINT.ThenChange(//chrome/browser/ui/views/side_panel/tabs_from_other_devices/tabs_from_other_devices_side_panel_metrics.h:Event) -->
 
 <enum name="TestOnlyModesetOutcome">
   <int value="0" label="Success"/>

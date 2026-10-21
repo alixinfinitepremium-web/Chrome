@@ -1660,6 +1660,21 @@
             ]
         }
     ],
+    "AutofillAiPrivateInferenceNoticeBottomSheet": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "AutofillAiPrivateInferenceNoticeBottomSheet"
+                    ]
+                }
+            ]
+        }
+    ],
     "AutofillAiUsePrivateAi": [
         {
             "platforms": [
@@ -8992,27 +9007,6 @@
                     "name": "Enabled",
                     "enable_features": [
                         "GreyImageCIFilter"
-                    ]
-                }
-            ]
-        }
-    ],
-    "GroupedHistoryAllLocales": [
-        {
-            "platforms": [
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "params": {
-                        "JourneysLocaleOrLanguageAllowlist": "*"
-                    },
-                    "enable_features": [
-                        "Journeys"
                     ]
                 }
             ]
@@ -16368,6 +16362,25 @@
                     "name": "Enabled",
                     "enable_features": [
                         "SingleVideoFrameRateThrottling"
+                    ]
+                }
+            ]
+        }
+    ],
+    "SiteTokenProviderTeamfood": [
+        {
+            "platforms": [
+                "android",
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled_Teamfood",
+                    "enable_features": [
+                        "SiteTokenProviderEnabled"
                     ]
                 }
             ]

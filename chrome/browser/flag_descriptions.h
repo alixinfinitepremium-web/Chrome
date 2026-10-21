@@ -150,6 +150,13 @@ inline constexpr char kCrossDeviceSigninFromDesktopName[] =
 inline constexpr char kCrossDeviceSigninFromDesktopDescription[] =
     "Enables entry points to sign in on a mobile phone using provided QR code.";
 
+inline constexpr char kCrossDeviceSigninFromDesktopFollowupName[] =
+    "Cross-Device Sign-in From Desktop Follow-up";
+inline constexpr char kCrossDeviceSigninFromDesktopFollowupDescription[] =
+    "Enables follow-up entry points (e.g. the What's New page) to sign in on a "
+    "mobile phone using provided QR code. Requires "
+    "#cross-device-signin-from-desktop.";
+
 inline constexpr char kCrossDeviceSigninName[] = "Cross-Device Sign-in";
 inline constexpr char kCrossDeviceSigninDescription[] =
     "Guards the logic to start sign-in from a given QR Code.";
@@ -3256,10 +3263,6 @@ inline constexpr char kJavascriptHarmonyShippingDescription[] =
     "Some web pages use legacy or non-standard JavaScript extensions that may "
     "conflict with the latest JavaScript features. This flag allows disabling "
     "support of those features for compatibility with such pages.";
-
-inline constexpr char kJourneysName[] = "History Journeys";
-inline constexpr char kJourneysDescription[] =
-    "Enables the History Journeys UI.";
 
 inline constexpr char kAnnotatedPageContentExtractionName[] =
     "Enables annotated page content extraction";
@@ -7601,6 +7604,12 @@ inline constexpr char kCrosContentAdjustedRefreshRateName[] =
 inline constexpr char kCrosContentAdjustedRefreshRateDescription[] =
     "Allows the display to adjust the refresh rate in order to match content.";
 
+inline constexpr char kCrossFadeBoundsChangeAnimationName[] =
+    "Cross-fade bounds change animation";
+inline constexpr char kCrossFadeBoundsChangeAnimationDescription[] =
+    "Uses cross-fade animation instead of bounds animation when animating a "
+    "window to a different size.";
+
 inline constexpr char kDesksTemplatesName[] = "Desk Templates";
 inline constexpr char kDesksTemplatesDescription[] =
     "Streamline workflows by saving a group of applications and windows as a "
@@ -7882,10 +7891,6 @@ inline constexpr char kEapGtcWifiAuthenticationName[] =
     "EAP-GTC WiFi Authentication";
 inline constexpr char kEapGtcWifiAuthenticationDescription[] =
     "Allows configuration of WiFi networks using EAP-GTC authentication";
-
-inline constexpr char kEcheSWAName[] = "Enable Eche feature";
-inline constexpr char kEcheSWADescription[] =
-    "This is the main flag for enabling Eche.";
 
 inline constexpr char kEcheSWADebugModeName[] = "Enable Eche Debug Mode";
 inline constexpr char kEcheSWADebugModeDescription[] =

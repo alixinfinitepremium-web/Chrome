@@ -70,14 +70,12 @@
 
 namespace {
 
-// Will correspond to a 28x28 shadow circle when the location bar height is 34.
-const int kCircleShadowInset = 3;
+// Will correspond to a 34x34 shadow circle when the location bar height is 34.
+const int kCircleShadowInset = 0;
 
 // Corresponds to a 32x32 pill background shape when the location bar height
 // is 34.
 const int kPillShapeShadowInset = 1;
-
-const int kGLogoCircularShapeIconSize = 16;
 
 const int kGLogoPillShapeIconSize = 15;
 
@@ -475,12 +473,17 @@ void ContextualTasksButton::OnButtonPress() {
 
     if (contextual_tasks::kShowEntryPoint.Get() ==
         contextual_tasks::EntryPointOption::kToolbarEphemeralBranded) {
-      omnibox::ChromeAimEntryPoint entry_point =
+      controller->Show(
+          /*transition_from_tab=*/false,
           is_pinned ? omnibox::ChromeAimEntryPoint::
                           DESKTOP_CHROME_COBROWSE_PINNED_TOOLBAR_BUTTON
-                    : omnibox::ChromeAimEntryPoint::
-                          DESKTOP_CHROME_COBROWSE_TOOLBAR_BUTTON;
-      controller->Show(/*transition_from_tab=*/false, entry_point);
+                    : omnibox::ChromeAimEntryPoint::UNKNOWN_AIM_ENTRY_POINT,
+          /*use_no_animation=*/false, /*open_time_ticks=*/std::nullopt,
+          is_pinned
+              ? std::nullopt
+              : std::make_optional(
+                    contextual_tasks::ContextualTasksPanelController::
+                        EntrySource::kEphemeralToolbarButton));
     } else {
       controller->OpenInZeroState();
     }
@@ -540,7 +543,7 @@ void ContextualTasksButton::UpdateColorsAndInsets() {
   gfx::Insets insets;
   switch (shape) {
     case Shape::kCircle: {
-      const int icon_inset = (button_size - kGLogoCircularShapeIconSize) / 2;
+      const int icon_inset = (button_size - GetIconSize()) / 2;
       insets = gfx::Insets(icon_inset);
       break;
     }
@@ -656,9 +659,10 @@ ContextualTasksButton::Shape ContextualTasksButton::GetShape() const {
     return Shape::kCircle;
   }
 
-  if (contextual_tasks::kEnableCircularEphemeralButtonNextToBatterySaver
-          .Get() &&
-      IsSidePanelRightAligned()) {
+  if (contextual_tasks::IsContextualTasksPinningV2Enabled() ||
+      (contextual_tasks::kEnableCircularEphemeralButtonNextToBatterySaver
+           .Get() &&
+       IsSidePanelRightAligned())) {
     return Shape::kCircle;
   }
 
@@ -708,6 +712,7 @@ void ContextualTasksButton::MaybeUpdateVisibility() {
   CHECK(controller);
 
   const bool matches_dock =
+      contextual_tasks::IsContextualTasksPinningV2Enabled() ||
       (contextual_tasks::kEnableCircularEphemeralButtonNextToBatterySaver
            .Get() &&
        IsSidePanelRightAligned()) ||
@@ -911,7 +916,7 @@ ui::ImageModel ContextualTasksButton::GetButtonImage() {
         features::IsRoundedIconsEnabled() ? omnibox::kSearchSparkIcon
                                           : omnibox::kSearchSparkOldIcon,
         ui::kColorIcon,
-        GetShape() == Shape::kCircle ? kGLogoCircularShapeIconSize
+        GetShape() == Shape::kCircle ? GetIconSize()
                                      : kGLogoPillShapeIconSize);
   }
 #if BUILDFLAG(GOOGLE_CHROME_BRANDING)
@@ -932,7 +937,7 @@ ui::ImageModel ContextualTasksButton::GetButtonImage() {
 #endif
   return ui::ImageModel::FromVectorIcon(contextual_tasks_icon, ui::kColorIcon,
                                         GetShape() == Shape::kCircle
-                                            ? kGLogoCircularShapeIconSize
+                                            ? GetIconSize()
                                             : kGLogoPillShapeIconSize);
 }
 
