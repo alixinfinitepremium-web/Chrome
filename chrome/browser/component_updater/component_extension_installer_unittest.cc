@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "chrome/browser/component_updater/aim_eligibility_component_installer.h"
+#include "chrome/browser/component_updater/component_extension_installer.h"
 
 #include <memory>
 #include <string>
@@ -20,8 +20,10 @@
 #include "base/version.h"
 #include "chrome/browser/extensions/component_loader_prefs.h"
 #include "chrome/common/extensions/extension_constants.h"
+#include "chrome/grit/aim_eligibility_extension_resources.h"
 #include "chrome/test/base/testing_browser_process.h"
 #include "components/component_updater/component_updater_paths.h"
+#include "components/component_updater/component_updater_service.h"
 #include "components/component_updater/mock_component_updater_service.h"
 #include "components/omnibox/common/omnibox_features.h"
 #include "components/prefs/pref_service.h"
@@ -29,6 +31,11 @@
 #include "extensions/common/manifest_constants.h"
 #include "testing/gmock/include/gmock/gmock.h"
 #include "testing/gtest/include/gtest/gtest.h"
+#include "ui/webui/buildflags.h"
+
+#if BUILDFLAG(ENABLE_WEBUI_NTP)
+#include "components/search/ntp_features.h"
+#endif  // BUILDFLAG(ENABLE_WEBUI_NTP)
 
 namespace component_updater {
 namespace {
@@ -50,11 +57,26 @@ constexpr char kDifferentExtensionKey[] =
 constexpr base::FilePath::CharType kExtensionManifestFilename[] =
     FILE_PATH_LITERAL("extension_manifest.json");
 
+ComponentExtensionInstallerConfig MakeTestConfig() {
+  return {
+      .name = "AIM Eligibility Component Extension",
+      .extension_id = extension_misc::kAimEligibilityExtensionId,
+      .public_key_sha256 = {0xa0, 0x1f, 0x5e, 0xde, 0xaa, 0x0c, 0x66, 0xf6,
+                            0x1b, 0x30, 0xc1, 0xdc, 0xab, 0x84, 0x7b, 0x17,
+                            0xa0, 0xb9, 0x5f, 0x0e, 0xa6, 0x9c, 0xf7, 0x89,
+                            0x39, 0x17, 0xb2, 0x95, 0x5b, 0x02, 0x89, 0xb8},
+      .relative_install_dir =
+          base::FilePath(extension_misc::kAimEligibilityExtensionDirName),
+      .bundled_manifest_resource_id =
+          IDR_AIM_ELIGIBILITY_EXTENSION_MANIFEST_JSON,
+  };
+}
+
 }  // namespace
 
-class AimEligibilityComponentInstallerPolicyTest : public testing::Test {
+class ComponentExtensionInstallerPolicyTest : public testing::Test {
  public:
-  AimEligibilityComponentInstallerPolicyTest() {
+  ComponentExtensionInstallerPolicyTest() {
     EXPECT_TRUE(user_data_dir_.CreateUniqueTempDir());
     scoped_path_override_ = std::make_unique<base::ScopedPathOverride>(
         component_updater::DIR_COMPONENT_USER, user_data_dir_.GetPath());
@@ -68,8 +90,8 @@ class AimEligibilityComponentInstallerPolicyTest : public testing::Test {
   std::unique_ptr<base::ScopedPathOverride> scoped_path_override_;
 };
 
-TEST_F(AimEligibilityComponentInstallerPolicyTest, VerifyInstallation) {
-  AimEligibilityComponentInstallerPolicy policy;
+TEST_F(ComponentExtensionInstallerPolicyTest, VerifyInstallation) {
+  ComponentExtensionInstallerPolicy policy(MakeTestConfig());
   base::ScopedTempDir install_dir;
   ASSERT_TRUE(install_dir.CreateUniqueTempDir());
 
@@ -85,8 +107,8 @@ TEST_F(AimEligibilityComponentInstallerPolicyTest, VerifyInstallation) {
       policy.VerifyInstallation(base::DictValue(), install_dir.GetPath()));
 }
 
-TEST_F(AimEligibilityComponentInstallerPolicyTest, ComponentReadyStaged) {
-  AimEligibilityComponentInstallerPolicy policy;
+TEST_F(ComponentExtensionInstallerPolicyTest, ComponentReadyStaged) {
+  ComponentExtensionInstallerPolicy policy(MakeTestConfig());
   base::ScopedTempDir install_dir;
   ASSERT_TRUE(install_dir.CreateUniqueTempDir());
 
@@ -125,9 +147,9 @@ TEST_F(AimEligibilityComponentInstallerPolicyTest, ComponentReadyStaged) {
   EXPECT_EQ(*name, "AIM Staged");
 }
 
-TEST_F(AimEligibilityComponentInstallerPolicyTest,
+TEST_F(ComponentExtensionInstallerPolicyTest,
        ComponentReadyIgnoredIfOlderOrEqual) {
-  AimEligibilityComponentInstallerPolicy policy;
+  ComponentExtensionInstallerPolicy policy(MakeTestConfig());
   base::ScopedTempDir install_dir;
   ASSERT_TRUE(install_dir.CreateUniqueTempDir());
 
@@ -158,9 +180,9 @@ TEST_F(AimEligibilityComponentInstallerPolicyTest,
   }));
 }
 
-TEST_F(AimEligibilityComponentInstallerPolicyTest,
+TEST_F(ComponentExtensionInstallerPolicyTest,
        ComponentReadyIgnoredIfKeyInvalid) {
-  AimEligibilityComponentInstallerPolicy policy;
+  ComponentExtensionInstallerPolicy policy(MakeTestConfig());
   base::ScopedTempDir install_dir;
   ASSERT_TRUE(install_dir.CreateUniqueTempDir());
 
@@ -187,9 +209,9 @@ TEST_F(AimEligibilityComponentInstallerPolicyTest,
   }));
 }
 
-TEST_F(AimEligibilityComponentInstallerPolicyTest,
+TEST_F(ComponentExtensionInstallerPolicyTest,
        ComponentReadyIgnoredIfExtensionIdMismatch) {
-  AimEligibilityComponentInstallerPolicy policy;
+  ComponentExtensionInstallerPolicy policy(MakeTestConfig());
   base::ScopedTempDir install_dir;
   ASSERT_TRUE(install_dir.CreateUniqueTempDir());
 
@@ -218,9 +240,9 @@ TEST_F(AimEligibilityComponentInstallerPolicyTest,
   }));
 }
 
-TEST_F(AimEligibilityComponentInstallerPolicyTest,
+TEST_F(ComponentExtensionInstallerPolicyTest,
        ComponentReadyIgnoredIfManifestMissing) {
-  AimEligibilityComponentInstallerPolicy policy;
+  ComponentExtensionInstallerPolicy policy(MakeTestConfig());
   base::ScopedTempDir install_dir;
   ASSERT_TRUE(install_dir.CreateUniqueTempDir());
 
@@ -243,7 +265,8 @@ TEST_F(AimEligibilityComponentInstallerPolicyTest,
   }));
 }
 
-TEST_F(AimEligibilityComponentInstallerPolicyTest, RegisterComponentEnabled) {
+TEST_F(ComponentExtensionInstallerPolicyTest,
+       RegisterAimEligibilityComponentEnabled) {
   base::test::ScopedFeatureList scoped_feature_list;
   scoped_feature_list.InitWithFeaturesAndParameters(
       {{omnibox::kAimEligibilityComponentExtension,
@@ -256,18 +279,20 @@ TEST_F(AimEligibilityComponentInstallerPolicyTest, RegisterComponentEnabled) {
   // TestFuture to wait until RegisterComponent is invoked before verifying
   // expectations.
   base::test::TestFuture<void> registered;
-  EXPECT_CALL(*cus, RegisterComponent(testing::_))
+  EXPECT_CALL(*cus, RegisterComponent(
+                        testing::Field(&ComponentRegistration::name,
+                                       "AIM Eligibility Component Extension")))
       .WillOnce([&registered](const auto&) {
         registered.SetValue();
         return true;
       });
 
-  ManageAimEligibilityComponentRegistration(cus.get());
+  ManageComponentExtensionRegistrations(cus.get());
   EXPECT_TRUE(registered.Wait());
 }
 
-TEST_F(AimEligibilityComponentInstallerPolicyTest,
-       RegisterComponentDisabledByFeature) {
+TEST_F(ComponentExtensionInstallerPolicyTest,
+       RegisterAimEligibilityComponentDisabledByFeature) {
   base::test::ScopedFeatureList scoped_feature_list;
   scoped_feature_list.InitAndDisableFeature(
       omnibox::kAimEligibilityComponentExtension);
@@ -286,7 +311,7 @@ TEST_F(AimEligibilityComponentInstallerPolicyTest,
   auto cus = std::make_unique<MockComponentUpdateService>();
   EXPECT_CALL(*cus, RegisterComponent(testing::_)).Times(0);
 
-  ManageAimEligibilityComponentRegistration(cus.get());
+  ManageComponentExtensionRegistrations(cus.get());
 
   EXPECT_TRUE(base::test::RunUntil([&] {
     return !extensions::component_loader_prefs::GetExtension(
@@ -295,8 +320,8 @@ TEST_F(AimEligibilityComponentInstallerPolicyTest,
   }));
 }
 
-TEST_F(AimEligibilityComponentInstallerPolicyTest,
-       RegisterComponentDisabledByFeatureParam) {
+TEST_F(ComponentExtensionInstallerPolicyTest,
+       RegisterAimEligibilityComponentDisabledByFeatureParam) {
   base::test::ScopedFeatureList scoped_feature_list;
   scoped_feature_list.InitWithFeaturesAndParameters(
       {{omnibox::kAimEligibilityComponentExtension,
@@ -317,7 +342,7 @@ TEST_F(AimEligibilityComponentInstallerPolicyTest,
   auto cus = std::make_unique<MockComponentUpdateService>();
   EXPECT_CALL(*cus, RegisterComponent(testing::_)).Times(0);
 
-  ManageAimEligibilityComponentRegistration(cus.get());
+  ManageComponentExtensionRegistrations(cus.get());
 
   EXPECT_TRUE(base::test::RunUntil([&] {
     return !extensions::component_loader_prefs::GetExtension(
@@ -326,7 +351,87 @@ TEST_F(AimEligibilityComponentInstallerPolicyTest,
   }));
 }
 
-TEST_F(AimEligibilityComponentInstallerPolicyTest, UninstallComponent) {
+#if BUILDFLAG(ENABLE_WEBUI_NTP)
+TEST_F(ComponentExtensionInstallerPolicyTest,
+       RegisterNewTabPageComponentEnabled) {
+  base::test::ScopedFeatureList scoped_feature_list;
+  scoped_feature_list.InitWithFeaturesAndParameters(
+      {{ntp_features::kNtpComponentExtension,
+        {{"use_component_updater", "true"}}}},
+      {});
+
+  auto cus = std::make_unique<MockComponentUpdateService>();
+  base::test::TestFuture<void> registered;
+  EXPECT_CALL(*cus, RegisterComponent(
+                        testing::Field(&ComponentRegistration::name,
+                                       "New Tab Page Component Extension")))
+      .WillOnce([&registered](const auto&) {
+        registered.SetValue();
+        return true;
+      });
+
+  ManageComponentExtensionRegistrations(cus.get());
+  EXPECT_TRUE(registered.Wait());
+}
+
+TEST_F(ComponentExtensionInstallerPolicyTest,
+       RegisterNewTabPageComponentDisabledByFeature) {
+  base::test::ScopedFeatureList scoped_feature_list;
+  scoped_feature_list.InitAndDisableFeature(
+      ntp_features::kNtpComponentExtension);
+
+  PrefService* local_state = TestingBrowserProcess::GetGlobal()->local_state();
+  base::DictValue staged_manifest;
+  staged_manifest.Set("version", "2.0");
+  extensions::component_loader_prefs::StageExtension(
+      *local_state, extension_misc::kNewTabPageExtensionId,
+      base::FilePath(extension_misc::kNewTabPageExtensionDirName)
+          .AppendASCII("2.0"),
+      std::move(staged_manifest));
+
+  auto cus = std::make_unique<MockComponentUpdateService>();
+  EXPECT_CALL(*cus, RegisterComponent(testing::_)).Times(0);
+
+  ManageComponentExtensionRegistrations(cus.get());
+
+  EXPECT_TRUE(base::test::RunUntil([&] {
+    return !extensions::component_loader_prefs::GetExtension(
+                *local_state, extension_misc::kNewTabPageExtensionId)
+                .has_value();
+  }));
+}
+
+TEST_F(ComponentExtensionInstallerPolicyTest,
+       RegisterNewTabPageComponentDisabledByFeatureParam) {
+  base::test::ScopedFeatureList scoped_feature_list;
+  scoped_feature_list.InitWithFeaturesAndParameters(
+      {{ntp_features::kNtpComponentExtension,
+        {{"use_component_updater", "false"}}}},
+      {});
+
+  PrefService* local_state = TestingBrowserProcess::GetGlobal()->local_state();
+  base::DictValue staged_manifest;
+  staged_manifest.Set("version", "2.0");
+  extensions::component_loader_prefs::StageExtension(
+      *local_state, extension_misc::kNewTabPageExtensionId,
+      base::FilePath(extension_misc::kNewTabPageExtensionDirName)
+          .AppendASCII("2.0"),
+      std::move(staged_manifest));
+
+  auto cus = std::make_unique<MockComponentUpdateService>();
+  EXPECT_CALL(*cus, RegisterComponent(testing::_)).Times(0);
+
+  ManageComponentExtensionRegistrations(cus.get());
+
+  EXPECT_TRUE(base::test::RunUntil([&] {
+    return !extensions::component_loader_prefs::GetExtension(
+                *local_state, extension_misc::kNewTabPageExtensionId)
+                .has_value();
+  }));
+}
+#endif  // BUILDFLAG(ENABLE_WEBUI_NTP)
+
+TEST_F(ComponentExtensionInstallerPolicyTest, UninstallComponent) {
   PrefService* local_state = TestingBrowserProcess::GetGlobal()->local_state();
   base::DictValue staged_manifest;
   staged_manifest.Set("version", "2.0");
@@ -345,7 +450,7 @@ TEST_F(AimEligibilityComponentInstallerPolicyTest, UninstallComponent) {
   ASSERT_TRUE(base::PathExists(version_dir));
 
   base::MakeRefCounted<ComponentInstaller>(
-      std::make_unique<AimEligibilityComponentInstallerPolicy>())
+      std::make_unique<ComponentExtensionInstallerPolicy>(MakeTestConfig()))
       ->Uninstall();
 
   // Uninstall deletes the component directory from disk and calls

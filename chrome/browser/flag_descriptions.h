@@ -7487,11 +7487,6 @@ inline constexpr char kAlwaysEnableHdcpDefault[] = "Default";
 inline constexpr char kAlwaysEnableHdcpType0[] = "Type 0";
 inline constexpr char kAlwaysEnableHdcpType1[] = "Type 1";
 
-inline constexpr char kApnRevampName[] = "APN Revamp";
-inline constexpr char kApnRevampDescription[] =
-    "Enables the ChromeOS APN Revamp, which updates cellular network APN "
-    "system UI and related infrastructure.";
-
 inline constexpr char kArcEnableAttestationName[] = "Enable ARC attestation";
 inline constexpr char kArcEnableAttestationDescription[] =
     "Allow key and ID attestation to run for keymint";
@@ -7776,10 +7771,6 @@ inline constexpr char kFaceRetouchOverrideName[] =
 inline constexpr char kFaceRetouchOverrideDescription[] =
     "Enables or disables the face retouch feature using the relighting button "
     "in the VC panel.";
-
-inline constexpr char kFastPairKeyboardsName[] = "Enable Fast Pair Keyboards";
-inline constexpr char kFastPairKeyboardsDescription[] =
-    "Enables prototype support for Fast Pair for keyboards.";
 
 inline constexpr char kFastPairPwaCompanionName[] =
     "Enable Fast Pair Web Companion";
@@ -8166,13 +8157,6 @@ inline constexpr char kShowTouchHudDescription[] =
     "Shows a trail of colored dots for the last few touch points. Pressing "
     "Ctrl-Alt-I shows a heads-up display view in the top-left corner. Helps "
     "debug hardware issues that generate spurious touch events.";
-
-inline constexpr char kContinuousOverviewScrollAnimationName[] =
-    "Makes the gesture for Overview continuous";
-inline constexpr char kContinuousOverviewScrollAnimationDescription[] =
-    "When a user does the Overview gesture (3 finger swipe), smoothly animates "
-    "the transition into Overview as the gesture is done. Allows for the user "
-    "to scrub (move forward and backward) through Overview.";
 
 inline constexpr char kSpectreVariant2MitigationName[] =
     "Spectre variant 2 mitigation";

@@ -326,7 +326,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '41ed504cd8ce9dd2f6aaa62f336a436707b44ae1',
+  'src_internal_revision': '44d4edb39fd3ce4282e74f78a4390eb5825a4c2b',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -390,7 +390,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': 'e9aa42f64fb7b19f2774eb1ae5b7bfdfe11a396a',
+  'crossbench_revision': 'bc60527e32c7117fee4a65715c951e04caa88c55',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -1561,7 +1561,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_arm64',
-          'version': 'version:2@1717017',
+          'version': 'version:2@1718136',
         },
       ],
   },
@@ -1572,7 +1572,7 @@ deps = {
       'packages': [
         {
           'package': 'chromium/third_party/updater/chromium_win_x86',
-          'version': 'version:2@1717061',
+          'version': 'version:2@1718095',
         },
       ],
   },
@@ -1763,7 +1763,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': 'G9_HXO0_2aIuo61pTn1UQ7uOzPJ1i8Ql04EPQ5u9EbUC',
+        'version': 'MEb_AxTLfr6sabd7I62cx3RjeTFfBef_0SNISsFD75AC',
       },
     ],
     'condition': 'non_git_source',
@@ -1775,12 +1775,12 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '9e05644678103c8389b8c566fb77c5d56c894438',
+    '4a09e4cd15d84b103d3f37a3eba16c2af3de2b7e',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
   'src/docs/website': {
-    'url': Var('chromium_git') + '/website.git' + '@' + '7543fdfe79464e68bf392f0a313b8df2d846df14',
+    'url': Var('chromium_git') + '/website.git' + '@' + 'b31ee0f5c567e49e9ff888d8883f150a3871dbbb',
   },
 
   'src/ios/third_party/earl_grey2/src': {
@@ -2270,7 +2270,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '2502f4cadd623030b84bf06be15a30d6e61fb6a5',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + 'ff931b4c5e76464fa467c9df90473bc0d44cccfc',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '173b9b26e8fcbcbe64e1ecbf073a21a96b95c6b1',
@@ -2857,7 +2857,7 @@ deps = {
     Var('chromium_git') + '/chromium/third_party/openh264rs.git' + '@' + Var('openh264rs_revision'),
 
   'src/third_party/openscreen/src':
-    Var('chromium_git') + '/openscreen' + '@' + 'de06857ff6cbfd19e5ca7b0ed31302731561b9ba',
+    Var('chromium_git') + '/openscreen' + '@' + '4a69e6de1114a020d02c08d010130d8ac7e30a37',
 
   'src/third_party/openxr/src': {
     'url': Var('chromium_git') + '/external/github.com/KhronosGroup/OpenXR-SDK' + '@' + '75c53b6e853dc12c7b3c771edc9c9c841b15faaa',
@@ -2883,7 +2883,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + 'e4f0b74db29904095fe9161a748c9a84a4733dda',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '06336be611834ceab589f0d5a2749530477aac8a',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
@@ -3052,7 +3052,7 @@ deps = {
 
   # Dependency of skia.
   'src/third_party/pyelftools': {
-      'url': Var('chromium_git') + '/chromiumos/third_party/pyelftools.git' + '@' + '8047437615d66d3267ac0134834b80e70639d572',
+      'url': Var('chromium_git') + '/chromiumos/third_party/pyelftools.git' + '@' + '2909369467745064ab218de04fb3d7199ed44e4c',
       'condition': 'checkout_linux',
   },
 

@@ -11,6 +11,7 @@ import("//media/media_options.gni")
 import("//net/features.gni")
 import("//third_party/blink/public/public_features.gni")
 import("//third_party/widevine/cdm/widevine.gni")
+import("//ui/webui/webui_features.gni")
 
 # Header-only target. Only .h files; no sources.
 source_set("component_updater") {
@@ -112,7 +113,7 @@ source_set("component_updater") {
   }
 
   if (enable_extensions_core) {
-    public += [ "aim_eligibility_component_installer.h" ]
+    public += [ "component_extension_installer.h" ]
   }
 }
 
@@ -210,11 +211,15 @@ source_set("impl") {
   }
 
   if (enable_extensions_core) {
-    sources += [ "aim_eligibility_component_installer.cc" ]
+    sources += [ "component_extension_installer.cc" ]
     deps += [
       "//chrome/browser/extensions",
       "//chrome/browser/resources/omnibox_internals/aim_eligibility_extension:resources",
+      "//ui/webui:buildflags",
     ]
+    if (enable_webui_ntp) {
+      deps += [ "//chrome/browser/resources/new_tab_page_extension:resources" ]
+    }
   }
 
   if (!is_android) {
@@ -388,11 +393,18 @@ source_set("unit_tests") {
   ]
 
   if (enable_extensions_core) {
-    sources += [ "aim_eligibility_component_installer_unittest.cc" ]
+    sources += [ "component_extension_installer_unittest.cc" ]
     deps += [
       "//chrome/browser/extensions",
       "//chrome/browser/resources/omnibox_internals/aim_eligibility_extension:resources",
+      "//ui/webui:buildflags",
     ]
+    if (enable_webui_ntp) {
+      deps += [
+        "//chrome/browser/resources/new_tab_page_extension:resources",
+        "//components/search",
+      ]
+    }
   }
 
   if (!is_android) {

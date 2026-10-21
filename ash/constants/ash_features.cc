@@ -51,8 +51,6 @@ BASE_FEATURE(kAmbientModeDevUseProdFeature,
 // Adds support for allowing or disabling APN modification by policy.
 BASE_FEATURE(kAllowApnModificationPolicy, base::FEATURE_ENABLED_BY_DEFAULT);
 
-BASE_FEATURE(kApnRevamp, base::FEATURE_ENABLED_BY_DEFAULT);
-
 // Controls whether proxy settings from policy or extensions are applied
 // verbatim without appending implicit bypass rules for simple hostnames.
 BASE_FEATURE(kApplyManagedProxyBypassListVerbatim,
@@ -378,10 +376,6 @@ BASE_FEATURE(kConchLargeModel, base::FEATURE_DISABLED_BY_DEFAULT);
 // If enabled, conch will use microphone to capture system audio.
 BASE_FEATURE(kConchSystemAudioFromMic, base::FEATURE_DISABLED_BY_DEFAULT);
 
-// Enables a smooth overview mode transition based on the gesture position.
-BASE_FEATURE(kContinuousOverviewScrollAnimation,
-             base::FEATURE_DISABLED_BY_DEFAULT);
-
 // Controls enabling/disabling the coral feature.
 BASE_FEATURE(kCoralFeature, base::FEATURE_DISABLED_BY_DEFAULT);
 
@@ -594,9 +588,6 @@ BASE_FEATURE(kFastPairBleRotation, base::FEATURE_ENABLED_BY_DEFAULT);
 // Sets mode to DEBUG when fetching metadata from the Nearby server, allowing
 // debug devices to trigger Fast Pair notifications.
 BASE_FEATURE(kFastPairDebugMetadata, base::FEATURE_DISABLED_BY_DEFAULT);
-
-// Enables prototype support for Fast Pair for keyboards.
-BASE_FEATURE(kFastPairKeyboards, base::FEATURE_ENABLED_BY_DEFAULT);
 
 // The amount of minutes we should wait before allowing notifications for a
 // recently lost device.
@@ -1935,14 +1926,6 @@ bool IsAllowApnModificationPolicyEnabled() {
   return base::FeatureList::IsEnabled(kAllowApnModificationPolicy);
 }
 
-bool IsApnRevampAndAllowApnModificationPolicyEnabled() {
-  return IsApnRevampEnabled() && IsAllowApnModificationPolicyEnabled();
-}
-
-bool IsApnRevampEnabled() {
-  return base::FeatureList::IsEnabled(kApnRevamp);
-}
-
 bool IsApplyManagedProxyBypassListVerbatimEnabled() {
   return base::FeatureList::IsEnabled(kApplyManagedProxyBypassListVerbatim);
 }
@@ -2096,10 +2079,6 @@ bool IsClipboardHistoryPolicyEnabled() {
   return base::FeatureList::IsEnabled(kClipboardHistoryPolicy);
 }
 
-bool IsContinuousOverviewScrollAnimationEnabled() {
-  return base::FeatureList::IsEnabled(kContinuousOverviewScrollAnimation);
-}
-
 bool IsCoralFeatureEnabled() {
   return base::FeatureList::IsEnabled(kCoralFeature) &&
          base::FeatureList::IsEnabled(kCoralFeatureAllowed);
@@ -2231,10 +2210,6 @@ bool IsFastPairBleRotationEnabled() {
 
 bool IsFastPairDebugMetadataEnabled() {
   return base::FeatureList::IsEnabled(kFastPairDebugMetadata);
-}
-
-bool IsFastPairKeyboardsEnabled() {
-  return base::FeatureList::IsEnabled(kFastPairKeyboards);
 }
 
 bool IsFastPairPwaCompanionEnabled() {

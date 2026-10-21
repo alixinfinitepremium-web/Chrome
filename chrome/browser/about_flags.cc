@@ -5636,9 +5636,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kAllowApnModificationPolicyName,
      flag_descriptions::kAllowApnModificationPolicyDescription, kOsCrOS,
      FEATURE_VALUE_TYPE(ash::features::kAllowApnModificationPolicy)},
-    {"apn-revamp", flag_descriptions::kApnRevampName,
-     flag_descriptions::kApnRevampDescription, kOsCrOS,
-     FEATURE_VALUE_TYPE(ash::features::kApnRevamp)},
     {"apply-managed-proxy-bypass-list-verbatim",
      flag_descriptions::kApplyManagedProxyBypassListVerbatimName,
      flag_descriptions::kApplyManagedProxyBypassListVerbatimDescription,
@@ -8530,10 +8527,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kFastPairDebugMetadataDescription, kOsCrOS,
      FEATURE_VALUE_TYPE(ash::features::kFastPairDebugMetadata)},
 
-    {"fast-pair-keyboards", flag_descriptions::kFastPairKeyboardsName,
-     flag_descriptions::kFastPairKeyboardsDescription, kOsCrOS,
-     FEATURE_VALUE_TYPE(ash::features::kFastPairKeyboards)},
-
     {"fast-pair-pwa-companion", flag_descriptions::kFastPairPwaCompanionName,
      flag_descriptions::kFastPairPwaCompanionDescription, kOsCrOS,
      FEATURE_VALUE_TYPE(ash::features::kFastPairPwaCompanion)},
@@ -10167,10 +10160,6 @@ const FeatureEntry kFeatureEntries[] = {
 #endif  // BUILDFLAG(ENABLE_EXTENSIONS)
 
 #if BUILDFLAG(IS_CHROMEOS)
-    {"cros-labs-continuous-overview-animation",
-     flag_descriptions::kContinuousOverviewScrollAnimationName,
-     flag_descriptions::kContinuousOverviewScrollAnimationDescription, kOsCrOS,
-     FEATURE_VALUE_TYPE(ash::features::kContinuousOverviewScrollAnimation)},
     {"cros-labs-window-splitting", flag_descriptions::kWindowSplittingName,
      flag_descriptions::kWindowSplittingDescription, kOsCrOS,
      FEATURE_VALUE_TYPE(ash::features::kWindowSplitting)},
