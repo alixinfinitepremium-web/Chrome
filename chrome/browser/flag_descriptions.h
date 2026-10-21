@@ -4483,14 +4483,6 @@ inline constexpr char kResponsiveIframesName[] = "Responsive Iframes";
 inline constexpr char kResponsiveIframesDescription[] =
     "Enable responsively-sized iframes.";
 
-inline constexpr char kRobustWindowManagementExperimentalName[] =
-    "Robust window management experimental";
-inline constexpr char kRobustWindowManagementExperimentalDescription[] =
-    "Enables more experimental features for robust window managements. This "
-    "enables users to effortlessly manage multiple tasks with reliable window "
-    "switching and restoration, ensuring they never lose their work or "
-    "context.";
-
 inline constexpr char kScheduleWindowCleaningName[] =
     "Schedule window cleaning";
 inline constexpr char kScheduleWindowCleaningDescription[] =
@@ -8659,6 +8651,12 @@ inline constexpr char kGlicHotkeyLocalScopeDescription[] =
 inline constexpr char kGlicTabGroupsName[] = "Glic Tab Groups";
 inline constexpr char kGlicTabGroupsDescription[] =
     "Enables Glic to integrate with tab groups.";
+
+inline constexpr char kPageColorsSettingsName[] = "Page Colors settings";
+inline constexpr char kPageColorsSettingsDescription[] =
+    "When enabled, shows a Page Colors control in Chrome's accessibility "
+    "settings, which lets users pick a high contrast theme for web content or "
+    "turn forced colors off, independently of the operating system theme.";
 
 inline constexpr char kProfilesReorderingName[] = "Profiles Reordering";
 inline constexpr char kProfilesReorderingDescription[] =

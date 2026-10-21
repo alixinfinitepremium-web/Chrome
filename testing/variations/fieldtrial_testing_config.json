@@ -1503,6 +1503,9 @@
             "experiments": [
                 {
                     "name": "Enabled",
+                    "params": {
+                        "delay": "250ms"
+                    },
                     "enable_features": [
                         "AudioRendererMixerImmediatePause"
                     ]
@@ -3207,6 +3210,25 @@
                     },
                     "enable_features": [
                         "BrowserThreadPoolAdjustment"
+                    ]
+                }
+            ]
+        }
+    ],
+    "BrowsingDataModelSharedWorkerKeyWithoutURL": [
+        {
+            "platforms": [
+                "android",
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled_20261021",
+                    "enable_features": [
+                        "BrowsingDataModelSharedWorkerKeyWithoutURL"
                     ]
                 }
             ]
@@ -5155,12 +5177,20 @@
                     "name": "PinningEphemeral_20260915",
                     "params": {
                         "ContextualTasksEntryPoint": "toolbar-ephemeral-branded",
+                        "ContextualTasksEphemeralButtonAutoDismissTimeMinutes": "120",
+                        "ContextualTasksUnifyPinButtonLogo": "super-g",
+                        "EnableCircularEphemeralButtonNextToBatterySaver": "true",
                         "overflow-items": "all-without-new-thread"
                     },
                     "enable_features": [
                         "ContextualTasksEnableSpatialModelToolbarLayout",
                         "ContextualTasksEphemeralBrandedEntryPoint",
+                        "ContextualTasksEphemeralButtonAutoDismiss",
+                        "ContextualTasksEphemeralButtonContextMenu",
+                        "ContextualTasksPinningV2",
+                        "ContextualTasksUnifyPinButtonLogos",
                         "EnableContextualTasksPinButtonInToolbar",
+                        "EnableContextualTasksPinButtonOnSrp",
                         "EphemeralPinningVisibleWhenPermanentlyPinned"
                     ],
                     "disable_features": [
@@ -8403,6 +8433,22 @@
             ]
         }
     ],
+    "GlicContentsInitiallyHidden": [
+        {
+            "platforms": [
+                "chromeos",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "GlicContentsInitiallyHidden"
+                    ]
+                }
+            ]
+        }
+    ],
     "GlicCookieSyncOnTokenChange": [
         {
             "platforms": [
@@ -8855,6 +8901,21 @@
                     },
                     "enable_features": [
                         "GlicUserStatusCheck"
+                    ]
+                }
+            ]
+        }
+    ],
+    "GlicVoice": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "GlicVoice"
                     ]
                 }
             ]
@@ -16871,24 +16932,6 @@
                     },
                     "enable_features": [
                         "SplitViewHorizontal"
-                    ]
-                }
-            ]
-        }
-    ],
-    "SplitscreenVersusFullScreenForNewWindows": [
-        {
-            "platforms": [
-                "android"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "params": {
-                        "open_adjacently": "false"
-                    },
-                    "enable_features": [
-                        "RobustWindowManagementExperimental"
                     ]
                 }
             ]

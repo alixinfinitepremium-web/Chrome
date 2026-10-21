@@ -300,6 +300,7 @@
 #include "components/translate/content/android/translate_message.h"
 #include "ui/android/ui_android_features.h"
 #include "ui/base/device_form_factor.h"
+#include "ui/webui/buildflags.h"
 #else  // BUILDFLAG(IS_ANDROID)
 #include "chrome/browser/component_updater/iwa_key_distribution_component_installer.h"
 #include "chrome/browser/device_api/managed_configuration_api.h"
@@ -4216,14 +4217,6 @@ const FeatureEntry::FeatureVariation kTipsSelfServiceVariations[] = {
     {" - Reset Feature Tip Shown", kTipsSelfServiceResetFeatureTipShown,
      nullptr},
 };
-
-const FeatureEntry::FeatureParam
-    kRobustWindowManagementExperimentalOpenAdjacently[] = {
-        {"open_adjacently", "false"}};
-const FeatureEntry::FeatureVariation
-    kRobustWindowManagementExperimentalVariations[] = {
-        {"Open Fullscreen", kRobustWindowManagementExperimentalOpenAdjacently,
-         nullptr}};
 
 const FeatureEntry::FeatureParam kAndroidNavigationBlurSkipSrpParams[] = {
     {"skip_srp", "true"}};
@@ -9860,10 +9853,12 @@ const FeatureEntry kFeatureEntries[] = {
                                     "WebUIOmniboxPopupDebugVariations")},
 
 #if BUILDFLAG(IS_ANDROID)
+#if BUILDFLAG(ENABLE_WEBUI_BOOKMARKS)
     {"use-webui-bookmarks-android",
      flag_descriptions::kUseWebUiBookmarksAndroidName,
      flag_descriptions::kUseWebUiBookmarksAndroidDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(chrome::android::kUseWebUiBookmarksAndroid)},
+#endif
 
     {"use-webui-ntp-3p-dse", flag_descriptions::kUseWebUiNtp3PDSEName,
      flag_descriptions::kUseWebUiNtp3PDSEDescription, kOsAndroid,
@@ -11531,6 +11526,15 @@ const FeatureEntry kFeatureEntries[] = {
      FEATURE_VALUE_TYPE(features::kAXTreeFixing)},
 #endif  // !BUILDFLAG(IS_ANDROID)
 
+#if !BUILDFLAG(IS_CHROMEOS) && !BUILDFLAG(IS_ANDROID)
+    // The Page Colors control is only rendered in the non-ChromeOS
+    // accessibility settings page.
+    {"page-colors-settings", flag_descriptions::kPageColorsSettingsName,
+     flag_descriptions::kPageColorsSettingsDescription,
+     kOsWin | kOsLinux | kOsMac,
+     FEATURE_VALUE_TYPE(features::kPageColorsSettings)},
+#endif  // !BUILDFLAG(IS_CHROMEOS) && !BUILDFLAG(IS_ANDROID)
+
 #if BUILDFLAG(IS_ANDROID)
     {"malicious-apk-download-check",
      flag_descriptions::kMaliciousApkDownloadCheckName,
@@ -11747,15 +11751,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kAndroidAdaptiveFrameRateName,
      flag_descriptions::kAndroidAdaptiveFrameRateDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(features::kUseFrameIntervalDeciderAdaptiveFrameRate)},
-
-    {"robust-window-management-experimental",
-     flag_descriptions::kRobustWindowManagementExperimentalName,
-     flag_descriptions::kRobustWindowManagementExperimentalDescription,
-     kOsAndroid,
-     FEATURE_WITH_PARAMS_VALUE_TYPE(
-         chrome::android::kRobustWindowManagementExperimental,
-         kRobustWindowManagementExperimentalVariations,
-         "RobustWindowManagementExperimental")},
 
     {"schedule-window-cleaning", flag_descriptions::kScheduleWindowCleaningName,
      flag_descriptions::kScheduleWindowCleaningDescription, kOsAndroid,

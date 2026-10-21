@@ -5529,7 +5529,7 @@
       "sugandhagoyal@google.com",
       "//chrome/browser/geic/OWNERS"
     ],
-    "expiry_milestone": 158
+    "expiry_milestone": 160
   },
   {
     "name": "geic-guest-url",
@@ -5538,7 +5538,7 @@
       "sugandhagoyal@google.com",
       "//chrome/browser/geic/OWNERS"
     ],
-    "expiry_milestone": 158
+    "expiry_milestone": 160
   },
   {
     "name": "gemini-actor",
@@ -8090,6 +8090,11 @@
     "expiry_milestone": 165
   },
   {
+    "name": "page-colors-settings",
+    "owners": [ "lucasradaelli@google.com", "//ui/accessibility/OWNERS" ],
+    "expiry_milestone": 168
+  },
+  {
     "name": "page-content-cache",
     "owners": [ "haileywang@google.com", "ssid@chromium.org" ],
     "expiry_milestone": 150
@@ -8785,11 +8790,6 @@
     "name": "rewriter-api",
     "owners": ["//chrome/browser/ai/OWNERS", "builtin-ai-team@google.com"],
     "expiry_milestone": 160
-  },
-  {
-    "name": "robust-window-management-experimental",
-    "owners": [ "aishwaryarj@google.com", "rathomas@google.com", "clank-large-form-factors@google.com" ],
-    "expiry_milestone": 150
   },
   {
     "name": "root-scrollbar-follows-browser-theme",

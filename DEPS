@@ -326,7 +326,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '17c8c2b16641ca35064093bf0f1debe1e7a3c61e',
+  'src_internal_revision': '752248b0495f3e45b5d82ebfb0f0272f8e6ac433',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
@@ -350,7 +350,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': '99b9d64ec02384c4c939f264b40e91d6cb5ca904',
+  'boringssl_revision': '92b7c608fbd33903584788dda466a0163aa5b977',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -402,7 +402,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling fuzztest
   # and whatever else without interference from each other.
-  'fuzztest_revision': '95339077f57ecc8165f8eff2ced2949fe41188b7',
+  'fuzztest_revision': 'e195ba016d310755ae5bbe9f9d11e6d2da5ebbcf',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling domato
   # and whatever else without interference from each other.
@@ -1775,7 +1775,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    'dce802a3914765901f09d565eb42b7f0f43aeda1',
+    'fadc6eb8519ee28d3a0003a3f00aa89b021c51e3',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -2244,7 +2244,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '9cb87e7cca51147a3b8f39033e561736f8460652',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '015ce94742e779cf1c613fe7e0dc93c358ee9c36',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -2846,7 +2846,7 @@ deps = {
     Var('chromium_git') + '/chromium/third_party/openh264rs.git' + '@' + Var('openh264rs_revision'),
 
   'src/third_party/openscreen/src':
-    Var('chromium_git') + '/openscreen' + '@' + '0edee812ab8c8deeadee2a3618cbdc839fd52580',
+    Var('chromium_git') + '/openscreen' + '@' + '70ab01132be817e90ddb938f02844e53ffefce0f',
 
   'src/third_party/openxr/src': {
     'url': Var('chromium_git') + '/external/github.com/KhronosGroup/OpenXR-SDK' + '@' + '75c53b6e853dc12c7b3c771edc9c9c841b15faaa',
@@ -3306,7 +3306,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '090c4c87c40977261d017e96e9b98c165bacf12c',
+    Var('webrtc_git') + '/src.git' + '@' + 'bf4d8fefc1e2e8e48eb51f96b365e72169cacce3',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
