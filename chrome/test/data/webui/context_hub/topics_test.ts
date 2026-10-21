@@ -945,6 +945,40 @@ suite('TopicFeedbackExportDialog', () => {
             .every(checkbox => checkbox.disabled && !checkbox.checked));
   });
 
+  test('shows the sites right after the history window', async () => {
+    await openDialog();
+    assertEquals(
+        'redactionSection', query('#windowSection')!.nextElementSibling!.id);
+  });
+
+  test('keeps the site list off the next section when short', async () => {
+    const domains: TopicsFeedbackExportPreview['domains'] = [];
+    for (let i = 0; i < 30; i++) {
+      domains.push({
+        domain: `site${i}.example.com`,
+        visitCount: 1,
+        defaultExcluded: false,
+        urls: [],
+      });
+    }
+    handler.setResultFor(
+        'getTopicsFeedbackExportPreview',
+        Promise.resolve({preview: {...createPreview(), domains}}));
+    await openDialog();
+    const crDialog = dialog.$.dialog;
+    const wrapper =
+        crDialog.shadowRoot.querySelector<HTMLElement>('#content-wrapper')!;
+    wrapper.style.maxHeight = '400px';
+
+    const list = query('#domainList')!;
+    const listRect = list.getBoundingClientRect();
+    const nextRect = list.nextElementSibling!.getBoundingClientRect();
+    assertEquals(136, Math.round(listRect.height));
+    assertTrue(listRect.bottom <= nextRect.top);
+    const container = crDialog.shadowRoot.querySelector('#container')!;
+    assertTrue(container.scrollHeight > container.clientHeight);
+  });
+
   // Thumbs-up feedback on the first `count` of the 4 topics.
   function likeTopics(count: number): TopicFeedback[] {
     return [1, 2, 3, 4].slice(0, count).map(i => {

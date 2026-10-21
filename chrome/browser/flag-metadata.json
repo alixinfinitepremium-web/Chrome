@@ -8496,15 +8496,6 @@
     "expiry_milestone": 158
   },
   {
-    "name": "profile-signals-reporting-enabled",
-    "owners": [
-      "seblalancette@google.com",
-      "xzonghan@google.com",
-      "zmin@google.com"
-    ],
-    "expiry_milestone": 155
-  },
-  {
     "name": "profiles-reordering",
     "owners": ["rsult@google.com", "chrome-signin-team@google.com"],
     "expiry_milestone": 146
@@ -10640,11 +10631,6 @@
     "name": "xsurface-metrics-reporting",
     "owners": [ "//chrome/android/feed/OWNERS", "feed@chromium.org" ],
     "expiry_milestone": 120
-  },
-  {
-    "name": "your-saved-info-settings-page-android",
-    "owners": ["josefraska@google.com", "chrome-autofill-team@google.com"],
-    "expiry_milestone": 160
   },
   {
     "name": "your-saved-info-settings-page-ios",

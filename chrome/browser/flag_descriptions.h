@@ -4371,11 +4371,6 @@ inline constexpr char kProfileDiscOnAllPagesDescription[] =
     "Enables showing the Signin Button Profile Disc in the toolbar on all "
     "pages, rather than solely the NTP.";
 
-inline constexpr char kProfileSignalsReportingEnabledName[] =
-    "Profile Signals Reporting Enabled";
-inline constexpr char kProfileSignalsReportingEnabledDescription[] =
-    "Enables the profile signals reporting flow for Chrome Enterprise.";
-
 inline constexpr char kOrganizerPanelName[] = "Organizer Panel";
 inline constexpr char kOrganizerPanelDescription[] =
     "Enables the Organizer Panel.";
@@ -6862,11 +6857,6 @@ inline constexpr char kOpenXRAndroidSmoothDepthName[] =
 inline constexpr char kOpenXRAndroidSmoothDepthDescription[] =
     "Forces the OpenXR Android runtime to use the Smooth depth image. When "
     "Disabled, the raw depth image will be used instead.";
-
-inline constexpr char kYourSavedInfoSettingsPageAndroidName[] =
-    "Autofill and passwords settings redesign";
-inline constexpr char kYourSavedInfoSettingsPageAndroidDescription[] =
-    "Enables Autofill and passwords settings page redesign on Android.";
 
 inline constexpr char kAndroidXrImmersivePlayerName[] =
     "3D Immersive Media Playback for Android XR";

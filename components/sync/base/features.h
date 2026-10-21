@@ -173,10 +173,6 @@ BASE_DECLARE_FEATURE(kSyncTrustedVaultErrorMessageDuration);
 BASE_DECLARE_FEATURE(kSyncTrustedVaultInfobarMessageImprovements);
 #endif  // BUILDFLAG(IS_IOS)
 
-// If enabled, the preferences sync service will use the selected types to
-// determine whether the pref values should be set in the account storage.
-BASE_DECLARE_FEATURE(kSyncPreferencesUseSelectedTypes);
-
 // If enabled, the new sync dashboard URL will be opened when the user clicks
 // on the "Review your synced data" (or equivalent) entrypoint in settings.
 BASE_DECLARE_FEATURE(kSyncEnableNewSyncDashboardUrl);
@@ -188,9 +184,6 @@ BASE_DECLARE_FEATURE(kSyncValidateAccessToken);
 // If enabled, use the access token propagated from SyncSchedulerImpl through
 // SyncCycle rather than reading from ServerConnectionManager's cache.
 BASE_DECLARE_FEATURE(kSyncUsePropagatedAccessToken);
-
-// If enabled, Sync invalidations will bypass the scheduler on Android.
-BASE_DECLARE_FEATURE(kSyncInvalidationsBypassScheduler);
 
 #if BUILDFLAG(IS_ANDROID)
 // If enabled, search engines and site search will be synced on Android LFF.

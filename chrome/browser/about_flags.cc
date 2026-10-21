@@ -108,7 +108,6 @@
 #include "components/data_sharing/public/features.h"
 #include "components/data_sharing/public/switches.h"
 #include "components/desktop_to_mobile_promos/features.h"
-#include "components/device_signals/core/common/signals_features.h"
 #include "components/dom_distiller/core/dom_distiller_features.h"
 #include "components/dom_distiller/core/dom_distiller_switches.h"
 #include "components/download/public/common/download_features.h"
@@ -12705,12 +12704,6 @@ const FeatureEntry kFeatureEntries[] = {
      FEATURE_VALUE_TYPE(switches::kSearchSettingsUpdate)},
 #endif
 
-    {"profile-signals-reporting-enabled",
-     flag_descriptions::kProfileSignalsReportingEnabledName,
-     flag_descriptions::kProfileSignalsReportingEnabledDescription, kOsAll,
-     FEATURE_VALUE_TYPE(
-         enterprise_signals::features::kProfileSignalsReportingEnabled)},
-
 #if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_LINUX) || \
     BUILDFLAG(IS_CHROMEOS)
     {"organizer-panel", flag_descriptions::kOrganizerPanelName,
@@ -13244,13 +13237,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kNewTabPageCustomizationThemeSyncName,
      flag_descriptions::kNewTabPageCustomizationThemeSyncDescription,
      kOsAndroid, FEATURE_VALUE_TYPE(syncer::kNewTabPageCustomizationThemeSync)},
-#endif
-#if BUILDFLAG(IS_ANDROID)
-    {"your-saved-info-settings-page-android",
-     flag_descriptions::kYourSavedInfoSettingsPageAndroidName,
-     flag_descriptions::kYourSavedInfoSettingsPageAndroidDescription,
-     kOsAndroid,
-     FEATURE_VALUE_TYPE(chrome::android::kYourSavedInfoSettingsPageAndroid)},
 #endif
 
     {"mobile-ntp-promo-on-desktop",

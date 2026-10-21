@@ -569,7 +569,6 @@ const base::Feature* const kFeaturesExposedToJava[] = {
     &kWebOtpCrossDeviceSimpleString,
     &kWebUiAndroidTheming,
     &kXplatSyncedSetupThemes,
-    &kYourSavedInfoSettingsPageAndroid,
     &language::kCctAutoTranslate,
     &language::kDetailedLanguageSettings,
     &language::kGmsCoreUlp,
@@ -624,7 +623,6 @@ const base::Feature* const kFeaturesExposedToJava[] = {
     &sensitive_content::features::kSensitiveContent,
     &sensitive_content::features::kSensitiveContentWhileSwitchingTabs,
     &site_isolation::features::kSiteIsolationEnableMemoryThresholdAndroid,
-    &switches::kApplyDeviceChoiceRenewal,
     &switches::kClankDefaultSearchApi,
     &switches::kPrepopulatedEnginesShadowVariants,
     &switches::kSearchSettingsUpdateV2,
@@ -1010,7 +1008,6 @@ BASE_FEATURE(kWebAppShortEdgesCutoutMode, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kWebOtpCrossDeviceSimpleString, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kWebUiAndroidTheming, BUILDFLAG(IS_DESKTOP_ANDROID) ? base::FEATURE_ENABLED_BY_DEFAULT : base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kXplatSyncedSetupThemes, base::FEATURE_DISABLED_BY_DEFAULT);
-BASE_FEATURE(kYourSavedInfoSettingsPageAndroid, base::FEATURE_ENABLED_BY_DEFAULT);
 // go/keep-sorted end
 // BASE_FEATURE_END
 

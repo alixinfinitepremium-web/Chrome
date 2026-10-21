@@ -28,7 +28,6 @@
 #include "chrome/browser/ash/login/enrollment/mock_oauth2_token_revoker.h"
 #include "chrome/browser/ash/login/enrollment/oauth2_token_revoker.h"
 #include "chrome/browser/ash/login/enrollment/timebound_user_context_holder.h"
-#include "chrome/browser/ash/login/screens/account_selection_screen.h"
 #include "chrome/browser/ash/login/screens/mock_error_screen.h"
 #include "chrome/browser/ash/login/wizard_context.h"
 #include "chrome/browser/ash/policy/enrollment/enrollment_config.h"
@@ -202,6 +201,13 @@ class EnrollmentScreenBaseTest : public testing::Test {
           ExpectEnrollmentScreenIsEnrollmentStatusConsumer();
           enrollment_screen_->OnDeviceAttributeUpdatePermission(
               permission_granted);
+        });
+  }
+
+  void ExpectDeviceAttributeUpdateSuccess() {
+    EXPECT_CALL(mock_enrollment_launcher_, UpdateDeviceAttributes(_, _))
+        .WillOnce([this](const std::string&, const std::string&) {
+          enrollment_screen_->OnDeviceAttributeUploadCompleted(/*success=*/true);
         });
   }
 
@@ -482,6 +488,28 @@ TEST_P(EnrollmentScreenManualFlowTest, OobeConfigSkipEnrollmentSuccessScreen) {
   ExpectShowViewWithLogin();
   ExpectManualEnrollmentAndReportEnrolled();
   ExpectGetDeviceAttributeUpdatePermission(/*permission_granted=*/false);
+  ExpectSuccessScreenIsNotShown();
+  SetupClearAuthExpectationsOnSuccess();
+
+  SetUpEnrollmentScreen(config);
+  ShowEnrollmentScreen();
+
+  EXPECT_EQ(last_screen_result(), EnrollmentScreen::Result::COMPLETED);
+  EXPECT_EQ(local_state().GetInteger(ash::prefs::kDeviceRegistered), 1);
+}
+
+TEST_P(EnrollmentScreenManualFlowTest,
+       OobeConfigSkipEnrollmentSuccessScreenWithDeviceAttributes) {
+  wizard_context().configuration.Set(
+      configuration::kSkipEnrollmentSuccessScreen, true);
+  wizard_context().configuration.Set(configuration::kEnrollmentAutoAttributes,
+                                     true);
+  const policy::EnrollmentConfig config = GetEnrollmentConfig();
+
+  ExpectShowViewWithLogin();
+  ExpectManualEnrollmentAndReportEnrolled();
+  ExpectGetDeviceAttributeUpdatePermission(/*permission_granted=*/true);
+  ExpectDeviceAttributeUpdateSuccess();
   ExpectSuccessScreenIsNotShown();
   SetupClearAuthExpectationsOnSuccess();
 

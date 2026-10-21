@@ -144,17 +144,11 @@ BASE_FEATURE(kSyncTrustedVaultInfobarMessageImprovements,
              base::FEATURE_DISABLED_BY_DEFAULT);
 #endif  // BUILDFLAG(IS_IOS)
 
-BASE_FEATURE(kSyncPreferencesUseSelectedTypes,
-             base::FEATURE_ENABLED_BY_DEFAULT);
-
 BASE_FEATURE(kSyncEnableNewSyncDashboardUrl, base::FEATURE_ENABLED_BY_DEFAULT);
 
 BASE_FEATURE(kSyncValidateAccessToken, base::FEATURE_ENABLED_BY_DEFAULT);
 
 BASE_FEATURE(kSyncUsePropagatedAccessToken, base::FEATURE_DISABLED_BY_DEFAULT);
-
-BASE_FEATURE(kSyncInvalidationsBypassScheduler,
-             base::FEATURE_ENABLED_BY_DEFAULT);
 
 #if BUILDFLAG(IS_ANDROID)
 BASE_FEATURE(kSyncSearchEnginesAndroidLFF, base::FEATURE_DISABLED_BY_DEFAULT);

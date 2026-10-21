@@ -339,7 +339,6 @@ public abstract class ChromeFeatureList {
     public static final String APB144_PATCH6 = "Apb144Patch6";
     public static final String APB144_PATCH7 = "Apb144Patch7";
     public static final String APB144_PATCH8 = "Apb144Patch8";
-    public static final String APPLY_DEVICE_CHOICE_RENEWAL = "ApplyDeviceChoiceRenewal";
     public static final String APP_SPECIFIC_HISTORY = "AppSpecificHistory";
     public static final String APP_SPECIFIC_HISTORY_VIEW_INTENT = "AppSpecificHistoryViewIntent";
     public static final String ARCHIVED_TABS_TEARDOWN = "ArchivedTabsTeardown";
@@ -908,8 +907,6 @@ public abstract class ChromeFeatureList {
     public static final String WIDE_SCREEN_FEED_FOR_FOLDABLES = "WideScreenFeedForFoldables";
     public static final String XPLAT_SYNCED_SETUP_THEMES = "XplatSyncedSetupThemes";
     public static final String XSURFACE_METRICS_REPORTING = "XsurfaceMetricsReporting";
-    public static final String YOUR_SAVED_INFO_SETTINGS_PAGE_ANDROID =
-            "YourSavedInfoSettingsPageAndroid";
 
     // keep-sorted end
     // LINT.ThenChange(//chrome/browser/flags/android/chrome_feature_list.cc:FeaturesExposedToJava)
@@ -1741,8 +1738,6 @@ public abstract class ChromeFeatureList {
             newMutableFlagWithSafeDefault(BROWSER_CONTROLS_SCROLL_SNAP_ANIMATION, false);
     public static final MutableFlagWithSafeDefault sBrowsingHistoryFilterByActor =
             newMutableFlagWithSafeDefault(BROWSING_HISTORY_FILTER_BY_ACTOR, false);
-    public static final MutableFlagWithSafeDefault sBrowsingHistoryFilterByDevice =
-            newMutableFlagWithSafeDefault(BROWSING_HISTORY_FILTER_BY_DEVICE, false);
     public static final MutableFlagWithSafeDefault sBrowsingHistoryFilterByDomain =
             newMutableFlagWithSafeDefault(BROWSING_HISTORY_FILTER_BY_DOMAIN, false);
     public static final MutableFlagWithSafeDefault sCrossWindowTabGroupOperations =
