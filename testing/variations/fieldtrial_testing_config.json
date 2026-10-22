@@ -3648,6 +3648,7 @@
                         "MigratedSessionRestore": "true",
                         "MigratedStartupLaunch": "true",
                         "MigratedTabSharing": "true",
+                        "MigratedThemeInstalled": "true",
                         "MigratedWebAppBlockedMigration": "true",
                         "MigratedWebAuthFlow": "true"
                     },
@@ -5921,29 +5922,6 @@
                     "name": "Enabled",
                     "enable_features": [
                         "DesktopCapturePermissionCheckerPreMacos14_4"
-                    ]
-                }
-            ]
-        }
-    ],
-    "DesktopDynamicAiModeButton": [
-        {
-            "platforms": [
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "OmniboxDynamicColorAnimationRealboxDynamic_",
-                    "params": {
-                        "Omnibox_DynamicAnimation": "true",
-                        "Omnibox_DynamicColorScheme": "true"
-                    },
-                    "enable_features": [
-                        "NtpRealboxDynamicAiModeButton",
-                        "WebUIOmniboxDynamicAiModeButton"
                     ]
                 }
             ]
@@ -11088,6 +11066,23 @@
             ]
         }
     ],
+    "LRUCacheMemoryConsumer": [
+        {
+            "platforms": [
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled_20260929",
+                    "enable_features": [
+                        "LRUCacheMemoryConsumer"
+                    ]
+                }
+            ]
+        }
+    ],
     "LabelDefaultTooltipFastPath": [
         {
             "platforms": [
@@ -11234,29 +11229,6 @@
                     "name": "Enabled",
                     "enable_features": [
                         "LensComposeboxIdentityDelegation"
-                    ]
-                }
-            ]
-        }
-    ],
-    "LensSidePanelUnification": [
-        {
-            "platforms": [
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "params": {
-                        "allow-signed-out": "false"
-                    },
-                    "enable_features": [
-                        "ContextualTasksSidePanel",
-                        "ContextualTasksSidePanelDefaultRight",
-                        "LensSidePanelUnification"
                     ]
                 }
             ]
@@ -13791,25 +13763,6 @@
                     "name": "Enabled",
                     "enable_features": [
                         "PdfAccessibilityHeuristicEnhancements"
-                    ]
-                }
-            ]
-        }
-    ],
-    "PdfBufferedPaintManager": [
-        {
-            "platforms": [
-                "android",
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "PdfBufferedPaintManager"
                     ]
                 }
             ]
@@ -17658,6 +17611,31 @@
             ]
         }
     ],
+    "TruncateSearchUrl": [
+        {
+            "platforms": [
+                "android",
+                "chromeos",
+                "ios",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "params": {
+                        "truncate_search_url_oq_length": "2048",
+                        "truncate_search_url_q_length": "60416"
+                    },
+                    "enable_features": [
+                        "TruncateSearchUrlOq",
+                        "TruncateSearchUrlQ"
+                    ]
+                }
+            ]
+        }
+    ],
     "TrustSafetySentimentSurvey": [
         {
             "platforms": [
@@ -17995,27 +17973,6 @@
                     "enable_features": [
                         "AllowMultipleSwapsPerVsync",
                         "UseAndroidCustomFrameDeadlines"
-                    ]
-                }
-            ]
-        }
-    ],
-    "UseDynamicBackingAllocations": [
-        {
-            "platforms": [
-                "android",
-                "android_webview",
-                "chromeos",
-                "fuchsia",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "UseDynamicBackingAllocations"
                     ]
                 }
             ]
@@ -19535,8 +19492,6 @@
                         "InitialWebUIWithoutSpellCheckForNtp",
                         "InitialWebUIWithoutTranslateForNtp",
                         "LazyKeyedServiceInstantiation",
-                        "OmniboxAimPopupDeferCreation",
-                        "OmniboxWebUIPopupDeferCreation",
                         "PerDependencyDeadlines",
                         "PrioritizeResizeTaskRunnerOnStartup",
                         "SendGPUChannelEarly",
@@ -20143,6 +20098,7 @@
             "platforms": [
                 "chromeos",
                 "linux",
+                "mac",
                 "windows",
                 "android",
                 "ios"

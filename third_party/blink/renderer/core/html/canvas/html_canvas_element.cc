@@ -881,49 +881,23 @@ void HTMLCanvasElement::OnWidthOrHeightAssigned() {
   canvas_is_clear_ = true;
   gfx::Size old_size = Size();
   gfx::Size new_size(w, h);
+  size_ = new_size;
 
   if (frame_dispatcher_) {
     frame_dispatcher_->Reshape(new_size);
   }
 
-  if (IsRenderingContext2D()) {
-    context_->Reset();
-    origin_clean_ = true;
+  if (context_) {
+    context_->Reshape(old_size, new_size);
+  } else {
+    UpdateMemoryUsage();
+  }
 
-    // For Canvas2D, reuse any existing backing buffer rather than dropping and
-    // recreating it. Doing this optimization for WebGL and WebGPU would require
-    // investigation to make sure that it's spec-compliant (including adding any
-    // operations as necessary to get it compliant).
+  if (IsRenderingContext2D()) {
+    origin_clean_ = true;
     if (old_size == new_size) {
       return;
     }
-
-    size_ = new_size;
-    RenderingContext()->SizeChanged();
-
-    ResetLayer();
-    UpdateMemoryUsage();
-    dirty_rect_ = gfx::Rect();
-    if (context_->isContextLost()) {
-      context_->RestoreFromInvalidSizeIfNeeded();
-    }
-  } else if (IsWebGL()) {
-    size_ = new_size;
-    context_->Reshape(old_size, new_size);
-  } else if (IsWebGPU()) {
-    size_ = new_size;
-    RenderingContext()->SizeChanged();
-    UpdateMemoryUsage();
-    context_->Reshape(old_size, new_size);
-  } else if (IsImageBitmapRenderingContext()) {
-    size_ = new_size;
-    RenderingContext()->SizeChanged();
-    UpdateMemoryUsage();
-  } else {
-    size_ = new_size;
-    UpdateMemoryUsage();
-
-    CHECK(!context_);
   }
 
   if (LayoutObject* layout_object = GetLayoutObject()) {
@@ -948,6 +922,10 @@ void HTMLCanvasElement::OnWidthOrHeightAssigned() {
   if (accessibility_manager_) {
     accessibility_manager_->OnResize();
   }
+}
+
+void HTMLCanvasElement::ClearDirtyRect() {
+  dirty_rect_ = gfx::Rect();
 }
 
 void HTMLCanvasElement::ResetLayer() {

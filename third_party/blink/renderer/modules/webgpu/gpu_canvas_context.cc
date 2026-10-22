@@ -163,6 +163,20 @@ cc::Layer* GPUCanvasContext::CcLayer() const {
 }
 
 void GPUCanvasContext::Reshape(gfx::Size old_size, gfx::Size new_size) {
+  if (Host()->IsOffscreenCanvas()) {
+    if (old_size == new_size) {
+      return;
+    }
+    if (stopped_) {
+      DidDraw(CanvasPerformanceMonitor::DrawType::kOther);
+      return;
+    }
+  } else {
+    did_fail_to_create_resource_provider_ = false;
+    resource_provider_.reset();
+    Host()->UpdateMemoryUsage();
+  }
+
   if (stopped_) {
     return;
   }
@@ -188,6 +202,9 @@ void GPUCanvasContext::Reshape(gfx::Size old_size, gfx::Size new_size) {
   // If we don't notify the host that something has changed it may never check
   // for the new cc::Layer.
   Host()->SetNeedsCompositingUpdate();
+  if (Host()->IsOffscreenCanvas()) {
+    DidDraw(CanvasPerformanceMonitor::DrawType::kOther);
+  }
 }
 
 void GPUCanvasContext::Dispose() {
@@ -320,11 +337,6 @@ bool GPUCanvasContext::CopyRenderingResultsToVideoFrame(
 
   return swap_buffers_->CopyToVideoFrame(frame_pool, src_buffer,
                                          dst_color_space, std::move(callback));
-}
-
-void GPUCanvasContext::SizeChanged() {
-  did_fail_to_create_resource_provider_ = false;
-  resource_provider_.reset();
 }
 
 scoped_refptr<CanvasResource> GPUCanvasContext::GetResourceForPushFrame(

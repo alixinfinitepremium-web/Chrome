@@ -274,11 +274,17 @@ bool OffscreenCanvasRenderingContext2D::InitializeBacking() {
   return true;
 }
 
-void OffscreenCanvasRenderingContext2D::Reset() {
+void OffscreenCanvasRenderingContext2D::Reshape(gfx::Size old_size,
+                                                gfx::Size new_size) {
+  if (old_size != new_size && isContextLost()) {
+    RestoreFromInvalidSizeIfNeeded();
+  }
+
   ResetBacking();
   ResetRecorder();
   Host()->DiscardResources();
   BaseRenderingContext2D::ResetInternal();
+  DidDraw(CanvasPerformanceMonitor::DrawType::kOther);
 }
 
 scoped_refptr<CanvasResource>

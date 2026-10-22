@@ -4250,13 +4250,6 @@ inline constexpr char kReportNotificationContentDetectionDataDescription[] =
     "Enables reporting a notification's contents to Google, when the user taps "
     "the `Report` button on the notification.";
 
-inline constexpr char kShowRelatedWebsiteSetsPermissionGrantsName[] =
-    "Show permission grants from Related Website Sets";
-inline constexpr char kShowRelatedWebsiteSetsPermissionGrantsDescription[] =
-    "Shows permission grants created by Related Website Sets in Chrome "
-    "Settings UI and Page Info Bubble, "
-    "default is hidden";
-
 inline constexpr char kSearchSettingsUpdateName[] = "Search Settings Update";
 inline constexpr char kSearchSettingsUpdateDescription[] =
     "Enables refactoring of the search settings pages in "
@@ -5274,8 +5267,10 @@ inline constexpr char kDecisionsAPIDescription[] =
     "Enables the Built-in AI Decisions API (DecisionModel) for on-device "
     "verification, classification, and decisions regarding unstructured data, "
     "over a developer-defined schema. See the explainer [1] for details. "
-    "The Gemma 4 option forces the CPU backend to work around GPU scoring "
-    "issues, this impacts Gemma 4 usage for all built-in AI APIs.";
+    "Uses the EmbeddingGemma V1 backend by default if the devTrialBackend "
+    "option for create() is not specified. Forces the Gemma 4 CPU backend to "
+    "work around GPU scoring issues, which impacts Gemma 4 usage for all "
+    "built-in AI APIs.";
 inline constexpr const char* kDecisionsAPILinks[1] = {
     "https://github.com/explainers-by-googlers/decisions-api"};
 

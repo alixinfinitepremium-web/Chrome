@@ -22,6 +22,8 @@
 #include "chrome/browser/contextual_tasks/contextual_tasks_ui_service_factory.h"
 #include "chrome/browser/contextual_tasks/mock_contextual_tasks_panel_host.h"
 #include "chrome/browser/contextual_tasks/mock_contextual_tasks_ui_service_delegate.h"
+#include "chrome/browser/signin/chrome_signin_client_factory.h"
+#include "chrome/browser/signin/chrome_signin_client_test_util.h"
 #include "chrome/browser/tab_list/mock_tab_list_interface.h"
 #include "chrome/browser/tab_list/tab_list_interface.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
@@ -37,10 +39,14 @@
 #include "components/contextual_tasks/public/mock_contextual_tasks_service.h"
 #include "components/omnibox/browser/mock_aim_eligibility_service.h"
 #include "components/permissions/permission_recovery_success_rate_tracker.h"
+#include "components/permissions/permission_request_manager.h"
+#include "components/permissions/test/mock_permission_prompt_factory.h"
+#include "components/permissions/test/mock_permission_request.h"
 #include "components/prefs/pref_service.h"
 #include "components/sessions/content/session_tab_helper.h"
 #include "components/sessions/core/session_id.h"
 #include "components/tabs/public/mock_tab_interface.h"
+#include "components/variations/scoped_variations_ids_provider.h"
 #include "content/public/browser/navigation_controller.h"
 #include "content/public/browser/navigation_entry.h"
 #include "content/public/test/browser_task_environment.h"
@@ -50,8 +56,11 @@
 #include "extensions/buildflags/buildflags.h"
 #include "net/base/url_util.h"
 #include "services/network/public/cpp/shared_url_loader_factory.h"
+#include "services/network/test/test_url_loader_factory.h"
 #include "testing/gmock/include/gmock/gmock.h"
 #include "testing/gtest/include/gtest/gtest.h"
+#include "ui/display/screen.h"
+#include "ui/display/test/test_screen.h"
 
 #if BUILDFLAG(ENABLE_EXTENSIONS_CORE)
 #include "chrome/browser/extensions/tab_helper.h"
@@ -164,7 +173,12 @@ class MockActiveTaskContextProvider : public ActiveTaskContextProvider {
 class ContextualTasksSidePanelCoordinatorTest : public testing::Test {
  public:
   void SetUp() override {
-    profile_ = std::make_unique<TestingProfile>();
+    TestingProfile::Builder builder;
+    builder.AddTestingFactory(
+        ChromeSigninClientFactory::GetInstance(),
+        base::BindRepeating(&BuildChromeSigninClientWithURLLoader,
+                            &test_url_loader_factory_));
+    profile_ = builder.Build();
 #if !BUILDFLAG(IS_ANDROID)
     InitializeActionIdStringMapping();
 #endif
@@ -432,6 +446,7 @@ class ContextualTasksSidePanelCoordinatorTest : public testing::Test {
 #endif
   omnibox::AimEligibilityResponse aim_eligibility_response_;
   std::unique_ptr<NiceMock<MockAimEligibilityService>> aim_eligibility_service_;
+  network::TestURLLoaderFactory test_url_loader_factory_;
   std::unique_ptr<TestingProfile> profile_;
   std::unique_ptr<NiceMock<MockBrowserWindowInterface>> browser_window_;
   ui::UnownedUserDataHost unowned_user_data_host_;
@@ -442,6 +457,8 @@ class ContextualTasksSidePanelCoordinatorTest : public testing::Test {
   raw_ptr<MockContextualTasksPanelHost> mock_panel_host_ = nullptr;
   raw_ptr<MockContextualTasksService> mock_controller_ = nullptr;
   base::test::ScopedFeatureList feature_list_;
+  variations::test::ScopedVariationsIdsProvider scoped_variations_ids_provider_{
+      variations::VariationsIdsProvider::Mode::kUseSignedInState};
 
   std::unique_ptr<ContextualTasksSidePanelCoordinator> coordinator_;
 
@@ -2722,6 +2739,61 @@ TEST_F(ContextualTasksSidePanelCoordinatorTest,
   EXPECT_EQ(recent[0].title, u"Thread Struct Title");
   EXPECT_EQ(recent[1].task_id, task_title_id);
   EXPECT_EQ(recent[1].title, u"Task Fallback Title");
+}
+
+TEST_F(ContextualTasksSidePanelCoordinatorTest,
+       CloseSidePanelIgnoresInProgressPermissionRequest) {
+  display::test::TestScreen test_screen(
+      /*create_display=*/true, /*register_screen=*/!display::Screen::Get());
+  base::test::ScopedFeatureList local_feature_list;
+  local_feature_list.InitWithFeaturesAndParameters(
+      {{kContextualTasks, {}},
+       {kContextualTasksEphemeralBrandedEntryPoint,
+        {{"ContextualTasksEntryPoint", "toolbar-ephemeral-branded"}}}},
+      {});
+
+  tabs::TabInterface* active_tab = tab_list_->GetActiveTab();
+  ASSERT_TRUE(active_tab);
+  SessionID active_tab_id =
+      sessions::SessionTabHelper::IdForTab(active_tab->GetContents());
+
+  base::Uuid task_id = base::Uuid::GenerateRandomV4();
+  ContextualTask task(task_id);
+  EXPECT_CALL(*mock_controller_, GetContextualTaskForTab(active_tab_id))
+      .WillRepeatedly(Return(task));
+  EXPECT_CALL(*mock_controller_, GetTabsAssociatedWithTask(task_id))
+      .WillRepeatedly(Return(std::vector<SessionID>{active_tab_id}));
+
+  CreateCachedWebContentsForTesting(task_id, /*is_open=*/true);
+  content::WebContents* panel_contents =
+      GetWebContentsForTaskForTesting(task_id);
+  ASSERT_TRUE(panel_contents);
+  mock_panel_host_->SetWebContents(panel_contents);
+
+  content::NavigationSimulator::NavigateAndCommitFromBrowser(
+      panel_contents, GURL(permissions::MockPermissionRequest::kDefaultOrigin));
+
+  auto* permission_request_manager =
+      permissions::PermissionRequestManager::FromWebContents(panel_contents);
+  ASSERT_TRUE(permission_request_manager);
+  permissions::MockPermissionPromptFactory prompt_factory(
+      permission_request_manager);
+  permission_request_manager->DocumentOnLoadCompletedInPrimaryMainFrame();
+
+  auto request = std::make_unique<permissions::MockPermissionRequest>(
+      permissions::RequestType::kMicStream,
+      permissions::PermissionRequestGestureType::GESTURE);
+  permission_request_manager->AddRequest(panel_contents->GetPrimaryMainFrame(),
+                                         std::move(request));
+  prompt_factory.WaitForPermissionBubble();
+
+  EXPECT_TRUE(permission_request_manager->IsRequestInProgress());
+  EXPECT_TRUE(prompt_factory.is_visible());
+
+  coordinator_->Close();
+
+  EXPECT_FALSE(permission_request_manager->IsRequestInProgress());
+  EXPECT_FALSE(prompt_factory.is_visible());
 }
 
 }  // namespace contextual_tasks

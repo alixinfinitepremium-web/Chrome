@@ -115,13 +115,6 @@ ImageBitmapRenderingContext::getHTMLOrOffscreenCanvas(
       script_state, static_cast<HTMLCanvasElement*>(Host()));
 }
 
-void ImageBitmapRenderingContext::Reset() {
-  CHECK(Host());
-  CHECK(Host()->IsOffscreenCanvas());
-  resource_provider_for_offscreen_canvas_.reset();
-  Host()->DiscardResources();
-}
-
 base::ByteSize ImageBitmapRenderingContext::AllocatedBufferSize() const {
   if (!IsPaintable()) {
     return base::ByteSize();
@@ -539,6 +532,19 @@ ImageBitmap* ImageBitmapRenderingContext::TransferToImageBitmap(
 
   image->Transfer();
   return MakeGarbageCollected<ImageBitmap>(std::move(image));
+}
+
+void ImageBitmapRenderingContext::Reshape(gfx::Size old_size,
+                                          gfx::Size new_size) {
+  if (Host()->IsOffscreenCanvas()) {
+    if (old_size != new_size) {
+      resource_provider_for_offscreen_canvas_.reset();
+      Host()->DiscardResources();
+      DidDraw(CanvasPerformanceMonitor::DrawType::kOther);
+    }
+  } else {
+    Host()->UpdateMemoryUsage();
+  }
 }
 
 CanvasRenderingContext* ImageBitmapRenderingContext::Factory::Create(

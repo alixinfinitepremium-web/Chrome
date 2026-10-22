@@ -875,36 +875,6 @@ chromium-metrics-reviews@google.com.
 
 <!-- LINT.ThenChange(//components/browser_ui/device_lock/android/java/src/org/chromium/components/browser_ui/device_lock/DeviceLockActivityLauncher.java:DeviceLockSource) -->
 
-<histogram name="Android.Automotive.DeviceLockOutcome" enum="Boolean"
-    expires_after="2026-07-01">
-  <owner>twellington@chromium.org</owner>
-  <owner>clhager@google.com</owner>
-  <summary>
-    Records whether the user successfully passed the device lock challenge after
-    having seen the automotive device lock explainer dialog.
-  </summary>
-</histogram>
-
-<histogram name="Android.Automotive.DeviceLockRemovalDialogEvent"
-    enum="MissingDeviceLockDialogEvent" expires_after="2026-07-01">
-  <owner>twellington@chromium.org</owner>
-  <owner>clhager@google.com</owner>
-  <summary>
-    Records an event whenever the missing device lock dialog is shown to the
-    user or the user takes an action on the dialog.
-  </summary>
-</histogram>
-
-<histogram name="Android.Automotive.DeviceLockSet" enum="Boolean"
-    expires_after="2026-07-01">
-  <owner>twellington@chromium.org</owner>
-  <owner>clhager@google.com</owner>
-  <summary>
-    Records whether the automotive device has a device lock set when Chrome is
-    resumed.
-  </summary>
-</histogram>
-
 <histogram name="Android.Automotive.UiScalingFactor" units="%"
     expires_after="2025-11-23">
   <owner>twellington@chromium.org</owner>
@@ -6455,6 +6425,27 @@ chromium-metrics-reviews@google.com.
     (&quot;No results found&quot;) at least once during a search session because
     an entered search query returned zero matching suggestions. Recorded once
     per Tab Search overlay session upon dismissal.
+  </summary>
+</histogram>
+
+<histogram name="Android.TabStrip.NewTabButton.ActivityCreationToFirstPaint"
+    units="ms" expires_after="2027-04-05">
+  <owner>acondor@chromium.org</owner>
+  <owner>clank-performance-team@google.com</owner>
+  <summary>
+    Duration from ChromeActivity creation to the first presentation timestamp of
+    the tab strip New Tab Button. Recorded at most once per activity.
+  </summary>
+</histogram>
+
+<histogram name="Android.TabStrip.NewTabButton.InteractionToNewTab" units="ms"
+    expires_after="2027-04-05">
+  <owner>acondor@chromium.org</owner>
+  <owner>clank-performance-team@google.com</owner>
+  <summary>
+    Duration from an activating user interaction on the tab strip New Tab Button
+    to when the new tab is added to the TabModel. Recorded each time a tab is
+    opened via the button.
   </summary>
 </histogram>
 

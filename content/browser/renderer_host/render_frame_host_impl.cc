@@ -1443,10 +1443,12 @@ class DiscardedRFHProcessHelper : public base::SupportsUserData::Data,
         retries_ * kProcessShutdownRetryDelay >=
             RenderProcessHostImpl::kKeepAliveHandleFactoryTimeout) {
       host_->FastShutdownIfPossible(
-          /*page_count=*/discarded_widgets.size(),
+          /*page_count=*/0u,
           /*skip_unload_handlers=*/true,
           /*ignore_workers=*/true,
-          /*ignore_keep_alive=*/true);
+          /*ignore_keep_alive=*/true,
+          /*ignore_pending_reuse=*/false,
+          /*use_outermost_main_frame_check=*/true);
       return;
     }
 
@@ -1454,10 +1456,12 @@ class DiscardedRFHProcessHelper : public base::SupportsUserData::Data,
     // attempt a shutdown honoring any existing keep-alive refs. Schedule a
     // retry if fast shutdown is blocked.
     if (!host_->FastShutdownIfPossible(
-            /*page_count=*/discarded_widgets.size(),
+            /*page_count=*/0u,
             /*skip_unload_handlers=*/true,
             /*ignore_workers=*/true,
-            /*ignore_keep_alive=*/false)) {
+            /*ignore_keep_alive=*/false,
+            /*ignore_pending_reuse=*/false,
+            /*use_outermost_main_frame_check=*/true)) {
       retries_++;
       shutdown_attempt_timer_.Start(
           FROM_HERE, kProcessShutdownRetryDelay,
@@ -4975,11 +4979,15 @@ void RenderFrameHostImpl::DeleteRenderFrame(
     // TODO(crbug.com/40860307): consider delaying process shutdown for fenced
     // frames.
     if (!is_main_frame() && IsActive()) {
-      base::TimeDelta subframe_shutdown_timeout =
-          frame_tree_->IsBeingDestroyed()
+      const bool is_discarded =
+          GetOutermostMainFrame()->document_associated_data().is_discarded();
+
+      const base::TimeDelta subframe_shutdown_timeout =
+          (frame_tree_->IsBeingDestroyed() || is_discarded)
               ? base::TimeDelta()
               : GetSubframeProcessShutdownDelay(
                     GetSiteInstance()->GetBrowserContext(), memory_limit());
+
       // If this document has unload handlers (and is active), ensure that they
       // have a chance to execute by delaying process cleanup. This will prevent
       // the process from shutting down immediately in the case where this is
@@ -4988,8 +4996,11 @@ void RenderFrameHostImpl::DeleteRenderFrame(
       // keep track of pending delete RenderFrameHost
       // (https://crbug.com/609963), but there are still a few exceptions where
       // this is needed (https://crbug.com/1014550).
+      // When discarding, we want immediate memory reclamation rather than
+      // keeping the OOPIF process alive for unload handlers.
       const base::TimeDelta unload_handler_timeout =
-          has_unload_handlers() ? subframe_unload_timeout_ : base::TimeDelta();
+          (!is_discarded && has_unload_handlers()) ? subframe_unload_timeout_
+                                                   : base::TimeDelta();
 
       if (!subframe_shutdown_timeout.is_zero() ||
           !unload_handler_timeout.is_zero()) {
@@ -5003,8 +5014,10 @@ void RenderFrameHostImpl::DeleteRenderFrame(
       }
       // If the subframe takes too long to unload, force its removal from the
       // tree. See https://crbug.com/950625.
+      const base::TimeDelta actual_unload_timeout =
+          is_discarded ? base::TimeDelta() : subframe_unload_timeout_;
       subframe_unload_timer_.Start(
-          FROM_HERE, subframe_unload_timeout_, this,
+          FROM_HERE, actual_unload_timeout, this,
           &RenderFrameHostImpl::OnSubframeDeletionUnloadTimeout);
     }
   }
@@ -13656,7 +13669,6 @@ void RenderFrameHostImpl::DiscardFrame(base::OnceClosure on_discarded_cb) {
           if (!self) {
             return;
           }
-          self->MaybeNotifyDiscardedFrame();
           self->GetRenderWidgetHost()->SetIsDiscarding(false);
           // Now that the renderer has committed the empty document and finished
           // running any unload handlers, attempt fast shutdown (skipping unload
@@ -13665,11 +13677,14 @@ void RenderFrameHostImpl::DiscardFrame(base::OnceClosure on_discarded_cb) {
           // terminated dedicated renderer processes after running unload
           // handlers.
           self->GetProcess()->FastShutdownIfPossible(
-              1u, /*skip_unload_handlers=*/true,
+              0u, /*skip_unload_handlers=*/true,
               /*ignore_workers=*/false,
               /*ignore_keep_alive=*/false,
               /*ignore_pending_reuse=*/false,
               /*use_outermost_main_frame_check=*/true);
+          if (self) {
+            self->MaybeNotifyDiscardedFrame();
+          }
         },
         weak_ptr_factory_.GetWeakPtr()));
   }

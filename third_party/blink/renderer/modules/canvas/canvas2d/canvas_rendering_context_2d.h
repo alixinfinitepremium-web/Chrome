@@ -245,7 +245,6 @@ class MODULES_EXPORT CanvasRenderingContext2D final
  protected:
   HTMLCanvasElement* HostAsHTMLCanvasElement() const final;
   UniqueFontSelector* GetFontSelector() const final;
-  void SizeChanged() final;
 
   bool WritePixels(const SkImageInfo& orig_info,
                    const void* pixels,
@@ -264,6 +263,7 @@ class MODULES_EXPORT CanvasRenderingContext2D final
                            PrepareMailboxWhenContextIsLostWithFailedRestore);
 
   void ResetInternal() override;
+  void Reshape(gfx::Size old_size, gfx::Size new_size) override;
 
   void Dispose() override;
 

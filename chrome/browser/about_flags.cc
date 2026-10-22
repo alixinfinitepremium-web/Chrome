@@ -1001,26 +1001,6 @@ const FeatureEntry::FeatureVariation kAim3pEntrypointVariations[] = {
     {"with debug config", kAim3pEntrypointDebugEnabled, nullptr}};
 
 #if !BUILDFLAG(IS_ANDROID)
-const FeatureEntry::FeatureParam kWebUIOmniboxDynamicAiModeButton_AnimOnly[] = {
-    {"Omnibox_DynamicAnimation", "true"},
-    {"Omnibox_DynamicColorScheme", "false"}};
-
-const FeatureEntry::FeatureParam kWebUIOmniboxDynamicAiModeButton_ColorOnly[] =
-    {{"Omnibox_DynamicAnimation", "false"},
-     {"Omnibox_DynamicColorScheme", "true"}};
-
-const FeatureEntry::FeatureParam kWebUIOmniboxDynamicAiModeButton_Both[] = {
-    {"Omnibox_DynamicAnimation", "true"},
-    {"Omnibox_DynamicColorScheme", "true"}};
-
-const FeatureEntry::FeatureVariation
-    kWebUIOmniboxDynamicAiModeButtonVariations[] = {
-        {"Animation Only", kWebUIOmniboxDynamicAiModeButton_AnimOnly, nullptr},
-        {"Color Scheme Only", kWebUIOmniboxDynamicAiModeButton_ColorOnly,
-         nullptr},
-        {"Animation and Color Scheme", kWebUIOmniboxDynamicAiModeButton_Both,
-         nullptr}};
-
 const FeatureEntry::FeatureParam kOmniboxDynamicAimSubmitRhsHint[] = {
     {"Omnibox_ShowRhsAimHint", "true"},
 };
@@ -4651,6 +4631,9 @@ const FeatureEntry::FeatureVariation kEphemeralBrandedEntryPointVariations[] = {
      kEphemeralBrandedEntryPointWithCircularNextToBatterySaver, nullptr}};
 
 const FeatureEntry::FeatureParam
+    kContextualTasksEphemeralButtonAutoDismiss1MinuteForTesting[] = {
+        {"ContextualTasksEphemeralButtonAutoDismissTimeMinutes", "1"}};
+const FeatureEntry::FeatureParam
     kContextualTasksEphemeralButtonAutoDismiss1Hour[] = {
         {"ContextualTasksEphemeralButtonAutoDismissTimeMinutes", "60"}};
 const FeatureEntry::FeatureParam
@@ -4662,6 +4645,8 @@ const FeatureEntry::FeatureParam
 
 const FeatureEntry::FeatureVariation
     kContextualTasksEphemeralButtonAutoDismissVariations[] = {
+        {"(1 minute for testing)",
+         kContextualTasksEphemeralButtonAutoDismiss1MinuteForTesting, nullptr},
         {"(1 hour)", kContextualTasksEphemeralButtonAutoDismiss1Hour, nullptr},
         {"(2 hours)", kContextualTasksEphemeralButtonAutoDismiss2Hours,
          nullptr},
@@ -4930,10 +4915,8 @@ const FeatureEntry::Choice kGemma4Choices[] = {
 // clones works on GPU.
 const FeatureEntry::Choice kDecisionsAPIChoices[] = {
     {flags_ui::kGenericExperimentChoiceDefault, "", ""},
-    {"Enabled with EmbeddingGemma V1", switches::kEnableFeatures,
-     "AIDecisionModelAPI:backend/embedding_gemma_v1"},
-    {"Enabled with Gemma 4 on CPU", switches::kEnableFeatures,
-     "AIDecisionModelAPI:backend/language_model,"
+    {flags_ui::kGenericExperimentChoiceEnabled, switches::kEnableFeatures,
+     "AIDecisionModelAPI,"
      "OptimizationGuideManifestBroker,"
      "AIApiFoundationalModel:model_version/v4,"
      "OnDeviceModelForceCpuBackend"}};
@@ -9758,9 +9741,7 @@ const FeatureEntry kFeatureEntries[] = {
     {"omnibox-dynamic-ai-mode-button",
      flag_descriptions::kDynamicAiModeButtonName,
      flag_descriptions::kDynamicAiModeButtonDescription, kOsDesktop,
-     FEATURE_WITH_PARAMS_VALUE_TYPE(omnibox::kWebUIOmniboxDynamicAiModeButton,
-                                    kWebUIOmniboxDynamicAiModeButtonVariations,
-                                    "WebUIOmniboxDynamicAiModeButton")},
+     FEATURE_VALUE_TYPE(omnibox::kWebUIOmniboxDynamicAiModeButton)},
 
     {"ntp-realbox-dynamic-ai-mode-button",
      flag_descriptions::kNtpRealboxDynamicAiModeButtonName,
@@ -10180,13 +10161,6 @@ const FeatureEntry kFeatureEntries[] = {
          kComposeSelectionNudgeVariations,
          "ComposeSelectionNudge")},
 #endif
-
-    {"related-website-sets-permission-grants",
-     flag_descriptions::kShowRelatedWebsiteSetsPermissionGrantsName,
-     flag_descriptions::kShowRelatedWebsiteSetsPermissionGrantsDescription,
-     kOsDesktop | kOsAndroid,
-     FEATURE_VALUE_TYPE(
-         permissions::features::kShowRelatedWebsiteSetsPermissionGrants)},
 
 #if BUILDFLAG(IS_CHROMEOS)
     {"platform-keys-changes-wave-1",

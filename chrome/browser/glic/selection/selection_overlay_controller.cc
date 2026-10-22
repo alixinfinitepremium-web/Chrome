@@ -22,6 +22,7 @@
 #include "chrome/browser/glic/public/glic_keyed_service.h"
 #include "chrome/browser/glic/public/glic_keyed_service_factory.h"
 #include "chrome/browser/glic/public/glic_passkeys.h"
+#include "chrome/browser/glic/public/glic_side_panel_coordinator.h"
 #include "chrome/browser/glic/selection/quick_answers_tool.h"
 #include "chrome/browser/glic/selection/selection_suggestion.h"
 #include "chrome/browser/page_content_annotations/multi_source_page_context_fetcher.h"
@@ -461,10 +462,13 @@ void SelectionOverlayController::CaptureRegion(
               selection_observer->GetCurrentSelectionBounds()) {
         selection_overlay_controller->SetRegionFromBounds(
             selection_observer->GetSelectedFrame(), *bounds);
+        const bool has_region =
+            selection_overlay_controller->GetSelectedRegionCount() > 0;
         // The overlay and the page context are not ready yet, so defer
         // sending the region to the web client.
-        selection_overlay_controller->staged_region_needs_render_ =
-            selection_overlay_controller->GetSelectedRegionCount() > 0;
+        selection_overlay_controller->staged_region_needs_render_ = has_region;
+        selection_overlay_controller->interaction_options_
+            ->skip_intro_animation = has_region;
         selection_observer->DismissUI(
             GlicSelectionObserver::DismissReason::kActionTaken);
       }
@@ -512,6 +516,9 @@ void SelectionOverlayController::ShowImpl(mojom::TabContextOptionsPtr options) {
   ShowModalUI();
 }
 
+// TODO(b/556786015): After requirement is finalized, reconsider if we should
+// pass full interaction_options or just the selected media, and let this
+// function decide which options to send to web.
 void SelectionOverlayController::ShowWithSelection(
     content::RenderFrameHost* selected_frame,
     const gfx::Rect& selection_bounds,
@@ -774,7 +781,7 @@ void SelectionOverlayController::SetScreenshot(const SkBitmap& screenshot,
 }
 
 bool SelectionOverlayController::IsResultsSidePanelShowing() {
-  return true;
+  return GlicSidePanelCoordinator::IsShowing(tab_);
 }
 
 GURL SelectionOverlayController::GetInitialURL() {

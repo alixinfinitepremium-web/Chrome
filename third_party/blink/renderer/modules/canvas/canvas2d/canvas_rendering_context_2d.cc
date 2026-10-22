@@ -1036,10 +1036,28 @@ UniqueFontSelector* CanvasRenderingContext2D::GetFontSelector() const {
   return canvas()->GetFontSelector();
 }
 
-void CanvasRenderingContext2D::SizeChanged() {
-  ResetBacking();
-  ResetRecorder();
-  did_fail_to_create_backing_ = false;
+void CanvasRenderingContext2D::Reshape(gfx::Size old_size, gfx::Size new_size) {
+  if (IsHibernating()) {
+    CanvasHibernationHandler::ReportHibernationEvent(
+        CanvasHibernationHandler::HibernationEvent::kHibernationEndedOnReset);
+    GetHibernationHandler()->Clear();
+  }
+  ResetState();
+  ClearCanvas(old_size);
+  set_clear_frame(true);
+
+  if (old_size != new_size) {
+    ResetBacking();
+    ResetRecorder();
+    did_fail_to_create_backing_ = false;
+
+    canvas()->ResetLayer();
+    Host()->UpdateMemoryUsage();
+    Host()->ClearDirtyRect();
+    if (isContextLost()) {
+      RestoreFromInvalidSizeIfNeeded();
+    }
+  }
 }
 
 CanvasHibernationHandler* CanvasRenderingContext2D::GetHibernationHandler()
