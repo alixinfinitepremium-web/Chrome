@@ -231,18 +231,6 @@ targets.tests.gtest_test(
     name = "ash_pixeltests",
     mixins = [
         "skia_gold_test",
-        targets.mixin(
-            # TODO(crbug.com/574560342): Remove this precommit_args bypass once
-            # post-submit CI diffs are triaged.
-            # @chromium-luci's _apply_mixin overwrites precommit_args rather
-            # than appending, so retain skia_gold_test's precommit_args.
-            precommit_args = [
-                "--gerrit-issue=${patch_issue}",
-                "--gerrit-patchset=${patch_set}",
-                "--buildbucket-id=${buildbucket_build_id}",
-                "--bypass-skia-gold-functionality",
-            ],
-        ),
         "skia_gold_test_on_linux_gce",
     ],
     args = [
@@ -770,6 +758,12 @@ targets.tests.isolated_script_test(
     ],
     args = [
         "--flag-specific=surface-embed",
+        "--no-virtual-tests",
+        "--skip-failing-tests",
+        "--skip-timeouts",
+        # TODO(https://crbug.com/575925048): Revisit wdspec test handling (e.g.,
+        # moving to a separate suite or filtering with --test-type).
+        "--inverted-test-launcher-filter-file=../../third_party/blink/web_tests/TestLists/content_shell.filter",
     ],
     binary = "chrome_wpt_tests",
 )

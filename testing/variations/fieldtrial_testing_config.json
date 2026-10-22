@@ -880,6 +880,21 @@
             ]
         }
     ],
+    "AndroidTabSearchRecentTabs": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "AndroidTabSearchRecentTabs"
+                    ]
+                }
+            ]
+        }
+    ],
     "AndroidTabUiRefactor": [
         {
             "platforms": [
@@ -5022,7 +5037,7 @@
             ]
         }
     ],
-    "ContextManagementInComposebox": [
+    "ContextManagementAndSmartTabSharing": [
         {
             "platforms": [
                 "chromeos",
@@ -5032,14 +5047,19 @@
             ],
             "experiments": [
                 {
-                    "name": "Enabled",
+                    "name": "Enabled_SingleTab_STSMultiTurn_Prestable_M157",
                     "params": {
-                        "KeepMenuOpenOnTabSelectForRealboxComposebox": "true",
+                        "ContextualTasksContextSmartTabSharing": "true",
+                        "ContextualTasksContextToggleOffAfterSubmit": "false",
+                        "enable_single_tab_menu_item": "true",
                         "enable_tab_deselection": "true"
                     },
                     "enable_features": [
                         "ContextManagementInComposebox",
-                        "ContextManagementInOmnibox"
+                        "ContextManagementInOmnibox",
+                        "ContextualTasksContext",
+                        "ContextualTasksContextLogging",
+                        "ContextualTasksContextMqlsLogging"
                     ]
                 }
             ]
@@ -6202,6 +6222,21 @@
                         "DeviceBoundSessionsDsePrewarmer",
                         "DeviceBoundSessionsForRestrictedSites",
                         "EnableOAuthMultiloginStandardCookiesBinding"
+                    ]
+                }
+            ]
+        }
+    ],
+    "DeviceBoundSessionsMtlsDogfood": [
+        {
+            "platforms": [
+                "mac"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "EnableMtlsTokenBinding"
                     ]
                 }
             ]
@@ -8376,8 +8411,6 @@
     "GlicColdWarmingDelay": [
         {
             "platforms": [
-                "chromeos",
-                "linux",
                 "mac"
             ],
             "experiments": [
@@ -8391,19 +8424,22 @@
                     ]
                 }
             ]
-        },
+        }
+    ],
+    "GlicColdWarmingInitiallyHidden": [
         {
             "platforms": [
+                "chromeos",
                 "windows"
             ],
             "experiments": [
                 {
-                    "name": "Enabled_300s_20261013",
+                    "name": "Enabled_Warming300s_20261021",
                     "params": {
-                        "glic-warming-delay-ms": "300000",
-                        "glic-warming-min-required-ram-mb": "8192"
+                        "glic-warming-delay-ms": "300000"
                     },
                     "enable_features": [
+                        "GlicContentsInitiallyHidden",
                         "GlicWarming"
                     ]
                 }
@@ -8428,22 +8464,6 @@
                     },
                     "enable_features": [
                         "GlicCrossOriginNavigationGating"
-                    ]
-                }
-            ]
-        }
-    ],
-    "GlicContentsInitiallyHidden": [
-        {
-            "platforms": [
-                "chromeos",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "GlicContentsInitiallyHidden"
                     ]
                 }
             ]
@@ -15766,6 +15786,21 @@
             ]
         }
     ],
+    "ScreencastForceEnableServerSideSpeechRecognition": [
+        {
+            "platforms": [
+                "chromeos"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "ForceEnableServerSideSpeechRecognition"
+                    ]
+                }
+            ]
+        }
+    ],
     "ScrollJankHoldback": [
         {
             "platforms": [
@@ -16452,25 +16487,6 @@
             ]
         }
     ],
-    "SiteTokenProviderTeamfood": [
-        {
-            "platforms": [
-                "android",
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled_Teamfood",
-                    "enable_features": [
-                        "SiteTokenProviderEnabled"
-                    ]
-                }
-            ]
-        }
-    ],
     "SkiaGraphite": [
         {
             "platforms": [
@@ -16751,30 +16767,6 @@
             ]
         }
     ],
-    "SmartTabSharing_Desktop": [
-        {
-            "platforms": [
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "params": {
-                        "ContextualTasksContextSmartTabSharing": "true",
-                        "ContextualTasksEnablePreviousTabFallback": "true"
-                    },
-                    "enable_features": [
-                        "ContextualTasksContext",
-                        "ContextualTasksContextLogging",
-                        "ContextualTasksContextMqlsLogging"
-                    ]
-                }
-            ]
-        }
-    ],
     "SmartZoom": [
         {
             "platforms": [
@@ -16802,26 +16794,6 @@
                     "name": "Enabled",
                     "enable_features": [
                         "SodaXnnpackDelegate"
-                    ]
-                }
-            ]
-        }
-    ],
-    "SpeculationRulesPrefetchLimitsForEagerModerateAndroid": [
-        {
-            "platforms": [
-                "android"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled_6",
-                    "params": {
-                        "max_number_of_eager_prefetches_per_page": "6",
-                        "max_number_of_moderate_prefetches_per_page": "6"
-                    },
-                    "enable_features": [
-                        "PrefetchEagerLimit",
-                        "PrefetchModerateLimit"
                     ]
                 }
             ]

@@ -5,19 +5,17 @@
 #ifndef CHROME_BROWSER_CONTEXTUAL_TASKS_CONTEXTUAL_TASKS_PANEL_CONTROLLER_H_
 #define CHROME_BROWSER_CONTEXTUAL_TASKS_CONTEXTUAL_TASKS_PANEL_CONTROLLER_H_
 
+#include <string>
 #include <vector>
 
 #include "base/observer_list_types.h"
+#include "base/uuid.h"
 #include "chrome/browser/contextual_tasks/contextual_tasks_panel_host.h"
 #include "components/tabs/public/tab_interface.h"
 #include "third_party/omnibox_proto/chrome_aim_entry_point.pb.h"
 #include "ui/base/unowned_user_data/scoped_unowned_user_data.h"
 
 class BrowserWindowInterface;
-
-namespace base {
-class Uuid;
-}
 
 namespace contextual_search {
 class ContextualSearchSessionHandle;
@@ -32,6 +30,11 @@ class ContextualTask;
 
 class ContextualTasksPanelController {
  public:
+  struct RecentThreadInfo {
+    base::Uuid task_id;
+    std::u16string title;
+  };
+
   DECLARE_USER_DATA(ContextualTasksPanelController);
 
   virtual ~ContextualTasksPanelController() = default;
@@ -56,8 +59,21 @@ class ContextualTasksPanelController {
     kAioToCobr = 3,
     kAskGoogle = 4,
     kEphemeralToolbarButton = 5,
-    kMaxValue = kEphemeralToolbarButton,
+    kPermanentToolbarButton = 6,
+    kMaxValue = kPermanentToolbarButton,
   };
+
+  // Whether clicking the permanently pinned toolbar button to open the side
+  // panel continues an existing thread or starts a new thread under Pinning v2.
+  // These values are persisted to logs. Entries should not be renumbered and
+  // numeric values should never be reused.
+  // LINT.IfChange(ContextualTasksPermanentToolbarButtonThreadAction)
+  enum class PermanentToolbarButtonThreadAction {
+    kContinueThread = 0,
+    kNewThread = 1,
+    kMaxValue = kNewThread,
+  };
+  // LINT.ThenChange(//tools/metrics/histograms/metadata/contextual_tasks/enums.xml:ContextualTasksPermanentToolbarButtonThreadAction)
 
   // Visibility commands.
   // Show the panel. If |transition_from_tab| is true, trigger the panel content
@@ -82,6 +98,11 @@ class ContextualTasksPanelController {
   // `tab_handles` as context.
   virtual void ShareTabsWithActiveOrNewThread(
       const std::vector<tabs::TabHandle>& tab_handles) = 0;
+
+  // Returns up to 5 recent non-zero-state threads cached in this browser
+  // window, ordered with the active side panel thread first followed by most
+  // recently active threads.
+  virtual std::vector<RecentThreadInfo> GetRecentThreads() const = 0;
 
   // State checks.
   // Check if the panel is currently opening for ContextualTask as another

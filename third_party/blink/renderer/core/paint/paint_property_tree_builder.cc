@@ -1164,19 +1164,23 @@ void FragmentPaintPropertyTreeBuilder::UpdateElementCanvasTransform() {
     context_.current.clip = &canvas_contents.Clip();
     // Reparent the drawable element's effect to the nearest drawable
     // ancestor's effect, or the canvas's contents effect, skipping any
-    // effects from intermediate non-drawable ancestors. Note that a nested
-    // drawable still paints with the canvas's contents effect (via
-    // `CanvasDrawableState::content_effect`), not the ancestor drawable's
-    // effect; parenting to the ancestor drawable's effect keeps the nested
+    // effects from intermediate non-drawable ancestors (and filters/masks/etc.
+    // on the drawable ancestor). Note that a nested drawable sets
+    // `CanvasDrawableState::content_effect` to this parent effect so the
+    // ancestor drawable's effect is not applied when painting the nested
+    // drawable; parenting to the ancestor drawable's effect keeps the nested
     // drawable as a subgroup in
     // `PaintArtifactCompositor::Layerizer::LayerizeGroup()` so the ancestor
     // drawable's effect group is not exited early.
     const auto* effect = &context_.current_effect->Unalias();
-    while (effect && effect != &canvas_contents.Effect() &&
+    if (!effect->IsInDrawableCanvasSubtree()) {
+      effect = &canvas_contents.Effect().Unalias();
+    }
+    while (effect->IsInDrawableCanvasSubtree() &&
            !effect->HasCanvasDrawableState()) {
       effect = effect->UnaliasedParent();
     }
-    context_.current_effect = effect ? effect : &canvas_contents.Effect();
+    context_.current_effect = effect;
   }
 }
 
@@ -2095,7 +2099,8 @@ static void PopulateCanvasDrawablePaintState(
 static void PopulateCanvasDrawableState(
     const LayoutObject& object,
     EffectPaintPropertyNode::State& state,
-    const TransformPaintPropertyNodeOrAlias& current_transform) {
+    const TransformPaintPropertyNodeOrAlias& current_transform,
+    const EffectPaintPropertyNodeOrAlias& current_effect) {
   LayoutObject* canvas_object = object.CanvasForDrawingLayoutObject();
   CHECK(canvas_object);
   auto* canvas = To<HTMLCanvasElement>(canvas_object->GetNode());
@@ -2117,8 +2122,7 @@ static void PopulateCanvasDrawableState(
       reference_box_offset;
   PopulateCanvasDrawablePaintState(canvas, To<Element>(object.GetNode()),
                                    state.canvas_drawable_state->paint_state);
-  state.canvas_drawable_state->content_effect =
-      canvas_fragment.ContentsEffect();
+  state.canvas_drawable_state->content_effect = &current_effect;
   const auto* properties = object.FirstFragment().PaintProperties();
   DCHECK(properties);
   state.canvas_drawable_state->content_clip =
@@ -2322,7 +2326,8 @@ void FragmentPaintPropertyTreeBuilder::UpdateEffect() {
         if (state.direct_compositing_reasons.Has(
                 CompositingReason::kCanvasDrawableElement)) {
           PopulateCanvasDrawableState(object_, state,
-                                      *context_.current.transform);
+                                      *context_.current.transform,
+                                      *context_.current_effect);
         }
       } else {
         // The effect node CompositorElementId is used to uniquely identify

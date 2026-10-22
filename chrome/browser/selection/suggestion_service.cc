@@ -23,6 +23,7 @@
 #include "base/functional/bind.h"
 #include "base/logging.h"
 #include "base/metrics/histogram_functions.h"
+#include "base/numerics/safe_conversions.h"
 #include "base/strings/strcat.h"
 #include "base/task/sequenced_task_runner.h"
 #include "base/task/task_traits.h"
@@ -38,6 +39,7 @@
 #include "components/tabs/public/tab_interface.h"
 #include "components/variations/service/google_groups_manager.h"
 #include "components/version_info/version_info.h"
+#include "skia/ext/image_operations.h"
 #include "third_party/abseil-cpp/absl/functional/overload.h"
 #include "ui/gfx/codec/jpeg_codec.h"
 #include "ui/gfx/codec/png_codec.h"
@@ -73,9 +75,39 @@ void MaybeCropScreenshot(SkBitmap& screenshot, gfx::Rect& selection) {
                                 gfx::RectToSkIRect(padded_selection))) {
     return;
   }
-  screenshot = std::move(cropped);
   // Shift `selection` so its origin is relative to the top-left of `cropped`.
   selection = clamped_selection - padded_selection.OffsetFromOrigin();
+  screenshot = std::move(cropped);
+}
+
+// If `kSmartSelectionServerMaxScreenshotDimension` is non-negative and
+// `screenshot` exceeds this size, downscales `screenshot` so that its longest
+// side is at most this value, and scales `selection` accordingly.
+void MaybeDownscaleScreenshot(SkBitmap& screenshot, gfx::Rect& selection) {
+  const int max_dimension = kSmartSelectionServerMaxScreenshotDimension.Get();
+  if (max_dimension < 0 || screenshot.drawsNothing()) {
+    return;
+  }
+  const int longest_side = std::max(screenshot.width(), screenshot.height());
+  if (longest_side <= max_dimension) {
+    return;  // Prevent upscaling.
+  }
+  if (max_dimension == 0) {
+    screenshot.reset();
+    selection = gfx::Rect();
+    return;
+  }
+
+  const float scale = static_cast<float>(max_dimension) / longest_side;
+  SkBitmap downscaled = skia::ImageOperations::Resize(
+      screenshot, skia::ImageOperations::RESIZE_BEST,
+      std::max(1, base::ClampRound(scale * screenshot.width())),
+      std::max(1, base::ClampRound(scale * screenshot.height())));
+  if (downscaled.drawsNothing()) {
+    return;
+  }
+  selection = gfx::ScaleToEnclosingRect(selection, scale);
+  screenshot = std::move(downscaled);
 }
 
 struct AreaOfInterestWithScreenshot {
@@ -91,6 +123,7 @@ AreaOfInterestWithScreenshot ToProtoAreaOfInterest(const AreaOfInterest& aoi) {
   std::visit(absl::Overload{
                  [&](gfx::Rect selection_rect) {
                    MaybeCropScreenshot(screenshot, selection_rect);
+                   MaybeDownscaleScreenshot(screenshot, selection_rect);
                    proto::Rectangle& selection = *proto_aoi.mutable_selection();
                    selection.set_x(selection_rect.x());
                    selection.set_y(selection_rect.y());
@@ -194,7 +227,7 @@ void LogLatencyMetrics(base::TimeTicks request_start_time,
     base::TimeDelta mes_other_overhead;
     base::TimeDelta model_run;
     base::TimeDelta model_content_proc;
-    base::TimeDelta model_queue_wait;  // The queue time before prefill starts.
+    base::TimeDelta model_prefill_queue_wait;
     base::TimeDelta model_prefill;
     base::TimeDelta model_decode;
     base::TimeDelta model_other;
@@ -217,18 +250,18 @@ void LogLatencyMetrics(base::TimeTicks request_start_time,
             durations.mes_overhead - durations.mes_image_prep;
       }
       if (metrics.has_model_content_processing_ms() &&
-          metrics.has_model_queue_wait_ms() && metrics.has_model_prefill_ms() &&
-          metrics.has_model_decode_ms()) {
+          metrics.has_model_prefill_queue_wait_ms() &&
+          metrics.has_model_prefill_ms() && metrics.has_model_decode_ms()) {
         durations.model_content_proc =
             base::Milliseconds(metrics.model_content_processing_ms());
-        durations.model_queue_wait =
-            base::Milliseconds(metrics.model_queue_wait_ms());
+        durations.model_prefill_queue_wait =
+            base::Milliseconds(metrics.model_prefill_queue_wait_ms());
         durations.model_prefill =
             base::Milliseconds(metrics.model_prefill_ms());
         durations.model_decode = base::Milliseconds(metrics.model_decode_ms());
         durations.model_other =
             durations.model_run - durations.model_content_proc -
-            durations.model_queue_wait - durations.model_prefill -
+            durations.model_prefill_queue_wait - durations.model_prefill -
             durations.model_decode;
       }
     }
@@ -257,12 +290,12 @@ void LogLatencyMetrics(base::TimeTicks request_start_time,
                                durations.mes_other_overhead);
       }
       if (metrics.has_model_content_processing_ms() &&
-          metrics.has_model_queue_wait_ms() && metrics.has_model_prefill_ms() &&
+          metrics.has_model_prefill_queue_wait_ms() && metrics.has_model_prefill_ms() &&
           metrics.has_model_decode_ms()) {
         RecordLatencyHistogram("ModelContentProc",
                                durations.model_content_proc);
         RecordLatencyHistogram("ModelPrefillQueueWait",
-                               durations.model_queue_wait);
+                               durations.model_prefill_queue_wait);
         RecordLatencyHistogram("ModelPrefill", durations.model_prefill);
         RecordLatencyHistogram("ModelDecode", durations.model_decode);
         RecordLatencyHistogram("ModelOther", durations.model_other);
@@ -281,7 +314,7 @@ void LogLatencyMetrics(base::TimeTicks request_start_time,
           << ", other: " << durations.mes_other_overhead << "]"
           << ", model run: " << durations.model_run
           << " [content proc: " << durations.model_content_proc
-          << ", queue wait: " << durations.model_queue_wait
+          << ", prefill queue wait: " << durations.model_prefill_queue_wait
           << ", prefill: " << durations.model_prefill
           << ", decode: " << durations.model_decode
           << ", other: " << durations.model_other << "]"
