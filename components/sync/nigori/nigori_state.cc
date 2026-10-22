@@ -155,22 +155,13 @@ NigoriState NigoriState::CreateFromLocalProto(
   state.encrypt_everything = proto.encrypt_everything();
 
   state.keystore_keys_cryptographer =
-      KeystoreKeysCryptographer::FromKeystoreKeys(base::ToVector(proto.keystore_key()));
-  if (!state.keystore_keys_cryptographer) {
-    // Crypto error occurs, create empty `keystore_keys_cryptographer`.
-    // Effectively it resets keystore keys.
-    state.keystore_keys_cryptographer =
-        KeystoreKeysCryptographer::CreateEmpty();
-  }
+      KeystoreKeysCryptographer::FromKeystoreKeys(
+          base::ToVector(proto.keystore_key()));
+  CHECK(state.keystore_keys_cryptographer, base::NotFatalUntil::M162);
 
   if (proto.has_pending_keystore_decryptor_token()) {
     state.pending_keystore_decryptor_token =
         proto.pending_keystore_decryptor_token();
-  }
-
-  if (proto.has_last_default_trusted_vault_key_name()) {
-    state.last_default_trusted_vault_key_name =
-        proto.last_default_trusted_vault_key_name();
   }
 
   state.trusted_vault_debug_info = proto.trusted_vault_debug_info();
@@ -239,10 +230,6 @@ sync_pb::NigoriModel NigoriState::ToLocalProto() const {
   if (pending_keystore_decryptor_token.has_value()) {
     *proto.mutable_pending_keystore_decryptor_token() =
         *pending_keystore_decryptor_token;
-  }
-  if (last_default_trusted_vault_key_name.has_value()) {
-    proto.set_last_default_trusted_vault_key_name(
-        *last_default_trusted_vault_key_name);
   }
   *proto.mutable_trusted_vault_debug_info() = trusted_vault_debug_info;
   if (cross_user_sharing_public_key.has_value() &&
@@ -330,8 +317,6 @@ NigoriState NigoriState::Clone() const {
   result.encrypt_everything = encrypt_everything;
   result.keystore_keys_cryptographer = keystore_keys_cryptographer->Clone();
   result.pending_keystore_decryptor_token = pending_keystore_decryptor_token;
-  result.last_default_trusted_vault_key_name =
-      last_default_trusted_vault_key_name;
   result.trusted_vault_debug_info = trusted_vault_debug_info;
   if (cross_user_sharing_public_key.has_value()) {
     result.cross_user_sharing_public_key =

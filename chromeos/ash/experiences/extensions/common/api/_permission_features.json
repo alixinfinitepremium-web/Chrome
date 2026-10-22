@@ -125,6 +125,20 @@
       "1B1388598AC9A5608F43DE38316D6FB5FAD3574A"  // ODFS extension
     ]
   },
+  "printing": {
+    "channel": "stable",
+    "platforms": ["chromeos"],
+    "extension_types": [
+      "extension",
+      "platform_app"
+    ]
+  },
+  "printingMetrics": {
+    "channel": "stable",
+    "platforms": ["chromeos"],
+    "extension_types": ["extension"],
+    "location": "policy"
+  },
   "speechRecognitionPrivate": {
     "channel": "stable",
     "extension_types": ["extension"],

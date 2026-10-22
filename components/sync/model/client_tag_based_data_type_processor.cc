@@ -9,6 +9,8 @@
 #include <vector>
 
 #include "base/auto_reset.h"
+#include "base/check.h"
+#include "base/check_op.h"
 #include "base/debug/alias.h"
 #include "base/functional/bind.h"
 #include "base/location.h"
@@ -33,6 +35,7 @@
 #include "components/sync/model/client_tag_based_remote_update_handler.h"
 #include "components/sync/model/data_type_activation_request.h"
 #include "components/sync/model/data_type_local_change_processor.h"
+#include "components/sync/model/data_type_sync_bridge.h"
 #include "components/sync/model/processor_entity.h"
 #include "components/sync/model/type_entities_count.h"
 #include "components/sync/protocol/data_type_state.pb.h"
@@ -512,6 +515,12 @@ void ClientTagBasedDataTypeProcessor::Put(
   CHECK(!storage_key.empty()) << DataTypeToDebugString(type_);
   CHECK_EQ(type_, GetDataTypeFromSpecifics(data->specifics))
       << DataTypeToDebugString(type_);
+  // Commit-only bridges do not receive remote updates and implement
+  // `IsEntityDataValid()` as `NOTREACHED()`.
+  if (!CommitOnlyTypes().Has(type_)) {
+    CHECK(bridge_->IsEntityDataValid(*data), base::NotFatalUntil::M162)
+        << DataTypeToDebugString(type_);
+  }
 
   if (!entity_tracker_) {
     // Ignore changes before the initial sync is done.
@@ -614,6 +623,8 @@ void ClientTagBasedDataTypeProcessor::Delete(
   // Writes are only supported for data types with incremental updates. See
   // crbug.com/40668179 for details.
   CHECK(bridge_->SupportsIncrementalUpdates());
+  CHECK(!storage_key.empty(), base::NotFatalUntil::M162)
+      << DataTypeToDebugString(type_);
 
   if (!entity_tracker_) {
     // Ignore changes before the initial sync is done.
@@ -658,6 +669,8 @@ void ClientTagBasedDataTypeProcessor::UpdateStorageKey(
 
 void ClientTagBasedDataTypeProcessor::UntrackEntityForStorageKey(
     const std::string& storage_key) {
+  CHECK(!storage_key.empty(), base::NotFatalUntil::M162)
+      << DataTypeToDebugString(type_);
   if (!entity_tracker_) {
     // Ignore changes before the initial sync is done.
     return;
@@ -685,6 +698,8 @@ ClientTagBasedDataTypeProcessor::GetAllTrackedStorageKeys() const {
 
 bool ClientTagBasedDataTypeProcessor::IsEntityUnsynced(
     const std::string& storage_key) const {
+  CHECK(!storage_key.empty(), base::NotFatalUntil::M162)
+      << DataTypeToDebugString(type_);
   if (!entity_tracker_) {
     return false;
   }
@@ -700,6 +715,8 @@ bool ClientTagBasedDataTypeProcessor::IsEntityUnsynced(
 
 base::Time ClientTagBasedDataTypeProcessor::GetEntityCreationTime(
     const std::string& storage_key) const {
+  CHECK(!storage_key.empty(), base::NotFatalUntil::M162)
+      << DataTypeToDebugString(type_);
   if (!entity_tracker_) {
     return base::Time();
   }
@@ -714,6 +731,8 @@ base::Time ClientTagBasedDataTypeProcessor::GetEntityCreationTime(
 
 base::Time ClientTagBasedDataTypeProcessor::GetEntityModificationTime(
     const std::string& storage_key) const {
+  CHECK(!storage_key.empty(), base::NotFatalUntil::M162)
+      << DataTypeToDebugString(type_);
   if (!entity_tracker_) {
     return base::Time();
   }
@@ -1210,6 +1229,12 @@ void ClientTagBasedDataTypeProcessor::ConsumeDataBatch(
     if (entity != nullptr && entity->RequiresCommitData()) {
       CHECK(base::IsStringUTF8(data->name), base::NotFatalUntil::M162)
           << DataTypeToDebugString(type_);
+      // Commit-only bridges do not receive remote updates and implement
+      // `IsEntityDataValid()` as `NOTREACHED()`.
+      if (!CommitOnlyTypes().Has(type_)) {
+        CHECK(bridge_->IsEntityDataValid(*data), base::NotFatalUntil::M162)
+            << DataTypeToDebugString(type_);
+      }
       // SetCommitData will update EntityData's fields with values from
       // metadata.
       entity->SetCommitData(std::move(data));
@@ -1552,6 +1577,8 @@ sync_pb::UniquePosition ClientTagBasedDataTypeProcessor::UniquePositionAfter(
     const ClientTagHash& target_client_tag_hash) const {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
   CHECK(entity_tracker_);
+  CHECK(bridge_->SupportsUniquePositions(), base::NotFatalUntil::M162)
+      << DataTypeToDebugString(type_);
 
   UniquePosition position_before = UniquePosition::FromProto(
       GetUniquePositionForStorageKey(storage_key_before));
@@ -1577,6 +1604,8 @@ sync_pb::UniquePosition ClientTagBasedDataTypeProcessor::UniquePositionBefore(
     const ClientTagHash& target_client_tag_hash) const {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
   CHECK(entity_tracker_);
+  CHECK(bridge_->SupportsUniquePositions(), base::NotFatalUntil::M162)
+      << DataTypeToDebugString(type_);
 
   UniquePosition position_after = UniquePosition::FromProto(
       GetUniquePositionForStorageKey(storage_key_after));
@@ -1603,6 +1632,8 @@ sync_pb::UniquePosition ClientTagBasedDataTypeProcessor::UniquePositionBetween(
     const ClientTagHash& target_client_tag_hash) const {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
   CHECK(entity_tracker_);
+  CHECK(bridge_->SupportsUniquePositions(), base::NotFatalUntil::M162)
+      << DataTypeToDebugString(type_);
 
   UniquePosition position_before = UniquePosition::FromProto(
       GetUniquePositionForStorageKey(storage_key_before));
@@ -1644,6 +1675,8 @@ ClientTagBasedDataTypeProcessor::UniquePositionForInitialEntity(
     const ClientTagHash& target_client_tag_hash) const {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
   CHECK(entity_tracker_);
+  CHECK(bridge_->SupportsUniquePositions(), base::NotFatalUntil::M162)
+      << DataTypeToDebugString(type_);
 
   const ProcessorEntity* target_entity =
       entity_tracker_->GetEntityForClientTagHash(target_client_tag_hash);
@@ -1663,6 +1696,8 @@ ClientTagBasedDataTypeProcessor::GetUniquePositionForStorageKey(
     const std::string& storage_key) const {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
   CHECK(entity_tracker_);
+  CHECK(bridge_->SupportsUniquePositions(), base::NotFatalUntil::M162)
+      << DataTypeToDebugString(type_);
 
   ProcessorEntity* entity =
       entity_tracker_->GetEntityForStorageKey(storage_key);

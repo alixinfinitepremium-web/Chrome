@@ -128,13 +128,6 @@ if (enable_extensions) {
       "terminal_private.json",
       "wallpaper.json",
     ]
-
-    if (use_cups) {
-      schema_sources_ += [
-        "printing.idl",
-        "printing_metrics.idl",
-      ]
-    }
   }
 
   if (is_linux || is_win || is_chromeos) {

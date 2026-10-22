@@ -3215,11 +3215,6 @@
     "expiry_milestone": 141
   },
   {
-    "name": "display-alignment-assistance",
-    "owners": [ "zhangwenyu@google.com", "cros-device-enablement@google.com" ],
-    "expiry_milestone": 140
-  },
-  {
     "name": "display-edge-to-edge-fullscreen",
     "owners": [ "wzwonarz@google.com", "lt-web-apps-krk@google.com" ],
     "expiry_milestone": 150
@@ -6946,7 +6941,17 @@
     "expiry_milestone": 170
   },
   {
-    "name": "magic-stack-tips-v2-ios",
+    "name": "magic-stack-ntp-customization-tip-ios",
+    "owners": [ "erahmaoui@google.com", "bling-flags@google.com" ],
+    "expiry_milestone": 170
+  },
+  {
+    "name": "magic-stack-ntp-theme-tip-ios",
+    "owners": [ "erahmaoui@google.com", "bling-flags@google.com" ],
+    "expiry_milestone": 170
+  },
+  {
+    "name": "magic-stack-tips-notification-tip-ios",
     "owners": [ "erahmaoui@google.com", "bling-flags@google.com" ],
     "expiry_milestone": 170
   },
@@ -8762,11 +8767,6 @@
   },
   {
     "name": "replace-sync-promos-with-sign-in-promos-desktop",
-    "owners": [ "droger@chromium.org", "chrome-signin-team@google.com" ],
-    "expiry_milestone": 160
-  },
-  {
-    "name": "replace-sync-promos-with-signin-promos-new-signin",
     "owners": [ "droger@chromium.org", "chrome-signin-team@google.com" ],
     "expiry_milestone": 160
   },
