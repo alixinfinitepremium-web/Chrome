@@ -124,6 +124,7 @@
 #import "ios/chrome/browser/enterprise/data_protection/public/pref_names.h"
 #import "ios/chrome/browser/first_run/model/first_run.h"
 #import "ios/chrome/browser/incognito_reauth/ui_bundled/incognito_reauth_scene_agent.h"
+#import "ios/chrome/browser/intelligence/bwg/utils/gemini_prefs.h"
 #import "ios/chrome/browser/level_up/model/level_up_service.h"
 #import "ios/chrome/browser/memory/model/memory_debugger_manager.h"
 #import "ios/chrome/browser/metrics/model/constants.h"
@@ -235,6 +236,14 @@ inline constexpr char kSyncEncryptionBootstrapToken[] =
     "sync.encryption_bootstrap_token";
 inline constexpr char kSyncEncryptionBootstrapTokenPerAccountMigrationDone[] =
     "sync.encryption_bootstrap_token_per_account_migration_done";
+
+// Deprecated 10/2026.
+inline constexpr char kTailoredSecuritySyncFlowLastRunTime[] =
+    "safebrowsing.aesb_sync_flow_start_timestamp";
+inline constexpr char kTailoredSecuritySyncFlowLastUserInteractionState[] =
+    "safebrowsing.aesb_sync_flow_last_user_interaction_state";
+inline constexpr char kTailoredSecuritySyncFlowObservedOutcomeUnsetTimestamp[] =
+    "safebrowsing.aesb_sync_flow_observed_outcome_unset_timestamp";
 
 // Renames a boolean pref within a PrefService.
 void RenameBooleanPref(std::string_view target_pref_name,
@@ -522,6 +531,7 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry) {
   ios_feed::RegisterProfilePrefs(registry);
   FirstRun::RegisterProfilePrefs(registry);
   FontSizeTabHelper::RegisterProfilePrefs(registry);
+  gemini::RegisterProfilePrefs(registry);
   HostContentSettingsMap::RegisterProfilePrefs(registry);
   image_fetcher::ImageCache::RegisterProfilePrefs(registry);
   language::LanguagePrefs::RegisterProfilePrefs(registry);
@@ -852,44 +862,8 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry) {
   registry->RegisterBooleanPref(prefs::kProvisionalNotificationsAllowedByPolicy,
                                 true);
 
-  // BWG prefs.
-  registry->RegisterDictionaryPref(prefs::kBwgSessionMap);
-  registry->RegisterBooleanPref(
-      prefs::kIOSBwgConsent, false,
-      user_prefs::PrefRegistrySyncable::SYNCABLE_PREF);
-  registry->RegisterBooleanPref(
-      prefs::kIOSGeminiLiveConsent, false,
-      user_prefs::PrefRegistrySyncable::SYNCABLE_PREF);
-  registry->RegisterBooleanPref(
-      prefs::kIOSGeminiLiveIntroPlayed, false,
-      user_prefs::PrefRegistrySyncable::SYNCABLE_PREF);
-  registry->RegisterBooleanPref(prefs::kIOSBWGPreciseLocationSetting, false);
-  registry->RegisterBooleanPref(prefs::kIOSBWGPageContentSetting, true);
-  registry->RegisterIntegerPref(prefs::kIOSBWGPromoImpressionCount, 0);
-  registry->RegisterBooleanPref(prefs::kIOSGeminiCameraSetting, false);
-  registry->RegisterBooleanPref(prefs::kIOSGeminiSuggestionsSetting, true);
-  registry->RegisterDictionaryPref(prefs::kIOSContextualCueingVerticalUiState);
-  registry->RegisterBooleanPref(prefs::kIOSGeminiLiveClosedCaptioningSetting,
-                                false);
-  registry->RegisterBooleanPref(prefs::kIOSGeminiLiveMicrophoneSetting, true);
-  registry->RegisterTimePref(prefs::kLastGeminiInteractionTimestamp,
-                             base::Time());
-  registry->RegisterTimePref(prefs::kLastGeminiContextualChipDisplayedTimestamp,
-                             base::Time());
-  registry->RegisterStringPref(prefs::kLastGeminiInteractionURL, std::string());
-  registry->RegisterStringPref(prefs::kGeminiConversationId, std::string());
-
-  registry->RegisterBooleanPref(prefs::kAppStoreGeminiPromoTriggered, false);
-
   registry->RegisterTimePref(prefs::kIosSyncInfobarErrorLastDismissedTimestamp,
                              base::Time());
-
-  registry->RegisterIntegerPref(prefs::kGeminiEnabledByPolicy, 0);
-  registry->RegisterIntegerPref(prefs::kGenAiEnabledByPolicy, 0);
-  registry->RegisterIntegerPref(prefs::kGeminiActOnWebSettings, 0);
-  registry->RegisterListPref(prefs::kGeminiActOnWebAllowedForURLs);
-  registry->RegisterListPref(prefs::kGeminiActOnWebBlockedForURLs);
-  registry->RegisterBooleanPref(prefs::kAIHubEligibilityTriggered, false);
 
   registry->RegisterListPref(policy::policy_prefs::kIncognitoModeUrlBlocklist);
   registry->RegisterListPref(policy::policy_prefs::kIncognitoModeUrlAllowlist);
@@ -961,6 +935,14 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry) {
   registry->RegisterStringPref(kSyncEncryptionBootstrapToken, std::string());
   registry->RegisterBooleanPref(
       kSyncEncryptionBootstrapTokenPerAccountMigrationDone, false);
+
+  // Deprecated 10/2026.
+  registry->RegisterTimePref(kTailoredSecuritySyncFlowLastRunTime,
+                             base::Time());
+  registry->RegisterIntegerPref(
+      kTailoredSecuritySyncFlowLastUserInteractionState, 0);
+  registry->RegisterTimePref(
+      kTailoredSecuritySyncFlowObservedOutcomeUnsetTimestamp, base::Time());
 }
 
 // This method should be periodically pruned of year+ old migrations.
@@ -1039,17 +1021,22 @@ void MigrateObsoleteProfilePrefs(PrefService* prefs) {
   prefs->ClearPref(kInvalidationPerSenderRegisteredForInvalidation);
   prefs->ClearPref(kInvalidationPerSenderActiveRegistrationTokens);
 
-  // Deprecated 09/2026.
+  // Added 09/2026.
   prefs->ClearPref(kMigratedToQuickDeletePrefValues);
   prefs->ClearPref(kHomeCustomizationMagicStackSetUpListEnabled);
   prefs->ClearPref(kNTPFollowingFeedSortType);
-  // Deprecated 09/2026.
+  // Added 09/2026.
   prefs->ClearPref(kSigninHasAcceptedManagementDialog);
   prefs->ClearPref(kFingerprintingProtectionEnabled);
 
   // Added 10/2026.
   prefs->ClearPref(kSyncEncryptionBootstrapToken);
   prefs->ClearPref(kSyncEncryptionBootstrapTokenPerAccountMigrationDone);
+
+  // Added 10/2026.
+  prefs->ClearPref(kTailoredSecuritySyncFlowLastRunTime);
+  prefs->ClearPref(kTailoredSecuritySyncFlowLastUserInteractionState);
+  prefs->ClearPref(kTailoredSecuritySyncFlowObservedOutcomeUnsetTimestamp);
 }
 
 void MigrateObsoleteUserDefault() {

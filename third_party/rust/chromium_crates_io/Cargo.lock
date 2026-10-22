@@ -245,6 +245,7 @@ dependencies = [
  "cxx",
  "cxxbridge-cmd",
  "fend-core",
+ "flate2",
  "font-types",
  "harfrust",
  "hex",
@@ -1410,7 +1411,7 @@ dependencies = [
 
 [[package]]
 name = "libc"
-version = "0.2.189"
+version = "0.2.190"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]

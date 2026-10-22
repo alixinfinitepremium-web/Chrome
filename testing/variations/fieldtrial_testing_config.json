@@ -1795,27 +1795,6 @@
             ]
         }
     ],
-    "AutofillAiWalletPrivatePassesCapability": [
-        {
-            "platforms": [
-                "android",
-                "chromeos",
-                "ios",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "AutofillAiWalletPrivatePassesCapability",
-                        "ReadSupportsWalletPrivatePassesInAutofillCapability"
-                    ]
-                }
-            ]
-        }
-    ],
     "AutofillAiWalletServerProvidedDeepLink": [
         {
             "platforms": [
@@ -6107,6 +6086,23 @@
     "DesktopToMobilePromos": [
         {
             "platforms": [
+                "ios"
+            ],
+            "experiments": [
+                {
+                    "name": "Reminder_All",
+                    "params": {
+                        "mobile_promo_on_desktop_notification": "true",
+                        "mobile_promo_on_desktop_promo_type": "1,4,5"
+                    },
+                    "enable_features": [
+                        "MobilePromoOnDesktopWithReminderWave1"
+                    ]
+                }
+            ]
+        },
+        {
+            "platforms": [
                 "chromeos",
                 "linux",
                 "mac",
@@ -6114,13 +6110,14 @@
             ],
             "experiments": [
                 {
-                    "name": "QRCode_All",
+                    "name": "Reminder_All",
                     "params": {
+                        "mobile_promo_on_desktop_notification": "true",
                         "mobile_promo_on_desktop_promo_type": "1,4,5"
                     },
                     "enable_features": [
                         "EnableCrossDevicePrefTracker",
-                        "MobilePromoOnDesktopWithQRCodeWave1"
+                        "MobilePromoOnDesktopWithReminderWave1"
                     ]
                 }
             ]
@@ -7518,6 +7515,21 @@
                     "name": "Enabled",
                     "enable_features": [
                         "AndroidDeviceSignalsDisclaimer"
+                    ]
+                }
+            ]
+        }
+    ],
+    "EnumerateDevicesUseNameInDeviceComparison": [
+        {
+            "platforms": [
+                "chromeos"
+            ],
+            "experiments": [
+                {
+                    "name": "Disabled",
+                    "disable_features": [
+                        "EnumerateDevicesUseNameInDeviceComparison"
                     ]
                 }
             ]
@@ -10473,21 +10485,6 @@
             ]
         }
     ],
-    "IOSTipsNotificationsAlternativeStrings": [
-        {
-            "platforms": [
-                "ios"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "IOSTipsNotificationsAlternativeStrings"
-                    ]
-                }
-            ]
-        }
-    ],
     "IOSUseDefaultAppsDestinationForPromos": [
         {
             "platforms": [
@@ -12324,21 +12321,6 @@
             ]
         }
     ],
-    "OmniboxAimImageDownscaling": [
-        {
-            "platforms": [
-                "android"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "OmniboxAimImageDownscaling"
-                    ]
-                }
-            ]
-        }
-    ],
     "OmniboxBundledExperimentV1": [
         {
             "platforms": [
@@ -14166,6 +14148,23 @@
                     "name": "Holdback",
                     "disable_features": [
                         "PolicyBlocklistProceedUntilResponse"
+                    ]
+                }
+            ]
+        }
+    ],
+    "PopulateUnattachedAuraScreenInfo": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "PopulateUnattachedAuraScreenInfo"
                     ]
                 }
             ]
@@ -19536,6 +19535,8 @@
                         "InitialWebUIWithoutSpellCheckForNtp",
                         "InitialWebUIWithoutTranslateForNtp",
                         "LazyKeyedServiceInstantiation",
+                        "OmniboxAimPopupDeferCreation",
+                        "OmniboxWebUIPopupDeferCreation",
                         "PerDependencyDeadlines",
                         "PrioritizeResizeTaskRunnerOnStartup",
                         "SendGPUChannelEarly",

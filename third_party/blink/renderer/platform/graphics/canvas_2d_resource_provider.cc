@@ -507,7 +507,6 @@ Canvas2DResourceProvider::CreateWithClear(
   // resource provider would be invalid anyway
   if (!context_provider_wrapper ||
       !context_provider_wrapper->ContextProvider().RasterInterface() ||
-      !context_provider_wrapper->ContextProvider().SharedImageInterface() ||
       context_provider_wrapper->ContextProvider().IsContextLost()) {
     return nullptr;
   }
@@ -596,36 +595,16 @@ Canvas2DResourceProvider::CreateWithClear(
       recorder.getRecordingCanvas().clear(SkColors::kTransparent);
     }
     provider->RasterRecord(recorder.ReleaseMainRecording(), {});
+
+    // An error might have occurred while clearing.
+    if (!provider->IsValid()) {
+      return nullptr;
+    }
   } else if (!provider->resource_) {
     return nullptr;
   }
 
-  // An error might have occurred while clearing.
-  return provider->IsValid() ? std::move(provider) : nullptr;
-}
-
-std::unique_ptr<Canvas2DResourceProvider>
-Canvas2DResourceProvider::CreateWithClearForSoftwareCompositor(
-    gfx::Size size,
-    viz::SharedImageFormat format,
-    SkAlphaType alpha_type,
-    const gfx::ColorSpace& color_space,
-    const gfx::HDRMetadata& hdr_metadata,
-    WebGraphicsSharedImageInterfaceProvider* shared_image_interface_provider,
-    base::OnceClosure context_lost_callback) {
-  CHECK(!SharedGpuContext::IsGpuCompositingEnabled());
-
-  if (!shared_image_interface_provider ||
-      !shared_image_interface_provider->SharedImageInterface()) {
-    return nullptr;
-  }
-
-  CHECK(format == viz::SharedImageFormat::N32Format() ||
-        format == viz::SinglePlaneFormat::kRGBA_F16);
-
-  return base::WrapUnique(new Canvas2DResourceProvider(
-      size, format, alpha_type, color_space, hdr_metadata,
-      shared_image_interface_provider, std::move(context_lost_callback)));
+  return provider;
 }
 
 void Canvas2DResourceProvider::NotifyGpuContextLostTask(

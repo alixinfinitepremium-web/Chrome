@@ -1050,27 +1050,6 @@ const FeatureEntry::Choice kOmniboxLoomChoices[] = {
      "OmniboxEverywhere,IPH_OmniboxEverywhereLensPromo"},
 };
 
-const FeatureEntry::Choice kOmniboxTruncateSearchUrlChoices[] = {
-    {flags_ui::kGenericExperimentChoiceDefault, "", ""},
-    {flags_ui::kGenericExperimentChoiceEnabled, switches::kEnableFeatures,
-     "TruncateSearchUrlOq,TruncateSearchUrlQ"},
-    {"Enabled Oq31kQ31k (31k oq, 31k q)", switches::kEnableFeatures,
-     "TruncateSearchUrlOq:truncate_search_url_oq_length/31744,"
-     "TruncateSearchUrlQ:truncate_search_url_q_length/31744"},
-    {"Enabled Oq1kQ61k (1k oq, 61k q)", switches::kEnableFeatures,
-     "TruncateSearchUrlOq:truncate_search_url_oq_length/1024,"
-     "TruncateSearchUrlQ:truncate_search_url_q_length/62464"},
-    {"Enabled Oq0kQ62k (0k oq, 62k q)", switches::kEnableFeatures,
-     "TruncateSearchUrlOq:truncate_search_url_oq_length/0,"
-     "TruncateSearchUrlQ:truncate_search_url_q_length/63488"},
-    {"Enabled Oq1kQNoTruncation (1k oq, q disabled)", switches::kEnableFeatures,
-     "TruncateSearchUrlOq:truncate_search_url_oq_length/1024"},
-    {"Enabled Oq0kQNoTruncation (0k oq, q disabled)", switches::kEnableFeatures,
-     "TruncateSearchUrlOq:truncate_search_url_oq_length/0"},
-    {flags_ui::kGenericExperimentChoiceDisabled, switches::kDisableFeatures,
-     "TruncateSearchUrlOq,TruncateSearchUrlQ"},
-};
-
 const FeatureEntry::FeatureParam
     kWebUiOmniboxAskGAboutThisPageCobrowseAndLensEntrypoint[] = {
         {"Omnibox_AskGCoBrowse", "true"},
@@ -2131,6 +2110,27 @@ const FeatureEntry::FeatureVariation kOmniboxMultimodalInputVariants[] = {
 };
 
 #endif  // BUILDFLAG(IS_ANDROID)
+
+const FeatureEntry::Choice kOmniboxTruncateSearchUrlChoices[] = {
+    {flags_ui::kGenericExperimentChoiceDefault, "", ""},
+    {flags_ui::kGenericExperimentChoiceEnabled, switches::kEnableFeatures,
+     "TruncateSearchUrlOq,TruncateSearchUrlQ"},
+    {"Enabled Oq30kQ30k (30k oq, 30k q)", switches::kEnableFeatures,
+     "TruncateSearchUrlOq:truncate_search_url_oq_length/30720,"
+     "TruncateSearchUrlQ:truncate_search_url_q_length/30720"},
+    {"Enabled Oq1kQ59k (1k oq, 59k q)", switches::kEnableFeatures,
+     "TruncateSearchUrlOq:truncate_search_url_oq_length/1024,"
+     "TruncateSearchUrlQ:truncate_search_url_q_length/60416"},
+    {"Enabled Oq2kQ58k (2k oq, 58k q)", switches::kEnableFeatures,
+     "TruncateSearchUrlOq:truncate_search_url_oq_length/2048,"
+     "TruncateSearchUrlQ:truncate_search_url_q_length/59392"},
+    {"Enabled Oq1kQNoTruncation (1k oq, q disabled)", switches::kEnableFeatures,
+     "TruncateSearchUrlOq:truncate_search_url_oq_length/1024"},
+    {"Enabled Oq2kQNoTruncation (2k oq, q disabled)", switches::kEnableFeatures,
+     "TruncateSearchUrlOq:truncate_search_url_oq_length/2048"},
+    {flags_ui::kGenericExperimentChoiceDisabled, switches::kDisableFeatures,
+     "TruncateSearchUrlOq,TruncateSearchUrlQ"},
+};
 
 const FeatureEntry::FeatureParam kOmniboxUIMaxAutocompleteMatches3[] = {
     {OmniboxFieldTrial::kUIMaxAutocompleteMatchesParam, "3"}};
@@ -7240,6 +7240,11 @@ const FeatureEntry kFeatureEntries[] = {
                                     kVoiceSearchCoherenceSearchboxVariations,
                                     "VoiceSearchCoherenceSearchboxVariations")},
 
+    {"omnibox-truncate-search-url",
+     flag_descriptions::kOmniboxTruncateSearchUrlName,
+     flag_descriptions::kOmniboxTruncateSearchUrlDescription, kOsAll,
+     MULTI_VALUE_TYPE(kOmniboxTruncateSearchUrlChoices)},
+
     {"omnibox-ui-max-autocomplete-matches",
      flag_descriptions::kOmniboxUIMaxAutocompleteMatchesName,
      flag_descriptions::kOmniboxUIMaxAutocompleteMatchesDescription,
@@ -7573,6 +7578,10 @@ const FeatureEntry kFeatureEntries[] = {
      FEATURE_WITH_PARAMS_VALUE_TYPE(ntp_features::kNtpThreadsRail,
                                     kNtpThreadsRailVariations,
                                     "NtpThreadsRail")},
+
+    {"ntp-component-extension", flag_descriptions::kNtpComponentExtensionName,
+     flag_descriptions::kNtpComponentExtensionDescription, kOsAll,
+     FEATURE_VALUE_TYPE(ntp_features::kNtpComponentExtension)},
 
 #if !BUILDFLAG(IS_ANDROID)
     {"chrome-dark-neutrals-26", flag_descriptions::kChromeDarkNeutrals26Name,
@@ -9773,11 +9782,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kOmniboxLoomDescription, kOsDesktop,
      MULTI_VALUE_TYPE(kOmniboxLoomChoices)},
 
-    {"omnibox-truncate-search-url",
-     flag_descriptions::kOmniboxTruncateSearchUrlName,
-     flag_descriptions::kOmniboxTruncateSearchUrlDescription, kOsAll,
-     MULTI_VALUE_TYPE(kOmniboxTruncateSearchUrlChoices)},
-
     {"omnibox-everywhere-screenshot-new-window",
      flag_descriptions::kOmniboxEverywhereScreenshotNewWindowName,
      flag_descriptions::kOmniboxEverywhereScreenshotNewWindowDescription,
@@ -10278,13 +10282,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kSendTabToSelfEnhancedHandoffName,
      flag_descriptions::kSendTabToSelfEnhancedHandoffDescription, kOsAll,
      MULTI_VALUE_TYPE(kSendTabToSelfEnhancedHandoffChoices)},
-
-#if BUILDFLAG(IS_CHROMEOS)
-    {"enable-display-performance-mode",
-     flag_descriptions::kEnableDisplayPerformanceModeName,
-     flag_descriptions::kEnableDisplayPerformanceModeDescription, kOsCrOS,
-     FEATURE_VALUE_TYPE(ash::features::kDisplayPerformanceMode)},
-#endif  // BUILDFLAG(IS_CHROMEOS)
 
 #if BUILDFLAG(IS_ANDROID)
     {"update-tab-group-colors", flag_descriptions::kUpdateTabGroupColorsName,
@@ -14388,6 +14385,12 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kCrossFadeBoundsChangeAnimationDescription, kOsCrOS,
      FEATURE_VALUE_TYPE(ash::features::kCrossFadeBoundsChangeAnimation)},
 #endif  // BUILDFLAG(IS_CHROMEOS)
+
+    {"media-capture-element-preview",
+     flag_descriptions::kMediaCaptureElementPreviewName,
+     flag_descriptions::kMediaCaptureElementPreviewDescription,
+     kOsMac | kOsWin | kOsLinux,
+     FEATURE_VALUE_TYPE(blink::features::kMediaCaptureElementPreview)},
 
     // Add new entries above this line.
     // NOTE: Adding a new flag requires adding a corresponding entry to enum

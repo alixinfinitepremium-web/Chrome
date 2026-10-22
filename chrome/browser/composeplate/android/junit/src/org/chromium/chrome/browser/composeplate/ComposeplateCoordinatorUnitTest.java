@@ -355,14 +355,41 @@ public class ComposeplateCoordinatorUnitTest {
     }
 
     @Test
+    @EnableFeatures({
+        ChromeFeatureList.NTP_AURORA,
+        ChromeFeatureList.NTP_AURORA_V2 + ":layout_type/1"
+    })
+    public void testSetOptionalButtonVisibility_besideMvtEnabled_skipsButtonSpacingUpdate() {
+        mCoordinator.setOptionalButtonVisibility(/* visible= */ true);
+
+        assertTrue(mPropertyModel.get(ComposeplateProperties.IS_OPTIONAL_BUTTON_VISIBLE));
+        assertEquals(0, mPropertyModel.get(ComposeplateProperties.OPTIONAL_BUTTON_LATERAL_PADDING));
+        assertEquals(0, mPropertyModel.get(ComposeplateProperties.OPTIONAL_BUTTON_MARGIN_END));
+    }
+
+    @Test
     public void testSetOptionalButtonText() {
-        String text = "Create image";
+        String text = "Create";
+        CharSequence defaultContentDescription = mOptionalButton.getContentDescription();
         mCoordinator.setOptionalButtonText(text);
 
         assertEquals(text, mPropertyModel.get(ComposeplateProperties.OPTIONAL_BUTTON_TEXT));
-        assertEquals(text, mOptionalButton.getContentDescription());
         TextView optionalButtonText = mComposeplateView.findViewById(R.id.optional_button_text);
         assertEquals(text, optionalButtonText.getText().toString());
+        // The text doesn't affect the content description.
+        assertEquals(defaultContentDescription, mOptionalButton.getContentDescription());
+    }
+
+    @Test
+    public void testSetOptionalButtonContentDescription() {
+        String contentDescription = "Create image";
+        mCoordinator.setOptionalButtonContentDescription(contentDescription);
+
+        assertEquals(
+                contentDescription,
+                mPropertyModel.get(ComposeplateProperties.OPTIONAL_BUTTON_CONTENT_DESCRIPTION));
+        assertEquals(contentDescription, mOptionalButton.getContentDescription());
+        assertEquals(contentDescription, mOptionalButton.getTooltipText());
     }
 
     @Test

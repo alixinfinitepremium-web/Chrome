@@ -3653,6 +3653,11 @@
     "expiry_milestone": 150
   },
   {
+    "name": "enable-background-continued-processing",
+    "owners": [ "nicolasmacbeth@google.com", "bling-alchemy-eng@google.com" ],
+    "expiry_milestone": 168
+  },
+  {
     "name": "enable-benchmarking",
     "owners": [ "//components/variations/OWNERS" ],
     // This is used by testers and developers to determine whether a bug is
@@ -3910,14 +3915,6 @@
     "name": "enable-discover-background-refresh",
     "owners": [ "sadhvikch@google.com", "sreeshmanair@google.com", "iga-discover-bld@google.com" ],
     "expiry_milestone": 160
-  },
-  {
-    "name": "enable-display-performance-mode",
-    "owners": [
-      "markyacoub@chromium.org",
-      "chromeos-gfx-display@google.com"
-    ],
-    "expiry_milestone": 135
   },
   {
     "name": "enable-download-save-as-system-file-dialog",
@@ -7009,6 +7006,11 @@
     "expiry_milestone": 160
   },
   {
+    "name": "media-capture-element-preview",
+    "owners": [ "ravjit@chromium.org", "tungnh@chromium.org" ],
+    "expiry_milestone": 160
+  },
+  {
     "name": "media-codec-block-model",
     "owners": [
       "dalecurtis@chromium.org",
@@ -7323,6 +7325,14 @@
     "name": "ntp-calendar-module",
     "owners": [ "rtatum@google.com", "tiborg@chromium.org", "ftirelo@chromium.org" ],
     "expiry_milestone": 150
+  },
+  {
+    "name": "ntp-component-extension",
+    "owners": [
+      "mahmadi@chromium.org",
+      "chrome-desktop-ntp@google.com"
+    ],
+    "expiry_milestone": 170
   },
   {
     "name": "ntp-composebox",

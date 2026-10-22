@@ -996,10 +996,15 @@ public class NewTabPageCoordinatorUnitTest {
         View optionalButton = mNewTabPageLayout.findViewById(R.id.optional_button);
         assertEquals(View.VISIBLE, optionalButton.getVisibility());
 
-        // The Create image text isn't applied, so the layout's default gallery text is kept.
+        // The Create image strings aren't applied, so the layout's default gallery strings are
+        // kept.
+        assertEquals(
+                mActivity.getString(R.string.ntp_action_chip_gallery_accessibility),
+                optionalButton.getContentDescription());
+        TextView optionalButtonText = mNewTabPageLayout.findViewById(R.id.optional_button_text);
         assertEquals(
                 mActivity.getString(R.string.omnibox_navattach_gallery),
-                optionalButton.getContentDescription());
+                optionalButtonText.getText().toString());
 
         // Clicking doesn't enter image generation mode.
         optionalButton.performClick();
@@ -1204,6 +1209,16 @@ public class NewTabPageCoordinatorUnitTest {
 
         View composeplateView = mNewTabPageLayout.findViewById(R.id.composeplate_view);
         assertEquals(View.VISIBLE, composeplateView.getVisibility());
+        int expectedMarginEnd =
+                mActivity
+                        .getResources()
+                        .getDimensionPixelSize(R.dimen.composeplate_view_beside_mvt_margin_end);
+        assertEquals(
+                expectedMarginEnd,
+                ((ViewGroup.MarginLayoutParams) composeplateView.getLayoutParams()).getMarginEnd());
+        View aiModeButton = composeplateView.findViewById(R.id.composeplate_button);
+        assertEquals(
+                0, ((ViewGroup.MarginLayoutParams) aiModeButton.getLayoutParams()).getMarginEnd());
     }
 
     @Test

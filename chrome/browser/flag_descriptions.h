@@ -3431,6 +3431,12 @@ inline constexpr char kMacAccessibilityTextOperationDescription[] =
     "Enables support for performing text editing operations through "
     "the AXTextOperation accessibility API.";
 
+inline constexpr char kMediaCaptureElementPreviewName[] =
+    "Media capture element preview";
+inline constexpr char kMediaCaptureElementPreviewDescription[] =
+    "Enables camera and microphone preview for <camera>, <microphone>, and "
+    "<usermedia> elements.";
+
 inline constexpr char kMediaRouterCastAllowAllIPsName[] =
     "Connect to Cast devices on all IP addresses";
 inline constexpr char kMediaRouterCastAllowAllIPsDescription[] =
@@ -7081,6 +7087,10 @@ inline constexpr char kNtpCalendarModuleName[] = "NTP Calendar Module";
 inline constexpr char kNtpCalendarModuleDescription[] =
     "Shows the Google Calendar module on the New Tab Page.";
 
+inline constexpr char kNtpComponentExtensionName[] = "NTP Component Extension";
+inline constexpr char kNtpComponentExtensionDescription[] =
+    "When enabled, registers the New Tab Page as a component extension.";
+
 inline constexpr char kNtpComposeboxName[] = "NTP Composebox";
 inline constexpr char kNtpComposeboxDescription[] =
     "Shows the Composebox on the New Tab Page Searchbox upon clicking the "
@@ -7755,12 +7765,6 @@ inline constexpr char kEnableExternalDisplayHdr10Name[] =
     "Enable HDR10 support on external monitors";
 inline constexpr char kEnableExternalDisplayHdr10Description[] =
     "Allows using HDR10 mode on any external monitor that supports it";
-
-inline constexpr char kEnableDisplayPerformanceModeName[] =
-    "Enable Display Performance Mode";
-inline constexpr char kEnableDisplayPerformanceModeDescription[] =
-    "This option enables toggling different display features based on user "
-    "setting and power state";
 
 inline constexpr char kEnableRFC8925Name[] =
     "Enable RFC8925 (prefer IPv6-only on IPv6-only-capable network)";

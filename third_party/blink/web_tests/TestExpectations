@@ -2077,7 +2077,6 @@ crbug.com/443773822 external/wpt/webdriver/tests/classic/take_element_screenshot
 # Linux / Debug
 crbug.com/575780008 [ Linux ] external/wpt/webdriver/tests/bidi/browsing_context/activate/activate.py [ Failure Pass ]
 crbug.com/374661016 [ Linux ] external/wpt/webdriver/tests/bidi/browsing_context/capture_screenshot/frame_tentative.py [ Failure ]  # Randomized context ID
-crbug.com/523199907 [ Linux ] external/wpt/webdriver/tests/bidi/browsing_context/create/type.py [ Crash Failure Pass Timeout ]
 crbug.com/565447575 [ Linux ] external/wpt/webdriver/tests/bidi/browsing_context/navigate/error.py [ Failure Pass Timeout ]
 crbug.com/441826647 [ Linux ] external/wpt/webdriver/tests/bidi/browsing_context/navigate/navigate.py [ Skip Timeout ]
 crbug.com/569736364 [ Linux ] external/wpt/webdriver/tests/bidi/browsing_context/navigation_started/navigation_interrupted.py [ Pass Timeout ]
@@ -5548,23 +5547,6 @@ crbug.com/445971864 external/wpt/css/css-gaps/multicol/multicol-gap-decorations-
 crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/column-gap-decorations-inset-overlap-join.html [ Failure ]
 crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/row-gap-decorations-inset-overlap-join.html [ Failure ]
 
-# Grid-lanes rule visibility uses lane occupancy instead of segment occupancy.
-# https://github.com/w3c/csswg-drafts/issues/14489
-crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/column-gap-decorations-rule-visibility-items-between-002.html [ Failure ]
-crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/column-gap-decorations-rule-visibility-items-between-005.html [ Failure ]
-crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/column-gap-decorations-rule-visibility-items-between-006.html [ Failure ]
-crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/column-gap-decorations-rule-visibility-items-between-007.html [ Failure ]
-crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/column-gap-decorations-rule-visibility-items-between-008.html [ Failure ]
-crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/column-gap-decorations-rule-visibility-items-between-009.html [ Failure ]
-crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/column-gap-decorations-rule-visibility-items-between-010.html [ Failure ]
-crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/row-gap-decorations-rule-visibility-items-between-004.html [ Failure ]
-crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/row-gap-decorations-rule-visibility-items-between-005.html [ Failure ]
-crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/row-gap-decorations-rule-visibility-items-between-006.html [ Failure ]
-crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/row-gap-decorations-rule-visibility-items-between-007.html [ Failure ]
-crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/row-gap-decorations-rule-visibility-items-between-008.html [ Failure ]
-crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/row-gap-decorations-rule-visibility-items-between-009.html [ Failure ]
-crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/row-gap-decorations-rule-visibility-items-between-010.html [ Failure ]
-
 ### End of gap decoration test failures
 
 # I think these are just test issues, but at least the scrollbars are related:
@@ -8627,4 +8609,10 @@ crbug.com/568614666 [ Linux ] fast/events/middleClickAutoscroll-nested-divs.html
 
 # Temporarily disabled to unblock https://webrtc-review.googlesource.com/c/src/+/510800
 crbug.com/576554678 external/wpt/webrtc/protocol/av1-profile-asymmetry.https.html [ Pass Failure ]
+
+# Expectations for chrome_wpt_tests entries in chrome.filter
+crbug.com/558819229 [ Win ] external/wpt/permissions-policy/payment-extension-allowed-by-permissions-policy-attribute.https.sub.html [ Failure ]
+crbug.com/558819229 [ Win ] virtual/unified-autoplay/external/wpt/permissions-policy/payment-extension-allowed-by-permissions-policy-attribute.https.sub.html [ Failure ]
+crbug.com/558819229 external/wpt/notifications/icon-fetch.tentative.https.window.html [ Pass Timeout ]
+crbug.com/558819229 external/wpt/notifications/tag.https.html [ Failure Pass ]
 

@@ -46,6 +46,7 @@
 #include "base/values.h"
 #include "mojo/public/cpp/base/big_buffer.h"
 #include "services/webnn/public/cpp/context_properties.h"
+#include "services/webnn/public/cpp/graph_validation_utils.h"
 #include "services/webnn/public/cpp/ml_number.h"
 #include "services/webnn/public/cpp/operand_descriptor.h"
 #include "services/webnn/public/cpp/supported_data_types.h"
@@ -2250,10 +2251,43 @@ GraphBuilderCoreml::AddOperationForConv2d(
   static constexpr char kParamGroups[] = "groups";
   static constexpr char kParamOutputShape[] = "output_shape";
 
-  CoreML::Specification::MILSpec::Operation* op = block.add_operations();
   const mojom::Operand& input_operand = GetOperand(operation.input_operand_id);
   const mojom::Operand& filter_operand =
       GetOperand(operation.filter_operand_id);
+
+  // If a filter spatial dimension is 1, dilation along that dimension has no
+  // effect ((1 - 1) * d + 1 == 1). Normalizing it to 1 avoids triggering
+  // ANECompiler's dilated convolution lowering for 1x1 filters.
+  // Both conv2d (OIHW) and convTranspose2d (IOHW) place height and width at
+  // indices 2 and 3.
+  const base::span<const uint32_t> filter_dimensions =
+      filter_operand.descriptor.shape();
+  const uint32_t filter_height = filter_dimensions[2];
+  const uint32_t filter_width = filter_dimensions[3];
+  std::array<int32_t, 2> dilations = {
+      filter_height == 1
+          ? 1
+          : base::checked_cast<int32_t>(operation.dilations->height),
+      filter_width == 1
+          ? 1
+          : base::checked_cast<int32_t>(operation.dilations->width)};
+
+  const base::span<const uint32_t> input_dimensions =
+      input_operand.descriptor.shape();
+  const uint32_t batch = input_dimensions[0];
+  const uint32_t input_channels = input_dimensions[1];
+  const uint32_t output_channels =
+      GetOperandInfo(operation.output_operand_id).dimensions[1];
+  if (operation.kind == mojom::Conv2d::Kind::kDirect &&
+      (dilations[0] > 1 || dilations[1] > 1) && batch > 1 &&
+      operation.groups > 1 &&
+      !webnn::IsDepthwiseConv2d(input_channels, output_channels,
+                                operation.groups)) {
+    return NewNotSupportedError(
+        "Unsupported dilated grouped conv2d with batch > 1.");
+  }
+
+  CoreML::Specification::MILSpec::Operation* op = block.add_operations();
   switch (operation.kind) {
     case mojom::Conv2d::Kind::kDirect:
       CHECK(context_properties_.data_type_limits.conv2d_input.SupportsAll(
@@ -2281,9 +2315,6 @@ GraphBuilderCoreml::AddOperationForConv2d(
       base::checked_cast<int32_t>(operation.padding->ending->height),
       base::checked_cast<int32_t>(operation.padding->beginning->width),
       base::checked_cast<int32_t>(operation.padding->ending->width)};
-  std::array<int32_t, 2> dilations = {
-      base::checked_cast<int32_t>(operation.dilations->height),
-      base::checked_cast<int32_t>(operation.dilations->width)};
 
   SetInputsWithValues(
       *op->mutable_inputs(),
@@ -2293,6 +2324,9 @@ GraphBuilderCoreml::AddOperationForConv2d(
        {kParamDilations, Create1DTensorImmediateValue<int32_t>(dilations)},
        {kParamGroups, CreateScalarImmediateValue(
                           base::checked_cast<int32_t>(operation.groups))}});
+  const OperandInfo& output_operand_info =
+      GetOperandInfo(operation.output_operand_id);
+  std::optional<OperandId> non_constant_bias_operand_id;
   if (operation.bias_operand_id) {
     const mojom::Operand& bias_operand =
         GetOperand(operation.bias_operand_id.value());
@@ -2304,21 +2338,48 @@ GraphBuilderCoreml::AddOperationForConv2d(
           bias_operand.descriptor));
     }
 
-    // TODO(crbug.com/338529226): This param must be a constant tensor.
-    RETURN_IF_ERROR(SetInputFromOperand(*op->mutable_inputs(), kOpParamBias,
-                                        operation.bias_operand_id.value()));
+    if (constant_operands_->contains(*operation.bias_operand_id)) {
+      RETURN_IF_ERROR(SetInputFromConstantOperand(
+          *op->mutable_inputs(), kOpParamBias,
+          operation.bias_operand_id.value()));
+    } else {
+      // CoreML conv and conv_transpose require `bias` to be a constant tensor
+      // (crbug.com/338529226); passing a non-constant `bias` causes
+      // out-of-bounds reads in Espresso/BNNS kernels. Decompose non-constant
+      // `bias` into a `reshape` (from [C_out] to [1, C_out, 1, 1]) + `add`.
+      non_constant_bias_operand_id = *operation.bias_operand_id;
+    }
   }
 
   if (operation.kind == mojom::Conv2d::Kind::kTransposed) {
     // Get the output shape from the output operand.
-    const OperandInfo& output_operand =
-        GetOperandInfo(operation.output_operand_id);
     SetInputWithValue(*op->mutable_inputs(), kParamOutputShape,
                       Create1DTensorImmediateValue<int32_t>(
-                          Ui32ToI32(output_operand.dimensions)));
+                          Ui32ToI32(output_operand_info.dimensions)));
   }
 
-  PopulateNamedValueType(operation.output_operand_id, *op->add_outputs());
+  if (non_constant_bias_operand_id) {
+    ASSIGN_OR_RETURN(OperandId conv_output_operand_id,
+                     GenerateInternalOperandInfo(
+                         output_operand_info.mil_data_type,
+                         output_operand_info.dimensions));
+    PopulateNamedValueType(conv_output_operand_id, *op->add_outputs());
+
+    std::array<uint32_t, 4> reshaped_bias_dims = {
+        1, output_operand_info.dimensions[1], 1, 1};
+    ASSIGN_OR_RETURN(OperandId reshaped_bias_operand_id,
+                     GenerateInternalOperandInfo(
+                         output_operand_info.mil_data_type,
+                         reshaped_bias_dims));
+    RETURN_IF_ERROR(AddOperationForReshape(
+        *non_constant_bias_operand_id, reshaped_bias_operand_id, block));
+    RETURN_IF_ERROR(AddOperationForElementwiseBinary(
+        conv_output_operand_id, reshaped_bias_operand_id,
+        operation.output_operand_id, mojom::ElementWiseBinary::Kind::kAdd,
+        block));
+  } else {
+    PopulateNamedValueType(operation.output_operand_id, *op->add_outputs());
+  }
   return base::ok();
 }
 

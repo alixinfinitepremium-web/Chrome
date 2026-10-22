@@ -924,6 +924,8 @@ should be able to be added at any place in this file.
       summary="For tab group creation dialog sync text."/>
   <variant name="_TabGroupsDragAndDrop"
       summary="For drop-to-merge in tab group."/>
+  <variant name="_TabGroupsFocusingFeature"
+      summary="For the tab groups focusing IPH feature."/>
   <variant name="_TabGroupSharedNotificationBubbleOnStrip"
       summary="For tab group shared notification bubble on tablet tab strip."/>
   <variant name="_TabGroupShareNotice"
@@ -952,6 +954,8 @@ should be able to be added at any place in this file.
       summary="For tab group surface after hiding a tab group while on the
                GTS."/>
   <variant name="_TabGroupsTapToSeeAnotherTab" summary="For tab strip."/>
+  <variant name="_TabGroupsUnfocusingFeature"
+      summary="For the tab groups unfocusing IPH feature."/>
   <variant name="_TabGroupSyncOnStrip"
       summary="For tab group sync on tablet tab strip."/>
   <variant name="_TabGroupsYourTabsTogether"
@@ -10349,6 +10353,16 @@ should be able to be added at any place in this file.
   <description>
     Recorded when the ephemeral contextual tasks toolbar button becomes visible
     in the browser toolbar.
+  </description>
+</action>
+
+<action
+    name="ContextualTasks.EphemeralToolbarButton.UserAction.PinByContextMenu">
+  <owner>dianaou@chromium.org</owner>
+  <owner>chrome-contextual-tasks-eng@google.com</owner>
+  <description>
+    Recorded when the user pins the ephemeral contextual tasks toolbar button to
+    the toolbar via its context menu.
   </description>
 </action>
 

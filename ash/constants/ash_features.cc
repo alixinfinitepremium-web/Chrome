@@ -475,9 +475,6 @@ BASE_FEATURE(kDemoModeWallpaperUpdate, base::FEATURE_ENABLED_BY_DEFAULT);
 // sign in is enable. No-op if demo mode sign in is disabled.
 BASE_FEATURE(kDemoModeSignInFileCleanup, base::FEATURE_ENABLED_BY_DEFAULT);
 
-// Toggle different display features based on user setting and power state
-BASE_FEATURE(kDisplayPerformanceMode, base::FEATURE_DISABLED_BY_DEFAULT);
-
 // Enable the do not disturb shortcut.
 BASE_FEATURE(kDoNotDisturbShortcut, base::FEATURE_ENABLED_BY_DEFAULT);
 
@@ -713,10 +710,6 @@ BASE_FEATURE(kForceOnDeviceAppControlsForAllRegions,
 // Controls enabling/disabling the forest feature.
 // For more info, see go/crosforest.
 BASE_FEATURE(kForestFeature, base::FEATURE_ENABLED_BY_DEFAULT);
-
-// Enables low priority hint instead of overlay candidate override in
-// `FastInkHost`.
-BASE_FEATURE(kFastInkHostLowPriorityHint, base::FEATURE_ENABLED_BY_DEFAULT);
 
 // When enabled, there will be an alert bubble showing up when the device
 // returns from low brightness (e.g., sleep, closed cover) without a lock screen
@@ -2132,10 +2125,6 @@ bool IsDeviceMoveConfigSaveEnabled() {
   return base::FeatureList::IsEnabled(kDeviceMoveConfigSave);
 }
 
-bool IsDisplayPerformanceModeEnabled() {
-  return base::FeatureList::IsEnabled(kDisplayPerformanceMode);
-}
-
 bool IsDoNotDisturbShortcutEnabled() {
   return base::FeatureList::IsEnabled(kDoNotDisturbShortcut);
 }
@@ -2257,10 +2246,6 @@ bool ShouldForceEnableServerSideSpeechRecognition() {
 
 bool IsFullscreenAlertBubbleEnabled() {
   return base::FeatureList::IsEnabled(kFullscreenAlertBubble);
-}
-
-bool IsFastInkHostLowPriorityHintEnabled() {
-  return base::FeatureList::IsEnabled(kFastInkHostLowPriorityHint);
 }
 
 bool IsBlockFwupdClientEnabled() {
