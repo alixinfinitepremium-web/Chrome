@@ -197,6 +197,7 @@
 #include "chrome/browser/ssl/https_upgrades_interceptor.h"
 #include "chrome/browser/ssl/sct_reporting_service.h"
 #include "chrome/browser/ssl/ssl_client_certificate_selector.h"
+#include "chrome/browser/storage/file_system_backends.h"
 #include "chrome/browser/subresource_filter/subresource_filter_navigation_download_policy.h"
 #include "chrome/browser/tab_group_sync/tab_group_sync_utils.h"
 #include "chrome/browser/task_manager/task_manager_interface.h"
@@ -512,20 +513,13 @@
 #include "ash/webui/scanning/url_constants.h"
 #include "ash/webui/shortcut_customization_ui/url_constants.h"
 #include "chrome/app/chrome_crash_reporter_client.h"
-#include "chrome/browser/ash/arc/fileapi/arc_content_file_system_backend_delegate.h"
-#include "chrome/browser/ash/arc/fileapi/arc_documents_provider_backend_delegate.h"
-#include "chrome/browser/ash/drive/fileapi/drivefs_file_system_backend_delegate.h"
-#include "chrome/browser/ash/file_system_provider/fileapi/backend_delegate.h"
 #include "chrome/browser/ash/fileapi/external_file_url_loader_factory.h"
-#include "chrome/browser/ash/fileapi/file_system_backend.h"
-#include "chrome/browser/ash/fileapi/mtp_file_system_backend_delegate.h"
 #include "chrome/browser/ash/login/signin_partition_manager.h"
 #include "chrome/browser/ash/login/signin_partition_manager_factory.h"
 #include "chrome/browser/ash/login/startup_utils.h"
 #include "chrome/browser/ash/net/network_health/network_health_manager.h"
 #include "chrome/browser/ash/net/system_proxy_manager.h"
 #include "chrome/browser/ash/profiles/profile_helper.h"
-#include "chrome/browser/ash/smb_client/fileapi/smbfs_file_system_backend_delegate.h"
 #include "chrome/browser/ash/system/input_device_settings.h"
 #include "chrome/browser/media/chromeos_login_and_lock_media_access_handler.h"
 #include "chrome/browser/media/webrtc/multi_capture/multi_capture_data_service.h"
@@ -543,7 +537,6 @@
 #include "components/user_manager/user.h"
 #include "components/user_manager/user_manager.h"
 #include "services/service_manager/public/mojom/interface_provider_spec.mojom.h"
-#include "storage/browser/file_system/external_mount_points.h"
 #elif BUILDFLAG(IS_ANDROID)
 #include "base/android/android_info.h"
 #include "base/android/apk_info.h"
@@ -4634,7 +4627,7 @@ bool ChromeContentBrowserClient::CanCreateWindow(
   // For Automatic Document Picture-in-Picture, the window creation is
   // authorized by the browser rather than a user gesture. If AutoPip
   // preconditions are met, permit the window creation.
-  if (disposition == WindowOpenDisposition::NEW_PICTURE_IN_PICTURE) {
+  if (disposition == WindowOpenDisposition::kNewPictureInPicture) {
     auto* auto_pip_tab_helper =
         AutoPictureInPictureTabHelper::FromWebContents(web_contents);
     if (auto_pip_tab_helper &&
@@ -4728,9 +4721,27 @@ void ChromeContentBrowserClient::OverrideWebPreferences(
 // with extensions (the chrome.fontSettings API can change these).
 // - http://crbug.com/40337093, http://crbug.com/41304476.
 #if !BUILDFLAG(IS_ANDROID) || BUILDFLAG(ENABLE_DESKTOP_ANDROID_EXTENSIONS)
+  bool is_initial_webui = false;
+#if !BUILDFLAG(IS_ANDROID)
+  is_initial_webui =
+      waap::IsForInitialWebUI(main_frame_site.GetSecurityPrincipal());
+#endif
   // Enabling the FontFamilyCache needs some KeyedService that might not be
   // available for some irregular profiles, like the System Profile.
-  if (!AreKeyedServicesDisabledForProfileByDefault(profile)) {
+  if (is_initial_webui) {
+    // Initial WebUI uses the browser UI font from text_defaults.css and
+    // layout_constants_v0.css rather than user web-content font preferences.
+    // Clearing the default generic font maps avoids populating FontFamilyCache
+    // during startup prewarming and prevents prewarming or loading unused
+    // default web fonts such as "Times New Roman".
+    web_prefs->standard_font_family_map.clear();
+    web_prefs->fixed_font_family_map.clear();
+    web_prefs->serif_font_family_map.clear();
+    web_prefs->sans_serif_font_family_map.clear();
+    web_prefs->cursive_font_family_map.clear();
+    web_prefs->fantasy_font_family_map.clear();
+    web_prefs->math_font_family_map.clear();
+  } else if (!AreKeyedServicesDisabledForProfileByDefault(profile)) {
     FontFamilyCache::FillFontFamilyMap(profile,
                                        prefs::kWebKitStandardFontFamilyMap,
                                        &web_prefs->standard_font_family_map);
@@ -5348,37 +5359,8 @@ void ChromeContentBrowserClient::GetAdditionalFileSystemBackends(
     const base::FilePath& storage_partition_path,
     std::vector<std::unique_ptr<storage::FileSystemBackend>>*
         additional_backends) {
-  // A BrowserContext without a path keeps all its storage in memory, and has
-  // nowhere for these backends to put their files.
-  if (browser_context->GetPath().empty()) {
-    return;
-  }
-
-#if BUILDFLAG(IS_CHROMEOS)
-  storage::ExternalMountPoints* external_mount_points =
-      browser_context->GetMountPoints();
-  DCHECK(external_mount_points);
-  auto backend = std::make_unique<ash::FileSystemBackend>(
-      Profile::FromBrowserContext(browser_context),
-      ash::file_system_provider::BackendDelegate::MakeUnique(),
-      std::make_unique<ash::MTPFileSystemBackendDelegate>(
-          storage_partition_path),
-      std::make_unique<arc::ArcContentFileSystemBackendDelegate>(),
-      std::make_unique<arc::ArcDocumentsProviderBackendDelegate>(),
-      std::make_unique<drive::DriveFsFileSystemBackendDelegate>(
-          Profile::FromBrowserContext(browser_context)),
-      std::make_unique<ash::smb_client::SmbFsFileSystemBackendDelegate>(
-          Profile::FromBrowserContext(browser_context)),
-      external_mount_points, storage::ExternalMountPoints::GetSystemInstance());
-  backend->AddSystemMountPoints();
-  DCHECK(backend->CanHandleType(storage::kFileSystemTypeExternal));
-  additional_backends->push_back(std::move(backend));
-#endif
-
-  for (auto& part : extra_parts_) {
-    part->GetAdditionalFileSystemBackends(
-        browser_context, storage_partition_path, additional_backends);
-  }
+  ::GetAdditionalFileSystemBackends(browser_context, storage_partition_path,
+                                    additional_backends);
 }
 
 #if BUILDFLAG(IS_POSIX) && !BUILDFLAG(IS_MAC)
@@ -7585,7 +7567,7 @@ bool ChromeContentBrowserClient::HandleExternalProtocol(
             *new_url,
             content::Referrer(web_contents->GetLastCommittedURL(),
                               network::mojom::ReferrerPolicy::kDefault),
-            WindowOpenDisposition::NEW_FOREGROUND_TAB, page_transition,
+            WindowOpenDisposition::kNewForegroundTab, page_transition,
             /*is_renderer_initiated=*/true);
         // Fallback to an opaque origin if the initiating origin is not
         // provided (e.g., for external OS-initiated or browser-initiated
@@ -9609,7 +9591,7 @@ void ChromeContentBrowserClient::ShowCaptionSettings(
   content::OpenURLParams params =
       content::OpenURLParams::CreateBrowserInitiated(
           GURL(captions::GetCaptionSettingsUrl()),
-          WindowOpenDisposition::NEW_FOREGROUND_TAB, ui::PAGE_TRANSITION_LINK);
+          WindowOpenDisposition::kNewForegroundTab, ui::PAGE_TRANSITION_LINK);
   web_contents->OpenURL(params, /*navigation_handle_callback=*/{});
 #endif
 }

@@ -24,6 +24,8 @@ constexpr APIPermissionInfo::InitInfo kPermissionsToRegister[] = {
      APIPermissionInfo::kFlagCannotBeOptional},
     {APIPermissionID::kCertificateProvider, "certificateProvider",
      APIPermissionInfo::kFlagDoesNotRequireManagedSessionFullLoginWarning},
+    {APIPermissionID::kEchoPrivate, "echoPrivate",
+     APIPermissionInfo::kFlagCannotBeOptional},
     {APIPermissionID::kFileBrowserHandler, "fileBrowserHandler",
      APIPermissionInfo::kFlagCannotBeOptional |
          APIPermissionInfo::kFlagDoesNotRequireManagedSessionFullLoginWarning},
@@ -37,6 +39,8 @@ constexpr APIPermissionInfo::InitInfo kPermissionsToRegister[] = {
     {APIPermissionID::kOdfsConfigPrivate, "odfsConfigPrivate",
      APIPermissionInfo::kFlagDoesNotRequireManagedSessionFullLoginWarning},
     {APIPermissionID::kSpeechRecognitionPrivate, "speechRecognitionPrivate",
+     APIPermissionInfo::kFlagDoesNotRequireManagedSessionFullLoginWarning},
+    {APIPermissionID::kSystemLog, "systemLog",
      APIPermissionInfo::kFlagDoesNotRequireManagedSessionFullLoginWarning},
     {APIPermissionID::kUsersPrivate, "usersPrivate",
      APIPermissionInfo::kFlagCannotBeOptional},

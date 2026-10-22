@@ -66,6 +66,10 @@
     "dependencies": ["permission:certificateProvider"],
     "contexts": ["privileged_extension"]
   },
+  "echoPrivate": {
+    "dependencies": ["permission:echoPrivate"],
+    "contexts": ["privileged_extension"]
+  },
   "fileBrowserHandler": {
     "dependencies": ["permission:fileBrowserHandler"],
     "contexts": ["privileged_extension"],
@@ -153,6 +157,10 @@
   },
   "speechRecognitionPrivate": {
     "dependencies": ["permission:speechRecognitionPrivate"],
+    "contexts": ["privileged_extension"]
+  },
+  "systemLog": {
+    "dependencies": ["permission:systemLog"],
     "contexts": ["privileged_extension"]
   },
   "usersPrivate": [{

@@ -2494,6 +2494,11 @@
     "expiry_milestone": 159
   },
   {
+    "name": "contextual-tasks-pinned-button-active-indicator",
+    "owners": [ "dianaou@google.com", "chrome-contextual-tasks-eng@google.com" ],
+    "expiry_milestone": 160
+  },
+  {
     "name": "contextual-tasks-pinning-v2",
     "owners": [ "dianaou@google.com", "chrome-contextual-tasks-eng@google.com" ],
     "expiry_milestone": 160
@@ -2973,6 +2978,11 @@
   {
     "name": "desktop-android-twa-disclosures-help-link",
     "owners": [ "aixba@chromium.org", "pwa-team@google.com" ],
+    "expiry_milestone": 165
+  },
+  {
+    "name": "desktop-android-web-app-header-app-name",
+    "owners": [ "ksukh@chromium.org", "pwa-team@google.com" ],
     "expiry_milestone": 165
   },
   {
@@ -10197,11 +10207,6 @@
     "name": "vc-segmentation-model",
     "owners": [ "ardoerlemans@chromium.org", "jmpollock@chromium.org", "nbowe@chromium.org" ],
     "expiry_milestone": 116
-  },
-  {
-    "name": "vc-tray-mic-indicator",
-    "owners": [ "normanbt@chromium.org", "chromeos-audio@google.com"],
-    "expiry_milestone": 140
   },
   {
     "name": "vc-web-api",

@@ -869,7 +869,9 @@ TEST(PermissionsTest, PermissionMessages) {
   skip.insert(APIPermissionID::kContextualTasksPrivate);
   skip.insert(APIPermissionID::kCrashReportPrivate);
   skip.insert(APIPermissionID::kDeveloperPrivate);
+#if BUILDFLAG(IS_CHROMEOS)
   skip.insert(APIPermissionID::kEchoPrivate);
+#endif
   skip.insert(APIPermissionID::kEnterprisePlatformKeysPrivate);
   skip.insert(APIPermissionID::kFeedbackPrivate);
 #if BUILDFLAG(IS_CHROMEOS)
@@ -904,9 +906,7 @@ TEST(PermissionsTest, PermissionMessages) {
   skip.insert(APIPermissionID::kWebrtcLoggingPrivateAudioDebug);
 #if BUILDFLAG(IS_CHROMEOS)
   skip.insert(APIPermissionID::kWmDesksPrivate);
-#endif
   skip.insert(APIPermissionID::kSystemLog);
-#if BUILDFLAG(IS_CHROMEOS)
   skip.insert(APIPermissionID::kOdfsConfigPrivate);
 #endif
   skip.insert(APIPermissionID::kIndigoPrivate);

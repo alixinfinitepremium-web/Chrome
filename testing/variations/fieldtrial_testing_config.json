@@ -5539,21 +5539,6 @@
             ]
         }
     ],
-    "CrosSwitcher": [
-        {
-            "platforms": [
-                "chromeos"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "CrosSwitcher"
-                    ]
-                }
-            ]
-        }
-    ],
     "CustomizeChromeJourney": [
         {
             "platforms": [
@@ -7168,24 +7153,6 @@
                     "name": "Enabled",
                     "enable_features": [
                         "EnableDynamicRouteFetching"
-                    ]
-                }
-            ]
-        }
-    ],
-    "EnableForceDownloadToOneDrive": [
-        {
-            "platforms": [
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "EnableForceDownloadToOneDrive"
                     ]
                 }
             ]
@@ -18013,6 +17980,21 @@
             ]
         }
     ],
+    "UseAccountInfoFetcherIos": [
+        {
+            "platforms": [
+                "ios"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "UseAccountInfoFetcherIos"
+                    ]
+                }
+            ]
+        }
+    ],
     "UseAndroidCustomFrameDeadlines": [
         {
             "platforms": [
@@ -18645,8 +18627,7 @@
                     "name": "BackgroundReplaceEnabled",
                     "enable_features": [
                         "CrOSLateBootAudioAPNoiseCancellation",
-                        "FeatureManagementVideoConference",
-                        "VCBackgroundReplace"
+                        "FeatureManagementVideoConference"
                     ]
                 }
             ]

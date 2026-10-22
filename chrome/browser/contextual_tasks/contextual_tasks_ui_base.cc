@@ -80,6 +80,7 @@
 #include "chrome/browser/ui/toolbar/pinned_toolbar/pinned_toolbar_actions_model.h"
 #include "chrome/browser/ui/user_education/browser_user_education_interface.h"
 #include "chrome/browser/ui/views/permissions/chip/permission_chip_view.h"
+#include "chrome/browser/ui/webui/theme_source.h"
 #include "chrome/browser/ui/webui/webui_toolbar/webui_toolbar_layout_css_helper.h"
 #include "chrome/grit/webui_toolbar_shared_resources.h"
 #include "chrome/grit/webui_toolbar_shared_resources_map.h"
@@ -275,6 +276,7 @@ content::WebUIDataSource* ContextualTasksUIBase::RegisterWebUIDataSource(
 #endif
 
 #if !BUILDFLAG(IS_ANDROID)
+  content::URLDataSource::Add(profile, std::make_unique<ThemeSource>(profile));
   source->AddResourcePaths(kWebuiToolbarSharedResources);
 #endif
   source->SetRequestFilter(
@@ -448,7 +450,7 @@ void ContextualTasksUIBase::OpenMyActivityUi() {
     return;
   }
   OpenUrlWithDisposition(GetProfile(), GURL(kMyActivityUrl),
-                         WindowOpenDisposition::NEW_FOREGROUND_TAB, browser);
+                         WindowOpenDisposition::kNewForegroundTab, browser);
 }
 
 void ContextualTasksUIBase::OpenOverflowMenuHelpUi() {
@@ -459,7 +461,7 @@ void ContextualTasksUIBase::OpenOverflowMenuHelpUi() {
   OpenUrlWithDisposition(
       GetProfile(),
       GURL(contextual_tasks::GetContextualTasksOverflowMenuHelpUrl()),
-      WindowOpenDisposition::NEW_FOREGROUND_TAB, browser);
+      WindowOpenDisposition::kNewForegroundTab, browser);
 }
 
 void ContextualTasksUIBase::OpenFeedbackUi() {

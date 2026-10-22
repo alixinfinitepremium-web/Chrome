@@ -3090,7 +3090,6 @@ constexpr char kBorealisZinkGlDriverInternalName[] = "borealis-zink-gl-driver";
 constexpr char kBluetoothUseLLPrivacyInternalName[] = "bluetooth-use-llprivacy";
 constexpr char kGrowthCampaigns[] = "growth-campaigns";
 constexpr char kGrowthCampaignsTestTag[] = "campaigns-test-tag";
-constexpr char kVcTrayMicIndicatorInternalName[] = "vc-tray-mic-indicator";
 constexpr char kUseUnifiedLockedStateControllerInternalName[] =
     "use-unified-locked-state-controller";
 #endif  // BUILDFLAG(IS_CHROMEOS)
@@ -9526,10 +9525,6 @@ const FeatureEntry kFeatureEntries[] = {
     {"vc-web-api", flag_descriptions::kVcWebApiName,
      flag_descriptions::kVcWebApiDescription, kOsCrOS,
      FEATURE_VALUE_TYPE(ash::features::kVcWebApi)},
-    {kVcTrayMicIndicatorInternalName,
-     flag_descriptions::kVcTrayMicIndicatorName,
-     flag_descriptions::kVcTrayMicIndicatorDescription, kOsCrOS,
-     FEATURE_VALUE_TYPE(ash::features::kVcTrayMicIndicator)},
 #endif
 
 #if BUILDFLAG(IS_ANDROID)
@@ -12510,6 +12505,15 @@ const FeatureEntry kFeatureEntries[] = {
      kOsDesktop,
      FEATURE_VALUE_TYPE(contextual_tasks::kContextualTasksPinningV2)},
 
+    {"contextual-tasks-pinned-button-active-indicator",
+     contextual_tasks::flag_descriptions::
+         kContextualTasksPinnedButtonActiveIndicatorName,
+     contextual_tasks::flag_descriptions::
+         kContextualTasksPinnedButtonActiveIndicatorDescription,
+     kOsDesktop,
+     FEATURE_VALUE_TYPE(
+         contextual_tasks::kContextualTasksPinnedButtonActiveIndicator)},
+
     {"contextual-tasks-enable-spatial-model-toolbar-layout",
      contextual_tasks::flag_descriptions::
          kContextualTasksEnableSpatialModelToolbarLayoutName,
@@ -13001,6 +13005,11 @@ const FeatureEntry kFeatureEntries[] = {
      kOsAndroid,
      FEATURE_VALUE_TYPE(
          chrome::android::kDesktopAndroidTWADisclosuresHelpLink)},
+    {"desktop-android-web-app-header-app-name",
+     flag_descriptions::kDesktopAndroidWebAppHeaderAppNameName,
+     flag_descriptions::kDesktopAndroidWebAppHeaderAppNameDescription,
+     kOsAndroid,
+     FEATURE_VALUE_TYPE(chrome::android::kDesktopAndroidWebAppHeaderAppName)},
 #endif
 
 #if BUILDFLAG(IS_ANDROID)

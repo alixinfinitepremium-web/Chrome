@@ -587,7 +587,7 @@ class AutoPictureInPictureTabHelperBrowserTest : public WebRtcTestBase {
         base::FilePath(base::FilePath::kCurrentDirectory),
         base::FilePath(kBlankPage));
     ASSERT_TRUE(ui_test_utils::NavigateToURLWithDisposition(
-        browser, test_page_url, WindowOpenDisposition::NEW_FOREGROUND_TAB,
+        browser, test_page_url, WindowOpenDisposition::kNewForegroundTab,
         ui_test_utils::BROWSER_TEST_WAIT_FOR_LOAD_STOP));
   }
 
@@ -596,7 +596,7 @@ class AutoPictureInPictureTabHelperBrowserTest : public WebRtcTestBase {
         base::FilePath(base::FilePath::kCurrentDirectory),
         base::FilePath(kBlankPage));
     ASSERT_TRUE(ui_test_utils::NavigateToURLWithDisposition(
-        browser, test_page_url, WindowOpenDisposition::NEW_POPUP,
+        browser, test_page_url, WindowOpenDisposition::kNewPopup,
         ui_test_utils::BROWSER_TEST_WAIT_FOR_LOAD_STOP));
   }
 
@@ -4575,9 +4575,9 @@ IN_PROC_BROWSER_TEST_P(AutoPictureInPictureTabHelperHatsDocumentPipBrowserTest,
   EXPECT_CALL(*hats_service,
               LaunchSurveyForWebContents(GetParam().trigger, web_contents, _, _,
                                          _, _, _, _))
-      .WillOnce(testing::DoAll(
-          testing::InvokeWithoutArgs([&]() { survey_launched.SetValue(); }),
-          testing::Return(HatsService::LaunchError::kNone)));
+      .WillOnce(
+          testing::DoAll([&]() { survey_launched.SetValue(); },
+                         testing::Return(HatsService::LaunchError::kNone)));
 
   SwitchToExistingTab(web_contents);
   EXPECT_TRUE(survey_launched.Wait());
@@ -4635,9 +4635,9 @@ IN_PROC_BROWSER_TEST_P(AutoPictureInPictureTabHelperHatsVideoPipBrowserTest,
   EXPECT_CALL(*hats_service,
               LaunchSurveyForWebContents(GetParam().trigger, web_contents, _, _,
                                          _, _, _, _))
-      .WillOnce(testing::DoAll(
-          testing::InvokeWithoutArgs([&]() { survey_launched.SetValue(); }),
-          testing::Return(HatsService::LaunchError::kNone)));
+      .WillOnce(
+          testing::DoAll([&]() { survey_launched.SetValue(); },
+                         testing::Return(HatsService::LaunchError::kNone)));
 
   SwitchToExistingTab(web_contents);
   EXPECT_TRUE(survey_launched.Wait());

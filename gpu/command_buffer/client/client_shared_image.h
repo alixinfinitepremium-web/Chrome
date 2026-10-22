@@ -325,6 +325,13 @@ class GPU_COMMAND_BUFFER_CLIENT_EXPORT ClientSharedImage
       std::vector<SyncToken> sync_tokens,
       gles2::GLES2Interface* gl);
 
+  static void WaitSyncTokenAndSignal(
+      std::vector<scoped_refptr<ClientSharedImage>> shared_images,
+      std::vector<SyncToken> sync_tokens,
+      gles2::GLES2Interface* gl,
+      ContextSupport* context_support,
+      base::OnceClosure callback);
+
   // When the UseAutomaticSyncTokenManagement feature is enabled, this function
   // returns all tracked SyncTokens for this SharedImage. When the feature is
   // disabled, this function returns a 1-element vector containing the input
@@ -505,13 +512,21 @@ class GPU_COMMAND_BUFFER_CLIENT_EXPORT ClientSharedImage
                     scoped_refptr<SharedImageInterfaceHolder> sii_holder,
                     uint32_t texture_target);
 
-  ClientSharedImage(ExportedSharedImage exported_si,
-                    scoped_refptr<SharedImageInterfaceHolder> sii_holder);
+  // A mappable buffer rebuilt from |exported_si|'s buffer handle can only
+  // serve premapped mappings on its own; |shared_memory_pool| is what lets it
+  // also satisfy a mapping through a GPU readback, as shared images created
+  // with a handle already do. Pass null to restrict it to premapped mappings.
+  ClientSharedImage(
+      ExportedSharedImage exported_si,
+      scoped_refptr<SharedImageInterfaceHolder> sii_holder,
+      scoped_refptr<base::UnsafeSharedMemoryPool> shared_memory_pool);
 
   // This constructor is used only when importing an unowned ClientSharedImage,
   // in which case this ClientSharedImage is not associated with a
   // SharedImageInterface.
-  explicit ClientSharedImage(ExportedSharedImage exported_si);
+  ClientSharedImage(
+      ExportedSharedImage exported_si,
+      scoped_refptr<base::UnsafeSharedMemoryPool> shared_memory_pool);
 
   friend class ::viz::CopyOutputSharedImageResult;
   // Creates unowned (no `sii_holder`) `ClientSharedImage`

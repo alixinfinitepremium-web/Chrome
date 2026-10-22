@@ -4961,13 +4961,6 @@ inline constexpr char kVcSegmentationModelDescription[] =
     "Allows a different segmentation model to be used for blur and relighting, "
     "which may reduce the workload on the GPU.";
 
-inline constexpr char kVcTrayMicIndicatorName[] =
-    "Adds a mic indicator in VC tray";
-inline constexpr char kVcTrayMicIndicatorDescription[] =
-    "Displays a pulsing mic indicator that indicates how loud the audio is "
-    "captured by the microphone, after some effects like noise cancellation "
-    "is applied.";
-
 inline constexpr char kVcWebApiName[] = "VC web API";
 inline constexpr char kVcWebApiDescription[] =
     "Allows web API support for video conferencing on Chromebooks.";
@@ -6190,6 +6183,12 @@ inline constexpr char kDesktopAndroidTWADisclosuresHelpLinkDescription[] =
     "Enables linking to the help article from the TWA 3-dot menu footer on "
     "desktop Android. This is a follow up feature to Desktop Android TWA "
     "Disclosures Suppression.";
+
+inline constexpr char kDesktopAndroidWebAppHeaderAppNameName[] =
+    "Desktop Android Web App Header App Name";
+inline constexpr char kDesktopAndroidWebAppHeaderAppNameDescription[] =
+    "Shows the installed app's name at the start of the web app window "
+    "header for TWAs and WebAPKs on desktop Android.";
 
 inline constexpr char kDesktopFlingCurveOnAndroidName[] =
     "Desktop Fling Curve on Android";
