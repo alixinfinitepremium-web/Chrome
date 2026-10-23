@@ -161,7 +161,7 @@
 #include "components/optimization_guide/core/delivery/prefs.h"
 #include "components/optimization_guide/core/feature_registry/feature_registration.h"
 #include "components/optimization_guide/core/hints/prefs.h"
-#include "components/optimization_guide/core/model_execution/model_execution_prefs.h"
+#include "components/optimization_guide/core/model_execution/on_device_prefs.h"
 #include "components/optimization_guide/core/model_quality/model_quality_prefs.h"
 #include "components/page_info/core/merchant_trust_service.h"
 #include "components/password_manager/core/browser/password_manager.h"
@@ -2086,7 +2086,7 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry,
   on_device_translation::RegisterProfilePrefs(registry);
 #endif  // BUILDFLAG(ENABLE_ON_DEVICE_TRANSLATION)
   optimization_guide::prefs::RegisterProfilePrefs(registry);
-  optimization_guide::model_execution::prefs::RegisterProfilePrefs(registry);
+  optimization_guide::RegisterGenAiFeatures(registry);
 #if !BUILDFLAG(IS_ANDROID)
   PageColorsController::RegisterProfilePrefs(registry);
 #endif

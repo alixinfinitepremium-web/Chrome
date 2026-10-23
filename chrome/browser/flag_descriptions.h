@@ -7735,11 +7735,6 @@ inline constexpr char kFaceRetouchOverrideDescription[] =
     "Enables or disables the face retouch feature using the relighting button "
     "in the VC panel.";
 
-inline constexpr char kFastPairPwaCompanionName[] =
-    "Enable Fast Pair Web Companion";
-inline constexpr char kFastPairPwaCompanionDescription[] =
-    "Enables Fast Pair Web Companion link after device pairing.";
-
 inline constexpr char kUseHDRTransferFunctionName[] =
     "Monitor/Display HDR transfer function";
 inline constexpr char kUseHDRTransferFunctionDescription[] =
@@ -7956,11 +7951,6 @@ inline constexpr char kIdbSqliteBackingStoreDescription[] =
     "Uses a SQLite-powered backing store for IndexedDB. No data is migrated "
     "from existing backing stores, including LevelDB stores or SQLite stores "
     "with older schemas; use at your own peril.";
-
-inline constexpr char kImeAssistMultiWordName[] =
-    "Enable assistive multi word suggestions";
-inline constexpr char kImeAssistMultiWordDescription[] =
-    "Enable assistive multi word suggestions for native IME";
 
 inline constexpr char kIppFirstSetupForUsbPrintersName[] =
     "Try to setup USB printers with IPP first";

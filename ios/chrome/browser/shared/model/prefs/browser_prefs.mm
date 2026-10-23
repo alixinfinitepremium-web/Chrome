@@ -54,7 +54,7 @@
 #import "components/optimization_guide/core/delivery/prefs.h"
 #import "components/optimization_guide/core/feature_registry/feature_registration.h"
 #import "components/optimization_guide/core/hints/prefs.h"
-#import "components/optimization_guide/core/model_execution/model_execution_prefs.h"
+#import "components/optimization_guide/core/model_execution/on_device_prefs.h"
 #import "components/optimization_guide/core/model_quality/model_quality_prefs.h"
 #import "components/password_manager/core/browser/password_manager.h"
 #import "components/password_manager/core/common/password_manager_pref_names.h"
@@ -542,7 +542,7 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry) {
   ntp_tiles::MostVisitedSites::RegisterProfilePrefs(registry);
   ntp_tiles::PopularSitesImpl::RegisterProfilePrefs(registry);
   optimization_guide::prefs::RegisterProfilePrefs(registry);
-  optimization_guide::model_execution::prefs::RegisterProfilePrefs(registry);
+  optimization_guide::RegisterGenAiFeatures(registry);
   password_manager::PasswordManager::RegisterProfilePrefs(registry);
   payments::RegisterProfilePrefs(registry);
   personal_context::prefs::RegisterProfilePrefs(registry);

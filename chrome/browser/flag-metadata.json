@@ -3812,11 +3812,6 @@
     "expiry_milestone": 250
   },
   {
-    "name": "enable-cros-ime-assist-multi-word",
-    "owners": [ "curtismcmullan@chromium.org", "essential-inputs-team@google.com" ],
-    "expiry_milestone": 130
-  },
-  {
     "name": "enable-cros-ime-system-emoji-picker-mojo-search",
     "owners": [ "jopalmer@chromium.org", "essential-inputs-team@google.com" ],
     "expiry_milestone": 140
@@ -5132,14 +5127,6 @@
       "jackshira@google.com"
     ],
     "expiry_milestone": 155
-  },
-  {
-    "name": "fast-pair-pwa-companion",
-    "owners": [
-      "//ash/quick_pair/OWNERS",
-      "gschen@chromium.org"
-    ],
-    "expiry_milestone": 150
   },
   {
     "name": "fedcm-active-mode-multiple-identity-providers",
