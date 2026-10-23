@@ -214,9 +214,13 @@ class CONTENT_EXPORT ChildProcessSecurityPolicyImpl
   void GrantDeleteFromFileSystem(int child_id,
                                  const std::string& filesystem_id) override;
   void GrantCommitOrigin(int child_id, const url::Origin& origin) override;
+  void GrantCommitOrigin_Cpp(int child_id, const url::Origin& origin);
   void GrantRequestOrigin(int child_id, const url::Origin& origin) override;
+  void GrantRequestOrigin_Cpp(int child_id, const url::Origin& origin);
   void GrantCommitScheme(int child_id, const std::string& scheme) override;
+  void GrantCommitScheme_Cpp(int child_id, const std::string& scheme);
   void GrantRequestScheme(int child_id, const std::string& scheme) override;
+  void GrantRequestScheme_Cpp(int child_id, const std::string& scheme);
   bool CanRequestURL(int child_id, const GURL& url) override;
   bool CanRequestURL(ChildProcessId child_id, const GURL& url);
   bool CanReadFile(ChildProcessId child_id,

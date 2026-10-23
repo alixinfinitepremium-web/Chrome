@@ -4,11 +4,11 @@
 
 #include "chrome/browser/keyboard_accessory/android/address_accessory_controller_impl.h"
 
-#include <algorithm>
 #include <utility>
 
 #include "base/containers/fixed_flat_map.h"
 #include "base/containers/span.h"
+#include "base/containers/to_vector.h"
 #include "base/memory/ptr_util.h"
 #include "base/metrics/user_metrics.h"
 #include "base/metrics/user_metrics_action.h"
@@ -75,9 +75,7 @@ UserInfo TranslateProfile(const AutofillProfile* profile) {
 
 std::vector<UserInfo> UserInfosForProfiles(
     const std::vector<const AutofillProfile*>& profiles) {
-  std::vector<UserInfo> infos(profiles.size());
-  std::ranges::transform(profiles, infos.begin(), TranslateProfile);
-  return infos;
+  return base::ToVector(profiles, TranslateProfile);
 }
 
 }  // namespace
@@ -132,7 +130,7 @@ void AddressAccessoryControllerImpl::OnOptionSelected(
       return;
     default:
       NOTREACHED() << "Unhandled selected action: "
-                   << static_cast<int>(selected_action);
+                   << std::to_underlying(selected_action);
   }
 }
 
@@ -140,7 +138,7 @@ void AddressAccessoryControllerImpl::OnToggleChanged(
     AccessoryAction toggled_action,
     bool enabled) {
   NOTREACHED() << "Unhandled toggled action: "
-               << static_cast<int>(toggled_action);
+               << std::to_underlying(toggled_action);
 }
 
 

@@ -11,10 +11,12 @@
 #include <vector>
 
 #include "base/check.h"
+#include "base/containers/to_vector.h"
 #include "base/debug/dump_without_crashing.h"
 #include "base/functional/bind.h"
 #include "base/memory/ptr_util.h"
 #include "base/notimplemented.h"
+#include "base/strings/strcat.h"
 #include "base/strings/string_number_conversions.h"
 #include "base/strings/utf_string_conversions.h"
 #include "base/trace_event/trace_event.h"
@@ -101,54 +103,50 @@ void AddCardDetailsToUserInfo(const CreditCard& card,
                  enabled);
 }
 
-// TODO(crbug.com/430575808): Consolidate `TranslateCard()` and
-// `TranslateCachedCard()` into one method.
-UserInfo TranslateCard(const CreditCard* data, bool enabled) {
-  CHECK(data, base::NotFatalUntil::M161);
-  UserInfo user_info(data->network(), GetCardArtUrl(*data));
-
-  std::u16string obfuscated_number =
-      data->CardIdentifierStringForManualFilling();
-  std::u16string obfuscated_number_a11y_description =
-      obfuscated_number + u" " + data->NetworkForDisplay();
-  // The `text_to_fill` field is set to an empty string as we're populating the
-  // `id` of the `UserInfoField` which would be used to determine the type of
-  // the card and fill the form accordingly.
+UserInfo CreateCardUserInfo(const CreditCard& card,
+                            std::u16string display_text,
+                            std::u16string text_to_fill,
+                            std::string id,
+                            std::u16string cvc,
+                            bool enabled) {
+  UserInfo user_info(card.is_bnpl_card() ? card.issuer_id() : card.network(),
+                     GetCardArtUrl(card));
+  std::u16string a11y_description = base::StrCat({
+      text_to_fill.empty() ? display_text : text_to_fill,
+      u" ",
+      card.is_bnpl_card() ? card.CardNameForAutofillDisplay()
+                          : card.NetworkForDisplay(),
+  });
   user_info.add_field(
       AccessorySheetField::Builder()
           .SetSuggestionType(AccessorySuggestionType::kCreditCardNumber)
-          .SetDisplayText(std::move(obfuscated_number))
-          .SetA11yDescription(std::move(obfuscated_number_a11y_description))
-          .SetId(data->guid())
+          .SetDisplayText(std::move(display_text))
+          .SetTextToFill(std::move(text_to_fill))
+          .SetA11yDescription(std::move(a11y_description))
+          .SetId(std::move(id))
           .SetSelectable(enabled)
           .Build());
-  AddCardDetailsToUserInfo(*data, &user_info, std::u16string(), enabled);
+  AddCardDetailsToUserInfo(card, &user_info, std::move(cvc), enabled);
 
   return user_info;
 }
 
+UserInfo TranslateCard(const CreditCard* data, bool enabled) {
+  CHECK(data);
+  // The `text_to_fill` field is set to an empty string as we're populating the
+  // `id` of the `AccessorySheetField` which would be used to determine the type
+  // of the card and fill the form accordingly.
+  return CreateCardUserInfo(*data, data->CardIdentifierStringForManualFilling(),
+                            /*text_to_fill=*/std::u16string(), data->guid(),
+                            /*cvc=*/std::u16string(), enabled);
+}
+
 UserInfo TranslateCachedCard(const CachedServerCardInfo* data, bool enabled) {
-  CHECK(data, base::NotFatalUntil::M161);
-
+  CHECK(data);
   const CreditCard& card = data->card;
-  UserInfo user_info(card.is_bnpl_card() ? card.issuer_id() : card.network(),
-                     GetCardArtUrl(card));
-  std::u16string card_number = card.GetRawInfo(CREDIT_CARD_NUMBER);
-  std::u16string card_number_a11y_description =
-      card_number + u" " +
-      (card.is_bnpl_card() ? card.CardNameForAutofillDisplay()
-                           : card.NetworkForDisplay());
-  user_info.add_field(
-      AccessorySheetField::Builder()
-          .SetSuggestionType(AccessorySuggestionType::kCreditCardNumber)
-          .SetDisplayText(card.FullDigitsForDisplay())
-          .SetTextToFill(std::move(card_number))
-          .SetA11yDescription(std::move(card_number_a11y_description))
-          .SetSelectable(enabled)
-          .Build());
-  AddCardDetailsToUserInfo(card, &user_info, data->cvc, enabled);
-
-  return user_info;
+  return CreateCardUserInfo(card, card.FullDigitsForDisplay(),
+                            card.GetRawInfo(CREDIT_CARD_NUMBER),
+                            /*id=*/std::string(), data->cvc, enabled);
 }
 
 bool ShouldCreateVirtualCard(const CreditCard* card) {
@@ -204,23 +202,19 @@ PaymentMethodAccessoryControllerImpl::GetSheetData() const {
   const BrowserAutofillManager* autofill_manager =
       GetWebContents().GetFocusedFrame() ? GetAutofillManager() : nullptr;
 
-  std::vector<UserInfo> info_to_add;
   bool allow_filling =
       autofill_manager && autofill_manager->client().IsContextSecure();
 
-  std::vector<const CachedServerCardInfo*> unmasked_cards =
-      GetUnmaskedCreditCards();
-  if (!unmasked_cards.empty()) {
-    // Add the cached server cards first, so that they show up on the top of the
-    // manual filling view.
-    std::ranges::transform(unmasked_cards, std::back_inserter(info_to_add),
-                           [allow_filling](const CachedServerCardInfo* data) {
-                             return TranslateCachedCard(data, allow_filling);
-                           });
-  }
+  // Add the cached server cards first, so that they show up on the top of the
+  // manual filling view.
+  std::vector<UserInfo> info_to_add =
+      base::ToVector(GetUnmaskedCreditCards(),
+                     [allow_filling](const CachedServerCardInfo* data) {
+                       return TranslateCachedCard(data, allow_filling);
+                     });
   // Only add cards that are not present in the cache. Otherwise, we might
   // show duplicates.
-  bool add_all_cards = unmasked_cards.empty() || !autofill_manager;
+  bool add_all_cards = info_to_add.empty() || !autofill_manager;
   for (const CardOrVirtualCard& card_or_virtual : GetAllCreditCards()) {
     const CreditCard* card = UnwrapCardOrVirtualCard(card_or_virtual);
     if (add_all_cards || !autofill_manager->GetCreditCardAccessManager()
@@ -317,7 +311,7 @@ void PaymentMethodAccessoryControllerImpl::OnOptionSelected(
       return;
     default:
       NOTREACHED() << "Unhandled selected action: "
-                   << static_cast<int>(selected_action);
+                   << std::to_underlying(selected_action);
   }
 }
 
@@ -325,7 +319,7 @@ void PaymentMethodAccessoryControllerImpl::OnToggleChanged(
     AccessoryAction toggled_action,
     bool enabled) {
   NOTREACHED() << "Unhandled toggled action: "
-               << static_cast<int>(toggled_action);
+               << std::to_underlying(toggled_action);
 }
 
 // static
