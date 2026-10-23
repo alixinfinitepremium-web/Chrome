@@ -508,7 +508,6 @@ android_library("chrome_test_java_org.chromium.chrome.browser") {
     "src/org/chromium/chrome/browser/NavigateTest.java",
     "src/org/chromium/chrome/browser/OmahaServiceStartDelayerIntegrationTest.java",
     "src/org/chromium/chrome/browser/PopularUrlsTest.java",
-    "src/org/chromium/chrome/browser/PopupMultiwindowPTTest.java",
     "src/org/chromium/chrome/browser/PopupPTTest.java",
     "src/org/chromium/chrome/browser/SafeBrowsingTest.java",
     "src/org/chromium/chrome/browser/SelectFileDialogTest.java",
@@ -1547,6 +1546,7 @@ android_library("chrome_test_java_org.chromium.chrome.browser.tab") {
   deps = [
     ":chrome_test_java_helper",
     "//components/tabs/public/android:java",
+    "//ui/accessibility:ui_accessibility_test_support_java",
   ]
 }
 
@@ -1889,6 +1889,7 @@ android_library("chrome_test_java_various") {
     "//base/test:leak_canary_java",
     "//chrome/browser/actor/android:java",
     "//chrome/browser/android/metrics:base_java",
+    "//chrome/browser/auxiliary_search:java",
     "//chrome/browser/educational_tip:java",
     "//chrome/browser/glic:public_java",
     "//chrome/browser/glic/android:java",
@@ -1901,6 +1902,8 @@ android_library("chrome_test_java_various") {
     "//chrome/browser/ui/android/logo:utils_java",
     "//chrome/browser/ui/android/toolbar:adaptive_features_java",
     "//chrome/browser/ui/android/toolbar:optional_button_java",
+    "//chrome/browser/ui/browser_window/public/android:factory_java",
+    "//chrome/browser/ui/browser_window/public/android:java",
     "//chrome/browser/ui/side_panel/android:dev_java",
     "//components/browser_ui/contacts_picker/android:java",
     "//components/browser_ui/http_auth/android:java",

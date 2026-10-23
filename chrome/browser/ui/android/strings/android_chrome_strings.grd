@@ -1030,6 +1030,9 @@ For more settings that use data to improve your Chrome experience, go to <ph nam
       <message translateable="false" name="IDS_BOTTOM_BAR_EDUCATION_TOOLTIP_TAB_SWITCHER" desc="Tooltip explaining the Tab Switcher button">
         View all of your tabs
       </message>
+      <message name="IDS_BOTTOM_BAR_EDUCATION_TOOLTIP_ADDRESS_BAR" desc="Tooltip nudging the user to move the top address bar to the bottom">
+        Want all of your tools at the bottom? Press and hold the address bar to move it
+      </message>
       <!-- Bottom bar settings. -->
       <message name="IDS_BOTTOM_BAR_SETTING_TITLE" desc="Title of the switch in the Appearance settings page that shows or hides the bottom toolbar (a bar at the bottom of the screen with buttons such as new tab, tab switcher and menu). [CHAR_LIMIT=32]">
         Toolbar
@@ -1050,6 +1053,12 @@ For more settings that use data to improve your Chrome experience, go to <ph nam
       </message>
       <message name="IDS_ON_STARTUP_PREF_URLS" desc="Label for the option to open a specific page or set of pages on startup.">
         Open a specific page or set of pages
+      </message>
+      <message name="IDS_ON_STARTUP_ADD_NEW_PAGE" desc="Label and dialog title for adding a new startup page URL.">
+        Add a new page
+      </message>
+      <message name="IDS_ON_STARTUP_EDIT_PAGE" desc="Dialog title for editing an existing startup page URL.">
+        Edit page
       </message>
       <if expr="enable_extensions_core">
         <message name="IDS_EXTENSIONS_PIN_TO_TOOLBAR_SETTING" desc="Title Text of the button that pins the extensions menu icon (the puzzle piece icon) to the toolbar.">

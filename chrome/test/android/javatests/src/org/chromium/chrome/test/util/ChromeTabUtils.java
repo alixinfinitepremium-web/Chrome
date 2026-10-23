@@ -23,8 +23,6 @@ import org.chromium.base.test.util.CriteriaHelper;
 import org.chromium.chrome.R;
 import org.chromium.chrome.browser.ChromeTabbedActivity;
 import org.chromium.chrome.browser.app.ChromeActivity;
-import org.chromium.chrome.browser.compositor.layouts.components.CompositorButton;
-import org.chromium.chrome.browser.compositor.overlays.strip.StripLayoutHelper;
 import org.chromium.chrome.browser.tab.Tab;
 import org.chromium.chrome.browser.tab.TabCreationState;
 import org.chromium.chrome.browser.tab.TabLaunchType;
@@ -356,52 +354,9 @@ public class ChromeTabUtils {
     }
 
     /**
-     * Simulates a click to the normal (not incognito) new tab button.
-     * <p>
-     * Does not wait for the tab to be loaded.
-     */
-    public static void clickNewTabButton(
-            Instrumentation instrumentation, ChromeTabbedActivity activity) {
-        final TabModel normalTabModel = activity.getTabModelSelector().getModel(false);
-        final CallbackHelper createdCallback = new CallbackHelper();
-        ThreadUtils.runOnUiThreadBlocking(
-                () -> {
-                    normalTabModel.addObserver(
-                            new TabModelObserver() {
-                                @Override
-                                public void didAddTab(
-                                        Tab tab,
-                                        @TabLaunchType int type,
-                                        @TabCreationState int creationState,
-                                        boolean markedForSelection) {
-                                    createdCallback.notifyCalled();
-                                    normalTabModel.removeObserver(this);
-                                }
-                            });
-                });
-        // Tablet has a new tab button. Phones should fall back to the menu.
-        if (activity.isTablet()) {
-            StripLayoutHelper strip =
-                    TabStripUtils.getStripLayoutHelper(activity, /* incognito= */ false);
-            CompositorButton newTabButton = strip.getNewTabButton();
-            TabStripUtils.clickCompositorButton(newTabButton, instrumentation, activity);
-            instrumentation.waitForIdleSync();
-        } else {
-            newTabFromMenu(
-                    instrumentation, activity, /* incognito= */ false, /* waitForNtpLoad= */ false);
-        }
-
-        try {
-            createdCallback.waitForCallback(null, 0, 1, 10, TimeUnit.SECONDS);
-        } catch (TimeoutException e) {
-            throw new AssertionError("Never received tab creation event", e);
-        }
-    }
-
-    /**
      * Creates a new tab by invoking the 'New Tab' menu item.
-     * <p>
-     * Returns when the tab has been created and has finished navigating.
+     *
+     * <p>Returns when the tab has been created and has finished navigating.
      */
     public static void newTabFromMenu(
             Instrumentation instrumentation, final ChromeActivity activity) {
@@ -625,76 +580,6 @@ public class ChromeTabUtils {
         Log.d(TAG, "closeTabWithAction <<");
     }
 
-    /** Close all tabs and waits for all tabs pending closure to be observed. */
-    public static void closeAllTabs(
-            Instrumentation instrumentation,
-            MonotonicObservableSupplier<TabModelSelector> tabModelSelectorSupplier) {
-        final CallbackHelper closeCallback = new CallbackHelper();
-        final TabModelObserver observer =
-                new TabModelObserver() {
-                    @Override
-                    public void onTabClosePending(
-                            List<Tab> tabs,
-                            boolean isAllTabs,
-                            @TabClosingSource int closingSource) {
-                        closeCallback.notifyCalled();
-                    }
-                };
-        instrumentation.runOnMainSync(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        TabModelSelector selector = tabModelSelectorSupplier.get();
-                        for (TabModel tabModel : selector.getModels()) {
-                            tabModel.addObserver(observer);
-                        }
-                    }
-                });
-
-        ThreadUtils.runOnUiThreadBlocking(
-                () -> {
-                    TabClosureParams params =
-                            TabClosureParams.closeAllTabs()
-                                    .uponExit(false)
-                                    .tabClosingSource(TabClosingSource.GRID_TAB_SWITCHER)
-                                    .build();
-                    TabModelSelector selector = tabModelSelectorSupplier.get();
-                    selector.getModel(false)
-                            .getTabRemover()
-                            .closeTabs(params, /* allowDialog= */ false);
-                    selector.getModel(true)
-                            .getTabRemover()
-                            .closeTabs(params, /* allowDialog= */ false);
-                });
-
-        try {
-            closeCallback.waitForCallback(0);
-        } catch (TimeoutException e) {
-            throw new AssertionError("All tabs pending closure event was never received", e);
-        }
-        instrumentation.runOnMainSync(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        TabModelSelector selector = tabModelSelectorSupplier.get();
-                        for (TabModel tabModel : selector.getModels()) {
-                            tabModel.removeObserver(observer);
-                        }
-                    }
-                });
-        instrumentation.waitForIdleSync();
-    }
-
-    /**
-     * @deprecated Transitory method, use {@link #closeAllTabs(Instrumentation,
-     *     MonotonicObservableSupplier <TabModelSelector>)} instead. TODO(crbug.com/40191386): Remove this
-     *     after the usages are migrated.
-     */
-    public static void closeAllTabs(
-            Instrumentation instrumentation, final ChromeTabbedActivity activity) {
-        closeAllTabs(instrumentation, activity.getTabModelSelectorSupplier());
-    }
-
     /** Selects a tab with the given action and waits for the selection event to be observed. */
     public static void selectTabWithAction(
             Instrumentation instrumentation, final ChromeTabbedActivity activity, Runnable action) {
@@ -825,68 +710,6 @@ public class ChromeTabUtils {
             Assert.assertTrue(activity.getTabModelSelector().isIncognitoSelected());
         } else {
             Assert.assertFalse(activity.getTabModelSelector().isIncognitoSelected());
-        }
-    }
-
-    /**
-     * Long presses the view, selects an item from the context menu, and
-     * asserts that a new tab is opened and is incognito if expectIncognito is true.
-     * For use in testing long-press context menu options that open new tabs in a different
-     * ChromeTabbedActivity instance.
-     *
-     * @param foregroundActivity The {@link ChromeTabbedActivity} currently in the foreground.
-     * @param backgroundActivity The {@link ChromeTabbedActivity} currently in the background. The
-     *                           new tab is expected to open in this activity.
-     * @param view The {@link View} in the {@code foregroundActivity} to long press.
-     * @param contextMenuItemId The context menu item to select on the view.
-     * @param expectIncognito Whether the opened tab is expected to be incognito.
-     * @param expectedUrl The expected url for the new tab.
-     */
-    public static void invokeContextMenuAndOpenInOtherWindow(
-            ChromeTabbedActivity foregroundActivity,
-            ChromeTabbedActivity backgroundActivity,
-            View view,
-            int contextMenuItemId,
-            boolean expectIncognito,
-            final String expectedUrl)
-            throws ExecutionException {
-        final CallbackHelper createdCallback = new CallbackHelper();
-        final TabModel tabModel =
-                backgroundActivity.getTabModelSelector().getModel(expectIncognito);
-        ThreadUtils.runOnUiThreadBlocking(
-                () -> {
-                    tabModel.addObserver(
-                            new TabModelObserver() {
-                                @Override
-                                public void didAddTab(
-                                        Tab tab,
-                                        @TabLaunchType int type,
-                                        @TabCreationState int creationState,
-                                        boolean markedForSelection) {
-                                    if (TextUtils.equals(expectedUrl, tab.getUrl().getSpec())) {
-                                        createdCallback.notifyCalled();
-                                        tabModel.removeObserver(this);
-                                    }
-                                }
-                            });
-                });
-
-        TestTouchUtils.performLongClickOnMainSync(
-                InstrumentationRegistry.getInstrumentation(), view);
-        Assert.assertTrue(
-                InstrumentationRegistry.getInstrumentation()
-                        .invokeContextMenuAction(foregroundActivity, contextMenuItemId, 0));
-
-        try {
-            createdCallback.waitForCallback(0);
-        } catch (TimeoutException e) {
-            throw new AssertionError("Never received tab creation event", e);
-        }
-
-        if (expectIncognito) {
-            Assert.assertTrue(backgroundActivity.getTabModelSelector().isIncognitoSelected());
-        } else {
-            Assert.assertFalse(backgroundActivity.getTabModelSelector().isIncognitoSelected());
         }
     }
 

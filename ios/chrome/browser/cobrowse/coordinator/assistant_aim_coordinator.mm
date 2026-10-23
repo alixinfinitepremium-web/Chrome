@@ -9,6 +9,7 @@
 
 #import "base/apple/foundation_util.h"
 #import "base/ios/block_types.h"
+#import "components/contextual_search/contextual_search_session_handle.h"
 #import "ios/chrome/browser/assistant/coordinator/assistant_container_commands.h"
 #import "ios/chrome/browser/assistant/ui/assistant_container_delegate.h"
 #import "ios/chrome/browser/assistant/ui/assistant_container_detent.h"
@@ -191,6 +192,7 @@ class AssistantAIMUIStateProvider
                                                 Composebox::kOpened]];
   }
 
+  CobrowseContext* context = agent ? agent->GetCobrowseContext() : nil;
   _modeHolder = [[ComposeboxModeHolder alloc] init];
   ComposeboxTheme* theme = [[ComposeboxTheme alloc]
       initWithInputPlatePosition:ComposeboxInputPlatePosition::kBottomSheet
@@ -199,6 +201,13 @@ class AssistantAIMUIStateProvider
   ComposeboxFocusParams* focusParams = [[ComposeboxFocusParams alloc]
       initWithEntrypoint:ComposeboxEntrypoint::kCobrowse];
   focusParams.assistantMetricsRecorder = _metricsRecorder;
+  if (context.hasContextualSearchSession) {
+    [focusParams
+        setContextualSearchSession:[context takeContextualSearchSession]];
+  }
+  if (context.attachedTabItems.count > 0) {
+    focusParams.attachedTabItems = [context takeAttachedTabItems];
+  }
   _inputPlateCoordinator = [[ComposeboxInputPlateCoordinator alloc]
       initWithBaseViewController:_viewController
                          browser:self.browser
@@ -235,7 +244,6 @@ class AssistantAIMUIStateProvider
                                duration:0
                                   curve:UIViewAnimationCurveEaseInOut];
 
-  CobrowseContext* context = agent ? agent->GetCobrowseContext() : nil;
   AssistantAimEntrypoint entrypoint =
       context ? context.entrypoint : AssistantAimEntrypoint::kUnknown;
   [_metricsRecorder recordSessionStartedWithEntrypoint:entrypoint];
@@ -252,6 +260,9 @@ class AssistantAIMUIStateProvider
   CobrowseBrowserAgent* agent = CobrowseBrowserAgent::FromBrowser(self.browser);
   if (agent) {
     agent->SetUIStateProvider(nullptr);
+    if (!agent->IsSessionActive()) {
+      agent->SetCobrowseContext(nil);
+    }
   }
   _uiStateProvider.reset();
 
@@ -508,6 +519,10 @@ class AssistantAIMUIStateProvider
 // Handles user tapping Undo on the close snackbar.
 - (void)didUndoCloseAssistant {
   [_metricsRecorder recordClosedSnackbarResolvedWithUndo:YES];
+  CobrowseBrowserAgent* agent = CobrowseBrowserAgent::FromBrowser(self.browser);
+  if (agent) {
+    agent->SetSessionActive(true);
+  }
   [self revealAssistant];
 }
 
@@ -579,6 +594,7 @@ class AssistantAIMUIStateProvider
     _isHiding = NO;
     return;
   }
+  [_mediator endSession];
   id<SceneCommands> sceneCommands =
       HandlerForProtocol(self.browser->GetCommandDispatcher(), SceneCommands);
   [sceneCommands closeAssistant];

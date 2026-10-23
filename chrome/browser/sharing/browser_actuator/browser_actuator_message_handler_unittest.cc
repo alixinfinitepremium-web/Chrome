@@ -36,6 +36,7 @@
 #include "components/gcm_driver/common/gcm_message.h"
 #include "components/sharing_message/fake_sharing_handler_registry.h"
 #include "components/sharing_message/proto/actuator_downstream_message.pb.h"
+#include "components/sharing_message/proto/glic_experimental_triggering.pb.h"
 #include "components/sharing_message/proto/sharing_message.pb.h"
 #include "components/sharing_message/sharing_constants.h"
 #include "components/sharing_message/sharing_fcm_handler.h"
@@ -105,7 +106,7 @@ class MockTransportSession
   MOCK_METHOD(void,
               OnMessage,
               (browser_actuator::transport::PayloadType payload_type,
-               const google::protobuf::MessageLite& message),
+               std::string_view serialized_payload),
               (override));
 };
 
@@ -134,12 +135,12 @@ TEST_F(BrowserActuatorMessageHandlerTest,
 
   browser_actuator::ControlCommand command;
   command.mutable_start_session();
+  const std::string serialized_command = command.SerializeAsString();
 
   auto* typed_payload = bundled->add_typed_payloads();
   typed_payload->set_payload_type(
       browser_actuator::ACTUATOR_DOWNSTREAM_PAYLOAD_TYPE_CONTROL_COMMAND);
-  typed_payload->mutable_proto_payload()->set_value(
-      command.SerializeAsString());
+  typed_payload->mutable_proto_payload()->set_value(serialized_command);
 
   MockTransportSession mock_session;
   EXPECT_CALL(*mock_service_, GetOrCreateSession("bundled_session_123"))
@@ -152,7 +153,7 @@ TEST_F(BrowserActuatorMessageHandlerTest,
               &mock_session)));
   EXPECT_CALL(mock_session,
               OnMessage(browser_actuator::transport::PayloadType::kControl,
-                        testing::_));
+                        serialized_command));
 
   base::test::TestFuture<
       std::unique_ptr<components_sharing_message::ResponseMessage>>
@@ -173,13 +174,13 @@ TEST_F(BrowserActuatorMessageHandlerTest,
   triggering.set_context_id("test_context_123");
   triggering.set_glic_experimental_triggering_version(1);
   triggering.mutable_request()->mutable_trigger_actuation_request();
+  const std::string serialized_triggering = triggering.SerializeAsString();
 
   auto* typed_payload = bundled->add_typed_payloads();
   typed_payload->set_payload_type(
       browser_actuator::
           ACTUATOR_DOWNSTREAM_PAYLOAD_TYPE_EXPERIMENTAL_TRIGGERING);
-  typed_payload->mutable_proto_payload()->set_value(
-      triggering.SerializeAsString());
+  typed_payload->mutable_proto_payload()->set_value(serialized_triggering);
 
   MockTransportSession mock_session;
   EXPECT_CALL(*mock_service_, GetOrCreateSession("bundled_session_123"))
@@ -194,7 +195,7 @@ TEST_F(BrowserActuatorMessageHandlerTest,
       mock_session,
       OnMessage(
           browser_actuator::transport::PayloadType::kExperimentalTriggering,
-          testing::_));
+          serialized_triggering));
 
   base::test::TestFuture<
       std::unique_ptr<components_sharing_message::ResponseMessage>>
@@ -242,7 +243,7 @@ TEST_F(BrowserActuatorMessageHandlerTest,
       *session_ptr,
       OnMessage(browser_actuator::transport::PayloadType::kControl, testing::_))
       .WillOnce([&owned_session](browser_actuator::transport::PayloadType,
-                                 const google::protobuf::MessageLite&) {
+                                 std::string_view) {
         // Simulate TransportSessionRegistryImpl::DestroySession().
         owned_session.reset();
       });
@@ -273,8 +274,17 @@ TEST_F(BrowserActuatorMessageHandlerTest,
 
   browser_actuator::ControlCommand start_command;
   start_command.mutable_start_session();
+  const std::string serialized_start = start_command.SerializeAsString();
   AddControlPayload(bundled, start_command);
-  AddControlPayload(bundled, start_command);
+  auto* triggering_payload = bundled->add_typed_payloads();
+  triggering_payload->set_payload_type(
+      browser_actuator::
+          ACTUATOR_DOWNSTREAM_PAYLOAD_TYPE_EXPERIMENTAL_TRIGGERING);
+  triggering_payload->mutable_proto_payload()->set_value("trigger-bytes");
+  auto* actuation_payload = bundled->add_typed_payloads();
+  actuation_payload->set_payload_type(
+      browser_actuator::ACTUATOR_DOWNSTREAM_PAYLOAD_TYPE_ACTUATION);
+  actuation_payload->mutable_proto_payload()->set_value("actuation-bytes");
 
   MockTransportSession mock_session;
   auto* session = static_cast<browser_actuator::transport::TransportSession*>(
@@ -283,12 +293,66 @@ TEST_F(BrowserActuatorMessageHandlerTest,
       .WillOnce(testing::Return(session));
   // One lookup per payload.
   EXPECT_CALL(*mock_service_, GetSession("bundled_session_123"))
+      .Times(3)
+      .WillRepeatedly(testing::Return(session));
+  EXPECT_CALL(mock_session,
+              OnMessage(browser_actuator::transport::PayloadType::kControl,
+                        serialized_start));
+  EXPECT_CALL(
+      mock_session,
+      OnMessage(
+          browser_actuator::transport::PayloadType::kExperimentalTriggering,
+          "trigger-bytes"));
+  EXPECT_CALL(mock_session,
+              OnMessage(browser_actuator::transport::PayloadType::kActuation,
+                        "actuation-bytes"));
+
+  base::test::TestFuture<
+      std::unique_ptr<components_sharing_message::ResponseMessage>>
+      done_future;
+  handler_->OnMessage(std::move(message), done_future.GetCallback());
+  EXPECT_TRUE(done_future.Wait());
+  EXPECT_EQ(done_future.Get(), nullptr);
+}
+
+TEST_F(BrowserActuatorMessageHandlerTest,
+       SkipsExperimentalTriggeringPayloadWhenFeatureDisabled) {
+  base::test::ScopedFeatureList disabled_triggering;
+  disabled_triggering.InitAndDisableFeature(
+      browser_actuator::kEnableBrowserActuatorForGlicExperimentalTriggering);
+
+  components_sharing_message::SharingMessage message;
+  browser_actuator::ActuatorDownstreamMessage* bundled =
+      message.mutable_actuator_downstream_message();
+  bundled->set_session_id("bundled_session_123");
+
+  auto* triggering_payload = bundled->add_typed_payloads();
+  triggering_payload->set_payload_type(
+      browser_actuator::
+          ACTUATOR_DOWNSTREAM_PAYLOAD_TYPE_EXPERIMENTAL_TRIGGERING);
+  triggering_payload->mutable_proto_payload()->set_value("trigger-bytes");
+  auto* actuation_payload = bundled->add_typed_payloads();
+  actuation_payload->set_payload_type(
+      browser_actuator::ACTUATOR_DOWNSTREAM_PAYLOAD_TYPE_ACTUATION);
+  actuation_payload->mutable_proto_payload()->set_value("actuation-bytes");
+
+  MockTransportSession mock_session;
+  auto* session = static_cast<browser_actuator::transport::TransportSession*>(
+      &mock_session);
+  EXPECT_CALL(*mock_service_, GetOrCreateSession("bundled_session_123"))
+      .WillOnce(testing::Return(session));
+  EXPECT_CALL(*mock_service_, GetSession("bundled_session_123"))
       .Times(2)
       .WillRepeatedly(testing::Return(session));
   EXPECT_CALL(
       mock_session,
-      OnMessage(browser_actuator::transport::PayloadType::kControl, testing::_))
-      .Times(2);
+      OnMessage(
+          browser_actuator::transport::PayloadType::kExperimentalTriggering,
+          testing::_))
+      .Times(0);
+  EXPECT_CALL(mock_session,
+              OnMessage(browser_actuator::transport::PayloadType::kActuation,
+                        "actuation-bytes"));
 
   base::test::TestFuture<
       std::unique_ptr<components_sharing_message::ResponseMessage>>
@@ -384,7 +448,7 @@ TEST_F(BrowserActuatorFcmIntegrationTest,
   components_sharing_message::SharingMessage sharing_msg;
   auto* bundled = sharing_msg.mutable_actuator_downstream_message();
   bundled->set_session_id("fcm-session-1");
-  bundled->set_sequence_number(1);
+  bundled->set_sequence_number(0);
   browser_actuator::ControlCommand start_cmd;
   start_cmd.mutable_start_session();
   auto* typed = bundled->add_typed_payloads();
@@ -413,6 +477,8 @@ TEST_F(BrowserActuatorFcmIntegrationTest,
   const auto& upstream_msg = upstream_req.actuator_upstream_message();
   EXPECT_EQ(upstream_msg.session_id(), "fcm-session-1");
   EXPECT_EQ(upstream_msg.client_sequence_number(), 1);
+  EXPECT_TRUE(upstream_msg.has_responding_to_sequence_number());
+  EXPECT_EQ(upstream_msg.responding_to_sequence_number(), 0);
   ASSERT_EQ(upstream_msg.typed_payloads_size(), 1);
   EXPECT_EQ(upstream_msg.typed_payloads(0).payload_type(),
             browser_actuator::ACTUATOR_UPSTREAM_PAYLOAD_TYPE_CONTROL_COMMAND);
@@ -430,7 +496,7 @@ TEST_F(BrowserActuatorFcmIntegrationTest,
   // 3. Verify the started stream delivers subsequent downstream CloseSession.
   browser_actuator::ActuatorDownstreamMessage close_msg;
   close_msg.set_session_id("fcm-session-1");
-  close_msg.set_sequence_number(2);
+  close_msg.set_sequence_number(1);
   browser_actuator::ControlCommand close_cmd;
   close_cmd.mutable_close_session();
   auto* close_typed = close_msg.add_typed_payloads();
@@ -505,7 +571,7 @@ TEST_F(BrowserActuatorFcmIntegrationTest,
   components_sharing_message::SharingMessage sharing_msg;
   auto* bundled = sharing_msg.mutable_actuator_downstream_message();
   bundled->set_session_id("glic-fcm-session-1");
-  bundled->set_sequence_number(1);
+  bundled->set_sequence_number(0);
 
   components_sharing_message::GlicExperimentalTriggering triggering;
   triggering.set_context_id("glic-fcm-session-1");
@@ -536,6 +602,7 @@ TEST_F(BrowserActuatorFcmIntegrationTest,
       WaitForUpstreamRequest();
   const auto& upstream_msg = upstream_req.actuator_upstream_message();
   EXPECT_EQ(upstream_msg.session_id(), "glic-fcm-session-1");
+  EXPECT_FALSE(upstream_msg.has_responding_to_sequence_number());
   ASSERT_EQ(upstream_msg.typed_payloads_size(), 1);
   EXPECT_EQ(
       upstream_msg.typed_payloads(0).payload_type(),

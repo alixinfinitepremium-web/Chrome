@@ -361,6 +361,9 @@ BASE_FEATURE(kIPHExtensionsPinnedByDefaultFeature,
 BASE_FEATURE(kIPHAccountSettingsHistorySync,
              "IPH_AccountSettingsHistorySync",
              base::FEATURE_DISABLED_BY_DEFAULT);
+BASE_FEATURE(kIPHAndroidBottomBarAddressBar,
+             "IPH_AndroidBottomBarAddressBar",
+             base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kIPHAndroidBottomBarEducation,
              "IPH_AndroidBottomBarEducation",
              base::FEATURE_DISABLED_BY_DEFAULT);
@@ -862,6 +865,10 @@ BASE_FEATURE(kIPHiOSPromoStaySafeFeature,
 BASE_FEATURE(kIPHiOSSwipeBackForwardFeature,
              "IPH_iOSSwipeBackForward",
              base::FEATURE_ENABLED_BY_DEFAULT);
+constexpr base::FeatureParam<bool> kIPHiOSSwipeBackForwardForAllUsers{
+    &kIPHiOSSwipeBackForwardFeature,
+    /*name=*/"x_ios_swipe_back_iph_for_all_users",
+    /*default_value=*/false};
 BASE_FEATURE(kIPHiOSSwipeToolbarToChangeTabFeature,
              "IPH_iOSSwipeToolbarToChangeTab",
              base::FEATURE_ENABLED_BY_DEFAULT);
@@ -1007,6 +1014,10 @@ BASE_FEATURE(kIPHiOSGeminiImageRemixFeature,
 
 BASE_FEATURE(kIPHiOSNewIAPromoFeature,
              "IPH_iOSNewIAPromoFeature",
+             base::FEATURE_ENABLED_BY_DEFAULT);
+
+BASE_FEATURE(kIPHiOSBottomOmniboxFeature,
+             "IPH_iOSBottomOmniboxFeature",
              base::FEATURE_ENABLED_BY_DEFAULT);
 
 BASE_FEATURE(kIPHiOSGeminiExternalAppStoreEvent,

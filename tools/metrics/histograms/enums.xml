@@ -8449,6 +8449,7 @@ from previous Chrome versions.
   <int value="-1961931929" label="ContextualSuggestionsBottomSheet:enabled"/>
   <int value="-1961755742" label="LightweightReactions:enabled"/>
   <int value="-1961648833" label="show_summary"/>
+  <int value="-1961308150" label="GeicFre:enabled"/>
   <int value="-1961102654" label="WebNotesStylize:enabled"/>
   <int value="-1961062505" label="VrBrowsingInCustomTab:disabled"/>
   <int value="-1961040358" label="SyncSharedTabGroupAccountData:enabled"/>
@@ -13337,6 +13338,7 @@ from previous Chrome versions.
   <int value="-500187265"
       label="NtpFeatureOptimizationDismissModulesRemoval:enabled"/>
   <int value="-500107766" label="OmniboxShortcutsAndroid:disabled"/>
+  <int value="-500094648" label="GeicFre:disabled"/>
   <int value="-500044371" label="ShowFeaturedEnterpriseSiteSearchIPH:enabled"/>
   <int value="-499923792" label="MigrateSyncingUserToSignedIn:disabled"/>
   <int value="-499723386" label="EnableFilesAppCopyImage:disabled"/>
@@ -24498,6 +24500,21 @@ Called by update_net_error_codes.py.-->
   <int value="123" label="ENOMEDIUM">No medium found</int>
 </enum>
 
+<!-- LINT.IfChange(PopupLaunchOutcome) -->
+
+<enum name="PopupLaunchOutcome">
+  <int value="0" label="Launched as movable task"/>
+  <int value="1" label="Launched as non-movable task (no permission)"/>
+  <int value="2" label="Launched as non-movable task (below API 37)"/>
+  <int value="3"
+      label="Launched as non-movable task (after infeasible options retry)"/>
+  <int value="4" label="Fallback to tab"/>
+  <int value="5" label="Failed (infeasible activity options)"/>
+  <int value="6" label="Failed (security exception)"/>
+</enum>
+
+<!-- LINT.ThenChange(//chrome/android/java/src/org/chromium/chrome/browser/app/tab_activity_glue/PopupCreatorImpl.java:PopupLaunchOutcome) -->
+
 <enum name="PopupSafeBrowsingStatus">
   <int value="0" label="Popup has no safe-browsing status"/>
   <int value="1"
@@ -27917,6 +27934,8 @@ Called by update_net_error_codes.py.-->
   <int value="3" label="Request is cancelled."/>
 </enum>
 
+<!-- LINT.IfChange(TipIdentifier) -->
+
 <enum name="TipIdentifier">
   <int value="0" label="Unknown"/>
   <int value="1" label="LensSearch"/>
@@ -27926,7 +27945,12 @@ Called by update_net_error_codes.py.-->
   <int value="5" label="SavePasswords"/>
   <int value="6" label="AutofillPasswords"/>
   <int value="7" label="EnhancedSafeBrowsing"/>
+  <int value="8" label="NTPTheme"/>
+  <int value="9" label="TipsNotifications"/>
+  <int value="10" label="NTPCustomization"/>
 </enum>
+
+<!-- LINT.ThenChange(/components/segmentation_platform/embedder/home_modules/tips_manager/constants.h:TipIdentifier) -->
 
 <enum name="TokenStateOnRegistrationRequest">
   <int value="0" label="Token was empty"/>

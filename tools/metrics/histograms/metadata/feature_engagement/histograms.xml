@@ -60,6 +60,9 @@ chromium-metrics-reviews@google.com.
                their home screen (using a text bubble)"/>
   <variant name="IPH_AimActivationHint"
       summary="A hint to activate AI Mode on Android Desktop via keystrokes."/>
+  <variant name="IPH_AndroidBottomBarAddressBar"
+      summary="Nudges the user to move the top address bar to the bottom in
+               the Android bottom bar education flow."/>
   <variant name="IPH_AndroidBottomBarEducation"
       summary="Education onboarding and IPHs for the Android bottom bar."/>
   <variant name="IPH_AndroidBottomBarGlic"
@@ -374,6 +377,8 @@ chromium-metrics-reviews@google.com.
   <variant name="IPH_iOSBackgroundNewBadge"
       summary="showing the new badge on a background tile in the home
                customization menu"/>
+  <variant name="IPH_iOSBottomOmniboxFeature"
+      summary="showing the IPH to move the omnibox to the bottom on iOS"/>
   <variant name="IPH_iOSBWGPromo" summary="shows users a promo for BWG"/>
   <variant name="IPH_iOSChoiceScreenFeature"
       summary="(obsolete) showing the Choice screen on iOS"/>

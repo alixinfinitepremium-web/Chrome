@@ -1030,6 +1030,18 @@ Called by update_autofill_enums.py. This is a manual comment.-->
   </summary>
 </histogram>
 
+<histogram name="Autocomplete.KeyMetrics.FillingAcceptance.ByFieldType"
+    enum="FillingAcceptanceByFieldType" expires_after="2027-04-18">
+  <owner>vidhanj@google.com</owner>
+  <owner>chrome-autofill-alerts@google.com</owner>
+  <summary>
+    Emitted for submitted forms that have a parsed FormStructure. For each field
+    where autocomplete suggestions were shown, records for each predicted
+    FieldType of that field whether the user accepted an autocomplete suggestion
+    on that field or not.
+  </summary>
+</histogram>
+
 <histogram name="Autocomplete.KeyMetrics.FillingAcceptance{MatchingType}"
     enum="BooleanAutofillFillingAcceptance" expires_after="2027-02-14">
   <owner>mikhe@google.com</owner>
@@ -2524,6 +2536,25 @@ Called by update_autofill_enums.py. This is a manual comment.-->
     corresponding entities are shown again. Emitted once per dropped record when
     the entity suppression storage finishes loading on startup.
   </summary>
+</histogram>
+
+<histogram
+    name="Autofill.Ai.Suppression.SavedEntityOfSameTypePresent{EntityType}"
+    enum="Boolean" expires_after="2027-04-08">
+  <owner>vidhanj@google.com</owner>
+  <owner>vizcay@google.com</owner>
+  <owner>chrome-autofill-alerts@google.com</owner>
+  <summary>
+    Records whether the user already had at least one saved (local or server
+    Wallet) entity of the same entity type when manually suppressing a Personal
+    Context entity suggestion. Emitted when a Personal Context entity is newly
+    suppressed by the user.
+
+    {EntityType}
+  </summary>
+  <token key="EntityType" variants="Autofill.Ai.EntityType">
+    <variant name="" summary="Emitted for all entity types (aggregate)."/>
+  </token>
 </histogram>
 
 <histogram

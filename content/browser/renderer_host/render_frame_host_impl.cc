@@ -159,6 +159,7 @@
 #include "content/browser/renderer_host/render_widget_host_view_base.h"
 #include "content/browser/renderer_host/render_widget_host_view_child_frame.h"
 #include "content/browser/renderer_host/text_input_manager.h"
+#include "content/browser/renderer_host/unbounded_surface_host_impl.h"
 #include "content/browser/renderer_host/unbounded_surface_window.h"
 #include "content/browser/renderer_host/view_transition_opt_in_state.h"
 #include "content/browser/sandboxed_opaque_origin_creator.h"
@@ -4140,14 +4141,37 @@ PageVisibilityState RenderFrameHostImpl::GetVisibilityState() {
     return PageVisibilityState::kHidden;
   }
 
-  if (base::FeatureList::IsEnabled(features::kRFHHiddenWhenHiddenButPainting)) {
-    RenderWidgetHostView* view = render_view_host_->GetWidget()->GetView();
-    return view && view->IsShowing() ? PageVisibilityState::kVisible
-                                     : PageVisibilityState::kHidden;
-  } else {
+  if (!base::FeatureList::IsEnabled(
+          features::kRFHHiddenWhenHiddenButPainting)) {
     return GetRenderWidgetHost()->IsHidden() ? PageVisibilityState::kHidden
                                              : PageVisibilityState::kVisible;
   }
+
+  // Use the view of the nearest local root's own RenderWidgetHost. For main
+  // frames this is the platform RenderWidgetHostView; for cross-process
+  // subframes it is a RenderWidgetHostViewChildFrame. Note that the widget of
+  // `render_view_host_` must not be used here: a RenderViewHost whose main
+  // frame is a RenderFrameProxyHost in its SiteInstanceGroup never gets a
+  // RenderWidgetHostView, so its view is null for every out-of-process iframe.
+  RenderWidgetHostViewBase* view = GetRenderWidgetHost()->GetView();
+  if (!view || !view->IsShowing()) {
+    return PageVisibilityState::kHidden;
+  }
+
+  // RenderWidgetHostViewChildFrame::IsShowing() only reflects whether the child
+  // widget is painting, which is also the case when the page is
+  // kHiddenButPainting (e.g. a background tab that is being captured). Only the
+  // root platform view distinguishes kHiddenButPainting from kVisible, so defer
+  // to it. For platform views GetRootView() returns the view itself, which is
+  // already known to be showing. A child frame view is only ever on screen
+  // through the root view it is embedded in, so if it has none (e.g. it is
+  // speculative and not yet attached, or it was swapped out and is running
+  // unload handlers) it cannot be visible regardless of its widget state.
+  RenderWidgetHostViewBase* root_view = view->GetRootView();
+  if (!root_view || !root_view->IsShowing()) {
+    return PageVisibilityState::kHidden;
+  }
+  return PageVisibilityState::kVisible;
 }
 
 void RenderFrameHostImpl::OnAssociatedInterfaceRequest(
@@ -5122,6 +5146,11 @@ void RenderFrameHostImpl::RenderFrameDeleted() {
   bool was_created = is_render_frame_created();
   render_frame_state_ = RenderFrameState::kDeleting;
   render_frame_scoped_weak_ptr_factory_.InvalidateWeakPtrs();
+  // Document-associated data outlives a crashed RenderFrame (see
+  // https://crbug.com/1099237), but its unbounded surface must not.
+  if (UnboundedSurfaceHostImpl::GetForCurrentDocument(this)) {
+    UnboundedSurfaceHostImpl::DeleteForCurrentDocument(this);
+  }
 
   // If the current status is different than the new status, the delegate
   // needs to be notified.
@@ -11448,20 +11477,12 @@ void RenderFrameHostImpl::RequestUnboundedSurface(
   }
   RenderWidgetHostViewBase* parent_view = nullptr;
   if (auto* root_view = GetUnboundedSurfaceRootView(&parent_view)) {
-    // If an unbounded surface is already active, synchronously destroy it
-    // first to enforce that only one is active per window.
-    // TODO(crbug.com/567605448): The renderer may have canceled closing the
-    // previous element, but its window is destroyed here anyway, so the
-    // renderer and browser disagree about which element owns the surface.
-    if (root_view->HasActiveUnboundedSurface()) {
-      root_view->DestroyUnboundedSurface(
-          root_view->GetUnboundedSurfaceWindow()->GetWeakPtr());
+    if (UnboundedSurfaceHostImpl::GetForCurrentDocument(this)) {
+      UnboundedSurfaceHostImpl::DeleteForCurrentDocument(this);
     }
-    CHECK(!root_view->HasActiveUnboundedSurface());
-    root_view->SetUnboundedSurfaceFrame(GetWeakPtr());
-    root_view->CreateUnboundedSurface(
-        std::move(host), std::move(client), bounds,
-        parent_view ? parent_view->GetWeakPtr() : nullptr);
+    UnboundedSurfaceHostImpl::CreateForCurrentDocument(
+        this, *root_view, parent_view, std::move(host), std::move(client),
+        bounds);
   }
 }
 
@@ -19900,6 +19921,11 @@ void RenderFrameHostImpl::SetLifecycleState(LifecycleStateImpl new_state) {
         last_committed_url_derived_site_info_);
     GetStoragePartition()->DecrementActiveDocumentCount(
         GetNetworkIsolationKey());
+    // The document is kept alive (e.g. BackForwardCache, unload), but it must
+    // not keep an unbounded surface on screen.
+    if (UnboundedSurfaceHostImpl::GetForCurrentDocument(this)) {
+      UnboundedSurfaceHostImpl::DeleteForCurrentDocument(this);
+    }
   } else if (old_state != LifecycleStateImpl::kActive &&
              new_state == LifecycleStateImpl::kActive) {
     GetSiteInstance()->IncrementActiveDocumentCount(

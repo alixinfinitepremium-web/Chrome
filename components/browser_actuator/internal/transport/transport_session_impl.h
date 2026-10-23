@@ -68,7 +68,7 @@ class TransportSessionImpl : public TransportSession,
       const google::protobuf::MessageLite& message) override;
 
   void OnMessage(PayloadType payload_type,
-                 const google::protobuf::MessageLite& message) override;
+                 std::string_view serialized_payload) override;
 
   // TransportHandlerFactoryRegistry::Observer implementation.
   void OnFactoryUnregistered(FactoryId factory_id) override;

@@ -31,7 +31,7 @@ class TransportSession {
 
   // Dispatches an incoming message to handlers registered for payload_type.
   virtual void OnMessage(PayloadType payload_type,
-                         const google::protobuf::MessageLite& message) = 0;
+                         std::string_view serialized_payload) = 0;
 };
 
 }  // namespace browser_actuator::transport

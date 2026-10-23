@@ -93,6 +93,7 @@
 #include "components/search_engines/template_url_service.h"
 #include "components/send_tab_to_self/features.h"
 #include "components/send_tab_to_self/stub_send_tab_to_self_sync_service.h"
+#include "components/spellcheck/common/spellcheck_features.h"
 #include "components/sync/test/test_sync_service.h"
 #include "components/tabs/public/mock_tab_interface.h"
 #include "components/tabs/public/tab_interface.h"
@@ -3507,6 +3508,253 @@ TEST_F(RenderViewContextMenuOrderTest, LinkMenu_MailtoAndFilteredLinkUrlOrder) {
   }
 }
 
+TEST_F(RenderViewContextMenuOrderTest, SelectedTextMenu_SearchTextOrder) {
+  content::ContextMenuParams params = CreateParams(MenuItem::SELECTION);
+  params.page_url = GURL("https://www.example.com/");
+  params.selection_text = u"highlighted text";
+  std::unique_ptr<TestRenderViewContextMenu> menu = CreateAndInitMenu(params);
+
+  EXPECT_THAT(GetMenuItemsAndSeparators(menu->menu_model()),
+              testing::ElementsAre(
+                  IDC_CONTENT_CONTEXT_COPY, IDC_CONTENT_CONTEXT_COPYLINKTOTEXT,
+                  IDC_CONTENT_CONTEXT_SEARCHWEBFOR, IDC_PRINT,
+                  IDC_CONTENT_CONTEXT_OPEN_IN_READING_MODE,
+#if !BUILDFLAG(IS_CHROMEOS)
+                  IDC_CONTENT_CONTEXT_PARTIAL_TRANSLATE,
+#endif
+                  kSeparatorId, IDC_CONTENT_CONTEXT_INSPECTELEMENT));
+}
+
+TEST_F(RenderViewContextMenuOrderTest, SelectedTextMenu_UrlTextOrder) {
+  content::ContextMenuParams params = CreateParams(MenuItem::SELECTION);
+  params.page_url = GURL("https://www.example.com/");
+  params.selection_text = u"https://www.chromium.org";
+  std::unique_ptr<TestRenderViewContextMenu> menu = CreateAndInitMenu(params);
+
+  EXPECT_THAT(GetMenuItemsAndSeparators(menu->menu_model()),
+              testing::ElementsAre(
+                  IDC_CONTENT_CONTEXT_COPY, IDC_CONTENT_CONTEXT_COPYLINKTOTEXT,
+                  IDC_CONTENT_CONTEXT_GOTOURL, IDC_PRINT,
+                  IDC_CONTENT_CONTEXT_OPEN_IN_READING_MODE,
+#if !BUILDFLAG(IS_CHROMEOS)
+                  IDC_CONTENT_CONTEXT_PARTIAL_TRANSLATE,
+#endif
+                  kSeparatorId, IDC_CONTENT_CONTEXT_INSPECTELEMENT));
+}
+
+TEST_F(RenderViewContextMenuOrderTest, LinkAndSelectionMenu_Order) {
+  content::ContextMenuParams params =
+      CreateParams(MenuItem::LINK | MenuItem::SELECTION);
+  params.page_url = GURL("https://www.example.com/");
+  params.selection_text = u"selected link text";
+  std::unique_ptr<TestRenderViewContextMenu> menu = CreateAndInitMenu(params);
+
+  EXPECT_THAT(GetMenuItemsAndSeparators(menu->menu_model()),
+              testing::ElementsAre(
+                  IDC_CONTENT_CONTEXT_OPENLINKNEWTAB,
+                  IDC_CONTENT_CONTEXT_OPENLINKNEWWINDOW,
+                  IDC_CONTENT_CONTEXT_OPENLINKSPLITVIEW,
+                  IDC_CONTENT_CONTEXT_OPENLINKOFFTHERECORD, kSeparatorId,
+                  IDC_CONTENT_CONTEXT_SAVELINKAS,
+                  IDC_CONTENT_CONTEXT_COPYLINKLOCATION, kSeparatorId,
+                  IDC_CONTENT_CONTEXT_COPY, IDC_CONTENT_CONTEXT_COPYLINKTOTEXT,
+                  IDC_CONTENT_CONTEXT_SEARCHWEBFOR, IDC_PRINT,
+#if !BUILDFLAG(IS_CHROMEOS)
+                  IDC_CONTENT_CONTEXT_PARTIAL_TRANSLATE,
+#endif
+                  kSeparatorId, IDC_CONTENT_CONTEXT_INSPECTELEMENT));
+}
+
+TEST_F(RenderViewContextMenuOrderTest, EditableTextMenu_EmptySelectionOrder) {
+  content::ContextMenuParams params = CreateParams(MenuItem::EDITABLE);
+  params.page_url = GURL("https://www.example.com/");
+  params.form_control_type = blink::mojom::FormControlType::kInputText;
+  std::unique_ptr<TestRenderViewContextMenu> menu = CreateAndInitMenu(params);
+
+  std::vector<int> expected;
+  if (ui::IsEmojiPanelSupported()) {
+    expected.push_back(IDC_CONTENT_CONTEXT_EMOJI);
+    expected.push_back(kSeparatorId);
+  }
+  expected.push_back(IDC_CONTENT_CONTEXT_UNDO);
+  expected.push_back(IDC_CONTENT_CONTEXT_REDO);
+  expected.push_back(kSeparatorId);
+  expected.push_back(IDC_CONTENT_CONTEXT_CUT);
+  expected.push_back(IDC_CONTENT_CONTEXT_COPY);
+  expected.push_back(IDC_CONTENT_CONTEXT_PASTE);
+  expected.push_back(IDC_CONTENT_CONTEXT_PASTE_AND_MATCH_STYLE);
+#if BUILDFLAG(IS_CHROMEOS)
+  expected.push_back(IDC_CONTENT_PASTE_FROM_CLIPBOARD);
+#endif
+  expected.push_back(IDC_CONTENT_CONTEXT_SELECTALL);
+  expected.push_back(IDC_CONTENT_CONTEXT_OPEN_IN_READING_MODE);
+  expected.push_back(kSeparatorId);
+#if BUILDFLAG(IS_MAC)
+  expected.push_back(IDC_CONTENT_CONTEXT_LANGUAGE_SETTINGS);
+#else
+  expected.push_back(IDC_SPELLCHECK_MENU);
+#endif
+  expected.push_back(kSeparatorId);
+  expected.push_back(IDC_CONTENT_CONTEXT_INSPECTELEMENT);
+
+  EXPECT_THAT(GetMenuItemsAndSeparators(menu->menu_model()),
+              testing::ElementsAreArray(expected));
+}
+
+TEST_F(RenderViewContextMenuOrderTest, EditableTextMenu_WithSelectionOrder) {
+  content::ContextMenuParams params =
+      CreateParams(MenuItem::EDITABLE | MenuItem::SELECTION);
+  params.page_url = GURL("https://www.example.com/");
+  params.form_control_type = blink::mojom::FormControlType::kInputText;
+  params.selection_text = u"editable selection";
+  std::unique_ptr<TestRenderViewContextMenu> menu = CreateAndInitMenu(params);
+
+  std::vector<int> expected;
+  if (ui::IsEmojiPanelSupported()) {
+    expected.push_back(IDC_CONTENT_CONTEXT_EMOJI);
+    expected.push_back(kSeparatorId);
+  }
+#if BUILDFLAG(IS_MAC)
+  expected.push_back(IDC_CONTENT_CONTEXT_UNDO);
+  expected.push_back(IDC_CONTENT_CONTEXT_REDO);
+  expected.push_back(kSeparatorId);
+#endif
+  expected.push_back(IDC_CONTENT_CONTEXT_CUT);
+  expected.push_back(IDC_CONTENT_CONTEXT_COPY);
+  expected.push_back(IDC_CONTENT_CONTEXT_PASTE);
+  expected.push_back(IDC_CONTENT_CONTEXT_PASTE_AND_MATCH_STYLE);
+#if BUILDFLAG(IS_CHROMEOS)
+  expected.push_back(IDC_CONTENT_PASTE_FROM_CLIPBOARD);
+#endif
+  expected.push_back(IDC_CONTENT_CONTEXT_SELECTALL);
+  expected.push_back(IDC_CONTENT_CONTEXT_OPEN_IN_READING_MODE);
+  expected.push_back(kSeparatorId);
+  expected.push_back(IDC_CONTENT_CONTEXT_SEARCHWEBFOR);
+  expected.push_back(IDC_PRINT);
+#if !BUILDFLAG(IS_CHROMEOS)
+  expected.push_back(IDC_CONTENT_CONTEXT_PARTIAL_TRANSLATE);
+#endif
+  expected.push_back(kSeparatorId);
+#if BUILDFLAG(IS_MAC)
+  expected.push_back(IDC_CONTENT_CONTEXT_LANGUAGE_SETTINGS);
+#else
+  expected.push_back(IDC_SPELLCHECK_MENU);
+#endif
+  expected.push_back(kSeparatorId);
+  expected.push_back(IDC_CONTENT_CONTEXT_INSPECTELEMENT);
+
+  EXPECT_THAT(GetMenuItemsAndSeparators(menu->menu_model()),
+              testing::ElementsAreArray(expected));
+}
+
+TEST_F(RenderViewContextMenuOrderTest, EditableTextMenu_MisspelledWordOrder) {
+#if BUILDFLAG(IS_WIN)
+  // On Windows, SpellingMenuObserver defaults to asynchronously querying the OS
+  // spellchecker via SpellcheckService (which is null in TestingProfile,
+  // causing it to return early without adding any spelling items). Disable the
+  // Windows browser spellchecker so it synchronously populates suggestions from
+  // `params.dictionary_suggestions` like other platforms.
+  spellcheck::ScopedDisableBrowserSpellCheckerForTesting
+      disable_browser_spell_checker;
+#endif
+  content::ContextMenuParams params = CreateParams(MenuItem::EDITABLE);
+  params.page_url = GURL("https://www.example.com/");
+  params.form_control_type = blink::mojom::FormControlType::kInputText;
+  params.misspelled_word = u"teh";
+  params.dictionary_suggestions = {u"the", u"ten"};
+  std::unique_ptr<TestRenderViewContextMenu> menu = CreateAndInitMenu(params);
+
+  std::vector<int> expected = {
+      // One menu item is added per entry in `params.dictionary_suggestions`
+      // ("the" and "ten"), using sequential IDs starting at
+      // IDC_SPELLCHECK_SUGGESTION_0.
+      IDC_SPELLCHECK_SUGGESTION_0,
+      IDC_SPELLCHECK_SUGGESTION_0 + 1,
+      kSeparatorId,
+      IDC_SPELLCHECK_ADD_TO_DICTIONARY,
+      IDC_CONTENT_CONTEXT_SPELLING_TOGGLE,
+      kSeparatorId,
+#if BUILDFLAG(IS_MAC)
+      IDC_CONTENT_CONTEXT_UNDO,
+      IDC_CONTENT_CONTEXT_REDO,
+      kSeparatorId,
+#endif
+      IDC_CONTENT_CONTEXT_CUT,
+      IDC_CONTENT_CONTEXT_COPY,
+      IDC_CONTENT_CONTEXT_PASTE,
+#if BUILDFLAG(IS_CHROMEOS)
+      IDC_CONTENT_PASTE_FROM_CLIPBOARD,
+#endif
+      IDC_CONTENT_CONTEXT_OPEN_IN_READING_MODE,
+      kSeparatorId,
+      IDC_CONTENT_CONTEXT_INSPECTELEMENT,
+  };
+
+  EXPECT_THAT(GetMenuItemsAndSeparators(menu->menu_model()),
+              testing::ElementsAreArray(expected));
+}
+
+TEST_F(RenderViewContextMenuOrderTest, PasswordFieldMenu_WithSelectionOrder) {
+  content::ContextMenuParams params =
+      CreateParams(MenuItem::EDITABLE | MenuItem::SELECTION);
+  params.page_url = GURL("https://www.example.com/");
+  params.form_control_type = blink::mojom::FormControlType::kInputPassword;
+  params.selection_text = u"secret123";
+  std::unique_ptr<TestRenderViewContextMenu> menu = CreateAndInitMenu(params);
+
+  std::vector<int> expected;
+  if (ui::IsEmojiPanelSupported()) {
+    expected.push_back(IDC_CONTENT_CONTEXT_EMOJI);
+    expected.push_back(kSeparatorId);
+  }
+#if BUILDFLAG(IS_MAC)
+  expected.push_back(IDC_CONTENT_CONTEXT_UNDO);
+  expected.push_back(IDC_CONTENT_CONTEXT_REDO);
+  expected.push_back(kSeparatorId);
+#endif
+  expected.push_back(IDC_CONTENT_CONTEXT_CUT);
+  expected.push_back(IDC_CONTENT_CONTEXT_COPY);
+  expected.push_back(IDC_CONTENT_CONTEXT_PASTE);
+  expected.push_back(IDC_CONTENT_CONTEXT_PASTE_AND_MATCH_STYLE);
+#if BUILDFLAG(IS_CHROMEOS)
+  expected.push_back(IDC_CONTENT_PASTE_FROM_CLIPBOARD);
+#endif
+  expected.push_back(IDC_CONTENT_CONTEXT_SELECTALL);
+  expected.push_back(IDC_CONTENT_CONTEXT_OPEN_IN_READING_MODE);
+  expected.push_back(kSeparatorId);
+  expected.push_back(IDC_PRINT);
+#if !BUILDFLAG(IS_CHROMEOS)
+  expected.push_back(IDC_CONTENT_CONTEXT_PARTIAL_TRANSLATE);
+#endif
+  expected.push_back(kSeparatorId);
+#if BUILDFLAG(IS_MAC)
+  expected.push_back(IDC_CONTENT_CONTEXT_LANGUAGE_SETTINGS);
+#else
+  expected.push_back(IDC_SPELLCHECK_MENU);
+#endif
+  expected.push_back(kSeparatorId);
+  expected.push_back(IDC_CONTENT_CONTEXT_INSPECTELEMENT);
+
+  EXPECT_THAT(GetMenuItemsAndSeparators(menu->menu_model()),
+              testing::ElementsAreArray(expected));
+}
+
+TEST_F(RenderViewContextMenuOrderTest, ImageMenu_LoadedImageOrder) {
+  content::ContextMenuParams params = CreateParams(MenuItem::IMAGE);
+  params.page_url = GURL("https://www.example.com/");
+  params.has_image_contents = true;
+  std::unique_ptr<TestRenderViewContextMenu> menu = CreateAndInitMenu(params);
+
+  EXPECT_THAT(
+      GetMenuItemsAndSeparators(menu->menu_model()),
+      testing::ElementsAre(
+          IDC_CONTENT_CONTEXT_OPENIMAGENEWTAB, IDC_CONTENT_CONTEXT_SAVEIMAGEAS,
+          IDC_CONTENT_CONTEXT_COPYIMAGE, IDC_CONTENT_CONTEXT_COPYIMAGELOCATION,
+          IDC_CONTENT_CONTEXT_GENERATE_QR_CODE,
+          IDC_CONTENT_CONTEXT_SEARCHWEBFORIMAGE, kSeparatorId,
+          IDC_CONTENT_CONTEXT_INSPECTELEMENT));
+}
+
 class RenderViewContextMenuSimplifiedOrderTest
     : public RenderViewContextMenuOrderTest {
  public:
@@ -3565,4 +3813,255 @@ TEST_F(RenderViewContextMenuSimplifiedOrderTest, LinkMenu_Order) {
                            IDC_CONTENT_CONTEXT_COPYLINKLOCATION,
                            IDC_CONTENT_CONTEXT_ADD_LINK_TO_READING_LIST,
                            kSeparatorId, IDC_CONTENT_CONTEXT_INSPECTELEMENT));
+}
+
+TEST_F(RenderViewContextMenuSimplifiedOrderTest,
+       SelectedTextMenu_SearchTextOrder) {
+  content::ContextMenuParams params = CreateParams(MenuItem::SELECTION);
+  params.page_url = GURL("https://www.example.com/");
+  params.selection_text = u"highlighted text";
+  std::unique_ptr<TestRenderViewContextMenu> menu = CreateAndInitMenu(params);
+
+  EXPECT_THAT(GetMenuItemsAndSeparators(menu->menu_model()),
+              testing::ElementsAre(
+                  IDC_CONTENT_CONTEXT_COPY, IDC_CONTENT_CONTEXT_COPYLINKTOTEXT,
+                  IDC_PRINT, kSeparatorId, IDC_CONTENT_CONTEXT_SEARCHWEBFOR,
+                  IDC_CONTENT_CONTEXT_OPEN_IN_READING_MODE,
+#if !BUILDFLAG(IS_CHROMEOS)
+                  IDC_CONTENT_CONTEXT_PARTIAL_TRANSLATE,
+#endif
+                  kSeparatorId, IDC_CONTENT_CONTEXT_INSPECTELEMENT));
+}
+
+TEST_F(RenderViewContextMenuSimplifiedOrderTest,
+       SelectedTextMenu_UrlTextOrder) {
+  content::ContextMenuParams params = CreateParams(MenuItem::SELECTION);
+  params.page_url = GURL("https://www.example.com/");
+  params.selection_text = u"https://www.chromium.org";
+  std::unique_ptr<TestRenderViewContextMenu> menu = CreateAndInitMenu(params);
+
+  EXPECT_THAT(GetMenuItemsAndSeparators(menu->menu_model()),
+              testing::ElementsAre(
+                  IDC_CONTENT_CONTEXT_COPY, IDC_CONTENT_CONTEXT_COPYLINKTOTEXT,
+                  IDC_PRINT, kSeparatorId, IDC_CONTENT_CONTEXT_GOTOURL,
+                  IDC_CONTENT_CONTEXT_OPEN_IN_READING_MODE,
+#if !BUILDFLAG(IS_CHROMEOS)
+                  IDC_CONTENT_CONTEXT_PARTIAL_TRANSLATE,
+#endif
+                  kSeparatorId, IDC_CONTENT_CONTEXT_INSPECTELEMENT));
+}
+
+TEST_F(RenderViewContextMenuSimplifiedOrderTest, LinkAndSelectionMenu_Order) {
+  content::ContextMenuParams params =
+      CreateParams(MenuItem::LINK | MenuItem::SELECTION);
+  params.page_url = GURL("https://www.example.com/");
+  params.selection_text = u"selected link text";
+  std::unique_ptr<TestRenderViewContextMenu> menu = CreateAndInitMenu(params);
+
+  EXPECT_THAT(
+      GetMenuItemsAndSeparators(menu->menu_model()),
+      testing::ElementsAre(
+          IDC_CONTENT_CONTEXT_OPENLINKNEWTAB,
+          IDC_CONTENT_CONTEXT_OPENLINKNEWWINDOW,
+          IDC_CONTENT_CONTEXT_OPENLINKSPLITVIEW,
+          IDC_CONTENT_CONTEXT_OPENLINKOFFTHERECORD, kSeparatorId,
+          IDC_CONTENT_CONTEXT_SAVELINKAS, IDC_CONTENT_CONTEXT_COPYLINKLOCATION,
+          IDC_CONTENT_CONTEXT_ADD_LINK_TO_READING_LIST, kSeparatorId,
+          IDC_CONTENT_CONTEXT_COPY, IDC_CONTENT_CONTEXT_COPYLINKTOTEXT,
+          IDC_CONTENT_CONTEXT_SEARCHWEBFOR, IDC_PRINT,
+#if !BUILDFLAG(IS_CHROMEOS)
+          IDC_CONTENT_CONTEXT_PARTIAL_TRANSLATE,
+#endif
+          kSeparatorId, IDC_CONTENT_CONTEXT_INSPECTELEMENT));
+}
+
+TEST_F(RenderViewContextMenuSimplifiedOrderTest,
+       EditableTextMenu_EmptySelectionOrder) {
+  content::ContextMenuParams params = CreateParams(MenuItem::EDITABLE);
+  params.page_url = GURL("https://www.example.com/");
+  params.form_control_type = blink::mojom::FormControlType::kInputText;
+  std::unique_ptr<TestRenderViewContextMenu> menu = CreateAndInitMenu(params);
+
+  std::vector<int> expected;
+  if (ui::IsEmojiPanelSupported()) {
+    expected.push_back(IDC_CONTENT_CONTEXT_EMOJI);
+    expected.push_back(kSeparatorId);
+  }
+  expected.push_back(IDC_CONTENT_CONTEXT_UNDO);
+  expected.push_back(IDC_CONTENT_CONTEXT_REDO);
+  expected.push_back(kSeparatorId);
+  expected.push_back(IDC_CONTENT_CONTEXT_CUT);
+  expected.push_back(IDC_CONTENT_CONTEXT_COPY);
+  expected.push_back(IDC_CONTENT_CONTEXT_PASTE);
+  expected.push_back(IDC_CONTENT_CONTEXT_PASTE_AND_MATCH_STYLE);
+#if BUILDFLAG(IS_CHROMEOS)
+  expected.push_back(IDC_CONTENT_PASTE_FROM_CLIPBOARD);
+#endif
+  expected.push_back(IDC_CONTENT_CONTEXT_SELECTALL);
+  expected.push_back(kSeparatorId);
+#if BUILDFLAG(IS_MAC)
+  expected.push_back(IDC_CONTENT_CONTEXT_LANGUAGE_SETTINGS);
+#else
+  expected.push_back(IDC_SPELLCHECK_MENU);
+#endif
+  expected.push_back(kSeparatorId);
+  expected.push_back(IDC_CONTENT_CONTEXT_INSPECTELEMENT);
+
+  EXPECT_THAT(GetMenuItemsAndSeparators(menu->menu_model()),
+              testing::ElementsAreArray(expected));
+}
+
+TEST_F(RenderViewContextMenuSimplifiedOrderTest,
+       EditableTextMenu_WithSelectionOrder) {
+  content::ContextMenuParams params =
+      CreateParams(MenuItem::EDITABLE | MenuItem::SELECTION);
+  params.page_url = GURL("https://www.example.com/");
+  params.form_control_type = blink::mojom::FormControlType::kInputText;
+  params.selection_text = u"editable selection";
+  std::unique_ptr<TestRenderViewContextMenu> menu = CreateAndInitMenu(params);
+
+  std::vector<int> expected;
+  if (ui::IsEmojiPanelSupported()) {
+    expected.push_back(IDC_CONTENT_CONTEXT_EMOJI);
+    expected.push_back(kSeparatorId);
+  }
+#if BUILDFLAG(IS_MAC)
+  expected.push_back(IDC_CONTENT_CONTEXT_UNDO);
+  expected.push_back(IDC_CONTENT_CONTEXT_REDO);
+  expected.push_back(kSeparatorId);
+#endif
+  expected.push_back(IDC_CONTENT_CONTEXT_CUT);
+  expected.push_back(IDC_CONTENT_CONTEXT_COPY);
+  expected.push_back(IDC_CONTENT_CONTEXT_PASTE);
+  expected.push_back(IDC_CONTENT_CONTEXT_PASTE_AND_MATCH_STYLE);
+#if BUILDFLAG(IS_CHROMEOS)
+  expected.push_back(IDC_CONTENT_PASTE_FROM_CLIPBOARD);
+#endif
+  expected.push_back(IDC_CONTENT_CONTEXT_SELECTALL);
+  expected.push_back(kSeparatorId);
+  expected.push_back(IDC_CONTENT_CONTEXT_SEARCHWEBFOR);
+  expected.push_back(IDC_PRINT);
+#if !BUILDFLAG(IS_CHROMEOS)
+  expected.push_back(IDC_CONTENT_CONTEXT_PARTIAL_TRANSLATE);
+#endif
+  expected.push_back(kSeparatorId);
+#if BUILDFLAG(IS_MAC)
+  expected.push_back(IDC_CONTENT_CONTEXT_LANGUAGE_SETTINGS);
+#else
+  expected.push_back(IDC_SPELLCHECK_MENU);
+#endif
+  expected.push_back(kSeparatorId);
+  expected.push_back(IDC_CONTENT_CONTEXT_INSPECTELEMENT);
+
+  EXPECT_THAT(GetMenuItemsAndSeparators(menu->menu_model()),
+              testing::ElementsAreArray(expected));
+}
+
+TEST_F(RenderViewContextMenuSimplifiedOrderTest,
+       PasswordFieldMenu_EmptySelectionOrder) {
+  content::ContextMenuParams params = CreateParams(MenuItem::EDITABLE);
+  params.page_url = GURL("https://www.example.com/");
+  params.form_control_type = blink::mojom::FormControlType::kInputPassword;
+  std::unique_ptr<TestRenderViewContextMenu> menu = CreateAndInitMenu(params);
+
+  std::vector<int> expected;
+  if (ui::IsEmojiPanelSupported()) {
+    expected.push_back(IDC_CONTENT_CONTEXT_EMOJI);
+    expected.push_back(kSeparatorId);
+  }
+  expected.push_back(IDC_CONTENT_CONTEXT_UNDO);
+  expected.push_back(IDC_CONTENT_CONTEXT_REDO);
+  expected.push_back(kSeparatorId);
+  expected.push_back(IDC_CONTENT_CONTEXT_CUT);
+  expected.push_back(IDC_CONTENT_CONTEXT_COPY);
+  expected.push_back(IDC_CONTENT_CONTEXT_PASTE);
+  expected.push_back(IDC_CONTENT_CONTEXT_PASTE_AND_MATCH_STYLE);
+#if BUILDFLAG(IS_CHROMEOS)
+  expected.push_back(IDC_CONTENT_PASTE_FROM_CLIPBOARD);
+#endif
+  expected.push_back(IDC_CONTENT_CONTEXT_SELECTALL);
+  expected.push_back(kSeparatorId);
+  expected.push_back(IDC_CONTENT_CONTEXT_INSPECTELEMENT);
+
+  EXPECT_THAT(GetMenuItemsAndSeparators(menu->menu_model()),
+              testing::ElementsAreArray(expected));
+}
+
+TEST_F(RenderViewContextMenuSimplifiedOrderTest,
+       PasswordFieldMenu_WithSelectionOrder) {
+  content::ContextMenuParams params =
+      CreateParams(MenuItem::EDITABLE | MenuItem::SELECTION);
+  params.page_url = GURL("https://www.example.com/");
+  params.form_control_type = blink::mojom::FormControlType::kInputPassword;
+  params.selection_text = u"secret123";
+  std::unique_ptr<TestRenderViewContextMenu> menu = CreateAndInitMenu(params);
+
+  std::vector<int> expected;
+  if (ui::IsEmojiPanelSupported()) {
+    expected.push_back(IDC_CONTENT_CONTEXT_EMOJI);
+    expected.push_back(kSeparatorId);
+  }
+#if BUILDFLAG(IS_MAC)
+  expected.push_back(IDC_CONTENT_CONTEXT_UNDO);
+  expected.push_back(IDC_CONTENT_CONTEXT_REDO);
+  expected.push_back(kSeparatorId);
+#endif
+  expected.push_back(IDC_CONTENT_CONTEXT_CUT);
+  expected.push_back(IDC_CONTENT_CONTEXT_COPY);
+  expected.push_back(IDC_CONTENT_CONTEXT_PASTE);
+  expected.push_back(IDC_CONTENT_CONTEXT_PASTE_AND_MATCH_STYLE);
+#if BUILDFLAG(IS_CHROMEOS)
+  expected.push_back(IDC_CONTENT_PASTE_FROM_CLIPBOARD);
+#endif
+  expected.push_back(IDC_CONTENT_CONTEXT_SELECTALL);
+  expected.push_back(kSeparatorId);
+  expected.push_back(IDC_CONTENT_CONTEXT_INSPECTELEMENT);
+
+  EXPECT_THAT(GetMenuItemsAndSeparators(menu->menu_model()),
+              testing::ElementsAreArray(expected));
+}
+
+TEST_F(RenderViewContextMenuSimplifiedOrderTest,
+       EmailFieldMenu_WithSelectionOrder) {
+  content::ContextMenuParams params =
+      CreateParams(MenuItem::EDITABLE | MenuItem::SELECTION);
+  params.page_url = GURL("https://www.example.com/");
+  params.form_control_type = blink::mojom::FormControlType::kInputEmail;
+  params.selection_text = u"user@example.com";
+  std::unique_ptr<TestRenderViewContextMenu> menu = CreateAndInitMenu(params);
+
+  std::vector<int> expected;
+  if (ui::IsEmojiPanelSupported()) {
+    expected.push_back(IDC_CONTENT_CONTEXT_EMOJI);
+    expected.push_back(kSeparatorId);
+  }
+#if BUILDFLAG(IS_MAC)
+  expected.push_back(IDC_CONTENT_CONTEXT_UNDO);
+  expected.push_back(IDC_CONTENT_CONTEXT_REDO);
+  expected.push_back(kSeparatorId);
+#endif
+  expected.push_back(IDC_CONTENT_CONTEXT_CUT);
+  expected.push_back(IDC_CONTENT_CONTEXT_COPY);
+  expected.push_back(IDC_CONTENT_CONTEXT_PASTE);
+  expected.push_back(IDC_CONTENT_CONTEXT_PASTE_AND_MATCH_STYLE);
+#if BUILDFLAG(IS_CHROMEOS)
+  expected.push_back(IDC_CONTENT_PASTE_FROM_CLIPBOARD);
+#endif
+  expected.push_back(IDC_CONTENT_CONTEXT_SELECTALL);
+  expected.push_back(kSeparatorId);
+  expected.push_back(IDC_PRINT);
+#if !BUILDFLAG(IS_CHROMEOS)
+  expected.push_back(IDC_CONTENT_CONTEXT_PARTIAL_TRANSLATE);
+#endif
+  expected.push_back(kSeparatorId);
+#if BUILDFLAG(IS_MAC)
+  expected.push_back(IDC_CONTENT_CONTEXT_LANGUAGE_SETTINGS);
+#else
+  expected.push_back(IDC_SPELLCHECK_MENU);
+#endif
+  expected.push_back(kSeparatorId);
+  expected.push_back(IDC_CONTENT_CONTEXT_INSPECTELEMENT);
+
+  EXPECT_THAT(GetMenuItemsAndSeparators(menu->menu_model()),
+              testing::ElementsAreArray(expected));
 }

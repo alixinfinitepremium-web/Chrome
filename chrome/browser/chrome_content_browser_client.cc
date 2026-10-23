@@ -497,7 +497,6 @@
 #include "chrome/browser/browser_process_platform_part_mac.h"
 #include "chrome/browser/enterprise/platform_auth/platform_auth_proxying_url_loader_factory.h"
 #include "chrome/common/chrome_version.h"
-#include "components/enterprise/platform_auth/platform_auth_features.h"
 #include "components/soda/constants.h"
 #include "sandbox/mac/sandbox_serializer.h"
 #include "sandbox/policy/mac/params.h"
@@ -1512,9 +1511,8 @@ bool IsActorActingOnWebContents(WebContents* web_contents) {
     return false;
   }
 
-  const auto* tab_interface =
-      tabs::TabInterface::MaybeGetFromContents(web_contents);
-  return tab_interface && actor_service->IsActiveOnTab(*tab_interface);
+  return actor_service->GetActingActorTaskForWebContents(web_contents) !=
+         nullptr;
 }
 #endif
 
@@ -6975,12 +6973,10 @@ void ChromeContentBrowserClient::WillCreateURLLoaderFactory(
 #endif
 
 #if BUILDFLAG(IS_MAC)
-  if (base::FeatureList::IsEnabled(enterprise_auth::kOktaSSO)) {
-    // WARNING: This factory blocks certain requests from going out via the
-    // final network bound factory.
-    enterprise_auth::ProxyingURLLoaderFactory::MaybeProxyRequest(
-        request_initiator, type, browser_context, factory_builder);
-  }
+  // WARNING: This factory blocks certain requests from going out via the
+  // final network bound factory.
+  enterprise_auth::ProxyingURLLoaderFactory::MaybeProxyRequest(
+      request_initiator, type, browser_context, factory_builder);
 #endif
 
 #if BUILDFLAG(ENABLE_GUEST_VIEW)
@@ -6995,6 +6991,8 @@ void ChromeContentBrowserClient::WillCreateURLLoaderFactory(
 #endif  // BUILDFLAG(ENABLE_GUEST_VIEW)
 
   if (type == URLLoaderFactoryType::kDocumentSubResource) {
+    contextual_tasks::ContextualTasksSubresourceProxyingURLLoaderFactory::
+        MaybeProxyRequest(browser_context, isolation_info, factory_builder);
     glic::GlicSubresourceProxyingURLLoaderFactory::MaybeProxyRequest(
         frame, factory_builder);
   }

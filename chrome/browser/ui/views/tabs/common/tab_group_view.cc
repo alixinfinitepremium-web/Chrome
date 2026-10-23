@@ -280,11 +280,11 @@ void TabGroupView::OnAnimationEnded() {
   }
 }
 
-bool TabGroupView::IsAnimationAllowed() {
+bool TabGroupView::ShouldAnimateLayout() {
   if (!collection_node_) {
     return false;
   }
-  return collection_node_->GetController()->IsAnimationAllowed();
+  return collection_node_->GetController()->ShouldAnimateLayout();
 }
 
 bool TabGroupView::IsValid() const {
@@ -356,7 +356,7 @@ void TabGroupView::OnDataChanged() {
 
   // If the tab group is not collapsed (or if we are not animating the collapse)
   // update child visibility immediately.
-  if (!tab_group_visual_data_.is_collapsed() || !IsAnimationAllowed()) {
+  if (!tab_group_visual_data_.is_collapsed() || !ShouldAnimateLayout()) {
     UpdateChildVisibilityForCollapseState(
         tab_group_visual_data_.is_collapsed());
   }
@@ -554,6 +554,19 @@ std::unique_ptr<ExpandOnHoverLock> TabGroupView::AcquireExpandOnHoverLock() {
   CHECK(browser_view->tab_strip_view());
   return browser_view->tab_strip_view()->GetExpandOnHoverLock(
       ExpandOnHoverLockType::kKeepCurrentState);
+}
+
+std::unique_ptr<TabHoverCardController::ScopedHideHoverCardLock>
+TabGroupView::AcquireHoverCardHideLock() {
+  if (!collection_node_ || !collection_node_->GetController()) {
+    return nullptr;
+  }
+
+  if (TabHoverCardController* hover_card_controller =
+          collection_node_->GetController()->GetHoverCardController()) {
+    return hover_card_controller->GetHoverCardHideLock();
+  }
+  return nullptr;
 }
 
 void TabGroupView::ShiftGroupUp() {

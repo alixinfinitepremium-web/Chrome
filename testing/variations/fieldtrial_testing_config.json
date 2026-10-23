@@ -175,26 +175,6 @@
             ]
         }
     ],
-    "AccessibilityPerformanceMeasurementExperiment": [
-        {
-            "platforms": [
-                "android",
-                "chromeos",
-                "ios",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Control2025-07-08",
-                    "disable_features": [
-                        "AccessibilityPerformanceMeasurementExperiment"
-                    ]
-                }
-            ]
-        }
-    ],
     "AccessibilityRequestScopedContentChangedEvents": [
         {
             "platforms": [
@@ -649,6 +629,22 @@
                         "OpenDownloadInFilesAppIfNoHandlerFound",
                         "OpenDownloadInNewTab",
                         "OpenDownloadInPreferredApp"
+                    ]
+                }
+            ]
+        }
+    ],
+    "AndroidEnterpriseSkipRealTimeUrlLookup": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "experiments": [
+                {
+                    "name": "BothEnabled",
+                    "enable_features": [
+                        "EnterpriseRealTimeUrlCheckUrlSkiplist",
+                        "SafeBrowsingSkipRealTimeLookupIfOffline"
                     ]
                 }
             ]
@@ -3738,10 +3734,14 @@
             "experiments": [
                 {
                     "name": "Enabled",
+                    "params": {
+                        "x_ios_swipe_back_iph_for_all_users": "true"
+                    },
                     "enable_features": [
                         "AppBarAssistantCustomization",
                         "ChromeNextIa",
                         "FullscreenRefactoring",
+                        "IPH_iOSSwipeBackForward",
                         "LightAppBar",
                         "NextOldDesign",
                         "OverflowMenuNTPRefactor",
@@ -7154,6 +7154,21 @@
                     "name": "Enabled",
                     "enable_features": [
                         "EnableDynamicRouteFetching"
+                    ]
+                }
+            ]
+        }
+    ],
+    "EnableEwalletNewAccountLinking": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "EnableEwalletNewAccountLinking"
                     ]
                 }
             ]
@@ -19513,6 +19528,8 @@
                         "InitialWebUIWithoutSpellCheckForNtp",
                         "InitialWebUIWithoutTranslateForNtp",
                         "LazyKeyedServiceInstantiation",
+                        "OmniboxAimPopupDeferCreation",
+                        "OmniboxWebUIPopupDeferCreation",
                         "PerDependencyDeadlines",
                         "PrioritizeResizeTaskRunnerOnStartup",
                         "SendGPUChannelEarly",

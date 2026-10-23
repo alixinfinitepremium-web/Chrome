@@ -2868,7 +2868,7 @@
   {
     "name": "default-browser-pip-text-video",
     "owners": [ "cheickcisse@google.com", "bling-mony-pod@google.com" ],
-    "expiry_milestone": 158
+    "expiry_milestone": 162
   },
   {
     "name": "default-browser-promo-entry-point",
@@ -2886,7 +2886,7 @@
       "cheickcisse@google.com",
       "bling-mony-pod@google.com"
     ],
-    "expiry_milestone": 158
+    "expiry_milestone": 162
   },
   {
     "name": "default-browser-prompt-surfaces",
@@ -5521,6 +5521,14 @@
     "expiry_milestone": 160
   },
   {
+    "name": "geic-fre",
+    "owners": [
+      "alexwchen@chromium.org",
+      "//chrome/browser/glic/gemini_enterprise/OWNERS"
+    ],
+    "expiry_milestone": 160
+  },
+  {
     "name": "geic-guest-url",
     "owners": [
       "austinzzr@google.com",
@@ -6564,7 +6572,7 @@
       "cheickcisse@google.com",
       "bling-mony-pod@google.com"
     ],
-    "expiry_milestone": 158
+    "expiry_milestone": 162
   },
   {
     "name": "ios-signal-sharing",
@@ -9439,11 +9447,6 @@
     "name": "sync-themes-ios",
     "owners": [ "bwwilliams@google.com", "jhimawan@google.com", "bling-pandamonium@google.com" ],
     "expiry_milestone": 160
-  },
-  {
-    "name": "sync-trusted-vault-infobar-message-improvements",
-    "owners": ["ylahodiuk@google.com", "rgod@google.com"],
-    "expiry_milestone": 144
   },
   {
     "name": "sync-wallet-flight-reservations",

@@ -21,6 +21,9 @@ namespace {
 #if BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_IOS)
 const int k10YearsInDays = 365 * 10;
 #endif
+#if BUILDFLAG(IS_IOS)
+const uint32_t kSwipeBackForwardFirstRunRecencyInDays = 60;
+#endif
 }  // namespace
 
 namespace feature_engagement {
@@ -792,6 +795,35 @@ std::optional<FeatureConfig> GetClientSideFeatureConfig(
         EventConfig("android_bottom_bar_new_tab_used", Comparator(EQUAL, 0),
                     /*window=*/360, /*storage=*/360);
 
+    return config;
+  }
+
+  if (kIPHAndroidBottomBarAddressBar.name == feature->name) {
+    FeatureConfig config;
+    config.valid = true;
+    config.availability = kAlwaysAvailable;
+
+    // IPH can show even if other IPHs have shown this session.
+    config.session_rate = kNoRestrictions;
+
+    // Show at most 3 times in 360 days, and at most once per 7 days.
+    config.trigger =
+        EventConfig("android_bottom_bar_address_bar_trigger",
+                    Comparator(LESS_THAN, 3), /*window=*/360, /*storage=*/360);
+    config.event_configs.insert(
+        EventConfig("android_bottom_bar_address_bar_trigger",
+                    Comparator(LESS_THAN, 1), /*window=*/7, /*storage=*/360));
+
+    // Require that the bottom bar education flow has been shown at least once.
+    config.event_configs.insert(EventConfig(
+        "android_bottom_bar_education_trigger",
+        Comparator(GREATER_THAN_OR_EQUAL, 1), /*window=*/360, /*storage=*/360));
+
+    // Stop showing once the user interacts with the address bar long-press
+    // menu.
+    config.used =
+        EventConfig("bottom_toolbar_menu_triggered", Comparator(EQUAL, 0),
+                    /*window=*/360, /*storage=*/360);
     return config;
   }
 
@@ -3225,6 +3257,10 @@ std::optional<FeatureConfig> GetClientSideFeatureConfig(
 
   if (kIPHiOSSwipeBackForwardFeature.name == feature->name) {
     // The IPH of the swipe back/forward feature.
+    std::optional<uint32_t> first_run_recency_in_days =
+        kIPHiOSSwipeBackForwardForAllUsers.Get()
+            ? std::nullopt
+            : std::make_optional(kSwipeBackForwardFirstRunRecencyInDays);
     return CreateNewUserGestureInProductHelpConfig(
         *feature, /*action_event=*/
         events::kIOSBackForwardButtonTapped,
@@ -3232,7 +3268,7 @@ std::optional<FeatureConfig> GetClientSideFeatureConfig(
         events::kIOSSwipeBackForwardUsed,
         /*dismiss_button_tap_event=*/
         events::kIOSSwipeBackForwardIPHDismissButtonTapped,
-        /*first_run_recency_in_days=*/60);
+        first_run_recency_in_days);
   }
 
   if (kIPHiOSSwipeToolbarToChangeTabFeature.name == feature->name) {
@@ -3644,6 +3680,22 @@ std::optional<FeatureConfig> GetClientSideFeatureConfig(
     config.event_configs.insert(EventConfig(
         events::kIOSGeminiImageRemixIPHTrigger, Comparator(EQUAL, 0),
         /*window=*/3, /*storage=*/kMaxStoragePeriod));
+    return config;
+  }
+
+  if (kIPHiOSBottomOmniboxFeature.name == feature->name) {
+    // Show the in-product help if 1) it has never been triggered, and 2) user
+    // has not moved the omnibox to the bottom.
+    FeatureConfig config;
+    config.valid = true;
+    config.availability = kAlwaysAvailable;
+    config.session_rate = Comparator(EQUAL, 0);
+    config.trigger =
+        EventConfig("ios_bottom_omnibox_triggered", Comparator(EQUAL, 0),
+                    /*window=*/kMaxWindowPeriod, /*storage=*/kMaxStoragePeriod);
+    config.used =
+        EventConfig(events::kIOSBottomOmniboxUsed, Comparator(EQUAL, 0),
+                    /*window=*/kMaxWindowPeriod, /*storage=*/kMaxStoragePeriod);
     return config;
   }
 

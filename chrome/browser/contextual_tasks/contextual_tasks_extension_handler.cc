@@ -508,6 +508,10 @@ void ContextualTasksExtensionHandler::AddTabContext(
       tab_contents ? sessions::SessionTabHelper::IdForTab(tab_contents)
                    : SessionID::InvalidValue();
   if (session_id.is_valid()) {
+    if (!delay_upload && tab && tab_contents) {
+      user_data->OnManualTabContextAdded(tab_contents->GetLastCommittedURL(),
+                                         session_id);
+    }
     for (const auto& selected_tab : user_data->GetSelectedTabs()) {
       if (selected_tab.tab_id == session_id.id()) {
         user_data->OnTabContextRemoved(selected_tab.context_token);
@@ -594,7 +598,7 @@ void ContextualTasksExtensionHandler::DeleteTabContext(int32_t tab_id) {
 void ContextualTasksExtensionHandler::ClearFiles(
     bool should_block_auto_suggested_tabs) {
   if (auto* user_data = GetOrCreateWebContentsUserData()) {
-    user_data->ClearFiles();
+    user_data->ClearFiles(should_block_auto_suggested_tabs);
   }
 }
 void ContextualTasksExtensionHandler::SubmitQuery(const std::string& query_text,
@@ -795,26 +799,26 @@ void ContextualTasksExtensionHandler::SendTabContextToExtensionPage(
   std::set<GURL> seen_urls;
   std::set<int32_t> seen_tab_ids;
 
-  // Helper lambda to resolve a tab's SessionID to its TabHandle ID,
-  // falling back to SessionID if no matching open tab is found.
+  // Resolve each tab's SessionID to its TabHandle ID via `user_data` (falling
+  // back to SessionID if no matching open or mapped tab handle exists).
   // Frontend uses tab handle ID to identify tabs, while restored tab session
   // IDs are persistent between chat sessions.
   auto* user_data = GetOrCreateWebContentsUserData();
-  auto resolve_tab_id = [user_data](int32_t session_tab_id) -> int32_t {
-    if (user_data) {
-      if (auto handle =
-              user_data->GetTabHandleForSessionTabId(session_tab_id)) {
-        return *handle;
-      }
-    }
-    return session_tab_id;
-  };
 
   // Attached tabs are reversed to show the newest tabs first and processed
   // before restored tabs so they take precedence during deduplication.
   for (const auto& tab : base::Reversed(state.attached)) {
-    const int32_t tab_handler_id = resolve_tab_id(*tab.tab_id);
-    // Session handle guarantees that `tab_id` is present. De-duplicate.
+    if (!tab.tab_id.has_value() ||
+        state.deselected.contains(
+            SessionID::FromSerializedValue(*tab.tab_id))) {
+      continue;
+    }
+    const int32_t tab_handler_id =
+        (user_data
+             ? user_data->ResolveAndRecordTabHandleForSessionTabId(*tab.tab_id)
+             : std::nullopt)
+            .value_or(*tab.tab_id);
+    // Skip duplicate tabs.
     if (!seen_tab_ids.insert(tab_handler_id).second) {
       continue;
     }
@@ -826,19 +830,27 @@ void ContextualTasksExtensionHandler::SendTabContextToExtensionPage(
     }
     tabs.push_back(CreateMojomTab(tab, tab_handler_id));
     const bool is_submitted =
+        !tab.pending_delayed_upload &&
         !std::ranges::contains(uploaded_tokens, tab.context_token);
-    if (is_submitted && tab.tab_id.has_value()) {
+    if (is_submitted) {
       submitted_tab_ids.push_back(tab_handler_id);
     }
   }
 
   for (const auto& tab : base::Reversed(state.restored)) {
-    // Tab ID is not guaranteed to be present. Verify it exists.
-    if (!tab.tab_id.has_value()) {
+    // Tab ID is not guaranteed to be present. Verify it exists and skip
+    // deselected tabs.
+    if (!tab.tab_id.has_value() ||
+        state.deselected.contains(
+            SessionID::FromSerializedValue(*tab.tab_id))) {
       continue;
     }
 
-    const int32_t tab_handler_id = resolve_tab_id(*tab.tab_id);
+    const int32_t tab_handler_id =
+        (user_data
+             ? user_data->ResolveAndRecordTabHandleForSessionTabId(*tab.tab_id)
+             : std::nullopt)
+            .value_or(*tab.tab_id);
     // Disallow duplicate restored IDs.
     if (!seen_tab_ids.insert(tab_handler_id).second) {
       continue;

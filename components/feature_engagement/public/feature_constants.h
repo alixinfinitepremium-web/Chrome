@@ -208,6 +208,7 @@ FEATURE_CONSTANTS_DECLARE_FEATURE(kIPHAdaptiveButtonInTopToolbarCustomizationTra
 FEATURE_CONSTANTS_DECLARE_FEATURE(kIPHAdaptiveButtonInTopToolbarCustomizationVoiceSearchFeature);
 FEATURE_CONSTANTS_DECLARE_FEATURE(kIPHAdaptiveButtonPinGlicToolbarButtonFeature);
 FEATURE_CONSTANTS_DECLARE_FEATURE(kIPHAimActivationHint);
+FEATURE_CONSTANTS_DECLARE_FEATURE(kIPHAndroidBottomBarAddressBar);
 FEATURE_CONSTANTS_DECLARE_FEATURE(kIPHAndroidBottomBarEducation);
 FEATURE_CONSTANTS_DECLARE_FEATURE(kIPHAndroidBottomBarGlic);
 FEATURE_CONSTANTS_DECLARE_FEATURE(kIPHAndroidBottomBarNewTab);
@@ -382,6 +383,10 @@ FEATURE_CONSTANTS_DECLARE_FEATURE(kIPHiOSPromoAllTabsFeature);
 FEATURE_CONSTANTS_DECLARE_FEATURE(kIPHiOSPromoMadeForIOSFeature);
 FEATURE_CONSTANTS_DECLARE_FEATURE(kIPHiOSPromoStaySafeFeature);
 FEATURE_CONSTANTS_DECLARE_FEATURE(kIPHiOSSwipeBackForwardFeature);
+// Feature parameter that removes the 60-day first-run recency requirement for
+// `kIPHiOSSwipeBackForwardFeature`.
+COMPONENT_EXPORT(FEATURE_ENGAGEMENT_FEATURE_CONSTANTS)
+extern const base::FeatureParam<bool> kIPHiOSSwipeBackForwardForAllUsers;
 FEATURE_CONSTANTS_DECLARE_FEATURE(kIPHiOSSwipeToolbarToChangeTabFeature);
 FEATURE_CONSTANTS_DECLARE_FEATURE(kIPHiOSPostDefaultAbandonmentPromoFeature);
 FEATURE_CONSTANTS_DECLARE_FEATURE(kIPHiOSPromoGenericDefaultBrowserFeature);
@@ -430,6 +435,7 @@ FEATURE_CONSTANTS_DECLARE_FEATURE(
     kIPHiOSOneTimeDefaultBrowserNotificationFeature);
 FEATURE_CONSTANTS_DECLARE_FEATURE(kIPHiOSGeminiImageRemixFeature);
 FEATURE_CONSTANTS_DECLARE_FEATURE(kIPHiOSNewIAPromoFeature);
+FEATURE_CONSTANTS_DECLARE_FEATURE(kIPHiOSBottomOmniboxFeature);
 FEATURE_CONSTANTS_DECLARE_FEATURE(kIPHiOSGeminiExternalAppStoreEvent);
 
 // FET feature flag that enables AI Hub "New" badge.
