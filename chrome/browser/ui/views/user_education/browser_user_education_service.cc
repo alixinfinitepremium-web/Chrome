@@ -62,6 +62,7 @@
 #include "chrome/browser/ui/views/autofill/popup/popup_view_views.h"
 #include "chrome/browser/ui/views/bookmarks/bookmark_bar_view.h"
 #include "chrome/browser/ui/views/contextual_tasks/contextual_tasks_button.h"
+#include "chrome/browser/ui/views/dictation/dictation_iph.h"
 #include "chrome/browser/ui/views/frame/browser_view.h"
 #include "chrome/browser/ui/views/frame/contents_web_view.h"
 #include "chrome/browser/ui/views/frame/toolbar_button_provider.h"
@@ -579,6 +580,19 @@ void MaybeRegisterChromeFeaturePromos(
           .SetMetadata(
               143, "vizcay@google.com",
               "Triggered after Wallet autofill suggestions are shown.")));
+
+  registry.RegisterFeature(std::move(
+      FeaturePromoSpecification::CreateForToastPromo(
+          feature_engagement::kIPH_AutofillAmbientAutofillSpiiDisclaimer,
+          autofill::PopupViewViews::
+              kAutofillAmbientAutofillSpiiDisclaimerElementId,
+          IDS_AUTOFILL_AI_SPII_DISCLAIMER_IPH_BODY,
+          IDS_AUTOFILL_AI_SPII_DISCLAIMER_IPH_BODY_SCREENREADER,
+          FeaturePromoSpecification::AcceleratorInfo())
+          .SetBubbleArrow(HelpBubbleArrow::kLeftCenter)
+          .SetMetadata(148, "vizcay@google.com",
+                       "Triggered when Ambient Autofill suggestions containing "
+                       "sensitive personal info (SPII) are shown.")));
 
   // kIPHAutofillVirtualCardCVCSuggestionFeature:
   registry.RegisterFeature(std::move(
@@ -1876,6 +1890,25 @@ void MaybeRegisterChromeFeaturePromos(
           .SetMetadata(153, "danft@chromium.org",
                        "Shows an IPH when a user translates a PDF for the "
                        "first time.")));
+
+  // kIPHDictationFeature:
+  registry.RegisterFeature(std::move(
+      FeaturePromoSpecification::CreateForSnoozePromo(
+          feature_engagement::kIPHDictationFeature,
+          dictation::kDictationIphAnchorElementId, IDS_DICTATION_IPH_BODY)
+          .SetBubbleTitleText(IDS_DICTATION_IPH_TITLE)
+          .SetBubbleIcon(kLightbulbOutlineIcon)
+          // The bubble goes below, left, right or above the focused field,
+          // whichever has room first.
+          .SetBubbleArrowCallback(
+              base::BindRepeating(&dictation::GetDictationIphArrow))
+          // Promos with buttons take focus by default. Keep focus in the text
+          // field so the user can keep typing.
+          .OverrideFocusOnShow(false)
+          .SetMetadata(158, "amyasinghal@google.com",
+                       "Shown when a user who hasn't used dictation focuses a "
+                       "medium or large text field.",
+                       Metadata::FeatureSet{&dictation::kDictation})));
 
   // kIPHDiscardRingFeature:
   registry.RegisterFeature(std::move(

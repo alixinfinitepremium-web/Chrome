@@ -4,17 +4,40 @@
 
 #include "chrome/browser/actor/tools/open_url_tool_request.h"
 
+#include <memory>
+#include <optional>
 #include <string_view>
 #include <utility>
 
 #include "chrome/browser/actor/actor_surface.h"
-#include "chrome/browser/actor/tools/tool.h"
+#include "chrome/browser/actor/tools/open_url_tool.h"
+#include "chrome/browser/actor/tools/registry/tool_definition.h"
+#include "chrome/browser/actor/tools/registry/tool_definition_builder.h"
+#include "chrome/browser/actor/tools/registry/tool_schema_builder.h"
 #include "chrome/browser/actor/tools/tool_request_visitor_functor.h"
 #include "chrome/common/actor.mojom.h"
 #include "chrome/common/actor/action_result.h"
 #include "components/actor/public/mojom/actor_types.mojom.h"
+#include "url/origin.h"
 
 namespace actor {
+
+namespace {
+
+// Default description for the `open_url` tool.
+constexpr std::string_view kOpenUrlToolDescription =
+    "Opens a URL in the current tab or in a new tab.";
+
+// Description for the `url` parameter of the `open_url` tool.
+constexpr std::string_view kUrlParamDescription =
+    "The complete URL to open (e.g. \"https://example.com\").";
+
+// Description for the `new_tab` parameter of the `open_url` tool.
+constexpr std::string_view kNewTabParamDescription =
+    "Opens the URL in a new tab if true, otherwise opens the URL in the "
+    "current tab.";
+
+}  // namespace
 
 OpenUrlToolRequest::OpenUrlToolRequest(ActorSurfaceHandle actor_surface_handle,
                                        GURL url,
@@ -28,6 +51,18 @@ OpenUrlToolRequest::~OpenUrlToolRequest() = default;
 OpenUrlToolRequest::OpenUrlToolRequest(const OpenUrlToolRequest&) = default;
 OpenUrlToolRequest& OpenUrlToolRequest::operator=(const OpenUrlToolRequest&) =
     default;
+
+// static
+std::optional<ToolDefinition> OpenUrlToolRequest::GetToolDefinition() {
+  return ToolDefinitionBuilder(ToolId::kOpenUrl, kModelFacingName,
+                               kOpenUrlToolDescription)
+      .SetToolParameterSchema(
+          ToolSchemaBuilder()
+              .AddStringProperty(kUrlParam, kUrlParamDescription,
+                                 ToolSchemaBuilder::kFormatUri)
+              .AddBooleanProperty(kNewTabParam, kNewTabParamDescription))
+      .Build();
+}
 
 bool OpenUrlToolRequest::RequiresUrlCheckInCurrentTab() const {
   // This tool either navigates *away* from the current URL or opens a new tab;
@@ -52,10 +87,9 @@ ToolRequest::CreateToolResult OpenUrlToolRequest::CreateTool(
                                          "The tab is no longer present.")};
   }
 
-  // TODO(b/573158576): Create an OpenUrlTool once it is implemented.
-  return {/*tool=*/nullptr, MakeResult(mojom::ActionResultCode::kToolUnknown,
-                                       /*requires_page_stabilization=*/false,
-                                       "OpenUrl is not implemented yet.")};
+  return {std::make_unique<OpenUrlTool>(task_id, tool_delegate, *actor_surface,
+                                        url_, open_in_new_tab_),
+          MakeOkResult()};
 }
 
 void OpenUrlToolRequest::Apply(ToolRequestVisitorFunctor& f) const {
@@ -64,6 +98,12 @@ void OpenUrlToolRequest::Apply(ToolRequestVisitorFunctor& f) const {
 
 std::string_view OpenUrlToolRequest::Name() const {
   return kName;
+}
+
+std::optional<url::Origin> OpenUrlToolRequest::AssociatedOriginGrant() const {
+  // The navigation to `url_` runs as a follow-up `NavigateToolRequest`, which
+  // doesn't get its implicit grant applied, so grant the origin up front.
+  return url::Origin::Create(url_);
 }
 
 }  // namespace actor

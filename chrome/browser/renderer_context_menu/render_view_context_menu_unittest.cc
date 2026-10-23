@@ -3755,6 +3755,110 @@ TEST_F(RenderViewContextMenuOrderTest, ImageMenu_LoadedImageOrder) {
           IDC_CONTENT_CONTEXT_INSPECTELEMENT));
 }
 
+TEST_F(RenderViewContextMenuOrderTest, ImageMenu_BrokenImageOrder) {
+  content::ContextMenuParams params = CreateParams(MenuItem::IMAGE);
+  params.page_url = GURL("https://www.example.com/");
+  params.has_image_contents = false;
+  std::unique_ptr<TestRenderViewContextMenu> menu = CreateAndInitMenu(params);
+
+  EXPECT_THAT(
+      GetMenuItemsAndSeparators(menu->menu_model()),
+      testing::ElementsAre(
+          IDC_CONTENT_CONTEXT_LOAD_IMAGE, IDC_CONTENT_CONTEXT_OPENIMAGENEWTAB,
+          IDC_CONTENT_CONTEXT_SAVEIMAGEAS, IDC_CONTENT_CONTEXT_COPYIMAGE,
+          IDC_CONTENT_CONTEXT_COPYIMAGELOCATION,
+          IDC_CONTENT_CONTEXT_GENERATE_QR_CODE, kSeparatorId,
+          IDC_CONTENT_CONTEXT_INSPECTELEMENT));
+}
+
+TEST_F(RenderViewContextMenuOrderTest, LinkedImageMenu_Order) {
+  content::ContextMenuParams params =
+      CreateParams(MenuItem::LINK | MenuItem::IMAGE);
+  params.page_url = GURL("https://www.example.com/");
+  params.has_image_contents = true;
+  std::unique_ptr<TestRenderViewContextMenu> menu = CreateAndInitMenu(params);
+
+  EXPECT_THAT(
+      GetMenuItemsAndSeparators(menu->menu_model()),
+      testing::ElementsAre(
+          IDC_CONTENT_CONTEXT_OPENLINKNEWTAB,
+          IDC_CONTENT_CONTEXT_OPENLINKNEWWINDOW,
+          IDC_CONTENT_CONTEXT_OPENLINKSPLITVIEW,
+          IDC_CONTENT_CONTEXT_OPENLINKOFFTHERECORD, kSeparatorId,
+          IDC_CONTENT_CONTEXT_GENERATE_QR_CODE, IDC_CONTENT_CONTEXT_SAVELINKAS,
+          IDC_CONTENT_CONTEXT_COPYLINKLOCATION, kSeparatorId,
+          IDC_CONTENT_CONTEXT_OPENIMAGENEWTAB, IDC_CONTENT_CONTEXT_SAVEIMAGEAS,
+          IDC_CONTENT_CONTEXT_COPYIMAGE, IDC_CONTENT_CONTEXT_COPYIMAGELOCATION,
+          IDC_CONTENT_CONTEXT_SEARCHWEBFORIMAGE, kSeparatorId,
+          IDC_CONTENT_CONTEXT_INSPECTELEMENT));
+}
+
+TEST_F(RenderViewContextMenuOrderTest, VideoMenu_Order) {
+  content::ContextMenuParams params = CreateParams(MenuItem::VIDEO);
+  params.page_url = GURL("https://www.example.com/");
+  params.media_flags = blink::ContextMenuData::kMediaCanSave |
+                       blink::ContextMenuData::kMediaHasAudio |
+                       blink::ContextMenuData::kMediaHasVideo;
+  std::unique_ptr<TestRenderViewContextMenu> menu = CreateAndInitMenu(params);
+
+  EXPECT_THAT(
+      GetMenuItemsAndSeparators(menu->menu_model()),
+      testing::ElementsAre(
+          IDC_CONTENT_CONTEXT_LOOP, IDC_CONTENT_CONTEXT_CONTROLS, kSeparatorId,
+          IDC_CONTENT_CONTEXT_OPENAVNEWTAB,
+          IDC_CONTENT_CONTEXT_SAVEVIDEOFRAMEAS, IDC_CONTENT_CONTEXT_SAVEAVAS,
+          IDC_CONTENT_CONTEXT_COPYVIDEOFRAME,
+          IDC_CONTENT_CONTEXT_COPYAVLOCATION,
+          IDC_CONTENT_CONTEXT_PICTUREINPICTURE, IDC_ROUTE_MEDIA,
+          IDC_CONTENT_CONTEXT_SEARCHLENSFORVIDEOFRAME, kSeparatorId,
+          IDC_CONTENT_CONTEXT_INSPECTELEMENT));
+}
+
+TEST_F(RenderViewContextMenuOrderTest, AudioMenu_Order) {
+  content::ContextMenuParams params = CreateParams(MenuItem::AUDIO);
+  params.page_url = GURL("https://www.example.com/");
+  params.media_flags = blink::ContextMenuData::kMediaCanSave |
+                       blink::ContextMenuData::kMediaHasAudio;
+  std::unique_ptr<TestRenderViewContextMenu> menu = CreateAndInitMenu(params);
+
+  EXPECT_THAT(
+      GetMenuItemsAndSeparators(menu->menu_model()),
+      testing::ElementsAre(
+          IDC_CONTENT_CONTEXT_LOOP, IDC_CONTENT_CONTEXT_CONTROLS, kSeparatorId,
+          IDC_CONTENT_CONTEXT_OPENAVNEWTAB, IDC_CONTENT_CONTEXT_SAVEAVAS,
+          IDC_CONTENT_CONTEXT_COPYAVLOCATION, IDC_ROUTE_MEDIA, kSeparatorId,
+          IDC_CONTENT_CONTEXT_INSPECTELEMENT));
+}
+
+TEST_F(RenderViewContextMenuOrderTest, CanvasMenu_Order) {
+  content::ContextMenuParams params = CreateParams(0);
+  params.page_url = GURL("https://www.example.com/");
+  params.media_type = blink::mojom::ContextMenuDataMediaType::kCanvas;
+  params.has_image_contents = true;
+  std::unique_ptr<TestRenderViewContextMenu> menu = CreateAndInitMenu(params);
+
+  EXPECT_THAT(GetMenuItemsAndSeparators(menu->menu_model()),
+              testing::ElementsAre(IDC_CONTENT_CONTEXT_SAVEIMAGEAS,
+                                   IDC_CONTENT_CONTEXT_COPYIMAGE, kSeparatorId,
+                                   IDC_CONTENT_CONTEXT_INSPECTELEMENT));
+}
+
+TEST_F(RenderViewContextMenuOrderTest, PluginMenu_Order) {
+  content::ContextMenuParams params = CreateParams(0);
+  params.page_url = GURL("https://www.example.com/");
+  params.media_type = blink::mojom::ContextMenuDataMediaType::kPlugin;
+  params.src_url = GURL("https://www.example.com/plugin.pdf");
+  params.media_flags = blink::ContextMenuData::kMediaCanSave |
+                       blink::ContextMenuData::kMediaCanRotate;
+  std::unique_ptr<TestRenderViewContextMenu> menu = CreateAndInitMenu(params);
+
+  EXPECT_THAT(GetMenuItemsAndSeparators(menu->menu_model()),
+              testing::ElementsAre(IDC_CONTENT_CONTEXT_SAVEPLUGINAS, IDC_PRINT,
+                                   kSeparatorId, IDC_CONTENT_CONTEXT_ROTATECW,
+                                   IDC_CONTENT_CONTEXT_ROTATECCW, kSeparatorId,
+                                   IDC_CONTENT_CONTEXT_INSPECTELEMENT));
+}
+
 class RenderViewContextMenuSimplifiedOrderTest
     : public RenderViewContextMenuOrderTest {
  public:
@@ -4064,4 +4168,34 @@ TEST_F(RenderViewContextMenuSimplifiedOrderTest,
 
   EXPECT_THAT(GetMenuItemsAndSeparators(menu->menu_model()),
               testing::ElementsAreArray(expected));
+}
+
+TEST_F(RenderViewContextMenuSimplifiedOrderTest, VideoMenu_Order) {
+  content::ContextMenuParams params = CreateParams(MenuItem::VIDEO);
+  params.page_url = GURL("https://www.example.com/");
+  params.media_flags = blink::ContextMenuData::kMediaCanSave |
+                       blink::ContextMenuData::kMediaHasAudio |
+                       blink::ContextMenuData::kMediaHasVideo;
+  std::unique_ptr<TestRenderViewContextMenu> menu = CreateAndInitMenu(params);
+
+  EXPECT_THAT(
+      GetMenuItemsAndSeparators(menu->menu_model()),
+      testing::ElementsAre(
+          IDC_CONTENT_CONTEXT_PICTUREINPICTURE, IDC_ROUTE_MEDIA, kSeparatorId,
+          IDC_CONTENT_CONTEXT_LOOP, IDC_CONTENT_CONTEXT_CONTROLS, kSeparatorId,
+          IDC_CONTENT_CONTEXT_OPENAVNEWTAB, IDC_CONTENT_CONTEXT_SAVEAVAS,
+          IDC_CONTENT_CONTEXT_COPYAVLOCATION, IDC_CONTENT_CONTEXT_VIDEO_FRAME,
+          kSeparatorId, IDC_CONTENT_CONTEXT_INSPECTELEMENT));
+
+  std::optional<size_t> submenu_index =
+      menu->menu_model().GetIndexOfCommandId(IDC_CONTENT_CONTEXT_VIDEO_FRAME);
+  ASSERT_TRUE(submenu_index.has_value());
+  ui::MenuModel* video_frame_submenu =
+      menu->menu_model().GetSubmenuModelAt(*submenu_index);
+  ASSERT_NE(nullptr, video_frame_submenu);
+  EXPECT_THAT(
+      GetMenuItemsAndSeparators(*video_frame_submenu),
+      testing::ElementsAre(IDC_CONTENT_CONTEXT_SAVEVIDEOFRAMEAS,
+                           IDC_CONTENT_CONTEXT_COPYVIDEOFRAME,
+                           IDC_CONTENT_CONTEXT_SEARCHLENSFORVIDEOFRAME));
 }

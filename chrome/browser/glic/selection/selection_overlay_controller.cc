@@ -30,12 +30,14 @@
 #include "chrome/browser/selection/features.h"
 #include "chrome/browser/ui/browser_element_identifiers.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
+#include "chrome/browser/ui/chrome_pages.h"
 #include "chrome/browser/ui/color/chrome_color_id.h"
 #include "chrome/browser/ui/tabs/tab_strip_model.h"
 #include "chrome/browser/ui/webui/webui_embedding_context.h"
 #include "chrome/common/chrome_features.h"
 #include "chrome/common/webui_url_constants.h"
 #include "chrome/grit/generated_resources.h"
+#include "components/content_settings/core/common/content_settings_types.h"
 #include "components/optimization_guide/proto/features/smart_selection_suggestions.pb.h"
 #include "components/page_content_annotations/content/page_context_fetcher_options.h"
 #include "components/tabs/public/tab_interface.h"
@@ -469,8 +471,14 @@ void SelectionOverlayController::CaptureRegion(
         // The overlay and the page context are not ready yet, so defer
         // sending the region to the web client.
         selection_overlay_controller->staged_region_needs_render_ = has_region;
-        selection_overlay_controller->interaction_options_
-            ->skip_intro_animation = has_region;
+        if (has_region) {
+          // Same as the other small chip paths: the text selection is fixed,
+          // and a click on the background doesn't start a new region.
+          selection_overlay_controller->interaction_options_ =
+              selection::InteractionOptions::New(
+                  /*hide_handles=*/true, /*disable_multi_select=*/true,
+                  /*skip_intro_animation=*/true);
+        }
         selection_observer->DismissUI(
             GlicSelectionObserver::DismissReason::kActionTaken);
       }
@@ -1182,6 +1190,14 @@ void SelectionOverlayController::ExecuteSuggestedAction(
       }
       matched_suggestion->Execute(std::move(channel));
       return;
+  }
+}
+
+void SelectionOverlayController::OpenSettings() {
+  Close();
+  if (BrowserWindowInterface* browser = tab_->GetBrowserWindowInterface()) {
+    chrome::ShowContentSettingsExceptions(browser,
+                                          ContentSettingsType::INLINE_CUE_MENU);
   }
 }
 

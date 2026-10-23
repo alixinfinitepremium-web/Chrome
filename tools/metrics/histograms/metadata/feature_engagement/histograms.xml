@@ -104,7 +104,7 @@ chromium-metrics-reviews@google.com.
                Google Wallet passses"/>
   <variant name="IPH_AutofillAmbientAutofillSpiiDisclaimer"
       summary="educating users about verifying sensitive personal context
-               suggestions filled via Ambient Autofill on Android"/>
+               suggestions filled via Ambient Autofill"/>
   <variant name="IPH_AutofillAtMemory"
       summary="message shown when users copy/paste a value from another tab
                educating them that they can use the Autofill AtMemory feature
@@ -249,6 +249,8 @@ chromium-metrics-reviews@google.com.
       summary="Desktop NTP contextual search"/>
   <variant name="IPH_DesktopSharedHighlighting"
       summary="Sharing links with highlighted text"/>
+  <variant name="IPH_Dictation"
+      summary="Dictation IPH shown next to a focused text field"/>
   <variant name="IPH_DiscardRing" summary="Discard ring for tabs"/>
   <variant name="IPH_DownloadEsbPromo" summary="download ESB promo"/>
   <variant name="IPH_DownloadHome" summary="download home"/>

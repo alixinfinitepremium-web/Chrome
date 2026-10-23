@@ -829,6 +829,21 @@
             ]
         }
     ],
+    "AndroidSwapPressureTabDiscard": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled_20261023",
+                    "enable_features": [
+                        "AndroidSwapPressureTabDiscard"
+                    ]
+                }
+            ]
+        }
+    ],
     "AndroidSwipeToSwitchPane": [
         {
             "platforms": [
@@ -18014,6 +18029,27 @@
             ]
         }
     ],
+    "UseAutomaticSyncTokenManagement": [
+        {
+            "platforms": [
+                "android",
+                "android_webview",
+                "chromeos",
+                "ios",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "UseAutomaticSyncTokenManagement"
+                    ]
+                }
+            ]
+        }
+    ],
     "UseFrameIntervalDeciderAdaptiveFrameRate": [
         {
             "platforms": [
@@ -19543,24 +19579,6 @@
                         "WebUISplitTabsButton",
                         "WebUIToolbarFrameEvictionOptOut",
                         "WebiumMetricsMapping"
-                    ]
-                }
-            ]
-        }
-    ],
-    "WebUIRoundedIcons": [
-        {
-            "platforms": [
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "WebUIRoundedIcons"
                     ]
                 }
             ]

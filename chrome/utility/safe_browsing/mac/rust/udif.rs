@@ -6,12 +6,20 @@
 //!
 //! Rust port of `chrome/utility/safe_browsing/mac/udif.{h,cc}`.
 
+chromium::import! {
+    "//chrome/utility/safe_browsing/mac:dmg_decompress";
+}
+
+use std::cmp;
 use std::collections::BTreeMap;
+use std::io::{self, Read, Seek, SeekFrom};
 use std::mem::size_of;
 
 use base64::engine::general_purpose::STANDARD as BASE64_STANDARD;
 use base64::Engine as _;
 use bytemuck::{Pod, Zeroable};
+use dmg_decompress::decompress_bz2;
+use flate2::{Decompress, FlushDecompress, Status};
 use static_assertions::const_assert_eq;
 use xml::reader::{EventReader, ParserConfig, XmlEvent};
 
@@ -43,6 +51,37 @@ const UDIF_BLOCK_CHUNK_SIZE: usize = 40;
 
 /// Maximum XML nesting depth permitted when parsing the `blkx` plist.
 const MAX_PLIST_DEPTH: usize = 32;
+
+/// Maximum allowed decompressed size for a single chunk (128 MB), defending
+/// against decompression bombs. While C++ enforces no maximum chunk size, real
+/// UDIF chunks are typically <= ~1 MB, so this cap solely rejects malicious
+/// or corrupt inputs.
+pub const MAX_CHUNK_DECOMPRESSED_SIZE: u64 = 128 * 1024 * 1024;
+
+/// Maximum allowed compressed size for a single chunk (128 MB). Real UDIF
+/// chunks are typically <= ~1 MB, so this cap solely rejects malicious or
+/// corrupt inputs.
+pub const MAX_CHUNK_COMPRESSED_SIZE: u64 = 128 * 1024 * 1024;
+
+/// Decompresses zlib-compressed chunk data into `out` using flate2 (pure-Rust
+/// miniz_oxide backend). If the stream ends before filling `out`, the
+/// remaining bytes are left untouched (the caller pre-zeroes `out`, matching
+/// C++). Fails if the stream does not end within `out.len()` bytes or is
+/// corrupt/truncated.
+fn decompress_zlib(compressed: &[u8], out: &mut [u8]) -> io::Result<()> {
+    let mut decompressor = Decompress::new(/* zlib_header= */ true);
+    let status =
+        decompressor.decompress(compressed, out, FlushDecompress::Finish).map_err(|e| {
+            io::Error::new(io::ErrorKind::InvalidData, format!("zlib decompression failed: {e}"))
+        })?;
+    if status != Status::StreamEnd {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            format!("zlib stream did not end within the chunk ({status:?})"),
+        ));
+    }
+    Ok(())
+}
 
 /// Errors that can occur when parsing a UDIF image.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -148,7 +187,7 @@ impl UdifResourceFile {
 /// values and unrecognized chunk types) are valid for `bytemuck::Pod`.
 #[repr(transparent)]
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Pod, Zeroable)]
-pub struct UdifBlockChunkType(u32);
+pub struct UdifBlockChunkType(pub u32);
 
 impl UdifBlockChunkType {
     pub const ZERO_FILL: Self = Self(0x0000_0000);
@@ -160,8 +199,28 @@ impl UdifBlockChunkType {
     pub const COMMENT: Self = Self(0x7fff_fffe);
     pub const LAST_BLOCK: Self = Self(0xffff_ffff);
 
+    pub const fn new(val: u32) -> Self {
+        Self(val)
+    }
+
+    pub const fn value(self) -> u32 {
+        self.0
+    }
+
     fn convert_from_big_endian(self) -> Self {
         Self(u32::from_be(self.0))
+    }
+}
+
+impl From<u32> for UdifBlockChunkType {
+    fn from(val: u32) -> Self {
+        Self(val)
+    }
+}
+
+impl From<UdifBlockChunkType> for u32 {
+    fn from(val: UdifBlockChunkType) -> Self {
+        val.0
     }
 }
 
@@ -191,6 +250,536 @@ impl UdifBlockChunk {
             compressed_offset: u64::from_be(self.compressed_offset),
             compressed_length: u64::from_be(self.compressed_length),
         }
+    }
+}
+
+/// Stream reader for a single UDIF block chunk, performing lazy decompression
+/// if needed.
+pub struct UdifBlockChunkReadStream {
+    stream: SharedStream,
+    block_size: u16,
+    chunk: UdifBlockChunk,
+    length_in_bytes: u64,
+    offset: u64,
+    decompress_buffer: Option<Vec<u8>>,
+}
+
+impl UdifBlockChunkReadStream {
+    /// Creates a new `UdifBlockChunkReadStream` for reading data from `chunk`.
+    pub fn new(stream: SharedStream, block_size: u16, chunk: &UdifBlockChunk) -> io::Result<Self> {
+        if block_size == 0 {
+            return Err(io::Error::new(io::ErrorKind::InvalidInput, "block_size must be positive"));
+        }
+
+        let chunk = *chunk;
+        let chunk_type = chunk.chunk_type;
+        let sector_count = chunk.sector_count;
+        let compressed_offset = chunk.compressed_offset;
+        let compressed_length = chunk.compressed_length;
+
+        let length_in_bytes = sector_count.checked_mul(block_size as u64).ok_or_else(|| {
+            io::Error::new(
+                io::ErrorKind::InvalidData,
+                "Chunk sector count * block_size overflows u64",
+            )
+        })?;
+
+        let is_compressed = matches!(
+            chunk_type,
+            UdifBlockChunkType::COMPRESS_ZLIB | UdifBlockChunkType::COMPRESS_BZ2
+        );
+
+        if is_compressed {
+            compressed_offset.checked_add(compressed_length).ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    "Chunk compressed_offset + compressed_length overflows u64",
+                )
+            })?;
+
+            if length_in_bytes > MAX_CHUNK_DECOMPRESSED_SIZE {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    format!(
+                        "Chunk decompressed size {length_in_bytes} exceeds cap {MAX_CHUNK_DECOMPRESSED_SIZE}"
+                    ),
+                ));
+            }
+
+            if compressed_length > MAX_CHUNK_COMPRESSED_SIZE {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    format!(
+                        "Chunk compressed size {compressed_length} exceeds cap {MAX_CHUNK_COMPRESSED_SIZE}"
+                    ),
+                ));
+            }
+        } else if chunk_type == UdifBlockChunkType::UNCOMPRESSED {
+            compressed_offset.checked_add(length_in_bytes).ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    "Chunk compressed_offset + length_in_bytes overflows u64",
+                )
+            })?;
+        }
+
+        Ok(Self { stream, block_size, chunk, length_in_bytes, offset: 0, decompress_buffer: None })
+    }
+
+    /// Returns whether the chunk stream has reached the end of the chunk.
+    pub fn is_at_end(&self) -> bool {
+        self.offset >= self.length_in_bytes
+    }
+
+    /// Returns the logical uncompressed length of the chunk in bytes.
+    pub fn length_in_bytes(&self) -> u64 {
+        self.length_in_bytes
+    }
+
+    /// Returns the current byte offset within this chunk.
+    pub fn offset(&self) -> u64 {
+        self.offset
+    }
+
+    /// Reads the compressed payload bytes for this chunk from the backing
+    /// stream.
+    fn read_compressed_data(&self) -> io::Result<Vec<u8>> {
+        let stream_len = self.stream.stream_len()?;
+        let compressed_offset = self.chunk.compressed_offset;
+        let compressed_length = self.chunk.compressed_length;
+        let compressed_end = compressed_offset.checked_add(compressed_length).ok_or_else(|| {
+            io::Error::new(io::ErrorKind::InvalidData, "Chunk compressed offset + length overflows")
+        })?;
+        if compressed_end > stream_len {
+            return Err(io::Error::new(
+                io::ErrorKind::UnexpectedEof,
+                format!(
+                    "Chunk compressed data range {compressed_offset}..{compressed_end} exceeds stream length {stream_len}"
+                ),
+            ));
+        }
+
+        let mut compressed = vec![0u8; compressed_length as usize];
+        self.stream.read_exact_at(compressed_offset, &mut compressed)?;
+        Ok(compressed)
+    }
+
+    /// Ensures that decompression buffer is populated and returns a slice of
+    /// decompressed data.
+    fn ensure_decompressed(&mut self) -> io::Result<&[u8]> {
+        if let Some(ref decompressed) = self.decompress_buffer {
+            return Ok(decompressed.as_slice());
+        }
+
+        let compressed = self.read_compressed_data()?;
+        let mut decompressed = vec![0u8; self.length_in_bytes as usize];
+        let chunk_type = self.chunk.chunk_type;
+        match chunk_type {
+            UdifBlockChunkType::COMPRESS_ZLIB => {
+                decompress_zlib(&compressed, &mut decompressed)?;
+            }
+            UdifBlockChunkType::COMPRESS_BZ2 => {
+                decompress_bz2(&compressed, &mut decompressed)?;
+            }
+            _ => {
+                return Err(io::Error::new(io::ErrorKind::InvalidInput, "chunk is not compressed"));
+            }
+        }
+        Ok(self.decompress_buffer.insert(decompressed).as_slice())
+    }
+}
+
+impl Read for UdifBlockChunkReadStream {
+    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+        let chunk_type = self.chunk.chunk_type;
+        if self.offset >= self.length_in_bytes || chunk_type == UdifBlockChunkType::LAST_BLOCK {
+            return Ok(0);
+        }
+
+        let avail = self.length_in_bytes - self.offset;
+        let to_read = cmp::min(buf.len() as u64, avail) as usize;
+        if to_read == 0 {
+            return Ok(0);
+        }
+
+        match chunk_type {
+            UdifBlockChunkType::ZERO_FILL | UdifBlockChunkType::IGNORED => {
+                buf[..to_read].fill(0);
+                self.offset += to_read as u64;
+                Ok(to_read)
+            }
+            UdifBlockChunkType::UNCOMPRESSED => {
+                let compressed_offset = self.chunk.compressed_offset;
+                let seek_offset = compressed_offset
+                    .checked_add(self.offset)
+                    .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "Offset overflow"))?;
+                let bytes_read = self.stream.read_at(seek_offset, &mut buf[..to_read])?;
+                if bytes_read == 0 && to_read > 0 {
+                    return Err(io::Error::new(
+                        io::ErrorKind::UnexpectedEof,
+                        "Unexpected EOF while reading uncompressed chunk from underlying stream",
+                    ));
+                }
+                self.offset += bytes_read as u64;
+                Ok(bytes_read)
+            }
+            UdifBlockChunkType::COMPRESS_ZLIB | UdifBlockChunkType::COMPRESS_BZ2 => {
+                let start = self.offset as usize;
+                let end = start + to_read;
+                let decompressed = self.ensure_decompressed()?;
+                buf[..to_read].copy_from_slice(&decompressed[start..end]);
+                self.offset += to_read as u64;
+                Ok(to_read)
+            }
+            UdifBlockChunkType::COMPRESS_ADC => {
+                Err(io::Error::new(io::ErrorKind::Unsupported, "ADC compression not supported"))
+            }
+            UdifBlockChunkType::COMMENT => {
+                Err(io::Error::new(io::ErrorKind::InvalidData, "Cannot read from a Comment chunk"))
+            }
+            UdifBlockChunkType::LAST_BLOCK => Ok(0),
+            other => Err(io::Error::new(
+                io::ErrorKind::Unsupported,
+                format!("Unsupported UDIF chunk type: 0x{:08x}", other.0),
+            )),
+        }
+    }
+}
+
+impl Seek for UdifBlockChunkReadStream {
+    fn seek(&mut self, pos: SeekFrom) -> io::Result<u64> {
+        if pos == SeekFrom::Current(0) {
+            return Ok(self.offset);
+        }
+
+        let target_offset = match pos {
+            SeekFrom::Start(n) => Some(n),
+            SeekFrom::Current(n) => self.offset.checked_add_signed(n),
+            SeekFrom::End(n) => self.length_in_bytes.checked_add_signed(n),
+        }
+        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "Seek offset out of range"))?;
+
+        if target_offset > self.length_in_bytes {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                format!(
+                    "Seek offset {target_offset} exceeds chunk length {}",
+                    self.length_in_bytes
+                ),
+            ));
+        }
+
+        self.offset = target_offset;
+        Ok(self.offset)
+    }
+}
+
+impl std::fmt::Debug for UdifBlockChunkReadStream {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let chunk = self.chunk;
+        f.debug_struct("UdifBlockChunkReadStream")
+            .field("block_size", &self.block_size)
+            .field("chunk", &chunk)
+            .field("length_in_bytes", &self.length_in_bytes)
+            .field("offset", &self.offset)
+            .finish()
+    }
+}
+
+pub struct UdifPartitionReadStream {
+    stream: SharedStream,
+    block_size: u16,
+    /// Mapped chunks with `sector_count > 0`, sorted and non-overlapping
+    /// (validated in `new`). `LastBlock` and empty chunks are dropped.
+    chunks: Vec<UdifBlockChunk>,
+    total_length_in_bytes: u64,
+    current_chunk_idx: usize,
+    active_chunk_stream: Option<UdifBlockChunkReadStream>,
+    virtual_offset: u64,
+}
+
+impl UdifPartitionReadStream {
+    /// Creates a new `UdifPartitionReadStream` validating the chunk table for
+    /// sorted start sectors, non-overlapping boundaries, and bounds within
+    /// `total_sector_count`.
+    ///
+    /// # Intentional strictness differences from C++:
+    /// - Unsorted or overlapping chunks are strictly rejected as errors (C++
+    ///   only `DLOG`s warnings).
+    /// - Sectors not covered by any chunk (unmapped gaps) return errors on read
+    ///   and seek (C++ joins chunks sequentially on `Read`).
+    /// - Chunks appearing after a `LastBlock` chunk are rejected.
+    // TODO(crbug.com/575525008): Verify against
+    // chrome/test/data/safe_browsing/dmg fixtures once UdifParser::parse()
+    // lands; relax to match C++ if any fixture fails.
+    pub fn new(
+        stream: SharedStream,
+        block_size: u16,
+        chunks: &[UdifBlockChunk],
+        total_sector_count: u64,
+    ) -> io::Result<Self> {
+        if block_size == 0 {
+            return Err(io::Error::new(io::ErrorKind::InvalidInput, "block_size must be positive"));
+        }
+
+        let total_length_in_bytes =
+            total_sector_count.checked_mul(block_size as u64).ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    "Total sector count * block_size overflows u64",
+                )
+            })?;
+
+        // Validate chunks are sorted by start_sector, non-overlapping, and
+        // within bounds.
+        let mut prev_end_sector = 0u64;
+        let mut saw_last_block = false;
+
+        for (i, chunk) in chunks.iter().enumerate() {
+            if saw_last_block {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    format!("Chunk at index {i} appears after LastBlock"),
+                ));
+            }
+
+            if { chunk.chunk_type } == UdifBlockChunkType::LAST_BLOCK {
+                saw_last_block = true;
+                continue;
+            }
+
+            if { chunk.start_sector } < prev_end_sector {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    format!(
+                        "Chunks not sorted or overlapping at index {i}: start_sector {} < previous end_sector {prev_end_sector}",
+                        { chunk.start_sector }
+                    ),
+                ));
+            }
+
+            let chunk_end =
+                { chunk.start_sector }.checked_add(chunk.sector_count).ok_or_else(|| {
+                    io::Error::new(io::ErrorKind::InvalidData, "Sector count overflow")
+                })?;
+
+            if chunk_end > total_sector_count {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    format!(
+                        "Chunk at index {i} end sector {chunk_end} exceeds partition total_sector_count {total_sector_count}"
+                    ),
+                ));
+            }
+
+            prev_end_sector = chunk_end;
+        }
+
+        Ok(Self {
+            stream,
+            block_size,
+            chunks: chunks
+                .iter()
+                .copied()
+                .take_while(|c| { c.chunk_type } != UdifBlockChunkType::LAST_BLOCK)
+                .filter(|c| c.sector_count > 0)
+                .collect(),
+            total_length_in_bytes,
+            current_chunk_idx: 0,
+            active_chunk_stream: None,
+            virtual_offset: 0,
+        })
+    }
+
+    /// Returns the index of the chunk containing `sector`, or None if `sector`
+    /// falls in an unmapped gap. Relies on `self.chunks` being sorted,
+    /// non-overlapping and non-empty (see `new`).
+    fn find_chunk(&self, sector: u64) -> Option<usize> {
+        let idx = self.chunks.partition_point(|c| { c.start_sector } <= sector);
+        let i = idx.checked_sub(1)?;
+        let c = &self.chunks[i];
+        (sector < { c.start_sector } + { c.sector_count }).then_some(i)
+    }
+
+    /// Returns the byte offset of `virtual_offset` within chunk `chunk_idx`.
+    /// The chunk must contain `virtual_offset`. Cannot overflow or underflow:
+    /// `new` validated that every chunk lies within `total_sector_count`, and
+    /// `total_sector_count * block_size` fits in `u64`.
+    fn intra_chunk_offset(&self, chunk_idx: usize, virtual_offset: u64) -> u64 {
+        virtual_offset - self.chunks[chunk_idx].start_sector * u64::from(self.block_size)
+    }
+}
+
+impl Read for UdifPartitionReadStream {
+    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+        if self.virtual_offset >= self.total_length_in_bytes {
+            return Ok(0);
+        }
+
+        let remaining_in_partition = self.total_length_in_bytes - self.virtual_offset;
+        let max_to_read = cmp::min(buf.len() as u64, remaining_in_partition) as usize;
+        let mut buf = &mut buf[..max_to_read];
+
+        let mut total_bytes_read = 0;
+
+        while !buf.is_empty() && self.virtual_offset < self.total_length_in_bytes {
+            let current_sector = self.virtual_offset / u64::from(self.block_size);
+
+            let is_in_active_chunk = self.active_chunk_stream.is_some()
+                && self.current_chunk_idx < self.chunks.len()
+                && {
+                    let chunk = &self.chunks[self.current_chunk_idx];
+                    current_sector >= { chunk.start_sector }
+                        && current_sector < { chunk.start_sector } + { chunk.sector_count }
+                };
+
+            if !is_in_active_chunk {
+                let chunk_idx = match self.find_chunk(current_sector) {
+                    Some(idx) => idx,
+                    None => {
+                        if total_bytes_read > 0 {
+                            break;
+                        }
+                        return Err(io::Error::new(
+                            io::ErrorKind::InvalidData,
+                            format!("Unmapped gap in partition at sector {current_sector}"),
+                        ));
+                    }
+                };
+                if self.active_chunk_stream.is_none() || self.current_chunk_idx != chunk_idx {
+                    self.current_chunk_idx = chunk_idx;
+                    self.active_chunk_stream = None;
+                }
+            }
+
+            let chunk = self.chunks[self.current_chunk_idx];
+            let intra_chunk_offset =
+                self.intra_chunk_offset(self.current_chunk_idx, self.virtual_offset);
+
+            let chunk_stream = match self.active_chunk_stream.take() {
+                Some(chunk_stream) => chunk_stream,
+                None => match UdifBlockChunkReadStream::new(
+                    self.stream.clone(),
+                    self.block_size,
+                    &chunk,
+                ) {
+                    Ok(chunk_stream) => chunk_stream,
+                    Err(e) => {
+                        // Per the `Read` contract, report bytes already read
+                        // instead of an error; the error surfaces on the next
+                        // call.
+                        if total_bytes_read > 0 {
+                            break;
+                        }
+                        return Err(e);
+                    }
+                },
+            };
+            let chunk_stream = self.active_chunk_stream.insert(chunk_stream);
+            if chunk_stream.offset() != intra_chunk_offset
+                && let Err(e) = chunk_stream.seek(SeekFrom::Start(intra_chunk_offset))
+            {
+                if total_bytes_read > 0 {
+                    break;
+                }
+                return Err(e);
+            }
+
+            let bytes_read = match chunk_stream.read(buf) {
+                Ok(n) => n,
+                Err(e) => {
+                    if total_bytes_read > 0 {
+                        break;
+                    }
+                    return Err(e);
+                }
+            };
+
+            // `buf` is non-empty and the chunk stream is positioned strictly
+            // inside the chunk, so reading zero bytes is an unexpected EOF.
+            if bytes_read == 0 {
+                if total_bytes_read > 0 {
+                    break;
+                }
+                return Err(io::Error::new(
+                    io::ErrorKind::UnexpectedEof,
+                    "Unexpected EOF while reading chunk",
+                ));
+            }
+
+            total_bytes_read += bytes_read;
+            self.virtual_offset += bytes_read as u64;
+            buf = &mut buf[bytes_read..];
+            if chunk_stream.is_at_end() {
+                self.active_chunk_stream = None;
+            }
+        }
+
+        Ok(total_bytes_read)
+    }
+}
+
+impl Seek for UdifPartitionReadStream {
+    fn seek(&mut self, pos: SeekFrom) -> io::Result<u64> {
+        if pos == SeekFrom::Current(0) {
+            return Ok(self.virtual_offset);
+        }
+
+        let target_offset = match pos {
+            SeekFrom::Start(n) => Some(n),
+            SeekFrom::Current(n) => self.virtual_offset.checked_add_signed(n),
+            SeekFrom::End(n) => self.total_length_in_bytes.checked_add_signed(n),
+        }
+        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "Seek offset out of range"))?;
+
+        if target_offset > self.total_length_in_bytes {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                format!(
+                    "Seek offset {target_offset} exceeds partition length {}",
+                    self.total_length_in_bytes
+                ),
+            ));
+        }
+
+        // Seeking exactly to EOF
+        if target_offset == self.total_length_in_bytes {
+            self.active_chunk_stream = None;
+            self.current_chunk_idx = self.chunks.len();
+            self.virtual_offset = target_offset;
+            return Ok(target_offset);
+        }
+
+        let target_sector = target_offset / u64::from(self.block_size);
+
+        let chunk_idx = self.find_chunk(target_sector).ok_or_else(|| {
+            io::Error::new(
+                io::ErrorKind::InvalidInput,
+                format!("Target sector {target_sector} is in an unmapped gap"),
+            )
+        })?;
+
+        let chunk = self.chunks[chunk_idx];
+        let intra_chunk_offset = self.intra_chunk_offset(chunk_idx, target_offset);
+
+        // Reuse the active chunk stream when staying within the same chunk.
+        // Otherwise only replace it once the new stream has been positioned,
+        // so a failed seek leaves the previous state intact.
+        match self.active_chunk_stream.as_mut() {
+            Some(chunk_stream) if self.current_chunk_idx == chunk_idx => {
+                chunk_stream.seek(SeekFrom::Start(intra_chunk_offset))?;
+            }
+            _ => {
+                let mut chunk_stream =
+                    UdifBlockChunkReadStream::new(self.stream.clone(), self.block_size, &chunk)?;
+                chunk_stream.seek(SeekFrom::Start(intra_chunk_offset))?;
+                self.active_chunk_stream = Some(chunk_stream);
+                self.current_chunk_idx = chunk_idx;
+            }
+        }
+
+        self.virtual_offset = target_offset;
+        Ok(target_offset)
     }
 }
 
@@ -368,6 +957,16 @@ impl UdifBlock {
 
     pub fn chunks(&self) -> &[UdifBlockChunk] {
         self.chunks.as_slice()
+    }
+
+    pub fn new_for_testing(sector_count: u64, chunks: Vec<UdifBlockChunk>) -> Self {
+        Self {
+            signature: UDIF_BLOCK_DATA_SIGNATURE,
+            version: UDIF_BLOCK_DATA_VERSION,
+            start_sector: 0,
+            sector_count,
+            chunks,
+        }
     }
 
     fn log_debug(&self, partition_name: &str) {
@@ -839,8 +1438,18 @@ impl UdifParser {
     /// Returns a virtualized stream over the decompressed partition data, or
     /// `None` if `part_number` is out of range.
     pub fn partition_read_stream(&self, part_number: usize) -> Option<Box<dyn ReadSeek>> {
-        // TODO(https://crbug.com/575525008): Return `UdifPartitionReadStream` wrapping `self.stream`.
-        let _ = part_number;
-        None
+        let block = self.blocks.get(part_number)?;
+        let stream = UdifPartitionReadStream::new(
+            self.stream.clone(),
+            self.block_size,
+            block.chunks(),
+            block.sector_count(),
+        )
+        .ok()?;
+        Some(Box::new(stream))
+    }
+
+    pub fn with_blocks(stream: SharedStream, block_size: u16, blocks: Vec<UdifBlock>) -> Self {
+        Self { stream, partition_names: Vec::new(), blocks, block_size, signature_blob: Vec::new() }
     }
 }

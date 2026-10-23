@@ -5994,6 +5994,14 @@
       status: "stable",
     },
     {
+      // Opens the <select> picker when clicking an associated <label> element.
+      // https://issues.chromium.org/issues/565410880
+      // Enabled in M157 and can be removed in M160.
+      name: "SelectLabelClickOpensPicker",
+      status: "stable",
+      depends_on: ["CleanUpActivationBehavior"],
+    },
+    {
       // This sets the background-color of the body inside of the
       // appearance:auto select popup for windows/linux to Canvas to avoid a
       // situation with unreadable text in the popup.
@@ -8000,6 +8008,7 @@
       // if XSLT is enabled (e.g. reverse origin trial or CAP alerts).
       // https://crbug.com/441911594
       name: "XMLParsingRust",
+      status: "experimental",
     },
     {
       // Enables the Rust XML parser for situations where we know

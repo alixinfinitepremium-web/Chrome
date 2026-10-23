@@ -77,6 +77,9 @@ BASE_FEATURE(kIPHDesktopCustomizeChromeAutoOpenFeature,
 BASE_FEATURE(kIPHDesktopRealboxContextualSearchFeature,
              "IPH_DesktopRealboxContextualSearchFeature",
              base::FEATURE_ENABLED_BY_DEFAULT);
+BASE_FEATURE(kIPHDictationFeature,
+             "IPH_Dictation",
+             base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kIPHDiscardRingFeature,
              "IPH_DiscardRing",
              base::FEATURE_ENABLED_BY_DEFAULT);
@@ -421,8 +424,6 @@ BASE_FEATURE(kIPHAimActivationHint,
 BASE_FEATURE(kIPH_AndroidTipsOptInPromo, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kIPH_AppLanguagePromo, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kIPH_ArchivedTabsAutoDeletePromo,
-             base::FEATURE_ENABLED_BY_DEFAULT);
-BASE_FEATURE(kIPH_AutofillAmbientAutofillSpiiDisclaimer,
              base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kIPH_BlueBubbleCooldownGroup, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kIPH_FullscreenSigninPromo, base::FEATURE_ENABLED_BY_DEFAULT);
@@ -1068,6 +1069,8 @@ BASE_FEATURE(kIPHAutofillAccountNameEmailSuggestionFeature,
              base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kIPHAutofillAiValuablesFeature,
              "IPH_AutofillAiValuables",
+             base::FEATURE_ENABLED_BY_DEFAULT);
+BASE_FEATURE(kIPH_AutofillAmbientAutofillSpiiDisclaimer,
              base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kIPHAutofillVirtualCardCVCSuggestionFeature,
              "IPH_AutofillVirtualCardCVCSuggestion",

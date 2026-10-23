@@ -180,10 +180,14 @@ class CORE_EXPORT GridLanesLayoutAlgorithm
       std::optional<SizingConstraint> sizing_constraint = std::nullopt,
       GridLanesDataVector* out_grid_lanes = nullptr,
       GridLanesGapGeometryState* out_gap_geometry_state = nullptr);
+  // Lays out the items in `grid_lanes` for the current fragment.
+  // `total_intrinsic_block_size` is the intrinsic block size of the complete,
+  // unfragmented container; it is updated if column items expand as a result of
+  // fragmentation.
   void PlaceGridLanesItemsForFragmentation(
       const GridLanesDataVector& grid_lanes,
       const GridLayoutSubtree& layout_subtree,
-      LayoutUnit total_intrinsic_block_size);
+      LayoutUnit* total_intrinsic_block_size);
 
   void SetReadingFlowNodes(const GridItems& grid_items,
                            const GridLanesDataVector& grid_lanes);
@@ -222,16 +226,15 @@ class CORE_EXPORT GridLanesLayoutAlgorithm
   // its stretched stacking-axis size. `builder_child_index` indexes the item's
   // fragment in the container builder.
   ConstraintSpace CreateConstraintSpaceForStretch(
-      const GridLanesRunningPositions::AlignmentCandidate& candidate,
+      const AlignmentCandidate& candidate,
       wtf_size_t builder_child_index);
 
   // Re-lays out a single item with stretch alignment in the stacking axis to
   // fill the track opening after it. `builder_child_index` indexes the item's
   // fragment in the container builder.
-  void RelayoutStackingAxisStretchItem(
-      const GridLanesRunningPositions::AlignmentCandidate& candidate,
-      wtf_size_t builder_child_index,
-      LogicalOffset item_offset);
+  void RelayoutStackingAxisStretchItem(const AlignmentCandidate& candidate,
+                                       wtf_size_t builder_child_index,
+                                       LogicalOffset item_offset);
 
   // Computes and applies stacking axis alignment offsets, and relayouts items
   // that are stretch aligned with their stretched size. Track openings must
