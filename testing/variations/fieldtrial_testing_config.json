@@ -13989,21 +13989,6 @@
             ]
         }
     ],
-    "PictureInPictureMovesToolbarAndroid": [
-        {
-            "platforms": [
-                "android"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "PictureInPictureMovesToolbarAndroid"
-                    ]
-                }
-            ]
-        }
-    ],
     "PinExtensionJourney": [
         {
             "platforms": [
@@ -14965,6 +14950,24 @@
                     },
                     "enable_features": [
                         "IPH_ReadAloudAppMenuFeature"
+                    ]
+                }
+            ]
+        }
+    ],
+    "ReadAnythingDistillationQualityEvaluation": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "ReadAnythingDistillationQualityEvaluation"
                     ]
                 }
             ]

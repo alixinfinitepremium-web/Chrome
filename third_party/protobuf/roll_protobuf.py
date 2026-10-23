@@ -2,7 +2,7 @@
 # Copyright 2026 The Chromium Authors
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-"""Verifies that //third_party/protobuf is upstream plus patches/*.patch.
+"""Verifies //third_party/protobuf and sizes rolls to new upstream versions.
 
 Chromium embeds upstream protobuf in //third_party/protobuf. Local changes
 are applied to src/ and python/, and also recorded as top-level
@@ -16,13 +16,19 @@ Subcommands:
   check: Applies patches/*.patch in sorted order to the upstream commit on
     README.chromium's 'Revision:' line and verifies that the result matches
     //third_party/protobuf, modulo known Chromium exceptions.
+  plan --to <tag or commit>: Dry run of a roll in temporary repositories
+    (https://crbug.com/568074498). Replays every patch onto the target with
+    `git apply -3`, classifies it (see PatchReplayStatus), and lists upstream
+    library files added or removed between the two versions.
 
-Exit codes: 0 when all checks passed, 1 when verification failed or an error
-occurred, 2 for invalid usage (argparse).
+Exit codes: 0 when the command succeeded (for `plan`, whatever the per-patch
+classification), 1 when verification failed or an error occurred, 2 for
+invalid usage (argparse).
 """
 
 from collections.abc import Collection, Iterable, Sequence
 import argparse
+import collections
 import dataclasses
 import enum
 import filecmp
@@ -36,8 +42,11 @@ import sys
 import tarfile
 import tempfile
 
+import check_file_lists
+
 _PROTOBUF_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 _README_FILENAME = 'README.chromium'
+_UPSTREAM_FILE_LISTS_PATH = 'src/file_lists.cmake'
 _REQUESTED_REVISION_REF = 'refs/protobuf-roll/requested'
 UPSTREAM_REPOSITORY_URL = 'https://github.com/protocolbuffers/protobuf.git'
 EXIT_CODE_SUCCESS = 0
@@ -878,15 +887,203 @@ def ApplyChainPatchThreeWay(
                       'utf-8', errors='replace').strip())
 
 
+@dataclasses.dataclass(frozen=True)
+class RollPlan:
+    """Dry-run result of rolling //third_party/protobuf to a new version."""
+
+    old_revision: str  # README.chromium's Revision.
+    old_commit: str
+    new_revision: str  # As passed to `plan --to`.
+    new_commit: str
+    patch_results: tuple[PatchReplayResult, ...]  # In patches/ order.
+    # Preimage blobs copied into the replay repository; a roll in the
+    # checkout copies the same blobs into Chromium's object store.
+    copied_blob_count: int
+    # Upstream library files added or removed that GN does not follow yet, or
+    # None if either version lacks src/file_lists.cmake.
+    file_lists_diff: check_file_lists.FileListsDiff | None
+
+    def CountPatchesByStatus(self) -> dict[PatchReplayStatus, int]:
+        return dict(
+            collections.Counter(patch_result.status
+                                for patch_result in self.patch_results))
+
+    def ToDictionary(self) -> dict[str, object]:
+        return {
+            'old_revision':
+            self.old_revision,
+            'old_commit':
+            self.old_commit,
+            'new_revision':
+            self.new_revision,
+            'new_commit':
+            self.new_commit,
+            'patch_counts': {
+                status.value: count
+                for status, count in self.CountPatchesByStatus().items()
+            },
+            'patches':
+            [result.ToDictionary() for result in self.patch_results],
+            'copied_blob_count':
+            self.copied_blob_count,
+            'file_lists': (self.file_lists_diff.ToDictionary()
+                           if self.file_lists_diff is not None else None),
+        }
+
+
+def _ComputeUpstreamFileListsDiff(
+        protobuf_directory: str, patch_chain: PatchChain,
+        replay_directory: str) -> check_file_lists.FileListsDiff | None:
+    """Diffs src/file_lists.cmake of old and new upstream against GN.
+
+    The new tree is the replay repository after the CLEAN patches, so files a
+    patch adds are on disk and do not show up as removed.
+    """
+    old_cmake = _RunScratchGit(
+        patch_chain.repository_directory,
+        'show',
+        f'{patch_chain.base_commit}:{_UPSTREAM_FILE_LISTS_PATH}',
+        accepted_return_codes=(0, 128))
+    new_cmake_path = os.path.join(replay_directory,
+                                  *_UPSTREAM_FILE_LISTS_PATH.split('/'))
+    if old_cmake.returncode != 0 or not os.path.isfile(new_cmake_path):
+        return None
+    with open(new_cmake_path, encoding='utf-8') as new_cmake_file:
+        new_cmake_text = new_cmake_file.read()
+    return check_file_lists.ComputeFileListsDiff(
+        old_cmake_text=old_cmake.stdout.decode('utf-8'),
+        new_cmake_text=new_cmake_text,
+        chromium_gn_files=check_file_lists.ReadChromiumGnSourceFiles(
+            protobuf_directory),
+        new_tree_directory=replay_directory)
+
+
+def PlanRoll(to_revision: str,
+             protobuf_directory: str = _PROTOBUF_DIRECTORY,
+             upstream_repository_path: str | None = None,
+             cache_directory: str | None = None,
+             build_directory: str | None = None,
+             upstream_url: str = UPSTREAM_REPOSITORY_URL) -> RollPlan:
+    """Sizes a roll to to_revision without touching the checkout.
+
+    Builds the patch chain on README.chromium's Revision and replays it onto
+    to_revision in a second scratch repository, all in a temporary directory.
+    CLEAN patches are committed and every other patch is skipped (reset), so
+    later patches are measured against new upstream plus CLEAN patches only.
+    Taking the patch side of conflicts instead gave the same classification
+    for all 24 patches in the prototype (https://crbug.com/568074498), and
+    skipping invents no content. The other arguments are as for
+    EnsureUpstreamCommitCached.
+    """
+    protobuf_directory = os.path.abspath(protobuf_directory)
+    upstream_arguments = (upstream_repository_path, cache_directory,
+                          build_directory, upstream_url)
+    old_revision = ReadReadmeRevision(protobuf_directory)
+    repository_path, old_commit = EnsureUpstreamCommitCached(
+        old_revision, *upstream_arguments)
+    _, new_commit = EnsureUpstreamCommitCached(to_revision,
+                                               *upstream_arguments)
+    with tempfile.TemporaryDirectory(
+            prefix='protobuf_roll_plan_') as temporary_directory:
+        patch_chain = BuildPatchChain(
+            repository_path, old_commit,
+            ListTopLevelPatchPaths(protobuf_directory),
+            os.path.join(temporary_directory, 'chain'))
+        replay_directory = os.path.join(temporary_directory, 'replay')
+        _CreateScratchRepository(repository_path, new_commit, replay_directory)
+        patch_results = []
+        copied_blob_count = 0
+        for chain_patch in patch_chain.patches:
+            copied_blob_count += len(
+                CopyPreimageBlobs(patch_chain.repository_directory,
+                                  replay_directory,
+                                  chain_patch.preimage_blobs.values()))
+            patch_result = ApplyChainPatchThreeWay(replay_directory,
+                                                   chain_patch)
+            if patch_result.status is PatchReplayStatus.CLEAN:
+                _RunScratchGit(replay_directory, 'commit', '--quiet',
+                               '--no-verify', '-m',
+                               f'Apply patches/{chain_patch.patch_name}')
+            else:
+                _RunScratchGit(replay_directory, 'reset', '--quiet', '--hard',
+                               'HEAD')
+                _RunScratchGit(replay_directory, 'clean', '-ffdxq')
+            patch_results.append(patch_result)
+        file_lists_diff = _ComputeUpstreamFileListsDiff(
+            protobuf_directory, patch_chain, replay_directory)
+    return RollPlan(old_revision, old_commit, to_revision, new_commit,
+                    tuple(patch_results), copied_blob_count, file_lists_diff)
+
+
+def _DescribePatchReplayResult(result: PatchReplayResult) -> str:
+    if result.status is PatchReplayStatus.CLEAN:
+        return (f'{result.changed_line_count_before} -> '
+                f'{result.changed_line_count_after} changed lines')
+    if result.status is PatchReplayStatus.EMPTY:
+        return 'already upstream'
+    if result.status is PatchReplayStatus.CONFLICT:
+        # `git apply -3` writes no conflict markers into binary files.
+        return ', '.join(
+            f'{conflicted.path} ({conflicted.conflict_region_count} region(s))'
+            if conflicted.conflict_region_count else
+            f'{conflicted.path} (no conflict markers, binary?)'
+            for conflicted in result.conflicted_files)
+    if result.status is PatchReplayStatus.MISSING_FILE:
+        return ('not in new upstream (renamed or deleted?): ' +
+                ', '.join(result.missing_files))
+    return result.error_message or 'git apply failed'
+
+
+def FormatRollPlanReport(roll_plan: RollPlan) -> str:
+    status_width = max(len(status.value) for status in PatchReplayStatus)
+    lines = [
+        f'Plan for rolling //third_party/protobuf from '
+        f'{roll_plan.old_revision} to {roll_plan.new_revision} '
+        f'({roll_plan.new_commit}):', ''
+    ]
+    lines += [
+        f'  {result.status.value:<{status_width}}  {result.patch_name}: '
+        f'{_DescribePatchReplayResult(result)}'
+        for result in roll_plan.patch_results
+    ]
+    counts = roll_plan.CountPatchesByStatus()
+    count_summary = ', '.join(f'{counts[status]} {status.value}'
+                              for status in PatchReplayStatus
+                              if status in counts)
+    lines += [
+        '', f'{count_summary or "No patches"}; copied '
+        f'{roll_plan.copied_blob_count} preimage blob(s).', ''
+    ]
+    if roll_plan.file_lists_diff is None:
+        lines.append(f'Skipped the upstream file-list report: '
+                     f'{_UPSTREAM_FILE_LISTS_PATH} is missing from the old or '
+                     'new version.')
+    else:
+        lines.append(
+            check_file_lists.FormatFileListsDiffReport(
+                roll_plan.file_lists_diff))
+    return '\n'.join(lines)
+
+
 def main(command_line_arguments: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description='Verifies //third_party/protobuf against upstream plus '
-        'patches/*.patch.')
+        'patches/*.patch, and sizes rolls to new upstream versions.')
     subparsers = parser.add_subparsers(dest='subcommand', required=True)
     subparsers.add_parser(
         'check',
         help='Verify that upstream at README.chromium Revision plus '
         'patches/*.patch reproduces //third_party/protobuf.')
+    plan_parser = subparsers.add_parser(
+        'plan',
+        help='Dry run: classify every patch as CLEAN, EMPTY, CONFLICT or '
+        'MISSING_FILE on a new upstream version, without touching the '
+        'checkout.')
+    plan_parser.add_argument(
+        '--to',
+        required=True,
+        dest='to_revision',
+        help='Upstream tag or commit to plan the roll to (for example v37.0).')
     for subparser in subparsers.choices.values():
         subparser.add_argument(
             '-C',
@@ -927,10 +1124,19 @@ def main(command_line_arguments: Sequence[str] | None = None) -> int:
                           arguments.upstream_url)
 
     try:
-        result = CheckTreeMatchesPatchedUpstream(arguments.protobuf_directory,
-                                                 *upstream_arguments)
-        report = FormatTreeVerificationReport(result)
-        exit_code = EXIT_CODE_SUCCESS if result.IsClean() else EXIT_CODE_ERROR
+        if arguments.subcommand == 'plan':
+            result = PlanRoll(arguments.to_revision,
+                              arguments.protobuf_directory,
+                              *upstream_arguments)
+            report = FormatRollPlanReport(result)
+            # A plan with conflicts is what `plan` is for.
+            exit_code = EXIT_CODE_SUCCESS
+        else:
+            result = CheckTreeMatchesPatchedUpstream(
+                arguments.protobuf_directory, *upstream_arguments)
+            report = FormatTreeVerificationReport(result)
+            exit_code = (EXIT_CODE_SUCCESS
+                         if result.IsClean() else EXIT_CODE_ERROR)
         if arguments.should_output_json:
             report = json.dumps(result.ToDictionary(), indent=2)
         print(report)

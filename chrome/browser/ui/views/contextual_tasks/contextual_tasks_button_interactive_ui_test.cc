@@ -2448,6 +2448,33 @@ IN_PROC_BROWSER_TEST_F(
                            kContextualTasksEphemeralButtonRemoveForTaskMenuItem));
 }
 
+IN_PROC_BROWSER_TEST_F(
+    ContextualTasksEphemeralButtonCloseSidePanelContextMenuInteractiveTest,
+    RightClickWhenNotPinningEligibleHidesPinAndCustomizeOptions) {
+  RunTestSequence(
+      SignIntoEligibleAccount(), SetIsFuseboxEligible(false),
+      InstrumentTab(kFirstTab), AddInstrumentedTab(kSecondTab, GetTestURL()),
+      SelectTab(kTabStripElementId, 0),
+      EnsureNotPresent(kContextualTasksEphemeralToolbarButtonElementId),
+      CreateTaskForTab(0), SimulateOpeningContextualTaskSidePanel(),
+      SimulateClosingContextualTaskSidePanel(),
+      WaitForShow(kContextualTasksEphemeralToolbarButtonElementId),
+      WithView(kContextualTasksEphemeralToolbarButtonElementId,
+               [](views::View* view) {
+                 view->GetWidget()->LayoutRootViewIfNecessary();
+               }),
+      MoveMouseTo(kContextualTasksEphemeralToolbarButtonElementId),
+      ClickMouse(ui_controls::RIGHT),
+      WaitForShow(ContextualTasksButton::
+                      kContextualTasksEphemeralButtonRemoveForTaskMenuItem),
+      EnsureNotPresent(kPinnedActionToolbarPinElementId),
+      EnsureNotPresent(kPinnedActionToolbarUnpinElementId),
+      EnsureNotPresent(kPinnedActionToolbarCustomizeElementId),
+      SelectMenuItem(ContextualTasksButton::
+                         kContextualTasksEphemeralButtonRemoveForTaskMenuItem),
+      WaitForHide(kContextualTasksEphemeralToolbarButtonElementId));
+}
+
 class ContextualTasksPinnedButtonActiveIndicatorInteractiveTest
     : public ContextualTasksEphemeralButtonPinningV2InteractiveTest {
  public:
@@ -2516,4 +2543,35 @@ IN_PROC_BROWSER_TEST_F(
       // Disassociate the task from Tab 0: active indicator should be cleared.
       RemoveTaskFromTab(0),
       Do([&]() { VerifyActiveIndicator(false); }));
+}
+
+IN_PROC_BROWSER_TEST_F(
+    ContextualTasksPinnedButtonActiveIndicatorInteractiveTest,
+    EphemeralButtonShowsActiveIndicatorAndDropShadow) {
+  RunTestSequence(
+      SignIntoEligibleAccount(), InstrumentTab(kFirstTab),
+      Do([&]() {
+        PinnedToolbarActionsModel::Get(browser()->GetProfile())
+            ->UpdatePinnedState(kActionSidePanelShowContextualTasks, false);
+      }),
+      CreateTaskForTab(0), SimulateOpeningContextualTaskSidePanel(),
+      WaitForShow(kContextualTasksEphemeralToolbarButtonElementId),
+      CheckView(
+          kContextualTasksEphemeralToolbarButtonElementId,
+          [](ContextualTasksButton* button) {
+            return button->GetStatusIndicatorForTesting() != nullptr &&
+                   button->GetStatusIndicatorForTesting()->GetVisible() &&
+                   button->GetDropShadowLayerForTesting() != nullptr;
+          },
+          true),
+      SimulateClosingContextualTaskSidePanel(),
+      WaitForShow(kContextualTasksEphemeralToolbarButtonElementId),
+      CheckView(
+          kContextualTasksEphemeralToolbarButtonElementId,
+          [](ContextualTasksButton* button) {
+            return button->GetStatusIndicatorForTesting() != nullptr &&
+                   button->GetStatusIndicatorForTesting()->GetVisible() &&
+                   button->GetDropShadowLayerForTesting() != nullptr;
+          },
+          true));
 }

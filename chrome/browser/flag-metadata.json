@@ -4731,11 +4731,6 @@
     "expiry_milestone": 160
   },
   {
-    "name": "enable-unicorn-chrome-activity-reporting",
-    "owners": [ "michaelcheco@google.com", "zhangwenyu@google.com" ],
-    "expiry_milestone": 150
-  },
-  {
     "name": "enable-unrestricted-usb",
     "owners": [ "deviceapi-team@google.com" ],
     "expiry_milestone": 166
@@ -7445,11 +7440,6 @@
     "expiry_milestone": 160
   },
   {
-    "name": "ntp-realbox-dynamic-ai-mode-button",
-    "owners": [ "caitc@google.com", "chrome-desktop-search@google.com" ],
-    "expiry_milestone": 160
-  },
-  {
     "name": "ntp-realbox-next",
     "owners": [ "romanarora@chromium.com", "chrome-desktop-ntp@google.com" ],
     "expiry_milestone": 160
@@ -7632,11 +7622,6 @@
   {
     "name": "omnibox-dui-prerendering",
     "owners": [ "robertlin@chromium.org", "chrome-prerendering@google.com" ],
-    "expiry_milestone": 160
-  },
-  {
-    "name": "omnibox-dynamic-ai-mode-button",
-    "owners": [ "caitc@google.com", "chrome-desktop-search@google.com" ],
     "expiry_milestone": 160
   },
   {

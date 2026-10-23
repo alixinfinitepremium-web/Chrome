@@ -24,6 +24,7 @@
 #include "chrome/browser/ui/browser_element_identifiers.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_features.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
+#include "chrome/browser/ui/color/chrome_color_id.h"
 #include "chrome/browser/ui/immersive/immersive_mode_controller.h"
 #include "chrome/browser/ui/layout_constants.h"
 #include "chrome/browser/ui/side_panel/side_panel_entry_id.h"
@@ -33,6 +34,7 @@
 #include "chrome/browser/ui/views/contextual_tasks/contextual_tasks_ephemeral_button_controller.h"
 #include "chrome/browser/ui/views/frame/browser_view.h"
 #include "chrome/browser/ui/views/toolbar/pinned_action_toolbar_button_menu_model.h"
+#include "chrome/browser/ui/views/toolbar/pinned_toolbar_button_status_indicator.h"
 #include "chrome/browser/ui/views/toolbar/toolbar_button.h"
 #include "chrome/browser/ui/views/toolbar/toolbar_ink_drop_util.h"
 #include "chrome/common/pref_names.h"
@@ -91,6 +93,13 @@ const float kFlatEdgeBottomRadius = 0.0f;
 
 // Margin to outset the background painted layer so the shadow is not clipped.
 const int kShadowOutset = 12;
+
+// Width of the status indicator shown across the button.
+constexpr int kStatusIndicatorWidth = 14;
+// Height of the status indicator shown across the button.
+constexpr int kStatusIndicatorHeight = 2;
+// Spacing between the button's icon and the status indicator.
+constexpr int kStatusIndicatorSpacing = 1;
 
 gfx::Insets GetPillShadowInsets(ContextualTasksButton::Shape shape) {
   gfx::Insets shadow_insets =
@@ -251,40 +260,7 @@ ContextualTasksButton::ContextualTasksButton(
           nullptr,
           /*trigger_menu_on_long_press=*/false),
       browser_window_interface_(browser_window_interface) {
-  if (auto* simple_menu_model =
-          static_cast<ui::SimpleMenuModel*>(menu_model())) {
-    const int close_label_id =
-        contextual_tasks::
-                ShouldUseCloseSidePanelForEphemeralButtonContextMenu()
-            ? IDS_CONTEXTUAL_TASKS_EPHEMERAL_BUTTON_CONTEXT_MENU_CLOSE
-            : IDS_CONTEXTUAL_TASKS_EPHEMERAL_BUTTON_CONTEXT_MENU_REMOVE;
-    simple_menu_model->AddItemWithStringIdAndIcon(
-        kCommandRemoveForCurrentTask, close_label_id,
-        ui::ImageModel::FromVectorIcon(
-            features::IsRoundedIconsEnabled() ? vector_icons::kCloseIcon
-                                              : vector_icons::kCloseOldIcon,
-            ui::kColorIcon, ui::SimpleMenuModel::kDefaultIconSize));
-    simple_menu_model->SetElementIdentifierAt(
-        0, kContextualTasksEphemeralButtonRemoveForTaskMenuItem);
-    simple_menu_model->AddSeparator(ui::NORMAL_SEPARATOR);
-
-    pinned_action_menu_model_ =
-        std::make_unique<PinnedActionToolbarButtonMenuModel>(
-            browser_window_interface_, kActionSidePanelShowContextualTasks);
-    constexpr std::pair<int, size_t> kPinnedMenuCommands[] = {
-        {kCommandPinToToolbar, kPinnedActionMenuPinIndex},
-        {kCommandUnpinFromToolbar, kPinnedActionMenuUnpinIndex},
-        {kCommandCustomizeToolbar, kPinnedActionMenuCustomizeIndex},
-    };
-    for (const auto& [command_id, index] : kPinnedMenuCommands) {
-      simple_menu_model->AddItemWithIcon(
-          command_id, pinned_action_menu_model_->GetLabelAt(index),
-          pinned_action_menu_model_->GetIconAt(index));
-      simple_menu_model->SetElementIdentifierAt(
-          simple_menu_model->GetItemCount() - 1,
-          pinned_action_menu_model_->GetElementIdentifierAt(index));
-    }
-  }
+  UpdateContextMenu();
   SetPaintToLayer();
   layer()->SetFillsBoundsOpaquely(false);
   // The contextual tasks button is ephemeral and starts hidden until an active
@@ -292,6 +268,10 @@ ContextualTasksButton::ContextualTasksButton(
   SetVisible(false);
   SetProperty(views::kElementIdentifierKey,
               kContextualTasksEphemeralToolbarButtonElementId);
+  status_indicator_ =
+      PinnedToolbarButtonStatusIndicator::Install(image_container_view());
+  status_indicator_->SetColorId(kColorToolbarActionItemEngaged,
+                                kColorToolbarButtonIconInactive);
   UpdateTooltipText();
 
   if (contextual_tasks::kShowEntryPoint.Get() ==
@@ -506,6 +486,11 @@ void ContextualTasksButton::OnShouldUpdatePosition() {
   }
 }
 
+bool ContextualTasksButton::ShouldShowMenu() {
+  UpdateContextMenu();
+  return ToolbarButton::ShouldShowMenu();
+}
+
 void ContextualTasksButton::UpdateColorsAndInsets() {
   ToolbarButton::UpdateColorsAndInsets();
 
@@ -552,6 +537,43 @@ void ContextualTasksButton::UpdateColorsAndInsets() {
   SetLayoutInsets(insets + *GetProperty(views::kInternalPaddingKey));
 
   UpdateDropShadow();
+  UpdateStatusIndicator();
+}
+
+void ContextualTasksButton::Layout(PassKey) {
+  LayoutSuperclass<ToolbarButton>(this);
+  if (!status_indicator_) {
+    return;
+  }
+  gfx::Rect status_rect(kStatusIndicatorWidth, kStatusIndicatorHeight);
+  const gfx::Rect image_container_bounds =
+      image_container_view()->GetLocalBounds();
+  const int new_x = image_container_bounds.x() +
+                    (image_container_bounds.width() - status_rect.width()) / 2;
+  const int new_y =
+      image_container_bounds.bottom() +
+      (features::IsRoundedIconsEnabled() ? 0 : kStatusIndicatorSpacing);
+  status_rect.set_origin(gfx::Point(new_x, new_y));
+  status_indicator_->SetBoundsRect(status_rect);
+}
+
+void ContextualTasksButton::UpdateIcon() {
+  const std::optional<VectorIcons>& icons = GetVectorIcons();
+  if (!icons.has_value() || !GetColorProvider()) {
+    return;
+  }
+  const gfx::VectorIcon& icon = ui::TouchUiController::Get()->touch_ui()
+                                    ? icons->touch_icon
+                                    : icons->icon;
+  if (contextual_tasks::
+          IsContextualTasksPinnedButtonActiveIndicatorEnabled()) {
+    const SkColor engaged_color =
+        GetColorProvider()->GetColor(kColorToolbarActionItemEngaged);
+    UpdateIconsWithColors(icon, engaged_color, engaged_color, engaged_color,
+                          GetForegroundColor(ButtonState::STATE_DISABLED));
+  } else {
+    ToolbarButton::UpdateIcon();
+  }
 }
 
 void ContextualTasksButton::OnViewLayerBoundsSet(views::View* observed_view) {
@@ -578,8 +600,9 @@ void ContextualTasksButton::RemoveLayerFromRegions(ui::Layer* old_layer) {
 bool ContextualTasksButton::IsCommandIdEnabled(int command_id) const {
   if (std::optional<size_t> index =
           GetPinnedActionMenuIndexForCommand(command_id);
-      index.has_value() && pinned_action_menu_model_) {
-    return pinned_action_menu_model_->IsEnabledAt(*index);
+      index.has_value()) {
+    return IsPinningEligible() && pinned_action_menu_model_ &&
+           pinned_action_menu_model_->IsEnabledAt(*index);
   }
   return true;
 }
@@ -587,8 +610,9 @@ bool ContextualTasksButton::IsCommandIdEnabled(int command_id) const {
 bool ContextualTasksButton::IsCommandIdVisible(int command_id) const {
   if (std::optional<size_t> index =
           GetPinnedActionMenuIndexForCommand(command_id);
-      index.has_value() && pinned_action_menu_model_) {
-    return pinned_action_menu_model_->IsVisibleAt(*index);
+      index.has_value()) {
+    return IsPinningEligible() && pinned_action_menu_model_ &&
+           pinned_action_menu_model_->IsVisibleAt(*index);
   }
   return true;
 }
@@ -612,7 +636,7 @@ void ContextualTasksButton::ExecuteCommand(int command_id, int event_flags) {
   }
   if (std::optional<size_t> index =
           GetPinnedActionMenuIndexForCommand(command_id);
-      index.has_value() && pinned_action_menu_model_) {
+      index.has_value() && IsPinningEligible() && pinned_action_menu_model_) {
     if (command_id == kCommandPinToToolbar) {
       base::RecordAction(base::UserMetricsAction(
           "ContextualTasks.EphemeralToolbarButton.UserAction."
@@ -631,7 +655,66 @@ void ContextualTasksButton::OnShouldUpdateVisibility(bool should_show) {
 }
 
 void ContextualTasksButton::OnEligibilityChange(bool is_eligible) {
+  UpdateContextMenu();
   MaybeUpdateVisibility();
+}
+
+bool ContextualTasksButton::IsPinningEligible() const {
+  return browser_window_interface_ &&
+         contextual_tasks::EntryPointEligibilityManager::IsPinningEligible(
+             browser_window_interface_->GetProfile());
+}
+
+void ContextualTasksButton::UpdateContextMenu() {
+  auto* simple_menu_model = static_cast<ui::SimpleMenuModel*>(menu_model());
+  if (!simple_menu_model) {
+    return;
+  }
+
+  const bool is_pinning_eligible = IsPinningEligible();
+  if (simple_menu_model->GetItemCount() > 0 &&
+      (simple_menu_model->GetItemCount() > 1) == is_pinning_eligible) {
+    return;
+  }
+
+  simple_menu_model->Clear();
+  const int close_label_id =
+      contextual_tasks::ShouldUseCloseSidePanelForEphemeralButtonContextMenu()
+          ? IDS_CONTEXTUAL_TASKS_EPHEMERAL_BUTTON_CONTEXT_MENU_CLOSE
+          : IDS_CONTEXTUAL_TASKS_EPHEMERAL_BUTTON_CONTEXT_MENU_REMOVE;
+  simple_menu_model->AddItemWithStringIdAndIcon(
+      kCommandRemoveForCurrentTask, close_label_id,
+      ui::ImageModel::FromVectorIcon(
+          features::IsRoundedIconsEnabled() ? vector_icons::kCloseIcon
+                                            : vector_icons::kCloseOldIcon,
+          ui::kColorIcon, ui::SimpleMenuModel::kDefaultIconSize));
+  simple_menu_model->SetElementIdentifierAt(
+      0, kContextualTasksEphemeralButtonRemoveForTaskMenuItem);
+
+  if (is_pinning_eligible) {
+    simple_menu_model->AddSeparator(ui::NORMAL_SEPARATOR);
+
+    if (!pinned_action_menu_model_) {
+      pinned_action_menu_model_ =
+          std::make_unique<PinnedActionToolbarButtonMenuModel>(
+              browser_window_interface_, kActionSidePanelShowContextualTasks);
+    }
+    constexpr std::pair<int, size_t> kPinnedMenuCommands[] = {
+        {kCommandPinToToolbar, kPinnedActionMenuPinIndex},
+        {kCommandUnpinFromToolbar, kPinnedActionMenuUnpinIndex},
+        {kCommandCustomizeToolbar, kPinnedActionMenuCustomizeIndex},
+    };
+    for (const auto& [command_id, index] : kPinnedMenuCommands) {
+      simple_menu_model->AddItemWithIcon(
+          command_id, pinned_action_menu_model_->GetLabelAt(index),
+          pinned_action_menu_model_->GetIconAt(index));
+      simple_menu_model->SetElementIdentifierAt(
+          simple_menu_model->GetItemCount() - 1,
+          pinned_action_menu_model_->GetElementIdentifierAt(index));
+    }
+  } else {
+    pinned_action_menu_model_.reset();
+  }
 }
 
 void ContextualTasksButton::OnSurfaceStateChanged(
@@ -775,6 +858,7 @@ void ContextualTasksButton::MaybeUpdateVisibility() {
     SetVisible(will_be_visible);
   }
   was_panel_open_ = controller->IsPanelOpen();
+  UpdateStatusIndicator();
   UpdateHighlight();
   UpdateTooltipText();
 }
@@ -928,6 +1012,19 @@ void ContextualTasksButton::UpdateDropShadowLayerBounds() {
   drop_shadow_painted_layer_->layer()->SetBounds(layer_bounds);
 }
 
+void ContextualTasksButton::UpdateStatusIndicator() {
+  if (!status_indicator_) {
+    return;
+  }
+  if (contextual_tasks::
+          IsContextualTasksPinnedButtonActiveIndicatorEnabled() &&
+      GetVisible()) {
+    status_indicator_->Show();
+  } else {
+    status_indicator_->Hide();
+  }
+}
+
 void ContextualTasksButton::AnimateShow() {
   UpdateDropShadow(/*force_paint=*/true, /*initial_opacity=*/0.0f);
   if (!layer()) {
@@ -962,18 +1059,24 @@ void ContextualTasksButton::ClearDropShadow() {
 }
 
 ui::ImageModel ContextualTasksButton::GetButtonImage() {
+  const bool use_active_indicator =
+      contextual_tasks::IsContextualTasksPinnedButtonActiveIndicatorEnabled();
+  const ui::ColorId icon_color_id =
+      use_active_indicator ? ui::ColorId{kColorToolbarActionItemEngaged}
+                           : ui::ColorId{ui::kColorIcon};
   if (contextual_tasks::ShouldUseSparkIconForPinButtons()) {
     return ui::ImageModel::FromVectorIcon(
         features::IsRoundedIconsEnabled() ? omnibox::kSearchSparkIcon
                                           : omnibox::kSearchSparkOldIcon,
-        ui::kColorIcon,
+        icon_color_id,
         GetShape() == Shape::kCircle ? GetIconSize()
                                      : kGLogoPillShapeIconSize);
   }
 #if BUILDFLAG(GOOGLE_CHROME_BRANDING)
-  if (contextual_tasks::ShouldUseSuperGIconForPinButtons() ||
-      contextual_tasks::kShowEntryPoint.Get() ==
-          contextual_tasks::EntryPointOption::kToolbarEphemeralBranded) {
+  if (!use_active_indicator &&
+      (contextual_tasks::ShouldUseSuperGIconForPinButtons() ||
+       contextual_tasks::kShowEntryPoint.Get() ==
+           contextual_tasks::EntryPointOption::kToolbarEphemeralBranded)) {
     return ui::ImageModel::FromImageSkia(
         *ui::ResourceBundle::GetSharedInstance().GetImageSkiaNamed(
             IDR_GOOGLE_G_GRADIENT_16_ALT));
@@ -986,7 +1089,7 @@ ui::ImageModel ContextualTasksButton::GetButtonImage() {
       features::IsRoundedIconsEnabled() ? kChromeProductIcon
                                         : kBrowserLogoOldIcon;
 #endif
-  return ui::ImageModel::FromVectorIcon(contextual_tasks_icon, ui::kColorIcon,
+  return ui::ImageModel::FromVectorIcon(contextual_tasks_icon, icon_color_id,
                                         GetShape() == Shape::kCircle
                                             ? GetIconSize()
                                             : kGLogoPillShapeIconSize);
