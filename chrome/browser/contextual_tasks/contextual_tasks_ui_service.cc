@@ -4,6 +4,7 @@
 
 #include "chrome/browser/contextual_tasks/contextual_tasks_ui_service.h"
 
+#include <algorithm>
 #include <optional>
 
 #include "base/command_line.h"
@@ -3330,6 +3331,11 @@ std::optional<GURL> ContextualTasksUiService::GetCreationUrlForTask(
   return std::nullopt;
 }
 
+void ContextualTasksUiService::SetInitialUrlForTask(const base::Uuid& task_id,
+                                                    const GURL& url) {
+  task_states_[task_id].creation_url = url;
+}
+
 void ContextualTasksUiService::AddPendingUrlCallback(
     const base::Uuid& task_id,
     base::OnceCallback<void(const GURL&)> callback) {
@@ -3420,6 +3426,22 @@ void ContextualTasksUiService::OnTaskChanged(
     if (old_task_id.has_value() && old_task_id->is_valid()) {
       tab_ids =
           contextual_tasks_service_->GetTabsAssociatedWithTask(*old_task_id);
+    }
+
+    // When scoped to the tab, only the active tab, where the thread was
+    // changed, moves to the new task. Other affiliated tabs keep their thread.
+    if (contextual_tasks::ShouldScopeSidePanelStateToTab()) {
+      TabListInterface* tab_list =
+          TabListInterface::From(browser_window_interface);
+      tabs::TabInterface* active_tab =
+          tab_list ? tab_list->GetActiveTab() : nullptr;
+      if (active_tab && active_tab->GetContents()) {
+        SessionID active_id =
+            SessionTabHelper::IdForTab(active_tab->GetContents());
+        if (tab_ids.empty() || std::ranges::contains(tab_ids, active_id)) {
+          tab_ids = {active_id};
+        }
+      }
     }
 
     // If old_task_id was unset or had no associated tabs (e.g. when opening the
@@ -3877,6 +3899,10 @@ bool ContextualTasksUiService::IsValidSearchResultsPage(const GURL& url) {
           !value.empty()) ||
          (net::GetValueForKeyInQuery(url, kLensModeKey, &value) &&
           !value.empty());
+}
+
+bool ContextualTasksUiService::IsRestorableSidePanelUrl(const GURL& url) {
+  return IsAiUrl(url) || IsValidSearchResultsPage(url);
 }
 
 bool ContextualTasksUiService::IsGoogleCaptchaUrl(const GURL& url) {

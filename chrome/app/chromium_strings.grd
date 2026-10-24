@@ -570,6 +570,11 @@ New bookmarks can’t be saved in your account until you delete some. If you sig
                     To get future Chromium updates, you'll need Windows 10 or later. This computer is using Windows 8.1.
         </message>
       </if>
+      <if expr="is_win">
+        <message name="IDS_WIN_10_PRE_1809_OBSOLETE" desc="A message displayed on an at-launch infobar and about:help warning the user that the computer they are using will soon be or is already unsupported.">
+          To get future Chromium updates, you'll need Windows 10 version 1809 or later. This computer is using an older version of Windows 10.
+        </message>
+      </if>
       <if expr="is_linux">
         <message name="IDS_LINUX_OBSOLETE" desc="A message displayed on an at-launch infobar and about:help warning the user that the OS version they are using is no longer supported.">
           Chromium may not function correctly because it is no longer supported on this Linux distribution
@@ -732,7 +737,7 @@ Chromium is unable to recover your settings.
           Can not install the same Chromium version that is currently running. Please close Chromium and try again.
         </message>
         <message name="IDS_INSTALL_OS_NOT_SUPPORTED" desc="Error displayed if OS is not supported">
-          Chromium requires Windows 10 or higher.
+          Chromium requires Windows 10 version 1809 or higher.
         </message>
         <message name="IDS_INSTALL_OS_ERROR" desc="Error displayed when any Windows API call fails and we do not have more specific information.">
           An operating system error occurred during installation. Please download Chromium again.
@@ -2112,6 +2117,14 @@ Chromium is unable to recover your settings.
           desc="The screen reader text of the IPH describing that the Contextual Tasks ephemeral toolbar button can be used to reopen Contextual Tasks."
           is_accessibility_with_no_ui="true">
           From the "Contextual Tasks" button on the toolbar, you can reopen Contextual Tasks to ask questions while you browse
+        </message>
+        <message name="IDS_CONTEXTUAL_TASKS_PINNED_ICON_CHANGED_IPH" desc="The body text of the one-time toast IPH informing users who previously pinned the Contextual Tasks shortcut that its toolbar icon has been updated.">
+          New icon, same shortcut: Click to ask questions as you browse with Contextual Tasks.
+        </message>
+        <message name="IDS_CONTEXTUAL_TASKS_PINNED_ICON_CHANGED_IPH_SCREENREADER"
+          desc="The screen reader text of the one-time toast IPH informing users who previously pinned the Contextual Tasks shortcut that its toolbar icon has been updated."
+          is_accessibility_with_no_ui="true">
+          The "Contextual Tasks" button on the toolbar has a new icon. Click it to ask questions as you browse with Contextual Tasks.
         </message>
         <message name="IDS_TUTORIAL_CONTEXTUAL_TASKS_STEP1" desc="The body text of the first step of the Contextual Tasks tutorial.">
           Open the overflow menu
@@ -3689,6 +3702,12 @@ If this page isn’t working as expected, try allowing optimization.
       <message name="IDS_CONTEXTUAL_TASKS_EPHEMERAL_BUTTON_CONTEXT_MENU_CLOSE" desc="The label of the context menu item for removing the contextual tasks ephemeral toolbar button and closing the side panel.">
         Close side panel
       </message>
+      <message name="IDS_CONTEXTUAL_TASKS_EPHEMERAL_BUTTON_CONTEXT_MENU_DISMISS_ACTIVE_SEARCH" desc="The label of the context menu item for dismissing the active search and removing the contextual tasks ephemeral toolbar button when the side panel is closed.">
+        Dismiss active search
+      </message>
+      <message name="IDS_CONTEXTUAL_TASKS_EPHEMERAL_BUTTON_CONTEXT_MENU_DISMISS_ACTIVE_SEARCH_IN_TAB" desc="The label of the context menu item for dismissing the active search in the current tab and removing the contextual tasks ephemeral toolbar button when the side panel is closed.">
+        Dismiss active search in this tab
+      </message>
 
       <!-- Enterprise device signals disclaimer -->
       <message name="IDS_ENTERPRISE_DEVICE_SIGNALS_DISCLAIMER_TITLE" desc="Title of an enterprise device signals collection disclaimer modal dialog. The dialog is shown on Chrome startup to managed Chrome users who have not previously acknowledged device signals collection.">
@@ -3696,6 +3715,9 @@ If this page isn’t working as expected, try allowing optimization.
       </message>
       <message name="IDS_ENTERPRISE_DEVICE_SIGNALS_DISCLAIMER_SUBTITLE" desc="Subtitle of an enterprise device signals collection disclaimer modal dialog. The dialog is shown on Chrome startup to managed Chrome users who have not previously acknowledged device signals collection.">
         To secure your work on Chromium, your organization will be able to view or manage certain information when you’re signed-in to Chromium.
+      </message>
+      <message name="IDS_CONTEXTUAL_TASKS_MENU_SIGN_IN_TO_CHROME" desc="The 'Sign in to Chromium' option in the Contextual Tasks 3-dot overflow menu shown when the user is signed out.">
+        Sign in to Chromium
       </message>
     </messages>
   </release>

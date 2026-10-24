@@ -4,7 +4,10 @@
 
 #include "chrome/browser/contextual_tasks/contextual_tasks_side_panel_coordinator.h"
 
+#include <map>
 #include <memory>
+#include <set>
+#include <string>
 
 #include "base/memory/raw_ptr.h"
 #include "base/metrics/field_trial.h"
@@ -18,6 +21,7 @@
 #include "chrome/browser/contextual_tasks/contextual_tasks_eligibility_manager.h"
 #include "chrome/browser/contextual_tasks/contextual_tasks_permission_controller.h"
 #include "chrome/browser/contextual_tasks/contextual_tasks_service_factory.h"
+#include "chrome/browser/contextual_tasks/contextual_tasks_tab_restore_data.h"
 #include "chrome/browser/contextual_tasks/contextual_tasks_ui_service.h"
 #include "chrome/browser/contextual_tasks/contextual_tasks_ui_service_factory.h"
 #include "chrome/browser/contextual_tasks/mock_contextual_tasks_panel_host.h"
@@ -109,7 +113,14 @@ class MockContextualTasksUiService : public ContextualTasksUiService {
             nullptr,
             aim_eligibility_service,
             /*eligibility_manager=*/nullptr,
-            /*cookie_synchronizer=*/nullptr) {}
+            /*cookie_synchronizer=*/nullptr) {
+    // Restore only AI pages in the side panel by default. Checking other pages,
+    // like search results, needs an `AimEligibilityService`.
+    ON_CALL(*this, IsRestorableSidePanelUrl(_))
+        .WillByDefault([this](const GURL& url) {
+          return ContextualTasksUiService::IsAiUrl(url);
+        });
+  }
   ~MockContextualTasksUiService() override = default;
 
   bool IsAiUrl(const GURL& url) override {
@@ -152,6 +163,7 @@ class MockContextualTasksUiService : public ContextualTasksUiService {
                    initiator_frame_token,
                const blink::mojom::WindowFeatures& window_features),
               (override));
+  MOCK_METHOD(bool, IsRestorableSidePanelUrl, (const GURL& url), (override));
 };
 
 class MockActiveTaskContextProvider : public ActiveTaskContextProvider {
@@ -439,6 +451,58 @@ class ContextualTasksSidePanelCoordinatorTest : public testing::Test {
   }
 #endif
 
+  // Makes the mock service keep track of tab associations, so that the
+  // coordinator sees them change. Only tasks in `existing_tasks_` can be
+  // associated with tabs.
+  void TrackTabAssociations() {
+    ON_CALL(*mock_controller_, GetContextualTaskForTab(_))
+        .WillByDefault(
+            [this](SessionID tab_id) -> std::optional<ContextualTask> {
+              auto it = tab_to_task_.find(tab_id);
+              if (it == tab_to_task_.end()) {
+                return std::nullopt;
+              }
+              return ContextualTask(it->second);
+            });
+    ON_CALL(*mock_controller_, GetTabsAssociatedWithTask(_))
+        .WillByDefault([this](const base::Uuid& task_id) {
+          std::vector<SessionID> tab_ids;
+          for (const auto& [tab_id, associated_task_id] : tab_to_task_) {
+            if (associated_task_id == task_id) {
+              tab_ids.push_back(tab_id);
+            }
+          }
+          return tab_ids;
+        });
+    ON_CALL(*mock_controller_, AssociateTabWithTask(_, _))
+        .WillByDefault([this](const base::Uuid& task_id, SessionID tab_id) {
+          if (existing_tasks_.contains(task_id)) {
+            tab_to_task_[tab_id] = task_id;
+          }
+        });
+  }
+
+  // Attaches the side panel state saved when a tab was closed to `tab`, as if
+  // it was reopened from recently closed tabs.
+  void SetTabRestoreData(tabs::TabInterface* tab,
+                         const base::Uuid& task_id,
+                         const GURL& thread_url) {
+    ContextualTasksTabRestoreData::RestoreFromExtraData(
+        tab->GetContents(),
+        {{ContextualTasksTabRestoreData::kTaskIdKey,
+          task_id.AsLowercaseString()},
+         {ContextualTasksTabRestoreData::kThreadUrlKey, thread_url.spec()}});
+  }
+
+  void SetPanelClosedOnTab(tabs::TabInterface* tab) {
+    coordinator_->tabs_with_closed_panel_.insert(tab->GetHandle());
+  }
+
+  MockContextualTasksUiService* GetMockUiService() {
+    return static_cast<MockContextualTasksUiService*>(
+        ContextualTasksUiServiceFactory::GetForBrowserContext(profile_.get()));
+  }
+
  protected:
   content::BrowserTaskEnvironment task_environment_;
   content::RenderViewHostTestEnabler rvh_test_enabler_;
@@ -470,6 +534,10 @@ class ContextualTasksSidePanelCoordinatorTest : public testing::Test {
   std::vector<std::unique_ptr<content::WebContents>> web_contents_list_;
   std::vector<std::unique_ptr<ui::UnownedUserDataHost>>
       mock_tab_user_data_hosts_;
+
+  // Used by `TrackTabAssociations()`.
+  std::map<SessionID, base::Uuid> tab_to_task_;
+  std::set<base::Uuid> existing_tasks_;
 };
 
 TEST_F(ContextualTasksSidePanelCoordinatorTest,
@@ -1009,6 +1077,530 @@ TEST_F(ContextualTasksSidePanelCoordinatorTest,
 
   SetActiveTab(tab_a);
   EXPECT_FALSE(ShouldBeOpen());
+}
+
+TEST_F(ContextualTasksSidePanelCoordinatorTest,
+       OnTaskChanged_ScopedToTab_RebuildsPanelForOtherTabs) {
+  base::test::ScopedFeatureList feature_list(kContextualTasksSidePanelTabState);
+
+  ContextualTask old_task(base::Uuid::GenerateRandomV4());
+  ContextualTask new_task(base::Uuid::GenerateRandomV4());
+  tabs::TabInterface* tab_a = tab_list_->GetActiveTab();
+  tabs::TabInterface* tab_b = CreateMockTab();
+  SessionID tab_a_id =
+      sessions::SessionTabHelper::IdForTab(tab_a->GetContents());
+  SessionID tab_b_id =
+      sessions::SessionTabHelper::IdForTab(tab_b->GetContents());
+
+  // The thread was changed on tab B, so only tab B moves to the new task.
+  ON_CALL(*mock_controller_, GetContextualTaskForTab(tab_a_id))
+      .WillByDefault(Return(old_task));
+  ON_CALL(*mock_controller_, GetContextualTaskForTab(tab_b_id))
+      .WillByDefault(Return(new_task));
+  ON_CALL(*mock_controller_, GetTabsAssociatedWithTask(old_task.GetTaskId()))
+      .WillByDefault(Return(std::vector<SessionID>{tab_a_id}));
+  ON_CALL(*mock_controller_, GetTabsAssociatedWithTask(new_task.GetTaskId()))
+      .WillByDefault(Return(std::vector<SessionID>{tab_b_id}));
+
+  CreateCachedWebContentsForTesting(old_task.GetTaskId(), /*is_open=*/true);
+  content::WebContents* panel_contents =
+      GetWebContentsForTaskForTesting(old_task.GetTaskId());
+  SetActiveTab(tab_b);
+  coordinator_->OnTaskChanged(panel_contents, new_task.GetTaskId());
+
+  // The panel WebContents moves to the new task with tab B, and tab A's panel
+  // is recreated for its thread right away, so that it's ready when tab A
+  // becomes active.
+  EXPECT_EQ(panel_contents,
+            GetWebContentsForTaskForTesting(new_task.GetTaskId()));
+  content::WebContents* rebuilt_contents =
+      GetWebContentsForTaskForTesting(old_task.GetTaskId());
+  ASSERT_TRUE(rebuilt_contents);
+  EXPECT_NE(panel_contents, rebuilt_contents);
+
+  SetActiveTab(tab_a);
+  coordinator_->OnActiveTabChanged(*tab_list_, tab_a);
+  EXPECT_EQ(rebuilt_contents, coordinator_->GetActiveWebContents());
+  EXPECT_TRUE(ShouldBeOpen());
+}
+
+TEST_F(ContextualTasksSidePanelCoordinatorTest,
+       OnTaskChanged_ScopedToTab_PanelClosedOnOtherTabs_WaitsToRebuildPanel) {
+  base::test::ScopedFeatureList feature_list(kContextualTasksSidePanelTabState);
+
+  ContextualTask old_task(base::Uuid::GenerateRandomV4());
+  ContextualTask new_task(base::Uuid::GenerateRandomV4());
+  tabs::TabInterface* tab_a = tab_list_->GetActiveTab();
+  tabs::TabInterface* tab_b = CreateMockTab();
+  SessionID tab_a_id =
+      sessions::SessionTabHelper::IdForTab(tab_a->GetContents());
+  SessionID tab_b_id =
+      sessions::SessionTabHelper::IdForTab(tab_b->GetContents());
+  ON_CALL(*mock_controller_, GetContextualTaskForTab(tab_a_id))
+      .WillByDefault(Return(old_task));
+  ON_CALL(*mock_controller_, GetContextualTaskForTab(tab_b_id))
+      .WillByDefault(Return(new_task));
+  ON_CALL(*mock_controller_, GetTabsAssociatedWithTask(old_task.GetTaskId()))
+      .WillByDefault(Return(std::vector<SessionID>{tab_a_id}));
+  ON_CALL(*mock_controller_, GetTabsAssociatedWithTask(new_task.GetTaskId()))
+      .WillByDefault(Return(std::vector<SessionID>{tab_b_id}));
+
+  CreateCachedWebContentsForTesting(old_task.GetTaskId(), /*is_open=*/true);
+  content::WebContents* panel_contents =
+      GetWebContentsForTaskForTesting(old_task.GetTaskId());
+  SetPanelClosedOnTab(tab_a);
+  SetActiveTab(tab_b);
+  coordinator_->OnTaskChanged(panel_contents, new_task.GetTaskId());
+
+  // Tab A closed the panel, so its panel isn't recreated until it's reopened.
+  EXPECT_EQ(0u, GetNumberOfActiveTasksForTesting(old_task.GetTaskId()));
+  SetActiveTab(tab_a);
+  coordinator_->OnActiveTabChanged(*tab_list_, tab_a);
+  EXPECT_EQ(0u, GetNumberOfActiveTasksForTesting(old_task.GetTaskId()));
+  EXPECT_FALSE(ShouldBeOpen());
+}
+
+TEST_F(ContextualTasksSidePanelCoordinatorTest,
+       OnTaskChanged_TabStateDisabled_DoesNotRebuildPanel) {
+  base::test::ScopedFeatureList feature_list;
+  feature_list.InitAndDisableFeature(kContextualTasksSidePanelTabState);
+
+  ContextualTask old_task(base::Uuid::GenerateRandomV4());
+  ContextualTask new_task(base::Uuid::GenerateRandomV4());
+  tabs::TabInterface* tab_a = tab_list_->GetActiveTab();
+  tabs::TabInterface* tab_b = CreateMockTab();
+  SessionID tab_a_id =
+      sessions::SessionTabHelper::IdForTab(tab_a->GetContents());
+  SessionID tab_b_id =
+      sessions::SessionTabHelper::IdForTab(tab_b->GetContents());
+  ON_CALL(*mock_controller_, GetContextualTaskForTab(tab_a_id))
+      .WillByDefault(Return(old_task));
+  ON_CALL(*mock_controller_, GetContextualTaskForTab(tab_b_id))
+      .WillByDefault(Return(new_task));
+  ON_CALL(*mock_controller_, GetTabsAssociatedWithTask(old_task.GetTaskId()))
+      .WillByDefault(Return(std::vector<SessionID>{tab_a_id}));
+  ON_CALL(*mock_controller_, GetTabsAssociatedWithTask(new_task.GetTaskId()))
+      .WillByDefault(Return(std::vector<SessionID>{tab_b_id}));
+
+  CreateCachedWebContentsForTesting(old_task.GetTaskId(), /*is_open=*/true);
+  content::WebContents* panel_contents =
+      GetWebContentsForTaskForTesting(old_task.GetTaskId());
+  SetActiveTab(tab_b);
+  coordinator_->OnTaskChanged(panel_contents, new_task.GetTaskId());
+
+  SetActiveTab(tab_a);
+  coordinator_->OnActiveTabChanged(*tab_list_, tab_a);
+  EXPECT_EQ(0u, GetNumberOfActiveTasksForTesting(old_task.GetTaskId()));
+}
+
+TEST_F(ContextualTasksSidePanelCoordinatorTest,
+       OnTaskChanged_ScopedToTab_Rearchitecture_RebuildsPanelWithThreadUrl) {
+  base::test::ScopedFeatureList feature_list;
+  feature_list.InitWithFeatures({kContextualTasksSidePanelTabState,
+                                 kContextualTasksSidePanelRearchitecture},
+                                {});
+
+  ContextualTask old_task(base::Uuid::GenerateRandomV4());
+  ContextualTask new_task(base::Uuid::GenerateRandomV4());
+  tabs::TabInterface* tab_a = tab_list_->GetActiveTab();
+  tabs::TabInterface* tab_b = CreateMockTab();
+  SessionID tab_a_id =
+      sessions::SessionTabHelper::IdForTab(tab_a->GetContents());
+  SessionID tab_b_id =
+      sessions::SessionTabHelper::IdForTab(tab_b->GetContents());
+  ON_CALL(*mock_controller_, GetContextualTaskForTab(tab_a_id))
+      .WillByDefault(Return(old_task));
+  ON_CALL(*mock_controller_, GetContextualTaskForTab(tab_b_id))
+      .WillByDefault(Return(new_task));
+  ON_CALL(*mock_controller_, GetTabsAssociatedWithTask(old_task.GetTaskId()))
+      .WillByDefault(Return(std::vector<SessionID>{tab_a_id}));
+  ON_CALL(*mock_controller_, GetTabsAssociatedWithTask(new_task.GetTaskId()))
+      .WillByDefault(Return(std::vector<SessionID>{tab_b_id}));
+  const GURL thread_url("https://www.google.com/search?udm=50&mtid=thread1");
+  ON_CALL(*mock_controller_,
+          GetThreadUrlFromTaskId(old_task.GetTaskId(), _, _, _))
+      .WillByDefault([thread_url](const base::Uuid&, const std::string&,
+                                  omnibox::ChromeAimEntryPoint,
+                                  base::OnceCallback<void(GURL)> callback) {
+        std::move(callback).Run(thread_url);
+      });
+
+  // The panel shows the old task's WebContents when the thread is changed.
+  CreateCachedWebContentsForTesting(old_task.GetTaskId(), /*is_open=*/true);
+  content::WebContents* panel_contents =
+      GetWebContentsForTaskForTesting(old_task.GetTaskId());
+  UpdateWebContentsForActiveTab();
+  ASSERT_EQ(panel_contents, coordinator_->GetActiveWebContents());
+  SetActiveTab(tab_b);
+  coordinator_->OnTaskChanged(panel_contents, new_task.GetTaskId());
+
+  // The panel WebContents moves to the new task with tab B, and tab A's panel
+  // is recreated right away and loads its thread directly.
+  EXPECT_EQ(panel_contents,
+            GetWebContentsForTaskForTesting(new_task.GetTaskId()));
+  content::WebContents* rebuilt_contents =
+      GetWebContentsForTaskForTesting(old_task.GetTaskId());
+  ASSERT_TRUE(rebuilt_contents);
+  EXPECT_NE(panel_contents, rebuilt_contents);
+  std::string thread_id;
+  EXPECT_TRUE(net::GetValueForKeyInQuery(rebuilt_contents->GetVisibleURL(),
+                                         "mtid", &thread_id));
+  EXPECT_EQ("thread1", thread_id);
+
+  SetActiveTab(tab_a);
+  coordinator_->OnActiveTabChanged(*tab_list_, tab_a);
+  EXPECT_EQ(rebuilt_contents, coordinator_->GetActiveWebContents());
+  EXPECT_TRUE(ShouldBeOpen());
+}
+
+TEST_F(ContextualTasksSidePanelCoordinatorTest,
+       MoveActiveTabToNewThreadIfShared_MovesOnlyActiveTab) {
+  base::test::ScopedFeatureList feature_list(kContextualTasksSidePanelTabState);
+
+  ContextualTask task(base::Uuid::GenerateRandomV4());
+  ContextualTask new_task(base::Uuid::GenerateRandomV4());
+  tabs::TabInterface* tab_a = tab_list_->GetActiveTab();
+  tabs::TabInterface* tab_b = CreateMockTab();
+  SessionID tab_a_id =
+      sessions::SessionTabHelper::IdForTab(tab_a->GetContents());
+  SessionID tab_b_id =
+      sessions::SessionTabHelper::IdForTab(tab_b->GetContents());
+
+  // Track the tab associations so that the coordinator sees tab B move.
+  std::map<SessionID, base::Uuid> tab_to_task = {{tab_a_id, task.GetTaskId()},
+                                                 {tab_b_id, task.GetTaskId()}};
+  ON_CALL(*mock_controller_, GetContextualTaskForTab(_))
+      .WillByDefault(
+          [&tab_to_task](SessionID tab_id) -> std::optional<ContextualTask> {
+            auto it = tab_to_task.find(tab_id);
+            if (it == tab_to_task.end()) {
+              return std::nullopt;
+            }
+            return ContextualTask(it->second);
+          });
+  ON_CALL(*mock_controller_, GetTabsAssociatedWithTask(_))
+      .WillByDefault([&tab_to_task](const base::Uuid& task_id) {
+        std::vector<SessionID> tab_ids;
+        for (const auto& [tab_id, associated_task_id] : tab_to_task) {
+          if (associated_task_id == task_id) {
+            tab_ids.push_back(tab_id);
+          }
+        }
+        return tab_ids;
+      });
+  ON_CALL(*mock_controller_, DisassociateTabFromTask(_, _))
+      .WillByDefault(
+          [&tab_to_task](const base::Uuid& task_id, SessionID tab_id) {
+            tab_to_task.erase(tab_id);
+          });
+  ON_CALL(*mock_controller_, AssociateTabWithTask(_, _))
+      .WillByDefault(
+          [&tab_to_task](const base::Uuid& task_id, SessionID tab_id) {
+            tab_to_task[tab_id] = task_id;
+          });
+  ON_CALL(*mock_controller_, CreateTask()).WillByDefault(Return(new_task));
+
+  CreateCachedWebContentsForTesting(task.GetTaskId(), /*is_open=*/true);
+  content::WebContents* panel_contents =
+      GetWebContentsForTaskForTesting(task.GetTaskId());
+  SetActiveTab(tab_b);
+  UpdateWebContentsForActiveTab();
+
+  EXPECT_TRUE(coordinator_->MoveActiveTabToNewThreadIfShared());
+
+  // Tab B moves to the new task with its own panel `WebContents`, while tab A
+  // keeps the existing panel `WebContents` and its thread.
+  EXPECT_EQ(new_task.GetTaskId(), tab_to_task[tab_b_id]);
+  EXPECT_EQ(task.GetTaskId(), tab_to_task[tab_a_id]);
+  content::WebContents* new_panel_contents =
+      GetWebContentsForTaskForTesting(new_task.GetTaskId());
+  ASSERT_TRUE(new_panel_contents);
+  EXPECT_NE(panel_contents, new_panel_contents);
+  EXPECT_EQ(new_panel_contents, coordinator_->GetActiveWebContents());
+  EXPECT_EQ(panel_contents, GetWebContentsForTaskForTesting(task.GetTaskId()));
+}
+
+TEST_F(ContextualTasksSidePanelCoordinatorTest,
+       MoveActiveTabToNewThreadIfShared_PanelClosedOnActiveTab_ReturnsFalse) {
+  base::test::ScopedFeatureList feature_list;
+  feature_list.InitWithFeaturesAndParameters(
+      {{kContextualTasksSidePanelTabState, {}},
+       {kContextualTasksEphemeralBrandedEntryPoint,
+        {{"ContextualTasksEntryPoint", "toolbar-ephemeral-branded"}}}},
+      {});
+
+  ContextualTask task(base::Uuid::GenerateRandomV4());
+  tabs::TabInterface* tab_a = tab_list_->GetActiveTab();
+  tabs::TabInterface* tab_b = CreateMockTab();
+  ON_CALL(*mock_controller_, GetContextualTaskForTab(_))
+      .WillByDefault(Return(task));
+  ON_CALL(*mock_controller_, GetTabsAssociatedWithTask(task.GetTaskId()))
+      .WillByDefault(Return(std::vector<SessionID>{
+          sessions::SessionTabHelper::IdForTab(tab_a->GetContents()),
+          sessions::SessionTabHelper::IdForTab(tab_b->GetContents())}));
+  CreateCachedWebContentsForTesting(task.GetTaskId(), /*is_open=*/true);
+  SetActiveTab(tab_b);
+  UpdateWebContentsForActiveTab();
+  coordinator_->Close();
+  ASSERT_FALSE(ShouldBeOpen());
+
+  EXPECT_CALL(*mock_controller_, DisassociateTabFromTask(_, _)).Times(0);
+  EXPECT_CALL(*mock_controller_, CreateTask()).Times(0);
+
+  EXPECT_FALSE(coordinator_->MoveActiveTabToNewThreadIfShared());
+  EXPECT_FALSE(ShouldBeOpen());
+}
+
+TEST_F(ContextualTasksSidePanelCoordinatorTest,
+       MoveActiveTabToNewThreadIfShared_NotShared_ReturnsFalse) {
+  base::test::ScopedFeatureList feature_list(kContextualTasksSidePanelTabState);
+
+  ContextualTask task(base::Uuid::GenerateRandomV4());
+  tabs::TabInterface* tab_a = tab_list_->GetActiveTab();
+  ON_CALL(*mock_controller_, GetContextualTaskForTab(_))
+      .WillByDefault(Return(task));
+  ON_CALL(*mock_controller_, GetTabsAssociatedWithTask(task.GetTaskId()))
+      .WillByDefault(Return(std::vector<SessionID>{
+          sessions::SessionTabHelper::IdForTab(tab_a->GetContents())}));
+  CreateCachedWebContentsForTesting(task.GetTaskId(), /*is_open=*/true);
+
+  EXPECT_CALL(*mock_controller_, DisassociateTabFromTask(_, _)).Times(0);
+  EXPECT_CALL(*mock_controller_, CreateTask()).Times(0);
+
+  EXPECT_FALSE(coordinator_->MoveActiveTabToNewThreadIfShared());
+}
+
+TEST_F(ContextualTasksSidePanelCoordinatorTest,
+       GetTabRestoreData_PanelOpen_SavesTask) {
+  base::test::ScopedFeatureList feature_list(kContextualTasksSidePanelTabState);
+
+  ContextualTask task(base::Uuid::GenerateRandomV4());
+  ON_CALL(*mock_controller_, GetContextualTaskForTab(_))
+      .WillByDefault(Return(task));
+  CreateCachedWebContentsForTesting(task.GetTaskId(), /*is_open=*/true);
+
+  std::map<std::string, std::string> data =
+      coordinator_->GetTabRestoreData(tab_list_->GetActiveTab());
+  EXPECT_EQ(task.GetTaskId().AsLowercaseString(),
+            data[ContextualTasksTabRestoreData::kTaskIdKey]);
+}
+
+TEST_F(ContextualTasksSidePanelCoordinatorTest,
+       GetTabRestoreData_Rearchitecture_SavesThreadUrl) {
+  base::test::ScopedFeatureList feature_list;
+  feature_list.InitWithFeatures({kContextualTasksSidePanelTabState,
+                                 kContextualTasksSidePanelRearchitecture},
+                                {});
+
+  ContextualTask task(base::Uuid::GenerateRandomV4());
+  ON_CALL(*mock_controller_, GetContextualTaskForTab(_))
+      .WillByDefault(Return(task));
+  CreateCachedWebContentsForTesting(task.GetTaskId(), /*is_open=*/true);
+  const GURL thread_url("https://g.ai/search?udm=50&mtid=thread1");
+  content::NavigationSimulator::NavigateAndCommitFromBrowser(
+      GetWebContentsForTaskForTesting(task.GetTaskId()), thread_url);
+
+  // The rearchitecture panel shows the thread's AI page directly.
+  std::map<std::string, std::string> data =
+      coordinator_->GetTabRestoreData(tab_list_->GetActiveTab());
+  EXPECT_EQ(task.GetTaskId().AsLowercaseString(),
+            data[ContextualTasksTabRestoreData::kTaskIdKey]);
+  EXPECT_EQ(thread_url.spec(),
+            data[ContextualTasksTabRestoreData::kThreadUrlKey]);
+}
+
+TEST_F(ContextualTasksSidePanelCoordinatorTest,
+       GetTabRestoreData_PanelClosedOnTab_SavesNothing) {
+  base::test::ScopedFeatureList feature_list(kContextualTasksSidePanelTabState);
+
+  ContextualTask task(base::Uuid::GenerateRandomV4());
+  ON_CALL(*mock_controller_, GetContextualTaskForTab(_))
+      .WillByDefault(Return(task));
+  CreateCachedWebContentsForTesting(task.GetTaskId(), /*is_open=*/true);
+  SetPanelClosedOnTab(tab_list_->GetActiveTab());
+
+  EXPECT_TRUE(
+      coordinator_->GetTabRestoreData(tab_list_->GetActiveTab()).empty());
+}
+
+TEST_F(ContextualTasksSidePanelCoordinatorTest,
+       GetTabRestoreData_TabStateDisabled_SavesNothing) {
+  base::test::ScopedFeatureList feature_list;
+  feature_list.InitAndDisableFeature(kContextualTasksSidePanelTabState);
+
+  ContextualTask task(base::Uuid::GenerateRandomV4());
+  ON_CALL(*mock_controller_, GetContextualTaskForTab(_))
+      .WillByDefault(Return(task));
+  CreateCachedWebContentsForTesting(task.GetTaskId(), /*is_open=*/true);
+
+  EXPECT_TRUE(
+      coordinator_->GetTabRestoreData(tab_list_->GetActiveTab()).empty());
+}
+
+TEST_F(ContextualTasksSidePanelCoordinatorTest,
+       GetTabRestoreData_ReopenedTabNotActivated_SavesTaskAndThreadUrl) {
+  base::test::ScopedFeatureList feature_list(kContextualTasksSidePanelTabState);
+  TrackTabAssociations();
+  ContextualTask task(base::Uuid::GenerateRandomV4());
+  existing_tasks_.insert(task.GetTaskId());
+  const GURL thread_url("https://g.ai/search?udm=50&mtid=thread1");
+
+  // Reopen a tab in the background, so that its panel isn't recreated yet.
+  tabs::TabInterface* restored_tab = CreateMockTab();
+  SetTabRestoreData(restored_tab, task.GetTaskId(), thread_url);
+  coordinator_->OnTabAdded(*tab_list_, restored_tab, /*index=*/1);
+  ASSERT_FALSE(GetWebContentsForTaskForTesting(task.GetTaskId()));
+
+  // Closing the tab again still saves its open panel.
+  std::map<std::string, std::string> data =
+      coordinator_->GetTabRestoreData(restored_tab);
+  EXPECT_EQ(task.GetTaskId().AsLowercaseString(),
+            data[ContextualTasksTabRestoreData::kTaskIdKey]);
+  EXPECT_EQ(thread_url.spec(),
+            data[ContextualTasksTabRestoreData::kThreadUrlKey]);
+}
+
+TEST_F(ContextualTasksSidePanelCoordinatorTest,
+       GetTabRestoreData_RecreatedPanelNotLoaded_SavesRestoredUrl) {
+  base::test::ScopedFeatureList feature_list(kContextualTasksSidePanelTabState);
+  TrackTabAssociations();
+  ContextualTask task(base::Uuid::GenerateRandomV4());
+  existing_tasks_.insert(task.GetTaskId());
+  const GURL thread_url("https://g.ai/search?udm=50&mtid=thread1");
+
+  // Reopen a tab, so that its panel is recreated with the saved page.
+  tabs::TabInterface* restored_tab = CreateMockTab();
+  SetTabRestoreData(restored_tab, task.GetTaskId(), thread_url);
+  coordinator_->OnTabAdded(*tab_list_, restored_tab, /*index=*/1);
+  SetActiveTab(restored_tab);
+  coordinator_->OnActiveTabChanged(*tab_list_, restored_tab);
+  ASSERT_TRUE(GetWebContentsForTaskForTesting(task.GetTaskId()));
+
+  // Closing the tab again before the panel loads the page still saves it.
+  std::map<std::string, std::string> data =
+      coordinator_->GetTabRestoreData(restored_tab);
+  EXPECT_EQ(task.GetTaskId().AsLowercaseString(),
+            data[ContextualTasksTabRestoreData::kTaskIdKey]);
+  EXPECT_EQ(thread_url.spec(),
+            data[ContextualTasksTabRestoreData::kThreadUrlKey]);
+}
+
+TEST_F(ContextualTasksSidePanelCoordinatorTest,
+       OnTabAdded_RestoredTab_RejoinsTaskAndRebuildsPanel) {
+  base::test::ScopedFeatureList feature_list(kContextualTasksSidePanelTabState);
+  TrackTabAssociations();
+  ContextualTask task(base::Uuid::GenerateRandomV4());
+  existing_tasks_.insert(task.GetTaskId());
+
+  tabs::TabInterface* restored_tab = CreateMockTab();
+  SetTabRestoreData(restored_tab, task.GetTaskId(), GURL());
+  coordinator_->OnTabAdded(*tab_list_, restored_tab, /*index=*/1);
+
+  // The reopened tab rejoins its task.
+  SessionID restored_tab_id =
+      sessions::SessionTabHelper::IdForTab(restored_tab->GetContents());
+  EXPECT_EQ(task.GetTaskId(), tab_to_task_[restored_tab_id]);
+  EXPECT_FALSE(ContextualTasksTabRestoreData::FromWebContents(
+      restored_tab->GetContents()));
+
+  // The panel is recreated when the reopened tab becomes active.
+  SetActiveTab(restored_tab);
+  coordinator_->OnActiveTabChanged(*tab_list_, restored_tab);
+  content::WebContents* panel_contents =
+      GetWebContentsForTaskForTesting(task.GetTaskId());
+  ASSERT_TRUE(panel_contents);
+  EXPECT_EQ(panel_contents, coordinator_->GetActiveWebContents());
+  EXPECT_TRUE(ShouldBeOpen());
+}
+
+TEST_F(ContextualTasksSidePanelCoordinatorTest,
+       OnTabAdded_RestoredTab_TaskDeleted_CreatesTaskForThread) {
+  base::test::ScopedFeatureList feature_list(kContextualTasksSidePanelTabState);
+  TrackTabAssociations();
+  const base::Uuid deleted_task_id = base::Uuid::GenerateRandomV4();
+  ContextualTask new_task(base::Uuid::GenerateRandomV4());
+  existing_tasks_.insert(new_task.GetTaskId());
+  const GURL thread_url("https://g.ai/search?udm=50&mtid=thread1");
+  EXPECT_CALL(*mock_controller_, CreateTaskFromUrl(thread_url))
+      .WillOnce(Return(new_task));
+
+  tabs::TabInterface* restored_tab = CreateMockTab();
+  SetTabRestoreData(restored_tab, deleted_task_id, thread_url);
+  coordinator_->OnTabAdded(*tab_list_, restored_tab, /*index=*/1);
+
+  // The task was deleted when the tab closed, so the reopened tab gets a new
+  // task whose panel loads the saved thread.
+  SessionID restored_tab_id =
+      sessions::SessionTabHelper::IdForTab(restored_tab->GetContents());
+  EXPECT_EQ(new_task.GetTaskId(), tab_to_task_[restored_tab_id]);
+  EXPECT_EQ(thread_url, ContextualTasksUiServiceFactory::GetForBrowserContext(
+                            profile_.get())
+                            ->GetCreationUrlForTask(new_task.GetTaskId()));
+
+  SetActiveTab(restored_tab);
+  coordinator_->OnActiveTabChanged(*tab_list_, restored_tab);
+  EXPECT_TRUE(GetWebContentsForTaskForTesting(new_task.GetTaskId()));
+  EXPECT_TRUE(ShouldBeOpen());
+}
+
+TEST_F(ContextualTasksSidePanelCoordinatorTest,
+       OnTabAdded_RestoredTab_TaskDeleted_CreatesTaskForLensSearch) {
+  base::test::ScopedFeatureList feature_list(kContextualTasksSidePanelTabState);
+  TrackTabAssociations();
+  ContextualTask new_task(base::Uuid::GenerateRandomV4());
+  existing_tasks_.insert(new_task.GetTaskId());
+  const GURL lens_url("https://www.google.com/search?lns_mode=un&q=dog");
+  ON_CALL(*GetMockUiService(), IsRestorableSidePanelUrl(lens_url))
+      .WillByDefault(Return(true));
+  EXPECT_CALL(*mock_controller_, CreateTaskFromUrl(lens_url))
+      .WillOnce(Return(new_task));
+
+  tabs::TabInterface* restored_tab = CreateMockTab();
+  SetTabRestoreData(restored_tab, base::Uuid::GenerateRandomV4(), lens_url);
+  coordinator_->OnTabAdded(*tab_list_, restored_tab, /*index=*/1);
+
+  // The side panel can show search results pages like a Lens search, so the
+  // reopened tab gets a new task whose panel loads the saved page.
+  SessionID restored_tab_id =
+      sessions::SessionTabHelper::IdForTab(restored_tab->GetContents());
+  EXPECT_EQ(new_task.GetTaskId(), tab_to_task_[restored_tab_id]);
+  EXPECT_EQ(lens_url,
+            GetMockUiService()->GetCreationUrlForTask(new_task.GetTaskId()));
+}
+
+TEST_F(ContextualTasksSidePanelCoordinatorTest,
+       OnTabAdded_RestoredTab_DisallowedUrl_DoesNotCreateTask) {
+  base::test::ScopedFeatureList feature_list(kContextualTasksSidePanelTabState);
+  TrackTabAssociations();
+  EXPECT_CALL(*mock_controller_, CreateTaskFromUrl(_)).Times(0);
+
+  tabs::TabInterface* restored_tab = CreateMockTab();
+  SetTabRestoreData(restored_tab, base::Uuid::GenerateRandomV4(),
+                    GURL("https://example.com/"));
+  coordinator_->OnTabAdded(*tab_list_, restored_tab, /*index=*/1);
+
+  // The side panel can't show the saved page, so it isn't used to recreate the
+  // deleted task.
+  EXPECT_FALSE(tab_to_task_.contains(
+      sessions::SessionTabHelper::IdForTab(restored_tab->GetContents())));
+}
+
+TEST_F(ContextualTasksSidePanelCoordinatorTest,
+       OnTabAdded_RestoredTab_TabStateDisabled_DoesNotRestorePanel) {
+  base::test::ScopedFeatureList feature_list;
+  feature_list.InitAndDisableFeature(kContextualTasksSidePanelTabState);
+  TrackTabAssociations();
+  ContextualTask task(base::Uuid::GenerateRandomV4());
+  existing_tasks_.insert(task.GetTaskId());
+
+  tabs::TabInterface* restored_tab = CreateMockTab();
+  SetTabRestoreData(restored_tab, task.GetTaskId(), GURL());
+  coordinator_->OnTabAdded(*tab_list_, restored_tab, /*index=*/1);
+
+  EXPECT_FALSE(tab_to_task_.contains(
+      sessions::SessionTabHelper::IdForTab(restored_tab->GetContents())));
+  EXPECT_FALSE(ContextualTasksTabRestoreData::FromWebContents(
+      restored_tab->GetContents()));
 }
 
 #if !BUILDFLAG(IS_ANDROID)

@@ -2738,6 +2738,100 @@ TEST_F(ContextualTasksUiTest,
   observer.reset();
 }
 
+// With side panel tab state, other tabs of the old task keep the old thread in
+// a new panel, so selecting a thread from history saves the URL that showed the
+// old thread for that panel, without reopening thread history.
+TEST_F(ContextualTasksUiTest, ThreadSwitch_TabState_SavesOldThreadUrl) {
+  base::test::ScopedFeatureList feature_list;
+  feature_list.InitWithFeatures({omnibox::kContextManagementInComposebox,
+                                 kContextualTasksSidePanelTabState},
+                                {});
+
+  MockTaskInfoDelegate delegate;
+  base::Uuid old_task_id = base::Uuid::ParseCaseInsensitive(kUuid);
+  base::Uuid new_task_id =
+      base::Uuid::ParseCaseInsensitive("22222222-2222-2222-2222-222222222222");
+  const std::string old_title = "current thread";
+  const std::string old_thread_id = "current_thread_id";
+  const std::string history_thread_id = "history_thread_id";
+  SetupMockDelegate(&delegate, old_task_id, old_thread_id, old_title);
+
+  auto observer = std::make_unique<ContextualTasksUI::FrameNavObserver>(
+      embedded_web_contents_.get(), service_for_nav_.get(),
+      contextual_tasks_service_.get(), &delegate);
+
+  // The old thread is shown with thread history open.
+  GURL old_thread_url =
+      net::AppendQueryParameter(GURL(kAiPageUrl), "q", old_title);
+  old_thread_url =
+      net::AppendQueryParameter(old_thread_url, "mtid", old_thread_id);
+  std::unique_ptr<content::MockNavigationHandle> old_thread_nav_handle =
+      CreateMockNavigationHandle(
+          net::AppendQueryParameter(old_thread_url, "atvm", "1"));
+  old_thread_nav_handle->set_is_same_document(true);
+  observer->DidFinishNavigation(old_thread_nav_handle.get());
+
+  // The user selects another thread from history.
+  GURL history_thread_url =
+      net::AppendQueryParameter(GURL(kAiPageUrl), "q", "Historical Thread");
+  history_thread_url =
+      net::AppendQueryParameter(history_thread_url, "mtid", history_thread_id);
+  ON_CALL(*contextual_tasks_service_, CreateTaskFromUrl(history_thread_url))
+      .WillByDefault(Return(ContextualTask(new_task_id)));
+  GURL saved_url;
+  EXPECT_CALL(*service_for_nav_, SetInitialUrlForTask(old_task_id, _))
+      .WillOnce(testing::SaveArg<1>(&saved_url));
+  std::unique_ptr<content::MockNavigationHandle> history_nav_handle =
+      CreateMockNavigationHandle(history_thread_url);
+  history_nav_handle->set_is_same_document(true);
+  ON_CALL(*history_nav_handle, HasUserGesture()).WillByDefault(Return(true));
+  observer->DidFinishNavigation(history_nav_handle.get());
+
+  EXPECT_EQ(delegate.GetTaskId(), new_task_id);
+  EXPECT_EQ(old_thread_url, saved_url);
+
+  observer.reset();
+}
+
+TEST_F(ContextualTasksUiTest, ThreadSwitch_TabStateDisabled_DoesNotSaveUrl) {
+  base::test::ScopedFeatureList feature_list;
+  feature_list.InitWithFeatures({omnibox::kContextManagementInComposebox},
+                                {kContextualTasksSidePanelTabState});
+
+  MockTaskInfoDelegate delegate;
+  base::Uuid old_task_id = base::Uuid::ParseCaseInsensitive(kUuid);
+  base::Uuid new_task_id =
+      base::Uuid::ParseCaseInsensitive("22222222-2222-2222-2222-222222222222");
+  const std::string old_thread_id = "current_thread_id";
+  SetupMockDelegate(&delegate, old_task_id, old_thread_id, "current thread");
+
+  auto observer = std::make_unique<ContextualTasksUI::FrameNavObserver>(
+      embedded_web_contents_.get(), service_for_nav_.get(),
+      contextual_tasks_service_.get(), &delegate);
+
+  GURL old_thread_url =
+      net::AppendQueryParameter(GURL(kAiPageUrl), "mtid", old_thread_id);
+  std::unique_ptr<content::MockNavigationHandle> old_thread_nav_handle =
+      CreateMockNavigationHandle(old_thread_url);
+  old_thread_nav_handle->set_is_same_document(true);
+  observer->DidFinishNavigation(old_thread_nav_handle.get());
+
+  GURL history_thread_url =
+      net::AppendQueryParameter(GURL(kAiPageUrl), "mtid", "history_thread_id");
+  ON_CALL(*contextual_tasks_service_, CreateTaskFromUrl(history_thread_url))
+      .WillByDefault(Return(ContextualTask(new_task_id)));
+  EXPECT_CALL(*service_for_nav_, SetInitialUrlForTask(_, _)).Times(0);
+  std::unique_ptr<content::MockNavigationHandle> history_nav_handle =
+      CreateMockNavigationHandle(history_thread_url);
+  history_nav_handle->set_is_same_document(true);
+  ON_CALL(*history_nav_handle, HasUserGesture()).WillByDefault(Return(true));
+  observer->DidFinishNavigation(history_nav_handle.get());
+
+  EXPECT_EQ(delegate.GetTaskId(), new_task_id);
+
+  observer.reset();
+}
+
 // Ensure that when switching between different threads (different query/title),
 // a new task is created even if kContextManagementInComposebox is enabled,
 // so context does not leak between threads.
@@ -2931,6 +3025,10 @@ TEST_F(ContextualTasksUiTest, PinSidePanel) {
                                 kEnableContextualTasksPinButtonInToolbar},
       /*disabled_features=*/{});
 
+  FakeContextualTasksEligibilityManager eligibility_manager;
+  ON_CALL(*service_for_nav_, GetEligibilityManager())
+      .WillByDefault(Return(&eligibility_manager));
+
   auto* model = PinnedToolbarActionsModel::Get(profile_);
   ASSERT_TRUE(model);
 
@@ -2964,6 +3062,39 @@ TEST_F(ContextualTasksUiTest, PinSidePanel) {
   EXPECT_TRUE(model->Contains(kActionSidePanelShowContextualTasks));
 
   legacy_ui->UnpinSidePanel();
+  EXPECT_FALSE(model->Contains(kActionSidePanelShowContextualTasks));
+
+  actions::ActionIdMap::ResetMapsForTesting();
+}
+
+TEST_F(ContextualTasksUiTest, PinSidePanel_NotPinningEligible) {
+  InitializeActionIdStringMapping();
+  base::test::ScopedFeatureList scoped_feature_list;
+  scoped_feature_list.InitWithFeatures(
+      /*enabled_features=*/{kContextualTasksSidePanelRearchitecture,
+                            contextual_tasks::
+                                kEnableContextualTasksPinButtonInToolbar},
+      /*disabled_features=*/{});
+
+  FakeContextualTasksEligibilityManager eligibility_manager;
+  eligibility_manager.SetIsEligible(false);
+  ON_CALL(*service_for_nav_, GetEligibilityManager())
+      .WillByDefault(Return(&eligibility_manager));
+
+  auto* model = PinnedToolbarActionsModel::Get(profile_);
+  ASSERT_TRUE(model);
+
+  ContextualTasksUIConfig config;
+  content::TestWebUI web_ui;
+  web_ui.set_web_contents(embedded_web_contents_.get());
+  std::unique_ptr<content::WebUIController> controller =
+      config.CreateWebUIController(&web_ui, GURL("chrome://contextual-tasks"));
+  ASSERT_TRUE(controller);
+  auto* ui = controller->GetAs<ContextualTasksUIPostRearchitecture>();
+  ASSERT_NE(ui, nullptr);
+
+  EXPECT_FALSE(model->Contains(kActionSidePanelShowContextualTasks));
+  ui->PinSidePanel();
   EXPECT_FALSE(model->Contains(kActionSidePanelShowContextualTasks));
 
   actions::ActionIdMap::ResetMapsForTesting();
@@ -3013,6 +3144,10 @@ TEST_F(ContextualTasksUiTest, OnSidePanelPinStateChanged) {
                             contextual_tasks::
                                 kEnableContextualTasksPinButtonInToolbar},
       /*disabled_features=*/{});
+
+  FakeContextualTasksEligibilityManager eligibility_manager;
+  ON_CALL(*service_for_nav_, GetEligibilityManager())
+      .WillByDefault(Return(&eligibility_manager));
 
   auto* model = PinnedToolbarActionsModel::Get(profile_);
   ASSERT_TRUE(model);
@@ -3085,6 +3220,10 @@ TEST_F(ContextualTasksUiTest, OnSidePanelPinStateChanged_ModelDirectUpdate) {
                                 kEnableContextualTasksPinButtonInToolbar},
       /*disabled_features=*/{});
 
+  FakeContextualTasksEligibilityManager eligibility_manager;
+  ON_CALL(*service_for_nav_, GetEligibilityManager())
+      .WillByDefault(Return(&eligibility_manager));
+
   auto* model = PinnedToolbarActionsModel::Get(profile_);
   ASSERT_TRUE(model);
 
@@ -3155,6 +3294,10 @@ TEST_F(ContextualTasksUiTest,
                             contextual_tasks::
                                 kEnableContextualTasksPinButtonInToolbar},
       /*disabled_features=*/{});
+
+  FakeContextualTasksEligibilityManager eligibility_manager;
+  ON_CALL(*service_for_nav_, GetEligibilityManager())
+      .WillByDefault(Return(&eligibility_manager));
 
   auto* model = PinnedToolbarActionsModel::Get(profile_);
   ASSERT_TRUE(model);
@@ -3756,6 +3899,93 @@ TEST_F(ContextualTasksUiTest, CreateNewThread_LegacyUI_ClearsThreadTitle) {
   controller.CreateNewThread();
 
   EXPECT_EQ(controller.GetThreadTitle(), std::nullopt);
+}
+
+TEST_F(ContextualTasksUiTest,
+       CreateNewThread_ScopedToTab_MovesActiveTabToNewThread) {
+  base::test::ScopedFeatureList feature_list(kContextualTasksSidePanelTabState);
+  content::TestWebUI web_ui;
+  web_ui.set_web_contents(embedded_web_contents_.get());
+  TestContextualTasksUIBase controller(&web_ui);
+
+  testing::NiceMock<MockContextualTasksPanelController> mock_panel_controller;
+  controller.set_panel_controller(&mock_panel_controller);
+  std::unique_ptr<content::WebContents> active_web_contents =
+      content::WebContentsTester::CreateTestWebContents(profile_, nullptr);
+  EXPECT_CALL(mock_panel_controller, GetActiveWebContents())
+      .WillRepeatedly(Return(active_web_contents.get()));
+  EXPECT_CALL(mock_panel_controller, GetToolbarWebContents())
+      .WillRepeatedly(Return(embedded_web_contents_.get()));
+
+  // The new thread starts in a new task for the active tab, so the shared
+  // panel `WebContents` is not navigated.
+  EXPECT_CALL(mock_panel_controller, MoveActiveTabToNewThreadIfShared())
+      .WillOnce(Return(true));
+  EXPECT_CALL(*service_for_nav_, GetDefaultAiPageUrlForTask(_)).Times(0);
+  EXPECT_CALL(*service_for_nav_, GetDefaultAiPageUrl()).Times(0);
+
+  controller.SetThreadTitle("Existing Thread Title");
+  controller.CreateNewThread();
+
+  EXPECT_EQ(controller.GetThreadTitle(), std::nullopt);
+  EXPECT_TRUE(active_web_contents->GetVisibleURL().is_empty());
+}
+
+TEST_F(ContextualTasksUiTest,
+       CreateNewThread_ScopedToTab_NotShared_NavigatesInPlace) {
+  base::test::ScopedFeatureList feature_list(kContextualTasksSidePanelTabState);
+  content::TestWebUI web_ui;
+  web_ui.set_web_contents(embedded_web_contents_.get());
+  TestContextualTasksUIBase controller(&web_ui);
+
+  testing::NiceMock<MockContextualTasksPanelController> mock_panel_controller;
+  controller.set_panel_controller(&mock_panel_controller);
+  std::unique_ptr<content::WebContents> active_web_contents =
+      content::WebContentsTester::CreateTestWebContents(profile_, nullptr);
+  EXPECT_CALL(mock_panel_controller, GetActiveWebContents())
+      .WillRepeatedly(Return(active_web_contents.get()));
+  EXPECT_CALL(mock_panel_controller, GetToolbarWebContents())
+      .WillRepeatedly(Return(embedded_web_contents_.get()));
+  base::Uuid task_id = base::Uuid::GenerateRandomV4();
+  EXPECT_CALL(mock_panel_controller, GetCurrentTask())
+      .WillRepeatedly(Return(ContextualTask(task_id)));
+
+  // No other tab shares the task, so the new thread replaces the current one in
+  // place.
+  EXPECT_CALL(mock_panel_controller, MoveActiveTabToNewThreadIfShared())
+      .WillOnce(Return(false));
+  GURL raw_url("https://www.google.com/search?udm=50");
+  EXPECT_CALL(*service_for_nav_, GetDefaultAiPageUrlForTask(task_id))
+      .WillOnce(Return(raw_url));
+
+  controller.CreateNewThread();
+
+  EXPECT_EQ(active_web_contents->GetVisibleURL(),
+            ContextualTasksUiService::AddRequiredSidePanelUrlChanges(
+                raw_url, active_web_contents.get()));
+}
+
+TEST_F(ContextualTasksUiTest,
+       CreateNewThread_ScopedToTab_NonToolbarWebUI_SafeNoOp) {
+  base::test::ScopedFeatureList feature_list(kContextualTasksSidePanelTabState);
+  content::TestWebUI web_ui;
+  web_ui.set_web_contents(embedded_web_contents_.get());
+  TestContextualTasksUI controller(&web_ui);
+
+  testing::NiceMock<MockContextualTasksPanelController> mock_panel_controller;
+  controller.set_panel_controller(&mock_panel_controller);
+  std::unique_ptr<content::WebContents> active_web_contents =
+      content::WebContentsTester::CreateTestWebContents(profile_, nullptr);
+  EXPECT_CALL(mock_panel_controller, GetActiveWebContents())
+      .WillRepeatedly(Return(active_web_contents.get()));
+  EXPECT_CALL(mock_panel_controller, GetToolbarWebContents())
+      .WillRepeatedly(Return(nullptr));
+  EXPECT_CALL(mock_panel_controller, MoveActiveTabToNewThreadIfShared())
+      .Times(0);
+
+  controller.CreateNewThread();
+
+  EXPECT_TRUE(active_web_contents->GetVisibleURL().is_empty());
 }
 
 TEST_F(ContextualTasksUiTest, MaybeTriggerPinningPromo_SafeNoOp) {

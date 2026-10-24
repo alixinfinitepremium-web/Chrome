@@ -1775,14 +1775,14 @@
       // The 'flow-start' and 'flow-end' box alignment keywords.
       // https://github.com/w3c/csswg-drafts/issues/14052
       name: "CSSFlowStartAndEnd",
-      status: "experimental",
+      status: "stable",
     },
     {
       // Serialize 'flex-start' and 'flex-end' as 'flow-start' and 'flow-end'
       // in computed styles.
       // https://github.com/w3c/csswg-drafts/issues/14052
       name: "CSSFlowStartAndEndSerialization",
-      status: "experimental",
+      status: "stable",
       depends_on: ["CSSFlowStartAndEnd"],
     },
     {
@@ -6663,13 +6663,6 @@
       // `bordercolor` attribute always propagates. Matches Gecko when disabled.
       // See crbug.com/40745409.
       name: "TableCellBorderColorInherit",
-      status: "stable",
-    },
-    {
-      // Remove <table>'s explicit `border-color: gray` UA stylesheet rule,
-      // since it is non-standard. See crbug.com/494554835.
-      // This shipped in M149, was updated in M151, and can be removed in M153.
-      name: "TableDefaultBorderColorCurrentColor",
       status: "stable",
     },
     {

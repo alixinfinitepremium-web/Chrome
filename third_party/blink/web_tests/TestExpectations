@@ -898,6 +898,23 @@ crbug.com/1076027 external/wpt/css/css-grid/grid-lanes/subgrid/grid-lanes-subgri
 crbug.com/1076027 external/wpt/css/css-grid/grid-lanes/subgrid/grid-lanes-subgridded-to-grid/row/grid-lanes-subgrid-002a.html [ Failure ]
 crbug.com/1076027 external/wpt/css/css-grid/grid-lanes/subgrid/grid-lanes-subgridded-to-grid/row/independent-formatting-context.html [ Failure ]
 
+# Grid Lanes 'reading-flow' across tracks is not yet supported.
+crbug.com/343257585 external/wpt/shadow-dom/focus-navigation/reading-flow/grid-lanes-column-reading-flow-014.html [ Failure ]
+crbug.com/343257585 external/wpt/shadow-dom/focus-navigation/reading-flow/grid-lanes-column-reading-flow-015.html [ Failure ]
+crbug.com/343257585 external/wpt/shadow-dom/focus-navigation/reading-flow/grid-lanes-column-reading-flow-016.html [ Failure ]
+crbug.com/343257585 external/wpt/shadow-dom/focus-navigation/reading-flow/grid-lanes-column-reading-flow-017.html [ Failure ]
+crbug.com/343257585 external/wpt/shadow-dom/focus-navigation/reading-flow/grid-lanes-column-reading-flow-018.html [ Failure ]
+crbug.com/343257585 external/wpt/shadow-dom/focus-navigation/reading-flow/grid-lanes-column-reading-flow-019.html [ Failure ]
+crbug.com/343257585 external/wpt/shadow-dom/focus-navigation/reading-flow/grid-lanes-column-reading-flow-020.html [ Failure ]
+crbug.com/343257585 external/wpt/shadow-dom/focus-navigation/reading-flow/grid-lanes-column-reading-flow-021.html [ Failure ]
+crbug.com/343257585 external/wpt/shadow-dom/focus-navigation/reading-flow/grid-lanes-row-reading-flow-005.html [ Failure ]
+crbug.com/343257585 external/wpt/shadow-dom/focus-navigation/reading-flow/grid-lanes-row-reading-flow-006.html [ Failure ]
+crbug.com/343257585 external/wpt/shadow-dom/focus-navigation/reading-flow/grid-lanes-row-reading-flow-007.html [ Failure ]
+crbug.com/343257585 external/wpt/shadow-dom/focus-navigation/reading-flow/grid-lanes-row-reading-flow-008.html [ Failure ]
+crbug.com/343257585 external/wpt/shadow-dom/focus-navigation/reading-flow/grid-lanes-row-reading-flow-009.html [ Failure ]
+crbug.com/343257585 external/wpt/shadow-dom/focus-navigation/reading-flow/grid-lanes-row-reading-flow-010.html [ Failure ]
+crbug.com/343257585 external/wpt/shadow-dom/focus-navigation/reading-flow/grid-lanes-row-reading-flow-011.html [ Failure ]
+
 # external/wpt/css/css-fonts/... tests triaged away from the default WPT bug ID
 crbug.com/641861 [ Mac ] external/wpt/css/css-fonts/font-family-name-025.html [ Failure Timeout ]
 crbug.com/819816 external/wpt/css/css-fonts/font-kerning-03.html [ Failure ]
@@ -1419,7 +1436,6 @@ crbug.com/1005518 external/wpt/css/css-writing-modes/direction-upright-002.html 
 crbug.com/1218721 fast/borders/border-radius-mask-video-shadow.html [ Failure ]
 crbug.com/1218721 fast/borders/border-radius-mask-video.html [ Failure ]
 
-crbug.com/637055 fast/css/outline-offset-large.html [ Crash Failure Pass Timeout ]
 
 # These tests pass but images do not match because of wrong half-leading in vertical-lr
 
@@ -8606,3 +8622,6 @@ crbug.com/558819229 [ Win ] virtual/unified-autoplay/external/wpt/permissions-po
 crbug.com/558819229 external/wpt/notifications/icon-fetch.tentative.https.window.html [ Pass Timeout ]
 crbug.com/558819229 external/wpt/notifications/tag.https.html [ Failure Pass ]
 
+# Flaky tests on Mac and Linux
+crbug.com/571966724 [ Linux Release ] external/wpt/service-workers/service-worker/client-url-creation-url.https.html [ Pass Timeout ]
+crbug.com/571966724 [ Mac Release ] external/wpt/service-workers/service-worker/client-url-creation-url.https.html [ Pass Timeout ]
