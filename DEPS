@@ -556,7 +556,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
-  'llvm_libc_revision':    '465c923d26adc1017518ae372823ce45a528935b',
+  'llvm_libc_revision':    '50877e3284041b2d2d2cbcbd705ae930a455fb56',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
@@ -1775,7 +1775,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '715e9b44ff33fb604069cd608f6fc74186a5beaa',
+    '98b7cceeba2ff61a8cbc9f200f0655001190aca2',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -3912,7 +3912,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        'c1fd3785dcd38b77ef3a88effe8d4643b8be0662',
+        'd34bf964e2d0b040db65e5cc56a802030d4bfcbf',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
