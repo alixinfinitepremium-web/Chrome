@@ -330,7 +330,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': 'f572728c472590e617ade43515b9a8ab48bb3d55',
+  'skia_revision': 'a625b5349f7048005a4ce9612b74ffcce458982e',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -484,7 +484,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling crabbyavif
   # and whatever else without interference from each other.
-  'crabbyavif_revision': '38a3ebe85acdf80ff208c177b7e54ef80b43f9e5',
+  'crabbyavif_revision': '40732a9090353e3dae550b77d799a0ce5c7a3c29',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling openh264rs
   # and whatever else without interference from each other.
@@ -560,7 +560,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
-  'compiler_rt_revision': 'd1413c02d9b37a583f1b28deb6232aa4e1be91f0',
+  'compiler_rt_revision': '28c853be898164fc0712e40d2ba8e050007e5efc',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling clusterfuzz-data
   # and whatever else without interference from each other.
@@ -1775,7 +1775,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '98b7cceeba2ff61a8cbc9f200f0655001190aca2',
+    '4fceb4098216c32c4b5f14aaeff9e4eee20a5628',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -3242,13 +3242,13 @@ deps = {
       ],
   },
 
-  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@4571d03284d892ef9af5bd83e67484037754750c',
+  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@b9070c18cd1c34b415541e7b64668aacf03cb152',
   'src/third_party/glslang/src': '{chromium_git}/external/github.com/KhronosGroup/glslang@ed883c736e0d5633242218c534264b7eea28b27e',
   'src/third_party/spirv-cross/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Cross@b8fcf307f1f347089e3c46eb4451d27f32ebc8d3',
   'src/third_party/spirv-headers/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Headers@fbf86836a9b1966586faf7be7bb8a6440e156d62',
-  'src/third_party/spirv-tools/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Tools@cb1df99aa1ca64845f156181bcd1d98730414f15',
+  'src/third_party/spirv-tools/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Tools@fe1b3a23523ea781dd7eea2de1fe6d78db5b81b9',
   'src/third_party/vulkan-headers/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Headers@73814d006638aa00bd553215b054f0f02e457e22',
-  'src/third_party/vulkan-loader/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Loader@3187e1e4d463ddf7f60f0bbaf26c7d7b7e40ca34',
+  'src/third_party/vulkan-loader/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Loader@ddcf945c40f2b4a6d8203ce1704153df1f43f37e',
   'src/third_party/vulkan-tools/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Tools@c38e7c390892e06fe4c84f0c19fb891c79f885d9',
   'src/third_party/vulkan-utility-libraries/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-Utility-Libraries@205badc9cf9ca28000fcea4b0addd50d75655c8c',
   'src/third_party/vulkan-validation-layers/src': '{chromium_git}/external/github.com/KhronosGroup/Vulkan-ValidationLayers@bc5da10620168c5370f82257528c08756e19a7b2',
@@ -3446,7 +3446,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/help_app/app',
-        'version': 'DbqXpeZ-FhqFhuw82AgU9M0nhK-10d4Fqjy5SEUq9LMC',
+        'version': 'w6Be0DbEUKkABWD_kx7MbVRpeJIVMbV5-QLxwAhBApgC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3457,7 +3457,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/media_app/app',
-        'version': 'WddAhrnjX4W9Y9AHVlr1RnRT-3Wj1hzol0fXXezNVdgC',
+        'version': 'UmoIEZG8f8b5B-xiX1EEPmSfTCKeqXnRGZTsdxSH-nkC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
