@@ -334,7 +334,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': '19ab0cc65ce317872df3909d4de2ce180f991c93',
+  'v8_revision': '1be68595cdcd23a12bcfc88afb1722af64b7c399',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -1775,7 +1775,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '8303133950a302773c16115b5460b4fcd4aa38ac',
+    '59bb7a0b4691a5d936a460a1322c271fba2bc9a0',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -2259,7 +2259,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '656945e2eddbd58791b43c8ab173f42267c4cf4a',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + 'e69e1e7ef9d7fc7ce7759454e929831062efdd92',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '173b9b26e8fcbcbe64e1ecbf073a21a96b95c6b1',
@@ -3912,7 +3912,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '344b30bef733a17ce15b828e3ce9c80f08434262',
+        '5f6b78594c98514b7aa99cb9ea8396303e0023cf',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
