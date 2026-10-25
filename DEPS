@@ -2259,7 +2259,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + 'd8220dab936e18f29a4ca146d7c6e4192b957ddc',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '656945e2eddbd58791b43c8ab173f42267c4cf4a',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '173b9b26e8fcbcbe64e1ecbf073a21a96b95c6b1',
@@ -3295,7 +3295,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + '659d2c520432d033769a0f0472e89234260a824d',
+    Var('webrtc_git') + '/src.git' + '@' + '83de8057df74f225a85c045413aae01398b65c06',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -3912,7 +3912,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '1f5b735d19dddfbd77565a501f1da8bce1cfaac0',
+        'c2168c3b7584cc4192236bf1f3b2973b595c5fb5',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
