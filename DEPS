@@ -1763,7 +1763,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': '6yUaWL4bvRmgX50jsei9JOSWTL0g_WzR-N-4l9FGT-wC',
+        'version': 'sFWxAeKxbxQ5-83jNVltlDr81nXIHquqoNPt-BJUUckC',
       },
     ],
     'condition': 'non_git_source',
@@ -1879,7 +1879,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': '9dqy_hs5xPpE45Yu_qTbcaqhoMrktm1Zl6kVqJEptGUC',
+          'version': 'rRFJv-wIHBcmJDI0MSLZWuPeFNdlHF1i5nIwEn_cUXoC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
@@ -2259,7 +2259,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + 'e69e1e7ef9d7fc7ce7759454e929831062efdd92',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '674e4a4e51fe0e844935b7883c979144e830c867',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '173b9b26e8fcbcbe64e1ecbf073a21a96b95c6b1',
