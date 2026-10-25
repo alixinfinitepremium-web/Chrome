@@ -31,6 +31,10 @@ import org.chromium.chrome.browser.preferences.ChromeSharedPreferences;
 import org.chromium.chrome.browser.profiles.Profile;
 import org.chromium.chrome.browser.settings.SettingsNavigationFactory;
 import org.chromium.chrome.browser.ui.actions.ActionId;
+import org.chromium.chrome.browser.ui.bottombar.BottomBarMetrics.EducationOnboardingEvent;
+import org.chromium.chrome.browser.ui.bottombar.BottomBarMetrics.EducationOnboardingType;
+import org.chromium.chrome.browser.ui.bottombar.BottomBarMetrics.IphEvent;
+import org.chromium.chrome.browser.ui.bottombar.BottomBarMetrics.IphFeature;
 import org.chromium.components.browser_ui.settings.SettingsNavigation;
 import org.chromium.components.browser_ui.styles.SemanticColorUtils;
 import org.chromium.components.browser_ui.widget.highlight.ViewHighlighter;
@@ -71,6 +75,8 @@ import java.util.function.Supplier;
 public class BottomBarEducationCoordinator
         implements BrowserControlsStateProvider.Observer, ComponentCallbacks {
 
+    private static final int NO_TOOLTIP_STEP = -1;
+
     static final @ActionId int[] TOOLTIP_ACTION_IDS = {
         ActionId.GLIC, ActionId.NEW_TAB, ActionId.TAB_SWITCHER
     };
@@ -81,6 +87,7 @@ public class BottomBarEducationCoordinator
     };
 
     private static boolean sSkipTooltipShowCheckForTesting;
+    private static boolean sEducationShownThisSession;
 
     private final Context mContext;
     private final ScrimManager mScrimManager;
@@ -100,6 +107,8 @@ public class BottomBarEducationCoordinator
     private @Nullable TextBubble mCurrentTooltip;
     private @Nullable View mCurrentHighlightView;
     private int mTooltipStep;
+    private @Nullable @EducationOnboardingType String mActiveBubbleOnboardingType;
+    private int mLastShownTooltipStep = NO_TOOLTIP_STEP;
 
     @IntDef({State.IDLE, State.SHOWING_BUBBLE, State.SHOWING_TOOLTIPS, State.DONE})
     @Retention(RetentionPolicy.SOURCE)
@@ -180,6 +189,8 @@ public class BottomBarEducationCoordinator
         if (hasPendingTooltips()) {
             ChromeSharedPreferences.getInstance()
                     .removeKey(ChromePreferenceKeys.BOTTOM_BAR_EDUCATION_PENDING_TOOLTIPS);
+            // Set at approval time like FET; if UI fails, tip is deferred.
+            setEducationShownThisSession();
             activate(State.SHOWING_TOOLTIPS);
             startTooltipChain();
             return;
@@ -206,6 +217,8 @@ public class BottomBarEducationCoordinator
             return;
         }
 
+        // Set at approval time like FET; if UI fails, tip is deferred.
+        setEducationShownThisSession();
         activate(State.SHOWING_BUBBLE);
         mActiveTracker = tracker;
         showScrim(anchorView);
@@ -236,10 +249,22 @@ public class BottomBarEducationCoordinator
         removeLayoutListeners();
 
         dismissBubblePopup();
+        if (mActiveBubbleOnboardingType != null) {
+            BottomBarMetrics.recordEducationOnboardingEvent(
+                    mActiveBubbleOnboardingType, EducationOnboardingEvent.DISMISSED_OTHER);
+            mActiveBubbleOnboardingType = null;
+        }
+
         if (mCurrentTooltip != null) {
+            if (mLastShownTooltipStep == mTooltipStep) {
+                BottomBarMetrics.recordIphEvent(
+                        IphEvent.DISMISSED,
+                        getTooltipTypeForAction(TOOLTIP_ACTION_IDS[mTooltipStep]));
+            }
             TextBubble tooltip = mCurrentTooltip;
             mCurrentTooltip = null;
             tooltip.dismiss();
+            mLastShownTooltipStep = NO_TOOLTIP_STEP;
         }
         if (mCurrentHighlightView != null) {
             ViewHighlighter.turnOffHighlight(mCurrentHighlightView);
@@ -346,10 +371,14 @@ public class BottomBarEducationCoordinator
         View glicButton = mBottomBarView.getContainerForAction(ActionId.GLIC);
         boolean geminiFocused = shouldUseGeminiVariant(glicFocusedParam, glicButton);
 
-        // TODO(crbug.com/574564735): Record which button the user clicked (Show me, Switch back
-        // or the Settings link).
         Runnable openSettingsAndDismiss =
                 () -> {
+                    String onboardingType = mActiveBubbleOnboardingType;
+                    mActiveBubbleOnboardingType = null;
+                    if (onboardingType != null) {
+                        BottomBarMetrics.recordEducationOnboardingEvent(
+                                onboardingType, EducationOnboardingEvent.SETTINGS_CLICKED);
+                    }
                     SettingsNavigationFactory.createSettingsNavigation()
                             .startSettings(
                                     mContext, SettingsNavigation.SettingsFragment.APPEARANCE);
@@ -358,6 +387,12 @@ public class BottomBarEducationCoordinator
 
         Runnable dismissAndTurnOffBottomBar =
                 () -> {
+                    String onboardingType = mActiveBubbleOnboardingType;
+                    mActiveBubbleOnboardingType = null;
+                    if (onboardingType != null) {
+                        BottomBarMetrics.recordEducationOnboardingEvent(
+                                onboardingType, EducationOnboardingEvent.DECLINED);
+                    }
                     // Dismiss before writing the pref: pref listeners are notified synchronously,
                     // and ChromeTabbedActivity recreates itself without the bottom bar in response.
                     dismiss();
@@ -366,6 +401,12 @@ public class BottomBarEducationCoordinator
 
         Runnable onShowMeClicked =
                 () -> {
+                    String onboardingType = mActiveBubbleOnboardingType;
+                    mActiveBubbleOnboardingType = null;
+                    if (onboardingType != null) {
+                        BottomBarMetrics.recordEducationOnboardingEvent(
+                                onboardingType, EducationOnboardingEvent.ACCEPTED);
+                    }
                     if (mActiveTracker != null) {
                         mActiveTracker.notifyEvent(
                                 EventConstants.ANDROID_BOTTOM_BAR_EDUCATION_USED);
@@ -490,11 +531,35 @@ public class BottomBarEducationCoordinator
         mPopupWindow.show();
         if (!mPopupWindow.isShowing()) {
             dismiss();
+            return;
+        }
+
+        if (mActiveBubbleOnboardingType == null) {
+            mActiveBubbleOnboardingType =
+                    geminiFocused
+                            ? EducationOnboardingType.GEMINI_BUBBLE
+                            : EducationOnboardingType.DEFAULT_BUBBLE;
+            BottomBarMetrics.recordEducationOnboardingEvent(
+                    mActiveBubbleOnboardingType, EducationOnboardingEvent.SHOWN);
+        }
+    }
+
+    private static @IphFeature String getTooltipTypeForAction(@ActionId int actionId) {
+        switch (actionId) {
+            case ActionId.GLIC:
+                return IphFeature.GLIC;
+            case ActionId.NEW_TAB:
+                return IphFeature.NEW_TAB;
+            case ActionId.TAB_SWITCHER:
+                return IphFeature.TAB_SWITCHER;
+            default:
+                throw new IllegalStateException("No IPH feature for tooltip action " + actionId);
         }
     }
 
     private void startTooltipChain() {
         mTooltipStep = 0;
+        mLastShownTooltipStep = NO_TOOLTIP_STEP;
         showCurrentTooltip();
     }
 
@@ -545,6 +610,8 @@ public class BottomBarEducationCoordinator
         mCurrentTooltip.addOnDismissListener(
                 () -> {
                     if (mCurrentTooltip != tooltip) return;
+                    BottomBarMetrics.recordIphEvent(
+                            IphEvent.DISMISSED, getTooltipTypeForAction(actionId));
 
                     if (mCurrentHighlightView != null) {
                         ViewHighlighter.turnOffHighlight(mCurrentHighlightView);
@@ -561,6 +628,12 @@ public class BottomBarEducationCoordinator
         mCurrentTooltip.show();
         if (!sSkipTooltipShowCheckForTesting && !mCurrentTooltip.isShowing()) {
             dismiss();
+            return;
+        }
+
+        if (mLastShownTooltipStep != mTooltipStep) {
+            mLastShownTooltipStep = mTooltipStep;
+            BottomBarMetrics.recordIphEvent(IphEvent.SHOWN, getTooltipTypeForAction(actionId));
         }
     }
 
@@ -663,5 +736,25 @@ public class BottomBarEducationCoordinator
 
     @Nullable TextBubble getCurrentTooltipForTesting() {
         return mCurrentTooltip;
+    }
+
+    /**
+     * Records that bottom bar education has shown this session (process lifetime), which defers
+     * (doesn't drop) the NTP theme tip. It's never cleared until the process dies.
+     */
+    static void setEducationShownThisSession() {
+        if (sEducationShownThisSession) return;
+        sEducationShownThisSession = true;
+        ResettersForTesting.register(() -> sEducationShownThisSession = false);
+    }
+
+    /** Returns whether bottom bar education has shown this session. */
+    public static boolean hasEducationShownThisSession() {
+        return sEducationShownThisSession;
+    }
+
+    /** Marks bottom bar education as shown this session. Reset after each test. */
+    public static void setEducationShownThisSessionForTesting() {
+        setEducationShownThisSession();
     }
 }

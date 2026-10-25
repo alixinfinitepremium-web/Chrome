@@ -16377,38 +16377,6 @@
             ]
         }
     ],
-    "SimplifiedHindiModel": [
-        {
-            "platforms": [
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled_20260515",
-                    "enable_features": [
-                        "TranslateSimplifiedHindi"
-                    ]
-                }
-            ]
-        },
-        {
-            "platforms": [
-                "android",
-                "ios"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled_20260603",
-                    "enable_features": [
-                        "TranslateSimplifiedHindi"
-                    ]
-                }
-            ]
-        }
-    ],
     "SingleAxisScrollContainers": [
         {
             "platforms": [
@@ -17578,7 +17546,7 @@
             ]
         }
     ],
-    "TranslateAsyncDomTranslator": [
+    "TranslateElementFeatures": [
         {
             "platforms": [
                 "android",
@@ -17592,7 +17560,7 @@
                 {
                     "name": "Enabled",
                     "params": {
-                        "ef": "eadt"
+                        "ef": "ests,eadt"
                     },
                     "enable_features": [
                         "TranslateElementExperimentFeatures"

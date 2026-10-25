@@ -19,6 +19,8 @@ import org.chromium.chrome.browser.preferences.ChromeSharedPreferences;
 import org.chromium.chrome.browser.profiles.Profile;
 import org.chromium.chrome.browser.settings.SettingsNavigationFactory;
 import org.chromium.chrome.browser.tab.Tab;
+import org.chromium.chrome.browser.ui.bottombar.BottomBarMetrics.EducationOnboardingEvent;
+import org.chromium.chrome.browser.ui.bottombar.BottomBarMetrics.EducationOnboardingType;
 import org.chromium.components.browser_ui.settings.SettingsNavigation;
 import org.chromium.components.feature_engagement.EventConstants;
 import org.chromium.components.feature_engagement.FeatureConstants;
@@ -40,6 +42,7 @@ public class BottomBarEducationDialogCoordinator
     private @Nullable Tracker mTracker;
     private @Nullable View mDialogView;
     private boolean mTrackerDismissed;
+    private boolean mResultRecorded;
 
     /**
      * Constructor for the BottomBarEducationDialogCoordinator.
@@ -62,6 +65,12 @@ public class BottomBarEducationDialogCoordinator
     public void destroy() {
         mContext.unregisterComponentCallbacks(this);
         if (mDialogModel != null && mModalDialogManager != null) {
+            if (!mResultRecorded) {
+                mResultRecorded = true;
+                BottomBarMetrics.recordEducationOnboardingEvent(
+                        EducationOnboardingType.OPT_IN_DIALOG,
+                        EducationOnboardingEvent.DISMISSED_OTHER);
+            }
             mModalDialogManager.dismissDialog(
                     mDialogModel, DialogDismissalCause.ACTIVITY_DESTROYED);
             mDialogModel = null;
@@ -102,10 +111,14 @@ public class BottomBarEducationDialogCoordinator
         mTrackerDismissed = false;
 
         showDialog();
+        // Setting the flag at request time is acceptable even if the dialog queues because it only
+        // defers the NTP tip.
+        BottomBarEducationCoordinator.setEducationShownThisSession();
         return true;
     }
 
     private void showDialog() {
+        mResultRecorded = false;
         assert mModalDialogManager != null;
         mDialogView =
                 BottomBarEducationUtils.inflateDialogContent(
@@ -132,9 +145,15 @@ public class BottomBarEducationDialogCoordinator
 
         mModalDialogManager.showDialog(
                 mDialogModel, ModalDialogManager.ModalDialogType.APP, /* showAsNext= */ true);
+        BottomBarMetrics.recordEducationOnboardingEvent(
+                EducationOnboardingType.OPT_IN_DIALOG, EducationOnboardingEvent.SHOWN);
     }
 
     private void onPositiveClicked() {
+        if (mResultRecorded) return;
+        mResultRecorded = true;
+        BottomBarMetrics.recordEducationOnboardingEvent(
+                EducationOnboardingType.OPT_IN_DIALOG, EducationOnboardingEvent.ACCEPTED);
         if (mTracker != null) {
             mTracker.notifyEvent(EventConstants.ANDROID_BOTTOM_BAR_EDUCATION_USED);
         }
@@ -153,6 +172,10 @@ public class BottomBarEducationDialogCoordinator
     }
 
     private void onNegativeClicked() {
+        if (mResultRecorded) return;
+        mResultRecorded = true;
+        BottomBarMetrics.recordEducationOnboardingEvent(
+                EducationOnboardingType.OPT_IN_DIALOG, EducationOnboardingEvent.DECLINED);
         dismissFeatureEngagementTracker();
         if (mDialogModel != null && mModalDialogManager != null) {
             mModalDialogManager.dismissDialog(
@@ -161,6 +184,10 @@ public class BottomBarEducationDialogCoordinator
     }
 
     private void onLearnMoreClicked() {
+        if (mResultRecorded) return;
+        mResultRecorded = true;
+        BottomBarMetrics.recordEducationOnboardingEvent(
+                EducationOnboardingType.OPT_IN_DIALOG, EducationOnboardingEvent.SETTINGS_CLICKED);
         SettingsNavigation settingsNavigation =
                 SettingsNavigationFactory.createSettingsNavigation();
         settingsNavigation.startSettings(mContext, SettingsNavigation.SettingsFragment.APPEARANCE);
@@ -201,6 +228,12 @@ public class BottomBarEducationDialogCoordinator
 
     @Override
     public void onDismiss(PropertyModel model, @DialogDismissalCause int dismissalCause) {
+        if (!mResultRecorded) {
+            mResultRecorded = true;
+            BottomBarMetrics.recordEducationOnboardingEvent(
+                    EducationOnboardingType.OPT_IN_DIALOG,
+                    EducationOnboardingEvent.DISMISSED_OTHER);
+        }
         mDialogModel = null;
         mDialogView = null;
         dismissFeatureEngagementTracker();

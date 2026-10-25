@@ -47,6 +47,7 @@ import org.chromium.base.supplier.ObservableSuppliers;
 import org.chromium.base.test.BaseRobolectricTestRunner;
 import org.chromium.base.test.RobolectricUtil;
 import org.chromium.base.test.util.Features.EnableFeatures;
+import org.chromium.base.test.util.HistogramWatcher;
 import org.chromium.cc.input.BrowserControlsState;
 import org.chromium.chrome.browser.browser_controls.BrowserControlsStateProvider.ControlsPosition;
 import org.chromium.chrome.browser.browser_controls.BrowserControlsVisibilityManager;
@@ -60,6 +61,8 @@ import org.chromium.chrome.browser.preferences.ChromeSharedPreferences;
 import org.chromium.chrome.browser.profiles.Profile;
 import org.chromium.chrome.browser.settings.SettingsNavigationFactory;
 import org.chromium.chrome.browser.ui.actions.ActionId;
+import org.chromium.chrome.browser.ui.bottombar.BottomBarMetrics.EducationOnboardingEvent;
+import org.chromium.chrome.browser.ui.bottombar.BottomBarMetrics.IphEvent;
 import org.chromium.components.browser_ui.settings.SettingsNavigation;
 import org.chromium.components.browser_ui.widget.scrim.ScrimManager;
 import org.chromium.components.browser_ui.widget.textbubble.TextBubble;
@@ -138,8 +141,17 @@ public class BottomBarEducationCoordinatorUnitTest {
     }
 
     @Test
+    public void testEducationShownThisSession_IsFalseBeforeBubbleShows() {
+        setupForShow();
+        assertFalse(BottomBarEducationCoordinator.hasEducationShownThisSession());
+        triggerShow();
+        assertTrue(BottomBarEducationCoordinator.hasEducationShownThisSession());
+    }
+
+    @Test
     public void testShouldTriggerHelpUiFalse_DoesNotShow() {
         setupForShow();
+        assertFalse(BottomBarEducationCoordinator.hasEducationShownThisSession());
         when(mTracker.shouldTriggerHelpUi(FeatureConstants.ANDROID_BOTTOM_BAR_EDUCATION))
                 .thenReturn(false);
         triggerShow();
@@ -147,22 +159,43 @@ public class BottomBarEducationCoordinatorUnitTest {
         verify(mScrimManager, never()).showScrim(any());
         assertEquals(BrowserControlsState.BOTH, mVisibilityDelegate.get().intValue());
         assertNull(mCoordinator.getBubbleViewForTesting());
+        assertFalse(BottomBarEducationCoordinator.hasEducationShownThisSession());
     }
 
     @Test
     public void testDestroyWhileShowingBubble() {
+        var watcher =
+                HistogramWatcher.newBuilder()
+                        .expectIntRecord(
+                                "Android.BottomBar.Education.Onboarding.DefaultBubble.Event",
+                                EducationOnboardingEvent.SHOWN)
+                        .expectIntRecord(
+                                "Android.BottomBar.Education.Onboarding.DefaultBubble.Event",
+                                EducationOnboardingEvent.DISMISSED_OTHER)
+                        .build();
         setupForShow();
         triggerShow();
         verify(mTracker).shouldTriggerHelpUi(FeatureConstants.ANDROID_BOTTOM_BAR_EDUCATION);
+        assertTrue(BottomBarEducationCoordinator.hasEducationShownThisSession());
         assertEquals(BrowserControlsState.SHOWN, mVisibilityDelegate.get().intValue());
         mCoordinator.destroy();
         verify(mScrimManager).hideScrim(any(), anyBoolean());
         assertEquals(BrowserControlsState.BOTH, mVisibilityDelegate.get().intValue());
         verify(mTracker).dismissed(FeatureConstants.ANDROID_BOTTOM_BAR_EDUCATION);
+        watcher.assertExpected();
     }
 
     @Test
     public void testSwitchBackDismissesAndTurnsOffBottomBar() {
+        var watcher =
+                HistogramWatcher.newBuilder()
+                        .expectIntRecord(
+                                "Android.BottomBar.Education.Onboarding.DefaultBubble.Event",
+                                EducationOnboardingEvent.SHOWN)
+                        .expectIntRecord(
+                                "Android.BottomBar.Education.Onboarding.DefaultBubble.Event",
+                                EducationOnboardingEvent.DECLINED)
+                        .build();
         SettingsNavigation settingsNavigation = mock(SettingsNavigation.class);
         SettingsNavigationFactory.setInstanceForTesting(settingsNavigation);
 
@@ -187,6 +220,7 @@ public class BottomBarEducationCoordinatorUnitTest {
         verify(mTracker).dismissed(FeatureConstants.ANDROID_BOTTOM_BAR_EDUCATION);
         assertEquals(BrowserControlsState.BOTH, mVisibilityDelegate.get().intValue());
         assertFalse(isBubbleShowing());
+        watcher.assertExpected();
     }
 
     @Test
@@ -211,6 +245,12 @@ public class BottomBarEducationCoordinatorUnitTest {
 
     @Test
     public void testBarNotLaidOut_WaitsForLayout() {
+        HistogramWatcher histogramWatcher =
+                HistogramWatcher.newBuilder()
+                        .expectIntRecord(
+                                "Android.BottomBar.Education.Onboarding.DefaultBubble.Event",
+                                EducationOnboardingEvent.SHOWN)
+                        .build();
         setupForShow();
         mBottomBarView.setVisibility(View.INVISIBLE);
         mCoordinator.maybeShow();
@@ -226,6 +266,7 @@ public class BottomBarEducationCoordinatorUnitTest {
 
         // Now shown
         verify(mScrimManager).showScrim(any());
+        histogramWatcher.assertExpected();
     }
 
     @Test
@@ -351,6 +392,15 @@ public class BottomBarEducationCoordinatorUnitTest {
 
     @Test
     public void testSettingsLinkOpensSettings() {
+        var watcher =
+                HistogramWatcher.newBuilder()
+                        .expectIntRecord(
+                                "Android.BottomBar.Education.Onboarding.DefaultBubble.Event",
+                                EducationOnboardingEvent.SHOWN)
+                        .expectIntRecord(
+                                "Android.BottomBar.Education.Onboarding.DefaultBubble.Event",
+                                EducationOnboardingEvent.SETTINGS_CLICKED)
+                        .build();
         SettingsNavigation settingsNavigation = mock(SettingsNavigation.class);
         SettingsNavigationFactory.setInstanceForTesting(settingsNavigation);
         setupForShow();
@@ -372,11 +422,19 @@ public class BottomBarEducationCoordinatorUnitTest {
         verify(mTracker).dismissed(FeatureConstants.ANDROID_BOTTOM_BAR_EDUCATION);
         assertEquals(BrowserControlsState.BOTH, mVisibilityDelegate.get().intValue());
         assertFalse(isBubbleShowing());
+        watcher.assertExpected();
     }
 
     @Test
     @Config(qualifiers = "land")
     public void testReShowOnRotation() {
+        HistogramWatcher histogramWatcher =
+                HistogramWatcher.newBuilder()
+                        .expectIntRecords(
+                                "Android.BottomBar.Education.Onboarding.DefaultBubble.Event",
+                                EducationOnboardingEvent.SHOWN,
+                                EducationOnboardingEvent.DISMISSED_OTHER)
+                        .build();
         setupForShow();
         triggerShow();
 
@@ -411,6 +469,7 @@ public class BottomBarEducationCoordinatorUnitTest {
 
         mCoordinator.dismiss();
         assertEquals(BrowserControlsState.BOTH, mVisibilityDelegate.get().intValue());
+        histogramWatcher.assertExpected();
     }
 
     @Test
@@ -482,6 +541,22 @@ public class BottomBarEducationCoordinatorUnitTest {
 
     @Test
     public void testTooltipChain_AllButtons() {
+        HistogramWatcher histogramWatcher =
+                HistogramWatcher.newBuilder()
+                        .expectIntRecord(
+                                "Android.BottomBar.Education.Onboarding.DefaultBubble.Event",
+                                EducationOnboardingEvent.SHOWN)
+                        .expectIntRecord(
+                                "Android.BottomBar.Education.Onboarding.DefaultBubble.Event",
+                                EducationOnboardingEvent.ACCEPTED)
+                        .expectIntRecord("Android.BottomBar.IPH.Glic.Event", IphEvent.SHOWN)
+                        .expectIntRecord("Android.BottomBar.IPH.Glic.Event", IphEvent.DISMISSED)
+                        .expectIntRecord("Android.BottomBar.IPH.NewTab.Event", IphEvent.SHOWN)
+                        .expectIntRecord("Android.BottomBar.IPH.NewTab.Event", IphEvent.DISMISSED)
+                        .expectIntRecord("Android.BottomBar.IPH.TabSwitcher.Event", IphEvent.SHOWN)
+                        .expectIntRecord(
+                                "Android.BottomBar.IPH.TabSwitcher.Event", IphEvent.DISMISSED)
+                        .build();
         setupForShow();
         allowTooltipsToShowInRobolectric();
         triggerShow();
@@ -515,6 +590,7 @@ public class BottomBarEducationCoordinatorUnitTest {
 
         assertNull(mCoordinator.getCurrentTooltipForTesting());
         verify(mTracker).dismissed(FeatureConstants.ANDROID_BOTTOM_BAR_EDUCATION);
+        histogramWatcher.assertExpected();
     }
 
     @Test
@@ -595,6 +671,17 @@ public class BottomBarEducationCoordinatorUnitTest {
 
     @Test
     public void testDestroyWhileShowingTooltips() {
+        var watcher =
+                HistogramWatcher.newBuilder()
+                        .expectIntRecord(
+                                "Android.BottomBar.Education.Onboarding.DefaultBubble.Event",
+                                EducationOnboardingEvent.SHOWN)
+                        .expectIntRecord(
+                                "Android.BottomBar.Education.Onboarding.DefaultBubble.Event",
+                                EducationOnboardingEvent.ACCEPTED)
+                        .expectIntRecord("Android.BottomBar.IPH.Glic.Event", IphEvent.SHOWN)
+                        .expectIntRecord("Android.BottomBar.IPH.Glic.Event", IphEvent.DISMISSED)
+                        .build();
         setupForShow();
         allowTooltipsToShowInRobolectric();
         triggerShow();
@@ -605,6 +692,7 @@ public class BottomBarEducationCoordinatorUnitTest {
         mCoordinator.destroy();
 
         verify(mTracker).dismissed(FeatureConstants.ANDROID_BOTTOM_BAR_EDUCATION);
+        watcher.assertExpected();
     }
 
     @Test
@@ -626,6 +714,7 @@ public class BottomBarEducationCoordinatorUnitTest {
 
         triggerShow();
 
+        assertTrue(BottomBarEducationCoordinator.hasEducationShownThisSession());
         TextBubble tooltip = mCoordinator.getCurrentTooltipForTesting();
         assertNotNull(tooltip);
         assertTrue(tooltip.getDismissOnTouchInteractionForTesting());
