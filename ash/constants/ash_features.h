@@ -324,7 +324,6 @@ COMPONENT_EXPORT(ASH_CONSTANTS)
 BASE_DECLARE_FEATURE(kGlanceablesTimeManagementTasksViewAssignedTasks);
 COMPONENT_EXPORT(ASH_CONSTANTS)
 BASE_DECLARE_FEATURE(kGaiaRecordAccountCreation);
-COMPONENT_EXPORT(ASH_CONSTANTS) BASE_DECLARE_FEATURE(kGameDashboardUtilities);
 COMPONENT_EXPORT(ASH_CONSTANTS)
 BASE_DECLARE_FEATURE(kFeatureManagementGameDashboardRecordGame);
 COMPONENT_EXPORT(ASH_CONSTANTS) BASE_DECLARE_FEATURE(kBlockFwupdClient);
@@ -952,7 +951,6 @@ COMPONENT_EXPORT(ASH_CONSTANTS) bool IsFullscreenAlertBubbleEnabled();
 COMPONENT_EXPORT(ASH_CONSTANTS) bool IsBlockFwupdClientEnabled();
 COMPONENT_EXPORT(ASH_CONSTANTS) bool IsGaiaRecordAccountCreationEnabled();
 COMPONENT_EXPORT(ASH_CONSTANTS) bool IsGameDashboardEnabled();
-COMPONENT_EXPORT(ASH_CONSTANTS) bool AreGameDashboardUtilitiesEnabled();
 COMPONENT_EXPORT(ASH_CONSTANTS) bool IsGraduationEnabled();
 COMPONENT_EXPORT(ASH_CONSTANTS)
 bool IsGraduationUseEmbeddedTransferEndpointEnabled();
@@ -1010,9 +1008,6 @@ COMPONENT_EXPORT(ASH_CONSTANTS) bool IsLobsterDisabledByInvalidIME();
 COMPONENT_EXPORT(ASH_CONSTANTS) bool IsLobsterI18nEnabled();
 COMPONENT_EXPORT(ASH_CONSTANTS) bool IsLobsterUseRewrittenQuery();
 COMPONENT_EXPORT(ASH_CONSTANTS) bool IsLobsterAlwaysShowDisclaimerForTesting();
-COMPONENT_EXPORT(ASH_CONSTANTS)
-bool IsLockScreenHideSensitiveNotificationsSupported();
-COMPONENT_EXPORT(ASH_CONSTANTS) bool IsLockScreenNotificationsEnabled();
 COMPONENT_EXPORT(ASH_CONSTANTS) bool IsMacAddressRandomizationEnabled();
 COMPONENT_EXPORT(ASH_CONSTANTS) bool ShouldMigrateOwnerKeyToPrivateSlot();
 COMPONENT_EXPORT(ASH_CONSTANTS) bool IsNotificationLimitEnabled();

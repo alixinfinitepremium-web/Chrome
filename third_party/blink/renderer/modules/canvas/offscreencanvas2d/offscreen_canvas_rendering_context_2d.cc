@@ -287,13 +287,13 @@ void OffscreenCanvasRenderingContext2D::Reshape(gfx::Size old_size,
   DidDraw(CanvasPerformanceMonitor::DrawType::kOther);
 }
 
-scoped_refptr<CanvasResource>
+scoped_refptr<ExportedCanvasResource>
 OffscreenCanvasRenderingContext2D::ProduceCanvasResource(FlushReason reason) {
   if (!InitializeBacking()) {
     return nullptr;
   }
 
-  scoped_refptr<CanvasResource> frame =
+  scoped_refptr<ExportedCanvasResource> frame =
       PaintRenderingResultsToResource(kBackBuffer, reason);
   if (!frame)
     return nullptr;
@@ -302,12 +302,12 @@ OffscreenCanvasRenderingContext2D::ProduceCanvasResource(FlushReason reason) {
   return frame;
 }
 
-scoped_refptr<CanvasResource>
+scoped_refptr<ExportedCanvasResource>
 OffscreenCanvasRenderingContext2D::GetResourceForPushFrame(
     bool& should_call_push_frame) {
   should_call_push_frame = true;
   FinalizeFrame(FlushReason::kOther);
-  scoped_refptr<CanvasResource> resource =
+  scoped_refptr<ExportedCanvasResource> resource =
       ProduceCanvasResource(FlushReason::kOther);
   GetOffscreenFontCache().PruneLocalFontCache(kMaxCachedFonts);
   return resource;

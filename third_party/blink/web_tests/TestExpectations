@@ -632,9 +632,6 @@ crbug.com/718155 payments/payment-request-in-iframe-nested-not-allowed.html [ Fa
 
 crbug.com/338124116 external/wpt/payment-request/payment-request-hasenrolledinstrument-method.tentative.https.html [ Failure Pass ]
 
-# Expect to fail. The test is applicable only when DigitalGoods flag is disabled.
-crbug.com/1080870 http/tests/payments/payment-request-app-store-billing-mandatory-total.html [ Failure ]
-
 ### ====== Payments related tests end =======
 
 # WPT speculative-parsing tests failing
@@ -1522,6 +1519,7 @@ crbug.com/369369569 http/tests/notifications/request-permission-granted.html [ P
 crbug.com/41489935 http/tests/permissions/chromium/test-change-event-window.html [ Failure Pass ]
 crbug.com/538717 http/tests/permissions/chromium/test-request-multiple-window.html [ Failure Pass Timeout ]
 crbug.com/552206961 http/tests/permissions/chromium/test-request-multiple-worker.html [ Pass Timeout ]
+crbug.com/552133592 http/tests/permissions/chromium/test-request-multiple-sharedworker.html [ Failure Pass Timeout ]
 
 crbug.com/399951 http/tests/mime/javascript-mimetype-usecounters.html [ Failure Pass ]
 
@@ -8164,6 +8162,8 @@ crbug.com/441912460 [ Mac ] external/wpt/webrtc-stats/video-psnr.https.html [ Sk
 
 # Text drag and drop does not work on mac for test_driver.
 crbug.com/440374233 [ Mac ] external/wpt/html/editing/dnd/drop/002.xhtml [ Timeout ]
+crbug.com/440374233 [ Mac ] external/wpt/html/editing/dnd/remove/004.html [ Timeout ]
+crbug.com/440374233 [ Mac ] external/wpt/html/editing/dnd/remove/005.html [ Timeout ]
 
 # Gardener 2025-08-18
 crbug.com/428101918 [ Linux ] external/wpt/service-workers/service-worker/same-site-cookies.https.html [ Failure Timeout ]

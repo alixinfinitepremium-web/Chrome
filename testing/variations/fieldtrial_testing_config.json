@@ -7916,25 +7916,6 @@
             ]
         }
     ],
-    "FetchAccountCapabilitiesOnRestart": [
-        {
-            "platforms": [
-                "android",
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "FetchAccountCapabilitiesOnRestart"
-                    ]
-                }
-            ]
-        }
-    ],
     "FetchAccountCapabilitiesOnRestartIos": [
         {
             "platforms": [
@@ -12833,6 +12814,24 @@
             ]
         }
     ],
+    "OnDeviceModelConversationBackend": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled_20261022",
+                    "enable_features": [
+                        "OnDeviceModelConversationBackend"
+                    ]
+                }
+            ]
+        }
+    ],
     "OnDeviceModelEviction": [
         {
             "platforms": [
@@ -15518,6 +15517,25 @@
             ]
         }
     ],
+    "RustPhishingModelSetter": [
+        {
+            "platforms": [
+                "android",
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "RustPhishingModelSetter"
+                    ]
+                }
+            ]
+        }
+    ],
     "RustyIcoFeature": [
         {
             "platforms": [
@@ -17487,6 +17505,22 @@
                     },
                     "enable_features": [
                         "ThrottleRepeatedNoDamageFrames"
+                    ]
+                }
+            ]
+        }
+    ],
+    "ThrottleMainFrameTo60HzMacV3": [
+        {
+            "platforms": [
+                "mac"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "ThrottleMainFrameTo60Hz",
+                        "UrgentMainFrameForInput"
                     ]
                 }
             ]

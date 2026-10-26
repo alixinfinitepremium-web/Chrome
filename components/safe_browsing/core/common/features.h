@@ -432,11 +432,6 @@ BASE_DECLARE_FEATURE_PARAM(
 BASE_DECLARE_FEATURE_PARAM(bool,
                            kMigrateToBlockV8OptimizerOnUnfamiliarSitesDryRun);
 
-// When enabled, the Password Leak detection toggle is moved out from under the
-// 'Standard protection' Safe Browsing option to the top-level 'Privacy and
-// security' page.
-BASE_DECLARE_FEATURE(kMovePasswordLeakDetectionToggleIos);
-
 // Enables the notice queue integration for the ESB notice.
 BASE_DECLARE_FEATURE(kNoticeQueueForEsb);
 
@@ -492,6 +487,10 @@ BASE_DECLARE_FEATURE(kReportNotificationContentDetectionData);
 // it becomes excessive.
 extern const base::FeatureParam<int>
     kReportNotificationContentDetectionDataRate;
+
+// Enables the Rust implementation of mojom::PhishingModelSetter in the
+// renderer process.
+BASE_DECLARE_FEATURE(kRustPhishingModelSetter);
 
 // Enables client side phishing daily reports limit to be configured via Finch
 // for ESB and SBER users

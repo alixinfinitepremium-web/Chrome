@@ -1760,7 +1760,7 @@ void WebGLRenderingContextBase::MarkContextChanged(
   }
 }
 
-scoped_refptr<CanvasResource>
+scoped_refptr<ExportedCanvasResource>
 WebGLRenderingContextBase::GetResourceForPushFrame(
     bool& should_call_push_frame) {
   should_call_push_frame = false;
@@ -1778,7 +1778,8 @@ WebGLRenderingContextBase::GetResourceForPushFrame(
     if (auto canvas_resource = GetDrawingBuffer()->ExportCanvasResource()) {
       should_call_push_frame = true;
       MarkLayerComposited();
-      return canvas_resource;
+      return base::MakeRefCounted<ExportedCanvasResource>(
+          std::move(canvas_resource));
     }
   }
 
@@ -1800,7 +1801,9 @@ WebGLRenderingContextBase::GetResourceForPushFrame(
     should_call_push_frame = true;
   }
   MarkLayerComposited();
-  return resource;
+  return resource
+             ? base::MakeRefCounted<ExportedCanvasResource>(std::move(resource))
+             : nullptr;
 }
 
 void WebGLRenderingContextBase::Dispose() {
@@ -2176,7 +2179,7 @@ WebGLRenderingContextBase::PaintRenderingResultsToSnapshot(
   return snapshot;
 }
 
-scoped_refptr<CanvasResource>
+scoped_refptr<ExportedCanvasResource>
 WebGLRenderingContextBase::PaintRenderingResultsToResource(
     SourceDrawingBuffer source_buffer,
     FlushReason reason) {
@@ -2194,7 +2197,10 @@ WebGLRenderingContextBase::PaintRenderingResultsToResource(
     // painted the canvas' contents by doing any necessary clearing in the above
     // call.
     must_paint_to_canvas_ = false;
-    return GetDrawingBuffer()->ExportLowLatencyCanvasResource();
+    auto resource = GetDrawingBuffer()->ExportLowLatencyCanvasResource();
+    return resource ? base::MakeRefCounted<ExportedCanvasResource>(
+                          std::move(resource))
+                    : nullptr;
   }
 
 
@@ -2206,10 +2212,17 @@ WebGLRenderingContextBase::PaintRenderingResultsToResource(
 
   if (!must_paint_to_canvas_ && !cleared_content && resource_provider_.get()) {
     // `resource_provider_` already has the current contents.
-    return resource_provider_->ProduceCanvasResource();
+    auto resource = resource_provider_->ProduceCanvasResource();
+    return resource ? base::MakeRefCounted<ExportedCanvasResource>(
+                          std::move(resource))
+                    : nullptr;
   }
 
-  return CopyRenderingResultsFromDrawingBufferToResource(source_buffer);
+  auto resource =
+      CopyRenderingResultsFromDrawingBufferToResource(source_buffer);
+  return resource
+             ? base::MakeRefCounted<ExportedCanvasResource>(std::move(resource))
+             : nullptr;
 }
 
 CanvasNon2DResourceProvider*

@@ -110,7 +110,7 @@ class MODULES_EXPORT OffscreenCanvasRenderingContext2D final
 
   void Trace(Visitor*) const override;
 
-  scoped_refptr<CanvasResource> GetResourceForPushFrame(
+  scoped_refptr<ExportedCanvasResource> GetResourceForPushFrame(
       bool& should_call_push_frame) override;
 
   CanvasRenderingContextHost* GetCanvasRenderingContextHost() const override;
@@ -133,7 +133,7 @@ class MODULES_EXPORT OffscreenCanvasRenderingContext2D final
  private:
   void FinalizeFrame(FlushReason) final;
 
-  scoped_refptr<CanvasResource> ProduceCanvasResource(FlushReason);
+  scoped_refptr<ExportedCanvasResource> ProduceCanvasResource(FlushReason);
 
   bool InitializeBacking() override;
 };

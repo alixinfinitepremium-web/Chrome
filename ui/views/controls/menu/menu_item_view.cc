@@ -66,6 +66,7 @@
 #include "ui/views/style/typography_provider.h"
 #include "ui/views/vector_icons.h"
 #include "ui/views/view_class_properties.h"
+#include "ui/views/view_guard.h"
 #include "ui/views/view_tracker.h"
 #include "ui/views/view_utils.h"
 #include "ui/views/widget/widget.h"
@@ -475,6 +476,12 @@ MenuItemView* MenuItemView::AddMenuItemViewImpl(
   if (GetDelegate() && !GetDelegate()->IsCommandVisible(item->GetCommand())) {
     item->SetVisible(false);
   }
+
+  // There are cases where menu insertions can lead to synchronous accessibility
+  // events, which can in turn lead to a miscalibrated or malicious
+  // accessibility tool attempting to close the menu mid-insertion. Guard
+  // against the item being destroyed while it is being added.
+  ViewGuard item_guard(*item);
 
   auto* added_item = submenu_->AddChildViewAt(std::move(item), insert_index);
 

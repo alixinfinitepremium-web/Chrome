@@ -267,16 +267,21 @@ class FakePromptSuggestionTool : public ::selection::SuggestionTool {
       const optimization_guide::proto::SmartSelectionSuggestion&
           server_suggestion) override {
     QueueServerResponse();
-    return std::make_unique<SelectionSuggestion>(*tab_, u"Ask Gemini");
+    return std::make_unique<SelectionSuggestion>(
+        *tab_, base::UTF8ToUTF16(server_suggestion.label()));
   }
 
  private:
   void QueueServerResponse() {
     optimization_guide::proto::SmartSelectionSuggestionsResponse response;
-    auto* s = response.add_suggestions();
-    s->set_tool(
+    auto* s1 = response.add_suggestions();
+    s1->set_tool(
         optimization_guide::proto::SMART_SELECTION_TOOL_GEMINI_IN_CHROME);
-    s->set_label("Ask Gemini");
+    s1->set_label("Summarize");
+    auto* s2 = response.add_suggestions();
+    s2->set_tool(
+        optimization_guide::proto::SMART_SELECTION_TOOL_GEMINI_IN_CHROME);
+    s2->set_label("Ask Gemini");
     optimization_guide::proto::Any any;
     any.set_value(response.SerializeAsString());
     any.set_type_url(
@@ -454,6 +459,43 @@ IN_PROC_BROWSER_TEST_F(SelectionOverlayInteractiveTest,
                               OverlayBaseController::kOverlayId),
       WaitForJsResultAt(kOverlayWebContentsId, kOverlay,
                         "el => !el.hideHandles && el.disableMultiSelect"));
+}
+
+// The overlay learns whether the Glic side panel is showing when the session
+// starts, and again when the panel opens mid-session.
+IN_PROC_BROWSER_TEST_F(SelectionOverlayInteractiveTest,
+                       SidePanelOpenFollowsPanel) {
+  DEFINE_LOCAL_ELEMENT_IDENTIFIER_VALUE(kActiveTab);
+  DEFINE_LOCAL_ELEMENT_IDENTIFIER_VALUE(kOverlayWebContentsId);
+  const DeepQuery kOverlay = {"selection-overlay-app",
+                              "glic-selection-overlay"};
+  const DeepQuery kRenderer = {"selection-overlay-app",
+                               "glic-selection-overlay",
+                               "post-selection-renderer"};
+
+  RunTestSequence(LoadPageAndWaitForPaint(kActiveTab), Do([this]() {
+                    ShowWithSelection(selection::InteractionOptions::New(
+                        /*hide_handles=*/true, /*disable_multi_select=*/true,
+                        /*skip_intro_animation=*/true));
+                  }),
+                  WaitForShow(OverlayBaseController::kOverlayId),
+                  InstrumentNonTabWebView(kOverlayWebContentsId,
+                                          OverlayBaseController::kOverlayId),
+                  // Started with the panel closed. The region is sent after
+                  // the initial value, so this is not just the default.
+                  WaitForJsResultAt(kOverlayWebContentsId, kRenderer,
+                                    "el => el.selectedRegions.length === 1"),
+                  CheckJsResultAt(kOverlayWebContentsId, kOverlay,
+                                  "el => el.sidePanelOpen === false"),
+                  // The panel opens mid-session.
+                  OpenGlic(),
+                  WaitForJsResultAt(kOverlayWebContentsId, kOverlay,
+                                    "el => el.sidePanelOpen === true"),
+                  // Closing the panel closes the overlay with it, whichever
+                  // way the session started (`GlicSidePanelUi::Close()`).
+                  ToggleGlicWindow(GlicWindowMode::kAttached),
+                  InAnyContext(WaitForHide(kGlicHostElementId)),
+                  WaitForHide(OverlayBaseController::kOverlayId));
 }
 
 // A session with a pre-selected region opens directly in the post-selection
@@ -1746,18 +1788,28 @@ IN_PROC_BROWSER_TEST_F(SelectionOverlayInteractiveTestWithPrompt,
           "el => {"
           "  const chips = "
           "Array.from(el.shadowRoot.querySelectorAll('.action-chip'));"
-          "  if (chips.length !== 1) return false;"
+          "  if (chips.length !== 2) return false;"
           "  const titles = chips.map(c => "
           "c.querySelector('.chip-label')?.textContent?.trim());"
-          "  return titles[0] === 'Ask Gemini';"
+          "  return titles[0] === 'Summarize' && titles[1] === 'Ask Gemini';"
           "}"),
       WaitForJsResultAt(
           kOverlayWebContentsId, kSelectionOverlay,
           "el => {"
           "  const container = "
           "el.shadowRoot.querySelector('#floatingPromptContainer');"
+          "  const pill = el.shadowRoot.querySelector('.searchbox-pill');"
+          "  const chips = "
+          "Array.from(el.shadowRoot.querySelectorAll('.action-chip'));"
+          "  if (!container || !pill || chips.length !== 2) return false;"
           "  const rect = container.getBoundingClientRect();"
-          "  return rect.height > 38 && rect.height <= 96;"
+          "  const pillRect = pill.getBoundingClientRect();"
+          "  const chip0Rect = chips[0].getBoundingClientRect();"
+          "  const chip1Rect = chips[1].getBoundingClientRect();"
+          "  return rect.height > 96 && rect.height <= 130 && "
+          "      chip1Rect.top >= chip0Rect.bottom && "
+          "      Math.abs(chip0Rect.left - pillRect.left) <= 1 && "
+          "      Math.abs(chip1Rect.left - pillRect.left) <= 1;"
           "}"));
 }
 
@@ -1785,7 +1837,7 @@ IN_PROC_BROWSER_TEST_F(SelectionOverlayInteractiveTestWithPromptWithoutBox,
       MoveMouseTo(OverlayBaseController::kOverlayId,
                   GetPointWithOffset(50, 50)),
       DragMouseTo(OverlayBaseController::kOverlayId,
-                  GetPointWithOffset(250, 150)),
+                  GetPointWithOffset(150, 150)),
       WaitForJsResultAt(
           kOverlayWebContentsId, kSelectionOverlay,
           "el => {"
@@ -1801,10 +1853,10 @@ IN_PROC_BROWSER_TEST_F(SelectionOverlayInteractiveTestWithPromptWithoutBox,
           "el => {"
           "  const chips = "
           "Array.from(el.shadowRoot.querySelectorAll('.action-chip'));"
-          "  if (chips.length !== 1) return false;"
+          "  if (chips.length !== 2) return false;"
           "  const titles = chips.map(c => "
           "c.querySelector('.chip-label')?.textContent?.trim());"
-          "  return titles[0] === 'Ask Gemini';"
+          "  return titles[0] === 'Summarize' && titles[1] === 'Ask Gemini';"
           "}"),
       WaitForJsResultAt(
           kOverlayWebContentsId, kSelectionOverlay,
@@ -1824,11 +1876,14 @@ IN_PROC_BROWSER_TEST_F(SelectionOverlayInteractiveTestWithPromptWithoutBox,
           "el.shadowRoot.querySelector('#floatingPromptContainer');"
           "  const settingsBtn = "
           "el.shadowRoot.querySelector('#settingsButton');"
-          "  const chip = el.shadowRoot.querySelector('.action-chip');"
-          "  if (!container || !settingsBtn || !chip) return false;"
+          "  const chips = "
+          "Array.from(el.shadowRoot.querySelectorAll('.action-chip'));"
+          "  if (!container || !settingsBtn || chips.length !== 2) return "
+          "false;"
           "  const containerRect = container.getBoundingClientRect();"
           "  const btnRect = settingsBtn.getBoundingClientRect();"
-          "  const chipRect = chip.getBoundingClientRect();"
+          "  const chip0Rect = chips[0].getBoundingClientRect();"
+          "  const chip1Rect = chips[1].getBoundingClientRect();"
           "  const overlayRect = el.selectionOverlayRect;"
           "  const sel = el.activeSelection;"
           "  const selRight = overlayRect.left + (sel.left + sel.width) * "
@@ -1836,7 +1891,8 @@ IN_PROC_BROWSER_TEST_F(SelectionOverlayInteractiveTestWithPromptWithoutBox,
           "  const selTop = overlayRect.top + sel.top * overlayRect.height;"
           "  return Math.abs(containerRect.left - selRight) <= 2 && "
           "      Math.abs(containerRect.bottom - selTop) <= 2 && "
-          "      btnRect.left >= chipRect.right;"
+          "      chip1Rect.left >= chip0Rect.right && "
+          "      btnRect.left >= chip1Rect.right;"
           "}"),
       MoveMouseTo(kOverlayWebContentsId, kSettingsButton), ClickMouse(),
       WaitForHide(OverlayBaseController::kOverlayId));
@@ -2239,7 +2295,8 @@ IN_PROC_BROWSER_TEST_F(SelectionOverlayInteractiveTestWithInlineFulfillment,
       WaitForJsResultAt(kOverlayWebContentsId, kRenderer,
                         "el => el.selectedRegions.length === 1"),
       CheckJsResultAt(kOverlayWebContentsId, kSelectionOverlay,
-                      "el => el.hideHandles && el.disableMultiSelect"));
+                      "el => el.hideHandles && el.disableMultiSelect && "
+                      "el.sidePanelOpen"));
 }
 
 IN_PROC_BROWSER_TEST_F(SelectionOverlayInteractiveTestWithInlineFulfillment,
