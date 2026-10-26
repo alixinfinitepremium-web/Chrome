@@ -519,6 +519,8 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry) {
   contextual_search::ContextualSearchService::RegisterProfilePrefs(registry);
   AimEligibilityService::RegisterProfilePrefs(registry);
   registry->RegisterDictionaryPref(prefs::kCobrowseSessionActiveMap);
+  registry->RegisterBooleanPref(prefs::kCobrowseTabSharingConsentAccepted,
+                                false);
   cross_device::RegisterProfilePrefs(registry);
   CrossPlatformPromosService::RegisterProfilePrefs(registry);
   data_controls::RegisterProfilePrefs(registry);
@@ -886,9 +888,6 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry) {
 
   registry->RegisterBooleanPref(prefs::kUniversalOptOutErrorToastShown, false);
 
-  // Deprecated 11/2025.
-  registry->RegisterListPref(kReaderModeRecentlyUsedTimestampsPref);
-
   // Deprecated 12/2025.
   registry->RegisterStringPref(kAutofillStatesDataDir, std::string());
 
@@ -989,9 +988,6 @@ void MigrateObsoleteProfilePrefs(PrefService* prefs) {
                     prefs::kHomeCustomizationMagicStackSafetyCheckEnabled,
                     prefs);
 
-  // Added 11/2025.
-  prefs->ClearPref(kReaderModeRecentlyUsedTimestampsPref);
-
   // Added 12/2025.
   prefs->ClearPref(kAutofillStatesDataDir);
 
@@ -1041,16 +1037,6 @@ void MigrateObsoleteProfilePrefs(PrefService* prefs) {
 
 void MigrateObsoleteUserDefault() {
   NSUserDefaults* defaults = [NSUserDefaults standardUserDefaults];
-
-  // Added 10/2025.
-  [defaults removeObjectForKey:@"TimestampTriggerCriteriaExperimentStarted"];
-  [defaults removeObjectForKey:@"AllTimestampsAppLaunchColdStart"];
-  [defaults removeObjectForKey:@"AllTimestampsAppLaunchWarmStart"];
-  [defaults removeObjectForKey:@"AllTimestampsAppLaunchIndirectStart"];
-  [defaults removeObjectForKey:@"AutofillUseCount"];
-  [defaults removeObjectForKey:@"SpecialTabUseCount"];
-  [defaults removeObjectForKey:@"OmniboxUseCount"];
-  [defaults removeObjectForKey:@"BookmarkUseCount"];
 
   // Added 03/2026
   [defaults removeObjectForKey:@"fre_timestamp_migration_done"];

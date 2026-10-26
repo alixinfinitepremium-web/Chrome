@@ -1464,6 +1464,12 @@
       status: "experimental",
     },
     {
+      name: "ConsistentFormControlPaintSnapping",
+      // Keep checkbox/radio painted size constant regardless of sub-pixel
+      // position. https://crbug.com/41288048
+      status: "stable",
+    },
+    {
       name: "ConstructableStylesheetCache",
       status: "test",
     },
@@ -5538,7 +5544,7 @@
     {
       // https://crbug.com/567626030
       name: "ReplaceCompositionActualInsertedLength",
-      status: "stable",
+      status: "test",
     },
     {
       // Kill switch for painting non-SVG replaced normal-flow stacking
@@ -5578,6 +5584,11 @@
     {
       // Kill switch for https://crbug.com/570579609.
       name: "ResponsiveIframesShrink",
+      status: "stable",
+    },
+    {
+      // Kill switch for https://crbug.com/565383556.
+      name: "ResponsiveIframesSingleAxisIcb",
       status: "stable",
     },
     {

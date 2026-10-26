@@ -5505,6 +5505,21 @@
             ]
         }
     ],
+    "CreatorProfileClankLaunch": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "KeepUnassignedSiteInstanceInOriginalBrowsingInstance"
+                    ]
+                }
+            ]
+        }
+    ],
     "CreditCardInfobarDisplayLength": [
         {
             "platforms": [
@@ -6330,6 +6345,21 @@
             ]
         }
     ],
+    "DirectLaunchManager": [
+        {
+            "platforms": [
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "DirectLaunchManager"
+                    ]
+                }
+            ]
+        }
+    ],
     "DirtyWritebackMaxBytes": [
         {
             "platforms": [
@@ -6518,6 +6548,7 @@
                     "enable_features": [
                         "DetectSpaceChangeViaOcclusion",
                         "NotifyCompositorOfSpaceVisibilityOnMacOs",
+                        "NotifyCompositorOfWindowOcclusionOnMacOs",
                         "NotifyCompositorOfWindowVisibilityOnMacOs",
                         "VizBufferQueueDiscardOnVisibilityChange"
                     ]
@@ -13598,6 +13629,24 @@
             ]
         }
     ],
+    "PasskeyUnlockPromo": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "PasskeyUnlockPromo"
+                    ]
+                }
+            ]
+        }
+    ],
     "PasswordCompromiseWarningInDetailsCard": [
         {
             "platforms": [
@@ -17032,26 +17081,6 @@
                     },
                     "enable_features": [
                         "SyncIncreaseNudgeDelayForSingleClient"
-                    ]
-                }
-            ]
-        }
-    ],
-    "SyncNigoriImplicitPassphraseMigration": [
-        {
-            "platforms": [
-                "android",
-                "chromeos",
-                "ios",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "SyncMigrateFromImplicitPassphrase"
                     ]
                 }
             ]

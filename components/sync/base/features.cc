@@ -133,8 +133,6 @@ BASE_FEATURE(kSyncTrustedVaultErrorMessageDuration,
              base::FEATURE_DISABLED_BY_DEFAULT);
 #endif  // BUILDFLAG(IS_ANDROID)
 
-BASE_FEATURE(kSyncEnableNewSyncDashboardUrl, base::FEATURE_ENABLED_BY_DEFAULT);
-
 BASE_FEATURE(kSyncUsePropagatedAccessToken, base::FEATURE_DISABLED_BY_DEFAULT);
 
 #if BUILDFLAG(IS_ANDROID)
@@ -148,16 +146,13 @@ BASE_FEATURE(kEstimateNewSignInUsersWithFinchAvailablePopulation,
              base::FEATURE_DISABLED_BY_DEFAULT);
 #endif  // BUILDFLAG(IS_CHROMEOS)
 
-BASE_FEATURE(kSyncFixWebSigninSessionDurationForShortLivedSessions,
-             base::FEATURE_ENABLED_BY_DEFAULT);
-
 BASE_FEATURE(kSyncDisambiguateDeviceNamesWithChannel,
              base::FEATURE_DISABLED_BY_DEFAULT);
 
 BASE_FEATURE(kSyncNigoriAuthenticateIV, base::FEATURE_DISABLED_BY_DEFAULT);
 
 BASE_FEATURE(kSyncMigrateFromImplicitPassphrase,
-             base::FEATURE_DISABLED_BY_DEFAULT);
+             base::FEATURE_ENABLED_BY_DEFAULT);
 
 BASE_FEATURE(kSyncMigrateLoopbackServerBookmarksToClientTagHash,
              base::FEATURE_DISABLED_BY_DEFAULT);

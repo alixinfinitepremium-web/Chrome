@@ -2023,8 +2023,14 @@ class SelectionOverlayInteractiveTestWithInlineFulfillment
 
 }  // namespace
 
+// TODO(crbug.com/577914378): Flaky on Mac.
+#if BUILDFLAG(IS_MAC)
+#define MAYBE_ClickExplainChipShowsCard DISABLED_ClickExplainChipShowsCard
+#else
+#define MAYBE_ClickExplainChipShowsCard ClickExplainChipShowsCard
+#endif
 IN_PROC_BROWSER_TEST_F(SelectionOverlayInteractiveTestWithInlineFulfillment,
-                       ClickExplainChipShowsCard) {
+                       MAYBE_ClickExplainChipShowsCard) {
   DEFINE_LOCAL_ELEMENT_IDENTIFIER_VALUE(kActiveTab);
   DEFINE_LOCAL_ELEMENT_IDENTIFIER_VALUE(kOverlayWebContentsId);
 
@@ -2151,8 +2157,15 @@ IN_PROC_BROWSER_TEST_F(SelectionOverlayInteractiveTestWithInlineFulfillment,
                         kCardAtCueTopLeftJs));
 }
 
+// TODO(crbug.com/577914378): Flaky on Mac.
+#if BUILDFLAG(IS_MAC)
+#define MAYBE_ClickCardAskGeminiOpensSidePanel \
+  DISABLED_ClickCardAskGeminiOpensSidePanel
+#else
+#define MAYBE_ClickCardAskGeminiOpensSidePanel ClickCardAskGeminiOpensSidePanel
+#endif
 IN_PROC_BROWSER_TEST_F(SelectionOverlayInteractiveTestWithInlineFulfillment,
-                       ClickCardAskGeminiOpensSidePanel) {
+                       MAYBE_ClickCardAskGeminiOpensSidePanel) {
   DEFINE_LOCAL_ELEMENT_IDENTIFIER_VALUE(kActiveTab);
   DEFINE_LOCAL_ELEMENT_IDENTIFIER_VALUE(kOverlayWebContentsId);
   const DeepQuery kAskGemini = {

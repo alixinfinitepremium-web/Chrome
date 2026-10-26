@@ -162,10 +162,6 @@ inline constexpr base::FeatureParam<double>
 BASE_DECLARE_FEATURE(kSyncTrustedVaultErrorMessageDuration);
 #endif  // BUILDFLAG(IS_ANDROID)
 
-// If enabled, the new sync dashboard URL will be opened when the user clicks
-// on the "Review your synced data" (or equivalent) entrypoint in settings.
-BASE_DECLARE_FEATURE(kSyncEnableNewSyncDashboardUrl);
-
 // If enabled, use the access token propagated from SyncSchedulerImpl through
 // SyncCycle rather than reading from ServerConnectionManager's cache.
 BASE_DECLARE_FEATURE(kSyncUsePropagatedAccessToken);
@@ -183,11 +179,6 @@ BASE_DECLARE_FEATURE(kAlwaysRegisterSessionsInvalidationsAndroid);
 // Feature flag for ChromeOS only to estimate new sign-in users population.
 BASE_DECLARE_FEATURE(kEstimateNewSignInUsersWithFinchAvailablePopulation);
 #endif  // BUILDFLAG(IS_CHROMEOS)
-
-// If enabled, computes the web sign-in status based on account in cookies
-// values even if they are stale. This ensures that we log the last known cookie
-// sign-in status for short-lived sessions instead of the default OFF value.
-BASE_DECLARE_FEATURE(kSyncFixWebSigninSessionDurationForShortLivedSessions);
 
 // If enabled, disambiguates duplicate device display names using release
 // channel labels (e.g., "(Canary)").
