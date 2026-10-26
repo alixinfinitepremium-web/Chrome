@@ -1169,10 +1169,6 @@ BASE_FEATURE(kOneDriveUploadImmediateReauth, base::FEATURE_ENABLED_BY_DEFAULT);
 // up.
 BASE_FEATURE(kOngoingProcesses, base::FEATURE_ENABLED_BY_DEFAULT);
 
-// If enabled, enrollment screen will allow for automatically adding the
-// authenticated user to the device.
-BASE_FEATURE(kOobeAddUserDuringEnrollment, base::FEATURE_DISABLED_BY_DEFAULT);
-
 // If enabled, CHOOBE Screen will be shown during the new user onboarding flow.
 BASE_FEATURE(kOobeChoobe, base::FEATURE_ENABLED_BY_DEFAULT);
 
@@ -1625,10 +1621,6 @@ BASE_FEATURE(kAuthPanelUsingAuthHub, base::FEATURE_DISABLED_BY_DEFAULT);
 // the new dialog that's also shared with Settings and Password Manager,
 // that lives in ash/auth/view/active_session_auth_view
 BASE_FEATURE(kWebAuthNAuthDialogMerge, base::FEATURE_ENABLED_BY_DEFAULT);
-
-// Use the staging URL as part of the "Messages" feature under "Connected
-// Devices" settings.
-BASE_FEATURE(kUseMessagesStagingUrl, base::FEATURE_DISABLED_BY_DEFAULT);
 
 BASE_FEATURE(kLiveCaptionUserMicrophone, base::FEATURE_DISABLED_BY_DEFAULT);
 
@@ -2494,10 +2486,6 @@ bool IsOobeAiIntroEnabled() {
 
 bool IsBootAnimationEnabled() {
   return base::FeatureList::IsEnabled(kFeatureManagementOobeSimon);
-}
-
-bool IsOobeAddUserDuringEnrollmentEnabled() {
-  return base::FeatureList::IsEnabled(kOobeAddUserDuringEnrollment);
 }
 
 bool IsOobeChoobeEnabled() {

@@ -22,9 +22,11 @@ import static org.mockito.Mockito.when;
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.Configuration;
+import android.os.SystemClock;
 import android.text.SpannableString;
 import android.text.style.ClickableSpan;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.TextView;
@@ -41,6 +43,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowSystemClock;
 
 import org.chromium.base.Callback;
 import org.chromium.base.supplier.ObservableSuppliers;
@@ -68,12 +71,37 @@ import org.chromium.components.browser_ui.widget.scrim.ScrimManager;
 import org.chromium.components.browser_ui.widget.textbubble.TextBubble;
 import org.chromium.components.feature_engagement.FeatureConstants;
 import org.chromium.components.feature_engagement.Tracker;
+import org.chromium.ui.accessibility.AccessibilityState;
+import org.chromium.ui.accessibility.FakeAccessibilityStateDelegate;
 import org.chromium.ui.base.TestActivity;
+
+import java.time.Duration;
 
 /** Unit tests for {@link BottomBarEducationCoordinator}. */
 @RunWith(BaseRobolectricTestRunner.class)
 @EnableFeatures({ChromeFeatureList.ANDROID_BOTTOM_BAR + ":education_enabled/true"})
 public class BottomBarEducationCoordinatorUnitTest {
+
+    private static final int BAR_LEFT = 0;
+    private static final int BAR_TOP = 1800;
+    private static final int BAR_RIGHT = 1080;
+    private static final int BAR_BOTTOM = 2000;
+
+    private static final int BUBBLE_LEFT = 0;
+    private static final int BUBBLE_TOP = 0;
+    private static final int BUBBLE_RIGHT = 100;
+    private static final int BUBBLE_BOTTOM = 100;
+
+    private static final int TAP_X = 500;
+    private static final int RAW_Y_IN_BAR = 1900;
+    private static final int RAW_Y_SCRIM = 500;
+    private static final int UP_EVENT_DELAY_MS = 100;
+
+    private static final int MOVE_EVENT_DELAY_MS = 50;
+    private static final int INSIDE_BUBBLE_X = 10;
+    private static final int INSIDE_BUBBLE_Y = 10;
+    private static final int OUTSIDE_BUBBLE_X = 1000;
+    private static final int OUTSIDE_BUBBLE_Y = 1000;
 
     @Rule public MockitoRule mMockitoRule = MockitoJUnit.rule();
 
@@ -391,6 +419,338 @@ public class BottomBarEducationCoordinatorUnitTest {
     }
 
     @Test
+    public void testTappedBottomBar() {
+        var watcher =
+                HistogramWatcher.newBuilder()
+                        .expectIntRecord(
+                                "Android.BottomBar.Education.Onboarding.DefaultBubble.Event",
+                                EducationOnboardingEvent.SHOWN)
+                        .expectIntRecord(
+                                "Android.BottomBar.Education.Onboarding.DefaultBubble.Event",
+                                EducationOnboardingEvent.TAPPED_BOTTOM_BAR)
+                        .build();
+        setupForShow();
+        triggerShow();
+
+        mBottomBarView.layout(BAR_LEFT, BAR_TOP, BAR_RIGHT, BAR_BOTTOM);
+        long time = SystemClock.uptimeMillis();
+        MotionEvent down =
+                MotionEvent.obtain(time, time, MotionEvent.ACTION_DOWN, TAP_X, RAW_Y_IN_BAR, 0);
+        MotionEvent up =
+                MotionEvent.obtain(
+                        time,
+                        time + UP_EVENT_DELAY_MS,
+                        MotionEvent.ACTION_UP,
+                        TAP_X,
+                        RAW_Y_IN_BAR,
+                        0);
+
+        int localYOutsideBar = 1700;
+        down.offsetLocation(0, localYOutsideBar - RAW_Y_IN_BAR);
+        up.offsetLocation(0, localYOutsideBar - RAW_Y_IN_BAR);
+
+        View bubbleView = mCoordinator.getBubbleViewForTesting();
+        bubbleView.layout(BUBBLE_LEFT, BUBBLE_TOP, BUBBLE_RIGHT, BUBBLE_BOTTOM);
+        View.OnTouchListener interceptor = mCoordinator.getTouchInterceptorForTesting();
+
+        assertTrue(interceptor.onTouch(bubbleView, down));
+        assertTrue(isBubbleShowing()); // not dismissed yet
+        assertTrue(interceptor.onTouch(bubbleView, up));
+
+        assertFalse(isBubbleShowing());
+        verify(mTracker).dismissed(FeatureConstants.ANDROID_BOTTOM_BAR_EDUCATION);
+        watcher.assertExpected();
+    }
+
+    @Test
+    public void testTappedScrim() {
+        var watcher =
+                HistogramWatcher.newBuilder()
+                        .expectIntRecord(
+                                "Android.BottomBar.Education.Onboarding.DefaultBubble.Event",
+                                EducationOnboardingEvent.SHOWN)
+                        .expectIntRecord(
+                                "Android.BottomBar.Education.Onboarding.DefaultBubble.Event",
+                                EducationOnboardingEvent.TAPPED_SCRIM)
+                        .build();
+        setupForShow();
+        triggerShow();
+
+        mBottomBarView.layout(BAR_LEFT, BAR_TOP, BAR_RIGHT, BAR_BOTTOM);
+        long time = SystemClock.uptimeMillis();
+        MotionEvent down =
+                MotionEvent.obtain(time, time, MotionEvent.ACTION_DOWN, TAP_X, RAW_Y_SCRIM, 0);
+        MotionEvent up =
+                MotionEvent.obtain(
+                        time,
+                        time + UP_EVENT_DELAY_MS,
+                        MotionEvent.ACTION_UP,
+                        TAP_X,
+                        RAW_Y_SCRIM,
+                        0);
+
+        int localYInBar = 1900;
+        down.offsetLocation(0, localYInBar - RAW_Y_SCRIM);
+        up.offsetLocation(0, localYInBar - RAW_Y_SCRIM);
+
+        View bubbleView = mCoordinator.getBubbleViewForTesting();
+        bubbleView.layout(BUBBLE_LEFT, BUBBLE_TOP, BUBBLE_RIGHT, BUBBLE_BOTTOM);
+        View.OnTouchListener interceptor = mCoordinator.getTouchInterceptorForTesting();
+
+        assertTrue(interceptor.onTouch(bubbleView, down));
+        assertTrue(isBubbleShowing());
+        assertTrue(interceptor.onTouch(bubbleView, up));
+
+        assertFalse(isBubbleShowing());
+        verify(mTracker).dismissed(FeatureConstants.ANDROID_BOTTOM_BAR_EDUCATION);
+        watcher.assertExpected();
+    }
+
+    @Test
+    public void testTappedBottomBar_Cancel() {
+        var watcher =
+                HistogramWatcher.newBuilder()
+                        .expectIntRecord(
+                                "Android.BottomBar.Education.Onboarding.DefaultBubble.Event",
+                                EducationOnboardingEvent.SHOWN)
+                        .build();
+        setupForShow();
+        triggerShow();
+
+        mBottomBarView.layout(BAR_LEFT, BAR_TOP, BAR_RIGHT, BAR_BOTTOM);
+        long time = SystemClock.uptimeMillis();
+        MotionEvent down =
+                MotionEvent.obtain(time, time, MotionEvent.ACTION_DOWN, TAP_X, RAW_Y_IN_BAR, 0);
+        MotionEvent cancel =
+                MotionEvent.obtain(
+                        time,
+                        time + UP_EVENT_DELAY_MS,
+                        MotionEvent.ACTION_CANCEL,
+                        TAP_X,
+                        RAW_Y_IN_BAR,
+                        0);
+
+        View bubbleView = mCoordinator.getBubbleViewForTesting();
+        View.OnTouchListener interceptor = mCoordinator.getTouchInterceptorForTesting();
+
+        assertTrue(interceptor.onTouch(bubbleView, down));
+        assertTrue(interceptor.onTouch(bubbleView, cancel));
+
+        assertTrue(isBubbleShowing()); // not dismissed
+        verify(mTracker, never()).dismissed(FeatureConstants.ANDROID_BOTTOM_BAR_EDUCATION);
+        watcher.assertExpected();
+    }
+
+    @Test
+    public void testTappedBottomBar_DownAlone() {
+        setupForShow();
+        triggerShow();
+
+        mBottomBarView.layout(BAR_LEFT, BAR_TOP, BAR_RIGHT, BAR_BOTTOM);
+        long time = SystemClock.uptimeMillis();
+        MotionEvent down =
+                MotionEvent.obtain(time, time, MotionEvent.ACTION_DOWN, TAP_X, RAW_Y_IN_BAR, 0);
+
+        View bubbleView = mCoordinator.getBubbleViewForTesting();
+        View.OnTouchListener interceptor = mCoordinator.getTouchInterceptorForTesting();
+
+        assertTrue(interceptor.onTouch(bubbleView, down));
+
+        assertTrue(isBubbleShowing()); // not dismissed yet
+        verify(mTracker, never()).dismissed(FeatureConstants.ANDROID_BOTTOM_BAR_EDUCATION);
+    }
+
+    @Test
+    public void testDrag_FromScrimToBar_DismissesAndRecordsBottomBar() {
+        var watcher =
+                HistogramWatcher.newBuilder()
+                        .expectIntRecord(
+                                "Android.BottomBar.Education.Onboarding.DefaultBubble.Event",
+                                EducationOnboardingEvent.SHOWN)
+                        .expectIntRecord(
+                                "Android.BottomBar.Education.Onboarding.DefaultBubble.Event",
+                                EducationOnboardingEvent.TAPPED_BOTTOM_BAR)
+                        .build();
+        setupForShow();
+        triggerShow();
+
+        mBottomBarView.layout(BAR_LEFT, BAR_TOP, BAR_RIGHT, BAR_BOTTOM);
+        long time = SystemClock.uptimeMillis();
+        MotionEvent down =
+                MotionEvent.obtain(time, time, MotionEvent.ACTION_DOWN, TAP_X, RAW_Y_SCRIM, 0);
+        MotionEvent move =
+                MotionEvent.obtain(
+                        time,
+                        time + MOVE_EVENT_DELAY_MS,
+                        MotionEvent.ACTION_MOVE,
+                        TAP_X,
+                        RAW_Y_IN_BAR,
+                        0);
+        MotionEvent up =
+                MotionEvent.obtain(
+                        time,
+                        time + UP_EVENT_DELAY_MS,
+                        MotionEvent.ACTION_UP,
+                        TAP_X,
+                        RAW_Y_IN_BAR,
+                        0);
+
+        View bubbleView = mCoordinator.getBubbleViewForTesting();
+        bubbleView.layout(BUBBLE_LEFT, BUBBLE_TOP, BUBBLE_RIGHT, BUBBLE_BOTTOM);
+
+        down.offsetLocation(OUTSIDE_BUBBLE_X - TAP_X, OUTSIDE_BUBBLE_Y - RAW_Y_SCRIM);
+        move.offsetLocation(OUTSIDE_BUBBLE_X - TAP_X, OUTSIDE_BUBBLE_Y - RAW_Y_IN_BAR);
+        up.offsetLocation(OUTSIDE_BUBBLE_X - TAP_X, OUTSIDE_BUBBLE_Y - RAW_Y_IN_BAR);
+
+        View.OnTouchListener interceptor = mCoordinator.getTouchInterceptorForTesting();
+
+        assertTrue(interceptor.onTouch(bubbleView, down));
+        assertTrue(interceptor.onTouch(bubbleView, move));
+        assertTrue(interceptor.onTouch(bubbleView, up));
+
+        assertFalse(isBubbleShowing());
+        watcher.assertExpected();
+    }
+
+    @Test
+    public void testRotateMidGesture_ResetsPendingFlag() {
+        setupForShow();
+        triggerShow();
+
+        mBottomBarView.layout(BAR_LEFT, BAR_TOP, BAR_RIGHT, BAR_BOTTOM);
+        long time = SystemClock.uptimeMillis();
+        MotionEvent down1 =
+                MotionEvent.obtain(time, time, MotionEvent.ACTION_DOWN, TAP_X, RAW_Y_SCRIM, 0);
+        View bubbleView1 = mCoordinator.getBubbleViewForTesting();
+        bubbleView1.layout(BUBBLE_LEFT, BUBBLE_TOP, BUBBLE_RIGHT, BUBBLE_BOTTOM);
+
+        down1.offsetLocation(OUTSIDE_BUBBLE_X - TAP_X, OUTSIDE_BUBBLE_Y - RAW_Y_SCRIM);
+
+        View.OnTouchListener interceptor1 = mCoordinator.getTouchInterceptorForTesting();
+        assertTrue(interceptor1.onTouch(bubbleView1, down1));
+
+        Configuration newConfig = new Configuration(mContext.getResources().getConfiguration());
+        newConfig.orientation = Configuration.ORIENTATION_LANDSCAPE;
+        mCoordinator.onConfigurationChanged(newConfig);
+
+        mBottomBarView.getViewTreeObserver().dispatchOnGlobalLayout();
+        RobolectricUtil.runAllBackgroundAndUi();
+
+        time = SystemClock.uptimeMillis();
+        MotionEvent up2 =
+                MotionEvent.obtain(
+                        time,
+                        time + UP_EVENT_DELAY_MS,
+                        MotionEvent.ACTION_UP,
+                        INSIDE_BUBBLE_X,
+                        INSIDE_BUBBLE_Y,
+                        0);
+
+        View bubbleView2 = mCoordinator.getBubbleViewForTesting();
+        bubbleView2.layout(BUBBLE_LEFT, BUBBLE_TOP, BUBBLE_RIGHT, BUBBLE_BOTTOM);
+
+        View.OnTouchListener interceptor2 = mCoordinator.getTouchInterceptorForTesting();
+
+        assertFalse(interceptor2.onTouch(bubbleView2, up2));
+
+        assertTrue(isBubbleShowing());
+        verify(mTracker, never()).dismissed(FeatureConstants.ANDROID_BOTTOM_BAR_EDUCATION);
+    }
+
+    @Test
+    public void testTapInsideBubble_NotDismissed() {
+        setupForShow();
+        triggerShow();
+
+        mBottomBarView.layout(BAR_LEFT, BAR_TOP, BAR_RIGHT, BAR_BOTTOM);
+        long time = SystemClock.uptimeMillis();
+        MotionEvent down =
+                MotionEvent.obtain(
+                        time, time, MotionEvent.ACTION_DOWN, INSIDE_BUBBLE_X, INSIDE_BUBBLE_Y, 0);
+
+        View bubbleView = mCoordinator.getBubbleViewForTesting();
+        // simulate tap inside bubble (coordinates within view width/height)
+        bubbleView.measure(
+                View.MeasureSpec.makeMeasureSpec(BUBBLE_RIGHT, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(BUBBLE_BOTTOM, View.MeasureSpec.EXACTLY));
+        bubbleView.layout(BUBBLE_LEFT, BUBBLE_TOP, BUBBLE_RIGHT, BUBBLE_BOTTOM);
+
+        View.OnTouchListener interceptor = mCoordinator.getTouchInterceptorForTesting();
+
+        boolean consumed = interceptor.onTouch(bubbleView, down);
+        assertFalse(consumed); // not consumed by interceptor, so bubble handles it
+        assertTrue(isBubbleShowing());
+        verify(mTracker, never()).dismissed(FeatureConstants.ANDROID_BOTTOM_BAR_EDUCATION);
+    }
+
+    @Test
+    public void testBackPressed() {
+        var watcher =
+                HistogramWatcher.newBuilder()
+                        .expectIntRecord(
+                                "Android.BottomBar.Education.Onboarding.DefaultBubble.Event",
+                                EducationOnboardingEvent.SHOWN)
+                        .expectIntRecord(
+                                "Android.BottomBar.Education.Onboarding.DefaultBubble.Event",
+                                EducationOnboardingEvent.BACK_PRESSED)
+                        .build();
+        setupForShow();
+        triggerShow();
+
+        // Simulate back pressed which causes the framework to dismiss the PopupWindow without going
+        // through our dismiss() first
+        mCoordinator.getPopupWindowForTesting().dismiss();
+
+        assertFalse(isBubbleShowing());
+        verify(mTracker).dismissed(FeatureConstants.ANDROID_BOTTOM_BAR_EDUCATION);
+        watcher.assertExpected();
+    }
+
+    @Test
+    public void testBackSwipe_RecordsBackPressedNotTappedScrim() {
+        var watcher =
+                HistogramWatcher.newBuilder()
+                        .expectIntRecord(
+                                "Android.BottomBar.Education.Onboarding.DefaultBubble.Event",
+                                EducationOnboardingEvent.SHOWN)
+                        .expectIntRecord(
+                                "Android.BottomBar.Education.Onboarding.DefaultBubble.Event",
+                                EducationOnboardingEvent.BACK_PRESSED)
+                        .build();
+        setupForShow();
+        triggerShow();
+
+        mBottomBarView.layout(BAR_LEFT, BAR_TOP, BAR_RIGHT, BAR_BOTTOM);
+        long time = SystemClock.uptimeMillis();
+        MotionEvent down =
+                MotionEvent.obtain(time, time, MotionEvent.ACTION_DOWN, TAP_X, RAW_Y_SCRIM, 0);
+        MotionEvent cancel =
+                MotionEvent.obtain(
+                        time,
+                        time + UP_EVENT_DELAY_MS,
+                        MotionEvent.ACTION_CANCEL,
+                        TAP_X,
+                        RAW_Y_SCRIM,
+                        0);
+
+        View bubbleView = mCoordinator.getBubbleViewForTesting();
+        bubbleView.layout(BUBBLE_LEFT, BUBBLE_TOP, BUBBLE_RIGHT, BUBBLE_BOTTOM);
+        down.offsetLocation(OUTSIDE_BUBBLE_X - TAP_X, OUTSIDE_BUBBLE_Y - RAW_Y_SCRIM);
+        cancel.offsetLocation(OUTSIDE_BUBBLE_X - TAP_X, OUTSIDE_BUBBLE_Y - RAW_Y_SCRIM);
+
+        View.OnTouchListener interceptor = mCoordinator.getTouchInterceptorForTesting();
+        assertTrue(interceptor.onTouch(bubbleView, down));
+        assertTrue(interceptor.onTouch(bubbleView, cancel));
+
+        // The popup self-dismisses (like system back callback)
+        mCoordinator.getPopupWindowForTesting().dismiss();
+
+        assertFalse(isBubbleShowing());
+        verify(mTracker).dismissed(FeatureConstants.ANDROID_BOTTOM_BAR_EDUCATION);
+        watcher.assertExpected();
+    }
+
+    @Test
     public void testSettingsLinkOpensSettings() {
         var watcher =
                 HistogramWatcher.newBuilder()
@@ -487,12 +847,22 @@ public class BottomBarEducationCoordinatorUnitTest {
 
     @Test
     public void testOnControlsPositionChangedDismisses() {
+        var watcher =
+                HistogramWatcher.newBuilder()
+                        .expectIntRecord(
+                                "Android.BottomBar.Education.Onboarding.DefaultBubble.Event",
+                                EducationOnboardingEvent.SHOWN)
+                        .expectIntRecord(
+                                "Android.BottomBar.Education.Onboarding.DefaultBubble.Event",
+                                EducationOnboardingEvent.DISMISSED_OTHER)
+                        .build();
         setupForShow();
         triggerShow();
 
         mCoordinator.onControlsPositionChanged(ControlsPosition.BOTTOM);
 
         verify(mTracker, times(1)).dismissed(FeatureConstants.ANDROID_BOTTOM_BAR_EDUCATION);
+        watcher.assertExpected();
     }
 
     @Test
@@ -537,6 +907,153 @@ public class BottomBarEducationCoordinatorUnitTest {
 
         mCoordinator.dismiss();
         verify(mVisibilityManager).removeObserver(mCoordinator);
+    }
+
+    @Test
+    public void testAccessibilityTimeout_ExtendsAutoDismiss() {
+        AccessibilityState.setDelegateForTesting(
+                new FakeAccessibilityStateDelegate(null) {
+                    @Override
+                    public int getRecommendedTimeoutMillis(int minimumTimeout, int nonA11yTimeout) {
+                        return 20000;
+                    }
+                });
+        setupForShow();
+        allowTooltipsToShowInRobolectric();
+        triggerShow();
+        mCoordinator.getBubbleViewForTesting().findViewById(R.id.positive_button).performClick();
+        RobolectricUtil.runAllBackgroundAndUi();
+
+        TextBubble tooltip1 = mCoordinator.getCurrentTooltipForTesting();
+        assertNotNull(tooltip1);
+
+        // Wait 5s, should NOT dismiss yet
+        advanceTimeBySeconds(5);
+        assertEquals(tooltip1, mCoordinator.getCurrentTooltipForTesting());
+
+        // Wait another 15s (total 20s), should dismiss and advance
+        advanceTimeBySeconds(15);
+
+        TextBubble tooltip2 = mCoordinator.getCurrentTooltipForTesting();
+        assertNotNull(tooltip2);
+        assertNotSame(tooltip1, tooltip2);
+    }
+
+    @Test
+    public void testTooltipAdvancesOnTimeout() {
+        var watcher =
+                HistogramWatcher.newBuilder()
+                        .expectIntRecord("Android.BottomBar.IPH.Glic.Event", IphEvent.SHOWN)
+                        .expectIntRecord("Android.BottomBar.IPH.Glic.Event", IphEvent.DISMISSED)
+                        .expectIntRecord("Android.BottomBar.IPH.NewTab.Event", IphEvent.SHOWN)
+                        .build();
+
+        setupForShow();
+        allowTooltipsToShowInRobolectric();
+        triggerShow();
+        mCoordinator.getBubbleViewForTesting().findViewById(R.id.positive_button).performClick();
+        RobolectricUtil.runAllBackgroundAndUi();
+
+        TextBubble tooltip1 = mCoordinator.getCurrentTooltipForTesting();
+        assertNotNull(tooltip1);
+
+        advanceTimeBySeconds(4);
+        assertEquals(tooltip1, mCoordinator.getCurrentTooltipForTesting());
+
+        advanceTimeBySeconds(1);
+        TextBubble tooltip2 = mCoordinator.getCurrentTooltipForTesting();
+        assertNotNull(tooltip2);
+        assertNotSame(tooltip1, tooltip2);
+
+        watcher.assertExpected();
+    }
+
+    @Test
+    public void testTimeoutOnLastStep_EndsTour() {
+        var watcher =
+                HistogramWatcher.newBuilder()
+                        .expectIntRecord("Android.BottomBar.IPH.TabSwitcher.Event", IphEvent.SHOWN)
+                        .expectIntRecord(
+                                "Android.BottomBar.IPH.TabSwitcher.Event", IphEvent.DISMISSED)
+                        .build();
+        setupForShow();
+        allowTooltipsToShowInRobolectric();
+        triggerShow();
+        mCoordinator.getBubbleViewForTesting().findViewById(R.id.positive_button).performClick();
+        RobolectricUtil.runAllBackgroundAndUi();
+
+        // Skip to the last step (Tab Switcher is index 2)
+        mCoordinator.getCurrentTooltipForTesting().onDismissForTesting(false);
+        RobolectricUtil.runAllBackgroundAndUi();
+        mCoordinator.getCurrentTooltipForTesting().onDismissForTesting(false);
+        RobolectricUtil.runAllBackgroundAndUi();
+
+        // Now we are on the last step (Tab Switcher).
+        // Since it was shown from a callback, it might suffer from Robolectric's popup issue.
+        // We can force it to be laid out to the main thread.
+        mBottomBarView.layout(0, 0, 1080, 2000);
+        mBottomBarView.getViewTreeObserver().dispatchOnGlobalLayout();
+        RobolectricUtil.runAllBackgroundAndUi();
+
+        TextBubble tooltip3 = mCoordinator.getCurrentTooltipForTesting();
+        assertNotNull(tooltip3);
+
+        // Now wait 5s for it to timeout
+        advanceTimeBySeconds(5);
+
+        assertNull(mCoordinator.getCurrentTooltipForTesting());
+        verify(mTracker, times(1)).dismissed(FeatureConstants.ANDROID_BOTTOM_BAR_EDUCATION);
+        watcher.assertExpected();
+    }
+
+    @Test
+    public void testTimeoutWhileBarHidden_PausesTour() {
+        var watcher =
+                HistogramWatcher.newBuilder()
+                        .expectIntRecord("Android.BottomBar.IPH.Glic.Event", IphEvent.SHOWN)
+                        .expectIntRecord("Android.BottomBar.IPH.Glic.Event", IphEvent.DISMISSED)
+                        .expectIntRecord("Android.BottomBar.IPH.NewTab.Event", IphEvent.SHOWN)
+                        .build();
+        setupForShow();
+        allowTooltipsToShowInRobolectric();
+        triggerShow();
+        mCoordinator.getBubbleViewForTesting().findViewById(R.id.positive_button).performClick();
+        RobolectricUtil.runAllBackgroundAndUi();
+
+        TextBubble tooltip1 = mCoordinator.getCurrentTooltipForTesting();
+        assertNotNull(tooltip1);
+
+        // Hide bar
+        mBottomBarView.setVisibility(View.GONE);
+        mCoordinator.onBottomBarHidden();
+        tooltip1.onDismissForTesting(false);
+        RobolectricUtil.runAllBackgroundAndUi();
+
+        // Wait 5s while hidden
+        mBottomBarView.getViewTreeObserver().dispatchOnGlobalLayout();
+        RobolectricUtil.runAllBackgroundAndUi();
+        advanceTimeBySeconds(5);
+
+        // Ensure no advance
+        assertNull(mCoordinator.getCurrentTooltipForTesting());
+
+        // Show bar again
+        mBottomBarView.setVisibility(View.VISIBLE);
+        mBottomBarView.layout(0, 0, 1080, 2000);
+        mBottomBarView.getViewTreeObserver().dispatchOnGlobalLayout();
+        RobolectricUtil.runAllBackgroundAndUi();
+
+        TextBubble tooltip2 = mCoordinator.getCurrentTooltipForTesting();
+        assertNotNull(tooltip2);
+        // It's the SAME step, so if we idle 5s, it advances to next
+        mBottomBarView.getViewTreeObserver().dispatchOnGlobalLayout();
+        RobolectricUtil.runAllBackgroundAndUi();
+        advanceTimeBySeconds(5);
+
+        TextBubble tooltip3 = mCoordinator.getCurrentTooltipForTesting();
+        assertNotNull(tooltip3);
+        assertNotSame(tooltip2, tooltip3);
+        watcher.assertExpected();
     }
 
     @Test
@@ -858,6 +1375,217 @@ public class BottomBarEducationCoordinatorUnitTest {
 
     private void triggerShow() {
         mCoordinator.maybeShow();
+        RobolectricUtil.runAllBackgroundAndUi();
+    }
+
+    @Test
+    public void testTourPausesWhenBarHidden_ResumesOnVisible() {
+        var watcher =
+                HistogramWatcher.newBuilder()
+                        .expectIntRecords(
+                                "Android.BottomBar.IPH.Glic.Event",
+                                IphEvent.SHOWN,
+                                IphEvent.DISMISSED)
+                        .build();
+        setupForShow();
+        allowTooltipsToShowInRobolectric();
+        triggerShow();
+
+        View bubbleView = mCoordinator.getBubbleViewForTesting();
+        bubbleView.findViewById(R.id.positive_button).performClick();
+        RobolectricUtil.runAllBackgroundAndUi();
+
+        TextBubble tooltip1 = mCoordinator.getCurrentTooltipForTesting();
+        assertNotNull(tooltip1);
+
+        // System hide
+        mBottomBarView.setVisibility(View.GONE);
+        tooltip1.onDismissForTesting(false);
+        RobolectricUtil.runAllBackgroundAndUi();
+
+        assertNull(mCoordinator.getCurrentTooltipForTesting());
+        verify(mTracker, never()).dismissed(FeatureConstants.ANDROID_BOTTOM_BAR_EDUCATION);
+
+        // Resume
+        mBottomBarView.setVisibility(View.VISIBLE);
+        mBottomBarView.layout(0, 0, 1080, 2000);
+        mBottomBarView.getViewTreeObserver().dispatchOnGlobalLayout();
+        RobolectricUtil.runAllBackgroundAndUi();
+
+        TextBubble newTooltip1 = mCoordinator.getCurrentTooltipForTesting();
+        assertNotNull(newTooltip1);
+        TextView msgView =
+                newTooltip1.getTextBubbleContentViewForTesting().findViewById(R.id.message);
+        assertEquals(
+                mContext.getString(R.string.bottom_bar_education_tooltip_gemini),
+                msgView.getText().toString());
+
+        // User dismiss
+        newTooltip1.onDismissForTesting(false);
+        RobolectricUtil.runAllBackgroundAndUi();
+
+        TextBubble tooltip2 = mCoordinator.getCurrentTooltipForTesting();
+        assertNotNull(tooltip2);
+        TextView msgView2 =
+                tooltip2.getTextBubbleContentViewForTesting().findViewById(R.id.message);
+        assertEquals(
+                mContext.getString(R.string.bottom_bar_education_tooltip_new_tab),
+                msgView2.getText().toString());
+        watcher.assertExpected();
+    }
+
+    @Test
+    public void testOnBottomBarHidden_DismissesBubble() {
+        var watcher =
+                HistogramWatcher.newBuilder()
+                        .expectIntRecord(
+                                "Android.BottomBar.Education.Onboarding.DefaultBubble.Event",
+                                EducationOnboardingEvent.SHOWN)
+                        .expectIntRecord(
+                                "Android.BottomBar.Education.Onboarding.DefaultBubble.Event",
+                                EducationOnboardingEvent.DISMISSED_OTHER)
+                        .build();
+        setupForShow();
+        triggerShow();
+        assertTrue(isBubbleShowing());
+
+        mCoordinator.onBottomBarHidden();
+
+        assertFalse(isBubbleShowing());
+        verify(mTracker).dismissed(FeatureConstants.ANDROID_BOTTOM_BAR_EDUCATION);
+        watcher.assertExpected();
+    }
+
+    @Test
+    public void testOnBottomBarHidden_PausesTourUntilVisible() {
+        setupForShow();
+        allowTooltipsToShowInRobolectric();
+        triggerShow();
+        mCoordinator.getBubbleViewForTesting().findViewById(R.id.positive_button).performClick();
+        RobolectricUtil.runAllBackgroundAndUi();
+        TextBubble tooltip = mCoordinator.getCurrentTooltipForTesting();
+        assertNotNull(tooltip);
+
+        // The tab switcher hides the bar: the mediator notifies the coordinator, and the tooltip
+        // is dismissed because its anchor is hidden.
+        mBottomBarView.setVisibility(View.GONE);
+        mCoordinator.onBottomBarHidden();
+        tooltip.onDismissForTesting(false);
+        RobolectricUtil.runAllBackgroundAndUi();
+
+        assertNull(mCoordinator.getCurrentTooltipForTesting());
+        verify(mTracker, never()).dismissed(FeatureConstants.ANDROID_BOTTOM_BAR_EDUCATION);
+        // The paused tour still counts as active, so the NTP theme tip stays deferred.
+
+        mBottomBarView.setVisibility(View.VISIBLE);
+        mBottomBarView.layout(0, 0, 1080, 2000);
+        mBottomBarView.getViewTreeObserver().dispatchOnGlobalLayout();
+        RobolectricUtil.runAllBackgroundAndUi();
+
+        TextBubble resumedTooltip = mCoordinator.getCurrentTooltipForTesting();
+        assertNotNull(resumedTooltip);
+        TextView msgView =
+                resumedTooltip.getTextBubbleContentViewForTesting().findViewById(R.id.message);
+        assertEquals(
+                mContext.getString(R.string.bottom_bar_education_tooltip_gemini),
+                msgView.getText().toString());
+    }
+
+    @Test
+    public void testUserDismissalThenBarHides_ShowsNextStepOnVisible() {
+        setupForShow();
+        allowTooltipsToShowInRobolectric();
+        triggerShow();
+
+        View bubbleView = mCoordinator.getBubbleViewForTesting();
+        bubbleView.findViewById(R.id.positive_button).performClick();
+        RobolectricUtil.runAllBackgroundAndUi();
+
+        TextBubble tooltip1 = mCoordinator.getCurrentTooltipForTesting();
+        assertNotNull(tooltip1);
+
+        // User dismissal
+        tooltip1.onDismissForTesting(false);
+        // Bar hides before the posted task runs
+        mBottomBarView.setVisibility(View.GONE);
+        RobolectricUtil.runAllBackgroundAndUi();
+
+        assertNull(mCoordinator.getCurrentTooltipForTesting());
+
+        // Resume
+        mBottomBarView.setVisibility(View.VISIBLE);
+        mBottomBarView.layout(0, 0, 1080, 2000);
+        mBottomBarView.getViewTreeObserver().dispatchOnGlobalLayout();
+        RobolectricUtil.runAllBackgroundAndUi();
+
+        TextBubble tooltip2 = mCoordinator.getCurrentTooltipForTesting();
+        assertNotNull(tooltip2);
+        TextView msgView = tooltip2.getTextBubbleContentViewForTesting().findViewById(R.id.message);
+        assertEquals(
+                mContext.getString(R.string.bottom_bar_education_tooltip_new_tab),
+                msgView.getText().toString());
+    }
+
+    @Test
+    public void testDestroyWhilePaused_RecordsDismissed() {
+        setupForShow();
+        allowTooltipsToShowInRobolectric();
+        triggerShow();
+
+        View bubbleView = mCoordinator.getBubbleViewForTesting();
+        bubbleView.findViewById(R.id.positive_button).performClick();
+        RobolectricUtil.runAllBackgroundAndUi();
+
+        TextBubble tooltip1 = mCoordinator.getCurrentTooltipForTesting();
+
+        // System hide
+        mBottomBarView.setVisibility(View.GONE);
+        tooltip1.onDismissForTesting(false);
+        RobolectricUtil.runAllBackgroundAndUi();
+
+        assertNull(mCoordinator.getCurrentTooltipForTesting());
+
+        HistogramWatcher histogramWatcher =
+                HistogramWatcher.newBuilder()
+                        .expectIntRecords("Android.BottomBar.IPH.Glic.Event", IphEvent.DISMISSED)
+                        .build();
+
+        mCoordinator.destroy();
+
+        histogramWatcher.assertExpected();
+        verify(mTracker, times(1)).dismissed(FeatureConstants.ANDROID_BOTTOM_BAR_EDUCATION);
+    }
+
+    @Test
+    @Config(qualifiers = "land")
+    public void testRotateThenDestroy_RecordsDismissed() {
+        setupForShow();
+        allowTooltipsToShowInRobolectric();
+        triggerShow();
+
+        View bubbleView = mCoordinator.getBubbleViewForTesting();
+        bubbleView.findViewById(R.id.positive_button).performClick();
+        RobolectricUtil.runAllBackgroundAndUi();
+
+        // Simulate a configuration change during tooltips.
+        Configuration newConfig = new Configuration(mContext.getResources().getConfiguration());
+        newConfig.orientation = Configuration.ORIENTATION_PORTRAIT;
+        mCoordinator.onConfigurationChanged(newConfig);
+
+        assertNull(mCoordinator.getCurrentTooltipForTesting());
+
+        HistogramWatcher histogramWatcher =
+                HistogramWatcher.newBuilder()
+                        .expectIntRecords("Android.BottomBar.IPH.Glic.Event", IphEvent.DISMISSED)
+                        .build();
+
+        mCoordinator.destroy();
+
+        histogramWatcher.assertExpected();
+    }
+
+    private void advanceTimeBySeconds(long seconds) {
+        ShadowSystemClock.advanceBy(Duration.ofSeconds(seconds));
         RobolectricUtil.runAllBackgroundAndUi();
     }
 }

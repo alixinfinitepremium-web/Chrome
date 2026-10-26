@@ -46,6 +46,7 @@ import org.chromium.components.browser_ui.widget.textbubble.TextBubble;
 import org.chromium.components.feature_engagement.EventConstants;
 import org.chromium.components.feature_engagement.FeatureConstants;
 import org.chromium.components.feature_engagement.Tracker;
+import org.chromium.ui.accessibility.AccessibilityState;
 import org.chromium.ui.base.ViewUtils;
 import org.chromium.ui.modelutil.PropertyModel;
 import org.chromium.ui.util.TokenHolder;
@@ -55,6 +56,7 @@ import org.chromium.ui.widget.ViewRectProvider;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 /**
@@ -85,6 +87,7 @@ public class BottomBarEducationCoordinator
         R.string.bottom_bar_education_tooltip_new_tab,
         R.string.bottom_bar_education_tooltip_tab_switcher
     };
+    private static final int TOOLTIP_AUTO_DISMISS_TIMEOUT_MS = (int) TimeUnit.SECONDS.toMillis(5);
 
     private static boolean sSkipTooltipShowCheckForTesting;
     private static boolean sEducationShownThisSession;
@@ -98,6 +101,8 @@ public class BottomBarEducationCoordinator
     private final Supplier<@Nullable Profile> mProfileSupplier;
 
     private @Nullable AnchoredPopupWindow mPopupWindow;
+    private View.@Nullable OnTouchListener mTouchInterceptor;
+    private boolean mPendingOutsideTap;
     private @Nullable PropertyModel mScrimModel;
     private int mBrowserControlsToken = TokenHolder.INVALID_TOKEN;
     private ViewTreeObserver.@Nullable OnGlobalLayoutListener mGlobalLayoutListener;
@@ -152,6 +157,16 @@ public class BottomBarEducationCoordinator
         removeLayoutListeners();
         dismiss();
         mState = State.DONE;
+    }
+
+    /**
+     * Called when the bottom bar is hidden, e.g. for the tab switcher or while the omnibox is
+     * focused. Dismisses the bubble, but keeps a running tooltip tour paused so that it resumes
+     * once the bar is visible again.
+     */
+    public void onBottomBarHidden() {
+        if (mState == State.SHOWING_TOOLTIPS) return;
+        dismiss();
     }
 
     /**
@@ -255,16 +270,16 @@ public class BottomBarEducationCoordinator
             mActiveBubbleOnboardingType = null;
         }
 
+        if (mLastShownTooltipStep == mTooltipStep && mTooltipStep < TOOLTIP_ACTION_IDS.length) {
+            BottomBarMetrics.recordIphEvent(
+                    IphEvent.DISMISSED, getTooltipTypeForAction(TOOLTIP_ACTION_IDS[mTooltipStep]));
+        }
+        mLastShownTooltipStep = NO_TOOLTIP_STEP;
+
         if (mCurrentTooltip != null) {
-            if (mLastShownTooltipStep == mTooltipStep) {
-                BottomBarMetrics.recordIphEvent(
-                        IphEvent.DISMISSED,
-                        getTooltipTypeForAction(TOOLTIP_ACTION_IDS[mTooltipStep]));
-            }
             TextBubble tooltip = mCurrentTooltip;
             mCurrentTooltip = null;
             tooltip.dismiss();
-            mLastShownTooltipStep = NO_TOOLTIP_STEP;
         }
         if (mCurrentHighlightView != null) {
             ViewHighlighter.turnOffHighlight(mCurrentHighlightView);
@@ -288,6 +303,7 @@ public class BottomBarEducationCoordinator
     private void dismissBubblePopup() {
         AnchoredPopupWindow p = mPopupWindow;
         mPopupWindow = null;
+        mPendingOutsideTap = false;
         if (p != null) p.dismiss();
     }
 
@@ -483,6 +499,47 @@ public class BottomBarEducationCoordinator
         arrow.setBubbleColor(SemanticColorUtils.getMenuBgColor(mContext));
 
         View rootView = mBottomBarView.getRootView();
+        mTouchInterceptor =
+                (v, event) -> {
+                    int action = event.getActionMasked();
+                    if (action == MotionEvent.ACTION_DOWN) {
+                        float x = event.getX();
+                        float y = event.getY();
+                        mPendingOutsideTap =
+                                x < 0 || y < 0 || x >= v.getWidth() || y >= v.getHeight();
+                        // Wait for finger up: a system back swipe also starts with a DOWN here,
+                        // but it ends in CANCEL.
+                        return mPendingOutsideTap;
+                    }
+                    if (!mPendingOutsideTap) return false;
+                    if (action == MotionEvent.ACTION_UP) {
+                        mPendingOutsideTap = false;
+                        int[] location = new int[2];
+                        mBottomBarView.getLocationOnScreen(location);
+                        Rect barRect =
+                                new Rect(
+                                        location[0],
+                                        location[1],
+                                        location[0] + mBottomBarView.getWidth(),
+                                        location[1] + mBottomBarView.getHeight());
+                        boolean tappedBottomBar =
+                                barRect.contains((int) event.getRawX(), (int) event.getRawY());
+                        String onboardingType = mActiveBubbleOnboardingType;
+                        mActiveBubbleOnboardingType = null;
+                        if (onboardingType != null) {
+                            BottomBarMetrics.recordEducationOnboardingEvent(
+                                    onboardingType,
+                                    tappedBottomBar
+                                            ? EducationOnboardingEvent.TAPPED_BOTTOM_BAR
+                                            : EducationOnboardingEvent.TAPPED_SCRIM);
+                        }
+                        dismiss();
+                    } else if (action == MotionEvent.ACTION_CANCEL) {
+                        mPendingOutsideTap = false;
+                    }
+                    return true;
+                };
+
         mPopupWindow =
                 new AnchoredPopupWindow.Builder(
                                 mContext, rootView, arrow, () -> bubbleView, rectProvider)
@@ -504,20 +561,7 @@ public class BottomBarEducationCoordinator
                         .setFocusable(true)
                         .setTouchModal(true)
                         .setDismissOnTouchInteraction(false)
-                        .setTouchInterceptor(
-                                (v, event) -> {
-                                    int action = event.getActionMasked();
-                                    if (action == MotionEvent.ACTION_OUTSIDE) return true;
-                                    if (action == MotionEvent.ACTION_DOWN) {
-                                        float x = event.getX();
-                                        float y = event.getY();
-                                        return x < 0
-                                                || y < 0
-                                                || x >= v.getWidth()
-                                                || y >= v.getHeight();
-                                    }
-                                    return false;
-                                })
+                        .setTouchInterceptor(mTouchInterceptor)
                         .addOnDismissListener(this::onPopupDismissed)
                         .setMargin(
                                 mContext.getResources()
@@ -566,6 +610,14 @@ public class BottomBarEducationCoordinator
     private void showCurrentTooltip() {
         if (mState != State.SHOWING_TOOLTIPS) return;
 
+        // The bar is temporarily hidden, e.g. by the tab switcher, so resume instead of skipping.
+        // TODO(crbug.com/577706671): Resume only once the tab switcher has finished hiding.
+        // The bar shows first, so the tooltip briefly draws over the tab switcher.
+        if (!mBottomBarView.isLaidOut() || !mBottomBarView.isShown()) {
+            waitForLayout(this::showCurrentTooltip);
+            return;
+        }
+
         while (mTooltipStep < TOOLTIP_ACTION_IDS.length) {
             int actionId = TOOLTIP_ACTION_IDS[mTooltipStep];
             BottomBarButtonContainer container = mBottomBarView.getContainerForAction(actionId);
@@ -605,19 +657,28 @@ public class BottomBarEducationCoordinator
                                 stringId,
                                 stringId)
                         .build();
+        mCurrentTooltip.setAutoDismissTimeout(
+                AccessibilityState.getRecommendedTimeoutMillis(
+                        TOOLTIP_AUTO_DISMISS_TIMEOUT_MS, TOOLTIP_AUTO_DISMISS_TIMEOUT_MS));
         mCurrentTooltip.setDismissOnTouchInteraction(true);
         TextBubble tooltip = mCurrentTooltip;
         mCurrentTooltip.addOnDismissListener(
                 () -> {
                     if (mCurrentTooltip != tooltip) return;
-                    BottomBarMetrics.recordIphEvent(
-                            IphEvent.DISMISSED, getTooltipTypeForAction(actionId));
 
+                    mCurrentTooltip = null;
                     if (mCurrentHighlightView != null) {
                         ViewHighlighter.turnOffHighlight(mCurrentHighlightView);
                         mCurrentHighlightView = null;
                     }
-                    mCurrentTooltip = null;
+
+                    if (!mBottomBarView.isShown()) {
+                        waitForLayout(this::showCurrentTooltip);
+                        return;
+                    }
+
+                    BottomBarMetrics.recordIphEvent(
+                            IphEvent.DISMISSED, getTooltipTypeForAction(actionId));
                     mTooltipStep++;
                     PostTask.postTask(
                             TaskTraits.UI_DEFAULT,
@@ -692,6 +753,14 @@ public class BottomBarEducationCoordinator
 
     private void onPopupDismissed() {
         if (mPopupWindow != null && mState == State.SHOWING_BUBBLE) {
+            // The popup only dismisses itself on back, which reaches it when it has window focus
+            // (otherwise back goes to the activity).
+            String onboardingType = mActiveBubbleOnboardingType;
+            mActiveBubbleOnboardingType = null;
+            if (onboardingType != null) {
+                BottomBarMetrics.recordEducationOnboardingEvent(
+                        onboardingType, EducationOnboardingEvent.BACK_PRESSED);
+            }
             dismiss();
         }
     }
@@ -734,8 +803,16 @@ public class BottomBarEducationCoordinator
         return mPopupWindow != null ? mPopupWindow.getContentView() : null;
     }
 
+    @Nullable AnchoredPopupWindow getPopupWindowForTesting() {
+        return mPopupWindow;
+    }
+
     @Nullable TextBubble getCurrentTooltipForTesting() {
         return mCurrentTooltip;
+    }
+
+    View.@Nullable OnTouchListener getTouchInterceptorForTesting() {
+        return mTouchInterceptor;
     }
 
     /**

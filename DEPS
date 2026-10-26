@@ -282,7 +282,7 @@ vars = {
   # binary available on `PATH`, or absolute path.
   'reapi_credential_helper': Str(''),
   # siso CIPD package version.
-  'siso_version': 'git_revision:7ab4814901b3c7afc2dddf2ed1a6ff238a0d85c5',
+  'siso_version': 'git_revision:dfc32e4edca158cff2b64a1658ee3940f0116b3a',
 
   # CPython 3 CIPD package version for Siso hermetic toolchain.
   'cpython3_version': 'version:3@3.11.9.chromium.38',
@@ -300,11 +300,11 @@ vars = {
   'reclient_version': 're_client_version:0.185.0.db415f21-gomaip',
 
   # screen-ai CIPD packages
-  'screen_ai_linux': 'version:153.04',
-  'screen_ai_macos_amd64': 'version:153.04',
-  'screen_ai_macos_arm64': 'version:153.04',
-  'screen_ai_windows_amd64': 'version:153.04',
-  'screen_ai_windows_386': 'version:153.04',
+  'screen_ai_linux': 'version:153.05',
+  'screen_ai_macos_amd64': 'version:153.05',
+  'screen_ai_macos_arm64': 'version:153.05',
+  'screen_ai_windows_amd64': 'version:153.05',
+  'screen_ai_windows_386': 'version:153.05',
 
   # download libaom test data
   'download_libaom_testdata': False,
@@ -330,7 +330,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '62095415d5e287aee912f612cf0a697f04cffd93',
+  'skia_revision': 'f7c75c9621dee199e5a37e1af3a0aa06b5ce0dab',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -536,7 +536,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'libunwind_revision':    '9e44ea2ff4f53a60c2a3d2b6f511d7bab9ab12f0',
+  'libunwind_revision':    'c91a678b59aed9000869a0b0596bee8c57b755dc',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -2244,7 +2244,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '220ef55d3401495674a70e0998a46dafee009895',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'faceefec3fab70643e950caad40fded806877988',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -2259,7 +2259,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + 'd1947021aac3351aca18ff4d680816f7bc6b5270',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '7177d997a36148ac1cecb26e3cda8fa0ef35711e',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '173b9b26e8fcbcbe64e1ecbf073a21a96b95c6b1',
@@ -2835,7 +2835,7 @@ deps = {
     Var('chromium_git') + '/chromium/third_party/openh264rs.git' + '@' + Var('openh264rs_revision'),
 
   'src/third_party/openscreen/src':
-    Var('chromium_git') + '/openscreen' + '@' + '2a78d154c5786ef4dfdb04ad1ce720596f3cb47e',
+    Var('chromium_git') + '/openscreen' + '@' + 'a26ba6aa7b8fa151241cf21a0d8f188eccf634d8',
 
   'src/third_party/openxr/src': {
     'url': Var('chromium_git') + '/external/github.com/KhronosGroup/OpenXR-SDK' + '@' + '75c53b6e853dc12c7b3c771edc9c9c841b15faaa',
@@ -2861,7 +2861,7 @@ deps = {
     Var('pdfium_git') + '/pdfium.git' + '@' +  Var('pdfium_revision'),
 
   'src/third_party/perfetto':
-    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + 'a39834aa20faca91179990afaff9c8551f6305a3',
+    Var('chromium_git') + '/external/github.com/google/perfetto.git' + '@' + '8d16d93eca7ea083bd66520bb0f0f3bef16c1eed',
 
   'src/base/tracing/test/data': {
     'bucket': 'perfetto',
