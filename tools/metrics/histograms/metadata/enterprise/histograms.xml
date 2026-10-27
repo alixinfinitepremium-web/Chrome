@@ -675,6 +675,28 @@ chromium-metrics-reviews@google.com.
   <token key="Scope" variants="ReportingScope"/>
 </histogram>
 
+<histogram name="Enterprise.BrowserSignin.UserScope.PolicyValue"
+    enum="BrowserSigninMode" expires_after="2027-10-14">
+  <owner>ydago@chromium.org</owner>
+  <owner>zmin@chromium.org</owner>
+  <summary>
+    Recorded when the BrowserSignin policy is configured with user scope and
+    applied to preferences. Records the policy value (0=Disabled, 1=Enabled,
+    2=Forced). Recorded at browser startup and when user policies are fetched.
+  </summary>
+</histogram>
+
+<histogram name="Enterprise.BrowserSignin.UserScope.SignoutAction"
+    enum="BrowserSigninUserScopeSignoutAction" expires_after="2027-10-14">
+  <owner>ydago@chromium.org</owner>
+  <owner>zmin@chromium.org</owner>
+  <summary>
+    Recorded when sign-in is disallowed on a profile because the BrowserSignin
+    policy is set to 0 (Disabled) at user scope. Records whether the user was
+    signed out directly or prompted to delete the profile.
+  </summary>
+</histogram>
+
 <histogram name="Enterprise.BrowserSigninIOS.SignedOutByPolicy"
     enum="BooleanHit" expires_after="2023-06-30">
   <owner>gujen@google.com</owner>
@@ -1090,6 +1112,20 @@ chromium-metrics-reviews@google.com.
     browser preferences (e.g., invalid types, schema violations, deprecated
     values).
   </summary>
+</histogram>
+
+<histogram name="Enterprise.CloudPolicy.LocalCacheSize.{StoreType}" units="KB"
+    expires_after="2027-04-01">
+  <owner>ydago@chromium.org</owner>
+  <owner>cbe-eng@google.com</owner>
+  <summary>
+    Recorded when reading {StoreType} cloud policy cache from disk on browser
+    startup. Logs the size of the cached policy file in kilobytes.
+  </summary>
+  <token key="StoreType">
+    <variant name="Machine" summary="machine-level (CBCM/CEC)"/>
+    <variant name="User" summary="user-level"/>
+  </token>
 </histogram>
 
 <histogram name="Enterprise.CloudPolicy.LocalCacheWriteStatus"
@@ -3709,7 +3745,7 @@ chromium-metrics-reviews@google.com.
 </histogram>
 
 <histogram name="Enterprise.LoginApiCleanup.{CleanupHandler}.Success"
-    enum="BooleanSuccess" expires_after="2026-11-17">
+    enum="BooleanSuccess" expires_after="2027-10-27">
   <owner>mpetrisor@chromium.org</owner>
   <owner>imprivata-eng@google.com</owner>
   <summary>ChromeOS only. Records if cleanup handler succeeded.</summary>
@@ -3717,7 +3753,7 @@ chromium-metrics-reviews@google.com.
 </histogram>
 
 <histogram name="Enterprise.LoginApiCleanup.{CleanupHandler}.Timing" units="ms"
-    expires_after="2026-11-17">
+    expires_after="2027-10-27">
   <owner>mpetrisor@chromium.org</owner>
   <owner>imprivata-eng@google.com</owner>
   <summary>

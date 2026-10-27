@@ -229,7 +229,7 @@ class ActionAppMenuTest : public ActionAppMenuTestBase {
     if (!footer_view) {
       return nullptr;
     }
-#if BUILDFLAG(IS_MAC)
+#if BUILDFLAG(IS_MAC) || BUILDFLAG(IS_CHROMEOS)
     views::View* container = footer_view->right_container_for_testing();
 #else
     views::View* container = footer_view->left_container_for_testing();
@@ -1284,8 +1284,8 @@ TEST_F(ActionAppMenuTest, FooterButtonClickExecutesActionAfterMenuClosed) {
       views::AsViewClass<AppMenuFooterView>(footer_item->children()[0]);
   ASSERT_TRUE(footer_view);
 
-#if BUILDFLAG(IS_MAC)
-  // On Mac, right container child 0 is kActionOptions (Settings).
+#if BUILDFLAG(IS_MAC) || BUILDFLAG(IS_CHROMEOS)
+  // On Mac and ChromeOS, right container child 0 is kActionOptions (Settings).
   views::View* settings_container = footer_view->right_container_for_testing();
 #else
   // Left container child 0 is kActionOptions (Settings).
@@ -1474,7 +1474,7 @@ TEST_F(ActionAppMenuTest, PopulatesFooterElements) {
   ASSERT_TRUE(left_container);
   views::View* right_container = footer_view->right_container_for_testing();
   ASSERT_TRUE(right_container);
-#if BUILDFLAG(IS_MAC)
+#if BUILDFLAG(IS_MAC) || BUILDFLAG(IS_CHROMEOS)
   ASSERT_EQ(left_container->children().size(), 1u);  // Help
   EXPECT_TRUE(
       views::IsViewClass<AppMenuFooterButton>(left_container->children()[0]));
@@ -4489,6 +4489,36 @@ TEST_F(ActionAppMenuTest, RecentTabsByDateHistoryInSidePanel) {
       "WrenchMenu.MenuAction", MENU_ACTION_SHOW_HISTORY_CLUSTER_SIDE_PANEL, 1);
   histogram_tester.ExpectTotalCount(
       "WrenchMenu.TimeToAction.ShowHistoryClustersSidePanel", 1);
+}
+
+TEST_F(ActionAppMenuTest, CreateOtherDeviceTabsActionsWithDevices) {
+  RecentTabsDynamicMenu dynamic_menu(&mock_window_interface_);
+  auto other_device_tabs_submenu =
+      actions::ActionItem::Builder()
+          .SetActionId(kActionOtherDeviceTabsSubmenu)
+          .Build();
+
+  // Without synced devices, nothing is built.
+  dynamic_menu.BuildOtherDeviceTabsActions(other_device_tabs_submenu.get());
+  EXPECT_TRUE(other_device_tabs_submenu->GetChildren().children().empty());
+
+  RecentTabItem header_item(RecentTabItem::Type::kHeader, u"Pixel 9");
+  RecentTabItem tab_item(RecentTabItem::Type::kTab, u"Remote Tab");
+  tab_item.set_session_tag("session_tag_1");
+  tab_item.set_session_id(SessionID::FromSerializedValue(10));
+  tab_item.set_url(GURL("https://example.com"));
+  tab_item.set_is_local(false);
+
+  dynamic_menu.CreateRecentTabsActionForTesting(
+      other_device_tabs_submenu.get(),
+      {std::move(header_item), std::move(tab_item)});
+
+  const auto& children = other_device_tabs_submenu->GetChildren().children();
+  ASSERT_EQ(children.size(), 2u);
+  EXPECT_EQ(children[0]->GetProperty(AppMenuActionItem::kDisplayTypeKey),
+            AppMenuActionItem::DisplayType::kHeader);
+  EXPECT_EQ(children[0]->GetActionItem()->GetText(), u"Pixel 9");
+  EXPECT_EQ(children[1]->GetActionItem()->GetText(), u"Remote Tab");
 }
 
 #if BUILDFLAG(GOOGLE_CHROME_BRANDING) && !BUILDFLAG(IS_CHROMEOS)

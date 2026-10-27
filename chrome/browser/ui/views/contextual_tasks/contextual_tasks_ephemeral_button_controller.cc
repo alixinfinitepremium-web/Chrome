@@ -350,6 +350,11 @@ void ContextualTasksEphemeralButtonController::OnSidePanelAlignmentChanged() {
 }
 
 bool ContextualTasksEphemeralButtonController::ShouldShowEphemeralButton() {
+  Profile* const profile = browser_window_interface_->GetProfile();
+  if (!profile || profile->IsOffTheRecord()) {
+    return false;
+  }
+
   // TabInterface can be null on browser shutdown.
   tabs::TabInterface* const tab_interface =
       browser_window_interface_->GetActiveTabInterface();
@@ -434,6 +439,14 @@ void ContextualTasksEphemeralButtonController::
       !contextual_tasks::ShouldShowCloseSidePanelInPinnedButtonContextMenu()) {
     return;
   }
+
+  base::RecordAction(base::UserMetricsAction(
+      "ContextualTasks.EphemeralToolbarButton.UserAction."
+      "RemoveByContextMenu"));
+  base::UmaHistogramBoolean(
+      "ContextualTasks.EphemeralToolbarButton.UserAction."
+      "RemoveByContextMenu",
+      true);
 
   base::AutoReset<std::optional<RemovalReason>> reset_reason(
       &removal_reason_, RemovalReason::kContextMenu);

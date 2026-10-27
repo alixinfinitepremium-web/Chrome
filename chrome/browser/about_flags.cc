@@ -1040,7 +1040,6 @@ const FeatureEntry::FeatureParam
         {"Omnibox_AskGLensSearchHintText", "true"},
         {"Omnibox_AskGShowChip", "false"},
         {"Omnibox_AskGComposeboxLensChip", "false"},
-        {"Omnibox_AskGBlockAutoTabZeroStateSuggestions", "false"},
         {"Omnibox_AskGShowFirstDescription", "false"},
         {"Omnibox_AskGComposeboxPlaceholder", "false"},
         {"Omnibox_AskGBypassPrivacyNotice", "true"}};
@@ -1057,7 +1056,6 @@ const FeatureEntry::FeatureParam
         {"Omnibox_AskGLensSearchHintText", "true"},
         {"Omnibox_AskGShowChip", "false"},
         {"Omnibox_AskGComposeboxLensChip", "false"},
-        {"Omnibox_AskGBlockAutoTabZeroStateSuggestions", "false"},
         {"Omnibox_AskGShowFirstDescription", "false"},
         {"Omnibox_AskGComposeboxPlaceholder", "false"},
         {"Omnibox_AskGBypassPrivacyNotice", "true"}};
@@ -1074,7 +1072,6 @@ const FeatureEntry::FeatureParam
         {"Omnibox_AskGLensSearchHintText", "true"},
         {"Omnibox_AskGShowChip", "false"},
         {"Omnibox_AskGComposeboxLensChip", "true"},
-        {"Omnibox_AskGBlockAutoTabZeroStateSuggestions", "true"},
         {"Omnibox_AskGShowFirstDescription", "false"},
         {"Omnibox_AskGComposeboxPlaceholder", "true"},
         {"Omnibox_AskGBypassPrivacyNotice", "true"}};
@@ -1091,7 +1088,6 @@ const FeatureEntry::FeatureParam
         {"Omnibox_AskGLensSearchHintText", "true"},
         {"Omnibox_AskGShowChip", "false"},
         {"Omnibox_AskGComposeboxLensChip", "false"},
-        {"Omnibox_AskGBlockAutoTabZeroStateSuggestions", "true"},
         {"Omnibox_AskGShowFirstDescription", "false"},
         {"Omnibox_AskGComposeboxPlaceholder", "true"},
         {"Omnibox_AskGBypassPrivacyNotice", "true"}};
@@ -1108,7 +1104,6 @@ const FeatureEntry::FeatureParam
         {"Omnibox_AskGLensSearchHintText", "true"},
         {"Omnibox_AskGShowChip", "true"},
         {"Omnibox_AskGComposeboxLensChip", "false"},
-        {"Omnibox_AskGBlockAutoTabZeroStateSuggestions", "true"},
         {"Omnibox_AskGShowFirstDescription", "true"},
         {"Omnibox_AskGComposeboxPlaceholder", "true"},
         {"Omnibox_AskGBypassPrivacyNotice", "true"}};
@@ -1129,7 +1124,6 @@ const FeatureEntry::FeatureParam
         {"Omnibox_AskGLensSearchHintText", "true"},
         {"Omnibox_AskGShowChip", "false"},
         {"Omnibox_AskGComposeboxLensChip", "false"},
-        {"Omnibox_AskGBlockAutoTabZeroStateSuggestions", "false"},
         {"Omnibox_AskGShowFirstDescription", "false"},
         {"Omnibox_AskGComposeboxPlaceholder", "false"},
         {"Omnibox_AskGBypassPrivacyNotice", "true"},
@@ -9038,6 +9032,11 @@ const FeatureEntry kFeatureEntries[] = {
      FEATURE_VALUE_TYPE(
          lens::features::kLensUseSeparateRequestIdForViewportImages)},
 
+    {"lens-send-drive-tab-urls-in-composeboxes",
+     flag_descriptions::kLensSendDriveTabUrlsInComposeboxesName,
+     flag_descriptions::kLensSendDriveTabUrlsInComposeboxesDescription, kOsAll,
+     FEATURE_VALUE_TYPE(lens::features::kLensSendDriveTabUrlsInComposeboxes)},
+
     {"lens-bypass-compression-for-c2pa",
      flag_descriptions::kLensBypassCompressionForC2paName,
      flag_descriptions::kLensBypassCompressionForC2paDescription, kOsAll,
@@ -9940,13 +9939,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kCompressionDictionaryTTLName,
      flag_descriptions::kCompressionDictionaryTTLDescription, kOsAll,
      FEATURE_VALUE_TYPE(network::features::kCompressionDictionaryTTL)},
-
-#if BUILDFLAG(IS_ANDROID)
-    {"deprecated-external-picker-function",
-     flag_descriptions::kDeprecatedExternalPickerFunctionName,
-     flag_descriptions::kDeprecatedExternalPickerFunctionDescription,
-     kOsAndroid, FEATURE_VALUE_TYPE(ui::kDeprecatedExternalPickerFunction)},
-#endif  // BUILDFLAG(IS_ANDROID)
 
 #if BUILDFLAG(IS_ANDROID)
     {"android-progress-bar-visual-update",

@@ -924,6 +924,36 @@ TEST_F(ContextualTasksSidePanelCoordinatorTest,
 }
 
 TEST_F(ContextualTasksSidePanelCoordinatorTest,
+       CloseZeroStateTaskDisassociatesTabInIncognitoWhenEphemeralBranded) {
+  base::test::ScopedFeatureList feature_list;
+  feature_list.InitAndEnableFeatureWithParameters(
+      kContextualTasksEphemeralBrandedEntryPoint,
+      {{"ContextualTasksEntryPoint", "toolbar-ephemeral-branded"}});
+
+  Profile* otr_profile =
+      profile_->GetPrimaryOTRProfile(/*create_if_needed=*/true);
+  ON_CALL(*browser_window_, GetProfile()).WillByDefault(Return(otr_profile));
+
+  ContextualTask zero_state_task(base::Uuid::GenerateRandomV4());
+  tabs::TabInterface* active_tab = tab_list_->GetActiveTab();
+  SessionID active_tab_id =
+      sessions::SessionTabHelper::IdForTab(active_tab->GetContents());
+
+  EXPECT_CALL(*mock_controller_, GetContextualTaskForTab(active_tab_id))
+      .WillRepeatedly(Return(zero_state_task));
+  EXPECT_CALL(*mock_controller_,
+              GetTabsAssociatedWithTask(zero_state_task.GetTaskId()))
+      .WillRepeatedly(Return(std::vector<SessionID>{active_tab_id}));
+
+  EXPECT_CALL(
+      *mock_controller_,
+      DisassociateTabFromTask(zero_state_task.GetTaskId(), active_tab_id))
+      .Times(1);
+
+  coordinator_->Close();
+}
+
+TEST_F(ContextualTasksSidePanelCoordinatorTest,
        CloseZeroStateTaskDisassociatesTabWhenNotEphemeralBranded) {
   base::test::ScopedFeatureList feature_list;
   feature_list.InitAndEnableFeatureWithParameters(
@@ -3708,6 +3738,13 @@ TEST_F(ContextualTasksSidePanelCoordinatorTest,
 
   ON_CALL(*session_handle_ptr, GetController())
       .WillByDefault(Return(&mock_context_controller));
+  ON_CALL(*session_handle_ptr, CreateContextToken())
+      .WillByDefault([session_handle_ptr]() {
+        auto token = base::UnguessableToken::Create();
+        session_handle_ptr->GetUploadedContextTokensForTesting().push_back(
+            token);
+        return token;
+      });
   ON_CALL(mock_context_controller, GetFileInfo(token2))
       .WillByDefault(Return(&submitted_file2));
   ON_CALL(mock_context_controller, GetFileInfo(token3))

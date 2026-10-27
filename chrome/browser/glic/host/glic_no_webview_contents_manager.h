@@ -172,6 +172,9 @@ class GlicNoWebviewContentsManager : public GlicWebContentsManager,
       ScopedModalDialogManagerDelegate& delegate) override;
   void SetVisibility(content::Visibility visibility) override;
   content::WebContents* active_web_contents() const override;
+  bool IsShowingNativeLoading() const override;
+  base::CallbackListSubscription RegisterNativeLoadingChangedCallback(
+      NativeLoadingChangedCallback callback) override;
   content::WebContents* guest_contents() const override;
   void OnActuatingChanged(bool actuating) override;
   void OnTaskTabsVisibilityChanged(bool has_visible_tab) override;
@@ -182,6 +185,7 @@ class GlicNoWebviewContentsManager : public GlicWebContentsManager,
   bool IsCrashed() const override;
   void Zoom(mojom::ZoomAction zoom_action, ZoomSource source) override;
   void SetErrorCallback(base::RepeatingClosure callback) override;
+  void WaitForLoad(base::OnceCallback<void(bool failed)> callback) override;
 
   // GlicWebClientManager::Delegate implementation:
   void OnGuestNavigationStarted() override;
@@ -203,7 +207,11 @@ class GlicNoWebviewContentsManager : public GlicWebContentsManager,
     kWarming,
     // Attached to Host, but hidden; overlay not created.
     kAttachedHidden,
-    // Visible to user, guest not yet ready; overlay is created and showing.
+    // Visible to user, guest not yet ready; native loading placeholder is
+    // showing and WebUI overlay is not created.
+    kShowingNativeLoading,
+    // Visible to user, guest not yet ready or error active; overlay is created
+    // and showing.
     kShowingOverlay,
     // Guest connected and active; overlay is destroyed.
     kShowingGuest,
@@ -355,6 +363,7 @@ class GlicNoWebviewContentsManager : public GlicWebContentsManager,
   void OnProfileReadyStateChanged();
   void UpdateForProfileReadyState(bool is_initial);
   void OnHibernationTimerExpired();
+  void ResolvePendingWaitForLoadCallbacks();
 
   raw_ptr<Profile> profile_;
   raw_ptr<GlicEnabling> enabling_ = nullptr;
@@ -392,6 +401,7 @@ class GlicNoWebviewContentsManager : public GlicWebContentsManager,
 
   base::RepeatingCallbackList<void(content::WebContents*)>
       web_contents_changed_callbacks_;
+  base::RepeatingCallbackList<void(bool)> native_loading_changed_callbacks_;
 
   base::CallbackListSubscription profile_ready_subscription_;
 
@@ -399,6 +409,7 @@ class GlicNoWebviewContentsManager : public GlicWebContentsManager,
   base::OneShotTimer loading_timer_;
   base::OneShotTimer unconnected_hibernation_timer_;
   base::RepeatingClosure error_callback_;
+  std::vector<base::OnceCallback<void(bool)>> pending_wait_for_load_callbacks_;
 
   base::WeakPtrFactory<GlicNoWebviewContentsManager> weak_ptr_factory_{this};
 };
@@ -411,6 +422,8 @@ inline std::ostream& operator<<(
       return os << "kWarming";
     case GlicNoWebviewContentsManager::DisplayState::kAttachedHidden:
       return os << "kAttachedHidden";
+    case GlicNoWebviewContentsManager::DisplayState::kShowingNativeLoading:
+      return os << "kShowingNativeLoading";
     case GlicNoWebviewContentsManager::DisplayState::kShowingOverlay:
       return os << "kShowingOverlay";
     case GlicNoWebviewContentsManager::DisplayState::kShowingGuest:

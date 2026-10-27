@@ -547,6 +547,12 @@ suite('OmniboxEverywhereOmniboxTest', () => {
   function dispatchFileDragEvent(target: HTMLElement, type: string): DragEvent {
     const dataTransfer = new DataTransfer();
     dataTransfer.items.add(new File(['foo'], 'foo.png', {type: 'image/png'}));
+    // Blink's `new DataTransfer()` creates a copy-and-paste instance whose
+    // native `dropEffect` setter is a no-op (`!IsForDragAndDrop()`), unlike the
+    // drag-and-drop DataTransfer created by `DragController` during OS drags.
+    // Define a writable own property so listeners can read and update it.
+    Object.defineProperty(
+        dataTransfer, 'dropEffect', {value: 'copy', writable: true});
     const event = new DragEvent(type, {
       bubbles: true,
       cancelable: true,
@@ -578,6 +584,7 @@ suite('OmniboxEverywhereOmniboxTest', () => {
 
     assertTrue(dragEnter.defaultPrevented);
     assertTrue(dragOver.defaultPrevented);
+    assertEquals('none', dragOver.dataTransfer!.dropEffect);
     assertEquals(
         GlowAnimationState.NONE, getAnimatedGlow(testOmnibox).animationState);
 
@@ -613,12 +620,19 @@ suite('OmniboxEverywhereOmniboxTest', () => {
         const glow = getAnimatedGlow(omnibox);
 
         dispatchFileDragEvent(inputWrapper, 'dragenter');
+        const dragOverWhileAvailable =
+            dispatchFileDragEvent(inputWrapper, 'dragover');
         await microtasksFinished();
+        assertEquals('copy', dragOverWhileAvailable.dataTransfer!.dropEffect);
         assertEquals(GlowAnimationState.DRAGGING, glow.animationState);
 
         testProxy.page.updateAimPopupEligibility(false);
         await microtasksFinished();
         assertEquals(GlowAnimationState.NONE, glow.animationState);
+
+        const dragOverWhileUnavailable =
+            dispatchFileDragEvent(inputWrapper, 'dragover');
+        assertEquals('none', dragOverWhileUnavailable.dataTransfer!.dropEffect);
 
         const drop = dispatchFileDragEvent(inputWrapper, 'drop');
         await microtasksFinished();
@@ -755,7 +769,8 @@ suite('OmniboxEverywhereOmniboxTest', () => {
 
     // Once the collapse animation ends on #bottomControls, has-expanded is
     // cleared so subsequent collapsed re-shows do not replay the animation.
-    bottomControls.dispatchEvent(new AnimationEvent('animationend'));
+    bottomControls.dispatchEvent(new AnimationEvent(
+        'animationend', {animationName: 'loomniboxTopControlsEnter'}));
     assertFalse(omnibox.hasAttribute('has-expanded'));
     assertEquals('none', window.getComputedStyle(bottomControls).animationName);
 
@@ -2591,6 +2606,79 @@ suite('OmniboxEverywhereAppTest', () => {
 
     assertTrue(mvContainer.hidden);
   });
+
+  test(
+      'clicking MVT close button calls onDismissMostVisited and hides ' +
+          'container',
+      async () => {
+        document.body.innerHTML = window.trustedTypes!.emptyHTML;
+        loadTimeData.overrideValues({
+          omniboxEverywhereMostVisitedEnabled: true,
+          initialFreStage: 0,
+        });
+        const mvHandler = TestMock.fromClass(MostVisitedPageHandlerRemote);
+        const {instance: mvInstance, remote: mvRemote} =
+            browserProxyFactory.createForTest(mvHandler);
+        browserProxyFactory.setInstance(mvInstance);
+        mvHandler.setResultFor(
+            'getMostVisitedExpandedState',
+            Promise.resolve({isExpanded: false}));
+
+        const appWithMv = document.createElement('omnibox-everywhere-app');
+        document.body.appendChild(appWithMv);
+        await microtasksFinished();
+
+        const mvContainer = appWithMv.shadowRoot.querySelector<HTMLElement>(
+            '#mostVisitedContainer');
+        const mostVisited =
+            appWithMv.shadowRoot.querySelector<HTMLElement>('#mostVisited');
+        const closeButton =
+            appWithMv.shadowRoot.querySelector<HTMLButtonElement>(
+                '#mostVisitedCloseButton');
+        assertTrue(!!mvContainer);
+        assertTrue(!!mostVisited);
+        assertTrue(!!closeButton);
+        // Close button is placed after <cr-most-visited> in DOM tab order.
+        assertEquals(closeButton, mostVisited.nextElementSibling);
+
+        const testTiles = [{
+          title: 'Google',
+          titleDirection: TextDirection.LEFT_TO_RIGHT,
+          url: 'https://www.google.com/',
+          source: 0,
+          titleSource: 0,
+          isQueryTile: false,
+          allowUserEdit: false,
+          allowUserDelete: false,
+        }];
+
+        mvRemote.setMostVisitedInfo({
+          customLinksEnabled: false,
+          enterpriseShortcutsEnabled: false,
+          tiles: testTiles,
+          visible: true,
+        });
+        await mvRemote.$.flushForTesting();
+        await microtasksFinished();
+
+        assertFalse(mvContainer.hidden);
+        // Steady state has opacity 0 and pointer-events none.
+        const closeButtonStyle = window.getComputedStyle(closeButton);
+        assertEquals('0', closeButtonStyle.opacity);
+        assertEquals('none', closeButtonStyle.pointerEvents);
+        assertEquals(
+            loadTimeData.getString('close'),
+            closeButton.getAttribute('aria-label'));
+
+        closeButton.click();
+        await testEverywhereProxy.handler.whenCalled('onDismissMostVisited');
+        await microtasksFinished();
+
+        assertEquals(
+            1,
+            testEverywhereProxy.handler.getCallCount('onDismissMostVisited'));
+        assertTrue(mvContainer.hidden);
+      });
 
   test(
       'MVT remains mounted and hidden during FRE, unhiding when FRE dismissed',

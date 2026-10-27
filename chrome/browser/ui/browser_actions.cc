@@ -4652,6 +4652,7 @@ void BrowserActions::InitializeToolbarAndMiscActions() {
           .SetText(GetCleanTitleText(l10n_util::GetStringUTF16(IDS_FEEDBACK)))
           .SetTooltipText(
               GetCleanTooltipText(l10n_util::GetStringUTF16(IDS_FEEDBACK)))
+          .SetAccelerator(GetAcceleratorForCommandId(IDC_FEEDBACK))
           .SetImage(ui::ImageModel::FromVectorIcon(
               features::IsRoundedIconsEnabled() ? kFeedbackIcon
                                                 : kReportOldIcon))
@@ -4857,9 +4858,7 @@ void BrowserActions::InitializeToolbarAndMiscActions() {
           IDS_CHROME_ENTERPRISE_RELEASE_NOTES, omnibox::kChromeProductIcon,
           /*is_pinnable=*/false)
 #if BUILDFLAG(IS_LINUX)
-          .SetVisible(
-              enterprise_util::IsBrowserManaged(profile) &&
-              base::FeatureList::IsEnabled(features::kEnterpriseReleaseNotes))
+          .SetVisible(enterprise_util::IsBrowserManaged(profile))
 #else
           .SetVisible(false)
 #endif

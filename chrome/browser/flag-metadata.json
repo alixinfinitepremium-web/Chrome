@@ -2958,11 +2958,6 @@
     "expiry_milestone": 160
   },
   {
-    "name": "deprecated-external-picker-function",
-    "owners": [ "finnur@chromium.org", "tedchoc@chromium.org"],
-    "expiry_milestone": 140
-  },
-  {
     "name": "desktop-android-file-picker-for-media",
     "owners": ["jhimawan@google.com", "clank-app-team@google.com"],
     "expiry_milestone": 160
@@ -3585,7 +3580,7 @@
   {
     "name": "enable-android-side-panel-logs",
     "owners": ["mschillaci@google.com", "linyuh@google.com", "sinansahin@google.com"],
-    "expiry_milestone": 158
+    "expiry_milestone": 165
   },
   {
     "name": "enable-android-side-panel-manual-resizing",
@@ -6779,6 +6774,11 @@
     "expiry_milestone": 152
   },
   {
+    "name": "lens-send-drive-tab-urls-in-composeboxes",
+    "owners": ["hujasonx@google.com", "lens-chrome@google.com"],
+    "expiry_milestone": 165
+  },
+  {
     "name": "lens-stream-service-web-channel-transport-enabled",
     "owners": ["cmyang@google.com", "brandonli@google.com"],
     "expiry_milestone": 165
@@ -9750,7 +9750,7 @@
   {
     "name": "toolbar-progress-bar-refactor",
     "owners": ["mschillaci@google.com", "clank-app-team@google.com"],
-    "expiry_milestone": 159
+    "expiry_milestone": 165
   },
   {
     "name": "toolbar-snapshot-refactor",
@@ -9869,7 +9869,7 @@
   {
     "name": "universal-keyboard-handling",
     "owners": ["mschillaci@google.com", "clank-app-team@google.com"],
-    "expiry_milestone": 159
+    "expiry_milestone": 165
   },
   {
     "name": "universal-opt-out",

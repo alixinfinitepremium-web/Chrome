@@ -2241,7 +2241,8 @@ void AppMenuModel::Build() {
         kHistoryMenuItem);
 
     if (base::FeatureList::IsEnabled(syncer::kCrossDeviceTabsInAppMenu)) {
-      sub_menus_.push_back(std::make_unique<OtherDeviceTabsSubMenuModel>());
+      sub_menus_.push_back(
+          std::make_unique<OtherDeviceTabsSubMenuModel>(browser_));
       AddSubMenuWithStringIdAndVectorIcon(
           this, kOtherDeviceTabsMenuPlaceholder, IDS_OTHER_DEVICE_TABS_MENU,
           sub_menus_.back().get(),
@@ -2520,8 +2521,7 @@ void AppMenuModel::Build() {
     SetAccessibleNameAt(GetIndexOfCommandId(IDC_SHOW_MANAGEMENT_PAGE).value(),
                         GetManagedUiMenuItemTooltip(browser_->GetProfile()));
 #if BUILDFLAG(IS_LINUX)
-    if (enterprise_util::IsBrowserManaged(browser_->GetProfile()) &&
-        base::FeatureList::IsEnabled(features::kEnterpriseReleaseNotes)) {
+    if (enterprise_util::IsBrowserManaged(browser_->GetProfile())) {
       AddItemWithStringIdAndVectorIcon(
           this, IDC_CHROME_ENTERPRISE_RELEASE_NOTES,
           IDS_CHROME_ENTERPRISE_RELEASE_NOTES, omnibox::kChromeProductIcon);

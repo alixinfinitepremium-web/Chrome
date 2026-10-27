@@ -3383,6 +3383,12 @@ inline constexpr char kLensUseSeparateRequestIdForViewportImagesDescription[] =
     "Enables using separate request IDs for page contents vs page viewport "
     "uploads.";
 
+inline constexpr char kLensSendDriveTabUrlsInComposeboxesName[] =
+    "Lens Send Drive Tab URLs in Composeboxes";
+inline constexpr char kLensSendDriveTabUrlsInComposeboxesDescription[] =
+    "Enables sending Google Drive / Docs tab URLs as unresolved URLs in "
+    "composeboxes.";
+
 inline constexpr char kLensSidePanelUnificationName[] =
     "Lens Side Panel Unification";
 inline constexpr char kLensSidePanelUnificationDescription[] =
@@ -6153,11 +6159,6 @@ inline constexpr char kDefaultBrowserPromoEntryPointDescription[] =
 inline constexpr char kDefaultBrowserPromoFreName[] = "DefaultBrowserPromoFre";
 inline constexpr char kDefaultBrowserPromoFreDescription[] =
     "Enables the Default Browser Promo during the First Run Experience (FRE).";
-
-inline constexpr char kDeprecatedExternalPickerFunctionName[] =
-    "Use deprecated External Picker method";
-inline constexpr char kDeprecatedExternalPickerFunctionDescription[] =
-    "Use the old-style opening of an External Picker when uploading files";
 
 inline constexpr char kDesktopAndroidLinkCapturingName[] =
     "Desktop Android Link Capturing";
