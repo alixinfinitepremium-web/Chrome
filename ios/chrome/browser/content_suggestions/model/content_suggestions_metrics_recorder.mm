@@ -198,7 +198,7 @@ favicon_base::IconType GetIconTypeFromAttributes(
       GetIconTypeFromAttributes(item.attributes), item.URL));
   if (ntp_tiles::GetAimButtonRefactorArm() ==
       ntp_tiles::AimButtonRefactorArm::kAimAsMvt) {
-    if ([item isAIMTile]) {
+    if (item.source == ntp_tiles::TileSource::AI_MODE) {
       RecordAimTileImpressionAtIndex(static_cast<int>(index));
     }
   }

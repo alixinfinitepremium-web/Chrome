@@ -200,6 +200,7 @@
 #import "ui/base/l10n/l10n_util_mac.h"
 
 using ntp_tiles::AimButtonRefactorArm;
+using ntp_tiles::GetAimButtonRefactorArm;
 
 @interface NewTabPageCoordinator () <AccountMenuCoordinatorDelegate,
                                      AuthenticationServiceObserving,
@@ -474,9 +475,9 @@ using ntp_tiles::AimButtonRefactorArm;
   // Create instance of composeboxInputStateManager to get
   // remainingNumberOfImagesAllowed for compose box picker presenter if the
   // Attach Image button is activated
-  ntp_tiles::AimButtonRefactorArm arm = ntp_tiles::GetAimButtonRefactorArm();
-  if (arm == ntp_tiles::AimButtonRefactorArm::kAttachImageQuickAction ||
-      arm == ntp_tiles::AimButtonRefactorArm::kImageGenerationQuickAction) {
+  ntp_tiles::AimButtonRefactorArm arm = GetAimButtonRefactorArm();
+  if (arm == AimButtonRefactorArm::kAttachImageQuickAction ||
+      arm == AimButtonRefactorArm::kImageGenerationQuickAction) {
     ProfileIOS* profile = self.profile;
     contextual_search::ContextualSearchService* service =
         ContextualSearchServiceFactory::GetForProfile(profile);
@@ -614,10 +615,10 @@ using ntp_tiles::AimButtonRefactorArm;
 
   _identityManager = nullptr;
 
-  ntp_tiles::AimButtonRefactorArm arm = ntp_tiles::GetAimButtonRefactorArm();
+  ntp_tiles::AimButtonRefactorArm arm = GetAimButtonRefactorArm();
 
-  if (arm == ntp_tiles::AimButtonRefactorArm::kAttachImageQuickAction ||
-      arm == ntp_tiles::AimButtonRefactorArm::kImageGenerationQuickAction) {
+  if (arm == AimButtonRefactorArm::kAttachImageQuickAction ||
+      arm == AimButtonRefactorArm::kImageGenerationQuickAction) {
     [self dismissComposeboxPicker];
     [_composeboxInputStateManager disconnect];
     _composeboxInputStateManager.delegate = nil;
@@ -808,17 +809,17 @@ using ntp_tiles::AimButtonRefactorArm;
   [self stopSigninCoordinator];
   [self dismissCustomizationMenu];
   [self dismissMultimodalActionsMenu];
-  ntp_tiles::AimButtonRefactorArm arm = ntp_tiles::GetAimButtonRefactorArm();
-  if (arm == ntp_tiles::AimButtonRefactorArm::kAttachImageQuickAction ||
-      arm == ntp_tiles::AimButtonRefactorArm::kImageGenerationQuickAction) {
+  ntp_tiles::AimButtonRefactorArm arm = GetAimButtonRefactorArm();
+  if (arm == AimButtonRefactorArm::kAttachImageQuickAction ||
+      arm == AimButtonRefactorArm::kImageGenerationQuickAction) {
     [self dismissComposeboxPicker];
   }
 }
 
 - (void)dismissComposeboxPicker {
-  ntp_tiles::AimButtonRefactorArm arm = ntp_tiles::GetAimButtonRefactorArm();
-  CHECK(arm == ntp_tiles::AimButtonRefactorArm::kAttachImageQuickAction ||
-        arm == ntp_tiles::AimButtonRefactorArm::kImageGenerationQuickAction);
+  ntp_tiles::AimButtonRefactorArm arm = GetAimButtonRefactorArm();
+  CHECK(arm == AimButtonRefactorArm::kAttachImageQuickAction ||
+        arm == AimButtonRefactorArm::kImageGenerationQuickAction);
   [_composeboxPickerPresenter dismissPicker];
   _composeboxPickerPresenter.delegate = nil;
   _composeboxPickerPresenter = nil;
@@ -1017,12 +1018,10 @@ using ntp_tiles::AimButtonRefactorArm;
     ChromeAccountManagerService* accountManagerService =
         ChromeAccountManagerServiceFactory::GetForProfile(profile);
 
-    AimEligibilityService* aimEligibilityService =
-        ntp_tiles::GetAimButtonRefactorArm() ==
-                ntp_tiles::AimButtonRefactorArm::kAimAsMvt
-            ? _aimEligibilityService
+    AIModeButtonServiceIOS* aimButtonService =
+        GetAimButtonRefactorArm() == AimButtonRefactorArm::kAimAsMvt
+            ? AIModeButtonServiceIOSFactory::GetForProfile(profile)
             : nil;
-
     _mostVisitedTilesMediator = [[MostVisitedTilesMediator alloc]
         initWithMostVisitedSite:std::move(mostVisitedFactory)
                  historyService:historyService
@@ -1034,7 +1033,7 @@ using ntp_tiles::AimButtonRefactorArm;
           accountManagerService:accountManagerService
               engagementTracker:engagementTracker
               layoutGuideCenter:LayoutGuideCenterForBrowser(self.browser)
-          aimEligibilityService:aimEligibilityService];
+            aiModeButtonService:aimButtonService];
     _mostVisitedTilesMediator.contentSuggestionsDelegate =
         self.contentSuggestionsCoordinator.delegate;
     _mostVisitedTilesMediator.actionFactory = [[BrowserActionFactory alloc]
@@ -1810,8 +1809,7 @@ using ntp_tiles::AimButtonRefactorArm;
 }
 
 - (void)aimInMostVisitedOpened {
-  if (ntp_tiles::GetAimButtonRefactorArm() ==
-      ntp_tiles::AimButtonRefactorArm::kAimAsMvt) {
+  if (GetAimButtonRefactorArm() == AimButtonRefactorArm::kAimAsMvt) {
     RecordHomeAction(IOSHomeActionType::kAimInMostVisited,
                      [self isStartSurface]);
     [self.NTPMetricsRecorder recordAIMButtonTapped];
@@ -2506,7 +2504,7 @@ using ntp_tiles::AimButtonRefactorArm;
     return NO;
   }
 
-  switch (ntp_tiles::GetAimButtonRefactorArm()) {
+  switch (GetAimButtonRefactorArm()) {
     case AimButtonRefactorArm::kAimAsMvt:
     case AimButtonRefactorArm::kAimAsModule:
     case AimButtonRefactorArm::kNoChips:
@@ -2551,9 +2549,9 @@ using ntp_tiles::AimButtonRefactorArm;
 // selecting from the gallery.
 - (void)openComposeboxWithImages:
     (NSArray<ComposeboxPickerImageResult*>*)images {
-  ntp_tiles::AimButtonRefactorArm arm = ntp_tiles::GetAimButtonRefactorArm();
-  CHECK(arm == ntp_tiles::AimButtonRefactorArm::kAttachImageQuickAction ||
-        arm == ntp_tiles::AimButtonRefactorArm::kImageGenerationQuickAction);
+  ntp_tiles::AimButtonRefactorArm arm = GetAimButtonRefactorArm();
+  CHECK(arm == AimButtonRefactorArm::kAttachImageQuickAction ||
+        arm == AimButtonRefactorArm::kImageGenerationQuickAction);
   [self dismissComposeboxPicker];
 
   ComposeboxAttachmentSelection* attachments =
@@ -2685,10 +2683,12 @@ using ntp_tiles::AimButtonRefactorArm;
 }
 
 - (void)openAIMImageGeneration {
-  CHECK_EQ(ntp_tiles::GetAimButtonRefactorArm(),
-           ntp_tiles::AimButtonRefactorArm::kImageGenerationQuickAction);
+  CHECK_EQ(GetAimButtonRefactorArm(),
+           AimButtonRefactorArm::kImageGenerationQuickAction);
+  RecordHomeAction(IOSHomeActionType::kQuickActionAIMImageGeneration,
+                   [self isStartSurface]);
+  [self.NTPMetricsRecorder recordAIMImageGenerationButtonTapped];
 
-  // TODO(crbug.com/549020046): Add metrics recording hooks.
   if (![self canFocusComposeboxForAIM]) {
     return;
   }
@@ -2703,10 +2703,13 @@ using ntp_tiles::AimButtonRefactorArm;
 }
 
 - (void)openAIMAttachImage {
-  ntp_tiles::AimButtonRefactorArm arm = ntp_tiles::GetAimButtonRefactorArm();
-  CHECK(arm == ntp_tiles::AimButtonRefactorArm::kAttachImageQuickAction ||
-        arm == ntp_tiles::AimButtonRefactorArm::kImageGenerationQuickAction);
-  // TODO(crbug.com/549020046): Add metrics recording hooks.
+  AimButtonRefactorArm arm = GetAimButtonRefactorArm();
+  CHECK(arm == AimButtonRefactorArm::kAttachImageQuickAction ||
+        arm == AimButtonRefactorArm::kImageGenerationQuickAction);
+  RecordHomeAction(IOSHomeActionType::kQuickActionAIMAttachImage,
+                   [self isStartSurface]);
+  [self.NTPMetricsRecorder recordAIMAttachImageButtonTapped];
+
   if (![self canFocusComposeboxForAIM]) {
     return;
   }
@@ -2848,9 +2851,9 @@ using ntp_tiles::AimButtonRefactorArm;
 - (void)composeboxPickerPresenter:(ComposeboxPickerPresenter*)presenter
                     didPickImages:
                         (NSArray<ComposeboxPickerImageResult*>*)results {
-  ntp_tiles::AimButtonRefactorArm arm = ntp_tiles::GetAimButtonRefactorArm();
-  CHECK(arm == ntp_tiles::AimButtonRefactorArm::kAttachImageQuickAction ||
-        arm == ntp_tiles::AimButtonRefactorArm::kImageGenerationQuickAction);
+  ntp_tiles::AimButtonRefactorArm arm = GetAimButtonRefactorArm();
+  CHECK(arm == AimButtonRefactorArm::kAttachImageQuickAction ||
+        arm == AimButtonRefactorArm::kImageGenerationQuickAction);
   CHECK_EQ(_composeboxPickerPresenter, presenter);
   CHECK_GT(results.count, 0u);
 

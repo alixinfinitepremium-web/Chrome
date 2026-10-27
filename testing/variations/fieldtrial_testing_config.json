@@ -1826,26 +1826,6 @@
             ]
         }
     ],
-    "AutofillAndroidKeyboardAccessoryDynamicPositioning": [
-        {
-            "platforms": [
-                "android"
-            ],
-            "form_factors": [
-                "desktop"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "AutofillAndroidDesktopKeyboardAccessoryRevamp",
-                        "AutofillAndroidDesktopSuppressAccessoryOnEmpty",
-                        "AutofillAndroidKeyboardAccessoryDynamicPositioning"
-                    ]
-                }
-            ]
-        }
-    ],
     "AutofillAndroidKeyboardAccessoryHoverPreview": [
         {
             "platforms": [
@@ -10315,21 +10295,6 @@
             ]
         }
     ],
-    "IOSLensGestureTextSelectionDisabled": [
-        {
-            "platforms": [
-                "ios"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "LensGestureTextSelectionDisabled"
-                    ]
-                }
-            ]
-        }
-    ],
     "IOSLensOmnientShaderV2": [
         {
             "platforms": [
@@ -10340,21 +10305,6 @@
                     "name": "Enabled",
                     "enable_features": [
                         "LensOmnientShaderV2Enabled"
-                    ]
-                }
-            ]
-        }
-    ],
-    "IOSLensStrokesAPI": [
-        {
-            "platforms": [
-                "ios"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled_v1",
-                    "enable_features": [
-                        "LensStrokesAPIEnabled"
                     ]
                 }
             ]
@@ -10427,24 +10377,6 @@
                     "enable_features": [
                         "IOSOneTimeDefaultBrowserNotification",
                         "IOSReactivationNotifications"
-                    ]
-                }
-            ]
-        }
-    ],
-    "IOSPartitionAllocBackupRefPtr": [
-        {
-            "platforms": [
-                "ios"
-            ],
-            "experiments": [
-                {
-                    "name": "Default",
-                    "params": {
-                        "brp-suppress-corruption-detected-crash": "true"
-                    },
-                    "enable_features": [
-                        "PartitionAllocBackupRefPtr"
                     ]
                 }
             ]
@@ -15050,21 +14982,6 @@
             ]
         }
     ],
-    "QueryDeviceSwitcherSignalsInFirstRun": [
-        {
-            "platforms": [
-                "ios"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "QueryDeviceSwitcherSignalsInFirstRun"
-                    ]
-                }
-            ]
-        }
-    ],
     "QuicSocketSendBufferSize": [
         {
             "platforms": [
@@ -16842,21 +16759,6 @@
             ]
         }
     ],
-    "SkipPostTaskForCallbacks": [
-        {
-            "platforms": [
-                "mac"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "SkipPostTaskForCallbacks"
-                    ]
-                }
-            ]
-        }
-    ],
     "SmartSuggestions": [
         {
             "platforms": [
@@ -17804,8 +17706,8 @@
                 {
                     "name": "Enabled",
                     "params": {
-                        "truncate_search_url_oq_length": "2048",
-                        "truncate_search_url_q_length": "60416"
+                        "truncate_search_url_oq_length": "1024",
+                        "truncate_search_url_q_length": "52224"
                     },
                     "enable_features": [
                         "TruncateSearchUrlOq",

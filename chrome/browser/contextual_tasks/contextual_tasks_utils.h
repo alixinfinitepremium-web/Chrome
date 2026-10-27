@@ -29,6 +29,7 @@ class Uuid;
 }  // namespace base
 
 namespace content {
+class NavigationHandle;
 class WebContents;
 }  // namespace content
 
@@ -78,6 +79,12 @@ void RecordErrorPageShown(contextual_search::ContextualSearchSource source);
 // Records the HTTP response code of the inner frame contents.
 void RecordInnerFrameContentsHttpResponseCode(int http_status_code,
                                               bool is_zero_state);
+
+// Records navigation HTTP response code and net error code metrics for
+// Contextual Tasks side panel navigations.
+void RecordContextualTasksNavigationMetrics(
+    content::NavigationHandle* navigation_handle,
+    bool is_zero_state);
 
 // Returns true if tab sharing and tab input capabilities are supported
 // for the given profile (checking AIM and Fusebox eligibility).
@@ -228,6 +235,48 @@ lens::ClientToAimMessage GetHandshakeMessageProto();
 // Returns the serialized ClientToAimMessage containing the HandshakePing
 // with supported capabilities.
 std::vector<uint8_t> GetSerializedHandshakeMessage();
+
+// LINT.IfChange(ContextualTasksExtensionHandshakeStatus)
+// Terminal outcome of one Contextual Tasks extension Service Worker port
+// handshake with the Search Web page.
+// These values are persisted to logs. Entries should not be renumbered and
+// numeric values should never be reused.
+enum class ExtensionHandshakeStatus {
+  kSuccess = 0,
+  kHostOriginRejected = 1,
+  kFrameDetached = 2,
+  kMojoRequestFailed = 3,
+  kInvalidDocumentId = 4,
+  kMaxValue = kInvalidDocumentId,
+};
+// LINT.ThenChange(
+//   //chrome/browser/resources/contextual_tasks/extension/background.ts:ContextualTasksExtensionHandshakeStatus,
+//   //tools/metrics/histograms/metadata/contextual_tasks/enums.xml:ContextualTasksExtensionHandshakeStatus
+// )
+
+// LINT.IfChange(ContextualTasksExtensionPostMessageError)
+// Reason a message between the Contextual Tasks extension and Search Web was
+// dropped.
+// These values are persisted to logs. Entries should not be renumbered and
+// numeric values should never be reused.
+enum class ExtensionPostMessageError {
+  kUntrustedOrigin = 0,
+  kUnexpectedDataType = 1,
+  kMessageTooLarge = 2,
+  kInvalidDocumentId = 3,
+  kProtoParseFailed = 4,
+  kMojoPipeClosed = 5,
+  kMaxValue = kMojoPipeClosed,
+};
+// LINT.ThenChange(
+//   //chrome/browser/resources/contextual_tasks/extension/background.ts:ContextualTasksExtensionPostMessageError,
+//   //tools/metrics/histograms/metadata/contextual_tasks/enums.xml:ContextualTasksExtensionPostMessageError
+// )
+
+void RecordExtensionHandshakeStatus(ExtensionHandshakeStatus status);
+void RecordExtensionHandshakeLatency(base::TimeDelta latency);
+void RecordExtensionPostMessageError(ExtensionPostMessageError error);
+void RecordExtensionQueuedSearchMessagesDropped(size_t count);
 
 }  // namespace contextual_tasks
 

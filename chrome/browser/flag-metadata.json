@@ -1689,6 +1689,15 @@
     "expiry_milestone": 160
   },
   {
+    "name": "browsing-history-filter-by-domain",
+    "owners": [
+      "dullweber@chromium.org",
+      "rainhard@google.com",
+      "chrome-browser-privacy-team@google.com"
+    ],
+    "expiry_milestone": 160
+  },
+  {
     "name": "browsing-history-filter-by-time",
     "owners": [
       "zalmashni@google.com",
@@ -8490,7 +8499,7 @@
   {
     "name": "profiles-reordering",
     "owners": ["rsult@google.com", "chrome-signin-team@google.com"],
-    "expiry_milestone": 146
+    "expiry_milestone": 170
   },
   {
     "name": "prompt-api",
@@ -8806,7 +8815,7 @@
       "thefrog@chromium.org",
       "chrome-counter-abuse-alerts@google.com"
     ],
-    "expiry_milestone": 159
+    "expiry_milestone": 161
   },
   {
     "name": "safe-browsing-no-protection-suppress-warnings",

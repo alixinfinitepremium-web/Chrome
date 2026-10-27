@@ -562,6 +562,8 @@ should be able to be added at any place in this file.
   <variant name="_IncognitoIndicatorCloseAllWindows"
       summary="For the Incognito indicator close all windows IPH."/>
   <variant name="_IncognitoWindow" summary="For IncognitoWindow feature."/>
+  <variant name="_IndigoContextMenuToast"
+      summary="For Indigo context menu discovery toast after transformation."/>
   <variant name="_InstanceSwitcher" summary="For Instance switcher feature."/>
   <variant name="_IntentChip"
       summary="In product help for opening a webpage in an app using the
@@ -21963,6 +21965,14 @@ should be able to be added at any place in this file.
   </description>
 </action>
 
+<action name="MobileMenuDeleteGroup">
+  <owner>mfiaz@google.com</owner>
+  <owner>clank-tabs-dev@google.com</owner>
+  <description>
+    User pressed 'Delete group' in the tab group submenu.
+  </description>
+</action>
+
 <action name="MobileMenuDevTools">
   <owner>massan@google.com</owner>
   <description>User pressed 'Developer tools' in the app menu.</description>
@@ -22197,6 +22207,20 @@ should be able to be added at any place in this file.
 <action name="MobileMenuOpenBookmark">
   <owner>massan@google.com</owner>
   <description>User pressed a bookmark in the app menu to open it.</description>
+</action>
+
+<action name="MobileMenuOpenGroup">
+  <owner>mfiaz@google.com</owner>
+  <owner>clank-tabs-dev@google.com</owner>
+  <description>User pressed 'Open group' in the tab group submenu.</description>
+</action>
+
+<action name="MobileMenuOpenGroupInNewWindow">
+  <owner>mfiaz@google.com</owner>
+  <owner>clank-tabs-dev@google.com</owner>
+  <description>
+    User pressed 'Open group in new window' in the tab group submenu.
+  </description>
 </action>
 
 <action name="MobileMenuOpenWebApk">
@@ -22722,6 +22746,24 @@ should be able to be added at any place in this file.
   <description>
     Android: User navigated back to the NTP after reading an opened (clicked)
     snippet card.
+  </description>
+</action>
+
+<action name="MobileNTPAIMAttachImageButtonTapped">
+  <owner>ericekey@google.com</owner>
+  <owner>bling-pandamonium@google.com</owner>
+  <description>
+    Recorded when the user taps on the AIM attach image button in the quick
+    actions row on the NTP. iOS only.
+  </description>
+</action>
+
+<action name="MobileNTPAIMImageGenerationButtonTapped">
+  <owner>ericekey@google.com</owner>
+  <owner>bling-pandamonium@google.com</owner>
+  <description>
+    Recorded when the user taps on the AIM image generation button in the quick
+    actions row on the NTP. iOS only.
   </description>
 </action>
 

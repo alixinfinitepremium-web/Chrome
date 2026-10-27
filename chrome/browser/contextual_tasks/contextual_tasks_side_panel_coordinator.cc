@@ -209,11 +209,10 @@ std::unique_ptr<content::WebContents> CreateWebContents(
 #endif  // BUILDFLAG(ENABLE_EXTENSIONS_CORE)
 
   // Register the task `WebContents` with the side panel's single location bar.
-  if (auto* coordinator =
-          contextual_tasks::ContextualTasksSidePanelCoordinator::Get(
-              browser_window->GetUnownedUserDataHost());
-      coordinator && coordinator->permission_controller()) {
-    coordinator->permission_controller()->RegisterWebContents(
+  if (auto* controller = contextual_tasks::ContextualTasksPanelController::From(
+          browser_window);
+      controller && controller->permission_controller()) {
+    controller->permission_controller()->RegisterWebContents(
         web_contents.get());
   }
 
@@ -304,10 +303,22 @@ class ContextualTasksSidePanelCoordinator::SidePanelWebContentsObserver
 
   void DidFinishNavigation(
       content::NavigationHandle* navigation_handle) override {
-    if (navigation_handle->HasCommitted() &&
-        navigation_handle->IsInPrimaryMainFrame() && on_navigation_callback_) {
+    if (!navigation_handle || !navigation_handle->IsInPrimaryMainFrame()) {
+      return;
+    }
+    if (navigation_handle->HasCommitted() && on_navigation_callback_) {
       on_navigation_callback_.Run();
     }
+    if (!IsContextualTasksSidePanelRearchitectureEnabled()) {
+      return;
+    }
+    auto* ui_service =
+        ContextualTasksUiServiceFactory::GetForBrowserContextIfExists(
+            web_contents()->GetBrowserContext());
+    const bool is_zero_state =
+        ui_service &&
+        ContextualTasksUI::IsZeroState(navigation_handle->GetURL(), ui_service);
+    RecordContextualTasksNavigationMetrics(navigation_handle, is_zero_state);
   }
 
  private:
@@ -325,17 +336,15 @@ ContextualTasksSidePanelCoordinator::WebContentsCacheItem::WebContentsCacheItem(
       last_active_time_ticks(base::TimeTicks::Now()),
       open_time_ticks(base::TimeTicks::Now()),
       web_contents_observer(
-          web_contents && (on_fcp_callback || on_navigation_callback)
-              ? std::make_unique<SidePanelWebContentsObserver>(
-                    web_contents.get(),
-                    std::move(on_fcp_callback),
-                    std::move(on_navigation_callback))
-              : nullptr) {}
+          web_contents ? std::make_unique<SidePanelWebContentsObserver>(
+                             web_contents.get(),
+                             std::move(on_fcp_callback),
+                             std::move(on_navigation_callback))
+                       : nullptr) {}
 ContextualTasksSidePanelCoordinator::WebContentsCacheItem::
     ~WebContentsCacheItem() = default;
 
 DEFINE_USER_DATA(ContextualTasksPanelController);
-DEFINE_USER_DATA(ContextualTasksSidePanelCoordinator);
 
 ContextualTasksSidePanelCoordinator::ContextualTasksSidePanelCoordinator(
     BrowserWindowInterface* browser_window,
@@ -413,22 +422,15 @@ ContextualTasksUiService* ContextualTasksSidePanelCoordinator::GetUiService()
       browser_window_->GetProfile());
 }
 
-// static
-ContextualTasksSidePanelCoordinator* ContextualTasksSidePanelCoordinator::From(
-    BrowserWindowInterface* window) {
-  return window ? Get(window->GetUnownedUserDataHost()) : nullptr;
+ContextualTasksPermissionController*
+ContextualTasksSidePanelCoordinator::permission_controller() {
+  return permission_controller_.get();
 }
 
 // static
 ContextualTasksPanelController* ContextualTasksPanelController::From(
     BrowserWindowInterface* window) {
-  if (!window) {
-    return nullptr;
-  }
-  if (auto* controller = Get(window->GetUnownedUserDataHost())) {
-    return controller;
-  }
-  return ContextualTasksSidePanelCoordinator::From(window);
+  return window ? Get(window->GetUnownedUserDataHost()) : nullptr;
 }
 
 // static
@@ -1166,7 +1168,10 @@ void ContextualTasksSidePanelCoordinator::TransferWebContentsFromTab(
   } else {
     MaybeDetachWebContents(it->second->web_contents.get());
     it->second->web_contents = std::move(web_contents);
-    it->second->web_contents_observer.reset();
+    it->second->web_contents_observer =
+        std::make_unique<SidePanelWebContentsObserver>(
+            it->second->web_contents.get(), base::NullCallback(),
+            base::NullCallback());
     it->second->first_contentful_paint_recorded = true;
   }
   UpdateOpenState(/*is_open=*/true);

@@ -1297,6 +1297,8 @@ chromium-metrics-reviews@google.com.
   <int value="18" label="Plus Button"/>
   <int value="19" label="Standalone AIM Module"/>
   <int value="20" label="AIM in Most Visited"/>
+  <int value="21" label="AIM Image Generation Quick Action"/>
+  <int value="22" label="AIM Attach Image Quick Action"/>
 </enum>
 
 <!-- LINT.IfChange(IOSHomeCustomizationBackgroundStyle) -->
@@ -2120,6 +2122,16 @@ chromium-metrics-reviews@google.com.
 </enum>
 
 <!-- LINT.ThenChange(/ios/chrome/browser/cobrowse/shared/metrics/assistant_aim_metrics_constants.h:AssistantAimEntrypoint) -->
+
+<!-- LINT.IfChange(IOSSicBottomSheetFRENoticeAction) -->
+
+<enum name="IOSSicBottomSheetFRENoticeAction">
+  <int value="0" label="Shown"/>
+  <int value="1" label="Accepted"/>
+  <int value="2" label="Learn more tapped"/>
+</enum>
+
+<!-- LINT.ThenChange(/ios/chrome/browser/cobrowse/shared/metrics/assistant_aim_metrics_constants.h:AssistantAimFRENoticeAction) -->
 
 <!-- LINT.IfChange(IOSSicBottomSheetHeaderAction) -->
 
