@@ -378,6 +378,8 @@ chromium-metrics-reviews@google.com.
       summary="URL filtering interstitial events"/>
 </variants>
 
+<!-- LINT.IfChange(EnterpriseSignals) -->
+
 <variants name="EnterpriseSignals">
   <variant name="Agent" summary="agent"/>
   <variant name="AntiVirus" summary="antivirus"/>
@@ -389,6 +391,8 @@ chromium-metrics-reviews@google.com.
   <variant name="SystemSettings" summary="system settings"/>
   <variant name="VerifyApps" summary="verify apps"/>
 </variants>
+
+<!-- LINT.ThenChange(//components/device_signals/core/browser/metrics_utils.cc:EnterpriseSignals) -->
 
 <variants name="FileUploadEvent">
   <variant name="OnFileAttach" summary="File upload event"/>
@@ -700,7 +704,7 @@ chromium-metrics-reviews@google.com.
 </histogram>
 
 <histogram name="Enterprise.CacheEncryptionPolicyEnabled" enum="BooleanEnabled"
-    expires_after="2027-02-17">
+    expires_after="2027-04-25">
   <owner>haihan@google.com</owner>
   <owner>valadkevich@google.com</owner>
   <owner>cbe-cep-eng@google.com</owner>
@@ -2285,7 +2289,7 @@ chromium-metrics-reviews@google.com.
 </histogram>
 
 <histogram name="Enterprise.Dlp.ConfidentialContentsCount" units="entries"
-    expires_after="2027-02-21">
+    expires_after="2027-04-25">
   <owner>aidazolic@chromium.org</owner>
   <owner>chromeos-dlp@google.com</owner>
   <summary>
@@ -3272,7 +3276,7 @@ chromium-metrics-reviews@google.com.
 </histogram>
 
 <histogram name="Enterprise.FileDownloadObfuscation.ReplaceRetryCount"
-    units="retries" expires_after="2027-02-19">
+    units="retries" expires_after="2027-04-25">
   <owner>mingyil@google.com</owner>
   <owner>haihan@google.com</owner>
   <owner>cbe-cep-eng@google.com</owner>

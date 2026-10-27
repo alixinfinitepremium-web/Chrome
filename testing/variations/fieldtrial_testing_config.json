@@ -7023,7 +7023,6 @@
         {
             "platforms": [
                 "chromeos",
-                "ios",
                 "linux",
                 "mac",
                 "windows"
@@ -7067,6 +7066,21 @@
                     "name": "Enabled",
                     "enable_features": [
                         "EnableAccountPreviewPreferredAccountFollowup"
+                    ]
+                }
+            ]
+        }
+    ],
+    "EnableAccountPreviewPreferredAccountIOS": [
+        {
+            "platforms": [
+                "ios"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "EnableAccountPreviewPreferredAccount"
                     ]
                 }
             ]
@@ -19576,6 +19590,25 @@
                         "max_post_decode_queue_size": "10",
                         "reduce_steady_state_queue_size_threshold": "20"
                     }
+                }
+            ]
+        }
+    ],
+    "WebRequestProxyNavigationResponseTaskRunner": [
+        {
+            "platforms": [
+                "android",
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "WebRequestProxyNavigationResponseTaskRunner"
+                    ]
                 }
             ]
         }

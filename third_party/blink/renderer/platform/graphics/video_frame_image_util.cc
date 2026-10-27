@@ -21,8 +21,11 @@
 #include "media/gfx/paint_canvas_video_renderer.h"
 #include "skia/ext/legacy_display_globals.h"
 #include "third_party/blink/renderer/platform/graphics/accelerated_static_bitmap_image.h"
+#include "third_party/blink/renderer/platform/graphics/canvas_2d_resource_provider.h"
+#include "third_party/blink/renderer/platform/graphics/canvas_image_provider.h"
 #include "third_party/blink/renderer/platform/graphics/canvas_non_2d_resource_provider.h"
 #include "third_party/blink/renderer/platform/graphics/gpu/shared_gpu_context.h"
+#include "third_party/blink/renderer/platform/graphics/memory_managed_paint_recorder.h"
 #include "third_party/blink/renderer/platform/graphics/skia/skia_utils.h"
 #include "third_party/blink/renderer/platform/graphics/static_bitmap_image.h"
 #include "third_party/blink/renderer/platform/graphics/unaccelerated_static_bitmap_image.h"
@@ -136,8 +139,8 @@ scoped_refptr<StaticBitmapImage> CreateImageFromVideoFrame(
       frame->metadata().transformation.value_or(media::kNoTransformation);
 
   media::PaintCanvasVideoRenderer::PaintParams params;
-  params.dest_rect = gfx::RectF(
-      snapshot_pool ? snapshot_pool->provider()->Size() : sw_draw_info->size);
+  params.dest_rect =
+      gfx::RectF(snapshot_pool ? snapshot_pool->Size() : sw_draw_info->size);
   params.transformation =
       orientation_behavior == VideoOrientationBehavior::kTagOrientation
           ? media::kNoTransformation
@@ -149,17 +152,16 @@ scoped_refptr<StaticBitmapImage> CreateImageFromVideoFrame(
     video_renderer->Paint(frame.get(), &canvas, media_flags, params,
                           raster_context_provider.get());
   };
-  auto orientation =
-      orientation_behavior == VideoOrientationBehavior::kTagOrientation
-          ? VideoTransformationToImageOrientation(transform)
-          : ImageOrientationEnum::kDefault;
   if (sw_draw_info) {
+    auto orientation =
+        orientation_behavior == VideoOrientationBehavior::kTagOrientation
+            ? VideoTransformationToImageOrientation(transform)
+            : ImageOrientationEnum::kDefault;
     return DrawAndSnapshotToImage(sw_draw_info.value(), draw_callback,
                                   orientation);
   }
 
-  return snapshot_pool->provider()->DoExternalOverdrawAndSnapshot(draw_callback,
-                                                                  orientation);
+  return snapshot_pool->DoExternalOverdrawAndSnapshot(draw_callback);
 }
 
 }  // namespace
@@ -191,8 +193,62 @@ bool VideoFrameAcceleratedSnapshotPool::IsValid() const {
   return provider_->IsValid();
 }
 
+gfx::Size VideoFrameAcceleratedSnapshotPool::Size() const {
+  return provider_->Size();
+}
+
 CanvasSnapshotInfo VideoFrameAcceleratedSnapshotPool::GetInfo() const {
   return provider_->GetInfo();
+}
+
+void VideoFrameAcceleratedSnapshotPool::FlushRecording(
+    cc::PaintRecord last_recording) {
+  if (!provider_->IsGpuContextLost()) {
+    provider_->EnsureResourceReadyForDraw();
+
+    const bool needs_clear = !provider_->is_cleared_;
+    provider_->is_cleared_ = true;
+    auto* image_provider = provider_->GetOrCreateImageProvider();
+
+    gpu::SyncToken sync_token = provider_->RasterInterface()->RasterSharedImage(
+        provider_->resource()->GetSharedImage(),
+        provider_->resource()->acquire_sync_token(), std::move(last_recording),
+        image_provider, needs_clear);
+    provider_->resource()->SetReleaseSyncToken(sync_token);
+  }
+
+  // Images are locked for the duration of the rasterization, in case they get
+  // used multiple times. We can unlock them once the rasterization is complete.
+  if (provider_->canvas_image_provider_) {
+    provider_->canvas_image_provider_->ReleaseLockedImages();
+    provider_->canvas_image_provider_->UnbindTextureBackedImages();
+  }
+}
+
+scoped_refptr<StaticBitmapImage>
+VideoFrameAcceleratedSnapshotPool::DoExternalOverdrawAndSnapshot(
+    base::FunctionRef<void(cc::PaintCanvas&)> draw_callback) {
+  if (!IsValid()) {
+    return nullptr;
+  }
+
+  draw_callback(provider_->recorder_for_external_draws_->getRecordingCanvas());
+  if (provider_->recorder_for_external_draws_->HasReleasableDrawOps()) {
+    FlushRecording(
+        provider_->recorder_for_external_draws_->ReleaseMainRecording());
+  }
+
+  if (!IsValid()) {
+    return nullptr;
+  }
+
+  scoped_refptr<StaticBitmapImage> snapshot = provider_->resource_->Bitmap();
+  if (snapshot) {
+    provider_->cached_content_id_ =
+        snapshot->PaintImageForCurrentFrame().GetContentIdForFrame(0u);
+  }
+  DCHECK(snapshot);
+  return snapshot;
 }
 
 scoped_refptr<StaticBitmapImage> DrawAndSnapshotToImage(

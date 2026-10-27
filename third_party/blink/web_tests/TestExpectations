@@ -8562,7 +8562,7 @@ crbug.com/536217727 [ Mac ] media/track/track-cue-rendering-ruby.html [ Failure 
 crbug.com/536217727 [ Win ] media/track/track-cue-rendering-ruby.html [ Failure Pass ]
 crbug.com/551586168 [ Mac ] media/track/track-cue-rendering-vertical.html [ Failure Pass ]
 crbug.com/551586168 [ Win ] media/track/track-cue-rendering-vertical.html [ Failure Pass ]
-crbug.com/549230312 [ Mac26-arm64 ] virtual/text-antialias/* [ Failure Pass ]
+crbug.com/549230312 [ Mac26-arm64 ] virtual/text-antialias/selection/international-iteration-simple-text.html [ Failure Pass ]
 crbug.com/551134373 [ Linux ] external/wpt/html/semantics/scripting-1/the-template-element/template-for/template-for-mutation-records.html [ Failure Pass ]
 
 # Gardener 2026-08-25
@@ -8631,4 +8631,7 @@ crbug.com/571966724 [ Mac Release ] external/wpt/service-workers/service-worker/
 crbug.com/412431600 [ Win11 ] virtual/webnn-service-on-cpu/external/wpt/webnn/conformance_tests/subgraph.https.any.html?cpu [ Failure Pass Timeout ]
 crbug.com/412431600 [ Win11 ] virtual/webnn-service-with-gpu/external/wpt/webnn/conformance_tests/subgraph.https.any.html?gpu [ Failure Pass Timeout ]
 crbug.com/573469817 external/wpt/html/canvas/element/manual/imagebitmap/createImageBitmap-origin.sub.html [ Failure Pass Timeout ]
+
+# Gardener 2026-10-27
+crbug.com/578287772 [ Linux ] external/wpt/webdriver/tests/bidi/input/perform_actions/pointer_touch.py [ Failure Pass ]
 
