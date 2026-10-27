@@ -97,6 +97,11 @@ bool ShouldShowCloseSidePanelInPinnedButtonContextMenu() {
          kContextualTasksPinnedButtonContextMenuCloseSidePanel.Get();
 }
 
+const base::FeatureParam<bool>
+    kContextualTasksPinnedButtonActiveIndicatorCircleHighlight(
+        &kContextualTasksPinnedButtonActiveIndicator,
+        "ContextualTasksPinnedButtonActiveIndicatorCircleHighlight",
+        false);
 // Keeps the ephemeral contextual tasks button visible even when the permanent
 // button is pinned in the toolbar.
 BASE_FEATURE(kEphemeralPinningVisibleWhenPermanentlyPinned,
@@ -143,8 +148,8 @@ int GetContextualTasksEphemeralButtonAutoDismissTimeMinutes() {
   return kContextualTasksEphemeralButtonAutoDismissTimeMinutes.Get();
 }
 
-// Unifies the logo (Spark or Super G) used for both the SIC (Contextual
-// Tasks) permanent toolbar pin button and ephemeral toolbar button.
+// Unifies the logo (Spark, Super G, or Gray Super G) used for both the SIC
+// (Contextual Tasks) permanent toolbar pin button and ephemeral toolbar button.
 BASE_FEATURE(kContextualTasksUnifyPinButtonLogos,
              base::FEATURE_DISABLED_BY_DEFAULT);
 
@@ -152,6 +157,7 @@ constexpr base::FeatureParam<UnifyPinButtonLogoOption>::Option
     kContextualTasksUnifyPinButtonLogoOptions[] = {
         {UnifyPinButtonLogoOption::kSpark, "spark"},
         {UnifyPinButtonLogoOption::kSuperG, "super-g"},
+        {UnifyPinButtonLogoOption::kGraySuperG, "gray-super-g"},
 };
 
 const base::FeatureParam<UnifyPinButtonLogoOption>
@@ -171,6 +177,12 @@ bool ShouldUseSuperGIconForPinButtons() {
   return base::FeatureList::IsEnabled(kContextualTasksUnifyPinButtonLogos) &&
          kContextualTasksUnifyPinButtonLogoOption.Get() ==
              UnifyPinButtonLogoOption::kSuperG;
+}
+
+bool ShouldUseGraySuperGIconForPinButtons() {
+  return base::FeatureList::IsEnabled(kContextualTasksUnifyPinButtonLogos) &&
+         kContextualTasksUnifyPinButtonLogoOption.Get() ==
+             UnifyPinButtonLogoOption::kGraySuperG;
 }
 
 // Enables relevant context determination for contextual tasks.
@@ -897,6 +909,11 @@ bool IsContextualTasksPinnedButtonActiveIndicatorEnabled() {
       kContextualTasksPinnedButtonActiveIndicator);
 }
 
+bool IsContextualTasksPinnedButtonActiveIndicatorCircleHighlightEnabled() {
+  return IsContextualTasksPinnedButtonActiveIndicatorEnabled() &&
+         kContextualTasksPinnedButtonActiveIndicatorCircleHighlight.Get();
+}
+
 bool IsContextualTasksPinButtonOnSrpEnabled() {
   return base::FeatureList::IsEnabled(kEnableContextualTasksPinButtonOnSrp);
 }
@@ -1311,8 +1328,9 @@ const char kContextualTasksEphemeralButtonAutoDismissDescription[] =
 const char kContextualTasksUnifyPinButtonLogosName[] =
     "Unify SIC Pin Button Logos";
 const char kContextualTasksUnifyPinButtonLogosDescription[] =
-    "Unifies the logo (Spark or Super G) used across the Contextual Tasks "
-    "(Search in Chrome) permanent toolbar and ephemeral pin buttons.";
+    "Unifies the logo (Spark, Super G, or Gray Super G) used across the "
+    "Contextual Tasks (Search in Chrome) permanent toolbar and ephemeral pin "
+    "buttons.";
 
 const char kABASearchJourneysName[] = "ABA Search Journeys";
 const char kABASearchJourneysDescription[] =

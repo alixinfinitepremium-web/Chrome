@@ -186,7 +186,11 @@
 using base::UserMetricsAction;
 using content::WebContents;
 
+DEFINE_UI_CLASS_PROPERTY_TYPE(ActionItemEngagedIndicatorStyle)
 DEFINE_UI_CLASS_PROPERTY_KEY(bool, kActionItemUnderlineIndicatorKey, false)
+DEFINE_UI_CLASS_PROPERTY_KEY(ActionItemEngagedIndicatorStyle,
+                             kActionItemEngagedIndicatorStyleKey,
+                             ActionItemEngagedIndicatorStyle::kUnderline)
 
 namespace {
 
@@ -443,10 +447,15 @@ void ToolbarView::Init() {
   }
 
   if (!features::IsWebUIReloadButtonEnabled()) {
+    // TODO(crbug.com/548363252): Align `IsWebUIToolbarEnabled()` and
+    // `IsWebUIReloadButtonEnabled()` metrics gating so `OnCreated()` is not
+    // called by both `WebUIToolbarWebView` and `ReloadButton` when another
+    // WebUI toolbar element is enabled without `kWebUIReloadButton`.
+    auto* window_manager = InitialWebUIWindowMetricsManager::From(browser_);
     reload_ = AddChildView(std::make_unique<ReloadButton>(
         browser_->GetProfile(),
         chrome::BrowserCommandController::From(browser_),
-        InitialWebUIWindowMetricsManager::From(browser_)));
+        window_manager ? window_manager->GetMetricsDispatcher() : nullptr));
   }
 
   if (!features::IsWebUIHomeButtonEnabled()) {

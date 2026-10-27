@@ -1169,13 +1169,6 @@ inline constexpr char kAutofillEnableOmniboxAutofillDescription[] =
     "When enabled, an Autofill payments omnibox chip will appear for relevant "
     "payment checkout forms.";
 
-inline constexpr char kAutofillEnableOmniboxGPayButtonName[] =
-    "Enable Omnibox Autofill chip for Google Pay buttons";
-inline constexpr char kAutofillEnableOmniboxGPayButtonDescription[] =
-    "When enabled, a Google Pay omnibox chip will appear when a Google Pay "
-    "button is detected on the page, and clicking the chip will simulate "
-    "clicking the Google Pay button.";
-
 inline constexpr char kAutofillEnablePayNowPayLaterTabsName[] =
     "Enable Pay Now Pay Later tabs UI for payments autofill on Chrome";
 inline constexpr char kAutofillEnablePayNowPayLaterTabsDescription[] =
@@ -3640,6 +3633,12 @@ inline constexpr char kOmniboxFuseboxAsyncInflationDescription[] =
     "When enabled, Fusebox RecyclerView will be inflated on a background thread"
     " instead of the UI thread.";
 
+inline constexpr char kOmniboxEarlyInflationName[] = "Omnibox Early Inflation";
+inline constexpr char kOmniboxEarlyInflationDescription[] =
+    "When enabled, the omnibox suggestions container starts inflating on a "
+    "background thread as soon as the omnibox is created, and is never "
+    "inflated synchronously as a fallback.";
+
 inline constexpr char kOmniboxAimImageDownscalingName[] =
     "Omnibox AIM Image Downscaling";
 inline constexpr char kOmniboxAimImageDownscalingDescription[] =
@@ -3867,6 +3866,13 @@ inline constexpr char kOmniboxSearchAggregatorDescription[] =
 inline constexpr char kOmniboxSiteSearchName[] = "Omnibox Site Search";
 inline constexpr char kOmniboxSiteSearchDescription[] =
     "Enables keyword-based site search functionality on Android devices";
+
+inline constexpr char kOmniboxVoicePlateIntentName[] =
+    "Omnibox Voice Plate Intent";
+inline constexpr char kOmniboxVoicePlateIntentDescription[] =
+    "Delegates voice search from the Omnibox, New Tab Page and toolbar mic to "
+    "the Google app Voice Plate for voice capture and transcription, then "
+    "navigates directly to the results";
 
 inline constexpr char kContextualSearchBoxUsesContextualSearchProviderName[] =
     "Contextual search box uses contextual search provider";
@@ -7430,13 +7436,6 @@ inline constexpr char kAcceleratedMjpegDecodeName[] =
 inline constexpr char kAcceleratedMjpegDecodeDescription[] =
     "Enable hardware-accelerated MJPEG decode for captured frame where "
     "available.";
-
-inline constexpr char kAllowApnModificationPolicyName[] =
-    "Allow APN Modification by Policy";
-inline constexpr char kAllowApnModificationPolicyDescription[] =
-    "Enables the ChromeOS APN Allow APN Modification policy, which gives "
-    "admins the ability to allow or prohibit managed users from modifying "
-    "APNs.";
 
 inline constexpr char kAllowCrossDeviceFeatureSuiteName[] =
     "Allow the use of Cross-Device features";

@@ -4937,6 +4937,28 @@
             ]
         }
     ],
+    "ComposeboxUnselectMatchOnTabExit": [
+        {
+            "platforms": [
+                "android",
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "form_factors": [
+                "desktop"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "ComposeboxUnselectMatchOnTabExit"
+                    ]
+                }
+            ]
+        }
+    ],
     "ComposeboxUrlInput": [
         {
             "platforms": [
@@ -12627,6 +12649,21 @@
             ]
         }
     ],
+    "OmniboxPrefetchSelectedSuggestionsOmtAndroid": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "OmniboxPrefetchSelectedSuggestionsOmtAndroid"
+                    ]
+                }
+            ]
+        }
+    ],
     "OmniboxSearchPrefetchOnEnterKeyDown": [
         {
             "platforms": [
@@ -17578,25 +17615,6 @@
             ]
         }
     ],
-    "TopicsDeprecation": [
-        {
-            "platforms": [
-                "android",
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Disabled",
-                    "disable_features": [
-                        "BrowsingTopics"
-                    ]
-                }
-            ]
-        }
-    ],
     "TouchToSearchCallout": [
         {
             "platforms": [
@@ -18984,6 +19002,24 @@
                     "name": "Enabled",
                     "enable_features": [
                         "CollectWebGPUSupportMetrics"
+                    ]
+                }
+            ]
+        }
+    ],
+    "WebHidOnDesktopAndroidServiceWorkers": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "form_factors": [
+                "desktop"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "WebHidOnDesktopAndroidServiceWorkers"
                     ]
                 }
             ]

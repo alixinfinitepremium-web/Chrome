@@ -50,12 +50,14 @@
 #include "third_party/blink/public/mojom/content_extraction/ai_page_content.mojom.h"
 #include "third_party/skia/include/core/SkPaint.h"
 #include "ui/base/ui_base_features.h"
+#include "ui/base/window_open_disposition.h"
 #include "ui/gfx/codec/jpeg_codec.h"
 #include "ui/gfx/geometry/insets.h"
 #include "ui/gfx/geometry/rect_conversions.h"
 #include "ui/gfx/geometry/size_conversions.h"
 #include "ui/gfx/geometry/skia_conversions.h"
 #include "ui/views/controls/webview/webview.h"
+#include "url/gurl.h"
 
 // TODO(http://b/485358530): Consider `OverlayBaseController::State` to the
 // mojom file so the << operator is auto generated.
@@ -517,6 +519,7 @@ void SelectionOverlayController::CaptureRegion(
       }
     }
   }
+  selection_overlay_controller->session_->owner = Session::Owner::kPanel;
   selection_overlay_controller->BindCaptureRegionObserver(std::move(observer));
   selection_overlay_controller->ShowImpl(std::move(options));
 }
@@ -971,9 +974,7 @@ void SelectionOverlayController::SubmitPrompt(const std::string& prompt) {
     // TODO(b/556786015): Fix issue when side panel is not open.
     service->InvokeWithAutoSubmit(
         InvokeWithAutoSubmitPasskeyProvider::GetPassKey(), std::move(options));
-    // The capture region observer is only bound if the overlay is invoked
-    // from the side panel web client.
-    if (!session_->capture_region_observer.is_bound()) {
+    if (session_->owner == Session::Owner::kDirect) {
       Close();
     }
   }
@@ -1217,9 +1218,7 @@ void SelectionOverlayController::ExecuteSuggestedAction(
         return;
       }
       matched_suggestion->Execute(mojo::GenericPendingAssociatedReceiver());
-      // The capture region observer is only bound if the overlay is invoked
-      // from the side panel web client.
-      if (!session_->capture_region_observer.is_bound()) {
+      if (session_->owner == Session::Owner::kDirect) {
         Close();
       }
       return;
@@ -1246,6 +1245,20 @@ void SelectionOverlayController::OpenSettings() {
     chrome::ShowContentSettingsExceptions(browser,
                                           ContentSettingsType::INLINE_CUE_MENU);
   }
+}
+
+void SelectionOverlayController::OpenDogfoodFeedback() {
+  if (!base::FeatureList::IsEnabled(
+          features::kGlicSelectionOverlayDogfoodFeedback)) {
+    return;
+  }
+  const GURL url(features::kGlicSelectionOverlayDogfoodFeedbackUrl.Get());
+  if (!url.is_valid() || !url.SchemeIsHTTPOrHTTPS()) {
+    return;
+  }
+  Close();
+  CHECK_DEREF(tab_->GetBrowserWindowInterface())
+      .OpenGURL(url, WindowOpenDisposition::kNewForegroundTab);
 }
 
 void SelectionOverlayController::Reset() {

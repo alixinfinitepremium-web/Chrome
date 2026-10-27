@@ -4671,6 +4671,14 @@ const FeatureEntry::FeatureParam
 const FeatureEntry::FeatureParam
     kContextualTasksPinnedButtonActiveIndicatorWithContextMenu[] = {
         {"ContextualTasksPinnedButtonContextMenuCloseSidePanel", "true"}};
+const FeatureEntry::FeatureParam
+    kContextualTasksPinnedButtonActiveIndicatorCircleHighlight[] = {
+        {"ContextualTasksPinnedButtonActiveIndicatorCircleHighlight", "true"}};
+const FeatureEntry::FeatureParam
+    kContextualTasksPinnedButtonActiveIndicatorCircleHighlightWithContextMenu
+        [] = {{"ContextualTasksPinnedButtonActiveIndicatorCircleHighlight",
+               "true"},
+              {"ContextualTasksPinnedButtonContextMenuCloseSidePanel", "true"}};
 
 const FeatureEntry::FeatureVariation
     kContextualTasksPinnedButtonActiveIndicatorVariations[] = {
@@ -4678,18 +4686,28 @@ const FeatureEntry::FeatureVariation
          kContextualTasksPinnedButtonActiveIndicatorWithoutContextMenu,
          nullptr},
         {"with 'Close/Hide side panel' in context menu",
-         kContextualTasksPinnedButtonActiveIndicatorWithContextMenu, nullptr}};
+         kContextualTasksPinnedButtonActiveIndicatorWithContextMenu, nullptr},
+        {"with circle highlight",
+         kContextualTasksPinnedButtonActiveIndicatorCircleHighlight, nullptr},
+        {"with circle highlight and 'Close/Hide side panel' in context menu",
+         kContextualTasksPinnedButtonActiveIndicatorCircleHighlightWithContextMenu,
+         nullptr}};
 
 const FeatureEntry::FeatureParam kContextualTasksUnifyPinButtonLogosSpark[] = {
     {"ContextualTasksUnifyPinButtonLogo", "spark"}};
 const FeatureEntry::FeatureParam kContextualTasksUnifyPinButtonLogosSuperG[] = {
     {"ContextualTasksUnifyPinButtonLogo", "super-g"}};
+const FeatureEntry::FeatureParam
+    kContextualTasksUnifyPinButtonLogosGraySuperG[] = {
+        {"ContextualTasksUnifyPinButtonLogo", "gray-super-g"}};
 
 const FeatureEntry::FeatureVariation
     kContextualTasksUnifyPinButtonLogosVariations[] = {
         {"with Spark logo", kContextualTasksUnifyPinButtonLogosSpark, nullptr},
         {"with Super G logo", kContextualTasksUnifyPinButtonLogosSuperG,
-         nullptr}};
+         nullptr},
+        {"with Gray Super G logo",
+         kContextualTasksUnifyPinButtonLogosGraySuperG, nullptr}};
 
 const FeatureEntry::FeatureParam
     kContextualTasksUpdatedEntryPointsSidePanelRouting[] = {
@@ -5574,10 +5592,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kTopChromeTouchUiDescription, kOsDesktop,
      MULTI_VALUE_TYPE(kTopChromeTouchUiChoices)},
 #if BUILDFLAG(IS_CHROMEOS)
-    {"allow-apn-modification-policy",
-     flag_descriptions::kAllowApnModificationPolicyName,
-     flag_descriptions::kAllowApnModificationPolicyDescription, kOsCrOS,
-     FEATURE_VALUE_TYPE(ash::features::kAllowApnModificationPolicy)},
     {"apply-managed-proxy-bypass-list-verbatim",
      flag_descriptions::kApplyManagedProxyBypassListVerbatimName,
      flag_descriptions::kApplyManagedProxyBypassListVerbatimDescription,
@@ -7094,6 +7108,10 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kOmniboxFuseboxAsyncInflationDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(omnibox::kOmniboxFuseboxAsyncInflation)},
 
+    {"omnibox-early-inflation", flag_descriptions::kOmniboxEarlyInflationName,
+     flag_descriptions::kOmniboxEarlyInflationDescription, kOsAndroid,
+     FEATURE_VALUE_TYPE(omnibox::kOmniboxEarlyInflation)},
+
     {"omnibox-multimodal-input", flag_descriptions::kOmniboxMultimodalInputName,
      flag_descriptions::kOmniboxMultimodalInputDescription, kOsAndroid,
      FEATURE_WITH_PARAMS_VALUE_TYPE(omnibox::kOmniboxMultimodalInput,
@@ -7164,6 +7182,11 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kAndroidTabSearchCloseTabButtonName,
      flag_descriptions::kAndroidTabSearchCloseTabButtonDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(omnibox::kAndroidTabSearchCloseTabButton)},
+
+    {"omnibox-voice-plate-intent",
+     flag_descriptions::kOmniboxVoicePlateIntentName,
+     flag_descriptions::kOmniboxVoicePlateIntentDescription, kOsAndroid,
+     FEATURE_VALUE_TYPE(omnibox::kOmniboxVoicePlateIntent)},
 
     {"omnibox-diagnostics", flag_descriptions::kOmniboxDiagnosticsName,
      flag_descriptions::kOmniboxDiagnosticsDescription, kOsAndroid,
@@ -14150,11 +14173,6 @@ const FeatureEntry kFeatureEntries[] = {
      kOsAndroid,
      FEATURE_VALUE_TYPE(switches::kHandleMdmErrorsForDasherAccountsOnAndroid)},
 #endif  // BUILDFLAG(IS_ANDROID)
-
-    {"autofill-enable-omnibox-gpay-button",
-     flag_descriptions::kAutofillEnableOmniboxGPayButtonName,
-     flag_descriptions::kAutofillEnableOmniboxGPayButtonDescription, kOsDesktop,
-     FEATURE_VALUE_TYPE(autofill::features::kAutofillEnableOmniboxGPayButton)},
 
     {"search-settings-with-more-engines",
      flag_descriptions::kSearchSettingsWithMoreEnginesName,

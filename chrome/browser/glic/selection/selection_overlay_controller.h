@@ -35,7 +35,7 @@
 namespace content {
 class RenderFrameHost;
 class WebContents;
-}
+}  // namespace content
 
 namespace views {
 class WebView;
@@ -196,6 +196,7 @@ class SelectionOverlayController
       const base::UnguessableToken& action_id,
       mojo::GenericPendingAssociatedReceiver channel) override;
   void OpenSettings() override;
+  void OpenDogfoodFeedback() override;
 
  private:
   void OnScreenshotTaken(const SkBitmap& bitmap);
@@ -276,8 +277,22 @@ class SelectionOverlayController
     // and used to dismiss the overlay from the web client. Only bound if the
     // overlay is invoked from the web client (web client UI, keyboard
     // shortcut). There are other invocations from outside the web client.
+    // Don't use it to tell who started the session; that's `owner`.
     // TODO(b/452032491): Remove this once the old codepath is no longer used.
     mojo::Remote<mojom::CaptureRegionObserver> capture_region_observer;
+
+    // Who started the session. Set by the entry point; a session the panel
+    // adopts after opening mid-session becomes `kPanel` (b/577143587).
+    enum class Owner {
+      // Started without the web client: `Show()` / `ShowWithSelection()`,
+      // from the hotkey, context menu or selection chip while the side panel
+      // is closed. Handing off to Glic closes the overlay.
+      kDirect,
+      // Started by the side panel's web client through `CaptureRegion()`.
+      // The overlay stays up after a hand-off, next to the panel.
+      kPanel,
+    };
+    Owner owner = Owner::kDirect;
 
     bool screenshot_available = false;
     selection::InteractionOptionsPtr interaction_options =

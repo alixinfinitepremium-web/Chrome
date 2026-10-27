@@ -281,14 +281,6 @@
     "expiry_milestone": -1
   },
   {
-    "name": "allow-apn-modification-policy",
-    "owners": [
-      "hsuregan@google.com",
-      "cros-device-enablement@google.com"
-    ],
-    "expiry_milestone": 138
-  },
-  {
     "name": "allow-cross-device-feature-suite",
     "owners": [ "chromeos-cross-device-eng@google.com", "cclem@chromium.org" ],
     // Used by developers to enable Cross-Device for testing on platforms where
@@ -1004,7 +996,10 @@
   },
   {
     "name": "autofill-ai-based-amount-extraction-ignore-seen-terms-for-testing",
-    "owners": [ "jamessun@google.com", "payments-autofill-team@google.com" ],
+    "owners": [
+      "vinnypersky@google.com",
+      "payments-autofill-team@google.com"
+    ],
     "expiry_milestone": 155
   },
   {
@@ -1112,7 +1107,10 @@
   },
   {
     "name": "autofill-enable-ai-based-amount-extraction",
-    "owners": [ "jamessun@google.com", "viplavkadam@google.com", "payments-autofill-team@google.com" ],
+    "owners": [
+      "viplavkadam@google.com",
+      "payments-autofill-team@google.com"
+    ],
     "expiry_milestone": 155
   },
   {
@@ -1126,12 +1124,18 @@
   },
   {
     "name": "autofill-enable-amount-extraction",
-    "owners": [ "jamessun@google.com", "payments-autofill-team@google.com" ],
+    "owners": [
+      "vinnypersky@google.com",
+      "payments-autofill-team@google.com"
+    ],
     "expiry_milestone": 150
   },
   {
     "name": "autofill-enable-amount-extraction-testing",
-    "owners": [ "jamessun@google.com", "payments-autofill-team@google.com" ],
+    "owners": [
+      "vinnypersky@google.com",
+      "payments-autofill-team@google.com"
+    ],
     "expiry_milestone": 155
   },
   {
@@ -1230,11 +1234,6 @@
     "expiry_milestone": 160
   },
   {
-    "name": "autofill-enable-omnibox-gpay-button",
-    "owners": [ "ferny@google.com", "payments-autofill-team@google.com" ],
-    "expiry_milestone": 165
-  },
-  {
     "name": "autofill-enable-pay-now-pay-later-tabs",
     "owners": [ "wilsonlow@google.com", "payments-autofill-team@google.com" ],
     "expiry_milestone": 160
@@ -1317,7 +1316,6 @@
   {
     "name": "autofill-enable-wallet-reminder-notice",
     "owners": [
-      "jamessun@google.com",
       "ferny@google.com",
       "payments-autofill-team@google.com"
     ],
@@ -1371,7 +1369,7 @@
   {
     "name": "autofill-save-card-bottom-sheet-strike-limit-ios",
     "owners": [
-      "jamessun@google.com",
+      "qihuizhao@google.com",
       "payments-autofill-team@google.com"
     ],
     "expiry_milestone": 160
@@ -7608,6 +7606,11 @@
     "expiry_milestone": 120
   },
   {
+    "name": "omnibox-early-inflation",
+    "owners": ["peterkang@google.com", "ender@google.com", "chrome-mobile-search@google.com"],
+    "expiry_milestone": 160
+  },
+  {
     "name": "omnibox-enterprise-search-aggregator",
     "owners": [ "ftirelo@chromium.org", "jdonnelly@chromium.org", "mahmadi@chromium.org", "chrome-desktop-search@google.com"],
     "expiry_milestone": 145
@@ -7865,6 +7868,11 @@
     "name": "omnibox-url-suggestions-on-focus",
     "owners": ["niharm@google.com", "khalidpeer@chromium.org",  "mahmadi@chromium.org", "chrome-desktop-search@google.com" ],
     "expiry_milestone": 150
+  },
+  {
+    "name": "omnibox-voice-plate-intent",
+    "owners": [ "ender@google.com", "chrome-mobile-search@google.com" ],
+    "expiry_milestone": 166
   },
   {
     "name": "omnibox-zero-suggest-prefetch-debouncing",
