@@ -326,19 +326,19 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '5af9ec6a913925a7a5412429663787b17a04cbc1',
+  'src_internal_revision': '78790c7227e6bd999403e0fdd76a0a2b59cb5afb',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': 'f49060a27ff1fb50f41bbe19085d165f05cf2aaf',
+  'skia_revision': 'a4d18ba4824fabccc98caa0cfeaff1201eeef648',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': 'a436730c75c7ceb83e44a5f6f77dce08056bb0d1',
+  'v8_revision': '38356c39cca03b6ffda9e09541e77c139838c657',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '15d160ac4f9414d5b4792440bc5574adc7cb47ee',
+  'angle_revision': '8e1f66fd6676c25016f2a177ca90dadeb261a861',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -410,7 +410,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'a19ceb8912fdf5f0ad0d9177615c3c37c184e9b7',
+  'devtools_frontend_revision': 'd38f40d6c00ffc38cc4e6d05404baa2b78ad5100',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -1786,7 +1786,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    'ce53773317bf0e801f4cf479fcd26e007d9a23ce',
+    '6ce22ed7aa3453e3bbcf7f75716bb148c166fedd',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -1795,7 +1795,7 @@ deps = {
   },
 
   'src/ios/third_party/earl_grey2/src': {
-      'url': Var('chromium_git') + '/external/github.com/google/EarlGrey.git' + '@' + 'b2e2d7f42e75297c1414d41c3cacbc556a78f51c',
+      'url': Var('chromium_git') + '/external/github.com/google/EarlGrey.git' + '@' + 'e567f75b74458d623dbf3cfb38a37c7a5702fcd9',
       'condition': 'checkout_ios',
   },
 
@@ -1890,7 +1890,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': 'orD9Goc7PPubq5_FdFZymLB-YAFKAB1IxRNT76IaLXwC',
+          'version': 'OjOZpmDeE3GmFMEXD4Ux7BzJSC0bES1LrcTyxxlx51UC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
@@ -2255,7 +2255,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + '3218cfc968b246bf2498fd13f707851a0b1cd408',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'c61f9e27ffddc07c383f71f05d733fe326b8e216',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -2470,7 +2470,7 @@ deps = {
     Var('chromium_git') + '/chromium/deps/hunspell_dictionaries.git' + '@' + 'eb106bd524eea61487644fffeec0d229fa41791a',
 
   'src/third_party/icu':
-    Var('chromium_git') + '/chromium/deps/icu.git' + '@' + '2a51536dfb3b448bdf3dae70c782ea2879c90904',
+    Var('chromium_git') + '/chromium/deps/icu.git' + '@' + '1add19737289cf93dcebb981ed8f07885c4c26af',
 
   'src/third_party/icu4j/cipd': {
       'packages': [
@@ -2837,7 +2837,7 @@ deps = {
     Var('chromium_git') + '/chromium/third_party/openh264rs.git' + '@' + Var('openh264rs_revision'),
 
   'src/third_party/openscreen/src':
-    Var('chromium_git') + '/openscreen' + '@' + 'c964d7bb3dbc05cace4c3de101a55b42e9328a3e',
+    Var('chromium_git') + '/openscreen' + '@' + '281439a9df82e7c71b43cf4ccad46c9b47253007',
 
   'src/third_party/openxr/src': {
     'url': Var('chromium_git') + '/external/github.com/KhronosGroup/OpenXR-SDK' + '@' + '75c53b6e853dc12c7b3c771edc9c9c841b15faaa',

@@ -769,7 +769,6 @@
     },
     {
       name: "AttributionReporting",
-      status: "stable",
       base_feature: "none",
       public: true,
     },
@@ -3556,6 +3555,10 @@
       origin_trial_feature_name: "GamepadRawInputChangeEvent",
       base_feature: "none",
       public: true,
+    },
+    {
+      name: "GamepadUserActivationFocus",
+      status: "stable",
     },
     {
       name: "GamepadWindowEventHandlers",

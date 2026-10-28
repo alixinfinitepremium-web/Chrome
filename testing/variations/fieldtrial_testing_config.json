@@ -1484,27 +1484,6 @@
             ]
         }
     ],
-    "AttributionReportingDeprecation": [
-        {
-            "platforms": [
-                "android",
-                "android_webview",
-                "chromeos",
-                "fuchsia",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Disabled",
-                    "disable_features": [
-                        "ConversionMeasurement"
-                    ]
-                }
-            ]
-        }
-    ],
     "AudioFocusEnforcementStudy": [
         {
             "platforms": [
@@ -4682,6 +4661,29 @@
                     "name": "Enabled",
                     "enable_features": [
                         "ClientSideDetectionServerModelForScamDetectionIos"
+                    ]
+                }
+            ]
+        }
+    ],
+    "ClientSideDetectionServerModelMultimodal": [
+        {
+            "platforms": [
+                "android",
+                "chromeos",
+                "ios",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "EnabledIncludingLowEndDevices",
+                    "params": {
+                        "ExcludeLowEndDevices": "false"
+                    },
+                    "enable_features": [
+                        "ClientSideDetectionServerModelMultimodal"
                     ]
                 }
             ]

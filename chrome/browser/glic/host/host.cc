@@ -672,11 +672,17 @@ void Host::WebUiStateChanged(GlicPageHandler* page_handler,
 }
 
 void Host::ClientLoadErrorOccurred(ClientLoadErrorReason reason) {
+  client_load_error_reason_ = reason;
   observers_.Notify(&Observer::ClientLoadErrorOccurred, reason);
 }
 
 void Host::SetClientLoadFailed(bool failed) {
   client_load_failed_ = failed;
+  if (!failed) {
+    // The failure is withdrawn (reload, retry on show), and with it its cause.
+    // A host that fails again reports the new cause before the new failure.
+    client_load_error_reason_.reset();
+  }
   UpdateClientLoadState();
 }
 
@@ -702,6 +708,7 @@ void Host::UpdateClientLoadState() {
   if (web_state == mojom::WebClientState::kResponsive ||
       web_state == mojom::WebClientState::kUnresponsive) {
     state = ClientLoadState::kReady;
+    client_load_error_reason_.reset();
   } else if (client_load_failed_) {
     state = ClientLoadState::kError;
   } else {
@@ -778,10 +785,9 @@ bool Host::ComputeIsShowingNativeLoading() const {
     case mojom::WebUiState::kFinishLoading:
       return true;
     case mojom::WebUiState::kWarmed:
-      // `GlicAppController.finishLoading()` enters `kWarmed` after the loading
-      // timer expires while hidden even if the guest has not created a web
-      // client yet. Keep the native placeholder visible until a client
-      // connects.
+      // `GlicAppController` enters `kWarmed` once the web client reports
+      // itself warmed, so the client is normally connected by now. Keep the
+      // native placeholder visible defensively until a client connects.
       return web_client_state() == mojom::WebClientState::kUninitialized;
     case mojom::WebUiState::kError:
     case mojom::WebUiState::kOffline:

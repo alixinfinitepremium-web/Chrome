@@ -70,7 +70,7 @@
 #include "chrome/browser/ui/views/page_info/page_info_bubble_view.h"
 #include "chrome/browser/ui/views/page_info/page_info_bubble_view_base.h"
 #include "chrome/browser/ui/views/page_info/page_info_main_view.h"
-#include "chrome/browser/ui/views/toolbar/pinned_action_toolbar_button.h"
+#include "chrome/browser/ui/views/toolbar/pinned_action_test_accessor.h"
 #include "chrome/browser/ui/views/toolbar/webui_test_utils.h"
 #include "chrome/browser/ui/views/toolbar/webui_toolbar_web_view.h"
 #include "chrome/common/chrome_features.h"
@@ -1161,9 +1161,13 @@ IN_PROC_BROWSER_TEST_P(ContextualTasksPinnedToolbarInteractiveUiTest,
 
       // Step 5: Verify the pinned toolbar button reflects the active toggle
       // state.
-      CheckView(
-          kPinnedToolbarActionShowSidePanelContextualTasksElementId,
-          [](PinnedActionToolbarButton* button) { return button->IsActive(); }),
+      CheckResult(
+          [this]() {
+            return PinnedActionTestAccessor(browser(),
+                                            kActionSidePanelShowContextualTasks)
+                .IsHighlighted();
+          },
+          true),
 
       // Step 6: Instrument WebUI app inside side panel to verify load.
       NameViewRelative(kContextualTasksSidePanelWebViewElementId,
@@ -1185,10 +1189,13 @@ IN_PROC_BROWSER_TEST_P(ContextualTasksPinnedToolbarInteractiveUiTest,
           false),
 
       // Step 8: Verify the pinned toolbar button is no longer active.
-      CheckView(kPinnedToolbarActionShowSidePanelContextualTasksElementId,
-                [](PinnedActionToolbarButton* button) {
-                  return !button->IsActive();
-                }));
+      CheckResult(
+          [this]() {
+            return PinnedActionTestAccessor(browser(),
+                                            kActionSidePanelShowContextualTasks)
+                .IsHighlighted();
+          },
+          false));
 }
 
 // This tests the following CUJ:
@@ -4665,14 +4672,8 @@ class ContextualTasksEphemeralToolbarInteractiveUiTest
 //  (6) Contextual Tasks side panel reopens and restores the same task and
 //      side panel contents.
 //  (7) Ephemeral toolbar button hides while the side panel is open.
-// TODO(https://crbug.com/576301341): Flaky on ChromeOS debug builders.
-#if BUILDFLAG(IS_CHROMEOS) && !defined(NDEBUG)
-#define MAYBE_EphemeralToolbarButtonReopen DISABLED_EphemeralToolbarButtonReopen
-#else
-#define MAYBE_EphemeralToolbarButtonReopen EphemeralToolbarButtonReopen
-#endif
 IN_PROC_BROWSER_TEST_P(ContextualTasksEphemeralToolbarInteractiveUiTest,
-                       MAYBE_EphemeralToolbarButtonReopen) {
+                       EphemeralToolbarButtonReopen) {
   DEFINE_LOCAL_ELEMENT_IDENTIFIER_VALUE(kOverlayId);
   DEFINE_LOCAL_ELEMENT_IDENTIFIER_VALUE(kSidePanelId);
   DEFINE_LOCAL_ELEMENT_IDENTIFIER_VALUE(kReopenedSidePanelId);

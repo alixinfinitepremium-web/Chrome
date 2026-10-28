@@ -8128,11 +8128,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kEnableHeadlessLiveCaptionDescription, kOsDesktop,
      FEATURE_VALUE_TYPE(media::kHeadlessLiveCaption)},
 
-    {"enable-media-link-helpers",
-     flag_descriptions::kEnableMediaLinkHelpersName,
-     flag_descriptions::kEnableMediaLinkHelpersDescription, kOsDesktop,
-     FEATURE_VALUE_TYPE(media::kMediaLinkHelpers)},
-
     {"enable-headless-live-caption-early-start",
      flag_descriptions::kHeadlessCaptionEarlyStartName,
      flag_descriptions::kHeadlessCaptionEarlyStartDescription, kOsDesktop,
@@ -11174,7 +11169,7 @@ const FeatureEntry kFeatureEntries[] = {
                                     kGlicOSIconVariantVariations,
                                     "GlicOSIconVariant")},
     {"glic-share-image", flag_descriptions::kGlicShareImageName,
-     flag_descriptions::kGlicShareImageDescription, kOsDesktop,
+     flag_descriptions::kGlicShareImageDescription, kOsDesktop | kOsAndroid,
      FEATURE_VALUE_TYPE(features::kGlicShareImage)},
     {"glic-default-tab-context-setting",
      flag_descriptions::kGlicDefaultTabContextSettingName,
@@ -12378,6 +12373,13 @@ const FeatureEntry kFeatureEntries[] = {
          kContextualTasksTabBasedSuggestionsDescription,
      kOsDesktop | kOsAndroid,
      FEATURE_VALUE_TYPE(contextual_tasks::kContextualTasksTabBasedSuggestions)},
+
+    {"contextual-tasks-side-panel-tab-state",
+     contextual_tasks::flag_descriptions::kContextualTasksSidePanelTabStateName,
+     contextual_tasks::flag_descriptions::
+         kContextualTasksSidePanelTabStateDescription,
+     kOsDesktop | kOsAndroid,
+     FEATURE_VALUE_TYPE(contextual_tasks::kContextualTasksSidePanelTabState)},
 
     {"contextual-tasks-bypass-dismissed-cap",
      contextual_tasks::flag_descriptions::
