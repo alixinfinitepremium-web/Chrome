@@ -4253,6 +4253,24 @@
             ]
         }
     ],
+    "ChromnientNonBlockingPrivacyNoticeForImageSearch": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "LensOverlayNonBlockingPrivacyNoticeForImageSearch"
+                    ]
+                }
+            ]
+        }
+    ],
     "ChromnientReinvocationAffordance": [
         {
             "platforms": [
@@ -5961,23 +5979,6 @@
                     "name": "Enabled",
                     "enable_features": [
                         "DesktopCapturePermissionCheckerPreMacos14_4"
-                    ]
-                }
-            ]
-        }
-    ],
-    "DesktopNtpDriveModuleLink": [
-        {
-            "platforms": [
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "NtpDriveModuleLink"
                     ]
                 }
             ]
@@ -14678,22 +14679,6 @@
             ]
         }
     ],
-    "PreviewHandwritingGesture": [
-        {
-            "platforms": [
-                "android",
-                "android_webview"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "PreviewHandwritingGesture"
-                    ]
-                }
-            ]
-        }
-    ],
     "PrewarmZeroSuggestTrigger": [
         {
             "platforms": [
@@ -15553,23 +15538,6 @@
                     "name": "RustyIcoExperiment",
                     "enable_features": [
                         "RustyIcoFeature"
-                    ]
-                }
-            ]
-        }
-    ],
-    "SPCLocaleValidation": [
-        {
-            "platforms": [
-                "android",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "SPCLocaleValidation"
                     ]
                 }
             ]
@@ -16651,21 +16619,6 @@
             ]
         }
     ],
-    "SkipDefaultBrowserPromoInFirstRun": [
-        {
-            "platforms": [
-                "ios"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "SkipDefaultBrowserPromoInFirstRun"
-                    ]
-                }
-            ]
-        }
-    ],
     "SkipDisabledGLContextOnDrDC": [
         {
             "platforms": [
@@ -17326,6 +17279,21 @@
                         "IPH_TabSwitcherButtonSwitchIncognito"
                     ],
                     "disable_features": []
+                }
+            ]
+        }
+    ],
+    "TaiyakiNonListItem": [
+        {
+            "platforms": [
+                "ios"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled_20261028",
+                    "enable_features": [
+                        "SearchEngineChoiceScreenSnackbar"
+                    ]
                 }
             ]
         }

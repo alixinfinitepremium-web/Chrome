@@ -127,16 +127,14 @@ void SharingHubBubbleControllerDesktopImpl::OnActionSelected(
 
   base::RecordComputedAction(action.feature_name_for_metrics);
 
-  // Show a back button for 1P dialogs anchored to the sharing hub icon.
   if (action.command_id == IDC_QRCODE_GENERATOR) {
     qrcode_generator::QRCodeGeneratorBubbleController* qrcode_controller =
         qrcode_generator::QRCodeGeneratorBubbleController::Get(
             &GetWebContents());
-    qrcode_controller->ShowBubble(GetWebContents().GetLastCommittedURL(), true);
+    qrcode_controller->ShowBubble(GetWebContents().GetLastCommittedURL());
   } else if (action.command_id == IDC_SEND_TAB_TO_SELF) {
     send_tab_to_self::ShowBubble(
-        &GetWebContents(), send_tab_to_self::ShareEntryPoint::kToolbarIcon,
-        /*show_back_button=*/true);
+        &GetWebContents(), send_tab_to_self::ShareEntryPoint::kToolbarIcon);
   } else if (action.command_id == IDC_ROUTE_MEDIA) {
     media_router::MediaRouterDialogController* dialog_controller =
         media_router::MediaRouterDialogController::GetOrCreateForWebContents(

@@ -5139,6 +5139,7 @@
     {
       name: "PermissionsPolicyForSharedWorkers",
       status: "experimental",
+      public: true,
     },
     {
       name: "PermissionsRequestRevoke",
@@ -7185,6 +7186,10 @@
       status: {
         "ChromeOS": "stable",
       },
+    },
+    {
+      name: "UsedPositionRelativeInsets",
+      status: "stable",
     },
     {
       // Android currently uses low-quality interpolation, while other platforms

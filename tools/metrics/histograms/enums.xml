@@ -12626,6 +12626,7 @@ from previous Chrome versions.
   <int value="-720304697" label="LauncherImageSearch:enabled"/>
   <int value="-719819631" label="TranslateUI:disabled"/>
   <int value="-719698123" label="LegacyTLSWarnings:enabled"/>
+  <int value="-719148301" label="AutofillCustomFormControlScripts:enabled"/>
   <int value="-719147284" label="ExperimentalProductivityFeatures:disabled"/>
   <int value="-719062737" label="SearchAggregatorProvider:disabled"/>
   <int value="-718884399" label="NewTabPageUIMd:enabled"/>
@@ -14623,6 +14624,8 @@ from previous Chrome versions.
   <int value="-120267301" label="SupervisedUserBlockInterstitialV3:disabled"/>
   <int value="-120091289" label="CrostiniAppSearch:enabled"/>
   <int value="-119841719" label="ThreadingOptimizationsOnIo:disabled"/>
+  <int value="-119363682"
+      label="TrustedVaultSharedRecoveryFactorsAndEncryption:enabled"/>
   <int value="-119283387" label="NtpAlphaBackgroundCollections:disabled"/>
   <int value="-119055644" label="GenericSensor:enabled"/>
   <int value="-118993417" label="TLS13HardeningForLocalAnchors:disabled"/>
@@ -16664,6 +16667,7 @@ from previous Chrome versions.
   <int value="497039057" label="AdaptiveChargingForTesting:disabled"/>
   <int value="497137719" label="OmniboxVoiceSearchAlwaysVisible:disabled"/>
   <int value="497150691" label="AssistEmojiEnhanced:disabled"/>
+  <int value="497855272" label="AutofillCustomFormControlScripts:disabled"/>
   <int value="498150771" label="ContextualPageActions:disabled"/>
   <int value="499517390"
       label="NtpHistoryClustersModuleSuggestionChipHeader:enabled"/>
@@ -19739,6 +19743,8 @@ from previous Chrome versions.
       label="AutofillSkipAndroidBottomSheetForIban:disabled"/>
   <int value="1413158119" label="WebRtcRemoteEventLog:disabled"/>
   <int value="1413334779" label="WebPaymentsMinimalUI:enabled"/>
+  <int value="1413943782"
+      label="TrustedVaultSharedRecoveryFactorsAndEncryption:disabled"/>
   <int value="1413948819" label="NupPrinting:enabled"/>
   <int value="1414004676" label="TabStripLayoutTransitionDebounceFix:enabled"/>
   <int value="1414652547" label="LinkCapturingAutoDisplayIntentPicker:enabled"/>

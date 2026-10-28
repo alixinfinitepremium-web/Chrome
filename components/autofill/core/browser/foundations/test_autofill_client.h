@@ -485,9 +485,6 @@ class TestAutofillClientTemplate : public T {
   bool IsGlicEnabled() const override { return is_glic_enabled_; }
   void set_is_glic_enabled(bool enabled) { is_glic_enabled_ = enabled; }
 
-  bool IsGlicConsented() const override { return is_glic_consented_; }
-  void set_is_glic_consented(bool consented) { is_glic_consented_ = consented; }
-
   bool IsAutofillEnabled() const override {
     if (IsAutofillProfileEnabled() ||
         AutofillClient::GetPaymentsAutofillClient()
@@ -621,26 +618,6 @@ class TestAutofillClientTemplate : public T {
   GetPersonalContextFirstRunService() override {
     return &personal_context_first_run_service_;
   }
-
-#if BUILDFLAG(IS_ANDROID)
-  bool ShowAmbientAutofillNotice(
-      base::WeakPtr<TouchToFillAutofillDelegate> delegate) override {
-    show_ambient_autofill_notice_called_ = true;
-    return show_ambient_autofill_notice_result_;
-  }
-  bool show_ambient_autofill_notice_called() const {
-    return show_ambient_autofill_notice_called_;
-  }
-  void set_show_ambient_autofill_notice_result(bool result) {
-    show_ambient_autofill_notice_result_ = result;
-  }
-  void HideTouchToFillAutofillNotice() override {
-    hide_touch_to_fill_autofill_notice_called_ = true;
-  }
-  bool hide_touch_to_fill_autofill_notice_called() const {
-    return hide_touch_to_fill_autofill_notice_called_;
-  }
-#endif
 
   personal_context::PersonalContextEligibilityService*
   GetPersonalContextEligibilityService() const override {
@@ -1018,15 +995,10 @@ class TestAutofillClientTemplate : public T {
 
   bool is_tab_in_actor_mode_ = false;
 
-  bool show_ambient_autofill_notice_called_ = false;
-  bool show_ambient_autofill_notice_result_ = false;
-  bool hide_touch_to_fill_autofill_notice_called_ = false;
-
   personal_context::TestPersonalContextFirstRunService
       personal_context_first_run_service_;
 
   bool is_glic_enabled_ = false;
-  bool is_glic_consented_ = false;
 
   SuggestionHidingReason popup_hidden_reason_ =
       SuggestionHidingReason::kNoSuggestions;

@@ -1097,6 +1097,11 @@
     "owners": [ "benphillips@google.com", "payments-autofill-team@google.com" ],
     "expiry_milestone": 160
   },
+  {
+    "name": "autofill-custom-form-control-scripts",
+    "owners": [ "luchenpeng@google.com", "battre@google.com", "fleimgruber@google.com" ],
+    "expiry_milestone": 165
+  },
   { "name": "autofill-disable-bnpl-country-check-for-testing",
     "owners": [ "vinnypersky@google.com", "payments-autofill-team@google.com"],
     "expiry_milestone": 155
@@ -4227,7 +4232,7 @@
   },
   {
     "name": "enable-lens-in-omnibox-copied-image",
-    "owners": [ "radunitescu@google.com", "hujasonx@chromium.org" ],
+    "owners": [ "radunitescu@google.com", "hujasonx@google.com" ],
     "expiry_milestone": 160
   },
   {
@@ -6563,11 +6568,6 @@
     "name": "ios-signal-sharing",
     "owners": [ "mickaczmarczyk@google.com", "szymonkurek@google.com" ],
     "expiry_milestone": 160
-  },
-  {
-    "name": "ios-skip-fre-default-browser-promo-in-eea",
-    "owners": ["gujen@google.com", "bmcclure@google.com", "bling-mony-pod@google.com"],
-    "expiry_milestone": 155
   },
   {
     "name": "ios-soft-lock",
@@ -9786,6 +9786,14 @@
       "chrome-gpu-team@google.com"
     ],
     "expiry_milestone": 160
+  },
+  {
+    "name": "trusted-vault-shared-recovery-factors-and-encryption",
+    "owners": [
+      "thomasth@google.com",
+      "//components/trusted_vault/OWNERS"
+    ],
+    "expiry_milestone": 166
   },
   {
     "name": "trusted-web-activity-contacts-delegation",

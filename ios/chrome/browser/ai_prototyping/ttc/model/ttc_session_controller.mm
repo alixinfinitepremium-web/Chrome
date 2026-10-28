@@ -13,9 +13,11 @@
 #import "base/check.h"
 #import "base/functional/bind.h"
 #import "base/functional/callback_helpers.h"
+#import "base/location.h"
 #import "base/memory/weak_ptr.h"
 #import "base/sequence_checker.h"
 #import "base/strings/to_string.h"
+#import "base/task/sequenced_task_runner.h"
 #import "components/optimization_guide/proto/features/common_quality_data.pb.h"
 #import "components/ttc/app/public/error_codes.h"
 #import "components/ttc/app/ttc_backend.h"
@@ -52,15 +54,28 @@ void TtcSessionController::OnConversationInitialized() {
   }
   conversation_->SendToolSetUpdate(ttc::GetDefaultToolDefinitions());
   SetLifecycle(TTCSessionLifecycle::kLive);
+  if (lifecycle_ != TTCSessionLifecycle::kLive) {
+    return;
+  }
+  // Starts tracking and extracting page context only after session setup and
+  // toolset registration have completed, so `ContextUpdate` is never queued
+  // ahead of `SessionSetupRequest` or `ToolsetUpdate`.
+  if (voice_focused_web_state_tracker_ &&
+      !voice_focused_web_state_tracker_observation_.IsObserving()) {
+    voice_focused_web_state_tracker_observation_.Observe(
+        voice_focused_web_state_tracker_.get());
+    OnVoiceFocusedWebStateChanged(
+        voice_focused_web_state_tracker_->GetActiveWebState());
+  }
 }
 
 void TtcSessionController::OnConversationClosed() {
-  StopSession();
+  StopSessionAsync();
 }
 
 void TtcSessionController::OnAudioEnergyUpdated(float energy) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
-  if (lifecycle_ == TTCSessionLifecycle::kFinished || observers_.empty()) {
+  if (lifecycle_ == TTCSessionLifecycle::kFinished) {
     return;
   }
   for (TtcSessionControllerObserver& observer : observers_) {
@@ -82,7 +97,7 @@ void TtcSessionController::OnConversationError(ttc::ErrorCode error) {
     observer.OnSessionError(this, error);
   }
   if (is_fatal) {
-    StopSession();
+    StopSessionAsync();
   }
 }
 
@@ -91,7 +106,7 @@ void TtcSessionController::OnConversationError(ttc::ErrorCode error) {
 void TtcSessionController::OnVoiceFocusedWebStateChanged(
     web::WebState* web_state) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
-  if (lifecycle_ == TTCSessionLifecycle::kFinished) {
+  if (lifecycle_ != TTCSessionLifecycle::kLive) {
     return;
   }
   web::WebState* current_web_state =
@@ -116,7 +131,7 @@ void TtcSessionController::OnVoiceFocusedWebStateChanged(
 void TtcSessionController::OnPageContextFetched(
     PageContextWrapperCallbackResponse response) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
-  if (lifecycle_ == TTCSessionLifecycle::kFinished || !response.has_value()) {
+  if (lifecycle_ != TTCSessionLifecycle::kLive || !response.has_value()) {
     return;
   }
   const optimization_guide::proto::PageContext* page_context =
@@ -200,22 +215,14 @@ void TtcSessionController::StartSession() {
     return;
   }
   conversation_->Start();
-  if (lifecycle_ == TTCSessionLifecycle::kFinished) {
-    return;
-  }
-  // The backend queues outgoing frames until the connection is established, so
-  // page context extraction can start before initialization completes.
-  if (voice_focused_web_state_tracker_ &&
-      !voice_focused_web_state_tracker_observation_.IsObserving()) {
-    voice_focused_web_state_tracker_observation_.Observe(
-        voice_focused_web_state_tracker_.get());
-    OnVoiceFocusedWebStateChanged(
-        voice_focused_web_state_tracker_->GetActiveWebState());
-  }
 }
 
 void TtcSessionController::StopSession() {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  if (is_stopped_) {
+    return;
+  }
+  is_stopped_ = true;
   if (page_context_monitor_) {
     page_context_monitor_->Disconnect();
     page_context_monitor_.reset();
@@ -237,6 +244,17 @@ void TtcSessionController::Disconnect() {
   RemoveBackgroundObserver();
   observers_.Clear();
   journal_.reset();
+}
+
+void TtcSessionController::StopSessionAsync() {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  SetLifecycle(TTCSessionLifecycle::kFinished);
+  // Stopping the conversation closes the backend and audio session, so it must
+  // be deferred asynchronously to avoid tearing down `TtcConversation` or
+  // `TtcBackend` while a delegate callback is still on the stack.
+  base::SequencedTaskRunner::GetCurrentDefault()->PostTask(
+      FROM_HERE, base::BindOnce(&TtcSessionController::StopSession,
+                                weak_ptr_factory_.GetWeakPtr()));
 }
 
 void TtcSessionController::SetLifecycle(TTCSessionLifecycle lifecycle) {
