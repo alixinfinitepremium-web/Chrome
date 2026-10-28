@@ -5465,11 +5465,6 @@ const FeatureEntry kFeatureEntries[] = {
     {"edge-to-edge-automotive", flag_descriptions::kEdgeToEdgeAutomotiveName,
      flag_descriptions::kEdgeToEdgeAutomotiveDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(chrome::android::kEdgeToEdgeAutomotive)},
-    {"safe-browsing-sync-checker-check-allowlist",
-     flag_descriptions::kSafeBrowsingSyncCheckerCheckAllowlistName,
-     flag_descriptions::kSafeBrowsingSyncCheckerCheckAllowlistDescription,
-     kOsAndroid,
-     FEATURE_VALUE_TYPE(safe_browsing::kSafeBrowsingSyncCheckerCheckAllowlist)},
 #endif  // BUILDFLAG(IS_ANDROID)
 
     {"enable-content-analysis-clipboard-copy",
@@ -5591,6 +5586,10 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kApplyManagedProxyBypassListVerbatimDescription,
      kOsCrOS,
      FEATURE_VALUE_TYPE(ash::features::kApplyManagedProxyBypassListVerbatim)},
+    {"audio-selection-improvement",
+     flag_descriptions::kAudioSelectionImprovementName,
+     flag_descriptions::kAudioSelectionImprovementDescription, kOsCrOS,
+     FEATURE_VALUE_TYPE(ash::features::kAudioSelectionImprovement)},
     {"cras-processor-wav-dump", flag_descriptions::kCrasProcessorWavDumpName,
      flag_descriptions::kCrasProcessorWavDumpDescription, kOsCrOS,
      PLATFORM_FEATURE_NAME_TYPE("CrOSLateBootCrasProcessorWavDump")},
@@ -13842,13 +13841,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kDevToolsSourceMapScopesInSourcesPanelDescription,
      kOsAll,
      FEATURE_VALUE_TYPE(features::kDevToolsSourceMapScopesInSourcesPanel)},
-
-#if defined(TOOLKIT_VIEWS)
-    {"native-view-host-manages-layers",
-     flag_descriptions::kNativeViewHostManagesLayersName,
-     flag_descriptions::kNativeViewHostManagesLayersDescription, kOsDesktop,
-     FEATURE_VALUE_TYPE(views::features::kNativeViewHostManagesLayers)},
-#endif  // defined(TOOLKIT_VIEWS)
 
 #if BUILDFLAG(IS_ANDROID)
     {"android-fre-layout-update",

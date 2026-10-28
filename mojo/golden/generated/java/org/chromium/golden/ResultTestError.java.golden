@@ -53,13 +53,11 @@ public final class ResultTestError extends org.chromium.mojo.bindings.Struct {
         }
         final int elementsOrVersion = decoder0.readAndValidateStructHeader(STRUCT_SIZE);
         ResultTestError result = new ResultTestError(elementsOrVersion);
-        decoder0.decreaseStackDepth();
         return result;
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    protected final void encode(org.chromium.mojo.bindings.Encoder encoder) {
-        encoder.getEncoderAtDataOffset(STRUCT_SIZE, STRUCT_VERSION);
+    protected final void encodeFields(org.chromium.mojo.bindings.Encoder encoder0) {
     }
 }

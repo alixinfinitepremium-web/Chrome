@@ -26,7 +26,9 @@ public interface TabListDataObserver {
         PayloadType.GROUP_MEMBERSHIP,
         PayloadType.TITLE,
         PayloadType.COLOR,
-        PayloadType.COLLAPSED
+        PayloadType.COLLAPSED,
+        PayloadType.TAB_GROUP_ORDER,
+        PayloadType.MULTI_SELECTION
     })
     @Retention(RetentionPolicy.SOURCE)
     @Target(ElementType.TYPE_USE)
@@ -51,6 +53,12 @@ public interface TabListDataObserver {
 
         /** Updates the tab group header collapse state. */
         int COLLAPSED = 5;
+
+        /** Updates tab order within a group (e.g. composite group thumbnail). */
+        int TAB_GROUP_ORDER = 6;
+
+        /** Updates multi-selection state. */
+        int MULTI_SELECTION = 7;
     }
 
     /**

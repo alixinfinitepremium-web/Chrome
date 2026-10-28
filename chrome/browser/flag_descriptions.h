@@ -6524,12 +6524,6 @@ inline constexpr char kReengagementNotificationDescription[] =
     "Enables Chrome to use the in-product help system to decide when "
     "to show re-engagement notifications.";
 
-inline constexpr char kSafeBrowsingSyncCheckerCheckAllowlistName[] =
-    "Safe Browsing Sync Checker Check Allowlist";
-inline constexpr char kSafeBrowsingSyncCheckerCheckAllowlistDescription[] =
-    "Enables Safe Browsing sync checker to check the allowlist before checking "
-    "the blocklist.";
-
 inline constexpr char kSegmentationPlatformAndroidHomeModuleRankerV2Name[] =
     "Segmentation platform Android home module ranker V2";
 inline constexpr char
@@ -7067,11 +7061,6 @@ inline constexpr char kMuteNotificationSnoozeActionName[] =
 inline constexpr char kMuteNotificationSnoozeActionDescription[] =
     "Adds a Snooze action to mute notifications shown while sharing a screen.";
 
-inline constexpr char kNativeViewHostManagesLayersName[] =
-    "NativeViewHost manages layers";
-inline constexpr char kNativeViewHostManagesLayersDescription[] =
-    "Enables NativeViewHost to control the layers of the native view.";
-
 inline constexpr char kNtpAlphaBackgroundCollectionsName[] =
     "NTP Alpha Background Collections";
 inline constexpr char kNtpAlphaBackgroundCollectionsDescription[] =
@@ -7529,6 +7518,11 @@ inline constexpr char kAshSplitKeyboardRefactorName[] =
     "Split keyboard refactor";
 inline constexpr char kAshSplitKeyboardRefactorDescription[] =
     "Enable split keyboard refactor on ChromeOS.";
+
+inline constexpr char kAudioSelectionImprovementName[] =
+    "Enable audio selection improvement algorithm";
+inline constexpr char kAudioSelectionImprovementDescription[] =
+    "Enable set-based audio selection improvement algorithm.";
 
 inline constexpr char kAutoFramingOverrideName[] =
     "Auto-framing control override";

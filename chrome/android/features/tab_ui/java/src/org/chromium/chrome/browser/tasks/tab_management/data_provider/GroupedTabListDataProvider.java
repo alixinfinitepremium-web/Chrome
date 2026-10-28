@@ -10,7 +10,9 @@ import org.chromium.build.annotations.NullMarked;
 import org.chromium.build.annotations.Nullable;
 import org.chromium.chrome.browser.tab.Tab;
 import org.chromium.chrome.browser.tab.TabCreationState;
+import org.chromium.chrome.browser.tab.TabId;
 import org.chromium.chrome.browser.tab.TabLaunchType;
+import org.chromium.chrome.browser.tab.TabSelectionType;
 import org.chromium.chrome.browser.tabmodel.TabGroupObserver;
 import org.chromium.chrome.browser.tabmodel.TabGroupObserver.DidRemoveTabGroupReason;
 import org.chromium.chrome.browser.tabmodel.TabList;
@@ -71,6 +73,15 @@ public class GroupedTabListDataProvider extends TabListDataProvider {
                     }
 
                     @Override
+                    public void didMoveTab(Tab tab, int newIndex, int curIndex) {
+                        // Grouped tab moves and intra-group reorders are handled by
+                        // TabGroupObserver; moveTabItem reorders standalone tabs to their updated
+                        // TabModel position.
+                        if (curIndex == newIndex || tab.getTabGroupId() != null) return;
+                        moveTabItem(tab);
+                    }
+
+                    @Override
                     public void didRemoveTabForClosure(Tab tab) {
                         removeTabAndUpdateGroup(tab);
                     }
@@ -95,6 +106,22 @@ public class GroupedTabListDataProvider extends TabListDataProvider {
                     public void restoreCompleted() {
                         requestDataReset();
                     }
+
+                    @Override
+                    public void didSelectTab(
+                            Tab tab, @TabSelectionType int type, @TabId int lastId) {
+                        selectTab(tab, /* prevSelectedTabId= */ lastId);
+                    }
+
+                    @Override
+                    public void didChangePinState(Tab tab) {
+                        updatePinState(tab);
+                    }
+
+                    @Override
+                    public void onTabsSelectionChanged() {
+                        updateMultiSelection();
+                    }
                 };
 
         // TODO(crbug.com/562590772): Wire incremental TabModelObserver and TabGroupObserver
@@ -117,6 +144,21 @@ public class GroupedTabListDataProvider extends TabListDataProvider {
                             updateTabItem(existingItem, PayloadType.GROUP_MEMBERSHIP);
                         }
                         updateGroupItem(oldTabGroupId, PayloadType.GROUP_MEMBERSHIP);
+                    }
+
+                    @Override
+                    public void onTabGroupMoved(
+                            Token tabGroupId, int tabModelOldIndex, int tabModelNewIndex) {
+                        if (tabModelNewIndex == tabModelOldIndex) return;
+                        moveGroupItem(tabGroupId);
+                    }
+
+                    @Override
+                    public void didMoveWithinGroup(
+                            Tab movedTab, int tabModelOldIndex, int tabModelNewIndex) {
+                        if (tabModelNewIndex == tabModelOldIndex) return;
+                        moveTabItem(movedTab);
+                        updateGroupItem(movedTab.getTabGroupId(), PayloadType.TAB_GROUP_ORDER);
                     }
 
                     @Override
@@ -191,6 +233,22 @@ public class GroupedTabListDataProvider extends TabListDataProvider {
         if (model == null) return false;
         Token tabGroupId = tab.getTabGroupId();
         return tabGroupId == null || !isGroupCollapsed(model, tabGroupId);
+    }
+
+    @Override
+    protected int indexOfItemForTab(TabModel model, @TabId int tabId) {
+        int index = super.indexOfItemForTab(model, tabId);
+        if (index != TabList.INVALID_TAB_INDEX) return index;
+
+        // In collapsed-only surfaces (GTS), group tabs map to their parent TabGroupItem.
+        if (!mSupportsGroupExpansion) {
+            Tab tab = model.getTabById(tabId);
+            Token groupId = tab != null ? tab.getTabGroupId() : null;
+            if (groupId != null) {
+                return indexOfTabGroupId(groupId);
+            }
+        }
+        return TabList.INVALID_TAB_INDEX;
     }
 
     /**
@@ -269,6 +327,29 @@ public class GroupedTabListDataProvider extends TabListDataProvider {
         if (index == TabList.INVALID_TAB_INDEX) return;
 
         removeItemsAt(index, /* count= */ 1);
+    }
+
+    /**
+     * Moves the {@link TabGroupItem} (and all child {@link TabItem}s if expanded) for {@code
+     * tabGroupId} to its updated {@link TabModel} position and notifies observers via {@link
+     * TabListDataObserver#onItemsMoved}.
+     *
+     * @param tabGroupId The ID of the tab group to move.
+     */
+    private void moveGroupItem(Token tabGroupId) {
+        int index = indexOfTabGroupId(tabGroupId);
+        if (index == TabList.INVALID_TAB_INDEX) return;
+
+        TabModel model = getTabModelIfTabStateInitialized();
+        if (model == null
+                || !model.containsTabGroup(tabGroupId)
+                || mRemovingTabGroupIds.contains(tabGroupId)) {
+            return;
+        }
+
+        int count =
+                isGroupCollapsed(model, tabGroupId) ? 1 : 1 + model.getTabCountForGroup(tabGroupId);
+        moveItemsAt(index, count);
     }
 
     private void updateGroupCollapsed(Token tabGroupId, boolean isCollapsed) {

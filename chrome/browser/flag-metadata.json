@@ -962,6 +962,11 @@
     "expiry_milestone": 175
   },
   {
+    "name": "audio-selection-improvement",
+    "owners": [ "zhangwenyu@google.com", "cros-device-enablement@google.com" ],
+    "expiry_milestone": 151
+  },
+  {
     "name": "auto-framing-override",
     "owners": [ "kamesan@chromium.org", "chromeos-camera-eng@google.com" ],
     "expiry_milestone": 116
@@ -7130,11 +7135,6 @@
     "expiry_milestone": 96
   },
   {
-    "name": "native-view-host-manages-layers",
-    "owners": [ "oshima@chromium.org", "tluk@chromium.org" ],
-    "expiry_milestone": 165
-  },
-  {
     "name": "nearby-ble-v2",
     "owners": ["chromeos-cross-device-eng@google.com", "dclasson@google.com"],
     "expiry_milestone": 130
@@ -8832,14 +8832,6 @@
       "chrome-counter-abuse-alerts@google.com"
     ],
     "expiry_milestone": 160
-  },
-  {
-    "name": "safe-browsing-sync-checker-check-allowlist",
-    "owners": [
-      "xinghuilu@chromium.org",
-      "chrome-counter-abuse-alerts@google.com"
-    ],
-    "expiry_milestone": 135
   },
   {
     "name": "safe-browsing-trusted-url",

@@ -1960,6 +1960,11 @@ class ActionAppMenuWithSearchTest : public ActionAppMenuTest {
     return nullptr;
   }
 
+  views::Button* GetClearButton(AppMenuSearchBarView* search_bar) {
+    return views::Button::AsButton(search_bar->GetViewByElementId(
+        AppMenuSearchBarView::kClearButtonElementId));
+  }
+
  private:
   base::test::ScopedFeatureList feature_list_;
 };
@@ -2067,9 +2072,9 @@ TEST_F(ActionAppMenuWithSearchTest, SearchBarEnabledWithFeatureFlag) {
   int icon_padding = 12;
   int icon_text_spacing =
       provider->GetDistanceMetric(DISTANCE_RELATED_CONTROL_HORIZONTAL_SMALL);
-  int left_inset = icon_padding + icon_size + icon_text_spacing;
+  int horizontal_inset = icon_padding + icon_size + icon_text_spacing;
   EXPECT_EQ(search_field->GetBorder()->GetInsets(),
-            gfx::Insets::TLBR(6, left_inset, 6, 12));
+            gfx::Insets::VH(6, horizontal_inset));
   EXPECT_EQ(search_field->GetBackgroundColor(), SK_ColorTRANSPARENT);
 
   // Verify inkdrop is enabled on the search field.
@@ -2419,6 +2424,43 @@ TEST_F(ActionAppMenuWithSearchTest, BackButtonRestoresNormalMenu) {
   EXPECT_EQ(block_view->GetBoundsInScreen().y() -
                 separator->GetBoundsInScreen().bottom(),
             16);
+
+  EXPECT_CALL(on_menu_closed, Run()).Times(1);
+  menu.CloseMenu();
+}
+
+TEST_F(ActionAppMenuWithSearchTest, ClearButtonKeepsResults) {
+  base::MockCallback<base::RepeatingClosure> on_menu_closed;
+  ActionAppMenu menu(&mock_window_interface_, on_menu_closed.Get());
+
+  menu.RunMenu(button_->button_controller(), views::MenuRunner::NO_FLAGS);
+  ASSERT_TRUE(menu.IsShowing());
+
+  views::MenuItemView* root = menu.root_menu_item_for_testing();
+  AppMenuSearchBarView* search_bar = menu.search_bar_for_testing();
+  ASSERT_NE(search_bar, nullptr);
+  views::Button* clear_button = GetClearButton(search_bar);
+  ASSERT_NE(clear_button, nullptr);
+  EXPECT_FALSE(clear_button->GetVisible());
+
+  search_bar->SetText(u"Downloads");
+  ASSERT_NE(root->GetMenuItemByID(kActionShowDownloadsPage), nullptr);
+  EXPECT_TRUE(clear_button->GetVisible());
+  EXPECT_TRUE(GetBackButton(search_bar)->GetVisible());
+
+  views::test::ButtonTestApi(clear_button).NotifyDefaultMouseClick();
+
+  // The query is gone, but the results stay until back is pressed.
+  EXPECT_TRUE(search_bar->GetText().empty());
+  EXPECT_FALSE(clear_button->GetVisible());
+  EXPECT_NE(root->GetMenuItemByID(kActionShowDownloadsPage), nullptr);
+  EXPECT_EQ(root->GetMenuItemByID(kActionPrint), nullptr);
+  EXPECT_TRUE(GetBackButton(search_bar)->GetVisible());
+
+  views::test::ButtonTestApi(GetBackButton(search_bar))
+      .NotifyDefaultMouseClick();
+  EXPECT_NE(root->GetMenuItemByID(kActionPrint), nullptr);
+  EXPECT_FALSE(GetBackButton(search_bar)->GetVisible());
 
   EXPECT_CALL(on_menu_closed, Run()).Times(1);
   menu.CloseMenu();
@@ -3742,6 +3784,69 @@ TEST_F(ActionAppMenuTest, ZoomAndBlockButtonMetrics) {
                                      MENU_ACTION_NEW_TAB, 1);
   histogram_tester.ExpectTotalCount("WrenchMenu.TimeToAction.NewTab", 0);
   histogram_tester.ExpectTotalCount("WrenchMenu.TimeToAction", 1);
+}
+
+// Regression test for b/576555601: invoking a zoom row button action (such as
+// fullscreen) can synchronously close and destroy ActionAppMenu while
+// MenuController is still on the stack and defers MenuRunnerImpl and
+// AppMenuZoomView destruction.
+TEST_F(ActionAppMenuTest, ZoomButtonDestroyingMenuDuringEventDispatch) {
+  widget_->Show();
+  base::MockCallback<base::RepeatingClosure> on_menu_closed;
+  auto menu = std::make_unique<ActionAppMenu>(&mock_window_interface_,
+                                              on_menu_closed.Get());
+  menu->RunMenu(button_->button_controller(), views::MenuRunner::NO_FLAGS);
+  ASSERT_TRUE(menu->IsShowing());
+
+  views::MenuItemView* root = menu->root_menu_item_for_testing();
+  ASSERT_TRUE(root);
+  views::MenuItemView* zoom_item = root->GetMenuItemByID(kActionZoomSubmenu);
+  ASSERT_TRUE(zoom_item);
+  zoom_item->ScrollViewToVisible();
+  auto* zoom_view =
+      views::AsViewClass<AppMenuZoomView>(zoom_item->children()[0]);
+  ASSERT_TRUE(zoom_view);
+  views::ImageButton* plus_button = zoom_view->zoom_plus_button_for_testing();
+  ASSERT_TRUE(plus_button);
+
+  views::Widget* menu_widget = zoom_view->GetWidget();
+  ASSERT_TRUE(menu_widget);
+  menu_widget->LayoutRootViewIfNecessary();
+
+  EXPECT_CALL(on_menu_closed, Run()).Times(1);
+  EXPECT_CALL(mock_action_invoked_,
+              Call(kActionZoomPlus, testing::_, testing::_))
+      .Times(1)
+      .WillOnce([&](actions::ActionId, actions::ActionItem*,
+                    actions::ActionInvocationContext) {
+        // Synchronously close and destroy ActionAppMenu (matching
+        // AppMenuButton::CloseMenu()) while MenuController is handling the
+        // mouse release event, deferring MenuRunnerImpl and AppMenuZoomView
+        // destruction until OnMouseReleased() unwinds.
+        menu->CloseMenu();
+        menu.reset();
+        // Clicking the still-alive button while ActionAppMenu is destroyed must
+        // be a safe no-op rather than dereferencing freed ActionAppMenu state.
+        views::test::ButtonTestApi(plus_button).NotifyDefaultMouseClick();
+      });
+
+  const gfx::Point point_in_screen =
+      plus_button->GetBoundsInScreen().CenterPoint();
+  gfx::Point point_in_menu = point_in_screen;
+  views::View::ConvertPointFromScreen(menu_widget->GetRootView(),
+                                      &point_in_menu);
+
+  ui::MouseEvent press_event(
+      ui::EventType::kMousePressed, point_in_menu, point_in_screen,
+      base::TimeTicks(), ui::EF_LEFT_MOUSE_BUTTON, ui::EF_LEFT_MOUSE_BUTTON);
+  menu_widget->OnMouseEvent(&press_event);
+
+  ui::MouseEvent release_event(
+      ui::EventType::kMouseReleased, point_in_menu, point_in_screen,
+      base::TimeTicks(), ui::EF_LEFT_MOUSE_BUTTON, ui::EF_LEFT_MOUSE_BUTTON);
+  menu_widget->OnMouseEvent(&release_event);
+
+  EXPECT_EQ(menu, nullptr);
 }
 
 TEST_F(ActionAppMenuTest, SafetyHubNotificationMetrics) {

@@ -937,7 +937,443 @@ public class GroupedTabListDataProviderUnitTest extends TabListDataProviderTestB
     }
 
     // ============================================================================================
-    // Section K: Concurrency, Lifecycle & State Recovery
+    // Section J: Reordering & Spatial Moves
+    // ============================================================================================
+
+    @Test
+    public void testDidMoveTab_StandaloneTab_MovesDown() {
+        setUpProviderWithTabs(/* supportsGroupExpansion= */ false, mTab1, mTab2, mTab3);
+        assertItems(item(TAB1_ID), item(TAB2_ID), item(TAB3_ID));
+
+        // Moving mTab1 down after mTab3 emits onItemsMoved with after=mTab3.
+        moveTab(mTab1, /* newIndex= */ 2);
+
+        verify(mObserver).onItemsMoved(List.of(item(TAB1_ID)), /* after= */ item(TAB3_ID));
+        assertItems(item(TAB2_ID), item(TAB3_ID), item(TAB1_ID));
+    }
+
+    @Test
+    public void testDidMoveTab_StandaloneTab_MovesUp() {
+        setUpProviderWithTabs(/* supportsGroupExpansion= */ false, mTab1, mTab2, mTab3);
+        assertItems(item(TAB1_ID), item(TAB2_ID), item(TAB3_ID));
+
+        // Moving mTab3 up to the start emits onItemsMoved with after=null.
+        moveTab(mTab3, /* newIndex= */ 0);
+
+        verify(mObserver).onItemsMoved(List.of(item(TAB3_ID)), /* after= */ null);
+        assertItems(item(TAB3_ID), item(TAB1_ID), item(TAB2_ID));
+    }
+
+    @Test
+    public void testDidMoveTab_StandaloneTab_MovesPastCollapsedGroup() {
+        groupTabs(TAB_GROUP_ID, mTab2, mTab3);
+        setUpProviderWithTabs(/* supportsGroupExpansion= */ false, mTab1, mTab2, mTab3);
+        assertItems(
+                item(TAB1_ID),
+                group(TAB_GROUP_ID, /* isSelected= */ false, /* isCollapsed= */ true));
+
+        // Moving mTab1 down after the group emits onItemsMoved with after=group.
+        moveTab(mTab1, /* newIndex= */ 2);
+
+        verify(mObserver)
+                .onItemsMoved(
+                        List.of(item(TAB1_ID)),
+                        /* after= */ group(
+                                TAB_GROUP_ID, /* isSelected= */ false, /* isCollapsed= */ true));
+        assertItems(
+                group(TAB_GROUP_ID, /* isSelected= */ false, /* isCollapsed= */ true),
+                item(TAB1_ID));
+    }
+
+    @Test
+    public void testDidMoveTab_StandaloneTab_MovesPastExpandedGroup() {
+        groupTabs(TAB_GROUP_ID, mTab2, mTab3);
+        mCollapsed.put(TAB_GROUP_ID, /* value= */ false);
+        setUpProviderWithTabs(/* supportsGroupExpansion= */ true, mTab1, mTab2, mTab3);
+        assertItems(
+                item(TAB1_ID),
+                group(TAB_GROUP_ID, /* isSelected= */ false, /* isCollapsed= */ false),
+                item(TAB2_ID),
+                item(TAB3_ID));
+
+        // Moving mTab1 down after the group emits onItemsMoved with after=last member tab.
+        moveTab(mTab1, /* newIndex= */ 2);
+
+        verify(mObserver).onItemsMoved(List.of(item(TAB1_ID)), /* after= */ item(TAB3_ID));
+        assertItems(
+                group(TAB_GROUP_ID, /* isSelected= */ false, /* isCollapsed= */ false),
+                item(TAB2_ID),
+                item(TAB3_ID),
+                item(TAB1_ID));
+    }
+
+    @Test
+    public void testDidMoveTab_GroupedTab_Ignored() {
+        groupTabs(TAB_GROUP_ID, mTab1, mTab2);
+        setUpProviderWithTabs(/* supportsGroupExpansion= */ false, mTab1, mTab2, mTab3);
+        assertItems(
+                group(TAB_GROUP_ID, /* isSelected= */ false, /* isCollapsed= */ true),
+                item(TAB3_ID));
+
+        // didMoveTab ignores grouped tabs (whole group moves defer to onTabGroupMoved;
+        // intra-group moves defer to didMoveWithinGroup).
+        moveTab(mTab1, /* newIndex= */ 1);
+
+        verify(mObserver, never()).onItemsMoved(any(), any());
+        assertItems(
+                group(TAB_GROUP_ID, /* isSelected= */ false, /* isCollapsed= */ true),
+                item(TAB3_ID));
+    }
+
+    @Test
+    public void testOnTabGroupMoved_CollapsedMode_MovesDown() {
+        groupTabs(TAB_GROUP_ID, mTab1, mTab2);
+        setUpProviderWithTabs(/* supportsGroupExpansion= */ false, mTab1, mTab2, mTab3);
+        assertItems(
+                group(TAB_GROUP_ID, /* isSelected= */ false, /* isCollapsed= */ true),
+                item(TAB3_ID));
+
+        // Moving group after mTab3 emits onItemsMoved with after=mTab3.
+        moveTabGroup(TAB_GROUP_ID, /* newIndex= */ 1);
+
+        verify(mObserver)
+                .onItemsMoved(
+                        List.of(
+                                group(
+                                        TAB_GROUP_ID,
+                                        /* isSelected= */ false,
+                                        /* isCollapsed= */ true)),
+                        /* after= */ item(TAB3_ID));
+        assertItems(
+                item(TAB3_ID),
+                group(TAB_GROUP_ID, /* isSelected= */ false, /* isCollapsed= */ true));
+    }
+
+    @Test
+    public void testOnTabGroupMoved_CollapsedMode_MovesUp() {
+        groupTabs(TAB_GROUP_ID, mTab1, mTab2);
+        setUpProviderWithTabs(/* supportsGroupExpansion= */ false, mTab3, mTab1, mTab2);
+        assertItems(
+                item(TAB3_ID),
+                group(TAB_GROUP_ID, /* isSelected= */ false, /* isCollapsed= */ true));
+
+        // Moving group to the start emits onItemsMoved with after=null.
+        moveTabGroup(TAB_GROUP_ID, /* newIndex= */ 0);
+
+        verify(mObserver)
+                .onItemsMoved(
+                        List.of(
+                                group(
+                                        TAB_GROUP_ID,
+                                        /* isSelected= */ false,
+                                        /* isCollapsed= */ true)),
+                        /* after= */ null);
+        assertItems(
+                group(TAB_GROUP_ID, /* isSelected= */ false, /* isCollapsed= */ true),
+                item(TAB3_ID));
+    }
+
+    @Test
+    public void testOnTabGroupMoved_NestedMode_MovesContiguousBlock() {
+        groupTabs(TAB_GROUP_ID, mTab1, mTab2);
+        mCollapsed.put(TAB_GROUP_ID, /* value= */ false);
+        setUpProviderWithTabs(/* supportsGroupExpansion= */ true, mTab1, mTab2, mTab3);
+        assertItems(
+                group(TAB_GROUP_ID, /* isSelected= */ false, /* isCollapsed= */ false),
+                item(TAB1_ID),
+                item(TAB2_ID),
+                item(TAB3_ID));
+
+        // Moving expanded group after mTab3 moves header and child tabs as a contiguous block.
+        moveTabGroup(TAB_GROUP_ID, /* newIndex= */ 1);
+
+        verify(mObserver)
+                .onItemsMoved(
+                        List.of(
+                                group(
+                                        TAB_GROUP_ID,
+                                        /* isSelected= */ false,
+                                        /* isCollapsed= */ false),
+                                item(TAB1_ID),
+                                item(TAB2_ID)),
+                        /* after= */ item(TAB3_ID));
+        assertItems(
+                item(TAB3_ID),
+                group(TAB_GROUP_ID, /* isSelected= */ false, /* isCollapsed= */ false),
+                item(TAB1_ID),
+                item(TAB2_ID));
+    }
+
+    @Test
+    public void testOnTabGroupMoved_IdenticalIndex_NoOps() {
+        groupTabs(TAB_GROUP_ID, mTab1, mTab2);
+        setUpProviderWithTabs(/* supportsGroupExpansion= */ false, mTab1, mTab2, mTab3);
+
+        mTabGroupObserver.onTabGroupMoved(
+                TAB_GROUP_ID, /* tabModelOldIndex= */ 0, /* tabModelNewIndex= */ 0);
+
+        verify(mObserver, never()).onItemsMoved(any(), any());
+        assertItems(
+                group(TAB_GROUP_ID, /* isSelected= */ false, /* isCollapsed= */ true),
+                item(TAB3_ID));
+    }
+
+    @Test
+    public void testDidMoveWithinGroup_CollapsedMode_UpdatesGroupPayloadOnly() {
+        groupTabs(TAB_GROUP_ID, mTab1, mTab2);
+        setUpProviderWithTabs(/* supportsGroupExpansion= */ false, mTab1, mTab2, mTab3);
+        assertItems(
+                group(TAB_GROUP_ID, /* isSelected= */ false, /* isCollapsed= */ true),
+                item(TAB3_ID));
+
+        // Moving mTab2 before mTab1 within the group emits TAB_GROUP_ORDER on the group card.
+        moveTabWithinGroup(mTab2, /* newIndex= */ 0);
+
+        verify(mObserver, never()).onItemsMoved(any(), any());
+        verify(mObserver)
+                .onItemUpdated(
+                        group(TAB_GROUP_ID, /* isSelected= */ false, /* isCollapsed= */ true),
+                        PayloadType.TAB_GROUP_ORDER);
+        assertItems(
+                group(TAB_GROUP_ID, /* isSelected= */ false, /* isCollapsed= */ true),
+                item(TAB3_ID));
+    }
+
+    @Test
+    public void testDidMoveWithinGroup_NestedMode_MovesChildTabAndUpdatesGroupPayload() {
+        groupTabs(TAB_GROUP_ID, mTab1, mTab2);
+        mCollapsed.put(TAB_GROUP_ID, /* value= */ false);
+        setUpProviderWithTabs(/* supportsGroupExpansion= */ true, mTab1, mTab2, mTab3);
+        assertItems(
+                group(TAB_GROUP_ID, /* isSelected= */ false, /* isCollapsed= */ false),
+                item(TAB1_ID),
+                item(TAB2_ID),
+                item(TAB3_ID));
+
+        // Moving mTab2 before mTab1 within the group repositions the child item and emits
+        // TAB_GROUP_ORDER on the group header.
+        moveTabWithinGroup(mTab2, /* newIndex= */ 0);
+
+        verify(mObserver)
+                .onItemsMoved(
+                        List.of(item(TAB2_ID)),
+                        /* after= */ group(
+                                TAB_GROUP_ID, /* isSelected= */ false, /* isCollapsed= */ false));
+        verify(mObserver)
+                .onItemUpdated(
+                        group(TAB_GROUP_ID, /* isSelected= */ false, /* isCollapsed= */ false),
+                        PayloadType.TAB_GROUP_ORDER);
+        assertItems(
+                group(TAB_GROUP_ID, /* isSelected= */ false, /* isCollapsed= */ false),
+                item(TAB2_ID),
+                item(TAB1_ID),
+                item(TAB3_ID));
+    }
+
+    @Test
+    public void testDidMoveWithinGroup_IdenticalIndex_NoOps() {
+        groupTabs(TAB_GROUP_ID, mTab1, mTab2);
+        setUpProviderWithTabs(/* supportsGroupExpansion= */ false, mTab1, mTab2, mTab3);
+
+        mTabGroupObserver.didMoveWithinGroup(
+                mTab1, /* tabModelOldIndex= */ 0, /* tabModelNewIndex= */ 0);
+
+        verifyNoMoreInteractions(mObserver);
+        assertItems(
+                group(TAB_GROUP_ID, /* isSelected= */ false, /* isCollapsed= */ true),
+                item(TAB3_ID));
+    }
+
+    // ============================================================================================
+    // Section K: Selection
+    // ============================================================================================
+
+    @Test
+    public void testDidSelectTab_CollapsedMode_StandaloneTabToGroup_SelectsGroup() {
+        groupTabs(TAB_GROUP_ID, mTab2, mTab3);
+        mSelectedTab = mTab1;
+        setUpProviderWithTabs(/* supportsGroupExpansion= */ false, mTab1, mTab2, mTab3);
+        assertItems(
+                selected(TAB1_ID),
+                group(TAB_GROUP_ID, /* isSelected= */ false, /* isCollapsed= */ true));
+
+        selectTab(mTab2, TAB1_ID);
+
+        InOrder inOrder = inOrder(mObserver);
+        inOrder.verify(mObserver).onItemUpdated(item(TAB1_ID), PayloadType.SELECTION);
+        inOrder.verify(mObserver)
+                .onItemUpdated(
+                        group(TAB_GROUP_ID, /* isSelected= */ true, /* isCollapsed= */ true),
+                        PayloadType.SELECTION);
+        assertItems(
+                item(TAB1_ID),
+                group(TAB_GROUP_ID, /* isSelected= */ true, /* isCollapsed= */ true));
+    }
+
+    @Test
+    public void testDidSelectTab_CollapsedMode_SameGroup_NoOps() {
+        groupTabs(TAB_GROUP_ID, mTab2, mTab3);
+        mSelectedTab = mTab2;
+        setUpProviderWithTabs(/* supportsGroupExpansion= */ false, mTab1, mTab2, mTab3);
+        assertItems(
+                item(TAB1_ID),
+                group(TAB_GROUP_ID, /* isSelected= */ true, /* isCollapsed= */ true));
+
+        // Selecting another tab within the same group drops the update to avoid redundant churn.
+        selectTab(mTab3, TAB2_ID);
+
+        verifyNoMoreInteractions(mObserver);
+        assertItems(
+                item(TAB1_ID),
+                group(TAB_GROUP_ID, /* isSelected= */ true, /* isCollapsed= */ true));
+    }
+
+    @Test
+    public void testDidSelectTab_NestedMode_SelectsChildTab_NeverSelectsGroupHeader() {
+        groupTabs(TAB_GROUP_ID, mTab2, mTab3);
+        mCollapsed.put(TAB_GROUP_ID, /* value= */ false);
+        mSelectedTab = mTab1;
+        setUpProviderWithTabs(/* supportsGroupExpansion= */ true, mTab1, mTab2, mTab3);
+        assertItems(
+                selected(TAB1_ID),
+                group(TAB_GROUP_ID, /* isSelected= */ false, /* isCollapsed= */ false),
+                item(TAB2_ID),
+                item(TAB3_ID));
+
+        selectTab(mTab2, TAB1_ID);
+
+        InOrder inOrder = inOrder(mObserver);
+        inOrder.verify(mObserver).onItemUpdated(item(TAB1_ID), PayloadType.SELECTION);
+        inOrder.verify(mObserver).onItemUpdated(selected(TAB2_ID), PayloadType.SELECTION);
+        assertItems(
+                item(TAB1_ID),
+                group(TAB_GROUP_ID, /* isSelected= */ false, /* isCollapsed= */ false),
+                selected(TAB2_ID),
+                item(TAB3_ID));
+    }
+
+    @Test
+    public void testDidSelectTab_NestedMode_SwitchBetweenChildren() {
+        groupTabs(TAB_GROUP_ID, mTab2, mTab3);
+        mCollapsed.put(TAB_GROUP_ID, /* value= */ false);
+        mSelectedTab = mTab2;
+        setUpProviderWithTabs(/* supportsGroupExpansion= */ true, mTab1, mTab2, mTab3);
+        assertItems(
+                item(TAB1_ID),
+                group(TAB_GROUP_ID, /* isSelected= */ false, /* isCollapsed= */ false),
+                selected(TAB2_ID),
+                item(TAB3_ID));
+
+        selectTab(mTab3, TAB2_ID);
+
+        InOrder inOrder = inOrder(mObserver);
+        inOrder.verify(mObserver).onItemUpdated(item(TAB2_ID), PayloadType.SELECTION);
+        inOrder.verify(mObserver).onItemUpdated(selected(TAB3_ID), PayloadType.SELECTION);
+        assertItems(
+                item(TAB1_ID),
+                group(TAB_GROUP_ID, /* isSelected= */ false, /* isCollapsed= */ false),
+                item(TAB2_ID),
+                selected(TAB3_ID));
+    }
+
+    // ============================================================================================
+    // Section L: Pin State
+    // ============================================================================================
+
+    @Test
+    public void testDidChangePinState_StandaloneTab_PinsTab() {
+        setUpProviderWithTabs(/* supportsGroupExpansion= */ false, mTab1, mTab2);
+        assertItems(item(TAB1_ID), item(TAB2_ID));
+
+        mTab2.setIsPinned(true);
+        mTabModelObserver.didChangePinState(mTab2);
+
+        verify(mObserver).onItemUpdated(pinned(TAB2_ID), PayloadType.PIN_STATE);
+        assertItems(item(TAB1_ID), pinned(TAB2_ID));
+    }
+
+    @Test
+    public void testDidChangePinState_StandaloneTab_UnpinsTab() {
+        mTab1.setIsPinned(true);
+        setUpProviderWithTabs(/* supportsGroupExpansion= */ false, mTab1, mTab2);
+        assertItems(pinned(TAB1_ID), item(TAB2_ID));
+
+        mTab1.setIsPinned(false);
+        mTabModelObserver.didChangePinState(mTab1);
+
+        verify(mObserver).onItemUpdated(item(TAB1_ID), PayloadType.PIN_STATE);
+        assertItems(item(TAB1_ID), item(TAB2_ID));
+    }
+
+    @Test
+    public void testDidChangePinState_NoChange_NoOps() {
+        setUpProviderWithTabs(/* supportsGroupExpansion= */ false, mTab1, mTab2);
+
+        // Calling didChangePinState when isPinned has not changed no-ops.
+        mTabModelObserver.didChangePinState(mTab1);
+
+        verifyNoMoreInteractions(mObserver);
+        assertItems(item(TAB1_ID), item(TAB2_ID));
+    }
+
+    // ============================================================================================
+    // Section M: Multi-Selection
+    // ============================================================================================
+
+    @Test
+    public void testOnTabsSelectionChanged_StandaloneTabs_UpdatesMultiSelectedTabs() {
+        setUpProviderWithTabs(/* supportsGroupExpansion= */ false, mTab1, mTab2, mTab3);
+        assertItems(item(TAB1_ID), item(TAB2_ID), item(TAB3_ID));
+
+        setMultiSelectedTabs(TAB1_ID, TAB3_ID);
+
+        verify(mObserver).onItemUpdated(multiSelected(TAB1_ID), PayloadType.MULTI_SELECTION);
+        verify(mObserver).onItemUpdated(multiSelected(TAB3_ID), PayloadType.MULTI_SELECTION);
+        assertItems(multiSelected(TAB1_ID), item(TAB2_ID), multiSelected(TAB3_ID));
+
+        setMultiSelectedTabs(TAB2_ID);
+
+        verify(mObserver).onItemUpdated(item(TAB1_ID), PayloadType.MULTI_SELECTION);
+        verify(mObserver).onItemUpdated(multiSelected(TAB2_ID), PayloadType.MULTI_SELECTION);
+        verify(mObserver).onItemUpdated(item(TAB3_ID), PayloadType.MULTI_SELECTION);
+        assertItems(item(TAB1_ID), multiSelected(TAB2_ID), item(TAB3_ID));
+    }
+
+    @Test
+    public void testOnTabsSelectionChanged_NestedMode_UpdatesChildTabs_SkipsGroupHeader() {
+        groupTabs(TAB_GROUP_ID, mTab2, mTab3);
+        mCollapsed.put(TAB_GROUP_ID, /* value= */ false);
+        setUpProviderWithTabs(/* supportsGroupExpansion= */ true, mTab1, mTab2, mTab3);
+        assertItems(
+                item(TAB1_ID),
+                group(TAB_GROUP_ID, /* isSelected= */ false, /* isCollapsed= */ false),
+                item(TAB2_ID),
+                item(TAB3_ID));
+
+        setMultiSelectedTabs(TAB2_ID);
+
+        verify(mObserver).onItemUpdated(multiSelected(TAB2_ID), PayloadType.MULTI_SELECTION);
+        verifyNoMoreInteractions(mObserver);
+        assertItems(
+                item(TAB1_ID),
+                group(TAB_GROUP_ID, /* isSelected= */ false, /* isCollapsed= */ false),
+                multiSelected(TAB2_ID),
+                item(TAB3_ID));
+    }
+
+    @Test
+    public void testOnTabsSelectionChanged_NoChange_NoOps() {
+        setUpProviderWithTabs(/* supportsGroupExpansion= */ false, mTab1, mTab2);
+
+        // Invoking onTabsSelectionChanged when selection set is unchanged emits nothing.
+        mTabModelObserver.onTabsSelectionChanged();
+
+        verifyNoMoreInteractions(mObserver);
+        assertItems(item(TAB1_ID), item(TAB2_ID));
+    }
+
+    // ============================================================================================
+    // Section N: Concurrency, Lifecycle & State Recovery
     // ============================================================================================
 
     @Test

@@ -3614,6 +3614,23 @@
             ]
         }
     ],
+    "CertificateCollectionEnabled": [
+        {
+            "platforms": [
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "CertificateCollectionEnabled"
+                    ]
+                }
+            ]
+        }
+    ],
     "ChildProcessSecurityPolicyRust": [
         {
             "platforms": [
@@ -5156,6 +5173,25 @@
                     "name": "Enabled",
                     "enable_features": [
                         "ContextualTasks"
+                    ]
+                }
+            ]
+        }
+    ],
+    "ContextualTasksTabAndClickBehavior": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "ContextualTasksClobberActiveTab",
+                        "ContextualTasksSidePanelTabState"
                     ]
                 }
             ]

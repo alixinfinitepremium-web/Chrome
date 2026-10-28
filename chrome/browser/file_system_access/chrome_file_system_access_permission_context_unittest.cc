@@ -1751,6 +1751,135 @@ TEST_F(ChromeFileSystemAccessPermissionContextTest,
             SensitiveDirectoryResult::kAllowed);
 }
 
+// Testing that writes to */.mvn and its descendants (such as .mvn/jvm.config)
+// are blocked, while reads and non-.mvn workspace paths stay allowed.
+TEST_F(ChromeFileSystemAccessPermissionContextTest,
+       ConfirmSensitiveEntryAccess_MvnWriteBlock) {
+#if defined(FILE_PATH_USES_DRIVE_LETTERS)
+  base::FilePath root(FILE_PATH_LITERAL("c:\\"));
+#else
+  base::FilePath root(FILE_PATH_LITERAL("/"));
+#endif
+  const base::FilePath workspace_dir = root.Append(FILE_PATH_LITERAL("a"));
+  const base::FilePath mvn_dir =
+      workspace_dir.Append(FILE_PATH_LITERAL(".mvn"));
+  const base::FilePath jvm_config =
+      mvn_dir.Append(FILE_PATH_LITERAL("jvm.config"));
+  const base::FilePath maven_config =
+      mvn_dir.Append(FILE_PATH_LITERAL("maven.config"));
+  const base::FilePath extensions_xml =
+      mvn_dir.Append(FILE_PATH_LITERAL("extensions.xml"));
+  const base::FilePath wrapper_dir =
+      mvn_dir.Append(FILE_PATH_LITERAL("wrapper"));
+  const base::FilePath wrapper_props =
+      wrapper_dir.Append(FILE_PATH_LITERAL("maven-wrapper.properties"));
+
+  // .mvn directory is blocked for save and programmatic write, but allowed for
+  // read.
+  EXPECT_EQ(ConfirmSensitiveEntryAccessSync(
+                permission_context(), PathInfo(mvn_dir), HandleType::kDirectory,
+                AccessTrigger::kSave),
+            SensitiveDirectoryResult::kAbort);
+  EXPECT_EQ(ConfirmSensitiveEntryAccessSync(
+                permission_context(), PathInfo(mvn_dir), HandleType::kDirectory,
+                AccessTrigger::kProgrammaticWrite),
+            SensitiveDirectoryResult::kAbort);
+  EXPECT_EQ(ConfirmSensitiveEntryAccessSync(
+                permission_context(), PathInfo(mvn_dir), HandleType::kDirectory,
+                AccessTrigger::kOpen),
+            SensitiveDirectoryResult::kAllowed);
+  EXPECT_EQ(ConfirmSensitiveEntryAccessSync(
+                permission_context(), PathInfo(mvn_dir), HandleType::kDirectory,
+                AccessTrigger::kProgrammaticRead),
+            SensitiveDirectoryResult::kAllowed);
+
+  // .mvn/jvm.config and other files/subdirectories inside .mvn are blocked for
+  // save and programmatic write, but allowed for read.
+  EXPECT_EQ(ConfirmSensitiveEntryAccessSync(
+                permission_context(), PathInfo(jvm_config), HandleType::kFile,
+                AccessTrigger::kSave),
+            SensitiveDirectoryResult::kAbort);
+  EXPECT_EQ(ConfirmSensitiveEntryAccessSync(
+                permission_context(), PathInfo(jvm_config), HandleType::kFile,
+                AccessTrigger::kProgrammaticWrite),
+            SensitiveDirectoryResult::kAbort);
+  EXPECT_EQ(ConfirmSensitiveEntryAccessSync(
+                permission_context(), PathInfo(jvm_config), HandleType::kFile,
+                AccessTrigger::kOpen),
+            SensitiveDirectoryResult::kAllowed);
+  EXPECT_EQ(ConfirmSensitiveEntryAccessSync(
+                permission_context(), PathInfo(jvm_config), HandleType::kFile,
+                AccessTrigger::kProgrammaticRead),
+            SensitiveDirectoryResult::kAllowed);
+  EXPECT_EQ(ConfirmSensitiveEntryAccessSync(
+                permission_context(), PathInfo(maven_config), HandleType::kFile,
+                AccessTrigger::kProgrammaticWrite),
+            SensitiveDirectoryResult::kAbort);
+  EXPECT_EQ(ConfirmSensitiveEntryAccessSync(
+                permission_context(), PathInfo(extensions_xml),
+                HandleType::kFile, AccessTrigger::kProgrammaticWrite),
+            SensitiveDirectoryResult::kAbort);
+  EXPECT_EQ(ConfirmSensitiveEntryAccessSync(
+                permission_context(), PathInfo(wrapper_dir),
+                HandleType::kDirectory, AccessTrigger::kProgrammaticWrite),
+            SensitiveDirectoryResult::kAbort);
+  EXPECT_EQ(ConfirmSensitiveEntryAccessSync(
+                permission_context(), PathInfo(wrapper_props),
+                HandleType::kFile, AccessTrigger::kProgrammaticWrite),
+            SensitiveDirectoryResult::kAbort);
+
+  // Case variations of .mvn and .mvn/jvm.config are blocked for save and
+  // programmatic write.
+  EXPECT_EQ(ConfirmSensitiveEntryAccessSync(
+                permission_context(),
+                PathInfo(workspace_dir.Append(FILE_PATH_LITERAL(".MVN"))),
+                HandleType::kDirectory, AccessTrigger::kProgrammaticWrite),
+            SensitiveDirectoryResult::kAbort);
+  EXPECT_EQ(ConfirmSensitiveEntryAccessSync(
+                permission_context(),
+                PathInfo(workspace_dir.Append(FILE_PATH_LITERAL(".MVN"))
+                             .Append(FILE_PATH_LITERAL("JVM.CONFIG"))),
+                HandleType::kFile, AccessTrigger::kSave),
+            SensitiveDirectoryResult::kAbort);
+  EXPECT_EQ(ConfirmSensitiveEntryAccessSync(
+                permission_context(),
+                PathInfo(workspace_dir.Append(FILE_PATH_LITERAL(".Mvn"))
+                             .Append(FILE_PATH_LITERAL("Jvm.Config"))),
+                HandleType::kFile, AccessTrigger::kProgrammaticWrite),
+            SensitiveDirectoryResult::kAbort);
+
+  // Parent workspace directory, child project files, and files named
+  // jvm.config outside of .mvn remain allowed for save and programmatic write.
+  EXPECT_EQ(ConfirmSensitiveEntryAccessSync(
+                permission_context(), PathInfo(workspace_dir),
+                HandleType::kDirectory, AccessTrigger::kSave),
+            SensitiveDirectoryResult::kAllowed);
+  EXPECT_EQ(
+      ConfirmSensitiveEntryAccessSync(
+          permission_context(),
+          PathInfo(workspace_dir.Append(FILE_PATH_LITERAL("child-project"))
+                       .Append(FILE_PATH_LITERAL("pom.xml"))),
+          HandleType::kFile, AccessTrigger::kProgrammaticWrite),
+      SensitiveDirectoryResult::kAllowed);
+  EXPECT_EQ(ConfirmSensitiveEntryAccessSync(
+                permission_context(),
+                PathInfo(workspace_dir.Append(FILE_PATH_LITERAL("jvm.config"))),
+                HandleType::kFile, AccessTrigger::kProgrammaticWrite),
+            SensitiveDirectoryResult::kAllowed);
+  EXPECT_EQ(ConfirmSensitiveEntryAccessSync(
+                permission_context(),
+                PathInfo(workspace_dir.Append(FILE_PATH_LITERAL(".mvn2"))
+                             .Append(FILE_PATH_LITERAL("jvm.config"))),
+                HandleType::kFile, AccessTrigger::kProgrammaticWrite),
+            SensitiveDirectoryResult::kAllowed);
+  EXPECT_EQ(ConfirmSensitiveEntryAccessSync(
+                permission_context(),
+                PathInfo(workspace_dir.Append(FILE_PATH_LITERAL(".mvn_other"))
+                             .Append(FILE_PATH_LITERAL("jvm.config"))),
+                HandleType::kFile, AccessTrigger::kProgrammaticWrite),
+            SensitiveDirectoryResult::kAllowed);
+}
+
 #if BUILDFLAG(IS_ANDROID)
 TEST_F(ChromeFileSystemAccessPermissionContextTest,
        ConfirmSensitiveEntryAccess_ContentUri) {
@@ -5412,6 +5541,132 @@ TEST_F(ChromeFileSystemAccessPermissionContextTest,
   EXPECT_EQ(grant2->GetStatus(), PermissionStatus::GRANTED);
 
   EXPECT_FALSE(observer);
+}
+
+TEST_F(ChromeFileSystemAccessPermissionContextTest,
+       ReadGrantDestroyedOnHandleTypeChange) {
+  auto file_grant = permission_context()->GetReadPermissionGrant(
+      kTestOrigin, kTestPathInfo, HandleType::kFile, AccessTrigger::kOpen);
+  EXPECT_EQ(file_grant->GetStatus(), PermissionStatus::GRANTED);
+
+  auto file_observer =
+      SelfDestructingPermissionGrantObserver::Create(std::move(file_grant));
+
+  // Requesting a read grant for the same path with a different handle type
+  // revokes the existing grant, causing `file_observer` to destroy itself and
+  // drop the last reference to `file_grant`.
+  auto dir_grant = permission_context()->GetReadPermissionGrant(
+      kTestOrigin, kTestPathInfo, HandleType::kDirectory,
+      AccessTrigger::kDragAndDrop);
+  EXPECT_FALSE(file_observer);
+  EXPECT_EQ(dir_grant->GetStatus(), PermissionStatus::GRANTED);
+
+  // Verify the newly created directory grant is tracked in the active grants
+  // map by revoking active grants for the path.
+  permission_context()->RevokeActiveGrantsForTesting(kTestOrigin,
+                                                     kTestPathInfo.path);
+  EXPECT_EQ(dir_grant->GetStatus(), PermissionStatus::ASK);
+
+  // Also verify the reverse transition (directory to file).
+  dir_grant = permission_context()->GetReadPermissionGrant(
+      kTestOrigin, kTestPathInfo, HandleType::kDirectory,
+      AccessTrigger::kDragAndDrop);
+  EXPECT_EQ(dir_grant->GetStatus(), PermissionStatus::GRANTED);
+
+  auto dir_observer =
+      SelfDestructingPermissionGrantObserver::Create(std::move(dir_grant));
+  auto new_file_grant = permission_context()->GetReadPermissionGrant(
+      kTestOrigin, kTestPathInfo, HandleType::kFile, AccessTrigger::kOpen);
+  EXPECT_FALSE(dir_observer);
+  EXPECT_EQ(new_file_grant->GetStatus(), PermissionStatus::GRANTED);
+
+  permission_context()->RevokeActiveGrantsForTesting(kTestOrigin,
+                                                     kTestPathInfo.path);
+  EXPECT_EQ(new_file_grant->GetStatus(), PermissionStatus::ASK);
+}
+
+TEST_F(ChromeFileSystemAccessPermissionContextTest,
+       WriteGrantDestroyedOnHandleTypeChange) {
+  auto file_grant = permission_context()->GetWritePermissionGrant(
+      kTestOrigin, kTestPathInfo, HandleType::kFile, AccessTrigger::kSave);
+  EXPECT_EQ(file_grant->GetStatus(), PermissionStatus::GRANTED);
+
+  auto file_observer =
+      SelfDestructingPermissionGrantObserver::Create(std::move(file_grant));
+
+  // Requesting a write grant for the same path with a different handle type
+  // revokes the existing grant, causing `file_observer` to destroy itself and
+  // drop the last reference to `file_grant`.
+  auto dir_grant = permission_context()->GetWritePermissionGrant(
+      kTestOrigin, kTestPathInfo, HandleType::kDirectory, AccessTrigger::kSave);
+  EXPECT_FALSE(file_observer);
+  EXPECT_EQ(dir_grant->GetStatus(), PermissionStatus::GRANTED);
+
+  // Verify the newly created directory grant is tracked in the active grants
+  // map by revoking active grants for the path.
+  permission_context()->RevokeActiveGrantsForTesting(kTestOrigin,
+                                                     kTestPathInfo.path);
+  EXPECT_EQ(dir_grant->GetStatus(), PermissionStatus::ASK);
+
+  // Also verify the reverse transition (directory to file).
+  dir_grant = permission_context()->GetWritePermissionGrant(
+      kTestOrigin, kTestPathInfo, HandleType::kDirectory, AccessTrigger::kSave);
+  EXPECT_EQ(dir_grant->GetStatus(), PermissionStatus::GRANTED);
+
+  auto dir_observer =
+      SelfDestructingPermissionGrantObserver::Create(std::move(dir_grant));
+  auto new_file_grant = permission_context()->GetWritePermissionGrant(
+      kTestOrigin, kTestPathInfo, HandleType::kFile, AccessTrigger::kSave);
+  EXPECT_FALSE(dir_observer);
+  EXPECT_EQ(new_file_grant->GetStatus(), PermissionStatus::GRANTED);
+
+  permission_context()->RevokeActiveGrantsForTesting(kTestOrigin,
+                                                     kTestPathInfo.path);
+  EXPECT_EQ(new_file_grant->GetStatus(), PermissionStatus::ASK);
+}
+
+TEST_F(ChromeFileSystemAccessPermissionContextTest,
+       ReadGrantDestroyedOnNotifyEntryRemoved) {
+  base::test::ScopedFeatureList feature_list;
+  feature_list.InitAndEnableFeature(
+      blink::features::kFileSystemAccessRevokeReadOnRemove);
+
+  const auto child_path_info =
+      PathInfo(kTestPathInfo.path.AppendASCII("child.txt"));
+  auto grant = permission_context()->GetReadPermissionGrant(
+      kTestOrigin, child_path_info, HandleType::kFile, AccessTrigger::kOpen);
+  EXPECT_EQ(grant->GetStatus(), PermissionStatus::GRANTED);
+
+  auto observer =
+      SelfDestructingPermissionGrantObserver::Create(std::move(grant));
+
+  permission_context()->NotifyEntryRemoved(kTestOrigin, kTestPathInfo);
+  EXPECT_FALSE(observer);
+  EXPECT_TRUE(permission_context()->IsPathInDowngradedReadPathsForTesting(
+      kTestOrigin, kTestPathInfo.path));
+  EXPECT_TRUE(permission_context()->IsPathInDowngradedReadPathsForTesting(
+      kTestOrigin, child_path_info.path));
+}
+
+TEST_F(ChromeFileSystemAccessPermissionContextTest,
+       WriteGrantDestroyedOnNotifyEntryMoved) {
+  auto grant1 = permission_context()->GetWritePermissionGrant(
+      kTestOrigin, kTestPathInfo, HandleType::kFile, AccessTrigger::kSave);
+  EXPECT_EQ(grant1->GetStatus(), PermissionStatus::GRANTED);
+
+  auto grant2 = permission_context()->GetWritePermissionGrant(
+      kTestOrigin, kTestPathInfo2, HandleType::kFile, AccessTrigger::kSave);
+  EXPECT_EQ(grant2->GetStatus(), PermissionStatus::GRANTED);
+
+  auto observer1 =
+      SelfDestructingPermissionGrantObserver::Create(std::move(grant1));
+  auto observer2 =
+      SelfDestructingPermissionGrantObserver::Create(std::move(grant2));
+
+  permission_context()->NotifyEntryMoved(kTestOrigin, kTestPathInfo,
+                                         kTestPathInfo2);
+  EXPECT_FALSE(observer1);
+  EXPECT_FALSE(observer2);
 }
 
 #if BUILDFLAG(ENTERPRISE_CLOUD_CONTENT_ANALYSIS)
