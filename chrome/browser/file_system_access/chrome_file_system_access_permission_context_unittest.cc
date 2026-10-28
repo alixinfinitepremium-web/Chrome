@@ -743,6 +743,52 @@ TEST_F(ChromeFileSystemAccessPermissionContextTest,
         // BUILDFLAG(IS_ANDROID)
 }
 
+// ~/.cache should be blocked on all platforms even when base::DIR_CACHE points
+// elsewhere (macOS NSCachesDirectory, custom $XDG_CACHE_HOME on Linux/ChromeOS,
+// Android app cache) or does not exist (Windows).
+TEST_F(ChromeFileSystemAccessPermissionContextTest,
+       ConfirmSensitiveEntryAccess_HomeCacheBlockedOnAllPlatforms) {
+  base::FilePath home_dir = temp_dir_.GetPath().AppendASCII("home");
+  ScopedHomeDirOverride home_override = OverrideHomeDir(home_dir);
+#if BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_ANDROID)
+  base::FilePath xdg_cache_dir = temp_dir_.GetPath().AppendASCII("xdg_cache");
+  base::ScopedPathOverride cache_override(base::DIR_CACHE, xdg_cache_dir, true,
+                                          true);
+#endif
+  ResetBlockPath();
+
+  base::FilePath home_cache_dir = home_dir.AppendASCII(".cache");
+  EXPECT_EQ(ConfirmSensitiveEntryAccessSync(
+                permission_context(), PathInfo(home_cache_dir),
+                HandleType::kDirectory, AccessTrigger::kOpen),
+            SensitiveDirectoryResult::kAbort);
+  EXPECT_EQ(ConfirmSensitiveEntryAccessSync(
+                permission_context(), PathInfo(home_cache_dir),
+                HandleType::kDirectory, AccessTrigger::kSave),
+            SensitiveDirectoryResult::kAbort);
+  EXPECT_EQ(ConfirmSensitiveEntryAccessSync(
+                permission_context(),
+                PathInfo(home_cache_dir.AppendASCII("pre-commit")),
+                HandleType::kDirectory, AccessTrigger::kOpen),
+            SensitiveDirectoryResult::kAbort);
+  EXPECT_EQ(ConfirmSensitiveEntryAccessSync(
+                permission_context(),
+                PathInfo(home_cache_dir.AppendASCII("pre-commit")
+                             .AppendASCII("sitecustomize.py")),
+                HandleType::kFile, AccessTrigger::kProgrammaticWrite),
+            SensitiveDirectoryResult::kAbort);
+
+#if BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_ANDROID)
+  // Custom $XDG_CACHE_HOME / Android cache directory remains blocked too.
+  EXPECT_TRUE(IsOpenAbort(xdg_cache_dir, HandleType::kDirectory));
+  EXPECT_TRUE(IsOpenAbort(xdg_cache_dir.AppendASCII("foo"), HandleType::kFile));
+#endif
+
+  // Sibling directories inside DIR_HOME remain allowed.
+  EXPECT_TRUE(
+      IsOpenAllowed(home_dir.AppendASCII("allowed"), HandleType::kDirectory));
+}
+
 // TODO(crbug.com/432011571): Flaky test.
 TEST_F(ChromeFileSystemAccessPermissionContextTest,
        DISABLED_ConfirmSensitiveEntryAccess_BlockChildrenNested) {
@@ -858,6 +904,106 @@ TEST_F(ChromeFileSystemAccessPermissionContextTest,
           permission_context(), PathInfo(home_dir.AppendASCII(".ssh/id_rsa")),
           HandleType::kFile, AccessTrigger::kOpen),
       SensitiveDirectoryResult::kAbort);
+}
+
+// Tests that Vim startup directories and files under `base::DIR_HOME` are
+// blocked across access triggers, while unrelated children of `base::DIR_HOME`
+// remain allowed.
+TEST_F(ChromeFileSystemAccessPermissionContextTest,
+       ConfirmSensitiveEntryAccess_VimStartupPathsBlocked) {
+  base::FilePath home_dir = temp_dir_.GetPath().AppendASCII("home");
+  ScopedHomeDirOverride home_override = OverrideHomeDir(home_dir);
+
+  for (const char* dir_name : {".vim", "vimfiles"}) {
+    base::FilePath vim_dir = home_dir.AppendASCII(dir_name);
+    EXPECT_EQ(ConfirmSensitiveEntryAccessSync(
+                  permission_context(), PathInfo(vim_dir),
+                  HandleType::kDirectory, AccessTrigger::kOpen),
+              SensitiveDirectoryResult::kAbort);
+    EXPECT_EQ(ConfirmSensitiveEntryAccessSync(
+                  permission_context(), PathInfo(vim_dir),
+                  HandleType::kDirectory, AccessTrigger::kSave),
+              SensitiveDirectoryResult::kAbort);
+    EXPECT_EQ(ConfirmSensitiveEntryAccessSync(
+                  permission_context(), PathInfo(vim_dir),
+                  HandleType::kDirectory, AccessTrigger::kDragAndDrop),
+              SensitiveDirectoryResult::kAbort);
+    EXPECT_EQ(ConfirmSensitiveEntryAccessSync(
+                  permission_context(), PathInfo(vim_dir),
+                  HandleType::kDirectory, AccessTrigger::kProgrammaticRead),
+              SensitiveDirectoryResult::kAbort);
+    EXPECT_EQ(ConfirmSensitiveEntryAccessSync(
+                  permission_context(), PathInfo(vim_dir),
+                  HandleType::kDirectory, AccessTrigger::kProgrammaticWrite),
+              SensitiveDirectoryResult::kAbort);
+
+    // Descendants such as vimrc, gvimrc, and plugin scripts inside ~/.vim or
+    // ~/vimfiles must also be blocked across read and write triggers.
+    for (const base::FilePath& child_file :
+         {vim_dir.AppendASCII("vimrc"), vim_dir.AppendASCII("gvimrc"),
+          vim_dir.AppendASCII("plugin").AppendASCII("init.vim")}) {
+      EXPECT_EQ(ConfirmSensitiveEntryAccessSync(
+                    permission_context(), PathInfo(child_file),
+                    HandleType::kFile, AccessTrigger::kOpen),
+                SensitiveDirectoryResult::kAbort);
+      EXPECT_EQ(ConfirmSensitiveEntryAccessSync(
+                    permission_context(), PathInfo(child_file),
+                    HandleType::kFile, AccessTrigger::kSave),
+                SensitiveDirectoryResult::kAbort);
+      EXPECT_EQ(ConfirmSensitiveEntryAccessSync(
+                    permission_context(), PathInfo(child_file),
+                    HandleType::kFile, AccessTrigger::kProgrammaticRead),
+                SensitiveDirectoryResult::kAbort);
+      EXPECT_EQ(ConfirmSensitiveEntryAccessSync(
+                    permission_context(), PathInfo(child_file),
+                    HandleType::kFile, AccessTrigger::kProgrammaticWrite),
+                SensitiveDirectoryResult::kAbort);
+    }
+  }
+
+  // Top-level Vim startup files in `base::DIR_HOME` must be blocked across
+  // triggers.
+  for (const char* file_name :
+       {".vimrc", "_vimrc", ".gvimrc", "_gvimrc", ".exrc", "_exrc"}) {
+    base::FilePath startup_file = home_dir.AppendASCII(file_name);
+    EXPECT_EQ(ConfirmSensitiveEntryAccessSync(
+                  permission_context(), PathInfo(startup_file),
+                  HandleType::kFile, AccessTrigger::kOpen),
+              SensitiveDirectoryResult::kAbort);
+    EXPECT_EQ(ConfirmSensitiveEntryAccessSync(
+                  permission_context(), PathInfo(startup_file),
+                  HandleType::kFile, AccessTrigger::kSave),
+              SensitiveDirectoryResult::kAbort);
+    EXPECT_EQ(ConfirmSensitiveEntryAccessSync(
+                  permission_context(), PathInfo(startup_file),
+                  HandleType::kFile, AccessTrigger::kProgrammaticRead),
+              SensitiveDirectoryResult::kAbort);
+    EXPECT_EQ(ConfirmSensitiveEntryAccessSync(
+                  permission_context(), PathInfo(startup_file),
+                  HandleType::kFile, AccessTrigger::kProgrammaticWrite),
+              SensitiveDirectoryResult::kAbort);
+  }
+
+  // Unrelated children of `base::DIR_HOME` remain allowed.
+  base::FilePath project_dir = home_dir.AppendASCII("project");
+  EXPECT_EQ(ConfirmSensitiveEntryAccessSync(
+                permission_context(), PathInfo(project_dir),
+                HandleType::kDirectory, AccessTrigger::kOpen),
+            SensitiveDirectoryResult::kAllowed);
+  EXPECT_EQ(ConfirmSensitiveEntryAccessSync(
+                permission_context(), PathInfo(project_dir),
+                HandleType::kDirectory, AccessTrigger::kProgrammaticWrite),
+            SensitiveDirectoryResult::kAllowed);
+  EXPECT_EQ(
+      ConfirmSensitiveEntryAccessSync(
+          permission_context(), PathInfo(project_dir.AppendASCII("notes.txt")),
+          HandleType::kFile, AccessTrigger::kSave),
+      SensitiveDirectoryResult::kAllowed);
+  EXPECT_EQ(
+      ConfirmSensitiveEntryAccessSync(
+          permission_context(), PathInfo(project_dir.AppendASCII("vimrc")),
+          HandleType::kFile, AccessTrigger::kProgrammaticWrite),
+      SensitiveDirectoryResult::kAllowed);
 }
 
 TEST_F(ChromeFileSystemAccessPermissionContextTest,
@@ -2144,6 +2290,7 @@ TEST_F(ChromeFileSystemAccessPermissionContextTest,
       {base::DIR_HOME, FILE_PATH_LITERAL(".ssh"), true, false},
       {base::DIR_HOME, FILE_PATH_LITERAL(".gnupg"), true, false},
       {base::DIR_HOME, FILE_PATH_LITERAL(".config"), true, false},
+      {base::DIR_HOME, FILE_PATH_LITERAL(".cache"), true, false},
       {base::DIR_HOME, FILE_PATH_LITERAL(".bash_profile"), true, false},
       {base::DIR_HOME, FILE_PATH_LITERAL(".bash_login"), true, false},
       {base::DIR_HOME, FILE_PATH_LITERAL(".bashrc"), true, false},
@@ -2152,6 +2299,14 @@ TEST_F(ChromeFileSystemAccessPermissionContextTest,
       {base::DIR_HOME, FILE_PATH_LITERAL(".zprofile"), true, false},
       {base::DIR_HOME, FILE_PATH_LITERAL(".zshrc"), true, false},
       {base::DIR_HOME, FILE_PATH_LITERAL(".zlogin"), true, false},
+      {base::DIR_HOME, FILE_PATH_LITERAL(".vim"), true, false},
+      {base::DIR_HOME, FILE_PATH_LITERAL("vimfiles"), true, false},
+      {base::DIR_HOME, FILE_PATH_LITERAL(".vimrc"), true, false},
+      {base::DIR_HOME, FILE_PATH_LITERAL("_vimrc"), true, false},
+      {base::DIR_HOME, FILE_PATH_LITERAL(".gvimrc"), true, false},
+      {base::DIR_HOME, FILE_PATH_LITERAL("_gvimrc"), true, false},
+      {base::DIR_HOME, FILE_PATH_LITERAL(".exrc"), true, false},
+      {base::DIR_HOME, FILE_PATH_LITERAL("_exrc"), true, false},
 
 #if BUILDFLAG(IS_WIN)
       {base::DIR_PROGRAM_FILES, nullptr, true, false},
@@ -2192,11 +2347,11 @@ TEST_F(ChromeFileSystemAccessPermissionContextTest,
       {base::DIR_HOME, FILE_PATH_LITERAL(".fonts.conf"), true, false},
       {base::DIR_HOME, FILE_PATH_LITERAL(".fonts.conf.d"), true, false},
       {base::DIR_HOME, FILE_PATH_LITERAL(".pki"), true, false},
+      {base::DIR_CACHE, nullptr, true, false},
 #endif
 
 #if BUILDFLAG(IS_ANDROID)
       {base::DIR_ANDROID_APP_DATA, nullptr, true, false},
-      {base::DIR_CACHE, nullptr, true, false},
 #endif
   };
 

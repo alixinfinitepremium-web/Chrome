@@ -2408,10 +2408,9 @@ TEST_F(ChromeBrowsingDataRemoverDelegateTest,
   // No crash means test passes.
 }
 
-// TODO(crbug.com/40458377): Disabled, since history is not yet marked as
-// a filterable datatype.
-TEST_F(ChromeBrowsingDataRemoverDelegateTest,
-       DISABLED_TimeBasedHistoryRemoval) {
+// Tests that removing history within a time range correctly deletes entries
+// within that range while preserving older entries.
+TEST_F(ChromeBrowsingDataRemoverDelegateTest, TimeBasedHistoryRemoval) {
   RemoveHistoryTester tester;
   ASSERT_TRUE(tester.Init(GetProfile()));
 
@@ -2620,7 +2619,7 @@ TEST_F(ChromeBrowsingDataRemoverDelegateTest, AutofillRemovalOlderThan30Days) {
   task_environment()->AdvanceClock(base::Days(30));
 
   // Add profiles and cards with modification date as 31 days old from now.
-  autofill::TestAutofillClock test_clock;
+  autofill::TestAutofillClockDeprecated test_clock;
   test_clock.SetNow(k31DaysOld);
 
   ASSERT_FALSE(tester.HasProfileAndCard());
@@ -2931,12 +2930,9 @@ TEST_F(ChromeBrowsingDataRemoverDelegateTest,
             tester.last_clear_mode());
 }
 
-// TODO(juliatuttle): This isn't actually testing the no-monitor case, since
-// BrowsingDataRemoverTest now creates one unconditionally, since it's needed
-// for some unrelated test cases. This should be fixed so it tests the no-
-// monitor case again.
-TEST_F(ChromeBrowsingDataRemoverDelegateTest,
-       DISABLED_DomainReliability_NoMonitor) {
+// Tests that removing history and cookies without a monitor override executes
+// the default clearing path and completes without crashing or hanging.
+TEST_F(ChromeBrowsingDataRemoverDelegateTest, DomainReliability_NoMonitor) {
   BlockUntilBrowsingDataRemoved(
       base::Time(), base::Time::Max(),
       constants::DATA_TYPE_HISTORY |

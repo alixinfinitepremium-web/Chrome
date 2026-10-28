@@ -464,6 +464,10 @@ GenerateBlockPaths(bool should_normalize_file_path) {
       // it on all platforms, see crbug.com/569012015.
       BlockPath::CreateRelative(base::DIR_HOME, FILE_PATH_LITERAL(".config"),
                                 BlockType::kBlockAllChildren),
+      // ~/.cache holds caches and virtual environments for cross-platform
+      // tools, so block it on all platforms, see crbug.com/577400245.
+      BlockPath::CreateRelative(base::DIR_HOME, FILE_PATH_LITERAL(".cache"),
+                                BlockType::kBlockAllChildren),
       // Shell startup files in the home directory, including the ones read by
       // Git Bash on Windows, see crbug.com/558362029.
       BlockPath::CreateRelative(base::DIR_HOME,
@@ -483,6 +487,25 @@ GenerateBlockPaths(bool should_normalize_file_path) {
       BlockPath::CreateRelative(base::DIR_HOME, FILE_PATH_LITERAL(".zshrc"),
                                 BlockType::kBlockAllChildren),
       BlockPath::CreateRelative(base::DIR_HOME, FILE_PATH_LITERAL(".zlogin"),
+                                BlockType::kBlockAllChildren),
+      // Vim startup directories and files in the home directory, including the
+      // ones read by Git for Windows' bundled Vim and native Windows Vim, see
+      // crbug.com/578510310.
+      BlockPath::CreateRelative(base::DIR_HOME, FILE_PATH_LITERAL(".vim"),
+                                BlockType::kBlockAllChildren),
+      BlockPath::CreateRelative(base::DIR_HOME, FILE_PATH_LITERAL("vimfiles"),
+                                BlockType::kBlockAllChildren),
+      BlockPath::CreateRelative(base::DIR_HOME, FILE_PATH_LITERAL(".vimrc"),
+                                BlockType::kBlockAllChildren),
+      BlockPath::CreateRelative(base::DIR_HOME, FILE_PATH_LITERAL("_vimrc"),
+                                BlockType::kBlockAllChildren),
+      BlockPath::CreateRelative(base::DIR_HOME, FILE_PATH_LITERAL(".gvimrc"),
+                                BlockType::kBlockAllChildren),
+      BlockPath::CreateRelative(base::DIR_HOME, FILE_PATH_LITERAL("_gvimrc"),
+                                BlockType::kBlockAllChildren),
+      BlockPath::CreateRelative(base::DIR_HOME, FILE_PATH_LITERAL(".exrc"),
+                                BlockType::kBlockAllChildren),
+      BlockPath::CreateRelative(base::DIR_HOME, FILE_PATH_LITERAL("_exrc"),
                                 BlockType::kBlockAllChildren),
       // Block write access to */.git/hooks, see crbug.com/465668234 and
       // crbug.com/553115714.
@@ -608,8 +631,8 @@ GenerateBlockPaths(bool should_normalize_file_path) {
       // Block the per-user NSS database, see crbug.com/557367241.
       BlockPath::CreateRelative(base::DIR_HOME, FILE_PATH_LITERAL(".pki"),
                                 BlockType::kBlockAllChildren),
-      // And block all of ~/.cache, matching the similar restrictions on mac
-      // and windows.
+      // Also block base::DIR_CACHE to cover $XDG_CACHE_HOME overrides on Linux
+      // and ChromeOS, and the app cache directory on Android.
       BlockPath::CreateRelative(base::DIR_CACHE, BlockType::kBlockAllChildren),
 #endif
 #if BUILDFLAG(IS_ANDROID)
@@ -2500,7 +2523,10 @@ void ChromeFileSystemAccessPermissionContext::CheckPathAgainstBlocklist(
   // The only check for content-URIs is that they are not from an internal
   // FileProvider.
   if (path_info.path.IsContentUri()) {
-    std::move(callback).Run(base::IsContentUriFromThisApp(path_info.path));
+    base::ContentUriOwner owner = base::ResolveContentUriOwner(path_info.path);
+    std::move(callback).Run(
+        owner == base::ContentUriOwner::kExportedFromCurrentApp ||
+        owner == base::ContentUriOwner::kNonExportedFromCurrentApp);
     return;
   }
 #endif  // BUILDFLAG(IS_ANDROID)

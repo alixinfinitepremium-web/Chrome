@@ -827,10 +827,7 @@ crbug.com/1445990 external/wpt/css/css-ui/outline-color-003.html [ Failure ]
 crbug.com/1445990 external/wpt/css/css-ui/outline-color-004.html [ Failure ]
 # These tests require AccentColor to mirror the computed accent-color.
 crbug.com/536420071 external/wpt/css/css-ui/accent-color-keyword-animation.html [ Failure ]
-crbug.com/536420071 external/wpt/css/css-ui/accent-color-keyword-cyclic.html [ Failure ]
 crbug.com/536420071 external/wpt/css/css-ui/accent-color-keyword-resolution.html [ Failure ]
-crbug.com/536420071 external/wpt/css/css-ui/accent-color-text-keyword-resolution.html [ Failure ]
-crbug.com/536420071 external/wpt/forced-colors-mode/accent-color-keyword-forced-colors.html [ Failure ]
 
 # [css-flexbox]
 
@@ -6156,9 +6153,6 @@ crbug.com/42204365 virtual/javascript-source-phase-imports/wpt_internal/js/sourc
 # Wide arithmetic proposal staging: https://crbug.com/552767209
 crbug.com/552767209 external/wpt/wasm/proposals/wide-arithmetic/core/wide-arithmetic.wast.js.tentative.html [ Failure Pass ]
 
-# Temporarily allow Pass and Failure until https://crrev.com/c/8585478 rolls in.
-crbug.com/572830550 external/wpt/wasm/jsapi/proto-from-ctor-realm.html [ Failure Pass ]
-
 # --harmony-struct is deprecated and disabled in https://crrev.com/c/8576591.
 crbug.com/572988458 virtual/js-shared-memory/wpt_internal/js/shared_memory/shared-struct-postMessage-no-coop-coep.html [ Failure Pass ]
 crbug.com/572988458 virtual/js-shared-memory/wpt_internal/js/shared_memory/shared-struct-postMessage.https.html [ Failure Pass ]
@@ -6908,6 +6902,7 @@ crbug.com/356930166 [ Mac15 ] external/wpt/content-security-policy/webrtc/webrtc
 crbug.com/356930166 [ Mac15 ] external/wpt/content-security-policy/webrtc/webrtc-blocked-explicit.html [ Timeout ]
 crbug.com/356930166 [ Mac15 ] external/wpt/content-security-policy/webrtc/webrtc-blocked-unknown.html [ Timeout ]
 crbug.com/356930166 [ Mac15 ] external/wpt/webrtc-encoded-transform/tentative/RTCPeerConnection-insertable-streams-errors.https.html [ Timeout ]
+crbug.com/356930166 [ Mac15 ] external/wpt/webrtc-extensions/RTCConfiguration-rtpHeaderEncryptionPolicy.html [ Skip Timeout ]
 crbug.com/356930166 [ Mac15 ] external/wpt/webrtc-extensions/RTCRtpSynchronizationSource-captureTimestamp.html [ Skip Timeout ]
 crbug.com/356930166 [ Mac15 ] external/wpt/webrtc-extensions/RTCRtpSynchronizationSource-senderCaptureTimeOffset.html [ Skip Timeout ]
 crbug.com/356930166 [ Mac15 ] external/wpt/webrtc-stats/getStats-remote-candidate-address.html [ Skip Timeout ]
@@ -6958,6 +6953,7 @@ crbug.com/356930166 [ Mac14 ] external/wpt/webrtc/simplecall.https.html [ Timeou
 crbug.com/356930166 [ Mac15 ] external/wpt/webrtc/simplecall.https.html [ Crash Timeout ]
 crbug.com/356930166 [ Mac15 ] external/wpt/webcodecs/videoFrame-metadata-rtpTimestamp.https.html [ Timeout ]
 crbug.com/356930166 [ Mac15-arm64 ] external/wpt/webrtc-encoded-transform/tentative/RTCPeerConnection-insertable-streams-errors.https.html [ Timeout ]
+crbug.com/356930166 [ Mac15-arm64 ] external/wpt/webrtc-extensions/RTCConfiguration-rtpHeaderEncryptionPolicy.html [ Skip Timeout ]
 crbug.com/356930166 [ Mac15-arm64 ] external/wpt/webrtc-extensions/RTCRtpSynchronizationSource-captureTimestamp.html [ Skip Timeout ]
 crbug.com/356930166 [ Mac15-arm64 ] external/wpt/webrtc-extensions/RTCRtpSynchronizationSource-senderCaptureTimeOffset.html [ Skip Timeout ]
 crbug.com/356930166 [ Mac15-arm64 ] external/wpt/webrtc-stats/getStats-remote-candidate-address.html [ Skip Timeout ]
@@ -7127,6 +7123,7 @@ crbug.com/356930166 [ Mac26 ] external/wpt/webrtc-encoded-transform/tentative/RT
 crbug.com/356930166 [ Mac26 ] external/wpt/webrtc-encoded-transform/tentative/RTCPeerConnection-insertable-streams-simulcast.https.html [ Timeout ]
 crbug.com/356930166 [ Mac26 ] external/wpt/webrtc-encoded-transform/tentative/RTCPeerConnection-insertable-streams-video-frames.https.html [ Timeout ]
 crbug.com/356930166 [ Mac26 ] external/wpt/webrtc-encoded-transform/tentative/RTCPeerConnection-insertable-streams-worker.https.html [ Timeout ]
+crbug.com/356930166 [ Mac26 ] external/wpt/webrtc-extensions/RTCConfiguration-rtpHeaderEncryptionPolicy.html [ Skip Timeout ]
 crbug.com/356930166 [ Mac26 ] external/wpt/webrtc-extensions/RTCRtpCorruptionDetection-headerExtensionControl.html [ Timeout ]
 crbug.com/356930166 [ Mac26 ] external/wpt/webrtc-extensions/RTCRtpEncodingParameters-scaleResolutionDownTo.https.html [ Skip Timeout ]
 crbug.com/356930166 [ Mac26 ] external/wpt/webrtc-extensions/RTCRtpSynchronizationSource-captureTimestamp.html [ Skip Timeout ]
@@ -7266,6 +7263,7 @@ crbug.com/519462980 [ Mac26-arm64 ] external/wpt/webrtc-encoded-transform/tentat
 crbug.com/519462980 [ Mac26-arm64 ] external/wpt/webrtc-encoded-transform/tentative/RTCPeerConnection-insertable-streams-simulcast.https.html [ Timeout ]
 crbug.com/519462980 [ Mac26-arm64 ] external/wpt/webrtc-encoded-transform/tentative/RTCPeerConnection-insertable-streams-video-frames.https.html [ Timeout ]
 crbug.com/519462980 [ Mac26-arm64 ] external/wpt/webrtc-encoded-transform/tentative/RTCPeerConnection-insertable-streams-worker.https.html [ Timeout ]
+crbug.com/519462980 [ Mac26-arm64 ] external/wpt/webrtc-extensions/RTCConfiguration-rtpHeaderEncryptionPolicy.html [ Skip Timeout ]
 crbug.com/519462980 [ Mac26-arm64 ] external/wpt/webrtc-extensions/RTCRtpCorruptionDetection-headerExtensionControl.html [ Timeout ]
 crbug.com/519462980 [ Mac26-arm64 ] external/wpt/webrtc-extensions/RTCRtpEncodingParameters-scaleResolutionDownTo.https.html [ Skip Timeout ]
 crbug.com/519462980 [ Mac26-arm64 ] external/wpt/webrtc-extensions/RTCRtpSynchronizationSource-captureTimestamp.html [ Skip Timeout ]

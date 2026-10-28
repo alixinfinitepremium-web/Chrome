@@ -231,6 +231,7 @@ using upload_contents_matchers::FieldAutofillTypeIs;
 using upload_contents_matchers::FieldsAre;
 using upload_contents_matchers::FormSignatureIs;
 using upload_contents_matchers::ObservedSubmissionIs;
+using upload_contents_matchers::StructuralFormSignatureIs;
 using UkmAutofillKeyMetricsType = ukm::builders::Autofill_KeyMetrics;
 
 constexpr Suggestion::Icon kAddressEntryIcon = Suggestion::Icon::kAccount;
@@ -6914,6 +6915,35 @@ TEST_F(BrowserAutofillManagerVotingTest, DynamicFormSubmission) {
   FormSubmitted(form_);
 }
 
+// Test that if the form changes between the query and the submission (without
+// the change being reported via `FormsSeen()`), the upload carries the
+// query-time `form_signature()` and the query-time
+// `structural_form_signature()`, not the signatures of the submitted form.
+TEST_F(BrowserAutofillManagerVotingTest,
+       SubmissionOfChangedFormUsesQueryTimeSignatures) {
+  SimulateTypingFirstNameIntoFirstField();
+  const FormSignature query_form_signature = CalculateFormSignature(form_);
+  const FormSignature query_structural_signature =
+      CalculateStructuralFormSignature(form_);
+
+  // Grow the form by one field without notifying the manager via FormsSeen(),
+  // e.g. because a script inserted the field right before the submission.
+  test_api(form_).Append(CreateTestFormField(
+      "Zip code", "zip", "", FormControlType::kInputText, "postal-code"));
+  ASSERT_NE(query_form_signature, CalculateFormSignature(form_));
+  ASSERT_NE(query_structural_signature,
+            CalculateStructuralFormSignature(form_));
+
+  EXPECT_CALL(crowdsourcing_manager(),
+              StartUploadRequest(
+                  FirstElementIs(AllOf(
+                      FormSignatureIs(query_form_signature),
+                      StructuralFormSignatureIs(query_structural_signature),
+                      ObservedSubmissionIs(true))),
+                  _, _));
+  FormSubmitted(form_);
+}
+
 // Ensure that a blur votes is sent after a navigation.
 TEST_F(BrowserAutofillManagerVotingTest, BlurVoteOnNavigation) {
   SimulateTypingFirstNameIntoFirstField();
@@ -7857,32 +7887,36 @@ TEST_F(BrowserAutofillManagerTest,
 }
 
 // Tests that an address picker is detected when fewer than 3 address fields
-// are modified if the trigger field underwent prefix completion.
+// are modified if the trigger field underwent prefix or substring completion.
 TEST_F(
     BrowserAutofillManagerTest,
-    OnDidDetectJavaScriptAutofill_AddressPicker_WithPrefixCompletionFewerThanMinFields) {
-  FormData form = test::GetFormData({.fields = {{.role = ADDRESS_HOME_LINE1},
-                                                {.role = ADDRESS_HOME_CITY},
-                                                {.role = ADDRESS_HOME_ZIP}}});
-  FormsSeen({form});
+    OnDidDetectJavaScriptAutofill_AddressPicker_WithCompletionFewerThanMinFields) {
+  for (mojom::JavaScriptModificationType completion_type :
+       {mojom::JavaScriptModificationType::kPrefixCompletion,
+        mojom::JavaScriptModificationType::kSubstringCompletion}) {
+    FormData form = test::GetFormData({.fields = {{.role = ADDRESS_HOME_LINE1},
+                                                  {.role = ADDRESS_HOME_CITY},
+                                                  {.role = ADDRESS_HOME_ZIP}}});
+    FormsSeen({form});
 
-  FormStructure* form_structure =
-      test_api(autofill_manager()).FindCachedFormById(form.global_id());
-  ASSERT_TRUE(form_structure);
+    FormStructure* form_structure =
+        test_api(autofill_manager()).FindCachedFormById(form.global_id());
+    ASSERT_TRUE(form_structure);
 
-  // 2 address fields modified, and the trigger field has kPrefixCompletion.
-  std::vector<JavaScriptFieldModification> field_modifications = {
-      {.field_id = form.fields()[0].global_id(),
-       .modification_type =
-           mojom::JavaScriptModificationType::kPrefixCompletion},
-      {.field_id = form.fields()[1].global_id(),
-       .modification_type = mojom::JavaScriptModificationType::kReassignment}};
+    // 2 address fields modified, and the trigger field has `completion_type`.
+    std::vector<JavaScriptFieldModification> field_modifications = {
+        {.field_id = form.fields()[0].global_id(),
+         .modification_type = completion_type},
+        {.field_id = form.fields()[1].global_id(),
+         .modification_type =
+             mojom::JavaScriptModificationType::kReassignment}};
 
-  autofill_manager().OnDidDetectJavaScriptAutofill(
-      form, form.fields()[0].global_id(), field_modifications,
-      base::TimeTicks::Now(), AutofillManagerTestApi::pass_key());
+    autofill_manager().OnDidDetectJavaScriptAutofill(
+        form, form.fields()[0].global_id(), field_modifications,
+        base::TimeTicks::Now(), AutofillManagerTestApi::pass_key());
 
-  EXPECT_TRUE(form_structure->field(0)->did_trigger_javascript_autofill());
+    EXPECT_TRUE(form_structure->field(0)->did_trigger_javascript_autofill());
+  }
 }
 
 // Tests that a single-field email picker is detected when an email address

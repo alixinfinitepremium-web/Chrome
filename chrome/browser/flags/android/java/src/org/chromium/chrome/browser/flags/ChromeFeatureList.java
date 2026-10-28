@@ -342,6 +342,7 @@ public abstract class ChromeFeatureList {
     public static final String APP_SPECIFIC_HISTORY = "AppSpecificHistory";
     public static final String APP_SPECIFIC_HISTORY_VIEW_INTENT = "AppSpecificHistoryViewIntent";
     public static final String ARCHIVED_TABS_TEARDOWN = "ArchivedTabsTeardown";
+    public static final String ASYNC_FIRST_FRAME_DRAWN = "AsyncFirstFrameDrawn";
     public static final String ASYNC_NOTIFICATION_MANAGER = "AsyncNotificationManager";
     public static final String ASYNC_NOTIFICATION_MANAGER_FOR_DOWNLOAD =
             "AsyncNotificationManagerForDownload";
@@ -607,6 +608,7 @@ public abstract class ChromeFeatureList {
             "FacilitatedPaymentsEnableA2APayment";
     public static final String FEED_AUDIO_OVERVIEWS = "FeedAudioOverviews";
     public static final String FEED_CONTAINMENT = "FeedContainment";
+    public static final String FEED_CONTAINMENT_CLIP_FIRST_CARD = "FeedContainmentClipFirstCard";
     public static final String FEED_IMAGE_MEMORY_CACHE_SIZE_PERCENTAGE =
             "FeedImageMemoryCacheSizePercentage";
     public static final String FEED_LOADING_PLACEHOLDER = "FeedLoadingPlaceholder";
@@ -926,7 +928,7 @@ public abstract class ChromeFeatureList {
                             Map.entry(ACCOUNT_FOR_SUPPRESSED_KEYBOARD_INSETS, true),
                             Map.entry(ANDROID_THEME_MODULE, true),
                             Map.entry(ANDROID_THEME_RESOURCE_PROVIDER, false),
-                            Map.entry(DEVICE_REAUTH_REFACTOR, false),
+                            Map.entry(DEVICE_REAUTH_REFACTOR, true),
                             Map.entry(GMSCORE_BIND_SERVICE_OPTIMIZATION, true),
                             Map.entry(NTP_AURORA, true),
                             Map.entry(NTP_AURORA_V2, true),
@@ -1025,6 +1027,8 @@ public abstract class ChromeFeatureList {
             newCachedFlag(APP_SPECIFIC_HISTORY_VIEW_INTENT, true);
     public static final CachedFlag sArchivedTabsTeardown =
             newCachedFlag(ARCHIVED_TABS_TEARDOWN, /* defaultValue= */ false);
+    public static final CachedFlag sAsyncFirstFrameDrawn =
+            newCachedFlag(ASYNC_FIRST_FRAME_DRAWN, /* defaultValue= */ false);
     public static final CachedFlag sAsyncNotificationManager =
             newCachedFlag(ASYNC_NOTIFICATION_MANAGER, false, true);
     public static final CachedFlag sAsyncNotificationManagerForDownload =
@@ -1511,6 +1515,7 @@ public abstract class ChromeFeatureList {
                     sAppSpecificHistory,
                     sAppSpecificHistoryViewIntent,
                     sArchivedTabsTeardown,
+                    sAsyncFirstFrameDrawn,
                     sAsyncNotificationManager,
                     sAutomotiveBackButtonBarStreamline,
                     sAvoidRecreateOnTouchscreenOrColorModeChange,
