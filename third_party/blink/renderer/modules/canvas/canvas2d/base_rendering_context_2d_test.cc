@@ -121,9 +121,6 @@ class TestRenderingContext2D final
   // Returns the content of the paint recorder, leaving it empty.
   cc::PaintRecord FlushRecorder() { return Recorder()->ReleaseMainRecording(); }
 
-  bool OriginClean() const override { return true; }
-  void SetOriginTainted() override {}
-
   int Width() const override { return Host()->width(); }
   int Height() const override { return Host()->height(); }
 
@@ -438,7 +435,6 @@ class BaseRenderingContext2DSharedImageTest : public testing::Test {
 
   void EnsureResourceRecycled(
       scoped_refptr<ExportedCanvasResource>&& resource) {
-    auto transferable_resource = resource->PrepareTransferableResource();
     resource.reset();
   }
 

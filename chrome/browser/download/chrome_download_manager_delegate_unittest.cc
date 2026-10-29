@@ -60,7 +60,7 @@
 #include "components/policy/core/common/policy_pref_names.h"
 #include "components/prefs/pref_service.h"
 #include "components/safe_browsing/buildflags.h"
-#include "components/safe_browsing/content/common/file_type_policies_test_util.h"
+#include "components/safe_browsing/content/common/file_type_policies/file_type_policies_test_util.h"
 #include "components/safe_search_api/safe_search_util.h"
 #include "components/sync_preferences/testing_pref_service_syncable.h"
 #include "content/public/browser/download_item_utils.h"
@@ -2452,6 +2452,39 @@ TEST_F(ChromeDownloadManagerDelegateTestWithSafeBrowsing,
                         download::DOWNLOAD_DANGER_TYPE_NOT_DANGEROUS);
   RunUnknownVerdictTest(FILE_PATH_LITERAL("test.apk.txt"),
                         download::DOWNLOAD_DANGER_TYPE_NOT_DANGEROUS);
+}
+
+TEST_F(ChromeDownloadManagerDelegateTestWithSafeBrowsing,
+       AndroidApkCheck_RegisteredAppStore_SuppressesWarning) {
+  base::test::ScopedFeatureList feature_list;
+  feature_list.InitAndEnableFeature(safe_browsing::kMaliciousApkDownloadCheck);
+
+  std::unique_ptr<download::MockDownloadItem> download_item =
+      CreateActiveDownloadItem(0);
+  EXPECT_CALL(*download_item, RequireSafetyChecks())
+      .WillRepeatedly(Return(true));
+  ON_CALL(*download_item, GetDangerType())
+      .WillByDefault(Return(download::DOWNLOAD_DANGER_TYPE_NOT_DANGEROUS));
+  ON_CALL(*download_item, IsDangerous()).WillByDefault(Return(false));
+  ON_CALL(*download_item, IsUserConfirmed()).WillByDefault(Return(false));
+  ON_CALL(*download_item, GetFileNameToReportUser())
+      .WillByDefault(Return(base::FilePath(FILE_PATH_LITERAL("test.apk"))));
+
+  auto sb_state =
+      std::make_unique<ChromeDownloadManagerDelegate::SafeBrowsingState>();
+  sb_state->CompleteDownload();
+  download_item->SetUserData(&ChromeDownloadManagerDelegate::SafeBrowsingState::
+                                 kSafeBrowsingUserDataKey,
+                             std::move(sb_state));
+
+  safe_browsing::DownloadProtectionService::SetDownloadProtectionData(
+      download_item.get(), /*token=*/std::string(),
+      safe_browsing::ClientDownloadResponse::SAFE,
+      safe_browsing::ClientDownloadResponse::TailoredVerdict(),
+      /*is_registered_app_store=*/true);
+
+  EXPECT_TRUE(delegate()->ShouldCompleteDownload(download_item.get(),
+                                                 base::DoNothing()));
 }
 #else
 TEST_F(ChromeDownloadManagerDelegateTestWithSafeBrowsing,

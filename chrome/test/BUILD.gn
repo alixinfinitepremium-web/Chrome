@@ -2977,10 +2977,7 @@ test("unit_tests") {
         "//chrome/browser/ui/android/extensions/windowing/test:native_unit_test_support_java",
       ]
 
-      data += [
-        "data/extensions/",
-        "data/image_writer_private/",
-      ]
+      data += [ "data/extensions/" ]
     }
 
     if (enable_webui_history) {
@@ -3701,18 +3698,6 @@ if (!is_android) {
       "//ui/base/interaction:test_support",
       "//ui/views/interaction:test_support",
       "//ui/views/interaction/mouse:test_support",
-    ]
-
-    deps = [
-      "//chrome/browser/autofill",
-      "//chrome/browser/autofill:test_support",
-      "//chrome/browser/ui/views/autofill/payments:card_unmask_prompt_views",
-      "//chrome/browser/ui/views/frame:browser_view_header",
-      "//chrome/browser/ui/views/toolbar",
-      "//chrome/test/data/webui:resources",
-      "//components/captive_portal/core:buildflags",
-      "//extensions/buildflags",
-      "//printing/buildflags",
     ]
 
     if (is_mac) {

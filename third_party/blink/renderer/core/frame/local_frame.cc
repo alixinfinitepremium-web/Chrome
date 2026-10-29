@@ -997,12 +997,6 @@ void LocalFrame::PrintNavigationErrorMessage(const Frame& target_frame,
   DomWindow()->PrintErrorMessage(message);
 }
 
-void LocalFrame::PrintNavigationWarning(const String& message) {
-  console_->AddMessage(MakeGarbageCollected<ConsoleMessage>(
-      mojom::ConsoleMessageSource::kJavaScript,
-      mojom::ConsoleMessageLevel::kWarning, message));
-}
-
 bool LocalFrame::ShouldClose() {
   // TODO(crbug.com/1407078): This should be fixed to dispatch beforeunload
   // events to both local and remote frames.
@@ -3155,11 +3149,6 @@ class FrameColorOverlay final : public FrameOverlay::Delegate {
 
 }  // namespace
 
-void LocalFrame::SetReducedAcceptLanguage(
-    const AtomicString& reduced_accept_language) {
-  reduced_accept_language_ = reduced_accept_language;
-}
-
 template <>
 struct DowncastTraits<FrameColorOverlay> {
   static bool AllowFrom(const FrameOverlay::Delegate& frame_overlay) {
@@ -3265,15 +3254,6 @@ void LocalFrame::SetContextPaused(bool is_paused) {
   Loader().SetDefersLoading(GetLoaderFreezeMode());
   // TODO(altimin): Move this to PageScheduler level.
   GetFrameScheduler()->SetPaused(is_paused);
-}
-
-LocalFrame* LocalFrame::GetPreviousLocalFrameForLocalSwap() {
-  CHECK(IsProvisional());
-  if (auto* previous_main_frame =
-          GetPage()->GetPreviousMainFrameForLocalSwap()) {
-    return previous_main_frame;
-  }
-  return DynamicTo<LocalFrame>(GetProvisionalOwnerFrame());
 }
 
 bool LocalFrame::SwapIn() {

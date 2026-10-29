@@ -174,7 +174,7 @@ DEFINE_FEATURE_WITH_MOBILE_COUNTRY_RESTRICTION(kAutofillAiDedupeEntities);
 // When enabled, the entity save/update prompt displays an edit button that
 // opens the entity editor on click.
 BASE_FEATURE(kAutofillAiEditEntitiesFromSaveUpdatePrompt,
-             base::FEATURE_DISABLED_BY_DEFAULT);
+             base::FEATURE_ENABLED_BY_DEFAULT);
 #endif  // BUILDFLAG(IS_ANDROID)
 
 // If enabled, no GeoIp requirements are imposed for AutofillAi.
@@ -822,7 +822,7 @@ BASE_FEATURE(kAutofillExtractOnlyNonAdFrames,
 // (analogous to form control ownership) rather than the closest ancestor form
 // (analogous to form control association).
 // TODO(crbug.com/536963555): Clean up when launched.
-BASE_FEATURE(kAutofillFixIframeOwnership, base::FEATURE_DISABLED_BY_DEFAULT);
+BASE_FEATURE(kAutofillFixIframeOwnership, base::FEATURE_ENABLED_BY_DEFAULT);
 
 // Prioritizes ADDRESS_HOME_STREET_ADDRESS over postal code in inferred labels.
 // See crbug.com/540151895.

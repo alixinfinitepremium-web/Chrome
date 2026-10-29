@@ -174,9 +174,7 @@ class TestAutofillClientTemplate : public T {
   }
 
   EntityDataManager* GetEntityDataManager() override {
-    return entity_data_manager_non_owning_
-               ? entity_data_manager_non_owning_.get()
-               : entity_data_manager_.get();
+    return entity_data_manager_.get();
   }
 
   WalletPassAccessManager* GetWalletPassAccessManager() override {
@@ -354,7 +352,7 @@ class TestAutofillClientTemplate : public T {
   std::u16string_view GetPageTitle() const override { return page_title_; }
 
   security_state::SecurityLevel GetSecurityLevelForUmaHistograms() override {
-    return security_level_;
+    return security_state::SecurityLevel::NONE;
   }
 
   translate::LanguageState* GetLanguageState() override {
@@ -680,13 +678,7 @@ class TestAutofillClientTemplate : public T {
 
   void set_entity_data_manager(
       std::unique_ptr<EntityDataManager> entity_data_manager) {
-    entity_data_manager_non_owning_ = nullptr;
     entity_data_manager_ = std::move(entity_data_manager);
-  }
-
-  void set_entity_data_manager(EntityDataManager* entity_data_manager) {
-    entity_data_manager_.reset();
-    entity_data_manager_non_owning_ = entity_data_manager;
   }
 
   void set_wallet_pass_access_manager(
@@ -716,10 +708,6 @@ class TestAutofillClientTemplate : public T {
 
   void set_sync_service(syncer::SyncService* test_sync_service) {
     test_sync_service_ = test_sync_service;
-  }
-
-  void set_security_level(security_state::SecurityLevel security_level) {
-    security_level_ = security_level;
   }
 
   void set_last_committed_primary_main_frame_url(const GURL& url) {
@@ -785,11 +773,6 @@ class TestAutofillClientTemplate : public T {
   void set_compose_delegate(
       std::unique_ptr<AutofillComposeDelegate> compose_delegate) {
     compose_delegate_ = std::move(compose_delegate);
-  }
-
-  void set_suggestion_ui_session_id(
-      std::optional<AutofillClient::SuggestionUiSessionId> session_id) {
-    suggestion_ui_session_id_ = session_id;
   }
 
   signin::IdentityTestEnvironment& identity_test_environment() {
@@ -902,7 +885,6 @@ class TestAutofillClientTemplate : public T {
   std::unique_ptr<TestPersonalDataManager> test_personal_data_manager_;
   std::unique_ptr<ValuablesDataManager> valuables_data_manager_;
   std::unique_ptr<EntityDataManager> entity_data_manager_;
-  raw_ptr<EntityDataManager> entity_data_manager_non_owning_ = nullptr;
   // The below objects must be destroyed before `TestPersonalDataManager`
   // because they keep a reference to it.
   std::unique_ptr<payments::TestPaymentsAutofillClient>
@@ -917,9 +899,6 @@ class TestAutofillClientTemplate : public T {
   std::unique_ptr<consent_auditor::FakeConsentAuditor> consent_auditor_;
 
   GeoIpCountryCode variation_config_country_code_;
-
-  security_state::SecurityLevel security_level_ =
-      security_state::SecurityLevel::NONE;
 
   bool format_for_large_keyboard_accessory_ = false;
 

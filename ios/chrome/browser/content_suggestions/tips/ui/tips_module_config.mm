@@ -177,6 +177,7 @@ std::optional<Symbol> GetBadgeSymbolConfigForTip(TipIdentifier tip,
   // LINT.IfChange(Copy)
   config.productImageData = self.productImageData;
   config.audience = self.audience;
+  config.consumer = self.consumer;
   // LINT.ThenChange(tips_module_config.h:Copy)
   return config;
 }
@@ -213,7 +214,12 @@ std::optional<Symbol> GetBadgeSymbolConfigForTip(TipIdentifier tip,
     case TipIdentifier::kEnhancedSafeBrowsing:
       return GetNSString(IDS_IOS_MAGIC_STACK_TIP_SAFE_BROWSING_TITLE);
     case TipIdentifier::kNTPTheme:
+      return GetNSString(IDS_IOS_MAGIC_STACK_TIP_NTP_THEME_TITLE);
     case TipIdentifier::kNTPCustomization:
+      if (segmentation_platform::features::
+              IsMagicStackNTPCustomizationTipIosActionableEnabled()) {
+        return GetNSString(IDS_IOS_NTP_CUSTOMIZATION_PROMO_TITLE);
+      }
       return GetNSString(IDS_IOS_MAGIC_STACK_TIP_NTP_THEME_TITLE);
     case TipIdentifier::kTipsNotifications:
       return GetNSString(IDS_IOS_MAGIC_STACK_TIP_TIPS_NOTIFICATION_TITLE);

@@ -33,7 +33,7 @@
 #include "components/download/public/common/download_danger_type.h"
 #include "components/policy/core/common/policy_pref_names.h"
 #include "components/prefs/pref_service.h"
-#include "components/safe_browsing/content/common/file_type_policies.h"
+#include "components/safe_browsing/content/common/file_type_policies/file_type_policies.h"
 #include "components/safe_browsing/core/common/features.h"
 #include "components/safe_browsing/core/common/proto/csd.pb.h"
 #include "components/safe_browsing/core/common/safe_browsing_prefs.h"
@@ -228,10 +228,11 @@ void CheckClientDownloadRequest::NotifySendRequest(
 void CheckClientDownloadRequest::SetDownloadProtectionData(
     const std::string& token,
     const ClientDownloadResponse::Verdict& verdict,
-    const ClientDownloadResponse::TailoredVerdict& tailored_verdict) {
-  CHECK(!token.empty(), base::NotFatalUntil::M162);
-  DownloadProtectionService::SetDownloadProtectionData(item_, token, verdict,
-                                                       tailored_verdict);
+    const ClientDownloadResponse::TailoredVerdict& tailored_verdict,
+    bool is_registered_app_store) {
+  CHECK(!token.empty() || is_registered_app_store, base::NotFatalUntil::M162);
+  DownloadProtectionService::SetDownloadProtectionData(
+      item_, token, verdict, tailored_verdict, is_registered_app_store);
 }
 
 #if !BUILDFLAG(IS_ANDROID)

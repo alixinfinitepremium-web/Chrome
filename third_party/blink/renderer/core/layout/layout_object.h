@@ -1736,7 +1736,6 @@ class CORE_EXPORT LayoutObject : public GarbageCollected<LayoutObject>,
 
   bool IsScrollMarker() const;
   bool IsScrollMarkerGroup() const;
-  bool IsScrollMarkerGroupBefore() const;
 
   // Returns true if this object represents ::marker for the first SUMMARY
   // child of a DETAILS, and list-style-type is disclosure-*.
@@ -2568,7 +2567,7 @@ class CORE_EXPORT LayoutObject : public GarbageCollected<LayoutObject>,
   /* The following methods are inlined in layout_object_inlines.h */
   // If first line style is requested and there is no applicable first line
   // style, the functions will return the style of this object.
-  inline const ComputedStyle& FirstLineStyleRef() const;
+  inline const ComputedStyle& FirstLineStyle() const;
   inline const ComputedStyle& Style(bool first_line) const;
 
   const ComputedStyle& EffectiveStyle(StyleVariant style_variant) const {
@@ -3685,11 +3684,6 @@ class CORE_EXPORT LayoutObject : public GarbageCollected<LayoutObject>,
     svg_descendant_may_have_transform_related_operations_ = false;
   }
 
-  void SetCanTraversePhysicalFragments(bool b) {
-    NOT_DESTROYED();
-    can_traverse_physical_fragments_ = b;
-  }
-
   void SetHasValidCachedGeometry(bool b) {
     NOT_DESTROYED();
     has_valid_cached_geometry_ = b;
@@ -3732,10 +3726,6 @@ class CORE_EXPORT LayoutObject : public GarbageCollected<LayoutObject>,
   }
 
  private:
-  gfx::QuadF LocalToAncestorQuadInternal(const gfx::QuadF&,
-                                         const LayoutBoxModelObject* ancestor,
-                                         MapCoordinatesFlags = {}) const;
-
   void AddAsImageObserver(StyleImage*);
   void RemoveAsImageObserver(StyleImage*);
 

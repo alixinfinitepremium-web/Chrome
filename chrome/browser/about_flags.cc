@@ -4490,6 +4490,22 @@ const FeatureEntry::FeatureVariation
         {"Remote group operations", kCrossWindowTabGroupOperationsRemoteGroup,
          nullptr}};
 
+const FeatureEntry::FeatureParam kFREStringChanges_Personalized[] = {
+    {"personalized", "true"},
+};
+const FeatureEntry::FeatureParam kFREStringChanges_Safety[] = {
+    {"safety", "true"},
+};
+const FeatureEntry::FeatureParam kFREStringChanges_Seamlessness[] = {
+    {"seamlessness", "true"},
+};
+
+const FeatureEntry::FeatureVariation kFREStringChangesVariations[] = {
+    {"Personalized", kFREStringChanges_Personalized, nullptr},
+    {"Safety", kFREStringChanges_Safety, nullptr},
+    {"Seamlessness", kFREStringChanges_Seamlessness, nullptr},
+};
+
 const FeatureEntry::FeatureParam kXplatSyncedSetupThemes_ObservationOnly[] = {
     {"observation_only", "true"},
 };
@@ -9747,11 +9763,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kAiModeEntryPointAlwaysNavigatesDescription, kOsDesktop,
      FEATURE_VALUE_TYPE(omnibox::kAiModeEntryPointAlwaysNavigates)},
 
-    {"omnibox-ai-mode-space-does-not-activate",
-     flag_descriptions::kOmniboxAiModeSpaceDoesNotActivateName,
-     flag_descriptions::kOmniboxAiModeSpaceDoesNotActivateDescription,
-     kOsDesktop, FEATURE_VALUE_TYPE(omnibox::kAiModeSpaceDoesNotActivate)},
-
     {"omnibox-dynamic-aim-submit",
      flag_descriptions::kOmniboxDynamicAimSubmitName,
      flag_descriptions::kOmniboxDynamicAimSubmitDescription, kOsDesktop,
@@ -9773,11 +9784,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kWebUIOmniboxAimPopupDisableAnimationDescription,
      kOsDesktop,
      FEATURE_VALUE_TYPE(omnibox::kWebUIOmniboxAimPopupDisableAnimation)},
-
-    {"webui-omnibox-hide-aim-url",
-     flag_descriptions::kWebUIOmniboxHideAimUrlName,
-     flag_descriptions::kWebUIOmniboxHideAimUrlDescription, kOsDesktop,
-     FEATURE_VALUE_TYPE(omnibox::kHideAimEntrypointForUrlSuggestions)},
 
     {"webui-omnibox-popup-selection-control",
      flag_descriptions::kWebUIOmniboxPopupSelectionControlName,
@@ -14073,6 +14079,10 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kAndroidKeyboardShortcutOpenFileName,
      flag_descriptions::kAndroidKeyboardShortcutOpenFileDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(chrome::android::kAndroidKeyboardShortcutOpenFile)},
+    {"android-unified-keyboard-shortcuts",
+     flag_descriptions::kAndroidUnifiedKeyboardShortcutsName,
+     flag_descriptions::kAndroidUnifiedKeyboardShortcutsDescription, kOsAndroid,
+     FEATURE_VALUE_TYPE(chrome::android::kAndroidUnifiedKeyboardShortcuts)},
 #endif
     {"enable-desktop-qr-code-detection",
      flag_descriptions::kEnableDesktopQrCodeDetectionName,
@@ -14334,6 +14344,12 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kMixedFixedIntervalMatcherName,
      flag_descriptions::kMixedFixedIntervalMatcherDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(features::kMixedFixedIntervalMatcher)},
+
+    {"fre-string-changes", flag_descriptions::kFREStringChangesName,
+     flag_descriptions::kFREStringChangesDescription, kOsAndroid,
+     FEATURE_WITH_PARAMS_VALUE_TYPE(chrome::android::kFREStringChanges,
+                                    kFREStringChangesVariations,
+                                    "FREStringChanges")},
 #endif  // BUILDFLAG(IS_ANDROID)
 
     {"persistent-widget-api", flag_descriptions::kPersistentWidgetAPIName,
@@ -14380,6 +14396,13 @@ const FeatureEntry kFeatureEntries[] = {
      kOsDesktop,
      STRING_VALUE_TYPE(autofill::switches::kAutofillCustomFormControlScriptsDir,
                        "")},
+
+    {"autofill-enable-offers-and-loyalty-cards-settings",
+     flag_descriptions::kAutofillEnableOffersAndLoyaltyCardsSettingsName,
+     flag_descriptions::kAutofillEnableOffersAndLoyaltyCardsSettingsDescription,
+     kOsDesktop,
+     FEATURE_VALUE_TYPE(
+         autofill::features::kAutofillEnableOffersAndLoyaltyCardsSettings)},
 
     // Add new entries above this line.
     // NOTE: Adding a new flag requires adding a corresponding entry to enum

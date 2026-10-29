@@ -28,7 +28,7 @@
 #include "content/public/test/download_test_observer.h"
 #include "crypto/sha2.h"
 #include "testing/gtest/include/gtest/gtest.h"
-#include "ui/base/window_open_disposition.h"
+#include "ui/base/mojom/window_open_disposition.mojom.h"
 
 #if BUILDFLAG(IS_MAC)
 #include <memory>
@@ -40,8 +40,8 @@
 #include "base/test/metrics/histogram_tester.h"
 #include "base/threading/thread_restrictions.h"
 #include "chrome/common/safe_browsing/archive_analyzer_results.h"
-#include "components/safe_browsing/content/common/file_type_policies_test_util.h"
-#include "components/safe_browsing/content/common/proto/download_file_types.pb.h"
+#include "components/safe_browsing/content/common/file_type_policies/file_type_policies_test_util.h"
+#include "components/safe_browsing/content/common/file_type_policies/proto/download_file_types.pb.h"
 #include "testing/gmock/include/gmock/gmock.h"
 #endif
 
@@ -75,7 +75,7 @@ class DownloadProtectionServiceBrowserTest : public InProcessBrowserTest {
     // This call will block until the navigation completes, but will not wait
     // for the download to finish.
     ui_test_utils::NavigateToURLWithDisposition(
-        browser(), url, WindowOpenDisposition::kCurrentTab,
+        browser(), url, ui::mojom::WindowOpenDisposition::kCurrentTab,
         ui_test_utils::BROWSER_TEST_WAIT_FOR_LOAD_STOP);
 
     observer.WaitForFinished();

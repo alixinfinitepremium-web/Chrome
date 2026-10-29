@@ -291,7 +291,7 @@
 #endif  // BUILDFLAG(ENTERPRISE_WATERMARK)
 
 #if BUILDFLAG(SAFE_BROWSING_AVAILABLE)
-#include "components/safe_browsing/content/common/file_type_policies_prefs.h"
+#include "components/safe_browsing/content/common/file_type_policies/file_type_policies_prefs.h"
 #endif
 
 #if !BUILDFLAG(IS_ANDROID)
@@ -3724,10 +3724,10 @@ std::unique_ptr<ConfigurationPolicyHandlerList> BuildHandlerList(
           {{0, 0}, {1, 0}, {2, 1}}));
   handlers->AddHandler(std::make_unique<GenAiDefaultSettingsPolicyHandler>(
       gen_ai_default_policies));
-#if !BUILDFLAG(IS_ANDROID)
   handlers->AddHandler(std::make_unique<GeminiSparkSettingsPolicyHandler>(
       std::make_unique<GenAiDefaultSettingsPolicyHandler>(
           gen_ai_default_policies)));
+#if !BUILDFLAG(IS_ANDROID)
   handlers->AddHandler(std::make_unique<SmartTabSharingSettingsPolicyHandler>(
       std::make_unique<GenAiDefaultSettingsPolicyHandler>(
           gen_ai_default_policies)));

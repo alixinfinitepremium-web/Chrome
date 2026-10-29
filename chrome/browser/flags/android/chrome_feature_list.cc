@@ -249,7 +249,7 @@ const base::Feature* const kFeaturesExposedToJava[] = {
     &finds::features::kChromeFinds,
     &history::kBrowsingHistoryFilterByActor,
     &history::kBrowsingHistoryFilterByDevice,
-    &history::kBrowsingHistoryFilterByDomain,
+    &history::kBrowsingHistoryFilterByDomainV2,
     &history::kOrganicRepeatableQueries,
     &kAccountForSuppressedKeyboardInsets,
     &kAccountPickerDialog,
@@ -289,6 +289,7 @@ const base::Feature* const kFeaturesExposedToJava[] = {
     &kAndroidOmniboxFocusedNewTabPage,
     &kAndroidOpenIncognitoAsWindowRestrictions,
     &kAndroidPageInfoAsAppMenuItem,
+    &kAndroidProgressBarCancelOnWindowInvisible,
     &kAndroidProgressBarVisualUpdate,
     &kAndroidSaveCardNonBlockingDialog,
     &kAndroidSetGoogleAccountInHelp,
@@ -305,6 +306,7 @@ const base::Feature* const kFeaturesExposedToJava[] = {
     &kAndroidThemeResourceProvider,
     &kAndroidToolbarCaptureOnDesktop,
     &kAndroidToolbarScrollAblation,
+    &kAndroidUnifiedKeyboardShortcuts,
     &kAndroidUserEducationFramework,
     &kAndroidVerticalTabs,
     &kAndroidXRUsesSurfaceControl,
@@ -433,6 +435,7 @@ const base::Feature* const kFeaturesExposedToJava[] = {
     &kEnableXAxisActivityTransition,
     &kEnforceIncognitoIsolation,
     &kExcludeChromeInIncognitoShareSheet,
+    &kFREStringChanges,
     &kFixToolbarHairlineRegression,
     &kFlyoutInBookmarksBar,
     &kForceTranslucentNotificationTrampoline,
@@ -627,6 +630,7 @@ const base::Feature* const kFeaturesExposedToJava[] = {
     &sensitive_content::features::kSensitiveContent,
     &sensitive_content::features::kSensitiveContentWhileSwitchingTabs,
     &site_isolation::features::kSiteIsolationEnableMemoryThresholdAndroid,
+    &switches::kChoiceEngineStatusReporting,
     &switches::kClankDefaultSearchApi,
     &switches::kPrepopulatedEnginesShadowVariants,
     &switches::kSearchSettingsUpdateV2,
@@ -714,6 +718,7 @@ BASE_FEATURE(kAndroidNewTabButtonTabstripWebUI, base::FEATURE_DISABLED_BY_DEFAUL
 BASE_FEATURE(kAndroidOmniboxFocusedNewTabPage, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kAndroidOpenIncognitoAsWindowRestrictions, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kAndroidPageInfoAsAppMenuItem, base::FEATURE_ENABLED_BY_DEFAULT);
+BASE_FEATURE(kAndroidProgressBarCancelOnWindowInvisible, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kAndroidProgressBarVisualUpdate, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kAndroidSaveCardNonBlockingDialog, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kAndroidSetGoogleAccountInHelp, base::FEATURE_ENABLED_BY_DEFAULT);
@@ -731,6 +736,7 @@ BASE_FEATURE(kAndroidThemeModule, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kAndroidThemeResourceProvider, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kAndroidToolbarCaptureOnDesktop, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kAndroidToolbarScrollAblation, base::FEATURE_DISABLED_BY_DEFAULT);
+BASE_FEATURE(kAndroidUnifiedKeyboardShortcuts, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kAndroidUserEducationFramework, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kAndroidVerticalTabs, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kAndroidXRUsesSurfaceControl, base::FEATURE_ENABLED_BY_DEFAULT);
@@ -865,6 +871,7 @@ BASE_FEATURE(kEnableToolbarPositioningInResizeMode, base::FEATURE_ENABLED_BY_DEF
 BASE_FEATURE(kEnableXAxisActivityTransition, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kEnforceIncognitoIsolation, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kExcludeChromeInIncognitoShareSheet, base::FEATURE_ENABLED_BY_DEFAULT);
+BASE_FEATURE(kFREStringChanges, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kFixToolbarHairlineRegression, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kFlyoutInBookmarksBar, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kForceTranslucentNotificationTrampoline, base::FEATURE_DISABLED_BY_DEFAULT);

@@ -420,7 +420,7 @@ IN_PROC_BROWSER_TEST_F(LiveSignInTest, MANUAL_CreateSignedInProfile) {
   // Open the profile picker.
   ProfilePicker::Show(ProfilePicker::Params::FromEntryPoint(
       ProfilePicker::EntryPoint::kProfileMenuAddNewProfile));
-  profiles::testing::WaitForPickerLoadStop(
+  profiles::testing::WaitForPickerUrl(
       GURL("chrome://profile-picker/new-profile"));
 
   // Simulate a click on the signin button.
@@ -436,15 +436,14 @@ IN_PROC_BROWSER_TEST_F(LiveSignInTest, MANUAL_CreateSignedInProfile) {
   EXPECT_EQ(profile_manager->GetNumberOfProfiles(), 2U);
   EXPECT_NE(browser()->GetProfile(), new_profile);
   sign_in_functions.SignInFromCurrentPage(picker_contents, *test_account,
-                                          /*previously_signed_in_accounts=*/0);
+                                          /*previously_signed_in_accounts=*/0,
+                                          PrimaryAccountWait::kWaitForAdded);
 
   // User is signed in, but Sync is off.
   signin::IdentityManager* identity_manager =
       IdentityManagerFactory::GetForProfile(new_profile);
-  base::test::RunUntil([&identity_manager]() {
-    return GetPrimaryAccountConsentLevel(identity_manager) ==
-           signin::ConsentLevel::kSignin;
-  });
+  ASSERT_TRUE(
+      identity_manager->HasPrimaryAccount(signin::ConsentLevel::kSignin));
 
   // Confirm History Sync Opt-in.
   ui_test_utils::BrowserCreatedObserver browser_created_observer;
@@ -452,7 +451,7 @@ IN_PROC_BROWSER_TEST_F(LiveSignInTest, MANUAL_CreateSignedInProfile) {
       HistorySyncOptinUI::AppendHistorySyncOptinQueryParams(
           GURL(chrome::kChromeUIHistorySyncOptinURL),
           HistorySyncOptinLaunchContext::kWindow);
-  profiles::testing::WaitForPickerLoadStop(history_sync_optin_url);
+  profiles::testing::WaitForPickerUrl(history_sync_optin_url);
 
   EXPECT_TRUE(base::test::RunUntil([picker_contents]() {
     return content::EvalJs(picker_contents,

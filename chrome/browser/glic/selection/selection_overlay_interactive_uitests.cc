@@ -2164,6 +2164,58 @@ IN_PROC_BROWSER_TEST_F(SelectionOverlayInteractiveTestWithPromptWithoutBox,
       WaitForHide(OverlayBaseController::kOverlayId));
 }
 
+IN_PROC_BROWSER_TEST_F(SelectionOverlayInteractiveTestWithPromptWithoutBox,
+                       ChipsRowClampedToViewportRightEdge) {
+  DEFINE_LOCAL_ELEMENT_IDENTIFIER_VALUE(kOverlayWebContentsId);
+  const DeepQuery kOverlayApp = {"selection-overlay-app"};
+  const DeepQuery kSelectionOverlay = {"selection-overlay-app",
+                                       "glic-selection-overlay"};
+  // A point measured from the overlay's top-right corner, so the selection
+  // ends too close to the right edge for the row to fit beside it.
+  auto point_from_top_right = [this](int x, int y) {
+    return base::BindLambdaForTesting([this, x, y](ui::TrackedElement* el) {
+      return AsView<views::View>(el)->GetBoundsInScreen().top_right() +
+             gfx::Vector2d(-x, y);
+    });
+  };
+  static constexpr char kRowClampedJs[] = R"js(
+    el => {
+      const container =
+          el.shadowRoot.querySelector('#floatingPromptContainer');
+      if (!container || container.hidden ||
+          el.shadowRoot.querySelectorAll('.action-chip').length === 0) {
+        return false;
+      }
+      const rect = container.getBoundingClientRect();
+      const overlayRect = el.selectionOverlayRect;
+      const sel = el.activeSelection;
+      const selRight =
+          overlayRect.left + (sel.left + sel.width) * overlayRect.width;
+      return Math.abs(rect.right - (window.innerWidth - 16)) <= 2 &&
+          rect.left < selRight - 2;
+    }
+  )js";
+
+  RunTestSequence(
+      OpenGlic(), ClickMockGlicElement({"#captureRegionBtn"}),
+      WaitForShow(OverlayBaseController::kOverlayId),
+      InstrumentNonTabWebView(kOverlayWebContentsId,
+                              OverlayBaseController::kOverlayId),
+      WaitForJsResultAt(kOverlayWebContentsId, kOverlayApp,
+                        "el => el.screenshot_ !== null"),
+      WaitForElementVisible(kOverlayWebContentsId, kSelectionOverlay),
+      WaitForJsResultAt(
+          kOverlayWebContentsId, kSelectionOverlay,
+          "el => el.isScreenshotRendered && el.selectionOverlayRect.width > 0 "
+          "&& el.selectionOverlayRect.height > 0 && !el.showFloatingPrompt"),
+      MoveMouseTo(OverlayBaseController::kOverlayId,
+                  point_from_top_right(120, 100)),
+      DragMouseTo(OverlayBaseController::kOverlayId,
+                  point_from_top_right(40, 180)),
+      WaitForJsResultAt(kOverlayWebContentsId, kSelectionOverlay,
+                        kRowClampedJs));
+}
+
 IN_PROC_BROWSER_TEST_F(SelectionOverlayInteractiveTestWithPrompt,
                        FloatingPromptPositionClampedWithinViewport) {
   DEFINE_LOCAL_ELEMENT_IDENTIFIER_VALUE(kOverlayWebContentsId);
@@ -2507,14 +2559,8 @@ class SelectionOverlayInteractiveTestWithInlineFulfillment
 
 }  // namespace
 
-// TODO(crbug.com/577914378): Flaky on Mac.
-#if BUILDFLAG(IS_MAC)
-#define MAYBE_ClickExplainChipShowsCard DISABLED_ClickExplainChipShowsCard
-#else
-#define MAYBE_ClickExplainChipShowsCard ClickExplainChipShowsCard
-#endif
 IN_PROC_BROWSER_TEST_F(SelectionOverlayInteractiveTestWithInlineFulfillment,
-                       MAYBE_ClickExplainChipShowsCard) {
+                       ClickExplainChipShowsCard) {
   DEFINE_LOCAL_ELEMENT_IDENTIFIER_VALUE(kActiveTab);
   DEFINE_LOCAL_ELEMENT_IDENTIFIER_VALUE(kOverlayWebContentsId);
 
@@ -2552,14 +2598,8 @@ IN_PROC_BROWSER_TEST_F(SelectionOverlayInteractiveTestWithInlineFulfillment,
       CheckResult(GetOverlayVisibilityAt(0), true));
 }
 
-// TODO(crbug.com/576383946): Flaky on Mac.
-#if BUILDFLAG(IS_MAC)
-#define MAYBE_GrowingCardStaysInViewport DISABLED_GrowingCardStaysInViewport
-#else
-#define MAYBE_GrowingCardStaysInViewport GrowingCardStaysInViewport
-#endif
 IN_PROC_BROWSER_TEST_F(SelectionOverlayInteractiveTestWithInlineFulfillment,
-                       MAYBE_GrowingCardStaysInViewport) {
+                       GrowingCardStaysInViewport) {
   DEFINE_LOCAL_ELEMENT_IDENTIFIER_VALUE(kActiveTab);
   DEFINE_LOCAL_ELEMENT_IDENTIFIER_VALUE(kOverlayWebContentsId);
 
@@ -2641,15 +2681,8 @@ IN_PROC_BROWSER_TEST_F(SelectionOverlayInteractiveTestWithInlineFulfillment,
                         kCardAtCueTopLeftJs));
 }
 
-// TODO(crbug.com/577914378): Flaky on Mac.
-#if BUILDFLAG(IS_MAC)
-#define MAYBE_ClickCardAskGeminiOpensSidePanel \
-  DISABLED_ClickCardAskGeminiOpensSidePanel
-#else
-#define MAYBE_ClickCardAskGeminiOpensSidePanel ClickCardAskGeminiOpensSidePanel
-#endif
 IN_PROC_BROWSER_TEST_F(SelectionOverlayInteractiveTestWithInlineFulfillment,
-                       MAYBE_ClickCardAskGeminiOpensSidePanel) {
+                       ClickCardAskGeminiOpensSidePanel) {
   DEFINE_LOCAL_ELEMENT_IDENTIFIER_VALUE(kActiveTab);
   DEFINE_LOCAL_ELEMENT_IDENTIFIER_VALUE(kOverlayWebContentsId);
   const DeepQuery kAskGemini = {

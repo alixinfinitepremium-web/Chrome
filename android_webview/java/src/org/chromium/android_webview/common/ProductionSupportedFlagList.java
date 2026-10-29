@@ -532,6 +532,7 @@ public final class ProductionSupportedFlagList {
                 NetFeatures.CACHE_CERT_VERIFICATION,
                 "Enables caching of certificate verification results"),
         Flag.baseFeature("MojoFixGeometricBufferGrowth"),
+        Flag.baseFeature("MojoFixGeometricBufferGrowth2"),
         Flag.baseFeature(
                 "FixDataPipeTrapBug",
                 "Used to disable a specific bug fix for a long-standing bug that may"
@@ -1518,6 +1519,9 @@ public final class ProductionSupportedFlagList {
         Flag.baseFeature(
                 "PropagateStrictEchMode",
                 "Enables propagating strict ECH (Encrypted Client Hello) mode on Android."),
+        Flag.baseFeature(
+                BlinkFeatures.XML_PARSING_RUST,
+                "Enables the Rust based XML parser for all XML parsing."),
         // Add new commandline switches and features above. The final entry should have a
         // trailing comma for cleaner diffs.
     };

@@ -64,12 +64,6 @@ inline constexpr char kOmniboxDynamicAimSubmitName[] = "Dynamic Aim Submit";
 inline constexpr char kOmniboxDynamicAimSubmitDescription[] =
     "Enables dynamic aim button submission variants.";
 
-inline constexpr char kOmniboxAiModeSpaceDoesNotActivateName[] =
-    "Omnibox AI Mode Space Does Not Activate";
-inline constexpr char kOmniboxAiModeSpaceDoesNotActivateDescription[] =
-    "If enabled, pressing space when the AI mode button has focus will "
-    "insert a space into the omnibox instead of activating the button.";
-
 inline constexpr char kOmniboxAimServerEligibilityName[] =
     "AIM Server Eligibility";
 inline constexpr char kOmniboxAimServerEligibilityDescription[] =
@@ -1169,6 +1163,14 @@ inline constexpr char kAutofillEnableOAuth2TokenFixDescription[] =
     "When enabled, Autofill payments requests fetch OAuth2 tokens from the "
     "identity service on each request, instead of keeping local cache in "
     "Autofill components.";
+
+inline constexpr char kAutofillEnableOffersAndLoyaltyCardsSettingsName[] =
+    "Enable Offers and loyalty cards settings";
+inline constexpr char
+    kAutofillEnableOffersAndLoyaltyCardsSettingsDescription[] =
+        "When enabled, loyalty cards and Wallet direct offers are moved from "
+        "the Payments settings page into a new Offers and loyalty cards "
+        "settings page, with a separate toggle to control them.";
 
 inline constexpr char kAutofillEnableOffersInClankKeyboardAccessoryName[] =
     "Enable Autofill offers in keyboard accessory";
@@ -4014,11 +4016,6 @@ inline constexpr char kWebUIOmniboxAimPopupDisableAnimationDescription[] =
     "If enabled, there will no longer be animation in the WebUI Omnibox AIM "
     "popup.";
 
-inline constexpr char kWebUIOmniboxHideAimUrlName[] =
-    "WebUI Omnibox Hide AIM URL";
-inline constexpr char kWebUIOmniboxHideAimUrlDescription[] =
-    "If enabled, hides the AIM button when the default suggestion is a URL.";
-
 inline constexpr char kWebUIOmniboxFullPopupName[] = "WebUI Omnibox Full Popup";
 inline constexpr char kWebUIOmniboxFullPopupDescription[] =
     "If enabled, then both the input row and suggestions dropdown (in the "
@@ -5685,6 +5682,11 @@ inline constexpr char kAndroidTipsNotificationsV2Name[] =
 inline constexpr char kAndroidTipsNotificationsV2Description[] =
     "Enable tips notifications V2 for supported features on Android.";
 
+inline constexpr char kAndroidUnifiedKeyboardShortcutsName[] =
+    "Android Unified Keyboard Shortcuts";
+inline constexpr char kAndroidUnifiedKeyboardShortcutsDescription[] =
+    "Enables unified C++ keyboard shortcut handling on Android.";
+
 inline constexpr char kAndroidUnknownGamepadExtraAxesName[] =
     "Extra axes for unknown gamepads";
 inline constexpr char kAndroidUnknownGamepadExtraAxesDescription[] =
@@ -5765,6 +5767,10 @@ inline constexpr char kEdgeToEdgeAutomotiveName[] = "Edge-to-Edge Automotive";
 inline constexpr char kEdgeToEdgeAutomotiveDescription[] =
     "When this is enabled, edge to edge logic will be enabled on automotive "
     "devices.";
+
+inline constexpr char kFREStringChangesName[] = "FRE String Changes";
+inline constexpr char kFREStringChangesDescription[] =
+    "Enables new title and content strings for the FRE flow on Android.";
 
 inline constexpr char kForceWebGpuAdapterName[] = "Use WebGPU adapter";
 inline constexpr char kForceWebGpuAdapterDescription[] =

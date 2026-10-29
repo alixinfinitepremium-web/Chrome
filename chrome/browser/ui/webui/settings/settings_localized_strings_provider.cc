@@ -2181,19 +2181,7 @@ void AddAutofillStrings(content::WebUIDataSource* html_source,
 
 void AddSignOutDialogStrings(content::WebUIDataSource* html_source,
                              Profile* profile) {
-  std::string sync_dashboard_url =
-      google_util::AppendGoogleLocaleParam(
-          GURL(chrome::kSyncGoogleDashboardURL),
-          g_browser_process->GetApplicationLocale())
-          .spec();
-
 #if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_LINUX)
-  html_source->AddString(
-      "syncDisconnectManagedProfileExplanation",
-      l10n_util::GetStringFUTF8(
-          IDS_SETTINGS_TURN_OFF_SYNC_MANAGED_PROFILE_EXPLANATION, u"$1",
-          base::ASCIIToUTF16(sync_dashboard_url)));
-
   if (profile->IsChild()) {
     static constexpr webui::LocalizedString kTurnOffStrings[] = {
         {"syncDisconnect", IDS_SETTINGS_PEOPLE_SYNC_TURN_OFF},
@@ -2205,8 +2193,6 @@ void AddSignOutDialogStrings(content::WebUIDataSource* html_source,
     static constexpr webui::LocalizedString kSyncDisconnectStrings[] = {
         {"syncDisconnectDeleteProfile",
          IDS_SETTINGS_TURN_OFF_SYNC_DIALOG_CHECKBOX},
-        {"syncDisconnectConfirm",
-         IDS_SETTINGS_TURN_OFF_SYNC_DIALOG_MANAGED_CONFIRM},
         {"syncDisconnectExplanation",
          IDS_SETTINGS_SYNC_DISCONNECT_AND_SIGN_OUT_EXPLANATION_SUPERVISED_PROFILE},
     };
@@ -2228,8 +2214,6 @@ void AddSignOutDialogStrings(content::WebUIDataSource* html_source,
     static constexpr webui::LocalizedString kSyncDisconnectStrings[] = {
         {"syncDisconnectDeleteProfile",
          IDS_SETTINGS_TURN_OFF_SYNC_DIALOG_CHECKBOX},
-        {"syncDisconnectConfirm",
-         IDS_SETTINGS_TURN_OFF_SYNC_DIALOG_MANAGED_CONFIRM},
         {"syncDisconnectExplanation",
          IDS_SETTINGS_SYNC_DISCONNECT_AND_SIGN_OUT_EXPLANATION},
     };
@@ -3156,18 +3140,20 @@ void AddSearchStrings(content::WebUIDataSource* html_source, Profile* profile) {
   html_source->AddString("searchExplanationLearnMoreURL",
                          chrome::kOmniboxLearnMoreURL);
 
-  const bool is_eea =
+  const bool is_in_search_engine_choice_screen_region =
       CHECK_DEREF(regional_capabilities::RegionalCapabilitiesServiceFactory::
                       GetForProfile(profile))
-          .IsInEeaCountry();
+          .IsInSearchEngineChoiceScreenRegion();
   html_source->AddLocalizedString(
       "searchEnginesSettingsDialogSubtitle",
-      is_eea ? IDS_SEARCH_ENGINE_CHOICE_SETTINGS_SUBTITLE
-             : IDS_SEARCH_ENGINE_CHOICE_SETTINGS_SUBTITLE_NON_EEA);
+      is_in_search_engine_choice_screen_region
+          ? IDS_SEARCH_ENGINE_CHOICE_SETTINGS_SUBTITLE
+          : IDS_SEARCH_ENGINE_CHOICE_SETTINGS_SUBTITLE_NON_EEA);
   html_source->AddLocalizedString(
       "searchEnginesPickerSubtitle",
-      is_eea ? IDS_SETTINGS_SEARCH_ENGINES_PICKER_SUBTITLE
-             : IDS_SETTINGS_SEARCH_ENGINES_PICKER_SUBTITLE_NON_EEA);
+      is_in_search_engine_choice_screen_region
+          ? IDS_SETTINGS_SEARCH_ENGINES_PICKER_SUBTITLE
+          : IDS_SETTINGS_SEARCH_ENGINES_PICKER_SUBTITLE_NON_EEA);
 }
 
 void AddSearchEnginesStrings(content::WebUIDataSource* html_source) {

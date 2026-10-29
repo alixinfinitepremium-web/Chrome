@@ -1227,7 +1227,7 @@ LayoutUnit BlockNode::EmptyLineBlockSize(
   // Only return a line-height for the first fragment.
   if (IsBreakInside(incoming_break_token))
     return LayoutUnit();
-  return box_->FirstLineStyleRef().ComputedLineHeightAsFixed();
+  return box_->FirstLineStyle().ComputedLineHeightAsFixed();
 }
 
 String BlockNode::ToString() const {
@@ -1581,21 +1581,6 @@ void BlockNode::UpdateShapeOutsideInfoIfNeeded(
       LogicalSize(margins.InlineSum(), margins.BlockSum()));
   shape_outside->SetPercentageResolutionInlineSize(
       constraint_space.PercentageResolutionInlineSize());
-}
-
-static bool g_devtools_layout = false;
-bool DevtoolsReadonlyLayoutScope::InDevtoolsLayout() {
-  return g_devtools_layout;
-}
-
-DevtoolsReadonlyLayoutScope::DevtoolsReadonlyLayoutScope() {
-  DCHECK(!g_devtools_layout);
-  g_devtools_layout = true;
-}
-
-DevtoolsReadonlyLayoutScope::~DevtoolsReadonlyLayoutScope() {
-  DCHECK(g_devtools_layout);
-  g_devtools_layout = false;
 }
 
 }  // namespace blink

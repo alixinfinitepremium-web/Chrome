@@ -623,6 +623,11 @@
     "expiry_milestone": 160
   },
   {
+    "name": "android-unified-keyboard-shortcuts",
+    "owners": ["mklw@google.com", "clank-large-form-factors@google.com"],
+    "expiry_milestone": 170
+  },
+  {
     "name": "android-unknown-gamepad-extra-axes",
     "owners": [
       "deviceapi-team@google.com",
@@ -1232,6 +1237,14 @@
     "name": "autofill-enable-oauth2-token-fix",
     "owners": [ "ferny@google.com", "payments-autofill-team@google.com" ],
     "expiry_milestone": 165
+  },
+  {
+    "name": "autofill-enable-offers-and-loyalty-cards-settings",
+    "owners": [
+      "wilsonlow@google.com",
+      "payments-autofill-team@google.com"
+    ],
+    "expiry_milestone": 170
   },
   {
     "name": "autofill-enable-offers-in-clank-keyboard-accessory",
@@ -2324,7 +2337,7 @@
   {
     "name": "consistent-logo-doodle-height",
     "owners": [ "scottyoder@google.com", "bling-pandamonium@google.com" ],
-    "expiry_milestone": 150
+    "expiry_milestone": 164
   },
   {
     "name": "content-notification-provisional-ignore-conditions",
@@ -5441,6 +5454,11 @@
     "expiry_milestone": 81
   },
   {
+    "name": "fre-string-changes",
+    "owners": ["mschillaci@google.com", "jhimawan@google.com", "nehasapre@google.com", "clank-app-team@google.com"],
+    "expiry_milestone": 165
+  },
+  {
     "name": "fs-no-broadcast-experiment",
     "owners": [ "alionadangla@chromium.org", "bling-flags@google.com" ],
     "expiry_milestone": 150
@@ -7526,11 +7544,6 @@
     "name": "omnibox-adjust-indentation",
     "owners": [ "mahmadi@chromium.org", "chrome-desktop-search@google.com"],
     "expiry_milestone": 145
-  },
-  {
-    "name": "omnibox-ai-mode-space-does-not-activate",
-    "owners": [ "pauladedeji@google.com", "chrome-desktop-search@google.com" ],
-    "expiry_milestone": 160
   },
   {
     "name": "omnibox-aim-image-downscaling",
@@ -10460,11 +10473,6 @@
   {
     "name": "webui-omnibox-full-popup",
     "owners": [ "avivkiss@google.com", "khalidpeer@chromium.org", "mahmadi@chromium.org", "kylixrd@chromium.org", "chrome-desktop-search@google.com" ],
-    "expiry_milestone": 160
-  },
-  {
-    "name": "webui-omnibox-hide-aim-url",
-    "owners": [ "mfacey@google.com", "chrome-desktop-search@google.com" ],
     "expiry_milestone": 160
   },
   {

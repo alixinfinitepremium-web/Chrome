@@ -1913,7 +1913,7 @@ inline constexpr char kSnapshotConcurrentAccessDescription[] =
 inline constexpr char kSnapshotDownsampleImageName[] =
     "Snapshot Downsample Image";
 inline constexpr char kSnapshotDownsampleImageDescription[] =
-    "Downsamples tab snapshots to half resolution before writing to disk, "
+    "Downsamples tab snapshots to 70% resolution before writing to disk, "
     "reducing storage and I/O while keeping full resolution in memory.";
 
 inline constexpr char kStartSurfaceUserSettingName[] =
@@ -1925,6 +1925,11 @@ inline constexpr char kSupportGoogleOneDeepLinkName[] =
     "Support Google One Deep Link";
 inline constexpr char kSupportGoogleOneDeepLinkDescription[] =
     "Enables deep linking to Google One management screen on startup.";
+
+inline constexpr char kSuspiciousSiteWarningsName[] =
+    "Suspicious Site Warnings";
+inline constexpr char kSuspiciousSiteWarningsDescription[] =
+    "Enables warnings on sites that Safe Browsing deem to be suspicious.";
 
 inline constexpr char kSyncAIThreadsName[] = "Sync AI Threads";
 inline constexpr char kSyncAIThreadsDescription[] =
