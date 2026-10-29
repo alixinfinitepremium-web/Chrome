@@ -539,7 +539,7 @@
   {
     "name": "android-pdf-reuse-fragment",
     "owners": [ "jinsukkim@google.com", "shuyng@chromium.org"  ],
-    "expiry_milestone": 160
+    "expiry_milestone": 162
   },
   {
     "name": "android-progress-bar-visual-update",
@@ -1241,7 +1241,7 @@
   {
     "name": "autofill-enable-omnibox-autofill",
     "owners": [ "osaul@google.com", "ferny@google.com", "payments-autofill-team@google.com" ],
-    "expiry_milestone": 160
+    "expiry_milestone": 170
   },
   {
     "name": "autofill-enable-pay-now-pay-later-tabs",
@@ -2492,6 +2492,11 @@
   },
   {
     "name": "contextual-tasks-ephemeral-button-context-menu",
+    "owners": [ "dianaou@google.com", "chrome-contextual-tasks-eng@google.com" ],
+    "expiry_milestone": 160
+  },
+  {
+    "name": "contextual-tasks-ephemeral-pin-button-refactor",
     "owners": [ "dianaou@google.com", "chrome-contextual-tasks-eng@google.com" ],
     "expiry_milestone": 160
   },
@@ -6354,12 +6359,12 @@
   {
     "name": "inline-pdf-v2",
     "owners": [ "rathomas@google.com", "clank-large-form-factors@google.com" ],
-    "expiry_milestone": 158
+    "expiry_milestone": 162
   },
   {
     "name": "inline-pdf-v2-incognito",
     "owners": [ "rathomas@google.com", "clank-large-form-factors@google.com" ],
-    "expiry_milestone": 158
+    "expiry_milestone": 162
   },
   {
     "name": "input-cursor-anchor-info-migration",
@@ -7800,6 +7805,11 @@
     "expiry_milestone": 160
   },
   {
+    "name": "omnibox-post-frame-autocomplete-start",
+    "owners": [ "pnoland@chromium.org", "chrome-mobile-search@google.com" ],
+    "expiry_milestone": 166
+  },
+  {
     "name": "omnibox-prefetch-selected-suggestions-omt-android",
     "owners": [
       "thesalsa@google.com",
@@ -8222,7 +8232,7 @@
       "rathomas@google.com",
       "shuyng@google.com"
     ],
-    "expiry_milestone": 160
+    "expiry_milestone": 162
   },
   {
     "name": "pdf-oopif",
@@ -9910,11 +9920,6 @@
     // This is required by test teams to verify functionality on devices which
     // have no access to commandline flags.
     "expiry_milestone": -1
-  },
-  {
-    "name": "update-padding-for-display-calculation",
-    "owners": ["clhager@google.com", "twellington@chromium.org"],
-    "expiry_milestone": 155
   },
   {
     "name": "update-tab-group-colors",

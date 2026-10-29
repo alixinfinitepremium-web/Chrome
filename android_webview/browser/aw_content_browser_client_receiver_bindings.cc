@@ -4,9 +4,7 @@
 
 #include "android_webview/browser/aw_browser_context.h"
 #include "android_webview/browser/aw_content_browser_client.h"
-#include "android_webview/browser/aw_print_manager.h"
 #include "android_webview/browser/renderer_host/aw_render_view_host_ext.h"
-#include "android_webview/browser/safe_browsing/aw_url_checker_delegate_impl.h"
 #include "android_webview/common/aw_features.h"
 #include "android_webview/common/mojom/render_message_filter.mojom.h"
 #include "base/feature_list.h"
@@ -19,7 +17,6 @@
 #include "components/performance_manager/embedder/binders.h"
 #include "components/performance_manager/embedder/performance_manager_registry.h"
 #include "components/prefs/pref_service.h"
-#include "components/safe_browsing/content/browser/mojo_safe_browsing_impl.h"
 #include "components/safe_browsing/core/common/features.h"
 #include "components/security_interstitials/content/security_interstitial_tab_helper.h"
 #include "components/spellcheck/spellcheck_buildflags.h"
@@ -30,12 +27,17 @@
 #include "media/mojo/buildflags.h"
 #include "mojo/public/cpp/bindings/binder_map.h"
 #include "mojo/public/cpp/bindings/self_owned_receiver.h"
+#include "printing/buildflags/buildflags.h"
 #include "services/network/public/cpp/is_potentially_trustworthy.h"
 #include "services/service_manager/public/cpp/binder_registry.h"
 #include "services/service_manager/public/cpp/interface_provider.h"
 #include "third_party/blink/public/common/associated_interfaces/associated_interface_registry.h"
 #include "third_party/blink/public/mojom/payments/payment_request.mojom.h"
 #include "third_party/blink/public/mojom/webview/webview_media_integrity.mojom.h"
+
+#if BUILDFLAG(ENABLE_PRINTING)
+#include "android_webview/browser/aw_print_manager.h"
+#endif
 
 #if BUILDFLAG(ENABLE_SPELLCHECK)
 #include "components/spellcheck/browser/spell_check_host_impl.h"
@@ -74,24 +76,6 @@ void CreateMediaDrmStorage(
       std::move(receiver));
 }
 #endif  // BUILDFLAG(ENABLE_MOJO_CDM)
-
-// Helper method that checks the RenderProcessHost is still alive before hopping
-// over to the IO thread.
-void MaybeCreateSafeBrowsing(
-    int rph_id,
-    base::RepeatingCallback<scoped_refptr<safe_browsing::UrlCheckerDelegate>()>
-        get_checker_delegate,
-    mojo::PendingReceiver<safe_browsing::mojom::SafeBrowsing> receiver) {
-  DCHECK_CURRENTLY_ON(content::BrowserThread::UI);
-
-  content::RenderProcessHost* render_process_host =
-      content::RenderProcessHost::FromID(rph_id);
-  if (!render_process_host)
-    return;
-
-  safe_browsing::MojoSafeBrowsingImpl::MaybeCreate(
-      rph_id, std::move(get_checker_delegate), std::move(receiver));
-}
 
 void BindNetworkHintsHandler(
     content::RenderFrameHost* frame_host,
@@ -213,6 +197,7 @@ void AwContentBrowserClient::
                 std::move(receiver), render_frame_host);
           },
           &render_frame_host));
+#if BUILDFLAG(ENABLE_PRINTING)
   associated_registry.AddInterface<printing::mojom::PrintManagerHost>(
       base::BindRepeating(
           [](content::RenderFrameHost* render_frame_host,
@@ -222,6 +207,7 @@ void AwContentBrowserClient::
                                                  render_frame_host);
           },
           &render_frame_host));
+#endif  // BUILDFLAG(ENABLE_PRINTING)
   associated_registry.AddInterface<
       security_interstitials::mojom::InterstitialCommands>(base::BindRepeating(
       [](content::RenderFrameHost* render_frame_host,
@@ -237,14 +223,6 @@ void AwContentBrowserClient::ExposeInterfacesToRenderer(
     service_manager::BinderRegistry* registry,
     blink::AssociatedInterfaceRegistry* associated_registry,
     content::RenderProcessHost* render_process_host) {
-  registry->AddInterface<safe_browsing::mojom::SafeBrowsing>(
-      base::BindRepeating(
-          &MaybeCreateSafeBrowsing, render_process_host->GetDeprecatedID(),
-          base::BindRepeating(
-              &AwContentBrowserClient::GetSafeBrowsingUrlCheckerDelegate,
-              base::Unretained(this))),
-      content::GetUIThreadTaskRunner({}));
-
   // Add the RenderMessageFilter creation callback, the callbkack will happen on
   // the IO thread.
   registry->AddInterface<mojom::RenderMessageFilter>(base::BindRepeating(

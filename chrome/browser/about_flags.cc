@@ -7181,6 +7181,12 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kOmniboxVoicePlateIntentDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(omnibox::kOmniboxVoicePlateIntent)},
 
+    {"omnibox-post-frame-autocomplete-start",
+     flag_descriptions::kOmniboxPostFrameAutocompleteStartName,
+     flag_descriptions::kOmniboxPostFrameAutocompleteStartDescription,
+     kOsAndroid,
+     FEATURE_VALUE_TYPE(omnibox::kOmniboxPostFrameAutocompleteStart)},
+
     {"omnibox-diagnostics", flag_descriptions::kOmniboxDiagnosticsName,
      flag_descriptions::kOmniboxDiagnosticsDescription, kOsAndroid,
      FEATURE_WITH_PARAMS_VALUE_TYPE(omnibox::kDiagnostics,
@@ -12266,6 +12272,15 @@ const FeatureEntry kFeatureEntries[] = {
          kContextualTasksUpdatedEntryPointsVariations,
          "ContextualTasksUpdatedEntryPoints")},
 
+    {"contextual-tasks-ephemeral-pin-button-refactor",
+     contextual_tasks::flag_descriptions::
+         kContextualTasksEphemeralPinButtonRefactorName,
+     contextual_tasks::flag_descriptions::
+         kContextualTasksEphemeralPinButtonRefactorDescription,
+     kOsDesktop,
+     FEATURE_VALUE_TYPE(
+         contextual_tasks::kContextualTasksEphemeralPinButtonRefactor)},
+
     {"contextual-tasks-ephemeral-pinning-visible-when-permanently-pinned",
      contextual_tasks::flag_descriptions::
          kEphemeralPinningVisibleWhenPermanentlyPinnedName,
@@ -13514,10 +13529,6 @@ const FeatureEntry kFeatureEntries[] = {
      FEATURE_VALUE_TYPE(media::kAudioRendererMixerImmediatePause)},
 
 #if BUILDFLAG(IS_ANDROID)
-    {"update-padding-for-display-calculation",
-     flag_descriptions::kUpdatePaddingForDisplayCalculationName,
-     flag_descriptions::kUpdatePaddingForDisplayCalculationDescription,
-     kOsAndroid, FEATURE_VALUE_TYPE(ui::kUpdatePaddingForDisplayCalculation)},
     {"text-classifier-timeout", flag_descriptions::kTextClassifierTimeoutName,
      flag_descriptions::kTextClassifierTimeoutDescription, kOsAndroid,
      FEATURE_WITH_PARAMS_VALUE_TYPE(::features::kTextClassifierTimeout,

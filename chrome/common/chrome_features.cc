@@ -120,8 +120,7 @@ BASE_FEATURE(kCryptographyComplianceCnsa, base::FEATURE_DISABLED_BY_DEFAULT);
 
 // Delays BEST_EFFORT tasks during startup until tabs are loaded/idle and first
 // paint.
-BASE_FEATURE(kImprovedStartupBestEffortDelay,
-             base::FEATURE_DISABLED_BY_DEFAULT);
+BASE_FEATURE(kImprovedStartupBestEffortDelay, base::FEATURE_ENABLED_BY_DEFAULT);
 
 // Sets the timeout until startup is declared "finished" even if not all
 // StartupInProgressRefs have been dropped.
@@ -854,7 +853,13 @@ const base::FeatureParam<bool> kGlicScrollToPDF{&kGlicScrollTo,
 const base::FeatureParam<bool> kGlicScrollToEnforceURLForPDF{
     &kGlicScrollTo, "glic-scroll-to-enforce-url-for-pdf", true};
 
-BASE_FEATURE(kGlicWarming, base::FEATURE_DISABLED_BY_DEFAULT);
+BASE_FEATURE(kGlicWarming,
+#if BUILDFLAG(IS_MAC)
+             base::FEATURE_ENABLED_BY_DEFAULT
+#else
+             base::FEATURE_DISABLED_BY_DEFAULT
+#endif
+);
 
 // Controls the amount of time from the GlicButtonController scheduling
 // preload to the start of preloading (if preloading is possible).

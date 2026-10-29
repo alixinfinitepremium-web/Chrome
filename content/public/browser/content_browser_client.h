@@ -90,7 +90,6 @@
 #include "third_party/blink/public/mojom/ai/ai_manager.mojom-forward.h"
 #include "third_party/blink/public/mojom/file_system_access/file_system_access_cloud_identifier.mojom-forward.h"
 #include "third_party/blink/public/mojom/file_system_access/file_system_access_error.mojom-forward.h"
-#include "third_party/blink/public/mojom/manifest/manifest.mojom-forward.h"
 #include "third_party/blink/public/mojom/navigation/navigation_params.mojom-forward.h"
 #include "third_party/blink/public/mojom/on_device_translation/translation_manager.mojom-forward.h"
 #include "third_party/blink/public/mojom/origin_trials/origin_trials_settings.mojom-forward.h"
@@ -145,6 +144,7 @@ namespace web_pref {
 struct WebPreferences;
 }  // namespace web_pref
 class AssociatedInterfaceRegistry;
+class Manifest;
 struct NavigationDownloadPolicy;
 struct RendererPreferences;
 class StorageKey;
@@ -1333,9 +1333,12 @@ class CONTENT_EXPORT ContentBrowserClient {
 #endif
 
   // Applies policy-dictated changes to the manifest that was loaded from the
-  // provided render_frame_host.
-  virtual void MaybeOverrideManifest(RenderFrameHost* render_frame_host,
-                                     blink::mojom::ManifestPtr& manifest) {}
+  // provided `render_frame_host`, or returns `std::nullopt` if no override
+  // applies. Any returned `blink::Manifest` must have the same `GetOrigin()` as
+  // `manifest`.
+  virtual std::optional<blink::Manifest> MaybeOverrideManifest(
+      RenderFrameHost* render_frame_host,
+      const blink::Manifest& manifest);
 
   // Allows the embedder to return a TTS platform implementation.
   virtual TtsPlatform* GetTtsPlatform();
@@ -2226,6 +2229,14 @@ class CONTENT_EXPORT ContentBrowserClient {
   // BrowserContexts' storage. Multiple paths can be returned, e.g. in case the
   // persistent storage location differs from the cache storage location.
   virtual std::vector<base::FilePath> GetNetworkContextsParentDirectory();
+
+  // Returns the directory containing persistent data for network contexts (e.g.
+  // user data directory), or std::nullopt if not applicable.
+  virtual std::optional<base::FilePath> GetNetworkContextsDataDirectory();
+
+  // Returns the cache directory for network contexts, or std::nullopt if not
+  // applicable.
+  virtual std::optional<base::FilePath> GetNetworkContextsCacheDirectory();
 
   // Called once during initialization of NetworkService to provide constants
   // to NetLog.  (Though it may be called multiples times if NetworkService

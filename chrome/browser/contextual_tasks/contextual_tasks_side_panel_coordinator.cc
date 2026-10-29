@@ -24,6 +24,7 @@
 #include "base/metrics/user_metrics_action.h"
 #include "base/no_destructor.h"
 #include "base/strings/string_number_conversions.h"
+#include "base/strings/string_util.h"
 #include "base/strings/utf_string_conversions.h"
 #include "chrome/browser/content_settings/page_specific_content_settings_delegate.h"
 #include "chrome/browser/contextual_search/contextual_search_service_factory.h"
@@ -883,7 +884,7 @@ ContextualTasksSidePanelCoordinator::GetTabRestoreData(
   return data;
 }
 
-void ContextualTasksSidePanelCoordinator::ShareTabsWithActiveOrNewThread(
+void ContextualTasksSidePanelCoordinator::ShareTabsWithNewThread(
     const std::vector<tabs::TabHandle>& tab_handles) {
   if (!browser_window_ || !CanShareTabContext(browser_window_->GetProfile())) {
     return;
@@ -895,10 +896,11 @@ void ContextualTasksSidePanelCoordinator::ShareTabsWithActiveOrNewThread(
     return;
   }
 
-  // If the side panel is already open on the active tab, attach the selected
-  // tabs directly to the open task so sharing multiple tabs from the tab strip
-  // stages them together without resetting previously staged tabs.
-  if (IsPanelOpenForContextualTask()) {
+  // If the side panel is already open in zero state on the active tab, attach
+  // the selected tabs directly to the open task so sharing multiple tabs from
+  // the tab strip stages them together without resetting previously staged
+  // tabs.
+  if (IsPanelOpenForContextualTask() && !IsShowingResults()) {
     if (std::optional<ContextualTask> current_task = GetCurrentTask()) {
       AttachTabsToTask(current_task->GetTaskId(), valid_tab_handles);
       return;
@@ -1000,22 +1002,25 @@ ContextualTasksSidePanelCoordinator::GetRecentThreads() const {
 
     std::u16string title;
     std::string query_value;
-    if (net::GetValueForKeyInQuery(url, "q", &query_value) &&
-        !query_value.empty()) {
-      title = base::UTF8ToUTF16(query_value);
+    if (net::GetValueForKeyInQuery(url, "q", &query_value)) {
+      title = std::u16string(
+          base::TrimWhitespace(base::UTF8ToUTF16(query_value), base::TRIM_ALL));
     }
     if (title.empty() && contextual_tasks_service_) {
       for (SessionID tab_id :
            contextual_tasks_service_->GetTabsAssociatedWithTask(task_id)) {
         if (std::optional<ContextualTask> task =
                 contextual_tasks_service_->GetContextualTaskForTab(tab_id)) {
-          if (task->GetThread().has_value() &&
-              !task->GetThread()->title.empty()) {
-            title = base::UTF8ToUTF16(task->GetThread()->title);
-            break;
+          const std::optional<Thread> thread = task->GetThread();
+          if (thread && !thread->title.empty()) {
+            title = std::u16string(base::TrimWhitespace(
+                base::UTF8ToUTF16(thread->title), base::TRIM_ALL));
           }
-          if (!task->GetTitle().empty()) {
-            title = base::UTF8ToUTF16(task->GetTitle());
+          if (title.empty() && !task->GetTitle().empty()) {
+            title = std::u16string(base::TrimWhitespace(
+                base::UTF8ToUTF16(task->GetTitle()), base::TRIM_ALL));
+          }
+          if (!title.empty()) {
             break;
           }
         }
@@ -2011,7 +2016,8 @@ bool ContextualTasksSidePanelCoordinator::ShouldPreserveTaskOnClose() const {
   const bool can_resume_from_pinned_button =
       contextual_tasks::IsContextualTasksPinningV2Enabled() &&
       contextual_tasks::IsContextualTasksPinButtonInToolbarEnabled() &&
-      contextual_tasks::GetEffectivePinState(browser_window_->GetProfile());
+      (contextual_tasks::GetEffectivePinState(browser_window_->GetProfile()) ||
+       contextual_tasks::IsContextualTasksEphemeralPinButtonRefactorEnabled());
   return contextual_tasks::kShowEntryPoint.Get() ==
              contextual_tasks::EntryPointOption::kToolbarEphemeralBranded ||
          can_resume_from_pinned_button;
@@ -2788,7 +2794,9 @@ void ContextualTasksSidePanelCoordinator::OnEligibilityChange(
     tabs_with_closed_panel_.clear();
   }
 #if !BUILDFLAG(IS_ANDROID)
-  if (browser_window_ && BrowserActions::From(browser_window_)) {
+  if (IsContextualTasksEphemeralPinButtonRefactorEnabled()) {
+    UpdatePinButtonVisibilityState(browser_window_);
+  } else if (browser_window_ && BrowserActions::From(browser_window_)) {
     if (auto* action_item = actions::ActionManager::Get().FindAction(
             kActionSidePanelShowContextualTasks,
             BrowserActions::From(browser_window_)->root_action_item())) {

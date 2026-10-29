@@ -3892,6 +3892,12 @@ inline constexpr char kOmniboxVoicePlateIntentDescription[] =
     "the Google app Voice Plate for voice capture and transcription, then "
     "navigates directly to the results";
 
+inline constexpr char kOmniboxPostFrameAutocompleteStartName[] =
+    "Omnibox post-frame autocomplete start";
+inline constexpr char kOmniboxPostFrameAutocompleteStartDescription[] =
+    "Starts the Omnibox autocomplete request right after the next frame is "
+    "drawn following a keystroke, instead of after a fixed 30ms delay.";
+
 inline constexpr char kContextualSearchBoxUsesContextualSearchProviderName[] =
     "Contextual search box uses contextual search provider";
 inline constexpr char
@@ -5869,12 +5875,6 @@ inline constexpr char kUniversalOptOutSettingsName[] =
     "Universal Opt Out Settings";
 inline constexpr char kUniversalOptOutSettingsDescription[] =
     "Enables the Universal Opt Out settings for eligible users.";
-
-inline constexpr char kUpdatePaddingForDisplayCalculationName[] =
-    "Update Padding For Display Calculation";
-inline constexpr char kUpdatePaddingForDisplayCalculationDescription[] =
-    "When this is enabled, padding for display style calculations will use the "
-    "width of the containing view, not the entire screen width.";
 
 inline constexpr char kUpdateTabGroupColorsName[] = "Update Tab Group Colors";
 inline constexpr char kUpdateTabGroupColorsDescription[] =

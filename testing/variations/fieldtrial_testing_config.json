@@ -1934,6 +1934,26 @@
             ]
         }
     ],
+    "AutofillEnableOAuth2TokenFix": [
+        {
+            "platforms": [
+                "android",
+                "chromeos",
+                "ios",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "AutofillEnableOAuth2TokenFix"
+                    ]
+                }
+            ]
+        }
+    ],
     "AutofillEnableOmniboxAutofill": [
         {
             "platforms": [
@@ -5641,21 +5661,6 @@
             ]
         }
     ],
-    "D3D11VideoDecoderUseSharedHandle": [
-        {
-            "platforms": [
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "D3D11VideoDecoderUseSharedHandle"
-                    ]
-                }
-            ]
-        }
-    ],
     "DbdPasswordRemovalOnAndroid": [
         {
             "platforms": [
@@ -5904,21 +5909,6 @@
                     },
                     "enable_features": [
                         "AdditionalDelayMainJob"
-                    ]
-                }
-            ]
-        }
-    ],
-    "DelayNativePaymentAppScrimShow": [
-        {
-            "platforms": [
-                "android"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "DelayNativePaymentAppScrimShow"
                     ]
                 }
             ]
@@ -8446,24 +8436,6 @@
             ]
         }
     ],
-    "GlicColdWarmingDelay": [
-        {
-            "platforms": [
-                "mac"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled_300s_20261013",
-                    "params": {
-                        "glic-warming-delay-ms": "300000"
-                    },
-                    "enable_features": [
-                        "GlicWarming"
-                    ]
-                }
-            ]
-        }
-    ],
     "GlicColdWarmingInitiallyHidden": [
         {
             "platforms": [
@@ -10120,7 +10092,7 @@
                         "cooldown-days": "14",
                         "log_model_result_and_show_promo": "false",
                         "opportunity_experiment_cohort": "1",
-                        "score_threshold": "0.8"
+                        "score_threshold": "0.10"
                     },
                     "enable_features": [
                         "DefaultBrowserPromoPropensityModel"
@@ -10705,27 +10677,6 @@
                     "name": "Enabled_Teamfood",
                     "enable_features": [
                         "ImportExportFlags"
-                    ]
-                }
-            ]
-        }
-    ],
-    "ImprovedStartupBestEffortDelay": [
-        {
-            "platforms": [
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "EnabledWithSessionRestore",
-                    "params": {
-                        "StartupDelayIncludesSessionRestore": "true"
-                    },
-                    "enable_features": [
-                        "ImprovedStartupBestEffortDelay"
                     ]
                 }
             ]
@@ -11667,6 +11618,25 @@
             ]
         }
     ],
+    "MojoFixGeometricBufferGrowth2": [
+        {
+            "platforms": [
+                "android",
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "MojoFixGeometricBufferGrowth2"
+                    ]
+                }
+            ]
+        }
+    ],
     "MultipleSpareRPHs": [
         {
             "platforms": [
@@ -11969,6 +11939,24 @@
                     },
                     "enable_features": [
                         "NoVarySearchCacheLoadOnSeparateTaskRunner"
+                    ]
+                }
+            ]
+        }
+    ],
+    "NonGroupFocus": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "NonGroupFocus"
                     ]
                 }
             ]
@@ -12602,6 +12590,21 @@
                     },
                     "enable_features": [
                         "OmniboxPastePromoExperiment"
+                    ]
+                }
+            ]
+        }
+    ],
+    "OmniboxPostFrameAutocompleteStart": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "OmniboxPostFrameAutocompleteStart"
                     ]
                 }
             ]
@@ -16177,6 +16180,24 @@
             ]
         }
     ],
+    "ShaderDiskCacheBackendExperiment": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "ShaderDiskCacheBackendExperiment"
+                    ]
+                }
+            ]
+        }
+    ],
     "ShareEventArgsOnDispatch": [
         {
             "platforms": [
@@ -17465,6 +17486,21 @@
                     "enable_features": [
                         "ThrottleMainFrameTo60Hz",
                         "UrgentMainFrameForInput"
+                    ]
+                }
+            ]
+        }
+    ],
+    "ThrottleMainFrameTo60HzWebView": [
+        {
+            "platforms": [
+                "android_webview"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "ThrottleMainFrameTo60HzWebView"
                     ]
                 }
             ]

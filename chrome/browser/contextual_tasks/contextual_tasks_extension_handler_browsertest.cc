@@ -638,6 +638,41 @@ IN_PROC_BROWSER_TEST_F(ContextualTasksExtensionHandlerBrowserTest,
   EXPECT_TRUE(ContextualSearchboxHandler::GetRecentTabInfos(nullptr).empty());
 }
 
+IN_PROC_BROWSER_TEST_F(ContextualTasksExtensionHandlerBrowserTest,
+                       GetRecentTabs_FiltersAiModeTabs) {
+  const GURL regular_search_url("https://www.google.com/search?q=regular");
+  const GURL aim_zero_state_url("https://www.google.com/?udm=50");
+  const GURL aim_search_url("https://www.google.com/search?q=test&udm=50");
+
+  ASSERT_TRUE(ui_test_utils::NavigateToURLWithDisposition(
+      browser(), regular_search_url, WindowOpenDisposition::kNewForegroundTab,
+      ui_test_utils::BROWSER_TEST_WAIT_FOR_LOAD_STOP));
+
+  ASSERT_TRUE(ui_test_utils::NavigateToURLWithDisposition(
+      browser(), aim_zero_state_url, WindowOpenDisposition::kNewForegroundTab,
+      ui_test_utils::BROWSER_TEST_WAIT_FOR_LOAD_STOP));
+
+  ASSERT_TRUE(ui_test_utils::NavigateToURLWithDisposition(
+      browser(), aim_search_url, WindowOpenDisposition::kNewForegroundTab,
+      ui_test_utils::BROWSER_TEST_WAIT_FOR_LOAD_STOP));
+
+  base::RunLoop run_loop;
+  static_cast<searchbox::mojom::PageHandler*>(handler_)->GetRecentTabs(
+      base::BindLambdaForTesting(
+          [&](std::vector<searchbox::mojom::TabInfoPtr> tabs) {
+            ASSERT_FALSE(tabs.empty());
+            EXPECT_EQ(tabs[0]->url, regular_search_url);
+            EXPECT_TRUE(std::ranges::none_of(
+                tabs, [&](const searchbox::mojom::TabInfoPtr& tab) {
+                  return tab->url == aim_search_url ||
+                         tab->url == aim_zero_state_url;
+                }));
+            run_loop.Quit();
+          }));
+
+  run_loop.Run();
+}
+
 class ContextualTasksExtensionHandlerNoTabsBrowserTest
     : public ContextualTasksExtensionHandlerBrowserTest {
  public:
@@ -5798,7 +5833,7 @@ IN_PROC_BROWSER_TEST_F(
         share_tab_loop.Quit();
       });
   AllowSessionTokenCreation();
-  panel_controller->ShareTabsWithActiveOrNewThread({active_tab_handle});
+  panel_controller->ShareTabsWithNewThread({active_tab_handle});
   share_tab_loop.Run();
   ASSERT_EQ(user_data->GetSelectedTabs().size(), 1u);
   EXPECT_EQ(user_data->GetSelectedTabs()[0].url, url2);
@@ -5846,7 +5881,7 @@ IN_PROC_BROWSER_TEST_F(
   auto* panel_controller = ContextualTasksPanelController::From(browser());
   const tabs::TabHandle tab1_handle =
       TabListInterface::From(browser())->GetActiveTab()->GetHandle();
-  panel_controller->ShareTabsWithActiveOrNewThread({tab1_handle});
+  panel_controller->ShareTabsWithNewThread({tab1_handle});
   content::WebContents* panel_contents =
       panel_controller->GetActiveWebContents();
   ASSERT_NE(panel_contents, nullptr);
@@ -5914,7 +5949,7 @@ IN_PROC_BROWSER_TEST_F(
         tab1_upload_loop.Quit();
       });
   AllowSessionTokenCreation();
-  panel_controller->ShareTabsWithActiveOrNewThread({tab1_handle});
+  panel_controller->ShareTabsWithNewThread({tab1_handle});
   tab1_upload_loop.Run();
   EXPECT_EQ(user_data->GetSelectedTabs().size(), 2u);
 

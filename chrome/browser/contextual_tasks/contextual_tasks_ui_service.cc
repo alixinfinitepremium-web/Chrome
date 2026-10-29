@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <optional>
+#include <string_view>
 
 #include "base/command_line.h"
 #include "base/containers/flat_set.h"
@@ -492,9 +493,12 @@ void ContextualTasksUiService::OnNavigationToAiPageIntercepted(
     BrowserWindowInterface* window =
         webui::GetBrowserWindowInterface(source_tab->GetContents());
     if (window) {
-      auto* controller = ContextualTasksPanelController::From(window);
-      controller->Show();
-      contextual_task_web_contents = controller->GetActiveWebContents();
+      // The controller may be missing if the tab was reparented to a window
+      // without one between HandleNavigationImpl() and this task.
+      if (auto* controller = ContextualTasksPanelController::From(window)) {
+        controller->Show();
+        contextual_task_web_contents = controller->GetActiveWebContents();
+      }
     }
   } else {
     base::RecordAction(
@@ -2308,6 +2312,26 @@ bool ContextualTasksUiService::HandleNavigationImpl(
               ? url_params.initiator_origin->Serialize()
               : "null");
 
+  if (!is_from_embedded_page && IsContextualTasksUrl(url_params.url)) {
+    std::string_view path = url_params.url.path();
+    bool is_exempt =
+        IsWebContentsInSidePanel(source_contents) || path == "/internals" ||
+        base::StartsWith(path, "/internals/") || path == "/test_loader.html";
+    // If kContextualTasks is disabled and only the side panel UI is enabled,
+    // redirect standalone tab navigations to AIM.
+    // TODO(crbug.com/533072196): Clean up this redirect once the
+    // pre-rearchitecture logic is cleaned up.
+    if (!is_mobile_ua && !is_exempt &&
+        !base::FeatureList::IsEnabled(contextual_tasks::kContextualTasks) &&
+        base::FeatureList::IsEnabled(
+            contextual_tasks::kContextualTasksSidePanel)) {
+      ScheduleRedirectWebUIUrlToAim(
+          std::move(url_params),
+          source_contents ? source_contents->GetWeakPtr() : nullptr, tab);
+      return true;
+    }
+  }
+
   if (!is_from_embedded_page &&
       ShouldRedirectIneligibleRequest(url_params.url, source_contents)) {
     ScheduleRedirectWebUIUrlToAim(
@@ -2896,6 +2920,16 @@ bool ContextualTasksUiService::HandleNavigationImpl(
       OMNIBOX_LOG("nav_trace")
           << "ContextualTasks navigation trace: HandleNavigationImpl "
              "returning false, nav to AI but not cobrowse eligible";
+      return false;
+    }
+
+    // If the window has no panel controller, or there is no window, do not
+    // intercept, since the side panel cannot be opened.
+    if (IsActiveTabInContext(source_contents) &&
+        (!browser || !ContextualTasksPanelController::From(browser))) {
+      OMNIBOX_LOG("nav_trace")
+          << "ContextualTasks navigation trace: HandleNavigationImpl "
+             "returning false, no panel controller for window";
       return false;
     }
 
