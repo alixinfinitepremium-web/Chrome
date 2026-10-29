@@ -7852,13 +7852,29 @@ void RenderFrameHostImpl::RunBeforeUnloadConfirm(
     }
   }
 
+  PageImpl::UserEditScope form_edit_scope =
+      GetPage().GetFormEditScope(GetLastCommittedOrigin());
+  PageImpl::UserEditScope user_edit_scope =
+      GetPage().GetUserEditScope(GetLastCommittedOrigin());
+  RecordBeforeUnloadUserEditMetrics(form_edit_scope, user_edit_scope,
+                                    BeforeUnloadDialogEvent::kShown);
+
   auto ipc_callback_wrapper = base::BindOnce(
-      [](RunBeforeUnloadConfirmCallback response_callback, bool success,
+      [](base::WeakPtr<RenderFrameHostImpl> rfh,
+         PageImpl::UserEditScope form_edit_scope,
+         PageImpl::UserEditScope user_edit_scope,
+         RunBeforeUnloadConfirmCallback response_callback, bool success,
          const std::u16string& response) {
+        if (!success && rfh) {
+          rfh->RecordBeforeUnloadUserEditMetrics(
+              form_edit_scope, user_edit_scope,
+              BeforeUnloadDialogEvent::kBlockedUnload);
+        }
         // The response string is unused but we use a generic mechanism for
         // closing the javascript dialog that returns two arguments.
         std::move(response_callback).Run(success);
       },
+      weak_ptr_factory_.GetWeakPtr(), form_edit_scope, user_edit_scope,
       std::move(ipc_response_callback));
   auto dialog_closed_callback = base::BindOnce(
       &RenderFrameHostImpl::JavaScriptDialogClosed,
@@ -9177,6 +9193,14 @@ void RenderFrameHostImpl::SuppressXSLTDeprecationBanner() {
   GetContentClient()->browser()->SuppressXSLTDeprecationBanner(this);
 }
 
+void RenderFrameHostImpl::DidHaveFormEdit() {
+  GetPage().DidHaveFormEdit(GetLastCommittedOrigin());
+}
+
+void RenderFrameHostImpl::DidHaveUserEdit() {
+  GetPage().DidHaveUserEdit(GetLastCommittedOrigin());
+}
+
 void RenderFrameHostImpl::RegisterProtocolHandler(const std::string& scheme,
                                                   const GURL& url,
                                                   bool user_gesture) {
@@ -9268,8 +9292,10 @@ void RenderFrameHostImpl::SetVirtualKeyboardMode(
 #if BUILDFLAG(IS_ANDROID)
 void RenderFrameHostImpl::UpdateUserGestureCarryoverInfo() {
   // This should not occur for prerenders but may occur for pages in
-  // the BackForwardCache depending on timing.
-  if (!IsActive()) {
+  // the BackForwardCache depending on timing. It should also only occur
+  // when transient user activation is known to be available (as compromised
+  // renderers could otherwise use this mechanism to spoof a gesture).
+  if (!IsActive() || !HasTransientUserActivation()) {
     return;
   }
   delegate_->UpdateUserGestureCarryoverInfo();
@@ -13282,10 +13308,8 @@ void RenderFrameHostImpl::CommitNavigation(
       ProcessLock::FromSiteInfo(GetSiteInstance()->GetSiteInfo());
   auto browser_calc_origin_to_commit = navigation_request->GetOriginToCommit();
   if (!process_lock.is_error_page() && !is_mhtml_subframe &&
-      !policy->CanAccessOrigin(
-          GetProcess()->GetDeprecatedID(),
-          browser_calc_origin_to_commit.value(),
-          ChildProcessSecurityPolicyImpl::AccessType::kCanCommitNewOrigin)) {
+      !policy->CanCommitNewOrigin(GetProcess()->GetID(),
+                                  browser_calc_origin_to_commit.value())) {
     SCOPED_CRASH_KEY_STRING64("CommitNavigation", "lock_url",
                               process_lock.ToString());
     SCOPED_CRASH_KEY_STRING64(
@@ -13905,6 +13929,110 @@ void RenderFrameHostImpl::CreateBroadcastChannelProvider(
 void RenderFrameHostImpl::LogWebFeatureForCurrentPage(
     blink::mojom::WebFeature feature) {
   GetContentClient()->browser()->LogWebFeatureForCurrentPage(this, feature);
+}
+
+void RenderFrameHostImpl::RecordBeforeUnloadUserEditMetrics(
+    PageImpl::UserEditScope form_edit_scope,
+    PageImpl::UserEditScope user_edit_scope,
+    BeforeUnloadDialogEvent event) {
+  const bool blocked_unload = event == BeforeUnloadDialogEvent::kBlockedUnload;
+  switch (form_edit_scope) {
+    case PageImpl::UserEditScope::kNoEdit:
+      LogWebFeatureForCurrentPage(
+          blocked_unload ? blink::mojom::WebFeature::
+                               kBeforeUnloadDialogBlockedUnloadWithoutFormEdit
+                         : blink::mojom::WebFeature::
+                               kBeforeUnloadShowedDialogWithoutFormEdit);
+      break;
+    case PageImpl::UserEditScope::kSameOrigin:
+      LogWebFeatureForCurrentPage(
+          blocked_unload ? blink::mojom::WebFeature::
+                               kBeforeUnloadDialogBlockedUnloadWithFormEdit
+                         : blink::mojom::WebFeature::
+                               kBeforeUnloadShowedDialogWithFormEdit);
+      LogWebFeatureForCurrentPage(
+          blocked_unload
+              ? blink::mojom::WebFeature::
+                    kBeforeUnloadDialogBlockedUnloadWithSameOriginFormEdit
+              : blink::mojom::WebFeature::
+                    kBeforeUnloadShowedDialogWithSameOriginFormEdit);
+      break;
+    case PageImpl::UserEditScope::kSameSite:
+      LogWebFeatureForCurrentPage(
+          blocked_unload ? blink::mojom::WebFeature::
+                               kBeforeUnloadDialogBlockedUnloadWithFormEdit
+                         : blink::mojom::WebFeature::
+                               kBeforeUnloadShowedDialogWithFormEdit);
+      LogWebFeatureForCurrentPage(
+          blocked_unload
+              ? blink::mojom::WebFeature::
+                    kBeforeUnloadDialogBlockedUnloadWithSameSiteFormEdit
+              : blink::mojom::WebFeature::
+                    kBeforeUnloadShowedDialogWithSameSiteFormEdit);
+      break;
+    case PageImpl::UserEditScope::kCrossSite:
+      LogWebFeatureForCurrentPage(
+          blocked_unload ? blink::mojom::WebFeature::
+                               kBeforeUnloadDialogBlockedUnloadWithFormEdit
+                         : blink::mojom::WebFeature::
+                               kBeforeUnloadShowedDialogWithFormEdit);
+      LogWebFeatureForCurrentPage(
+          blocked_unload
+              ? blink::mojom::WebFeature::
+                    kBeforeUnloadDialogBlockedUnloadWithCrossSiteFormEdit
+              : blink::mojom::WebFeature::
+                    kBeforeUnloadShowedDialogWithCrossSiteFormEdit);
+      break;
+  }
+
+  switch (user_edit_scope) {
+    case PageImpl::UserEditScope::kNoEdit:
+      LogWebFeatureForCurrentPage(
+          blocked_unload ? blink::mojom::WebFeature::
+                               kBeforeUnloadDialogBlockedUnloadWithoutUserEdit
+                         : blink::mojom::WebFeature::
+                               kBeforeUnloadShowedDialogWithoutUserEdit);
+      break;
+    case PageImpl::UserEditScope::kSameOrigin:
+      LogWebFeatureForCurrentPage(
+          blocked_unload ? blink::mojom::WebFeature::
+                               kBeforeUnloadDialogBlockedUnloadWithUserEdit
+                         : blink::mojom::WebFeature::
+                               kBeforeUnloadShowedDialogWithUserEdit);
+      LogWebFeatureForCurrentPage(
+          blocked_unload
+              ? blink::mojom::WebFeature::
+                    kBeforeUnloadDialogBlockedUnloadWithSameOriginUserEdit
+              : blink::mojom::WebFeature::
+                    kBeforeUnloadShowedDialogWithSameOriginUserEdit);
+      break;
+    case PageImpl::UserEditScope::kSameSite:
+      LogWebFeatureForCurrentPage(
+          blocked_unload ? blink::mojom::WebFeature::
+                               kBeforeUnloadDialogBlockedUnloadWithUserEdit
+                         : blink::mojom::WebFeature::
+                               kBeforeUnloadShowedDialogWithUserEdit);
+      LogWebFeatureForCurrentPage(
+          blocked_unload
+              ? blink::mojom::WebFeature::
+                    kBeforeUnloadDialogBlockedUnloadWithSameSiteUserEdit
+              : blink::mojom::WebFeature::
+                    kBeforeUnloadShowedDialogWithSameSiteUserEdit);
+      break;
+    case PageImpl::UserEditScope::kCrossSite:
+      LogWebFeatureForCurrentPage(
+          blocked_unload ? blink::mojom::WebFeature::
+                               kBeforeUnloadDialogBlockedUnloadWithUserEdit
+                         : blink::mojom::WebFeature::
+                               kBeforeUnloadShowedDialogWithUserEdit);
+      LogWebFeatureForCurrentPage(
+          blocked_unload
+              ? blink::mojom::WebFeature::
+                    kBeforeUnloadDialogBlockedUnloadWithCrossSiteUserEdit
+              : blink::mojom::WebFeature::
+                    kBeforeUnloadShowedDialogWithCrossSiteUserEdit);
+      break;
+  }
 }
 
 void RenderFrameHostImpl::ReportBlockingCrossPartitionBlobURL(
@@ -14629,7 +14757,7 @@ void RenderFrameHostImpl::UpdatePermissionsForNavigation(
   // CanAccessDataForOrigin while setting up storage interfaces.
   //
   // Note that GetOriginToCommit() internally CHECKs that the origin to commit
-  // is valid for this process, using CanAccessOrigin() to perform jail and
+  // is valid for this process, using CanCommitNewOrigin() to perform jail and
   // citadel process lock checks, so this origin should to be safe to add.
   ChildProcessSecurityPolicyImpl::GetInstance()->AddCommittedOrigin(
       GetProcess()->GetDeprecatedID(), request->GetOriginToCommit().value());

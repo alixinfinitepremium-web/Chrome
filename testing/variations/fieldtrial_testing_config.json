@@ -891,6 +891,21 @@
             ]
         }
     ],
+    "AndroidTabPersistentStoreActiveTabPrefs": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "AndroidTabPersistentStoreActiveTabPrefs"
+                    ]
+                }
+            ]
+        }
+    ],
     "AndroidTabSearchRecentTabs": [
         {
             "platforms": [
@@ -1377,6 +1392,21 @@
                     },
                     "enable_features": [
                         "AsyncDnsQuicJob"
+                    ]
+                }
+            ]
+        }
+    ],
+    "AsyncFirstFrameDrawn": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "AsyncFirstFrameDrawn"
                     ]
                 }
             ]
@@ -16750,6 +16780,25 @@
             ]
         }
     ],
+    "SkipUrlInvalidationForUnchangedSameDocumentReplacement": [
+        {
+            "platforms": [
+                "android",
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled_20261029_CANARY_DEV",
+                    "enable_features": [
+                        "SkipUrlInvalidationForUnchangedSameDocumentReplacement"
+                    ]
+                }
+            ]
+        }
+    ],
     "SmartSuggestions": [
         {
             "platforms": [
@@ -18003,7 +18052,6 @@
                 {
                     "name": "Enabled",
                     "enable_features": [
-                        "IPH_SignInBenefits",
                         "ReplaceSyncPromosWithSignInPromos"
                     ]
                 }

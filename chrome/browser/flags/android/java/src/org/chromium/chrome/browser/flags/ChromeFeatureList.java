@@ -314,6 +314,8 @@ public abstract class ChromeFeatureList {
             "AndroidTabDeclutterArchiveOnDesktop";
     public static final String ANDROID_TAB_DECLUTTER_DEDUPE_TAB_IDS_KILL_SWITCH =
             "AndroidTabDeclutterDedupeTabIdsKillSwitch";
+    public static final String ANDROID_TAB_PERSISTENT_STORE_ACTIVE_TAB_PREFS =
+            "AndroidTabPersistentStoreActiveTabPrefs";
     public static final String ANDROID_TAB_SKIP_SAVE_TABS_TASK_KILLSWITCH =
             "AndroidTabSkipSaveTabsTaskKillswitch";
     public static final String ANDROID_TAB_UI_REFACTOR = "AndroidTabUiRefactor";
@@ -998,6 +1000,11 @@ public abstract class ChromeFeatureList {
                     /* defaultValueInTests= */ true);
     public static final CachedFlag sAndroidTabDeclutterDedupeTabIdsKillSwitch =
             newCachedFlag(ANDROID_TAB_DECLUTTER_DEDUPE_TAB_IDS_KILL_SWITCH, true);
+    public static final CachedFlag sAndroidTabPersistentStoreActiveTabPrefs =
+            newCachedFlag(
+                    ANDROID_TAB_PERSISTENT_STORE_ACTIVE_TAB_PREFS,
+                    /* defaultValue= */ false,
+                    /* defaultValueInTests= */ true);
     public static final CachedFlag sAndroidTabSkipSaveTabsKillswitch =
             newCachedFlag(ANDROID_TAB_SKIP_SAVE_TABS_TASK_KILLSWITCH, true, true);
     public static final CachedFlag sAndroidTabUiRefactor =
@@ -1027,7 +1034,10 @@ public abstract class ChromeFeatureList {
     public static final CachedFlag sArchivedTabsTeardown =
             newCachedFlag(ARCHIVED_TABS_TEARDOWN, /* defaultValue= */ false);
     public static final CachedFlag sAsyncFirstFrameDrawn =
-            newCachedFlag(ASYNC_FIRST_FRAME_DRAWN, /* defaultValue= */ false);
+            newCachedFlag(
+                    ASYNC_FIRST_FRAME_DRAWN,
+                    /* defaultValue= */ false,
+                    /* defaultValueInTests= */ true);
     public static final CachedFlag sAsyncNotificationManager =
             newCachedFlag(ASYNC_NOTIFICATION_MANAGER, false, true);
     public static final CachedFlag sAsyncNotificationManagerForDownload =
@@ -1502,6 +1512,7 @@ public abstract class ChromeFeatureList {
                     sAndroidSetupList,
                     sAndroidStartupImprovements,
                     sAndroidTabDeclutterDedupeTabIdsKillSwitch,
+                    sAndroidTabPersistentStoreActiveTabPrefs,
                     sAndroidTabSkipSaveTabsKillswitch,
                     sAndroidTabUiRefactor,
                     sAndroidTabstripStartupCaptureBugFix,

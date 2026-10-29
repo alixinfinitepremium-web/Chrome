@@ -873,11 +873,6 @@
     "expiry_milestone": 140
   },
   {
-    "name": "arc-vmm-swap-keyboard-shortcut",
-    "owners": [ "sstan@chromium.org"],
-    "expiry_milestone": 120
-  },
-  {
     "name": "arc-window-predictor",
     "owners": [ "sstan@chromium.org" ],
     "expiry_milestone": 130
@@ -1099,6 +1094,11 @@
   },
   {
     "name": "autofill-custom-form-control-scripts",
+    "owners": [ "luchenpeng@google.com", "battre@google.com", "fleimgruber@google.com" ],
+    "expiry_milestone": 165
+  },
+  {
+    "name": "autofill-custom-form-control-scripts-dir",
     "owners": [ "luchenpeng@google.com", "battre@google.com", "fleimgruber@google.com" ],
     "expiry_milestone": 165
   },

@@ -3434,8 +3434,7 @@ const flags_ui::FeatureEntry::FeatureVariation
 
 #if BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_WIN)
 const char kReplaceSyncPromosWithSignInPromosDesktopFeatures[] =
-    "ReplaceSyncPromosWithSignInPromos,"
-    "IPH_SignInBenefits";
+    "ReplaceSyncPromosWithSignInPromos";
 
 const FeatureEntry::Choice kReplaceSyncPromosWithSignInPromosDesktopChoices[] =
     {{"Default", "", ""},
@@ -6694,10 +6693,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kArcUnthrottleOnActiveAudioV2Name,
      flag_descriptions::kArcUnthrottleOnActiveAudioV2Description, kOsCrOS,
      FEATURE_VALUE_TYPE(arc::kUnthrottleOnActiveAudioV2)},
-    {"arc-vmm-swap-keyboard-shortcut",
-     flag_descriptions::kArcVmmSwapKBShortcutName,
-     flag_descriptions::kArcVmmSwapKBShortcutDesc, kOsCrOS,
-     FEATURE_VALUE_TYPE(arc::kVmmSwapKeyboardShortcut)},
 #endif  // BUILDFLAG(IS_CHROMEOS)
 
 #if BUILDFLAG(IS_CHROMEOS)
@@ -14378,6 +14373,13 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kAutofillCustomFormControlScriptsDescription,
      kOsDesktop,
      FEATURE_VALUE_TYPE(autofill::features::kAutofillCustomFormControlScripts)},
+
+    {"autofill-custom-form-control-scripts-dir",
+     flag_descriptions::kAutofillCustomFormControlScriptsDirName,
+     flag_descriptions::kAutofillCustomFormControlScriptsDirDescription,
+     kOsDesktop,
+     STRING_VALUE_TYPE(autofill::switches::kAutofillCustomFormControlScriptsDir,
+                       "")},
 
     // Add new entries above this line.
     // NOTE: Adding a new flag requires adding a corresponding entry to enum
