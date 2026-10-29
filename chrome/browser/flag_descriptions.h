@@ -703,11 +703,6 @@ inline constexpr char kForceShowWebSigninLoadingDialogDescription[] =
     "Force show the web signin loading dialog while waiting for cookies "
     "without a timeout.";
 
-inline constexpr char kFluidResizeName[] =
-    "Enable Android desktop fluid resize";
-inline constexpr char kFluidResizeDescription[] =
-    "Enable Android desktop fluid resize to improve UX.";
-
 inline constexpr char kForceStartupSigninPromoName[] =
     "Force Start-up Signin Promo";
 inline constexpr char kForceStartupSigninPromoDescription[] =
@@ -4489,10 +4484,6 @@ inline constexpr char kResetSuggestionsScrollName[] =
 inline constexpr char kResetSuggestionsScrollDescription[] =
     "Force resets the scroll position of the Omnibox suggestion list to the "
     "top during any re-layout.";
-
-inline constexpr char kResponsiveIframesName[] = "Responsive Iframes";
-inline constexpr char kResponsiveIframesDescription[] =
-    "Enable responsively-sized iframes.";
 
 inline constexpr char kScheduleWindowCleaningName[] =
     "Schedule window cleaning";

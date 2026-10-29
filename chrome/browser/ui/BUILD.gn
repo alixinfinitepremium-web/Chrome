@@ -533,6 +533,8 @@ if (!is_android) {
       ":browser_window_header",
       "//chrome/browser/ui/browser_window",
       "//chrome/browser/ui/browser_window:create_browser_window",
+      "//chrome/browser/ui/waap:waap_utils",
+      "//chrome/browser/ui/waap:window_metrics_manager",
     ]
   }
 
@@ -1173,16 +1175,6 @@ if (!is_android) {
       "//ui/base",
       "//ui/gfx",
       "//ui/shell_dialogs",
-    ]
-  }
-
-  source_set("ui_controller_factory") {
-    public = [ "ui_controller_factory.h" ]
-    sources = [ "ui_controller_factory.cc" ]
-    public_deps = [ "//ui/base/unowned_user_data" ]
-    deps = [
-      "//chrome/browser/ui/bookmarks/controllers:impl",
-      "//chrome/browser/ui/browser_window",
     ]
   }
 

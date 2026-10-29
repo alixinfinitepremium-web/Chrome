@@ -37,7 +37,6 @@
 #include "components/autofill/core/browser/data_model/addresses/autofill_profile.h"
 #include "components/autofill/core/browser/data_quality/addresses/test_address_normalizer.h"
 #include "components/autofill/core/browser/filling/filling_product.h"
-#include "components/autofill/core/browser/form_predictions_tracker.h"
 #include "components/autofill/core/browser/foundations/autofill_client.h"
 #include "components/autofill/core/browser/foundations/autofill_driver_factory.h"
 #include "components/autofill/core/browser/foundations/test_autofill_driver_factory.h"
@@ -95,7 +94,6 @@
 #include "components/translate/core/browser/language_state.h"
 #include "components/translate/core/browser/mock_translate_driver.h"
 #include "components/ukm/test_ukm_recorder.h"
-#include "components/version_info/channel.h"
 #include "services/metrics/public/cpp/delegating_ukm_recorder.h"
 #include "services/network/public/cpp/weak_wrapper_shared_url_loader_factory.h"
 #include "services/network/test/test_url_loader_factory.h"
@@ -134,10 +132,6 @@ class TestAutofillClientTemplate : public T {
   }
 
   const std::string& GetAppLocale() const override { return app_locale_; }
-
-  version_info::Channel GetChannel() const override {
-    return channel_for_testing_;
-  }
 
   bool IsOffTheRecord() const override { return is_off_the_record_; }
 
@@ -212,15 +206,6 @@ class TestAutofillClientTemplate : public T {
     personal_context_access_manager_ = personal_context_access_manager;
   }
 
-  EntitySuppressionManager* GetEntitySuppressionManager() override {
-    return entity_suppression_manager_;
-  }
-
-  void set_entity_suppression_manager(
-      EntitySuppressionManager* entity_suppression_manager) {
-    entity_suppression_manager_ = entity_suppression_manager;
-  }
-
   const subscription_eligibility::SubscriptionEligibilityService*
   GetSubscriptionEligibilityService() const override {
     return &subscription_eligibility_service_;
@@ -244,14 +229,8 @@ class TestAutofillClientTemplate : public T {
     return *single_field_fill_router_;
   }
 
-  void set_autocomplete_history_manager(
-      std::unique_ptr<AutocompleteHistoryManager> manager) {
-    autocomplete_history_manager_ = std::move(manager);
-  }
-
   AutocompleteHistoryManager* GetAutocompleteHistoryManager() override {
-    return autocomplete_history_manager_ ? autocomplete_history_manager_.get()
-                                         : &mock_autocomplete_history_manager_;
+    return &mock_autocomplete_history_manager_;
   }
 
   AtMemoryQueryService* GetAtMemoryQueryService() override {
@@ -469,12 +448,6 @@ class TestAutofillClientTemplate : public T {
   bool IsShowingWalletDirectOffersIph() {
     return autofill_iph_showing_ ==
            AutofillClient::IphFeature::kWalletDirectOffers;
-  }
-
-  void NotifyIphFeatureUsed(AutofillClient::IphFeature feature) override {
-    if (notify_iph_feature_used_mock_callback_) {
-      notify_iph_feature_used_mock_callback_->Run(feature);
-    }
   }
 
   bool IsTabInActorMode() const override { return is_tab_in_actor_mode_; }
@@ -762,10 +735,6 @@ class TestAutofillClientTemplate : public T {
         .SetVariationCountryCode(variation_config_country_code);
   }
 
-  void set_should_save_autofill_profiles(bool value) {
-    should_save_autofill_profiles_ = value;
-  }
-
   void set_format_for_large_keyboard_accessory(
       bool format_for_large_keyboard_accessory) {
     format_for_large_keyboard_accessory_ = format_for_large_keyboard_accessory;
@@ -773,10 +742,6 @@ class TestAutofillClientTemplate : public T {
 
   void set_app_locale(std::string app_locale) {
     app_locale_ = std::move(app_locale);
-  }
-
-  void set_channel_for_testing(const version_info::Channel channel) {
-    channel_for_testing_ = channel;
   }
 
   void set_is_off_the_record(bool is_off_the_record) {
@@ -827,11 +792,6 @@ class TestAutofillClientTemplate : public T {
     suggestion_ui_session_id_ = session_id;
   }
 
-  void set_notify_iph_feature_used_mock_callback(
-      base::RepeatingCallback<void(AutofillClient::IphFeature)> callback) {
-    notify_iph_feature_used_mock_callback_ = std::move(callback);
-  }
-
   signin::IdentityTestEnvironment& identity_test_environment() {
     return const_cast<signin::IdentityTestEnvironment&>(
         std::as_const(*this).identity_test_environment());
@@ -862,15 +822,6 @@ class TestAutofillClientTemplate : public T {
   void set_gmail_otp_backend(
       std::unique_ptr<one_time_tokens::GmailOtpBackend> gmail_otp_backend) {
     injected_gmail_otp_backend_ = std::move(gmail_otp_backend);
-  }
-
-  FormPredictionsTracker* GetFormPredictionsTracker() override {
-    return form_predictions_tracker_.get();
-  }
-
-  void set_form_predictions_tracker(
-      std::unique_ptr<FormPredictionsTracker> form_predictions_tracker) {
-    form_predictions_tracker_ = std::move(form_predictions_tracker);
   }
 
   OtpMetricsTracker* GetOtpMetricsTracker() override {
@@ -905,7 +856,6 @@ class TestAutofillClientTemplate : public T {
   raw_ptr<syncer::SyncService> test_sync_service_ = nullptr;
   raw_ptr<AutofillAiPersonalContextAccessManager>
       personal_context_access_manager_ = nullptr;
-  raw_ptr<EntitySuppressionManager> entity_suppression_manager_ = nullptr;
   raw_ptr<personal_context::PersonalContextEligibilityService>
       personal_context_eligibility_service_ = nullptr;
 #if !BUILDFLAG(IS_FUCHSIA)
@@ -930,7 +880,6 @@ class TestAutofillClientTemplate : public T {
           std::make_unique<testing::NiceMock<MockAutofillAiManager>>(
               this,
               /*strike_database=*/nullptr);
-  std::unique_ptr<AutocompleteHistoryManager> autocomplete_history_manager_;
   ::testing::NiceMock<MockAutocompleteHistoryManager>
       mock_autocomplete_history_manager_;
   std::unique_ptr<one_time_tokens::SmsOtpService> injected_sms_otp_service_;
@@ -972,13 +921,9 @@ class TestAutofillClientTemplate : public T {
   security_state::SecurityLevel security_level_ =
       security_state::SecurityLevel::NONE;
 
-  bool should_save_autofill_profiles_ = true;
-
   bool format_for_large_keyboard_accessory_ = false;
 
   std::string app_locale_ = "en-US";
-
-  version_info::Channel channel_for_testing_ = version_info::Channel::UNKNOWN;
 
   bool is_off_the_record_ = false;
 
@@ -1029,9 +974,6 @@ class TestAutofillClientTemplate : public T {
 
   base::WeakPtr<AutofillSuggestionDelegate> active_suggestion_delegate_;
 
-  std::optional<base::RepeatingCallback<void(AutofillClient::IphFeature)>>
-      notify_iph_feature_used_mock_callback_;
-
   LogRouter log_router_;
   struct LogToTerminal {
     explicit LogToTerminal(LogRouter& log_router) {
@@ -1049,7 +991,6 @@ class TestAutofillClientTemplate : public T {
   std::unique_ptr<AutofillCrowdsourcingManager> crowdsourcing_manager_;
   std::unique_ptr<TestVotesUploader> votes_uploader_;
 
-  std::unique_ptr<FormPredictionsTracker> form_predictions_tracker_;
   raw_ptr<affiliations::AffiliationService> affiliation_service_ = nullptr;
 
   base::WeakPtrFactory<TestAutofillClientTemplate> weak_ptr_factory_{this};

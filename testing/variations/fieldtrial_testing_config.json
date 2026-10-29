@@ -1934,26 +1934,6 @@
             ]
         }
     ],
-    "AutofillEnableOAuth2TokenFix": [
-        {
-            "platforms": [
-                "android",
-                "chromeos",
-                "ios",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "AutofillEnableOAuth2TokenFix"
-                    ]
-                }
-            ]
-        }
-    ],
     "AutofillEnableOmniboxAutofill": [
         {
             "platforms": [
@@ -6798,6 +6778,7 @@
                         "DsePreload2",
                         "DsePreload2AheadOfImminentNavigation",
                         "DsePreload2OnPress",
+                        "DsePreload2OnPressIncognito",
                         "PrefetchAheadOfImminentNavigation"
                     ]
                 }
@@ -10196,6 +10177,7 @@
                     "name": "Enabled_Main_ANE_InfobarAndChip",
                     "params": {
                         "EducationClassifierThreshold": "2.0",
+                        "EnablePrivateInsightsLogging": "true",
                         "ForceMessageUiOnly": "false",
                         "ForceOmniboxChipUiOnly": "false",
                         "GlobalCapCount": "4",
@@ -10392,6 +10374,26 @@
                     "name": "Enabled",
                     "enable_features": [
                         "IOSPasswordAutoSubmission"
+                    ]
+                }
+            ]
+        }
+    ],
+    "IOSPrivateInsights": [
+        {
+            "platforms": [
+                "ios"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "params": {
+                        "fcp_population_name_contextual_cues": "chrome/private_insights/contextual_cues",
+                        "fcp_server_uri": "https://federatedcompute-pa.googleapis.com/",
+                        "upload_interval": "30s"
+                    },
+                    "enable_features": [
+                        "PrivateInsightsFeature"
                     ]
                 }
             ]
@@ -13062,6 +13064,26 @@
                     "name": "Enabled",
                     "enable_features": [
                         "OptimizeAssociateWindowsAndroid"
+                    ]
+                }
+            ]
+        }
+    ],
+    "OptimizeLookalikeUrlNavigationThrottle": [
+        {
+            "platforms": [
+                "android",
+                "chromeos",
+                "fuchsia",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "OptimizeLookalikeUrlNavigationThrottle"
                     ]
                 }
             ]
@@ -19478,6 +19500,25 @@
                         "max_post_decode_queue_size": "10",
                         "reduce_steady_state_queue_size_threshold": "20"
                     }
+                }
+            ]
+        }
+    ],
+    "WebRequestProxyMoveResponse": [
+        {
+            "platforms": [
+                "android",
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "WebRequestProxyMoveResponse"
+                    ]
                 }
             ]
         }
