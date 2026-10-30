@@ -757,7 +757,6 @@ class ContextualTasksLensInteractionBrowserTest
     ASSERT_TRUE(embedded_test_server()->InitializeAndListen());
     std::vector<base::test::FeatureRefAndParams> enabled_features;
     enabled_features.reserve(10);
-    enabled_features.push_back({contextual_tasks::kContextualTasks, {}});
     enabled_features.push_back(
         {lens::features::kLensOverlay,
          {{"endpoint-url",
@@ -772,18 +771,21 @@ class ContextualTasksLensInteractionBrowserTest
            embedded_test_server()->GetURL("/v1/clusterinfo").spec()},
           {"lens-composebox-endpoint-url",
            embedded_test_server()->GetURL("/v1/crupload").spec()}}});
-    enabled_features.push_back(
-        {contextual_tasks::kContextualTasksForceEntryPointEligibility, {}});
     for (auto& feature : GetAdditionalEnabledFeatures()) {
       enabled_features.push_back(std::move(feature));
     }
-    feature_list_.InitWithFeaturesAndParameters(enabled_features, {});
+    feature_list_.InitWithFeaturesAndParameters(
+        enabled_features, GetAdditionalDisabledFeatures());
     InProcessBrowserTest::SetUp();
   }
 
  protected:
   virtual std::vector<base::test::FeatureRefAndParams>
   GetAdditionalEnabledFeatures() {
+    return {};
+  }
+
+  virtual std::vector<base::test::FeatureRef> GetAdditionalDisabledFeatures() {
     return {};
   }
 
@@ -823,6 +825,14 @@ class ContextualTasksLensInteractionSeparateViewportRequestIdsBrowserTest
   std::vector<base::test::FeatureRefAndParams> GetAdditionalEnabledFeatures()
       override {
     return {{lens::features::kLensUseSeparateRequestIdForViewportImages, {}}};
+  }
+
+  std::vector<base::test::FeatureRef> GetAdditionalDisabledFeatures() override {
+    // Disable kContextualTasksUpdatedEntryPoints because this test verifies the
+    // upload flow that sends both the viewport image and page content when
+    // invoked from the app menu, whereas kContextualTasksUpdatedEntryPoints
+    // treats the app menu invocation as region-only.
+    return {contextual_tasks::kContextualTasksUpdatedEntryPoints};
   }
 
   lens::LensOverlayContextualInputs GetContextualInputsFromUrl(

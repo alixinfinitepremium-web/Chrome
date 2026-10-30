@@ -214,6 +214,10 @@ BASE_FEATURE(kOmniboxFuseboxUserEdGuidedTour, DISABLED);
 // attached.
 BASE_FEATURE(kOmniboxDisableTabsForCanvas, ENABLED);
 
+// When enabled, AIM queries submitted from the Omnibox while on a web page open
+// in a new tab instead of navigating away from the current page.
+BASE_FEATURE(kOmniboxAimOpenInNewTab, DISABLED);
+
 // Enables the AIM entrypoint for third party search engines.
 BASE_FEATURE(kAim3pEntrypoint, ENABLED);
 const base::FeatureParam<bool> kAim3pEntrypointDebug{
@@ -666,6 +670,13 @@ BASE_FEATURE(kForceAndroidRealbox, DISABLED);
 // If enabled, disables ligatures in the URL bar on Android.
 BASE_FEATURE(kUrlBarWithoutLigatures, ENABLED);
 
+// Kill switch: when enabled, the URL bar's stylus handwriting bounds do not
+// extend above the URL bar. The Android platform default extends the
+// handwriting-initiation area 40dp above an editable TextView, which overlaps
+// the tablet tab strip and causes stylus drags on tabs to start handwriting in
+// the omnibox instead (b/514550853).
+BASE_FEATURE(kUrlBarNoHandwritingBoundsAbove, ENABLED);
+
 // If enabled, Java-cached ZPS will be served.
 // The cached ZPS made sense on sub-4GB Android Go devices
 BASE_FEATURE(kServeJavaCachedZeroSuggest, ENABLED);
@@ -709,6 +720,7 @@ static int64_t JNI_OmniboxFeatureMap_GetNativeMap(JNIEnv* env) {
       &kOmniboxEarlyInflation,
       &kRichAutocompletion,
       &kUrlBarWithoutLigatures,
+      &kUrlBarNoHandwritingBoundsAbove,
       &kPostDelayedTaskFocusTab,
       &kOmniboxMobileParityUpdateV2,
       &kOmniboxXGeoFailClosedOnPreciseLeak,
@@ -733,6 +745,7 @@ static int64_t JNI_OmniboxFeatureMap_GetNativeMap(JNIEnv* env) {
       &kOmniboxAimImageDownscaling,
       &kOmniboxDebounceKeyboardVisibility,
       &kOmniboxDisableTabsForCanvas,
+      &kOmniboxAimOpenInNewTab,
       &kOmniboxSessionlessVoiceSearch,
       &kSuppressStatusIconDuringHttpNavigation,
       &kZeroSuggestPrefetchOnPageLoadAndTabSwitch,

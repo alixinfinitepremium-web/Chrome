@@ -497,7 +497,7 @@ chromium-metrics-reviews@google.com.
 </histogram>
 
 <histogram name="IOS.AppLauncher.AppURLHasChromeLaunchScheme" enum="Boolean"
-    expires_after="2026-12-08">
+    expires_after="2027-12-08">
   <owner>michaeldo@chromium.org</owner>
   <owner>bling-fundamentals@google.com</owner>
   <summary>
@@ -4428,8 +4428,12 @@ chromium-metrics-reviews@google.com.
         summary="classified as an Android phone switcher"/>
     <variant name="NotAndroidSwitcher"
         summary="classified as not an Android phone switcher"/>
+    <variant name="ServiceError"
+        summary="signal service failed or returned an unknown classification"/>
     <variant name="Unknown"
-        summary="signal classification was not ready or unavailable"/>
+        summary="no applicable user account (no syncing primary account for
+                 SegmentationPlatform, or no on-device account for
+                 SwitcherInfo)"/>
   </token>
 </histogram>
 

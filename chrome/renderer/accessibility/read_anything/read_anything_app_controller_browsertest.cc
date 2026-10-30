@@ -580,7 +580,7 @@ class ReadAnythingAppControllerReadabilityTest
 };
 
 TEST_F(ReadAnythingAppControllerReadabilityTest,
-       GetDomDistillerAnchors_ReturnsCorrectMapping) {
+       GetReadabilityAnchors_ReturnsCorrectMapping) {
   std::string url = "https://www.google.com";
   std::string link_text = "Google Homepage";
   std::string title_text = "Google Search Tooltip";
@@ -623,7 +623,7 @@ TEST_F(ReadAnythingAppControllerReadabilityTest,
       v8_env->isolate, v8_env->context->GetMicrotaskQueue(),
       v8::MicrotasksScope::kDoNotRunMicrotasks);
 
-  v8::Local<v8::Value> result = controller().GetDomDistillerAnchors();
+  v8::Local<v8::Value> result = controller().GetReadabilityAnchors();
 
   // Verify that the result is a V8 object mapping URLs to arrays of anchor
   // objects extracted from the active accessibility tree.
@@ -850,13 +850,20 @@ TEST_F(
 TEST_F(ReadAnythingAppControllerTest,
        OnPhraseBoundariesComputed_ForwardsBoundariesToJavaScript) {
   ExecuteJavaScriptForTests(
+      "var receivedRequestId = -1;"
       "var receivedBoundaries = null;"
-      "chrome.readingMode.onPhraseBoundariesReady = (boundaries) => {"
+      "chrome.readingMode.onPhraseBoundariesReady ="
+      "    (requestId, boundaries) => {"
+      "  receivedRequestId = requestId;"
       "  receivedBoundaries = boundaries;"
       "};");
 
-  controller().OnPhraseBoundariesComputed({{0, 12}, {}});
+  controller().OnPhraseBoundariesComputed(/*request_id=*/7, {{0, 12}, {}});
 
+  int received_request_id = -1;
+  EXPECT_TRUE(ExecuteJavaScriptAndReturnIntValue(u"receivedRequestId",
+                                                 &received_request_id));
+  EXPECT_EQ(7, received_request_id);
   int boundaries_match = 0;
   EXPECT_TRUE(ExecuteJavaScriptAndReturnIntValue(
       u"JSON.stringify(receivedBoundaries) === '[[0,12],[]]' ? 1 : 0",

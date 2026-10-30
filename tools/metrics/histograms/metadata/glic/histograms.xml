@@ -817,6 +817,30 @@ ApiRequestType variants; see go/geic-metrics-split. -->
   </summary>
 </histogram>
 
+<histogram
+    name="Glic.ExperimentalTriggering.Android.BackgroundSetupLatency.{Outcome}"
+    units="ms" expires_after="2027-10-26">
+<!-- Allowed unsplittable: Android background tab setup is not provider specific -->
+
+  <owner>meiliang@google.com</owner>
+  <owner>chrome-intelligence-core@google.com</owner>
+  <summary>
+    Records the latency between an experimental triggering request being queued
+    in Chrome Android and the background tab setup {Outcome}. Recorded once per
+    incoming request when background tab setup finishes (succeeds, fails, is
+    cancelled by a stop actuation request, or is terminated by profile
+    shutdown).
+  </summary>
+  <token key="Outcome">
+    <variant name="Cancelled"
+        summary="being cancelled (e.g. StopActuationRequest)"/>
+    <variant name="Failed" summary="failing (e.g. FGS or Tab start failure)"/>
+    <variant name="Shutdown"
+        summary="browser/profile shutting down before setup finishes"/>
+    <variant name="Success" summary="succeeding"/>
+  </token>
+</histogram>
+
 <histogram name="Glic.ExperimentalTriggering.OptIn.Accepted.Version"
     enum="GlicRequiredExperimentalOptIn" expires_after="2027-05-18">
   <owner>sauski@google.com</owner>
@@ -1710,22 +1734,6 @@ ApiRequestType variants; see go/geic-metrics-split. -->
                  shortcut"/>
     <variant name="MicrophoneEnabled" summary="use the microphone"/>
     <variant name="PinnedToTabstrip" summary="show Glic in tab the strip"/>
-  </token>
-</histogram>
-
-<histogram name="Glic.Prewarming.ChecksResult.{Trigger}"
-    enum="GlicPrewarmingChecksResult" expires_after="2027-01-31">
-  <owner>bryantchandler@chromium.org</owner>
-  <owner>chrome-glic@google.com</owner>
-  <summary>
-    Records the reason why Glic preloading was or was not attempted for trigger
-    {Trigger}. Recorded each time we try to preload.
-  </summary>
-  <token key="Trigger">
-    <variant name="Iph" summary="iph"/>
-    <variant name="Nudge" summary="contextual nudge"/>
-    <variant name="SelectionOverlay" summary="selection overlay"/>
-    <variant name="Startup" summary="startup"/>
   </token>
 </histogram>
 
@@ -3376,6 +3384,24 @@ ApiRequestType variants; see go/geic-metrics-split. -->
     Record the current state when the panel is closed for multi instance
     supported clients. Scope: {GlicProvider}.
   </summary>
+  <token key="GlicProvider" variants="GlicProvider"/>
+</histogram>
+
+<histogram name="Glic{GlicProvider}.Prewarming.ChecksResult.{Trigger}"
+    enum="GlicPrewarmingChecksResult" expires_after="2027-04-30">
+  <owner>bryantchandler@chromium.org</owner>
+  <owner>chrome-glic@google.com</owner>
+  <summary>
+    Records the reason why Glic preloading was or was not attempted for trigger
+    {Trigger}. Recorded each time we try to preload. Scope: {GlicProvider}.
+  </summary>
+  <token key="Trigger">
+    <variant name="GeminiWeb" summary="gemini web"/>
+    <variant name="Iph" summary="iph"/>
+    <variant name="Nudge" summary="contextual nudge"/>
+    <variant name="SelectionOverlay" summary="selection overlay"/>
+    <variant name="Startup" summary="startup"/>
+  </token>
   <token key="GlicProvider" variants="GlicProvider"/>
 </histogram>
 

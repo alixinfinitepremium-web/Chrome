@@ -101,6 +101,11 @@ public class OmniboxFeatures {
     public static final CachedFlag sUrlBarWithoutLigatures =
             newFlag(OmniboxFeatureList.URL_BAR_WITHOUT_LIGATURES, FeatureState.ENABLED_IN_PROD);
 
+    public static final CachedFlag sUrlBarNoHandwritingBoundsAbove =
+            newFlag(
+                    OmniboxFeatureList.URL_BAR_NO_HANDWRITING_BOUNDS_ABOVE,
+                    FeatureState.ENABLED_IN_PROD);
+
     public static final CachedFlag sXGeoFailClosedOnPreciseLeak =
             newFlag(
                     OmniboxFeatureList.OMNIBOX_X_GEO_FAIL_CLOSED_ON_PRECISE_LEAK,
@@ -139,6 +144,13 @@ public class OmniboxFeatures {
 
     public static final CachedFlag sStarterPackExpansion =
             newFlag(OmniboxFeatureList.STARTER_PACK_EXPANSION, FeatureState.ENABLED_IN_PROD);
+
+    /**
+     * Opens AI Mode queries submitted from the Omnibox while on a web page in a new tab, instead of
+     * navigating away from the current page.
+     */
+    private static final CachedFlag sOmniboxAimOpenInNewTab =
+            newFlag(OmniboxFeatureList.OMNIBOX_AIM_OPEN_IN_NEW_TAB, FeatureState.DISABLED_IN_PROD);
 
     public static final CachedFlag sOmniboxSessionlessVoiceSearch =
             newFlag(
@@ -409,6 +421,11 @@ public class OmniboxFeatures {
      */
     public static boolean isAim3pEntrypointEnabled() {
         return sAim3pEntrypoint.isEnabled();
+    }
+
+    /** Returns whether AI Mode queries submitted from a web page should open in a new tab. */
+    public static boolean isAimOpenInNewTabEnabled() {
+        return sOmniboxAimOpenInNewTab.isEnabled();
     }
 
     private static @Nullable Boolean sDebounceKeyboardVisibilityForTesting;

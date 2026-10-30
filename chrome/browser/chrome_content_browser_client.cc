@@ -638,7 +638,6 @@
 #include "chrome/browser/media/webrtc/multi_capture/multi_capture_usage_indicator_service.h"
 #include "chrome/browser/media/webrtc/multi_capture/multi_capture_usage_indicator_service_factory.h"
 #include "chrome/browser/policy/system_features_disable_list_policy_handler.h"
-#include "chrome/browser/smart_card/chromeos_smart_card_delegate.h"
 #include "chrome/browser/web_applications/chromeos_web_app_experiments.h"
 #include "chrome/common/chromeos/extensions/chromeos_system_extension_info.h"
 #include "chromeos/ash/components/quickoffice/quickoffice_prefs.h"
@@ -646,6 +645,10 @@
 #include "chromeos/constants/chromeos_features.h"
 #include "third_party/cros_system_api/switches/chrome_switches.h"
 #endif  // BUILDFLAG(IS_CHROMEOS)
+
+#if BUILDFLAG(ENABLE_SMART_CARD)
+#include "chrome/browser/smart_card/chromeos_smart_card_delegate.h"
+#endif  // BUILDFLAG(ENABLE_SMART_CARD)
 
 #if BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS)
 #include "components/crash/core/app/crash_switches.h"
@@ -812,7 +815,7 @@
 
 #if BUILDFLAG(IS_ANDROID)
 #include "chrome/browser/feed/feed_service_factory.h"
-#include "chrome/browser/safe_browsing/advanced_protection_status_manager_android.h"
+#include "chrome/browser/safe_browsing/advanced_protection/advanced_protection_status_manager_android.h"
 #include "components/feed/feed_feature_list.h"
 #endif  // BUILDFLAG(IS_ANDROID)
 
@@ -1304,36 +1307,18 @@ void LaunchURL(
 
       if (!base::CommandLine::ForCurrentProcess()->HasSwitch(
               kDisableSandboxExternalProtocolSwitch)) {
-        if (base::FeatureList::IsEnabled(
-                features::kSandboxExternalProtocolBlocked)) {
-          rfh->AddMessageToConsole(
-              blink::mojom::ConsoleMessageLevel::kError,
-              "Navigation to external protocol blocked by sandbox, because it "
-              "doesn't contain any of: "
-              "'allow-top-navigation-to-custom-protocols', "
-              "'allow-top-navigation-by-user-activation', "
-              "'allow-top-navigation', or "
-              "'allow-popups'. See "
-              "https://chromestatus.com/feature/5680742077038592 and "
-              "https://chromeenterprise.google/policies/"
-              "#SandboxExternalProtocolBlocked");
-          return;
-        }
-
-        if (base::FeatureList::IsEnabled(
-                features::kSandboxExternalProtocolBlockedWarning)) {
-          rfh->AddMessageToConsole(
-              blink::mojom::ConsoleMessageLevel::kError,
-              "After Chrome M103, navigation toward external protocol "
-              "will be blocked by sandbox, if it doesn't contain any of:"
-              "'allow-top-navigation-to-custom-protocols', "
-              "'allow-top-navigation-by-user-activation', "
-              "'allow-top-navigation', or "
-              "'allow-popups'. See "
-              "https://chromestatus.com/feature/5680742077038592 and "
-              "https://chromeenterprise.google/policies/"
-              "#SandboxExternalProtocolBlocked");
-        }
+        rfh->AddMessageToConsole(
+            blink::mojom::ConsoleMessageLevel::kError,
+            "Navigation to external protocol blocked by sandbox, because it "
+            "doesn't contain any of: "
+            "'allow-top-navigation-to-custom-protocols', "
+            "'allow-top-navigation-by-user-activation', "
+            "'allow-top-navigation', or "
+            "'allow-popups'. See "
+            "https://chromestatus.com/feature/5680742077038592 and "
+            "https://chromeenterprise.google/policies/"
+            "#SandboxExternalProtocolBlocked");
+        return;
       }
     }
   }
@@ -7815,7 +7800,7 @@ bool ChromeContentBrowserClient::HandleWebUI(
   return true;
 }
 
-#if BUILDFLAG(IS_CHROMEOS)
+#if BUILDFLAG(ENABLE_SMART_CARD)
 content::SmartCardDelegate* ChromeContentBrowserClient::GetSmartCardDelegate() {
   if (!smart_card_delegate_) {
     smart_card_delegate_ = std::make_unique<ChromeOsSmartCardDelegate>();

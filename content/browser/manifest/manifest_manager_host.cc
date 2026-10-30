@@ -40,7 +40,7 @@ void DispatchManifestNotFound(
   for (ManifestManagerHost::GetManifestCallback& callback : callbacks) {
     std::move(callback).Run(
         blink::mojom::ManifestRequestResult::kUnexpectedFailure, GURL(),
-        blink::mojom::Manifest::New());
+        std::nullopt);
   }
 }
 
@@ -79,7 +79,7 @@ void ManifestManagerHost::GetManifest(GetManifestCallback callback) {
         FROM_HERE,
         base::BindOnce(std::move(callback),
                        blink::mojom::ManifestRequestResult::kNoManifestAllowed,
-                       GURL(), blink::mojom::Manifest::New()));
+                       GURL(), std::nullopt));
     return;
   }
   auto& manifest_manager = GetManifestManager();
@@ -117,12 +117,11 @@ base::CallbackListSubscription ManifestManagerHost::GetAllSpecifiedManifests(
 }
 
 void ManifestManagerHost::RequestManifestDebugInfo(
-    blink::mojom::ManifestManager::RequestManifestDebugInfoCallback callback) {
+    RequestManifestDebugInfoCallback callback) {
   if (page().GetMainDocument().GetLastCommittedURL().SchemeIs(
           url::kAboutScheme)) {
     base::SequencedTaskRunner::GetCurrentDefault()->PostTask(
-        FROM_HERE, base::BindOnce(std::move(callback), GURL(),
-                                  blink::mojom::Manifest::New(),
+        FROM_HERE, base::BindOnce(std::move(callback), GURL(), std::nullopt,
                                   blink::mojom::ManifestDebugInfo::New()));
     return;
   }
@@ -132,10 +131,11 @@ void ManifestManagerHost::RequestManifestDebugInfo(
 }
 
 void ManifestManagerHost::OnRequestManifestDebugInfoResponse(
-    blink::mojom::ManifestManager::RequestManifestDebugInfoCallback callback,
+    RequestManifestDebugInfoCallback callback,
     const GURL& url,
     blink::mojom::ManifestPtr parsed_manifest,
     blink::mojom::ManifestDebugInfoPtr debug_info) {
+  std::optional<blink::Manifest> manifest;
   if (parsed_manifest && !blink::IsEmptyManifest(*parsed_manifest)) {
     base::expected<blink::Manifest, blink::ManifestInvariantError> converted =
         blink::ManifestFromMojom(*parsed_manifest);
@@ -144,13 +144,11 @@ void ManifestManagerHost::OnRequestManifestDebugInfoResponse(
                                     converted.error());
       mojo::ReportBadMessage(
           blink::ManifestInvariantErrorToString(converted.error()));
-      parsed_manifest = blink::mojom::Manifest::New();
     } else {
-      parsed_manifest = blink::ManifestToMojom(*converted);
+      manifest = std::move(*converted);
     }
   }
-  std::move(callback).Run(url, std::move(parsed_manifest),
-                          std::move(debug_info));
+  std::move(callback).Run(url, manifest, std::move(debug_info));
 }
 
 blink::mojom::ManifestManager& ManifestManagerHost::GetManifestManager() {
@@ -360,12 +358,11 @@ void ManifestManagerHost::OnRequestManifestResponse(
       validated_manifest =
           ValidateAndMaybeOverrideManifest(result, std::move(parsed_manifest));
 
-  blink::mojom::ManifestPtr response_manifest;
+  std::optional<blink::Manifest> response_manifest;
   if (validated_manifest.has_value()) {
-    response_manifest = blink::ManifestToMojom(*validated_manifest);
+    response_manifest = std::move(*validated_manifest);
   } else {
     result = validated_manifest.error();
-    response_manifest = blink::mojom::Manifest::New();
   }
   auto callback = std::move(*callbacks_.Lookup(request_id));
   callbacks_.Remove(request_id);

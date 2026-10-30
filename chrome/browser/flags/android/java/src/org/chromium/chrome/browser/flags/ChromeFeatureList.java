@@ -193,6 +193,50 @@ public abstract class ChromeFeatureList {
         return ChromeFeatureMap.getInstance().getFieldTrialParamsForFeature(featureName);
     }
 
+    /**
+     * Convenience method to get the value of a Chrome-layer feature param, see {@link
+     * FeatureMap#getParamValueAsBoolean(String, String)}.
+     *
+     * <p>Note: Params queried through this API must be added to the array
+     * |kBooleanParamsExposedToJava| in chrome/browser/flags/android/chrome_feature_list.cc
+     */
+    public static boolean getParamValueAsBoolean(String featureName, String paramName) {
+        return ChromeFeatureMap.getInstance().getParamValueAsBoolean(featureName, paramName);
+    }
+
+    /**
+     * Convenience method to get the value of a Chrome-layer feature param, see {@link
+     * FeatureMap#getParamValueAsInt(String, String)}.
+     *
+     * <p>Note: Params queried through this API must be added to the array |kIntParamsExposedToJava|
+     * in chrome/browser/flags/android/chrome_feature_list.cc
+     */
+    public static int getParamValueAsInt(String featureName, String paramName) {
+        return ChromeFeatureMap.getInstance().getParamValueAsInt(featureName, paramName);
+    }
+
+    /**
+     * Convenience method to get the value of a Chrome-layer feature param, see {@link
+     * FeatureMap#getParamValueAsDouble(String, String)}.
+     *
+     * <p>Note: Params queried through this API must be added to the array
+     * |kDoubleParamsExposedToJava| in chrome/browser/flags/android/chrome_feature_list.cc
+     */
+    public static double getParamValueAsDouble(String featureName, String paramName) {
+        return ChromeFeatureMap.getInstance().getParamValueAsDouble(featureName, paramName);
+    }
+
+    /**
+     * Convenience method to get the value of a Chrome-layer feature param, see {@link
+     * FeatureMap#getParamValueAsString(String, String)}.
+     *
+     * <p>Note: Params queried through this API must be added to the array
+     * |kStringParamsExposedToJava| in chrome/browser/flags/android/chrome_feature_list.cc
+     */
+    public static String getParamValueAsString(String featureName, String paramName) {
+        return ChromeFeatureMap.getInstance().getParamValueAsString(featureName, paramName);
+    }
+
     public static BooleanCachedFeatureParam newBooleanCachedFeatureParam(
             String featureName, String variationName, boolean defaultValue) {
         return new BooleanCachedFeatureParam(
@@ -1912,18 +1956,16 @@ public abstract class ChromeFeatureList {
      * ChromeFeatureList#getFieldTrialParamByFeatureAsBoolean(String, String)} when the specified
      * parameter does not exist in the field trial. It should be in sync with the native param's
      * default value, if there is a corresponding native param.
+     *
+     * <p>Params queried through functions like {@link
+     * ChromeFeatureList#getParamValueAsBoolean(String, String)} use the default value of the native
+     * param, so they should not be added to this map.
      */
     static final Map<String, Map<String, String>> sParamsDefaultValues =
             Map.ofEntries(
                     Map.entry(
                             ANDROID_DEVICE_SIGNALS_DISCLAIMER,
                             Map.of(ANDROID_DEVICE_SIGNALS_DISCLAIMER_CLEAR_CONSENT, "false")),
-                    Map.entry(
-                            ANDROID_THEME_MODULE,
-                            Map.of(ANDROID_THEME_MODULE_FORCE_DEPENDENCIES, "false")),
-                    Map.entry(
-                            ANDROID_THEME_RESOURCE_PROVIDER,
-                            Map.of(ANDROID_THEME_RESOURCE_PROVIDER_FORCE_LIGHT, "false")),
                     Map.entry(
                             FRE_STRING_CHANGES,
                             Map.ofEntries(
@@ -1933,16 +1975,6 @@ public abstract class ChromeFeatureList {
                     Map.entry(
                             IPH_BOOKMARK_BAR_VISIBILITY,
                             Map.of(IPH_BOOKMARK_BAR_VISIBILITY_VARIANT, "medium")),
-                    Map.entry(
-                            NTP_AURORA,
-                            Map.ofEntries(
-                                    Map.entry(NTP_AURORA_CHANGE_BUTTON_COLOR, "false"),
-                                    Map.entry(NTP_AURORA_PADDING_STYLE, "0"))),
-                    Map.entry(
-                            NTP_AURORA_V2,
-                            Map.ofEntries(
-                                    Map.entry(NTP_AURORA_V2_ACTION_CHIPS, "0"),
-                                    Map.entry(NTP_AURORA_V2_LAYOUT_TYPE, "0"))),
                     Map.entry(USE_P_LINK_IN_HELP, Map.of(USE_P_LINK_IN_HELP_HOMEPAGE_CONTEXTS, "")),
                     Map.entry(
                             XPLAT_SYNCED_SETUP_THEMES,

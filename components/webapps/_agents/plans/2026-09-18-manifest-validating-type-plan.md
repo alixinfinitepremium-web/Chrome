@@ -71,9 +71,9 @@ To keep each CL small and independently reviewable:
   and Contextual Checks `C1`–`C5`**
 - [x] **Milestone 5: Migrate `ContentBrowserClient::MaybeOverrideManifest` and
   Embedder Overrides**
-- [ ] **Milestone 6: Migrate `RequestManifestDebugInfo` and DevTools
+- [x] **Milestone 6: Migrate `RequestManifestDebugInfo` and DevTools
   `PageHandler`**
-- [ ] **Milestone 7: Migrate `content::Page::GetManifest` and
+- [x] **Milestone 7: Migrate `content::Page::GetManifest` and
   `ContentFaviconDriver`**
 - [ ] **Milestone 8: Migrate `//components/webapps/browser/installable/`**
 - [ ] **Milestone 9: Migrate `//components/webapps/browser/banners/`,
@@ -270,10 +270,10 @@ ______________________________________________________________________
 
 ### Milestone 6: Migrate `RequestManifestDebugInfo` and DevTools `PageHandler`
 
-**Goal:** Migrate `ManifestManagerHost::ReportManifestDebugInfoCallback` and
+**Goal:** Migrate `ManifestManagerHost::RequestManifestDebugInfoCallback` and
 `GotManifest` in
 [`/content/browser/devtools/protocol/page_handler.cc`](/content/browser/devtools/protocol/page_handler.cc)
-to `const std::optional<blink::Manifest>&`.
+to `base::optional_ref<const blink::Manifest>`.
 
 - **Scope & Boundaries:**
   - Removes the `ManifestToMojom` bridge on `OnRequestManifestDebugInfoResponse`

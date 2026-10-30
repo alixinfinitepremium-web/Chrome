@@ -283,6 +283,8 @@ const base::FeatureParam<bool> kGeicEnabledParam{&kGeic, "enabled", true};
 
 BASE_FEATURE(kGeicActuation, base::FEATURE_DISABLED_BY_DEFAULT);
 
+BASE_FEATURE(kGeicSsr, base::FEATURE_DISABLED_BY_DEFAULT);
+
 const base::FeatureParam<std::string> kGeicGuestURL{&kGeic, "geic-guest-url",
                                                     ""};
 
@@ -349,6 +351,8 @@ BASE_FEATURE(kGlicActionFirstFRE, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kGlicWarmOnNudge, base::FEATURE_DISABLED_BY_DEFAULT);
 
 BASE_FEATURE(kGlicWarmOnIph, base::FEATURE_DISABLED_BY_DEFAULT);
+
+BASE_FEATURE(kGlicWarmOnGeminiWeb, base::FEATURE_DISABLED_BY_DEFAULT);
 
 BASE_FEATURE(kGlicBackfillWarmingUsePerformanceManager,
              base::FEATURE_DISABLED_BY_DEFAULT);

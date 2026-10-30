@@ -107,6 +107,7 @@ chromium-metrics-reviews@google.com.
 <!-- LINT.IfChange(CrossDeviceSigninPromoEntryPointVariant) -->
 
 <variants name="CrossDeviceSigninPromoEntryPoint">
+  <variant name="ForeignTabs" summary="Foreign tabs entry point"/>
   <variant name="HistoryPage" summary="History Page entry point"/>
   <variant name="ProfileMenu" summary="Profile Menu entry point"/>
   <variant name="SendTabToSelf" summary="Send Tab to Self entry point"/>
@@ -2894,6 +2895,31 @@ prefs when the profile is loaded.  -->
     Records the access point from where the account menu was opened. Recorded
     every time the account menu is opened. iOS only.
   </summary>
+</histogram>
+
+<histogram
+    name="Signin.IOSAccountProfileMappingStartupState{DefaultProfilePresence}"
+    enum="IOSAccountProfileMappingStartupState" expires_after="2027-10-27">
+  <owner>jlebel@chromium.org</owner>
+  <owner>treib@chromium.org</owner>
+  <owner>chrome-signin-team@google.com</owner>
+  <summary>
+    Records the on-disk profile attachment state for managed Gaia IDs stored in
+    ProfileAttributesStorageIOS once at browser startup (during
+    AccountProfileMapper::Assigner initialization) if at least one Gaia ID is
+    attached to a Managed profile {DefaultProfilePresence}. Used to measure the
+    prevalence of duplicate Gaia ID attachments across profiles caused by
+    crbug.com/577577623 (Cohorts A, B, and C) and track their cleanup. iOS only.
+  </summary>
+  <token key="DefaultProfilePresence">
+    <variant name="" summary="across all installs"/>
+    <variant name=".HasDefaultProfile"
+        summary="on installs that have a 'Default' profile (installed &lt;=
+                 M132)"/>
+    <variant name=".NoDefaultProfile"
+        summary="on installs without a 'Default' profile (installed &gt;=
+                 M133, UUID initial profile)"/>
+  </token>
 </histogram>
 
 <histogram name="Signin.IOSAccountsOnDeviceCount{AccountType}" units="accounts"

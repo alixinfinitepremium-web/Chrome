@@ -63,7 +63,7 @@ if (is_android) {
       "//base/test:test_support_java",
       "//base/version_info/android:version_constants_java",
       "//cc:cc_java",
-      "//cc/mojom:mojom_java",
+      "//cc/mojom:android_mojo_bindings_java",
       "//chrome/android:base_module_java",
       "//chrome/android:chrome_app_java_resources",
       "//chrome/android:chrome_java",
@@ -467,8 +467,6 @@ if (is_android) {
       "src/org/chromium/chrome/browser/recent_tabs/RecentlyClosedEntriesManagerTrackerImplUnitTest.java",
       "src/org/chromium/chrome/browser/recent_tabs/RecentlyClosedEntriesManagerUnitTest.java",
       "src/org/chromium/chrome/browser/undo_tab_close_snackbar/UndoBarContentFactoryTest.java",
-      "src/org/chromium/chrome/browser/undo_tab_close_snackbar/UndoClosureSnapshotFactoryTest.java",
-      "src/org/chromium/chrome/browser/undo_tab_close_snackbar/UndoClosureSnapshotTest.java",
       "src/org/chromium/chrome/browser/usage_stats/UsageStatsServiceTest.java",
     ]
 

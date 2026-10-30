@@ -3360,7 +3360,6 @@ class ContextualTasksRecontextUiTest
         }
       }
       disabled.push_back(kContextualTasks);
-      enabled.push_back({kContextualTasksSidePanel, {}});
       feature_list_.InitWithFeaturesAndParameters(enabled, disabled);
     } else {
       auto enabled = GetDefaultEnabledFeatures();
@@ -3693,6 +3692,63 @@ IN_PROC_BROWSER_TEST_P(ContextualTasksInteractiveUiTest,
                   SelectTab(kTabStripElementId, 0),
                   OpenContextualTasksInCurrentTab(kInterceptionUrl),
                   WaitForStateChange(kPrimaryTab, composebox_focused));
+}
+
+class ContextualTasksSidePanelOnlyInteractiveUiTest
+    : public ContextualTasksInteractiveUiTestBase {
+ public:
+  void SetUpFeatureList() override {
+    std::vector<base::test::FeatureRefAndParams> enabled;
+    for (const auto& f : GetDefaultEnabledFeatures()) {
+      if (&f.feature.get() != &kContextualTasks) {
+        enabled.push_back(f);
+      }
+    }
+    enabled.push_back({kContextualTasksSidePanel, {}});
+    auto disabled = GetDefaultDisabledFeatures();
+    disabled.push_back(kContextualTasks);
+    feature_list_.InitWithFeaturesAndParameters(enabled, disabled);
+  }
+
+  void SetUpOnMainThread() override {
+    ContextualTasksInteractiveTestBase::SetUpOnMainThread();
+    ON_CALL(*GetMockAimEligibilityService(browser()->GetProfile()),
+            IsCobrowseEligible())
+        .WillByDefault(testing::Return(false));
+  }
+};
+
+// This tests the following CUJ:
+//  (1) User types chrome://contextual-tasks into the Omnibox in a standalone
+//      tab and presses Enter when ContextualTasks is disabled and only the
+//      side panel UI is enabled.
+//  (2) The tab redirects to the AIM page URL rather than hosting the WebUI.
+//  (3) The standalone Contextual Tasks WebUI app is not present in the tab.
+IN_PROC_BROWSER_TEST_F(ContextualTasksSidePanelOnlyInteractiveUiTest,
+                       StandaloneTabDirectNavigationRedirectsToAim) {
+  // TODO(crbug.com/533072196): Clean up this test once the pre-rearchitecture
+  // logic is cleaned up.
+  const GURL expected_aim_url(contextual_tasks::GetContextualTasksAiPageUrl());
+
+  RunTestSequence(
+      InstrumentTab(kPrimaryTab, 0), SelectTab(kTabStripElementId, 0),
+
+      // (1) Navigate the tab to the WebUI URL.
+      Do([this]() {
+        browser()
+            ->tab_strip_model()
+            ->GetActiveWebContents()
+            ->GetController()
+            .LoadURL(GURL(chrome::kChromeUIContextualTasksURL),
+                     content::Referrer(), ui::PAGE_TRANSITION_TYPED,
+                     std::string());
+      }),
+
+      // (2) The tab redirects and commits the AIM page rather than WebUI.
+      WaitForWebContentsNavigation(kPrimaryTab, expected_aim_url),
+
+      // (3) The standalone Contextual Tasks WebUI is not present in the tab.
+      EnsureNotPresent(kPrimaryTab, {"contextual-tasks-app"}));
 }
 
 // CUJ covered by this test:
@@ -4174,6 +4230,11 @@ class ContextualTasksSeparateViewportRequestIdsInteractiveUiTest
     auto disabled = GetDefaultDisabledFeatures();
     enabled.push_back(
         {lens::features::kLensUseSeparateRequestIdForViewportImages, {}});
+    // `kContextualTasksUpdatedEntryPoints` makes `kAppMenu` a region-only
+    // invocation source, preventing page context from being uploaded and
+    // preventing separate viewport and webpage request IDs from being
+    // generated in `LensOverlayRegionSearchHandoff`.
+    disabled.push_back(kContextualTasksUpdatedEntryPoints);
     feature_list_.InitWithFeaturesAndParameters(enabled, disabled);
   }
 };
@@ -5294,9 +5355,11 @@ class ContextualTasksExtensionTabPickerInteractiveUiTest
 //  (2) User clicks the pinned Contextual Tasks toolbar button to open the
 //      Contextual Tasks side panel on an AI Mode page.
 //  (3) The AI Mode page mounts the Contextual Tasks extension's
-//      tab_picker.html iframe.
-//  (4) User clicks the tab picker trigger to open the tab menu and selects
-//      the open browser tab to attach its context.
+//      tab_picker.html iframe, which shows the active tab implicitly
+//      pre-selected.
+//  (4) User opens the tab picker menu, clicks the pre-selected active tab to
+//      unselect it, and clicks it again to explicitly select and upload its
+//      context.
 //  (5) The tab item shows as selected in the tab picker and the AI Mode page
 //      receives an OnSuggestInputsChanged message with the uploaded tab's
 //      AddedContext.
@@ -5335,9 +5398,9 @@ IN_PROC_BROWSER_TEST_P(
                               "TabPickerSidePanelContentWebViewName"),
       WaitForWebContentsReady(kSidePanelWebContentsId),
 
-      // (3)-(5) Mount tab_picker.html in the AI Mode page, open the tab menu,
-      // select the tab, and verify the UI selection state and emitted
-      // OnSuggestInputsChanged message.
+      // (3)-(5) Mount tab_picker.html in the AI Mode page, verify the active
+      // tab starts implicitly selected, unselect it, then select it explicitly
+      // and verify the emitted `OnSuggestInputsChanged` message.
       Do([&]() {
         content::WebContents* side_panel_contents =
             ContextualTasksPanelController::From(browser())
@@ -5347,10 +5410,43 @@ IN_PROC_BROWSER_TEST_P(
         ASSERT_NE(tab_picker_rfh, nullptr);
 
         EXPECT_EQ(true, content::EvalJs(tab_picker_rfh, R"(
+          new Promise((resolve) => {
+            const check = () => {
+              const app = document.querySelector('tab-picker-app');
+              const item = app?.shadowRoot?.querySelector(
+                  'button.dropdown-item[data-index="0"]');
+              if (app?.selectedTabs.length === 1 &&
+                  item?.querySelector('.share-tabs-check')) {
+                resolve(true);
+                return;
+              }
+              setTimeout(check, 10);
+            };
+            check();
+          })
+        )"));
+
+        EXPECT_EQ(true, content::EvalJs(tab_picker_rfh, R"(
           (async () => {
             const app = document.querySelector('tab-picker-app');
             const trigger = app.shadowRoot.querySelector('#shareTabsTrigger');
             trigger.click();
+            const item = app.shadowRoot.querySelector(
+                'button.dropdown-item[data-index="0"]');
+            item.click();
+            await app.updateComplete;
+            await app.browserProxy_.getRecentTabs();
+            return app.selectedTabs.length === 0 &&
+                !item.querySelector('.share-tabs-check');
+          })();
+        )"));
+
+        EXPECT_TRUE(content::ExecJs(side_panel_contents,
+                                    "window.receivedSearchMessages = [];"));
+
+        EXPECT_EQ(true, content::EvalJs(tab_picker_rfh, R"(
+          (async () => {
+            const app = document.querySelector('tab-picker-app');
             const item = app.shadowRoot.querySelector(
                 'button.dropdown-item[data-index="0"]');
             item.click();

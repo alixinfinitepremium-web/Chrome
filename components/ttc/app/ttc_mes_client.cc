@@ -18,6 +18,7 @@
 #include "base/json/json_writer.h"
 #include "base/location.h"
 #include "base/logging.h"
+#include "base/notimplemented.h"
 #include "base/strings/strcat.h"
 #include "base/strings/stringprintf.h"
 #include "base/strings/to_string.h"
@@ -208,7 +209,13 @@ void TtcMesClient::Connect(Observer* observer) {
 }
 
 void TtcMesClient::OnConnectionStateChanged(
-    optimization_guide::RemoteModelExecutionSession::ConnectionState state) {
+    optimization_guide::RemoteModelExecutionSession::ConnectionState state,
+    std::optional<
+        optimization_guide::RemoteModelExecutionSession::DisconnectReason>
+        disconnect_reason) {
+  DCHECK_EQ(state == optimization_guide::RemoteModelExecutionSession::
+                         ConnectionState::kDisconnected,
+            disconnect_reason.has_value());
   // kConnecting is sent before being connected. That's not a disconnection (or
   // a connection) so avoid reporting it.
   if (state == optimization_guide::RemoteModelExecutionSession::
@@ -536,6 +543,9 @@ void TtcMesClient::ReportClientFrameToDebugSink(
       break;
     case Frame::FRAME_NOT_SET:
       break;
+    default:
+      NOTIMPLEMENTED();
+      break;
   }
 }
 
@@ -605,6 +615,9 @@ void TtcMesClient::ReportServerFrameToDebugSink(
       // Also how a frame type this client doesn't know arrives: as an unknown
       // field.
       debug_sink_->OnServerFrame(DebugSink::UnknownFrame());
+      break;
+    default:
+      NOTIMPLEMENTED();
       break;
   }
 }
@@ -688,6 +701,9 @@ void TtcMesClient::LogClientFrame(
       break;
     case optimization_guide::proto::TtcClientFrame::FRAME_NOT_SET:
       break;
+    default:
+      NOTIMPLEMENTED();
+      break;
   }
 
   Log(event_name, std::move(details).Build(),
@@ -763,6 +779,9 @@ void TtcMesClient::LogServerFrame(
       // Don't log as it's redundant
       return;
     case optimization_guide::proto::TtcServerFrame::FRAME_NOT_SET:
+      break;
+    default:
+      NOTIMPLEMENTED();
       break;
   }
 

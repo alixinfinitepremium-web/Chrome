@@ -24,6 +24,7 @@
 #include "base/metrics/metrics_hashes.h"
 #include "base/notreached.h"
 #include "base/strings/strcat.h"
+#include "base/strings/string_number_conversions.h"
 #include "base/strings/string_util.h"
 #include "base/strings/to_string.h"
 #include "base/strings/utf_string_conversions.h"
@@ -625,8 +626,8 @@ void ReadAnythingAppController::PrepareForNewContentDistillation() {
   // TODO: crbug.com/526701545: Show Loading screen when re-distilling.
 
   // Clear any stale distillation content.
-  dom_distiller_title_.clear();
-  dom_distiller_content_html_.clear();
+  readability_title_.clear();
+  readability_content_html_.clear();
 
   // Reset mapping state for the new page. Since no readability distillation is
   // displayed yet, the mapping algorithm is not yet in progress.
@@ -1405,12 +1406,12 @@ gin::ObjectTemplateBuilder ReadAnythingAppController::GetObjectTemplateBuilder(
           "defaultLanguageForSpeech")
       .SetProperty<&ReadAnythingAppController::IsPhraseHighlightingEnabled>(
           "isPhraseHighlightingEnabled")
-      .SetProperty<&ReadAnythingAppController::GetDomDistillerTitle>(
+      .SetProperty<&ReadAnythingAppController::GetReadabilityTitle>(
           "htmlTitle")
       .SetProperty<&ReadAnythingAppController::GetDocumentUrl>("documentUrl")
-      .SetProperty<&ReadAnythingAppController::GetDomDistillerContentHtml>(
+      .SetProperty<&ReadAnythingAppController::GetReadabilityContentHtml>(
           "htmlContent")
-      .SetProperty<&ReadAnythingAppController::GetDomDistillerAnchors>(
+      .SetProperty<&ReadAnythingAppController::GetReadabilityAnchors>(
           "axTreeAnchors")
       .SetProperty<&ReadAnythingAppController::DistillationTypeScreen2x>(
           "distillationTypeScreen2x")
@@ -2009,7 +2010,7 @@ void ReadAnythingAppController::OnGetPresentationState(
   // while reading mode was hidden.
   bool has_distilled_readability_content =
       model_.is_readability_next_distillation_method() &&
-      !dom_distiller_content_html_.empty();
+      !readability_content_html_.empty();
   if (is_opening && !has_logged_distillation_status_ &&
       has_distilled_readability_content) {
     RecordDistillationStatus(
@@ -2342,7 +2343,7 @@ int ReadAnythingAppController::GetDistillationMethod() const {
 }
 
 bool ReadAnythingAppController::RequiresDistillation() {
-  // DOM distiller distillation doesn't queue distillations so return false.
+  // Readability distillation doesn't queue distillations so return false.
   if (model_.is_readability_next_distillation_method()) {
     return false;
   }
@@ -3171,6 +3172,7 @@ void ReadAnythingAppController::UpdateDependencyParserModel(
 }
 
 void ReadAnythingAppController::RequestPhraseBoundaries(
+    int request_id,
     const std::vector<std::u16string>& sentences) {
   if (!features::IsReadAnythingReadAloudPhraseHighlightingEnabled() ||
       sentences.empty()) {
@@ -3184,10 +3186,11 @@ void ReadAnythingAppController::RequestPhraseBoundaries(
       .WithArgs(sentences)
       .Then(
           base::BindOnce(&ReadAnythingAppController::OnPhraseBoundariesComputed,
-                         weak_ptr_factory_.GetWeakPtr()));
+                         weak_ptr_factory_.GetWeakPtr(), request_id));
 }
 
 void ReadAnythingAppController::OnPhraseBoundariesComputed(
+    int request_id,
     std::vector<std::vector<int>> boundaries) {
   base::ListValue boundaries_list;
   boundaries_list.reserve(boundaries.size());
@@ -3204,8 +3207,8 @@ void ReadAnythingAppController::OnPhraseBoundariesComputed(
   if (!json) {
     return;
   }
-  ExecuteJavaScript("chrome.readingMode.onPhraseBoundariesReady(" + *json +
-                    ");");
+  ExecuteJavaScript("chrome.readingMode.onPhraseBoundariesReady(" +
+                    base::NumberToString(request_id) + ", " + *json + ");");
 }
 
 base::SequenceBound<DependencyParserModel>&
@@ -3231,15 +3234,15 @@ void ReadAnythingAppController::OnTreeRemoved(ui::AXTree* tree) {
   }
 }
 
-std::string ReadAnythingAppController::GetDomDistillerTitle() const {
-  return dom_distiller_title_;
+std::string ReadAnythingAppController::GetReadabilityTitle() const {
+  return readability_title_;
 }
 
-std::string ReadAnythingAppController::GetDomDistillerContentHtml() const {
-  return dom_distiller_content_html_;
+std::string ReadAnythingAppController::GetReadabilityContentHtml() const {
+  return readability_content_html_;
 }
 
-v8::Local<v8::Value> ReadAnythingAppController::GetDomDistillerAnchors() const {
+v8::Local<v8::Value> ReadAnythingAppController::GetReadabilityAnchors() const {
   v8::Isolate* isolate = v8::Isolate::GetCurrent();
   if (!IsReadabilityEnabled() || !isolate) {
     return v8::Undefined(isolate);
@@ -3296,12 +3299,12 @@ void ReadAnythingAppController::UpdateContent(const std::string& title,
     return;
   }
 
-  dom_distiller_title_ = title;
-  dom_distiller_content_html_ = content;
+  readability_title_ = title;
+  readability_content_html_ = content;
 
   // If readability distillation returns empty content, consider distillation as
   // failure and default to Screen2X distillation.
-  if (dom_distiller_content_html_.empty()) {
+  if (readability_content_html_.empty()) {
     model_.set_readability_content_drawn(false);
 
     // Immediately attempt distillation. If there's not yet an active tree,

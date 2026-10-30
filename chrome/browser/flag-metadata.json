@@ -504,6 +504,11 @@
     "expiry_milestone": 165
   },
   {
+    "name": "android-multiprofile-startup-data",
+    "owners": [ "hanxi@google.com", "clank-start@google.com" ],
+    "expiry_milestone": 165
+  },
+  {
     "name": "android-navigation-blur-transition-animation",
     "owners": [
       "evanluo@google.com",
@@ -6787,11 +6792,6 @@
     "expiry_milestone": 150
   },
   {
-    "name": "lens-overlay-permission-bubble-alt",
-    "owners": ["nguyenbryan@google.com", "lens-chrome@google.com"],
-    "expiry_milestone": 145
-  },
-  {
     "name": "lens-reinvocation-affordance",
     "owners": ["juanmojica@google.com", "lens-chrome@google.com"],
     "expiry_milestone": 152
@@ -6979,11 +6979,6 @@
     "name": "managed-configuration-recover-from-failed-fetches",
     "owners": [ "simonha@google.com", "//chrome/browser/device_api/OWNERS" ],
     "expiry_milestone": 165
-  },
-  {
-    "name": "management-promotion-banner-flag",
-    "owners": ["austinzzr@google.com"],
-    "expiry_milestone": 141
   },
   {
     "name": "mark-all-credentials-as-leaked",
@@ -7548,6 +7543,11 @@
   {
     "name": "omnibox-aim-image-downscaling",
     "owners": ["jkoblinsky@google.com", "chrome-mobile-search@google.com"],
+    "expiry_milestone": 160
+  },
+  {
+    "name": "omnibox-aim-open-in-new-tab",
+    "owners": ["peterkang@google.com", "chrome-mobile-search@google.com"],
     "expiry_milestone": 160
   },
   {

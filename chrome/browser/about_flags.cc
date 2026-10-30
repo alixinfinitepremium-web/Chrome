@@ -7168,6 +7168,11 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kOmniboxDisableTabsForCanvasDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(omnibox::kOmniboxDisableTabsForCanvas)},
 
+    {"omnibox-aim-open-in-new-tab",
+     flag_descriptions::kOmniboxAimOpenInNewTabName,
+     flag_descriptions::kOmniboxAimOpenInNewTabDescription, kOsAndroid,
+     FEATURE_VALUE_TYPE(omnibox::kOmniboxAimOpenInNewTab)},
+
     {"omnibox-aim-suppress-verbatim-match",
      flag_descriptions::kAIMSuppressVerbatimMatchName,
      flag_descriptions::kAIMSuppressVerbatimMatchDescription, kOsAndroid,
@@ -11304,13 +11309,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kHappyEyeballsV3Description, kOsAll,
      FEATURE_VALUE_TYPE(net::features::kHappyEyeballsV3)},
 
-#if !BUILDFLAG(IS_ANDROID)
-    {"management-promotion-banner-flag",
-     flag_descriptions::kEnableManagementPromotionBannerName,
-     flag_descriptions::kEnableManagementPromotionBannerDescription, kOsDesktop,
-     FEATURE_VALUE_TYPE(features::kEnableManagementPromotionBanner)},
-#endif
-
 #if BUILDFLAG(ENABLE_DICE_SUPPORT)
     {"enable-oauth-multilogin-standard-cookies-binding",
      flag_descriptions::kEnableOAuthMultiloginStandardCookiesBindingName,
@@ -11854,11 +11852,6 @@ const FeatureEntry kFeatureEntries[] = {
         // BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_ANDROID)
 
 #if !BUILDFLAG(IS_ANDROID)
-    {"lens-overlay-permission-bubble-alt",
-     flag_descriptions::kLensOverlayPermissionBubbleAltName,
-     flag_descriptions::kLensOverlayPermissionBubbleAltDescription, kOsDesktop,
-     FEATURE_VALUE_TYPE(lens::features::kLensOverlayPermissionBubbleAlt)},
-
     {"enable-ntp-browser-promos",
      flag_descriptions::kEnableNtpBrowserPromosName,
      flag_descriptions::kEnableNtpBrowserPromosDescription, kOsDesktop,
@@ -11945,6 +11938,11 @@ const FeatureEntry kFeatureEntries[] = {
     {"android-multiprofile", flag_descriptions::kAndroidMultiprofileName,
      flag_descriptions::kAndroidMultiprofileDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(chrome::android::kAndroidMultiprofile)},
+
+    {"android-multiprofile-startup-data",
+     flag_descriptions::kAndroidMultiprofileStartupDataName,
+     flag_descriptions::kAndroidMultiprofileStartupDataDescription, kOsAndroid,
+     FEATURE_VALUE_TYPE(features::kAndroidMultiprofileStartupData)},
 #endif  // BUILDFLAG(IS_ANDROID)
 
 #if BUILDFLAG(IS_ANDROID)

@@ -229,6 +229,7 @@ class NavigationExtensionEnabler;
 namespace glic {
 class ContextualCueingHelper;
 class GlicCueTabState;
+class GlicGeminiWebWarmingObserver;
 class GlicInstanceHelper;
 class GlicMarketingPageTabHelper;
 class GlicPromotionSourceNavigationObserver;
@@ -485,10 +486,6 @@ class TabFeatures {
   }
 #endif
 
-  PwaInstallPageActionController* pwa_install_page_action_controller() {
-    return pwa_install_page_action_controller_.get();
-  }
-
   RecordReplayPageActionController* record_replay_page_action_controller() {
     return record_replay_page_action_controller_.get();
   }
@@ -692,6 +689,8 @@ class TabFeatures {
       glic_marketing_page_tab_helper_;
   std::unique_ptr<glic::GlicPromotionSourceNavigationObserver>
       glic_promotion_source_navigation_observer_;
+  std::unique_ptr<glic::GlicGeminiWebWarmingObserver>
+      glic_gemini_web_warming_observer_;
 
   // Observes page loads to decide when to offer glic contextual cueing.
   std::unique_ptr<glic::ContextualCueingHelper> contextual_cueing_helper_;

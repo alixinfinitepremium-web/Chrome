@@ -258,6 +258,11 @@ inline constexpr char kAndroidMultiprofileName[] = "Android Multi-Profile";
 inline constexpr char kAndroidMultiprofileDescription[] =
     "Enable multi-profile support on Android.";
 
+inline constexpr char kAndroidMultiprofileStartupDataName[] =
+    "Android Multi-Profile for Startup Data";
+inline constexpr char kAndroidMultiprofileStartupDataDescription[] =
+    "Enable multi-profile support in Android profile startup.";
+
 inline constexpr char kEnforceIncognitoIsolationName[] =
     "Enforce Incognito Isolation";
 inline constexpr char kEnforceIncognitoIsolationDescription[] =
@@ -3324,11 +3329,6 @@ inline constexpr char kLensOverlaySidePanelOpenInNewTabName[] =
 inline constexpr char kLensOverlaySidePanelOpenInNewTabDescription[] =
     "Enables open in new tab in the Lens overlay side panel.";
 
-inline constexpr char kLensOverlayPermissionBubbleAltName[] =
-    "Lens overlay permission bubble alt appearance";
-inline constexpr char kLensOverlayPermissionBubbleAltDescription[] =
-    "Enables Lens overlay permission bubble alt appearance.";
-
 inline constexpr char kLensOverlayTextSelectionContextMenuEntrypointName[] =
     "Lens overlay text selection context menu entrypoint";
 inline constexpr char
@@ -3721,6 +3721,12 @@ inline constexpr char kOmniboxDisableTabsForCanvasName[] =
 inline constexpr char kOmniboxDisableTabsForCanvasDescription[] =
     "Disables tab attachments when Canvas is active and disables Canvas tool "
     "when tabs are attached.";
+
+inline constexpr char kOmniboxAimOpenInNewTabName[] =
+    "Omnibox AI Mode Open In New Tab";
+inline constexpr char kOmniboxAimOpenInNewTabDescription[] =
+    "Opens AI Mode queries submitted from the Omnibox in a new tab when on a "
+    "non-NTP page, instead of navigating away from the current page.";
 
 inline constexpr char kOmniboxNumNtpZpsRecentSearchesName[] =
     "Omnibox: Recent Searches on new tab page ZPS";
@@ -8710,12 +8716,6 @@ inline constexpr char
     kEnableStandardBoundSessionCredentialsAudienceDescription[] =
         "Enables including the 'aud' (audience) claim in Device Bound "
         "Session Credentials registration and refresh JWT payloads.";
-
-inline constexpr char kEnableManagementPromotionBannerName[] =
-    "Enable Management Promotion Banner";
-inline constexpr char kEnableManagementPromotionBannerDescription[] =
-    "Enables showing the management promotion banner on chrome://management "
-    "page.";
 
 inline constexpr char kVariationsSeedCorpusName[] = "Variations seed corpus";
 inline constexpr char kVariationsSeedCorpusDescription[] =

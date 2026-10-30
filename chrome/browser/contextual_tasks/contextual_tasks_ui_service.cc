@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <optional>
+#include <string_view>
 
 #include "base/command_line.h"
 #include "base/containers/flat_set.h"
@@ -981,7 +982,7 @@ void ContextualTasksUiService::OnThreadLinkClicked(
              "citation handled on active tab";
       if (auto* controller =
               ContextualTasksPanelController::From(browser.get())) {
-        controller->OnAiInteraction();
+        controller->OnLinkClicked();
       }
       return;
     }
@@ -1101,7 +1102,7 @@ void ContextualTasksUiService::OnThreadLinkClicked(
              "counting as part of a cobrowsing session";
       // Count as part of a cobrowsing session if the user interacted with the
       // AI response.
-      controller->OnAiInteraction();
+      controller->OnLinkClicked();
     }
 
     return;
@@ -1763,15 +1764,12 @@ bool ContextualTasksUiService::HandleCitationClick(
     browser_window = tab->GetBrowserWindowInterface();
   }
 
-  base::UmaHistogramBoolean(
-      "ContextualTasks.AiResponse.UserAction.LinkClicked.Panel", true);
-  base::RecordAction(base::UserMetricsAction(
-      "ContextualTasks.AiResponse.UserAction.LinkClicked.Panel"));
+  RecordSidePanelLinkClickedMetrics(url_params.disposition);
 
   if (browser_window) {
     if (auto* controller =
             ContextualTasksPanelController::From(browser_window)) {
-      controller->OnAiInteraction();
+      controller->OnLinkClicked();
     }
   }
 
@@ -1798,8 +1796,11 @@ bool ContextualTasksUiService::HandleCitationClick(
 
   TabListInterface* tab_list =
       browser_window ? TabListInterface::From(browser_window) : nullptr;
+  const bool can_navigate_existing_tab =
+      url_params.disposition == WindowOpenDisposition::kCurrentTab ||
+      url_params.disposition == WindowOpenDisposition::kNewForegroundTab;
 
-  if (tab_list) {
+  if (tab_list && can_navigate_existing_tab) {
     tabs::TabInterface* active_tab = tab_list->GetActiveTab();
     if (MaybeHandleVideoCitation(url, active_tab, task_id) ||
         MaybeHandlePdfCitation(url, active_tab, task_id) ||
@@ -1818,7 +1819,8 @@ bool ContextualTasksUiService::HandleCitationClick(
   // move tab-opening / existing-tab-focusing to
   // HandleSidePanelExternalNavigation / OpenUrl.
   tabs::TabInterface* existing_tab = nullptr;
-  if (tab_list && !contextual_tasks::ShouldOpenNewTabOnSidePanelLinkClick()) {
+  if (tab_list && can_navigate_existing_tab &&
+      !contextual_tasks::ShouldOpenNewTabOnSidePanelLinkClick()) {
     existing_tab = MaybeFocusExistingOpenTab(url, tab_list, task_id);
   }
 
@@ -1827,7 +1829,8 @@ bool ContextualTasksUiService::HandleCitationClick(
 
   // Citation clobbering behavior matches pre-rearchitecture: if clobbering is
   // enabled, load the URL into the active tab.
-  if (contextual_tasks::IsContextualTasksClobberActiveTabEnabled() &&
+  if (can_navigate_existing_tab &&
+      contextual_tasks::IsContextualTasksClobberActiveTabEnabled() &&
       active_tab && active_tab->GetContents()) {
     if (task_id.is_valid()) {
       AssociateWebContentsToTask(active_tab->GetContents(), task_id);
@@ -1995,10 +1998,12 @@ bool ContextualTasksUiService::HandleSidePanelExternalNavigation(
     browser_window = tab->GetBrowserWindowInterface();
   }
 
+  RecordSidePanelLinkClickedMetrics(url_params.disposition);
+
   if (browser_window) {
     if (auto* controller =
             ContextualTasksPanelController::From(browser_window)) {
-      controller->OnAiInteraction();
+      controller->OnLinkClicked();
     }
   }
 
@@ -2314,6 +2319,32 @@ bool ContextualTasksUiService::HandleNavigationImpl(
       << (url_params.initiator_origin.has_value()
               ? url_params.initiator_origin->Serialize()
               : "null");
+
+  if (!is_from_embedded_page && IsContextualTasksUrl(url_params.url)) {
+    std::string_view path = url_params.url.path();
+    base::Uuid task_id = GetTaskIdFromUrl(url_params.url);
+    auto task_it =
+        task_id.is_valid() ? task_states_.find(task_id) : task_states_.end();
+    bool is_side_panel_task =
+        task_it != task_states_.end() && task_it->second.is_side_panel_task;
+    bool is_exempt = IsWebContentsInSidePanel(source_contents) ||
+                     is_side_panel_task || path == "/internals" ||
+                     base::StartsWith(path, "/internals/") ||
+                     path == "/test_loader.html";
+    // If kContextualTasks is disabled and only the side panel UI is enabled,
+    // redirect standalone tab navigations to AIM.
+    // TODO(crbug.com/533072196): Clean up this redirect once the
+    // pre-rearchitecture logic is cleaned up.
+    if (!is_mobile_ua && !is_exempt &&
+        !base::FeatureList::IsEnabled(contextual_tasks::kContextualTasks) &&
+        base::FeatureList::IsEnabled(
+            contextual_tasks::kContextualTasksSidePanel)) {
+      ScheduleRedirectWebUIUrlToAim(
+          std::move(url_params),
+          source_contents ? source_contents->GetWeakPtr() : nullptr, tab);
+      return true;
+    }
+  }
 
   if (!is_from_embedded_page &&
       ShouldRedirectIneligibleRequest(url_params.url, source_contents)) {

@@ -55,6 +55,19 @@ chromium-metrics-reviews@google.com.
 </histogram>
 
 <histogram
+    name="ContextualTasks.AiResponse.UserAction.LinkClicked.Panel.OpenDisposition"
+    enum="ContextualTasksLinkOpenDisposition" expires_after="2027-06-18">
+  <owner>juanmojica@google.com</owner>
+  <owner>chrome-contextual-tasks-eng@google.com</owner>
+  <summary>
+    Recorded every time a user clicks on a link in the contextual tasks side
+    panel. Records the requested window open disposition of the click (e.g.
+    plain click in current/foreground tab vs. explicit open in new background
+    tab or window via modifier keys or context menu).
+  </summary>
+</histogram>
+
+<histogram
     name="ContextualTasks.AiResponse.UserAction.LinkClicked.{ContextualTasksUiSurface}"
     enum="Boolean" expires_after="2027-03-07">
   <owner>sophiechang@chromium.org</owner>
@@ -878,6 +891,18 @@ chromium-metrics-reviews@google.com.
   </summary>
 </histogram>
 
+<histogram name="ContextualTasks.Session.LinkClickCount" units="clicks"
+    expires_after="2027-06-18">
+  <owner>juanmojica@google.com</owner>
+  <owner>chrome-contextual-tasks-eng@google.com</owner>
+  <summary>
+    Recorded when a contextual tasks side panel session ends (when the side
+    panel is closed, its associated tabs are closed or expire from the cache, or
+    the browser window is closed). Records the number of links clicked inside
+    the side panel during that open session.
+  </summary>
+</histogram>
+
 <histogram name="ContextualTasks.SidePanel.TimeToFirstContentfulPaint"
     units="ms" expires_after="2027-04-11">
   <owner>hujasonx@google.com</owner>
@@ -984,16 +1009,38 @@ chromium-metrics-reviews@google.com.
   </summary>
 </histogram>
 
-<histogram name="ContextualTasks.Tab.ClosedWithSidePanelOpenState"
+<histogram name="ContextualTasks.SidePanel.UserAction.CloseHadLinkClick"
+    enum="Boolean" expires_after="2027-06-18">
+  <owner>juanmojica@google.com</owner>
+  <owner>chrome-contextual-tasks-eng@google.com</owner>
+  <summary>
+    Recorded when the user clicks the side panel close button. Records true if
+    at least one link was clicked inside the side panel during the open session,
+    or false if no links were clicked.
+  </summary>
+</histogram>
+
+<histogram
+    name="ContextualTasks.Tab.ClosedWithSidePanelOpenState{LinkClickSlice}"
     enum="ContextualTasksTabCloseState" expires_after="2027-06-18">
   <owner>nguyenbryan@google.com</owner>
+  <owner>juanmojica@google.com</owner>
   <owner>chrome-contextual-tasks-eng@google.com</owner>
   <summary>
     Recorded when a user closes a content tab that had an associated contextual
     task and had the side panel open (either currently active, or logically open
-    before the tab was backgrounded). The value indicates whether the closed tab
-    was the active tab or a background tab.
+    before the tab was backgrounded), across {LinkClickSlice}. The value
+    indicates whether the closed tab was the active tab or a background tab.
   </summary>
+  <token key="LinkClickSlice">
+    <variant name="" summary="all open side panel sessions"/>
+    <variant name=".WithLinkClick"
+        summary="sessions where at least one link was clicked inside the side
+                 panel during the open session"/>
+    <variant name=".WithoutLinkClick"
+        summary="sessions where no links were clicked inside the side panel
+                 during the open session"/>
+  </token>
 </histogram>
 
 <histogram name="ContextualTasks.TabAffiliationCount" units="count"
@@ -1220,6 +1267,16 @@ chromium-metrics-reviews@google.com.
   </summary>
 </histogram>
 
+<histogram name="ContextualTasks.WebUI.AccountMenuButton.Shown" enum="Boolean"
+    expires_after="2027-06-18">
+  <owner>mercerd@chromium.org</owner>
+  <owner>chrome-contextual-tasks-eng@google.com</owner>
+  <summary>
+    Recorded when the account avatar button that opens the account menu becomes
+    visible in the contextual tasks top toolbar. Always recorded as true.
+  </summary>
+</histogram>
+
 <histogram name="ContextualTasks.WebUI.OAuthError"
     units="GoogleServiceAuthError" expires_after="2027-03-28">
   <owner>mercerd@chromium.org</owner>
@@ -1241,6 +1298,15 @@ chromium-metrics-reviews@google.com.
   </summary>
   <token key="ActionType">
     <variant name=".CloseSidePanel" summary="The user closed the side panel."/>
+    <variant name=".HoverAccountMenuButton"
+        summary="The user hovered over the account avatar button that opens
+                 the account menu."/>
+    <variant name=".ManageAccountFromAccountMenu"
+        summary="The user clicked the manage account item in the account
+                 menu."/>
+    <variant name=".OpenAccountMenu"
+        summary="The user opened the account menu by clicking the account
+                 avatar button."/>
     <variant name=".OpenFeedback" summary="The user opened the feedback page."/>
     <variant name=".OpenHelp" summary="The user opened the help page."/>
     <variant name=".OpenInNewTab"
@@ -1255,6 +1321,8 @@ chromium-metrics-reviews@google.com.
     <variant name=".OpenThreadHistory"
         summary="The user opened the thread history."/>
     <variant name=".PinSidePanel" summary="The user pinned the side panel."/>
+    <variant name=".SignOutFromAccountMenu"
+        summary="The user clicked the sign out item in the account menu."/>
     <variant name=".TabFromSourcesMenuClicked"
         summary="The user clicked on a tab from the sources menu."/>
     <variant name=".UnpinSidePanel"

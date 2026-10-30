@@ -2743,6 +2743,7 @@ shown properly on the user-facing crash UI.
   <int value="1" label="HistoryPage"/>
   <int value="2" label="SendTabToSelf"/>
   <int value="3" label="WhatsNewPage"/>
+  <int value="4" label="ForeignTabs"/>
 </enum>
 
 <!-- LINT.ThenChange(//chrome/browser/signin/cross_device_signin_promo_manager.h:CrossDeviceSigninPromoEntryPoint) -->
@@ -7897,6 +7898,7 @@ from previous Chrome versions.
   <int value="-2117201726" label="disable-gpu-rasterization"/>
   <int value="-2117169027" label="UpdateHoverAtBeginFrame:enabled"/>
   <int value="-2117048251" label="MediaApp:enabled"/>
+  <int value="-2116694988" label="OmniboxAimOpenInNewTab:disabled"/>
   <int value="-2116440101" label="EnablePenetratingImageSelection:enabled"/>
   <int value="-2116136566" label="glic-daisy-chain-new-tabs:disabled"/>
   <int value="-2116063296" label="DesktopPartialTranslate:disabled"/>
@@ -15263,6 +15265,7 @@ from previous Chrome versions.
   <int value="68263546" label="EnableExtensionsForCorpDesktopAndroid:disabled"/>
   <int value="68448361" label="SplitViewTabRestore:disabled"/>
   <int value="68506319" label="TabStripGroupCollapseAndroid:disabled"/>
+  <int value="69146629" label="OmniboxAimOpenInNewTab:enabled"/>
   <int value="69778786" label="NotificationPermissionVariant:disabled"/>
   <int value="69812526" label="PrivateMetricsPumaRc:disabled"/>
   <int value="71290103" label="ArcNearbySharing:enabled"/>
@@ -15492,6 +15495,7 @@ from previous Chrome versions.
   <int value="135017596" label="OverlayScrollbarsOSSetting:disabled"/>
   <int value="136557248" label="PartitionAllocMemoryTagging:enabled"/>
   <int value="136924140" label="OfflineIndicatorV2:enabled"/>
+  <int value="137159418" label="AndroidMultiprofileStartupData:disabled"/>
   <int value="137866995" label="ImeKoreanModeSwitchDebug:enabled"/>
   <int value="138020994" label="LacrosProfileMigrationForAnyUser:enabled"/>
   <int value="138345654" label="enable-ambient-authentication-in-incognito"/>
@@ -18561,6 +18565,7 @@ from previous Chrome versions.
   <int value="1069325321" label="CrostiniGpuSupport:enabled"/>
   <int value="1069628859" label="MostVisitedTilesCustomization:disabled"/>
   <int value="1070164693" label="MidiManagerDynamicInstantiation:disabled"/>
+  <int value="1070183461" label="AndroidMultiprofileStartupData:enabled"/>
   <int value="1070266809" label="ReaderModeToggleLinks:enabled"/>
   <int value="1070300488" label="disable-webgl"/>
   <int value="1070449228" label="ContextualSuggestionsCarousel:enabled"/>

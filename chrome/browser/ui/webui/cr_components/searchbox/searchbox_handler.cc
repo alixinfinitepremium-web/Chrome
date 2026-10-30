@@ -993,7 +993,8 @@ void SearchboxHandler::PopulateAccessibilityLabels(
     const OmniboxPopupSelection selection(line, state);
     std::u16string label = searchbox::GetAccessibilityLabelForSelection(
         result, selection, header_text, narrated_text,
-        /*include_positional_info=*/true, turl_service);
+        /*include_positional_info=*/true, turl_service,
+        autocomplete_controller()->autocomplete_provider_client());
     // AIM button visibility isn't known here. It only affects whether the IPH
     // row's dismiss button suffix is read after the first match, when the AIM
     // button is focusable in between.
@@ -1146,9 +1147,8 @@ SearchboxHandler::CreateAutocompleteMatch(
     KeywordState keyword_state;
     std::u16string keyword;
     std::u16string keyword_placeholder;
-    match.GetKeywordUiState(turl_service,
-                            client() && client()->IsHistoryEmbeddingsEnabled(),
-                            &keyword_state, &keyword, &keyword_placeholder);
+    match.GetKeywordUiState(turl_service, &keyword_state, &keyword,
+                            &keyword_placeholder);
 
     searchbox::mojom::KeywordType keyword_type;
     bool has_keyword = false;
@@ -1432,8 +1432,7 @@ void SearchboxHandler::SendAvailableKeywordModels() {
       keyword_model->icon_path = AutocompleteIconToResourceName(keyword_icon);
     }
     keyword_model->placeholder =
-        base::UTF16ToUTF8(AutocompleteMatch::GetKeywordPlaceholder(
-            turl, client() && client()->IsHistoryEmbeddingsEnabled()));
+        base::UTF16ToUTF8(AutocompleteMatch::GetKeywordPlaceholder(turl));
     models.push_back(std::move(keyword_model));
   }
 
@@ -1539,8 +1538,7 @@ void SearchboxHandler::QueryAutocomplete(
     if (is_keyword_selected && template_url) {
       edit_model()->SetKeywordInfo(
           KeywordState::kKeyword, template_url->keyword(),
-          AutocompleteMatch::GetKeywordPlaceholder(
-              template_url, client() && client()->IsHistoryEmbeddingsEnabled()),
+          AutocompleteMatch::GetKeywordPlaceholder(template_url),
           metrics::OmniboxEventProto::SPACE_AT_END);
     } else {
       edit_model()->SetKeywordInfo(KeywordState::kNone, u"", u"",

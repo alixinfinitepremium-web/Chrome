@@ -207,6 +207,11 @@ BASE_DECLARE_FEATURE(kGeicFre);
 // actuation).
 BASE_DECLARE_FEATURE(kGeicActuation);
 
+// Lets the Gemini Enterprise (GEiC) guest use server-side rendering. This is
+// independent of `kGlicSsr`, which only applies to consumer Gemini, so the two
+// can be rolled out separately.
+BASE_DECLARE_FEATURE(kGeicSsr);
+
 BASE_DECLARE_FEATURE(kGlicMarketingAutoOpen);
 extern const base::FeatureParam<std::string> kGlicMarketingUrlAllowlist;
 extern const base::FeatureParam<int> kGlicMarketingAutoOpenMaxCount;
@@ -251,6 +256,8 @@ BASE_DECLARE_FEATURE(kGlicActionFirstFRE);
 BASE_DECLARE_FEATURE(kGlicWarmOnNudge);
 
 BASE_DECLARE_FEATURE(kGlicWarmOnIph);
+
+BASE_DECLARE_FEATURE(kGlicWarmOnGeminiWeb);
 
 BASE_DECLARE_FEATURE(kGlicBackfillWarmingUsePerformanceManager);
 
