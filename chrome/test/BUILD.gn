@@ -146,14 +146,10 @@ if (is_android) {
   }
 }
 
-# This target no longer has any sources of its own; it only aggregates
-# dependencies. It must be a source_set (not a static_library) because an empty
-# static_library produces an empty archive, which the Windows librarian
-# (lld-link /lib) rejects with "lib failed".
-source_set("test_support") {
+# This target no longer has any sources of its own; it is a pure aggregator
+# of public_deps for consumers that have not yet been migrated to direct deps.
+group("test_support") {
   testonly = true
-  deps = []
-
   public_deps = [
     "//chrome/browser/notifications:test_support",
     "//chrome/browser/origin_trials",
@@ -172,10 +168,6 @@ source_set("test_support") {
     public_deps += [ "//chrome/renderer:process_state" ]
   }
 
-  if (enable_dice_support || is_chromeos) {
-    deps += [ "//chrome/browser/profiles/batch_upload:test_support" ]
-  }
-
   if (enable_extensions_core) {
     public_deps += [
       "//chrome/browser/extensions:test_support",
@@ -186,8 +178,6 @@ source_set("test_support") {
   }
 
   if (enable_extensions) {
-    deps += [ "//chrome/browser/ui/web_applications/test:test_support" ]
-
     public_deps += [
       "//apps:test_support",
       "//chrome/browser/extensions:test_support",
@@ -327,7 +317,6 @@ source_set("test_support") {
     "//ui/gl",
   ]
 
-  data = []
   data_deps = []
 
   if (enable_pdf) {
@@ -394,12 +383,6 @@ source_set("test_support") {
       "//ui/compositor:test_support",
       "//ui/snapshot",
     ]
-
-    # Non-android deps for "test_support" target.
-    deps += [
-      "//chrome/browser/badging:test_support",
-      "//chrome/browser/lookalikes:test_support",
-    ]
   }
 
   if (use_nss_certs) {
@@ -417,19 +400,9 @@ source_set("test_support") {
       "//components/crash/core/app",
       "//third_party/wtl",
     ]
-    deps += [ "//chrome/browser/webshare:test_support" ]
-    libs = [ "runtimeobject.lib" ]
   }
 
   if (is_chromeos) {
-    deps += [
-      "//ash/constants",
-      "//chrome/browser/ash/printing:test_support",
-      "//components/component_updater/ash:test_support",
-      "//google_apis:test_support",
-      "//net:test_support",
-    ]
-
     public_deps += [
       "//ash",
       "//ash:test_support",
@@ -503,7 +476,6 @@ source_set("test_support") {
       "//chrome/browser/ui/views/autofill/popup:popup_search_bar_view",
       "//chrome/browser/ui/views/autofill/popup:popup_view_views",
     ]
-    deps += [ "//components/omnibox/browser:test_support" ]
   }
 
   if (enable_message_center) {
@@ -513,14 +485,6 @@ source_set("test_support") {
   if (enable_offline_pages) {
     public_deps += [ "//components/offline_pages/core:test_support" ]
   }
-
-  if (enable_compose) {
-    deps += [ "//chrome/browser/compose:test_support" ]
-  }
-
-  # All test_support sources have been migrated into per-feature
-  # targets. Do not add new sources to //chrome/test:test_support.
-  sources = []
 }
 
 if (is_android) {
@@ -2016,7 +1980,6 @@ if (!is_android) {
         "//chrome/browser/resources/chromeos/accessibility:browser_tests",
         "//chrome/browser/support_tool/ash:browser_tests",
         "//chrome/browser/ui/ash:browser_tests",
-        "//chrome/browser/ui/ash/arc/arc_app_dialog_view:browser_tests",
         "//chrome/browser/ui/ash/editor_menu:browser_tests",
         "//chrome/browser/ui/ash/input_method:browser_tests",
         "//chrome/browser/ui/ash/quick_answers:browser_tests",
@@ -2137,12 +2100,6 @@ group("telemetry_perf_unittests_base") {
 
     # For smoke testing run_performance_tests.py
     "//testing/scripts/run_performance_tests.py",
-
-    # For tests in tools/perf/process_perf_results_unittest.py
-    "//build/android/pylib/",
-    "//build/util/",
-    "//build/android/java_home.py",
-    "//third_party/logdog/logdog",
   ]
 
   data_deps = [
@@ -3639,11 +3596,9 @@ static_library("test_support_unit") {
 }
 
 if (!is_android) {
-  # This target no longer has any sources of its own; it only aggregates
-  # dependencies. It must be a source_set (not a static_library) because an
-  # empty static_library produces an empty archive, which the Windows librarian
-  # (lld-link /lib) rejects with "lib failed".
-  source_set("test_support_ui") {
+  # This target no longer has any sources of its own; it is a pure aggregator
+  # of public_deps for consumers that have not yet been migrated to direct deps.
+  group("test_support_ui") {
     testonly = true
 
     public_deps = [
@@ -3728,10 +3683,6 @@ if (!is_android) {
     if (enable_dice_support) {
       public_deps += [ "//chrome/browser/ui/profiles" ]
     }
-
-    # All test_support_ui sources have been migrated into per-feature
-    # targets. Do not add new sources to //chrome/test:test_support_ui.
-    sources = []
   }
 
   if (is_chromeos) {

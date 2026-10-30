@@ -4923,6 +4923,21 @@ IN_PROC_BROWSER_TEST_F(
       ContextualTasksWebContentsUserData::UserDataKey());
 }
 
+// The extension runs in split incognito mode, so each off-the-record profile
+// needs its own bridge to bind the extension's frames and service worker.
+IN_PROC_BROWSER_TEST_F(ContextualTasksExtensionHandlerBrowserTest,
+                       Bridge_CreatedForOffTheRecordProfile) {
+  Profile* otr_profile =
+      GetProfile()->GetPrimaryOTRProfile(/*create_if_needed=*/true);
+  ContextualTasksExtensionBridge* bridge =
+      ContextualTasksExtensionBridge::Get(GetProfile());
+  ContextualTasksExtensionBridge* otr_bridge =
+      ContextualTasksExtensionBridge::Get(otr_profile);
+  ASSERT_NE(bridge, nullptr);
+  ASSERT_NE(otr_bridge, nullptr);
+  EXPECT_NE(bridge, otr_bridge);
+}
+
 IN_PROC_BROWSER_TEST_F(
     ContextualTasksExtensionHandlerBrowserTest,
     ServiceWorkerHandler_ConnectAndBidirectionalSearchMessage) {
@@ -4954,7 +4969,7 @@ IN_PROC_BROWSER_TEST_F(
   base::test::TestFuture<mojo_base::ProtoWrapper> handshake_future;
   sw_handler->GetHandshakeMessage(doc_id, handshake_future.GetCallback());
   mojo_base::ProtoWrapper handshake_wrapper = handshake_future.Take();
-  auto ping_msg = handshake_wrapper.As<lens::ClientToAimMessage>();
+  auto ping_msg = handshake_wrapper.As<lens::ClientToSearchMessage>();
   ASSERT_TRUE(ping_msg.has_value());
   EXPECT_TRUE(ping_msg->has_handshake_ping());
   EXPECT_TRUE(user_data->IsServiceWorkerPortConnected());
@@ -5050,7 +5065,7 @@ IN_PROC_BROWSER_TEST_F(
     base::test::TestFuture<mojo_base::ProtoWrapper> handshake_future;
     sw_handler->GetHandshakeMessage(bad_doc_id, handshake_future.GetCallback());
     mojo_base::ProtoWrapper handshake_wrapper = handshake_future.Take();
-    auto ping_msg = handshake_wrapper.As<lens::ClientToAimMessage>();
+    auto ping_msg = handshake_wrapper.As<lens::ClientToSearchMessage>();
     ASSERT_TRUE(ping_msg.has_value());
     EXPECT_FALSE(ping_msg->has_handshake_ping());
     EXPECT_FALSE(user_data->IsServiceWorkerPortConnected());

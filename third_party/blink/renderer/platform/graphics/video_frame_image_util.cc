@@ -4,14 +4,9 @@
 
 #include "third_party/blink/renderer/platform/graphics/video_frame_image_util.h"
 
-#include <inttypes.h>
-
 #include "base/feature_list.h"
 #include "base/logging.h"
 #include "base/memory/ptr_util.h"
-#include "base/metrics/histogram_macros.h"
-#include "base/strings/stringprintf.h"
-#include "base/trace_event/process_memory_dump.h"
 #include "build/build_config.h"
 #include "cc/paint/skia_paint_canvas.h"
 #include "cc/raster/playback_image_provider.h"
@@ -222,9 +217,7 @@ VideoFrameAcceleratedSnapshotPool::VideoFrameAcceleratedSnapshotPool(
     base::WeakPtr<WebGraphicsContext3DProviderWrapper> context_provider_wrapper)
     : info_(info),
       context_provider_wrapper_(std::move(context_provider_wrapper)) {
-  CanvasMemoryDumpProvider::Instance()->RegisterClient(this);
   if (context_provider_wrapper_) {
-    context_provider_wrapper_->AddObserver(this);
     raster_context_provider_ = base::WrapRefCounted(
         context_provider_wrapper_->ContextProvider().RasterContextProvider());
   }
@@ -270,37 +263,15 @@ VideoFrameAcceleratedSnapshotPool::VideoFrameAcceleratedSnapshotPool(
   }
 
   resource_ = NewOrRecycledResource();
-  FlushForImageListener::Get()->AddObserver(this);
 }
 
 VideoFrameAcceleratedSnapshotPool::~VideoFrameAcceleratedSnapshotPool() {
-  CanvasMemoryDumpProvider::Instance()->UnregisterClient(this);
-  if (context_provider_wrapper_) {
-    context_provider_wrapper_->RemoveObserver(this);
-  }
   if (raster_context_provider_) {
     raster_context_provider_->RemoveObserver(this);
   }
-  FlushForImageListener::Get()->RemoveObserver(this);
-
-  UMA_HISTOGRAM_EXACT_LINEAR("Blink.Canvas.MaximumInflightResources",
-                             max_inflight_resources_, 20);
 }
 
 void VideoFrameAcceleratedSnapshotPool::OnContextLost() {
-  ClearUnusedResources();
-}
-
-void VideoFrameAcceleratedSnapshotPool::OnContextDestroyed() {
-  if (image_pool_) {
-    image_pool_->Clear();
-  }
-}
-
-void VideoFrameAcceleratedSnapshotPool::OnFlushForImage(
-    cc::PaintImage::ContentId content_id) {}
-
-void VideoFrameAcceleratedSnapshotPool::ClearUnusedResources() {
   if (image_pool_) {
     image_pool_->Clear();
   }
@@ -311,17 +282,6 @@ void VideoFrameAcceleratedSnapshotPool::OnResourceRefReturned(
   if (!resource->IsLost() && resource->HasOneRef() && image_pool_) {
     image_pool_->ReleaseImage(std::move(resource));
   }
-}
-
-void VideoFrameAcceleratedSnapshotPool::OnMemoryDump(
-    base::trace_event::ProcessMemoryDump* pmd) {
-  std::string path = base::StringPrintf("canvas/ResourceProvider_0x%" PRIXPTR,
-                                        reinterpret_cast<uintptr_t>(this));
-
-  resource_->OnMemoryDump(pmd, path);
-
-  std::string cached_path = path + "/cached";
-  image_pool_->OnMemoryDump(pmd, cached_path);
 }
 
 gpu::raster::RasterInterface*
@@ -353,10 +313,6 @@ VideoFrameAcceleratedSnapshotPool::NewOrRecycledResource() {
     resource->Initialize(weak_ptr_factory_.GetWeakPtr(),
                          context_provider_wrapper_, info_.hdr_metadata,
                          /*is_accelerated=*/true);
-    ++num_inflight_resources_;
-    if (num_inflight_resources_ > max_inflight_resources_) {
-      max_inflight_resources_ = num_inflight_resources_;
-    }
   }
   DCHECK(resource->HasOneRef());
   return resource;
@@ -454,7 +410,27 @@ VideoFrameAcceleratedSnapshotPool::DoExternalOverdrawAndSnapshot(
     return nullptr;
   }
 
-  scoped_refptr<StaticBitmapImage> snapshot = resource_->Bitmap();
+  auto release_callback = base::BindOnce(
+      [](scoped_refptr<CanvasResourceSharedImage>&& resource,
+         const gpu::SyncToken& sync_token, bool lost_resource) {
+        CHECK(resource);
+
+        resource->WaitSyncToken(sync_token);
+        if (lost_resource) {
+          resource->NotifyResourceLost();
+        }
+
+        CanvasResource::DropRefOnOwningThread(std::move(resource));
+      },
+      resource_);
+
+  scoped_refptr<StaticBitmapImage> snapshot =
+      AcceleratedStaticBitmapImage::CreateFromCanvasSharedImage(
+          resource_->GetSharedImage(), resource_->sync_token(),
+          info_.alpha_type, info_.hdr_metadata, context_provider_wrapper_,
+          base::PlatformThread::CurrentRef(),
+          ThreadScheduler::Current()->CleanupTaskRunner(),
+          std::move(release_callback));
   if (snapshot) {
     cached_content_id_ =
         snapshot->PaintImageForCurrentFrame().GetContentIdForFrame(0u);

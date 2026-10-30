@@ -3611,12 +3611,6 @@ inline constexpr char kAIMSuppressVerbatimMatchDescription[] =
     "When enabled, AI mode will remove verbatim suggestions from the "
     "suggestions list.";
 
-inline constexpr char kOmniboxAdjustIndentationName[] =
-    "Adjust Indentation for Omnibox Text and Suggestions";
-inline constexpr char kOmniboxAdjustIndentationDescription[] =
-    "Adjusts the indentation of the omnibox and the suggestions to eliminate "
-    "the visual shift when the popup opens.";
-
 inline constexpr char kOmniboxAllowAiModeMatchesName[] =
     "Omnibox Allow AI Mode Matches";
 inline constexpr char kOmniboxAllowAiModeMatchesDescription[] =
@@ -4356,6 +4350,12 @@ inline constexpr char kPrerender2EarlyDocumentLifecycleUpdateName[] =
 inline constexpr char kPrerender2EarlyDocumentLifecycleUpdateDescription[] =
     "Allows prerendering pages to execute more lifecycle updates, such as "
     "prepaint, before activation";
+
+inline constexpr char kPreserveDownloadLastModifiedName[] =
+    "Preserve Last-Modified timestamp on downloaded files";
+inline constexpr char kPreserveDownloadLastModifiedDescription[] =
+    "When enabled, sets the modification timestamp of downloaded files to "
+    "match the HTTP Last-Modified response header provided by the server.";
 
 inline constexpr char kTreesInVizName[] = "Trees in viz";
 inline constexpr char kTreesInVizDescription[] =
@@ -7032,6 +7032,13 @@ inline constexpr char kReauthSkipIdentifierPageDescription[] =
     "Re-authentication (mainly in the sign-in pending state) opens Gaia's "
     "AccountChooser with ptc=1 instead of AddSession, skipping the email "
     "page.";
+
+inline constexpr char kReauthSkipIdentifierPageFollowupName[] =
+    "Skip identifier page on reauth follow-up";
+inline constexpr char kReauthSkipIdentifierPageFollowupDescription[] =
+    "Enables follow-up changes to skipping the identifier page on reauth, "
+    "including supervised user re-authentication in the pending state and "
+    "refined fallback metrics.";
 
 inline constexpr char kRealboxVirtualFocusNavigationName[] =
     "Enable Realbox Virtual Focus Navigation";

@@ -392,12 +392,23 @@ void LogLatencyMetrics(content::WebContents* web_contents,
 
 }  // namespace
 
-DEFINE_USER_DATA(SuggestionService);
+// static
+std::optional<EncodedImage> EncodedImage::Create(const SkBitmap& image) {
+  if (const int jpeg_quality = kSmartSelectionServerJpegQuality.Get();
+      0 <= jpeg_quality && jpeg_quality <= 100) {
+    return gfx::JPEGCodec::Encode(image, jpeg_quality)
+        .transform([](std::vector<uint8_t> bytes) {
+          return EncodedImage{std::move(bytes), "image/jpeg"};
+        });
+  }
+  return gfx::PNGCodec::EncodeBGRASkBitmap(image,
+                                           /*discard_transparency=*/false)
+      .transform([](std::vector<uint8_t> bytes) {
+        return EncodedImage{std::move(bytes), "image/png"};
+      });
+}
 
-struct SuggestionService::EncodedImage {
-  std::vector<uint8_t> bytes;
-  std::string mime_type;
-};
+DEFINE_USER_DATA(SuggestionService);
 
 // static
 SuggestionService* SuggestionService::From(tabs::TabInterface* tab) {
@@ -455,7 +466,8 @@ void SuggestionService::RequestSuggestions(AreaOfInterest processed_area,
       !IsFeatureGroupEnabled(kSmartSelectionServerSuggestions)) {
     base::SequencedTaskRunner::GetCurrentDefault()->PostTask(
         FROM_HERE, base::BindOnce(std::move(callback),
-                                  std::vector<std::unique_ptr<Suggestion>>()));
+                                  std::vector<std::unique_ptr<Suggestion>>(),
+                                  FeedbackZipBuilder()));
     return;
   }
 
@@ -466,7 +478,7 @@ void SuggestionService::RequestSuggestions(AreaOfInterest processed_area,
       FROM_HERE,
       {base::TaskPriority::USER_VISIBLE,
        base::TaskShutdownBehavior::SKIP_ON_SHUTDOWN},
-      base::BindOnce(&EncodeScreenshot, std::move(screenshot)),
+      base::BindOnce(&EncodedImage::Create, std::move(screenshot)),
       base::BindOnce(&SuggestionService::SendServerSuggestionsRequest,
                      weak_factory_.GetWeakPtr(), std::move(processed_area),
                      std::move(callback), request_start_time,
@@ -478,23 +490,6 @@ bool SuggestionService::IsFeatureGroupEnabled(
   return google_groups_manager_
              ? google_groups_manager_->IsFeatureEnabledForProfile(feature)
              : base::FeatureList::IsEnabled(feature);
-}
-
-// static
-std::optional<SuggestionService::EncodedImage>
-SuggestionService::EncodeScreenshot(const SkBitmap& screenshot) {
-  if (const int jpeg_quality = kSmartSelectionServerJpegQuality.Get();
-      0 <= jpeg_quality && jpeg_quality <= 100) {
-    return gfx::JPEGCodec::Encode(screenshot, jpeg_quality)
-        .transform([](std::vector<uint8_t> bytes) {
-          return EncodedImage{std::move(bytes), "image/jpeg"};
-        });
-  }
-  return gfx::PNGCodec::EncodeBGRASkBitmap(screenshot,
-                                           /*discard_transparency=*/false)
-      .transform([](std::vector<uint8_t> bytes) {
-        return EncodedImage{std::move(bytes), "image/png"};
-      });
 }
 
 void SuggestionService::SendServerSuggestionsRequest(
@@ -520,13 +515,25 @@ void SuggestionService::SendServerSuggestionsRequest(
                                          .annotated_page_content()
                                          .ByteSizeLong();
 
+  FeedbackZipBuilder feedback_zip_builder;
+  if (image) {
+    feedback_zip_builder.SetMesScreenshot(*std::move(image));
+  }
+  feedback_zip_builder.SetScreenshot(processed_area.screenshot);
+  feedback_zip_builder.SetApc(processed_area.apc);
+  if (processed_area.selected_text.has_value()) {
+    feedback_zip_builder.SetSelectedText(*processed_area.selected_text);
+  }
+  feedback_zip_builder.SetRequest(request);
+
   // TODO(crbug.com/561489586): Consider adding logging.
   remote_model_executor_->ExecuteModel(
       optimization_guide::ModelBasedCapabilityKey::kSmartSelectionSuggestions,
       request, {.execution_timeout = kSmartSelectionServerTimeout.Get()},
       base::BindOnce(&SuggestionService::OnServerSuggestions,
                      weak_factory_.GetWeakPtr(), std::move(processed_area),
-                     std::move(callback), request_start_time,
+                     std::move(callback), std::move(feedback_zip_builder),
+                     request_start_time,
                      /*mes_request_start_time=*/base::TimeTicks::Now(),
                      num_image_bytes, num_apc_bytes));
 }
@@ -534,6 +541,7 @@ void SuggestionService::SendServerSuggestionsRequest(
 void SuggestionService::OnServerSuggestions(
     AreaOfInterest processed_area,
     SuggestionsCallback callback,
+    FeedbackZipBuilder feedback_zip_builder,
     base::TimeTicks request_start_time,
     base::TimeTicks mes_request_start_time,
     size_t num_image_bytes,
@@ -546,7 +554,7 @@ void SuggestionService::OnServerSuggestions(
         proto::SmartSelectionSuggestionsResponse>(result.response.value());
   }
   if (!response) {
-    std::move(callback).Run({});
+    std::move(callback).Run({}, std::move(feedback_zip_builder));
     return;
   }
   std::vector<std::unique_ptr<Suggestion>> suggestions =
@@ -554,7 +562,8 @@ void SuggestionService::OnServerSuggestions(
   LogLatencyMetrics(tab_->GetContents(), request_start_time,
                     mes_request_start_time, num_image_bytes, num_apc_bytes,
                     response->latency_metrics(), suggestions.size());
-  std::move(callback).Run(std::move(suggestions));
+  std::move(callback).Run(std::move(suggestions),
+                          std::move(feedback_zip_builder));
 }
 
 }  // namespace selection

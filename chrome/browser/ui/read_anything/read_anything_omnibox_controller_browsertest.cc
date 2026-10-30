@@ -30,6 +30,7 @@
 #include "chrome/browser/ui/side_panel/side_panel_ui.h"
 #include "chrome/browser/ui/tabs/public/tab_features.h"
 #include "chrome/browser/ui/tabs/tab_strip_model.h"
+#include "chrome/browser/ui/user_education/browser_user_education_interface.h"
 #include "chrome/test/base/in_process_browser_test.h"
 #include "chrome/test/base/ui_test_utils.h"
 #include "chrome/test/user_education/interactive_feature_promo_test.h"
@@ -39,7 +40,7 @@
 #include "content/public/test/browser_test.h"
 #include "testing/gtest/include/gtest/gtest.h"
 #include "ui/accessibility/accessibility_features.h"
-#include "ui/base/window_open_disposition.h"
+#include "ui/base/mojom/window_open_disposition.mojom-shared.h"
 #include "url/url_constants.h"
 
 using read_anything::ReadAnythingEntryPointController;
@@ -357,7 +358,8 @@ IN_PROC_BROWSER_TEST_F(ReadAnythingOmniboxControllerBrowserTest,
   // Navigate to a new page.
   ui_test_utils::NavigateToURLWithDisposition(
       browser(), GURL("https://www.example.com"),
-      WindowOpenDisposition::kCurrentTab, ui_test_utils::BROWSER_TEST_NO_WAIT);
+      ui::mojom::WindowOpenDisposition::kCurrentTab,
+      ui_test_utils::BROWSER_TEST_NO_WAIT);
   mocked_task_runner->RunUntilIdle();
 
   // Advance time by 500ms. The 1s timer should not have fired.
@@ -367,7 +369,8 @@ IN_PROC_BROWSER_TEST_F(ReadAnythingOmniboxControllerBrowserTest,
   // Navigate again. This should restart the timer.
   ui_test_utils::NavigateToURLWithDisposition(
       browser(), GURL("https://www.support.google.com"),
-      WindowOpenDisposition::kCurrentTab, ui_test_utils::BROWSER_TEST_NO_WAIT);
+      ui::mojom::WindowOpenDisposition::kCurrentTab,
+      ui_test_utils::BROWSER_TEST_NO_WAIT);
   mocked_task_runner->RunUntilIdle();
 
   // Advance time by another 700ms. Total 1.2s since first nav, but only 700ms
@@ -525,7 +528,8 @@ IN_PROC_BROWSER_TEST_F(
   // count should increment since the previous page was distillable.
   ui_test_utils::NavigateToURLWithDisposition(
       browser(), GURL("https://www.example.com"),
-      WindowOpenDisposition::kCurrentTab, ui_test_utils::BROWSER_TEST_NO_WAIT);
+      ui::mojom::WindowOpenDisposition::kCurrentTab,
+      ui_test_utils::BROWSER_TEST_NO_WAIT);
   ASSERT_TRUE(
       base::test::RunUntil([&]() { return GetOmniboxIgnoredCount() == 1; }));
 
@@ -705,6 +709,30 @@ IN_PROC_BROWSER_TEST_F(ReadAnythingOmniboxControllerBrowserTest,
       browser(), ReadAnythingOpenTrigger::kOmniboxChip);
 
   ExpectPageActionStateImmediate(true);
+}
+
+IN_PROC_BROWSER_TEST_F(ReadAnythingOmniboxControllerBrowserTest,
+                       DeactivateByUser_DoesNotShowIph) {
+  RegisterPageActionObserver();
+  NavigateToDistillablePage();
+  WaitForPageActionShowing(true);
+  auto* const user_ed = BrowserUserEducationInterface::From(browser());
+  ReadAnythingEntryPointController::ShowUI(
+      browser(), ReadAnythingOpenTrigger::kReadAnythingContextMenu,
+      ReadAnythingEntryPointController::Presentation::kPreferred);
+  VerifyUIState();
+  WaitForPageActionShowing(false);
+  EXPECT_FALSE(user_ed->IsFeaturePromoActive(
+      feature_engagement::kIPHReadingModePageActionLabelFeature));
+
+  ReadAnythingEntryPointController::ToggleUI(
+      browser(), ReadAnythingOpenTrigger::kReadAnythingContextMenu);
+
+  ExpectPageActionStateImmediate(true);
+  EXPECT_FALSE(user_ed->IsFeaturePromoQueued(
+      feature_engagement::kIPHReadingModePageActionLabelFeature));
+  EXPECT_FALSE(user_ed->IsFeaturePromoActive(
+      feature_engagement::kIPHReadingModePageActionLabelFeature));
 }
 
 IN_PROC_BROWSER_TEST_F(ReadAnythingOmniboxControllerBrowserTest,

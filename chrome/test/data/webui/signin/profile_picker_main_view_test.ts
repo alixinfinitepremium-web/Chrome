@@ -506,6 +506,11 @@ suite('ProfilePickerProfilesReorderingTest', function() {
 
     document.body.innerHTML = window.trustedTypes!.emptyHTML;
     mainViewElement = document.createElement('profile-picker-main-view');
+    // Disable pointer events so that an OS mouse cursor sitting over a
+    // profile card's `#nameInput` in the test window does not trigger
+    // `pointerenter` (which dispatches `toggle-drag` with `{toggle: false}`
+    // and prevents synthetic drag events from starting).
+    mainViewElement.style.pointerEvents = 'none';
     document.body.appendChild(mainViewElement);
   });
 
@@ -701,6 +706,12 @@ suite('ProfilePickerProfilesReorderingTest', function() {
       // ----------------- Start of the Drag Events -----------------
 
       const cycle = dragData.dragEventCycles[c]!;
+      // Focusing the card button simulates the mouse down event that precedes
+      // the drag start event. Use `preventScroll: true` so focusing a card on a
+      // lower row does not scroll the viewport and invalidate `initialRects`.
+      cards[cycle.dragIndex]!.$.profileCardButton.focus({preventScroll: true});
+      assertTrue(cards[cycle.dragIndex]!.matches(':focus-within'));
+
       // - Perform the Drag Start.
       const dragStartEvent = new DragEvent('dragstart');
       Object.defineProperty(dragStartEvent, 'dataTransfer', {
@@ -712,6 +723,7 @@ suite('ProfilePickerProfilesReorderingTest', function() {
       cards[cycle.dragIndex]!.dispatchEvent(dragStartEvent);
       assertTrue(cards[cycle.dragIndex]!.classList.contains('dragging'));
       assertEquals(dragStartEvent.dataTransfer!.effectAllowed, 'move');
+      assertFalse(cards[cycle.dragIndex]!.matches(':focus-within'));
 
       // - Perform the list of Drag Enter events with position checks.
       for (let e = 0; e < cycle.dragEnterEvents.length; ++e) {
@@ -728,6 +740,7 @@ suite('ProfilePickerProfilesReorderingTest', function() {
       // - Perform the Drag End.
       cards[cycle.dragIndex]!.dispatchEvent(new DragEvent('dragend'));
       assertFalse(cards[cycle.dragIndex]!.classList.contains('dragging'));
+      assertFalse(cards[cycle.dragIndex]!.matches(':focus-within'));
 
       assertProfileNamesOrder(
           mainViewElement.getProfileListForTesting(),

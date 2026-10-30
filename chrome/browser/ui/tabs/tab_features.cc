@@ -4,6 +4,8 @@
 
 #include "chrome/browser/ui/tabs/public/tab_features.h"
 
+#include <stdint.h>
+
 #include <memory>
 #include <optional>
 
@@ -372,8 +374,8 @@
 
 #if BUILDFLAG(SAFE_BROWSING_AVAILABLE)
 #include "chrome/browser/enterprise/connectors/referrer_cache_utils.h"
-#include "chrome/browser/safe_browsing/chrome_password_reuse_detection_manager_client.h"
 #include "chrome/browser/safe_browsing/chrome_safe_browsing_tab_observer_delegate.h"
+#include "chrome/browser/safe_browsing/password_protection/chrome_password_reuse_detection_manager_client.h"
 #include "chrome/browser/safe_browsing/safe_browsing_navigation_observer_manager_factory.h"
 #include "chrome/browser/safe_browsing/safe_browsing_service.h"
 #include "chrome/browser/safe_browsing/tailored_security/tailored_security_service_factory.h"
@@ -394,6 +396,19 @@ using page_content_annotations::AnnotatedPageContentRequest;
 
 std::optional<int64_t> GetPageContentAnnotationsTabId(
     content::WebContents* web_contents) {
+  // During tab closure, `TabModel::DestroyTabFeatures()` runs before
+  // `BrowserView` unparents the closing `WebContents` and triggers
+  // `OnVisibilityChanged(HIDDEN)`. Return `std::nullopt` once `TabFeatures` is
+  // destroyed so `PageContentCacheHandler` does not treat a closing active tab
+  // as backgrounded and write its content to the on-disk cache.
+  // TODO(b/579119351): Move tab-scoped visibility/cache handling out of
+  // `AnnotatedPageContentRequest` (which is `WebContentsUserData` for
+  // `content::Page` lookups in `//components`) into a `TabFeatures`-owned
+  // helper so `DestroyTabFeatures()` tears down the observer directly.
+  TabInterface* tab = TabInterface::MaybeGetFromContents(web_contents);
+  if (!tab || !tab->GetTabFeatures()) {
+    return std::nullopt;
+  }
   SessionID id = sessions::SessionTabHelper::IdForTab(web_contents);
   if (id.is_valid()) {
     return id.id();
@@ -604,8 +619,9 @@ void TabFeatures::Init(TabInterface& tab, Profile* profile) {
 
   if (page_action_controller_->ActionExists(kActionShowJsOptimizationsIcon)) {
     js_optimizations_page_action_controller_ =
-        std::make_unique<JsOptimizationsPageActionController>(
-            tab, *page_action_controller_);
+        GetUserDataFactory()
+            .CreateInstance<JsOptimizationsPageActionController>(
+                tab, tab, *page_action_controller_);
   }
 
   page_context_eligibility_helper_ =

@@ -318,8 +318,7 @@ void BlockLayoutAlgorithm::SetupRelayoutData(
   column_spanner_path_ = previous.column_spanner_path_;
 
   if (relayout_type == kRelayoutIgnoringLineClamp) {
-    line_clamp_data_.data.state = LineClampData::State::kDisabled;
-    line_clamp_data_.ignore_line_clamp = true;
+    line_clamp_data_.data.state = LineClampData::State::kDontClamp;
   } else if (relayout_type == kRelayoutClampingByLines) {
     line_clamp_data_.data.state = LineClampData::State::kClampByLines;
     line_clamp_data_.data.lines_until_clamp =
@@ -340,6 +339,9 @@ void BlockLayoutAlgorithm::SetupRelayoutData(
             previous.line_clamp_data_.initial_lines_until_clamp;
     line_clamp_data_.data.block_ellipsis =
         previous.line_clamp_data_.data.block_ellipsis;
+  } else if (previous.line_clamp_data_.data.state ==
+             LineClampData::State::kDontClamp) {
+    line_clamp_data_.data.state = LineClampData::State::kDontClamp;
   }
 
   if (relayout_type == kRelayoutForTextBoxTrim) {
@@ -1292,9 +1294,9 @@ const LayoutResult* BlockLayoutAlgorithm::FinishLayout(
     // Additionally this fragment produces no end margin strut.
 
     // If the current layout is a new formatting context, we need to encapsulate
-    // all of our floats. We only do this if we haven't line-clamped, though.
+    // all of our floats. We don't do this in line-clamp containers though.
     if (constraint_space.IsNewFormattingContext() &&
-        !line_clamp_data_.previous_inflow_position_when_clamped) {
+        !line_clamp_data_.data.IsLineClampContext()) {
       intrinsic_block_size_ =
           std::max(intrinsic_block_size_,
                    GetExclusionSpace().ClearanceOffsetIncludingInitialLetter(
@@ -4173,11 +4175,7 @@ void BlockLineClampData::Setup(const BlockNode& node,
       // We're in a relayout, we keep the existing state.
       return;
     }
-
     DCHECK_EQ(data.state, LineClampData::State::kDisabled);
-    if (ignore_line_clamp) {
-      return;
-    }
 
     LayoutUnit clamp_bfc_offset = kIndefiniteSize;
     if (RuntimeEnabledFeatures::CSSLineClampEnabled() &&

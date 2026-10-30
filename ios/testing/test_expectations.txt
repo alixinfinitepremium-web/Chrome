@@ -137,8 +137,6 @@ crbug.com/564394196 GeminiContainerTestCase/testOpenAppsActivityFromToolbar [ Fa
 
 # Gardening suppression 2026-09-22
 crbug.com/564394196 GeminiCopresenceTestCase/testOpenSettingsFromToolbar [ Pass Failure ]
-crbug.com/564394196 [ iPad ] GeminiDynamicSettingsTestCase/testLoadDynamicSettings [ Failure ]
-crbug.com/564394196 [ iPhone Simulator ] GeminiDynamicSettingsTestCase/testLoadDynamicSettings [ Pass Failure ]
 
 # Picture-in-picture issues on iPad
 # Gardening suppression 2026-09-23
@@ -252,3 +250,10 @@ crbug.com/541234336 CardUnmaskAuthenticationSelectionEgtest/testCardUnmaskAuthen
 crbug.com/541234336 CardUnmaskAuthenticationSelectionEgtest/testCardUnmaskAuthenticationSelectionShowsActivityIndicatorView [ Pass Failure ]
 crbug.com/541234336 CardUnmaskAuthenticationSelectionEgtest/testCardUnmaskAuthenticationSelectionAcceptanceButtonLabel [ Pass Failure ]
 crbug.com/571459477 [ Device ] ReadingListTestCase/testDeleteEntries [ Pass Failure ]
+
+# Gardening suppression 2026-10-30
+crbug.com/579169631 [ iPhone Simulator ] BrowserEditMenuHandlerTestCase/testURLMenu [ Pass Failure ]
+crbug.com/579112740 [ Simulator ] BrowserEditMenuHandlerTestCase/testUnitMenu [ Pass Failure ]
+crbug.com/579253465 [ Simulator ] BrowserEditMenuHandlerTestCase/testBasicMenu [ Pass Failure ]
+crbug.com/579499405 [ iPhone Simulator ] BrowserEditMenuHandlerTestCase/testPhoneMenu [ Pass Failure ]
+crbug.com/579570304 GeminiExplainWithGeminiTestCase/testExplainWithGeminiSignedOut [ Pass Failure ]

@@ -7048,12 +7048,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kOmniboxSearchAggregatorDescription, kOsDesktop,
      FEATURE_VALUE_TYPE(omnibox_feature_configs::SearchAggregatorProvider::
                             kSearchAggregatorProvider)},
-
-    {"omnibox-adjust-indentation",
-     flag_descriptions::kOmniboxAdjustIndentationName,
-     flag_descriptions::kOmniboxAdjustIndentationDescription, kOsDesktop,
-     FEATURE_VALUE_TYPE(
-         omnibox_feature_configs::AdjustOmniboxIndent::kAdjustOmniboxIndent)},
 #endif  // BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_MAC) ||
         // BUILDFLAG(IS_WIN)
 
@@ -12073,6 +12067,11 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kReauthSkipIdentifierPageName,
      flag_descriptions::kReauthSkipIdentifierPageDescription, kOsDesktop,
      FEATURE_VALUE_TYPE(switches::kReauthSkipIdentifierPage)},
+    {"reauth-skip-identifier-page-followup",
+     flag_descriptions::kReauthSkipIdentifierPageFollowupName,
+     flag_descriptions::kReauthSkipIdentifierPageFollowupDescription,
+     kOsDesktop,
+     FEATURE_VALUE_TYPE(switches::kReauthSkipIdentifierPageFollowup)},
 #endif  // BUILDFLAG(ENABLE_DICE_SUPPORT)
 
 #if !BUILDFLAG(IS_ANDROID)
@@ -14408,6 +14407,11 @@ const FeatureEntry kFeatureEntries[] = {
      kOsDesktop,
      FEATURE_VALUE_TYPE(
          autofill::features::kAutofillEnableOffersAndLoyaltyCardsSettings)},
+
+    {"preserve-download-last-modified",
+     flag_descriptions::kPreserveDownloadLastModifiedName,
+     flag_descriptions::kPreserveDownloadLastModifiedDescription, kOsAll,
+     FEATURE_VALUE_TYPE(download::features::kPreserveDownloadLastModified)},
 
     // Add new entries above this line.
     // NOTE: Adding a new flag requires adding a corresponding entry to enum

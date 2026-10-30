@@ -459,13 +459,6 @@ ci.builder(
             "content_shell_crash_test": targets.remove(
                 reason = "crbug.com/40131701",
             ),
-            "telemetry_perf_unittests_android_chrome": targets.remove(
-                # The system_health smoke stories can't run on x64 emulators
-                # (no clear_system_cache for android_x86_64), and the suite
-                # would require chromium_with_telemetry_dependencies. Coverage
-                # remains on android-10-x86-rel.
-                reason = "crbug.com/578069352",
-            ),
         },
     ),
     targets_settings = targets.settings(
@@ -581,12 +574,29 @@ ci.builder(
                     shards = 6,
                 ),
             ),
-            "telemetry_perf_unittests_android_chrome": targets.remove(
-                # The system_health smoke stories can't run on x64 emulators
-                # (no clear_system_cache for android_x86_64), and the suite
-                # would require chromium_with_telemetry_dependencies. Coverage
-                # remains on android-10-x86-rel.
-                reason = "crbug.com/578069352",
+            "chrome_public_test_apk": targets.mixin(
+                args = [
+                    # Don't enable render tests on non-CQ builders
+                    "--skia-gold-consider-unsupported",
+                ],
+            ),
+            "chrome_public_unit_test_apk": targets.mixin(
+                args = [
+                    # Don't enable render tests on non-CQ builders
+                    "--skia-gold-consider-unsupported",
+                ],
+            ),
+            "content_shell_test_apk": targets.mixin(
+                args = [
+                    # Don't enable render tests on non-CQ builders
+                    "--skia-gold-consider-unsupported",
+                ],
+            ),
+            "webview_instrumentation_test_apk_multiple_process_mode": targets.mixin(
+                args = [
+                    # Don't enable render tests on non-CQ builders
+                    "--skia-gold-consider-unsupported",
+                ],
             ),
             "content_shell_crash_test": targets.remove(
                 reason = "crbug.com/40131701",
@@ -785,6 +795,8 @@ ci.builder(
             "x86",
             "clang",
             "asan",
+            # wrap.sh, which ASan needs, only runs for debuggable apps.
+            "debuggable_apks",
             "strip_debug_info",
         ],
     ),

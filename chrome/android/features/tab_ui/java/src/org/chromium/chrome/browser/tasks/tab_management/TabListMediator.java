@@ -354,6 +354,7 @@ public class TabListMediator implements TabListNotificationHandler {
     }
 
     private static final String TAG = "TabListMediator";
+    private static @Nullable TabGroupCreationDialogManager sTabGroupCreationDialogManagerForTesting;
     private final SparseIntArray mTabClosedFrom = new SparseIntArray();
 
     private final Callback<@Nullable TabModel> mOnTabModelChanged =
@@ -409,6 +410,7 @@ public class TabListMediator implements TabListNotificationHandler {
     private View.AccessibilityDelegate mAccessibilityDelegate;
     private int mCurrentSpanCount;
     private @Nullable OnLongPressTabItemEventListener mOnLongPressTabItemEventListener;
+    private boolean mSuppressUpdateLayout;
 
     private final ActorUiTabController.Observer mActorObserver =
             new ActorUiTabController.Observer() {
@@ -853,8 +855,10 @@ public class TabListMediator implements TabListNotificationHandler {
                 };
 
         var tabGroupCreationDialogManager =
-                new TabGroupCreationDialogManager(
-                        activity, assumeNonNull(modalDialogManager), onTabGroupCreation);
+                sTabGroupCreationDialogManagerForTesting != null
+                        ? sTabGroupCreationDialogManagerForTesting
+                        : new TabGroupCreationDialogManager(
+                                activity, assumeNonNull(modalDialogManager), onTabGroupCreation);
         mTabGridItemTouchHelperCallback =
                 new TabGridItemTouchHelperCallback(
                         activity,
@@ -1153,11 +1157,16 @@ public class TabListMediator implements TabListNotificationHandler {
             mLastSelectedTabListModelIndex = TabList.INVALID_TAB_INDEX;
             return;
         }
+
+        assert !mSuppressUpdateLayout;
+        mSuppressUpdateLayout = true;
+
         mModelList.clear();
         mTabListLayoutDelegate.reset();
         mLastSelectedTabListModelIndex = TabList.INVALID_TAB_INDEX;
 
         if (tabs == null && tabGroupSyncIds == null) {
+            mSuppressUpdateLayout = false;
             return;
         }
 
@@ -1191,6 +1200,9 @@ public class TabListMediator implements TabListNotificationHandler {
                 addSavedTabGroupInfoToModel(savedTabGroup, i);
             }
         }
+
+        mSuppressUpdateLayout = false;
+        updateLayout();
     }
 
     /**
@@ -2376,6 +2388,9 @@ public class TabListMediator implements TabListNotificationHandler {
      */
     @VisibleForTesting
     void updateLayout() {
+        if (mSuppressUpdateLayout) {
+            return;
+        }
         // Right now we need to update layout only if there is a price welcome message card in tab
         // switcher.
         if (!mTabListConfig.supportsMessageCards) {
@@ -3317,5 +3332,10 @@ public class TabListMediator implements TabListNotificationHandler {
         var oldValueId = mComponentId;
         mComponentId = componentId;
         ResettersForTesting.register(() -> mComponentId = oldValueId);
+    }
+
+    static void setTabGroupCreationDialogManagerForTesting(TabGroupCreationDialogManager manager) {
+        sTabGroupCreationDialogManagerForTesting = manager;
+        ResettersForTesting.register(() -> sTabGroupCreationDialogManagerForTesting = null);
     }
 }

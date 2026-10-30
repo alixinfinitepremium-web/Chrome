@@ -205,21 +205,24 @@ void OtpManagerImpl::MaybeRetrieveGmailOtp() {
         *affiliation_service);
     const url::Origin frame_origin =
         owner_->client().GetLastCommittedPrimaryMainFrameOrigin();
-    // TODO(crbug.com/571474857): Clarify security requirements for login flow
-    // classification in non-agentic OTP autofill.
     gmail_otp_retriever_ = one_time_tokens::GmailOtpRetriever::CreateAndStart(
         *gmail_otp_backend, std::move(checker), frame_origin,
-        /*is_login_flow=*/false,
+        /*allow_psl_matching=*/true,
         base::BindOnce(&OtpManagerImpl::OnGmailOtpRetrieved,
                        weak_ptr_factory_.GetWeakPtr()));
   }
 }
 
 void OtpManagerImpl::OnGmailOtpFillingEnabledPrefChanged() {
+  if (!UserOptedIntoGmailOtpFilling()) {
+    gmail_otp_retriever_.reset();
+    last_retrieved_gmail_otp_.reset();
+    last_triggered_otp_value_.clear();
+    return;
+  }
   if (!sms_otp_service_ || owner_->driver().IsEmbedded() ||
-      !owner_->driver().IsActive() || !UserOptedIntoGmailOtpFilling() ||
-      !IsOtpFieldDetected() || AnyOtpFieldContainsTypedInput() ||
-      !HasOtpForm(*owner_)) {
+      !owner_->driver().IsActive() || !IsOtpFieldDetected() ||
+      AnyOtpFieldContainsTypedInput() || !HasOtpForm(*owner_)) {
     return;
   }
   MaybeRetrieveGmailOtp();
@@ -377,11 +380,9 @@ void OtpManagerImpl::OnTickleReceived() {
       target_field->origin().opaque()
           ? owner_->client().GetLastCommittedPrimaryMainFrameOrigin()
           : target_field->origin();
-  // TODO(crbug.com/571474857): Clarify security requirements for login flow
-  // classification in non-agentic OTP autofill.
   gmail_otp_retriever_ = one_time_tokens::GmailOtpRetriever::CreateAndStart(
       *gmail_otp_backend, std::move(checker), frame_origin,
-      /*is_login_flow=*/false,
+      /*allow_psl_matching=*/true,
       base::BindOnce(&OtpManagerImpl::OnGmailOtpRetrieved,
                      weak_ptr_factory_.GetWeakPtr()));
 }
@@ -585,6 +586,18 @@ void OtpManagerImpl::MaybeShowOtpSuggestionsForGmail(
 
   base::UmaHistogramEnumeration("Autofill.OneTimeTokens.PhishGuard.Verdict",
                                 verdict);
+
+  if (!UserOptedIntoGmailOtpFilling()) {
+    last_retrieved_gmail_otp_.reset();
+    if (last_pending_get_suggestions_callback_ &&
+        last_pending_frame_token_ == frame_token) {
+      is_gmail_phish_guard_pending_ = false;
+      if (!sms_otp_subscription_.IsAlive()) {
+        std::move(last_pending_get_suggestions_callback_).Run({});
+      }
+    }
+    return;
+  }
 
   // Reactive path: a UI suggestion callback is currently pending.
   if (last_pending_get_suggestions_callback_) {

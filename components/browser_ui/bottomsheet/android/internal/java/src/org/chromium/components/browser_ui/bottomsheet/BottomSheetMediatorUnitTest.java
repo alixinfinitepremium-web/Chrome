@@ -10,15 +10,18 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import android.graphics.Color;
 import android.graphics.Rect;
+import android.util.DisplayMetrics;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.core.graphics.Insets;
 import androidx.core.view.WindowInsetsCompat;
 
 import org.junit.Before;
@@ -28,7 +31,9 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+import org.robolectric.annotation.Config;
 
+import org.chromium.base.Callback;
 import org.chromium.base.ContextUtils;
 import org.chromium.base.MathUtils;
 import org.chromium.base.test.BaseRobolectricTestRunner;
@@ -37,7 +42,11 @@ import org.chromium.components.browser_ui.bottomsheet.BottomSheetContent.HeightM
 import org.chromium.components.browser_ui.bottomsheet.BottomSheetController.SheetState;
 import org.chromium.components.browser_ui.bottomsheet.BottomSheetController.StateChangeReason;
 import org.chromium.ui.base.LocalizationUtils;
+import org.chromium.ui.base.ViewUtils;
 import org.chromium.ui.modelutil.PropertyModel;
+
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /** Unit tests for {@link BottomSheetMediator}. */
 @RunWith(BaseRobolectricTestRunner.class)
@@ -51,10 +60,12 @@ public class BottomSheetMediatorUnitTest {
     private final View mToolbarView = new View(ContextUtils.getApplicationContext());
     private PropertyModel mModel;
     private BottomSheetMediator mMediator;
+    private DisplayMetrics mDisplayMetrics;
 
     @Before
     public void setUp() {
         mModel = new PropertyModel.Builder(BottomSheetProperties.ALL_KEYS).build();
+        mDisplayMetrics = ContextUtils.getApplicationContext().getResources().getDisplayMetrics();
         mMediator =
                 new BottomSheetMediator(
                         mModel, ContextUtils.getApplicationContext().getResources());
@@ -281,9 +292,21 @@ public class BottomSheetMediatorUnitTest {
         mMediator.setSheetContent(mContent);
         assertEquals(mContent, mMediator.getCurrentSheetContent());
 
+        mMediator.setEdgeToEdgeBottomInsetSupplier(() -> 24);
+        mMediator.setKeyboardInsetSupplier(() -> 10);
+
         mMediator.destroy();
         assertFalse(mMediator.hasObserver(mObserver));
         assertEquals(mContent, mMediator.getCurrentSheetContent());
+        assertEquals(0, mMediator.getEdgeToEdgeBottomInset());
+
+        // Verify keyboard inset supplier was reset to () -> 0 rather than masked by max(0, 0 - 10).
+        mMediator.setEdgeToEdgeBottomInsetSupplier(() -> 40);
+        assertEquals(
+                ViewUtils.dpToPx(
+                        ContextUtils.getApplicationContext().getResources().getDisplayMetrics(),
+                        40),
+                mMediator.getEdgeToEdgeBottomInset());
 
         mMediator.onSheetOpened(StateChangeReason.SWIPE);
         verify(mObserver, never()).onSheetOpened(anyInt());
@@ -506,7 +529,7 @@ public class BottomSheetMediatorUnitTest {
 
     @Test
     public void testCalculateContentContainerHeight() {
-        Rect viewport = new Rect(0, 0, 1080, 1920);
+        mMediator.getVisibleViewportRectForTesting().set(0, 0, 1080, 1920);
         when(mContent.getHalfHeightRatio()).thenReturn(0.5f);
         when(mContent.getFullHeightRatio()).thenReturn((float) HeightMode.RESIZE_CONTENT);
         mMediator.setSheetContent(mContent);
@@ -516,25 +539,25 @@ public class BottomSheetMediatorUnitTest {
         assertEquals(
                 500,
                 mMediator.calculateContentContainerHeight(
-                        /* fullHeightPx= */ 1000f, /* currentOffsetPx= */ 300f, viewport));
+                        /* fullHeightPx= */ 1000f, /* currentOffsetPx= */ 300f));
 
         // When currentOffset is between halfHeight and fullHeight, use currentOffset.
         assertEquals(
                 800,
                 mMediator.calculateContentContainerHeight(
-                        /* fullHeightPx= */ 1000f, /* currentOffsetPx= */ 800f, viewport));
+                        /* fullHeightPx= */ 1000f, /* currentOffsetPx= */ 800f));
 
         // When currentOffset exceeds fullHeight, clamp to fullHeight.
         assertEquals(
                 1000,
                 mMediator.calculateContentContainerHeight(
-                        /* fullHeightPx= */ 1000f, /* currentOffsetPx= */ 1200f, viewport));
+                        /* fullHeightPx= */ 1000f, /* currentOffsetPx= */ 1200f));
 
         // When currentOffset exceeds viewport height, clamp to viewport height.
         assertEquals(
                 1920,
                 mMediator.calculateContentContainerHeight(
-                        /* fullHeightPx= */ 2500f, /* currentOffsetPx= */ 2500f, viewport));
+                        /* fullHeightPx= */ 2500f, /* currentOffsetPx= */ 2500f));
     }
 
     @Test
@@ -918,50 +941,37 @@ public class BottomSheetMediatorUnitTest {
 
     @Test
     public void testShouldGestureMoveSheet() {
-        Rect defaultViewport = new Rect(0, 0, 1080, 1920);
+        mMediator.getVisibleViewportRectForTesting().set(0, 0, 1080, 1920);
 
         // Offset from browser controls > 0 -> false
         assertFalse(
                 mMediator.shouldGestureMoveSheet(
-                        /* currentX= */ 100f,
-                        /* offsetFromBrowserControls= */ 10f,
-                        /* isHiding= */ false,
-                        defaultViewport));
+                        /* currentX= */ 100f, /* offsetFromBrowserControls= */ 10f));
 
         // isHiding -> false
+        mMediator.setIsHidingSupplier(() -> true);
         assertFalse(
                 mMediator.shouldGestureMoveSheet(
-                        /* currentX= */ 100f,
-                        /* offsetFromBrowserControls= */ 0f,
-                        /* isHiding= */ true,
-                        defaultViewport));
+                        /* currentX= */ 100f, /* offsetFromBrowserControls= */ 0f));
+        mMediator.setIsHidingSupplier(() -> false);
 
         // isSheetOpen -> true
         mMediator.setIsSheetOpenForTesting(true);
         assertTrue(
                 mMediator.shouldGestureMoveSheet(
-                        /* currentX= */ 100f,
-                        /* offsetFromBrowserControls= */ 0f,
-                        /* isHiding= */ false,
-                        defaultViewport));
+                        /* currentX= */ 100f, /* offsetFromBrowserControls= */ 0f));
         mMediator.setIsSheetOpenForTesting(false);
 
         // Within viewport bounds
-        Rect viewport = new Rect(50, 0, 550, 1000);
+        mMediator.getVisibleViewportRectForTesting().set(50, 0, 550, 1000);
         assertTrue(
                 mMediator.shouldGestureMoveSheet(
-                        /* currentX= */ 100f,
-                        /* offsetFromBrowserControls= */ 0f,
-                        /* isHiding= */ false,
-                        viewport));
+                        /* currentX= */ 100f, /* offsetFromBrowserControls= */ 0f));
 
         // Outside viewport bounds
         assertFalse(
                 mMediator.shouldGestureMoveSheet(
-                        /* currentX= */ 20f,
-                        /* offsetFromBrowserControls= */ 0f,
-                        /* isHiding= */ false,
-                        viewport));
+                        /* currentX= */ 20f, /* offsetFromBrowserControls= */ 0f));
     }
 
     @Test
@@ -1045,13 +1055,13 @@ public class BottomSheetMediatorUnitTest {
 
     @Test
     public void testUpdateVerticalLayout_StandardMobile() {
-        Rect viewport = new Rect(0, 0, 1080, 1800);
+        int insetPx = ViewUtils.dpToPx(mDisplayMetrics, 48);
+        mMediator.setEdgeToEdgeBottomInsetSupplier(() -> 48);
         mMediator.setInternalCurrentState(SheetState.HALF);
         mMediator.setSheetTranslationY(123f);
 
+        mMediator.getVisibleViewportRectForTesting().set(0, 0, 1080, 1800);
         mMediator.updateVerticalLayout(
-                /* e2eBottomInset= */ 48,
-                viewport,
                 /* decorHeight= */ 1920,
                 /* handlebarHeight= */ 16,
                 /* currentOffsetPx= */ 400f,
@@ -1064,7 +1074,7 @@ public class BottomSheetMediatorUnitTest {
         assertEquals(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 mModel.get(BottomSheetProperties.CONTAINER_HEIGHT));
-        assertEquals(48, mModel.get(BottomSheetProperties.CONTENT_BOTTOM_PADDING));
+        assertEquals(insetPx, mModel.get(BottomSheetProperties.CONTENT_BOTTOM_PADDING));
         assertEquals(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 mModel.get(BottomSheetProperties.BACKGROUND_HEIGHT));
@@ -1074,67 +1084,58 @@ public class BottomSheetMediatorUnitTest {
 
     @Test
     public void testCalculateSheetTranslationY() {
+        int insetPx = ViewUtils.dpToPx(mDisplayMetrics, 48);
+        mMediator.setEdgeToEdgeBottomInsetSupplier(() -> 48);
         mMediator.setTargetSheetState(SheetState.HALF);
-        // translationY = (1000 - 400) + 20 - 48 = 572
+        // translationY = (1000 - 400) + 20 - insetPx
         assertEquals(
-                572f,
+                620f - insetPx,
                 mMediator.calculateSheetTranslationY(
-                        /* currentOffsetPx= */ 400f,
-                        /* browserControlsOffset= */ 20f,
-                        /* e2eBottomInset= */ 48),
-                0.0f);
+                        /* currentOffsetPx= */ 400f, /* browserControlsOffset= */ 20f),
+                MathUtils.EPSILON);
 
         // Clamped at >= 0f.
         assertEquals(
                 0f,
                 mMediator.calculateSheetTranslationY(
-                        /* currentOffsetPx= */ 980f,
-                        /* browserControlsOffset= */ 0f,
-                        /* e2eBottomInset= */ 48),
-                0.0f);
+                        /* currentOffsetPx= */ 980f, /* browserControlsOffset= */ 0f),
+                MathUtils.EPSILON);
 
         // Even when target state is HIDDEN, bottomInsetAdjustment remains e2eBottomInset while
         // currentOffsetPx >= e2eBottomInset so the sheet does not jump at the start of hide.
         mMediator.setTargetSheetState(SheetState.HIDDEN);
         assertEquals(
-                552f,
+                600f - insetPx,
                 mMediator.calculateSheetTranslationY(
-                        /* currentOffsetPx= */ 400f,
-                        /* browserControlsOffset= */ 0f,
-                        /* e2eBottomInset= */ 48),
-                0.0f);
+                        /* currentOffsetPx= */ 400f, /* browserControlsOffset= */ 0f),
+                MathUtils.EPSILON);
         // When 0 < currentOffsetPx < e2eBottomInset, bottomInsetAdjustment scales smoothly with
         // fractional currentOffsetPx without integer truncation jitter:
         // translationY = (1000 - 20.5) + 0 - 20.5 = 959.
         assertEquals(
                 959f,
                 mMediator.calculateSheetTranslationY(
-                        /* currentOffsetPx= */ 20.5f,
-                        /* browserControlsOffset= */ 0f,
-                        /* e2eBottomInset= */ 48),
-                0.0f);
+                        /* currentOffsetPx= */ 20.5f, /* browserControlsOffset= */ 0f),
+                MathUtils.EPSILON);
 
         // When currentOffsetPx <= 0, bottomInsetAdjustment is 0 so the sheet is fully hidden.
         assertEquals(
                 1000f,
                 mMediator.calculateSheetTranslationY(
-                        /* currentOffsetPx= */ 0f,
-                        /* browserControlsOffset= */ 0f,
-                        /* e2eBottomInset= */ 48),
-                0.0f);
+                        /* currentOffsetPx= */ 0f, /* browserControlsOffset= */ 0f),
+                MathUtils.EPSILON);
     }
 
     @Test
     public void testUpdateVerticalLayout_ResizeContent() {
-        Rect viewport = new Rect(0, 0, 1080, 750);
         when(mContent.getHalfHeightRatio()).thenReturn(0.5f);
         when(mContent.getFullHeightRatio()).thenReturn((float) HeightMode.RESIZE_CONTENT);
         mMediator.setSheetContent(mContent);
         mMediator.setInternalCurrentState(SheetState.FULL);
 
+        mMediator.getVisibleViewportRectForTesting().set(0, 0, 1080, 750);
+        mMediator.setEdgeToEdgeBottomInsetSupplier(() -> 250);
         mMediator.updateVerticalLayout(
-                /* e2eBottomInset= */ 250,
-                viewport,
                 /* decorHeight= */ 1920,
                 /* handlebarHeight= */ 12,
                 /* currentOffsetPx= */ 800f,
@@ -1148,16 +1149,15 @@ public class BottomSheetMediatorUnitTest {
 
     @Test
     public void testUpdateVerticalLayout_LargeFormFactor() {
-        Rect viewport = new Rect(0, 0, 1920, 1080);
         mMediator.setIsLargeFormFactor(true);
         when(mContent.supportsLargeFormFactor()).thenReturn(true);
         when(mContent.getFullHeightRatio()).thenReturn((float) HeightMode.DEFAULT);
         mMediator.setSheetContent(mContent);
         mMediator.setInternalCurrentState(SheetState.HALF);
 
+        mMediator.getVisibleViewportRectForTesting().set(0, 0, 1920, 1080);
+        mMediator.setEdgeToEdgeBottomInsetSupplier(() -> 0);
         mMediator.updateVerticalLayout(
-                /* e2eBottomInset= */ 0,
-                viewport,
                 /* decorHeight= */ 1080,
                 /* handlebarHeight= */ 20,
                 /* currentOffsetPx= */ 450f,
@@ -1172,8 +1172,6 @@ public class BottomSheetMediatorUnitTest {
         // Wrap content on LFF sets CONTAINER_HEIGHT to WRAP_CONTENT.
         when(mContent.getFullHeightRatio()).thenReturn((float) HeightMode.WRAP_CONTENT);
         mMediator.updateVerticalLayout(
-                /* e2eBottomInset= */ 0,
-                viewport,
                 /* decorHeight= */ 1080,
                 /* handlebarHeight= */ 20,
                 /* currentOffsetPx= */ 300f,
@@ -1188,12 +1186,14 @@ public class BottomSheetMediatorUnitTest {
 
     @Test
     public void testVerticalLayoutHelpers() {
-        assertEquals(48, mMediator.calculateContentBottomPadding(/* e2eBottomInset= */ 48));
+        int insetPx = ViewUtils.dpToPx(mDisplayMetrics, 48);
+        mMediator.setEdgeToEdgeBottomInsetSupplier(() -> 48);
+        assertEquals(insetPx, mMediator.calculateContentBottomPadding());
 
         mMediator.setIsLargeFormFactor(true);
         when(mContent.supportsLargeFormFactor()).thenReturn(true);
         mMediator.setSheetContent(mContent);
-        assertEquals(0, mMediator.calculateContentBottomPadding(/* e2eBottomInset= */ 48));
+        assertEquals(0, mMediator.calculateContentBottomPadding());
 
         mMediator.updateVisibleBackgroundHeight(
                 /* currentOffsetPx= */ 600f, /* fullHeightPx= */ 500f);
@@ -1202,7 +1202,7 @@ public class BottomSheetMediatorUnitTest {
         mMediator.setIsLargeFormFactor(false);
         when(mContent.getHalfHeightRatio()).thenReturn((float) HeightMode.DEFAULT);
         when(mContent.getFullHeightRatio()).thenReturn((float) HeightMode.RESIZE_CONTENT);
-        assertEquals(0, mMediator.calculateContentBottomPadding(/* e2eBottomInset= */ 48));
+        assertEquals(0, mMediator.calculateContentBottomPadding());
     }
 
     @Test
@@ -1223,18 +1223,21 @@ public class BottomSheetMediatorUnitTest {
 
     @Test
     public void testGetEffectiveEdgeToEdgeBottomInset() {
+        int insetPx = ViewUtils.dpToPx(mDisplayMetrics, 48);
+        mMediator.setEdgeToEdgeBottomInsetSupplier(() -> 48);
+
         // 1. null content in a non-PEEK state returns raw inset.
         mMediator.setSheetContent(null);
         mMediator.setTargetSheetState(SheetState.HALF);
-        assertEquals(48, mMediator.getEffectiveEdgeToEdgeBottomInset(48));
+        assertEquals(insetPx, mMediator.getEffectiveEdgeToEdgeBottomInset());
 
         // 2. Non-covering content (coversBottomControls unstubbed/false) returns raw inset in
         // HALF and FULL.
         mMediator.setSheetContent(mContent);
         mMediator.setTargetSheetState(SheetState.HALF);
-        assertEquals(48, mMediator.getEffectiveEdgeToEdgeBottomInset(48));
+        assertEquals(insetPx, mMediator.getEffectiveEdgeToEdgeBottomInset());
         mMediator.setTargetSheetState(SheetState.FULL);
-        assertEquals(48, mMediator.getEffectiveEdgeToEdgeBottomInset(48));
+        assertEquals(insetPx, mMediator.getEffectiveEdgeToEdgeBottomInset());
 
         // 3. Covering content.
         when(mContent.coversBottomControls()).thenReturn(true);
@@ -1242,26 +1245,26 @@ public class BottomSheetMediatorUnitTest {
         // Settled PEEK: returns raw inset so peek view remains lifted.
         mMediator.setInternalCurrentState(SheetState.PEEK);
         mMediator.setTargetSheetState(SheetState.NONE);
-        assertEquals(48, mMediator.getEffectiveEdgeToEdgeBottomInset(48));
+        assertEquals(insetPx, mMediator.getEffectiveEdgeToEdgeBottomInset());
 
         // Animated PEEK -> HALF: returns 0 once target state is non-PEEK.
         mMediator.setTargetSheetState(SheetState.HALF);
-        assertEquals(0, mMediator.getEffectiveEdgeToEdgeBottomInset(48));
+        assertEquals(0, mMediator.getEffectiveEdgeToEdgeBottomInset());
 
         // Settled FULL: returns 0.
         mMediator.setInternalCurrentState(SheetState.FULL);
         mMediator.setTargetSheetState(SheetState.NONE);
-        assertEquals(0, mMediator.getEffectiveEdgeToEdgeBottomInset(48));
+        assertEquals(0, mMediator.getEffectiveEdgeToEdgeBottomInset());
 
-        // Animated FULL -> PEEK: returns 48 once target state is PEEK.
+        // Animated FULL -> PEEK: returns insetPx once target state is PEEK.
         mMediator.setTargetSheetState(SheetState.PEEK);
-        assertEquals(48, mMediator.getEffectiveEdgeToEdgeBottomInset(48));
+        assertEquals(insetPx, mMediator.getEffectiveEdgeToEdgeBottomInset());
 
         // SCROLLING with NONE target: falls back to current non-scrolling state (or FULL),
         // returns 0.
         mMediator.setTargetSheetState(SheetState.NONE);
         mMediator.setInternalCurrentState(SheetState.SCROLLING);
-        assertEquals(0, mMediator.getEffectiveEdgeToEdgeBottomInset(48));
+        assertEquals(0, mMediator.getEffectiveEdgeToEdgeBottomInset());
     }
 
     @Test
@@ -1288,5 +1291,178 @@ public class BottomSheetMediatorUnitTest {
         assertEquals(
                 BottomSheetView.SheetLayoutMode.DESKTOP_FALLBACK,
                 mMediator.resolveSheetLayoutMode());
+    }
+
+    @Test
+    public void testSetBottomMargin() {
+        AtomicInteger applierCallCount = new AtomicInteger(0);
+        AtomicInteger applierMargin = new AtomicInteger(-1);
+        AtomicBoolean applierCalledBeforeObserver = new AtomicBoolean(false);
+        Callback<Integer> applier =
+                margin -> {
+                    applierCallCount.incrementAndGet();
+                    applierMargin.set(margin);
+                    try {
+                        verify(mObserver, never()).onContainerBottomMarginChanged(anyInt());
+                        applierCalledBeforeObserver.set(true);
+                    } catch (AssertionError e) {
+                        applierCalledBeforeObserver.set(false);
+                    }
+                };
+        mMediator.setContainerBottomMarginApplier(applier);
+
+        mMediator.setBottomMargin(24);
+        assertEquals(24, mMediator.getContainerBottomMargin());
+        assertEquals(24, applierMargin.get());
+        assertEquals(1, applierCallCount.get());
+        assertTrue(applierCalledBeforeObserver.get());
+        verify(mObserver, times(1)).onContainerBottomMarginChanged(24);
+
+        // Setting same margin unconditionally invokes applier (so view params are kept in sync),
+        // but does not trigger redundant observer notification.
+        mMediator.setBottomMargin(24);
+        assertEquals(24, applierMargin.get());
+        assertEquals(2, applierCallCount.get());
+        verify(mObserver, times(1)).onContainerBottomMarginChanged(24);
+    }
+
+    @Test
+    public void testUpdateContainerBottomMargin_LargeFormFactor() {
+        int desktopBottomMargin =
+                ContextUtils.getApplicationContext()
+                        .getResources()
+                        .getDimensionPixelSize(R.dimen.bottom_sheet_desktop_bottom_margin);
+
+        // 1. Initial setBottomMargin(10) -> 10, notifies 10.
+        mMediator.setBottomMargin(10);
+        assertEquals(10, mMediator.getContainerBottomMargin());
+        verify(mObserver, times(1)).onContainerBottomMarginChanged(10);
+
+        // 2. Enable large form factor, but content does not support large form factor -> stays 10,
+        // no new notification.
+        mMediator.setIsLargeFormFactor(true);
+        when(mContent.supportsLargeFormFactor()).thenReturn(false);
+        mMediator.setSheetContent(mContent);
+        mMediator.updateContainerBottomMargin();
+        assertEquals(10, mMediator.getContainerBottomMargin());
+        verify(mObserver, times(1)).onContainerBottomMarginChanged(10);
+
+        // 3. Switch to content with supportsLargeFormFactor() == true -> 10 + desktopBottomMargin,
+        // notifies.
+        when(mContent.supportsLargeFormFactor()).thenReturn(true);
+        mMediator.updateContainerBottomMargin();
+        assertEquals(10 + desktopBottomMargin, mMediator.getContainerBottomMargin());
+        verify(mObserver, times(1)).onContainerBottomMarginChanged(10 + desktopBottomMargin);
+
+        // 4. setBottomMargin(20) while LFF is active -> 20 + desktopBottomMargin, notifies.
+        mMediator.setBottomMargin(20);
+        assertEquals(20 + desktopBottomMargin, mMediator.getContainerBottomMargin());
+        verify(mObserver, times(1)).onContainerBottomMarginChanged(20 + desktopBottomMargin);
+
+        // 5. Switch to content with supportsLargeFormFactor() == false -> drops back to 20,
+        // notifies 20.
+        when(mContent.supportsLargeFormFactor()).thenReturn(false);
+        mMediator.updateContainerBottomMargin();
+        assertEquals(20, mMediator.getContainerBottomMargin());
+        verify(mObserver, times(1)).onContainerBottomMarginChanged(20);
+
+        // 6. Switch back to supportsLargeFormFactor() == true -> 20 + desktopBottomMargin.
+        when(mContent.supportsLargeFormFactor()).thenReturn(true);
+        mMediator.updateContainerBottomMargin();
+        assertEquals(20 + desktopBottomMargin, mMediator.getContainerBottomMargin());
+        verify(mObserver, times(2)).onContainerBottomMarginChanged(20 + desktopBottomMargin);
+
+        // 7. Clear sheet content (null) + updateContainerBottomMargin() -> drops back to 20,
+        // notifies 20.
+        mMediator.setSheetContent(null);
+        mMediator.updateContainerBottomMargin();
+        assertEquals(20, mMediator.getContainerBottomMargin());
+        verify(mObserver, times(2)).onContainerBottomMarginChanged(20);
+    }
+
+    @Test
+    @Config(qualifiers = "xxhdpi")
+    public void testGetEdgeToEdgeBottomInset() {
+        mMediator.setEdgeToEdgeBottomInsetSupplier(() -> 24);
+        mMediator.setKeyboardInsetSupplier(() -> 0);
+        // With xxhdpi (density = 3.0), 24dp = 72px.
+        assertEquals(72, mMediator.getEdgeToEdgeBottomInset());
+
+        // Keyboard inset of 10px reduces effective bottom inset to 62px.
+        mMediator.setKeyboardInsetSupplier(() -> 10);
+        assertEquals(62, mMediator.getEdgeToEdgeBottomInset());
+
+        // Large keyboard inset clamps to 0 via Math.max(0, ...).
+        mMediator.setKeyboardInsetSupplier(() -> 10_000);
+        assertEquals(0, mMediator.getEdgeToEdgeBottomInset());
+
+        // When container bottom margin is non-zero, bottom inset is suppressed (returns 0).
+        mMediator.setKeyboardInsetSupplier(() -> 0);
+        assertEquals(72, mMediator.getEdgeToEdgeBottomInset());
+        mMediator.setBottomMargin(12);
+        assertEquals(0, mMediator.getEdgeToEdgeBottomInset());
+    }
+
+    @Test
+    public void testUpdateViewportFromDisplayFrame() {
+        Rect displayFrame = new Rect(0, 0, 1080, 1920);
+        int insetPx = ViewUtils.dpToPx(mDisplayMetrics, 80);
+        mMediator.setEdgeToEdgeBottomInsetSupplier(() -> 80);
+        when(mContent.coversBottomControls()).thenReturn(false);
+        mMediator.setSheetContent(mContent);
+
+        mMediator.updateViewportFromDisplayFrame(displayFrame, /* decorBottom= */ 1920);
+        assertEquals(
+                new Rect(0, 0, 1080, 1920 - insetPx), mMediator.getVisibleViewportRectForTesting());
+
+        // When content covers bottom controls, system/e2e bottom insets are excluded from the
+        // viewport bounds across all states (including while resting in PEEK), keeping container
+        // bounds aligned with decor bottom.
+        when(mContent.coversBottomControls()).thenReturn(true);
+        mMediator.updateViewportFromDisplayFrame(displayFrame, /* decorBottom= */ 1920);
+        assertEquals(new Rect(0, 0, 1080, 1920), mMediator.getVisibleViewportRectForTesting());
+    }
+
+    @Test
+    public void testUpdateViewportFromWindowInsets() {
+        WindowInsetsCompat insets =
+                new WindowInsetsCompat.Builder()
+                        .setInsets(WindowInsetsCompat.Type.systemBars(), Insets.of(0, 50, 0, 80))
+                        .setInsets(WindowInsetsCompat.Type.ime(), Insets.of(0, 0, 0, 200))
+                        .build();
+
+        when(mContent.coversBottomControls()).thenReturn(false);
+        mMediator.setSheetContent(mContent);
+
+        mMediator.updateViewportFromWindowInsets(
+                insets, /* decorWidth= */ 1080, /* decorHeight= */ 1920);
+        // Combined bottom inset = max(ime bottom 200, systemBars 80) -> 200.
+        // effectiveEdgeToEdgeBottomInset is 0 by default, so max(200, 0) = 200.
+        // visibleViewportRect = (0, 0 + top inset 50, 1080 - 0, 1920 - 200 = 1720).
+        assertEquals(new Rect(0, 50, 1080, 1720), mMediator.getVisibleViewportRectForTesting());
+
+        // a) edgeToEdgeBottomInset larger than systemBars().bottom wins via Math.max when
+        // !coversBottomControls()
+        int insetPx = ViewUtils.dpToPx(mDisplayMetrics, 100);
+        mMediator.setEdgeToEdgeBottomInsetSupplier(() -> 100);
+        WindowInsetsCompat insetsNoIme =
+                new WindowInsetsCompat.Builder()
+                        .setInsets(WindowInsetsCompat.Type.systemBars(), Insets.of(0, 50, 0, 80))
+                        .build();
+        mMediator.updateViewportFromWindowInsets(
+                insetsNoIme, /* decorWidth= */ 1080, /* decorHeight= */ 1920);
+        assertEquals(
+                new Rect(0, 50, 1080, 1920 - insetPx),
+                mMediator.getVisibleViewportRectForTesting());
+
+        // b) When coversBottomControls() == true, systemBars and e2e insets are excluded
+        // across all states (including while resting in PEEK), while ime().bottom is still
+        // respected.
+        when(mContent.coversBottomControls()).thenReturn(true);
+        mMediator.updateViewportFromWindowInsets(
+                insets, /* decorWidth= */ 1080, /* decorHeight= */ 1920);
+        // Here, systemBars (80) and e2e (100) are excluded, but ime (200) is respected.
+        assertEquals(
+                new Rect(0, 50, 1080, 1920 - 200), mMediator.getVisibleViewportRectForTesting());
     }
 }
