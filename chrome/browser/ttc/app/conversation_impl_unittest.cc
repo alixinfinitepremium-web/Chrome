@@ -47,6 +47,8 @@ class FakeSessionJournal : public SessionJournal {
            std::vector<actor::mojom::JournalDetailsPtr> details,
            Track track) override {}
   void HandleServerJournalEvent(const ServerJournalEvent& event) override {}
+  void LogAudio(std::string_view mime_type,
+                base::span<const uint8_t> data) override {}
 };
 
 class FakeSessionController : public SessionController {
@@ -93,6 +95,7 @@ class FakeSessionController : public SessionController {
     last_output_transcription_ = text;
   }
   void OnModelAudioEnvelopeReady(const AudioEnvelope& envelope) override {}
+  void OnSpeakerChanged(Speaker speaker) override {}
   void OnSessionInitialized() override { ++session_initialized_count_; }
   void OnError(ErrorCode error) override {
     last_error_ = error;

@@ -1145,7 +1145,10 @@ class _CheckoutPaths:
     chain_directory: str
 
 
-def _ResolveCheckoutPaths(protobuf_directory: str) -> _CheckoutPaths:
+def _ResolveCheckoutPaths(
+        protobuf_directory: str | _CheckoutPaths) -> _CheckoutPaths:
+    if isinstance(protobuf_directory, _CheckoutPaths):
+        return protobuf_directory
     protobuf_directory = os.path.abspath(protobuf_directory)
     process = _RunGit([
         'git', '-C', protobuf_directory, 'rev-parse', '--show-toplevel',
@@ -1228,7 +1231,8 @@ def _SaveRollState(checkout: _CheckoutPaths, state: RollState) -> None:
 
 
 def LoadRollState(
-        protobuf_directory: str = _PROTOBUF_DIRECTORY) -> RollState | None:
+    protobuf_directory: str | _CheckoutPaths = _PROTOBUF_DIRECTORY,
+) -> RollState | None:
     """Loads GITDIR/protobuf-roll/state.json and chain/*.patch, or None."""
     checkout = _ResolveCheckoutPaths(protobuf_directory)
     if not os.path.isfile(checkout.state_file_path):
@@ -1281,7 +1285,7 @@ def PrepareRoll(to_revision: str,
     chain/*.patch and state.json under GITDIR/protobuf-roll/.
     """
     checkout = _ResolveCheckoutPaths(protobuf_directory)
-    existing_state = LoadRollState(checkout.protobuf_directory)
+    existing_state = LoadRollState(checkout)
     if existing_state is not None and (
         (existing_state.phase == 'conflict'
          and _FindLocalRollBranch(checkout, existing_state) is not None) or
@@ -1419,21 +1423,39 @@ def ImportUpstreamRelease(protobuf_directory: str,
                           'HEAD').stdout.decode().strip()
 
 
+def _BuildPatchDiffFromCommit(checkout: _CheckoutPaths,
+                              commit_sha: str) -> bytes:
+    """Builds the patches/*.patch unified diff for commit_sha~1..commit_sha."""
+    relative_option = ([f'--relative={checkout.protobuf_prefix}']
+                       if checkout.protobuf_prefix else [])
+    protobuf_pathspec = checkout.protobuf_prefix or '.'
+    patches_dir = (f'{checkout.protobuf_prefix}/patches'
+                   if checkout.protobuf_prefix else 'patches')
+    patches_excludes = (f':(glob,exclude){patches_dir}/*.patch',
+                        f':(glob,exclude){patches_dir}/*.md')
+    return _RunScratchGit(checkout.repository_root, '--no-literal-pathspecs',
+                          'diff', '--binary', '--no-renames', '--no-color',
+                          '--no-ext-diff', '--no-textconv', '--src-prefix=a/',
+                          '--dst-prefix=b/', *relative_option,
+                          f'{commit_sha}~1', commit_sha, '--',
+                          protobuf_pathspec, *patches_excludes).stdout
+
+
 def _RefreshPatchFileFromHeadCommit(checkout: _CheckoutPaths,
                                     patch_name: str) -> None:
     """Rewrites patches/<patch_name> from HEAD~1..HEAD and amends HEAD."""
-    relative_option = ([f'--relative={checkout.protobuf_prefix}']
-                       if checkout.protobuf_prefix else [])
-    refreshed_diff = _RunScratchGit(checkout.repository_root, 'diff',
-                                    '--binary', '--no-renames', '--no-color',
-                                    '--no-ext-diff', '--no-textconv',
-                                    *relative_option, 'HEAD~1', 'HEAD').stdout
+    refreshed_diff = _BuildPatchDiffFromCommit(checkout, 'HEAD')
     patch_file_path = os.path.join(checkout.protobuf_directory, 'patches',
                                    patch_name)
+    os.makedirs(os.path.dirname(patch_file_path), exist_ok=True)
     pathlib.Path(patch_file_path).write_bytes(refreshed_diff)
-    _RunScratchGit(checkout.repository_root, 'add', '--', patch_file_path)
-    _RunScratchGit(checkout.repository_root, 'commit', '--quiet',
-                   '--no-verify', '--amend', '--no-edit')
+    no_hooks = os.path.join(checkout.roll_state_directory, 'no-hooks')
+    _RunScratchGit(checkout.repository_root, '-c', 'core.autocrlf=false', '-c',
+                   'core.safecrlf=false', 'add', '--force', '--',
+                   patch_file_path)
+    _RunScratchGit(checkout.repository_root, '-c',
+                   f'core.hooksPath={no_hooks}', 'commit', '--quiet',
+                   '--no-gpg-sign', '--no-verify', '--amend', '--no-edit')
 
 
 def _ReplayRemainingPatches(checkout: _CheckoutPaths,
@@ -1505,7 +1527,7 @@ def _ReplayRemainingPatches(checkout: _CheckoutPaths,
 
 def _RequireActiveConflictState(checkout: _CheckoutPaths,
                                 subcommand: str) -> RollState:
-    state = LoadRollState(checkout.protobuf_directory)
+    state = LoadRollState(checkout)
     roll_branch = (_FindLocalRollBranch(checkout, state) if state is not None
                    and state.phase == 'conflict' else None)
     if (state is None or roll_branch is None
@@ -1570,7 +1592,7 @@ def _RejectStagedChangesOutsideProtobuf(checkout: _CheckoutPaths) -> None:
     prefix_with_slash = f'{checkout.protobuf_prefix}/'
     outside_staged = sorted(path for path in _SplitNulSeparatedPaths(
         _RunScratchGit(checkout.repository_root, 'diff', '--cached',
-                       '--name-only', '-z').stdout)
+                       '--no-renames', '--name-only', '-z').stdout)
                             if not path.startswith(prefix_with_slash))
     if outside_staged:
         raise RollProtobufError(
@@ -1722,7 +1744,7 @@ def DropCurrentPatch(
 def ResumeRoll(protobuf_directory: str = _PROTOBUF_DIRECTORY) -> RollState:
     """Reconciles state.json with manual Apply/Drop commits and continues."""
     checkout = _ResolveCheckoutPaths(protobuf_directory)
-    state = LoadRollState(checkout.protobuf_directory)
+    state = LoadRollState(checkout)
     roll_branch = (_FindLocalRollBranch(checkout, state) if state is not None
                    and state.phase != 'prepared' else None)
     if state is None or roll_branch is None:
@@ -1961,7 +1983,7 @@ def GenerateBootstrapFiles(
             'Provide -C <out_dir> so gen_extra_chromium_files.py can build '
             'protoc.')
     checkout = _ResolveCheckoutPaths(protobuf_directory)
-    state = LoadRollState(checkout.protobuf_directory)
+    state = LoadRollState(checkout)
     current_head = _ResolveCommitHash(checkout.repository_root, 'HEAD')
     if (state is not None and state.phase in ('prepared', 'conflict')
             and (current_head == state.expected_head
@@ -2099,6 +2121,253 @@ def _ProtobufPathsFromGit(checkout: _CheckoutPaths, *git_arguments:
     }
 
 
+def _IsGitOperationInProgress(checkout: _CheckoutPaths) -> bool:
+    git_dir = os.path.dirname(checkout.roll_state_directory)
+    return any(
+        os.path.exists(os.path.join(git_dir, marker))
+        for marker in ('rebase-merge', 'rebase-apply', 'MERGE_HEAD',
+                       'CHERRY_PICK_HEAD', 'REVERT_HEAD'))
+
+
+def _NormalizeNewPatchName(patch_spec: str, protobuf_directory: str) -> str:
+    normalized = patch_spec.strip().removeprefix('patches/')
+    if normalized and not normalized.endswith('.patch'):
+        normalized = f'{normalized}.patch'
+    match = re.fullmatch(r'([0-9]{4})-[A-Za-z0-9][A-Za-z0-9_.-]*\.patch',
+                         normalized)
+    if match is None or '..' in normalized:
+        raise RollProtobufError(
+            f'Invalid patch name {patch_spec!r}; expected NNNN-short-name '
+            '(for example, 0073-fix-foo).')
+    existing_names = [
+        os.path.basename(p) for p in ListTopLevelPatchPaths(protobuf_directory)
+    ]
+    if normalized in existing_names:
+        raise RollProtobufError(
+            f'patches/{normalized} already exists; use '
+            f'`roll_protobuf.py fixup {match.group(1)}` to amend it.')
+    duplicate = next(
+        (n for n in existing_names if n.startswith(f'{match.group(1)}-')),
+        None)
+    if duplicate is not None:
+        raise RollProtobufError(
+            f'Patch number {match.group(1)} is already used by '
+            f'patches/{duplicate}.')
+    if existing_names and normalized <= existing_names[-1]:
+        raise RollProtobufError(
+            f'New patch {normalized} must sort after existing '
+            f'patches/{existing_names[-1]} so patches/*.patch apply in '
+            'commit order.')
+    return normalized
+
+
+def _IsAllowedLocalPatchPath(relative_path: str) -> bool:
+    return (relative_path.startswith(
+        ('src/', 'python/')) and relative_path not in BOOTSTRAP_GENERATED_FILES
+            and not IsIntentionallyDeletedUpstreamFile(relative_path))
+
+
+def _CollectUncommittedPatchPaths(checkout: _CheckoutPaths,
+                                  subcommand: str) -> tuple[str, ...]:
+    if _ResolveCommitHash(checkout.repository_root, 'HEAD') is None:
+        raise RollProtobufError(
+            f'Cannot run `{subcommand}` on a repository with no commits.')
+    leftover_rejects = sorted(
+        p for p in _ListRegularFilesInDirectory(checkout.protobuf_directory)
+        if p.endswith(('.rej', '.orig')))
+    if leftover_rejects:
+        raise RollProtobufError(
+            'Remove .rej and .orig files under //third_party/protobuf before '
+            f'running `{subcommand}`: ' + ', '.join(leftover_rejects))
+    _RejectStagedChangesOutsideProtobuf(checkout)
+    unmerged = sorted(
+        _ProtobufPathsFromGit(checkout, 'diff', '--name-only', '-z',
+                              '--diff-filter=U'))
+    if unmerged:
+        raise RollProtobufError(
+            f'Resolve unmerged files before running `{subcommand}`: ' +
+            ', '.join(unmerged))
+    staged = _ProtobufPathsFromGit(checkout, 'diff', '--cached',
+                                   '--no-renames', '--name-only', '-z')
+    unstaged = _ProtobufPathsFromGit(checkout, 'diff', '--no-renames',
+                                     '--name-only', '-z')
+    untracked = {
+        p.rstrip('/')
+        for p in _ProtobufPathsFromGit(checkout, 'ls-files', '--others',
+                                       '--exclude-standard', '-z')
+    }
+    partially_staged = sorted(staged & (unstaged | untracked))
+    if partially_staged:
+        raise RollProtobufError(
+            'Staged changes in //third_party/protobuf differ from the working '
+            f'tree; stage or unstage them before running `{subcommand}`: ' +
+            ', '.join(partially_staged))
+    changed = sorted(staged | unstaged | untracked)
+    if not changed:
+        raise RollProtobufError(
+            f'No uncommitted changes under src/ or python/ for '
+            f'`{subcommand}`.')
+    disallowed = []
+    for p in changed:
+        full_path = os.path.join(checkout.protobuf_directory, *p.split('/'))
+        if not _IsAllowedLocalPatchPath(p) or (os.path.lexists(full_path) and
+                                               not _IsRegularFile(full_path)):
+            disallowed.append(p)
+    if disallowed:
+        raise RollProtobufError(
+            'Only non-bootstrap regular files under src/ and python/ may be '
+            f'included in `{subcommand}`: ' + ', '.join(disallowed))
+    marked = _FindFilesWithConflictMarkers(checkout.protobuf_directory,
+                                           changed)
+    if marked:
+        raise RollProtobufError('Unresolved conflict markers remain in: ' +
+                                ', '.join(marked))
+    return tuple(changed)
+
+
+def _NormalizeCommittedWorktreeFiles(checkout: _CheckoutPaths,
+                                     relative_paths: Iterable[str]) -> None:
+    prefix = f'{checkout.protobuf_prefix}/' if checkout.protobuf_prefix else ''
+    candidates = [
+        (p, fp) for p in sorted(set(relative_paths))
+        if '\n' not in p and '\r' not in p and _IsRegularFile(
+            fp := os.path.join(checkout.protobuf_directory, *p.split('/')))
+    ]
+    if not candidates:
+        return
+    queries = b''.join(
+        f'HEAD:{prefix}{p}\n'.encode('utf-8', errors='surrogateescape')
+        for p, _ in candidates)
+    batch_proc = _RunScratchGit(checkout.repository_root,
+                                'cat-file',
+                                '--batch',
+                                input_bytes=queries,
+                                accepted_return_codes=None)
+    if batch_proc.returncode != 0:
+        return
+    batch = batch_proc.stdout
+    drifted, offset = [], 0
+    for p, fp in candidates:
+        nl = batch.index(b'\n', offset)
+        parts = batch[offset:nl].rsplit(b' ', 2)
+        if len(parts) != 3 or not parts[2].isdigit():
+            offset = nl + 1
+            continue
+        size = int(parts[2])
+        blob = batch[nl + 1:nl + 1 + size]
+        offset = nl + 2 + size
+        if parts[1] == b'blob' and pathlib.Path(fp).read_bytes() != blob:
+            pathlib.Path(fp).write_bytes(blob)
+            drifted.append(f'{prefix}{p}')
+    if drifted:
+        nul_paths = ''.join(f'{p}\0'
+                            for p in drifted).encode('utf-8',
+                                                     errors='surrogateescape')
+        _RunScratchGit(checkout.repository_root,
+                       '-c',
+                       'core.safecrlf=false',
+                       '--literal-pathspecs',
+                       'update-index',
+                       '-q',
+                       '-z',
+                       '--stdin',
+                       input_bytes=nul_paths,
+                       accepted_return_codes=None)
+        _RunScratchGit(checkout.repository_root,
+                       '--literal-pathspecs',
+                       'reset',
+                       '--quiet',
+                       '--no-refresh',
+                       '--pathspec-from-file=-',
+                       '--pathspec-file-nul',
+                       'HEAD',
+                       input_bytes=nul_paths)
+
+
+@dataclasses.dataclass(frozen=True)
+class NewPatchResult:
+    """Outcome of creating and committing a new patches/*.patch file."""
+
+    patch_name: str
+    patch_path: str
+    commit: str
+    changed_files: tuple[str, ...]
+    touches_generator: bool
+
+    def ToDictionary(self) -> dict[str, object]:
+        return {
+            'patch': self.patch_name,
+            'patch_path': self.patch_path,
+            'commit': self.commit,
+            'changed_files': list(self.changed_files),
+            'touches_generator': self.touches_generator,
+        }
+
+
+def NewPatch(patch_spec: str,
+             protobuf_directory: str = _PROTOBUF_DIRECTORY) -> NewPatchResult:
+    """Commits uncommitted src/ and python/ edits as a new patches/*.patch."""
+    checkout = _ResolveCheckoutPaths(protobuf_directory)
+    if _IsGitOperationInProgress(checkout):
+        raise RollProtobufError(
+            'Cannot run `roll_protobuf.py new-patch` while a git rebase, '
+            'merge, or cherry-pick is in progress.')
+    state = LoadRollState(checkout)
+    current_head = _ResolveCommitHash(checkout.repository_root, 'HEAD')
+    if (state is not None and state.phase in ('prepared', 'conflict')
+            and (current_head == state.expected_head
+                 or _IsRollBranchHead(checkout, state))):
+        raise RollProtobufError(
+            f'Cannot create a new patch while roll phase is {state.phase!r}; '
+            'finish replaying patches first.')
+    patch_name = _NormalizeNewPatchName(patch_spec,
+                                        checkout.protobuf_directory)
+    _CollectUncommittedPatchPaths(checkout, 'roll_protobuf.py new-patch')
+    _RunScratchGit(checkout.repository_root, '-c', 'core.safecrlf=false',
+                   'add', '--all', '--', checkout.protobuf_prefix or '.')
+    staged = tuple(
+        sorted(
+            _ProtobufPathsFromGit(checkout, 'diff', '--cached', '--no-renames',
+                                  '--name-only', '-z')))
+    if not staged:
+        raise RollProtobufError(
+            'No uncommitted changes under src/ or python/ for '
+            '`roll_protobuf.py new-patch`.')
+    no_hooks = os.path.join(checkout.roll_state_directory, 'no-hooks')
+    _RunScratchGit(checkout.repository_root, '-c',
+                   f'core.hooksPath={no_hooks}', 'commit', '--quiet',
+                   '--no-gpg-sign', '--no-verify', '-m',
+                   f'Apply patches/{patch_name}')
+    _RefreshPatchFileFromHeadCommit(checkout, patch_name)
+    _NormalizeCommittedWorktreeFiles(checkout, staged)
+    new_head = _RunScratchGit(checkout.repository_root, 'rev-parse',
+                              'HEAD').stdout.decode().strip()
+    if (state is not None and state.phase == 'replayed'
+            and _IsRollBranchHead(checkout, state)):
+        _SaveRollState(checkout,
+                       dataclasses.replace(state, expected_head=new_head))
+    patch_path = os.path.join(checkout.protobuf_directory, 'patches',
+                              patch_name)
+    touches_generator = any(IsBootstrapGeneratorInput(p) for p in staged)
+    return NewPatchResult(patch_name, patch_path, new_head, staged,
+                          touches_generator)
+
+
+def FormatNewPatchReport(result: NewPatchResult) -> str:
+    lines = [
+        f'Created patches/{result.patch_name} at {result.commit}:',
+        *[f'  {path}' for path in result.changed_files],
+        f'Add "- {result.patch_name}" under "Description of the patches:" '
+        f'in {_README_FILENAME}.',
+    ]
+    if result.touches_generator:
+        lines.append(
+            'Patch modifies bootstrap generator inputs; run '
+            '`roll_protobuf.py generate -C <out_dir>` to update bootstrap '
+            'files.')
+    return '\n'.join(lines)
+
+
 def _FindLocalHygieneErrors(checkout: _CheckoutPaths) -> tuple[str, ...]:
     """Lists leftover .rej/.orig files, conflict markers, or unmerged paths."""
     errors = [
@@ -2127,7 +2396,7 @@ def _ResolveRollBaseCommit(checkout: _CheckoutPaths) -> str | None:
     root = checkout.repository_root
     if _ResolveCommitHash(root, 'HEAD') is None:
         return None
-    state = LoadRollState(checkout.protobuf_directory)
+    state = LoadRollState(checkout)
     if (state is not None and state.phase in ('conflict', 'replayed')
             and _IsRollBranchHead(checkout, state)):
         return state.start_commit
@@ -2519,7 +2788,7 @@ class RollStatus:
 
 def GetRollStatus(protobuf_directory: str = _PROTOBUF_DIRECTORY) -> RollStatus:
     checkout = _ResolveCheckoutPaths(protobuf_directory)
-    roll_state = LoadRollState(checkout.protobuf_directory)
+    roll_state = LoadRollState(checkout)
     roll_branch = (_FindLocalRollBranch(checkout, roll_state)
                    if roll_state is not None and roll_state.phase == 'conflict'
                    else None)
@@ -2566,7 +2835,7 @@ def GetRollStatus(protobuf_directory: str = _PROTOBUF_DIRECTORY) -> RollStatus:
 def AbortRoll(protobuf_directory: str = _PROTOBUF_DIRECTORY) -> RollState:
     """Resets an active roll to start_commit or clears stale roll state."""
     checkout = _ResolveCheckoutPaths(protobuf_directory)
-    roll_state = LoadRollState(checkout.protobuf_directory)
+    roll_state = LoadRollState(checkout)
     if roll_state is None:
         raise RollProtobufError('No protobuf roll is in progress (missing '
                                 f'{checkout.state_file_path}).')
@@ -2788,7 +3057,7 @@ def main(command_line_arguments: Sequence[str] | None = None) -> int:
             exit_code = EXIT_CODE_SUCCESS
         elif arguments.subcommand == 'abort':
             checkout = _ResolveCheckoutPaths(arguments.protobuf_directory)
-            prior_state = LoadRollState(checkout.protobuf_directory)
+            prior_state = LoadRollState(checkout)
             did_reset = (prior_state is not None
                          and _CanResetRollHead(checkout, prior_state))
             result = AbortRoll(arguments.protobuf_directory)

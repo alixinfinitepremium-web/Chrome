@@ -54,10 +54,6 @@ namespace content {
 class WebContents;
 }  // namespace content
 
-namespace lens {
-class ClientToSearchMessage;
-}  // namespace lens
-
 namespace contextual_tasks {
 class ContextualTasksWebContentsUserData;
 }  // namespace contextual_tasks
@@ -280,6 +276,7 @@ class ContextualTasksExtensionHandler
   void OnInputStateChanged(const omnibox::InputState& state);
   base::WeakPtr<contextual_search::InputStateModel>
   GetOrCreateInputStateModel();
+  void UpdateInputStateModelContext();
   void OnSessionChanged(
       contextual_search::ContextualSearchSessionHandle* session_handle);
   // Updates the tab context subscription callback if there is a new session.
@@ -291,9 +288,6 @@ class ContextualTasksExtensionHandler
   void SendTabContextToExtensionPage(
       const contextual_search::TabContextState& state);
   void OnLensThumbnailCreated(const std::string& thumbnail_uri);
-  void RecordTimeToHandshakeComplete();
-  void SendSearchMessageToBoundPage(const lens::ClientToSearchMessage& message);
-  void OnHandshakeComplete();
   void OnLensCropUpdated(const GURL& data_uri);
 
   mojo::Receiver<contextual_tasks::mojom::ExtensionPageHandlerFactory>

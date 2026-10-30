@@ -119,16 +119,11 @@ export class LeftHandSideElement extends CrLitElement {
     this.eventTracker_.removeAll();
   }
 
-  protected getExpandedLhsUrl_(): string {
-    if (!this.expandedLhsUrl_ || this.isDark === undefined) {
-      return this.expandedLhsUrl_;
-    }
-    const url = new URL(this.expandedLhsUrl_);
-    url.searchParams.set('cs', this.isDark ? '1' : '0');
-    return url.toString();
+  protected onFoldedClick_(): void {
+    this.isExpanded_ = true;
   }
 
-  protected onFoldedClick_(): void {
+  protected onExpandRail_(): void {
     this.isExpanded_ = true;
   }
 
@@ -156,7 +151,6 @@ export class LeftHandSideElement extends CrLitElement {
             data.width :
             DEFAULT_EXPANDED_LHS_WIDTH_PX;
         this.isExpandedReady_ = true;
-        this.isExpanded_ = true;
         break;
       }
       case NtpLhsMessageType.NTP_LHS_CLOSE: {
