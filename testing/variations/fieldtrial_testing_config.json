@@ -14864,6 +14864,8 @@
     "PrioritizeSafeBrowsingNavigationCallbacks": [
         {
             "platforms": [
+                "android",
+                "android_webview",
                 "chromeos",
                 "linux",
                 "mac",
@@ -20428,7 +20430,6 @@
             "platforms": [
                 "chromeos",
                 "linux",
-                "mac",
                 "windows",
                 "android",
                 "ios"

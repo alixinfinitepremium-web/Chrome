@@ -1247,7 +1247,9 @@ void ArcSessionManager::OnVmStopped(
 void ArcSessionManager::RequestEnableImpl() {
   CHECK_CURRENTLY_ON(content::BrowserThread::UI, base::NotFatalUntil::M160);
   CHECK(profile_, base::NotFatalUntil::M160);
-  CHECK(enable_requested_, base::NotFatalUntil::M160);
+  // TODO(crbug.com/579330989): CHECK-exclusion: Convert to a CHECK once we are
+  // confident it won't be triggered.
+  DCHECK(enable_requested_);
   DCHECK(state_ == State::STOPPED || state_ == State::STOPPING ||
          state_ == State::REMOVING_DATA_DIR ||
          state_ == State::CHECKING_DATA_MIGRATION_NECESSITY)
@@ -1658,8 +1660,9 @@ void ArcSessionManager::StartArc() {
 
   // ARC must be started only if no pending data removal request exists.
   CHECK(profile_, base::NotFatalUntil::M160);
-  CHECK(!profile_->GetPrefs()->GetBoolean(prefs::kArcDataRemoveRequested),
-        base::NotFatalUntil::M160);
+  // TODO(crbug.com/578013746): CHECK-exclusion: Convert to a CHECK once we are
+  // confident it won't be triggered.
+  DCHECK(!profile_->GetPrefs()->GetBoolean(prefs::kArcDataRemoveRequested));
 
   for (auto& observer : observer_list_) {
     observer.OnArcStarted();

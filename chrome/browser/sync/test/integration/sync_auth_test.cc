@@ -88,10 +88,8 @@ class SyncAuthTestBase : public SyncTest {
     }
     if (setup_sync_mode == SetupSyncMode::kSyncTransportOnly) {
       enabled_features.insert(enabled_features.end(),
-                              {syncer::kReplaceSyncPromosWithSignInPromos,
-                               switches::kSyncEnableBookmarksInTransportMode,
-                               switches::kEnablePreferencesAccountStorage,
-                               syncer::kSeparateLocalAndAccountSearchEngines});
+                              {switches::kSyncEnableBookmarksInTransportMode,
+                               switches::kEnablePreferencesAccountStorage});
     }
     scoped_feature_list_.InitWithFeatures(enabled_features, disabled_features);
   }

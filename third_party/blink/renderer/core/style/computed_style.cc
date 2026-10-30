@@ -1463,7 +1463,7 @@ namespace {
 
 gfx::RectF GetReferenceBox(const LayoutBox* box, CoordBox coord_box) {
   if (box) {
-    if (const LayoutBox* containing_block = box->ContainingBlock()) {
+    if (const LayoutBox* container = box->ContainingBox()) {
       // In SVG contexts, all values behave as view-box.
       if (box->IsSVG()) {
         return gfx::RectF(SVGViewportResolver(*box).ResolveViewport());
@@ -1472,13 +1472,13 @@ gfx::RectF GetReferenceBox(const LayoutBox* box, CoordBox coord_box) {
       switch (coord_box) {
         case CoordBox::kFillBox:
         case CoordBox::kContentBox:
-          return gfx::RectF(containing_block->PhysicalContentBoxRect());
+          return gfx::RectF(container->PhysicalContentBoxRect());
         case CoordBox::kPaddingBox:
-          return gfx::RectF(containing_block->PhysicalPaddingBoxRect());
+          return gfx::RectF(container->PhysicalPaddingBoxRect());
         case CoordBox::kViewBox:
         case CoordBox::kStrokeBox:
         case CoordBox::kBorderBox:
-          return gfx::RectF(containing_block->PhysicalBorderBoxRect());
+          return gfx::RectF(container->PhysicalBorderBoxRect());
       }
     }
   }
@@ -1487,12 +1487,11 @@ gfx::RectF GetReferenceBox(const LayoutBox* box, CoordBox coord_box) {
   return gfx::RectF();
 }
 
-gfx::PointF GetOffsetFromContainingBlock(const LayoutBox* box) {
+gfx::PointF GetOffsetFromContainingBox(const LayoutBox* box) {
   if (box) {
-    if (const LayoutBox* containing_block = box->ContainingBlock()) {
-      gfx::PointF offset =
-          box->LocalToAncestorPoint(gfx::PointF(), containing_block,
-                                    {MapCoordinatesMode::kIgnoreTransforms});
+    if (const LayoutBox* container = box->ContainingBox()) {
+      gfx::PointF offset = box->LocalToAncestorPoint(
+          gfx::PointF(), container, {MapCoordinatesMode::kIgnoreTransforms});
       return offset;
     }
   }
@@ -1631,8 +1630,7 @@ void ComputedStyle::ApplyMotionPathTransform(float origin_x,
       case BasicShape::kStyleRayType: {
         const gfx::RectF reference_box = GetReferenceBox(box, coord_box);
         const gfx::PointF offset_from_reference_box =
-            GetOffsetFromContainingBlock(box) -
-            reference_box.OffsetFromOrigin();
+            GetOffsetFromContainingBox(box) - reference_box.OffsetFromOrigin();
         const gfx::SizeF& reference_box_size = reference_box.size();
         const StyleRay& ray = To<StyleRay>(basic_shape);
         // Specifies the origin of the ray, where the ray’s line begins (the 0%
@@ -1665,8 +1663,7 @@ void ComputedStyle::ApplyMotionPathTransform(float origin_x,
       case BasicShape::kStyleShapeType: {
         const gfx::RectF reference_box = GetReferenceBox(box, coord_box);
         const gfx::PointF offset_from_reference_box =
-            GetOffsetFromContainingBlock(box) -
-            reference_box.OffsetFromOrigin();
+            GetOffsetFromContainingBox(box) - reference_box.OffsetFromOrigin();
         const gfx::SizeF& reference_box_size = reference_box.size();
         const gfx::PointF starting_point = GetStartingPointOfThePath(
             offset_from_reference_box, position, reference_box_size);
@@ -1679,11 +1676,11 @@ void ComputedStyle::ApplyMotionPathTransform(float origin_x,
       }
     }
   } else if (IsA<CoordBoxOffsetPathOperation>(offset_path)) {
-    if (box && box->ContainingBlock()) {
-      const ComputedStyle& style = box->ContainingBlock()->Style();
+    if (box && box->ContainingBox()) {
+      const ComputedStyle& style = box->ContainingBox()->Style();
       const gfx::RectF reference_box = GetReferenceBox(box, coord_box);
       const gfx::PointF offset_from_reference_box =
-          GetOffsetFromContainingBlock(box) - reference_box.OffsetFromOrigin();
+          GetOffsetFromContainingBox(box) - reference_box.OffsetFromOrigin();
       const gfx::SizeF& reference_box_size = reference_box.size();
       const bool has_ordinary_rounded_corners =
           style.CornerTopLeftShape() == Superellipse::Round() &&
@@ -1852,27 +1849,21 @@ ETextAlign ComputedStyle::GetTextAlign(bool is_last_line) const {
   NOTREACHED();
 }
 
-// Unicode 11 introduced Georgian capital letters (U+1C90 - U+1CBA,
-// U+1CB[D-F]), but virtually no font covers them. For now map them back
-// to their lowercase counterparts (U+10D0 - U+10FA, U+10F[D-F]).
-// https://www.unicode.org/charts/PDF/U10A0.pdf
-// https://www.unicode.org/charts/PDF/U1C90.pdf
-// See https://crbug.com/865427 .
-// TODO(jshin): Make this platform-dependent. For instance, turn this
-// off when CrOS gets new Georgian fonts covering capital letters.
-// ( https://crbug.com/880144 ).
-static String DisableNewGeorgianCapitalLetters(const String& text) {
+namespace {
+
+// Disabling CSSTextTransformGeorgianUppercase restores the legacy mapping so we
+// can roll back if missing-glyph regressions appear after launch.
+// Original workaround: https://crrev.com/c/1205712.
+// TODO(crbug.com/40127672): Remove this helper and its character utilities with
+// the kill switch two milestones after the Stable launch, if rollback is no
+// longer needed.
+String ApplyLegacyGeorgianUppercaseWorkaround(const String& text) {
   if (text.IsNull() || text.Is8Bit()) {
     return text;
   }
-  unsigned length = text.length();
-  const StringImpl& input = *(text.Impl());
   StringBuilder result;
-  result.ReserveCapacity(length);
-  // |input| must be well-formed UTF-16 so that there's no worry
-  // about surrogate handling.
-  for (unsigned i = 0; i < length; ++i) {
-    UChar character = UNSAFE_TODO(input[i]);
+  result.ReserveCapacity(text.length());
+  for (UChar character : text.Span16()) {
     if (unicode::IsModernGeorgianUppercase(character)) {
       result.Append(unicode::LowercaseModernGeorgianUppercase(character));
     } else {
@@ -1881,8 +1872,6 @@ static String DisableNewGeorgianCapitalLetters(const String& text) {
   }
   return result.ToString();
 }
-
-namespace {
 
 String ApplyFullwidthTransform(const String& text,
                                TextOffsetMap* offset_map,
@@ -1995,8 +1984,10 @@ String ComputedStyle::ApplyTextTransform(const String& text,
   } else if (EnumHasFlags(transform, ETextTransform::kUppercase)) {
     const LayoutLocale* locale = GetFontDescription().Locale();
     CaseMap case_map(locale ? locale->CaseMapLocale() : CaseMap::Locale());
-    result =
-        DisableNewGeorgianCapitalLetters(case_map.ToUpper(result, offset_map));
+    result = case_map.ToUpper(result, offset_map);
+    if (!RuntimeEnabledFeatures::CSSTextTransformGeorgianUppercaseEnabled()) {
+      result = ApplyLegacyGeorgianUppercaseWorkaround(result);
+    }
   } else if (EnumHasFlags(transform, ETextTransform::kLowercase)) {
     const LayoutLocale* locale = GetFontDescription().Locale();
     CaseMap case_map(locale ? locale->CaseMapLocale() : CaseMap::Locale());
