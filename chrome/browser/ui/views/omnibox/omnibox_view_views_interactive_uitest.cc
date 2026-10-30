@@ -37,6 +37,7 @@
 #include "chrome/browser/ui/omnibox/omnibox_controller.h"
 #include "chrome/browser/ui/omnibox/omnibox_edit_model.h"
 #include "chrome/browser/ui/omnibox/omnibox_next_features.h"
+#include "chrome/browser/ui/tabs/organizer/organizer_panel_utils.h"
 #include "chrome/browser/ui/tabs/tab_strip_model.h"
 #include "chrome/browser/ui/ui_features.h"
 #include "chrome/browser/ui/view_ids.h"
@@ -1410,9 +1411,12 @@ class OmniboxViewViewsOnFocusZpsTest : public OmniboxViewViewsTest {
         suggest_config;
     suggest_config.Get().enabled = true;
 
+    // TODO(crbug.com/579051362): Fix test failures related to organizer panel
+    // focus.
     base::test::ScopedFeatureList scoped_feature_list;
-    scoped_feature_list.InitAndEnableFeature(
-        omnibox::kFocusTriggersWebAndSRPZeroSuggest);
+    scoped_feature_list.InitWithFeatures(
+        /*enabled_features=*/{omnibox::kFocusTriggersWebAndSRPZeroSuggest},
+        /*disabled_features=*/{organizer_panel::kOrganizerPanel});
 
     InProcessBrowserTest::SetUp();
   }
@@ -1797,7 +1801,9 @@ class OmniboxViewViewsPlaceholderTest : public InProcessBrowserTest {
         /*disabled_features=*/
         // TODO(crbug.com/452061489): Fix tests that fail when the WebUI Omnibox
         // is enabled and then remove these two Features.
-        {omnibox::internal::kWebUIOmniboxPopup,
+        {contextual_tasks::kContextualTasksRearchitecture,
+         contextual_tasks::kContextualTasksSidePanelRearchitecture,
+         omnibox::internal::kWebUIOmniboxPopup,
          omnibox::internal::kWebUIOmniboxAimPopup,
          // kWebUILocationBar however replaces OmniboxViewViews, so almost
          // all tests here are inherently incompatible with it

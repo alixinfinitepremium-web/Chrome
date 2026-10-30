@@ -251,6 +251,8 @@
 #include "ui/base/l10n/l10n_util.h"
 #include "ui/base/resource/resource_bundle.h"
 #include "ui/base/ui_base_features.h"
+#include "ui/gfx/geometry/size.h"
+#include "ui/gfx/image/image_skia_operations.h"
 #include "ui/gfx/text_utils.h"
 #include "ui/gfx/vector_icon_types.h"
 #include "ui/menus/simple_menu_model.h"
@@ -682,8 +684,10 @@ void BrowserActions::InitializeSidePanelActions() {
     if (contextual_tasks::ShouldUseSuperGIconForPinButtons()) {
 #if BUILDFLAG(GOOGLE_CHROME_BRANDING)
       contextual_tasks_image = ui::ImageModel::FromImageSkia(
-          *ui::ResourceBundle::GetSharedInstance().GetImageSkiaNamed(
-              IDR_GOOGLE_G_GRADIENT_16_ALT));
+          gfx::ImageSkiaOperations::CreateResizedImage(
+              *ui::ResourceBundle::GetSharedInstance().GetImageSkiaNamed(
+                  IDR_GOOGLE_G_GRADIENT_20),
+              skia::ImageOperations::RESIZE_BEST, gfx::Size(18, 18)));
 #else
       contextual_tasks_image = ui::ImageModel::FromVectorIcon(
           vector_icons::kGoogleColorIcon, ui::kColorIcon);
@@ -934,9 +938,8 @@ void BrowserActions::InitializePageActionIconActions() {
             base::BindRepeating(
                 [](BrowserWindowInterface* bwi, actions::ActionItem* item,
                    actions::ActionInvocationContext context) {
-                  bwi->GetActiveTabInterface()
-                      ->GetTabFeatures()
-                      ->record_replay_page_action_controller()
+                  RecordReplayPageActionController::From(
+                      bwi->GetActiveTabInterface())
                       ->ExecuteAction(item);
                 },
                 bwi))
@@ -2952,6 +2955,7 @@ void BrowserActions::InitializeToolbarAndMiscActions() {
           .SetActionId(kActionFullscreen)
           .SetTooltipText(l10n_util::GetStringUTF16(IDS_ACCNAME_FULLSCREEN))
           .SetAccessibleName(l10n_util::GetStringUTF16(IDS_ACCNAME_FULLSCREEN))
+          .SetAccelerator(GetAcceleratorForCommandId(IDC_FULLSCREEN))
           .SetImage(ui::ImageModel::FromVectorIcon(
               features::IsRoundedIconsEnabled() ? kFullscreenIcon
                                                 : kFullscreenRefreshOldIcon))
@@ -3730,6 +3734,7 @@ void BrowserActions::InitializeToolbarAndMiscActions() {
               bwi))
           .SetActionId(kActionZoomPlus)
           .SetTooltipText(l10n_util::GetStringUTF16(IDS_ACCNAME_ZOOM_PLUS2))
+          .SetAccelerator(GetAcceleratorForCommandId(IDC_ZOOM_PLUS))
           .SetImage(ui::ImageModel::FromVectorIcon(
               features::IsRoundedIconsEnabled() ? kAddIcon
                                                 : kZoomPlusMenuRefreshOldIcon))
@@ -3745,6 +3750,7 @@ void BrowserActions::InitializeToolbarAndMiscActions() {
               bwi))
           .SetActionId(kActionZoomMinus)
           .SetTooltipText(l10n_util::GetStringUTF16(IDS_ACCNAME_ZOOM_MINUS2))
+          .SetAccelerator(GetAcceleratorForCommandId(IDC_ZOOM_MINUS))
           .SetImage(ui::ImageModel::FromVectorIcon(
               features::IsRoundedIconsEnabled() ? kRemoveIcon
                                                 : kZoomMinusMenuRefreshOldIcon))

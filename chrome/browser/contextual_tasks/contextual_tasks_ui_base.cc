@@ -14,6 +14,7 @@
 #include <vector>
 
 #include "base/functional/bind.h"
+#include "base/functional/callback_helpers.h"
 #include "base/memory/raw_ref.h"
 #include "base/memory/ref_counted_memory.h"
 #include "base/memory/weak_ptr.h"
@@ -24,6 +25,7 @@
 #include "chrome/browser/autocomplete/aim_eligibility_service_factory.h"
 #include "chrome/browser/contextual_search/contextual_search_web_contents_helper.h"
 #include "chrome/browser/contextual_tasks/contextual_tasks_context_service_factory.h"
+#include "chrome/browser/contextual_tasks/contextual_tasks_eligibility_manager.h"
 #include "chrome/browser/contextual_tasks/contextual_tasks_internals_page_handler.h"
 #include "chrome/browser/contextual_tasks/contextual_tasks_panel_controller.h"
 #include "chrome/browser/contextual_tasks/contextual_tasks_permission_controller.h"
@@ -195,9 +197,6 @@ bool IsLegacyOnlyContextualTasksResource(std::string_view path) {
       "error_dialog.css.js",
       "error_dialog.html.js",
       "error_dialog.js",
-      "error_page.css.js",
-      "error_page.html.js",
-      "error_page.js",
       "info_tooltip.css.js",
       "info_tooltip.html.js",
       "info_tooltip.js",
@@ -327,11 +326,32 @@ ContextualTasksUIBase::ContextualTasksUIBase(content::WebUI* web_ui)
   is_contextual_tasks_eligible_on_init_ =
       contextual_tasks::EntryPointEligibilityManager::IsEligible(profile);
 #if !BUILDFLAG(IS_ANDROID)
-  if (contextual_tasks::EntryPointEligibilityManager::IsPinningEligible(
-          profile)) {
+  is_pinning_eligible_ =
+      contextual_tasks::EntryPointEligibilityManager::IsPinningEligible(
+          profile);
+  if (is_pinning_eligible_) {
     if (auto* model = PinnedToolbarActionsModel::Get(profile)) {
       pinned_toolbar_actions_model_observation_.Observe(model);
     }
+  }
+  // Pinning eligibility depends on both Contextual Tasks eligibility and AIM
+  // (Fusebox) eligibility. Either can change while the side panel is open, so
+  // listen to both and push updates to the WebUI.
+  if (auto* eligibility_manager =
+          contextual_tasks::ContextualTasksEligibilityManager::GetForProfile(
+              profile)) {
+    eligibility_subscription_ =
+        eligibility_manager->RegisterEligibilityChangedCallback(
+            base::IgnoreArgs<bool>(base::BindRepeating(
+                &ContextualTasksUIBase::OnPinningEligibilityMaybeChanged,
+                base::Unretained(this))));
+  }
+  if (auto* aim_service =
+          AimEligibilityServiceFactory::GetForProfile(profile)) {
+    aim_eligibility_subscription_ =
+        aim_service->RegisterEligibilityChangedCallback(base::BindRepeating(
+            &ContextualTasksUIBase::OnPinningEligibilityMaybeChanged,
+            base::Unretained(this)));
   }
 #endif
 
@@ -471,16 +491,13 @@ base::DictValue ContextualTasksUIBase::GetContextualTasksLoadTimeData(
   base::DictValue dict;
 
   static constexpr webui::LocalizedString kLocalizedStrings[] = {
-      // TODO(b/578986274): Replace with a dedicated string in M159.
-      {"accountMenuButtonAccessibleName", IDS_MANAGE_PASSWORDS_LINK},
-      // TODO(b/578986274): Replace with a dedicated string in M159.
+      {"accountMenuButtonAccessibleName",
+       IDS_CONTEXTUAL_TASKS_ACCOUNT_MENU_BUTTON_ACCESSIBLE_NAME},
       {"accountMenuManageAccount",
-       IDS_OMNIBOX_PEDAL_MANAGE_GOOGLE_ACCOUNT_HINT},
-      // TODO(b/578986274): Replace with a dedicated string in M159.
+       IDS_CONTEXTUAL_TASKS_ACCOUNT_MENU_MANAGE_ACCOUNT},
       {"accountMenuNameAndEmail",
-       IDS_ACCESSIBLE_WINDOW_TITLE_WITH_PROFILE_FORMAT},
-      // TODO(b/578986274): Replace with a dedicated string in M159.
-      {"accountMenuSignOut", IDS_SYNC_ERROR_USER_MENU_SIGNOUT_BUTTON},
+       IDS_CONTEXTUAL_TASKS_ACCOUNT_MENU_NAME_AND_EMAIL},
+      {"accountMenuSignOut", IDS_CONTEXTUAL_TASKS_ACCOUNT_MENU_SIGN_OUT},
       {"close", IDS_CLOSE},
       {"closeTooltip", IDS_CONTEXTUAL_TASKS_SIDE_PANEL_CLOSE_TOOL_TIP},
       {"contextTooltip", IDS_CONTEXTUAL_TASKS_SIDE_PANEL_CONTEXT_TOOL_TIP},
@@ -495,6 +512,10 @@ base::DictValue ContextualTasksUIBase::GetContextualTasksLoadTimeData(
       {"newThreadTooltip", IDS_CONTEXTUAL_TASKS_SIDE_PANEL_NEW_THREAD_TOOL_TIP},
       {"openInNewTab", IDS_CONTEXTUAL_TASKS_MENU_OPEN_IN_NEW_TAB},
       {"pinTooltip", IDS_SIDE_PANEL_HEADER_PIN_BUTTON_TOOLTIP},
+      {"protectedErrorPageBottomLine",
+       IDS_SIDE_PANEL_LENS_OVERLAY_PROTECTED_PAGE_ERROR_SECOND_LINE},
+      {"protectedErrorPageTopLine",
+       IDS_SIDE_PANEL_LENS_OVERLAY_PROTECTED_PAGE_ERROR_FIRST_LINE},
       {"reopenTab", IDS_CONTEXTUAL_TASKS_REOPEN_TABS_BUTTON_TEXT},
       {"sourcesMenuTitle", IDS_CONTEXTUAL_TASKS_SOURCES_MENU_TITLE},
       {"threadHistoryTooltip",
@@ -517,9 +538,12 @@ base::DictValue ContextualTasksUIBase::GetContextualTasksLoadTimeData(
       contextual_tasks::EntryPointEligibilityManager::IsPinningEligible(
           profile);
   dict.Set("enablePinButton", is_pinning_eligible);
+  // Intentionally not gated on pinning eligibility: eligibility can change
+  // while the page is open and is pushed separately via
+  // `OnPinButtonEligibilityChanged()`, which the WebUI already combines with
+  // this flag.
   dict.Set("enablePinButtonOnSrp",
-           is_pinning_eligible &&
-               contextual_tasks::IsContextualTasksPinButtonOnSrpEnabled());
+           contextual_tasks::IsContextualTasksPinButtonOnSrpEnabled());
   dict.Set(
       "isSidePanelPinned",
       is_pinning_eligible && contextual_tasks::GetEffectivePinState(profile));
@@ -591,8 +615,13 @@ void ContextualTasksUIBase::CreatePageHandler(
   toolbar_page_handler_receiver_.Bind(std::move(page_handler));
 #if !BUILDFLAG(IS_ANDROID)
   Profile* profile = GetProfile();
-  if (contextual_tasks::EntryPointEligibilityManager::IsPinningEligible(
-          profile)) {
+  is_pinning_eligible_ =
+      contextual_tasks::EntryPointEligibilityManager::IsPinningEligible(
+          profile);
+  if (auto* toolbar_page = GetToolbarPageRemote()) {
+    toolbar_page->OnPinButtonEligibilityChanged(is_pinning_eligible_);
+  }
+  if (is_pinning_eligible_) {
     if (auto* model = PinnedToolbarActionsModel::Get(profile)) {
       if (!pinned_toolbar_actions_model_observation_.IsObserving()) {
         pinned_toolbar_actions_model_observation_.Observe(model);
@@ -764,6 +793,39 @@ void ContextualTasksUIBase::OnActionsChanged() {
     toolbar_page->OnSidePanelPinStateChanged(effective_pin_state);
   }
 }
+
+void ContextualTasksUIBase::OnPinningEligibilityMaybeChanged() {
+  Profile* profile = GetProfile();
+  const bool is_pinning_eligible =
+      contextual_tasks::EntryPointEligibilityManager::IsPinningEligible(
+          profile);
+  if (is_pinning_eligible == is_pinning_eligible_) {
+    return;
+  }
+  is_pinning_eligible_ = is_pinning_eligible;
+
+  if (is_pinning_eligible_) {
+    // The user just became eligible: start tracking the pinned state so the
+    // pin/unpin label stays accurate.
+    if (auto* model = PinnedToolbarActionsModel::Get(profile)) {
+      if (!pinned_toolbar_actions_model_observation_.IsObserving()) {
+        pinned_toolbar_actions_model_observation_.Observe(model);
+      }
+    }
+  } else {
+    // No longer eligible: the pin item is hidden, so stop tracking the model.
+    pinned_toolbar_actions_model_observation_.Reset();
+  }
+
+  if (auto* toolbar_page = GetToolbarPageRemote()) {
+    toolbar_page->OnPinButtonEligibilityChanged(is_pinning_eligible_);
+    // Keep the pin state in sync too; it is reported as unpinned when the
+    // user is ineligible, matching the load-time `isSidePanelPinned` value.
+    toolbar_page->OnSidePanelPinStateChanged(
+        is_pinning_eligible_ &&
+        contextual_tasks::GetEffectivePinState(profile));
+  }
+}
 #endif
 
 void ContextualTasksUIBase::OnTabClickedFromSourcesMenu(int32_t tab_id,
@@ -817,6 +879,7 @@ void ContextualTasksUIBase::CreateNewThread() {
   if (!panel_controller) {
     return;
   }
+  panel_controller->SetErrorPageVisible(false);
   content::WebContents* target_contents =
       panel_controller->GetActiveWebContents();
   if (!target_contents) {

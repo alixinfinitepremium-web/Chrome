@@ -202,6 +202,8 @@ class ContextualTasksSidePanelCoordinator
   ContextualTasksPanelController::EntrySource GetActiveEntrySource()
       const override;
   bool IsOnboardingTooltipVisible() const override;
+  void SetErrorPageVisible(bool visible) override;
+  bool IsErrorPageVisible() const override;
   std::optional<tabs::TabHandle> GetAutoSuggestedTabHandle() override;
   void OnTaskChanged(content::WebContents* web_contents,
                      base::Uuid task_id) override;
@@ -310,6 +312,10 @@ class ContextualTasksSidePanelCoordinator
   // Returns the task associated with the active side panel without
   // mutating pending task state.
   std::optional<ContextualTask> GetCurrentTask() const;
+
+  // Returns whether `task` is a new UI service task waiting to display the
+  // protected page error scrim.
+  bool IsPendingErrorPageTask(const ContextualTask* task) const;
 
   // Clean up unused WebContents.
   void CleanUpUnusedWebContents() override;

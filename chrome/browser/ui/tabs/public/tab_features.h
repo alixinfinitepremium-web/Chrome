@@ -462,11 +462,6 @@ class TabFeatures {
     return page_action_controller_.get();
   }
 
-  FileSystemAccessPageActionController*
-  file_system_access_page_action_controller() {
-    return file_system_access_page_action_controller_.get();
-  }
-
   ManagePasswordsPageActionController*
   manage_passwords_page_action_controller() {
     return manage_passwords_page_action_controller_.get();
@@ -480,10 +475,6 @@ class TabFeatures {
     return record_replay_client_.get();
   }
 #endif
-
-  RecordReplayPageActionController* record_replay_page_action_controller() {
-    return record_replay_page_action_controller_.get();
-  }
 
   InactiveWindowMouseEventController* inactive_window_mouse_event_controller() {
     return inactive_window_mouse_event_controller_.get();

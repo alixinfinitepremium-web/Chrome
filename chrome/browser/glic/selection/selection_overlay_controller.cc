@@ -620,10 +620,12 @@ bool SelectionOverlayController::CanStartSession() {
   return true;
 }
 
-void SelectionOverlayController::Show(mojom::TabContextOptionsPtr options) {
+void SelectionOverlayController::Show(mojom::TabContextOptionsPtr options,
+                                      ::selection::EntryPoint entry_point) {
   if (!CanStartSession()) {
     return;
   }
+  session_->entry_point = entry_point;
   ShowImpl(std::move(options));
 }
 
@@ -649,10 +651,12 @@ void SelectionOverlayController::ShowImpl(mojom::TabContextOptionsPtr options) {
 void SelectionOverlayController::ShowWithSelection(
     content::RenderFrameHost* selected_frame,
     const gfx::Rect& selection_bounds,
-    selection::InteractionOptionsPtr interaction_options) {
+    selection::InteractionOptionsPtr interaction_options,
+    ::selection::EntryPoint entry_point) {
   if (!CanStartSession()) {
     return;
   }
+  session_->entry_point = entry_point;
   session_->interaction_options = std::move(interaction_options);
   SetRegionFromBounds(selected_frame, selection_bounds);
   ShowImpl(/*options=*/nullptr);
@@ -755,10 +759,16 @@ void SelectionOverlayController::CloseUI() {
   if (state() == State::kOff) {
     return;
   }
+  const bool had_focus =
+      (overlay_web_view_ && overlay_web_view_->HasFocus()) ||
+      (preselection_widget_ && preselection_widget_->IsActive());
   CloseReason close_reason =
       session_->close_reason.value_or(CloseReason::kOther);
   Reset();
   OverlayBaseController::CloseUI();
+  if (had_focus && tab_->GetContents()) {
+    tab_->GetContents()->Focus();
+  }
   overlay_closed_callbacks_.Notify(close_reason);
 }
 
@@ -988,7 +998,7 @@ void SelectionOverlayController::DismissOverlay(
       Close(CloseReason::kCloseButton);
       break;
     case selection::DismissOverlayReason::kBackgroundClick:
-      Close(CloseReason::kOther);
+      Close(CloseReason::kBackgroundClick);
       break;
   }
 }

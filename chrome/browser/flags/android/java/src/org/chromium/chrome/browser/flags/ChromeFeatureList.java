@@ -867,6 +867,7 @@ public abstract class ChromeFeatureList {
     public static final String SIDE_UI_ALLOW_PAUSE = "SideUiAllowPause";
     public static final String SITE_ISOLATION_ENABLE_MEMORY_THRESHOLD_ANDROID =
             "SiteIsolationEnableMemoryThresholdAndroid";
+    public static final String SKIP_DUPLICATE_ON_URL_UPDATED = "SkipDuplicateOnUrlUpdated";
     public static final String SMART_SUGGESTION_FOR_LARGE_DOWNLOADS =
             "SmartSuggestionForLargeDownloads";
     public static final String SPLIT_CACHE_BY_NETWORK_ISOLATION_KEY =
@@ -886,6 +887,8 @@ public abstract class ChromeFeatureList {
     public static final String TAB_BOTTOM_SHEET_FULL_HEIGHT = "TabBottomSheetFullHeight";
     public static final String TAB_BOTTOM_SHEET_HALF_HEIGHT = "TabBottomSheetHalfHeight";
     public static final String TAB_BOTTOM_SHEET_RESIZE_WEBVIEW = "TabBottomSheetResizeWebview";
+    public static final String TAB_BOTTOM_SHEET_SMOOTH_KEYBOARD_RESIZE =
+            "TabBottomSheetSmoothKeyboardResize";
     public static final String TAB_CLOSURE_COMMITTED_METHOD_REFACTOR =
             "TabClosureCommittedMethodRefactor";
     public static final String TAB_CLOSURE_METHOD_REFACTOR = "TabClosureMethodRefactor";
@@ -1890,6 +1893,8 @@ public abstract class ChromeFeatureList {
             newMutableFlagWithSafeDefault(SIDE_PANEL_TOP_HAIRLINE_REFACTOR_ANDROID, false);
     public static final MutableFlagWithSafeDefault sSideUiAllowPause =
             newMutableFlagWithSafeDefault(SIDE_UI_ALLOW_PAUSE, true);
+    public static final MutableFlagWithSafeDefault sSkipDuplicateOnUrlUpdated =
+            newMutableFlagWithSafeDefault(SKIP_DUPLICATE_ON_URL_UPDATED, false);
     public static final MutableFlagWithSafeDefault sTabAndroidGracefulShutdown =
             newMutableFlagWithSafeDefault(TAB_ANDROID_GRACEFUL_SHUTDOWN, true);
     public static final MutableFlagWithSafeDefault sTabBottomSheet =
@@ -1902,6 +1907,8 @@ public abstract class ChromeFeatureList {
             newMutableFlagWithSafeDefault(TAB_BOTTOM_SHEET_HALF_HEIGHT, false);
     public static final MutableFlagWithSafeDefault sTabBottomSheetResizeWebview =
             newMutableFlagWithSafeDefault(TAB_BOTTOM_SHEET_RESIZE_WEBVIEW, false);
+    public static final MutableFlagWithSafeDefault sTabBottomSheetSmoothKeyboardResize =
+            newMutableFlagWithSafeDefault(TAB_BOTTOM_SHEET_SMOOTH_KEYBOARD_RESIZE, true);
     public static final MutableFlagWithSafeDefault sTabOpenerTracking =
             newMutableFlagWithSafeDefault(TAB_OPENER_TRACKING, true);
     public static final MutableFlagWithSafeDefault sTabSearchForDesktop =

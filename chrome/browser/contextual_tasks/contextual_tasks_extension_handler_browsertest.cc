@@ -269,6 +269,7 @@ class ContextualTasksExtensionHandlerBrowserTestBase
     mojo::PendingReceiver<mojom::ExtensionPageHandler> page_handler_receiver;
     handler_->CreateExtensionPageHandler(mock_page_.BindAndGetRemote(),
                                          std::move(page_handler_receiver));
+    mock_page_.FlushForTesting();
 
     auto* user_data =
         ContextualTasksWebContentsUserData::GetOrCreateForWebContents(
@@ -1038,9 +1039,11 @@ IN_PROC_BROWSER_TEST_F(ContextualTasksExtensionHandlerBrowserTest,
                                           "Switched Tab");
 
   base::RunLoop set_session_loop;
-  EXPECT_CALL(mock_page_, OnTabContextUpdated(_, _))
+  EXPECT_CALL(mock_page_, OnTabContextUpdated(_, _, _))
       .WillOnce([&](std::vector<searchbox::mojom::TabInfoPtr> tabs,
-                    std::vector<int32_t> submitted_tab_ids) {
+                    const std::vector<int32_t>& submitted_tab_ids,
+                    mojom::SmartTabSharingStatePtr
+                    /*smart_tab_sharing_state*/) {
         ASSERT_EQ(tabs.size(), 1u);
         EXPECT_EQ(tabs[0]->tab_id, 42);
         EXPECT_EQ(tabs[0]->url, GURL("https://example.com/switched"));
@@ -1059,9 +1062,11 @@ IN_PROC_BROWSER_TEST_F(ContextualTasksExtensionHandlerBrowserTest,
   // Taking the session handle should notify `OnSessionChanged(nullptr)` and
   // send an empty tab list to the extension page.
   base::RunLoop take_session_loop;
-  EXPECT_CALL(mock_page_, OnTabContextUpdated(_, _))
+  EXPECT_CALL(mock_page_, OnTabContextUpdated(_, _, _))
       .WillOnce([&](std::vector<searchbox::mojom::TabInfoPtr> tabs,
-                    std::vector<int32_t> submitted_tab_ids) {
+                    const std::vector<int32_t>& submitted_tab_ids,
+                    mojom::SmartTabSharingStatePtr
+                    /*smart_tab_sharing_state*/) {
         EXPECT_TRUE(tabs.empty());
         EXPECT_TRUE(submitted_tab_ids.empty());
         take_session_loop.Quit();
@@ -2406,7 +2411,7 @@ IN_PROC_BROWSER_TEST_F(
 
 IN_PROC_BROWSER_TEST_F(
     ContextualTasksExtensionHandlerBrowserTest,
-    OnWebviewMessage_OnSubmitQueryRequest_WithoutRecentInteraction_DoesNotRespond) {
+    OnWebviewMessage_OnSubmitQueryRequest_WithoutRecentInteraction_ReturnsEmptyResponse) {
   content::RenderFrameHost* rfh = web_contents_->GetPrimaryMainFrame();
   tabs::TabInterface* tab = tabs::TabInterface::GetFromContents(web_contents_);
   Profile* profile = Profile::FromBrowserContext(rfh->GetBrowserContext());
@@ -2441,18 +2446,26 @@ IN_PROC_BROWSER_TEST_F(
   EXPECT_CALL(*mock_session_handle_, GetUploadedContextFileInfos())
       .WillRepeatedly(Return(file_infos));
 
-  handler_->GetOrCreateInputStateModelForTesting()->SetLensCrop(
-      "data:image/png;base64,test_crop");
+  base::WeakPtr<contextual_search::InputStateModel> model =
+      handler_->GetOrCreateInputStateModelForTesting();
+  ASSERT_TRUE(model);
+  model->SetLensCrop("data:image/png;base64,test_crop");
+  mock_page_.FlushForTesting();
 
   // Ensure no user interaction was simulated on web_contents_.
   ASSERT_FALSE(web_contents_->HasRecentInteraction());
 
+  base::RunLoop run_loop;
   EXPECT_CALL(mock_page_, PostSearchMessage(_))
       .WillRepeatedly([&](mojo_base::ProtoWrapper wrapper) {
         auto message = wrapper.As<lens::ClientToSearchMessage>();
-        if (message.has_value()) {
-          EXPECT_FALSE(message->has_on_submit_query_response());
+        if (!message.has_value() || !message->has_on_submit_query_response()) {
+          return;
         }
+        EXPECT_EQ(0, message->on_submit_query_response().added_contexts_size());
+        EXPECT_EQ(0,
+                  message->on_submit_query_response().removed_contexts_size());
+        run_loop.Quit();
       });
 
   lens::SearchToClientMessage request;
@@ -2463,12 +2476,14 @@ IN_PROC_BROWSER_TEST_F(
 
   ContextualTasksWebContentsUserData::GetOrCreateForWebContents(web_contents_)
       ->OnSearchMessageReceived(serialized_message);
+  run_loop.Run();
   mock_page_.FlushForTesting();
+  EXPECT_TRUE(model->GetLensCrop().has_value());
 }
 
 IN_PROC_BROWSER_TEST_F(
     ContextualTasksExtensionHandlerBrowserTest,
-    OnWebviewMessage_OnSubmitQueryRequest_ReplayWithoutNewInteraction_DoesNotRespond) {
+    OnWebviewMessage_OnSubmitQueryRequest_ReplayWithoutNewInteraction_ReturnsEmptyResponse) {
   content::RenderFrameHost* rfh = web_contents_->GetPrimaryMainFrame();
   tabs::TabInterface* tab = tabs::TabInterface::GetFromContents(web_contents_);
   Profile* profile = Profile::FromBrowserContext(rfh->GetBrowserContext());
@@ -2539,7 +2554,7 @@ IN_PROC_BROWSER_TEST_F(
       ->OnSearchMessageReceived(serialized_message);
   run_loop1.Run();
   mock_page_.FlushForTesting();
-  EXPECT_FALSE(model->lens_crop().has_value());
+  EXPECT_FALSE(model->GetLensCrop().has_value());
 
   // Set a new crop so that if the replay were processed, it would attach a
   // context and clear the crop.
@@ -2547,17 +2562,23 @@ IN_PROC_BROWSER_TEST_F(
   mock_page_.FlushForTesting();
 
   // 2. Replay the same OnSubmitQueryRequest WITHOUT a new user interaction.
+  base::RunLoop replay_run_loop;
   EXPECT_CALL(mock_page_, PostSearchMessage(_))
       .WillRepeatedly([&](mojo_base::ProtoWrapper wrapper) {
         auto message = wrapper.As<lens::ClientToSearchMessage>();
-        if (message.has_value()) {
-          EXPECT_FALSE(message->has_on_submit_query_response());
+        if (!message.has_value() || !message->has_on_submit_query_response()) {
+          return;
         }
+        EXPECT_EQ(0, message->on_submit_query_response().added_contexts_size());
+        EXPECT_EQ(0,
+                  message->on_submit_query_response().removed_contexts_size());
+        replay_run_loop.Quit();
       });
   ContextualTasksWebContentsUserData::GetOrCreateForWebContents(web_contents_)
       ->OnSearchMessageReceived(serialized_message);
+  replay_run_loop.Run();
   mock_page_.FlushForTesting();
-  EXPECT_TRUE(model->lens_crop().has_value());
+  EXPECT_TRUE(model->GetLensCrop().has_value());
 
   // 3. Simulate a new user interaction and verify submission succeeds again.
   SimulateUserInteraction();
@@ -2577,7 +2598,7 @@ IN_PROC_BROWSER_TEST_F(
       ->OnSearchMessageReceived(serialized_message);
   run_loop2.Run();
   mock_page_.FlushForTesting();
-  EXPECT_FALSE(model->lens_crop().has_value());
+  EXPECT_FALSE(model->GetLensCrop().has_value());
 }
 
 IN_PROC_BROWSER_TEST_F(ContextualTasksExtensionHandlerBrowserTest,
@@ -3430,14 +3451,17 @@ IN_PROC_BROWSER_TEST_F(
   mock_session_handle_->GetUploadedContextTokensForTesting().push_back(token);
 
   base::RunLoop add_run_loop;
-  EXPECT_CALL(mock_page_, OnTabContextUpdated(_, _))
+  EXPECT_CALL(mock_page_, OnTabContextUpdated(_, _, _))
       .WillOnce([&](std::vector<searchbox::mojom::TabInfoPtr> tabs,
-                    const std::vector<int32_t>& submitted_tab_ids) {
+                    const std::vector<int32_t>& submitted_tab_ids,
+                    mojom::SmartTabSharingStatePtr smart_tab_sharing_state) {
         ASSERT_EQ(tabs.size(), 1u);
         EXPECT_EQ(tabs[0]->tab_id, 101);
         EXPECT_EQ(tabs[0]->title, "Tab One");
         EXPECT_EQ(tabs[0]->url, GURL("https://example.com/one"));
         EXPECT_TRUE(submitted_tab_ids.empty());
+        EXPECT_FALSE(smart_tab_sharing_state->active);
+        EXPECT_FALSE(smart_tab_sharing_state->visible);
         add_run_loop.Quit();
       });
 
@@ -3446,11 +3470,14 @@ IN_PROC_BROWSER_TEST_F(
   add_run_loop.Run();
 
   base::RunLoop remove_run_loop;
-  EXPECT_CALL(mock_page_, OnTabContextUpdated(_, _))
+  EXPECT_CALL(mock_page_, OnTabContextUpdated(_, _, _))
       .WillOnce([&](std::vector<searchbox::mojom::TabInfoPtr> tabs,
-                    const std::vector<int32_t>& submitted_tab_ids) {
+                    const std::vector<int32_t>& submitted_tab_ids,
+                    mojom::SmartTabSharingStatePtr smart_tab_sharing_state) {
         EXPECT_TRUE(tabs.empty());
         EXPECT_TRUE(submitted_tab_ids.empty());
+        EXPECT_FALSE(smart_tab_sharing_state->active);
+        EXPECT_FALSE(smart_tab_sharing_state->visible);
         remove_run_loop.Quit();
       });
 
@@ -3467,11 +3494,14 @@ IN_PROC_BROWSER_TEST_F(
   const int32_t active_tab_handle_id = active_tab->GetHandle().raw_value();
 
   base::RunLoop notify_run_loop;
-  EXPECT_CALL(mock_page_, OnTabContextUpdated(_, _))
+  EXPECT_CALL(mock_page_, OnTabContextUpdated(_, _, _))
       .WillOnce([&](std::vector<searchbox::mojom::TabInfoPtr> tabs,
-                    const std::vector<int32_t>& submitted_tab_ids) {
+                    const std::vector<int32_t>& submitted_tab_ids,
+                    mojom::SmartTabSharingStatePtr smart_tab_sharing_state) {
         ASSERT_EQ(tabs.size(), 1u);
         EXPECT_EQ(tabs[0]->tab_id, active_tab_handle_id);
+        EXPECT_FALSE(smart_tab_sharing_state->active);
+        EXPECT_FALSE(smart_tab_sharing_state->visible);
         notify_run_loop.Quit();
       });
 
@@ -3497,10 +3527,13 @@ IN_PROC_BROWSER_TEST_F(
   mock_session_handle_->GetUploadedContextTokensForTesting().push_back(token);
 
   base::RunLoop attach_run_loop;
-  EXPECT_CALL(mock_page_, OnTabContextUpdated(_, _))
+  EXPECT_CALL(mock_page_, OnTabContextUpdated(_, _, _))
       .WillOnce([&](std::vector<searchbox::mojom::TabInfoPtr> tabs,
-                    const std::vector<int32_t>& submitted_tab_ids) {
+                    const std::vector<int32_t>& submitted_tab_ids,
+                    mojom::SmartTabSharingStatePtr smart_tab_sharing_state) {
         ASSERT_EQ(tabs.size(), 1u);
+        EXPECT_FALSE(smart_tab_sharing_state->active);
+        EXPECT_FALSE(smart_tab_sharing_state->visible);
         attach_run_loop.Quit();
       });
   mock_session_handle_->AttachTabPendingUpload(
@@ -3518,15 +3551,18 @@ IN_PROC_BROWSER_TEST_F(
   unique_restored.title = "Restored Tab";
 
   base::RunLoop restore_run_loop;
-  EXPECT_CALL(mock_page_, OnTabContextUpdated(_, _))
+  EXPECT_CALL(mock_page_, OnTabContextUpdated(_, _, _))
       .WillOnce([&](std::vector<searchbox::mojom::TabInfoPtr> tabs,
-                    const std::vector<int32_t>& submitted_tab_ids) {
+                    const std::vector<int32_t>& submitted_tab_ids,
+                    mojom::SmartTabSharingStatePtr smart_tab_sharing_state) {
         ASSERT_EQ(tabs.size(), 2u);
         EXPECT_EQ(tabs[0]->tab_id, 10);
         EXPECT_EQ(tabs[0]->url, GURL("https://example.com/shared"));
         EXPECT_EQ(tabs[1]->tab_id, 20);
         EXPECT_EQ(tabs[1]->url, GURL("https://example.com/restored"));
         EXPECT_THAT(submitted_tab_ids, testing::ElementsAre(20));
+        EXPECT_FALSE(smart_tab_sharing_state->active);
+        EXPECT_FALSE(smart_tab_sharing_state->visible);
         restore_run_loop.Quit();
       });
 
@@ -3575,14 +3611,17 @@ IN_PROC_BROWSER_TEST_F(ContextualTasksExtensionHandlerBrowserTest,
 
   testing::NiceMock<MockContextualTasksExtensionPage> mock_child_page;
   base::RunLoop run_loop;
-  EXPECT_CALL(mock_child_page, OnTabContextUpdated(_, _))
+  EXPECT_CALL(mock_child_page, OnTabContextUpdated(_, _, _))
       .WillOnce([&](std::vector<searchbox::mojom::TabInfoPtr> tabs,
-                    const std::vector<int32_t>& submitted_tab_ids) {
+                    const std::vector<int32_t>& submitted_tab_ids,
+                    mojom::SmartTabSharingStatePtr smart_tab_sharing_state) {
         ASSERT_EQ(tabs.size(), 3u);
         EXPECT_EQ(tabs[0]->tab_id, 12);
         EXPECT_EQ(tabs[1]->tab_id, 11);
         EXPECT_EQ(tabs[2]->tab_id, 13);
         EXPECT_THAT(submitted_tab_ids, testing::ElementsAre(12, 13));
+        EXPECT_FALSE(smart_tab_sharing_state->active);
+        EXPECT_FALSE(smart_tab_sharing_state->visible);
         run_loop.Quit();
       });
 
@@ -3601,14 +3640,17 @@ IN_PROC_BROWSER_TEST_F(ContextualTasksExtensionHandlerBrowserTest,
     mock_session_handle_->GetUploadedContextTokensForTesting().push_back(token);
 
     base::RunLoop run_loop;
-    EXPECT_CALL(mock_page_, OnTabContextUpdated(_, _))
+    EXPECT_CALL(mock_page_, OnTabContextUpdated(_, _, _))
         .WillOnce([&](std::vector<searchbox::mojom::TabInfoPtr> tabs,
-                      const std::vector<int32_t>& /*submitted_tab_ids*/) {
+                      const std::vector<int32_t>& /*submitted_tab_ids*/,
+                      mojom::SmartTabSharingStatePtr smart_tab_sharing_state) {
           std::vector<int32_t> actual_ids;
           for (const auto& tab : tabs) {
             actual_ids.push_back(tab->tab_id);
           }
           EXPECT_EQ(actual_ids, expected_order);
+          EXPECT_FALSE(smart_tab_sharing_state->active);
+          EXPECT_FALSE(smart_tab_sharing_state->visible);
           run_loop.Quit();
         });
 
@@ -3633,15 +3675,18 @@ IN_PROC_BROWSER_TEST_F(ContextualTasksExtensionHandlerBrowserTest,
   restored_2.title = "Restored 2";
 
   base::RunLoop restore_run_loop;
-  EXPECT_CALL(mock_page_, OnTabContextUpdated(_, _))
+  EXPECT_CALL(mock_page_, OnTabContextUpdated(_, _, _))
       .WillOnce([&](std::vector<searchbox::mojom::TabInfoPtr> tabs,
-                    const std::vector<int32_t>& submitted_tab_ids) {
+                    const std::vector<int32_t>& submitted_tab_ids,
+                    mojom::SmartTabSharingStatePtr smart_tab_sharing_state) {
         std::vector<int32_t> actual_ids;
         for (const auto& tab : tabs) {
           actual_ids.push_back(tab->tab_id);
         }
         EXPECT_THAT(actual_ids, testing::ElementsAre(4, 3, 2, 1, 20, 10));
         EXPECT_THAT(submitted_tab_ids, testing::ElementsAre(20, 10));
+        EXPECT_FALSE(smart_tab_sharing_state->active);
+        EXPECT_FALSE(smart_tab_sharing_state->visible);
         restore_run_loop.Quit();
       });
 
@@ -5731,10 +5776,12 @@ IN_PROC_BROWSER_TEST_F(
   mock_session_handle_->SetSubmittedContextTokens({ntp_token});
   {
     base::RunLoop notify_loop;
-    EXPECT_CALL(mock_page_, OnTabContextUpdated(_, _))
+    EXPECT_CALL(mock_page_, OnTabContextUpdated(_, _, _))
         .WillOnce([&notify_loop, ntp_tab_handle_id](
                       std::vector<searchbox::mojom::TabInfoPtr> tabs,
-                      const std::vector<int32_t>& submitted_tab_ids) {
+                      const std::vector<int32_t>& submitted_tab_ids,
+                      mojom::SmartTabSharingStatePtr
+                      /*smart_tab_sharing_state*/) {
           ASSERT_EQ(tabs.size(), 1u);
           EXPECT_EQ(tabs[0]->tab_id, ntp_tab_handle_id);
           EXPECT_THAT(submitted_tab_ids,
@@ -5753,10 +5800,12 @@ IN_PROC_BROWSER_TEST_F(
   restored_ntp.title = "New Tab";
   {
     base::RunLoop restore_notify_loop;
-    EXPECT_CALL(mock_page_, OnTabContextUpdated(_, _))
+    EXPECT_CALL(mock_page_, OnTabContextUpdated(_, _, _))
         .WillOnce([&restore_notify_loop, ntp_tab_handle_id](
                       std::vector<searchbox::mojom::TabInfoPtr> tabs,
-                      const std::vector<int32_t>& submitted_tab_ids) {
+                      const std::vector<int32_t>& submitted_tab_ids,
+                      mojom::SmartTabSharingStatePtr
+                      /*smart_tab_sharing_state*/) {
           ASSERT_EQ(tabs.size(), 1u);
           EXPECT_EQ(tabs[0]->tab_id, ntp_tab_handle_id);
           EXPECT_THAT(submitted_tab_ids,
@@ -5794,10 +5843,12 @@ IN_PROC_BROWSER_TEST_F(
   // re-adding the tab from `state.restored`).
   {
     base::RunLoop deselect_notify_loop;
-    EXPECT_CALL(mock_page_, OnTabContextUpdated(_, _))
+    EXPECT_CALL(mock_page_, OnTabContextUpdated(_, _, _))
         .WillOnce([&deselect_notify_loop](
                       std::vector<searchbox::mojom::TabInfoPtr> tabs,
-                      const std::vector<int32_t>& submitted_tab_ids) {
+                      const std::vector<int32_t>& submitted_tab_ids,
+                      mojom::SmartTabSharingStatePtr
+                      /*smart_tab_sharing_state*/) {
           EXPECT_TRUE(tabs.empty());
           EXPECT_TRUE(submitted_tab_ids.empty());
           deselect_notify_loop.Quit();
@@ -5896,10 +5947,12 @@ IN_PROC_BROWSER_TEST_F(
   restored_tab.title = "Restored Page";
   {
     base::RunLoop restore_loop;
-    EXPECT_CALL(mock_page_, OnTabContextUpdated(_, _))
+    EXPECT_CALL(mock_page_, OnTabContextUpdated(_, _, _))
         .WillOnce([&restore_loop, tab_handle_id](
                       std::vector<searchbox::mojom::TabInfoPtr> tabs,
-                      const std::vector<int32_t>& submitted_tab_ids) {
+                      const std::vector<int32_t>& submitted_tab_ids,
+                      mojom::SmartTabSharingStatePtr
+                      /*smart_tab_sharing_state*/) {
           ASSERT_EQ(tabs.size(), 1u);
           EXPECT_EQ(tabs[0]->tab_id, tab_handle_id);
           restore_loop.Quit();
@@ -5912,14 +5965,16 @@ IN_PROC_BROWSER_TEST_F(
   // 2. Unselecting the restored tab removes it immediately on first click.
   {
     base::RunLoop deselect_loop;
-    EXPECT_CALL(mock_page_, OnTabContextUpdated(_, _))
-        .WillOnce(
-            [&deselect_loop](std::vector<searchbox::mojom::TabInfoPtr> tabs,
-                             const std::vector<int32_t>& submitted_tab_ids) {
-              EXPECT_TRUE(tabs.empty());
-              EXPECT_TRUE(submitted_tab_ids.empty());
-              deselect_loop.Quit();
-            });
+    EXPECT_CALL(mock_page_, OnTabContextUpdated(_, _, _))
+        .WillOnce([&deselect_loop](
+                      std::vector<searchbox::mojom::TabInfoPtr> tabs,
+                      const std::vector<int32_t>& submitted_tab_ids,
+                      mojom::SmartTabSharingStatePtr
+                      /*smart_tab_sharing_state*/) {
+          EXPECT_TRUE(tabs.empty());
+          EXPECT_TRUE(submitted_tab_ids.empty());
+          deselect_loop.Quit();
+        });
     static_cast<searchbox::mojom::PageHandler*>(handler_)->DeleteTabContext(
         tab_handle_id);
     deselect_loop.Run();
@@ -5931,10 +5986,12 @@ IN_PROC_BROWSER_TEST_F(
   // report the re-selected tab as removed.
   {
     base::RunLoop reselect_notify_loop;
-    EXPECT_CALL(mock_page_, OnTabContextUpdated(_, _))
+    EXPECT_CALL(mock_page_, OnTabContextUpdated(_, _, _))
         .WillOnce([&reselect_notify_loop, tab_handle_id](
                       std::vector<searchbox::mojom::TabInfoPtr> tabs,
-                      const std::vector<int32_t>& submitted_tab_ids) {
+                      const std::vector<int32_t>& submitted_tab_ids,
+                      mojom::SmartTabSharingStatePtr
+                      /*smart_tab_sharing_state*/) {
           ASSERT_EQ(tabs.size(), 1u);
           EXPECT_EQ(tabs[0]->tab_id, tab_handle_id);
           reselect_notify_loop.Quit();
@@ -5996,12 +6053,14 @@ IN_PROC_BROWSER_TEST_F(
         });
   };
 
-  // 1. Showing the side panel next to `url1` attaches the active tab as pending
+  // Showing the side panel next to `url1` attaches the active tab as pending
   // delayed and mounts `CONTEXT_LIBRARY`.
   base::RunLoop zero_state_loop;
-  EXPECT_CALL(mock_panel_page_, OnTabContextUpdated(_, _))
+  EXPECT_CALL(mock_panel_page_, OnTabContextUpdated(_, _, _))
       .WillOnce([&url1](std::vector<searchbox::mojom::TabInfoPtr> tabs,
-                        const std::vector<int32_t>& submitted_tab_ids) {
+                        const std::vector<int32_t>& submitted_tab_ids,
+                        mojom::SmartTabSharingStatePtr
+                        /*smart_tab_sharing_state*/) {
         ASSERT_EQ(tabs.size(), 1u);
         EXPECT_EQ(tabs[0]->url, url1);
         EXPECT_TRUE(submitted_tab_ids.empty());
@@ -6012,7 +6071,7 @@ IN_PROC_BROWSER_TEST_F(
   mock_panel_page_.FlushForTesting();
   testing::Mock::VerifyAndClearExpectations(&mock_panel_page_);
 
-  // 2. `OnPageChanged(false)` and `OnPageChanged(true)` preserve the implicit
+  // `OnPageChanged(false)` and `OnPageChanged(true)` preserve the implicit
   // active tab context in the side panel.
   SendOnPageChanged(false);
   SendOnPageChanged(true);
@@ -6025,12 +6084,14 @@ IN_PROC_BROWSER_TEST_F(
   EXPECT_EQ(user_data->GetAutoSuggestedTabHandle(),
             TabListInterface::From(browser())->GetActiveTab()->GetHandle());
 
-  // 3. Navigating the active tab while in zero state updates the implicit tab.
+  // Navigating the active tab while in zero state updates the implicit tab.
   base::RunLoop nav_loop;
-  EXPECT_CALL(mock_panel_page_, OnTabContextUpdated(_, _))
+  EXPECT_CALL(mock_panel_page_, OnTabContextUpdated(_, _, _))
       .WillRepeatedly(
           [&url2, &nav_loop](std::vector<searchbox::mojom::TabInfoPtr> tabs,
-                             const std::vector<int32_t>& submitted_tab_ids) {
+                             const std::vector<int32_t>& submitted_tab_ids,
+                             mojom::SmartTabSharingStatePtr
+                             /*smart_tab_sharing_state*/) {
             if (tabs.size() == 1u && tabs[0]->url == url2 &&
                 tabs[0]->title == "Title Of Awesomeness") {
               EXPECT_TRUE(submitted_tab_ids.empty());
@@ -6046,9 +6107,33 @@ IN_PROC_BROWSER_TEST_F(
   EXPECT_EQ(user_data->GetSelectedTabs()[0].url, url2);
   EXPECT_EQ(user_data->GetSelectedTabs()[0].title, "Title Of Awesomeness");
 
-  // 4. Navigating to `about:blank` removes the implicit tab and unmounts UI.
+  // Navigating to `about:blank` removes the implicit tab, hides
+  // `TAB_PICKER`, and unmounts `CONTEXT_LIBRARY`.
   base::RunLoop unmount_loop;
-  expect_context_library(false, unmount_loop);
+  EXPECT_CALL(mock_panel_page_, PostSearchMessage(_))
+      .WillOnce([](mojo_base::ProtoWrapper wrapper) {
+        auto message = wrapper.As<lens::ClientToSearchMessage>();
+        ASSERT_TRUE(message.has_value());
+        EXPECT_EQ(message->inject_chrome_input().input_type(),
+                  lens::ClientToSearchMessage::InjectChromeInput::TAB_PICKER);
+        EXPECT_FALSE(message->inject_chrome_input().is_active());
+      })
+      .WillOnce([](mojo_base::ProtoWrapper wrapper) {
+        auto message = wrapper.As<lens::ClientToSearchMessage>();
+        ASSERT_TRUE(message.has_value());
+        EXPECT_EQ(
+            message->inject_chrome_input().input_type(),
+            lens::ClientToSearchMessage::InjectChromeInput::CONTEXT_LIBRARY);
+        EXPECT_FALSE(message->inject_chrome_input().is_active());
+      })
+      .WillOnce([&unmount_loop](mojo_base::ProtoWrapper wrapper) {
+        auto message = wrapper.As<lens::ClientToSearchMessage>();
+        ASSERT_TRUE(message.has_value());
+        EXPECT_EQ(message->on_context_state_changed().context_state(),
+                  lens::ClientToSearchMessage::OnContextStateChanged::
+                      CONTEXT_STATE_NONE);
+        unmount_loop.Quit();
+      });
   ASSERT_TRUE(ui_test_utils::NavigateToURL(browser(), GURL("about:blank")));
   unmount_loop.Run();
   EXPECT_TRUE(user_data->GetSelectedTabs().empty());
@@ -6392,9 +6477,12 @@ IN_PROC_BROWSER_TEST_F(ContextualTasksExtensionHandlerBrowserTest,
   // Persisted tabs are keyed by session ID, but are sent to the frontend by
   // tab handle ID, which it uses to identify tabs.
   base::RunLoop tab_context_run_loop;
-  EXPECT_CALL(mock_page_, OnTabContextUpdated(_, _))
-      .WillOnce([&](std::vector<searchbox::mojom::TabInfoPtr> tabs,
-                    const std::vector<int32_t>& submitted_tab_ids) {
+  EXPECT_CALL(mock_page_, OnTabContextUpdated(_, _, _))
+      .WillOnce([&tab_context_run_loop, active_tab_handle_id](
+                    std::vector<searchbox::mojom::TabInfoPtr> tabs,
+                    const std::vector<int32_t>& submitted_tab_ids,
+                    mojom::SmartTabSharingStatePtr
+                    /*smart_tab_sharing_state*/) {
         ASSERT_EQ(tabs.size(), 1u);
         EXPECT_EQ(tabs[0]->tab_id, active_tab_handle_id);
         // The URL and title come from the tab's FileInfo.
@@ -6551,9 +6639,11 @@ IN_PROC_BROWSER_TEST_F(
   {
     base::RunLoop tab_context_loop;
     std::vector<int32_t> updated_tab_ids;
-    EXPECT_CALL(mock_page_, OnTabContextUpdated(_, _))
+    EXPECT_CALL(mock_page_, OnTabContextUpdated(_, _, _))
         .WillOnce([&](std::vector<searchbox::mojom::TabInfoPtr> tabs,
-                      const std::vector<int32_t>& submitted_ids) {
+                      const std::vector<int32_t>& submitted_ids,
+                      mojom::SmartTabSharingStatePtr
+                      /*smart_tab_sharing_state*/) {
           for (const auto& t : tabs) {
             updated_tab_ids.push_back(t->tab_id);
           }
@@ -6584,9 +6674,11 @@ IN_PROC_BROWSER_TEST_F(
   {
     base::RunLoop tab_context_loop;
     size_t remaining_tabs = 99;
-    EXPECT_CALL(mock_page_, OnTabContextUpdated(_, _))
+    EXPECT_CALL(mock_page_, OnTabContextUpdated(_, _, _))
         .WillOnce([&](std::vector<searchbox::mojom::TabInfoPtr> tabs,
-                      const std::vector<int32_t>& submitted_ids) {
+                      const std::vector<int32_t>& submitted_ids,
+                      mojom::SmartTabSharingStatePtr
+                      /*smart_tab_sharing_state*/) {
           remaining_tabs = tabs.size();
           tab_context_loop.Quit();
         });
@@ -6701,11 +6793,12 @@ IN_PROC_BROWSER_TEST_F(
           }
         }
       });
-  EXPECT_CALL(mock_panel_page_, OnTabContextUpdated(_, _))
+  EXPECT_CALL(mock_panel_page_, OnTabContextUpdated(_, _, _))
       .WillRepeatedly(
           [&url2, &saw_updated_tab_coin, &saw_mount_context_library, &nav_loop](
               std::vector<searchbox::mojom::TabInfoPtr> tabs,
-              const std::vector<int32_t>& submitted_tab_ids) {
+              const std::vector<int32_t>& submitted_tab_ids,
+              mojom::SmartTabSharingStatePtr /*smart_tab_sharing_state*/) {
             if (tabs.size() == 1u && tabs[0]->url == url2 &&
                 tabs[0]->title == "Title Of Awesomeness" &&
                 submitted_tab_ids.empty()) {
@@ -6900,6 +6993,79 @@ IN_PROC_BROWSER_TEST_F(ContextualTasksExtensionHandlerBrowserTest,
   const std::optional<GURL>& favicon_data_url = favicon_future.Get();
   ASSERT_TRUE(favicon_data_url.has_value());
   EXPECT_TRUE(favicon_data_url->SchemeIs("data"));
+}
+
+class ContextualTasksExtensionHandlerSmartTabSharingBrowserTest
+    : public ContextualTasksExtensionHandlerBrowserTestBase {
+ public:
+  ContextualTasksExtensionHandlerSmartTabSharingBrowserTest()
+      : ContextualTasksExtensionHandlerBrowserTestBase(
+            {kContextualTasks, kContextualTasksRearchitecture,
+             kContextualTasksForceEntryPointEligibility,
+             kContextualTasksContextLibrary},
+            {}) {
+    sts_feature_list_.InitAndEnableFeatureWithParameters(
+        kContextualTasksContext,
+        {{kContextualTasksContextSmartTabSharing.name, "true"},
+         {kContextualTasksContextSmartTabSharingRearchitecture.name, "true"}});
+  }
+
+ private:
+  base::test::ScopedFeatureList sts_feature_list_;
+};
+
+IN_PROC_BROWSER_TEST_F(
+    ContextualTasksExtensionHandlerSmartTabSharingBrowserTest,
+    SetSmartTabSharingActive_UpdatesExtensionPageAndResetsToDefault) {
+  base::test::TestFuture<bool> initial_future;
+  handler_->GetSmartTabSharingActive(initial_future.GetCallback());
+  EXPECT_FALSE(initial_future.Get());
+
+  // Seed an attached tab before toggling Smart Tab Sharing on.
+  mock_session_handle_->AddPendingDelayedTab(
+      10, GURL("https://example.com/manual"), "Manual Tab");
+  mock_page_.FlushForTesting();
+
+  // Toggling Smart Tab Sharing ON notifies the extension page and hides
+  // manual/restored tabs.
+  base::RunLoop on_run_loop;
+  EXPECT_CALL(mock_page_, OnTabContextUpdated(_, _, _))
+      .WillRepeatedly(
+          [&on_run_loop](
+              std::vector<searchbox::mojom::TabInfoPtr> tabs,
+              const std::vector<int32_t>& submitted_tab_ids,
+              mojom::SmartTabSharingStatePtr smart_tab_sharing_state) {
+            EXPECT_TRUE(tabs.empty());
+            EXPECT_TRUE(submitted_tab_ids.empty());
+            EXPECT_TRUE(smart_tab_sharing_state->active);
+            EXPECT_TRUE(smart_tab_sharing_state->visible);
+            on_run_loop.Quit();
+          });
+  handler_->SetSmartTabSharingActive(true);
+  on_run_loop.Run();
+  mock_page_.FlushForTesting();
+  testing::Mock::VerifyAndClearExpectations(&mock_page_);
+
+  base::test::TestFuture<bool> active_future;
+  handler_->GetSmartTabSharingActive(active_future.GetCallback());
+  EXPECT_TRUE(active_future.Get());
+
+  // Resetting Smart Tab Sharing returns to the default state and notifies the
+  // extension page.
+  base::RunLoop reset_run_loop;
+  EXPECT_CALL(mock_page_, OnTabContextUpdated(_, _, _))
+      .WillOnce([&reset_run_loop](
+                    std::vector<searchbox::mojom::TabInfoPtr> /*tabs*/,
+                    const std::vector<int32_t>& /*submitted_tab_ids*/,
+                    mojom::SmartTabSharingStatePtr smart_tab_sharing_state) {
+        EXPECT_FALSE(smart_tab_sharing_state->active);
+        EXPECT_TRUE(smart_tab_sharing_state->visible);
+        reset_run_loop.Quit();
+      });
+  base::test::TestFuture<bool> reset_future;
+  handler_->ResetSmartTabSharing(reset_future.GetCallback());
+  EXPECT_FALSE(reset_future.Get());
+  reset_run_loop.Run();
 }
 
 }  // namespace contextual_tasks

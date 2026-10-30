@@ -20,6 +20,7 @@
 #include "chrome/browser/profiles/profile_selections.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
 #include "chrome/browser/ui/omnibox/omnibox_next_features.h"
+#include "chrome/browser/ui/tabs/organizer/organizer_panel_utils.h"
 #include "chrome/browser/ui/ui_features.h"
 #include "chrome/common/chrome_features.h"
 #include "chrome/test/base/in_process_browser_test.h"
@@ -417,11 +418,13 @@ class ProfileKeyedServiceGuestBrowserTest
   ProfileKeyedServiceGuestBrowserTest() {
     // TODO(crbug.com/452061489): Fix tests that fail when the WebUI Omnibox is
     // enabled and then remove this.
+    // TODO(crbug.com/579030694): Investigate lazy loading OrganizerPanel.
     scoped_feature_list_.InitWithFeatures(
         /*enabled_features=*/{},
         /*disabled_features=*/
         {omnibox::internal::kWebUIOmniboxPopup,
-         omnibox::internal::kWebUIOmniboxAimPopup});
+         omnibox::internal::kWebUIOmniboxAimPopup,
+         organizer_panel::kOrganizerPanel});
   }
   ~ProfileKeyedServiceGuestBrowserTest() override = default;
 
@@ -445,10 +448,12 @@ class ProfileKeyedServiceGuestBrowserTest
   ProfileKeyedServiceGuestBrowserTest() {
     // TODO(crbug.com/452061489): Fix tests that fail when the WebUI Omnibox is
     // enabled and then remove this.
+    // TODO(crbug.com/579030694): Investigate lazy loading OrganizerPanel.
     scoped_feature_list_.InitWithFeatures(
         /*enabled_features=*/{},
         /*disabled_features=*/{omnibox::internal::kWebUIOmniboxPopup,
-                               omnibox::internal::kWebUIOmniboxAimPopup});
+                               omnibox::internal::kWebUIOmniboxAimPopup,
+                               organizer_panel::kOrganizerPanel});
   }
   ~ProfileKeyedServiceGuestBrowserTest() override = default;
 
@@ -642,6 +647,14 @@ IN_PROC_BROWSER_TEST_F(ProfileKeyedServiceGuestBrowserTest,
     guest_otr_active_services.insert("AimEligibilityExtensionBridge");
     guest_otr_active_services.insert("ExtensionMojoBinderRegistry");
   }
+#if BUILDFLAG(ENABLE_EXTENSIONS_CORE)
+  if (base::FeatureList::IsEnabled(
+          contextual_tasks::kContextualTasksRearchitecture)) {
+    guest_otr_active_services.insert("ContextualTasksExtensionBridge");
+    guest_otr_active_services.insert("ExtensionConfigMap");
+    guest_otr_active_services.insert("ExtensionMojoBinderRegistry");
+  }
+#endif  // BUILDFLAG(ENABLE_EXTENSIONS_CORE)
 
   // On ChromeOS, Guest session startup navigates to chrome://newtab (a WebUI)
   // by default, whereas Desktop CreateGuestBrowser() navigates to about:blank.
@@ -667,13 +680,6 @@ IN_PROC_BROWSER_TEST_F(ProfileKeyedServiceGuestBrowserTest,
   ASSERT_FALSE(guest_otr_profile->IsRegularProfile());
   ASSERT_TRUE(guest_otr_profile->IsOffTheRecord());
   ASSERT_TRUE(guest_otr_profile->IsGuestSession());
-  if (features::IsLazyOptimizationGuideModelsEnabled()) {
-    // OptimizationGuideGlobalStateHolderKeyedService remains active here
-    // because CreateGuestBrowser() creates a WebContents whose
-    // ChromeTranslateClient instantiates LanguageDetectionModelService.
-    guest_otr_active_services.erase("OnDeviceTailModelService");
-    guest_otr_active_services.erase("PredictionModelHandlerProvider");
-  }
   if (base::FeatureList::IsEnabled(features::kLazyKeyedServiceInstantiation) &&
       features::kLazyKeyedServiceInstantiationExtensions.Get()) {
     guest_otr_active_services.erase("SafeBrowsingPrivateEventRouter");
@@ -1105,6 +1111,12 @@ IN_PROC_BROWSER_TEST_F(ProfileKeyedServiceGuestBrowserTest,
   }
 #if BUILDFLAG(ENABLE_EXTENSIONS_CORE)
   if (base::FeatureList::IsEnabled(
+          contextual_tasks::kContextualTasksRearchitecture)) {
+    guest_active_services.insert("ContextualTasksExtensionBridge");
+    guest_active_services.insert("ExtensionConfigMap");
+    guest_active_services.insert("ExtensionMojoBinderRegistry");
+  }
+  if (base::FeatureList::IsEnabled(
           policy::features::kEnableExtensionInstallPolicyFetching)) {
     guest_active_services.insert("ExtensionInstallPolicyService");
   }
@@ -1142,13 +1154,6 @@ IN_PROC_BROWSER_TEST_F(ProfileKeyedServiceGuestBrowserTest,
       features::kLazyKeyedServiceInstantiationOptimizationGuide.Get()) {
     guest_active_services.erase("PageContentAnnotationsService");
     guest_active_services.erase("ZeroSuggestCacheServiceFactory");
-  }
-  if (features::IsLazyOptimizationGuideModelsEnabled()) {
-    guest_active_services.erase("AutocompleteScoringModelService");
-    guest_active_services.erase("OnDeviceTailModelService");
-    guest_active_services.erase(
-        "OptimizationGuideGlobalStateHolderKeyedService");
-    guest_active_services.erase("PredictionModelHandlerProvider");
   }
   if (features::IsLazyAfterStartupKeyedServicesEnabled()) {
     guest_active_services.erase("AutofillPrivateEventRouter");

@@ -517,6 +517,7 @@ const base::Feature* const kFeaturesExposedToJava[] = {
     &kShowTabListAnimations,
     &kSidePanelTopHairlineRefactorAndroid,
     &kSideUiAllowPause,
+    &kSkipDuplicateOnUrlUpdated,
     &kStartSurfaceReturnTime,
     &kSubmenusInAppMenu,
     &kSubmenusInAppMenuLff,
@@ -528,6 +529,7 @@ const base::Feature* const kFeaturesExposedToJava[] = {
     &kTabBottomSheetFullHeight,
     &kTabBottomSheetHalfHeight,
     &kTabBottomSheetResizeWebview,
+    &kTabBottomSheetSmoothKeyboardResize,
     &kTabClosureCommittedMethodRefactor,
     &kTabClosureMethodRefactor,
     &kTabGroupActionsSubmenus,
@@ -984,6 +986,7 @@ BASE_FEATURE(kShortCircuitUnfocusAnimation, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kShowTabListAnimations, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kSidePanelTopHairlineRefactorAndroid, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kSideUiAllowPause, base::FEATURE_ENABLED_BY_DEFAULT);
+BASE_FEATURE(kSkipDuplicateOnUrlUpdated, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kStartSurfaceReturnTime, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kSubmenusInAppMenu, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kSubmenusInAppMenuLff, base::FEATURE_DISABLED_BY_DEFAULT);
@@ -995,6 +998,7 @@ BASE_FEATURE(kTabBottomSheetEdgeToEdge, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kTabBottomSheetFullHeight, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kTabBottomSheetHalfHeight, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kTabBottomSheetResizeWebview, base::FEATURE_DISABLED_BY_DEFAULT);
+BASE_FEATURE(kTabBottomSheetSmoothKeyboardResize, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kTabClosureCommittedMethodRefactor, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kTabClosureMethodRefactor, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kTabGroupActionsSubmenus, base::FEATURE_DISABLED_BY_DEFAULT);

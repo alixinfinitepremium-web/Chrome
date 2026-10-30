@@ -874,7 +874,7 @@ suite('TabPickerTest', () => {
         'rgb(255, 255, 255)', window.getComputedStyle(dialog).backgroundColor);
     assertEquals('rgb(31, 31, 31)', window.getComputedStyle(item0).color);
     assertEquals(
-        'rgba(0, 0, 0, 0.04)',
+        'rgba(10, 10, 10, 0.08)',
         window.getComputedStyle(app.$.shareTabsTrigger).backgroundColor);
     assertEquals(
         '#0b57d0',
@@ -893,7 +893,7 @@ suite('TabPickerTest', () => {
         'rgb(44, 46, 54)', window.getComputedStyle(dialog).backgroundColor);
     assertEquals('rgb(230, 232, 240)', window.getComputedStyle(item0).color);
     assertEquals(
-        'rgb(53, 53, 53)',
+        'rgba(230, 232, 240, 0.08)',
         window.getComputedStyle(app.$.shareTabsTrigger).backgroundColor);
     assertEquals(
         '#a8c7fa',
@@ -1080,7 +1080,7 @@ suite('TabPickerTest', () => {
       'Repopulates selected tabs when onTabContextUpdated is dispatched',
       async () => {
         extensionBrowserProxy.callbackRouterRemote.onTabContextUpdated(
-            [tab0, tab2], []);
+            [tab0, tab2], [], {active: false, visible: false});
         await extensionBrowserProxy.callbackRouterRemote.$.flushForTesting();
         await microtasksFinished();
 
@@ -1115,7 +1115,8 @@ suite('TabPickerTest', () => {
             createTabInfo(3, 'Tab Three Navigated', 'https://example.com/3b');
         testProxy.resetResolver('getRecentTabs');
         testProxy.setRecentTabs([tab1, updatedTab2]);
-        extensionBrowserProxy.callbackRouterRemote.onTabContextUpdated([], []);
+        extensionBrowserProxy.callbackRouterRemote.onTabContextUpdated(
+            [], [], {active: false, visible: false});
         await extensionBrowserProxy.callbackRouterRemote.$.flushForTesting();
         await testProxy.whenCalled('getRecentTabs');
         await microtasksFinished();
@@ -1131,7 +1132,8 @@ suite('TabPickerTest', () => {
         // closes automatically.
         testProxy.resetResolver('getRecentTabs');
         testProxy.setRecentTabs([]);
-        extensionBrowserProxy.callbackRouterRemote.onTabContextUpdated([], []);
+        extensionBrowserProxy.callbackRouterRemote.onTabContextUpdated(
+            [], [], {active: false, visible: false});
         await extensionBrowserProxy.callbackRouterRemote.$.flushForTesting();
         await testProxy.whenCalled('getRecentTabs');
         await microtasksFinished();

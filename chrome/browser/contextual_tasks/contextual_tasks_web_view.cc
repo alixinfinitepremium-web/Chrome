@@ -12,7 +12,6 @@
 #include "base/logging.h"
 #include "chrome/browser/contextual_search/contextual_search_web_contents_helper.h"
 #include "chrome/browser/contextual_tasks/contextual_tasks_ghost_loader_view.h"
-#include "chrome/browser/contextual_tasks/contextual_tasks_ui.h"
 #include "chrome/browser/contextual_tasks/contextual_tasks_ui_base.h"
 #include "chrome/browser/contextual_tasks/contextual_tasks_ui_service.h"
 #include "chrome/browser/contextual_tasks/contextual_tasks_ui_service_factory.h"
@@ -55,7 +54,25 @@
 namespace contextual_tasks {
 
 namespace {
+
 constexpr SkColor kDarkModeBackgroundColor = SkColorSetRGB(34, 36, 43);
+
+void UpdateToolbarStateForUrl(const GURL& url,
+                              ContextualTasksUiService* ui_service,
+                              ContextualTasksUIBase* toolbar_ui) {
+  const bool is_ai_url = ui_service && ui_service->IsAiUrl(url);
+  toolbar_ui->SetIsAiPage(is_ai_url);
+  toolbar_ui->UpdateProfileIndicator(url);
+
+  std::string query_value;
+  if (is_ai_url && net::GetValueForKeyInQuery(url, "q", &query_value) &&
+      !query_value.empty()) {
+    toolbar_ui->SetThreadTitle(query_value);
+  } else {
+    toolbar_ui->SetThreadTitle(std::nullopt);
+  }
+}
+
 }  // namespace
 
 // static
@@ -142,7 +159,8 @@ ContextualTasksWebView::ContextualTasksWebView(
             browser_window->GetProfile(), ghost_loader_web_contents));
     ConfigureWebContentsBackground(ghost_loader_view_->GetWebContents(),
                                    browser_window->GetProfile());
-    ghost_loader_view_->SetVisible(false);
+    is_error_page_visible_ = ghost_loader_view_->is_showing_error_page();
+    UpdateScrimVisibility();
     webui::SetBrowserWindowInterface(ghost_loader_view_->GetWebContents(),
                                      browser_window);
 
@@ -252,11 +270,29 @@ void ContextualTasksWebView::SetGhostLoaderVisible(bool visible) {
   if (visible && !GetIsGhostLoaderEnabled()) {
     return;
   }
-  ghost_loader_view_->SetVisible(visible);
+  is_ghost_loader_visible_ = visible;
+  UpdateScrimVisibility();
 }
 
 bool ContextualTasksWebView::IsGhostLoaderVisible() const {
-  return ghost_loader_view_ && ghost_loader_view_->GetVisible();
+  return ghost_loader_view_ && ghost_loader_view_->GetVisible() &&
+         !ghost_loader_view_->is_showing_error_page();
+}
+
+void ContextualTasksWebView::SetErrorPageVisible(bool visible) {
+  if (!ghost_loader_view_) {
+    return;
+  }
+  if (visible && !GetIsProtectedPageErrorEnabled()) {
+    return;
+  }
+  is_error_page_visible_ = visible;
+  UpdateScrimVisibility();
+}
+
+bool ContextualTasksWebView::IsErrorPageVisible() const {
+  return ghost_loader_view_ && ghost_loader_view_->GetVisible() &&
+         ghost_loader_view_->is_showing_error_page();
 }
 
 void ContextualTasksWebView::OnThemeChanged() {
@@ -401,20 +437,7 @@ void ContextualTasksWebView::DidFinishNavigation(
         browser_window_->GetProfile());
   }
 
-  const GURL& url = navigation_handle->GetURL();
-  const bool is_ai_url = ui_service && ui_service->IsAiUrl(url);
-  toolbar_ui->SetIsAiPage(is_ai_url);
-  toolbar_ui->UpdateProfileIndicator(url);
-
-  if (!is_ai_url || ContextualTasksUI::IsZeroState(url, ui_service)) {
-    toolbar_ui->SetThreadTitle(std::nullopt);
-  } else {
-    std::string query_value;
-    if (net::GetValueForKeyInQuery(url, "q", &query_value) &&
-        !query_value.empty()) {
-      toolbar_ui->SetThreadTitle(query_value);
-    }
-  }
+  UpdateToolbarStateForUrl(navigation_handle->GetURL(), ui_service, toolbar_ui);
   toolbar_ui->MaybeTriggerPinningPromo();
 
   if (ui_service) {
@@ -658,20 +681,20 @@ void ContextualTasksWebView::UpdateToolbarStateFromWebContents(
       browser_window_->GetProfile());
   const GURL& url =
       use_last_committed_url ? wc->GetLastCommittedURL() : wc->GetVisibleURL();
-  const bool is_ai_url = ui_service && ui_service->IsAiUrl(url);
-  toolbar_ui->SetIsAiPage(is_ai_url);
-  toolbar_ui->UpdateProfileIndicator(url);
+  UpdateToolbarStateForUrl(url, ui_service, toolbar_ui);
+}
 
-  if (!is_ai_url || ContextualTasksUI::IsZeroState(url, ui_service)) {
-    toolbar_ui->SetThreadTitle(std::nullopt);
+void ContextualTasksWebView::UpdateScrimVisibility() {
+  if (!ghost_loader_view_) {
     return;
   }
-
-  std::string query_value;
-  if (net::GetValueForKeyInQuery(url, "q", &query_value) &&
-      !query_value.empty()) {
-    toolbar_ui->SetThreadTitle(query_value);
+  if (is_error_page_visible_) {
+    ghost_loader_view_->SetShowErrorPage(true);
+    ghost_loader_view_->SetVisible(true);
+    return;
   }
+  ghost_loader_view_->SetShowErrorPage(false);
+  ghost_loader_view_->SetVisible(is_ghost_loader_visible_);
 }
 
 BEGIN_METADATA(ContextualTasksWebView)

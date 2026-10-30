@@ -3911,16 +3911,21 @@ class ContextualTasksCopyUrlTest
     const WebContentsInteractionTestUtil::DeepQuery kReadonlyOmniboxDeepQuery =
         {"toolbar-app", "location-bar", "readonly-omnibox"};
     if (IsWebUI()) {
-      return Steps(FocusWebContents(kPrimaryTab),
-                   SendAccelerator(kBrowserViewElementId, focus_accelerator),
-                   WaitForJsResultAt(kWebUIToolbarId, kTextInputDeepQuery,
-                                     "el => el.matches(':focus-visible')"),
-                   ExecuteJsAt(kWebUIToolbarId, kTextInputDeepQuery,
-                               "(el) => { el.select(); }"),
-                   WaitForJsResultAt(kWebUIToolbarId, kReadonlyOmniboxDeepQuery,
-                                     "el => el.adjustedCopyResult_ !== null"),
-                   ExecuteJsAt(kWebUIToolbarId, kTextInputDeepQuery,
-                               "(el) => { document.execCommand('copy'); }"));
+      return Steps(
+          WaitForJsResultAt(kWebUIToolbarId, kTextInputDeepQuery,
+                            "el => el.value.includes('google.com/search')"),
+          FocusWebContents(kPrimaryTab),
+          SendAccelerator(kBrowserViewElementId, focus_accelerator),
+          WaitForJsResultAt(kWebUIToolbarId, kTextInputDeepQuery,
+                            "el => el.matches(':focus-visible')"),
+          ExecuteJsAt(kWebUIToolbarId, kTextInputDeepQuery,
+                      "(el) => { el.select(); }"),
+          WaitForJsResultAt(
+              kWebUIToolbarId, kReadonlyOmniboxDeepQuery,
+              "el => Boolean(el.adjustedCopyResult?.adjustedText?.startsWith("
+              "'https://www.google.com/search?udm=50&q=test'))"),
+          ExecuteJsAt(kWebUIToolbarId, kTextInputDeepQuery,
+                      "(el) => { document.execCommand('copy'); }"));
     } else {
       return Steps(FocusWebContents(kPrimaryTab),
                    SendAccelerator(kBrowserViewElementId, focus_accelerator),
@@ -3934,13 +3939,7 @@ class ContextualTasksCopyUrlTest
   }
 };
 
-// TODO(crbug.com/542608217): Disable on Linux MSan due to failure/flakiness.
-#if BUILDFLAG(IS_LINUX) && defined(MEMORY_SANITIZER)
-#define MAYBE_CopyUrl DISABLED_CopyUrl
-#else
-#define MAYBE_CopyUrl CopyUrl
-#endif
-IN_PROC_BROWSER_TEST_P(ContextualTasksCopyUrlTest, MAYBE_CopyUrl) {
+IN_PROC_BROWSER_TEST_P(ContextualTasksCopyUrlTest, CopyUrl) {
   // TODO(crbug.com/533072196): Clean up this test once the pre-rearchitecture
   // logic is cleaned up.
   SkipIfNotSignedIn(
@@ -3965,11 +3964,12 @@ IN_PROC_BROWSER_TEST_P(ContextualTasksCopyUrlTest, MAYBE_CopyUrl) {
       // Instrument the inner WebContents and wait for it to load.
       InstrumentInnerWebContents(kInnerWebContentsId, kPrimaryTab, 0),
 
-      FocusAndCopy(focus_accelerator, copy_accelerator),
-
-      // Verify clipboard.
+      // Observe clipboard state before copying so the monitor observer is ready
+      // before the clipboard data changes.
       ObserveState(kClipboardText,
                    []() { return ui::ClipboardMonitor::GetInstance(); }),
+      FocusAndCopy(focus_accelerator, copy_accelerator),
+
       // The display URL is chrome://google.com/search?q=test&udm=50 (with
       // chrome:// scheme) but when copied it should be swapped to
       // https://www.google.com/search?udm=50&q=test...
@@ -4889,8 +4889,10 @@ class ContextualTasksExtensionLensButtonInteractiveUiTest
     enabled.push_back({kContextualTasksRearchitecture, {}});
     enabled.push_back({kContextualTasksSidePanelRearchitecture, {}});
     enabled.push_back({extensions_features::kApiContextualTasksPrivate, {}});
-    feature_list_.InitWithFeaturesAndParameters(enabled,
-                                                GetDefaultDisabledFeatures());
+    std::vector<base::test::FeatureRef> disabled = GetDefaultDisabledFeatures();
+    std::erase(disabled, kContextualTasksRearchitecture);
+    std::erase(disabled, kContextualTasksSidePanelRearchitecture);
+    feature_list_.InitWithFeaturesAndParameters(enabled, disabled);
   }
 
   void SetUpOnMainThread() override {
@@ -5179,8 +5181,10 @@ class ContextualTasksExtensionTabPickerInteractiveUiTest
     enabled.push_back({kEnableContextualTasksPinButtonInToolbar, {}});
     enabled.push_back({kContextualTasksForceEntryPointEligibility, {}});
     enabled.push_back({extensions_features::kApiContextualTasksPrivate, {}});
-    feature_list_.InitWithFeaturesAndParameters(enabled,
-                                                GetDefaultDisabledFeatures());
+    std::vector<base::test::FeatureRef> disabled = GetDefaultDisabledFeatures();
+    std::erase(disabled, kContextualTasksRearchitecture);
+    std::erase(disabled, kContextualTasksSidePanelRearchitecture);
+    feature_list_.InitWithFeaturesAndParameters(enabled, disabled);
   }
 
   void SetUpOnMainThread() override {
@@ -5946,11 +5950,10 @@ class ContextualTasksSidePanelTabStateInteractiveUiTest
       disabled.push_back(kContextualTasksSidePanelTabState);
     }
     if (IsRearchitectureEnabled()) {
+      std::erase(disabled, kContextualTasksRearchitecture);
+      std::erase(disabled, kContextualTasksSidePanelRearchitecture);
       enabled.push_back({kContextualTasksRearchitecture, {}});
       enabled.push_back({kContextualTasksSidePanelRearchitecture, {}});
-    } else {
-      disabled.push_back(kContextualTasksRearchitecture);
-      disabled.push_back(kContextualTasksSidePanelRearchitecture);
     }
     feature_list_.InitWithFeaturesAndParameters(enabled, disabled);
   }

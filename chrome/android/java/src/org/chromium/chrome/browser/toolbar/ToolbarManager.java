@@ -1276,6 +1276,14 @@ public class ToolbarManager
                         mBrowserControlsSizer,
                         mControlContainer,
                         lockTopControlsTokenJar);
+        mResourceProvider =
+                new OmniboxResourceProvider(
+                        mActivity,
+                        OmniboxResourceProvider.getBrandedColorScheme(
+                                mActivity,
+                                mLocationBarModel.isIncognitoBranded(),
+                                mLocationBarModel.getPrimaryColor()),
+                        TabFavicon::getBitmap);
         mToolbar =
                 createTopToolbarCoordinator(
                         controlContainer,
@@ -1303,15 +1311,6 @@ public class ToolbarManager
 
         tabObscuringHandler.addObserver(this);
 
-        mResourceProvider =
-                new OmniboxResourceProvider(
-                        mActivity,
-                        OmniboxResourceProvider.getBrandedColorScheme(
-                                mActivity,
-                                mLocationBarModel.isIncognitoBranded(),
-                                mLocationBarModel.getPrimaryColor()),
-                        TabFavicon::getBitmap);
-
         Runnable scrimClickAction = this::onScrimClicked;
         View scrimTarget = mCompositorViewHolder;
         mLocationBarFocusHandler =
@@ -1319,7 +1318,7 @@ public class ToolbarManager
                         scrimManager,
                         new TabObscuringCallback(tabObscuringHandler),
                         /* context= */ activity,
-                        mLocationBarModel,
+                        mResourceProvider,
                         scrimClickAction,
                         scrimTarget,
                         mTabStripTopControlLayer.getSupplier(),
@@ -2280,7 +2279,8 @@ public class ToolbarManager
                         this::endFuseboxInput,
                         mDownloadButtonStateSupplier,
                         this::onDownloadButtonClicked,
-                        suppressTabStripAtStart);
+                        suppressTabStripAtStart,
+                        mResourceProvider);
 
         mHomepageStateListener =
                 () -> {
