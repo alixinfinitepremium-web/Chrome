@@ -322,7 +322,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '607de4b035dcf7fdbaafb66c6cc04f22009ff4d4',
+  'skia_revision': '3df52f9ec5460b13943441def15d7fcbd2b7e94c',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -330,7 +330,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': '4a5ccd7b61e6ea3bf8bb1c486ac5f92ee7bf4f67',
+  'angle_revision': 'c89749284728d778ded3790033ad77edc7a11265',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -440,7 +440,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': '74110539f03f5396857dbcebe5ba23c411d73f21',
+  'dawn_revision': '23562a136e1f71b2f4d94282e56c209623e8160f',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -3264,7 +3264,7 @@ deps = {
     Var('chromium_git') + '/webpagereplay.git' + '@' + Var('webpagereplay_revision'),
 
   'src/third_party/webrtc':
-    Var('webrtc_git') + '/src.git' + '@' + 'da453efd537448020ae05dfd9c7772650169aa80',
+    Var('webrtc_git') + '/src.git' + '@' + '977d8730b5cd631f58721225b383d5118a1914bc',
 
   # Wuffs' canonical repository is at github.com/google/wuffs, but we use
   # Skia's mirror of Wuffs, the same as in upstream Skia's DEPS file.
@@ -3415,7 +3415,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/help_app/app',
-        'version': 'LqMb85C3v-l2y_PcoFyYxMWlzYC0ksxhLinn-oVlRywC',
+        'version': '-rLBJ4f-9k2BCFsvISjW4oDpM3-NCUnKZV8UAhhZUFcC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3426,7 +3426,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/media_app/app',
-        'version': 'U-aGZ4fJGTJ0-iC2Epv_ctOCrMtvFl_VH9sXuFwC_OsC',
+        'version': 'IMioDnbRDTC_jg9kSC8He6VzZKgGfk2iPn1fKQMTmdAC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
