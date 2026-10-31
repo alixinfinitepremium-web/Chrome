@@ -42,9 +42,9 @@
 #include "ui/base/accelerators/command.h"
 #include "ui/base/l10n/l10n_util.h"
 #include "ui/base/mojom/menu_source_type.mojom.h"
+#include "ui/base/mojom/window_open_disposition.mojom-shared.h"
 #include "ui/base/page_transition_types.h"
 #include "ui/base/webui/web_ui_util.h"
-#include "ui/base/window_open_disposition.h"
 #include "ui/base/window_open_disposition_utils.h"
 #include "ui/views/view.h"
 #include "ui/views/widget/widget.h"
@@ -57,25 +57,6 @@ namespace {
 // recognition, allowing Google Search to return voice-optimized results.
 constexpr char kVoiceSearchQueryParameterKey[] = "gs_ivs";
 constexpr char kVoiceSearchQueryParameterValue[] = "1";
-
-bool IsFuseboxEligible(Profile* profile) {
-  if (!profile) {
-    return false;
-  }
-  auto* aim_eligibility_service =
-      AimEligibilityServiceFactory::GetForProfile(profile);
-  return aim_eligibility_service &&
-         aim_eligibility_service->IsFuseboxEligible();
-}
-
-bool IsFuseboxEnabled(Profile* profile) {
-  if (!IsFuseboxEligible(profile)) {
-    return false;
-  }
-  return !profile || !profile->GetPrefs() ||
-         profile->GetPrefs()->GetBoolean(
-             omnibox_everywhere::prefs::kOmniboxEverywhereShowAiMode);
-}
 
 omnibox_everywhere::FreStage MojoFreStageToFreStage(
     searchbox::mojom::FreStage stage) {
@@ -127,7 +108,7 @@ class OmniboxEverywhereClient : public ContextualOmniboxClient {
   void OnAutocompleteAccept(
       const GURL& destination_url,
       TemplateURLRef::PostContent* post_content,
-      WindowOpenDisposition disposition,
+      ui::mojom::WindowOpenDisposition disposition,
       ui::PageTransition transition,
       omnibox::AutocompleteMatchType match_type,
       base::TimeTicks match_selection_timestamp,
@@ -141,7 +122,8 @@ class OmniboxEverywhereClient : public ContextualOmniboxClient {
     }
   }
 
-  void OpenUrl(GURL gurl, WindowOpenDisposition disposition) override {
+  void OpenUrl(GURL gurl,
+               ui::mojom::WindowOpenDisposition disposition) override {
     if (service_) {
       service_->OpenUrl(gurl, disposition, ui::PAGE_TRANSITION_GENERATED);
     }
@@ -285,7 +267,7 @@ void OmniboxEverywhereHandler::SubmitQuery(const std::string& query_text,
                                            bool meta_key,
                                            bool shift_key,
                                            bool is_voice_search) {
-  if (!is_voice_search) {
+  if (!is_voice_search && OmniboxEverywhereUI::IsFuseboxEnabled(profile_)) {
     ContextualSearchboxHandler::SubmitQuery(query_text, mouse_button, alt_key,
                                             ctrl_key, meta_key, shift_key,
                                             is_voice_search);
@@ -295,8 +277,9 @@ void OmniboxEverywhereHandler::SubmitQuery(const std::string& query_text,
   // In classic Omnibox mode, unlike Composebox mode (which handles contextual
   // file/tab attachments via ComposeboxEverywhereHandler and routes through
   // ComposeboxQueryController), there are no contextual attachments. Voice
-  // searches from classic Omnibox mode should navigate directly to the user's
-  // default search provider rather than being routed to AI Mode (udm=50).
+  // searches from classic Omnibox mode, and typed queries when AI Mode is
+  // unavailable, should navigate directly to the user's default search provider
+  // rather than being routed to AI Mode (udm=50).
   //
   // Unlike the New Tab Page, which can perform a client-side navigation inside
   // its own tab, Omnibox Everywhere runs in a standalone popup window. We must
@@ -317,12 +300,13 @@ void OmniboxEverywhereHandler::SubmitQuery(const std::string& query_text,
 
   TemplateURLRef::SearchTermsArgs search_terms_args(
       base::UTF8ToUTF16(query_text));
-  if (search::DefaultSearchProviderIsGoogle(template_url_service)) {
+  if (is_voice_search &&
+      search::DefaultSearchProviderIsGoogle(template_url_service)) {
     search_terms_args.additional_query_params = base::StrCat(
         {kVoiceSearchQueryParameterKey, "=", kVoiceSearchQueryParameterValue});
   }
 
-  const WindowOpenDisposition disposition = ui::DispositionFromClick(
+  const ui::mojom::WindowOpenDisposition disposition = ui::DispositionFromClick(
       /*middle_button=*/mouse_button == 1, alt_key, ctrl_key, meta_key,
       shift_key);
   GURL search_url = GURL(default_provider->url_ref().ReplaceSearchTerms(
@@ -350,13 +334,14 @@ void OmniboxEverywhereHandler::ActivateKeyword(
 void OmniboxEverywhereHandler::OnAiModeEligibilityOrPrefChanged() {
   InitializeInputStateModel();
   if (page()) {
-    page()->UpdateAimPopupEligibility(IsFuseboxEnabled(profile_));
+    page()->UpdateAimPopupEligibility(
+        OmniboxEverywhereUI::IsFuseboxEnabled(profile_));
   }
 }
 
 void OmniboxEverywhereHandler::OpenUrl(
     GURL url,
-    const WindowOpenDisposition disposition,
+    const ui::mojom::WindowOpenDisposition disposition,
     base::OnceCallback<void(content::NavigationHandle&)>
         navigation_handle_callback) {
   if (service_) {

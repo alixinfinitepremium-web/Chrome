@@ -1979,9 +1979,6 @@ inline constexpr char kGlicDefaultTabContextSettingDescription[] =
     "Controls whether tab context is enabled by default within new Glic "
     "sessions. Required for Side Panel.";
 
-inline constexpr char kGlicPrintMenuItemName[] = "Glic Print Menu Item";
-inline constexpr char kGlicPrintMenuItemDescription[] =
-    "Enables showing the Glic print contextual menu item.";
 inline constexpr char kGlicPdfSummarizeName[] = "Glic Pdf Summarize";
 inline constexpr char kGlicPdfSummarizeDescription[] =
     "Enables the pdf summarize button.";
@@ -6540,6 +6537,11 @@ inline constexpr char kReengagementNotificationName[] =
 inline constexpr char kReengagementNotificationDescription[] =
     "Enables Chrome to use the in-product help system to decide when "
     "to show re-engagement notifications.";
+
+inline constexpr char kSeccompFilterGpuSandboxName[] =
+    "Seccomp-BPF GPU sandbox";
+inline constexpr char kSeccompFilterGpuSandboxDescription[] =
+    "Enables the seccomp-bpf filter sandbox for the GPU process on Android.";
 
 inline constexpr char kSegmentationPlatformAndroidHomeModuleRankerV2Name[] =
     "Segmentation platform Android home module ranker V2";

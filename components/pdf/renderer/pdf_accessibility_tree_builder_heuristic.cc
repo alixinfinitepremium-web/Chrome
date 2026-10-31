@@ -63,6 +63,8 @@ struct ListMarkerKind {
   ListMarkerForm form = ListMarkerForm::kNone;
   // The number of a decimal ordered list marker; unset for unordered markers.
   std::optional<int> ordered_value;
+  // Whether this is one of `kNestedOnlyListMarkers` or a Word nested marker.
+  bool nested_only = false;
 };
 
 namespace {
@@ -208,6 +210,15 @@ constexpr size_t kMaxOrderedListLookaheadLines = 15;
 // not mistaken for markers.
 constexpr size_t kMaxOrderedMarkerDigits = 3;
 
+// Maximum first-line indent, in multiples of the item font size, for ordered
+// list items whose wrapped lines return to the margin. A line that wraps
+// further left of the marker ends the item.
+constexpr float kMaxFirstLineIndentEm = 3.0f;
+
+// Tolerance in multiples of the item font size for determining whether a line
+// reached close to the column's right edge before wrapping.
+constexpr float kWrapRightEdgeToleranceEm = 2.0f;
+
 // Delimiters that may follow the number in a decimal ordered list marker.
 // TODO(crbug.com/525509231): Support delimiters used in other languages, such
 // as ordinal indicators (e.g. "2º").
@@ -332,116 +343,6 @@ bool DoBoundsOverlapOnLine(float top1,
   }
   return coverage > kLineCoverageThreshold;
 }
-
-// This class is used as part of our heuristic to determine which text runs live
-// on the same "line".  As we process runs, we keep a weighted average of the
-// top and bottom coordinates of the line, and if a new run falls within that
-// range (within a threshold) it is considered part of the line.
-class LineHelper {
- public:
-  explicit LineHelper(
-      const std::vector<chrome_pdf::AccessibilityTextRunInfo>& text_runs)
-      : text_runs_(text_runs) {
-    StartNewLine(0);
-  }
-
-  LineHelper(const LineHelper&) = delete;
-  LineHelper& operator=(const LineHelper&) = delete;
-
-  void StartNewLine(size_t current_index) {
-    DCHECK(current_index == 0 || current_index < text_runs_->size());
-    start_index_ = current_index;
-    accumulated_weight_top_ = 0.0f;
-    accumulated_weight_bottom_ = 0.0f;
-    accumulated_width_ = 0.0f;
-  }
-
-  void ProcessNextRun(size_t run_index) {
-    DCHECK_LT(run_index, text_runs_->size());
-    RemoveOldRunsUpTo(run_index);
-    AddRun((*text_runs_)[run_index].bounds);
-  }
-
-  bool IsRunOnSameLine(size_t run_index) const {
-    DCHECK_LT(run_index, text_runs_->size());
-
-    // Calculate new top/bottom bounds for our line.
-    if (accumulated_width_ == 0.0f) {
-      return false;
-    }
-
-    float line_top = accumulated_weight_top_ / accumulated_width_;
-    float line_bottom = accumulated_weight_bottom_ / accumulated_width_;
-    float line_height = line_bottom - line_top;
-
-    // Look at the next run, and determine how much it overlaps the line.
-    const auto& run_bounds = (*text_runs_)[run_index].bounds;
-    return DoBoundsOverlapOnLine(line_top, line_height, run_bounds.y(),
-                                 run_bounds.height());
-  }
-
-  // Returns whether the run at `run_index` is on the current line and
-  // continues in reading order from the preceding run.
-  bool ContinuesLineInReadingOrder(size_t run_index) const {
-    if (!IsRunOnSameLine(run_index)) {
-      return false;
-    }
-
-    if (features::IsPdfAccessibilityHeuristicEnhancementsEnabled()) {
-      CHECK_GT(run_index, 0u);
-      const auto& run = (*text_runs_)[run_index];
-      const auto& prev_run = (*text_runs_)[run_index - 1];
-
-      // Reject backward-X jumps between left-to-right runs on the same
-      // horizontal band (e.g. across columns or from later authoring layers)
-      // from continuing the line.
-      if (IsLeftToRightRun(prev_run) && IsLeftToRightRun(run) &&
-          run.bounds.right() <= prev_run.bounds.x() + kComparisonEpsilon) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
- private:
-  void AddRun(const gfx::RectF& run_bounds) {
-    float run_width = std::abs(run_bounds.width());
-    accumulated_width_ += run_width;
-    accumulated_weight_top_ += run_bounds.y() * run_width;
-    accumulated_weight_bottom_ +=
-        (run_bounds.y() + run_bounds.height()) * run_width;
-  }
-
-  void RemoveRun(const gfx::RectF& run_bounds) {
-    float run_width = std::abs(run_bounds.width());
-    accumulated_width_ -= run_width;
-    accumulated_weight_top_ -= run_bounds.y() * run_width;
-    accumulated_weight_bottom_ -=
-        (run_bounds.y() + run_bounds.height()) * run_width;
-  }
-
-  void RemoveOldRunsUpTo(size_t stop_index) {
-    // Remove older runs from the weighted average if we've exceeded the
-    // threshold distance from them. We remove them to prevent e.g. drop-caps
-    // from unduly influencing future lines.
-    constexpr float kBoxRemoveWidthThreshold = 3.0f;
-    while (start_index_ < stop_index &&
-           accumulated_width_ > (*text_runs_)[start_index_].bounds.width() *
-                                    kBoxRemoveWidthThreshold) {
-      const auto& old_bounds = (*text_runs_)[start_index_].bounds;
-      RemoveRun(old_bounds);
-      start_index_++;
-    }
-  }
-
-  const raw_ref<const std::vector<chrome_pdf::AccessibilityTextRunInfo>>
-      text_runs_;
-  size_t start_index_;
-  float accumulated_weight_top_;
-  float accumulated_weight_bottom_;
-  float accumulated_width_;
-};
 
 template <typename T>
 bool IsObjectInTextRun(base::span<const T> objects,
@@ -956,6 +857,22 @@ bool AreRunsOnSameLine(const chrome_pdf::AccessibilityTextRunInfo& run1,
                        const chrome_pdf::AccessibilityTextRunInfo& run2) {
   return DoBoundsOverlapOnLine(run1.bounds.y(), run1.bounds.height(),
                                run2.bounds.y(), run2.bounds.height());
+}
+
+// Returns the right edge of the visual line that starts with the text run at
+// `run_index`.
+float GetLineRightEdge(
+    base::span<const chrome_pdf::AccessibilityTextRunInfo> text_runs,
+    size_t run_index) {
+  const chrome_pdf::AccessibilityTextRunInfo& first = text_runs[run_index];
+  float right = first.bounds.right();
+  for (const auto& run : text_runs.subspan(run_index + 1)) {
+    if (!AreRunsOnSameLine(first, run)) {
+      break;
+    }
+    right = std::max(right, run.bounds.right());
+  }
+  return right;
 }
 
 const chrome_pdf::AccessibilityTextRunInfo* GetRunBeforeIndex(
@@ -1849,7 +1766,7 @@ ListMarkerKind ClassifyListMarker(
       const float max_nest = kMaxListNestingIndentEm *
                              GetListItemFontSize(run_context, nested_form);
       if (run_x <= parent->marker_x + max_nest) {
-        return {.form = nested_form};
+        return {.form = nested_form, .nested_only = true};
       }
     }
   }
@@ -1990,8 +1907,8 @@ void TrimTextRunPrefix(size_t prefix_char_count,
 
 // Returns whether to break before the run at `next_run_index` due to a list
 // boundary, such as a new standalone or combined marker run, an
-// out-of-sequence ordered marker, or an outdent past the innermost list
-// level's indent.
+// out-of-sequence ordered marker, an outdent past the innermost list level's
+// indent, or a first-line-indented paragraph after the last item.
 //
 // Known limitation: a non-marker block inside a list (e.g. a paragraph under a
 // nested item, or text continuing the parent item after a nested list) either
@@ -2019,14 +1936,35 @@ bool BreakAtListBoundary(const PageLayoutData& layout,
   if (ClassifyOrderedMarker(next_run_context).form != ListMarkerForm::kNone) {
     return true;
   }
+  const ListLevel& level = list_levels.back();
   // A heading-styled line ends an ordered list.
-  if (list_levels.back().last_ordered_value.has_value() &&
+  if (level.last_ordered_value.has_value() &&
       ClassifyHeading(next_run_context, page_properties) !=
           HeadingClassifier::kNone) {
     return true;
   }
-  return next_run_context.run->bounds.x() <
-         list_levels.back().marker_x - kListIndentThreshold;
+  const float next_x = next_run_context.run->bounds.x();
+  const float font_size = next_run_context.run->style.font_size;
+  const bool prev_line_ends_short =
+      layout.text_runs[next_run_index - 1].bounds.right() <
+      GetLineRightEdge(layout.text_runs, next_run_index) -
+          kWrapRightEdgeToleranceEm * font_size;
+  if (next_x >= level.marker_x - kListIndentThreshold) {
+    // A line indented past both wrap columns (the marker and the item text)
+    // after a short line starts a first-line-indented paragraph.
+    return prev_line_ends_short &&
+           next_x > std::max(level.marker_x, level.item_text_x) +
+                        kListIndentThreshold;
+  }
+  if (!level.last_ordered_value.has_value()) {
+    return true;
+  }
+  // Ordered items may wrap back left of an indented number, up to a limit, but
+  // only after a line that reached the column's right edge.
+  if (next_x < level.marker_x - kMaxFirstLineIndentEm * font_size) {
+    return true;
+  }
+  return prev_line_ends_short;
 }
 
 bool BreakParagraph(uint32_t text_run_index,
@@ -2254,7 +2192,133 @@ void SortBlockNodesByVerticalBands(std::vector<ui::AXNodeData*>& block_nodes,
   block_nodes = std::move(sorted_blocks);
 }
 
+void RecordListStartReason(const ListMarkerKind& kind) {
+  ListStartReason reason;
+  if (kind.ordered_value) {
+    // New ordered lists start at 1, or above 1 when resuming numbering (e.g.
+    // on a new page); see `ClassifyListMarker()`.
+    reason = *kind.ordered_value == 1 ? ListStartReason::kDecimalStartsAtOne
+                                      : ListStartReason::kDecimalStartsAboveOne;
+  } else if (kind.nested_only) {
+    reason = ListStartReason::kNestedOnlyMarker;
+  } else {
+    reason = ListStartReason::kUnorderedMarker;
+  }
+  base::UmaHistogramEnumeration("Accessibility.PdfHeuristics.ListStartReason",
+                                reason);
+}
+
 }  // namespace
+
+// This class is used as part of our heuristic to determine which text runs live
+// on the same "line".  As we process runs, we keep a weighted average of the
+// top and bottom coordinates of the line, and if a new run falls within that
+// range (within a threshold) it is considered part of the line.
+class PdfAccessibilityTreeBuilderHeuristic::LineHelper {
+ public:
+  explicit LineHelper(
+      const std::vector<chrome_pdf::AccessibilityTextRunInfo>& text_runs)
+      : text_runs_(text_runs) {
+    StartNewLine(0);
+  }
+
+  LineHelper(const LineHelper&) = delete;
+  LineHelper& operator=(const LineHelper&) = delete;
+
+  void StartNewLine(size_t current_index) {
+    DCHECK(current_index == 0 || current_index < text_runs_->size());
+    start_index_ = current_index;
+    accumulated_weight_top_ = 0.0f;
+    accumulated_weight_bottom_ = 0.0f;
+    accumulated_width_ = 0.0f;
+  }
+
+  void ProcessNextRun(size_t run_index) {
+    DCHECK_LT(run_index, text_runs_->size());
+    RemoveOldRunsUpTo(run_index);
+    AddRun((*text_runs_)[run_index].bounds);
+  }
+
+  bool IsRunOnSameLine(size_t run_index) const {
+    DCHECK_LT(run_index, text_runs_->size());
+
+    // Calculate new top/bottom bounds for our line.
+    if (accumulated_width_ == 0.0f) {
+      return false;
+    }
+
+    float line_top = accumulated_weight_top_ / accumulated_width_;
+    float line_bottom = accumulated_weight_bottom_ / accumulated_width_;
+    float line_height = line_bottom - line_top;
+
+    // Look at the next run, and determine how much it overlaps the line.
+    const auto& run_bounds = (*text_runs_)[run_index].bounds;
+    return DoBoundsOverlapOnLine(line_top, line_height, run_bounds.y(),
+                                 run_bounds.height());
+  }
+
+  // Returns whether the run at `run_index` is on the current line and
+  // continues in reading order from the preceding run.
+  bool ContinuesLineInReadingOrder(size_t run_index) const {
+    if (!IsRunOnSameLine(run_index)) {
+      return false;
+    }
+
+    if (features::IsPdfAccessibilityHeuristicEnhancementsEnabled()) {
+      CHECK_GT(run_index, 0u);
+      const auto& run = (*text_runs_)[run_index];
+      const auto& prev_run = (*text_runs_)[run_index - 1];
+
+      // Reject backward-X jumps between left-to-right runs on the same
+      // horizontal band (e.g. across columns or from later authoring layers)
+      // from continuing the line.
+      if (IsLeftToRightRun(prev_run) && IsLeftToRightRun(run) &&
+          run.bounds.right() <= prev_run.bounds.x() + kComparisonEpsilon) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+ private:
+  void AddRun(const gfx::RectF& run_bounds) {
+    float run_width = std::abs(run_bounds.width());
+    accumulated_width_ += run_width;
+    accumulated_weight_top_ += run_bounds.y() * run_width;
+    accumulated_weight_bottom_ +=
+        (run_bounds.y() + run_bounds.height()) * run_width;
+  }
+
+  void RemoveRun(const gfx::RectF& run_bounds) {
+    float run_width = std::abs(run_bounds.width());
+    accumulated_width_ -= run_width;
+    accumulated_weight_top_ -= run_bounds.y() * run_width;
+    accumulated_weight_bottom_ -=
+        (run_bounds.y() + run_bounds.height()) * run_width;
+  }
+
+  void RemoveOldRunsUpTo(size_t stop_index) {
+    // Remove older runs from the weighted average if we've exceeded the
+    // threshold distance from them. We remove them to prevent e.g. drop-caps
+    // from unduly influencing future lines.
+    constexpr float kBoxRemoveWidthThreshold = 3.0f;
+    while (start_index_ < stop_index &&
+           accumulated_width_ > (*text_runs_)[start_index_].bounds.width() *
+                                    kBoxRemoveWidthThreshold) {
+      const auto& old_bounds = (*text_runs_)[start_index_].bounds;
+      RemoveRun(old_bounds);
+      start_index_++;
+    }
+  }
+
+  const raw_ref<const std::vector<chrome_pdf::AccessibilityTextRunInfo>>
+      text_runs_;
+  size_t start_index_;
+  float accumulated_weight_top_;
+  float accumulated_weight_bottom_;
+  float accumulated_width_;
+};
 
 struct PdfAccessibilityTreeBuilderHeuristic::BlockLevelNodeResult {
   raw_ptr<ui::AXNodeData> node = nullptr;
@@ -2453,7 +2517,7 @@ void PdfAccessibilityTreeBuilderHeuristic::BuildPageTree() {
       BuildStaticNode(&static_text_state);
       const chrome_pdf::AccessibilityLinkInfo& link =
           (builder_->links())[current_link_index_++];
-      AddLinkToParaNode(link, block_node, &previous_on_line_node,
+      AddLinkToParaNode(link, block_node, &previous_on_line_node, &line_helper,
                         &text_run_index);
 
       if (link.text_range.count == 0) {
@@ -2472,7 +2536,7 @@ void PdfAccessibilityTreeBuilderHeuristic::BuildPageTree() {
       BuildStaticNode(&static_text_state);
       AddHighlightToParaNode(
           (builder_->highlights())[current_highlight_index_++], block_node,
-          &previous_on_line_node, &text_run_index);
+          &previous_on_line_node, &line_helper, &text_run_index);
     } else {
       // A style, language, or text position change starts a new static text
       // node, which ends any heading the current block was classified as.
@@ -2739,6 +2803,7 @@ ui::AXNodeData* PdfAccessibilityTreeBuilderHeuristic::CreateListItemNode(
 
   switch (placement.kind) {
     case ListPlacementKind::kNewList: {
+      RecordListStartReason(marker_kind);
       // Start a new top-level list if no list is currently open, or if the
       // marker is indented far to the right (e.g. crossing into a new column).
       ui::AXNodeData* list =
@@ -2751,6 +2816,7 @@ ui::AXNodeData* PdfAccessibilityTreeBuilderHeuristic::CreateListItemNode(
       break;
     }
     case ListPlacementKind::kNested: {
+      RecordListStartReason(marker_kind);
       // Deeper indent: start a nested list inside the previous list item,
       // matching Blink's <ul><li>...<ul>...</ul></li></ul> structure.
       levels.resize(placement.level_index + 1);
@@ -2900,11 +2966,11 @@ void PdfAccessibilityTreeBuilderHeuristic::AddTextToAXNode(
     size_t start_text_run_index,
     uint32_t end_text_run_index,
     ui::AXNodeData* ax_node,
-    ui::AXNodeData** previous_on_line_node) {
+    ui::AXNodeData** previous_on_line_node,
+    LineHelper* line_helper) {
   StaticTextState static_text_state;
   // Accumulate the text of the node.
   std::string ax_name;
-  LineHelper line_helper(builder_->text_runs());
 
   for (size_t text_run_index = start_text_run_index;
        text_run_index <= end_text_run_index; ++text_run_index) {
@@ -2920,12 +2986,12 @@ void PdfAccessibilityTreeBuilderHeuristic::AddTextToAXNode(
       ConnectPreviousAndNextOnLine(*previous_on_line_node,
                                    inline_text_box_node);
     } else {
-      line_helper.StartNewLine(text_run_index);
+      line_helper->StartNewLine(text_run_index);
     }
-    line_helper.ProcessNextRun(text_run_index);
+    line_helper->ProcessNextRun(text_run_index);
 
     if (text_run_index < builder_->text_runs().size() - 1) {
-      if (line_helper.ContinuesLineInReadingOrder(text_run_index + 1)) {
+      if (line_helper->ContinuesLineInReadingOrder(text_run_index + 1)) {
         // The next run continues on the same line in reading order.
         *previous_on_line_node = inline_text_box_node;
       } else {
@@ -2945,6 +3011,7 @@ void PdfAccessibilityTreeBuilderHeuristic::AddTextToObjectNode(
     ui::AXNodeData* object_node,
     ui::AXNodeData* para_node,
     ui::AXNodeData** previous_on_line_node,
+    LineHelper* line_helper,
     size_t* text_run_index) {
   // Annotation objects can overlap in PDF. There can be two overlapping
   // scenarios: Partial overlap and Complete overlap.
@@ -2976,7 +3043,7 @@ void PdfAccessibilityTreeBuilderHeuristic::AddTextToObjectNode(
   uint32_t object_end_text_run_index =
       std::min(end_text_run_index, builder_->text_runs().size()) - 1;
   AddTextToAXNode(object_text_run_index, object_end_text_run_index, object_node,
-                  previous_on_line_node);
+                  previous_on_line_node, line_helper);
 
   para_node->relative_bounds.bounds.Union(object_node->relative_bounds.bounds);
 
@@ -2988,6 +3055,7 @@ void PdfAccessibilityTreeBuilderHeuristic::AddLinkToParaNode(
     const chrome_pdf::AccessibilityLinkInfo& link,
     ui::AXNodeData* para_node,
     ui::AXNodeData** previous_on_line_node,
+    LineHelper* line_helper,
     size_t* text_run_index) {
   ui::AXNodeData* link_node = builder_->CreateLinkNode(link);
   para_node->child_ids.push_back(link_node->id);
@@ -3002,7 +3070,8 @@ void PdfAccessibilityTreeBuilderHeuristic::AddLinkToParaNode(
   // Make the text runs contained by the link children of
   // the link node.
   AddTextToObjectNode(link.text_range.index, link.text_range.count, link_node,
-                      para_node, previous_on_line_node, text_run_index);
+                      para_node, previous_on_line_node, line_helper,
+                      text_run_index);
 }
 
 void PdfAccessibilityTreeBuilderHeuristic::AddImageToParaNode(
@@ -3020,6 +3089,7 @@ void PdfAccessibilityTreeBuilderHeuristic::AddHighlightToParaNode(
     const chrome_pdf::AccessibilityHighlightInfo& highlight,
     ui::AXNodeData* para_node,
     ui::AXNodeData** previous_on_line_node,
+    LineHelper* line_helper,
     size_t* text_run_index) {
   ui::AXNodeData* highlight_node = builder_->CreateHighlightNode(highlight);
   para_node->child_ids.push_back(highlight_node->id);
@@ -3028,7 +3098,7 @@ void PdfAccessibilityTreeBuilderHeuristic::AddHighlightToParaNode(
   // the highlight node.
   AddTextToObjectNode(highlight.text_range.index, highlight.text_range.count,
                       highlight_node, para_node, previous_on_line_node,
-                      text_run_index);
+                      line_helper, text_run_index);
 
   if (!highlight.note_text.empty()) {
     ui::AXNodeData* popup_note_node = builder_->CreatePopupNoteNode(highlight);

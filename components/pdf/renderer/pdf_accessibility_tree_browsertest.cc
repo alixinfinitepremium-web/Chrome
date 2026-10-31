@@ -5422,6 +5422,7 @@ TEST_F(PdfAccessibilityTreeTest,
 }
 
 TEST_F(PdfAccessibilityTreeTest, HeuristicUnorderedList) {
+  base::HistogramTester histogram_tester;
   base::test::ScopedFeatureList feature_list;
   feature_list.InitWithFeatures(
       {::features::kPdfAccessibilityHeuristicEnhancements},
@@ -5450,6 +5451,9 @@ TEST_F(PdfAccessibilityTreeTest, HeuristicUnorderedList) {
   CheckUnorderedList(page->GetChildAtIndex(1u),
                      {"Apples", "Bananas", "Cherries", "Dates", "Elderberries"},
                      {"• ", "● ", "• ", "▪ ", "○ "});
+  histogram_tester.ExpectUniqueSample(
+      "Accessibility.PdfHeuristics.ListStartReason",
+      ListStartReason::kUnorderedMarker, 1);
 }
 
 TEST_F(PdfAccessibilityTreeTest, HeuristicUnorderedListTerminatedByLargeGap) {
@@ -5724,6 +5728,7 @@ TEST_F(PdfAccessibilityTreeTest,
 }
 
 TEST_F(PdfAccessibilityTreeTest, HeuristicNestedUnorderedList) {
+  base::HistogramTester histogram_tester;
   base::test::ScopedFeatureList feature_list;
   feature_list.InitWithFeatures(
       {::features::kPdfAccessibilityHeuristicEnhancements},
@@ -5766,6 +5771,9 @@ TEST_F(PdfAccessibilityTreeTest, HeuristicNestedUnorderedList) {
       nested_list->GetChildAtIndex(0u)->data().relative_bounds.bounds));
   EXPECT_TRUE(item_a->data().relative_bounds.bounds.Contains(
       nested_list->GetChildAtIndex(1u)->data().relative_bounds.bounds));
+  histogram_tester.ExpectUniqueSample(
+      "Accessibility.PdfHeuristics.ListStartReason",
+      ListStartReason::kUnorderedMarker, 2);
 }
 
 TEST_F(PdfAccessibilityTreeTest, HeuristicNestedUnorderedListThreeLevels) {
@@ -5917,6 +5925,7 @@ TEST_F(PdfAccessibilityTreeTest, HeuristicNestedListWordCourierMarker) {
 
 // Word's level-3 bullets, standalone Wingdings characters, are named "▪ ".
 TEST_F(PdfAccessibilityTreeTest, HeuristicNestedListWordWingdingsMarker) {
+  base::HistogramTester histogram_tester;
   base::test::ScopedFeatureList feature_list;
   feature_list.InitWithFeatures(
       {::features::kPdfAccessibilityHeuristicEnhancements},
@@ -5944,6 +5953,14 @@ TEST_F(PdfAccessibilityTreeTest, HeuristicNestedListWordWingdingsMarker) {
   const ui::AXNode* nested_list =
       CheckListItemWithNestedList(top_list->GetChildAtIndex(0u), "Level 1");
   CheckUnorderedList(nested_list, {"Wingdings level 3"}, "▪ ");
+  histogram_tester.ExpectBucketCount(
+      "Accessibility.PdfHeuristics.ListStartReason",
+      ListStartReason::kUnorderedMarker, 1);
+  histogram_tester.ExpectBucketCount(
+      "Accessibility.PdfHeuristics.ListStartReason",
+      ListStartReason::kNestedOnlyMarker, 1);
+  histogram_tester.ExpectTotalCount(
+      "Accessibility.PdfHeuristics.ListStartReason", 2);
 }
 
 // Font-specific markers are ignored at the top level, when combined with text,
@@ -5960,6 +5977,8 @@ TEST_F(PdfAccessibilityTreeTest, HeuristicFontMarkersIgnoredWhenInvalid) {
   chrome_pdf::AccessibilityTextStyleInfo wingdings_style = CreateNormalStyle();
   wingdings_style.font_name = "Wingdings";
 
+  // "Item 1" reaches the right edge, so the indented lines after it continue
+  // the item rather than starting a paragraph.
   const ui::AXNode* page = SetUpUniformHeuristicPage(
       {"o", "Top-level Courier", "•", "Item 1", "o", "Normal font o",
        "o Combined Courier", "\u00A0", "Wingdings nbsp"},
@@ -5967,7 +5986,7 @@ TEST_F(PdfAccessibilityTreeTest, HeuristicFontMarkersIgnoredWhenInvalid) {
           gfx::RectF(30.0f, 27.0f, 4.0f, 12.0f),
           gfx::RectF(45.0f, 27.0f, 80.0f, 12.0f),
           gfx::RectF(30.0f, 44.0f, 4.0f, 4.0f),
-          gfx::RectF(45.0f, 40.0f, 80.0f, 12.0f),
+          gfx::RectF(45.0f, 40.0f, 110.0f, 12.0f),
           gfx::RectF(60.0f, 53.0f, 4.0f, 12.0f),
           gfx::RectF(75.0f, 53.0f, 80.0f, 12.0f),
           gfx::RectF(60.0f, 66.0f, 80.0f, 12.0f),
@@ -6299,6 +6318,7 @@ TEST_F(PdfAccessibilityTreeTest, HeuristicUnorderedListAfterParagraph) {
 }
 
 TEST_F(PdfAccessibilityTreeTest, HeuristicOrderedList) {
+  base::HistogramTester histogram_tester;
   base::test::ScopedFeatureList feature_list;
   feature_list.InitWithFeatures(
       {::features::kPdfAccessibilityHeuristicEnhancements},
@@ -6320,6 +6340,9 @@ TEST_F(PdfAccessibilityTreeTest, HeuristicOrderedList) {
   CheckOrderedList(page->GetChildAtIndex(0u),
                    {"First item", "Second item", "Third item"},
                    {"1. ", "2. ", "3. "});
+  histogram_tester.ExpectUniqueSample(
+      "Accessibility.PdfHeuristics.ListStartReason",
+      ListStartReason::kDecimalStartsAtOne, 1);
 }
 
 TEST_F(PdfAccessibilityTreeTest, HeuristicOrderedListCombinedRuns) {
@@ -6823,6 +6846,44 @@ TEST_F(PdfAccessibilityTreeTest, HeuristicOrderedListUnconfirmedSingleItem) {
   CheckParagraph(page->GetChildAtIndex(2u), "Normal paragraph line 2.");
 }
 
+TEST_F(PdfAccessibilityTreeTest, HeuristicOrderedListNarrowRaggedRightColumn) {
+  base::test::ScopedFeatureList feature_list;
+  feature_list.InitWithFeatures(
+      {::features::kPdfAccessibilityHeuristicEnhancements},
+      {chrome_pdf::features::kPdfTags});
+
+  // Demonstrates the right-edge check's known weak spot in a narrow
+  // ragged-right column.
+  // Item 3 has a wrapped line ending at 115px, 35px short of the next line's
+  // right edge (150px), exceeding the 2.0em = 24px tolerance. So the next line
+  // at the margin (x=30px) becomes a separate paragraph, not a continuation.
+  const ui::AXNode* page = SetUpUniformHeuristicPage(
+      {"1. Item one start", "Item one continuation at margin",
+       "2. Item two start", "Item two continuation at margin",
+       "3. Item three start", "Ragged line ending short",
+       "Continuation breaks into paragraph"},
+      {
+          gfx::RectF(50.0f, 20.0f, 100.0f, 12.0f),  // right = 150.0f
+          gfx::RectF(30.0f, 35.0f, 120.0f, 12.0f),  // right = 150.0f
+          gfx::RectF(50.0f, 50.0f, 100.0f, 12.0f),  // right = 150.0f
+          gfx::RectF(30.0f, 65.0f, 120.0f, 12.0f),  // right = 150.0f
+          gfx::RectF(50.0f, 80.0f, 100.0f, 12.0f),  // right = 150.0f
+          gfx::RectF(30.0f, 95.0f, 85.0f,
+                     12.0f),  // right = 115.0f (35px short > 24px)
+          gfx::RectF(30.0f, 110.0f, 120.0f, 12.0f),  // right = 150.0f
+      });
+  ASSERT_NE(nullptr, page);
+  ASSERT_EQ(2u, page->GetChildCount());
+
+  CheckOrderedList(page->GetChildAtIndex(0u),
+                   {"Item one startItem one continuation at margin",
+                    "Item two startItem two continuation at margin",
+                    "Item three startRagged line ending short"},
+                   {"1. ", "2. ", "3. "});
+  CheckParagraph(page->GetChildAtIndex(1u),
+                 "Continuation breaks into paragraph");
+}
+
 TEST_F(PdfAccessibilityTreeTest, HeuristicOrderedListGapAfterFirstLineNotList) {
   base::test::ScopedFeatureList feature_list;
   feature_list.InitWithFeatures(
@@ -6851,6 +6912,7 @@ TEST_F(PdfAccessibilityTreeTest, HeuristicOrderedListGapAfterFirstLineNotList) {
 }
 
 TEST_F(PdfAccessibilityTreeTest, HeuristicOrderedListStartsAboveOne) {
+  base::HistogramTester histogram_tester;
   base::test::ScopedFeatureList feature_list;
   feature_list.InitWithFeatures(
       {::features::kPdfAccessibilityHeuristicEnhancements},
@@ -6873,6 +6935,9 @@ TEST_F(PdfAccessibilityTreeTest, HeuristicOrderedListStartsAboveOne) {
 
   CheckOrderedList(page->GetChildAtIndex(0u), {"Item E", "Item F", "Item G"},
                    {"5. ", "6. ", "7. "});
+  histogram_tester.ExpectUniqueSample(
+      "Accessibility.PdfHeuristics.ListStartReason",
+      ListStartReason::kDecimalStartsAboveOne, 1);
 }
 
 TEST_F(PdfAccessibilityTreeTest, HeuristicOrderedListSpacedItems) {
@@ -7030,6 +7095,275 @@ TEST_F(PdfAccessibilityTreeTest, HeuristicOrderedListOutOfSequenceEndsItem) {
 
   CheckOrderedList(page->GetChildAtIndex(0u), {"A", "B"}, {"1. ", "2. "});
   CheckParagraph(page->GetChildAtIndex(1u), "4.C");
+}
+
+TEST_F(PdfAccessibilityTreeTest, HeuristicOrderedListFirstLineIndent) {
+  base::test::ScopedFeatureList feature_list;
+  feature_list.InitWithFeatures(
+      {::features::kPdfAccessibilityHeuristicEnhancements},
+      {chrome_pdf::features::kPdfTags});
+
+  // Ordered list where the number is indented and wrapped lines return to the
+  // margin (e.g. marker at x=50, margin at x=30).
+  const ui::AXNode* page = SetUpUniformHeuristicPage(
+      {"1. Item one start", "Item one continuation at margin",
+       "2. Item two start", "Item two continuation at margin",
+       "3. Item three start", "Item three continuation at margin"},
+      {
+          gfx::RectF(50.0f, 20.0f, 100.0f, 12.0f),
+          gfx::RectF(30.0f, 35.0f, 120.0f, 12.0f),
+          gfx::RectF(50.0f, 50.0f, 100.0f, 12.0f),
+          gfx::RectF(30.0f, 65.0f, 120.0f, 12.0f),
+          gfx::RectF(50.0f, 80.0f, 100.0f, 12.0f),
+          gfx::RectF(30.0f, 95.0f, 120.0f, 12.0f),
+      });
+  ASSERT_NE(nullptr, page);
+  ASSERT_EQ(1u, page->GetChildCount());
+
+  CheckOrderedList(page->GetChildAtIndex(0u),
+                   {"Item one startItem one continuation at margin",
+                    "Item two startItem two continuation at margin",
+                    "Item three startItem three continuation at margin"},
+                   {"1. ", "2. ", "3. "});
+}
+
+TEST_F(PdfAccessibilityTreeTest, HeuristicOrderedListFirstLineIndentEndsAtGap) {
+  base::test::ScopedFeatureList feature_list;
+  feature_list.InitWithFeatures(
+      {::features::kPdfAccessibilityHeuristicEnhancements},
+      {chrome_pdf::features::kPdfTags});
+
+  // The same list as above followed by a paragraph-sized gap and a body
+  // paragraph at the margin. The paragraph is not absorbed into item 3.
+  const ui::AXNode* page = SetUpUniformHeuristicPage(
+      {"1. Item one start", "Item one continuation at margin",
+       "2. Item two start", "Item two continuation at margin",
+       "3. Item three start", "Item three continuation at margin",
+       "Body paragraph at margin"},
+      {
+          gfx::RectF(50.0f, 20.0f, 100.0f, 12.0f),
+          gfx::RectF(30.0f, 35.0f, 120.0f, 12.0f),
+          gfx::RectF(50.0f, 50.0f, 100.0f, 12.0f),
+          gfx::RectF(30.0f, 65.0f, 120.0f, 12.0f),
+          gfx::RectF(50.0f, 80.0f, 100.0f, 12.0f),
+          gfx::RectF(30.0f, 95.0f, 120.0f, 12.0f),
+          gfx::RectF(30.0f, 130.0f, 120.0f, 12.0f),
+      });
+  ASSERT_NE(nullptr, page);
+  ASSERT_EQ(2u, page->GetChildCount());
+
+  CheckOrderedList(page->GetChildAtIndex(0u),
+                   {"Item one startItem one continuation at margin",
+                    "Item two startItem two continuation at margin",
+                    "Item three startItem three continuation at margin"},
+                   {"1. ", "2. ", "3. "});
+  CheckParagraph(page->GetChildAtIndex(1u), "Body paragraph at margin");
+}
+
+TEST_F(PdfAccessibilityTreeTest, HeuristicUnorderedListOutdentUnchanged) {
+  base::test::ScopedFeatureList feature_list;
+  feature_list.InitWithFeatures(
+      {::features::kPdfAccessibilityHeuristicEnhancements},
+      {chrome_pdf::features::kPdfTags});
+
+  // A bulleted list with an outdented wrapped line at the margin is not
+  // treated as a first-line indent list; the outdent terminates the list.
+  const ui::AXNode* page = SetUpUniformHeuristicPage(
+      {"• First bullet", "Line at margin", "• Second bullet"},
+      {
+          gfx::RectF(50.0f, 20.0f, 100.0f, 12.0f),
+          gfx::RectF(30.0f, 35.0f, 120.0f, 12.0f),
+          gfx::RectF(50.0f, 50.0f, 100.0f, 12.0f),
+      });
+  ASSERT_NE(nullptr, page);
+  ASSERT_EQ(3u, page->GetChildCount());
+
+  CheckUnorderedList(page->GetChildAtIndex(0u), {"First bullet"}, "• ");
+  CheckParagraph(page->GetChildAtIndex(1u), "Line at margin");
+  CheckUnorderedList(page->GetChildAtIndex(2u), {"Second bullet"}, "• ");
+}
+
+TEST_F(PdfAccessibilityTreeTest,
+       HeuristicOrderedListShortLastLineEndsBeforeParagraph) {
+  base::test::ScopedFeatureList feature_list;
+  feature_list.InitWithFeatures(
+      {::features::kPdfAccessibilityHeuristicEnhancements},
+      {chrome_pdf::features::kPdfTags});
+
+  // Item 3 has a short line ending at 110px.
+  // The following body paragraph starts at the margin (x=30px, 2.25em outdent)
+  // with normal line spacing, but is NOT absorbed into item 3 because item 3's
+  // line ended more than 2.0em short of the paragraph's right edge (150px).
+  const ui::AXNode* page = SetUpUniformHeuristicPage(
+      {"1. First item start", "First item continuation at margin",
+       "2. Second item start", "Second item continuation at margin",
+       "3. To solicit feedback", "Data collection took place at margin"},
+      {
+          gfx::RectF(50.0f, 20.0f, 100.0f, 12.0f),  // right = 150.0f
+          gfx::RectF(30.0f, 35.0f, 120.0f, 12.0f),  // right = 150.0f
+          gfx::RectF(50.0f, 50.0f, 100.0f, 12.0f),  // right = 150.0f
+          gfx::RectF(30.0f, 65.0f, 120.0f, 12.0f),  // right = 150.0f
+          gfx::RectF(50.0f, 80.0f, 60.0f,
+                     12.0f),  // right = 110.0f (short line)
+          gfx::RectF(30.0f, 95.0f, 120.0f,
+                     12.0f),  // right = 150.0f (normal spacing)
+      });
+  ASSERT_NE(nullptr, page);
+  ASSERT_EQ(2u, page->GetChildCount());
+
+  CheckOrderedList(page->GetChildAtIndex(0u),
+                   {"First item startFirst item continuation at margin",
+                    "Second item startSecond item continuation at margin",
+                    "To solicit feedback"},
+                   {"1. ", "2. ", "3. "});
+  CheckParagraph(page->GetChildAtIndex(1u),
+                 "Data collection took place at margin");
+}
+
+TEST_F(PdfAccessibilityTreeTest, HeuristicOrderedListOutdentBeyondLimitEnds) {
+  base::test::ScopedFeatureList feature_list;
+  feature_list.InitWithFeatures(
+      {::features::kPdfAccessibilityHeuristicEnhancements},
+      {chrome_pdf::features::kPdfTags});
+
+  // Markers at x=70px. Items 1 and 2 wrap to x=40px (30px < 3.0em * 12px =
+  // 36px), so they continue. Item 3 wraps to x=30px (40px > 36px), which
+  // exceeds kMaxFirstLineIndentEm and ends the item even though the line above
+  // is full.
+  const ui::AXNode* page = SetUpUniformHeuristicPage(
+      {"1. Item one start", "Item one continuation", "2. Item two start",
+       "Item two continuation", "3. Item three start",
+       "Line outdented beyond limit"},
+      {
+          gfx::RectF(70.0f, 20.0f, 80.0f, 12.0f),
+          gfx::RectF(40.0f, 35.0f, 110.0f, 12.0f),
+          gfx::RectF(70.0f, 50.0f, 80.0f, 12.0f),
+          gfx::RectF(40.0f, 65.0f, 110.0f, 12.0f),
+          gfx::RectF(70.0f, 80.0f, 80.0f, 12.0f),
+          gfx::RectF(30.0f, 95.0f, 120.0f, 12.0f),
+      });
+  ASSERT_NE(nullptr, page);
+  ASSERT_EQ(2u, page->GetChildCount());
+
+  CheckOrderedList(page->GetChildAtIndex(0u),
+                   {"Item one startItem one continuation",
+                    "Item two startItem two continuation", "Item three start"},
+                   {"1. ", "2. ", "3. "});
+  CheckParagraph(page->GetChildAtIndex(1u), "Line outdented beyond limit");
+}
+
+TEST_F(PdfAccessibilityTreeTest, HeuristicListIndentedParagraphEndsItem) {
+  base::test::ScopedFeatureList feature_list;
+  feature_list.InitWithFeatures(
+      {::features::kPdfAccessibilityHeuristicEnhancements},
+      {chrome_pdf::features::kPdfTags});
+
+  // Markers and wrapped lines share the margin (x=30px), and item text starts
+  // at x=60px after "1. ". The paragraph after the list has no extra spacing
+  // but is indented to x=70px after a short line, so it ends the last item.
+  const ui::AXNode* page = SetUpUniformHeuristicPage(
+      {"1. Item one start", "Item one end", "2. Item two start", "Item two end",
+       "Indented paragraph start", "Paragraph continuation"},
+      {
+          gfx::RectF(30.0f, 20.0f, 150.0f, 12.0f),
+          gfx::RectF(30.0f, 35.0f, 60.0f, 12.0f),
+          gfx::RectF(30.0f, 50.0f, 150.0f, 12.0f),
+          gfx::RectF(30.0f, 65.0f, 60.0f, 12.0f),
+          gfx::RectF(70.0f, 80.0f, 110.0f, 12.0f),
+          gfx::RectF(30.0f, 95.0f, 150.0f, 12.0f),
+      });
+  ASSERT_NE(nullptr, page);
+  ASSERT_EQ(2u, page->GetChildCount());
+
+  CheckOrderedList(page->GetChildAtIndex(0u),
+                   {"Item one startItem one end", "Item two startItem two end"},
+                   {"1. ", "2. "});
+  CheckParagraph(page->GetChildAtIndex(1u),
+                 "Indented paragraph startParagraph continuation");
+}
+
+TEST_F(PdfAccessibilityTreeTest,
+       HeuristicListShortLineWrapAtItemTextContinues) {
+  base::test::ScopedFeatureList feature_list;
+  feature_list.InitWithFeatures(
+      {::features::kPdfAccessibilityHeuristicEnhancements},
+      {chrome_pdf::features::kPdfTags});
+
+  // A hanging-indent line at the item text column (x=45px) continues the item
+  // even after a short line.
+  const ui::AXNode* page = SetUpUniformHeuristicPage(
+      {"•", "Short first line", "Wrapped at item text", "•", "Second item"},
+      {
+          gfx::RectF(30.0f, 44.0f, 4.0f, 4.0f),
+          gfx::RectF(45.0f, 40.0f, 60.0f, 12.0f),
+          gfx::RectF(45.0f, 53.0f, 135.0f, 12.0f),
+          gfx::RectF(30.0f, 70.0f, 4.0f, 4.0f),
+          gfx::RectF(45.0f, 66.0f, 135.0f, 12.0f),
+      });
+  ASSERT_NE(nullptr, page);
+  ASSERT_EQ(1u, page->GetChildCount());
+
+  CheckUnorderedList(page->GetChildAtIndex(0u),
+                     {"Short first lineWrapped at item text", "Second item"},
+                     "• ");
+}
+
+TEST_F(PdfAccessibilityTreeTest,
+       HeuristicListIndentedLineAfterFullLineContinues) {
+  base::test::ScopedFeatureList feature_list;
+  feature_list.InitWithFeatures(
+      {::features::kPdfAccessibilityHeuristicEnhancements},
+      {chrome_pdf::features::kPdfTags});
+
+  // A line indented past the item text (x=50px) continues the item when the
+  // line above reached the right edge.
+  const ui::AXNode* page = SetUpUniformHeuristicPage(
+      {"• Full width line", "Indented continuation", "• Second"},
+      {
+          gfx::RectF(30.0f, 40.0f, 150.0f, 12.0f),
+          gfx::RectF(70.0f, 53.0f, 110.0f, 12.0f),
+          gfx::RectF(30.0f, 66.0f, 80.0f, 12.0f),
+      });
+  ASSERT_NE(nullptr, page);
+  ASSERT_EQ(1u, page->GetChildCount());
+
+  CheckUnorderedList(page->GetChildAtIndex(0u),
+                     {"Full width lineIndented continuation", "Second"}, "• ");
+}
+
+TEST_F(PdfAccessibilityTreeTest, HeuristicListWrappedLineStartingWithLink) {
+  base::test::ScopedFeatureList feature_list;
+  feature_list.InitWithFeatures(
+      {::features::kPdfAccessibilityHeuristicEnhancements},
+      {chrome_pdf::features::kPdfTags});
+
+  // A wrapped line that starts with a citation link stays in the item. The
+  // short ", " after the link must not be mistaken for a line ending before an
+  // indented paragraph.
+  chrome_pdf::AccessibilityLinkInfo link;
+  link.bounds = gfx::RectF(50.0f, 33.0f, 40.0f, 12.0f);
+  link.url = kChromiumTestUrl;
+  link.text_range.index = 1;
+  link.text_range.count = 1;
+  page_objects_.links.push_back(link);
+
+  const ui::AXNode* page = SetUpUniformHeuristicPage(
+      {"• First item text", "Link", ", ", "more text", "• Second"},
+      {
+          gfx::RectF(30.0f, 20.0f, 150.0f, 12.0f),
+          gfx::RectF(50.0f, 33.0f, 40.0f, 12.0f),
+          gfx::RectF(90.0f, 33.0f, 20.0f, 12.0f),
+          gfx::RectF(110.0f, 33.0f, 70.0f, 12.0f),
+          gfx::RectF(30.0f, 46.0f, 80.0f, 12.0f),
+      });
+  ASSERT_NE(nullptr, page);
+  ASSERT_EQ(1u, page->GetChildCount());
+  const ui::AXNode* list = page->GetChildAtIndex(0u);
+  EXPECT_EQ(ax::mojom::Role::kList, list->GetRole());
+  ASSERT_EQ(2u, list->GetChildCount());
+  // Marker, item text, link, and the text after the link.
+  EXPECT_EQ(4u, list->GetChildAtIndex(0u)->GetChildCount());
+  CheckListItem(list->GetChildAtIndex(1u), "Second");
 }
 
 TEST_F(PdfAccessibilityTreeTest, HeuristicNumberedHeadingNotList) {
@@ -7502,6 +7836,19 @@ class PdfAccessibilityTreeSplitTextRunsTest
     }
     return names;
   }
+
+  // Returns the first link node under `node` in tree order, or nullptr.
+  static const ui::AXNode* FindFirstLink(const ui::AXNode* node) {
+    if (node->GetRole() == ax::mojom::Role::kLink) {
+      return node;
+    }
+    for (size_t i = 0; i < node->GetChildCount(); ++i) {
+      if (const ui::AXNode* link = FindFirstLink(node->GetChildAtIndex(i))) {
+        return link;
+      }
+    }
+    return nullptr;
+  }
 };
 
 TEST_P(PdfAccessibilityTreeSplitTextRunsTest, SplitsAtVerticalDivider) {
@@ -7527,6 +7874,33 @@ TEST_P(PdfAccessibilityTreeSplitTextRunsTest, SplitsAtVerticalDivider) {
     EXPECT_THAT(GetInlineTextBoxNames(page),
                 testing::ElementsAre("Left Right"));
   }
+}
+
+TEST_P(PdfAccessibilityTreeSplitTextRunsTest, RemapsLinkAfterSplitRun) {
+  base::test::ScopedFeatureList feature_list;
+  feature_list.InitWithFeatureStates(
+      {{::features::kPdfAccessibilityHeuristicEnhancements,
+        HeuristicEnhancementsEnabled()},
+       {chrome_pdf::features::kPdfTags, false}});
+
+  // The vertical line splits "Left Right" into two runs, so the link on the
+  // next run must shift from run 1 to run 2.
+  page_objects_.line_segments = {
+      {gfx::PointF(145.0f, 95.0f), gfx::PointF(145.0f, 117.0f)},
+  };
+  chrome_pdf::AccessibilityLinkInfo link;
+  link.url = kChromiumTestUrl;
+  link.bounds = gfx::RectF(100.0f, 200.0f, 40.0f, 12.0f);
+  link.text_range = {.index = 1, .count = 1};
+  page_objects_.links.push_back(link);
+  const ui::AXNode* page = SetUpUniformHeuristicPage(
+      {"Left Right", "Next"}, {gfx::RectF(100.0f, 100.0f, 100.0f, 12.0f),
+                               gfx::RectF(100.0f, 200.0f, 40.0f, 12.0f)});
+  ASSERT_NE(nullptr, page);
+
+  const ui::AXNode* link_node = FindFirstLink(page);
+  ASSERT_NE(nullptr, link_node);
+  EXPECT_THAT(GetInlineTextBoxNames(link_node), testing::ElementsAre("Next"));
 }
 
 INSTANTIATE_TEST_SUITE_P(All,
@@ -9347,6 +9721,45 @@ TEST_F(PdfAccessibilityTreeTest, TestPreviousNextOnLine) {
   ASSERT_EQ(previous_inline_node->data().id,
             next_inline_node->GetIntAttribute(
                 ax::mojom::IntAttribute::kPreviousOnLineId));
+}
+
+// A line that starts with a link keeps its runs after the link connected on the
+// line.
+TEST_F(PdfAccessibilityTreeTest, HeuristicPreviousNextOnLineAfterLeadingLink) {
+  base::test::ScopedFeatureList feature_list;
+  feature_list.InitWithFeatures(
+      {::features::kPdfAccessibilityHeuristicEnhancements},
+      {chrome_pdf::features::kPdfTags});
+
+  chrome_pdf::AccessibilityLinkInfo link;
+  link.bounds = gfx::RectF(30.0f, 33.0f, 40.0f, 12.0f);
+  link.url = kChromiumTestUrl;
+  link.text_range.index = 1;
+  link.text_range.count = 1;
+  page_objects_.links.push_back(link);
+
+  const ui::AXNode* page =
+      SetUpUniformHeuristicPage({"Line one", "Link", ", ", "more text"},
+                                {
+                                    gfx::RectF(30.0f, 20.0f, 120.0f, 12.0f),
+                                    gfx::RectF(30.0f, 33.0f, 40.0f, 12.0f),
+                                    gfx::RectF(70.0f, 33.0f, 20.0f, 12.0f),
+                                    gfx::RectF(90.0f, 33.0f, 60.0f, 12.0f),
+                                });
+  ASSERT_NE(nullptr, page);
+  ASSERT_EQ(1u, page->GetChildCount());
+  const ui::AXNode* paragraph = page->GetChildAtIndex(0u);
+  ASSERT_EQ(3u, paragraph->GetChildCount());
+  EXPECT_EQ(ax::mojom::Role::kLink, paragraph->GetChildAtIndex(1u)->GetRole());
+
+  const ui::AXNode* static_text = paragraph->GetChildAtIndex(2u);
+  ASSERT_EQ(2u, static_text->GetChildCount());
+  const ui::AXNode* comma_box = static_text->GetChildAtIndex(0u);
+  const ui::AXNode* more_text_box = static_text->GetChildAtIndex(1u);
+  EXPECT_EQ(more_text_box->id(),
+            comma_box->GetIntAttribute(ax::mojom::IntAttribute::kNextOnLineId));
+  EXPECT_EQ(comma_box->id(), more_text_box->GetIntAttribute(
+                                 ax::mojom::IntAttribute::kPreviousOnLineId));
 }
 
 TEST_F(PdfAccessibilityTreeTest, TextRunsAndCharsMismatch) {
