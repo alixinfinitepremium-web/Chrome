@@ -330,7 +330,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': 'c89749284728d778ded3790033ad77edc7a11265',
+  'angle_revision': 'b28022f83174a14aa846c2694d513d55ad17e8bb',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -440,7 +440,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': '23562a136e1f71b2f4d94282e56c209623e8160f',
+  'dawn_revision': '20734e3deac87a3f5c389ebdb808227be6832b44',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -476,7 +476,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling crabbyavif
   # and whatever else without interference from each other.
-  'crabbyavif_revision': 'e79ba88d30d459841228e850c8d40748ca32330e',
+  'crabbyavif_revision': 'ec26e149082ae1a816f10789dfb1ac08896066e4',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling openh264rs
   # and whatever else without interference from each other.
@@ -548,11 +548,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
-  'llvm_libc_revision':    'e80d7aa6b1785ea27b6bd8d502157c614fdd2b64',
+  'llvm_libc_revision':    'b88fbdd86260fc59b892d9e21054c5388c473b0d',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
-  'compiler_rt_revision': 'c12529ae1c91cfb1d5edf7a22d497091ae9ad642',
+  'compiler_rt_revision': '6f55534633fa19430486f96f2271a9cd96ae7a02',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling clusterfuzz-data
   # and whatever else without interference from each other.
@@ -1756,7 +1756,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': 'Kxnbph38RMyRF-tQJw9BAp69SXEyDBSsRKUB27_jbLMC',
+        'version': '1GLAzi0vfawewXuBtnEJb2Tz4f7p-6DcAOeJerkXPCoC',
       },
     ],
     'condition': 'non_git_source',
@@ -2238,7 +2238,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + 'f3744008a11fa0be1787675210892310e23f9824',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '4a19e6e909047fdd239a16debf6edfb1f611163e',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '173b9b26e8fcbcbe64e1ecbf073a21a96b95c6b1',
