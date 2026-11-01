@@ -322,15 +322,15 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '3df52f9ec5460b13943441def15d7fcbd2b7e94c',
+  'skia_revision': 'e43478a2f9f8c7f68d6c7e2ca79441dac7df9b75',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': '21b73c3ec12495146268615c61f4fb3b38ae4eb7',
+  'v8_revision': '47b64d3854b3b5ba981a7620f1af1eee34e85c25',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': 'b28022f83174a14aa846c2694d513d55ad17e8bb',
+  'angle_revision': 'feebf60fe088ccec3a26a7419d6ac68edf542c7a',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -1756,7 +1756,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': '1GLAzi0vfawewXuBtnEJb2Tz4f7p-6DcAOeJerkXPCoC',
+        'version': '3XGwsIWn1OY_4zL-aZV7An83QhiXeocMITFtQ6b9JWoC',
       },
     ],
     'condition': 'non_git_source',
@@ -1768,7 +1768,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    '6f1d71c9486efff25246faf62ac5b87c7d569251',
+    'ff16ff56e3bfd3189601ba3f99a4c19e837041cd',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -1872,7 +1872,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': '1VGIq19BlsWcjEM6DzosdLxdue25YKuYmEzXb2g4gVsC',
+          'version': 'CgcskMIZYhwLZTZHZams26G9l1KZcWIFqhpGv2fjWOYC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
@@ -2808,7 +2808,7 @@ deps = {
     Var('chromium_git') + '/chromium/third_party/openh264rs.git' + '@' + Var('openh264rs_revision'),
 
   'src/third_party/openscreen/src':
-    Var('chromium_git') + '/openscreen' + '@' + '71d0ba69f4ff05e21f89c04575b9714346282367',
+    Var('chromium_git') + '/openscreen' + '@' + '3a0eeab1cf742cbd2e40f2b9cd383a0f5a01501c',
 
   'src/third_party/openxr/src': {
     'url': Var('chromium_git') + '/external/github.com/KhronosGroup/OpenXR-SDK' + '@' + '75c53b6e853dc12c7b3c771edc9c9c841b15faaa',
@@ -3393,7 +3393,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_receiver_app/app',
-        'version': '2xsnLCnNt8EM5I6FHaMMoXy57Tjar_fxFm0pI09tBDMC',
+        'version': 'liGQqX-eztLxE0Es3gYQXcGO2EPpfewMfpzHUk7BQOAC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3404,7 +3404,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_app/app',
-        'version': 'ga5guY6KCTvntH_mOyMfE_w9YMXznvPFW-T_GJsHHA4C',
+        'version': 'D4lbch9aBRm7RK3eYi3NN8KiDw_mVWTETABjNuCdocYC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3459,7 +3459,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/projector_app/app',
-        'version': '2q0RSObhcveq_ukFDwfiHV_IZuabhmF4DK2BtmKG3hoC',
+        'version': 'k-QbOfL8k9fFjni4fearjQU5MRxzF6C2qbcJEzqUetcC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3881,7 +3881,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '439ea961b031f7155adaad7951c694ee052bc9d5',
+        '3fea9ebcbb497de13e4f5c4fb88139569e3787be',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
