@@ -128,8 +128,10 @@
 #include "third_party/blink/public/common/features.h"
 #include "third_party/blink/public/common/security/protocol_handler_security_level.h"
 #include "third_party/blink/public/public_buildflags.h"
+#include "ui/base/interaction/element_identifier.h"
 #include "ui/base/l10n/l10n_util.h"
 #include "ui/base/models/dialog_model.h"
+#include "ui/base/mojom/dialog_button.mojom.h"
 #include "ui/base/mojom/window_open_disposition.mojom.h"
 #include "ui/base/page_transition_types.h"
 #include "ui/base/resource/resource_bundle.h"
@@ -1698,21 +1700,21 @@ void DevToolsUIBindings::SetDevicesDiscoveryConfig(
   if (!parsed_port_forwarding) {
     return;
   }
-  std::optional<base::Value> parsed_network = base::JSONReader::Read(
+  std::optional<base::ListValue> parsed_network = base::JSONReader::ReadList(
       network_discovery_config, base::JSON_PARSE_CHROMIUM_EXTENSIONS);
-  if (!parsed_network || !parsed_network->is_list()) {
+  if (!parsed_network) {
     return;
   }
   profile_->GetPrefs()->SetBoolean(prefs::kDevToolsDiscoverUsbDevicesEnabled,
                                    discover_usb_devices);
   profile_->GetPrefs()->SetBoolean(prefs::kDevToolsPortForwardingEnabled,
                                    port_forwarding_enabled);
-  profile_->GetPrefs()->Set(prefs::kDevToolsPortForwardingConfig,
-                            base::Value(std::move(*parsed_port_forwarding)));
+  profile_->GetPrefs()->SetDict(prefs::kDevToolsPortForwardingConfig,
+                                *std::move(parsed_port_forwarding));
   profile_->GetPrefs()->SetBoolean(prefs::kDevToolsDiscoverTCPTargetsEnabled,
                                    network_discovery_enabled);
-  profile_->GetPrefs()->Set(prefs::kDevToolsTCPDiscoveryConfig,
-                            *parsed_network);
+  profile_->GetPrefs()->SetList(prefs::kDevToolsTCPDiscoveryConfig,
+                                *std::move(parsed_network));
 }
 
 void DevToolsUIBindings::DevicesDiscoveryConfigUpdated() {
@@ -2877,38 +2879,51 @@ void DevToolsUIBindings::ShowDevToolsInfoBar(
 #endif
 }
 
-DEFINE_LOCAL_ELEMENT_IDENTIFIER_VALUE(kCancelButtonId);
-
-void DevToolsUIBindings::ShowDirectoryPermissionDialog(
+std::unique_ptr<ui::DialogModel>
+DevToolsUIBindings::CreateDirectoryPermissionDialog(
     const std::string& directory_path,
     DevToolsInfoBarDelegate::Callback callback) {
-  CHECK_CURRENTLY_ON(BrowserThread::UI, base::NotFatalUntil::M161);
-
+  DEFINE_LOCAL_ELEMENT_IDENTIFIER_VALUE(kCancelButtonId);
   auto split_callback = base::SplitOnceCallback(std::move(callback));
   auto accept_callback = base::BindOnce(std::move(split_callback.first), true);
   auto cancel_callbacks = base::SplitOnceCallback(
       base::BindOnce(std::move(split_callback.second), false));
   std::u16string origin_identity_name = u"DevTools";
+  return ui::DialogModel::Builder()
+      .SetTitle(l10n_util::GetStringUTF16(
+          IDS_DEV_TOOLS_EDIT_DIRECTORY_PERMISSION_TITLE))
+      .AddParagraph(ui::DialogModelLabel::CreateWithReplacements(
+          IDS_FILE_SYSTEM_ACCESS_WRITE_PERMISSION_DIRECTORY_TEXT,
+          {ui::DialogModelLabel::CreateEmphasizedText(origin_identity_name),
+           ui::DialogModelLabel::CreateEmphasizedText(
+               base::FilePath::FromUTF8Unsafe(directory_path)
+                   .LossyDisplayName())}))
+      .AddOkButton(
+          std::move(accept_callback),
+          ui::DialogModel::Button::Params().SetLabel(l10n_util::GetStringUTF16(
+              IDS_FILE_SYSTEM_ACCESS_EDIT_DIRECTORY_PERMISSION_ALLOW_TEXT)))
+      .AddCancelButton(std::move(cancel_callbacks.first),
+                       ui::DialogModel::Button::Params().SetId(kCancelButtonId))
+      .SetCloseActionCallback(std::move(cancel_callbacks.second))
+      .SetInitiallyFocusedField(kCancelButtonId)
+      .OverrideDefaultButton(ui::mojom::DialogButton::kNone)
+      .SetEnableInputProtection(true)
+      .Build();
+}
+
+std::unique_ptr<ui::DialogModel>
+DevToolsUIBindings::CreateDirectoryPermissionDialogForTesting(
+    const std::string& directory_path,
+    DevToolsInfoBarDelegate::Callback callback) {
+  return CreateDirectoryPermissionDialog(directory_path, std::move(callback));
+}
+
+void DevToolsUIBindings::ShowDirectoryPermissionDialog(
+    const std::string& directory_path,
+    DevToolsInfoBarDelegate::Callback callback) {
+  CHECK_CURRENTLY_ON(BrowserThread::UI, base::NotFatalUntil::M161);
   chrome::ShowTabModal(
-      ui::DialogModel::Builder()
-          .SetTitle(l10n_util::GetStringUTF16(
-              IDS_DEV_TOOLS_EDIT_DIRECTORY_PERMISSION_TITLE))
-          .AddParagraph(ui::DialogModelLabel::CreateWithReplacements(
-              IDS_FILE_SYSTEM_ACCESS_WRITE_PERMISSION_DIRECTORY_TEXT,
-              {ui::DialogModelLabel::CreateEmphasizedText(origin_identity_name),
-               ui::DialogModelLabel::CreateEmphasizedText(
-                   base::FilePath::FromUTF8Unsafe(directory_path)
-                       .LossyDisplayName())}))
-          .AddOkButton(
-              std::move(accept_callback),
-              ui::DialogModel::Button::Params().SetLabel(l10n_util::GetStringUTF16(
-                  IDS_FILE_SYSTEM_ACCESS_EDIT_DIRECTORY_PERMISSION_ALLOW_TEXT)))
-          .AddCancelButton(
-              std::move(cancel_callbacks.first),
-              ui::DialogModel::Button::Params().SetId(kCancelButtonId))
-          .SetCloseActionCallback(std::move(cancel_callbacks.second))
-          .SetInitiallyFocusedField(kCancelButtonId)
-          .Build(),
+      CreateDirectoryPermissionDialog(directory_path, std::move(callback)),
       web_contents_);
 }
 

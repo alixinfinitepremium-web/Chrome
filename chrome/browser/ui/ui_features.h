@@ -24,6 +24,9 @@ bool ShouldUseActionsForBrowserCommands();
 
 BASE_DECLARE_FEATURE(kAllowEyeDropperWGCScreenCapture);
 
+BASE_DECLARE_FEATURE(kBrowserWindowListenerObservation);
+bool IsBrowserWindowListenerObservationEnabled();
+
 BASE_DECLARE_FEATURE(kCtrlTabMru);
 
 BASE_DECLARE_FEATURE(kFastFaviconDisplay);
@@ -406,6 +409,7 @@ BASE_DECLARE_FEATURE(kTabGroupRibbon);
 bool IsTabGroupRibbonEnabled();
 
 BASE_DECLARE_FEATURE(kNonGroupFocus);
+BASE_DECLARE_FEATURE_PARAM(int, kNonGroupFocusIphMinTabs);
 
 BASE_DECLARE_FEATURE(kOmniboxResizingPrioritization);
 

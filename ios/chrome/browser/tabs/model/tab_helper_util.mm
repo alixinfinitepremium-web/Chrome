@@ -23,6 +23,7 @@
 #import "components/webauthn/ios/features.h"
 #import "components/webauthn/ios/passkey_tab_helper.h"
 #import "ios/chrome/browser/aim/model/aim_tab_helper.h"
+#import "ios/chrome/browser/aim/model/ios_chrome_aim_eligibility_service_factory.h"
 #import "ios/chrome/browser/app_launcher/model/app_launcher_abuse_detector.h"
 #import "ios/chrome/browser/app_launcher/model/app_launcher_tab_helper.h"
 #import "ios/chrome/browser/autofill/model/autofill_tab_helper.h"
@@ -404,7 +405,14 @@ void AttachTabHelpers(web::WebState* web_state, TabHelperFilter filter_flags) {
     attacher.CreateWhen<CobrowseTabHelper>(
         attacher.IsNotInTabHelperFilter(),
         ios::TemplateURLServiceFactory::GetForProfile(profile));
-    attacher.CreateWhen<AssistantAimTabHelper>(attacher.IsForAssistantAim());
+    attacher
+        .CreateDeferredWhen<AssistantAimTabHelper>(attacher.IsForAssistantAim())
+        .With(
+            [&]() {
+              return IOSChromeAimEligibilityServiceFactory::GetForProfile(
+                  profile);
+            },
+            [&]() { return profile->GetPrefs(); });
   }
 
   attacher.CreateWhen<AimTabHelper>(!attacher.IsForPrerender() &&
@@ -451,12 +459,14 @@ void AttachTabHelpers(web::WebState* web_state, TabHelperFilter filter_flags) {
   // pending navigation. `EnterpriseProxyErrorService` only exists while dynamic
   // route fetching is enabled. Not needed for prerendering, which is cancelled
   // on auth challenges, nor in Incognito, where the controller doesn't exist.
+  // LINT.IfChange(EnterpriseProxyTabHelperGating)
   if (!attacher.IsOffTheRecord() && !attacher.IsForPrerender()) {
     if (enterprise_net::EnterpriseProxyErrorService* error_service =
             EnterpriseProxyErrorServiceFactoryIOS::GetForProfile(profile)) {
       attacher.Create<EnterpriseProxyTabHelper>(error_service);
     }
   }
+  // LINT.ThenChange(//ios/chrome/browser/main/model/browser_agent_util.mm:EnterpriseProxyBrowserAgentGating)
 
   if (web::features::IsCobaltEnabled()) {
     ios::provider::AttachCobaltTabHelpers(attacher);

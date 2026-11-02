@@ -439,6 +439,7 @@ DEFINE_VARIATION_PARAM(kIPHDesktopCustomizeChromeExperimentFeature,
 DEFINE_VARIATION_PARAM(kIPHDesktopRealboxContextualSearchFeature,
                        "IPH_DesktopRealboxContextualSearchFeature");
 DEFINE_VARIATION_PARAM(kIPHDictationFeature, "IPH_Dictation");
+DEFINE_VARIATION_PARAM(kIPHDictationHotkeyFeature, "IPH_DictationHotkey");
 DEFINE_VARIATION_PARAM(kIPHDiscardRingFeature, "IPH_DiscardRing");
 DEFINE_VARIATION_PARAM(kIPHDownloadEsbPromoFeature, "IPH_DownloadEsbPromo");
 DEFINE_VARIATION_PARAM(kIPHExplicitBrowserSigninPreferenceRememberedFeature,
@@ -453,7 +454,6 @@ DEFINE_VARIATION_PARAM(kIPHGlicPromoFeature, "IPH_GlicPromo");
 DEFINE_VARIATION_PARAM(kIPHGlicTrustFirstOnboardingShortcutSnoozePromoFeature,
                        "IPH_GlicTrustFirstOnboardingShortcutSnoozePromo");
 DEFINE_VARIATION_PARAM(kIPHGlicTryItFeature, "IPH_GlicTryIt");
-DEFINE_VARIATION_PARAM(kIPHHistorySearchFeature, "IPH_HistorySearch");
 DEFINE_VARIATION_PARAM(kIPHIndigoContextMenuToastFeature,
                        "IPH_IndigoContextMenuToast");
 #if BUILDFLAG(ENABLE_EXTENSIONS_CORE)
@@ -569,6 +569,8 @@ DEFINE_VARIATION_PARAM(kIPHPriceTrackingInSidePanelFeature,
 DEFINE_VARIATION_PARAM(kIPHBackNavigationMenuFeature, "IPH_BackNavigationMenu");
 DEFINE_VARIATION_PARAM(kIPHTabGroupsFocusingFeature,
                        "IPH_TabGroupsFocusingFeature");
+DEFINE_VARIATION_PARAM(kIPHTabGroupsNonGroupFocusingFeature,
+                       "IPH_TabGroupsNonGroupFocusingFeature");
 DEFINE_VARIATION_PARAM(kIPHTabGroupsUnfocusingFeature,
                        "IPH_TabGroupsUnfocusingFeature");
 DEFINE_VARIATION_PARAM(kIPHTabGroupsSaveV2IntroFeature,
@@ -908,6 +910,7 @@ inline constexpr flags_ui::FeatureEntry::FeatureVariation
         VARIATION_ENTRY(kIPHDesktopRealboxContextualSearchFeature),
         VARIATION_ENTRY(kIPHDesktopSharedHighlightingFeature),
         VARIATION_ENTRY(kIPHDictationFeature),
+        VARIATION_ENTRY(kIPHDictationHotkeyFeature),
         VARIATION_ENTRY(kIPHDiscardRingFeature),
         VARIATION_ENTRY(kIPHExplicitBrowserSigninPreferenceRememberedFeature),
         VARIATION_ENTRY(kIPHGlassFrameOptInFeature),
@@ -918,7 +921,6 @@ inline constexpr flags_ui::FeatureEntry::FeatureVariation
         VARIATION_ENTRY(kIPHGMCCastStartStopFeature),
         VARIATION_ENTRY(kIPHGMCLocalMediaCastingFeature),
         VARIATION_ENTRY(kIPHGMCSaveVideoFrameFeature),
-        VARIATION_ENTRY(kIPHHistorySearchFeature),
         VARIATION_ENTRY(kIPHIndigoContextMenuToastFeature),
         VARIATION_ENTRY(kIPHMemorySaverModeFeature),
         VARIATION_ENTRY(kIPHMultistepFilterPromoFeature),
@@ -964,6 +966,7 @@ inline constexpr flags_ui::FeatureEntry::FeatureVariation
         VARIATION_ENTRY(kIPHSplitViewHorizontalIndirectAccessFeature),
         VARIATION_ENTRY(kIPHTabAudioMutingFeature),
         VARIATION_ENTRY(kIPHTabGroupsFocusingFeature),
+        VARIATION_ENTRY(kIPHTabGroupsNonGroupFocusingFeature),
         VARIATION_ENTRY(kIPHTabGroupsSharedTabChangedFeature),
         VARIATION_ENTRY(kIPHTabGroupsSharedTabFeedbackFeature),
         VARIATION_ENTRY(kIPHTabGroupsUnfocusingFeature),

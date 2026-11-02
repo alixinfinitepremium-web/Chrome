@@ -39,6 +39,7 @@ found in the LICENSE file.
   <int value="7" label="EmptyFillData"/>
   <int value="8" label="Success"/>
   <int value="9" label="Error"/>
+  <int value="10" label="Cancelled"/>
 </enum>
 
 <!-- LINT.ThenChange(//chrome/browser/autofill/actor/one_time_tokens/actor_one_time_token_filling_service_metrics.h:ActorOneTimeTokenFillingServiceFillOtp) -->
@@ -75,6 +76,7 @@ found in the LICENSE file.
   <int value="25" label="UnknownError"/>
   <int value="26" label="GmailOtpBackendMessageAuthenticationFailed"/>
   <int value="27" label="GmailOtpSenderDomainMismatch"/>
+  <int value="28" label="Cancelled"/>
 </enum>
 
 <!-- LINT.ThenChange(//chrome/browser/autofill/actor/one_time_tokens/actor_one_time_token_filling_service_metrics.h:ActorOneTimeTokenFillingServiceRetrieveOtp) -->
@@ -114,6 +116,12 @@ found in the LICENSE file.
   <int value="19" label="GmailSmartFeaturesConsentRequired"/>
   <int value="20" label="GoogleSmartFeaturesConsentRequired"/>
   <int value="21" label="UnableToRetrieveGmailAndGoogleSmartFeaturesConsent"/>
+  <int value="22" label="CancelledDuringConsentFetch"/>
+  <int value="23" label="CancelledDuringOptInCard"/>
+  <int value="24" label="CancelledDuringLoginFlowVerification"/>
+  <int value="25" label="CancelledDuringOtpRetrieval"/>
+  <int value="26" label="CancelledDuringConfirmationDialog"/>
+  <int value="27" label="CancelledDuringFillOtp"/>
   <int value="30" label="GmailOtpSenderDomainMismatch"/>
   <int value="31" label="OtpRetrievalTimeout"/>
 </enum>
@@ -138,6 +146,7 @@ found in the LICENSE file.
   <int value="1" label="ErrorResponse"/>
   <int value="2" label="PermissionDenied"/>
   <int value="3" label="PermissionGranted"/>
+  <int value="4" label="Cancelled"/>
 </enum>
 
 <!-- LINT.ThenChange(//chrome/browser/actor/tools/one_time_token/attempt_otp_filling_metrics.h:GmailOtpConfirmationDialogInteraction) -->
@@ -149,6 +158,7 @@ found in the LICENSE file.
   <int value="1" label="ErrorResponse"/>
   <int value="2" label="PermissionDenied"/>
   <int value="3" label="PermissionGranted"/>
+  <int value="4" label="Cancelled"/>
 </enum>
 
 <!-- LINT.ThenChange(//chrome/browser/actor/tools/one_time_token/attempt_otp_filling_metrics.h:GmailOtpOptInCardInteraction) -->

@@ -240,13 +240,14 @@
 #endif
 #include "chrome/browser/glic/browser_ui/glic_tab_indicator_helper.h"
 #include "chrome/browser/glic/glic_gemini_web_warming_observer.h"
-#include "chrome/browser/glic/glic_marketing_page_tab_helper.h"
-#include "chrome/browser/glic/glic_promotion_source_navigation_observer.h"
 #include "chrome/browser/glic/glic_selection_observer.h"
+#include "chrome/browser/glic/navigation_capture/glic_marketing_page_tab_helper.h"
+#include "chrome/browser/glic/navigation_capture/glic_promotion_source_navigation_observer.h"
 #include "chrome/browser/glic/public/features.h"
 #include "chrome/browser/glic/public/glic_enabling.h"
 #include "chrome/browser/glic/public/glic_keyed_service.h"
 #include "chrome/browser/glic/public/widget/glic_side_panel_coordinator_impl.h"
+#include "chrome/browser/glic/selection/quick_answers_tool.h"
 #include "chrome/browser/glic/selection/selection_overlay_controller.h"
 #include "chrome/browser/glic/selection/selection_suggestion_tool.h"
 #include "chrome/browser/glic/service/glic_instance_helper.h"
@@ -583,8 +584,9 @@ void TabFeatures::Init(TabInterface& tab, Profile* profile) {
   tab_dialogs_ = TabDialogs::Create(tab, tab.GetContents());
   if (page_action_controller_->ActionExists(kActionShowPasswordsBubbleOrPage)) {
     manage_passwords_page_action_controller_ =
-        std::make_unique<ManagePasswordsPageActionController>(
-            *page_action_controller_);
+        GetUserDataFactory()
+            .CreateInstance<ManagePasswordsPageActionController>(
+                tab, tab, *page_action_controller_);
   }
 
   if (page_action_controller_->ActionExists(kActionShowCookieControls)) {
@@ -718,6 +720,11 @@ void TabFeatures::Init(TabInterface& tab, Profile* profile) {
       if (base::FeatureList::IsEnabled(features::kGlicSelectionSuggestions)) {
         glic_selection_suggestion_tool_ =
             std::make_unique<glic::SelectionSuggestionTool>(tab);
+      }
+      if (base::FeatureList::IsEnabled(
+              features::kQuickAnswersSelectionSuggestions)) {
+        glic_quick_answers_tool_ =
+            std::make_unique<glic::QuickAnswersTool>(tab);
       }
       if (base::FeatureList::IsEnabled(lens::kLensSelectionSuggestions)) {
         lens_suggestion_tool_ = std::make_unique<lens::LensSuggestionTool>(tab);
@@ -924,7 +931,8 @@ void TabFeatures::Init(TabInterface& tab, Profile* profile) {
 #if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_LINUX) || \
     BUILDFLAG(IS_CHROMEOS)
   inactive_window_mouse_event_controller_ =
-      std::make_unique<InactiveWindowMouseEventController>();
+      GetUserDataFactory().CreateInstance<InactiveWindowMouseEventController>(
+          tab, tab);
 
   if (base::FeatureList::IsEnabled(
           wallet::features::kWalletablePassDetection)) {
@@ -996,13 +1004,15 @@ void TabFeatures::Init(TabInterface& tab, Profile* profile) {
   }
 
   bookmarkbar_preload_pipeline_manager_ =
-      std::make_unique<BookmarkBarPreloadPipelineManager>(tab.GetContents());
+      GetUserDataFactory().CreateInstance<BookmarkBarPreloadPipelineManager>(
+          tab, tab, tab.GetContents());
 
   context_highlight_tab_feature_ =
       GetUserDataFactory().CreateInstance<ContextHighlightTabFeature>(tab, tab);
 
   new_tab_page_preload_pipeline_manager_ =
-      std::make_unique<NewTabPagePreloadPipelineManager>(tab.GetContents());
+      GetUserDataFactory().CreateInstance<NewTabPagePreloadPipelineManager>(
+          tab, tab, tab.GetContents());
 
   vr_tab_helper_ =
       GetUserDataFactory().CreateInstance<vr::VrTabHelper>(tab, tab);
@@ -1723,13 +1733,15 @@ void TabFeatures::WillDiscardContents(tabs::TabInterface* tab,
   if (bookmarkbar_preload_pipeline_manager_) {
     bookmarkbar_preload_pipeline_manager_.reset();
     bookmarkbar_preload_pipeline_manager_ =
-        std::make_unique<BookmarkBarPreloadPipelineManager>(new_contents);
+        GetUserDataFactory().CreateInstance<BookmarkBarPreloadPipelineManager>(
+            *tab, *tab, new_contents);
   }
 
   if (new_tab_page_preload_pipeline_manager_) {
     new_tab_page_preload_pipeline_manager_.reset();
     new_tab_page_preload_pipeline_manager_ =
-        std::make_unique<NewTabPagePreloadPipelineManager>(new_contents);
+        GetUserDataFactory().CreateInstance<NewTabPagePreloadPipelineManager>(
+            *tab, *tab, new_contents);
   }
 
   if (glic_selection_observer_) {

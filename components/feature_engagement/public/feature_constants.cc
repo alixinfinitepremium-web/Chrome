@@ -83,6 +83,9 @@ BASE_FEATURE(kIPHDesktopRealboxContextualSearchFeature,
 BASE_FEATURE(kIPHDictationFeature,
              "IPH_Dictation",
              base::FEATURE_DISABLED_BY_DEFAULT);
+BASE_FEATURE(kIPHDictationHotkeyFeature,
+             "IPH_DictationHotkey",
+             base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kIPHDiscardRingFeature,
              "IPH_DiscardRing",
              base::FEATURE_ENABLED_BY_DEFAULT);
@@ -92,9 +95,6 @@ BASE_FEATURE(kIPHDownloadEsbPromoFeature,
 BASE_FEATURE(kIPHExplicitBrowserSigninPreferenceRememberedFeature,
              "IPH_ExplicitBrowserSigninPreferenceRemembered",
              base::FEATURE_ENABLED_BY_DEFAULT);
-BASE_FEATURE(kIPHHistorySearchFeature,
-             "IPH_HistorySearch",
-             base::FEATURE_DISABLED_BY_DEFAULT);
 #if BUILDFLAG(ENABLE_EXTENSIONS_CORE)
 BASE_FEATURE(kIPHExtensionsMenuFeature,
              "IPH_ExtensionsMenu",
@@ -296,6 +296,9 @@ BASE_FEATURE(kIPHVerticalTabstripTutorialFeature,
 BASE_FEATURE(kIPHTabGroupsFocusingFeature,
              "IPH_TabGroupsFocusingFeature",
              base::FEATURE_DISABLED_BY_DEFAULT);
+BASE_FEATURE(kIPHTabGroupsNonGroupFocusingFeature,
+             "IPH_TabGroupsNonGroupFocusingFeature",
+             base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kIPHTabGroupsUnfocusingFeature,
              "IPH_TabGroupsUnfocusingFeature",
              base::FEATURE_ENABLED_BY_DEFAULT);

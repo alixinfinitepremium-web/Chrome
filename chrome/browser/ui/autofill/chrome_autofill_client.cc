@@ -44,8 +44,8 @@
 #include "chrome/browser/autofill/autofill_optimization_guide_decider_factory.h"
 #include "chrome/browser/autofill/autofill_policy_service_factory.h"
 #include "chrome/browser/autofill/cross_tab_copy_paste_tracker_factory.h"
-#include "chrome/browser/autofill/entity_suppression_manager_factory.h"
 #include "chrome/browser/autofill/gmail_otp_backend_factory.h"
+#include "chrome/browser/autofill/personal_context_entity_metadata_manager_factory.h"
 #include "chrome/browser/autofill/personal_data_manager_factory.h"
 #include "chrome/browser/autofill/sms_otp_service_factory.h"
 #include "chrome/browser/autofill/ui/ui_util.h"
@@ -602,8 +602,10 @@ ChromeAutofillClient::GetAutofillAiPersonalContextAccessManager() {
       GetProfile());
 }
 
-EntitySuppressionManager* ChromeAutofillClient::GetEntitySuppressionManager() {
-  return EntitySuppressionManagerFactory::GetForProfile(GetProfile());
+PersonalContextEntityMetadataManager*
+ChromeAutofillClient::GetPersonalContextEntityMetadataManager() {
+  return PersonalContextEntityMetadataManagerFactory::GetForProfile(
+      GetProfile());
 }
 
 AutofillAiModelCache* ChromeAutofillClient::GetAutofillAiModelCache() {
@@ -1806,8 +1808,8 @@ void ChromeAutofillClient::ShowAutofillAiSuggestionRemovedNotification(
   // `on_undo_clicked` is not used here: toast action buttons are registered
   // once per `ToastId` in `ToastService`, so a toast cannot run a closure
   // passed at show time. Instead, the toast's Undo button undoes the
-  // suppression through `EntitySuppressionManager`, using the entity ID passed
-  // in `action_button_callback_data`.
+  // suppression through `PersonalContextEntityMetadataManager`, using the
+  // entity ID passed in `action_button_callback_data`.
   ToastController* toast_controller = GetToastController();
   if (!toast_controller) {
     return;

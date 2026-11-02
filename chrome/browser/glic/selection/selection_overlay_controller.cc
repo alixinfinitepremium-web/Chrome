@@ -101,9 +101,6 @@ BASE_FEATURE(kGlicSelectionOverlayFullSizeScreenshot,
 
 BASE_FEATURE(kStaticSelectionSuggestions, base::FEATURE_DISABLED_BY_DEFAULT);
 
-BASE_FEATURE(kQuickAnswersSelectionSuggestions,
-             base::FEATURE_DISABLED_BY_DEFAULT);
-
 bool IsSelectionOverlayPromptEnabled() {
   return base::FeatureList::IsEnabled(features::kGlicSelectionOverlayPrompt) ||
          base::FeatureList::IsEnabled(features::kGlicSelectionOverlayPromptBox);
@@ -264,14 +261,6 @@ SelectionOverlayController::SelectionOverlayController(
     PrefService* pref_service)
     : OverlayBaseController(tab, pref_service),
       scoped_unowned_user_data_(tab->GetUnownedUserDataHost(), *this) {
-  if (base::FeatureList::IsEnabled(kQuickAnswersSelectionSuggestions) &&
-      base::FeatureList::IsEnabled(
-          ::selection::kSmartSelectionServerSuggestions)) {
-    quick_answers_tool_ = std::make_unique<QuickAnswersTool>(CHECK_DEREF(tab_));
-    if (auto* suggestion_service = ::selection::SuggestionService::From(tab_)) {
-      suggestion_service->RegisterTool(quick_answers_tool_.get());
-    }
-  }
   tab_subscriptions_.push_back(tab_->RegisterWillDiscardContents(
       base::BindRepeating(&SelectionOverlayController::WillDiscardContents,
                           weak_factory_.GetWeakPtr())));
@@ -300,11 +289,6 @@ SelectionOverlayController::SelectionOverlayController(
 }
 
 SelectionOverlayController::~SelectionOverlayController() {
-  if (quick_answers_tool_) {
-    if (auto* suggestion_service = ::selection::SuggestionService::From(tab_)) {
-      suggestion_service->UnregisterTool(quick_answers_tool_.get());
-    }
-  }
   if (tab_ && tab_->GetBrowserWindowInterface()) {
     if (auto* tab_strip_model =
             tab_->GetBrowserWindowInterface()->GetTabStripModel()) {
@@ -432,8 +416,14 @@ SelectionOverlayController* SelectionOverlayController::FromOverlayWebContents(
 // static.
 SelectionOverlayController* SelectionOverlayController::FromTabWebContents(
     content::WebContents* tab_web_contents) {
-  return Get(tabs::TabInterface::GetFromContents(tab_web_contents)
-                 ->GetUnownedUserDataHost());
+  if (!tab_web_contents) {
+    return nullptr;
+  }
+  auto* tab = tabs::TabInterface::MaybeGetFromContents(tab_web_contents);
+  if (!tab) {
+    return nullptr;
+  }
+  return Get(tab->GetUnownedUserDataHost());
 }
 
 content::RenderFrameHost* SelectionOverlayController::GetOverlayMainFrame()
@@ -459,16 +449,18 @@ std::vector<int> SelectionOverlayController::GetPolylineCounts() const {
 void SelectionOverlayController::BindOverlay(
     mojo::PendingReceiver<selection::SelectionOverlayPageHandler> receiver,
     mojo::PendingRemote<selection::SelectionOverlayPage> page) {
-  CHECK_EQ(state(), State::kStartingWebUI) << base::ToString(state());
+  // The tab may have been backgrounded while the WebUI was starting.
+  CHECK(state() == State::kStartingWebUI || state() == State::kBackground)
+      << base::ToString(state());
 
   session_->receiver.Bind(std::move(receiver));
   session_->receiver.set_disconnect_handler(base::BindOnce(
       &SelectionOverlayController::Reset, session_weak_factory_.GetWeakPtr()));
   session_->page.Bind(std::move(page));
 
-  if (overlay_web_view_) {
+  if (views::WebView* web_view = GetOverlayWebView()) {
     session_->overlay_web_view_focus_subscription =
-        overlay_web_view_->AddWebContentsFocusedCallback(base::BindRepeating(
+        web_view->AddWebContentsFocusedCallback(base::BindRepeating(
             &SelectionOverlayController::OnOverlayWebViewFocused,
             session_weak_factory_.GetWeakPtr()));
   }
@@ -1218,12 +1210,12 @@ void SelectionOverlayController::RequestNewSuggestions(
       static_suggestions.emplace_back(std::make_unique<SelectionSuggestion>(
           CHECK_DEREF(tab_), u"Ask Gemini"));
     }
-    if (base::FeatureList::IsEnabled(kQuickAnswersSelectionSuggestions) &&
-        !base::FeatureList::IsEnabled(
+    if (!base::FeatureList::IsEnabled(
             ::selection::kSmartSelectionServerSuggestions)) {
-      if (auto suggestion =
-              QuickAnswersTool::CreateSuggestion(CHECK_DEREF(tab_), aoi)) {
-        static_suggestions.push_back(std::move(suggestion));
+      if (auto* quick_answers_tool = QuickAnswersTool::From(tab_)) {
+        if (auto suggestion = quick_answers_tool->CreateSuggestion(aoi)) {
+          static_suggestions.push_back(std::move(suggestion));
+        }
       }
     }
     if (!static_suggestions.empty()) {

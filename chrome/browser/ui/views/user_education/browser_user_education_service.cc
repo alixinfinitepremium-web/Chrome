@@ -1883,6 +1883,27 @@ void MaybeRegisterChromeFeaturePromos(
                        "medium or large text field.",
                        Metadata::FeatureSet{&dictation::kDictation})));
 
+  // kIPHDictationHotkeyFeature:
+  registry.RegisterFeature(std::move(
+      FeaturePromoSpecification::CreateForSnoozePromo(
+          feature_engagement::kIPHDictationHotkeyFeature,
+          dictation::kDictationIphAnchorElementId,
+          IDS_DICTATION_HOTKEY_IPH_BODY)
+          .SetBubbleTitleText(IDS_DICTATION_HOTKEY_IPH_TITLE)
+          .SetBubbleIcon(kLightbulbOutlineIcon)
+          .SetBubbleArrowCallback(
+              base::BindRepeating(&dictation::GetDictationIphArrow))
+          .OverrideFocusOnShow(false)
+          .SetAdditionalConditions(std::move(
+              AdditionalConditions().AddAdditionalCondition(AdditionalCondition{
+                  feature_engagement::events::kDictationInvoked,
+                  AdditionalConditions::Constraint::kAtLeast, 2})))
+          .SetMetadata(158, "amyasinghal@google.com",
+                       "Shown when a user who hasn't used the dictation "
+                       "keyboard shortcut ends a dictation session, once they "
+                       "have invoked dictation at least twice.",
+                       Metadata::FeatureSet{&dictation::kDictation})));
+
   // kIPHDiscardRingFeature:
   registry.RegisterFeature(std::move(
       FeaturePromoSpecification::CreateForCustomAction(
@@ -2033,24 +2054,6 @@ void MaybeRegisterChromeFeaturePromos(
                        "Triggered once per-app when a link is captured and "
                        "opened in a browser tab.")));
 
-  registry.RegisterFeature(std::move(
-      FeaturePromoSpecification::CreateForCustomAction(
-          feature_engagement::kIPHHistorySearchFeature,
-          kHistorySearchInputElementId, IDS_HISTORY_EMBEDDINGS_IPH_BODY,
-          IDS_HISTORY_EMBEDDINGS_IPH_ACTION,
-          base::BindRepeating(
-              [](ContextPtr ctx,
-                 user_education::FeaturePromoHandle promo_handle) {
-                chrome::ShowSettingsSubPage(GetBrowser(ctx),
-                                            chrome::kHistorySearchSubpage);
-              }))
-          .SetCustomActionIsDefault(true)
-          .SetCustomActionDismissText(IDS_NO_THANKS)
-          .SetBubbleArrow(HelpBubbleArrow::kTopLeft)
-          .SetInAnyContext(true)
-          .SetMetadata(130, "johntlee@chromium.org",
-                       "Triggered after user lands on chrome://history.")));
-
   // kIPHiOSLensPromoDesktopFeature
   if (MobilePromoOnDesktopTypeEnabled(
           MobilePromoOnDesktopPromoType::kLensPromo)) {
@@ -2185,6 +2188,19 @@ void MaybeRegisterChromeFeaturePromos(
               159, "kunaldaftari@google.com",
               "Triggered the first time a user focuses on a tab group or "
               "tabs to point out the Unfocus button.")));
+
+  // kIPHTabGroupsNonGroupFocusingFeature:
+  registry.RegisterFeature(std::move(
+      FeaturePromoSpecification::CreateForToastPromo(
+          feature_engagement::kIPHTabGroupsNonGroupFocusingFeature,
+          kTabGroupHeaderElementId, IDS_TAB_GROUPS_NON_GROUP_FOCUSING_IPH_BODY,
+          IDS_TAB_GROUPS_NON_GROUP_FOCUSING_IPH_BODY_SCREENREADER,
+          FeaturePromoSpecification::AcceleratorInfo())
+          .SetBubbleArrowCallback(base::BindRepeating(&GetTabGroupBubbleArrow))
+          .SetMetadata(
+              159, "kunaldaftari@google.com",
+              "Triggered when there are 3 or more tabs in an ephemeral "
+              "focused group to suggest creating a tab group.")));
 
   const ui::ElementIdentifier contextual_tasks_ephemeral_element_id =
       contextual_tasks::IsContextualTasksEphemeralPinButtonRefactorEnabled()
@@ -2981,6 +2997,12 @@ void MaybeRegisterChromeNewBadges(user_education::NewBadgeRegistry& registry) {
       features::kTabGroupsFocusing,
       user_education::Metadata(159, "kunaldaftari@google.com",
                                "Shown on the Focus on group item in the "
+                               "tab context menu.")));
+
+  registry.RegisterFeature(user_education::NewBadgeSpecification(
+      features::kNonGroupFocus,
+      user_education::Metadata(159, "kunaldaftari@google.com",
+                               "Shown on the Focus on tab(s) item in the "
                                "tab context menu.")));
 
 #if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_LINUX)

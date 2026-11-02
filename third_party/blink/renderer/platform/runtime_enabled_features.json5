@@ -641,6 +641,12 @@
       status: "stable",
     },
     {
+      // https://crbug.com/543008837: Ensure anchor-positioned elements are
+      // consistent with a full relayout once scrolling stops.
+      name: "AnchorPositionRelayoutOnScrollEnd",
+      status: "stable",
+    },
+    {
       name: "AndroidDownloadableFontsMatching",
       base_feature: "none",
       public: true,
@@ -4143,6 +4149,13 @@
       status: "stable",
     },
     {
+      // Kill switch for crbug.com/424995036 and crbug.com/577276073. When
+      // enabled, the top of a PopupWidgetHost is constrained to be at or below
+      // the line of death.
+      name: "LimitPopupWidgetHostPosition",
+      status: "stable",
+    },
+    {
       name: "LineBreakAfterSpaceBeforeOpenTag",
       status: "stable",
     },
@@ -6363,8 +6376,9 @@
       // Splits a qualified name on its first colon, per the DOM "validate and
       // extract" algorithm, so any later colons are part of the local name.
       // See https://crbug.com/490251709
+      // Enabled in M159, safe to remove in M163.
       name: "SplitQualifiedNameOnFirstColon",
-      status: "experimental",
+      status: "stable",
     },
     {
       name: "SplitTextNotCleanupDummySpans",

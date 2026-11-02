@@ -78,8 +78,8 @@
 #import "ios/chrome/browser/autofill/model/ios_autofill_ai_model_executor_factory.h"
 #import "ios/chrome/browser/autofill/model/ios_autofill_ai_personal_context_access_manager_factory.h"
 #import "ios/chrome/browser/autofill/model/ios_autofill_entity_data_manager_factory.h"
-#import "ios/chrome/browser/autofill/model/ios_autofill_entity_suppression_manager_factory.h"
 #import "ios/chrome/browser/autofill/model/ios_autofill_field_classification_model_handler_factory.h"
+#import "ios/chrome/browser/autofill/model/ios_autofill_personal_context_entity_metadata_manager_factory.h"
 #import "ios/chrome/browser/autofill/model/ios_wallet_pass_access_manager_factory.h"
 #import "ios/chrome/browser/autofill/model/personal_data_manager_factory.h"
 #import "ios/chrome/browser/autofill/model/strike_database_factory.h"
@@ -272,9 +272,10 @@ EntityDataManager* ChromeAutofillClientIOS::GetEntityDataManager() {
   return IOSAutofillEntityDataManagerFactory::GetForProfile(profile_);
 }
 
-EntitySuppressionManager*
-ChromeAutofillClientIOS::GetEntitySuppressionManager() {
-  return IOSAutofillEntitySuppressionManagerFactory::GetForProfile(profile_);
+PersonalContextEntityMetadataManager*
+ChromeAutofillClientIOS::GetPersonalContextEntityMetadataManager() {
+  return IOSAutofillPersonalContextEntityMetadataManagerFactory::GetForProfile(
+      profile_);
 }
 
 WalletPassAccessManager* ChromeAutofillClientIOS::GetWalletPassAccessManager() {

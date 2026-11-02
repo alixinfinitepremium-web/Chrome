@@ -57,7 +57,6 @@
 #include "chrome/browser/ui/simple_message_box.h"
 #include "chrome/browser/ui/singleton_tabs.h"
 #include "chrome/browser/ui/tab_dialogs.h"
-#include "chrome/browser/ui/tabs/public/tab_features.h"
 #include "chrome/browser/ui/ui_features.h"
 #include "chrome/browser/ui/user_education/browser_user_education_interface.h"
 #include "chrome/browser/ui/views/frame/browser_view.h"
@@ -1005,7 +1004,10 @@ void ManagePasswordsUIController::SavePassword(
   }
   UpdatePasswordFormUsernameAndPassword(username, password,
                                         passwords_data_.form_manager());
+  SavePendingPassword();
+}
 
+void ManagePasswordsUIController::SavePendingPassword() {
   if (auto* sentiment_service =
           TrustSafetySentimentServiceFactory::GetForProfile(
               Profile::FromBrowserContext(
@@ -1034,7 +1036,10 @@ void ManagePasswordsUIController::SavePassword(
 
   post_save_compromised_helper_ =
       std::make_unique<password_manager::PostSaveCompromisedHelper>(
-          passwords_data_.form_manager()->GetInsecureCredentials(), username);
+          passwords_data_.form_manager()->GetInsecureCredentials(),
+          passwords_data_.form_manager()
+              ->GetPendingCredentials()
+              .username_value);
   post_save_compromised_helper_->AnalyzeLeakedCredentials(
       passwords_data_.client()->GetProfilePasswordStore(),
       passwords_data_.client()->GetAccountPasswordStore(),
@@ -1288,18 +1293,13 @@ void ManagePasswordsUIController::UpdateBubbleAndIconVisibility() {
   if (!tab_interface) {
     return;
   }
-  tabs::TabFeatures* const tab_features = tab_interface->GetTabFeatures();
-  // During tab teardown, TabFeatures is destroyed before WebContents.
-  // Destroying other tab features (like ReadAnything) can trigger
-  // visibility changes on the WebContents, which calls this method
-  // when TabFeatures is already gone.
-  if (!tab_features) {
-    return;
-  }
   // Retrieve the controller responsible for managing the page action's
   // visibility and state.
   ManagePasswordsPageActionController* const controller =
-      tab_features->manage_passwords_page_action_controller();
+      ManagePasswordsPageActionController::From(tab_interface);
+  if (!controller) {
+    return;
+  }
   // Get the action item associated with the passwords UI.
   actions::ActionItem* passwords_action_item =
       actions::ActionManager::Get().FindAction(
@@ -1627,8 +1627,11 @@ void ManagePasswordsUIController::StartTrustedVaultErrorResolutionFlow() {
       trusted_vault::TrustedVaultUserActionTriggerForUMA::kPasswordSavePrompt);
 }
 
-void ManagePasswordsUIController::
-    SavePasswordAfterTrustedVaultErrorResolution() {
+void ManagePasswordsUIController::SavePasswordAfterTrustedVaultErrorResolution(
+    const std::u16string& username,
+    const password_manager::PasswordString& password) {
+  UpdatePasswordFormUsernameAndPassword(username, password,
+                                        passwords_data_.form_manager());
   if (IsSavingBlockedByTrustedVaultError()) {
     // Defer saving the password until the password store error is fixed.
     const syncer::SyncService* sync_service =
@@ -1640,6 +1643,12 @@ void ManagePasswordsUIController::
     return;
   }
 
+  // No trusted vault errors, so we can save the password immediately.
+  CompleteSavePasswordAfterTrustedVaultErrorResolution();
+}
+
+void ManagePasswordsUIController::
+    CompleteSavePasswordAfterTrustedVaultErrorResolution() {
   if (save_password_after_trusted_vault_error_resolution_ &&
       !IsAutoSaveAfterErrorResolutionValid()) {
     ResetAutoSaveAfterErrorResolution();
@@ -1649,14 +1658,10 @@ void ManagePasswordsUIController::
     return;
   }
 
-  // No trusted vault errors, so we can save the password immediately.
   ResetAutoSaveAfterErrorResolution();
-  if (PasswordFormManagerForUI* form_manager = passwords_data_.form_manager()) {
-    password_manager::PasswordForm pending_credentials =
-        form_manager->GetPendingCredentials();
-    SavePassword(pending_credentials.username_value,
-                 pending_credentials.password_value);
-    // SavePassword() sets bubble_status_ to SHOWN_PENDING_ICON_UPDATE.
+  if (passwords_data_.form_manager()) {
+    SavePendingPassword();
+    // `SavePendingPassword()` sets bubble_status_ to SHOWN_PENDING_ICON_UPDATE.
     // However, since the bubble was already closed when we started the error
     // resolution flow, we must reset it to NOT_SHOWN.
     bubble_status_ = BubbleStatus::NOT_SHOWN;
@@ -1693,7 +1698,7 @@ void ManagePasswordsUIController::OnErrorStateChanged(
 
     if (save_password_after_trusted_vault_error_resolution_ &&
         new_state == password_manager::ActionableError::kNoError) {
-      SavePasswordAfterTrustedVaultErrorResolution();
+      CompleteSavePasswordAfterTrustedVaultErrorResolution();
     }
     if (IsShowingBubble()) {
       // If the error state of the store changed, the safest option is to hide

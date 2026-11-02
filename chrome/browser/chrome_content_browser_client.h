@@ -69,6 +69,7 @@ class ScopedKeepAlive;
 
 namespace base {
 class CommandLine;
+class ResponsivenessCalculatorDelegate;
 }  // namespace base
 
 namespace blink {
@@ -428,8 +429,7 @@ class ChromeContentBrowserClient : public content::ContentBrowserClient {
 
   bool IsPrivacySandboxReportingDestinationAttested(
       content::BrowserContext* browser_context,
-      const url::Origin& destination_origin,
-      content::PrivacySandboxInvokingAPI invoking_api) override;
+      const url::Origin& destination_origin) override;
   bool IsFullCookieAccessAllowed(
       content::BrowserContext* browser_context,
       content::WebContents* web_contents,
@@ -1126,7 +1126,7 @@ class ChromeContentBrowserClient : public content::ContentBrowserClient {
 
   bool ShouldSkipBeforeUnloadDialog(content::RenderFrameHost* rfh) override;
 
-  std::unique_ptr<content::ResponsivenessCalculatorDelegate>
+  std::unique_ptr<base::ResponsivenessCalculatorDelegate>
   CreateResponsivenessCalculatorDelegate() override;
 
   void GetCloudIdentifiers(

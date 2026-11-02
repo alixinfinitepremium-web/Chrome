@@ -237,6 +237,7 @@ class GlicTabIndicatorHelper;
 class GlicSidePanelCoordinator;
 class GlicSelectionObserver;
 class GlicWebDragObserver;
+class QuickAnswersTool;
 class SelectionOverlayController;
 class SelectionSuggestionTool;
 class GlicPageFeaturesManager;
@@ -462,11 +463,6 @@ class TabFeatures {
     return page_action_controller_.get();
   }
 
-  ManagePasswordsPageActionController*
-  manage_passwords_page_action_controller() {
-    return manage_passwords_page_action_controller_.get();
-  }
-
   LensOverlayController* lens_overlay_controller();
   const LensOverlayController* lens_overlay_controller() const;
 
@@ -475,10 +471,6 @@ class TabFeatures {
     return record_replay_client_.get();
   }
 #endif
-
-  InactiveWindowMouseEventController* inactive_window_mouse_event_controller() {
-    return inactive_window_mouse_event_controller_.get();
-  }
 
   TabUIHelper* SetTabUIHelperForTesting(
       std::unique_ptr<TabUIHelper> tab_ui_helper);
@@ -497,14 +489,6 @@ class TabFeatures {
 
   autofill::BubbleManager* SetBubbleManagerForTesting(
       std::unique_ptr<autofill::BubbleManager> bubble_manager);
-
-  BookmarkBarPreloadPipelineManager* bookmarkbar_preload_pipeline_manager() {
-    return bookmarkbar_preload_pipeline_manager_.get();
-  }
-
-  NewTabPagePreloadPipelineManager* new_tab_page_preload_pipeline_manager() {
-    return new_tab_page_preload_pipeline_manager_.get();
-  }
 
   site_engagement::SiteEngagementService::Helper* site_engagement_helper() {
     return site_engagement_helper_.get();
@@ -666,6 +650,7 @@ class TabFeatures {
   std::unique_ptr<selection::SuggestionService> selection_suggestion_service_;
   std::unique_ptr<glic::SelectionSuggestionTool>
       glic_selection_suggestion_tool_;
+  std::unique_ptr<glic::QuickAnswersTool> glic_quick_answers_tool_;
   std::unique_ptr<lens::LensSuggestionTool> lens_suggestion_tool_;
   std::unique_ptr<glic::SelectionOverlayController>
       glic_selection_overlay_controller_;

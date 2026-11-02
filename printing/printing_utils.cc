@@ -41,17 +41,14 @@ constexpr size_t kMaxDocumentTitleLength = 80;
 constexpr gfx::Size kIsoA4Microns = gfx::Size(210000, 297000);
 #endif
 
-}  // namespace
-
 std::u16string SimplifyDocumentTitleWithLength(const std::u16string& title,
                                                size_t length) {
   std::u16string no_controls(title);
-  no_controls.erase(
-      std::remove_if(no_controls.begin(), no_controls.end(), &u_iscntrl),
-      no_controls.end());
+  std::erase_if(no_controls, &u_iscntrl);
 
   static constexpr const char* kCharsToReplace[] = {
-      "\\", "/", "<", ">", ":", "\"", "'", "|", "?", "*", "~",
+      "\\", "/", "<", ">", ":", "\"", "'", "|",
+      "?",  "*", "~", "(", ")", "{",  "}",
   };
   for (const char* c : kCharsToReplace) {
     base::ReplaceChars(no_controls, base::ASCIIToUTF16(c), u"_", &no_controls);
@@ -62,8 +59,16 @@ std::u16string SimplifyDocumentTitleWithLength(const std::u16string& title,
   return result;
 }
 
+}  // namespace
+
 std::u16string SimplifyDocumentTitle(const std::u16string& title) {
   return SimplifyDocumentTitleWithLength(title, kMaxDocumentTitleLength);
+}
+
+std::u16string SimplifyDocumentTitleWithLengthForTesting(
+    const std::u16string& title,
+    size_t length) {
+  return SimplifyDocumentTitleWithLength(title, length);
 }
 
 #if BUILDFLAG(USE_CUPS)

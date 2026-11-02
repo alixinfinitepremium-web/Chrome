@@ -7,6 +7,7 @@
 #include "base/feature.h"
 #include "base/feature_list.h"
 #include "base/time/time.h"
+#include "build/build_config.h"
 #include "components/prefs/pref_service.h"
 #include "components/signin/public/base/signin_buildflags.h"
 #include "components/signin/public/base/signin_pref_names.h"
@@ -428,11 +429,6 @@ BASE_FEATURE_PARAM(size_t,
                    &kEnableAccountPreviewPreferredAccount,
                    6);
 #endif
-BASE_FEATURE_PARAM(
-    base::TimeDelta,
-    kAccountPreviewPreferredAccountSingleAccountPromoFetchTimeout,
-    &kEnableAccountPreviewPreferredAccount,
-    base::Seconds(1));
 
 // Controls followup features for preferred account preview (new promos, and
 // updated strings). This flag has no effect if
@@ -446,6 +442,18 @@ BASE_FEATURE(kEnableAccountPreviewPreferredAccountFRE,
 BASE_FEATURE_PARAM(base::TimeDelta,
                    kAccountPreviewPreferredAccountFREFetchTimeout,
                    &kEnableAccountPreviewPreferredAccountFRE,
+                   base::Seconds(1));
+#endif
+
+#if BUILDFLAG(ENABLE_DICE_SUPPORT)
+// Controls whether preferred account preview personalization is enabled for
+// sign-in interceptions. This flag has no effect if
+// `kEnableAccountPreviewPreferredAccount` is not enabled.
+BASE_FEATURE(kEnableAccountPreviewPreferredAccountIntercept,
+             base::FEATURE_DISABLED_BY_DEFAULT);
+BASE_FEATURE_PARAM(base::TimeDelta,
+                   kAccountPreviewPreferredAccountInterceptFetchTimeout,
+                   &kEnableAccountPreviewPreferredAccountIntercept,
                    base::Seconds(1));
 #endif
 
@@ -520,7 +528,7 @@ const base::FeatureParam<std::string>
 #if BUILDFLAG(ENABLE_DICE_SUPPORT)
 // Enables Chrome refresh tokens binding to a device.
 BASE_FEATURE(kEnableChromeRefreshTokenBinding,
-#if BUILDFLAG(IS_WIN)
+#if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC)
              base::FEATURE_ENABLED_BY_DEFAULT
 #else
              base::FEATURE_DISABLED_BY_DEFAULT
@@ -615,18 +623,23 @@ BASE_FEATURE_PARAM(bool,
 //
 // It takes precedence over the `kEnableOAuthMultiloginCookiesBinding` flag.
 BASE_FEATURE(kEnableOAuthMultiloginStandardCookiesBinding,
-             base::FEATURE_DISABLED_BY_DEFAULT);
+#if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC)
+             base::FEATURE_ENABLED_BY_DEFAULT
+#else
+             base::FEATURE_DISABLED_BY_DEFAULT
+#endif
+);
 #endif  // BUILDFLAG(ENABLE_DICE_SUPPORT)
 
 // Enables binding the OAuthMultilogin cookies to a device with DBSC standard
 // for secondary partitions.
 #if BUILDFLAG(ENABLE_DICE_SUPPORT)
 BASE_FEATURE(kEnableOAuthMultiloginStandardCookiesBindingForSecondaryPartitions,
-#if BUILDFLAG(IS_WIN)
+#if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC)
              base::FEATURE_ENABLED_BY_DEFAULT
 #else
              base::FEATURE_DISABLED_BY_DEFAULT
-#endif  // BUILDFLAG(IS_WIN)
+#endif
 );
 #endif  // BUILDFLAG(ENABLE_DICE_SUPPORT)
 
@@ -793,10 +806,6 @@ const base::FeatureParam<int> kMagiChromePasskeySignInGaiaExpBranch{
 bool IsMagiChromePasskeyAutofillEnabled() {
   return base::FeatureList::IsEnabled(kMagiChromePasskeySignIn) &&
          kMagiChromePasskeySignInFlowType.Get() == "autofill";
-}
-bool IsMagiChromePasskeyBannerEnabled() {
-  return base::FeatureList::IsEnabled(kMagiChromePasskeySignIn) &&
-         kMagiChromePasskeySignInFlowType.Get() == "banner";
 }
 #endif  // BUILDFLAG(ENABLE_DICE_SUPPORT)
 

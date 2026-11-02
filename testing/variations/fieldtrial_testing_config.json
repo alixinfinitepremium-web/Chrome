@@ -716,6 +716,21 @@
             ]
         }
     ],
+    "AndroidNewTabButtonTabstripWebUI": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "AndroidNewTabButtonTabstripWebUI"
+                    ]
+                }
+            ]
+        }
+    ],
     "AndroidProgressBarCancelOnWindowInvisible": [
         {
             "platforms": [
@@ -743,6 +758,21 @@
                         "ReaderModeBlurTransitionAnimation",
                         "ReaderModeDelayBottomSheetPeek",
                         "ReaderModeToggleLinks"
+                    ]
+                }
+            ]
+        }
+    ],
+    "AndroidSelectPasswordContextMenu": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "AndroidSelectPasswordContextMenu"
                     ]
                 }
             ]
@@ -1638,6 +1668,21 @@
                     "name": "Enabled",
                     "enable_features": [
                         "AutofillAiAsyncReauthAvailability"
+                    ]
+                }
+            ]
+        }
+    ],
+    "AutofillAiEditEntitiesFromSaveUpdatePrompt": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "AutofillAiEditEntitiesFromSaveUpdatePrompt"
                     ]
                 }
             ]
@@ -2836,6 +2881,25 @@
             ]
         }
     ],
+    "Base64SimdBase64Encode": [
+        {
+            "platforms": [
+                "android",
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "Base64SimdBase64Encode"
+                    ]
+                }
+            ]
+        }
+    ],
     "BaseLockTrySpin": [
         {
             "platforms": [
@@ -2934,6 +2998,26 @@
                     },
                     "enable_features": [
                         "BeforeFirstRunDesktopRefreshSurvey"
+                    ]
+                }
+            ]
+        }
+    ],
+    "BindURLLoaderFactoryToHighPriorityTaskRunner": [
+        {
+            "platforms": [
+                "android",
+                "android_webview",
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "BindURLLoaderFactoryToHighPriorityTaskRunner"
                     ]
                 }
             ]
@@ -5125,7 +5209,7 @@
             ]
         }
     ],
-    "ContextManagementAndSmartTabSharing": [
+    "ContextManagement_Desktop": [
         {
             "platforms": [
                 "chromeos",
@@ -5135,19 +5219,14 @@
             ],
             "experiments": [
                 {
-                    "name": "Enabled_SingleTab_STSMultiTurn_Prestable_M157",
+                    "name": "Enabled_SingleTab_Prestable_M157",
                     "params": {
-                        "ContextualTasksContextSmartTabSharing": "true",
-                        "ContextualTasksContextToggleOffAfterSubmit": "false",
                         "enable_single_tab_menu_item": "true",
                         "enable_tab_deselection": "true"
                     },
                     "enable_features": [
                         "ContextManagementInComposebox",
-                        "ContextManagementInOmnibox",
-                        "ContextualTasksContext",
-                        "ContextualTasksContextLogging",
-                        "ContextualTasksContextMqlsLogging"
+                        "ContextManagementInOmnibox"
                     ]
                 }
             ]
@@ -6199,24 +6278,6 @@
             ]
         }
     ],
-    "DeviceBoundSessionCredentialsMac": [
-        {
-            "platforms": [
-                "mac"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "DeviceBoundSessionsForRestrictedSites",
-                        "EnableChromeRefreshTokenBinding",
-                        "EnableOAuthMultiloginStandardCookiesBinding",
-                        "EnableOAuthMultiloginStandardCookiesBindingForSecondaryPartitions"
-                    ]
-                }
-            ]
-        }
-    ],
     "DeviceBoundSessionsDsePrewarmerMac": [
         {
             "platforms": [
@@ -6227,23 +6288,6 @@
                     "name": "Enabled_20261014",
                     "enable_features": [
                         "DeviceBoundSessionsDsePrewarmer"
-                    ]
-                }
-            ]
-        }
-    ],
-    "DeviceBoundSessionsForGoogle": [
-        {
-            "platforms": [
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "EnabledWithPrewarmer",
-                    "enable_features": [
-                        "DeviceBoundSessionsDsePrewarmer",
-                        "DeviceBoundSessionsForRestrictedSites",
-                        "EnableOAuthMultiloginStandardCookiesBinding"
                     ]
                 }
             ]
@@ -6837,6 +6881,21 @@
             ]
         }
     ],
+    "DynamicPatching": [
+        {
+            "platforms": [
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "DynamicPatching"
+                    ]
+                }
+            ]
+        }
+    ],
     "DynamicProfileCountryV2Desktop": [
         {
             "platforms": [
@@ -7021,6 +7080,7 @@
             ],
             "experiments": [
                 {
+                    "//0": "AccountPreviewPreferredAccountSingleAccountPromoFetchTimeout is deprecated in M157+ (moved to EnableAccountPreviewPreferredAccountIntercept), but kept here to match the Finch config targeting M155-M156.",
                     "name": "Enabled",
                     "params": {
                         "AccountPreviewPreferredAccountSingleAccountPromoFetchTimeout": "0s"
@@ -7076,6 +7136,23 @@
                     "name": "Enabled",
                     "enable_features": [
                         "EnableAccountPreviewPreferredAccount"
+                    ]
+                }
+            ]
+        }
+    ],
+    "EnableAccountPreviewPreferredAccountIntercept": [
+        {
+            "platforms": [
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "EnableAccountPreviewPreferredAccountIntercept"
                     ]
                 }
             ]
@@ -9032,6 +9109,24 @@
                     "name": "Enabled",
                     "enable_features": [
                         "GlicZeroStateSuggestions"
+                    ]
+                }
+            ]
+        }
+    ],
+    "GlicZeroStateSuggestionsPreconnectWithoutCredentials": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "GlicZeroStateSuggestionsPreconnectWithoutCredentials"
                     ]
                 }
             ]
@@ -12788,30 +12883,6 @@
                     "name": "Enabled",
                     "enable_features": [
                         "StarterPackIPH"
-                    ]
-                }
-            ]
-        }
-    ],
-    "OmniboxUseShortSuggestPathV1": [
-        {
-            "platforms": [
-                "android",
-                "chromeos",
-                "fuchsia",
-                "ios",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "params": {
-                        "OmniboxSuggestPathClient": "chrome-omni,chrome,chrome-ntp-action,chrome-cobrowse-compose,chrome-multimodal,chrome-contextual,chrome-android-search-resumption-module,chrome-compose,chrome-mobile-aim"
-                    },
-                    "enable_features": [
-                        "OmniboxUseShortSuggestPathV1"
                     ]
                 }
             ]
@@ -16915,6 +16986,30 @@
             ]
         }
     ],
+    "SmartTabSharing_Desktop": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled_TabManagement_STSMultiTurn_Prestable_M157",
+                    "params": {
+                        "ContextualTasksContextSmartTabSharing": "true",
+                        "ContextualTasksContextToggleOffAfterSubmit": "false"
+                    },
+                    "enable_features": [
+                        "ContextualTasksContext",
+                        "ContextualTasksContextLogging",
+                        "ContextualTasksContextMqlsLogging"
+                    ]
+                }
+            ]
+        }
+    ],
     "SmartZoom": [
         {
             "platforms": [
@@ -18514,7 +18609,8 @@
                     ],
                     "disable_features": [
                         "ForwardMemoryPressureToBlinkIsolates"
-                    ]
+                    ],
+                    "disable_benchmarking": true
                 }
             ]
         }

@@ -37,8 +37,9 @@ class TtcPageContextMonitor : public web::WebStateObserver {
 
   // Constructs a monitor observing `web_state` and notifying `delegate`.
   // `delegate` must not be `nullptr`. If `web_state` is already realized and
-  // finished loading, triggers an initial asynchronous page context extraction
-  // immediately.
+  // finished loading, starts an initial asynchronous page context extraction
+  // immediately (or synchronously notifies `delegate` with
+  // `kPageNotExtractableError` if `web_state` is not eligible for extraction).
   TtcPageContextMonitor(web::WebState& web_state, Delegate* delegate);
 
   TtcPageContextMonitor(const TtcPageContextMonitor&) = delete;
@@ -60,6 +61,7 @@ class TtcPageContextMonitor : public web::WebStateObserver {
   void PageLoaded(
       web::WebState* web_state,
       web::PageLoadCompletionStatus load_completion_status) override;
+  void RenderProcessGone(web::WebState* web_state) override;
   void WebStateDestroyed(web::WebState* web_state) override;
 
  private:

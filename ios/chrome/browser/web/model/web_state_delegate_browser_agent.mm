@@ -57,6 +57,7 @@
 #import "ios/web/public/permissions/permissions.h"
 #import "ios/web/public/ui/context_menu_params.h"
 #import "ios/web/public/ui/crw_web_view_proxy.h"
+#import "ui/base/mojom/window_open_disposition.mojom-shared.h"
 
 namespace {
 // Callback for HTTP authentication dialogs. This callback is a standalone
@@ -192,6 +193,9 @@ void PostPermissionDecision(web::WebStatePermissionDecisionHandler handler,
 void OnRequestGeolocationPermissionResponse(
     web::WebStatePermissionDecisionHandler handler,
     OverlayResponse* response) {
+  if (handler) {
+    handler(web::PermissionDecisionDeny);
+  }
   if (response) {
     auto* info = response->GetInfo<GeolocationPromptDialogResponse>();
     if (info && info->tapped_settings()) {
@@ -201,8 +205,6 @@ void OnRequestGeolocationPermissionResponse(
                     options:@{}
           completionHandler:nil];
     }
-
-    handler(web::PermissionDecisionDeny);
   }
 }
 
@@ -342,9 +344,9 @@ web::WebState* WebStateDelegateBrowserAgent::OpenURLFromWebState(
   insertion_params.parent = source;
 
   switch (params.disposition) {
-    case WindowOpenDisposition::kNewForegroundTab:
-    case WindowOpenDisposition::kNewBackgroundTab:
-    case WindowOpenDisposition::kNewPopup: {
+    case ui::mojom::WindowOpenDisposition::kNewForegroundTab:
+    case ui::mojom::WindowOpenDisposition::kNewBackgroundTab:
+    case ui::mojom::WindowOpenDisposition::kNewPopup: {
       // Under some circumstances, this callback may be triggered from WebKit
       // synchronously as part of handling some other WebStateList mutation
       // (typically deleting a WebState and then activating another as a side
@@ -364,16 +366,17 @@ web::WebState* WebStateDelegateBrowserAgent::OpenURLFromWebState(
         return nullptr;
       }
 
-      if (params.disposition == WindowOpenDisposition::kNewPopup) {
+      if (params.disposition == ui::mojom::WindowOpenDisposition::kNewPopup) {
         insertion_params.opened_by_dom = true;
       } else {
         insertion_params.in_background =
-            params.disposition == WindowOpenDisposition::kNewBackgroundTab;
+            params.disposition ==
+            ui::mojom::WindowOpenDisposition::kNewBackgroundTab;
       }
       return tab_insertion_agent()->InsertWebState(load_params,
                                                    insertion_params);
     }
-    case WindowOpenDisposition::kCurrentTab: {
+    case ui::mojom::WindowOpenDisposition::kCurrentTab: {
       source->GetNavigationManager()->LoadURLWithParams(load_params);
       return source;
     }
@@ -507,8 +510,8 @@ void WebStateDelegateBrowserAgent::RequestGeolocationPermission(
   std::unique_ptr<OverlayRequest> request =
       OverlayRequest::CreateWithConfig<GeolocationPromptDialogRequest>();
 
-  request->GetCallbackManager()->AddCompletionCallback(base::BindOnce(
-      &OnRequestGeolocationPermissionResponse, std::move(handler)));
+  request->GetCallbackManager()->AddCompletionCallback(
+      base::BindOnce(&OnRequestGeolocationPermissionResponse, handler));
 
   OverlayRequestQueue::FromWebState(source, OverlayModality::kWebContentArea)
       ->AddRequest(std::move(request));

@@ -6903,17 +6903,6 @@ Keep your key file in a safe place. You will need it to create new versions of y
         Sign in as
       </message>
 
-      <!-- Remote Actor Credential Sharing Dialog -->
-      <message name="IDS_REMOTE_ACTOR_SHARING_DIALOG_TITLE" desc="Title of the dialog asking the user to share credentials with a remote actor.">
-        Allow <ph name="ACTOR_NAME">$1<ex>Gemini</ex></ph> to sign in to <ph name="DOMAIN">$2<ex>example.com</ex></ph> for you?
-      </message>
-      <message name="IDS_REMOTE_ACTOR_SHARING_DIALOG_SUBTITLE" desc="Subtitle of the dialog asking the user to share credentials with a remote actor.">
-        <ph name="ACTOR_NAME">$3<ex>Gemini</ex></ph> can use Google Password Manager to sign in for you. <ph name="BEGIN_LINK">$1</ph>Learn how <ph name="ACTOR_NAME">$3<ex>Gemini</ex></ph> handles your data<ph name="END_LINK">$2</ph>
-      </message>
-      <message name="IDS_REMOTE_ACTOR_SHARING_DIALOG_ALLOW_BUTTON" desc="Button label to allow password sharing for the remote actor this time.">
-        Allow this time
-      </message>
-
       <if expr="not use_titlecase">
         <message name="IDS_PASSWORD_GENERATION_SUGGESTION_GPM" desc="Text shown next to a generated password describing it as a suggestion.">
           Use strong password
@@ -11564,6 +11553,12 @@ Keep your key file in a safe place. You will need it to create new versions of y
       <message name="IDS_TAB_GROUPS_UNFOCUSING_IPH_BODY_SCREENREADER" is_accessibility_with_no_ui="true" desc="The screen reader text of the IPH pointing to the Unfocus button">
         Click the Unfocus button to bring your other tabs back
       </message>
+      <message name="IDS_TAB_GROUPS_NON_GROUP_FOCUSING_IPH_BODY" desc="The body text of the IPH suggesting that the user group related tabs while in non-group focus mode">
+        Right-click to group related tabs
+      </message>
+      <message name="IDS_TAB_GROUPS_NON_GROUP_FOCUSING_IPH_BODY_SCREENREADER" is_accessibility_with_no_ui="true" desc="The screen reader text of the IPH suggesting that the user group related tabs while in non-group focus mode">
+        Right-click the focus selection header in the tab strip to group related tabs
+      </message>
 
       <!-- Customize Chrome Tutorial Strings -->
       <message name="IDS_TUTORIAL_CUSTOMIZE_CHROME_START_TUTORIAL_IPH" desc="The description of the IPH to start the customize chrome tutorial">
@@ -15100,12 +15095,6 @@ This can include information about installed software, files, your browser, the 
         <!-- Dice Web Signin Interception Bubble-->
         <message name="IDS_SIGNIN_DICE_WEB_INTERCEPT_BUBBLE_NEW_PROFILE_BUTTON_LABEL" desc="Label of the confirmation button in the web signin interception bubble">
           Ok
-        </message>
-        <message name="IDS_SIGNIN_QRCODE_BANNER_TITLE" desc="Title of the C++ Views banner on the Chrome Sign-in page encouraging the user to sign in using a QR code and their phone.">
-          Sign in faster with a QR code
-        </message>
-        <message name="IDS_SIGNIN_QRCODE_BANNER_DESCRIPTION" desc="Description of the C++ Views banner on the Chrome Sign-in page explaining how the user can scan the QR code with their phone camera to sign in using their passkey for google.com.">
-          Scan this QR code with the camera on the device that has your passkey for google.com
         </message>
 
         <if expr="use_titlecase">
@@ -19870,6 +19859,12 @@ Please help our engineers fix this problem. Tell us what happened right before y
       </message>
       <message name="IDS_DICTATION_IPH_BODY" desc="Body text of the in-product help bubble shown next to a focused text field, introducing the dictation feature. The placeholder is the name of the dictation item in the right-click context menu." translateable="false">
         Right click and select “<ph name="MENU_ITEM_NAME">$1<ex>Talk to type</ex></ph>” to turn your spoken thoughts into polished text.
+      </message>
+      <message name="IDS_DICTATION_HOTKEY_IPH_TITLE" desc="Title of the in-product help bubble shown next to a text field after the user has used dictation a couple of times, introducing the dictation keyboard shortcut." translateable="false">
+        Talk to type with a shortcut
+      </message>
+      <message name="IDS_DICTATION_HOTKEY_IPH_BODY" desc="Body text of the in-product help bubble that introduces the dictation keyboard shortcut. The placeholder is the keyboard shortcut that starts and stops dictation." translateable="false">
+        Press <ph name="SHORTCUT">$1<ex>Ctrl+Space</ex></ph> to start talking, and again when you’re done to insert polished text.
       </message>
     </if>
 

@@ -48,8 +48,8 @@
 #include "chrome/browser/finds/finds_service_factory.h"
 #include "chrome/browser/flags/android/chrome_feature_list.h"
 #include "chrome/browser/glic/glic_gemini_web_warming_observer.h"
-#include "chrome/browser/glic/glic_marketing_page_tab_helper.h"
 #include "chrome/browser/glic/host/glic_drag_and_drop_util.h"
+#include "chrome/browser/glic/navigation_capture/glic_marketing_page_tab_helper.h"
 #include "chrome/browser/glic/public/features.h"
 #include "chrome/browser/glic/public/glic_enabling.h"
 #include "chrome/browser/glic/public/widget/glic_side_panel_coordinator_android.h"
@@ -59,8 +59,6 @@
 #include "chrome/browser/history/history_tab_helper.h"
 #include "chrome/browser/history/top_sites_factory.h"
 #include "chrome/browser/history_clusters/history_clusters_tab_helper.h"
-#include "chrome/browser/history_embeddings/history_embeddings_service_factory.h"
-#include "chrome/browser/history_embeddings/history_embeddings_tab_helper.h"
 #include "chrome/browser/loader/from_gws_navigation_and_keep_alive_request_observer.h"
 #include "chrome/browser/login_detection/login_detection_tab_helper.h"
 #include "chrome/browser/lookalikes/safety_tip_web_contents_observer.h"
@@ -319,7 +317,8 @@ TabFeatures::TabFeatures(content::WebContents* web_contents, Profile* profile) {
   }
 
   new_tab_page_preload_pipeline_manager_ =
-      std::make_unique<NewTabPagePreloadPipelineManager>(web_contents);
+      GetUserDataFactory().CreateInstance<NewTabPagePreloadPipelineManager>(
+          *tab, *tab, web_contents);
 
   if (base::FeatureList::IsEnabled(
           security_interstitials::features::kHttpsFirstDialogUi)) {
@@ -584,12 +583,6 @@ TabFeatures::TabFeatures(content::WebContents* web_contents, Profile* profile) {
 
   task_tab_helper_ = GetUserDataFactory().CreateInstance<tasks::TaskTabHelper>(
       *tab, *tab, web_contents);
-
-  if (!profile->IsOffTheRecord() &&
-      HistoryEmbeddingsServiceFactory::GetForProfile(profile)) {
-    history_embeddings_tab_helper_ =
-        std::make_unique<HistoryEmbeddingsTabHelper>(web_contents);
-  }
 
   download_navigation_observer_ =
       std::make_unique<download::DownloadNavigationObserver>(

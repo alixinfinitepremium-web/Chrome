@@ -42,6 +42,15 @@ enum class AttemptOtpFillingToolEvent {
   kGmailSmartFeaturesConsentRequired = 19,
   kGoogleSmartFeaturesConsentRequired = 20,
   kUnableToRetrieveGmailAndGoogleSmartFeaturesConsent = 21,
+  // Recorded when the tool is destroyed (e.g. the task is stopped, paused or
+  // cancelled, or the tab is closed) before the callback of the named
+  // asynchronous step runs.
+  kCancelledDuringConsentFetch = 22,
+  kCancelledDuringOptInCard = 23,
+  kCancelledDuringLoginFlowVerification = 24,
+  kCancelledDuringOtpRetrieval = 25,
+  kCancelledDuringConfirmationDialog = 26,
+  kCancelledDuringFillOtp = 27,
   // OTP retrieval timed out after a received token was rejected for its sender
   // domain.
   kGmailOtpSenderDomainMismatch = 30,
@@ -61,7 +70,10 @@ enum class GmailOtpOptInCardInteraction {
   kErrorResponse = 1,
   kPermissionDenied = 2,
   kPermissionGranted = 3,
-  kMaxValue = kPermissionGranted
+  // The tool was destroyed after the opt-in card was requested and before a
+  // response was received.
+  kCancelled = 4,
+  kMaxValue = kCancelled
 };
 // LINT.ThenChange(//tools/metrics/histograms/metadata/one_time_tokens/enums.xml:GmailOtpOptInCardInteraction)
 
@@ -75,7 +87,10 @@ enum class GmailOtpConfirmationDialogInteraction {
   kErrorResponse = 1,
   kPermissionDenied = 2,
   kPermissionGranted = 3,
-  kMaxValue = kPermissionGranted
+  // The tool was destroyed after the confirmation dialog was requested and
+  // before a response was received.
+  kCancelled = 4,
+  kMaxValue = kCancelled
 };
 // LINT.ThenChange(//tools/metrics/histograms/metadata/one_time_tokens/enums.xml:GmailOtpConfirmationDialogInteraction)
 

@@ -2036,8 +2036,7 @@ public class TabbedRootUiCoordinator extends RootUiCoordinator {
                 mProfileSupplier);
     }
 
-    @VisibleForTesting
-    void initInAppUpdateObservers() {
+    private void initInAppUpdateObservers() {
         // Observers are registered early during pre-inflation startup so they are present when
         // AsyncInitializationActivity replays queued activity results and resume events during
         // finishNativeInitialization(). Because these observers only fire once native is ready,
@@ -3310,16 +3309,16 @@ public class TabbedRootUiCoordinator extends RootUiCoordinator {
     }
 
     public static void setDisableTopControlsAnimationsForTesting(boolean disable) {
+        boolean oldValue = sDisableTopControlsAnimationForTesting;
         sDisableTopControlsAnimationForTesting = disable;
-        ResettersForTesting.register(() -> sDisableTopControlsAnimationForTesting = false);
+        ResettersForTesting.register(() -> sDisableTopControlsAnimationForTesting = oldValue);
     }
 
     /* package */ void initializeBookmarkBarCoordinatorForTesting() {
         createBookmarkBarIfNecessary();
     }
 
-    @VisibleForTesting
-    void destroyInAppUpdate() {
+    private void destroyInAppUpdate() {
         if (mInAppUpdateActivityResultObserver != null) {
             mActivityLifecycleDispatcher.unregister(mInAppUpdateActivityResultObserver);
             mInAppUpdateActivityResultObserver = null;
@@ -3616,9 +3615,5 @@ public class TabbedRootUiCoordinator extends RootUiCoordinator {
 
     @Nullable PauseResumeWithNativeObserver getResumeObserverForTesting() {
         return mInAppUpdateResumeObserver;
-    }
-
-    void setActivityForTesting(AppCompatActivity activity) {
-        mActivity = activity;
     }
 }

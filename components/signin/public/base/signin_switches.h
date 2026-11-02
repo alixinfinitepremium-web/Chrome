@@ -382,10 +382,6 @@ BASE_DECLARE_FEATURE_PARAM(size_t, kExtensionsMedianThreshold);
 COMPONENT_EXPORT(SIGNIN_SWITCHES)
 BASE_DECLARE_FEATURE_PARAM(size_t, kExtensionsQ3Threshold);
 #endif
-COMPONENT_EXPORT(SIGNIN_SWITCHES)
-BASE_DECLARE_FEATURE_PARAM(
-    base::TimeDelta,
-    kAccountPreviewPreferredAccountSingleAccountPromoFetchTimeout);
 
 // Controls followup features for preferred account preview (new promos, and
 // updated strings). This flag has no effect if
@@ -400,9 +396,24 @@ COMPONENT_EXPORT(SIGNIN_SWITCHES)
 BASE_DECLARE_FEATURE(kEnableAccountPreviewPreferredAccountFRE);
 // Maximum duration the FRE waits for an ongoing preferred account computation
 // to update the selected account.
+// TODO(crbug.com/580849527): Rename to more generic name.
 COMPONENT_EXPORT(SIGNIN_SWITCHES)
 BASE_DECLARE_FEATURE_PARAM(base::TimeDelta,
                            kAccountPreviewPreferredAccountFREFetchTimeout);
+#endif
+
+#if BUILDFLAG(ENABLE_DICE_SUPPORT)
+// Controls whether preferred account preview personalization is enabled for
+// sign-in interceptions. This flag has no effect if
+// `kEnableAccountPreviewPreferredAccount` is not enabled.
+COMPONENT_EXPORT(SIGNIN_SWITCHES)
+BASE_DECLARE_FEATURE(kEnableAccountPreviewPreferredAccountIntercept);
+// Maximum duration the sign-in interception waits for an ongoing preferred
+// account computation to personalize the interception bubble.
+COMPONENT_EXPORT(SIGNIN_SWITCHES)
+BASE_DECLARE_FEATURE_PARAM(
+    base::TimeDelta,
+    kAccountPreviewPreferredAccountInterceptFetchTimeout);
 #endif
 
 // Controls whether storing and exposing the preferred account when offering
@@ -723,8 +734,8 @@ BASE_DECLARE_FEATURE(kHandleMdmErrorsForDasherAccountsOnAndroid);
 #endif  // BUILDFLAG(IS_ANDROID)
 
 #if BUILDFLAG(ENABLE_DICE_SUPPORT)
-// Controls the MagiChrome passkey sign-in experiment, enabling either the
-// Autofill-based promo flow or the native Views-based banner flow.
+// Controls the MagiChrome passkey sign-in experiment. The active flow is
+// selected by the `flow_type` param below.
 COMPONENT_EXPORT(SIGNIN_SWITCHES)
 BASE_DECLARE_FEATURE(kMagiChromePasskeySignIn);
 // Controls which client flow is active. The client only acts on "autofill";
@@ -740,10 +751,6 @@ extern const base::FeatureParam<int> kMagiChromePasskeySignInGaiaExpBranch;
 // Returns true if the MagiChrome passkey sign-in Autofill flow is active.
 COMPONENT_EXPORT(SIGNIN_SWITCHES)
 bool IsMagiChromePasskeyAutofillEnabled();
-// Returns true if the MagiChrome passkey sign-in native Views banner flow is
-// active.
-COMPONENT_EXPORT(SIGNIN_SWITCHES)
-bool IsMagiChromePasskeyBannerEnabled();
 #endif  // BUILDFLAG(ENABLE_DICE_SUPPORT)
 
 #if BUILDFLAG(IS_ANDROID)

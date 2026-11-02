@@ -290,6 +290,15 @@ void ContextualTasksEphemeralButtonController::OnEntryWillHide(
     SidePanelEntry* entry,
     SidePanelEntryHideReason reason) {
   is_hiding_contextual_tasks_panel_ = true;
+
+  // The pinning promo is only meaningful while the Contextual Tasks panel is
+  // showing. Dismiss it explicitly when the panel is hidden.
+  if (auto* user_education =
+          BrowserUserEducationInterface::From(browser_window_interface_)) {
+    user_education->AbortFeaturePromo(
+        feature_engagement::kIPHSidePanelContextualTasksPinnableFeature);
+  }
+
   std::optional<base::Uuid> task_id = GetActiveTaskId();
   if (!task_id.has_value() ||
       reason == SidePanelEntryHideReason::kBackgrounded) {
@@ -969,17 +978,6 @@ void ContextualTasksEphemeralButtonController::RecordEphemeralButtonClicked() {
 }
 
 void ContextualTasksEphemeralButtonController::DisassociateNavigatedTab() {
-  // Only disassociate the navigated tab when the ephemeral button is eligible
-  // to show (e.g., not permanently pinned without
-  // `kEphemeralPinningVisibleWhenPermanentlyPinned`), so navigation only
-  // dismisses an active ephemeral entry point.
-  if (!base::FeatureList::IsEnabled(
-          contextual_tasks::kEphemeralPinningVisibleWhenPermanentlyPinned) &&
-      contextual_tasks::GetEffectivePinState(
-          browser_window_interface_->GetProfile())) {
-    return;
-  }
-
   std::optional<SessionID> current_tab_session_id = GetCurrentTabSessionId();
   contextual_tasks::ContextualTasksService* service =
       GetContextualTasksService();
@@ -1012,24 +1010,26 @@ void ContextualTasksEphemeralButtonController::DisassociateNavigatedTab() {
 
 void ContextualTasksEphemeralButtonController::PrimaryPageChanged(
     content::Page& page) {
-  if (IsEphemeralEntryPointEnabled()) {
-    std::optional<base::AutoReset<std::optional<RemovalReason>>> reset_reason;
-    if (!IsPanelOpen()) {
-      DisassociateNavigatedTab();
-      if (!removal_reason_.has_value()) {
-        reset_reason.emplace(&removal_reason_,
-                             RemovalReason::kTaskDisassociated);
-      }
-    }
-    MaybeNotifyVisibilityShouldChange();
-  } else if (contextual_tasks::
-                 IsContextualTasksPinnedButtonActiveIndicatorEnabled()) {
-    MaybeNotifyVisibilityShouldChange();
+  if (!IsEphemeralEntryPointEnabled() &&
+      !contextual_tasks::IsContextualTasksPinningV2Enabled() &&
+      !contextual_tasks::
+          IsContextualTasksPinnedButtonActiveIndicatorEnabled()) {
+    return;
   }
+  std::optional<base::AutoReset<std::optional<RemovalReason>>> reset_reason;
+  if (!IsPanelOpen()) {
+    DisassociateNavigatedTab();
+    if (!removal_reason_.has_value()) {
+      reset_reason.emplace(&removal_reason_,
+                           RemovalReason::kTaskDisassociated);
+    }
+  }
+  MaybeNotifyVisibilityShouldChange();
 }
 
 void ContextualTasksEphemeralButtonController::UpdateActiveTabObservation() {
   if (!IsEphemeralEntryPointEnabled() &&
+      !contextual_tasks::IsContextualTasksPinningV2Enabled() &&
       !contextual_tasks::
           IsContextualTasksPinnedButtonActiveIndicatorEnabled()) {
     return;

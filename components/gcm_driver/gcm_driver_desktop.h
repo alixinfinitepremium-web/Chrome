@@ -25,8 +25,6 @@
 #include "mojo/public/cpp/bindings/pending_receiver.h"
 #include "services/network/public/mojom/proxy_resolving_socket.mojom.h"
 
-class PrefService;
-
 namespace base {
 class FilePath;
 class SequencedTaskRunner;
@@ -58,7 +56,6 @@ class GCMDriverDesktop : public GCMDriver, protected InstanceIDHandler {
   GCMDriverDesktop(
       std::unique_ptr<GCMClientFactory> gcm_client_factory,
       const fcm::ChromeBuildInfo& chrome_build_info,
-      PrefService* prefs,
       const base::FilePath& store_path,
       base::RepeatingCallback<void(
           mojo::PendingReceiver<network::mojom::ProxyResolvingSocketFactory>)>
@@ -94,8 +91,6 @@ class GCMDriverDesktop : public GCMDriver, protected InstanceIDHandler {
   void SetGCMRecording(const GCMStatisticsRecordingCallback& callback,
                        bool recording) override;
   InstanceIDHandler* GetInstanceIDHandlerInternal() override;
-  void AddHeartbeatInterval(const std::string& scope, int interval_ms) override;
-  void RemoveHeartbeatInterval(const std::string& scope) override;
 
  protected:
   // GCMDriver implementation:
