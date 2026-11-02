@@ -59,7 +59,7 @@ Refer to README.md for content description and update process.
  <item id="downloads_api_run_async" added_in_milestone="62" content_hash_code="008d9d92" os_list="linux,windows,chromeos" file_path="chrome/browser/extensions/api/downloads/downloads_api.cc" />
  <item id="downloads_dom_handler" added_in_milestone="73" content_hash_code="082cc10b" os_list="linux,windows,chromeos" file_path="chrome/browser/ui/webui/downloads/downloads_dom_handler.cc" />
  <item id="drag_download_file" added_in_milestone="62" content_hash_code="078a20ba" os_list="linux,windows,chromeos,android" file_path="content/browser/download/drag_download_file.cc" />
- <item id="drive_service" added_in_milestone="90" content_hash_code="059e2023" os_list="linux,windows,chromeos" file_path="chrome/browser/new_tab_page/modules/file_suggestion/drive_service.cc" />
+ <item id="drive_service" added_in_milestone="90" content_hash_code="03fbca75" os_list="linux,windows,chromeos" file_path="chrome/browser/new_tab_page/modules/file_suggestion/drive_service.cc" />
  <item id="early_hints_preload" added_in_milestone="91" content_hash_code="075686e5" os_list="linux,windows,chromeos,android" file_path="content/browser/loader/navigation_early_hints_manager.cc" />
  <item id="enterprise_safe_browsing_realtime_url_lookup" added_in_milestone="86" content_hash_code="057d5f76" os_list="linux,windows,android,chromeos" file_path="components/safe_browsing/core/browser/realtime/chrome_enterprise_url_lookup_service.cc" />
  <item id="extension_blacklist" added_in_milestone="62" content_hash_code="012fee19" os_list="linux,windows,chromeos" file_path="extensions/browser/blocklist_state_fetcher.cc" />
@@ -200,7 +200,7 @@ Refer to README.md for content description and update process.
  <item id="test" added_in_milestone="62" reserved="1" os_list="linux,windows" file_path="" />
  <item id="test_partial" added_in_milestone="62" reserved="1" os_list="linux,windows" file_path="" />
  <item id="tethering_handler_socket" added_in_milestone="65" content_hash_code="000f0cb8" os_list="linux,windows,chromeos,android" file_path="content/browser/devtools/protocol/tethering_handler.cc" />
- <item id="translate_url_fetcher" added_in_milestone="62" content_hash_code="06363ba2" os_list="linux,windows,chromeos,android" file_path="components/translate/core/browser/translate_url_fetcher.cc" />
+ <item id="translate_url_fetcher" added_in_milestone="62" content_hash_code="07372a96" os_list="linux,windows,chromeos,android" file_path="components/translate/core/browser/translate_url_fetcher.cc" />
  <item id="trusted_vault_request" added_in_milestone="88" content_hash_code="081f77ac" os_list="linux,windows,chromeos" file_path="components/trusted_vault/trusted_vault_request.cc" />
  <item id="ui_devtools_server" added_in_milestone="66" content_hash_code="03bc45b7" os_list="linux,windows,chromeos,android" file_path="components/ui_devtools/devtools_server.cc" />
  <item id="undefined" added_in_milestone="62" reserved="1" os_list="linux,windows" file_path="" />
@@ -508,7 +508,7 @@ Refer to README.md for content description and update process.
  <item id="ambient_autofill_request" added_in_milestone="150" content_hash_code="037fcb45" os_list="windows,chromeos,android,linux" file_path="components/personal_context/core/network/personal_context_fetcher.cc" />
  <item id="chrome_sync_preview_fetcher" added_in_milestone="150" content_hash_code="00f0ed15" os_list="linux,windows,chromeos,android" file_path="components/signin/core/browser/account_preview_data_fetcher.cc" />
  <item id="drive_thumbnail_source" added_in_milestone="150" content_hash_code="069212a2" os_list="linux,windows,android,chromeos" file_path="chrome/browser/ui/webui/sanitized_image/sanitized_image_source.cc" />
- <item id="partial_translate_one_platform" added_in_milestone="150" content_hash_code="0356ccc0" os_list="linux,windows,android,chromeos" file_path="components/translate/content/browser/contextual_translate_delegate.cc" />
+ <item id="partial_translate_one_platform" added_in_milestone="150" content_hash_code="00a79ad7" os_list="linux,windows,android,chromeos" file_path="components/translate/content/browser/contextual_translate_delegate.cc" />
  <item id="contextual_search_fpop_service" added_in_milestone="150" content_hash_code="055549dc" os_list="linux,windows,android,chromeos" file_path="components/contextual_search/footprints/internal/fpop_service_impl.cc" />
  <item id="web_install_manifest_fetcher" added_in_milestone="151" content_hash_code="0593db17" os_list="linux,windows,chromeos" file_path="chrome/browser/web_applications/web_install_manifest_fetcher.cc" />
  <item id="private_insights_fcp_http" added_in_milestone="151" content_hash_code="05f37c08" os_list="windows,android,chromeos,linux" file_path="components/private_insights/fcp_http_client.cc" />

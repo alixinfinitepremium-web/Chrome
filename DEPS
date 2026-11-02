@@ -322,7 +322,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': 'e43478a2f9f8c7f68d6c7e2ca79441dac7df9b75',
+  'skia_revision': 'f5215e74aa16961c526b5cbf5144576263722e05',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -330,7 +330,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': 'feebf60fe088ccec3a26a7419d6ac68edf542c7a',
+  'angle_revision': 'dd11a4a4f03ffc85383571c65eb10de65c9987f2',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -382,7 +382,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': '53e8b23878a22e96d4d35fec1af04feb3ba1e6b7',
+  'crossbench_revision': 'c1a5b8236f59e0754391cba74ab117246e0f962c',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -548,7 +548,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
-  'llvm_libc_revision':    'b88fbdd86260fc59b892d9e21054c5388c473b0d',
+  'llvm_libc_revision':    '058c23f04d56417fceefbdb21fdd31ac1aeb028f',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling llvm-libc
   # and whatever else without interference from each other.
@@ -2226,7 +2226,7 @@ deps = {
     Var('chromium_git') + '/chromium/web-tests.git' + '@' + Var('crossbench_web_tests_revision'),
 
   'src/third_party/depot_tools':
-    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'a20039648c0de69d8156906b18052bd47e9bf230',
+    Var('chromium_git') + '/chromium/tools/depot_tools.git' + '@' + 'bed65db1bb5d1022dab89cf62e7609b12084747b',
 
   'src/third_party/devtools-frontend/src':
     Var('chromium_git') + '/devtools/devtools-frontend' + '@' + Var('devtools_frontend_revision'),
@@ -2238,7 +2238,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + 'a43f6db2c332aa8b930ff9be9dd2715a018ef88b',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '4d4abc4a7d13684df32deeae82b0a97fcf0d5514',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '173b9b26e8fcbcbe64e1ecbf073a21a96b95c6b1',
