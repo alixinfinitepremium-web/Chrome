@@ -100,7 +100,6 @@
 #import "ios/chrome/app/background_mode_buildflags.h"
 #import "ios/chrome/app/background_task/features.h"
 #import "ios/chrome/browser/autofill/model/features.h"
-#import "ios/chrome/browser/badges/model/features.h"
 #import "ios/chrome/browser/composebox/public/features.h"
 #import "ios/chrome/browser/crash_report/model/features.h"
 #import "ios/chrome/browser/credential_provider/model/features.h"
@@ -2692,9 +2691,6 @@ constexpr auto kFeatureEntries = std::to_array<flags_ui::FeatureEntry>({
      flags_ui::kOsIos,
      FEATURE_VALUE_TYPE(
          autofill::features::kAutofillUpstreamEnforceStrikeDelay)},
-    {"no-accounts-web-signin", flag_descriptions::kNoAccountWebSigninName,
-     flag_descriptions::kNoAccountWebSigninDescription, flags_ui::kOsIos,
-     FEATURE_VALUE_TYPE(switches::kNoAccountWebSignin)},
     {"assistant-aim-minimized-state",
      flag_descriptions::kAssistantAimMinimizedStateName,
      flag_descriptions::kAssistantAimMinimizedStateDescription,

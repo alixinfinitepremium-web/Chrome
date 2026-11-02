@@ -3269,7 +3269,6 @@ source_set("browser") {
       "//chrome/browser/ui/webui/side_panel/reading_list:impl",
       "//chrome/browser/ui/webui/side_panel/tabs_from_other_devices",
       "//chrome/browser/ui/webui/side_panel/tabs_from_other_devices:impl",
-      "//chrome/browser/ui/webui/signin:login_ui_service_impl",
       "//chrome/browser/ui/webui/signin:signin_impl",
       "//chrome/browser/ui/webui/signin:signin_utils_impl",
       "//chrome/browser/ui/webui/tab_search",
@@ -3802,9 +3801,6 @@ source_set("browser") {
       "//ui/ozone",
       "//ui/wm/public",
     ]
-    if (use_cups) {
-      deps += [ "//chrome/browser/chromeos/printing" ]
-    }
     if (is_chrome_branded) {
       deps += [
         "//chrome/browser/nearby_sharing/internal/icons",

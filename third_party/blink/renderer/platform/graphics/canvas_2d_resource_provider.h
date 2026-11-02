@@ -11,14 +11,12 @@
 
 #include "base/byte_size.h"
 #include "base/feature_list.h"
-#include "base/functional/callback.h"
 #include "base/memory/raw_ptr.h"
 #include "base/notreached.h"
 #include "base/time/time.h"
 #include "base/timer/timer.h"
 #include "cc/paint/paint_op_buffer.h"
 #include "cc/raster/playback_image_provider.h"
-#include "components/viz/common/gpu/raster_context_provider.h"
 #include "gpu/command_buffer/client/client_shared_image.h"
 #include "gpu/command_buffer/common/shared_image_usage.h"
 #include "third_party/blink/renderer/platform/graphics/canvas_resource.h"
@@ -50,7 +48,6 @@ PLATFORM_EXPORT BASE_DECLARE_FEATURE(kAppendCpuUsages);
 PLATFORM_EXPORT BASE_DECLARE_FEATURE(kCanvasResourceIsWebGPUCompatible);
 
 class BaseRenderingContext2D;
-class ExportedCanvasResource;
 class CanvasResourceSharedImage;
 class Canvas2DResourceProvider;
 class CanvasImageProvider;
@@ -99,32 +96,26 @@ enum class CanvasResourceProviderType {
 // * Subclass of CanvasResourceProvider that is specialized for usage
 // * by Canvas2D.
 class PLATFORM_EXPORT Canvas2DResourceProvider
-    : public CanvasResourceSharedImage::Client,
-      public WebGraphicsContext3DProviderWrapper::DestructionObserver,
-      public viz::ContextLostObserver,
-      public BitmapGpuChannelLostObserver {
+    : public CanvasResourceSharedImage::Client {
  public:
   constexpr static base::TimeDelta kUnusedResourceExpirationTime =
       base::Seconds(5);
 
+  Canvas2DResourceProvider(gfx::Size size,
+                           viz::SharedImageFormat format,
+                           SkAlphaType alpha_type,
+                           const gfx::ColorSpace& color_space,
+                           const gfx::HDRMetadata& hdr_metadata,
+                           base::WeakPtr<WebGraphicsContext3DProviderWrapper>,
+                           bool is_accelerated,
+                           gpu::SharedImageUsageSet shared_image_usage_flags);
   Canvas2DResourceProvider(
       gfx::Size size,
       viz::SharedImageFormat format,
       SkAlphaType alpha_type,
       const gfx::ColorSpace& color_space,
       const gfx::HDRMetadata& hdr_metadata,
-      base::WeakPtr<WebGraphicsContext3DProviderWrapper>,
-      bool is_accelerated,
-      gpu::SharedImageUsageSet shared_image_usage_flags,
-      base::OnceClosure context_lost_callback = {});
-  Canvas2DResourceProvider(
-      gfx::Size size,
-      viz::SharedImageFormat format,
-      SkAlphaType alpha_type,
-      const gfx::ColorSpace& color_space,
-      const gfx::HDRMetadata& hdr_metadata,
-      WebGraphicsSharedImageInterfaceProvider* shared_image_interface_provider,
-      base::OnceClosure context_lost_callback = {});
+      WebGraphicsSharedImageInterfaceProvider* shared_image_interface_provider);
 
   ~Canvas2DResourceProvider() override;
 
@@ -142,21 +133,7 @@ class PLATFORM_EXPORT Canvas2DResourceProvider
   int NumInflightResourcesForTesting() const { return num_inflight_resources_; }
   base::ByteSize EstimatedSizeInBytes() const;
 
-  scoped_refptr<ExportedCanvasResource> ProduceCanvasResource(
-      SkSurface* surface);
-  void OnFlushForImage(cc::PaintImage::ContentId content_id);
-
   bool IsValid() const;
-  scoped_refptr<StaticBitmapImage> Snapshot();
-
-  // Notifies before any unaccelerated drawing will be done on the resource used
-  // by this provider.
-  void WillDrawUnaccelerated();
-  bool WritePixels(const SkImageInfo& orig_info,
-                   const void* pixels,
-                   size_t row_bytes,
-                   int x,
-                   int y);
 
   void SetResourceRecyclingEnabled(bool value);
 
@@ -178,8 +155,6 @@ class PLATFORM_EXPORT Canvas2DResourceProvider
   bool IsGpuContextLost() const;
   gfx::Size Size() const { return image_pool_->GetImageInfo().size; }
 
-  // WebGraphicsContext3DProviderWrapper::DestructionObserver implementation.
-  void OnContextDestroyed() override;
   void OnResourceRefReturned(
       scoped_refptr<CanvasResourceSharedImage>&& resource) override;
   void OnDestroyResource() override { --num_inflight_resources_; }
@@ -194,20 +169,12 @@ class PLATFORM_EXPORT Canvas2DResourceProvider
     return context_provider_wrapper_;
   }
 
-  // viz::ContextLostObserver implementation.
-  void OnContextLost() override;
-
-  // BitmapGpuChannelLostObserver implementation.
-  void OnGpuChannelLost() override;
-
   bool ShouldReplaceTargetBuffer(
       PaintImage::ContentId content_id = PaintImage::kInvalidContentId);
 
   void EnsureResourceReadyForDraw();
 
   base::WeakPtr<Canvas2DResourceProvider> CreateWeakPtr();
-
-  static void NotifyGpuContextLostTask(base::WeakPtr<Canvas2DResourceProvider>);
 
   // The maximum number of in-flight resources waiting to be used for
   // recycling.
@@ -238,20 +205,11 @@ class PLATFORM_EXPORT Canvas2DResourceProvider
   base::WeakPtr<WebGraphicsSharedImageInterfaceProvider>
       shared_image_interface_provider_;
 
-  // `raster_context_provider_` holds a reference on the shared
-  // `RasterContextProvider`, to keep it alive until it notifies us after the
-  // GPU context is lost. Without this, instances of this class would not get
-  // notified after the shared `WebGraphicsContext3DProviderWrapper` instance is
-  // recreated.
-  scoped_refptr<viz::RasterContextProvider> raster_context_provider_;
-
   bool resource_recycling_enabled_ = true;
   int num_inflight_resources_ = 0;
   int max_inflight_resources_ = 0;
 
   gfx::HDRMetadata hdr_metadata_;
-
-  base::OnceClosure context_lost_callback_;
 
   base::WeakPtrFactory<Canvas2DResourceProvider> weak_ptr_factory_{this};
 };
