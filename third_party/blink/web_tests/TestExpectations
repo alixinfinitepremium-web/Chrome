@@ -2690,7 +2690,6 @@ crbug.com/562303032 external/wpt/css/css-text/word-spacing/word-spacing-combinin
 crbug.com/562303034 external/wpt/html/semantics/forms/the-select-element/customizable-select/select-appearance-optgroup-legend-not-first.html [ Failure ]
 crbug.com/562425279 external/wpt/svg/styling/invalidation/pct-filter.html [ Failure ]
 crbug.com/562425279 external/wpt/svg/styling/invalidation/pct-marker.html [ Failure ]
-crbug.com/562425279 external/wpt/svg/text/reftests/textpath-pathlength-zero-offset-percentage.svg [ Failure ]
 crbug.com/562546856 external/wpt/web-extensions/browser.alarms.extension.html [ Failure ]
 crbug.com/562425277 [ Mac ] external/wpt/webrtc-encoded-transform/RTCEncodedFrame-shared-buffer.https.html [ Skip Timeout ]
 crbug.com/562425277 [ Mac ] external/wpt/webrtc-encoded-transform/RTCRtpScriptTransform-write-rules.https.html [ Skip Timeout ]
@@ -8322,6 +8321,8 @@ crbug.com/487985494 [ Linux ] webaudio/ScriptProcessor/scriptprocessor-offlineau
 
 # Gardener 2026-03-11
 crbug.com/492386032 [ Linux ] external/wpt/html/dom/partial-updates/tentative/template-for-mutation-records.html [ Failure Pass ]
+
+crbug.com/573862411 external/wpt/html/dom/partial-updates/tentative/fragment/buffer-mutation-observer.html [ Failure Pass ]
 
 # Flakey on all platforms
 crbug.com/482056706 virtual/threaded/external/wpt/css/css-view-transitions/navigation/pageswap-skip-transition.html [ Failure Pass ]

@@ -127,8 +127,8 @@ OptimizationGuideService::OptimizationGuideService(
 
     model_execution_manager_ =
         std::make_unique<optimization_guide::ModelExecutionManager>(
-            url_loader_factory, identity_manager, std::move(delegate),
-            optimization_guide_logger_.get(),
+            url_loader_factory, network_context_getter_, identity_manager,
+            std::move(delegate), optimization_guide_logger_.get(),
             model_quality_logs_uploader_service_
                 ? model_quality_logs_uploader_service_->GetWeakPtr()
                 : nullptr);
@@ -370,4 +370,12 @@ OptimizationGuideService::StartStreamingSession(
   return optimization_guide::RemoteModelExecutionSession::Create(
       feature, options, std::move(callback), network_context_getter_,
       identity_manager_, optimization_guide_logger_.get());
+}
+
+void OptimizationGuideService::PrewarmModelExecution(
+    optimization_guide::ModelBasedCapabilityKey feature) {
+  DCHECK_CURRENTLY_ON(web::WebThread::UI);
+  if (model_execution_manager_) {
+    model_execution_manager_->PrewarmModelExecution(feature);
+  }
 }

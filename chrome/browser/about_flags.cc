@@ -9571,10 +9571,6 @@ const FeatureEntry kFeatureEntries[] = {
      FEATURE_VALUE_TYPE(collaboration::features::kCollaborationMessaging)},
 
 #if BUILDFLAG(IS_CHROMEOS)
-    {"enable-fake-keyboard-heuristic",
-     flag_descriptions::kEnableFakeKeyboardHeuristicName,
-     flag_descriptions::kEnableFakeKeyboardHeuristicDescription, kOsCrOS,
-     FEATURE_VALUE_TYPE(ui::kEnableFakeKeyboardHeuristic)},
     {"enable-fake-mouse-heuristic",
      flag_descriptions::kEnableFakeMouseHeuristicName,
      flag_descriptions::kEnableFakeMouseHeuristicDescription, kOsCrOS,
@@ -13965,7 +13961,8 @@ const FeatureEntry kFeatureEntries[] = {
 #endif
 
     {"critical-action-history", flag_descriptions::kCriticalActionHistoryName,
-     flag_descriptions::kCriticalActionHistoryDescription, kOsDesktop,
+     flag_descriptions::kCriticalActionHistoryDescription,
+     kOsDesktop | kOsAndroid,
      FEATURE_VALUE_TYPE(critical_actions::features::kCriticalActionHistory)},
 
     {"autofill-enable-wallet-direct-offers",

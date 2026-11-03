@@ -456,25 +456,6 @@ if (!is_android) {
     ]
   }
 
-  source_set("browser_window_theme_observer") {
-    public = [ "browser_window_theme_observer.h" ]
-    public_deps = [
-      "//base",
-      "//chrome/browser/themes",
-      "//ui/base/unowned_user_data",
-    ]
-  }
-
-  source_set("browser_window_theme_observer_impl") {
-    sources = [ "browser_window_theme_observer.cc" ]
-    public_deps = [ ":browser_window_theme_observer" ]
-    deps = [
-      ":browser_window_header",
-      "//chrome/browser/themes",
-      "//chrome/browser/ui/browser_window",
-    ]
-  }
-
   source_set("browser_window_deleter") {
     public = [ "browser_window_deleter.h" ]
   }
@@ -775,6 +756,7 @@ if (!is_android) {
       "//components/send_tab_to_self",
       "//components/signin/public/base",
       "//components/skills:features",
+      "//components/subscription_eligibility:tier_names",
       "//components/translate/core/browser",
       "//components/user_education/common",
       "//components/user_manager",

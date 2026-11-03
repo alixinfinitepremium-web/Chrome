@@ -426,6 +426,8 @@ class MODULES_EXPORT BaseRenderingContext2D
 
   void NotifyGpuContextLostTask(base::WeakPtr<Canvas2DResourceProvider>);
 
+  bool ShouldReplaceTargetBuffer();
+  void EnsureResourceReadyForDraw();
   void RasterRecordToSharedImage(cc::PaintRecord last_recording);
   void RasterRecordToSoftwareSurface(cc::PaintRecord last_recording);
   void ApplyAnimatedImageFrameIndexesForId(SkCanvas* canvas, uint32_t id);
@@ -457,6 +459,9 @@ class MODULES_EXPORT BaseRenderingContext2D
   cc::PaintImage::ContentId sw_snapshot_paint_image_content_id_ =
       cc::PaintImage::kInvalidContentId;
   uint32_t sw_snapshot_sk_image_id_ = 0u;
+  cc::PaintImage::ContentId cached_content_id_ =
+      cc::PaintImage::kInvalidContentId;
+  scoped_refptr<StaticBitmapImage> cached_snapshot_;
   std::unique_ptr<MemoryManagedPaintRecorder> recorder_;
   bool clear_frame_ = true;
   size_t max_recorded_op_bytes_ = 0;

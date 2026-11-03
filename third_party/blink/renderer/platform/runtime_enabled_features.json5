@@ -3137,6 +3137,13 @@
       status: "stable",
     },
     {
+      // Makes fetch() fail with a network error when a redirect response has
+      // an empty Location header, in "follow" and "error" redirect modes.
+      // https://crbug.com/810288
+      name: "FetchEmptyLocationRedirectIsNetworkError",
+      status: "experimental",
+    },
+    {
       // The Blink runtime-enabled feature name for the API's IDL.
       // https://chromestatus.com/feature/4654499737632768
       name: "FetchLaterAPI",
@@ -5884,6 +5891,12 @@
       origin_trial_allows_third_party: true,
       status: "stable",
       base_feature: "none",
+    },
+    {
+      // Scopes SelectAll to the active editing host if it has focus but lacks
+      // an active text selection range. Shipped in M158, safe to remove in M162.
+      name: "SelectAllInFocusedEditingHost",
+      status: "stable",
     },
     {
       // Make select popup anchor stay within web contents to prevent
