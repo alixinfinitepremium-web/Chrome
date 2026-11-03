@@ -311,7 +311,7 @@
 #include "components/password_manager/content/browser/password_requirements_service_factory.h"
 #include "components/password_manager/core/browser/features/password_features.h"
 #include "components/password_manager/core/browser/password_manager_blocklist_policy.h"
-#include "components/password_manager/core/common/password_manager_features.h"
+#include "components/password_manager/core/common/remote_actor/remote_actor_features.h"
 #include "components/payments/content/has_enrolled_instrument_query_factory.h"
 #include "components/permissions/features.h"
 #include "components/policy/content/safe_search_service.h"
@@ -412,6 +412,7 @@
 #include "chrome/browser/ui/read_anything/read_anything_service_factory.h"
 #include "chrome/browser/ui/safety_hub/password_status_check_service_factory.h"
 #include "chrome/browser/ui/safety_hub/safety_hub_hats_service_factory.h"
+#include "chrome/browser/ui/views/context_hub/memory_banks_hotkey_manager_factory.h"
 #include "chrome/browser/ui/views/profiles/avatar_toolbar_button_state_manager.h"
 #include "chrome/browser/ui/waap/initial_webui_profile_service_factory.h"
 #include "chrome/browser/ui/waap/waap_ui_metrics_service_factory.h"
@@ -1147,6 +1148,7 @@ void ChromeBrowserMainExtraPartsProfiles::
 #endif
 #if !BUILDFLAG(IS_ANDROID)
   MediaNotificationServiceFactory::GetInstance();
+  MemoryBanksHotkeyManagerFactory::GetInstance();
 #endif
   MerchantTrustServiceFactory::GetInstance();
 #if BUILDFLAG(IS_ANDROID)

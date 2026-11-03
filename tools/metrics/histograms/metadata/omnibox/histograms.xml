@@ -2931,6 +2931,27 @@ Keep consistent with active providers. Doesn't need to include every provider in
   </summary>
 </histogram>
 
+<histogram name="Omnibox.MobileFusebox.AttachmentLabelFallback"
+    enum="OmniboxInputSource" expires_after="2027-04-28">
+  <owner>skym@chromium.org</owner>
+  <owner>chrome-mobile-search@google.com</owner>
+  <summary>
+    Records the attachment source (Camera, Gallery, FilePicker, or Drive) of a
+    visible button in the Fusebox attachments popup when its label falls back to
+    a built-in client string because no server-provided attachment configuration
+    or non-empty menu label was available.
+
+    Not emitted when the server configuration provides a non-empty label for the
+    button, when the button is hidden in the popup, while the popup remains
+    closed, or for other OmniboxInputSource values (such as TabPicker, Voice, or
+    SearchLive) whose labels are not resolved through this path.
+
+    Emitted once per evaluated visible attachment button using a client fallback
+    label each time the Fusebox attachments popup is shown, and again if the
+    session input configuration updates while the popup is open.
+  </summary>
+</histogram>
+
 <histogram
     name="Omnibox.MobileFusebox.AttachmentLoadOOM{FuseboxAttachmentFileType}"
     enum="Boolean" expires_after="2027-03-30">
@@ -5717,6 +5738,33 @@ Keep consistent with active providers. Doesn't need to include every provider in
     Records the duration of OmniboxViewViews::SetTextAndSelectedRange. Recorded
     when the text and selection in the omnibox view are updated. This metric is
     only reported for clients with high-resolution clocks.
+  </summary>
+</histogram>
+
+<histogram name="Omnibox.VoiceSearch.VoicePlateEligibility"
+    enum="VoicePlateEligibility" expires_after="2027-10-01">
+  <owner>ender@google.com</owner>
+  <owner>chrome-mobile-search@google.com</owner>
+  <summary>
+    Records whether a voice search request is eligible to use the Google app
+    Voice Plate, or the reason it is ineligible.
+
+    Recorded on Android once per voice search initiation when the
+    OmniboxVoicePlateIntent feature flag is enabled. Not recorded when the
+    feature flag is disabled.
+  </summary>
+</histogram>
+
+<histogram name="Omnibox.VoiceSearch.VoicePlateResult" enum="VoicePlateResult"
+    expires_after="2027-10-01">
+  <owner>ender@google.com</owner>
+  <owner>chrome-mobile-search@google.com</owner>
+  <summary>
+    Records the outcome returned by the Google app Voice Plate activity (success
+    with transcription, user-initiated cancellation reason, or service refusal
+    reason).
+
+    Recorded on Android once per Voice Plate activity result.
   </summary>
 </histogram>
 

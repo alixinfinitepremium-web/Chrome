@@ -16,12 +16,11 @@
 #include "base/base64.h"
 #include "base/base64url.h"
 #include "base/check_op.h"
-#include "base/containers/fixed_flat_map.h"
-#include "base/containers/flat_set.h"
+#include "base/containers/fixed_flat_set.h"
+#include "base/containers/flat_map.h"
 #include "base/feature_list.h"
 #include "base/metrics/histogram_functions.h"
 #include "base/metrics/user_metrics.h"
-#include "base/no_destructor.h"
 #include "base/strings/string_util.h"
 #include "base/strings/utf_string_conversions.h"
 #include "base/time/time.h"
@@ -116,16 +115,6 @@
 #if BUILDFLAG(ENABLE_EXTENSIONS_CORE)
 #include "extensions/common/constants.h"  // nogncheck
 #endif                                    // BUILDFLAG(ENABLE_EXTENSIONS_CORE)
-
-namespace searchbox_internal {
-
-const char* kSearchSparkIconResourceName =
-    "//resources/cr_components/searchbox/icons/search_spark.svg";
-const char* kReplyRotated180IconResourceName =
-    "//resources/cr_components/searchbox/icons/reply_rotated180.svg";
-const char* kDockToRightIconResourceName =
-    "//resources/cr_components/searchbox/icons/dock_to_right.svg";
-}  // namespace searchbox_internal
 
 namespace {
 
@@ -458,6 +447,8 @@ base::DictValue SearchboxHandler::GetProfileIndependentWebUIDataSourceDict(
       {"composeboxPdfUploadButtonTitle",
        IDS_NTP_COMPOSE_PDF_UPLOAD_BUTTON_A11Y_LABEL},
       {"composeboxPlaceholderText", IDS_NTP_COMPOSE_PLACEHOLDER_TEXT},
+      {"searchboxSrpComposePlaceholder",
+       IDS_NTP_SEARCH_BOX_DYNAMIC_PLACEHOLDER_ASK_GOOGLE},
       {"composeboxSmartComposeTabTitle", IDS_NTP_COMPOSE_SMART_COMPOSE_TAB},
       {"composeboxSmartComposeTitle", IDS_NTP_COMPOSE_SMART_COMPOSE_A11Y_LABEL},
       {"composeboxSubmitButtonTitle", IDS_NTP_COMPOSE_SUBMIT_BUTTON_A11Y_LABEL},
@@ -856,8 +847,8 @@ std::string SearchboxHandler::VectorIconToResourceName(
   }
 
   if (!features::IsWebUIRoundedIconsEnabled()) {
-    static const base::NoDestructor<base::flat_set<std::string_view>>
-        kNoOldVersionIcons({
+    static constexpr auto kNoOldVersionIcons =
+        base::MakeFixedFlatSet<std::string_view>({
             kDriveLogoIconResourceName,
             kEnterpriseIconResourceName,
             searchbox_internal::kReplyRotated180IconResourceName,
@@ -871,7 +862,7 @@ std::string SearchboxHandler::VectorIconToResourceName(
 #endif
         });
 
-    if (!kNoOldVersionIcons->contains(resource_name)) {
+    if (!kNoOldVersionIcons.contains(resource_name)) {
       base::ReplaceSubstringsAfterOffset(&resource_name, 0, ".svg", "_old.svg");
     }
   }

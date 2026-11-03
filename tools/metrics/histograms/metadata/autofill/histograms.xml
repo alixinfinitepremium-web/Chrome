@@ -278,7 +278,7 @@ chromium-metrics-reviews@google.com.
                re-enable payment autofill"/>
 </variants>
 
-<!-- LINT.ThenChange(//chrome/browser/ui/autofill/autofill_message_controller_impl.cc:ShouldLogMessageMetrics) -->
+<!-- LINT.ThenChange(//chrome/browser/ui/android/autofill/autofill_message_controller_impl.cc:ShouldLogMessageMetrics) -->
 
 <variants name="Autofill.NonInteractivePaymentMethodType">
   <variant name="LocalCard" summary="local card"/>
@@ -2595,6 +2595,24 @@ Called by update_autofill_enums.py. This is a manual comment.-->
     <variant name="" summary="Aggregated across all entity types."/>
   </token>
   <token key="Profile" variants="ProfileIndex"/>
+</histogram>
+
+<histogram
+    name="Autofill.Ai.TimingInterval.IOS.FetchingAmbientDataShownToRemoved"
+    units="ms" expires_after="2027-04-28">
+  <owner>leozhao@google.com</owner>
+  <owner>novakovica@google.com</owner>
+  <owner>tmartino@chromium.org</owner>
+  <owner>bling-transactions@google.com</owner>
+  <owner>chrome-autofill-alerts@google.com</owner>
+  <summary>
+    Records the duration that the Ambient Autofill loading suggestion
+    (kFetchingAmbientData) stays on the keyboard accessory bar from when it is
+    first shown until it is removed. Emitted when the keyboard accessory
+    suggestions are updated to a list that no longer contains
+    kFetchingAmbientData, or when the keyboard accessory view disappears while
+    kFetchingAmbientData is shown. iOS only.
+  </summary>
 </histogram>
 
 <histogram
@@ -6205,17 +6223,6 @@ Called by update_autofill_enums.py. This is a manual comment.-->
   </summary>
 </histogram>
 
-<histogram name="Autofill.iOS.FormSubmission.BlockedReason"
-    enum="SubmissionBlockedReasonIOS" expires_after="2026-11-29">
-  <owner>sugoi@chromium.org</owner>
-  <owner>bling-transactions@google.com</owner>
-  <summary>
-    Records the reason why a form submission was blocked or ignored by Autofill
-    on iOS. Recorded when the browser process decides to ignore a form
-    submission.
-  </summary>
-</histogram>
-
 <histogram name="Autofill.iOS.FormSubmission.IsProgrammatic" enum="Boolean"
     expires_after="2027-04-11">
   <owner>eic@google.com</owner>
@@ -9326,20 +9333,6 @@ Called by update_autofill_enums.py. This is a manual comment.-->
   <summary>
     Records which entry point opened the Autofill Options screen. Recorded on
     Android.
-  </summary>
-</histogram>
-
-<histogram name="Autofill.Settings.AutofillOptionsRestartAccepted"
-    enum="Boolean" expires_after="2026-12-12">
-  <owner>friedrichh@chromium.org</owner>
-  <owner>chrome-autofill-alerts@google.com</owner>
-  <summary>
-    Records true whenever the user confirms changing the third party autofill
-    experience with a restart. Records false whenever the user dismisses the
-    restart prompt. Since a restart is always required, users may be opting in
-    or out of 3P suggestions while they are faced with this restart prompt.
-    Recorded when the user flips the toggle in the autofill options settings.
-    Recorded only on Android.
   </summary>
 </histogram>
 

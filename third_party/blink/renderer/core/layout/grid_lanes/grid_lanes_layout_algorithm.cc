@@ -273,13 +273,7 @@ const LayoutResult* GridLanesLayoutAlgorithm::Layout() {
     const auto* grid_lanes_data =
         To<GridLanesBreakTokenData>(GetBreakToken()->TokenData());
     total_intrinsic_block_size = grid_lanes_data->total_intrinsic_block_size;
-    // Vector assignment would share lane objects and mutate the incoming break
-    // token's state. Copy each lane, but keep item and placement trees shared.
-    grid_lanes.ReserveInitialCapacity(grid_lanes_data->grid_lanes.size());
-    for (const auto& lane : grid_lanes_data->grid_lanes) {
-      grid_lanes.push_back(lane ? MakeGarbageCollected<GridLaneData>(*lane)
-                                : nullptr);
-    }
+    grid_lanes = grid_lanes_data->grid_lanes;
     grid_layout_subtree = grid_lanes_data->grid_layout_subtree;
     layout_data = grid_layout_subtree->LayoutData();
     oof_children = grid_lanes_data->oof_children;
@@ -322,11 +316,8 @@ const LayoutResult* GridLanesLayoutAlgorithm::Layout() {
           ResolveFitToleranceForGridLanes(style, grid_lanes_available_size_),
           grid_items->HasStackingAxisAlignment(), has_main_gap_decorations);
 
-      // TODO(celestepan): We will eventually change the keywords used, but
-      // using `grid-columns` and `grid-rows` for now to unblock implementation.
       const bool is_stacking_axis_reading_flow =
-          style.ReadingFlow() == (is_for_columns ? EReadingFlow::kGridColumns
-                                                 : EReadingFlow::kGridRows);
+          style.ReadingFlow() == EReadingFlow::kGridLanesTrack;
       GridLanesDataVector* out_grid_lanes =
           (has_block_fragmentation || gap_accumulator ||
            is_stacking_axis_reading_flow)
@@ -507,12 +498,9 @@ void GridLanesLayoutAlgorithm::SetReadingFlowNodes(
   const EReadingFlow reading_flow = style.ReadingFlow();
   const bool is_for_columns =
       style.GridLanesTrackSizingDirection() == kForColumns;
-  // TODO(celestepan): Handle reading-flows across the tracks.
-  // TODO(celestepan): We will eventually change the keywords used for
-  // reading-flow.
-  if (reading_flow != EReadingFlow::kGridOrder &&
-      reading_flow != (is_for_columns ? EReadingFlow::kGridColumns
-                                      : EReadingFlow::kGridRows)) {
+  // TODO(celestepan): Handle reading-flow: grid-lanes-flow across the tracks.
+  if (reading_flow != EReadingFlow::kGridLanesOrder &&
+      reading_flow != EReadingFlow::kGridLanesTrack) {
     return;
   }
 
@@ -524,7 +512,7 @@ void GridLanesLayoutAlgorithm::SetReadingFlowNodes(
     }
   };
 
-  if (reading_flow == EReadingFlow::kGridOrder) {
+  if (reading_flow == EReadingFlow::kGridLanesOrder) {
     for (const auto& item : grid_items) {
       add_item_to_reading_flow_nodes(item);
     }
@@ -720,7 +708,7 @@ void SetItemOffsetAdjustmentInSpannedLanes(const GridSpan& lane_span,
                                            GridLanesDataVector& grid_lanes) {
   for (wtf_size_t lane_idx = lane_span.StartLine();
        lane_idx < lane_span.EndLine(); ++lane_idx) {
-    grid_lanes[lane_idx]->item_offset_adjustment = item_offset_adjustment;
+    grid_lanes[lane_idx].item_offset_adjustment = item_offset_adjustment;
   }
 }
 
@@ -992,8 +980,7 @@ void GridLanesLayoutAlgorithm::PlaceGridLanesItems(
   ApplyStackingAxisAlignment(running_positions, out_grid_lanes);
 
   const bool is_stacking_axis_reading_flow =
-      style.ReadingFlow() ==
-      (is_for_columns ? EReadingFlow::kGridColumns : EReadingFlow::kGridRows);
+      style.ReadingFlow() == EReadingFlow::kGridLanesTrack;
 
   // Gap-decoration data requires processing items in stacking order to ensure
   // proper decoration assignment, and column fragmentation requires processing
@@ -1076,8 +1063,6 @@ void GridLanesLayoutAlgorithm::PlaceGridLanesItemsForFragmentation(
     const wtf_size_t grid_lane_idx = entry.grid_lane_idx;
 
     CHECK_LT(grid_lane_idx, grid_lanes.size());
-    const GridLaneData* lane_data = grid_lanes[grid_lane_idx];
-    CHECK(lane_data);
 
     GridItemData& item = *grid_lanes_item->item;
     const BlockBreakToken* item_break_token = entry.token;
@@ -1163,7 +1148,7 @@ void GridLanesLayoutAlgorithm::PlaceGridLanesItemsForFragmentation(
             lane_span, spanner_offset_adjustment, grid_lanes);
       }
 
-      offset.block_offset += grid_lanes[grid_lane_idx]->item_offset_adjustment;
+      offset.block_offset += grid_lanes[grid_lane_idx].item_offset_adjustment;
 
       // TODO(almaher): Further adjustments will eventually be needed for rows.
     }
@@ -1227,7 +1212,7 @@ void GridLanesLayoutAlgorithm::PlaceGridLanesItemsForFragmentation(
         // If the previously processed row has a continuation, it will provide
         // the break token needed to resume this row in the next fragmentainer.
         if (previous_grid_lane_idx != kNotFound &&
-            grid_lanes[previous_grid_lane_idx]->has_unfinished_items) {
+            grid_lanes[previous_grid_lane_idx].has_unfinished_items) {
           break;
         }
       }
@@ -1298,7 +1283,7 @@ void GridLanesLayoutAlgorithm::PlaceGridLanesItemsForFragmentation(
         if (expansion > LayoutUnit()) {
           SetItemOffsetAdjustmentInSpannedLanes(
               lane_span,
-              grid_lanes[grid_lane_idx]->item_offset_adjustment + expansion,
+              grid_lanes[grid_lane_idx].item_offset_adjustment + expansion,
               grid_lanes);
         }
       }
@@ -1336,7 +1321,7 @@ void GridLanesLayoutAlgorithm::PlaceGridLanesItemsForFragmentation(
     if (entry.is_last_item_in_lane ||
         (!is_columns && !item_iterator.HasNextItemInLane(grid_lane_idx))) {
       if (!has_inflow_child_break_inside_lane[grid_lane_idx]) {
-        grid_lanes[grid_lane_idx]->has_unfinished_items = false;
+        grid_lanes[grid_lane_idx].has_unfinished_items = false;
       }
 
       // TODO(almaher): Additional tracking needed for offset adjustments and

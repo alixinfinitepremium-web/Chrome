@@ -1489,13 +1489,13 @@
   },
   {
     "name": "bind-cookies-to-port",
-    "owners": [ "amarjotgill@chromium.org"],
-    "expiry_milestone": 152
+    "owners": [ "chlily@chromium.org"],
+    "expiry_milestone": 175
   },
   {
     "name": "bind-cookies-to-scheme",
-    "owners": [ "amarjotgill@chromium.org"],
-    "expiry_milestone": 152
+    "owners": [ "chlily@chromium.org"],
+    "expiry_milestone": 175
   },
   {
     "name": "biometric-reauth-password-filling",
@@ -1850,11 +1850,6 @@
     "name": "cast-mirroring-native-nv12",
     "owners": [ "jophba@chromium.org", "openscreen-eng@google.com" ],
     "expiry_milestone": 180
-  },
-  {
-    "name": "cast-mirroring-target-playout-delay",
-    "owners": [ "bzielinski@google.com", "jophba@chromium.org", "cros-edu-eng@google.com" ],
-    "expiry_milestone": 151
   },
   {
     "name": "cast-streaming-exponential-video-bitrate-algorithm",
@@ -2530,6 +2525,11 @@
   },
   {
     "name": "contextual-tasks-pinned-button-active-indicator",
+    "owners": [ "dianaou@google.com", "chrome-contextual-tasks-eng@google.com" ],
+    "expiry_milestone": 160
+  },
+  {
+    "name": "contextual-tasks-pinning-string-variants",
     "owners": [ "dianaou@google.com", "chrome-contextual-tasks-eng@google.com" ],
     "expiry_milestone": 160
   },
@@ -4950,11 +4950,6 @@
     "expiry_milestone": 162
   },
   {
-    "name": "enforce-mono-audio-capture",
-    "owners": ["aaronyu@google.com", "chromeos-audio@google.com"],
-    "expiry_milestone": 147
-  },
-  {
     "name": "enforce-system-aec",
     "owners": [ "peah@chromium.org" ],
     "expiry_milestone": 128
@@ -5469,6 +5464,14 @@
     "name": "fullscreen-scroll-threshold",
     "owners": [ "scottyoder@google.com", "alionadangla@chromium.org", "bling-flags@google.com" ],
     "expiry_milestone": 145
+  },
+  {
+    "name": "fullscreen-signin-mediator-state-machine",
+    "owners": [
+      "crowleso@google.com",
+      "chrome-signin-mobile-team@google.com"
+    ],
+    "expiry_milestone": 165
   },
   {
     "name": "fullscreen-transition-speed",
@@ -9255,11 +9258,6 @@
     "expiry_milestone": 150
   },
   {
-    "name": "split-view-horizontal",
-    "owners": [ "charlesmeng@google.com", "top-chrome-desktop-ui@google.com" ],
-    "expiry_milestone": 155
-  },
-  {
     "name": "start-surface-user-setting",
     "owners": [
       "pabouchard@google.com",
@@ -9632,13 +9630,6 @@
     "expiry_milestone": 170
   },
   {
-    "name": "taiyaki-all-surfaces",
-    "owners": [
-      "jlebel@google.com", "dgn@google.com", "chrome-regionalcapabilities@google.com"
-    ],
-    "expiry_milestone": 153
-  },
-  {
     "name": "terminal-dev",
     "owners": [ "joelhockey@chromium.org", "//chrome/browser/ash/guest_os/OWNERS" ],
     // This flag is used by CrOS Terminal developers for testing SSH on devices
@@ -9810,6 +9801,11 @@
   },
   {
     "name": "ttc-fre",
+    "owners": [ "//chrome/browser/ttc/OWNERS" ],
+    "expiry_milestone": 162
+  },
+  {
+    "name": "ttc-live-recipe",
     "owners": [ "//chrome/browser/ttc/OWNERS" ],
     "expiry_milestone": 162
   },

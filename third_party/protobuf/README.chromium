@@ -273,28 +273,11 @@ to the vpython copy of protobuf, you may need to update the version in
 
 Description of the patches:
 
-- 0004-fix-shared-library-exports.patch
-
-  This patch allows exporting protobuf symbols in Linux .so libraries, so
-  that protobuf can be built as a component (see http://crrev.com/179806).
-  Obsoleted upstream by `PROTOBUF_EXPORT` and `PROTOC_EXPORT` in `port_def.inc`,
-  which already emit `__attribute__((visibility("default")))` when
-  `PROTOBUF_USE_DLLS` and `LIBPROTOBUF_EXPORTS` / `LIBPROTOC_EXPORTS` are
-  defined:
-  https://github.com/protocolbuffers/protobuf/blob/3f17acbf7ffbda81db8be17505554c726e558bb2/src/google/protobuf/port_def.inc#L332-L366.
-
 - 0008-uninline_get_empty_string.patch
 
   Uninlines `GetEmptyStringAlreadyInited()` (`PROTOBUF_NOINLINE`) to reduce
   binary size across generated protobuf code. Upstreaming is tracked in
   https://crbug.com/567566717.
-
-- 0010-uninline-generated-code.patch
-
-  Uninlines generated `Swap()` methods (`PROTOBUF_NOINLINE`) to reduce binary
-  size. Obsoleted upstream because generated move-assignment now calls
-  `InternalSwap(&from)` directly rather than `Swap(&from)`:
-  https://github.com/protocolbuffers/protobuf/blob/3f17acbf7ffbda81db8be17505554c726e558bb2/src/google/protobuf/compiler/cpp/message.cc#L2173-L2181.
 
 - 0022-Allow-deprecated-fields.patch
 
@@ -442,17 +425,6 @@ Description of the patches:
   to prevent cascading [[nodiscard]] compilation errors across Chromium and
   third-party callers (e.g. MediaPipe). Options for simplifying or eliminating
   this patch are tracked in https://crbug.com/567654954.
-
-- 0068-remove-arena-heavy-includes.patch
-
-  Removes `absl/strings/str_format.h` and `absl/hash/hash.h` from `arena.h`
-  and removes unused `AbslStringify`, `ArenaPtrContainerHash`, and
-  `AbslHashValue` implementations on `Arena::UniquePtr` and `Arena::Ptr` to
-  avoid massive compile size and build time bloat across every translation unit
-  that includes `.pb.h`. Obsoleted in practice because `io/coded_stream.h`
-  transitively includes `absl/strings/cord.h`, which already pulls
-  `absl/strings/str_format.h` and `absl/hash/hash.h` into every `.pb.h`:
-  https://github.com/protocolbuffers/protobuf/blob/3f17acbf7ffbda81db8be17505554c726e558bb2/src/google/protobuf/io/coded_stream.h#L113.
 
 - 0069-remove-btree-map-includes.patch
 

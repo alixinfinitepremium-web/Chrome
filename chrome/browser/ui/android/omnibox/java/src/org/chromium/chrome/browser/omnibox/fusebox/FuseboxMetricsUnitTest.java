@@ -24,11 +24,10 @@ import org.chromium.chrome.browser.omnibox.fusebox.FuseboxMetrics.AiModeActivati
 import org.chromium.chrome.browser.omnibox.fusebox.FuseboxMetrics.FuseboxAttachmentButtonType;
 import org.chromium.chrome.browser.omnibox.fusebox.FuseboxMetrics.MobileFuseboxPickerOutcome;
 import org.chromium.chrome.browser.omnibox.fusebox.PopupButtonData.PopupButtonType;
-import org.chromium.chrome.browser.preferences.ChromePreferenceKeys;
-import org.chromium.chrome.browser.preferences.ChromeSharedPreferences;
 import org.chromium.components.feature_engagement.Tracker;
 import org.chromium.components.omnibox.AimModelsProtoIntDef.ModelMode;
 import org.chromium.components.omnibox.AutocompleteRequestType;
+import org.chromium.components.omnibox.InputSourceProtoIntDef.InputSource;
 import org.chromium.components.omnibox.OmniboxFeatures;
 import org.chromium.components.omnibox.ToolModeProtoIntDef.ToolMode;
 import org.chromium.ui.base.MimeTypeUtils;
@@ -163,6 +162,18 @@ public class FuseboxMetricsUnitTest {
     }
 
     @Test
+    public void testNotifyAttachmentLabelFallback() {
+        HistogramWatcher histogramWatcher =
+                HistogramWatcher.newSingleRecordWatcher(
+                        FuseboxMetrics.ATTACHMENT_LABEL_FALLBACK_HISTOGRAM,
+                        InputSource.INPUT_SOURCE_DRIVE);
+
+        FuseboxMetrics.notifyAttachmentLabelFallback(InputSource.INPUT_SOURCE_DRIVE);
+
+        histogramWatcher.assertExpected();
+    }
+
+    @Test
     public void testToolModeHistogramBound() {
         // When this test fails, it means the proto added a new tool mode, and
         // TOOL_MODE_HISTOGRAM_BOUND needs to be updated.
@@ -174,6 +185,13 @@ public class FuseboxMetricsUnitTest {
         // When this test fails, it means the proto added a new model mode, and
         // MODEL_MODE_HISTOGRAM_BOUND needs to be updated.
         assertThat(ModelMode.MAX_VALUE).isLessThan(FuseboxMetrics.MODEL_MODE_HISTOGRAM_BOUND);
+    }
+
+    @Test
+    public void testInputSourceHistogramBound() {
+        // When this test fails, it means the proto added a new input source, and
+        // INPUT_SOURCE_HISTOGRAM_BOUND needs to be updated.
+        assertThat(InputSource.MAX_VALUE).isLessThan(FuseboxMetrics.INPUT_SOURCE_HISTOGRAM_BOUND);
     }
 
     @Test
@@ -317,19 +335,6 @@ public class FuseboxMetricsUnitTest {
                         "Omnibox.MobileFusebox.AttachmentsPopupItemSelected", false);
         FuseboxMetrics.notifyAttachmentsPopupClosed(/* itemSelected= */ false);
         histogramWatcher.assertExpected();
-    }
-
-    @Test
-    public void testNotifyPlusMenuShown_recordsLastOpenTime() {
-        long before = TimeUtils.currentTimeMillis();
-        FuseboxMetrics.notifyPlusMenuShown();
-        long after = TimeUtils.currentTimeMillis();
-
-        long lastOpen =
-                ChromeSharedPreferences.getInstance()
-                        .readLong(ChromePreferenceKeys.OMNIBOX_FUSEBOX_PLUS_MENU_LAST_OPEN_TIME);
-        assertThat(lastOpen).isAtLeast(before);
-        assertThat(lastOpen).isAtMost(after);
     }
 
     @Test

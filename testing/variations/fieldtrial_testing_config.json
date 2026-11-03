@@ -47,6 +47,24 @@
             ]
         }
     ],
+    "AIFuseboxIOSPlusButtonDesignIteration": [
+        {
+            "platforms": [
+                "ios"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled_FakeboxContextualMenu",
+                    "enable_features": [
+                        "PlusButtonMenuInFakebox"
+                    ],
+                    "disable_features": [
+                        "ComposeboxPlusButtonBottomSheet"
+                    ]
+                }
+            ]
+        }
+    ],
     "ANGLEPurgeableBufferPool": [
         {
             "platforms": [
@@ -711,6 +729,21 @@
                     },
                     "enable_features": [
                         "AndroidNavigationBlurTransitionAnimation"
+                    ]
+                }
+            ]
+        }
+    ],
+    "AndroidNewTabButtonTabstripWebUI": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "AndroidNewTabButtonTabstripWebUI"
                     ]
                 }
             ]
@@ -1780,6 +1813,26 @@
             ]
         }
     ],
+    "AutofillAiUsePrivateAi": [
+        {
+            "platforms": [
+                "android",
+                "chromeos",
+                "ios",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "AutofillAiUsePrivateAi"
+                    ]
+                }
+            ]
+        }
+    ],
     "AutofillAiWalletPassBranding2026": [
         {
             "platforms": [
@@ -2232,7 +2285,8 @@
                 {
                     "name": "Enabled",
                     "enable_features": [
-                        "AutofillLabelSensitiveAutocomplete"
+                        "AutofillLabelSensitiveAutocomplete",
+                        "AutofillRecordAutocompleteTableStats"
                     ]
                 }
             ]
@@ -3402,6 +3456,40 @@
                         "BusyLoopAggressiveAfterCommittedLoad",
                         "BusyLoopLessWhenCompositorGesture",
                         "BusyLoopOnMainThread"
+                    ]
+                }
+            ]
+        }
+    ],
+    "CADisplayLinkInGpu": [
+        {
+            "platforms": [
+                "mac"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled_MacOS26",
+                    "params": {
+                        "CADisplayLinkInGpuMinMacOSMajorVersion": "26"
+                    },
+                    "enable_features": [
+                        "CADisplayLinkInGpu"
+                    ]
+                }
+            ]
+        },
+        {
+            "platforms": [
+                "mac"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled_MacOS15",
+                    "params": {
+                        "CADisplayLinkInGpuMinMacOSMajorVersion": "15"
+                    },
+                    "enable_features": [
+                        "CADisplayLinkInGpu"
                     ]
                 }
             ]
@@ -8265,25 +8353,6 @@
             ]
         }
     ],
-    "GCMMessageBuffering": [
-        {
-            "platforms": [
-                "android",
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "GCMMessageBuffering"
-                    ]
-                }
-            ]
-        }
-    ],
     "GMSCoreBindServiceOptimization": [
         {
             "platforms": [
@@ -12548,6 +12617,21 @@
             "experiments": [
                 {
                     "name": "Enabled"
+                }
+            ]
+        }
+    ],
+    "OmniboxAimOpenInNewTab": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "OmniboxAimOpenInNewTab"
+                    ]
                 }
             ]
         }
@@ -17151,27 +17235,6 @@
             ]
         }
     ],
-    "SplitViewHorizontalDirectTabAccess": [
-        {
-            "platforms": [
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "EnabledDirectTabAccess_20260902",
-                    "params": {
-                        "split_view_horizontal_direct_tab_access": "true"
-                    },
-                    "enable_features": [
-                        "SplitViewHorizontal"
-                    ]
-                }
-            ]
-        }
-    ],
     "StartSurfaceUserSetting": [
         {
             "platforms": [
@@ -20182,6 +20245,21 @@
                     "name": "Enabled",
                     "enable_features": [
                         "WebViewMoveWorkToProviderInit"
+                    ]
+                }
+            ]
+        }
+    ],
+    "WebViewObserveAccessibilityState": [
+        {
+            "platforms": [
+                "android_webview"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "WebViewObserveAccessibilityState"
                     ]
                 }
             ]

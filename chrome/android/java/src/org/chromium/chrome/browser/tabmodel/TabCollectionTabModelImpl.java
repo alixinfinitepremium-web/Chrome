@@ -38,7 +38,6 @@ import org.chromium.base.supplier.NonNullObservableSupplier;
 import org.chromium.base.supplier.NullableObservableSupplier;
 import org.chromium.base.supplier.ObservableSuppliers;
 import org.chromium.base.supplier.SettableNonNullObservableSupplier;
-import org.chromium.base.supplier.SupplierUtils;
 import org.chromium.build.annotations.EnsuresNonNullIf;
 import org.chromium.build.annotations.NullMarked;
 import org.chromium.build.annotations.Nullable;
@@ -345,8 +344,7 @@ public class TabCollectionTabModelImpl extends TabModelJniBridge {
      * @param modelDelegate The {@link TabModelDelegate} for interacting outside the tab model.
      * @param asyncTabParamsManager To detect if an async tab operation is in progress.
      * @param tabRemover For removing tabs.
-     * @param isIncognitoBranded Parameter to tabUngrouperFactory
-     * @param tabUngrouperFactory For ungrouping tabs.
+     * @param tabUngrouper For ungrouping tabs.
      * @param batchFactory A factory for creating {@link ScopedStorageBatch} objects.
      * @param supportUndo Whether the tab model supports undo functionality.
      */
@@ -363,8 +361,7 @@ public class TabCollectionTabModelImpl extends TabModelJniBridge {
             TabModelDelegate modelDelegate,
             AsyncTabParamsManager asyncTabParamsManager,
             TabRemover tabRemover,
-            boolean isIncognitoBranded,
-            TabUngrouperFactory tabUngrouperFactory,
+            TabUngrouper tabUngrouper,
             Supplier<ScopedStorageBatch> batchFactory,
             boolean supportUndo) {
         super(profile);
@@ -378,7 +375,7 @@ public class TabCollectionTabModelImpl extends TabModelJniBridge {
         mModelDelegate = modelDelegate;
         mAsyncTabParamsManager = asyncTabParamsManager;
         mTabRemover = tabRemover;
-        mTabUngrouper = tabUngrouperFactory.create(isIncognitoBranded, SupplierUtils.of(this));
+        mTabUngrouper = tabUngrouper;
         mBatchFactory = batchFactory;
         if (supportUndo && !isIncognito()) {
             mPendingTabClosureManager =
@@ -763,8 +760,14 @@ public class TabCollectionTabModelImpl extends TabModelJniBridge {
     @Override
     public void setTabsMultiSelected(Set<Integer> tabIds, boolean isSelected) {
         assertOnUiThread();
-        TabModelImplUtil.setTabsMultiSelected(
-                tabIds, isSelected, mMultiSelectedTabs, mTabModelObservers);
+        if (isSelected) {
+            mMultiSelectedTabs.addAll(tabIds);
+        } else {
+            mMultiSelectedTabs.removeAll(tabIds);
+        }
+        for (TabModelObserver obs : mTabModelObservers) {
+            obs.onTabsSelectionChanged();
+        }
         assert mMultiSelectedTabs.isEmpty()
                         || TabModelUtils.getCurrentTabId(this) == Tab.INVALID_TAB_ID
                         || mMultiSelectedTabs.contains(TabModelUtils.getCurrentTabId(this))
@@ -775,14 +778,20 @@ public class TabCollectionTabModelImpl extends TabModelJniBridge {
     @Override
     public void clearMultiSelection(boolean notifyObservers) {
         assertOnUiThread();
-        TabModelImplUtil.clearMultiSelection(
-                notifyObservers, mMultiSelectedTabs, mTabModelObservers);
+        if (mMultiSelectedTabs.isEmpty()) return;
+        mMultiSelectedTabs.clear();
+        if (notifyObservers) {
+            for (TabModelObserver obs : mTabModelObservers) {
+                obs.onTabsSelectionChanged();
+            }
+        }
     }
 
     @Override
     public boolean isTabMultiSelected(int tabId) {
         assertOnUiThread();
-        return TabModelImplUtil.isTabMultiSelected(tabId, mMultiSelectedTabs, this);
+        // A tab is selected if it is either the active tab or explicitly multi-selected.
+        return mMultiSelectedTabs.contains(tabId) || tabId == TabModelUtils.getCurrentTabId(this);
     }
 
     @Override

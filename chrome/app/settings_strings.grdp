@@ -352,9 +352,6 @@
       Auto expand tabs on hover
     </message>
     <message name="IDS_SETTINGS_ALLOW_SPLIT_VIEW_DRAG_AND_DROP" desc="Label for the checkbox which enables or disables drag and drop for split view.">
-      Allow split view drag-and-drop on left or right edge of window
-    </message>
-    <message name="IDS_SETTINGS_ALLOW_SPLIT_VIEW_DRAG_AND_DROP_HORIZONTAL" desc="Label for the checkbox which enables or disables drag and drop for split view when top/bottom splits is enabled.">
       Allow split view drag-and-drop on left, right, or bottom edge of window
     </message>
     <message name="IDS_SETTINGS_SHOW_TAB_GROUPS_IN_BOOKMARKS_BAR" desc="Label for the checkbox which enables or disables showing saved tab groups in bookmarks bar.">
@@ -1085,6 +1082,11 @@
     </message>
     <message name="IDS_SETTINGS_DOWNLOADS_SHOW_WHEN_FINISHED" desc="Label for the setting which enables the automatic showing of downloads when the downloads finish.">
       Show downloads when they're done
+    </message>
+
+    <!-- General Page -->
+    <message name="IDS_SETTINGS_GENERAL" desc="Name of the settings page which displays general preferences.">
+      General
     </message>
 
     <!-- On Startup Page -->
@@ -1988,6 +1990,9 @@
     </message>
     <message name="IDS_SETTINGS_RESET" desc="Title for an item in the 'Reset and clean up' section of Chrome Settings. If the user clicks this option, browser settings will be returned to their default values, after a confirmation by the user." meaning="Chrome Cleanup feature. Try to use the same translation for 'Reset' in 'Reset and cleanup' string.">
       Reset settings
+    </message>
+    <message name="IDS_SETTINGS_RESET_ALL_SETTINGS" desc="Text of the button on the General settings page that opens a dialog to reset browser settings back to their default values.">
+      Reset all settings
     </message>
     <message name="IDS_SETTINGS_RESET_SETTINGS_TRIGGER" desc="The label describing the 'reset profile setting' feature">
       Restore settings to their original defaults

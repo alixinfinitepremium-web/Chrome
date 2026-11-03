@@ -596,8 +596,6 @@ void AddAppearanceStrings(content::WebUIDataSource* html_source,
        IDS_SETTINGS_VERTICAL_TABS_EXPAND_ON_HOVER},
       {"allowSplitViewDragAndDrop",
        IDS_SETTINGS_ALLOW_SPLIT_VIEW_DRAG_AND_DROP},
-      {"allowSplitViewDragAndDropHorizontal",
-       IDS_SETTINGS_ALLOW_SPLIT_VIEW_DRAG_AND_DROP_HORIZONTAL},
       {"showTabGroupsInBookmarksBar",
        IDS_SETTINGS_SHOW_TAB_GROUPS_IN_BOOKMARKS_BAR},
       {"autoPinNewTabGroups", IDS_SETTINGS_AUTO_PIN_NEW_TAB_GROUPS},
@@ -676,9 +674,6 @@ void AddAppearanceStrings(content::WebUIDataSource* html_source,
   html_source->AddBoolean(
       "tabStripUnificationEnabled",
       base::FeatureList::IsEnabled(tabs::kTabStripUnification));
-  html_source->AddBoolean(
-      "splitViewHorizontalEnabled",
-      base::FeatureList::IsEnabled(tabs::kSplitViewHorizontal));
 
   std::string configurable_alignments_json;
   base::JSONWriter::Write(
@@ -851,6 +846,13 @@ void AddGeicStrings(content::WebUIDataSource* html_source) {
           GURL(features::kGeicDefaultTabAccessToggleLearnMoreURL.Get()),
           g_browser_process->GetApplicationLocale())
           .spec());
+}
+
+void AddGeneralStrings(content::WebUIDataSource* html_source) {
+  static constexpr webui::LocalizedString kLocalizedStrings[] = {
+      {"generalPageTitle", IDS_SETTINGS_GENERAL},
+  };
+  html_source->AddLocalizedStrings(kLocalizedStrings);
 }
 
 void AddGlicStrings(content::WebUIDataSource* html_source, Profile* profile) {
@@ -1201,6 +1203,7 @@ void AddGlicStrings(content::WebUIDataSource* html_source, Profile* profile) {
 void AddResetStrings(content::WebUIDataSource* html_source, Profile* profile) {
   static constexpr webui::LocalizedString kLocalizedStrings[] = {
       {"resetPageTitle", IDS_SETTINGS_RESET},
+      {"resetAllSettings", IDS_SETTINGS_RESET_ALL_SETTINGS},
       {"resetTrigger", IDS_SETTINGS_RESET_SETTINGS_TRIGGER},
       {"resetPageExplanationBulletPoints",
        IDS_RESET_PROFILE_SETTINGS_EXPLANATION_IN_BULLET_POINTS},
@@ -1259,7 +1262,8 @@ void AddPerformanceStrings(content::WebUIDataSource* html_source) {
   // UI no longer exists.
   static constexpr webui::LocalizedString kLocalizedStrings[] = {
       {"performancePageTitle", IDS_SETTINGS_PERFORMANCE_PAGE_TITLE},
-      {"generalPageTitle", IDS_SETTINGS_PERFORMANCE_GENERAL_PAGE_TITLE},
+      {"performanceGeneralPageTitle",
+       IDS_SETTINGS_PERFORMANCE_GENERAL_PAGE_TITLE},
       {"memoryPageTitle", IDS_SETTINGS_PERFORMANCE_MEMORY_PAGE_TITLE},
       {"speedPageTitle", IDS_SETTINGS_PERFORMANCE_SPEED_PAGE_TITLE},
       {"memorySaverModeLabel",
@@ -4524,6 +4528,7 @@ void AddLocalizedStrings(content::WebUIDataSource* html_source,
   AddDownloadsStrings(html_source);
   AddExtensionsStrings(html_source);
   AddGeicStrings(html_source);
+  AddGeneralStrings(html_source);
   AddGlicStrings(html_source, profile);
   AddPerformanceStrings(html_source);
   AddLanguagesStrings(html_source, profile);

@@ -20,6 +20,7 @@
 #include "chrome/browser/contextual_tasks/contextual_tasks_ui.h"
 #include "chrome/browser/contextual_tasks/contextual_tasks_ui_service.h"
 #include "chrome/browser/contextual_tasks/contextual_tasks_ui_service_factory.h"
+#include "chrome/browser/contextual_tasks/contextual_tasks_utils.h"
 #include "chrome/browser/devtools/features.h"
 #include "chrome/browser/dictation/features.h"
 #include "chrome/browser/feature_engagement/tracker_factory.h"
@@ -1525,9 +1526,10 @@ void MaybeRegisterChromeFeaturePromos(
           .SetBubbleIcon(&(features::IsRoundedIconsEnabled() ? kDevicesIcon
                                                              : kDevicesOldIcon))
           .SetBubbleTitleText(IDS_SEND_TAB_TO_SELF_IPH_TUTORIAL_TITLE)
-          .SetMetadata(
-              154, "ankushkush@google.com",
-              "Triggered on the first eligible tab after browser startup.")));
+          .SetMetadata(154, "ankushkush@google.com",
+                       "Triggered when a navigation or user tab switch lands "
+                       "the active tab on an eligible page, once User "
+                       "Education session policy permits.")));
 
   // kIPHSidePanelGenericPinnableFeature:
   registry.RegisterFeature(std::move(
@@ -2211,7 +2213,8 @@ void MaybeRegisterChromeFeaturePromos(
       FeaturePromoSpecification::CreateForCustomAction(
           feature_engagement::kIPHSidePanelContextualTasksPinnableFeature,
           contextual_tasks_ephemeral_element_id,
-          IDS_SIDE_PANEL_CONTEXTUAL_TASKS_PINNABLE_IPH,
+          contextual_tasks::GetContextualTasksPinningStringId(
+              IDS_SIDE_PANEL_CONTEXTUAL_TASKS_PINNABLE_IPH),
           IDS_SIDE_PANEL_CONTEXTUAL_TASKS_PINNABLE_IPH_PIN_SHORTCUT,
           base::BindRepeating(
               [](ContextPtr ctx,
@@ -2256,8 +2259,10 @@ void MaybeRegisterChromeFeaturePromos(
       FeaturePromoSpecification::CreateForToastPromo(
           feature_engagement::kIPHContextualTasksEphemeralToolbarButtonFeature,
           contextual_tasks_ephemeral_element_id,
-          IDS_CONTEXTUAL_TASKS_EPHEMERAL_TOOLBAR_BUTTON_IPH,
-          IDS_CONTEXTUAL_TASKS_EPHEMERAL_TOOLBAR_BUTTON_IPH_SCREENREADER,
+          contextual_tasks::GetContextualTasksPinningStringId(
+              IDS_CONTEXTUAL_TASKS_EPHEMERAL_TOOLBAR_BUTTON_IPH),
+          contextual_tasks::GetContextualTasksPinningStringId(
+              IDS_CONTEXTUAL_TASKS_EPHEMERAL_TOOLBAR_BUTTON_IPH_SCREENREADER),
           FeaturePromoSpecification::AcceleratorInfo())
           .SetBubbleArrow(is_ephemeral_button_on_right
                               ? HelpBubbleArrow::kTopRight
@@ -2271,8 +2276,10 @@ void MaybeRegisterChromeFeaturePromos(
       FeaturePromoSpecification::CreateForToastPromo(
           feature_engagement::kIPHContextualTasksPinnedIconChangedFeature,
           kPinnedToolbarActionShowSidePanelContextualTasksElementId,
-          IDS_CONTEXTUAL_TASKS_PINNED_ICON_CHANGED_IPH,
-          IDS_CONTEXTUAL_TASKS_PINNED_ICON_CHANGED_IPH_SCREENREADER,
+          contextual_tasks::GetContextualTasksPinningStringId(
+              IDS_CONTEXTUAL_TASKS_PINNED_ICON_CHANGED_IPH),
+          contextual_tasks::GetContextualTasksPinningStringId(
+              IDS_CONTEXTUAL_TASKS_PINNED_ICON_CHANGED_IPH_SCREENREADER),
           FeaturePromoSpecification::AcceleratorInfo())
           .SetBubbleArrow(HelpBubbleArrow::kTopRight)
           .SetMetadata(148, "dianaou@google.com",
@@ -2350,20 +2357,17 @@ void MaybeRegisterChromeFeaturePromos(
 #endif  // BUILDFLAG(IS_WIN)
 
   // kIPHSplitViewHorizontalIndirectAccessFeature:
-  if (tabs::IsSplitViewHorizontalIndirectAccessEnabled()) {
-    registry.RegisterFeature(std::move(
-        FeaturePromoSpecification::CreateForSnoozePromo(
-            feature_engagement::kIPHSplitViewHorizontalIndirectAccessFeature,
-            kToolbarSplitTabsToolbarButtonElementId,
-            IDS_SPLIT_VIEW_HORIZONTAL_INDIRECT_ACCESS_IPH_BODY)
-            .SetBubbleTitleText(
-                IDS_SPLIT_VIEW_HORIZONTAL_INDIRECT_ACCESS_IPH_TITLE)
-            .SetBubbleArrow(HelpBubbleArrow::kTopLeft)
-            .SetMetadata(152, "charlesmeng@chromium.org",
-                         "Triggered when the split view horizontal feature is "
-                         "enabled with the direct access feature param off, "
-                         "and the user creates a side by side split.")));
-  }
+  registry.RegisterFeature(std::move(
+      FeaturePromoSpecification::CreateForSnoozePromo(
+          feature_engagement::kIPHSplitViewHorizontalIndirectAccessFeature,
+          kToolbarSplitTabsToolbarButtonElementId,
+          IDS_SPLIT_VIEW_HORIZONTAL_INDIRECT_ACCESS_IPH_BODY)
+          .SetBubbleTitleText(
+              IDS_SPLIT_VIEW_HORIZONTAL_INDIRECT_ACCESS_IPH_TITLE)
+          .SetBubbleArrow(HelpBubbleArrow::kTopLeft)
+          .SetMetadata(152, "charlesmeng@chromium.org",
+                       "Triggered when the user creates a side by side "
+                       "split.")));
 
   // kIPHGlassFrameOptInFeature:
   registry.RegisterFeature(std::move(
@@ -2775,7 +2779,9 @@ void MaybeRegisterChromeTutorials(
             // Completion of the tutorial after the shortcut is pinned.
             BubbleStep(
                 kPinnedToolbarActionShowSidePanelContextualTasksElementId)
-                .SetBubbleBodyText(IDS_TUTORIAL_CONTEXTUAL_TASKS_STEP3)
+                .SetBubbleBodyText(
+                    contextual_tasks::GetContextualTasksPinningStringId(
+                        IDS_TUTORIAL_CONTEXTUAL_TASKS_STEP3))
                 .SetBubbleArrow(HelpBubbleArrow::kTopRight)
                 .InAnyContext());
 
@@ -2951,6 +2957,12 @@ void MaybeRegisterChromeNewBadges(user_education::NewBadgeRegistry& registry) {
       features::kGlicContextMenu,
       user_education::Metadata(146, "basiaz@google.com",
                                "Shown in the contextual menu.")));
+
+  registry.RegisterFeature(user_education::NewBadgeSpecification(
+      features::kGlicSuggestionContextMenu,
+      user_education::Metadata(
+          159, "liuwilliam@google.com",
+          "Shown on the glic smart suggestion context menu item.")));
 
   registry.RegisterFeature(user_education::NewBadgeSpecification(
       tabs::kVerticalTabsNewBadge,

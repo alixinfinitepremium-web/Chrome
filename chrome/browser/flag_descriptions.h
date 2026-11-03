@@ -1894,6 +1894,10 @@ inline constexpr char kActorNotificationIntentRoutingDescription[] =
 inline constexpr char kTtcName[] = "TTC";
 inline constexpr char kTtcDescription[] = "Enables the TTC feature.";
 
+inline constexpr char kTtcLiveRecipeName[] = "TTC Live Recipe";
+inline constexpr char kTtcLiveRecipeDescription[] =
+    "Selects the live streaming model recipe for TTC.";
+
 inline constexpr char kTtcFreName[] = "TTC FRE";
 inline constexpr char kTtcFreDescription[] =
     "Enables the first run experience for TTC.";
@@ -4549,10 +4553,6 @@ inline constexpr char kTestThirdPartyCookiePhaseoutDescription[] =
     "Enable to test third-party cookie phaseout. "
     "Learn more: https://goo.gle/3pcd-flags";
 
-inline constexpr char kSplitViewHorizontalName[] = "Stacked Split Views";
-inline constexpr char kSplitViewHorizontalDescription[] =
-    "Whether split views can be arranged in a stacked layout.";
-
 inline constexpr char kTabGroupColorRefreshName[] = "Tab Group Color Refresh";
 inline constexpr char kTabGroupColorRefreshDescription[] =
     "Update the color selection for tab groups.";
@@ -6333,6 +6333,11 @@ inline constexpr char kFullscreenInsetsApiMigrationOnAutomotiveDescription[] =
     "Migration from View#setSystemUiVisibility to WindowInsetsController on "
     "automotive.";
 
+inline constexpr char kFullscreenSigninMediatorStateMachineName[] =
+    "Fullscreen Signin Mediator State Machine";
+inline constexpr char kFullscreenSigninMediatorStateMachineDescription[] =
+    "Enables the state-machine implementation of FullscreenSigninMediator.";
+
 inline constexpr char kFullscreenVideoPictureInPictureName[] =
     "Fullscreen Video Picture-in-Picture";
 inline constexpr char kFullscreenVideoPictureInPictureDescription[] =
@@ -6902,20 +6907,6 @@ inline constexpr char kCastMirroringNativeNV12Name[] =
 inline constexpr char kCastMirroringNativeNV12Description[] =
     "If enabled, NV12 video frames will be sent to the encoder without being "
     "converted to I420 during Cast Mirroring.";
-
-inline constexpr char kCastMirroringTargetPlayoutDelayName[] =
-    "Changes the target playout delay for Cast mirroring.";
-inline constexpr char kCastMirroringTargetPlayoutDelayDescription[] =
-    "Choose a target playout delay for Cast mirroring. A lower delay will "
-    "decrease latency, but may impact other quality indicators.";
-inline constexpr char kCastMirroringTargetPlayoutDelayDefault[] =
-    "Default (200ms)";
-inline constexpr char kCastMirroringTargetPlayoutDelay100ms[] = "100ms.";
-inline constexpr char kCastMirroringTargetPlayoutDelay150ms[] = "150ms.";
-inline constexpr char kCastMirroringTargetPlayoutDelay250ms[] = "250ms.";
-inline constexpr char kCastMirroringTargetPlayoutDelay300ms[] = "300ms.";
-inline constexpr char kCastMirroringTargetPlayoutDelay350ms[] = "350ms.";
-inline constexpr char kCastMirroringTargetPlayoutDelay400ms[] = "400ms.";
 
 inline constexpr char
     kClientSideDetectionServerModelForScamDetectionDesktopName[] =
@@ -8269,12 +8260,6 @@ inline constexpr char kTetheringExperimentalFunctionalityDescription[] =
     "carriers, modem and modem FW.";
 
 // Prefer keeping this section sorted to adding new definitions down here.
-
-inline constexpr char kCrOSEnforceMonoAudioCaptureName[] =
-    "Enforce mono audio capture for Chrome";
-inline constexpr char kCrOSEnforceMonoAudioCaptureDescription[] =
-    "Enforce mono audio capture instead of stereo capture for Chrome on "
-    "ChromeOS";
 
 inline constexpr char kCrOSEnforceSystemAecName[] =
     "Enforce using the system AEC in CrAS";

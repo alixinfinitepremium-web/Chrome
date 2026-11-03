@@ -99,8 +99,7 @@ public class EmbeddedPermissionPromptTest {
 
     public AutoResetCtaTransitTestRule mActivityTestRule =
             ChromeTransitTestRules.autoResetCtaActivityRule();
-    public PermissionTestRule mPermissionRule =
-            new PermissionTestRule(mActivityTestRule.getActivityTestRule());
+    public PermissionTestRule mPermissionRule = new PermissionTestRule(mActivityTestRule);
 
     @Rule
     public RuleChain mRuleChain = RuleChain.outerRule(mActivityTestRule).around(mPermissionRule);
@@ -112,7 +111,7 @@ public class EmbeddedPermissionPromptTest {
         SurveyClientFactory.setInstanceForTesting(mSurveyClientFactory);
         doReturn(mSurveyClient).when(mSurveyClientFactory).createClient(any(), any(), any(), any());
         mPermissionRule.getEmbeddedTestServerRule().setServerPort(12345);
-        mPermissionRule.setUpActivity();
+        mActivityTestRule.startOnBlankPage();
         RuntimePermissionTestUtils.setupGeolocationSystemMock();
         LocationSettingsTestUtil.setSystemAndAndroidLocationSettings(true, true, true);
 

@@ -1787,22 +1787,16 @@ public class VerticalTabListCoordinator {
 
                     maybeUngroupTab(tab, (ChromeTabDropDataAndroid) globalState.getData());
 
-                    int destGroupTabId = dropTarget.destGroupTabId;
+                    Token destGroupId = dropTarget.destGroupId;
                     int destTabIndex = dropTarget.destTabIndex;
-                    int indexInGroup = TabList.INVALID_TAB_INDEX;
+                    int indexInGroup = 0;
 
-                    if (destGroupTabId != TabList.INVALID_TAB_INDEX) {
-                        Tab destGroupTab = tabModel.getTabById(destGroupTabId);
-                        if (destGroupTab != null) {
-                            Token groupId = destGroupTab.getTabGroupId();
-                            List<Tab> groupTabs =
-                                    groupId != null
-                                            ? tabModel.getTabsInGroup(groupId)
-                                            : Collections.emptyList();
-                            int firstGroupModelIndex =
-                                    !groupTabs.isEmpty()
-                                            ? tabModel.indexOf(groupTabs.get(0))
-                                            : destTabIndex;
+                    if (destGroupId != null) {
+                        List<Tab> groupTabs = tabModel.getTabsInGroup(destGroupId);
+                        if (groupTabs.isEmpty()) {
+                            destGroupId = null;
+                        } else {
+                            int firstGroupModelIndex = tabModel.indexOf(groupTabs.get(0));
                             indexInGroup =
                                     MathUtils.clamp(
                                             destTabIndex - firstGroupModelIndex,
@@ -1819,15 +1813,12 @@ public class VerticalTabListCoordinator {
                                     /* destGroupTabId= */ TabList.INVALID_TAB_INDEX,
                                     /* bringToFront= */ true);
 
-                    if (destGroupTabId != TabList.INVALID_TAB_INDEX) {
-                        Tab destGroupTab = tabModel.getTabById(destGroupTabId);
-                        if (destGroupTab != null && indexInGroup != TabList.INVALID_TAB_INDEX) {
-                            tabModel.mergeListOfTabsToGroup(
-                                    Collections.singletonList(tab),
-                                    destGroupTab,
-                                    indexInGroup,
-                                    TabGroupMergeNotificationType.DONT_NOTIFY);
-                        }
+                    if (destGroupId != null) {
+                        tabModel.mergeListOfTabsToExistingGroup(
+                                Collections.singletonList(tab),
+                                destGroupId,
+                                indexInGroup,
+                                TabGroupMergeNotificationType.DONT_NOTIFY);
                     }
 
                     DragDropMetricUtils.recordDragDropType(

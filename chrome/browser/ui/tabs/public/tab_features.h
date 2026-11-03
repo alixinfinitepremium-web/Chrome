@@ -447,10 +447,6 @@ class TabFeatures {
     return commerce_ui_tab_helper_.get();
   }
 
-  extensions::ExtensionSidePanelManager* extension_side_panel_manager() {
-    return extension_side_panel_manager_.get();
-  }
-
   tab_groups::SavedTabGroupWebContentsListener*
   saved_tab_group_web_contents_listener() const {
     return saved_tab_group_web_contents_listener_.get();
@@ -488,10 +484,6 @@ class TabFeatures {
 
   autofill::BubbleManager* SetBubbleManagerForTesting(
       std::unique_ptr<autofill::BubbleManager> bubble_manager);
-
-  site_engagement::SiteEngagementService::Helper* site_engagement_helper() {
-    return site_engagement_helper_.get();
-  }
 
   // Called exactly once to initialize features.
   void Init(TabInterface& tab, Profile* profile);

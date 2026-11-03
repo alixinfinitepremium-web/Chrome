@@ -81,6 +81,7 @@ export class GlicSelectionOverlayElement extends
       enableBorderGlow: {type: Boolean},
       disableShimmer: {type: Boolean},
       showFloatingPrompt: {type: Boolean},
+      promptAboveSelection: {type: Boolean},
       floatingPromptStyle: {type: String},
       activeSelection: {type: Object},
       suggestedActions: {type: Array},
@@ -100,6 +101,7 @@ export class GlicSelectionOverlayElement extends
   override accessor enableBorderGlow: boolean = true;
   override accessor disableShimmer: boolean = false;
   accessor showFloatingPrompt: boolean = false;
+  accessor promptAboveSelection: boolean = false;
   accessor floatingPromptStyle: string = '';
   accessor activeSelection: PostSelectionBoundingBox|null = null;
   accessor suggestedActions: SuggestedAction[] = [];
@@ -408,17 +410,22 @@ export class GlicSelectionOverlayElement extends
         }
 
         let targetTop = selBottom + margin;
+        let aboveSelection = false;
         if (targetTop + height > viewportHeight - margin) {
           const topAbove = selTop - height - margin;
           if (topAbove >= margin) {
             targetTop = topAbove;
+            aboveSelection = true;
           } else {
             targetTop = Math.max(margin, viewportHeight - height - margin);
           }
         }
+        this.promptAboveSelection = aboveSelection;
         return `left: ${clampedCenterX}px; top: ${
             targetTop}px; transform: translateX(-50%);`;
       }
+
+      this.promptAboveSelection = false;
 
       // When the prompt box is not shown, anchor the bottom-left of the row at
       // the region's top-right corner (selRight, selTop). When an inline
@@ -555,6 +562,15 @@ export class GlicSelectionOverlayElement extends
         break;
       case GestureState.STARTING:
         if (this.draggingRespondent === DragFeature.NONE) {
+          // With the prompt box, a click doesn't select an area around it. It
+          // closes the overlay once there is a region, and does nothing before.
+          if (this.enableSelectionOverlayPromptBox) {
+            if (this.activeRegionId) {
+              (this.baseHandler as SelectionOverlayBaseHandlerImpl)
+                  .dismissOverlay(DismissOverlayReason.kBackgroundClick);
+            }
+            break;
+          }
           this.baseHandler.activeRegionId = '';
           this.selectionElements.regionSelectionLayer.handleGestureEnd(
               this.currentGesture);

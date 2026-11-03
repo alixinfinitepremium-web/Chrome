@@ -154,6 +154,7 @@
 #include "components/paint_preview/features/features.h"
 #include "components/password_manager/core/browser/features/password_features.h"
 #include "components/password_manager/core/common/password_manager_features.h"
+#include "components/password_manager/core/common/remote_actor/remote_actor_features.h"
 #include "components/payments/core/features.h"
 #include "components/performance_manager/public/features.h"
 #include "components/permissions/features.h"
@@ -3340,24 +3341,6 @@ const FeatureEntry::FeatureVariation
 };
 #endif  // BUILDFLAG(IS_CHROMEOS)
 
-#if !BUILDFLAG(IS_ANDROID)
-const FeatureEntry::Choice kCastMirroringTargetPlayoutDelayChoices[] = {
-    {flag_descriptions::kCastMirroringTargetPlayoutDelayDefault, "", ""},
-    {flag_descriptions::kCastMirroringTargetPlayoutDelay100ms,
-     switches::kCastMirroringTargetPlayoutDelay, "100"},
-    {flag_descriptions::kCastMirroringTargetPlayoutDelay150ms,
-     switches::kCastMirroringTargetPlayoutDelay, "150"},
-    {flag_descriptions::kCastMirroringTargetPlayoutDelay250ms,
-     switches::kCastMirroringTargetPlayoutDelay, "250"},
-    {flag_descriptions::kCastMirroringTargetPlayoutDelay300ms,
-     switches::kCastMirroringTargetPlayoutDelay, "300"},
-    {flag_descriptions::kCastMirroringTargetPlayoutDelay350ms,
-     switches::kCastMirroringTargetPlayoutDelay, "350"},
-    {flag_descriptions::kCastMirroringTargetPlayoutDelay400ms,
-     switches::kCastMirroringTargetPlayoutDelay, "400"}};
-
-#endif  // !BUILDFLAG(IS_ANDROID)
-
 #if BUILDFLAG(IS_ANDROID)
 const FeatureEntry::FeatureParam sAndroidThemeModuleParams[] = {
     {"force_theme_module_dependencies", "true"}};
@@ -4732,6 +4715,39 @@ const FeatureEntry::FeatureVariation
         {"with Gray Super G logo",
          kContextualTasksUnifyPinButtonLogosGraySuperG, nullptr}};
 
+// LINT.IfChange(PinningStringVariant)
+const FeatureEntry::FeatureParam kContextualTasksPinningStringVariantsAiMode[] =
+    {{"ContextualTasksPinningStringVariant", "ai-mode"}};
+const FeatureEntry::FeatureParam
+    kContextualTasksPinningStringVariantsSidePanel[] = {
+        {"ContextualTasksPinningStringVariant", "side-panel"}};
+const FeatureEntry::FeatureParam
+    kContextualTasksPinningStringVariantsInSidePanel[] = {
+        {"ContextualTasksPinningStringVariant", "in-side-panel"}};
+const FeatureEntry::FeatureParam
+    kContextualTasksPinningStringVariantsInChrome[] = {
+        {"ContextualTasksPinningStringVariant", "in-chrome"}};
+const FeatureEntry::FeatureParam kContextualTasksPinningStringVariantsPanel[] =
+    {{"ContextualTasksPinningStringVariant", "panel"}};
+
+const FeatureEntry::FeatureVariation
+    kContextualTasksPinningStringVariantsVariations[] = {
+        {"with 'Google Search AI Mode'",
+         kContextualTasksPinningStringVariantsAiMode, nullptr},
+        {"with 'Google Search side panel'",
+         kContextualTasksPinningStringVariantsSidePanel, nullptr},
+        {"with 'Google Search in side panel'",
+         kContextualTasksPinningStringVariantsInSidePanel, nullptr},
+        {"with 'Google Search in Chrome'",
+         kContextualTasksPinningStringVariantsInChrome, nullptr},
+        {"with 'Google Search panel'",
+         kContextualTasksPinningStringVariantsPanel, nullptr}};
+// LINT.ThenChange(
+//   //components/contextual_tasks/public/features.cc:PinningStringVariant,
+//   //components/contextual_tasks/public/features.cc:PinningStringVariantDescription,
+//   //components/contextual_tasks/public/features.h:PinningStringVariant
+// )
+
 const FeatureEntry::FeatureParam
     kContextualTasksUpdatedEntryPointsSidePanelRouting[] = {
         {"ContextualTasksContextMenuShowAskGoogle", "true"},
@@ -5090,20 +5106,6 @@ const FeatureEntry::FeatureVariation kCanvasAccessibilityChoices[] = {
     {"Basic (Rendered Text)", kCanvasAccessibilityBasic, nullptr},
     {"Advanced (Rendered Text + OCR)", kCanvasAccessibilityAdvanced, nullptr}};
 
-#if !BUILDFLAG(IS_ANDROID)
-const FeatureEntry::FeatureParam kSplitViewHorizontalDirectAccess[] = {
-    {"split_view_horizontal_direct_access", "true"}};
-const FeatureEntry::FeatureParam kSplitViewHorizontalIndirectAccess[] = {
-    {"split_view_horizontal_direct_access", "false"}};
-const FeatureEntry::FeatureParam kSplitViewHorizontalDirectTabAccess[] = {
-    {"split_view_horizontal_direct_tab_access", "true"}};
-const FeatureEntry::FeatureVariation kSplitViewHorizontalVariations[] = {
-    {"Direct Access", kSplitViewHorizontalDirectAccess, nullptr},
-    {"Indirect Access", kSplitViewHorizontalIndirectAccess, nullptr},
-    {"Direct Access for Tab Context Menu", kSplitViewHorizontalDirectTabAccess,
-     nullptr}};
-#endif
-
 const FeatureEntry::FeatureParam kTabStripDeclutter80WithActiveCloseHide[] = {
     {"TabStripDeclutterMaxTabWidthForCloseHide", "80"},
     {"TabStripDeclutterActiveTabCloseHideEnabled", "true"}};
@@ -5349,6 +5351,16 @@ const FeatureEntry::Choice kPaymentHandlerCustomSizeChoices[] = {
      "PaymentHandlerStaticCustomSize,PaymentHandlerDynamicCustomSize"},
     {flags_ui::kGenericExperimentChoiceDisabled, switches::kDisableFeatures,
      "PaymentHandlerStaticCustomSize,PaymentHandlerDynamicCustomSize"},
+};
+
+const FeatureEntry::FeatureParam kTtcLiveRecipeFallback[] = {
+    {"LiveRecipe", "fallback"}};
+const FeatureEntry::FeatureParam kTtcLiveRecipeDefault[] = {
+    {"LiveRecipe", "default"}};
+
+const FeatureEntry::FeatureVariation kTtcLiveRecipeVariations[] = {
+    {"Fallback model", kTtcLiveRecipeFallback, nullptr},
+    {"Default model", kTtcLiveRecipeDefault, nullptr},
 };
 
 // RECORDING USER METRICS FOR FLAGS:
@@ -8276,10 +8288,6 @@ const FeatureEntry kFeatureEntries[] = {
 #endif
 
 #if BUILDFLAG(IS_CHROMEOS)
-    {"enforce-mono-audio-capture",
-     flag_descriptions::kCrOSEnforceMonoAudioCaptureName,
-     flag_descriptions::kCrOSEnforceMonoAudioCaptureDescription, kOsCrOS,
-     FEATURE_VALUE_TYPE(media::kCrOSEnforceMonoAudioCapture)},
     {"enforce-system-aec", flag_descriptions::kCrOSEnforceSystemAecName,
      flag_descriptions::kCrOSEnforceSystemAecDescription, kOsCrOS,
      FEATURE_VALUE_TYPE(media::kCrOSEnforceSystemAec)},
@@ -9968,10 +9976,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kCastMirroringNativeNV12Name,
      flag_descriptions::kCastMirroringNativeNV12Description, kOsDesktop,
      FEATURE_VALUE_TYPE(mirroring::features::kCastMirroringNativeNV12)},
-    {"cast-mirroring-target-playout-delay",
-     flag_descriptions::kCastMirroringTargetPlayoutDelayName,
-     flag_descriptions::kCastMirroringTargetPlayoutDelayDescription, kOsDesktop,
-     MULTI_VALUE_TYPE(kCastMirroringTargetPlayoutDelayChoices)},
 #endif  // !BUILDFLAG(IS_ANDROID)
 
 #if BUILDFLAG(IS_CHROMEOS)
@@ -12319,6 +12323,17 @@ const FeatureEntry kFeatureEntries[] = {
          kContextualTasksUnifyPinButtonLogosVariations,
          "ContextualTasksUnifyPinButtonLogos")},
 
+    {"contextual-tasks-pinning-string-variants",
+     contextual_tasks::flag_descriptions::
+         kContextualTasksPinningStringVariantsName,
+     contextual_tasks::flag_descriptions::
+         kContextualTasksPinningStringVariantsDescription,
+     kOsDesktop,
+     FEATURE_WITH_PARAMS_VALUE_TYPE(
+         contextual_tasks::kContextualTasksPinningStringVariants,
+         kContextualTasksPinningStringVariantsVariations,
+         "ContextualTasksPinningStringVariants")},
+
     {"contextual-tasks-private-api-no-animation",
      contextual_tasks::flag_descriptions::
          kContextualTasksPrivateApiNoAnimationName,
@@ -13380,6 +13395,14 @@ const FeatureEntry kFeatureEntries[] = {
 #endif
 
 #if BUILDFLAG(IS_ANDROID)
+    {"fullscreen-signin-mediator-state-machine",
+     flag_descriptions::kFullscreenSigninMediatorStateMachineName,
+     flag_descriptions::kFullscreenSigninMediatorStateMachineDescription,
+     kOsAndroid,
+     FEATURE_VALUE_TYPE(switches::kFullscreenSigninMediatorStateMachine)},
+#endif  // BUILDFLAG(IS_ANDROID)
+
+#if BUILDFLAG(IS_ANDROID)
     {"bookmarks-bar-ntp", flag_descriptions::kBookmarksBarNTPName,
      flag_descriptions::kBookmarksBarNTPDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(chrome::android::kBookmarksBarNTP)},
@@ -13628,14 +13651,6 @@ const FeatureEntry kFeatureEntries[] = {
     {"devtools-plus-button", flag_descriptions::kDevToolsPlusButtonName,
      flag_descriptions::kDevToolsPlusButtonDescription, kOsAll,
      FEATURE_VALUE_TYPE(features::kDevToolsPlusButton)},
-
-#if !BUILDFLAG(IS_ANDROID)
-    {"split-view-horizontal", flag_descriptions::kSplitViewHorizontalName,
-     flag_descriptions::kSplitViewHorizontalDescription, kOsDesktop,
-     FEATURE_WITH_PARAMS_VALUE_TYPE(tabs::kSplitViewHorizontal,
-                                    kSplitViewHorizontalVariations,
-                                    "SplitViewHorizontal")},
-#endif
 
     {"prefetch-activation-beacon",
      flag_descriptions::kPrefetchActivationBeaconName,
@@ -14268,6 +14283,12 @@ const FeatureEntry kFeatureEntries[] = {
     {"ttc-fre", flag_descriptions::kTtcFreName,
      flag_descriptions::kTtcFreDescription, kOsDesktop | kOsAndroid,
      FEATURE_VALUE_TYPE(ttc::kTtcFre)},
+
+    {"ttc-live-recipe", flag_descriptions::kTtcLiveRecipeName,
+     flag_descriptions::kTtcLiveRecipeDescription, kOsDesktop | kOsAndroid,
+     FEATURE_WITH_PARAMS_VALUE_TYPE(ttc::kTtcLiveRecipe,
+                                    kTtcLiveRecipeVariations,
+                                    "TtcLiveRecipe")},
 
     {"force-webgpu-adapter", flag_descriptions::kForceWebGpuAdapterName,
      flag_descriptions::kForceWebGpuAdapterDescription,

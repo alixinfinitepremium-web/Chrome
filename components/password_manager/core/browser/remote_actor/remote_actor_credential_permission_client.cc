@@ -5,7 +5,9 @@
 #include "components/password_manager/core/browser/remote_actor/remote_actor_credential_permission_client.h"
 
 #include <memory>
+#include <optional>
 #include <string>
+#include <string_view>
 #include <utility>
 
 #include "base/command_line.h"
@@ -18,7 +20,7 @@
 #include "components/password_manager/core/browser/password_manager_metrics_util.h"
 #include "components/password_manager/core/browser/remote_actor/remote_actor_request_helper.h"
 #include "components/password_manager/core/browser/remote_actor/remote_actor_switches.h"
-#include "components/password_manager/core/common/password_manager_features.h"
+#include "components/password_manager/core/common/remote_actor/remote_actor_features.h"
 #include "components/signin/public/base/oauth_consumer_id.h"
 #include "components/signin/public/identity_manager/identity_manager.h"
 #include "services/network/public/cpp/shared_url_loader_factory.h"
@@ -82,15 +84,15 @@ constexpr net::NetworkTrafficAnnotationTag kRemotePermissionTrafficAnnotation =
 constexpr int kSparkConversationIdNamespace = 30;
 
 std::string CreateGrantPasswordRequestBody(
-    const RemoteActorCredentialPermissionClient::PasswordPermission&
-        permission) {
+    const RemoteActorCredentialPermissionClient::PasswordPermission& permission,
+    std::string_view oauth_client_id,
+    int task_namespace_id) {
   base::DictValue agent_dict;
   agent_dict.Set("type", "AGENT_TYPE_PERSONAL_ASSISTANT");
-  agent_dict.Set("agentOauthClientId",
-                 features::kRemoteActorOAuthClientId.Get());
+  agent_dict.Set("agentOauthClientId", oauth_client_id);
 
   base::DictValue task_id_dict;
-  task_id_dict.Set("namespaceId", kSparkConversationIdNamespace);
+  task_id_dict.Set("namespaceId", task_namespace_id);
   task_id_dict.Set("id", permission.task_id);
 
   base::DictValue task_constraint_dict;
@@ -151,9 +153,15 @@ void RemoteActorCredentialPermissionClient::GrantPasswordPermission(
     const PasswordPermission& permission,
     GrantPasswordPermissionCallback callback) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  const std::string oauth_client_id =
+      !permission.actor_oauth_client_id.empty()
+          ? permission.actor_oauth_client_id
+          : features::kRemoteActorOAuthClientId.Get();
+  const int task_namespace_id =
+      permission.task_namespace_id.value_or(kSparkConversationIdNamespace);
   url::Origin origin = url::Origin::Create(GURL(permission.web_origin));
-  if (permission.task_id.empty() ||
-      features::kRemoteActorOAuthClientId.Get().empty() || origin.opaque()) {
+  if (permission.task_id.empty() || oauth_client_id.empty() ||
+      task_namespace_id <= 0 || origin.opaque()) {
     base::SequencedTaskRunner::GetCurrentDefault()->PostTask(
         FROM_HERE, base::BindOnce(std::move(callback), false));
     return;
@@ -161,7 +169,8 @@ void RemoteActorCredentialPermissionClient::GrantPasswordPermission(
 
   GURL url(base::StrCat(
       {GetEndpointUrlBase(), "v1/permissions:update?allow_missing=true"}));
-  std::string post_data = CreateGrantPasswordRequestBody(permission);
+  std::string post_data = CreateGrantPasswordRequestBody(
+      permission, oauth_client_id, task_namespace_id);
 
   StartRequest(std::make_unique<RemoteActorRequest>(
       identity_manager_, url, "POST", post_data,

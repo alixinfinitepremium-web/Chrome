@@ -32,11 +32,17 @@ import org.chromium.chrome.browser.ntp_customization.theme_sync.data.NtpBackgrou
 import org.chromium.chrome.browser.ntp_customization.theme_sync.data.NtpBackgroundDataUploadImage;
 import org.chromium.chrome.browser.ntp_customization.theme_sync.data.PlatformType;
 import org.chromium.chrome.browser.profiles.Profile;
+import org.chromium.chrome.browser.profiles.ProfileManager;
 import org.chromium.components.image_fetcher.ImageFetcher;
 
-/** Manages the lifecycle of NtpSyncedThemeBridge and observes committed theme changes. */
+/**
+ * Observes the profile's NtpSyncedThemeBridge and reports committed theme changes to it. The
+ * manager is process-wide while its state is profile-scoped, so it releases that state when the
+ * profile is destroyed.
+ */
 @NullMarked
-public class NtpSyncedThemeManager implements NtpSyncedThemeBridge.Observer {
+public class NtpSyncedThemeManager
+        implements NtpSyncedThemeBridge.Observer, ProfileManager.Observer {
     private static @Nullable NtpSyncedThemeManager sInstanceForTesting;
 
     /** Static class that implements the initialization-on-demand holder idiom. */
@@ -98,9 +104,10 @@ public class NtpSyncedThemeManager implements NtpSyncedThemeBridge.Observer {
     }
 
     /**
-     * Attaches the manager to the given profile: creates the {@link NtpSyncedThemeBridge} and the
-     * {@link ImageFetcher}. Calling this again with the same profile is a no-op; calling it with a
-     * different profile releases the previous profile's state first.
+     * Attaches the manager to the given profile: observes {@link ProfileManager} and the profile's
+     * {@link NtpSyncedThemeBridge}, and creates the {@link ImageFetcher}. Calling this again with
+     * the same profile is a no-op; calling it with a different profile releases the previous
+     * profile's state first. The state is also released when the profile is destroyed.
      *
      * @param profile The original (non-incognito) profile.
      */
@@ -112,31 +119,45 @@ public class NtpSyncedThemeManager implements NtpSyncedThemeBridge.Observer {
         if (mProfile == profile) return;
 
         destroy();
+        ProfileManager.addObserver(this);
         mProfile = profile;
         mImageFetcher = NtpCustomizationUtils.createImageFetcher(profile);
-        mNtpSyncedThemeBridge = new NtpSyncedThemeBridge(profile, this);
-        // The singleton outlives a test, so detach it between tests. Otherwise the next test's
-        // activity would skip the attach above and keep the previous test's bridge.
-        ResettersForTesting.register(this::destroy);
-        // A theme synced before the bridge attached is only stored in native preferences.
+        mNtpSyncedThemeBridge = NtpSyncedThemeBridge.getForProfile(profile);
+        mNtpSyncedThemeBridge.setObserver(this);
+        // A theme synced before the observer attached is only stored in native preferences.
         mNtpSyncedThemeBridge.getStoredContinuousThemeAndNotify();
     }
 
     /**
-     * Releases the profile-dependent state: the C++ side of {@link NtpSyncedThemeBridge}, the
-     * {@link ImageFetcher}, and any in-flight download bookkeeping.
+     * Releases the profile-dependent state: stops observing {@link ProfileManager} and the {@link
+     * NtpSyncedThemeBridge}, destroys the {@link ImageFetcher}, and drops any in-flight download
+     * bookkeeping.
      */
     public void destroy() {
         if (mNtpSyncedThemeBridge != null) {
-            mNtpSyncedThemeBridge.destroy();
+            mNtpSyncedThemeBridge.resetObserver();
             mNtpSyncedThemeBridge = null;
         }
         if (mImageFetcher != null) {
             mImageFetcher.destroy();
             mImageFetcher = null;
         }
+        ProfileManager.removeObserver(this);
         mProfile = null;
         invalidateInFlightDownload();
+    }
+
+    @Override
+    public void onProfileAdded(Profile profile) {}
+
+    /**
+     * Releases the attached profile's state before its KeyedServices, including the native side of
+     * {@link NtpSyncedThemeBridge}, are shut down: ProfileImpl's destructor sends this notification
+     * first. {@link #destroy()} makes no JNI calls, so it is safe at this point.
+     */
+    @Override
+    public void onProfileDestroyed(Profile profile) {
+        if (profile == mProfile) destroy();
     }
 
     /**
@@ -273,7 +294,7 @@ public class NtpSyncedThemeManager implements NtpSyncedThemeBridge.Observer {
      * @param colorId The synced color ID.
      */
     @Override
-    public void onChromeColorSynced(int colorId) {
+    public void onChromeColorSynced(@NtpThemeColorId int colorId) {
         if (colorId <= NtpThemeColorId.DEFAULT || colorId >= NtpThemeColorId.NUM_ENTRIES) {
             onDefaultThemeSynced();
             return;

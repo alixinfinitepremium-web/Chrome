@@ -301,6 +301,21 @@ const char kAlsaOutputDevice[] = "alsa-output-device";
 #endif  // BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) ||
         // BUILDFLAG(IS_FREEBSD) || BUILDFLAG(IS_SOLARIS)
 
+#if BUILDFLAG(IS_MAC)
+// Test-only. Replaces the native screen capture picker (SCContentSharingPicker)
+// with a fake picker that selects a source automatically, without showing any
+// UI. The fake picker can only capture the browser's own windows, which
+// doesn't require screen recording permission.
+// The optional value filters the browser windows by title (substring match).
+// The largest matching window is used for both window and screen selection:
+// window capture captures that window, and screen capture captures the display
+// that overlaps it the most. Without a value, the largest browser window is
+// used. Only has an effect if the UseSCContentSharingPicker feature is enabled.
+// Example: --use-fake-native-screen-capture-picker="Page title"
+const char kUseFakeNativeScreenCapturePicker[] =
+    "use-fake-native-screen-capture-picker";
+#endif  // BUILDFLAG(IS_MAC)
+
 #if BUILDFLAG(IS_WIN)
 // Use exclusive mode audio streaming for Windows Vista and higher.
 // Leads to lower latencies for audio streams which uses the
@@ -1027,13 +1042,6 @@ BASE_FEATURE(kUseSequencedTaskRunnerForMojoVEAProvider,
 BASE_FEATURE(kUseTaskRunnerForMojoAudioDecoderService,
              base::FEATURE_DISABLED_BY_DEFAULT);
 
-// When enabled, determines whether a VideoFrame requires copying before display
-// based on whether the SharedImage usage includes
-// SHARED_IMAGE_USAGE_DISPLAY_READ, rather than using
-// VideoFrameMetadata::copy_required.
-BASE_FEATURE(kUseSharedImageUsageForVideoFrameCopy,
-             base::FEATURE_ENABLED_BY_DEFAULT);
-
 // Safety switch to allow us to revert to the previous behavior of using the
 // restored bounds for PiP windows, rather than the window bounds.  If this
 // feature is enabled (the default), then we'll use the window bounds.
@@ -1447,8 +1455,6 @@ BASE_FEATURE(kCrOSDspBasedAgcDeactivatedGroups,
 
 BASE_FEATURE(kCrOSDspBasedNsDeactivatedGroups,
              base::FEATURE_ENABLED_BY_DEFAULT);
-
-BASE_FEATURE(kCrOSEnforceMonoAudioCapture, base::FEATURE_DISABLED_BY_DEFAULT);
 
 BASE_FEATURE(kCrOSEnforceSystemAec, base::FEATURE_ENABLED_BY_DEFAULT);
 

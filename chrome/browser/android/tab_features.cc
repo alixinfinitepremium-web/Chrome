@@ -342,8 +342,9 @@ TabFeatures::TabFeatures(content::WebContents* web_contents, Profile* profile) {
   extensions::TabHelper::CreateForWebContents(web_contents);
   if (tab_scoped_side_panel_registry_) {
     extension_side_panel_manager_ =
-        std::make_unique<extensions::ExtensionSidePanelManager>(
-            profile, tab, tab_scoped_side_panel_registry_.get());
+        GetUserDataFactory()
+            .CreateInstance<extensions::ExtensionSidePanelManager>(
+                *tab, profile, tab, tab_scoped_side_panel_registry_.get());
   }
   navigation_extension_enabler_ =
       std::make_unique<extensions::NavigationExtensionEnabler>(web_contents);
@@ -786,10 +787,11 @@ TabFeatures::TabFeatures(content::WebContents* web_contents, Profile* profile) {
 
   if (site_engagement::SiteEngagementService::IsEnabled()) {
     site_engagement_helper_ =
-        std::make_unique<site_engagement::SiteEngagementService::Helper>(
-            web_contents,
-            prerender::NoStatePrefetchManagerFactory::GetForBrowserContext(
-                profile));
+        GetUserDataFactory()
+            .CreateInstance<site_engagement::SiteEngagementService::Helper>(
+                *tab, *tab, web_contents,
+                prerender::NoStatePrefetchManagerFactory::GetForBrowserContext(
+                    profile));
   }
 
   SafetyTipWebContentsObserver::CreateForWebContents(web_contents);

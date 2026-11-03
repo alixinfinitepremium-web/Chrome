@@ -270,7 +270,7 @@ chromium-metrics-reviews@google.com.
   <int value="4" label="ExternalAppAccountUpdated"/>
   <int value="5" label="PrimaryAccountSet"/>
   <int value="6" label="PrimaryAccountCleared"/>
-  <int value="7" label="PreferredAccountMissingForFRE"/>
+  <int value="7" label="PreferredAccountMissingForAsyncFetch"/>
 </enum>
 
 <!-- LINT.ThenChange(//components/signin/core/browser/account_preview_data_service_impl.h:FetchTriggerCause) -->
@@ -588,6 +588,17 @@ chromium-metrics-reviews@google.com.
 </enum>
 
 <!-- LINT.ThenChange(//components/signin/core/browser/dice_header_helper.h:DiceLinkedAccountsMetaHeaderStatus) -->
+
+<!-- LINT.IfChange(DiceLinkedAccountsNewProfileOAuthMultiLoginResult) -->
+
+<enum name="DiceLinkedAccountsNewProfileOAuthMultiLoginResult">
+  <int value="0" label="Success"/>
+  <int value="1" label="TransientError"/>
+  <int value="2" label="PersistentError"/>
+  <int value="3" label="TimedOut"/>
+</enum>
+
+<!-- LINT.ThenChange(//chrome/browser/signin/dice_intercepted_session_startup_helper.h:DiceLinkedAccountsNewProfileOAuthMultiLoginResult) -->
 
 <!-- LINT.IfChange(DiceTokenBindingOutcome) -->
 
@@ -1172,6 +1183,7 @@ chromium-metrics-reviews@google.com.
   <int value="1" label="Account settings"/>
   <int value="2" label="Recent tabs"/>
   <int value="3" label="Reauth info bar"/>
+  <int value="4" label="Enterprise proxy"/>
 </enum>
 
 <!-- LINT.ThenChange(//components/signin/public/base/signin_metrics.h:ReauthAccessPoint) -->
@@ -1340,6 +1352,7 @@ chromium-metrics-reviews@google.com.
   <int value="112" label="App Switcher AI Summarization (iOS only)"/>
   <int value="113" label="Gemini External App Store Event (iOS only)"/>
   <int value="114" label="Password Manager card (Desktop only)"/>
+  <int value="115" label="Enterprise proxy (iOS only)"/>
 </enum>
 
 <enum name="SigninAccountReconcilorState">
