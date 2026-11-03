@@ -27,7 +27,7 @@ BASE_FEATURE_PARAM(size_t,
                    kMaxContentAnalysisFileSizeMB,
                    &kEnableNewUploadSizeLimit,
                    "max_file_size_mb",
-                   /*default_value=*/2048);
+                   /*default_value=*/250);
 
 // Controls whether encrypted file upload is enabled.
 BASE_FEATURE(kEnableEncryptedFileUpload, base::FEATURE_ENABLED_BY_DEFAULT);
@@ -90,5 +90,10 @@ BASE_FEATURE_PARAM(base::TimeDelta,
                    kCdpAttributionDetachedActorTtl,
                    &kEventReportingCdpAttribution,
                    /*default_value=*/base::Seconds(30));
+
+BASE_FEATURE_PARAM(int,
+                   kCdpAttributionMaxPendingExtractions,
+                   &kEventReportingCdpAttribution,
+                   /*default_value=*/16);
 
 }  // namespace enterprise_connectors

@@ -58,7 +58,7 @@ import java.lang.ref.WeakReference;
 /** Robolectric unit tests for {@link NotificationPermissionController}. */
 @RunWith(BaseRobolectricTestRunner.class)
 @Config(sdk = VERSION_CODES.TIRAMISU)
-@DisableFeatures(ChromeFeatureList.INTERRUPTIVE_IPH_COOLDOWN_GROUP)
+@DisableFeatures(ChromeFeatureList.USER_EDUCATION_INTERRUPTIVE_COOLDOWN_GROUP)
 public class NotificationPermissionControllerTest {
     @Rule public FakeTimeTestRule mFakeTimeRule = new FakeTimeTestRule();
 
@@ -1072,7 +1072,7 @@ public class NotificationPermissionControllerTest {
     }
 
     @Test
-    @EnableFeatures(ChromeFeatureList.INTERRUPTIVE_IPH_COOLDOWN_GROUP)
+    @EnableFeatures(ChromeFeatureList.USER_EDUCATION_INTERRUPTIVE_COOLDOWN_GROUP)
     public void testNotificationPrompt_recordsCooldownGroupWithBypassProperties() {
         Profile profile = mock(Profile.class);
         Tracker tracker = mock(Tracker.class);
@@ -1080,7 +1080,6 @@ public class NotificationPermissionControllerTest {
         FeatureProperties expectedProps =
                 new FeatureProperties(
                         UiFormat.ALERTS,
-                        /* isBlockedByEnterprisePolicy= */ false,
                         /* isBlockedByCooldownGroup= */ false,
                         /* blocksCooldownGroup= */ true);
         when(tracker.shouldTriggerHelpUi(

@@ -1214,6 +1214,7 @@ android_library("chrome_test_java_org.chromium.chrome.browser.payments") {
     "src/org/chromium/chrome/browser/payments/PaymentRequestShowPromiseUnsupportedTest.java",
     "src/org/chromium/chrome/browser/payments/PaymentRequestShowTwiceTest.java",
     "src/org/chromium/chrome/browser/payments/PaymentRequestTabTest.java",
+    "src/org/chromium/chrome/browser/payments/PaymentRequestTestRule.java",
     "src/org/chromium/chrome/browser/payments/PaymentRequestUpdateWithTest.java",
     "src/org/chromium/chrome/browser/payments/WebPaymentIntentHelperTest.java",
   ]
@@ -1881,6 +1882,7 @@ android_library("chrome_test_java_various") {
     "src/org/chromium/chrome/browser/widget/bottomsheet/BottomSheetLargeFormFactorTest.java",
     "src/org/chromium/chrome/browser/widget/bottomsheet/BottomSheetRenderTest.java",
     "src/org/chromium/chrome/browser/widget/bottomsheet/BottomSheetTest.java",
+    "src/org/chromium/chrome/test/batch/BlankCTATabInitialStateRuleTest.java",
     "src/org/chromium/chrome/test/crash/IntentionalCrashTest.java",
     "src/org/chromium/chrome/test/memory_leaks/ChromeInstrumentationLeaks.java",
     "src/org/chromium/chrome/test/memory_leaks/LeakCanaryCheckerLeakDetectionTest.java",
@@ -2187,6 +2189,7 @@ android_library("chrome_unit_test_java_various") {
     "src/org/chromium/chrome/browser/payments/ui/CurrencyFormatterTest.java",
     "src/org/chromium/chrome/browser/search_engines/settings/SearchEngineSettingsRenderTest.java",
     "src/org/chromium/chrome/browser/share/ShareUrlTest.java",
+    "src/org/chromium/chrome/browser/shortcuts/BrowserShortcutManagerTest.java",
     "src/org/chromium/chrome/browser/tab/state/PersistedTabDataTest.java",
     "src/org/chromium/chrome/browser/tabmodel/RestoreMigrateTest.java",
     "src/org/chromium/chrome/browser/toolbar/HomeButtonTest.java",

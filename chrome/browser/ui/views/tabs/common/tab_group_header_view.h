@@ -19,7 +19,6 @@
 #include "components/tab_groups/tab_group_id.h"
 #include "components/tab_groups/tab_group_visual_data.h"
 #include "ui/base/metadata/metadata_header_macros.h"
-#include "ui/gfx/geometry/rounded_corners_f.h"
 #include "ui/views/context_menu_controller.h"
 #include "ui/views/focus/focus_manager.h"
 #include "ui/views/layout/flex_layout_view.h"
@@ -68,8 +67,8 @@ class TabGroupHeaderView : public views::FlexLayoutView,
     virtual std::unique_ptr<TabHoverCardController::ScopedHideHoverCardLock>
     AcquireHoverCardHideLock() = 0;
 
-    virtual void ShiftGroupUp() = 0;
-    virtual void ShiftGroupDown() = 0;
+    virtual void ShiftGroupPrevious() = 0;
+    virtual void ShiftGroupNext() = 0;
 
     virtual bool IsGroupFocused() const = 0;
     virtual bool IsUnfocusButtonFocused() const = 0;
@@ -124,6 +123,12 @@ class TabGroupHeaderView : public views::FlexLayoutView,
   void OnDataChanged(const tabs::TabGroupData& tab_group_data);
   void OnTabCountChanged();
 
+  // Sets the focus transition progress, from 0.0 (unfocused appearance) to
+  // 1.0 (focused appearance), which drives the chip's corner radii and
+  // horizontal insets. `nullopt` restores the resting appearance for the
+  // delegate's current focused state.
+  void SetFocusAnimationProgress(std::optional<float> progress);
+
   tab_groups::TabGroupId group() const;
 
   views::LabelButton* editor_bubble_button() { return editor_bubble_button_; }
@@ -132,6 +137,9 @@ class TabGroupHeaderView : public views::FlexLayoutView,
     return attention_indicator_;
   }
   views::Label* title_label_for_testing() { return group_header_label_; }
+  TabGroupEditorBubbleTracker* editor_bubble_tracker_for_testing() {
+    return &editor_bubble_tracker_;
+  }
 
  private:
   void UpdateEditorBubbleButtonVisibility(
@@ -144,9 +152,10 @@ class TabGroupHeaderView : public views::FlexLayoutView,
   void UpdateAttentionState(bool needs_attention);
 
   int GetCornerRadius() const;
-  gfx::RoundedCornersF GetCornerRadii() const;
   int GetHorizontalInset() const;
+  gfx::Insets GetTargetHeaderInsets() const;
   gfx::Insets GetHeaderInsets() const;
+  void UpdateBackground();
 
   SkColor GetBackgroundColor() const;
   SkColor GetForegroundColor() const;
@@ -157,6 +166,7 @@ class TabGroupHeaderView : public views::FlexLayoutView,
   tab_groups::TabGroupVisualData tab_group_visual_data_;
   bool needs_attention_ = false;
   bool is_shared_ = false;
+  std::optional<float> focus_animation_progress_;
 
   // The sync icon that is displayed in the tab group header of saved groups in
   // the tabstrip.

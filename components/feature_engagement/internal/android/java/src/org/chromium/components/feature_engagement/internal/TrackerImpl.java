@@ -4,6 +4,8 @@
 
 package org.chromium.components.feature_engagement.internal;
 
+import static org.chromium.components.feature_engagement.internal.EnterprisePolicyBypassAllowlist.isAllowedToBypassEnterprisePolicy;
+
 import androidx.annotation.CheckResult;
 import androidx.annotation.VisibleForTesting;
 
@@ -70,12 +72,13 @@ public class TrackerImpl implements Tracker {
     private long mNativePtr;
 
     // Whether the PromotionsEnabled enterprise policy currently blocks promotions. Defaults to
-    // false; flag-guarded by kAndroidUserEducationFramework in TrackerFactory.
+    // false; flag-guarded by kUserEducationFramework and kUserEducationEnterprisePolicy in
+    // TrackerFactory.
     private BooleanSupplier mEnterprisePolicyBlocksPromotionsSupplier =
             SupplierUtils.alwaysFalseBooleanSupplier();
 
-    // Defaults to false; flag-guarded by kAndroidUserEducationFramework and
-    // kAggressivelyCooldownIphs in TrackerFactory.
+    // Defaults to false; flag-guarded by kUserEducationFramework and
+    // kUserEducationAggressivelyCooldownIphs in TrackerFactory.
     private BooleanSupplier mAggressivelyCooldownIphsSupplier =
             SupplierUtils.alwaysFalseBooleanSupplier();
 
@@ -111,7 +114,6 @@ public class TrackerImpl implements Tracker {
         FeatureProperties properties =
                 new FeatureProperties(
                         UiFormat.UNKNOWN,
-                        /* isBlockedByEnterprisePolicy= */ true,
                         /* isBlockedByCooldownGroup= */ false,
                         /* blocksCooldownGroup= */ false);
 
@@ -138,7 +140,6 @@ public class TrackerImpl implements Tracker {
         FeatureProperties properties =
                 new FeatureProperties(
                         UiFormat.UNKNOWN,
-                        /* isBlockedByEnterprisePolicy= */ true,
                         /* isBlockedByCooldownGroup= */ false,
                         /* blocksCooldownGroup= */ false);
 
@@ -165,8 +166,7 @@ public class TrackerImpl implements Tracker {
      * triggering the feature in native FET.
      *
      * @param feature The name of the feature requesting in-product help.
-     * @param featureProperties The {@link FeatureProperties} for cooldown and enterprise policy
-     *     evaluation.
+     * @param featureProperties The {@link FeatureProperties} for cooldown group evaluation.
      * @param withSnooze Whether to query native {@code shouldTriggerHelpUiWithSnooze}.
      * @return The {@link TriggerDetails} indicating whether to show the IPH and snooze UI.
      */
@@ -185,8 +185,7 @@ public class TrackerImpl implements Tracker {
         }
 
         // 2. Enterprise policy check.
-        if (featureProperties.isBlockedByEnterprisePolicy()
-                && mEnterprisePolicyBlocksPromotionsSupplier.getAsBoolean()) {
+        if (isBlockedByEnterprisePolicy(feature)) {
             RecordUserAction.record("InProductHelp.ShouldTriggerHelpUI." + feature);
             RecordUserAction.record(
                     "InProductHelp.ShouldTriggerHelpUIResult.NotTriggered." + feature);
@@ -355,11 +354,21 @@ public class TrackerImpl implements Tracker {
 
     @Override
     public boolean wouldTriggerHelpUi(String feature) {
-        if (mEnterprisePolicyBlocksPromotionsSupplier.getAsBoolean()) {
+        if (isBlockedByEnterprisePolicy(feature)) {
             return false;
         }
         assert mNativePtr != 0;
         return TrackerImplJni.get().wouldTriggerHelpUi(mNativePtr, feature);
+    }
+
+    /**
+     * Returns whether {@code feature} is currently blocked by the PromotionsEnabled enterprise
+     * policy, i.e. the policy blocks promotions and the feature is not allowed to bypass it (see
+     * {@link EnterprisePolicyBypassAllowlist}).
+     */
+    private boolean isBlockedByEnterprisePolicy(String feature) {
+        return mEnterprisePolicyBlocksPromotionsSupplier.getAsBoolean()
+                && !isAllowedToBypassEnterprisePolicy(feature);
     }
 
     @Override

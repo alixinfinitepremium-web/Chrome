@@ -269,7 +269,7 @@ public class UserEducationHelperUnitTest {
     }
 
     @Test
-    @EnableFeatures(ChromeFeatureList.BLUE_BUBBLE_IPH_COOLDOWN_GROUP)
+    @EnableFeatures(ChromeFeatureList.USER_EDUCATION_BLUE_BUBBLE_COOLDOWN_GROUP)
     public void testFeatureProperties_CooldownEnabled() {
         TrackerFactory.setTrackerForTests(mTracker);
         UserEducationHelper educationHelper =
@@ -291,7 +291,6 @@ public class UserEducationHelperUnitTest {
         FeatureProperties expectedProps =
                 new FeatureProperties(
                         UiFormat.BLUE_BUBBLE,
-                        /* isBlockedByEnterprisePolicy= */ true,
                         /* isBlockedByCooldownGroup= */ true,
                         /* blocksCooldownGroup= */ true);
         Mockito.verify(mTracker)
@@ -299,7 +298,7 @@ public class UserEducationHelperUnitTest {
     }
 
     @Test
-    @DisableFeatures(ChromeFeatureList.BLUE_BUBBLE_IPH_COOLDOWN_GROUP)
+    @DisableFeatures(ChromeFeatureList.USER_EDUCATION_BLUE_BUBBLE_COOLDOWN_GROUP)
     public void testFeatureProperties_CooldownDisabled() {
         TrackerFactory.setTrackerForTests(mTracker);
         UserEducationHelper educationHelper =
@@ -321,7 +320,6 @@ public class UserEducationHelperUnitTest {
         FeatureProperties expectedProps =
                 new FeatureProperties(
                         UiFormat.BLUE_BUBBLE,
-                        /* isBlockedByEnterprisePolicy= */ true,
                         /* isBlockedByCooldownGroup= */ false,
                         /* blocksCooldownGroup= */ false);
         Mockito.verify(mTracker)
@@ -329,7 +327,7 @@ public class UserEducationHelperUnitTest {
     }
 
     @Test
-    @EnableFeatures(ChromeFeatureList.BLUE_BUBBLE_IPH_COOLDOWN_GROUP)
+    @EnableFeatures(ChromeFeatureList.USER_EDUCATION_BLUE_BUBBLE_COOLDOWN_GROUP)
     public void testNonOnboardedFeature_UsesLegacyShouldTriggerHelpUi() {
         TrackerFactory.setTrackerForTests(mTracker);
         UserEducationHelper educationHelper =

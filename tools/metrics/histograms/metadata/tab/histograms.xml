@@ -1817,7 +1817,7 @@ chromium-metrics-reviews@google.com.
 </histogram>
 
 <histogram name="TabGroups.Sync.TabGroupLoadedEmptiness"
-    enum="TabGroupLoadedEmptiness" expires_after="2026-12-15">
+    enum="TabGroupLoadedEmptiness" expires_after="2027-12-15">
   <owner>dpenning@chromium.org</owner>
   <owner>top-chrome-desktop-ui@google.com</owner>
   <summary>
@@ -1841,7 +1841,7 @@ chromium-metrics-reviews@google.com.
 </histogram>
 
 <histogram name="TabGroups.Sync.TabRemovedFromGroupWasLastTab" enum="Boolean"
-    expires_after="2026-12-15">
+    expires_after="2027-12-15">
   <owner>dpenning@chromium.org</owner>
   <owner>top-chrome-desktop-ui@google.com</owner>
   <summary>
@@ -2204,6 +2204,19 @@ chromium-metrics-reviews@google.com.
                  ArchivedTabModelOrchestrator is already resident and
                  initialized at query start (typical latency: 5-30ms)."/>
   </token>
+</histogram>
+
+<histogram name="Tabs.ArchivedTabs.TimeResidentMs" units="ms"
+    expires_after="2027-08-01">
+  <owner>ckitagawa@chromium.org</owner>
+  <owner>wylieb@google.com</owner>
+  <owner>bjfong@google.com</owner>
+  <owner>clank-tab-dev@google.com</owner>
+  <summary>
+    (Android only) Records the duration in milliseconds that
+    ArchivedTabModelOrchestrator remained resident in memory between
+    instantiation and teardown or destruction.
+  </summary>
 </histogram>
 
 <histogram name="Tabs.ArchivePass.DurationMs" units="ms"

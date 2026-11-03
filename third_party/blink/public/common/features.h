@@ -79,6 +79,10 @@ BLINK_COMMON_EXPORT BASE_DECLARE_FEATURE(kClipboardOnExtensionServiceWorker);
 BLINK_COMMON_EXPORT BASE_DECLARE_FEATURE(
     kComputePressureRateObfuscationMitigation);
 
+// Reports a touch pointerType on contextmenu events dispatched from touch
+// selection menus (non-located context menus). Kill switch.
+BLINK_COMMON_EXPORT BASE_DECLARE_FEATURE(kContextMenuPointerTypeForTouch);
+
 // Enables more context data to crash reports reported via the Crash Reporting
 // API. See https://crbug.com/400432195.
 BLINK_COMMON_EXPORT BASE_DECLARE_FEATURE(kCrashReportingAPIMoreContextData);
@@ -556,6 +560,10 @@ BLINK_COMMON_EXPORT BASE_DECLARE_FEATURE(kFreezeSharedWorker);
 
 BLINK_COMMON_EXPORT BASE_DECLARE_FEATURE(
     kFrequencyCappingForOverlayPopupDetection);
+
+#if BUILDFLAG(IS_ANDROID)
+BLINK_COMMON_EXPORT BASE_DECLARE_FEATURE(kGateMemoryMetricsOnVisibility);
+#endif
 
 // If enabled, disables subsampling of GlobalPrivacyControl histogram entries.
 // Used in tests that verifies sampling in Renderer thread.

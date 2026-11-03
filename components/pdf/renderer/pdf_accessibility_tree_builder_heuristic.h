@@ -57,6 +57,9 @@ struct ListLevel {
   // The value of the most recent item if this is an ordered list; unset for an
   // unordered list.
   std::optional<int> last_ordered_value;
+  // Deepest level count reached under this list, including itself. Only
+  // tracked on the top-level list.
+  size_t max_nesting_depth = 1;
 };
 
 // Heuristic-based accessibility tree building for untagged PDFs.
@@ -292,6 +295,11 @@ class PdfAccessibilityTreeBuilderHeuristic {
   // List levels from outermost to innermost. Empty if the current block is not
   // in a list.
   std::vector<ListLevel> list_levels_;
+
+  // Marker run whose ordered list lookahead was last recorded to UMA, so a
+  // marker checked by both `BreakParagraph()` and `CreateBlockLevelNode()` is
+  // recorded once.
+  std::optional<size_t> last_recorded_lookahead_run_index_;
 };
 
 }  // namespace pdf

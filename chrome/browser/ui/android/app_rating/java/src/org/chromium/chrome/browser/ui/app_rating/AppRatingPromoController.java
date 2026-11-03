@@ -135,11 +135,11 @@ public class AppRatingPromoController {
         // This is necessary because another promo might have been triggered while we were waiting
         // for the async segmentation result.
         if (mTracker != null) {
-            boolean isCooldownEnabled = ChromeFeatureList.sInterruptiveIphCooldownGroup.isEnabled();
+            boolean isCooldownEnabled =
+                    ChromeFeatureList.sUserEducationInterruptiveCooldownGroup.isEnabled();
             FeatureProperties featureProperties =
                     new FeatureProperties(
                             UiFormat.DIALOG,
-                            /* isBlockedByEnterprisePolicy= */ isCooldownEnabled,
                             /* isBlockedByCooldownGroup= */ isCooldownEnabled,
                             /* blocksCooldownGroup= */ isCooldownEnabled);
             if (!mTracker.shouldTriggerHelpUi(

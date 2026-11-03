@@ -2539,6 +2539,15 @@ void AIPageContentAgent::RunAutoBuildAfterDOMContentLoadedForTesting() {
 }
 #endif
 
+void AIPageContentAgent::ExtractPageContentForTest() {
+  mojom::blink::AIPageContentOptions options;
+  options.on_critical_path = true;
+  options.mode = mojom::blink::AIPageContentMode::kActionableElements;
+  auto content = GetAIPageContentInternal(options);
+  CHECK(content);
+  CHECK(content->root_node);
+}
+
 String AIPageContentAgent::DumpContentNodeTreeForTest() {
   mojom::blink::AIPageContentOptions options;
   options.on_critical_path = true;
@@ -3612,6 +3621,12 @@ void AIPageContentAgent::ContentBuilder::AddFrameData(
   if (auto* model_context =
           ModelContextSupplement::GetIfExists(*frame.GetDocument())) {
     model_context->ForEachScriptTool([&](const mojom::blink::ScriptTool& tool) {
+      // Tools annotated with `debugging: true` are intended for developer
+      // tooling only, and must not be exposed to AI consumers such as the
+      // actor. Developer tooling introspects them via the WebMCP CDP domain.
+      if (tool.annotations && tool.annotations->debugging) {
+        return;
+      }
       frame_data.script_tools.push_back(tool.Clone());
     });
   }

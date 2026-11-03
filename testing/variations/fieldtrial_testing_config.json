@@ -716,21 +716,6 @@
             ]
         }
     ],
-    "AndroidNewTabButtonTabstripWebUI": [
-        {
-            "platforms": [
-                "android"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "AndroidNewTabButtonTabstripWebUI"
-                    ]
-                }
-            ]
-        }
-    ],
     "AndroidProgressBarCancelOnWindowInvisible": [
         {
             "platforms": [
@@ -5959,6 +5944,21 @@
             ]
         }
     ],
+    "DeferArchivedTabModelCreation": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "DeferArchivedTabModelCreation"
+                    ]
+                }
+            ]
+        }
+    ],
     "DeferredDownloadHistoryLoading": [
         {
             "platforms": [
@@ -6042,21 +6042,6 @@
                     "name": "Enabled",
                     "enable_features": [
                         "DeliveryOptimizationDownloader"
-                    ]
-                }
-            ]
-        }
-    ],
-    "DesktopCaptureAndroidFrameBufferReuse": [
-        {
-            "platforms": [
-                "android"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "DesktopCaptureAndroidFrameBufferReuse"
                     ]
                 }
             ]
@@ -8333,6 +8318,21 @@
             ]
         }
     ],
+    "GateMemoryMetricsOnVisibility": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "GateMemoryMetricsOnVisibility"
+                    ]
+                }
+            ]
+        }
+    ],
     "Geic": [
         {
             "platforms": [
@@ -8985,7 +8985,7 @@
             ]
         }
     ],
-    "GlicTextSelectionContextMenu": [
+    "GlicTextSelectionContextMenuV2": [
         {
             "platforms": [
                 "chromeos",
@@ -8996,6 +8996,10 @@
             "experiments": [
                 {
                     "name": "Enabled",
+                    "params": {
+                        "auto_submit": "true",
+                        "message_first_fre": "true"
+                    },
                     "enable_features": [
                         "GlicTextSelectionContextMenu"
                     ]
@@ -11632,6 +11636,21 @@
                     },
                     "enable_features": [
                         "MediaFoundationBatchRead"
+                    ]
+                }
+            ]
+        }
+    ],
+    "MediaFoundationD3D11VideoCaptureUseSharedImage": [
+        {
+            "platforms": [
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "MediaFoundationD3D11VideoCaptureUseSharedImage"
                     ]
                 }
             ]

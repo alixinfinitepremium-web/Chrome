@@ -4,10 +4,15 @@
 
 #include "chrome/browser/ui/views/tabs/common/tab_group_header_view.h"
 
+#include <algorithm>
 #include <memory>
+#include <optional>
 #include <string>
+#include <tuple>
 
 #include "base/i18n/message_formatter.h"
+#include "base/i18n/test/scoped_rtl_for_testing.h"
+#include "base/strings/strcat.h"
 #include "base/strings/string_number_conversions.h"
 #include "base/strings/string_util.h"
 #include "base/strings/utf_string_conversions.h"
@@ -77,8 +82,8 @@ class MockDelegate : public TabGroupHeaderView::Delegate,
               AcquireHoverCardHideLock,
               (),
               (override));
-  MOCK_METHOD(void, ShiftGroupUp, (), (override));
-  MOCK_METHOD(void, ShiftGroupDown, (), (override));
+  MOCK_METHOD(void, ShiftGroupPrevious, (), (override));
+  MOCK_METHOD(void, ShiftGroupNext, (), (override));
   MOCK_METHOD(bool, IsGroupFocused, (), (const, override));
   MOCK_METHOD(bool, IsUnfocusButtonFocused, (), (const, override));
   MOCK_METHOD(bool, CanShowEditorBubbleButton, (), (const, override));
@@ -312,23 +317,61 @@ TEST_F(TabGroupHeaderViewTest, LeftClickInFocusModeDoesNotToggleCollapse) {
   generator.ClickLeftButton();
 }
 
-TEST_F(TabGroupHeaderViewTest, OnKeyPress_ShiftUp) {
+TEST_F(TabGroupHeaderViewTest, OnKeyPress_ToggleCollapse_SpaceAndReturn) {
   MockDelegate delegate;
   tab_groups::TabGroupVisualData visual_data(
       u"Group Title", tab_groups::TabGroupColorId::kBlue, false);
 
   auto header = std::make_unique<TabGroupHeaderView>(
-      delegate, TabStripOrientation::kVertical, nullptr, &visual_data);
+      delegate, TabStripOrientation::kHorizontal, nullptr, &visual_data);
 
-  ui::KeyEvent event(ui::EventType::kKeyPressed, ui::VKEY_UP,
-                     GetPlatformDependentAccelerator());
+  EXPECT_CALL(delegate, IsGroupFocused())
+      .WillRepeatedly(testing::Return(false));
+  EXPECT_CALL(delegate, ToggleCollapsedState(
+                            ToggleTabGroupCollapsedStateOrigin::kKeyboard))
+      .Times(2);
 
-  EXPECT_CALL(delegate, ShiftGroupUp()).Times(1);
+  ui::KeyEvent space_event(ui::EventType::kKeyPressed, ui::VKEY_SPACE,
+                           ui::EF_NONE);
+  EXPECT_TRUE(header->OnKeyPressed(space_event));
 
-  EXPECT_TRUE(header->OnKeyPressed(event));
+  ui::KeyEvent return_event(ui::EventType::kKeyPressed, ui::VKEY_RETURN,
+                            ui::EF_NONE);
+  EXPECT_TRUE(header->OnKeyPressed(return_event));
 }
 
-TEST_F(TabGroupHeaderViewTest, OnKeyPress_ShiftDown) {
+TEST_F(TabGroupHeaderViewTest,
+       OnKeyPress_EditorBubbleOpen_DoesNotToggleCollapse) {
+  MockDelegate delegate;
+  tab_groups::TabGroupVisualData visual_data(
+      u"Group Title", tab_groups::TabGroupColorId::kBlue, false);
+
+  std::unique_ptr<views::Widget> widget =
+      CreateTestWidget(views::Widget::InitParams::CLIENT_OWNS_WIDGET);
+  auto* header = widget->SetContentsView(std::make_unique<TabGroupHeaderView>(
+      delegate, TabStripOrientation::kHorizontal, nullptr, &visual_data));
+  widget->Show();
+
+  EXPECT_CALL(delegate, IsGroupFocused())
+      .WillRepeatedly(testing::Return(false));
+  EXPECT_CALL(delegate, ToggleCollapsedState(
+                            ToggleTabGroupCollapsedStateOrigin::kKeyboard))
+      .Times(0);
+
+  std::unique_ptr<views::Widget> bubble_widget =
+      CreateTestWidget(views::Widget::InitParams::CLIENT_OWNS_WIDGET);
+  header->editor_bubble_tracker_for_testing()->Opened(std::move(bubble_widget));
+
+  ui::KeyEvent space_event(ui::EventType::kKeyPressed, ui::VKEY_SPACE,
+                           ui::EF_NONE);
+  EXPECT_FALSE(header->OnKeyPressed(space_event));
+
+  ui::KeyEvent return_event(ui::EventType::kKeyPressed, ui::VKEY_RETURN,
+                            ui::EF_NONE);
+  EXPECT_FALSE(header->OnKeyPressed(return_event));
+}
+
+TEST_F(TabGroupHeaderViewTest, OnKeyPress_Vertical_ShiftPreviousAndNext) {
   MockDelegate delegate;
   tab_groups::TabGroupVisualData visual_data(
       u"Group Title", tab_groups::TabGroupColorId::kBlue, false);
@@ -336,12 +379,56 @@ TEST_F(TabGroupHeaderViewTest, OnKeyPress_ShiftDown) {
   auto header = std::make_unique<TabGroupHeaderView>(
       delegate, TabStripOrientation::kVertical, nullptr, &visual_data);
 
-  ui::KeyEvent event(ui::EventType::kKeyPressed, ui::VKEY_DOWN,
-                     GetPlatformDependentAccelerator());
+  ui::KeyEvent up_event(ui::EventType::kKeyPressed, ui::VKEY_UP,
+                        GetPlatformDependentAccelerator());
+  EXPECT_CALL(delegate, ShiftGroupPrevious()).Times(1);
+  EXPECT_TRUE(header->OnKeyPressed(up_event));
 
-  EXPECT_CALL(delegate, ShiftGroupDown()).Times(1);
+  ui::KeyEvent down_event(ui::EventType::kKeyPressed, ui::VKEY_DOWN,
+                          GetPlatformDependentAccelerator());
+  EXPECT_CALL(delegate, ShiftGroupNext()).Times(1);
+  EXPECT_TRUE(header->OnKeyPressed(down_event));
+}
 
-  EXPECT_TRUE(header->OnKeyPressed(event));
+TEST_F(TabGroupHeaderViewTest, OnKeyPress_Horizontal_ShiftPreviousAndNext) {
+  MockDelegate delegate;
+  tab_groups::TabGroupVisualData visual_data(
+      u"Group Title", tab_groups::TabGroupColorId::kBlue, false);
+
+  auto header = std::make_unique<TabGroupHeaderView>(
+      delegate, TabStripOrientation::kHorizontal, nullptr, &visual_data);
+
+  ui::KeyEvent left_event(ui::EventType::kKeyPressed, ui::VKEY_LEFT,
+                          GetPlatformDependentAccelerator());
+  EXPECT_CALL(delegate, ShiftGroupPrevious()).Times(1);
+  EXPECT_TRUE(header->OnKeyPressed(left_event));
+
+  ui::KeyEvent right_event(ui::EventType::kKeyPressed, ui::VKEY_RIGHT,
+                           GetPlatformDependentAccelerator());
+  EXPECT_CALL(delegate, ShiftGroupNext()).Times(1);
+  EXPECT_TRUE(header->OnKeyPressed(right_event));
+}
+
+TEST_F(TabGroupHeaderViewTest,
+       ShowContextMenuWhenBubbleAlreadyOpenReturnsEarly) {
+  MockDelegate delegate;
+  tab_groups::TabGroupVisualData visual_data(
+      u"Group Title", tab_groups::TabGroupColorId::kBlue, false);
+
+  std::unique_ptr<views::Widget> widget =
+      CreateTestWidget(views::Widget::InitParams::CLIENT_OWNS_WIDGET);
+  auto* header = widget->SetContentsView(std::make_unique<TabGroupHeaderView>(
+      delegate, TabStripOrientation::kVertical, nullptr, &visual_data));
+  widget->Show();
+
+  std::unique_ptr<views::Widget> bubble_widget =
+      CreateTestWidget(views::Widget::InitParams::CLIENT_OWNS_WIDGET);
+  header->editor_bubble_tracker_for_testing()->Opened(std::move(bubble_widget));
+
+  EXPECT_CALL(delegate, ShowGroupEditorBubble(testing::_)).Times(0);
+
+  header->ShowContextMenuForViewImpl(header, gfx::Point(),
+                                     ui::mojom::MenuSourceType::kNone);
 }
 
 TEST_F(TabGroupHeaderViewTest, HoverCardAccessibilityText_OneTab) {
@@ -1018,4 +1105,228 @@ TEST_F(TabGroupHeaderViewTest, UnfocusButtonAccessibleName) {
   mock_tab_group.SetIsEphemeral(false);
   button->UpdateAccessibleName();
   EXPECT_EQ(button->GetViewAccessibility().GetCachedName(), group_name);
+}
+
+// The interpolated focus-animation insets match the resting insets exactly at
+// both ends, so the header does not jump when the animation starts or ends.
+TEST_F(TabGroupHeaderViewTest, FocusAnimationInsetsMatchRestingInsets) {
+  MockDelegate delegate;
+  ON_CALL(delegate, IsGroupFocused()).WillByDefault(testing::Return(false));
+  tab_groups::TabGroupVisualData visual_data(
+      u"Group Title", tab_groups::TabGroupColorId::kBlue, false);
+  auto header = std::make_unique<TabGroupHeaderView>(
+      delegate, TabStripOrientation::kHorizontal, nullptr, &visual_data);
+  const gfx::Insets unfocused_insets = header->GetInteriorMargin();
+
+  header->SetFocusAnimationProgress(1.0f);
+  EXPECT_EQ(header->GetInteriorMargin(),
+            TabGroupStyle::GetInsetsForFocusedHeaderChip());
+
+  header->SetFocusAnimationProgress(0.0f);
+  EXPECT_EQ(header->GetInteriorMargin(), unfocused_insets);
+
+  // Midway, each edge lies strictly between the two resting values (or equals
+  // them when they coincide), so the insets really interpolate.
+  header->SetFocusAnimationProgress(0.5f);
+  const gfx::Insets focused_insets =
+      TabGroupStyle::GetInsetsForFocusedHeaderChip();
+  const gfx::Insets mid_insets = header->GetInteriorMargin();
+  const auto between = [](int value, int a, int b) {
+    return value >= std::min(a, b) && value <= std::max(a, b) &&
+           (a == b || (value != a && value != b));
+  };
+  EXPECT_TRUE(between(mid_insets.left(), unfocused_insets.left(),
+                      focused_insets.left()));
+  EXPECT_TRUE(between(mid_insets.right(), unfocused_insets.right(),
+                      focused_insets.right()));
+  EXPECT_TRUE(
+      between(mid_insets.top(), unfocused_insets.top(), focused_insets.top()));
+  EXPECT_TRUE(between(mid_insets.bottom(), unfocused_insets.bottom(),
+                      focused_insets.bottom()));
+}
+
+// Vertical headers do not change insets on focus, so the focus animation must
+// leave them alone at every progress value.
+TEST_F(TabGroupHeaderViewTest, FocusAnimationLeavesVerticalInsetsUnchanged) {
+  MockDelegate delegate;
+  ON_CALL(delegate, IsGroupFocused()).WillByDefault(testing::Return(false));
+  tab_groups::TabGroupVisualData visual_data(
+      u"Group Title", tab_groups::TabGroupColorId::kBlue, false);
+  auto header = std::make_unique<TabGroupHeaderView>(
+      delegate, TabStripOrientation::kVertical, nullptr, &visual_data);
+  const gfx::Insets resting_insets = header->GetInteriorMargin();
+
+  for (float progress : {0.0f, 0.5f, 1.0f}) {
+    header->SetFocusAnimationProgress(progress);
+    EXPECT_EQ(header->GetInteriorMargin(), resting_insets) << progress;
+  }
+}
+
+// The focus animation only changes the interior margin, never the preferred
+// size, so the animating layout target stays stable across frames.
+TEST_F(TabGroupHeaderViewTest, FocusAnimationDoesNotChangePreferredSize) {
+  for (TabStripOrientation orientation :
+       {TabStripOrientation::kHorizontal, TabStripOrientation::kVertical}) {
+    MockDelegate delegate;
+    ON_CALL(delegate, IsGroupFocused()).WillByDefault(testing::Return(false));
+    tab_groups::TabGroupVisualData visual_data(
+        u"Group Title", tab_groups::TabGroupColorId::kBlue, false);
+    auto header = std::make_unique<TabGroupHeaderView>(delegate, orientation,
+                                                       nullptr, &visual_data);
+    const gfx::Size resting_size = header->GetPreferredSize();
+
+    for (float progress : {0.0f, 0.5f, 1.0f}) {
+      header->SetFocusAnimationProgress(progress);
+      EXPECT_EQ(header->GetPreferredSize(), resting_size)
+          << static_cast<int>(orientation) << " " << progress;
+    }
+    header->SetFocusAnimationProgress(std::nullopt);
+    EXPECT_EQ(header->GetPreferredSize(), resting_size)
+        << static_cast<int>(orientation);
+  }
+}
+
+class TabGroupHeaderViewFocusRadiiTest
+    : public TabGroupHeaderViewTest,
+      public testing::WithParamInterface<
+          std::tuple<TabStripOrientation, bool>> {
+ public:
+  TabStripOrientation orientation() const { return std::get<0>(GetParam()); }
+  bool is_rtl() const { return std::get<1>(GetParam()); }
+
+  void SetUp() override {
+    TabGroupHeaderViewTest::SetUp();
+    scoped_rtl_.emplace(is_rtl());
+  }
+  void TearDown() override {
+    scoped_rtl_.reset();
+    TabGroupHeaderViewTest::TearDown();
+  }
+
+  // Returns the header's background corner radii after
+  // `SetFocusAnimationProgress(progress)` for a header whose delegate reports
+  // `is_focused`.
+  gfx::RoundedCornersF GetRadii(bool is_focused,
+                                std::optional<float> progress) {
+    MockDelegate delegate;
+    ON_CALL(delegate, IsGroupFocused())
+        .WillByDefault(testing::Return(is_focused));
+    tab_groups::TabGroupVisualData visual_data(
+        u"Group Title", tab_groups::TabGroupColorId::kBlue, false);
+    std::unique_ptr<views::Widget> widget =
+        CreateTestWidget(views::Widget::InitParams::CLIENT_OWNS_WIDGET);
+    auto* header = widget->SetContentsView(std::make_unique<TabGroupHeaderView>(
+        delegate, orientation(), nullptr, &visual_data));
+    // Force a background rebuild via a distinct intermediate value so the
+    // early-return in `SetFocusAnimationProgress()` does not skip the update.
+    header->SetFocusAnimationProgress(0.5f);
+    header->SetFocusAnimationProgress(progress);
+    return header->GetBackground()->GetRoundedCornerRadii().value();
+  }
+
+ private:
+  std::optional<base::i18n::ScopedRTLForTesting> scoped_rtl_;
+};
+
+// At the ends of the focus animation the interpolated corner radii equal the
+// resting unfocused and focused radii, so the chip shape does not jump when
+// the animation starts or ends.
+TEST_P(TabGroupHeaderViewFocusRadiiTest, EndpointsMatchRestingRadii) {
+  EXPECT_EQ(GetRadii(/*is_focused=*/false, 0.0f),
+            GetRadii(/*is_focused=*/false, std::nullopt));
+  EXPECT_EQ(GetRadii(/*is_focused=*/true, 1.0f),
+            GetRadii(/*is_focused=*/true, std::nullopt));
+  // Progress overrides the delegate's focus state.
+  EXPECT_EQ(GetRadii(/*is_focused=*/true, 0.0f),
+            GetRadii(/*is_focused=*/false, std::nullopt));
+  EXPECT_EQ(GetRadii(/*is_focused=*/false, 1.0f),
+            GetRadii(/*is_focused=*/true, std::nullopt));
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    All,
+    TabGroupHeaderViewFocusRadiiTest,
+    testing::Combine(testing::Values(TabStripOrientation::kHorizontal,
+                                     TabStripOrientation::kVertical),
+                     testing::Bool()),
+    [](const testing::TestParamInfo<
+        TabGroupHeaderViewFocusRadiiTest::ParamType>& info) {
+      return base::StrCat(
+          {std::get<0>(info.param) == TabStripOrientation::kHorizontal
+               ? "Horizontal"
+               : "Vertical",
+           std::get<1>(info.param) ? "RTL" : "LTR"});
+    });
+
+// At the end of the focus animation the Unfocus button's interpolated corner
+// radii equal its resting radii, and the label alpha follows `label_opacity`.
+TEST_F(TabGroupHeaderViewTest, UnfocusButtonFocusAnimationState) {
+  MockDelegate delegate;
+  std::unique_ptr<views::Widget> widget =
+      CreateTestWidget(views::Widget::InitParams::CLIENT_OWNS_WIDGET);
+  auto* button =
+      widget->SetContentsView(std::make_unique<TabGroupUnfocusButton>(
+          delegate, TabStripOrientation::kHorizontal));
+
+  button->SetFocusAnimationState(std::nullopt, 1.0f);
+  const gfx::RoundedCornersF resting_radii =
+      button->GetBackground()->GetRoundedCornerRadii().value();
+  const SkColor resting_text_color = button->GetCurrentTextColor();
+  ASSERT_EQ(SkColorGetA(resting_text_color), SK_AlphaOPAQUE);
+
+  button->SetFocusAnimationState(1.0f, 1.0f);
+  EXPECT_EQ(button->GetBackground()->GetRoundedCornerRadii().value(),
+            resting_radii);
+
+  button->SetFocusAnimationState(0.5f, 0.0f);
+  EXPECT_NE(button->GetBackground()->GetRoundedCornerRadii().value(),
+            resting_radii);
+  EXPECT_EQ(SkColorGetA(button->GetCurrentTextColor()), 0u);
+
+  button->SetFocusAnimationState(0.5f, 0.5f);
+  EXPECT_EQ(SkColorGetA(button->GetCurrentTextColor()), 128u);
+
+  button->SetFocusAnimationState(std::nullopt, 1.0f);
+  EXPECT_EQ(button->GetBackground()->GetRoundedCornerRadii().value(),
+            resting_radii);
+  EXPECT_EQ(button->GetCurrentTextColor(), resting_text_color);
+}
+
+// The collapsed-state icon honours the label opacity regardless of whether the
+// collapse happens before or after the opacity is set.
+TEST_F(TabGroupHeaderViewTest, UnfocusButtonCollapsedIconHonoursLabelOpacity) {
+  MockDelegate delegate;
+  std::unique_ptr<views::Widget> widget =
+      CreateTestWidget(views::Widget::InitParams::CLIENT_OWNS_WIDGET);
+  auto* button =
+      widget->SetContentsView(std::make_unique<TabGroupUnfocusButton>(
+          delegate, TabStripOrientation::kVertical));
+  const int collapsed_width =
+      tabs::kVerticalTabStripCollapsedWidth -
+      2 * GetLayoutConstant(LayoutConstant::kVerticalTabStripHorizontalPadding);
+
+  // Opacity set first, then collapse.
+  button->SetBounds(0, 0, collapsed_width + 20, 24);
+  button->SetFocusAnimationState(0.5f, 0.0f);
+  button->SetBounds(0, 0, collapsed_width, 24);
+  ASSERT_TRUE(button->GetImageModel(views::Button::STATE_NORMAL).has_value());
+  EXPECT_EQ(SkColorGetA(button->GetImageModel(views::Button::STATE_NORMAL)
+                            ->GetVectorIcon()
+                            .color()
+                            .ResolveToSkColor(button->GetColorProvider())),
+            0u);
+
+  // Collapse first, then opacity.
+  button->SetFocusAnimationState(std::nullopt, 1.0f);
+  EXPECT_EQ(SkColorGetA(button->GetImageModel(views::Button::STATE_NORMAL)
+                            ->GetVectorIcon()
+                            .color()
+                            .ResolveToSkColor(button->GetColorProvider())),
+            SK_AlphaOPAQUE);
+  button->SetFocusAnimationState(0.5f, 0.0f);
+  EXPECT_EQ(SkColorGetA(button->GetImageModel(views::Button::STATE_NORMAL)
+                            ->GetVectorIcon()
+                            .color()
+                            .ResolveToSkColor(button->GetColorProvider())),
+            0u);
 }

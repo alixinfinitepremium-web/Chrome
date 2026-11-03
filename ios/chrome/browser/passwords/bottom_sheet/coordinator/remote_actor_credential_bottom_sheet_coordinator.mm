@@ -9,9 +9,11 @@
 #import "components/password_manager/core/browser/password_store/password_store_interface.h"
 #import "ios/chrome/browser/favicon/model/ios_chrome_favicon_loader_factory.h"
 #import "ios/chrome/browser/passwords/bottom_sheet/coordinator/remote_actor_credential_bottom_sheet_mediator.h"
+#import "ios/chrome/browser/passwords/bottom_sheet/ui/remote_actor_credential_bottom_sheet_view_controller.h"
 #import "ios/chrome/browser/passwords/model/ios_chrome_account_password_store_factory.h"
 #import "ios/chrome/browser/passwords/model/ios_chrome_profile_password_store_factory.h"
 #import "ios/chrome/browser/passwords/model/password_tab_helper.h"
+#import "ios/chrome/browser/passwords/model/remote_actor/ios_chrome_remote_actor_credential_sharing_service_factory.h"
 #import "ios/chrome/browser/shared/model/browser/browser.h"
 #import "ios/chrome/browser/shared/model/profile/profile_ios.h"
 #import "ios/chrome/browser/shared/model/web_state_list/web_state_list.h"
@@ -38,6 +40,9 @@
 
   // Mediator for the remote actor credential bottom sheet.
   RemoteActorCredentialBottomSheetMediator* _mediator;
+
+  // View controller for the remote actor credential bottom sheet.
+  RemoteActorCredentialBottomSheetViewController* _viewController;
 }
 
 - (instancetype)initWithBaseViewController:(UIViewController*)viewController
@@ -74,9 +79,6 @@
       passwordTabHelper ? passwordTabHelper->GetPasswordManagerClient()
                         : nullptr;
 
-  // Unlike the other dependencies, the favicon loader isn't null-checked by
-  // `RemoteActorCredentialSharingController`, and is always created for a
-  // profile.
   FaviconLoader* faviconLoader =
       IOSChromeFaviconLoaderFactory::GetForProfile(profile);
   CHECK(faviconLoader);
@@ -90,12 +92,16 @@
   scoped_refptr<password_manager::PasswordStoreInterface> accountPasswordStore =
       IOSChromeAccountPasswordStoreFactory::GetForProfile(
           profile, ServiceAccessType::EXPLICIT_ACCESS);
+  password_manager::RemoteActorCredentialSharingService* sharingService =
+      IOSChromeRemoteActorCredentialSharingServiceFactory::GetForProfile(
+          profile);
 
   _mediator = [[RemoteActorCredentialBottomSheetMediator alloc]
       initWithIdentityManager:identityManager
                   syncService:syncService
          profilePasswordStore:profilePasswordStore.get()
          accountPasswordStore:accountPasswordStore.get()
+               sharingService:sharingService
         passwordManagerClient:passwordManagerClient
                 faviconLoader:faviconLoader
                        domain:_domain
@@ -103,9 +109,19 @@
                        taskID:_taskID];
   _mediator.delegate = self;
   [_mediator start];
+
+  _viewController =
+      [[RemoteActorCredentialBottomSheetViewController alloc] init];
+  [self.baseViewController presentViewController:_viewController
+                                        animated:YES
+                                      completion:nil];
 }
 
 - (void)stop {
+  [_viewController.presentingViewController dismissViewControllerAnimated:YES
+                                                               completion:nil];
+  _viewController = nil;
+
   [_mediator disconnect];
   _mediator = nil;
 
@@ -117,6 +133,11 @@
 }
 
 #pragma mark - RemoteActorCredentialBottomSheetMediatorDelegate
+
+- (void)mediatorDidRequestPresentation:
+    (RemoteActorCredentialBottomSheetMediator*)mediator {
+  // TODO(crbug.com/579010739): Present the bottom sheet view controller.
+}
 
 - (void)mediator:(RemoteActorCredentialBottomSheetMediator*)mediator
     didFinishWithSuccess:(BOOL)success {

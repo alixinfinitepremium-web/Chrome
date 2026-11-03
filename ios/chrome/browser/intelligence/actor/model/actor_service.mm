@@ -90,6 +90,18 @@ PerformActionsResult MakePerformActionsResult(mojom::ActionResultCode code) {
   return result;
 }
 
+// Returns the first live WebState controlled by `task`, or null.
+// TODO(crbug.com/505080093): Remove once acts and interrupts observe every
+// controlled WebState.
+web::WebState* GetFirstLiveControlledWebState(const ActorTask& task) {
+  for (const auto& weak_web_state : task.controlled_web_states()) {
+    if (web::WebState* web_state = weak_web_state.get()) {
+      return web_state;
+    }
+  }
+  return nullptr;
+}
+
 }  // namespace
 
 template <typename Method, typename... Args>
@@ -200,16 +212,6 @@ void ActorService::PerformActions(
                  std::move(task_update), std::move(callback));
 }
 
-void ActorService::RequestTabObservation(ActorTaskId task_id,
-                                         web::WebState* web_state,
-                                         TabObservationCallback callback) {
-  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
-  EnqueueCommand(
-      &ActorService::DoRequestTabObservation, task_id,
-      web_state ? web_state->GetWeakPtr() : base::WeakPtr<web::WebState>(),
-      std::move(callback));
-}
-
 void ActorService::PauseTask(ActorTaskId task_id, bool from_actor) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
   // TODO(crbug.com/496163986): Implement and test. Must be enqueued as a
@@ -225,12 +227,13 @@ void ActorService::SetTaskInterventionDelegate(
   }
 }
 
-void ActorService::InterruptTask(ActorTaskId task_id,
-                                 ActorTaskInterruptReason reason,
-                                 std::string_view message) {
+void ActorService::InterruptTask(
+    ActorTaskId task_id,
+    InterruptRequest request,
+    ActorTaskResultCallback<InterruptTaskResult> callback) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
-  EnqueueCommand(&ActorService::DoInterruptTask, task_id, reason,
-                 std::string(message));
+  EnqueueCommand(&ActorService::DoInterruptTask, task_id, std::move(request),
+                 std::move(callback));
 }
 
 void ActorService::StopTask(ActorTaskId task_id,
@@ -397,7 +400,7 @@ void ActorService::DoPerformActions(
   // leave its target WebStates controlled by the task.
   // TODO(crbug.com/568338837): Rely on the `ActorTask::Act()` check once the
   // task registers its controlled WebStates.
-  if (task->HasPendingAct()) {
+  if (task->HasPendingOperation()) {
     constexpr mojom::ActionResultCode kRejectionCode =
         mojom::ActionResultCode::kExecutionEngineExistingAction;
     LogActRejection(*journal_, task_id, "ActorService::PerformActions",
@@ -419,28 +422,6 @@ void ActorService::DoPerformActions(
   task->Act(std::move(tool_requests), task_update,
             base::BindOnce(&ActorService::OnActCompleted, weak_this_, task_id,
                            std::move(callback)));
-}
-
-void ActorService::DoRequestTabObservation(
-    ActorTaskId task_id,
-    base::WeakPtr<web::WebState> weak_web_state,
-    TabObservationCallback callback) {
-  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
-  web::WebState* web_state = weak_web_state.get();
-  if (!FindActiveTask(task_id) || !web_state) {
-    // TODO(crbug.com/578549018): Reply a dedicated error when the WebState
-    // went away, matching Desktop's `kWebContentsWentAway`.
-    PostReply(base::BindOnce(
-        std::move(callback),
-        base::unexpected(PageContextWrapperError::kGenericError)));
-    return;
-  }
-
-  // The extraction may complete synchronously; its reply is still posted, like
-  // the early reply above, so that every reply runs as its own task.
-  StartTabObservation(task_id, web_state,
-                      base::BindOnce(&ActorService::PostTabObservationReply,
-                                     weak_this_, std::move(callback)));
 }
 
 void ActorService::StartTabObservation(ActorTaskId task_id,
@@ -480,13 +461,68 @@ void ActorService::StartTabObservation(ActorTaskId task_id,
                             GetActorTabObservationPageContextTimeout()];
 }
 
-void ActorService::DoInterruptTask(ActorTaskId task_id,
-                                   ActorTaskInterruptReason reason,
-                                   std::string message) {
+void ActorService::DoInterruptTask(
+    ActorTaskId task_id,
+    InterruptRequest request,
+    ActorTaskResultCallback<InterruptTaskResult> callback) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
-  if (ActorTask* task = FindActiveTask(task_id)) {
-    task->Interrupt(reason, message);
+  ActorTask* task = FindActiveTask(task_id);
+  if (!task) {
+    PostReply(
+        base::BindOnce(std::move(callback),
+                       ActorTaskResult<InterruptTaskResult>(
+                           base::unexpected(ActorTaskError::kTaskWentAway))));
+    return;
   }
+  task->Interrupt(
+      request, base::BindOnce(&ActorService::OnInterruptCompleted, weak_this_,
+                              task_id, std::move(callback)));
+}
+
+void ActorService::OnInterruptCompleted(
+    ActorTaskId task_id,
+    ActorTaskResultCallback<InterruptTaskResult> callback,
+    ActorTaskResult<InterruptResponse> result) {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  // `ActorTask` already posted `result`, so reply without `PostReply()`.
+  if (!result.has_value()) {
+    std::move(callback).Run(base::unexpected(result.error()));
+    return;
+  }
+  // The task may have stopped since the user answered.
+  ActorTask* task = FindActiveTask(task_id);
+  if (!task) {
+    std::move(callback).Run(base::unexpected(ActorTaskError::kTaskWentAway));
+    return;
+  }
+  web::WebState* web_state = GetFirstLiveControlledWebState(*task);
+  if (!web_state) {
+    std::move(callback).Run(
+        InterruptTaskResult(result.value(), /*observation=*/nullptr));
+    return;
+  }
+  StartTabObservation(
+      task_id, web_state,
+      base::BindOnce(&ActorService::OnInterruptObservationComplete, weak_this_,
+                     task_id, web_state->GetUniqueIdentifier(), result.value(),
+                     std::move(callback)));
+}
+
+void ActorService::OnInterruptObservationComplete(
+    ActorTaskId task_id,
+    web::WebStateID web_state_id,
+    InterruptResponse response,
+    ActorTaskResultCallback<InterruptTaskResult> callback,
+    PageContextWrapperCallbackResponse page_context_response) {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  if (!FindActiveTask(task_id)) {
+    std::move(callback).Run(base::unexpected(ActorTaskError::kTaskWentAway));
+    return;
+  }
+  std::move(callback).Run(InterruptTaskResult(
+      response, std::make_unique<TabObservationResponse>(
+                    web_state_id, std::move(page_context_response),
+                    /*web_state_exists=*/true)));
 }
 
 void ActorService::DoStopTask(ActorTaskId task_id,
@@ -550,14 +586,10 @@ void ActorService::OnPageContextExtractionComplete(
     }
   }
 
+  // TODO(crbug.com/578549018): Reply a dedicated error, matching Desktop's
+  // `kWebContentsWentAway`, when the WebState is destroyed during the
+  // extraction.
   std::move(callback).Run(std::move(response));
-}
-
-void ActorService::PostTabObservationReply(
-    TabObservationCallback callback,
-    PageContextWrapperCallbackResponse response) {
-  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
-  PostReply(base::BindOnce(std::move(callback), std::move(response)));
 }
 
 void ActorService::OnTaskStopped(ActorTaskId task_id) {
@@ -619,15 +651,8 @@ void ActorService::OnActCompleted(ActorTaskId task_id,
   perform_actions_result.action_results = std::move(results);
 
   std::vector<web::WebState*> web_states_to_extract;
-
-  // TODO(crbug.com/505080093): Extract PageContext for *all* of the controlled
-  // WebStates when this is supported, instead of just one. Right now there
-  // should only be one, we iterate until the first valid one.
-  for (const auto& weak_web_state : task->controlled_web_states()) {
-    if (web::WebState* web_state = weak_web_state.get()) {
-      web_states_to_extract.push_back(web_state);
-      break;
-    }
+  if (web::WebState* web_state = GetFirstLiveControlledWebState(*task)) {
+    web_states_to_extract.push_back(web_state);
   }
 
   if (web_states_to_extract.empty()) {

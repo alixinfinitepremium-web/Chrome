@@ -574,20 +574,20 @@ TabGroupView::AcquireHoverCardHideLock() {
   return nullptr;
 }
 
-void TabGroupView::ShiftGroupUp() {
+void TabGroupView::ShiftGroupPrevious() {
   if (!collection_node_) {
     return;
   }
   const TabGroup* group = GetTabGroupFromNode(collection_node_);
-  collection_node_->GetController()->ShiftGroupUp(group->id());
+  collection_node_->GetController()->ShiftGroupPrevious(group->id());
 }
 
-void TabGroupView::ShiftGroupDown() {
+void TabGroupView::ShiftGroupNext() {
   if (!collection_node_) {
     return;
   }
   const TabGroup* group = GetTabGroupFromNode(collection_node_);
-  collection_node_->GetController()->ShiftGroupDown(group->id());
+  collection_node_->GetController()->ShiftGroupNext(group->id());
 }
 
 bool TabGroupView::IsGroupFocused() const {
@@ -599,6 +599,10 @@ bool TabGroupView::IsGroupFocused() const {
   }
   return collection_node_->GetController()->GetFocusedGroup() ==
          GetTabGroup().id();
+}
+
+float TabGroupView::GetFocusProgress() const {
+  return IsGroupFocused() ? 1.0f : 0.0f;
 }
 
 bool TabGroupView::IsUnfocusButtonFocused() const {

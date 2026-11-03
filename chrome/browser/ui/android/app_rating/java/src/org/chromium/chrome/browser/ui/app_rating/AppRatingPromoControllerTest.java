@@ -182,7 +182,7 @@ public class AppRatingPromoControllerTest {
 
     @Test
     @EnableFeatures(ChromeFeatureList.ANDROID_APP_RATING_PROMPT)
-    @DisableFeatures(ChromeFeatureList.INTERRUPTIVE_IPH_COOLDOWN_GROUP)
+    @DisableFeatures(ChromeFeatureList.USER_EDUCATION_INTERRUPTIVE_COOLDOWN_GROUP)
     public void testOnSegmentationResultReceived_HighEngagement() {
         Assert.assertTrue(
                 "Promo should potentially be shown if all conditions are met.",
@@ -202,7 +202,7 @@ public class AppRatingPromoControllerTest {
         verify(mTracker)
                 .shouldTriggerHelpUi(
                         eq(FeatureConstants.APP_RATING_PROMPT_FEATURE),
-                        eq(new FeatureProperties(UiFormat.DIALOG, false, false, false)));
+                        eq(new FeatureProperties(UiFormat.DIALOG, false, false)));
         verify(mPrefService).setBoolean(Pref.APP_RATING_PROMPT_SHOWN, true);
         verify(mAppRatingManager)
                 .requestAndShowReviewFlow(eq(mActivity), mRunnableCapturer.capture());
@@ -215,7 +215,7 @@ public class AppRatingPromoControllerTest {
     @Test
     @EnableFeatures({
         ChromeFeatureList.ANDROID_APP_RATING_PROMPT,
-        ChromeFeatureList.INTERRUPTIVE_IPH_COOLDOWN_GROUP
+        ChromeFeatureList.USER_EDUCATION_INTERRUPTIVE_COOLDOWN_GROUP
     })
     public void testOnSegmentationResultReceived_HighEngagement_CooldownGroupEnabled() {
         Assert.assertTrue(
@@ -235,7 +235,7 @@ public class AppRatingPromoControllerTest {
         verify(mTracker)
                 .shouldTriggerHelpUi(
                         eq(FeatureConstants.APP_RATING_PROMPT_FEATURE),
-                        eq(new FeatureProperties(UiFormat.DIALOG, true, true, true)));
+                        eq(new FeatureProperties(UiFormat.DIALOG, true, true)));
         verify(mAppRatingManager)
                 .requestAndShowReviewFlow(eq(mActivity), mRunnableCapturer.capture());
     }

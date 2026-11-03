@@ -13,6 +13,7 @@
 #include "chrome/browser/glic/public/glic_keyed_service_factory.h"
 #include "chrome/browser/glic/public/glic_passkeys.h"
 #include "chrome/browser/profiles/profile.h"
+#include "chrome/common/glic_enums.mojom.h"
 #include "chrome/grit/generated_resources.h"
 #include "components/tabs/public/tab_interface.h"
 #include "content/public/browser/context_menu_params.h"
@@ -26,6 +27,7 @@
 #include "chrome/browser/glic/glic_selection_observer.h"
 #include "chrome/browser/glic/selection/selection_overlay_controller.h"
 #include "chrome/browser/ui/tabs/page_context_eligibility_helper.h"
+#include "content/public/browser/render_widget_host_view.h"
 #include "third_party/blink/public/mojom/context_menu/context_menu.mojom-shared.h"
 #endif
 
@@ -49,10 +51,6 @@ void GlicContextMenuInvocationHelper::HandleContextualMenuClick(
   glic::GlicKeyedService* glic_service =
       glic::GlicKeyedServiceFactory::GetGlicKeyedService(browser_context);
   if (glic_service) {
-    glic::GlicInvokeOptions options(
-        glic::Target(*tab),
-        glic::mojom::InvocationSource::kWebContentsContextMenu);
-
     std::u16string_view trimmed_selection =
         base::TrimWhitespace(selection_text, base::TRIM_ALL);
     bool is_page_eligible = false;
@@ -67,6 +65,14 @@ void GlicContextMenuInvocationHelper::HandleContextualMenuClick(
               optimization_guide::PageContextEligibilityStatus::kEligible;
 #endif
     }
+
+    // Desktop has no link-specific item, so clicks without a selection report
+    // Page, even on a link.
+    glic::GlicInvokeOptions options(
+        glic::Target(*tab),
+        trimmed_selection.empty()
+            ? mojom::InvocationSource::kWebContentsContextMenuPage
+            : mojom::InvocationSource::kWebContentsContextMenuTextSelection);
 
     if (is_page_eligible) {
       auto context = glic::mojom::AdditionalContext::New();
@@ -156,7 +162,6 @@ void GlicContextMenuInvocationHelper::HandleSmartSuggestionClick(
 
   // A text selection takes precedence over an image.
   // Selections in editable fields are ignored.
-  // TODO(b/559202240): Pre-select the image when `params` targets an image.
   gfx::Rect selection_bounds;
   auto interaction_options = selection::InteractionOptions::New();
   ::selection::EntryPoint entry_point =
@@ -175,6 +180,18 @@ void GlicContextMenuInvocationHelper::HandleSmartSuggestionClick(
                  blink::mojom::ContextMenuDataMediaType::kImage &&
              params.has_image_contents) {
     entry_point = ::selection::EntryPoint::kContextMenuImage;
+    if (content::RenderWidgetHostView* view = frame.GetView()) {
+      gfx::Rect view_bounds = view->GetViewBounds();
+      selection_bounds = params.image_bounds;
+      selection_bounds.Intersect(gfx::Rect(view_bounds.size()));
+      selection_bounds.Offset(view_bounds.OffsetFromOrigin());
+      selection_bounds.Intersect(web_contents->GetViewBounds());
+    }
+    if (!selection_bounds.IsEmpty()) {
+      interaction_options->hide_handles = false;
+      interaction_options->disable_multi_select = true;
+      interaction_options->skip_intro_animation = true;
+    }
   }
   controller->ShowWithSelection(&frame, selection_bounds,
                                 std::move(interaction_options), entry_point);
