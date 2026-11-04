@@ -1021,7 +1021,6 @@ public class LocationBarMediator
      */
     @VisibleForTesting
     /* package */ boolean shouldTriggerSiteSearch(UrlBarTextChangeInfo info) {
-
         if (info.isDelete()) {
             // Deletions should never trigger site-search. This helps avoid accidentally activating
             // site-search when the user is trying to delete text.
@@ -3461,7 +3460,10 @@ public class LocationBarMediator
 
     @Override
     public void shareText(String text) {
-        ShareParams params = new ShareParams.Builder(mWindowAndroid, /* title= */ "", text).build();
+        ShareParams params =
+                new ShareParams.Builder(mWindowAndroid, /* title= */ "", /* url= */ "")
+                        .setText(text)
+                        .build();
         ShareHelper.shareWithSystemShareSheetUi(params);
     }
 

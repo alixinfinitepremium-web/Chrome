@@ -69,6 +69,7 @@ import org.chromium.chrome.browser.compositor.layouts.Layout;
 import org.chromium.chrome.browser.compositor.layouts.LayoutManagerHost;
 import org.chromium.chrome.browser.compositor.layouts.LayoutManagerImpl;
 import org.chromium.chrome.browser.compositor.layouts.LayoutRenderHost;
+import org.chromium.chrome.browser.compositor.layouts.components.LayoutTab;
 import org.chromium.chrome.browser.flags.ChromeFeatureList;
 import org.chromium.chrome.browser.fullscreen.BrowserControlsManager;
 import org.chromium.chrome.browser.fullscreen.FullscreenManager;
@@ -78,14 +79,16 @@ import org.chromium.chrome.browser.layouts.components.VirtualView;
 import org.chromium.chrome.browser.layouts.components.VirtualView.VirtualViewPriority;
 import org.chromium.chrome.browser.preferences.Pref;
 import org.chromium.chrome.browser.tab.Tab;
+import org.chromium.chrome.browser.tab.TabCreationState;
 import org.chromium.chrome.browser.tab.TabHidingType;
+import org.chromium.chrome.browser.tab.TabLaunchType;
 import org.chromium.chrome.browser.tab.TabObscuringHandler;
 import org.chromium.chrome.browser.tab.TabObserver;
 import org.chromium.chrome.browser.tab_ui.TabContentManager;
 import org.chromium.chrome.browser.tabmodel.TabCreatorManager;
 import org.chromium.chrome.browser.tabmodel.TabModel;
 import org.chromium.chrome.browser.tabmodel.TabModelSelector;
-import org.chromium.chrome.browser.tabmodel.TabModelSelectorObserver;
+import org.chromium.chrome.browser.tabmodel.TabModelSelectorTabModelObserver;
 import org.chromium.chrome.browser.theme.ToolbarThemeColorProvider;
 import org.chromium.chrome.browser.toolbar.ControlContainer;
 import org.chromium.chrome.browser.ui.side_panel.AndroidSidePanelEnabledFn;
@@ -198,6 +201,7 @@ public class CompositorViewHolder extends FrameLayout
     private @Nullable Runnable mPostHideKeyboardTask;
 
     private TabModelSelector mTabModelSelector;
+    private @Nullable TabModelSelectorTabModelObserver mTabModelSelectorTabModelObserver;
     private @Nullable BrowserControlsManager mBrowserControlsManager;
     @VisibleForTesting @Nullable View mAccessibilityView;
     private @Nullable CompositorAccessibilityProvider mNodeProvider;
@@ -849,6 +853,10 @@ public class CompositorViewHolder extends FrameLayout
         if (mSideUiStateProvider != null) {
             mSideUiStateProvider.removeObserver(this);
         }
+        if (mTabModelSelectorTabModelObserver != null) {
+            mTabModelSelectorTabModelObserver.destroy();
+            mTabModelSelectorTabModelObserver = null;
+        }
     }
 
     /** This is called when the native library are ready. */
@@ -1154,10 +1162,39 @@ public class CompositorViewHolder extends FrameLayout
 
         if (mTabModelSelector == null) return;
 
+        boolean skipDetachedBackgroundTabs =
+                ChromeFeatureList.sSkipDetachedTabResizeOnSizeChanged.isEnabled();
+        Tab currentTab = skipDetachedBackgroundTabs ? getCurrentTab() : null;
+        Layout activeLayout =
+                skipDetachedBackgroundTabs && mLayoutManager != null
+                        ? mLayoutManager.getActiveLayout()
+                        : null;
+        LayoutTab[] layoutTabs = activeLayout != null ? activeLayout.getLayoutTabsToRender() : null;
         for (TabModel tabModel : mTabModelSelector.getModels()) {
             for (Tab tab : tabModel) {
                 if (tab == null) continue;
-                updateWebContentsSize(tab);
+                if (!skipDetachedBackgroundTabs) {
+                    updateWebContentsSize(tab);
+                    continue;
+                }
+                WebContents webContents = tab.getWebContents();
+                boolean shouldUpdateSize =
+                        tab == currentTab
+                                || tab == mTabVisible
+                                || isAttachedToWindow(tab.getView())
+                                || isAttachedToWindow(tab.getContentView())
+                                || (webContents != null && webContents.isBeingCaptured());
+                if (!shouldUpdateSize && layoutTabs != null) {
+                    for (LayoutTab layoutTab : layoutTabs) {
+                        if (layoutTab != null && layoutTab.getId() == tab.getId()) {
+                            shouldUpdateSize = true;
+                            break;
+                        }
+                    }
+                }
+                if (shouldUpdateSize) {
+                    updateWebContentsSize(tab);
+                }
             }
         }
     }
@@ -1184,7 +1221,7 @@ public class CompositorViewHolder extends FrameLayout
         if (tab == null) return;
 
         WebContents webContents = tab.getWebContents();
-        View view = tab.getContentView();
+        ContentView view = tab.getContentView();
         if (webContents == null || view == null) return;
 
         Point viewportSize = getViewportSize();
@@ -1211,8 +1248,12 @@ public class CompositorViewHolder extends FrameLayout
             horizontalViewportInsets =
                     sideUiLeftMargin + sideUiSpecs.getReservedWidth(AnchorSide.RIGHT);
         }
-        ContentView cv = getContentView();
-        if (cv != null) cv.setContentOffsetXPix(sideUiLeftMargin);
+        if (ChromeFeatureList.sSkipDetachedTabResizeOnSizeChanged.isEnabled()) {
+            view.setContentOffsetXPix(sideUiLeftMargin);
+        } else {
+            ContentView cv = getContentView();
+            if (cv != null) cv.setContentOffsetXPix(sideUiLeftMargin);
+        }
 
         // The view size takes into account of the browser controls whose height should be
         // subtracted from the view if they are visible, therefore shrink Blink-side view size.
@@ -2084,13 +2125,17 @@ public class CompositorViewHolder extends FrameLayout
 
         mTabModelSelector = tabModelSelector;
         mTabModelSelector.getCurrentTabSupplier().addSyncObserver((tab) -> onContentChanged());
-        tabModelSelector.addObserver(
-                new TabModelSelectorObserver() {
+        mTabModelSelectorTabModelObserver =
+                new TabModelSelectorTabModelObserver(tabModelSelector) {
                     @Override
-                    public void onNewTabCreated(Tab tab) {
+                    public void didAddTab(
+                            Tab tab,
+                            @TabLaunchType int type,
+                            @TabCreationState int creationState,
+                            boolean markedForSelection) {
                         initializeTab(tab);
                     }
-                });
+                };
 
         onContentChanged();
         mNativeInitialized = true;

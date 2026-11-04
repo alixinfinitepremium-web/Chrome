@@ -865,6 +865,7 @@ void SelectionOverlayController::OnScreenshotTaken(const SkBitmap& bitmap) {
 void SelectionOverlayController::OnScreenshotRedacted(const SkBitmap& bitmap) {
   session_->redacted_screenshot = bitmap;
   SyncRegionsToPanelIfPending();
+  MaybeRequestSuggestions();
 }
 
 void SelectionOverlayController::PageContextReady(
@@ -902,6 +903,7 @@ void SelectionOverlayController::PageContextReady(
   }
 
   SyncRegionsToPanelIfPending();
+  MaybeRequestSuggestions();
 }
 
 void SelectionOverlayController::SetScreenshot(const SkBitmap& screenshot,
@@ -1133,14 +1135,13 @@ void SelectionOverlayController::GetSuggestedActionsImpl(
     return;
   }
 
-  ::selection::SuggestionService* suggestion_service =
-      ::selection::SuggestionService::From(tab_);
-  if (!suggestion_service || session_->redacted_screenshot.empty()) {
+  if (!::selection::SuggestionService::From(tab_)) {
     callback.Run({});
     return;
   }
 
-  RequestNewSuggestions(*region_data);
+  // Requests them now if every input is here, otherwise once the last arrives.
+  MaybeRequestSuggestions();
 }
 
 void SelectionOverlayController::OnTextSurroundingSelectionAvailable(
@@ -1163,12 +1164,38 @@ void SelectionOverlayController::OnTextSurroundingSelectionAvailable(
         content.substr(start_offset, end_offset - start_offset);
     region_data->text_surrounding_selection = content;
   }
-  if (session_->active_region_id == region_id &&
-      !region_data->suggestions_requested &&
-      (session_->suggested_actions_listener.is_bound() ||
-       session_->suggested_actions_callback_for_testing)) {
-    RequestNewSuggestions(*region_data);
+  if (session_->active_region_id == region_id) {
+    MaybeRequestSuggestions();
   }
+}
+
+bool SelectionOverlayController::AreSuggestionInputsReady() const {
+  if (session_->redacted_screenshot.empty()) {
+    return false;
+  }
+  // The page can ask for suggestions before the page content arrives.
+  const bool needs_page_content =
+      base::FeatureList::IsEnabled(
+          ::selection::kSmartSelectionServerSuggestions) &&
+      ::selection::kSmartSelectionServerAppendApc.Get();
+  return !needs_page_content || session_->tab_context;
+}
+
+void SelectionOverlayController::MaybeRequestSuggestions() {
+  if (!IsSelectionOverlayPromptEnabled() ||
+      !session_->active_region_id.has_value() || !AreSuggestionInputsReady() ||
+      !(session_->suggested_actions_listener.is_bound() ||
+        session_->suggested_actions_callback_for_testing) ||
+      !::selection::SuggestionService::From(tab_)) {
+    return;
+  }
+  SelectedRegionData* region_data =
+      base::FindOrNull(session_->selected_regions, *session_->active_region_id);
+  if (!region_data || region_data->suggestions_requested ||
+      region_data->waiting_for_surrounding_text) {
+    return;
+  }
+  RequestNewSuggestions(*region_data);
 }
 
 void SelectionOverlayController::RequestNewSuggestions(
@@ -1176,10 +1203,8 @@ void SelectionOverlayController::RequestNewSuggestions(
   ::selection::SuggestionService* suggestion_service =
       ::selection::SuggestionService::From(tab_);
   CHECK(suggestion_service);
-  CHECK(!session_->redacted_screenshot.empty());
-  if (region_data.waiting_for_surrounding_text) {
-    return;
-  }
+  CHECK(AreSuggestionInputsReady());
+  CHECK(!region_data.waiting_for_surrounding_text);
 
   region_data.suggestions_requested = true;
   uint64_t generation = ++region_data.generation;
@@ -1411,8 +1436,7 @@ void SelectionOverlayController::Reset() {
   session_ = std::make_unique<Session>(this);
 }
 
-SelectionOverlayController::CapturedRegions
-SelectionOverlayController::GetCapturedRegions() const {
+CapturedRegions SelectionOverlayController::GetCapturedRegions() const {
   CHECK(!session_->redacted_screenshot.empty());
   CapturedRegions captured_regions;
   // TODO(http://b/452032491): Reconsider what happens if the regions overlap.
@@ -1524,13 +1548,17 @@ void SelectionOverlayController::SendRegionsToPanel(
     CapturedRegions captured_regions,
     bool should_focus_panel) {
   session_->panel_sync_pending = false;
+  // Without a valid region, glic would show the screenshot with no chips.
+  if (captured_regions.empty()) {
+    return;
+  }
   GlicKeyedService* service = GlicKeyedService::Get(tab_->GetProfile());
   GlicInstance* instance = service->GetInstanceForTab(tab_);
   if (!instance) {
     return;
   }
-  instance->SendAdditionalContext(
-      CreateAdditionalContext(std::move(captured_regions)));
+  instance->SendAdditionalContext(CreateRegionSelectionContext(
+      *tab_, session_->tab_context.Clone(), std::move(captured_regions)));
   // If the event that triggered this was initiated via keyboard, do not
   // focus the panel to avoid stealing focus away from the selection pane.
   // Also, if line selection or the selection prompt box is enabled, keep
@@ -1542,26 +1570,6 @@ void SelectionOverlayController::SendRegionsToPanel(
   if (should_focus_panel && !line_selection_enabled && !prompt_box_enabled) {
     instance->FocusIfActive();
   }
-}
-
-glic::mojom::AdditionalContextPtr
-SelectionOverlayController::CreateAdditionalContext(CapturedRegions regions) {
-  auto context = glic::mojom::AdditionalContext::New();
-  std::vector<glic::mojom::AdditionalContextPartPtr> parts;
-  mojom::TabContextResultPtr tab_context = session_->tab_context.Clone();
-  parts.push_back(glic::mojom::AdditionalContextPart::NewTabContext(
-      std::move(tab_context)));
-  for (auto& region : regions) {
-    parts.push_back(glic::mojom::AdditionalContextPart::NewPendingRegion(
-        glic::mojom::PendingCapturedRegion::New(region.first,
-                                                region.second.Clone())));
-    parts.push_back(glic::mojom::AdditionalContextPart::NewRegion(
-        std::move(region.second)));
-  }
-  context->source = glic::mojom::AdditionalContextSource::kRegionSelection;
-  context->tab_id = tab_->GetHandle().raw_value();
-  context->parts = std::move(parts);
-  return context;
 }
 
 }  // namespace glic

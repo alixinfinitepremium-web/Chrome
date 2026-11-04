@@ -10,6 +10,7 @@
 
 #include "base/auto_reset.h"
 #include "base/feature_list.h"
+#include "base/functional/bind.h"
 #include "base/functional/callback_helpers.h"
 #include "base/memory/ptr_util.h"
 #include "base/task/single_thread_task_runner.h"
@@ -23,7 +24,6 @@
 #include "chrome/browser/themes/theme_service.h"
 #include "chrome/browser/themes/theme_service_factory.h"
 #include "chrome/browser/themes/theme_service_observer.h"
-#include "chrome/browser/ui/chrome_pages.h"
 #include "chrome/browser/ui/omnibox/omnibox_everywhere/omnibox_everywhere_fre_controller.h"
 #include "chrome/browser/ui/omnibox/omnibox_everywhere/omnibox_everywhere_prefs.h"
 #include "chrome/browser/ui/omnibox/omnibox_everywhere/omnibox_everywhere_region_select_overlay.h"
@@ -44,7 +44,6 @@
 #include "components/keep_alive_registry/scoped_keep_alive.h"
 #include "components/ntp_tiles/custom_links_manager.h"
 #include "components/ntp_tiles/most_visited_sites.h"
-#include "components/omnibox/browser/omnibox_pref_names.h"
 #include "components/permissions/permission_request_manager.h"
 #include "components/prefs/pref_service.h"
 #include "content/public/browser/file_select_listener.h"
@@ -83,8 +82,14 @@
 #endif
 
 #if BUILDFLAG(IS_WIN)
+#include <shobjidl.h>
 #include <windows.h>
 
+#include <wrl/client.h>
+
+#include "base/task/thread_pool.h"
+#include "chrome/browser/ui/omnibox/omnibox_everywhere/omnibox_everywhere_shortcut_win.h"
+#include "ui/gfx/win/hwnd_util.h"
 #include "ui/views/win/hwnd_util.h"
 #endif
 
@@ -93,12 +98,6 @@
 #include "ui/aura/window.h"
 #include "ui/aura/window_tree_host.h"
 #include "ui/wm/core/window_animations.h"
-#endif
-
-#if BUILDFLAG(IS_WIN)
-#include "base/task/thread_pool.h"
-#include "chrome/browser/ui/omnibox/omnibox_everywhere/omnibox_everywhere_shortcut_win.h"
-#include "ui/base/win/shell.h"
 #endif
 
 #if BUILDFLAG(IS_MAC)
@@ -269,6 +268,21 @@ class OmniboxEverywhereWidget : public views::Widget,
       theme_service_observation_{this};
 };
 
+#if BUILDFLAG(IS_WIN)
+bool IsOnCurrentVirtualDesktop(HWND hwnd) {
+  Microsoft::WRL::ComPtr<IVirtualDesktopManager> virtual_desktop_manager;
+  if (FAILED(::CoCreateInstance(__uuidof(VirtualDesktopManager), nullptr,
+                                CLSCTX_ALL,
+                                IID_PPV_ARGS(&virtual_desktop_manager)))) {
+    return true;
+  }
+  // If this can't be determined, assume the window is on the current virtual
+  // desktop.
+  return gfx::IsWindowOnCurrentVirtualDesktop(hwnd, virtual_desktop_manager)
+      .value_or(true);
+}
+#endif  // BUILDFLAG(IS_WIN)
+
 }  // namespace
 
 OmniboxEverywhereUIManager::OmniboxEverywhereUIManager(
@@ -282,7 +296,9 @@ OmniboxEverywhereUIManager::OmniboxEverywhereUIManager(
       ,
       shortcut_helper_(base::ThreadPool::CreateCOMSTATaskRunner(
           {base::MayBlock(), base::TaskPriority::USER_VISIBLE,
-           base::TaskShutdownBehavior::CONTINUE_ON_SHUTDOWN}))
+           base::TaskShutdownBehavior::CONTINUE_ON_SHUTDOWN})),
+      is_on_current_virtual_desktop_(
+          base::BindRepeating(&IsOnCurrentVirtualDesktop))
 #endif
 {
 #if defined(USE_AURA)
@@ -353,6 +369,20 @@ content::WebContents* OmniboxEverywhereUIManager::web_contents() const {
 void OmniboxEverywhereUIManager::ShowForProfile(Profile* profile,
                                                 gfx::NativeWindow context) {
   CancelPendingDeactivation();
+  std::optional<gfx::Rect> widget_bounds;
+#if BUILDFLAG(IS_WIN)
+  // Windows keeps a window on the virtual desktop it was last shown on, so if
+  // the widget is on another desktop, recreate it, which opens it on the
+  // current one. This falls through to the creation path below, which keeps
+  // its position and reuses the `WebContents`. Leave it alone while a dialog is
+  // open, since recreating it would dismiss the dialog.
+  if (widget_ && profile_ == profile && !HasOpenModalDialog() &&
+      !is_on_current_virtual_desktop_.Run(
+          views::HWNDForWidget(widget_.get()))) {
+    widget_bounds = widget_->GetRestoredBounds();
+    DestroyWidget();
+  }
+#endif
   last_shown_time_ = base::TimeTicks::Now();
   if (widget_ && profile_ == profile) {
     ActivateAndFocus();
@@ -413,7 +443,7 @@ void OmniboxEverywhereUIManager::ShowForProfile(Profile* profile,
   profile_ = profile;
 
   EnsureContentsWrapperInitialized(profile_);
-  CreateAndInitWidget(context);
+  CreateAndInitWidget(context, widget_bounds);
   ActivateAndFocus();
 
   if (web_contents()) {
@@ -514,7 +544,7 @@ bool OmniboxEverywhereUIManager::AcquireKeepAlives() {
         KeepAliveRestartOption::DISABLED);
   }
 
-  auto* service = OmniboxEverywhereServiceFactory::GetForProfile(profile_);
+  auto* service = GetOmniboxEverywhereService();
   CHECK(service);
 
   if (!service->AcquireProfileKeepAlive()) {
@@ -534,17 +564,15 @@ bool OmniboxEverywhereUIManager::TryAcquireKeepAlives() {
 }
 
 void OmniboxEverywhereUIManager::ReleaseKeepAlives() {
-  if (profile_) {
-    if (auto* service =
-            OmniboxEverywhereServiceFactory::GetForProfile(profile_)) {
-      service->ReleaseProfileKeepAlive();
-    }
+  if (auto* service = GetOmniboxEverywhereService()) {
+    service->ReleaseProfileKeepAlive();
   }
   keep_alive_.reset();
 }
 
 void OmniboxEverywhereUIManager::CreateAndInitWidget(
-    gfx::NativeWindow context) {
+    gfx::NativeWindow context,
+    std::optional<gfx::Rect> bounds) {
   if (widget_) {
     return;
   }
@@ -577,12 +605,16 @@ void OmniboxEverywhereUIManager::CreateAndInitWidget(
     params.context = context;
   }
 
-  auto* service = OmniboxEverywhereServiceFactory::GetForProfile(profile_);
-  const bool is_fre_intro_modal =
-      service && service->fre_controller() &&
-      service->fre_controller()->GetCurrentStage() == FreStage::kIntroModal;
-  params.bounds = CalculateWidgetBounds(
-      is_fre_intro_modal ? kFreModalRestingHeight : kDefaultRestingHeight);
+  if (bounds) {
+    params.bounds = *bounds;
+  } else {
+    auto* service = GetOmniboxEverywhereService();
+    const bool is_fre_intro_modal =
+        service && service->fre_controller() &&
+        service->fre_controller()->GetCurrentStage() == FreStage::kIntroModal;
+    params.bounds = CalculateWidgetBounds(
+        is_fre_intro_modal ? kFreModalRestingHeight : kDefaultRestingHeight);
+  }
 
   auto web_view = std::make_unique<views::WebView>(profile_);
   web_view->SetProperty(views::kElementIdentifierKey,
@@ -650,11 +682,7 @@ void OmniboxEverywhereUIManager::ActivateAndFocus() {
   is_demoted_ = false;
   if (widget_->IsMinimized()) {
     widget_->Restore();
-    if (pending_auto_resize_size_.has_value()) {
-      const gfx::Size size = *pending_auto_resize_size_;
-      pending_auto_resize_size_.reset();
-      ResizeDueToAutoResize(web_contents(), size);
-    }
+    ApplyPendingAutoResize();
   }
 #if BUILDFLAG(IS_MAC)
   widget_->SetCanAppearInExistingFullscreenSpaces(true);
@@ -701,16 +729,18 @@ void OmniboxEverywhereUIManager::OnMostVisitedPrefChanged() {
   ReleaseKeepAlives();
 }
 
+OmniboxEverywhereService*
+OmniboxEverywhereUIManager::GetOmniboxEverywhereService() {
+  return profile_ ? OmniboxEverywhereServiceFactory::GetForProfile(profile_)
+                  : nullptr;
+}
+
 // TODO(crbug.com/558851707): Move impression recording to the FRE WebUI
 // component lifecycle (e.g. on render/mount) so that impressions are recorded
 // based on true visual visibility and both ephemeral and persistent window
 // models are handled consistently.
 void OmniboxEverywhereUIManager::MaybeRecordFreImpression() {
-  if (!profile_) {
-    return;
-  }
-  if (auto* service =
-          OmniboxEverywhereServiceFactory::GetForProfile(profile_)) {
+  if (auto* service = GetOmniboxEverywhereService()) {
     if (service->fre_controller()) {
       service->fre_controller()->IncrementImpression();
     }
@@ -718,21 +748,13 @@ void OmniboxEverywhereUIManager::MaybeRecordFreImpression() {
 }
 
 void OmniboxEverywhereUIManager::MaybeShowLensPromo() {
-  if (!profile_) {
-    return;
-  }
-  if (auto* service =
-          OmniboxEverywhereServiceFactory::GetForProfile(profile_)) {
+  if (auto* service = GetOmniboxEverywhereService()) {
     service->MaybeShowLensPromo();
   }
 }
 
 void OmniboxEverywhereUIManager::EndLensPromo() {
-  if (!profile_) {
-    return;
-  }
-  if (auto* service =
-          OmniboxEverywhereServiceFactory::GetForProfile(profile_)) {
+  if (auto* service = GetOmniboxEverywhereService()) {
     service->EndLensPromo();
   }
 }
@@ -963,11 +985,7 @@ void OmniboxEverywhereUIManager::OnWidgetShowStateChanged(
     return;
   }
   if (!widget_->IsMinimized()) {
-    if (pending_auto_resize_size_.has_value()) {
-      const gfx::Size size = *pending_auto_resize_size_;
-      pending_auto_resize_size_.reset();
-      ResizeDueToAutoResize(web_contents(), size);
-    }
+    ApplyPendingAutoResize();
     if (std::exchange(is_demoted_, false)) {
       MaybeShowLensPromo();
     }
@@ -1061,6 +1079,15 @@ void OmniboxEverywhereUIManager::OnWidgetClosed(
   DestroyWidgetAndWebContents();
 }
 
+void OmniboxEverywhereUIManager::ApplyPendingAutoResize() {
+  if (!pending_auto_resize_size_.has_value()) {
+    return;
+  }
+  const gfx::Size size = *pending_auto_resize_size_;
+  pending_auto_resize_size_.reset();
+  ResizeDueToAutoResize(web_contents(), size);
+}
+
 void OmniboxEverywhereUIManager::AdjustWidgetBoundsToWorkArea() {
   if (is_closing_ || is_adjusting_bounds_ || !widget_ || is_dragging_ ||
       widget_->IsMinimized()) {
@@ -1088,11 +1115,7 @@ void OmniboxEverywhereUIManager::OnWidgetUserDragStarted(
 
 void OmniboxEverywhereUIManager::OnWidgetUserDragEnded(views::Widget* widget) {
   is_dragging_ = false;
-  if (pending_auto_resize_size_.has_value()) {
-    const gfx::Size size = *pending_auto_resize_size_;
-    pending_auto_resize_size_.reset();
-    ResizeDueToAutoResize(web_contents(), size);
-  }
+  ApplyPendingAutoResize();
   AdjustWidgetBoundsToWorkArea();
 }
 
@@ -1218,11 +1241,7 @@ void OmniboxEverywhereUIManager::OnScreensharePickerOpened() {
 
 void OmniboxEverywhereUIManager::OnScreensharePickerClosed() {
   SetModalOpen(Modal::kScreensharePicker, false);
-  if (pending_auto_resize_size_.has_value()) {
-    gfx::Size size = *pending_auto_resize_size_;
-    pending_auto_resize_size_.reset();
-    ResizeDueToAutoResize(web_contents(), size);
-  }
+  ApplyPendingAutoResize();
   if (widget_ && !suppress_restore_on_screenshare_picker_closed_) {
     ActivateAndFocus();
   }
@@ -1449,8 +1468,7 @@ content::WebContents* OmniboxEverywhereUIManager::OpenURLFromTab(
     const content::OpenURLParams& params,
     base::OnceCallback<void(content::NavigationHandle&)>
         navigation_handle_callback) {
-  auto* service = OmniboxEverywhereServiceFactory::GetForProfile(profile_);
-  if (service) {
+  if (auto* service = GetOmniboxEverywhereService()) {
     service->OpenUrl(params.url, params.disposition, params.transition,
                      std::move(navigation_handle_callback));
   }
@@ -1482,9 +1500,6 @@ void OmniboxEverywhereUIManager::DraggableRegionsChanged(
 bool OmniboxEverywhereUIManager::HandleContextMenu(
     content::RenderFrameHost& render_frame_host,
     const content::ContextMenuParams& params) {
-  if (!widget_ || !widget_->GetContentsView()) {
-    return true;
-  }
   context_menu_controller_->HandleContextMenu(params);
   return true;
 }

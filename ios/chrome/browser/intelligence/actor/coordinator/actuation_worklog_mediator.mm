@@ -24,6 +24,10 @@
 
 namespace {
 
+// Completion handler for suggestion selection interventions.
+using SuggestionSelectionCompletionHandler = void (
+    ^)(ActorFormSuggestion* selectedSuggestion, BOOL shouldStorePermission);
+
 // Icon size for SF symbols in chips and labeled items.
 constexpr CGFloat kIconSize = 16.0;
 
@@ -211,6 +215,22 @@ ActuationWorklogItem* CardItemForCreditCard(FormSuggestion* suggestion) {
           accessoryItem:paymentAccessory];
 }
 
+// Creates an `ActuationWorklogItem` corresponding to `suggestion`.
+ActuationWorklogItem* CardItemForSuggestion(ActorFormSuggestion* suggestion) {
+  switch (suggestion.type) {
+    case autofill::SuggestionType::kPasswordEntry:
+    case autofill::SuggestionType::kIdentityCredential:
+      return CardItemForNonFederatedCredential(suggestion.formSuggestion);
+    case autofill::SuggestionType::kAddressEntry:
+      return CardItemForAddress(suggestion.formSuggestion);
+    case autofill::SuggestionType::kCreditCardEntry:
+      return CardItemForCreditCard(suggestion.formSuggestion);
+    default:
+      NOTREACHED(base::NotFatalUntil::M165);
+      return nil;
+  }
+}
+
 }  // namespace
 
 @implementation ActuationWorklogMediator {
@@ -229,6 +249,8 @@ ActuationWorklogItem* CardItemForCreditCard(FormSuggestion* suggestion) {
   // identifier. Only called when a user interacts with the UI associated with
   // it.
   void (^_pendingInterventionCompletion)(InterventionActionIdentifier);
+  // The currently selected suggestion for the pending intervention.
+  ActorFormSuggestion* _selectedSuggestion;
 }
 
 - (instancetype)initWithActorService:(actor::ActorService*)actorService {
@@ -273,6 +295,7 @@ ActuationWorklogItem* CardItemForCreditCard(FormSuggestion* suggestion) {
   }
   _currentTaskId.reset();
   [self discardPendingIntervention];
+  _selectedSuggestion = nil;
   _latestEmittedTaskUpdate = nil;
   _taskTitle = nil;
   [_consumer setActuationActive:NO];
@@ -369,6 +392,23 @@ ActuationWorklogItem* CardItemForCreditCard(FormSuggestion* suggestion) {
            subtitle:_taskTitle];
 }
 
+// Resolves the pending suggestion selection request with `completionHandler`
+// and resets selection state.
+- (void)respondToSuggestionSelectionRequestWithAction:
+            (InterventionActionIdentifier)action
+                                    completionHandler:
+                                        (SuggestionSelectionCompletionHandler)
+                                            completionHandler {
+  ActorFormSuggestion* selected =
+      (action == InterventionActionIdentifier::kAllow) ? _selectedSuggestion
+                                                       : nil;
+  _selectedSuggestion = nil;
+  [self.suggestionsConsumer clearSuggestions];
+  if (completionHandler) {
+    completionHandler(selected, NO);
+  }
+}
+
 #pragma mark - ActorTaskUpdatesObserver
 
 - (void)didRegisterAsObserverForTaskID:(actor::ActorTaskId)taskID
@@ -427,25 +467,18 @@ ActuationWorklogItem* CardItemForCreditCard(FormSuggestion* suggestion) {
   CHECK(_currentTaskId == taskID, base::NotFatalUntil::M165);
   CHECK(!_pendingInterventionCompletion, base::NotFatalUntil::M165);
 
-  ActorFormSuggestion* firstSuggestion = suggestions.firstObject;
-  CHECK(firstSuggestion.formSuggestion, base::NotFatalUntil::M165);
+  _selectedSuggestion = suggestions.firstObject;
+  CHECK(_selectedSuggestion.formSuggestion, base::NotFatalUntil::M165);
 
-  ActuationWorklogItem* cardItem = nil;
   NSString* manuallyEnterButtonText;
-  switch (firstSuggestion.type) {
+  switch (_selectedSuggestion.type) {
     case autofill::SuggestionType::kPasswordEntry:
-      cardItem =
-          CardItemForNonFederatedCredential(firstSuggestion.formSuggestion);
+    case autofill::SuggestionType::kIdentityCredential:
       manuallyEnterButtonText = l10n_util::GetNSString(
           IDS_IOS_ACTOR_WORKLOG_SUGGESTIONS_CREDENTIAL_MANUAL_FILL_BUTTON);
       break;
     case autofill::SuggestionType::kAddressEntry:
-      cardItem = CardItemForAddress(firstSuggestion.formSuggestion);
-      manuallyEnterButtonText = l10n_util::GetNSString(
-          IDS_IOS_ACTOR_WORKLOG_SUGGESTIONS_MANUAL_FILL_BUTTON);
-      break;
     case autofill::SuggestionType::kCreditCardEntry:
-      cardItem = CardItemForCreditCard(firstSuggestion.formSuggestion);
       manuallyEnterButtonText = l10n_util::GetNSString(
           IDS_IOS_ACTOR_WORKLOG_SUGGESTIONS_MANUAL_FILL_BUTTON);
       break;
@@ -454,25 +487,17 @@ ActuationWorklogItem* CardItemForCreditCard(FormSuggestion* suggestion) {
       break;
   }
 
+  ActuationWorklogItem* cardItem = CardItemForSuggestion(_selectedSuggestion);
   [_consumer updateWorklogWithItem:cardItem chip:nil animated:YES];
 
-  __weak id<ActuationSuggestionsConsumer> suggestionsConsumer =
-      self.suggestionsConsumer;
-  [suggestionsConsumer setSuggestions:suggestions
-                 forActiveWorklogItem:cardItem];
-  if (completionHandler) {
-    _pendingInterventionCompletion =
-        ^(InterventionActionIdentifier actionIdentifier) {
-          // TODO(crbug.com/571139088): Implement credential picker modal and
-          // execute with the chose suggestion.
-          ActorFormSuggestion* selected =
-              (actionIdentifier == InterventionActionIdentifier::kAllow)
-                  ? firstSuggestion
-                  : nil;
-          completionHandler(selected, NO);
-          [suggestionsConsumer clearSuggestions];
-        };
-  }
+  [self.suggestionsConsumer setSuggestions:suggestions
+                      forActiveWorklogItem:cardItem];
+  __weak __typeof(self) weakSelf = self;
+  _pendingInterventionCompletion = ^(
+      InterventionActionIdentifier actionIdentifier) {
+    [weakSelf respondToSuggestionSelectionRequestWithAction:actionIdentifier
+                                          completionHandler:completionHandler];
+  };
 
   // TODO(crbug.com/571139088): Prefix the secondary button with the SF symbol
   // "hand.tap".
@@ -536,6 +561,18 @@ ActuationWorklogItem* CardItemForCreditCard(FormSuggestion* suggestion) {
   if (completion) {
     completion(static_cast<InterventionActionIdentifier>(action.identifier));
   }
+}
+
+#pragma mark - ActuationSuggestionsDelegate
+
+- (void)suggestionsCoordinator:(ActuationSuggestionsCoordinator*)coordinator
+           didSelectSuggestion:(ActorFormSuggestion*)suggestion {
+  _selectedSuggestion = suggestion;
+  ActuationWorklogItem* item = CardItemForSuggestion(_selectedSuggestion);
+  [_consumer setLastItem:item chip:nil];
+  [self.suggestionsConsumer
+      updateActiveWorklogItemForReselectedSuggestion:item
+                                     fromCoordinator:coordinator];
 }
 
 @end

@@ -816,6 +816,13 @@ inline constexpr char kBookmarkBarPrefetchName[] = "BookmarkBarPrefetch";
 inline constexpr char kBookmarkBarPrefetchDescription[] =
     "If enabled, bookmarkbar can trigger prefetch";
 
+inline constexpr char kBookmarkBarAreaKeyboardNavigationName[] =
+    "Bookmark bar area keyboard navigation";
+inline constexpr char kBookmarkBarAreaKeyboardNavigationDescription[] =
+    "Splits the bookmarks bar into keyboard navigation areas (apps and managed "
+    "bookmarks, saved tab groups, bookmarks). Tab stops once per area and "
+    "Left/Right arrow keys move between buttons within the area.";
+
 inline constexpr char kNewTabPagePrefetchName[] = "NewTabPagePrefetch";
 inline constexpr char kNewTabPagePrefetchDescription[] =
     "If enabled, NewTabPage can trigger prefetch";
@@ -1453,6 +1460,12 @@ inline constexpr char kAndroidTabUiRefactorName[] = "Android Tab UI Refactor";
 inline constexpr char kAndroidTabUiRefactorDescription[] =
     "Enables Tab UI refactoring on Android. For example, modeling tab group "
     "cards as first-class group items in the tab switcher.";
+
+inline constexpr char kAndroidAdaptiveUiTransitionsName[] =
+    "Android Adaptive UI Transitions";
+inline constexpr char kAndroidAdaptiveUiTransitionsDescription[] =
+    "Enables AdaptiveUiEntry transitions between bottom sheets and dialogs "
+    "on Android desktop.";
 
 inline constexpr char kAndroidVerticalTabsName[] = "Android Vertical Tabs";
 inline constexpr char kAndroidVerticalTabsDescription[] =

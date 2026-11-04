@@ -4,6 +4,7 @@
 
 #include "chrome/browser/ui/browser_actions.h"
 
+#include <array>
 #include <memory>
 #include <optional>
 #include <string>
@@ -19,6 +20,7 @@
 #include "base/metrics/user_metrics.h"
 #include "base/metrics/user_metrics_action.h"
 #include "base/notreached.h"
+#include "base/strings/string_split.h"
 #include "base/types/to_address.h"
 #include "build/branding_buildflags.h"
 #include "chrome/app/chrome_command_ids.h"
@@ -68,7 +70,7 @@
 #include "content/public/common/page_zoom.h"
 #include "ui/base/interaction/element_identifier.h"
 #include "ui/base/interaction/element_tracker.h"
-#include "ui/base/window_open_disposition.h"
+#include "ui/base/mojom/window_open_disposition.mojom.h"
 #if BUILDFLAG(IS_MAC)
 #include "chrome/browser/global_keyboard_shortcuts_mac.h"
 #include "chrome/browser/ui/browser_commands_mac.h"
@@ -152,7 +154,6 @@
 #include "chrome/browser/ui/singleton_tabs.h"
 #include "chrome/browser/ui/tabs/organizer/organizer_panel_controller.h"
 #include "chrome/browser/ui/tabs/organizer/organizer_panel_utils.h"
-#include "chrome/browser/ui/tabs/public/tab_features.h"
 #include "chrome/browser/ui/tabs/saved_tab_groups/saved_tab_group_utils.h"
 #include "chrome/browser/ui/tabs/split_tab_metrics.h"
 #include "chrome/browser/ui/tabs/tab_strip_prefs.h"
@@ -294,6 +295,15 @@ ui::Accelerator GetAcceleratorForCommandId(int command_id) {
   return ui::Accelerator();
 }
 
+// Splits the comma-separated synonym list stored in the string resource
+// `message_id` into individual search terms. Translators may delimit the list
+// with the Arabic ('،'), ideographic ('、') or fullwidth ('，') comma instead
+// of ',', so split on all of them.
+std::vector<std::u16string> GetSynonymsForAction(int message_id) {
+  return base::SplitString(l10n_util::GetStringUTF16(message_id), u",،、，",
+                           base::TRIM_WHITESPACE, base::SPLIT_WANT_NONEMPTY);
+}
+
 void MaybeLogSafetyHubNotificationClicked(
     BrowserWindowInterface* bwi,
     const actions::ActionInvocationContext& context) {
@@ -429,6 +439,39 @@ void BrowserActions::InitializeBrowserActions() {
   InitializeToolbarAndMiscActions();
   InitializeNavigationActions();
   InitializeSubmenuActions();
+  PopulateSynonyms();
+}
+
+void BrowserActions::PopulateSynonyms() {
+  CHECK(root_action_item_);
+
+  // Maps an action to the string resource holding its comma-separated search
+  // synonyms. To add synonyms for an action, add a message to
+  // chrome/app/action_synonym_strings.grdp and list it here.
+  static constexpr auto kActionSynonymMessageIds =
+      std::to_array<std::pair<actions::ActionId, int>>({
+          {kActionShowPasswordManager,
+           IDS_ACTION_SYNONYMS_SHOW_PASSWORD_MANAGER},
+          {kActionShowPaymentMethods, IDS_ACTION_SYNONYMS_SHOW_PAYMENT_METHODS},
+          {kActionShowContactInfo, IDS_ACTION_SYNONYMS_SHOW_CONTACT_INFO},
+          {kActionCustomizeChrome, IDS_ACTION_SYNONYMS_CUSTOMIZE_CHROME},
+          {kActionCloseProfile, IDS_ACTION_SYNONYMS_CLOSE_PROFILE},
+          {kActionManageGoogleAccount,
+           IDS_ACTION_SYNONYMS_MANAGE_GOOGLE_ACCOUNT},
+          {kActionOpenGuestProfile, IDS_ACTION_SYNONYMS_OPEN_GUEST_PROFILE},
+          {kActionAddNewProfile, IDS_ACTION_SYNONYMS_ADD_NEW_PROFILE},
+          {kActionManageChromeProfiles,
+           IDS_ACTION_SYNONYMS_MANAGE_CHROME_PROFILES},
+      });
+
+  // TODO(crbug.com/581423314): Each entry costs a FindAction tree walk during
+  // window creation. Verify this stays performant as the synonym table grows.
+  for (const auto& [action_id, message_id] : kActionSynonymMessageIds) {
+    if (actions::ActionItem* action = actions::ActionManager::Get().FindAction(
+            action_id, root_action_item_)) {
+      action->AddSynonyms(GetSynonymsForAction(message_id));
+    }
+  }
 }
 
 void BrowserActions::InitializeSidePanelActions() {
@@ -1060,9 +1103,8 @@ void BrowserActions::InitializePageActionIconActions() {
           base::BindRepeating(
               [](BrowserWindowInterface* bwi, actions::ActionItem* item,
                  actions::ActionInvocationContext context) {
-                auto* tab_helper = bwi->GetActiveTabInterface()
-                                       ->GetTabFeatures()
-                                       ->commerce_ui_tab_helper();
+                auto* tab_helper = commerce::CommerceUiTabHelper::From(
+                    bwi->GetActiveTabInterface());
                 CHECK(tab_helper);
 
                 tab_helper->OnPriceInsightsIconClicked();
@@ -1087,17 +1129,16 @@ void BrowserActions::InitializePageActionIconActions() {
           base::BindRepeating(
               [](BrowserWindowInterface* bwi, actions::ActionItem* item,
                  actions::ActionInvocationContext context) {
-                auto* tab_features =
-                    bwi->GetActiveTabInterface()->GetTabFeatures();
-                CHECK(tab_features);
+                auto* tab_interface = bwi->GetActiveTabInterface();
+                CHECK(tab_interface);
                 auto* page_action_controller =
                     commerce::DiscountsPageActionViewController::From(
-                        *bwi->GetActiveTabInterface());
+                        *tab_interface);
                 CHECK(page_action_controller);
                 page_action_controller->MaybeShowBubble(/*from_user=*/true);
 
                 auto* commerce_ui_tab_helper =
-                    tab_features->commerce_ui_tab_helper();
+                    commerce::CommerceUiTabHelper::From(tab_interface);
                 CHECK(commerce_ui_tab_helper);
 
                 commerce::metrics::DiscountsMetricCollector::
@@ -5246,7 +5287,7 @@ void BrowserActions::InitializeNavigationActions() {
           base::BindRepeating(
               [](BrowserWindowInterface* bwi, actions::ActionItem* item,
                  actions::ActionInvocationContext context) {
-                WindowOpenDisposition disposition =
+                ui::mojom::WindowOpenDisposition disposition =
                     context.GetProperty(chrome::kDispositionKey);
                 chrome::GoBack(bwi, disposition);
               },
@@ -5259,7 +5300,7 @@ void BrowserActions::InitializeNavigationActions() {
           base::BindRepeating(
               [](BrowserWindowInterface* bwi, actions::ActionItem* item,
                  actions::ActionInvocationContext context) {
-                WindowOpenDisposition disposition =
+                ui::mojom::WindowOpenDisposition disposition =
                     context.GetProperty(chrome::kDispositionKey);
                 chrome::Reload(bwi, disposition);
               },
@@ -5283,7 +5324,7 @@ void BrowserActions::InitializeNavigationActions() {
           base::BindRepeating(
               [](BrowserWindowInterface* bwi, actions::ActionItem* item,
                  actions::ActionInvocationContext context) {
-                WindowOpenDisposition disposition =
+                ui::mojom::WindowOpenDisposition disposition =
                     context.GetProperty(chrome::kDispositionKey);
                 chrome::ClearCache(bwi);
                 chrome::ReloadBypassingCache(bwi, disposition);
@@ -5297,7 +5338,7 @@ void BrowserActions::InitializeNavigationActions() {
           base::BindRepeating(
               [](BrowserWindowInterface* bwi, actions::ActionItem* item,
                  actions::ActionInvocationContext context) {
-                WindowOpenDisposition disposition =
+                ui::mojom::WindowOpenDisposition disposition =
                     context.GetProperty(chrome::kDispositionKey);
                 chrome::ReloadBypassingCache(bwi, disposition);
               },
@@ -5321,7 +5362,7 @@ void BrowserActions::InitializeNavigationActions() {
           base::BindRepeating(
               [](BrowserWindowInterface* bwi, actions::ActionItem* item,
                  actions::ActionInvocationContext context) {
-                WindowOpenDisposition disposition =
+                ui::mojom::WindowOpenDisposition disposition =
                     context.GetProperty(chrome::kDispositionKey);
                 chrome::Home(bwi, disposition);
               },
@@ -5334,7 +5375,7 @@ void BrowserActions::InitializeNavigationActions() {
           base::BindRepeating(
               [](BrowserWindowInterface* bwi, actions::ActionItem* item,
                  actions::ActionInvocationContext context) {
-                WindowOpenDisposition disposition =
+                ui::mojom::WindowOpenDisposition disposition =
                     context.GetProperty(chrome::kDispositionKey);
                 chrome::GoForward(bwi, disposition);
               },

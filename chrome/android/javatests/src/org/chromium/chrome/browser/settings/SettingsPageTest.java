@@ -69,7 +69,6 @@ import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.RuleChain;
 import org.junit.runner.RunWith;
 
 import org.chromium.base.FeatureOverrides;
@@ -90,6 +89,7 @@ import org.chromium.chrome.browser.autofill.settings.AutofillProfilesFragment;
 import org.chromium.chrome.browser.autofill.settings.options.AutofillOptionsFragment;
 import org.chromium.chrome.browser.flags.ChromeFeatureList;
 import org.chromium.chrome.browser.flags.ChromeSwitches;
+import org.chromium.chrome.browser.native_page.NativePageAssassin;
 import org.chromium.chrome.browser.night_mode.ChromeNightModeTestUtils;
 import org.chromium.chrome.browser.night_mode.GlobalNightModeStateProviderHolder;
 import org.chromium.chrome.browser.privacy.settings.PrivacySettings;
@@ -97,7 +97,8 @@ import org.chromium.chrome.browser.settings.search.SearchResultsPreferenceFragme
 import org.chromium.chrome.browser.tab.Tab;
 import org.chromium.chrome.test.ChromeJUnit4ClassRunner;
 import org.chromium.chrome.test.ChromeTabbedActivityTestRule;
-import org.chromium.chrome.test.batch.BlankCTATabInitialStateRule;
+import org.chromium.chrome.test.transit.AutoResetCtaTransitTestRule;
+import org.chromium.chrome.test.transit.ChromeTransitTestRules;
 import org.chromium.chrome.test.util.ActivityTestUtils;
 import org.chromium.chrome.test.util.ChromeTabUtils;
 import org.chromium.components.browser_ui.styles.SemanticColorUtils;
@@ -128,14 +129,9 @@ public class SettingsPageTest {
     /** The activity the test started with, to detect tests that recreate it. */
     private ChromeTabbedActivity mInitialActivity;
 
-    public ChromeTabbedActivityTestRule mActivityTestRule = new ChromeTabbedActivityTestRule();
-
-    public BlankCTATabInitialStateRule mBlankCTATabInitialStateRule =
-            new BlankCTATabInitialStateRule(mActivityTestRule, false);
-
     @Rule
-    public final RuleChain mRuleChain =
-            RuleChain.outerRule(mActivityTestRule).around(mBlankCTATabInitialStateRule);
+    public final AutoResetCtaTransitTestRule mActivityTestRule =
+            ChromeTransitTestRules.fastAutoResetCtaActivityRule();
 
     @Before
     public void setUp() {
@@ -151,6 +147,12 @@ public class SettingsPageTest {
                 "Rotating to portrait letterboxes the activity on landscape-oriented devices,"
                         + " causing Android 14's letterbox education dialog to intercept clicks.",
                 Build.VERSION.SDK_INT <= Build.VERSION_CODES.UPSIDE_DOWN_CAKE && isLandscape);
+
+        // Batched tests spawn many renderer processes, which can trigger OS memory-pressure
+        // signals (e.g. TRIM_MEMORY_RUNNING_LOW / CRITICAL on Android <= 13) while a Settings tab
+        // is briefly hidden behind another tab. Prevent ChromeTabbedActivity.onTrimMemory() from
+        // freezing hidden SettingsPage instances mid-test. See crbug.com/579988178.
+        NativePageAssassin.setDisableFreezeAllHiddenPagesForTesting(true);
     }
 
     @After
@@ -366,11 +368,45 @@ public class SettingsPageTest {
         // 1. Verify Toolbar/Action Bar is restored and displayed.
         onViewWaiting(withId(R.id.action_bar)).check(matches(isDisplayed()));
 
-        // 2. Verify MainSettings header pane is restored (checking top-level preference item).
-        onViewWaiting(withText(R.string.prefs_privacy_security)).check(matches(isDisplayed()));
+        // 2. Verify MainSettings header pane is restored. In single-column mode the detail pane
+        // covers it.
+        waitForHeaderPaneWithDetailOpen();
 
         // 3. Verify SearchEngineSettings detail pane fragment is restored and displayed.
         onViewWaiting(withText("Microsoft Bing")).check(matches(isDisplayed()));
+    }
+
+    /**
+     * Waits for MainSettings to be restored in the header pane while a detail page is open.
+     * Two-column mode shows the header pane beside the detail page. Single-column mode hides the
+     * header pane under the detail page.
+     */
+    private void waitForHeaderPaneWithDetailOpen() {
+        AtomicBoolean isTwoColumn = new AtomicBoolean();
+        CriteriaHelper.pollUiThread(
+                () -> {
+                    var hostFragment = SettingsHostFragment.get(mActivityTestRule.getActivity());
+                    Criteria.checkThat(hostFragment, notNullValue());
+                    var multiColumn = hostFragment.getMultiColumnSettings();
+                    Criteria.checkThat(multiColumn, notNullValue());
+                    View view = multiColumn.getView();
+                    Criteria.checkThat(view, notNullValue());
+                    Criteria.checkThat(view.isLaidOut(), is(true));
+                    Criteria.checkThat(
+                            multiColumn
+                                    .getChildFragmentManager()
+                                    .findFragmentById(R.id.preferences_header),
+                            instanceOf(MainSettings.class));
+                    View header = view.findViewById(R.id.preferences_header);
+                    Criteria.checkThat(header, notNullValue());
+                    isTwoColumn.set(multiColumn.isTwoColumn());
+                    int expected = isTwoColumn.get() ? View.VISIBLE : View.INVISIBLE;
+                    Criteria.checkThat(header.getVisibility(), is(expected));
+                });
+        if (isTwoColumn.get()) {
+            onViewWaiting(allOf(withText(R.string.prefs_privacy_security), isDisplayed()))
+                    .check(matches(isDisplayed()));
+        }
     }
 
     /**
@@ -387,7 +423,7 @@ public class SettingsPageTest {
                         ChromeTabbedActivity.class,
                         Stage.RESUMED,
                         activity::onNightModeStateChanged);
-        mActivityTestRule.setActivity(newActivity);
+        mActivityTestRule.getActivityTestRule().setActivity(newActivity);
     }
 
     /** Regression test for crbug.com/566898692. */
@@ -413,8 +449,7 @@ public class SettingsPageTest {
 
         // Verify the header pane and the SearchEngineSettings detail fragment are restored.
         onViewWaiting(allOf(withId(R.id.action_bar), isDisplayed())).check(matches(isDisplayed()));
-        onViewWaiting(allOf(withText(R.string.prefs_privacy_security), isDisplayed()))
-                .check(matches(isDisplayed()));
+        waitForHeaderPaneWithDetailOpen();
         onViewWaiting(allOf(withText("Microsoft Bing"), isDisplayed()))
                 .check(matches(isDisplayed()));
     }
@@ -432,7 +467,7 @@ public class SettingsPageTest {
                         /* uiThreadTrigger= */ null,
                         /* backgroundThreadTrigger= */ () ->
                                 onView(allOf(withId(viewId), isDisplayed())).perform(click()));
-        mActivityTestRule.setActivity(newActivity);
+        mActivityTestRule.getActivityTestRule().setActivity(newActivity);
         waitForSettingsPageInTab("Settings page should reattach after the theme change.");
     }
 
@@ -477,13 +512,15 @@ public class SettingsPageTest {
             // Leave the batch in light mode even if the test failed while dark.
             if (ThreadUtils.runOnUiThreadBlocking(
                     () -> GlobalNightModeStateProviderHolder.getInstance().isInNightMode())) {
-                mActivityTestRule.setActivity(
-                        ApplicationTestUtils.waitForActivityWithClass(
-                                ChromeTabbedActivity.class,
-                                Stage.RESUMED,
-                                () ->
-                                        ChromeNightModeTestUtils.setUpNightModeForChromeActivity(
-                                                false)));
+                mActivityTestRule
+                        .getActivityTestRule()
+                        .setActivity(
+                                ApplicationTestUtils.waitForActivityWithClass(
+                                        ChromeTabbedActivity.class,
+                                        Stage.RESUMED,
+                                        () ->
+                                                ChromeNightModeTestUtils
+                                                        .setUpNightModeForChromeActivity(false)));
             }
             ThreadUtils.runOnUiThreadBlocking(
                     ChromeNightModeTestUtils::tearDownNightModeAfterChromeActivityDestroyed);

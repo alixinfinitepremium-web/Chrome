@@ -1033,7 +1033,7 @@ suite('SpeechController', () => {
     const node = document.createTextNode(text);
     nodeStore.setDomNode(node, id);
     const segments: Segment[] =
-        [{node: ReadAloudNode.create(node)!, start: 0, length: text.length}];
+        [{node: ReadAloudNode.create(node), start: 0, length: text.length}];
     readAloudModel.setCurrentTextSegments(segments);
     readAloudModel.setCurrentTextContent(text);
     element.appendChild(node);
@@ -1064,7 +1064,7 @@ suite('SpeechController', () => {
     const node = document.createTextNode(text);
     nodeStore.setDomNode(node, id);
     const segments: Segment[] =
-        [{node: ReadAloudNode.create(node)!, start: 0, length: text.length}];
+        [{node: ReadAloudNode.create(node), start: 0, length: text.length}];
     readAloudModel.setCurrentTextSegments(segments);
     readAloudModel.setCurrentTextContent(text);
     element.appendChild(node);
@@ -1082,6 +1082,48 @@ suite('SpeechController', () => {
     assertTrue(onPlayingFromPosition);
   });
 
+  test('collapsed selection keeps line focus position', async () => {
+    const text = 'Lost for kind words to say.';
+    const element = document.createElement('p');
+    const id = 2;
+    const node = document.createTextNode(text);
+    nodeStore.setDomNode(node, id);
+    const segments: Segment[] =
+        [{node: ReadAloudNode.create(node), start: 0, length: text.length}];
+    readAloudModel.setCurrentTextSegments(segments);
+    readAloudModel.setCurrentTextContent(text);
+    element.appendChild(node);
+    document.body.appendChild(element);
+    const range = document.createRange();
+    range.selectNode(node);
+    const rect = range.getClientRects().item(0);
+    assertTrue(!!rect);
+    speechController.onLineFocusChange(
+        document.caretPositionFromPoint(rect.left, rect.top));
+
+    speechController.onSelectionChange(null);
+    speechController.onPlayPauseToggle(element);
+    await speech.whenCalled('speak');
+
+    assertTrue(onPlayingFromPosition);
+  });
+
+  test('clearing line focus keeps selection position', async () => {
+    const text = 'Keep my selection.';
+    setContent(text, readAloudModel);
+    const node = nodeStore.getDomNode(2)!;
+    speechController.onSelectionChange(
+        {node, offset: 0, source: ContentPositionSource.SELECTION});
+    const element = document.createElement('p');
+    element.textContent = text;
+
+    speechController.onLineFocusChange(null);
+    speechController.onPlayPauseToggle(element);
+    await speech.whenCalled('speak');
+
+    assertTrue(onPlayingFromPosition);
+  });
+
   test(
       'playFromContentPosition starts from beginning when line focus off',
       async () => {
@@ -1091,7 +1133,7 @@ suite('SpeechController', () => {
         const node = document.createTextNode(text);
         nodeStore.setDomNode(node, id);
         const segments: Segment[] = [
-          {node: ReadAloudNode.create(node)!, start: 0, length: text.length},
+          {node: ReadAloudNode.create(node), start: 0, length: text.length},
         ];
         readAloudModel.setCurrentTextSegments(segments);
         readAloudModel.setCurrentTextContent(text);
@@ -1151,17 +1193,17 @@ suite('SpeechController', () => {
         nodeStore.setDomNode(node3, 3);
 
         const segment1 = {
-          node: ReadAloudNode.create(node1)!,
+          node: ReadAloudNode.create(node1),
           start: 0,
           length: text1.length,
         };
         const segment2 = {
-          node: ReadAloudNode.create(node2)!,
+          node: ReadAloudNode.create(node2),
           start: 0,
           length: text2.length,
         };
         const segment3 = {
-          node: ReadAloudNode.create(node3)!,
+          node: ReadAloudNode.create(node3),
           start: 0,
           length: text3.length,
         };
@@ -1247,7 +1289,7 @@ suite('SpeechController', () => {
         const id = 2;
         nodeStore.setDomNode(node, id);
         const segments: Segment[] = [
-          {node: ReadAloudNode.create(node)!, start: 0, length: text.length},
+          {node: ReadAloudNode.create(node), start: 0, length: text.length},
         ];
         readAloudModel.setCurrentTextSegments(segments);
 

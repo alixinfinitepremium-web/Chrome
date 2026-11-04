@@ -1231,7 +1231,6 @@ crbug.com/803276 [ Win ] inspector-protocol/memory/sampling-native-snapshot.js [
 # Test failures revealed by crrev.com/c/4073931
 crbug.com/1395458 editing/selection/modify_move/move-by-word-visually-mac.html [ Failure ]
 crbug.com/1395465 media/media-controls-hide-menu-stoppropagation-iframe.html [ Failure ]
-crbug.com/1395499 http/tests/auto-sizes-image-use-counter.html [ Failure Pass ]
 
 # Elastic overscroll doesn't work on Mac/Linux when running as a web_test. Manually,
 # this works as expected.
@@ -4315,29 +4314,6 @@ crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-break/flexb
 crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-break/flexbox/single-line-column-flex-fragmentation-030.html [ Failure ]
 crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-break/flexbox/single-line-column-flex-fragmentation-043.html [ Failure ]
 crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-break/flexbox/single-line-row-flex-fragmentation-024.html [ Failure ]
-crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-break/grid/grid-item-008.html [ Crash Failure ]
-crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-break/grid/grid-item-oof-002.html [ Crash Failure ]
-crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-break/grid/grid-item-oof-003.html [ Crash Failure ]
-crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-break/grid/grid-item-oof-005.html [ Crash Failure ]
-crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-break/grid/grid-item-oof-006.html [ Crash Failure ]
-crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-break/grid/grid-item-oof-007.html [ Crash Failure ]
-crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-break/grid/grid-item-oof-012.html [ Crash Failure ]
-crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-break/grid/grid-item-oof-013.html [ Crash Failure ]
-crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-break/grid/grid-item-oof-014.html [ Crash Failure ]
-crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-break/grid/grid-lanes/column-grid-lanes-oof-fragmentation-005.html [ Crash ]
-crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-break/grid/grid-lanes/column-grid-lanes-oof-fragmentation-006.html [ Crash ]
-crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-break/grid/grid-lanes/column-grid-lanes-oof-fragmentation-007.html [ Crash ]
-crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-break/grid/grid-lanes/column-grid-lanes-oof-fragmentation-008.html [ Crash ]
-crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-break/grid/grid-lanes/column-grid-lanes-oof-fragmentation-010.html [ Crash ]
-crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-break/grid/grid-lanes/column-grid-lanes-oof-fragmentation-012.html [ Crash ]
-crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-break/grid/grid-lanes/column-multi-lane-fragmentation-005.html [ Crash ]
-crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-break/grid/grid-lanes/row-grid-lanes-oof-fragmentation-002.html [ Crash ]
-crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-break/grid/grid-lanes/row-grid-lanes-oof-fragmentation-003.html [ Crash ]
-crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-break/grid/grid-lanes/row-grid-lanes-oof-fragmentation-004.html [ Crash ]
-crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-break/grid/grid-lanes/row-grid-lanes-oof-fragmentation-008.html [ Crash ]
-crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-break/grid/grid-lanes/row-grid-lanes-oof-fragmentation-009.html [ Crash ]
-crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-break/grid/grid-lanes/row-grid-lanes-oof-fragmentation-010.html [ Crash ]
-crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-break/grid/grid-lanes/row-grid-lanes-oof-fragmentation-011.html [ Crash ]
 crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-break/out-of-flow-in-multicolumn-021.html [ Failure ]
 crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-break/out-of-flow-in-multicolumn-024.html [ Failure ]
 crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-break/out-of-flow-in-multicolumn-025.html [ Failure ]
@@ -4350,7 +4326,6 @@ crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-break/out-o
 crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-break/out-of-flow-in-multicolumn-098.html [ Failure ]
 crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-break/out-of-flow-in-multicolumn-114.html [ Failure ]
 crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-break/out-of-flow-in-multicolumn-115.html [ Failure ]
-crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-break/out-of-flow-in-multicolumn-paint-order-003.html [ Crash Failure ]
 crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-break/overflow-clip-015.html [ Failure ]
 crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-break/overflow-clip-016.html [ Failure ]
 crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-break/table/oof-in-cell-with-alignment-004.html [ Failure ]
@@ -4481,8 +4456,6 @@ crbug.com/722212 fast/events/pointerevents/mouse-pointer-event-properties.html [
 crbug.com/874837 [ Win ] ietestcenter/css3/bordersbackgrounds/background-attachment-local-scrolling.htm [ Failure Pass ]
 crbug.com/874837 [ Debug Linux ] ietestcenter/css3/bordersbackgrounds/background-attachment-local-scrolling.htm [ Failure Pass ]
 
-crbug.com/715718 external/wpt/media-source/mediasource-remove.html [ Failure Pass ]
-
 # Temporarily disabled since tests don't make window key on Mac
 crbug.com/1267867 [ Mac ] external/wpt/pointerevents/pointerlock/* [ Failure Skip ]
 crbug.com/1267867 [ Mac ] external/wpt/pointerlock/* [ Failure Skip ]
@@ -4608,15 +4581,10 @@ crbug.com/814964 virtual/gpu-rasterization/images/yuv-decode-eligible/color-prof
 
 # These pass on bots with proprietary codecs (most CQ bots) while failing on bots without.
 crbug.com/807110 external/wpt/html/semantics/embedded-content/media-elements/mime-types/canPlayType.html [ Failure Pass ]
-crbug.com/807110 external/wpt/media-source/mediasource-addsourcebuffer.html [ Failure Pass ]
-crbug.com/807110 external/wpt/media-source/mediasource-buffered.html [ Failure Pass ]
-crbug.com/807110 [ Release Win ] external/wpt/media-source/mediasource-config-change-mp4-a-bitrate.html [ Failure Pass ]
-crbug.com/807110 [ Release Win ] external/wpt/media-source/mediasource-config-change-mp4-v-bitrate.html [ Failure Pass Timeout ]
-crbug.com/807110 [ Release Win ] external/wpt/media-source/mediasource-config-change-mp4-v-framerate.html [ Failure Pass Timeout ]
-# Failure and Pass for crbug.com/807110 and Timeout for crbug.com/727252.
-crbug.com/727252 [ Debug ] external/wpt/media-source/mediasource-endofstream.html [ Failure Pass Timeout ]
-crbug.com/727252 [ Release ] external/wpt/media-source/mediasource-endofstream.html [ Failure Pass Timeout ]
-crbug.com/807110 external/wpt/media-source/mediasource-sequencemode-append-buffer.html [ Failure Pass ]
+crbug.com/727252 [ Release Win ] external/wpt/media-source/mediasource-config-change-mp4-v-bitrate.html [ Pass Timeout ]
+crbug.com/727252 [ Release Win ] external/wpt/media-source/mediasource-config-change-mp4-v-framerate.html [ Pass Timeout ]
+crbug.com/727252 [ Debug ] external/wpt/media-source/mediasource-endofstream.html [ Pass Timeout ]
+crbug.com/727252 [ Release ] external/wpt/media-source/mediasource-endofstream.html [ Pass Timeout ]
 crbug.com/794338 media/video-rotation.html [ Failure Pass ]
 
 # MHT works only when loaded from local FS (file://..).
@@ -5763,6 +5731,7 @@ crbug.com/1362106 [ Win ] virtual/media-foundation-for-clear-dcomp/media/W3C/vid
 crbug.com/1426179 [ Win ] virtual/media-foundation-for-clear-dcomp/external/wpt/media-source/mediasource-changetype.html [ Failure Skip ]
 crbug.com/1362106 [ Win ] virtual/media-foundation-for-clear-dcomp/external/wpt/media-source/mediasource-changetype-play-implicit.html [ Failure Skip ]
 crbug.com/1362106 [ Win ] virtual/media-foundation-for-clear-dcomp/external/wpt/media-source/mediasource-changetype-play.html [ Failure Skip ]
+crbug.com/1362106 [ Win ] virtual/media-foundation-for-clear-dcomp/external/wpt/media-source/mediasource-config-change-mp4-a-bitrate.html [ Failure Skip ]
 crbug.com/1362106 [ Win ] virtual/media-foundation-for-clear-dcomp/external/wpt/media-source/mediasource-config-change-mp4-av-audio-bitrate.html [ Failure Skip ]
 crbug.com/1362106 [ Win ] virtual/media-foundation-for-clear-dcomp/external/wpt/media-source/mediasource-config-change-mp4-av-framesize.html [ Failure Skip ]
 crbug.com/1362106 [ Win ] virtual/media-foundation-for-clear-dcomp/external/wpt/media-source/mediasource-config-change-mp4-av-video-bitrate.html [ Failure Skip ]

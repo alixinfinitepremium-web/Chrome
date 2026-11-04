@@ -1303,6 +1303,63 @@ suite('HistoryListTest', function() {
     assertFalse(menu.open);
   });
 
+  test('RowsKnowWhenSearching', async () => {
+    await finishSetup(TEST_HISTORY_RESULTS);
+    let items = element.shadowRoot.querySelectorAll('history-item');
+    assertTrue(items.length > 0);
+    for (const item of items) {
+      assertFalse(item.hasAttribute('is-search'));
+    }
+
+    testProxy.handler.resetResolver('queryHistory');
+    testProxy.handler.setResultFor('queryHistory', Promise.resolve({
+      results: {info: createHistoryInfo('cat'), value: TEST_HISTORY_RESULTS},
+    }));
+    app.fire('change-query', {search: 'cat'});
+    await testProxy.handler.whenCalled('queryHistory');
+    await microtasksFinished();
+    items = element.shadowRoot.querySelectorAll('history-item');
+    assertTrue(items.length > 0);
+    for (const item of items) {
+      assertTrue(item.hasAttribute('is-search'));
+    }
+  });
+
+  // <if expr="is_android">
+  test('EmptyStateIllustrationAndroid', async () => {
+    await finishSetup([]);
+    assertFalse(element.$.noResults.hidden);
+    const svg = element.$.noResults.querySelector('svg');
+    assertTrue(!!svg);
+    assertEquals('true', svg.getAttribute('aria-hidden'));
+    assertEquals(
+        loadTimeData.getString('noResults'),
+        element.$.noResults.textContent.trim());
+
+    testProxy.handler.resetResolver('queryHistory');
+    testProxy.handler.setResultFor('queryHistory', Promise.resolve({
+      results: {info: createHistoryInfo('foo'), value: []},
+    }));
+    app.fire('change-query', {search: 'foo'});
+    await testProxy.handler.whenCalled('queryHistory');
+    await microtasksFinished();
+    assertEquals('foo', element.searchedTerm);
+    assertFalse(element.$.noResults.hidden);
+    assertEquals(
+        loadTimeData.getString('noSearchResults'),
+        element.$.noResults.textContent.trim());
+    assertTrue(!!element.$.noResults.querySelector('svg'));
+  });
+  // </if>
+
+  // <if expr="not is_android">
+  test('EmptyStateNonAndroid', async () => {
+    await finishSetup([]);
+    assertFalse(element.$.noResults.hidden);
+    assertEquals(null, element.$.noResults.querySelector('svg'));
+  });
+  // </if>
+
   teardown(function() {
     app.fire('change-query', {search: ''});
   });

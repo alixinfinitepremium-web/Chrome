@@ -57,7 +57,6 @@
 #include "components/sessions/core/session_id.h"
 #include "components/strings/grit/components_strings.h"
 #include "components/tabs/public/tab_interface.h"
-#include "components/user_education/common/feature_promo/feature_promo_controller.h"
 #include "components/vector_icons/vector_icons.h"
 #include "content/public/browser/page.h"
 #include "content/public/browser/web_contents.h"
@@ -165,11 +164,8 @@ ContextualTasksEphemeralButtonController::
                IsContextualTasksEphemeralPinButtonRefactorEnabled() &&
            base::FeatureList::IsEnabled(
                contextual_tasks::kContextualTasksEphemeralButtonContextMenu))) {
-        const int close_label_id =
-            contextual_tasks::
-                    ShouldUseCloseSidePanelForEphemeralButtonContextMenu()
-                ? IDS_CONTEXTUAL_TASKS_EPHEMERAL_BUTTON_CONTEXT_MENU_CLOSE
-                : IDS_CONTEXTUAL_TASKS_EPHEMERAL_BUTTON_CONTEXT_MENU_REMOVE;
+        const int close_label_id = contextual_tasks::
+            GetContextualTasksEphemeralButtonContextMenuCloseTextId();
         close_side_panel_action_item_ = action_item->AddChild(
             actions::ActionItem::Builder(
                 base::BindRepeating(
@@ -800,17 +796,30 @@ void ContextualTasksEphemeralButtonController::
     if (!was_active_panel_open && will_be_active_panel_open) {
       ephemeral_button_shown_time_ticks_.reset();
       contextual_tasks::RecordEphemeralButtonShown(/*is_panel_open=*/true);
+      if (was_active_panel_collapsed) {
+        // The panel was reopened while the collapsed button's toast could be
+        // showing (e.g. from the Omnibox or a context menu). Match the legacy
+        // ContextualTasksButton, which aborts the toast whenever the panel
+        // opens; a click on the button itself already marks the promo as
+        // used before reaching here.
+        if (auto* user_education = BrowserUserEducationInterface::From(
+                browser_window_interface_)) {
+          user_education->AbortFeaturePromo(
+              feature_engagement::
+                  kIPHContextualTasksEphemeralToolbarButtonFeature);
+        }
+      }
     } else if (!was_active_panel_collapsed && will_be_active_panel_collapsed) {
       ephemeral_button_shown_time_ticks_ = NowTicks();
       contextual_tasks::RecordEphemeralButtonShown(/*is_panel_open=*/false);
-      if (auto* user_education =
-              BrowserUserEducationInterface::From(browser_window_interface_)) {
-        user_education::FeaturePromoParams params(
-            feature_engagement::
-                kIPHContextualTasksEphemeralToolbarButtonFeature);
-        params.show_promo_result_callback = base::DoNothing();
-        user_education->MaybeShowFeaturePromo(std::move(params));
-      }
+      // The popped-out pinned action was just added to the toolbar and has
+      // not been laid out yet. Request the toast once the current task has
+      // finished, mirroring the legacy button, which waited for its show
+      // animation; the request is dropped if the button changes state first.
+      base::SequencedTaskRunner::GetCurrentDefault()->PostTask(
+          FROM_HERE, base::BindOnce(&ContextualTasksEphemeralButtonController::
+                                        MaybeShowEphemeralButtonPromo,
+                                    weak_ptr_factory_.GetWeakPtr()));
     }
     if (!should_show && was_ephemeral_button_visible_) {
       if (removal_reason_.has_value()) {
@@ -858,6 +867,20 @@ void ContextualTasksEphemeralButtonController::
   }
   should_update_visibility_callbacks_.Notify(should_show);
   FlushOpenClickCounts(/*flush_all=*/false);
+}
+
+void ContextualTasksEphemeralButtonController::MaybeShowEphemeralButtonPromo() {
+  // Only show the toast if the button is still visible in its collapsed state;
+  // the panel may have reopened or the task ended since the request was
+  // posted.
+  if (!was_ephemeral_button_visible_ || was_ephemeral_panel_open_) {
+    return;
+  }
+  if (auto* user_education =
+          BrowserUserEducationInterface::From(browser_window_interface_)) {
+    user_education->MaybeShowFeaturePromo(
+        feature_engagement::kIPHContextualTasksEphemeralToolbarButtonFeature);
+  }
 }
 
 void ContextualTasksEphemeralButtonController::RecordTaskOpenClickCounts(

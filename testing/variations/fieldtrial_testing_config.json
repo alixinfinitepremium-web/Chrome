@@ -1281,24 +1281,6 @@
             ]
         }
     ],
-    "ApiGlicAccessFromPromotionPage": [
-        {
-            "platforms": [
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "ApiGlicAccessFromPromotionPage"
-                    ]
-                }
-            ]
-        }
-    ],
     "AppListLaunchRecorder": [
         {
             "platforms": [
@@ -1602,7 +1584,7 @@
                 {
                     "name": "Enabled",
                     "params": {
-                        "delay": "250ms"
+                        "delay": "500ms"
                     },
                     "enable_features": [
                         "AudioRendererMixerImmediatePause"
@@ -3047,11 +3029,25 @@
         {
             "platforms": [
                 "android",
-                "android_webview",
                 "chromeos",
                 "linux",
                 "mac",
                 "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "BindURLLoaderFactoryToHighPriorityTaskRunner"
+                    ]
+                }
+            ]
+        }
+    ],
+    "BindURLLoaderFactoryToHighPriorityTaskRunnerWebView": [
+        {
+            "platforms": [
+                "android_webview"
             ],
             "experiments": [
                 {
@@ -3795,23 +3791,6 @@
                     },
                     "enable_features": [
                         "CentralizedInfoBarFramework"
-                    ]
-                }
-            ]
-        }
-    ],
-    "CertificateCollectionEnabled": [
-        {
-            "platforms": [
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "CertificateCollectionEnabled"
                     ]
                 }
             ]
@@ -12992,6 +12971,21 @@
             ]
         }
     ],
+    "OmniboxVoicePlateIntent": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "OmniboxVoicePlateIntent"
+                    ]
+                }
+            ]
+        }
+    ],
     "OmniboxWebUIDeferShowUntilVisualStateReady": [
         {
             "platforms": [
@@ -14264,6 +14258,33 @@
                     },
                     "enable_features": [
                         "TrimOnMemoryPressure"
+                    ]
+                }
+            ]
+        }
+    ],
+    "PerformanceControlsHatsStudy": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "EnabledPerformance_20261102",
+                    "params": {
+                        "en_site_id": "rcKd8mV1n0ugnJ3q1cK0Vogsfb7o",
+                        "probability": "0.0005"
+                    },
+                    "enable_features": [
+                        "PerformanceControlsPerformanceSurvey"
+                    ],
+                    "disable_features": [
+                        "PerformanceControlsBatteryPerformanceSurvey",
+                        "PerformanceControlsBatterySaverOptOutSurvey",
+                        "PerformanceControlsMemorySaverOptOutSurvey"
                     ]
                 }
             ]

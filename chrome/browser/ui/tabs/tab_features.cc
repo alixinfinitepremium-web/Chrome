@@ -120,6 +120,7 @@
 #include "chrome/browser/ui/autofill/autofill_client_provider.h"
 #include "chrome/browser/ui/autofill/autofill_client_provider_factory.h"
 #include "chrome/browser/ui/autofill/bubble_manager.h"
+#include "chrome/browser/ui/autofill/bubble_manager_impl.h"
 #include "chrome/browser/ui/autofill/one_time_tokens/gmail_otp_opt_in_bubble_controller.h"
 #include "chrome/browser/ui/autofill/payments/omnibox_autofill_bubble_controller.h"
 #include "chrome/browser/ui/autofill/payments/omnibox_autofill_page_action_controller.h"
@@ -648,8 +649,9 @@ void TabFeatures::Init(TabInterface& tab, Profile* profile) {
         ThemeServiceFactory::GetForProfile(profile));
 
     permission_indicators_tab_data_ =
-        std::make_unique<permissions::PermissionIndicatorsTabData>(
-            tab.GetContents());
+        GetUserDataFactory()
+            .CreateInstance<permissions::PermissionIndicatorsTabData>(
+                tab, tab, tab.GetContents());
 
     pinned_translate_action_listener_ =
         std::make_unique<PinnedTranslateActionListener>(&tab);
@@ -789,7 +791,9 @@ void TabFeatures::Init(TabInterface& tab, Profile* profile) {
                 tab, tab, *page_action_controller_, *commerce_ui_tab_helper_);
   }
 
-  autofill_bubble_manager_ = autofill::BubbleManager::Create(&tab);
+  autofill_bubble_manager_ =
+      GetUserDataFactory().CreateInstance<autofill::BubbleManagerImpl>(tab,
+                                                                       &tab);
 
   if (base::FeatureList::IsEnabled(
           autofill::features::kAutofillEnableOmniboxAutofill) &&
@@ -1522,12 +1526,6 @@ TabFeatures::SetTabContextualizationControllerForTesting(
   return tab_contextualization_controller_.get();
 }
 
-autofill::BubbleManager* TabFeatures::SetBubbleManagerForTesting(
-    std::unique_ptr<autofill::BubbleManager> bubble_manager) {
-  autofill_bubble_manager_ = std::move(bubble_manager);
-  return autofill_bubble_manager_.get();
-}
-
 void TabFeatures::WillDiscardContents(tabs::TabInterface* tab,
                                       content::WebContents* old_contents,
                                       content::WebContents* new_contents) {
@@ -1719,9 +1717,13 @@ void TabFeatures::WillDiscardContents(tabs::TabInterface* tab,
   }
 
   if (permission_indicators_tab_data_) {
+    // Reset first so the old instance unregisters from `UnownedUserDataHost`
+    // before the replacement registers under the same key.
+    permission_indicators_tab_data_.reset();
     permission_indicators_tab_data_ =
-        std::make_unique<permissions::PermissionIndicatorsTabData>(
-            new_contents);
+        GetUserDataFactory()
+            .CreateInstance<permissions::PermissionIndicatorsTabData>(
+                *tab, *tab, new_contents);
   }
 
   if (bookmarkbar_preload_pipeline_manager_) {

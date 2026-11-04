@@ -229,11 +229,6 @@
       '--extra-browser-args=--use-angle=swiftshader',
     ],
   },
-  'gpu_force_angle_vulkan': {
-    'args': [
-      '--extra-browser-args=--use-angle=vulkan',
-    ],
-  },
   'gpu_force_command_decoder_passthrough': {
     'args': [
       '--extra-browser-args=--use-cmd-decoder=passthrough --use-gl=angle',
@@ -601,6 +596,18 @@
         'os': 'Ubuntu-22.04',
         'display_attached': '1',
         'display_server': 'x11',
+        'pool': 'chromium.tests.gpu',
+      },
+    },
+  },
+  'linux_intel_uhd_770_wayland_stable': {
+    'fail_if_unused': False,
+    'swarming': {
+      'dimensions': {
+        'gpu': '8086:4680-26.0.8',
+        'os': 'Ubuntu-26.04',
+        'display_attached': '1',
+        'display_server': 'wayland',
         'pool': 'chromium.tests.gpu',
       },
     },

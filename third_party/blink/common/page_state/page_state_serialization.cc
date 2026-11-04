@@ -11,9 +11,10 @@
 #include <string_view>
 #include <utility>
 
+#include "base/check.h"
+#include "base/check_op.h"
 #include "base/compiler_specific.h"
 #include "base/containers/span.h"
-#include "base/containers/to_vector.h"
 #include "base/memory/stack_allocated.h"
 #include "base/metrics/histogram_functions.h"
 #include "base/notimplemented.h"
@@ -174,10 +175,10 @@ bool RecursivelyAppendReferencedFiles(
                                               referenced_files))
     return false;
 
-  for (size_t i = 0; i < frame_state.children.size(); ++i) {
-    if (!RecursivelyAppendReferencedFiles(frame_state.children[i],
-                                          referenced_files))
+  for (const auto& child : frame_state.children) {
+    if (!RecursivelyAppendReferencedFiles(child, referenced_files)) {
       return false;
+    }
   }
 
   return true;
@@ -239,11 +240,11 @@ struct DeserializeObject {
 // NOTE: If the version is -1, then the pickle contains only a URL string.
 // See ReadPageState.
 //
-const int kMinVersion = 11;
+constexpr int kMinVersion = 11;
 // NOTE: When changing the version, please add a backwards compatibility test.
 // See PageStateSerializationTest.DumpExpectedPageStateForBackwardsCompat for
 // instructions on how to generate the new test case.
-const int kCurrentVersion = 33;
+constexpr int kCurrentVersion = 33;
 
 // A bunch of convenience functions to write to/read from
 // SerializeObject/DeserializeObject instances. The de-serializers assume the
@@ -385,6 +386,9 @@ std::optional<std::u16string_view> ReadU16StringView(
 
 template <typename T>
 void WriteAndValidateVectorSize(const std::vector<T>& v, SerializeObject* obj) {
+  // TODO(crbug.com/579475491): Revisit dividing by `sizeof(T)` here; the
+  // in-memory size of `T` does not correspond to its serialized size, and `v`
+  // is already allocated in memory.
   CHECK_LT(v.size(), std::numeric_limits<int>::max() / sizeof(T));
   WriteInteger(static_cast<int>(v.size()), obj);
 }
@@ -413,8 +417,8 @@ void WriteU16StringVector(
     const std::vector<std::optional<std::u16string>>& data,
     SerializeObject* obj) {
   WriteAndValidateVectorSize(data, obj);
-  for (size_t i = 0; i < data.size(); ++i) {
-    WriteU16String(data[i], obj);
+  for (const auto& str : data) {
+    WriteU16String(str, obj);
   }
 }
 
@@ -640,8 +644,7 @@ void ReadLegacyFrameState(
 // should remain frozen in order to preserve this format.
 // TODO(pnoland, dcheng) Move the legacy write methods into a test-only helper.
 void WriteLegacyFrameState(const ExplodedFrameState& state,
-                           SerializeObject* obj,
-                           bool is_top) {
+                           SerializeObject* obj) {
   // WARNING: This data may be persisted for later use. As such, care must be
   // taken when changing the serialized format. If a new field needs to be
   // written, only adding at the end will make it easier to deal with loading
@@ -688,17 +691,17 @@ void WriteLegacyFrameState(const ExplodedFrameState& state,
   WriteU16String(state.http_body.http_content_type, obj);
 
   // Subitems
-  const std::vector<ExplodedFrameState>& children = state.children;
-  WriteAndValidateVectorSize(children, obj);
-  for (size_t i = 0; i < children.size(); ++i)
-    WriteLegacyFrameState(children[i], obj, false);
+  WriteAndValidateVectorSize(state.children, obj);
+  for (const auto& child : state.children) {
+    WriteLegacyFrameState(child, obj);
+  }
 }
 
 void WriteLegacyPageState(const ExplodedPageState& state,
                           SerializeObject* obj) {
   WriteInteger(obj->version, obj);
   WriteU16StringVector(state.referenced_files, obj);
-  WriteLegacyFrameState(state.top, obj, true);
+  WriteLegacyFrameState(state.top, obj);
 }
 
 // Legacy read/write functions above this line. Don't change these.
@@ -712,7 +715,7 @@ void WriteResourceRequestBody(const network::ResourceRequestBody& request_body,
     switch (element.type()) {
       case network::DataElement::Tag::kBytes: {
         const auto& bytes = element.As<network::DataElementBytes>().bytes();
-        data_element = mojom::Element::NewBytes(base::ToVector(bytes));
+        data_element = mojom::Element::NewBytes(bytes);
         break;
       }
       case network::DataElement::Tag::kFile: {
@@ -794,10 +797,7 @@ void WriteMojoFrameState(const ExplodedFrameState& state,
   frame->initiator_base_url_string = state.initiator_base_url_string;
   frame->target = state.target;
   frame->state_object = state.state_object;
-
-  for (const auto& s : state.document_state) {
-    frame->document_state.push_back(s);
-  }
+  frame->document_state = state.document_state;
 
   frame->scroll_restoration_type =
       static_cast<mojom::ScrollRestorationType>(state.scroll_restoration_type);
@@ -904,8 +904,7 @@ void ReadMojoPageState(DeserializeObject* obj, ExplodedPageState* state) {
   }
 
   mojom::PageStatePtr page;
-  obj->parse_error =
-      !(mojom::PageState::Deserialize(data->data(), data->size(), &page));
+  obj->parse_error = !mojom::PageState::Deserialize(*data, &page);
   if (obj->parse_error) {
     return;
   }
@@ -916,6 +915,8 @@ void ReadMojoPageState(DeserializeObject* obj, ExplodedPageState* state) {
 
   ReadMojoFrameState(page->top.get(), &state->top);
 
+  // TODO(crbug.com/579030935): De-dupe properly; std::unique only removes
+  // consecutive duplicates.
   state->referenced_files.erase(std::unique(state->referenced_files.begin(),
                                             state->referenced_files.end()),
                                 state->referenced_files.end());
@@ -925,9 +926,15 @@ void WriteMojoPageState(const ExplodedPageState& state, SerializeObject* obj) {
   WriteInteger(obj->version, obj);
 
   mojom::PageStatePtr page = mojom::PageState::New();
-  for (const auto& referenced_file : state.referenced_files) {
-    page->referenced_files.push_back(referenced_file.value());
-  }
+  // Although `ExplodedPageState::referenced_files` and
+  // `mojom::PageState::referenced_files` use `std::optional<std::u16string>`,
+  // callers populating `referenced_files` (such as
+  // `HistoryItem::GetReferencedFilePathsForSerialization`) only insert non-null
+  // file paths, and this code has historically unwrapped each element with
+  // `.value()`.
+  CHECK(std::ranges::all_of(state.referenced_files,
+                            &std::optional<std::u16string>::has_value));
+  page->referenced_files = state.referenced_files;
 
   page->top = mojom::FrameState::New();
   WriteMojoFrameState(state.top, page->top.get());
@@ -965,7 +972,8 @@ void ReadPageState(DeserializeObject* obj, ExplodedPageState* state) {
   if (obj->version < 14)
     RecursivelyAppendReferencedFiles(state->top, &state->referenced_files);
 
-  // De-dupe
+  // TODO(crbug.com/579030935): De-dupe properly; std::unique only removes
+  // consecutive duplicates.
   state->referenced_files.erase(std::unique(state->referenced_files.begin(),
                                             state->referenced_files.end()),
                                 state->referenced_files.end());
@@ -1022,6 +1030,8 @@ ExplodedPageState::ExplodedPageState() {}
 
 ExplodedPageState::~ExplodedPageState() {}
 
+namespace {
+
 int DecodePageStateInternal(const std::string& encoded,
                             ExplodedPageState* exploded) {
   *exploded = ExplodedPageState();
@@ -1040,6 +1050,8 @@ int DecodePageStateInternal(const std::string& encoded,
   }
   return obj.parse_error ? -1 : obj.version;
 }
+
+}  // namespace
 
 bool DecodePageState(const std::string& encoded, ExplodedPageState* exploded) {
   return DecodePageStateInternal(encoded, exploded) != -1;

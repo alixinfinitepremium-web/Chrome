@@ -432,20 +432,12 @@ class TabFeatures {
     return data_protection_tab_controller_.get();
   }
 
-  permissions::PermissionIndicatorsTabData* permission_indicators_tab_data() {
-    return permission_indicators_tab_data_.get();
-  }
-
   // Note: Temporary until there is a more uniform way to swap out features for
   // testing.
   customize_chrome::SidePanelController*
   SetCustomizeChromeSidePanelControllerForTesting(
       std::unique_ptr<customize_chrome::SidePanelController>
           customize_chrome_side_panel_controller);
-
-  commerce::CommerceUiTabHelper* commerce_ui_tab_helper() {
-    return commerce_ui_tab_helper_.get();
-  }
 
   tab_groups::SavedTabGroupWebContentsListener*
   saved_tab_group_web_contents_listener() const {
@@ -477,13 +469,6 @@ class TabFeatures {
 
   TabAlertController* SetTabAlertControllerForTesting(
       std::unique_ptr<TabAlertController> tab_alert_controller);
-
-  autofill::BubbleManager* autofill_bubble_manager() {
-    return autofill_bubble_manager_.get();
-  }
-
-  autofill::BubbleManager* SetBubbleManagerForTesting(
-      std::unique_ptr<autofill::BubbleManager> bubble_manager);
 
   // Called exactly once to initialize features.
   void Init(TabInterface& tab, Profile* profile);

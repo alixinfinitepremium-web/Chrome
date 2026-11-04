@@ -4932,39 +4932,6 @@ IN_PROC_BROWSER_TEST_P(GlicApiTest, testAdditionalContextClearedOnAbortedOpen) {
   ASSERT_FALSE(instance->host().IsPrimaryClientOpen());
 }
 
-IN_PROC_BROWSER_TEST_P(GlicApiTest, testDataTransferActionsBlockedNotices) {
-  ASSERT_OK(OpenGlicForActiveTab());
-  ExecuteJsTest();
-
-  auto* instance = GetOnlyGlicInstance();
-  ASSERT_TRUE(instance);
-
-  instance->NotifyDataTransferActionsBlocked(
-      glic::mojom::DataTransferActionsBlockedNotice::New(
-          glic::mojom::DataTransferAction::kPaste,
-          glic::mojom::DataTransferActionsBlockedReason::
-              kIneligiblePageContext));
-  instance->NotifyDataTransferActionsBlocked(
-      glic::mojom::DataTransferActionsBlockedNotice::New(
-          glic::mojom::DataTransferAction::kPaste,
-          glic::mojom::DataTransferActionsBlockedReason::kCrossProfile));
-  instance->NotifyDataTransferActionsBlocked(
-      glic::mojom::DataTransferActionsBlockedNotice::New(
-          glic::mojom::DataTransferAction::kDrop,
-          glic::mojom::DataTransferActionsBlockedReason::
-              kUnsupportedOrExpiredSource));
-
-  ContinueJsTest();
-
-  instance->NotifyDataTransferActionsBlocked(
-      glic::mojom::DataTransferActionsBlockedNotice::New(
-          glic::mojom::DataTransferAction::kDrop,
-          glic::mojom::DataTransferActionsBlockedReason::
-              kIneligiblePageContext));
-
-  ContinueJsTest();
-}
-
 IN_PROC_BROWSER_TEST_P(GlicApiActorTest, testCancelActions) {
   ASSERT_OK(OpenGlicForActiveTab());
   ExecuteJsTest();
@@ -5811,13 +5778,21 @@ IN_PROC_BROWSER_TEST_P(GlicApiTest, testClientStorage) {
            !storage.contains("initial_key");
   }));
   // Also verify persistence to prefs.
+  const std::string guest_url_key = service()->provider_spec().GetGuestUrlKey();
   service()->client_data_storage().Flush();
   {
-    const base::DictValue& dict =
-        GetProfile()->GetPrefs()->GetDict(prefs::kGlicClientDataStorage);
-    EXPECT_EQ(dict.size(), 2u);
-    EXPECT_EQ(*dict.FindString("k1"), "v1");
-    EXPECT_EQ(*dict.FindString("k2"), "v2");
+    const base::DictValue* dict = GetProfile()
+                                      ->GetPrefs()
+                                      ->GetDict(prefs::kGlicClientDataStorage)
+                                      .FindDict(guest_url_key);
+    ASSERT_TRUE(dict);
+    EXPECT_EQ(dict->size(), 2u);
+    const std::string* k1 = dict->FindString("k1");
+    const std::string* k2 = dict->FindString("k2");
+    ASSERT_TRUE(k1);
+    ASSERT_TRUE(k2);
+    EXPECT_EQ(*k1, "v1");
+    EXPECT_EQ(*k2, "v2");
   }
 
   service()->client_data_storage().SetItem("k1", "v1_updated");
@@ -5828,8 +5803,10 @@ IN_PROC_BROWSER_TEST_P(GlicApiTest, testClientStorage) {
   ASSERT_TRUE(base::test::RunUntil(
       [&]() { return service()->client_data_storage().GetAll().empty(); }));
   service()->client_data_storage().Flush();
-  EXPECT_TRUE(
-      GetProfile()->GetPrefs()->GetDict(prefs::kGlicClientDataStorage).empty());
+  EXPECT_FALSE(GetProfile()
+                   ->GetPrefs()
+                   ->GetDict(prefs::kGlicClientDataStorage)
+                   .contains(guest_url_key));
 }
 
 // Runs each test against consumer Gemini, with and without NoWebview, and

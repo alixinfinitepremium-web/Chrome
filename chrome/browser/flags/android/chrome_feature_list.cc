@@ -262,6 +262,7 @@ const base::Feature* const kFeaturesExposedToJava[] = {
     &kAllowMultipleMediaNotifications,
     &kAlwaysDrawCompositedToolbarHairline,
     &kAndroidActorTaskTimeout,
+    &kAndroidAdaptiveUiTransitions,
     &kAndroidAppIntegrationMultiDataSource,
     &kAndroidAppRatingPrompt,
     &kAndroidAutoProjected,
@@ -515,6 +516,7 @@ const base::Feature* const kFeaturesExposedToJava[] = {
     &kShowTabListAnimations,
     &kSidePanelTopHairlineRefactorAndroid,
     &kSideUiAllowPause,
+    &kSkipDetachedTabResizeOnSizeChanged,
     &kSkipDuplicateOnUrlUpdated,
     &kStartSurfaceReturnTime,
     &kSubmenusInAppMenu,
@@ -709,6 +711,7 @@ BASE_FEATURE(kAllowMultipleMediaNotifications, base::FEATURE_DISABLED_BY_DEFAULT
 // included in the screenshot. See crbug.com/394842006 for more details.
 BASE_FEATURE(kAlwaysDrawCompositedToolbarHairline, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kAndroidActorTaskTimeout, base::FEATURE_ENABLED_BY_DEFAULT);
+BASE_FEATURE(kAndroidAdaptiveUiTransitions, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kAndroidAppIntegrationMultiDataSource, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kAndroidAppRatingPrompt, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kAndroidAtomsLogging, base::FEATURE_DISABLED_BY_DEFAULT);
@@ -949,7 +952,7 @@ BASE_FEATURE(kOnStartupWindowPolicy, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kOneStepAimAccess, base::FEATURE_DISABLED_BY_DEFAULT);
 // TODO(crbug.com/521890621): Enable on all form factors once the non-desktop
 // rollout is complete.
-BASE_FEATURE(kOpenDownloadInPreferredApp, base::FEATURE_ENABLED_BY_DEFAULT);
+BASE_FEATURE(kOpenDownloadInPreferredApp, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kPCCTMinimumHeight, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kPageAnnotationsService, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kPageContentProvider, base::FEATURE_ENABLED_BY_DEFAULT);
@@ -985,6 +988,7 @@ BASE_FEATURE(kShareCustomActionsInCCT, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kShowTabListAnimations, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kSidePanelTopHairlineRefactorAndroid, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kSideUiAllowPause, base::FEATURE_ENABLED_BY_DEFAULT);
+BASE_FEATURE(kSkipDetachedTabResizeOnSizeChanged, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kSkipDuplicateOnUrlUpdated, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kStartSurfaceReturnTime, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kSubmenusInAppMenu, base::FEATURE_DISABLED_BY_DEFAULT);

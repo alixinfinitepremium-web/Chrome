@@ -93,6 +93,7 @@
 #include "chrome/browser/ui/performance_controls/performance_controls_metrics.h"
 #include "chrome/browser/ui/prefs/prefs_tab_helper.h"
 #include "chrome/browser/ui/safety_hub/safety_hub_prefs.h"
+#include "chrome/browser/ui/side_panel/side_panel_prefs.h"
 #include "chrome/browser/ui/tabs/organizer/organizer_prefs.h"
 #include "chrome/browser/ui/tabs/tab_strip_prefs.h"
 #include "chrome/browser/ui/toolbar/chrome_labs/chrome_labs_prefs.h"
@@ -327,7 +328,6 @@
 #include "chrome/browser/ui/hats/hats_service_desktop.h"
 #include "chrome/browser/ui/omnibox/omnibox_everywhere/omnibox_everywhere_prefs.h"
 #include "chrome/browser/ui/read_anything/read_anything_prefs.h"
-#include "chrome/browser/ui/side_panel/side_panel_prefs.h"
 #include "chrome/browser/ui/startup/startup_browser_creator.h"
 #include "chrome/browser/ui/tabs/pinned_tab_codec.h"
 #include "chrome/browser/ui/tabs/saved_tab_groups/saved_tab_group_pref_names.h"
@@ -1146,6 +1146,8 @@ inline constexpr char kShownCountHistoryEmbeddingsScopePromo[] =
     "omnibox.shown_count_history_embeddings_scope_promo";
 inline constexpr char kShownCountHistoryEmbeddingsSettingsPromo[] =
     "omnibox.shown_count_history_embeddings_settings_promo";
+inline constexpr char kHistorySearchSettingState[] =
+    "optimization_guide.history_search_setting_state";
 
 // Deprecated 10/2026.
 constexpr char kSupervisedUserSafeSites[] = "profile.managed.safe_sites";
@@ -1704,10 +1706,12 @@ void RegisterProfilePrefsForMigration(
   registry->RegisterBooleanPref(kDeprecatedGrayscaleThemeEnabledDoNotUse,
                                 false);
   registry->RegisterDictionaryPref(kDeprecatedNtpCustomBackgroundDictDoNotUse);
-
   // Deprecated 10/2026.
   registry->RegisterBooleanPref(kTabsFromOtherDevicesAutoPinnedMigration,
                                 false);
+
+  // Deprecated 10/2026.
+  registry->RegisterIntegerPref(kHistorySearchSettingState, 0);
 }
 
 }  // namespace
@@ -2511,14 +2515,14 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry,
 
   enterprise_custom_headers::RegisterProfilePrefs(registry);
 
+  side_panel_prefs::RegisterProfilePrefs(registry);
+
 #if !BUILDFLAG(IS_ANDROID)
   registry->RegisterBooleanPref(
       webauthn::pref_names::kRemoteProxiedRequestsAllowed, false);
 
   registry->RegisterIntegerPref(
       webauthn::pref_names::kEnclaveFailedPINAttemptsCount, 0);
-
-  side_panel_prefs::RegisterProfilePrefs(registry);
 
   tabs::RegisterProfilePrefs(registry);
 
@@ -3169,6 +3173,9 @@ void MigrateObsoleteProfilePrefs(PrefService* profile_prefs,
 
   // Added 10/2026.
   profile_prefs->ClearPref(kTabsFromOtherDevicesAutoPinnedMigration);
+
+  // Added 10/2026.
+  profile_prefs->ClearPref(kHistorySearchSettingState);
 
   // Please don't delete the following line. It is used by PRESUBMIT.py.
   // END_MIGRATE_OBSOLETE_PROFILE_PREFS

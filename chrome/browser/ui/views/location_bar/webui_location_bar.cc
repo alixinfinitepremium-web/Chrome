@@ -42,6 +42,7 @@
 #include "chrome/browser/ui/views/omnibox/omnibox_popup_aim_presenter.h"
 #include "chrome/browser/ui/views/omnibox/omnibox_popup_closer.h"
 #include "chrome/browser/ui/views/omnibox/omnibox_popup_presenter.h"
+#include "chrome/browser/ui/views/omnibox/omnibox_popup_presenter_base.h"
 #include "chrome/browser/ui/views/omnibox/omnibox_popup_view_full_webui.h"
 #include "chrome/browser/ui/views/omnibox/omnibox_popup_view_webui.h"
 #include "chrome/browser/ui/views/omnibox/omnibox_popup_webui_base_content.h"
@@ -302,6 +303,11 @@ void WebUILocationBar::SetFocusWithin(bool focused) {
 
   // Focus state affects whether AI mode button is visible or not.
   RefreshAiModePageAction();
+
+  // Lets a popup that creates its content on demand start loading it.
+  if (focused && omnibox_popup_view_ && omnibox_popup_view_->presenter()) {
+    omnibox_popup_view_->presenter()->OnOmniboxFocused();
+  }
 
   NotifyFocusChanged();
 }
@@ -629,7 +635,7 @@ void WebUILocationBar::Update(content::WebContents* contents) {
       }
     }
     if (permission_dashboard_) {
-      permission_dashboard_->ResetTabState();
+      permission_dashboard_->InvalidateStateTokens();
     }
   } else {
     omnibox_view_->Update();
@@ -782,9 +788,11 @@ void WebUILocationBar::ResetTabState(content::WebContents* contents) {
   if (contents) {
     omnibox_view_->ResetTabState(contents);
   }
-  if (permission_dashboard_) {
-    permission_dashboard_->ResetTabState();
-  }
+  // Don't invalidate the permission chips' state tokens here. This is called
+  // when a background tab's URL changes, while the chips show the active tab's
+  // state, which hasn't changed. Invalidating would drop clicks already in
+  // flight for the active tab. Tab switches invalidate the tokens in
+  // `Update()`.
 }
 
 bool WebUILocationBar::HasSecurityStateChanged() {

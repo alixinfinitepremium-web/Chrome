@@ -4659,17 +4659,32 @@ const FeatureEntry::FeatureVariation
 
 const FeatureEntry::FeatureParam
     kContextualTasksEphemeralButtonContextMenuHideSidePanel[] = {
-        {"ContextualTasksEphemeralButtonContextMenuCloseSidePanel", "false"}};
+        {"ContextualTasksEphemeralButtonContextMenuOption", "hide-side-panel"}};
 const FeatureEntry::FeatureParam
     kContextualTasksEphemeralButtonContextMenuCloseSidePanel[] = {
-        {"ContextualTasksEphemeralButtonContextMenuCloseSidePanel", "true"}};
+        {"ContextualTasksEphemeralButtonContextMenuOption",
+         "close-side-panel"}};
+const FeatureEntry::FeatureParam
+    kContextualTasksEphemeralButtonContextMenuDismissActiveSearch[] = {
+        {"ContextualTasksEphemeralButtonContextMenuOption",
+         "dismiss-active-search"}};
+const FeatureEntry::FeatureParam
+    kContextualTasksEphemeralButtonContextMenuDismissActiveSearchInTab[] = {
+        {"ContextualTasksEphemeralButtonContextMenuOption",
+         "dismiss-active-search-in-tab"}};
 
 const FeatureEntry::FeatureVariation
     kContextualTasksEphemeralButtonContextMenuVariations[] = {
         {"with 'Hide side panel'",
          kContextualTasksEphemeralButtonContextMenuHideSidePanel, nullptr},
         {"with 'Close side panel'",
-         kContextualTasksEphemeralButtonContextMenuCloseSidePanel, nullptr}};
+         kContextualTasksEphemeralButtonContextMenuCloseSidePanel, nullptr},
+        {"with 'Dismiss active Google Search'",
+         kContextualTasksEphemeralButtonContextMenuDismissActiveSearch,
+         nullptr},
+        {"with 'Dismiss active search in this tab'",
+         kContextualTasksEphemeralButtonContextMenuDismissActiveSearchInTab,
+         nullptr}};
 
 const FeatureEntry::FeatureParam
     kContextualTasksPinnedButtonActiveIndicatorWithoutContextMenu[] = {
@@ -8055,6 +8070,11 @@ const FeatureEntry kFeatureEntries[] = {
     {"android-tab-ui-refactor", flag_descriptions::kAndroidTabUiRefactorName,
      flag_descriptions::kAndroidTabUiRefactorDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(chrome::android::kAndroidTabUiRefactor)},
+
+    {"android-adaptive-ui-transitions",
+     flag_descriptions::kAndroidAdaptiveUiTransitionsName,
+     flag_descriptions::kAndroidAdaptiveUiTransitionsDescription, kOsAndroid,
+     FEATURE_VALUE_TYPE(chrome::android::kAndroidAdaptiveUiTransitions)},
 
     {"android-vertical-tabs", flag_descriptions::kAndroidVerticalTabsName,
      flag_descriptions::kAndroidVerticalTabsDescription, kOsAndroid,
@@ -14440,6 +14460,14 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kPreserveDownloadLastModifiedName,
      flag_descriptions::kPreserveDownloadLastModifiedDescription, kOsAll,
      FEATURE_VALUE_TYPE(download::features::kPreserveDownloadLastModified)},
+
+#if !BUILDFLAG(IS_ANDROID)
+    {"bookmark-bar-area-keyboard-navigation",
+     flag_descriptions::kBookmarkBarAreaKeyboardNavigationName,
+     flag_descriptions::kBookmarkBarAreaKeyboardNavigationDescription,
+     kOsWin | kOsLinux | kOsCrOS,
+     FEATURE_VALUE_TYPE(features::kBookmarkBarAreaKeyboardNavigation)},
+#endif  // !BUILDFLAG(IS_ANDROID)
 
     // Add new entries above this line.
     // NOTE: Adding a new flag requires adding a corresponding entry to enum

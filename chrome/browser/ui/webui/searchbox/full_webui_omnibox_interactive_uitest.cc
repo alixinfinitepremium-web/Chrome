@@ -9,6 +9,7 @@
 
 #include "base/auto_reset.h"
 #include "base/base64.h"
+#include "base/callback_list.h"
 #include "base/json/string_escape.h"
 #include "base/memory/weak_ptr.h"
 #include "base/notreached.h"
@@ -50,6 +51,7 @@
 #include "chrome/browser/ui/omnibox/omnibox_next_features.h"
 #include "chrome/browser/ui/omnibox/omnibox_popup_state_manager.h"
 #include "chrome/browser/ui/tabs/tab_strip_model.h"
+#include "chrome/browser/ui/tabs/vertical_tab_strip_state_controller.h"
 #include "chrome/browser/ui/toolbar/app_menu_model.h"
 #include "chrome/browser/ui/ui_features.h"
 #include "chrome/browser/ui/views/bookmarks/bookmark_bar_view.h"
@@ -58,6 +60,7 @@
 #include "chrome/browser/ui/views/find_bar_view.h"
 #include "chrome/browser/ui/views/frame/browser_view.h"
 #include "chrome/browser/ui/views/frame/contents_web_view.h"
+#include "chrome/browser/ui/views/frame/tab_strip_region_view.h"
 #include "chrome/browser/ui/views/frame/toolbar_button_provider.h"
 #include "chrome/browser/ui/views/frame/top_container_view.h"
 #include "chrome/browser/ui/views/location_bar/location_bar_view.h"
@@ -99,6 +102,7 @@
 #include "components/omnibox/browser/aim_eligibility_service.h"
 #include "components/omnibox/browser/aim_eligibility_service_features.h"
 #include "components/omnibox/browser/autocomplete_controller.h"
+#include "components/omnibox/browser/omnibox_client.h"
 #include "components/omnibox/browser/omnibox_popup_selection.h"
 #include "components/omnibox/browser/omnibox_pref_names.h"
 #include "components/omnibox/browser/page_classification_functions.h"
@@ -122,6 +126,7 @@
 #include "net/test/embedded_test_server/embedded_test_server.h"
 #include "net/test/embedded_test_server/http_request.h"
 #include "net/test/embedded_test_server/http_response.h"
+#include "third_party/metrics_proto/omnibox_event.pb.h"
 #include "third_party/omnibox_proto/aim_eligibility_response.pb.h"
 #include "ui/accessibility/ax_action_data.h"
 #include "ui/base/clipboard/clipboard.h"
@@ -1383,6 +1388,38 @@ class FullWebUIOmniboxInteractiveTest
     bubble_widget->Show();
   }
 
+  // Shows a test bubble (see `ShowTestBubble()`), then focuses the omnibox
+  // while the bubble holds activation, as the NTP of a new window does while a
+  // window-modal dialog holds activation. The popup opens focused, but can't
+  // take activation from the bubble. `bubble_delegate` and `bubble_widget` must
+  // outlive the test sequence.
+  auto FocusOmniboxWhileBubbleActive(
+      std::unique_ptr<views::BubbleDialogDelegate>& bubble_delegate,
+      std::unique_ptr<views::Widget>& bubble_widget) {
+    return Steps(
+        WaitForPopupTransitionLockout(), WaitForPopupHandlerReady(),
+        Do([&]() { ShowTestBubble(bubble_delegate, bubble_widget); }),
+        PollUntil([&]() { return bubble_widget && bubble_widget->IsActive(); },
+                  "WaitForBubbleActive"),
+        Do([this]() {
+          BrowserWindow::FromBrowser(browser())
+              ->GetLocationBar()
+              ->GetOmniboxPopupView()
+              ->OnFocus(/*query_zps=*/false, /*select_all=*/false,
+                        /*show_full_url=*/false);
+        }),
+        WaitForPopupState(OmniboxPopupState::kFull),
+        WaitForEditModelFocus(true), WaitForPopupTransitionLockout(),
+        CheckResult([&]() { return bubble_widget->IsActive(); }, true,
+                    "BubbleStillActive"),
+        CheckResult(
+            [this]() {
+              auto* widget = GetPopupWidget(browser());
+              return widget && widget->IsActive();
+            },
+            false, "CheckPopupWidgetInactive"));
+  }
+
   // Presses Ctrl/Cmd+F and waits for the find bar to show with focus. The key
   // press goes to the popup, which holds activation while the omnibox is
   // focused, as a real one would. On macOS, the popup only redispatches an
@@ -1443,6 +1480,60 @@ class FullWebUIOmniboxInteractiveTest
         InSameContext(ClickMouse()));
   }
 
+  auto EnableVerticalTabs() {
+    return Steps(Do([this]() {
+                   tabs::VerticalTabStripStateController::From(browser())
+                       ->SetVerticalTabsEnabled(true);
+                   RunScheduledLayouts();
+                 }),
+                 WaitForShow(kVerticalTabStripCollapseButtonElementId));
+  }
+
+  // Clicks the tab at `tab_index` in the vertical tab strip with a real click.
+  auto ClickVerticalTab(int tab_index) {
+    return Steps(
+        MoveMouseTo(
+            kBrowserViewElementId,
+            base::BindLambdaForTesting([this, tab_index](ui::TrackedElement*) {
+              TabStripRegionView* tab_strip =
+                  BrowserView::GetBrowserViewForBrowser(browser())
+                      ->tab_strip_view();
+              return tab_strip
+                  ->GetTabAnchorView(browser()
+                                         ->tab_strip_model()
+                                         ->GetTabAtIndex(tab_index)
+                                         ->GetHandle())
+                  ->GetBoundsInScreen()
+                  .CenterPoint();
+            })),
+        ClickMouse());
+  }
+
+  views::Widget* GetBrowserWidget() {
+    return BrowserView::GetBrowserViewForBrowser(browser())->GetWidget();
+  }
+
+  // Records whether the browser widget stops painting as active, until
+  // `StopRecordingBrowserPaintAsActive()`.
+  auto StartRecordingBrowserPaintAsActive() {
+    return Do([this]() {
+      browser_painted_as_inactive_ = false;
+      paint_as_active_subscription_ =
+          GetBrowserWidget()->RegisterPaintAsActiveChangedCallback(
+              base::BindLambdaForTesting([this]() {
+                if (!GetBrowserWidget()->ShouldPaintAsActive()) {
+                  browser_painted_as_inactive_ = true;
+                }
+              }));
+    });
+  }
+
+  auto StopRecordingBrowserPaintAsActive() {
+    return Steps(CheckResult([this]() { return browser_painted_as_inactive_; },
+                             false, "CheckBrowserNeverPaintedAsInactive"),
+                 Do([this]() { paint_as_active_subscription_ = {}; }));
+  }
+
  private:
   // Returns the screen point of the boundary between the characters before and
   // after `char_offset` in the WebUI input's current value, measured with the
@@ -1473,7 +1564,43 @@ class FullWebUIOmniboxInteractiveTest
   }
 
   base::test::ScopedFeatureList feature_list_;
+  bool browser_painted_as_inactive_ = false;
+  base::CallbackListSubscription paint_as_active_subscription_;
 };
+
+// Verifies that clicking a vertical tab, which is outside the top container,
+// doesn't blur the omnibox before the tab switch saves its focus, so switching
+// back restores it. See crbug.com/580059964.
+IN_PROC_BROWSER_TEST_P(FullWebUIOmniboxInteractiveTest,
+                       ClickVerticalTabRestoresOmniboxFocus) {
+  RunTestSequence(EnableVerticalTabs(), FocusOmniboxOnInitialNtp(kTab1),
+                  UninstrumentWebContents(kPopupWebView),
+                  OpenNtpAndWaitForPopupReady(kTab2),
+                  UninstrumentWebContents(kPopupWebView), ClickVerticalTab(0),
+                  WaitForPopupTransitionLockout(), CheckActiveTabIndex(0),
+                  WaitForPopupReady(), UninstrumentWebContents(kPopupWebView),
+                  ClickVerticalTab(1), WaitForPopupTransitionLockout(),
+                  CheckActiveTabIndex(1), WaitForPopupReady());
+}
+
+// Verifies that the browser window keeps painting as active when a vertical
+// tab is clicked while the omnibox is focused, which moves activation from the
+// popup to the browser window and back. Otherwise vertical tabs' expand on
+// hover collapses. See crbug.com/580059964.
+IN_PROC_BROWSER_TEST_P(FullWebUIOmniboxInteractiveTest,
+                       ClickVerticalTabKeepsBrowserPaintingAsActive) {
+  RunTestSequence(EnableVerticalTabs(), FocusOmniboxOnInitialNtp(kTab1),
+                  UninstrumentWebContents(kPopupWebView),
+                  OpenNtpAndWaitForPopupReady(kTab2), WaitForPopupActive(),
+                  StartRecordingBrowserPaintAsActive(),
+                  UninstrumentWebContents(kPopupWebView), ClickVerticalTab(0),
+                  WaitForPopupTransitionLockout(), CheckActiveTabIndex(0),
+                  WaitForPopupReady(), WaitForPopupActive(),
+                  UninstrumentWebContents(kPopupWebView), ClickVerticalTab(1),
+                  WaitForPopupTransitionLockout(), CheckActiveTabIndex(1),
+                  WaitForPopupReady(), WaitForPopupActive(),
+                  StopRecordingBrowserPaintAsActive());
+}
 
 // Verifies that the WebUI Omnibox input element aligns with the native
 // LocationBarView bounds.
@@ -2094,6 +2221,70 @@ IN_PROC_BROWSER_TEST_P(FullWebUIOmniboxInteractiveTest, ClearAndSwitchTab) {
       // Verify that SaveStateToTab reverted the cleared draft, restoring the
       // permanent URL of Tab 1 instead of an empty string.
       WaitForOmniboxText(u"chrome://version"));
+}
+
+// Verifies that deleting all of the permanent URL of a search results page at
+// once (e.g. selecting it and pressing Backspace) keeps the suggestions
+// dropdown open with the same zero-prefix suggestions, without querying them
+// again, as in the Views omnibox.
+IN_PROC_BROWSER_TEST_P(FullWebUIOmniboxInteractiveTest,
+                       ClearPermanentTextKeepsZeroSuggestDropdownOpen) {
+  RunTestSequence(
+      // Open a search results page, and focus the omnibox to show zero-prefix
+      // suggestions. Wait for the popup handler first, so that the zero-prefix
+      // query requested on focus isn't dropped.
+      WaitForBrowserActive(),
+      AddInstrumentedTab(kTab1, GURL("https://www.google.com/search?q=cats")),
+      WaitForWebContentsReady(kTab1), WaitForPopupHandlerReady(),
+      FocusOmniboxAndWaitForPopupReady(),
+      CheckResult(
+          [this]() {
+            return GetOmniboxControllerForTest()
+                ->client()
+                ->GetPageClassification(
+                    /*is_prefetch=*/false);
+          },
+          metrics::OmniboxEventProto::
+              SEARCH_RESULT_PAGE_NO_SEARCH_TERM_REPLACEMENT,
+          "CheckSearchResultsPage"),
+      WaitForJsConditionAt(kPopupWebView, kPopupSearchbox,
+                           "(el) => el && el.dropdownIsVisible"),
+      CheckUserInputInProgress(false),
+      InAnyContext(ExecuteJsAt(kPopupWebView, kPopupSearchbox,
+                               "(el) => { el.dataset.zpsQueryId = "
+                               "el.activeQueryId; }")),
+      // Select and delete all of the permanent text.
+      SelectAllWebUIInput(), ClearWebUIText(), WaitForOmniboxText(u""),
+      // The dropdown stays open with the zero-prefix suggestions, and no new
+      // query is issued.
+      InAnyContext(CheckJsResultAt(
+          kPopupWebView, kPopupSearchbox,
+          "(el) => el.dropdownIsVisible && el.result.matches.length > 0 && "
+          "el.activeQueryId === Number(el.dataset.zpsQueryId)",
+          true)),
+      CheckUserInputInProgress(true), WaitForOmniboxFocus(true),
+      // The input stays empty.
+      InAnyContext(CheckJsResultAt(kPopupWebView, kWebUIInput,
+                                   "(el) => el.value === ''", true)));
+}
+
+// Verifies that deleting all of the user's own text on the New Tab Page closes
+// the suggestions dropdown without querying zero-prefix suggestions, unlike
+// deleting the permanent text (see
+// `ClearPermanentTextKeepsZeroSuggestDropdownOpen`).
+IN_PROC_BROWSER_TEST_P(FullWebUIOmniboxInteractiveTest,
+                       ClearUserTextOnNtpClosesDropdown) {
+  RunTestSequence(
+      FocusOmniboxOnInitialNtp(kTab1), InputWebUIText("hello world"),
+      WaitForJsConditionAt(kPopupWebView, kPopupSearchbox,
+                           "(el) => el && el.dropdownIsVisible"),
+      // Select and delete all of the typed text.
+      SelectAllWebUIInput(), ClearWebUIText(), WaitForOmniboxText(u""),
+      // The dropdown closes, no query is pending, and the omnibox keeps focus.
+      WaitForJsConditionAt(kPopupWebView, kPopupSearchbox,
+                           "(el) => el && !el.dropdownIsVisible && "
+                           "el.result === null && el.activeQueryId === -1"),
+      WaitForOmniboxFocus(true));
 }
 
 // Verifies that opening multiple New Tab Pages (NTPs) consecutively focuses the
@@ -2933,6 +3124,48 @@ IN_PROC_BROWSER_TEST_P(FullWebUIOmniboxInteractiveTest,
       Do([this]() { ui_test_utils::ToggleFullscreenModeAndWait(browser()); }),
       WaitForPopupActive(), ClickWebPageBody(kTab1), WaitForPopupDismissed());
 }
+
+// Verifies that the browser window keeps painting as active while key status
+// moves between it and the popup, which AppKit does in two steps, and that it
+// still paints as inactive once another window is activated. See
+// crbug.com/580059964.
+IN_PROC_BROWSER_TEST_P(FullWebUIOmniboxInteractiveTest,
+                       BrowserPaintsAsActiveAcrossPopupActivation) {
+  RunTestSequence(
+      FocusOmniboxOnInitialNtp(kTab1), WaitForPopupActive(),
+      StartRecordingBrowserPaintAsActive(),
+      // The browser window takes key status from the popup.
+      ClickTabStrip(), WaitForOmniboxFocus(true),
+      // The popup takes key status from the browser window.
+      UninstrumentWebContents(kPopupWebView),
+      OpenNtpAndWaitForPopupReady(kTab2), WaitForPopupActive(),
+      // Hiding the popup hands key status back to the browser window.
+      ClickWebPageBody(kTab2), WaitForPopupDismissed(),
+      StopRecordingBrowserPaintAsActive(), OpenAndActivateSecondBrowserWindow(),
+      PollUntil([this]() { return !GetBrowserWidget()->ShouldPaintAsActive(); },
+                "WaitForBrowserPaintsAsInactive"));
+}
+
+// Verifies that the browser window paints as active while the popup is key in
+// fullscreen, where the popup's parent is the toolbar overlay.
+IN_PROC_BROWSER_TEST_P(FullWebUIOmniboxInteractiveTest,
+                       BrowserPaintsAsActiveWithPopupFocusedInFullscreen) {
+  RunTestSequence(
+      WaitForBrowserActive(),
+      AddInstrumentedTab(kTab1, GURL("chrome://version/")),
+      WaitForWebContentsReady(kTab1),
+      Do([this]() { ui_test_utils::ToggleFullscreenModeAndWait(browser()); }),
+      WaitForPopupTransitionLockout(), StartRecordingBrowserPaintAsActive(),
+      SendKeyPress(kBrowserViewElementId, ui::VKEY_L,
+                   ui::EF_PLATFORM_ACCELERATOR),
+      WaitForPopupReady(), WaitForPopupActive(),
+      CheckResult(
+          [this]() { return GetBrowserWidget()->ShouldPaintAsActive(); }, true,
+          "CheckBrowserPaintsAsActive"),
+      ClickWebPageBody(kTab1), WaitForPopupDismissed(),
+      StopRecordingBrowserPaintAsActive(),
+      Do([this]() { ui_test_utils::ToggleFullscreenModeAndWait(browser()); }));
+}
 #endif  // BUILDFLAG(IS_MAC)
 
 #if BUILDFLAG(IS_CHROMEOS)
@@ -3031,6 +3264,78 @@ IN_PROC_BROWSER_TEST_P(FullWebUIOmniboxInteractiveTest,
       CheckResult([&]() { return bubble_widget->IsActive(); }, true,
                   "BubbleStillActive"));
 }
+
+#if !BUILDFLAG(IS_MAC)
+// Verifies that if the omnibox is focused while a bubble anchored to the
+// browser window holds activation, e.g. on the NTP of a new profile's window
+// that opens with the "Welcome!" dialog, the popup takes focus once the bubble
+// closes, so that its caret shows and typing reaches it. Not on macOS, where a
+// focus request can take activation from such a bubble (see
+// `OmniboxPopupFullPresenter::CanTakeFocus()`).
+IN_PROC_BROWSER_TEST_P(FullWebUIOmniboxInteractiveTest,
+                       FocusWhileBubbleActiveIsRestoredWhenBubbleCloses) {
+  // The bubble delegate must outlive the bubble widget, so declare it first.
+  std::unique_ptr<views::BubbleDialogDelegate> bubble_delegate;
+  std::unique_ptr<views::Widget> bubble_widget;
+
+  RunTestSequence(
+      WaitForBrowserActive(),
+      AddInstrumentedTab(kTab1, GURL("chrome://version/")),
+      WaitForWebContentsReady(kTab1),
+      FocusOmniboxWhileBubbleActive(bubble_delegate, bubble_widget),
+      // Close the bubble, as clicking its button would.
+      Do([&]() { bubble_widget->Close(); }),
+      PollUntil([this]() { return IsBrowserOrPopupActive(browser()); },
+                "WaitForBrowserOrPopupActive"),
+      // The popup holds activation and its input has focus, so the caret shows
+      // and key presses reach it.
+      WaitForPopupReady(), WaitForPopupActive(),
+      WaitForWebUIInputValue("chrome://version"),
+      WaitForWebUIInputAllSelected(), TypeWebUITextWithKeyPresses("fork"),
+      InAnyContext(WaitForWebUIInputValue("fork")));
+}
+
+// Verifies that if the omnibox is focused while a bubble holds activation, and
+// then blurred with the popup closed before the bubble closes, closing the
+// bubble doesn't refocus it or activate the popup.
+IN_PROC_BROWSER_TEST_P(FullWebUIOmniboxInteractiveTest,
+                       BlurWhileBubbleActiveIsNotRefocusedWhenBubbleCloses) {
+  // The bubble delegate must outlive the bubble widget, so declare it first.
+  std::unique_ptr<views::BubbleDialogDelegate> bubble_delegate;
+  std::unique_ptr<views::Widget> bubble_widget;
+
+  RunTestSequence(
+      WaitForBrowserActive(),
+      AddInstrumentedTab(kTab1, GURL("chrome://version/")),
+      WaitForWebContentsReady(kTab1),
+      FocusOmniboxWhileBubbleActive(bubble_delegate, bubble_widget),
+      // Blur the omnibox and close the popup, as blurring it without a draft
+      // does, without changing activation (e.g. switching tabs would activate
+      // the browser window and close the bubble).
+      Do([this]() {
+        OmniboxController* controller = GetOmniboxControllerForTest();
+        controller->edit_model()->OnKillFocus();
+        controller->popup_state_manager()->SetPopupState(
+            OmniboxPopupState::kNone);
+      }),
+      WaitForPopupDismissed(), WaitForPopupTransitionLockout(),
+      CheckResult([&]() { return bubble_widget->IsActive(); }, true,
+                  "BubbleStillActive"),
+      // Close the bubble, as clicking its button would.
+      Do([&]() { bubble_widget->Close(); }),
+      PollUntil([this]() { return IsBrowserOrPopupActive(browser()); },
+                "WaitForBrowserOrPopupActive"),
+      // Let any refocus posted on activation run.
+      WaitForPopupTransitionLockout(),
+      CheckPopupState(OmniboxPopupState::kNone), CheckEditModelFocus(false),
+      CheckResult(
+          [this]() {
+            auto* widget = GetPopupWidget(browser());
+            return widget && (widget->IsVisible() || widget->IsActive());
+          },
+          false, "CheckPopupWidgetHiddenAndInactive"));
+}
+#endif  // !BUILDFLAG(IS_MAC)
 
 #if BUILDFLAG(IS_MAC)
 // Verifies that a bubble taking activation while a tab switch's deferred focus

@@ -6271,6 +6271,7 @@ shown properly on the user-facing crash UI.
 <enum name="IOSContextualPanelItemType">
   <int value="0" label="Sample Panel Item"/>
   <int value="1" label="(Obsolete) Price Insights Item"/>
+  <int value="2" label="Reader Mode Item"/>
 </enum>
 
 <!-- LINT.ThenChange(//ios/chrome/browser/contextual_panel/model/contextual_panel_item_type.h:ContextualPanelItemType) -->
@@ -8924,6 +8925,7 @@ from previous Chrome versions.
       label="AutofillUseConsistentPopupSettingsIcons:disabled"/>
   <int value="-1818122802" label="GlicActorTransientTasks:disabled"/>
   <int value="-1817721380" label="RemoveCanceledTasksInTaskQueue2:disabled"/>
+  <int value="-1817412643" label="AndroidAdaptiveUiTransitions:enabled"/>
   <int value="-1817209284" label="PayWithGoogleV1:enabled"/>
   <int value="-1817014232"
       label="IPH_DesktopRealboxContextualSearchFeature:enabled"/>
@@ -20883,6 +20885,7 @@ from previous Chrome versions.
   <int value="1756003505" label="glic-reset-mi-enabled-by-tier:enabled"/>
   <int value="1756736642" label="DynamicSearchUpdateAnimation:enabled"/>
   <int value="1756997013" label="TextSafetyClassifier:enabled"/>
+  <int value="1757498812" label="BookmarkBarAreaKeyboardNavigation:disabled"/>
   <int value="1757654890"
       label="OmniboxHistoryQuickProviderSpecificityScoreCountUniqueHosts:disabled"/>
   <int value="1757894817" label="PrinterStatusDialog:disabled"/>
@@ -21168,6 +21171,7 @@ from previous Chrome versions.
   <int value="1833845461" label="OverviewDeskNavigation:disabled"/>
   <int value="1834481596"
       label="DeviceBoundSessionsFederatedRegistration:enabled"/>
+  <int value="1834541605" label="BookmarkBarAreaKeyboardNavigation:enabled"/>
   <int value="1834651417" label="GlicDetached:disabled"/>
   <int value="1834879433" label="CCTNavigationInfoScreenshot:disabled"/>
   <int value="1834968807" label="OmniboxAutocompleteTitles:enabled"/>
@@ -21627,6 +21631,7 @@ from previous Chrome versions.
   <int value="1974565950" label="enable-experimental-accessibility-labels"/>
   <int value="1974776131" label="MediaFeeds:disabled"/>
   <int value="1975327115" label="NewBaseUrlInheritanceBehavior:disabled"/>
+  <int value="1975587988" label="AndroidAdaptiveUiTransitions:disabled"/>
   <int value="1975657253" label="ScalableAppList:disabled"/>
   <int value="1975688036" label="UpdatePaddingForDisplayCalculation:disabled"/>
   <int value="1976441710" label="AllowSignedOutUserInDesktopAndroid:disabled"/>

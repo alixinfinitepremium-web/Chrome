@@ -90,6 +90,7 @@
 #include "url/gurl.h"
 
 #if BUILDFLAG(IS_ANDROID)
+#include "base/android/android_info.h"
 #include "base/android/device_info.h"
 #else
 #include "chrome/browser/actor/actor_surface_handle.h"
@@ -2571,6 +2572,21 @@ IN_PROC_BROWSER_TEST_F(ToolControllerBrowserTest,
 // environments. On Android, that's desktop mode, which this fixture forces.
 class ToolControllerWindowToolsBrowserTest : public ToolControllerBrowserTest {
  public:
+  void SetUp() override {
+#if BUILDFLAG(IS_ANDROID)
+    // Opening a second window needs Chrome's multi-instance support, which
+    // MultiWindowUtils only enables on Android R and later; below that,
+    // creating a window asserts in Java. Desktop mode only exists on much newer
+    // Android, so forcing it here on an older emulator isn't a real
+    // configuration.
+    if (base::android::android_info::sdk_int() <
+        base::android::android_info::SDK_VERSION_R) {
+      GTEST_SKIP() << "Multiple windows require Android R+";
+    }
+#endif
+    ToolControllerBrowserTest::SetUp();
+  }
+
   void SetUpCommandLine(base::CommandLine* command_line) override {
     ToolControllerBrowserTest::SetUpCommandLine(command_line);
 #if BUILDFLAG(IS_ANDROID)
