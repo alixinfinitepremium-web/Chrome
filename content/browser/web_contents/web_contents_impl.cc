@@ -171,6 +171,7 @@
 #include "content/public/browser/site_isolation_policy.h"
 #include "content/public/browser/ssl_status.h"
 #include "content/public/browser/storage_partition.h"
+#include "content/public/browser/user_browser_context.h"
 #include "content/public/browser/web_contents_delegate.h"
 #include "content/public/browser/web_contents_view_delegate.h"
 #include "content/public/browser/web_ui_controller.h"
@@ -3119,7 +3120,9 @@ int WebContentsImpl::GetVirtualKeyboardResizeHeight() {
 }
 
 bool WebContentsImpl::ShouldDoLearning() {
-  return !GetBrowserContext()->IsOffTheRecord();
+  // Use the off-the-record state of the user that this WebContents is shown
+  // for, which can differ from that of its BrowserContext.
+  return !GetUserBrowserContext(*GetPrimaryMainFrame())->IsOffTheRecord();
 }
 
 void WebContentsImpl::OnAudioStateChanged() {
@@ -7799,6 +7802,14 @@ bool WebContentsImpl::GotResponseToKeyboardLockRequest(bool allowed) {
   }
   keyboard_lock_widget_->GotResponseToKeyboardLockRequest(allowed);
   return true;
+}
+
+void WebContentsImpl::DiscardKeyboardLockRequest() {
+  OPTIONAL_TRACE_EVENT0("content",
+                        "WebContentsImpl::DiscardKeyboardLockRequest");
+  // Clearing `keyboard_lock_widget_` keeps EnterFullscreenMode() from sending
+  // the rejected request to the delegate again.
+  CancelKeyboardLock(keyboard_lock_widget_);
 }
 
 bool WebContentsImpl::HasOpener() {

@@ -20,7 +20,7 @@
 #include "components/browser_apis/ui_controllers/bookmark_bar/bookmark_bar_ui_controller_observer.h"
 #include "mojo/public/cpp/bindings/associated_remote.h"
 #include "mojo/public/cpp/bindings/pending_associated_receiver.h"
-#include "ui/base/window_open_disposition.h"
+#include "ui/base/mojom/window_open_disposition.mojom-shared.h"
 #include "ui/base/window_open_disposition_utils.h"
 #include "ui/gfx/geometry/point.h"
 
@@ -139,9 +139,9 @@ BookmarkBarUIControllerImpl::OnFolderPressed(mojom::NodeIdPtr folder,
     return base::unexpected(
         MakeError(mojo_base::mojom::Code::kNotFound, "Folder not found"));
   }
-  const WindowOpenDisposition disposition =
+  const ui::mojom::WindowOpenDisposition disposition =
       ui::DispositionFromEventFlags(event_flags);
-  if (disposition == WindowOpenDisposition::kCurrentTab) {
+  if (disposition == ui::mojom::WindowOpenDisposition::kCurrentTab) {
     adapters_->action_adapter().RecordFolderOpened();
     NotifyShowFolderMenu(*folder);
     return std::monostate();
@@ -155,9 +155,8 @@ BookmarkBarUIControllerImpl::ShowContextMenu(
     mojom::NodeIdPtr target,
     const gfx::Point& point,
     ui::mojom::MenuSourceType source_type) {
-  ModelAdapter& model_adapter = adapters_->model_adapter();
   std::vector<const bookmarks::BookmarkNode*> nodes =
-      GetUnderlyingNodes(model_adapter, *target);
+      GetUnderlyingNodes(adapters_->model_adapter(), *target);
   if (nodes.empty()) {
     return base::unexpected(
         MakeError(mojo_base::mojom::Code::kNotFound, "Target not found"));
@@ -165,7 +164,7 @@ BookmarkBarUIControllerImpl::ShowContextMenu(
 
   // The paste check may finish later, so the menu is shown from the callback.
   // The caller doesn't wait for it.
-  model_adapter.CanPasteFromClipboard(
+  adapters_->action_adapter().CanPasteFromClipboard(
       nodes, base::BindOnce(&BookmarkBarUIControllerImpl::OnPasteCheckComplete,
                             weak_ptr_factory_.GetWeakPtr(), std::move(target),
                             point, source_type));

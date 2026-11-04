@@ -1070,7 +1070,6 @@ public class VerticalTabListItemTouchHelperCallbackUnitTest {
     public void testOnMove_GroupHeader_Downward() {
         Token groupId = new Token(1L, 2L);
         when(mTab1.getTabGroupId()).thenReturn(groupId);
-        mPropertyModel.set(TabProperties.TAB_ID, 1);
         mPropertyModel.set(TabProperties.TAB_GROUP_HEADER_ID, groupId);
         setItemViewType(mViewHolder, TabProperties.UiType.TAB_GROUP);
         mTargetPropertyModel.set(TabProperties.TAB_ID, 2);
@@ -1104,7 +1103,6 @@ public class VerticalTabListItemTouchHelperCallbackUnitTest {
     public void testOnMove_GroupHeader_Upward() {
         Token groupId = new Token(1L, 2L);
         when(mTab1.getTabGroupId()).thenReturn(groupId);
-        mPropertyModel.set(TabProperties.TAB_ID, 1);
         mPropertyModel.set(TabProperties.TAB_GROUP_HEADER_ID, groupId);
         setItemViewType(mViewHolder, TabProperties.UiType.TAB_GROUP);
         mTargetPropertyModel.set(TabProperties.TAB_ID, 2);
@@ -1168,6 +1166,32 @@ public class VerticalTabListItemTouchHelperCallbackUnitTest {
 
         // Since tab2 is already selected and it belongs to the group being dragged,
         // we shouldn't change the selection index.
+        verify(mTabModel, never()).setIndex(anyInt(), anyInt());
+    }
+
+    @Test
+    public void testOnSelectedChanged_DragCollapsedGroupHeader_DoesNotSelectTab() {
+        Token groupId = new Token(1L, 2L);
+        setBindingAdapterPosition(mViewHolder, 0);
+        setItemViewType(mViewHolder, TabProperties.UiType.TAB_GROUP);
+        mPropertyModel.set(TabProperties.TAB_GROUP_HEADER_ID, groupId);
+
+        when(mTab1.getId()).thenReturn(1);
+        when(mTab2.getId()).thenReturn(2);
+
+        when(mTabModel.getTabsInGroup(groupId)).thenReturn(List.of(mTab1, mTab2));
+        when(mTabModel.getTabGroupCollapsed(groupId)).thenReturn(true);
+
+        // Setup mModel indices.
+        when(mTabModel.indexOf(mTab1)).thenReturn(0);
+        when(mTabModel.indexOf(mTab2)).thenReturn(1);
+        // Current active tab index (mTab3 is active, outside this group).
+        when(mTabModel.index()).thenReturn(2);
+        when(mTabModel.getTabAt(2)).thenReturn(mTab3);
+
+        mCallback.onSelectedChanged(mViewHolder, ItemTouchHelper.ACTION_STATE_DRAG);
+
+        // The group is collapsed, so the active tab should not change.
         verify(mTabModel, never()).setIndex(anyInt(), anyInt());
     }
 

@@ -61,10 +61,6 @@
 #include "content/public/browser/web_contents.h"
 #include "url/gurl.h"
 
-#if BUILDFLAG(IS_ANDROID)
-#include "base/android/device_info.h"
-#endif
-
 namespace ttc {
 
 namespace {
@@ -85,17 +81,6 @@ void OnToolCallFinished(
   }
   journal_event->EndEntry(std::move(details).Build());
   std::move(callback).Run(std::move(response));
-}
-
-// Whether window management tools are offered. They only make sense where
-// Chrome runs in a desktop-style windowing environment with multiple
-// user-visible windows: desktop platforms, and Android in desktop mode.
-bool SupportsWindowManagementTools() {
-#if BUILDFLAG(IS_ANDROID)
-  return base::android::device_info::is_desktop();
-#else
-  return true;
-#endif
 }
 
 // Parses the `node_id` argument sent by the server. The model sees `node_id`
@@ -207,18 +192,6 @@ void ToolController::ProcessToolCall(const ToolRequest& tool_request,
       case actor::ToolId::kCloseTab:
         CloseCurrentTab(std::move(callback));
         return;
-      case actor::ToolId::kCloseWindow:
-        if (SupportsWindowManagementTools()) {
-          CloseCurrentWindow(std::move(callback));
-          return;
-        }
-        break;
-      case actor::ToolId::kCreateWindow:
-        if (SupportsWindowManagementTools()) {
-          CreateNewWindow(std::move(callback));
-          return;
-        }
-        break;
       case actor::ToolId::kSwitchTab:
         SwitchTab(tool_request.arguments, std::move(callback));
         return;
@@ -291,17 +264,12 @@ std::vector<ToolDefinition> ToolController::GetToolDefinitions() {
       actor::ToolId::kOpenKnownPage,
   };
 
-  actor::ToolIdSet supported_tool_ids = kSupportedToolIds;
-  if (SupportsWindowManagementTools()) {
-    supported_tool_ids.Put(actor::ToolId::kCreateWindow);
-  }
   std::vector<const actor::ToolDefinition*> actor_tools =
-      actor_service->tool_registry().GetToolsByIds(supported_tool_ids);
+      actor_service->tool_registry().GetToolsByIds(kSupportedToolIds);
 
   // Legacy tools defined below: click_element, set_text, select_option,
-  // scroll_page, and get_screenshot; plus close_window where window tools are
-  // supported.
-  constexpr size_t kNumLegacyTools = 6;
+  // scroll_page, and get_screenshot.
+  constexpr size_t kNumLegacyTools = 5;
   std::vector<ToolDefinition> tools;
   tools.reserve(actor_tools.size() + kNumLegacyTools);
   for (const actor::ToolDefinition* actor_tool : actor_tools) {
@@ -372,21 +340,20 @@ std::vector<ToolDefinition> ToolController::GetToolDefinitions() {
   select_option.parameters_json_schema =
       base::DictValue()
           .Set("type", "object")
-          .Set(
-              "properties",
-              base::DictValue()
-                  .Set("node_id",
-                       base::DictValue()
-                           .Set("type", "integer")
-                           .Set("description",
-                                "The numeric node ID of the target dropdown "
-                                "element (e.g. 101)."))
-                  .Set("value", base::DictValue()
+          .Set("properties",
+               base::DictValue()
+                   .Set("node_id",
+                        base::DictValue()
+                            .Set("type", "integer")
+                            .Set("description",
+                                 "The numeric node ID of the target dropdown "
+                                 "element (e.g. 101)."))
+                   .Set("text", base::DictValue()
                                     .Set("type", "string")
                                     .Set("description",
-                                         "The value of the <option> element to "
+                                         "The text of the <option> element to "
                                          "select.")))
-          .Set("required", base::ListValue().Append("node_id").Append("value"));
+          .Set("required", base::ListValue().Append("node_id").Append("text"));
   select_option.behavior = ToolDefinition::Behavior::kBlocking;
   select_option.verbalization = ToolDefinition::Verbalization::kSilentAction;
   tools.push_back(std::move(select_option));
@@ -444,20 +411,6 @@ std::vector<ToolDefinition> ToolController::GetToolDefinitions() {
   get_screenshot.verbalization = ToolDefinition::Verbalization::kSilentAction;
   tools.push_back(std::move(get_screenshot));
 
-  if (SupportsWindowManagementTools()) {
-    // Defined here rather than taken from the registry: the registry's
-    // close_window takes a window_id, but the model has no window IDs. TTC
-    // closes the window containing the tracked tab, as enter_fullscreen does.
-    ToolDefinition close_window;
-    close_window.name =
-        std::string(actor::CloseWindowToolRequest::kModelFacingName);
-    close_window.description = "Close the active browser window.";
-    // The tool takes no arguments, so its schema is left empty.
-    close_window.behavior = ToolDefinition::Behavior::kBlocking;
-    close_window.verbalization = ToolDefinition::Verbalization::kSilentAction;
-    tools.push_back(std::move(close_window));
-  }
-
   return tools;
 }
 
@@ -496,21 +449,6 @@ void ToolController::CloseCurrentTab(ToolResponseCallback callback) {
       std::move(callback));
 }
 
-void ToolController::CloseCurrentWindow(ToolResponseCallback callback) {
-  PerformActionOnTrackedContents(
-      [](actor::ActorSurfaceHandle actor_surface_handle)
-          -> std::unique_ptr<actor::ToolRequest> {
-        // The tracked tab is always in a window, so this can't be null.
-        const BrowserWindowInterface& browser =
-            CHECK_DEREF(actor_surface_handle.GetTabHandle()
-                            .Get()
-                            ->GetBrowserWindowInterface());
-        return std::make_unique<actor::CloseWindowToolRequest>(
-            browser.GetSessionID().id());
-      },
-      std::move(callback));
-}
-
 void ToolController::CloseGeminiPanel(ToolResponseCallback callback) {
   PerformActionOnTrackedContents(
       [](actor::ActorSurfaceHandle actor_surface_handle)
@@ -519,12 +457,6 @@ void ToolController::CloseGeminiPanel(ToolResponseCallback callback) {
             actor_surface_handle);
       },
       std::move(callback));
-}
-
-void ToolController::CreateNewWindow(ToolResponseCallback callback) {
-  // The new window becomes active, so the session's tracked tab follows it.
-  PerformAction(std::make_unique<actor::CreateWindowToolRequest>(),
-                std::move(callback));
 }
 
 void ToolController::FindAndHighlight(const base::DictValue& arguments,
@@ -940,19 +872,21 @@ void ToolController::SelectOption(const base::DictValue& arguments,
     return;
   }
 
-  const std::string* value = arguments.FindString("value");
-  if (!value) {
+  const std::string* text = arguments.FindString("text");
+  if (!text) {
     std::move(callback).Run(
         ToolResponse::Error(actor::mojom::ActionResultCode::kArgumentsInvalid,
-                            "Missing value argument"));
+                            "Missing text argument"));
     return;
   }
 
+  // In Ttc options are selected based on visible text.
   PerformActionOnTrackedContents(
-      [&page_target, &value](actor::ActorSurfaceHandle actor_surface_handle)
+      [&page_target, &text](actor::ActorSurfaceHandle actor_surface_handle)
           -> std::unique_ptr<actor::ToolRequest> {
-        return std::make_unique<actor::SelectToolRequest>(actor_surface_handle,
-                                                          *page_target, *value);
+        return std::make_unique<actor::SelectToolRequest>(
+            actor_surface_handle, *page_target, *text,
+            actor::mojom::SelectAction::OptionMatchMode::kText);
       },
       std::move(callback));
 }

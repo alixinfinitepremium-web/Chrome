@@ -210,7 +210,6 @@
 #include "chrome/browser/ui/webui/ash/config/ash_web_ui_config_manager.h"
 #include "chrome/browser/ui/webui/ash/emoji/emoji_ui.h"
 #include "chrome/common/logging_chrome.h"
-#include "chrome/common/pref_names.h"
 #include "chromeos/ash/components/attestation/attestation_features.h"
 #include "chromeos/ash/components/audio/audio_devices_pref_handler_impl.h"
 #include "chromeos/ash/components/audio/cras_audio_handler.h"
@@ -1397,6 +1396,12 @@ void ChromeBrowserMainPartsAsh::PostProfileInit(Profile* profile,
         g_browser_process->metrics_service(),
         g_browser_process->GetFeatures()->application_locale_storage(),
         g_browser_process->shared_url_loader_factory(),
+        g_browser_process->platform_part()->component_manager_ash(),
+        g_browser_process->platform_part()
+            ->device_restriction_schedule_controller(),
+        g_browser_process->platform_part()
+            ->multi_user_sign_in_policy_controller(),
+        g_browser_process->platform_part()->GetSystemClock(),
         *base::CommandLine::ForCurrentProcess(), profile,
         is_integration_test());
 

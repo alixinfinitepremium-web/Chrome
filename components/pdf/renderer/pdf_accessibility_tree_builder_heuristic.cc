@@ -25,12 +25,14 @@
 #include "base/metrics/histogram.h"
 #include "base/metrics/histogram_functions.h"
 #include "base/notreached.h"
+#include "base/numerics/safe_conversions.h"
 #include "base/strings/strcat.h"
 #include "base/strings/string_number_conversions.h"
 #include "base/strings/string_util.h"
 #include "base/strings/utf_string_conversion_utils.h"
 #include "base/timer/elapsed_timer.h"
 #include "components/pdf/renderer/pdf_accessibility_text_utils.h"
+#include "components/pdf/renderer/pdf_accessibility_tree.h"
 #include "components/pdf/renderer/pdf_accessibility_tree_builder.h"
 #include "pdf/accessibility_structs.h"
 #include "pdf/pdf_features.h"
@@ -230,10 +232,18 @@ constexpr float kMaxFirstLineIndentEm = 3.0f;
 constexpr float kWrapRightEdgeToleranceEm = 2.0f;
 
 // Delimiters that may follow the number in a decimal ordered list marker.
-// TODO(crbug.com/525509231): Support delimiters used in other languages, such
-// as ordinal indicators (e.g. "2º").
-constexpr auto kOrderedMarkerDelimiters =
-    std::to_array<std::string_view>({".", ")", ".)"});
+// TODO(crbug.com/525509231): Support CJK delimiters such as "．" (U+FF0E
+// FULLWIDTH FULL STOP) and "、" (U+3001 IDEOGRAPHIC COMMA), which may follow
+// full-width digits and have no trailing space.
+constexpr auto kOrderedMarkerDelimiters = std::to_array<std::string_view>({
+    ".",
+    ")",
+    ".)",
+    "):",
+    "\xC2\xBA",   // º U+00BA (masculine ordinal indicator)
+    ".\xC2\xBA",  // .º
+    "\xC2\xB0",   // ° U+00B0 (degree sign, used as an ordinal indicator)
+});
 
 // Markers that only count when they open or continue a nested level, because
 // at the top level they usually aren't bullets (e.g. "–" as punctuation).
@@ -2253,14 +2263,48 @@ void RecordListStartReason(const ListMarkerKind& kind) {
                                 reason);
 }
 
-// Records end metrics for `level`.
-void RecordListEndMetrics(const ListLevel& level, bool is_top_level) {
+// Returns why a non-marker block starting at `run_context` ends the list: an
+// out-of-sequence ordered marker, an outdent, or a new paragraph.
+ListEndReason GetNonMarkerListEndReason(const TextRunContext& run_context,
+                                        const ListLevel& innermost) {
+  if (ClassifyOrderedMarker(run_context).form != ListMarkerForm::kNone) {
+    return ListEndReason::kOutOfSequenceMarker;
+  }
+  if (run_context.run->bounds.x() < innermost.marker_x - kListIndentThreshold) {
+    return ListEndReason::kOutdent;
+  }
+  return ListEndReason::kParagraph;
+}
+
+// Records end metrics for `level`. `level.item_char_counts` must include its
+// last item.
+void RecordListEndMetrics(const ListLevel& level,
+                          ListEndReason reason,
+                          bool is_top_level) {
+  CHECK_EQ(level.item_char_counts.size(), level.list->child_ids.size());
   base::UmaHistogramCounts100(
       base::StrCat({"Accessibility.PdfHeuristics.",
                     is_top_level ? "TopLevel" : "Nested",
                     level.last_ordered_value ? "Ordered" : "Unordered",
                     "ListItemCount"}),
       level.list->child_ids.size());
+  base::UmaHistogramEnumeration("Accessibility.PdfHeuristics.ListEndReason",
+                                reason);
+
+  if (level.item_char_counts.size() >= 2) {
+    std::vector<size_t> others = level.item_char_counts;
+    // Exclude the last item from the median so it can't skew the baseline it
+    // is compared against.
+    const size_t last = others.back();
+    others.pop_back();
+    std::ranges::sort(others);
+    const size_t median = others[others.size() / 2];
+    if (median > 0) {
+      base::UmaHistogramCounts1000(
+          "Accessibility.PdfHeuristics.ListLastItemLengthRatio",
+          base::ClampRound(100.0 * last / median));
+    }
+  }
 
   if (is_top_level) {
     base::UmaHistogramExactLinear(
@@ -2271,10 +2315,12 @@ void RecordListEndMetrics(const ListLevel& level, bool is_top_level) {
 
 // Ends all but the outermost `levels_to_keep` levels. All level removals must
 // go through here so that end metrics are recorded.
-void PopListLevels(std::vector<ListLevel>& levels, size_t levels_to_keep) {
+void PopListLevels(std::vector<ListLevel>& levels,
+                   size_t levels_to_keep,
+                   ListEndReason reason) {
   CHECK_LE(levels_to_keep, levels.size());
   for (size_t i = levels_to_keep; i < levels.size(); ++i) {
-    RecordListEndMetrics(levels[i], /*is_top_level=*/i == 0);
+    RecordListEndMetrics(levels[i], reason, /*is_top_level=*/i == 0);
   }
   levels.resize(levels_to_keep);
 }
@@ -2556,21 +2602,28 @@ void PdfAccessibilityTreeBuilderHeuristic::BuildPageTree() {
     if (list_marker_kind.form != ListMarkerForm::kNone) {
       CHECK(features::IsPdfAccessibilityHeuristicEnhancementsEnabled());
       gfx::RectF marker_bounds = text_run.bounds;
-      float item_text_x = 0.0f;
+      float item_text_x;
+      size_t item_start_char_index;
       if (list_marker_kind.form == ListMarkerForm::kCombined) {
         const ListMarkerPrefix prefix = GetListMarkerPrefix(run_context.chars);
         marker_prefix_char_count = prefix.char_count;
         marker_bounds.set_width(prefix.marker_width);
         item_text_x = text_run.bounds.x() +
                       GetCharsWidth(run_context.chars.first(prefix.char_count));
+        item_start_char_index =
+            page_layout.text_run_start_indices[text_run_index] +
+            prefix.char_count;
       } else {
         CHECK_EQ(list_marker_kind.form, ListMarkerForm::kStandalone);
         // Standalone markers are only classified when item text follows in
         // `next_run`.
         CHECK(run_context.next_run);
         item_text_x = run_context.next_run->bounds.x();
+        item_start_char_index =
+            page_layout.text_run_start_indices[text_run_index + 1];
       }
       list_levels_.back().item_text_x = item_text_x;
+      list_levels_.back().last_item_start_char_index = item_start_char_index;
 
       AddListMarkerToNode(GetListMarkerName(run_context, list_marker_kind),
                           marker_bounds, block_node);
@@ -2696,7 +2749,12 @@ void PdfAccessibilityTreeBuilderHeuristic::BuildPageTree() {
     }
   }
 
-  PopListLevels(list_levels_, /*levels_to_keep=*/0);
+  if (!list_levels_.empty()) {
+    list_levels_.back().item_char_counts.push_back(
+        page_layout.chars.size() -
+        list_levels_.back().last_item_start_char_index);
+    PopListLevels(list_levels_, /*levels_to_keep=*/0, ListEndReason::kPageEnd);
+  }
 
 #if BUILDFLAG(ENABLE_SCREEN_AI_SERVICE)
   // Add the wrapper node if still in OCR block and text runs finish.
@@ -2770,13 +2828,24 @@ PdfAccessibilityTreeBuilderHeuristic::CreateBlockLevelNode(
   std::vector<ListLevel> levels;
   if (features::IsPdfAccessibilityHeuristicEnhancementsEnabled()) {
     std::swap(levels, list_levels_);
+    if (!levels.empty()) {
+      levels.back().item_char_counts.push_back(
+          layout.text_run_start_indices[text_run_index] -
+          levels.back().last_item_start_char_index);
+    }
   }
-  absl::Cleanup end_lists = [&levels] {
-    PopListLevels(levels, /*levels_to_keep=*/0);
+  // Set on each path that returns with an open list.
+  std::optional<ListEndReason> end_reason;
+  absl::Cleanup end_lists = [&levels, &end_reason] {
+    if (!levels.empty()) {
+      CHECK(end_reason.has_value());
+      PopListLevels(levels, /*levels_to_keep=*/0, *end_reason);
+    }
   };
 
   const TextRunContext run_context = GetTextRunContext(layout, text_run_index);
   if (features::IsPdfAccessibilityHeuristicEnhancementsEnabled() && graphic) {
+    end_reason = ListEndReason::kGraphic;
     result.node = CreateLineBreakingNode(ax::mojom::Role::kFigure,
                                          run_context.run->language);
     result.node->relative_bounds.bounds = graphic->bounds;
@@ -2817,6 +2886,7 @@ PdfAccessibilityTreeBuilderHeuristic::CreateBlockLevelNode(
     // roles.
     if (!header_footer_ax_role.has_value() &&
         IsInSideMargin(*run_context.run, page_properties)) {
+      end_reason = ListEndReason::kHeaderFooter;
       result.node = CreateLineBreakingNode(ax::mojom::Role::kSectionFooter,
                                            run_context.run->language);
       return result;
@@ -2837,6 +2907,7 @@ PdfAccessibilityTreeBuilderHeuristic::CreateBlockLevelNode(
     const HeadingClassifier classifier =
         ClassifyHeading(run_context, page_properties);
     if (classifier != HeadingClassifier::kNone) {
+      end_reason = ListEndReason::kHeading;
       int heading_level = classifier == HeadingClassifier::kFontSize
                               ? kDefaultHeadingLevel
                               : kLargestStyledHeadingLevel;
@@ -2853,6 +2924,12 @@ PdfAccessibilityTreeBuilderHeuristic::CreateBlockLevelNode(
       result.heading_classifier = classifier;
       return result;
     }
+  }
+
+  if (!levels.empty()) {
+    end_reason = header_footer_ax_role.has_value()
+                     ? ListEndReason::kHeaderFooter
+                     : GetNonMarkerListEndReason(run_context, levels.back());
   }
 
   // Reached by page numbers that skipped heading classification and by runs it
@@ -2882,7 +2959,8 @@ ui::AXNodeData* PdfAccessibilityTreeBuilderHeuristic::CreateListItemNode(
 
   switch (placement.kind) {
     case ListPlacementKind::kNewList: {
-      PopListLevels(levels, /*levels_to_keep=*/0);
+      PopListLevels(levels, /*levels_to_keep=*/0,
+                    ListEndReason::kNewListMarker);
       RecordListStartReason(marker_kind);
       // Start a new top-level list if no list is currently open, or if the
       // marker is indented far to the right (e.g. crossing into a new column).
@@ -2899,7 +2977,9 @@ ui::AXNodeData* PdfAccessibilityTreeBuilderHeuristic::CreateListItemNode(
       RecordListStartReason(marker_kind);
       // Deeper indent: start a nested list inside the previous list item,
       // matching Blink's <ul><li>...<ul>...</ul></li></ul> structure.
-      PopListLevels(levels, placement.level_index + 1);
+      // A sublist of the other kind at this depth replaces the current one.
+      PopListLevels(levels, placement.level_index + 1,
+                    ListEndReason::kNewListMarker);
       CHECK(levels.back().last_item);
       ui::AXNodeData* nested_list =
           CreateLineBreakingNode(ax::mojom::Role::kList, /*language=*/"");
@@ -2919,7 +2999,8 @@ ui::AXNodeData* PdfAccessibilityTreeBuilderHeuristic::CreateListItemNode(
       // outermost level, keep the outermost list to tolerate slight indentation
       // variations, and update its marker position so wrapped lines and
       // sublists are measured against it.
-      PopListLevels(levels, placement.level_index + 1);
+      PopListLevels(levels, placement.level_index + 1,
+                    ListEndReason::kShallowerMarker);
       levels.back().marker_x = std::min(levels.back().marker_x, marker_x);
       levels.back().last_ordered_value = ordered_value;
       break;

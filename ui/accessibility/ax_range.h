@@ -129,7 +129,9 @@ class AXRange final {
   //   nullopt - If positions are not comparable (see AXPosition::CompareTo).
   static std::optional<int> CompareEndpoints(const AXPositionType* first,
                                              const AXPositionType* second) {
-    CHECK(first->IsValid(), base::NotFatalUntil::M163);
+    // TODO(crbug.com/580191612): CHECK-exclusion: Convert to a CHECK once we
+    // are confident it won't be triggered.
+    DCHECK(first->IsValid());
     CHECK(second->IsValid(), base::NotFatalUntil::M163);
     std::optional<int> tree_position_comparison =
         first->AsTreePosition()->CompareTo(*second->AsTreePosition());
@@ -252,7 +254,9 @@ class AXRange final {
         current_start_ = AXPositionType::CreateNullPosition();
       } else {
         current_start_ = current_start_->CreateNextLeafTreePosition();
-        CHECK_LE(*current_start_, *iterator_end_, base::NotFatalUntil::M163);
+        // TODO(crbug.com/581466836): CHECK-exclusion: Convert to a CHECK once
+        // we are confident it won't be triggered.
+        DCHECK_LE(*current_start_, *iterator_end_);
       }
       return *this;
     }
@@ -673,7 +677,9 @@ class AXRange final {
           range_start->text_offset(), range_end->text_offset(),
           AXClippingBehavior::kUnclipped, &offscreen_result);
       if (offscreen_result == AXOffscreenResult::kOnscreen) {
-        CHECK(degenerate_range_rect.width() == 0, base::NotFatalUntil::M163);
+        // TODO(crbug.com/580137549): CHECK-exclusion: Convert to a CHECK once
+        // we are confident it won't be triggered.
+        DCHECK(degenerate_range_rect.width() == 0);
         degenerate_range_rect.set_width(1);
         rects.push_back(degenerate_range_rect);
       }
