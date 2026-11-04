@@ -545,6 +545,96 @@ suite('OmniboxPopupSearchboxTest', function() {
     assertEquals(1, handler.getCallCount('onSelectionChanged'));
   });
 
+  // Shows tab 1's draft in the focused input. Returns a list that collects the
+  // input's text whenever the input loses focus, which is when Blink commits an
+  // IME composition.
+  async function showFocusedTab1AndRecordBlurs(): Promise<string[]> {
+    callbackRouter.setInputState(createDefaultOmniboxInputState({
+      tabId: 1,
+      text: 'tab 1 draft',
+      selection: {start: 11, end: 11},
+      userInputInProgress: true,
+      isFocused: true,
+    }));
+    await microtasksFinished();
+    assertEquals(searchbox.$.input, searchbox.shadowRoot.activeElement);
+
+    const textsOnBlur: string[] = [];
+    const input = searchbox.$.input.inputElement;
+    input.addEventListener('blur', () => textsOnBlur.push(input.value));
+    return textsOnBlur;
+  }
+
+  test('EndsCompositionBeforeShowingAnotherTab', async () => {
+    const textsOnBlur = await showFocusedTab1AndRecordBlurs();
+
+    // Compose, then switch to tab 2, whose omnibox is focused too.
+    searchbox.$.input.dispatchEvent(new CustomEvent('compositionstart'));
+    callbackRouter.setInputState(createDefaultOmniboxInputState({
+      sequenceNumber: 2,
+      tabId: 2,
+      text: 'tab 2 draft',
+      selection: {start: 11, end: 11},
+      userInputInProgress: true,
+      isFocused: true,
+      isTabSwitch: true,
+    }));
+    await microtasksFinished();
+
+    // The input lost focus while it still had tab 1's text. Then it showed tab
+    // 2's text and regained focus.
+    assertDeepEquals(['tab 1 draft'], textsOnBlur);
+    assertEquals('tab 2 draft', searchbox.$.input.inputElement.value);
+    assertEquals(searchbox.$.input, searchbox.shadowRoot.activeElement);
+
+    // Compose, then open a New Tab Page, whose omnibox is focused. Unlike
+    // switching to an existing tab, this isn't marked as a tab switch.
+    searchbox.$.input.dispatchEvent(new CustomEvent('compositionstart'));
+    callbackRouter.setInputState(createDefaultOmniboxInputState({
+      sequenceNumber: 3,
+      tabId: 3,
+      isFocused: true,
+    }));
+    await microtasksFinished();
+
+    assertDeepEquals(['tab 1 draft', 'tab 2 draft'], textsOnBlur);
+    assertEquals('', searchbox.$.input.inputElement.value);
+    assertEquals(searchbox.$.input, searchbox.shadowRoot.activeElement);
+  });
+
+  test('KeepsFocusWithoutCompositionOrTabChange', async () => {
+    const textsOnBlur = await showFocusedTab1AndRecordBlurs();
+
+    // Without a composition, switching to a tab whose omnibox is focused keeps
+    // the input focused.
+    callbackRouter.setInputState(createDefaultOmniboxInputState({
+      sequenceNumber: 2,
+      tabId: 2,
+      text: 'tab 2 draft',
+      selection: {start: 11, end: 11},
+      userInputInProgress: true,
+      isFocused: true,
+      isTabSwitch: true,
+    }));
+    await microtasksFinished();
+    assertEquals('tab 2 draft', searchbox.$.input.inputElement.value);
+
+    // A state for the same tab doesn't end a composition.
+    searchbox.$.input.dispatchEvent(new CustomEvent('compositionstart'));
+    callbackRouter.setInputState(createDefaultOmniboxInputState({
+      sequenceNumber: 3,
+      tabId: 2,
+      text: 'tab 2 draft',
+      selection: {start: 11, end: 11},
+      userInputInProgress: true,
+      isFocused: true,
+    }));
+    await microtasksFinished();
+
+    assertDeepEquals([], textsOnBlur);
+    assertEquals(searchbox.$.input, searchbox.shadowRoot.activeElement);
+  });
+
   test('DoubleClickingShowsFullUrl', async () => {
     // Focus the input.
     const input = searchbox.$.input.inputElement;
@@ -3989,6 +4079,7 @@ suite('OmniboxPopupSearchboxTest', function() {
        showInCurrentTabChip: true,
        showInPreviousTabChip: false,
        isLoading: false,
+       recentTab: false,
        lastActive: {internalValue: 1n},
      };
 
@@ -4941,7 +5032,7 @@ suite('OmniboxPopupSearchboxTest', function() {
  });
 
  test(
-     'EnterKeyWithVirtualFocusOnContextualEntrypointOpensContextMenu',
+     'EnterOrSpaceKeyWithVirtualFocusOnContextualEntrypointOpensContextMenu',
      async () => {
        loadTimeData.overrideValues({realboxVirtualFocusNavigation: true});
        searchbox.virtualFocusEnabled = true;
@@ -4955,12 +5046,20 @@ suite('OmniboxPopupSearchboxTest', function() {
        });
        await microtasksFinished();
 
-       await searchbox.handleKeyNavigation(
-           new KeyboardEvent('keydown', {key: 'Enter', cancelable: true}));
-       await microtasksFinished();
+       for (const key of ['Enter', ' ']) {
+         handler.resetResolver('showContextMenu');
+         await searchbox.handleKeyNavigation(
+             new KeyboardEvent('keydown', {key, cancelable: true}));
+         await microtasksFinished();
 
-       assertEquals(1, handler.getCallCount('showContextMenu'));
-       assertEquals(0, testProxy.handler.getCallCount('openAutocompleteMatch'));
+         assertEquals(1, handler.getCallCount('showContextMenu'));
+         const point = await handler.whenCalled('showContextMenu');
+         const entrypointButton = searchbox.getContextualEntrypointButton();
+         assertTrue(!!entrypointButton);
+         assertDeepEquals(entrypointButton.getAnchorPoint(), point);
+         assertEquals(
+             0, testProxy.handler.getCallCount('openAutocompleteMatch'));
+       }
      });
 
  test('EnterKeyWithVirtualFocusOnLensSearchIconOpensLensSearch', async () => {

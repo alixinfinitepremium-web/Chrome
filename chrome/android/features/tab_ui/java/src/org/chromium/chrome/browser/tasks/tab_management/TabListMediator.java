@@ -2599,6 +2599,28 @@ public class TabListMediator implements TabListNotificationHandler {
     }
 
     /**
+     * Resolves the UI index in the model list of the card representing the given tab group.
+     *
+     * @param tabGroupId The {@link Token} of the tab group to locate.
+     * @return The UI index in the model list, or {@link TabModel#INVALID_TAB_INDEX} if not found.
+     */
+    int getIndexFromTabGroupId(Token tabGroupId) {
+        int index = mModelList.indexFromTabGroupId(tabGroupId);
+        if (index != TabModel.INVALID_TAB_INDEX) {
+            return index;
+        }
+        // Fallback for legacy representative tab cards when CARD_TYPE is TAB.
+        if (!TabUiFeatureUtilities.isAndroidTabUiRefactorEnabled()) {
+            TabModel tabModel = mCurrentTabModelSupplier.get();
+            if (tabModel == null) return TabModel.INVALID_TAB_INDEX;
+            int tabId = TabGroupUtils.getFirstTabIdInGroup(tabModel, tabGroupId);
+            if (tabId == Tab.INVALID_TAB_ID) return TabModel.INVALID_TAB_INDEX;
+            return getIndexForTabIdWithRelatedTabs(tabId);
+        }
+        return TabModel.INVALID_TAB_INDEX;
+    }
+
+    /**
      * Resolves the {@link PropertyModel} of the card representing the given tab.
      *
      * @param tabId The ID of the tab to locate.
@@ -3222,10 +3244,15 @@ public class TabListMediator implements TabListNotificationHandler {
             if (!mTabListConfig.supportsTabGroups) return;
 
             Token tabGroupId = tab.getTabGroupId();
-            int index =
-                    TabUiFeatureUtilities.isAndroidTabUiRefactorEnabled() && tabGroupId != null
-                            ? mModelList.indexFromTabGroupId(tabGroupId)
-                            : getIndexForTabIdWithRelatedTabs(tab.getId());
+            int index;
+            if (TabUiFeatureUtilities.isAndroidTabUiRefactorEnabled()) {
+                index =
+                        tabGroupId != null
+                                ? mModelList.indexFromTabGroupId(tabGroupId)
+                                : getIndexFromTabId(tab.getId());
+            } else {
+                index = getIndexForTabIdWithRelatedTabs(tab.getId());
+            }
             if (mModelList.isValidIndex(index)) {
                 if (mTabListConfig.supportsShrinkCloseAnimation) {
                     mModelList

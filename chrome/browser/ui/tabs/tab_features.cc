@@ -380,10 +380,10 @@
 #include "chrome/browser/safe_browsing/safe_browsing_service.h"
 #include "chrome/browser/safe_browsing/tailored_security/tailored_security_service_factory.h"
 #include "chrome/browser/safe_browsing/tailored_security/tailored_security_url_observer.h"
-#include "chrome/browser/safe_browsing/trigger_creator.h"
+#include "chrome/browser/safe_browsing/triggers/trigger_creator.h"
+#include "components/safe_browsing/content/browser/interstitials/ui_manager.h"
 #include "components/safe_browsing/content/browser/safe_browsing_navigation_observer.h"
 #include "components/safe_browsing/content/browser/safe_browsing_tab_observer.h"
-#include "components/safe_browsing/content/browser/ui_manager.h"
 #include "components/safe_browsing/content/browser/url_checker/async_check_tracker.h"
 #include "components/safe_browsing/core/common/features.h"
 #endif
@@ -677,8 +677,9 @@ void TabFeatures::Init(TabInterface& tab, Profile* profile) {
     if (tab_groups::TabGroupSyncService* tab_group_sync_service =
             tab_groups::TabGroupSyncServiceFactory::GetForProfile(profile)) {
       saved_tab_group_web_contents_listener_ =
-          std::make_unique<tab_groups::SavedTabGroupWebContentsListener>(
-              tab_group_sync_service, &tab);
+          GetUserDataFactory()
+              .CreateInstance<tab_groups::SavedTabGroupWebContentsListener>(
+                  tab, tab_group_sync_service, &tab);
     }
 
     if (tab_groups::SavedTabGroupUtils::SupportsSharedTabGroups()) {
@@ -844,8 +845,11 @@ void TabFeatures::Init(TabInterface& tab, Profile* profile) {
 
   tab_dialog_manager_ = std::make_unique<TabDialogManager>(&tab);
 
-  data_protection_tab_controller_ = std::make_unique<
-      enterprise_data_protection::DataProtectionNavigationController>(&tab);
+  data_protection_tab_controller_ =
+      GetUserDataFactory()
+          .CreateInstance<
+              enterprise_data_protection::DataProtectionNavigationController>(
+              tab, &tab);
 
   enterprise_proxy_tab_helper_ =
       GetUserDataFactory()

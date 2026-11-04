@@ -427,22 +427,12 @@ class TabFeatures {
   TabFeatures(const TabFeatures&) = delete;
   TabFeatures& operator=(const TabFeatures&) = delete;
 
-  enterprise_data_protection::DataProtectionNavigationController*
-  data_protection_controller() {
-    return data_protection_tab_controller_.get();
-  }
-
   // Note: Temporary until there is a more uniform way to swap out features for
   // testing.
   customize_chrome::SidePanelController*
   SetCustomizeChromeSidePanelControllerForTesting(
       std::unique_ptr<customize_chrome::SidePanelController>
           customize_chrome_side_panel_controller);
-
-  tab_groups::SavedTabGroupWebContentsListener*
-  saved_tab_group_web_contents_listener() const {
-    return saved_tab_group_web_contents_listener_.get();
-  }
 
   TabDialogManager* tab_dialog_manager() { return tab_dialog_manager_.get(); }
 
@@ -452,12 +442,6 @@ class TabFeatures {
 
   LensOverlayController* lens_overlay_controller();
   const LensOverlayController* lens_overlay_controller() const;
-
-#if !BUILDFLAG(IS_ANDROID)
-  record_replay::RecordReplayClient* record_replay_client() {
-    return record_replay_client_.get();
-  }
-#endif
 
   TabUIHelper* SetTabUIHelperForTesting(
       std::unique_ptr<TabUIHelper> tab_ui_helper);

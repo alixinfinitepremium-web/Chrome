@@ -753,6 +753,9 @@ base::DictValue NewTabPageUI::GetLoadTimeData(
            ntp_realbox::IsNtpRealboxNextEnabled(profile) &&
                base::FeatureList::IsEnabled(
                    ntp_realbox::kNtpRealboxDynamicAiModeButton));
+  dict.Set("ntpRealboxDynamicAiModeButtonPreventEarlyPaint",
+           base::FeatureList::IsEnabled(
+               ntp_realbox::kNtpRealboxDynamicAiModeButtonPreventEarlyPaint));
 
   if (ntp_realbox::IsNtpRealboxNextEnabled(profile)) {
     if (base::FeatureList::IsEnabled(
@@ -1417,6 +1420,9 @@ void NewTabPageUI::CreatePageHandler(
                           base::Unretained(this)),
       base::BindRepeating(&NewTabPageUI::ClearContextualSessionHandle,
                           base::Unretained(this)));
+  if (omnibox::IsDynamicAimFulfillmentEnabledForRealbox()) {
+    composebox_handler_->OptInToDynamicAimFulfillment();
+  }
 }
 
 void NewTabPageUI::CreateHelpBubbleHandler(

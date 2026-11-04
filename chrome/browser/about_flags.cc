@@ -6799,10 +6799,7 @@ const FeatureEntry kFeatureEntries[] = {
      FEATURE_VALUE_TYPE(ash::features::kFilesMaterializedViews)},
     {"files-trash-auto-cleanup", flag_descriptions::kFilesTrashAutoCleanupName,
      flag_descriptions::kFilesTrashAutoCleanupDescription, kOsCrOS,
-     FEATURE_VALUE_TYPE(ash::features::kFilesTrashDrive)},
-    {"files-trash-drive", flag_descriptions::kFilesTrashDriveName,
-     flag_descriptions::kFilesTrashDriveDescription, kOsCrOS,
-     FEATURE_VALUE_TYPE(ash::features::kFilesTrashDrive)},
+     FEATURE_VALUE_TYPE(ash::features::kFilesTrashAutoCleanup)},
     {"spectre-v2-mitigation", flag_descriptions::kSpectreVariant2MitigationName,
      flag_descriptions::kSpectreVariant2MitigationDescription, kOsCrOS,
      FEATURE_VALUE_TYPE(sandbox::policy::features::kSpectreVariant2Mitigation)},
@@ -9017,6 +9014,10 @@ const FeatureEntry kFeatureEntries[] = {
      kOsDesktop,
      FEATURE_VALUE_TYPE(features::kFedCmActiveModeMultipleIdentityProviders)},
 
+    {"fedcm-idp-links", flag_descriptions::kFedCmIdpLinksName,
+     flag_descriptions::kFedCmIdpLinksDescription, kOsDesktop,
+     FEATURE_VALUE_TYPE(features::kFedCmIdpLinks)},
+
     {"fedcm-idp-registration", flag_descriptions::kFedCmIdPRegistrationName,
      flag_descriptions::kFedCmIdPRegistrationDescription, kOsDesktop,
      FEATURE_VALUE_TYPE(features::kFedCmIdPRegistration)},
@@ -10157,11 +10158,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kMacPWAsNotificationAttributionName,
      flag_descriptions::kMacPWAsNotificationAttributionDescription, kOsMac,
      FEATURE_VALUE_TYPE(features::kAppShimNotificationAttribution)},
-
-    {"use-adhoc-signing-for-web-app-shims",
-     flag_descriptions::kUseAdHocSigningForWebAppShimsName,
-     flag_descriptions::kUseAdHocSigningForWebAppShimsDescription, kOsMac,
-     FEATURE_VALUE_TYPE(features::kUseAdHocSigningForWebAppShims)},
 #endif  // BUILDFLAG(IS_MAC)
 
 #if !BUILDFLAG(IS_CHROMEOS)
@@ -12429,6 +12425,13 @@ const FeatureEntry kFeatureEntries[] = {
      kOsDesktop | kOsAndroid,
      FEATURE_VALUE_TYPE(contextual_tasks::kContextualTasksTabBasedSuggestions)},
 
+    {"contextual-tasks-single-tab-menu-item",
+     contextual_tasks::flag_descriptions::kContextualTasksSingleTabMenuItemName,
+     contextual_tasks::flag_descriptions::
+         kContextualTasksSingleTabMenuItemDescription,
+     kOsDesktop | kOsAndroid,
+     FEATURE_VALUE_TYPE(contextual_tasks::kContextualTasksSingleTabMenuItem)},
+
     {"contextual-tasks-side-panel-tab-state",
      contextual_tasks::flag_descriptions::kContextualTasksSidePanelTabStateName,
      contextual_tasks::flag_descriptions::
@@ -13377,12 +13380,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kEnforceIncognitoIsolationDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(chrome::android::kEnforceIncognitoIsolation)},
 #endif
-
-    {"migrate-enhanced-sb-user-to-enhanced-bundle",
-     flag_descriptions::kMigrateEnhancedSbUserToEnhancedBundleName,
-     flag_descriptions::kMigrateEnhancedSbUserToEnhancedBundleDescription,
-     kOsDesktop,
-     FEATURE_VALUE_TYPE(safe_browsing::kMigrateEnhancedSbUserToEnhancedBundle)},
 
 #if BUILDFLAG(IS_ANDROID)
     {"enable-android-side-panel-logs",
@@ -14495,11 +14492,16 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kChroMenuSearchDescription, kOsDesktop,
      FEATURE_VALUE_TYPE(features::kChroMenuSearch)},
 
-    // Add new entries above this line.
-    // NOTE: Adding a new flag requires adding a corresponding entry to enum
-    // "LoginCustomFlags" in tools/metrics/histograms/enums.xml. See "Flag
-    // Histograms" in tools/metrics/histograms/README.md (run the
-    // AboutFlagsHistogramTest unit test to verify this process).
+#if BUILDFLAG(IS_LINUX)
+    {"middle-click-autoscroll", flag_descriptions::kMiddleClickAutoscrollName,
+     flag_descriptions::kMiddleClickAutoscrollDescription, kOsLinux,
+     FEATURE_VALUE_TYPE(blink::features::kMiddleClickAutoscroll)},
+#endif  // BUILDFLAG(IS_LINUX)
+        // Add new entries above this line.
+        // NOTE: Adding a new flag requires adding a corresponding entry to enum
+        // "LoginCustomFlags" in tools/metrics/histograms/enums.xml. See "Flag
+        // Histograms" in tools/metrics/histograms/README.md (run the
+        // AboutFlagsHistogramTest unit test to verify this process).
 };
 
 class FlagsStateSingleton : public flags_ui::FlagsState::Delegate {

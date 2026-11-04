@@ -162,7 +162,9 @@ class ContextualTasksSidePanelCoordinatorInteractiveUiTest
           {{"ContextualTasksEntryPoint", "toolbar-ephemeral-branded"}}}},
         // These tests expect the side panel state to be shared by the tabs in a
         // task.
-        {kContextualTasksSidePanelTabState});
+        {kContextualTasksRearchitecture,
+         kContextualTasksSidePanelRearchitecture,
+         kContextualTasksSidePanelTabState});
   }
   ~ContextualTasksSidePanelCoordinatorInteractiveUiTest() override = default;
 
@@ -340,7 +342,8 @@ class ContextualTasksSidePanelPermissionDashboardInteractiveUiTest
                               kContextualTasksForceEntryPointEligibility,
                               kContextualTasksEphemeralBrandedEntryPoint,
                               kContextualTasksSidePanelRearchitecture},
-        /*disabled_features=*/{kContextualTasksSidePanelTabState});
+        /*disabled_features=*/{kContextualTasksRearchitecture,
+                               kContextualTasksSidePanelTabState});
   }
 };
 
@@ -1339,7 +1342,8 @@ class ContextualTasksSidePanelCoordinatorFeatureDisabledInteractiveUiTest
     scoped_feature_list_.Reset();
     scoped_feature_list_.InitWithFeatures(
         /*enabled_features=*/{},
-        /*disabled_features=*/{kContextualTasks,
+        /*disabled_features=*/{kContextualTasks, kContextualTasksRearchitecture,
+                               kContextualTasksSidePanelRearchitecture,
                                kContextualTasksClobberActiveTab});
   }
 };
@@ -1351,7 +1355,8 @@ class ContextualTasksSidePanelCoordinatorFeatureDisabledClobberInteractiveUiTest
     scoped_feature_list_.Reset();
     scoped_feature_list_.InitWithFeatures(
         /*enabled_features=*/{kContextualTasksClobberActiveTab},
-        /*disabled_features=*/{kContextualTasks});
+        /*disabled_features=*/{kContextualTasks, kContextualTasksRearchitecture,
+                               kContextualTasksSidePanelRearchitecture});
   }
 };
 
@@ -1615,11 +1620,11 @@ IN_PROC_BROWSER_TEST_F(
       browser(), embedded_test_server()->GetURL("/title1.html")));
   ASSERT_TRUE(ui_test_utils::NavigateToURLWithDisposition(
       browser(), embedded_test_server()->GetURL("/title2.html"),
-      WindowOpenDisposition::kNewBackgroundTab,
+      ui::mojom::WindowOpenDisposition::kNewBackgroundTab,
       ui_test_utils::BROWSER_TEST_WAIT_FOR_LOAD_STOP));
   ASSERT_TRUE(ui_test_utils::NavigateToURLWithDisposition(
       browser(), embedded_test_server()->GetURL("/title3.html"),
-      WindowOpenDisposition::kNewBackgroundTab,
+      ui::mojom::WindowOpenDisposition::kNewBackgroundTab,
       ui_test_utils::BROWSER_TEST_WAIT_FOR_LOAD_STOP));
 
   ContextualTasksService* contextual_tasks_service =
@@ -1684,7 +1689,7 @@ IN_PROC_BROWSER_TEST_F(ContextualTasksSidePanelCoordinatorInteractiveUiTest,
       browser(), embedded_test_server()->GetURL("/title1.html")));
   ASSERT_TRUE(ui_test_utils::NavigateToURLWithDisposition(
       browser(), embedded_test_server()->GetURL("/title2.html"),
-      WindowOpenDisposition::kNewBackgroundTab,
+      ui::mojom::WindowOpenDisposition::kNewBackgroundTab,
       ui_test_utils::BROWSER_TEST_WAIT_FOR_LOAD_STOP));
 
   ContextualTasksService* contextual_tasks_service =
@@ -2109,8 +2114,10 @@ class ContextualTasksExtensionsInteractiveUiTest
     enabled.push_back({kContextualTasksRearchitecture, {}});
     enabled.push_back({kContextualTasksSidePanelRearchitecture, {}});
     enabled.push_back({extensions_features::kExtensionsMenuAccessControl, {}});
-    feature_list_.InitWithFeaturesAndParameters(enabled,
-                                                GetDefaultDisabledFeatures());
+    std::vector<base::test::FeatureRef> disabled = GetDefaultDisabledFeatures();
+    std::erase(disabled, kContextualTasksRearchitecture);
+    std::erase(disabled, kContextualTasksSidePanelRearchitecture);
+    feature_list_.InitWithFeaturesAndParameters(enabled, disabled);
   }
 
   void SetUpCommandLine(base::CommandLine* command_line) override {

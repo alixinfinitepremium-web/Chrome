@@ -2830,6 +2830,13 @@ inline constexpr char kFedCmActiveModeMultipleIdentityProvidersName[] =
 inline constexpr char kFedCmActiveModeMultipleIdentityProvidersDescription[] =
     "Enables Active Mode support with multiple Identity Providers in FedCM.";
 
+inline constexpr char kFedCmIdpLinksName[] = "FedCM IdP links";
+inline constexpr char kFedCmIdpLinksDescription[] =
+    "When FedCM asks for permission to share data with a site, shows links to "
+    "the identity provider's account management page, privacy policy and "
+    "terms of service, from the account_management_url, privacy_policy_url and "
+    "terms_of_service_url keys of its config file.";
+
 inline constexpr char kFedCmIdPRegistrationName[] =
     "FedCM with IdP Registration support";
 inline constexpr char kFedCmIdPRegistrationDescription[] =
@@ -3468,12 +3475,6 @@ inline constexpr char kMediaRouterCastAllowAllIPsName[] =
 inline constexpr char kMediaRouterCastAllowAllIPsDescription[] =
     "Have the Media Router connect to Cast devices on all IP addresses, not "
     "just RFC1918/RFC4193 private addresses.";
-
-inline constexpr char kMigrateEnhancedSbUserToEnhancedBundleName[] =
-    "Migrate Enhanced Safe Browsing User to Enhanced Bundle";
-inline constexpr char kMigrateEnhancedSbUserToEnhancedBundleDescription[] =
-    "Enables the migration of enhanced Safe Browsing users to the enhanced "
-    "bundle. Requires chrome://flags#bundled-security-settings to be enabled.";
 
 inline constexpr char kMigrateSyncingUserToSignedInName[] =
     "Migrate syncing user to signed in state";
@@ -7423,13 +7424,6 @@ inline constexpr char kUnexportableKeyDeletionDescription[] =
     "Enables the garbage collection and deletion of obsolete cryptographic "
     "keys used for Device Bound Session Credentials.";
 
-inline constexpr char kUseAdHocSigningForWebAppShimsName[] =
-    "Use Ad-hoc Signing for Web App Shims";
-inline constexpr char kUseAdHocSigningForWebAppShimsDescription[] =
-    "Ad-hoc code signing ensures that each PWA app shim has a unique identity. "
-    "This allows macOS subsystems to correctly distinguish between multiple "
-    "PWAs.";
-
 inline constexpr char kUseSCContentSharingPickerName[] =
     "Use ScreenCaptureKit picker for stream selection";
 inline constexpr char kUseSCContentSharingPickerDescription[] =
@@ -7945,10 +7939,6 @@ inline constexpr char kFilesTrashAutoCleanupName[] = "Trash auto cleanup";
 inline constexpr char kFilesTrashAutoCleanupDescription[] =
     "Enable background cleanup for old files in Trash.";
 
-inline constexpr char kFilesTrashDriveName[] = "Enable Files Trash for Drive.";
-inline constexpr char kFilesTrashDriveDescription[] =
-    "Enable trash for Drive volume in Files App.";
-
 inline constexpr char kFixStaticIpForTwoManagedEthPortsName[] =
     "Fix static ip on managed device with two ethernet ports.";
 inline constexpr char kFixStaticIpForTwoManagedEthPortsDescription[] =
@@ -8396,6 +8386,11 @@ inline constexpr char kEnableArmHwdrmDescription[] =
     "Enable HW backed Widevine L1 DRM";
 
 // Linux -----------------------------------------------------------------------
+
+inline constexpr char kMiddleClickAutoscrollName[] = "Middle-click autoscroll";
+inline constexpr char kMiddleClickAutoscrollDescription[] =
+    "Enables autoscrolling when pressing the middle mouse button on a "
+    "scrollable page.";
 
 inline constexpr char kPulseaudioLoopbackForCastName[] =
     "Linux System Audio Loopback for Cast (pulseaudio)";

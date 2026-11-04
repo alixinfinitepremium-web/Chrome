@@ -462,6 +462,7 @@ public abstract class ChromeFeatureList {
     public static final String AUXILIARY_SEARCH_HISTORY_DONATION = "AuxiliarySearchHistoryDonation";
     public static final String AVOID_RECREATE_ON_TOUCHSCREEN_OR_COLOR_MODE_CHANGE =
             "AvoidRecreateOnTouchscreenOrColorModeChange";
+    public static final String AVOID_TASK_TRAMPOLINES = "AvoidTaskTrampolines";
     public static final String BACKGROUND_THREAD_POOL_FIELD_TRIAL =
             "BackgroundThreadPoolFieldTrial";
     public static final String BACK_FORWARD_CACHE = "BackForwardCache";
@@ -992,6 +993,7 @@ public abstract class ChromeFeatureList {
                             Map.entry(ACCOUNT_FOR_SUPPRESSED_KEYBOARD_INSETS, true),
                             Map.entry(ANDROID_THEME_MODULE, true),
                             Map.entry(ANDROID_THEME_RESOURCE_PROVIDER, false),
+                            Map.entry(AVOID_TASK_TRAMPOLINES, true),
                             Map.entry(DEVICE_REAUTH_REFACTOR, true),
                             Map.entry(GMSCORE_BIND_SERVICE_OPTIMIZATION, true),
                             Map.entry(NTP_AURORA, true),
@@ -1269,7 +1271,7 @@ public abstract class ChromeFeatureList {
     public static final CachedFlag sDocumentPictureInPictureAPI =
             newCachedFlag(DOCUMENT_PICTURE_IN_PICTURE_API, false, /* defaultValueInTests= */ true);
     public static final CachedFlag sEdgeToEdgeAutomotive =
-            newCachedFlag(EDGE_TO_EDGE_AUTOMOTIVE, /* defaultValue= */ false);
+            newCachedFlag(EDGE_TO_EDGE_AUTOMOTIVE, /* defaultValue= */ true);
     public static final CachedFlag sEdgeToEdgeBottomChin =
             newCachedFlag(EDGE_TO_EDGE_BOTTOM_CHIN, /* defaultValue= */ true);
     public static final CachedFlag sEdgeToEdgeEverywhere =
@@ -2327,19 +2329,11 @@ public abstract class ChromeFeatureList {
     public static final BooleanCachedFeatureParam sNewTabPageCustomizationV2EnableLogs =
             newBooleanCachedFeatureParam(NEW_TAB_PAGE_CUSTOMIZATION_V2, "enable_logs", false);
 
-    public static final StringCachedFeatureParam sEdgeToEdgeEverywhereOemMinVersions =
-            newStringCachedFeatureParam(
-                    EDGE_TO_EDGE_EVERYWHERE, "e2e_field_trial_oem_min_versions", "35");
-
     public static final StringCachedFeatureParam sEdgeToEdgeUseBackupNavbarInsetsOemMinVersions =
             newStringCachedFeatureParam(
                     EDGE_TO_EDGE_USE_BACKUP_NAVBAR_INSETS,
                     "e2e_backup_navbar_insets_oem_min_versions",
                     "");
-
-    public static final StringCachedFeatureParam sEdgeToEdgeEverywhereOemList =
-            newStringCachedFeatureParam(
-                    EDGE_TO_EDGE_EVERYWHERE, "e2e_field_trial_oem_list", "realme");
 
     public static final BooleanCachedFeatureParam sEdgeToEdgeTopInsetEnableTopEdgeToEdge =
             newBooleanCachedFeatureParam(EDGE_TO_EDGE_TOP_INSET, "enable_top_edge_to_edge", true);
@@ -2548,8 +2542,6 @@ public abstract class ChromeFeatureList {
                     sDesktopUAAllowedOnExternalDisplayForOem,
                     sDisablePartnerHomepageAndroidApplyToAllCountries,
                     sDisablePartnerHomepageAndroidForZeroTabs,
-                    sEdgeToEdgeEverywhereOemList,
-                    sEdgeToEdgeEverywhereOemMinVersions,
                     sEdgeToEdgeTabletInvisibleBottomChinMinWidth,
                     sEdgeToEdgeTabletMinWidthThreshold,
                     sEdgeToEdgeTopInsetEnableTopEdgeToEdge,

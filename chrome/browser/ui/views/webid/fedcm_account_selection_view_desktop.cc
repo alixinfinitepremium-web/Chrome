@@ -186,7 +186,7 @@ void FedCmAccountSelectionView::OnPageActionClicked() {
         l10n_util::GetStringUTF16(IDS_FEDERATION_SIGNING_IN_TITLE));
     controller->ShowSuggestionChip(kActionFederation);
     controller->Show(kActionFederation);
-    if (!NotifyDelegate([&]() {
+    if (!RunAndCheckAlive([&]() {
           delegate_->OnAccountSelected(
               accounts_[0]->identity_provider->idp_metadata.config_url,
               accounts_[0]->id,
@@ -372,7 +372,7 @@ bool FedCmAccountSelectionView::Show(
                                  /*show_back_button=*/false);
         }
         state_ = State::VERIFYING;
-        if (!NotifyDelegate([&]() {
+        if (!RunAndCheckAlive([&]() {
               delegate_->OnAccountSelected(
                   new_idp_data.idp_metadata.config_url, new_accounts_[0]->id,
                   new_accounts_[0]->idp_claimed_login_state.value_or(
@@ -680,6 +680,12 @@ void FedCmAccountSelectionView::ShowUrl(LinkType link_type, const GURL& url) {
     case LinkType::PRIVACY_POLICY:
       UMA_HISTOGRAM_BOOLEAN("Blink.FedCm.SignUp.PrivacyPolicyClicked", true);
       break;
+
+    case LinkType::IDP_LINK:
+      // Not recorded, so that the histograms above only count the RP's links.
+      // TODO(crbug.com/581372729): Record clicks on each of the identity
+      // provider's links, and how often the links are shown.
+      break;
   }
 }
 
@@ -740,7 +746,7 @@ void FedCmAccountSelectionView::CreateOrUpdateViewAndWidget(
 }
 
 void FedCmAccountSelectionView::OnAccountsDisplayed() {
-  if (!NotifyDelegate([&]() { delegate_->OnAccountsDisplayed(); })) {
+  if (!RunAndCheckAlive([&]() { delegate_->OnAccountsDisplayed(); })) {
     return;
   }
 }
@@ -773,7 +779,7 @@ bool FedCmAccountSelectionView::OnAccountSelected(
       (state_ == State::SINGLE_ACCOUNT_PICKER &&
        dialog_type_ == DialogType::BUBBLE)) {
     state_ = State::VERIFYING;
-    if (!NotifyDelegate([&]() {
+    if (!RunAndCheckAlive([&]() {
           delegate_->OnAccountSelected(
               idp_data.idp_metadata.config_url, account->id,
               account->idp_claimed_login_state.value_or(
@@ -902,7 +908,7 @@ void FedCmAccountSelectionView::OnLoginToIdP(const GURL& idp_config_url,
         webid::AccountChooserResult::kUseOtherAccountButton;
   }
 
-  if (!NotifyDelegate(
+  if (!RunAndCheckAlive(
           [&]() { delegate_->OnLoginToIdP(idp_config_url, idp_login_url); })) {
     return;
   }
@@ -953,7 +959,7 @@ void FedCmAccountSelectionView::OnGotIt(const ui::Event& event) {
     return;
   }
 
-  if (!NotifyDelegate(
+  if (!RunAndCheckAlive(
           [&]() { delegate_->OnDismiss(DismissReason::kGotItButton); })) {
     return;
   }
@@ -966,10 +972,10 @@ void FedCmAccountSelectionView::OnMoreDetails(const ui::Event& event) {
     return;
   }
 
-  if (!NotifyDelegate([&]() { delegate_->OnMoreDetails(); })) {
+  if (!RunAndCheckAlive([&]() { delegate_->OnMoreDetails(); })) {
     return;
   }
-  if (!NotifyDelegate(
+  if (!RunAndCheckAlive(
           [&]() { delegate_->OnDismiss(DismissReason::kMoreDetailsButton); })) {
     return;
   }
@@ -984,7 +990,12 @@ content::WebContents* FedCmAccountSelectionView::ShowModalDialog(
     // TODO(crbug.com/324052630): Support add account with multi IDP API. An add
     // account pop-up of a different IDP might be open, so this might need to
     // load the new IDP's login URL.
-    popup_window_->ResizeAndFocusPopupWindow();
+    //
+    // Resizing and focusing the pop-up can synchronously destroy `this`.
+    if (!RunAndCheckAlive(
+            [&]() { popup_window_->ResizeAndFocusPopupWindow(); })) {
+      return nullptr;
+    }
   } else {
     popup_window_ = CreatePopupWindow();
   }
@@ -1054,7 +1065,12 @@ void FedCmAccountSelectionView::CloseModalDialog() {
     // This ensures that OnPopupWindowDestroyed is only called when the user
     // closes the popup.
     popup_window_->ResetObserver();
-    popup_window_->ClosePopupWindow();
+
+    // Closing the pop-up can synchronously destroy `this`, e.g. if it activates
+    // another tab.
+    if (!RunAndCheckAlive([&]() { popup_window_->ClosePopupWindow(); })) {
+      return;
+    }
     popup_window_.reset();
 
     UpdateDialogVisibilityAndPosition();
@@ -1166,11 +1182,11 @@ void FedCmAccountSelectionView::OnPopupWindowDestroyed() {
   Close(/*notify_delegate=*/true, /*hide_widget=*/false);
 }
 
-bool FedCmAccountSelectionView::NotifyDelegate(
-    base::FunctionRef<void()> notify_callback) {
+bool FedCmAccountSelectionView::RunAndCheckAlive(
+    base::FunctionRef<void()> callback) {
   base::WeakPtr<FedCmAccountSelectionView> weak_this =
       weak_ptr_factory_.GetWeakPtr();
-  notify_callback();
+  callback();
   return weak_this != nullptr;
 }
 
@@ -1807,10 +1823,11 @@ bool FedCmAccountSelectionView::ShowAmbientBubble(
           base::BindOnce(
               &FedCmAccountSelectionView::OnAmbientBubbleAccountSelected,
               ambient_bubble_weak_ptr_factory_.GetWeakPtr()),
-          base::BindRepeating(
-              &FedCmAccountSelectionView::OnAmbientBubbleDecided,
-              ambient_bubble_weak_ptr_factory_.GetWeakPtr()),
-          bubble_starts_open);
+          ambient_signin::AmbientLoginPermissionRequest::Options{
+              .permission_decided_callback = base::BindRepeating(
+                  &FedCmAccountSelectionView::OnAmbientBubbleDecided,
+                  ambient_bubble_weak_ptr_factory_.GetWeakPtr()),
+              .bubble_starts_open = bubble_starts_open});
 
   // Set before adding the request, since the decided callback runs
   // synchronously if the request is rejected right away.
@@ -1899,8 +1916,8 @@ void FedCmAccountSelectionView::HandleAmbientBubbleDecision(
     // TODO(crbug.com/567563304): Tell apart requests whose bubble the user
     // closed so that the appropriate DismissReason (and cooldown) can be used.
     // `this` may be deleted after this call.
-    std::ignore =
-        NotifyDelegate([&]() { delegate_->OnDismiss(DismissReason::kOther); });
+    std::ignore = RunAndCheckAlive(
+        [&]() { delegate_->OnDismiss(DismissReason::kOther); });
     return;
   }
 
@@ -1916,7 +1933,7 @@ void FedCmAccountSelectionView::HandleAmbientBubbleDecision(
 
   state_ = State::VERIFYING;
   // `this` may be deleted after this call.
-  std::ignore = NotifyDelegate([&]() {
+  std::ignore = RunAndCheckAlive([&]() {
     delegate_->OnAccountSelected(
         account->identity_provider->idp_metadata.config_url, account->id,
         account->idp_claimed_login_state.value_or(
@@ -1931,8 +1948,8 @@ void FedCmAccountSelectionView::ShowAmbientRequestPermissionModal(
   CHECK(!GetDialogWidget());
   if (!tab_) {
     // `this` may be deleted after this call.
-    std::ignore =
-        NotifyDelegate([&]() { delegate_->OnDismiss(DismissReason::kOther); });
+    std::ignore = RunAndCheckAlive(
+        [&]() { delegate_->OnDismiss(DismissReason::kOther); });
     return;
   }
 

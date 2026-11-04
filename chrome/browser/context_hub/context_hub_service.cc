@@ -20,6 +20,7 @@
 #include "base/check_is_test.h"
 #include "base/containers/flat_map.h"
 #include "base/containers/flat_set.h"
+#include "base/feature_list.h"
 #include "base/functional/bind.h"
 #include "base/functional/callback.h"
 #include "base/functional/callback_helpers.h"
@@ -49,6 +50,7 @@
 #include "chrome/browser/image_fetcher/image_decoder_impl.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
+#include "chrome/browser/ui/webui/context_hub/context_hub.mojom-features.h"
 #include "components/image_fetcher/core/image_fetcher.h"
 #include "components/image_fetcher/core/image_fetcher_impl.h"
 #include "components/image_fetcher/core/request_metadata.h"
@@ -83,9 +85,11 @@
 #include "net/traffic_annotation/network_traffic_annotation.h"
 #include "services/network/public/cpp/shared_url_loader_factory.h"
 #include "services/network/public/cpp/simple_url_loader.h"
+#include "skia/ext/image_operations.h"
 #include "third_party/abseil-cpp/absl/functional/overload.h"
 #include "third_party/skia/include/core/SkBitmap.h"
 #include "ui/gfx/codec/png_codec.h"
+#include "ui/gfx/geometry/size.h"
 #include "ui/gfx/image/image.h"
 
 #if !BUILDFLAG(IS_ANDROID)
@@ -150,6 +154,17 @@ constexpr net::NetworkTrafficAnnotationTag
             "subject to the URLBlocklist and URLAllowlist enterprise policies."
         })");
 
+// The Auto Tab Groups preferences shown when the user has not stored a
+// document of their own. Never persisted; see
+// `GetEffectiveAutoTabGroupsPreferences()`.
+// TODO(crbug.com/581841564): Drop hardcoding in favor of a localized
+// string resource.
+constexpr char kDefaultAutoTabGroupsPreferences[] =
+    "- Group tabs by task, project or topic, not just by website.\n"
+    "- Keep group names short, descriptive and free of personal details.\n"
+    "- Reuse my existing groups when new tabs fit.\n"
+    "- Only group tabs when you're confident they belong together.";
+
 optimization_guide::proto::MemoryBankEntry ToMemoryBankEntryProto(
     const MemoryBankEntry& entry) {
   optimization_guide::proto::MemoryBankEntry mb_proto;
@@ -186,12 +201,29 @@ bool HasHttpImageUrl(const MemoryBankEntry& entry) {
          entry.image_url->SchemeIsHTTPOrHTTPS();
 }
 
+// Downscales `bitmap` to fit within `max_dimension` x `max_dimension` pixels
+// (when `max_dimension` > 0 and either dimension exceeds it), preserving its
+// aspect ratio, and PNG-encodes it. Since PNG is lossless, a photo can be
+// many times larger re-encoded as PNG than the source image.
 FetchedChatImage EncodeChatImageToPng(std::vector<size_t> entry_indices,
+                                      int max_dimension,
                                       const SkBitmap& bitmap) {
+  SkBitmap scaled_bitmap = bitmap;
+  const int longest_side = std::max(bitmap.width(), bitmap.height());
+  if (max_dimension > 0 && longest_side > max_dimension) {
+    gfx::Size scaled_size = gfx::ScaleToRoundedSize(
+        gfx::Size(bitmap.width(), bitmap.height()),
+        static_cast<float>(max_dimension) / longest_side);
+    // Ensure neither dimension rounds down to 0 for extreme aspect ratios.
+    scaled_size.SetToMax(gfx::Size(1, 1));
+    scaled_bitmap = skia::ImageOperations::Resize(
+        bitmap, skia::ImageOperations::RESIZE_BEST, scaled_size.width(),
+        scaled_size.height());
+  }
   return FetchedChatImage{
       .entry_indices = std::move(entry_indices),
       .png_bytes = gfx::PNGCodec::EncodeBGRASkBitmap(
-          bitmap, /*discard_transparency=*/false),
+          scaled_bitmap, /*discard_transparency=*/false),
   };
 }
 
@@ -210,6 +242,7 @@ void OnChatImageFetched(
       {base::TaskPriority::USER_VISIBLE,
        base::TaskShutdownBehavior::SKIP_ON_SHUTDOWN},
       base::BindOnce(&EncodeChatImageToPng, std::move(entry_indices),
+                     features::kMaxMemoryBankChatImageDimension.Get(),
                      image.AsBitmap()),
       std::move(barrier_callback));
 }
@@ -450,6 +483,13 @@ ContextHubService::ContextHubService(
   // is turned off (e.g. via Finch at teardown), wipe anything left behind.
   if (!features::kTopicsFishfoodFeedback.Get()) {
     profile_->GetPrefs()->ClearPref(prefs::kContextHubTopicsFishfoodFeedback);
+  }
+  // Auto Tab Groups preferences are only kept while the feature is enabled;
+  // wipe anything left behind once it is turned off (e.g. at experiment
+  // teardown).
+  if (!base::FeatureList::IsEnabled(
+          browser::context_hub::mojom::kAutoTabGroups)) {
+    profile_->GetPrefs()->ClearPref(prefs::kContextHubAutoTabGroupsPreferences);
   }
   if (scoped_refptr<network::SharedURLLoaderFactory> url_loader_factory =
           profile_->GetURLLoaderFactory()) {
@@ -1325,6 +1365,33 @@ ContextHubService::GetTabGroupChatHistory() const {
 
 void ContextHubService::ClearTabGroupChatHistory() {
   tab_group_chat_history_cache_.Clear();
+}
+
+std::string ContextHubService::GetEffectiveAutoTabGroupsPreferences() const {
+  const std::string& stored = profile_->GetPrefs()->GetString(
+      prefs::kContextHubAutoTabGroupsPreferences);
+  return stored.empty() ? kDefaultAutoTabGroupsPreferences : stored;
+}
+
+bool ContextHubService::SetAutoTabGroupsPreferences(std::string_view text) {
+  if (!base::FeatureList::IsEnabled(
+          browser::context_hub::mojom::kAutoTabGroups)) {
+    return false;
+  }
+  std::string_view trimmed = base::TrimWhitespaceASCII(text, base::TRIM_ALL);
+  if (trimmed.size() > kMaxAutoTabGroupsPreferencesLength) {
+    return false;
+  }
+  PrefService* pref_service = profile_->GetPrefs();
+  if (trimmed.empty()) {
+    pref_service->ClearPref(prefs::kContextHubAutoTabGroupsPreferences);
+  } else {
+    pref_service->SetString(prefs::kContextHubAutoTabGroupsPreferences,
+                            trimmed);
+  }
+  observers_.Notify(&Observer::OnAutoTabGroupsPreferencesChanged,
+                    GetEffectiveAutoTabGroupsPreferences());
+  return true;
 }
 
 void ContextHubService::AddMemoryBankChatHistoryTurn(

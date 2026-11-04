@@ -10,8 +10,10 @@
 
 #include "base/functional/callback.h"
 #include "base/logging.h"
+#include "base/time/time.h"
 #include "chrome/browser/contextual_search/contextual_search_web_contents_helper.h"
 #include "chrome/browser/contextual_tasks/contextual_tasks_ghost_loader_view.h"
+#include "chrome/browser/contextual_tasks/contextual_tasks_panel_controller.h"
 #include "chrome/browser/contextual_tasks/contextual_tasks_ui_base.h"
 #include "chrome/browser/contextual_tasks/contextual_tasks_ui_service.h"
 #include "chrome/browser/contextual_tasks/contextual_tasks_ui_service_factory.h"
@@ -19,11 +21,14 @@
 #include "chrome/browser/file_select_helper.h"
 #include "chrome/browser/media/webrtc/media_capture_devices_dispatcher.h"
 #include "chrome/browser/profiles/profile.h"
+#include "chrome/browser/tab_list/constants.h"
+#include "chrome/browser/tab_list/tab_list_interface.h"
 #include "chrome/browser/ui/browser_element_identifiers.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
 #include "chrome/browser/ui/lens/lens_search_controller.h"
 #include "chrome/browser/ui/webui/webui_embedding_context.h"
 #include "chrome/common/webui_url_constants.h"
+#include "components/contextual_tasks/public/contextual_task.h"
 #include "components/contextual_tasks/public/features.h"
 #include "components/lens/lens_overlay_dismissal_source.h"
 #include "components/tabs/public/tab_interface.h"
@@ -38,6 +43,7 @@
 #include "extensions/browser/view_type_utils.h"
 #include "net/base/url_util.h"
 #include "third_party/blink/public/common/web_preferences/web_preferences.h"
+#include "third_party/blink/public/mojom/window_features/window_features.mojom.h"
 #include "third_party/skia/include/core/SkColor.h"
 #include "ui/base/base_window.h"
 #include "ui/base/metadata/metadata_impl_macros.h"
@@ -560,8 +566,7 @@ content::WebContents* ContextualTasksWebView::OpenURLFromTab(
   // cleared by `Navigator::RequestOpenURL()`, so checking
   // `!params.started_from_context_menu` ensures those IPCs are still validated.
   if (params.is_renderer_initiated || !params.started_from_context_menu) {
-    if (modified_params.user_gesture &&
-        (!source_rfh || !source_rfh->HasTransientUserActivation())) {
+    if (modified_params.user_gesture && !ConsumeUserActivation(source_rfh)) {
       modified_params.user_gesture = false;
     }
 
@@ -582,12 +587,56 @@ content::WebContents* ContextualTasksWebView::OpenURLFromTab(
   // target navigation controller.
   modified_params.frame_tree_node_id = content::FrameTreeNodeId();
 
+  auto* ui_service = ContextualTasksUiServiceFactory::GetForBrowserContext(
+      source->GetBrowserContext());
+  auto* controller = ContextualTasksPanelController::From(browser_window_);
+  std::optional<ContextualTask> current_task =
+      controller ? controller->GetCurrentTask() : std::nullopt;
+
+  // For verified user-activated navigations in the rearchitected side panel
+  // (such as links clicked in subframes or `window.open()` with `noopener`),
+  // route through `ContextualTasksUiService::HandleNavigation` so that side
+  // panel parameter injection, citation handling, active-tab clobbering, and
+  // task association apply consistently. Unactivated requests must continue to
+  // fall through to the active tab's delegate so `PopupBlockerTabHelper` can
+  // block them.
+  if (modified_params.user_gesture && !params.started_from_context_menu &&
+      IsContextualTasksSidePanelRearchitectureEnabled() && ui_service &&
+      ui_service->HandleNavigation(
+          modified_params, source, /*is_from_embedded_page=*/false,
+          /*from_can_create_window=*/false, /*is_same_site_or_from_ui=*/false,
+          /*is_mobile_ua=*/false, modified_params.initiator_origin,
+          source_rfh ? std::make_optional(source_rfh->GetGlobalFrameToken())
+                     : std::nullopt,
+          blink::mojom::WindowFeatures())) {
+    return nullptr;
+  }
+
   // Pass the active tab's WebContents as the source so the navigation pipeline
   // has the correct context to evaluate disposition and popup blocking rules.
   content::WebContents* tab_contents = active_tab->GetContents();
   if (tab_contents && tab_contents->GetDelegate()) {
-    return tab_contents->GetDelegate()->OpenURLFromTab(
-        tab_contents, modified_params, std::move(navigation_handle_callback));
+    content::WebContents* new_contents =
+        tab_contents->GetDelegate()->OpenURLFromTab(
+            tab_contents, modified_params,
+            std::move(navigation_handle_callback));
+    if (new_contents && new_contents != tab_contents &&
+        new_contents->GetBrowserContext() == source->GetBrowserContext()) {
+      if (ui_service && current_task) {
+        ui_service->AssociateWebContentsToTask(new_contents,
+                                               current_task->GetTaskId());
+      }
+      TabListInterface* tab_list = TabListInterface::From(browser_window_);
+      tabs::TabInterface* new_tab =
+          tabs::TabInterface::MaybeGetFromContents(new_contents);
+      if (tab_list && new_tab && new_tab != active_tab &&
+          tab_list->GetIndexOfTab(new_tab->GetHandle()) !=
+              ::tab_list::kNoTabIndex) {
+        tab_list->SetOpenerForTab(new_tab->GetHandle(),
+                                  active_tab->GetHandle());
+      }
+    }
+    return new_contents;
   }
   return nullptr;
 }
@@ -695,6 +744,28 @@ void ContextualTasksWebView::UpdateScrimVisibility() {
   }
   ghost_loader_view_->SetShowErrorPage(false);
   ghost_loader_view_->SetVisible(is_ghost_loader_visible_);
+}
+
+bool ContextualTasksWebView::ConsumeUserActivation(
+    content::RenderFrameHost* source_rfh) {
+  if (!source_rfh) {
+    return false;
+  }
+  if (source_rfh->ConsumeTransientUserActivation()) {
+    return true;
+  }
+  content::WebContents* source_wc =
+      content::WebContents::FromRenderFrameHost(source_rfh);
+  if (!source_wc || !source_wc->HasRecentInteraction()) {
+    return false;
+  }
+  const base::TimeTicks interaction_time =
+      source_wc->GetLastInteractionTimeTicks();
+  if (interaction_time <= last_consumed_interaction_time_) {
+    return false;
+  }
+  last_consumed_interaction_time_ = interaction_time;
+  return true;
 }
 
 BEGIN_METADATA(ContextualTasksWebView)

@@ -28,6 +28,7 @@
 #include "chrome/browser/dictation/features.h"
 #include "chrome/browser/glic/public/features.h"
 #include "chrome/browser/glic/public/glic_enabling.h"
+#include "chrome/browser/glic/public/glic_feature.h"
 #include "chrome/browser/glic/public/glic_keyed_service.h"
 #include "chrome/browser/glic/public/glic_provider_spec.h"
 #include "chrome/browser/metrics/variations/google_groups_manager_factory.h"
@@ -83,6 +84,7 @@
 #include "chrome/browser/ui/webui/settings/safety_hub_handler.h"
 #include "chrome/browser/ui/webui/settings/saved_info_handler.h"
 #include "chrome/browser/ui/webui/settings/search/settings_search_handler.h"
+#include "chrome/browser/ui/webui/settings/search/settings_search_registry.h"
 #include "chrome/browser/ui/webui/settings/search_engines_handler.h"
 #include "chrome/browser/ui/webui/settings/security_settings_provider.h"
 #include "chrome/browser/ui/webui/settings/settings_clear_browsing_data_handler.h"
@@ -337,6 +339,11 @@ SettingsUI::SettingsUI(content::WebUI* web_ui)
   AddSettingsPageUIHandler(std::make_unique<MacSystemSettingsHandler>());
 #endif
 
+  if (features::IsSettingsSearch2026Enabled()) {
+    settings_search_registry_ =
+        std::make_unique<settings_search::SettingsSearchRegistry>();
+  }
+
   html_source->AddBoolean("signinAllowed", !profile->IsGuestSession() &&
                                                profile->GetPrefs()->GetBoolean(
                                                    prefs::kSigninAllowed));
@@ -580,9 +587,9 @@ SettingsUI::SettingsUI(content::WebUI* web_ui)
       base::FeatureList::IsEnabled(
           autofill::features::kAutofillEnableWalletDisclosureNoticePublicPass));
 
-  html_source->AddBoolean(
-      "enableInlineCueMenuContentSetting",
-      base::FeatureList::IsEnabled(features::kGlicSelectionPrompt));
+  html_source->AddBoolean("enableInlineCueMenuContentSetting",
+                          glic::GetGlicProviderSpec(profile).SupportsFeature(
+                              glic::GlicFeature::kSelectionInlineCue));
 
   // AI
   auto glic_enablement = glic::GlicEnabling::EnablementForProfile(profile);
@@ -629,7 +636,8 @@ SettingsUI::SettingsUI(content::WebUI* web_ui)
       {"showAiSuggestionsControl",
        base::FeatureList::IsEnabled(contextual_cueing::kContextualCueingV2)},
       {"showInlineCueMenuControl",
-       base::FeatureList::IsEnabled(features::kGlicSelectionPrompt) &&
+       glic::GetGlicProviderSpec(profile).SupportsFeature(
+           glic::GlicFeature::kSelectionInlineCue) &&
            glic_enablement.ShouldShowSettingsPage()},
       {"showSkillsSettingPage",
        base::FeatureList::IsEnabled(features::kSkillsEnabled)},
@@ -933,6 +941,8 @@ void SettingsUI::BindInterface(
   if (!features::IsSettingsSearch2026Enabled()) {
     return;
   }
+  // Reset only the handler on reconnect; `settings_search_registry_` is kept so
+  // searchable items are registered once per SettingsUI.
   settings_search_handler_.reset();
   settings_search_handler_factory_receiver_.reset();
   settings_search_handler_factory_receiver_.Bind(std::move(pending_receiver));
@@ -949,12 +959,9 @@ void SettingsUI::CreateSettingsSearchHandler(
         "CreateSettingsSearchHandler called more than once.");
     return;
   }
-  // TODO(b/571663356): Populate from the SettingsSearchRegistry once it
-  // exists. Until then the handler is bound but has nothing to search.
   settings_search_handler_ =
       std::make_unique<settings_search::SettingsSearchHandler>(
-          std::move(handler),
-          std::vector<std::unique_ptr<settings_search::SettingsSearchItem>>());
+          std::move(handler), settings_search_registry_.get());
 }
 
 void SettingsUI::UpdateAiSettingsSection() {

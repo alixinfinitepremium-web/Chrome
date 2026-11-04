@@ -11,6 +11,7 @@
 #include "base/memory/raw_ref.h"
 #include "base/memory/weak_ptr.h"
 #include "base/scoped_observation.h"
+#include "base/time/time.h"
 #include "base/timer/timer.h"
 #include "chrome/browser/indigo/api_client.h"
 #include "chrome/browser/indigo/indigo_metadata_classifier.h"
@@ -128,7 +129,8 @@ class IndigoPageActionController : public tabs::ContentsObservingTabFeature,
   // Refreshes 1P discovery skills for the tab's profile.
   virtual void RefreshDiscoverySkills();
 
-  // Records the trigger source to UMA.
+  // Records the trigger source to UMA, unless it has already been recorded on
+  // the current page load.
   void RecordTriggerSource();
 
   using EligibilityCallback = base::OnceCallback<void(bool)>;
@@ -155,6 +157,9 @@ class IndigoPageActionController : public tabs::ContentsObservingTabFeature,
                              content::RenderViewHost* new_host) override;
   void FrameSizeChanged(content::RenderFrameHost* render_frame_host,
                         const gfx::Size& frame_size) override;
+  void OnFirstContentfulPaintInPrimaryMainFrame(
+      base::TimeTicks presentation_time) override;
+  void OnVisibilityChanged(content::Visibility visibility) override;
 
   // tabs::ContentsObservingTabFeature:
   void OnDiscardContents(tabs::TabInterface* tab,
@@ -224,6 +229,8 @@ class IndigoPageActionController : public tabs::ContentsObservingTabFeature,
 
   // Updates the visibility and states of all entry points.
   void UpdateEntryPointsState();
+
+  void MaybeRecordTimeToPageEligible();
 
   struct TriggerEvaluation {
     bool is_pending = false;
@@ -374,6 +381,19 @@ class IndigoPageActionController : public tabs::ContentsObservingTabFeature,
   // the current page load. Used to deduplicate
   // `Indigo.PageAction.ShownEntryPoint` impressions per page load.
   bool context_menu_shown_on_current_page_ = false;
+
+  // True if `Indigo.PageAction.TriggerSource` has already been recorded on the
+  // current page load, whether for a contextual cue or the context menu.
+  bool trigger_source_recorded_on_current_page_ = false;
+
+  // When the current page appeared to the user.
+  std::optional<base::TimeTicks> page_appeared_time_;
+
+  // True if the tab wasn't visible at or after `page_appeared_time_`.
+  bool hidden_since_page_appeared_ = false;
+
+  // When the current page first became eligible for Indigo.
+  std::optional<base::TimeTicks> page_eligible_time_;
 
   // Weak pointer factory used for the invocation flow. This is invalidated on
   // navigation to ensure that if a user starts an action (like onboarding) and

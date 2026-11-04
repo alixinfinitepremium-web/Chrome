@@ -459,6 +459,24 @@ void BrowserActions::PopulateSynonyms() {
       {kActionOpenGuestProfile, IDS_ACTION_SYNONYMS_OPEN_GUEST_PROFILE},
       {kActionAddNewProfile, IDS_ACTION_SYNONYMS_ADD_NEW_PROFILE},
       {kActionManageChromeProfiles, IDS_ACTION_SYNONYMS_MANAGE_CHROME_PROFILES},
+      {kActionShowHistory, IDS_ACTION_SYNONYMS_SHOW_HISTORY},
+      {kActionSidePanelShowHistoryCluster,
+       IDS_ACTION_SYNONYMS_SIDE_PANEL_SHOW_HISTORY_CLUSTER},
+      {kActionBookmarkThisTab, IDS_ACTION_SYNONYMS_BOOKMARK_THIS_TAB},
+      {kActionBookmarkAllTabs, IDS_ACTION_SYNONYMS_BOOKMARK_ALL_TABS},
+      {kActionShowBookmarkBar, IDS_ACTION_SYNONYMS_SHOW_BOOKMARK_BAR},
+      {kActionShowBookmarkManager, IDS_ACTION_SYNONYMS_SHOW_BOOKMARK_MANAGER},
+      {kActionImportSettings, IDS_ACTION_SYNONYMS_IMPORT_SETTINGS},
+      {kActionSidePanelShowReadingList,
+       IDS_ACTION_SYNONYMS_SIDE_PANEL_SHOW_READING_LIST},
+      {kActionExtensionsSubmenuManageExtensions,
+       IDS_ACTION_SYNONYMS_MANAGE_EXTENSIONS},
+      {kActionExtensionsSubmenuVisitChromeWebStore,
+       IDS_ACTION_SYNONYMS_VISIT_CHROME_WEB_STORE},
+      {kActionFind, IDS_ACTION_SYNONYMS_FIND},
+      {kActionSavePage, IDS_ACTION_SYNONYMS_SAVE_PAGE},
+      {kActionInstallPwa, IDS_ACTION_SYNONYMS_INSTALL_PWA},
+      {kActionCreateShortcut, IDS_ACTION_SYNONYMS_CREATE_SHORTCUT},
       {kActionSendTabToSelf, IDS_ACTION_SYNONYMS_SEND_TAB_TO_SELF},
       {kActionQrCodeGenerator, IDS_ACTION_SYNONYMS_QR_CODE_GENERATOR},
       {kActionRouteMedia, IDS_ACTION_SYNONYMS_ROUTE_MEDIA},
@@ -471,6 +489,13 @@ void BrowserActions::PopulateSynonyms() {
       {kActionPerformance, IDS_ACTION_SYNONYMS_PERFORMANCE},
       {kActionTaskManagerAppMenu, IDS_ACTION_SYNONYMS_TASK_MANAGER},
       {kActionDevTools, IDS_ACTION_SYNONYMS_DEV_TOOLS},
+      {kActionNewIncognitoWindow, IDS_ACTION_SYNONYMS_NEW_INCOGNITO_WINDOW},
+      {kActionShowLensOverlayFromAppMenu,
+       IDS_ACTION_SYNONYMS_SHOW_LENS_OVERLAY},
+      {kActionOpenGlic, IDS_ACTION_SYNONYMS_OPEN_GLIC},
+      {kActionClearBrowsingData, IDS_ACTION_SYNONYMS_CLEAR_BROWSING_DATA},
+      {kActionOptions, IDS_ACTION_SYNONYMS_OPTIONS},
+      {kActionExit, IDS_ACTION_SYNONYMS_EXIT},
   });
 
   // TODO(crbug.com/581423314): Each entry costs a FindAction tree walk during
@@ -1366,21 +1391,6 @@ void BrowserActions::InitializeChromeMenuActions() {
                   if (controller) {
                     controller->SetOrganizerVisible(
                         !controller->IsOrganizerPanelVisible());
-                  }
-
-                  // Dismiss the IPH promo if it is currently showing, or abort
-                  // it if it is queued to show.
-                  if (auto* interface =
-                          BrowserUserEducationInterface::From(bwi)) {
-                    const base::Feature& iph_feature =
-                        feature_engagement::kIPHResumptionRailFeature;
-                    if (interface->IsFeaturePromoActive(iph_feature)) {
-                      interface->NotifyFeaturePromoFeatureUsed(
-                          iph_feature,
-                          FeaturePromoFeatureUsedAction::kClosePromoIfPresent);
-                    } else if (interface->IsFeaturePromoQueued(iph_feature)) {
-                      interface->AbortFeaturePromo(iph_feature);
-                    }
                   }
                 },
                 bwi))

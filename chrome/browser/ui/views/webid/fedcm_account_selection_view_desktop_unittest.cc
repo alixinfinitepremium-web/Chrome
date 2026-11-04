@@ -2450,6 +2450,37 @@ TEST_F(FedCmAccountSelectionViewDesktopTest,
   controller->CloseModalDialog();
 }
 
+// Tests that closing the pop-up window does not use the view if that destroys
+// it, e.g. if closing the pop-up activates another tab. Regression test for
+// crbug.com/574762567.
+TEST_F(FedCmAccountSelectionViewDesktopTest, ClosePopupWindowDestroysView) {
+  std::unique_ptr<TestFedCmAccountSelectionView> controller =
+      CreateAndShow(accounts_);
+  CreateAndShowPopupWindow(*controller);
+  EXPECT_CALL(*controller->GetPopupWindow(), ClosePopupWindow)
+      .WillOnce([&controller]() { controller.reset(); });
+
+  // This should not crash.
+  controller->CloseModalDialog();
+}
+
+// Tests that showing a pop-up window while one is open does not use the view if
+// resizing and focusing the open pop-up window destroys it.
+TEST_F(FedCmAccountSelectionViewDesktopTest,
+       ResizeAndFocusPopupWindowDestroysView) {
+  std::unique_ptr<TestFedCmAccountSelectionView> controller =
+      CreateAndShow(accounts_);
+  CreateAndShowPopupWindow(*controller);
+  EXPECT_CALL(*controller->GetPopupWindow(), ResizeAndFocusPopupWindow)
+      .WillOnce([&controller]() { controller.reset(); });
+
+  // This should not crash.
+  EXPECT_FALSE(controller->ShowModalDialog(GURL(u"https://example.com"),
+                                           blink::mojom::RpMode::kActive,
+                                           base::DoNothing()));
+  EXPECT_FALSE(controller);
+}
+
 // Tests that opening a popup after a verifying sheet, then closing the popup,
 // notifies the observer.
 TEST_F(FedCmAccountSelectionViewDesktopTest,
@@ -3781,7 +3812,7 @@ TEST_F(FedCmAccountSelectionViewAmbientBubbleTest,
               GURL("https://rp.example"), GURL("https://rp.example"),
               std::vector<ambient_signin::PasskeyOrPasswordCredential>(),
               /*credential_selected_callback=*/base::DoNothing(),
-              /*permission_decided_callback=*/base::DoNothing()));
+              ambient_signin::AmbientLoginPermissionRequest::Options{}));
   ASSERT_TRUE(WaitForAmbientBubble());
 
   std::unique_ptr<TestFedCmAccountSelectionView> controller =

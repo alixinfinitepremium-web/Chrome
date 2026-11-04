@@ -42,6 +42,7 @@
 #include "chrome/browser/glic/host/glic_features.mojom-features.h"
 #include "chrome/browser/glic/host/glic_features.mojom.h"
 #include "chrome/browser/glic/public/features.h"
+#include "chrome/browser/glic/public/glic_feature.h"
 #include "chrome/browser/glic/public/glic_fre_store.h"
 #include "chrome/browser/glic/public/glic_keyed_service.h"
 #include "chrome/browser/glic/public/glic_keyed_service_factory.h"
@@ -82,6 +83,7 @@
 #include "components/variations/variations_switches.h"
 #include "content/public/common/content_switches.h"
 #include "content/public/test/browser_task_environment.h"
+#include "pdf/buildflags.h"
 #include "testing/gmock/include/gmock/gmock.h"
 #include "testing/gtest/include/gtest/gtest.h"
 
@@ -4215,6 +4217,31 @@ TEST_F(GlicEnablingGeicPolicyTest,
             mojom::ProfileReadyState::kReady);
 }
 
+// Consumer-only entry points stay off for an enabled Gemini Enterprise
+// profile, even with their features enabled.
+TEST_F(GlicEnablingGeicPolicyTest, ConsumerOnlyEntryPointsDisabledForGeic) {
+  std::vector<base::test::FeatureRef> enabled_features = {
+      features::kAutoOpenGlicForPdf,
+      features::kGlicSelectionPrompt,
+      features::kGlicCaptureRegion,
+#if BUILDFLAG(ENABLE_PDF)
+      features::kPdfGlicSummarize,
+#endif
+  };
+  base::test::ScopedFeatureList feature_list;
+  feature_list.InitWithFeatures(enabled_features, /*disabled_features=*/{});
+  ASSERT_TRUE(GlicEnabling::IsEnabledForProfile(profile()));
+  // Gemini Enterprise profiles are consented, so only the provider keeps PDF
+  // auto-open off.
+  ASSERT_TRUE(GlicEnabling::HasConsentedForProfile(profile()));
+
+  EXPECT_FALSE(GlicEnabling::IsPdfSummarizeEnabled(profile()));
+  EXPECT_FALSE(GlicEnabling::IsAutoOpenForPdfEnabled(profile()));
+  EXPECT_FALSE(GlicEnabling::IsInlineCueEnabledForProfile(profile()));
+  EXPECT_FALSE(GetGlicProviderSpec(profile()).SupportsFeature(
+      GlicFeature::kCaptureRegion));
+}
+
 TEST_F(GlicEnablingGeicPolicyTest, Provider_LatchedAtCreation) {
   // Removing the policy after the profile was created does not change the
   // provider or the latched guest URL for the rest of the session.
@@ -4252,13 +4279,13 @@ TEST_F(GlicEnablingGeicPolicyTest, GeicEnabledWithoutConsumerAccountChecks) {
                   ->GetPrimaryAccountInfo(signin::ConsentLevel::kSignin)
                   .IsEmpty());
 
+  // Consent comes from the GEiC FRE, not the consumer FRE.
+  // `GeicFreControlsConsentInEnablement` covers consent in more detail.
+  geic::CompleteFre(profile());
+
   GlicEnabling::ProfileEnablement enablement =
       GlicEnabling::EnablementForProfile(profile());
   EXPECT_TRUE(enablement.IsEnabled());
-  // This is true only because `features::kGeicFre` is disabled (the default),
-  // so `GeminiEnterpriseGlicFreStore` reports the FRE as `kCompleted` (see
-  // glic_fre_store_impl.cc). `GeicFreControlsConsentInEnablement` covers
-  // consent with the GEiC FRE enabled.
   EXPECT_TRUE(enablement.IsEnabledAndConsented());
   EXPECT_TRUE(enablement.ShouldShowGlicButton());
   EXPECT_TRUE(enablement.ShouldShowSettingsPage());

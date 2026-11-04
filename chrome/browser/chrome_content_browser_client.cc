@@ -329,8 +329,8 @@
 #include "components/privacy_sandbox/privacy_sandbox_features.h"
 #include "components/privacy_sandbox/privacy_sandbox_prefs.h"
 #include "components/privacy_sandbox/privacy_sandbox_settings.h"
+#include "components/safe_browsing/content/browser/interstitials/ui_manager.h"
 #include "components/safe_browsing/content/browser/password_protection/password_protection_commit_deferring_condition.h"
-#include "components/safe_browsing/content/browser/ui_manager.h"
 #include "components/safe_browsing/content/browser/url_checker/async_check_tracker.h"
 #include "components/safe_browsing/content/browser/url_checker/browser_url_loader_throttle.h"
 #include "components/safe_browsing/core/browser/hashprefix_realtime/hash_realtime_service.h"
@@ -757,10 +757,10 @@
 
 #if BUILDFLAG(SAFE_BROWSING_AVAILABLE)
 #include "chrome/browser/enterprise/connectors/connectors_service.h"
-#include "chrome/browser/safe_browsing/chrome_ping_manager_factory.h"
 #include "chrome/browser/safe_browsing/cloud_content_scanning/deep_scanning_utils.h"
 #include "chrome/browser/safe_browsing/db/v5_get_hash_protocol_manager_factory.h"
 #include "chrome/browser/safe_browsing/password_protection/chrome_password_protection_service.h"
+#include "chrome/browser/safe_browsing/ping_manager/chrome_ping_manager_factory.h"
 #include "chrome/browser/safe_browsing/realtime/chrome_enterprise_url_lookup_service_factory.h"
 #include "chrome/browser/safe_browsing/realtime/url_lookup_service_factory.h"
 #include "chrome/browser/safe_browsing/safe_browsing_service.h"
@@ -4620,8 +4620,9 @@ bool ChromeContentBrowserClient::CanCreateWindow(
     }
   }
 
-  if (disposition == WindowOpenDisposition::kNewSplitView && !user_gesture) {
-    disposition = WindowOpenDisposition::kNewForegroundTab;
+  if (disposition == ui::mojom::WindowOpenDisposition::kNewSplitView &&
+      !user_gesture) {
+    disposition = ui::mojom::WindowOpenDisposition::kNewForegroundTab;
   }
 
   const BlockedWindowParams blocked_params(

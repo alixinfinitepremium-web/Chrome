@@ -10010,6 +10010,7 @@ from previous Chrome versions.
   <int value="-1496051102" label="PageInfoV2Desktop:disabled"/>
   <int value="-1495973732"
       label="ResamplingScrollEventsExperimentalPrediction:disabled"/>
+  <int value="-1495884578" label="MiddleClickAutoscroll:disabled"/>
   <int value="-1495145881" label="ReaderModeDevEntryPoint:enabled"/>
   <int value="-1494697633" label="EnterpriseBadgingForNtpFooter:enabled"/>
   <int value="-1493620195"
@@ -10549,6 +10550,7 @@ from previous Chrome versions.
   <int value="-1340460869" label="ShutdownSupportForKeepalive:enabled"/>
   <int value="-1340055960" label="enable-streamlined-hosted-apps"/>
   <int value="-1339679303" label="UseAdHocSigningForWebAppShims:enabled"/>
+  <int value="-1338984406" label="ContextualTasksSingleTabMenuItem:disabled"/>
   <int value="-1338701593"
       label="OmniboxMostVisitedTilesTitleWrapAround:enabled"/>
   <int value="-1338528179"
@@ -13045,6 +13047,7 @@ from previous Chrome versions.
   <int value="-598811644"
       label="FriendlierSafeBrowsingSettingsEnhancedProtection:enabled"/>
   <int value="-598423823" label="OmniboxAimShortcutTypedState:disabled"/>
+  <int value="-598217832" label="FedCmIdpLinks:enabled"/>
   <int value="-598191408" label="OmniboxKeywordSpaceTriggeringSetting:enabled"/>
   <int value="-598050737" label="disable-es3-apis"/>
   <int value="-596822155" label="AppManagementIntentSettings:enabled"/>
@@ -14191,6 +14194,7 @@ from previous Chrome versions.
   <int value="-257478609" label="TextfieldFocusOnTapUp:enabled"/>
   <int value="-256940675" label="HelpAppSearchServiceIntegration:disabled"/>
   <int value="-256923848" label="ProfilesUIRevamp:disabled"/>
+  <int value="-256841283" label="FedCmIdpLinks:disabled"/>
   <int value="-256745779"
       label="IsSecurePaymentConfirmationAvailableAPI:enabled"/>
   <int value="-256347812" label="AndroidBricksNativePage:disabled"/>
@@ -17397,6 +17401,7 @@ from previous Chrome versions.
   <int value="709850261" label="disable-touch-editing"/>
   <int value="710631017" label="AndroidBookmarkBar:disabled"/>
   <int value="710700286" label="ImmersiveFullscreen:disabled"/>
+  <int value="710909336" label="ContextualTasksSingleTabMenuItem:enabled"/>
   <int value="711424932" label="enable-cloud-print-xps"/>
   <int value="711627544" label="ImeSwitchCheckConnectionStatus:enabled"/>
   <int value="712155532" label="GlicUseNonClient:disabled"/>
@@ -20906,6 +20911,7 @@ from previous Chrome versions.
       label="OmniboxUIExperimentVerticalMarginLimitToNonTouchOnly:disabled"/>
   <int value="1758331078" label="FileSystemProviderContentCache:disabled"/>
   <int value="1758688616" label="OmniboxModernizeVisualUpdate:disabled"/>
+  <int value="1759049936" label="MiddleClickAutoscroll:enabled"/>
   <int value="1759193892" label="SafetyCheckExtensions:disabled"/>
   <int value="1759323272" label="DefaultCalculatorWebApp:disabled"/>
   <int value="1759976458" label="DevToolsWebMCPSupport:enabled"/>
@@ -24161,7 +24167,7 @@ Called by update_net_error_codes.py.-->
   <int value="2" label="Incremental"/>
 </enum>
 
-<!-- LINT.ThenChange(//components/pdf/renderer/pdf_accessibility_tree.h:HeaderFooterRepetition) -->
+<!-- LINT.ThenChange(//components/pdf/renderer/pdf_accessibility_metrics.h:HeaderFooterRepetition) -->
 
 <!-- LINT.IfChange(PdfAccessibilityHeadingClassifier) -->
 
@@ -24174,7 +24180,7 @@ Called by update_net_error_codes.py.-->
   <int value="6" label="Text Color"/>
 </enum>
 
-<!-- LINT.ThenChange(//components/pdf/renderer/pdf_accessibility_tree.h:HeadingClassifier) -->
+<!-- LINT.ThenChange(//components/pdf/renderer/pdf_accessibility_metrics.h:HeadingClassifier) -->
 
 <!-- LINT.IfChange(PdfAccessibilityListEndReason) -->
 
@@ -24190,7 +24196,7 @@ Called by update_net_error_codes.py.-->
   <int value="8" label="Heading"/>
 </enum>
 
-<!-- LINT.ThenChange(//components/pdf/renderer/pdf_accessibility_tree.h:PdfAccessibilityListEndReason) -->
+<!-- LINT.ThenChange(//components/pdf/renderer/pdf_accessibility_metrics.h:PdfAccessibilityListEndReason) -->
 
 <!-- LINT.IfChange(PdfAccessibilityListStartReason) -->
 
@@ -24201,7 +24207,7 @@ Called by update_net_error_codes.py.-->
   <int value="3" label="Ordered numeric marker starting above 1"/>
 </enum>
 
-<!-- LINT.ThenChange(//components/pdf/renderer/pdf_accessibility_tree.h:PdfAccessibilityListStartReason) -->
+<!-- LINT.ThenChange(//components/pdf/renderer/pdf_accessibility_metrics.h:PdfAccessibilityListStartReason) -->
 
 <enum name="PerformanceMonitor.UsageScenario.LongInterval">
   <int value="1" label="All Tabs Hidden Audio"/>

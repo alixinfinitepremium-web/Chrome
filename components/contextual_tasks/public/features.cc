@@ -302,9 +302,6 @@ BASE_FEATURE(kEnableNotifyZeroStateRenderedCapability,
 BASE_FEATURE(kContextualTasksSendFullVersionListEnabled,
              base::FEATURE_ENABLED_BY_DEFAULT);
 
-BASE_FEATURE(kContextualTasksSendContextualInputUploadType,
-             base::FEATURE_ENABLED_BY_DEFAULT);
-
 BASE_FEATURE(kContextualTasksUrlRedirectToAimUrl,
              base::FEATURE_DISABLED_BY_DEFAULT);
 
@@ -330,6 +327,9 @@ BASE_FEATURE(kContextualTasksHideMenuOnAiPage,
 BASE_FEATURE(kContextualTasksUnboundedMenu, base::FEATURE_DISABLED_BY_DEFAULT);
 
 BASE_FEATURE(kContextualTasksAccountMenuGoogleComSignOutLabel,
+             base::FEATURE_DISABLED_BY_DEFAULT);
+
+BASE_FEATURE(kContextualTasksSingleTabMenuItem,
              base::FEATURE_DISABLED_BY_DEFAULT);
 
 BASE_FEATURE(kContextualTasksHideCloseButtonInVerticalTabs,
@@ -716,13 +716,6 @@ const base::FeatureParam<double> kContextualTasksContextLoggingSampleRate{
 
 const base::FeatureParam<int> kMinQueryWords{
     &kContextualTasksContext, "ContextualTasksContextMinQueryWords", 3};
-
-const base::FeatureParam<bool> kSendContextualInputUploadTypeInSearchUrl{
-    &kContextualTasksSendContextualInputUploadType, "send_in_search_url", true};
-
-const base::FeatureParam<bool> kSendContextualInputUploadTypeInAimRequest{
-    &kContextualTasksSendContextualInputUploadType, "send_in_aim_request",
-    true};
 
 // Enables tab auto-chip for contextual tasks.
 const base::FeatureParam<bool> kContextualTasksTabAutoSuggestionChipEnabled(
@@ -1259,6 +1252,10 @@ bool IsContextualTasksUnboundedMenuEnabled() {
          IsContextualTasksSidePanelRearchitectureEnabled();
 }
 
+bool IsContextualTasksSingleTabMenuItemEnabled() {
+  return base::FeatureList::IsEnabled(kContextualTasksSingleTabMenuItem);
+}
+
 bool IsContextualTasksUIEnabled() {
   return base::FeatureList::IsEnabled(kContextualTasksSidePanel) ||
          base::FeatureList::IsEnabled(kContextualTasks) ||
@@ -1403,6 +1400,12 @@ const char kContextualTasksTabBasedSuggestionsName[] =
 const char kContextualTasksTabBasedSuggestionsDescription[] =
     "Enables sending attached tab context tokens to Search for tab-based "
     "query suggestions.";
+
+const char kContextualTasksSingleTabMenuItemName[] =
+    "Contextual Tasks Single Tab Menu Item";
+const char kContextualTasksSingleTabMenuItemDescription[] =
+    "Shows the most recent tab as a single menu item above \"Add tabs\" in "
+    "the Contextual Tasks tab picker.";
 
 const char kContextualTasksSidePanelTabStateName[] =
     "Contextual Tasks Side Panel Tab State";

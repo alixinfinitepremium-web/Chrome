@@ -81,6 +81,7 @@
 #include "net/base/url_util.h"
 #include "net/dns/mock_host_resolver.h"
 #include "services/network/public/cpp/shared_url_loader_factory.h"
+#include "testing/gtest/include/gtest/gtest.h"
 #include "third_party/omnibox_proto/chrome_aim_entry_point.pb.h"
 #include "ui/base/l10n/l10n_util.h"
 #include "ui/base/mojom/menu_source_type.mojom.h"
@@ -466,7 +467,8 @@ class ContextualTasksEphemeralButtonInteractiveTestMixin
   }
 
   virtual std::vector<base::test::FeatureRef> GetDisabledFeatures() {
-    return {};
+    return {contextual_tasks::kContextualTasksRearchitecture,
+            contextual_tasks::kContextualTasksSidePanelRearchitecture};
   }
 
   // Side panel animations hide the timing windows that rapid clicks expose, so
@@ -1500,7 +1502,8 @@ class ContextualTasksEphemeralBrandedButtonInteractiveTest
         {{contextual_tasks::kContextualTasks, {}},
          {contextual_tasks::kContextualTasksEphemeralBrandedEntryPoint,
           {{"ContextualTasksEntryPoint", "toolbar-ephemeral-branded"}}}},
-        {});
+        {contextual_tasks::kContextualTasksRearchitecture,
+         contextual_tasks::kContextualTasksSidePanelRearchitecture});
     InteractiveBrowserTest::SetUp();
   }
 
@@ -1810,6 +1813,14 @@ IN_PROC_BROWSER_TEST_F(ContextualTasksEphemeralButtonPinningV2InteractiveTest,
 
 IN_PROC_BROWSER_TEST_P(ContextualTasksPinningV2ParamInteractiveTest,
                        ButtonShowsAndHighlightsWhileSidePanelIsOpen) {
+#if BUILDFLAG(IS_WIN)
+  if (IsRefactorEnabled()) {
+    // TODO(crbug.com/576477029): On 1024x768 Windows bots, clamping the
+    // 1280x800 window overflows `PinnedToolbarActionsContainer` when the side
+    // panel and sign-in avatar pill are both open, hiding the button mid-step.
+    GTEST_SKIP();
+  }
+#endif
   base::UserActionTester user_action_tester;
   base::HistogramTester histogram_tester;
   const std::u16string expected_open_tooltip = l10n_util::GetStringUTF16(
@@ -2021,7 +2032,10 @@ class ContextualTasksEphemeralButtonCobrowseDisabledInteractiveTest
  public:
   void SetUp() override {
     scoped_feature_list_.InitWithFeaturesAndParameters(
-        GetEnabledFeatures(), {contextual_tasks::kContextualTasks});
+        GetEnabledFeatures(),
+        {contextual_tasks::kContextualTasks,
+         contextual_tasks::kContextualTasksRearchitecture,
+         contextual_tasks::kContextualTasksSidePanelRearchitecture});
     InteractiveBrowserTest::SetUp();
   }
 
@@ -4034,7 +4048,9 @@ class ContextualTasksNonBrandedEntryPointCircleHighlightInteractiveTest
   }
 
   std::vector<base::test::FeatureRef> GetDisabledFeatures() override {
-    return {contextual_tasks::kContextualTasksEphemeralBrandedEntryPoint};
+    return {contextual_tasks::kContextualTasksRearchitecture,
+            contextual_tasks::kContextualTasksSidePanelRearchitecture,
+            contextual_tasks::kContextualTasksEphemeralBrandedEntryPoint};
   }
 };
 

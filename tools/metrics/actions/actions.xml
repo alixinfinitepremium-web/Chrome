@@ -873,8 +873,6 @@ should be able to be added at any place in this file.
       summary="For the RequestDesktopSiteWindowSetting feature."/>
   <variant name="_RestoreTabsOnFRE"
       summary="For the RestoreTabsOnFRE feature."/>
-  <variant name="_ResumptionRail"
-      summary="For Resumption Rail feature entrypoint."/>
   <variant name="_RtlGestureNavigation"
       summary="For the gesture navigation in RTL mode."/>
   <variant name="_SearchEngineChoicePromo"
@@ -1124,6 +1122,7 @@ should be able to be added at any place in this file.
       summary="Gemini Site Search Shortcut"/>
   <variant name=".GenerativeThemes" summary="Generative Themes"/>
   <variant name=".GenerativeTheming" summary="Generative Theming"/>
+  <variant name=".GlicWhatsNewLuminous" summary="Gemini in Chrome: Luminous"/>
   <variant name=".GoogleLens" summary="Google Lens"/>
   <variant name=".Googlepayreauth" summary="Google Pay Re-auth"/>
   <variant name=".HeadlessLiveCaption" summary="Headless Live Caption"/>
@@ -10591,6 +10590,9 @@ should be able to be added at any place in this file.
     <variant name=".OpenNewThread" summary="The user opened a new thread."/>
     <variant name=".OpenOverflowMenu"
         summary="The user opened the overflow menu."/>
+    <variant name=".OpenPageInfo"
+        summary="The user clicked the logo button to open the page info
+                 bubble."/>
     <variant name=".OpenSourcesMenu"
         summary="The user opened the sources menu."/>
     <variant name=".OpenThreadHistory"
@@ -29346,12 +29348,36 @@ should be able to be added at any place in this file.
   <description>Settings: Users: Remove a whitelisted user</description>
 </action>
 
+<action name="OrganizerPanel.Close">
+  <owner>agale@chromium.org</owner>
+  <owner>top-chrome-desktop-ui@google.com</owner>
+  <description>Recorded when the organizer panel is closed.</description>
+</action>
+
+<action name="OrganizerPanel.CloseTab">
+  <owner>agale@chromium.org</owner>
+  <owner>top-chrome-desktop-ui@google.com</owner>
+  <description>
+    Recorded when clicking the close button on an open tab row in
+    OpenTabsDelegate.
+  </description>
+</action>
+
 <action name="OrganizerPanel.CollapseSection">
   <owner>agale@chromium.org</owner>
   <owner>top-chrome-desktop-ui@google.com</owner>
   <description>
     Recorded when a section in the organizer panel is manually collapsed by the
     user.
+  </description>
+</action>
+
+<action name="OrganizerPanel.CreateTabGroup">
+  <owner>agale@chromium.org</owner>
+  <owner>top-chrome-desktop-ui@google.com</owner>
+  <description>
+    Recorded when clicking &quot;+ Create tab group&quot; zero state in
+    TabGroupsDelegate.
   </description>
 </action>
 
@@ -29364,11 +29390,65 @@ should be able to be added at any place in this file.
   </description>
 </action>
 
+<action name="OrganizerPanel.Open">
+  <owner>agale@chromium.org</owner>
+  <owner>top-chrome-desktop-ui@google.com</owner>
+  <description>Recorded when the organizer panel is opened.</description>
+</action>
+
 <action name="OrganizerPanel.OpenButtonPressed">
-  <owner>kunaldaftari@google.com</owner>
+  <owner>agale@chromium.org</owner>
   <owner>top-chrome-desktop-ui@google.com</owner>
   <description>
     The user opened the organizer panel via the tab strip entrypoint.
+  </description>
+</action>
+
+<action name="OrganizerPanel.OpenCrossDeviceTab">
+  <owner>agale@chromium.org</owner>
+  <owner>top-chrome-desktop-ui@google.com</owner>
+  <description>
+    Recorded when clicking a foreign tab in ForeignTabsDelegate.
+  </description>
+</action>
+
+<action name="OrganizerPanel.OpenRecentlyClosedSplitView">
+  <owner>agale@chromium.org</owner>
+  <owner>top-chrome-desktop-ui@google.com</owner>
+  <description>
+    Recorded when clicking a recent split view in RecentTabsDelegate.
+  </description>
+</action>
+
+<action name="OrganizerPanel.OpenRecentlyClosedTab">
+  <owner>agale@chromium.org</owner>
+  <owner>top-chrome-desktop-ui@google.com</owner>
+  <description>
+    Recorded when clicking a recent tab in RecentTabsDelegate.
+  </description>
+</action>
+
+<action name="OrganizerPanel.OpenRecentlyClosedTabGroup">
+  <owner>agale@chromium.org</owner>
+  <owner>top-chrome-desktop-ui@google.com</owner>
+  <description>
+    Recorded when clicking a recent tab group in RecentTabsDelegate.
+  </description>
+</action>
+
+<action name="OrganizerPanel.OpenTabGroup">
+  <owner>agale@chromium.org</owner>
+  <owner>top-chrome-desktop-ui@google.com</owner>
+  <description>
+    Recorded when clicking an existing group in TabGroupsDelegate.
+  </description>
+</action>
+
+<action name="OrganizerPanel.SwitchToTab">
+  <owner>agale@chromium.org</owner>
+  <owner>top-chrome-desktop-ui@google.com</owner>
+  <description>
+    Recorded when user clicks an open tab row in OpenTabsDelegate.
   </description>
 </action>
 

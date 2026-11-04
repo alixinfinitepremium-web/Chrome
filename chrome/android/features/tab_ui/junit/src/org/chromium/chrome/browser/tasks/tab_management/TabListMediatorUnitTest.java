@@ -5936,6 +5936,18 @@ public class TabListMediatorUnitTest {
     }
 
     @Test
+    public void testUnsetShrinkCloseAnimation_DidClose_StandaloneTab() {
+        mMediator.resetWithListOfTabs(
+                List.of(mTab1), /* tabGroupSyncIds= */ null, /* quickMode= */ false);
+        mModelList.get(0).model.set(TabProperties.USE_SHRINK_CLOSE_ANIMATION, true);
+
+        var callback = mMediator.getOnMaybeTabClosedCallback(TAB1_ID);
+
+        callback.onResult(true);
+        assertFalse(mModelList.get(0).model.get(TabProperties.USE_SHRINK_CLOSE_ANIMATION));
+    }
+
+    @Test
     public void testUnsetShrinkCloseAnimation_DidClose_FlatLayout_NoOp() {
         setUpTabListMediator(TabListMediatorType.TAB_GRID_DIALOG, TabListMode.GRID);
         Tab newTab = prepareTab(TAB3_ID, TAB3_TITLE, TAB3_URL);
@@ -7730,6 +7742,35 @@ public class TabListMediatorUnitTest {
         assertEquals(mModelList.get(0).model, mMediator.getModelFromTabId(TAB1_ID));
         assertEquals(mModelList.get(1).model, mMediator.getModelFromTabId(TAB2_ID));
         assertNull(mMediator.getModelFromTabId(99999));
+    }
+
+    @Test
+    public void testGetIndexFromTabGroupId_GroupCardPresent() {
+        initAndAssertAllProperties();
+        PropertyModel groupCardModel = mModelList.get(1).model;
+        groupCardModel.set(CARD_TYPE, TAB_GROUP);
+        groupCardModel.set(TabProperties.TAB_GROUP_HEADER_ID, TAB_GROUP_ID);
+
+        assertEquals(1, mMediator.getIndexFromTabGroupId(TAB_GROUP_ID));
+    }
+
+    @Test
+    @DisableFeatures(ChromeFeatureList.ANDROID_TAB_UI_REFACTOR)
+    public void testGetIndexFromTabGroupId_FallsBackToFirstTabInGroup() {
+        initAndAssertAllProperties();
+        // No group card exists, but the group's first tab is shown as a representative tab card.
+        when(mTabModel.getTabsInGroup(TAB_GROUP_ID)).thenReturn(List.of(mTab2));
+
+        assertEquals(1, mMediator.getIndexFromTabGroupId(TAB_GROUP_ID));
+    }
+
+    @Test
+    public void testGetIndexFromTabGroupId_NotFound() {
+        initAndAssertAllProperties();
+
+        assertEquals(
+                TabModel.INVALID_TAB_INDEX,
+                mMediator.getIndexFromTabGroupId(new Token(12345L, 6789L)));
     }
 
     // TabListDataProvider consumer tests.

@@ -62,6 +62,8 @@ class GlicProviderSpec {
   virtual std::string_view GetSettingsSubpage() const = 0;
   // Resource ID of the entry-point (Glic button) icon.
   virtual int GetEntryPointIconId() const = 0;
+  // Resource ID of the Glic IPH promo body string.
+  virtual int GetPromoBodyStringId() const = 0;
   // The synthetic field trial group name for this provider.
   virtual std::string_view GetSyntheticTrialGroupName() const = 0;
   // Infix for per-provider metric names: Glic.<Infix>.X.
@@ -108,8 +110,10 @@ class GlicProviderSpec {
   // checks shared by all providers (the Glic feature, country, locale,
   // system and OS requirements and FRE consent) still apply.
   virtual bool RequiresGeminiAccountEligibility() const = 0;
-  // Whether this provider supports `feature`. This only reports provider
-  // support; callers still apply the feature's other requirements.
+  // Returns whether `feature` is enabled for the profile if the provider
+  // supports it, otherwise false. For the consumer provider, this checks the
+  // feature's flag(s), if it has any. Callers still apply profile requirements
+  // (e.g. Glic enablement or FRE consent).
   virtual bool SupportsFeature(GlicFeature feature) const = 0;
   // Whether this provider's guest supports server-side rendering.
   virtual bool SupportsSsr() const = 0;

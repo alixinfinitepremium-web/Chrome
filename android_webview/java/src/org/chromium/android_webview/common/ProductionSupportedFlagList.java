@@ -1185,6 +1185,9 @@ public final class ProductionSupportedFlagList {
                 AwFeatures.WEBVIEW_CONTENT_RESTRICTION_SUPPORT,
                 "Enables content restriction support in WebView."),
         Flag.baseFeature(
+                AwFeatures.WEBVIEW_CONTENT_RESTRICTION_REQUEST_BODY_SUPPORT,
+                "Enables access to request body for content restriction in WebView."),
+        Flag.baseFeature(
                 BaseFeatures.REBINDING_CHILD_SERVICE_CONNECTION_CONTROLLER,
                 "Use a single connection and rebindService() to manage the binding to a child"
                         + " process service."),
@@ -1541,6 +1544,9 @@ public final class ProductionSupportedFlagList {
         Flag.baseFeature(
                 SafeBrowsingFeatures.PRIORITIZE_SAFE_BROWSING_NAVIGATION_CALLBACKS,
                 "Prioritizes Safe Browsing database lookup callbacks for navigation requests."),
+        Flag.baseFeature(
+                "YieldToLooperPeriodically",
+                "When enabled, periodically yield to Android Looper in MessagePumpAndroid."),
         // Add new commandline switches and features above. The final entry should have a
         // trailing comma for cleaner diffs.
     };

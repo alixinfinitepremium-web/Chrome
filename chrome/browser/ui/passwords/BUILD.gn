@@ -45,6 +45,7 @@ source_set("passwords") {
       "//chrome/common:buildflags",
       "//components/password_manager/core/browser/ui",
       "//components/password_manager/core/common",
+      "//components/password_manager/core/common/remote_actor",
       "//components/zoom",
       "//skia",
       "//ui/base/unowned_user_data",
@@ -193,6 +194,7 @@ source_set("test_support") {
 
     public_deps = [
       "//base/test:test_support",
+      "//chrome/test/interaction",
       "//components/autofill/core/common",
       "//components/keyed_service/content",
       "//testing/gmock",
@@ -214,7 +216,6 @@ source_set("test_support") {
       "//chrome/browser/ui:browser_window_header",
       "//chrome/browser/ui/browser_window",
       "//chrome/browser/ui/tabs:tab_strip",
-      "//chrome/test:test_support_ui",
       "//components/affiliations/core/browser:test_support",
       "//components/autofill/core/common:test_support",
       "//components/password_manager/core/browser",
@@ -377,7 +378,6 @@ if (!is_android) {
       "//chrome/browser/ui/views/passwords",
       "//chrome/common",
       "//chrome/test:test_support",
-      "//chrome/test:test_support_ui",
       "//components/affiliations/core/browser:affiliations",
       "//components/affiliations/core/browser:test_support",
       "//components/keyed_service/content",

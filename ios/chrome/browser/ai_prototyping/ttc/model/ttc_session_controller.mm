@@ -88,9 +88,17 @@ void TtcSessionController::OnConversationInitialized() {
     return;
   }
   conversation_->SendToolSetUpdate(ttc::GetDefaultToolDefinitions());
+  base::WeakPtr<TtcSessionController> weak_this =
+      weak_ptr_factory_.GetWeakPtr();
   SetLifecycle(TTCSessionLifecycle::kLive);
-  if (lifecycle_ != TTCSessionLifecycle::kLive) {
+  if (!weak_this || lifecycle_ != TTCSessionLifecycle::kLive) {
     return;
+  }
+  if (conversation_->IsMicMuted()) {
+    OnConversationMicMutedChanged(true);
+    if (!weak_this || lifecycle_ != TTCSessionLifecycle::kLive) {
+      return;
+    }
   }
   // Starts tracking and extracting page context only after session setup and
   // toolset registration have completed, so `ContextUpdate` is never queued
@@ -106,6 +114,17 @@ void TtcSessionController::OnConversationInitialized() {
 
 void TtcSessionController::OnConversationClosed() {
   StopSessionAsync();
+}
+
+void TtcSessionController::OnConversationMicMutedChanged(bool muted) {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  if (lifecycle_ != TTCSessionLifecycle::kLive) {
+    return;
+  }
+  LogMicMuted(muted);
+  for (TtcSessionControllerObserver& observer : observers_) {
+    observer.OnMicMutedChanged(this, muted);
+  }
 }
 
 void TtcSessionController::OnAudioEnergyUpdated(float energy) {
@@ -179,7 +198,7 @@ void TtcSessionController::OnVoiceFocusedWebStateChanged(
     return;
   }
   page_context_monitor_ =
-      std::make_unique<TtcPageContextMonitor>(*web_state, this);
+      std::make_unique<TtcPageContextMonitor>(*web_state, this, journal_.get());
 }
 
 #pragma mark - TtcPageContextMonitor::Delegate
@@ -282,6 +301,9 @@ void TtcSessionController::set_journal(TTCJournal* journal) {
   if (actuation_handler_) {
     actuation_handler_->set_journal(journal);
   }
+  if (page_context_monitor_) {
+    page_context_monitor_->set_journal(journal);
+  }
 }
 
 web::WebState* TtcSessionController::GetVoiceFocusedWebState() const {
@@ -299,6 +321,31 @@ void TtcSessionController::StartSession() {
     return;
   }
   conversation_->Start();
+}
+
+bool TtcSessionController::SetMicMuted(bool muted) {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  if (lifecycle_ != TTCSessionLifecycle::kLive ||
+      conversation_->IsMicMuted() == muted) {
+    return false;
+  }
+  LogMicMuted(muted);
+  base::WeakPtr<TtcSessionController> weak_this =
+      weak_ptr_factory_.GetWeakPtr();
+  conversation_->SetMicMuted(muted);
+  if (!weak_this || lifecycle_ != TTCSessionLifecycle::kLive) {
+    return false;
+  }
+  for (TtcSessionControllerObserver& observer : observers_) {
+    observer.OnMicMutedChanged(this, muted);
+  }
+  return true;
+}
+
+bool TtcSessionController::IsMicMuted() const {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  return lifecycle_ == TTCSessionLifecycle::kLive &&
+         conversation_->IsMicMuted();
 }
 
 void TtcSessionController::StopSession() {
@@ -432,6 +479,18 @@ void TtcSessionController::LogLifecycleTransition(
                     .Add("current_state", current_state)
                     .Add("new_state", new_state)
                     .Build());
+}
+
+void TtcSessionController::LogMicMuted(bool muted) {
+  if (!journal_) {
+    return;
+  }
+  journal_->Log(
+      TTCJournalComponent::kSession, "TtcMicMuted",
+      TTCJournalDetailsBuilder()
+          .SetSummary(muted ? "Microphone muted" : "Microphone unmuted")
+          .Add("muted", muted)
+          .Build());
 }
 
 void TtcSessionController::LogSessionError(ttc::ErrorCode error) {

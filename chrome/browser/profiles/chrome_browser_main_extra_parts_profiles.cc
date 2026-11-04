@@ -413,6 +413,7 @@
 #include "chrome/browser/ui/safety_hub/password_status_check_service_factory.h"
 #include "chrome/browser/ui/safety_hub/safety_hub_hats_service_factory.h"
 #include "chrome/browser/ui/views/context_hub/memory_banks_hotkey_manager_factory.h"
+#include "chrome/browser/ui/views/omnibox/omnibox_popup_webui_pool_factory.h"
 #include "chrome/browser/ui/views/profiles/avatar_toolbar_button_state_manager.h"
 #include "chrome/browser/ui/waap/initial_webui_profile_service_factory.h"
 #include "chrome/browser/ui/waap/waap_ui_metrics_service_factory.h"
@@ -636,19 +637,19 @@
 #endif
 
 #if BUILDFLAG(SAFE_BROWSING_AVAILABLE)
-#include "chrome/browser/safe_browsing/chrome_ping_manager_factory.h"
 #include "chrome/browser/safe_browsing/client_side_detection_intelligent_scan_delegate_factory.h"
 #include "chrome/browser/safe_browsing/client_side_detection_service_factory.h"
 #include "chrome/browser/safe_browsing/cloud_content_scanning/cloud_binary_upload_service_factory.h"
 #include "chrome/browser/safe_browsing/db/v5_get_hash_protocol_manager_factory.h"
 #include "chrome/browser/safe_browsing/db/v5_search_hashes_cache_factory.h"
 #include "chrome/browser/safe_browsing/gemini_antiscam_protection/gemini_antiscam_protection_service_factory.h"
+#include "chrome/browser/safe_browsing/metrics_collector/safe_browsing_metrics_collector_factory.h"
 #include "chrome/browser/safe_browsing/notification_content_detection/notification_content_detection_service_factory.h"
 #include "chrome/browser/safe_browsing/notification_telemetry/notification_telemetry_service_factory.h"
 #include "chrome/browser/safe_browsing/password_protection/chrome_password_protection_service_factory.h"
+#include "chrome/browser/safe_browsing/ping_manager/chrome_ping_manager_factory.h"
 #include "chrome/browser/safe_browsing/realtime/chrome_enterprise_url_lookup_service_factory.h"
 #include "chrome/browser/safe_browsing/realtime/url_lookup_service_factory.h"
-#include "chrome/browser/safe_browsing/safe_browsing_metrics_collector_factory.h"
 #include "chrome/browser/safe_browsing/safe_browsing_navigation_observer_manager_factory.h"
 #include "chrome/browser/safe_browsing/tailored_security/tailored_security_service_factory.h"
 #endif
@@ -1204,6 +1205,7 @@ void ChromeBrowserMainExtraPartsProfiles::
 #endif
 #if !BUILDFLAG(IS_ANDROID)
   OfflineItemModelManagerFactory::GetInstance();
+  OmniboxPopupWebUIPoolFactory::GetInstance();
 #endif
 #if BUILDFLAG(ENABLE_EXTENSIONS_CORE)
   AimEligibilityExtensionBridgeFactory::GetInstance();

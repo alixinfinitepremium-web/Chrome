@@ -308,6 +308,7 @@ import org.chromium.chrome.browser.tabmodel.MismatchedIndicesHandler;
 import org.chromium.chrome.browser.tabmodel.MultiTabMetadata;
 import org.chromium.chrome.browser.tabmodel.NextTabPolicy.NextTabPolicySupplier;
 import org.chromium.chrome.browser.tabmodel.RedirectTabCreator;
+import org.chromium.chrome.browser.tabmodel.StubTabModel;
 import org.chromium.chrome.browser.tabmodel.SupportedProfileType;
 import org.chromium.chrome.browser.tabmodel.TabClosingSource;
 import org.chromium.chrome.browser.tabmodel.TabClosureParams;
@@ -358,6 +359,8 @@ import org.chromium.chrome.browser.ui.RootUiCoordinator;
 import org.chromium.chrome.browser.ui.appmenu.AppMenuPropertiesDelegate;
 import org.chromium.chrome.browser.ui.bottombar.BottomBarConfigUtils;
 import org.chromium.chrome.browser.ui.bottombar.BottomBarHostManager;
+import org.chromium.chrome.browser.ui.browser_instant_controller.BrowserInstantControllerBridge;
+import org.chromium.chrome.browser.ui.browser_instant_controller.BrowserInstantControllerBridgeFactory;
 import org.chromium.chrome.browser.ui.browser_window.BrowserWindowType;
 import org.chromium.chrome.browser.ui.browser_window.ChromeAndroidTask;
 import org.chromium.chrome.browser.ui.browser_window.ChromeAndroidTaskFeatureKey;
@@ -1056,6 +1059,20 @@ public class ChromeTabbedActivity extends ChromeActivity implements PreAttachInt
                         /* profile= */ null,
                         /* activityWindowAndroid= */ null),
                 () -> TabbedWindowStateTracker.create(mWindowId));
+
+        // Reloads this window's New Tab Pages when the default search engine changes. Keyed on
+        // the original profile: incognito NTPs don't depend on the default search engine, and the
+        // regular-profile browser window always exists for a tabbed activity. The native bridge
+        // decides whether the window actually needs a controller (WebUI NTP and third-party NTPs
+        // enabled); otherwise the feature stays inert. Added for Desktop Android devices only.
+        if (DeviceInfo.isDesktop()) {
+            chromeAndroidTask.addFeature(
+                    new ChromeAndroidTaskFeatureKey(
+                            BrowserInstantControllerBridge.class,
+                            profile.getOriginalProfile(),
+                            activityWindowAndroid),
+                    BrowserInstantControllerBridgeFactory::create);
+        }
     }
 
     boolean shouldRemoveWindowWithZeroTabs(@TabClosingSource int closingSource) {
@@ -1726,7 +1743,8 @@ public class ChromeTabbedActivity extends ChromeActivity implements PreAttachInt
             assumeNonNull(mInactivityTrackerSupplier.get())
                     .setLastVisibleTimeMsAndRecord(System.currentTimeMillis());
             initializeSuggestionMetricsTracker();
-            if (ChromeFeatureList.isEnabled(ChromeFeatureList.GROUP_SUGGESTION_SERVICE)) {
+            if (!(mTabModelSelector.getModel(false) instanceof StubTabModel)
+                    && ChromeFeatureList.isEnabled(ChromeFeatureList.GROUP_SUGGESTION_SERVICE)) {
                 mSuggestionEventObserver =
                         new SuggestionEventObserver(mTabModelSelector, mHubManagerSupplier);
                 // Deferring only the promotion coordinator splits the suggestion producer (the
@@ -3507,7 +3525,7 @@ public class ChromeTabbedActivity extends ChromeActivity implements PreAttachInt
             StartupPaintPreviewHelper.enableShowOnRestore();
         }
 
-        IncognitoTabHostRegistry.getInstance().register(mIncognitoTabHost);
+        maybeRegisterIncognitoTabHost();
         StartupPaintPreviewHelperSupplier.attach(
                 assumeNonNull(getWindowAndroid()).getUnownedUserDataHost(),
                 mStartupPaintPreviewHelperSupplier);
@@ -4255,6 +4273,8 @@ public class ChromeTabbedActivity extends ChromeActivity implements PreAttachInt
 
     private void initGroupSuggestionsPromotionCoordinator() {
         if (mGroupSuggestionsPromotionCoordinator != null) return;
+        TabModel regularModel = mTabModelSelector.getModel(/* incognito= */ false);
+        if (regularModel instanceof StubTabModel) return;
         if (ChromeFeatureList.getFieldTrialParamByFeatureAsBoolean(
                 ChromeFeatureList.GROUP_SUGGESTION_SERVICE,
                 GroupSuggestionsPromotionCoordinator.CREATE_SUGGESTIONS_PROMOTION_UI_PARAM,
@@ -4263,7 +4283,7 @@ public class ChromeTabbedActivity extends ChromeActivity implements PreAttachInt
                     new GroupSuggestionsPromotionCoordinator(
                             this,
                             assertNonNull(mRootUiCoordinator.getBottomSheetController()),
-                            mTabModelSelector.getModel(/* incognito= */ false));
+                            regularModel);
         }
     }
 
@@ -5746,6 +5766,33 @@ public class ChromeTabbedActivity extends ChromeActivity implements PreAttachInt
     }
 
     @Override
+    protected void onPostDestroy() {
+        super.onPostDestroy();
+        // In an OFF_THE_RECORD window with a StubTabModel for the regular model, closing the last
+        // incognito tab no longer switches to the regular model, so the incognito model remains
+        // active until mIncognitoTabHost is unregistered in destroyTabModels(). Destroy the OTR
+        // profile here after DestroyObservers have cleaned up.
+        if (mSupportedProfileType == SupportedProfileType.OFF_THE_RECORD
+                && isFinishing()
+                && didFinishNativeInitialization()
+                && ChromeFeatureList.sEnforceIncognitoIsolation.isEnabled()) {
+            maybeDestroyOtrProfile();
+        }
+    }
+
+    private void maybeDestroyOtrProfile() {
+        ProfileProvider profileProvider = getProfileProviderSupplier().get();
+        Profile otrProfile =
+                profileProvider != null ? profileProvider.getOffTheRecordProfile() : null;
+        if (otrProfile != null
+                && !otrProfile.shutdownStarted()
+                && !IncognitoTabHostUtils.doIncognitoTabsExist()
+                && !IncognitoTabHostUtils.isIncognitoTabModelActive()) {
+            ProfileManager.destroyWhenAppropriate(otrProfile);
+        }
+    }
+
+    @Override
     public void onTrimMemory(int level) {
         super.onTrimMemory(level);
         if (ChromeApplicationImpl.isSevereMemorySignal(level)) {
@@ -5862,6 +5909,14 @@ public class ChromeTabbedActivity extends ChromeActivity implements PreAttachInt
 
     public OneshotSupplier<TabSwitcher> getTabSwitcherSupplierForTesting() {
         return mTabSwitcherSupplier;
+    }
+
+    @VisibleForTesting
+    void maybeRegisterIncognitoTabHost() {
+        if (mSupportedProfileType != SupportedProfileType.REGULAR
+                || !ChromeFeatureList.sEnforceIncognitoIsolation.isEnabled()) {
+            IncognitoTabHostRegistry.getInstance().register(mIncognitoTabHost);
+        }
     }
 
     public IncognitoTabHost getIncognitoTabHostForTesting() {

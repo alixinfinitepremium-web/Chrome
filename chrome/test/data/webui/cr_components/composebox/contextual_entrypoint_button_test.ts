@@ -43,6 +43,8 @@ suite('ContextualEntrypointButton', () => {
     // Assert.
     const event = await eventPromise;
     assertTrue(!!event);
+    assertDeepEquals(
+        entrypointButton.getAnchorPoint(), (event as CustomEvent).detail);
   });
 
   test('hides description when window is narrow', async () => {
@@ -345,6 +347,7 @@ suite('ContextualEntrypointButton', () => {
               showInCurrentTabChip: false,
               showInPreviousTabChip: false,
               isLoading: false,
+              recentTab: false,
               lastActive: {internalValue: 0n},
             },
           ];
@@ -379,6 +382,7 @@ suite('ContextualEntrypointButton', () => {
       showInCurrentTabChip: false,
       showInPreviousTabChip: false,
       isLoading: false,
+      recentTab: false,
       lastActive: {internalValue: 0n},
     };
     const tab2: TabInfo = {
@@ -388,6 +392,7 @@ suite('ContextualEntrypointButton', () => {
       showInCurrentTabChip: false,
       showInPreviousTabChip: false,
       isLoading: false,
+      recentTab: false,
       lastActive: {internalValue: 0n},
     };
     const tab3: TabInfo = {
@@ -397,6 +402,7 @@ suite('ContextualEntrypointButton', () => {
       showInCurrentTabChip: false,
       showInPreviousTabChip: false,
       isLoading: false,
+      recentTab: false,
       lastActive: {internalValue: 0n},
     };
     const tab4: TabInfo = {
@@ -406,6 +412,7 @@ suite('ContextualEntrypointButton', () => {
       showInCurrentTabChip: false,
       showInPreviousTabChip: false,
       isLoading: false,
+      recentTab: false,
       lastActive: {internalValue: 0n},
     };
 
@@ -467,6 +474,7 @@ suite('ContextualEntrypointButton', () => {
           showInCurrentTabChip: false,
           showInPreviousTabChip: false,
           isLoading: false,
+          recentTab: false,
           lastActive: {internalValue: 0n},
         },
       ];
@@ -508,6 +516,7 @@ suite('ContextualEntrypointButton', () => {
           showInCurrentTabChip: false,
           showInPreviousTabChip: false,
           isLoading: false,
+          recentTab: false,
           lastActive: {internalValue: 0n},
         },
       ];

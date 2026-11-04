@@ -14,7 +14,7 @@ import type {TemplateResult} from '//resources/lit/v3_0/lit.rollup.js';
 import {html} from '//resources/lit/v3_0/lit.rollup.js';
 import {TabGroupDotSize} from '/tab_group_shared/tab_group_dot.js';
 
-import type {OrganizerListSectionClient, OrganizerListSectionDelegate, OrganizerSection} from '../organizer_list_section_delegate.js';
+import type {OrganizerAction, OrganizerListSectionClient, OrganizerListSectionDelegate, OrganizerSection} from '../organizer_list_section_delegate.js';
 import type {OrganizerListSectionItem} from '../organizer_list_section_item.js';
 import type {BrowserProxy as OrganizerPanelBrowserProxy} from '../organizer_panel.mojom-webui.js';
 import {browserProxyFactory as organizerPanelBrowserProxyFactory} from '../organizer_panel.mojom-webui.js';
@@ -85,14 +85,20 @@ export class TabGroupsDelegate implements
   }
 
   private onCreateTabGroupClick_() {
+    chrome.histograms?.recordUserAction?.('OrganizerPanel.CreateTabGroup');
     this.organizerPanelBrowserProxy_.handler.closePanel();
     this.browserProxy_.handler.createNewTabGroup();
   }
 
   onItemClick(item: OrganizerListSectionItem<TabGroup>) {
+    chrome.histograms?.recordUserAction?.('OrganizerPanel.OpenTabGroup');
     const data = item.data;
     assert(data);
     this.browserProxy_.handler.openTabGroup(data.id);
+  }
+
+  getItemClickAction(): OrganizerAction {
+    return 'OpenTabGroup';
   }
 
   async onItemActionButtonClicked(

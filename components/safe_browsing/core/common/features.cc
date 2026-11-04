@@ -194,6 +194,11 @@ BASE_FEATURE(kClientSideDetectionScamDetectionRequestWithUrl,
 
 BASE_FEATURE(kClientSideDetectionScamScore, base::FEATURE_ENABLED_BY_DEFAULT);
 
+BASE_FEATURE(kClientSideDetectionSecondForceRequestWithDelay,
+             base::FEATURE_DISABLED_BY_DEFAULT);
+constexpr base::FeatureParam<int> kCsdForceRequestDelayMs{
+    &kClientSideDetectionSecondForceRequestWithDelay, "RequestDelayMs", 2000};
+
 #if !BUILDFLAG(IS_ANDROID) && !BUILDFLAG(IS_IOS)
 BASE_FEATURE(kClientSideDetectionServerModelForScamDetectionDesktop,
              base::FEATURE_DISABLED_BY_DEFAULT);
@@ -427,9 +432,6 @@ constexpr base::FeatureParam<std::string>
                                                  /*default_value=*/""};
 #endif
 
-BASE_FEATURE(kMigrateEnhancedSbUserToEnhancedBundle,
-             base::FEATURE_DISABLED_BY_DEFAULT);
-
 BASE_FEATURE(kMigrateToBlockV8OptimizerOnUnfamiliarSites,
              base::FEATURE_DISABLED_BY_DEFAULT);
 
@@ -610,6 +612,7 @@ base::ListValue GetFeatureStatusList() {
       &kClientSideDetectionKillswitch,
       &kClientSideDetectionLocalResourceCheckFix,
       &kClientSideDetectionRedirectChainKillswitch,
+      &kClientSideDetectionSecondForceRequestWithDelay,
       &kCreateNotificationsAcceptedClientSafeBrowsingReports,
       &kDelayedWarnings,
       &kDlpRegionalizedEndpoints,
@@ -621,7 +624,6 @@ base::ListValue GetFeatureStatusList() {
       &kExtensionBlocklistSkipNetworkQuery,
       &kHashPrefixRealTimeLookups,
       &kLocalListsUseSBv5,
-      &kMigrateEnhancedSbUserToEnhancedBundle,
       &kProactivePasswordProtection,
       &kReportNotificationContentDetectionData,
       &kRustPhishingModelSetter,

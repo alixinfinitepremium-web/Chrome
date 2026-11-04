@@ -34,6 +34,18 @@ chromium-metrics-reviews@google.com.
   <variant name="Tab" summary="a single tab"/>
 </variants>
 
+<!-- LINT.IfChange(OrganizerAction) -->
+
+<variants name="OrganizerAction">
+  <variant name="CloseTab"/>
+  <variant name="OpenCrossDeviceTab"/>
+  <variant name="OpenRecentlyClosedEntry"/>
+  <variant name="OpenTabGroup"/>
+  <variant name="SwitchTab"/>
+</variants>
+
+<!-- LINT.ThenChange(//chrome/browser/resources/organizer_panel/organizer_list_section_delegate.ts:OrganizerAction) -->
+
 <!-- LINT.IfChange(OrganizerSection) -->
 
 <variants name="OrganizerSection">
@@ -980,6 +992,16 @@ chromium-metrics-reviews@google.com.
   </summary>
 </histogram>
 
+<histogram name="TabGroups.ContextMenu.Accessed"
+    enum="SavedTabGroupOpenedSubmenuDesktop" expires_after="2027-05-03">
+  <owner>kunaldaftari@google.com</owner>
+  <owner>top-chrome-desktop-ui@google.com</owner>
+  <summary>
+    [Desktop] Recorded every time a tab group context menu or submenu is opened,
+    categorized by the menu surface from which it was triggered.
+  </summary>
+</histogram>
+
 <histogram name="TabGroups.ContextMenu.EditorBubble.Action"
     enum="TabGroupEditorBubbleAction" expires_after="2027-02-04">
   <owner>kunaldaftari@google.com</owner>
@@ -1056,6 +1078,16 @@ chromium-metrics-reviews@google.com.
   <summary>
     Recorded when the user exits Tab Groups Focus Mode. Records the number of
     times a pinned tab was activated during the focus mode session.
+  </summary>
+</histogram>
+
+<histogram name="TabGroups.Focus.PinnedTabCountOnEntry" units="tabs"
+    expires_after="2027-05-03">
+  <owner>kunaldaftari@google.com</owner>
+  <owner>top-chrome-desktop-ui@google.com</owner>
+  <summary>
+    Recorded when the user enters Tab Groups Focus Mode. Records the number of
+    pinned tabs present in the tab strip upon entry.
   </summary>
 </histogram>
 
@@ -2585,6 +2617,21 @@ chromium-metrics-reviews@google.com.
     Organizer panel via the section header controls.
   </summary>
   <token key="Section" variants="OrganizerSection"/>
+</histogram>
+
+<histogram name="Tabs.Organizer.WebUI.IndexOf{Action}In{State}List"
+    units="tabs" expires_after="2027-05-02">
+  <owner>agale@chromium.org</owner>
+  <owner>top-chrome-desktop-ui@google.com</owner>
+  <summary>
+    Records the 0-based index at which {Action} has been performed on an item in
+    its section list in the Organizer panel in a {State} state.
+  </summary>
+  <token key="Action" variants="OrganizerAction"/>
+  <token key="State">
+    <variant name="Filtered" summary="Filtered by user search query."/>
+    <variant name="Unfiltered" summary="Unfiltered by user search query."/>
+  </token>
 </histogram>
 
 <histogram name="Tabs.PageLoad.TimeSinceActive2" units="ms"

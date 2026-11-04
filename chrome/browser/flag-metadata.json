@@ -2607,6 +2607,11 @@
     "expiry_milestone": 165
   },
   {
+    "name": "contextual-tasks-single-tab-menu-item",
+    "owners": [ "kiehl@google.com", "chrome-contextual-tasks-eng@google.com" ],
+    "expiry_milestone": 165
+  },
+  {
     "name": "contextual-tasks-suggestions-enabled",
     "owners": ["dianaou@google.com", "chrome-contextual-tasks-eng@google.com"],
     "expiry_milestone": 159
@@ -5191,6 +5196,11 @@
     "expiry_milestone": 165
   },
   {
+    "name": "fedcm-idp-links",
+    "owners": [ "abhmadan@chromium.org", "web-identity-eng@google.com" ],
+    "expiry_milestone": 165
+  },
+  {
     "name": "fedcm-idp-registration",
     "owners": [ "goto@chromium.org", "web-identity-eng@google.com"],
     "expiry_milestone": 165
@@ -5314,11 +5324,6 @@
       "benreich@chromium.org",
       "simmonsjosh@google.com"
     ],
-    "expiry_milestone": 149
-  },
-  {
-    "name": "files-trash-drive",
-    "owners": [ "benreich@chromium.org", "joelhockey@chromium.org", "simmonsjosh@google.com" ],
     "expiry_milestone": 149
   },
   {
@@ -7065,14 +7070,14 @@
     "expiry_milestone": 94
   },
   {
+    "name": "middle-click-autoscroll",
+    "owners": [ "input-dev@chromium.org" ],
+    "expiry_milestone": 170
+  },
+  {
     "name": "migrate-account-manager-delegate",
     "owners": ["mlbipin@google.com", "chrome-signin-mobile-team@google.com"],
     "expiry_milestone": 160
-  },
-  {
-    "name": "migrate-enhanced-sb-user-to-enhanced-bundle",
-    "owners": [ "jacastro@chromium.org", "chrome-counter-abuse-alerts@google.com" ],
-    "expiry_milestone": 150
   },
   {
     "name": "migrate-syncing-user-to-signed-in",
@@ -9949,14 +9954,6 @@
     "name": "updated-fre-screens-sequence",
     "owners": [ "hiramahmood@google.com", "bling-pandamonium@google.com" ],
     "expiry_milestone": 156
-  },
-  {
-    "name": "use-adhoc-signing-for-web-app-shims",
-    "owners": [
-      "markrowe@chromium.org",
-      "chrome-platform-security@google.com"
-    ],
-    "expiry_milestone": 150
   },
   {
     "name": "use-android-staging-smds",

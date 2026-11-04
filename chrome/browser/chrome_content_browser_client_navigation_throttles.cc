@@ -162,9 +162,9 @@
 #endif  // BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_WIN)
 
 #if BUILDFLAG(SAFE_BROWSING_AVAILABLE)
-#include "chrome/browser/safe_browsing/delayed_warning_navigation_throttle.h"
+#include "chrome/browser/safe_browsing/interstitials/delayed_warning_navigation_throttle.h"
 #include "chrome/browser/safe_browsing/safe_browsing_service.h"
-#include "components/safe_browsing/content/browser/ui_manager.h"
+#include "components/safe_browsing/content/browser/interstitials/ui_manager.h"
 #include "components/safe_browsing/content/browser/url_checker/safe_browsing_navigation_throttle.h"
 #include "components/safe_browsing/core/common/features.h"
 #endif  // BUILDFLAG(SAFE_BROWSING_AVAILABLE)
@@ -203,6 +203,7 @@ void HandleSSLErrorWrapper(
     net::Error cert_error,
     const net::SSLInfo& ssl_info,
     const GURL& request_url,
+    std::optional<content::OpenURLParams> open_url_params,
     SSLErrorHandler::BlockingPageReadyCallback blocking_page_ready_callback) {
   CHECK(request_url.SchemeIsCryptographic(), base::NotFatalUntil::M163);
 
@@ -227,7 +228,7 @@ void HandleSSLErrorWrapper(
       std::move(blocking_page_ready_callback),
       g_browser_process->network_time_tracker(), captive_portal_service,
       std::make_unique<ChromeSecurityBlockingPageFactory>(),
-      is_ssl_error_override_allowed_for_origin);
+      is_ssl_error_override_allowed_for_origin, std::move(open_url_params));
 }
 
 // Returns whether `web_contents` is within a web app.

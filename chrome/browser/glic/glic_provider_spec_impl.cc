@@ -14,6 +14,7 @@
 #include "base/logging.h"
 #include "base/no_destructor.h"
 #include "base/notreached.h"
+#include "build/build_config.h"
 #include "chrome/browser/glic/glic_fre_store_impl.h"
 #include "chrome/browser/glic/host/guest_util.h"
 #include "chrome/browser/glic/public/features.h"
@@ -29,11 +30,14 @@
 #include "chrome/common/chrome_features.h"
 #include "chrome/common/chrome_switches.h"
 #include "chrome/common/webui_url_constants.h"
+#include "chrome/grit/generated_resources.h"
 #include "components/signin/public/base/consent_level.h"
+#include "components/signin/public/base/signin_switches.h"
 #include "components/signin/public/identity_manager/account_info.h"
 #include "components/signin/public/identity_manager/accounts_in_cookie_jar_info.h"
 #include "components/signin/public/identity_manager/identity_manager.h"
 #include "net/base/url_util.h"
+#include "pdf/buildflags.h"
 #include "url/gurl.h"
 
 namespace glic {
@@ -105,6 +109,7 @@ class GeminiGlicProviderSpec final : public GlicProviderSpec {
     return chrome::kGlicSettingsSubpage;
   }
   int GetEntryPointIconId() const override { return IDR_GLIC_BUTTON_ALT_ICON; }
+  int GetPromoBodyStringId() const override { return IDS_GLIC_PROMO_BODY; }
   std::string_view GetSyntheticTrialGroupName() const override {
     return "Gemini";
   }
@@ -139,7 +144,41 @@ class GeminiGlicProviderSpec final : public GlicProviderSpec {
   }
   bool MigratesWebviewLocalStorage() const override { return true; }
   bool RequiresGeminiAccountEligibility() const override { return true; }
-  bool SupportsFeature(GlicFeature feature) const override { return true; }
+  bool SupportsFeature(GlicFeature feature) const override {
+    switch (feature) {
+      case GlicFeature::kLive:
+        // TODO(crbug.com/578498098): Return features::kGlicLiveMode once
+        // callers that skip the flag are updated.
+        return true;
+      case GlicFeature::kShareImage:
+        // TODO(crbug.com/578498098): Return features::kGlicShareImage once
+        // share_image_allowed checks the flag.
+        return true;
+      case GlicFeature::kOsEntryPoints:
+        // No flag: OS entry points are controlled by prefs.
+        return true;
+      case GlicFeature::kPdfAutoOpen:
+        return base::FeatureList::IsEnabled(features::kAutoOpenGlicForPdf);
+      case GlicFeature::kPdfSummarize:
+#if BUILDFLAG(ENABLE_PDF)
+        return base::FeatureList::IsEnabled(features::kPdfGlicSummarize);
+#else
+        return false;
+#endif  // BUILDFLAG(ENABLE_PDF)
+      case GlicFeature::kSelectionInlineCue:
+        return base::FeatureList::IsEnabled(features::kGlicSelectionPrompt);
+      case GlicFeature::kCaptureRegion:
+        return base::FeatureList::IsEnabled(features::kGlicCaptureRegion);
+      case GlicFeature::kFirstRunShowcase:
+#if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_LINUX)
+        return base::FeatureList::IsEnabled(
+            switches::kFirstRunFeatureShowcaseGeminiStep);
+#else
+        return false;
+#endif  // BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_LINUX)
+    }
+    NOTREACHED();
+  }
   bool SupportsSsr() const override {
     return base::FeatureList::IsEnabled(features::kGlicSsr);
   }
@@ -160,6 +199,7 @@ class GeminiEnterpriseGlicProviderSpec final : public GlicProviderSpec {
     return chrome::kGlicEnterpriseSettingsSubpage;
   }
   int GetEntryPointIconId() const override { return IDR_GEIC_BUTTON_ICON; }
+  int GetPromoBodyStringId() const override { return IDS_GEIC_PROMO_BODY; }
   std::string_view GetSyntheticTrialGroupName() const override {
     return "GeminiEnterprise";
   }
@@ -193,6 +233,11 @@ class GeminiEnterpriseGlicProviderSpec final : public GlicProviderSpec {
       case GlicFeature::kLive:
       case GlicFeature::kShareImage:
       case GlicFeature::kOsEntryPoints:
+      case GlicFeature::kPdfAutoOpen:
+      case GlicFeature::kPdfSummarize:
+      case GlicFeature::kSelectionInlineCue:
+      case GlicFeature::kCaptureRegion:
+      case GlicFeature::kFirstRunShowcase:
         return false;
     }
     NOTREACHED();

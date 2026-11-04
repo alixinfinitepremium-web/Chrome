@@ -174,6 +174,11 @@ BASE_DECLARE_FEATURE(kClientSideDetectionScamDetectionRequestWithUrl);
 // Controls whether the scam score is included in IntelligentScanInfo.
 BASE_DECLARE_FEATURE(kClientSideDetectionScamScore);
 
+// Sends a second delayed FORCE_REQUEST ping if the first FORCE_REQUEST
+// verdict is safe.
+BASE_DECLARE_FEATURE(kClientSideDetectionSecondForceRequestWithDelay);
+extern const base::FeatureParam<int> kCsdForceRequestDelayMs;
+
 #if !BUILDFLAG(IS_ANDROID) && !BUILDFLAG(IS_IOS)
 // Inquire the server-side model instead of the on-device model for scam
 // detection on Desktop.
@@ -416,10 +421,6 @@ extern const base::FeatureParam<std::string>
 // Safe Browsing-enabled users, and may show warnings.
 BASE_DECLARE_FEATURE_PARAM(bool, kMaliciousApkDownloadCheckTelemetryOnly);
 #endif
-
-// Enables one-time migration of enhanced-safe-browsing users to the enhanced
-// bundle.
-BASE_DECLARE_FEATURE(kMigrateEnhancedSbUserToEnhancedBundle);
 
 // When enabled, performs a one-time migration that selects the JavaScript
 // optimizer content setting that automatically blocks the browser from using

@@ -73,10 +73,6 @@ BASE_DECLARE_FEATURE(kEnableNotifyZeroStateRenderedCapability);
 // requests initiated from within an embedded Co-Browse <webview>.
 BASE_DECLARE_FEATURE(kContextualTasksSendFullVersionListEnabled);
 
-// If enabled, AIM will send the ContextualInputUploadType enum on
-// ContextualInputs.
-BASE_DECLARE_FEATURE(kContextualTasksSendContextualInputUploadType);
-
 // When contextual tasks is disabled and this flag is enabled, intecept the
 // contextual tasks URL and redirect to aim URL.
 BASE_DECLARE_FEATURE(kContextualTasksUrlRedirectToAimUrl);
@@ -103,6 +99,10 @@ BASE_DECLARE_FEATURE(kContextualTasksUnboundedMenu);
 // Labels the sign out item in the side panel toolbar account menu as signing
 // out of google.com, rather than just "Sign out".
 BASE_DECLARE_FEATURE(kContextualTasksAccountMenuGoogleComSignOutLabel);
+
+// Enables the single-tab menu item above the "Add tabs" row in the Contextual
+// Tasks context menu and tab picker.
+BASE_DECLARE_FEATURE(kContextualTasksSingleTabMenuItem);
 
 // Enables hiding the close button when in vertical tabs or immersive mode.
 BASE_DECLARE_FEATURE(kContextualTasksHideCloseButtonInVerticalTabs);
@@ -366,13 +366,6 @@ extern const base::FeatureParam<double>
 // The minimum number of words required in a query for contextual tasks context
 // tab relevancy selection.
 extern const base::FeatureParam<int> kMinQueryWords;
-
-// Controls whether we set the upload type in CreateSearchUrl.
-extern const base::FeatureParam<bool> kSendContextualInputUploadTypeInSearchUrl;
-
-// Controls whether we set the upload type in CreateClientToAimRequest.
-extern const base::FeatureParam<bool>
-    kSendContextualInputUploadTypeInAimRequest;
 
 // Controls whether the contextual task page action should show
 extern const base::FeatureParam<EntryPointOption, true> kShowEntryPoint;
@@ -712,6 +705,7 @@ extern bool IsContextualTasksSidePanelRearchitectureExpandToFullTabEnabled();
 extern bool IsContextualTasksClobberActiveTabEnabled();
 extern bool IsContextualTasksTabBasedSuggestionsEnabled();
 extern bool IsContextualTasksUnboundedMenuEnabled();
+extern bool IsContextualTasksSingleTabMenuItemEnabled();
 
 inline constexpr char kContextualTasksSearchCapabilitiesHeaderName[] =
     "Chrome-Search-Capabilities-Version";
@@ -781,6 +775,8 @@ extern const char kContextualTasksClobberActiveTabName[];
 extern const char kContextualTasksClobberActiveTabDescription[];
 extern const char kContextualTasksTabBasedSuggestionsName[];
 extern const char kContextualTasksTabBasedSuggestionsDescription[];
+extern const char kContextualTasksSingleTabMenuItemName[];
+extern const char kContextualTasksSingleTabMenuItemDescription[];
 extern const char kContextualTasksSidePanelTabStateName[];
 extern const char kContextualTasksSidePanelTabStateDescription[];
 extern const char kContextualTasksBypassDismissedCapName[];

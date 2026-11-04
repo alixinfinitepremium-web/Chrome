@@ -1050,6 +1050,7 @@ suite('ContextualTasksComposeboxTest', () => {
       showInCurrentTabChip: true,
       showInPreviousTabChip: false,
       isLoading: false,
+      recentTab: false,
     };
     searchboxCallbackRouterRemote.updateAutoSuggestedTabContext(tabInfo, null);
     await searchboxCallbackRouterRemote.$.flushForTesting();
@@ -1125,6 +1126,7 @@ suite('ContextualTasksComposeboxTest', () => {
       showInCurrentTabChip: true,
       showInPreviousTabChip: false,
       isLoading: false,
+      recentTab: false,
     };
     innerComposebox.aimThreadRestoredTabs = [restoredTab];
 
@@ -1153,6 +1155,7 @@ suite('ContextualTasksComposeboxTest', () => {
       showInCurrentTabChip: true,
       showInPreviousTabChip: false,
       isLoading: false,
+      recentTab: false,
     };
     searchboxCallbackRouterRemote.updateAutoSuggestedTabContext(newTab, null);
     await searchboxCallbackRouterRemote.$.flushForTesting();
@@ -1173,6 +1176,7 @@ suite('ContextualTasksComposeboxTest', () => {
       showInCurrentTabChip: true,
       showInPreviousTabChip: false,
       isLoading: false,
+      recentTab: false,
     };
     searchboxCallbackRouterRemote.updateAutoSuggestedTabContext(tabInfo, null);
     await searchboxCallbackRouterRemote.$.flushForTesting();
@@ -1221,6 +1225,7 @@ suite('ContextualTasksComposeboxTest', () => {
       showInCurrentTabChip: true,
       showInPreviousTabChip: false,
       isLoading: false,
+      recentTab: false,
     };
     searchboxCallbackRouterRemote.updateAutoSuggestedTabContext(autoTab, null);
     await searchboxCallbackRouterRemote.$.flushForTesting();
@@ -1237,6 +1242,7 @@ suite('ContextualTasksComposeboxTest', () => {
         showInCurrentTabChip: false,
         showInPreviousTabChip: false,
         isLoading: false,
+        recentTab: false,
       },
       {
         tabId: 3,
@@ -1246,6 +1252,7 @@ suite('ContextualTasksComposeboxTest', () => {
         showInCurrentTabChip: false,
         showInPreviousTabChip: false,
         isLoading: false,
+        recentTab: false,
       },
     ];
     await innerComposebox.updateComplete;
@@ -1275,6 +1282,7 @@ suite('ContextualTasksComposeboxTest', () => {
       showInCurrentTabChip: false,
       showInPreviousTabChip: false,
       isLoading: false,
+      recentTab: false,
     };
     searchboxCallbackRouterRemote.updateAutoSuggestedTabContext(tabInfo, null);
     await searchboxCallbackRouterRemote.$.flushForTesting();
@@ -1292,6 +1300,7 @@ suite('ContextualTasksComposeboxTest', () => {
       showInCurrentTabChip: true,
       showInPreviousTabChip: false,
       isLoading: false,
+      recentTab: false,
       lastActive: {internalValue: BigInt(1)},
     };
 
@@ -1389,9 +1398,8 @@ suite('ContextualTasksComposeboxTest', () => {
     });
 
     for (const source
-             of ['ContentAreaContextMenuPage',
-                 'AppMenu',
-                 'HomeworkActionChip',
+             of ['ContentAreaContextMenuPageAskGoogle',
+                 'AppMenuAskGoogle',
     ]) {
       test(`ImmediateUploadWhen${source}`, async () => {
         loadTimeData.overrideValues({
@@ -1415,6 +1423,28 @@ suite('ContextualTasksComposeboxTest', () => {
         assertEquals(1, innerComposebox.attachedContext.size);
       });
     }
+
+    test('DelayedUploadWhenHomeworkActionChip', async () => {
+      loadTimeData.overrideValues({
+        webUIOmniboxAskGAboutThisPageEnabled: true,
+        contextualTasksUpdatedEntryPointsEnabled: true,
+      });
+
+      searchboxCallbackRouterRemote.updateAutoSuggestedTabContext(
+          tabInfo, 'HomeworkActionChip');
+      await searchboxCallbackRouterRemote.$.flushForTesting();
+      await microtasksFinished();
+
+      // Verify addTabContext was called with delay_upload = true
+      assertEquals(1, mockSearchboxPageHandler.getCallCount('addTabContext'));
+      const args = mockSearchboxPageHandler.getArgs('addTabContext')[0];
+      assertEquals(1, args[0]);  // tabId
+      assertTrue(args[1]);       // delayUpload
+
+      const innerComposebox = contextualTasksApp.$.composebox.$.composebox;
+      await innerComposebox.updateComplete;
+      assertEquals(1, innerComposebox.attachedContext.size);
+    });
   });
 });
 
