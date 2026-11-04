@@ -39,11 +39,6 @@ class TestAccountPreviewDataService : public AccountPreviewDataService {
       base::OnceCallback<void(std::optional<AccountPreviewPreference>)>
           callback,
       base::TimeDelta timeout) override;
-  // TODO(crbug.com/580844796): Remove this method after migrating both
-  // platforms to the timeout overload.
-  void GetPreferredAccountForSigninAsync(
-      base::OnceCallback<void(std::optional<AccountPreviewPreference>)>
-          callback) override;
 #endif
 #if BUILDFLAG(IS_ANDROID)
   void UpdateExternalAppAccount(
@@ -79,8 +74,8 @@ class TestAccountPreviewDataService : public AccountPreviewDataService {
 #if BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_IOS)
   // If `set_defer_preferred_account_requests(true)` is set,
   // `GetPreferredAccountForSigninAsync()` stores the callbacks instead of
-  // immediately invoking them with `preferred_account_for_signin_`, which
-  // simulates an ongoing preferred account computation (ignoring `timeout`).
+  // posting them with `preferred_account_for_signin_`, which simulates an
+  // ongoing preferred account computation (ignoring `timeout`).
   // Call `RunPendingPreferredAccountRequests(std::nullopt)` to simulate a
   // timeout.
   void set_defer_preferred_account_requests(bool defer) {
@@ -92,6 +87,11 @@ class TestAccountPreviewDataService : public AccountPreviewDataService {
   // simulates the completion of the preferred account computation.
   void RunPendingPreferredAccountRequests(
       std::optional<AccountPreviewPreference> preference);
+
+  std::optional<base::TimeDelta> last_preferred_account_request_timeout()
+      const {
+    return last_preferred_account_request_timeout_;
+  }
 #endif
 
  private:
@@ -103,6 +103,7 @@ class TestAccountPreviewDataService : public AccountPreviewDataService {
       pending_callback_;
 #if BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_IOS)
   bool defer_preferred_account_requests_ = false;
+  std::optional<base::TimeDelta> last_preferred_account_request_timeout_;
   std::vector<base::OnceCallback<void(std::optional<AccountPreviewPreference>)>>
       pending_preferred_account_requests_;
 #endif

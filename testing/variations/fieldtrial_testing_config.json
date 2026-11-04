@@ -1795,26 +1795,6 @@
             ]
         }
     ],
-    "AutofillAiUsePrivateAi": [
-        {
-            "platforms": [
-                "android",
-                "chromeos",
-                "ios",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "AutofillAiUsePrivateAi"
-                    ]
-                }
-            ]
-        }
-    ],
     "AutofillAiWalletPassBranding2026": [
         {
             "platforms": [
@@ -1855,6 +1835,27 @@
                         "AutofillAiWalletPrivatePassesDeepLink",
                         "SuggestionManageButtonSplitForEnhancedAutofill",
                         "WalletApiPrivatePassesEnabled"
+                    ]
+                }
+            ]
+        }
+    ],
+    "AutofillAiWalletReminderAndDisclosureNotice": [
+        {
+            "platforms": [
+                "android",
+                "chromeos",
+                "ios",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "AutofillEnableWalletDisclosureNoticePublicPass",
+                        "AutofillEnableWalletReminderNoticePublicPass"
                     ]
                 }
             ]
@@ -2266,6 +2267,9 @@
             "experiments": [
                 {
                     "name": "Enabled",
+                    "params": {
+                        "autocomplete_label_sensitive_migration_generation": "1"
+                    },
                     "enable_features": [
                         "AutofillLabelSensitiveAutocomplete",
                         "AutofillRecordAutocompleteTableStats"
@@ -4703,6 +4707,24 @@
             ]
         }
     ],
+    "ClientIdBackupCorrectnessFix": [
+        {
+            "platforms": [
+                "android",
+                "chromeos",
+                "linux",
+                "mac"
+            ],
+            "experiments": [
+                {
+                    "name": "EnabledClientSide",
+                    "enable_features": [
+                        "ClientIdBackupCorrectnessFix"
+                    ]
+                }
+            ]
+        }
+    ],
     "ClientSideDetectionBypassTiers": [
         {
             "platforms": [
@@ -6653,6 +6675,7 @@
                         "NotifyCompositorOfSpaceVisibilityOnMacOs",
                         "NotifyCompositorOfWindowOcclusionOnMacOs",
                         "NotifyCompositorOfWindowVisibilityOnMacOs",
+                        "TrackAllTopLevelWindowsForOcclusion",
                         "VizBufferQueueDiscardOnVisibilityChange"
                     ]
                 }
@@ -19318,26 +19341,6 @@
             ]
         }
     ],
-    "WebHistoryUseNewApi": [
-        {
-            "platforms": [
-                "android",
-                "chromeos",
-                "ios",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled_20260617",
-                    "enable_features": [
-                        "WebHistoryUseNewApi"
-                    ]
-                }
-            ]
-        }
-    ],
     "WebOtpBackendAuto": [
         {
             "platforms": [
@@ -19995,6 +19998,7 @@
                         "PrioritizeResizeTaskRunnerOnStartup",
                         "SendGPUChannelEarly",
                         "SkipIPCChannelPausingForNonGuests",
+                        "TopChromeWebUISharedRenderer",
                         "WebUIBackForwardButton",
                         "WebUIBundledCodeCache",
                         "WebUIBypassMojoConnections",

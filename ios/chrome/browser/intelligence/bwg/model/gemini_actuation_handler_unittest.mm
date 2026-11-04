@@ -26,6 +26,7 @@
 #import "ios/chrome/browser/shared/model/web_state_list/web_state_list.h"
 #import "ios/chrome/browser/url_loading/model/url_loading_browser_agent.h"
 #import "ios/chrome/browser/url_loading/model/url_loading_notifier_browser_agent.h"
+#import "ios/web/public/navigation/web_state_policy_decider.h"
 #import "ios/web/public/test/fakes/fake_web_frames_manager.h"
 #import "ios/web/public/test/fakes/fake_web_state.h"
 #import "testing/gtest/include/gtest/gtest.h"
@@ -787,8 +788,28 @@ TEST_F(GeminiActuationHandlerTest,
             follow_up_future.Get().resultCode);
 }
 
-// Tests that disconnecting while a confirmation is pending aborts it with
-// `kExecutorDestroyed`.
+// Tests that a confirmation is answered even after the handler is deallocated.
+TEST_F(GeminiActuationHandlerTest,
+       DispatchGeminiActuationRequest_Yield_Confirmation_HandlerDeallocated) {
+  base::test::TestFuture<GeminiActuationResponse*> future;
+  FakeActorTaskInterventionDelegate* delegate = nil;
+  __weak GeminiActuationHandler* weak_handler = nil;
+  @autoreleasepool {
+    GeminiActuationHandler* handler = CreateHandler();
+    weak_handler = handler;
+    actor::ActorTaskId task_id = [handler createTaskWithTitle:@"Test Task"];
+    delegate = DispatchConfirmationRequest(handler, task_id,
+                                           kConfirmationMessage, future);
+  }
+  ASSERT_EQ(nil, weak_handler);
+  ASSERT_TRUE(delegate.hasPendingUserIntervention);
+
+  [delegate runUserInterventionCompletion];
+
+  ExpectConfirmedResponse(future.Get());
+}
+
+// Tests that disconnecting ends a pending confirmation with `kTaskWentAway`.
 TEST_F(GeminiActuationHandlerTest,
        DispatchGeminiActuationRequest_Yield_Confirmation_Disconnect_Cancels) {
   GeminiActuationHandler* handler = CreateHandler();
@@ -801,8 +822,7 @@ TEST_F(GeminiActuationHandlerTest,
 
   GeminiActuationResponse* response = future.Get();
   ASSERT_NE(nil, response);
-  EXPECT_EQ(actor::mojom::ActionResultCode::kExecutorDestroyed,
-            response.resultCode);
+  EXPECT_EQ(actor::mojom::ActionResultCode::kTaskWentAway, response.resultCode);
 }
 
 // Tests that a second request dispatched while a confirmation is pending is
@@ -827,7 +847,7 @@ TEST_F(GeminiActuationHandlerTest,
 
   GeminiActuationResponse* response2 = future2.Get();
   ASSERT_NE(nil, response2);
-  EXPECT_EQ(actor::mojom::ActionResultCode::kArgumentsInvalid,
+  EXPECT_EQ(actor::mojom::ActionResultCode::kExecutionEngineExistingAction,
             response2.resultCode);
 
   EXPECT_FALSE(future1.IsReady());
@@ -857,7 +877,7 @@ TEST_F(
 
   GeminiActuationResponse* response2 = future2.Get();
   ASSERT_NE(nil, response2);
-  EXPECT_EQ(actor::mojom::ActionResultCode::kArgumentsInvalid,
+  EXPECT_EQ(actor::mojom::ActionResultCode::kInvalidTaskStateForAct,
             response2.resultCode);
 
   EXPECT_FALSE(future1.IsReady());
@@ -893,8 +913,8 @@ TEST_F(GeminiActuationHandlerTest,
       [[FakeActorTaskInterventionDelegate alloc] init];
   actor_service_->SetTaskInterventionDelegate(task_id, delegate);
 
-  // Park the task in `kWaitingOnUser` through the service directly, so the
-  // handler holds no pending request for the task.
+  // Park the task in `kWaitingOnUser` through the service directly, without a
+  // request from the handler.
   actor::ConfirmationInterrupt confirmation;
   confirmation.title = "Please confirm.";
   confirmation.button_text = "Continue";
@@ -990,7 +1010,7 @@ TEST_F(GeminiActuationHandlerTest,
   TestYieldReasonRejected(GeminiYieldReason::kUnknownReason);
 }
 
-// Tests that `disconnect` cancels in-flight requests with `kExecutorDestroyed`.
+// Tests that `disconnect` ends in-flight requests with `kTaskWentAway`.
 TEST_F(GeminiActuationHandlerTest, Disconnect_CancelsInFlightRequest) {
   GeminiActuationHandler* handler = CreateHandler();
   actor::ActorTaskId task_id = [handler createTaskWithTitle:@"Test Task"];
@@ -1018,8 +1038,7 @@ TEST_F(GeminiActuationHandlerTest, Disconnect_CancelsInFlightRequest) {
 
   GeminiActuationResponse* response = future.Get();
   ASSERT_NE(nil, response);
-  EXPECT_EQ(actor::mojom::ActionResultCode::kExecutorDestroyed,
-            response.resultCode);
+  EXPECT_EQ(actor::mojom::ActionResultCode::kTaskWentAway, response.resultCode);
   ASSERT_TRUE(base::test::RunUntil(
       [&]() { return !actor_service_->GetActiveTaskState().has_value(); }));
 }
@@ -1099,4 +1118,158 @@ TEST_F(GeminiActuationHandlerTest, ExternalStop_FollowUp) {
             follow_up_future.Get().resultCode);
 }
 
+// Tests that an act sent while another one runs is rejected, without dropping
+// the first one.
+TEST_F(GeminiActuationHandlerTest, ConcurrentActions_Rejected) {
+  GeminiActuationHandler* handler = CreateHandler();
+  actor::ActorTaskId task_id = [handler createTaskWithTitle:@"Test Task"];
+
+  optimization_guide::proto::Action action;
+  action.mutable_create_tab();
+  std::string serialized;
+  action.SerializeToString(&serialized);
+  NSData* data = [NSData dataWithBytes:serialized.data()
+                                length:serialized.size()];
+  GeminiActuationRequest* actions_request =
+      [[GeminiActuationRequest alloc] initWithActionProtos:@[ data ]
+                                                taskUpdate:@"Action"
+                                               yieldAction:nil];
+  base::test::TestFuture<GeminiActuationResponse*> actions_future;
+  [handler dispatchActuationRequest:actions_request
+                          forTaskID:task_id
+                    completionBlock:GetCompletionBlock(actions_future)];
+
+  GeminiActuationRequest* concurrent_request =
+      [[GeminiActuationRequest alloc] initWithActionProtos:@[]
+                                                taskUpdate:@"Concurrent"
+                                               yieldAction:nil];
+  base::test::TestFuture<GeminiActuationResponse*> concurrent_future;
+  [handler dispatchActuationRequest:concurrent_request
+                          forTaskID:task_id
+                    completionBlock:GetCompletionBlock(concurrent_future)];
+  // Queue the stop behind both acts, so that it runs before the first act's
+  // tool finishes.
+  actor_service_->StopTask(task_id,
+                           actor::ActorTaskStoppedReason::kStoppedByUser);
+
+  GeminiActuationResponse* concurrent_response = concurrent_future.Get();
+  ASSERT_NE(nil, concurrent_response);
+  EXPECT_EQ(actor::mojom::ActionResultCode::kExecutionEngineExistingAction,
+            concurrent_response.resultCode);
+
+  GeminiActuationResponse* actions_response = actions_future.Get();
+  ASSERT_NE(nil, actions_response);
+  EXPECT_EQ(actor::mojom::ActionResultCode::kTaskWentAway,
+            actions_response.resultCode);
+}
+
+// Tests that an act is answered even after the handler is deallocated.
+TEST_F(GeminiActuationHandlerTest, Actions_HandlerDeallocated) {
+  base::test::TestFuture<GeminiActuationResponse*> future;
+  __weak GeminiActuationHandler* weak_handler = nil;
+  @autoreleasepool {
+    GeminiActuationHandler* handler = CreateHandler();
+    weak_handler = handler;
+    actor::ActorTaskId task_id = [handler createTaskWithTitle:@"Test Task"];
+    GeminiActuationRequest* request =
+        [[GeminiActuationRequest alloc] initWithActionProtos:@[]
+                                                  taskUpdate:@"Action"
+                                                 yieldAction:nil];
+    [handler dispatchActuationRequest:request
+                            forTaskID:task_id
+                      completionBlock:GetCompletionBlock(future)];
+  }
+  ASSERT_EQ(nil, weak_handler);
+  EXPECT_FALSE(future.IsReady());
+
+  GeminiActuationResponse* response = future.Get();
+  ASSERT_NE(nil, response);
+  EXPECT_EQ(actor::mojom::ActionResultCode::kOk, response.resultCode);
+}
+
+// Tests that a request sent after a completed act is accepted.
+TEST_F(GeminiActuationHandlerTest, FollowUpAfterCompletedAct_Accepted) {
+  GeminiActuationHandler* handler = CreateHandler();
+  actor::ActorTaskId task_id = [handler createTaskWithTitle:@"Test Task"];
+  GeminiActuationRequest* request =
+      [[GeminiActuationRequest alloc] initWithActionProtos:@[]
+                                                taskUpdate:@"Update"
+                                               yieldAction:nil];
+
+  base::test::TestFuture<GeminiActuationResponse*> future;
+  [handler dispatchActuationRequest:request
+                          forTaskID:task_id
+                    completionBlock:GetCompletionBlock(future)];
+  ASSERT_NE(nil, future.Get());
+  EXPECT_EQ(actor::mojom::ActionResultCode::kOk, future.Get().resultCode);
+
+  base::test::TestFuture<GeminiActuationResponse*> follow_up_future;
+  [handler dispatchActuationRequest:request
+                          forTaskID:task_id
+                    completionBlock:GetCompletionBlock(follow_up_future)];
+  ASSERT_NE(nil, follow_up_future.Get());
+  EXPECT_EQ(actor::mojom::ActionResultCode::kOk,
+            follow_up_future.Get().resultCode);
+}
+
+// Tests that `dispatchActuationRequest` parses valid non-opaque
+// `addedWritableMainframeOrigins` and grants them on the task's controlled tab.
+TEST_F(GeminiActuationHandlerTest,
+       DispatchGeminiActuationRequest_GrantsWritableMainframeOrigins) {
+  base::test::ScopedFeatureList origin_gating_feature;
+  origin_gating_feature.InitAndEnableFeature(kActorOriginGating);
+
+  fake_web_state_->SetBrowserState(profile_.get());
+  fake_web_state_->SetCurrentURL(GURL("https://safe.com"));
+
+  GeminiActuationHandler* handler = CreateHandler();
+  actor::ActorTaskId task_id = [handler createTaskWithTitle:@"Test Task"];
+  ASSERT_FALSE(task_id.is_null());
+
+  optimization_guide::proto::Action action;
+  action.mutable_wait()->set_wait_time_ms(0);
+  std::string serialized;
+  action.SerializeToString(&serialized);
+  NSData* data = [NSData dataWithBytes:serialized.data()
+                                length:serialized.size()];
+  GeminiActuationRequest* request = [[GeminiActuationRequest alloc]
+               initWithActionProtos:@[ data ]
+                         taskUpdate:@"Update"
+                        yieldAction:nil
+      addedWritableMainframeOrigins:@[
+        @"https://granted.com/path", @"not a url", @"about:blank"
+      ]];
+
+  base::test::TestFuture<GeminiActuationResponse*> future;
+  [handler dispatchActuationRequest:request
+                          forTaskID:task_id
+                    completionBlock:GetCompletionBlock(future)];
+  ASSERT_NE(nil, future.Get());
+
+  const web::WebStatePolicyDecider::ResponseInfo response_info(
+      /*for_main_frame=*/true);
+
+  NSURLResponse* granted_response = [[NSURLResponse alloc]
+                initWithURL:[NSURL URLWithString:@"https://granted.com/next"]
+                   MIMEType:@"text/html"
+      expectedContentLength:0
+           textEncodingName:nil];
+  base::test::TestFuture<web::WebStatePolicyDecider::PolicyDecision>
+      granted_future;
+  fake_web_state_->ShouldAllowResponse(granted_response, response_info,
+                                       granted_future.GetCallback());
+  EXPECT_TRUE(granted_future.Get().ShouldAllowNavigation());
+  NSURLResponse* ungranted_response = [[NSURLResponse alloc]
+                initWithURL:[NSURL URLWithString:@"https://ungranted.com/next"]
+                   MIMEType:@"text/html"
+      expectedContentLength:0
+           textEncodingName:nil];
+  base::test::TestFuture<web::WebStatePolicyDecider::PolicyDecision>
+      ungranted_future;
+  fake_web_state_->ShouldAllowResponse(ungranted_response, response_info,
+                                       ungranted_future.GetCallback());
+  EXPECT_TRUE(ungranted_future.Get().ShouldCancelNavigation());
+
+  [handler disconnect];
+}
 }  // namespace

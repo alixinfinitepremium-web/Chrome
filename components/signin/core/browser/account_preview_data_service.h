@@ -106,19 +106,18 @@ class AccountPreviewDataService : public KeyedService {
 
 #if BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_IOS)
   // Asynchronous version of `GetPreferredAccountForSignin()`, which returns the
-  // stored preferred account immediately if available, or triggers a fetch and
-  // waits for the preferred account computation to complete.
+  // stored preferred account if available, or triggers a fetch and waits for
+  // the preferred account computation to complete.
   //
   // Note: This method is currently FRE-specific (for feature flag gating), but
   // is ready to be easily reused for other callers if needed.
   //
-  // `callback` is run once, with the value of `GetPreferredAccountForSignin()`
-  // at the time it runs:
-  // - immediately (synchronously), if `GetPreferredAccountForSignin()` already
-  //   has a value (or if the triggered fetch is immediately canceled, e.g. when
-  //   rate-limited or no accounts exist),
-  // - asynchronously, once the triggered preferred account fetch and
-  //   computation complete (or are canceled).
+  // `callback` is always run asynchronously once, with the value of
+  // `GetPreferredAccountForSignin()` at the time it is resolved:
+  // - without triggering a fetch, if `GetPreferredAccountForSignin()` already
+  //   has a value,
+  // - once the triggered preferred account fetch and computation complete (or
+  //   are canceled, e.g. when rate-limited or no accounts exist).
   //
   // `callback` is run with `std::nullopt` if
   // `kEnableAccountPreviewPreferredAccountFRE` is disabled, if sign-in is
@@ -128,14 +127,6 @@ class AccountPreviewDataService : public KeyedService {
       base::OnceCallback<void(std::optional<AccountPreviewPreference>)>
           callback,
       base::TimeDelta timeout) = 0;
-
-  // Same as above, using `kAccountPreviewPreferredAccountFREFetchTimeout` as
-  // the default timeout.
-  // TODO(crbug.com/580844796): Remove this method after migrating both
-  // platforms to the timeout overload.
-  virtual void GetPreferredAccountForSigninAsync(
-      base::OnceCallback<void(std::optional<AccountPreviewPreference>)>
-          callback) = 0;
 #endif
 
 #if BUILDFLAG(IS_ANDROID)

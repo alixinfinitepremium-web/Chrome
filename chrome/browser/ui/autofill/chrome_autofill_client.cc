@@ -1894,9 +1894,9 @@ void ChromeAutofillClient::OnActorTaskStateChange(actor::ActorTask& task) {
   // If the task was just created, known forms should be reparsed to ensure that
   // actor specific behaviors are in place.
   if (!active_task.has_value()) {
-    for (AutofillDriver* driver :
-         GetAutofillDriverFactory().GetExistingDrivers()) {
-      driver->GetAutofillManager().ReparseKnownForms();
+    if (AutofillManager* manager = GetAutofillManagerForPrimaryMainFrame()) {
+      manager->TriggerFormExtractionInAllFrames(/*force=*/true,
+                                                base::DoNothing());
     }
   }
 }

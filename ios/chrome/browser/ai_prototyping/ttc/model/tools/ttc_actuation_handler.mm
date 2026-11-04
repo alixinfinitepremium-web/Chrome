@@ -390,6 +390,7 @@ void TtcActuationHandler::DispatchActuationRequest(
 
   actor_service_->PerformActions(
       task_id_, std::move(actions), request.task_update,
+      /*added_writable_mainframe_origins=*/{},
       base::BindOnce(&TtcActuationHandler::OnPerformActionsFinished,
                      weak_ptr_factory_.GetWeakPtr(), task_id_));
 }
@@ -578,9 +579,10 @@ void TtcActuationHandler::OnPerformActionsFinished(
 
   EndActuationAsyncEntry(std::move(async_entry), result_code, error_message);
 
-  std::move(callback).Run(result_code == actor::mojom::ActionResultCode::kOk
-                              ? ttc::ToolResponse::Success()
-                              : ttc::ToolResponse::Error(result_code));
+  std::move(callback).Run(
+      result_code == actor::mojom::ActionResultCode::kOk
+          ? ttc::ToolResponse::Success()
+          : ttc::ToolResponse::Error(result_code, std::move(error_message)));
 }
 
 #pragma mark - Journal Logging
@@ -600,7 +602,7 @@ void TtcActuationHandler::FailWithError(ActuationCallback callback,
                            .AddError(error)
                            .Build());
   }
-  std::move(callback).Run(ttc::ToolResponse::Error(code));
+  std::move(callback).Run(ttc::ToolResponse::Error(code, std::string(reason)));
 }
 
 std::unique_ptr<TTCJournal::PendingAsyncEntry>

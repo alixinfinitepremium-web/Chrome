@@ -1147,6 +1147,8 @@ TEST_F(AccountPreviewDataServiceTest,
 }
 
 #if BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_IOS)
+constexpr base::TimeDelta kDefaultAsyncFetchTimeout = base::Seconds(10);
+
 TEST_F(AccountPreviewDataServiceTest,
        GetPreferredAccountForSigninAsyncRunsImmediatelyIfAlreadyComputed) {
   base::test::ScopedFeatureList feature_list{
@@ -1158,13 +1160,13 @@ TEST_F(AccountPreviewDataServiceTest,
       "user@gmail.com", ConsentLevel::kSignin);
   run_loop.Run();
 
-  // Preferred account is already stored locally, so the callback runs
-  // synchronously without triggering a new fetch.
+  // Preferred account is already stored locally, so the callback is posted
+  // without triggering a new fetch.
   base::HistogramTester histograms;
   base::test::TestFuture<std::optional<AccountPreviewPreference>> future;
-  base::TimeDelta timeout = base::Seconds(10);
+  base::TimeDelta timeout = kDefaultAsyncFetchTimeout;
   service_->GetPreferredAccountForSigninAsync(future.GetCallback(), timeout);
-  ASSERT_TRUE(future.IsReady());
+  EXPECT_FALSE(future.IsReady());
   EXPECT_THAT(future.Get(),
               testing::Optional(testing::Field(
                   &AccountPreviewPreference::gaia_id, account.GetGaiaId())));
@@ -1184,7 +1186,7 @@ TEST_F(AccountPreviewDataServiceTest,
 
   base::HistogramTester histograms;
   base::test::TestFuture<std::optional<AccountPreviewPreference>> future;
-  base::TimeDelta timeout = base::Seconds(10);
+  base::TimeDelta timeout = kDefaultAsyncFetchTimeout;
   service_->GetPreferredAccountForSigninAsync(future.GetCallback(), timeout);
   EXPECT_FALSE(future.IsReady());
 
@@ -1225,7 +1227,8 @@ TEST_F(AccountPreviewDataServiceTest,
   base::HistogramTester histograms;
   MockSuccessfulFetch(&test_url_loader_factory_);
   base::test::TestFuture<std::optional<AccountPreviewPreference>> future;
-  service_->GetPreferredAccountForSigninAsync(future.GetCallback());
+  service_->GetPreferredAccountForSigninAsync(future.GetCallback(),
+                                              kDefaultAsyncFetchTimeout);
   EXPECT_THAT(future.Get(),
               testing::Optional(testing::Field(
                   &AccountPreviewPreference::gaia_id, account.GetGaiaId())));
@@ -1248,24 +1251,27 @@ TEST_F(AccountPreviewDataServiceTest,
   network_delay_helper_->SetNetworkCallsDelayed(true);
   identity_test_env_.MakePrimaryAccountAvailable("user@gmail.com",
                                                  ConsentLevel::kSignin);
-  std::optional<AccountPreviewPreference> reentrant_result;
+  base::test::TestFuture<std::optional<AccountPreviewPreference>>
+      reentrant_future;
   bool callback_ran = false;
-  service_->GetPreferredAccountForSigninAsync(base::BindLambdaForTesting(
-      [&](std::optional<AccountPreviewPreference> pref) {
-        callback_ran = true;
-        EXPECT_EQ(std::nullopt, pref);
-        // Re-entrant call during cleanup must not be stranded on a stale
-        // barrier.
-        service_->GetPreferredAccountForSigninAsync(base::BindLambdaForTesting(
-            [&](std::optional<AccountPreviewPreference> nested_pref) {
-              reentrant_result = std::move(nested_pref);
-            }));
-      }));
+  service_->GetPreferredAccountForSigninAsync(
+      base::BindLambdaForTesting(
+          [&](std::optional<AccountPreviewPreference> pref) {
+            callback_ran = true;
+            EXPECT_EQ(std::nullopt, pref);
+            // Re-entrant call must not be stranded on a stale barrier and must
+            // run its callback asynchronously.
+            service_->GetPreferredAccountForSigninAsync(
+                reentrant_future.GetCallback(), kDefaultAsyncFetchTimeout);
+            EXPECT_FALSE(reentrant_future.IsReady());
+          }),
+      kDefaultAsyncFetchTimeout);
   EXPECT_FALSE(callback_ran);
 
   prefs_.SetBoolean(prefs::kSigninAllowed, false);
+  EXPECT_FALSE(callback_ran);
+  EXPECT_EQ(std::nullopt, reentrant_future.Get());
   EXPECT_TRUE(callback_ran);
-  EXPECT_EQ(std::nullopt, reentrant_result);
 }
 
 TEST_F(AccountPreviewDataServiceTest,
@@ -1276,11 +1282,12 @@ TEST_F(AccountPreviewDataServiceTest,
   identity_test_env_.MakePrimaryAccountAvailable("user@gmail.com",
                                                  ConsentLevel::kSignin);
   base::test::TestFuture<std::optional<AccountPreviewPreference>> future;
-  service_->GetPreferredAccountForSigninAsync(future.GetCallback());
+  service_->GetPreferredAccountForSigninAsync(future.GetCallback(),
+                                              kDefaultAsyncFetchTimeout);
   EXPECT_FALSE(future.IsReady());
 
   service_->OnIdentityManagerShutdown(identity_test_env_.identity_manager());
-  ASSERT_TRUE(future.IsReady());
+  EXPECT_FALSE(future.IsReady());
   EXPECT_EQ(std::nullopt, future.Get());
 }
 
@@ -1296,8 +1303,9 @@ TEST_F(AccountPreviewDataServiceTest,
   prefs_.SetDict(prefs::kAccountPreviewPreference, std::move(dict));
 
   base::test::TestFuture<std::optional<AccountPreviewPreference>> future;
-  service_->GetPreferredAccountForSigninAsync(future.GetCallback());
-  ASSERT_TRUE(future.IsReady());
+  service_->GetPreferredAccountForSigninAsync(future.GetCallback(),
+                                              kDefaultAsyncFetchTimeout);
+  EXPECT_FALSE(future.IsReady());
   EXPECT_EQ(std::nullopt, future.Get());
 }
 
@@ -1329,7 +1337,8 @@ TEST_F(AccountPreviewDataServiceTest,
 
   base::HistogramTester histograms;
   base::test::TestFuture<std::optional<AccountPreviewPreference>> future;
-  service_->GetPreferredAccountForSigninAsync(future.GetCallback());
+  service_->GetPreferredAccountForSigninAsync(future.GetCallback(),
+                                              kDefaultAsyncFetchTimeout);
   EXPECT_FALSE(future.IsReady());
 
   MockSuccessfulFetch(&test_url_loader_factory_);
@@ -1366,12 +1375,21 @@ TEST_F(
       version_info::Channel::UNKNOWN, &profile_metrics_service_);
 
   base::test::TestFuture<std::optional<AccountPreviewPreference>> future;
-  service_->GetPreferredAccountForSigninAsync(future.GetCallback());
+  service_->GetPreferredAccountForSigninAsync(future.GetCallback(),
+                                              kDefaultAsyncFetchTimeout);
   EXPECT_FALSE(future.IsReady());
 
   identity_test_env_.ReloadAccountsFromDisk();
-  ASSERT_TRUE(future.IsReady());
+  EXPECT_FALSE(future.IsReady());
   EXPECT_EQ(std::nullopt, future.Get());
+
+  // Subsequent requests when tokens are already loaded and no accounts exist
+  // also resolve asynchronously with `std::nullopt`.
+  base::test::TestFuture<std::optional<AccountPreviewPreference>> second_future;
+  service_->GetPreferredAccountForSigninAsync(second_future.GetCallback(),
+                                              kDefaultAsyncFetchTimeout);
+  EXPECT_FALSE(second_future.IsReady());
+  EXPECT_EQ(std::nullopt, second_future.Get());
 }
 
 TEST_F(AccountPreviewDataServiceTest,
@@ -1385,7 +1403,8 @@ TEST_F(AccountPreviewDataServiceTest,
   AccountInfo account = identity_test_env_.MakePrimaryAccountAvailable(
       "user@gmail.com", ConsentLevel::kSignin);
   base::test::TestFuture<std::optional<AccountPreviewPreference>> future;
-  service_->GetPreferredAccountForSigninAsync(future.GetCallback());
+  service_->GetPreferredAccountForSigninAsync(future.GetCallback(),
+                                              kDefaultAsyncFetchTimeout);
   EXPECT_FALSE(future.IsReady());
 
   MockSuccessfulFetch(&test_url_loader_factory_);

@@ -345,7 +345,7 @@ BASE_FEATURE(kAutofillAiUseMaterialDatePickerInEntityEditor,
 
 // If enabled, the client may trigger the server model for AutofillAI type
 // predictions using Private AI Compute.
-BASE_FEATURE(kAutofillAiUsePrivateAi, base::FEATURE_DISABLED_BY_DEFAULT);
+BASE_FEATURE(kAutofillAiUsePrivateAi, base::FEATURE_ENABLED_BY_DEFAULT);
 
 // If enabled, votes for the format of flight number fields are uploaded. For
 // example, if there is a flight number "LH89" on file, a submitted value of
@@ -895,6 +895,12 @@ BASE_FEATURE_PARAM(int,
 // TODO(crbug.com/506033768): Remove when launched.
 BASE_FEATURE(kAutofillMergeAddressAndAutocompleteEmailSuggestions,
              base::FEATURE_DISABLED_BY_DEFAULT);
+
+// Kill switch: When enabled, `ContentAutofillDriver` calls
+// `mojom::AutofillAgent::TriggerFormExtractionWithResponse()` instead of
+// `mojom::AutofillAgent::TriggerFormExtraction()`.
+BASE_FEATURE(kAutofillMergeTriggerFormExtractionFunctions,
+             base::FEATURE_ENABLED_BY_DEFAULT);
 
 // When enabled, all behaviours related to the on-device machine learning
 // model for field type predictions will be guarded.

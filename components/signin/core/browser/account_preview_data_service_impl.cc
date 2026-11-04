@@ -16,6 +16,7 @@
 #include "base/functional/bind.h"
 #include "base/json/values_util.h"
 #include "base/metrics/histogram_functions.h"
+#include "base/task/sequenced_task_runner.h"
 #include "base/timer/timer.h"
 #include "base/values.h"
 #include "build/build_config.h"
@@ -351,13 +352,15 @@ void AccountPreviewDataServiceImpl::GetPreferredAccountForSigninAsync(
           switches::kEnableAccountPreviewPreferredAccountFRE) ||
       !identity_manager_ ||
       !profile_prefs_->GetBoolean(prefs::kSigninAllowed)) {
-    std::move(callback).Run(std::nullopt);
+    base::SequencedTaskRunner::GetCurrentDefault()->PostTask(
+        FROM_HERE, base::BindOnce(std::move(callback), std::nullopt));
     return;
   }
 
   if (std::optional<AccountPreviewPreference> result =
           GetPreferredAccountForSignin()) {
-    std::move(callback).Run(std::move(result));
+    base::SequencedTaskRunner::GetCurrentDefault()->PostTask(
+        FROM_HERE, base::BindOnce(std::move(callback), std::move(result)));
     return;
   }
 
@@ -371,14 +374,6 @@ void AccountPreviewDataServiceImpl::GetPreferredAccountForSigninAsync(
   pending_preferred_account_requests_.push_back(std::move(request));
   EnsureAllAccountsFetched(
       FetchTriggerCause::kPreferredAccountMissingForAsyncFetch);
-}
-
-void AccountPreviewDataServiceImpl::GetPreferredAccountForSigninAsync(
-    base::OnceCallback<void(std::optional<AccountPreviewPreference>)>
-        callback) {
-  GetPreferredAccountForSigninAsync(
-      std::move(callback),
-      switches::kAccountPreviewPreferredAccountFREFetchTimeout.Get());
 }
 
 void AccountPreviewDataServiceImpl::OnPendingPreferredAccountRequestTimedOut(
@@ -396,9 +391,8 @@ void AccountPreviewDataServiceImpl::ResolvePendingPreferredAccountRequests(
   auto requests = std::exchange(pending_preferred_account_requests_, {});
   for (auto& request : requests) {
     request->timeout_timer.Stop();
-  }
-  for (auto& request : requests) {
-    std::move(request->callback).Run(preference);
+    base::SequencedTaskRunner::GetCurrentDefault()->PostTask(
+        FROM_HERE, base::BindOnce(std::move(request->callback), preference));
   }
 }
 #endif

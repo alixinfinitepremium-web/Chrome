@@ -34,6 +34,7 @@
 #include "third_party/blink/renderer/platform/graphics/static_bitmap_image.h"
 #include "third_party/blink/renderer/platform/graphics/web_graphics_context_3d_provider_wrapper.h"
 #include "third_party/blink/renderer/platform/heap/collection_support/heap_hash_map.h"
+#include "third_party/blink/renderer/platform/heap/collection_support/heap_vector.h"
 #include "third_party/blink/renderer/platform/heap/forward.h"  // IWYU pragma: keep (blink::Visitor)
 #include "third_party/blink/renderer/platform/heap/member.h"
 #include "third_party/blink/renderer/platform/instrumentation/canvas_memory_dump_provider.h"
@@ -68,6 +69,7 @@ class CanvasImageProvider;
 class CanvasRenderingContext2DSettings;
 class DrawElementImageOptions;
 class ExceptionState;
+class GlyphRun;
 class ImageData;
 class ImageDataSettings;
 class ShapedText;
@@ -237,6 +239,14 @@ class MODULES_EXPORT BaseRenderingContext2D
                          double x,
                          double y,
                          const TextClusterOptions* cluster_options);
+  void fillGlyphRun(const GlyphRun* glyph_run, double x, double y);
+  void strokeGlyphRun(const GlyphRun* glyph_run, double x, double y);
+  void fillGlyphRuns(const HeapVector<Member<GlyphRun>>& glyph_runs,
+                     double x,
+                     double y);
+  void strokeGlyphRuns(const HeapVector<Member<GlyphRun>>& glyph_runs,
+                       double x,
+                       double y);
 
   int LayerCount() const final;
   bool isContextLost() const final {
@@ -428,6 +438,8 @@ class MODULES_EXPORT BaseRenderingContext2D
 
   bool ShouldReplaceTargetBuffer();
   void EnsureResourceReadyForDraw();
+  void EnsureWriteAccess();
+  void EndWriteAccess();
   void RasterRecordToSharedImage(cc::PaintRecord last_recording);
   void RasterRecordToSoftwareSurface(cc::PaintRecord last_recording);
   void ApplyAnimatedImageFrameIndexesForId(SkCanvas* canvas, uint32_t id);
@@ -462,6 +474,12 @@ class MODULES_EXPORT BaseRenderingContext2D
   cc::PaintImage::ContentId cached_content_id_ =
       cc::PaintImage::kInvalidContentId;
   scoped_refptr<StaticBitmapImage> cached_snapshot_;
+  // Whether the content of the current resource must be transferred to a new
+  // resource on CopyOnWrite. True by default, but can be set to false as an
+  // optimization if the current resource is known to have been cleared.
+  bool must_preserve_content_on_copy_on_write_ = true;
+  bool current_resource_has_write_access_ = false;
+  bool is_cleared_ = false;
   std::unique_ptr<MemoryManagedPaintRecorder> recorder_;
   bool clear_frame_ = true;
   size_t max_recorded_op_bytes_ = 0;
