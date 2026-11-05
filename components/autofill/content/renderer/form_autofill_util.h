@@ -46,6 +46,10 @@ namespace content {
 class RenderFrame;
 }  // namespace content
 
+namespace gfx {
+class RectF;
+}  // namespace gfx
+
 namespace autofill {
 
 class FieldDataManager;
@@ -146,6 +150,10 @@ std::vector<blink::WebFormControlElement> GetOwnedFormControls(
 std::vector<blink::WebFormControlElement> GetOwnedAutofillableFormControls(
     const blink::WebDocument& document,
     const blink::WebFormElement& form_element);
+
+// Returns the outermost <form> ancestor of `n`, or a null `WebFormElement`.
+// See README.md for the relevant terminology.
+blink::WebFormElement GetOutermostAncestorFormElement(blink::WebNode n);
 
 struct FormAndField {
   STACK_ALLOCATED();
@@ -270,6 +278,23 @@ blink::WebElement GetContentEditableByRendererId(
 
 std::string GetAutocompleteAttribute(const blink::WebElement& element);
 
+// Returns the ARIA label text of the elements denoted by the aria-labelledby
+// attribute of `element` or the value of the aria-label attribute of
+// `element`, with priority given to the aria-labelledby attribute.
+std::u16string GetAriaLabel(const blink::WebDocument& document,
+                            const blink::WebElement& element);
+
+// Returns the ARIA description text of the elements denoted by the
+// aria-describedby attribute of `element` or the value of the aria-description
+// attribute of `element`, with priority given to the aria-describedby
+// attribute.
+std::u16string GetAriaDescription(const blink::WebDocument& document,
+                                  const blink::WebElement& element);
+
+// Returns the bounds of `element` in window coordinates, or an empty
+// `gfx::RectF` if the element's frame cannot be resolved.
+gfx::RectF GetBoundsInWindow(const blink::WebElement& element);
+
 // Iterates through the node neighbors of form and form control elements in
 // `document` in search of four digit combinations.
 void TraverseDomForFourDigitCombinations(
@@ -364,8 +389,6 @@ std::u16string FindChildTextWithIgnoreListForTesting(
     const std::set<blink::WebNode>& divs_to_skip);
 std::vector<SelectOption> GetDataListOptionsForTesting(
     const blink::WebInputElement& element);
-blink::WebFormElement GetOutermostAncestorFormElementForTesting(
-    blink::WebNode n);
 bool IsDOMPredecessorForTesting(const blink::WebNode& x,
                                 const blink::WebNode& y,
                                 const blink::WebNode& ancestor_hint);

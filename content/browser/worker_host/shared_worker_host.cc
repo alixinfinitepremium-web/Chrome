@@ -17,6 +17,7 @@
 #include "content/browser/code_cache/generated_code_cache_context.h"
 #include "content/browser/devtools/devtools_instrumentation.h"
 #include "content/browser/devtools/shared_worker_devtools_manager.h"
+#include "content/browser/file_system_access/file_system_access_manager_impl.h"
 #include "content/browser/loader/url_loader_factory_utils.h"
 #include "content/browser/network/cross_origin_embedder_policy_reporter.h"
 #include "content/browser/process_lock.h"
@@ -265,6 +266,8 @@ void SharedWorkerHost::Start(
     mojo::PendingRemote<blink::mojom::SharedWorkerFactory> factory,
     blink::mojom::FetchClientSettingsObjectPtr
         outside_fetch_client_settings_object,
+    mojo::PendingRemote<blink::mojom::OutsideContextCSPViolationReporter>
+        outside_settings_reporter,
     ContentBrowserClient* client,
     WorkerScriptFetcherResult result) {
   CHECK_CURRENTLY_ON(BrowserThread::UI, base::NotFatalUntil::M160);
@@ -381,8 +384,8 @@ void SharedWorkerHost::Start(
       instance_.url(), std::move(options),
       mojo::Clone(content_security_policies_),
       std::move(outside_fetch_client_settings_object),
-      instance_.same_site_cookies(), instance_.extended_lifetime(),
-      instance_.permissions_policy()));
+      std::move(outside_settings_reporter), instance_.same_site_cookies(),
+      instance_.extended_lifetime(), instance_.permissions_policy()));
 
   auto renderer_preferences = blink::RendererPreferences();
   UpdateRendererPreferencesForWorkerHelper(
@@ -807,6 +810,20 @@ void SharedWorkerHost::CreateBlobUrlStoreProvider(
 void SharedWorkerHost::CreateBucketManagerHost(
     mojo::PendingReceiver<blink::mojom::BucketManagerHost> receiver) {
   GetProcessHost()->BindBucketManagerHost(AsWeakPtr(), std::move(receiver));
+}
+
+void SharedWorkerHost::CreateFileSystemAccessManager(
+    mojo::PendingReceiver<blink::mojom::FileSystemAccessManager> receiver) {
+  CHECK_CURRENTLY_ON(BrowserThread::UI);
+  GetStoragePartitionImpl()->GetFileSystemAccessManager()->BindReceiver(
+      FileSystemAccessManagerImpl::BindingContext(
+          GetWorkerStorageKey(),
+          // TODO(crbug.com/41473757): Obtain and use a better URL for workers
+          // instead of the origin as source url. This URL will be used for
+          // SafeBrowsing checks and for the Quarantine Service.
+          GetWorkerStorageKey().origin().GetURL(),
+          GetProcessHost()->GetDeprecatedID()),
+      std::move(receiver));
 }
 
 #if BUILDFLAG(ENABLE_COMPUTE_PRESSURE)

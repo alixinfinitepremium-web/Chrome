@@ -117,7 +117,7 @@ FontDescription::FontDescription() {
   fields_.font_synthesis_style_ = kAutoFontSynthesisStyle;
   fields_.font_synthesis_small_caps_ = kAutoFontSynthesisSmallCaps;
   fields_.variant_position_ = kNormalVariantPosition;
-  fields_.variant_emoji_ = kNormalVariantEmoji;
+  fields_.variant_emoji_ = static_cast<uint32_t>(FontVariantEmoji::kNormal);
   fields_.text_spacing_trim_ = static_cast<uint32_t>(TextSpacingTrim::kInitial);
 }
 
@@ -691,26 +691,6 @@ String FontDescription::ToString(FontVariantCaps variant) {
       return "Unicase";
     case FontVariantCaps::kTitlingCaps:
       return "TitlingCaps";
-  }
-  return "Unknown";
-}
-
-String FontDescription::ToStringForIdl(FontVariantCaps variant) {
-  switch (variant) {
-    case FontVariantCaps::kCapsNormal:
-      return "normal";
-    case FontVariantCaps::kSmallCaps:
-      return "small-caps";
-    case FontVariantCaps::kAllSmallCaps:
-      return "all-small-caps";
-    case FontVariantCaps::kPetiteCaps:
-      return "petite-caps";
-    case FontVariantCaps::kAllPetiteCaps:
-      return "all-petite-caps";
-    case FontVariantCaps::kUnicase:
-      return "unicase";
-    case FontVariantCaps::kTitlingCaps:
-      return "titling-caps";
   }
   return "Unknown";
 }

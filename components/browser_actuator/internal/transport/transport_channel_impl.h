@@ -100,6 +100,11 @@ class TransportChannelImpl : public TransportChannel,
   void OnSessionRegistered(TransportSession* session) override;
   void OnSessionRemoved(std::string_view session_id) override;
 
+  // Tears down the downstream stream, destroys all active sessions, and
+  // cancels any in-flight upstream requests when the primary account signs out
+  // or switches.
+  void ResetForAccountChange();
+
   DownstreamConnectionState downstream_connection_state() const {
     DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
     return downstream_connection_state_;
@@ -126,6 +131,12 @@ class TransportChannelImpl : public TransportChannel,
       std::string_view session_id,
       const ActuatorDownstreamMessage& message,
       DownstreamDeliveryStatus status = DownstreamDeliveryStatus::kSuccess);
+
+  // Forwards the completion HTTP response code for an upstream message to every
+  // TransportMessageObserver.
+  void NotifyUpstreamResponse(std::string_view session_id,
+                              int64_t client_sequence_number,
+                              int response_code);
 
   // Serializes a WatchSessionsRequest describing every session with a known
   // resume position, plus a fresh idempotency id. Handed to the resume

@@ -1290,7 +1290,8 @@ TEST_F(ChromeContentSettingsRedirectTest, RedirectGuestExploreURL) {
       std::make_unique<ash::HelpAppUntrustedUIConfig>(
           TestingBrowserProcess::GetGlobal()
               ->GetFeatures()
-              ->application_locale_storage()));
+              ->application_locale_storage(),
+          TestingBrowserProcess::GetGlobal()->variations_service()));
 
   TestChromeContentBrowserClient test_content_browser_client;
   const GURL help_url(ash::kChromeUIHelpAppUntrustedURL);
@@ -2402,21 +2403,20 @@ TEST_F(ChromeContentBrowserClientTest,
   content::TestWebContentsFactory web_contents_factory;
   content::WebContents* web_contents =
       web_contents_factory.CreateWebContents(top_chrome_webui_profile);
-  content::RenderFrameHost& rfh = *web_contents->GetPrimaryMainFrame();
   ChromeContentBrowserClient client;
 
-  // Without a user profile, the BrowserContext of the frame is used.
-  EXPECT_EQ(top_chrome_webui_profile, client.GetUserBrowserContext(rfh));
+  // Without a user profile, the BrowserContext of the WebContents is used.
+  EXPECT_EQ(top_chrome_webui_profile,
+            client.GetUserBrowserContext(*web_contents));
 
   // With a user profile, the user profile is used.
   webui::SetUserProfile(web_contents, profile());
-  EXPECT_EQ(profile(), client.GetUserBrowserContext(rfh));
+  EXPECT_EQ(profile(), client.GetUserBrowserContext(*web_contents));
 
-  // A frame in another profile uses its own BrowserContext.
+  // A WebContents in another profile uses its own BrowserContext.
   content::WebContents* other_web_contents =
       web_contents_factory.CreateWebContents(profile());
-  EXPECT_EQ(profile(), client.GetUserBrowserContext(
-                           *other_web_contents->GetPrimaryMainFrame()));
+  EXPECT_EQ(profile(), client.GetUserBrowserContext(*other_web_contents));
 }
 #endif  // !BUILDFLAG(IS_ANDROID)
 

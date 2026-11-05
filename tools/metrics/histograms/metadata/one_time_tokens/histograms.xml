@@ -25,6 +25,23 @@ found in the LICENSE file.
 </variants>
 
 <histogram
+    name="OneTimeTokens.Actor.AttemptOtpFilling.GmailAndGoogleSmartFeaturesConsent"
+    enum="ActorOtpGmailAndGoogleSmartFeaturesConsent"
+    expires_after="2027-06-30">
+  <owner>salmaabdelaziz@google.com</owner>
+  <owner>passwordmanager-mobile-eng@google.com</owner>
+  <summary>
+    Records the combination of the Gmail (comms_apps) and Google (google_apps)
+    Smart Features consent states, with one bucket per combination. Recorded at
+    most once per AttemptOtpFilling attempt, when the consent fetch succeeds.
+    Not recorded when the tool is destroyed before the response or a mock OTP is
+    used. Fetch failures are not recorded here; they are recorded as
+    OneTimeTokens.Actor.AttemptOtpFilling.ToolInvocation bucket
+    UnableToRetrieveGmailAndGoogleSmartFeaturesConsent.
+  </summary>
+</histogram>
+
+<histogram
     name="OneTimeTokens.Actor.AttemptOtpFilling.GmailOtpConfirmationDialogInteraction"
     enum="GmailOtpConfirmationDialogInteraction" expires_after="2027-06-30">
   <owner>ioanap@chromium.org</owner>
@@ -168,6 +185,18 @@ found in the LICENSE file.
     Records the outcome of the Gmail OTP opt-in bubble. Recorded once when the
     opt-in bubble finishes its lifecycle (without being re-queued for reshow) or
     is discarded.
+  </summary>
+</histogram>
+
+<histogram name="OneTimeTokens.Gmail.OptIn.LearnMoreClicked"
+    enum="BooleanClicked" expires_after="2027-08-01">
+  <owner>kazinova@google.com</owner>
+  <owner>trangm@google.com</owner>
+  <owner>src/components/one_time_tokens/OWNERS</owner>
+  <summary>
+    Records a click on the Learn more link in the Gmail OTP opt-in bubble, which
+    opens settings in a new tab. Only true is recorded. Recorded each time the
+    link is clicked, so there can be several samples per bubble.
   </summary>
 </histogram>
 

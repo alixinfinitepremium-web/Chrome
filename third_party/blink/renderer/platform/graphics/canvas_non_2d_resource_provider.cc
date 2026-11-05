@@ -133,44 +133,6 @@ CanvasNon2DResourceProvider::Create(
 }
 
 std::unique_ptr<CanvasNon2DResourceProvider>
-CanvasNon2DResourceProvider::Create(
-    gfx::Size size,
-    const Canvas2DColorParams& color_params,
-    base::WeakPtr<WebGraphicsContext3DProviderWrapper> context_provider_wrapper,
-    gpu::SharedImageUsageSet shared_image_usage_flags) {
-  return Create(size, color_params.GetSharedImageFormat(),
-                color_params.GetAlphaType(), color_params.GetGfxColorSpace(),
-                color_params.GetGfxHdrMetadata(),
-                std::move(context_provider_wrapper), shared_image_usage_flags);
-}
-
-std::unique_ptr<CanvasNon2DResourceProvider>
-CanvasNon2DResourceProvider::CreateForWebGPU(
-    gfx::Size size,
-    viz::SharedImageFormat format,
-    SkAlphaType alpha_type,
-    const gfx::ColorSpace& color_space,
-    const gfx::HDRMetadata& hdr_metadata,
-    gpu::SharedImageUsageSet shared_image_usage_flags,
-    base::OnceClosure context_lost_callback) {
-  auto context_provider_wrapper = SharedGpuContext::ContextProviderWrapper();
-  // The SharedImages created by this provider serve as a means of import/export
-  // between VideoFrames/canvas and WebGPU, e.g.:
-  // * Import from VideoFrames into WebGPU via CreateExternalTexture() (the
-  //   WebGPU textures will then be read by clients)
-  // * Export from WebGPU into a static bitmap image via
-  //   GpuCanvasContext::{PaintRenderingResultsToSnapshot, GetImage}() (the
-  //   export happens via the WebGPU interface)
-  // Hence, both WEBGPU_READ and WEBGPU_WRITE usage are needed here.
-  return CanvasNon2DResourceProvider::Create(
-      size, format, alpha_type, color_space, hdr_metadata,
-      std::move(context_provider_wrapper),
-      shared_image_usage_flags | gpu::SHARED_IMAGE_USAGE_WEBGPU_READ |
-          gpu::SHARED_IMAGE_USAGE_WEBGPU_WRITE,
-      std::move(context_lost_callback));
-}
-
-std::unique_ptr<CanvasNon2DResourceProvider>
 CanvasNon2DResourceProvider::CreateForSoftwareCompositor(
     gfx::Size size,
     viz::SharedImageFormat format,
@@ -190,17 +152,6 @@ CanvasNon2DResourceProvider::CreateForSoftwareCompositor(
       size, format, alpha_type, color_space, hdr_metadata,
       shared_image_interface_provider, std::move(context_lost_callback)));
   return provider->IsValid() ? std::move(provider) : nullptr;
-}
-
-std::unique_ptr<CanvasNon2DResourceProvider>
-CanvasNon2DResourceProvider::CreateForSoftwareCompositor(
-    gfx::Size size,
-    const Canvas2DColorParams& color_params,
-    WebGraphicsSharedImageInterfaceProvider* shared_image_interface_provider) {
-  return CreateForSoftwareCompositor(
-      size, color_params.GetSharedImageFormat(), color_params.GetAlphaType(),
-      color_params.GetGfxColorSpace(), color_params.GetGfxHdrMetadata(),
-      shared_image_interface_provider);
 }
 
 CanvasNon2DResourceProvider::CanvasNon2DResourceProvider(
@@ -456,7 +407,7 @@ bool CanvasNon2DResourceProvider::ShouldReplaceTargetBuffer(
   CHECK(!is_software_);
 
   // If the resource was lost, we can not use it for writes again.
-  if (resource()->IsLost()) {
+  if (resource_->IsLost()) {
     return true;
   }
 
@@ -495,8 +446,8 @@ void CanvasNon2DResourceProvider::EndExternalWrite(
     return;
   }
 
-  resource()->WaitSyncToken(external_write_sync_token);
-  resource()->SetReleaseSyncToken(external_write_sync_token);
+  resource_->WaitSyncToken(external_write_sync_token);
+  resource_->SetReleaseSyncToken(external_write_sync_token);
 }
 
 scoped_refptr<ExportedCanvasResource>
@@ -522,10 +473,7 @@ CanvasNon2DResourceProvider::DoExternalOverdrawAndProduceResource(
   }
 
   if (IsSoftware()) {
-    // Note that the resource *must* be a CanvasResourceSharedImage as this
-    // class creates CanvasResourceSharedImage instances exclusively.
-    static_cast<CanvasResourceSharedImage*>(software_resource.get())
-        ->UploadSoftwareRenderingResults(GetSkSurface());
+    software_resource->UploadSoftwareRenderingResults(GetSkSurface());
 
     return base::MakeRefCounted<ExportedCanvasResource>(
         std::move(software_resource));
@@ -583,10 +531,7 @@ CanvasNon2DResourceProvider::ProduceCanvasResource() {
       return nullptr;
     }
 
-    // Note that the resource *must* be a CanvasResourceSharedImage as this
-    // class creates CanvasResourceSharedImage instances exclusively.
-    static_cast<CanvasResourceSharedImage*>(output_resource.get())
-        ->UploadSoftwareRenderingResults(GetSkSurface());
+    output_resource->UploadSoftwareRenderingResults(GetSkSurface());
 
     return base::MakeRefCounted<ExportedCanvasResource>(output_resource);
   }
@@ -745,9 +690,9 @@ void CanvasNon2DResourceProvider::FlushRecording(
     auto* image_provider = GetOrCreateImageProvider();
 
     gpu::SyncToken sync_token = RasterInterface()->RasterSharedImage(
-        resource()->GetSharedImage(), resource()->acquire_sync_token(),
+        resource_->GetSharedImage(), resource_->acquire_sync_token(),
         std::move(last_recording), image_provider, needs_clear);
-    resource()->SetReleaseSyncToken(sync_token);
+    resource_->SetReleaseSyncToken(sync_token);
   }
 
   // Images are locked for the duration of the rasterization, in case they get
@@ -796,7 +741,7 @@ void CanvasNon2DResourceProvider::OnMemoryDump(
   std::string path = base::StringPrintf("canvas/ResourceProvider_0x%" PRIXPTR,
                                         reinterpret_cast<uintptr_t>(this));
 
-  resource()->OnMemoryDump(pmd, path);
+  resource_->OnMemoryDump(pmd, path);
 
   std::string cached_path = path + "/cached";
   image_pool_->OnMemoryDump(pmd, cached_path);

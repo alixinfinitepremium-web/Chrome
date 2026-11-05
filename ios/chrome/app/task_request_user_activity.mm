@@ -39,7 +39,6 @@
 #import "ios/chrome/browser/shared/coordinator/scene/scene_controller.h"
 #import "ios/chrome/browser/shared/coordinator/scene/scene_state.h"
 #import "ios/chrome/browser/shared/model/browser/browser.h"
-#import "ios/chrome/browser/shared/model/browser/browser_provider.h"
 #import "ios/chrome/browser/shared/model/browser/browser_provider_interface.h"
 #import "ios/chrome/browser/shared/model/profile/profile_ios.h"
 #import "ios/chrome/browser/shared/model/url/chrome_url_constants.h"
@@ -155,17 +154,17 @@ Browser* GetBrowserForTargetMode(SceneState* scene_state,
   id<BrowserProviderInterface> interface = scene_state.browserProviderInterface;
   switch (target_mode) {
     case ApplicationModeForTabOpening::NORMAL:
-      return interface.mainBrowserProvider.browser;
+      return interface.mainBrowser;
     case ApplicationModeForTabOpening::INCOGNITO:
-      return interface.incognitoBrowserProvider.browser;
+      return interface.incognitoBrowser;
     case ApplicationModeForTabOpening::CURRENT:
-      return interface.currentBrowserProvider.browser;
+      return interface.currentBrowser;
     case ApplicationModeForTabOpening::UNDETERMINED:
-      return interface.currentBrowserProvider.browser;
+      return interface.currentBrowser;
     case ApplicationModeForTabOpening::APP_SWITCHER_INCOGNITO:
-      return interface.incognitoBrowserProvider.browser;
+      return interface.incognitoBrowser;
     case ApplicationModeForTabOpening::APP_SWITCHER_UNDETERMINED:
-      return interface.currentBrowserProvider.browser;
+      return interface.currentBrowser;
   }
 
   NOTREACHED();
@@ -643,9 +642,14 @@ std::vector<GURL> GetURLsFromOpenInIncognitoIntent(INIntent* intent) {
 
 // Returns the list of URLs from an `OpenInChromeIntent`.
 std::vector<GURL> GetURLsFromOpenInChromeIntent(INIntent* intent) {
-  OpenInChromeIntent* typed_intent =
-      base::apple::ObjCCastStrict<OpenInChromeIntent>(intent);
-  return GURLVectorWithNSURLArray(typed_intent.url);
+  id intent_url = base::apple::ObjCCastStrict<OpenInChromeIntent>(intent).url;
+  // Old versions of the intent, which can still be passed to Chrome by
+  // shortcuts saved long ago (see crbug.com/1133825), declare `url` as a single
+  // `NSURL` rather than an array.
+  if ([intent_url isKindOfClass:[NSURL class]]) {
+    intent_url = @[ intent_url ];
+  }
+  return GURLVectorWithNSURLArray(base::apple::ObjCCast<NSArray>(intent_url));
 }
 
 // Open an URL coming from spotlight.
@@ -750,8 +754,7 @@ void OpenSpotlightURL(NSURL* webpage_url,
   }
   SceneState* sceneState = self.sceneState;
   CHECK(sceneState);
-  Browser* browser =
-      sceneState.browserProviderInterface.currentBrowserProvider.browser;
+  Browser* browser = sceneState.browserProviderInterface.currentBrowser;
   CHECK(browser);
 
   PrefService* prefs = sceneState.profileState.profile->GetPrefs();

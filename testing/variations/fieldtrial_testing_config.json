@@ -10868,7 +10868,6 @@
         {
             "platforms": [
                 "android",
-                "android_webview",
                 "chromeos",
                 "linux",
                 "mac",
@@ -11247,7 +11246,6 @@
                         "session_rate_impact": "none"
                     },
                     "enable_features": [
-                        "AutofillEnableOffersInClankKeyboardAccessory",
                         "IPH_KeyboardAccessoryPaymentOffer"
                     ]
                 }
@@ -20295,9 +20293,11 @@
                 {
                     "name": "Enabled_threshold_3s",
                     "params": {
-                        "duplicate_nav_threshold": "3s"
+                        "duplicate_nav_threshold": "3s",
+                        "skip_ignore_browser_initiated_navs": "true"
                     },
                     "enable_features": [
+                        "IgnoreDuplicateNavs",
                         "WebViewIgnoreDuplicateNavs"
                     ]
                 }

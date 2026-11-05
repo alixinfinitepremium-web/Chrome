@@ -48,6 +48,7 @@
 #include "components/autofill/core/common/autofill_constants.h"
 #include "components/autofill/core/common/autofill_features.h"
 #include "components/autofill/core/common/autofill_util.h"
+#include "components/autofill/core/common/dense_set.h"
 #include "components/autofill/core/common/field_data_manager.h"
 #include "components/autofill/core/common/form_data.h"
 #include "components/autofill/core/common/form_field_data.h"
@@ -74,6 +75,8 @@
 #include "third_party/blink/public/web/web_remote_frame.h"
 #include "third_party/blink/public/web/web_select_element.h"
 #include "third_party/re2/src/re2/re2.h"
+#include "ui/gfx/geometry/rect.h"
+#include "ui/gfx/geometry/rect_f.h"
 #include "url/gurl.h"
 
 using blink::WebAutofillState;
@@ -639,37 +642,6 @@ std::u16string CoalesceTextByIdList(const WebDocument& document,
   return text;
 }
 
-// Returns the ARIA label text of the elements denoted by the aria-labelledby
-// attribute of `element` or the value of the aria-label attribute of
-// `element`, with priority given to the aria-labelledby attribute.
-std::u16string GetAriaLabel(const WebDocument& document,
-                            const WebElement& element) {
-  if (HasAttribute<kAriaLabelledBy>(element)) {
-    std::u16string text =
-        CoalesceTextByIdList(document, GetAttribute<kAriaLabelledBy>(element));
-    if (!text.empty()) {
-      return text;
-    }
-  }
-  return GetAttribute<kAriaLabel>(element).Utf16();
-}
-
-// Returns the ARIA description text of the elements denoted by the
-// aria-describedby attribute of `element` or the value of the aria-description
-// attribute of `element`, with priority given to the aria-describedby
-// attribute.
-std::u16string GetAriaDescription(const WebDocument& document,
-                                  const WebElement& element) {
-  if (HasAttribute<kAriaDescribedBy>(element)) {
-    std::u16string text =
-        CoalesceTextByIdList(document, GetAttribute<kAriaDescribedBy>(element));
-    if (!text.empty()) {
-      return text;
-    }
-  }
-  return GetAttribute<kAriaDescription>(element).Utf16();
-}
-
 // Helper for |InferLabelForElement()| that infers a label, if possible, from
 // a previous sibling of |element|,
 // e.g. Some Text <input ...>
@@ -1001,34 +973,42 @@ std::optional<InferredLabel> InferLabelFromDefinitionList(const WebNode& dd) {
 // the different tags.
 std::optional<InferredLabel> InferLabelFromAncestors(
     const WebFormControlElement& element) {
-  std::set<std::string> seen_tag_names;
+  enum class AncestorTag { kLabel, kDiv, kTd, kDd, kLi, kMaxValue = kLi };
+  DenseSet<AncestorTag> seen_tags;
   WebNode parent = element;
   while ((parent = parent.ParentNode())) {
-    if (!parent.IsElementNode())
+    const WebElement parent_element = parent.DynamicTo<WebElement>();
+    if (!parent_element) {
       continue;
-
-    std::string tag_name = parent.To<WebElement>().TagName().Utf8();
-    if (seen_tag_names.contains(tag_name))
-      continue;
-    seen_tag_names.insert(tag_name);
+    }
 
     std::optional<InferredLabel> r;
-    if (tag_name == "LABEL") {
-      r = InferredLabel::BuildIfValid(FindChildText(parent),
-                                      LabelSource::kLabelTag);
-    } else if (tag_name == "DIV") {
-      r = InferLabelFromDivTable(element);
-    } else if (tag_name == "TD") {
-      r = InferLabelFromTableColumn(parent);
-      if (!r) {
-        r = InferLabelFromTableRow(parent);
+    if (HasTagName<kLabel>(parent_element)) {
+      if (seen_tags.insert(AncestorTag::kLabel).second) {
+        r = InferredLabel::BuildIfValid(FindChildText(parent),
+                                        LabelSource::kLabelTag);
       }
-    } else if (tag_name == "DD") {
-      r = InferLabelFromDefinitionList(parent);
-    } else if (tag_name == "LI") {
-      r = InferredLabel::BuildIfValid(FindChildText(parent),
-                                      LabelSource::kLiTag);
-    } else if (tag_name == "FIELDSET") {
+    } else if (HasTagName<kDiv>(parent_element)) {
+      if (seen_tags.insert(AncestorTag::kDiv).second) {
+        r = InferLabelFromDivTable(element);
+      }
+    } else if (HasTagName<kTableCell>(parent_element)) {
+      if (seen_tags.insert(AncestorTag::kTd).second) {
+        r = InferLabelFromTableColumn(parent);
+        if (!r) {
+          r = InferLabelFromTableRow(parent);
+        }
+      }
+    } else if (HasTagName<kDefinitionDescriptionTag>(parent_element)) {
+      if (seen_tags.insert(AncestorTag::kDd).second) {
+        r = InferLabelFromDefinitionList(parent);
+      }
+    } else if (HasTagName<kListItem>(parent_element)) {
+      if (seen_tags.insert(AncestorTag::kLi).second) {
+        r = InferredLabel::BuildIfValid(FindChildText(parent),
+                                        LabelSource::kLiTag);
+      }
+    } else if (HasTagName<kFieldset>(parent_element)) {
       break;
     }
     if (r) {
@@ -1586,24 +1566,6 @@ bool IsWebElementVisible(const WebElement& element) {
           HasMinSize(element.GetScrollSize()));
 }
 
-// Returns the outermost <form> ancestor of |node|, or an IsNull() pointer.
-// See README.md for the relevant terminology.
-WebFormElement GetOutermostAncestorFormElement(WebNode n) {
-  const bool should_return_closest_ancestor =
-      !base::FeatureList::IsEnabled(features::kAutofillFixIframeOwnership);
-  WebFormElement form;
-  while (n) {
-    if (HasTagName<kForm>(n)) {
-      form = n.To<WebFormElement>();
-      if (should_return_closest_ancestor) {
-        return form;
-      }
-    }
-    n = n.ParentOrShadowHostNode();
-  }
-  return form;
-}
-
 // Returns true if a DOM traversal (pre-order, depth-first) visits `x` before
 // `y`.
 // As a performance improvement, `ancestor_hint` can be set to a suspected
@@ -2015,17 +1977,7 @@ void WebFormControlElementToFormField(
     }
   }
 
-  // `BoundsInWidget()` triggers style and layout updates, which may
-  // synchronously detach the frame and destroy the `content::RenderFrame`.
-  // Evaluate it before retrieving the frame.
-  gfx::Rect bounds = element.BoundsInWidget();
-  if (auto* local_frame = element.GetDocument().GetFrame()) {
-    if (auto* render_frame = content::RenderFrame::FromWebFrame(local_frame)) {
-      field->set_bounds(
-          gfx::RectF(render_frame->ConvertViewportToWindow(bounds)));
-    }
-  }
-
+  field->set_bounds(GetBoundsInWindow(element));
   field->set_value(element.Value().Utf16().substr(0, kMaxStringLength));
   field->set_selected_text(
       element.SelectedText().Utf16().substr(0, kMaxSelectedTextLength));
@@ -2241,6 +2193,43 @@ std::string GetAutocompleteAttribute(const WebElement& element) {
   return autocomplete_attribute;
 }
 
+std::u16string GetAriaLabel(const WebDocument& document,
+                            const WebElement& element) {
+  if (HasAttribute<kAriaLabelledBy>(element)) {
+    std::u16string text =
+        CoalesceTextByIdList(document, GetAttribute<kAriaLabelledBy>(element));
+    if (!text.empty()) {
+      return text;
+    }
+  }
+  return GetAttribute<kAriaLabel>(element).Utf16();
+}
+
+std::u16string GetAriaDescription(const WebDocument& document,
+                                  const WebElement& element) {
+  if (HasAttribute<kAriaDescribedBy>(element)) {
+    std::u16string text =
+        CoalesceTextByIdList(document, GetAttribute<kAriaDescribedBy>(element));
+    if (!text.empty()) {
+      return text;
+    }
+  }
+  return GetAttribute<kAriaDescription>(element).Utf16();
+}
+
+gfx::RectF GetBoundsInWindow(const WebElement& element) {
+  // `BoundsInWidget()` triggers style and layout updates, which may
+  // synchronously detach the frame and destroy the `content::RenderFrame`.
+  // Evaluate it before retrieving the frame.
+  gfx::Rect bounds = element.BoundsInWidget();
+  if (auto* local_frame = element.GetDocument().GetFrame()) {
+    if (auto* render_frame = content::RenderFrame::FromWebFrame(local_frame)) {
+      return gfx::RectF(render_frame->ConvertViewportToWindow(bounds));
+    }
+  }
+  return gfx::RectF();
+}
+
 std::optional<FormData> ExtractFormData(
     const WebDocument& document,
     FormRendererId form_id,
@@ -2417,6 +2406,22 @@ std::vector<WebFormControlElement> GetOwnedAutofillableFormControls(
   return elements;
 }
 
+WebFormElement GetOutermostAncestorFormElement(WebNode n) {
+  const bool should_return_closest_ancestor =
+      !base::FeatureList::IsEnabled(features::kAutofillFixIframeOwnership);
+  WebFormElement form;
+  while (n) {
+    if (HasTagName<kForm>(n)) {
+      form = n.To<WebFormElement>();
+      if (should_return_closest_ancestor) {
+        return form;
+      }
+    }
+    n = n.ParentOrShadowHostNode();
+  }
+  return form;
+}
+
 std::optional<FormAndField> FindFormAndFieldForFormControlElement(
     const WebFormControlElement& element,
     const FieldDataManager& field_data_manager,
@@ -2561,16 +2566,7 @@ std::optional<FormData> FindFormForContentEditable(
   field.set_autocomplete_attribute(GetAutocompleteAttribute(content_editable));
   field.set_parsed_autocomplete(
       ParseAutocompleteAttribute(field.autocomplete_attribute()));
-  // `BoundsInWidget()` triggers style and layout updates, which may
-  // synchronously detach the frame and destroy the `content::RenderFrame`.
-  // Evaluate it before retrieving the frame.
-  gfx::Rect bounds = content_editable.BoundsInWidget();
-  if (auto* local_frame = document.GetFrame()) {
-    if (auto* render_frame = content::RenderFrame::FromWebFrame(local_frame)) {
-      field.set_bounds(
-          gfx::RectF(render_frame->ConvertViewportToWindow(bounds)));
-    }
-  }
+  field.set_bounds(GetBoundsInWindow(content_editable));
   if (base::EqualsCaseInsensitiveASCII(
           GetAttribute<kRole>(content_editable).Utf16(), "presentation")) {
     field.set_role(FormFieldData::RoleAttribute::kPresentation);
@@ -3092,11 +3088,6 @@ bool IsWebElementVisibleForTesting(const WebElement& element) {  // IN-TEST
 bool IsVisibleIframeForTesting(  // IN-TEST
     const WebElement& iframe_element) {
   return IsVisibleIframe(iframe_element);
-}
-
-WebFormElement GetOutermostAncestorFormElementForTesting(  // IN-TEST
-    WebNode n) {
-  return GetOutermostAncestorFormElement(n);
 }
 
 bool IsDOMPredecessorForTesting(const WebNode& x,  // IN-TEST
