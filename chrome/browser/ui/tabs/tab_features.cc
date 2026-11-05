@@ -37,6 +37,7 @@
 #include "chrome/browser/contextual_cueing/features.h"
 #include "chrome/browser/contextual_search/contextual_search_cue_tab_state.h"
 #include "chrome/browser/contextual_search/contextual_search_cue_target.h"
+#include "chrome/browser/contextual_tasks/aba_search_journey_cue_target.h"
 #include "chrome/browser/dictation/features.h"
 #include "chrome/browser/enterprise/data_protection/data_protection_navigation_controller.h"
 #include "chrome/browser/enterprise/net/enterprise_proxy_error_service_factory.h"
@@ -139,7 +140,6 @@
 #include "chrome/browser/ui/focus_tab_after_navigation_helper.h"
 #include "chrome/browser/ui/intent_picker_tab_helper.h"
 #include "chrome/browser/ui/javascript_dialogs/javascript_tab_modal_dialog_manager_delegate_desktop.h"
-#include "chrome/browser/ui/lens/lens_overlay_controller.h"
 #include "chrome/browser/ui/lens/lens_search_controller.h"
 #include "chrome/browser/ui/page_action/action_ids.h"
 #include "chrome/browser/ui/page_action/page_action_controller.h"
@@ -419,20 +419,6 @@ std::optional<int64_t> GetPageContentAnnotationsTabId(
 
 TabFeatures::TabFeatures() = default;
 TabFeatures::~TabFeatures() = default;
-
-LensOverlayController* TabFeatures::lens_overlay_controller() {
-  // LensSearchController won't exist on non-normal windows.
-  return lens_search_controller_
-             ? lens_search_controller_->lens_overlay_controller()
-             : nullptr;
-}
-
-const LensOverlayController* TabFeatures::lens_overlay_controller() const {
-  // LensSearchController won't exist on non-normal windows.
-  return lens_search_controller_
-             ? lens_search_controller_->lens_overlay_controller()
-             : nullptr;
-}
 
 void TabFeatures::Init(TabInterface& tab, Profile* profile) {
   CHECK(!initialized_);
@@ -801,8 +787,8 @@ void TabFeatures::Init(TabInterface& tab, Profile* profile) {
             tab, *page_action_controller_);
     omnibox_autofill_bubble_controller_ =
         GetUserDataFactory()
-            .CreateInstance<autofill::OmniboxAutofillBubbleController>(
-                tab, tab, tab.GetContents());
+            .CreateInstance<autofill::OmniboxAutofillBubbleController>(tab,
+                                                                       &tab);
   }
 
   if (page_action_controller_->ActionExists(
@@ -824,13 +810,12 @@ void TabFeatures::Init(TabInterface& tab, Profile* profile) {
     wallet_reminder_notice_bubble_controller_ =
         GetUserDataFactory()
             .CreateInstance<autofill::WalletReminderNoticeBubbleController>(
-                tab, tab, tab.GetContents());
+                tab, &tab);
   }
 
   gmail_otp_opt_in_bubble_controller_ =
       GetUserDataFactory()
-          .CreateInstance<autofill::GmailOtpOptInBubbleController>(
-              tab, tab, tab.GetContents());
+          .CreateInstance<autofill::GmailOtpOptInBubbleController>(tab, &tab);
 
   customize_chrome_side_panel_controller_ =
       std::make_unique<customize_chrome::SidePanelControllerViews>(tab);
@@ -840,7 +825,8 @@ void TabFeatures::Init(TabInterface& tab, Profile* profile) {
           .CreateInstance<extensions::ExtensionSidePanelManager>(
               tab, profile, &tab, side_panel_registry_.get());
 
-  tab_dialog_manager_ = std::make_unique<TabDialogManager>(&tab);
+  tab_dialog_manager_ =
+      GetUserDataFactory().CreateInstance<TabDialogManager>(tab, &tab);
 
   data_protection_tab_controller_ =
       GetUserDataFactory()
@@ -990,6 +976,9 @@ void TabFeatures::Init(TabInterface& tab, Profile* profile) {
                 tab, &tab);
     glic::GlicCueTarget::Register(tab);
     contextual_search::ContextualSearchCueTarget::Register(tab);
+    if (contextual_tasks::IsABASearchJourneysEnabled()) {
+      contextual_tasks::AbaSearchJourneyCueTarget::Register(tab);
+    }
   }
 
   if (auto* contextual_cueing_service =
@@ -1751,8 +1740,8 @@ void TabFeatures::WillDiscardContents(tabs::TabInterface* tab,
     omnibox_autofill_bubble_controller_.reset();
     omnibox_autofill_bubble_controller_ =
         GetUserDataFactory()
-            .CreateInstance<autofill::OmniboxAutofillBubbleController>(
-                *tab, *tab, new_contents);
+            .CreateInstance<autofill::OmniboxAutofillBubbleController>(*tab,
+                                                                       tab);
   }
 
   if (payments_churned_users_bubble_controller_) {
@@ -1768,15 +1757,14 @@ void TabFeatures::WillDiscardContents(tabs::TabInterface* tab,
     wallet_reminder_notice_bubble_controller_ =
         GetUserDataFactory()
             .CreateInstance<autofill::WalletReminderNoticeBubbleController>(
-                *tab, *tab, new_contents);
+                *tab, tab);
   }
 
   if (gmail_otp_opt_in_bubble_controller_) {
     gmail_otp_opt_in_bubble_controller_.reset();
     gmail_otp_opt_in_bubble_controller_ =
         GetUserDataFactory()
-            .CreateInstance<autofill::GmailOtpOptInBubbleController>(
-                *tab, *tab, new_contents);
+            .CreateInstance<autofill::GmailOtpOptInBubbleController>(*tab, tab);
   }
 
   if (web_payments_observer_) {

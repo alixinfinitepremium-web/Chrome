@@ -44,6 +44,7 @@
 #include "chrome/browser/ui/views/location_bar/zoom_bubble_coordinator.h"
 #include "chrome/browser/ui/views/location_bar/zoom_bubble_view.h"
 #include "chrome/browser/ui/views/omnibox/omnibox_context_menu.h"
+#include "chrome/browser/ui/views/omnibox/omnibox_popup_aim_presenter.h"
 #include "chrome/browser/ui/views/omnibox/omnibox_popup_presenter_base.h"
 #include "chrome/browser/ui/views/omnibox/omnibox_view_views.h"
 #include "chrome/browser/ui/views/page_action/page_action_container_view.h"
@@ -436,8 +437,11 @@ IN_PROC_BROWSER_TEST_F(SecurityIndicatorTest, CheckIndicatorText) {
 // Tests that `LocationBarView::Update()` animates security indicator changes on
 // in-tab navigations (`contents == nullptr`), suppresses the animation on tab
 // switches (`contents != nullptr`), and invalidates layout.
-IN_PROC_BROWSER_TEST_F(SecurityIndicatorTest,
-                       UpdateAnimationAndLayoutOnNavigationAndTabSwitch) {
+// TODO(crbug.com/580096852): Flaky across platforms because the security chip
+// animation can complete before NavigateToURL returns.
+IN_PROC_BROWSER_TEST_F(
+    SecurityIndicatorTest,
+    DISABLED_UpdateAnimationAndLayoutOnNavigationAndTabSwitch) {
   net::EmbeddedTestServer secure_server(net::EmbeddedTestServer::TYPE_HTTPS);
   secure_server.SetSSLConfig(
       net::test_server::EmbeddedTestServer::CERT_TEST_NAMES);
@@ -788,6 +792,15 @@ IN_PROC_BROWSER_TEST_F(LocationBarViewAddContextButtonBrowserTest,
   EXPECT_FALSE(location_bar_view->ShouldShowAddContextButton());
   const auto icon_when_closed =
       location_icon_view->GetImageModel(views::Button::STATE_NORMAL);
+
+  // The button needs the AI Mode popup's content, which the deferral creates
+  // after the window's first frame. The location icon refreshes on popup state
+  // changes and typing, so wait for the content before opening the popup.
+  OmniboxPopupAimPresenter* aim_presenter =
+      location_bar_view->GetOmniboxPopupAimPresenter();
+  ASSERT_TRUE(aim_presenter);
+  ASSERT_TRUE(base::test::RunUntil(
+      [&]() { return aim_presenter->GetWebUIContent() != nullptr; }));
 
   // The "Add Context" button does show up when the Omnibox popup is open.
   location_bar_view->FocusLocation(/*is_user_initiated=*/true,

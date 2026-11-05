@@ -33,6 +33,7 @@ suite('GlicSelectionOverlay', () => {
   let overlay: GlicSelectionOverlayElement;
   let handler: TestMock<SelectionOverlayPageHandlerRemote>&
       SelectionOverlayPageHandlerRemote;
+  let page: SelectionOverlayPageRemote;
 
   setup(async () => {
     document.body.innerHTML = window.trustedTypes!.emptyHTML;
@@ -42,8 +43,9 @@ suite('GlicSelectionOverlay', () => {
     });
 
     handler = TestMock.fromClass(SelectionOverlayPageHandlerRemote);
-    browserProxyFactory.setInstance(
-        browserProxyFactory.createForTest(handler).instance);
+    const {instance, remote} = browserProxyFactory.createForTest(handler);
+    browserProxyFactory.setInstance(instance);
+    page = remote;
     SelectionOverlayBaseHandler.setInstance(
         new SelectionOverlayBaseHandlerImpl());
 
@@ -94,7 +96,14 @@ suite('GlicSelectionOverlay', () => {
     assertEquals(0, handler.getCallCount('dismissOverlay'));
   });
 
+  async function receivePageContext() {
+    page.pageContextReceived();
+    await page.$.flushForTesting();
+    await overlay.updateComplete;
+  }
+
   test('ClickingSubmitButtonSubmitsWithoutFocusingInput', async () => {
+    await receivePageContext();
     const input =
         overlay.shadowRoot.querySelector<HTMLInputElement>('#promptInput')!;
     const submitButton =
@@ -111,6 +120,36 @@ suite('GlicSelectionOverlay', () => {
     assertEquals(1, handler.getCallCount('submitPrompt'));
     assertEquals('Explain this region', handler.getArgs('submitPrompt')[0]);
     assertNotEquals(input, overlay.shadowRoot.activeElement);
+  });
+
+  test('SubmitDisabledUntilPageContextReceived', async () => {
+    const input =
+        overlay.shadowRoot.querySelector<HTMLInputElement>('#promptInput')!;
+    const submitButton =
+        overlay.shadowRoot.querySelector<HTMLElement>('#submitPromptButton')!;
+    input.value = 'Explain this region';
+    input.dispatchEvent(new Event('input', {bubbles: true}));
+    await overlay.updateComplete;
+
+    assertFalse(submitButton.hidden);
+    assertTrue(submitButton.hasAttribute('disabled'));
+    assertEquals(
+        loadTimeData.getString('fetchingPageContent'), submitButton.title);
+    // The tooltip needs hover.
+    assertEquals('auto', getComputedStyle(submitButton).pointerEvents);
+    submitButton.click();
+    input.dispatchEvent(
+        new KeyboardEvent('keydown', {key: 'Enter', bubbles: true}));
+    assertEquals(0, handler.getCallCount('submitPrompt'));
+
+    await receivePageContext();
+
+    assertFalse(submitButton.hasAttribute('disabled'));
+    assertEquals(loadTimeData.getString('submitPrompt'), submitButton.title);
+    input.dispatchEvent(
+        new KeyboardEvent('keydown', {key: 'Enter', bubbles: true}));
+    assertEquals(1, handler.getCallCount('submitPrompt'));
+    assertEquals('Explain this region', handler.getArgs('submitPrompt')[0]);
   });
 
   test('SuggestionsOrderBelowAndAboveInputBox', async () => {
@@ -179,6 +218,25 @@ suite('GlicSelectionOverlay', () => {
     const label1 = chips[1]!.querySelector<HTMLElement>('.chip-label')!;
     assertEquals('ellipsis', getComputedStyle(label1).textOverflow);
     assertTrue(label1.scrollWidth > label1.clientWidth);
+  });
+
+  test('SearchboxPillUsesThemeColors', () => {
+    const pill =
+        overlay.shadowRoot.querySelector<HTMLElement>('.searchbox-pill')!;
+    const input =
+        overlay.shadowRoot.querySelector<HTMLInputElement>('#promptInput')!;
+
+    document.documentElement.style.setProperty(
+        '--cr-fallback-color-surface', 'rgb(31, 31, 31)');
+    document.documentElement.style.setProperty(
+        '--cr-primary-text-color', 'rgb(227, 227, 227)');
+
+    assertEquals('rgb(31, 31, 31)', getComputedStyle(pill).backgroundColor);
+    assertEquals('rgb(227, 227, 227)', getComputedStyle(input).color);
+
+    document.documentElement.style.removeProperty(
+        '--cr-fallback-color-surface');
+    document.documentElement.style.removeProperty('--cr-primary-text-color');
   });
 });
 

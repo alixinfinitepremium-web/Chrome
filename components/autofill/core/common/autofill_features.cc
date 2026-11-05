@@ -140,6 +140,11 @@ BASE_FEATURE_PARAM(bool,
 BASE_FEATURE(kAutofillAddressSuggestionsOnTypingHasStrikeDatabase,
              base::FEATURE_ENABLED_BY_DEFAULT);
 
+// Feature flag to cap Autofill on typing candidate values per `FieldType`
+// rather than stopping after a fixed number of top profiles.
+BASE_FEATURE(kAutofillAddressSuggestionsOnTypingLimitPerFieldType,
+             base::FEATURE_DISABLED_BY_DEFAULT);
+
 // Feature flag controlling the display of surveys when a user declines the
 // save prompt of Autofill address and a user does not have any address stored.
 // The goal is to understand the reason and work towards improving acceptance.
@@ -335,6 +340,9 @@ BASE_FEATURE(kAutofillAiShowServerWalletFillingYourInfoDialog,
 // disabled.
 BASE_FEATURE(kAutofillAiShowWalletDisabledBanner,
              base::FEATURE_DISABLED_BY_DEFAULT);
+
+// If enabled, shows in-context source attribution verification UI.
+BASE_FEATURE(kAutofillAiSpiiVerification, base::FEATURE_DISABLED_BY_DEFAULT);
 
 #if BUILDFLAG(IS_ANDROID)
 // If enabled, the entity editor on Android uses the date picker from the
@@ -947,7 +955,7 @@ BASE_FEATURE(kAutofillOnlyConsiderSingleFieldFormsAsSearchForms,
 // algorithm instead of an exponential one that generates all name variants.
 // TODO(crbug.com/479905438) Remove once launched.
 BASE_FEATURE(kAutofillOptimizeIsNormalizedNameVariantOf,
-             base::FEATURE_DISABLED_BY_DEFAULT);
+             base::FEATURE_ENABLED_BY_DEFAULT);
 
 // Enables detection of language from Translate.
 // TODO(crbug.com/40158074): Cleanup when launched.

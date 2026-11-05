@@ -5,11 +5,13 @@
 #include "third_party/blink/renderer/platform/graphics/canvas_non_2d_resource_provider.h"
 
 #include <memory>
+#include <optional>
 #include <utility>
 
 #include "base/feature_list.h"
 #include "base/functional/function_ref.h"
 #include "base/memory/ptr_util.h"
+#include "base/memory/safety_checks.h"
 #include "base/memory/scoped_refptr.h"
 #include "base/memory/weak_ptr.h"
 #include "base/metrics/histogram_macros.h"
@@ -475,12 +477,10 @@ CanvasNon2DResourceProvider::DoExternalOverdrawAndProduceResource(
   if (IsSoftware()) {
     software_resource->UploadSoftwareRenderingResults(GetSkSurface());
 
-    return base::MakeRefCounted<ExportedCanvasResource>(
-        std::move(software_resource));
+    return CreateExportedResource(std::move(software_resource));
   }
 
-  return resource_ ? base::MakeRefCounted<ExportedCanvasResource>(resource_)
-                   : nullptr;
+  return resource_ ? CreateExportedResource(resource_) : nullptr;
 }
 
 scoped_refptr<StaticBitmapImage>
@@ -521,6 +521,15 @@ void CanvasNon2DResourceProvider::EnsureResourceReadyForDraw() {
 }
 
 scoped_refptr<ExportedCanvasResource>
+CanvasNon2DResourceProvider::CreateExportedResource(
+    scoped_refptr<CanvasResourceSharedImage> resource) {
+  return base::MakeRefCounted<ExportedCanvasResource>(
+      resource, resource->GetSharedImage(), resource->sync_token(),
+      viz::TransferableResource::ResourceSource::kCanvas, hdr_metadata_,
+      context_provider_wrapper_, !IsSoftware());
+}
+
+scoped_refptr<ExportedCanvasResource>
 CanvasNon2DResourceProvider::ProduceCanvasResource() {
   TRACE_EVENT0("blink", "CanvasNon2DResourceProvider::ProduceCanvasResource");
   if (IsSoftware()) {
@@ -533,15 +542,14 @@ CanvasNon2DResourceProvider::ProduceCanvasResource() {
 
     output_resource->UploadSoftwareRenderingResults(GetSkSurface());
 
-    return base::MakeRefCounted<ExportedCanvasResource>(output_resource);
+    return CreateExportedResource(std::move(output_resource));
   }
 
   if (IsGpuContextLost()) {
     return nullptr;
   }
 
-  return resource_ ? base::MakeRefCounted<ExportedCanvasResource>(resource_)
-                   : nullptr;
+  return resource_ ? CreateExportedResource(resource_) : nullptr;
 }
 
 scoped_refptr<StaticBitmapImage> CanvasNon2DResourceProvider::Snapshot() {
@@ -680,6 +688,14 @@ void CanvasNon2DResourceProvider::FlushRecording(
       auto* image_provider = GetOrCreateImageProvider();
       skia_canvas_ = std::make_unique<cc::SkiaPaintCanvas>(
           GetSkSurface()->getCanvas(), image_provider);
+    }
+    // Software PaintRecord playback allocates short-lived Skia rasterization
+    // scratch buffers that churn PartitionAlloc's quarantine. Keep safety
+    // checks active when discardable images may trigger image decoding.
+    // TODO(crbug.com/582017429): Optimize and remove if possible.
+    std::optional<base::ScopedSafetyChecksExclusion> excluded;
+    if (!last_recording.has_discardable_images()) {
+      excluded.emplace();
     }
     skia_canvas_->drawPicture(std::move(last_recording));
   } else if (!IsGpuContextLost()) {

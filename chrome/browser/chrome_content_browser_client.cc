@@ -143,6 +143,7 @@
 #include "chrome/browser/payments/payment_request_display_manager_factory.h"
 #include "chrome/browser/performance_manager/public/chrome_browser_main_extra_parts_performance_manager.h"
 #include "chrome/browser/performance_manager/public/chrome_content_browser_client_performance_manager_part.h"
+#include "chrome/browser/permissions/system/system_permission_settings.h"
 #include "chrome/browser/picture_in_picture/auto_picture_in_picture_tab_helper.h"
 #include "chrome/browser/picture_in_picture/picture_in_picture_window_manager.h"
 #include "chrome/browser/picture_in_picture/scoped_tuck_picture_in_picture.h"
@@ -3900,6 +3901,18 @@ ChromeContentBrowserClient::GetGeolocationSystemPermissionManager() {
 }
 #endif
 
+#if BUILDFLAG(IS_WIN)
+bool ChromeContentBrowserClient::SystemMayPromptForVideoCapture() {
+  // CanPrompt() is hard-coded to false for camera permission on Windows. So we
+  // check both the allowed and denied states to determine if the system may
+  // prompt.
+  return !system_permission_settings::IsAllowed(
+             ContentSettingsType::MEDIASTREAM_CAMERA) &&
+         !system_permission_settings::IsDenied(
+             ContentSettingsType::MEDIASTREAM_CAMERA);
+}
+#endif
+
 #if BUILDFLAG(IS_ANDROID)
 bool ChromeContentBrowserClient::ShouldUseGmsCoreGeolocationProvider() {
   // Indicate that Chrome uses the GMS core location provider.
@@ -5971,18 +5984,21 @@ void ChromeContentBrowserClient::InitOnUIThread() {
     network_contexts_parent_directory_.push_back(*cache_dir);
   }
 
-  // If the cache location has been overridden by a switch or policy to a
-  // directory outside `user_data_dir` and `cache_dir`, include that as well.
+  // If the cache location has been overridden by a switch or policy, record it
+  // in `network_contexts_cache_directory_`. Also include it in
+  // `network_contexts_parent_directory_` if it is outside `user_data_dir` and
+  // `cache_dir`.
   const base::FilePath pref_cache_dir =
       chrome_browser_net::GetDiskCacheDir(g_browser_process->local_state());
   if (!pref_cache_dir.empty()) {
+    network_contexts_cache_directory_ = pref_cache_dir;
+
     const bool is_inside_existing_dirs =
         pref_cache_dir == network_contexts_data_directory_ ||
         network_contexts_data_directory_.IsParent(pref_cache_dir) ||
         (cache_dir.has_value() &&
          (pref_cache_dir == *cache_dir || cache_dir->IsParent(pref_cache_dir)));
     if (!is_inside_existing_dirs) {
-      network_contexts_cache_directory_ = pref_cache_dir;
       network_contexts_parent_directory_.push_back(pref_cache_dir);
     }
   }

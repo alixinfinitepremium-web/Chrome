@@ -37,11 +37,9 @@ source_set("tabs_public") {
     "//content/public/common:buildflags",
     "//extensions/buildflags",
     "//rlz/buildflags",
-  ]
-  deps = [
-    "//content/public/browser",
     "//ui/base/unowned_user_data",
   ]
+  deps = [ "//content/public/browser" ]
 }
 
 # These enums should not need to depend on chrome/browser/ui. They have been
@@ -561,6 +559,7 @@ if (!is_android) {
       "//chrome/browser/content_settings:content_settings_factory",
       "//chrome/browser/contextual_search:contextual_cueing",
       "//chrome/browser/contextual_tasks",
+      "//chrome/browser/contextual_tasks:search_journey_cue",
       "//chrome/browser/dictation:features",
       "//chrome/browser/enterprise",
       "//chrome/browser/external_protocol",

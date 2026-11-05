@@ -425,6 +425,11 @@ inline constexpr char kCanvasDrawElementDescription[] =
     "drawing HTML content into a canvas. "
     "See: https://github.com/WICG/html-in-canvas";
 
+inline constexpr char kChangePasswordToolName[] = "Change Password Tool";
+inline constexpr char kChangePasswordToolDescription[] =
+    "Enables the actor change password tool for filling and submitting change "
+    "password forms.";
+
 inline constexpr char kChildProcessSecurityPolicyRustName[] =
     "Rust-based ChildProcessSecurityPolicy";
 inline constexpr char kChildProcessSecurityPolicyRustDescription[] =
@@ -990,6 +995,12 @@ inline constexpr char kAutofillAiServerModelName[] = "Autofill AI server model";
 inline constexpr char kAutofillAiServerModelDescription[] =
     "Allows the client to trigger the server model for Autofill AI type "
     "predictions.";
+
+inline constexpr char kAutofillAiSpiiVerificationName[] =
+    "Autofill AI SPII Verification";
+inline constexpr char kAutofillAiSpiiVerificationDescription[] =
+    "Enables in-context source verification when filling sensitive personal "
+    "context entities.";
 
 inline constexpr char kAutofillAiValuablesIPHName[] =
     "IPH Autofill AI Valuables";
@@ -1956,6 +1967,12 @@ inline constexpr char kActorScriptToolSkipPageContentName[] =
     "Actor script tool skip page content";
 inline constexpr char kActorScriptToolSkipPageContentDescription[] =
     "If enabled, script tools will explicitly vote to skip page content.";
+
+inline constexpr char kActorSilenceNotificationsAfterFirstWorkingName[] =
+    "Actor silence notifications after first working";
+inline constexpr char kActorSilenceNotificationsAfterFirstWorkingDescription[] =
+    "Silences all Actor task notifications except for the first working "
+    "notification for experimental-triggering tasks on Android.";
 
 inline constexpr char kActorStepProgressNotificationName[] =
     "Actor step progress notification";
@@ -4766,6 +4783,11 @@ inline constexpr char kSyncWalletVehicleRegistrationsName[] =
 inline constexpr char kSyncWalletVehicleRegistrationsDescription[] =
     "Enables syncing vehicle registrations in the wallet to the server.";
 
+inline constexpr char kSyncEncryptedTabContextName[] =
+    "Sync Encrypted Tab Context";
+inline constexpr char kSyncEncryptedTabContextDescription[] =
+    "Enables syncing of Encrypted Tab Context across devices.";
+
 inline constexpr char kSyncGeminiThreadsName[] = "Sync Gemini Threads";
 inline constexpr char kSyncGeminiThreadsDescription[] =
     "Acquire Gemini Threads via sync.";
@@ -6233,6 +6255,13 @@ inline constexpr char kDeviceTrustConnectorAndroidDescription[] =
     "Enables the Device Trust Connector on Android, allowing managed browsers "
     "and profiles to share device signals with policy-configured "
     "identity providers.";
+
+inline constexpr char kDeviceTrustConnectorDesktopFormFactorsName[] =
+    "Device Trust Connector on desktop form factors";
+inline constexpr char kDeviceTrustConnectorDesktopFormFactorsDescription[] =
+    "Allows the Device Trust Connector to run on desktop form factors. Also "
+    "requires the Device Trust Connector on Android flag. Has no effect on "
+    "other form factors.";
 
 inline constexpr char kEdgeToEdgeTopInsetName[] = "Edge-to-Edge Top Inset";
 inline constexpr char kEdgeToEdgeTopInsetDescription[] =
@@ -8112,11 +8141,6 @@ inline constexpr char kSpectreVariant2MitigationDescription[] =
     "Controls whether Spectre variant 2 mitigation is enabled when "
     "bootstrapping the Seccomp BPF sandbox. Can be overridden by "
     "#force-spectre-variant2-mitigation.";
-
-inline constexpr char kSupportForcedSigninPolicyName[] =
-    "Support Forced Sign-in";
-inline constexpr char kSupportForcedSigninPolicyDescription[] =
-    "Enables the SupportForcedSignin policy to require sign-in to Chrome.";
 
 inline constexpr char kTerminalDevName[] = "Terminal dev";
 inline constexpr char kTerminalDevDescription[] =

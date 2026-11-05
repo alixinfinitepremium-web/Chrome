@@ -1744,8 +1744,6 @@ void RenderWidgetHostImpl::ForwardMouseEventWithLatencyInfo(
     return;
   }
 
-  AddExpectedUserActivationNotification(mouse_event);
-
   input::MouseEventWithLatencyInfo mouse_with_latency(mouse_event, latency);
   GetRenderInputRouter()->DispatchInputEventWithLatencyInfo(
       mouse_with_latency.event, &mouse_with_latency.latency,
@@ -1944,8 +1942,6 @@ void RenderWidgetHostImpl::ForwardKeyboardEventWithCommands(
   if (touch_emulator && touch_emulator->HandleKeyboardEvent(key_event)) {
     return;
   }
-
-  AddExpectedUserActivationNotification(key_event);
 
   input::NativeWebKeyboardEventWithLatencyInfo key_event_with_latency(key_event,
                                                                       latency);
@@ -2966,6 +2962,10 @@ void RenderWidgetHostImpl::NotifyObserversOfInputEventWithSource(
   for (auto& observer : input_event_observers_) {
     observer.OnInputEvent(*this, event, source);
   }
+
+  // This call includes non-dispatched events, see the header file comment.
+  AddExpectedUserActivationNotification(event);
+
   if (dispatched_to_renderer) {
     delegate_->DidReceiveInputEvent(this, event);
   }
@@ -4710,19 +4710,25 @@ void RenderWidgetHostImpl::CompositorMetricRecorder::TryToRecordMetrics() {
   }
 }
 
-// TODO(https://crbug.com/40091540): WebContentsImpl has a "parallel" user
-// activation tracker through HandleUserInteractionForInputEvent which is
-// primarily used for OS clipboard messages. We need to consolidate that tracker
-// into RenderWidgetHostImpl. Not sure why gesture scroll begin events are
-// included there, this is incompatible with the web exposed user activation
-// state here.
 void RenderWidgetHostImpl::AddExpectedUserActivationNotification(
     const blink::WebInputEvent& event) {
   if (base::FeatureList::IsEnabled(
           blink::features::kTrustedUserActivationTriggers) &&
       (event.GetType() == blink::WebInputEvent::Type::kMouseDown ||
        event.GetType() == blink::WebInputEvent::Type::kKeyDown ||
-       event.GetType() == blink::WebInputEvent::Type::kRawKeyDown)) {
+       event.GetType() == blink::WebInputEvent::Type::kRawKeyDown ||
+       event.GetType() == blink::WebInputEvent::Type::kTouchStart)) {
+    // For a page popup, we redirect the call to the popup creator's host widget
+    // because any user interaction on the popup activates the renderer that
+    // created the popup (vs the "internal" renderer for the popup).
+    if (popup_creator_frame_id_.has_value()) {
+      if (auto* creator_rfh =
+              RenderFrameHostImpl::FromID(*popup_creator_frame_id_)) {
+        creator_rfh->GetRenderWidgetHost()
+            ->AddExpectedUserActivationNotification(event);
+      }
+      return;
+    }
     expected_user_activation_notification_timer_.Start(
         FROM_HERE, kUserActivationVerificationTimeout,
         base::BindOnce(

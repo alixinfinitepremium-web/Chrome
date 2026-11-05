@@ -434,6 +434,10 @@ bool GlicInstanceImpl::IsActuating() const {
   return actor_task_manager_ && actor_task_manager_->IsActuating();
 }
 
+bool GlicInstanceImpl::HasLiveSurface() const {
+  return GetLastActiveSurface().has_value();
+}
+
 bool GlicInstanceImpl::IsLiveMode() const {
   return interaction_mode_ == mojom::WebClientMode::kAudio;
 }
@@ -1824,12 +1828,7 @@ bool GlicInstanceImpl::IsHibernated() const {
 }
 
 void GlicInstanceImpl::EnsureHostAwake() {
-  if (IsHibernated()) {
-    if (coordinator_delegate_) {
-      coordinator_delegate_->OnInstanceWillAwaken();
-    }
-    host_.Awaken();
-  }
+  host_.Awaken();
 }
 
 void GlicInstanceImpl::Hibernate() {

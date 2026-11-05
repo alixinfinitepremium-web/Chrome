@@ -126,6 +126,14 @@
     "expiry_milestone": 160
   },
   {
+    "name": "actor-silence-notifications-after-first-working",
+    "owners": [
+      "bbetini@google.com",
+      "//chrome/browser/actor/OWNERS"
+    ],
+    "expiry_milestone": 160
+  },
+  {
     "name": "actor-step-progress-notification",
     "owners": [
       "bbetini@google.com",
@@ -1040,6 +1048,11 @@
     "name": "autofill-ai-server-model",
     "owners": [ "brunobraga@google.com", "tchudakov@google.com" ],
     "expiry_milestone": 160
+  },
+  {
+    "name": "autofill-ai-spii-verification",
+    "owners": [ "fhorschig@google.com", "tchudakov@google.com" ],
+    "expiry_milestone": 165
   },
   {
     "name": "autofill-ai-valuables-iph",
@@ -2011,6 +2024,11 @@
     "name": "centralized-infobar-framework",
     "owners": ["koretadaniel@chromium.org", "top-chrome-desktop-ui@google.com"],
     "expiry_milestone": 160
+  },
+  {
+    "name": "change-password-tool",
+    "owners": [ "talitahalboth@google.com", "automated-password-change-team@google.com" ],
+    "expiry_milestone": 165
   },
   {
     "name": "change-unfocused-priority",
@@ -3075,6 +3093,11 @@
   },
   {
     "name": "device-trust-connector-android",
+    "owners": [ "mwalachowski@google.com", "szymonkurek@google.com" ],
+    "expiry_milestone": 162
+  },
+  {
+    "name": "device-trust-connector-desktop-form-factors",
     "owners": [ "mwalachowski@google.com", "szymonkurek@google.com" ],
     "expiry_milestone": 162
   },
@@ -4919,7 +4942,7 @@
   {
     "name": "enable-webrtc-pipewire-camera",
     "owners": [ "grulja@gmail.com", "mfoltz@chromium.org", "alcooper@chromium.org" ],
-    "expiry_milestone": 160
+    "expiry_milestone": 180
   },
   {
     "name": "enable-webrtc-use-min-max-vea-dimensions",
@@ -9360,11 +9383,6 @@
     "expiry_milestone": 159
   },
   {
-    "name": "support-forced-signin-policy",
-    "owners": [ "samarchehade@google.com", "chrome-signin-mobile@google.com" ],
-    "expiry_milestone": 160
-  },
-  {
     "name": "support-google-one-deep-link",
     "owners": [ "olivierrobin@chromium.org", "qpubert@google.com" ],
     "expiry_milestone": 160
@@ -9426,6 +9444,11 @@
     "name": "sync-contextual-task",
     "owners": [ "ameurhosni@google.com","bling-search@google.com" ],
     "expiry_milestone": 160
+  },
+  {
+    "name": "sync-encrypted-tab-context",
+    "owners": [ "mastiz@chromium.org", "//components/sync/OWNERS" ],
+    "expiry_milestone": 170
   },
   {
     "name": "sync-gemini-threads",

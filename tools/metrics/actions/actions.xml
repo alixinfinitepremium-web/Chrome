@@ -580,8 +580,6 @@ should be able to be added at any place in this file.
   <variant name="_IOSBWGPromoFeature" summary="For IOSBWGPromoFeature feature"/>
   <variant name="_iOSChoiceScreen"
       summary="(obsolete) For iOSChoiceScreen feature"/>
-  <variant name="_iOSContextualPanelPriceInsights"
-      summary="For iOSContextualPanelPriceInsights feature"/>
   <variant name="_iOSContextualPanelSampleModel"
       summary="For iOSContextualPanelSampleModel feature"/>
   <variant name="_iOSDefaultBrowserBadgeEligibility"
@@ -1099,6 +1097,7 @@ should be able to be added at any place in this file.
   <variant name=".DiceUserMigrated" summary="DICe user migrated"/>
   <variant name=".EnhancedBundledSecuritySettings"
       summary="Enhanced protection user migrated"/>
+  <variant name=".Glic" summary="Glic toast"/>
   <variant name=".GlicSelectionHiddenForSite"
       summary="Glic selection hidden for site"/>
   <variant name=".MultistepFilterSuggestion" summary="Filter suggested"/>
@@ -14160,6 +14159,16 @@ should be able to be added at any place in this file.
   <owner>birnie@google.com</owner>
   <owner>perrier@google.com</owner>
   <description>The Glic instance WebUI is offline.</description>
+</action>
+
+<action
+    name="Glic.Instance.WebUiStateChanged.PendingProviderChangeGeminiToGeic">
+  <owner>alexwchen@google.com</owner>
+  <owner>glic+metrics@google.com</owner>
+  <description>
+    The Glic instance WebUI is showing the pending Gemini to GEiC provider
+    change panel.
+  </description>
 </action>
 
 <action name="Glic.Instance.WebUiStateChanged.Ready">

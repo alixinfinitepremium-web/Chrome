@@ -5765,6 +5765,12 @@
       status: "stable",
     },
     {
+      // Spec: https://github.com/whatwg/html/pull/12898
+      // Tracking bug: crbug.com/567285527
+      name: "SanitizerJavascriptURLs",
+      status: "stable",
+    },
+    {
       name: "SanitizeWorkerErrorPropagation",
       status: "stable",
     },
@@ -6911,12 +6917,6 @@
       // crbug.com/440947112
       name: "TextSpacingTrimFallbackChws",
       depends_on: ["TextSpacingTrimFallback"],
-      status: "stable",
-    },
-
-    {
-      // crbug.com/514448226
-      name: "TextStreamMethod",
       status: "stable",
     },
     {

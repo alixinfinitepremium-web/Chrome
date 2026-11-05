@@ -7,7 +7,6 @@
 #include <memory>
 #include <optional>
 #include <string>
-#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -20,7 +19,6 @@
 #include "chrome/common/actor.mojom.h"
 #include "chrome/common/actor/action_result.h"
 #include "components/actor/core/shared_types.h"
-#include "components/optimization_guide/content/browser/page_content_proto_provider.h"
 #include "components/tabs/public/tab_interface.h"
 #include "content/public/browser/render_frame_host.h"
 #include "content/public/test/browser_test.h"
@@ -36,24 +34,6 @@ namespace actor {
 namespace {
 
 using ::content::EvalJs;
-using ::content::GetDOMNodeId;
-using ::optimization_guide::DocumentIdentifierUserData;
-
-std::optional<DomNode> GetDomNodeOnPage(content::RenderFrameHost& rfh,
-                                        std::string_view query_selector) {
-  std::optional<int> node_id = GetDOMNodeId(rfh, query_selector);
-  if (!node_id) {
-    return std::nullopt;
-  }
-  std::optional<std::string> document_identifier =
-      DocumentIdentifierUserData::GetDocumentIdentifier(
-          rfh.GetGlobalFrameToken());
-  if (!document_identifier) {
-    return std::nullopt;
-  }
-  return DomNode{.node_id = *node_id,
-                 .document_identifier = std::move(*document_identifier)};
-}
 
 class ChangePasswordToolBrowserTest : public ActorToolsTest {
  public:
@@ -319,6 +299,12 @@ IN_PROC_BROWSER_TEST_F(ChangePasswordToolBrowserTest,
   ActResultFuture result;
   actor_task().Act(ToRequestList(std::move(request)), result.GetCallback());
   ExpectOkResult(result);
+  ASSERT_EQ(result.Get().size(), 1u);
+  EXPECT_EQ(result.Get()[0].result->message,
+            absl::StrFormat(
+                "Filled new generated password into field with id %d. "
+                "Triggered click on confirm button with id %d.",
+                new_password_node->node_id, confirm_button_node->node_id));
 
   EXPECT_EQ("dummy_new_password",
             EvalJs(main_frame(), "document.getElementById('input2').value"));
@@ -354,6 +340,15 @@ IN_PROC_BROWSER_TEST_F(ChangePasswordToolBrowserTest,
   ActResultFuture result;
   actor_task().Act(ToRequestList(std::move(request)), result.GetCallback());
   ExpectOkResult(result);
+  ASSERT_EQ(result.Get().size(), 1u);
+  EXPECT_EQ(
+      result.Get()[0].result->message,
+      absl::StrFormat(
+          "Filled old password into field with id %d and new generated "
+          "password into field with id %d and confirmation password into field "
+          "with id %d. Triggered click on confirm button with id %d.",
+          current_password_node->node_id, new_password_node->node_id,
+          confirm_password_node->node_id, confirm_button_node->node_id));
 
   EXPECT_EQ("dummy_current_password",
             EvalJs(main_frame(), "document.getElementById('input').value"));
@@ -389,6 +384,12 @@ IN_PROC_BROWSER_TEST_F(ChangePasswordToolBrowserTest,
   ActResultFuture result;
   actor_task().Act(ToRequestList(std::move(request)), result.GetCallback());
   ExpectOkResult(result);
+  ASSERT_EQ(result.Get().size(), 1u);
+  EXPECT_EQ(result.Get()[0].result->message,
+            absl::StrFormat(
+                "Filled new generated password into field with id %d. "
+                "Triggered click on confirm button %s.",
+                new_password_node->node_id, confirm_button_point.ToString()));
 
   EXPECT_EQ("dummy_new_password",
             EvalJs(main_frame(), "document.getElementById('input2').value"));

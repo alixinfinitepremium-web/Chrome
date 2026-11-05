@@ -18,12 +18,10 @@
 #include "chrome/browser/signin/identity_manager_factory.h"
 #include "chrome/browser/ui/autofill/autofill_ai/autofill_ai_import_data_controller.h"
 #include "chrome/browser/ui/autofill/autofill_ai/autofill_ai_import_string_utils.h"
-#include "chrome/browser/ui/autofill/autofill_ai/entity_attribute_update_details.h"
 #include "chrome/browser/ui/autofill/autofill_bubble_base.h"
 #include "chrome/browser/ui/autofill/autofill_bubble_controller_base.h"
 #include "chrome/browser/ui/autofill/autofill_bubble_handler.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
-#include "chrome/browser/ui/page_action/page_action_icon_type.h"
 #include "chrome/browser/ui/singleton_tabs.h"
 #include "chrome/common/url_constants.h"
 #include "chrome/grit/browser_resources.h"
@@ -34,6 +32,7 @@
 #include "components/autofill/core/browser/integrators/autofill_ai/autofill_ai_manager.h"
 #include "components/autofill/core/browser/integrators/autofill_ai/autofill_ai_wallet_util.h"
 #include "components/autofill/core/browser/integrators/autofill_ai/metrics/autofill_ai_metrics.h"
+#include "components/autofill/core/browser/ui/autofill_ai/entity_attribute_update_details.h"
 #include "components/autofill/core/common/autofill_features.h"
 #include "components/signin/public/identity_manager/identity_manager.h"
 #include "components/strings/grit/components_strings.h"
@@ -216,7 +215,6 @@ bool AutofillAiImportDataControllerImpl::ShouldReshowOnTabVisible() const {
 void AutofillAiImportDataControllerImpl::OnBubbleClosed(
     AutofillClient::AutofillAiBubbleResult result) {
   ResetBubbleViewAndInformBubbleManager();
-  UpdatePageActionIcon();
 
   if (!bubble_hide_initiated_by_bubble_manager_) {
     MaybeRunSaveUpdateCallback(result);
@@ -232,11 +230,6 @@ bool AutofillAiImportDataControllerImpl::CanBeReshown() const {
 void AutofillAiImportDataControllerImpl::OnBubbleDiscarded() {
   using enum AutofillClient::AutofillAiBubbleResult;
   MaybeRunSaveUpdateCallback(was_bubble_shown_ ? kNotInteracted : kUnknown);
-}
-
-std::optional<PageActionIconType>
-AutofillAiImportDataControllerImpl::GetPageActionIconType() {
-  return std::nullopt;
 }
 
 void AutofillAiImportDataControllerImpl::DoShowBubble() {

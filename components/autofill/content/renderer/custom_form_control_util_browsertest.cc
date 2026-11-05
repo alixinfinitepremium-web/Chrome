@@ -91,7 +91,7 @@ TEST_F(CustomFormControlUtilTest, CustomFormControlToFormField) {
   });
   EXPECT_EQ(field.renderer_id(), form_util::GetFieldRendererId(node));
   EXPECT_EQ(field.host_form_id(), form_util::GetFormRendererId(form));
-  EXPECT_EQ(field.form_control_type(), FormControlType::kSelectOne);
+  EXPECT_EQ(field.form_control_type(), FormControlType::kSyntheticSelectOne);
   EXPECT_EQ(field.max_length(), 0u);
   EXPECT_EQ(field.id_attribute(), u"c1");
   EXPECT_EQ(field.name_attribute(), u"country_select");
@@ -110,6 +110,8 @@ TEST_F(CustomFormControlUtilTest, CustomFormControlToFormField) {
   EXPECT_FALSE(field.should_autocomplete());
   EXPECT_FALSE(field.bounds().IsEmpty());
   EXPECT_EQ(field.label(), u"Country");
+  EXPECT_EQ(field.label_source(),
+            FormFieldData::LabelSource::kCustomFormControlScript);
   EXPECT_EQ(field.value(), u"CH");
   EXPECT_EQ(field.selected_option_text(), u"Switzerland");
 }

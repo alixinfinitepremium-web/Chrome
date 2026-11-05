@@ -20,6 +20,7 @@
 #include "base/check_op.h"
 #include "base/feature_list.h"
 #include "base/location.h"
+#include "base/memory/safety_checks.h"
 #include "base/memory/scoped_refptr.h"
 #include "base/memory/weak_ptr.h"
 #include "base/metrics/histogram_functions.h"
@@ -846,7 +847,17 @@ void BaseRenderingContext2D::RasterRecordToSoftwareSurface(
       blink::BindRepeating(
           &BaseRenderingContext2D::ApplyAnimatedImageFrameIndexesForId,
           WrapWeakPersistent(this));
-  skia_canvas.drawPicture(std::move(last_recording), custom_callback);
+  {
+    // Software PaintRecord playback allocates short-lived Skia rasterization
+    // scratch buffers that churn PartitionAlloc's quarantine. Keep safety
+    // checks active when discardable images may trigger image decoding.
+    // TODO(crbug.com/582017429): Optimize and remove if possible.
+    std::optional<base::ScopedSafetyChecksExclusion> excluded;
+    if (!last_recording.has_discardable_images()) {
+      excluded.emplace();
+    }
+    skia_canvas.drawPicture(std::move(last_recording), custom_callback);
+  }
   canvas_image_provider_->ReleaseLockedImages();
   canvas_image_provider_->UnbindTextureBackedImages();
 }
@@ -1005,6 +1016,16 @@ BaseRenderingContext2D::PaintRenderingResultsToSnapshot(
 }
 
 scoped_refptr<ExportedCanvasResource>
+BaseRenderingContext2D::CreateExportedResource(
+    scoped_refptr<CanvasResourceSharedImage> resource) {
+  return base::MakeRefCounted<ExportedCanvasResource>(
+      resource, resource->GetSharedImage(), resource->sync_token(),
+      viz::TransferableResource::ResourceSource::kCanvas,
+      color_params_.GetGfxHdrMetadata(), context_provider_wrapper_,
+      shared_image_provider_->IsAccelerated());
+}
+
+scoped_refptr<ExportedCanvasResource>
 BaseRenderingContext2D::PaintRenderingResultsToResource(
     SourceDrawingBuffer source_buffer,
     FlushReason reason) {
@@ -1022,8 +1043,7 @@ BaseRenderingContext2D::PaintRenderingResultsToResource(
 
     output_resource->UploadSoftwareRenderingResults(surface_.get());
 
-    return base::MakeRefCounted<ExportedCanvasResource>(
-        std::move(output_resource));
+    return CreateExportedResource(std::move(output_resource));
   }
 
   if (shared_image_provider_->IsGpuContextLost()) {
@@ -1036,8 +1056,7 @@ BaseRenderingContext2D::PaintRenderingResultsToResource(
   EndWriteAccess();
 
   return shared_image_provider_->resource_
-             ? base::MakeRefCounted<ExportedCanvasResource>(
-                   shared_image_provider_->resource_)
+             ? CreateExportedResource(shared_image_provider_->resource_)
              : nullptr;
 }
 
@@ -1087,6 +1106,11 @@ void BaseRenderingContext2D::UpdateRecordingLimits(bool is_graphite) {
 void BaseRenderingContext2D::ResetInternal() {
   Canvas2DRecorderContext::ResetInternal();
   clear_frame_ = true;
+  if (!OriginClean()) {
+    // Flush the clear canvas immediately if canvas is tainted to
+    // preventively block non-CORS data exfiltration.
+    FlushCanvas(FlushReason::kOther);
+  }
 }
 
 CanvasRenderingContext2DSettings* BaseRenderingContext2D::getContextAttributes()
@@ -1955,7 +1979,8 @@ void BaseRenderingContext2D::fillGlyphRun(const GlyphRun* glyph_run,
       shaped_text->GetText(), glyph_run->x() + x, glyph_run->y() + y,
       CanvasRenderingContext2DState::kFillPaintType,
       V8CanvasTextAlign::Enum::kLeft, shaped_text->ContextTextBaseline(),
-      glyph_run->start(), glyph_run->end(), nullptr, shaped_text->GetFont());
+      glyph_run->start(), glyph_run->end(), nullptr, shaped_text->GetFont(),
+      shaped_text->Direction());
 }
 
 void BaseRenderingContext2D::strokeGlyphRun(const GlyphRun* glyph_run,
@@ -1968,7 +1993,8 @@ void BaseRenderingContext2D::strokeGlyphRun(const GlyphRun* glyph_run,
       shaped_text->GetText(), glyph_run->x() + x, glyph_run->y() + y,
       CanvasRenderingContext2DState::kStrokePaintType,
       V8CanvasTextAlign::Enum::kLeft, shaped_text->ContextTextBaseline(),
-      glyph_run->start(), glyph_run->end(), nullptr, shaped_text->GetFont());
+      glyph_run->start(), glyph_run->end(), nullptr, shaped_text->GetFont(),
+      shaped_text->Direction());
 }
 
 void BaseRenderingContext2D::fillGlyphRuns(
@@ -1999,7 +2025,8 @@ void BaseRenderingContext2D::DrawTextInternal(
     unsigned run_start,
     unsigned run_end,
     double* max_width,
-    const Font* cluster_font) {
+    const Font* cluster_font,
+    std::optional<TextDirection> direction_override) {
   if (!std::isfinite(x) || !std::isfinite(y)) {
     return;
   }
@@ -2035,11 +2062,15 @@ void BaseRenderingContext2D::DrawTextInternal(
   const ComputedStyle* computed_style =
       canvas ? canvas->EnsureComputedStyle() : nullptr;
   CanvasRenderingContextHost* host = GetCanvasRenderingContextHost();
+  // Glyph runs must be bidi-resolved exactly as they were by shapeText(): the
+  // current context direction and the canvas unicode-bidi do not apply.
   TextDirection direction =
-      ToTextDirection(GetState().GetDirection(), host, computed_style);
+      direction_override
+          ? *direction_override
+          : ToTextDirection(GetState().GetDirection(), host, computed_style);
   bool is_rtl = direction == TextDirection::kRtl;
-  bool bidi_override =
-      computed_style ? IsOverride(computed_style->GetUnicodeBidi()) : false;
+  bool bidi_override = !direction_override && computed_style &&
+                       IsOverride(computed_style->GetUnicodeBidi());
 
   // Obtain `paint_canvas` and `state` after `AccessFont`,
   // `EnsureComputedStyle`, `ToTextDirection`, and `ResolveFilterIfNeeded`,
@@ -2641,7 +2672,7 @@ void BaseRenderingContext2D::SetOriginTainted() {
 }
 
 bool BaseRenderingContext2D::OriginClean() const {
-  return Host()->OriginClean();
+  return Host() ? Host()->OriginClean() : true;
 }
 
 }  // namespace blink

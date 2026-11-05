@@ -19,8 +19,6 @@
 #include "chrome/browser/profiles/profile_manager.h"
 #include "chrome/browser/profiles/profile_selections.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
-#include "chrome/browser/ui/omnibox/omnibox_next_features.h"
-#include "chrome/browser/ui/tabs/organizer/organizer_panel_utils.h"
 #include "chrome/browser/ui/ui_features.h"
 #include "chrome/common/chrome_features.h"
 #include "chrome/test/base/in_process_browser_test.h"
@@ -415,17 +413,7 @@ IN_PROC_BROWSER_TEST_F(ProfileKeyedServiceBrowserTest,
 class ProfileKeyedServiceGuestBrowserTest
     : public ProfileKeyedServiceBrowserTest {
  public:
-  ProfileKeyedServiceGuestBrowserTest() {
-    // TODO(crbug.com/452061489): Fix tests that fail when the WebUI Omnibox is
-    // enabled and then remove this.
-    // TODO(crbug.com/579030694): Investigate lazy loading OrganizerPanel.
-    scoped_feature_list_.InitWithFeatures(
-        /*enabled_features=*/{},
-        /*disabled_features=*/
-        {omnibox::internal::kWebUIOmniboxPopup,
-         omnibox::internal::kWebUIOmniboxAimPopup,
-         organizer_panel::kOrganizerPanel});
-  }
+  ProfileKeyedServiceGuestBrowserTest() = default;
   ~ProfileKeyedServiceGuestBrowserTest() override = default;
 
   // ProfileKeyedServiceBrowserTest:
@@ -437,29 +425,16 @@ class ProfileKeyedServiceGuestBrowserTest
         ash::switches::kLoginUser,
         user_manager::GuestAccountId().GetUserEmail());
   }
-
- private:
-  base::test::ScopedFeatureList scoped_feature_list_;
 };
 #else
 class ProfileKeyedServiceGuestBrowserTest
     : public ProfileKeyedServiceBrowserTest {
  public:
-  ProfileKeyedServiceGuestBrowserTest() {
-    // TODO(crbug.com/452061489): Fix tests that fail when the WebUI Omnibox is
-    // enabled and then remove this.
-    // TODO(crbug.com/579030694): Investigate lazy loading OrganizerPanel.
-    scoped_feature_list_.InitWithFeatures(
-        /*enabled_features=*/{},
-        /*disabled_features=*/{omnibox::internal::kWebUIOmniboxPopup,
-                               omnibox::internal::kWebUIOmniboxAimPopup,
-                               organizer_panel::kOrganizerPanel});
-  }
+  ProfileKeyedServiceGuestBrowserTest() = default;
   ~ProfileKeyedServiceGuestBrowserTest() override = default;
 
- private:
-  base::test::ScopedFeatureList scoped_feature_list_;
 #if BUILDFLAG(IS_WIN)
+ private:
   // BoundSessionCookieRefreshService is only created with an unexportable key
   // provider, which Windows only has on machines with a TPM. Use a fake one so
   // the expected services don't depend on the bot's hardware.

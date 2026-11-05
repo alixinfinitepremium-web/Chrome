@@ -83,13 +83,11 @@
 #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
 #include "chrome/browser/ui/browser_window/public/global_browser_collection.h"
 #include "chrome/browser/ui/exclusive_access/exclusive_access_manager.h"
-#include "chrome/browser/ui/omnibox/omnibox_next_features.h"
 #include "chrome/browser/ui/read_anything/read_anything_entry_point_controller.h"
 #include "chrome/browser/ui/side_panel/side_panel_entry_id.h"
 #include "chrome/browser/ui/side_panel/side_panel_ui.h"
 #include "chrome/browser/ui/startup/startup_types.h"
 #include "chrome/browser/ui/tabs/features.h"
-#include "chrome/browser/ui/tabs/public/tab_features.h"
 #include "chrome/browser/ui/tabs/split_tab_metrics.h"
 #include "chrome/browser/ui/tabs/tab_enums.h"
 #include "chrome/browser/ui/tabs/tab_strip_model.h"
@@ -502,18 +500,10 @@ class ContextMenuBrowserTestBase : public MixinBasedInProcessBrowserTest {
 class ContextMenuBrowserTest : public ContextMenuBrowserTestBase {
  protected:
   ContextMenuBrowserTest() {
-    // TODO(b:481331402): 4 tests are failing when enabling
-    //   `kWebUIOmniboxPopup`. The respective menu items are becoming enabled
-    //   when they should be disabled. These are just test issues, the menu
-    //   items are actually correctly disabled in non-test builds.
-    //   - ...SaveLinkAsEntryIsDisabledForBlockedUrls/LinkPreviewDisabled
-    //   - ...SaveLinkAsEntryIsDisabledForBlockedUrls/LinkPreviewEnabled
-    //   - ...SaveImageAsEntryIsDisabledForBlockedUrls/LinkPreviewDisabled
-    //   - ...SaveImageAsEntryIsDisabledForBlockedUrls/LinkPreviewEnabled
     scoped_feature_list_.InitWithFeatures(
         {features::kGlic, media::kContextMenuSaveVideoFrameAs,
          media::kContextMenuSearchForVideoFrame},
-        {omnibox::internal::kWebUIOmniboxPopup});
+        {});
   }
 
  private:
@@ -3424,11 +3414,8 @@ IN_PROC_BROWSER_TEST_F(LensOverlayBrowserTest,
   ASSERT_NO_FATAL_FAILURE(LoadPageForContextMenu());
 
   // State should start in off.
-  auto* controller = browser()
-                         ->GetTabStripModel()
-                         ->GetActiveTab()
-                         ->GetTabFeatures()
-                         ->lens_overlay_controller();
+  auto* controller = LensOverlayController::From(
+      browser()->GetTabStripModel()->GetActiveTab());
   ASSERT_EQ(controller->state(), LensOverlayController::State::kOff);
 
   OpenContextMenuAndSelectRegionSearchEntrypoint(ui::EF_MOUSE_BUTTON,
@@ -3447,11 +3434,8 @@ IN_PROC_BROWSER_TEST_F(LensOverlayBrowserTest,
   ASSERT_TRUE(ui_test_utils::NavigateToURL(browser(), page));
 
   // State should start in off.
-  auto* controller = browser()
-                         ->GetTabStripModel()
-                         ->GetActiveTab()
-                         ->GetTabFeatures()
-                         ->lens_overlay_controller();
+  auto* controller = LensOverlayController::From(
+      browser()->GetTabStripModel()->GetActiveTab());
   ASSERT_EQ(controller->state(), LensOverlayController::State::kOff);
 
   OpenContextMenuAndSelectSelectAll(

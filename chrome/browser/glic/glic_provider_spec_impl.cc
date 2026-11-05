@@ -36,6 +36,7 @@
 #include "components/signin/public/identity_manager/account_info.h"
 #include "components/signin/public/identity_manager/accounts_in_cookie_jar_info.h"
 #include "components/signin/public/identity_manager/identity_manager.h"
+#include "components/skills/features.h"
 #include "net/base/url_util.h"
 #include "pdf/buildflags.h"
 #include "url/gurl.h"
@@ -108,6 +109,7 @@ class GeminiGlicProviderSpec final : public GlicProviderSpec {
   std::string_view GetSettingsSubpage() const override {
     return chrome::kGlicSettingsSubpage;
   }
+  bool CanOptOutToConsumerInSettings() const override { return false; }
   int GetEntryPointIconId() const override { return IDR_GLIC_BUTTON_ALT_ICON; }
   int GetPromoBodyStringId() const override { return IDS_GLIC_PROMO_BODY; }
   std::string_view GetSyntheticTrialGroupName() const override {
@@ -180,6 +182,8 @@ class GeminiGlicProviderSpec final : public GlicProviderSpec {
       case GlicFeature::kContextualCueing:
       case GlicFeature::kZeroStateSuggestions:
         return true;
+      case GlicFeature::kSkills:
+        return base::FeatureList::IsEnabled(::features::kSkillsEnabled);
     }
     NOTREACHED();
   }
@@ -195,13 +199,18 @@ class GeminiGlicProviderSpec final : public GlicProviderSpec {
 class GeminiEnterpriseGlicProviderSpec final : public GlicProviderSpec {
  public:
   explicit GeminiEnterpriseGlicProviderSpec(GeicProviderInitOptions options)
-      : guest_url_(std::move(options.guest_url)) {}
+      : guest_url_(std::move(options.guest_url)),
+        can_opt_out_to_consumer_in_settings_(
+            options.can_opt_out_to_consumer_in_settings) {}
   ~GeminiEnterpriseGlicProviderSpec() override = default;
   std::string_view GetSettingsSectionId() const override {
     return kGeminiEnterpriseSettingsSectionId;
   }
   std::string_view GetSettingsSubpage() const override {
     return chrome::kGlicEnterpriseSettingsSubpage;
+  }
+  bool CanOptOutToConsumerInSettings() const override {
+    return can_opt_out_to_consumer_in_settings_;
   }
   int GetEntryPointIconId() const override { return IDR_GEIC_BUTTON_ICON; }
   int GetPromoBodyStringId() const override { return IDS_GEIC_PROMO_BODY; }
@@ -245,6 +254,7 @@ class GeminiEnterpriseGlicProviderSpec final : public GlicProviderSpec {
       case GlicFeature::kFirstRunShowcase:
       case GlicFeature::kContextualCueing:
       case GlicFeature::kZeroStateSuggestions:
+      case GlicFeature::kSkills:
         return false;
     }
     NOTREACHED();
@@ -260,6 +270,7 @@ class GeminiEnterpriseGlicProviderSpec final : public GlicProviderSpec {
 
  private:
   const GURL guest_url_;
+  const bool can_opt_out_to_consumer_in_settings_;
   const std::unique_ptr<GlicFreStore> fre_store_ =
       CreateGeminiEnterpriseFreStore();
 };

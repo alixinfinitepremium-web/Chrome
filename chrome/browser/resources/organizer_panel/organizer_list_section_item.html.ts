@@ -32,12 +32,12 @@ export function getHtml(this: OrganizerListSectionItemElement) {
     </div>
   ` : html`
     ${this.item.prefixIcon?.stackedFavicons ? html`
-      <stacked-favicons id="stackedFavicons" slot="customIcon"
+      <organizer-favicon id="favicon" slot="customIcon"
           .url="${this.item.prefixIcon.stackedFavicons.urls[0]}"
           .secondaryUrl="${this.item.prefixIcon.stackedFavicons.urls[1]}"
           ?stack-vertically="${
               this.item.prefixIcon.stackedFavicons.stackVertically}">
-      </stacked-favicons>
+      </organizer-favicon>
     ` : ''}
   `}
   ${this.item.trailingIcon ? html`
@@ -46,7 +46,8 @@ export function getHtml(this: OrganizerListSectionItemElement) {
     </cr-icon>
   ` : ''}
   ${this.item.hoveredActionButton ? html`
-    <cr-icon-button id="actionButton" slot="suffix" tabindex="-1"
+    <cr-icon-button id="actionButton" slot="suffix"
+        tabindex="${this.tabbable ? 0 : -1}"
         iron-icon="${this.item.hoveredActionButton.icon}"
         aria-label="${this.item.hoveredActionButton.ariaLabel}"
         title="${this.item.hoveredActionButton.tooltip || nothing}"

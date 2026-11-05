@@ -156,7 +156,6 @@
 #include "components/paint_preview/features/features.h"
 #include "components/password_manager/core/browser/features/password_features.h"
 #include "components/password_manager/core/common/password_manager_features.h"
-#include "components/password_manager/core/common/remote_actor/remote_actor_features.h"
 #include "components/payments/core/features.h"
 #include "components/performance_manager/public/features.h"
 #include "components/permissions/features.h"
@@ -5193,8 +5192,6 @@ const FeatureEntry::FeatureVariation kToolbarGlowUpVariations[] = {
 #if !BUILDFLAG(IS_ANDROID)
 const FeatureEntry::FeatureParam kDictationEvalModeParam[] = {
     {"eval_mode", "true"}};
-const FeatureEntry::FeatureParam kDictationSessionEndsOnStreamEndParam[] = {
-    {"session_ends_on_stream_end", "true"}};
 const FeatureEntry::FeatureParam kDictationShowPartialsParam[] = {
     {"show_partials", "true"}};
 const FeatureEntry::FeatureParam kDictationWebSpeechApiBackendParam[] = {
@@ -5206,8 +5203,6 @@ const FeatureEntry::FeatureParam
 const FeatureEntry::FeatureParam kDictationConnectorSmoketestParam[] = {
     {"connector_tag", "smoketest"}};
 const FeatureEntry::FeatureVariation kDictationVariations[] = {
-    {"with close UI after output", kDictationSessionEndsOnStreamEndParam,
-     nullptr},
     {"with evaluation mode", kDictationEvalModeParam, nullptr},
     {"with shown partials", kDictationShowPartialsParam, nullptr},
     {"with Web Speech API backend", kDictationWebSpeechApiBackendParam,
@@ -5352,25 +5347,18 @@ const FeatureEntry::FeatureVariation kEnterpriseProxyErrorHandlingVariations[] =
 #endif  // BUILDFLAG(ENTERPRISE_PROXY)
 
 #if !BUILDFLAG(IS_ANDROID)
-// Testing-only variation for GWS.
-// Note: In production, each remote actor must have its own dedicated origin
-// policy, OAuth client ID, task namespace ID, and UI strings rather than
-// overriding them globally via testing feature parameters.
-const FeatureEntry::FeatureParam kRemoteActorCredentialSharingGwsForTesting[] =
-    {
-        {"allowed_host_for_testing", "gws-prod.corp.google.com"},
-        {"actor_name_for_testing", "Search Agent"},
-        {"oauth_client_id",
-         "320695880279-gnq6the97ga85scn208u5jctnk82qelk.apps."
-         "googleusercontent.com"},
-};
-
-const FeatureEntry::FeatureVariation kRemoteActorCredentialSharingVariations[] =
-    {
-        {"for GWS", kRemoteActorCredentialSharingGwsForTesting, nullptr},
+const FeatureEntry::Choice kRemoteActorCredentialSharingChoices[] = {
+    {flags_ui::kGenericExperimentChoiceDefault, "", ""},
+    {flags_ui::kGenericExperimentChoiceEnabled, switches::kEnableFeatures,
+     "RemoteActorCredentialSharing,RemoteActorCredentialSharingSearch"},
+    {"Enabled (Gemini only)", switches::kEnableFeatures,
+     "RemoteActorCredentialSharing"},
+    {"Enabled (Search only)", switches::kEnableFeatures,
+     "RemoteActorCredentialSharingSearch"},
+    {flags_ui::kGenericExperimentChoiceDisabled, switches::kDisableFeatures,
+     "RemoteActorCredentialSharing,RemoteActorCredentialSharingSearch"},
 };
 #endif  // !BUILDFLAG(IS_ANDROID)
-
 const FeatureEntry::Choice kPaymentHandlerCustomSizeChoices[] = {
     {flags_ui::kGenericExperimentChoiceDefault, "", ""},
     {"Static sizing (openWindow)", switches::kEnableFeatures,
@@ -8497,10 +8485,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kForceStartupSigninPromoName,
      flag_descriptions::kForceStartupSigninPromoDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(switches::kForceStartupSigninPromo)},
-    {"support-forced-signin-policy",
-     flag_descriptions::kSupportForcedSigninPolicyName,
-     flag_descriptions::kSupportForcedSigninPolicyDescription, kOsAndroid,
-     FEATURE_VALUE_TYPE(switches::kSupportForcedSigninPolicy)},
 #endif  // BUILDFLAG(IS_ANDROID)
 
     {"strict-origin-isolation", flag_descriptions::kStrictOriginIsolationName,
@@ -9950,6 +9934,11 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kSyncAutofillValuableMetadataDescription, kOsAll,
      FEATURE_VALUE_TYPE(syncer::kSyncAutofillValuableMetadata)},
 
+    {"sync-encrypted-tab-context",
+     flag_descriptions::kSyncEncryptedTabContextName,
+     flag_descriptions::kSyncEncryptedTabContextDescription, kOsAll,
+     FEATURE_VALUE_TYPE(syncer::kSyncEncryptedTabContext)},
+
     {"sync-wallet-flight-reservations",
      flag_descriptions::kSyncWalletFlightReservationsName,
      flag_descriptions::kSyncWalletFlightReservationsDescription, kOsAll,
@@ -11159,6 +11148,12 @@ const FeatureEntry kFeatureEntries[] = {
          kActorTypeToolObservationStartDelayVariations,
          "ActorTypeToolObservationStartDelay")},
 #if BUILDFLAG(IS_ANDROID)
+    {"actor-silence-notifications-after-first-working",
+     flag_descriptions::kActorSilenceNotificationsAfterFirstWorkingName,
+     flag_descriptions::kActorSilenceNotificationsAfterFirstWorkingDescription,
+     kOsAndroid,
+     FEATURE_VALUE_TYPE(
+         chrome::android::kActorSilenceNotificationsAfterFirstWorking)},
     {"actor-step-progress-notification",
      flag_descriptions::kActorStepProgressNotificationName,
      flag_descriptions::kActorStepProgressNotificationDescription, kOsAndroid,
@@ -14066,10 +14061,7 @@ const FeatureEntry kFeatureEntries[] = {
     {"remote-actor-credential-sharing",
      flag_descriptions::kRemoteActorCredentialSharingName,
      flag_descriptions::kRemoteActorCredentialSharingDescription, kOsDesktop,
-     FEATURE_WITH_PARAMS_VALUE_TYPE(
-         password_manager::features::kRemoteActorCredentialSharing,
-         kRemoteActorCredentialSharingVariations,
-         "RemoteActorCredentialSharing")},
+     MULTI_VALUE_TYPE(kRemoteActorCredentialSharingChoices)},
 
     {"autofill-gmail-otp",
      flag_descriptions::kAutofillGmailOtpPreLaunchMetricsName,
@@ -14357,6 +14349,12 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kDeviceTrustConnectorAndroidName,
      flag_descriptions::kDeviceTrustConnectorAndroidDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(enterprise_connectors::kDeviceTrustConnectorAndroid)},
+    {"device-trust-connector-desktop-form-factors",
+     flag_descriptions::kDeviceTrustConnectorDesktopFormFactorsName,
+     flag_descriptions::kDeviceTrustConnectorDesktopFormFactorsDescription,
+     kOsAndroid,
+     FEATURE_VALUE_TYPE(
+         enterprise_connectors::kDeviceTrustConnectorDesktopFormFactors)},
 #endif  // BUILDFLAG(IS_ANDROID)
 
     {"autofill-enable-oauth2-token-fix",
@@ -14489,11 +14487,21 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kMiddleClickAutoscrollDescription, kOsLinux,
      FEATURE_VALUE_TYPE(blink::features::kMiddleClickAutoscroll)},
 #endif  // BUILDFLAG(IS_LINUX)
-        // Add new entries above this line.
-        // NOTE: Adding a new flag requires adding a corresponding entry to enum
-        // "LoginCustomFlags" in tools/metrics/histograms/enums.xml. See "Flag
-        // Histograms" in tools/metrics/histograms/README.md (run the
-        // AboutFlagsHistogramTest unit test to verify this process).
+
+    {"change-password-tool", flag_descriptions::kChangePasswordToolName,
+     flag_descriptions::kChangePasswordToolDescription, kOsAll,
+     FEATURE_VALUE_TYPE(password_manager::features::kChangePasswordTool)},
+
+    {"autofill-ai-spii-verification",
+     flag_descriptions::kAutofillAiSpiiVerificationName,
+     flag_descriptions::kAutofillAiSpiiVerificationDescription, kOsAll,
+     FEATURE_VALUE_TYPE(autofill::features::kAutofillAiSpiiVerification)},
+
+    // Add new entries above this line.
+    // NOTE: Adding a new flag requires adding a corresponding entry to enum
+    // "LoginCustomFlags" in tools/metrics/histograms/enums.xml. See "Flag
+    // Histograms" in tools/metrics/histograms/README.md (run the
+    // AboutFlagsHistogramTest unit test to verify this process).
 };
 
 class FlagsStateSingleton : public flags_ui::FlagsState::Delegate {

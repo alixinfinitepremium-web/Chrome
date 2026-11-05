@@ -541,7 +541,14 @@ public class ActorForegroundServiceControllerImplTest {
     public void testActorTask_getTargetTabId() {
         long nativeTaskPtr = 123L;
         ActorTaskJni.setInstanceForTesting(mActorTaskJni);
-        ActorTask task = new ActorTask(nativeTaskPtr, 1, "Task", mProfile, null);
+        ActorTask task =
+                new ActorTask(
+                        nativeTaskPtr,
+                        1,
+                        "Task",
+                        mProfile,
+                        /* glicConversationId= */ null,
+                        /* isExperimentalTriggering= */ false);
 
         when(mActorTaskJni.getLastActuatedTabId(nativeTaskPtr)).thenReturn(789);
         when(mActorTaskJni.getTabs(nativeTaskPtr)).thenReturn(new int[] {456});
@@ -618,6 +625,19 @@ public class ActorForegroundServiceControllerImplTest {
         verify(mMockBackgroundManager, never()).startBackgroundActuation(any(), any());
 
         ActorKeyedServiceFactory.setForTesting(null);
+    }
+
+    @Test
+    public void testCreateTrustedPendingActorTaskNewTabIntent() {
+        Intent intent = mController.createTrustedPendingActorTaskNewTabIntent();
+
+        assertNotNull(intent);
+        assertEquals(Intent.ACTION_VIEW, intent.getAction());
+        assertEquals(UrlConstants.NTP_URL, intent.getDataString());
+        assertTrue((intent.getFlags() & Intent.FLAG_ACTIVITY_NEW_TASK) != 0);
+        assertTrue(
+                intent.getBooleanExtra(GlicIntentConstants.EXTRA_GLIC_PENDING_ACTOR_TASK, false));
+        assertTrue(IntentHandler.wasIntentSenderChrome(intent));
     }
 
     public ServiceConnection getServiceConnectionForTesting() {

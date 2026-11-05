@@ -46,6 +46,11 @@ chromium-metrics-reviews@google.com.
 
 <!-- LINT.ThenChange(//chrome/browser/resources/organizer_panel/organizer_list_section_delegate.ts:OrganizerAction) -->
 
+<variants name="OrganizerListState">
+  <variant name="Filtered" summary="Filtered by user search query."/>
+  <variant name="Unfiltered" summary="Unfiltered by user search query."/>
+</variants>
+
 <!-- LINT.IfChange(OrganizerSection) -->
 
 <variants name="OrganizerSection">
@@ -2596,6 +2601,18 @@ chromium-metrics-reviews@google.com.
   </summary>
 </histogram>
 
+<histogram name="Tabs.Organizer.CloseAction" enum="OrganizerPanelCloseAction"
+    expires_after="2027-05-02">
+  <owner>agale@chromium.org</owner>
+  <owner>top-chrome-desktop-ui@google.com</owner>
+  <summary>
+    Tracks the action taken by the user within the Organizer panel. Recorded
+    when the Organizer panel UI is closed. If multiple actions are taken (for
+    example closing a tab and switching to a tab), only the last action is
+    logged.
+  </summary>
+</histogram>
+
 <histogram name="Tabs.Organizer.Section.{Section}.MenuAction"
     enum="OrganizerSectionMenuOption" expires_after="2027-05-02">
   <owner>agale@chromium.org</owner>
@@ -2627,10 +2644,19 @@ chromium-metrics-reviews@google.com.
     its section list in the Organizer panel in a {State} state.
   </summary>
   <token key="Action" variants="OrganizerAction"/>
-  <token key="State">
-    <variant name="Filtered" summary="Filtered by user search query."/>
-    <variant name="Unfiltered" summary="Unfiltered by user search query."/>
-  </token>
+  <token key="State" variants="OrganizerListState"/>
+</histogram>
+
+<histogram name="Tabs.Organizer.WebUI.TimeTo{Action}In{State}List" units="ms"
+    expires_after="2027-05-02">
+  <owner>agale@chromium.org</owner>
+  <owner>top-chrome-desktop-ui@google.com</owner>
+  <summary>
+    Records the time taken between when the Organizer panel is shown and when
+    {Action} is performed on an item in its section list in a {State} state.
+  </summary>
+  <token key="Action" variants="OrganizerAction"/>
+  <token key="State" variants="OrganizerListState"/>
 </histogram>
 
 <histogram name="Tabs.PageLoad.TimeSinceActive2" units="ms"

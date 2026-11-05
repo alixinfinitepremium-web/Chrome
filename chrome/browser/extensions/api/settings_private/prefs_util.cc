@@ -1016,8 +1016,6 @@ const PrefsUtil::TypedPrefMap& PrefsUtil::GetAllowlistedKeys() {
   (*s_allowlist)[ash::kStatsReportingPref] = settings_api::PrefType::kBoolean;
   (*s_allowlist)[::metrics::prefs::kMetricsUserConsent] =
       settings_api::PrefType::kBoolean;
-  (*s_allowlist)[ash::prefs::kSuggestedContentEnabled] =
-      settings_api::PrefType::kBoolean;
   (*s_allowlist)[ash::kAttestationForContentProtectionEnabled] =
       settings_api::PrefType::kBoolean;
   (*s_allowlist)[ash::kDevicePeripheralDataAccessEnabled] =
@@ -1396,6 +1394,8 @@ const PrefsUtil::TypedPrefMap& PrefsUtil::GetAllowlistedKeys() {
       settings_api::PrefType::kNumber;
 
   // Glic prefs
+  (*s_allowlist)[glic::prefs::kGlicAssistantSelection] =
+      settings_api::PrefType::kNumber;
   (*s_allowlist)[glic::prefs::kGlicPinnedToTabstrip] =
       settings_api::PrefType::kBoolean;
   (*s_allowlist)[glic::prefs::kGlicLauncherEnabled] =

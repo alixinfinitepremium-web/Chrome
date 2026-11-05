@@ -63,7 +63,6 @@ source_set("autofill") {
     "//chrome/browser/picture_in_picture",
     "//chrome/browser/profiles:profile",
     "//chrome/browser/ui/autofill/payments",
-    "//chrome/browser/ui/page_action:icon_type",
     "//chrome/browser/ui/passwords",
     "//components/application_locale_storage",
     "//components/autofill/content/browser",
@@ -202,6 +201,7 @@ source_set("impl") {
     "//components/password_manager/core/browser",
     "//components/password_manager/core/browser:metrics_util",
     "//components/password_manager/core/browser:password_form",
+    "//components/password_manager/core/browser/features:password_features",
     "//components/password_manager/core/browser/form_parsing",
     "//components/personal_context/core",
     "//components/personal_context/first_run",
@@ -230,7 +230,6 @@ source_set("impl") {
       "//chrome/browser/ui/android/autofill",
       "//components/android_autofill/browser:android",
       "//components/messages/android:feature_flags",
-      "//components/password_manager/core/browser/features:password_features",
     ]
   } else {
     sources += [
@@ -277,7 +276,6 @@ source_set("impl") {
       "//chrome/browser/ui/webauthn",
       "//components/autofill/core/browser",
       "//components/desktop_to_mobile_promos",
-      "//components/password_manager/core/browser/features:password_features",
       "//components/tabs:public",
       "//extensions/browser",
     ]
@@ -302,7 +300,6 @@ source_set("impl") {
 source_set("unit_tests") {
   testonly = true
   sources = [
-    "autofill_ai/entity_attribute_update_details_unittest.cc",
     "autofill_client_provider_unittest.cc",
     "autofill_suggestion_controller_unittest.cc",
     "chrome_autofill_client_unittest.cc",
@@ -349,6 +346,7 @@ source_set("unit_tests") {
     "//components/keyed_service/content",
     "//components/keyed_service/core",
     "//components/password_manager/core/browser:password_form",
+    "//components/password_manager/core/browser/features:password_features",
     "//components/password_manager/core/common",
     "//components/prefs:test_support",
     "//components/safe_browsing:buildflags",

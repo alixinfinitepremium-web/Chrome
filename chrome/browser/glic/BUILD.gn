@@ -974,6 +974,9 @@ source_set("unit_tests") {
     "//components/optimization_guide/proto:optimization_guide_proto",
     "//components/page_content_annotations/content",
     "//components/performance_manager/scenario_api:test_support",
+    "//components/policy:generated",
+    "//components/policy/core/common",
+    "//components/policy/core/common:test_support",
     "//components/prefs",
     "//components/prefs:test_support",
     "//components/services/storage:test_support",
@@ -1039,6 +1042,7 @@ source_set("unit_tests") {
     sources += [
       "android/background_actuation_capability_unittest.cc",
       "common/glic_tab_observer_android_unittest.cc",
+      "public/glic_enabling_native_fre_unittest.cc",
       "widget/glic_side_panel_ui_android_unittest.cc",
     ]
 
@@ -1048,6 +1052,7 @@ source_set("unit_tests") {
       "//chrome/browser/ui/android/tab_model",
       "//chrome/browser/ui/android/tab_model:test_support",
       "//chrome/browser/ui/browser_window/test:test_support",
+      "//chrome/common:chrome_features",
       "//chrome/test:test_support",
       "//components/prefs:test_support",
       "//components/signin/public/identity_manager:test_support",
@@ -1286,7 +1291,6 @@ source_set("browser_tests") {
       "//chrome/browser/glic/android",
       "//chrome/browser/glic/browser_ui",
       "//chrome/browser/glic/browser_ui:impl",
-      "//chrome/browser/ui/omnibox",
       "//chrome/browser/ui/side_panel",
       "//chrome/browser/ui/side_panel/android",
       "//chrome/test:test_support_ui_android",

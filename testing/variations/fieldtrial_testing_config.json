@@ -424,6 +424,57 @@
             ]
         }
     ],
+    "AmbientAutofillNonSPII": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "params": {
+                        "ambient_autofill_supported_entity_types": "Vehicle,Flight Reservation,Order,Shipment"
+                    },
+                    "enable_features": [
+                        "AutofillAiShowPersonalContextFillingYourInfoDialog",
+                        "AutofillAmbientAutofill",
+                        "AutofillAmbientAutofillFilterEntitiesWithoutSource",
+                        "AutofillAmbientAutofillSourceAttribution",
+                        "AutofillAmbientAutofillSuppression",
+                        "PersonalContextHandleEncryptedPayloads",
+                        "PersonalContextLogNonEligibilityUma",
+                        "SyncAutofillEntitySuppression"
+                    ]
+                }
+            ]
+        },
+        {
+            "platforms": [
+                "chromeos",
+                "ios",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "params": {
+                        "ambient_autofill_supported_entity_types": "Vehicle,Flight Reservation,Order,Shipment"
+                    },
+                    "enable_features": [
+                        "AutofillAmbientAutofill",
+                        "AutofillAmbientAutofillFilterEntitiesWithoutSource",
+                        "AutofillAmbientAutofillSourceAttribution",
+                        "AutofillAmbientAutofillSuppression",
+                        "PersonalContextHandleEncryptedPayloads",
+                        "PersonalContextLogNonEligibilityUma",
+                        "SyncAutofillEntitySuppression"
+                    ]
+                }
+            ]
+        }
+    ],
     "AndroidAdaptiveAffinityMode": [
         {
             "platforms": [
@@ -1525,40 +1576,6 @@
             ]
         }
     ],
-    "AtMemoryDogfood": [
-        {
-            "platforms": [
-                "android",
-                "chromeos",
-                "ios",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "params": {
-                        "state": "2"
-                    },
-                    "enable_features": [
-                        "AtMemoryMqlsLogging",
-                        "AutofillAtMemory",
-                        "AutofillAtMemoryDoubleCtrl",
-                        "AutofillAtMemoryPreviouslyFilled",
-                        "AutofillAtMemorySearchStatefulness",
-                        "AutofillAtMemorySupportContenteditableOnAndroid",
-                        "AutofillAtMemorySupportTextAreaOnAndroid",
-                        "AutofillAtMemoryTriggerShortcut",
-                        "AutofillEnableKeyboardAccessoryOnSearchFields",
-                        "AutofillSupportContentEditableIos",
-                        "IPH_AutofillAtMemory",
-                        "PersonalContextForceEnablementState"
-                    ]
-                }
-            ]
-        }
-    ],
     "AudioFocusEnforcementStudy": [
         {
             "platforms": [
@@ -2374,26 +2391,6 @@
                     "name": "Enabled",
                     "enable_features": [
                         "AutofillOnlyConsiderSingleFieldFormsAsSearchForms"
-                    ]
-                }
-            ]
-        }
-    ],
-    "AutofillOptimizeIsNormalizedNameVariantOf": [
-        {
-            "platforms": [
-                "android",
-                "chromeos",
-                "ios",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "AutofillOptimizeIsNormalizedNameVariantOf"
                     ]
                 }
             ]
@@ -7755,6 +7752,24 @@
                     "enable_features": [
                         "DataControlsGlic",
                         "GlicBulkDataEntrySupport"
+                    ]
+                }
+            ]
+        }
+    ],
+    "EnterpriseExtensionActorAttribution": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "EnterpriseExtensionActorAttribution"
                     ]
                 }
             ]
@@ -13271,9 +13286,9 @@
             ],
             "experiments": [
                 {
-                    "name": "Enabled_20261020",
+                    "name": "Enabled_20261103",
                     "params": {
-                        "retention_period": "30d"
+                        "retention_period": "45d"
                     },
                     "enable_features": [
                         "OnDeviceModelEviction",
@@ -15373,6 +15388,30 @@
                     "name": "Enabled_Dogfood",
                     "enable_features": [
                         "PushMessagingGcmEndpointWebpushPath"
+                    ]
+                }
+            ]
+        }
+    ],
+    "QUIC": [
+        {
+            "platforms": [
+                "android",
+                "android_webview",
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Arm_5CID_CancelPreExistingProbingNov2026",
+                    "params": {
+                        "client_connection_options": "5CID",
+                        "set_quic_flags": "FLAGS_quiche_reloadable_flag_quic_active_connection_id_limit=true"
+                    },
+                    "enable_features": [
+                        "QuicAlwaysCancelPreExistingProbingOnMigration"
                     ]
                 }
             ]
@@ -19109,6 +19148,27 @@
             ]
         }
     ],
+    "VerticalTabsIPHUpdate": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled_20261105",
+                    "params": {
+                        "x_min_tabs_for_promo": "10"
+                    },
+                    "enable_features": [
+                        "IPHVerticalTabstripTutorialFeature"
+                    ]
+                }
+            ]
+        }
+    ],
     "VideoConferenceRollout": [
         {
             "platforms": [
@@ -20862,6 +20922,9 @@
             "experiments": [
                 {
                     "name": "Enabled",
+                    "params": {
+                        "YieldToLooperPeriod": "100ms"
+                    },
                     "enable_features": [
                         "YieldToLooperPeriodically"
                     ]

@@ -71,7 +71,6 @@ class HttpAuthCacheStatus;
 class IntentPickerTabHelper;
 class IntentPickerViewPageActionController;
 class JsOptimizationsPageActionController;
-class LensOverlayController;
 class LensOverlayHomeworkPageActionController;
 class LensSearchController;
 class ManagePasswordsPageActionController;
@@ -432,11 +431,6 @@ class TabFeatures {
   SetCustomizeChromeSidePanelControllerForTesting(
       std::unique_ptr<customize_chrome::SidePanelController>
           customize_chrome_side_panel_controller);
-
-  TabDialogManager* tab_dialog_manager() { return tab_dialog_manager_.get(); }
-
-  LensOverlayController* lens_overlay_controller();
-  const LensOverlayController* lens_overlay_controller() const;
 
   TabUIHelper* SetTabUIHelperForTesting(
       std::unique_ptr<TabUIHelper> tab_ui_helper);

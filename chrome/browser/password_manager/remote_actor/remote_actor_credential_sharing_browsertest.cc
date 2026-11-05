@@ -4,8 +4,11 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
+#include "base/check.h"
 #include "base/command_line.h"
+#include "base/strings/strcat.h"
 #include "base/test/metrics/histogram_tester.h"
 #include "base/test/scoped_feature_list.h"
 #include "chrome/browser/enterprise/browser_management/management_service_factory.h"
@@ -46,18 +49,38 @@ constexpr char kDisallowedHost[] = "google.com";
 class RemoteActorCredentialSharingBrowserTest : public InProcessBrowserTest {
  public:
   explicit RemoteActorCredentialSharingBrowserTest(
-      bool enable_feature = true,
-      const std::string& allowed_host = kAllowedHost,
-      const std::string& allowed_host_actor = "") {
-    if (enable_feature) {
-      scoped_feature_list_.InitAndEnableFeatureWithParameters(
+      bool enable_gemini_feature = true,
+      bool enable_search_feature = false) {
+    CHECK(ssl_server_.InitializeAndListen());
+    std::vector<base::test::FeatureRefAndParams> enabled_features;
+    std::vector<base::test::FeatureRef> disabled_features;
+    if (enable_gemini_feature) {
+      enabled_features.emplace_back(
           password_manager::features::kRemoteActorCredentialSharing,
-          {{"allowed_host_for_testing", allowed_host},
-           {"allowed_host_actor_for_testing", allowed_host_actor}});
+          base::FieldTrialParams{
+              {"gemini_config_json",
+               base::StrCat({"{\"allowed_hosts\":[\"",
+                             ssl_server_.GetOrigin(kAllowedHost).Serialize(),
+                             "\"]}"})}});
     } else {
-      scoped_feature_list_.InitAndDisableFeature(
+      disabled_features.emplace_back(
           password_manager::features::kRemoteActorCredentialSharing);
     }
+    if (enable_search_feature) {
+      enabled_features.emplace_back(
+          password_manager::features::kRemoteActorCredentialSharingSearch,
+          base::FieldTrialParams{
+              {"search_config_json",
+               base::StrCat(
+                   {"{\"allowed_hosts\":[\"",
+                    ssl_server_.GetOrigin(kSearchAllowedHost).Serialize(),
+                    "\"]}"})}});
+    } else {
+      disabled_features.emplace_back(
+          password_manager::features::kRemoteActorCredentialSharingSearch);
+    }
+    scoped_feature_list_.InitWithFeaturesAndParameters(enabled_features,
+                                                       disabled_features);
   }
 
   void SetUpCommandLine(base::CommandLine* command_line) override {
@@ -86,7 +109,7 @@ class RemoteActorCredentialSharingBrowserTest : public InProcessBrowserTest {
     // Start HTTPS server because remote actor credential sharing API requires a
     // secure context
     ssl_server_.AddDefaultHandlers(GetChromeTestDataDir());
-    ASSERT_TRUE(ssl_server_.Start());
+    ssl_server_.StartAcceptingConnections();
   }
 
   void TearDownOnMainThread() override {
@@ -280,7 +303,8 @@ class RemoteActorCredentialSharingDisabledBrowserTest
     : public RemoteActorCredentialSharingBrowserTest {
  public:
   RemoteActorCredentialSharingDisabledBrowserTest()
-      : RemoteActorCredentialSharingBrowserTest(false) {}
+      : RemoteActorCredentialSharingBrowserTest(
+            /*enable_gemini_feature=*/false) {}
 };
 
 IN_PROC_BROWSER_TEST_F(RemoteActorCredentialSharingDisabledBrowserTest,
@@ -300,10 +324,38 @@ class RemoteActorCredentialSharingSearchBrowserTest
  public:
   RemoteActorCredentialSharingSearchBrowserTest()
       : RemoteActorCredentialSharingBrowserTest(
-            /*enable_feature=*/true,
-            /*allowed_host=*/kSearchAllowedHost,
-            /*allowed_host_actor=*/"search") {}
+            /*enable_gemini_feature=*/false,
+            /*enable_search_feature=*/true) {}
 };
+
+class RemoteActorCredentialSharingSearchDisabledBrowserTest
+    : public RemoteActorCredentialSharingBrowserTest {
+ public:
+  RemoteActorCredentialSharingSearchDisabledBrowserTest()
+      : RemoteActorCredentialSharingBrowserTest(
+            /*enable_gemini_feature=*/true,
+            /*enable_search_feature=*/false) {}
+};
+
+IN_PROC_BROWSER_TEST_F(RemoteActorCredentialSharingSearchDisabledBrowserTest,
+                       SearchOriginNotExposedWhenSearchFeatureDisabled) {
+  ASSERT_TRUE(ui_test_utils::NavigateToURL(
+      browser(), GetURLForHost(kSearchAllowedHost, "/title1.html")));
+  EXPECT_EQ(false, content::EvalJs(
+                       GetWebContents(),
+                       "typeof chrome !== 'undefined' && typeof "
+                       "chrome.requestAgentAuthentication !== 'undefined'"));
+}
+
+IN_PROC_BROWSER_TEST_F(RemoteActorCredentialSharingSearchBrowserTest,
+                       GeminiOriginNotExposedWhenGeminiFeatureDisabled) {
+  ASSERT_TRUE(ui_test_utils::NavigateToURL(
+      browser(), GetURLForHost(kAllowedHost, "/title1.html")));
+  EXPECT_EQ(false, content::EvalJs(
+                       GetWebContents(),
+                       "typeof chrome !== 'undefined' && typeof "
+                       "chrome.requestAgentAuthentication !== 'undefined'"));
+}
 
 IN_PROC_BROWSER_TEST_F(RemoteActorCredentialSharingSearchBrowserTest,
                        SearchOriginExposesApiAndInvokesController) {

@@ -194,6 +194,9 @@ class PLATFORM_EXPORT CanvasNon2DResourceProvider
 
   void EnsureResourceReadyForDraw();
 
+  scoped_refptr<ExportedCanvasResource> CreateExportedResource(
+      scoped_refptr<CanvasResourceSharedImage> resource);
+
   const gfx::Size size_;
   const viz::SharedImageFormat format_;
   const SkAlphaType alpha_type_;
@@ -204,7 +207,7 @@ class PLATFORM_EXPORT CanvasNon2DResourceProvider
   const bool is_software_;
 
   mutable sk_sp<SkSurface> surface_;
-  uint32_t snapshot_sk_image_id_ = 0u;
+  uint64_t snapshot_sk_image_id_ = 0u;
   const cc::PaintImage::Id snapshot_paint_image_id_;
   cc::PaintImage::ContentId snapshot_paint_image_content_id_ =
       cc::PaintImage::kInvalidContentId;
