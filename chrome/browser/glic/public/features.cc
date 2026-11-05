@@ -279,7 +279,7 @@ bool IsGlicNativeLoadingPlaceholderEnabled() {
          !base::FeatureList::IsEnabled(kGlicNoWebUiLoader);
 }
 
-BASE_FEATURE(kGeic, base::FEATURE_DISABLED_BY_DEFAULT);
+BASE_FEATURE(kGeic, FEATURE_ENABLED_BY_DEFAULT_NON_ANDROID);
 
 const base::FeatureParam<bool> kGeicEnabledParam{&kGeic, "enabled", true};
 
@@ -336,6 +336,10 @@ BASE_FEATURE(kGlicVoice, base::FEATURE_DISABLED_BY_DEFAULT);
 
 BASE_FEATURE(kGlicExperimentalOptInDialogNonScrollable,
              base::FEATURE_DISABLED_BY_DEFAULT);
+
+#if BUILDFLAG(IS_ANDROID)
+BASE_FEATURE(kGlicNativeFreAndroid, base::FEATURE_DISABLED_BY_DEFAULT);
+#endif  // BUILDFLAG(IS_ANDROID)
 
 BASE_FEATURE(kGlicMarketingAutoOpen, base::FEATURE_ENABLED_BY_DEFAULT);
 const base::FeatureParam<std::string> kGlicMarketingUrlAllowlist{

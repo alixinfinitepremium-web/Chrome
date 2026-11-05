@@ -458,8 +458,7 @@ class TabStripModel {
 
   // Notify any observers that the tab has changed in some way. See
   // TabChangeType for details of `change_type`.
-  void NotifyTabChanged(tabs::TabInterface* tab,
-                        TabChangeType change_type);
+  void NotifyTabChanged(tabs::TabInterface* tab, TabChangeType change_type);
 
   // Notify any observers that the WebContents has changed in some way. See
   // TabChangeType for details of `change_type`.
@@ -649,12 +648,11 @@ class TabStripModel {
                         double start_content_ratio,
                         bool is_intermediate = false);
 
-  // Updates the split tab at index `split_index` with the tab at
-  // `update_index`. The split that includes `split_index` must include the
-  // active tab in the tab strip.
+  // Updates `split_tab` with `update_tab`. The split that includes
+  // `split_tab` must include the active tab in the tab strip.
   enum class SplitUpdateType { kReplace, kSwap };
-  void UpdateTabInSplit(tabs::TabInterface* split_tab,
-                        int update_index,
+  void UpdateTabInSplit(tabs::TabHandle split_tab,
+                        tabs::TabHandle update_tab,
                         SplitUpdateType update_type);
 
   // Reverses the order of tabs with `split_id`.
@@ -819,13 +817,20 @@ class TabStripModel {
   using enum tabs::TabContextMenuCommand;
 
   // Returns true if the specified command is enabled. If `context_index` is
-  // selected the response applies to all selected tabs.
-  bool IsContextMenuCommandEnabled(int context_index,
+  // Returns true if the specified command is enabled for `context_tab`. If
+  // `context_tab` is selected the response applies to all selected tabs.
+  bool IsContextMenuCommandEnabled(tabs::TabHandle context_tab,
                                    ContextMenuCommand command_id) const;
 
-  // Performs the action associated with the specified command for the given
-  // TabStripModel index `context_index`.  If `context_index` is selected the
-  // command applies to all selected tabs.
+  // Performs the action associated with the specified command for
+  // `context_tab`. If `context_tab` is selected the command applies to all
+  // selected tabs.
+  void ExecuteContextMenuCommand(tabs::TabHandle context_tab,
+                                 ContextMenuCommand command_id);
+
+  // Temporary shims for unmigrated call sites / tests:
+  bool IsContextMenuCommandEnabled(int context_index,
+                                   ContextMenuCommand command_id) const;
   void ExecuteContextMenuCommand(int context_index,
                                  ContextMenuCommand command_id);
 
@@ -856,14 +861,15 @@ class TabStripModel {
       base::RepeatingCallback<std::vector<tabs::TabHandle>()> get_tabs_to_close,
       bool delete_groups);
 
-  // Adds the tab at `context_index` to the given tab group `group`. If
-  // `context_index` is selected the command applies to all selected tabs.
-  void ExecuteAddToExistingGroupCommand(int context_index,
+  // Adds `context_tab` to the given tab group `group`. If `context_tab` is
+  // selected the command applies to all selected tabs.
+  void ExecuteAddToExistingGroupCommand(tabs::TabHandle context_tab,
                                         const tab_groups::TabGroupId& group);
 
-  // Adds the tab at `context_index` to the browser window at `browser_index`.
-  // If `context_index` is selected the command applies to all selected tabs.
-  void ExecuteAddToExistingWindowCommand(int context_index, int browser_index);
+  // Adds `context_tab` to the browser window at `browser_index`. If
+  // `context_tab` is selected the command applies to all selected tabs.
+  void ExecuteAddToExistingWindowCommand(tabs::TabHandle context_tab,
+                                         int browser_index);
 
   // Returns true if 'CommandToggleSiteMuted' will mute. `context_tab` is the
   // tab supplied to `ExecuteContextMenuCommand`.
@@ -951,6 +957,7 @@ class TabStripModel {
 
  private:
   FRIEND_TEST_ALL_PREFIXES(TabStripModelTest, HasTabsClosedByCommand);
+  FRIEND_TEST_ALL_PREFIXES(TabStripModelTest, GetSortedIndicesForTabs);
   // Temporary private API.
   FRIEND_TEST_ALL_PREFIXES(TabStripModelTest, FindGroupIdFor);
 
@@ -1016,6 +1023,14 @@ class TabStripModel {
   // Notify observers that `group` is attached to the model. This also sends
   // split related observations within the group.
   void NotifyTabGroupAttached(tabs::TabGroupTabCollection* group_collection);
+
+  // Notify observers that the tab at `index` is added to the group with id
+  // `new_group` or removed from a group with id `old_group`.
+  void NotifyTabGroupedStateChanged(
+      std::optional<tab_groups::TabGroupId> old_group,
+      std::optional<tab_groups::TabGroupId> new_group,
+      tabs::TabInterface* tab,
+      int index);
 
   // Notify observers that split with `split_id` has been created.
   void NotifySplitTabCreated(
@@ -1156,6 +1171,10 @@ class TabStripModel {
   std::vector<tabs::TabHandle> GetTabsClosedByCommand(
       tabs::TabHandle context_tab,
       ContextMenuCommand id) const;
+  // Returns sorted indices corresponding to `tabs`. Any tabs not present in
+  // this model are ignored.
+  std::vector<int> GetSortedIndicesForTabs(
+      const std::vector<tabs::TabHandle>& tabs) const;
   // Returns true if the specified WebContents is a New Tab at the end of
   // the tabstrip. We check for this because opener relationships are _not_
   // forgotten for the New Tab page opened as a result of a New Tab gesture
@@ -1257,8 +1276,8 @@ class TabStripModel {
   void RemoveSplitImpl(split_tabs::SplitTabId split_id,
                        SplitTabChange::SplitTabRemoveReason reason);
 
-  void UpdateTabInSplitImpl(tabs::TabInterface* split_tab,
-                            int update_index,
+  void UpdateTabInSplitImpl(tabs::TabHandle split_tab,
+                            tabs::TabHandle update_tab,
                             SplitUpdateType update_type);
 
   // Adds tabs to newly-allocated group id `new_group`. This group must be new
@@ -1297,13 +1316,13 @@ class TabStripModel {
   // bounds if necessary.
   void RemoveFromGroupImpl(const std::vector<int>& indices);
 
-  // Adds all selected indices provided by `context_index` into a new tab group.
-  void AddToNewGroupFromContextIndex(int context_index);
+  // Adds all selected tabs provided by `context_tab` into a new tab group.
+  void AddToNewGroupFromTab(tabs::TabHandle context_tab);
 
-  // Adds the tab at `context_index` to a new split with the current active tab.
-  // If `context_index` is active, the currently selected tabs are added to a
-  // new split.
-  void ExecuteAddToNewSplitCommand(int context_index,
+  // Adds `context_tab` to a new split with the current active tab. If
+  // `context_tab` is active, the currently selected tabs are added to a new
+  // split.
+  void ExecuteAddToNewSplitCommand(tabs::TabHandle context_tab,
                                    split_tabs::SplitTabLayout layout);
 
   // Implementation of MoveTabsAndSetPropertiesImpl. Moves the set of tabs in
@@ -1362,9 +1381,6 @@ class TabStripModel {
       tabs::TabInterface* tab,
       bool initial_pinned_state,
       const std::optional<tab_groups::TabGroupId>& initial_focused_group);
-
-  // Updates the `group_model` by incrementing the tab count of `group`.
-  void AddTabToGroupModel(const tab_groups::TabGroupId& group);
 
   // Checks if the `contents_data_` is in a valid order. This checks for
   // pinned tabs placement, group contiguity and selected tabs validity.

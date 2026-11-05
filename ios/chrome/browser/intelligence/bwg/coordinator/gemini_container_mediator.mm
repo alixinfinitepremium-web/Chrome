@@ -487,7 +487,8 @@ class GeminiContainerMediatorTabHelperObserver
   [self setActuationActive:YES];
   [self.delegate geminiContainerMediator:self
              didStartActuationTaskWithID:taskID
-                              dataSource:_actuationTaskStore];
+                              dataSource:_actuationTaskStore
+                           actionHandler:_actuationTaskStore];
 }
 
 - (void)actorServiceDidStopTaskWithID:(actor::ActorTaskId)taskID
@@ -663,6 +664,14 @@ class GeminiContainerMediatorTabHelperObserver
 - (void)didFinishLoadingConversationWithID:(NSString*)conversationID
                                      error:(NSError*)error {
   [_stateManager didFinishLoadingConversationWithID:conversationID error:error];
+}
+
+- (void)inputPlateDidChangePageContextAttachment:(BOOL)isAttached {
+  [self updateZeroStateMediumDetentHeight];
+}
+
+- (void)inputPlateDidChangeNanoBananaAttachment:(BOOL)isSelected {
+  [self updateZeroStateMediumDetentHeight];
 }
 
 - (void)didRequestToDetachTabWithID:(NSString*)tabID {
@@ -1048,15 +1057,6 @@ class GeminiContainerMediatorTabHelperObserver
   ios::provider::UpdateActivePageContext(
       pageContext,
       _sharedTabsManager ? _sharedTabsManager->GetInactiveSharedTabs() : nil);
-
-  // Update the zero-state height to match the content height since the page
-  // context chip might change it.
-  if (_stateManager.currentUIState.zeroStateVisible &&
-      IsIOSGeminiBottomSheetMigrationEnabled()) {
-    [self.containerHandler
-        setAssistantContainerMediumDetentHeight:ceil([self.consumer
-                                                          contentHeight])];
-  }
 }
 
 - (void)updateFloatyWithPartialPageContext {

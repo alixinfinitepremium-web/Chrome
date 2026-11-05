@@ -5528,7 +5528,7 @@
                         "ContextualTasksEphemeralButtonContextMenuOption": "close-side-panel",
                         "ContextualTasksPinnedButtonActiveIndicatorCircleHighlight": "true",
                         "ContextualTasksPinnedButtonContextMenuCloseSidePanel": "true",
-                        "ContextualTasksPinningStringVariant": "ai-mode",
+                        "ContextualTasksPinningStringVariant": "in-chrome",
                         "ContextualTasksUnifyPinButtonLogo": "super-g",
                         "EnableCircularEphemeralButtonNextToBatterySaver": "true",
                         "overflow-items": "all-without-new-thread"
@@ -8447,24 +8447,6 @@
                     "name": "Enabled",
                     "enable_features": [
                         "GateMemoryMetricsOnVisibility"
-                    ]
-                }
-            ]
-        }
-    ],
-    "Geic": [
-        {
-            "platforms": [
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "Geic"
                     ]
                 }
             ]
@@ -11637,6 +11619,30 @@
             ]
         }
     ],
+    "MacMemoryPressureEvaluators": [
+        {
+            "platforms": [
+                "mac"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled_TargetCombined_1200MB_800MB_150MB_50MB_45Percent",
+                    "params": {
+                        "MacCompressorCriticalThresholdPercent": "45",
+                        "MacCriticalThresholdMB": "800",
+                        "MacFreeCriticalThresholdMB": "50",
+                        "MacFreeModerateThresholdMB": "150",
+                        "MacModerateThresholdMB": "1200"
+                    },
+                    "enable_features": [
+                        "MacAvailableMemoryPressureEvaluator",
+                        "MacCompressorMemoryPressureEvaluator",
+                        "MacFreeMemoryPressureEvaluator"
+                    ]
+                }
+            ]
+        }
+    ],
     "MagiChromePasskeySignIn": [
         {
             "platforms": [
@@ -12803,6 +12809,21 @@
                     },
                     "enable_features": [
                         "OmniboxDocumentProvider"
+                    ]
+                }
+            ]
+        }
+    ],
+    "OmniboxEarlyInflation": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "OmniboxEarlyInflation"
                     ]
                 }
             ]
@@ -14803,28 +14824,6 @@
                     },
                     "enable_features": [
                         "PreconnectToSearch"
-                    ]
-                }
-            ]
-        }
-    ],
-    "PredictionModelComponentDelivery": [
-        {
-            "platforms": [
-                "android",
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "params": {
-                        "targets": "20"
-                    },
-                    "enable_features": [
-                        "PredictionModelComponentDelivery"
                     ]
                 }
             ]
@@ -18950,34 +18949,6 @@
                     "enable_features": [
                         "V8Flag_sparkplug_plus"
                     ]
-                }
-            ]
-        }
-    ],
-    "V8SqrtAllocationLimits": [
-        {
-            "platforms": [
-                "android",
-                "android_webview",
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "params": {
-                        "sqrt_allocation_limits_factor": "80",
-                        "sqrt_allocation_limits_max_growing_factor": "4",
-                        "sqrt_allocation_limits_min_growing_factor": "1.1",
-                        "sqrt_allocation_limits_minimal_factor": "20",
-                        "sqrt_allocation_limits_slow_factor": "80"
-                    },
-                    "enable_features": [
-                        "V8Flag_sqrt_allocation_limits"
-                    ],
-                    "disable_benchmarking": true
                 }
             ]
         }

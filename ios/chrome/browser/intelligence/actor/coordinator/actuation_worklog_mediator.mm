@@ -6,17 +6,9 @@
 
 #import <optional>
 
-#import "base/check.h"
-#import "base/memory/raw_ptr.h"
-#import "base/not_fatal_until.h"
-#import "base/strings/sys_string_conversions.h"
-#import "components/autofill/core/browser/suggestions/suggestion_type.h"
-#import "components/autofill/ios/browser/form_suggestion.h"
 #import "ios/chrome/browser/intelligence/actor/coordinator/actuation_suggestions_consumer.h"
-#import "ios/chrome/browser/intelligence/actor/model/actor_service.h"
+#import "ios/chrome/browser/intelligence/actor/public/actor_task_data_source.h"
 #import "ios/chrome/browser/intelligence/actor/public/actor_types.h"
-#import "ios/chrome/browser/intelligence/actor/public/actuation_worklog_data_source.h"
-#import "ios/chrome/browser/intelligence/actor/tools/model/actor_form_suggestion.h"
 #import "ios/chrome/browser/intelligence/actor/ui/actuation_worklog_consumer.h"
 #import "ios/chrome/browser/intelligence/actor/ui/actuation_worklog_view_data.h"
 #import "ios/chrome/browser/shared/ui/symbols/symbols.h"
@@ -25,18 +17,8 @@
 
 namespace {
 
-// Completion handler for suggestion selection interventions.
-using SuggestionSelectionCompletionHandler = void (
-    ^)(ActorFormSuggestion* selectedSuggestion, BOOL shouldStorePermission);
-
-// Icon size for SF symbols in chips and card items.
+// Icon size for SF symbols in chips.
 constexpr CGFloat kIconSize = 16.0;
-
-// Icon size for SF symbols in accessory items.
-constexpr CGFloat kAccessoryIconSize = 24.0;
-
-// Masked password field to be displayed in credential selection card.
-NSString* const kMaskedPassword = @"••••••••";
 
 // Generates an `ActuationWorklogChip` based on the executed tool type. Returns
 // `nil` for tool types that don't display a chip.
@@ -90,206 +72,53 @@ ActuationWorklogChip* ChipForToolType(std::optional<actor::ToolType> toolType) {
   }
 }
 
-// Creates an `ActuationWorklogItem` card for a non-federated credential
-// suggestion.
-ActuationWorklogItem* CardItemForNonFederatedCredential(
-    FormSuggestion* suggestion) {
-  NSString* username = suggestion.value;
-  NSString* site = suggestion.displayDescription;
-  UIImage* accessoryIcon = suggestion.icon;
-  if (!accessoryIcon) {
-    // TODO(crbug.com/571139088): Use favicon loader to update favicon.
-    accessoryIcon =
-        SymbolWithPointSize(SymbolPersonCropCircle, kAccessoryIconSize);
-  }
-
-  NSString* cardTitle =
-      site.length > 0
-          ? l10n_util::GetNSStringF(
-                IDS_IOS_ACTOR_WORKLOG_SUGGESTIONS_CREDENTIAL_TITLE_WITH_SITE,
-                base::SysNSStringToUTF16(site))
-          : l10n_util::GetNSString(
-                IDS_IOS_ACTOR_WORKLOG_SUGGESTIONS_CREDENTIAL_TITLE);
-  NSString* cardSubtitle = l10n_util::GetNSString(
-      IDS_IOS_ACTOR_WORKLOG_SUGGESTIONS_CREDENTIAL_SUBTITLE);
-
-  ActuationWorklogAccessoryItem* credentialAccessory =
-      [[ActuationWorklogAccessoryItem alloc] initWithIcon:accessoryIcon
-                                                    title:username ?: @""
-                                                 subtitle:nil
-                                               detailText:kMaskedPassword
-                                               hasChevron:NO];
-
-  return [ActuationWorklogItem
-      cardItemWithTitle:cardTitle
-               subtitle:cardSubtitle
-                   icon:SymbolWithPointSize(SymbolPassword, kIconSize)
-                 active:YES
-          accessoryItem:credentialAccessory];
-}
-
-// Creates an `ActuationWorklogItem` card for an address suggestion.
-ActuationWorklogItem* CardItemForAddress(FormSuggestion* suggestion) {
-  NSString* title = suggestion.value;
-  NSString* description = suggestion.displayDescription;
-
-  UIImage* accessoryIcon = nil;
-  switch (suggestion.suggestionIconType) {
-    case SuggestionIconType::kAccountHome:
-      accessoryIcon = SymbolWithPointSize(SymbolHome, kAccessoryIconSize);
-      break;
-    case SuggestionIconType::kAccountWork:
-      accessoryIcon = SymbolWithPointSize(SymbolWork, kAccessoryIconSize);
-      break;
-    case SuggestionIconType::kContact:
-      accessoryIcon =
-          SymbolWithPointSize(SymbolPersonCropCircle, kAccessoryIconSize);
-      break;
-    case SuggestionIconType::kNone:
-      accessoryIcon = SymbolWithPointSize(SymbolLocation, kAccessoryIconSize);
-      break;
-    case SuggestionIconType::kUndoAutofill:
-    case SuggestionIconType::kBackupPassword:
-      NOTREACHED(base::NotFatalUntil::M165);
-      break;
-  }
-
-  ActuationWorklogAccessoryItem* addressAccessory =
-      [[ActuationWorklogAccessoryItem alloc]
-          initWithIcon:accessoryIcon
-                 title:title ?: @""
-              subtitle:nil
-            detailText:description.length > 0 ? description : nil
-            hasChevron:NO];
-
-  int cardTitleId =
-      (suggestion.suggestionIconType == SuggestionIconType::kContact)
-          ? IDS_IOS_ACTOR_WORKLOG_SUGGESTIONS_CONTACT_TITLE
-          : IDS_IOS_ACTOR_WORKLOG_SUGGESTIONS_ADDRESS_TITLE;
-
-  return [ActuationWorklogItem
-      cardItemWithTitle:l10n_util::GetNSString(cardTitleId)
-               subtitle:nil
-                   icon:nil
-                 active:YES
-          accessoryItem:addressAccessory];
-}
-
-// Creates an `ActuationWorklogItem` card for a credit card suggestion.
-ActuationWorklogItem* CardItemForCreditCard(FormSuggestion* suggestion) {
-  NSString* title = suggestion.value;
-  NSString* description = suggestion.displayDescription;
-
-  UIImage* accessoryIcon = suggestion.icon;
-  if (!accessoryIcon) {
-    accessoryIcon = SymbolWithPointSize(SymbolCreditCard, kAccessoryIconSize);
-  }
-
-  NSString* cardTitle =
-      l10n_util::GetNSString(IDS_IOS_ACTOR_WORKLOG_SUGGESTIONS_PAYMENT_TITLE);
-  NSString* cardSubtitle = l10n_util::GetNSString(
-      IDS_IOS_ACTOR_WORKLOG_SUGGESTIONS_PAYMENT_SUBTITLE);
-
-  ActuationWorklogAccessoryItem* paymentAccessory =
-      [[ActuationWorklogAccessoryItem alloc]
-          initWithIcon:accessoryIcon
-                 title:title ?: @""
-              subtitle:nil
-            detailText:description.length > 0 ? description : nil
-            hasChevron:NO];
-
-  return [ActuationWorklogItem
-      cardItemWithTitle:cardTitle
-               subtitle:cardSubtitle
-                   icon:SymbolWithPointSize(SymbolCreditCard, kIconSize)
-                 active:YES
-          accessoryItem:paymentAccessory];
-}
-
-// Creates an `ActuationWorklogItem` corresponding to `suggestion`.
-ActuationWorklogItem* CardItemForSuggestion(ActorFormSuggestion* suggestion) {
-  switch (suggestion.type) {
-    case autofill::SuggestionType::kPasswordEntry:
-    case autofill::SuggestionType::kIdentityCredential:
-      return CardItemForNonFederatedCredential(suggestion.formSuggestion);
-    case autofill::SuggestionType::kAddressEntry:
-      return CardItemForAddress(suggestion.formSuggestion);
-    case autofill::SuggestionType::kCreditCardEntry:
-      return CardItemForCreditCard(suggestion.formSuggestion);
-    default:
-      NOTREACHED(base::NotFatalUntil::M165);
-      return nil;
-  }
-}
-
 }  // namespace
 
-@interface ActuationWorklogMediator () <ActuationWorklogDataSourceObserver>
+@interface ActuationWorklogMediator () <ActorTaskDataSourceObserver>
 @end
 
 @implementation ActuationWorklogMediator {
-  // Service tracking actor tasks and updates.
-  raw_ptr<actor::ActorService> _actorService;
-  // Currently observed task ID.
-  std::optional<actor::ActorTaskId> _currentTaskId;
+  // Whether a data source is observed. Tracked separately because
+  // `_dataSource` is weak.
+  BOOL _observing;
   // Source of the worklog of the observed task.
-  __weak id<ActuationWorklogDataSource> _dataSource;
+  __weak id<ActorTaskDataSource> _dataSource;
+  // Handler of the user actions on the worklog of the observed task.
+  __weak id<ActorTaskActionHandler> _actionHandler;
   // Latest task update, displayed as the current step in the minimized header.
   NSString* _latestEmittedTaskUpdate;
   // Title of the observed task.
   NSString* _taskTitle;
   // Current state of the observed task.
   actor::ActorTaskState _taskState;
-  // Pending completion block for the intervention action with the given
-  // identifier. Only called when a user interacts with the UI associated with
-  // it.
-  void (^_pendingInterventionCompletion)(InterventionActionIdentifier);
-  // The currently selected suggestion for the pending intervention.
-  ActorFormSuggestion* _selectedSuggestion;
-}
-
-- (instancetype)initWithActorService:(actor::ActorService*)actorService {
-  self = [super init];
-  if (self) {
-    _actorService = actorService;
-    _taskState = actor::ActorTaskState::kInit;
-  }
-  return self;
 }
 
 #pragma mark - Public
 
-- (void)startObservingTaskWithID:(actor::ActorTaskId)taskID
-                      dataSource:(id<ActuationWorklogDataSource>)dataSource {
-  if (_currentTaskId == taskID) {
+- (void)startObservingDataSource:(id<ActorTaskDataSource>)dataSource
+                   actionHandler:(id<ActorTaskActionHandler>)actionHandler {
+  if (_observing && _dataSource == dataSource) {
     return;
   }
   [self stopObservingTask];
-  if (!_actorService) {
-    return;
-  }
 
   // Ensure we are brought back at the init state when subscribing to a task.
   _taskState = actor::ActorTaskState::kInit;
-  _currentTaskId = taskID;
-  _actorService->SetTaskInterventionDelegate(taskID, self);
+  _observing = YES;
+  _actionHandler = actionHandler;
   _dataSource = dataSource;
   // Synchronously delivers the current worklog.
   [_dataSource addObserver:self];
 }
 
 - (void)stopObservingTask {
-  if (!_currentTaskId) {
+  if (!_observing) {
     return;
-  }
-  if (_actorService) {
-    _actorService->SetTaskInterventionDelegate(*_currentTaskId, nil);
   }
   [_dataSource removeObserver:self];
   _dataSource = nil;
-  _currentTaskId.reset();
-  [self discardPendingIntervention];
-  _selectedSuggestion = nil;
+  _actionHandler = nil;
+  _observing = NO;
   _latestEmittedTaskUpdate = nil;
   _taskTitle = nil;
   [self.consumer setActuationActive:NO];
@@ -297,23 +126,12 @@ ActuationWorklogItem* CardItemForSuggestion(ActorFormSuggestion* suggestion) {
 }
 
 - (void)disconnect {
-  // TODO(crbug.com/567035965): A pending intervention is dropped without an
-  // answer, leaving the task in `kWaitingOnUser`. Re-surface the intervention
-  // once the worklog can be restored.
   [self stopObservingTask];
-  _actorService = nullptr;
   self.consumer = nil;
   self.suggestionsConsumer = nil;
 }
 
 #pragma mark - Private
-
-// Dismisses the active intervention card and discards the pending completion
-// handler without calling it (task cancellation, replacement, or disconnect).
-- (void)discardPendingIntervention {
-  _pendingInterventionCompletion = nil;
-  [self.consumer setIntervention:nil];
-}
 
 // Displays `item` with the chip of `toolType`. Task updates, displayed as
 // simple items, become the current step.
@@ -384,26 +202,9 @@ ActuationWorklogItem* CardItemForSuggestion(ActorFormSuggestion* suggestion) {
            subtitle:_taskTitle];
 }
 
-// Resolves the pending suggestion selection request with `completionHandler`
-// and resets selection state.
-- (void)respondToSuggestionSelectionRequestWithAction:
-            (InterventionActionIdentifier)action
-                                    completionHandler:
-                                        (SuggestionSelectionCompletionHandler)
-                                            completionHandler {
-  ActorFormSuggestion* selected =
-      (action == InterventionActionIdentifier::kAllow) ? _selectedSuggestion
-                                                       : nil;
-  _selectedSuggestion = nil;
-  [self.suggestionsConsumer clearSuggestions];
-  if (completionHandler) {
-    completionHandler(selected, NO);
-  }
-}
+#pragma mark - ActorTaskDataSourceObserver
 
-#pragma mark - ActuationWorklogDataSourceObserver
-
-- (void)worklogDataSource:(id<ActuationWorklogDataSource>)dataSource
+- (void)taskDataSource:(id<ActorTaskDataSource>)dataSource
     didAttachWithTaskTitle:(NSString*)taskTitle
                  taskState:(actor::ActorTaskState)taskState
                      items:(NSArray<ActuationWorklogItem*>*)items
@@ -423,137 +224,58 @@ ActuationWorklogItem* CardItemForSuggestion(ActorFormSuggestion* suggestion) {
   }
 }
 
-- (void)worklogDataSource:(id<ActuationWorklogDataSource>)dataSource
-       didUpdateTaskTitle:(NSString*)taskTitle
-                taskState:(actor::ActorTaskState)taskState {
+- (void)taskDataSource:(id<ActorTaskDataSource>)dataSource
+    didUpdateTaskTitle:(NSString*)taskTitle
+             taskState:(actor::ActorTaskState)taskState {
   [self applyTaskTitle:taskTitle taskState:taskState];
 }
 
-- (void)worklogDataSource:(id<ActuationWorklogDataSource>)dataSource
-            didAppendItem:(ActuationWorklogItem*)item
-                 toolType:(std::optional<actor::ToolType>)toolType {
+- (void)taskDataSource:(id<ActorTaskDataSource>)dataSource
+         didAppendItem:(ActuationWorklogItem*)item
+              toolType:(std::optional<actor::ToolType>)toolType {
   [self displayItem:item toolType:toolType animated:YES];
   [self updateHeaderContent];
 }
 
-- (void)worklogDataSource:(id<ActuationWorklogDataSource>)dataSource
+- (void)taskDataSource:(id<ActorTaskDataSource>)dataSource
+    didReplaceLastItem:(ActuationWorklogItem*)item {
+  [self.consumer setLastItem:item chip:nil];
+  // Only the suggestions card is replaced, after a reselection.
+  [self.suggestionsConsumer
+      updateActiveWorklogItemForReselectedSuggestion:item];
+}
+
+- (void)taskDataSource:(id<ActorTaskDataSource>)dataSource
     didUpdateIntervention:(ActuationInterventionData*)intervention {
   [self.consumer setIntervention:intervention];
 }
 
-#pragma mark - ActorTaskInterventionDelegate
-
-- (void)actorTask:(actor::ActorTaskId)taskID
-    selectFromSuggestions:(NSArray<ActorFormSuggestion*>*)suggestions
-        completionHandler:
-            (void (^)(ActorFormSuggestion* selectedSuggestion,
-                      BOOL shouldStorePermission))completionHandler {
-  CHECK(_currentTaskId == taskID, base::NotFatalUntil::M165);
-  CHECK(!_pendingInterventionCompletion, base::NotFatalUntil::M165);
-
-  _selectedSuggestion = suggestions.firstObject;
-  CHECK(_selectedSuggestion.formSuggestion, base::NotFatalUntil::M165);
-
-  NSString* manuallyEnterButtonText;
-  switch (_selectedSuggestion.type) {
-    case autofill::SuggestionType::kPasswordEntry:
-    case autofill::SuggestionType::kIdentityCredential:
-      manuallyEnterButtonText = l10n_util::GetNSString(
-          IDS_IOS_ACTOR_WORKLOG_SUGGESTIONS_CREDENTIAL_MANUAL_FILL_BUTTON);
-      break;
-    case autofill::SuggestionType::kAddressEntry:
-    case autofill::SuggestionType::kCreditCardEntry:
-      manuallyEnterButtonText = l10n_util::GetNSString(
-          IDS_IOS_ACTOR_WORKLOG_SUGGESTIONS_MANUAL_FILL_BUTTON);
-      break;
-    default:
-      NOTREACHED(base::NotFatalUntil::M165);
-      break;
+- (void)taskDataSource:(id<ActorTaskDataSource>)dataSource
+    didUpdateSuggestions:(NSArray<ActorFormSuggestion*>*)suggestions
+                 forItem:(ActuationWorklogItem*)item {
+  if (suggestions) {
+    [self.suggestionsConsumer setSuggestions:suggestions
+                        forActiveWorklogItem:item];
+  } else {
+    [self.suggestionsConsumer clearSuggestions];
   }
-
-  ActuationWorklogItem* cardItem = CardItemForSuggestion(_selectedSuggestion);
-  [self.consumer updateWorklogWithItem:cardItem chip:nil animated:YES];
-
-  [self.suggestionsConsumer setSuggestions:suggestions
-                      forActiveWorklogItem:cardItem];
-  __weak __typeof(self) weakSelf = self;
-  _pendingInterventionCompletion = ^(
-      InterventionActionIdentifier actionIdentifier) {
-    [weakSelf respondToSuggestionSelectionRequestWithAction:actionIdentifier
-                                          completionHandler:completionHandler];
-  };
-
-  // TODO(crbug.com/571139088): Prefix the secondary button with the SF symbol
-  // "hand.tap".
-  ActuationInterventionAction* manualAction =
-      [[ActuationInterventionAction alloc]
-          initWithIdentifier:InterventionActionIdentifier::kManuallyEnter
-                       title:manuallyEnterButtonText];
-  ActuationInterventionAction* allowAction = [[ActuationInterventionAction
-      alloc]
-      initWithIdentifier:InterventionActionIdentifier::kAllow
-                   title:l10n_util::GetNSString(
-                             IDS_IOS_ACTOR_WORKLOG_SUGGESTIONS_ALLOW_BUTTON)];
-  ActuationInterventionData* data = [ActuationInterventionData
-      rowItemWithActions:@[ manualAction, allowAction ]];
-  [self.consumer setIntervention:data];
-}
-
-- (void)actorTask:(actor::ActorTaskId)taskID
-    requestUserInterventionWithTitle:(NSString*)title
-                            subtitle:(NSString*)subtitle
-                          buttonText:(NSString*)buttonText
-                   completionHandler:(void (^)(void))completionHandler {
-  CHECK(_currentTaskId == taskID, base::NotFatalUntil::M165);
-  [self discardPendingIntervention];
-  if (completionHandler) {
-    _pendingInterventionCompletion =
-        ^(InterventionActionIdentifier actionIdentifier) {
-          if (actionIdentifier == InterventionActionIdentifier::kContinue) {
-            completionHandler();
-          }
-        };
-  }
-
-  ActuationInterventionAction* action = [[ActuationInterventionAction alloc]
-      initWithIdentifier:InterventionActionIdentifier::kContinue
-                   title:buttonText];
-  ActuationInterventionData* data =
-      [ActuationInterventionData cardItemWithTitle:title
-                                          subtitle:subtitle
-                                            action:action];
-  [self.consumer setIntervention:data];
 }
 
 #pragma mark - ActuationWorklogMutator
 
 - (void)stopActuation {
-  if (!_actorService || !_currentTaskId) {
-    return;
-  }
-  _actorService->StopTask(*_currentTaskId,
-                          actor::ActorTaskStoppedReason::kStoppedByUser);
+  [_actionHandler stopTask];
 }
 
 - (void)didTriggerInterventionAction:(ActuationInterventionAction*)action {
-  void (^completion)(InterventionActionIdentifier) =
-      _pendingInterventionCompletion;
-  [self discardPendingIntervention];
-  if (completion) {
-    completion(action.identifier);
-  }
+  [_actionHandler resolveInterventionWithAction:action];
 }
 
 #pragma mark - ActuationSuggestionsDelegate
 
 - (void)suggestionsCoordinator:(ActuationSuggestionsCoordinator*)coordinator
            didSelectSuggestion:(ActorFormSuggestion*)suggestion {
-  _selectedSuggestion = suggestion;
-  ActuationWorklogItem* item = CardItemForSuggestion(_selectedSuggestion);
-  [self.consumer setLastItem:item chip:nil];
-  [self.suggestionsConsumer
-      updateActiveWorklogItemForReselectedSuggestion:item
-                                     fromCoordinator:coordinator];
+  [_actionHandler selectSuggestion:suggestion];
 }
 
 @end

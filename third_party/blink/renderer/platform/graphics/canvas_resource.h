@@ -56,10 +56,6 @@ class PLATFORM_EXPORT CanvasResource : public gpu::ClientImage {
       const gpu::SyncToken& sync_token,
       bool is_lost)>;
 
-  // Returns true if this instance creates TransferableResources for usage with
-  // GPU compositing.
-  virtual bool CreatesAcceleratedTransferableResources() const = 0;
-
   virtual void OnRefReturned(scoped_refptr<CanvasResource>&& resource) {}
 
   static void DropRefOnOwningThread(scoped_refptr<CanvasResource> resource);
@@ -67,10 +63,6 @@ class PLATFORM_EXPORT CanvasResource : public gpu::ClientImage {
   // Issues a wait for this sync token on the context used by this resource for
   // rendering.
   virtual void WaitSyncToken(const gpu::SyncToken&) = 0;
-
-  bool OriginClean() const { return is_origin_clean_; }
-  void SetOriginClean(bool flag) { is_origin_clean_ = flag; }
-
 
   // Called when the resource is marked lost. Losing a resource does not mean
   // that the backing memory has been destroyed, since the resource itself keeps
@@ -104,8 +96,6 @@ class PLATFORM_EXPORT CanvasResource : public gpu::ClientImage {
 
   // Returns true if the resource is rastered via the GPU.
   virtual bool UsesAcceleratedRaster() const = 0;
-
-  bool is_origin_clean_ = true;
 };
 
 // Resource type for SharedImage
@@ -145,9 +135,6 @@ class PLATFORM_EXPORT CanvasResourceSharedImage final : public CanvasResource {
                   bool is_accelerated);
   bool IsInitialized() const { return is_initialized_; }
 
-  bool CreatesAcceleratedTransferableResources() const override {
-    return !GetSharedImage()->is_software();
-  }
   void OnRefReturned(scoped_refptr<CanvasResource>&& resource) final;
   const gfx::HDRMetadata& GetHdrMetadata() const final { return hdr_metadata_; }
 

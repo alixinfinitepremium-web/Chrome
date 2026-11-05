@@ -275,11 +275,11 @@ void PopulateHomeTabIcons(WebAppInstallInfo* web_app_info,
 }
 
 apps::FileHandler::LaunchType ToFileHandlerLaunchType(
-    blink::mojom::ManifestFileHandler::LaunchType launch_type) {
+    blink::mojom::ManifestFileHandler_LaunchType launch_type) {
   switch (launch_type) {
-    case blink::mojom::ManifestFileHandler::LaunchType::kSingleClient:
+    case blink::mojom::ManifestFileHandler_LaunchType::kSingleClient:
       return apps::FileHandler::LaunchType::kSingleClient;
-    case blink::mojom::ManifestFileHandler::LaunchType::kMultipleClients:
+    case blink::mojom::ManifestFileHandler_LaunchType::kMultipleClients:
       return apps::FileHandler::LaunchType::kMultipleClients;
   }
 }
@@ -353,26 +353,6 @@ void PopulateFileHandlerInfoFromManifest(
   }
 
   web_app_info->file_handlers = std::move(web_app_file_handlers);
-}
-
-void PopulateFileHandlerInfoFromManifest(
-    const std::vector<blink::mojom::ManifestFileHandlerPtr>&
-        manifest_file_handlers,
-    const GURL& app_scope,
-    WebAppInstallInfo* web_app_info) {
-  std::vector<blink::Manifest::FileHandler> converted;
-  for (const auto& handler : manifest_file_handlers) {
-    if (!handler) {
-      continue;
-    }
-    blink::Manifest::FileHandler h;
-    h.action = handler->action;
-    h.name = handler->name;
-    h.accept = handler->accept;
-    h.launch_type = handler->launch_type;
-    converted.push_back(std::move(h));
-  }
-  PopulateFileHandlerInfoFromManifest(converted, app_scope, web_app_info);
 }
 
 void PopulateOtherIcons(WebAppInstallInfo* web_app_info,
@@ -510,6 +490,12 @@ void RecordDownloadedIconsHttpResultsCodeClass(
   for (const auto& url_and_http_status_code : icons_http_results) {
     int http_status_code = url_and_http_status_code.second;
     if (http_status_code != 0) {
+      // CHECK-exclusion: http_status_code originates from remote HTTP server
+      // responses when downloading web app icons. Using CHECK_LE(100,
+      // http_status_code, base::NotFatalUntil::M163) and CHECK_GT(600,
+      // http_status_code, base::NotFatalUntil::M163) validates untrusted
+      // website data using CHECK, allowing external web servers returning
+      // non-standard status codes to crash the browser process.
       DCHECK_LE(100, http_status_code);
       DCHECK_GT(600, http_status_code);
       base::UmaHistogramExactLinear(histogram_name.data(),

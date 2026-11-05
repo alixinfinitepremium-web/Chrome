@@ -33,6 +33,7 @@ import org.chromium.components.omnibox.AutocompleteInput.AutocompleteState;
 import org.chromium.components.omnibox.AutocompleteInput.DisplayState;
 import org.chromium.components.omnibox.AutocompleteInput.SiteSearchData;
 import org.chromium.components.omnibox.AutocompleteRequestType;
+import org.chromium.components.omnibox.ModelConfigProto.ModelConfig;
 import org.chromium.components.omnibox.ToolConfigProto.ToolConfig;
 import org.chromium.components.omnibox.ToolModeProtoIntDef.ToolMode;
 import org.chromium.components.omnibox.ToolModeUtils;
@@ -70,9 +71,11 @@ public class HintTextUpdater implements LocationBarDataProvider.Observer {
     private final Callback<Profile> mProfileObserver = _ -> updateHintText();
     private final Callback<String> mUserTextObserver = _ -> updateHintText();
     private final Callback<@DisplayState Integer> mDisplayStateObserver = _ -> updateHintText();
+    private final Callback<InputState> mInputStateObserver = _ -> updateHintText();
 
     private @Nullable SearchEngineService mSearchEngineService;
     private @Nullable AutocompleteInput mCurrentInput;
+    private @Nullable ComposeboxQueryControllerBridge mObservedBridge;
     private boolean mAimHintShownThisSession;
 
     public HintTextUpdater(
@@ -143,6 +146,7 @@ public class HintTextUpdater implements LocationBarDataProvider.Observer {
         mCurrentInput.getSiteSearchDataSupplier().addSyncObserver(mSiteSearchDataObserver);
         mCurrentInput.getUserTextSupplier().addSyncObserver(mUserTextObserver);
         mCurrentInput.getDisplayStateSupplier().addSyncObserver(mDisplayStateObserver);
+        observeInputState(getComposeboxQueryControllerBridge());
         updateHintText();
     }
 
@@ -154,6 +158,7 @@ public class HintTextUpdater implements LocationBarDataProvider.Observer {
             mCurrentInput.getUserTextSupplier().removeObserver(mUserTextObserver);
             mCurrentInput.getDisplayStateSupplier().removeObserver(mDisplayStateObserver);
         }
+        observeInputState(null);
         dismissAimHintIph();
         mCurrentInput = null;
         updateHintText();
@@ -162,6 +167,36 @@ public class HintTextUpdater implements LocationBarDataProvider.Observer {
     @Override
     public void onTitleChanged() {
         updateHintText();
+    }
+
+    /**
+     * Observes the {@link InputState} of {@code bridge} so the hint follows active model changes,
+     * which do not otherwise change the request type. Pass null to stop observing.
+     */
+    private void observeInputState(@Nullable ComposeboxQueryControllerBridge bridge) {
+        if (mObservedBridge != null) {
+            mObservedBridge.getInputStateSupplier().removeObserver(mInputStateObserver);
+        }
+        mObservedBridge = bridge;
+        if (mObservedBridge != null) {
+            mObservedBridge.getInputStateSupplier().addSyncObserver(mInputStateObserver);
+        }
+    }
+
+    /** Returns the session's bridge if it exposes an {@link InputState} supplier, else null. */
+    private @Nullable ComposeboxQueryControllerBridge getComposeboxQueryControllerBridge() {
+        FuseboxSessionState fuseboxSessionState =
+                FuseboxSessionState.from(mLocationBarDataProvider);
+        if (fuseboxSessionState == null) {
+            return null;
+        }
+
+        ComposeboxQueryControllerBridge bridge =
+                fuseboxSessionState.getComposeboxQueryControllerBridge();
+        if (bridge == null || bridge.getInputStateSupplier() == null) {
+            return null;
+        }
+        return bridge;
     }
 
     private void onSearchEngineServiceChanged(@Nullable SearchEngineService service) {
@@ -239,7 +274,8 @@ public class HintTextUpdater implements LocationBarDataProvider.Observer {
 
     /**
      * Returns the hint text from the server-provided {@link InputState}, or null when no server
-     * hint applies. The active tool's hint takes precedence over the default searchbox hint.
+     * hint applies. The active tool's hint takes precedence, followed by the active model's hint
+     * and then the default searchbox hint.
      */
     private @Nullable String getHintFromInputState() {
         if (mCurrentInput == null) {
@@ -253,15 +289,8 @@ public class HintTextUpdater implements LocationBarDataProvider.Observer {
 
         // The input state lives on the session state, so it is only consulted while an input
         // session is active and an AIM request type is selected.
-        FuseboxSessionState fuseboxSessionState =
-                FuseboxSessionState.from(mLocationBarDataProvider);
-        if (fuseboxSessionState == null) {
-            return null;
-        }
-
-        ComposeboxQueryControllerBridge bridge =
-                fuseboxSessionState.getComposeboxQueryControllerBridge();
-        if (bridge == null || bridge.getInputStateSupplier() == null) {
+        ComposeboxQueryControllerBridge bridge = getComposeboxQueryControllerBridge();
+        if (bridge == null) {
             return null;
         }
 
@@ -273,10 +302,14 @@ public class HintTextUpdater implements LocationBarDataProvider.Observer {
         @ToolMode
         int activeTool =
                 ToolModeUtils.getToolModeForRequestType(requestType, /* hasAttachments= */ false);
-        for (ToolConfig config : inputState.getToolConfigs()) {
-            if (config.getToolValue() == activeTool && !config.getHintText().isEmpty()) {
-                return config.getHintText();
-            }
+        ToolConfig toolConfig = inputState.getToolConfig(activeTool);
+        if (toolConfig != null && !toolConfig.getHintText().isEmpty()) {
+            return toolConfig.getHintText();
+        }
+
+        ModelConfig modelConfig = inputState.getModelConfig(inputState.activeModel);
+        if (modelConfig != null && !modelConfig.getHintText().isEmpty()) {
+            return modelConfig.getHintText();
         }
 
         return TextUtils.isEmpty(inputState.hintText) ? null : inputState.hintText;

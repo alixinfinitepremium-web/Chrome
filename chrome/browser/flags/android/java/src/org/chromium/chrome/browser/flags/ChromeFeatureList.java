@@ -542,9 +542,7 @@ public abstract class ChromeFeatureList {
     public static final String CLAMP_AUTOMOTIVE_SCALING = "ClampAutomotiveScaling";
     public static final String CLANK_DEFAULT_SEARCH_API = "ClankDefaultSearchApi";
     public static final String CLANK_GLIC_CONTEXT_MENU = "ClankGlicContextMenu";
-    public static final String CLANK_MINI_OMNIBOX = "ClankMiniOmnibox";
-    public static final String CLANK_OMNIBOX_SAME_ORIGIN_MINIMIZATION =
-            "ClankOmniboxSameOriginMinimization";
+    public static final String CLANK_OMNIBOX_MINIMIZATION = "ClankOmniboxMinimization";
     public static final String CLANK_STARTUP_LATENCY_INJECTION = "ClankStartupLatencyInjection";
     public static final String CLANK_STARTUP_TAB_OPTIMIZATIONS = "ClankStartupTabOptimizations";
     public static final String CLANK_WHATS_NEW = "ClankWhatsNew";
@@ -688,6 +686,7 @@ public abstract class ChromeFeatureList {
     public static final String GLIC_BACKGROUND_TRIGGERING = "GlicBackgroundTriggering";
     public static final String GLIC_EXPERIMENTAL_OPT_IN_DIALOG_NON_SCROLLABLE =
             "GlicExperimentalOptInDialogNonScrollable";
+    public static final String GLIC_NATIVE_FRE_ANDROID = "GlicNativeFreAndroid";
     public static final String GLIC_NO_WEBVIEW = "GlicNoWebview";
     public static final String GLIC_SHARE_IMAGE = "GlicShareImage";
     public static final String GLIC_VOICE = "GlicVoice";
@@ -716,7 +715,6 @@ public abstract class ChromeFeatureList {
     public static final String IPH_BOOKMARK_BAR_VISIBILITY = "IPH_BookmarkBarVisibility";
     public static final String KEYBOARD_ESC_BACK_NAVIGATION = "KeyboardEscBackNavigation";
     public static final String LENS_BYPASS_COMPRESSION_FOR_C2PA = "LensBypassCompressionForC2pa";
-    public static final String LENS_ON_QUICK_ACTION_SEARCH_WIDGET = "LensOnQuickActionSearchWidget";
     public static final String LENS_OVERLAY_ANDROID = "LensOverlayAndroid";
     public static final String LENS_SEND_RAW_FILE_MEDIA_TYPES = "LensSendRawFileMediaTypes";
     public static final String LINK_HOVER_STATUS_BAR = "LinkHoverStatusBar";
@@ -1205,9 +1203,8 @@ public abstract class ChromeFeatureList {
             newCachedFlag(CHROME_NATIVE_URL_OVERRIDING, BuildConfig.IS_DESKTOP_ANDROID);
     public static final CachedFlag sClampAutomotiveScaling =
             newCachedFlag(CLAMP_AUTOMOTIVE_SCALING, true);
-    public static final CachedFlag sClankMiniOmnibox = newCachedFlag(CLANK_MINI_OMNIBOX, false);
-    public static final CachedFlag sClankOmniboxSameOriginMinimization =
-            newCachedFlag(CLANK_OMNIBOX_SAME_ORIGIN_MINIMIZATION, false);
+    public static final CachedFlag sClankOmniboxMinimization =
+            newCachedFlag(CLANK_OMNIBOX_MINIMIZATION, false);
     public static final CachedFlag sClankStartupLatencyInjection =
             newCachedFlag(CLANK_STARTUP_LATENCY_INJECTION, false);
     public static final CachedFlag sClankStartupTabOptimizations =
@@ -1643,8 +1640,7 @@ public abstract class ChromeFeatureList {
                     sCctTabSwitcherEnabledForEmbedderExperiment,
                     sChromeNativeUrlOverriding,
                     sClampAutomotiveScaling,
-                    sClankMiniOmnibox,
-                    sClankOmniboxSameOriginMinimization,
+                    sClankOmniboxMinimization,
                     sClankStartupLatencyInjection,
                     sClankStartupTabOptimizations,
                     sClearIntentWhenRecreated,
@@ -2283,9 +2279,27 @@ public abstract class ChromeFeatureList {
             newStringCachedFeatureParam(
                     CCT_RESIZABLE_FOR_THIRD_PARTIES, "default_policy", "use-denylist");
 
+    /**
+     * Experiment arm selector for {@link #CLANK_OMNIBOX_MINIMIZATION}: "hide_on_same_origin_nav"
+     * (Experiment A) or "minimize_omnibox" (Experiment B).
+     */
+    public static final StringCachedFeatureParam sClankOmniboxMinimizationArm =
+            newStringCachedFeatureParam(
+                    CLANK_OMNIBOX_MINIMIZATION, "arm", "hide_on_same_origin_nav");
+
+    /** Delay in ms before revealing the Omnibox on slow loads in Experiment A. */
+    public static final IntCachedFeatureParam sClankOmniboxMinimizationFallbackShowAfterMs =
+            newIntCachedFeatureParam(CLANK_OMNIBOX_MINIMIZATION, "fallback_show_after_ms", 1000);
+
+    /** Whether to suppress pull-to-refresh until the Omnibox is fully revealed in Experiment A. */
+    public static final BooleanCachedFeatureParam
+            sClankOmniboxMinimizationSuppressPullToRefreshReveal =
+                    newBooleanCachedFeatureParam(
+                            CLANK_OMNIBOX_MINIMIZATION, "suppress_pull_to_refresh_reveal", true);
+
     /** Compact toolbar height in dp for Experiment B (Mini-Omnibox). */
-    public static final IntCachedFeatureParam sClankMiniOmniboxHeightDp =
-            newIntCachedFeatureParam(CLANK_MINI_OMNIBOX, "mini_toolbar_height_dp", 44);
+    public static final IntCachedFeatureParam sClankOmniboxMinimizationMiniToolbarHeightDp =
+            newIntCachedFeatureParam(CLANK_OMNIBOX_MINIMIZATION, "mini_toolbar_height_dp", 44);
 
     /**
      * A cached parameter representing the amount of latency to inject during Clank startup based on
@@ -2536,7 +2550,10 @@ public abstract class ChromeFeatureList {
                     sCctResizableForThirdPartiesDefaultPolicy,
                     sCctResizableForThirdPartiesDenylistEntries,
                     sClampAutomotiveScalingMaxScalingPercentage,
-                    sClankMiniOmniboxHeightDp,
+                    sClankOmniboxMinimizationArm,
+                    sClankOmniboxMinimizationFallbackShowAfterMs,
+                    sClankOmniboxMinimizationMiniToolbarHeightDp,
+                    sClankOmniboxMinimizationSuppressPullToRefreshReveal,
                     sClankStartupLatencyInjectionAmountMs,
                     sDefaultBrowserPromoEntryPointShowAppMenu,
                     sDesktopUAAllowedOnExternalDisplayForOem,

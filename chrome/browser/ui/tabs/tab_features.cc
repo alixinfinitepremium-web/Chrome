@@ -241,7 +241,6 @@
 #include "chrome/browser/glic/glic_gemini_web_warming_observer.h"
 #include "chrome/browser/glic/glic_selection_observer.h"
 #include "chrome/browser/glic/navigation_capture/glic_marketing_page_tab_helper.h"
-#include "chrome/browser/glic/navigation_capture/glic_promotion_source_navigation_observer.h"
 #include "chrome/browser/glic/public/features.h"
 #include "chrome/browser/glic/public/glic_enabling.h"
 #include "chrome/browser/glic/public/glic_keyed_service.h"
@@ -375,14 +374,14 @@
 #if BUILDFLAG(SAFE_BROWSING_AVAILABLE)
 #include "chrome/browser/enterprise/connectors/referrer_cache_utils.h"
 #include "chrome/browser/safe_browsing/chrome_safe_browsing_tab_observer_delegate.h"
+#include "chrome/browser/safe_browsing/navigation_observer/safe_browsing_navigation_observer_manager_factory.h"
 #include "chrome/browser/safe_browsing/password_protection/chrome_password_reuse_detection_manager_client.h"
-#include "chrome/browser/safe_browsing/safe_browsing_navigation_observer_manager_factory.h"
 #include "chrome/browser/safe_browsing/safe_browsing_service.h"
 #include "chrome/browser/safe_browsing/tailored_security/tailored_security_service_factory.h"
 #include "chrome/browser/safe_browsing/tailored_security/tailored_security_url_observer.h"
 #include "chrome/browser/safe_browsing/triggers/trigger_creator.h"
 #include "components/safe_browsing/content/browser/interstitials/ui_manager.h"
-#include "components/safe_browsing/content/browser/safe_browsing_navigation_observer.h"
+#include "components/safe_browsing/content/browser/navigation_observer/safe_browsing_navigation_observer.h"
 #include "components/safe_browsing/content/browser/safe_browsing_tab_observer.h"
 #include "components/safe_browsing/content/browser/url_checker/async_check_tracker.h"
 #include "components/safe_browsing/core/common/features.h"
@@ -733,8 +732,6 @@ void TabFeatures::Init(TabInterface& tab, Profile* profile) {
       glic_selection_overlay_controller_ =
           GetUserDataFactory().CreateInstance<glic::SelectionOverlayController>(
               tab, &tab, profile->GetPrefs());
-      glic_promotion_source_navigation_observer_ =
-          std::make_unique<glic::GlicPromotionSourceNavigationObserver>(&tab);
       if (base::FeatureList::IsEnabled(features::kGlicWarmOnGeminiWeb)) {
         glic_gemini_web_warming_observer_ =
             std::make_unique<glic::GlicGeminiWebWarmingObserver>(&tab);

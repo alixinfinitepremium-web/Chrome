@@ -142,8 +142,9 @@ constexpr actor::ActorTaskId kTaskId = actor::ActorTaskId(1);
 @property(nonatomic, weak) FakeGeminiContainerConsumer* consumer;
 @property(nonatomic, readonly) std::vector<actor::ActorTaskId> startedTaskIDs;
 @property(nonatomic, readonly) std::vector<actor::ActorTaskId> stoppedTaskIDs;
-@property(nonatomic, weak, readonly) id<ActuationWorklogDataSource>
-    startedDataSource;
+@property(nonatomic, weak, readonly) id<ActorTaskDataSource> startedDataSource;
+@property(nonatomic, weak, readonly) id<ActorTaskActionHandler>
+    startedActionHandler;
 @property(nonatomic, readonly) BOOL actuationActiveOnStart;
 @property(nonatomic, readonly) BOOL actuationActiveOnStop;
 @end
@@ -151,9 +152,11 @@ constexpr actor::ActorTaskId kTaskId = actor::ActorTaskId(1);
 @implementation FakeGeminiContainerMediatorDelegate
 - (void)geminiContainerMediator:(GeminiContainerMediator*)mediator
     didStartActuationTaskWithID:(actor::ActorTaskId)taskID
-                     dataSource:(id<ActuationWorklogDataSource>)dataSource {
+                     dataSource:(id<ActorTaskDataSource>)dataSource
+                  actionHandler:(id<ActorTaskActionHandler>)actionHandler {
   _startedTaskIDs.push_back(taskID);
   _startedDataSource = dataSource;
+  _startedActionHandler = actionHandler;
   _actuationActiveOnStart = _consumer.isActuationActive;
 }
 
@@ -1328,6 +1331,7 @@ TEST_F(GeminiContainerMediatorTest, TestGeminiActuationTaskNotifiesDelegate) {
   [mediator_ actorServiceDidStartTaskWithID:kTaskId sourceInfo:source];
   EXPECT_EQ(std::vector<actor::ActorTaskId>{kTaskId}, delegate.startedTaskIDs);
   EXPECT_TRUE(delegate.startedDataSource);
+  EXPECT_TRUE(delegate.startedActionHandler);
   EXPECT_TRUE(delegate.actuationActiveOnStart);
 
   [mediator_ actorServiceDidStopTaskWithID:kTaskId
@@ -1651,8 +1655,22 @@ TEST_F(GeminiContainerMediatorTest,
 
   AppendActiveWebState();
   [mediator_ connect];
-  EXPECT_EQ(2, fake_container_handler.setMediumDetentHeightCallCount);
+  EXPECT_EQ(1, fake_container_handler.setMediumDetentHeightCallCount);
   EXPECT_EQ(std::optional<NSInteger>(kExpectedMediumDetentHeight),
+            fake_container_handler.mediumDetentHeight);
+
+  // Changing page context or Nano Banana attachment in zero state updates
+  // `mediumDetentHeight` from the consumer's `contentHeight`.
+  consumer.contentHeight = 420.2;
+  [mediator_ inputPlateDidChangePageContextAttachment:YES];
+  EXPECT_EQ(2, fake_container_handler.setMediumDetentHeightCallCount);
+  EXPECT_EQ(std::optional<NSInteger>(421),
+            fake_container_handler.mediumDetentHeight);
+
+  consumer.contentHeight = 450.6;
+  [mediator_ inputPlateDidChangeNanoBananaAttachment:YES];
+  EXPECT_EQ(3, fake_container_handler.setMediumDetentHeightCallCount);
+  EXPECT_EQ(std::optional<NSInteger>(451),
             fake_container_handler.mediumDetentHeight);
 
   // Transitioning out of zero state resets `mediumDetentHeight` to
@@ -1661,7 +1679,15 @@ TEST_F(GeminiContainerMediatorTest,
       didUpdateProcessingStatus:ios::provider::GeminiClientMode::kResponding
                       sessionID:nil
                  conversationID:nil];
-  EXPECT_EQ(3, fake_container_handler.setMediumDetentHeightCallCount);
+  EXPECT_EQ(4, fake_container_handler.setMediumDetentHeightCallCount);
+  EXPECT_EQ(std::nullopt, fake_container_handler.mediumDetentHeight);
+
+  // Attachment changes when not in zero state do not update
+  // `mediumDetentHeight`.
+  consumer.contentHeight = 480.0;
+  [mediator_ inputPlateDidChangePageContextAttachment:NO];
+  [mediator_ inputPlateDidChangeNanoBananaAttachment:NO];
+  EXPECT_EQ(4, fake_container_handler.setMediumDetentHeightCallCount);
   EXPECT_EQ(std::nullopt, fake_container_handler.mediumDetentHeight);
 }
 

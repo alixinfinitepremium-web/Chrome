@@ -82,7 +82,7 @@ import org.chromium.components.omnibox.AutocompleteInput.DisplayState;
 import org.chromium.components.omnibox.AutocompleteRequestType;
 import org.chromium.components.omnibox.IconResourceIdsProtoIntDef.IconResourceIds;
 import org.chromium.components.omnibox.InputSourceProtoIntDef.InputSource;
-import org.chromium.components.omnibox.InputTypeProto.InputType;
+import org.chromium.components.omnibox.InputTypeProtoIntDef.InputType;
 import org.chromium.components.omnibox.ModelConfigProto.ModelConfig;
 import org.chromium.components.omnibox.OmniboxCapabilities;
 import org.chromium.components.omnibox.OmniboxFeatures;
@@ -320,6 +320,11 @@ class FuseboxMediator implements BackPressHandler {
                 && mModelList != null
                 && mComposeboxQueryControllerBridge != null
                 && mMetrics != null;
+    }
+
+    /** Returns the current display state, or {@link DisplayState#WEBSITE} if no session. */
+    private @DisplayState int getDisplayState() {
+        return mInput == null ? DisplayState.WEBSITE : mInput.getDisplayState();
     }
 
     private void setController(@Nullable ComposeboxQueryControllerBridge controller) {
@@ -1209,14 +1214,28 @@ class FuseboxMediator implements BackPressHandler {
         beginPickerInteraction(FuseboxAttachmentButtonType.DRIVE_FILES);
 
         Profile requestProfile = mProfile;
+        boolean wasUnfocusedWhenDriveTapped =
+                mInput.getDisplayState() == DisplayState.DRAFTING_NO_FOCUS;
         DriveDisclaimerBridge.checkConsentStatus(
-                requestProfile, status -> onDriveConsentStatus(requestProfile, status));
+                requestProfile,
+                status -> {
+                    // The session that requested the check ended or was replaced, which clears
+                    // the pending picker. Leave the current session untouched.
+                    if (!mIsPickerPending) return;
+
+                    // The user unfocused the URL bar (e.g. pressed ESC) during the check.
+                    boolean lostFocusDuringConsentCheck =
+                            !wasUnfocusedWhenDriveTapped
+                                    && getDisplayState() == DisplayState.DRAFTING_NO_FOCUS;
+                    onDriveConsentStatus(requestProfile, lostFocusDuringConsentCheck, status);
+                });
     }
 
-    private void onDriveConsentStatus(Profile requestProfile, @DisclaimerStatus int status) {
-        if (!isInInputSession()
-                || mProfile != requestProfile
-                || mInput.getDisplayState() == DisplayState.DRAFTING_NO_FOCUS) {
+    private void onDriveConsentStatus(
+            Profile requestProfile,
+            boolean lostFocusDuringConsentCheck,
+            @DisclaimerStatus int status) {
+        if (!isInInputSession() || mProfile != requestProfile || lostFocusDuringConsentCheck) {
             handlePickerCanceled();
             return;
         }
@@ -1460,25 +1479,22 @@ class FuseboxMediator implements BackPressHandler {
                         && !(disableTabsForCanvas && isCanvasActive)
                         && (inputState == null
                                 || !inputState.disabledInputTypes.contains(
-                                        InputType.INPUT_TYPE_BROWSER_TAB_VALUE));
+                                        InputType.INPUT_TYPE_BROWSER_TAB));
         boolean imagesEnabled =
                 inputState == null
-                        || !inputState.disabledInputTypes.contains(
-                                InputType.INPUT_TYPE_LENS_IMAGE_VALUE);
+                        || !inputState.disabledInputTypes.contains(InputType.INPUT_TYPE_LENS_IMAGE);
         boolean filesEnabled =
                 inputState == null
-                        || !inputState.disabledInputTypes.contains(
-                                InputType.INPUT_TYPE_LENS_FILE_VALUE);
+                        || !inputState.disabledInputTypes.contains(InputType.INPUT_TYPE_LENS_FILE);
         // Drive button is visible if native allows it (server config, feature flag, and identity
         // are checked in InputStateModel) and the Drive picker is available on device.
         boolean driveVisible =
                 inputState != null
-                        && inputState.allowedInputTypes.contains(InputType.INPUT_TYPE_DRIVE_VALUE)
+                        && inputState.allowedInputTypes.contains(InputType.INPUT_TYPE_DRIVE)
                         && DriveFilePickerClient.getInstance().isAvailable(mContext, mProfile);
         boolean driveEnabled =
                 inputState == null
-                        || !inputState.disabledInputTypes.contains(
-                                InputType.INPUT_TYPE_DRIVE_VALUE);
+                        || !inputState.disabledInputTypes.contains(InputType.INPUT_TYPE_DRIVE);
         mModel.set(FuseboxProperties.POPUP_ATTACH_CURRENT_TAB_ENABLED, tabsEnabled);
         mModel.set(FuseboxProperties.POPUP_ATTACH_TAB_PICKER_ENABLED, tabsEnabled);
         mModel.set(FuseboxProperties.POPUP_RECENT_TABS_ENABLED, tabsEnabled);

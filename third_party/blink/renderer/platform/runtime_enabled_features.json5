@@ -3990,8 +3990,10 @@
       // Enables InputMultipleFieldsUI on all platforms by tweaking the inner
       // fields to be non-focusable and making the whole input element
       // focusable for coarse input devices. When this flag is removed, the
-      // InputMultipleFieldsUI flag can also be removed.
+      // InputMultipleFieldsUI flag can also be removed. Enabled in M159, safe
+      // to remove in M163.
       name: "InputMultipleFieldsUIWithPointerChecks",
+      status: "stable",
     },
     // Enables the `alpha` and `colorspace` content/IDL attributes on
     // <input type=color>, allowing alpha and Display P3 color values.
@@ -7287,6 +7289,10 @@
       status: "stable",
     },
     {
+      name: "ViewTransitionScopedChildRestrictedElements",
+      status: "test",
+    },
+    {
       // Kill switch. Doesn't generate the ::view-transition pseudo-element
       // tree when capturing the outgoing document of a cross-document view
       // transition, since the animation runs on the new document. This avoids
@@ -7808,12 +7814,15 @@
     },
     {
       name: "WebTransportDatagramsWritable",
-      status: "experimental",
-      base_feature: "none",
+      status: "stable",
       depends_on: ["WebTransportSendGroup"],
     },
     {
       name: "WebTransportDraining",
+      status: "stable",
+    },
+    {
+      name: "WebTransportErrorSerialization",
       status: "stable",
     },
     {
@@ -7836,8 +7845,7 @@
     },
     {
       name: "WebTransportSendGroup",
-      status: "experimental",
-      base_feature: "none",
+      status: "stable",
     },
     {
       // Note: enabling this without setting WebTransportCongestionControl to

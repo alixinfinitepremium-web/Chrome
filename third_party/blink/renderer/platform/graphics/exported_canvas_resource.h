@@ -53,9 +53,19 @@ class PLATFORM_EXPORT ExportedCanvasResource
     return base::PlatformThread::CurrentRef() != owning_thread_ref_;
   }
 
+  bool origin_clean_ = true;
+
   scoped_refptr<CanvasResource> resource_;
   const base::PlatformThreadRef owning_thread_ref_;
   const scoped_refptr<base::SingleThreadTaskRunner> owning_thread_task_runner_;
+
+  const scoped_refptr<gpu::ClientSharedImage> shared_image_;
+  const gpu::SyncToken sync_token_;
+  const gfx::HDRMetadata hdr_metadata_;
+  const viz::TransferableResource::ResourceSource resource_source_;
+  const bool accelerated_raster_;
+
+  base::WeakPtr<WebGraphicsContext3DProviderWrapper> context_provider_wrapper_;
 
   const bool use_legacy_external_canvas_resource_bitmap_path_;
 };

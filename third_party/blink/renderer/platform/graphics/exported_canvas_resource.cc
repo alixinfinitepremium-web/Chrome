@@ -24,7 +24,6 @@ class PLATFORM_EXPORT ExternalCanvasResource final : public CanvasResource {
       viz::ReleaseCallback out_callback,
       base::WeakPtr<WebGraphicsContext3DProviderWrapper>);
 
-  bool CreatesAcceleratedTransferableResources() const override { return true; }
   void NotifyResourceLost() override { resource_is_lost_ = true; }
   void WaitSyncToken(const gpu::SyncToken&) override;
 
@@ -46,7 +45,6 @@ class PLATFORM_EXPORT ExternalCanvasResource final : public CanvasResource {
   const gfx::HDRMetadata hdr_metadata_;
   viz::ReleaseCallback release_callback_;
   bool resource_is_lost_ = false;
-  const SkAlphaType alpha_type_;
 
   // SyncToken to wait on at destruction.
   gpu::SyncToken destruction_sync_token_;
@@ -84,8 +82,7 @@ ExternalCanvasResource::ExternalCanvasResource(
       context_provider_wrapper_(std::move(context_provider_wrapper)),
       resource_source_(resource_source),
       hdr_metadata_(hdr_metadata),
-      release_callback_(std::move(out_callback)),
-      alpha_type_(kPremul_SkAlphaType) {
+      release_callback_(std::move(out_callback)) {
   CHECK(GetSharedImage());
   SetReleaseSyncToken(sync_token);
 }
@@ -98,7 +95,7 @@ ExportedCanvasResource::ExportedCanvasResource(
     viz::ReleaseCallback callback,
     base::WeakPtr<WebGraphicsContext3DProviderWrapper> provider)
     : resource_(
-          base::MakeRefCounted<ExternalCanvasResource>(std::move(client_si),
+          base::MakeRefCounted<ExternalCanvasResource>(client_si,
                                                        sync_token,
                                                        resource_source,
                                                        hdr_metadata,
@@ -107,6 +104,12 @@ ExportedCanvasResource::ExportedCanvasResource(
       owning_thread_ref_(base::PlatformThread::CurrentRef()),
       owning_thread_task_runner_(
           ThreadScheduler::Current()->CleanupTaskRunner()),
+      shared_image_(std::move(client_si)),
+      sync_token_(sync_token),
+      hdr_metadata_(hdr_metadata),
+      resource_source_(resource_source),
+      accelerated_raster_(true),
+      context_provider_wrapper_(provider),
       use_legacy_external_canvas_resource_bitmap_path_(true) {
   CHECK(resource_);
   CHECK(!resource_->is_cross_thread());
@@ -118,9 +121,18 @@ ExportedCanvasResource::ExportedCanvasResource(
       owning_thread_ref_(base::PlatformThread::CurrentRef()),
       owning_thread_task_runner_(
           ThreadScheduler::Current()->CleanupTaskRunner()),
+      shared_image_(resource_->GetSharedImage()),
+      sync_token_(resource_->sync_token()),
+      hdr_metadata_(resource_->GetHdrMetadata()),
+      resource_source_(resource_->GetTransferableResourceSource()),
+      accelerated_raster_(resource_->UsesAcceleratedRaster()),
       use_legacy_external_canvas_resource_bitmap_path_(false) {
   CHECK(resource_);
   CHECK(!resource_->is_cross_thread());
+
+  context_provider_wrapper_ =
+      static_cast<CanvasResourceSharedImage*>(resource_.get())
+          ->context_provider_wrapper_;
 }
 
 ExportedCanvasResource::~ExportedCanvasResource() {
@@ -148,26 +160,23 @@ void ExportedCanvasResource::OnPlaceholderReleasedResource(
 }
 
 gfx::Size ExportedCanvasResource::Size() const {
-  return resource_->GetSharedImage()->size();
+  return shared_image_->size();
 }
 
 bool ExportedCanvasResource::OriginClean() const {
-  return resource_->OriginClean();
+  return origin_clean_;
 }
 
 scoped_refptr<StaticBitmapImage> ExportedCanvasResource::Bitmap() {
   TRACE_EVENT0("blink", "ExportedCanvasResource::Bitmap");
   if (use_legacy_external_canvas_resource_bitmap_path_) {
-    ExternalCanvasResource* external_resource =
-        static_cast<ExternalCanvasResource*>(resource_.get());
-
     // On same thread we need to make sure context was not dropped, but
     // in the cross-thread case, checking a WeakPtr in not thread safe, not
     // to mention that we will use a shared context rather than the context
     // of origin to access the resource. In that case we will find out
     // whether the resource was dropped later, when we attempt to access the
     // mailbox.
-    if (!is_cross_thread() && !external_resource->context_provider_wrapper_) {
+    if (!is_cross_thread() && !context_provider_wrapper_) {
       return nullptr;
     }
 
@@ -182,17 +191,16 @@ scoped_refptr<StaticBitmapImage> ExportedCanvasResource::Bitmap() {
 
     scoped_refptr<StaticBitmapImage> image =
         AcceleratedStaticBitmapImage::CreateFromCanvasSharedImage(
-            resource_->GetSharedImage(), resource_->sync_token(),
-            external_resource->alpha_type_, resource_->GetHdrMetadata(),
-            external_resource->context_provider_wrapper_, owning_thread_ref_,
+            shared_image_, sync_token_, kPremul_SkAlphaType, hdr_metadata_,
+            context_provider_wrapper_, owning_thread_ref_,
             owning_thread_task_runner_, std::move(release_callback));
     return image;
   } else {
     CanvasResourceSharedImage* resource_si =
         static_cast<CanvasResourceSharedImage*>(resource_.get());
-    if (!resource_si->is_accelerated_) {
+    if (!accelerated_raster_) {
       // Construct an SkImage that references the shared memory buffer.
-      auto mapping = resource_->GetSharedImage()->Map();
+      auto mapping = shared_image_->Map();
       if (!mapping) {
         LOG(ERROR) << "MapSharedImage Failed.";
         return nullptr;
@@ -208,9 +216,8 @@ scoped_refptr<StaticBitmapImage> ExportedCanvasResource::Bitmap() {
       }
 
       auto image = UnacceleratedStaticBitmapImage::Create(
-          sk_image, ImageOrientationEnum::kDefault,
-          resource_->GetHdrMetadata());
-      image->SetOriginClean(resource_->OriginClean());
+          sk_image, ImageOrientationEnum::kDefault, hdr_metadata_);
+      image->SetOriginClean(OriginClean());
       return image;
     }
 
@@ -232,13 +239,11 @@ scoped_refptr<StaticBitmapImage> ExportedCanvasResource::Bitmap() {
         base::WrapRefCounted(this));
 
     scoped_refptr<StaticBitmapImage> image;
-    const auto& client_shared_image = resource_->GetSharedImage();
 
     // If its cross thread, then the sync token was already verified.
     image = AcceleratedStaticBitmapImage::CreateFromCanvasSharedImage(
-        client_shared_image, resource_->sync_token(),
-        client_shared_image->alpha_type(), resource_->GetHdrMetadata(),
-        resource_si->context_provider_wrapper_, owning_thread_ref_,
+        shared_image_, sync_token_, shared_image_->alpha_type(), hdr_metadata_,
+        context_provider_wrapper_, owning_thread_ref_,
         owning_thread_task_runner_, std::move(release_callback));
 
     DCHECK(image);
@@ -249,8 +254,7 @@ scoped_refptr<StaticBitmapImage> ExportedCanvasResource::Bitmap() {
 void ExportedCanvasResource::EndDisplayCompositorAccess(
     gpu::SharedImageExportResult export_result,
     bool is_lost) {
-  auto sync_token =
-      resource_->GetSharedImage()->EndExport(std::move(export_result));
+  auto sync_token = shared_image_->EndExport(std::move(export_result));
   EndDisplayCompositorAccess(sync_token, is_lost);
 }
 
@@ -268,22 +272,19 @@ ExportedCanvasResource::PrepareTransferableResource() {
   TRACE_EVENT0("blink", "CanvasResource::PrepareTransferableResource");
 
   auto resource = viz::TransferableResource::Make(
-      resource_->GetSharedImage(), resource_->GetTransferableResourceSource(),
-      resource_->sync_token());
+      shared_image_, resource_source_, sync_token_);
 
-  resource.hdr_metadata = resource_->GetHdrMetadata();
+  resource.hdr_metadata = hdr_metadata_;
 
-  // When the compositor returns an accelerated resource, it provides a sync
-  // token to allow subsequent accelerated raster operations to properly
-  // sequence their usage of the resource within the GPU service. However, if
-  // the compositor is accelerated but raster is *not*, sync tokens are not
-  // sufficient for ordering: We must instead ensure that the compositor's
-  // GPU-side reads have actually *completed* before the compositor returns the
-  // resource for reuse, as after that point subsequent raster operations will
-  // start writing to the resource via the CPU without any subsequent
-  // synchronization with the GPU service.
-  if (!resource_->UsesAcceleratedRaster() &&
-      resource_->CreatesAcceleratedTransferableResources()) {
+  // When the compositor returns an resource, it provides a sync token to allow
+  // subsequent accelerated raster operations to properly sequence their usage
+  // of the resource within the GPU service. However, if raster is not
+  // accelerated, sync tokens are not sufficient for ordering: We must instead
+  // ensure that the compositor's reads have actually *completed* before the
+  // compositor returns the resource for reuse, as after that point subsequent
+  // raster operations will start writing to the resource via the CPU without
+  // any subsequent synchronization with the GPU service.
+  if (!accelerated_raster_) {
     resource.synchronization_type =
         viz::TransferableResource::SynchronizationType::kGpuCommandsCompleted;
   }
@@ -292,7 +293,7 @@ ExportedCanvasResource::PrepareTransferableResource() {
 }
 
 void ExportedCanvasResource::SetOriginClean(bool clean) {
-  resource_->SetOriginClean(clean);
+  origin_clean_ = clean;
 }
 
 }  // namespace blink
