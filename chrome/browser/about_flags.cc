@@ -47,6 +47,7 @@
 #include "chrome/browser/enterprise/platform_auth/platform_auth_features.h"
 #include "chrome/browser/flag_descriptions.h"
 #include "chrome/browser/glic/public/features.h"
+#include "chrome/browser/glic/public/provider_features.h"
 #include "chrome/browser/infobars/infobar_features.h"
 #include "chrome/browser/login_detection/login_detection_util.h"
 #include "chrome/browser/media/router/discovery/access_code/access_code_cast_constants.h"
@@ -11005,6 +11006,11 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kGlicBackgroundTriggeringDescription,
      kOsDesktop | kOsAndroid,
      FEATURE_VALUE_TYPE(features::kGlicBackgroundTriggering)},
+    {"glic-force-fcm-experimental-trigger-failure",
+     flag_descriptions::kGlicForceFcmExperimentalTriggerFailureName,
+     flag_descriptions::kGlicForceFcmExperimentalTriggerFailureDescription,
+     kOsAndroid,
+     FEATURE_VALUE_TYPE(features::kGlicForceFcmExperimentalTriggerFailure)},
     {"glic-settings-a11y-context-fix",
      flag_descriptions::kGlicSettingsA11yContextFixName,
      flag_descriptions::kGlicSettingsA11yContextFixDescription, kOsDesktop,
@@ -12194,6 +12200,11 @@ const FeatureEntry kFeatureEntries[] = {
     {"media-codec-block-model", flag_descriptions::kMediaCodecBlockModelName,
      flag_descriptions::kMediaCodecBlockModelDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(media::kMediaCodecBlockModel)},
+
+    {"media-codec-block-model-encrypted",
+     flag_descriptions::kMediaCodecBlockModelEncryptedName,
+     flag_descriptions::kMediaCodecBlockModelEncryptedDescription, kOsAndroid,
+     FEATURE_VALUE_TYPE(media::kMediaCodecBlockModelEncrypted)},
 
     {"media-codec-block-model-output",
      flag_descriptions::kMediaCodecBlockModelOutputName,

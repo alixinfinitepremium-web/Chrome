@@ -9,6 +9,8 @@
 #include <string>
 #include <string_view>
 
+#include "base/containers/flat_set.h"
+#include "base/time/time.h"
 #include "chrome/browser/glic/public/glic_feature.h"
 #include "chrome/browser/glic/public/glic_provider.h"
 #include "url/gurl.h"
@@ -30,6 +32,71 @@ inline constexpr char kGeminiGuestUrlKey[] = "gemini.google.com";
 struct GeicProviderInitOptions {
   GURL guest_url;
   bool can_switch_between_gemini_providers = false;
+};
+
+struct GlicPdfAutoOpenFeatureParams {
+  bool with_onboarding = true;
+  base::TimeDelta cooldown = base::Hours(1);
+};
+
+struct GlicPdfSummarizeFeatureParams {
+  int arm = 3;
+  bool use_long_button_text = false;
+};
+
+struct GlicSelectionInlineCueFeatureParams {
+  static constexpr char kCtaTellMe[] = "tell_me_about_this";
+  static constexpr char kCtaExplain[] = "explain";
+
+  GlicSelectionInlineCueFeatureParams();
+  GlicSelectionInlineCueFeatureParams(
+      const GlicSelectionInlineCueFeatureParams&);
+  GlicSelectionInlineCueFeatureParams& operator=(
+      const GlicSelectionInlineCueFeatureParams&);
+  GlicSelectionInlineCueFeatureParams(GlicSelectionInlineCueFeatureParams&&);
+  GlicSelectionInlineCueFeatureParams& operator=(
+      GlicSelectionInlineCueFeatureParams&&);
+  ~GlicSelectionInlineCueFeatureParams();
+
+  bool show_copy_buttons = false;
+  bool auto_send_prompt = true;
+  std::string cta = kCtaExplain;
+  base::flat_set<std::string> default_blocked_sites;
+};
+
+struct GlicIndigoFeatureParams {
+  GlicIndigoFeatureParams();
+  GlicIndigoFeatureParams(const GlicIndigoFeatureParams&);
+  GlicIndigoFeatureParams& operator=(const GlicIndigoFeatureParams&);
+  GlicIndigoFeatureParams(GlicIndigoFeatureParams&&);
+  GlicIndigoFeatureParams& operator=(GlicIndigoFeatureParams&&);
+  ~GlicIndigoFeatureParams();
+
+  // Prompt sent to Glic. Overrides `prompt_key`.
+  std::string prompt;
+  // Key of a prompt from the Indigo component, used if `prompt` is empty.
+  std::string prompt_key;
+  // Skill whose prompt is sent to Glic instead, if the skill exists.
+  std::string skill_id;
+  // Delay between the Glic panel opening and the Indigo agent running.
+  base::TimeDelta trigger_delay = base::Milliseconds(300);
+};
+
+struct GlicMarketingAutoOpenFeatureParams {
+  GlicMarketingAutoOpenFeatureParams();
+  GlicMarketingAutoOpenFeatureParams(const GlicMarketingAutoOpenFeatureParams&);
+  GlicMarketingAutoOpenFeatureParams& operator=(
+      const GlicMarketingAutoOpenFeatureParams&);
+  GlicMarketingAutoOpenFeatureParams(GlicMarketingAutoOpenFeatureParams&&);
+  GlicMarketingAutoOpenFeatureParams& operator=(
+      GlicMarketingAutoOpenFeatureParams&&);
+  ~GlicMarketingAutoOpenFeatureParams();
+
+  // Comma-separated URLs that auto-open Glic. Query and fragment are ignored
+  // when matching.
+  std::string allowlisted_urls;
+  // Maximum number of auto-opens per profile.
+  int max_impressions = 1;
 };
 
 class GlicFreStore;
@@ -119,6 +186,14 @@ class GlicProviderSpec {
   // feature's flag(s), if it has any. Callers still apply profile requirements
   // (e.g. Glic enablement or FRE consent).
   virtual bool SupportsFeature(GlicFeature feature) const = 0;
+  virtual GlicPdfAutoOpenFeatureParams GetPdfAutoOpenFeatureParams() const = 0;
+  virtual GlicPdfSummarizeFeatureParams GetPdfSummarizeFeatureParams()
+      const = 0;
+  virtual GlicSelectionInlineCueFeatureParams
+  GetSelectionInlineCueFeatureParams() const = 0;
+  virtual GlicIndigoFeatureParams GetIndigoFeatureParams() const = 0;
+  virtual GlicMarketingAutoOpenFeatureParams GetMarketingAutoOpenFeatureParams()
+      const = 0;
   // Whether this provider's guest supports server-side rendering.
   virtual bool SupportsSsr() const = 0;
   // Whether daisy-chained tabs (e.g. tabs opened via CreateTab or link clicks)

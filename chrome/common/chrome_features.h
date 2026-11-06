@@ -548,8 +548,6 @@ COMPONENT_EXPORT(CHROME_FEATURES) BASE_DECLARE_FEATURE(kGlicDebugWebview);
 
 COMPONENT_EXPORT(CHROME_FEATURES) BASE_DECLARE_FEATURE(kGlicScrollTo);
 
-COMPONENT_EXPORT(CHROME_FEATURES) BASE_DECLARE_FEATURE(kGlicCaptureRegion);
-
 COMPONENT_EXPORT(CHROME_FEATURES)
 extern const base::FeatureParam<bool> kGlicScrollToEnforceDocumentId;
 COMPONENT_EXPORT(CHROME_FEATURES)
@@ -728,11 +726,6 @@ COMPONENT_EXPORT(CHROME_FEATURES)
 extern const base::FeatureParam<int> kGlicGuestUrlPresetType;
 
 #if BUILDFLAG(ENABLE_PDF)
-COMPONENT_EXPORT(CHROME_FEATURES) BASE_DECLARE_FEATURE(kPdfGlicSummarize);
-COMPONENT_EXPORT(CHROME_FEATURES)
-extern const base::FeatureParam<int> kPdfGlicSummarizeArm;
-COMPONENT_EXPORT(CHROME_FEATURES)
-extern const base::FeatureParam<bool> kPdfGlicSummarizeUseLongButtonText;
 COMPONENT_EXPORT(CHROME_FEATURES) BASE_DECLARE_FEATURE(kPdfGlicSummarizeFre);
 #endif
 
@@ -907,17 +900,6 @@ extern const base::FeatureParam<base::TimeDelta>
 COMPONENT_EXPORT(CHROME_FEATURES)
 extern const base::FeatureParam<base::TimeDelta>
     kIndigoMetadataKeywordHeuristicMaxWaitTime;
-
-COMPONENT_EXPORT(CHROME_FEATURES)
-BASE_DECLARE_FEATURE(kIndigoOpenGlic);
-COMPONENT_EXPORT(CHROME_FEATURES)
-extern const base::FeatureParam<std::string> kIndigoGlicPrompt;
-COMPONENT_EXPORT(CHROME_FEATURES)
-extern const base::FeatureParam<std::string> kIndigoGlicPromptKey;
-COMPONENT_EXPORT(CHROME_FEATURES)
-extern const base::FeatureParam<std::string> kIndigoGlicSkillId;
-COMPONENT_EXPORT(CHROME_FEATURES)
-extern const base::FeatureParam<base::TimeDelta> kIndigoGlicTriggerDelay;
 
 COMPONENT_EXPORT(CHROME_FEATURES)
 BASE_DECLARE_FEATURE(kIndigoGeneratedImageCache);
@@ -1352,6 +1334,22 @@ COMPONENT_EXPORT(CHROME_FEATURES)
 BASE_DECLARE_FEATURE(kWebUIReloadButton);
 COMPONENT_EXPORT(CHROME_FEATURES)
 BASE_DECLARE_FEATURE(kTopChromeWebUISharedRenderer);
+COMPONENT_EXPORT(CHROME_FEATURES)
+BASE_DECLARE_FEATURE(kTopChromeWebUIPrerendering);
+COMPONENT_EXPORT(CHROME_FEATURES)
+extern const base::FeatureParam<base::TimeDelta>
+    kTopChromeWebUIPrerenderingDelay;
+COMPONENT_EXPORT(CHROME_FEATURES)
+extern const base::FeatureParam<base::TimeDelta>
+    kTopChromeWebUIPrerenderingPaintDeadline;
+// The memory pressure levels that can skip the refill.
+enum class TopChromeWebUIPrerenderingMemoryPressureLevel {
+  kModerate,
+  kCritical,
+};
+COMPONENT_EXPORT(CHROME_FEATURES)
+extern const base::FeatureParam<TopChromeWebUIPrerenderingMemoryPressureLevel>
+    kTopChromeWebUIPrerenderingMemoryPressure;
 COMPONENT_EXPORT(CHROME_FEATURES)
 extern const base::FeatureParam<int> kWebUIReloadButtonMaxCrashRecoveryTimes;
 COMPONENT_EXPORT(CHROME_FEATURES)

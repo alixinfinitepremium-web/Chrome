@@ -9475,6 +9475,8 @@ from previous Chrome versions.
   <int value="-1651341724"
       label="PrivateNetworkAccessPermissionPrompt:disabled"/>
   <int value="-1650769314" label="enable-webgl2-compute-context"/>
+  <int value="-1650145373"
+      label="GlicForceFcmExperimentalTriggerFailure:disabled"/>
   <int value="-1650033715"
       label="kGlicDefaultToLastActiveConversation:disabled"/>
   <int value="-1649778035" label="disable-clear-browsing-data-counters"/>
@@ -17002,9 +17004,12 @@ from previous Chrome versions.
   <int value="601417094" label="SupportF11AndF12KeyShortcuts:disabled"/>
   <int value="601510870" label="EcheLauncherIconsInMoreAppsButton:disabled"/>
   <int value="601689207" label="TabGroupHome:disabled"/>
+  <int value="601779039" label="MediaCodecBlockModelEncrypted:disabled"/>
   <int value="601875786" label="PageVisibilityPageContentAnnotations:enabled"/>
   <int value="602117675" label="NTPBookmarkSuggestions:enabled"/>
   <int value="602452004" label="WebBluetoothBondOnDemand:disabled"/>
+  <int value="602842232"
+      label="GlicForceFcmExperimentalTriggerFailure:enabled"/>
   <int value="603256057" label="NotebookLmAppShelfPin:disabled"/>
   <int value="603275624" label="AndroidHubSearch:enabled"/>
   <int value="603326800" label="UsePasswordSeparatedSigninFlow:enabled"/>
@@ -21849,6 +21854,7 @@ from previous Chrome versions.
   <int value="2029804000" label="ClipboardContentsId:enabled"/>
   <int value="2030086360"
       label="EnableMachineLearningModelLoaderWebPlatformApi:disabled"/>
+  <int value="2030375925" label="MediaCodecBlockModelEncrypted:enabled"/>
   <int value="2030472170" label="GlicMessageFirstFreForContextualCue:enabled"/>
   <int value="2030517002" label="HeadlessTabModel:enabled"/>
   <int value="2030614867" label="OmniboxMultilineEditField:disabled"/>
@@ -28678,6 +28684,7 @@ Called by update_net_error_codes.py.-->
   <int value="8" label="kCodecHEVC"/>
   <int value="9" label="kCodecDolbyVision"/>
   <int value="10" label="kCodecAV1"/>
+  <int value="11" label="kCodecAV2"/>
 </enum>
 
 <!-- LINT.ThenChange(//media/base/video_codecs.h:VideoCodec) -->
@@ -28724,6 +28731,13 @@ Called by update_net_error_codes.py.-->
   <int value="36" label="HEVC HighThroughputScreenExtended"/>
   <int value="37" label="DolbyVision profile10"/>
   <int value="38" label="DolbyVision profile20"/>
+  <int value="39" label="AV2 Main_420_10_IP0"/>
+  <int value="40" label="AV2 Main_420_10_IP1"/>
+  <int value="41" label="AV2 Main_420_10_IP2"/>
+  <int value="42" label="AV2 Main_422_10_IP1"/>
+  <int value="43" label="AV2 Main_444_10_IP1"/>
+  <int value="44" label="AV2 Main_444C_12_IP2"/>
+  <int value="45" label="AV2 Configurable"/>
 </enum>
 
 <!-- LINT.ThenChange(//gpu/config/gpu_info.h:VideoCodecProfile, //media/base/video_codecs.h:VideoCodecProfile) -->
@@ -28745,6 +28759,7 @@ Called by update_net_error_codes.py.-->
   <int value="16" label="V4l2 Video Decoder"/>
   <int value="18" label="OOP Video Decoder"/>
   <int value="19" label="VideoToolbox Video Decoder"/>
+  <int value="20" label="Dav2d Video Decoder"/>
 </enum>
 
 <enum name="VideoEncoderUseCase">

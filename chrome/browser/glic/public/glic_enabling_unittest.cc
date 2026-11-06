@@ -41,6 +41,7 @@
 #include "chrome/browser/glic/host/glic.mojom.h"
 #include "chrome/browser/glic/host/glic_features.mojom-features.h"
 #include "chrome/browser/glic/host/glic_features.mojom.h"
+#include "chrome/browser/glic/host/glic_provider_change_relaunch.h"
 #include "chrome/browser/glic/public/features.h"
 #include "chrome/browser/glic/public/glic_feature.h"
 #include "chrome/browser/glic/public/glic_fre_store.h"
@@ -49,6 +50,7 @@
 #include "chrome/browser/glic/public/glic_provider_change.h"
 #include "chrome/browser/glic/public/glic_provider_latch.h"
 #include "chrome/browser/glic/public/glic_provider_spec.h"
+#include "chrome/browser/glic/public/provider_features.h"
 #include "chrome/browser/glic/suggestions/contextual_cueing_features.h"
 #include "chrome/browser/glic/test_support/glic_test_util.h"
 #include "chrome/browser/global_features.h"
@@ -1406,7 +1408,7 @@ class GlicEnablingGatedFeatureTest
       public testing::WithParamInterface<GatedFeatureParams> {
  public:
   void SetUpFeature(const base::Feature& feature,
-                    const base::FeatureParam<bool>& onboarding_param) {
+                    std::string_view onboarding_param_name) {
     GlicEnablingProfileReadyStateTestBase::SetUp();
     if (IsSkipped()) {
       return;
@@ -1423,7 +1425,7 @@ class GlicEnablingGatedFeatureTest
     if (GetParam().is_feature_enabled) {
       enabled_features.push_back(
           {feature,
-           {{onboarding_param.name,
+           {{std::string(onboarding_param_name),
              GetParam().is_onboarding_param_enabled ? "true" : "false"}}});
     } else {
       disabled_features.push_back(feature);
@@ -1452,7 +1454,7 @@ class GlicEnablingAutoOpenForPdfTest : public GlicEnablingGatedFeatureTest {
   void SetUp() override {
     base::CommandLine::ForCurrentProcess()->AppendSwitch(switches::kTestType);
     SetUpFeature(features::kAutoOpenGlicForPdf,
-                 features::kAutoOpenGlicForPdfWithOnboarding);
+                 features::kAutoOpenGlicForPdfWithOnboardingParam);
   }
 };
 
@@ -4151,6 +4153,48 @@ TEST_F(GlicEnablingGeicPolicyGlicDisabledTest,
 
   EXPECT_EQ(GlicEnabling::GetPendingProviderChange(profile()),
             GlicProviderChange::kGeicToGemini);
+}
+
+// The relaunch button can't restart Chrome unless a provider change is pending.
+TEST_F(GlicEnablingGeicPolicyTest,
+       RelaunchForProviderChange_DoesNothingWithoutPendingChange) {
+  base::test::ScopedFeatureList feature_list(
+      features::kGeicProviderChangePrompt);
+  ASSERT_EQ(GlicEnabling::GetPendingProviderChange(profile()),
+            GlicProviderChange::kNone);
+  base::UserActionTester user_action_tester;
+  int restart_count = 0;
+  auto restart_override = SetRestartCallbackForTesting(
+      base::BindLambdaForTesting([&] { ++restart_count; }));
+
+  MaybeRelaunchForProviderChange(profile());
+
+  EXPECT_EQ(restart_count, 0);
+  EXPECT_EQ(
+      user_action_tester.GetActionCount("Glic.ProviderChange.RelaunchClicked"),
+      0);
+}
+
+TEST_F(GlicEnablingGeicPolicyTest,
+       RelaunchForProviderChange_RestartsWithPendingChange) {
+  base::test::ScopedFeatureList feature_list(
+      features::kGeicProviderChangePrompt);
+  static_cast<sync_preferences::TestingPrefServiceSyncable*>(
+      profile()->GetPrefs())
+      ->RemoveManagedPref(prefs::kGlicGeminiEnterpriseUrl);
+  ASSERT_EQ(GlicEnabling::GetPendingProviderChange(profile()),
+            GlicProviderChange::kGeicToGemini);
+  base::UserActionTester user_action_tester;
+  int restart_count = 0;
+  auto restart_override = SetRestartCallbackForTesting(
+      base::BindLambdaForTesting([&] { ++restart_count; }));
+
+  MaybeRelaunchForProviderChange(profile());
+
+  EXPECT_EQ(restart_count, 1);
+  EXPECT_EQ(
+      user_action_tester.GetActionCount("Glic.ProviderChange.RelaunchClicked"),
+      1);
 }
 
 // Like `GlicEnablingGeicPolicyTest`, but with the `enabled` param of

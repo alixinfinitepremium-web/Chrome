@@ -5989,6 +5989,14 @@
     "expiry_milestone": 162
   },
   {
+    "name": "glic-force-fcm-experimental-trigger-failure",
+    "owners": [
+      "meiliang@google.com",
+      "//chrome/browser/glic/OWNERS"
+    ],
+    "expiry_milestone": 165
+  },
+  {
     "name": "glic-guest-url-presets",
     "owners": [
       "cuianthony@google.com",
@@ -7033,7 +7041,16 @@
       "philyan@chromium.org",
       "media-dev@chromium.org"
     ],
-    "expiry_milestone": 160
+    "expiry_milestone": 180
+  },
+  {
+    "name": "media-codec-block-model-encrypted",
+    "owners": [
+      "dalecurtis@chromium.org",
+      "philyan@chromium.org",
+      "media-dev@chromium.org"
+    ],
+    "expiry_milestone": 180
   },
   {
     "name": "media-codec-block-model-output",

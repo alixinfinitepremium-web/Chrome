@@ -17,6 +17,8 @@
 #include "build/build_config.h"
 #include "chrome/browser/browser_process.h"
 #include "chrome/browser/glic/public/glic_enabling.h"
+#include "chrome/browser/glic/public/glic_provider_spec.h"
+#include "chrome/browser/profiles/profile.h"
 #include "chrome/common/chrome_features.h"
 #include "chrome/common/extensions/api/pdf_viewer_private.h"
 #include "chrome/common/url_constants.h"
@@ -54,10 +56,6 @@
 #include "components/prefs/pref_service.h"
 #endif  // BUILDFLAG(ENABLE_PDF_INK2)
 
-#if BUILDFLAG(ENABLE_PDF_INK2) || BUILDFLAG(ENABLE_PDF_SAVE_TO_DRIVE)
-#include "chrome/browser/profiles/profile.h"
-#endif  // BUILDFLAG(ENABLE_PDF_INK2) || BUILDFLAG(ENABLE_PDF_SAVE_TO_DRIVE)
-
 namespace pdf_extension_util {
 
 namespace {
@@ -71,7 +69,6 @@ base::DictValue GetCommonStrings() {
   static constexpr webui::LocalizedString kPdfResources[] = {
       {"errorDialogTitle", IDS_PDF_ERROR_DIALOG_TITLE},
       {"pageLoadFailed", IDS_PDF_PAGE_LOAD_FAILED},
-      {"pageLoading", IDS_PDF_PAGE_LOADING},
       {"pageReload", IDS_PDF_PAGE_RELOAD_BUTTON},
       {"tooltipFitToPage", IDS_PDF_TOOLTIP_FIT_PAGE},
       {"tooltipFitToWidth", IDS_PDF_TOOLTIP_FIT_WIDTH},
@@ -93,16 +90,6 @@ base::DictValue GetCommonStrings() {
   return dict;
 }
 
-// Returns the resource id for the glic summarize button label, honoring the
-// experiment param that swaps in a longer "Summarize with Gemini" label.
-int GetGlicSummarizeButtonLabelId() {
-  if (base::FeatureList::IsEnabled(features::kPdfGlicSummarize) &&
-      features::kPdfGlicSummarizeUseLongButtonText.Get()) {
-    return IDS_PDF_GLIC_SUMMARIZE_WITH_GEMINI;
-  }
-  return IDS_PDF_GLIC_SUMMARIZE;
-}
-
 // Gets strings that are used only by the stand-alone PDF Viewer.
 base::DictValue GetPdfViewerStrings() {
   static constexpr webui::LocalizedString kPdfResources[] = {
@@ -111,7 +98,9 @@ base::DictValue GetPdfViewerStrings() {
       {"bookmarks", IDS_PDF_BOOKMARKS},
       {"downloadEdited", IDS_PDF_DOWNLOAD_EDITED},
       {"downloadOriginal", IDS_PDF_DOWNLOAD_ORIGINAL},
+      {"glicSummarize", IDS_PDF_GLIC_SUMMARIZE},
       {"glicSummarizeTooltip", IDS_PDF_GLIC_SUMMARIZE_TOOLTIP},
+      {"glicSummarizeWithGemini", IDS_PDF_GLIC_SUMMARIZE_WITH_GEMINI},
       {"labelPageNumber", IDS_PDF_LABEL_PAGE_NUMBER},
       {"moreActions", IDS_DOWNLOAD_MORE_ACTIONS},
       {"oversizeAttachmentWarning", IDS_PDF_OVERSIZE_ATTACHMENT_WARNING},
@@ -262,9 +251,6 @@ base::DictValue GetPdfViewerStrings() {
     dict.Set(resource.name, l10n_util::GetStringUTF16(resource.id));
   }
 
-  dict.Set("glicSummarize",
-           l10n_util::GetStringUTF16(GetGlicSummarizeButtonLabelId()));
-
   webui::SetLoadTimeDataDefaults(g_browser_process->GetApplicationLocale(),
                                  &dict);
   return dict;
@@ -389,6 +375,7 @@ base::DictValue GetStrings(PdfViewerContext context) {
 
 base::DictValue GetAdditionalData(content::WebContents* web_contents) {
   content::BrowserContext* context = web_contents->GetBrowserContext();
+  Profile* profile = Profile::FromBrowserContext(context);
   // NOTE: This function should not include any data used for $i18n{}
   // replacements. The i18n string resources should be added using GetStrings()
   // above instead.
@@ -398,6 +385,10 @@ base::DictValue GetAdditionalData(content::WebContents* web_contents) {
                chrome_pdf::features::kPdfGetSaveDataInBlocks));
   dict.Set("pdfGlicSummarizeEnabled",
            ShouldShowGlicSummarizeButton(web_contents));
+  dict.Set("pdfGlicSummarizeUseLongButtonText",
+           glic::GetGlicProviderSpec(profile)
+               .GetPdfSummarizeFeatureParams()
+               .use_long_button_text);
   dict.Set(
       "pdfSearchifySaveEnabled",
       base::FeatureList::IsEnabled(chrome_pdf::features::kPdfSearchifySave));

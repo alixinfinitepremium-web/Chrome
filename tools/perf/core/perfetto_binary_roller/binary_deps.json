@@ -1,16 +1,16 @@
 {
     "trace_processor_shell": {
         "linux_arm64": {
-            "hash": "39ace4697f96c22eafb41cc63abd60183106e69e",
-            "full_remote_path": "perfetto-luci-artifacts/f302fc0b85ff01c975536809d5e5bfbdcdfbecbd/linux-arm64/trace_processor_shell"
+            "hash": "e023625f7daf0dc65e9455ae675c7fa2ebe98846",
+            "full_remote_path": "perfetto-luci-artifacts/9aa9e2933f8a935bee40f959be05b3ad02d4c04f/linux-arm64/trace_processor_shell"
         },
         "win": {
-            "hash": "1f5558832f976c50024a00df2ee7e57c0af7ccee",
-            "full_remote_path": "chromium-telemetry/perfetto_binaries/trace_processor_shell/win/7fb54d56cb743a4dd72aed507bd1f23e859bc201/trace_processor_shell.exe"
+            "hash": "35f5f90bf5363ea49b360ffdd46e635279a59b4b",
+            "full_remote_path": "chromium-telemetry/perfetto_binaries/trace_processor_shell/win/9aa9e2933f8a935bee40f959be05b3ad02d4c04f/trace_processor_shell.exe"
         },
         "linux_arm": {
-            "hash": "5394ef0709692884e6faeb3f4bf5a7793e75084a",
-            "full_remote_path": "perfetto-luci-artifacts/f302fc0b85ff01c975536809d5e5bfbdcdfbecbd/linux-arm/trace_processor_shell"
+            "hash": "63bef6d2985c3f9eb7e71c3a5e29cb9ec5232175",
+            "full_remote_path": "perfetto-luci-artifacts/9aa9e2933f8a935bee40f959be05b3ad02d4c04f/linux-arm/trace_processor_shell"
         },
         "mac": {
             "hash": "5df665c3834be9a2cc3f45fd1cc4f64814b64d36",
@@ -21,8 +21,8 @@
             "full_remote_path": "perfetto-luci-artifacts/d64dfb7175a5e91d2d6308d4aefaf671da641cf3/mac-arm64/trace_processor_shell"
         },
         "linux": {
-            "hash": "11303dac56902a8ffd5f2fb3ca15e8a0cc142208",
-            "full_remote_path": "chromium-telemetry/perfetto_binaries/trace_processor_shell/linux/3a3a4eb4873f110a04099ef855cbcb4d09517bed/trace_processor_shell"
+            "hash": "81e74d4c231b0a1efd206696134578d3fd8bff30",
+            "full_remote_path": "chromium-telemetry/perfetto_binaries/trace_processor_shell/linux/9aa9e2933f8a935bee40f959be05b3ad02d4c04f/trace_processor_shell"
         }
     },
     "power_profile.sql": {

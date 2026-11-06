@@ -3151,6 +3151,7 @@ test("content_unittests") {
       "../browser/web_contents/web_contents_view_mac_unittest.mm",
       "../browser/web_contents/web_drag_dest_mac_unittest.mm",
       "../browser/web_contents/web_drag_source_mac_unittest.mm",
+      "../browser/webnn/webnn_browser_host_impl_mac_unittest.cc",
       "../common/mac/attributed_string_type_converters_unittest.mm",
       "../renderer/sandbox_mac_v2_unittest.mm",
     ]
@@ -3245,6 +3246,7 @@ test("content_unittests") {
 
   if (is_linux || is_chromeos) {
     sources += [
+      "../app/locale_posix_unittest.cc",
       "../browser/child_thread_type_switcher_linux_unittest.cc",
       "../child/sandboxed_process_thread_type_handler_unittest.cc",
     ]
@@ -3518,6 +3520,7 @@ test("content_unittests") {
   if (is_linux || is_chromeos) {
     deps += [
       "//components/crash/content/browser/error_reporting",
+      "//content/app:locale",
       "//sandbox/linux:sandbox_services",
       "//sandbox/linux:sandbox_services_headers",
     ]

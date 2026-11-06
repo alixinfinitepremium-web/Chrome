@@ -314,6 +314,16 @@ constexpr auto kPrivateUseBulletMap =
         {kSymbolPrivateUseBulletCodePoint, kBulletCodePoint},
     });
 
+// Blocks that hold other blocks instead of text. Only covers the kinds this
+// builder makes.
+//
+// Leftover annotations aren't added to these.
+constexpr auto kContainerBlockRoles = std::to_array<ax::mojom::Role>({
+    ax::mojom::Role::kFigure,
+    ax::mojom::Role::kList,
+    ax::mojom::Role::kTable,
+});
+
 enum class HeaderFooterRole {
   kNone,
   kHeader,
@@ -897,10 +907,91 @@ std::string GetTrimmedText(
   return std::string(base::TrimWhitespaceASCII(result, base::TRIM_ALL));
 }
 
+// Checks whether `candidate` is positioned and sized like a superscript or
+// subscript relative to `host` on the same visual line.
+ax::mojom::TextPosition ClassifySuperOrSubScriptRelativeToHost(
+    const chrome_pdf::AccessibilityTextRunInfo& candidate,
+    const chrome_pdf::AccessibilityTextRunInfo& host) {
+  if (candidate.style.font_size <= 0.0f || host.style.font_size <= 0.0f ||
+      candidate.bounds.height() <= 0.0f || host.bounds.height() <= 0.0f) {
+    return ax::mojom::TextPosition::kNone;
+  }
+
+  // Must be short and substantially smaller in font size than the host run.
+  if (candidate.len > kMaxSuperOrSubScriptCharCount ||
+      candidate.style.font_size >=
+          host.style.font_size * kSmallTextFontSizeRatio) {
+    return ax::mojom::TextPosition::kNone;
+  }
+
+  // Must be horizontally adjacent to the host run, so that smaller text in a
+  // separate column, sidebar, or table cell on the same visual line is not
+  // misclassified.
+  const float horizontal_gap =
+      std::max(candidate.bounds.x() - host.bounds.right(),
+               host.bounds.x() - candidate.bounds.right());
+  if (horizontal_gap > host.bounds.height()) {
+    return ax::mojom::TextPosition::kNone;
+  }
+
+  const float candidate_top = candidate.bounds.y();
+  const float candidate_bottom = candidate.bounds.bottom();
+  const float candidate_mid = candidate.bounds.CenterPoint().y();
+
+  const float host_top = host.bounds.y();
+  const float host_bottom = host.bounds.bottom();
+  const float host_mid = host.bounds.CenterPoint().y();
+  const float tolerance =
+      host.bounds.height() * kSuperOrSubScriptVerticalToleranceRatio;
+
+  // Must be on the same visual line as the host run. A raised run whose glyph
+  // box ends at the host's top edge, such as a footnote marker, doesn't
+  // overlap the host vertically but is still on its line.
+  const bool is_raised_to_host_top =
+      candidate_top < host_top && candidate_bottom >= host_top - tolerance;
+  if (!is_raised_to_host_top &&
+      !DoBoundsOverlapOnLine(candidate_top, candidate.bounds.height(), host_top,
+                             host.bounds.height())) {
+    return ax::mojom::TextPosition::kNone;
+  }
+
+  // Superscript: vertical center sits above the host's vertical center, and
+  // bottom does not extend significantly past the host's vertical center.
+  // Bounds come from glyph boxes, so a smaller run on the host's baseline that
+  // lacks descenders while the host has a descender (e.g. 'p' or 'g') ends at
+  // the shared baseline rather than in the upper half of the host's box, and is
+  // not a superscript.
+  if (candidate_mid < host_mid && candidate_bottom <= host_mid + tolerance) {
+    return ax::mojom::TextPosition::kSuperscript;
+  }
+
+  // Subscript: vertical center sits below the host's vertical center, the top
+  // does not rise significantly above the host's top, and the bottom drops past
+  // the host's bottom. Bounds come from glyph boxes, so a run that merely sets
+  // smaller type on the host's baseline, such as an acronym in small caps,
+  // shares the host's bottom edge and is not a subscript.
+  if (candidate_mid > host_mid && candidate_top >= host_top - tolerance &&
+      candidate_bottom > host_bottom) {
+    return ax::mojom::TextPosition::kSubscript;
+  }
+
+  return ax::mojom::TextPosition::kNone;
+}
+
+// Returns whether `candidate` is raised like a superscript on `host`'s line,
+// e.g. a footnote marker or an accent emitted as its own run.
+bool IsSmallRaisedRun(const chrome_pdf::AccessibilityTextRunInfo& candidate,
+                      const chrome_pdf::AccessibilityTextRunInfo& host) {
+  return features::IsPdfAccessibilityHeuristicEnhancementsEnabled() &&
+         ClassifySuperOrSubScriptRelativeToHost(candidate, host) ==
+             ax::mojom::TextPosition::kSuperscript;
+}
+
 bool AreRunsOnSameLine(const chrome_pdf::AccessibilityTextRunInfo& run1,
                        const chrome_pdf::AccessibilityTextRunInfo& run2) {
   return DoBoundsOverlapOnLine(run1.bounds.y(), run1.bounds.height(),
-                               run2.bounds.y(), run2.bounds.height());
+                               run2.bounds.y(), run2.bounds.height()) ||
+         IsSmallRaisedRun(run1, run2) || IsSmallRaisedRun(run2, run1);
 }
 
 // Returns the right edge of the visual line that starts with the text run at
@@ -936,6 +1027,7 @@ TextRunContext GetTextRunContext(const PageLayoutData& layout,
                                  size_t text_run_index) {
   return {
       .run = raw_ref(layout.text_runs[text_run_index]),
+      .previous_run = GetRunBeforeIndex(layout.text_runs, text_run_index),
       .next_run = GetRunAfterIndex(layout.text_runs, text_run_index),
       .chars = GetTextRunChars(layout, text_run_index),
       .next_chars = text_run_index + 1 < layout.text_runs.size()
@@ -977,73 +1069,12 @@ bool CanBeSuperOrSubScriptText(
   });
 }
 
-// Checks whether `candidate` is positioned and sized like a superscript or
-// subscript relative to `host` on the same visual line.
-ax::mojom::TextPosition ClassifySuperOrSubScriptRelativeToHost(
-    const chrome_pdf::AccessibilityTextRunInfo& candidate,
-    const chrome_pdf::AccessibilityTextRunInfo& host) {
-  if (candidate.style.font_size <= 0.0f || host.style.font_size <= 0.0f ||
-      candidate.bounds.height() <= 0.0f || host.bounds.height() <= 0.0f) {
-    return ax::mojom::TextPosition::kNone;
-  }
-
-  // Must be substantially smaller in font size and on the same visual line as
-  // the host run.
-  if (candidate.style.font_size >=
-          host.style.font_size * kSmallTextFontSizeRatio ||
-      !AreRunsOnSameLine(candidate, host)) {
-    return ax::mojom::TextPosition::kNone;
-  }
-
-  // Must be horizontally adjacent to the host run, so that smaller text in a
-  // separate column, sidebar, or table cell on the same visual line is not
-  // misclassified.
-  const float horizontal_gap =
-      std::max(candidate.bounds.x() - host.bounds.right(),
-               host.bounds.x() - candidate.bounds.right());
-  if (horizontal_gap > host.bounds.height()) {
-    return ax::mojom::TextPosition::kNone;
-  }
-
-  const float candidate_top = candidate.bounds.y();
-  const float candidate_bottom = candidate.bounds.bottom();
-  const float candidate_mid = candidate.bounds.CenterPoint().y();
-
-  const float host_top = host.bounds.y();
-  const float host_bottom = host.bounds.bottom();
-  const float host_mid = host.bounds.CenterPoint().y();
-  const float tolerance =
-      host.bounds.height() * kSuperOrSubScriptVerticalToleranceRatio;
-
-  // Superscript: vertical center sits above the host's vertical center, and
-  // bottom does not extend significantly past the host's vertical center.
-  // Bounds come from glyph boxes, so a smaller run on the host's baseline that
-  // lacks descenders while the host has a descender (e.g. 'p' or 'g') ends at
-  // the shared baseline rather than in the upper half of the host's box, and is
-  // not a superscript.
-  if (candidate_mid < host_mid && candidate_bottom <= host_mid + tolerance) {
-    return ax::mojom::TextPosition::kSuperscript;
-  }
-
-  // Subscript: vertical center sits below the host's vertical center, the top
-  // does not rise significantly above the host's top, and the bottom drops past
-  // the host's bottom. Bounds come from glyph boxes, so a run that merely sets
-  // smaller type on the host's baseline, such as an acronym in small caps,
-  // shares the host's bottom edge and is not a subscript.
-  if (candidate_mid > host_mid && candidate_top >= host_top - tolerance &&
-      candidate_bottom > host_bottom) {
-    return ax::mojom::TextPosition::kSubscript;
-  }
-
-  return ax::mojom::TextPosition::kNone;
-}
-
-// Returns whether the run at `text_run_index` reads as a superscript or a
-// subscript relative to the run beside it on the same visual line, or `kNone`.
-// `chars` are the characters of that run.
+// Returns whether `run_context.run` reads as a superscript or a subscript
+// relative to the run beside it on the same visual line, or `kNone`. `chars`
+// are the run's characters, which may exclude a list marker prefix that
+// `run_context.chars` includes.
 ax::mojom::TextPosition GetTextPosition(
-    base::span<const chrome_pdf::AccessibilityTextRunInfo> text_runs,
-    size_t text_run_index,
+    const TextRunContext& run_context,
     base::span<const chrome_pdf::AccessibilityCharInfo> chars) {
   if (!features::IsPdfAccessibilityHeuristicEnhancementsEnabled()) {
     return ax::mojom::TextPosition::kNone;
@@ -1053,25 +1084,21 @@ ax::mojom::TextPosition GetTextPosition(
     return ax::mojom::TextPosition::kNone;
   }
 
-  const chrome_pdf::AccessibilityTextRunInfo& run = text_runs[text_run_index];
+  const chrome_pdf::AccessibilityTextRunInfo& run = *run_context.run;
 
   // Check against the preceding run first (e.g., "x²", "H₂O", "word¹"), then
   // against the following run (e.g., "¹Footnote text" at the start of a line).
-  const chrome_pdf::AccessibilityTextRunInfo* previous_run =
-      GetRunBeforeIndex(text_runs, text_run_index);
-  if (previous_run) {
+  if (run_context.previous_run) {
     ax::mojom::TextPosition position =
-        ClassifySuperOrSubScriptRelativeToHost(run, *previous_run);
+        ClassifySuperOrSubScriptRelativeToHost(run, *run_context.previous_run);
     if (position != ax::mojom::TextPosition::kNone) {
       return position;
     }
   }
 
-  const chrome_pdf::AccessibilityTextRunInfo* next_run =
-      GetRunAfterIndex(text_runs, text_run_index);
-  if (next_run) {
+  if (run_context.next_run) {
     ax::mojom::TextPosition position =
-        ClassifySuperOrSubScriptRelativeToHost(run, *next_run);
+        ClassifySuperOrSubScriptRelativeToHost(run, *run_context.next_run);
     if (position != ax::mojom::TextPosition::kNone) {
       return position;
     }
@@ -2117,8 +2144,15 @@ bool BreakParagraph(uint32_t text_run_index,
       GetTextRunContext(layout, text_run_index + 1);
   const chrome_pdf::AccessibilityTextRunInfo& next_run = *next_run_context.run;
 
+  // Measure line spacing from the line's text rather than a raised marker or
+  // accent emitted at the end of the line.
+  const chrome_pdf::AccessibilityTextRunInfo& line_run =
+      current_run_context.previous_run &&
+              IsSmallRaisedRun(current_run, *current_run_context.previous_run)
+          ? *current_run_context.previous_run
+          : current_run;
   bool is_large_line_spacing_break = BreakParagraphByLineSpacing(
-      current_run, next_run, page_properties.paragraph_spacing_threshold);
+      line_run, next_run, page_properties.paragraph_spacing_threshold);
 
   if (features::IsPdfAccessibilityHeuristicEnhancementsEnabled()) {
     if (block_node->role == ax::mojom::Role::kFigure) {
@@ -2453,7 +2487,9 @@ class PdfAccessibilityTreeBuilderHeuristic::LineHelper {
     // Look at the next run, and determine how much it overlaps the line.
     const auto& run_bounds = (*text_runs_)[run_index].bounds;
     return DoBoundsOverlapOnLine(line_top, line_height, run_bounds.y(),
-                                 run_bounds.height());
+                                 run_bounds.height()) ||
+           (run_index > 0 && IsSmallRaisedRun((*text_runs_)[run_index],
+                                              (*text_runs_)[run_index - 1]));
   }
 
   // Returns whether the run at `run_index` is on the current line and
@@ -2531,7 +2567,12 @@ StaticTextState::~StaticTextState() = default;
 
 PdfAccessibilityTreeBuilderHeuristic::PdfAccessibilityTreeBuilderHeuristic(
     PdfAccessibilityTreeBuilder& builder)
-    : builder_(builder) {}
+    : builder_(builder),
+      page_layout_{
+          .text_runs = builder.text_runs(),
+          .chars = builder.chars(),
+          .text_run_start_indices = builder.text_run_start_indices(),
+      } {}
 
 PdfAccessibilityTreeBuilderHeuristic::~PdfAccessibilityTreeBuilderHeuristic() =
     default;
@@ -2568,11 +2609,6 @@ void PdfAccessibilityTreeBuilderHeuristic::BuildPageTree() {
   const HeuristicPageProperties page_properties =
       ComputeHeuristicPageProperties(builder_->text_runs(), graphics,
                                      page_bounds);
-  const PageLayoutData page_layout = {
-      .text_runs = builder_->text_runs(),
-      .chars = builder_->chars(),
-      .text_run_start_indices = builder_->text_run_start_indices(),
-  };
 
   ui::AXNodeData* block_node = nullptr;
   // Blocks that are direct children of the page node, with each `kList` in
@@ -2594,7 +2630,7 @@ void PdfAccessibilityTreeBuilderHeuristic::BuildPageTree() {
   for (size_t text_run_index = 0; text_run_index < builder_->text_runs().size();
        ++text_run_index) {
     const TextRunContext run_context =
-        GetTextRunContext(page_layout, text_run_index);
+        GetTextRunContext(page_layout_, text_run_index);
     const chrome_pdf::AccessibilityTextRunInfo& text_run = *run_context.run;
 
 #if BUILDFLAG(ENABLE_SCREEN_AI_SERVICE)
@@ -2641,13 +2677,12 @@ void PdfAccessibilityTreeBuilderHeuristic::BuildPageTree() {
     // If we don't have a block level node, create one.
     if (!block_node) {
       BlockLevelNodeResult result = CreateBlockLevelNode(
-          page_layout, text_run_index, page_properties, current_graphic);
+          text_run_index, page_properties, current_graphic);
       block_node = result.node;
       current_heading_classifier = result.heading_classifier;
       list_marker_kind = result.list_marker_kind;
       block_starts_with_superscript_marker =
-          GetTextPosition(builder_->text_runs(), text_run_index,
-                          run_context.chars) ==
+          GetTextPosition(run_context, run_context.chars) ==
           ax::mojom::TextPosition::kSuperscript;
       // `CreateBlockLevelNode()` already attaches `kListItem` blocks to the
       // enclosing `kList` (which is itself attached to `page_node()`).
@@ -2693,7 +2728,7 @@ void PdfAccessibilityTreeBuilderHeuristic::BuildPageTree() {
         item_text_x = text_run.bounds.x() +
                       GetCharsWidth(run_context.chars.first(prefix.char_count));
         item_start_char_index =
-            page_layout.text_run_start_indices[text_run_index] +
+            page_layout_.text_run_start_indices[text_run_index] +
             prefix.char_count;
       } else {
         CHECK_EQ(list_marker_kind.form, ListMarkerForm::kStandalone);
@@ -2702,7 +2737,7 @@ void PdfAccessibilityTreeBuilderHeuristic::BuildPageTree() {
         CHECK(run_context.next_run);
         item_text_x = run_context.next_run->bounds.x();
         item_start_char_index =
-            page_layout.text_run_start_indices[text_run_index + 1];
+            page_layout_.text_run_start_indices[text_run_index + 1];
       }
       list_levels_.back().item_text_x = item_text_x;
       list_levels_.back().last_item_start_char_index = item_start_char_index;
@@ -2748,8 +2783,7 @@ void PdfAccessibilityTreeBuilderHeuristic::BuildPageTree() {
       // node, which ends any heading the current block was classified as.
       if (BreaksStaticTextNode(
               static_text_state, text_run,
-              GetTextPosition(builder_->text_runs(), text_run_index,
-                              run_context.chars))) {
+              GetTextPosition(run_context, run_context.chars))) {
         current_heading_classifier = HeadingClassifier::kNone;
       }
       ui::AXNodeData* inline_text_box_node =
@@ -2822,7 +2856,7 @@ void PdfAccessibilityTreeBuilderHeuristic::BuildPageTree() {
 
     if (!previous_on_line_node) {
       if (BreakParagraph(text_run_index, block_node, current_heading_classifier,
-                         page_layout, page_properties, list_levels_,
+                         page_layout_, page_properties, list_levels_,
                          last_recorded_lookahead_run_index_)) {
         BuildStaticNode(&static_text_state);
         block_node = nullptr;
@@ -2833,7 +2867,7 @@ void PdfAccessibilityTreeBuilderHeuristic::BuildPageTree() {
 
   if (!list_levels_.empty()) {
     list_levels_.back().item_char_counts.push_back(
-        page_layout.chars.size() -
+        page_layout_.chars.size() -
         list_levels_.back().last_item_start_char_index);
     PopListLevels(list_levels_, /*levels_to_keep=*/0, ListEndReason::kPageEnd);
   }
@@ -2863,13 +2897,12 @@ void PdfAccessibilityTreeBuilderHeuristic::BuildPageTree() {
       SortBlockNodesByVerticalBands(block_nodes,
                                     builder_->page_node()->child_ids);
       // Remaining annotations go in a new paragraph rather than a trailing
-      // figure or list.
-      block_node =
-          !block_nodes.empty() &&
-                  block_nodes.back()->role != ax::mojom::Role::kFigure &&
-                  block_nodes.back()->role != ax::mojom::Role::kList
-              ? block_nodes.back()
-              : nullptr;
+      // figure, list, or table.
+      block_node = !block_nodes.empty() &&
+                           !std::ranges::contains(kContainerBlockRoles,
+                                                  block_nodes.back()->role)
+                       ? block_nodes.back()
+                       : nullptr;
     }
     RecordHeaderFooterLocationHistograms(block_nodes, page_properties);
   }
@@ -2898,7 +2931,6 @@ ui::AXNodeData* PdfAccessibilityTreeBuilderHeuristic::CreateLineBreakingNode(
 
 PdfAccessibilityTreeBuilderHeuristic::BlockLevelNodeResult
 PdfAccessibilityTreeBuilderHeuristic::CreateBlockLevelNode(
-    const PageLayoutData& layout,
     size_t text_run_index,
     const HeuristicPageProperties& page_properties,
     const chrome_pdf::AccessibilityFormGraphicInfo* graphic) {
@@ -2912,7 +2944,7 @@ PdfAccessibilityTreeBuilderHeuristic::CreateBlockLevelNode(
     std::swap(levels, list_levels_);
     if (!levels.empty()) {
       levels.back().item_char_counts.push_back(
-          layout.text_run_start_indices[text_run_index] -
+          page_layout_.text_run_start_indices[text_run_index] -
           levels.back().last_item_start_char_index);
     }
   }
@@ -2925,7 +2957,8 @@ PdfAccessibilityTreeBuilderHeuristic::CreateBlockLevelNode(
     }
   };
 
-  const TextRunContext run_context = GetTextRunContext(layout, text_run_index);
+  const TextRunContext run_context =
+      GetTextRunContext(page_layout_, text_run_index);
   if (features::IsPdfAccessibilityHeuristicEnhancementsEnabled() && graphic) {
     end_reason = ListEndReason::kGraphic;
     result.node = CreateLineBreakingNode(ax::mojom::Role::kFigure,
@@ -2953,9 +2986,9 @@ PdfAccessibilityTreeBuilderHeuristic::CreateBlockLevelNode(
     // start a new list if there is none. The marker run itself becomes the
     // item's `kListMarker` in `BuildPageTree()`.
     if (!header_footer_ax_role.has_value()) {
-      result.list_marker_kind =
-          ClassifyListMarker(layout, text_run_index, levels, page_properties,
-                             last_recorded_lookahead_run_index_);
+      result.list_marker_kind = ClassifyListMarker(
+          page_layout_, text_run_index, levels, page_properties,
+          last_recorded_lookahead_run_index_);
     }
     if (result.list_marker_kind.form != ListMarkerForm::kNone) {
       result.node = CreateListItemNode(run_context, result.list_marker_kind,
@@ -3140,8 +3173,10 @@ ui::AXNodeData* PdfAccessibilityTreeBuilderHeuristic::AddTextRunToNode(
   base::span<const chrome_pdf::AccessibilityCharInfo> char_span =
       base::span(builder_->chars())
           .subspan(page_char_index.char_index, text_run.len);
+  const TextRunContext run_context =
+      GetTextRunContext(page_layout_, text_run_index);
   ax::mojom::TextPosition text_position =
-      GetTextPosition(builder_->text_runs(), text_run_index, char_span);
+      GetTextPosition(run_context, char_span);
 
   // If the current block was given the opening run's language and a later run
   // in the block has a different language, move the language attribute from the

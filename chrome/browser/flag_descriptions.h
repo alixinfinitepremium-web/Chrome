@@ -1856,6 +1856,12 @@ inline constexpr char kGlicBackgroundTriggeringName[] =
     "Glic background triggering";
 inline constexpr char kGlicBackgroundTriggeringDescription[] =
     "Enables background triggering for Glic.";
+inline constexpr char kGlicForceFcmExperimentalTriggerFailureName[] =
+    "Glic force FCM experimental trigger failure";
+inline constexpr char kGlicForceFcmExperimentalTriggerFailureDescription[] =
+    "Test only. Drops incoming Glic experimental triggering task requests "
+    "without a reply, as if the FCM message never arrived. Use it to test the "
+    "'Preparing to start your task' timeout.";
 inline constexpr char kGlicOptInDialogA11yFixName[] =
     "Glic Opt-in dialog accessibility fix";
 inline constexpr char kGlicOptInDialogA11yFixDescription[] =
@@ -6442,6 +6448,12 @@ inline constexpr char kMakeIdentityManagerSourceOfAccountsPart2Description[] =
 inline constexpr char kMediaCodecBlockModelName[] = "MediaCodec Block Model";
 inline constexpr char kMediaCodecBlockModelDescription[] =
     "Enables Block Model for MediaCodec on Android.";
+
+inline constexpr char kMediaCodecBlockModelEncryptedName[] =
+    "MediaCodec Block Model Encrypted";
+inline constexpr char kMediaCodecBlockModelEncryptedDescription[] =
+    "Enables Block Model for MediaCodec on Android for encrypted playback. "
+    "Has no effect unless MediaCodec Block Model is enabled.";
 
 inline constexpr char kMediaCodecBlockModelOutputName[] =
     "MediaCodec Block Model Output";

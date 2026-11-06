@@ -24,6 +24,7 @@
 #include "chrome/browser/glic/public/glic_provider.h"
 #include "chrome/browser/glic/public/glic_provider_latch.h"
 #include "chrome/browser/glic/public/glic_provider_spec.h"
+#include "chrome/browser/glic/public/provider_features.h"
 #include "chrome/browser/glic/resources/grit/glic_browser_resources.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/signin/identity_manager_factory.h"
@@ -32,7 +33,6 @@
 #include "chrome/common/webui_url_constants.h"
 #include "chrome/grit/generated_resources.h"
 #include "components/signin/public/base/consent_level.h"
-#include "components/signin/public/base/signin_switches.h"
 #include "components/signin/public/identity_manager/account_info.h"
 #include "components/signin/public/identity_manager/accounts_in_cookie_jar_info.h"
 #include "components/signin/public/identity_manager/identity_manager.h"
@@ -42,6 +42,32 @@
 #include "url/gurl.h"
 
 namespace glic {
+
+GlicIndigoFeatureParams::GlicIndigoFeatureParams() = default;
+GlicIndigoFeatureParams::GlicIndigoFeatureParams(
+    const GlicIndigoFeatureParams&) = default;
+GlicIndigoFeatureParams& GlicIndigoFeatureParams::operator=(
+    const GlicIndigoFeatureParams&) = default;
+GlicIndigoFeatureParams::GlicIndigoFeatureParams(GlicIndigoFeatureParams&&) =
+    default;
+GlicIndigoFeatureParams& GlicIndigoFeatureParams::operator=(
+    GlicIndigoFeatureParams&&) = default;
+GlicIndigoFeatureParams::~GlicIndigoFeatureParams() = default;
+
+GlicMarketingAutoOpenFeatureParams::GlicMarketingAutoOpenFeatureParams() =
+    default;
+GlicMarketingAutoOpenFeatureParams::GlicMarketingAutoOpenFeatureParams(
+    const GlicMarketingAutoOpenFeatureParams&) = default;
+GlicMarketingAutoOpenFeatureParams&
+GlicMarketingAutoOpenFeatureParams::operator=(
+    const GlicMarketingAutoOpenFeatureParams&) = default;
+GlicMarketingAutoOpenFeatureParams::GlicMarketingAutoOpenFeatureParams(
+    GlicMarketingAutoOpenFeatureParams&&) = default;
+GlicMarketingAutoOpenFeatureParams&
+GlicMarketingAutoOpenFeatureParams::operator=(
+    GlicMarketingAutoOpenFeatureParams&&) = default;
+GlicMarketingAutoOpenFeatureParams::~GlicMarketingAutoOpenFeatureParams() =
+    default;
 
 namespace {
 
@@ -179,18 +205,56 @@ class GeminiGlicProviderSpec final : public GlicProviderSpec {
       case GlicFeature::kFirstRunShowcase:
 #if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_LINUX)
         return base::FeatureList::IsEnabled(
-            switches::kFirstRunFeatureShowcaseGeminiStep);
+            features::kFirstRunFeatureShowcaseGeminiStep);
 #else
         return false;
 #endif  // BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_LINUX)
-      // The contextual cueing helpers apply the flags.
+      // Callers apply the flags: the contextual cueing helpers, glicPrivate
+      // (per-source `extensions_features` flags) and the web continuity
+      // navigation throttle.
       case GlicFeature::kContextualCueing:
       case GlicFeature::kZeroStateSuggestions:
+      case GlicFeature::kGooglePageInvocation:
+      case GlicFeature::kWebContinuity:
+      case GlicFeature::kAutofill:
+      case GlicFeature::kAiOverlay:
+      case GlicFeature::kPersonalContext:
         return true;
       case GlicFeature::kSkills:
         return base::FeatureList::IsEnabled(::features::kSkillsEnabled);
+      case GlicFeature::kMarketingAutoOpen:
+        return base::FeatureList::IsEnabled(features::kGlicMarketingAutoOpen);
+      case GlicFeature::kIndigoOpenGlic:
+        return base::FeatureList::IsEnabled(features::kIndigoOpenGlic);
+      case GlicFeature::kDynamicChromeTools:
+        return base::FeatureList::IsEnabled(features::kGlicDynamicChromeTools);
     }
     NOTREACHED();
+  }
+  GlicPdfAutoOpenFeatureParams GetPdfAutoOpenFeatureParams() const override {
+    return features::PopulatePdfAutoOpenFeatureParams(
+        features::kAutoOpenGlicForPdf);
+  }
+  GlicPdfSummarizeFeatureParams GetPdfSummarizeFeatureParams() const override {
+#if BUILDFLAG(ENABLE_PDF)
+    return features::PopulatePdfSummarizeFeatureParams(
+        features::kPdfGlicSummarize);
+#else
+    return {};
+#endif  // BUILDFLAG(ENABLE_PDF)
+  }
+  GlicSelectionInlineCueFeatureParams GetSelectionInlineCueFeatureParams()
+      const override {
+    return features::PopulateSelectionInlineCueFeatureParams(
+        features::kGlicSelectionPrompt);
+  }
+  GlicIndigoFeatureParams GetIndigoFeatureParams() const override {
+    return features::PopulateIndigoFeatureParams(features::kIndigoOpenGlic);
+  }
+  GlicMarketingAutoOpenFeatureParams GetMarketingAutoOpenFeatureParams()
+      const override {
+    return features::PopulateMarketingAutoOpenFeatureParams(
+        features::kGlicMarketingAutoOpen);
   }
   bool SupportsSsr() const override {
     return base::FeatureList::IsEnabled(features::kGlicSsr);
@@ -261,9 +325,32 @@ class GeminiEnterpriseGlicProviderSpec final : public GlicProviderSpec {
       case GlicFeature::kContextualCueing:
       case GlicFeature::kZeroStateSuggestions:
       case GlicFeature::kSkills:
+      case GlicFeature::kGooglePageInvocation:
+      case GlicFeature::kMarketingAutoOpen:
+      case GlicFeature::kWebContinuity:
+      case GlicFeature::kIndigoOpenGlic:
+      case GlicFeature::kAutofill:
+      case GlicFeature::kAiOverlay:
+      case GlicFeature::kDynamicChromeTools:
+      case GlicFeature::kPersonalContext:
         return false;
     }
     NOTREACHED();
+  }
+  GlicPdfAutoOpenFeatureParams GetPdfAutoOpenFeatureParams() const override {
+    return {};
+  }
+  GlicPdfSummarizeFeatureParams GetPdfSummarizeFeatureParams() const override {
+    return {};
+  }
+  GlicSelectionInlineCueFeatureParams GetSelectionInlineCueFeatureParams()
+      const override {
+    return {};
+  }
+  GlicIndigoFeatureParams GetIndigoFeatureParams() const override { return {}; }
+  GlicMarketingAutoOpenFeatureParams GetMarketingAutoOpenFeatureParams()
+      const override {
+    return {};
   }
   // TODO(b/576365433): Enable `kGeicSsr` once the webapp supports it.
   bool SupportsSsr() const override {

@@ -257,7 +257,6 @@ class IndexedDBBrowserTestBase : public ContentBrowserTest {
         ->GetQuotaManager()
         ->proxy()
         ->DeleteBucket(storage_key, storage::kDefaultBucketName,
-                       base::SequencedTaskRunner::GetCurrentDefault(),
                        future.GetCallback());
     return future.Take() == blink::mojom::QuotaStatusCode::kOk;
   }
@@ -327,9 +326,7 @@ class IndexedDBBrowserTestBase : public ContentBrowserTest {
         ->GetDefaultStoragePartition()
         ->GetQuotaManager()
         ->proxy()
-        ->UpdateOrCreateBucket(
-            params, base::SingleThreadTaskRunner::GetCurrentDefault(),
-            future.GetCallback());
+        ->UpdateOrCreateBucket(params, future.GetCallback());
     return future.Take();
   }
 
@@ -1425,7 +1422,6 @@ IN_PROC_BROWSER_TEST_P(IndexedDBBrowserTestWithCorruption,
       ->proxy()
       ->UpdateOrCreateBucket(
           storage::BucketInitParams::ForDefaultBucket(storage_key),
-          base::SequencedTaskRunner::GetCurrentDefault(),
           base::BindLambdaForTesting(
               [&](storage::QuotaErrorOr<storage::BucketInfo> result) {
                 ASSERT_TRUE(result.has_value());
@@ -1613,6 +1609,13 @@ IN_PROC_BROWSER_TEST_P(IndexedDBBrowserTest, ShutdownWithRequests) {
 // Regression test for https://crbug.com/429974682
 IN_PROC_BROWSER_TEST_P(IndexedDBBrowserTest, DeleteOpenUse) {
   SimpleTest(GetTestUrl("indexeddb", "delete_open_use.html"));
+}
+
+// Regression test for https://crbug.com/579841820
+IN_PROC_BROWSER_TEST_P(IndexedDBBrowserTest,
+                       CursorPrefetchDeleteDuringUpgrade) {
+  SimpleTest(
+      GetTestUrl("indexeddb", "cursor_prefetch_delete_during_upgrade.html"));
 }
 
 // Regression test for https://crbug.com/475947902

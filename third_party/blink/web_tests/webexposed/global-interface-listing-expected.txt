@@ -7874,7 +7874,9 @@ interface PerformanceResourceTiming : PerformanceEntry
     getter serverTiming
     getter transferSize
     getter workerCacheLookupStart
+    getter workerFinalRouterSource
     getter workerFinalSourceType
+    getter workerMatchedRouterSource
     getter workerMatchedSourceType
     getter workerRouterEvaluationStart
     getter workerStart
@@ -10121,6 +10123,7 @@ interface SemanticEmbedder
     static method availability
     static method create
     attribute @@toStringTag
+    getter embeddingSpace
     method constructor
     method destroy
     method embed

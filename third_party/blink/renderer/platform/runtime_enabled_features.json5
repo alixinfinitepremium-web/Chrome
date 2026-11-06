@@ -5276,6 +5276,7 @@
       // https://crbug.com/440387014
       name: "Prerender2CrossOriginIframes",
       origin_trial_feature_name: "Prerender2CrossOriginIframes",
+      status: "stable",
     },
     {
       // Used to allow prerender activation by form submission.
@@ -6189,6 +6190,12 @@
     },
     {
       name: "ServiceWorkerStaticRouterTimingInfo",
+      status: "stable",
+    },
+    {
+      // Killswitch for crbug.com/479637572.
+      name: "ServiceWorkerStaticRouterTimingRouterSourceFields",
+      depends_on: ["ServiceWorkerStaticRouterTimingInfo"],
       status: "stable",
     },
     {
@@ -7717,6 +7724,8 @@
     {
       name: "WebMCPContinuations",
       public: true,
+      base_feature_status: "enabled",
+      copied_from_base_feature_if: "overridden",
       status: "experimental",
     },
     {
@@ -7849,7 +7858,7 @@
     },
     {
       name: "WebTransportDatagramsReadableType",
-      status: "experimental",
+      status: "stable",
     },
     {
       name: "WebTransportDatagramsWritable",
