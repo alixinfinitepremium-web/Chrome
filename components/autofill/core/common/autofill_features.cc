@@ -328,7 +328,7 @@ BASE_FEATURE(kAutofillAiShowDialogInSettingsWhenUpstreamingFails,
 // If enabled, a loading dialog is shown to the user during the time their data
 // is fetched from the server for personal context entities.
 BASE_FEATURE(kAutofillAiShowPersonalContextFillingYourInfoDialog,
-             base::FEATURE_DISABLED_BY_DEFAULT);
+             base::FEATURE_ENABLED_BY_DEFAULT);
 
 // If enabled, a loading dialog is shown to the user during the time their data
 // is fetched from the server for server wallet entities.
@@ -450,11 +450,6 @@ BASE_FEATURE_PARAM(base::TimeDelta,
 // Controls whether Personal Context entities without attached sources are
 // filtered out during Ambient Autofill prefetch validation.
 BASE_FEATURE(kAutofillAmbientAutofillFilterEntitiesWithoutSource,
-             base::FEATURE_DISABLED_BY_DEFAULT);
-
-// When enabled, Personal Context Autofill AI suggestions display detailed
-// source info submenus on Desktop.
-BASE_FEATURE(kAutofillAmbientAutofillSourceAttribution,
              base::FEATURE_DISABLED_BY_DEFAULT);
 
 // Controls whether the spii cache is enabled for Ambient Autofill.
@@ -820,6 +815,12 @@ BASE_FEATURE(kAutofillExtendZipCodeValidation,
 BASE_FEATURE(kAutofillExtractOnlyNonAdFrames,
              base::FEATURE_DISABLED_BY_DEFAULT);
 
+// When enabled, Autofill also extracts iframes inside shadow DOM rather than
+// only iframes in the light DOM.
+// TODO(crbug.com/569934654): Clean up when launched.
+BASE_FEATURE(kAutofillExtractShadowDomIframes,
+             base::FEATURE_DISABLED_BY_DEFAULT);
+
 // When enabled, iframes are associated with the outermost ancestor form
 // (analogous to form control ownership) rather than the closest ancestor form
 // (analogous to form control association).
@@ -979,8 +980,43 @@ BASE_FEATURE(kAutofillPersonalizationAndTrustCreditCardSurvey,
              base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kAutofillPersonalizationAndTrustFedCmSurvey,
              base::FEATURE_DISABLED_BY_DEFAULT);
+// The FedCM surveys share a single feature, but require different trigger IDs.
+// Since Finch does not allow duplicate parameter names within a group, each
+// survey uses a separately named "en_site_id" parameter.
+BASE_FEATURE_PARAM(std::string,
+                   kAutofillPersonalizationAndTrustFedCmSurveyAcceptedTriggerId,
+                   &kAutofillPersonalizationAndTrustFedCmSurvey,
+                   "accepted_en_site_id",
+                   "");
+BASE_FEATURE_PARAM(
+    std::string,
+    kAutofillPersonalizationAndTrustFedCmSurveyAutoReauthnTriggerId,
+    &kAutofillPersonalizationAndTrustFedCmSurvey,
+    "auto_reauthn_en_site_id",
+    "");
+BASE_FEATURE_PARAM(
+    std::string,
+    kAutofillPersonalizationAndTrustFedCmSurveyDismissedTriggerId,
+    &kAutofillPersonalizationAndTrustFedCmSurvey,
+    "dismissed_en_site_id",
+    "");
 BASE_FEATURE(kAutofillPersonalizationAndTrustOneTimePasswordSurvey,
              base::FEATURE_DISABLED_BY_DEFAULT);
+// The OTP surveys share a single feature, but require different trigger IDs.
+// Since Finch does not allow duplicate parameter names within a group, each
+// survey uses a separately named "en_site_id" parameter.
+BASE_FEATURE_PARAM(
+    std::string,
+    kAutofillPersonalizationAndTrustOneTimePasswordSurveyFilledTriggerId,
+    &kAutofillPersonalizationAndTrustOneTimePasswordSurvey,
+    "filled_en_site_id",
+    "");
+BASE_FEATURE_PARAM(
+    std::string,
+    kAutofillPersonalizationAndTrustOneTimePasswordSurveyDismissedTriggerId,
+    &kAutofillPersonalizationAndTrustOneTimePasswordSurvey,
+    "dismissed_en_site_id",
+    "");
 
 // Controls whether Autofill may fill across origins.
 // In payment forms, the cardholder name field is often on the merchant's origin
@@ -1014,6 +1050,11 @@ BASE_FEATURE(kAutofillPopupDontAcceptNonVisibleEnoughSuggestion,
 // guards against double destruction or showing while hiding.
 // TODO(crbug.com/524084900): Remove when launched.
 BASE_FEATURE(kAutofillPopupUseDeleteSoon, base::FEATURE_DISABLED_BY_DEFAULT);
+
+// Controls whether iframe subqueries use their host form's structural
+// signature and omit main-form-only metadata.
+BASE_FEATURE(kAutofillQueryPerIframeStructuralSignatures,
+             base::FEATURE_DISABLED_BY_DEFAULT);
 
 // When enabled, records Autocomplete table-level diagnostics and saturation
 // metrics on profile startup.

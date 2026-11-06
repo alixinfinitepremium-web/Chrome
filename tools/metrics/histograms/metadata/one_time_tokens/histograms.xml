@@ -8,6 +8,38 @@ found in the LICENSE file.
 
 <histograms>
 
+<!-- LINT.IfChange(ActorOtpFillOtpDurationOutcome) -->
+
+<variants name="ActorOtpFillOtpDurationOutcome">
+  <variant name="Error" summary="an error, including a fill timeout"/>
+  <variant name="Success" summary="success"/>
+</variants>
+
+<!-- LINT.ThenChange(//chrome/browser/autofill/actor/one_time_tokens/actor_one_time_token_filling_service_metrics.cc:ActorOtpFillOtpDurationOutcome) -->
+
+<!-- LINT.IfChange(ActorOtpRetrieveOtpDurationOutcome) -->
+
+<variants name="ActorOtpRetrieveOtpDurationOutcome">
+  <variant name="CacheMatch" summary="a cache match"/>
+  <variant name="Cancelled"
+      summary="Cancelled (the service was destroyed before completion)"/>
+  <variant name="Error" summary="an error"/>
+  <variant name="ReceivedMatch" summary="a received match"/>
+  <variant name="SenderDomainMismatch" summary="a sender-domain mismatch"/>
+  <variant name="Timeout" summary="a timeout"/>
+</variants>
+
+<!-- LINT.ThenChange(//chrome/browser/autofill/actor/one_time_tokens/actor_one_time_token_filling_service_metrics.cc:ActorOtpRetrieveOtpDurationOutcomeSuffix) -->
+
+<!-- LINT.IfChange(AttemptOtpFillingConsentFetchOutcome) -->
+
+<variants name="AttemptOtpFillingConsentFetchOutcome">
+  <variant name="Error" summary="an error"/>
+  <variant name="Success" summary="success"/>
+</variants>
+
+<!-- LINT.ThenChange(//chrome/browser/actor/tools/one_time_token/attempt_otp_filling_metrics.cc:AttemptOtpFillingConsentFetchOutcomeSuffix) -->
+
 <!-- LINT.IfChange(AttemptOtpFillingPredictedOtpType) -->
 
 <variants name="AttemptOtpFillingPredictedOtpType">
@@ -33,6 +65,12 @@ found in the LICENSE file.
 
 <!-- LINT.ThenChange(//chrome/browser/actor/tools/one_time_token/attempt_otp_filling_metrics.cc:AttemptOtpFillingStepSuffix) -->
 
+<variants name="GmailOtpFlowType">
+  <variant name="GmailAgentic" summary="the agentic flow (GmailOtpRetriever)"/>
+  <variant name="GmailNonAgentic"
+      summary="the non-agentic flow (GmailOtpService)"/>
+</variants>
+
 <variants name="GmailOtpTokenSource">
   <variant name="Cached" summary="a cached"/>
   <variant name="Received" summary="a received (fresh)"/>
@@ -53,6 +91,20 @@ found in the LICENSE file.
     OneTimeTokens.Actor.AttemptOtpFilling.ToolInvocation bucket
     UnableToRetrieveGmailAndGoogleSmartFeaturesConsent.
   </summary>
+</histogram>
+
+<histogram
+    name="OneTimeTokens.Actor.AttemptOtpFilling.GmailAndGoogleSmartFeaturesConsent.Duration.{Outcome}"
+    units="ms" expires_after="2027-06-30">
+  <owner>salmaabdelaziz@google.com</owner>
+  <owner>passwordmanager-mobile-eng@google.com</owner>
+  <summary>
+    Time from requesting the Gmail and Google Smart Features consent states in
+    AttemptOtpFilling Validate until the response ({Outcome}). Recorded once per
+    consent fetch. Not recorded for mock OTP runs or if the tool is destroyed
+    before the response.
+  </summary>
+  <token key="Outcome" variants="AttemptOtpFillingConsentFetchOutcome"/>
 </histogram>
 
 <histogram
@@ -158,6 +210,18 @@ found in the LICENSE file.
   </summary>
 </histogram>
 
+<histogram
+    name="OneTimeTokens.Actor.OneTimeTokenFillingService.FillOtp.Duration.{Outcome}"
+    units="ms" expires_after="2027-06-30">
+  <owner>ioanap@chromium.org</owner>
+  <owner>salmaabdelaziz@google.com</owner>
+  <summary>
+    Time from triggering a single OTP fill until the ActorFillingObserver
+    reported {Outcome}. Recorded once per fill that reaches the observer.
+  </summary>
+  <token key="Outcome" variants="ActorOtpFillOtpDurationOutcome"/>
+</histogram>
+
 <histogram name="OneTimeTokens.Actor.OneTimeTokenFillingService.RetrieveOtp"
     enum="ActorOneTimeTokenFillingServiceRetrieveOtpEvent"
     expires_after="2027-06-30">
@@ -176,6 +240,20 @@ found in the LICENSE file.
     retrieval is pending, the retrieval continues and its outcome is still
     recorded.
   </summary>
+</histogram>
+
+<histogram
+    name="OneTimeTokens.Actor.OneTimeTokenFillingService.RetrieveOtp.Duration.{Outcome}"
+    units="ms" expires_after="2027-06-30">
+  <owner>salmaabdelaziz@google.com</owner>
+  <owner>passwordmanager-mobile-eng@google.com</owner>
+  <summary>
+    Time from the start of a single OTP retrieval via GmailOtpRetriever until it
+    ended with {Outcome}. Recorded once per request that reaches the retriever.
+    Not recorded for requests that fail before the retriever starts (null tab,
+    no backend, mock OTP) or that are superseded.
+  </summary>
+  <token key="Outcome" variants="ActorOtpRetrieveOtpDurationOutcome"/>
 </histogram>
 
 <histogram
@@ -262,25 +340,28 @@ found in the LICENSE file.
 </histogram>
 
 <histogram
-    name="OneTimeTokens.Gmail.SenderDomainMatchAcceptedMatchType.{Source}"
+    name="OneTimeTokens.{Type}.SenderDomainMatchAcceptedMatchType.{Source}"
     enum="GmailOtpSenderDomainMatchType" expires_after="2027-06-30">
   <owner>ioanap@chromium.org</owner>
   <owner>sdrab@google.com</owner>
   <summary>
     Records the match type for an accepted sender domain match for {Source} OTP
-    in GmailOtpRetriever. Recorded only when a token is accepted.
+    in {Type}. Recorded only when a token is accepted.
   </summary>
+  <token key="Type" variants="GmailOtpFlowType"/>
   <token key="Source" variants="GmailOtpTokenSource"/>
 </histogram>
 
-<histogram name="OneTimeTokens.Gmail.SenderDomainMatchRejectionReason.{Source}"
+<histogram
+    name="OneTimeTokens.{Type}.SenderDomainMatchRejectionReason.{Source}"
     enum="GmailOtpSenderDomainMatchType" expires_after="2027-06-30">
   <owner>ioanap@chromium.org</owner>
   <owner>sdrab@google.com</owner>
   <summary>
     Records the reason why a sender domain match was rejected for {Source} OTP
-    in GmailOtpRetriever. Recorded only when a token is rejected.
+    in {Type}. Recorded only when a token is rejected.
   </summary>
+  <token key="Type" variants="GmailOtpFlowType"/>
   <token key="Source" variants="GmailOtpTokenSource"/>
 </histogram>
 

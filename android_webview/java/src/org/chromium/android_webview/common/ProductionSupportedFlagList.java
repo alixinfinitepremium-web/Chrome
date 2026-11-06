@@ -291,6 +291,9 @@ public final class ProductionSupportedFlagList {
                 "Allows autofill to ignore suppressing predicitons on fields with"
                         + " autocomplete=unrecognized."),
         Flag.baseFeature(
+                AutofillFeatures.AUTOFILL_EXTRACT_SHADOW_DOM_IFRAMES,
+                "When enabled, Autofill also extracts iframes inside shadow DOM."),
+        Flag.baseFeature(
                 AutofillFeatures.AUTOFILL_FIX_IFRAME_OWNERSHIP,
                 "Make Autofill's iframe ownership consistent with form control ownership."),
         Flag.baseFeature(
@@ -321,6 +324,10 @@ public final class ProductionSupportedFlagList {
         Flag.baseFeature(
                 AutofillFeatures.AUTOFILL_PAGE_LANGUAGE_DETECTION,
                 "Enables Autofill to retrieve the page language for form parsing."),
+        Flag.baseFeature(
+                AutofillFeatures.AUTOFILL_QUERY_PER_IFRAME_STRUCTURAL_SIGNATURES,
+                "Controls whether iframe subqueries use their host form's structural signature and"
+                        + " omit main-form-only metadata."),
         Flag.baseFeature(
                 AutofillFeatures.AUTOFILL_USE_IN_ADDRESS_MODEL,
                 "When enabled, Autofill uses a custom address model for India."),

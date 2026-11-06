@@ -1032,6 +1032,11 @@
       status: "test",
     },
     {
+      // crbug.com/41485013
+      name: "BreakIteratorRightSingleQuotationMark",
+      status: "stable",
+    },
+    {
       name: "BrowserInitiatedAutomaticPictureInPicture",
       public: true,
       status: "experimental",
@@ -1865,6 +1870,11 @@
       status: "stable",
     },
     {
+      // https://chromestatus.com/feature/5123480866783232
+      name: "CSSImportRuleStyleSheetNullable",
+      status: "stable",
+    },
+    {
       // The inherit() function works like var(), except that it grabs
       // the computed value of the specified property from the parent style
       // instead of the current style.
@@ -1878,11 +1888,6 @@
       // <input type=time> elements with a reversed range.
       // https://html.spec.whatwg.org/multipage/input.html#has-a-reversed-range
       name: "CSSInRangeOutOfRangeReversedRanges",
-      status: "stable",
-    },
-    {
-      // https://chromestatus.com/feature/6289894144212992
-      name: "CSSKeyframesRuleLength",
       status: "stable",
     },
     {
@@ -3419,6 +3424,11 @@
     {
       // Kill switch for https://crbug.com/579721442.
       name: "FontFallbackMultiplePriorityFonts",
+      status: "stable",
+    },
+    {
+      // Kill switch for https://crbug.com/582409909.
+      name: "FontFallbackPreferContentLocale",
       status: "stable",
     },
     {

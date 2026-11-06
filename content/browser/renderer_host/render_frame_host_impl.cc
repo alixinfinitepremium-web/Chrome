@@ -226,6 +226,7 @@
 #include "content/public/browser/storage_partition.h"
 #include "content/public/browser/surface_embed_connector.h"
 #include "content/public/browser/tracing_support.h"
+#include "content/public/browser/user_browser_context.h"
 #include "content/public/browser/weak_document_ptr.h"
 #include "content/public/browser/web_ui_url_loader_factory.h"
 #include "content/public/common/alternative_error_page_override_info.mojom.h"
@@ -13542,10 +13543,27 @@ void RenderFrameHostImpl::CommitNavigation(
         subresource_proxying_factory_bundle;
     if (subresource_loader_factories) {
       base::ElapsedTimer subresource_proxying_timer;
+      // `PendingURLLoaderFactoryBundle::CreateFactory()` ignores
+      // `local_resource_loader_config`, so
+      // `subresource_proxying_factory_bundle` does not use it. Move
+      // `local_resource_loader_config` out before constructing and cloning
+      // `bundle` so we do not deep-clone the entire WebUI resource map and
+      // generated CSS strings twice here.
+      const bool optimize_local_resource_config = base::FeatureList::IsEnabled(
+          features::kWebUIOptimizeLocalResourceLoaderConfig);
+      blink::mojom::LocalResourceLoaderConfigPtr local_resource_loader_config;
+      if (optimize_local_resource_config) {
+        local_resource_loader_config = std::move(
+            subresource_loader_factories->local_resource_loader_config());
+      }
       // Clone the factory bundle for prefetch.
       auto bundle = base::MakeRefCounted<blink::URLLoaderFactoryBundle>(
           std::move(subresource_loader_factories));
       subresource_loader_factories = CloneFactoryBundle(bundle);
+      if (optimize_local_resource_config) {
+        subresource_loader_factories->set_local_resource_loader_config(
+            std::move(local_resource_loader_config));
+      }
 
       if (base::FeatureList::IsEnabled(
               features::kReduceMojoURLLoaderFactoryCloning) &&
@@ -15359,8 +15377,10 @@ void RenderFrameHostImpl::BindMediaMetricsProviderReceiver(
       },
       weak_ptr_factory_.GetWeakPtr());
 
+  // Use the off-the-record state of the user that this frame is shown for,
+  // which can differ from that of its BrowserContext.
   media::MediaMetricsProvider::Create(
-      GetProcess()->GetBrowserContext()->IsOffTheRecord()
+      GetUserBrowserContext(*this)->IsOffTheRecord()
           ? media::MediaMetricsProvider::BrowsingMode::kIncognito
           : media::MediaMetricsProvider::BrowsingMode::kNormal,
       IsOutermostMainFrame()

@@ -227,6 +227,11 @@ ActorOneTimeTokenFillingServiceImpl::~ActorOneTimeTokenFillingServiceImpl() {
   if (retrieve_otp_callback_) {
     RecordActorOneTimeTokenFillingServiceRetrieveOtpOutcome(
         kCancelled, retrieve_otp_predicted_type_);
+    if (retrieve_otp_start_time_) {
+      RecordActorOneTimeTokenFillingServiceRetrieveOtpDuration(
+          base::TimeTicks::Now() - *retrieve_otp_start_time_,
+          ActorOtpRetrieveOtpDurationOutcome::kCancelled);
+    }
   }
   // Any observer callback, pending or already posted, later runs with a null
   // service and records nothing, so there is no double count. A fill whose
@@ -388,6 +393,7 @@ void ActorOneTimeTokenFillingServiceImpl::RetrieveOtp(
 
   retrieve_otp_callback_ = std::move(callback);
   retrieve_otp_predicted_type_ = predicted_otp_type;
+  retrieve_otp_start_time_ = base::TimeTicks::Now();
   auto checker = std::make_unique<affiliations::DomainRelationChecker>(
       CHECK_DEREF(AffiliationServiceFactory::GetForProfile(profile_)));
   gmail_otp_retriever_ = one_time_tokens::GmailOtpRetriever::CreateAndStart(
@@ -413,6 +419,19 @@ void ActorOneTimeTokenFillingServiceImpl::OnOtpRetrieved(
                       .Build());
     RecordActorOneTimeTokenFillingServiceRetrieveOtpOutcome(
         MapError(result.error()), retrieve_otp_predicted_type_);
+    if (retrieve_otp_start_time_) {
+      ActorOtpRetrieveOtpDurationOutcome outcome =
+          ActorOtpRetrieveOtpDurationOutcome::kError;
+      if (result.error() == OneTimeTokenRetrievalError::kSubscriptionExpired) {
+        outcome = ActorOtpRetrieveOtpDurationOutcome::kTimeout;
+      } else if (result.error() ==
+                 OneTimeTokenRetrievalError::kGmailOtpSenderDomainMismatch) {
+        outcome = ActorOtpRetrieveOtpDurationOutcome::kSenderDomainMismatch;
+      }
+      RecordActorOneTimeTokenFillingServiceRetrieveOtpDuration(
+          base::TimeTicks::Now() - *retrieve_otp_start_time_, outcome);
+      retrieve_otp_start_time_.reset();
+    }
     std::move(retrieve_otp_callback_).Run(base::unexpected(result.error()));
     return;
   }
@@ -425,6 +444,14 @@ void ActorOneTimeTokenFillingServiceImpl::OnOtpRetrieved(
           ? kSuccessCacheMatchFound
           : kSuccessReceivedMatchFound,
       retrieve_otp_predicted_type_);
+  if (retrieve_otp_start_time_) {
+    RecordActorOneTimeTokenFillingServiceRetrieveOtpDuration(
+        base::TimeTicks::Now() - *retrieve_otp_start_time_,
+        result->source == one_time_tokens::GmailOtpRetriever::Source::kCache
+            ? ActorOtpRetrieveOtpDurationOutcome::kCacheMatch
+            : ActorOtpRetrieveOtpDurationOutcome::kReceivedMatch);
+    retrieve_otp_start_time_.reset();
+  }
   std::move(retrieve_otp_callback_).Run(std::move(result->token.value()));
 }
 
@@ -562,6 +589,7 @@ void ActorOneTimeTokenFillingServiceImpl::FillOtp(
   // Trigger the filling operation through the Autofill manager.
   // TODO(crbug.com/561395976): Figure out if additional authentication can be
   // required here.
+  const base::TimeTicks fill_start_time = base::TimeTicks::Now();
   autofill_manager.FillOrPreviewForm(
       mojom::ActionPersistence::kFill, form_structure->global_id(),
       trigger_field_id, FillingProduct::kOneTimePassword, &otp_fill_data,
@@ -571,12 +599,17 @@ void ActorOneTimeTokenFillingServiceImpl::FillOtp(
   // Activate the observer and wait for completion.
   filling_observer_->Activate(base::BindOnce(
       [](base::WeakPtr<ActorOneTimeTokenFillingServiceImpl> service,
-         const GURL& url, base::OnceCallback<void(bool)> callback,
+         const GURL& url, base::TimeTicks fill_start_time,
+         base::OnceCallback<void(bool)> callback,
          base::expected<base::flat_map<FieldGlobalId, std::string>,
                         ActorFormFillingError> result) {
         if (service) {
           using enum ActorOneTimeTokenFillingServiceFillOtp;
+          const base::TimeDelta duration =
+              base::TimeTicks::Now() - fill_start_time;
           if (result.has_value()) {
+            RecordActorOneTimeTokenFillingServiceFillOtpDuration(
+                ActorOtpFillOtpDurationOutcome::kSuccess, duration);
             RecordActorOneTimeTokenFillingServiceFillOtp(kSuccess);
             service->journal_->Log(
                 url, service->task_id_,
@@ -585,6 +618,8 @@ void ActorOneTimeTokenFillingServiceImpl::FillOtp(
                     .Add("filling_result", "Success")
                     .Build());
           } else {
+            RecordActorOneTimeTokenFillingServiceFillOtpDuration(
+                ActorOtpFillOtpDurationOutcome::kError, duration);
             RecordActorOneTimeTokenFillingServiceFillOtp(kError);
             service->journal_->Log(
                 url, service->task_id_,
@@ -607,7 +642,8 @@ void ActorOneTimeTokenFillingServiceImpl::FillOtp(
         }
         std::move(callback).Run(result.has_value());
       },
-      weak_ptr_factory_.GetWeakPtr(), url, std::move(callback)));
+      weak_ptr_factory_.GetWeakPtr(), url, fill_start_time,
+      std::move(callback)));
 }
 
 FormFillingContextValidationResult

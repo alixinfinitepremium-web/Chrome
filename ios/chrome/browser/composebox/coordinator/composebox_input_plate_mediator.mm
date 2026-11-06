@@ -32,6 +32,7 @@
 #import "base/task/bind_post_task.h"
 #import "base/task/thread_pool.h"
 #import "base/time/time.h"
+#import "base/timer/timer.h"
 #import "base/unguessable_token.h"
 #import "components/contextual_search/contextual_search_context_controller.h"
 #import "components/contextual_search/contextual_search_metrics_recorder.h"
@@ -134,6 +135,10 @@ namespace {
 
 // The timeout for Page Context execution.
 constexpr base::TimeDelta kPageContextTimeout = base::Seconds(10);
+
+// How long a send waits for the lazy extraction and upload of an auto-added
+// tab before dropping the tab and sending without it.
+constexpr base::TimeDelta kLazyTabUploadTimeout = base::Seconds(10);
 
 // Reads data from a file URL. Runs on a background thread.
 NSData* ReadDataFromURL(GURL url) {
@@ -293,6 +298,14 @@ lens::ImageEncodingOptions GetDefaultImageEncodingOptions() {
   // Holds a pending send callback while attachments are being extracted or
   // uploaded.
   base::OnceClosure _pendingSendCallback;
+
+  // Identifiers of the auto-added tabs whose extraction and upload were started
+  // by a send (see `-promoteAutoAddedItems`).
+  std::set<base::UnguessableToken> _lazilyUploadingItemIdentifiers;
+
+  // Drops the tabs in `_lazilyUploadingItemIdentifiers` that are still not
+  // uploaded `kLazyTabUploadTimeout` after a send started waiting for them.
+  base::OneShotTimer _lazyTabUploadTimer;
 
   // Delegate for the query contextualizer.
   std::unique_ptr<QueryContextualizerDelegateBridge>
@@ -476,6 +489,8 @@ lens::ImageEncodingOptions GetDefaultImageEncodingOptions() {
   _stateManager = nil;
   _aimEligibilityService = nullptr;
   _cobrowseBrowserAgent = nullptr;
+  _lazyTabUploadTimer.Stop();
+  _lazilyUploadingItemIdentifiers.clear();
   // Reset the pending send callback before `_queryContextualizer`, since
   // `_pendingSendCallback` may hold an unretained pointer to it.
   _pendingSendCallback.Reset();
@@ -818,14 +833,18 @@ lens::ImageEncodingOptions GetDefaultImageEncodingOptions() {
                                   title:[self
                                             attachmentEventTitleForItem:item]]];
 
+  // Delete the item's server-side file before removing the item, as removing it
+  // can synchronously send a pending query (see
+  // `-composeboxInputItemCollectionDidUpdateItems:`), which must not reference
+  // the file. Attachments removed before their server upload starts have no
+  // server token, and so no server-side file to delete.
+  if (_contextualSearchSession && !item.serverToken.is_empty()) {
+    _contextualSearchSession->DeleteFile(item.serverToken);
+  }
+
   [_items removeItem:item];
 
   if (_contextualSearchSession) {
-    // Attachments removed before their server upload starts have no server
-    // token, and so no server-side file to delete.
-    if (!item.serverToken.is_empty()) {
-      _contextualSearchSession->DeleteFile(item.serverToken);
-    }
     [self reloadSuggestions];
   }
 
@@ -1660,6 +1679,7 @@ lens::ImageEncodingOptions GetDefaultImageEncodingOptions() {
         [self setState:ComposeboxInputItemState::kLoading onItem:item];
         [self.consumer updateState:item.state
              forItemWithIdentifier:item.identifier];
+        _lazilyUploadingItemIdentifiers.insert(item.identifier);
         [self attachWebState:webState identifier:item.identifier isCached:NO];
       } else {
         [self handleFailedAttachment:item.identifier];
@@ -1670,7 +1690,9 @@ lens::ImageEncodingOptions GetDefaultImageEncodingOptions() {
 
 // Runs `callback` immediately if no attachment is awaiting extraction or
 // upload, or holds it in `_pendingSendCallback` until all attachments
-// settle. While held, the send is shown as pending.
+// settle. While held, the send is shown as pending, and auto-added tabs that
+// are lazily uploaded are dropped if they don't upload within
+// `kLazyTabUploadTimeout`.
 - (void)runOrWaitForPendingAttachments:(base::OnceClosure)callback {
   _pendingSendCallback = std::move(callback);
   [self maybeRunPendingSendCallback];
@@ -1679,6 +1701,15 @@ lens::ImageEncodingOptions GetDefaultImageEncodingOptions() {
   }
   // TODO(crbug.com/582333512): Keep the typed text while the send is pending.
   [self.consumer setSendPending:YES];
+  if (!_lazilyUploadingItemIdentifiers.empty()) {
+    __weak __typeof(self) weakSelf = self;
+    _lazyTabUploadTimer.Start(FROM_HERE, kLazyTabUploadTimeout,
+                              base::BindOnce(
+                                  [](__typeof(self) strongSelf) {
+                                    [strongSelf lazyTabUploadDidTimeOut];
+                                  },
+                                  weakSelf));
+  }
 }
 
 // Runs `_pendingSendCallback` if one is waiting and all attachments are ready
@@ -1692,8 +1723,26 @@ lens::ImageEncodingOptions GetDefaultImageEncodingOptions() {
       return;
     }
   }
+  _lazyTabUploadTimer.Stop();
+  _lazilyUploadingItemIdentifiers.clear();
   [self.consumer setSendPending:NO];
   std::move(_pendingSendCallback).Run();
+}
+
+// Drops the auto-added tabs whose lazy extraction and upload did not complete
+// within `kLazyTabUploadTimeout`, so that the pending send proceeds without
+// them.
+- (void)lazyTabUploadDidTimeOut {
+  std::set<base::UnguessableToken> identifiers;
+  std::swap(identifiers, _lazilyUploadingItemIdentifiers);
+  for (const base::UnguessableToken& identifier : identifiers) {
+    ComposeboxInputItem* item = [_items itemForIdentifier:identifier];
+    if (item && !item.readyForSend) {
+      // TODO(crbug.com/582333512): Show a clearer message than the generic
+      // attachment upload error.
+      [self handleFailedAttachment:identifier];
+    }
+  }
 }
 
 // Whether the current instance is associated with cobrowse.

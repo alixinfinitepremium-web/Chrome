@@ -436,10 +436,8 @@
                         "ambient_autofill_supported_entity_types": "Vehicle,Flight Reservation,Order,Shipment"
                     },
                     "enable_features": [
-                        "AutofillAiShowPersonalContextFillingYourInfoDialog",
                         "AutofillAmbientAutofill",
                         "AutofillAmbientAutofillFilterEntitiesWithoutSource",
-                        "AutofillAmbientAutofillSourceAttribution",
                         "AutofillAmbientAutofillSuppression",
                         "PersonalContextHandleEncryptedPayloads",
                         "PersonalContextLogNonEligibilityUma",
@@ -465,7 +463,6 @@
                     "enable_features": [
                         "AutofillAmbientAutofill",
                         "AutofillAmbientAutofillFilterEntitiesWithoutSource",
-                        "AutofillAmbientAutofillSourceAttribution",
                         "AutofillAmbientAutofillSuppression",
                         "PersonalContextHandleEncryptedPayloads",
                         "PersonalContextLogNonEligibilityUma",
@@ -1675,6 +1672,24 @@
             ]
         }
     ],
+    "AutofillAddressSuggestionsOnTypingLimitPerFieldType": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "AutofillAddressSuggestionsOnTypingLimitPerFieldType"
+                    ]
+                }
+            ]
+        }
+    ],
     "AutofillAiAsyncReauthAvailability": [
         {
             "platforms": [
@@ -2169,6 +2184,26 @@
                     "name": "Enabled",
                     "enable_features": [
                         "AutofillEnableWalletReminderNotice"
+                    ]
+                }
+            ]
+        }
+    ],
+    "AutofillExtractShadowDomIframes": [
+        {
+            "platforms": [
+                "android",
+                "android_webview",
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "AutofillExtractShadowDomIframes"
                     ]
                 }
             ]
@@ -8434,26 +8469,6 @@
                     "name": "Enabled",
                     "enable_features": [
                         "GmsCoreBindServiceOptimization"
-                    ]
-                }
-            ]
-        }
-    ],
-    "GaiaAccountIdEnforcement": [
-        {
-            "platforms": [
-                "android",
-                "chromeos",
-                "ios",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled_20260414",
-                    "enable_features": [
-                        "GaiaAccountIdEnforcement"
                     ]
                 }
             ]
@@ -15815,6 +15830,24 @@
                     "name": "Enabled",
                     "enable_features": [
                         "RemoteActorCredentialSharing"
+                    ]
+                }
+            ]
+        }
+    ],
+    "RemoteActorCredentialSharingSearch": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "RemoteActorCredentialSharingSearch"
                     ]
                 }
             ]

@@ -538,6 +538,7 @@ public abstract class ChromeFeatureList {
     public static final String CHANGE_UNFOCUSED_PRIORITY = "ChangeUnfocusedPriority";
     public static final String CHOICE_ENGINE_STATUS_REPORTING = "ChoiceEngineStatusReporting";
     public static final String CHROME_NATIVE_URL_OVERRIDING = "ChromeNativeUrlOverriding";
+    public static final String CHROME_SEARCH_ONLY_CLAY_SCOPE = "ChromeSearchOnlyClayScope";
     public static final String CHROME_SURVEY_NEXT_ANDROID = "ChromeSurveyNextAndroid";
     public static final String CLAMP_AUTOMOTIVE_SCALING = "ClampAutomotiveScaling";
     public static final String CLANK_DEFAULT_SEARCH_API = "ClankDefaultSearchApi";
@@ -913,6 +914,7 @@ public abstract class ChromeFeatureList {
             "TabSwitcherGroupSuggestionsTestModeAndroid";
     public static final String TAB_SWITCHER_MESSAGES_ON_DESKTOP_WINDOWING_KILL_SWITCH =
             "TabSwitcherMessagesOnDesktopWindowingKillSwitch";
+    public static final String TAB_UI_DATA_VIRTUALIZATION = "TabUiDataVirtualization";
     public static final String TAB_WINDOW_MANAGER_REPORT_INDICES_MISMATCH =
             "TabWindowManagerReportIndicesMismatch";
     public static final String TASK_MANAGER_CLANK = "TaskManagerClank";

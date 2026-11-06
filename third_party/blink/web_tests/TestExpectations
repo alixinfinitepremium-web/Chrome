@@ -62,9 +62,6 @@ crbug.com/40183464 [ Mac ] external/wpt/html/editing/dnd/js-file-image-drag.html
 # Subpixel rendering issue on Mac only caused by activating display locks.
 crbug.com/475504307 [ Mac ] html/details_summary/details-replace-text.html [ Failure Pass ]
 
-# Temporarily disable to land https://crrev.com/c/8668949
-crbug.com/407751098 http/tests/devtools/a11y-axe-core/settings/ignorelist-a11y-test.js [ Failure Pass Timeout ]
-
 # *** BEGIN Graphite failures on Mac-ARM ***
 
 # Reftest failures with off-by-1 color values
@@ -1972,55 +1969,6 @@ crbug.com/501115605 [ Mac15-arm64 ] virtual/webnn-service-with-gpu/external/wpt/
 crbug.com/501115605 [ Mac15 ] virtual/webnn-service-with-gpu/external/wpt/webnn/conformance_tests/expand.https.any.html?gpu [ Failure ]  # Flaky output
 crbug.com/501115605 [ Mac15 ] virtual/webnn-service-on-npu/external/wpt/webnn/conformance_tests/expand.https.any.html?npu [ Failure ]  # Flaky output
 crbug.com/530645748 [ Mac15 ] virtual/webnn-service-on-npu/external/wpt/webnn/conformance_tests/l2Pool2d.https.any.html?npu [ Failure ]  # Flaky output
-# TODO(crbug.com/572057869): Re-enable these tests after updating the new
-# baselines for the statically linked ML Drift WebGPU accelerator.
-crbug.com/572057869 [ Mac15 ] virtual/webnn-service-with-gpu/external/wpt/webnn/conformance_tests/add.https.any.html?gpu [ Failure ]
-crbug.com/572057869 [ Mac15 ] virtual/webnn-service-with-gpu/external/wpt/webnn/conformance_tests/arg_min_max.https.any.html?gpu [ Failure ]
-crbug.com/572057869 [ Mac15 ] virtual/webnn-service-with-gpu/external/wpt/webnn/conformance_tests/averagePool2d.https.any.html?gpu [ Failure ]
-crbug.com/572057869 [ Mac15 ] virtual/webnn-service-with-gpu/external/wpt/webnn/conformance_tests/batch_normalization_constant.https.any.html?gpu [ Failure ]
-crbug.com/572057869 [ Mac15 ] virtual/webnn-service-with-gpu/external/wpt/webnn/conformance_tests/conv_transpose2d.https.any.html?gpu [ Failure ]
-crbug.com/572057869 [ Mac15 ] virtual/webnn-service-with-gpu/external/wpt/webnn/conformance_tests/cumulative_sum.https.any.html?gpu [ Failure ]
-crbug.com/572057869 [ Mac15 ] virtual/webnn-service-with-gpu/external/wpt/webnn/conformance_tests/dequantizeLinear.https.any.html?gpu [ Failure ]
-crbug.com/572057869 [ Mac15 ] virtual/webnn-service-with-gpu/external/wpt/webnn/conformance_tests/erf.https.any.html?gpu [ Failure ]
-crbug.com/572057869 [ Mac15 ] virtual/webnn-service-with-gpu/external/wpt/webnn/conformance_tests/gru.https.any.html?gpu [ Crash ]
-crbug.com/572057869 [ Mac15 ] virtual/webnn-service-with-gpu/external/wpt/webnn/conformance_tests/identity.https.any.html?gpu [ Failure ]
-crbug.com/572057869 [ Mac15 ] virtual/webnn-service-with-gpu/external/wpt/webnn/conformance_tests/l2Pool2d.https.any.html?gpu [ Failure ]
-crbug.com/572057869 [ Mac15 ] virtual/webnn-service-with-gpu/external/wpt/webnn/conformance_tests/layer_normalization.https.any.html?gpu [ Pass Timeout ]
-crbug.com/572057869 [ Mac15 ] virtual/webnn-service-with-gpu/external/wpt/webnn/conformance_tests/leaky_relu.https.any.html?gpu [ Failure Timeout ]
-crbug.com/572057869 [ Mac15 ] virtual/webnn-service-with-gpu/external/wpt/webnn/conformance_tests/matmul.https.any.html?gpu [ Failure ]
-crbug.com/572057869 [ Mac15 ] virtual/webnn-service-with-gpu/external/wpt/webnn/conformance_tests/maxPool2d.https.any.html?gpu [ Failure ]
-crbug.com/572057869 [ Mac15 ] virtual/webnn-service-with-gpu/external/wpt/webnn/conformance_tests/pad.https.any.html?gpu [ Failure ]
-crbug.com/572057869 [ Mac15 ] virtual/webnn-service-with-gpu/external/wpt/webnn/conformance_tests/pow.https.any.html?gpu [ Failure Timeout ]
-crbug.com/572057869 [ Mac15 ] virtual/webnn-service-with-gpu/external/wpt/webnn/conformance_tests/qdq_subgraph.https.any.html?gpu [ Failure Timeout ]
-crbug.com/572057869 [ Mac15 ] virtual/webnn-service-with-gpu/external/wpt/webnn/conformance_tests/quantizeLinear.https.any.html?gpu [ Failure ]
-crbug.com/572057869 [ Mac15 ] virtual/webnn-service-with-gpu/external/wpt/webnn/conformance_tests/reduce_l2.https.any.html?gpu [ Failure ]
-crbug.com/572057869 [ Mac15 ] virtual/webnn-service-with-gpu/external/wpt/webnn/conformance_tests/scatterND.https.any.html?gpu [ Failure ]
-crbug.com/572057869 [ Mac15 ] virtual/webnn-service-with-gpu/external/wpt/webnn/conformance_tests/slice.https.any.html?gpu [ Failure ]
-crbug.com/572057869 [ Mac15 ] virtual/webnn-service-with-gpu/external/wpt/webnn/conformance_tests/softsign.https.any.html?gpu [ Failure ]
-crbug.com/572057869 [ Mac15 ] virtual/webnn-service-with-gpu/external/wpt/webnn/conformance_tests/tan.https.any.html?gpu [ Failure ]
-crbug.com/572057869 [ Mac15 ] virtual/webnn-service-with-gpu/external/wpt/webnn/conformance_tests/where.https.any.html?gpu [ Failure ]
-crbug.com/572057869 [ Mac15 ] virtual/webnn-service-with-gpu/external/wpt/webnn/validation_tests/constant-changed-buffer.https.any.html?gpu [ Failure ]
-crbug.com/572057869 [ Win11 ] virtual/webnn-service-with-gpu/external/wpt/webnn/conformance_tests/add.https.any.html?gpu [ Failure ]
-crbug.com/572057869 [ Win11 ] virtual/webnn-service-with-gpu/external/wpt/webnn/conformance_tests/arg_min_max.https.any.html?gpu [ Failure ]
-crbug.com/572057869 [ Win11 ] virtual/webnn-service-with-gpu/external/wpt/webnn/conformance_tests/batch_normalization_constant.https.any.html?gpu [ Failure ]
-crbug.com/572057869 [ Win11 ] virtual/webnn-service-with-gpu/external/wpt/webnn/conformance_tests/cumulative_sum.https.any.html?gpu [ Failure ]
-crbug.com/572057869 [ Win11 ] virtual/webnn-service-with-gpu/external/wpt/webnn/conformance_tests/erf.https.any.html?gpu [ Failure ]
-crbug.com/572057869 [ Win11 ] virtual/webnn-service-with-gpu/external/wpt/webnn/conformance_tests/exp.https.any.html?gpu [ Failure ]
-crbug.com/572057869 [ Win11 ] virtual/webnn-service-with-gpu/external/wpt/webnn/conformance_tests/gemm.https.any.html?gpu [ Failure ]
-crbug.com/572057869 [ Win11 ] virtual/webnn-service-with-gpu/external/wpt/webnn/conformance_tests/identity.https.any.html?gpu [ Failure ]
-crbug.com/572057869 [ Win11 ] virtual/webnn-service-with-gpu/external/wpt/webnn/conformance_tests/leaky_relu.https.any.html?gpu [ Failure ]
-crbug.com/572057869 [ Win11 ] virtual/webnn-service-with-gpu/external/wpt/webnn/conformance_tests/lstm.https.any.html?gpu [ Failure ]
-crbug.com/572057869 [ Win11 ] virtual/webnn-service-with-gpu/external/wpt/webnn/conformance_tests/matmul.https.any.html?gpu [ Failure ]
-crbug.com/572057869 [ Win11 ] virtual/webnn-service-with-gpu/external/wpt/webnn/conformance_tests/pad.https.any.html?gpu [ Failure ]
-crbug.com/572057869 [ Win11 ] virtual/webnn-service-with-gpu/external/wpt/webnn/conformance_tests/pow.https.any.html?gpu [ Failure ]
-crbug.com/572057869 [ Win11 ] virtual/webnn-service-with-gpu/external/wpt/webnn/conformance_tests/quantizeLinear.https.any.html?gpu [ Failure ]
-crbug.com/572057869 [ Win11 ] virtual/webnn-service-with-gpu/external/wpt/webnn/conformance_tests/reduce_l2.https.any.html?gpu [ Failure ]
-crbug.com/572057869 [ Win11 ] virtual/webnn-service-with-gpu/external/wpt/webnn/conformance_tests/slice.https.any.html?gpu [ Failure ]
-crbug.com/572057869 [ Win11 ] virtual/webnn-service-with-gpu/external/wpt/webnn/conformance_tests/softsign.https.any.html?gpu [ Failure ]
-crbug.com/572057869 [ Win11 ] virtual/webnn-service-with-gpu/external/wpt/webnn/conformance_tests/tan.https.any.html?gpu [ Failure ]
-crbug.com/572057869 [ Win11 ] virtual/webnn-service-with-gpu/external/wpt/webnn/conformance_tests/tanh.https.any.html?gpu [ Failure ]
-crbug.com/572057869 [ Win11 ] virtual/webnn-service-with-gpu/external/wpt/webnn/conformance_tests/where.https.any.html?gpu [ Failure ]
-crbug.com/572057869 [ Win11 ] virtual/webnn-service-with-gpu/external/wpt/webnn/validation_tests/constant-changed-buffer.https.any.html?gpu [ Failure ]
 
 # WebDriver WPT tests
 
@@ -4330,7 +4278,6 @@ crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-anchor-posi
 crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-anchor-position/anchor-scroll-003.html [ Failure Crash ]
 crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-anchor-position/position-try-fallbacks-multicol-001.html [ Failure Crash ]
 crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-anchor-position/position-try-fallbacks-multicol-002.html [ Failure ]
-crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-break/abspos-in-clipped-overflow-print.html [ Failure ]
 crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-break/abspos-in-opacity-003.html [ Failure ]
 crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-break/firefox-bug-2021187-crash.html [ Crash ]
 crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-break/flexbox/multi-line-column-flex-fragmentation-037.html [ Failure ]
@@ -4362,12 +4309,6 @@ crbug.com/40267498 virtual/fragmented-oof-in-cb/external/wpt/css/css-page/fixedp
 crbug.com/40267498 virtual/fragmented-oof-in-cb/printing/fixed-positioned-headers-and-footers-larger-than-page.html [ Failure ]
 crbug.com/40267498 virtual/fragmented-oof-in-cb/printing/fixed-positioned-headers-and-footers-transformed.html [ Failure ]
 crbug.com/40267498 virtual/fragmented-oof-in-cb/printing/fixed-positioned-headers-and-footers.html [ Failure ]
-crbug.com/40267498 virtual/fragmented-oof-in-cb/printing/oof-in-clipped-container-004.html [ Failure ]
-crbug.com/40267498 virtual/fragmented-oof-in-cb/printing/oof-in-clipped-container-005.html [ Failure ]
-crbug.com/40267498 virtual/fragmented-oof-in-cb/printing/oof-in-clipped-container-006.html [ Failure ]
-crbug.com/40267498 virtual/fragmented-oof-in-cb/printing/oof-in-clipped-container-007.html [ Failure ]
-crbug.com/40267498 virtual/fragmented-oof-in-cb/printing/oof-in-clipped-container-008.html [ Failure ]
-crbug.com/40267498 virtual/fragmented-oof-in-cb/printing/oof-in-clipped-container-009.html [ Failure ]
 
 crbug.com/325836823 external/wpt/css/printing/table-overflow-quirks-frameset-crash-print.html [ Crash Pass Timeout ]
 
@@ -6384,8 +6325,6 @@ crbug.com/626703 external/wpt/loading/early-hints/modulepreload-as-worker.h2.win
 # Slightly flaky
 crbug.com/1459304 [ Linux ] fast/filesystem/workers/file-writer-events.html [ Failure Pass ]
 crbug.com/1459304 [ Linux ] css2.1/t090501-c414-flt-02-d-g.html [ Failure Pass ]
-# Very flaky
-crbug.com/1459304 [ Linux ] fast/peerconnection/RTCPeerConnection-iframe-gc.html [ Failure Pass ]
 crbug.com/1459347 [ Fuchsia ] virtual/text-antialias/stroking-decorations.html [ Failure Pass ]
 crbug.com/1459347 [ Fuchsia ] paint/invalidation/shadow-multiple.html [ Failure Pass ]
 
@@ -6729,7 +6668,6 @@ crbug.com/374090995 [ Mac14-arm64 ] fast/webgl/offscreenCanvas-transferToImageBi
 [ Debug Mac14 ] fast/forms/color-scheme/media/video-playback-speed-menu.html [ Failure Pass ]
 [ Debug Mac14 ] fast/peerconnection/RTCPeerConnection-addMultipleTracks.html [ Failure Pass ]
 [ Debug Mac14 ] fast/peerconnection/RTCPeerConnection-addMultipleTransceivers.html [ Failure Pass ]
-[ Debug Mac14 ] fast/peerconnection/RTCPeerConnection-iframe-gc.html [ Failure Pass ]
 [ Debug Mac14 ] http/tests/devtools/network/network-initiator.js [ Failure Pass ]
 [ Debug Mac14 ] http/tests/misc/load-event-after-removing-child-frame.html [ Failure Pass ]
 [ Debug Mac14 ] http/tests/webfont/font-display-intervention.html [ Failure Pass ]
@@ -6745,7 +6683,6 @@ crbug.com/374090995 [ Mac14-arm64 ] fast/webgl/offscreenCanvas-transferToImageBi
 [ Debug Mac14-arm64 ] accessibility/notification-listeners.html [ Failure ]
 [ Debug Mac14-arm64 ] external/wpt/webxr/xrSession_requestReferenceSpace_features.https.html [ Failure ]
 [ Debug Mac14-arm64 ] media/controls/doubletap-to-jump-backwards.html [ Failure Pass Timeout ]
-[ Debug Mac14-arm64 ] fast/peerconnection/RTCPeerConnection-iframe-gc.html [ Failure Pass ]
 [ Debug Mac14-arm64 ] external/wpt/html/semantics/embedded-content/the-img-element/invisible-image.html [ Failure Pass ]
 [ Debug Mac14-arm64 ] editing/selection/drag-drop-events.html [ Failure Pass ]
 [ Debug Mac14-arm64 ] external/wpt/clipboard-apis/async-write-blobs-read-blobs.https.html [ Failure Pass ]
@@ -6753,7 +6690,6 @@ crbug.com/374090995 [ Mac14-arm64 ] fast/webgl/offscreenCanvas-transferToImageBi
 [ Debug Mac14-arm64 ] scrollbars/scrollbar-iframe-click-does-not-blur-content.html [ Failure Pass ]
 
 [ Debug Mac14-arm64 ] scrollbars/custom-scrollbar-thumb-width-changed-on-inactive-pseudo.html [ Failure Pass ]
-crbug.com/40777750 fast/peerconnection/RTCPeerConnection-undelivered-events-gc.html [ Failure Pass ]
 [ Debug Mac14-arm64 ] virtual/stable/http/tests/navigation/form-targets-cross-site-frame-get.html [ Failure Pass ]
 [ Debug Mac14-arm64 ] external/wpt/webtransport/streams-close.https.any.html [ Failure Pass ]
 crbug.com/40261737 [ Mac14-arm64 ] external/wpt/webtransport/streams-close.https.any.sharedworker.html [ Failure Pass ]
@@ -6884,7 +6820,7 @@ crbug.com/356930166 [ Mac15 ] external/wpt/webrtc/RTCPeerConnection-onsignalings
 crbug.com/356930166 [ Mac15 ] external/wpt/webrtc/RTCPeerConnection-perfect-negotiation.https.html [ Skip Timeout ]
 crbug.com/356930166 [ Mac15 ] external/wpt/webrtc/RTCPeerConnection-restartIce.https.html [ Timeout ]
 crbug.com/356930166 [ Mac15 ] external/wpt/webrtc/RTCPeerConnection-videoDetectorTest.html [ Skip Timeout ]
-crbug.com/356930166 [ Mac15 ] external/wpt/webrtc/RTCRtpSender-getStats.https.html [ Skip Timeout ]
+# crbug.com/356930166 [ Mac15 ] external/wpt/webrtc/RTCRtpSender-getStats.https.html [ Skip Timeout ]
 crbug.com/356930166 [ Mac15 ] external/wpt/webrtc/RTCSctpTransport-events.html [ Timeout ]
 crbug.com/356930166 [ Mac15 ] external/wpt/webrtc/simplecall-no-ssrcs.https.html [ Crash Timeout ]
 crbug.com/356930166 [ Mac14 ] external/wpt/webrtc/simplecall.https.html [ Timeout ]
@@ -6931,7 +6867,7 @@ crbug.com/356930166 [ Mac15-arm64 ] external/wpt/webrtc/RTCPeerConnection-onsign
 crbug.com/356930166 [ Mac15-arm64 ] external/wpt/webrtc/RTCPeerConnection-perfect-negotiation.https.html [ Skip Timeout ]
 crbug.com/356930166 [ Mac15-arm64 ] external/wpt/webrtc/RTCPeerConnection-restartIce.https.html [ Timeout ]
 crbug.com/356930166 [ Mac15-arm64 ] external/wpt/webrtc/RTCPeerConnection-videoDetectorTest.html [ Skip Timeout ]
-crbug.com/356930166 [ Mac15-arm64 ] external/wpt/webrtc/RTCRtpSender-getStats.https.html [ Skip Timeout ]
+# crbug.com/356930166 [ Mac15-arm64 ] external/wpt/webrtc/RTCRtpSender-getStats.https.html [ Skip Timeout ]
 crbug.com/356930166 [ Mac15-arm64 ] external/wpt/webrtc/RTCSctpTransport-events.html [ Timeout ]
 crbug.com/356930166 [ Mac15-arm64 ] external/wpt/webrtc/simplecall-no-ssrcs.https.html [ Crash Timeout ]
 crbug.com/356930166 [ Mac15-arm64 ] external/wpt/webrtc/simplecall.https.html [ Crash Timeout ]
@@ -7015,7 +6951,7 @@ crbug.com/356930166 [ Mac26 ] external/wpt/webrtc/RTCPeerConnection-perfect-nego
 crbug.com/356930166 [ Mac26 ] external/wpt/webrtc/RTCPeerConnection-remote-track-currentTime.https.html [ Skip Timeout ]
 crbug.com/356930166 [ Mac26 ] external/wpt/webrtc/RTCPeerConnection-restartIce.https.html [ Timeout ]
 crbug.com/356930166 [ Mac26 ] external/wpt/webrtc/RTCPeerConnection-videoDetectorTest.html [ Skip Timeout ]
-crbug.com/356930166 [ Mac26 ] external/wpt/webrtc/RTCRtpSender-getStats.https.html [ Skip Timeout ]
+# crbug.com/356930166 [ Mac26 ] external/wpt/webrtc/RTCRtpSender-getStats.https.html [ Skip Timeout ]
 crbug.com/356930166 [ Mac26 ] external/wpt/webrtc/RTCSctpTransport-events.html [ Timeout ]
 crbug.com/356930166 [ Mac26 ] external/wpt/webrtc/getstats.html [ Timeout ]
 crbug.com/356930166 [ Mac26 ] external/wpt/webrtc/legacy/simplecall_callbacks.optional.https.html [ Crash Timeout ]
@@ -7157,7 +7093,7 @@ crbug.com/519462980 [ Mac26-arm64 ] external/wpt/webrtc/RTCPeerConnection-perfec
 crbug.com/519462980 [ Mac26-arm64 ] external/wpt/webrtc/RTCPeerConnection-remote-track-currentTime.https.html [ Skip Timeout ]
 crbug.com/519462980 [ Mac26-arm64 ] external/wpt/webrtc/RTCPeerConnection-restartIce.https.html [ Timeout ]
 crbug.com/519462980 [ Mac26-arm64 ] external/wpt/webrtc/RTCPeerConnection-videoDetectorTest.html [ Skip Timeout ]
-crbug.com/519462980 [ Mac26-arm64 ] external/wpt/webrtc/RTCRtpSender-getStats.https.html [ Skip Timeout ]
+# crbug.com/519462980 [ Mac26-arm64 ] external/wpt/webrtc/RTCRtpSender-getStats.https.html [ Skip Timeout ]
 crbug.com/519462980 [ Mac26-arm64 ] external/wpt/webrtc/RTCSctpTransport-events.html [ Timeout ]
 crbug.com/519462980 [ Mac26-arm64 ] external/wpt/webrtc/getstats.html [ Timeout ]
 crbug.com/519462980 [ Mac26-arm64 ] external/wpt/webrtc/no-media-call.html [ Timeout ]
@@ -8151,6 +8087,9 @@ crbug.com/450592015 [ Win11-arm64 ] external/wpt/webxr/idlharness.https.window.h
 # Disabled for landing behavior change
 crbug.com/439514253 external/wpt/webrtc-extensions/RTCRtpTransceiver-headerExtensionControl.html [ Failure Pass ]
 
+# TODO(crbug.com/webrtc/581453735): re-enable after webrtc roll
+crbug.com/webrtc/581453735 external/wpt/webrtc/RTCRtpSender-getStats.https.html [ Failure Pass Timeout ]
+
 crbug.com/453203283 [ Mac ] virtual/threaded/external/wpt/css/css-backgrounds/background-clip/clip-text-on-body-not-propagated-to-root.html [ Pass Timeout ]
 
 # Gardener 2025-10-17
@@ -8278,9 +8217,6 @@ crbug.com/482449299 [ Win11 ] virtual/webnn-service-with-gpu/external/wpt/webnn/
 # Flakily times out when initial navigation commits before about:blank on headless.
 crbug.com/40615943 [ Linux ] external/wpt/html/browsers/the-window-object/navigate-to-about-blank-while-initial-load-pending.html [ Pass Timeout ]
 crbug.com/40615943 [ Mac ] external/wpt/html/browsers/the-window-object/navigate-to-about-blank-while-initial-load-pending.html [ Pass Timeout ]
-
-# Gardener 2026-02-10: flaky.
-crbug.com/483104784 [ Win11 ] virtual/lna-webrtc/fast/peerconnection/RTCPeerConnection-iframe-gc.html [ Failure Pass ]
 
 # Temporary entry while fixing semantics
 crbug.com/483413086 external/wpt/html/browsers/the-window-object/named-access-on-the-window-object/window-named-properties.html [ Failure Pass ]

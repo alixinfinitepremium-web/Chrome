@@ -4191,10 +4191,13 @@ constexpr char kWebUIToolbarEnableFeatures[] =
     "InitialWebUIWithoutSpellCheckForNtp,"
     "InitialWebUIWithoutTranslateForNtp,"
     "LazyKeyedServiceInstantiation,"
+    "OmniboxAimPopupDeferCreation,"
+    "OmniboxWebUIPopupDeferCreation,"
     "PerDependencyDeadlines,"
     "PrioritizeResizeTaskRunnerOnStartup,"
     "SendGPUChannelEarly,"
     "SkipIPCChannelPausingForNonGuests,"
+    "TopChromeWebUISharedRenderer,"
     "WebiumMetricsMapping:config/"
     "CjsKOUV2ZW50TGF0ZW5jeS5HZXN0dXJlU2Nyb2xsVXBkYXRlLlRvdWNoc2NyZWVuLlRvdGFs"
     "TGF0ZW5jeQooCiZQYWdlTG9hZC5JbnRlcmFjdGl2ZVRpbWluZy5JbnB1dERlbGF5Mwo4CjZH"
@@ -8054,6 +8057,11 @@ const FeatureEntry kFeatureEntries[] = {
     {"android-tab-ui-refactor", flag_descriptions::kAndroidTabUiRefactorName,
      flag_descriptions::kAndroidTabUiRefactorDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(chrome::android::kAndroidTabUiRefactor)},
+
+    {"tab-ui-data-virtualization",
+     flag_descriptions::kTabUiDataVirtualizationName,
+     flag_descriptions::kTabUiDataVirtualizationDescription, kOsAndroid,
+     FEATURE_VALUE_TYPE(chrome::android::kTabUiDataVirtualization)},
 
     {"android-adaptive-ui-transitions",
      flag_descriptions::kAndroidAdaptiveUiTransitionsName,

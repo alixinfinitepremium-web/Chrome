@@ -28,6 +28,10 @@
 #include "components/one_time_tokens/core/browser/one_time_token_retrieval_error.h"
 #include "components/one_time_tokens/core/browser/user_data_processing_consent_states.h"
 
+namespace base {
+class TimeTicks;
+}
+
 namespace actor {
 
 class ActorSurface;
@@ -64,6 +68,7 @@ class AttemptOtpFillingTool : public Tool {
  private:
   void OnUserDataProcessingConsentFetched(
       ToolCallback callback,
+      base::TimeTicks start_time,
       bool gmail_otp_filling_enabled,
       bool within_cool_off_period,
       std::optional<one_time_tokens::UserDataProcessingConsentStates>
@@ -84,6 +89,8 @@ class AttemptOtpFillingTool : public Tool {
 
   void LogJournalEvent(std::string_view event_name,
                        std::vector<mojom::JournalDetailsPtr> journal_details);
+
+  void RecordEvent(AttemptOtpFillingToolEvent event);
 
   ActorSurfaceHandle actor_surface_handle_;
   std::vector<PageTarget> trigger_fields_;

@@ -198,7 +198,7 @@ class TabImpl implements Tab, TabInternal {
     /** The Profile associated with this tab. */
     private final Profile mProfile;
 
-    /** The tab model this tab is currently attached to. */
+    /** Supplies the current (active) tab in the TabModel this tab is currently attached to. */
     private @Nullable LookAheadObservableSupplier<Tab> mCurrentTabSupplier;
 
     /** Whether or not this tab is a part of multi selection. */
@@ -2200,25 +2200,7 @@ class TabImpl implements Tab, TabInternal {
         var pdfInfo = isPdf ? PdfInfo.initReuse(preferReuse, initiatorOrigin) : null;
         mIsNativePageCommitPending = false;
         if (!maybeShowNativePage(url.getSpec(), isReload, pdfInfo)) {
-            // This is restricted to HTTP(S) URLs specifically, as these are the only schemes that
-            // necessitate a PDF re-download.
-            String downloadUrl = null;
-            if (isPdf) {
-                downloadUrl = PdfUtils.getPdfReDownloadUrl(url.getSpec());
-            } else if (UrlConstants.CHROME_NATIVE_SCHEME.equals(url.getScheme())
-                    && UrlConstants.PDF_HOST.equals(url.getHost())) {
-                downloadUrl = PdfUtils.getPdfReDownloadUrl(url.getSpec());
-                // getPdfReDownloadUrl restricts to HTTP(S). Explicitly allow blob schemes
-                // since they are ephemeral and require re-load.
-                if (downloadUrl == null
-                        && ChromeFeatureList.sAndroidHandlePdfInIframe.isEnabled()) {
-                    String decodedUrl = PdfUtils.decodePdfPageUrl(url.getSpec());
-                    if (decodedUrl != null
-                            && decodedUrl.startsWith(UrlConstants.BLOB_SCHEME + ":")) {
-                        downloadUrl = decodedUrl;
-                    }
-                }
-            }
+            String downloadUrl = PdfUtils.getPdfReDownloadUrlForNavigation(url, isPdf);
             if (downloadUrl != null) {
                 // When the download url is not null, we are navigating to a pdf native page which
                 // requires re-download. Load the download url to trigger the re-download.
@@ -2339,8 +2321,8 @@ class TabImpl implements Tab, TabInternal {
 
         // Prefer reusing the NativePage when loading pdf. Never offer a frozen page as the reuse
         // candidate: it has no view, and NativePageFactory.createNativePageForCustomTab() would
-        // hand it straight back on URL match, leaving the tab frozen with a null view. See
-        // crbug.com/568278676.
+        // hand it straight back on URL match, leaving the tab with a frozen NativePage and a null
+        // view. See crbug.com/568278676.
         boolean loadPdf = PdfUtils.isReuseFragmentEnabled() && pdfInfo != null;
         NativePage currentPage = getNativePage();
         boolean canReuseCurrent =
@@ -3226,9 +3208,10 @@ class TabImpl implements Tab, TabInternal {
     }
 
     /**
-     * Set the last hidden timestamp.
+     * Sets the timestamp in milliseconds when a navigation was last committed in this tab.
      *
-     * @param lastNavigationCommittedTimestampMillis The timestamp when the tab was last interacted.
+     * @param lastNavigationCommittedTimestampMillis The timestamp when a navigation was last
+     *     committed in this tab.
      */
     @VisibleForTesting
     public void setLastNavigationCommittedTimestampMillis(
@@ -3648,11 +3631,17 @@ class TabImpl implements Tab, TabInternal {
             return null;
         }
 
-        /** Suppresses registering drag-and-drop target handlers on background frozen stubs. */
+        /**
+         * Suppresses registering drag-and-drop target handlers on uninflated background proxy
+         * views.
+         */
         @Override
         public void addOnDragListener(OnDragListener listener) {}
 
-        /** Suppresses unregistering drag-and-drop target handlers on background frozen stubs. */
+        /**
+         * Suppresses unregistering drag-and-drop target handlers on uninflated background proxy
+         * views.
+         */
         @Override
         public void removeOnDragListener(OnDragListener listener) {}
 

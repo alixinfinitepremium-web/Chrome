@@ -186,8 +186,6 @@ BASE_DECLARE_FEATURE_PARAM(base::TimeDelta,
 COMPONENT_EXPORT(AUTOFILL)
 BASE_DECLARE_FEATURE(kAutofillAmbientAutofillFilterEntitiesWithoutSource);
 COMPONENT_EXPORT(AUTOFILL)
-BASE_DECLARE_FEATURE(kAutofillAmbientAutofillSourceAttribution);
-COMPONENT_EXPORT(AUTOFILL)
 BASE_DECLARE_FEATURE(kAutofillAmbientAutofillSpiiCache);
 COMPONENT_EXPORT(AUTOFILL)
 BASE_DECLARE_FEATURE(kAutofillAmbientAutofillSuppression);
@@ -323,6 +321,8 @@ COMPONENT_EXPORT(AUTOFILL)
 BASE_DECLARE_FEATURE(kAutofillExtendZipCodeValidation);
 COMPONENT_EXPORT(AUTOFILL)
 BASE_DECLARE_FEATURE(kAutofillExtractOnlyNonAdFrames);
+COMPONENT_EXPORT(AUTOFILL)
+BASE_DECLARE_FEATURE(kAutofillExtractShadowDomIframes);
 COMPONENT_EXPORT(AUTOFILL) BASE_DECLARE_FEATURE(kAutofillFixIframeOwnership);
 COMPONENT_EXPORT(AUTOFILL)
 BASE_DECLARE_FEATURE(kAutofillFixLabelGenerationForStreetAddress);
@@ -379,7 +379,27 @@ BASE_DECLARE_FEATURE(kAutofillPersonalizationAndTrustCreditCardSurvey);
 COMPONENT_EXPORT(AUTOFILL)
 BASE_DECLARE_FEATURE(kAutofillPersonalizationAndTrustFedCmSurvey);
 COMPONENT_EXPORT(AUTOFILL)
+BASE_DECLARE_FEATURE_PARAM(
+    std::string,
+    kAutofillPersonalizationAndTrustFedCmSurveyAcceptedTriggerId);
+COMPONENT_EXPORT(AUTOFILL)
+BASE_DECLARE_FEATURE_PARAM(
+    std::string,
+    kAutofillPersonalizationAndTrustFedCmSurveyAutoReauthnTriggerId);
+COMPONENT_EXPORT(AUTOFILL)
+BASE_DECLARE_FEATURE_PARAM(
+    std::string,
+    kAutofillPersonalizationAndTrustFedCmSurveyDismissedTriggerId);
+COMPONENT_EXPORT(AUTOFILL)
 BASE_DECLARE_FEATURE(kAutofillPersonalizationAndTrustOneTimePasswordSurvey);
+COMPONENT_EXPORT(AUTOFILL)
+BASE_DECLARE_FEATURE_PARAM(
+    std::string,
+    kAutofillPersonalizationAndTrustOneTimePasswordSurveyFilledTriggerId);
+COMPONENT_EXPORT(AUTOFILL)
+BASE_DECLARE_FEATURE_PARAM(
+    std::string,
+    kAutofillPersonalizationAndTrustOneTimePasswordSurveyDismissedTriggerId);
 COMPONENT_EXPORT(AUTOFILL)
 BASE_DECLARE_FEATURE(kAutofillPolicyControlledFeatureAutofill);
 COMPONENT_EXPORT(AUTOFILL)
@@ -388,6 +408,8 @@ COMPONENT_EXPORT(AUTOFILL)
 BASE_DECLARE_FEATURE(kAutofillPopupDontAcceptNonVisibleEnoughSuggestion);
 COMPONENT_EXPORT(AUTOFILL)
 BASE_DECLARE_FEATURE(kAutofillPopupUseDeleteSoon);
+COMPONENT_EXPORT(AUTOFILL)
+BASE_DECLARE_FEATURE(kAutofillQueryPerIframeStructuralSignatures);
 COMPONENT_EXPORT(AUTOFILL)
 BASE_DECLARE_FEATURE(kAutofillRecordAutocompleteTableStats);
 COMPONENT_EXPORT(AUTOFILL)

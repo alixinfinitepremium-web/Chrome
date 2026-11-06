@@ -493,6 +493,10 @@
 #include "chrome/services/util_win/public/mojom/util_win.mojom.h"
 #include "content/public/browser/tracing_service.h"
 #include "sandbox/win/src/sandbox_policy.h"
+#include "services/webnn/public/cpp/webnn_buildflags.h"
+#if BUILDFLAG(WEBNN_USE_WEBGPU_ACCELERATOR)
+#include "services/webnn/public/mojom/features.mojom-features.h"
+#endif
 #elif BUILDFLAG(IS_MAC)
 #include "base/apple/foundation_util.h"
 #include "chrome/browser/browser_process_platform_part_mac.h"
@@ -5599,6 +5603,23 @@ bool ChromeContentBrowserClient::PreSpawnChild(
   if (result != sandbox::SBOX_ALL_OK) {
     return false;
   }
+
+  // Allow loading the WebNN WebGPU accelerator for renderers when the feature
+  // is enabled.
+#if BUILDFLAG(WEBNN_USE_WEBGPU_ACCELERATOR)
+  if (sandbox_type == sandbox::mojom::Sandbox::kRenderer &&
+      base::FeatureList::IsEnabled(
+          webnn::mojom::features::kWebNNLiteRTGpuInRenderer)) {
+    const base::FilePath accelerator_path =
+        GetModulePath(L"libLiteRtWebGpuAccelerator.dll");
+    if (base::PathExists(accelerator_path)) {
+      result = config->AllowExtraDll(accelerator_path.value());
+      if (result != sandbox::SBOX_ALL_OK) {
+        return false;
+      }
+    }
+  }
+#endif
 #endif  // !defined(COMPONENT_BUILD) && !defined(ADDRESS_SANITIZER)
   return true;
 }
@@ -5787,6 +5808,14 @@ ChromeContentBrowserClient::CreateCommitDeferringConditionsForNavigation(
     content::NavigationHandle* navigation_handle,
     content::CommitDeferringCondition::NavigationType navigation_type) {
   std::vector<std::unique_ptr<content::CommitDeferringCondition>> conditions;
+
+  // TopChromeWebUIProfile only hosts Top Chrome WebUIs, and does not have the
+  // keyed services and prefs that the conditions below depend on.
+  if (Profile::FromBrowserContext(
+          navigation_handle->GetWebContents()->GetBrowserContext())
+          ->IsTopChromeWebUIProfile()) {
+    return conditions;
+  }
 
 #if BUILDFLAG(SAFE_BROWSING_AVAILABLE)
   MaybeAddCondition(
@@ -6233,6 +6262,12 @@ ChromeContentBrowserClient::CreateURLLoaderThrottles(
   CHECK(browser_context, base::NotFatalUntil::M163);
   Profile* profile = Profile::FromBrowserContext(browser_context);
   CHECK(profile, base::NotFatalUntil::M163);
+
+  // TopChromeWebUIProfile only hosts Top Chrome WebUIs, and does not have the
+  // keyed services and prefs that the throttles below depend on.
+  if (profile->IsTopChromeWebUIProfile()) {
+    return result;
+  }
 
   ChromeNavigationUIData* chrome_navigation_ui_data =
       static_cast<ChromeNavigationUIData*>(navigation_ui_data);
@@ -8886,6 +8921,11 @@ ChromeContentBrowserClient::CreateAnchorElementPreconnectDelegate(
 std::unique_ptr<content::PrefetchServiceDelegate>
 ChromeContentBrowserClient::CreatePrefetchServiceDelegate(
     content::BrowserContext* browser_context) {
+  // TopChromeWebUIProfile only hosts Top Chrome WebUIs, which do not prefetch,
+  // and does not have the prefs that the delegate depends on.
+  if (Profile::FromBrowserContext(browser_context)->IsTopChromeWebUIProfile()) {
+    return nullptr;
+  }
   return std::make_unique<ChromePrefetchServiceDelegate>(browser_context);
 }
 

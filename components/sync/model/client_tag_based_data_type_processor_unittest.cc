@@ -2341,9 +2341,6 @@ TEST_F(ClientTagBasedDataTypeProcessorTest,
        ShouldApplyIncrementalUpdateOnGcDirective_ResolveConflict) {
   InitializeToReadyState();
 
-  const std::string kEncryptionKeyName =
-      db()->data_type_state().encryption_key_name();
-
   WriteItemAndAck(kKey1, kValue1);
   WriteItemAndAck(kKey2, kValue2);
   WriteItemAndAck(kKey4, kValue4);
@@ -3309,9 +3306,7 @@ TEST_F(CommitOnlyClientTagBasedDataTypeProcessorTest,
   InitializeToReadyState();
 
   const uint64_t key1 = 1234;
-  const uint64_t key2 = 2345;
   const std::string key1s = base::NumberToString(key1);
-  const std::string key2s = base::NumberToString(key2);
 
   WriteUserEventItem(bridge(), key1, 4321);
   worker()->VerifyPendingCommits({{GetHash(USER_EVENTS, key1s)}});
@@ -4362,6 +4357,24 @@ TEST_F(ClientTagBasedDataTypeProcessorTest,
 
   EXPECT_TRUE(uploader->HasPendingUpload());
   EXPECT_EQ(worker()->GetNumPendingCommits(), 0U);
+}
+
+// Verifies that pending attachment uploads are not started when an attachment
+// uploader is installed after the processor has encountered a model error.
+TEST_F(ClientTagBasedDataTypeProcessorTest,
+       ShouldNotStartPendingAttachmentUploadsAfterModelError) {
+  InitializeToReadyState();
+  type_processor()->PutWithAttachment(
+      kKey1, GeneratePrefEntityData(kKey1, kValue1), CreateTemporaryFile(),
+      std::make_unique<EmptyMetadataChangeList>().get());
+
+  ExpectError(ClientTagBasedDataTypeProcessor::ErrorSite::kReportedByBridge);
+  type_processor()->ReportError(
+      {FROM_HERE, ModelError::Type::kGenericTestError});
+
+  FakeAttachmentUploader* uploader =
+      InstallFakeAttachmentUploader(type_processor());
+  EXPECT_FALSE(uploader->HasPendingUpload());
 }
 
 }  // namespace syncer
