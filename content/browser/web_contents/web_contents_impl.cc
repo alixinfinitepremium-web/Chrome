@@ -1136,6 +1136,10 @@ void WebContentsImpl::NotifySwappedRWHVChildFrameFromRenderManager(
     bool allow_paint_holding) {
   if (surface_embed_connector_) {
     surface_embed_connector_->SetView(new_view, allow_paint_holding);
+
+    // Swapping the view changes the `gfx::NativeView` returned by
+    // `GetCaptureTarget()`.
+    observers_.NotifyObservers(&WebContentsObserver::CaptureTargetChanged);
   }
 }
 
@@ -2894,7 +2898,7 @@ bool WebContentsImpl::IsBeingVisiblyCaptured() {
 void WebContentsImpl::OnCapturerCountChanged() {
   view_->OnCapturerCountChanged();
   if (surface_embed_connector_) {
-    surface_embed_connector_->SetKeepSurfaceAlive(IsBeingCaptured());
+    surface_embed_connector_->UpdateKeepSurfaceAlive();
   }
 }
 
@@ -3732,6 +3736,10 @@ void WebContentsImpl::SetSurfaceEmbedConnector(
   RecursivelyRegisterRenderWidgetHostViews();
 
   surface_embed_connector_->OnAttachedToParent();
+
+  // Swapping the view changes the `gfx::NativeView` returned by
+  // `GetCaptureTarget()`.
+  observers_.NotifyObservers(&WebContentsObserver::CaptureTargetChanged);
 }
 
 void WebContentsImpl::ClearSurfaceEmbedConnector() {
@@ -3808,6 +3816,10 @@ void WebContentsImpl::ClearSurfaceEmbedConnector() {
       CreateRenderWidgetHostViewForRenderManager(rvh);
     }
     RecursivelyRegisterRenderWidgetHostViews();
+
+    // Restoring the view changes the `gfx::NativeView` returned by
+    // `GetCaptureTarget()`.
+    observers_.NotifyObservers(&WebContentsObserver::CaptureTargetChanged);
   }
 }
 
@@ -9115,6 +9127,12 @@ void WebContentsImpl::DOMContentLoaded(RenderFrameHostImpl* render_frame_host) {
                         "render_frame_host", render_frame_host);
   SCOPED_UMA_HISTOGRAM_TIMER("WebContentsObserver.DOMContentLoaded");
   observers_.NotifyObservers(&WebContentsObserver::DOMContentLoaded,
+                             render_frame_host);
+}
+
+void WebContentsImpl::ScriptToolsReadyStateChanged(
+    RenderFrameHostImpl* render_frame_host) {
+  observers_.NotifyObservers(&WebContentsObserver::ScriptToolsReadyStateChanged,
                              render_frame_host);
 }
 

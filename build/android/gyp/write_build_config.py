@@ -13,10 +13,10 @@ See //build/android/docs/build_config.md for more information.
 """
 
 import argparse
+import gc
 import itertools
 import os
 import sys
-import xml.dom.minidom
 
 from util import build_utils
 from util import params_json_util
@@ -58,6 +58,9 @@ class AndroidManifest:
     """Helper class to inspect properties of an AndroidManifest.xml file."""
 
     def __init__(self, path):
+        # Imported lazily since most targets do not have a manifest.
+        import xml.dom.minidom
+
         self.path = path
         dom = xml.dom.minidom.parse(path)
         manifests = dom.getElementsByTagName('manifest')
@@ -684,6 +687,9 @@ def _CreateLintConfig(params, javac_config, manifest_config):
 
 
 def main():
+    # Short-lived process that creates many objects but little cyclic garbage,
+    # so GC passes are wasted work.
+    gc.disable()
     parser = argparse.ArgumentParser(
         description='Writes a .build_config.json file.'
     )

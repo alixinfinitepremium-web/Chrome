@@ -776,7 +776,8 @@ void ContextualCueingController::InitiateModelExecutionRequest(
     options.duplicate_policy = history::QueryOptions::REMOVE_ALL_DUPLICATES;
     options.policy_for_404_visits = history::VisitQuery404sPolicy::kExclude404s;
     // Only include visits originating from the local device (stored with an
-    // empty `originator_cache_guid`).
+    // empty `originator_cache_guid`) that are known to sync.
+    options.restrict_to_synced_urls = true;
     options.client_ids = {""};
     // Buffer the query limit to account for deduplication against the active
     // tab, background tabs, and duplicate URL visits.
@@ -1306,7 +1307,7 @@ void ContextualCueingController::ShowCue(
   // that a loud anchored message is being shown rather than a quiet chip.
   if (intrusiveness == CueIntrusiveness::kLoud) {
     current_anchored_message_priority_ =
-        page_actions::PageActionPriorityCategory::kContextualCue;
+        page_actions::PageActionPriorityCategory::kProactiveSuggestion;
   }
 
   // Show() must be called before ShowAnchoredMessage() because the page action
@@ -1317,7 +1318,8 @@ void ContextualCueingController::ShowCue(
   if (intrusiveness == CueIntrusiveness::kLoud) {
     page_action_controller->ShowAnchoredMessage(
         kActionAnchoredContextualCue,
-        {.priority = page_actions::PageActionPriorityCategory::kContextualCue});
+        {.priority =
+             page_actions::PageActionPriorityCategory::kProactiveSuggestion});
   }
 
   CUEING_LOG(base::StringPrintf(

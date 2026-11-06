@@ -130,6 +130,7 @@ import org.chromium.content_public.browser.RenderFrameHost;
 import org.chromium.content_public.browser.WebContents;
 import org.chromium.content_public.browser.test.NativeLibraryTestUtils;
 import org.chromium.ui.base.DeviceFormFactor;
+import org.chromium.ui.base.DeviceInput;
 import org.chromium.ui.base.WindowAndroid;
 import org.chromium.ui.listmenu.ListItemType;
 import org.chromium.ui.listmenu.ListMenuItemProperties;
@@ -4675,9 +4676,11 @@ public class ChromeContextMenuPopulatorTest {
 
     @Test
     @SmallTest
+    @Restriction(DeviceFormFactor.TABLET_OR_DESKTOP)
     @UiThreadTest
     @EnableFeatures(ChromeFeatureList.ANDROID_KEYBOARD_SHORTCUT_HINTS)
     public void testPage_ShortcutTextPopulatedWhenEnabled() {
+        DeviceInput.setSupportsAlphabeticKeyboardForTesting(true);
         setAllMandatoryFlowsComplete();
         when(mKeyboardShortcutsJniMock.getShortcutTextForCommandId(ChromeCommandIds.BACK))
                 .thenReturn("Alt+LeftArrow");
@@ -4707,15 +4710,18 @@ public class ChromeContextMenuPopulatorTest {
 
     @Test
     @SmallTest
+    @Restriction(DeviceFormFactor.TABLET_OR_DESKTOP)
     @UiThreadTest
     @EnableFeatures(ChromeFeatureList.ANDROID_KEYBOARD_SHORTCUT_HINTS)
     public void testSelectionDropdown_ShortcutTextPopulatedWhenEnabled() {
+        DeviceInput.setSupportsAlphabeticKeyboardForTesting(true);
         when(mKeyboardShortcutsJniMock.getShortcutTextForCommandId(ChromeCommandIds.COPY))
                 .thenReturn("Ctrl+C");
         when(mKeyboardShortcutsJniMock.getShortcutTextForCommandId(
                         ChromeCommandIds.CONTENT_CONTEXT_PASTE_AND_MATCH_STYLE))
                 .thenReturn("Ctrl+Shift+V");
-        ChromeSelectionDropdownMenuDelegate delegate = new ChromeSelectionDropdownMenuDelegate();
+        ChromeSelectionDropdownMenuDelegate delegate =
+                new ChromeSelectionDropdownMenuDelegate(ContextUtils.getApplicationContext());
 
         assertEquals(
                 "Ctrl+C", getSelectionItemShortcutText(delegate, R.id.select_action_menu_copy));

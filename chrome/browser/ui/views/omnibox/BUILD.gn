@@ -309,6 +309,7 @@ source_set("browser_tests") {
 
   sources = [
     "omnibox_aim_popup_browsertest.cc",
+    "omnibox_aim_popup_share_across_windows_browsertest.cc",
     "omnibox_full_popup_webui_content_browsertest.cc",
     "omnibox_popup_presenter_move_browsertest.cc",
     "omnibox_popup_resource_budget_browsertest.cc",
@@ -347,7 +348,6 @@ source_set("browser_tests") {
     "//chrome/common",
     "//chrome/common:chrome_features",
     "//chrome/test:test_support",
-    "//chrome/test:test_support_ui",
     "//chrome/test/base:test_switches",
     "//chrome/test/interaction",
     "//components/content_settings/core/browser",
@@ -422,7 +422,6 @@ if (!is_chromeos_device) {
       "//chrome/browser/ui/webui/searchbox",
       "//chrome/common:chrome_features",
       "//chrome/test:test_support",
-      "//chrome/test:test_support_ui",
       "//chrome/test/base:browser_test_waiters",
       "//chrome/test/interaction",
       "//components/content_settings/core/browser",

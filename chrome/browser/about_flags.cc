@@ -1379,6 +1379,9 @@ const FeatureEntry::FeatureParam kVoiceSearchCoherenceRealboxArm4Params[] = {
     {"VoiceSearchCoherenceRealboxAutoEndpoint", "true"},
     {"VoiceSearchCoherenceRealboxHelperText", "true"}};
 
+const FeatureEntry::FeatureParam kVoiceSearchCoherenceRealboxArm5Params[] = {
+    {"VoiceSearchCoherenceRealboxKeepLegacyUi", "true"}};
+
 const FeatureEntry::FeatureVariation
     kVoiceSearchCoherenceSearchboxVariations[] = {
         {"Arm 1: Wave only, manual submit + Listening",
@@ -1388,7 +1391,9 @@ const FeatureEntry::FeatureVariation
         {"Arm 3: Wave + Transcript, manual submit + Listening",
          kVoiceSearchCoherenceRealboxArm3Params, nullptr},
         {"Arm 4: Wave + Transcript, 3s auto endpoint + Listening",
-         kVoiceSearchCoherenceRealboxArm4Params, nullptr}};
+         kVoiceSearchCoherenceRealboxArm4Params, nullptr},
+        {"Arm 5: Legacy voice search UI, updated model",
+         kVoiceSearchCoherenceRealboxArm5Params, nullptr}};
 
 const FeatureEntry::FeatureParam
     kVoiceSearchCoherenceComposeboxCobrowsingParams[] = {
@@ -3833,28 +3838,6 @@ const FeatureEntry::FeatureVariation
         {"with 200ms delay", kActorTypeToolObservationStartDelay200ms, nullptr},
         {"with 100ms delay", kActorTypeToolObservationStartDelay100ms,
          nullptr}};
-
-const FeatureEntry::FeatureParam kActorScriptToolDelayObservation100ms[] = {
-    {"script_tool_delay_observation_ms", "100"}};
-const FeatureEntry::FeatureParam kActorScriptToolDelayObservation200ms[] = {
-    {"script_tool_delay_observation_ms", "200"}};
-const FeatureEntry::FeatureParam kActorScriptToolDelayObservation400ms[] = {
-    {"script_tool_delay_observation_ms", "400"}};
-const FeatureEntry::FeatureParam kActorScriptToolDelayObservation600ms[] = {
-    {"script_tool_delay_observation_ms", "600"}};
-const FeatureEntry::FeatureParam kActorScriptToolDelayObservation800ms[] = {
-    {"script_tool_delay_observation_ms", "800"}};
-const FeatureEntry::FeatureParam kActorScriptToolDelayObservation1000ms[] = {
-    {"script_tool_delay_observation_ms", "1000"}};
-
-const FeatureEntry::FeatureVariation
-    kActorScriptToolDelayObservationVariations[] = {
-        {"with 100ms delay", kActorScriptToolDelayObservation100ms, nullptr},
-        {"with 200ms delay", kActorScriptToolDelayObservation200ms, nullptr},
-        {"with 400ms delay", kActorScriptToolDelayObservation400ms, nullptr},
-        {"with 600ms delay", kActorScriptToolDelayObservation600ms, nullptr},
-        {"with 800ms delay", kActorScriptToolDelayObservation800ms, nullptr},
-        {"with 1000ms delay", kActorScriptToolDelayObservation1000ms, nullptr}};
 
 const FeatureEntry::FeatureParam kGlicActorTransientTasksForceTransient[] = {
     {"force_transient", "true"}};
@@ -11119,13 +11102,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kActorObservePageContentDefaultName,
      flag_descriptions::kActorObservePageContentDefaultDescription, kOsDesktop,
      FEATURE_VALUE_TYPE(actor::kActorObservePageContentDefault)},
-    {"actor-script-tool-delay-observation",
-     flag_descriptions::kActorScriptToolDelayObservationName,
-     flag_descriptions::kActorScriptToolDelayObservationDescription,
-     kOsDesktop | kOsAndroid,
-     FEATURE_WITH_PARAMS_VALUE_TYPE(actor::kActorScriptToolDelayObservation,
-                                    kActorScriptToolDelayObservationVariations,
-                                    "ActorScriptToolDelayObservation")},
     {"actor-script-tool-skip-screenshot",
      flag_descriptions::kActorScriptToolSkipScreenshotName,
      flag_descriptions::kActorScriptToolSkipScreenshotDescription, kOsDesktop,
@@ -13804,6 +13780,11 @@ const FeatureEntry kFeatureEntries[] = {
     {"cct-tab-resumption", flag_descriptions::kCctTabResumptionName,
      flag_descriptions::kCctTabResumptionDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(chrome::android::kCctTabResumption)},
+#endif
+#if BUILDFLAG(IS_ANDROID)
+    {"cache-is-google-signed", flag_descriptions::kCacheIsGoogleSignedName,
+     flag_descriptions::kCacheIsGoogleSignedDescription, kOsAndroid,
+     FEATURE_VALUE_TYPE(chrome::android::kCacheIsGoogleSigned)},
 #endif
 #if BUILDFLAG(IS_ANDROID)
     {"ntp-aurora", flag_descriptions::kNtpAuroraName,

@@ -84,6 +84,7 @@ export class LeftHandSideElement extends CrLitElement {
       enableThreadsRailHybrid_: {type: Boolean},
       expandedLhsUrl_: {type: String},
       expandedWidth_: {type: Number},
+      hasPreloaded_: {type: Boolean},
       isDark: {
         type: Boolean,
         reflect: true,
@@ -93,6 +94,7 @@ export class LeftHandSideElement extends CrLitElement {
         reflect: true,
       },
       isExpandedReady_: {type: Boolean},
+      threadsRailPreloadDebounceMs_: {type: Number},
     };
   }
 
@@ -102,13 +104,19 @@ export class LeftHandSideElement extends CrLitElement {
   protected accessor expandedLhsUrl_: string =
       loadTimeData.getString('expandedLhsUrl');
   protected accessor expandedWidth_: number = DEFAULT_EXPANDED_LHS_WIDTH_PX;
+  protected accessor hasPreloaded_: boolean = false;
   protected accessor isExpanded_: boolean = false;
   protected accessor isExpandedReady_: boolean = false;
+  protected accessor threadsRailPreloadDebounceMs_: number =
+      loadTimeData.valueExists('threadsRailPreloadDebounceMs') ?
+      loadTimeData.getInteger('threadsRailPreloadDebounceMs') :
+      100;
   private eventTracker_: EventTracker = new EventTracker();
   private iframeResizeObserver_: ResizeObserver|null = null;
   private lastIframeWidth_: number = 0;
   // Width of the folded rail in hybrid mode, measured once it has rendered.
   private collapsedWidth_: number = 0;
+  private preloadTimerId_: number|null = null;
 
   override connectedCallback() {
     super.connectedCallback();
@@ -126,6 +134,7 @@ export class LeftHandSideElement extends CrLitElement {
     this.eventTracker_.removeAll();
     this.iframeResizeObserver_?.disconnect();
     this.iframeResizeObserver_ = null;
+    this.cancelPreloadTimer_();
   }
 
   override firstUpdated(changedProperties: PropertyValues<this>) {
@@ -190,11 +199,27 @@ export class LeftHandSideElement extends CrLitElement {
   }
 
   // Returns the expanded LHS iframe, or null while it is not in the DOM. In
-  // hybrid mode it is not stamped until the rail is first expanded (see
-  // getHtml()), so that the embedded page is not loaded until the user asks for
-  // it.
+  // hybrid mode it is only stamped once the folded rail is hovered, focused,
+  // or expanded (see getHtml()), so that the embedded page is not loaded until
+  // the user interacts with the rail.
   private getExpandedIframe_(): IframeElement|null {
     return this.shadowRoot.querySelector<IframeElement>('#expanded');
+  }
+
+  protected onFoldedPointerenter_() {
+    this.schedulePreloadExpanded_();
+  }
+
+  protected onFoldedPointerleave_() {
+    this.cancelPreloadTimer_();
+  }
+
+  protected onFoldedFocusin_() {
+    this.schedulePreloadExpanded_();
+  }
+
+  protected onFoldedFocusout_() {
+    this.cancelPreloadTimer_();
   }
 
   protected async onFoldedClick_() {
@@ -205,10 +230,44 @@ export class LeftHandSideElement extends CrLitElement {
     await this.expand_();
   }
 
-  private async expand_() {
+  private schedulePreloadExpanded_() {
+    if (this.hasPreloaded_) {
+      return;
+    }
+    if (this.preloadTimerId_ !== null) {
+      return;
+    }
+    if (this.threadsRailPreloadDebounceMs_ <= 0) {
+      this.preloadExpanded_();
+      return;
+    }
+    this.preloadTimerId_ = WindowProxy.getInstance().setTimeout(() => {
+      this.preloadTimerId_ = null;
+      this.preloadExpanded_();
+    }, this.threadsRailPreloadDebounceMs_);
+  }
+
+  private cancelPreloadTimer_() {
+    if (this.preloadTimerId_ !== null) {
+      WindowProxy.getInstance().clearTimeout(this.preloadTimerId_);
+      this.preloadTimerId_ = null;
+    }
+  }
+
+  private async preloadExpanded_() {
+    if (this.hasPreloaded_) {
+      return;
+    }
     // <ntp-iframe> is defined in the lazily loaded bundle, which may not have
-    // been loaded yet if the folded rail is clicked right after the NTP loads.
+    // been loaded yet if the folded rail is hovered or clicked right after the
+    // NTP loads.
     await WindowProxy.getInstance().ensureLazyLoaded();
+    this.hasPreloaded_ = true;
+  }
+
+  private async expand_() {
+    this.cancelPreloadTimer_();
+    await this.preloadExpanded_();
     this.isExpanded_ = true;
   }
 

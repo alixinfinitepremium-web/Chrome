@@ -3019,6 +3019,10 @@
         // EyeDropper UI is available on Android, ChromeOS, Linux (x11), Mac, and Win.
         // This list should match the supported operating systems for the
         // kEyeDropper base::Feature.
+        // There is an override in SetCustomizedRuntimeFeaturesFromCombinedArgs
+        // to disable this on Android versions below CinnamonBun (API 37), where
+        // the system EyeDropper intent is not supported, so that the EyeDropper
+        // WebIDL interface is omitted on older Android versions.
         "Android": "stable",
         "ChromeOS": "stable",
         "Linux": "stable",
@@ -3036,6 +3040,10 @@
       status: "experimental",
     },
     {
+      name: "FastCommonGraphemeClusterPrefixLength",
+      status: "stable",
+    },
+    {
       name: "FastCompositionCharacterBounds",
       status: "stable",
     },
@@ -3046,6 +3054,10 @@
     {
       name: "FastPositionIterator",
       // Not enabled due to a RTL issue. crbug.com/1421016.
+    },
+    {
+      name: "FastTypingCommandCreateSelection",
+      status: "stable",
     },
     {
       name: "FedCm",
@@ -3455,6 +3467,10 @@
     {
       // crbug.com/40398871
       name: "FontVariationSettingsDescriptor",
+      status: "stable",
+    },
+    {
+      name: "ForceDarkRespectsColorSchemeOnly",
       status: "stable",
     },
     {
@@ -5419,6 +5435,12 @@
       // the buffer before resolving the read request.
       // https://chromestatus.com/feature/6396991665602560
       name: "ReadableStreamBYOBReaderReadMinOption",
+      status: "stable",
+    },
+    {
+      // Defense-in-depth mitigation that strips read-back disallowed (e.g.,
+      // cross-origin) content when drawing elements with html-in-canvas.
+      name: "ReadBackDisallowedMitigation",
       status: "stable",
     },
     {
@@ -7687,7 +7709,8 @@
       implied_by: [
         "WebMCPContinuations",
         "WebMCPDeclarativeFileInput",
-        "WebMCPFormAssociatedCustomElements"
+        "WebMCPFormAssociatedCustomElements",
+        "WebMCPWaitForToolsUntil"
       ],
       status: "experimental",
     },
@@ -7704,6 +7727,12 @@
       // Support for form-associated custom elements in declarative
       // WebMCP tools.
       name: "WebMCPFormAssociatedCustomElements",
+      status: "experimental",
+    },
+    {
+      // `document.modelContext.waitForToolsUntil()`, which lets a document
+      // signal that it is still registering tools.
+      name: "WebMCPWaitForToolsUntil",
       status: "experimental",
     },
     {

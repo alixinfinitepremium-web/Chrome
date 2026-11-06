@@ -8,7 +8,6 @@
 #include <vector>
 
 #include "base/test/metrics/user_action_tester.h"
-#include "base/test/run_until.h"
 #include "build/build_config.h"
 #include "chrome/browser/ui/animation/browser_animation_controller.h"
 #include "chrome/browser/ui/browser_commands.h"
@@ -45,6 +44,7 @@
 #include "content/public/test/browser_test.h"
 #include "ui/base/l10n/l10n_util.h"
 #include "ui/display/screen.h"
+#include "ui/gfx/animation/animation_container.h"
 #include "ui/gfx/animation/animation_test_api.h"
 #include "ui/gfx/scoped_animation_duration_scale_mode.h"
 #include "ui/menus/simple_menu_model.h"
@@ -865,8 +865,9 @@ class TabStripControllerFocusTransitionBrowserTest
   }
 
  protected:
-  // Setup runs without rich animations so that it settles synchronously; the
-  // test under measurement enables them.
+  // Setup runs without rich animations so that it settles synchronously. The
+  // test under measurement enables them and drives `kFocusMode` from a
+  // container whose clock only advances through `AdvanceFocusMotion()`.
   void EnableRichAnimations() {
     rich_animations_disabled_.reset();
     rich_animations_enabled_ =
@@ -875,6 +876,13 @@ class TabStripControllerFocusTransitionBrowserTest
     normal_duration_mode_ =
         std::make_unique<gfx::ScopedAnimationDurationScaleMode>(
             gfx::ScopedAnimationDurationScaleMode::NORMAL_DURATION);
+    animation_container_ = base::MakeRefCounted<gfx::AnimationContainer>();
+    BrowserAnimationController::From(browser())
+        ->SetAnimationContainerForTesting(FocusModeAnimations::kFocusMode,
+                                          animation_container_.get());
+    animation_container_test_api_ =
+        std::make_unique<gfx::AnimationContainerTestApi>(
+            animation_container_.get());
   }
 
   const BrowserAnimationController* animation_controller() {
@@ -885,12 +893,20 @@ class TabStripControllerFocusTransitionBrowserTest
     return animation_controller()->IsAnimating(FocusModeAnimations::kFocusMode);
   }
 
-  void WaitForFocusMotionToFinish() {
-    EXPECT_TRUE(base::test::RunUntil([&]() {
-      RunScheduledLayouts();
-      return !IsFocusMotionAnimating();
-    }));
+  std::optional<double> GetFocusProgress() {
+    return animation_controller()->GetCurrentValue(
+        FocusModeAnimations::kFocusMode, FocusModeAnimations::kProgress);
+  }
+
+  void AdvanceFocusMotion(base::TimeDelta delta) {
+    animation_container_test_api_->IncrementTime(delta);
     RunScheduledLayouts();
+  }
+
+  void FinishFocusMotion() {
+    AdvanceFocusMotion(animation_controller()->GetMotionDuration(
+        FocusModeAnimations::kFocusMode));
+    EXPECT_FALSE(IsFocusMotionAnimating());
   }
 
  private:
@@ -901,6 +917,8 @@ class TabStripControllerFocusTransitionBrowserTest
   std::unique_ptr<base::AutoReset<gfx::Animation::RichAnimationRenderMode>>
       rich_animations_enabled_;
   std::unique_ptr<gfx::ScopedAnimationDurationScaleMode> normal_duration_mode_;
+  scoped_refptr<gfx::AnimationContainer> animation_container_;
+  std::unique_ptr<gfx::AnimationContainerTestApi> animation_container_test_api_;
 };
 
 // Entering and exiting focus mode starts the enter/exit motion and exposes the
@@ -923,16 +941,19 @@ IN_PROC_BROWSER_TEST_F(TabStripControllerFocusTransitionBrowserTest,
   ASSERT_TRUE(controller->GetFocusTransition().has_value());
   EXPECT_EQ(controller->GetFocusTransition()->target_group, group_id);
   EXPECT_FALSE(controller->GetFocusTransition()->previous_group.has_value());
-  EXPECT_TRUE(base::test::RunUntil([&]() {
-    const auto progress = animation_controller()->GetCurrentValue(
-        FocusModeAnimations::kFocusMode, FocusModeAnimations::kProgress);
-    return controller->GetFocusTransition().has_value() &&
-           progress.has_value() && *progress > 0.0 && *progress < 1.0;
-  }));
 
-  WaitForFocusMotionToFinish();
+  AdvanceFocusMotion(base::Milliseconds(150));
+  EXPECT_TRUE(IsFocusMotionAnimating());
+  EXPECT_TRUE(controller->GetFocusTransition().has_value());
+  const std::optional<double> enter_progress = GetFocusProgress();
+  ASSERT_TRUE(enter_progress.has_value());
+  EXPECT_GT(*enter_progress, 0.0);
+  EXPECT_LT(*enter_progress, 1.0);
+
+  FinishFocusMotion();
   EXPECT_FALSE(controller->GetFocusTransition().has_value());
   EXPECT_EQ(model->GetFocusedGroup(), group_id);
+  EXPECT_EQ(GetFocusProgress(), 1.0);
 
   model->ExitFocusMode();
   RunScheduledLayouts();
@@ -943,8 +964,16 @@ IN_PROC_BROWSER_TEST_F(TabStripControllerFocusTransitionBrowserTest,
   ASSERT_TRUE(controller->GetFocusTransition().has_value());
   EXPECT_EQ(controller->GetFocusTransition()->target_group, group_id);
 
-  WaitForFocusMotionToFinish();
+  AdvanceFocusMotion(base::Milliseconds(125));
+  EXPECT_TRUE(IsFocusMotionAnimating());
+  const std::optional<double> exit_progress = GetFocusProgress();
+  ASSERT_TRUE(exit_progress.has_value());
+  EXPECT_GT(*exit_progress, 0.0);
+  EXPECT_LT(*exit_progress, 1.0);
+
+  FinishFocusMotion();
   EXPECT_FALSE(controller->GetFocusTransition().has_value());
+  EXPECT_EQ(GetFocusProgress(), 0.0);
 }
 
 // Switching focus directly from one group to another reports the group losing
@@ -970,7 +999,7 @@ IN_PROC_BROWSER_TEST_F(TabStripControllerFocusTransitionBrowserTest,
   EXPECT_EQ(controller->GetFocusTransition()->target_group, group_b);
   EXPECT_EQ(controller->GetFocusTransition()->previous_group, group_a);
 
-  WaitForFocusMotionToFinish();
+  FinishFocusMotion();
   EXPECT_FALSE(controller->GetFocusTransition().has_value());
   EXPECT_EQ(model->GetFocusedGroup(), group_b);
 }
@@ -990,7 +1019,7 @@ IN_PROC_BROWSER_TEST_F(TabStripControllerFocusTransitionBrowserTest,
 
   EnableRichAnimations();
   model->EnterFocusMode(group_id);
-  RunScheduledLayouts();
+  AdvanceFocusMotion(base::Milliseconds(150));
   ASSERT_TRUE(IsFocusMotionAnimating());
 
   model->ExitFocusMode();
@@ -1000,7 +1029,7 @@ IN_PROC_BROWSER_TEST_F(TabStripControllerFocusTransitionBrowserTest,
   EXPECT_EQ(controller->GetFocusTransition()->target_group, group_id);
   EXPECT_FALSE(controller->GetFocusTransition()->previous_group.has_value());
 
-  WaitForFocusMotionToFinish();
+  FinishFocusMotion();
   EXPECT_FALSE(controller->GetFocusTransition().has_value());
   EXPECT_FALSE(model->GetFocusedGroup().has_value());
 }

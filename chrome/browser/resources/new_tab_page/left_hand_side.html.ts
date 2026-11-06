@@ -13,10 +13,14 @@ export function getHtml(this: LeftHandSideElement) {
       ? html`<cr-threads-rail id="folded"
                  ?hidden="${this.isExpandedReady_ && this.isExpanded_}"
                  @expand-rail="${this.onExpandRail_}"
-                 @click="${this.onFoldedClick_}">
+                 @click="${this.onFoldedClick_}"
+                 @pointerenter="${this.onFoldedPointerenter_}"
+                 @pointerleave="${this.onFoldedPointerleave_}"
+                 @focusin="${this.onFoldedFocusin_}"
+                 @focusout="${this.onFoldedFocusout_}">
              </cr-threads-rail>`
       : ''}
-  ${!this.enableThreadsRailHybrid_ || this.isExpanded_ || this.isExpandedReady_
+  ${!this.enableThreadsRailHybrid_ || this.hasPreloaded_
       ? html`<ntp-iframe id="expanded"
             class="${this.isExpandedReady_ ? 'ready' : ''}"
             allow="clipboard-write; unbounded-element"

@@ -4830,6 +4830,30 @@
             ]
         }
     ],
+    "ClientSideDetectionKeyboardLockUniformPageDelay": [
+        {
+            "platforms": [
+                "android",
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled_500ms",
+                    "params": {
+                        "DelayDurationMs": "500",
+                        "MaxColorRange": "10",
+                        "MaxRetries": "3"
+                    },
+                    "enable_features": [
+                        "ClientSideDetectionKeyboardLockUniformPageDelay"
+                    ]
+                }
+            ]
+        }
+    ],
     "ClientSideDetectionRetryLimit": [
         {
             "platforms": [
@@ -6668,23 +6692,6 @@
                     "name": "Disabled",
                     "disable_features": [
                         "PersistBrokenAlternativeServices"
-                    ]
-                }
-            ]
-        }
-    ],
-    "DisallowLegacyPrefMacFallback": [
-        {
-            "platforms": [
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "DisallowLegacyPrefMacFallback"
                     ]
                 }
             ]
@@ -9407,8 +9414,10 @@
                 "android",
                 "android_webview",
                 "chromeos",
+                "ios",
                 "linux",
-                "mac"
+                "mac",
+                "windows"
             ],
             "experiments": [
                 {
@@ -10474,18 +10483,17 @@
             ],
             "experiments": [
                 {
-                    "name": "Enabled_Main_ANE_InfobarAndChip",
+                    "name": "Enabled_Main_CPU_InfobarAndChip_V2",
                     "params": {
                         "EducationClassifierThreshold": "2.0",
-                        "EnablePrivateInsightsLogging": "true",
                         "ForceMessageUiOnly": "false",
                         "ForceOmniboxChipUiOnly": "false",
                         "GlobalCapCount": "4",
                         "GlobalCapDuration": "24h",
                         "MinPageCountBetweenNudges": "10",
                         "MinTimeBetweenNudges": "60m",
-                        "ShoppingClassifierThreshold": "0.5",
-                        "allow_gpu_execution": "true",
+                        "ShoppingClassifierThreshold": "0.9",
+                        "allow_gpu_execution": "false",
                         "enable_on_device_classifier": "true",
                         "enable_server_model_execution": "true",
                         "use_title_and_url_only": "true"
@@ -13491,6 +13499,27 @@
             ]
         }
     ],
+    "OptimizePerformanceScenarioObserverNotify": [
+        {
+            "platforms": [
+                "android",
+                "android_webview",
+                "chromeos",
+                "fuchsia",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "OptimizePerformanceScenarioObserverNotify"
+                    ]
+                }
+            ]
+        }
+    ],
     "OptimizeWebRequestProxyForServiceWorkerAutoPreload": [
         {
             "platforms": [
@@ -15860,6 +15889,27 @@
                     "name": "Enabled",
                     "enable_features": [
                         "ResampleScrollEventsForFling"
+                    ]
+                }
+            ]
+        }
+    ],
+    "ResourceMemoryAccounting": [
+        {
+            "platforms": [
+                "android",
+                "android_webview",
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled_Both",
+                    "enable_features": [
+                        "FontResourceDecodedMemoryAccounting",
+                        "ResourceEncodedMemoryAccounting"
                     ]
                 }
             ]
@@ -18636,21 +18686,6 @@
                     "enable_features": [
                         "PersistentCacheCollectionWalMode",
                         "UsePersistentCacheForCodeCache"
-                    ]
-                }
-            ]
-        }
-    ],
-    "UseRestrictionsManagerInAppRestrictionsProvider": [
-        {
-            "platforms": [
-                "android"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "UseRestrictionsManagerInAppRestrictionsProvider"
                     ]
                 }
             ]

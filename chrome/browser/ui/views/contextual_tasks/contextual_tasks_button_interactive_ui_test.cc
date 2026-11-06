@@ -59,6 +59,7 @@
 #include "chrome/common/webui_url_constants.h"
 #include "chrome/grit/branded_strings.h"
 #include "chrome/test/base/in_process_browser_test.h"
+#include "chrome/test/base/ui_test_utils.h"
 #include "chrome/test/interaction/interactive_browser_test.h"
 #include "chrome/test/user_education/interactive_feature_promo_test.h"
 #include "components/contextual_search/contextual_search_session_handle.h"
@@ -4149,7 +4150,10 @@ class ContextualTasksEphemeralPinButtonRefactorInteractiveTest
   void SetUpOnMainThread() override {
     ContextualTasksEphemeralButtonPinningV2InteractiveTest::
         SetUpOnMainThread();
-    browser()->GetWindow()->SetBounds(gfx::Rect(0, 0, 1280, 800));
+    ui_test_utils::SetAndWaitForBounds(*browser(), gfx::Rect(0, 0, 1280, 800));
+    BrowserView::GetBrowserViewForBrowser(browser())
+        ->GetWidget()
+        ->LayoutRootViewIfNecessary();
     if (auto* pinned_actions =
             ToolbarButtonProvider::From(browser())->GetPinnedToolbarActions()) {
       if (auto* container = views::AsViewClass<PinnedToolbarActionsContainer>(
@@ -4305,6 +4309,17 @@ IN_PROC_BROWSER_TEST_F(
           true),
       SelectMenuItem(kPinnedActionToolbarCustomizeElementId),
       WaitForHide(kPinnedActionToolbarPinElementId),
+      Do([&]() {
+        EXPECT_EQ(1, user_action_tester.GetActionCount(
+                         "ContextualTasks.EphemeralToolbarButton.UserAction."
+                         "OpenContextMenu"));
+        EXPECT_EQ(1, user_action_tester.GetActionCount(
+                         "ContextualTasks.EphemeralToolbarButton.UserAction."
+                         "OpenContextMenu.CloseSidePanelOptionHidden"));
+        EXPECT_EQ(0, user_action_tester.GetActionCount(
+                         "ContextualTasks.EphemeralToolbarButton.UserAction."
+                         "OpenContextMenu.CloseSidePanelOptionVisible"));
+      }),
       SimulateClosingContextualTaskSidePanel(),
       WaitForShow(kPinnedToolbarActionShowSidePanelContextualTasksElementId),
       ShowToolbarButtonContextMenu(
@@ -4340,6 +4355,50 @@ IN_PROC_BROWSER_TEST_F(
             "ContextualTasks.EphemeralToolbarButton.ShownDuration."
             "RemovedByContextMenu",
             1);
+        EXPECT_EQ(2, user_action_tester.GetActionCount(
+                         "ContextualTasks.EphemeralToolbarButton.UserAction."
+                         "OpenContextMenu"));
+        histogram_tester.ExpectUniqueSample(
+            "ContextualTasks.EphemeralToolbarButton.UserAction."
+            "OpenContextMenu.CloseSidePanelOptionVisible",
+            true, 1);
+      }));
+}
+
+// Under the ephemeral pin button refactor, pinning the unpinned button from its
+// context menu must record the same Contextual Tasks metric as the legacy
+// ephemeral button's context menu.
+IN_PROC_BROWSER_TEST_F(ContextualTasksEphemeralPinButtonRefactorInteractiveTest,
+                       PinByContextMenuRecordsEphemeralMetric) {
+  base::UserActionTester user_action_tester;
+  base::HistogramTester histogram_tester;
+
+  RunTestSequence(
+      SignIntoEligibleAccount(), InstrumentTab(kFirstTab), CreateTaskForTab(0),
+      SimulateOpeningContextualTaskSidePanel(),
+      SimulateClosingContextualTaskSidePanel(),
+      WaitForShow(kPinnedToolbarActionShowSidePanelContextualTasksElementId),
+      ShowToolbarButtonContextMenu(
+          kPinnedToolbarActionShowSidePanelContextualTasksElementId),
+      WaitForShow(kPinnedActionToolbarPinElementId),
+      SelectMenuItem(kPinnedActionToolbarPinElementId),
+      WaitForHide(kPinnedActionToolbarPinElementId), Do([&]() {
+        EXPECT_EQ(1, user_action_tester.GetActionCount(
+                         "ContextualTasks.EphemeralToolbarButton.UserAction."
+                         "PinByContextMenu"));
+        histogram_tester.ExpectUniqueSample(
+            "ContextualTasks.EphemeralToolbarButton.UserAction."
+            "PinByContextMenu",
+            true, 1);
+      }),
+      // Once pinned, the menu belongs to the permanent button and must no
+      // longer record ephemeral context menu metrics.
+      ShowToolbarButtonContextMenu(
+          kPinnedToolbarActionShowSidePanelContextualTasksElementId),
+      WaitForShow(kPinnedActionToolbarUnpinElementId), Do([&]() {
+        EXPECT_EQ(1, user_action_tester.GetActionCount(
+                         "ContextualTasks.EphemeralToolbarButton.UserAction."
+                         "OpenContextMenu"));
       }));
 }
 

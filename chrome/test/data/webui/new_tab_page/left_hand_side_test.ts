@@ -54,6 +54,7 @@ suite('NewTabPageLeftHandSideTest', () => {
       enableThreadsRailHybrid: true,
       expandedLhsUrl: EXPANDED_LHS_URL,
       lhsRailConfig: {items: []},
+      threadsRailPreloadDebounceMs: 0,
     });
     windowProxy = installMock(WindowProxy);
     // Prevents the iframe from actually loading the LHS page.
@@ -312,7 +313,7 @@ suite('NewTabPageLeftHandSideTest', () => {
     assertEquals(collapsedWidth, getHostWidthProperty());
 
     await expandLeftHandSide();
-    assertEquals(2, windowProxy.getCallCount('ensureLazyLoaded'));
+    assertEquals(1, windowProxy.getCallCount('ensureLazyLoaded'));
     assertEquals(initialExpanded, getExpandedIframe());
     assertFalse(initialExpanded.hidden);
     assertTrue(folded.hidden);
@@ -341,6 +342,178 @@ suite('NewTabPageLeftHandSideTest', () => {
     assertFalse(expanded.hidden);
     assertTrue(folded.hidden);
   });
+
+  ['pointerenter', 'focusin'].forEach(eventName => {
+    test(
+        `preloads expanded LHS iframe on ${eventName} in hybrid mode`,
+        async () => {
+          loadTimeData.overrideValues({enableThreadsRailHybrid: true});
+          await createLeftHandSide();
+
+          assertFalse(!!getExpandedIframe());
+          const folded =
+              leftHandSide.shadowRoot.querySelector<HTMLElement>('#folded')!;
+          const collapsedWidth = `${folded.offsetWidth}px`;
+
+          // Hovering or focusing the folded rail preloads the expanded iframe
+          // while keeping the rail folded.
+          folded.dispatchEvent(new Event(eventName));
+          await microtasksFinished();
+          assertEquals(1, windowProxy.getCallCount('ensureLazyLoaded'));
+          const preloaded = getExpandedIframe();
+          assertTrue(!!preloaded);
+          assertTrue(preloaded.hidden);
+          assertFalse(folded.hidden);
+          assertEquals(collapsedWidth, getHostWidthProperty());
+
+          // Receiving NTP_LHS_READY while preloaded marks the iframe ready and
+          // updates its width, but keeps the rail folded until clicked.
+          postLhsMessage({type: NtpLhsMessageType.NTP_LHS_READY, width: 320});
+          await microtasksFinished();
+          assertEquals('320px', preloaded.style.width);
+          assertTrue(preloaded.classList.contains('ready'));
+          assertTrue(preloaded.hidden);
+          assertFalse(folded.hidden);
+          assertEquals(collapsedWidth, getHostWidthProperty());
+
+          // Clicking the folded rail expands immediately since the preloaded
+          // iframe is already ready.
+          folded.click();
+          await microtasksFinished();
+          assertFalse(preloaded.hidden);
+          assertTrue(folded.hidden);
+          assertEquals('320px', getHostWidthProperty());
+        });
+  });
+
+  ['pointerenter', 'focusin'].forEach(eventName => {
+    test(
+        `debounces preloading on ${eventName} when debounce delay is set`,
+        async () => {
+          loadTimeData.overrideValues({
+            enableThreadsRailHybrid: true,
+            threadsRailPreloadDebounceMs: 100,
+          });
+          windowProxy.setResultFor('setTimeout', 42);
+          await createLeftHandSide();
+
+          const folded =
+              leftHandSide.shadowRoot.querySelector<HTMLElement>('#folded')!;
+
+          folded.dispatchEvent(new Event(eventName));
+          await microtasksFinished();
+
+          assertEquals(1, windowProxy.getCallCount('setTimeout'));
+          const [callback, duration] = windowProxy.getArgs('setTimeout')[0];
+          assertEquals(100, duration);
+          assertEquals(0, windowProxy.getCallCount('ensureLazyLoaded'));
+          assertFalse(!!getExpandedIframe());
+
+          // Triggering the callback completes the preload.
+          await callback();
+          await microtasksFinished();
+          assertEquals(1, windowProxy.getCallCount('ensureLazyLoaded'));
+          assertTrue(!!getExpandedIframe());
+        });
+  });
+
+  ['pointerleave', 'focusout'].forEach(eventName => {
+    test(
+        `cancels preload timer on ${eventName}`,
+        async () => {
+          loadTimeData.overrideValues({
+            enableThreadsRailHybrid: true,
+            threadsRailPreloadDebounceMs: 100,
+          });
+          windowProxy.setResultFor('setTimeout', 42);
+          await createLeftHandSide();
+
+          const folded =
+              leftHandSide.shadowRoot.querySelector<HTMLElement>('#folded')!;
+
+          folded.dispatchEvent(new Event('pointerenter'));
+          await microtasksFinished();
+          assertEquals(1, windowProxy.getCallCount('setTimeout'));
+
+          folded.dispatchEvent(new Event(eventName));
+          await microtasksFinished();
+          assertEquals(1, windowProxy.getCallCount('clearTimeout'));
+          assertEquals(42, windowProxy.getArgs('clearTimeout')[0]);
+          assertEquals(0, windowProxy.getCallCount('ensureLazyLoaded'));
+          assertFalse(!!getExpandedIframe());
+        });
+  });
+
+  test(
+      'cancels pending preload timer and expands immediately on click',
+      async () => {
+        loadTimeData.overrideValues({
+          enableThreadsRailHybrid: true,
+          threadsRailPreloadDebounceMs: 100,
+        });
+        windowProxy.setResultFor('setTimeout', 42);
+        await createLeftHandSide();
+
+        const folded =
+            leftHandSide.shadowRoot.querySelector<HTMLElement>('#folded')!;
+
+        folded.dispatchEvent(new Event('pointerenter'));
+        await microtasksFinished();
+        assertEquals(1, windowProxy.getCallCount('setTimeout'));
+        assertEquals(0, windowProxy.getCallCount('ensureLazyLoaded'));
+
+        folded.click();
+        await microtasksFinished();
+        assertEquals(1, windowProxy.getCallCount('clearTimeout'));
+        assertEquals(42, windowProxy.getArgs('clearTimeout')[0]);
+        assertEquals(1, windowProxy.getCallCount('ensureLazyLoaded'));
+        assertTrue(!!getExpandedIframe());
+      });
+
+  test(
+      'does not restart timer on repeated pointerenter or focusin while active',
+      async () => {
+        loadTimeData.overrideValues({
+          enableThreadsRailHybrid: true,
+          threadsRailPreloadDebounceMs: 100,
+        });
+        windowProxy.setResultFor('setTimeout', 42);
+        await createLeftHandSide();
+
+        const folded =
+            leftHandSide.shadowRoot.querySelector<HTMLElement>('#folded')!;
+
+        folded.dispatchEvent(new Event('pointerenter'));
+        await microtasksFinished();
+        assertEquals(1, windowProxy.getCallCount('setTimeout'));
+
+        folded.dispatchEvent(new Event('pointerenter'));
+        folded.dispatchEvent(new Event('focusin'));
+        await microtasksFinished();
+        assertEquals(1, windowProxy.getCallCount('setTimeout'));
+      });
+
+  test(
+      'cancels pending preload timer when disconnected',
+      async () => {
+        loadTimeData.overrideValues({
+          enableThreadsRailHybrid: true,
+          threadsRailPreloadDebounceMs: 100,
+        });
+        windowProxy.setResultFor('setTimeout', 42);
+        await createLeftHandSide();
+
+        const folded =
+            leftHandSide.shadowRoot.querySelector<HTMLElement>('#folded')!;
+
+        folded.dispatchEvent(new Event('pointerenter'));
+        await microtasksFinished();
+        assertEquals(1, windowProxy.getCallCount('setTimeout'));
+
+        leftHandSide.remove();
+        assertEquals(1, windowProxy.getCallCount('clearTimeout'));
+        assertEquals(42, windowProxy.getArgs('clearTimeout')[0]);
+      });
 
   test(
       'waits for ensureLazyLoaded before stamping expanded iframe',

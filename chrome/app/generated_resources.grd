@@ -10703,6 +10703,12 @@ Keep your key file in a safe place. You will need it to create new versions of y
       <message name="IDS_VERTICAL_TABS_EXPAND_ON_HOVER_DEFAULT_ENABLED_IPH_BODY" desc="The body for the vertical tabs expand on hover IPH, when expand on hover is default enabled.">
         You can now expand your tabs by hovering over them. To turn this off, right-click here.
       </message>
+      <message name="IDS_VERTICAL_TABS_TAB_GROUPS_IN_ORGANIZER_IPH_BODY" desc="The body for the IPH that lets users know when tab groups have moved into the organizer panel.">
+        Find all your tab groups in tab search here
+      </message>
+      <message name="IDS_VERTICAL_TABS_TAB_GROUPS_IN_ORGANIZER_IPH_SCREENREADER" is_accessibility_with_no_ui="true" desc="Accessible text for the help bubble informing users that tab groups have moved into the organizer panel.">
+        Find all your tab groups in the tab search button in the vertical tab strip
+      </message>
       <message name="IDS_VERTICAL_RESIZE_AREA" is_accessibility_with_no_ui="true" desc="The accessibility label for the resize area in the vertical tab strip.">
             Vertical Tab Strip Resize Handle (Draggable)
       </message>
@@ -15478,6 +15484,9 @@ Please help our engineers fix this problem. Tell us what happened right before y
       </message>
       <message name="IDS_OTHER_DEVICE_TABS_MENU" desc="The text label of the 'Other device tabs' sub-menu in the wrench menu that lists the tabs currently open on the user's other devices.">
         Other device tabs
+      </message>
+      <message name="IDS_OTHER_DEVICE_TABS_SEE_MORE_TABS" desc="Label of the last row under a device in the 'Other device tabs' sub-menu of the wrench menu. It opens a sub-menu listing the remaining tabs open on that device. [ICU_Syntax]">
+        {COUNT, plural, =1 {See 1 more tab} other {See # more tabs}}
       </message>
       <message name="IDS_DEFAULT_DOWNLOAD_FILENAME" desc="Default name for downloaded files when we have no idea what they could be.">
         download

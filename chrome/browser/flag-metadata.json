@@ -95,16 +95,6 @@
     "expiry_milestone": 160
   },
   {
-    "name": "actor-script-tool-delay-observation",
-    "owners": [
-      "yuhengh@google.com",
-      "ndestin@google.com",
-      "weiguo@google.com",
-      "//chrome/browser/actor/OWNERS"
-    ],
-    "expiry_milestone": 160
-  },
-  {
     "name": "actor-script-tool-skip-page-content",
     "owners": [
       "mfoltz@chromium.org",
@@ -1817,6 +1807,11 @@
       "mfacey@chromium.org",
       "johntlee@chromium.org"],
       "expiry_milestone": 140
+  },
+  {
+    "name": "cache-is-google-signed",
+    "owners": [ "ender@chromium.org", "clank-app-team@google.com" ],
+    "expiry_milestone": 165
   },
   {
     "name": "camera-and-microphone-elements",

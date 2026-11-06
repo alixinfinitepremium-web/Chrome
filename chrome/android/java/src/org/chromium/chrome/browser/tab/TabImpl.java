@@ -1072,8 +1072,7 @@ class TabImpl implements Tab, TabInternal {
 
     @Override
     public LoadUrlResult loadUrl(LoadUrlParams params) {
-        try {
-            TraceEvent.begin("Tab.loadUrl");
+        try (TraceEvent e = TraceEvent.scoped("Tab.loadUrl")) {
             if (maybeHandleBeforeUnload(() -> loadUrl(params))) {
                 return new LoadUrlResult(
                         TabLoadStatus.DEFAULT_PAGE_LOAD, /* navigationHandle= */ null);
@@ -1115,8 +1114,6 @@ class TabImpl implements Tab, TabInternal {
                 }
             }
             return result;
-        } finally {
-            TraceEvent.end("Tab.loadUrl");
         }
     }
 
@@ -1209,18 +1206,17 @@ class TabImpl implements Tab, TabInternal {
                     : "Should not have both a WebContentsState and a pending load params.";
 
             // Case 2: We have a WebContentsState. Append the pending navigation to it.
-            boolean success =
+            WebContentsState updatedState =
                     mWebContentsState.appendPendingNavigation(
                             mProfile, title, params, /* trackLastEntryWasPending= */ true);
+            mWebContentsState = updatedState;
             RecordHistogram.recordBooleanHistogram(
-                    "Tabs.FreezeAndAppendPendingNavigationResult", success);
-            if (success) {
-                mUrl = new GURL(mWebContentsState.getVirtualUrlFromState());
+                    "Tabs.FreezeAndAppendPendingNavigationResult", updatedState != null);
+            if (updatedState != null) {
+                mUrl = new GURL(updatedState.getVirtualUrlFromState());
             } else {
-                // If we failed to append the pending navigation, clear the WebContentsState and
-                // clobber with the new pending load params.
-                mWebContentsState.destroy();
-                mWebContentsState = null;
+                // If we failed to append the pending navigation, clobber with the new pending
+                // load params.
                 setPendingLoadParams(params);
             }
         } else {
@@ -1508,9 +1504,8 @@ class TabImpl implements Tab, TabInternal {
 
     @Override
     public void show(@TabSelectionType int type) {
-        try (ScopedServiceBindingBatch scope = ScopedServiceBindingBatch.scoped()) {
-
-            TraceEvent.begin("Tab.show");
+        try (TraceEvent e = TraceEvent.scoped("Tab.show");
+                ScopedServiceBindingBatch scope = ScopedServiceBindingBatch.scoped()) {
             if (!isHidden()) {
                 handleShowWhenAlreadyVisible();
                 return;
@@ -1561,8 +1556,6 @@ class TabImpl implements Tab, TabInternal {
             // Update the timestamp only after notifying observers, since onShown() observers may
             // read the previous value.
             setTimestampMillis(System.currentTimeMillis());
-        } finally {
-            TraceEvent.end("Tab.show");
         }
     }
 
@@ -1587,8 +1580,8 @@ class TabImpl implements Tab, TabInternal {
     public final void hide(@TabHidingType int type) {
         // Batch service binding updates for the tab including the subframes. TabImpl.hide() is
         // triggered not only on tab switch, but also when the window is hidden.
-        try (ScopedServiceBindingBatch scope = ScopedServiceBindingBatch.scoped()) {
-            TraceEvent.begin("Tab.hide");
+        try (TraceEvent e = TraceEvent.scoped("Tab.hide");
+                ScopedServiceBindingBatch scope = ScopedServiceBindingBatch.scoped()) {
             if (isHidden()) return;
             mIsHidden = true;
             updateInteractableState();
@@ -1598,8 +1591,6 @@ class TabImpl implements Tab, TabInternal {
             NativePageAssassin.getInstance().tabHidden(this);
 
             for (TabObserver observer : mObservers) observer.onHidden(this, type);
-        } finally {
-            TraceEvent.end("Tab.hide");
         }
     }
 
@@ -1685,11 +1676,8 @@ class TabImpl implements Tab, TabInternal {
 
         mObservers.clear();
         mTabViewManager.destroy();
-        hideNativePage(false, null);
-        if (mWebContentsState != null) {
-            mWebContentsState.destroy();
-            mWebContentsState = null;
-        }
+        hideNativePage(/* notify= */ false);
+        mWebContentsState = null;
 
         if (mWindowAndroid != null) {
             mWindowAndroid.getOcclusionSupplier().removeObserver(mOcclusionCallback);
@@ -1773,76 +1761,75 @@ class TabImpl implements Tab, TabInternal {
             boolean isPinned) {
         assert loadUrlParams == null || tabState == null
                 : "A tab cannot be both lazily loaded and restored from TabState.";
-        TraceEvent.begin("Tab.initialize");
-        // WARNING: Do not early return from this method to ensure the trace event is ended and to
-        // ensure the logic at the end of this method is run for all tabs.
+        try (TraceEvent e = TraceEvent.scoped("Tab.initialize")) {
+            // WARNING: Do not early return from this method to ensure the logic at the end of this
+            // method is run for all tabs.
 
-        if (parent != null) {
-            mParentId = parent.getId();
+            if (parent != null) {
+                mParentId = parent.getId();
+            }
+
+            mTabLaunchTypeAtCreation = mLaunchType;
+            mCreationState = creationState;
+            mIsPinned = isPinned;
+
+            // If applicable set up for a lazy background tab load.
+            if (loadUrlParams != null) {
+                setPendingLoadParams(loadUrlParams);
+                assumeNonNull(mUrl);
+                setTitle(pendingTitle != null ? pendingTitle : mUrl.getSpec());
+            } else {
+                mPendingLoadParams = null;
+            }
+
+            // The {@link mDelegateFactory} needs to be set before calling
+            // {@link TabHelpers.initTabHelpers()}. This is because it creates a
+            // TabBrowserControlsConstraintsHelper, and {@link
+            // TabBrowserControlsConstraintsHelper#updateVisibilityDelegate()} will call the
+            // Tab#getDelegateFactory().createBrowserControlsVisibilityDelegate().
+            // See https://crbug.com/40749710.
+            mDelegateFactory = delegateFactory;
+
+            TabHelpers.initTabHelpers(this, parent);
+
+            mIsDraggingObserver =
+                    (isDragging) -> {
+                        if (mNativeTabAndroid != 0) {
+                            TabImplJni.get().onDraggingStateChanged(mNativeTabAndroid, isDragging);
+                        }
+                    };
+            getIsDraggingSupplier().addSyncObserverAndPostIfNonNull(mIsDraggingObserver);
+
+            if (tabState != null) {
+                restoreFieldsFromState(tabState);
+            }
+
+            initializeNative();
+
+            RevenueStats.getInstance().tabCreated(this);
+
+            // Headless and archived tabs will never load and thus don't need a WebContents. The
+            // reason all tabs need a WebContents is when used in C++ via BrowserWindowInterface.
+            // Since headless and archived tabs are not associated with a window they can avoid
+            // initializing tabs with WebContents. We also skip this logic if LoadAllTabsAtStartup
+            // is not enabled which controls `mIsContentViewDeferred`.
+            initializeWebContents(webContents, initiallyHidden, initializeRenderer);
+
+            // Remaining initialization logic that should always run.
+            if (mTimestampMillis == INVALID_TIMESTAMP) {
+                setTimestampMillis(System.currentTimeMillis());
+            }
+            String appId = null;
+            if (tabState != null) {
+                appId = tabState.openerAppId;
+                updateThemeColor(
+                        tabState.hasThemeColor()
+                                ? tabState.themeColor
+                                : TabState.UNSPECIFIED_THEME_COLOR);
+            }
+
+            for (TabObserver observer : mObservers) observer.onInitialized(this, appId);
         }
-
-        mTabLaunchTypeAtCreation = mLaunchType;
-        mCreationState = creationState;
-        mIsPinned = isPinned;
-
-        // If applicable set up for a lazy background tab load.
-        if (loadUrlParams != null) {
-            setPendingLoadParams(loadUrlParams);
-            assumeNonNull(mUrl);
-            setTitle(pendingTitle != null ? pendingTitle : mUrl.getSpec());
-        } else {
-            mPendingLoadParams = null;
-        }
-
-        // The {@link mDelegateFactory} needs to be set before calling
-        // {@link TabHelpers.initTabHelpers()}. This is because it creates a
-        // TabBrowserControlsConstraintsHelper, and {@link
-        // TabBrowserControlsConstraintsHelper#updateVisibilityDelegate()} will call the
-        // Tab#getDelegateFactory().createBrowserControlsVisibilityDelegate().
-        // See https://crbug.com/40749710.
-        mDelegateFactory = delegateFactory;
-
-        TabHelpers.initTabHelpers(this, parent);
-
-        mIsDraggingObserver =
-                (isDragging) -> {
-                    if (mNativeTabAndroid != 0) {
-                        TabImplJni.get().onDraggingStateChanged(mNativeTabAndroid, isDragging);
-                    }
-                };
-        getIsDraggingSupplier().addSyncObserverAndPostIfNonNull(mIsDraggingObserver);
-
-        if (tabState != null) {
-            restoreFieldsFromState(tabState);
-        }
-
-        initializeNative();
-
-        RevenueStats.getInstance().tabCreated(this);
-
-        // Headless and archived tabs will never load and thus don't need a WebContents. The reason
-        // all tabs need a WebContents is when used in C++ via BrowserWindowInterface. Since
-        // headless and archived tabs are not associated with a window they can avoid initializing
-        // tabs with WebContents. We also skip this logic if LoadAllTabsAtStartup is not enabled
-        // which controls `mIsContentViewDeferred`.
-        initializeWebContents(webContents, initiallyHidden, initializeRenderer);
-
-        // Remaining initialization logic that should always run.
-        if (mTimestampMillis == INVALID_TIMESTAMP) {
-            setTimestampMillis(System.currentTimeMillis());
-        }
-        String appId = null;
-        if (tabState != null) {
-            appId = tabState.openerAppId;
-            updateThemeColor(
-                    tabState.hasThemeColor()
-                            ? tabState.themeColor
-                            : TabState.UNSPECIFIED_THEME_COLOR);
-        }
-
-        for (TabObserver observer : mObservers) observer.onInitialized(this, appId);
-
-        TraceEvent.end("Tab.initialize");
     }
 
     private void initializeWebContents(
@@ -1950,7 +1937,7 @@ class TabImpl implements Tab, TabInternal {
     private void showRenderedPage() {
         // During title update, we prioritize titles in NativePage instead of those from
         // WebContents. Thus we should remove the obsolete NativePage before title update.
-        if (mNativePage != null) hideNativePage(true, null);
+        if (mNativePage != null) hideNativePage(/* notify= */ true);
         updateTitle();
     }
 
@@ -2627,8 +2614,7 @@ class TabImpl implements Tab, TabInternal {
         assert !isDormant() : "Dormant tabs must never initialize WebContents.";
         assert mWebContents == null : "WebContents is already initialized for this Tab.";
         assert mWebContentsState == null : "Pending WebContentsState must be cleared first.";
-        try {
-            TraceEvent.begin("ChromeTab.initWebContents");
+        try (TraceEvent e = TraceEvent.scoped("ChromeTab.initWebContents")) {
             mWebContents = webContents;
 
             if (mIsContentViewDeferred) {
@@ -2639,7 +2625,7 @@ class TabImpl implements Tab, TabInternal {
                 setupContentView(webContents);
             }
 
-            hideNativePage(/* notify= */ false, /* postHideTask= */ null);
+            hideNativePage(/* notify= */ false);
 
             ContentUtils.setUserAgentOverride(
                     mWebContents,
@@ -2649,9 +2635,9 @@ class TabImpl implements Tab, TabInternal {
 
             updateWebContentsDelegate();
 
-            // TODO(crbug.com/40942165): Find a better way of indicating this is a background tab
+            // TODO(crbug.com/40942165): Find a better way of indicating this tab is detached
             // (or move the logic elsewhere).
-            boolean isBackgroundTab = isDetachedFromActivity();
+            boolean isDetached = isDetachedFromActivity();
 
             assert mNativeTabAndroid != 0;
             assumeNonNull(mWebContentsDelegate);
@@ -2659,7 +2645,7 @@ class TabImpl implements Tab, TabInternal {
                     .initWebContents(
                             mNativeTabAndroid,
                             isOffTheRecord(),
-                            isBackgroundTab,
+                            isDetached,
                             webContents,
                             mWebContentsDelegate,
                             createTabContextMenuPopulatorFactory());
@@ -2690,8 +2676,6 @@ class TabImpl implements Tab, TabInternal {
                 sensitiveContentClient.restoreContentSensitivityFromTabState(
                         getTabHasSensitiveContent());
             }
-        } finally {
-            TraceEvent.end("ChromeTab.initWebContents");
         }
     }
 
@@ -2736,34 +2720,44 @@ class TabImpl implements Tab, TabInternal {
     void showNativePage(NativePage nativePage) {
         assert nativePage != null;
         if (mNativePage == nativePage) return;
-        hideNativePage(
-                /* notify= */ true,
-                () -> {
-                    mNativePage = nativePage;
-                    if (hasLiveNativePage()) {
-                        View view = mNativePage.getView();
-                        assumeNonNull(view);
-                        view.addOnAttachStateChangeListener(mAttachStateChangeListener);
-                    }
-                    if (isDisplayingBackForwardAnimation()) {
-                        mNativePageSmoothTransitionDelegate = mNativePage.enableSmoothTransition();
-                        assumeNonNull(mNativePageSmoothTransitionDelegate);
-                        mNativePageSmoothTransitionDelegate.prepare();
-                    }
-                    pushNativePageStateToNavigationEntry();
-                    onBackgroundColorChanged();
-                    updateThemeColor(TabState.UNSPECIFIED_THEME_COLOR);
-                });
+        // The new page must be installed after the old one is detached but before observers are
+        // notified and the old page is destroyed.
+        NativePage previousNativePage = detachCurrentNativePage();
+        mNativePage = nativePage;
+        if (hasLiveNativePage()) {
+            View view = mNativePage.getView();
+            assumeNonNull(view);
+            view.addOnAttachStateChangeListener(mAttachStateChangeListener);
+        }
+        if (isDisplayingBackForwardAnimation()) {
+            mNativePageSmoothTransitionDelegate = mNativePage.enableSmoothTransition();
+            assumeNonNull(mNativePageSmoothTransitionDelegate);
+            mNativePageSmoothTransitionDelegate.prepare();
+        }
+        pushNativePageStateToNavigationEntry();
+        onBackgroundColorChanged();
+        updateThemeColor(TabState.UNSPECIFIED_THEME_COLOR);
+        notifyContentChanged();
+        destroyNativePageInternal(previousNativePage);
     }
 
     /**
      * Hide and destroy the native page if it was being shown.
      *
      * @param notify {@code true} to trigger {@link #onContentChanged} event.
-     * @param postHideTask {@link Runnable} task to run before actually destroying the native page.
-     *     This is necessary to keep the tasks to perform in order.
      */
-    private void hideNativePage(boolean notify, @Nullable Runnable postHideTask) {
+    private void hideNativePage(boolean notify) {
+        NativePage previousNativePage = detachCurrentNativePage();
+        if (notify) notifyContentChanged();
+        destroyNativePageInternal(previousNativePage);
+    }
+
+    /**
+     * Detaches the current native page, if any, from this tab without destroying it.
+     *
+     * @return The previously shown native page, which the caller is responsible for destroying.
+     */
+    private @Nullable NativePage detachCurrentNativePage() {
         if (mNativePageSmoothTransitionDelegate != null) {
             mNativePageSmoothTransitionDelegate.cancel();
             mNativePageSmoothTransitionDelegate = null;
@@ -2780,9 +2774,7 @@ class TabImpl implements Tab, TabInternal {
             mNativePage = null;
             mWaitingOnBgColorAfterHidingNativePage = true;
         }
-        if (postHideTask != null) postHideTask.run();
-        if (notify) notifyContentChanged();
-        destroyNativePageInternal(previousNativePage);
+        return previousNativePage;
     }
 
     /**
@@ -2857,8 +2849,7 @@ class TabImpl implements Tab, TabInternal {
             StartupPaintPreviewHelper.showPaintPreviewOnRestore(this);
         }
 
-        try {
-            TraceEvent.begin("Tab.restoreIfNeeded");
+        try (TraceEvent e = TraceEvent.scoped("Tab.restoreIfNeeded")) {
             maybeInflateContentView();
             // Restore is needed for a tab that is loaded for the first time. WebContents will
             // be restored from a saved state.
@@ -2880,8 +2871,6 @@ class TabImpl implements Tab, TabInternal {
             }
             mIsBeingRestored = true;
             for (TabObserver observer : mObservers) observer.onRestoreStarted(this);
-        } finally {
-            TraceEvent.end("Tab.restoreIfNeeded");
         }
     }
 
@@ -2894,8 +2883,7 @@ class TabImpl implements Tab, TabInternal {
      */
     private boolean unfreezeContents(boolean noRenderer) {
         boolean restored = true;
-        try {
-            TraceEvent.begin("Tab.unfreezeContents");
+        try (TraceEvent e = TraceEvent.scoped("Tab.unfreezeContents")) {
             assert mWebContentsState != null;
 
             WebContents webContents =
@@ -2918,7 +2906,6 @@ class TabImpl implements Tab, TabInternal {
             if (compositorView != null) {
                 webContents.setSize(compositorView.getWidth(), compositorView.getHeight());
             }
-            mWebContentsState.destroy();
             mWebContentsState = null;
             initWebContents(webContents);
 
@@ -2930,8 +2917,6 @@ class TabImpl implements Tab, TabInternal {
                 params.setInitiatorOrigin(Origin.createOpaqueOrigin());
                 loadUrl(params);
             }
-        } finally {
-            TraceEvent.end("Tab.unfreezeContents");
         }
         return restored;
     }
@@ -3200,9 +3185,6 @@ class TabImpl implements Tab, TabInternal {
 
     @VisibleForTesting
     void setWebContentsState(WebContentsState webContentsState) {
-        if (mWebContentsState != null) {
-            mWebContentsState.destroy();
-        }
         mWebContentsState = webContentsState;
     }
 
@@ -3268,8 +3250,9 @@ class TabImpl implements Tab, TabInternal {
     @CalledByNative
     private void deleteNavigationEntriesFromFrozenState(long predicate) {
         if (mWebContentsState == null) return;
-        boolean success = mWebContentsState.deleteNavigationEntries(predicate);
-        if (success) {
+        WebContentsState updatedState = mWebContentsState.deleteNavigationEntries(predicate);
+        if (updatedState != null) {
+            mWebContentsState = updatedState;
             notifyNavigationEntriesDeleted();
         }
     }

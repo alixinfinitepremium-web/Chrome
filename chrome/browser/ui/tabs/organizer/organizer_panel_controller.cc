@@ -21,8 +21,8 @@
 #include "chrome/browser/ui/animation/browser_animation_types.h"
 #include "chrome/browser/ui/browser_element_identifiers.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
-#include "chrome/browser/ui/tabs/organizer/organizer_panel_utils.h"
 #include "chrome/browser/ui/tabs/vertical_tab_strip_state_controller.h"
+#include "chrome/browser/ui/user_education/browser_user_education_interface.h"
 #include "chrome/browser/ui/views/animations/organizer_panel_animations.h"
 #include "chrome/browser/ui/views/animations/tab_strip_animations.h"
 #include "chrome/browser/ui/views/tabs/organizer/organizer_panel_host.h"
@@ -31,20 +31,16 @@
 #include "chrome/browser/ui/webui/webui_embedding_context.h"
 #include "chrome/common/webui_url_constants.h"
 #include "chrome/grit/generated_resources.h"
+#include "components/feature_engagement/public/feature_constants.h"
 #include "components/site_engagement/content/site_engagement_helper.h"
 #include "components/site_engagement/content/site_engagement_service.h"
 #include "content/public/browser/web_contents.h"
-#include "extensions/buildflags/buildflags.h"
 #include "ui/actions/actions.h"
 #include "ui/base/l10n/l10n_util.h"
 #include "ui/base/ui_base_features.h"
 #include "ui/views/view.h"
 #include "ui/views/view_tracker.h"
 #include "ui/views/view_utils.h"
-
-#if BUILDFLAG(ENABLE_EXTENSIONS)
-#include "extensions/browser/extension_util.h"
-#endif
 
 namespace {
 
@@ -249,11 +245,19 @@ void OrganizerPanelController::SetOrganizerVisible(bool visible,
   is_visible_ = visible;
   base::RecordAction(base::UserMetricsAction(
       is_visible_ ? "OrganizerPanel.Open" : "OrganizerPanel.Close"));
-#if BUILDFLAG(ENABLE_EXTENSIONS)
-  if (!is_visible_) {
-    active_extension_id_.reset();
+  if (visible) {
+    if (auto* const interface =
+            BrowserUserEducationInterface::From(&*browser_window_)) {
+      const base::Feature& iph_feature =
+          feature_engagement::kIPH_VerticalTabsTabGroupsInOrganizerFeature;
+      if (interface->IsFeaturePromoActive(iph_feature)) {
+        interface->NotifyFeaturePromoFeatureUsed(
+            iph_feature, FeaturePromoFeatureUsedAction::kClosePromoIfPresent);
+      } else if (interface->IsFeaturePromoQueued(iph_feature)) {
+        interface->AbortFeaturePromo(iph_feature);
+      }
+    }
   }
-#endif
   if (is_visible_) {
     UpdatePanelWebContents();
   }
@@ -292,41 +296,6 @@ BrowserAnimationMotion OrganizerPanelController::GetTargetMotion() const {
                      : OrganizerPanelAnimations::kHideInTray;
 }
 
-#if BUILDFLAG(ENABLE_EXTENSIONS)
-void OrganizerPanelController::OpenForExtension(
-    const extensions::ExtensionId& extension_id) {
-  Profile* const profile = browser_window_->GetProfile();
-  if (profile->IsOffTheRecord() &&
-      !extensions::util::IsIncognitoEnabled(extension_id, profile)) {
-    return;
-  }
-
-  if (is_visible_ && active_extension_id_ == extension_id) {
-    return;
-  }
-
-  active_extension_id_ = extension_id;
-  SetOrganizerVisible(true);
-}
-
-void OrganizerPanelController::ToggleForExtension(
-    const extensions::ExtensionId& extension_id) {
-  if (is_visible_ && active_extension_id_ == extension_id) {
-    SetOrganizerVisible(false);
-    return;
-  }
-  OpenForExtension(extension_id);
-}
-
-void OrganizerPanelController::CloseForExtension(
-    const extensions::ExtensionId& extension_id) {
-  if (!is_visible_ || active_extension_id_ != extension_id) {
-    return;
-  }
-  SetOrganizerVisible(false);
-}
-#endif
-
 base::CallbackListSubscription OrganizerPanelController::RegisterOnStateChanged(
     StateChangedCallback callback) {
   return on_state_changed_callback_list_.Add(std::move(callback));
@@ -336,14 +305,6 @@ content::WebContents* OrganizerPanelController::EnsureWebContentsCreated() {
   if (web_contents_) {
     return web_contents_.get();
   }
-
-#if BUILDFLAG(ENABLE_EXTENSIONS)
-  // When extension side panel mode is enabled, the panel hosts extensions,
-  // not WebUI. Skip requesting WebUI contents.
-  if (organizer_panel::IsShowExtensionsSidePanelUiInOrganizerPanelEnabled()) {
-    return nullptr;
-  }
-#endif
 
   auto* const preload_manager = WebUIContentsPreloadManager::GetInstance();
   CHECK(preload_manager);

@@ -1679,6 +1679,7 @@ test("content_browsertests") {
     "../browser/renderer_host/isolated_web_app_throttle_browsertest.cc",
     "../browser/renderer_host/jit_policy_browsertest.cc",
     "../browser/renderer_host/media/video_capture_browsertest.cc",
+    "../browser/renderer_host/model_context_user_data_browsertest.cc",
     "../browser/renderer_host/navigation_controller_history_intervention_browsertest.cc",
     "../browser/renderer_host/navigation_controller_impl_browsertest.cc",
     "../browser/renderer_host/navigation_handle_user_data_browsertest.cc",
@@ -2663,6 +2664,7 @@ test("content_unittests") {
     "../browser/cookie_store/cookie_store_manager_unittest.cc",
     "../browser/cpu_performance/cpu_performance_unittest.cc",
     "../browser/cross_origin_storage/cross_origin_storage_registry_unittest.cc",
+    "../browser/cross_origin_storage/cross_origin_storage_unittest.cc",
     "../browser/declarative_performance_observer/declarative_performance_observer_store_unittest.cc",
     "../browser/declarative_performance_observer/declarative_performance_observer_unittest.cc",
     "../browser/device_posture/device_posture_provider_impl_unittest.cc",
@@ -3740,6 +3742,7 @@ test("content_unittests") {
         "../browser/speech/speech_recognition_manager_impl_unittest.cc",
       ]
       deps += [
+        "//components/optimization_guide/core:core_util",
         "//components/optimization_guide/core:ondevice",
         "//components/soda:constants",
         "//components/soda:utils",
