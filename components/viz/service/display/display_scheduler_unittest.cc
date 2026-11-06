@@ -56,6 +56,9 @@ class TestDisplayDamageTracker : public DisplayDamageTracker {
     if (display_damaged) {
       undrawn_surfaces_.insert(surface_id);
     }
+    if (surface_id == root_surface_id_) {
+      UpdateRootFrameMissing();
+    }
     HandleInteraction interaction = is_handling_interaction
                                         ? HandleInteraction::kYes
                                         : HandleInteraction::kNo;
@@ -174,12 +177,16 @@ class TestDisplayScheduler : public DisplayScheduler {
   }
 
   void BeginFrameDeadlineForTest() {
+    RunMissedBeginFrameIfScheduled();
+    OnBeginFrameDeadline();
+  }
+
+  void RunMissedBeginFrameIfScheduled() {
     // Ensure that any missed BeginFrames were handled by the scheduler. We need
     // to run the scheduled task ourselves since the NullTaskRunner won't.
     if (!missed_begin_frame_task_.IsCancelled()) {
       missed_begin_frame_task_.callback().Run();
     }
-    OnBeginFrameDeadline();
   }
 
   void ForceSwapForPreviousFrameIfScheduled() {
@@ -250,12 +257,12 @@ class DisplaySchedulerTest : public testing::Test {
 
   void AdvanceTimeAndBeginFrameForTest(
       const std::vector<SurfaceId>& observing_surfaces,
-      std::optional<PossibleDeadlines> possible_deadlines = std::nullopt) {
+      PossibleDeadlines possible_deadlines = PossibleDeadlines()) {
     now_src_.Advance(BeginFrameArgs::DefaultInterval());
     // FakeBeginFrameSource deals with |source_id| and |sequence_number|.
     last_begin_frame_args_ = fake_begin_frame_source_.CreateBeginFrameArgs(
         BEGINFRAME_FROM_HERE, &now_src_);
-    last_begin_frame_args_.possible_deadlines = possible_deadlines;
+    last_begin_frame_args_.possible_deadlines = std::move(possible_deadlines);
     fake_begin_frame_source_.TestOnBeginFrame(last_begin_frame_args_);
     for (const auto& surface_id : observing_surfaces) {
       damage_tracker_->OnSurfaceDamageExpected(surface_id,
@@ -599,10 +606,10 @@ TEST_F(DisplaySchedulerTest, SelectFutureFrameDeadline) {
   // Deadline 0 is in the past relative to "now".
   base::TimeDelta latch_delta0 = base::Milliseconds(5);
   base::TimeDelta latch_delta1 = base::Milliseconds(50);
-  args.possible_deadlines->deadlines.emplace_back(100, latch_delta0,
-                                                  base::Milliseconds(15));
-  args.possible_deadlines->deadlines.emplace_back(101, latch_delta1,
-                                                  base::Milliseconds(60));
+  args.possible_deadlines.deadlines.emplace_back(100, latch_delta0,
+                                                 base::Milliseconds(15));
+  args.possible_deadlines.deadlines.emplace_back(101, latch_delta1,
+                                                 base::Milliseconds(60));
 
   // Advance time so that now > frame_time + latch_delta0.
   now_src().Advance(latch_delta0 + base::Milliseconds(1));
@@ -627,10 +634,10 @@ TEST_F(DisplaySchedulerTest, SelectFutureFrameDeadline) {
   args.possible_deadlines = PossibleDeadlines(0);
   // Deadline 200 latch time: 46 + 10 = 56ms (< 70ms).
   // Deadline 201 latch time: 46 + 40 = 86ms (> 70ms).
-  args.possible_deadlines->deadlines.emplace_back(200, base::Milliseconds(10),
-                                                  base::Milliseconds(15));
-  args.possible_deadlines->deadlines.emplace_back(201, base::Milliseconds(40),
-                                                  base::Milliseconds(45));
+  args.possible_deadlines.deadlines.emplace_back(200, base::Milliseconds(10),
+                                                 base::Milliseconds(15));
+  args.possible_deadlines.deadlines.emplace_back(201, base::Milliseconds(40),
+                                                 base::Milliseconds(45));
 
   scheduler_->OnBeginFrameForScheduling(args);
   SurfaceDamaged(root_surface_id);
@@ -830,7 +837,11 @@ TEST_F(DisplaySchedulerTest, RootFrameMissing) {
   // a BeginFrame while the root frame is missing.
   EXPECT_EQ(late_deadline, scheduler_->DesiredBeginFrameDeadlineTimeForTest());
   damage_tracker_->SetRootFrameMissingForTest(false);
+  EXPECT_FALSE(scheduler_->inside_begin_frame_deadline_interval());
+  scheduler_->RunMissedBeginFrameIfScheduled();
   EXPECT_TRUE(scheduler_->inside_begin_frame_deadline_interval());
+  EXPECT_LT(base::TimeTicks(),
+            scheduler_->DesiredBeginFrameDeadlineTimeForTest());
   SurfaceDamaged(root_surface_id);
   EXPECT_EQ(base::TimeTicks(),
             scheduler_->DesiredBeginFrameDeadlineTimeForTest());
@@ -838,6 +849,53 @@ TEST_F(DisplaySchedulerTest, RootFrameMissing) {
   EXPECT_EQ(1, client_.draw_and_swap_count());
   scheduler_->BeginFrameDeadlineForTest();
   EXPECT_EQ(2, client_.draw_and_swap_count());
+}
+
+TEST_F(DisplaySchedulerTest, RootFrameMissingDoesNotDrawSynchronously) {
+  SurfaceId root_surface_id(
+      kArbitraryFrameSinkId,
+      LocalSurfaceId(1, base::UnguessableToken::Create()));
+  SurfaceId sid1(kArbitraryFrameSinkId,
+                 LocalSurfaceId(2, base::UnguessableToken::Create()));
+
+  scheduler_->SetVisible(true);
+  SetNewRootSurface(root_surface_id);
+  damage_tracker_->SetRootFrameMissingForTest(true);
+
+  // Start a BeginFrame while the root frame is missing and damage a child
+  // surface so `needs_draw_` is true, with a late deadline scheduled.
+  AdvanceTimeAndBeginFrameForTest({sid1});
+  SurfaceDamaged(sid1);
+  EXPECT_TRUE(scheduler_->inside_begin_frame_deadline_interval());
+  EXPECT_EQ(1u, fake_begin_frame_source_.num_observers());
+
+  // A second BeginFrame arrives before the previous late deadline fires.
+  // OnBeginFrameContinuation runs the previous deadline (which stops observing
+  // BeginFrames because the root frame is still missing) and starts a new
+  // deadline interval.
+  AdvanceTimeAndBeginFrameForTest({sid1, root_surface_id});
+  EXPECT_EQ(0u, fake_begin_frame_source_.num_observers());
+  EXPECT_TRUE(scheduler_->inside_begin_frame_deadline_interval());
+  EXPECT_EQ(0, client_.draw_and_swap_count());
+
+  // A third BeginFrame ticks on the source while the scheduler is not
+  // observing.
+  AdvanceTimeAndBeginFrameForTest({sid1, root_surface_id});
+  EXPECT_EQ(0u, fake_begin_frame_source_.num_observers());
+  EXPECT_TRUE(scheduler_->inside_begin_frame_deadline_interval());
+
+  // When the root frame becomes available during surface activation,
+  // OnRootFrameMissing(false) re-adds the BeginFrameObserver and receives a
+  // MISSED BeginFrame. It must not synchronously run DrawAndSwap().
+  SurfaceDamaged(root_surface_id);
+  EXPECT_EQ(1u, fake_begin_frame_source_.num_observers());
+  EXPECT_EQ(0, client_.draw_and_swap_count());
+
+  // Running the posted missed BeginFrame task triggers the pending deadline
+  // from the second BeginFrame and draws asynchronously.
+  scheduler_->RunMissedBeginFrameIfScheduled();
+  EXPECT_EQ(1, client_.draw_and_swap_count());
+  EXPECT_TRUE(scheduler_->inside_begin_frame_deadline_interval());
 }
 
 TEST_F(DisplaySchedulerTest, DidSwapBuffers) {
@@ -1214,7 +1272,7 @@ TEST_F(DisplaySchedulerTest, MaxPendingSwapsForRefreshRate) {
         fake_begin_frame_source_.CreateBeginFrameArgsWithGenerator(
             now, now + interval, interval);
     args.possible_deadlines =
-        std::nullopt;  // Ensure we fall back to refresh rate logic
+        PossibleDeadlines();  // Ensure we fall back to refresh rate logic
 
     damage_tracker_->ClearUndrawnSurfaces();
     custom_scheduler->OnDisplayDamaged(root_surface_id, BeginFrameId());
@@ -1479,7 +1537,7 @@ TEST_F(DisplaySchedulerMultipleSwapsperVsyncTest,
   EXPECT_EQ(1, client_.draw_and_swap_count());
   EXPECT_FALSE(scheduler_->inside_begin_frame_deadline_interval());
 
-  EXPECT_FALSE(last_begin_frame_args_.possible_deadlines.has_value());
+  EXPECT_TRUE(last_begin_frame_args_.possible_deadlines.empty());
   // Late damage for BF2 arrives (after deadline, while idle).
   BeginFrameAck bf2_ack(last_begin_frame_args_, true);
   damage_tracker_->SurfaceDamagedForTest(root_surface_id, bf2_ack, true);

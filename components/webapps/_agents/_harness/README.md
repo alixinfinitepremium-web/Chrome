@@ -47,10 +47,11 @@ _harness/
 ├── REVIEWS.md                # Review spec & critique dimensions
 ├── agents.json               # Manifest registering harness personas
 ├── agents/                   # Reusable review personas (Markdown)
-│   ├── chromium_code_reviewer.md # Read-only code reviewer persona
+│   ├── chromium_code_reviewer.md # Owners code reviewer (read-only by default)
 │   └── chromium_design_reviewer.md # Skeptical Architect reviewer
 ├── skills.json               # Manifest registering harness skills
 ├── skills/                   # Reusable harness skills
+│   ├── general-code-review/  # Owners code review workflow (used by reviewer)
 │   ├── harness-bootstrap/    # Project harness skeleton scaffolder
 │   ├── harness-doc-writer/   # Design/Plan authoring & review loop
 │   └── harness-updater/      # Link audit & freshness maintenance

@@ -25,6 +25,7 @@
 #include "chrome/browser/ui/views/tabs/common/root_tab_collection_node.h"
 #include "chrome/browser/ui/views/tabs/common/split_tab_view.h"
 #include "chrome/browser/ui/views/tabs/common/tab_collection_node.h"
+#include "chrome/browser/ui/views/tabs/common/tab_strip_view.h"
 #include "chrome/browser/ui/views/tabs/common/unpinned_tab_container_view.h"
 #include "chrome/browser/ui/views/tabs/shared/tab_strip_types.h"
 #include "chrome/browser/ui/views/test/vertical_tabs_browser_test_mixin.h"
@@ -35,8 +36,16 @@
 #include "components/tabs/public/tab_interface.h"
 #include "content/public/test/browser_test.h"
 #include "testing/gtest/include/gtest/gtest.h"
+#include "ui/accessibility/ax_enums.mojom.h"
+#include "ui/accessibility/ax_node_data.h"
+#include "ui/accessibility/platform/assistive_tech.h"
+#include "ui/accessibility/platform/ax_platform.h"
+#include "ui/views/accessibility/ax_update_notifier.h"
+#include "ui/views/accessibility/view_accessibility.h"
 #include "ui/views/focus/focus_manager.h"
+#include "ui/views/test/ax_event_counter.h"
 #include "ui/views/test/mock_activation_controller.h"
+#include "ui/views/test/views_test_utils.h"
 #include "ui/views/view.h"
 #include "ui/views/view_utils.h"
 #include "url/gurl.h"
@@ -260,6 +269,96 @@ IN_PROC_BROWSER_TEST_P(BaseTabStripRegionViewBrowserTest,
 
   active_tab_view->parent()->SetVisible(false);
   EXPECT_EQ(nullptr, region_view()->GetDefaultFocusableChild());
+}
+
+IN_PROC_BROWSER_TEST_P(BaseTabStripRegionViewBrowserTest,
+                       HasPaneRoleAndTabStripHasTabListRole) {
+  ui::AXNodeData region_ax_data;
+  region_view()->GetViewAccessibility().GetAccessibleNodeData(&region_ax_data);
+  EXPECT_EQ(ax::mojom::Role::kPane, region_ax_data.role);
+  EXPECT_FALSE(region_ax_data.HasState(ax::mojom::State::kMultiselectable));
+
+  ui::AXNodeData tab_strip_ax_data;
+  region_view()
+      ->GetTabStripView()
+      ->GetViewAccessibility()
+      .GetAccessibleNodeData(&tab_strip_ax_data);
+  EXPECT_EQ(ax::mojom::Role::kTabList, tab_strip_ax_data.role);
+  EXPECT_TRUE(tab_strip_ax_data.HasState(ax::mojom::State::kMultiselectable));
+}
+
+IN_PROC_BROWSER_TEST_P(BaseTabStripRegionViewBrowserTest,
+                       AccessibleTabIndicesUpdateOnAddMoveAndRemove) {
+  AppendTab();
+  AppendTab();
+
+  BrowserView* browser_view = BrowserView::GetBrowserViewForBrowser(browser());
+  TabStripModel* model = browser()->GetTabStripModel();
+  views::test::RunScheduledLayout(browser_view);
+
+  auto verify_tab_indices = [&]() {
+    const int count = model->count();
+    for (int i = 0; i < count; ++i) {
+      ui::AXNodeData tab_ax_data;
+      GetTabViewAt(i)->GetViewAccessibility().GetAccessibleNodeData(
+          &tab_ax_data);
+      EXPECT_EQ(tab_ax_data.GetIntAttribute(ax::mojom::IntAttribute::kPosInSet),
+                i + 1);
+      EXPECT_EQ(tab_ax_data.GetIntAttribute(ax::mojom::IntAttribute::kSetSize),
+                count);
+    }
+  };
+
+  verify_tab_indices();
+
+  model->MoveWebContentsAt(0, 2, false);
+  views::test::RunScheduledLayout(browser_view);
+  verify_tab_indices();
+
+  model->CloseWebContentsAt(1, TabCloseTypes::CLOSE_USER_GESTURE);
+  views::test::RunScheduledLayout(browser_view);
+  verify_tab_indices();
+}
+
+IN_PROC_BROWSER_TEST_P(BaseTabStripRegionViewBrowserTest,
+                       WindowActivationFiresSelectionForJaws) {
+  views::Widget* widget =
+      BrowserView::GetBrowserViewForBrowser(browser())->GetWidget();
+  auto* tab_strip_view =
+      views::AsViewClass<TabStripView>(region_view()->GetTabStripView());
+  ASSERT_TRUE(tab_strip_view);
+
+  views::View* active_tab_view =
+      GetTabViewAt(browser()->GetTabStripModel()->active_index());
+  ASSERT_TRUE(active_tab_view);
+  active_tab_view->GetViewAccessibility().SetIsSelected(false);
+
+  ui::AXPlatform::GetInstance().NotifyAssistiveTechChanged(
+      ui::AssistiveTech::kJaws);
+  ui::AXPlatform::GetInstance().SetJawsNeedsTabSelectionEvent(true);
+
+  views::test::AXEventCounter ax_counter(views::AXUpdateNotifier::Get());
+  tab_strip_view->OnWidgetActivationChanged(widget, true);
+  // SetIsSelected(true) fires kSelection when transitioning from false to true,
+  // followed by the explicit kSelection event for JAWS.
+  EXPECT_EQ(2, ax_counter.GetCount(ax::mojom::Event::kSelection));
+
+  ui::AXNodeData active_tab_ax_data;
+  active_tab_view->GetViewAccessibility().GetAccessibleNodeData(
+      &active_tab_ax_data);
+  EXPECT_TRUE(
+      active_tab_ax_data.GetBoolAttribute(ax::mojom::BoolAttribute::kSelected));
+
+  // Verify the selection event still fires when kSelected is already true.
+  tab_strip_view->OnWidgetActivationChanged(widget, true);
+  EXPECT_EQ(3, ax_counter.GetCount(ax::mojom::Event::kSelection));
+
+  ui::AXPlatform::GetInstance().NotifyAssistiveTechChanged(
+      ui::AssistiveTech::kNone);
+  ui::AXPlatform::GetInstance().SetJawsNeedsTabSelectionEvent(false);
+
+  tab_strip_view->OnWidgetActivationChanged(widget, true);
+  EXPECT_EQ(3, ax_counter.GetCount(ax::mojom::Event::kSelection));
 }
 
 IN_PROC_BROWSER_TEST_P(BaseTabStripRegionViewBrowserTest, SplitTabsShareSpace) {

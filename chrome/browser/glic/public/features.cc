@@ -85,8 +85,6 @@ const base::FeatureParam<bool> kGlicContextMenuWithOnboarding{
 
 BASE_FEATURE(kGlicContextMenuBelowSearch, base::FEATURE_DISABLED_BY_DEFAULT);
 
-BASE_FEATURE(kGlicDynamicChromeTools, base::FEATURE_DISABLED_BY_DEFAULT);
-
 BASE_FEATURE(kGlicTextSelectionContextMenu,
              FEATURE_ENABLED_BY_DEFAULT_NON_ANDROID);
 const base::FeatureParam<bool> kGlicTextSelectionContextMenuMessageFirstFre{
@@ -347,4 +345,12 @@ BASE_FEATURE(kGlicWhatsNewLuminous, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kGlicForceFcmExperimentalTriggerFailure,
              base::FEATURE_DISABLED_BY_DEFAULT);
 
+BASE_FEATURE(kGlicExperimentalTriggeringNavigationReconnectGrace,
+             // Enabled on all platforms including BUILDFLAG(IS_ANDROID);
+             // cpp_feature_parser requires a literal FeatureState constant.
+             base::FEATURE_ENABLED_BY_DEFAULT);
+const base::FeatureParam<base::TimeDelta>
+    kGlicExperimentalTriggeringNavigationReconnectGracePeriod{
+        &kGlicExperimentalTriggeringNavigationReconnectGrace, "grace_period",
+        base::Seconds(10)};
 }  // namespace features

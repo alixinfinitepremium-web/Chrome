@@ -4011,15 +4011,6 @@
     "expiry_milestone": 162
   },
   {
-    "name": "enable-edid-based-display-ids",
-    "owners": [
-      "gildekel@chromium.org",
-      "//ui/display/OWNERS",
-      "chromeos-gfx-display@chromium.org"
-    ],
-    "expiry_milestone": 150
-  },
-  {
     "name": "enable-enterprise-watermarking-ios",
     "owners": [ "mxlg@google.com", "bling-enterprise@google.com" ],
     "expiry_milestone": 160
@@ -5186,11 +5177,6 @@
   {
     "name": "fedcm-ambient-bubble",
     "owners": [ "yigu@chromium.org", "web-identity-eng@google.com" ],
-    "expiry_milestone": 165
-  },
-  {
-    "name": "fedcm-ambient-ui",
-    "owners": [ "goto@chromium.org", "web-identity-eng@google.com"],
     "expiry_milestone": 165
   },
   {
@@ -6773,6 +6759,11 @@
       "cmyang@google.com"
     ],
     "expiry_milestone": 160
+  },
+  {
+    "name": "lens-hide-loading-web-results-panel",
+    "owners": ["cmyang@google.com"],
+    "expiry_milestone": 165
   },
   {
     "name": "lens-initial-lvf-zoom-level-90-percent",
@@ -8793,11 +8784,6 @@
   {
     "name": "renderer-side-content-decoding",
     "owners": ["horo@chromium.org", "net-dev@chromium.org" ],
-    "expiry_milestone": 160
-  },
-  {
-    "name": "replace-sync-promos-with-sign-in-promos-desktop",
-    "owners": [ "droger@chromium.org", "chrome-signin-team@google.com" ],
     "expiry_milestone": 160
   },
   {

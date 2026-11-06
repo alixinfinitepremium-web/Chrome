@@ -13,7 +13,6 @@
 
 namespace blink {
 
-class CanvasResource;
 class CanvasResourceSharedImage;
 class StaticBitmapImage;
 
@@ -50,10 +49,11 @@ class PLATFORM_EXPORT ExportedCanvasResource
   void EndDisplayCompositorAccess(gpu::SyncToken export_result, bool is_lost);
   viz::TransferableResource PrepareTransferableResource();
 
-  CanvasResource* GetResourceForTesting() const { return resource_.get(); }
   scoped_refptr<gpu::ClientSharedImage> GetSharedImageForTesting() {
-    return GetResourceForTesting()->GetSharedImage();
+    return shared_image_;
   }
+
+  gpu::SyncToken GetSyncTokenForTesting() const { return sync_token_; }
 
  private:
   bool is_cross_thread() const {
@@ -61,8 +61,11 @@ class PLATFORM_EXPORT ExportedCanvasResource
   }
 
   bool origin_clean_ = true;
+  bool is_lost_ = false;
+  gpu::SyncToken last_access_sync_token_;
 
-  scoped_refptr<CanvasResource> resource_;
+  base::RepeatingCallback<void(gpu::SyncToken)> wait_sync_token_;
+
   const base::PlatformThreadRef owning_thread_ref_;
   const scoped_refptr<base::SingleThreadTaskRunner> owning_thread_task_runner_;
 
@@ -73,6 +76,8 @@ class PLATFORM_EXPORT ExportedCanvasResource
   const bool accelerated_raster_;
 
   base::WeakPtr<WebGraphicsContext3DProviderWrapper> context_provider_wrapper_;
+
+  viz::ReleaseCallback release_callback_;
 
   const bool use_legacy_external_canvas_resource_bitmap_path_;
 };

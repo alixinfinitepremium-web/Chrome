@@ -22,6 +22,7 @@
 #include "chrome/browser/ui/views/toolbar/webui_avatar_toolbar_button.h"
 #include "chrome/browser/ui/views/toolbar/webui_back_forward_control.h"
 #include "chrome/browser/ui/views/toolbar/webui_battery_saver_control.h"
+#include "chrome/browser/ui/views/toolbar/webui_glic_actor_task_icon_control.h"
 #include "chrome/browser/ui/views/toolbar/webui_glic_control.h"
 #include "chrome/browser/ui/views/toolbar/webui_home_control.h"
 #include "chrome/browser/ui/views/toolbar/webui_media_toolbar_button.h"
@@ -60,6 +61,10 @@ class WebUIToolbarInternalWebView;
 // separate toolbar/impl targets in BUILD.gn.
 namespace browser_controls_api {
 class BrowserControlsAdapterImpl;
+}
+
+namespace webui_toolbar {
+class WebUIToolbarDropNavigator;
 }
 
 namespace content {
@@ -135,6 +140,8 @@ class WebUIToolbarControlDelegate {
       toolbar_ui_api::mojom::MediaControlStatePtr state) = 0;
   virtual void OnGlicButtonStateChanged(
       toolbar_ui_api::mojom::GlicButtonStatePtr state) = 0;
+  virtual void OnGlicActorTaskIconStateChanged(
+      toolbar_ui_api::mojom::GlicActorTaskIconStatePtr state) = 0;
   virtual void OnFocusRequested(
       toolbar_ui_api::mojom::FocusRequestTarget target) = 0;
 
@@ -199,6 +206,9 @@ class WebUIToolbarWebView
   void SetBackForwardEnabled(int command_id, bool enabled);
   void SetForwardVisible(bool visible);
   glic::ToolbarGlicButtonInterface* GetGlicControl() { return &glic_control_; }
+  WebUIGlicActorTaskIconControl* GetGlicActorTaskIconControl() {
+    return &glic_actor_task_icon_control_;
+  }
 
   // Cleans up UI dependencies and destroys the hosted WebContents.
   // Called early during window teardown (forwarded via
@@ -310,6 +320,7 @@ class WebUIToolbarWebView
   void OnPerformanceInterventionButtonClicked() override;
   void OnMediaButtonClicked() override;
   void OnGlicButtonClicked() override;
+  void OnGlicActorTaskIconClicked() override;
 
   // BrowserControlsService::BrowserControlsServiceDelegate:
   void PermitLaunchUrl() override;
@@ -543,6 +554,8 @@ class WebUIToolbarWebView
       toolbar_ui_api::mojom::MediaControlStatePtr state) override;
   void OnGlicButtonStateChanged(
       toolbar_ui_api::mojom::GlicButtonStatePtr state) override;
+  void OnGlicActorTaskIconStateChanged(
+      toolbar_ui_api::mojom::GlicActorTaskIconStatePtr state) override;
   void OnFocusRequested(
       toolbar_ui_api::mojom::FocusRequestTarget target) override;
   std::optional<GURL> ConsumeDroppedUrl(
@@ -619,6 +632,13 @@ class WebUIToolbarWebView
   // `force_navigation_buttons` forces the home and forward buttons to be
   // displayed, if pinned, and `force_location_bar` forces the location bar to
   // be at least its preferred width, if enabled.
+  //
+  // If `is_webui_toolbar_fully_enabled_` is true and `available_width` is
+  // bounded, elements that Javascript may overflow (split tabs, avatar,
+  // forward, and home buttons, pinned toolbar actions, and extension actions)
+  // may not be included in the computed size, but the overflow button is.
+  // Note that the location bar will consume any remaining `available_width`
+  // and hence the returned size will always be >= `available_width`.
   gfx::Size ComputeLayout(views::SizeBound available_width,
                           ButtonOverflowInfo* button_overflow_info = nullptr,
                           bool force_navigation_buttons = false,
@@ -696,6 +716,9 @@ class WebUIToolbarWebView
   std::unique_ptr<browser_controls_api::BrowserControlsAdapterImpl>
       browser_controls_adapter_;
 
+  // Navigates the current tab to URLs and text dropped on the toolbar.
+  std::unique_ptr<webui_toolbar::WebUIToolbarDropNavigator> drop_navigator_;
+
   webui_toolbar::IconTable icon_table_;
 
   // Classes that manage individual controls. They are responsible for informing
@@ -711,6 +734,7 @@ class WebUIToolbarWebView
   WebUIAvatarToolbarButton avatar_control_;
   WebUIMediaToolbarButton media_control_;
   WebUIGlicControl glic_control_;
+  WebUIGlicActorTaskIconControl glic_actor_task_icon_control_;
   // This is null if WebUILocationBar is off, or the window is in one of the
   // modes (e.g. popup) that don't use it yet.
   std::unique_ptr<WebUILocationBar> location_bar_;

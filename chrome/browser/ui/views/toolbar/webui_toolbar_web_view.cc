@@ -55,6 +55,7 @@
 #include "chrome/browser/ui/views/location_bar/webui_location_bar.h"
 #include "chrome/browser/ui/views/profiles/profile_menu_coordinator.h"
 #include "chrome/browser/ui/views/toolbar/app_menu_control.h"
+#include "chrome/browser/ui/views/toolbar/avatar_toolbar_button_interface.h"
 #include "chrome/browser/ui/views/toolbar/webui_home_control.h"
 #include "chrome/browser/ui/views/toolbar/webui_overflow_button.h"
 #include "chrome/browser/ui/views/toolbar/webui_performance_intervention_control.h"
@@ -69,6 +70,7 @@
 #include "chrome/browser/ui/webui/webui_toolbar/adapters/toolbar_state_fetcher_impl.h"
 #include "chrome/browser/ui/webui/webui_toolbar/utils/toolbar_button_utils.h"
 #include "chrome/browser/ui/webui/webui_toolbar/webui_toolbar_drag_state.h"
+#include "chrome/browser/ui/webui/webui_toolbar/webui_toolbar_drop_navigator.h"
 #include "chrome/browser/ui/webui/webui_toolbar/webui_toolbar_extensions_container.h"
 #include "chrome/browser/ui/webui/webui_toolbar/webui_toolbar_ui.h"
 #include "chrome/common/chrome_features.h"
@@ -252,9 +254,8 @@ class WebUIToolbarInternalWebView : public views::WebView {
     //
     // Security is still maintained because accidental drops in the empty
     // toolbar area are intercepted and safely discarded by
-    // `BrowserControlsAdapterImpl::NavigateToDroppedText`, and drops into the
-    // Omnibox
-    // are sanitized by `WebUIReadOnlyOmnibox::OnDropText`.
+    // `WebUIToolbarDropNavigator::NavigateToDroppedText`, and drops into the
+    // Omnibox are sanitized by `WebUIReadOnlyOmnibox::OnDropText`.
     return true;
   }
 
@@ -367,6 +368,7 @@ WebUIToolbarWebView::WebUIToolbarWebView(
       avatar_control_(this),
       media_control_(this),
       glic_control_(this),
+      glic_actor_task_icon_control_(this),
       location_bar_(std::move(location_bar)),
       extensions_container_(this),
       back_control_(this, BackForwardButton::Direction::kBack),
@@ -426,6 +428,8 @@ WebUIToolbarWebView::WebUIToolbarWebView(
       toolbar_ui_api::mojom::MediaControlState::New();
   last_queued_state_.glic_button_state =
       toolbar_ui_api::mojom::GlicButtonState::New();
+  last_queued_state_.glic_actor_task_icon_state =
+      toolbar_ui_api::mojom::GlicActorTaskIconState::New();
 
   SetLayoutManager(std::make_unique<views::FillLayout>());
 
@@ -496,11 +500,14 @@ WebUIToolbarWebView::WebUIToolbarWebView(
   // The accessibility and tooltip attributes are handled by the WebUI.
   SetProperty(views::kElementIdentifierKey, kWebUIToolbarElementIdentifier);
 
+  drop_navigator_ = std::make_unique<webui_toolbar::WebUIToolbarDropNavigator>(
+      *browser, web_contents);
+
   // `controller` may be nullptr in unit tests.
   if (controller) {
     browser_controls_adapter_ =
         std::make_unique<browser_controls_api::BrowserControlsAdapterImpl>(
-            browser, controller, web_contents);
+            browser, controller);
   }
 }
 
@@ -580,6 +587,10 @@ void WebUIToolbarWebView::AddedToWidget() {
     }
     if (features::IsWebUIGlicButtonEnabled()) {
       glic_control_.Init();
+      if (base::FeatureList::IsEnabled(features::kGlicActorUi) &&
+          features::kGlicActorUiTaskIcon.Get()) {
+        glic_actor_task_icon_control_.Init();
+      }
     }
     if (features::IsWebUIExtensionsContainerEnabled()) {
       extensions_container_.Init(web_contents());
@@ -1034,6 +1045,10 @@ void WebUIToolbarWebView::OnMediaButtonClicked() {
 
 void WebUIToolbarWebView::OnGlicButtonClicked() {
   glic_control_.OnClicked();
+}
+
+void WebUIToolbarWebView::OnGlicActorTaskIconClicked() {
+  glic_actor_task_icon_control_.OnClicked();
 }
 
 ReloadControl* WebUIToolbarWebView::GetReloadControl() {
@@ -1572,21 +1587,15 @@ void WebUIToolbarWebView::OnHomeButtonDropText(const std::string& text) {
   if (!home_control_.ShouldHandleDropText()) {
     return;
   }
-  if (browser_controls_adapter_) {
-    browser_controls_adapter_->NavigateToDroppedText(text);
-  }
+  drop_navigator_->NavigateToDroppedText(text);
 }
 
 void WebUIToolbarWebView::OnToolbarDropUrl(const GURL& url) {
-  if (browser_controls_adapter_) {
-    browser_controls_adapter_->NavigateToDroppedUrl(url);
-  }
+  drop_navigator_->NavigateToDroppedUrl(url);
 }
 
 void WebUIToolbarWebView::OnToolbarDropText(const std::string& text) {
-  if (browser_controls_adapter_) {
-    browser_controls_adapter_->NavigateToDroppedText(text);
-  }
+  drop_navigator_->NavigateToDroppedText(text);
 }
 
 void WebUIToolbarWebView::OnToolbarDropFile(const gfx::PointF& drop_position) {
@@ -1819,6 +1828,15 @@ void WebUIToolbarWebView::OnGlicButtonStateChanged(
     PostPushToolbarState();
   }
 }
+
+void WebUIToolbarWebView::OnGlicActorTaskIconStateChanged(
+    toolbar_ui_api::mojom::GlicActorTaskIconStatePtr state) {
+  if (!mojo::Equals(state, last_queued_state_.glic_actor_task_icon_state)) {
+    last_queued_state_.glic_actor_task_icon_state = std::move(state);
+    PostPushToolbarState();
+  }
+}
+
 void WebUIToolbarWebView::OnFocusRequested(
     toolbar_ui_api::mojom::FocusRequestTarget target) {
   // Record the request before focusing the WebView: if `RequestFocus()` grants
@@ -2016,25 +2034,44 @@ gfx::Size WebUIToolbarWebView::ComputeLayout(
     ButtonOverflowInfo* button_overflow_info,
     bool force_navigation_buttons,
     bool force_location_bar) const {
+  // When the WebUI toolbar is fully enabled, overflow is handled entirely in
+  // Javascript, so when computing a layout for a bounded width, exclude all
+  // elements that Javascript may overflow (split tabs button, avatar button,
+  // forward button, home button, pinned toolbar actions, and extension actions
+  // other than the extensions menu button), since they may be hidden to fit in
+  // the available space, and include the overflow button, which Javascript
+  // shows when elements are hidden. When unbounded, include everything other
+  // than the overflow button, so the preferred size has room for all elements.
+  const bool exclude_overflowable_elements =
+      is_webui_toolbar_fully_enabled_ && available_width.is_bounded();
+
   // Add everything that cannot overflow.
 
   int button_count = 0;
-  button_count += features::IsWebUIReloadButtonEnabled();
-  button_count += features::IsWebUISplitTabsButtonEnabled() &&
-                  split_tabs_control_.IsVisible();
+  // Back button
   button_count += features::IsWebUIBackForwardButtonEnabled();
-  button_count += features::IsWebUIAvatarButtonEnabled();
-  button_count += features::IsWebUIBatterySaverButtonEnabled() &&
-                  battery_saver_control_.IsVisible();
-  button_count += features::IsWebUIPerformanceInterventionButtonEnabled() &&
-                  performance_intervention_control_.IsButtonShowing();
-  button_count += features::IsWebUIAppMenuButtonEnabled();
-  button_count +=
-      features::IsWebUIGlicButtonEnabled() && glic_control_.IsVisible();
+  button_count += features::IsWebUIReloadButtonEnabled();
+  if (!exclude_overflowable_elements) {
+    button_count += features::IsWebUISplitTabsButtonEnabled() &&
+                    split_tabs_control_.IsVisible();
+    button_count +=
+        features::IsWebUIAvatarButtonEnabled() &&
+        AvatarToolbarButtonInterface::CanShowForProfile(browser_->GetProfile());
+    button_count += features::IsWebUIBatterySaverButtonEnabled() &&
+                    battery_saver_control_.IsVisible();
+    button_count += features::IsWebUIPerformanceInterventionButtonEnabled() &&
+                    performance_intervention_control_.IsButtonShowing();
 #if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_LINUX)
-  button_count +=
-      features::IsWebUIMediaButtonEnabled() && media_control_.IsVisible();
+    button_count +=
+        features::IsWebUIMediaButtonEnabled() && media_control_.IsVisible();
 #endif
+  }
+  // Overflow button
+  button_count += exclude_overflowable_elements;
+  if (features::IsWebUIGlicButtonEnabled() && glic_control_.IsVisible()) {
+    button_count += 1 + glic_actor_task_icon_control_.ShouldShow();
+  }
+  button_count += features::IsWebUIAppMenuButtonEnabled();
 
   const int size = GetLayoutConstant(LayoutConstant::kToolbarButtonHeight);
   const int gap = GetLayoutConstant(LayoutConstant::kToolbarIconDefaultMargin);
@@ -2073,8 +2110,12 @@ gfx::Size WebUIToolbarWebView::ComputeLayout(
     // This always sets `location_bar_width` to be a value between its min and
     // preferred widths.
 
-    // TODO(http://crbug.com/470042732): Where is the 4px margin from?
-    width += 4;
+    // Matches the margins in location_bar.css. The location bar has margins of
+    // `kLocationBarMargin - kToolbarIconDefaultMargin` on both sides, in
+    // addition to the `kToolbarIconDefaultMargin` gap between it and its
+    // neighbors. One of those gaps is already accounted for by the button gaps
+    // above.
+    width += 2 * GetLayoutConstant(LayoutConstant::kLocationBarMargin) - gap;
 
     int location_bar_width = 0;
     if (!available_width.is_bounded() || force_location_bar) {
@@ -2104,48 +2145,72 @@ gfx::Size WebUIToolbarWebView::ComputeLayout(
     }
   }
 
-  // Figure out if the forward button should be overflowed, and update width if
-  // it's visible.
-  bool allow_overflow = !ToolbarControllerUtil::PreventOverflow();
-  if (features::IsWebUIBackForwardButtonEnabled() &&
-      forward_control_.IsPinned()) {
-    int next_button_width = NextButtonWidth(size, gap, button_count);
-    bool is_forward_button_overflowed =
-        !force_navigation_buttons && allow_overflow &&
-        available_width.is_bounded() &&
-        next_button_width + width > available_width.value();
-    if (!is_forward_button_overflowed) {
-      ++button_count;
-      width += next_button_width;
+  if (!exclude_overflowable_elements) {
+    // Figure out if the forward button should be overflowed, and update width
+    // if it's visible.
+    bool allow_overflow = !ToolbarControllerUtil::PreventOverflow();
+    if (features::IsWebUIBackForwardButtonEnabled() &&
+        forward_control_.IsPinned()) {
+      int next_button_width = NextButtonWidth(size, gap, button_count);
+      bool is_forward_button_overflowed =
+          !force_navigation_buttons && allow_overflow &&
+          available_width.is_bounded() &&
+          next_button_width + width > available_width.value();
+      if (!is_forward_button_overflowed) {
+        ++button_count;
+        width += next_button_width;
+      }
+      if (button_overflow_info) {
+        button_overflow_info->is_forward_button_overflowed =
+            is_forward_button_overflowed;
+      }
     }
-    if (button_overflow_info) {
-      button_overflow_info->is_forward_button_overflowed =
-          is_forward_button_overflowed;
+
+    // Figure out if the home button should be overflowed, and update width if
+    // it's visible.
+    if (features::IsWebUIHomeButtonEnabled() && home_control_.IsPinned()) {
+      int next_button_width = NextButtonWidth(size, gap, button_count);
+      bool is_home_button_overflowed =
+          !force_navigation_buttons && allow_overflow &&
+          available_width.is_bounded() &&
+          next_button_width + width > available_width.value();
+      if (!is_home_button_overflowed) {
+        ++button_count;
+        width += next_button_width;
+      }
+      if (button_overflow_info) {
+        button_overflow_info->is_home_button_overflowed =
+            is_home_button_overflowed;
+      }
     }
+
+    if (features::IsWebUIPinnedToolbarActionsEnabled()) {
+      if (int pinned_width = pinned_toolbar_actions_.GetWidth()) {
+        width += !!width * gap;  // Add gap if prior controls.
+        width += pinned_width;
+      }
+    }
+  } else if (features::IsWebUIPinnedToolbarActionsEnabled() &&
+             pinned_toolbar_actions_.GetWidth()) {
+    // When Javascript hides all pinned toolbar actions due to overflow, the
+    // pinned toolbar actions container itself is still displayed, with a width
+    // of 0, so there's still a gap between it and the previous control.
+    //
+    // TODO(crbug.com/580772604): Pinned toolbar actions that are popped out are
+    // never hidden by Javascript, so should be included here.
+    width += gap;
   }
 
-  // Figure out if the home button should be overflowed, and update width if
-  // it's visible.
-  if (features::IsWebUIHomeButtonEnabled() && home_control_.IsPinned()) {
-    int next_button_width = NextButtonWidth(size, gap, button_count);
-    bool is_home_button_overflowed =
-        !force_navigation_buttons && allow_overflow &&
-        available_width.is_bounded() &&
-        next_button_width + width > available_width.value();
-    if (!is_home_button_overflowed) {
-      ++button_count;
-      width += next_button_width;
-    }
-    if (button_overflow_info) {
-      button_overflow_info->is_home_button_overflowed =
-          is_home_button_overflowed;
-    }
-  }
-
-  if (features::IsWebUIPinnedToolbarActionsEnabled()) {
-    if (int pinned_width = pinned_toolbar_actions_.GetWidth()) {
+  if (features::IsWebUIExtensionsContainerEnabled()) {
+    // Only use the minimum width when Javascript handles overflow. Otherwise,
+    // extension actions are never hidden.
+    if (int extensions_width = extensions_container_.GetWidth(
+            exclude_overflowable_elements
+                ? WebUIToolbarExtensionsContainerWrapper::WidthType::kMinWidth
+                : WebUIToolbarExtensionsContainerWrapper::WidthType::
+                      kPreferredWidth)) {
       width += !!width * gap;  // Add gap if prior controls.
-      width += pinned_width;
+      width += extensions_width;
     }
   }
 

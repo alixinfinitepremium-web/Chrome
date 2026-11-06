@@ -679,6 +679,9 @@ void CleanupImageFetcherCacheIfNeeded(PrefService* pref_service,
   }
   _fullscreenBrowserAgentObserverBridge.reset();
   _fullscreenBrowserAgent = nullptr;
+  [_bottomOmniboxEnabled stop];
+  _bottomOmniboxEnabled.observer = nil;
+  _bottomOmniboxEnabled = nil;
   base::UmaHistogramBoolean("IOS.NTP.LandscapeMode", _wasNTPInLandscape);
 }
 
@@ -767,6 +770,10 @@ void CleanupImageFetcherCacheIfNeeded(PrefService* pref_service,
   _signedInIdentity = self.authService->GetPrimaryIdentity();
   [self updateAccountImage];
   [self updateAccountErrorBadge];
+  if (GetAimButtonRefactorArm() ==
+      AimButtonRefactorArm::kImageGenerationQuickAction) {
+    [self updateAIMQuickActionsAvailability];
+  }
 }
 
 - (void)extendedAccountInfoDidUpdate:(const AccountInfo&)info {
@@ -940,7 +947,8 @@ void CleanupImageFetcherCacheIfNeeded(PrefService* pref_service,
   BOOL imageGenerationAllowed =
       arm == AimButtonRefactorArm::kAttachImageQuickAction
           ? NO
-          : [inputState isToolAvailable:ComposeboxMode::kImageGeneration];
+          : _signedInIdentity &&
+                [inputState isToolAvailable:ComposeboxMode::kImageGeneration];
   BOOL attachImagesAllowed =
       [inputState isAttachmentAvailable:ComposeboxAttachmentOption::kGallery] &&
       inputState.remainingNumberOfImagesAllowed > 0;

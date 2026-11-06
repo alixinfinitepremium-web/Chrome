@@ -591,7 +591,8 @@ inline constexpr char kDefaultBrowserPromptSurfacesName[] =
 
 inline constexpr char kDefaultBrowserSetterSelectionDescription[] =
     "Enables selecting a default browser setter (e.g. shell integration, "
-    "visual guide).";
+    "visual guide, or on Windows 11 shell integration annotated with a bubble "
+    "pointing at the Settings \"Set default\" button).";
 inline constexpr char kDefaultBrowserSetterSelectionName[] =
     "Default Browser Setter Selection";
 
@@ -2824,12 +2825,7 @@ inline constexpr char kFedCmAutofillDescription[] =
 inline constexpr char kFedCmAmbientBubbleName[] = "FedCM Ambient Bubble";
 inline constexpr char kFedCmAmbientBubbleDescription[] =
     "Shows FedCM accounts for passive mode requests in an ambient bubble, "
-    "instead of the regular FedCM dialog. This is separate from the FedCM "
-    "ambient UI in the omnibox (#fedcm-ambient-ui).";
-
-inline constexpr char kFedCmAmbientUIName[] = "FedCm Ambient UI";
-inline constexpr char kFedCmAmbientUIDescription[] =
-    "Enables FedCM ambient UI in the omnibox.";
+    "instead of the regular FedCM dialog.";
 
 inline constexpr char kFedCmDelegationName[] = "FedCM with delegation support";
 inline constexpr char kFedCmDelegationDescription[] =
@@ -4512,11 +4508,6 @@ inline constexpr char kRecordWebAppDebugInfoName[] =
 inline constexpr char kRecordWebAppDebugInfoDescription[] =
     "Enables recording additional web app related debugging data to be "
     "displayed in: chrome://web-app-internals";
-
-inline constexpr char kReplaceSyncPromosWithSignInPromosName[] =
-    "Replace all sync-related UI with sign-in ones";
-inline constexpr char kReplaceSyncPromosWithSignInPromosDescription[] =
-    "When enabled, all sync-related UIs will be replaced by sign-in ones.";
 
 inline constexpr char kUnoPhase2FollowUpName[] = "Uno phase 2 follow-up";
 inline constexpr char kUnoPhase2FollowUpDescription[] =
@@ -7820,15 +7811,6 @@ inline constexpr char kEnableRootNsDnsProxyName[] =
 inline constexpr char kEnableRootNsDnsProxyDescription[] =
     "When enabled, DNS proxy service runs on the root network namespace "
     "instead of inside a specified network namespace";
-
-inline constexpr char kEnableEdidBasedDisplayIdsName[] =
-    "Enable EDID-based display IDs";
-inline constexpr char kEnableEdidBasedDisplayIdsDescription[] =
-    "When enabled, a display's ID will be produced by hashing certain values "
-    "in the display's EDID blob. EDID-based display IDs allow ChromeOS to "
-    "consistently identify previously connected displays, regardless of the "
-    "physical port they were connected to, and load user display layouts more "
-    "accurately.";
 
 inline constexpr char kTiledDisplaySupportName[] =
     "Enable tile display support";

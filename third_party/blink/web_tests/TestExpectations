@@ -1197,12 +1197,12 @@ crbug.com/379233932 [ Win11-arm64 ] external/wpt/ai/translator/* [ Skip Timeout 
 # Additional translator test flakes and failures to be investigated
 crbug.com/479913865 external/wpt/ai/translator/translator-locale.https.window.html [ Skip Timeout ]
 crbug.com/525227294 external/wpt/ai/translator/translator-translate-post-abort.tentative.https.window.html [ Failure Pass Timeout ]
-crbug.com/525227294 external/wpt/ai/translator/translator-translate-streaming-post-abort.tentative.https.window.html [ Failure Pass ]
-# Precondition failed on bots without any TranslateKit/models installed.
-crbug.com/510552929 external/wpt/ai/translator/translator-create-user-activation.optional.https.window.html [ Failure Pass ]
+crbug.com/525227294 external/wpt/ai/translator/translator-translate-streaming-post-abort.tentative.https.window.html [ Failure Pass Timeout ]
+# Precondition failed or component download timed out on bots without TranslateKit/models installed.
+crbug.com/510552929 crbug.com/569263714 external/wpt/ai/translator/translator-create-user-activation.optional.https.window.html [ Failure Pass Timeout ]
 crbug.com/510552929 external/wpt/ai/translator/translator.optional.https.window.html [ Failure Pass Timeout ]
-crbug.com/510552929 external/wpt/ai/translator/translator-translate-concurrent.optional.https.window.html [ Failure Pass ]
-crbug.com/510552929 external/wpt/ai/translator/translator-translate-streaming-concurrent.optional.https.window.html [ Failure Pass ]
+crbug.com/510552929 external/wpt/ai/translator/translator-translate-concurrent.optional.https.window.html [ Failure Pass Timeout ]
+crbug.com/510552929 external/wpt/ai/translator/translator-translate-streaming-concurrent.optional.https.window.html [ Failure Pass Timeout ]
 
 # Built-In AI echo backends do not support response constraints or prefixes
 crbug.com/461860505 external/wpt/ai/language-model/response-constraint/json-schema/* [ Failure ]
@@ -2043,9 +2043,19 @@ crbug.com/576634461 [ Linux ] external/wpt/webdriver/tests/bidi/browsing_context
 crbug.com/575784421 [ Linux ] external/wpt/webdriver/tests/bidi/browsing_context/set_viewport/window_open.py [ Failure ]
 crbug.com/571893816 [ Linux ] external/wpt/webdriver/tests/bidi/external/bluetooth/disable_simulation/context.py [ Failure ]
 crbug.com/571893816 [ Linux ] external/wpt/webdriver/tests/bidi/external/bluetooth/simulate_adapter/context.py [ Failure ]
-crbug.com/575786126 [ Linux ] external/wpt/webdriver/tests/bidi/external/bluetooth/simulate_characteristic/simulate_characteristic.py [ Failure Pass ]
-crbug.com/575786126 [ Linux ] external/wpt/webdriver/tests/bidi/external/bluetooth/simulate_characteristic_response/invalid.py [ Failure Pass ]
-crbug.com/573052731 [ Linux ] external/wpt/webdriver/tests/bidi/external/bluetooth/simulate_descriptor_response/invalid.py [ Timeout ]
+crbug.com/577081408 [ Linux ] external/wpt/webdriver/tests/bidi/external/bluetooth/simulate_characteristic/invalid.py [ Failure Pass ]
+crbug.com/577081408 [ Linux ] external/wpt/webdriver/tests/bidi/external/bluetooth/simulate_characteristic/simulate_characteristic.py [ Failure Pass ]
+crbug.com/577081408 [ Linux ] external/wpt/webdriver/tests/bidi/external/bluetooth/simulate_characteristic_response/invalid.py [ Failure Pass ]
+crbug.com/577081408 [ Linux ] external/wpt/webdriver/tests/bidi/external/bluetooth/simulate_characteristic_response/simulate_characteristic_response.py [ Failure Pass ]
+crbug.com/577081408 [ Linux ] external/wpt/webdriver/tests/bidi/external/bluetooth/simulate_descriptor/invalid.py [ Failure Pass ]
+crbug.com/577081408 [ Linux ] external/wpt/webdriver/tests/bidi/external/bluetooth/simulate_descriptor/simulate_descriptor.py [ Failure Pass ]
+crbug.com/573052731 crbug.com/577081408 [ Linux ] external/wpt/webdriver/tests/bidi/external/bluetooth/simulate_descriptor_response/invalid.py [ Failure Timeout ]
+crbug.com/577081408 [ Linux ] external/wpt/webdriver/tests/bidi/external/bluetooth/simulate_descriptor_response/simulate_descriptor_response.py [ Failure Pass ]
+crbug.com/577081408 [ Linux ] external/wpt/webdriver/tests/bidi/external/bluetooth/simulate_gatt_connection_response/simulate_gatt_connection_response.py [ Failure Pass ]
+crbug.com/577081408 [ Linux ] external/wpt/webdriver/tests/bidi/external/bluetooth/simulate_gatt_disconnection/simulate_gatt_disconnection.py [ Failure Pass ]
+crbug.com/577081408 [ Linux ] external/wpt/webdriver/tests/bidi/external/bluetooth/simulate_preconnected_peripheral/simulate_preconnected_peripheral.py [ Failure Pass ]
+crbug.com/577081408 [ Linux ] external/wpt/webdriver/tests/bidi/external/bluetooth/simulate_service/invalid.py [ Failure Pass ]
+crbug.com/577081408 [ Linux ] external/wpt/webdriver/tests/bidi/external/bluetooth/simulate_service/simulate_service.py [ Failure Pass ]
 crbug.com/576967791 [ Debug ] external/wpt/webdriver/tests/bidi/network/set_extra_headers/headers_name_standard_tentative.py [ Failure Pass ]
 crbug.com/576967791 [ Linux Release ] external/wpt/webdriver/tests/bidi/network/set_extra_headers/headers_name_standard_tentative.py [ Failure Pass ]
 crbug.com/574485364 [ Linux ] external/wpt/webdriver/tests/bidi/session/capabilities/unhandled_prompt_behavior/file/ignore.py [ Failure ]
@@ -2549,6 +2559,8 @@ crbug.com/579037499 [ Mac15 ] external/wpt/html/document-isolation-policy/naviga
 
 # ====== New tests from wpt-importer added here ======
 external/wpt/html/browsers/history/the-location-interface/location-replace-cross-site.html [ Failure ]
+crbug.com/582442904 external/wpt/html/document-isolation-policy/credentialless-shared-worker.https.tentative.window.html?request_origin=cross_origin&worker_dip=credentialless&window_dip=credentialless [ Failure ]
+crbug.com/582442904 external/wpt/html/document-isolation-policy/credentialless-shared-worker.https.tentative.window.html?request_origin=cross_origin&worker_dip=credentialless&window_dip=none [ Failure ]
 crbug.com/579025372 external/wpt/html/semantics/forms/the-select-element/select-validity-option-descendants.html [ Crash Failure ]
 crbug.com/579037498 external/wpt/custom-elements/duplicate-attr-constructor-crash.xhtml [ Crash Failure Pass ]
 crbug.com/579016479 external/wpt/css/css-anchor-position/position-area-overflow-icb-006-ltr.html [ Failure ]
@@ -3152,7 +3164,6 @@ crbug.com/429130576 [ Win11-arm64 ] virtual/web-bluetooth-new-permissions-backen
 crbug.com/429130576 [ Mac14 ] virtual/web-bluetooth-new-permissions-backend/external/wpt/bluetooth/bidi/service/getCharacteristic/characteristic-found.https.window.html [ Crash ]
 crbug.com/429130576 [ Win11-arm64 ] virtual/web-bluetooth-new-permissions-backend/external/wpt/bluetooth/bidi/service/getCharacteristic/characteristic-found.https.window.html [ Crash ]
 crbug.com/428754582 [ Mac13 ] external/wpt/fetch/metadata/generated/window-location.https.sub.html [ Skip Timeout ]
-crbug.com/428769113 [ Win11-arm64 ] external/wpt/html/document-isolation-policy/credentialless-shared-worker.https.tentative.window.html?request_origin=cross_origin&worker_dip=credentialless&window_dip=credentialless [ Skip Timeout ]
 crbug.com/428769113 [ Win11-arm64 ] external/wpt/html/document-isolation-policy/credentialless-shared-worker.https.tentative.window.html?request_origin=cross_origin&worker_dip=none&window_dip=credentialless [ Skip Timeout ]
 crbug.com/428759817 [ Win11-arm64 ] external/wpt/signed-exchange/reporting/sxg-reporting-navigation-cert_parse_error.tentative.html [ Crash ]
 crbug.com/428759817 [ Win11-arm64 ] external/wpt/signed-exchange/reporting/sxg-reporting-navigation-signature_verification_error-downgraded.tentative.html [ Crash ]
@@ -5468,6 +5479,42 @@ crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/row-gap-decorations-ins
 # both adjacent lanes.
 crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/column-gap-decorations-spanner-after-empty-lanes.html [ Failure ]
 crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/row-gap-decorations-spanner-after-empty-lanes.html [ Failure ]
+
+# Grid-lanes rules must extend into alignment space around spanning items.
+# https://github.com/w3c/csswg-drafts/issues/14648#issuecomment-6527732959
+crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/column-gap-decorations-022.html [ Failure ]
+crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/column-gap-decorations-028.html [ Failure ]
+crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/column-gap-decorations-029.html [ Failure ]
+crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/column-gap-decorations-037.html [ Failure ]
+crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/column-gap-decorations-aligned-spanners.html [ Failure ]
+crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/column-gap-decorations-spanner-collision-insets.html [ Failure ]
+crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/row-gap-decorations-aligned-spanners.html [ Failure ]
+
+# Grid-lanes between rules must be shortened to the actual post-alignment item bounds.
+# https://github.com/w3c/csswg-drafts/issues/14489#issuecomment-6528510262
+crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/column-gap-decorations-auto-fit-visibility-items.html [ Failure ]
+crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/column-gap-decorations-rule-visibility-items-between-002.html [ Failure ]
+crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/column-gap-decorations-rule-visibility-items-between-003.html [ Failure ]
+crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/column-gap-decorations-rule-visibility-items-between-005.html [ Failure ]
+crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/column-gap-decorations-rule-visibility-items-between-008.html [ Failure ]
+crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/column-gap-decorations-rule-visibility-items-between-009.html [ Failure ]
+crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/column-gap-decorations-rule-visibility-items-between-010.html [ Failure ]
+crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/column-gap-decorations-rule-visibility-items-between-011.html [ Failure ]
+crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/column-gap-decorations-rule-visibility-items-between-012.html [ Failure ]
+crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/column-gap-decorations-rule-visibility-items-between-013.html [ Failure ]
+crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/column-gap-decorations-rule-visibility-items-between-014.html [ Failure ]
+crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/column-gap-decorations-rule-visibility-items-between-017.html [ Failure ]
+crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/column-gap-decorations-rule-visibility-items-between-self-alignment.html [ Failure ]
+crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/row-gap-decorations-auto-fit-visibility-items.html [ Failure ]
+crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/row-gap-decorations-rule-visibility-items-between-001.html [ Failure ]
+crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/row-gap-decorations-rule-visibility-items-between-004.html [ Failure ]
+crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/row-gap-decorations-rule-visibility-items-between-005.html [ Failure ]
+crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/row-gap-decorations-rule-visibility-items-between-008.html [ Failure ]
+crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/row-gap-decorations-rule-visibility-items-between-009.html [ Failure ]
+crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/row-gap-decorations-rule-visibility-items-between-010.html [ Failure ]
+crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/row-gap-decorations-rule-visibility-items-between-011.html [ Failure ]
+crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/row-gap-decorations-rule-visibility-items-between-012.html [ Failure ]
+crbug.com/343257585 external/wpt/css/css-gaps/grid-lanes/row-gap-decorations-rule-visibility-items-between-self-alignment.html [ Failure ]
 
 ### End of gap decoration test failures
 

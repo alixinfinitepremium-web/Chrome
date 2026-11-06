@@ -507,13 +507,18 @@ const FeatureEntry::FeatureParam
         {"setter_option", "shell_integration"}};
 const FeatureEntry::FeatureParam kDefaultBrowserSetterSelection_VisualGuide[] =
     {{"setter_option", "visual_guide"}};
+const FeatureEntry::FeatureParam
+    kDefaultBrowserSetterSelection_AnnotatedShellIntegration[] = {
+        {"setter_option", "annotated_shell_integration"}};
 
 const FeatureEntry::FeatureVariation
     kDefaultBrowserSetterSelectionVariations[] = {
         {"with Shell Integration",
          kDefaultBrowserSetterSelection_ShellIntegration, nullptr},
         {"with Visual Guide", kDefaultBrowserSetterSelection_VisualGuide,
-         nullptr}};
+         nullptr},
+        {"with Annotated Shell Integration (Windows 11)",
+         kDefaultBrowserSetterSelection_AnnotatedShellIntegration, nullptr}};
 #endif  // !BUILDFLAG(IS_ANDROID) && !BUILDFLAG(IS_CHROMEOS)
 
 const FeatureEntry::FeatureParam kLocalNetworkAccessChecksBlock[] = {
@@ -3435,18 +3440,6 @@ const flags_ui::FeatureEntry::FeatureVariation
 #endif  // BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_WIN) ||
         // BUILDFLAG(IS_CHROMEOS)
 
-#if BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_WIN)
-const char kReplaceSyncPromosWithSignInPromosDesktopFeatures[] =
-    "ReplaceSyncPromosWithSignInPromos";
-
-const FeatureEntry::Choice kReplaceSyncPromosWithSignInPromosDesktopChoices[] =
-    {{"Default", "", ""},
-     {"Disabled", switches::kDisableFeatures,
-      kReplaceSyncPromosWithSignInPromosDesktopFeatures},
-     {"Enabled", switches::kEnableFeatures,
-      kReplaceSyncPromosWithSignInPromosDesktopFeatures}};
-#endif  // BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_WIN)
-
 const FeatureEntry::FeatureParam kGroupSuggestionEnableRecentlyOpenedOnly[] = {
     {"group_suggestion_enable_recently_opened", "true"},
     {"group_suggestion_enable_switch_between", "false"},
@@ -5709,10 +5702,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kDisableCancelAllTouchesName,
      flag_descriptions::kDisableCancelAllTouchesDescription, kOsCrOS,
      SINGLE_VALUE_TYPE(switches::kDisableCancelAllTouches)},
-    {"enable-edid-based-display-ids",
-     flag_descriptions::kEnableEdidBasedDisplayIdsName,
-     flag_descriptions::kEnableEdidBasedDisplayIdsDescription, kOsCrOS,
-     FEATURE_VALUE_TYPE(display::features::kEnableEdidBasedDisplayIds)},
     {"esim-empty-activation-code-support",
      flag_descriptions::kESimEmptyActivationCodeSupportedName,
      flag_descriptions::kESimEmptyActivationCodeSupportedDescription, kOsCrOS,
@@ -8968,10 +8957,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kFedCmAmbientBubbleDescription, kOsDesktop,
      FEATURE_VALUE_TYPE(features::kFedCmAmbientBubble)},
 
-    {"fedcm-ambient-ui", flag_descriptions::kFedCmAmbientUIName,
-     flag_descriptions::kFedCmAmbientUIDescription, kOsDesktop,
-     FEATURE_VALUE_TYPE(features::kFedCmAmbientUI)},
-
     {"fedcm-delegation", flag_descriptions::kFedCmDelegationName,
      flag_descriptions::kFedCmDelegationDescription, kOsAll,
      FEATURE_VALUE_TYPE(features::kFedCmDelegation)},
@@ -10487,12 +10472,6 @@ const FeatureEntry kFeatureEntries[] = {
          net::features::kDeviceBoundSessionsIncludeAudienceClaim)},
 
 #if BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_WIN)
-    {"replace-sync-promos-with-sign-in-promos-desktop",
-     flag_descriptions::kReplaceSyncPromosWithSignInPromosName,
-     flag_descriptions::kReplaceSyncPromosWithSignInPromosDescription,
-     kOsDesktop,
-     MULTI_VALUE_TYPE(kReplaceSyncPromosWithSignInPromosDesktopChoices)},
-
     {"uno-phase-2-follow-up", flag_descriptions::kUnoPhase2FollowUpName,
      flag_descriptions::kUnoPhase2FollowUpDescription, kOsDesktop,
      FEATURE_VALUE_TYPE(syncer::kUnoPhase2FollowUp)},

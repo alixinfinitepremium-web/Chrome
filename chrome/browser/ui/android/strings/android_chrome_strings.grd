@@ -1889,11 +1889,10 @@ Your Google account may have other forms of browsing history like searches and a
       <message name="IDS_HISTORY_ACTOR_FILTER_ACTOR" desc="Label of the item in the actor filter sheet, when selected restricts the history results to entries in Chrome history that are the result of Gemini in Chrome browsing while performing an auto browse task for the user.">
         Gemini
       </message>
-      <!-- TODO(b/573481189): Make translatable when strings are finalized. -->
-      <message name="IDS_HISTORY_TIME_PERIOD_FILTER_CHIP_TEXT" desc="Text used in the time period filter chip when no option is selected. Selecting an option restricts the history results to entries visited within that time period, e.g. 'Yesterday' or 'Last week'." translateable="false">
+      <message name="IDS_HISTORY_TIME_PERIOD_FILTER_CHIP_TEXT" desc="Text used in the time period filter chip when no option is selected. Selecting an option restricts the history results to entries visited within that time period, e.g. 'Yesterday' or 'Last week'.">
         Time period
       </message>
-      <message name="IDS_HISTORY_FILTER_BY_TIME_PERIOD" desc="Text used in the header of the time period filter sheet, which lists time periods such as 'Yesterday' or 'Last week' to restrict the history results to." translateable="false">
+      <message name="IDS_HISTORY_FILTER_BY_TIME_PERIOD" desc="Text used in the header of the time period filter sheet, which lists time periods such as 'Yesterday' or 'Last week' to restrict the history results to.">
         Filter by time period
       </message>
       <message name="IDS_HISTORY_RESET_FILTERS" desc="Text used in the button to reset all applied history filters.">
@@ -8162,6 +8161,15 @@ To change this setting, <ph name="BEGIN_LINK">BEGIN_LINK</ph>delete the Chrome d
       </message>
       <message name="IDS_TTC_SESSION_END_DESCRIPTION" desc="Accessibility description of the TTC session pill. Tapping it ends the session." translateable="false">
         End TTC session
+      </message>
+      <message name="IDS_TTC_VOICE_PLATE_PAUSE" desc="Accessibility label and tooltip of the button that pauses (mutes) the microphone, on the floating bar shown below the toolbar on large screens while the user talks to Chrome by voice." translateable="false">
+        Pause microphone
+      </message>
+      <message name="IDS_TTC_VOICE_PLATE_RESUME" desc="Accessibility label and tooltip of the button that resumes (unmutes) the microphone, on the floating bar shown below the toolbar on large screens while the user talks to Chrome by voice." translateable="false">
+        Resume microphone
+      </message>
+      <message name="IDS_TTC_VOICE_PLATE_TITLE" desc="Placeholder accessibility pane title and label of the floating bar shown below the toolbar on large screens while the user talks to Chrome by voice." translateable="false">
+        TTC
       </message>
       <message name="IDS_TTC_FRE_DIALOG_TITLE" desc="Placeholder title of the TTC first run dialog that asks for the user's consent." translateable="false">
         Placeholder

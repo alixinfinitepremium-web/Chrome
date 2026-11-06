@@ -177,6 +177,7 @@ import org.chromium.chrome.browser.tab_group_sync.TabGroupSyncServiceFactory;
 import org.chromium.chrome.browser.tab_ui.TabContentManager;
 import org.chromium.chrome.browser.tab_ui.TabModelDotInfo;
 import org.chromium.chrome.browser.tab_ui.TabSwitcherUtils;
+import org.chromium.chrome.browser.tab_ui.undo_tab_close_snackbar.UndoBarThrottle;
 import org.chromium.chrome.browser.tabmodel.IncognitoStateProvider;
 import org.chromium.chrome.browser.tabmodel.OverridableTabCount;
 import org.chromium.chrome.browser.tabmodel.TabCreatorManager;
@@ -254,7 +255,6 @@ import org.chromium.chrome.browser.ui.side_ui.SideUiStateProvider;
 import org.chromium.chrome.browser.ui.side_ui.ViewMarginAdjusterForSideUi;
 import org.chromium.chrome.browser.ui.system.StatusBarColorController;
 import org.chromium.chrome.browser.ui.theme.BrandedColorScheme;
-import org.chromium.chrome.browser.undo_tab_close_snackbar.UndoBarThrottle;
 import org.chromium.chrome.browser.user_education.UserEducationHelper;
 import org.chromium.chrome.browser.util.BrowserUiUtils;
 import org.chromium.chrome.browser.util.BrowserUiUtils.ModuleTypeOnStartAndNtp;
@@ -2569,7 +2569,8 @@ public class ToolbarManager
     public void enableBottomControls() {
         enableTabGroupUiControls();
         BottomBarMetrics.maybeRecordEnabledState(mActivity);
-        if (BottomBarConfigUtils.isBottomBarEnabled(mActivity)) {
+        // Use the state from activity creation; the activity recreates if it changes later.
+        if (mBottomBarHostManager != null) {
             enableBottomBar();
         } else if (BottomBarConfigUtils.isEligibleForEducationDialog(mActivity)) {
             mBottomBarEducationDialogCoordinator =

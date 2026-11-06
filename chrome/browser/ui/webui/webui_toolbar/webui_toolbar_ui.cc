@@ -475,7 +475,7 @@ void WebUIToolbarUI::InitBrowserControlsService(
           std::move(browser_controls_channel_service_end_),
           std::make_unique<browser_controls_api::BrowserControlsAdapterImpl>(
               webui::GetBrowserWindowInterface(web_contents),
-              dependency_provider.GetCommandUpdater(), web_contents),
+              dependency_provider.GetCommandUpdater()),
           dependency_provider.GetBrowserControlsDelegate(),
           web_ui()->GetRenderFrameHost());
 }
@@ -669,6 +669,7 @@ WebUIToolbarUI::GetKnownElementIdentifiers() {
             kPinnedToolbarActionTtcElementId,
             kToolbarAvatarButtonElementId,
             kGlicButtonElementId,
+            kGlicActorTaskIconElementId,
             kToolbarPerformanceInterventionButtonElementId,
             PermissionChipView::kPermissionRequestChipElementId,
             PermissionChipView::kIndicatorChipElementId,

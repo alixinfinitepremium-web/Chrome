@@ -14,79 +14,6 @@
 
 namespace blink {
 
-class PLATFORM_EXPORT ExternalCanvasResource final : public CanvasResource {
- public:
-  ExternalCanvasResource(
-      scoped_refptr<gpu::ClientSharedImage> client_si,
-      const gpu::SyncToken& sync_token,
-      viz::TransferableResource::ResourceSource resource_source,
-      const gfx::HDRMetadata& hdr_metadata,
-      viz::ReleaseCallback out_callback,
-      base::WeakPtr<WebGraphicsContext3DProviderWrapper>);
-
-  void NotifyResourceLost() override { resource_is_lost_ = true; }
-  void WaitSyncToken(const gpu::SyncToken&) override;
-
-  const gfx::HDRMetadata& GetHdrMetadata() const override {
-    return hdr_metadata_;
-  }
-
-  viz::TransferableResource::ResourceSource GetTransferableResourceSource()
-      const final {
-    return resource_source_;
-  }
-  bool UsesAcceleratedRaster() const final { return true; }
-
-  ~ExternalCanvasResource() override;
-
-  const base::WeakPtr<WebGraphicsContext3DProviderWrapper>
-      context_provider_wrapper_;
-  viz::TransferableResource::ResourceSource resource_source_;
-  const gfx::HDRMetadata hdr_metadata_;
-  viz::ReleaseCallback release_callback_;
-  bool resource_is_lost_ = false;
-
-  // SyncToken to wait on at destruction.
-  gpu::SyncToken destruction_sync_token_;
-};
-
-ExternalCanvasResource::~ExternalCanvasResource() {
-  if (is_cross_thread()) {
-    // Destroyed on wrong thread. This can happen when the thread of origin was
-    // torn down, in which case the GPU context owning any underlying resources
-    // no longer exists and it is not possible to do cleanup of any GPU
-    // context-associated state.
-    return;
-  }
-
-  if (release_callback_) {
-    std::move(release_callback_)
-        .Run(destruction_sync_token_, resource_is_lost_);
-  }
-}
-
-void ExternalCanvasResource::WaitSyncToken(const gpu::SyncToken& sync_token) {
-  if (sync_token.HasData()) {
-    destruction_sync_token_ = sync_token;
-  }
-}
-
-ExternalCanvasResource::ExternalCanvasResource(
-    scoped_refptr<gpu::ClientSharedImage> client_si,
-    const gpu::SyncToken& sync_token,
-    viz::TransferableResource::ResourceSource resource_source,
-    const gfx::HDRMetadata& hdr_metadata,
-    viz::ReleaseCallback out_callback,
-    base::WeakPtr<WebGraphicsContext3DProviderWrapper> context_provider_wrapper)
-    : CanvasResource(std::move(client_si)),
-      context_provider_wrapper_(std::move(context_provider_wrapper)),
-      resource_source_(resource_source),
-      hdr_metadata_(hdr_metadata),
-      release_callback_(std::move(out_callback)) {
-  CHECK(GetSharedImage());
-  SetReleaseSyncToken(sync_token);
-}
-
 ExportedCanvasResource::ExportedCanvasResource(
     scoped_refptr<gpu::ClientSharedImage> client_si,
     const gpu::SyncToken& sync_token,
@@ -94,14 +21,7 @@ ExportedCanvasResource::ExportedCanvasResource(
     const gfx::HDRMetadata& hdr_metadata,
     viz::ReleaseCallback callback,
     base::WeakPtr<WebGraphicsContext3DProviderWrapper> provider)
-    : resource_(
-          base::MakeRefCounted<ExternalCanvasResource>(client_si,
-                                                       sync_token,
-                                                       resource_source,
-                                                       hdr_metadata,
-                                                       std::move(callback),
-                                                       provider)),
-      owning_thread_ref_(base::PlatformThread::CurrentRef()),
+    : owning_thread_ref_(base::PlatformThread::CurrentRef()),
       owning_thread_task_runner_(
           ThreadScheduler::Current()->CleanupTaskRunner()),
       shared_image_(std::move(client_si)),
@@ -110,10 +30,8 @@ ExportedCanvasResource::ExportedCanvasResource(
       resource_source_(resource_source),
       accelerated_raster_(true),
       context_provider_wrapper_(provider),
-      use_legacy_external_canvas_resource_bitmap_path_(true) {
-  CHECK(resource_);
-  CHECK(!resource_->is_cross_thread());
-}
+      release_callback_(std::move(callback)),
+      use_legacy_external_canvas_resource_bitmap_path_(true) {}
 
 ExportedCanvasResource::ExportedCanvasResource(
     scoped_refptr<CanvasResourceSharedImage> resource,
@@ -123,8 +41,7 @@ ExportedCanvasResource::ExportedCanvasResource(
     const gfx::HDRMetadata& hdr_metadata,
     base::WeakPtr<WebGraphicsContext3DProviderWrapper> provider,
     bool accelerated_raster)
-    : resource_(std::move(resource)),
-      owning_thread_ref_(base::PlatformThread::CurrentRef()),
+    : owning_thread_ref_(base::PlatformThread::CurrentRef()),
       owning_thread_task_runner_(
           ThreadScheduler::Current()->CleanupTaskRunner()),
       shared_image_(std::move(client_si)),
@@ -134,16 +51,31 @@ ExportedCanvasResource::ExportedCanvasResource(
       accelerated_raster_(accelerated_raster),
       context_provider_wrapper_(provider),
       use_legacy_external_canvas_resource_bitmap_path_(false) {
-  CHECK(resource_);
-  CHECK(!resource_->is_cross_thread());
+  wait_sync_token_ = base::BindRepeating(
+      [](scoped_refptr<CanvasResourceSharedImage> resource,
+         gpu::SyncToken sync_token) { resource->WaitSyncToken(sync_token); },
+      resource);
+
+  release_callback_ = base::BindOnce(
+      [](scoped_refptr<CanvasResourceSharedImage> resource,
+         const gpu::SyncToken& sync_token, bool is_lost) {
+        if (is_lost) {
+          resource->NotifyResourceLost();
+        }
+        CanvasResource::DropRefOnOwningThread(std::move(resource));
+      },
+      resource);
 }
 
 ExportedCanvasResource::~ExportedCanvasResource() {
+  // `wait_sync_token_` might hold ref to the resource, so drop it first.
+  wait_sync_token_ = base::NullCallback();
+
   // We PostTask ExportedCanvasResource to the CanvasResource owning thread, but
   // if the thread gets destroyed before, destructor will still run, but we
   // can't tell CanvasResource to recycle.
-  if (!is_cross_thread()) {
-    CanvasResource::DropRefOnOwningThread(std::move(resource_));
+  if (!is_cross_thread() && release_callback_) {
+    std::move(release_callback_).Run(last_access_sync_token_, is_lost_);
   }
 }
 
@@ -233,11 +165,12 @@ scoped_refptr<StaticBitmapImage> ExportedCanvasResource::Bitmap() {
     auto release_callback = base::BindOnce(
         [](scoped_refptr<ExportedCanvasResource>&& exported_resource,
            const gpu::SyncToken& sync_token, bool lost_resource) {
-          CHECK(exported_resource->resource_);
-
-          exported_resource->resource_->WaitSyncToken(sync_token);
+          exported_resource->last_access_sync_token_ = sync_token;
+          if (exported_resource->wait_sync_token_) {
+            exported_resource->wait_sync_token_.Run(sync_token);
+          }
           if (lost_resource) {
-            exported_resource->resource_->NotifyResourceLost();
+            exported_resource->is_lost_ = true;
           }
         },
         base::WrapRefCounted(this));
@@ -268,9 +201,13 @@ void ExportedCanvasResource::EndDisplayCompositorAccess(
 void ExportedCanvasResource::EndDisplayCompositorAccess(
     gpu::SyncToken sync_token,
     bool is_lost) {
-  resource_->WaitSyncToken(sync_token);
+  last_access_sync_token_ = sync_token;
+  if (wait_sync_token_) {
+    wait_sync_token_.Run(sync_token);
+  }
+
   if (is_lost) {
-    resource_->NotifyResourceLost();
+    is_lost_ = true;
   }
 }
 

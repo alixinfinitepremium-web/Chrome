@@ -37,8 +37,12 @@
 #include "components/tabs/public/tab_collection_types.h"
 #include "components/tabs/public/tab_group.h"
 #include "content/public/browser/navigation_controller.h"
+#include "ui/accessibility/ax_enums.mojom.h"
+#include "ui/accessibility/platform/assistive_tech.h"
+#include "ui/accessibility/platform/ax_platform.h"
 #include "ui/base/metadata/metadata_impl_macros.h"
 #include "ui/compositor/layer.h"
+#include "ui/views/accessibility/view_accessibility.h"
 #include "ui/views/background.h"
 #include "ui/views/controls/scroll_view.h"
 #include "ui/views/layout/layout_types.h"
@@ -179,6 +183,8 @@ TabStripView::TabStripView(TabCollectionNode* collection_node)
 
   SetLayoutManager(std::make_unique<TabStripViewLayout>(orientation_));
   SetProperty(views::kElementIdentifierKey, kTabStripElementId);
+  GetViewAccessibility().SetRole(ax::mojom::Role::kTabList);
+  GetViewAccessibility().SetIsMultiselectable(true);
 
   pinned_tabs_scroll_view_ = AddChildView(std::make_unique<views::ScrollView>(
       views::ScrollView::ScrollWithLayers::kEnabled));
@@ -270,6 +276,30 @@ void TabStripView::OnMouseExited(const ui::MouseEvent& event) {
 
 void TabStripView::OnWidgetActivationChanged(views::Widget* widget,
                                              bool active) {
+  if (!collection_node_) {
+    return;
+  }
+
+  if (active &&
+      ui::AXPlatform::GetInstance().active_assistive_tech() ==
+          ui::AssistiveTech::kJaws &&
+      ui::AXPlatform::GetInstance().JawsNeedsTabSelectionEvent()) {
+    // When the browser window is activated, set the accessible selection and
+    // fire a selection event on the currently active tab to help older
+    // versions of JAWS restore per-tab settings when switching windows.
+    if (const tabs::TabInterface* active_tab =
+            collection_node_->GetController()->GetActiveTab()) {
+      if (TabCollectionNode* active_node =
+              collection_node_->GetNodeForHandle(active_tab->GetHandle())) {
+        if (views::View* active_view = active_node->view()) {
+          active_view->GetViewAccessibility().SetIsSelected(true);
+          active_view->GetViewAccessibility().NotifyEvent(
+              ax::mojom::Event::kSelection, true);
+        }
+      }
+    }
+  }
+
   if (TabHoverCardController* hover_card_controller =
           collection_node_->GetController()->GetHoverCardController();
       hover_card_controller) {
