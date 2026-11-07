@@ -148,7 +148,7 @@ import java.util.Objects;
  * class is not intended to be extended.
  */
 @NullMarked
-class TabImpl implements Tab, TabInternal {
+class TabImpl implements Tab {
     /** Used for logging. */
     private static final String TAG = "Tab";
 
@@ -2491,7 +2491,6 @@ class TabImpl implements Tab, TabInternal {
     /**
      * @return The native pointer representing the native side of this {@link TabImpl} object.
      */
-    @Override
     @CalledByNative
     public long getNativePtr() {
         return mNativeTabAndroid;
@@ -3302,6 +3301,7 @@ class TabImpl implements Tab, TabInternal {
             status = TabImplJni.get().destroyWebContents(mNativeTabAndroid);
             if (status == TabDestroyStatus.SLOW_SHUTDOWN) {
                 contentsToDestroy.setTopLevelNativeWindow(null);
+                contentsToDestroy.clearJavaWebContentsObservers();
             }
         } else {
             // This branch is to not delete the WebContents, but just to release the WebContent from

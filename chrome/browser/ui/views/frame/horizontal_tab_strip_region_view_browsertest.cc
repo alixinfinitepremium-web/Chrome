@@ -8,14 +8,18 @@
 #include <string>
 #include <vector>
 
+#include "base/command_line.h"
 #include "base/feature_list.h"
 #include "base/memory/raw_ptr.h"
 #include "base/test/metrics/histogram_tester.h"
 #include "base/test/metrics/user_action_tester.h"
 #include "base/test/scoped_feature_list.h"
 #include "base/time/time.h"
+#include "build/branding_buildflags.h"
+#include "build/build_config.h"
 #include "chrome/browser/glic/public/features.h"
 #include "chrome/browser/glic/test_support/glic_test_environment.h"
+#include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/ui/actions/chrome_action_id.h"
 #include "chrome/browser/ui/browser_actions.h"
 #include "chrome/browser/ui/browser_element_identifiers.h"
@@ -37,6 +41,7 @@
 #include "chrome/common/chrome_features.h"
 #include "chrome/test/base/in_process_browser_test.h"
 #include "chrome/test/views/chrome_views_test_base.h"
+#include "components/enterprise/isolated_mode/isolated_mode_features.h"
 #include "content/public/test/browser_test.h"
 #include "content/public/test/browser_test_utils.h"
 #include "testing/gtest/include/gtest/gtest.h"
@@ -53,6 +58,17 @@
 #include "ui/views/view_observer.h"
 #include "ui/views/view_utils.h"
 #include "ui/views/widget/widget.h"
+
+#if BUILDFLAG(IS_CHROMEOS)
+#include "ash/constants/ash_switches.h"
+#include "chrome/common/chrome_switches.h"
+#include "chrome/test/base/testing_profile.h"
+#include "components/user_manager/user_names.h"
+#endif  // BUILDFLAG(IS_CHROMEOS)
+
+#if BUILDFLAG(GOOGLE_CHROME_BRANDING) && !BUILDFLAG(IS_CHROMEOS)
+#include "chrome/test/base/scoped_channel_override.h"
+#endif
 
 class LayoutWaiter : public views::ViewObserver {
  public:
@@ -460,4 +476,83 @@ IN_PROC_BROWSER_TEST_F(HorizontalTabStripRegionViewUnifiedTest,
                                      1);
   histogram_tester.ExpectBucketCount("Tab.NewTab", NewTabTypes::kNewTabCommand,
                                      1);
+}
+
+class HorizontalTabStripRegionViewUnifiedGuestTest
+    : public HorizontalTabStripRegionViewUnifiedTest {
+ public:
+  HorizontalTabStripRegionViewUnifiedGuestTest() = default;
+  HorizontalTabStripRegionViewUnifiedGuestTest(
+      const HorizontalTabStripRegionViewUnifiedGuestTest&) = delete;
+  HorizontalTabStripRegionViewUnifiedGuestTest& operator=(
+      const HorizontalTabStripRegionViewUnifiedGuestTest&) = delete;
+  ~HorizontalTabStripRegionViewUnifiedGuestTest() override = default;
+
+#if BUILDFLAG(IS_CHROMEOS)
+ protected:
+  void SetUpCommandLine(base::CommandLine* command_line) override {
+    HorizontalTabStripRegionViewUnifiedTest::SetUpCommandLine(command_line);
+    command_line->AppendSwitch(ash::switches::kGuestSession);
+    command_line->AppendSwitchASCII(ash::switches::kLoginUser,
+                                    user_manager::kGuestUserName);
+    command_line->AppendSwitchASCII(ash::switches::kLoginProfile,
+                                    TestingProfile::kTestUserProfileDir);
+    command_line->AppendSwitch(switches::kIncognito);
+  }
+#endif  // BUILDFLAG(IS_CHROMEOS)
+};
+
+IN_PROC_BROWSER_TEST_F(HorizontalTabStripRegionViewUnifiedGuestTest,
+                       RecordsTabCountGuest) {
+#if BUILDFLAG(IS_CHROMEOS)
+  BrowserWindowInterface* guest_browser = browser();
+#else
+  BrowserWindowInterface* guest_browser = CreateGuestBrowser();
+#endif  // BUILDFLAG(IS_CHROMEOS)
+  ASSERT_NE(guest_browser, nullptr);
+  ASSERT_TRUE(guest_browser->GetProfile()->IsGuestSession());
+
+  base::HistogramTester histogram_tester;
+  chrome::AddTabAt(guest_browser, GURL("about:blank"), -1, true);
+  histogram_tester.ExpectUniqueSample("Tab.Count.Guest", 2, 1);
+}
+
+IN_PROC_BROWSER_TEST_F(HorizontalTabStripRegionViewUnifiedTest,
+                       RecordsTabCountIncognito) {
+  BrowserWindowInterface* incognito_browser = CreateIncognitoBrowser();
+  ASSERT_NE(incognito_browser, nullptr);
+  ASSERT_TRUE(incognito_browser->GetProfile()->IsIncognitoProfile());
+
+  base::HistogramTester histogram_tester;
+  chrome::AddTabAt(incognito_browser, GURL("about:blank"), -1, true);
+  histogram_tester.ExpectUniqueSample("Tab.Count.Incognito", 2, 1);
+}
+
+class HorizontalTabStripRegionViewUnifiedIsolatedTest
+    : public HorizontalTabStripRegionViewUnifiedTest {
+ public:
+  void SetUpCommandLine(base::CommandLine* command_line) override {
+    HorizontalTabStripRegionViewUnifiedTest::SetUpCommandLine(command_line);
+    command_line->AppendSwitch(
+        enterprise_isolated_mode::switches::
+            kForceEnterpriseIsolatedModeReplacesIncognito);
+  }
+
+ private:
+#if BUILDFLAG(GOOGLE_CHROME_BRANDING) && !BUILDFLAG(IS_CHROMEOS)
+  chrome::ScopedChannelOverride channel_override_{
+      chrome::ScopedChannelOverride::Channel::kDev};
+#endif
+};
+
+IN_PROC_BROWSER_TEST_F(HorizontalTabStripRegionViewUnifiedIsolatedTest,
+                       RecordsTabCountIsolated) {
+  BrowserWindowInterface* isolated_browser = CreateIncognitoBrowser();
+  ASSERT_NE(isolated_browser, nullptr);
+  ASSERT_TRUE(
+      isolated_browser->GetProfile()->IsEnterpriseIsolatedModeProfile());
+
+  base::HistogramTester histogram_tester;
+  chrome::AddTabAt(isolated_browser, GURL("about:blank"), -1, true);
+  histogram_tester.ExpectUniqueSample("Tab.Count.Isolated", 2, 1);
 }

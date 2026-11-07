@@ -436,9 +436,10 @@ const TabView& TabView::LayoutManager::TabView() const {
 }
 
 void TabView::StepLoadingAnimation(const base::TimeDelta& elapsed_time) {
-  // TODO(crbug.com/467710547): Paint favicon to a layer when tab strip isn't
-  // animating or when dragging isn't in progress or in full screen mode.
   icon_->StepLoadingAnimation(elapsed_time);
+  icon_->SetCanPaintToLayer(
+      collection_node_ &&
+      collection_node_->GetController()->CanPaintThrobberToLayer());
 }
 
 void TabView::CreateFreezingVote(FreezingVoteReason reason) {
@@ -497,16 +498,53 @@ void TabView::UpdateHovered(bool hovered) {
     return;
   }
 
-  hovered_ = hovered;
-  if (hover_controller_ && !split_) {
-    if (hovered_) {
-      hover_controller_->SetSubtleOpacityScale(radial_highlight_opacity_);
-      hover_controller_->Show(TabStyle::ShowHoverStyle::kSubtle);
-    } else {
-      hover_controller_->Hide(TabStyle::HideHoverStyle::kGradual);
-    }
+  if (split_) {
+    hovered_ = hovered;
+    UpdateColors();
+    UpdateZOrder();
+    InvalidateLayout();
+    return;
   }
 
+  if (hovered) {
+    ShowHover(TabStyle::ShowHoverStyle::kSubtle);
+  } else {
+    HideHover(TabStyle::HideHoverStyle::kGradual);
+  }
+}
+
+void TabView::ShowHover(TabStyle::ShowHoverStyle style) {
+  if (split_) {
+    if (auto* split_view = views::AsViewClass<SplitTabView>(parent())) {
+      split_view->ShowHover(style);
+    }
+    return;
+  }
+
+  hovered_ = true;
+  if (hover_controller_) {
+    if (style == TabStyle::ShowHoverStyle::kSubtle) {
+      hover_controller_->SetSubtleOpacityScale(radial_highlight_opacity_);
+    }
+    hover_controller_->Show(style);
+  }
+  UpdateColors();
+  UpdateZOrder();
+  InvalidateLayout();
+}
+
+void TabView::HideHover(TabStyle::HideHoverStyle style) {
+  if (split_) {
+    if (auto* split_view = views::AsViewClass<SplitTabView>(parent())) {
+      split_view->HideHover(style);
+    }
+    return;
+  }
+
+  hovered_ = false;
+  if (hover_controller_) {
+    hover_controller_->Hide(style);
+  }
   UpdateColors();
   UpdateZOrder();
   InvalidateLayout();
@@ -1219,7 +1257,10 @@ void TabView::UpdateTabData(const tabs::TabData& data) {
     UpdateAccessibleName();
   }
 
-  icon_->SetData(tab_data_);
+  icon_->SetData(
+      tab_data_,
+      collection_node_ &&
+          collection_node_->GetController()->CanPaintThrobberToLayer());
   icon_->SetActiveState(tab->IsActivated());
   icon_->SetAttention(TabIcon::AttentionType::kBlockedWebContents,
                       !tab->IsActivated() && tab->IsBlocked());

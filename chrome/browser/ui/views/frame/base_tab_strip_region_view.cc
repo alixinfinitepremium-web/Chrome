@@ -10,6 +10,7 @@
 
 #include "base/callback_list.h"
 #include "base/metrics/histogram_functions.h"
+#include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/ui/browser_actions.h"
 #include "chrome/browser/ui/browser_element_identifiers.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_features.h"
@@ -18,6 +19,7 @@
 #include "chrome/browser/ui/tabs/hover_tab_selector.h"
 #include "chrome/browser/ui/tabs/tab_group_model.h"
 #include "chrome/browser/ui/tabs/tab_strip_model.h"
+#include "chrome/browser/ui/tabs/tab_strip_model_observer.h"
 #include "chrome/browser/ui/views/frame/browser_view.h"
 #include "chrome/browser/ui/views/frame/safe_invoke/safe_invoke.h"
 #include "chrome/browser/ui/views/tabs/common/pinned_tab_container_view.h"
@@ -29,6 +31,7 @@
 #include "chrome/browser/ui/views/tabs/common/tab_strip_view.h"
 #include "chrome/browser/ui/views/tabs/common/tab_view.h"
 #include "chrome/browser/ui/views/tabs/common/unpinned_tab_container_view.h"
+#include "chrome/browser/ui/views/tabs/shared/tab_strip_observer.h"
 #include "components/tab_groups/tab_group_id.h"
 #include "components/tabs/public/tab_group.h"
 #include "components/tabs/public/tab_interface.h"
@@ -41,6 +44,60 @@
 #include "ui/views/view_class_properties.h"
 #include "ui/views/view_utils.h"
 
+class BaseTabStripRegionView::TabStripObserverBridge
+    : public TabStripModelObserver {
+ public:
+  TabStripObserverBridge(TabStripModel* model,
+                         BaseTabStripRegionView* region_view)
+      : model_(model), region_view_(region_view) {
+    CHECK(model_);
+    model_->AddObserver(this);
+  }
+
+  TabStripObserverBridge(const TabStripObserverBridge&) = delete;
+  TabStripObserverBridge& operator=(const TabStripObserverBridge&) = delete;
+
+  ~TabStripObserverBridge() override { model_->RemoveObserver(this); }
+
+  void OnTabStripModelChanged(
+      TabStripModel* tab_strip_model,
+      const TabStripModelChange& change,
+      const TabStripSelectionChange& selection) override {
+    if (!region_view_->tab_strip_observer_) {
+      return;
+    }
+    switch (change.type()) {
+      case TabStripModelChange::kInserted:
+        for (const auto& contents : change.GetInsert()->contents) {
+          if (region_view_->tab_strip_observer_) {
+            region_view_->tab_strip_observer_->OnTabAdded(contents.index);
+          }
+        }
+        break;
+      case TabStripModelChange::kRemoved:
+        for (const auto& contents : change.GetRemove()->contents) {
+          if (region_view_->tab_strip_observer_) {
+            region_view_->tab_strip_observer_->OnTabRemoved(contents.index);
+          }
+        }
+        break;
+      case TabStripModelChange::kMoved: {
+        const auto* move = change.GetMove();
+        region_view_->tab_strip_observer_->OnTabMoved(move->from_index,
+                                                      move->to_index);
+        break;
+      }
+      case TabStripModelChange::kReplaced:
+      case TabStripModelChange::kSelectionOnly:
+        break;
+    }
+  }
+
+ private:
+  const raw_ptr<TabStripModel> model_;
+  const raw_ptr<BaseTabStripRegionView> region_view_;
+};
+
 BaseTabStripRegionView::BaseTabStripRegionView(
     BrowserView* browser_view,
     actions::ActionItem* root_action_item,
@@ -51,6 +108,8 @@ BaseTabStripRegionView::BaseTabStripRegionView(
       tab_strip_model_(browser_view->browser()->GetTabStripModel()) {}
 
 BaseTabStripRegionView::~BaseTabStripRegionView() {
+  tab_strip_observer_bridge_.reset();
+  tab_strip_observer_ = nullptr;
   on_children_added_subscription_.reset();
   on_children_removed_subscription_.reset();
   on_child_moved_subscription_.reset();
@@ -111,6 +170,8 @@ void BaseTabStripRegionView::InitializeTabStrip() {
   root_node_->SetController(tab_strip_controller_.get());
 
   root_node_->Init();
+  tab_strip_observer_bridge_ =
+      std::make_unique<TabStripObserverBridge>(tab_strip_model, this);
 
   new_tab_button_pressed_start_time_ = std::nullopt;
   on_children_added_subscription_ =
@@ -136,6 +197,8 @@ void BaseTabStripRegionView::ResetTabStrip() {
     return;
   }
 
+  tab_strip_observer_bridge_.reset();
+  tab_strip_observer_ = nullptr;
   on_children_added_subscription_.reset();
   on_children_removed_subscription_.reset();
   on_child_moved_subscription_.reset();
@@ -375,7 +438,10 @@ void BaseTabStripRegionView::OnDragExited() {
 }
 
 void BaseTabStripRegionView::SetTabStripObserver(TabStripObserver* observer) {
-  // Do nothing.
+  if (observer) {
+    CHECK(!tab_strip_observer_);
+  }
+  tab_strip_observer_ = observer;
 }
 
 views::View* BaseTabStripRegionView::GetTabStripView() {
@@ -498,11 +564,28 @@ void BaseTabStripRegionView::OnChildrenAdded(
   const bool has_tab = std::ranges::any_of(handles, [](const auto& handle) {
     return std::holds_alternative<tabs::TabHandle>(handle);
   });
-  if (has_tab && new_tab_button_pressed_start_time_.has_value()) {
-    base::UmaHistogramTimes(
-        "TabStrip.TimeToCreateNewTabFromPress",
-        base::TimeTicks::Now() - new_tab_button_pressed_start_time_.value());
-    new_tab_button_pressed_start_time_.reset();
+  if (has_tab) {
+    Profile* const profile =
+        browser_view_ ? browser_view_->GetProfile() : nullptr;
+    if (profile) {
+      if (profile->IsGuestSession()) {
+        base::UmaHistogramCounts100("Tab.Count.Guest",
+                                    tab_strip_model_->count());
+      } else if (profile->IsIncognitoProfile()) {
+        base::UmaHistogramCounts100("Tab.Count.Incognito",
+                                    tab_strip_model_->count());
+      } else if (profile->IsEnterpriseIsolatedModeProfile()) {
+        base::UmaHistogramCounts100("Tab.Count.Isolated",
+                                    tab_strip_model_->count());
+      }
+    }
+
+    if (new_tab_button_pressed_start_time_.has_value()) {
+      base::UmaHistogramTimes(
+          "TabStrip.TimeToCreateNewTabFromPress",
+          base::TimeTicks::Now() - new_tab_button_pressed_start_time_.value());
+      new_tab_button_pressed_start_time_.reset();
+    }
   }
   hover_tab_selector_->CancelTabTransition();
   tab_strip_view_->OnChildrenAdded(handles);

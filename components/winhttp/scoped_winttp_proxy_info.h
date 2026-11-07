@@ -7,20 +7,15 @@
 
 #include <windows.h>
 
-#include <stddef.h>
 #include <winhttp.h>
 
 #include <string>
 
-#include "base/compiler_specific.h"
-#include "base/containers/span.h"
-#include "base/logging.h"
-
 namespace winhttp {
 
-// Wrapper class for the WINHTTP_PROXY_INFO structure.
-// Note that certain Win32 APIs expected the strings to be allocated with
-// with GlobalAlloc.
+// Owns a WINHTTP_PROXY_INFO structure and the GlobalAlloc-ed strings it points
+// to, and frees the strings with GlobalFree. Move-only; a moved-from object is
+// empty.
 class ScopedWinHttpProxyInfo {
  public:
   ScopedWinHttpProxyInfo() = default;
@@ -28,83 +23,39 @@ class ScopedWinHttpProxyInfo {
   ScopedWinHttpProxyInfo(const ScopedWinHttpProxyInfo& other) = delete;
   ScopedWinHttpProxyInfo& operator=(const ScopedWinHttpProxyInfo& other) =
       delete;
-  ScopedWinHttpProxyInfo(ScopedWinHttpProxyInfo&& other) noexcept {
-    proxy_info_.dwAccessType = other.proxy_info_.dwAccessType;
-    proxy_info_.lpszProxy = other.proxy_info_.lpszProxy;
-    other.proxy_info_.lpszProxy = nullptr;
+  ScopedWinHttpProxyInfo(ScopedWinHttpProxyInfo&& other) noexcept;
+  ScopedWinHttpProxyInfo& operator=(ScopedWinHttpProxyInfo&& other) noexcept;
 
-    proxy_info_.lpszProxyBypass = other.proxy_info_.lpszProxyBypass;
-    other.proxy_info_.lpszProxyBypass = nullptr;
-  }
+  ~ScopedWinHttpProxyInfo();
 
-  ScopedWinHttpProxyInfo& operator=(ScopedWinHttpProxyInfo&& other) noexcept {
-    proxy_info_.dwAccessType = other.proxy_info_.dwAccessType;
-    proxy_info_.lpszProxy = other.proxy_info_.lpszProxy;
-    other.proxy_info_.lpszProxy = nullptr;
-
-    proxy_info_.lpszProxyBypass = other.proxy_info_.lpszProxyBypass;
-    other.proxy_info_.lpszProxyBypass = nullptr;
-    return *this;
-  }
-
-  ~ScopedWinHttpProxyInfo() {
-    if (proxy_info_.lpszProxy) {
-      ::GlobalFree(proxy_info_.lpszProxy);
-    }
-
-    if (proxy_info_.lpszProxyBypass) {
-      ::GlobalFree(proxy_info_.lpszProxyBypass);
-    }
-  }
-
-  bool IsValid() const { return proxy_info_.lpszProxy; }
+  // Returns true if a proxy server is set.
+  bool has_proxy() const { return proxy_info_.lpszProxy; }
 
   void set_access_type(DWORD access_type) {
     proxy_info_.dwAccessType = access_type;
   }
 
-  wchar_t* proxy() const { return proxy_info_.lpszProxy; }
+  // Replaces the proxy string, unless `proxy` is empty or the allocation fails.
+  void SetProxy(const std::wstring& proxy);
 
-  void set_proxy(const std::wstring& proxy) {
-    if (proxy.empty()) {
-      return;
-    }
+  // Replaces the proxy bypass string, unless `proxy_bypass` is empty or the
+  // allocation fails.
+  void SetProxyBypass(const std::wstring& proxy_bypass);
 
-    proxy_info_.lpszProxy = GlobalAlloc(proxy);
-  }
-
-  void set_proxy_bypass(const std::wstring& proxy_bypass) {
-    if (proxy_bypass.empty()) {
-      return;
-    }
-
-    proxy_info_.lpszProxyBypass = GlobalAlloc(proxy_bypass);
-  }
-
+  // Returns the owned structure. Its strings are valid until the next call to
+  // `SetProxy()`, `SetProxyBypass()`, or `Receive()`, or until this object is
+  // moved from or destroyed.
   const WINHTTP_PROXY_INFO* get() const { return &proxy_info_; }
 
-  WINHTTP_PROXY_INFO* receive() { return &proxy_info_; }
+  // Frees the owned strings and returns the cleared structure for a Win32 API
+  // to fill in. This object takes ownership of the strings, which must be
+  // allocated with GlobalAlloc.
+  WINHTTP_PROXY_INFO* Receive();
 
  private:
-  wchar_t* GlobalAlloc(const std::wstring& str) {
-    const size_t length = str.length() + 1;
-    const size_t size_in_bytes = length * sizeof(wchar_t);
-    wchar_t* string_mem =
-        static_cast<wchar_t*>(::GlobalAlloc(GPTR, size_in_bytes));
+  // Frees the owned strings and sets the pointers to null.
+  void FreeStrings();
 
-    if (!string_mem) {
-      PLOG(ERROR) << "GlobalAlloc failed to allocate " << size_in_bytes
-                  << " bytes";
-      return nullptr;
-    }
-
-    // SAFETY: `string_mem` was just allocated by `::GlobalAlloc` with room for
-    // `length` wide characters.
-    base::span<wchar_t> dest = UNSAFE_BUFFERS(base::span(string_mem, length));
-    dest.copy_prefix_from(str);
-    dest.back() = L'\0';
-    return string_mem;
-  }
   WINHTTP_PROXY_INFO proxy_info_ = {};
 };
 
