@@ -6,6 +6,8 @@
 
 #include <cstdint>
 #include <optional>
+#include <string>
+#include <string_view>
 #include <utility>
 
 #include "base/check.h"
@@ -18,6 +20,7 @@
 #include "base/uuid.h"
 #include "components/browser_actuator/internal/transport/control_transport_handler.h"
 #include "components/browser_actuator/internal/transport/downstream_message_sequencer.h"
+#include "components/browser_actuator/internal/transport/probe_transport_handler.h"
 #include "components/browser_actuator/internal/transport/proto/transport_messages.pb.h"
 #include "components/browser_actuator/internal/transport/resume_body_connection_delegate.h"
 #include "components/browser_actuator/internal/transport/stream_connection_delegate.h"
@@ -57,6 +60,29 @@ TransportChannelImpl::TransportChannelImpl(
                           session_registry_->GetWeakPtr()));
   handler_registry_->RegisterFactory(control_handler_factory_.get());
 
+  probe_handler_factory_ = std::make_unique<ProbeTransportHandlerFactory>(
+      base::BindRepeating(
+          [](base::WeakPtr<TransportChannelImpl> self,
+             std::string_view session_id) -> std::optional<int64_t> {
+            return self ? self->GetDispatchingSequenceNumber(session_id)
+                        : std::nullopt;
+          },
+          weak_ptr_factory_.GetWeakPtr()),
+      base::BindRepeating(
+          [](base::WeakPtr<TransportChannelImpl> self,
+             std::string_view session_id, const TransportProbe& probe,
+             std::optional<int64_t> responding_to_sequence_number)
+              -> base::expected<void, SendUpstreamMessageError> {
+            if (!self) {
+              return base::unexpected(
+                  SendUpstreamMessageError::kChannelDisconnected);
+            }
+            return self->SendProbeReply(session_id, probe,
+                                        responding_to_sequence_number);
+          },
+          weak_ptr_factory_.GetWeakPtr()));
+  handler_registry_->RegisterFactory(probe_handler_factory_.get());
+
   // The resume delegate carries no state: on every connection attempt it asks
   // the channel to rebuild the WatchSessionsRequest body from the current
   // sessions. Unretained is safe because the channel owns the client — and
@@ -82,6 +108,9 @@ TransportChannelImpl::~TransportChannelImpl() {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
   if (session_registry_) {
     session_registry_->RemoveObserver(this);
+  }
+  if (handler_registry_ && probe_handler_factory_) {
+    handler_registry_->UnregisterFactory(probe_handler_factory_.get());
   }
   if (handler_registry_ && control_handler_factory_) {
     handler_registry_->UnregisterFactory(control_handler_factory_.get());
@@ -156,6 +185,16 @@ void TransportChannelImpl::ReconnectStream() {
   }
 }
 
+void TransportChannelImpl::CloseAndDestroySession(std::string_view session_id) {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  const std::string owned_session_id(session_id);
+  ControlCommand command;
+  command.mutable_close_session();
+  SendUpstreamMessage(owned_session_id, PayloadType::kControl, command,
+                      /*responding_to_sequence_number=*/std::nullopt);
+  session_registry_->DestroySession(owned_session_id);
+}
+
 // Downstream: route each message to its session so the *session* advances its
 // own resume position.
 void TransportChannelImpl::OnStreamMessage(const std::string& message) {
@@ -191,6 +230,16 @@ void TransportChannelImpl::OnStreamMessage(const std::string& message) {
   if (!result.has_value()) {
     switch (result.error()) {
       case DownstreamMessageSequencer::Error::kBufferFull:
+        if (session->consecutive_buffer_full_errors() >=
+            TransportSessionImpl::kMaxConsecutiveBufferFullErrors) {
+          DLOG(WARNING) << "Tearing down session " << session->GetSessionId()
+                        << " after receiving "
+                        << session->consecutive_buffer_full_errors()
+                        << " consecutive reorder-buffer overflows without "
+                           "advancing sequence cursor";
+          CloseAndDestroySession(session->GetSessionId());
+          break;
+        }
         DVLOG(1) << "Downstream reorder buffer full for session "
                  << session->GetSessionId()
                  << "; reconnecting stream to request replay from "
@@ -209,16 +258,11 @@ void TransportChannelImpl::OnStreamMessage(const std::string& message) {
                       << session->consecutive_invalid_sequence_numbers() << ")";
         if (session->consecutive_invalid_sequence_numbers() >=
             TransportSessionImpl::kMaxConsecutiveInvalidSequenceNumbers) {
-          const std::string session_id(session->GetSessionId());
-          DLOG(WARNING) << "Tearing down session " << session_id
+          DLOG(WARNING) << "Tearing down session " << session->GetSessionId()
                         << " after receiving "
                         << session->consecutive_invalid_sequence_numbers()
                         << " consecutive invalid sequence numbers";
-          ControlCommand command;
-          command.mutable_close_session();
-          SendUpstreamMessage(session_id, PayloadType::kControl, command,
-                              /*responding_to_sequence_number=*/std::nullopt);
-          session_registry_->DestroySession(session_id);
+          CloseAndDestroySession(session->GetSessionId());
         }
         break;
     }
@@ -348,6 +392,27 @@ std::string TransportChannelImpl::BuildWatchSessionsRequestBody() {
 
 std::string TransportChannelImpl::BuildWatchSessionsRequestBodyForTesting() {
   return BuildWatchSessionsRequestBody();
+}
+
+std::optional<int64_t> TransportChannelImpl::GetDispatchingSequenceNumber(
+    std::string_view session_id) const {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  TransportSessionImpl* session = session_registry_->GetSessionImpl(session_id);
+  return session ? session->dispatching_sequence_number() : std::nullopt;
+}
+
+base::expected<void, SendUpstreamMessageError>
+TransportChannelImpl::SendProbeReply(
+    std::string_view session_id,
+    const TransportProbe& probe,
+    std::optional<int64_t> responding_to_sequence_number) {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  if (!session_registry_->GetSessionImpl(session_id)) {
+    return base::unexpected(SendUpstreamMessageError::kChannelDisconnected);
+  }
+  SendUpstreamMessage(session_id, PayloadType::kProbe, probe,
+                      responding_to_sequence_number);
+  return {};
 }
 
 }  // namespace browser_actuator::transport

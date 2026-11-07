@@ -16,6 +16,7 @@
 #include "base/observer_list.h"
 #include "base/sequence_checker.h"
 #include "base/thread_annotations.h"
+#include "base/types/expected.h"
 #include "components/browser_actuator/internal/transport/message_stream_client.h"
 #include "components/browser_actuator/internal/transport/transport_message_observer.h"
 #include "components/browser_actuator/public/transport/common.h"
@@ -24,11 +25,13 @@
 
 namespace browser_actuator {
 class ActuatorDownstreamMessage;
+class TransportProbe;
 }  // namespace browser_actuator
 
 namespace browser_actuator::transport {
 
 class ControlTransportHandlerFactory;
+class ProbeTransportHandlerFactory;
 class StreamConnectionDelegate;
 class TransportHandlerFactoryRegistryImpl;
 class TransportSessionRegistryImpl;
@@ -125,6 +128,12 @@ class TransportChannelImpl : public TransportChannel,
   // fresh WatchSessionsRequest is sent with current session resume positions.
   void ReconnectStream();
 
+  // Sends an upstream `ControlCommand::CloseSession` for `session_id` and
+  // destroys the session in `session_registry_`. Copies `session_id` before
+  // mutating state so callers may pass `session->GetSessionId()` directly,
+  // after which the session pointer must not be dereferenced.
+  void CloseAndDestroySession(std::string_view session_id);
+
   // Forwards a downstream envelope that a session is about to dispatch or
   // drop to every TransportMessageObserver.
   void NotifyDownstreamMessage(
@@ -143,6 +152,18 @@ class TransportChannelImpl : public TransportChannel,
   // delegate as its body provider, so it runs once per connection attempt.
   std::string BuildWatchSessionsRequestBody();
 
+  // Returns the sequence number currently being dispatched on `session_id`, or
+  // `std::nullopt` if the session is unknown or idle.
+  std::optional<int64_t> GetDispatchingSequenceNumber(
+      std::string_view session_id) const;
+
+  // Sends an internal `PayloadType::kProbe` reply for `session_id` carrying
+  // `responding_to_sequence_number` (used for immediate and delayed probes).
+  base::expected<void, SendUpstreamMessageError> SendProbeReply(
+      std::string_view session_id,
+      const TransportProbe& probe,
+      std::optional<int64_t> responding_to_sequence_number);
+
   SEQUENCE_CHECKER(sequence_checker_);
 
   // The registry holding factories that create the dynamic feature handlers.
@@ -150,6 +171,9 @@ class TransportChannelImpl : public TransportChannel,
 
   // Factory for control command handlers (CloseChannel, CloseSession).
   std::unique_ptr<ControlTransportHandlerFactory> control_handler_factory_;
+
+  // Factory for synthetic transport probe handlers.
+  std::unique_ptr<ProbeTransportHandlerFactory> probe_handler_factory_;
 
   // The registry to access and control the life cycles for sessions.
   // Declared before `stream_client_` and after `handler_registry_` to

@@ -343,7 +343,13 @@ std::string SerializedDownstreamMessage(
     typed->set_payload_type(payload.type);
     typed->mutable_proto_payload()->set_value(payload.value.data(),
                                               payload.value.size());
-    typed->mutable_proto_payload()->set_type_url(payload.type_url);
+    if (!payload.type_url.empty()) {
+      typed->mutable_proto_payload()->set_type_url(payload.type_url);
+    } else if (std::optional<PayloadType> mapped =
+                   FromDownstreamProtoPayloadType(payload.type)) {
+      typed->mutable_proto_payload()->set_type_url(
+          std::string(ExpectedTypeUrl(*mapped)));
+    }
   }
 
   return response.SerializeAsString();
@@ -764,6 +770,8 @@ TEST_F(TransportChannelImplTest,
   auto* typed_payload = downstream->add_typed_payloads();
   typed_payload->set_payload_type(
       ACTUATOR_DOWNSTREAM_PAYLOAD_TYPE_CONTROL_COMMAND);
+  typed_payload->mutable_proto_payload()->set_type_url(
+      std::string(ExpectedTypeUrl(PayloadType::kControl)));
   typed_payload->mutable_proto_payload()->set_value(
       command.SerializeAsString());
 
@@ -812,6 +820,8 @@ TEST_F(TransportChannelImplTest,
   auto* typed_payload = downstream->add_typed_payloads();
   typed_payload->set_payload_type(
       ACTUATOR_DOWNSTREAM_PAYLOAD_TYPE_CONTROL_COMMAND);
+  typed_payload->mutable_proto_payload()->set_type_url(
+      std::string(ExpectedTypeUrl(PayloadType::kControl)));
   typed_payload->mutable_proto_payload()->set_value(
       command.SerializeAsString());
 
@@ -1071,6 +1081,82 @@ TEST_F(TransportChannelImplTest,
   EXPECT_EQ(observer.received_downstream.size(), 19u);
   EXPECT_EQ(observer.received_downstream_status[2],
             DownstreamDeliveryStatus::kSuccess);
+}
+
+TEST_F(TransportChannelImplTest,
+       RepeatedBufferFullErrorsSendsCloseSessionAndDestroysSession) {
+  RecordingMessageObserver observer;
+  base::ScopedObservation<TransportChannelImpl, TransportMessageObserver>
+      observation(&observer);
+  observation.Observe(channel_.get());
+
+  TransportSessionRegistryImpl* registry = GetSessionRegistryImpl();
+  registry->CreateSession("s1");
+  fake_client_->Dispatch(SerializedDownstream("s1", 1));
+  ASSERT_NE(registry->GetSession("s1"), nullptr);
+
+  // Fill the reorder buffer with sequences 3..18 while sequence 2 is missing.
+  for (size_t i = 0;
+       i < DownstreamMessageSequencer::kDefaultMaxBufferedMessages; ++i) {
+    fake_client_->Dispatch(
+        SerializedDownstream("s1", static_cast<int64_t>(i + 3)));
+  }
+
+  const int64_t first_overflow_seq = static_cast<int64_t>(
+      DownstreamMessageSequencer::kDefaultMaxBufferedMessages + 3);
+  for (size_t i = 0;
+       i + 1 < TransportSessionImpl::kMaxConsecutiveBufferFullErrors; ++i) {
+    fake_client_->Dispatch(SerializedDownstream(
+        "s1", first_overflow_seq + static_cast<int64_t>(i)));
+    EXPECT_NE(registry->GetSession("s1"), nullptr);
+    EXPECT_TRUE(observer.received.empty());
+  }
+
+  // Delivering missing sequence 2 drains sequences 2..18 and resets the
+  // consecutive buffer-full error counter to 0.
+  fake_client_->Dispatch(SerializedDownstream("s1", 2));
+  EXPECT_NE(registry->GetSession("s1"), nullptr);
+  EXPECT_TRUE(observer.received.empty());
+
+  // Fill the reorder buffer again behind missing `first_overflow_seq` (19).
+  for (size_t i = 0;
+       i < DownstreamMessageSequencer::kDefaultMaxBufferedMessages; ++i) {
+    fake_client_->Dispatch(SerializedDownstream(
+        "s1", first_overflow_seq + 1 + static_cast<int64_t>(i)));
+  }
+
+  // Because the counter was reset when the previous gap drained, fewer than
+  // `kMaxConsecutiveBufferFullErrors` new overflows do not tear down the
+  // session.
+  const int64_t second_overflow_seq =
+      first_overflow_seq + 1 +
+      static_cast<int64_t>(
+          DownstreamMessageSequencer::kDefaultMaxBufferedMessages);
+  for (size_t i = 0;
+       i + 1 < TransportSessionImpl::kMaxConsecutiveBufferFullErrors; ++i) {
+    fake_client_->Dispatch(SerializedDownstream(
+        "s1", second_overflow_seq + static_cast<int64_t>(i)));
+    EXPECT_NE(registry->GetSession("s1"), nullptr);
+    EXPECT_TRUE(observer.received.empty());
+  }
+
+  // Reaching `kMaxConsecutiveBufferFullErrors` without draining the gap sends
+  // `ControlCommand::CloseSession` and destroys the session instead of looping
+  // `ReconnectStream()` indefinitely.
+  fake_client_->Dispatch(SerializedDownstream(
+      "s1",
+      second_overflow_seq +
+          static_cast<int64_t>(
+              TransportSessionImpl::kMaxConsecutiveBufferFullErrors - 1)));
+  EXPECT_EQ(registry->GetSession("s1"), nullptr);
+  ASSERT_EQ(observer.received.size(), 1u);
+  EXPECT_EQ(observer.received[0].first, "s1");
+  ASSERT_EQ(observer.received[0].second.typed_payloads_size(), 1);
+
+  ControlCommand command;
+  ASSERT_TRUE(command.ParseFromString(
+      observer.received[0].second.typed_payloads(0).proto_payload().value()));
+  EXPECT_TRUE(command.has_close_session());
 }
 
 TEST_F(TransportChannelImplTest,
