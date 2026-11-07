@@ -476,7 +476,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling crabbyavif
   # and whatever else without interference from each other.
-  'crabbyavif_revision': 'b8dbde331ce0c76c6a8e9f44ad74526d842aae25',
+  'crabbyavif_revision': '4b8924131a003886d7e09dbc09535b3cd6a2a34a',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling openh264rs
   # and whatever else without interference from each other.
@@ -3806,7 +3806,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        '5917301cbf77714ec2372a7f2c88727117814d5a',
+        '73c57332e784238283b22be9f6cf1b982af4ddf3',
       'condition': 'checkout_src_internal',
   },
 
@@ -3884,7 +3884,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '172954bf3bf32bccb6a035a116e35a0571aa2f28',
+        '6ef7200887fcf40817e5d8a4d6afdeb05e7bee88',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
