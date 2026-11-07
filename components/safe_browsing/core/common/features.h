@@ -134,6 +134,13 @@ extern const base::FeatureParam<bool> kCsdEnforceIos;
 // Killswitch for Llama forced trigger info redirect chain check.
 BASE_DECLARE_FEATURE(kClientSideDetectionForcedLlamaRedirectChainKillswitch);
 
+// Includes inner text from cross-origin and out-of-process iframes during
+// client-side detection intelligent scans.
+BASE_DECLARE_FEATURE(kClientSideDetectionIframeInnerText);
+extern const base::FeatureParam<int> kClientSideDetectionMaxIframesToExtract;
+extern const base::FeatureParam<base::TimeDelta>
+    kClientSideDetectionIframeInnerTextTimeout;
+
 // Enables sending a CSD ping when a page's image embedding matches a
 // target image embedding.
 BASE_DECLARE_FEATURE(kClientSideDetectionImageEmbeddingMatch);
@@ -141,6 +148,10 @@ BASE_DECLARE_FEATURE(kClientSideDetectionImageEmbeddingMatch);
 // embedding match.
 extern const base::FeatureParam<bool>
     kCsdImageEmbeddingMatchWithIntelligentScan;
+
+// Prepends the page title to the extracted inner text sent during client-side
+// detection intelligent scans.
+BASE_DECLARE_FEATURE(kClientSideDetectionIncludeTitleInInnerText);
 
 // Delays and retries KEYBOARD_LOCK_REQUESTED image embedding when the blurred
 // viewport image is uniform (e.g. blank white or black).

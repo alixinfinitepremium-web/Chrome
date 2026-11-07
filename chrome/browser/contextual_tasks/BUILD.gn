@@ -364,6 +364,7 @@ source_set("ui") {
       "//chrome/browser/ui/views/permissions/chip",
       "//chrome/browser/ui/views/permissions/chip:impl",
       "//chrome/browser/ui/views/side_panel",
+      "//components/infobars/core",
     ]
   }
 
@@ -430,6 +431,10 @@ source_set("tab_restore") {
   ]
 }
 
+proto_library("list_accounts_proto") {
+  sources = [ "list_accounts_response.proto" ]
+}
+
 source_set("ui_impl") {
   sources = [
     "contextual_search_session_finder.cc",
@@ -459,6 +464,7 @@ source_set("ui_impl") {
   ]
   deps = [
     ":impl",
+    ":list_accounts_proto",
     ":tab_restore",
     ":ui",
     ":user_data",
@@ -507,6 +513,8 @@ source_set("ui_impl") {
     "//components/contextual_tasks/public:feature_list",
     "//components/embedder_support:user_agent",
     "//components/favicon_base",
+    "//components/infobars/content",
+    "//components/infobars/core",
     "//components/input",
     "//components/keyed_service/core",
     "//components/lens",
@@ -568,8 +576,10 @@ source_set("ui_impl") {
       "//chrome/browser/ui/views:bubble_anchor_util_views",
       "//chrome/browser/ui/views/bubble",
       "//chrome/browser/ui/views/contextual_tasks:onboarding_bubble",
+      "//chrome/browser/ui/views/infobars",
       "//chrome/browser/ui/views/interaction",
       "//chrome/browser/ui/views/page_info",
+      "//chrome/browser/ui/views/site_data",
       "//chrome/browser/ui/views/user_education",
       "//chrome/browser/ui/webui",
       "//chrome/browser/ui/webui/webui_toolbar:layout_css_helper",
@@ -836,6 +846,7 @@ source_set("unit_tests") {
   deps = [
     ":contextual_tasks",
     ":impl",
+    ":list_accounts_proto",
     ":tab_restore",
     ":test_support",
     ":ui",
@@ -1060,14 +1071,18 @@ source_set("interactive_ui_tests") {
       "//chrome/browser/ui/toolbar/pinned_toolbar",
       "//chrome/browser/ui/views/contextual_tasks:onboarding_bubble",
       "//chrome/browser/ui/views/frame:browser_view_header",
+      "//chrome/browser/ui/views/infobars",
       "//chrome/browser/ui/views/page_info",
       "//chrome/browser/ui/views/site_data",
       "//chrome/browser/ui/views/toolbar",
       "//chrome/browser/ui/views/toolbar:test_support",
       "//chrome/browser/ui/webui/new_tab_page/composebox/variations",
       "//chrome/browser/ui/webui/searchbox:searchbox_test_utils",
+      "//components/browsing_data/content",
       "//components/content_settings/browser",
       "//components/contextual_search:test_support",
+      "//components/infobars/content",
+      "//components/infobars/core",
       "//components/lens:enterprise_policy",
       "//components/strings:components_strings",
       "//extensions/common",

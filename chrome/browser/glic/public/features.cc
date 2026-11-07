@@ -255,7 +255,7 @@ BASE_FEATURE(kGeicActuation, base::FEATURE_DISABLED_BY_DEFAULT);
 
 BASE_FEATURE(kGeicSsr, base::FEATURE_DISABLED_BY_DEFAULT);
 
-BASE_FEATURE(kGeicProviderChangePrompt, base::FEATURE_DISABLED_BY_DEFAULT);
+BASE_FEATURE(kGeicProviderChangePrompt, FEATURE_ENABLED_BY_DEFAULT_NON_ANDROID);
 
 const base::FeatureParam<std::string> kGeicGuestURL{&kGeic, "geic-guest-url",
                                                     ""};
@@ -340,6 +340,11 @@ BASE_FEATURE(kGlicActivityHub, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kGlicExperimentalTriggeringOsNotificationUpdatedStrings,
              FEATURE_ENABLED_BY_DEFAULT_NON_ANDROID);
 
+BASE_FEATURE(kGlicRecordPeriodicInstanceCountMetrics,
+             // Enabled on all platforms including BUILDFLAG(IS_ANDROID);
+             // cpp_feature_parser requires a literal FeatureState constant.
+             base::FEATURE_ENABLED_BY_DEFAULT);
+
 BASE_FEATURE(kGlicWhatsNewLuminous, base::FEATURE_DISABLED_BY_DEFAULT);
 
 BASE_FEATURE(kGlicForceFcmExperimentalTriggerFailure,
@@ -353,4 +358,6 @@ const base::FeatureParam<base::TimeDelta>
     kGlicExperimentalTriggeringNavigationReconnectGracePeriod{
         &kGlicExperimentalTriggeringNavigationReconnectGrace, "grace_period",
         base::Seconds(10)};
+
+BASE_FEATURE(kGlicAskGeminiWayfinding, base::FEATURE_DISABLED_BY_DEFAULT);
 }  // namespace features

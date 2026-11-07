@@ -4063,13 +4063,18 @@ const FeatureEntry::FeatureParam kAndroidBottomBarEducationArm1Params[] = {
     {"show_glic_setting_toggle", "true"},
     {"show_settings_toggle", "true"}};
 const FeatureEntry::FeatureParam kAndroidBottomBarEducationArm2Params[] = {
-    {"default_user_enabled", "true"},     {"education_enabled", "true"},
-    {"education_gemini_focused", "true"}, {"keep_app_menu_in_toolbar", "true"},
-    {"show_glic_setting_toggle", "true"}, {"show_settings_toggle", "true"}};
+    {"default_user_enabled", "true"},
+    {"education_enabled", "true"},
+    {"education_gemini_focused", "true"},
+    {"keep_app_menu_in_toolbar", "true"},
+    {"remove_top_padding_for_bottom_omnibox", "false"},
+    {"show_glic_setting_toggle", "true"},
+    {"show_settings_toggle", "true"}};
 const FeatureEntry::FeatureParam kAndroidBottomBarEducationArm3Params[] = {
     {"default_user_enabled", "true"},     {"education_enabled", "true"},
     {"education_gemini_focused", "true"}, {"keep_app_menu_in_toolbar", "false"},
-    {"show_glic_setting_toggle", "true"}, {"show_settings_toggle", "true"}};
+    {"show_domain_only", "true"},         {"show_glic_setting_toggle", "true"},
+    {"show_settings_toggle", "true"}};
 const FeatureEntry::FeatureParam kAndroidBottomBarEducationArm4Params[] = {
     {"default_user_enabled", "false"},
     {"education_enabled", "true"},
@@ -4096,7 +4101,7 @@ const FeatureEntry::FeatureVariation kAndroidBottomBarVariations[] = {
      kAndroidBottomBarEducationArm1Params, nullptr},
     {"- Education Arm 2 (Opt-out, 4 buttons, Gemini)",
      kAndroidBottomBarEducationArm2Params, nullptr},
-    {"- Education Arm 3 (Opt-out, 5 buttons, Gemini)",
+    {"- Education Arm 3 (Opt-out, 5 buttons, Gemini + Origin)",
      kAndroidBottomBarEducationArm3Params, nullptr},
     {"- Education Arm 4 (Opt-in, 5 buttons, Ergonomics)",
      kAndroidBottomBarEducationArm4Params, nullptr},
@@ -7215,6 +7220,11 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kOmniboxVoicePlateIntentDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(omnibox::kOmniboxVoicePlateIntent)},
 
+    {"omnibox-native-vector-icons",
+     flag_descriptions::kOmniboxNativeVectorIconsName,
+     flag_descriptions::kOmniboxNativeVectorIconsDescription, kOsAndroid,
+     FEATURE_VALUE_TYPE(omnibox::kOmniboxNativeVectorIcons)},
+
     {"omnibox-post-frame-autocomplete-start",
      flag_descriptions::kOmniboxPostFrameAutocompleteStartName,
      flag_descriptions::kOmniboxPostFrameAutocompleteStartDescription,
@@ -8038,10 +8048,6 @@ const FeatureEntry kFeatureEntries[] = {
     {"android-settings-url", flag_descriptions::kAndroidSettingsUrlName,
      flag_descriptions::kAndroidSettingsUrlDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(chrome::android::kAndroidSettingsUrl)},
-
-    {"android-setup-list", flag_descriptions::kAndroidSetupListName,
-     flag_descriptions::kAndroidSetupListDescription, kOsAndroid,
-     FEATURE_VALUE_TYPE(chrome::android::kAndroidSetupList)},
 
     {"android-tab-ui-refactor", flag_descriptions::kAndroidTabUiRefactorName,
      flag_descriptions::kAndroidTabUiRefactorDescription, kOsAndroid,
@@ -11149,10 +11155,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kGlicChromeStatusIconWinName,
      flag_descriptions::kGlicChromeStatusIconWinDescription, kOsWin,
      FEATURE_VALUE_TYPE(features::kGlicChromeStatusIconWin)},
-    {"glic-daisy-chain-new-tabs", flag_descriptions::kGlicDaisyChainNewTabsName,
-     flag_descriptions::kGlicDaisyChainNewTabsDescription,
-     kOsDesktop | kOsAndroid,
-     FEATURE_VALUE_TYPE(features::kGlicDaisyChainNewTabs)},
     {"glic-toolbar-height-side-panel",
      flag_descriptions::kGlicUseToolbarHeightSidePanelName,
      flag_descriptions::kGlicUseToolbarHeightSidePanelDescription, kOsDesktop,
@@ -14475,6 +14477,13 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kAutofillAiSpiiVerificationName,
      flag_descriptions::kAutofillAiSpiiVerificationDescription, kOsAll,
      FEATURE_VALUE_TYPE(autofill::features::kAutofillAiSpiiVerification)},
+
+#if BUILDFLAG(IS_ANDROID)
+    {"android-bookmark-bar-ui-controller",
+     flag_descriptions::kAndroidBookmarkBarUiControllerName,
+     flag_descriptions::kAndroidBookmarkBarUiControllerDescription, kOsAndroid,
+     FEATURE_VALUE_TYPE(chrome::android::kAndroidBookmarkBarUiController)},
+#endif  // BUILDFLAG(IS_ANDROID)
 
     // Add new entries above this line.
     // NOTE: Adding a new flag requires adding a corresponding entry to enum

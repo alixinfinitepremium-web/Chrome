@@ -72,6 +72,10 @@
 #include "chrome/browser/ui/views/frame/browser_view.h"
 #include "chrome/browser/ui/views/page_info/page_info_bubble_specification.h"
 #include "chrome/browser/ui/views/page_info/page_info_bubble_view.h"
+#include "chrome/browser/ui/views/site_data/page_specific_site_data_dialog_controller.h"
+#include "components/infobars/content/content_infobar_manager.h"
+#include "components/infobars/core/infobar.h"
+#include "components/infobars/core/infobar_delegate.h"
 #if BUILDFLAG(ENABLE_EXTENSIONS_CORE)
 #include "chrome/browser/contextual_tasks/contextual_tasks_extensions_container.h"
 #endif
@@ -270,6 +274,13 @@ void RecordCacheItemSessionEndMetrics(
     base::TimeDelta duration =
         base::TimeTicks::Now() - cache_item.open_time_ticks;
     base::UmaHistogramLongTimes("ContextualTasks.Session.Duration.AioToCobr",
+                                duration);
+  } else if (cache_item.entry_source ==
+             contextual_tasks::ContextualTasksPanelController::EntrySource::
+                 kAbaOnRamp) {
+    base::TimeDelta duration =
+        base::TimeTicks::Now() - cache_item.open_time_ticks;
+    base::UmaHistogramLongTimes("ContextualTasks.Session.Duration.AbaOnRamp",
                                 duration);
   } else if (cache_item.entry_source ==
              contextual_tasks::ContextualTasksPanelController::EntrySource::
@@ -624,6 +635,9 @@ void ContextualTasksSidePanelCoordinator::Show(
   } else if (entry_point ==
              omnibox::ChromeAimEntryPoint::DESKTOP_CHROME_COBROWSE_AIO_LINK) {
     entry_source = ContextualTasksPanelController::EntrySource::kAioToCobr;
+  } else if (entry_point ==
+             omnibox::ChromeAimEntryPoint::DESKTOP_CHROME_ABA_ONRAMP_IPH) {
+    entry_source = ContextualTasksPanelController::EntrySource::kAbaOnRamp;
   } else if (is_continuing_existing_thread) {
     entry_source =
         ContextualTasksPanelController::EntrySource::kPermanentToolbarButton;
@@ -1195,7 +1209,8 @@ void ContextualTasksSidePanelCoordinator::UnshareTabs(
     target_web_contents.push_back(active_contents);
   }
 
-  // 2. Also include any open browser tabs hosting a full-tab AI Mode thread.
+  // 2. Also include any open browser tabs hosting a full-tab AI Mode session
+  // (including zero-state tabs that do not have a task ID yet).
   if (browser_window_) {
     if (auto* tab_list = TabListInterface::From(browser_window_)) {
       for (tabs::TabInterface* tab : tab_list->GetAllTabs()) {
@@ -1204,7 +1219,9 @@ void ContextualTasksSidePanelCoordinator::UnshareTabs(
             tab_contents ? ContextualTasksWebContentsUserData::FromWebContents(
                                tab_contents)
                          : nullptr;
-        if (user_data && user_data->GetEffectiveTaskId().has_value() &&
+        if (user_data &&
+            (user_data->GetEffectiveTaskId().has_value() ||
+             user_data->GetExistingContextualSessionHandle()) &&
             !std::ranges::contains(target_web_contents, tab_contents)) {
           target_web_contents.push_back(tab_contents);
         }
@@ -1726,6 +1743,34 @@ void ContextualTasksSidePanelCoordinator::OnAccountsInCookieUpdated(
       !accounts_in_cookie_jar_info.GetPotentiallyInvalidSignedInAccounts()
            .empty();
   if (was_signed_in_to_web && !is_signed_in_to_web_) {
+#if !BUILDFLAG(IS_ANDROID)
+    // Do not auto-refresh the side panel when the user deletes sign-in cookies
+    // directly from the side panel's "On-device site data" dialog; instead,
+    // let the dialog show the standard reload infobar prompt when closed.
+    auto has_site_data_dialog_or_reload_prompt = [](content::WebContents* wc) {
+      if (!wc) {
+        return false;
+      }
+      if (PageSpecificSiteDataDialogController::FromWebContents(wc)) {
+        return true;
+      }
+      if (auto* infobar_manager =
+              infobars::ContentInfoBarManager::FromWebContents(wc)) {
+        return std::ranges::any_of(
+            infobar_manager->infobars(), [](const infobars::InfoBar* infobar) {
+              return infobar->GetIdentifier() ==
+                     infobars::InfoBarDelegate::
+                         COLLECTED_COOKIES_INFOBAR_DELEGATE;
+            });
+      }
+      return false;
+    };
+    if (has_site_data_dialog_or_reload_prompt(GetActiveWebContents()) ||
+        std::ranges::any_of(GetPanelWebContentsList(),
+                            has_site_data_dialog_or_reload_prompt)) {
+      return;
+    }
+#endif
     ResetWebContentsToZeroStateAfterWebSignOut();
   }
 }
@@ -2977,6 +3022,10 @@ void ContextualTasksSidePanelCoordinator::OnSurfaceStateChanged(
           case EntrySource::kAioToCobr:
             RecordUserActionAndHistogram(
                 "ContextualTasks.SidePanel.UserAction.Close.AioToCobr");
+            break;
+          case EntrySource::kAbaOnRamp:
+            RecordUserActionAndHistogram(
+                "ContextualTasks.SidePanel.UserAction.Close.AbaOnRamp");
             break;
           case EntrySource::kAskGoogle:
             RecordUserActionAndHistogram(

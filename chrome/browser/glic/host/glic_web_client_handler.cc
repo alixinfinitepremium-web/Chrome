@@ -1032,6 +1032,10 @@ class GlicWebClientHandler
   void CreateExperimentalTriggeringClient(
       mojo::PendingRemote<mojom::ExperimentalTriggeringClient> client)
       override {
+    if (!glic_service_->provider_spec().SupportsFeature(
+            GlicFeature::kExperimentalTriggering)) {
+      return;
+    }
     if (auto* manager =
             host().instance_delegate().GetExperimentalTriggeringManager()) {
       manager->Bind(std::move(client));
@@ -1605,6 +1609,11 @@ class GlicWebClientHandler
   void OnActionSubmitted(bool is_retry) override {
     LogApiRequest(GlicHostApiRequestId::kOnActionSubmitted);
     host().instance_metrics().OnActionSubmitted(is_retry);
+  }
+
+  void OnTooltipImpression(mojom::TooltipImpressionType impression) override {
+    LogApiRequest(GlicHostApiRequestId::kOnTooltipImpression);
+    host().instance_metrics().OnTooltipImpression(impression);
   }
 
   void SetSyntheticExperimentState(const std::string& trial_name,

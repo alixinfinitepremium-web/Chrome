@@ -7,6 +7,7 @@
 
 #include <memory>
 
+#include "base/callback_list.h"
 #include "base/cancelable_callback.h"
 #include "base/memory/weak_ptr.h"
 #include "base/scoped_multi_source_observation.h"
@@ -34,6 +35,10 @@ class OmniboxPopupWebUIBaseContent;
 template <typename T>
 class WebUIContentsWrapperT;
 
+namespace ui {
+class TrackedElement;
+}  // namespace ui
+
 // Implements subclass of OmniboxPopupPresenterBase to present a single full
 // WebUI (input row + suggestions dropdown) into the Omnibox popup.
 class OmniboxPopupFullPresenter : public OmniboxPopupPresenterBase,
@@ -51,6 +56,25 @@ class OmniboxPopupFullPresenter : public OmniboxPopupPresenterBase,
       delete;
   ~OmniboxPopupFullPresenter() override;
 
+  // Where keyboard focus goes when `DeactivatePopupAndKillFocus()` blurs the
+  // omnibox.
+  enum class FocusAfterBlur {
+    // The web contents, e.g. after the user clicked into the page.
+    kWebContents,
+    // Nowhere. Another window, such as a bubble, took activation, so only
+    // Views focus is cleared, as focusing the web contents would reactivate
+    // this window.
+    kNone,
+    // Wherever it already is. Another view in the browser window took focus,
+    // so it's left there.
+    kCurrent,
+  };
+
+  // Blurs the omnibox and closes the popup unless it holds a draft, i.e. user
+  // text or keyword mode. See `FocusAfterBlur` for what happens to the browser
+  // window's focus.
+  void DeactivatePopupAndKillFocus(FocusAfterBlur focus_after_blur);
+
   // OmniboxPopupPresenterBase:
   void Show() override;
   void Hide() override;
@@ -61,15 +85,6 @@ class OmniboxPopupFullPresenter : public OmniboxPopupPresenterBase,
   // focus back from the WebUI input field.
   void RequestFocus() override;
   std::string_view GetPopupMetricPrefix() const override;
-
-  std::optional<base::TimeDelta> ShouldDeferUntilVisualStateReady()
-      const override;
-  bool ShouldDebounceResize() const override;
-  bool ShouldApplyHeightWorkarounds() const override;
-  bool ShouldDetachWebContentsOnHide() const override;
-  bool ShouldEvictOnHide() const override;
-  bool ShouldSizeWebViewToPreferredHeight() const override;
-  bool ShouldDrawShadowInWebUI() const override;
 
   bool ShouldReceiveFocus() const override;
 
@@ -96,20 +111,6 @@ class OmniboxPopupFullPresenter : public OmniboxPopupPresenterBase,
   OmniboxFullPopupWebUIContent* GetWebUIContent();
 
  private:
-  // Where keyboard focus goes when `DeactivatePopupAndKillFocus()` blurs the
-  // omnibox.
-  enum class FocusAfterBlur {
-    // The web contents, e.g. after the user clicked into the page.
-    kWebContents,
-    // Nowhere. Another window, such as a bubble, took activation, so only
-    // Views focus is cleared, as focusing the web contents would reactivate
-    // this window.
-    kNone,
-    // Wherever it already is. Another view in the browser window took focus,
-    // so it's left there.
-    kCurrent,
-  };
-
   // views::WidgetObserver:
   // Observes the browser widget's activation (to keep the location bar as its
   // stored focus view while the popup is active) and the popup widget's own
@@ -152,13 +153,10 @@ class OmniboxPopupFullPresenter : public OmniboxPopupPresenterBase,
 
   // Focuses the native Views content, underlying WebContents, and DOM input.
   void FocusPopupContent();
-  // Blurs the omnibox and closes the popup unless it holds a draft, i.e. user
-  // text or keyword mode. See `FocusAfterBlur` for what happens to the browser
-  // window's focus.
-  void DeactivatePopupAndKillFocus(FocusAfterBlur focus_after_blur);
   // Blurs the omnibox unless the browser window, including the popup, is
   // active. Any other window taking activation, including a bubble anchored to
-  // the browser window, blurs it, as with the Views omnibox.
+  // the browser window, blurs it, as with the Views omnibox. On ChromeOS, the
+  // system emoji picker is the exception, until it closes.
   void BlurIfBrowserOrPopupInactive();
   // If the omnibox is focused with the full popup open, blurs it after another
   // window, such as a bubble, took activation, and sets what the browser window
@@ -168,6 +166,14 @@ class OmniboxPopupFullPresenter : public OmniboxPopupPresenterBase,
   // open. Runs after the browser window or popup is activated while
   // `refocus_on_activation_` is set.
   void RefocusAfterActivation();
+
+#if BUILDFLAG(IS_CHROMEOS)
+  // Returns whether the system emoji picker is shown, e.g. after picking Emoji
+  // in the omnibox's context menu.
+  static bool IsEmojiPickerShown();
+  // Checks again whether to blur the omnibox once the emoji picker closes.
+  void OnEmojiPickerHidden(ui::TrackedElement* element);
+#endif  // BUILDFLAG(IS_CHROMEOS)
 
   // Returns whether the popup shows only its input row, with nothing painted
   // below the location bar.
@@ -243,6 +249,12 @@ class OmniboxPopupFullPresenter : public OmniboxPopupPresenterBase,
   // which refocuses the popup, or when the omnibox is blurred or the popup is
   // hidden.
   bool refocus_on_activation_ = false;
+
+#if BUILDFLAG(IS_CHROMEOS)
+  // Set while the omnibox is kept focused for the emoji picker. See
+  // `BlurIfBrowserOrPopupInactive()`.
+  base::CallbackListSubscription emoji_picker_hidden_subscription_;
+#endif  // BUILDFLAG(IS_CHROMEOS)
 
   // Keeps the browser window painting as active while the popup is active, and
   // until a posted task after the browser window or popup deactivates.

@@ -1471,10 +1471,6 @@ inline constexpr char kAndroidSettingsUrlName[] = "Android Settings URL";
 inline constexpr char kAndroidSettingsUrlDescription[] =
     "Enables the use of chrome://settings on Android.";
 
-inline constexpr char kAndroidSetupListName[] = "Android Setup List";
-inline constexpr char kAndroidSetupListDescription[] =
-    "Enables the Android Setup List feature.";
-
 inline constexpr char kAndroidTabUiRefactorName[] = "Android Tab UI Refactor";
 inline constexpr char kAndroidTabUiRefactorDescription[] =
     "Enables Tab UI refactoring on Android. For example, modeling tab group "
@@ -2027,11 +2023,6 @@ inline constexpr char kGlicWarmingName[] = "Glic Pre-Warming";
 inline constexpr char kGlicWarmingDescription[] =
     "Enables the pre-warming of the Glic panel's web client.";
 
-inline constexpr char kGlicDaisyChainNewTabsName[] =
-    "Glic Daisy chain new tabs";
-inline constexpr char kGlicDaisyChainNewTabsDescription[] =
-    "Daisy chains new tabs if the active tab when the new tab was create has an"
-    " open glic side panel";
 inline constexpr char kGlicUseToolbarHeightSidePanelName[] =
     "Glic Use Toolbar Height Side Panel";
 inline constexpr char kGlicUseToolbarHeightSidePanelDescription[] =
@@ -3923,6 +3914,13 @@ inline constexpr char kOmniboxSiteSearchName[] = "Omnibox Site Search";
 inline constexpr char kOmniboxSiteSearchDescription[] =
     "Enables keyword-based site search functionality on Android devices";
 
+inline constexpr char kOmniboxNativeVectorIconsName[] =
+    "Omnibox Native Vector Icons";
+inline constexpr char kOmniboxNativeVectorIconsDescription[] =
+    "Sources Omnibox suggestion icons from the native vector icon definitions "
+    "shared with desktop, rasterized on demand, instead of Android XML "
+    "drawables";
+
 inline constexpr char kOmniboxVoicePlateIntentName[] =
     "Omnibox Voice Plate Intent";
 inline constexpr char kOmniboxVoicePlateIntentDescription[] =
@@ -5507,6 +5505,12 @@ inline constexpr char kAndroidBookmarkBarDragDropName[] =
     "Android Bookmark Bar Drag Drop";
 inline constexpr char kAndroidBookmarkBarDragDropDescription[] =
     "Enables the Android Bookmark Bar Drag Drop feature.";
+
+inline constexpr char kAndroidBookmarkBarUiControllerName[] =
+    "Android Bookmark Bar UI Controller";
+inline constexpr char kAndroidBookmarkBarUiControllerDescription[] =
+    "Opens bookmarks clicked on the bookmark bar through the shared C++ "
+    "bookmark bar UI controller.";
 
 inline constexpr char kAndroidBricksNativePageName[] =
     "Android Bricks Native Page";

@@ -94,10 +94,12 @@ DEFINE_CLASS_ELEMENT_IDENTIFIER_VALUE(OmniboxPopupPresenterBase,
 OmniboxPopupPresenterBase::OmniboxPopupPresenterBase(
     LocationBar* location_bar,
     OmniboxPopupPresenterDelegate& presenter_delegate,
-    OmniboxController* controller)
+    OmniboxController* controller,
+    OmniboxPopupContentConfig config)
     : location_bar_(location_bar),
       presenter_delegate_(presenter_delegate),
-      controller_(controller) {
+      controller_(controller),
+      config_(config) {
   owned_omnibox_popup_webui_container_ =
       views::Builder<views::View>().SetUseDefaultFillLayout(true).Build();
 }
@@ -159,7 +161,7 @@ void OmniboxPopupPresenterBase::Show() {
     content->GetWebContents()->WasShown();
 
     auto show_request_time = base::TimeTicks::Now();
-    auto timeout = ShouldDeferUntilVisualStateReady();
+    auto timeout = config_.defer_until_visual_state;
     base::TimeTicks result_ready_time =
         controller()->autocomplete_controller()->result().result_ready_time();
     is_deferred_ = timeout.has_value();
@@ -370,7 +372,7 @@ bool OmniboxPopupPresenterBase::IsShown() const {
 }
 
 void OmniboxPopupPresenterBase::OnContentHeightChanged(int content_height) {
-  if (ShouldDrawShadowInWebUI()) {
+  if (config_.draw_shadow_in_webui) {
     // The WebUI reserves the shadow margin inside its own document, so the
     // reported height includes it. Strip it back out so `content_height_`
     // keeps meaning "height of the popup content"; `SynchronizePopupBounds()`
@@ -788,10 +790,6 @@ bool OmniboxPopupPresenterBase::ShouldShowLocationBarCutout() const {
   return false;
 }
 
-bool OmniboxPopupPresenterBase::ShouldDrawShadowInWebUI() const {
-  return false;
-}
-
 bool OmniboxPopupPresenterBase::CompletedFirstVisuallyNonEmptyPaint() {
   if (completed_first_visually_non_empty_paint_for_testing_.has_value()) {
     return *completed_first_visually_non_empty_paint_for_testing_;
@@ -889,7 +887,7 @@ void OmniboxPopupPresenterBase::PrimaryPageChanged(content::Page& page) {
     auto* webui_controller = wrapper ? wrapper->GetWebUIController() : nullptr;
 
     if (webui_controller) {
-      webui_controller->SetPresenterDelegate(this);
+      webui_controller->SetSearchboxHandlerDelegate(this);
     }
   }
 }
@@ -932,6 +930,10 @@ void OmniboxPopupPresenterBase::OnEmbeddedPermissionDialogChanged(
 
 OmniboxController* OmniboxPopupPresenterBase::GetOmniboxController() {
   return controller();
+}
+
+const gfx::Size& OmniboxPopupPresenterBase::GetPopupMinimumSize() const {
+  return minimum_size_;
 }
 
 OmniboxPopupPresenterBase::ScopedDeactivationBlocker::ScopedDeactivationBlocker(

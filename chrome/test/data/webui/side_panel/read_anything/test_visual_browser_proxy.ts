@@ -10,7 +10,6 @@ export class TestVisualBrowserProxy extends TestBrowserProxy implements
     VisualBrowserProxy {
   onPinStateReceived = new FakeChromeEvent();
   onPresentationStateReceived = new FakeChromeEvent();
-  onAwaitingTranslationChanged = new FakeChromeEvent();
   restoreSettingsFromPrefs = new FakeChromeEvent();
 
   inSidePanelPresentationState: number = 1;
@@ -41,7 +40,6 @@ export class TestVisualBrowserProxy extends TestBrowserProxy implements
   activeDistillationMethod: number = 0;
   distillationTypeScreen2x: number = 0;
   distillationTypeReadability: number = 1;
-  lineFocusEnabled: boolean = true;
   lineFocusOn: boolean = false;
   lineFocusOff: number = 50;
   lineFocusSmallStaticWindow: number = 51;
@@ -56,7 +54,6 @@ export class TestVisualBrowserProxy extends TestBrowserProxy implements
   lineFocusLastNonDisabledValue: number = 50;
   activePresentationState: number = 1;
   pdf: boolean = false;
-  awaitingTranslation: boolean = false;
   originalPageMetrics: OriginalPageMetrics = {
     hasMathML: false,
     maybeHasKeyPoints: false,
@@ -137,7 +134,6 @@ export class TestVisualBrowserProxy extends TestBrowserProxy implements
       'isLinksEnabled',
       'getActivePresentationState',
       'isPdf',
-      'isAwaitingTranslation',
       'getMaxLineWidth',
       'getOriginalPageMetrics',
       'getKeyPointsRegex',
@@ -389,11 +385,6 @@ export class TestVisualBrowserProxy extends TestBrowserProxy implements
   isPdf(): boolean {
     this.methodCalled('isPdf');
     return this.pdf;
-  }
-
-  isAwaitingTranslation(): boolean {
-    this.methodCalled('isAwaitingTranslation');
-    return this.awaitingTranslation;
   }
 
   getOriginalPageMetrics(): OriginalPageMetrics {

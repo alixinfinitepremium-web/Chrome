@@ -4638,8 +4638,7 @@
                     "enable_features": [
                         "GestureUserEducationBackSwipe",
                         "IPH_GestureUserEducation",
-                        "IPH_ThreeDotMenuBackButton",
-                        "ThreeDotMenuBackButton"
+                        "IPH_ThreeDotMenuBackButton"
                     ]
                 }
             ]
@@ -5249,6 +5248,27 @@
             ]
         }
     ],
+    "ComposeboxPersistentAimButton": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "RealboxOmniboxStatefulAimButtonWithXClickOut_20261106",
+                    "enable_features": [
+                        "ComposeboxPersistentAimButtonOmnibox",
+                        "ComposeboxPersistentAimButtonRealbox",
+                        "ComposeboxPersistentAimButtonWithX",
+                        "ComposeboxRealboxOutsideClick"
+                    ]
+                }
+            ]
+        }
+    ],
     "ComposeboxUnselectMatchOnTabExit": [
         {
             "platforms": [
@@ -5553,6 +5573,29 @@
                     "enable_features": [
                         "ContextualTasksClobberActiveTab",
                         "ContextualTasksSidePanelTabState"
+                    ]
+                }
+            ]
+        }
+    ],
+    "ContextualTasksUpdatedEntryPoints": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "EnabledWithSidePanelRouting",
+                    "params": {
+                        "ContextualTasksContextMenuRouteAskGoogleToOmnibox": "false",
+                        "ContextualTasksContextMenuShowAskGoogle": "true",
+                        "ContextualTasksContextMenuSubmenu": "false"
+                    },
+                    "enable_features": [
+                        "ContextualTasksUpdatedEntryPoints"
                     ]
                 }
             ]
@@ -10588,6 +10631,23 @@
             ]
         }
     ],
+    "IOSGeminiBottomSheetMigration": [
+        {
+            "platforms": [
+                "ios"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "AssistantContainer",
+                        "IOSGeminiBottomSheetMigration",
+                        "ZeroStateSuggestionsCentralization"
+                    ]
+                }
+            ]
+        }
+    ],
     "IOSGeminiContextualSuggestionsCues": [
         {
             "platforms": [
@@ -12381,11 +12441,7 @@
     "NewVoiceSearchUiInNtpRealbox": [
         {
             "platforms": [
-                "android",
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
+                "android"
             ],
             "form_factors": [
                 "desktop"
@@ -12393,6 +12449,29 @@
             "experiments": [
                 {
                     "name": "Arm4_Transcript_AutoEndpoint_20260923",
+                    "params": {
+                        "VoiceSearchCoherenceRealboxAutoEndpoint": "true",
+                        "VoiceSearchCoherenceRealboxHelperText": "true",
+                        "VoiceSearchCoherenceSearchboxWithLiveTranscription": "true"
+                    },
+                    "enable_features": [
+                        "VoiceSearchCoherenceSearchbox"
+                    ]
+                }
+            ]
+        }
+    ],
+    "NewVoiceSearchUiInNtpRealboxV2": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Arm4_Transcript_AutoEndpoint_20261105",
                     "params": {
                         "VoiceSearchCoherenceRealboxAutoEndpoint": "true",
                         "VoiceSearchCoherenceRealboxHelperText": "true",
@@ -13367,6 +13446,28 @@
                     "enable_features": [
                         "OnDeviceCategoryClassifier",
                         "PassageEmbedder"
+                    ]
+                }
+            ]
+        }
+    ],
+    "OnDeviceModelAsrTokenStability": [
+        {
+            "platforms": [
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "params": {
+                        "interim_release_silence_ms": "300",
+                        "interim_stability_steps": "2",
+                        "interim_token_holdback": "0"
+                    },
+                    "enable_features": [
+                        "OnDeviceModelAsrTokenStability"
                     ]
                 }
             ]
@@ -19339,25 +19440,6 @@
                         "VerifyDidCommitParams"
                     ],
                     "disable_features": []
-                }
-            ]
-        }
-    ],
-    "VerifyQWACsRollout": [
-        {
-            "platforms": [
-                "android",
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "VerifyQWACs"
-                    ]
                 }
             ]
         }

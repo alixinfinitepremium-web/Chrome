@@ -26,10 +26,12 @@
 #include "chrome/browser/ui/browser_element_identifiers.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
 #include "chrome/browser/ui/lens/lens_search_controller.h"
+#include "chrome/browser/ui/views/infobars/infobar_container_view.h"
 #include "chrome/browser/ui/webui/webui_embedding_context.h"
 #include "chrome/common/webui_url_constants.h"
 #include "components/contextual_tasks/public/contextual_task.h"
 #include "components/contextual_tasks/public/features.h"
+#include "components/infobars/content/content_infobar_manager.h"
 #include "components/lens/lens_overlay_dismissal_source.h"
 #include "components/tabs/public/tab_interface.h"
 #include "components/web_modal/web_contents_modal_dialog_manager.h"
@@ -149,6 +151,9 @@ ContextualTasksWebView::ContextualTasksWebView(
           GURL(chrome::kChromeUIContextualTasksToolbarURL));
     }
 
+    infobar_container_ =
+        AddChildView(std::make_unique<InfoBarContainerView>(this));
+
     auto content_container = std::make_unique<views::View>();
     content_container->SetLayoutManager(std::make_unique<views::FillLayout>());
     content_container->SetBackground(
@@ -201,6 +206,9 @@ ContextualTasksWebView::~ContextualTasksWebView() {
       scrim_view_->SetWebContents(nullptr);
     }
   }
+  if (infobar_container_) {
+    infobar_container_->ChangeInfoBarManager(nullptr);
+  }
   SetWebContents(nullptr);
 }
 
@@ -229,6 +237,13 @@ void ContextualTasksWebView::SetWebContents(content::WebContents* wc) {
   content_web_view_->SetWebContents(wc);
 
   if (IsContextualTasksSidePanelRearchitectureEnabled()) {
+    if (wc) {
+      infobars::ContentInfoBarManager::CreateForWebContents(wc);
+    }
+    if (infobar_container_) {
+      infobar_container_->ChangeInfoBarManager(
+          wc ? infobars::ContentInfoBarManager::FromWebContents(wc) : nullptr);
+    }
     ignore_next_stop_loading_for_about_blank_ = false;
     Observe(wc);
     UpdateToolbarStateFromWebContents(wc);
@@ -259,7 +274,9 @@ void ContextualTasksWebView::SetWebContents(content::WebContents* wc) {
   }
 
   if (wc) {
-    wc->WasShown();
+    if (GetWidget()) {
+      wc->WasShown();
+    }
     wc->SetDelegate(this);
     extensions::SetViewType(wc, extensions::mojom::ViewType::kComponent);
   }
@@ -303,6 +320,12 @@ void ContextualTasksWebView::SetErrorPageVisible(bool visible) {
 bool ContextualTasksWebView::IsErrorPageVisible() const {
   return scrim_view_ && scrim_view_->GetVisible() &&
          scrim_view_->is_showing_error_page();
+}
+
+void ContextualTasksWebView::AddedToWidget() {
+  if (content_web_view_ && content_web_view_->web_contents()) {
+    content_web_view_->web_contents()->WasShown();
+  }
 }
 
 void ContextualTasksWebView::OnThemeChanged() {
@@ -459,10 +482,8 @@ void ContextualTasksWebView::DidFinishNavigation(
     if (was_on_srp && ui_service->IsAiUrl(navigation_handle->GetURL())) {
       if (auto* tab = browser_window_->GetActiveTabInterface()) {
         if (auto* controller = LensSearchController::From(tab)) {
-          // TODO(crbug.com/566315172): Update to a dedicated dismissal source
-          // for SRP to AIM transitions.
-          controller->CloseLensAsync(
-              lens::LensOverlayDismissalSource::kContextualTasksQuerySubmitted);
+          controller->CloseLensAsync(lens::LensOverlayDismissalSource::
+                                         kContextualTasksSrpToAimTransition);
         }
       }
     }
@@ -672,6 +693,13 @@ ContextualTasksWebView::GetWebContentsModalDialogHost(
     return nullptr;
   }
   return browser->GetWebContentsModalDialogHostForWindow();
+}
+
+void ContextualTasksWebView::InfoBarContainerStateChanged(bool is_animating) {
+  if (infobar_container_) {
+    infobar_container_->SetVisible(!infobar_container_->IsEmpty());
+  }
+  InvalidateLayout();
 }
 
 void ContextualTasksWebView::AttachWebContentsModalDialogManager(

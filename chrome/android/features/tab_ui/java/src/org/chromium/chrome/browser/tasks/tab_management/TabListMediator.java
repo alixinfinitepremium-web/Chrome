@@ -758,14 +758,13 @@ public class TabListMediator implements TabListNotificationHandler {
 
                     @Override
                     public void onItemsRemoved(List<? extends TabListItem> items) {
-                        // TODO(crbug.com/562590772): Detach per-tab observers for removed items,
-                        // including tabs already removed from TabModel.
+                        onProviderItemsRemoved(items);
                     }
 
                     @Override
                     public void onItemsMoved(
                             List<? extends TabListItem> items, @Nullable TabListItem after) {
-                        // TODO(crbug.com/562590772): Handle moved items.
+                        onProviderItemsMoved(items, after);
                     }
 
                     @Override
@@ -2825,6 +2824,76 @@ public class TabListMediator implements TabListNotificationHandler {
 
         beginProviderUpdate();
         insertProviderItems(tabModel, items, insertionIndex);
+        endProviderUpdate();
+    }
+
+    /**
+     * Moves cards for items moved by the {@link TabListDataProvider}. Moved items keep their tabs,
+     * so per-tab observers are unchanged.
+     *
+     * @param items The items that were moved, in display order.
+     * @param after The item immediately preceding the moved items after the move, or null if they
+     *     moved to the start of the tab region.
+     */
+    private void onProviderItemsMoved(
+            List<? extends TabListItem> items, @Nullable TabListItem after) {
+        if (!mTrackingTabs || mCurrentTabModelSupplier.get() == null) return;
+
+        beginProviderUpdate();
+        // An expanded group arrives as one move: its header followed by its child tabs (see
+        // GroupedTabListDataProvider#moveGroupItem). Place each card after the previous one so
+        // the group stays contiguous.
+        TabListItem anchor = after;
+        for (TabListItem item : items) {
+            int from = mModelList.indexFromItem(item);
+            if (from == TabModel.INVALID_TAB_INDEX) continue;
+            int to = mModelList.resolveInsertionIndex(anchor);
+            if (to == TabModel.INVALID_TAB_INDEX) break;
+            // The target index counts the moved card; moveItem removes it first.
+            if (from < to) to--;
+            mModelList.moveItem(from, to);
+            anchor = item;
+        }
+        endProviderUpdate();
+    }
+
+    /**
+     * Removes cards for items removed by the {@link TabListDataProvider} and detaches per-tab
+     * observers, including for tabs already removed from the {@link TabModel}.
+     *
+     * @param items The items that were removed.
+     */
+    private void onProviderItemsRemoved(List<? extends TabListItem> items) {
+        TabModel tabModel = mCurrentTabModelSupplier.get();
+        if (!mTrackingTabs || tabModel == null) return;
+
+        beginProviderUpdate();
+        for (TabListItem item : items) {
+            int index = mModelList.indexFromItem(item);
+            if (index != TabModel.INVALID_TAB_INDEX) {
+                mModelList.removeAt(index);
+            }
+
+            if (item instanceof TabItem tabItem) {
+                Tab tab = mObserverManager.getObservedTabById(tabItem.getTabId());
+                if (tab == null) continue;
+                // A tab merged into a group is removed as a TabItem but is still shown by the
+                // group card, so keep observing it.
+                if (tabModel.getTabById(tab.getId()) != null
+                        && mTabListLayoutDelegate.isChildTabRepresentedByGroupCard(tab)) {
+                    continue;
+                }
+                removeObserversForTab(tab);
+            } else if (item instanceof TabGroupItem groupItem) {
+                // The observer manager returns a copy since removeObserversForTab() mutates the
+                // observed set.
+                for (Tab tab : mObserverManager.getObservedTabsInGroup(groupItem.getTabGroupId())) {
+                    removeObserversForTab(tab);
+                }
+            } else {
+                assert false : "Unsupported TabListItem: " + item;
+            }
+        }
         endProviderUpdate();
     }
 

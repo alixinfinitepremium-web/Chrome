@@ -313,6 +313,8 @@ public abstract class ChromeFeatureList {
     public static final String ANDROID_AUTO_PROJECTED = "AndroidAutoProjected";
     public static final String ANDROID_BEFORE_UNLOAD_SUPPORT = "AndroidBeforeUnloadSupport";
     public static final String ANDROID_BOOKMARK_BAR_DRAG_DROP = "AndroidBookmarkBarDragDrop";
+    public static final String ANDROID_BOOKMARK_BAR_UI_CONTROLLER =
+            "AndroidBookmarkBarUiController";
     public static final String ANDROID_BOTTOM_BAR = "AndroidBottomBar";
     public static final String ANDROID_BRICKS_NATIVE_PAGE = "AndroidBricksNativePage";
     public static final String ANDROID_CLOSE_ALL_TABS_RETAINS_PINNED_TABS =
@@ -350,7 +352,6 @@ public abstract class ChromeFeatureList {
     public static final String ANDROID_SAVE_CARD_NON_BLOCKING_DIALOG =
             "AndroidSaveCardNonBlockingDialog";
     public static final String ANDROID_SETTINGS_URL = "AndroidSettingsUrl";
-    public static final String ANDROID_SETUP_LIST = "AndroidSetupList";
     public static final String ANDROID_SET_GOOGLE_ACCOUNT_IN_HELP = "AndroidSetGoogleAccountInHelp";
     public static final String ANDROID_STARTUP_IMPROVEMENTS = "AndroidStartupImprovements";
     // TODO(crbug.com/427496366): Remove once internal clank reference in
@@ -1059,9 +1060,6 @@ public abstract class ChromeFeatureList {
                     ANDROID_PROGRESS_BAR_VISUAL_UPDATE,
                     /* defaultValue= */ false,
                     /* defaultValueInTests= */ false);
-    public static final CachedFlag sAndroidSetupList =
-            newCachedFlag(
-                    ANDROID_SETUP_LIST, /* defaultValue= */ true, /* defaultValueInTests= */ true);
     public static final CachedFlag sAndroidStartupImprovements =
             newCachedFlag(
                     ANDROID_STARTUP_IMPROVEMENTS,
@@ -1584,7 +1582,6 @@ public abstract class ChromeFeatureList {
                     sAndroidPageInfoAsAppMenuItem,
                     sAndroidProgressBarCancelOnWindowInvisible,
                     sAndroidProgressBarVisualUpdate,
-                    sAndroidSetupList,
                     sAndroidStartupImprovements,
                     sAndroidTabDeclutterDedupeTabIdsKillSwitch,
                     sAndroidTabPersistentStoreActiveTabPrefs,
@@ -1795,6 +1792,8 @@ public abstract class ChromeFeatureList {
             newMutableFlagWithSafeDefault(ANDROID_AUTOFILL_PREF_OBSERVER, false);
     public static final MutableFlagWithSafeDefault sAndroidBeforeUnloadSupport =
             newMutableFlagWithSafeDefault(ANDROID_BEFORE_UNLOAD_SUPPORT, false);
+    public static final MutableFlagWithSafeDefault sAndroidBookmarkBarUiController =
+            newMutableFlagWithSafeDefault(ANDROID_BOOKMARK_BAR_UI_CONTROLLER, false);
     public static final MutableFlagWithSafeDefault sAndroidCloseAllTabsRetainsPinnedTabs =
             newMutableFlagWithSafeDefault(ANDROID_CLOSE_ALL_TABS_RETAINS_PINNED_TABS, true);
     public static final MutableFlagWithSafeDefault sAndroidContextMenuDisabledMenuItems =
@@ -1971,6 +1970,7 @@ public abstract class ChromeFeatureList {
     public static final String FRE_STRING_CHANGES_PERSONALIZED = "personalized";
     public static final String FRE_STRING_CHANGES_SAFETY = "safety";
     public static final String FRE_STRING_CHANGES_SEAMLESSNESS = "seamlessness";
+    public static final String GLIC_NATIVE_FRE_ANDROID_SKELETON_TIMEOUT_MS = "skeleton_timeout_ms";
     public static final String IPH_BOOKMARK_BAR_VISIBILITY_VARIANT =
             "IPH_BookmarkBarVisibility_x_variant";
     public static final String NTP_AURORA_CHANGE_BUTTON_COLOR = "change_button_color";
@@ -2006,6 +2006,9 @@ public abstract class ChromeFeatureList {
                                     Map.entry(FRE_STRING_CHANGES_SAFETY, "false"),
                                     Map.entry(FRE_STRING_CHANGES_SEAMLESSNESS, "false"))),
                     Map.entry(
+                            GLIC_NATIVE_FRE_ANDROID,
+                            Map.of(GLIC_NATIVE_FRE_ANDROID_SKELETON_TIMEOUT_MS, "15000")),
+                    Map.entry(
                             IPH_BOOKMARK_BAR_VISIBILITY,
                             Map.of(IPH_BOOKMARK_BAR_VISIBILITY_VARIANT, "medium")),
                     Map.entry(USE_P_LINK_IN_HELP, Map.of(USE_P_LINK_IN_HELP_HOMEPAGE_CONTEXTS, "")),
@@ -2039,6 +2042,9 @@ public abstract class ChromeFeatureList {
                                             Map.entry(FRE_STRING_CHANGES_PERSONALIZED, "true"),
                                             Map.entry(FRE_STRING_CHANGES_SAFETY, "false"),
                                             Map.entry(FRE_STRING_CHANGES_SEAMLESSNESS, "false"))),
+                            Map.entry(
+                                    GLIC_NATIVE_FRE_ANDROID,
+                                    Map.of(GLIC_NATIVE_FRE_ANDROID_SKELETON_TIMEOUT_MS, "15000")),
                             Map.entry(
                                     IPH_BOOKMARK_BAR_VISIBILITY,
                                     Map.of(IPH_BOOKMARK_BAR_VISIBILITY_VARIANT, "medium")),

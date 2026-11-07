@@ -4,12 +4,12 @@
 
 #include "chrome/browser/ui/views/frame/base_tab_strip_region_view.h"
 
+#include <algorithm>
 #include <memory>
 #include <variant>
 
 #include "base/callback_list.h"
 #include "base/metrics/histogram_functions.h"
-#include "base/metrics/user_metrics.h"
 #include "chrome/browser/ui/browser_actions.h"
 #include "chrome/browser/ui/browser_element_identifiers.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_features.h"
@@ -471,8 +471,6 @@ std::unique_ptr<views::View> BaseTabStripRegionView::RemoveTabStripView(
 
 void BaseTabStripRegionView::RecordNewTabButtonPressed() {
   new_tab_button_pressed_start_time_ = base::TimeTicks::Now();
-
-  base::RecordAction(base::UserMetricsAction("NewTab_Button"));
 }
 
 void BaseTabStripRegionView::Layout(PassKey) {
@@ -497,7 +495,10 @@ views::View* BaseTabStripRegionView::GetDefaultFocusableChild() {
 
 void BaseTabStripRegionView::OnChildrenAdded(
     const tabs::TabCollectionNodes& handles) {
-  if (new_tab_button_pressed_start_time_.has_value()) {
+  const bool has_tab = std::ranges::any_of(handles, [](const auto& handle) {
+    return std::holds_alternative<tabs::TabHandle>(handle);
+  });
+  if (has_tab && new_tab_button_pressed_start_time_.has_value()) {
     base::UmaHistogramTimes(
         "TabStrip.TimeToCreateNewTabFromPress",
         base::TimeTicks::Now() - new_tab_button_pressed_start_time_.value());

@@ -1113,12 +1113,6 @@ NewTabPageUI::~NewTabPageUI() {
 }
 
 // static
-bool NewTabPageUI::IsNewTabPageOrigin(const GURL& url) {
-  return url.DeprecatedGetOriginAsURL() ==
-         chrome::ChromeUINewTabPageURLAsGURL().DeprecatedGetOriginAsURL();
-}
-
-// static
 void NewTabPageUI::RegisterProfilePrefs(PrefRegistrySimple* registry) {
   registry->RegisterTimePref(kPrevNavigationTimePrefName, base::Time());
   registry->RegisterTimePref(ntp_prefs::kNtpLastModuleStalenessUpdate,
@@ -1375,7 +1369,7 @@ void NewTabPageUI::CreateCustomizeButtonsHandler(
   promo_helper = std::make_unique<NewTabPageFeaturePromoHelper>();
 #endif
   customize_buttons_handler_ = std::make_unique<CustomizeButtonsHandler>(
-      std::move(pending_page_handler), std::move(pending_page), web_ui(),
+      std::move(pending_page_handler), std::move(pending_page), web_contents(),
       webui::GetTabInterface(web_contents()), std::move(promo_helper));
 }
 

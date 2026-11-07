@@ -380,6 +380,11 @@
     "expiry_milestone": 175
   },
   {
+    "name": "android-bookmark-bar-ui-controller",
+    "owners": ["dayeung@google.com", "clank-app-team@google.com"],
+    "expiry_milestone": 165
+  },
+  {
     "name": "android-bottom-bar",
     "owners": [ "polardz@google.com", "ckitagawa@chromium.com", "clank-tab-dev@google.com" ],
     "expiry_milestone": 170
@@ -567,11 +572,6 @@
     "name": "android-settings-url",
     "owners": [ "jinsukkim@chromium.org", "clank-app-team@google.com" ],
     "expiry_milestone": 152
-  },
-  {
-    "name": "android-setup-list",
-    "owners": [ "agazal@google.com", "clank-app-team@google.com" ],
-    "expiry_milestone": 155
   },
 
   {
@@ -5913,11 +5913,6 @@
     "expiry_milestone": 160
   },
   {
-    "name": "glic-daisy-chain-new-tabs",
-    "owners": [ "bryantchandler@chromium.org", "//chrome/browser/glic/OWNERS" ],
-    "expiry_milestone": 155
-  },
-  {
     "name": "glic-default-tab-context-setting",
     "owners": [
       "mcrouse@chromium.org",
@@ -6053,8 +6048,8 @@
   },
   {
     "name": "glic-pdf-summarize",
-    "owners": [ "erikchen@chromium.org", "//chrome/browser/glic/OWNERS" ],
-    "expiry_milestone": 155
+    "owners": [ "erikchen@chromium.org", "cuianthony@google.come", "//chrome/browser/glic/OWNERS" ],
+    "expiry_milestone": 160
   },
   {
     "name": "glic-pre-warming",
@@ -7776,6 +7771,11 @@
     "expiry_milestone": 160
   },
   {
+    "name": "omnibox-native-vector-icons",
+    "owners": [ "ender@google.com", "chrome-mobile-search@google.com" ],
+    "expiry_milestone": 168
+  },
+  {
     "name": "omnibox-num-ntp-zps-recent-searches",
     "owners": ["ender@google.com", "chrome-mobile-search@google.com"],
     "expiry_milestone": 300
@@ -9233,7 +9233,7 @@
       "michelleabreo@google.com",
       "skills-eng@google.com"
     ],
-    "expiry_milestone": 155
+    "expiry_milestone": 165
   },
   {
     "name": "skills-and-extensions-app-menu",

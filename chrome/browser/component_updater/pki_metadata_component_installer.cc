@@ -217,21 +217,27 @@ PKIMetadataComponentInstallerService::MtcCaIdAndLandmarkTrustAnchorIds::
 PKIMetadataComponentInstallerService::MtcCaIdAndLandmarkTrustAnchorIds::
     ~MtcCaIdAndLandmarkTrustAnchorIds() = default;
 PKIMetadataComponentInstallerService::MtcCaIdAndLandmarkTrustAnchorIds::
-    MtcCaIdAndLandmarkTrustAnchorIds(MtcCaIdAndLandmarkTrustAnchorIds&&) =
-        default;
+    MtcCaIdAndLandmarkTrustAnchorIds(
+        MtcCaIdAndLandmarkTrustAnchorIds&&) noexcept = default;
 PKIMetadataComponentInstallerService::MtcCaIdAndLandmarkTrustAnchorIds::
     MtcCaIdAndLandmarkTrustAnchorIds(
         const MtcCaIdAndLandmarkTrustAnchorIds& other) = default;
+PKIMetadataComponentInstallerService::MtcCaIdAndLandmarkTrustAnchorIds&
+PKIMetadataComponentInstallerService::MtcCaIdAndLandmarkTrustAnchorIds::
+operator=(const MtcCaIdAndLandmarkTrustAnchorIds&) = default;
+PKIMetadataComponentInstallerService::MtcCaIdAndLandmarkTrustAnchorIds&
+PKIMetadataComponentInstallerService::MtcCaIdAndLandmarkTrustAnchorIds::
+operator=(MtcCaIdAndLandmarkTrustAnchorIds&&) noexcept = default;
 
 PKIMetadataComponentInstallerService::LoadedPKIMetadata::LoadedPKIMetadata() =
     default;
 PKIMetadataComponentInstallerService::LoadedPKIMetadata::~LoadedPKIMetadata() =
     default;
 PKIMetadataComponentInstallerService::LoadedPKIMetadata::LoadedPKIMetadata(
-    LoadedPKIMetadata&&) = default;
+    LoadedPKIMetadata&&) noexcept = default;
 PKIMetadataComponentInstallerService::LoadedPKIMetadata&
 PKIMetadataComponentInstallerService::LoadedPKIMetadata::operator=(
-    LoadedPKIMetadata&&) = default;
+    LoadedPKIMetadata&&) noexcept = default;
 
 #if BUILDFLAG(CHROME_ROOT_STORE_SUPPORTED)
 // static

@@ -271,6 +271,7 @@ const base::Feature* const kFeaturesExposedToJava[] = {
     &kAndroidAutofillPrefObserver,
     &kAndroidBeforeUnloadSupport,
     &kAndroidBookmarkBarDragDrop,
+    &kAndroidBookmarkBarUiController,
     &kAndroidBottomBar,
     &kAndroidBricksNativePage,
     &kAndroidCloseAllTabsRetainsPinnedTabs,
@@ -298,7 +299,6 @@ const base::Feature* const kFeaturesExposedToJava[] = {
     &kAndroidSaveCardNonBlockingDialog,
     &kAndroidSetGoogleAccountInHelp,
     &kAndroidSettingsUrl,
-    &kAndroidSetupList,
     &kAndroidStartupImprovements,
     &kAndroidTabDeclutterArchiveOnDesktop,
     &kAndroidTabDeclutterDedupeTabIdsKillSwitch,
@@ -722,6 +722,7 @@ BASE_FEATURE(kAndroidAutoProjected, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kAndroidAutofillPrefObserver, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kAndroidBeforeUnloadSupport, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kAndroidBookmarkBarDragDrop, base::FEATURE_DISABLED_BY_DEFAULT);
+BASE_FEATURE(kAndroidBookmarkBarUiController, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kAndroidBottomBar, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kAndroidBricksNativePage, base::FEATURE_DISABLED_BY_DEFAULT);
 // When enabled, the "Close all tabs" action in the tab switcher (GTS/Hub) leaves
@@ -756,7 +757,6 @@ BASE_FEATURE(kAndroidProgressBarVisualUpdate, base::FEATURE_DISABLED_BY_DEFAULT)
 BASE_FEATURE(kAndroidSaveCardNonBlockingDialog, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kAndroidSetGoogleAccountInHelp, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kAndroidSettingsUrl, base::FEATURE_ENABLED_BY_DEFAULT);
-BASE_FEATURE(kAndroidSetupList, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kAndroidStartupImprovements, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kAndroidSwapPressureTabDiscard, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kAndroidTabDeclutterArchiveOnDesktop, base::FEATURE_DISABLED_BY_DEFAULT);

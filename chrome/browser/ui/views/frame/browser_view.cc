@@ -108,7 +108,10 @@
 #include "chrome/browser/ui/layout_constants.h"
 #include "chrome/browser/ui/location_bar/location_bar.h"
 #include "chrome/browser/ui/navigator/browser_navigator.h"
+#include "chrome/browser/ui/omnibox/omnibox_controller.h"
+#include "chrome/browser/ui/omnibox/omnibox_edit_model.h"
 #include "chrome/browser/ui/omnibox/omnibox_next_features.h"
+#include "chrome/browser/ui/omnibox/omnibox_popup_state_manager.h"
 #include "chrome/browser/ui/omnibox/omnibox_popup_view.h"
 #include "chrome/browser/ui/omnibox/omnibox_view.h"
 #include "chrome/browser/ui/page_action/page_action_icon_type.h"
@@ -2340,6 +2343,20 @@ void BrowserView::FullscreenStateChanged() {
     if (auto* const fullscreen_control_host =
             FullscreenControlHost::From(browser_.get())) {
       fullscreen_control_host->OnExitFullscreen();
+    }
+  }
+
+  // Reopen a popup that `OmniboxPopupView::OnFullscreenTransitionStarting()`
+  // closed for the transition. This runs after entering and after exiting, as
+  // immersive fullscreen keeps the location bar drawn. Skip it in content
+  // fullscreen, where the toolbar is hidden. `ReshowPopup()` only reopens the
+  // popup for an unfocused draft.
+  if (!fullscreen_utils::IsInContentFullscreen(browser())) {
+    if (LocationBar* const location_bar = GetLocationBar()) {
+      if (OmniboxPopupView* const popup_view =
+              location_bar->GetOmniboxPopupView()) {
+        popup_view->ReshowPopup();
+      }
     }
   }
 
@@ -5557,6 +5574,13 @@ void BrowserView::PrepareFullscreen(bool fullscreen) {
         fullscreen);
   }
 
+  if (LocationBar* const location_bar = GetLocationBar()) {
+    if (OmniboxPopupView* const popup_view =
+            location_bar->GetOmniboxPopupView()) {
+      popup_view->OnFullscreenTransitionStarting();
+    }
+  }
+
   // Reduce jankiness during the following position changes by:
   //   * Hiding the window until it's in the final position
   //   * Ignoring all intervening layout attempts, which would resize the
@@ -5565,6 +5589,24 @@ void BrowserView::PrepareFullscreen(bool fullscreen) {
   if (fullscreen) {
     // Move focus out of the location bar if necessary.
     LocationBar* location_bar = GetLocationBar();
+#if BUILDFLAG(IS_CHROMEOS)
+    // The Full WebUI popup sits on top of the location bar but isn't part of
+    // it, and immersive fullscreen keeps the location bar drawn, so blur the
+    // omnibox here. A draft keeps the popup open.
+    // TODO(crbug.com/582521205): Update macOS to have the same behavior and
+    // unify code flow if possible.
+    if (OmniboxController* const controller =
+            location_bar ? location_bar->GetOmniboxController() : nullptr;
+        controller && controller->edit_model()->has_focus() &&
+        controller->popup_state_manager()->popup_state() ==
+            OmniboxPopupState::kFull) {
+      // A tab switch while the popup held activation may have set this. Hiding
+      // the popup would then restore the tab's focus, which is the omnibox on
+      // the NTP, and reopen the popup.
+      restore_focus_on_activation_ = false;
+      location_bar->GetOmniboxPopupView()->Blur();
+    }
+#endif  // BUILDFLAG(IS_CHROMEOS)
     if (location_bar && location_bar->IsFocusWithin()) {
       views::FocusManager* focus_manager = GetFocusManager();
       CHECK(focus_manager, base::NotFatalUntil::M162);
