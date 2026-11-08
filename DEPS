@@ -440,7 +440,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': 'b32df276b5a5503607e9843b2173e1e029c139a6',
+  'dawn_revision': '30e921735fe4f639af9f948e132f9e3c9009afec',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -476,7 +476,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling crabbyavif
   # and whatever else without interference from each other.
-  'crabbyavif_revision': '511b9cbdcf9c73a353954ec14d107a0fd0de443b',
+  'crabbyavif_revision': 'b2f53944eeca5cf90c80635edb446d10cf6193e7',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling openh264rs
   # and whatever else without interference from each other.
@@ -1768,7 +1768,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    'bcfd3d725968dfce6c01c208d182b2f70e25cb31',
+    'ed33d034f5ddcb49130ad5aae6123f8aa25e5f5a',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -1872,7 +1872,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': '_p8Xz2lBR_q-bbSPbDO5RfY6qjGuvEaT6wAkfw-0h8gC',
+          'version': '8zkt_dHcbx7V7_x6YkKRmUhXajYRHgTTI5uXIZLGYdUC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
@@ -2238,7 +2238,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + 'b153648217dab056e2d88eebd051c1c68b454a10',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '81aa9a99294bc0c4c4c60054504a522feb4ce944',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '173b9b26e8fcbcbe64e1ecbf073a21a96b95c6b1',
@@ -3396,7 +3396,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_receiver_app/app',
-        'version': 'ZX9-2sSwAhEwXgaG1O8JJaNf2zyxo6dNsKNhhzRfIlcC',
+        'version': 'DAThhwROPRPgm2nTc7cI3T2ugF5mbzUOCvzs62u7NlwC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3407,7 +3407,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/boca_app/app',
-        'version': 'TURglu98KIniSY_9Bu14t8ltbc1Qjbvr7Ghoh3ziKeQC',
+        'version': 'D-zDUsDBRCxy5CGxFNme3run_ooMNOuYN60wvy3EeGUC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3884,7 +3884,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '6ef7200887fcf40817e5d8a4d6afdeb05e7bee88',
+        'b2dd21a53d4b7e2b1d630b71eaf5fd25715f039b',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
