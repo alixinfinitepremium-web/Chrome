@@ -1,9 +1,10 @@
 name: Sync Chromium upstream
 
 on:
-  # One run per hour at an off-peak minute: GitHub delays or drops scheduled runs under load, especially near the top of the hour.
+  # Four idempotent off-peak opportunities per hour: GitHub can delay or drop scheduled events.
+  # Multiple opportunities bound normal drift without changing the merge logic.
   schedule:
-    - cron: "37 * * * *"
+    - cron: "7,22,37,52 * * * *"
   # A workflow-file push is also the recovery trigger when GitHub drops cron runs.
   # Cron reactivation: 2026-07-15T06:30:00Z (stale schedule watchdog).
   workflow_dispatch:
