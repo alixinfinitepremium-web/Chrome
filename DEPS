@@ -322,7 +322,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': '765d2043b9674d376b414904d4b3dc21760874df',
+  'skia_revision': 'a6c6ea6d7f1fecf5bd71d622744c0918cc6789c1',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -1756,7 +1756,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': 'YJjycVz2JBX2jd33T_55I_nP_kNyvz5OyDkh-RvDz_oC',
+        'version': '-iPobZprqMh7Or16VpIF421tXp5_k19U0PCuGXWKJjMC',
       },
     ],
     'condition': 'non_git_source',
@@ -2238,7 +2238,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '81aa9a99294bc0c4c4c60054504a522feb4ce944',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '154105c03d64cc062e19a79b5aa85bf3b169e80a',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '173b9b26e8fcbcbe64e1ecbf073a21a96b95c6b1',
@@ -3462,7 +3462,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/projector_app/app',
-        'version': 'U_duaXTLxGH2wPTFFkpmRwgPTrUw2uO_jBS49MxRZyQC',
+        'version': 'LzkeUO12S63_s1NuV8PZ1HvtNMW-eViyD3WgU94YzDcC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3884,7 +3884,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        'b2dd21a53d4b7e2b1d630b71eaf5fd25715f039b',
+        'd707f74511ed70e8afcc4afdf311bfa5f325f53f',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
