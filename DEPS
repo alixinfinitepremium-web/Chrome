@@ -440,7 +440,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': 'ed627c8cdbe3d6ac01b0e97878349670dde6cc2f',
+  'dawn_revision': 'b32df276b5a5503607e9843b2173e1e029c139a6',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -476,7 +476,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling crabbyavif
   # and whatever else without interference from each other.
-  'crabbyavif_revision': '4b8924131a003886d7e09dbc09535b3cd6a2a34a',
+  'crabbyavif_revision': '511b9cbdcf9c73a353954ec14d107a0fd0de443b',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling openh264rs
   # and whatever else without interference from each other.
@@ -1872,7 +1872,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': 'TKINHGNOgB1n7BlsJ29p-L660Y13MLPdn4KtYuNiCgIC',
+          'version': '_p8Xz2lBR_q-bbSPbDO5RfY6qjGuvEaT6wAkfw-0h8gC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
@@ -3806,7 +3806,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        '73c57332e784238283b22be9f6cf1b982af4ddf3',
+        'af92be1ce4ae1a448adb3dab2cb2cf00174fa25c',
       'condition': 'checkout_src_internal',
   },
 
