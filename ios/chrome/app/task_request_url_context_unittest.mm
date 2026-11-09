@@ -14,6 +14,7 @@
 #import "base/test/metrics/user_action_tester.h"
 #import "base/test/scoped_feature_list.h"
 #import "components/prefs/pref_service.h"
+#import "google_apis/gaia/gaia_id.h"
 #import "ios/chrome/app/application_delegate/app_state.h"
 #import "ios/chrome/app/application_delegate/startup_information.h"
 #import "ios/chrome/app/application_delegate/tab_opening.h"
@@ -29,6 +30,7 @@
 #import "ios/chrome/browser/shared/coordinator/scene/scene_controller.h"
 #import "ios/chrome/browser/shared/coordinator/scene/scene_state.h"
 #import "ios/chrome/browser/shared/coordinator/scene/test/fake_scene_state.h"
+#import "ios/chrome/browser/shared/model/application_context/application_context.h"
 #import "ios/chrome/browser/shared/model/browser/browser.h"
 #import "ios/chrome/browser/shared/model/browser/browser_provider_interface.h"
 #import "ios/chrome/browser/shared/model/browser/test/test_browser.h"
@@ -38,6 +40,8 @@
 #import "ios/chrome/browser/shared/public/commands/command_dispatcher.h"
 #import "ios/chrome/browser/shared/public/commands/google_one_commands.h"
 #import "ios/chrome/browser/shared/public/features/features.h"
+#import "ios/chrome/browser/signin/model/fake_system_identity.h"
+#import "ios/chrome/browser/signin/model/fake_system_identity_manager.h"
 #import "ios/chrome/browser/url_loading/model/url_loading_params.h"
 #import "ios/chrome/common/app_group/app_group_constants.h"
 #import "ios/web/public/test/web_task_environment.h"
@@ -172,6 +176,42 @@ class TaskRequestForURLContextTest : public PlatformTest {
   void WriteAppGroupCommand(NSDictionary* command_dictionary) {
     [app_group::GetGroupUserDefaults() setObject:command_dictionary
                                           forKey:AppGroupCommandPreference()];
+  }
+
+  // Writes a recent App Group `command` sent by `caller_app`, with an optional
+  // `external_text`, to the shared defaults.
+  void WriteRecentAppGroupCommand(NSString* command,
+                                  NSString* caller_app,
+                                  NSString* external_text) {
+    NSMutableDictionary* dictionary = [@{
+      base::SysUTF8ToNSString(app_group::kChromeAppGroupCommandAppPreference) :
+          caller_app,
+      base::SysUTF8ToNSString(
+          app_group::kChromeAppGroupCommandCommandPreference) : command,
+      base::SysUTF8ToNSString(app_group::kChromeAppGroupCommandTimePreference) :
+          [NSDate date],
+    } mutableCopy];
+    if (external_text) {
+      dictionary[base::SysUTF8ToNSString(
+          app_group::kChromeAppGroupCommandTextPreference)] = external_text;
+    }
+    WriteAppGroupCommand(dictionary);
+  }
+
+  // Creates and executes an X-Callback App Group command request, returning
+  // the tab opener that recorded the resulting tab opening, if any.
+  TaskRequestURLContextTestTabOpener* ExecuteAppGroupCommandRequest() {
+    TaskRequestForURLContext* request = [TaskRequestForURLContext
+        taskRequestWithURLContext:CreateMockURLContext(
+                                      [NSURL URLWithString:kAppGroupCommandURL])
+                       sceneState:scene_state_
+                      isColdStart:YES];
+    TaskRequestURLContextTestTabOpener* tab_opener =
+        [[TaskRequestURLContextTestTabOpener alloc]
+            initWithSceneState:scene_state_];
+    scene_state_.controller = tab_opener;
+    [request execute];
+    return tab_opener;
   }
 
   // Returns whether an App Group command is in the shared defaults.
@@ -1097,4 +1137,190 @@ TEST_F(TaskRequestForURLContextTest, TestXCallbackInvalidCommandIgnored) {
     EXPECT_TRUE(tab_opener.urlLoadParams.web_params.url.is_empty());
     EXPECT_FALSE(tab_opener.completionActionExecuted);
   }
+}
+
+// Tests that valid App Group commands open the expected tab and trigger the
+// expected post-opening action.
+TEST_F(TaskRequestForURLContextTest, TestAppGroupCommandExecution) {
+  NSString* const kExternalURL = @"https://www.example.com/";
+  const GURL kNTPURL(kChromeUINewTabURL);
+  struct TestCase {
+    NSString* command;
+    NSString* external_text;
+    GURL expected_url;
+    ApplicationModeForTabOpening expected_mode;
+    TabOpeningPostOpeningAction expected_action;
+    bool expected_dismiss_omnibox;
+  } test_cases[] = {
+      {base::SysUTF8ToNSString(app_group::kChromeAppGroupOpenURLCommand),
+       kExternalURL, GURL(base::SysNSStringToUTF8(kExternalURL)),
+       ApplicationModeForTabOpening::UNDETERMINED,
+       TabOpeningPostOpeningAction::NO_ACTION, true},
+      {app_group::kChromeAppGroupOpenURLInIcognitoCommand, kExternalURL,
+       GURL(base::SysNSStringToUTF8(kExternalURL)),
+       ApplicationModeForTabOpening::INCOGNITO,
+       TabOpeningPostOpeningAction::NO_ACTION, true},
+      {base::SysUTF8ToNSString(app_group::kChromeAppGroupVoiceSearchCommand),
+       nil, kNTPURL, ApplicationModeForTabOpening::NORMAL,
+       TabOpeningPostOpeningAction::START_VOICE_SEARCH, true},
+      {base::SysUTF8ToNSString(app_group::kChromeAppGroupNewTabCommand), nil,
+       kNTPURL, ApplicationModeForTabOpening::NORMAL,
+       TabOpeningPostOpeningAction::NO_ACTION, true},
+      {base::SysUTF8ToNSString(app_group::kChromeAppGroupFocusOmniboxCommand),
+       nil, kNTPURL, ApplicationModeForTabOpening::NORMAL,
+       TabOpeningPostOpeningAction::FOCUS_OMNIBOX, false},
+      {base::SysUTF8ToNSString(
+           app_group::kChromeAppGroupIncognitoSearchCommand),
+       nil, kNTPURL, ApplicationModeForTabOpening::INCOGNITO,
+       TabOpeningPostOpeningAction::FOCUS_OMNIBOX, false},
+      {base::SysUTF8ToNSString(app_group::kChromeAppGroupQRScannerCommand), nil,
+       kNTPURL, ApplicationModeForTabOpening::NORMAL,
+       TabOpeningPostOpeningAction::START_QR_CODE_SCANNER, true},
+      {base::SysUTF8ToNSString(app_group::kChromeAppGroupLensCommand), nil,
+       GURL(), ApplicationModeForTabOpening::NORMAL,
+       TabOpeningPostOpeningAction::START_LENS_FROM_HOME_SCREEN_WIDGET, true},
+      {base::SysUTF8ToNSString(
+           app_group::kChromeAppGroupSearchPasswordsCommand),
+       nil, GURL(), ApplicationModeForTabOpening::NORMAL,
+       TabOpeningPostOpeningAction::SEARCH_PASSWORDS, true},
+  };
+
+  for (const auto& test_case : test_cases) {
+    SCOPED_TRACE(base::SysNSStringToUTF8(test_case.command));
+    WriteRecentAppGroupCommand(test_case.command,
+                               app_group::kOpenCommandSourceShareExtension,
+                               test_case.external_text);
+
+    TaskRequestURLContextTestTabOpener* tab_opener =
+        ExecuteAppGroupCommandRequest();
+
+    EXPECT_EQ(tab_opener.targetMode, test_case.expected_mode);
+    EXPECT_EQ(tab_opener.urlLoadParams.web_params.url, test_case.expected_url);
+    EXPECT_TRUE(tab_opener.urlLoadParams.web_params.virtual_url.is_empty());
+    EXPECT_FALSE(tab_opener.urlLoadParams.from_widget_or_siri);
+    EXPECT_EQ(tab_opener.dismissOmnibox, test_case.expected_dismiss_omnibox);
+    EXPECT_EQ(tab_opener.completionAction, test_case.expected_action);
+    EXPECT_TRUE(tab_opener.completionActionExecuted);
+  }
+}
+
+// Tests that App Group open URL commands without an http(s) URL are discarded.
+TEST_F(TaskRequestForURLContextTest, TestAppGroupOpenURLCommandWithoutHTTPURL) {
+  NSString* const kOpenURLCommand =
+      base::SysUTF8ToNSString(app_group::kChromeAppGroupOpenURLCommand);
+  NSString* external_texts[] = {
+      nil,
+      @"invalid",
+      @"chrome://settings",
+      @"javascript:alert(1)",
+      @"file:///path/to/file.pdf",
+  };
+
+  for (NSString* external_text : external_texts) {
+    SCOPED_TRACE(external_text ? base::SysNSStringToUTF8(external_text)
+                               : "no text");
+    WriteRecentAppGroupCommand(kOpenURLCommand,
+                               app_group::kOpenCommandSourceShareExtension,
+                               external_text);
+
+    TaskRequestURLContextTestTabOpener* tab_opener =
+        ExecuteAppGroupCommandRequest();
+
+    EXPECT_FALSE(tab_opener.completionActionExecuted);
+    EXPECT_TRUE(tab_opener.urlLoadParams.web_params.url.is_empty());
+  }
+}
+
+// Tests that unknown App Group commands, and the search commands not yet
+// supported by the new startup flow, don't open a tab.
+TEST_F(TaskRequestForURLContextTest, TestUnhandledAppGroupCommandIgnored) {
+  NSString* commands[] = {
+      @"unknowncommand",
+      base::SysUTF8ToNSString(app_group::kChromeAppGroupSearchTextCommand),
+      app_group::kChromeAppGroupIncognitoSearchTextCommand,
+      base::SysUTF8ToNSString(app_group::kChromeAppGroupSearchImageCommand),
+      app_group::kChromeAppGroupIncognitoSearchImageCommand,
+  };
+
+  for (NSString* command : commands) {
+    SCOPED_TRACE(base::SysNSStringToUTF8(command));
+    WriteRecentAppGroupCommand(
+        command, app_group::kOpenCommandSourceShareExtension, @"text");
+
+    TaskRequestURLContextTestTabOpener* tab_opener =
+        ExecuteAppGroupCommandRequest();
+
+    EXPECT_FALSE(tab_opener.completionActionExecuted);
+    EXPECT_TRUE(tab_opener.urlLoadParams.web_params.url.is_empty());
+  }
+}
+
+// Tests that an expired App Group command is discarded.
+TEST_F(TaskRequestForURLContextTest, TestExpiredAppGroupCommandIgnored) {
+  WriteShareExtensionCommand([NSDate
+      dateWithTimeIntervalSinceNow:-app_group::kAppGroupCommandTimeout - 1]);
+
+  EXPECT_FALSE(ExecuteAppGroupCommandRequest().completionActionExecuted);
+}
+
+// Tests that an App Group command without a command name is discarded.
+TEST_F(TaskRequestForURLContextTest, TestAppGroupCommandWithoutNameIgnored) {
+  WriteAppGroupCommandWithOnlyTime([NSDate date]);
+
+  EXPECT_FALSE(ExecuteAppGroupCommandRequest().completionActionExecuted);
+}
+
+// Tests that an App Group command can't be executed twice.
+TEST_F(TaskRequestForURLContextTest, TestAppGroupCommandExecutedOnce) {
+  WriteRecentAppGroupCommand(
+      base::SysUTF8ToNSString(app_group::kChromeAppGroupNewTabCommand),
+      app_group::kOpenCommandSourceShareExtension, nil);
+  EXPECT_TRUE(ExecuteAppGroupCommandRequest().completionActionExecuted);
+
+  EXPECT_FALSE(ExecuteAppGroupCommandRequest().completionActionExecuted);
+}
+
+// Tests that Google One deep links with an email parameter resolve the matching
+// device identity's gaiaID when kSupportGoogleOneDeepLink is enabled.
+TEST_F(TaskRequestForURLContextTest, TestGoogleOneDeepLinkGaiaID) {
+  base::test::ScopedFeatureList feature_list;
+  feature_list.InitAndEnableFeature(kSupportGoogleOneDeepLink);
+
+  FakeSystemIdentity* identity = [FakeSystemIdentity fakeIdentity1];
+  FakeSystemIdentityManager::FromSystemIdentityManager(
+      GetApplicationContext()->GetSystemIdentityManager())
+      ->AddIdentity(identity);
+
+  NSString* matching_url_string = [NSString
+      stringWithFormat:@"%s://one.google.com/deeplink?email=%@",
+                       BUILDFLAG(SECURE_CUSTOM_SCHEME), identity.userEmail];
+  UIOpenURLContext* matching_context =
+      CreateMockURLContext([NSURL URLWithString:matching_url_string]);
+  TaskRequestForURLContext* matching_request =
+      [TaskRequestForURLContext taskRequestWithURLContext:matching_context
+                                               sceneState:scene_state_
+                                              isColdStart:YES];
+  ASSERT_NE(matching_request, nil);
+  EXPECT_NSEQ(identity.gaiaId.ToNSString(), matching_request.gaiaID);
+
+  // Unknown email returns nil gaiaID.
+  NSURL* unknown_email_url = [NSURL
+      URLWithString:@"https://one.google.com/deeplink?email=unknown@test.com"];
+  UIOpenURLContext* unknown_context = CreateMockURLContext(unknown_email_url);
+  TaskRequestForURLContext* unknown_request =
+      [TaskRequestForURLContext taskRequestWithURLContext:unknown_context
+                                               sceneState:scene_state_
+                                              isColdStart:YES];
+  ASSERT_NE(unknown_request, nil);
+  EXPECT_NSEQ(nil, unknown_request.gaiaID);
+
+  // Disabled feature returns nil gaiaID even for a matching device identity.
+  base::test::ScopedFeatureList disabled_feature_list;
+  disabled_feature_list.InitAndDisableFeature(kSupportGoogleOneDeepLink);
+  TaskRequestForURLContext* disabled_request =
+      [TaskRequestForURLContext taskRequestWithURLContext:matching_context
+                                               sceneState:scene_state_
+                                              isColdStart:YES];
+  ASSERT_NE(disabled_request, nil);
+  EXPECT_NSEQ(nil, disabled_request.gaiaID);
 }

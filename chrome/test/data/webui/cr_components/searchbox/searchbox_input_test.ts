@@ -4,7 +4,7 @@
 
 import 'chrome://resources/cr_components/searchbox/searchbox_input.js';
 
-import {createSearchMatchForTesting, SearchboxBrowserProxy} from 'chrome://resources/cr_components/searchbox/searchbox_browser_proxy.js';
+import {createSearchMatchForTesting} from 'chrome://resources/cr_components/searchbox/searchbox_browser_proxy.js';
 import type {SearchboxInputElement} from 'chrome://resources/cr_components/searchbox/searchbox_input.js';
 import {loadTimeData} from 'chrome://resources/js/load_time_data.js';
 import {KeywordType, UrlDeemphasisMode} from 'chrome://resources/mojo/components/omnibox/browser/searchbox.mojom-webui.js';
@@ -12,7 +12,6 @@ import {assertDeepEquals, assertEquals, assertFalse, assertNotEquals, assertTrue
 import {isVisible, microtasksFinished} from 'chrome://webui-test/test_util.js';
 
 import {assertIconMaskImageUrl, createClipboardEvent, createUrlMatch} from './searchbox_test_utils.js';
-import {TestSearchboxBrowserProxy} from './test_searchbox_browser_proxy.js';
 
 async function createInput(properties: Partial<SearchboxInputElement> = {}):
     Promise<SearchboxInputElement> {
@@ -26,12 +25,9 @@ async function createInput(properties: Partial<SearchboxInputElement> = {}):
 
 suite('SearchboxInputTest', () => {
   let input: SearchboxInputElement;
-  let testProxy: TestSearchboxBrowserProxy;
 
   setup(() => {
     document.body.innerHTML = window.trustedTypes!.emptyHTML;
-    testProxy = new TestSearchboxBrowserProxy();
-    SearchboxBrowserProxy.setInstance(testProxy);
   });
 
   test('default loupe icon', async () => {
@@ -170,22 +166,6 @@ suite('SearchboxInputTest', () => {
     const keyupEventOther = new KeyboardEvent('keyup', {key: 'Enter'});
     input.inputElement.dispatchEvent(keyupEventOther);
     assertEquals(2, eventCount);
-  });
-
-  test('input text appears on page call from browser', async () => {
-    input = await createInput();
-    assertEquals(input.inputElement.value, '');
-
-    let textUpdatedEventCount = 0;
-    input.addEventListener('searchbox-input-text-updated', () => {
-      textUpdatedEventCount++;
-    });
-
-    testProxy.callbackRouterRemote.setInputText('Hello');
-    await microtasksFinished();
-
-    assertEquals(input.inputElement.value, 'Hello');
-    assertEquals(0, textUpdatedEventCount);
   });
 
   test('Pasting file fires event', async () => {
@@ -1184,5 +1164,36 @@ suite('SearchboxInputTest', () => {
         inputRect.right <= buttonRect.left,
         `input right ${inputRect.right} overlaps button left ${
             buttonRect.left}`);
+  });
+
+  test('Hides placeholder-overlay slot when input is non-empty', async () => {
+    input = await createInput({placeholderText: 'Search'});
+    const overlay = document.createElement('div');
+    overlay.slot = 'placeholder-overlay';
+    overlay.textContent = 'Overlay';
+    input.appendChild(overlay);
+    await input.updateComplete;
+    await microtasksFinished();
+
+    const slot = input.shadowRoot.querySelector<HTMLSlotElement>(
+        'slot[name="placeholder-overlay"]');
+    assertTrue(!!slot);
+    assertNotEquals('none', window.getComputedStyle(slot).display);
+
+    // Even a single space makes :placeholder-shown false and hides the slot.
+    input.setInput({text: ' ', inline: ''});
+    await input.updateComplete;
+    assertEquals('none', window.getComputedStyle(slot).display);
+
+    // Match preview also sets input.value and hides the slot.
+    input.setInput(
+        {text: 'https://example.com', inline: '', isMatchPreview: true});
+    await input.updateComplete;
+    assertEquals('none', window.getComputedStyle(slot).display);
+
+    // Clearing the input shows the slot again.
+    input.setInput({text: '', inline: ''});
+    await input.updateComplete;
+    assertNotEquals('none', window.getComputedStyle(slot).display);
   });
 });

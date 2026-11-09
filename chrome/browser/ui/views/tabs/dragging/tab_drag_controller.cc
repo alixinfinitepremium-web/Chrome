@@ -48,7 +48,7 @@
 #include "chrome/browser/ui/views/tabs/dragging/tab_drag_context.h"
 #include "chrome/browser/ui/views/tabs/dragging/tab_drag_target.h"
 #include "chrome/browser/ui/views/tabs/dragging/window_finder.h"
-#include "chrome/browser/ui/waap/initial_webui_window_metrics_manager.h"
+#include "chrome/browser/ui/waap/window_creation.h"
 #include "chrome/browser/ui/web_applications/app_browser_controller.h"
 #include "chrome/browser/ui/web_applications/web_app_launch_utils.h"
 #include "chrome/browser/ui/web_applications/web_app_tabbed_utils.h"
@@ -1946,9 +1946,10 @@ TabDragController::DetachIntoNewBrowserAndRunMoveLoop(
   }
   dragged_widget->SetVisibilityChangedAnimationsEnabled(true);
 
-  // When InitialWebUI is enabled, the asynchronous loading of WebUI might cause
-  // the detached browser window to be momentarily invisible during creation. To
-  // prevent the mouse drag from racing ahead of the window rendering and
+  // When the WebUIReloadButtonDeferBrowserViewShow param is on,
+  // InitialWebUIManager::RequestDeferShow() holds the detached window's show
+  // until the toolbar WebUI loads, so the window can still be invisible here.
+  // To prevent the mouse drag from racing ahead of the window rendering and
   // dispatching inputs to the wrong target, we wait for the widget to properly
   // show itself before starting the nested move loop.
   if (base::FeatureList::IsEnabled(features::kInitialWebUI)) {
@@ -3019,13 +3020,10 @@ BrowserWindowInterface* TabDragController::CreateBrowserForDrag(
   // the previous window.
   create_params.user_title = std::string();
 
-  base::TimeTicks now = base::TimeTicks::Now();
   BrowserWindowInterface* browser =
-      CreateBrowserWindow(std::move(create_params));
-  if (auto* manager = InitialWebUIWindowMetricsManager::From(browser)) {
-    manager->SetWindowCreationInfo(
-        waap::NewWindowCreationSource::kDragToNewWindow, now);
-  }
+      waap::CreateBrowserWindowAndRecordCreationSource(
+          std::move(create_params),
+          waap::NewWindowCreationSource::kDragToNewWindow);
   is_dragging_new_browser_ = true;
   BrowserView::GetBrowserViewForBrowser(browser)
       ->GetWidget()

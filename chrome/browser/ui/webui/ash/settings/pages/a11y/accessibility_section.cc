@@ -1001,7 +1001,7 @@ void AccessibilitySection::AddLoadTimeData(
       {"durationInSeconds", IDS_SETTINGS_DURATION_IN_SECONDS},
       {"reEnableTouchpadLabel", IDS_SETTINGS_RE_ENABLE_TOUCHPAD},
       {"focusHighlightLabel",
-       IDS_SETTINGS_ACCESSIBILITY_FOCUS_HIGHLIGHT_DESCRIPTION},
+       IDS_OS_SETTINGS_ACCESSIBILITY_FOCUS_HIGHLIGHT_DESCRIPTION},
       {"focusHighlightLabelSubtext",
        IDS_SETTINGS_ACCESSIBILITY_FOCUS_HIGHLIGHT_DESCRIPTION_SUBTEXT},
       {"focusHighlightDisabledByChromevoxTooltip",
@@ -1557,7 +1557,7 @@ void AccessibilitySection::AddLoadTimeData(
        IDS_SETTINGS_TEXT_TO_SPEECH_VOLUME_MINIMUM_LABEL},
       {"ttsSettingsLinkDescription", IDS_SETTINGS_TTS_LINK_DESCRIPTION},
       {"overscrollHistoryNavigationTitle",
-       IDS_SETTINGS_OVERSCROLL_HISTORY_NAVIGATION_TITLE},
+       IDS_OS_SETTINGS_OVERSCROLL_HISTORY_NAVIGATION_TITLE},
   };
   html_source->AddLocalizedStrings(kLocalizedStrings);
 

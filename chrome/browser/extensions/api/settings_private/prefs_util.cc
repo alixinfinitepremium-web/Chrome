@@ -1267,7 +1267,7 @@ const PrefsUtil::TypedPrefMap& PrefsUtil::GetAllowlistedKeys() {
 #if BUILDFLAG(IS_CHROMEOS)
   (*s_allowlist)[::ash::prefs::kDocumentScanAPITrustedExtensions] =
       settings_api::PrefType::kList;
-  (*s_allowlist)[::prefs::kPrintingAPIExtensionsAllowlist] =
+  (*s_allowlist)[::ash::prefs::kPrintingAPIExtensionsAllowlist] =
       settings_api::PrefType::kList;
 
   (*s_allowlist)[ash::prefs::kAccessibilityFocusHighlightEnabled] =
@@ -1423,6 +1423,8 @@ const PrefsUtil::TypedPrefMap& PrefsUtil::GetAllowlistedKeys() {
   (*s_allowlist)[glic::prefs::kGlicShakeTriggerEnabled] =
       settings_api::PrefType::kBoolean;
   (*s_allowlist)[glic::prefs::kGlicHotkeyGlobalScopeEnabled] =
+      settings_api::PrefType::kBoolean;
+  (*s_allowlist)[glic::prefs::kGlicQuickAnswersFreAccepted] =
       settings_api::PrefType::kBoolean;
 
   // Dictation / Voice typing prefs

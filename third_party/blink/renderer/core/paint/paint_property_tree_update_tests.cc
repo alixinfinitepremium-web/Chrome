@@ -2510,4 +2510,107 @@ TEST_P(PaintPropertyTreeUpdateTest, CanvasSubtreeScrollbarInIframe) {
   check_scrollbar_effect_in_canvas_subtree(child_scroll, true);
 }
 
+TEST_P(PaintPropertyTreeUpdateTest, SVGTransformAnimationSMILChange) {
+  SetBodyInnerHTML(R"HTML(
+    <style>
+      @keyframes anim {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(10deg); }
+      }
+      #target {
+        transform-origin: 50% 50%;
+        animation: anim 1s infinite;
+      }
+    </style>
+    <svg width="100" height="100">
+      <rect id="other" width="100" height="100"/>
+      <rect id="target" width="100" height="100"/>
+      <set id="smil" href="#other" attributeName="fill" to="green"/>
+    </svg>
+  )HTML");
+
+  const auto* transform = PaintPropertiesForElement("target")->Transform();
+  ASSERT_TRUE(transform);
+  EXPECT_EQ(gfx::Point3F(50, 50, 0), transform->Origin());
+
+  GetElementById("smil")->setAttribute(svg_names::kHrefAttr,
+                                       AtomicString("#target"));
+  UpdateAllLifecyclePhasesForTest();
+  EXPECT_EQ(gfx::Point3F(), transform->Origin());
+
+  GetElementById("smil")->setAttribute(svg_names::kHrefAttr,
+                                       AtomicString("#other"));
+  UpdateAllLifecyclePhasesForTest();
+  EXPECT_EQ(gfx::Point3F(50, 50, 0), transform->Origin());
+}
+
+TEST_P(PaintPropertyTreeUpdateTest, SVGTransformAnimationZoomChange) {
+  SetBodyInnerHTML(R"HTML(
+    <style>
+      @keyframes anim {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(10deg); }
+      }
+      #target {
+        transform-origin: 50% 50%;
+        animation: anim 1s infinite;
+      }
+    </style>
+    <svg width="100" height="100">
+      <rect id="target" width="100" height="100"/>
+    </svg>
+  )HTML");
+
+  const auto* transform = PaintPropertiesForElement("target")->Transform();
+  ASSERT_TRUE(transform);
+  EXPECT_EQ(gfx::Point3F(50, 50, 0), transform->Origin());
+
+  GetElementById("target")->setAttribute(html_names::kStyleAttr,
+                                         AtomicString("zoom: 2"));
+  UpdateAllLifecyclePhasesForTest();
+  EXPECT_EQ(gfx::Point3F(), transform->Origin());
+
+  GetElementById("target")->removeAttribute(html_names::kStyleAttr);
+  UpdateAllLifecyclePhasesForTest();
+  EXPECT_EQ(gfx::Point3F(50, 50, 0), transform->Origin());
+}
+
+TEST_P(PaintPropertyTreeUpdateTest, SVGTransformAnimationVectorEffectChange) {
+  SetBodyInnerHTML(R"HTML(
+    <style>
+      @keyframes anim {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(10deg); }
+      }
+      .animate {
+        transform-origin: 50% 50%;
+        animation: anim 1s infinite;
+      }
+    </style>
+    <svg width="100" height="100">
+      <g id="g" class="animate">
+        <rect id="rect" width="100" height="100" class="animate"/>
+      </g>
+    </svg>
+  )HTML");
+
+  const auto* g_transform = PaintPropertiesForElement("g")->Transform();
+  const auto* rect_transform = PaintPropertiesForElement("rect")->Transform();
+  ASSERT_TRUE(g_transform);
+  ASSERT_TRUE(rect_transform);
+  EXPECT_EQ(gfx::Point3F(50, 50, 0), g_transform->Origin());
+  EXPECT_EQ(gfx::Point3F(50, 50, 0), rect_transform->Origin());
+
+  GetElementById("rect")->setAttribute(svg_names::kVectorEffectAttr,
+                                       AtomicString("non-scaling-stroke"));
+  UpdateAllLifecyclePhasesForTest();
+  EXPECT_EQ(gfx::Point3F(), g_transform->Origin());
+  EXPECT_EQ(gfx::Point3F(), rect_transform->Origin());
+
+  GetElementById("rect")->removeAttribute(svg_names::kVectorEffectAttr);
+  UpdateAllLifecyclePhasesForTest();
+  EXPECT_EQ(gfx::Point3F(50, 50, 0), g_transform->Origin());
+  EXPECT_EQ(gfx::Point3F(50, 50, 0), rect_transform->Origin());
+}
+
 }  // namespace blink

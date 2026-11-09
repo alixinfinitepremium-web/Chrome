@@ -46,7 +46,6 @@ class TestScriptAncestryTracker final : public ScriptAncestryTracker {
     return ScriptAncestryTrackerType::kAd;
   }
 
-  using ScriptAncestryTracker::GetScriptMetadata;
   using ScriptAncestryTracker::RegisterScript;
 
   // Mark scripts with "marked" in the url and their descendants.
@@ -192,40 +191,6 @@ TEST_F(ScriptAncestryTrackerTest, ClassicExternalMarkedScript) {
   EXPECT_TRUE(test_observer_->IsMarkedScript(script_id));
 }
 
-TEST_F(ScriptAncestryTrackerTest,
-       ClassicExternalMarkedScript_BottomMostScriptSet) {
-  SimSubresourceRequest marked_script("https://example.com/marked_script.js",
-                                      "text/javascript");
-  SimSubresourceRequest child_script("https://example.com/child.js",
-                                     "text/javascript");
-  main_resource_->Complete(
-      "<body><script src=\"marked_script.js\"></script></body>");
-  test::RunPendingTasks();
-
-  // Define a marked script that creates a dynamic script.
-  marked_script.Complete(
-      "var s = document.createElement('script');"
-      "s.src = 'child.js';"
-      "document.body.appendChild(s);");
-  test::RunPendingTasks();
-
-  child_script.Complete("console.log('child');");
-
-  V8ScriptId marked_id =
-      test_observer_->WaitAndFindScriptIdByUrl("marked_script.js");
-  V8ScriptId child_id = test_observer_->WaitAndFindScriptIdByUrl("child.js");
-
-  EXPECT_NE(V8ScriptId(), marked_id);
-  EXPECT_NE(V8ScriptId(), child_id);
-  EXPECT_TRUE(test_observer_->IsMarkedScript(marked_id));
-
-  // The child script's parent marked script ID should be set to marked_id
-  // because marked_id was set as bottom_most_script_ during WillExecuteScript.
-  const auto* child_info = test_observer_->GetRegisteredScript(child_id);
-  ASSERT_TRUE(child_info);
-  EXPECT_EQ(marked_id, child_info->marked_script_id);
-}
-
 TEST_F(ScriptAncestryTrackerTest, TransitiveExternalScript) {
   SimSubresourceRequest initial_script(
       "https://example.com/initial_marked_script.js", "text/javascript");
@@ -308,10 +273,6 @@ TEST_F(ScriptAncestryTrackerTest, RegisterScriptDirectly) {
   v8::Context::Scope context_scope(context);
 
   test_observer_->RegisterScript(script_id, marked_script_id);
-
-  const auto* data = test_observer_->GetScriptMetadata(script_id);
-  ASSERT_TRUE(data);
-  EXPECT_EQ(marked_script_id, data->marked_script_id);
 
   const auto* observer_data = test_observer_->GetRegisteredScript(script_id);
   ASSERT_TRUE(observer_data);
@@ -855,10 +816,6 @@ TEST_F(ScriptAncestryTrackerTest, DynamicScriptAppendsExternalModule) {
   const auto* root_info = test_observer_->GetRegisteredScript(root_id);
   ASSERT_TRUE(root_info);
   EXPECT_EQ(initial_id, root_info->marked_script_id);
-
-  const auto* metadata = test_observer_->GetScriptMetadata(root_id);
-  ASSERT_TRUE(metadata);
-  EXPECT_EQ(initial_id, metadata->marked_script_id);
 }
 
 TEST_F(ScriptAncestryTrackerTest, DynamicImportFromMarkedScript) {
@@ -889,10 +846,6 @@ TEST_F(ScriptAncestryTrackerTest, DynamicImportFromMarkedScript) {
   const auto* sub_info = test_observer_->GetRegisteredScript(sub_id);
   ASSERT_TRUE(sub_info);
   EXPECT_EQ(initial_id, sub_info->marked_script_id);
-
-  const auto* metadata = test_observer_->GetScriptMetadata(sub_id);
-  ASSERT_TRUE(metadata);
-  EXPECT_EQ(initial_id, metadata->marked_script_id);
 }
 
 TEST_F(ScriptAncestryTrackerTest,
@@ -928,10 +881,6 @@ TEST_F(ScriptAncestryTrackerTest,
   const auto* root_info = test_observer_->GetRegisteredScript(root_id);
   ASSERT_TRUE(root_info);
   EXPECT_EQ(V8ScriptId(), root_info->marked_script_id);
-
-  const auto* metadata = test_observer_->GetScriptMetadata(root_id);
-  ASSERT_TRUE(metadata);
-  EXPECT_EQ(V8ScriptId(), metadata->marked_script_id);
 }
 
 TEST_F(ScriptAncestryTrackerTest, DynamicImportFromUnmarkedScript_NotMarked) {
@@ -962,10 +911,6 @@ TEST_F(ScriptAncestryTrackerTest, DynamicImportFromUnmarkedScript_NotMarked) {
   const auto* sub_info = test_observer_->GetRegisteredScript(sub_id);
   ASSERT_TRUE(sub_info);
   EXPECT_EQ(V8ScriptId(), sub_info->marked_script_id);
-
-  const auto* metadata = test_observer_->GetScriptMetadata(sub_id);
-  ASSERT_TRUE(metadata);
-  EXPECT_EQ(V8ScriptId(), metadata->marked_script_id);
 }
 
 TEST_F(ScriptAncestryTrackerTest,

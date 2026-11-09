@@ -1033,18 +1033,23 @@ void AddGlicStrings(content::WebUIDataSource* html_source, Profile* profile) {
        IDS_SETTINGS_GLIC_INLINE_CUE_MENU_PREVIEW},
       {"siteSettingsInlineCueMenuPreviewText",
        IDS_SETTINGS_GLIC_INLINE_CUE_MENU_PREVIEW_TEXT},
-      {"siteSettingsInlineCueMenuPreviewPill",
-       IDS_SETTINGS_GLIC_INLINE_CUE_MENU_PREVIEW_PILL},
       {"siteSettingsInlineCueMenuToggleLabel",
        IDS_SETTINGS_GLIC_INLINE_CUE_MENU},
       {"siteSettingsInlineCueMenuToggleSublabel",
        IDS_SETTINGS_GLIC_INLINE_CUE_MENU_TOGGLE_SUBLABEL},
+      {"siteSettingsInlineCueMenuExplainToggle",
+       IDS_SETTINGS_GLIC_INLINE_CUE_MENU_EXPLAIN_TOGGLE},
+      {"siteSettingsInlineCueMenuExplainToggleSublabel",
+       IDS_SETTINGS_GLIC_INLINE_CUE_MENU_EXPLAIN_TOGGLE_SUBLABEL},
       {"glicHotkeyGlobalScopeDescription",
        IDS_SETTINGS_GLIC_HOTKEY_GLOBAL_SCOPE_DESCRIPTION},
   };
   html_source->AddLocalizedStrings(kLocalizedStrings);
 
   html_source->AddString("glicActivityButtonUrl", chrome::kGlicActivityUrl);
+  html_source->AddBoolean(
+      "inlineCueMenuUsePromptBoxIcon",
+      base::FeatureList::IsEnabled(features::kGlicSelectionOverlayPromptBox));
 
   html_source->AddLocalizedString(
       "glicOsWidgetToggle",
@@ -2154,9 +2159,15 @@ void AddAutofillStrings(content::WebUIDataSource* html_source,
   html_source->AddBoolean(
       "emailVerificationProtocolEnabled",
       base::FeatureList::IsEnabled(features::kEmailVerificationProtocol));
-  html_source->AddBoolean("autofillGmailOtpFillingEnabled",
-                          base::FeatureList::IsEnabled(
-                              features::kGlicActorAutofillOneTimePassword));
+  // The Gmail OTP filling opt-in is shared by Actor OTP filling and Autofill
+  // Gmail OTP suggestions. Show it when either feature is enabled so that the
+  // two features don't depend on each other for launch.
+  html_source->AddBoolean(
+      "autofillGmailOtpFillingEnabled",
+      base::FeatureList::IsEnabled(
+          features::kGlicActorAutofillOneTimePassword) ||
+          base::FeatureList::IsEnabled(
+              autofill::features::kAutofillShowGmailOtpSuggestions));
   html_source->AddString(
       "enableGmailOtpFillingDescription",
       l10n_util::GetStringFUTF16(

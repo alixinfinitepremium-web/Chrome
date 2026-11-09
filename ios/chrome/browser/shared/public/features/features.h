@@ -810,12 +810,6 @@ BASE_DECLARE_FEATURE(kAssistantSidePanel);
 // Returns true if the AssistantSidePanel feature is enabled.
 bool IsAssistantSidePanelEnabled();
 
-// Enables the YourSavedInfoSettingsPageIos feature.
-BASE_DECLARE_FEATURE(kYourSavedInfoSettingsPageIos);
-
-// Returns true if the YourSavedInfoSettingsPageIos feature is enabled.
-bool IsYourSavedInfoSettingsPageIosEnabled();
-
 // Arms for the BackgroundRefreshRegressionTest experiment.
 enum class BackgroundRefreshRegressionTestArm {
   kControl = 0,
@@ -890,12 +884,6 @@ BASE_DECLARE_FEATURE(kIOSDarkModeDetection);
 
 // Returns true if the Native Dark Mode Detection feature is enabled.
 bool IsIOSDarkModeDetectionEnabled();
-
-// Enables sign-in/account menu button in the overflow menu.
-BASE_DECLARE_FEATURE(kIdentityAwareness);
-
-// Returns true if the IdentityAwareness feature is enabled.
-bool IsIdentityAwarenessEnabled();
 
 // Finch experiment flag to display a ring around the avatar in the NTP and
 // account menu for users with an AI subscription.
@@ -1066,5 +1054,11 @@ bool IsAppBarDisableLongPressEnabled();
 // Enables startup cleanup of corrupted multi-profile account mappings caused by
 // crbug.com/577577623.
 BASE_DECLARE_FEATURE(kCleanupCorruptedAccountProfileMappings);
+
+// Enables the EphemeralBottomSheet feature.
+BASE_DECLARE_FEATURE(kEphemeralBottomSheet);
+
+// Returns true if the EphemeralBottomSheet feature is enabled.
+bool IsEphemeralBottomSheetEnabled();
 
 #endif  // IOS_CHROME_BROWSER_SHARED_PUBLIC_FEATURES_FEATURES_H_

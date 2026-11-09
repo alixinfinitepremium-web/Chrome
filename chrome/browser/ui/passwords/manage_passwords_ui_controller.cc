@@ -87,6 +87,7 @@
 #include "components/password_manager/core/browser/password_store/actionable_error.h"
 #include "components/password_manager/core/browser/password_store/interactions_stats.h"
 #include "components/password_manager/core/browser/password_store/password_form_converters.h"
+#include "components/password_manager/core/browser/password_store/password_store_util.h"
 #include "components/password_manager/core/browser/password_string.h"
 #include "components/password_manager/core/browser/password_sync_util.h"
 #include "components/password_manager/core/browser/password_ui_utils.h"
@@ -791,13 +792,7 @@ ManagePasswordsUIController::GetPasswordFeatureManager() {
 }
 
 password_manager::ui::State ManagePasswordsUIController::GetState() const {
-  PasswordChangeDelegate* delegate = GetPasswordChangeDelegate();
-  if (delegate) {
-    if (delegate->GetCurrentState() ==
-        PasswordChangeDelegate::State::kPasswordSuccessfullyChanged) {
-      // Prevent any UI being displayed instead of the password change bubble.
-      return password_manager::ui::State::PASSWORD_CHANGE_STATE;
-    }
+  if (IsPasswordChangeOngoing()) {
     // Prevent any UI being displayed during ongoing password change flow.
     return password_manager::ui::State::INACTIVE_STATE;
   }
@@ -1445,17 +1440,6 @@ bool ManagePasswordsUIController::ShouldReshowOnTabVisible() const {
   return false;
 }
 
-PasswordChangeDelegate* ManagePasswordsUIController::GetPasswordChangeDelegate()
-    const {
-  ChromePasswordChangeService* password_change_service =
-      PasswordChangeServiceFactory::GetForProfile(
-          Profile::FromBrowserContext(web_contents()->GetBrowserContext()));
-  if (!password_change_service) {
-    return nullptr;
-  }
-  return password_change_service->GetPasswordChangeDelegate(web_contents());
-}
-
 PasswordsLeakDialogDelegate*
 ManagePasswordsUIController::GetPasswordsLeakDialogDelegate() {
   return this;
@@ -1575,7 +1559,9 @@ bool ManagePasswordsUIController::IsPendingPasswordPhished() const {
 }
 
 bool ManagePasswordsUIController::IsPasswordChangeOngoing() const {
-  return GetPasswordChangeDelegate();
+  auto* password_change_service = GetPasswordChangeService(web_contents());
+  return password_change_service &&
+         password_change_service->GetPasswordChangeDelegate(web_contents());
 }
 
 bool ManagePasswordsUIController::BubbleManagerHasPasswordBubbleInQueue()
@@ -1737,16 +1723,21 @@ void ManagePasswordsUIController::OnErrorStateChanged(
 
     if (save_password_after_error_resolution_ &&
         new_state == password_manager::ActionableError::kNoError) {
-      CompleteSavePasswordAfterErrorResolution();
-    }
-    if (IsShowingBubble()) {
-      // If the error state of the store changed, the safest option is to hide
-      // the password save / update bubble to avoid showing stale UI.
-      using password_manager::ui::State;
-      const State state = GetState();
-      if (state == State::PENDING_PASSWORD_STATE ||
-          state == State::PENDING_PASSWORD_UPDATE_STATE) {
-        HideBubble(/*initiated_by_bubble_manager=*/false);
+      // Entering this block means the current `store` is used for saving the
+      // pending credential and its state is `kNoError`. However, we also need
+      // to address the multi-store edge case (e.g. an update in both profile
+      // and account stores) and ensure the other store doesn't have a blocking
+      // error too before completing auto-save.
+      password_manager::PasswordStoreInterface* profile_store =
+          passwords_data_.client()->GetProfilePasswordStore();
+      password_manager::PasswordStoreInterface* account_store =
+          passwords_data_.client()->GetAccountPasswordStore();
+      password_manager::PasswordStoreInterface* other_store =
+          (store == profile_store) ? account_store : profile_store;
+      if (!other_store ||
+          !IsStoreUsedForSavingPendingCredentials(other_store) ||
+          password_manager::IsAbleToSavePasswords(other_store->GetError())) {
+        CompleteSavePasswordAfterErrorResolution();
       }
     }
   }

@@ -2379,6 +2379,7 @@ Called by update_net_error_codes.py.-->
   <int value="145" label="Add Sub Apps without prompts"/>
   <int value="146" label="Inline cue menu"/>
   <int value="147" label="Suspicious site warning data"/>
+  <int value="148" label="WebAuthn ambient sign-in data"/>
 </enum>
 
 <!-- LINT.ThenChange(//components/content_settings/core/common/content_settings_uma_constants.h:kContentSettingsTypeToHistogramValue) -->
@@ -10866,6 +10867,7 @@ from previous Chrome versions.
   <int value="-1246125067" label="SearchInSettings:enabled"/>
   <int value="-1245855621" label="TabFaviconChipsToCoins:disabled"/>
   <int value="-1245617305" label="NewProfilePicker:enabled"/>
+  <int value="-1244982309" label="HistoryPageRefresh:enabled"/>
   <int value="-1244772303" label="NtpRealboxMatchOmniboxTheme:enabled"/>
   <int value="-1244267485" label="TabbedBrowserUseNewLayout:disabled"/>
   <int value="-1243870410" label="CrOSLateBootCrasProcessorWavDump:disabled"/>
@@ -16505,6 +16507,7 @@ from previous Chrome versions.
   <int value="432920820" label="OmniboxActionsInSuggest:enabled"/>
   <int value="433084321" label="WebPrinting:enabled"/>
   <int value="433272479" label="AndroidPdfAssistContent:disabled"/>
+  <int value="433518714" label="variations-seed-corpus"/>
   <int value="434033638" label="PwaPersistentNotification:disabled"/>
   <int value="434333410" label="DefaultMeetWebApp:disabled"/>
   <int value="434530296"
@@ -16669,6 +16672,7 @@ from previous Chrome versions.
   <int value="484581911" label="ServiceWorkerSubresourceFilter:disabled"/>
   <int value="484596410" label="EnterpriseRealtimeExtensionRequest:disabled"/>
   <int value="484611531" label="AccessibilityGameFaceIntegration:enabled"/>
+  <int value="484882958" label="HistoryPageRefresh:disabled"/>
   <int value="485957747" label="finch-seed-ignore-pending-download"/>
   <int value="486667213" label="TabstripComboButton:disabled"/>
   <int value="487542146" label="Bruschetta:enabled"/>
@@ -25956,7 +25960,7 @@ Called by update_net_error_codes.py.-->
   <int value="24" label="DICTIONARY"/>
   <int value="25" label="SPECULATION_RULES"/>
   <int value="26" label="JSON"/>
-  <int value="27" label="SHAREDSTORAGEWORKLET"/>
+  <int value="27" label="(Obsolete) SHAREDSTORAGEWORKLET"/>
 </enum>
 
 <enum name="ResourceType">

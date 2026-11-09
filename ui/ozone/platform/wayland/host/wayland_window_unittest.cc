@@ -249,6 +249,7 @@ class WaylandWindowTest : public WaylandTest {
     WaylandTestBase::SyncDisplay();
     window->OnSequencePoint(viz_seq);
     window->root_surface()->ApplyPendingState();
+    window->OnFrameCommitted(viz_seq);
   }
 
   void InitializeWithSupportedHitTestValues(std::vector<int>* hit_tests) {
@@ -421,12 +422,14 @@ class WaylandWindowTest : public WaylandTest {
     CHECK(connection_->buffer_manager_host());
 
     auto interface_ptr = connection_->buffer_manager_host()->BindInterface();
-    buffer_manager_gpu_->Initialize(std::move(interface_ptr), {},
-                                    /*supports_dma_buf=*/false,
-                                    /*supports_viewporter=*/true,
-                                    /*supports_acquire_fence=*/false,
-                                    /*supports_overlays=*/true,
-                                    /*supports_single_pixel_buffer=*/true);
+    buffer_manager_gpu_->Initialize(
+        std::move(interface_ptr), {},
+        ozone::mojom::WaylandBufferManagerCapabilities::New(
+            /*supports_dma_buf=*/false, /*supports_viewporter=*/true,
+            /*supports_acquire_fence=*/false, /*supports_overlays=*/true,
+            /*supports_single_pixel_buffer=*/true,
+            /*compositor_tone_maps_using_clli=*/false,
+            /*compositor_tone_maps_using_mdcv=*/false));
 
     const uint32_t buffer_id = ++buffer_id_gen_;
     auto length = buffer_size.width() * buffer_size.height() * 4;
@@ -1405,6 +1408,84 @@ TEST_P(WaylandWindowTest, StaleConfigureDoesNotExitFullscreen) {
   EXPECT_EQ(PlatformWindowState::kFullScreen,
             window_->GetPlatformWindowState());
   EXPECT_FALSE(window_->GetBoundsInDIP().IsEmpty());
+}
+
+// Regression test for crbug.com/582849861. Compositors such as Mutter echo the
+// last committed window geometry on state-only configures (e.g. activation).
+// Such configures arriving before a client-initiated resize frame has committed
+// and synced must not overwrite the client-requested bounds.
+TEST_P(WaylandWindowTest, StaleConfigureDoesNotRevertClientBounds) {
+  const auto kInsets = gfx::Insets::TLBR(10, 16, 32, 16);
+  EXPECT_CALL(delegate_, CalculateInsetsInDIP(_))
+      .WillRepeatedly(Return(gfx::Insets()));
+  EXPECT_CALL(delegate_, CalculateInsetsInDIP(PlatformWindowState::kNormal))
+      .WillRepeatedly(Return(kInsets));
+  EXPECT_CALL(delegate_, OnBoundsChanged(_)).Times(testing::AnyNumber());
+  EXPECT_CALL(delegate_, OnWindowStateChanged(_, _))
+      .Times(testing::AnyNumber());
+  EXPECT_CALL(delegate_, OnWindowTiledStateChanged(_))
+      .Times(testing::AnyNumber());
+
+  auto active = InitializeWlArrayWithActivatedState();
+  SendConfigureEvent(surface_id_, {0, 0}, active);
+  AdvanceFrameToCurrent(window_.get(), delegate_);
+  const gfx::Rect initial_bounds = window_->GetBoundsInDIP();
+  const gfx::Size initial_geometry_size(
+      initial_bounds.width() - kInsets.width(),
+      initial_bounds.height() - kInsets.height());
+
+  constexpr gfx::Rect kClientResizedBounds{1017, 746};
+  window_->SetBoundsInDIP(kClientResizedBounds);
+  EXPECT_EQ(kClientResizedBounds, window_->GetBoundsInDIP());
+
+  // 1) A configure echoing the pre-resize geometry before the resized frame
+  // commits must not clobber the client-requested bounds.
+  SendConfigureEvent(surface_id_, initial_geometry_size, active);
+  EXPECT_EQ(kClientResizedBounds, window_->GetBoundsInDIP());
+
+  // 2) A configure queued on the server before the resized frame commits and
+  // its wl_display.sync completes must also keep the client-requested bounds.
+  server_.Post(base::BindLambdaForTesting(
+      [&, id = surface_id_,
+       size = initial_geometry_size](wl::TestWaylandServerThread* server) {
+        auto* xdg_surface =
+            server->GetObject<wl::MockSurface>(id)->xdg_surface();
+        wl::ScopedWlArray states(active);
+        xdg_toplevel_send_configure(xdg_surface->xdg_toplevel()->resource(),
+                                    size.width(), size.height(), states.get());
+        xdg_surface_send_configure(xdg_surface->resource(),
+                                   server->GetNextSerial());
+      }));
+  server_.FlushForTesting();
+
+  AdvanceFrameToCurrent(window_.get(), delegate_);
+  SyncDisplay();
+  AdvanceFrameToCurrent(window_.get(), delegate_);
+  EXPECT_EQ(kClientResizedBounds, window_->GetBoundsInDIP());
+
+  // 3) Once the frame commit and sync have completed, a compositor configure
+  // back to the initial geometry size is obeyed.
+  SendConfigureEvent(surface_id_, initial_geometry_size, active);
+  AdvanceFrameToCurrent(window_.get(), delegate_);
+  EXPECT_EQ(initial_bounds, window_->GetBoundsInDIP());
+
+  // 4) Interactive resizes (XDG_TOPLEVEL_STATE_RESIZING) and server-chosen
+  // sizes distinct from the stale geometry are always obeyed immediately.
+  constexpr gfx::Rect kSecondClientBounds{900, 700};
+  window_->SetBoundsInDIP(kSecondClientBounds);
+  auto active_resizing = MakeStateArray(
+      {XDG_TOPLEVEL_STATE_ACTIVATED, XDG_TOPLEVEL_STATE_RESIZING});
+  SendConfigureEvent(surface_id_, initial_geometry_size, active_resizing);
+  AdvanceFrameToCurrent(window_.get(), delegate_);
+  EXPECT_EQ(initial_bounds, window_->GetBoundsInDIP());
+
+  window_->SetBoundsInDIP(kSecondClientBounds);
+  constexpr gfx::Size kServerSize{640, 480};
+  SendConfigureEvent(surface_id_, kServerSize, active);
+  AdvanceFrameToCurrent(window_.get(), delegate_);
+  EXPECT_EQ(gfx::Rect(kServerSize.width() + kInsets.width(),
+                      kServerSize.height() + kInsets.height()),
+            window_->GetBoundsInDIP());
 }
 
 // Regression test for crbug.com/396148609. A minimized window is not visible,
@@ -4637,12 +4718,14 @@ TEST_P(WaylandWindowTest, ReattachesBackgroundOnShow) {
   EXPECT_TRUE(connection_->buffer_manager_host());
 
   auto interface_ptr = connection_->buffer_manager_host()->BindInterface();
-  buffer_manager_gpu_->Initialize(std::move(interface_ptr), {},
-                                  /*supports_dma_buf=*/false,
-                                  /*supports_viewporter=*/true,
-                                  /*supports_acquire_fence=*/false,
-                                  /*supports_overlays=*/true,
-                                  /*supports_single_pixel_buffer=*/true);
+  buffer_manager_gpu_->Initialize(
+      std::move(interface_ptr), {},
+      ozone::mojom::WaylandBufferManagerCapabilities::New(
+          /*supports_dma_buf=*/false, /*supports_viewporter=*/true,
+          /*supports_acquire_fence=*/false, /*supports_overlays=*/true,
+          /*supports_single_pixel_buffer=*/true,
+          /*compositor_tone_maps_using_clli=*/false,
+          /*compositor_tone_maps_using_mdcv=*/false));
 
   // Setup wl_buffers.
   constexpr uint32_t buffer_id1 = 1;
@@ -5271,12 +5354,14 @@ TEST_P(WaylandWindowTest, NoDuplicateViewporterRequests) {
   EXPECT_TRUE(connection_->buffer_manager_host());
 
   auto interface_ptr = connection_->buffer_manager_host()->BindInterface();
-  buffer_manager_gpu_->Initialize(std::move(interface_ptr), {},
-                                  /*supports_dma_buf=*/false,
-                                  /*supports_viewporter=*/true,
-                                  /*supports_acquire_fence=*/false,
-                                  /*supports_overlays=*/true,
-                                  /*supports_single_pixel_buffer=*/true);
+  buffer_manager_gpu_->Initialize(
+      std::move(interface_ptr), {},
+      ozone::mojom::WaylandBufferManagerCapabilities::New(
+          /*supports_dma_buf=*/false, /*supports_viewporter=*/true,
+          /*supports_acquire_fence=*/false, /*supports_overlays=*/true,
+          /*supports_single_pixel_buffer=*/true,
+          /*compositor_tone_maps_using_clli=*/false,
+          /*compositor_tone_maps_using_mdcv=*/false));
 
   // Setup wl_buffers.
   constexpr uint32_t buffer_id = 1;

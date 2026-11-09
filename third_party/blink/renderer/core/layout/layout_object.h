@@ -3662,7 +3662,13 @@ class CORE_EXPORT LayoutObject : public GarbageCollected<LayoutObject>,
   void SetTransformAffectsVectorEffect(bool b) {
     NOT_DESTROYED();
     DCHECK(IsSVGChild());
-    transform_affects_vector_effect_ = b;
+    if (transform_affects_vector_effect_ != b) {
+      transform_affects_vector_effect_ = b;
+      // `CompositorAnimations::CanStartTransformAnimationOnCompositorForSVG`
+      // depends on `TransformAffectsVectorEffect`, which is used for the
+      // transform paint property.
+      SetNeedsPaintPropertyUpdate();
+    }
   }
 
   void ClearSVGDescendantMayHaveTransformRelatedOperations() {
@@ -4106,7 +4112,7 @@ class CORE_EXPORT LayoutObject : public GarbageCollected<LayoutObject>,
   friend class LocalFrameView;
 
   Member<const ComputedStyle> style_;
-  Member<Node> node_;
+  WeakMember<Node> node_;
 
   Member<LayoutObject> parent_;
   Member<LayoutObject> previous_;

@@ -105,16 +105,12 @@
 #include "chrome/browser/glic/public/glic_keyed_service.h"  // nogncheck
 #include "chrome/browser/glic/public/service/glic_instance_coordinator.h"  // nogncheck
 #include "chrome/browser/glic/test_support/glic_browser_test.h"  // nogncheck
-#include "chrome/browser/profiles/keep_alive/profile_keep_alive_types.h"
-#include "chrome/browser/profiles/keep_alive/scoped_profile_keep_alive.h"
 #include "chrome/browser/ui/browser_window/public/profile_browser_collection.h"
 #include "chrome/browser/ui/tabs/tab_strip_model.h"
 #include "chrome/common/actor/action_result.h"
 #include "chrome/test/base/in_process_browser_test.h"
 #include "chrome/test/base/ui_test_utils.h"
 #include "components/actor/core/task_source_info.h"
-#include "components/keep_alive_registry/keep_alive_types.h"
-#include "components/keep_alive_registry/scoped_keep_alive.h"
 #include "ui/base/base_window.h"
 #endif
 
@@ -442,6 +438,35 @@ IN_PROC_BROWSER_TEST_F(ToolControllerBrowserTest, ReloadPageOnCrashedTab) {
   EXPECT_TRUE(future.Take().Ok());
   EXPECT_FALSE(web_contents()->IsCrashed());
   EXPECT_EQ(web_contents()->GetLastCommittedURL(), url);
+}
+
+// Reloading a crashed tab directly still honors the enterprise policy that
+// the actor would apply.
+IN_PROC_BROWSER_TEST_F(ToolControllerBrowserTest,
+                       ReloadPageOnCrashedTabBlockedByPolicy) {
+  ttc_service().SetEnterprisePolicyCheckerForTesting(
+      std::make_unique<actor::MockPolicyChecker>(
+          actor::EnterprisePolicyChecker::UrlBlockReason::kExplicitlyBlocked));
+  ttc_service().StartSession();
+  auto* session_controller = ttc_service().session_controller();
+  ASSERT_TRUE(session_controller);
+
+  const GURL url =
+      embedded_https_test_server().GetURL("example.com", "/title1.html");
+  ASSERT_TRUE(content::NavigateToURL(web_contents(), url));
+  content::CrashTab(web_contents());
+  ASSERT_TRUE(web_contents()->IsCrashed());
+
+  base::test::TestFuture<ToolResponse> future;
+  ToolRequest tool_request;
+  tool_request.name =
+      std::string(actor::ReloadPageToolRequest::kModelFacingName);
+  session_controller->ProcessToolCall(std::move(tool_request),
+                                      future.GetCallback());
+
+  ToolResponse response = future.Take();
+  EXPECT_TOOL_ERROR(response, actor::mojom::ActionResultCode::kUrlBlocked);
+  EXPECT_TRUE(web_contents()->IsCrashed());
 }
 
 IN_PROC_BROWSER_TEST_F(ToolControllerBrowserTest, SwitchTab) {
@@ -2042,32 +2067,6 @@ IN_PROC_BROWSER_TEST_F(ToolControllerBrowserTest, GetScreenshot) {
   EXPECT_GT(bitmap.height(), 0);
 }
 
-#if !BUILDFLAG(IS_ANDROID)
-IN_PROC_BROWSER_TEST_F(ToolControllerBrowserTest, GetScreenshotNoActiveTab) {
-  ttc_service().StartSession();
-  auto* session_controller = ttc_service().session_controller();
-  ASSERT_TRUE(session_controller);
-
-  Profile* test_profile = profile();
-  ScopedKeepAlive keep_alive(KeepAliveOrigin::BROWSER,
-                             KeepAliveRestartOption::DISABLED);
-  ScopedProfileKeepAlive profile_keep_alive(
-      test_profile, ProfileKeepAliveOrigin::kBrowserWindow);
-  CloseBrowserSynchronously(browser());
-
-  base::test::TestFuture<ToolResponse> future;
-  ToolRequest tool_request;
-  tool_request.name = "get_screenshot";
-  session_controller->ProcessToolCall(std::move(tool_request),
-                                      future.GetCallback());
-
-  ToolResponse response = future.Take();
-  EXPECT_TOOL_ERROR(response, actor::mojom::ActionResultCode::kTabWentAway);
-
-  SetBrowser(CreateBrowser(test_profile));
-}
-#endif  // !BUILDFLAG(IS_ANDROID)
-
 IN_PROC_BROWSER_TEST_F(ToolControllerBrowserTest, GetScreenshotDisallowedUrl) {
   ttc_service().StartSession();
   auto* session_controller = ttc_service().session_controller();
@@ -2179,11 +2178,11 @@ IN_PROC_BROWSER_TEST_F(ToolControllerBrowserTest,
       embedded_https_test_server().GetURL("example.com", "/title1.html")));
   content::WaitForCopyableViewInWebContents(web_contents());
 
-  Profile* test_profile = profile();
-  ScopedKeepAlive keep_alive(KeepAliveOrigin::BROWSER,
-                             KeepAliveRestartOption::DISABLED);
-  ScopedProfileKeepAlive profile_keep_alive(
-      test_profile, ProfileKeepAliveOrigin::kBrowserWindow);
+  // Closing the last tabbed window would end the session, so keep another one
+  // open behind the window being captured.
+  BrowserWindowInterface* const other_browser = CreateBrowser(profile());
+  browser()->GetWindow()->Activate();
+  ui_test_utils::WaitForBrowserSetLastActive(browser());
 
   base::WaitableEvent allow_safety_check;
   actor::SafetyListManager::GetInstance()->SetLoadSafetyListsClosure(
@@ -2204,10 +2203,12 @@ IN_PROC_BROWSER_TEST_F(ToolControllerBrowserTest,
 
   allow_safety_check.Signal();
 
+  // Focus has moved to the other window's tab, so the captured page is gone.
   ToolResponse response = future.Take();
-  EXPECT_TOOL_ERROR(response, actor::mojom::ActionResultCode::kTabWentAway);
+  EXPECT_TOOL_ERROR(response,
+                    actor::mojom::ActionResultCode::kScreenshotCaptureFailed);
 
-  SetBrowser(CreateBrowser(test_profile));
+  SetBrowser(other_browser);
 }
 #endif  // !BUILDFLAG(IS_ANDROID)
 
@@ -2526,8 +2527,11 @@ IN_PROC_BROWSER_TEST_F(ToolControllerBrowserTest, GetToolDefinitions) {
     EXPECT_EQ(tools[i].parameters_json_schema,
               expected_tools[i]->parameters_json_schema);
     EXPECT_EQ(tools[i].behavior, ToolDefinition::Behavior::kBlocking);
-    EXPECT_EQ(tools[i].verbalization,
-              ToolDefinition::Verbalization::kSilentAction);
+    const auto expected_verbalization =
+        expected_tools[i]->id == actor::ToolId::kFindAndHighlight
+            ? ToolDefinition::Verbalization::kStandard
+            : ToolDefinition::Verbalization::kSilentAction;
+    EXPECT_EQ(tools[i].verbalization, expected_verbalization);
   }
 
   // Verify the remaining legacy tool definitions that have not yet been
@@ -2658,7 +2662,7 @@ IN_PROC_BROWSER_TEST_F(ToolControllerBrowserTest, GetToolDefinitions) {
   EXPECT_FALSE(get_screenshot.description.empty());
   EXPECT_EQ(get_screenshot.behavior, ToolDefinition::Behavior::kBlocking);
   EXPECT_EQ(get_screenshot.verbalization,
-            ToolDefinition::Verbalization::kSilentAction);
+            ToolDefinition::Verbalization::kStandard);
   EXPECT_TRUE(get_screenshot.parameters_json_schema.empty());
 
   if (window_tools_supported) {

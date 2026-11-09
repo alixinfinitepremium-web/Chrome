@@ -31,6 +31,7 @@
 #include "base/types/optional_util.h"
 #include "build/build_config.h"
 #include "components/autofill/content/renderer/autofill_renderer_test.h"
+#include "components/autofill/content/renderer/custom_form_control_util.h"
 #include "components/autofill/content/renderer/focus_test_util.h"
 #include "components/autofill/content/renderer/form_autofill_util.h"
 #include "components/autofill/content/renderer/form_cache.h"
@@ -302,19 +303,23 @@ class FormAutofillUtilsTest : public content::RenderViewTest {
 
   WebDocument GetDocument() { return GetMainFrame()->GetDocument(); }
 
-  std::optional<FormData> ExtractFormData(WebFormElement form) {
-    return form_util::ExtractFormData(GetDocument(), GetFormRendererId(form),
-                                      field_data_manager(),
-                                      kCallTimerStateDummy,
-                                      /*button_titles_cache=*/nullptr);
+  std::optional<FormData> ExtractFormData(
+      WebFormElement form,
+      base::span<const CustomFormControl> custom_controls = {}) {
+    return form_util::ExtractFormData(
+        GetDocument(), GetFormRendererId(form), field_data_manager(),
+        kCallTimerStateDummy,
+        /*button_titles_cache=*/nullptr, custom_controls);
   }
 
   std::optional<FormAndField> FindFormAndFieldForFormControlElement(
       WebFormControlElement control) {
     return form_util::FindFormAndFieldForFormControlElement(
-        control, field_data_manager(), kCallTimerStateDummy,
-        /*button_titles_cache=*/nullptr,
-        /*form_cache=*/{});
+        control, [&](const WebDocument& document, FormRendererId form_id) {
+          return form_util::ExtractFormData(
+              document, form_id, field_data_manager(), kCallTimerStateDummy,
+              /*button_titles_cache=*/nullptr);
+        });
   }
 
   FieldDataManager& field_data_manager() { return *field_data_manager_; }
@@ -1468,10 +1473,7 @@ TEST_F(FormAutofillUtilsTest,
   WebFormControlElement control_element = GetFormControlElementById(doc, "i0");
 
   std::optional<FormAndField> form_and_field =
-      form_util::FindFormAndFieldForFormControlElement(
-          control_element, field_data_manager(), kCallTimerStateDummy,
-          /*button_titles_cache=*/nullptr,
-          /*form_cache=*/{});
+      FindFormAndFieldForFormControlElement(control_element);
 
   ASSERT_TRUE(form_and_field);
   const FormData& fallback_form = form_and_field->form;
@@ -2737,6 +2739,62 @@ TEST_F(FormAutofillUtilsTest, ExtractFormData_UnownedForm) {
                       Property(&FormFieldData::name, u"select_input")))));
 }
 
+// Tests that `ExtractFormData()` integrates all custom form controls provided
+// as a parameter into the `FormData`.
+TEST_F(FormAutofillUtilsTest, ExtractFormData_CustomFormControls) {
+  LoadHTML(R"(
+      <form id="form">
+        <iframe id="f1"></iframe>
+        <div id="custom1"></div>
+        <iframe id="f2"></iframe>
+        <input id="input1">
+        <iframe id="f3"></iframe>
+        <div id="custom2"></div>
+        <iframe id="f4"></iframe>
+      </form>)");
+  WebDocument doc = GetDocument();
+  std::optional<FormData> form = ExtractFormData(
+      GetFormElementById(doc, "form"),
+      {CustomFormControl{.canonical_dom_node = GetElementById(doc, "custom2")},
+       CustomFormControl{.canonical_dom_node =
+                             GetElementById(doc, "custom1")}});
+  ASSERT_TRUE(form);
+  EXPECT_THAT(form->fields(),
+              ElementsAre(Property(&FormFieldData::name, u"custom1"),
+                          Property(&FormFieldData::name, u"input1"),
+                          Property(&FormFieldData::name, u"custom2")));
+  EXPECT_THAT(
+      form->child_frames(),
+      ElementsAre(AllOf(Field(&FrameTokenWithPredecessor::token,
+                              GetFrameToken(doc, "f1")),
+                        Field(&FrameTokenWithPredecessor::predecessor, -1)),
+                  AllOf(Field(&FrameTokenWithPredecessor::token,
+                              GetFrameToken(doc, "f2")),
+                        Field(&FrameTokenWithPredecessor::predecessor, 0)),
+                  AllOf(Field(&FrameTokenWithPredecessor::token,
+                              GetFrameToken(doc, "f3")),
+                        Field(&FrameTokenWithPredecessor::predecessor, 1)),
+                  AllOf(Field(&FrameTokenWithPredecessor::token,
+                              GetFrameToken(doc, "f4")),
+                        Field(&FrameTokenWithPredecessor::predecessor, 2))));
+}
+
+// Tests that when custom form controls are provided to `ExtractFormData()`,
+// a `FormData` is returned even if there are no standard form controls.
+TEST_F(FormAutofillUtilsTest, ExtractFormData_OnlyCustomFormControls) {
+  LoadHTML(R"(
+      <form id="form">
+        <div id="custom"></div>
+      </form>)");
+  WebDocument doc = GetDocument();
+  std::optional<FormData> form = ExtractFormData(
+      GetFormElementById(doc, "form"),
+      {CustomFormControl{.canonical_dom_node = GetElementById(doc, "custom")}});
+  ASSERT_TRUE(form);
+  EXPECT_THAT(form->fields(),
+              ElementsAre(Property(&FormFieldData::name, u"custom")));
+}
+
 // Tests that GetOwnedFormControls() doesn't return disconnected elements.
 TEST_F(FormAutofillUtilsTest, GetOwnedFormControlsRequiresConnectedness) {
   LoadHTML(R"(
@@ -3337,10 +3395,12 @@ FormData FindForm(const blink::WebFormControlElement& element) {
   };
 
   if (auto p = form_util::FindFormAndFieldForFormControlElement(
-          element, *base::MakeRefCounted<FieldDataManager>(),
-          kExtractFormDataCallTimerStateDummy,
-          /*button_titles_cache=*/nullptr,
-          /*form_cache=*/{})) {
+          element, [&](const WebDocument& document, FormRendererId form_id) {
+            return form_util::ExtractFormData(
+                document, form_id, *base::MakeRefCounted<FieldDataManager>(),
+                kExtractFormDataCallTimerStateDummy,
+                /*button_titles_cache=*/nullptr);
+          })) {
     return p->form;
   }
   return FormData();

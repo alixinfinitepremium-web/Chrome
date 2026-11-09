@@ -183,14 +183,17 @@
   <message name="IDS_SETTINGS_GLIC_INLINE_CUE_MENU_PREVIEW_TEXT" desc="Text displayed in the preview box with highlighted words.">
     Chrome is made possible by the Chromium open source project and other <ph name="BEGIN_HIGHLIGHT">&lt;span class="preview-highlight-box"&gt;&lt;span class="preview-highlight-text"&gt;</ph>open source<ph name="END_HIGHLIGHT">&lt;/span&gt;&lt;/span&gt;</ph> software.
   </message>
-  <message name="IDS_SETTINGS_GLIC_INLINE_CUE_MENU_PREVIEW_PILL" desc="Text inside the floating pill in the preview box.">
-    Explain
-  </message>
   <message name="IDS_SETTINGS_GLIC_INLINE_CUE_MENU_BLOCKED_EXCEPTIONS" desc="Header for the list of sites blocked from showing the inline cue menu.">
     Not allowed to show text actions
   </message>
   <message name="IDS_SETTINGS_GLIC_INLINE_CUE_MENU_ADD_SITE" desc="Label for the Add Site button on the inline cue menu exceptions list.">
     Add site
+  </message>
+  <message name="IDS_SETTINGS_GLIC_INLINE_CUE_MENU_EXPLAIN_TOGGLE" desc="Label for the toggle on the inline cue menu settings page that lets Chrome send page content to Google to explain highlighted text.">
+    Use page content to explain highlighted text
+  </message>
+  <message name="IDS_SETTINGS_GLIC_INLINE_CUE_MENU_EXPLAIN_TOGGLE_SUBLABEL" desc="Sublabel for the toggle on the inline cue menu settings page that lets Chrome send page content to Google to explain highlighted text.">
+    The content and URL of the page you're on, and the highlighted text, are sent to Google to generate an explanation
   </message>
   <message name="IDS_SETTINGS_GLIC_PREFERENCES_SECTION" desc="Heading on settings page for basic preferences." formatter_data="android_java">
     Preferences
@@ -624,9 +627,6 @@
   </message>
   <message name="IDS_GLIC_SELECTION_SHARING_DISCLAIMER" desc="Notice at the bottom of the explanation card telling the user that the current page and the highlighted text are shared with Google.">
     This page and highlighted text are shared with Google
-  </message>
-  <message name="IDS_GLIC_SELECTION_MENU_HIDE_FOR_SITE" desc="Label for the menu item to hide the selection widget on the current website.">
-    Hide for this site
   </message>
   <message name="IDS_GLIC_SELECTION_HIDDEN_TOAST_BODY" desc="Body text for the toast notification when the selection widget is hidden on the current page.">
     Hidden until the page refreshes

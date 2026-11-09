@@ -1013,12 +1013,6 @@ bool IsAssistantSidePanelEnabled() {
          IsChromeNextIaEnabled() && IsFullscreenRefactoringEnabled();
 }
 
-BASE_FEATURE(kYourSavedInfoSettingsPageIos, base::FEATURE_ENABLED_BY_DEFAULT);
-
-bool IsYourSavedInfoSettingsPageIosEnabled() {
-  return base::FeatureList::IsEnabled(kYourSavedInfoSettingsPageIos);
-}
-
 BASE_FEATURE(kBackgroundRefreshRegressionTest,
              base::FEATURE_DISABLED_BY_DEFAULT);
 
@@ -1120,12 +1114,6 @@ BASE_FEATURE(kIOSDarkModeDetection, base::FEATURE_DISABLED_BY_DEFAULT);
 
 bool IsIOSDarkModeDetectionEnabled() {
   return base::FeatureList::IsEnabled(kIOSDarkModeDetection);
-}
-
-BASE_FEATURE(kIdentityAwareness, base::FEATURE_ENABLED_BY_DEFAULT);
-
-bool IsIdentityAwarenessEnabled() {
-  return base::FeatureList::IsEnabled(kIdentityAwareness);
 }
 
 BASE_FEATURE(kAiSubscriptionAvatarRingIOS, base::FEATURE_DISABLED_BY_DEFAULT);
@@ -1303,3 +1291,10 @@ bool IsAppBarDisableLongPressEnabled() {
 
 BASE_FEATURE(kCleanupCorruptedAccountProfileMappings,
              base::FEATURE_DISABLED_BY_DEFAULT);
+
+BASE_FEATURE(kEphemeralBottomSheet, base::FEATURE_DISABLED_BY_DEFAULT);
+
+bool IsEphemeralBottomSheetEnabled() {
+  return IsAimCobrowseEnabled() &&
+         base::FeatureList::IsEnabled(kEphemeralBottomSheet);
+}

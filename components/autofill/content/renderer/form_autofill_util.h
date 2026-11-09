@@ -16,6 +16,7 @@
 
 #include "base/containers/flat_map.h"
 #include "base/containers/span.h"
+#include "base/functional/function_ref.h"
 #include "base/i18n/rtl.h"
 #include "base/memory/stack_allocated.h"
 #include "components/autofill/content/renderer/timing.h"
@@ -53,10 +54,10 @@ class RectF;
 
 namespace autofill {
 
+struct CustomFormControl;
 class FieldDataManager;
 class FormData;
 class FormFieldData;
-class SynchronousFormCache;
 
 namespace form_util {
 
@@ -71,7 +72,10 @@ namespace form_util {
 using ButtonTitlesCache = base::flat_map<FormRendererId, ButtonTitleList>;
 
 // Extracts FormData from the form element with `form_id`, or the unowned form
-// if `form_id.is_null()`.
+// if `form_id.is_null()`. `custom_controls` are the custom form controls owned
+// by the form; they are converted to `FormFieldData` and merged with the
+// standard autofillable form controls in DOM order into the extracted
+// `FormData::fields()`.
 //
 // The document must be the one we want to extract fields from. In other words:
 // Do not blindly pass "some" WebDocument for `document`! If `form_id` is
@@ -84,7 +88,8 @@ std::optional<FormData> ExtractFormData(
     FormRendererId form_id,
     const FieldDataManager& field_data_manager,
     const CallTimerState& timer_state,
-    ButtonTitlesCache* button_titles_cache);
+    ButtonTitlesCache* button_titles_cache,
+    base::span<const CustomFormControl> custom_controls = {});
 
 // Helper function to assist in getting the canonical form of the action and
 // origin. The action will properly take into account <BASE>, and both will
@@ -164,17 +169,14 @@ struct FormAndField {
   const FormFieldData& field;
 };
 
-// Extracts the FormData that represents the form of `element`. If that form
-// cannot be extracted (e.g., because it is too large), falls back to a
-// single-field form that contains `element`. If however `element` is not
-// autofillable, returns nullopt. `form_cache` can be used to optimize form
-// extractions occurring synchronously after this function call.
+// Extracts the FormData that represents the form of `element` using
+// `extract_form_fn`. If that form cannot be extracted (e.g., because it is too
+// large), falls back to a single-field form that contains `element`. If however
+// `element` is not autofillable, returns nullopt.
 std::optional<FormAndField> FindFormAndFieldForFormControlElement(
     const blink::WebFormControlElement& element,
-    const FieldDataManager& field_data_manager,
-    const CallTimerState& timer_state,
-    form_util::ButtonTitlesCache* button_titles_cache,
-    const SynchronousFormCache& form_cache);
+    base::FunctionRef<std::optional<FormData>(const blink::WebDocument&,
+                                              FormRendererId)> extract_form_fn);
 
 // Creates a FormData containing a single field out of a contenteditable
 // non-form element. The FormData is synthetic in the sense that it does not

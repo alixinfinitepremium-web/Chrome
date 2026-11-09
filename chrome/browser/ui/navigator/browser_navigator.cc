@@ -13,6 +13,7 @@
 
 #include "base/feature_list.h"
 #include "base/memory/raw_ptr.h"
+#include "base/memory/weak_ptr.h"
 #include "base/notimplemented.h"
 #include "base/notreached.h"
 #include "base/strings/utf_string_conversions.h"
@@ -45,8 +46,7 @@
 #include "chrome/browser/ui/tabs/tab_enums.h"
 #include "chrome/browser/ui/tabs/tab_strip_model.h"
 #include "chrome/browser/ui/tabs/tab_strip_user_gesture_details.h"
-#include "chrome/browser/ui/waap/initial_webui_window_metrics_manager.h"
-#include "chrome/browser/ui/waap/waap_utils.h"
+#include "chrome/browser/ui/waap/window_creation.h"
 #include "chrome/browser/ui/web_applications/app_browser_controller.h"
 #include "chrome/browser/ui/web_applications/navigation_capturing_process.h"
 #include "chrome/browser/ui/web_applications/web_app_launch_navigation_handle_user_data.h"
@@ -159,13 +159,8 @@ BrowserWindowInterface* CreateNormalBrowserForNavigation(
   }
   BrowserWindowCreateParams params(profile, user_gesture);
   params.should_trigger_session_restore = should_trigger_session_restore;
-  base::TimeTicks now = base::TimeTicks::Now();
-  BrowserWindowInterface* browser = CreateBrowserWindow(std::move(params));
-  if (auto* manager = InitialWebUIWindowMetricsManager::From(browser)) {
-    manager->SetWindowCreationInfo(waap::NewWindowCreationSource::kNavigation,
-                                   now);
-  }
-  return browser;
+  return waap::CreateBrowserWindowAndRecordCreationSource(
+      std::move(params), waap::NewWindowCreationSource::kNavigation);
 }
 
 // Finds an existing Browser compatible with |profile|, making a new one if no
@@ -861,6 +856,9 @@ base::WeakPtr<content::NavigationHandle> NavigateImpl(
       std::optional<blink::mojom::PictureInPictureWindowOptions> pip_options =
           contents_to_navigate_or_insert->GetPictureInPictureOptions();
       if (pip_options.has_value()) {
+        // Showing the window can synchronously destroy the child.
+        base::WeakPtr<WebContents> weak_contents =
+            contents_to_navigate_or_insert->GetWeakPtr();
         const bool focus_contents =
             params->window_action ==
                 NavigateParams::WindowAction::kShowWindow &&
@@ -869,6 +867,7 @@ base::WeakPtr<content::NavigationHandle> NavigateImpl(
             ->EnterStandaloneDocumentPictureInPicture(
                 params->source_contents, std::move(params->contents_to_insert),
                 std::move(*pip_options), focus_contents);
+        params->navigated_or_inserted_contents = weak_contents.get();
       }
       // If the WebContents doesn't have valid PiP options, don't enter PiP
       // mode and don't create a browser window.

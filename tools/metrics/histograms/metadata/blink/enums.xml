@@ -6928,6 +6928,9 @@ Called by update_use_counter_feature_enum.py.-->
   <int value="6089" label="WindowOpenAlwaysOnTop"/>
   <int value="6090" label="SemanticEmbedder_Params"/>
   <int value="6091" label="RenderBlockingAttributeTargetingFrameOwner"/>
+  <int value="6092" label="BeforeUnloadShowedDialogWithoutUserOrFormEdit"/>
+  <int value="6093"
+      label="BeforeUnloadDialogBlockedUnloadWithoutUserOrFormEdit"/>
 </enum>
 
 <!-- LINT.ThenChange(//third_party/blink/public/mojom/use_counter/metrics/web_feature.mojom:WebFeature) -->
@@ -8833,6 +8836,7 @@ Called by update_use_counter_css.py.-->
   <int value="972" label="border-left-radius"/>
   <int value="973" label="border-right-radius"/>
   <int value="974" label="border-top-radius"/>
+  <int value="975" label="animation-navigation-behavior"/>
 </enum>
 
 <!-- LINT.ThenChange(//third_party/blink/public/mojom/use_counter/metrics/css_property_id.mojom:CSSSampleId) -->

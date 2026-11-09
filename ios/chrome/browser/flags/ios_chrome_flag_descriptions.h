@@ -343,6 +343,13 @@ inline constexpr char
         "When enabled, form submission events will be ignored if they lack a "
         "user gesture.";
 
+inline constexpr char kAutofillReshowSavePromptOnTabReturnName[] =
+    "Autofill re-show save prompt on tab return";
+inline constexpr char kAutofillReshowSavePromptOnTabReturnDescription[] =
+    "Restores and re-shows pending Autofill save prompts (Autofill AI save "
+    "entity and save card bottom sheets) when returning to the originating "
+    "tab.";
+
 inline constexpr char kAutofillSaveCardBottomSheetStrikeLimitIosName[] =
     "Autofill Save Card Bottom Sheet Strike Limit on iOS";
 inline constexpr char kAutofillSaveCardBottomSheetStrikeLimitIosDescription[] =
@@ -866,6 +873,10 @@ inline constexpr char kEnhancedCalendarDescription[] =
     "When enabled, the enhanced calendar flow will be available to eligible "
     "users when adding a calendar event.";
 
+inline constexpr char kEphemeralBottomSheetName[] = "Ephemeral Bottom Sheet";
+inline constexpr char kEphemeralBottomSheetDescription[] =
+    "Enables the EphemeralBottomSheet feature.";
+
 inline constexpr char kExplainGeminiEditMenuName[] =
     "Enable Explain Gemini Edit Menu";
 inline constexpr char kExplainGeminiEditMenuDescription[] =
@@ -1253,10 +1264,6 @@ inline constexpr char kIOSWebContextMenuNewTitleName[] =
 inline constexpr char kIOSWebContextMenuNewTitleDescription[] =
     "Enables actions in context menu title instead of customized action for "
     "web context menu.";
-
-inline constexpr char kIdentityAwarenessName[] = "Identity Awareness";
-inline constexpr char kIdentityAwarenessDescription[] =
-    "Enables the sign-in/account menu button in the overflow menu.";
 
 inline constexpr char kIdentityConfirmationSnackbarName[] =
     "Identity Confirmation Snackbar";
@@ -2093,11 +2100,6 @@ inline constexpr char kWebPageAlternativeTextZoomDescription[] =
 inline constexpr char kWebPageTextZoomIPadName[] = "Enable text zoom on iPad";
 inline constexpr char kWebPageTextZoomIPadDescription[] =
     "When enabled, text zoom works on iPad";
-
-inline constexpr char kYourSavedInfoSettingsPageIosName[] =
-    "Enable Autofill and passwords settings redesign on iOS";
-inline constexpr char kYourSavedInfoSettingsPageIosDescription[] =
-    "Enables the Autofill and passwords settings page redesign on iOS.";
 
 inline constexpr char kZeroStateSuggestionsCentralizationName[] =
     "Zero-State Suggestions Centralization";

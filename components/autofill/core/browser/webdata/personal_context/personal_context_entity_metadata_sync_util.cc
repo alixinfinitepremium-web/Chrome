@@ -18,8 +18,10 @@
 #include "base/containers/span.h"
 #include "base/containers/to_vector.h"
 #include "base/time/time.h"
+#include "components/autofill/core/browser/data_manager/autofill_ai/entity_suppression_entry.h"
 #include "components/autofill/core/browser/data_model/autofill_ai/entity_type.h"
 #include "components/autofill/core/common/dense_set.h"
+#include "components/sync/protocol/autofill_entity_suppression_specifics.pb.h"
 #include "components/sync/protocol/entity_data.h"
 #include "crypto/hash.h"
 
@@ -47,10 +49,9 @@ CreateSpecificsFromEntitySuppressionKey(
   specifics.set_creation_time_windows_epoch_micros(
       creation_time.ToDeltaSinceWindowsEpoch().InMicroseconds());
 
-  // TODO(crbug.com/501036619): Set `schema_version`.
-
   if (const EntitySuppressionHash* hash =
           std::get_if<EntitySuppressionHash>(&suppression_key)) {
+    specifics.mutable_suppression()->set_hash(hash->value());
     specifics.set_entity_suppression_hash(hash->value());
     return specifics;
   }
@@ -96,6 +97,16 @@ bool AreEntitySuppressionSpecificsValid(
     return false;
   }
 
+  switch (specifics.metadata_entry_case()) {
+    case sync_pb::AutofillEntitySuppressionSpecifics::kSuppression:
+      return specifics.suppression().has_hash();
+    case sync_pb::AutofillEntitySuppressionSpecifics::kConfirmation:
+      // TODO(crbug.com/578879216): Support confirmation entries.
+      return false;
+    case sync_pb::AutofillEntitySuppressionSpecifics::METADATA_ENTRY_NOT_SET:
+      break;
+  }
+
   if (specifics.has_entity_suppression_hash()) {
     return true;
   }
@@ -134,6 +145,15 @@ std::optional<EntitySuppressionKey> CreateEntitySuppressionKeyFromSpecifics(
     const sync_pb::AutofillEntitySuppressionSpecifics& specifics) {
   if (!AreEntitySuppressionSpecificsValid(specifics)) {
     return std::nullopt;
+  }
+
+  switch (specifics.metadata_entry_case()) {
+    case sync_pb::AutofillEntitySuppressionSpecifics::kSuppression:
+      return EntitySuppressionHash(specifics.suppression().hash());
+    case sync_pb::AutofillEntitySuppressionSpecifics::kConfirmation:
+      return std::nullopt;
+    case sync_pb::AutofillEntitySuppressionSpecifics::METADATA_ENTRY_NOT_SET:
+      break;
   }
 
   if (specifics.has_entity_suppression_hash()) {
@@ -179,9 +199,30 @@ TrimAutofillEntitySuppressionSpecificsDataForCaching(
       trimmed_specifics.clear_entity_suppression_key();
     }
   }
-  trimmed_specifics.clear_schema_version();
   trimmed_specifics.clear_creation_time_windows_epoch_micros();
   trimmed_specifics.clear_entity_suppression_hash();
+  switch (trimmed_specifics.metadata_entry_case()) {
+    case sync_pb::AutofillEntitySuppressionSpecifics::kSuppression: {
+      sync_pb::AutofillEntitySuppressionSpecifics::Suppression& suppression =
+          *trimmed_specifics.mutable_suppression();
+      suppression.clear_hash();
+      if (suppression.ByteSizeLong() == 0) {
+        trimmed_specifics.clear_suppression();
+      }
+      break;
+    }
+    case sync_pb::AutofillEntitySuppressionSpecifics::kConfirmation: {
+      sync_pb::AutofillEntitySuppressionSpecifics::Confirmation& confirmation =
+          *trimmed_specifics.mutable_confirmation();
+      confirmation.clear_hash();
+      if (confirmation.ByteSizeLong() == 0) {
+        trimmed_specifics.clear_confirmation();
+      }
+      break;
+    }
+    case sync_pb::AutofillEntitySuppressionSpecifics::METADATA_ENTRY_NOT_SET:
+      break;
+  }
   return trimmed_specifics;
 }
 // LINT.ThenChange(//components/sync/protocol/autofill_entity_suppression_specifics.proto:AutofillEntitySuppressionSpecifics)

@@ -1402,6 +1402,14 @@
     "expiry_milestone": 170
   },
   {
+    "name": "autofill-reshow-save-prompt-on-tab-return",
+    "owners": [
+      "yungyichen@google.com",
+      "bling-transactions@google.com"
+    ],
+    "expiry_milestone": 165
+  },
+  {
     "name": "autofill-save-card-bottom-sheet-strike-limit-ios",
     "owners": [
       "qihuizhao@google.com",
@@ -5035,6 +5043,11 @@
     "expiry_milestone": 160
   },
   {
+    "name": "ephemeral-bottom-sheet",
+    "owners": ["ameurhosni@google.com", "bling-search@google.com"],
+    "expiry_milestone": 164
+  },
+  {
     "name": "esim-empty-activation-code-support",
     "owners": ["nikhilcn@google.com"],
     "expiry_milestone": 150
@@ -6214,6 +6227,15 @@
       "expiry_milestone": 165
     },
   {
+    "name": "history-page-refresh",
+    "owners": [
+      "azamatmz@google.com",
+      "rainhard@google.com",
+      "chrome-browser-privacy-team@google.com"
+    ],
+    "expiry_milestone": 165
+  },
+  {
     "name": "history-pane-android",
     "owners": [ "wylieb@google.com", "clank-tab-dev@google.com" ],
     "expiry_milestone": 160
@@ -6304,11 +6326,6 @@
   {
     "name": "idb-sqlite-backing-store",
     "owners": ["evanstade@microsoft.com", "abhishek.shanthkumar@microsoft.com", "//content/browser/indexed_db/OWNERS"],
-    "expiry_milestone": 160
-  },
-  {
-    "name": "identity-awareness",
-    "owners": [ "jlebel@google.com", "chrome-signin-mobile-team@google.com" ],
     "expiry_milestone": 160
   },
   {
@@ -10626,11 +10643,6 @@
     "name": "xsurface-metrics-reporting",
     "owners": [ "//chrome/android/feed/OWNERS", "feed@chromium.org" ],
     "expiry_milestone": 120
-  },
-  {
-    "name": "your-saved-info-settings-page-ios",
-    "owners": ["jsobiech@google.com", "chrome-autofill-team@google.com"],
-    "expiry_milestone": 160
   },
   {
     "name": "zero-copy-video-capture",

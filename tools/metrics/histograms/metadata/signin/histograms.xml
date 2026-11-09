@@ -879,6 +879,28 @@ to monitor/debug fetching OAuth2 Token issues. -->
   </summary>
 </histogram>
 
+<histogram name="Signin.AccountSwitchingPromo.SwitchedAwayWithin24Hours"
+    enum="Boolean" expires_after="2027-04-01">
+  <owner>arthurmilchior@chromium.org</owner>
+  <owner>chrome-signin-mobile-team@google.com</owner>
+  <summary>
+    Recorded at most once per account switch accepted via the smart account
+    switching startup promo. Evaluated on app startup, scene activation, and
+    changes to the personal profile's primary account. True is recorded when an
+    evaluation within 24 hours of the switch observes that the personal
+    profile's primary account changed away from the switched target account
+    (back to the previous account, to another personal account, or to signed
+    out). Because there is no background timer, False is recorded on the first
+    evaluation after 24 hours have elapsed without a switch being recorded
+    during the window (which may occur much later, once Chrome runs again). On
+    iOS, switching to a managed account switches profiles without changing the
+    personal profile's primary account, so it does not count as switching away.
+    Usually not recorded if the target account is removed from the device before
+    the outcome is evaluated, or if the system clock moves backwards before the
+    acceptance timestamp. iOS only.
+  </summary>
+</histogram>
+
 <histogram name="Signin.AccountTracker.CountOfLoadedAccounts" units="Accounts"
     expires_after="never">
 <!-- expires-never: used to monitor how many accounts are loaded from profile
@@ -1108,6 +1130,39 @@ prefs when the profile is loaded.  -->
     Indicates whether the user had accepted account management when attempting
     to sign in to a managed account on Android, recorded before the policy
     registration request is dispatched.
+  </summary>
+</histogram>
+
+<histogram name="Signin.Android.AddAccountRestrictionState"
+    enum="SigninAndroidAddAccountRestrictionState" expires_after="2027-06-27">
+  <owner>mziel@google.com</owner>
+  <owner>chrome-signin-team@google.com</owner>
+  <summary>
+    Records whether adding accounts is blocked by the DISALLOW_MODIFY_ACCOUNTS
+    user restriction, and whether the device has any accounts.
+
+    Recorded once per browser process, when the list of accounts first loads
+    (usually at startup). Not recorded if that first load fails after all
+    retries, even if a later load succeeds, so these clients are missing from
+    this histogram.
+  </summary>
+</histogram>
+
+<histogram name="Signin.Android.CreateAddAccountIntentResult"
+    enum="SigninAndroidCreateAddAccountIntentResult" expires_after="2027-06-27">
+  <owner>mziel@google.com</owner>
+  <owner>chrome-signin-team@google.com</owner>
+  <summary>
+    Records whether Android returned an intent to add an account to the device,
+    and if not, which known blocker was active. Recorded each time
+    AccountManagerFacade.createAddAccountIntent() gets a result from Android, so
+    a user who tries several times is counted each time.
+
+    If Android returns no intent, the reason is inferred from the device state
+    at that time - it shows which known blocker was active, not what Android
+    reported as the cause. If both the DISALLOW_MODIFY_ACCOUNTS user restriction
+    and a device policy that disables Google account management are active, the
+    restriction is recorded.
   </summary>
 </histogram>
 
@@ -1986,13 +2041,15 @@ prefs when the profile is loaded.  -->
     name="Signin.CrossDeviceSigninPromo.ShouldShowResult.{CrossDeviceSigninPromoEntryPoint}"
     enum="CrossDeviceSigninPromoShouldShowResult" expires_after="2027-06-26">
   <owner>rsult@google.com</owner>
+  <owner>pmeuleman@chromium.org</owner>
   <owner>chrome-signin-desktop@google.com</owner>
   <summary>
     Records the decision (allow to show or block reason) for showing the
     cross-device sign-in promo. Recorded for {CrossDeviceSigninPromoEntryPoint}.
-    For the What's New page, recorded once per page load when the page requests
-    its URL; that entry point skips the mobile device check, so HasMobileDevice
-    is never recorded for it.
+    Logged once per trigger point (e.g. once per What's New page load when the
+    page requests its URL), even if the promo is deactivated. The What's New
+    page entry point skips the mobile device check, so HasMobileDevice is never
+    recorded for it.
   </summary>
   <token key="CrossDeviceSigninPromoEntryPoint"
       variants="CrossDeviceSigninPromoEntryPoint"/>

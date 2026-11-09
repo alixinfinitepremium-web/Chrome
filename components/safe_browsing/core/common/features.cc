@@ -428,6 +428,12 @@ constexpr base::FeatureParam<std::string>
         "SafeBrowsingHashPrefixRealTimeLookupsKeyFetchCustomHeader",
         /*default_value=*/""};
 
+BASE_FEATURE(kHashPrefixRealTimeLookupsOhttpKeyServiceForEsb,
+             base::FEATURE_ENABLED_BY_DEFAULT);
+
+BASE_FEATURE(kHashPrefixRealTimeLookupsOnIncognitoAndGuest,
+             base::FEATURE_DISABLED_BY_DEFAULT);
+
 BASE_FEATURE(kHashPrefixRealTimeLookupsSamplePing,
              "SafeBrowsingHashPrefixRealTimeLookupsSamplePing",
              base::FEATURE_ENABLED_BY_DEFAULT);
@@ -651,6 +657,8 @@ base::ListValue GetFeatureStatusList() {
       &kEsbAsASyncedSetting,
       &kExtensionBlocklistSkipNetworkQuery,
       &kHashPrefixRealTimeLookups,
+      &kHashPrefixRealTimeLookupsOhttpKeyServiceForEsb,
+      &kHashPrefixRealTimeLookupsOnIncognitoAndGuest,
       &kLocalListsUseSBv5,
       &kProactivePasswordProtection,
       &kReportNotificationContentDetectionData,

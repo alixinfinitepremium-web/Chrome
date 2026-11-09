@@ -144,6 +144,10 @@ public final class ProductionSupportedFlagList {
                 VariationsSwitches.ENABLE_FINCH_SEED_DELTA_COMPRESSION,
                 "Enables delta-compression when requesting a new seed from the server."),
         Flag.commandLine(
+                VariationsSwitches.VARIATIONS_SEED_CORPUS,
+                "Requests the experimental variations seed from the variations server.",
+                "experimental"),
+        Flag.commandLine(
                 AwSwitches.WEBVIEW_FENCED_FRAMES,
                 "Enables fenced frames. Also enables PrivacySandboxAdsAPIsOverride."),
         Flag.commandLine(
@@ -274,6 +278,10 @@ public final class ProductionSupportedFlagList {
                 "When enabled, select elements include both option display texts and option"
                         + " values in ViewStructure.setAutofillOptions."),
         Flag.baseFeature(
+                AndroidAutofillFeatures.ANDROID_AUTOFILL_REFETCH_MANAGER_IF_DISABLED_NAME,
+                "When enabled, fetches the Android AutofillManager again if it's disabled, e.g."
+                        + " after an app moves a WebView to an Activity."),
+        Flag.baseFeature(
                 AutofillFeatures.AUTOFILL_ACCEPT_DOM_MUTATION_AFTER_AUTOFILL_SUBMISSION,
                 "Accepts DOM_MUTATION_AFTER_AUTOFILL submissions detected on password forms."),
         Flag.baseFeature(
@@ -361,11 +369,6 @@ public final class ProductionSupportedFlagList {
                 AutofillFeatures.AUTOFILL_STRUCTURED_FIELDS_DISABLE_ADDRESS_LINES,
                 "When enabled, Autofill disable address lines on forms with structured address"
                         + " fields."),
-        Flag.baseFeature(
-                AutofillFeatures.AUTOFILL_ENABLE_STREET_ADDRESS_MERGE_MODES,
-                "If enabled, the missing merge modes will be re-enabled on nodes. To do that,"
-                        + "MergeMode::kMergeChildrenAndReformatIfNeeded will be also added to all"
-                        + "the nodes where required."),
         Flag.baseFeature(
                 AutofillFeatures.AUTOFILL_STRICTER_PHONE_EXTENSION_REGEX,
                 "When enabled, applies a stricter phone extension regex to avoid false"

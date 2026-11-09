@@ -437,12 +437,11 @@ class TaskOrchestratorProfileSwitchTest : public TaskOrchestratorTest {
   std::unique_ptr<TestBrowser> browser_;
 };
 
-// Tests that a task requiring a profile or account switch triggers
-// ChangeProfileCommands at TaskExecutionProfileLoaded (before
-// TaskExecutionUIReady) and only executes after the continuation completes and
-// TaskExecutionUIReady is reached.
+// Tests that a task requiring a profile or account switch does not trigger
+// ChangeProfileCommands while in background (TaskExecutionProfileLoaded) and
+// only initiates the switch once TaskExecutionUIReady is reached.
 TEST_F(TaskOrchestratorProfileSwitchTest,
-       TestProfileSwitchStartedAtProfileLoadedBeforeUIReady) {
+       TestProfileSwitchWaitsForUIReadyAndContinuation) {
   base::test::TestFuture<void> future;
   TaskRequest* task =
       CreateSwitchingTask(base::CallbackToBlock(future.GetCallback()));
@@ -452,20 +451,21 @@ TEST_F(TaskOrchestratorProfileSwitchTest,
   EXPECT_FALSE(change_profile_handler_.changeProfileCalled);
   EXPECT_FALSE(future.IsReady());
 
-  // Updating to TaskExecutionProfileLoaded should immediately initiate
-  // changeProfile: before TaskExecutionUIReady is reached.
+  // At TaskExecutionProfileLoaded (e.g. while backgrounded on warm start),
+  // changeProfile: must not be triggered yet.
   [orchestrator_ updateToStage:TaskExecutionStage::TaskExecutionProfileLoaded
+                      forScene:scene_state_];
+  EXPECT_FALSE(change_profile_handler_.changeProfileCalled);
+  EXPECT_FALSE(future.IsReady());
+  EXPECT_TRUE(scene_state_.hasPendingIntent);
+
+  // Reaching TaskExecutionUIReady initiates changeProfile: and defers task
+  // execution until the continuation completes.
+  [orchestrator_ updateToStage:TaskExecutionStage::TaskExecutionUIReady
                       forScene:scene_state_];
   EXPECT_TRUE(change_profile_handler_.changeProfileCalled);
   EXPECT_EQ(ChangeProfileReason::kSwitchAccountsFromWidget,
             change_profile_handler_.reason);
-  EXPECT_FALSE(future.IsReady());
-  EXPECT_TRUE(scene_state_.hasPendingIntent);
-
-  // Even if TaskExecutionUIReady is reached while the switch continuation is
-  // still in progress, the task must not execute until the continuation runs.
-  [orchestrator_ updateToStage:TaskExecutionStage::TaskExecutionUIReady
-                      forScene:scene_state_];
   EXPECT_FALSE(future.IsReady());
   EXPECT_TRUE(scene_state_.hasPendingIntent);
 
@@ -487,7 +487,7 @@ TEST_F(TaskOrchestratorProfileSwitchTest, TestProfileSwitchFromShareExtension) {
   OCMStub([partial_task isFromShareExtension]).andReturn(YES);
 
   [orchestrator_ addTaskRequest:task];
-  [orchestrator_ updateToStage:TaskExecutionStage::TaskExecutionProfileLoaded
+  [orchestrator_ updateToStage:TaskExecutionStage::TaskExecutionUIReady
                       forScene:scene_state_];
 
   EXPECT_TRUE(change_profile_handler_.changeProfileCalled);
@@ -606,8 +606,8 @@ TEST_F(TaskOrchestratorTest, TestClearTasksForSceneDuringProfileSwitch) {
   task.gaiaID = identity.gaiaId.ToNSString();
   [orchestrator_ addTaskRequest:task];
 
-  // Start the profile switch.
-  [orchestrator_ updateToStage:TaskExecutionStage::TaskExecutionProfileLoaded
+  // Reaching TaskExecutionUIReady starts the profile switch.
+  [orchestrator_ updateToStage:TaskExecutionStage::TaskExecutionUIReady
                       forScene:scene_state];
   ASSERT_TRUE(change_profile_handler.changeProfileCalled);
 
@@ -615,11 +615,95 @@ TEST_F(TaskOrchestratorTest, TestClearTasksForSceneDuringProfileSwitch) {
   [orchestrator_ clearTasksForScene:scene_state];
   EXPECT_TRUE(scene_state.hasPendingIntent);
 
-  // Completing the switch and reaching TaskExecutionUIReady runs the task.
-  [orchestrator_ updateToStage:TaskExecutionStage::TaskExecutionUIReady
-                      forScene:scene_state];
+  // Completing the switch runs the task.
   ASSERT_TRUE([change_profile_handler hasContinuation]);
   [change_profile_handler runContinuationForSceneState:scene_state];
   EXPECT_TRUE(base::test::RunUntil([&]() { return task_was_executed; }));
   EXPECT_FALSE(scene_state.hasPendingIntent);
+}
+
+namespace {
+
+// Google One deep link opened by the task requiring an account switch.
+NSString* const kGoogleOneDeepLinkURL = @"https://one.google.com/deeplink";
+
+// Adds a Google One deep link task requiring an account switch to
+// `orchestrator`, then reaches `TaskExecutionUIReady`. Returns the handler that
+// received the resulting `ChangeProfileCommands` call.
+FakeChangeProfileCommandsHandler* SwitchProfileForGoogleOneDeepLinkTask(
+    TaskOrchestrator* orchestrator) {
+  IOSChromeScopedTestingLocalState scoped_testing_local_state;
+  TestProfileManagerIOS profile_manager;
+
+  TestProfileIOS::Builder builder;
+  builder.AddTestingFactory(AuthenticationServiceFactory::GetInstance(),
+                            AuthenticationServiceFactory::GetDefaultFactory());
+  builder.AddTestingFactory(SyncServiceFactory::GetInstance(),
+                            base::BindRepeating(&CreateTestSyncService));
+  TestProfileIOS* profile =
+      profile_manager.AddProfileWithBuilder(std::move(builder));
+
+  FakeSystemIdentity* identity = [FakeSystemIdentity fakeIdentity1];
+  FakeSystemIdentityManager::FromSystemIdentityManager(
+      GetApplicationContext()->GetSystemIdentityManager())
+      ->AddIdentity(identity);
+
+  CommandDispatcher* dispatcher = [[CommandDispatcher alloc] init];
+  FakeChangeProfileCommandsHandler* change_profile_handler =
+      [[FakeChangeProfileCommandsHandler alloc] init];
+  [dispatcher startDispatchingToTarget:change_profile_handler
+                           forProtocol:@protocol(ChangeProfileCommands)];
+
+  id mock_app_state = OCMClassMock([AppState class]);
+  OCMStub([mock_app_state initStage]).andReturn(AppInitStage::kFinal);
+  OCMStub([mock_app_state appCommandDispatcher]).andReturn(dispatcher);
+
+  ProfileState* profile_state =
+      [[ProfileState alloc] initWithAppState:mock_app_state];
+  profile_state.profile = profile;
+
+  SceneState* scene_state = CreateFakeSceneState(@"scene_google_one");
+  scene_state.profileState = profile_state;
+
+  TaskRequest* task = [TaskRequest
+      taskForTestingWithScene:scene_state.scene
+                       gaiaID:identity.gaiaId.ToNSString()
+                          URL:[NSURL URLWithString:kGoogleOneDeepLinkURL]];
+  task.minimumStage = TaskExecutionStage::TaskExecutionUIReady;
+
+  [orchestrator addTaskRequest:task];
+  [orchestrator updateToStage:TaskExecutionStage::TaskExecutionUIReady
+                     forScene:scene_state];
+
+  return change_profile_handler;
+}
+
+}  // namespace
+
+// Tests that a Google One deep link task requiring an account switch triggers
+// `ChangeProfileCommands` with `ChangeProfileReason::kForGoogleOneSettings`.
+TEST_F(TaskOrchestratorTest, TestProfileSwitchForGoogleOneDeepLink) {
+  base::test::ScopedFeatureList feature_list;
+  feature_list.InitAndEnableFeature(kSupportGoogleOneDeepLink);
+
+  FakeChangeProfileCommandsHandler* change_profile_handler =
+      SwitchProfileForGoogleOneDeepLinkTask(orchestrator_);
+
+  EXPECT_TRUE(change_profile_handler.changeProfileCalled);
+  EXPECT_EQ(ChangeProfileReason::kForGoogleOneSettings,
+            change_profile_handler.reason);
+}
+
+// Tests that a task with a Google One deep link URL and a `gaiaID` does not use
+// `ChangeProfileReason::kForGoogleOneSettings` when the feature is disabled.
+TEST_F(TaskOrchestratorTest, TestProfileSwitchForGoogleOneDeepLinkDisabled) {
+  base::test::ScopedFeatureList feature_list;
+  feature_list.InitAndDisableFeature(kSupportGoogleOneDeepLink);
+
+  FakeChangeProfileCommandsHandler* change_profile_handler =
+      SwitchProfileForGoogleOneDeepLinkTask(orchestrator_);
+
+  EXPECT_TRUE(change_profile_handler.changeProfileCalled);
+  EXPECT_EQ(ChangeProfileReason::kSwitchAccountsFromWidget,
+            change_profile_handler.reason);
 }

@@ -434,6 +434,12 @@
       name: "AIPageContentPaidContentAnnotation",
       status: "stable"
     },
+    // Do not force content-visibility: auto display locks during AIPageContent
+    // extraction, skipping locked off-screen content-visibility: auto subtrees.
+    {
+      name: "AIPageContentSkipContentVisibilityAuto",
+      status: "stable",
+    },
     // Let fixed wrappers with pointer-events: none use normal APC container
     // skipping instead of preserving them automatically.
     {
@@ -1651,6 +1657,11 @@
       status: "experimental",
     },
     {
+      name: "CSSAnimationNavigationBehavior",
+      depends_on: ["NavigateEventDeferCrossDocumentCommit"],
+      status: "experimental",
+    },
+    {
       // https://drafts.csswg.org/css-values-5/#early-resolution
       name: "CSSArgumentGrammar",
       status: "test",
@@ -1784,6 +1795,12 @@
       // Unprefixed cross-fade() (in addition to the existing -webkit-cross-fade()).
       // https://drafts.csswg.org/css-images-4/#cross-fade-function
       name: "CSSCrossFade",
+      status: "experimental",
+    },
+    {
+      // Custom Highlight API Extensions.
+      // https://issues.chromium.org/issues/579833788
+      name: "CSSCustomHighlightExtensions",
       status: "experimental",
     },
     {
@@ -5430,6 +5447,12 @@
       // is O(1) instead of O(n). See crbug.com/515812864.
       name: "RangeBoundaryFastPath",
       status: "stable",
+    },
+    {
+      // Enables the <rangegroup> element, which combines descendant range
+      // inputs on a shared track while preserving each input's semantics.
+      // https://open-ui.org/components/enhanced-range-input.explainer/
+      name: "RangeGroup",
     },
     {
       name: "RasterInducingScroll",

@@ -344,7 +344,7 @@ chromium-metrics-reviews@google.com.
   <int value="5" label="OTP detected"/>
 </enum>
 
-<!-- LINT.ThenChange(/chrome/browser/password_manager/password_change_delegate.h) -->
+<!-- LINT.ThenChange(/chrome/browser/password_manager/password_change_delegate_impl.h:CoarseFinalPasswordChangeState) -->
 
 <!-- LINT.IfChange(CredentialManagerAndroidGetResult) -->
 
@@ -523,16 +523,6 @@ chromium-metrics-reviews@google.com.
 <enum name="GenerationDialogChoice">
   <int value="0" label="Accepted"/>
   <int value="1" label="Rejected"/>
-</enum>
-
-<enum name="GetChangePasswordUrlMetric">
-  <int value="0" label="Url override was not fetched yet"/>
-  <int value="1" label="Url override was available and used"/>
-  <int value="2" label="No url override was available"/>
-  <int value="3"
-      label="(Deprecated) Url override was available in the FacetGroup and
-             used"/>
-  <int value="4" label="Url override was available for the main domain"/>
 </enum>
 
 <enum name="HandleSubmittedFormStatus">

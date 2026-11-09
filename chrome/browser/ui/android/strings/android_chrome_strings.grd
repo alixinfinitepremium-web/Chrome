@@ -1009,22 +1009,22 @@ For more settings that use data to improve your Chrome experience, go to <ph nam
         A new look for easy access to your essentials
       </message>
       <message name="IDS_BOTTOM_BAR_EDUCATION_TITLE_GEMINI" desc="Title of the bottom bar education bubble for the Gemini-focused variant.">
-        Gemini and your essentials on the new toolbar
+        Gemini and your essentials on the new bottom toolbar
       </message>
       <message name="IDS_BOTTOM_BAR_EDUCATION_TITLE_OPT_IN" desc="Title for the opt-in preview dialog">
         Preview Chrome&apos;s new look, built for convenience
       </message>
-      <message name="IDS_BOTTOM_BAR_EDUCATION_BODY" desc="Body of the bottom bar education bubble. The link opens Appearance settings.">
-        Chrome has a new toolbar, built for convenience. You can switch back anytime in <ph name="BEGIN_LINK">&lt;link&gt;</ph>settings<ph name="END_LINK">&lt;/link&gt;</ph>.
+      <message name="IDS_BOTTOM_BAR_EDUCATION_BODY" desc="Body of the bottom bar education bubble for the ergonomics variant. The link opens Appearance settings.">
+        Chrome has a new bottom toolbar, built for convenience. You can switch back anytime in <ph name="BEGIN_LINK">&lt;link&gt;</ph>settings<ph name="END_LINK">&lt;/link&gt;</ph>.
+      </message>
+      <message name="IDS_BOTTOM_BAR_EDUCATION_BODY_GEMINI" desc="Body of the bottom bar education bubble for the Gemini-focused variant. The link opens Appearance settings.">
+        Chrome has a new look, built for convenience. You can switch back anytime in <ph name="BEGIN_LINK">&lt;link&gt;</ph>settings<ph name="END_LINK">&lt;/link&gt;</ph>.
       </message>
       <message name="IDS_BOTTOM_BAR_EDUCATION_BODY_OPT_IN" desc="Body of the bottom bar opt-in preview dialog. The link opens Appearance settings.">
-        Your essentials, right on the toolbar. You can switch back anytime in <ph name="BEGIN_LINK">&lt;link&gt;</ph>settings<ph name="END_LINK">&lt;/link&gt;</ph>
+        Your essentials, right on the bottom toolbar. You can switch back anytime in <ph name="BEGIN_LINK">&lt;link&gt;</ph>settings<ph name="END_LINK">&lt;/link&gt;</ph>.
       </message>
       <message name="IDS_BOTTOM_BAR_EDUCATION_SWITCH_BACK" desc="Button text to switch back to the old layout">
         Switch back
-      </message>
-      <message name="IDS_BOTTOM_BAR_EDUCATION_SHOW_ME" desc="Button text to continue and show tooltips">
-        Show me
       </message>
       <message name="IDS_BOTTOM_BAR_EDUCATION_NOT_NOW" desc="Button text to dismiss the bottom bar opt-in preview dialog">
         Not now
@@ -2403,6 +2403,12 @@ Your Google account may have other forms of browsing history like searches and a
       <message name="IDS_ACCOUNT_SETTINGS_TITLE" desc="Title for the account settings page. [CHAR_LIMIT=32]">
         Account
       </message>
+      <message name="IDS_ACCOUNT_SETTINGS_CARD_DESCRIPTION_WITH_TIER" is_accessibility_with_no_ui="true" desc="Read by screen readers for the card at the top of the Account settings page, which shows the user's name, email and the name of their AI subscription.">
+        <ph name="USER_NAME">%1$s<ex>Jessica Doe</ex></ph>, <ph name="EMAIL">%2$s<ex>jessica@gmail.com</ex></ph>. <ph name="SUBSCRIPTION_NAME">%3$s<ex>Tier name</ex></ph> membership.
+      </message>
+      <message name="IDS_ACCOUNT_SETTINGS_CARD_DESCRIPTION_SINGLE_LINE_WITH_TIER" is_accessibility_with_no_ui="true" desc="Read by screen readers for the card at the top of the Account settings page, when the card shows only the user's name or only their email, and the name of their AI subscription.">
+        <ph name="USER_NAME_OR_EMAIL">%1$s<ex>jessica@gmail.com</ex></ph>. <ph name="SUBSCRIPTION_NAME">%2$s<ex>Tier name</ex></ph> membership.
+      </message>
       <message name="IDS_ACCOUNT_SECTION_HEADER" desc="Header of a section with toggles to control which types of data users can use and save in their Google Account (as opposed to saving them only on the device). Try to avoid long strings because this is a header in large font size.">
         In your Google Account
       </message>
@@ -2642,6 +2648,9 @@ To change this setting, <ph name="BEGIN_LINK">BEGIN_LINK</ph>delete the Chrome d
       <message name="IDS_IDENTITY_ERROR_CARD_AUTH_ERROR" desc="Error message to resolve auth error.">
         To use and save Chrome data in your Google Account, verify it’s you
       </message>
+      <message name="IDS_IDENTITY_ERROR_CARD_DEVICE_MANAGEMENT_ERROR" desc="Error message when device management policies restrict access to some services. Also used for error message body.">
+        Some services aren’t available for <ph name="ACCOUNT_EMAIL">%1$s<ex>elisa.g.beckett@gmail.com</ex></ph>
+      </message>
       <message name="IDS_IDENTITY_ERROR_CARD_SYNC_RETRIEVE_KEYS_FOR_EVERYTHING" desc="Error message to resolve sync encryption error, required to resume sync.">
         To use and save Chrome data in your Google Account, verify it’s you
       </message>
@@ -2664,6 +2673,9 @@ To change this setting, <ph name="BEGIN_LINK">BEGIN_LINK</ph>delete the Chrome d
       </message>
       <message name="IDS_IDENTITY_ERROR_CARD_BUTTON_VERIFY" desc="Button label for all errors requiring re-auth (auth error, degreaded recoverability, encryption error). Also used for error message and notification title.">
         Verify it’s you
+      </message>
+      <message name="IDS_IDENTITY_ERROR_CARD_BUTTON_DEVICE_MANAGEMENT_ERROR" desc="Button label prompting the user to take action to fix a device management account issue.">
+        Fix now
       </message>
       <message name="IDS_IDENTITY_ERROR_CARD_BUTTON_GET" desc="Button label for the message shown in the Sync Error Card (due to missing trusted vault keys) for fixing the issue and getting all passwords of a user on their device.">
         Get

@@ -46,7 +46,7 @@ chromium-metrics-reviews@google.com.
 <histogram
     name="TrustedVault.DownloadAuthenticationFactorsRegistrationState{SecurityDomainId}"
     enum="DownloadAuthenticationFactorsRegistrationStateResult"
-    expires_after="2026-12-06">
+    expires_after="2027-11-09">
   <owner>mastiz@chromium.org</owner>
   <owner>thomasth@google.com</owner>
   <summary>
@@ -341,6 +341,7 @@ chromium-metrics-reviews@google.com.
     <variant name=".DownloadRecoveryFactorsForKeyRotation"
         summary="Downloading of recovery factors for key rotation"/>
     <variant name=".RegisterDevice" summary="Local device registration"/>
+    <variant name=".RegisterGaiaPassword" summary="Gaia password registration"/>
     <variant name=".RegisterGooglePasswordManagerPIN"
         summary="Google Password Manager PIN registration"/>
     <variant name=".RegisterICloudKeychain"

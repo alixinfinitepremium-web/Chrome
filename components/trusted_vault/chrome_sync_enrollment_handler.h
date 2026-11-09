@@ -10,23 +10,20 @@
 #include <optional>
 #include <vector>
 
-#include "base/functional/callback_forward.h"
+#include "base/functional/callback.h"
 #include "base/memory/raw_ref.h"
 #include "components/signin/public/identity_manager/account_info.h"
+#include "components/trusted_vault/enrollment_handler.h"
 #include "components/trusted_vault/trusted_vault_connection.h"
 
 namespace trusted_vault {
 
 class KeyStorage;
 
-// Helper class used by `StandaloneTrustedVaultBackend` to handle enrollment
-// into the `kChromeSync` security domain for a given `primary_account`.
-class ChromeSyncEnrollmentHandler {
+// Handles enrollment into the `kChromeSync` security domain using the user's
+// Gaia password public key as recovery factor.
+class ChromeSyncEnrollmentHandler : public EnrollmentHandler {
  public:
-  // Invoked with true if `primary_account_` is eligible for non-interactive
-  // enrollment into the `kChromeSync` security domain, or false otherwise.
-  using CanEnrollCallback = base::OnceCallback<void(bool)>;
-
   // `storage` and `connection` must not be null and must outlive this object.
   ChromeSyncEnrollmentHandler(CoreAccountInfo primary_account,
                               KeyStorage* storage,
@@ -34,13 +31,11 @@ class ChromeSyncEnrollmentHandler {
   ChromeSyncEnrollmentHandler(const ChromeSyncEnrollmentHandler&) = delete;
   ChromeSyncEnrollmentHandler& operator=(const ChromeSyncEnrollmentHandler&) =
       delete;
-  ~ChromeSyncEnrollmentHandler();
+  ~ChromeSyncEnrollmentHandler() override;
 
-  // Asynchronously checks whether `primary_account_` can be enrolled in the
-  // `kChromeSync` security domain without user interaction (i.e. the security
-  // domain is in the pre-enrolled state and a valid Gaia password public key
-  // is available on the server).
-  void CanEnroll(CanEnrollCallback callback);
+  // EnrollmentHandler:
+  void CanEnroll(CanEnrollCallback callback) override;
+  void Enroll(EnrollCallback callback) override;
 
  private:
   // Encapsulates the state for an in-flight `CanEnroll()` request and allows
@@ -58,17 +53,46 @@ class ChromeSyncEnrollmentHandler {
     std::vector<CanEnrollCallback> callbacks;
   };
 
+  // Encapsulates the state for an in-flight `Enroll()` operation. Destroying
+  // this cancels any active network request via RAII without invoking
+  // `callback`.
+  struct OngoingEnroll {
+    OngoingEnroll();
+    OngoingEnroll(const OngoingEnroll&) = delete;
+    OngoingEnroll& operator=(const OngoingEnroll&) = delete;
+    OngoingEnroll(OngoingEnroll&&) noexcept;
+    OngoingEnroll& operator=(OngoingEnroll&&) noexcept;
+    ~OngoingEnroll();
+
+    EnrollCallback callback;
+    std::unique_ptr<TrustedVaultConnection::Request> request;
+    bool has_retried_key_rotation = false;
+  };
+
   bool SatisfiesLocalPrerequisites() const;
 
   void OnGaiaPasswordPublicKeyDownloadedForCanEnroll(
       TrustedVaultDownloadPasswordPublicKeyStatus status,
       const std::vector<uint8_t>& public_key);
 
+  void OnGaiaPasswordPublicKeyDownloadedForEnroll(
+      TrustedVaultDownloadPasswordPublicKeyStatus status,
+      const std::vector<uint8_t>& public_key);
+  void OnGaiaPasswordRegisteredForEnroll(TrustedVaultRegistrationStatus status,
+                                         int unused_epoch);
+  void RotateSharedKeyForEnroll(const std::vector<uint8_t>& new_shared_key);
+  void OnKeyRotatedForEnroll(const std::vector<uint8_t>& new_shared_key,
+                             TrustedVaultKeyRotationStatus status,
+                             int new_key_version);
+  void FulfillOngoingEnroll(const std::vector<uint8_t>& new_shared_key,
+                            int new_key_version);
+
   const CoreAccountInfo primary_account_;
   const raw_ref<KeyStorage> storage_;
   const raw_ref<TrustedVaultConnection> connection_;
 
   std::optional<OngoingCanEnroll> ongoing_can_enroll_;
+  std::optional<OngoingEnroll> ongoing_enroll_;
 };
 
 }  // namespace trusted_vault

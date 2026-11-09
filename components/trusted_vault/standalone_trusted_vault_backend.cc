@@ -22,6 +22,7 @@
 #include "components/signin/public/identity_manager/account_info.h"
 #include "components/signin/public/identity_manager/accounts_in_cookie_jar_info.h"
 #include "components/trusted_vault/chrome_sync_enrollment_handler.h"
+#include "components/trusted_vault/enrollment_handler.h"
 #include "components/trusted_vault/features.h"
 #include "components/trusted_vault/local_recovery_factor.h"
 #include "components/trusted_vault/physical_device_recovery_factor.h"
@@ -172,6 +173,32 @@ class LocalRecoveryFactorsFactoryImpl
 #endif
 };
 
+class EnrollmentHandlerFactoryImpl
+    : public StandaloneTrustedVaultBackend::EnrollmentHandlerFactory {
+ public:
+  EnrollmentHandlerFactoryImpl() = default;
+  EnrollmentHandlerFactoryImpl(const EnrollmentHandlerFactoryImpl&) = delete;
+  EnrollmentHandlerFactoryImpl& operator=(const EnrollmentHandlerFactoryImpl&) =
+      delete;
+  ~EnrollmentHandlerFactoryImpl() override = default;
+
+  // StandaloneTrustedVaultBackend::EnrollmentHandlerFactory:
+  std::unique_ptr<EnrollmentHandler> CreateEnrollmentHandler(
+      SecurityDomainId security_domain,
+      const CoreAccountInfo& primary_account,
+      KeyStorage* storage,
+      TrustedVaultConnection* connection) override {
+    switch (security_domain) {
+      case SecurityDomainId::kChromeSync:
+        return std::make_unique<ChromeSyncEnrollmentHandler>(
+            primary_account, storage, connection);
+      case SecurityDomainId::kPasskeys:
+        return nullptr;
+    }
+    NOTREACHED();
+  }
+};
+
 }  // namespace
 
 StandaloneTrustedVaultBackend::PendingTrustedRecoveryMethod::
@@ -229,24 +256,27 @@ StandaloneTrustedVaultBackend::StandaloneTrustedVaultBackend(
 #if BUILDFLAG(IS_MAC)
       local_recovery_factors_factory_(
           std::make_unique<LocalRecoveryFactorsFactoryImpl>(
-              icloud_keychain_access_group_prefix))
+              icloud_keychain_access_group_prefix)),
 #else
       local_recovery_factors_factory_(
-          std::make_unique<LocalRecoveryFactorsFactoryImpl>())
+          std::make_unique<LocalRecoveryFactorsFactoryImpl>()),
 #endif
-{
+      enrollment_handler_factory_(
+          std::make_unique<EnrollmentHandlerFactoryImpl>()) {
 }
 
 StandaloneTrustedVaultBackend::StandaloneTrustedVaultBackend(
     std::unique_ptr<StandaloneTrustedVaultStorage> storage,
     std::unique_ptr<Delegate> delegate,
     std::unique_ptr<TrustedVaultThrottlingConnection> connection,
-    std::unique_ptr<LocalRecoveryFactorsFactory> local_recovery_factors_factory)
+    std::unique_ptr<LocalRecoveryFactorsFactory> local_recovery_factors_factory,
+    std::unique_ptr<EnrollmentHandlerFactory> enrollment_handler_factory)
     : storage_(std::move(storage)),
       delegate_(std::move(delegate)),
       connection_(std::move(connection)),
       local_recovery_factors_factory_(
-          std::move(local_recovery_factors_factory)) {}
+          std::move(local_recovery_factors_factory)),
+      enrollment_handler_factory_(std::move(enrollment_handler_factory)) {}
 
 StandaloneTrustedVaultBackend::~StandaloneTrustedVaultBackend() = default;
 
@@ -256,11 +286,12 @@ StandaloneTrustedVaultBackend::CreateForTesting(
     std::unique_ptr<StandaloneTrustedVaultStorage> storage,
     std::unique_ptr<StandaloneTrustedVaultBackend::Delegate> delegate,
     std::unique_ptr<TrustedVaultThrottlingConnection> connection,
-    std::unique_ptr<LocalRecoveryFactorsFactory>
-        local_recovery_factors_factory) {
+    std::unique_ptr<LocalRecoveryFactorsFactory> local_recovery_factors_factory,
+    std::unique_ptr<EnrollmentHandlerFactory> enrollment_handler_factory) {
   return base::WrapUnique(new StandaloneTrustedVaultBackend(
       std::move(storage), std::move(delegate), std::move(connection),
-      std::move(local_recovery_factors_factory)));
+      std::move(local_recovery_factors_factory),
+      std::move(enrollment_handler_factory)));
 }
 
 void StandaloneTrustedVaultBackend::OnDegradedRecoverabilityChanged(
@@ -399,7 +430,7 @@ void StandaloneTrustedVaultBackend::SetPrimaryAccount(
   // This aborts all ongoing recoveries / registrations.
   local_recovery_factors_.clear();
   ongoing_registration_attempts_.clear();
-  chrome_sync_enrollment_handler_.reset();
+  enrollment_handlers_.clear();
   RemoveNonPrimaryAccountKeysIfMarkedForDeletion();
   // Make sure to call pending callbacks, now that ongoing recoveries were
   // aborted.
@@ -421,10 +452,10 @@ void StandaloneTrustedVaultBackend::SetPrimaryAccount(
           std::make_unique<TrustedVaultDegradedRecoverabilityHandler>(
               connection_.get(), /*observer=*/this, storage_.get(),
               primary_account_.value(), domain);
+      enrollment_handlers_[domain] =
+          enrollment_handler_factory_->CreateEnrollmentHandler(
+              domain, *primary_account_, storage_.get(), connection_.get());
     }
-    chrome_sync_enrollment_handler_ =
-        std::make_unique<ChromeSyncEnrollmentHandler>(
-            *primary_account_, storage_.get(), connection_.get());
   }
 
   // Process pending get recoverability degraded requests if they belong to
@@ -588,16 +619,57 @@ void StandaloneTrustedVaultBackend::CanEnroll(
     SecurityDomainId security_domain,
     base::OnceCallback<void(bool)> cb) {
   CHECK(GetSupportedSecurityDomainIdValues().contains(security_domain));
-  if (security_domain == SecurityDomainId::kChromeSync &&
-      primary_account_.has_value() &&
+  if (primary_account_.has_value() &&
       primary_account_->gaia == account_info.gaia &&
       refresh_token_error_state_ !=
-          RefreshTokenErrorState::kPersistentAuthError &&
-      chrome_sync_enrollment_handler_) {
-    chrome_sync_enrollment_handler_->CanEnroll(std::move(cb));
-    return;
+          RefreshTokenErrorState::kPersistentAuthError) {
+    auto it = enrollment_handlers_.find(security_domain);
+    if (it != enrollment_handlers_.end() && it->second) {
+      it->second->CanEnroll(std::move(cb));
+      return;
+    }
   }
   std::move(cb).Run(false);
+}
+
+void StandaloneTrustedVaultBackend::Enroll(const CoreAccountInfo& account_info,
+                                           SecurityDomainId security_domain,
+                                           EnrollCallback cb) {
+  CHECK(GetSupportedSecurityDomainIdValues().contains(security_domain));
+  if (primary_account_.has_value() &&
+      primary_account_->gaia == account_info.gaia &&
+      refresh_token_error_state_ !=
+          RefreshTokenErrorState::kPersistentAuthError) {
+    auto it = enrollment_handlers_.find(security_domain);
+    if (it != enrollment_handlers_.end() && it->second) {
+      it->second->Enroll(base::BindOnce(
+          &StandaloneTrustedVaultBackend::OnEnrolled,
+          weak_ptr_factory_.GetWeakPtr(), security_domain, std::move(cb)));
+      return;
+    }
+  }
+  std::move(cb).Run(std::vector<uint8_t>(), -1);
+}
+
+void StandaloneTrustedVaultBackend::OnEnrolled(
+    SecurityDomainId security_domain,
+    EnrollCallback cb,
+    const std::vector<uint8_t>& new_shared_key,
+    int new_key_version) {
+  CHECK(primary_account_.has_value());
+  if (!new_shared_key.empty()) {
+    std::vector<std::vector<uint8_t>> keys =
+        storage_->GetVaultKeys(primary_account_->gaia, security_domain);
+    keys.push_back(new_shared_key);
+    StoreKeys(primary_account_->gaia, security_domain, keys, new_key_version);
+
+    auto it = degraded_recoverability_handlers_.find(security_domain);
+    if (it != degraded_recoverability_handlers_.end()) {
+      it->second->HintDegradedRecoverabilityChanged(
+          TrustedVaultHintDegradedRecoverabilityChangedReasonForUMA::kEnrolled);
+    }
+  }
+  std::move(cb).Run(new_shared_key, new_key_version);
 }
 
 void StandaloneTrustedVaultBackend::ClearLocalDataForAccount(

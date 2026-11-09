@@ -936,6 +936,10 @@ void ChromeBrowsingDataRemoverDelegate::RemoveEmbedderData(
     host_content_settings_map_->ClearSettingsForOneTypeWithPredicate(
         ContentSettingsType::INTENT_PICKER_DISPLAY, delete_begin_, delete_end_,
         website_settings_filter);
+
+    host_content_settings_map_->ClearSettingsForOneTypeWithPredicate(
+        ContentSettingsType::WEBAUTHN_AMBIENT_SIGNIN_DATA, delete_begin_,
+        delete_end_, website_settings_filter);
 #endif
 
     host_content_settings_map_->ClearSettingsForOneTypeWithPredicate(
@@ -1526,12 +1530,11 @@ void ChromeBrowsingDataRemoverDelegate::RemoveEmbedderData(
 #if BUILDFLAG(IS_ANDROID)
     base::RecordAction(UserMetricsAction("ClearBrowsingData_Tabs"));
 
-    for (TabModel* tab_model : TabModelList::models()) {
-      if (tab_model->GetProfile() != profile_ || tab_model->IsOffTheRecord()) {
-        continue;
-      }
-
-      tab_model->CloseTabsNavigatedInTimeWindow(delete_begin, delete_end);
+    if (!profile_->IsOffTheRecord()) {
+      TabModelList::ForEach(profile_, [&](TabModel* tab_model) {
+        tab_model->CloseTabsNavigatedInTimeWindow(delete_begin, delete_end);
+        return true;
+      });
     }
 
     TabModel* archived_tab_model = TabModelList::GetArchivedTabModel(profile_);

@@ -306,9 +306,6 @@ are declared in tools/grit/grit_args.gni.
       <!-- Media Router specific strings -->
       <part file="media_router_strings.grdp" />
 
-      <!-- Notebooks specific strings -->
-      <part file="notebooks_strings.grdp" />
-
       <!-- Profiles specific strings -->
       <part file="profiles_strings.grdp" />
 
@@ -7256,8 +7253,8 @@ Keep your key file in a safe place. You will need it to create new versions of y
       <message name="IDS_OMNIBOX_EVERYWHERE_SWITCH_PROFILE" desc="Label for the button in the Omnibox Everywhere profile menu that opens the Chrome profile switcher.">
         Switch Profile
       </message>
-      <message name="IDS_OMNIBOX_EVERYWHERE_PLACEHOLDER_LENS" desc="Placeholder text shown in the Omnibox Everywhere searchbox prompting the user to ask about their screen with Google Lens.">
-        Ask about your screen with Google Lens
+      <message name="IDS_OMNIBOX_EVERYWHERE_PLACEHOLDER_LENS" desc="Placeholder text shown in the Omnibox Everywhere searchbox prompting the user to ask about their screen with Google Lens. LENS_ICON is an inline camera icon rendered immediately before 'Google Lens' and omitted in plain-text screen-reader output; keep a space before LENS_ICON and no space between LENS_ICON and Google Lens.">
+        Ask about your screen with <ph name="LENS_ICON">$1<ex>[Google Lens icon]</ex></ph>Google Lens
       </message>
       <message name="IDS_OMNIBOX_EVERYWHERE_PLACEHOLDER_FILE_OR_IMAGE" desc="Placeholder text shown in the Omnibox Everywhere searchbox prompting the user to ask about a file or image.">
         Ask about a file or image
@@ -10136,6 +10133,30 @@ Keep your key file in a safe place. You will need it to create new versions of y
       </message>
       <message name="IDS_ORGANIZER_PANEL_CURRENTLY_PLAYING" desc="The description text shown in the organizer panel for a tab or split view that is currently playing audio.">
         Currently playing
+      </message>
+      <message name="IDS_ORGANIZER_PANEL_AUDIO_MUTED" desc="The description text shown in the organizer panel for a tab or split view whose audio is muted.">
+        Audio muted
+      </message>
+      <message name="IDS_ORGANIZER_PANEL_CLOSE_TAB" desc="Spoken by screen readers and not visually rendered: accessibility label for the close ('X') button on the right side of a hovered or focused tab item under 'Recently visited' in the organizer panel.">
+        Close <ph name="TAB_TITLE">$1<ex>Google</ex></ph>
+      </message>
+      <message name="IDS_ORGANIZER_PANEL_CLOSE_SPLIT_VIEW" desc="Spoken by screen readers and not visually rendered: accessibility label for the close ('X') button on the right side of a hovered or focused 'Split view' item under 'Recently visited' in the organizer panel.">
+        Close split view: <ph name="FIRST_TAB_TITLE">$1<ex>Docs</ex></ph>, <ph name="SECOND_TAB_TITLE">$2<ex>Sheets</ex></ph>
+      </message>
+      <message name="IDS_ORGANIZER_PANEL_SECTION_OPTIONS" desc="Spoken by screen readers and not visually rendered: accessibility label for the three-dot options icon button on the right side of an expanded section header (such as 'Recently visited' or 'Tab groups') next to the collapse arrow in the organizer panel.">
+        Options for <ph name="SECTION_NAME">$1<ex>Recently visited</ex></ph>
+      </message>
+      <message name="IDS_ORGANIZER_PANEL_OPEN_TAB_GROUP" desc="Spoken by screen readers and not visually rendered: accessibility description for an open tab group row (indicated by a filled colored circle icon) under the 'Tab groups' section in the organizer panel.">
+        Open tab group
+      </message>
+      <message name="IDS_ORGANIZER_PANEL_SAVED_TAB_GROUP" desc="Spoken by screen readers and not visually rendered: accessibility description for a closed/saved tab group row (indicated by an outlined colored circle icon) under the 'Tab groups' section in the organizer panel.">
+        Saved tab group
+      </message>
+      <message name="IDS_ORGANIZER_PANEL_TAB_GROUP" desc="Spoken by screen readers and not visually rendered: accessibility label prefix announced before the group name or tab count for a recently closed tab group row under the 'Recently closed' section in the organizer panel.">
+        Tab group
+      </message>
+      <message name="IDS_ORGANIZER_PANEL_TAB_GROUP_MORE_OPTIONS" desc="Spoken by screen readers and not visually rendered: accessibility label for the three-dot options button on the right side of a hovered or focused tab group item under the 'Tab groups' section in the organizer panel.">
+        More options for <ph name="TAB_GROUP_NAME">$1<ex>Work</ex></ph>
       </message>
       <message name="IDS_TAB_STRIP_BUTTON_TOOLTIP" desc="The tooltip for the tab strip button.">
         Tab strip

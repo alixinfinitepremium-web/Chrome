@@ -8576,6 +8576,63 @@ public class TabListMediatorUnitTest {
         verify(tab4).removeObserver(mTabObserverCaptor.getValue());
     }
 
+    @Test
+    public void testDataProvider_OnTabClosureUndone_RecordsUndoMetric() {
+        var userActionTester = new UserActionTester();
+        setUpProviderMediator();
+        mMediator.resetWithListOfTabs(
+                List.of(mTab1, mTab2), /* tabGroupSyncIds= */ null, /* quickMode= */ false);
+        mDataObserver.onDataReset(List.of(createTabItem(TAB1_ID), createTabItem(TAB2_ID)));
+        closeTabFromCard(/* index= */ 0, mItemView1, TAB1_ID);
+
+        mDataObserver.onTabClosureUndone(TAB1_ID);
+
+        assertTrue(userActionTester.getActions().contains("GridTabSwitch.UndoCloseTab"));
+        userActionTester.tearDown();
+    }
+
+    @Test
+    public void testDataProvider_OnTabClosureCommitted_ClearsUndoTracking() {
+        var userActionTester = new UserActionTester();
+        setUpProviderMediator();
+        mMediator.resetWithListOfTabs(
+                List.of(mTab1, mTab2), /* tabGroupSyncIds= */ null, /* quickMode= */ false);
+        mDataObserver.onDataReset(List.of(createTabItem(TAB1_ID), createTabItem(TAB2_ID)));
+        closeTabFromCard(/* index= */ 0, mItemView1, TAB1_ID);
+
+        mDataObserver.onTabClosureCommitted(TAB1_ID);
+        mDataObserver.onTabClosureUndone(TAB1_ID);
+
+        assertFalse(userActionTester.getActions().contains("GridTabSwitch.UndoCloseTab"));
+        userActionTester.tearDown();
+    }
+
+    @Test
+    public void testDataProvider_OnTabDestroyed_DetachesObservers() {
+        setUpProviderMediator();
+        mMediator.resetWithListOfTabs(
+                List.of(mTab1, mTab2), /* tabGroupSyncIds= */ null, /* quickMode= */ false);
+        mDataObserver.onDataReset(List.of(createTabItem(TAB1_ID), createTabItem(TAB2_ID)));
+        clearInvocations(mTab1, mTab2);
+
+        mTabObserverCaptor.getValue().onDestroyed(mTab1);
+
+        verify(mTab1).removeObserver(mTabObserverCaptor.getValue());
+        verify(mTab2, never()).removeObserver(any());
+    }
+
+    @Test
+    public void testOnTabDestroyed_LegacyMode_DetachesObservers() {
+        mMediator.resetWithListOfTabs(
+                List.of(mTab1, mTab2), /* tabGroupSyncIds= */ null, /* quickMode= */ false);
+        clearInvocations(mTab1, mTab2);
+
+        mTabObserverCaptor.getValue().onDestroyed(mTab1);
+
+        verify(mTab1).removeObserver(mTabObserverCaptor.getValue());
+        verify(mTab2, never()).removeObserver(any());
+    }
+
     /**
      * Replaces {@link #mMediator} with a grouped one backed by {@link #mTabListDataProvider} and an
      * empty model list, so tests can drive the captured {@link TabListDataObserver} directly.
@@ -8639,6 +8696,15 @@ public class TabListMediatorUnitTest {
         mDataObserver.onItemsInserted(List.of(groupItem), createTabItem(TAB1_ID));
         assertEquals(2, mModelList.size());
         return groupItem;
+    }
+
+    private void closeTabFromCard(int index, View itemView, int tabId) {
+        mModelList
+                .get(index)
+                .model
+                .get(TabProperties.TAB_ACTION_BUTTON_DATA)
+                .tabActionListener
+                .run(itemView, tabId, /* triggeringMotion= */ null);
     }
 
     private static TabItem createTabItem(int tabId) {
