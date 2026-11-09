@@ -3021,6 +3021,19 @@ chromium-metrics-reviews@google.com.
   <token key="HostType" variants="HostType"/>
 </histogram>
 
+<histogram name="Net.DNS.HostMappingExperiment.RulesApplied" enum="Boolean"
+    expires_after="2027-05-06">
+  <owner>nidhijaju@chromium.org</owner>
+  <owner>net-dev@chromium.org</owner>
+  <summary>
+    Whether the DNS host-mapping rules supplied via the DnsHostMappingExperiment
+    feature parameter passed validation and were applied to the NetworkContext's
+    HostResolver. Recorded once per NetworkContext creation when
+    DnsHostMappingExperiment is enabled and neither --host-resolver-rules nor
+    --host-rules is set on the command line.
+  </summary>
+</histogram>
+
 <histogram name="Net.DNS.HttpsRecordAddressHints.AddressQueryOutstanding"
     enum="Boolean" expires_after="2027-07-07">
   <owner>bashi@chromium.org</owner>
@@ -3127,6 +3140,47 @@ chromium-metrics-reviews@google.com.
     emitted at the completion of a DnsTask's final transaction.
   </summary>
   <token key="secure" variants="DnsOverHttpsSecure"/>
+</histogram>
+
+<histogram
+    name="Net.DNS.Job.KeptAliveAfterLastRequestCancelled.Duration.{Result}"
+    units="ms" expires_after="2027-10-30">
+  <owner>bashi@chromium.org</owner>
+  <owner>net-dev@chromium.org</owner>
+  <summary>
+    How long a HostResolverManager::Job was kept alive without requests after
+    its last request was cancelled, when the keep-alive ended as {Result}. A Job
+    is kept alive when its DnsTask has already received results for some
+    transactions and is only waiting for already-started transactions, so that
+    the final results can be cached. Recorded when the Job stops being kept
+    alive (see Net.DNS.Job.KeptAliveAfterLastRequestCancelled.Result). Only
+    recorded when the KeepHostResolverJobAliveForCache feature, or the
+    AsyncDnsQuicJob feature with its
+    AsyncDnsQuicJobKeepHostResolverJobAliveForCache parameter, is enabled.
+  </summary>
+  <token key="Result">
+    <variant name="Aborted" summary="the Job was aborted"/>
+    <variant name="Cached" summary="the DnsTask results were cached"/>
+    <variant name="CapExpired" summary="the hard cap expired"/>
+    <variant name="Failed" summary="the DnsTask failed"/>
+    <variant name="RequestRejoined" summary="a new request joined the Job"/>
+  </token>
+</histogram>
+
+<histogram name="Net.DNS.Job.KeptAliveAfterLastRequestCancelled.Result"
+    enum="DnsJobKeptAliveResult" expires_after="2027-10-30">
+  <owner>bashi@chromium.org</owner>
+  <owner>net-dev@chromium.org</owner>
+  <summary>
+    How a HostResolverManager::Job that was kept alive without requests after
+    its last request was cancelled ended. A Job is kept alive when its DnsTask
+    has already received results for some transactions and is only waiting for
+    already-started transactions, so that the final results can be cached.
+    Recorded when the Job stops being kept alive. Only recorded when the
+    KeepHostResolverJobAliveForCache feature, or the AsyncDnsQuicJob feature
+    with its AsyncDnsQuicJobKeepHostResolverJobAliveForCache parameter, is
+    enabled.
+  </summary>
 </histogram>
 
 <histogram name="Net.DNS.JobAttemptedHttps" enum="Boolean"
@@ -5872,8 +5926,12 @@ chromium-metrics-reviews@google.com.
   <token key="Result">
     <variant name="Canceled"
         summary="the attempt was canceled before completing for reasons other
-                 than another connector settling the job"/>
+                 than another connector settling the job or proactive IP
+                 pooling"/>
     <variant name="Failure" summary="the attempt failed"/>
+    <variant name="IpPooled"
+        summary="the attempt was canceled because the job proactively pooled
+                 to a newly activated session with a matching IP"/>
     <variant name="Success" summary="the attempt succeeded"/>
     <variant name="Superseded"
         summary="the attempt was canceled because another connector settled
@@ -6286,13 +6344,14 @@ chromium-metrics-reviews@google.com.
 </histogram>
 
 <histogram name="Net.QuicSession.ConnectionIpPooled" enum="Boolean"
-    expires_after="2025-10-26">
+    expires_after="2027-05-02">
   <owner>nidhijaju@chromium.org</owner>
   <owner>src/net/quic/OWNERS</owner>
   <summary>
     True if an active session already exists for a given Ip during connection.
     Recorded when attempting to create a new session. Warning: this histogram
-    was expired from 2024-02-04 to 2024-03-28; data may be missing.
+    was expired from 2024-02-04 to 2024-03-28 and from 2025-10-26 to 2026-11;
+    data may be missing.
   </summary>
 </histogram>
 

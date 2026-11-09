@@ -45,6 +45,8 @@
 #include "cc/paint/skia_paint_canvas.h"
 #include "components/viz/common/resources/shared_image_format.h"
 #include "components/viz/common/resources/shared_image_format_utils.h"
+#include "gpu/GLES2/gl2extchromium.h"
+#include "gpu/command_buffer/client/raster_interface.h"
 #include "gpu/command_buffer/common/capabilities.h"
 #include "gpu/command_buffer/common/shared_image_capabilities.h"
 #include "gpu/command_buffer/common/shared_image_usage.h"
@@ -199,9 +201,9 @@ BaseRenderingContext2D::~BaseRenderingContext2D() {
   if (HasBacking()) {
     CanvasMemoryDumpProvider::Instance()->UnregisterClient(this);
   }
-  if (shared_image_provider_ && shared_image_provider_->RasterInterface()) {
+  if (shared_image_provider_ && RasterInterface()) {
     // Last chance for outstanding GPU timers to record metrics.
-    CheckGpuTimers(shared_image_provider_->RasterInterface());
+    CheckGpuTimers(RasterInterface());
   }
   if (context_provider_wrapper_) {
     context_provider_wrapper_->RemoveObserver(this);
@@ -218,9 +220,36 @@ const MemoryManagedPaintRecorder* BaseRenderingContext2D::Recorder() const {
   return recorder_.get();
 }
 
-Canvas2DResourceProvider* BaseRenderingContext2D::GetSharedImageProvider()
+bool BaseRenderingContext2D::HasSharedImageBacking() const {
+  return shared_image_provider_ != nullptr;
+}
+
+void BaseRenderingContext2D::SetResourceRecyclingEnabled(bool value) {
+  if (shared_image_provider_) {
+    shared_image_provider_->SetResourceRecyclingEnabled(value);
+  }
+}
+
+bool BaseRenderingContext2D::IsSingleBuffered() const {
+  return shared_image_provider_ && shared_image_provider_->IsSingleBuffered();
+}
+
+int BaseRenderingContext2D::NumInflightResourcesForTesting() const {
+  return shared_image_provider_
+             ? shared_image_provider_->NumInflightResourcesForTesting()
+             : 0;
+}
+
+bool BaseRenderingContext2D::HasUnusedResourcesForTesting() const {
+  return shared_image_provider_ &&
+         shared_image_provider_->HasUnusedResourcesForTesting();
+}
+
+bool BaseRenderingContext2D::UnusedResourcesReclaimTimerIsRunningForTesting()
     const {
-  return shared_image_provider_.get();
+  return shared_image_provider_ &&
+         shared_image_provider_
+             ->unused_resources_reclaim_timer_is_running_for_testing();
 }
 
 bool BaseRenderingContext2D::HasBacking() const {
@@ -229,18 +258,27 @@ bool BaseRenderingContext2D::HasBacking() const {
 
 bool BaseRenderingContext2D::IsBackingValid() const {
   if (shared_image_provider_) {
-    return shared_image_provider_->IsValid();
+    if (shared_image_provider_->IsSoftware()) {
+      // Software compositing (which always uses software raster).
+      return shared_image_interface_provider_ &&
+             shared_image_interface_provider_->SharedImageInterface();
+    }
+    return !IsGpuContextLost();
   }
   return surface_ != nullptr;
+}
+
+bool BaseRenderingContext2D::IsBackingAccelerated() const {
+  return shared_image_provider_ && shared_image_provider_->IsAccelerated();
 }
 
 void BaseRenderingContext2D::ResetBacking() {
   if (HasBacking()) {
     CanvasMemoryDumpProvider::Instance()->UnregisterClient(this);
   }
-  if (shared_image_provider_ && shared_image_provider_->RasterInterface()) {
+  if (shared_image_provider_ && RasterInterface()) {
     // Last chance for outstanding GPU timers to record metrics.
-    CheckGpuTimers(shared_image_provider_->RasterInterface());
+    CheckGpuTimers(RasterInterface());
   }
   ClearGpuTimers();
   shared_image_provider_.reset();
@@ -263,6 +301,8 @@ void BaseRenderingContext2D::ResetBacking() {
     shared_image_interface_provider_->RemoveGpuChannelLostObserver(this);
     shared_image_interface_provider_.reset();
   }
+  notify_gpu_context_lost_task_.Cancel();
+  notified_context_lost_ = false;
   if (Host()) {
     Host()->UpdateMemoryUsage();
   }
@@ -274,7 +314,7 @@ bool BaseRenderingContext2D::IsPaintable() const {
 
 bool BaseRenderingContext2D::Is2DCanvasAccelerated() const {
   if (shared_image_provider_) {
-    return shared_image_provider_->IsAccelerated();
+    return IsBackingAccelerated();
   }
   if (surface_) {
     return false;
@@ -287,8 +327,11 @@ bool BaseRenderingContext2D::Is2DCanvasAccelerated() const {
 
 base::ByteSize BaseRenderingContext2D::AllocatedBufferSize() const {
   base::ByteSize result;
-  if (shared_image_provider_) {
-    result += shared_image_provider_->EstimatedSizeInBytes();
+  if (shared_image_provider_ && shared_image_provider_->resource_) {
+    result +=
+        shared_image_provider_->resource_->GetSharedImage()
+            ->EstimatedSizeInBytes() *
+        shared_image_provider_->num_inflight_resources_;
   }
   if (surface_) {
     result += base::ByteSize(
@@ -398,17 +441,12 @@ void BaseRenderingContext2D::CreateSharedImageProvider(
 #endif
 
   const SkAlphaType alpha_type = color_params_.GetAlphaType();
-  auto provider = std::make_unique<Canvas2DResourceProvider>(
+  context_provider_wrapper_ = context_provider_wrapper;
+  context_provider_wrapper_->AddObserver(this);
+  shared_image_provider_ = std::make_unique<Canvas2DResourceProvider>(
       size, format, alpha_type, color_params_.GetGfxColorSpace(),
       color_params_.GetGfxHdrMetadata(), context_provider_wrapper,
       is_accelerated, shared_image_usage_flags);
-  if (!provider->IsValid()) {
-    return;
-  }
-
-  context_provider_wrapper_ = context_provider_wrapper;
-  context_provider_wrapper_->AddObserver(this);
-  shared_image_provider_ = std::move(provider);
   if (shared_image_provider_->resource()) {
     EnsureWriteAccess();
   }
@@ -423,7 +461,7 @@ void BaseRenderingContext2D::CreateSharedImageProvider(
     RasterRecordToSharedImage(recorder.ReleaseMainRecording());
 
     // An error might have occurred while clearing.
-    if (!shared_image_provider_->IsValid()) {
+    if (IsGpuContextLost()) {
       shared_image_provider_.reset();
       canvas_image_provider_.reset();
       must_preserve_content_on_copy_on_write_ = true;
@@ -552,7 +590,13 @@ void BaseRenderingContext2D::OnMemoryDump(
   // while `HasBacking()` is true.
   CHECK(HasBacking());
   if (shared_image_provider_) {
-    shared_image_provider_->OnMemoryDump(pmd);
+    std::string path = base::StringPrintf("canvas/ResourceProvider_0x%" PRIXPTR,
+                                          reinterpret_cast<uintptr_t>(this));
+    if (shared_image_provider_->resource()) {
+      shared_image_provider_->resource()->OnMemoryDump(pmd, path);
+    }
+    std::string cached_path = path + "/cached";
+    shared_image_provider_->image_pool_->OnMemoryDump(pmd, cached_path);
   }
   if (!surface_) {
     return;
@@ -594,30 +638,35 @@ void BaseRenderingContext2D::OnContextDestroyed() {
 }
 
 void BaseRenderingContext2D::OnContextLost() {
-  if (!shared_image_provider_ ||
-      shared_image_provider_->notified_context_lost_) {
+  if (!shared_image_provider_ || notified_context_lost_) {
     return;
   }
   shared_image_provider_->ClearUnusedResources();
+  notified_context_lost_ = true;
   // Notify the host that the GPU context was lost. The call is done in a
   // separate task, so that the host can reset the backing if needed.
+  notify_gpu_context_lost_task_.Reset(
+      blink::BindOnce(&CanvasRenderingContextHost::NotifyGpuContextLost,
+                      WrapWeakPersistent(Host())));
   base::SequencedTaskRunner::GetCurrentDefault()->PostTask(
-      FROM_HERE,
-      blink::BindOnce(&BaseRenderingContext2D::NotifyGpuContextLostTask,
-                      WrapWeakPersistent(this),
-                      shared_image_provider_->CreateWeakPtr()));
-  shared_image_provider_->notified_context_lost_ = true;
+      FROM_HERE, notify_gpu_context_lost_task_.callback());
 }
 
 void BaseRenderingContext2D::OnGpuChannelLost() {
   OnContextLost();
 }
 
-void BaseRenderingContext2D::NotifyGpuContextLostTask(
-    base::WeakPtr<Canvas2DResourceProvider> provider) {
-  if (provider && Host()) {
-    Host()->NotifyGpuContextLost();
+gpu::raster::RasterInterface* BaseRenderingContext2D::RasterInterface() const {
+  if (!context_provider_wrapper_) {
+    return nullptr;
   }
+  return context_provider_wrapper_->ContextProvider().RasterInterface();
+}
+
+bool BaseRenderingContext2D::IsGpuContextLost() const {
+  auto* raster_interface = RasterInterface();
+  return !raster_interface ||
+         raster_interface->GetGraphicsResetStatusKHR() != GL_NO_ERROR;
 }
 
 CanvasImageProvider* BaseRenderingContext2D::GetOrCreateCanvasImageProvider() {
@@ -735,13 +784,12 @@ void BaseRenderingContext2D::EnsureResourceReadyForDraw() {
     shared_image_provider_->resource_ =
         shared_image_provider_->NewOrRecycledResource();
     if (must_preserve_content_on_copy_on_write_) {
-      auto [src_token, dst_token] =
-          shared_image_provider_->RasterInterface()->CopySharedImage(
-              old_resource_shared_image->GetSharedImage(),
-              old_resource_shared_image->acquire_sync_token(),
-              shared_image_provider_->resource()->GetSharedImage(),
-              shared_image_provider_->resource()->acquire_sync_token(),
-              gfx::Rect(shared_image_provider_->Size()), gfx::Point(0, 0));
+      auto [src_token, dst_token] = RasterInterface()->CopySharedImage(
+          old_resource_shared_image->GetSharedImage(),
+          old_resource_shared_image->acquire_sync_token(),
+          shared_image_provider_->resource()->GetSharedImage(),
+          shared_image_provider_->resource()->acquire_sync_token(),
+          gfx::Rect(Host()->Size()), gfx::Point(0, 0));
       old_resource_shared_image->SetReleaseSyncToken(src_token);
       shared_image_provider_->resource_->SetReleaseSyncToken(dst_token);
     } else {
@@ -769,8 +817,7 @@ void BaseRenderingContext2D::EnsureWriteAccess() {
   DCHECK(!shared_image_provider_->resource()->is_cross_thread())
       << "Write access is only allowed on the owning thread";
 
-  if (current_resource_has_write_access_ ||
-      shared_image_provider_->IsGpuContextLost()) {
+  if (current_resource_has_write_access_ || IsGpuContextLost()) {
     return;
   }
   current_resource_has_write_access_ = true;
@@ -779,8 +826,7 @@ void BaseRenderingContext2D::EnsureWriteAccess() {
 void BaseRenderingContext2D::EndWriteAccess() {
   DCHECK(!shared_image_provider_->resource()->is_cross_thread());
 
-  if (!current_resource_has_write_access_ ||
-      shared_image_provider_->IsGpuContextLost()) {
+  if (!current_resource_has_write_access_ || IsGpuContextLost()) {
     return;
   }
 
@@ -809,7 +855,7 @@ void BaseRenderingContext2D::EndWriteAccess() {
 void BaseRenderingContext2D::RasterRecordToSharedImage(
     cc::PaintRecord last_recording) {
   CHECK(shared_image_provider_->IsAccelerated());
-  if (!shared_image_provider_->IsGpuContextLost()) {
+  if (!IsGpuContextLost()) {
     EnsureResourceReadyForDraw();
     EnsureWriteAccess();
 
@@ -821,12 +867,11 @@ void BaseRenderingContext2D::RasterRecordToSharedImage(
             &BaseRenderingContext2D::ApplyAnimatedImageFrameIndexesForId,
             WrapWeakPersistent(this));
 
-    gpu::SyncToken sync_token =
-        shared_image_provider_->RasterInterface()->RasterSharedImage(
-            shared_image_provider_->resource()->GetSharedImage(),
-            shared_image_provider_->resource()->acquire_sync_token(),
-            std::move(last_recording), image_provider, needs_clear,
-            std::move(custom_callback));
+    gpu::SyncToken sync_token = RasterInterface()->RasterSharedImage(
+        shared_image_provider_->resource()->GetSharedImage(),
+        shared_image_provider_->resource()->acquire_sync_token(),
+        std::move(last_recording), image_provider, needs_clear,
+        std::move(custom_callback));
     shared_image_provider_->resource()->SetReleaseSyncToken(sync_token);
   }
 
@@ -896,11 +941,10 @@ BaseRenderingContext2D::UnacceleratedSnapshot() {
 }
 
 scoped_refptr<StaticBitmapImage> BaseRenderingContext2D::Snapshot() {
+  if (!IsBackingValid()) {
+    return nullptr;
+  }
   if (shared_image_provider_ && shared_image_provider_->IsAccelerated()) {
-    if (!shared_image_provider_->IsValid()) {
-      return nullptr;
-    }
-
     if (!cached_snapshot_) {
       EndWriteAccess();
 
@@ -953,9 +997,6 @@ scoped_refptr<StaticBitmapImage> BaseRenderingContext2D::Snapshot() {
     cached_snapshot_->SetOriginClean(OriginClean());
     return cached_snapshot_;
   }
-  if (!IsBackingValid()) {
-    return nullptr;
-  }
   // When using CPU raster with a SharedImage provider, we do not need to end
   // write access (which uploads the CPU rendering results to the SharedImage
   // for compositing) because we are simply returning the CPU-side results to
@@ -969,7 +1010,7 @@ bool BaseRenderingContext2D::WritePixelsToBacking(const SkImageInfo& orig_info,
                                                   int x,
                                                   int y) {
   if (shared_image_provider_ && shared_image_provider_->IsAccelerated()) {
-    if (shared_image_provider_->IsGpuContextLost()) {
+    if (IsGpuContextLost()) {
       return false;
     }
 
@@ -983,19 +1024,17 @@ bool BaseRenderingContext2D::WritePixelsToBacking(const SkImageInfo& orig_info,
     // Verify that this is the case and update the code here.
     must_preserve_content_on_copy_on_write_ = true;
 
-    gpu::SyncToken sync_token =
-        shared_image_provider_->RasterInterface()->WritePixels(
-            shared_image_provider_->resource()->GetSharedImage(),
-            shared_image_provider_->resource()->acquire_sync_token(), x, y,
-            SkPixmap(orig_info, pixels, row_bytes));
+    gpu::SyncToken sync_token = RasterInterface()->WritePixels(
+        shared_image_provider_->resource()->GetSharedImage(),
+        shared_image_provider_->resource()->acquire_sync_token(), x, y,
+        SkPixmap(orig_info, pixels, row_bytes));
     shared_image_provider_->resource()->SetReleaseSyncToken(sync_token);
 
     // If the overdraw optimization kicked in, we need to indicate that the
     // pixels do not need to be cleared, otherwise the subsequent
     // rasterizations will clobber canvas contents.
-    if (x <= 0 && y <= 0 &&
-        orig_info.width() >= shared_image_provider_->Size().width() &&
-        orig_info.height() >= shared_image_provider_->Size().height()) {
+    if (x <= 0 && y <= 0 && orig_info.width() >= Host()->Size().width() &&
+        orig_info.height() >= Host()->Size().height()) {
       is_cleared_ = true;
     }
 
@@ -1054,7 +1093,7 @@ BaseRenderingContext2D::PaintRenderingResultsToResource(
     return CreateExportedResource(std::move(output_resource));
   }
 
-  if (shared_image_provider_->IsGpuContextLost()) {
+  if (IsGpuContextLost()) {
     return nullptr;
   }
 
@@ -1725,7 +1764,7 @@ std::optional<cc::PaintRecord> BaseRenderingContext2D::FlushCanvasInternal(
   DidFlushRecording(recording, clear_frame_, reason);
   clear_frame_ = false;
   if (shared_image_provider_ && shared_image_provider_->IsAccelerated()) {
-    ScopedRasterTimer timer(shared_image_provider_->RasterInterface(), this);
+    ScopedRasterTimer timer(RasterInterface(), this);
     RasterRecordToSharedImage(recording);
   } else if (surface_) {
     ScopedRasterTimer timer(nullptr, nullptr);

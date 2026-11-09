@@ -30,17 +30,6 @@
 #include "third_party/blink/renderer/platform/wtf/vector.h"
 #include "third_party/skia/include/gpu/ganesh/GrTypes.h"
 
-namespace gpu {
-
-struct SyncToken;
-
-namespace raster {
-
-class RasterInterface;
-
-}  // namespace raster
-}  // namespace gpu
-
 namespace blink {
 
 PLATFORM_EXPORT BASE_DECLARE_FEATURE(kCanvas2DReclaimUnusedResources);
@@ -52,45 +41,6 @@ class CanvasResourceSharedImage;
 class Canvas2DResourceProvider;
 class CanvasImageProvider;
 class WebGraphicsSharedImageInterfaceProvider;
-
-// Specifies whether the provider should rasterize paint commands on the CPU
-// or GPU. This is used to support software raster with GPU compositing.
-enum class RasterMode {
-  kGPU,
-  kCPU,
-};
-
-// Canvas2DResourceProvider
-//==============================================================================
-//
-// Encapsulates a drawable graphics resource for Canvas2D.
-// Canvas2DResourceProvider serves as a provider of drawable surfaces for 2D
-// rendering with Skia.
-//
-// General usage:
-//   1) Use the Create() static method to create an instance
-//   2) use Canvas() to get a drawing interface
-//   3) Call Snapshot() to acquire a bitmap with the rendered image in it.
-
-// These values are persisted to logs. Entries should not be renumbered and
-// numeric values should never be reused.
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-enum class CanvasResourceProviderType {
-  kTexture [[deprecated]] = 0,
-  kBitmap = 1,
-  kSharedBitmap [[deprecated]] = 2,
-  kTextureGpuMemoryBuffer [[deprecated]] = 3,
-  kBitmapGpuMemoryBuffer [[deprecated]] = 4,
-  kSharedImage = 5,
-  kDirectGpuMemoryBuffer [[deprecated]] = 6,
-  kPassThrough [[deprecated]] = 7,
-  kSwapChain [[deprecated]] = 8,
-  kSkiaDawnSharedImage [[deprecated]] = 9,
-  kExternalBitmap [[deprecated]] = 10,
-  kMaxValue = kExternalBitmap,
-};
-#pragma GCC diagnostic pop
 
 // * Subclass of CanvasResourceProvider that is specialized for usage
 // * by Canvas2D.
@@ -130,14 +80,8 @@ class PLATFORM_EXPORT Canvas2DResourceProvider
   }
 
   int NumInflightResourcesForTesting() const { return num_inflight_resources_; }
-  base::ByteSize EstimatedSizeInBytes() const;
-
-  bool IsValid() const;
 
   void SetResourceRecyclingEnabled(bool value);
-
-  gpu::raster::RasterInterface* RasterInterface() const;
-  void OnMemoryDump(base::trace_event::ProcessMemoryDump* pmd);
 
   CanvasResourceSharedImage* resource() {
     return static_cast<CanvasResourceSharedImage*>(resource_.get());
@@ -150,19 +94,12 @@ class PLATFORM_EXPORT Canvas2DResourceProvider
   friend class BaseRenderingContext2D;
 
   void ClearUnusedResources();
-  bool IsGpuContextLost() const;
-  gfx::Size Size() const { return image_pool_->GetImageInfo().size; }
 
   void OnResourceRefReturned(
       scoped_refptr<CanvasResourceSharedImage>&& resource) override;
   void OnDestroyResource() override { --num_inflight_resources_; }
 
   scoped_refptr<CanvasResourceSharedImage> NewOrRecycledResource();
-
-  base::WeakPtr<WebGraphicsContext3DProviderWrapper> ContextProviderWrapper()
-      const {
-    return context_provider_wrapper_;
-  }
 
   base::WeakPtr<Canvas2DResourceProvider> CreateWeakPtr();
 
@@ -177,7 +114,6 @@ class PLATFORM_EXPORT Canvas2DResourceProvider
   scoped_refptr<CanvasResourceSharedImage> resource_;
 
   const bool is_accelerated_;
-  bool notified_context_lost_ = false;
 
   base::WeakPtr<WebGraphicsContext3DProviderWrapper> context_provider_wrapper_;
   base::WeakPtr<WebGraphicsSharedImageInterfaceProvider>

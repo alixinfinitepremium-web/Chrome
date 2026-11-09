@@ -879,7 +879,9 @@ std::optional<base::Pickle> OSExchangeDataProviderWin::GetPickledData(
   if (SUCCEEDED(source_object_->GetData(&format_etc, &medium))) {
     if (medium.tymed & TYMED_HGLOBAL) {
       base::win::ScopedHGlobal<char*> c_data(medium.hGlobal);
-      CHECK_GT(c_data.size(), 0u, base::NotFatalUntil::M163);
+      // TODO(crbug.com/582806614): CHECK-exclusion: Convert to a CHECK once we
+      // are confident it won't be triggered.
+      DCHECK_GT(c_data.size(), 0u);
       return base::Pickle::WithData(base::as_bytes(base::span(c_data)));
     }
     ReleaseStgMedium(&medium);
@@ -968,7 +970,9 @@ void OSExchangeDataProviderWin::SetDownloadFileInfo(
 void OSExchangeDataProviderWin::SetDragImage(
     const gfx::ImageSkia& image_skia,
     const gfx::Vector2d& cursor_offset) {
-  CHECK(!image_skia.size().IsEmpty(), base::NotFatalUntil::M163);
+  // TODO(crbug.com/582462746): CHECK-exclusion: Convert to a CHECK once we are
+  // confident it won't be triggered.
+  DCHECK(!image_skia.size().IsEmpty());
 
   // InitializeFromBitmap() doesn't expect an alpha channel and is confused
   // by premultiplied colors, so unpremultiply the bitmap.

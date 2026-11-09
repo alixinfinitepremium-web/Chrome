@@ -298,8 +298,9 @@ class AXPosition {
       int text_offset,
       ax::mojom::TextAffinity affinity) {
     CHECK(anchor.tree(), base::NotFatalUntil::M163);
-    CHECK_NE(anchor.tree()->GetAXTreeID(), AXTreeIDUnknown(),
-             base::NotFatalUntil::M163);
+    // TODO(crbug.com/583539818): CHECK-exclusion: Convert to a CHECK once we
+    // are confident it won't be triggered.
+    DCHECK_NE(anchor.tree()->GetAXTreeID(), AXTreeIDUnknown());
     CHECK_NE(anchor.id(), kInvalidAXNodeID, base::NotFatalUntil::M163);
 
     AXPositionInstance new_position(new AXPositionType());
@@ -1530,7 +1531,9 @@ class AXPosition {
               position->child_index() == BEFORE_TEXT
                   ? CreateTreePositionAtStartOfAnchor(*leaf_node)
                   : CreateTreePositionAtEndOfAnchor(*leaf_node);
-          CHECK(new_position->IsLeaf(), base::NotFatalUntil::M163);
+          // TODO(crbug.com/582680643): CHECK-exclusion: Convert to a CHECK once
+          // we are confident it won't be triggered.
+          DCHECK(new_position->IsLeaf());
           return new_position;
         }
 
@@ -1595,7 +1598,9 @@ class AXPosition {
       return Clone();
 
     AXPositionInstance copy = Clone();
-    CHECK_GE(copy->text_offset_, 0, base::NotFatalUntil::M163);
+    // TODO(crbug.com/583004279): CHECK-exclusion: Convert to a CHECK once we
+    // are confident it won't be triggered.
+    DCHECK_GE(copy->text_offset_, 0);
     // Note that by design, `AXPosition::IsLeaf()` excludes the text found in
     // ignored subtrees from the accessibility tree's text representation. (See
     // `AXNode::IsEmptyLeaf()`.)
@@ -5808,7 +5813,9 @@ class AXPosition {
       if (index_in_parent + 1 < parent_position->AnchorChildCount()) {
         AXPositionInstance next_sibling =
             parent_position->CreateChildPositionAt(index_in_parent + 1);
-        CHECK(!next_sibling->IsNullPosition(), base::NotFatalUntil::M163);
+        // TODO(crbug.com/582685981): CHECK-exclusion: Convert to a CHECK once
+        // we are confident it won't be triggered.
+        DCHECK(!next_sibling->IsNullPosition());
 
         if (abort_predicate.Run(*current_position, *next_sibling,
                                 AXMoveType::kSibling,

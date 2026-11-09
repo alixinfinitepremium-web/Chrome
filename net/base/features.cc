@@ -141,6 +141,13 @@ BASE_FEATURE_PARAM(bool,
                    &kEnableIntermediateDnsResults,
                    true);
 
+BASE_FEATURE(kKeepHostResolverJobAliveForCache,
+             base::FEATURE_DISABLED_BY_DEFAULT);
+BASE_FEATURE_PARAM(base::TimeDelta,
+                   kKeepHostResolverJobAliveForCacheTimeout,
+                   &kKeepHostResolverJobAliveForCache,
+                   base::Seconds(2));
+
 BASE_FEATURE(kAdjustIPv6FallbackTime, base::FEATURE_DISABLED_BY_DEFAULT);
 
 BASE_FEATURE_PARAM(base::TimeDelta,
@@ -384,6 +391,10 @@ BASE_FEATURE(kAsyncDnsQuicJob, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE_PARAM(bool, kAsyncDnsQuicJobFastFail, &kAsyncDnsQuicJob, false);
 BASE_FEATURE_PARAM(bool,
                    kAsyncDnsQuicJobSortTransactionsIndividually,
+                   &kAsyncDnsQuicJob,
+                   true);
+BASE_FEATURE_PARAM(bool,
+                   kAsyncDnsQuicJobKeepHostResolverJobAliveForCache,
                    &kAsyncDnsQuicJob,
                    true);
 
@@ -1162,6 +1173,9 @@ BASE_FEATURE_PARAM(bool,
 BASE_FEATURE(kHttpChunkedDecoderInRust, base::FEATURE_DISABLED_BY_DEFAULT);
 
 BASE_FEATURE(kPostHandshakeIpPoolingAllEndpoints,
+             base::FEATURE_DISABLED_BY_DEFAULT);
+
+BASE_FEATURE(kProactiveIpPoolingForInFlightJobs,
              base::FEATURE_DISABLED_BY_DEFAULT);
 
 }  // namespace net::features

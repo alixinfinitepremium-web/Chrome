@@ -127,38 +127,6 @@ void Canvas2DResourceProvider::SetResourceRecyclingEnabled(bool value) {
   }
 }
 
-base::ByteSize Canvas2DResourceProvider::EstimatedSizeInBytes() const {
-  base::ByteSize result;
-  if (resource_) {
-    result += resource_->GetSharedImage()->EstimatedSizeInBytes() *
-              num_inflight_resources_;
-  }
-  return result;
-}
-
-bool Canvas2DResourceProvider::IsValid() const {
-  if (IsSoftware()) {
-    // Software compositing (which always uses software raster).
-    return shared_image_interface_provider_ &&
-           shared_image_interface_provider_->SharedImageInterface();
-  }
-
-  return !IsGpuContextLost();
-}
-
-void Canvas2DResourceProvider::OnMemoryDump(
-    base::trace_event::ProcessMemoryDump* pmd) {
-  std::string path = base::StringPrintf("canvas/ResourceProvider_0x%" PRIXPTR,
-                                        reinterpret_cast<uintptr_t>(this));
-
-  if (resource()) {
-    resource()->OnMemoryDump(pmd, path);
-  }
-
-  std::string cached_path = path + "/cached";
-  image_pool_->OnMemoryDump(pmd, cached_path);
-}
-
 Canvas2DResourceProvider::Canvas2DResourceProvider(
     gfx::Size size,
     viz::SharedImageFormat format,
@@ -275,20 +243,6 @@ bool Canvas2DResourceProvider::IsSingleBuffered() const {
 
 bool Canvas2DResourceProvider::HasUnusedResourcesForTesting() const {
   return image_pool_ && image_pool_->GetPoolSizeForTesting() > 0;
-}
-
-gpu::raster::RasterInterface* Canvas2DResourceProvider::RasterInterface()
-    const {
-  if (!ContextProviderWrapper()) {
-    return nullptr;
-  }
-  return ContextProviderWrapper()->ContextProvider().RasterInterface();
-}
-
-bool Canvas2DResourceProvider::IsGpuContextLost() const {
-  auto* raster_interface = RasterInterface();
-  return !raster_interface ||
-         raster_interface->GetGraphicsResetStatusKHR() != GL_NO_ERROR;
 }
 
 }  // namespace blink

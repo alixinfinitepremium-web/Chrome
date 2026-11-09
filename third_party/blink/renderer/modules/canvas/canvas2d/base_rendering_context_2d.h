@@ -11,6 +11,7 @@
 #include <utility>
 
 #include "base/byte_size.h"
+#include "base/cancelable_callback.h"
 #include "base/functional/callback_forward.h"
 #include "base/memory/scoped_refptr.h"
 #include "base/notreached.h"
@@ -184,7 +185,9 @@ class MODULES_EXPORT BaseRenderingContext2D
   virtual bool InitializeBacking() = 0;
   bool HasBacking() const;
   virtual bool IsBackingValid() const;
+  bool IsBackingAccelerated() const;
   virtual void ResetBacking();
+  bool IsSingleBuffered() const;
 
   std::optional<cc::PaintRecord> FlushCanvas(FlushReason) override = 0;
 
@@ -321,9 +324,9 @@ class MODULES_EXPORT BaseRenderingContext2D
     on_restore_failed_callback_for_testing_ = std::move(callback);
   }
   SkSurface* GetSoftwareSurfaceForTesting() const { return surface_.get(); }
-  Canvas2DResourceProvider* GetSharedImageProviderForTesting() const {
-    return GetSharedImageProvider();
-  }
+  int NumInflightResourcesForTesting() const;
+  bool HasUnusedResourcesForTesting() const;
+  bool UnusedResourcesReclaimTimerIsRunningForTesting() const;
 
   HeapTaskRunnerTimer<BaseRenderingContext2D>
       dispatch_context_lost_event_timer_;
@@ -389,7 +392,8 @@ class MODULES_EXPORT BaseRenderingContext2D
                                  bool clear_frame,
                                  FlushReason reason) {}
 
-  Canvas2DResourceProvider* GetSharedImageProvider() const;
+  bool HasSharedImageBacking() const;
+  void SetResourceRecyclingEnabled(bool value);
   void CreateSharedImageProvider(
       RasterMode raster_mode,
       gpu::SharedImageUsageSet shared_image_usage_flags);
@@ -443,8 +447,8 @@ class MODULES_EXPORT BaseRenderingContext2D
   // BitmapGpuChannelLostObserver implementation.
   void OnGpuChannelLost() override;
 
-  void NotifyGpuContextLostTask(base::WeakPtr<Canvas2DResourceProvider>);
-
+  gpu::raster::RasterInterface* RasterInterface() const;
+  bool IsGpuContextLost() const;
   bool ShouldReplaceTargetBuffer();
   void EnsureResourceReadyForDraw();
   void EnsureWriteAccess();
@@ -476,6 +480,8 @@ class MODULES_EXPORT BaseRenderingContext2D
   // notified after the shared `WebGraphicsContext3DProviderWrapper` instance is
   // recreated.
   scoped_refptr<viz::RasterContextProvider> raster_context_provider_;
+  base::CancelableOnceClosure notify_gpu_context_lost_task_;
+  bool notified_context_lost_ = false;
   cc::PaintImage::Id sw_snapshot_paint_image_id_ = cc::PaintImage::kInvalidId;
   cc::PaintImage::ContentId sw_snapshot_paint_image_content_id_ =
       cc::PaintImage::kInvalidContentId;

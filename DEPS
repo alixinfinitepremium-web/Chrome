@@ -282,7 +282,7 @@ vars = {
   # binary available on `PATH`, or absolute path.
   'reapi_credential_helper': Str(''),
   # siso CIPD package version.
-  'siso_version': 'git_revision:c508213533aa5cd425b69cb0f66e53522d77022d',
+  'siso_version': 'git_revision:59d84e3b054313652b74928f5a9c550f4a951723',
 
   # CPython 3 CIPD package version for Siso hermetic toolchain.
   'cpython3_version': 'version:3@3.11.9.chromium.38',
@@ -318,11 +318,11 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'src_internal_revision': '37de03f8aa0cfeb1e4fee8bb11803837c3ec5223',
+  'src_internal_revision': '98f34db94b4457f1405acfab7b5980bec18b6040',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and whatever else without interference from each other.
-  'skia_revision': 'a6c6ea6d7f1fecf5bd71d622744c0918cc6789c1',
+  'skia_revision': 'b3f87a164d0a270811a1b58dabd22f91c25838a5',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
@@ -338,7 +338,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling PDFium
   # and whatever else without interference from each other.
-  'pdfium_revision': '6688c576fd851f4159c6fae39396da50939de110',
+  'pdfium_revision': '8ebce9f265a884d64320228ce83b383d7d5b6c06',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
@@ -402,7 +402,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'd9ef7e11de350c7f469ea7074fc15dbc6359288f',
+  'devtools_frontend_revision': '7a924a41fbc2e8d773a3e29d1edf4d3b50a34a3d',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -440,7 +440,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
-  'dawn_revision': 'eb9b8a0af31f9f85ceb46e003f2d736d963a5e2f',
+  'dawn_revision': '6764b07c8585360557d594188998a5d2515e626c',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling feed
   # and whatever else without interference from each other.
@@ -1756,7 +1756,7 @@ deps = {
     'packages': [
       {
         'package': 'chromium/chrome/test/data/variations/cipd',
-        'version': '-iPobZprqMh7Or16VpIF421tXp5_k19U0PCuGXWKJjMC',
+        'version': 'nT6x4cj28cVZF9g0XEz0_f7WhtaIo3tMvAxyqfNQqbwC',
       },
     ],
     'condition': 'non_git_source',
@@ -1768,7 +1768,7 @@ deps = {
 
   'src/clank': {
     'url': Var('chrome_git') + '/clank/internal/apps.git' + '@' +
-    'ed33d034f5ddcb49130ad5aae6123f8aa25e5f5a',
+    '7a3d5b47af053ae8a4d4cfa073869faccadf5993',
     'condition': 'checkout_android and checkout_src_internal',
   },
 
@@ -1872,7 +1872,7 @@ deps = {
     'packages': [
       {
           'package': 'chromium/third_party/androidx',
-          'version': 'AlTWJI_K34aV0z23hS4djm0gYQifxaUD4r1Prlp4vZcC',
+          'version': 'J3oJ-Hq-eTlK-JSdtKIXKPCOqIN3qpaElSW-wJvQdosC',
       },
     ],
     'condition': 'checkout_android and non_git_source',
@@ -2238,7 +2238,7 @@ deps = {
     Var('chromium_git') + '/external/github.com/jk-jeon/dragonbox.git' + '@' + 'beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44',
 
   'src/third_party/eigen3/src':
-    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '2800ca56ecfc76ad42db586c4123616dc68a9c8e',
+    Var('chromium_git') + '/external/gitlab.com/libeigen/eigen.git' + '@' + '7a5caed45287909f0dd12e8473bd0802e02f4152',
 
   'src/third_party/emoji-metadata/src': {
     'url': Var('chromium_git') + '/external/github.com/googlefonts/emoji-metadata' + '@' + '173b9b26e8fcbcbe64e1ecbf073a21a96b95c6b1',
@@ -3884,7 +3884,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '74cec86269566f4a545613ea0cce8a47e1c0a68d',
+        '19672c1b526285a57d02bc30fa395bb7ab3fdbd7',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 

@@ -1767,7 +1767,9 @@ void MenuController::OnDragExitedScrollButton(SubmenuView* source) {
 }
 
 void MenuController::OnDragDropWillStart() {
-  CHECK(!drag_in_progress_, base::NotFatalUntil::M163);
+  // TODO(crbug.com/582716084): CHECK-exclusion: Convert to a CHECK once we are
+  // confident it won't be triggered.
+  DCHECK(!drag_in_progress_);
   drag_in_progress_ = true;
 }
 
@@ -2234,7 +2236,9 @@ void MenuController::SetSelectionOnPointerDown(SubmenuView* source,
     return;
   }
 
-  CHECK(!active_mouse_view_tracker_->view(), base::NotFatalUntil::M163);
+  // TODO(crbug.com/580576043): CHECK-exclusion: Convert to a CHECK once we are
+  // confident it won't be triggered.
+  DCHECK(!active_mouse_view_tracker_->view());
 
   MenuPart part = GetMenuPart(source, event->location());
   if (part.is_scroll() || part.type == MenuPartType::kScrollBar) {
@@ -3196,7 +3200,9 @@ void MenuController::MenuChildrenChanged(MenuItemView* item) {
   ScopedDeletionGuard guard(AsWeakPtr());
   CHECK(item, base::NotFatalUntil::M163);
   // Menu shouldn't be updated during drag operation.
-  CHECK(!active_mouse_view_tracker_->view(), base::NotFatalUntil::M163);
+  // TODO(crbug.com/583338733): CHECK-exclusion: Convert to a CHECK once we are
+  // confident it won't be triggered.
+  DCHECK(!active_mouse_view_tracker_->view());
 
   // If needed, refresh the AX index assignments.
   if (item->GetProperty(kOrderedMenuChildren)) {
