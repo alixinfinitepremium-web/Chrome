@@ -501,6 +501,179 @@ TEST_F(CustomFormControlScriptExecutorTest, ClosePopoverFails) {
   }
 }
 
+using OptionsFuture =
+    base::test::TestFuture<std::optional<CustomFormControlOptions>>;
+
+// Tests that `ExtractOptions()` passes the element to `extractOptions()` and
+// returns the options once its promise is fulfilled.
+TEST_F(CustomFormControlScriptExecutorTest, ExtractsOptions) {
+  LoadHTML("<div id=target></div>");
+  ASSERT_TRUE(executor_->LoadScript(R"(
+    function createCustomFormControlManager() {
+      return {
+        async extractOptions(node) {
+          await new Promise(r => setTimeout(r, 0));
+          return {
+            options: [
+              {text: node.id, value: 'v'},
+              {text: 'no value'},
+            ],
+            popoverNeedsToBeClosed: true,
+          };
+        },
+      };
+    }
+  )"));
+  OptionsFuture future;
+  executor_->ExtractOptions(GetTarget(), future.GetCallback());
+  EXPECT_FALSE(future.IsReady());
+  EXPECT_EQ(future.Take(),
+            (CustomFormControlOptions{
+                .options = {{.value = u"v", .text = u"target"},
+                            {.value = u"no value", .text = u"no value"}},
+                .popover_needs_to_be_closed = true,
+            }));
+}
+
+// Tests that `ExtractOptions()` skips invalid entries, only treats `true` as
+// true and defaults `value` to `text` if it isn't a string.
+TEST_F(CustomFormControlScriptExecutorTest, ExtractOptionsSkipsInvalidEntries) {
+  LoadHTML("<div id=target></div>");
+  ASSERT_TRUE(executor_->LoadScript(R"(
+    function createCustomFormControlManager() {
+      return {
+        extractOptions() {
+          return {
+            options: [
+              null,
+              {text: 'first'},
+              42,
+              {},
+              {text: 42},
+              {text: {toString() { return 'text'; }}},
+              {get text() { throw new Error('error'); }},
+              {text: 'text', get value() { throw new Error(); }},
+              {text: 'last', value: 42},
+            ],
+            popoverNeedsToBeClosed: 1,
+          };
+        },
+      };
+    }
+  )"));
+  OptionsFuture future;
+  executor_->ExtractOptions(GetTarget(), future.GetCallback());
+  EXPECT_EQ(future.Take(),
+            (CustomFormControlOptions{
+                .options = {{.value = u"first", .text = u"first"},
+                            {.value = u"last", .text = u"last"}},
+            }));
+}
+
+// Tests that `ExtractOptions()` fails if there is no manager, if
+// `extractOptions()` throws or its promise is rejected, or if the result isn't
+// valid.
+TEST_F(CustomFormControlScriptExecutorTest, ExtractOptionsFails) {
+  LoadHTML("<div id=target></div>");
+  OptionsFuture no_manager;
+  executor_->ExtractOptions(GetTarget(), no_manager.GetCallback());
+  EXPECT_EQ(no_manager.Take(), std::nullopt);
+
+  for (const char* result : {
+           "null",
+           "{}",
+           "{options: {length: 1, 0: {text: 'text'}}}",
+           "{get options() { throw new Error('error'); }}",
+           "{options: [], get popoverNeedsToBeClosed() { throw 1; }}",
+           "Promise.reject(new Error('error'))",
+           "(() => { throw new Error('error'); })()",
+       }) {
+    SCOPED_TRACE(result);
+    ASSERT_TRUE(executor_->LoadScript(
+        std::string("function createCustomFormControlManager() {"
+                    "  return { extractOptions() { return ") +
+        result + "; } };}"));
+    OptionsFuture future;
+    executor_->ExtractOptions(GetTarget(), future.GetCallback());
+    EXPECT_EQ(future.Take(), std::nullopt);
+  }
+}
+
+using SetValueResult = CustomFormControlSetValueResult;
+using SetValueFuture = base::test::TestFuture<CustomFormControlSetValueResult>;
+
+// Tests that `SetValue()` passes the element, the option's value and its text
+// to `setValue()` and returns its result once its promise is fulfilled.
+TEST_F(CustomFormControlScriptExecutorTest, SetsValue) {
+  LoadHTML("<div id=target></div>");
+  ASSERT_TRUE(executor_->LoadScript(R"(
+    function createCustomFormControlManager() {
+      return {
+        async setValue(node, value, text) {
+          await new Promise(r => setTimeout(r, 0));
+          switch (value) {
+            case 'missing': return {status: 'OPTION_NOT_FOUND'};
+            case 'error': return {status: 'EXECUTION_ERROR'};
+          }
+          node.textContent = `${value}:${text}`;
+          return {status: 'OK'};
+        },
+      };
+    }
+  )"));
+  SetValueFuture future;
+  executor_->SetValue(GetTarget(), {.value = u"AL", .text = u"Alabama"},
+                      future.GetCallback());
+  EXPECT_FALSE(future.IsReady());
+  EXPECT_EQ(future.Take(), SetValueResult::kOk);
+  EXPECT_EQ(GetTarget().TextContent().Utf8(), "AL:Alabama");
+
+  const struct {
+    std::u16string value;
+    SetValueResult result;
+  } kTestCases[] = {
+      {u"missing", SetValueResult::kOptionNotFound},
+      {u"error", SetValueResult::kExecutionError},
+  };
+  for (const auto& test_case : kTestCases) {
+    SCOPED_TRACE(base::UTF16ToUTF8(test_case.value));
+    executor_->SetValue(GetTarget(), {.value = test_case.value},
+                        future.GetCallback());
+    EXPECT_EQ(future.Take(), test_case.result);
+  }
+}
+
+// Tests that `SetValue()` returns `kExecutionError` if there is no manager, if
+// `setValue()` throws or its promise is rejected, or if the result isn't valid.
+TEST_F(CustomFormControlScriptExecutorTest, SetValueFails) {
+  LoadHTML("<div id=target></div>");
+  SetValueFuture no_manager;
+  executor_->SetValue(GetTarget(), {.value = u"value", .text = u"text"},
+                      no_manager.GetCallback());
+  EXPECT_EQ(no_manager.Take(), SetValueResult::kExecutionError);
+
+  for (const char* result : {
+           "null",
+           "{}",
+           "{status: 'ok'}",
+           "{status: 0}",
+           "{status: {toString() { return 'OK'; }}}",
+           "{get status() { throw new Error('error'); }}",
+           "Promise.reject(new Error('error'))",
+           "(() => { throw new Error('error'); })()",
+       }) {
+    SCOPED_TRACE(result);
+    ASSERT_TRUE(executor_->LoadScript(
+        std::string("function createCustomFormControlManager() {"
+                    "  return { setValue() { return ") +
+        result + "; } };}"));
+    SetValueFuture future;
+    executor_->SetValue(GetTarget(), {.value = u"value", .text = u"text"},
+                        future.GetCallback());
+    EXPECT_EQ(future.Take(), SetValueResult::kExecutionError);
+  }
+}
+
 // Tests that loading another script replaces the manager, so that calls go to
 // the new one.
 TEST_F(CustomFormControlScriptExecutorTest, ReplacesManager) {

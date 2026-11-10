@@ -581,21 +581,10 @@ inline constexpr char kDbdPasswordRemovalOnAndroidDescription[] =
     "on Android, instead directing users to manage passwords and other Google "
     "data via link-outs to relevant Google services.";
 
-inline constexpr char kDefaultBrowserChangedOsNotificationDescription[] =
-    "Enables the framework to show OS Notification when Chrome is no longer "
-    "the default browser.";
-inline constexpr char kDefaultBrowserChangedOsNotificationName[] =
-    "Default Browser Changed OS Notification";
-
 inline constexpr char kDefaultBrowserFrameworkDescription[] =
     "Enables the default browser framework.";
 inline constexpr char kDefaultBrowserFrameworkName[] =
     "Default Browser Framework";
-
-inline constexpr char kDefaultBrowserPromptSurfacesDescription[] =
-    "Enables using various default browser prompt surfaces.";
-inline constexpr char kDefaultBrowserPromptSurfacesName[] =
-    "Default Browser Prompt Surfaces";
 
 inline constexpr char kDefaultBrowserSetterSelectionDescription[] =
     "Enables selecting a default browser setter (e.g. shell integration, "
@@ -605,8 +594,8 @@ inline constexpr char kDefaultBrowserSetterSelectionName[] =
     "Default Browser Setter Selection";
 
 inline constexpr char kDefaultBrowserStickyModalDescription[] =
-    "Enables the sticky modal dialog for the default browser prompt. Requires "
-    "#default-browser-prompt-surfaces to be set to a modal dialog variation.";
+    "Enables the sticky modal dialog for the default browser prompt. Only "
+    "applies when the default browser prompt uses a modal dialog surface.";
 inline constexpr char kDefaultBrowserStickyModalName[] =
     "Default Browser Sticky Modal";
 
@@ -1801,6 +1790,11 @@ inline constexpr char kContextualCueingV2MultiSourceName[] =
 inline constexpr char kContextualCueingV2MultiSourceDescription[] =
     "Enables parallel evaluation of all registered cue targets and selects the "
     "winner with UCB scoring for contextual cueing V2.";
+
+inline constexpr char kGeicActuationName[] = "GEiC web actuation";
+inline constexpr char kGeicActuationDescription[] =
+    "Enables web actuation in the Gemini Enterprise in Chrome (GEiC) side "
+    "panel.";
 
 inline constexpr char kGeicEnabledName[] = "GEiC enabled";
 inline constexpr char kGeicEnabledDescription[] =
@@ -4474,12 +4468,6 @@ inline constexpr char kSendTabToSelfGestureDescription[] =
     "Enables detecting physical double-tap gestures to trigger Send Tab To "
     "Self on Android.";
 
-inline constexpr char kSendTabToSelfNoTargetDeviceQrCodeName[] =
-    "Send Tab to Self No Target Device QR Code";
-inline constexpr char kSendTabToSelfNoTargetDeviceQrCodeDescription[] =
-    "Shows a QR code to download and sign in to Chrome on mobile when no "
-    "target devices are found in Send Tab to Self.";
-
 inline constexpr char kSensitiveContentName[] =
     "Redact sensitive content during screen sharing, screen recording, "
     "and similar actions";
@@ -6727,12 +6715,6 @@ inline constexpr char kTabBottomSheetHalfHeightDescription[] =
     "Allows configuring the half height ratio of the tab bottom sheet. "
     "Disabling this flag will use the pre-existing default value.";
 
-inline constexpr char kTabAndroidGracefulShutdownName[] =
-    "Tab Android Graceful Shutdown";
-inline constexpr char kTabAndroidGracefulShutdownDescription[] =
-    "Enables Graceful Shutdown of WebContents on Android to allow pagehide and "
-    "keepalive fetches to complete.";
-
 inline constexpr char kTabBottomSheetResizeWebviewName[] =
     "Tab bottom sheet - Resize WebView";
 inline constexpr char kTabBottomSheetResizeWebviewDescription[] =
@@ -7426,12 +7408,6 @@ inline constexpr char kMacAccessibilityAPIMigrationName[] =
     "Mac A11y API Migration";
 inline constexpr char kMacAccessibilityAPIMigrationDescription[] =
     "Enables the migration to the new Cocoa accessibility API.";
-
-inline constexpr char kMacCatapLoopbackAudioForCastName[] =
-    "Mac Core Audio Tap System Loopback Capture for Cast";
-inline constexpr char kMacCatapLoopbackAudioForCastDescription[] =
-    "Enable system audio loopback capture for Cast using the macOS CoreAudio "
-    "tap API on macOS 14.2+.";
 
 inline constexpr char kMacPWAsNotificationAttributionName[] =
     "Mac PWA notification attribution";

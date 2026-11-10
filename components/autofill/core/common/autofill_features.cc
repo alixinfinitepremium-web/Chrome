@@ -605,6 +605,11 @@ BASE_FEATURE(kAutofillCheckTriggeringFieldDoesNotChangeDuringFilling,
 BASE_FEATURE(kAutofillComplementCountryUsingPhoneNumber,
              base::FEATURE_DISABLED_BY_DEFAULT);
 
+// If enabled, Autofill extracts custom form controls detected by site-specific
+// scripts into `FormData`. Requires `kAutofillCustomFormControlScripts`.
+BASE_FEATURE(kAutofillCustomFormControlExtraction,
+             base::FEATURE_DISABLED_BY_DEFAULT);
+
 // If enabled, Autofill runs site-specific scripts to detect and fill custom
 // form controls (e.g. select-like widgets that aren't <select>).
 BASE_FEATURE(kAutofillCustomFormControlScripts,
@@ -813,12 +818,6 @@ BASE_FEATURE(kAutofillExtractOnlyNonAdFrames,
 // TODO(crbug.com/569934654): Clean up when launched.
 BASE_FEATURE(kAutofillExtractShadowDomIframes,
              base::FEATURE_DISABLED_BY_DEFAULT);
-
-// When enabled, iframes are associated with the outermost ancestor form
-// (analogous to form control ownership) rather than the closest ancestor form
-// (analogous to form control association).
-// TODO(crbug.com/536963555): Clean up when launched.
-BASE_FEATURE(kAutofillFixIframeOwnership, base::FEATURE_ENABLED_BY_DEFAULT);
 
 // Prioritizes ADDRESS_HOME_STREET_ADDRESS over postal code in inferred labels.
 // See crbug.com/540151895.

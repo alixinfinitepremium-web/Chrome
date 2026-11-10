@@ -552,11 +552,6 @@ bool IsChromeRefreshTokenBindingEnabled(const PrefService* profile_prefs) {
 // kEnableChromeRefreshTokenBinding to be enabled as a prerequisite.
 BASE_FEATURE(kEnableChromeRefreshTokenBindingUpgrade,
              base::FEATURE_DISABLED_BY_DEFAULT);
-BASE_FEATURE_PARAM(bool,
-                   kOamlCookieUpgradeEnabled,
-                   &kEnableChromeRefreshTokenBindingUpgrade,
-                   "oaml-cookie-upgrade-enabled",
-                   true);
 constexpr base::FeatureParam<RefreshTokenBindingUpgradeType>::Option
     kRefreshTokenBindingUpgradeTypeOptions[] = {
         {RefreshTokenBindingUpgradeType::kDarkLaunch, "dark-launch"},
@@ -834,7 +829,7 @@ BASE_FEATURE(kMigrateAccountManagerDelegate, base::FEATURE_DISABLED_BY_DEFAULT);
 
 #if BUILDFLAG(IS_IOS)
 BASE_FEATURE(kMigrateToSigninReauthCoordinator,
-             base::FEATURE_DISABLED_BY_DEFAULT);
+             base::FEATURE_ENABLED_BY_DEFAULT);
 #endif  // BUILDFLAG(IS_IOS)
 
 BASE_FEATURE(kNonDefaultGaiaOriginCheck, base::FEATURE_ENABLED_BY_DEFAULT);

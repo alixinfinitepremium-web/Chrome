@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <string>
+#include <vector>
 
 #include "base/memory/weak_ptr.h"
 #include "base/metrics/histogram_functions.h"
@@ -127,9 +128,17 @@ void AutofillAiImportDataControllerImpl::ShowLocalSaveNotification() {
 
 void AutofillAiImportDataControllerImpl::OnSaveButtonClicked() {
   if (!GetSaveUpdateState().prompt_result_callback.is_null()) {
+    // The consent consists of all strings shown in the notice.
+    std::vector<int> consent_string_ids =
+        IsWalletableEntity()
+            ? GetWalletImportPromptNotice(GetNoticeStringId(),
+                                          GetPrimaryAccountEmail())
+                  .string_ids
+            : std::vector<int>{GetNoticeStringId()};
     std::move(GetSaveUpdateState().prompt_result_callback)
         .Run(AutofillClient::AutofillAiBubbleResult::kAccepted, std::nullopt,
-             {GetNoticeStringId(), GetPrimaryButtonTextId(IsSavePrompt())});
+             {std::move(consent_string_ids),
+              GetPrimaryButtonTextId(IsSavePrompt())});
   }
 }
 
@@ -188,6 +197,10 @@ void AutofillAiImportDataControllerImpl::OnGoToWalletLinkClicked() {
                       ? chrome::kWalletPassesPageURL
                       : chrome::kWalletPrivatePassHelpCenterURL);
   OpenUrlAndReopenBubbleOnReturn(wallet_url);
+}
+
+void AutofillAiImportDataControllerImpl::OnPrivacyPolicyLinkClicked() {
+  OpenUrlAndReopenBubbleOnReturn(GURL(chrome::kPrivacyPolicyURL));
 }
 
 bool AutofillAiImportDataControllerImpl::ShouldReshowOnTabVisible() const {
@@ -302,6 +315,14 @@ void AutofillAiImportDataControllerImpl::MaybeRunSaveUpdateCallback(
 
 int AutofillAiImportDataControllerImpl::GetNoticeStringId() const {
   if (IsWalletableEntity()) {
+    const EntityInstance& new_entity = GetSaveUpdateState().new_entity;
+    if (IsSavePrompt() &&
+        GetWalletPassType(new_entity.type(), new_entity.record_type()) ==
+            EntityInstance::WalletPassType::kPrivate &&
+        base::FeatureList::IsEnabled(
+            features::kAutofillRegionalizedPrivatePassesUxRefine)) {
+      return IDS_AUTOFILL_AI_SAVE_ENTITY_TO_WALLET_DIALOG_SUBTITLE_PRIVATE_PASS;
+    }
     if (IsSavePrompt() && base::FeatureList::IsEnabled(
                               features::kAutofillAiWalletPrivatePasses)) {
       return IDS_AUTOFILL_AI_SAVE_ENTITY_TO_WALLET_DIALOG_SUBTITLE_NEW;

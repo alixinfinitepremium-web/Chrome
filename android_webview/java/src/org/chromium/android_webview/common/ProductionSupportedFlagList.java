@@ -302,9 +302,6 @@ public final class ProductionSupportedFlagList {
                 AutofillFeatures.AUTOFILL_EXTRACT_SHADOW_DOM_IFRAMES,
                 "When enabled, Autofill also extracts iframes inside shadow DOM."),
         Flag.baseFeature(
-                AutofillFeatures.AUTOFILL_FIX_IFRAME_OWNERSHIP,
-                "Make Autofill's iframe ownership consistent with form control ownership."),
-        Flag.baseFeature(
                 AutofillFeatures.AUTOFILL_FIX_STATE_COUNTRY_MISCLASSIFICATION,
                 "When enabled, the rationalization engine will fix misclassifications where"
                         + " a field is detected as a COUNTRY when it should be a STATE or vice"
@@ -1378,11 +1375,6 @@ public final class ProductionSupportedFlagList {
         Flag.baseFeature(
                 "IndexedDBConnectionDeduplication",
                 "Enables connection deduplication for IndexedDB."),
-        Flag.baseFeature(
-                CcFeatures.SCROLL_JANK_V4_METRIC_FAST_SCROLL_CONTINUITY_REQUIRES_SAME_DIRECTION,
-                "When enabled, the fast scroll continuity rule of the V4 scroll jank metric only"
-                    + " applies if the previous and current frames' total raw scroll deltas have"
-                    + " the same sign."),
         Flag.baseFeature(
                 AwFeatures.WEBVIEW_AW_CLASS_PRELOADER,
                 "When enabled, WebView will preload a certain list of classes for performance."),

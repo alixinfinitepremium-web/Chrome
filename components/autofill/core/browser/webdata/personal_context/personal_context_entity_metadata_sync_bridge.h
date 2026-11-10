@@ -22,10 +22,7 @@
 #include "components/autofill/core/browser/data_manager/autofill_ai/entity_suppression_entry.h"
 #include "components/sync/model/data_type_store.h"
 #include "components/sync/model/data_type_sync_bridge.h"
-
-namespace sync_pb {
-class AutofillEntitySuppressionSpecifics;
-}  // namespace sync_pb
+#include "components/sync/protocol/autofill_entity_suppression_specifics.pb.h"
 
 namespace os_crypt_async {
 class Encryptor;
@@ -89,8 +86,8 @@ class PersonalContextEntityMetadataSyncBridge
   // `true` if suppression status was modified.
   bool ClearSuppressions(base::Time delete_begin, base::Time delete_end);
 
-  // Returns the keys of all currently active suppressions.
-  base::flat_set<EntitySuppressionKey> GetSuppressions() const;
+  // Returns the hashes of all currently active suppressions.
+  base::flat_set<EntitySuppressionHash> GetSuppressions() const;
 
   // Returns true if `entry` is currently suppressed.
   bool IsSuppressed(const EntitySuppressionEntry& entry) const;
@@ -132,6 +129,12 @@ class PersonalContextEntityMetadataSyncBridge
   struct EntryMetadata {
     std::string guid;
     base::Time creation_time;
+    // Populated if the record carries the legacy `entity_suppression_key`, so
+    // that `CreateSuppressionEntityData()` preserves it for older clients that
+    // only read it.
+    // TODO(crbug.com/501036619): Remove once legacy entries are no longer
+    // supported.
+    std::optional<sync_pb::EntitySuppressionKey> legacy_key;
   };
 
   static EntryMetadata CreateEntryMetadata(
@@ -169,6 +172,12 @@ class PersonalContextEntityMetadataSyncBridge
       base::flat_map<Key, EntryMetadata>& metadata_map,
       syncer::DataTypeStore::WriteBatch& batch);
 
+  // Stages the encrypted write of `specifics` to local storage (via `batch`)
+  // and notifies Sync (via `change_processor()`).
+  void WriteEntryToStoreAndSync(
+      const sync_pb::AutofillEntitySuppressionSpecifics& specifics,
+      syncer::DataTypeStore::WriteBatch& batch);
+
   // Stages the deletion of `guid` from local storage (via `batch`) and
   // notifies Sync (via `change_processor()`).
   void DeleteEntryFromStoreAndSync(const std::string& guid,
@@ -194,8 +203,17 @@ class PersonalContextEntityMetadataSyncBridge
       const std::optional<syncer::ModelError>& error,
       std::unique_ptr<syncer::DataTypeStore::RecordList> data_records,
       std::unique_ptr<syncer::MetadataBatch> metadata_batch);
-  void ApplyPostLoadCleanup(base::span<const std::string> guids_to_evict);
+  void ApplyPostLoadCleanup(
+      base::span<const std::string> guids_to_evict,
+      base::span<const sync_pb::AutofillEntitySuppressionSpecifics>
+          records_to_migrate);
   void ReportErrorIfSet(const std::optional<syncer::ModelError>& error);
+
+  // Builds `EntityData` for a suppression `(hash, metadata)`, preserving any
+  // cached unknown fields and `metadata.legacy_key`.
+  std::unique_ptr<syncer::EntityData> CreateSuppressionEntityData(
+      EntitySuppressionHash hash,
+      const EntryMetadata& metadata) const;
 
   // Queries all suppression data and returns it as a
   // `syncer::MutableDataBatch`.
@@ -218,8 +236,8 @@ class PersonalContextEntityMetadataSyncBridge
 
   base::ObserverList<Observer> observers_;
 
-  // In-memory mapping from `EntitySuppressionKey` to its metadata.
-  base::flat_map<EntitySuppressionKey, EntryMetadata>
+  // In-memory mapping from `EntitySuppressionHash` to its metadata.
+  base::flat_map<EntitySuppressionHash, EntryMetadata>
       suppression_metadata_by_entry_;
 
   base::WeakPtrFactory<PersonalContextEntityMetadataSyncBridge>

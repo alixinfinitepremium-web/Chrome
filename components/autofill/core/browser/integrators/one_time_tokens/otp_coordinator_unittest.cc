@@ -374,7 +374,7 @@ TEST_F(OtpCoordinatorTest,
 
   const base::Time t0 = base::Time::Now();
   SendGmailOtp("999000", t0 + base::Seconds(10),
-               base::TimeTicks::Now() - base::Minutes(2));
+               base::TimeTicks::Now() - base::Minutes(4));
   SendGmailOtp("222222", t0 + base::Seconds(20));
   phish_guard_delegate_->WaitForChecks();
   EXPECT_EQ(frame_observer_->otp_available_notifications(), 4u);
@@ -396,22 +396,18 @@ TEST_F(OtpCoordinatorTest,
   EXPECT_THAT(coordinator_->GetAvailableTokens(other_origin_target),
               HasValue("333333"));
 
-  // After 61 seconds, the 1-minute Gmail TTL expires (and a newly added field
-  // on `other.test` does not inherit the expired Gmail candidate "333333"),
-  // while the 3-minute SMS token ("111111") remains valid.
-  const OtpTarget third_origin_target =
-      AddOtpForm(1, GURL("https://third.test"))[0];
-  phish_guard_delegate_->WaitForChecks();
+  // Gmail tokens remain valid at 2 minutes and expire after the 3-minute TTL
+  // (and a newly added field on `other.test` does not inherit the expired
+  // candidate "333333").
+  task_environment_.AdvanceClock(base::Minutes(2));
+  EXPECT_THAT(coordinator_->GetAvailableTokens(target), HasValue("222222"));
   task_environment_.AdvanceClock(base::Seconds(61));
   EXPECT_THAT(coordinator_->GetAvailableTokens(target), IsEmpty());
   EXPECT_THAT(coordinator_->GetAvailableTokens(other_origin_target), IsEmpty());
   const OtpTarget late_other_origin_target =
       AddOtpForm(1, GURL("https://other.test"))[0];
-  phish_guard_delegate_->WaitForChecks();
   EXPECT_THAT(coordinator_->GetAvailableTokens(late_other_origin_target),
-              HasValue("111111"));
-  EXPECT_THAT(coordinator_->GetAvailableTokens(third_origin_target),
-              HasValue("111111"));
+              IsEmpty());
 }
 
 TEST_F(OtpCoordinatorTest,
@@ -477,6 +473,29 @@ TEST_F(OtpCoordinatorTest, PhishingVerdictBlocksSiteFrameAndClearsOriginCache) {
       .Run(/*is_phishing=*/false);
   EXPECT_THAT(coordinator_->GetAvailableTokens(other_site_target),
               HasValue("444444"));
+}
+
+TEST_F(OtpCoordinatorTest,
+       PhishGuardTimeoutRejectsCandidateWithoutBlockingFrame) {
+  phish_guard_delegate_->HoldCallbacks();
+
+  const OtpTarget target = AddOtpForm()[0];
+  coordinator_->OnFocusChanged(autofill_driver().GetFrameToken(), target.form,
+                               target.field);
+
+  SendGmailOtp("111111", base::Time::Now());
+  phish_guard_delegate_->WaitForHeldCallbacks(1u);
+
+  task_environment_.FastForwardBy(base::Seconds(10));
+  EXPECT_THAT(frame_observer_->triggered_fields(), IsEmpty());
+  EXPECT_THAT(coordinator_->GetAvailableTokens(target), IsEmpty());
+
+  SendGmailOtp("222222", base::Time::Now());
+  phish_guard_delegate_->WaitForHeldCallbacks(2u);
+  std::move(phish_guard_delegate_->held_callbacks()[1])
+      .Run(/*is_phishing=*/false);
+  EXPECT_THAT(frame_observer_->triggered_fields(), ElementsAre(target.field));
+  EXPECT_THAT(coordinator_->GetAvailableTokens(target), HasValue("222222"));
 }
 
 TEST_F(OtpCoordinatorTest, ServesCommandLineMockOtpWithoutStartingSources) {
@@ -555,14 +574,14 @@ TEST_F(OtpCoordinatorTest,
 
   // Submitting with the offered value "222222" consumes "222222", so
   // re-listening on `site1_target` keeps "222222" suppressed until its
-  // 1-minute used-code TTL expires.
+  // 3-minute used-code TTL expires.
   coordinator_->OnOtpFormSubmitted(
       BuildFormWithFieldValue(site1_target, "222222"));
   EXPECT_THAT(coordinator_->GetAvailableTokens(site1_target), IsEmpty());
   coordinator_->StartListeningForOtp(site1_target);
   EXPECT_THAT(coordinator_->GetAvailableTokens(site1_target), IsEmpty());
 
-  task_environment_.AdvanceClock(base::Minutes(2));
+  task_environment_.AdvanceClock(base::Minutes(4));
   SendGmailOtp("222222", base::Time::Now());
   phish_guard_delegate_->WaitForChecks();
   EXPECT_THAT(coordinator_->GetAvailableTokens(site1_target),
@@ -657,33 +676,36 @@ TEST_F(OtpCoordinatorTest,
               ElementsAre(second_form_targets[1].field));
 }
 
-TEST_F(OtpCoordinatorTest,
-       OnOtpSuggestionsShownSuppressesProactiveTriggerForSameCode) {
+TEST_F(OtpCoordinatorTest, OnOtpSuggestionsShownDeduplicatesByTimestamp) {
   const std::vector<OtpTarget> targets = AddOtpForm(2);
   const OtpTarget& field0 = targets[0];
   const base::Time t0 = base::Time::Now();
 
-  // Focus a non-OTP field so the initial arrival of "654321" is validated and
-  // stored without triggering a proactive popup.
-  FieldGlobalId non_otp_field(autofill_driver().GetFrameToken(),
-                              FieldRendererId(999));
+  // Hide the tab and focus `field0` so the initial arrival of "654321" at `t0`
+  // is validated, stored, and queued as a pending proactive trigger.
+  coordinator_->OnTabVisibilityChanged(false);
   coordinator_->OnFocusChanged(autofill_driver().GetFrameToken(), field0.form,
-                               non_otp_field);
+                               field0.field);
   SendGmailOtp("654321", t0);
   phish_guard_delegate_->WaitForChecks();
   EXPECT_THAT(coordinator_->GetAvailableTokens(field0), HasValue("654321"));
   EXPECT_THAT(frame_observer_->triggered_fields(), IsEmpty());
 
   // Mark `field0` as shown (`OnOtpSuggestionsShown` records across all fields
-  // of `field0.form`), focus `targets[1]`, and resend "654321": no proactive
-  // trigger should fire for the already-shown code on either field.
+  // of `field0.form`), focus `targets[1]`, and unhide: the deferred trigger for
+  // `t0` is suppressed on `targets[1]`, while a strictly newer resend (`t0 +
+  // 10s`) triggers proactively.
   coordinator_->OnOtpSuggestionsShown(field0.field, "000000");
   coordinator_->OnOtpSuggestionsShown(field0.field, "654321");
   coordinator_->OnFocusChanged(autofill_driver().GetFrameToken(),
                                targets[1].form, targets[1].field);
+  coordinator_->OnTabVisibilityChanged(true);
+  EXPECT_THAT(frame_observer_->triggered_fields(), IsEmpty());
+
   SendGmailOtp("654321", t0 + base::Seconds(10));
   phish_guard_delegate_->WaitForChecks();
-  EXPECT_THAT(frame_observer_->triggered_fields(), IsEmpty());
+  EXPECT_THAT(frame_observer_->triggered_fields(),
+              ElementsAre(targets[1].field));
 }
 
 TEST_F(OtpCoordinatorTest, SuppressesProactiveTriggerOnNonOtpFocus) {

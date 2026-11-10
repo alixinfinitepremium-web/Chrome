@@ -162,6 +162,10 @@ class CORE_EXPORT LineBreaker {
   // out in one line.
   bool ShouldAutoWrap(const ComputedStyle& style) const;
 
+  // True if this is a sub-LineBreaker for <ruby> that doesn't retry with
+  // `override_break_anywhere_` by itself, but inherits it from the parent.
+  bool DefersBreakAnywhereToParent() const;
+
   enum class LineBreakState {
     // The line breaking is complete.
     kDone,
@@ -249,6 +253,7 @@ class CORE_EXPORT LineBreaker {
   LineInfo CreateSubLineInfo(
       InlineItemTextIndex start,
       wtf_size_t end_item_index,
+      const ComputedStyle& line_style,
       LineBreakerMode mode,
       LayoutUnit limit,
       WhitespaceState initial_whitespace_state,
@@ -528,6 +533,9 @@ class CORE_EXPORT LineBreaker {
 
   // This member is available after calling SetInputRange().
   const LineBreaker* parent_breaker_ = nullptr;
+
+  // The line style of a sub-LineBreaker for <ruby>. Set by CreateSubLineInfo().
+  const ComputedStyle* sub_line_style_ = nullptr;
 };
 
 }  // namespace blink

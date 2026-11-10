@@ -631,6 +631,78 @@ suite('HistoryFilterChipsTest', function() {
       assertTrue(select.options[0]!.selected);
       assertFalse(!!element.shadowRoot.querySelector('#clearAllButton'));
     });
+
+    test('SelectionRecordsHistogram', async () => {
+      const histogram = 'HistoryPage.TimePeriodFilterSelected';
+      element.showTimePeriodFilter = true;
+      element.timePeriodOptions = options;
+      await microtasksFinished();
+
+      const select = element.shadowRoot.querySelector<HTMLSelectElement>(
+          '#timePeriodSelect');
+      assertTrue(!!select);
+      assertFalse(histogram in browserService.histogramMap);
+
+      // Selecting an option records its id.
+      select.value = String(TimePeriodOptionId.kYesterday);
+      select.dispatchEvent(new Event('change'));
+      await browserService.whenCalled('recordHistogram');
+      assertEquals(
+          1,
+          browserService
+              .histogramMap[histogram]![TimePeriodOptionId.kYesterday]);
+
+      // Switching back to "All time" is recorded as well.
+      browserService.resetResolver('recordHistogram');
+      select.value = String(TimePeriodOptionId.kAllTime);
+      select.dispatchEvent(new Event('change'));
+      await browserService.whenCalled('recordHistogram');
+      assertEquals(
+          1,
+          browserService.histogramMap[histogram]![TimePeriodOptionId.kAllTime]);
+
+      // "Clear all" resets the filter without recording a selection.
+      select.value = String(TimePeriodOptionId.kLastWeek);
+      select.dispatchEvent(new Event('change'));
+      await microtasksFinished();
+      browserService.resetResolver('recordHistogram');
+      const clearAllButton =
+          element.shadowRoot.querySelector<HTMLElement>('#clearAllButton');
+      assertTrue(!!clearAllButton);
+      clearAllButton.click();
+      await microtasksFinished();
+      assertEquals(0, browserService.getCallCount('recordHistogram'));
+      assertEquals(
+          1,
+          browserService
+              .histogramMap[histogram]![TimePeriodOptionId.kLastWeek]);
+      assertEquals(
+          1,
+          browserService.histogramMap[histogram]![TimePeriodOptionId.kAllTime]);
+    });
+  });
+
+  suite('DomainFilter', function() {
+    test('VisibilityAndSelectedState', async () => {
+      // Hidden unless the parent passes `showDomainFilter`.
+      assertFalse(!!element.shadowRoot.querySelector('#domainFilterChip'));
+
+      element.domain = 'example.com';
+      element.showDomainFilter = true;
+      await microtasksFinished();
+      const domainChip =
+          element.shadowRoot.querySelector<HTMLElement>('#domainFilterChip');
+      assertTrue(!!domainChip);
+      assertTrue(domainChip.hasAttribute('selected'));
+      assertEquals('example.com', domainChip.textContent.trim());
+      const icon = domainChip.querySelector('cr-icon');
+      assertTrue(!!icon);
+      assertEquals('cr:check', icon.getAttribute('icon'));
+
+      element.showDomainFilter = false;
+      await microtasksFinished();
+      assertFalse(!!element.shadowRoot.querySelector('#domainFilterChip'));
+    });
   });
 
   test('ClearAllButton', async () => {

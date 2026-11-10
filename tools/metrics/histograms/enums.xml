@@ -5808,6 +5808,29 @@ shown properly on the user-facing crash UI.
   <int value="3" label="Caption"/>
 </enum>
 
+<!-- LINT.IfChange(ImageFetcherCacheResult) -->
+
+<enum name="ImageFetcherCacheResult">
+  <int value="0" label="Image file store initialization succeeded"/>
+  <int value="1" label="Image file store initialization failed"/>
+  <int value="2" label="Image file read succeeded"/>
+  <int value="3" label="Image file path not found"/>
+  <int value="4" label="Image file read failed"/>
+  <int value="5" label="Image file write succeeded"/>
+  <int value="6" label="Image file write failed"/>
+  <int value="7" label="Image file deletion succeeded"/>
+  <int value="8" label="Image file deletion failed"/>
+  <int value="9" label="Metadata database initialization succeeded"/>
+  <int value="10" label="Metadata database initialization failed"/>
+  <int value="11" label="Metadata database read succeeded"/>
+  <int value="12" label="Metadata database read cache miss"/>
+  <int value="13" label="Metadata database read failed"/>
+  <int value="14" label="Metadata database update succeeded"/>
+  <int value="15" label="Metadata database update failed"/>
+</enum>
+
+<!-- LINT.ThenChange(//components/image_fetcher/core/image_fetcher_metrics_reporter.h:ImageFetcherCacheResult) -->
+
 <!-- LINT.IfChange(ImageFetcherEvent) -->
 
 <enum name="ImageFetcherEvent">
@@ -16502,6 +16525,7 @@ from previous Chrome versions.
   <int value="417742858" label="ImprovedSemanticsActivityIndicators:enabled"/>
   <int value="417931522" label="MenuSimplification:enabled"/>
   <int value="418769094" label="MixedContentSiteSetting:enabled"/>
+  <int value="419710039" label="GeicActuation:disabled"/>
   <int value="419984818" label="ExtensionManifestV2DeprecationWarning:enabled"/>
   <int value="419990945" label="AndroidMultiprofile:enabled"/>
   <int value="420160748" label="CornerShortcuts:enabled"/>
@@ -18509,6 +18533,7 @@ from previous Chrome versions.
   <int value="1031278117" label="FedCmDisconnect:enabled"/>
   <int value="1031281564"
       label="DisablePeripheralDataAccessProtection:disabled"/>
+  <int value="1032094738" label="VariationsHeaderWebExtension:disabled"/>
   <int value="1032214050"
       label="GlicExperimentalTriggeringOsNotification:enabled"/>
   <int value="1032328293"
@@ -18941,6 +18966,7 @@ from previous Chrome versions.
   <int value="1155923106" label="NTPOfflinePages:enabled"/>
   <int value="1156107561" label="StylusWritingToInput:disabled"/>
   <int value="1158333871" label="QueryTilesEnableQueryEditing:enabled"/>
+  <int value="1158568956" label="VariationsHeaderWebExtension:enabled"/>
   <int value="1159222900" label="CollapseTabGroupDuringDrag:disabled"/>
   <int value="1159760152"
       label="ContextMenuSearchAndShopWithGoogleLens:disabled"/>
@@ -19509,6 +19535,7 @@ from previous Chrome versions.
   <int value="1312025202" label="NTPOfflinePageSuggestions:disabled"/>
   <int value="1312201151" label="NtpAurora:enabled"/>
   <int value="1312920918" label="EnableBubbleCornerRadiusUpdate:disabled"/>
+  <int value="1312928514" label="GeicActuation:enabled"/>
   <int value="1313476409" label="ReportFeedUserActions:disabled"/>
   <int value="1313570156"
       label="HappinessTrackingSurveysForDesktopMigration:enabled"/>
@@ -24554,38 +24581,6 @@ Called by update_net_error_codes.py.-->
   <int value="0" label="No header block available in this process"/>
   <int value="1" label="Not applicable: request carried none of the headers"/>
   <int value="2" label="Applied"/>
-</enum>
-
-<enum name="PlatformRuntimeInstallationResult">
-  <summary>
-    The result or failure status when installing the Platform Runtime component
-    on Windows.
-  </summary>
-  <int value="0" label="Success"/>
-  <int value="1" label="Component already exists and is up to date"/>
-  <int value="2" label="Inner CRX file not found in staging directory"/>
-  <int value="3" label="App Command not found or COM registration failed"/>
-  <int value="4"
-      label="Execution/launch failed (App Command execution failed or
-             setup.exe launch failed)"/>
-  <int value="5" label="Failed: internal error (unmanaged, local path)"/>
-  <int value="6"
-      label="Failed: signature or publisher proof verification failed"/>
-  <int value="7" label="Failed: invalid input structure or manifest"/>
-  <int value="8" label="Failed: other error"/>
-  <int value="9" label="Failed: internal error on enterprise managed device"/>
-  <int value="10" label="Failed: internal error with network path"/>
-  <int value="11"
-      label="Failed: internal error on enterprise managed device with network
-             path"/>
-  <int value="12" label="Failed: COM call access denied (E_ACCESSDENIED)"/>
-  <int value="13"
-      label="Failed: COM/RPC server died or disconnected (RPC_E_SERVER_DIED,
-             RPC_E_DISCONNECTED)"/>
-  <int value="14" label="Failed: COM invalid argument (E_INVALIDARG)"/>
-  <int value="15" label="Failed: COM unexpected internal error (E_UNEXPECTED)"/>
-  <int value="16" label="Failed: other COM/RPC error"/>
-  <int value="17" label="Failed: current process is not installed"/>
 </enum>
 
 <enum name="PlatformRuntimeInstallTrigger">

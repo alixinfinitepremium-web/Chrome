@@ -2086,6 +2086,20 @@ chromium-metrics-reviews@google.com.
   </summary>
 </histogram>
 
+<histogram name="Enterprise.DeviceTrust.Attestation.ResponseHeaderSize"
+    units="bytes" expires_after="2027-10-01">
+  <owner>mwalachowski@google.com</owner>
+  <owner>seblalancette@chromium.org</owner>
+  <owner>cbe-device-trust-eng@google.com</owner>
+  <summary>
+    Size of the X-Verified-Access-Challenge-Response header value that the
+    Device Trust connector sends to the identity provider. Recorded once per
+    handshake, only on success. Tracks how close the header gets to the ~8 KiB
+    limit of identity providers and proxies (e.g. HTTP 431). Recorded on every
+    platform that uses the navigation throttle.
+  </summary>
+</histogram>
+
 <histogram name="Enterprise.DeviceTrust.Attestation.ResponseLatency.{Variant}"
     units="ms" expires_after="2027-10-01">
   <owner>hmare@google.com</owner>
@@ -4077,6 +4091,22 @@ chromium-metrics-reviews@google.com.
   </summary>
 </histogram>
 
+<histogram name="Enterprise.NetworkAuth.TokenFetchLatency.{Result}" units="ms"
+    expires_after="2027-11-01">
+  <owner>xzonghan@google.com</owner>
+  <owner>chrome-enterprise-networking-core@google.com</owner>
+  <summary>
+    Records the end-to-end latency of an Enterprise Network authentication
+    access token request (including account managed status verification and
+    OAuth token acquisition) that {Result}. Recorded once per request alongside
+    Enterprise.NetworkAuth.TokenFetchError.
+  </summary>
+  <token key="Result">
+    <variant name="Failure" summary="failed"/>
+    <variant name="Success" summary="succeeded"/>
+  </token>
+</histogram>
+
 <histogram name="Enterprise.OidcEnrollment.Interception.Funnel"
     enum="OidcInterceptionFunnelStep" expires_after="2027-05-01">
   <owner>xzonghan@chromium.org</owner>
@@ -4542,12 +4572,40 @@ chromium-metrics-reviews@google.com.
   </summary>
 </histogram>
 
+<histogram name="Enterprise.ProvisioningDomain.FetchLatency.{Result}"
+    units="ms" expires_after="2027-11-01">
+  <owner>xzonghan@google.com</owner>
+  <owner>chrome-enterprise-networking-core@google.com</owner>
+  <summary>
+    Records the end-to-end latency of a Provisioning Domain (PvD) configuration
+    fetch lifecycle (from token acquisition through HTTP download and JSON
+    parsing) that {Result}. Recorded once per fetch alongside
+    Enterprise.ProvisioningDomain.FetchResult; cancelled fetches are not
+    recorded.
+  </summary>
+  <token key="Result">
+    <variant name="Failure" summary="failed"/>
+    <variant name="Success" summary="succeeded"/>
+  </token>
+</histogram>
+
 <histogram name="Enterprise.ProvisioningDomain.FetchResult"
     enum="EnterpriseProvisioningDomainFetchResult" expires_after="2027-07-01">
   <owner>xzonghan@google.com</owner>
   <owner>chrome-enterprise-networking-core@google.com</owner>
   <summary>
     Recorded when a Provisioning Domain configuration fetch finishes or fails.
+  </summary>
+</histogram>
+
+<histogram name="Enterprise.ProvisioningDomain.RefreshTrigger"
+    enum="EnterpriseProvisioningDomainRefreshTrigger"
+    expires_after="2027-11-01">
+  <owner>xzonghan@google.com</owner>
+  <owner>chrome-enterprise-networking-core@google.com</owner>
+  <summary>
+    Records the event that triggered a Provisioning Domain configuration refresh
+    attempt in ProxyProvisioningDomainManager.
   </summary>
 </histogram>
 
@@ -4558,6 +4616,18 @@ chromium-metrics-reviews@google.com.
   <owner>chrome-enterprise-networking-core@google.com</owner>
   <summary>
     Recorded the result of a Provisioning Domain (PvD) JSON configuration fetch.
+  </summary>
+</histogram>
+
+<histogram name="Enterprise.ProvisioningDomainClient.HttpLatency" units="ms"
+    expires_after="2027-11-01">
+  <owner>xzonghan@google.com</owner>
+  <owner>chrome-enterprise-networking-core@google.com</owner>
+  <summary>
+    Records the HTTP GET latency (including any internal 5xx retries by
+    SimpleURLLoader) when fetching a Provisioning Domain JSON configuration.
+    Recorded once when the loader completes; invalid URLs and cancelled requests
+    are not recorded.
   </summary>
 </histogram>
 
@@ -4778,25 +4848,40 @@ chromium-metrics-reviews@google.com.
     name="Enterprise.SecureGateway.ErrorPage.Event{EnterpriseSecureGatewayErrorCategory}"
     enum="EnterpriseSecureGatewayErrorPageEvent" expires_after="2027-11-01">
   <owner>dmytriievd@google.com</owner>
+  <owner>xzonghan@google.com</owner>
   <owner>bling-enterprise@google.com</owner>
+  <owner>chrome-enterprise-networking-core@google.com</owner>
   <summary>
     Records the events of the Secure Gateway error page, shown when a managed
     enterprise proxy fails a navigation, for
-    {EnterpriseSecureGatewayErrorCategory}. Only recorded on iOS for now.
-    &quot;Shown&quot; is recorded when the page is created for a failed
-    navigation, right before it is displayed. Then exactly one outcome is
-    recorded, unless the app is terminated while the page is displayed: &quot;Go
-    back&quot; when the user taps &quot;Go back&quot;, which the Access Denied
-    and Gateway / Other error pages show, &quot;Continue&quot; when the user
-    taps &quot;Continue&quot; on the Authentication Required error page, whether
-    or not a sign-in flow starts, &quot;Dismissed&quot; when the user leaves the
-    page without using its button, once a navigation away from it commits, e.g.
-    a back navigation, an omnibox navigation or a reload, or its tab is closed,
-    or &quot;Not displayed&quot; when the page is destroyed without having been
-    displayed, which only happens when its navigation doesn't commit.
+    {EnterpriseSecureGatewayErrorCategory}. &quot;Shown&quot; is recorded on all
+    platforms when the page is created for a failed navigation, right before it
+    is displayed. On iOS, where the page is a security interstitial, exactly one
+    outcome is then recorded, unless the app is terminated while the page is
+    displayed: &quot;Go back&quot; when the user taps &quot;Go back&quot;, which
+    the Access Denied and Gateway / Other error pages show, &quot;Continue&quot;
+    when the user taps &quot;Continue&quot; on the Authentication Required error
+    page, whether or not a sign-in flow starts, &quot;Dismissed&quot; when the
+    user leaves the page without using its button, once a navigation away from
+    it commits, e.g. a back navigation, an omnibox navigation or a reload, or
+    its tab is closed, or &quot;Not displayed&quot; when the page is destroyed
+    without having been displayed, which only happens when its navigation
+    doesn't commit.
   </summary>
   <token key="EnterpriseSecureGatewayErrorCategory"
       variants="EnterpriseSecureGatewayErrorCategory"/>
+</histogram>
+
+<histogram name="Enterprise.SecureGateway.NetworkPause.Duration" units="ms"
+    expires_after="2027-11-01">
+  <owner>xzonghan@google.com</owner>
+  <owner>chrome-enterprise-networking-core@google.com</owner>
+  <summary>
+    Records the duration of a browser-side Secure Gateway network traffic pause
+    while one or more Provisioning Domain configurations are refreshing.
+    Recorded once when all active refreshes finish, or when an in-progress pause
+    is closed by a policy replacement or service shutdown.
+  </summary>
 </histogram>
 
 <histogram name="Enterprise.SecureGateway.ProxyAuthChallengeDecision"
@@ -4814,6 +4899,28 @@ chromium-metrics-reviews@google.com.
     Enterprise.SecureGateway.ProxyAuthCredentialFetchOutcome. A persistent gap
     between the two indicates fetches whose result was never delivered.
   </summary>
+</histogram>
+
+<histogram
+    name="Enterprise.SecureGateway.ProxyAuthCredentialFetchLatency.{Outcome}"
+    units="ms" expires_after="2027-11-01">
+  <owner>xzonghan@google.com</owner>
+  <owner>chrome-enterprise-networking-core@google.com</owner>
+  <summary>
+    Records the latency of resolving credentials in EnterpriseProxyService for a
+    407 Proxy Authentication challenge classified as &quot;Needs
+    credentials&quot; whose credential fetch {Outcome}. Recorded once per
+    challenge alongside
+    Enterprise.SecureGateway.ProxyAuthCredentialFetchOutcome, including
+    coalesced challenges waiting on an in-flight token fetch.
+  </summary>
+  <token key="Outcome">
+    <variant name="Failure"
+        summary="failed for a reason the user cannot act on"/>
+    <variant name="SignInRequired"
+        summary="failed because sign-in or re-authentication is required"/>
+    <variant name="Success" summary="succeeded"/>
+  </token>
 </histogram>
 
 <histogram name="Enterprise.SecureGateway.ProxyAuthCredentialFetchOutcome"

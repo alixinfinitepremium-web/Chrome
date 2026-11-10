@@ -8,8 +8,9 @@
 #include <memory>
 #include <string>
 #include <string_view>
-#include <vector>
+#include <utility>
 
+#include "base/containers/transparent_hash.h"
 #include "base/functional/callback.h"
 #include "base/memory/raw_ref.h"
 #include "base/types/expected.h"
@@ -19,6 +20,7 @@
 #include "net/device_bound_sessions/generate_key_param.h"
 #include "net/device_bound_sessions/session_error.h"
 #include "net/device_bound_sessions/session_service.h"
+#include "third_party/abseil-cpp/absl/container/flat_hash_map.h"
 #include "third_party/abseil-cpp/absl/container/flat_hash_set.h"
 #include "url/origin.h"
 
@@ -37,6 +39,8 @@ class NET_EXPORT SingleSignOnKeyManager {
   explicit SingleSignOnKeyManager(
       unexportable_keys::UnexportableKeyService& key_service,
       SessionService::CookieAccessCallback has_cookie_access_cb);
+  // Deletes the pre-provisioned keys that are still stored, i.e. were never
+  // consumed, from the key service.
   ~SingleSignOnKeyManager();
 
   SingleSignOnKeyManager(const SingleSignOnKeyManager&) = delete;
@@ -84,12 +88,18 @@ class NET_EXPORT SingleSignOnKeyManager {
   FindPreProvisionedKey(std::string_view provider_key,
                         base::optional_ref<const url::Origin> initiator) const;
 
-  // Removes the pre-provisioned key used by `session`, if any. Called when a
-  // registration completes, before the new session is added.
-  void ConsumeKeyForSession(const Session& session);
+  // Removes the pre-provisioned key with `key_id`. Called when an SSO
+  // registration completes, before the new session is added. Returns false if
+  // the key is no longer stored, e.g. because the RP's site data was cleared
+  // or another registration consumed it while this one was in flight. Unlike
+  // `ClearPreProvisionedKeys()` and the destructor, this does not delete the
+  // key from the key service, because the new session takes ownership of it.
+  [[nodiscard]] bool ConsumePreProvisionedKey(
+      unexportable_keys::UnexportableSigningKeyId key_id);
 
-  // Clears pre-provisioned keys matching `matcher`. If `matcher` is null,
-  // clears all keys.
+  // Clears pre-provisioned keys whose RP origin matches `matcher`, whichever
+  // IdP generated them: keys are the RP's data. If `matcher` is null, clears
+  // all keys. Cleared keys are also deleted from the key service.
   void ClearPreProvisionedKeys(
       const SessionService::OriginAndSiteMatcher& matcher);
 
@@ -97,12 +107,16 @@ class NET_EXPORT SingleSignOnKeyManager {
   class GenerateKeyRequest;
   struct GeneratedKey;
 
-  struct PreProvisionedKeyEntry {
+  struct KeyMetadata {
     url::Origin provider_origin;
-    url::Origin rp_origin;
-    std::string provider_key;
     unexportable_keys::UnexportableSigningKeyId key_id;
   };
+  // An RP origin and the JWK thumbprint of a provider key.
+  using RpAndProviderKey = std::pair<url::Origin, std::string>;
+  // Non-owning `RpAndProviderKey` for lookups and `try_emplace()`, so the
+  // origin and thumbprint are only copied when a key is added. Holds a
+  // reference, so only build it from an origin that outlives the expression.
+  using RpAndProviderKeyView = std::pair<const url::Origin&, std::string_view>;
 
   // Called once `request` has finished. Stores the generated key unless
   // `request`'s site data was cleared or `AddPreProvisionedKey()` rejects it.
@@ -114,7 +128,12 @@ class NET_EXPORT SingleSignOnKeyManager {
 
   const raw_ref<unexportable_keys::UnexportableKeyService> key_service_;
   SessionService::CookieAccessCallback has_cookie_access_cb_;
-  std::vector<PreProvisionedKeyEntry> pre_provisioned_keys_;
+  // Pre-provisioned keys by RP origin and the provider key's JWK thumbprint.
+  absl::flat_hash_map<RpAndProviderKey,
+                      KeyMetadata,
+                      base::TransparentHashAs<RpAndProviderKeyView>,
+                      base::TransparentEqualAs<RpAndProviderKeyView>>
+      pre_provisioned_keys_;
   // In-flight `GenerateKey()` requests. Destroying `this` cancels them.
   absl::flat_hash_set<std::unique_ptr<GenerateKeyRequest>>
       generate_key_requests_;

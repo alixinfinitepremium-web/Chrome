@@ -10,7 +10,6 @@
 #include "base/strings/strcat.h"
 #include "base/task/single_thread_task_runner.h"
 #include "base/time/time.h"
-#include "base/timer/timer.h"
 #include "chrome/browser/affiliations/affiliation_service_factory.h"
 #include "chrome/browser/optimization_guide/optimization_guide_keyed_service.h"
 #include "chrome/browser/optimization_guide/optimization_guide_keyed_service_factory.h"
@@ -58,18 +57,6 @@ namespace {
 
 using ::password_manager::BrowserSavePasswordProgressLogger;
 
-constexpr base::TimeDelta kToastDisplayTime = base::Seconds(8);
-
-void NotifyPasswordChangeFinishedSuccessfully(
-    content::WebContents* web_contents) {
-  if (web_contents) {
-    if (PasswordsLeakDialogDelegate* delegate =
-            ManagePasswordsUIController::FromWebContents(web_contents)) {
-      delegate->OnPasswordChangeFinishedSuccessfully();
-    }
-  }
-}
-
 std::unique_ptr<BrowserSavePasswordProgressLogger> GetLoggerIfAvailable(
     content::WebContents* web_contents) {
   if (!web_contents) {
@@ -90,39 +77,39 @@ std::unique_ptr<BrowserSavePasswordProgressLogger> GetLoggerIfAvailable(
 }
 
 PasswordChangeDelegateImpl::CoarseFinalPasswordChangeState GetCoarseState(
-    PasswordChangeDelegate::State state) {
+    PasswordChangeUIDelegate::State state) {
   switch (state) {
-    case PasswordChangeDelegate::State::kWaitingForAgreement:
-    case PasswordChangeDelegate::State::kOfferingPasswordChange:
+    case PasswordChangeUIDelegate::State::kWaitingForAgreement:
+    case PasswordChangeUIDelegate::State::kOfferingPasswordChange:
       return PasswordChangeDelegateImpl::CoarseFinalPasswordChangeState::
           kOffered;
 
-    case PasswordChangeDelegate::State::kCanceled:
+    case PasswordChangeUIDelegate::State::kCanceled:
     // Password change is "ongoing", but since the metric is recorded on
     // destruction of PasswordChangeDelegateImpl it means user canceled password
     // change implicitly by closing the tab.
-    case PasswordChangeDelegate::State::kWaitingForChangePasswordForm:
-    case PasswordChangeDelegate::State::kChangingPassword:
-    case PasswordChangeDelegate::State::kLoginFormDetected:
+    case PasswordChangeUIDelegate::State::kWaitingForChangePasswordForm:
+    case PasswordChangeUIDelegate::State::kChangingPassword:
+    case PasswordChangeUIDelegate::State::kLoginFormDetected:
       return PasswordChangeDelegateImpl::CoarseFinalPasswordChangeState::
           kCanceled;
 
-    case PasswordChangeDelegate::State::kPasswordSuccessfullyChanged:
+    case PasswordChangeUIDelegate::State::kPasswordSuccessfullyChanged:
       return PasswordChangeDelegateImpl::CoarseFinalPasswordChangeState::
           kSuccessful;
 
-    case PasswordChangeDelegate::State::kPasswordChangeFailed:
+    case PasswordChangeUIDelegate::State::kPasswordChangeFailed:
       return PasswordChangeDelegateImpl::CoarseFinalPasswordChangeState::
           kFailed;
 
-    case PasswordChangeDelegate::State::kChangePasswordFormNotFound:
+    case PasswordChangeUIDelegate::State::kChangePasswordFormNotFound:
       return PasswordChangeDelegateImpl::CoarseFinalPasswordChangeState::
           kFormNotDetected;
 
-    case PasswordChangeDelegate::State::kOtpDetected:
+    case PasswordChangeUIDelegate::State::kOtpDetected:
       return PasswordChangeDelegateImpl::CoarseFinalPasswordChangeState::
           kOtpDetected;
-    case PasswordChangeDelegate::State::kNoState:
+    case PasswordChangeUIDelegate::State::kNoState:
       NOTREACHED();
   }
 }
@@ -133,21 +120,21 @@ void OnLeakDialogHidden(base::WeakPtr<PasswordsModelDelegate> model_delegate) {
   }
 }
 
-PasswordChangeDelegate::State ToDelegateState(
+PasswordChangeUIDelegate::State ToDelegateState(
     PasswordChangeActuator::State state) {
   switch (state) {
     case PasswordChangeActuator::State::kWaitingForChangePasswordForm:
-      return PasswordChangeDelegate::State::kWaitingForChangePasswordForm;
+      return PasswordChangeUIDelegate::State::kWaitingForChangePasswordForm;
     case PasswordChangeActuator::State::kChangePasswordFormNotFound:
-      return PasswordChangeDelegate::State::kChangePasswordFormNotFound;
+      return PasswordChangeUIDelegate::State::kChangePasswordFormNotFound;
     case PasswordChangeActuator::State::kChangingPassword:
-      return PasswordChangeDelegate::State::kChangingPassword;
+      return PasswordChangeUIDelegate::State::kChangingPassword;
     case PasswordChangeActuator::State::kPasswordSuccessfullyChanged:
-      return PasswordChangeDelegate::State::kPasswordSuccessfullyChanged;
+      return PasswordChangeUIDelegate::State::kPasswordSuccessfullyChanged;
     case PasswordChangeActuator::State::kPasswordChangeFailed:
-      return PasswordChangeDelegate::State::kPasswordChangeFailed;
+      return PasswordChangeUIDelegate::State::kPasswordChangeFailed;
     case PasswordChangeActuator::State::kOtpDetected:
-      return PasswordChangeDelegate::State::kOtpDetected;
+      return PasswordChangeUIDelegate::State::kOtpDetected;
   }
 }
 
@@ -433,7 +420,9 @@ void PasswordChangeDelegateImpl::OnActuationStateChanged(
     PasswordChangeActuator::State new_state) {
   if (new_state ==
       PasswordChangeActuator::State::kPasswordSuccessfullyChanged) {
-    NotifyPasswordChangeFinishedSuccessfully(originator_);
+    observers_.Notify(
+        &PasswordChangeDelegate::Observer::OnPasswordChangeFinishedSuccessfully,
+        this);
   }
   UpdateState(ToDelegateState(new_state));
 }
@@ -465,7 +454,7 @@ bool PasswordChangeDelegateImpl::IsPasswordChangeOngoing(
          (actuator_ && actuator_->GetExecutorWebContents() == web_contents);
 }
 
-PasswordChangeDelegate::State PasswordChangeDelegateImpl::GetCurrentState()
+PasswordChangeUIDelegate::State PasswordChangeDelegateImpl::GetCurrentState()
     const {
   return current_state_;
 }
@@ -478,6 +467,7 @@ void PasswordChangeDelegateImpl::Stop() {
 void PasswordChangeDelegateImpl::OpenPasswordChangeTab() {
   CHECK(actuator_);
   actuator_->OpenPasswordChangeTab(originator_);
+  Stop();
 }
 
 void PasswordChangeDelegateImpl::OpenPasswordDetails() {
@@ -485,7 +475,6 @@ void PasswordChangeDelegateImpl::OpenPasswordDetails() {
   if (base::FeatureList::IsEnabled(
           password_manager::features::kShowTabWithPasswordChangeOnSuccess)) {
     OpenPasswordChangeTab();
-    Stop();
     return;
   }
 
@@ -508,6 +497,10 @@ void PasswordChangeDelegateImpl::OpenPasswordDetails() {
         base::UTF16ToUTF8(GetDisplayOrigin()),
         password_manager::ManagePasswordsReferrer::kPasswordChangeInfoBubble);
   }
+}
+
+void PasswordChangeDelegateImpl::OnUiDismissed() {
+  Stop();
 }
 
 void PasswordChangeDelegateImpl::OnPrivacyNoticeAccepted() {
@@ -540,11 +533,14 @@ void PasswordChangeDelegateImpl::OnPasswordChangeDeclined() {
   }
   // Post task as otherwise ManagePasswordsUIController won't show a bubble
   // until password change has finished.
-  base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(
-      FROM_HERE,
-      base::BindOnce(&OnLeakDialogHidden,
-                     ManagePasswordsUIController::FromWebContents(originator_)
-                         ->GetModelDelegateProxy()));
+  if (originator_) {
+    base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(
+        FROM_HERE,
+        base::BindOnce(&OnLeakDialogHidden,
+                       ManagePasswordsUIController::FromWebContents(originator_)
+                           ->GetModelDelegateProxy()));
+  }
+  Stop();
 }
 
 void PasswordChangeDelegateImpl::RetryLoginCheck() {
@@ -574,15 +570,6 @@ void PasswordChangeDelegateImpl::UpdateState(State new_state) {
     logger->LogNumber(BrowserSavePasswordProgressLogger::
                           STRING_AUTOMATED_PASSWORD_CHANGE_STATE_CHANGED,
                       static_cast<int>(new_state));
-  }
-
-  // In case the password change was canceled or finished successfully, the flow
-  // and the respective UI should be stopped after a specified timeout.
-  if (current_state_ == State::kCanceled ||
-      current_state_ == State::kPasswordSuccessfullyChanged) {
-    base::SingleThreadTaskRunner::GetCurrentDefault()->PostDelayedTask(
-        FROM_HERE, base::BindOnce(&PasswordChangeDelegate::Stop, AsWeakPtr()),
-        kToastDisplayTime);
   }
 }
 

@@ -37,6 +37,8 @@ export class HistoryFilterChipsElement extends CrLitElement {
     return {
       showDeviceFilter: {type: Boolean},
       devices: {type: Array},
+      showDomainFilter: {type: Boolean},
+      domain: {type: String},
       timePeriodOptions: {type: Array},
       showTimePeriodFilter: {type: Boolean},
       showActorFilter: {type: Boolean},
@@ -49,6 +51,8 @@ export class HistoryFilterChipsElement extends CrLitElement {
 
   accessor showDeviceFilter: boolean = false;
   accessor devices: Device[] = [];
+  accessor showDomainFilter: boolean = false;
+  accessor domain: string = '';
   accessor timePeriodOptions: TimePeriodOption[] = [];
   accessor showTimePeriodFilter: boolean = false;
   accessor showActorFilter: boolean = false;
@@ -140,6 +144,9 @@ export class HistoryFilterChipsElement extends CrLitElement {
         this.timePeriodOptions.some(option => option.id === id) ?
         id :
         TimePeriodOptionId.kAllTime;
+    BrowserProxyImpl.getInstance().recordHistogram(
+        'HistoryPage.TimePeriodFilterSelected', this.selectedTimePeriodOptionId,
+        TimePeriodOptionId.MAX_VALUE + 1);
     this.fireChange_(this.userVisits, this.actorVisits);
   }
 
