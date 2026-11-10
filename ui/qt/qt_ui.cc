@@ -48,6 +48,7 @@
 #include "ui/gfx/image/image_skia_rep.h"
 #include "ui/gfx/image/image_skia_source.h"
 #include "ui/linux/device_scale_factor_observer.h"
+#include "ui/linux/linux_key_bindings_handler.h"
 #include "ui/linux/linux_ui.h"
 #include "ui/linux/linux_ui_delegate.h"
 #include "ui/linux/nav_button_provider.h"
@@ -297,7 +298,7 @@ gfx::FontRenderParams QtUi::GetDefaultFontRenderParams() {
 }
 
 ui::SelectFileDialog* QtUi::CreateSelectFileDialog(
-    void* listener,
+    ui::SelectFileDialogListener* listener,
     std::unique_ptr<ui::SelectFilePolicy> policy) const {
   return fallback_linux_ui_ ? fallback_linux_ui_->CreateSelectFileDialog(
                                   listener, std::move(policy))
@@ -603,8 +604,10 @@ int QtUi::GetCursorThemeSize() {
 
 ui::TextEditCommand QtUi::GetTextEditCommandForEvent(const ui::Event& event,
                                                      int text_flags) {
-  // QT doesn't have "key themes" (eg. readline bindings) like GTK.
-  return ui::TextEditCommand::INVALID_COMMAND;
+  if (!key_bindings_handler_) {
+    key_bindings_handler_ = std::make_unique<ui::LinuxKeyBindingsHandler>();
+  }
+  return key_bindings_handler_->MatchEvent(event);
 }
 
 #if BUILDFLAG(ENABLE_PRINTING)

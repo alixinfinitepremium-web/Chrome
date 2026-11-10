@@ -365,6 +365,16 @@ bool CanActOnWeb(GlicKeyedService& glic_service) {
          glic_service.actor_policy_checker().CanActOnWeb();
 }
 
+std::string_view ChromeErrorCodeForTeardownReason(
+    GlicExperimentalTriggeringManager::InstanceTeardownReason reason) {
+  switch (reason) {
+    case GlicExperimentalTriggeringManager::InstanceTeardownReason::kTabClosed:
+      return kErrorCodeGlicTabClosed;
+    case GlicExperimentalTriggeringManager::InstanceTeardownReason::
+        kInstanceDestroyed:
+      return kErrorCodeGlicDestroyedBeforeCompletion;
+  }
+}
 }  // namespace
 
 // Handles every request for one context id, and owns the session that those
@@ -627,6 +637,9 @@ class ExperimentalTriggeringUpdatesHandler
                                   std::move(update->data), std::move(metadata));
             break;
           case mojom::ExperimentalTriggeringUpdateType::kPaused:
+            // The turn handed control back without a pending setup to wait
+            // for. A live actor task keeps the foreground service on its own.
+            RemovePendingTask();
             SendTaskUpdateMessage(TaskUpdate::State::kPaused, std::nullopt,
                                   std::move(update->data), std::move(metadata));
             break;
@@ -650,6 +663,9 @@ class ExperimentalTriggeringUpdatesHandler
                 std::move(update->data), std::move(metadata));
             break;
           case mojom::ExperimentalTriggeringUpdateType::kYieldToUser:
+            // Same as kPaused: the turn may yield (e.g. a clarifying question)
+            // before any actor task starts, and pending entries never expire.
+            RemovePendingTask();
             SendTaskUpdateMessage(TaskUpdate::State::kYield, std::nullopt,
                                   std::move(update->data), std::move(metadata));
             break;
@@ -728,6 +744,7 @@ class ExperimentalTriggeringUpdatesHandler
   }
   void SubscribeForTriggeringUpdates(base::WeakPtr<GlicInstance> instance) {
     instance_ = std::move(instance);
+    BindInstanceSessionState();
     if (!instance_ || receiver_.is_bound()) {
       return;
     }
@@ -814,8 +831,9 @@ class ExperimentalTriggeringUpdatesHandler
     if (terminal_update_sent_) {
       return;
     }
-    CancelReconnectGrace();
     terminal_update_sent_ = true;
+    CancelReconnectGrace();
+    ReleaseActiveSession();
     RecordOutcome(outcome);
     if (outcome == GlicExperimentalTriggeringExecutionOutcome::kSuccess &&
         is_actuation_started_) {
@@ -962,11 +980,14 @@ class ExperimentalTriggeringUpdatesHandler
     return true;
   }
 
+  // `is_reconnect` is set when re-delivering the current turn to a reloaded
+  // guest (OnClientRebound()); such an invocation never starts a new actor
+  // task.
   void StartInvocation(GlicKeyedService* glic_service,
                        GlicInvokeOptions options,
                        tabs::TabInterface* prepared_tab,
                        bool is_continuation,
-                       bool observe_actor_task_creation) {
+                       bool is_reconnect) {
     options.on_panel_opened =
         base::BindOnce(&ExperimentalTriggeringUpdatesHandler::OnPanelOpened,
                        weak_ptr_factory_.GetWeakPtr());
@@ -984,6 +1005,16 @@ class ExperimentalTriggeringUpdatesHandler
                        weak_ptr_factory_.GetWeakPtr(), invoke_id));
 
     GlicInvokeWithAutoSubmitOptions auto_submit_options;
+    // Only the initial trigger opens the panel. If the user closed it since
+    // (the active session keeps the instance alive, see
+    // GlicInstanceImpl::MaybeRemoveBlankInstanceOnClose()), a continuation or
+    // a re-delivery to a reloaded guest keeps running in the background rather
+    // than reopening it; the invocation then binds the target tab silently via
+    // SetupHiddenPanelTask instead of ShowInstanceTask.
+    if ((is_continuation || is_reconnect) && instance_ &&
+        !instance_->IsShowing()) {
+      auto_submit_options.show_panel = false;
+    }
 #if BUILDFLAG(IS_ANDROID)
     // TODO(b/568925496): Follow up to remove platform ifdefs across
     // experimental triggering.
@@ -1000,10 +1031,28 @@ class ExperimentalTriggeringUpdatesHandler
     auto instance = glic_service->InvokeWithAutoSubmit(
         passkey_, std::move(options), std::move(auto_submit_options));
     if (weak_this) {
+#if BUILDFLAG(IS_ANDROID)
+      const bool has_invoked_instance = static_cast<bool>(instance);
+#endif
       if (instance || !weak_this->instance_) {
         weak_this->instance_ = std::move(instance);
       }
-      if (observe_actor_task_creation) {
+      weak_this->BindInstanceSessionState();
+      bool should_observe_task_creation = !is_continuation && !is_reconnect;
+#if BUILDFLAG(IS_ANDROID)
+      if (!is_reconnect && is_continuation && is_chrome_in_background &&
+          !weak_this->terminal_update_sent_ && weak_this->coordinator_ &&
+          has_invoked_instance && weak_this->instance_ &&
+          !weak_this->instance_->IsActuating()) {
+        if (actor::ActorKeyedService* actor_service =
+                actor::ActorKeyedService::Get(
+                    weak_this->coordinator_->profile_)) {
+          actor_service->AddPendingTaskWithoutBackgroundSetup(context_id_);
+          should_observe_task_creation = true;
+        }
+      }
+#endif
+      if (should_observe_task_creation) {
         weak_this->ObserveActorTaskCreation();
       }
     }
@@ -1058,11 +1107,70 @@ class ExperimentalTriggeringUpdatesHandler
     options.target.conversation = instance_->id();
     options.supersede_if_in_progress = true;
     StartInvocation(glic_service, std::move(options), prepared_tab,
-                    is_continuation,
-                    /*observe_actor_task_creation=*/false);
+                    is_continuation, /*is_reconnect=*/true);
   }
 
   void OnReconnectGraceTimeout() { FailClientDisconnected(); }
+
+  void BindInstanceSessionState() {
+    if (!instance_ || is_cleaning_up_) {
+      ReleaseInstanceSessionState();
+      return;
+    }
+    auto* manager = instance_->GetExperimentalTriggeringManager();
+    if (!manager) {
+      ReleaseInstanceSessionState();
+      return;
+    }
+    if (observed_session_instance_.get() != instance_.get()) {
+      active_session_registration_.RunAndReset();
+      instance_destroyed_subscription_ =
+          manager->AddInstanceWillBeDestroyedCallback(base::BindRepeating(
+              &ExperimentalTriggeringUpdatesHandler::OnInstanceWillBeDestroyed,
+              weak_ptr_factory_.GetWeakPtr()));
+      observed_session_instance_ = instance_;
+    }
+    if (is_actuation_started_ && !terminal_update_sent_ &&
+        !active_session_registration_) {
+      active_session_registration_ = manager->RegisterActiveActuationSession();
+    }
+  }
+
+  void ReleaseActiveSession() { active_session_registration_.RunAndReset(); }
+
+  void ReleaseInstanceSessionState() {
+    active_session_registration_.RunAndReset();
+    instance_destroyed_subscription_ = {};
+    observed_session_instance_ = nullptr;
+  }
+
+  void OnInstanceWillBeDestroyed(
+      GlicExperimentalTriggeringManager::InstanceTeardownReason reason) {
+    if (!is_actuation_started_ || terminal_update_sent_ || is_cleaning_up_) {
+      ReleaseInstanceSessionState();
+      return;
+    }
+    CancelReconnectGrace();
+    receiver_.reset();
+    ReleaseInstanceSessionState();
+
+    std::string message;
+    switch (reason) {
+      case GlicExperimentalTriggeringManager::InstanceTeardownReason::
+          kTabClosed:
+        message = "Target tab closed before completion.";
+        break;
+      case GlicExperimentalTriggeringManager::InstanceTeardownReason::
+          kInstanceDestroyed:
+        message = "Glic instance destroyed before completion.";
+        break;
+    }
+    HandleTerminalUpdate(
+        TaskUpdate::State::kFailed, TaskUpdate::DataType::kErrorMessage,
+        GlicExperimentalTriggeringExecutionOutcome::kDestroyedBeforeCompletion,
+        std::move(message),
+        BuildChromeErrorMetadata(ChromeErrorCodeForTeardownReason(reason)));
+  }
 
   void FailClientDisconnected() {
     CancelReconnectGrace();
@@ -1092,6 +1200,7 @@ class ExperimentalTriggeringUpdatesHandler
     }
     is_cleaning_up_ = true;
     CancelReconnectGrace();
+    ReleaseInstanceSessionState();
     receiver_.reset();
     if (coordinator_) {
       // Only erase this handler. If it is already gone, for example because
@@ -1253,8 +1362,7 @@ class ExperimentalTriggeringUpdatesHandler
     std::ignore = cleanup_runner.Release();
 
     StartInvocation(glic_service, std::move(options), prepared_tab,
-                    is_continuation,
-                    /*observe_actor_task_creation=*/!is_continuation);
+                    is_continuation, /*is_reconnect=*/false);
 
     result_logger.set_result(
         GlicExperimentalTriggeringIncomingMessageResult::kSuccess);
@@ -1504,6 +1612,7 @@ class ExperimentalTriggeringUpdatesHandler
       cleanup_runner = CreateCleanupRunner();
     }
     CancelReconnectGrace();
+    ReleaseInstanceSessionState();
 
     std::optional<ExperimentalTriggeringResponse> response;
     if (actions_runner_) {
@@ -1928,6 +2037,9 @@ class ExperimentalTriggeringUpdatesHandler
   std::optional<base::WeakPtr<tabs::TabInterface>> last_prepared_tab_;
   base::OneShotTimer reconnect_grace_timer_;
   base::CallbackListSubscription client_bound_subscription_;
+  base::WeakPtr<GlicInstance> observed_session_instance_;
+  base::CallbackListSubscription instance_destroyed_subscription_;
+  base::ScopedClosureRunner active_session_registration_;
   // Whether a device opt-in dialog is open and its result not yet sent.
   bool awaiting_opt_in_ = false;
   // Ids of invocations started by this handler that have neither succeeded nor

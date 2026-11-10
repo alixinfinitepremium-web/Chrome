@@ -7,6 +7,7 @@
 
 #include <array>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -48,6 +49,7 @@ namespace ui {
 class PlatformWindowDelegate;
 class X11ExtensionDelegate;
 class X11MoveLoop;
+class X11WmMoveLoop;
 class WorkspaceExtensionDelegate;
 
 // PlatformWindow implementation for X11.
@@ -171,6 +173,7 @@ class X11Window : public PlatformWindow,
   bool CanResetOverrideRedirect() const override;
   void SetX11ExtensionDelegate(X11ExtensionDelegate* delegate) override;
   bool IsWmSyncActiveForTest() override;
+  void OnFrameTypeChanged() override;
 
   // x11::EventObserver:
   void OnEvent(const x11::Event& event) override;
@@ -391,6 +394,9 @@ class X11Window : public PlatformWindow,
 
   std::unique_ptr<X11DesktopWindowMoveClient> x11_window_move_client_;
 
+  // Set while the window manager moves the window during a move loop.
+  std::unique_ptr<X11WmMoveLoop> wm_move_loop_;
+
   // Whether the drop handler has notified that the drag has entered.
   bool notified_enter_ = false;
   // Keeps the last negotiated operations returned by the drop handler.
@@ -530,6 +536,10 @@ class X11Window : public PlatformWindow,
 
   // The size of the window manager provided borders (if any).
   gfx::Insets native_window_frame_borders_in_pixels_;
+
+  // The client-side decoration insets last set in _GTK_FRAME_EXTENTS, or
+  // nullopt if they have not been set yet (before the window is mapped).
+  std::optional<gfx::Insets> decoration_insets_in_pixels_;
 
   // Used for synchronizing between `xwindow_` and the WM during resizing.
   x11::Sync::Counter update_counter_{};

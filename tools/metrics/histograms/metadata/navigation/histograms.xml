@@ -140,11 +140,6 @@ chromium-metrics-reviews@google.com.
   <variant name="Regular"/>
 </variants>
 
-<variants name="SiteRelation">
-  <variant name="CrossSite"/>
-  <variant name="SameSite"/>
-</variants>
-
 <variants name="TracedMethod">
   <variant name="AgentSchedulingGroup.CreateFrame"
       summary="AgentSchedulingGroup::CreateFrame()"/>
@@ -248,7 +243,7 @@ chromium-metrics-reviews@google.com.
 
 <histogram
     name="BackForwardCache.AllSites.HistoryNavigationOutcome.BlocklistedFeature"
-    enum="WebSchedulerTrackedFeature" expires_after="2027-03-07">
+    enum="WebSchedulerTrackedFeature" expires_after="2027-05-09">
   <owner>fergal@chromium.org</owner>
   <owner>bfcache-dev@chromium.org</owner>
   <summary>
@@ -302,7 +297,7 @@ chromium-metrics-reviews@google.com.
 
 <histogram
     name="BackForwardCache.AllSites.HistoryNavigationOutcome.NotRestoredReason"
-    enum="BackForwardCacheNotRestoredReason" expires_after="2027-03-07">
+    enum="BackForwardCacheNotRestoredReason" expires_after="2027-05-09">
   <owner>fergal@chromium.org</owner>
   <owner>bfcache-dev@chromium.org</owner>
   <summary>
@@ -478,7 +473,7 @@ chromium-metrics-reviews@google.com.
 </histogram>
 
 <histogram name="BackForwardCache.HistoryNavigationOutcome.BlocklistedFeature"
-    enum="WebSchedulerTrackedFeature" expires_after="2027-03-07">
+    enum="WebSchedulerTrackedFeature" expires_after="2027-05-09">
   <owner>fergal@chromium.org</owner>
   <owner>bfcache-dev@chromium.org</owner>
   <summary>
@@ -514,7 +509,7 @@ chromium-metrics-reviews@google.com.
 <histogram
     name="BackForwardCache.HistoryNavigationOutcome.DisabledForRenderFrameHostReason2"
     enum="BackForwardCacheDisabledForRenderFrameHostReason2"
-    expires_after="2027-03-07">
+    expires_after="2027-05-09">
   <owner>fergal@chromium.org</owner>
   <owner>bfcache-dev@chromium.org</owner>
   <summary>
@@ -625,21 +620,6 @@ chromium-metrics-reviews@google.com.
     &quot;PageSeen&quot; will be recorded; if the page is egligible to be stored
     in the back forward cache, &quot;PageStored&quot; will be recorded.
   </summary>
-</histogram>
-
-<histogram name="BackForwardCache.ProcessReuse.{SiteRelation}" units="count"
-    expires_after="2024-09-01">
-  <owner>rakina@chromium.org</owner>
-  <owner>bfcache-dev@chromium.org</owner>
-  <summary>
-    Whether a back/forward cached page shares the same process as the page that
-    we're navigating to (i.e. whether the new active page reuses the process of
-    the back/forward cached page).
-
-    Recorded when navigating away from a page, after the navigation commits and
-    we're about to put the previous page into the back/forward cache.
-  </summary>
-  <token key="SiteRelation" variants="SiteRelation"/>
 </histogram>
 
 <histogram name="BackForwardCache.Pruning.NumberOfBackForwardCacheEntries"
@@ -1379,7 +1359,7 @@ chromium-metrics-reviews@google.com.
 </histogram>
 
 <histogram name="Navigation.GetFrameHostForNavigation" units="ms"
-    expires_after="2027-03-07">
+    expires_after="2027-05-09">
   <owner>rakina@chromium.org</owner>
   <owner>chrome-security-architecture@google.com</owner>
   <summary>
@@ -1744,7 +1724,7 @@ chromium-metrics-reviews@google.com.
 </histogram>
 
 <histogram name="Navigation.MainFrameProfileType2" enum="BrowserProfileType"
-    expires_after="2027-03-07">
+    expires_after="2027-05-09">
   <owner>dullweber@chromium.org</owner>
   <owner>chrome-privacy-core@google.com</owner>
   <summary>
@@ -2090,7 +2070,7 @@ chromium-metrics-reviews@google.com.
 
 <histogram
     name="Navigation.Prerender.NoVarySearchCommitDeferTime.{NVSTriggerType}"
-    units="ms" expires_after="2027-03-07">
+    units="ms" expires_after="2027-05-09">
   <owner>lingqi@chromium.org</owner>
   <owner>chrome-prerendering@google.com</owner>
   <summary>
@@ -2243,7 +2223,7 @@ chromium-metrics-reviews@google.com.
 </histogram>
 
 <histogram name="Navigation.Renderer.Timeline.{DurationFromTo}.Duration"
-    units="ms" expires_after="2027-03-07">
+    units="ms" expires_after="2027-05-09">
   <owner>alexmos@chromium.org</owner>
   <owner>creis@chromium.org</owner>
   <summary>
@@ -2684,7 +2664,7 @@ chromium-metrics-reviews@google.com.
 
 <histogram
     name="Navigation.StartToCommit{NavigationProcessType}{NavigationFrameType}{NavigationTypeTiming}"
-    units="ms" expires_after="2027-03-07">
+    units="ms" expires_after="2027-05-09">
   <owner>nasko@chromium.org</owner>
   <owner>csharrison@chromium.org</owner>
   <improvement direction="LOWER_IS_BETTER"/>
@@ -3740,7 +3720,7 @@ chromium-metrics-reviews@google.com.
 
 <histogram
     name="Navigation{Initiator}.DuplicateNavIsUnderThreshold2{DuplicateNavTargetScope}"
-    enum="Boolean" expires_after="2027-03-07">
+    enum="Boolean" expires_after="2027-05-09">
   <owner>rakina@chromium.org</owner>
   <owner>chrome-navigation@google.com</owner>
   <summary>
@@ -3773,7 +3753,7 @@ chromium-metrics-reviews@google.com.
 
 <histogram
     name="Navigation{Initiator}.DuplicateNavStartTimeDiff2{DuplicateNavTargetScope}"
-    units="ms" expires_after="2027-03-07">
+    units="ms" expires_after="2027-05-09">
   <owner>rakina@chromium.org</owner>
   <owner>bfcache-dev@chromium.org</owner>
   <summary>
@@ -3791,7 +3771,7 @@ chromium-metrics-reviews@google.com.
 
 <histogram
     name="Navigation{Initiator}.IsDuplicateWithoutThresholdCheck2{DuplicateNavTargetScope}"
-    enum="Boolean" expires_after="2027-03-07">
+    enum="Boolean" expires_after="2027-05-09">
   <owner>rakina@chromium.org</owner>
   <owner>chrome-navigation@google.com</owner>
   <summary>
@@ -3927,7 +3907,7 @@ chromium-metrics-reviews@google.com.
 <histogram
     name="Prerender.Experimental.CrossOriginRedirectionProtocolChange{PreloadingTriggerType}"
     enum="PrerenderCrossOriginRedirectionProtocolChange"
-    expires_after="2027-03-07">
+    expires_after="2027-05-09">
   <owner>lingqi@chromium.org</owner>
   <owner>nhiroki@chromium.org</owner>
   <owner>src/content/browser/preloading/prerender/OWNERS</owner>
@@ -4041,7 +4021,7 @@ chromium-metrics-reviews@google.com.
 
 <histogram
     name="Prerender.Experimental.PrerenderCrossOriginRedirectionMismatch{PreloadingTriggerType}"
-    enum="PrerenderCrossOriginRedirectionMismatch" expires_after="2027-03-07">
+    enum="PrerenderCrossOriginRedirectionMismatch" expires_after="2027-05-09">
   <owner>lingqi@chromium.org</owner>
   <owner>nhiroki@chromium.org</owner>
   <owner>src/content/browser/preloading/prerender/OWNERS</owner>
@@ -4242,7 +4222,7 @@ chromium-metrics-reviews@google.com.
 </histogram>
 
 <histogram name="Prerender.{PrerenderSource}FinalStatus"
-    enum="PrerenderFinalStatus" expires_after="2027-03-07">
+    enum="PrerenderFinalStatus" expires_after="2027-05-09">
   <owner>ryansturm@chromium.org</owner>
   <owner>tbansal@chromium.org</owner>
   <summary>

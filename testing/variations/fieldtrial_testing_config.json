@@ -291,6 +291,30 @@
             ]
         }
     ],
+    "AdjustPreconnectRetryInterval": [
+        {
+            "platforms": [
+                "android",
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Multiplier1.2WithZeroDelays",
+                    "params": {
+                        "kPreconnectBackoffMultiplier": "1.2",
+                        "kPreconnectInitialRetryInterval": "0ms",
+                        "kPreconnectNetworkChangeInterval": "0ms"
+                    },
+                    "enable_features": [
+                        "AdjustPreconnectRetryInterval"
+                    ]
+                }
+            ]
+        }
+    ],
     "AiSubscriptionAvatarRingAndroid": [
         {
             "platforms": [
@@ -2815,6 +2839,24 @@
                     "name": "Enabled",
                     "enable_features": [
                         "AutofillPopupDontAcceptNonVisibleEnoughSuggestion"
+                    ]
+                }
+            ]
+        }
+    ],
+    "AutofillPrivateEventRouterObserveOnDemand": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "AutofillPrivateEventRouterObserveOnDemand"
                     ]
                 }
             ]
@@ -6710,28 +6752,10 @@
             ]
         }
     ],
-    "DelayMainJobStudy": [
+    "DelayMainJobFollowup": [
         {
             "platforms": [
                 "android",
-                "android_desktop"
-            ],
-            "experiments": [
-                {
-                    "name": "EnabledWithDelayMainJob",
-                    "params": {
-                        "AdditionalDelay": "100ms"
-                    },
-                    "enable_features": [
-                        "AdditionalDelayMainJob"
-                    ]
-                }
-            ]
-        }
-    ],
-    "DelayMainJobStudyDesktop": [
-        {
-            "platforms": [
                 "chromeos",
                 "linux",
                 "mac",
@@ -12517,6 +12541,22 @@
                     "name": "Enabled",
                     "enable_features": [
                         "MakeIdentityManagerSourceOfAccounts"
+                    ]
+                }
+            ]
+        }
+    ],
+    "MakeIdentityManagerSourceOfAccountsAndroidPart2": [
+        {
+            "platforms": [
+                "android",
+                "android_desktop"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "MakeIdentityManagerSourceOfAccountsPart2"
                     ]
                 }
             ]

@@ -9,6 +9,7 @@
 
 #include "base/no_destructor.h"
 #include "build/build_config.h"
+#include "chrome/browser/themes/theme_service_aura_linux.h"
 #include "chrome/browser/ui/browser_init_state.h"
 #include "chrome/browser/ui/exclusive_access/exclusive_access_manager.h"
 #include "chrome/browser/ui/exclusive_access/fullscreen_controller.h"
@@ -103,7 +104,8 @@ void BrowserDesktopWindowTreeHostLinux::AddAdditionalInitProperties(
   views::DesktopWindowTreeHostLinux::AddAdditionalInitProperties(params,
                                                                  properties);
   auto* profile = browser_view_->browser()->GetProfile();
-  const auto* linux_ui_theme = ui::LinuxUiTheme::GetForProfile(profile);
+  const auto* linux_ui_theme =
+      ThemeServiceAuraLinux::GetLinuxUiThemeForProfile(profile);
   properties->prefer_dark_theme =
       linux_ui_theme && linux_ui_theme->PreferDarkTheme();
 }
@@ -115,11 +117,6 @@ BrowserDesktopWindowTreeHostLinux::AsDesktopWindowTreeHost() {
 
 bool BrowserDesktopWindowTreeHostLinux::UsesNativeSystemMenu() const {
   return false;
-}
-
-void BrowserDesktopWindowTreeHostLinux::FrameTypeChanged() {
-  DesktopWindowTreeHostPlatform::FrameTypeChanged();
-  UpdateFrameHints();
 }
 
 void BrowserDesktopWindowTreeHostLinux::TabDraggingKindChanged(
@@ -267,8 +264,10 @@ bool BrowserDesktopWindowTreeHostLinux::IsOverrideRedirect(
 
 gfx::Insets BrowserDesktopWindowTreeHostLinux::CalculateInsetsInDIP(
     ui::PlatformWindowState window_state) const {
-  // If we are not showing frame, the insets should be zero.
-  if (!browser_widget_ ||
+  // If we are not showing frame, the insets should be zero. Without
+  // client-side shadows, the frame border is opaque and part of the visible
+  // window, so it is not a decoration inset either.
+  if (!browser_widget_ || !SupportsClientFrameShadow() ||
       !IsShowingFrame(native_widget_->UseCustomFrame(), window_state)) {
     return gfx::Insets();
   }

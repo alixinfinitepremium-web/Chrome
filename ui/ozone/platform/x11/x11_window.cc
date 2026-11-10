@@ -52,6 +52,7 @@
 #include "ui/gfx/x/xproto.h"
 #include "ui/ozone/platform/x11/hit_test_x11.h"
 #include "ui/ozone/platform/x11/x11_window_manager.h"
+#include "ui/ozone/platform/x11/x11_wm_move_loop.h"
 #include "ui/platform_window/common/platform_window_defaults.h"
 #include "ui/platform_window/extensions/workspace_extension_delegate.h"
 #include "ui/platform_window/extensions/x11_extension_delegate.h"
@@ -1372,6 +1373,28 @@ bool X11Window::IsWmSyncActiveForTest() {
   return bounds_wm_sync_.get();
 }
 
+void X11Window::OnFrameTypeChanged() {
+  const std::optional<gfx::Insets> old_insets_px = decoration_insets_in_pixels_;
+  UpdateDecorationInsets();
+  // Before the insets are first set, the initial bounds already account for
+  // the current frame, so there is nothing to adjust.
+  if (!old_insets_px || *decoration_insets_in_pixels_ == *old_insets_px) {
+    return;
+  }
+
+  // The insets are only non-empty in the normal state, so the window is not
+  // maximized, fullscreen or minimized here. Keep the area inside the
+  // client-side decorations at the same place and size, so that switching
+  // between the system title bar and the custom frame does not move or grow
+  // the visible window. Window managers that honor _GTK_FRAME_EXTENTS (e.g.
+  // Mutter) would otherwise keep the old frame rectangle and add the new
+  // shadow insets around it. See https://crbug.com/394152435.
+  gfx::Rect bounds = GetBoundsInPixels();
+  bounds.Inset(*old_insets_px);
+  bounds.Inset(-*decoration_insets_in_pixels_);
+  SetBoundsInPixels(bounds);
+}
+
 bool X11Window::HandleAsAtkEvent(const x11::Event& event) {
 #if !BUILDFLAG(USE_ATK)
   // TODO(crbug.com/40653448): Support ATK in Ozone/X11.
@@ -1508,6 +1531,7 @@ void X11Window::UpdateDecorationInsets() {
       platform_window_delegate_->CalculateInsetsInDIP(GetPlatformWindowState());
 
   if (insets_dip.IsEmpty()) {
+    decoration_insets_in_pixels_ = gfx::Insets();
     connection_->DeleteProperty(xwindow_, atom);
     return;
   }
@@ -1517,6 +1541,7 @@ void X11Window::UpdateDecorationInsets() {
         GetPlatformWindowState() == PlatformWindowState::kUnknown);
 
   auto insets_px = platform_window_delegate_->ConvertInsetsToPixels(insets_dip);
+  decoration_insets_in_pixels_ = insets_px;
   connection_->SetArrayProperty(
       xwindow_, atom, x11::Atom::CARDINAL,
       std::vector<uint32_t>{static_cast<uint32_t>(insets_px.left()),
@@ -1659,6 +1684,24 @@ void X11Window::DispatchHostWindowDragMovement(
 
 bool X11Window::RunMoveLoop(const gfx::Vector2d& drag_offset) {
   auto alive = weak_ptr_factory_.GetWeakPtr();
+  // The window manager ignores _NET_WM_MOVERESIZE for windows that it doesn't
+  // manage (override-redirect windows such as bubbles and non-activatable
+  // windows) and for hidden windows, so those keep using the client-driven
+  // move loop. This isn't a CHECK because RunMoveLoop() isn't limited to tab
+  // dragging. Each call picks its loop independently and the loops share no
+  // state, so a tab drag session may mix them.
+  if (!override_redirect_ && window_mapped_in_client_ &&
+      X11WmMoveLoop::IsSupported(*connection_)) {
+    wm_move_loop_ =
+        std::make_unique<X11WmMoveLoop>(*connection_, x_root_window_, xwindow_);
+    const bool moved =
+        wm_move_loop_->Run(drag_offset, window_mapped_in_server_);
+    if (alive) {
+      wm_move_loop_.reset();
+    }
+    return moved;
+  }
+
   const bool moved =
       x11_window_move_client_->RunMoveLoop(!HasCapture(), drag_offset);
   if (alive) {
@@ -1669,6 +1712,10 @@ bool X11Window::RunMoveLoop(const gfx::Vector2d& drag_offset) {
 }
 
 void X11Window::EndMoveLoop() {
+  if (wm_move_loop_) {
+    wm_move_loop_->End();
+    return;
+  }
   x11_window_move_client_->EndMoveLoop();
 }
 
@@ -2468,6 +2515,7 @@ void X11Window::HandleEvent(const x11::Event& xev) {
                                    x11::EventMask::SubstructureRedirect);
       } else if (protocol == connection_->GetAtom("_NET_WM_SYNC_REQUEST")) {
         configure_counter_value_.reset();
+        last_configure_size_.reset();
         const int32_t hi = static_cast<int32_t>(client->data.data32[3]);
         const uint32_t lo = client->data.data32[2];
         // The spec says the WM should never send a counter value of 0, so
@@ -2539,7 +2587,13 @@ void X11Window::OnWindowMapped() {
 void X11Window::OnConfigureEvent(const x11::ConfigureNotifyEvent& configure) {
   CHECK_EQ(xwindow_, configure.window, base::NotFatalUntil::M163);
 
-  if (configure_counter_value_ && !last_configure_size_) {
+  if (configure_counter_value_) {
+    // The WM may send several ConfigureNotify events for a single sync request
+    // (e.g. KWin sends one when the window is mapped and another for a resize
+    // that the client requests while the sync request is still pending). The
+    // counter must only be updated after a frame of the most recent size has
+    // been swapped, otherwise the size may never match and the WM waits for
+    // its timeout before painting the window.
     last_configure_size_ = gfx::Size(configure.width, configure.height);
     MaybeUpdateSyncCounter();
   }

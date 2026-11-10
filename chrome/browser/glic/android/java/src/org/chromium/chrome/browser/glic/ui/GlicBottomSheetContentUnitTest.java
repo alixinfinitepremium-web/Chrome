@@ -16,6 +16,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import static org.chromium.chrome.browser.context_sharing.R.id.expanded_content_group;
+import static org.chromium.chrome.browser.context_sharing.R.id.web_ui_container;
 
 import android.content.Context;
 import android.graphics.Color;
@@ -265,28 +266,31 @@ public class GlicBottomSheetContentUnitTest {
         mProvider.destroy();
     }
 
-    private GlicBottomSheetContent createContentWithNativeFre(
-            ViewGroup expandedGroup, Runnable onAccepted, Runnable onBackPressed) {
+    private GlicBottomSheetContent createContent(ViewGroup expandedGroup, Runnable onBackPressed) {
         FrameLayout container = new FrameLayout(mContext);
         View peekContainer = new View(mContext);
         peekContainer.setId(12345);
         container.addView(peekContainer);
         expandedGroup.setId(expanded_content_group);
         container.addView(expandedGroup);
-        View webUiContainer = new View(mContext);
+        FrameLayout webUiContainer = new FrameLayout(mContext);
+        webUiContainer.setId(web_ui_container);
         expandedGroup.addView(webUiContainer);
 
-        GlicBottomSheetContent content =
-                new GlicBottomSheetContent(
-                        container,
-                        0.7f,
-                        1.0f,
-                        0xFFFFFFFF,
-                        /* peekViewHeight= */ 100,
-                        /* peekViewContainerId= */ 12345,
-                        onBackPressed,
-                        mProfile);
+        return new GlicBottomSheetContent(
+                container,
+                0.7f,
+                1.0f,
+                0xFFFFFFFF,
+                /* peekViewHeight= */ 100,
+                /* peekViewContainerId= */ 12345,
+                onBackPressed,
+                mProfile);
+    }
 
+    private GlicBottomSheetContent createContentWithNativeFre(
+            ViewGroup expandedGroup, Runnable onAccepted, Runnable onBackPressed) {
+        GlicBottomSheetContent content = createContent(expandedGroup, onBackPressed);
         content.mountNativeFre(mCustomTabLauncher, onAccepted);
         return content;
     }
@@ -359,6 +363,41 @@ public class GlicBottomSheetContentUnitTest {
     }
 
     @Test
+    public void testNativeFre_HidesWebUiUntilFadeOutEnds() {
+        FrameLayout expandedGroup = new FrameLayout(mContext);
+        GlicBottomSheetContent content =
+                createContentWithNativeFre(expandedGroup, () -> {}, () -> {});
+        ViewGroup webUi = expandedGroup.findViewById(web_ui_container);
+
+        expandedGroup.findViewById(R.id.glic_fre_accept_button).performClick();
+        assertEquals(
+                View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS,
+                webUi.getImportantForAccessibility());
+        assertEquals(ViewGroup.FOCUS_BLOCK_DESCENDANTS, webUi.getDescendantFocusability());
+
+        ShadowLooper.idleMainLooper(CROSSFADE_ADVANCE_MS, TimeUnit.MILLISECONDS);
+        assertEquals(View.IMPORTANT_FOR_ACCESSIBILITY_AUTO, webUi.getImportantForAccessibility());
+        assertEquals(ViewGroup.FOCUS_BEFORE_DESCENDANTS, webUi.getDescendantFocusability());
+
+        content.destroy();
+    }
+
+    @Test
+    public void testNativeFre_TeardownShowsWebUi() {
+        FrameLayout expandedGroup = new FrameLayout(mContext);
+        GlicBottomSheetContent content =
+                createContentWithNativeFre(expandedGroup, () -> {}, () -> {});
+        ViewGroup webUi = expandedGroup.findViewById(web_ui_container);
+        assertEquals(ViewGroup.FOCUS_BLOCK_DESCENDANTS, webUi.getDescendantFocusability());
+
+        content.teardownNativeFre();
+        assertEquals(View.IMPORTANT_FOR_ACCESSIBILITY_AUTO, webUi.getImportantForAccessibility());
+        assertEquals(ViewGroup.FOCUS_BEFORE_DESCENDANTS, webUi.getDescendantFocusability());
+
+        content.destroy();
+    }
+
+    @Test
     public void testNativeFre_CloseButtonTriggersBackPress() {
         FrameLayout expandedGroup = new FrameLayout(mContext);
         Runnable onAccepted = mock(Runnable.class);
@@ -426,5 +465,24 @@ public class GlicBottomSheetContentUnitTest {
         assertEquals(0, content.getVerticalScrollOffset());
 
         content.destroy();
+    }
+
+    @Test
+    public void testNativeFre_AppliesBottomSafeAreaInset() {
+        FrameLayout expandedGroup = new FrameLayout(mContext);
+        GlicBottomSheetContent content = createContent(expandedGroup, () -> {});
+        content.onBottomSafeAreaInsetChanged(48);
+        content.mountNativeFre(mCustomTabLauncher, () -> {});
+        View contentContainer = expandedGroup.findViewById(R.id.glic_fre_content_container);
+        assertEquals(48, getBottomMargin(contentContainer));
+
+        content.onBottomSafeAreaInsetChanged(0);
+        assertEquals(0, getBottomMargin(contentContainer));
+
+        content.destroy();
+    }
+
+    private static int getBottomMargin(View view) {
+        return ((ViewGroup.MarginLayoutParams) view.getLayoutParams()).bottomMargin;
     }
 }
