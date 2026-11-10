@@ -22,6 +22,7 @@ import android.view.animation.Interpolator;
 import androidx.annotation.ColorInt;
 import androidx.annotation.StyleRes;
 import androidx.annotation.VisibleForTesting;
+import androidx.core.view.animation.PathInterpolatorCompat;
 
 import org.chromium.base.MathUtils;
 import org.chromium.build.annotations.NullMarked;
@@ -62,7 +63,7 @@ import java.util.function.Supplier;
 
 @NullMarked
 class SearchBoxMediator implements DestroyObserver {
-    private static final long PLUS_ROTATION_DURATION_MS = 750;
+    private static final long PLUS_ROTATION_DURATION_MS = 800;
     private static final long INITIAL_HINT_DELAY_MS = 300;
     private static final long HINT_HOLD_DURATION_MS = 2500;
     private static final long FADE_DURATION_MS = 150;
@@ -70,7 +71,10 @@ class SearchBoxMediator implements DestroyObserver {
     private static final long TINT_OUT_DURATION_MS = 100;
     private static final long ALPHA_DIP_DURATION_MS = 40;
     private static final long ALPHA_RECOVER_DURATION_MS = 440;
+    private static final long SCALE_UP_DURATION_MS = 160;
+    private static final long SCALE_DOWN_DURATION_MS = 520;
     private static final float PLUS_MIN_ALPHA = 0.5f;
+    private static final float PLUS_PEAK_SCALE = 1.2f;
 
     private final Context mContext;
     private final PropertyModel mModel;
@@ -127,6 +131,7 @@ class SearchBoxMediator implements DestroyObserver {
         mModel.set(SearchBoxProperties.APPLY_ELEVATION, OmniboxCapabilities.isDesktopPlatform());
         mModel.set(SearchBoxProperties.PLUS_BUTTON_ALPHA, 1f);
         mModel.set(SearchBoxProperties.PLUS_BUTTON_ROTATION, 0f);
+        mModel.set(SearchBoxProperties.PLUS_BUTTON_SCALE, 1f);
         mModel.set(SearchBoxProperties.HINT_TEXT_ALPHA, 1f);
         mModel.set(
                 SearchBoxProperties.PLUS_BUTTON_TINT,
@@ -483,12 +488,14 @@ class SearchBoxMediator implements DestroyObserver {
         String makeAPlanHint = mContext.getString(R.string.ntp_search_box_hint_make_a_plan);
         String askAboutTabHint = mContext.getString(R.string.ntp_search_box_hint_ask_about_tab);
 
+        Interpolator plusSpinInterpolator = PathInterpolatorCompat.create(0f, 0f, 0.08f, 1f);
         ObjectAnimator spin =
                 PropertyModelAnimatorFactory.ofFloat(
-                                mModel, SearchBoxProperties.PLUS_BUTTON_ROTATION, 360f)
+                                mModel, SearchBoxProperties.PLUS_BUTTON_ROTATION, 90f)
                         .setDuration(PLUS_ROTATION_DURATION_MS);
-        spin.setInterpolator(Interpolators.EMPHASIZED);
+        spin.setInterpolator(plusSpinInterpolator);
 
+        Animator scalePulse = createScalePulseAnimator();
         Animator alphaPulse = createAlphaPulseAnimator();
         Animator tintIn =
                 createTintAnimator(
@@ -514,6 +521,7 @@ class SearchBoxMediator implements DestroyObserver {
         animator.playSequentially(sequence);
         animator.play(spin).with(alphaPulse);
         animator.play(spin).with(tintIn);
+        animator.play(spin).with(scalePulse);
         animator.addListener(
                 new AnimatorListenerAdapter() {
                     @Override
@@ -521,12 +529,32 @@ class SearchBoxMediator implements DestroyObserver {
                         mHintAnimator = null;
                         mModel.set(SearchBoxProperties.PLUS_BUTTON_ALPHA, 1f);
                         mModel.set(SearchBoxProperties.PLUS_BUTTON_ROTATION, 0f);
+                        mModel.set(SearchBoxProperties.PLUS_BUTTON_SCALE, 1f);
                         mModel.set(SearchBoxProperties.PLUS_BUTTON_TINT, initialTint);
                         mModel.set(SearchBoxProperties.HINT_TEXT_ALPHA, 1f);
                         mModel.set(SearchBoxProperties.SEARCH_BOX_HINT_TEXT, initialHint);
                     }
                 });
         return animator;
+    }
+
+    private Animator createScalePulseAnimator() {
+        ObjectAnimator scaleUp =
+                PropertyModelAnimatorFactory.ofFloat(
+                                mModel, SearchBoxProperties.PLUS_BUTTON_SCALE, PLUS_PEAK_SCALE)
+                        .setDuration(SCALE_UP_DURATION_MS);
+        scaleUp.setInterpolator(Interpolators.DECELERATE_INTERPOLATOR);
+
+        Interpolator scaleDownInterpolator = PathInterpolatorCompat.create(0.3f, 0f, 0.7f, 1f);
+        ObjectAnimator scaleDown =
+                PropertyModelAnimatorFactory.ofFloat(
+                                mModel, SearchBoxProperties.PLUS_BUTTON_SCALE, 1f)
+                        .setDuration(SCALE_DOWN_DURATION_MS);
+        scaleDown.setInterpolator(scaleDownInterpolator);
+
+        AnimatorSet scalePulse = new AnimatorSet();
+        scalePulse.playSequentially(scaleUp, scaleDown);
+        return scalePulse;
     }
 
     private Animator createAlphaPulseAnimator() {

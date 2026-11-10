@@ -352,8 +352,7 @@ void TabStripModelObserver::OnTabStripModelChanged(
 
 void TabStripModelObserver::OnTabWillBeAdded() {}
 
-void TabStripModelObserver::OnTabWillBeRemoved(tabs::TabInterface* tab,
-                                               int index) {}
+void TabStripModelObserver::OnTabWillBeRemoved(tabs::TabHandle tab) {}
 
 void TabStripModelObserver::OnTabCloseCancelled(const tabs::TabInterface* tab) {
 }
@@ -361,10 +360,11 @@ void TabStripModelObserver::OnTabCloseCancelled(const tabs::TabInterface* tab) {
 void TabStripModelObserver::OnTabChangedAt(tabs::TabInterface* tab,
                                            TabChangeType change_type) {}
 
-void TabStripModelObserver::OnTabPinnedStateChanged(tabs::TabInterface* tab,
-                                                    int index) {}
+void TabStripModelObserver::OnTabPinnedStateChanged(tabs::TabHandle tab) {}
 
 void TabStripModelObserver::OnTabBlockedStateChanged(tabs::TabInterface* tab) {}
+
+void TabStripModelObserver::OnTabAudioChanged(tabs::TabInterface* tab) {}
 
 void TabStripModelObserver::TabGroupedStateChanged(
     TabStripModel* tab_strip_model,

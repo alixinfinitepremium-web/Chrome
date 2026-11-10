@@ -101,6 +101,7 @@ OrganizerPanelUI::OrganizerPanelUI(content::WebUI* web_ui)
       {"recentlyVisited", IDS_ORGANIZER_PANEL_RECENTLY_VISITED},
       {"savedTabGroup", IDS_ORGANIZER_PANEL_SAVED_TAB_GROUP},
       {"searchTabs", IDS_TAB_SEARCH_SEARCH_TABS},
+      {"sectionNavigationHint", IDS_ORGANIZER_PANEL_SECTION_NAVIGATION_HINT},
       {"sectionOptions", IDS_ORGANIZER_PANEL_SECTION_OPTIONS},
       {"showAll", IDS_ORGANIZER_PANEL_SHOW_ALL},
       {"showSome", IDS_ORGANIZER_PANEL_SHOW_SOME},
@@ -233,7 +234,7 @@ void OrganizerPanelUI::CreatePageHandler(
     return;
   }
   organizer_panel_page_handler_ = std::make_unique<OrganizerPanelPageHandler>(
-      std::move(receiver), std::move(page), web_ui()->GetWebContents());
+      std::move(receiver), std::move(page), web_ui()->GetWebContents(), this);
 }
 
 void OrganizerPanelUI::CreatePageHandler(

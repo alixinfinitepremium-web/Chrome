@@ -2325,16 +2325,15 @@ bool ChromeContentBrowserClient::ShouldAllowMojoJsBindingsForFrame(
     return true;
   }
 #if BUILDFLAG(ENABLE_EXTENSIONS_CORE)
-  const GURL& site_url = render_frame_host.GetSiteInstance()
-                             ->GetSecurityPrincipal()
-                             .GetDeprecatedSiteURL();
-  if (site_url.SchemeIs(extensions::kExtensionScheme)) {
+  const content::SecurityPrincipal& security_principal =
+      render_frame_host.GetSiteInstance()->GetSecurityPrincipal();
+  if (security_principal.SchemeIs(extensions::kExtensionScheme)) {
     content::BrowserContext* browser_context =
         render_frame_host.GetBrowserContext();
     const extensions::Extension* extension =
         extensions::ExtensionRegistry::Get(browser_context)
             ->enabled_extensions()
-            .GetByID(site_url.GetHost());
+            .GetByID(extensions::ExtensionId(security_principal.GetHost()));
     if (!extension) {
       return false;
     }
@@ -6034,20 +6033,22 @@ void ChromeContentBrowserClient::CreateMediaRemoter(
     content::RenderFrameHost* render_frame_host,
     mojo::PendingRemote<media::mojom::RemotingSource> source,
     mojo::PendingReceiver<media::mojom::Remoter> receiver) {
-  CHECK(render_frame_host, base::NotFatalUntil::M163);
+  CHECK(render_frame_host);
+  if (!render_frame_host->IsActive()) {
+    return;
+  }
   auto* const contents =
       content::WebContents::FromRenderFrameHost(render_frame_host);
   if (!contents) {
     return;
   }
-  // A null connector means Media Router is disabled for this profile, in which
-  // case no remoting path is available for this source.
-  auto* const cast_connector = CastRemotingConnector::Get(contents);
-  if (!cast_connector) {
-    return;
-  }
   // The remoting paths that can serve this source, in order of preference.
-  std::vector<RemotingBridge::Client*> clients = {cast_connector};
+  std::vector<RemotingBridge::Client*> clients;
+  if (!render_frame_host->IsNestedWithinFencedFrame()) {
+    if (auto* const cast_connector = CastRemotingConnector::Get(contents)) {
+      clients.push_back(cast_connector);
+    }
+  }
 #if BUILDFLAG(ENABLE_MEDIA_REMOTING_REDIRECTION)
   // Without the provider there is no route to start redirection, so the
   // connector would never have a session to offer.
@@ -6055,8 +6056,12 @@ void ChromeContentBrowserClient::CreateMediaRemoter(
     clients.push_back(RedirectionConnector::Get());
   }
 #endif
+  if (clients.empty()) {
+    return;
+  }
   RemotingBridge::CreateMediaRemoter(clients, std::move(source),
-                                     std::move(receiver));
+                                     std::move(receiver),
+                                     render_frame_host->GetGlobalId());
 }
 #endif  // BUILDFLAG(ENABLE_MEDIA_REMOTING)
 
@@ -6162,7 +6167,10 @@ ChromeContentBrowserClient::MaybeCreateSafeBrowsingURLLoaderThrottle(
       async_check_tracker ? async_check_tracker->GetWeakPtr() : nullptr,
       std::move(referring_app_info),
       v5_get_hash_protocol_manager ? v5_get_hash_protocol_manager->GetWeakPtr()
-                                   : nullptr);
+                                   : nullptr,
+      profile->IsGuestSession()
+          ? "Guest"
+          : (profile->IsOffTheRecord() ? "Incognito" : "Regular"));
 }
 #endif
 

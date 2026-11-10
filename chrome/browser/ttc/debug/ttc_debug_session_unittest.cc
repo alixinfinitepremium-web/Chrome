@@ -10,6 +10,8 @@
 #include <vector>
 
 #include "base/containers/span.h"
+#include "base/strings/string_number_conversions.h"
+#include "base/strings/string_util.h"
 #include "base/test/task_environment.h"
 #include "base/time/time.h"
 #include "components/ttc/app/public/debug_sink.h"
@@ -23,9 +25,12 @@ namespace {
 
 using EventKind = TtcDebugSession::EventKind;
 using Health = TtcDebugSession::Health;
+using IssueSeverity = TtcDebugSession::IssueSeverity;
 using Stage = TtcDebugSession::Stage;
+using ToolStatus = TtcDebugSession::ToolStatus;
 using TurnStatus = TtcDebugSession::TurnStatus;
 using testing::ElementsAre;
+using testing::HasSubstr;
 
 // Marks truncated text.
 constexpr std::string_view kEllipsis = "\xE2\x80\xA6";
@@ -54,6 +59,10 @@ class RecordingObserver : public TtcDebugSession::Observer {
                   update.new_events.end());
     turns.insert(turns.end(), update.changed_turns.begin(),
                  update.changed_turns.end());
+    tool_calls.insert(tool_calls.end(), update.changed_tool_calls.begin(),
+                      update.changed_tool_calls.end());
+    issues.insert(issues.end(), update.changed_issues.begin(),
+                  update.changed_issues.end());
   }
 
   int updates = 0;
@@ -61,6 +70,8 @@ class RecordingObserver : public TtcDebugSession::Observer {
   std::vector<size_t> first_event_indices;
   std::vector<TtcDebugSession::TimelineEvent> events;
   std::vector<TtcDebugSession::Turn> turns;
+  std::vector<TtcDebugSession::ToolCall> tool_calls;
+  std::vector<TtcDebugSession::Issue> issues;
 };
 
 class TtcDebugSessionTest : public testing::Test {
@@ -113,6 +124,55 @@ class TtcDebugSessionTest : public testing::Test {
 
   Health StageHealth(Stage stage) const {
     return session_->GetSnapshot().stages[static_cast<size_t>(stage)].health;
+  }
+
+  // Returns the open issue with `key`, or null.
+  const TtcDebugSession::Issue* OpenIssue(std::string_view key) const {
+    for (const auto& issue : session_->issues()) {
+      if (issue.key == key && !issue.resolved) {
+        return &issue;
+      }
+    }
+    return nullptr;
+  }
+
+  const TtcDebugSession::Issue* AnyIssue(std::string_view key) const {
+    for (const auto& issue : session_->issues()) {
+      if (issue.key == key) {
+        return &issue;
+      }
+    }
+    return nullptr;
+  }
+
+  static TtcDebugSession::TabSnapshot ForegroundTab() {
+    return {.tab_id = 7,
+            .url = "https://example.com/",
+            .title = "Example",
+            .visible = true,
+            .active_in_window = true};
+  }
+
+  static TtcDebugSession::TabSnapshot BackgroundTab() {
+    TtcDebugSession::TabSnapshot tab = ForegroundTab();
+    tab.visible = false;
+    tab.active_in_window = false;
+    return tab;
+  }
+
+  // Runs a navigate tool call from the server through to a successful actor
+  // result.
+  void RunNavigate(std::string_view call_id,
+                   const TtcDebugSession::TabSnapshot& target) {
+    session_->OnServerFrame(DebugSink::ToolCall{
+        .call_id = std::string(call_id),
+        .name = "navigate",
+        .arguments_json = R"({"url":"https://google.com"})"});
+    session_->OnToolDispatched(call_id, "navigate",
+                               R"({"url":"https://google.com"})", target,
+                               /*verifying=*/true);
+    task_environment_.FastForwardBy(base::Milliseconds(300));
+    session_->OnToolFinished(call_id, /*ok=*/true, "kOk", "", target);
   }
 
   base::test::TaskEnvironment task_environment_{
@@ -377,6 +437,7 @@ TEST_F(TtcDebugSessionTest, ExportOmitsVerboseEvents) {
   ASSERT_TRUE(snapshot);
   EXPECT_EQ(snapshot->FindDouble("bytes_sent"), 5 * 1600 * 2);
   EXPECT_TRUE(snapshot->FindDouble("audio_bytes"));
+  EXPECT_TRUE(snapshot->FindInt("open_errors"));
   EXPECT_TRUE(snapshot->FindDouble("dropped_items"));
   const base::ListValue* events = value.FindList("events");
   ASSERT_TRUE(events);
@@ -404,12 +465,261 @@ TEST_F(TtcDebugSessionTest, CapReachedIsReportedOnce) {
   EXPECT_TRUE(session->GetSnapshot().audio_cap_reached);
 }
 
+TEST_F(TtcDebugSessionTest, VerifiedToolCallRaisesNoIssues) {
+  session_->OnTransportStateChanged(true);
+  RunNavigate("c1", ForegroundTab());
+  session_->OnToolEffect("c1", /*verified=*/true, "committed google.com");
+  session_->OnToolResponseSent("c1", /*sent=*/true, R"({"result":"ok"})");
+  task_environment_.FastForwardBy(base::Seconds(1));
+  session_->OnServerFrame(DebugSink::Transcript{.text = "Done."});
+  task_environment_.FastForwardBy(TtcDebugSession::kModelFollowUpTimeout);
+
+  ASSERT_EQ(session_->tool_calls().size(), 1u);
+  const TtcDebugSession::ToolCall& tool_call = session_->tool_calls()[0];
+  EXPECT_EQ(tool_call.name, "navigate");
+  EXPECT_EQ(tool_call.status, TtcDebugSession::ToolStatus::kOk);
+  EXPECT_EQ(tool_call.effect, TtcDebugSession::ToolEffect::kVerified);
+  EXPECT_EQ(tool_call.response_json, R"({"result":"ok"})");
+  EXPECT_TRUE(tool_call.model_followed_up);
+  EXPECT_TRUE(tool_call.target_before.has_value());
+  EXPECT_TRUE(session_->issues().empty());
+  EXPECT_TRUE(HasEvent(EventKind::kToolStart));
+  EXPECT_TRUE(HasEvent(EventKind::kToolEnd));
+}
+
+// The reported bug: the actor says the tool succeeded, but the effect never
+// shows up where the user is looking.
+TEST_F(TtcDebugSessionTest, BackgroundTargetAndNoEffectAreFlagged) {
+  session_->OnTransportStateChanged(true);
+  RunNavigate("c1", BackgroundTab());
+  const TtcDebugSession::Issue* background =
+      OpenIssue("tool_background_target:1");
+  ASSERT_TRUE(background);
+  EXPECT_EQ(background->severity, TtcDebugSession::IssueSeverity::kWarning);
+  EXPECT_EQ(background->tool_call_id, 1);
+
+  session_->OnToolEffect("c1", /*verified=*/false, "tab is not visible");
+  const TtcDebugSession::Issue* no_effect = OpenIssue("tool_no_effect:1");
+  ASSERT_TRUE(no_effect);
+  EXPECT_EQ(no_effect->severity, TtcDebugSession::IssueSeverity::kError);
+  EXPECT_EQ(session_->tool_calls()[0].effect,
+            TtcDebugSession::ToolEffect::kNoEffect);
+  EXPECT_EQ(session_->GetSnapshot().open_errors, 1);
+  EXPECT_EQ(session_->GetSnapshot().open_warnings, 1);
+  EXPECT_THAT(journal_.names, testing::Contains("TtcDebugIssue"));
+}
+
+TEST_F(TtcDebugSessionTest, ToolErrorRaisesIssue) {
+  session_->OnServerFrame(DebugSink::ToolCall{
+      .call_id = "c1", .name = "navigate", .arguments_json = "{}"});
+  session_->OnToolDispatched("c1", "navigate", "{}", ForegroundTab(),
+                             /*verifying=*/true);
+  session_->OnToolFinished("c1", /*ok=*/false, "kNavigateInvalidUrl", "bad url",
+                           std::nullopt);
+  const TtcDebugSession::Issue* issue = OpenIssue("tool_error:1");
+  ASSERT_TRUE(issue);
+  EXPECT_EQ(issue->severity, TtcDebugSession::IssueSeverity::kError);
+  EXPECT_EQ(session_->tool_calls()[0].effect,
+            TtcDebugSession::ToolEffect::kNotChecked);
+}
+
+TEST_F(TtcDebugSessionTest, ToolRejectedAndNoTargetRaiseIssues) {
+  session_->OnToolCallRejected("c1", "invalid arguments JSON");
+  EXPECT_TRUE(OpenIssue("tool_rejected:1"));
+  EXPECT_EQ(session_->tool_calls()[0].status,
+            TtcDebugSession::ToolStatus::kRejected);
+
+  session_->OnServerFrame(DebugSink::ToolCall{
+      .call_id = "c2", .name = "go_back", .arguments_json = "{}"});
+  session_->OnToolNoTarget("c2", "go_back");
+  EXPECT_TRUE(OpenIssue("tool_no_target:2"));
+}
+
+TEST_F(TtcDebugSessionTest, ToolTimeoutResolvesWhenToolFinishes) {
+  session_->OnTransportStateChanged(true);
+  session_->OnServerFrame(DebugSink::ToolCall{
+      .call_id = "c1", .name = "click", .arguments_json = "{}"});
+  session_->OnToolDispatched("c1", "click", "{}", ForegroundTab(),
+                             /*verifying=*/false);
+  task_environment_.FastForwardBy(TtcDebugSession::kToolTimeout -
+                                  base::Milliseconds(300));
+  EXPECT_FALSE(AnyIssue("tool_timeout:1"));
+  task_environment_.FastForwardBy(base::Milliseconds(600));
+  EXPECT_TRUE(OpenIssue("tool_timeout:1"));
+  session_->OnToolFinished("c1", /*ok=*/true, "kOk", "", ForegroundTab());
+  EXPECT_FALSE(OpenIssue("tool_timeout:1"));
+  EXPECT_TRUE(AnyIssue("tool_timeout:1")->resolved);
+}
+
+TEST_F(TtcDebugSessionTest, ModelSilentAfterToolResponse) {
+  session_->OnTransportStateChanged(true);
+  RunNavigate("c1", ForegroundTab());
+  session_->OnToolResponseSent("c1", /*sent=*/true, "{}");
+  task_environment_.FastForwardBy(TtcDebugSession::kModelFollowUpTimeout +
+                                  TtcDebugSession::kDetectorInterval);
+  const TtcDebugSession::Issue* issue = OpenIssue("model_silent_after_tool:1");
+  ASSERT_TRUE(issue);
+  EXPECT_EQ(issue->category, TtcDebugSession::IssueCategory::kModel);
+
+  // A late reply resolves it.
+  ReceiveAudio(1);
+  EXPECT_FALSE(OpenIssue("model_silent_after_tool:1"));
+  EXPECT_TRUE(session_->tool_calls()[0].model_followed_up);
+}
+
+TEST_F(TtcDebugSessionTest, DroppedToolResponseIsAnError) {
+  RunNavigate("c1", ForegroundTab());
+  session_->OnToolResponseSent("c1", /*sent=*/false, "{}");
+  EXPECT_TRUE(OpenIssue("tool_response_not_sent:1"));
+  EXPECT_TRUE(session_->tool_calls()[0].response_dropped);
+  // Nothing can follow up on a response that was never sent.
+  task_environment_.FastForwardBy(TtcDebugSession::kModelFollowUpTimeout * 2);
+  EXPECT_FALSE(AnyIssue("model_silent_after_tool:1"));
+}
+
+TEST_F(TtcDebugSessionTest, RepeatedIssuesAreDeduplicated) {
+  session_->OnServerFrame(
+      DebugSink::ServerError{.code = "INTERNAL", .message = "first"});
+  session_->OnServerFrame(
+      DebugSink::ServerError{.code = "INTERNAL", .message = "second"});
+  session_->OnServerFrame(
+      DebugSink::ServerError{.code = "UNAVAILABLE", .message = "other"});
+  ASSERT_EQ(session_->issues().size(), 2u);
+  const TtcDebugSession::Issue* issue = OpenIssue("server_error:INTERNAL");
+  ASSERT_TRUE(issue);
+  EXPECT_EQ(issue->count, 2);
+  EXPECT_EQ(issue->detail, "second");
+}
+
+TEST_F(TtcDebugSessionTest, SessionStatusDiagnosticIsReported) {
+  session_->OnServerFrame(DebugSink::SessionStatus{.state = "STATE_CONNECTED"});
+  EXPECT_TRUE(session_->issues().empty());
+  session_->OnServerFrame(DebugSink::SessionStatus{
+      .state = "STATE_REJECTED", .diagnostic = "quota exceeded"});
+  const TtcDebugSession::Issue* issue = OpenIssue("session_rejected");
+  ASSERT_TRUE(issue);
+  EXPECT_THAT(issue->detail, testing::HasSubstr("quota exceeded"));
+  EXPECT_THAT(issue->detail, testing::HasSubstr("STATE_REJECTED"));
+
+  // The title doesn't change with the state; the detail does.
+  session_->OnServerFrame(
+      DebugSink::SessionStatus{.state = "STATE_UNAVAILABLE"});
+  ASSERT_EQ(session_->issues().size(), 1u);
+  EXPECT_EQ(issue->count, 2);
+  EXPECT_EQ(issue->title, "Session not connected");
+  EXPECT_THAT(issue->detail, testing::HasSubstr("STATE_UNAVAILABLE"));
+}
+
+TEST_F(TtcDebugSessionTest, MicSilenceRaisedAndResolved) {
+  session_->OnTransportStateChanged(true);
+  Speak(TtcDebugSession::kMicSilenceIssueChunks + 1, 0.0f);
+  task_environment_.FastForwardBy(TtcDebugSession::kDetectorInterval);
+  EXPECT_TRUE(OpenIssue("mic_silent"));
+  Speak(1, 0.1f);
+  task_environment_.FastForwardBy(TtcDebugSession::kDetectorInterval);
+  EXPECT_FALSE(OpenIssue("mic_silent"));
+}
+
+TEST_F(TtcDebugSessionTest, MutedMicRaisedAndResolved) {
+  session_->OnCaptureMuted(true);
+  task_environment_.FastForwardBy(TtcDebugSession::kDetectorInterval);
+  EXPECT_TRUE(OpenIssue("mic_muted"));
+  session_->OnCaptureMuted(false);
+  task_environment_.FastForwardBy(TtcDebugSession::kDetectorInterval);
+  EXPECT_FALSE(OpenIssue("mic_muted"));
+}
+
+TEST_F(TtcDebugSessionTest, UnplayedAudioIsFlagged) {
+  session_->OnTransportStateChanged(true);
+  ReceiveAudio(2);
+  task_environment_.FastForwardBy(TtcDebugSession::kPlaybackStallTimeout +
+                                  TtcDebugSession::kDetectorInterval);
+  EXPECT_TRUE(OpenIssue("playback_stalled"));
+  session_->OnClientFrame(
+      DebugSink::PlaybackStatus{.last_played_sequence_number = 1});
+  task_environment_.FastForwardBy(TtcDebugSession::kDetectorInterval);
+  EXPECT_FALSE(OpenIssue("playback_stalled"));
+}
+
 TEST_F(TtcDebugSessionTest, AudioDroppedByInterruptionIsNotFlagged) {
   session_->OnTransportStateChanged(true);
   ReceiveAudio(2);
   session_->OnServerFrame(DebugSink::Interrupted());
   task_environment_.FastForwardBy(TtcDebugSession::kPlaybackStallTimeout * 2);
+  EXPECT_FALSE(AnyIssue("playback_stalled"));
   EXPECT_NE(StageHealth(Stage::kSpeaker), Health::kWarning);
+}
+
+TEST_F(TtcDebugSessionTest, TransportLossRaisedAndResolvedOnReconnect) {
+  session_->OnTransportStateChanged(false);
+  task_environment_.FastForwardBy(TtcDebugSession::kDetectorInterval);
+  // Not connecting yet isn't a loss.
+  EXPECT_FALSE(AnyIssue("transport_lost"));
+  session_->OnTransportStateChanged(true);
+  session_->OnTransportStateChanged(false);
+  task_environment_.FastForwardBy(TtcDebugSession::kDetectorInterval);
+  EXPECT_TRUE(OpenIssue("transport_lost"));
+  session_->OnTransportStateChanged(true);
+  EXPECT_FALSE(OpenIssue("transport_lost"));
+}
+
+TEST_F(TtcDebugSessionTest, PageContextFailureResolvedByNextContextUpdate) {
+  session_->OnPageContextFailed("https://example.com/",
+                                "kPageContextNotEligible");
+  EXPECT_TRUE(OpenIssue("page_context_failed"));
+  session_->OnClientFrame(DebugSink::ContextUpdate{
+      .url = "https://example.com/", .content_bytes = 1234});
+  EXPECT_FALSE(OpenIssue("page_context_failed"));
+  EXPECT_TRUE(HasEvent(EventKind::kContextSent));
+
+  session_->OnPageContextBlocked("chrome://settings/");
+  const TtcDebugSession::Issue* blocked =
+      OpenIssue("page_context_blocked:chrome://settings/");
+  ASSERT_TRUE(blocked);
+  EXPECT_EQ(blocked->severity, TtcDebugSession::IssueSeverity::kInfo);
+}
+
+TEST_F(TtcDebugSessionTest, ActorStepsAreAttachedToTheRunningTool) {
+  session_->OnServerFrame(DebugSink::ToolCall{
+      .call_id = "c1", .name = "navigate", .arguments_json = "{}"});
+  session_->OnToolDispatched("c1", "navigate", "{}", ForegroundTab(),
+                             /*verifying=*/true);
+  session_->OnActorJournalEntry("NavigateTool", 'B', "url=https://a.test",
+                                /*has_error=*/false);
+  session_->OnActorJournalEntry("NavigateTool", 'E', "error=boom",
+                                /*has_error=*/true);
+  ASSERT_EQ(session_->tool_calls()[0].actor_steps.size(), 2u);
+  const TtcDebugSession::Issue* issue = OpenIssue("actor_error:NavigateTool");
+  ASSERT_TRUE(issue);
+  EXPECT_EQ(issue->tool_call_id, 1);
+}
+
+TEST_F(TtcDebugSessionTest, ObserversGetChangedToolCallsAndIssues) {
+  RecordingObserver observer;
+  session_->AddObserver(&observer);
+  RunNavigate("c1", BackgroundTab());
+  task_environment_.FastForwardBy(TtcDebugSession::kFlushInterval);
+  ASSERT_FALSE(observer.tool_calls.empty());
+  EXPECT_EQ(observer.tool_calls.back().status,
+            TtcDebugSession::ToolStatus::kOk);
+  ASSERT_FALSE(observer.issues.empty());
+  EXPECT_EQ(observer.issues.back().key, "tool_background_target:1");
+  EXPECT_EQ(observer.last_snapshot.open_warnings, 1);
+  session_->RemoveObserver(&observer);
+}
+
+TEST_F(TtcDebugSessionTest, ExportIncludesToolCallsAndIssues) {
+  RunNavigate("c1", BackgroundTab());
+  base::DictValue value = session_->ToValue();
+  const base::ListValue* tool_calls = value.FindList("tool_calls");
+  ASSERT_TRUE(tool_calls);
+  ASSERT_EQ(tool_calls->size(), 1u);
+  EXPECT_EQ(*(*tool_calls)[0].GetDict().FindString("name"), "navigate");
+  const base::ListValue* issues = value.FindList("issues");
+  ASSERT_TRUE(issues);
+  ASSERT_EQ(issues->size(), 1u);
+  EXPECT_EQ(*(*issues)[0].GetDict().FindString("key"),
+            "tool_background_target:1");
 }
 
 TEST_F(TtcDebugSessionTest, EndedSessionIgnoresFurtherInput) {
@@ -417,10 +727,13 @@ TEST_F(TtcDebugSessionTest, EndedSessionIgnoresFurtherInput) {
   const size_t events = session_->events().size();
   Speak(5, 0.1f);
   ReceiveAudio(2);
+  session_->OnServerFrame(
+      DebugSink::ServerError{.code = "INTERNAL", .message = "boom"});
   session_->OnCaptureMuted(true);
   task_environment_.FastForwardBy(base::Seconds(5));
   EXPECT_EQ(session_->events().size(), events);
   EXPECT_EQ(session_->recorder().bytes(), 0u);
+  EXPECT_TRUE(session_->issues().empty());
 }
 
 TEST_F(TtcDebugSessionTest, ServerFramesAreLabelledByContent) {
@@ -449,7 +762,24 @@ TEST_F(TtcDebugSessionTest, ServerFramesAreLabelledByContent) {
                           "server_error:INTERNAL", "journal:ModelStart",
                           "model_turn:GENERATING", "user_turn:SPEAKING",
                           "turn_complete", "other"));
+  EXPECT_THAT(EventLabels(EventKind::kServerJournal),
+              ElementsAre("ModelStart: k=v"));
+  EXPECT_EQ(session_->GetSnapshot().last_error, "INTERNAL: boom");
   EXPECT_EQ(session_->GetSnapshot().server_frames, 10);
+}
+
+TEST_F(TtcDebugSessionTest, IssueEventLabelStartsWithSeverity) {
+  session_->OnServerFrame(
+      DebugSink::ServerError{.code = "INTERNAL", .message = "boom"});
+  session_->OnServerFrame(DebugSink::GoAway{.time_left_ms = 5000});
+  EXPECT_THAT(EventLabels(EventKind::kIssue),
+              ElementsAre("error: Server error: INTERNAL",
+                          "warning: Server is ending the session"));
+  for (const auto& event : session_->events()) {
+    if (event.kind == EventKind::kIssue) {
+      EXPECT_EQ(event.value, 0);
+    }
+  }
 }
 
 TEST_F(TtcDebugSessionTest, EventsAreCapped) {
@@ -480,7 +810,7 @@ TEST_F(TtcDebugSessionTest, FrequentEventsDontCrowdOutOthers) {
   EXPECT_EQ(session_->events().size(), TtcDebugSession::kMaxFrequentEvents + 1);
 
   session_->OnError("still recorded");
-  EXPECT_EQ(session_->events().back().kind, EventKind::kError);
+  EXPECT_THAT(EventLabels(EventKind::kError), ElementsAre("still recorded"));
   base::DictValue value = session_->ToValue();
   EXPECT_THAT(value.FindBool("frequent_events_truncated"),
               testing::Optional(true));
@@ -489,6 +819,7 @@ TEST_F(TtcDebugSessionTest, FrequentEventsDontCrowdOutOthers) {
 
 TEST_F(TtcDebugSessionTest, LateObserverOnlyGetsNewChanges) {
   session_->OnTransportStateChanged(true);
+  RunNavigate("c1", BackgroundTab());
   task_environment_.FastForwardBy(base::Seconds(1));
   const size_t backlog = session_->events().size();
 
@@ -500,6 +831,20 @@ TEST_F(TtcDebugSessionTest, LateObserverOnlyGetsNewChanges) {
   EXPECT_EQ(observer.first_event_indices[0], backlog);
   EXPECT_TRUE(observer.events.empty());
   EXPECT_TRUE(observer.turns.empty());
+  EXPECT_TRUE(observer.tool_calls.empty());
+  EXPECT_TRUE(observer.issues.empty());
+
+  session_->OnServerFrame(
+      DebugSink::ServerError{.code = "INTERNAL", .message = "boom"});
+  task_environment_.FastForwardBy(TtcDebugSession::kFlushInterval);
+  ASSERT_EQ(observer.updates, 2);
+  EXPECT_EQ(observer.first_event_indices[1], backlog);
+  // The frame's marker, then the issue it raised.
+  ASSERT_EQ(observer.events.size(), 2u);
+  EXPECT_EQ(observer.events[0].kind, EventKind::kServerFrame);
+  EXPECT_EQ(observer.events[1].kind, EventKind::kIssue);
+  ASSERT_EQ(observer.issues.size(), 1u);
+  EXPECT_EQ(observer.issues[0].key, "server_error:INTERNAL");
   session_->RemoveObserver(&observer);
 }
 
@@ -544,11 +889,17 @@ TEST_F(TtcDebugSessionTest, LateReplyResolvesNoResponse) {
   Speak(5, 0.1f);
   Speak(10, 0.0f);
   task_environment_.FastForwardBy(TtcDebugSession::kNoResponseTimeout);
+  ASSERT_TRUE(OpenIssue("no_response:1"));
+  EXPECT_EQ(session_->GetSnapshot().open_errors, 1);
   ASSERT_EQ(session_->turns()[0].status, TurnStatus::kNoResponse);
 
   // The reply arrives after the watchdog fired.
   session_->OnServerFrame(
       DebugSink::Transcript{.is_input = true, .text = "open my calendar"});
+  EXPECT_FALSE(OpenIssue("no_response:1"));
+  ASSERT_TRUE(AnyIssue("no_response:1"));
+  EXPECT_TRUE(AnyIssue("no_response:1")->resolved);
+  EXPECT_EQ(session_->GetSnapshot().open_errors, 0);
   EXPECT_FALSE(session_->GetSnapshot().no_response_suspected);
 
   // It is attached to the same turn rather than opening a new one.
@@ -569,9 +920,39 @@ TEST_F(TtcDebugSessionTest, LateReplyAfterNewSpeechStartsNewTurn) {
   Speak(10, 0.0f);
   session_->OnServerFrame(
       DebugSink::Transcript{.is_input = true, .text = "hello"});
+  EXPECT_FALSE(OpenIssue("no_response:1"));
   ASSERT_EQ(session_->turns().size(), 2u);
   EXPECT_EQ(session_->turns()[0].status, TurnStatus::kNoResponse);
   EXPECT_EQ(session_->turns()[1].input_transcript, "hello");
+}
+
+TEST_F(TtcDebugSessionTest, ServerFrameErrorsAreClassified) {
+  session_->OnServerFrame(DebugSink::ServerError{
+      .code = "MalformedAudioChunk",
+      .message = "malformed audio chunk of 3 bytes"});
+  const TtcDebugSession::Issue* malformed = OpenIssue("malformed_audio");
+  ASSERT_TRUE(malformed);
+  EXPECT_EQ(malformed->severity, IssueSeverity::kWarning);
+  EXPECT_FALSE(AnyIssue("server_error:MalformedAudioChunk"));
+
+  session_->OnServerFrame(DebugSink::ServerError{
+      .code = "UnparsableServerFrame",
+      .message = "unparsable server frame of 3 bytes"});
+  const TtcDebugSession::Issue* error =
+      OpenIssue("server_error:UnparsableServerFrame");
+  ASSERT_TRUE(error);
+  EXPECT_EQ(error->severity, IssueSeverity::kError);
+  EXPECT_EQ(session_->issues().size(), 2u);
+  EXPECT_EQ(StageHealth(Stage::kServer), Health::kError);
+}
+
+TEST_F(TtcDebugSessionTest, GoAwayRaisesWarning) {
+  session_->OnServerFrame(DebugSink::GoAway{.time_left_ms = 5000});
+  const TtcDebugSession::Issue* issue = OpenIssue("go_away");
+  ASSERT_TRUE(issue);
+  EXPECT_EQ(issue->severity, IssueSeverity::kWarning);
+  EXPECT_THAT(issue->detail, HasSubstr("5000 ms"));
+  EXPECT_THAT(EventLabels(EventKind::kServerFrame), ElementsAre("go_away"));
 }
 
 TEST_F(TtcDebugSessionTest, PlaybackAfterTurnClosedIsRecorded) {
@@ -589,14 +970,70 @@ TEST_F(TtcDebugSessionTest, PlaybackAfterTurnClosedIsRecorded) {
   EXPECT_TRUE(session_->turns()[0].first_playback_ms.has_value());
 }
 
+TEST_F(TtcDebugSessionTest, BackgroundTargetIsCountedOnce) {
+  // Dispatched and finished in a background tab: one occurrence.
+  RunNavigate("c1", BackgroundTab());
+  const TtcDebugSession::Issue* issue = OpenIssue("tool_background_target:1");
+  ASSERT_TRUE(issue);
+  EXPECT_EQ(issue->count, 1);
+  EXPECT_EQ(issue->title, "navigate is acting on a background tab");
+  EXPECT_EQ(session_->issues().size(), 1u);
+
+  // Dispatched in the foreground, finished in the background.
+  session_->OnServerFrame(DebugSink::ToolCall{
+      .call_id = "c2", .name = "navigate", .arguments_json = "{}"});
+  session_->OnToolDispatched("c2", "navigate", "{}", ForegroundTab(),
+                             /*verifying=*/true);
+  session_->OnToolFinished("c2", /*ok=*/true, "kOk", "", BackgroundTab());
+  issue = OpenIssue("tool_background_target:2");
+  ASSERT_TRUE(issue);
+  EXPECT_EQ(issue->count, 1);
+  EXPECT_EQ(issue->title, "navigate finished in a background tab");
+}
+
+TEST_F(TtcDebugSessionTest, BrowserLevelToolHasNoTarget) {
+  // Browser-level tools are reported without a target.
+  session_->OnServerFrame(DebugSink::ToolCall{
+      .call_id = "c1", .name = "switch_tab", .arguments_json = "{}"});
+  session_->OnToolDispatched("c1", "switch_tab", "{}", std::nullopt,
+                             /*verifying=*/false);
+  session_->OnToolFinished("c1", /*ok=*/true, "kOk", "", std::nullopt);
+  const TtcDebugSession::ToolCall& tool_call = session_->tool_calls()[0];
+  EXPECT_EQ(tool_call.status, ToolStatus::kOk);
+  EXPECT_FALSE(tool_call.target_before.has_value());
+  EXPECT_FALSE(tool_call.target_after.has_value());
+  EXPECT_TRUE(session_->issues().empty());
+}
+
 TEST_F(TtcDebugSessionTest, LongTextIsTruncated) {
   // Two-byte UTF-8 characters, so that a byte cut could split one.
   std::string long_text;
   for (size_t i = 0; i < TtcDebugSession::kMaxTextLength; ++i) {
     long_text += "\xC3\xA9";
   }
+  session_->OnServerFrame(DebugSink::ToolCall{
+      .call_id = "c1", .name = "navigate", .arguments_json = long_text});
+  const TtcDebugSession::ToolCall& tool_call = session_->tool_calls()[0];
+  EXPECT_LE(tool_call.arguments_json.size(), TtcDebugSession::kMaxTextLength);
+  EXPECT_TRUE(tool_call.arguments_json.ends_with(kEllipsis));
+  EXPECT_TRUE(base::IsStringUTF8(tool_call.arguments_json));
+  for (const auto& event : session_->events()) {
+    EXPECT_LE(event.label.size(), TtcDebugSession::kMaxTextLength);
+    EXPECT_TRUE(base::IsStringUTF8(event.label));
+  }
+
+  // Issue keys, titles, details and evidence are bounded, and repeats are
+  // still recognized.
   session_->OnError(long_text);
   session_->OnError(long_text);
+  ASSERT_EQ(session_->issues().size(), 1u);
+  const TtcDebugSession::Issue& issue = session_->issues()[0];
+  EXPECT_EQ(issue.count, 2);
+  EXPECT_LE(issue.key.size(), TtcDebugSession::kMaxIssueKeyLength);
+  EXPECT_LE(issue.title.size(), TtcDebugSession::kMaxTextLength);
+  for (const auto& entry : issue.evidence) {
+    EXPECT_LE(entry.second.size(), TtcDebugSession::kMaxTextLength);
+  }
   EXPECT_LE(session_->GetSnapshot().last_error.size(),
             TtcDebugSession::kMaxTextLength);
 }
@@ -611,6 +1048,58 @@ TEST_F(TtcDebugSessionTest, TranscriptsAreCapped) {
   EXPECT_LE(transcript.size(), TtcDebugSession::kMaxTranscriptLength);
   EXPECT_GT(transcript.size(), TtcDebugSession::kMaxTranscriptLength - 1000);
   EXPECT_TRUE(transcript.ends_with(kEllipsis));
+}
+
+TEST_F(TtcDebugSessionTest, ToolCallsAreCapped) {
+  for (size_t i = 0; i < TtcDebugSession::kMaxToolCalls; ++i) {
+    session_->OnServerFrame(
+        DebugSink::ToolCall{.call_id = base::NumberToString(i),
+                            .name = "click",
+                            .arguments_json = "{}"});
+  }
+  EXPECT_EQ(session_->GetSnapshot().dropped_items, 0);
+  EXPECT_FALSE(HasEvent(EventKind::kItemsTruncated));
+
+  // A dropped call is counted once, however often it is reported.
+  session_->OnServerFrame(DebugSink::ToolCall{
+      .call_id = "extra", .name = "click", .arguments_json = "{}"});
+  session_->OnToolDispatched("extra", "click", "{}", ForegroundTab(),
+                             /*verifying=*/false);
+  session_->OnToolFinished("extra", /*ok=*/true, "kOk", "", ForegroundTab());
+  EXPECT_EQ(session_->tool_calls().size(), TtcDebugSession::kMaxToolCalls);
+  EXPECT_EQ(session_->GetSnapshot().dropped_items, 1);
+  session_->OnServerFrame(DebugSink::ToolCall{
+      .call_id = "another", .name = "click", .arguments_json = "{}"});
+  EXPECT_EQ(session_->GetSnapshot().dropped_items, 2);
+  EXPECT_EQ(CountEvents(EventKind::kItemsTruncated), 1);
+
+  // Calls that were kept still update.
+  session_->OnToolDispatched("0", "click", "{}", ForegroundTab(),
+                             /*verifying=*/false);
+  EXPECT_EQ(session_->tool_calls()[0].status, ToolStatus::kRunning);
+}
+
+TEST_F(TtcDebugSessionTest, IssuesAreCapped) {
+  for (size_t i = 0; i < TtcDebugSession::kMaxIssues; ++i) {
+    session_->OnServerFrame(
+        DebugSink::ServerError{.code = base::NumberToString(i)});
+  }
+  EXPECT_EQ(session_->issues().size(), TtcDebugSession::kMaxIssues);
+  EXPECT_EQ(session_->GetSnapshot().dropped_items, 0);
+
+  // A dropped problem is counted once, however often it recurs.
+  session_->OnServerFrame(DebugSink::ServerError{.code = "extra"});
+  session_->OnServerFrame(DebugSink::ServerError{.code = "extra"});
+  EXPECT_EQ(session_->issues().size(), TtcDebugSession::kMaxIssues);
+  EXPECT_EQ(session_->GetSnapshot().dropped_items, 1);
+  session_->OnServerFrame(DebugSink::ServerError{.code = "another"});
+  EXPECT_EQ(session_->GetSnapshot().dropped_items, 2);
+  EXPECT_EQ(CountEvents(EventKind::kItemsTruncated), 1);
+
+  // Issues that were kept still count repeats.
+  session_->OnServerFrame(
+      DebugSink::ServerError{.code = "0", .message = "again"});
+  EXPECT_EQ(session_->issues()[0].count, 2);
 }
 
 TEST_F(TtcDebugSessionTest, TurnsAreCapped) {

@@ -16,7 +16,6 @@
 #import "components/prefs/testing_pref_service.h"
 #import "components/signin/public/identity_manager/identity_test_environment.h"
 #import "ios/chrome/browser/composebox/coordinator/composebox_mode_holder.h"
-#import "ios/chrome/browser/composebox/public/features.h"
 #import "ios/chrome/browser/composebox/ui/composebox_input_item.h"
 #import "ios/chrome/browser/composebox/ui/composebox_input_item_collection.h"
 #import "ios/chrome/browser/composebox/ui/composebox_model_item.h"
@@ -32,7 +31,6 @@
 #import "testing/gtest/include/gtest/gtest.h"
 #import "testing/gtest_mac.h"
 #import "testing/platform_test.h"
-#import "ui/base/device_form_factor.h"
 
 @interface ComposeboxInputStateManager (Testing)
 - (void)didUpdateInputState:(const contextual_search::InputState&)inputState;
@@ -76,7 +74,6 @@ class ComposeboxInputStateManagerTest : public PlatformTest {
     PlatformTest::SetUp();
     contextual_search::ContextualSearchService::RegisterProfilePrefs(
         pref_service_.registry());
-    scoped_feature_list_.InitWithFeatures({kComposeboxServerSideState}, {});
 
     session_handle_ = std::make_unique<
         contextual_search::MockContextualSearchSessionHandle>();
@@ -135,9 +132,6 @@ TEST_F(ComposeboxInputStateManagerTest, Initialization) {
 // Tests that the manager correctly observes state updates from the model
 // and notifies its delegate.
 TEST_F(ComposeboxInputStateManagerTest, StateObservation) {
-  base::test::ScopedFeatureList feature_list;
-  feature_list.InitAndEnableFeature(kComposeboxAdditionalAdvancedTools);
-
   FakeComposeboxInputStateManagerDelegate* delegate =
       [[FakeComposeboxInputStateManagerDelegate alloc] init];
   manager_.delegate = delegate;
@@ -209,9 +203,6 @@ TEST_F(ComposeboxInputStateManagerTest, StateObservationOnConfigChange) {
 // Tests that the manager preserves the user's active tool choice across
 // searchbox configuration reloads if the tool is still allowed.
 TEST_F(ComposeboxInputStateManagerTest, Preselection) {
-  base::test::ScopedFeatureList feature_list;
-  feature_list.InitAndEnableFeature(kComposeboxAdditionalAdvancedTools);
-
   FakeComposeboxInputStateManagerDelegate* delegate =
       [[FakeComposeboxInputStateManagerDelegate alloc] init];
   manager_.delegate = delegate;
@@ -258,9 +249,6 @@ TEST_F(ComposeboxInputStateManagerTest, Preselection) {
 // Tests that the manager falls back to default state when a previously
 // selected tool becomes disallowed after a configuration reload.
 TEST_F(ComposeboxInputStateManagerTest, PreselectionRestricted) {
-  base::test::ScopedFeatureList feature_list;
-  feature_list.InitAndEnableFeature(kComposeboxAdditionalAdvancedTools);
-
   FakeComposeboxInputStateManagerDelegate* delegate =
       [[FakeComposeboxInputStateManagerDelegate alloc] init];
   manager_.delegate = delegate;
@@ -357,62 +345,9 @@ TEST_F(ComposeboxInputStateManagerTest, ToolDisabled_ServerSideEnabled) {
               testing::Contains(omnibox::ToolMode::TOOL_MODE_IMAGE_GEN));
 }
 
-// Tests that the image tool is allowed in local fallback mode when the
-// server-side state is disabled and the user is eligible according to the AIM
-// eligibility service.
-TEST_F(ComposeboxInputStateManagerTest, ImageToolAllowed_ServerSideDisabled) {
-  if (ui::GetDeviceFormFactor() != ui::DEVICE_FORM_FACTOR_TABLET) {
-    GTEST_SKIP() << "Server-side state is always enabled on phones.";
-  }
-
-  // Disable server-side state for this test.
-  base::test::ScopedFeatureList local_feature_list;
-  local_feature_list.InitAndDisableFeature(kComposeboxServerSideState);
-
-  // Set up mock expectation for AIM eligibility service.
-  EXPECT_CALL(*mock_aim_service_, IsFuseboxEligible())
-      .WillRepeatedly(testing::Return(true));
-  EXPECT_CALL(*mock_aim_service_, IsCreateImagesEligible())
-      .WillRepeatedly(testing::Return(true));
-
-  ComposeboxUIInputState* state = [manager_ computeUIInputStateWithFavicon:nil
-                                                       attachedWebStateIDs:{}];
-  EXPECT_TRUE([state isToolAvailable:ComposeboxMode::kImageGeneration]);
-}
-
-// Tests that the image tool is disabled in local fallback mode when there are
-// already tab or file attachments.
-TEST_F(ComposeboxInputStateManagerTest, ImageToolDisabled_HasTabOrFile) {
-  if (ui::GetDeviceFormFactor() != ui::DEVICE_FORM_FACTOR_TABLET) {
-    GTEST_SKIP() << "Server-side state is always enabled on phones.";
-  }
-
-  // Disable server-side state for this test.
-  base::test::ScopedFeatureList local_feature_list;
-  local_feature_list.InitAndDisableFeature(kComposeboxServerSideState);
-
-  // Add a tab attachment to the collection.
-  ComposeboxInputItemCollection* collection =
-      [[ComposeboxInputItemCollection alloc] init];
-  ComposeboxInputItem* item = [[ComposeboxInputItem alloc]
-      initWithComposeboxInputItemType:ComposeboxInputItemType::
-                                          kComposeboxInputItemTypeTab
-                               source:ComposeboxInputItemSource::kTabPicker];
-  [collection addItem:item];
-
-  manager_.items = collection;
-
-  ComposeboxUIInputState* state = [manager_ computeUIInputStateWithFavicon:nil
-                                                       attachedWebStateIDs:{}];
-  EXPECT_TRUE([state isToolDisabled:ComposeboxMode::kImageGeneration]);
-}
-
 // Tests that onItemsUpdated correctly updates the tool mode in image generation
 // mode.
 TEST_F(ComposeboxInputStateManagerTest, OnItemsUpdated_ImageGenerationMode) {
-  base::test::ScopedFeatureList feature_list;
-  feature_list.InitAndEnableFeature(kComposeboxAdditionalAdvancedTools);
-
   EXPECT_CALL(*mock_aim_service_, IsFuseboxEligible())
       .WillRepeatedly(testing::Return(true));
 
@@ -464,21 +399,6 @@ TEST_F(ComposeboxInputStateManagerTest, OnItemsUpdated_ImageGenerationMode) {
   // Should fallback to TOOL_MODE_IMAGE_GEN.
   EXPECT_EQ(manager_.inputState->active_tool,
             omnibox::ToolMode::TOOL_MODE_IMAGE_GEN);
-}
-
-// Tests that tab attachments are disabled in local fallback mode when the
-// active mode is image generation.
-TEST_F(ComposeboxInputStateManagerTest, TabAttachmentDisabled_ImageGenMode) {
-  // Disable server-side state for this test.
-  base::test::ScopedFeatureList local_feature_list;
-  local_feature_list.InitAndDisableFeature(kComposeboxServerSideState);
-
-  // Set the active mode to image generation.
-  mode_holder_.mode = ComposeboxMode::kImageGeneration;
-
-  ComposeboxUIInputState* state = [manager_ computeUIInputStateWithFavicon:nil
-                                                       attachedWebStateIDs:{}];
-  EXPECT_TRUE([state isAttachmentDisabled:ComposeboxAttachmentOption::kTab]);
 }
 
 #pragma mark - Attachment Capacity
@@ -738,9 +658,6 @@ TEST_F(ComposeboxInputStateManagerTest, ComputeUIInputState) {
 // state.
 TEST_F(ComposeboxInputStateManagerTest,
        ComputeUIInputState_ActiveModePropagation) {
-  base::test::ScopedFeatureList feature_list;
-  feature_list.InitAndEnableFeature(kComposeboxAdditionalAdvancedTools);
-
   omnibox::SearchboxConfig config;
   config.mutable_rule_set()->add_allowed_tools(
       omnibox::ToolMode::TOOL_MODE_CANVAS);
@@ -766,9 +683,6 @@ TEST_F(ComposeboxInputStateManagerTest,
 // the server `SearchboxConfig`.
 TEST_F(ComposeboxInputStateManagerTest,
        PtmToolVisibleAndActivatableOnlyWhenGeminiProToolAllowedByServer) {
-  base::test::ScopedFeatureList feature_list;
-  feature_list.InitAndEnableFeature(kComposeboxAdditionalAdvancedTools);
-
   ComposeboxUIInputState* initial_state =
       [manager_ computeUIInputStateWithFavicon:nil attachedWebStateIDs:{}];
   ASSERT_NE(initial_state, nil);
@@ -796,9 +710,6 @@ TEST_F(ComposeboxInputStateManagerTest,
 // state.
 TEST_F(ComposeboxInputStateManagerTest,
        ComputeUIInputState_ActiveModelPropagation) {
-  base::test::ScopedFeatureList feature_list;
-  feature_list.InitAndEnableFeature(kComposeboxAdditionalAdvancedTools);
-
   omnibox::SearchboxConfig config;
   omnibox::ModelConfig* model_config = config.add_model_configs();
   model_config->set_model(omnibox::ModelMode::MODEL_MODE_GEMINI_PRO);
@@ -837,9 +748,6 @@ TEST_F(ComposeboxInputStateManagerTest,
 // populates fields based on the provided configuration.
 TEST_F(ComposeboxInputStateManagerTest,
        ComputeUIInputState_PopulatesFieldsFromConfig) {
-  base::test::ScopedFeatureList feature_list;
-  feature_list.InitAndEnableFeature(kComposeboxAdditionalAdvancedTools);
-
   omnibox::SearchboxConfig config;
   config.mutable_rule_set()->set_max_total_inputs(5);
 
@@ -872,7 +780,6 @@ TEST_F(ComposeboxInputStateManagerTest,
   EXPECT_NE(state, nil);
   EXPECT_EQ(state.currentTabFavicon, favicon);
   EXPECT_EQ(state.remainingAttachmentCapacity, 5u);
-  EXPECT_TRUE(state.allowModelPicker);
 
   EXPECT_TRUE([state isToolAvailable:ComposeboxMode::kImageGeneration]);
   ASSERT_EQ(state.modelItems.count, 1u);
@@ -884,9 +791,6 @@ TEST_F(ComposeboxInputStateManagerTest,
 // Tests that the model items contain the allowed models in server order and
 // that the active model is selected.
 TEST_F(ComposeboxInputStateManagerTest, ComputeUIInputState_ModelItems) {
-  base::test::ScopedFeatureList feature_list;
-  feature_list.InitAndEnableFeature(kComposeboxAdditionalAdvancedTools);
-
   omnibox::SearchboxConfig config;
   for (omnibox::ModelMode model :
        {omnibox::ModelMode::MODEL_MODE_GEMINI_PRO,
@@ -934,9 +838,6 @@ TEST_F(ComposeboxInputStateManagerTest, ComputeUIInputState_ModelItems) {
 // unknown to the client are displayed with their server label.
 TEST_F(ComposeboxInputStateManagerTest,
        ComputeUIInputState_ModelItemsRequireLabel) {
-  base::test::ScopedFeatureList feature_list;
-  feature_list.InitAndEnableFeature(kComposeboxAdditionalAdvancedTools);
-
   const omnibox::ModelMode kUnknownModel =
       static_cast<omnibox::ModelMode>(9999);
   omnibox::SearchboxConfig config;
@@ -966,9 +867,6 @@ TEST_F(ComposeboxInputStateManagerTest,
 // Tests that `computeUIInputStateWithFavicon:attachedWebStateIDs:` parses
 // server-configured icons.
 TEST_F(ComposeboxInputStateManagerTest, ComputeUIInputState_ServerIcons) {
-  base::test::ScopedFeatureList feature_list;
-  feature_list.InitAndEnableFeature(kComposeboxAdditionalAdvancedTools);
-
   omnibox::SearchboxConfig config;
   omnibox::ToolConfig* tool_config = config.add_tool_configs();
   tool_config->set_tool(omnibox::ToolMode::TOOL_MODE_IMAGE_GEN);
@@ -1005,9 +903,6 @@ TEST_F(ComposeboxInputStateManagerTest, ComputeUIInputState_ServerIcons) {
 // server.
 TEST_F(ComposeboxInputStateManagerTest,
        ComputeUIInputState_UnknownServerIcons) {
-  base::test::ScopedFeatureList feature_list;
-  feature_list.InitAndEnableFeature(kComposeboxAdditionalAdvancedTools);
-
   omnibox::SearchboxConfig config;
   omnibox::ToolConfig* tool_config = config.add_tool_configs();
   tool_config->set_tool(omnibox::ToolMode::TOOL_MODE_IMAGE_GEN);
@@ -1040,31 +935,6 @@ TEST_F(ComposeboxInputStateManagerTest,
   EXPECT_NE([state.uiConfig iconForTool:ComposeboxMode::kImageGeneration], nil);
   ASSERT_EQ(state.modelItems.count, 1u);
   EXPECT_NE(state.modelItems[0].icon, nil);
-}
-
-// Tests that `computeUIInputStateWithFavicon:attachedWebStateIDs:` disables
-// model picker when the feature flag is off.
-TEST_F(ComposeboxInputStateManagerTest,
-       ComputeUIInputState_ModelPickerDisabled) {
-  if (ui::GetDeviceFormFactor() != ui::DEVICE_FORM_FACTOR_TABLET) {
-    GTEST_SKIP() << "Model picker is always enabled on phones.";
-  }
-
-  base::test::ScopedFeatureList feature_list;
-  feature_list.InitAndDisableFeature(kComposeboxAdditionalAdvancedTools);
-
-  omnibox::SearchboxConfig config;
-  EXPECT_CALL(*mock_aim_service_, GetSearchboxConfig())
-      .WillRepeatedly(testing::Return(&config));
-  if (aim_eligibility_callback_) {
-    aim_eligibility_callback_.Run();
-  }
-
-  ComposeboxUIInputState* state = [manager_ computeUIInputStateWithFavicon:nil
-                                                       attachedWebStateIDs:{}];
-
-  EXPECT_NE(state, nil);
-  EXPECT_FALSE(state.allowModelPicker);
 }
 
 // Tests that `computeUIInputStateWithFavicon:attachedWebStateIDs:` disables
@@ -1139,6 +1009,52 @@ TEST_F(ComposeboxInputStateManagerTest,
   EXPECT_TRUE([state isAttachmentDisabled:ComposeboxAttachmentOption::kTab]);
 }
 
+// Tests that tab and file attachments are marked as disabled in the UI state
+// when disallowed by the active server rule while image attachments remain
+// available.
+TEST_F(ComposeboxInputStateManagerTest,
+       ComputeUIInputStateDisablesAttachmentsDisallowedByServerRule) {
+  omnibox::SearchboxConfig config;
+  omnibox::RuleSet* rule_set = config.mutable_rule_set();
+  rule_set->set_max_total_inputs(5);
+  for (omnibox::InputType input_type :
+       {omnibox::INPUT_TYPE_LENS_IMAGE, omnibox::INPUT_TYPE_LENS_FILE,
+        omnibox::INPUT_TYPE_BROWSER_TAB}) {
+    config.add_input_type_configs()->set_input_type(input_type);
+    omnibox::InputTypeRule* input_rule = rule_set->add_input_type_rules();
+    input_rule->set_input_type(input_type);
+    input_rule->set_max_instance(5);
+    input_rule->set_allow_all_input_types(true);
+    rule_set->add_allowed_input_types(input_type);
+  }
+
+  omnibox::ModelConfig* model_config = config.add_model_configs();
+  model_config->set_model(omnibox::ModelMode::MODEL_MODE_GEMINI_PRO);
+  model_config->set_menu_label("Thinking");
+  omnibox::ModelRule* model_rule = model_config->mutable_rule();
+  model_rule->set_model(omnibox::ModelMode::MODEL_MODE_GEMINI_PRO);
+  model_rule->add_allowed_input_types(omnibox::INPUT_TYPE_LENS_IMAGE);
+  rule_set->add_allowed_models(omnibox::ModelMode::MODEL_MODE_GEMINI_PRO);
+
+  EXPECT_CALL(*mock_aim_service_, GetSearchboxConfig())
+      .WillRepeatedly(testing::Return(&config));
+  ASSERT_TRUE(aim_eligibility_callback_);
+  aim_eligibility_callback_.Run();
+
+  [manager_ setActiveModel:omnibox::ModelMode::MODEL_MODE_GEMINI_PRO
+        explicitUserAction:YES];
+
+  ComposeboxUIInputState* state = [manager_ computeUIInputStateWithFavicon:nil
+                                                       attachedWebStateIDs:{}];
+
+  EXPECT_TRUE(
+      [state isAttachmentAvailable:ComposeboxAttachmentOption::kGallery]);
+  EXPECT_FALSE(
+      [state isAttachmentDisabled:ComposeboxAttachmentOption::kGallery]);
+  EXPECT_TRUE([state isAttachmentDisabled:ComposeboxAttachmentOption::kTab]);
+  EXPECT_TRUE([state isAttachmentDisabled:ComposeboxAttachmentOption::kFile]);
+}
+
 // Tests that `computeUIInputStateWithFavicon:attachedWebStateIDs:` disables
 // AIM tool for Cobrowse entrypoint.
 TEST_F(ComposeboxInputStateManagerTest,
@@ -1166,9 +1082,6 @@ TEST_F(ComposeboxInputStateManagerTest,
 
 // Tests that the manager notifies its delegate when the active model changes.
 TEST_F(ComposeboxInputStateManagerTest, SetActiveModel_NotifiesDelegate) {
-  base::test::ScopedFeatureList feature_list;
-  feature_list.InitAndEnableFeature(kComposeboxAdditionalAdvancedTools);
-
   EXPECT_CALL(*mock_aim_service_, IsFuseboxEligible())
       .WillRepeatedly(testing::Return(true));
   omnibox::SearchboxConfig config;
@@ -1195,9 +1108,6 @@ TEST_F(ComposeboxInputStateManagerTest, SetActiveModel_NotifiesDelegate) {
 // Tests that the manager switches to AIM mode when the user explicitly
 // selects an advanced model while in regular search mode.
 TEST_F(ComposeboxInputStateManagerTest, SetActiveModel_SwitchesToAIM) {
-  base::test::ScopedFeatureList feature_list;
-  feature_list.InitAndEnableFeature(kComposeboxAdditionalAdvancedTools);
-
   EXPECT_CALL(*mock_aim_service_, IsFuseboxEligible())
       .WillRepeatedly(testing::Return(true));
   omnibox::SearchboxConfig config;
@@ -1222,9 +1132,6 @@ TEST_F(ComposeboxInputStateManagerTest, SetActiveModel_SwitchesToAIM) {
 // Tests that the manager falls back to the default model when attempting
 // to select a model that is not allowed by the configuration.
 TEST_F(ComposeboxInputStateManagerTest, SetActiveModel_FallbackToDefault) {
-  base::test::ScopedFeatureList feature_list;
-  feature_list.InitAndEnableFeature(kComposeboxAdditionalAdvancedTools);
-
   EXPECT_CALL(*mock_aim_service_, IsFuseboxEligible())
       .WillRepeatedly(testing::Return(true));
 
@@ -1250,9 +1157,6 @@ TEST_F(ComposeboxInputStateManagerTest, SetActiveModel_FallbackToDefault) {
 
 // Tests that reconciliation does not trigger updates when state matches.
 TEST_F(ComposeboxInputStateManagerTest, Reconcile_NoOpWhenMatching) {
-  base::test::ScopedFeatureList feature_list;
-  feature_list.InitAndEnableFeature(kComposeboxAdditionalAdvancedTools);
-
   omnibox::SearchboxConfig config;
   config.mutable_rule_set()->add_allowed_tools(
       omnibox::ToolMode::TOOL_MODE_CANVAS);
@@ -1290,9 +1194,6 @@ TEST_F(ComposeboxInputStateManagerTest, Reconcile_NoOpWhenMatching) {
 // internal state is valid.
 TEST_F(ComposeboxInputStateManagerTest,
        Reconcile_ToolMismatch_ValidInternalState) {
-  base::test::ScopedFeatureList feature_list;
-  feature_list.InitAndEnableFeature(kComposeboxAdditionalAdvancedTools);
-
   omnibox::SearchboxConfig config;
   config.mutable_rule_set()->add_allowed_tools(
       omnibox::ToolMode::TOOL_MODE_CANVAS);
@@ -1328,9 +1229,6 @@ TEST_F(ComposeboxInputStateManagerTest,
 // mismatches and internal state is invalid.
 TEST_F(ComposeboxInputStateManagerTest,
        Reconcile_ToolMismatch_InvalidInternalState) {
-  base::test::ScopedFeatureList feature_list;
-  feature_list.InitAndEnableFeature(kComposeboxAdditionalAdvancedTools);
-
   // 1. Load config that allows Canvas.
   omnibox::SearchboxConfig allow_config;
   allow_config.mutable_rule_set()->add_allowed_tools(
@@ -1365,9 +1263,6 @@ TEST_F(ComposeboxInputStateManagerTest,
 // internal state is valid.
 TEST_F(ComposeboxInputStateManagerTest,
        Reconcile_ModelMismatch_ValidInternalState) {
-  base::test::ScopedFeatureList feature_list;
-  feature_list.InitAndEnableFeature(kComposeboxAdditionalAdvancedTools);
-
   omnibox::SearchboxConfig config;
   omnibox::ModelConfig* model_config = config.add_model_configs();
   model_config->set_model(omnibox::ModelMode::MODEL_MODE_GEMINI_PRO);
@@ -1405,9 +1300,6 @@ TEST_F(ComposeboxInputStateManagerTest,
 // mismatches and internal state is invalid.
 TEST_F(ComposeboxInputStateManagerTest,
        Reconcile_ModelMismatch_InvalidInternalState) {
-  base::test::ScopedFeatureList feature_list;
-  feature_list.InitAndEnableFeature(kComposeboxAdditionalAdvancedTools);
-
   // 1. Load config that allows Gemini Pro.
   omnibox::SearchboxConfig allow_config;
   omnibox::ModelConfig* model_config = allow_config.add_model_configs();
@@ -1443,9 +1335,6 @@ TEST_F(ComposeboxInputStateManagerTest,
 // Tests that reconciliation ignores model mismatch in regular search mode.
 TEST_F(ComposeboxInputStateManagerTest,
        Reconcile_RegularSearch_IgnoresModelMismatch) {
-  base::test::ScopedFeatureList feature_list;
-  feature_list.InitAndEnableFeature(kComposeboxAdditionalAdvancedTools);
-
   omnibox::SearchboxConfig config;
   EXPECT_CALL(*mock_aim_service_, GetSearchboxConfig())
       .WillRepeatedly(testing::Return(&config));

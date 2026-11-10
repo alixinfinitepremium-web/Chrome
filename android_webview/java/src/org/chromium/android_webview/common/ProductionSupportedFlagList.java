@@ -657,21 +657,6 @@ public final class ProductionSupportedFlagList {
                 "Use buffer size from AudioManager.PROPERTY_OUTPUT_FRAMES_PER_BUFFER for "
                         + "optimal output frame size."),
         Flag.baseFeature(
-                "DirectOpusAudioDecoding",
-                "Enables use of the OpusAudioDecoder for decoding Opus audio files."),
-        Flag.baseFeature(
-                "SymphoniaAudioDecoding",
-                "Enables use of the SymphoniaAudioDecoder for decoding FLAC audio files."),
-        Flag.baseFeature(
-                "SymphoniaMp3Decoding",
-                "Enables use of the SymphoniaAudioDecoder for decoding MP3 audio files."),
-        Flag.baseFeature(
-                "SymphoniaPcmDecoding",
-                "Enables use of the SymphoniaAudioDecoder for decoding PCM audio files."),
-        Flag.baseFeature(
-                "SymphoniaVorbisDecoding",
-                "Enables use of the SymphoniaAudioDecoder for decoding Vorbis audio files."),
-        Flag.baseFeature(
                 "UpdateScrollPredictorInputMapping",
                 "Updates the scroll predictor's input mapping and behavior. When enabled: 1. It"
                     + " uses `sample_time` (VSync time - 5ms) as the boundary for a frame's events"
@@ -1397,7 +1382,6 @@ public final class ProductionSupportedFlagList {
                 AwFeatures.WEBVIEW_USE_WVLES_FOR_LAYERED_STUDY,
                 "When enabled, WebView uses the nonembedded low entropy source for layered studies."
                         + " This requires 2 restarts of the WebView-based app to take effect."),
-        Flag.baseFeature("EnableUdpGro", "Utilizes GRO over recvmmsg for readMultiple."),
         Flag.baseFeature(
                 "StructuredHeadersInRust",
                 "Enables the Rust-based structured headers parser instead of C++."),

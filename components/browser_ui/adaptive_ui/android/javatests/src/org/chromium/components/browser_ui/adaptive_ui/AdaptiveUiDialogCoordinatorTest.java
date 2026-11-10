@@ -11,6 +11,12 @@ import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 import android.app.Activity;
 import android.view.ContextThemeWrapper;
@@ -22,8 +28,12 @@ import android.widget.TextView;
 import androidx.activity.OnBackPressedCallback;
 
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 import org.robolectric.Robolectric;
 import org.robolectric.annotation.Config;
 
@@ -31,6 +41,8 @@ import org.chromium.base.test.BaseRobolectricTestRunner;
 import org.chromium.components.browser_ui.modaldialog.ModalDialogView;
 import org.chromium.components.browser_ui.modaldialog.ModalDialogViewBinder;
 import org.chromium.ui.modaldialog.DialogDismissalCause;
+import org.chromium.ui.modaldialog.ModalDialogManager;
+import org.chromium.ui.modaldialog.ModalDialogManager.ModalDialogType;
 import org.chromium.ui.modaldialog.ModalDialogProperties;
 import org.chromium.ui.modaldialog.ModalDialogProperties.ButtonStyles;
 import org.chromium.ui.modaldialog.ModalDialogProperties.ButtonType;
@@ -50,14 +62,30 @@ import java.util.Set;
 @RunWith(BaseRobolectricTestRunner.class)
 @Config(manifest = Config.NONE)
 public class AdaptiveUiDialogCoordinatorTest {
+    @Rule public final MockitoRule mMockitoRule = MockitoJUnit.rule();
+
+    @Mock private ModalDialogManager mModalDialogManager;
+    @Mock private PropertyModel mOtherDialogModel;
+
     private Activity mActivity;
-    private final List<Integer> mDismissRequests = new ArrayList<>();
+    private int mShownCount;
     private final List<Integer> mDialogDismissals = new ArrayList<>();
 
     @Before
     public void setUp() {
         mActivity = Robolectric.buildActivity(Activity.class).setup().get();
         mActivity.setTheme(R.style.Theme_BrowserUI_DayNight);
+        // Behave like ModalDialogManager: dismissing a dialog reports it to its controller.
+        doAnswer(
+                        invocation -> {
+                            PropertyModel dialogModel = invocation.getArgument(0);
+                            dialogModel
+                                    .get(ModalDialogProperties.CONTROLLER)
+                                    .onDismiss(dialogModel, invocation.getArgument(1));
+                            return null;
+                        })
+                .when(mModalDialogManager)
+                .dismissDialog(any(), anyInt());
     }
 
     private AdaptiveUiDialogCoordinator createCoordinator(PropertyModel model) {
@@ -67,7 +95,12 @@ public class AdaptiveUiDialogCoordinatorTest {
     private AdaptiveUiDialogCoordinator createCoordinator(
             PropertyModel model, @AdaptiveUiScope int scope) {
         return new AdaptiveUiDialogCoordinator(
-                mActivity, model, scope, mDismissRequests::add, mDialogDismissals::add);
+                mActivity,
+                model,
+                scope,
+                mModalDialogManager,
+                () -> mShownCount++,
+                mDialogDismissals::add);
     }
 
     private static PropertyModel.Builder newModelBuilder() {
@@ -402,7 +435,7 @@ public class AdaptiveUiDialogCoordinatorTest {
         coordinator.onClick(coordinator.getDialogModel(), ButtonType.POSITIVE);
 
         assertEquals(1, clicks[0]);
-        assertEquals(List.of(DismissReason.PRIMARY_ACTION), mDismissRequests);
+        assertEquals(List.of(DismissReason.PRIMARY_ACTION), mDialogDismissals);
     }
 
     @Test
@@ -418,7 +451,7 @@ public class AdaptiveUiDialogCoordinatorTest {
         coordinator.onClick(coordinator.getDialogModel(), ButtonType.NEGATIVE);
 
         assertEquals(1, clicks[0]);
-        assertEquals(List.of(DismissReason.SECONDARY_ACTION), mDismissRequests);
+        assertEquals(List.of(DismissReason.SECONDARY_ACTION), mDialogDismissals);
     }
 
     @Test
@@ -436,7 +469,7 @@ public class AdaptiveUiDialogCoordinatorTest {
         coordinator.onClick(coordinator.getDialogModel(), ButtonType.POSITIVE);
 
         assertEquals(2, clicks[0]);
-        assertTrue(mDismissRequests.isEmpty());
+        assertTrue(mDialogDismissals.isEmpty());
     }
 
     @Test
@@ -453,7 +486,7 @@ public class AdaptiveUiDialogCoordinatorTest {
         coordinator.onClick(coordinator.getDialogModel(), ButtonType.NEGATIVE);
 
         assertEquals(1, clicks[0]);
-        assertTrue(mDismissRequests.isEmpty());
+        assertTrue(mDialogDismissals.isEmpty());
     }
 
     @Test
@@ -464,7 +497,7 @@ public class AdaptiveUiDialogCoordinatorTest {
 
         coordinator.onClick(coordinator.getDialogModel(), ButtonType.POSITIVE);
 
-        assertEquals(List.of(DismissReason.PRIMARY_ACTION), mDismissRequests);
+        assertEquals(List.of(DismissReason.PRIMARY_ACTION), mDialogDismissals);
     }
 
     @Test
@@ -479,7 +512,7 @@ public class AdaptiveUiDialogCoordinatorTest {
         coordinator.onClick(coordinator.getDialogModel(), ButtonType.POSITIVE);
         coordinator.onClick(coordinator.getDialogModel(), ButtonType.NEGATIVE);
 
-        assertEquals(List.of(DismissReason.PRIMARY_ACTION), mDismissRequests);
+        assertEquals(List.of(DismissReason.PRIMARY_ACTION), mDialogDismissals);
     }
 
     @Test
@@ -492,7 +525,7 @@ public class AdaptiveUiDialogCoordinatorTest {
                 .get(ModalDialogProperties.TITLE_CLOSE_BUTTON_CLICK_LISTENER)
                 .onClick(new View(mActivity));
 
-        assertEquals(List.of(DismissReason.CLOSE_BUTTON), mDismissRequests);
+        assertEquals(List.of(DismissReason.CLOSE_BUTTON), mDialogDismissals);
     }
 
     @Test
@@ -508,7 +541,7 @@ public class AdaptiveUiDialogCoordinatorTest {
 
         coordinator.onDismiss(dialogModel, DialogDismissalCause.UNKNOWN);
 
-        assertEquals(List.of(DialogDismissalCause.UNKNOWN), mDialogDismissals);
+        assertEquals(List.of(DismissReason.NAVIGATION), mDialogDismissals);
         assertNull(customView.getParent());
 
         model.set(AdaptiveUiProperties.TITLE, "Changed after dismiss");
@@ -554,7 +587,7 @@ public class AdaptiveUiDialogCoordinatorTest {
         coordinator.onClick(coordinator.getDialogModel(), ButtonType.POSITIVE);
 
         assertEquals(0, clicks[0]);
-        assertTrue(mDismissRequests.isEmpty());
+        assertTrue(mDialogDismissals.isEmpty());
     }
 
     // ---------------------------------------------------------------------------------------
@@ -621,7 +654,7 @@ public class AdaptiveUiDialogCoordinatorTest {
                 .get(ModalDialogProperties.APP_MODAL_DIALOG_BACK_PRESS_HANDLER)
                 .handleOnBackPressed();
 
-        assertEquals(List.of(DismissReason.BACK_PRESS), mDismissRequests);
+        assertEquals(List.of(DismissReason.BACK_PRESS), mDialogDismissals);
     }
 
     @Test
@@ -638,7 +671,7 @@ public class AdaptiveUiDialogCoordinatorTest {
                 .handleOnBackPressed();
 
         assertEquals(1, handled[0]);
-        assertTrue(mDismissRequests.isEmpty());
+        assertTrue(mDialogDismissals.isEmpty());
     }
 
     @Test
@@ -656,7 +689,7 @@ public class AdaptiveUiDialogCoordinatorTest {
                 .handleOnBackPressed();
 
         assertEquals(0, handled[0]);
-        assertEquals(List.of(DismissReason.BACK_PRESS), mDismissRequests);
+        assertEquals(List.of(DismissReason.BACK_PRESS), mDialogDismissals);
     }
 
     @Test
@@ -679,7 +712,7 @@ public class AdaptiveUiDialogCoordinatorTest {
 
         assertEquals(0, handledA[0]);
         assertEquals(1, handledB[0]);
-        assertTrue(mDismissRequests.isEmpty());
+        assertTrue(mDialogDismissals.isEmpty());
     }
 
     @Test
@@ -699,7 +732,7 @@ public class AdaptiveUiDialogCoordinatorTest {
                 .handleOnBackPressed();
 
         assertEquals(0, handled[0]);
-        assertEquals(List.of(DismissReason.PRIMARY_ACTION), mDismissRequests);
+        assertEquals(List.of(DismissReason.PRIMARY_ACTION), mDialogDismissals);
     }
 
     @Test
@@ -717,6 +750,204 @@ public class AdaptiveUiDialogCoordinatorTest {
                 dialogModel
                         .getAllSetProperties()
                         .contains(ModalDialogProperties.APP_MODAL_DIALOG_BACK_PRESS_HANDLER));
+    }
+
+    // ---------------------------------------------------------------------------------------
+    // Latched and custom dismiss reasons.
+    // ---------------------------------------------------------------------------------------
+
+    @Test
+    public void testOnDismiss_LatchedCloseButton_OverridesContainerCause() {
+        PropertyModel model = newModelBuilder().build();
+        AdaptiveUiDialogCoordinator coordinator = createCoordinator(model);
+
+        coordinator
+                .getDialogModel()
+                .get(ModalDialogProperties.TITLE_CLOSE_BUTTON_CLICK_LISTENER)
+                .onClick(null);
+        assertEquals(List.of(DismissReason.CLOSE_BUTTON), mDialogDismissals);
+
+        // Container dismisses dialog using NEGATIVE_BUTTON_CLICKED, but latched CLOSE_BUTTON takes
+        // precedence.
+        coordinator.onDismiss(
+                coordinator.getDialogModel(), DialogDismissalCause.NEGATIVE_BUTTON_CLICKED);
+        assertEquals(List.of(DismissReason.CLOSE_BUTTON), mDialogDismissals);
+    }
+
+    @Test
+    public void testOnDismiss_LatchedSecondaryAction_OverridesContainerCause() {
+        PropertyModel model =
+                newModelBuilder().with(AdaptiveUiProperties.SECONDARY_BUTTON_TEXT, "S").build();
+        AdaptiveUiDialogCoordinator coordinator = createCoordinator(model);
+
+        coordinator.onClick(coordinator.getDialogModel(), ButtonType.NEGATIVE);
+        assertEquals(List.of(DismissReason.SECONDARY_ACTION), mDialogDismissals);
+
+        // Container dismisses dialog using NEGATIVE_BUTTON_CLICKED, but latched SECONDARY_ACTION
+        // takes precedence.
+        coordinator.onDismiss(
+                coordinator.getDialogModel(), DialogDismissalCause.NEGATIVE_BUTTON_CLICKED);
+        assertEquals(List.of(DismissReason.SECONDARY_ACTION), mDialogDismissals);
+    }
+
+    @Test
+    public void testOnDismiss_LatchedBackPress_OverridesContainerCause() {
+        PropertyModel model = newModelBuilder().build();
+        AdaptiveUiDialogCoordinator coordinator = createCoordinator(model, AdaptiveUiScope.WINDOW);
+
+        coordinator
+                .getDialogModel()
+                .get(ModalDialogProperties.APP_MODAL_DIALOG_BACK_PRESS_HANDLER)
+                .handleOnBackPressed();
+        assertEquals(List.of(DismissReason.BACK_PRESS), mDialogDismissals);
+
+        // Container dismisses dialog using NAVIGATE_BACK_OR_TOUCH_OUTSIDE, but latched BACK_PRESS
+        // takes precedence.
+        coordinator.onDismiss(
+                coordinator.getDialogModel(), DialogDismissalCause.NAVIGATE_BACK_OR_TOUCH_OUTSIDE);
+        assertEquals(List.of(DismissReason.BACK_PRESS), mDialogDismissals);
+    }
+
+    @Test
+    public void testOnDismiss_UnlatchedTouchOutside() {
+        PropertyModel model = newModelBuilder().build();
+        AdaptiveUiDialogCoordinator coordinator = createCoordinator(model, AdaptiveUiScope.WINDOW);
+
+        // Unlatched external tap on scrim.
+        coordinator.onDismiss(
+                coordinator.getDialogModel(), DialogDismissalCause.NAVIGATE_BACK_OR_TOUCH_OUTSIDE);
+        assertEquals(List.of(DismissReason.TOUCH_OUTSIDE), mDialogDismissals);
+    }
+
+    @Test
+    public void testSetDismissReason_OverridesContainerCause() {
+        PropertyModel model = newModelBuilder().build();
+        AdaptiveUiDialogCoordinator coordinator = createCoordinator(model);
+
+        coordinator.setDismissReason(DismissReason.PRIMARY_ACTION);
+        coordinator.onDismiss(coordinator.getDialogModel(), DialogDismissalCause.UNKNOWN);
+
+        assertEquals(List.of(DismissReason.PRIMARY_ACTION), mDialogDismissals);
+    }
+
+    @Test
+    public void testSetDismissReason_IgnoredIfAlreadyLatched() {
+        PropertyModel model = newModelBuilder().build();
+        AdaptiveUiDialogCoordinator coordinator = createCoordinator(model);
+
+        coordinator
+                .getDialogModel()
+                .get(ModalDialogProperties.TITLE_CLOSE_BUTTON_CLICK_LISTENER)
+                .onClick(null);
+        coordinator.setDismissReason(DismissReason.TAB_SWITCHED);
+        coordinator.onDismiss(coordinator.getDialogModel(), DialogDismissalCause.UNKNOWN);
+
+        assertEquals(List.of(DismissReason.CLOSE_BUTTON), mDialogDismissals);
+    }
+
+    @Test
+    public void testToDialogDismissalCause_TransientScope() {
+        AdaptiveUiDialogCoordinator coordinator =
+                createCoordinator(newModelBuilder().build(), AdaptiveUiScope.TRANSIENT);
+        assertEquals(
+                DialogDismissalCause.NAVIGATE_BACK,
+                coordinator.toDialogDismissalCause(DismissReason.BACK_PRESS));
+        assertEquals(
+                DialogDismissalCause.TOUCH_OUTSIDE,
+                coordinator.toDialogDismissalCause(DismissReason.TOUCH_OUTSIDE));
+        assertEquals(
+                DialogDismissalCause.TOUCH_OUTSIDE,
+                coordinator.toDialogDismissalCause(DismissReason.SWIPE_DOWN));
+        assertEquals(
+                DialogDismissalCause.NEGATIVE_BUTTON_CLICKED,
+                coordinator.toDialogDismissalCause(DismissReason.CLOSE_BUTTON));
+        assertEquals(
+                DialogDismissalCause.POSITIVE_BUTTON_CLICKED,
+                coordinator.toDialogDismissalCause(DismissReason.PRIMARY_ACTION));
+        assertEquals(
+                DialogDismissalCause.NEGATIVE_BUTTON_CLICKED,
+                coordinator.toDialogDismissalCause(DismissReason.SECONDARY_ACTION));
+        assertEquals(
+                DialogDismissalCause.NAVIGATE,
+                coordinator.toDialogDismissalCause(DismissReason.NAVIGATION));
+        assertEquals(
+                DialogDismissalCause.TAB_SWITCHED,
+                coordinator.toDialogDismissalCause(DismissReason.TAB_SWITCHED));
+        assertEquals(
+                DialogDismissalCause.TAB_DESTROYED,
+                coordinator.toDialogDismissalCause(DismissReason.TAB_CLOSED));
+    }
+
+    @Test
+    public void testToDialogDismissalCause_WindowScope() {
+        AdaptiveUiDialogCoordinator coordinator =
+                createCoordinator(newModelBuilder().build(), AdaptiveUiScope.WINDOW);
+        assertEquals(
+                DialogDismissalCause.NAVIGATE_BACK_OR_TOUCH_OUTSIDE,
+                coordinator.toDialogDismissalCause(DismissReason.BACK_PRESS));
+        assertEquals(
+                DialogDismissalCause.NAVIGATE_BACK_OR_TOUCH_OUTSIDE,
+                coordinator.toDialogDismissalCause(DismissReason.TOUCH_OUTSIDE));
+        assertEquals(
+                DialogDismissalCause.NAVIGATE_BACK_OR_TOUCH_OUTSIDE,
+                coordinator.toDialogDismissalCause(DismissReason.SWIPE_DOWN));
+    }
+
+    private @DismissReason int dismissWithCause(@DialogDismissalCause int cause) {
+        mDialogDismissals.clear();
+        AdaptiveUiDialogCoordinator coordinator = createCoordinator(newModelBuilder().build());
+        coordinator.onDismiss(coordinator.getDialogModel(), cause);
+        assertEquals(1, mDialogDismissals.size());
+        return mDialogDismissals.get(0);
+    }
+
+    @Test
+    public void testOnDismiss_TranslatesUnlatchedDialogDismissalCauses() {
+        assertEquals(
+                DismissReason.BACK_PRESS, dismissWithCause(DialogDismissalCause.NAVIGATE_BACK));
+        assertEquals(
+                DismissReason.TOUCH_OUTSIDE, dismissWithCause(DialogDismissalCause.TOUCH_OUTSIDE));
+        assertEquals(
+                DismissReason.TOUCH_OUTSIDE,
+                dismissWithCause(DialogDismissalCause.NAVIGATE_BACK_OR_TOUCH_OUTSIDE));
+        assertEquals(
+                DismissReason.PRIMARY_ACTION,
+                dismissWithCause(DialogDismissalCause.POSITIVE_BUTTON_CLICKED));
+        assertEquals(
+                DismissReason.PRIMARY_ACTION,
+                dismissWithCause(DialogDismissalCause.ACTION_ON_CONTENT));
+        assertEquals(
+                DismissReason.PRIMARY_ACTION,
+                dismissWithCause(DialogDismissalCause.ACTION_ON_DIALOG_COMPLETED));
+        assertEquals(
+                DismissReason.SECONDARY_ACTION,
+                dismissWithCause(DialogDismissalCause.NEGATIVE_BUTTON_CLICKED));
+        assertEquals(
+                DismissReason.SECONDARY_ACTION,
+                dismissWithCause(DialogDismissalCause.ACTION_ON_DIALOG_NOT_POSSIBLE));
+        assertEquals(DismissReason.NAVIGATION, dismissWithCause(DialogDismissalCause.NAVIGATE));
+        assertEquals(
+                DismissReason.TAB_SWITCHED, dismissWithCause(DialogDismissalCause.TAB_SWITCHED));
+        assertEquals(
+                DismissReason.TAB_CLOSED, dismissWithCause(DialogDismissalCause.TAB_DESTROYED));
+        assertEquals(
+                DismissReason.TAB_CLOSED,
+                dismissWithCause(DialogDismissalCause.ACTIVITY_DESTROYED));
+        assertEquals(
+                DismissReason.TAB_CLOSED,
+                dismissWithCause(DialogDismissalCause.NOT_ATTACHED_TO_WINDOW));
+        assertEquals(
+                DismissReason.TAB_CLOSED,
+                dismissWithCause(DialogDismissalCause.WEB_CONTENTS_DESTROYED));
+        assertEquals(DismissReason.NAVIGATION, dismissWithCause(DialogDismissalCause.UNKNOWN));
+        assertEquals(
+                DismissReason.NAVIGATION,
+                dismissWithCause(DialogDismissalCause.DISMISSED_BY_NATIVE));
+        assertEquals(
+                DismissReason.NAVIGATION,
+                dismissWithCause(DialogDismissalCause.DIALOG_INTERACTION_DEFERRED));
+        assertEquals(
+                DismissReason.NAVIGATION, dismissWithCause(DialogDismissalCause.CLIENT_TIMEOUT));
     }
 
     // ---------------------------------------------------------------------------------------
@@ -816,5 +1047,68 @@ public class AdaptiveUiDialogCoordinatorTest {
                                 new android.widget.ScrollView(mActivity))
                         .build();
         assertNotNull(bindToRealModalDialogView(createCoordinator(model).getDialogModel()));
+    }
+
+    // ---------------------------------------------------------------------------------------
+    // Driving the ModalDialogManager.
+    // ---------------------------------------------------------------------------------------
+
+    @Test
+    public void testShow_QueuesDialogWithTypeFromScope() {
+        AdaptiveUiDialogCoordinator transientDialog =
+                createCoordinator(newModelBuilder().build(), AdaptiveUiScope.TRANSIENT);
+        transientDialog.show();
+        verify(mModalDialogManager).addObserver(transientDialog);
+        verify(mModalDialogManager)
+                .showDialog(transientDialog.getDialogModel(), ModalDialogType.TAB);
+
+        AdaptiveUiDialogCoordinator windowDialog =
+                createCoordinator(newModelBuilder().build(), AdaptiveUiScope.WINDOW);
+        windowDialog.show();
+        verify(mModalDialogManager).showDialog(windowDialog.getDialogModel(), ModalDialogType.APP);
+    }
+
+    @Test
+    public void testOnShown_OnlyOnceAndOnlyForOwnDialog() {
+        AdaptiveUiDialogCoordinator coordinator = createCoordinator(newModelBuilder().build());
+        coordinator.show();
+
+        // Another dialog is shown first; this one is still queued.
+        coordinator.onDialogCreated(mOtherDialogModel, /* dialog= */ null);
+        coordinator.onDialogShown(new View(mActivity));
+        assertEquals(0, mShownCount);
+
+        coordinator.onDialogCreated(coordinator.getDialogModel(), /* dialog= */ null);
+        coordinator.onDialogShown(new View(mActivity));
+        // Suspended and shown again.
+        coordinator.onDialogCreated(coordinator.getDialogModel(), /* dialog= */ null);
+        coordinator.onDialogShown(new View(mActivity));
+        assertEquals(1, mShownCount);
+    }
+
+    @Test
+    public void testHide_DismissesWithMappedCauseAndReportsReason() {
+        AdaptiveUiDialogCoordinator coordinator = createCoordinator(newModelBuilder().build());
+        coordinator.show();
+
+        coordinator.hide(DismissReason.NAVIGATION);
+
+        verify(mModalDialogManager)
+                .dismissDialog(coordinator.getDialogModel(), DialogDismissalCause.NAVIGATE);
+        assertEquals(List.of(DismissReason.NAVIGATION), mDialogDismissals);
+        verify(mModalDialogManager).removeObserver(coordinator);
+    }
+
+    @Test
+    public void testHide_AfterDismissalIsIgnored() {
+        AdaptiveUiDialogCoordinator coordinator = createCoordinator(newModelBuilder().build());
+        coordinator.show();
+        coordinator.onDismiss(coordinator.getDialogModel(), DialogDismissalCause.TAB_SWITCHED);
+
+        coordinator.hide(DismissReason.CLOSE_BUTTON);
+
+        verify(mModalDialogManager, never())
+                .dismissDialog(eq(coordinator.getDialogModel()), anyInt());
+        assertEquals(List.of(DismissReason.TAB_SWITCHED), mDialogDismissals);
     }
 }

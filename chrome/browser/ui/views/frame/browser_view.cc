@@ -356,6 +356,7 @@
 #include "ui/views/animation/compositor_animation_runner.h"
 #include "ui/views/bubble/bubble_dialog_delegate_view.h"
 #include "ui/views/controls/button/menu_button.h"
+#include "ui/views/controls/label.h"
 #include "ui/views/controls/textfield/textfield.h"
 #include "ui/views/controls/webview/webview.h"
 #include "ui/views/interaction/element_tracker_views.h"
@@ -3470,44 +3471,58 @@ void BrowserView::CutCopyPaste(int command_id) {
     remote_cocoa::ApplicationBridge::ForwardCutCopyPasteToNSApp(command);
   }
 #else
-  // If a WebContents is focused, call its member method.
-  //
-  // We could make WebContents register accelerators and then just use the
-  // plumbing for accelerators below to dispatch these, but it's not clear
-  // whether that would still allow keypresses of ctrl-X/C/V to be sent as
-  // key events (and not accelerators) to the WebContents so it can give the web
-  // page a chance to override them.
-  WebContents* contents = browser_->GetTabStripModel()->GetActiveWebContents();
-  if (contents) {
-    void (WebContents::*method)();
-    if (command_id == IDC_CUT) {
-      method = &content::WebContents::Cut;
-    } else if (command_id == IDC_COPY) {
-      method = &content::WebContents::Copy;
-    } else {
-      method = &content::WebContents::Paste;
-    }
-    if (DoCutCopyPasteForWebContents(contents, method)) {
-      return;
-    }
+  void (WebContents::*method)();
+  if (command_id == IDC_CUT) {
+    method = &content::WebContents::Cut;
+  } else if (command_id == IDC_COPY) {
+    method = &content::WebContents::Copy;
+  } else {
+    method = &content::WebContents::Paste;
+  }
 
-    WebContents* devtools =
-        DevToolsWindow::GetInTabWebContents(contents, nullptr);
-    if (devtools && DoCutCopyPasteForWebContents(devtools, method)) {
-      return;
+  // If a child/owned widget (such as a bubble or modal dialog) is currently
+  // active, use its FocusManager; otherwise use the browser widget's.
+  views::Widget* target_widget = GetWidget();
+  for (views::Widget* child :
+       views::Widget::GetAllOwnedWidgets(GetWidget()->GetNativeView())) {
+    if (child->IsActive()) {
+      target_widget = child;
+      break;
     }
   }
 
-  // If a native View (such as the Omnibox or FindBar) is focused, execute the
-  // accelerator directly on it rather than processing through FocusManager
-  // (which would re-enter BrowserView and ActionItems).
-  views::View* focused_view = GetFocusManager()->GetFocusedView();
+  views::FocusManager* focus_manager = target_widget->GetFocusManager();
+  views::View* focused_view =
+      focus_manager ? focus_manager->GetFocusedView() : nullptr;
+  if (!focused_view && focus_manager) {
+    focused_view = focus_manager->GetStoredFocusView();
+  }
   if (focused_view) {
-    ui::Accelerator accelerator;
-    if (GetAccelerator(command_id, &accelerator) &&
-        focused_view->CanHandleAccelerators() &&
-        focused_view->AcceleratorPressed(accelerator)) {
-      return;
+    // If a WebContents (such as the active tab, docked DevTools, a side panel,
+    // or a WebUI dialog) is focused, call its member method directly rather
+    // than forwarding an accelerator to the hosting WebView.
+    for (views::View* view = focused_view; view; view = view->parent()) {
+      if (auto* web_view = views::AsViewClass<views::WebView>(view)) {
+        if (content::WebContents* web_contents = web_view->web_contents()) {
+          DoCutCopyPasteForWebContents(web_contents, method);
+        }
+        return;
+      }
+    }
+
+    // If a native Textfield (such as the Omnibox or FindBar) or selectable
+    // Label is focused, execute the accelerator directly on it rather than
+    // processing through FocusManager (which would re-enter BrowserView and
+    // ActionItems). Other non-text Views do not register Cut/Copy/Paste
+    // accelerators and may misinterpret raw AcceleratorPressed() calls.
+    if (views::IsViewClass<views::Textfield>(focused_view) ||
+        views::IsViewClass<views::Label>(focused_view)) {
+      ui::Accelerator accelerator;
+      if (GetAccelerator(command_id, &accelerator) &&
+          focused_view->CanHandleAccelerators() &&
+          focused_view->AcceleratorPressed(accelerator)) {
+        return;
+      }
     }
   }
 #endif  // BUILDFLAG(IS_MAC)
@@ -3861,14 +3876,24 @@ BrowserView::GetNativeViewHostsForTopControlsSlide() {
   return results;
 }
 
-void BrowserView::ReparentTopContainerForStartOfImmersive() {
+void BrowserView::ReparentTopContainerToOverlayViewIfNeeded() {
+  const ImmersiveModeController* const controller =
+      ImmersiveModeController::From(browser());
+  CHECK(controller);
+  if (!controller->ShouldMoveTopContainerToOverlayView()) {
+    return;
+  }
+
+  CHECK(overlay_view_tracker_);
+  if (top_container()->parent() == overlay_view_tracker_.view()) {
+    return;
+  }
+
   top_container()->SetPaintToLayer();
   top_container()->layer()->SetFillsBoundsOpaquely(false);
 
   ReparentTabStripAndWebAppViewsToTopContainer(
       TabStripAndWebAppViewsReparentedState::kImmersiveMode);
-
-  CHECK(overlay_view_tracker_);
 
   // Note: while `BrowserViewLayout` is responsible for positioning controls in
   // the top container, these controls can still internally invalidate. When the
@@ -3889,7 +3914,7 @@ void BrowserView::ReparentTopContainerForStartOfImmersive() {
   overlay_view_tracker_.view()->SetVisible(true);
 }
 
-void BrowserView::ReparentTopContainerForEndOfImmersive() {
+void BrowserView::ReparentTopContainerToBrowserView() {
   if (top_container()->parent() == this && tab_strip_view()->parent() == this) {
     return;
   }
@@ -3908,7 +3933,7 @@ void BrowserView::ReparentTopContainerForEndOfImmersive() {
 
   EnsureFocusOrder();
 
-  // See comment in `ReparentTopContainerForStartOfImmersive()`; this isn't
+  // See comment in `ReparentTopContainerToOverlayViewIfNeeded()`; this isn't
   // strictly necessary on all platforms but doesn't break anything either as
   // this is the default state.
   top_container()->SetProperty(views::kViewDoesNotLayOutChildren, true);
@@ -6139,10 +6164,23 @@ void BrowserView::OnImmersiveFullscreenEntered() {
     control->CloseMenu();
   }
 
-  ReparentTopContainerForStartOfImmersive();
+  ReparentTopContainerToOverlayViewIfNeeded();
 
   InvalidateLayout();
   GetWidget()->GetRootView()->DeprecatedLayoutImmediately();
+}
+
+void BrowserView::UpdateTopContainerParentForImmersive() {
+  const ImmersiveModeController* const controller =
+      ImmersiveModeController::From(browser());
+  CHECK(controller);
+  if (controller->IsEnabled() &&
+      controller->ShouldMoveTopContainerToOverlayView()) {
+    ReparentTopContainerToOverlayViewIfNeeded();
+  } else {
+    ReparentTopContainerToBrowserView();
+  }
+  InvalidateLayout();
 }
 
 void BrowserView::OnImmersiveFullscreenExited() {
@@ -6156,7 +6194,7 @@ void BrowserView::OnImmersiveFullscreenExited() {
   }
 #endif  // BUILDFLAG(IS_CHROMEOS)
 
-  ReparentTopContainerForEndOfImmersive();
+  ReparentTopContainerToBrowserView();
 
   InvalidateLayout();
   GetWidget()->GetRootView()->DeprecatedLayoutImmediately();
@@ -6165,7 +6203,7 @@ void BrowserView::OnImmersiveFullscreenExited() {
 }
 
 void BrowserView::OnImmersiveModeControllerDestroyed() {
-  ReparentTopContainerForEndOfImmersive();
+  ReparentTopContainerToBrowserView();
 
   vertical_tabs_enable_state_lock_.reset();
 }

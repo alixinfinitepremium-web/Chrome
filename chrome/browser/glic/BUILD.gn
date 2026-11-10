@@ -347,12 +347,19 @@ source_set("selection_context") {
 
 # Definitions used broadly internal to glic, but shouldn't be used externally.
 source_set("private_types") {
-  sources = [ "service/glic_ui_types.h" ]
-  public_deps = [ ":public_types" ]
+  visibility = [ ":*" ]
+  sources = [
+    "common/glic_instance_observer.h",
+    "service/glic_ui_types.h",
+  ]
+  public_deps = [
+    ":mojo_bindings",
+    ":public_types",
+    "//base",
+    "//components/actor/core:task_id",
+  ]
   deps = [
     ":enum",
-    ":mojo_bindings",
-    "//base",
     "//chrome/browser/ui/browser_window",
     "//chrome/browser/ui/side_panel",
     "//chrome/browser/ui/tabs:tabs_public",
@@ -618,6 +625,7 @@ source_set("impl") {
     "//chrome/browser/background/glic",
     "//chrome/browser/browser_actuator/transport",
     "//chrome/browser/content_settings:content_settings_factory",
+    "//chrome/browser/enterprise",
     "//chrome/browser/feedback",
     "//chrome/browser/glic/actor",
     "//chrome/browser/glic/browser_ui",
@@ -675,6 +683,7 @@ source_set("impl") {
     "//components/content_settings/core/browser",
     "//components/content_settings/core/common",
     "//components/enterprise",
+    "//components/enterprise/buildflags",
     "//components/favicon/content",
     "//components/feature_engagement/public:feature_constants",
     "//components/feedback",
@@ -1001,6 +1010,7 @@ source_set("unit_tests") {
     "//components/browser_actuator/public/transport:service",
     "//components/content_settings/core/browser",
     "//components/content_settings/core/common",
+    "//components/enterprise/buildflags",
     "//components/keyed_service/content",
     "//components/optimization_guide/core",
     "//components/optimization_guide/proto:optimization_guide_proto",
@@ -1102,6 +1112,10 @@ source_set("unit_tests") {
       "//components/user_manager:test_support",
     ]
   }
+  if (enterprise_data_controls) {
+    deps +=
+        [ "//components/enterprise/data_controls/core/browser:test_support" ]
+  }
 }
 
 source_set("browser_tests") {
@@ -1134,6 +1148,7 @@ source_set("browser_tests") {
     "host/glic_start_benchmark_browsertest.cc",
     "host/glic_web_client_manager_browsertest.cc",
     "host/glic_web_contents_warming_pool_browsertest.cc",
+    "service/glic_activity_manager_browsertest.cc",
     "service/glic_instance_coordinator_browsertest.cc",
     "service/glic_instance_helper_browsertest.cc",
     "service/glic_invoke_browsertest.cc",
@@ -1362,6 +1377,10 @@ source_set("browser_tests") {
   }
   if (enable_pdf) {
     deps += [ "//chrome/browser/pdf:pdf_extension_test_utils" ]
+  }
+  if (enterprise_data_controls) {
+    deps +=
+        [ "//components/enterprise/data_controls/core/browser:test_support" ]
   }
 
   data_deps = [ "//chrome/test/data/webui/glic:generate_test_files" ]

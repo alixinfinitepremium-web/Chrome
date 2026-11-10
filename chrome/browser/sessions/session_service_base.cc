@@ -84,9 +84,6 @@ using sessions::SerializedNavigationEntry;
 
 namespace {
 
-// Every kWritesPerReset commands triggers recreating the file.
-const int kWritesPerReset = 250;
-
 // User data key for WebContents to derive their types.
 const void* const kSessionServiceBaseUserDataKey =
     &kSessionServiceBaseUserDataKey;
@@ -826,13 +823,10 @@ void SessionServiceBase::BuildCommandsFromBrowsers(
   ForEachCurrentBrowserWindowInterfaceOrderedByActivation(
       [this, tab_to_available_range,
        windows_to_track](BrowserWindowInterface* browser) {
-        // Make sure the browser has tabs and a window. When a browser is closed
-        // the destructor is not necessarily run immediately. This means it's
-        // possible for us to get a handle to a browser that is about to be
-        // removed. If the tab count is 0 or the window is NULL, the browser is
-        // about to be deleted, so we ignore it.
-        if (ShouldTrackBrowser(browser) &&
-            browser->GetTabStripModel()->count() && browser->GetWindow()) {
+        // Skip browsers without a window; they are about to be deleted.
+        // Include browsers with no tabs yet (e.g. a window created for a tab
+        // drag) so they stay tracked; restore drops windows that end up empty.
+        if (ShouldTrackBrowser(browser) && browser->GetWindow()) {
           BuildCommandsForBrowser(browser, tab_to_available_range,
                                   windows_to_track);
         }
@@ -855,10 +849,13 @@ void SessionServiceBase::ScheduleCommand(
   command_storage_manager_->ScheduleCommand(std::move(command));
   // Don't schedule a reset on tab closed/window closed. Otherwise we may
   // lose tabs/windows we want to restore from if we exit right after this.
+  // Defer the reset to the next save rather than performing it synchronously,
+  // preventing snapshots of incomplete state during window creation or
+  // teardown.
   if (!command_storage_manager_->pending_reset() &&
       command_storage_manager_->commands_since_reset() >= kWritesPerReset &&
       !is_closing_command) {
-    ScheduleResetCommands();
+    rebuild_on_next_save_ = true;
   }
   DidScheduleCommand();
 }

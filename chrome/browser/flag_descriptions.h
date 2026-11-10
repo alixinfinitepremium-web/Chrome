@@ -587,9 +587,10 @@ inline constexpr char kDefaultBrowserFrameworkName[] =
     "Default Browser Framework";
 
 inline constexpr char kDefaultBrowserSetterSelectionDescription[] =
-    "Enables selecting a default browser setter (e.g. shell integration, "
-    "visual guide, or on Windows 11 shell integration annotated with a bubble "
-    "pointing at the Settings \"Set default\" button).";
+    "Enables selecting a default browser setter: shell integration, or on "
+    "Windows 11 the visual guide or shell integration annotated with a bubble "
+    "pointing at the Settings \"Set default\" button. Elsewhere, the Windows "
+    "11 setters fall back to shell integration.";
 inline constexpr char kDefaultBrowserSetterSelectionName[] =
     "Default Browser Setter Selection";
 
@@ -899,11 +900,6 @@ inline constexpr char
     kAutofillEnableAutofillSettingsEnterprisePolicyDescription[] =
         "When enabled, the Autofill settings enterprise policy takes effect, "
         "and forms ai settings are decoupled from Autofill profile settings. ";
-
-inline constexpr char kAutofillAmbientAutofillName[] =
-    "Autofill Ambient Autofill";
-inline constexpr char kAutofillAmbientAutofillDescription[] =
-    "Enables Ambient Autofill.";
 
 inline constexpr char kAutofillCardScanningBugfixesName[] =
     "Enable Autofill credit card scanning bug fixes";
@@ -1804,11 +1800,6 @@ inline constexpr char kGeicEnabledDescription[] =
     "of GEiC and fall back to consumer Gemini, even if a Gemini Enterprise "
     "policy or experiment applies to this profile.";
 
-inline constexpr char kGeicFreName[] = "GEiC first-run experience";
-inline constexpr char kGeicFreDescription[] =
-    "Enables the Gemini Enterprise in Chrome (GEiC) first-run experience. "
-    "Requires GEiC to be enabled.";
-
 inline constexpr char kGeicGuestUrlName[] = "GEiC guest URL";
 inline constexpr char kGeicGuestUrlDescription[] =
     "Configures the guest URL loaded into the Gemini Enterprise in Chrome "
@@ -2674,6 +2665,14 @@ inline constexpr char kExperimentalWebPlatformFeaturesName[] =
 inline constexpr char kExperimentalWebPlatformFeaturesDescription[] =
     "Enables experimental Web Platform features that are in development.";
 
+inline constexpr char
+    kSafeBrowsingHashPrefixRealTimeLookupsOnIncognitoAndGuestName[] =
+        "Safe Browsing Hash Prefix Real Time Lookups on Incognito and Guest";
+inline constexpr char
+    kSafeBrowsingHashPrefixRealTimeLookupsOnIncognitoAndGuestDescription[] =
+        "Enable checking URLs through Safe Browsing hash-prefix real-time "
+        "lookups on Incognito and Guest mode.";
+
 inline constexpr char kSafeBrowsingLocalListsUseSBv5Name[] =
     "Safe Browsing Local Lists use v5 API";
 inline constexpr char kSafeBrowsingLocalListsUseSBv5Description[] =
@@ -2695,12 +2694,6 @@ inline constexpr char kSafeBrowsingNoProtectionSuppressWarningsDescription[] =
 inline constexpr char kXSLTName[] = "XSLT";
 inline constexpr char kXSLTDescription[] =
     "Toggles whether or not XSLT is supported by the browser.";
-
-inline constexpr char kSymphoniaAudioDecodingName[] =
-    "Symphonia Audio Decoding";
-inline constexpr char kSymphoniaAudioDecodingDescription[] =
-    "Enables using the experimental Symphonia audio decoder instead of using "
-    "FFMPEG for decoding audio.";
 
 inline constexpr char kSymphoniaDemuxingName[] = "Symphonia Demuxing";
 inline constexpr char kSymphoniaDemuxingDescription[] =
@@ -4581,11 +4574,6 @@ inline constexpr char kTabGroupsFocusingDescription[] =
     "When a tab group is focused, the tabstrip constrains visiblity to the "
     "tabs in that group.";
 
-inline constexpr char kTabGroupRibbonName[] = "Tab Group Ribbon";
-inline constexpr char kTabGroupRibbonDescription[] =
-    "Displays a vertical ribbon on the left side of the browser window for "
-    "quickly switching between tab groups.";
-
 inline constexpr char kFocusSelectionName[] = "Focus Selection";
 inline constexpr char kFocusSelectionDescription[] =
     "Allows focusing a selection of ungrouped tabs in the tabstrip.";
@@ -5580,13 +5568,6 @@ inline constexpr char kAndroidDocumentPictureInPictureDescription[] =
     "Enables Document Picture-In-Picture API allowing websites to open "
     "new floating always-on-top window with arbitrary HTML content.";
 
-inline constexpr char kAndroidEnterpriseScreenshotProtectionName[] =
-    "Enable unified screenshot protection controller on Android";
-inline constexpr char kAndroidEnterpriseScreenshotProtectionDescription[] =
-    "Enables a new screenshot protection controller that replaces the "
-    "incognito-only controller. Enterprise enrolled devices can also have "
-    "normal pages protected when determined by their admin.";
-
 inline constexpr char kAndroidElegantTextHeightName[] =
     "Android Elegant Text Height";
 inline constexpr char kAndroidElegantTextHeightDescription[] =
@@ -5785,12 +5766,6 @@ inline constexpr char kContextualPanelCloseButtonName[] =
 inline constexpr char kContextualPanelCloseButtonDescription[] =
     "When this is enabled, the contextual search panel will show a close "
     "button. Its scrim will also be hidden.";
-
-inline constexpr char kDesktopAndroidFilePickerForMediaName[] =
-    "Desktop Android File Picker For Media";
-inline constexpr char kDesktopAndroidFilePickerForMediaDescription[] =
-    "Show the desktop Files app instead of the mobile photo picker for media "
-    "file inputs on Android desktop.";
 
 inline constexpr char kDisableGridTabSwitcherName[] =
     "Disable Grid Tab Switcher";

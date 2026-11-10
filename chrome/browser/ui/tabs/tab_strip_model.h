@@ -263,6 +263,10 @@ class TabStripModel {
   // Determines if the specified index is contained within the TabStripModel.
   bool ContainsIndex(int index) const;
 
+  // Determines if the specified tab is contained within the TabStripModel.
+  bool ContainsTab(const tabs::TabInterface* tab) const;
+  bool ContainsTab(tabs::TabHandle handle) const;
+
   // Adds the specified WebContents in the default location. Tabs opened
   // in the foreground inherit the opener of the previously active tab.
   // Use of the detached tab is preferred over webcontents, so when possible
@@ -326,10 +330,12 @@ class TabStripModel {
       bool pinned,
       std::optional<tab_groups::TabGroupId> group_id = std::nullopt);
 
-  // Closes the specified WebContents. This causes the WebContents to be
+  // Closes the specified tab or WebContents. This causes the WebContents to be
   // destroyed, but it may not happen immediately.
-  // `close_types` is a bitmask of CloseTypes. Prefer this over
-  // CloseWebContentsAt() when a WebContents* is already available.
+  // `close_types` is a bitmask of CloseTypes. Prefer CloseTab() or
+  // CloseWebContents() over CloseWebContentsAt() when a TabHandle or
+  // WebContents* is already available.
+  void CloseTab(tabs::TabHandle tab, uint32_t close_types);
   void CloseWebContents(content::WebContents* contents, uint32_t close_types);
 
   // Closes the WebContents at the specified index. This causes the
@@ -344,11 +350,12 @@ class TabStripModel {
       content::WebContents* contents,
       std::unique_ptr<content::WebContents> new_contents);
 
-  // Detaches the tab at the specified index for reinsertion into another tab
+  // Detaches the tab at `index` or `tab` for reinsertion into another tab
   // strip. Returns the detached tab.
   std::unique_ptr<tabs::TabModel> DetachTabAtForInsertion(int index);
+  std::unique_ptr<tabs::TabModel> DetachTabForInsertion(tabs::TabHandle tab);
 
-  // Detaches the WebContents at the specified index for re-insertion into
+  // Detaches the WebContents at `index` or `tab` for re-insertion into
   // another browser of a different type, destroying the owning TabModel in the
   // process.
   //
@@ -364,18 +371,30 @@ class TabStripModel {
   std::unique_ptr<content::WebContents> DetachWebContentsAtForInsertion(
       int index,
       TabRemovedReason reason = TabRemovedReason::kInsertedIntoOtherTabStrip);
+  std::unique_ptr<content::WebContents> DetachWebContentsForInsertion(
+      tabs::TabHandle tab,
+      TabRemovedReason reason = TabRemovedReason::kInsertedIntoOtherTabStrip);
 
-  // Detaches the WebContents at the specified index and immediately deletes it.
+  // Detaches the WebContents at `index` or `tab` and immediately deletes it.
   void DetachAndDeleteWebContentsAt(int index);
+  void DetachAndDeleteWebContents(tabs::TabHandle tab);
 
   std::vector<std::variant<std::unique_ptr<DetachedTab>,
                            std::unique_ptr<DetachedTabCollection>>>
   DetachTabsAndCollectionsForInsertion(const std::vector<int>& tab_indices);
+  std::vector<std::variant<std::unique_ptr<DetachedTab>,
+                           std::unique_ptr<DetachedTabCollection>>>
+  DetachTabsAndCollectionsForInsertion(
+      const std::vector<tabs::TabHandle>& tabs);
 
   // Activates `tab`, which must be in this tab strip model. Prefer this over
-  // ActivateTabAt() when a TabInterface* is already available.
+  // ActivateTabAt() when a TabInterface* or TabHandle is already available.
   void ActivateTab(
       tabs::TabInterface* tab,
+      TabStripUserGestureDetails user_gesture = TabStripUserGestureDetails(
+          TabStripUserGestureDetails::GestureType::kNone));
+  void ActivateTab(
+      tabs::TabHandle tab,
       TabStripUserGestureDetails user_gesture = TabStripUserGestureDetails(
           TabStripUserGestureDetails::GestureType::kNone));
 
@@ -460,6 +479,9 @@ class TabStripModel {
   // TabChangeType for details of `change_type`.
   void NotifyTabChanged(tabs::TabInterface* tab, TabChangeType change_type);
 
+  // Notify any observers that the tab's audio state has changed.
+  void NotifyTabAudioChanged(tabs::TabInterface* tab);
+
   // Notify any observers that the WebContents has changed in some way. See
   // TabChangeType for details of `change_type`.
   void UpdateWebContentsState(content::WebContents* contents,
@@ -487,10 +509,12 @@ class TabStripModel {
   // Returns the WebContents that opened the WebContents at `index`, or NULL if
   // there is no opener on record.
   tabs::TabInterface* GetOpenerOfTabAt(const int index) const;
+  tabs::TabInterface* GetOpenerOfTab(tabs::TabHandle tab) const;
 
   // Changes the `opener` of the tab at `index`.
   // Note: A tab must not be its own opener.
   void SetOpenerOfTabAt(int index, tabs::TabInterface* opener);
+  void SetOpenerOfTab(tabs::TabHandle tab, tabs::TabInterface* opener);
 
   // Returns the index of the last WebContents in the model opened by the
   // specified opener, starting at `start_index`.
@@ -504,28 +528,32 @@ class TabStripModel {
   void TabNavigating(content::WebContents* contents,
                      ui::PageTransition transition);
 
-  // Changes the blocked state of the tab at `index`.
+  // Changes the blocked state of the tab at `index` or `tab`.
   void SetTabBlocked(int index, bool blocked);
+  void SetTabBlocked(tabs::TabHandle tab, bool blocked);
 
-  // Changes the pinned state of the tab at `index`. See description above
-  // class for details on this. Returns the index the tab is now at (it may have
-  // been moved to maintain contiguity of pinned tabs at the beginning of the
-  // tabstrip).)
+  // Changes the pinned state of the tab at `index` or `tab`. See description
+  // above class for details on this. Returns the index the tab is now at (it
+  // may have been moved to maintain contiguity of pinned tabs at the beginning
+  // of the tabstrip).)
   int SetTabPinned(int index, bool pinned);
+  int SetTabPinned(tabs::TabHandle tab, bool pinned);
 
   // Returns true if the tab at `index` is pinned.
   // See description above class for details on pinned tabs.
   bool IsTabPinned(int index) const;
 
   bool IsTabCollapsed(int index) const;
+  bool IsTabCollapsed(tabs::TabHandle tab) const;
 
   bool IsGroupCollapsed(const tab_groups::TabGroupId& group) const;
 
   // Returns true if the tab at `index` is blocked by a tab modal dialog.
   bool IsTabBlocked(int index) const;
 
-  // Returns true if the tab at `index` is in the foreground.
+  // Returns true if the tab at `index` or `tab` is in the foreground.
   bool IsTabInForeground(int index) const;
+  bool IsTabInForeground(tabs::TabHandle tab) const;
 
   // Returns true if the tab corresponding to `tab` is allowed to be
   // closed.
@@ -557,19 +585,23 @@ class TabStripModel {
   // pinned tabs.
   int IndexOfFirstNonPinnedTab() const;
 
-  // Extends the selection from the anchor to `index`.
+  // Extends the selection from the anchor to `index` or `tab`.
   void ExtendSelectionTo(int index);
+  void ExtendSelectionTo(tabs::TabHandle tab);
 
   // This can fail if the tabstrip is not editable.
   void SelectTabAt(int index);
+  void SelectTab(tabs::TabHandle tab);
 
   // This can fail if the tabstrip is not editable.
   void DeselectTabAt(int index);
+  void DeselectTab(tabs::TabHandle tab);
 
-  // Makes sure the tabs from the anchor to `index` are selected. This adds to
-  // the selection if there is an anchor and resets the selection to `index` if
-  // there is not an anchor.
+  // Makes sure the tabs from the anchor to `index` or `tab` are selected. This
+  // adds to the selection if there is an anchor and resets the selection to
+  // `index` or `tab` if there is not an anchor.
   void AddSelectionFromAnchorTo(int index);
+  void AddSelectionFromAnchorTo(tabs::TabHandle tab);
 
   // Returns true if the tab at `index` is selected.
   bool IsTabSelected(int index) const;
@@ -658,12 +690,15 @@ class TabStripModel {
   // Reverses the order of tabs with `split_id`.
   void ReverseTabsInSplit(split_tabs::SplitTabId split_id);
 
-  // Create a new split view with the first entry in `indices` (or the active
-  // tab if there is only one element in `indices`) as the pivot index and add
-  // the rest of the tabs pointed to by `indices` to it. Reorders the tabs so
-  // they are contiguous.
+  // Create a new split view with the first entry in `indices` or `tabs` (or
+  // the active tab if there is only one element) as the pivot and add the rest
+  // of the tabs to it. Reorders the tabs so they are contiguous.
   split_tabs::SplitTabId AddToNewSplit(
       std::vector<int> indices,
+      split_tabs::SplitTabVisualData visual_data,
+      split_tabs::SplitTabCreatedSource source);
+  split_tabs::SplitTabId AddToNewSplit(
+      const std::vector<tabs::TabHandle>& tabs,
       split_tabs::SplitTabVisualData visual_data,
       split_tabs::SplitTabCreatedSource source);
 
@@ -674,20 +709,25 @@ class TabStripModel {
                     const std::vector<int>& indices,
                     split_tabs::SplitTabVisualData visual_data);
 
-  // Create a new tab group and add the set of tabs pointed to be `indices` to
-  // it. Pins all of the tabs if any of them were pinned, and reorders the tabs
-  // so they are contiguous and do not split an existing group in half. Returns
-  // the new group. This may unsplit split tabs if they are only partially
-  // contained in `indices`. `indices` must be sorted in ascending order.
+  // Create a new tab group and add the set of tabs pointed to by `indices` or
+  // `tabs` to it. Pins all of the tabs if any of them were pinned, and
+  // reorders the tabs so they are contiguous and do not split an existing
+  // group in half. Returns the new group. This may unsplit split tabs if they
+  // are only partially contained. `indices` must be sorted in ascending order.
   tab_groups::TabGroupId AddToNewGroup(const std::vector<int> indices);
+  tab_groups::TabGroupId AddToNewGroup(
+      const std::vector<tabs::TabHandle>& tabs);
 
-  // Add the set of tabs pointed to by `indices` to the given tab group `group`.
-  // The tabs take on the pinnedness of the tabs already in the group. Tabs
-  // before the group will move to the start, while tabs after the group will
-  // move to the end. If `add_to_end` is true, all tabs will instead move to
-  // the end. This may unsplit split tabs if they are only partially contained
-  // in `indices`. `indices` must be sorted in ascending order.
+  // Add the set of tabs pointed to by `indices` or `tabs` to the given tab
+  // group `group`. The tabs take on the pinnedness of the tabs already in the
+  // group. Tabs before the group will move to the start, while tabs after the
+  // group will move to the end. If `add_to_end` is true, all tabs will instead
+  // move to the end. This may unsplit split tabs if they are only partially
+  // contained. `indices` must be sorted in ascending order.
   void AddToExistingGroup(const std::vector<int> indices,
+                          const tab_groups::TabGroupId group,
+                          const bool add_to_end = false);
+  void AddToExistingGroup(const std::vector<tabs::TabHandle>& tabs,
                           const tab_groups::TabGroupId group,
                           const bool add_to_end = false);
 
@@ -697,11 +737,12 @@ class TabStripModel {
   void AddToGroupForRestore(const std::vector<int>& indices,
                             const tab_groups::TabGroupId& group);
 
-  // Removes the set of tabs pointed to by `indices` from the the groups they
-  // are in, if any. The tabs are moved out of the group if necessary. This
-  // may unsplit split tabs if they are only partially contained in `indices`.
+  // Removes the set of tabs pointed to by `indices` or `tabs` from the groups
+  // they are in, if any. The tabs are moved out of the group if necessary.
+  // This may unsplit split tabs if they are only partially contained.
   // `indices` must be sorted in ascending order.
   void RemoveFromGroup(const std::vector<int>& indices);
+  void RemoveFromGroup(const std::vector<tabs::TabHandle>& tabs);
 
   // Unsplits all the tabs that are part of the split with `split_id`. The tabs
   // maintain their group and pin properties.
@@ -719,10 +760,12 @@ class TabStripModel {
   // session storage (i.e. is not an ephemeral group).
   bool IsPersistableTabGroup(const tab_groups::TabGroupId& group_id) const;
 
-  // Returns the group of the tab at `index` if that group may be persisted,
-  // otherwise nullopt.
+  // Returns the group of the tab at `index` or `tab` if that group may be
+  // persisted, otherwise nullopt.
   std::optional<tab_groups::TabGroupId> GetPersistableTabGroupForTab(
       int index) const;
+  std::optional<tab_groups::TabGroupId> GetPersistableTabGroupForTab(
+      tabs::TabHandle tab) const;
 
   // Promotes an ephemeral tab group into a permanent tab group and notifies
   // observers via OnTabGroupAdded() and then OnTabGroupPromoted().
@@ -738,11 +781,13 @@ class TabStripModel {
   // Enters focus mode for `group`.
   void EnterFocusMode(const tab_groups::TabGroupId& group);
 
-  // Non-group focus: creates an ephemeral group from the tabs at `indices` and
-  // enters focus mode for it. Ephemeral groups only exist to back focus mode
-  // and cannot be created any other way. `indices` must be sorted in ascending
-  // order. Returns the new group.
+  // Non-group focus: creates an ephemeral group from the tabs at `indices` or
+  // `tabs` and enters focus mode for it. Ephemeral groups only exist to back
+  // focus mode and cannot be created any other way. `indices` must be sorted
+  // in ascending order. Returns the new group.
   tab_groups::TabGroupId EnterFocusMode(const std::vector<int>& indices);
+  tab_groups::TabGroupId EnterFocusMode(
+      const std::vector<tabs::TabHandle>& tabs);
 
   // Exits focus mode, recording `reason` (if provided) in
   // TabGroups.Focus.ExitReason. If an ephemeral (non-group focus) group was
@@ -958,6 +1003,7 @@ class TabStripModel {
 
   // Convert between tabs and indices.
   int GetIndexOfTab(const tabs::TabInterface* tab) const;
+  int GetIndexOfTab(tabs::TabHandle tab) const;
   tabs::TabInterface* GetTabAtIndex(int index) const;
   // Gets the tabs at the specified indices using two pointers instead of
   // calling GetTabAtIndex repeatedly, making the runtime O(count()) instead of
@@ -1410,11 +1456,11 @@ class TabStripModel {
   void SetSelectedTab(tabs::TabStripModelSelectionState& selection_state,
                       tabs::TabInterface* tab);
 
-  // Returns a vector of tabs between the anchor and a provided index, in
-  // traversal order, that takes into account split tabs. If the anchor or
-  // the tab at index is part of a split, the range will include that split.
-  std::vector<tabs::TabInterface*> GetSelectionRangeFromAnchorToIndex(
-      int index);
+  // Returns a vector of tabs between the anchor and `tab`, in traversal order,
+  // that takes into account split tabs. If the anchor or `tab` is part of a
+  // split, the range will include that split.
+  std::vector<tabs::TabInterface*> GetSelectionRangeFromAnchorToTab(
+      tabs::TabInterface* tab);
 
   // Generates the MoveNotifications for `MoveTabsToIndexImpl` and updates the
   // selection model and openers.

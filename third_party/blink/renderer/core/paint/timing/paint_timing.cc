@@ -283,9 +283,9 @@ void PaintTiming::MarkPaintTimingInternal() {
           .TakeImageRecordsOnPaintFinished();
   // Non-specced behavior: take the list of animated images that are ready for
   // the first animated frame timestamp. LCP uses this timestamp for metrics.
-  HeapVector<Member<ImageRecord>> animated_images =
+  HeapVector<Member<HeapTimeTicks>> pending_timestamps =
       paint_timing_detector_->GetImagePaintTimingDetector()
-          .TakeAnimatedImageRecordsOnPaintFinished();
+          .TakePendingPresentationTimestamps();
 
   // 4. Let paintedTextNodes be a new ordered set
   HeapVector<Member<TextRecord>> text_records =
@@ -347,7 +347,7 @@ void PaintTiming::MarkPaintTimingInternal() {
 
   bool has_paint_timing_records =
       !client_callbacks.empty() || !image_records.empty() ||
-      !animated_images.empty() || !text_records.empty();
+      !pending_timestamps.empty() || !text_records.empty();
 
   if (paint_timing_record.paint_events.empty() && !frame_timing_info &&
       !has_paint_timing_records) {
@@ -365,7 +365,7 @@ void PaintTiming::MarkPaintTimingInternal() {
     auto* data = MakeGarbageCollected<PresentationCallbackData>(
         callback_data_id, paint_timing_record, frame_timing_info,
         std::move(text_records), std::move(image_records),
-        std::move(client_callbacks), std::move(animated_images));
+        std::move(client_callbacks), std::move(pending_timestamps));
     pending_presentation_data_.push_back(data);
   }
 
@@ -517,18 +517,8 @@ void PaintTiming::FlushPaintTimingsOnFramePresentedCallback(
     if (data->id > id) {
       break;
     }
-    SetPaintTimingInfoForPaintTimingRecords(*data, paint_timing_info,
-                                            raw_presentation_timestamp);
-    for (auto& callback : data->client_callbacks) {
-      std::move(callback).Run(raw_presentation_timestamp, paint_timing_info,
-                              navigation_id);
-    }
-    if (data->ShouldNotifyClientsOnFramePresented()) {
-      ForEachClient([&](PaintTimingClient* client) {
-        client->OnFramePresented(data->image_records, data->text_records,
-                                 paint_timing_info);
-      });
-    }
+    FlushPresentationCallbackData(*data, paint_timing_info,
+                                  raw_presentation_timestamp, navigation_id);
     pending_presentation_data_.pop_front();
   }
 
@@ -635,18 +625,9 @@ void PaintTiming::FlushPaintTimingsOnFramePresented(
   // ... report ICP given ...
   // ... report Container Timings given ...
   //
-  SetPaintTimingInfoForPaintTimingRecords(data, *data.paint_timing_info,
-                                          data.raw_presentation_timestamp);
-  for (auto& callback : data.client_callbacks) {
-    std::move(callback).Run(data.raw_presentation_timestamp,
-                            *data.paint_timing_info, data.navigation_id);
-  }
-  if (data.ShouldNotifyClientsOnFramePresented()) {
-    ForEachClient([&](PaintTimingClient* client) {
-      client->OnFramePresented(data.image_records, data.text_records,
-                               *data.paint_timing_info);
-    });
-  }
+  FlushPresentationCallbackData(data, *data.paint_timing_info,
+                                data.raw_presentation_timestamp,
+                                data.navigation_id);
 
   // 10.5 If frameTimingInfo is not null, then queue a long animation frame
   // entry given document, frameTimingInfo, and paintTimingInfo.
@@ -656,32 +637,28 @@ void PaintTiming::FlushPaintTimingsOnFramePresented(
   }
 }
 
-void PaintTiming::SetPaintTimingInfoForPaintTimingRecords(
+void PaintTiming::FlushPresentationCallbackData(
     PresentationCallbackData& data,
     const DOMPaintTimingInfo& paint_timing_info,
-    base::TimeTicks raw_presentation_timestamp) {
-  // Set paint time for the `ImageRecord`s if it hasn't been set. Note for first
-  // video frame with ReportFirstFrameTimeAsRenderTime enabled, this will
-  // already be set.
-  for (ImageRecord* record : data.image_records) {
-    if (!record->HasPaintTime()) {
-      record->SetPaintTime(raw_presentation_timestamp, paint_timing_info);
-    }
+    base::TimeTicks raw_presentation_timestamp,
+    uint64_t navigation_id) {
+  // Resolve pending presentation timestamps.
+  for (HeapTimeTicks* timestamp : data.pending_timestamps) {
+    CHECK(timestamp->value.is_null());
+    timestamp->value = raw_presentation_timestamp;
   }
 
-  // Set the paint time for the `TextRecord`s, which should not already be set.
-  for (TextRecord* record : data.text_records) {
-    CHECK(!record->HasPaintTime());
-    record->SetPaintTime(raw_presentation_timestamp, paint_timing_info);
+  for (auto& callback : data.client_callbacks) {
+    std::move(callback).Run(raw_presentation_timestamp, paint_timing_info,
+                            navigation_id);
   }
 
-  // Set the first animated frame time for pending `animated_images_` if not
-  // already set (the record may have been queued multiple times for different
-  // frames, depending on timing between paint and presentation time).
-  for (ImageRecord* record : data.animated_images) {
-    if (!record->HasFirstAnimatedFrameTime()) {
-      record->SetFirstAnimatedFrameTime(raw_presentation_timestamp);
-    }
+  if (data.ShouldNotifyClientsOnFramePresented()) {
+    ForEachClient([&](PaintTimingClient* client) {
+      client->OnFramePresented(data.image_records, data.text_records,
+                               raw_presentation_timestamp, paint_timing_info,
+                               navigation_id);
+    });
   }
 }
 
@@ -1137,20 +1114,20 @@ PaintTiming::PresentationCallbackData::PresentationCallbackData(
     HeapVector<Member<TextRecord>> text_records,
     HeapVector<Member<ImageRecord>> image_records,
     Vector<PaintTimingCallback> client_callbacks,
-    HeapVector<Member<ImageRecord>> animated_images)
+    HeapVector<Member<HeapTimeTicks>> pending_timestamps)
     : id(id),
       paint_timing_record(record),
       animation_frame_timing_info(animation_frame_timing_info),
       text_records(std::move(text_records)),
       image_records(std::move(image_records)),
       client_callbacks(std::move(client_callbacks)),
-      animated_images(std::move(animated_images)) {}
+      pending_timestamps(std::move(pending_timestamps)) {}
 
 void PaintTiming::PresentationCallbackData::Trace(Visitor* visitor) const {
   visitor->Trace(animation_frame_timing_info);
   visitor->Trace(text_records);
   visitor->Trace(image_records);
-  visitor->Trace(animated_images);
+  visitor->Trace(pending_timestamps);
 }
 
 }  // namespace blink

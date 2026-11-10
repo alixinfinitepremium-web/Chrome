@@ -4,21 +4,66 @@
 
 #include "chrome/browser/default_browser/setters/default_browser_annotated_shell_integration_setter.h"
 
+#include <memory>
 #include <utility>
 
 #include "base/check.h"
 #include "base/functional/bind.h"
+#include "base/metrics/histogram_functions.h"
+#include "base/notreached.h"
+#include "base/time/time.h"
+#include "build/build_config.h"
 #include "chrome/browser/default_browser/default_browser_features.h"
 #include "chrome/browser/default_browser/setters/shell_integration_default_browser_setter.h"
+
+#if BUILDFLAG(IS_WIN)
 #include "chrome/browser/ui/views/default_browser/annotated_setter_bubble_controller_win.h"
+#endif  // BUILDFLAG(IS_WIN)
 
 namespace default_browser {
+
+namespace {
+
+// The bubble annotates the Windows Settings window, so only Windows has a
+// controller for it. GetDefaultBrowserSetterType() never selects this setter
+// elsewhere.
+std::unique_ptr<AnnotatedSetterBubbleController> CreateBubbleController(
+    base::TimeDelta find_timeout,
+    bool can_pin_to_taskbar,
+    AnnotatedSetterBubbleController::CompletionCallback on_complete) {
+#if BUILDFLAG(IS_WIN)
+  return AnnotatedSetterBubbleControllerWin::Create(
+      find_timeout, can_pin_to_taskbar, std::move(on_complete));
+#else
+  NOTREACHED();
+#endif  // BUILDFLAG(IS_WIN)
+}
+
+DefaultBrowserAnnotatedShellIntegrationSetter::GuidanceOutcome
+ToGuidanceOutcome(AnnotatedSetterBubbleController::Outcome outcome) {
+  using GuidanceOutcome =
+      DefaultBrowserAnnotatedShellIntegrationSetter::GuidanceOutcome;
+  using Outcome = AnnotatedSetterBubbleController::Outcome;
+  switch (outcome) {
+    case Outcome::kSettingsWindowClosed:
+      return GuidanceOutcome::kSettingsWindowClosed;
+    case Outcome::kSettingsWindowNotFound:
+      return GuidanceOutcome::kSettingsWindowNotFound;
+    case Outcome::kButtonNotFound:
+      return GuidanceOutcome::kButtonNotFound;
+    case Outcome::kDismissed:
+      return GuidanceOutcome::kDismissed;
+  }
+  NOTREACHED();
+}
+
+}  // namespace
 
 DefaultBrowserAnnotatedShellIntegrationSetter::
     DefaultBrowserAnnotatedShellIntegrationSetter()
     : DefaultBrowserAnnotatedShellIntegrationSetter(
           std::make_unique<ShellIntegrationDefaultBrowserSetter>(),
-          base::BindRepeating(&AnnotatedSetterBubbleControllerWin::Create)) {}
+          base::BindRepeating(&CreateBubbleController)) {}
 
 DefaultBrowserAnnotatedShellIntegrationSetter::
     DefaultBrowserAnnotatedShellIntegrationSetter(
@@ -31,7 +76,9 @@ DefaultBrowserAnnotatedShellIntegrationSetter::
 }
 
 DefaultBrowserAnnotatedShellIntegrationSetter::
-    ~DefaultBrowserAnnotatedShellIntegrationSetter() = default;
+    ~DefaultBrowserAnnotatedShellIntegrationSetter() {
+  EndGuidance(GuidanceOutcome::kAbandoned);
+}
 
 DefaultBrowserSetterType
 DefaultBrowserAnnotatedShellIntegrationSetter::GetType() const {
@@ -58,14 +105,26 @@ void DefaultBrowserAnnotatedShellIntegrationSetter::Execute(
 
 void DefaultBrowserAnnotatedShellIntegrationSetter::OnGuidanceComplete(
     AnnotatedSetterBubbleController::Outcome outcome) {
-  bubble_controller_.reset();
+  EndGuidance(ToGuidanceOutcome(outcome));
 }
 
 void DefaultBrowserAnnotatedShellIntegrationSetter::OnShellIntegrationComplete(
     DefaultBrowserSetterCompletionCallback on_complete,
     DefaultBrowserState state) {
-  bubble_controller_.reset();
+  EndGuidance(state == DefaultBrowserState::IS_DEFAULT
+                  ? GuidanceOutcome::kFlowFinishedDefaultSet
+                  : GuidanceOutcome::kFlowFinishedDefaultNotSet);
   std::move(on_complete).Run(state);
+}
+
+void DefaultBrowserAnnotatedShellIntegrationSetter::EndGuidance(
+    GuidanceOutcome outcome) {
+  if (!bubble_controller_) {
+    return;
+  }
+  base::UmaHistogramEnumeration(
+      "DefaultBrowser.AnnotatedShellIntegration.Outcome", outcome);
+  bubble_controller_.reset();
 }
 
 }  // namespace default_browser

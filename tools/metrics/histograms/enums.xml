@@ -172,6 +172,7 @@ uploading your change for review.  These are checked by presubmit scripts.
   <int value="15" label="Open in browser"/>
   <int value="16" label="Tab grouping"/>
   <int value="17" label="Glic"/>
+  <int value="18" label="TTC"/>
 </enum>
 
 <!-- LINT.ThenChange(/chrome/browser/ui/android/toolbar/adaptive_toolbar_enums.h:AdaptiveToolbarButtonVariant) -->
@@ -2227,16 +2228,6 @@ Called by update_net_error_codes.py.-->
 </enum>
 
 <!-- LINT.ThenChange(//ash/system/eche/eche_tray.h:ConnectionFailReason) -->
-
-<enum name="ConnectivityDetectorConnectionState">
-  <int value="0" label="Initial state or connection state can't be evaluated"/>
-  <int value="1" label="The network is disconnected"/>
-  <int value="2"
-      label="The network is connected, but it can't reach the Internet"/>
-  <int value="3"
-      label="The network is connected, but capitive portal is detected"/>
-  <int value="4" label="The network is validated"/>
-</enum>
 
 <enum name="ContentIndexCategory">
   <summary>
@@ -10543,6 +10534,8 @@ from previous Chrome versions.
   <int value="-1364703377" label="AppListDragAndDropRefactor:enabled"/>
   <int value="-1363709707" label="MaterialDesignHistory:disabled"/>
   <int value="-1363463057" label="AutofillAiCreateEntityDataManager:enabled"/>
+  <int value="-1362826997"
+      label="HashPrefixRealTimeLookupsOnIncognitoAndGuest:disabled"/>
   <int value="-1362431915" label="RelatedSearches:disabled"/>
   <int value="-1361870305"
       label="DeviceBoundSessionsFederatedRegistration:disabled"/>
@@ -13819,6 +13812,8 @@ from previous Chrome versions.
   <int value="-389283574" label="IPH_PasswordsAccountStorage:disabled"/>
   <int value="-388869173"
       label="AccessibilityRequestScopedContentChangedEvents:enabled"/>
+  <int value="-387662330"
+      label="HashPrefixRealTimeLookupsOnIncognitoAndGuest:enabled"/>
   <int value="-387606010" label="ArcBootCompletedBroadcast:enabled"/>
   <int value="-387341308" label="ParentAccessJelly:disabled"/>
   <int value="-387217874" label="LinkCapturingInfoBar:enabled"/>

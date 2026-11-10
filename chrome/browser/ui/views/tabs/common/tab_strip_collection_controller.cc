@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <memory>
+#include <string_view>
 #include <utility>
 #include <variant>
 
@@ -317,29 +318,32 @@ void TabStripCollectionController::MoveTabLast(
 void TabStripCollectionController::SelectTab(
     const tabs::TabInterface* tab_interface,
     const TabStripUserGestureDetails& gesture_detail) {
-  std::optional<int> tab_index = model_->GetIndexOfTab(tab_interface);
-  if (!tab_index.has_value()) {
+  if (!tab_interface ||
+      model_->GetIndexOfTab(tab_interface) == TabStripModel::kNoTab) {
     return;
   }
 
-  if (!model_->IsTabInForeground(tab_index.value())) {
+  tabs::TabHandle target_handle = tab_interface->GetHandle();
+  if (!model_->IsTabInForeground(target_handle)) {
     RecordMetricsOnTabSelectionChange(tab_interface->GetGroup());
   }
 
   std::optional<split_tabs::SplitTabId> split_id = tab_interface->GetSplit();
   if (split_id.has_value()) {
-    tab_index = split_tabs::GetIndexOfLastActiveTab(model_, split_id.value());
+    const int last_active_index =
+        split_tabs::GetIndexOfLastActiveTab(model_, split_id.value());
+    target_handle = model_->GetTabAtIndex(last_active_index)->GetHandle();
   }
 
   views::Widget* widget = browser_view_ ? browser_view_->GetWidget() : nullptr;
   std::unique_ptr<viz::PeakGpuMemoryTracker> tracker;
-  if (model_->active_index() != tab_index.value() && widget &&
+  if (model_->GetActiveTab() != target_handle.Get() && widget &&
       widget->GetCompositor()) {
     tracker = content::PeakGpuMemoryTrackerFactory::Create(
         viz::PeakGpuMemoryTracker::Usage::CHANGE_TAB);
   }
 
-  model_->ActivateTabAt(tab_index.value(), gesture_detail);
+  model_->ActivateTab(target_handle, gesture_detail);
 
   if (tracker) {
     if (views::Widget* post_activate_widget =
@@ -374,38 +378,39 @@ void TabStripCollectionController::CloseTab(
 
 void TabStripCollectionController::ToggleSelected(
     const tabs::TabInterface* tab_interface) {
-  std::optional<int> tab_index = model_->GetIndexOfTab(tab_interface);
-  if (!tab_index.has_value()) {
+  if (!tab_interface ||
+      model_->GetIndexOfTab(tab_interface) == TabStripModel::kNoTab) {
     return;
   }
 
-  if (model_->IsTabSelected(tab_index.value())) {
-    model_->DeselectTabAt(tab_index.value());
+  const tabs::TabHandle handle = tab_interface->GetHandle();
+  if (tab_interface->IsSelected()) {
+    model_->DeselectTab(handle);
   } else {
-    model_->SelectTabAt(tab_index.value());
+    model_->SelectTab(handle);
   }
 }
 
 void TabStripCollectionController::AddSelectionFromAnchorTo(
     const tabs::TabInterface* tab_interface) {
-  std::optional<int> tab_index = model_->GetIndexOfTab(tab_interface);
-  if (!tab_index.has_value()) {
+  const int tab_index = model_->GetIndexOfTab(tab_interface);
+  if (tab_index == TabStripModel::kNoTab) {
     return;
   }
 
-  ExpandCollapsedGroupsInSelectionRange(tab_index.value());
-  model_->AddSelectionFromAnchorTo(tab_index.value());
+  ExpandCollapsedGroupsInSelectionRange(tab_index);
+  model_->AddSelectionFromAnchorTo(tab_interface->GetHandle());
 }
 
 void TabStripCollectionController::ExtendSelectionTo(
     const tabs::TabInterface* tab_interface) {
-  std::optional<int> tab_index = model_->GetIndexOfTab(tab_interface);
-  if (!tab_index.has_value()) {
+  const int tab_index = model_->GetIndexOfTab(tab_interface);
+  if (tab_index == TabStripModel::kNoTab) {
     return;
   }
 
-  ExpandCollapsedGroupsInSelectionRange(tab_index.value());
-  model_->ExtendSelectionTo(tab_index.value());
+  ExpandCollapsedGroupsInSelectionRange(tab_index);
+  model_->ExtendSelectionTo(tab_interface->GetHandle());
 }
 
 const ui::ListSelectionModel& TabStripCollectionController::GetSelectionModel()
@@ -466,6 +471,9 @@ void TabStripCollectionController::ToggleTabGroupCollapsedState(
 
   if (origin != ToggleTabGroupCollapsedStateOrigin::kMenuAction ||
       should_toggle_group) {
+    if (is_currently_collapsed && tab_closing_helper_) {
+      tab_closing_helper_->ExitTabClosingMode();
+    }
     model_->ChangeTabGroupVisuals(
         group->id(),
         tab_groups::TabGroupVisualData(group->visual_data()->title(),
@@ -677,6 +685,10 @@ void TabStripCollectionController::TabGroupFocusChanged(
         model_->GetIndexOfTab(previous_group->GetFirstTab());
   }
 
+  if (tab_closing_helper_) {
+    tab_closing_helper_->ExitTabClosingMode();
+  }
+
   const auto motion =
       is_entering ? FocusModeAnimations::kEnter : FocusModeAnimations::kExit;
   if (should_animate) {
@@ -686,7 +698,16 @@ void TabStripCollectionController::TabGroupFocusChanged(
     }
     base::AutoReset<bool> starting(&focus_transition_->is_starting_focus_motion,
                                    true);
-    anim_controller->Start(FocusModeAnimations::kFocusMode, motion);
+    // A direct switch between groups plays `kEnter` but is logged separately.
+    const bool is_direct_switch =
+        is_entering && old_focused_group_id.has_value();
+    anim_controller->Start(
+        FocusModeAnimations::kFocusMode, motion,
+        /*group_histogram_override=*/GetFocusAnimationHistogramGroupPrefix(),
+        /*motion_histogram_override=*/
+        is_direct_switch ? std::make_optional<std::string_view>(
+                               FocusModeAnimations::kSwitchMotionHistogramName)
+                         : std::nullopt);
   } else {
     anim_controller->Reset(FocusModeAnimations::kFocusMode, motion);
   }
@@ -1047,6 +1068,16 @@ BrowserFrameView* TabStripCollectionController::GetBrowserFrameView() const {
 BrowserAnimationController*
 TabStripCollectionController::GetBrowserAnimationController() const {
   return BrowserAnimationController::From(browser_view_->browser());
+}
+
+std::string_view
+TabStripCollectionController::GetFocusAnimationHistogramGroupPrefix() const {
+  switch (root_node_->orientation()) {
+    case TabStripOrientation::kHorizontal:
+      return FocusModeAnimations::kHistogramGroupPrefixHorizontal;
+    case TabStripOrientation::kVertical:
+      return FocusModeAnimations::kHistogramGroupPrefixVertical;
+  }
 }
 
 void TabStripCollectionController::OnFocusAnimationUpdated(

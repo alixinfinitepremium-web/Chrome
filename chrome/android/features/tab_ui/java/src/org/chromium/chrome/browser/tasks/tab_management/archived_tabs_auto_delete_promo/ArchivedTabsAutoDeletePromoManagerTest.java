@@ -97,7 +97,10 @@ public class ArchivedTabsAutoDeletePromoManagerTest {
     }
 
     @Test
-    @EnableFeatures(ChromeFeatureList.USER_EDUCATION_INTERRUPTIVE_COOLDOWN_GROUP)
+    @EnableFeatures({
+        ChromeFeatureList.USER_EDUCATION_FRAMEWORK,
+        ChromeFeatureList.USER_EDUCATION_INTERRUPTIVE_COOLDOWN_GROUP
+    })
     public void testTryToShowPromo_CooldownGroupEnabledAndAllowed_ShowsPromo() {
         createManager(
                 /* decisionMade= */ false,
@@ -107,11 +110,7 @@ public class ArchivedTabsAutoDeletePromoManagerTest {
         when(mMockBottomSheetController.requestShowContent(
                         any(ArchivedTabsAutoDeletePromoSheetContent.class), eq(true)))
                 .thenReturn(true);
-        FeatureProperties expectedProps =
-                new FeatureProperties(
-                        UiFormat.BOTTOM_SHEET,
-                        /* isBlockedByCooldownGroup= */ true,
-                        /* blocksCooldownGroup= */ true);
+        FeatureProperties expectedProps = new FeatureProperties(UiFormat.BOTTOM_SHEET);
         when(mMockTracker.shouldTriggerHelpUi(
                         eq(FeatureConstants.ARCHIVED_TABS_AUTO_DELETE_PROMO_FEATURE),
                         eq(expectedProps)))
@@ -133,7 +132,10 @@ public class ArchivedTabsAutoDeletePromoManagerTest {
     }
 
     @Test
-    @EnableFeatures(ChromeFeatureList.USER_EDUCATION_INTERRUPTIVE_COOLDOWN_GROUP)
+    @EnableFeatures({
+        ChromeFeatureList.USER_EDUCATION_FRAMEWORK,
+        ChromeFeatureList.USER_EDUCATION_INTERRUPTIVE_COOLDOWN_GROUP
+    })
     public void testTryToShowPromo_CooldownGroupEnabledAndBlocked_NoPromo() {
         createManager(
                 /* decisionMade= */ false,

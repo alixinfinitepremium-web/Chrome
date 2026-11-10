@@ -381,6 +381,23 @@ public class SpeechRecognitionImplTest {
     }
 
     @Test
+    public void testStopRecognitionBeforeReadyForSpeechEndsImmediately() {
+        startRecognition(/* continuous= */ true, /* interimResults= */ true);
+
+        mSpeechRecognition.stopRecognition();
+
+        verify(mRecognizerMock).cancel();
+        verify(mRecognizerMock, never()).stopListening();
+        verify(mRecognizerMock).destroy();
+        verify(mNativesMock).onRecognitionEnd(mNativePtr);
+        verify(mNativesMock, never()).onRecognitionError(any(), anyInt());
+
+        // Any trailing callback from Android's recognizer after termination is ignored.
+        mListener.onReadyForSpeech(new Bundle());
+        verifyNoMoreInteractions(mNativesMock);
+    }
+
+    @Test
     public void testResultsEndRecognition() {
         startRecognition(/* continuous= */ false, /* interimResults= */ true);
 
@@ -609,5 +626,75 @@ public class SpeechRecognitionImplTest {
         mListener.onBeginningOfSpeech();
         mListener.onResults(resultsBundle("hello"));
         verifyNoMoreInteractions(mNativesMock);
+    }
+
+    @Test
+    public void testOnErrorLanguageNotSupported() {
+        startRecognition(/* continuous= */ false, /* interimResults= */ false);
+
+        mListener.onError(SpeechRecognizer.ERROR_LANGUAGE_NOT_SUPPORTED);
+
+        verify(mRecognizerMock).destroy();
+        verify(mNativesMock)
+                .onRecognitionError(mNativePtr, SpeechRecognitionErrorCode.LANGUAGE_NOT_SUPPORTED);
+        verify(mNativesMock).onRecognitionEnd(mNativePtr);
+    }
+
+    @Test
+    public void testOnErrorLanguageUnavailable() {
+        startRecognition(/* continuous= */ false, /* interimResults= */ false);
+
+        mListener.onError(SpeechRecognizer.ERROR_LANGUAGE_UNAVAILABLE);
+
+        verify(mRecognizerMock).destroy();
+        verify(mNativesMock)
+                .onRecognitionError(mNativePtr, SpeechRecognitionErrorCode.LANGUAGE_NOT_SUPPORTED);
+        verify(mNativesMock).onRecognitionEnd(mNativePtr);
+    }
+
+    @Test
+    public void testOnErrorTooManyRequests() {
+        startRecognition(/* continuous= */ false, /* interimResults= */ false);
+
+        mListener.onError(SpeechRecognizer.ERROR_TOO_MANY_REQUESTS);
+
+        verify(mRecognizerMock).destroy();
+        verify(mNativesMock).onRecognitionError(mNativePtr, SpeechRecognitionErrorCode.NOT_ALLOWED);
+        verify(mNativesMock).onRecognitionEnd(mNativePtr);
+    }
+
+    @Test
+    public void testOnErrorServerDisconnected() {
+        startRecognition(/* continuous= */ false, /* interimResults= */ false);
+
+        mListener.onError(SpeechRecognizer.ERROR_SERVER_DISCONNECTED);
+
+        verify(mRecognizerMock).destroy();
+        verify(mNativesMock).onRecognitionError(mNativePtr, SpeechRecognitionErrorCode.NETWORK);
+        verify(mNativesMock).onRecognitionEnd(mNativePtr);
+    }
+
+    @Test
+    public void testOnErrorCannotCheckSupport() {
+        startRecognition(/* continuous= */ false, /* interimResults= */ false);
+
+        mListener.onError(SpeechRecognizer.ERROR_CANNOT_CHECK_SUPPORT);
+
+        verify(mRecognizerMock).destroy();
+        verify(mNativesMock)
+                .onRecognitionError(mNativePtr, SpeechRecognitionErrorCode.SERVICE_NOT_ALLOWED);
+        verify(mNativesMock).onRecognitionEnd(mNativePtr);
+    }
+
+    @Test
+    public void testOnErrorCannotListenToDownloadEvents() {
+        startRecognition(/* continuous= */ false, /* interimResults= */ false);
+
+        mListener.onError(SpeechRecognizer.ERROR_CANNOT_LISTEN_TO_DOWNLOAD_EVENTS);
+
+        verify(mRecognizerMock).destroy();
+        verify(mNativesMock)
+                .onRecognitionError(mNativePtr, SpeechRecognitionErrorCode.SERVICE_NOT_ALLOWED);
+        verify(mNativesMock).onRecognitionEnd(mNativePtr);
     }
 }

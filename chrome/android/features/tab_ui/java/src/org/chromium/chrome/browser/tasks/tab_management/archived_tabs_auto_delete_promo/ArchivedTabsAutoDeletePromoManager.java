@@ -10,7 +10,7 @@ import org.chromium.base.lifetime.Destroyable;
 import org.chromium.base.supplier.NonNullObservableSupplier;
 import org.chromium.build.annotations.NullMarked;
 import org.chromium.build.annotations.Nullable;
-import org.chromium.chrome.browser.flags.ChromeFeatureList;
+import org.chromium.chrome.browser.feature_engagement.TrackerFactory;
 import org.chromium.chrome.browser.tab.TabArchiveSettings;
 import org.chromium.components.browser_ui.bottomsheet.BottomSheetController;
 import org.chromium.components.feature_engagement.FeatureConstants;
@@ -62,15 +62,11 @@ public class ArchivedTabsAutoDeletePromoManager implements Destroyable {
     public void tryToShowArchivedTabsAutoDeleteDecisionPromo(@Nullable Tracker tracker) {
         if (checkConditions()) {
             // All conditions met to consider showing the promo.
-            if (ChromeFeatureList.sUserEducationInterruptiveCooldownGroup.isEnabled()) {
+            if (TrackerFactory.isInterruptiveCooldownGroupEnabled()) {
                 if (tracker == null) {
                     return;
                 }
-                FeatureProperties featureProperties =
-                        new FeatureProperties(
-                                UiFormat.BOTTOM_SHEET,
-                                /* isBlockedByCooldownGroup= */ true,
-                                /* blocksCooldownGroup= */ true);
+                FeatureProperties featureProperties = new FeatureProperties(UiFormat.BOTTOM_SHEET);
                 if (!tracker.shouldTriggerHelpUi(
                         FeatureConstants.ARCHIVED_TABS_AUTO_DELETE_PROMO_FEATURE,
                         featureProperties)) {

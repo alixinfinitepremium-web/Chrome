@@ -502,6 +502,7 @@ class EncryptedMediaVisibilityRatioReportTest : public EncryptedMediaTestBase {
     query_params.emplace_back("keySystem", media::kExternalClearKeyKeySystem);
     query_params.emplace_back("useMSE", "1");
     query_params.emplace_back("playCount", "1");
+    query_params.emplace_back("stopAfterPlaybackStart", "1");
 
     if (!param.first.empty()) {
       query_params.push_back(param);
@@ -1156,13 +1157,7 @@ IN_PROC_BROWSER_TEST_P(ECKEncryptedMediaFileIOTest, FileIOTest) {
                        kUnitTestSuccess);
 }
 
-// Intermittent leaks on ASan/LSan runs: crbug.com/41417613
-#if defined(LEAK_SANITIZER) || defined(ADDRESS_SANITIZER)
-#define MAYBE_MessageTypeTest DISABLED_MessageTypeTest
-#else
-#define MAYBE_MessageTypeTest MessageTypeTest
-#endif
-IN_PROC_BROWSER_TEST_P(ECKEncryptedMediaTest, MAYBE_MessageTypeTest) {
+IN_PROC_BROWSER_TEST_P(ECKEncryptedMediaTest, MessageTypeTest) {
   TestPlaybackCase(media::kExternalClearKeyMessageTypeTestKeySystem,
                    kNoSessionToLoad, media::kEndedTitle);
   // Expects 3 message types: 'license-request', 'license-renewal' and

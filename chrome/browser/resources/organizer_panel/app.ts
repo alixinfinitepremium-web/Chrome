@@ -8,6 +8,7 @@ import './organizer_list.js';
 import '/strings.m.js';
 
 import {assert} from '//resources/js/assert.js';
+import type {PropertyValues} from '//resources/lit/v3_0/lit.rollup.js';
 import {CrLitElement} from '//resources/lit/v3_0/lit.rollup.js';
 import {ColorChangeUpdater} from 'chrome://resources/cr_components/color_change_listener/colors_css_updater.js';
 import type {CrToolbarSearchFieldElement} from 'chrome://resources/cr_elements/cr_toolbar/cr_toolbar_search_field.js';
@@ -21,7 +22,6 @@ import {RecentTabsDelegate} from './delegates/recent_tabs_delegate.js';
 import {TabGroupsDelegate} from './delegates/tab_groups_delegate.js';
 import type {OrganizerListElement} from './organizer_list.js';
 import type {OrganizerListSectionDelegate} from './organizer_list_section_delegate.js';
-import {recordCloseMetrics, resetCloseMetrics} from './organizer_list_section_delegate.js';
 import type {BrowserProxy} from './organizer_panel.mojom-webui.js';
 import {browserProxyFactory} from './organizer_panel.mojom-webui.js';
 
@@ -107,7 +107,6 @@ export class OrganizerPanelAppElement extends CrLitElement {
   };
   private onVisibilityChange_: () => void = () => {
     if (document.visibilityState === 'hidden') {
-      recordCloseMetrics();
       this.$.searchField.setValue('');
       this.searchQuery_ = '';
       this.hasRecordedSearch_ = false;
@@ -117,7 +116,6 @@ export class OrganizerPanelAppElement extends CrLitElement {
 
   override connectedCallback() {
     super.connectedCallback();
-    resetCloseMetrics();
     ColorChangeUpdater.forDocument().start();
     this.addEventListener('keydown', this.onKeydown_);
     window.addEventListener('focus', this.onWindowFocused_);
@@ -149,6 +147,21 @@ export class OrganizerPanelAppElement extends CrLitElement {
     this.browserProxy_.callbackRouter.removeListener(
         this.inTrayViewChangedListenerId_);
     this.inTrayViewChangedListenerId_ = null;
+  }
+
+  override firstUpdated(changedProperties: PropertyValues<this>) {
+    super.firstUpdated(changedProperties);
+    this.notifyShowUi_();
+  }
+
+  private async notifyShowUi_() {
+    try {
+      await this.$.list.waitForInitialLoad();
+    } finally {
+      if (this.isConnected) {
+        this.browserProxy_.handler.showUI();
+      }
+    }
   }
 
   private getCloseButton_(): HTMLElement|null {

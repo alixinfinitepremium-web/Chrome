@@ -239,11 +239,6 @@ inline constexpr char kAutofillAiWithDataSchemaName[] =
 inline constexpr char kAutofillAiWithDataSchemaDescription[] =
     "Enables Autofill AI With Data Schema.";
 
-inline constexpr char kAutofillAmbientAutofillName[] =
-    "Autofill Ambient Autofill";
-inline constexpr char kAutofillAmbientAutofillDescription[] =
-    "Enables Ambient Autofill.";
-
 inline constexpr char kAutofillBottomSheetNewBlurName[] =
     "New Blur Method for Autofill Bottom Sheet";
 inline constexpr char kAutofillBottomSheetNewBlurDescription[] =
@@ -454,12 +449,6 @@ inline constexpr char kComposeboxAIMNudgeDescription[] =
     "Enables the AIM nudge button in the composebox, tapping on the button "
     "enables AIM. This is conditionned by AIM availability.";
 
-inline constexpr char kComposeboxAdditionalAdvancedToolsName[] =
-    "Enable additional advanced tools in composebox";
-inline constexpr char kComposeboxAdditionalAdvancedToolsDescription[] =
-    "When enabled, the additional tools in the input plate are shown, such as "
-    "canvas and the model picker";
-
 inline constexpr char kComposeboxAimRichAPCExtractionName[] =
     "Composebox AIM Rich APC Extraction";
 inline constexpr char kComposeboxAimRichAPCExtractionDescription[] =
@@ -491,11 +480,6 @@ inline constexpr char kComposeboxConnectedAppsSettingDescription[] =
     "the web page where the user can the connect their Google apps to the "
     "search services";
 
-inline constexpr char kComposeboxDeepSearchName[] =
-    "Enable Composebox Deep Search";
-inline constexpr char kComposeboxDeepSearchDescription[] =
-    "Enables the deep search advanced tool in Composebox";
-
 inline constexpr char kComposeboxDevToolsName[] = "Enable Composebox Dev Tools";
 inline constexpr char kComposeboxDevToolsDescription[] =
     "Enables development tools for the composebox, allowing simulation of "
@@ -524,11 +508,6 @@ inline constexpr char kComposeboxPlusButtonLargeCarouselDescription[] =
     "Uses the larger size of the carousel in the bottom sheet for the plus "
     "button multimodal menu.";
 
-inline constexpr char kComposeboxServerSideStateName[] =
-    "Enable server side state in Composebox";
-inline constexpr char kComposeboxServerSideStateDescription[] =
-    "When enabled, the server side state will be used in the composebox";
-
 inline constexpr char kComposeboxVerbatimSuggestionInAIMName[] =
     "Enable verbatim suggestion in AIM in composebox";
 inline constexpr char kComposeboxVerbatimSuggestionInAIMDescription[] =
@@ -556,12 +535,6 @@ inline constexpr char kContextManagementInComposeboxName[] =
 inline constexpr char kContextManagementInComposeboxDescription[] =
     "When Enabled, it ensures that removed tab context are removed from AIM "
     "even when submitted.";
-
-inline constexpr char kContextMenuPreviewDownsampleImageName[] =
-    "Context Menu Preview Downsample Image";
-inline constexpr char kContextMenuPreviewDownsampleImageDescription[] =
-    "When enabled, downsamples images in the context menu preview to reduce "
-    "memory usage.";
 
 inline constexpr char kContextualTasksName[] = "Enables the contextual tasks";
 inline constexpr char kContextualTasksDescription[] =
@@ -1238,6 +1211,11 @@ inline constexpr char kIOSSoftLockName[] = "Soft Lock on iOS";
 inline constexpr char kIOSSoftLockDescription[] =
     "Enables experimental Soft Lock on iOS.";
 
+inline constexpr char kIOSSupportMediaCapturePoliciesName[] =
+    "iOS Support Media Capture Policies";
+inline constexpr char kIOSSupportMediaCapturePoliciesDescription[] =
+    "Enables the media capture policies feature on iOS.";
+
 inline constexpr char kIOSTabRemindersName[] = "Tab Reminders";
 inline constexpr char kIOSTabRemindersDescription[] =
     "Enables the Tab Reminder notifications feature on iOS.";
@@ -1849,6 +1827,13 @@ inline constexpr char kSafeBrowsingAvailableName[] =
 inline constexpr char kSafeBrowsingAvailableDescription[] =
     "When enabled, navigation URLs are compared to Safe Browsing blocklists, "
     "subject to an opt-out preference.";
+
+inline constexpr char kSafeBrowsingHashPrefixRealTimeLookupsOnIncognitoName[] =
+    "Safe Browsing Hash Prefix Real Time Lookups on Incognito";
+inline constexpr char
+    kSafeBrowsingHashPrefixRealTimeLookupsOnIncognitoDescription[] =
+        "Enable checking URLs through Safe Browsing hash-prefix real-time "
+        "lookups on Incognito mode.";
 
 inline constexpr char kSafeBrowsingLocalListsUseSBv5Name[] =
     "Safe Browsing Local Lists use v5 API";

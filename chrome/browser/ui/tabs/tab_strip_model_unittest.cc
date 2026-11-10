@@ -129,6 +129,7 @@ class MockTabStripModelObserver : public TabStripModelObserver {
     CHANGE,
     PINNED,
     BLOCKED,
+    AUDIO,
     REPLACED,
     CLOSE_ALL,
     CLOSE_ALL_CANCELED,
@@ -401,12 +402,16 @@ class MockTabStripModelObserver : public TabStripModelObserver {
     states_.emplace_back(tab->GetContents(), std::nullopt, CHANGE);
   }
 
-  void OnTabPinnedStateChanged(tabs::TabInterface* tab, int index) override {
-    states_.emplace_back(tab->GetContents(), index, PINNED);
+  void OnTabPinnedStateChanged(tabs::TabHandle tab) override {
+    states_.emplace_back(tab.Get()->GetContents(), std::nullopt, PINNED);
   }
 
   void OnTabBlockedStateChanged(tabs::TabInterface* tab) override {
     states_.emplace_back(tab->GetContents(), std::nullopt, BLOCKED);
+  }
+
+  void OnTabAudioChanged(tabs::TabInterface* tab) override {
+    states_.emplace_back(tab->GetContents(), std::nullopt, AUDIO);
   }
 
   void WillCloseAllTabs(TabStripModel* tab_strip_model) override {
@@ -443,6 +448,7 @@ class MockTabStripModelObserver : public TabStripModelObserver {
             {CHANGE, "CHANGE"},
             {PINNED, "PINNED"},
             {BLOCKED, "BLOCKED"},
+            {AUDIO, "AUDIO"},
             {REPLACED, "REPLACED"},
             {CLOSE_ALL, "CLOSE_ALL"},
             {CLOSE_ALL_CANCELED, "CLOSE_ALL_CANCELED"},
@@ -817,6 +823,15 @@ TEST_F(TabStripModelTest, TestBasicAPI) {
     tabstrip()->UpdateWebContentsState(raw_contents2, TabChangeType::kAll);
     EXPECT_EQ(1, observer()->GetStateCount());
     State s1(raw_contents2, std::nullopt, MockTabStripModelObserver::CHANGE);
+    observer()->ExpectStateEquals(0, s1);
+    observer()->ClearStates();
+  }
+
+  // Test NotifyTabAudioChanged
+  {
+    tabstrip()->NotifyTabAudioChanged(tabstrip()->GetTabAtIndex(0));
+    EXPECT_EQ(1, observer()->GetStateCount());
+    State s1(raw_contents2, std::nullopt, MockTabStripModelObserver::AUDIO);
     observer()->ExpectStateEquals(0, s1);
     observer()->ClearStates();
   }
@@ -5647,7 +5662,7 @@ TEST_F(TabStripModelTest, Pinning) {
 
     // As the order didn't change, we should get a pinned notification.
     ASSERT_EQ(1, observer()->GetStateCount());
-    State state(raw_contents1, 0, MockTabStripModelObserver::PINNED);
+    State state(raw_contents1, std::nullopt, MockTabStripModelObserver::PINNED);
     observer()->ExpectStateEquals(0, state);
 
     // And verify the state.
@@ -5662,7 +5677,7 @@ TEST_F(TabStripModelTest, Pinning) {
 
     // As the order didn't change, we should get a pinned notification.
     ASSERT_EQ(1, observer()->GetStateCount());
-    State state(raw_contents1, 0, MockTabStripModelObserver::PINNED);
+    State state(raw_contents1, std::nullopt, MockTabStripModelObserver::PINNED);
     observer()->ExpectStateEquals(0, state);
 
     // And verify the state.
@@ -5681,7 +5696,8 @@ TEST_F(TabStripModelTest, Pinning) {
     state.src_index = 2;
     observer()->ExpectStateEquals(0, state);
 
-    state = State(raw_contents3, 0, MockTabStripModelObserver::PINNED);
+    state =
+        State(raw_contents3, std::nullopt, MockTabStripModelObserver::PINNED);
     observer()->ExpectStateEquals(2, state);
 
     // And verify the state.
@@ -5696,7 +5712,7 @@ TEST_F(TabStripModelTest, Pinning) {
 
     // As the order didn't change, we should get a pinned notification.
     ASSERT_EQ(1, observer()->GetStateCount());
-    State state(raw_contents1, 1, MockTabStripModelObserver::PINNED);
+    State state(raw_contents1, std::nullopt, MockTabStripModelObserver::PINNED);
     observer()->ExpectStateEquals(0, state);
 
     // And verify the state.
@@ -5727,7 +5743,8 @@ TEST_F(TabStripModelTest, Pinning) {
     state.src_index = 0;
     observer()->ExpectStateEquals(0, state);
 
-    state = State(raw_contents3, 1, MockTabStripModelObserver::PINNED);
+    state =
+        State(raw_contents3, std::nullopt, MockTabStripModelObserver::PINNED);
     observer()->ExpectStateEquals(2, state);
 
     // And verify the state.
@@ -9398,5 +9415,219 @@ TEST_F(TabStripModelTest, ContextMenuCommandWindowActivation) {
   testing::Mock::VerifyAndClearExpectations(&base_window);
 
   delegate()->SetBrowserWindowInterface(nullptr);
+  tabstrip()->CloseAllTabs();
+}
+
+TEST_F(TabStripModelTest, SingleTabStateHandleOverloads) {
+  PrepareTabstripForSelectionTest(tabstrip(), /*tab_count=*/3,
+                                  /*pinned_count=*/0,
+                                  /*selected_tabs=*/{0});
+  tabs::TabHandle tab0 = tabstrip()->GetTabAtIndex(0)->GetHandle();
+  tabs::TabHandle tab1 = tabstrip()->GetTabAtIndex(1)->GetHandle();
+  tabs::TabHandle tab2 = tabstrip()->GetTabAtIndex(2)->GetHandle();
+
+  EXPECT_EQ(0, tabstrip()->GetIndexOfTab(tab0));
+  EXPECT_EQ(TabStripModel::kNoTab,
+            tabstrip()->GetIndexOfTab(tabs::TabHandle::Null()));
+
+  // Opener queries and mutations.
+  EXPECT_EQ(nullptr, tabstrip()->GetOpenerOfTab(tab1));
+  tabstrip()->SetOpenerOfTab(tab1, tab0.Get());
+  EXPECT_EQ(tab0.Get(), tabstrip()->GetOpenerOfTab(tab1));
+
+  // Blocked state.
+  EXPECT_FALSE(tab1.Get()->IsBlocked());
+  tabstrip()->SetTabBlocked(tab1, true);
+  EXPECT_TRUE(tab1.Get()->IsBlocked());
+  tabstrip()->SetTabBlocked(tab1, false);
+  EXPECT_FALSE(tab1.Get()->IsBlocked());
+
+  // Pinned state (pinning tab2 moves it to index 0; unpinning places it at
+  // the start of unpinned tabs, index 0).
+  EXPECT_EQ(0, tabstrip()->SetTabPinned(tab2, true));
+  EXPECT_TRUE(tab2.Get()->IsPinned());
+  EXPECT_EQ(0, tabstrip()->SetTabPinned(tab2, false));
+  EXPECT_FALSE(tab2.Get()->IsPinned());
+
+  // Foreground state (including splits).
+  EXPECT_TRUE(tabstrip()->IsTabInForeground(tab0));
+  EXPECT_FALSE(tabstrip()->IsTabInForeground(tab1));
+  tabstrip()->AddToNewSplit({tabstrip()->GetIndexOfTab(tab1)},
+                            split_tabs::SplitTabVisualData(),
+                            split_tabs::SplitTabCreatedSource::kTabContextMenu);
+  EXPECT_TRUE(tabstrip()->IsTabInForeground(tab0));
+  EXPECT_TRUE(tabstrip()->IsTabInForeground(tab1));
+  EXPECT_FALSE(tabstrip()->IsTabInForeground(tab2));
+  tabstrip()->RemoveSplit(tab0.Get()->GetSplit().value());
+
+  // Collapsed and persistable group queries.
+  EXPECT_FALSE(tabstrip()->IsTabCollapsed(tab1));
+  EXPECT_EQ(std::nullopt, tabstrip()->GetPersistableTabGroupForTab(tab1));
+  const tab_groups::TabGroupId group_id =
+      tabstrip()->AddToNewGroup({tabstrip()->GetIndexOfTab(tab1)});
+  EXPECT_EQ(group_id, tabstrip()->GetPersistableTabGroupForTab(tab1));
+  tabstrip()->ChangeTabGroupVisuals(
+      group_id, tab_groups::TabGroupVisualData(
+                    u"Group", tab_groups::TabGroupColorId::kGrey,
+                    /*is_collapsed=*/true));
+  EXPECT_TRUE(tabstrip()->IsTabCollapsed(tab1));
+
+  tabstrip()->CloseAllTabs();
+}
+
+TEST_F(TabStripModelTest, SingleTabSelectionHandleOverloads) {
+  PrepareTabstripForSelectionTest(tabstrip(), /*tab_count=*/4,
+                                  /*pinned_count=*/0,
+                                  /*selected_tabs=*/{0});
+  tabs::TabHandle tab0 = tabstrip()->GetTabAtIndex(0)->GetHandle();
+  tabs::TabHandle tab1 = tabstrip()->GetTabAtIndex(1)->GetHandle();
+  tabs::TabHandle tab2 = tabstrip()->GetTabAtIndex(2)->GetHandle();
+  tabs::TabHandle tab3 = tabstrip()->GetTabAtIndex(3)->GetHandle();
+
+  tabstrip()->ActivateTab(tab2);
+  EXPECT_EQ(tab2.Get(), tabstrip()->GetActiveTab());
+  EXPECT_TRUE(tab2.Get()->IsSelected());
+  EXPECT_FALSE(tab0.Get()->IsSelected());
+
+  tabstrip()->SelectTab(tab0);
+  EXPECT_EQ(tab0.Get(), tabstrip()->GetActiveTab());
+  EXPECT_TRUE(tab0.Get()->IsSelected());
+  EXPECT_TRUE(tab2.Get()->IsSelected());
+
+  tabstrip()->DeselectTab(tab2);
+  EXPECT_FALSE(tab2.Get()->IsSelected());
+  EXPECT_TRUE(tab0.Get()->IsSelected());
+
+  tabstrip()->ExtendSelectionTo(tab2);
+  EXPECT_TRUE(tab0.Get()->IsSelected());
+  EXPECT_TRUE(tab1.Get()->IsSelected());
+  EXPECT_TRUE(tab2.Get()->IsSelected());
+  EXPECT_FALSE(tab3.Get()->IsSelected());
+
+  tabstrip()->ActivateTab(tab1);
+  tabstrip()->AddSelectionFromAnchorTo(tab3);
+  EXPECT_TRUE(tab1.Get()->IsSelected());
+  EXPECT_TRUE(tab2.Get()->IsSelected());
+  EXPECT_TRUE(tab3.Get()->IsSelected());
+  EXPECT_EQ(tab3.Get(), tabstrip()->GetActiveTab());
+
+  tabstrip()->CloseAllTabs();
+}
+
+TEST_F(TabStripModelTest, CloseAndDetachHandleOverloads) {
+  PrepareTabstripForSelectionTest(tabstrip(), /*tab_count=*/5,
+                                  /*pinned_count=*/0,
+                                  /*selected_tabs=*/{0});
+  tabs::TabHandle tab1 = tabstrip()->GetTabAtIndex(1)->GetHandle();
+  tabs::TabHandle tab2 = tabstrip()->GetTabAtIndex(2)->GetHandle();
+  tabs::TabHandle tab3 = tabstrip()->GetTabAtIndex(3)->GetHandle();
+  tabs::TabHandle tab4 = tabstrip()->GetTabAtIndex(4)->GetHandle();
+
+  // CloseTab(TabHandle)
+  tabstrip()->CloseTab(tab1, TabCloseTypes::CLOSE_NONE);
+  EXPECT_EQ(nullptr, tab1.Get());
+  EXPECT_EQ(4, tabstrip()->count());
+
+  // DetachTabForInsertion(TabHandle)
+  std::unique_ptr<tabs::TabModel> detached_tab =
+      tabstrip()->DetachTabForInsertion(tab2);
+  ASSERT_NE(nullptr, detached_tab);
+  EXPECT_EQ(tab2, detached_tab->GetHandle());
+  EXPECT_EQ(3, tabstrip()->count());
+  tabstrip()->AppendTab(std::move(detached_tab), /*foreground=*/false);
+  EXPECT_EQ(4, tabstrip()->count());
+
+  // DetachWebContentsForInsertion(TabHandle)
+  std::unique_ptr<content::WebContents> detached_contents =
+      tabstrip()->DetachWebContentsForInsertion(tab3);
+  ASSERT_NE(nullptr, detached_contents);
+  EXPECT_EQ(nullptr, tab3.Get());
+  EXPECT_EQ(3, tabstrip()->count());
+
+  // DetachAndDeleteWebContents(TabHandle)
+  tabstrip()->DetachAndDeleteWebContents(tab4);
+  EXPECT_EQ(nullptr, tab4.Get());
+  EXPECT_EQ(2, tabstrip()->count());
+
+  // DetachTabsAndCollectionsForInsertion(vector<TabHandle>)
+  auto detached_items =
+      tabstrip()->DetachTabsAndCollectionsForInsertion({tab2});
+  EXPECT_EQ(1u, detached_items.size());
+  EXPECT_EQ(1, tabstrip()->count());
+
+  tabstrip()->CloseAllTabs();
+}
+
+TEST_F(TabStripModelTest, ContainsTab) {
+  PrepareTabstripForSelectionTest(tabstrip(), /*tab_count=*/4,
+                                  /*pinned_count=*/1,
+                                  /*selected_tabs=*/{0});
+  tabs::TabHandle tab0 = tabstrip()->GetTabAtIndex(0)->GetHandle();
+  tabs::TabHandle tab1 = tabstrip()->GetTabAtIndex(1)->GetHandle();
+  tabs::TabHandle tab2 = tabstrip()->GetTabAtIndex(2)->GetHandle();
+  tabs::TabHandle tab3 = tabstrip()->GetTabAtIndex(3)->GetHandle();
+  tabstrip()->AddToNewGroup({1});
+  tabstrip()->AddToNewSplit({2, 3}, split_tabs::SplitTabVisualData(),
+                            split_tabs::SplitTabCreatedSource::kTabContextMenu);
+
+  EXPECT_FALSE(tabstrip()->ContainsTab(tabs::TabHandle::Null()));
+  EXPECT_FALSE(tabstrip()->ContainsTab(nullptr));
+  EXPECT_TRUE(tabstrip()->ContainsTab(tab0));
+  EXPECT_TRUE(tabstrip()->ContainsTab(tab1));
+  EXPECT_TRUE(tabstrip()->ContainsTab(tab2));
+  EXPECT_TRUE(tabstrip()->ContainsTab(tab3));
+
+  TestTabStripModelDelegate other_delegate;
+  TabStripModel other_strip(&other_delegate, profile());
+  other_strip.AppendWebContents(CreateWebContents(), true);
+  tabs::TabHandle other_tab = other_strip.GetTabAtIndex(0)->GetHandle();
+  EXPECT_FALSE(tabstrip()->ContainsTab(other_tab));
+  EXPECT_TRUE(other_strip.ContainsTab(other_tab));
+
+  std::unique_ptr<tabs::TabModel> detached =
+      tabstrip()->DetachTabAtForInsertion(1);
+  EXPECT_FALSE(tabstrip()->ContainsTab(detached->GetHandle()));
+
+  other_strip.CloseAllTabs();
+  tabstrip()->CloseAllTabs();
+}
+
+TEST_F(TabStripModelTest, GroupSplitFocusHandleOverloads) {
+  base::test::ScopedFeatureList feature_list(features::kTabGroupsFocusing);
+  PrepareTabstripForSelectionTest(tabstrip(), /*tab_count=*/4,
+                                  /*pinned_count=*/0,
+                                  /*selected_tabs=*/{0});
+  tabs::TabHandle tab0 = tabstrip()->GetTabAtIndex(0)->GetHandle();
+  tabs::TabHandle tab1 = tabstrip()->GetTabAtIndex(1)->GetHandle();
+  tabs::TabHandle tab2 = tabstrip()->GetTabAtIndex(2)->GetHandle();
+  tabs::TabHandle tab3 = tabstrip()->GetTabAtIndex(3)->GetHandle();
+
+  // AddToNewGroup / AddToExistingGroup / RemoveFromGroup with unsorted handles.
+  const tab_groups::TabGroupId group_id =
+      tabstrip()->AddToNewGroup({tab2, tab0});
+  EXPECT_EQ(group_id, tab0.Get()->GetGroup());
+  EXPECT_EQ(group_id, tab2.Get()->GetGroup());
+  tabstrip()->AddToExistingGroup({tab1}, group_id);
+  EXPECT_EQ(group_id, tab1.Get()->GetGroup());
+  tabstrip()->RemoveFromGroup({tab2, tab0, tab1});
+  EXPECT_EQ(std::nullopt, tab0.Get()->GetGroup());
+  EXPECT_EQ(std::nullopt, tab1.Get()->GetGroup());
+  EXPECT_EQ(std::nullopt, tab2.Get()->GetGroup());
+
+  // AddToNewSplit with handles.
+  const split_tabs::SplitTabId split_id = tabstrip()->AddToNewSplit(
+      {tab1, tab3}, split_tabs::SplitTabVisualData(),
+      split_tabs::SplitTabCreatedSource::kTabContextMenu);
+  EXPECT_EQ(split_id, tab1.Get()->GetSplit());
+  EXPECT_EQ(split_id, tab3.Get()->GetSplit());
+  tabstrip()->RemoveSplit(split_id);
+
+  // EnterFocusMode(vector<TabHandle>).
+  const tab_groups::TabGroupId ephemeral_group =
+      tabstrip()->EnterFocusMode({tab1, tab2});
+  EXPECT_EQ(ephemeral_group, tabstrip()->GetFocusedGroup());
+  EXPECT_TRUE(tabstrip()->IsEphemeralTabGroup(ephemeral_group));
+  tabstrip()->ExitFocusMode();
+
   tabstrip()->CloseAllTabs();
 }

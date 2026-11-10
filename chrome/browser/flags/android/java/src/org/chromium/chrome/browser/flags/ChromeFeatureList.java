@@ -374,8 +374,6 @@ public abstract class ChromeFeatureList {
     public static final String ANDROID_TIPS_NOTIFICATIONS_V2 = "AndroidTipsNotificationsV2";
     public static final String ANDROID_TOOLBAR_CAPTURE_ON_DESKTOP =
             "AndroidToolbarCaptureOnDesktop";
-    public static final String ANDROID_UNIFIED_KEYBOARD_SHORTCUTS =
-            "AndroidUnifiedKeyboardShortcuts";
     public static final String ANDROID_VERTICAL_TABS = "AndroidVerticalTabs";
     public static final String ANDROID_WINDOW_MANAGEMENT_WEB_API = "AndroidWindowManagementWebApi";
     public static final String ANDROID_XR_IMMERSIVE_PLAYER = "AndroidXrImmersivePlayer";
@@ -592,8 +590,6 @@ public abstract class ChromeFeatureList {
     public static final String DEFER_ARCHIVED_TAB_MODEL_CREATION = "DeferArchivedTabModelCreation";
     public static final String DEFER_DETACHED_NATIVE_PAGE_FREEZE = "DeferDetachedNativePageFreeze";
     public static final String DEFER_NAVIGATION_STATE_CHANGED = "DeferNavigationStateChanged";
-    public static final String DESKTOP_ANDROID_FILE_PICKER_FOR_MEDIA =
-            "DesktopAndroidFilePickerForMedia";
     public static final String DESKTOP_ANDROID_LINK_CAPTURING = "DesktopAndroidLinkCapturing";
     public static final String DESKTOP_ANDROID_TWA_DELETE_BROWSER_DATA =
             "DesktopAndroidTWADeleteBrowserData";
@@ -626,8 +622,6 @@ public abstract class ChromeFeatureList {
     public static final String EDGE_TO_EDGE_USE_BACKUP_NAVBAR_INSETS =
             "EdgeToEdgeUseBackupNavbarInsets";
     public static final String EMAIL_VERIFICATION_PROTOCOL = "EmailVerificationProtocol";
-    public static final String ENABLE_ANDROID_ENTERPRISE_SCREENSHOT_PROTECTION =
-            "EnableAndroidEnterpriseScreenshotProtection";
     public static final String ENABLE_ANDROID_SIDE_PANEL = "EnableAndroidSidePanel";
     public static final String ENABLE_ANDROID_SIDE_PANEL_DEV_FEATURE =
             "EnableAndroidSidePanelDevFeature";
@@ -1275,11 +1269,6 @@ public abstract class ChromeFeatureList {
             newCachedFlag(EDGE_TO_EDGE_TOP_INSET, /* defaultValue= */ false);
     public static final CachedFlag sEdgeToEdgeUseBackupNavbarInsets =
             newCachedFlag(EDGE_TO_EDGE_USE_BACKUP_NAVBAR_INSETS, true);
-    public static final CachedFlag sEnableAndroidEnterpriseScreenshotProtection =
-            newCachedFlag(
-                    ENABLE_ANDROID_ENTERPRISE_SCREENSHOT_PROTECTION,
-                    /* defaultValue= */ true,
-                    /* defaultValueInTests= */ true);
     public static final CachedFlag sEnableAndroidSidePanel =
             newCachedFlag(
                     ENABLE_ANDROID_SIDE_PANEL,
@@ -1666,7 +1655,6 @@ public abstract class ChromeFeatureList {
                     sEdgeToEdgeTablet,
                     sEdgeToEdgeTopInset,
                     sEdgeToEdgeUseBackupNavbarInsets,
-                    sEnableAndroidEnterpriseScreenshotProtection,
                     sEnableAndroidSidePanel,
                     sEnableAndroidSidePanelDevFeature,
                     sEnableAndroidSidePanelLogs,
@@ -1805,8 +1793,6 @@ public abstract class ChromeFeatureList {
             newMutableFlagWithSafeDefault(ANDROID_TIPS_NOTIFICATIONS, true);
     public static final MutableFlagWithSafeDefault sAndroidTipsNotificationsV2 =
             newMutableFlagWithSafeDefault(ANDROID_TIPS_NOTIFICATIONS_V2, false);
-    public static final MutableFlagWithSafeDefault sAndroidUnifiedKeyboardShortcuts =
-            newMutableFlagWithSafeDefault(ANDROID_UNIFIED_KEYBOARD_SHORTCUTS, false);
     public static final MutableFlagWithSafeDefault sAndroidZoomImmersive =
             newMutableFlagWithSafeDefault(ANDROID_ZOOM_IMMERSIVE, false);
     public static final MutableFlagWithSafeDefault sAutofillCardScanningBugfixes =
@@ -2475,6 +2461,13 @@ public abstract class ChromeFeatureList {
                     "read_aloud_audio_overviews_supported_languages",
                     "en");
 
+    /**
+     * Experiment arm selector for {@link #SETTINGS_IA_REORGANIZATION}: "direction_1" (default),
+     * "direction_2" or "direction_3".
+     */
+    public static final StringCachedFeatureParam sSettingsIaReorganizationArm =
+            newStringCachedFeatureParam(SETTINGS_IA_REORGANIZATION, "arm", "direction_1");
+
     public static final BooleanCachedFeatureParam sShouldConsiderLanguageInOverviewReadability =
             newBooleanCachedFeatureParam(
                     READALOUD_AUDIO_OVERVIEWS,
@@ -2630,6 +2623,7 @@ public abstract class ChromeFeatureList {
                     sReadAloudAudioOverviewsSpeedAdditionPercentage,
                     sReadAloudAudioOverviewsSupportedLanguages,
                     sSafetyFrePromoArm,
+                    sSettingsIaReorganizationArm,
                     sShouldConsiderLanguageInOverviewReadability,
                     sStartSurfaceReturnTimeTabletSecs,
                     sTabStorageSqlitePrototypePhase,

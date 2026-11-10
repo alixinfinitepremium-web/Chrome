@@ -124,8 +124,8 @@ class BrowserTabStripController : public TabStripController,
       const TabStripModelChange& change,
       const TabStripSelectionChange& selection) override;
   void OnTabWillBeAdded() override;
-  void OnTabWillBeRemoved(tabs::TabInterface* tab, int index) override;
-  void OnTabPinnedStateChanged(tabs::TabInterface* tab, int index) override;
+  void OnTabWillBeRemoved(tabs::TabHandle tab) override;
+  void OnTabPinnedStateChanged(tabs::TabHandle tab) override;
   void OnTabGroupChanged(const TabGroupChange& change) override;
   void TabGroupedStateChanged(TabStripModel* tab_strip_model,
                               std::optional<tab_groups::TabGroupId> old_group,
@@ -144,7 +144,7 @@ class BrowserTabStripController : public TabStripController,
   void UpdateFocusModeTheme(std::optional<tab_groups::TabGroupId> group_id);
 
   // Updates freezing votes when focus mode or tab membership changes.
-  void UpdateTabFocusFreezing(int model_index);
+  void UpdateTabFocusFreezing(tabs::TabHandle tab_handle);
   void UpdateAllTabsFocusFreezing();
 
   BrowserFrameView* GetFrameView();

@@ -180,7 +180,6 @@ import org.chromium.chrome.browser.incognito.IncognitoNotificationPresenceContro
 import org.chromium.chrome.browser.incognito.IncognitoProfileDestroyer;
 import org.chromium.chrome.browser.incognito.IncognitoStartup;
 import org.chromium.chrome.browser.incognito.IncognitoTabLauncher;
-import org.chromium.chrome.browser.incognito.IncognitoTabbedSnapshotController;
 import org.chromium.chrome.browser.incognito.IncognitoUtils;
 import org.chromium.chrome.browser.incognito.IncognitoWindowNightModeStateProvider;
 import org.chromium.chrome.browser.incognito_window.PreAttachIntentObserver;
@@ -1565,18 +1564,8 @@ public class ChromeTabbedActivity extends ChromeActivity implements PreAttachInt
         try (TraceEvent e =
                 TraceEvent.scoped(
                         "ChromeTabbedActivity.maybeCreateIncognitoTabSnapshotController")) {
-            if (!ChromeFeatureList.sEnableAndroidEnterpriseScreenshotProtection.isEnabled()) {
-                IncognitoTabbedSnapshotController.createIncognitoTabSnapshotController(
-                        this,
-                        assumeNonNull(mLayoutManager),
-                        mTabModelSelector,
-                        getLifecycleDispatcher());
-
-                mUiWithNativeInitialized = true;
-            } else {
-                mScreenshotProtectionControllerSupplier.addSyncObserverAndCallIfNonNull(
-                        _ -> mUiWithNativeInitialized = true);
-            }
+            mScreenshotProtectionControllerSupplier.addSyncObserverAndCallIfNonNull(
+                    _ -> mUiWithNativeInitialized = true);
 
             // Check for incognito tabs to handle the case where Chrome was swiped away in the
             // background.
@@ -2708,7 +2697,7 @@ public class ChromeTabbedActivity extends ChromeActivity implements PreAttachInt
 
             if (getSavedInstanceState() == null
                     && mTabModelOrchestrator.getRestoredTabCount() == 0) {
-                boolean incognito = mSupportedProfileType == SupportedProfileType.OFF_THE_RECORD;
+                boolean incognito = mTabModelSelector.isIncognitoSelected();
                 List<String> startupUrls = TabbedStartupCoordinator.resolveStartupUrls(incognito);
                 if (!startupUrls.isEmpty()) {
                     LoadUrlParams loadUrlParams = new LoadUrlParams(startupUrls.get(0));
@@ -2925,7 +2914,7 @@ public class ChromeTabbedActivity extends ChromeActivity implements PreAttachInt
     private void createInitialTab() {
         Log.i(TAG, "#createInitialTab executed.");
         mPendingInitialTabCreation = false;
-        boolean incognito = mSupportedProfileType == SupportedProfileType.OFF_THE_RECORD;
+        boolean incognito = mTabModelSelector.isIncognitoSelected();
 
         String url = null;
         GURL homepageGurl = HomepageManager.getInstance().getHomepageGurlForZeroTabs(incognito);
@@ -4017,11 +4006,20 @@ public class ChromeTabbedActivity extends ChromeActivity implements PreAttachInt
                 shouldPersistAcrossReboots()
                         && persistentState != null
                         && persistentState.getBoolean(IS_INCOGNITO_SELECTED, false);
+        Intent intent = getIntent();
+        boolean startedAsNewIncognitoWindow =
+                savedInstanceState == null
+                        && persistentState == null
+                        && intent != null
+                        && IntentHandler.wasIntentSenderChrome(intent)
+                        && IntentUtils.safeGetBooleanExtra(
+                                intent, IntentHandler.EXTRA_OPEN_NEW_INCOGNITO_WINDOW, false);
         boolean startIncognito =
                 (mSupportedProfileType == SupportedProfileType.OFF_THE_RECORD)
                         || (mSupportedProfileType == SupportedProfileType.MIXED
                                 && (isIncognitoSelectedInSavedState
-                                        || isIncognitoSelectedInPersistentState));
+                                        || isIncognitoSelectedInPersistentState
+                                        || startedAsNewIncognitoWindow));
 
         mNextTabPolicySupplier = new ChromeNextTabPolicySupplier(mLayoutStateProviderSupplier);
 
@@ -4878,16 +4876,12 @@ public class ChromeTabbedActivity extends ChromeActivity implements PreAttachInt
                     /* isIncognitoOnly= */ true);
             RecordUserAction.record("MobileMenuCloseAllIncognitoTabs");
         } else if (id == R.id.focus_url_bar) {
-            boolean isUrlBarVisible =
-                    !isInOverviewMode() && (!isTablet() || getCurrentTabModel().getCount() != 0);
-            if (isUrlBarVisible) {
+            if (isCurrentTabVisible()) {
                 assumeNonNull(getToolbarManager())
                         .focusAndSelectAllUrlBarText(OmniboxFocusReason.MENU_OR_KEYBOARD_ACTION);
             }
         } else if (id == R.id.focus_and_clear_url_bar) {
-            boolean isUrlBarVisible =
-                    !isInOverviewMode() && (!isTablet() || getCurrentTabModel().getCount() != 0);
-            if (isUrlBarVisible) {
+            if (isCurrentTabVisible()) {
                 assumeNonNull(getToolbarManager())
                         .beginFuseboxInput(
                                 new AutocompleteInput(OmniboxFocusReason.MENU_OR_KEYBOARD_ACTION)
@@ -5812,6 +5806,16 @@ public class ChromeTabbedActivity extends ChromeActivity implements PreAttachInt
     }
 
     @Override
+    protected boolean isCurrentTabVisible() {
+        return !isInOverviewMode() && getCurrentTabModel().getCount() != 0;
+    }
+
+    @Override
+    protected boolean supportsTabbedBrowserCommands() {
+        return true;
+    }
+
+    @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
         Boolean result =
                 KeyboardShortcuts.dispatchKeyEvent(
@@ -5851,12 +5855,10 @@ public class ChromeTabbedActivity extends ChromeActivity implements PreAttachInt
             mHandler.postDelayed(mShowHistoryRunnable, ViewConfiguration.getLongPressTimeout());
             return super.onKeyDown(keyCode, event);
         }
-        boolean isCurrentTabVisible =
-                !isInOverviewMode() && (!isTablet() || getCurrentTabModel().getCount() != 0);
         boolean keyboardShortcutHandled =
                 KeyboardShortcuts.onKeyDown(
                         event,
-                        isCurrentTabVisible,
+                        isCurrentTabVisible(),
                         true,
                         getTabModelSelector(),
                         /* menuOrKeyboardActionController= */ this);

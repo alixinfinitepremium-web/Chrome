@@ -85,7 +85,9 @@ class CORE_EXPORT SoftNavigationHeuristics
       const HeapVector<Member<TextRecord>>&) override;
   void OnFramePresented(const HeapVector<Member<ImageRecord>>&,
                         const HeapVector<Member<TextRecord>>&,
-                        const DOMPaintTimingInfo&) override;
+                        const base::TimeTicks& presentation_timestamp,
+                        const DOMPaintTimingInfo&,
+                        uint64_t navigation_id) override;
   void OnInputOrScroll() override;
 
   void Trace(Visitor*) const override;
@@ -129,6 +131,11 @@ class CORE_EXPORT SoftNavigationHeuristics
   void OnPaintedAreaChanged(SoftNavigationContext* context) {
     MaybeCommitNavigationOrEmitSoftNavigation(context);
   }
+
+  // Called by the `SoftNavigationContext` when its first contentful paint
+  // element has been presented. Emits a soft navigation entry if all criteria
+  // have been met.
+  void OnFirstContentfulPaint(SoftNavigationContext*);
 
   void OnContextDisposed(SoftNavigationContext*);
   void UpdateSoftFcpMetricsForContext(SoftNavigationContext*) const;
@@ -182,14 +189,6 @@ class CORE_EXPORT SoftNavigationHeuristics
   // paints, or it might have already been emitted, but we still want to
   // continue measuring paints for a while.
   Member<SoftNavigationContext> context_for_current_url_;
-
-  // `SoftNavigationContext`s that have met all of the soft nav criteria but
-  // haven't emitted the performance entry because they're waiting for
-  // presentation feedback for FCP. Tracking these ensures we always emit an
-  // entry when we update the navigation ID, which might not be the case if the
-  // URL changes and presentation feedback is delayed.
-  HeapHashSet<Member<SoftNavigationContext>>
-      contexts_waiting_for_paint_timestamp_;
 
   // Used to map DOM modifications to `SoftNavigationContext`s for paint
   // attribution. Only set when `IsPrePaintBasedAttributionEnabled()` is true.

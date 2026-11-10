@@ -37,6 +37,7 @@ namespace blink {
 class AnimationFrameTimingInfo;
 class ElementTiming;
 class LargestContentfulPaintManager;
+struct HeapTimeTicks;
 class ImageRecord;
 class LocalFrame;
 class PaintTimingClient;
@@ -258,13 +259,14 @@ class CORE_EXPORT PaintTiming final : public GarbageCollected<PaintTiming>,
   // captured at paint time and used by the associated presentation callback.
   struct PresentationCallbackData
       : public GarbageCollected<PresentationCallbackData> {
-    PresentationCallbackData(uint32_t id,
-                             const PendingPaintTimingRecord&,
-                             AnimationFrameTimingInfo*,
-                             HeapVector<Member<TextRecord>> text_records,
-                             HeapVector<Member<ImageRecord>> image_records,
-                             Vector<PaintTimingCallback> client_callbacks,
-                             HeapVector<Member<ImageRecord>> animated_images);
+    PresentationCallbackData(
+        uint32_t id,
+        const PendingPaintTimingRecord&,
+        AnimationFrameTimingInfo*,
+        HeapVector<Member<TextRecord>> text_records,
+        HeapVector<Member<ImageRecord>> image_records,
+        Vector<PaintTimingCallback> client_callbacks,
+        HeapVector<Member<HeapTimeTicks>> pending_timestamps);
 
     bool HasPaintTimingInfo() const { return paint_timing_info.has_value(); }
 
@@ -284,7 +286,7 @@ class CORE_EXPORT PaintTiming final : public GarbageCollected<PaintTiming>,
     const HeapVector<Member<TextRecord>> text_records;
     const HeapVector<Member<ImageRecord>> image_records;
     Vector<PaintTimingCallback> client_callbacks;
-    const HeapVector<Member<ImageRecord>> animated_images;
+    const HeapVector<Member<HeapTimeTicks>> pending_timestamps;
 
     // Values set at presentation time.
     base::TimeTicks raw_presentation_timestamp;
@@ -388,12 +390,12 @@ class CORE_EXPORT PaintTiming final : public GarbageCollected<PaintTiming>,
   void MaybeRecordBeforeInputOrScrollHistogram();
   void MaybeRecordHistogramsOnPageHiddenOrContextDestroyed();
 
-  // Propagates the paint timing info and presentation time to the
-  // `PaintTimingRecord`s owned by the `PresentationCallbackData`.
-  void SetPaintTimingInfoForPaintTimingRecords(
-      PresentationCallbackData&,
-      const DOMPaintTimingInfo&,
-      base::TimeTicks raw_presentation_timestamp);
+  // Resolves the presentation time for `pending_timestamps` and runs the
+  // `client_callbacks` owned by the `PresentationCallbackData`.
+  void FlushPresentationCallbackData(PresentationCallbackData&,
+                                     const DOMPaintTimingInfo&,
+                                     base::TimeTicks raw_presentation_timestamp,
+                                     uint64_t navigation_id);
 
   Vector<base::TimeTicks>
       first_paints_after_back_forward_cache_restore_presentation_;

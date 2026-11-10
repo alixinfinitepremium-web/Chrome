@@ -116,7 +116,6 @@
 #include "components/enterprise/client_certificates/core/features.h"
 #include "components/enterprise/connectors/core/features.h"
 #include "components/enterprise/data_controls/core/browser/features.h"
-#include "components/enterprise/data_protection/features.h"
 #include "components/enterprise/isolated_mode/isolated_mode_features.h"
 #include "components/enterprise/network_header_injection/core/features.h"
 #include "components/error_page/common/error_page_switches.h"
@@ -493,8 +492,8 @@ const FeatureEntry::FeatureVariation
     kDefaultBrowserSetterSelectionVariations[] = {
         {"with Shell Integration",
          kDefaultBrowserSetterSelection_ShellIntegration, nullptr},
-        {"with Visual Guide", kDefaultBrowserSetterSelection_VisualGuide,
-         nullptr},
+        {"with Visual Guide (Windows 11)",
+         kDefaultBrowserSetterSelection_VisualGuide, nullptr},
         {"with Annotated Shell Integration (Windows 11)",
          kDefaultBrowserSetterSelection_AnnotatedShellIntegration, nullptr}};
 #endif  // !BUILDFLAG(IS_ANDROID) && !BUILDFLAG(IS_CHROMEOS)
@@ -3372,6 +3371,18 @@ const FeatureEntry::FeatureVariation kClankOmniboxMinimizationVariations[] = {
      nullptr},
 };
 
+const FeatureEntry::FeatureParam kSettingsIaReorganizationDirection1Params[] = {
+    {"arm", "direction_1"}};
+const FeatureEntry::FeatureParam kSettingsIaReorganizationDirection2Params[] = {
+    {"arm", "direction_2"}};
+const FeatureEntry::FeatureParam kSettingsIaReorganizationDirection3Params[] = {
+    {"arm", "direction_3"}};
+const FeatureEntry::FeatureVariation kSettingsIaReorganizationVariations[] = {
+    {"Direction 1", kSettingsIaReorganizationDirection1Params, nullptr},
+    {"Direction 2", kSettingsIaReorganizationDirection2Params, nullptr},
+    {"Direction 3", kSettingsIaReorganizationDirection3Params, nullptr},
+};
+
 #endif  // BUILDFLAG(IS_ANDROID)
 
 #if BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_WIN) || \
@@ -4854,18 +4865,6 @@ const FeatureEntry::Choice kConnectionAllowlistsChoices[] = {
      "ConnectionAllowlists"},
 };
 
-#if BUILDFLAG(ENABLE_SYMPHONIA)
-// The choices for the Symphonia audio decoding feature.
-const FeatureEntry::Choice kSymphoniaAudioDecodingChoices[] = {
-    {flags_ui::kGenericExperimentChoiceDefault, "", ""},
-    {"Enabled (All Codecs)", switches::kEnableFeatures,
-     "SymphoniaAudioDecoding,SymphoniaMp3Decoding,SymphoniaPcmDecoding,"
-     "SymphoniaVorbisDecoding"},
-    {"Disabled (Overrides Finch)", switches::kDisableFeatures,
-     "SymphoniaAudioDecoding,SymphoniaMp3Decoding,SymphoniaPcmDecoding,"
-     "SymphoniaVorbisDecoding"}};
-#endif
-
 #if BUILDFLAG(ENABLE_SYMPHONIA_DEMUXER)
 constexpr char kSymphoniaDemuxingFeatureList[] =
     "SymphoniaDemuxing,SymphoniaAacDemuxing,SymphoniaFlacDemuxing,"
@@ -5450,10 +5449,6 @@ const FeatureEntry kFeatureEntries[] = {
          autofill::features::debug::kAutofillShowTypePredictions,
          kAutofillShowTypePredictionsVariations,
          "AutofillShowTypePredictions")},
-    {"autofill-ambient-autofill",
-     flag_descriptions::kAutofillAmbientAutofillName,
-     flag_descriptions::kAutofillAmbientAutofillDescription, kOsAll,
-     FEATURE_VALUE_TYPE(autofill::features::kAutofillAmbientAutofill)},
     {"autofill-payments-field-swapping",
      flag_descriptions::kAutofillPaymentsFieldSwappingName,
      flag_descriptions::kAutofillPaymentsFieldSwappingDescription, kOsAll,
@@ -7329,10 +7324,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kTabGroupsFocusingDescription, kOsDesktop,
      FEATURE_VALUE_TYPE(features::kTabGroupsFocusing)},
 
-    {"tab-group-ribbon", flag_descriptions::kTabGroupRibbonName,
-     flag_descriptions::kTabGroupRibbonDescription, kOsDesktop,
-     FEATURE_VALUE_TYPE(features::kTabGroupRibbon)},
-
     {"focus-selection", flag_descriptions::kFocusSelectionName,
      flag_descriptions::kFocusSelectionDescription, kOsDesktop,
      FEATURE_VALUE_TYPE(features::kNonGroupFocus)},
@@ -7921,7 +7912,9 @@ const FeatureEntry kFeatureEntries[] = {
     {"settings-ia-reorganization",
      flag_descriptions::kSettingsIaReorganizationName,
      flag_descriptions::kSettingsIaReorganizationDescription, kOsAndroid,
-     FEATURE_VALUE_TYPE(chrome::android::kSettingsIaReorganization)},
+     FEATURE_WITH_PARAMS_VALUE_TYPE(chrome::android::kSettingsIaReorganization,
+                                    kSettingsIaReorganizationVariations,
+                                    "SettingsIaReorganization")},
 
     {"settings-in-tab", flag_descriptions::kSettingsInTabName,
      flag_descriptions::kSettingsInTabDescription, kOsAndroid,
@@ -9545,6 +9538,15 @@ const FeatureEntry kFeatureEntries[] = {
          webapps::features::kAlwaysShowInstallDisambiguationDialog)},
 #endif  // BUILDFLAG(IS_ANDROID)
 
+    {"safe-browsing-hash-prefix-real-time-lookups-on-incognito-and-guest",
+     flag_descriptions::
+         kSafeBrowsingHashPrefixRealTimeLookupsOnIncognitoAndGuestName,
+     flag_descriptions::
+         kSafeBrowsingHashPrefixRealTimeLookupsOnIncognitoAndGuestDescription,
+     kOsAll,
+     FEATURE_VALUE_TYPE(
+         safe_browsing::kHashPrefixRealTimeLookupsOnIncognitoAndGuest)},
+
     {"safe-browsing-local-lists-use-sbv5",
      flag_descriptions::kSafeBrowsingLocalListsUseSBv5Name,
      flag_descriptions::kSafeBrowsingLocalListsUseSBv5Description, kOsAll,
@@ -9564,12 +9566,6 @@ const FeatureEntry kFeatureEntries[] = {
 
     {"xslt", flag_descriptions::kXSLTName, flag_descriptions::kXSLTDescription,
      kOsAll, FEATURE_VALUE_TYPE(blink::features::kXSLT)},
-
-#if BUILDFLAG(ENABLE_SYMPHONIA)
-    {"symphonia-audio-decoding", flag_descriptions::kSymphoniaAudioDecodingName,
-     flag_descriptions::kSymphoniaAudioDecodingDescription, kOsAll,
-     MULTI_VALUE_TYPE(kSymphoniaAudioDecodingChoices)},
-#endif
 
 #if BUILDFLAG(ENABLE_SYMPHONIA_DEMUXER)
     {"symphonia-demuxing", flag_descriptions::kSymphoniaDemuxingName,
@@ -9909,9 +9905,6 @@ const FeatureEntry kFeatureEntries[] = {
     {"geic-enabled", flag_descriptions::kGeicEnabledName,
      flag_descriptions::kGeicEnabledDescription, kOsDesktop,
      FEATURE_VALUE_TYPE(features::kGeic)},
-    {"geic-fre", flag_descriptions::kGeicFreName,
-     flag_descriptions::kGeicFreDescription, kOsDesktop,
-     FEATURE_VALUE_TYPE(features::kGeicFre)},
     {"geic-guest-url", flag_descriptions::kGeicGuestUrlName,
      flag_descriptions::kGeicGuestUrlDescription, kOsDesktop,
      STRING_VALUE_TYPE(switches::kGeicGuestURL, "")},
@@ -13622,14 +13615,6 @@ const FeatureEntry kFeatureEntries[] = {
      kOsWin | kOsMac | kOsLinux,
      FEATURE_VALUE_TYPE(features::kFeedbackDisabledDialog)},
 #endif
-#if BUILDFLAG(IS_ANDROID)
-    {"enable-android-enterprise-screenshot-protection",
-     flag_descriptions::kAndroidEnterpriseScreenshotProtectionName,
-     flag_descriptions::kAndroidEnterpriseScreenshotProtectionDescription,
-     kOsAndroid,
-     FEATURE_VALUE_TYPE(enterprise_data_protection::
-                            kEnableAndroidEnterpriseScreenshotProtection)},
-#endif  // BUILDFLAG(IS_ANDROID)
 #if !BUILDFLAG(IS_ANDROID)
     {"dictation", flag_descriptions::kDictationName,
      flag_descriptions::kDictationDescription, kOsDesktop,
@@ -13981,7 +13966,7 @@ const FeatureEntry kFeatureEntries[] = {
     {"android-unified-keyboard-shortcuts",
      flag_descriptions::kAndroidUnifiedKeyboardShortcutsName,
      flag_descriptions::kAndroidUnifiedKeyboardShortcutsDescription, kOsAndroid,
-     FEATURE_VALUE_TYPE(chrome::android::kAndroidUnifiedKeyboardShortcuts)},
+     FEATURE_VALUE_TYPE(ui::kAndroidUnifiedKeyboardShortcuts)},
 #endif
     {"enable-desktop-qr-code-detection",
      flag_descriptions::kEnableDesktopQrCodeDetectionName,
@@ -14012,14 +13997,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kAutofillEnableWalletGmailOffersName,
      flag_descriptions::kAutofillEnableWalletGmailOffersDescription, kOsDesktop,
      FEATURE_VALUE_TYPE(autofill::features::kAutofillEnableWalletGmailOffers)},
-
-#if BUILDFLAG(IS_ANDROID)
-    {"desktop-android-file-picker-for-media",
-     flag_descriptions::kDesktopAndroidFilePickerForMediaName,
-     flag_descriptions::kDesktopAndroidFilePickerForMediaDescription,
-     kOsAndroid,
-     FEATURE_VALUE_TYPE(chrome::android::kDesktopAndroidFilePickerForMedia)},
-#endif
 
 #if BUILDFLAG(ENABLE_DESKTOP_ANDROID_EXTENSIONS)
     {"unify-wait-for-cookies", flag_descriptions::kUnifyWaitForCookiesName,

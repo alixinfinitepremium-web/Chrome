@@ -5,7 +5,6 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_PAINT_TIMING_PAINT_TIMING_RECORD_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_PAINT_TIMING_PAINT_TIMING_RECORD_H_
 
-#include <memory>
 #include <optional>
 #include <type_traits>
 
@@ -15,17 +14,26 @@
 #include "third_party/blink/renderer/core/paint/timing/effective_visual_size_result.h"
 #include "third_party/blink/renderer/core/paint/timing/lcp_objects.h"
 #include "third_party/blink/renderer/core/paint/timing/media_record_id.h"
-#include "third_party/blink/renderer/core/timing/performance_entry.h"
 #include "third_party/blink/renderer/platform/heap/garbage_collected.h"
 #include "third_party/blink/renderer/platform/heap/member.h"
 #include "third_party/blink/renderer/platform/wtf/casting.h"
 #include "ui/gfx/geometry/rect_conversions.h"
+#include "ui/gfx/geometry/rect_f.h"
 
 namespace blink {
+class LayoutObject;
 class MediaTiming;
 class Node;
 class SoftNavigationContext;
 class TracedValue;
+
+struct HeapTimeTicks : public GarbageCollected<HeapTimeTicks> {
+  explicit HeapTimeTicks(base::TimeTicks value) : value(value) {}
+
+  void Trace(Visitor*) const {}
+
+  base::TimeTicks value;
+};
 
 class CORE_EXPORT PaintTimingRecord
     : public GarbageCollected<PaintTimingRecord> {
@@ -50,17 +58,6 @@ class CORE_EXPORT PaintTimingRecord
   int NodeIdForTracing() const;
 
   const gfx::RectF& RootVisualRect() const { return root_visual_rect_; }
-
-  bool HasPaintTime() const { return !paint_time_.is_null(); }
-  base::TimeTicks PaintTime() const { return paint_time_; }
-  void SetPaintTime(base::TimeTicks paint_time,
-                    const DOMPaintTimingInfo& info) {
-    paint_time_ = paint_time;
-    paint_timing_info_ = info;
-  }
-  const DOMPaintTimingInfo& PaintTimingInfo() const {
-    return paint_timing_info_;
-  }
 
   SoftNavigationContext* GetSoftNavigationContext() const {
     return soft_navigation_context_;
@@ -104,8 +101,6 @@ class CORE_EXPORT PaintTimingRecord
   const WeakMember<LayoutObject> node_layout_object_;
   const gfx::RectF root_visual_rect_;
   bool is_needed_for_lcp_ = false;
-  base::TimeTicks paint_time_;
-  DOMPaintTimingInfo paint_timing_info_;
   Member<SoftNavigationContext> soft_navigation_context_;
   // LCP rect information, only populated when tracing is enabled.
   std::optional<LCPRectInfo> lcp_rect_info_;
@@ -189,17 +184,15 @@ class CORE_EXPORT ImageRecord final : public PaintTimingRecord {
   base::TimeTicks LoadTime() const { return load_time_; }
   void SetLoadTime(base::TimeTicks value) { load_time_ = value; }
 
-  // Returns or sets the first animated frame time. This is set for the first
-  // video or animated image frame, and it's used for metrics (independently of
-  // the `PaintTimingRecord`).
-  base::TimeTicks FirstAnimatedFrameTime() const {
-    return first_animated_frame_time_;
+  // Returns or sets the metrics timestamp override. This is set for the first
+  // video or first animated image frame to override the web-exposed
+  // presentation time for metrics.
+  HeapTimeTicks* MetricsTimestampOverride() const {
+    return metrics_timestamp_override_;
   }
-  void SetFirstAnimatedFrameTime(base::TimeTicks value) {
-    first_animated_frame_time_ = value;
-  }
-  bool HasFirstAnimatedFrameTime() const {
-    return !first_animated_frame_time_.is_null();
+  void SetMetricsTimestampOverride(base::TimeTicks value) {
+    CHECK(!metrics_timestamp_override_);
+    metrics_timestamp_override_ = MakeGarbageCollected<HeapTimeTicks>(value);
   }
 
   MediaRecordIdHash Hash() const { return hash_; }
@@ -214,9 +207,9 @@ class CORE_EXPORT ImageRecord final : public PaintTimingRecord {
  private:
   const WeakMember<const LayoutObject> image_generating_layout_object_;
   const WeakMember<const MediaTiming> media_timing_;
+  Member<HeapTimeTicks> metrics_timestamp_override_;
   const MediaRecordIdHash hash_;
   base::TimeTicks load_time_;
-  base::TimeTicks first_animated_frame_time_;
   bool is_sufficiently_loaded_for_reporting_ = false;
   const bool is_cors_same_origin_;
   const EffectiveVisualSizeResult effective_visual_size_result_;

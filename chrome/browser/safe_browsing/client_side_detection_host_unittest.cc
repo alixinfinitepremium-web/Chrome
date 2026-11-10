@@ -63,8 +63,8 @@
 #include "components/safe_browsing/content/browser/url_checker/async_check_tracker.h"
 #include "components/safe_browsing/content/browser/url_checker/url_checker_holder.h"
 #include "components/safe_browsing/content/common/safe_browsing.mojom-shared.h"
+#include "components/safe_browsing/core/browser/client_side_detection/credit_card_form_event.h"
 #include "components/safe_browsing/core/browser/client_side_detection/csd_model_type.h"
-#include "components/safe_browsing/core/browser/credit_card_form_event.h"
 #include "components/safe_browsing/core/browser/db/database_manager.h"
 #include "components/safe_browsing/core/browser/db/sb_protocol_manager_util.h"
 #include "components/safe_browsing/core/browser/db/test_database_manager.h"
@@ -4288,7 +4288,8 @@ class ClientSideDetectionRTLookupResponseForceRequestTest
         /*tab_id=*/SessionID::InvalidValue(),
         /*referring_app_info=*/std::nullopt,
         /*v5_get_hash_protocol_manager=*/nullptr,
-        /*prioritize_navigation_callbacks=*/false);
+        /*prioritize_navigation_callbacks=*/false,
+        /*profile_mode_suffix=*/"Regular");
     tracker->TransferUrlChecker(std::move(checker));
     // all_checks_completed must be set to true to notify
     // ClientSideDetectionHost.
