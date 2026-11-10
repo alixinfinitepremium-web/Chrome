@@ -111,8 +111,6 @@
 #include "components/data_sharing/public/features.h"
 #include "components/data_sharing/public/switches.h"
 #include "components/desktop_to_mobile_promos/features.h"
-#include "components/dom_distiller/core/dom_distiller_features.h"
-#include "components/dom_distiller/core/dom_distiller_switches.h"
 #include "components/download/public/common/download_features.h"
 #include "components/enterprise/browser/reporting/reporting_features.h"
 #include "components/enterprise/client_certificates/core/features.h"
@@ -216,6 +214,8 @@
 #include "components/viz/common/features.h"
 #include "components/viz/common/switches.h"
 #include "components/wallet/core/common/wallet_features.h"
+#include "components/web_distiller/core/web_distiller_features.h"
+#include "components/web_distiller/core/web_distiller_switches.h"
 #include "components/webapps/browser/features.h"
 #include "components/webui/flags/feature_entry.h"
 #include "components/webui/flags/feature_entry_macros.h"
@@ -573,17 +573,6 @@ const FeatureEntry::FeatureVariation
 
 #if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_LINUX) || \
     BUILDFLAG(IS_CHROMEOS)
-const FeatureEntry::FeatureParam kOrganizerPanelWithSegmentationControl[] = {
-    {"OrganizerPanelUseSegmentationControl", "true"}};
-const FeatureEntry::FeatureParam kOrganizerPanelWithoutSegmentationControl[] = {
-    {"OrganizerPanelUseSegmentationControl", "false"}};
-
-const FeatureEntry::FeatureVariation kOrganizerPanelVariations[] = {
-    {"with segmentation control", kOrganizerPanelWithSegmentationControl,
-     nullptr},
-    {"without segmentation control", kOrganizerPanelWithoutSegmentationControl,
-     nullptr}};
-
 const FeatureEntry::FeatureParam kContextHubTopicsFishfoodFeedback[] = {
     {"fishfood_feedback", "true"}};
 
@@ -4816,54 +4805,6 @@ const FeatureEntry::FeatureVariation
          kAnimatedProgressBarJumpToCompletionNoFade, nullptr}};
 #endif  // BUILDFLAG(IS_ANDROID)
 #if !BUILDFLAG(IS_ANDROID)
-const FeatureEntry::FeatureParam
-    kCastStreamingExponentialVideoBitrateAlgorithmDefault[] = {
-        {"window_size", "30"},
-        {"drop_threshold", "1"},
-        {"increase_factor", "1.05"},
-        {"decrease_factor", "0.9"},
-        {"dynamic_window_multiplier", "0.0"},
-};
-
-const FeatureEntry::FeatureParam
-    kCastStreamingExponentialVideoBitrateAlgorithmAggressive[] = {
-        {"window_size", "30"},
-        {"drop_threshold", "1"},
-        {"increase_factor", "1.1"},
-        {"decrease_factor", "0.9"},
-        {"dynamic_window_multiplier", "0.0"},
-};
-
-const FeatureEntry::FeatureParam
-    kCastStreamingExponentialVideoBitrateAlgorithmConservative[] = {
-        {"window_size", "30"},
-        {"drop_threshold", "1"},
-        {"increase_factor", "1.05"},
-        {"decrease_factor", "0.8"},
-        {"dynamic_window_multiplier", "0.0"},
-};
-
-const FeatureEntry::FeatureParam
-    kCastStreamingExponentialVideoBitrateAlgorithmLargeWindow[] = {
-        {"window_size", "60"},
-        {"drop_threshold", "2"},
-        {"increase_factor", "1.05"},
-        {"decrease_factor", "0.9"},
-        {"dynamic_window_multiplier", "0.0"},
-};
-
-const FeatureEntry::FeatureVariation
-    kCastStreamingExponentialVideoBitrateAlgorithmVariations[] = {
-        {"Default (30, 1, 1.05, 0.9)",
-         kCastStreamingExponentialVideoBitrateAlgorithmDefault, nullptr},
-        {"Aggressive Increase (1.1)",
-         kCastStreamingExponentialVideoBitrateAlgorithmAggressive, nullptr},
-        {"Conservative Decrease (0.8)",
-         kCastStreamingExponentialVideoBitrateAlgorithmConservative, nullptr},
-        {"Large Window (60)",
-         kCastStreamingExponentialVideoBitrateAlgorithmLargeWindow, nullptr},
-};
-
 const FeatureEntry::FeatureParam kCastStreamingMaxVideoBitrate5Mbps[] = {
     {"max_bitrate_mbps", "5"},
 };
@@ -5933,17 +5874,17 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kReaderModeBlurTransitionAnimationName,
      flag_descriptions::kReaderModeBlurTransitionAnimationDescription,
      kOsAndroid,
-     FEATURE_VALUE_TYPE(dom_distiller::kReaderModeBlurTransitionAnimation)},
+     FEATURE_VALUE_TYPE(web_distiller::kReaderModeBlurTransitionAnimation)},
     {"reader-mode-delay-bottomsheet-peek",
      flag_descriptions::kReaderModeDelayBottomSheetPeekName,
      flag_descriptions::kReaderModeDelayBottomSheetPeekDescription, kOsAndroid,
-     FEATURE_VALUE_TYPE(dom_distiller::kReaderModeDelayBottomSheetPeek)},
+     FEATURE_VALUE_TYPE(web_distiller::kReaderModeDelayBottomSheetPeek)},
     {"reader-mode-heuristics", flag_descriptions::kReaderModeHeuristicsName,
      flag_descriptions::kReaderModeHeuristicsDescription, kOsAndroid,
      MULTI_VALUE_TYPE(kReaderModeHeuristicsChoices)},
     {"reader-mode-toggle-links", flag_descriptions::kReaderModeToggleLinksName,
      flag_descriptions::kReaderModeToggleLinksDescription, kOsAndroid,
-     FEATURE_VALUE_TYPE(dom_distiller::kReaderModeToggleLinks)},
+     FEATURE_VALUE_TYPE(web_distiller::kReaderModeToggleLinks)},
     {"submenu-type-override", flag_descriptions::kSubmenuTypeOverrideName,
      flag_descriptions::kSubmenuTypeOverrideDescription, kOsAndroid,
      MULTI_VALUE_TYPE(kSubmenuTypeOverrideChoices)},
@@ -6176,15 +6117,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kCaptureHandleForStandalonePwasAndIwasDescription,
      kOsDesktop,
      FEATURE_VALUE_TYPE(features::kCaptureHandleForStandalonePwasAndIwas)},
-    {"cast-streaming-exponential-video-bitrate-algorithm",
-     flag_descriptions::kCastStreamingExponentialVideoBitrateAlgorithmName,
-     flag_descriptions::
-         kCastStreamingExponentialVideoBitrateAlgorithmDescription,
-     kOsDesktop,
-     FEATURE_WITH_PARAMS_VALUE_TYPE(
-         media::kCastStreamingExponentialVideoBitrateAlgorithm,
-         kCastStreamingExponentialVideoBitrateAlgorithmVariations,
-         "CastStreamingExponentialVideoBitrateAlgorithm")},
 
     {"cast-streaming-hardware-av1",
      flag_descriptions::kCastStreamingHardwareAv1Name,
@@ -12646,9 +12578,7 @@ const FeatureEntry kFeatureEntries[] = {
     BUILDFLAG(IS_CHROMEOS)
     {"organizer-panel", flag_descriptions::kOrganizerPanelName,
      flag_descriptions::kOrganizerPanelDescription, kOsDesktop,
-     FEATURE_WITH_PARAMS_VALUE_TYPE(organizer_panel::kOrganizerPanel,
-                                    kOrganizerPanelVariations,
-                                    "OrganizerPanel")},
+     FEATURE_VALUE_TYPE(organizer_panel::kOrganizerPanel)},
     {"organizer-panel-foreign-tabs",
      flag_descriptions::kOrganizerPanelForeignTabsName,
      flag_descriptions::kOrganizerPanelForeignTabsDescription, kOsDesktop,
@@ -12948,13 +12878,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kAutofillAiWithDataSchemaName,
      flag_descriptions::kAutofillAiWithDataSchemaDescription, kOsAll,
      FEATURE_VALUE_TYPE(autofill::features::kAutofillAiWithDataSchema)},
-
-#if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_LINUX) || \
-    BUILDFLAG(IS_CHROMEOS)
-    {"read-anything-line-focus", flag_descriptions::kReadAnythingLineFocusName,
-     flag_descriptions::kReadAnythingLineFocusDescription, kOsDesktop,
-     FEATURE_VALUE_TYPE(features::kReadAnythingLineFocus)},
-#endif
 
     {"verify-mtcs", flag_descriptions::kVerifyMTCsName,
      flag_descriptions::kVerifyMTCsDescription, kOsDesktop | kOsAndroid,
@@ -13964,18 +13887,14 @@ const FeatureEntry kFeatureEntries[] = {
      FEATURE_WITH_PARAMS_VALUE_TYPE(chrome::android::kXplatSyncedSetupThemes,
                                     kXplatSyncedSetupThemesVariations,
                                     "XplatSyncedSetupThemes")},
-    {"cct-tab-switcher-enabled-for-chrome-experiment",
-     flag_descriptions::kCCTTabSwitcherEnabledForChromeExperimentName,
-     flag_descriptions::kCCTTabSwitcherEnabledForChromeExperimentDescription,
-     kOsAndroid,
-     FEATURE_VALUE_TYPE(
-         chrome::android::kCCTTabSwitcherEnabledForChromeExperiment)},
-    {"cct-tab-switcher-enabled-for-embedder-experiment",
-     flag_descriptions::kCCTTabSwitcherEnabledForEmbedderExperimentName,
-     flag_descriptions::kCCTTabSwitcherEnabledForEmbedderExperimentDescription,
-     kOsAndroid,
-     FEATURE_VALUE_TYPE(
-         chrome::android::kCCTTabSwitcherEnabledForEmbedderExperiment)},
+    {"tabbed-cct-if-allowed-by-embedder",
+     flag_descriptions::kTabbedCctIfAllowedByEmbedderName,
+     flag_descriptions::kTabbedCctIfAllowedByEmbedderDescription, kOsAndroid,
+     FEATURE_VALUE_TYPE(chrome::android::kTabbedCctIfAllowedByEmbedder)},
+    {"tabbed-cct-if-enabled-by-embedder",
+     flag_descriptions::kTabbedCctIfEnabledByEmbedderName,
+     flag_descriptions::kTabbedCctIfEnabledByEmbedderDescription, kOsAndroid,
+     FEATURE_VALUE_TYPE(chrome::android::kTabbedCctIfEnabledByEmbedder)},
 #endif
 
     {"critical-action-history", flag_descriptions::kCriticalActionHistoryName,

@@ -49,7 +49,9 @@
 * [android-x86-rel](https://ci.chromium.org/ui/p/chromium/builders/try/android-x86-rel) ([definition](https://cs.chromium.org/search?q=file:/try/.*%5C.star$%20%22name%20=%20%5C%22android-x86-rel%5C%22%22))
 
 ### android_webview_unittests
+* [android-arm64-rel](https://ci.chromium.org/ui/p/chromium/builders/try/android-arm64-rel) ([definition](https://cs.chromium.org/search?q=file:/try/.*%5C.star$%20%22name%20=%20%5C%22android-arm64-rel%5C%22%22))
 * [android-x64-rel](https://ci.chromium.org/ui/p/chromium/builders/try/android-x64-rel) ([definition](https://cs.chromium.org/search?q=file:/try/.*%5C.star$%20%22name%20=%20%5C%22android-x64-rel%5C%22%22))
+* [android-x86-rel](https://ci.chromium.org/ui/p/chromium/builders/try/android-x86-rel) ([definition](https://cs.chromium.org/search?q=file:/try/.*%5C.star$%20%22name%20=%20%5C%22android-x86-rel%5C%22%22))
 
 ### angle_unittests
 * [android-x64-rel](https://ci.chromium.org/ui/p/chromium/builders/try/android-x64-rel) ([definition](https://cs.chromium.org/search?q=file:/try/.*%5C.star$%20%22name%20=%20%5C%22android-x64-rel%5C%22%22))
@@ -480,15 +482,6 @@
 * [mac_chromium_compile_dbg_ng](https://ci.chromium.org/ui/p/chromium/builders/try/mac_chromium_compile_dbg_ng) ([definition](https://cs.chromium.org/search?q=file:/try/.*%5C.star$%20%22name%20=%20%5C%22mac_chromium_compile_dbg_ng%5C%22%22))
 * [win-arm64-compile-dbg](https://ci.chromium.org/ui/p/chromium/builders/try/win-arm64-compile-dbg) ([definition](https://cs.chromium.org/search?q=file:/try/.*%5C.star$%20%22name%20=%20%5C%22win-arm64-compile-dbg%5C%22%22))
 * [win-rel](https://ci.chromium.org/ui/p/chromium/builders/try/win-rel) ([definition](https://cs.chromium.org/search?q=file:/try/.*%5C.star$%20%22name%20=%20%5C%22win-rel%5C%22%22))
-
-### components_unittests iPad (A16) 27.0
-* [ios-simulator](https://ci.chromium.org/ui/p/chromium/builders/try/ios-simulator) ([definition](https://cs.chromium.org/search?q=file:/try/.*%5C.star$%20%22name%20=%20%5C%22ios-simulator%5C%22%22))
-
-### components_unittests iPhone 16 26.5
-* [ios-simulator](https://ci.chromium.org/ui/p/chromium/builders/try/ios-simulator) ([definition](https://cs.chromium.org/search?q=file:/try/.*%5C.star$%20%22name%20=%20%5C%22ios-simulator%5C%22%22))
-
-### components_unittests iPhone 16 27.0
-* [ios-simulator](https://ci.chromium.org/ui/p/chromium/builders/try/ios-simulator) ([definition](https://cs.chromium.org/search?q=file:/try/.*%5C.star$%20%22name%20=%20%5C%22ios-simulator%5C%22%22))
 
 ### compositor_unittests
 * [fuchsia-x64-cast-receiver-rel](https://ci.chromium.org/ui/p/chromium/builders/try/fuchsia-x64-cast-receiver-rel) ([definition](https://cs.chromium.org/search?q=file:/try/.*%5C.star$%20%22name%20=%20%5C%22fuchsia-x64-cast-receiver-rel%5C%22%22))
@@ -990,15 +983,6 @@
 * [ios-simulator](https://ci.chromium.org/ui/p/chromium/builders/try/ios-simulator) ([definition](https://cs.chromium.org/search?q=file:/try/.*%5C.star$%20%22name%20=%20%5C%22ios-simulator%5C%22%22))
 
 ### ios_chrome_all_eg2tests_module iPhone 16 27.0
-* [ios-simulator](https://ci.chromium.org/ui/p/chromium/builders/try/ios-simulator) ([definition](https://cs.chromium.org/search?q=file:/try/.*%5C.star$%20%22name%20=%20%5C%22ios-simulator%5C%22%22))
-
-### ios_chrome_unittests iPad (A16) 27.0
-* [ios-simulator](https://ci.chromium.org/ui/p/chromium/builders/try/ios-simulator) ([definition](https://cs.chromium.org/search?q=file:/try/.*%5C.star$%20%22name%20=%20%5C%22ios-simulator%5C%22%22))
-
-### ios_chrome_unittests iPhone 16 26.5
-* [ios-simulator](https://ci.chromium.org/ui/p/chromium/builders/try/ios-simulator) ([definition](https://cs.chromium.org/search?q=file:/try/.*%5C.star$%20%22name%20=%20%5C%22ios-simulator%5C%22%22))
-
-### ios_chrome_unittests iPhone 16 27.0
 * [ios-simulator](https://ci.chromium.org/ui/p/chromium/builders/try/ios-simulator) ([definition](https://cs.chromium.org/search?q=file:/try/.*%5C.star$%20%22name%20=%20%5C%22ios-simulator%5C%22%22))
 
 ### ios_components_unittests iPhone 16 26.5

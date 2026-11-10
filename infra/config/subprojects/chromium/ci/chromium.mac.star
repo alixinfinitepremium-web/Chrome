@@ -640,6 +640,12 @@ ci.thin_tester(
                     shards = 2,
                 ),
             ),
+            "extensions_unittests": targets.mixin(
+                enable_rts_filtering = True,
+            ),
+            "headless_browsertests": targets.mixin(
+                enable_rts_filtering = True,
+            ),
             # TODO(crbug.com/436628295): test fails on VM
             "headless_shell_wpt_tests": targets.per_test_modification(
                 mixins = "mac_26_arm64",
@@ -666,6 +672,9 @@ ci.thin_tester(
             ),
             "telemetry_perf_unittests": targets.mixin(
                 ci_only = True,
+            ),
+            "updater_tests": targets.mixin(
+                enable_rts_filtering = True,
             ),
         },
     ),
@@ -1308,6 +1317,28 @@ ios_builder(
             "xcode_27_main",
             "xctest",
         ],
+        per_test_modifications = {
+            # TODO(crbug.com/583893443): Re-enable on CQ once sharding works
+            # reliably with iOS test runner crash retries.
+            "components_unittests iPad (A16) 27.0": targets.mixin(
+                ci_only = True,
+            ),
+            "components_unittests iPhone 16 26.5": targets.mixin(
+                ci_only = True,
+            ),
+            "components_unittests iPhone 16 27.0": targets.mixin(
+                ci_only = True,
+            ),
+            "ios_chrome_unittests iPad (A16) 27.0": targets.mixin(
+                ci_only = True,
+            ),
+            "ios_chrome_unittests iPhone 16 26.5": targets.mixin(
+                ci_only = True,
+            ),
+            "ios_chrome_unittests iPhone 16 27.0": targets.mixin(
+                ci_only = True,
+            ),
+        },
     ),
     cpu = cpu.ARM64,
     console_view_entry = [

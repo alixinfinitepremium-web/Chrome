@@ -269,8 +269,8 @@ void TabStripView::OnMouseExited(const ui::MouseEvent& event) {
 
   if (TabHoverCardController* hover_card_controller =
           collection_node_->GetController()->GetHoverCardController()) {
-    hover_card_controller->UpdateHoverCard(
-        nullptr, TabSlotController::HoverCardUpdateType::kHover);
+    hover_card_controller->UpdateHoverCard(nullptr,
+                                           HoverCardUpdateType::kHover);
   }
 }
 
@@ -303,8 +303,8 @@ void TabStripView::OnWidgetActivationChanged(views::Widget* widget,
   if (TabHoverCardController* hover_card_controller =
           collection_node_->GetController()->GetHoverCardController();
       hover_card_controller) {
-    hover_card_controller->UpdateHoverCard(
-        nullptr, TabSlotController::HoverCardUpdateType::kEvent);
+    hover_card_controller->UpdateHoverCard(nullptr,
+                                           HoverCardUpdateType::kEvent);
   }
 }
 
@@ -555,6 +555,13 @@ bool TabStripView::IsTabScrollButtonsPinned() const {
 void TabStripView::SetLeadingOverlap(int leading_overlap) {
   if (leading_overlap != leading_overlap_) {
     leading_overlap_ = leading_overlap;
+    InvalidateLayout(/*avoid_propagate_during_layout=*/true);
+  }
+}
+
+void TabStripView::SetTrailingOverlap(int trailing_overlap) {
+  if (trailing_overlap != trailing_overlap_) {
+    trailing_overlap_ = trailing_overlap;
     InvalidateLayout(/*avoid_propagate_during_layout=*/true);
   }
 }
@@ -890,8 +897,8 @@ void TabStripView::HideHoverCardOnScroll() {
   if (TabHoverCardController* hover_card_controller =
           collection_node_->GetController()->GetHoverCardController();
       hover_card_controller && hover_card_controller->IsHoverCardVisible()) {
-    hover_card_controller->UpdateHoverCard(
-        nullptr, TabSlotController::HoverCardUpdateType::kAnimating);
+    hover_card_controller->UpdateHoverCard(nullptr,
+                                           HoverCardUpdateType::kAnimating);
   }
 }
 

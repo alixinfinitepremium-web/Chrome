@@ -68,12 +68,12 @@ public class CustomTabIntentDataHolder implements Parcelable {
     public final boolean mIsCloseButtonEnabled;
     // Stored as a Bitmap rather than a Drawable because Drawable is not Parcelable.
     public final @Nullable Bitmap mCloseButtonIcon;
-    public final @Nullable RemoteViews mRemoteViews;
+    public @Nullable RemoteViews mRemoteViews;
     public final @ActivitySideSheetDecorationType int mSideSheetDecorationType;
     public final @ActivitySideSheetRoundedCornersPosition int mSideSheetRoundedCornersPosition;
-    public final int @Nullable [] mClickableViewIds;
-    public final @Nullable PendingIntent mRemoteViewsPendingIntent;
-    public final @Nullable PendingIntent mSecondaryToolbarSwipeUpPendingIntent;
+    public int @Nullable [] mClickableViewIds;
+    public @Nullable PendingIntent mRemoteViewsPendingIntent;
+    public @Nullable PendingIntent mSecondaryToolbarSwipeUpPendingIntent;
     public final @OpenInBrowserState int mOpenInBrowserState;
     public final @Nullable String mTranslateLanguage;
     public final @Nullable String mAutoTranslateLanguage;
@@ -82,8 +82,8 @@ public class CustomTabIntentDataHolder implements Parcelable {
     public final boolean mIsPartialCustomTabFixedHeight;
     public final boolean mContentScrollMayResizeTab;
     public final boolean mInteractWithBackground;
-    public final boolean mCctTabSwitcherEnabledForChromeExperiment;
-    public final boolean mCctTabSwitcherEnabledForEmbedderExperiment;
+    public final boolean mTabbedCctAllowedByEmbedder;
+    public final boolean mTabbedCctEnabledByEmbedder;
     public final @Nullable String mAuthRedirectScheme;
     public final @Nullable String mAuthRedirectHost;
     public final @Nullable String mAuthRedirectPath;
@@ -135,10 +135,8 @@ public class CustomTabIntentDataHolder implements Parcelable {
         mIsPartialCustomTabFixedHeight = builder.mIsPartialCustomTabFixedHeight;
         mContentScrollMayResizeTab = builder.mContentScrollMayResizeTab;
         mInteractWithBackground = builder.mInteractWithBackground;
-        mCctTabSwitcherEnabledForChromeExperiment =
-                builder.mCctTabSwitcherEnabledForChromeExperiment;
-        mCctTabSwitcherEnabledForEmbedderExperiment =
-                builder.mCctTabSwitcherEnabledForEmbedderExperiment;
+        mTabbedCctAllowedByEmbedder = builder.mTabbedCctAllowedByEmbedder;
+        mTabbedCctEnabledByEmbedder = builder.mTabbedCctEnabledByEmbedder;
         mAuthRedirectScheme = builder.mAuthRedirectScheme;
         mAuthRedirectHost = builder.mAuthRedirectHost;
         mAuthRedirectPath = builder.mAuthRedirectPath;
@@ -192,8 +190,8 @@ public class CustomTabIntentDataHolder implements Parcelable {
         mIsPartialCustomTabFixedHeight = in.readBoolean();
         mContentScrollMayResizeTab = in.readBoolean();
         mInteractWithBackground = in.readBoolean();
-        mCctTabSwitcherEnabledForChromeExperiment = in.readBoolean();
-        mCctTabSwitcherEnabledForEmbedderExperiment = in.readBoolean();
+        mTabbedCctAllowedByEmbedder = in.readBoolean();
+        mTabbedCctEnabledByEmbedder = in.readBoolean();
         mAuthRedirectScheme = in.readString();
         mAuthRedirectHost = in.readString();
         mAuthRedirectPath = in.readString();
@@ -253,8 +251,8 @@ public class CustomTabIntentDataHolder implements Parcelable {
         dest.writeBoolean(mIsPartialCustomTabFixedHeight);
         dest.writeBoolean(mContentScrollMayResizeTab);
         dest.writeBoolean(mInteractWithBackground);
-        dest.writeBoolean(mCctTabSwitcherEnabledForChromeExperiment);
-        dest.writeBoolean(mCctTabSwitcherEnabledForEmbedderExperiment);
+        dest.writeBoolean(mTabbedCctAllowedByEmbedder);
+        dest.writeBoolean(mTabbedCctEnabledByEmbedder);
         dest.writeString(mAuthRedirectScheme);
         dest.writeString(mAuthRedirectHost);
         dest.writeString(mAuthRedirectPath);
@@ -318,6 +316,23 @@ public class CustomTabIntentDataHolder implements Parcelable {
         return colorScheme == CustomTabsIntent.COLOR_SCHEME_DARK
                 ? mDarkAuthTabColorSchemeParams
                 : mLightAuthTabColorSchemeParams;
+    }
+
+    /** Updates the bottom bar {@link RemoteViews} and its associated click handling parameters. */
+    public void updateRemoteViews(
+            @Nullable RemoteViews remoteViews,
+            int @Nullable [] clickableViewIds,
+            @Nullable PendingIntent pendingIntent) {
+        mRemoteViews = remoteViews;
+        mClickableViewIds = clickableViewIds;
+        mRemoteViewsPendingIntent = pendingIntent;
+    }
+
+    /**
+     * Updates the {@link PendingIntent} sent when the user swipes up from the secondary toolbar.
+     */
+    public void setSecondaryToolbarSwipeUpPendingIntent(@Nullable PendingIntent pendingIntent) {
+        mSecondaryToolbarSwipeUpPendingIntent = pendingIntent;
     }
 
     private static @Nullable TrustedWebActivityDisplayMode readTwaDisplayMode(
@@ -430,8 +445,8 @@ public class CustomTabIntentDataHolder implements Parcelable {
         private boolean mIsPartialCustomTabFixedHeight;
         private boolean mContentScrollMayResizeTab;
         private boolean mInteractWithBackground;
-        private boolean mCctTabSwitcherEnabledForChromeExperiment;
-        private boolean mCctTabSwitcherEnabledForEmbedderExperiment;
+        private boolean mTabbedCctAllowedByEmbedder;
+        private boolean mTabbedCctEnabledByEmbedder;
         private @Nullable String mAuthRedirectScheme;
         private @Nullable String mAuthRedirectHost;
         private @Nullable String mAuthRedirectPath;
@@ -651,16 +666,13 @@ public class CustomTabIntentDataHolder implements Parcelable {
             return this;
         }
 
-        public Builder setCctTabSwitcherEnabledForChromeExperiment(
-                boolean cctTabSwitcherEnabledForChromeExperiment) {
-            mCctTabSwitcherEnabledForChromeExperiment = cctTabSwitcherEnabledForChromeExperiment;
+        public Builder setTabbedCctAllowedByEmbedder(boolean tabbedCctAllowedByEmbedder) {
+            mTabbedCctAllowedByEmbedder = tabbedCctAllowedByEmbedder;
             return this;
         }
 
-        public Builder setCctTabSwitcherEnabledForEmbedderExperiment(
-                boolean cctTabSwitcherEnabledForEmbedderExperiment) {
-            mCctTabSwitcherEnabledForEmbedderExperiment =
-                    cctTabSwitcherEnabledForEmbedderExperiment;
+        public Builder setTabbedCctEnabledByEmbedder(boolean tabbedCctEnabledByEmbedder) {
+            mTabbedCctEnabledByEmbedder = tabbedCctEnabledByEmbedder;
             return this;
         }
 

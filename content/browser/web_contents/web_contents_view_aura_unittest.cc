@@ -69,7 +69,6 @@
 #if BUILDFLAG(IS_LINUX) && BUILDFLAG(SUPPORTS_OZONE_X11)
 #include "ui/base/x/selection_utils.h"
 #include "ui/base/x/x11_os_exchange_data_provider.h"
-#include "ui/gfx/x/atom_cache.h"
 #include "ui/gfx/x/connection.h"
 #include "ui/ozone/public/ozone_platform.h"
 #endif  // BUILDFLAG(IS_LINUX) && BUILDFLAG(SUPPORTS_OZONE_X11)
@@ -625,8 +624,9 @@ TEST_F(WebContentsViewAuraTest, MAYBE_DragDropImageFromRenderer) {
   if (ui::OzonePlatform::GetPlatformNameForTest() == "x11") {
     auto* connection = x11::Connection::Get();
     x11::Window xwindow = connection->CreateDummyWindow("Test Window");
-    connection->SetStringProperty(xwindow, x11::GetAtom("XdndDirectSave0"),
-                                  x11::GetAtom("text/plain"), "image.jpg");
+    connection->SetStringProperty(
+        xwindow, connection->GetAtom("XdndDirectSave0"),
+        connection->GetAtom("text/plain"), "image.jpg");
     data = std::make_unique<ui::OSExchangeData>(
         std::make_unique<ui::XOSExchangeDataProvider>(
             xwindow, xwindow, ui::SelectionFormatMap()));
@@ -718,8 +718,9 @@ TEST_F(WebContentsViewAuraTest,
   if (ui::OzonePlatform::GetPlatformNameForTest() == "x11") {
     auto* connection = x11::Connection::Get();
     x11::Window xwindow = connection->CreateDummyWindow("Test Window");
-    connection->SetStringProperty(xwindow, x11::GetAtom("XdndDirectSave0"),
-                                  x11::GetAtom("text/plain"), "image.jpg");
+    connection->SetStringProperty(
+        xwindow, connection->GetAtom("XdndDirectSave0"),
+        connection->GetAtom("text/plain"), "image.jpg");
     data = std::make_unique<ui::OSExchangeData>(
         std::make_unique<ui::XOSExchangeDataProvider>(
             xwindow, xwindow, ui::SelectionFormatMap()));
@@ -2036,6 +2037,11 @@ class TestDragEndedFrameWidget : public FakeFrameWidget {
                           uint32_t key_modifiers,
                           DragTargetDragOverCallback callback) override {
     drag_target_drag_over_called_ = true;
+    if (delay_next_drag_target_drag_over_) {
+      delay_next_drag_target_drag_over_ = false;
+      pending_drag_target_drag_over_callback_ = std::move(callback);
+      return;
+    }
     std::move(callback).Run(DragOperation::kNone, false);
   }
 
@@ -2074,6 +2080,17 @@ class TestDragEndedFrameWidget : public FakeFrameWidget {
   bool drag_target_drag_over_called() const {
     return drag_target_drag_over_called_;
   }
+  void DelayNextDragTargetDragOver() {
+    delay_next_drag_target_drag_over_ = true;
+  }
+  bool has_pending_drag_target_drag_over_callback() const {
+    return !pending_drag_target_drag_over_callback_.is_null();
+  }
+  void RespondToPendingDragTargetDragOver(DragOperation operation,
+                                          bool document_is_handling_drag) {
+    std::move(pending_drag_target_drag_over_callback_)
+        .Run(operation, document_is_handling_drag);
+  }
   int drag_target_drop_count() const { return drag_target_drop_count_; }
   ui::mojom::DragOperation operation() const { return operation_; }
 
@@ -2081,6 +2098,8 @@ class TestDragEndedFrameWidget : public FakeFrameWidget {
   bool drag_source_ended_at_called_ = false;
   bool system_drag_ended_called_ = false;
   bool drag_target_drag_over_called_ = false;
+  bool delay_next_drag_target_drag_over_ = false;
+  DragTargetDragOverCallback pending_drag_target_drag_over_callback_;
   int drag_target_drop_count_ = 0;
   ui::mojom::DragOperation operation_ = ui::mojom::DragOperation::kCopy;
   base::OnceClosure quit_closure_;
@@ -2201,6 +2220,41 @@ TEST_F(WebContentsViewAuraSessionIdTest,
   ExpectCurrentDrag(session_id, current_data);
   EXPECT_FALSE(frame_widget.drag_target_drag_over_called());
 
+  view->OnDragExited();
+}
+
+// Tests that a renderer drag-over reply from an earlier session cannot update
+// the operation or handling state of a newer drag.
+TEST_F(WebContentsViewAuraSessionIdTest,
+       RendererDragReplyFromPreviousSessionIsIgnored) {
+  NavigateAndCommit(GURL("https://example.com/"));
+  TestDragEndedFrameWidget frame_widget(
+      BindFakeFrameWidgetInterfaces(main_rfh()));
+  auto* view = GetView();
+
+  EnterDrag();
+  frame_widget.FlushForTesting();
+  frame_widget.DelayNextDragTargetDragOver();
+  view->OnDragUpdated(DragEvent());
+  frame_widget.FlushForTesting();
+  ASSERT_TRUE(frame_widget.has_pending_drag_target_drag_over_callback());
+
+  view->OnDragExited();
+  EnterDrag();
+  frame_widget.FlushForTesting();
+  ASSERT_TRUE(view->current_drag_data_);
+  view->current_drag_data_->operation = DragOperation::kCopy;
+  view->current_drag_data_->document_is_handling_drag = false;
+  const uint64_t session_id = view->drag_session_id_;
+  const DropData* current_data = view->current_drag_data_.get();
+
+  frame_widget.RespondToPendingDragTargetDragOver(
+      DragOperation::kMove, /*document_is_handling_drag=*/true);
+  frame_widget.FlushForTesting();
+
+  ExpectCurrentDrag(session_id, current_data);
+  EXPECT_EQ(DragOperation::kCopy, current_data->operation);
+  EXPECT_FALSE(current_data->document_is_handling_drag);
   view->OnDragExited();
 }
 

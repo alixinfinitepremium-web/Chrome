@@ -88,6 +88,7 @@
 #include "chrome/browser/contextual_tasks/contextual_tasks_ui_service_factory.h"
 #include "chrome/browser/contextual_tasks/contextual_tasks_url_loader_factory_interceptor.h"
 #include "chrome/browser/contextual_tasks/contextual_tasks_url_loader_throttle.h"
+#include "chrome/browser/contextual_tasks/contextual_tasks_utils.h"
 #include "chrome/browser/contextual_tasks/guest_opener_user_data.h"
 #include "chrome/browser/custom_handlers/protocol_handler_registry_factory.h"
 #include "chrome/browser/data_saver/data_saver.h"
@@ -269,8 +270,6 @@
 #include "components/contextual_tasks/public/utils.h"
 #include "components/custom_handlers/protocol_handler_registry.h"
 #include "components/custom_handlers/protocol_handler_throttle.h"
-#include "components/dom_distiller/core/dom_distiller_switches.h"
-#include "components/dom_distiller/core/url_constants.h"
 #include "components/embedder_support/content_settings_utils.h"
 #include "components/embedder_support/origin_trials/origin_trials_settings_storage.h"
 #include "components/embedder_support/switches.h"
@@ -357,6 +356,8 @@
 #include "components/variations/variations_associated_data.h"
 #include "components/variations/variations_switches.h"
 #include "components/version_info/version_info.h"
+#include "components/web_distiller/core/url_constants.h"
+#include "components/web_distiller/core/web_distiller_switches.h"
 #include "components/webapps/common/web_app_id.h"
 #include "components/webui/chrome_urls/pref_names.h"
 #include "content/public/browser/browser_accessibility_state.h"
@@ -2254,7 +2255,7 @@ void ChromeContentBrowserClient::OverrideURLLoaderFactoryParams(
 void ChromeContentBrowserClient::GetAdditionalWebUISchemes(
     std::vector<std::string>* additional_schemes) {
   additional_schemes->emplace_back(chrome::kChromeSearchScheme);
-  additional_schemes->emplace_back(dom_distiller::kDomDistillerScheme);
+  additional_schemes->emplace_back(web_distiller::kWebDistillerScheme);
   additional_schemes->emplace_back(content::kChromeDevToolsScheme);
 }
 
@@ -2279,7 +2280,7 @@ ChromeContentBrowserClient::DetermineAddressSpaceFromURL(const GURL& url) {
   if (url.SchemeIs(chrome::kChromeSearchScheme)) {
     return network::mojom::IPAddressSpace::kLoopback;
   }
-  if (url.SchemeIs(dom_distiller::kDomDistillerScheme)) {
+  if (url.SchemeIs(web_distiller::kWebDistillerScheme)) {
     return network::mojom::IPAddressSpace::kPublic;
   }
 #if BUILDFLAG(ENABLE_EXTENSIONS_CORE)
@@ -4009,7 +4010,7 @@ bool ChromeContentBrowserClient::ShouldDenyRequestOnCertificateError(
   // is not downgraded to a WARNING, whereas Android will show "Not secure"
   // in the omnibox (for low-end devices which show the omnibox on Reader Mode
   // pages).
-  return main_page_url.SchemeIs(dom_distiller::kDomDistillerScheme);
+  return main_page_url.SchemeIs(web_distiller::kWebDistillerScheme);
 }
 #endif
 
@@ -4161,13 +4162,10 @@ GetPreferredColorScheme(const WebPreferences& web_prefs,
     GURL url = web_contents->GetVisibleURL();
     if (url.SchemeIs(content::kChromeUIScheme) &&
         url.host() == chrome::kChromeUIContextualTasksHost) {
-      std::optional<bool> is_dark_mode =
-          contextual_tasks::GetDarkModeFromUrl(url);
-      if (is_dark_mode.has_value()) {
-        preferred_color_scheme =
-            is_dark_mode.value() ? blink::mojom::PreferredColorScheme::kDark
-                                 : blink::mojom::PreferredColorScheme::kLight;
-      }
+      preferred_color_scheme =
+          contextual_tasks::ShouldUseDarkMode(web_contents, url)
+              ? blink::mojom::PreferredColorScheme::kDark
+              : blink::mojom::PreferredColorScheme::kLight;
     }
   }
   return {preferred_color_scheme, preferred_root_scrollbar_color_scheme};

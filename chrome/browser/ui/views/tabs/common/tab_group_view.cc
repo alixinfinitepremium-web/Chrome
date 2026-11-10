@@ -71,18 +71,16 @@ std::unique_ptr<TabGroupView::LayoutManager> CreateTabGroupViewLayout(
   }
   return std::make_unique<TabGroupViewHorizontalLayout>();
 }
+}  // namespace
 
-// Progress of one group's half of a direct switch between focused groups. The
-// outgoing group plays over [0, kFocusSwitchHandoffProgress] of the motion and
-// the incoming group over [kFocusSwitchHandoffProgress, 1].
-float GetFocusSwitchPhaseProgress(float progress, bool is_incoming) {
-  constexpr float kHandoff = TabGroupView::kFocusSwitchHandoffProgress;
+// static
+float TabGroupView::GetFocusSwitchPhaseProgress(float progress,
+                                                bool is_incoming) {
+  constexpr float kHandoff = kFocusSwitchHandoffProgress;
   return is_incoming
              ? std::clamp((progress - kHandoff) / (1.0f - kHandoff), 0.0f, 1.0f)
              : std::clamp(progress / kHandoff, 0.0f, 1.0f);
 }
-
-}  // namespace
 
 TabGroupView::TabGroupView(TabCollectionNode* collection_node)
     : DraggedTabsContainer(
@@ -363,7 +361,7 @@ void TabGroupView::OnTabCountChanged() {
 }
 
 void TabGroupView::ResetCollectionNode() {
-  HideHoverCard(TabSlotController::HoverCardUpdateType::kTabRemoved);
+  HideHoverCard(HoverCardUpdateType::kTabRemoved);
   focus_animation_subscription_ = {};
   node_destroyed_subscription_ = {};
   collapsed_state_changed_subscription_ = {};
@@ -635,29 +633,25 @@ const tabs::TabGroupData& TabGroupView::GetTabGroupData() const {
   return tab_group_data_observer_->tab_group_data();
 }
 
-void TabGroupView::UpdateHoverCard(int update_type) const {
+void TabGroupView::UpdateHoverCard(HoverCardUpdateType update_type) const {
   if (!collection_node_ || !group_header_) {
     return;
   }
 
   if (TabHoverCardController* hover_card_controller =
           collection_node_->GetController()->GetHoverCardController()) {
-    hover_card_controller->UpdateHoverCard(
-        group_header_,
-        static_cast<TabSlotController::HoverCardUpdateType>(update_type));
+    hover_card_controller->UpdateHoverCard(group_header_, update_type);
   }
 }
 
-void TabGroupView::HideHoverCard(int update_type) const {
+void TabGroupView::HideHoverCard(HoverCardUpdateType update_type) const {
   if (!collection_node_) {
     return;
   }
 
   if (TabHoverCardController* hover_card_controller =
           collection_node_->GetController()->GetHoverCardController()) {
-    hover_card_controller->UpdateHoverCard(
-        nullptr,
-        static_cast<TabSlotController::HoverCardUpdateType>(update_type));
+    hover_card_controller->UpdateHoverCard(nullptr, update_type);
   }
 }
 

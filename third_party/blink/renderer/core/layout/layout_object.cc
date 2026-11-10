@@ -2436,7 +2436,7 @@ void LayoutObject::Paint(const PaintInfo&) const {
   NOT_DESTROYED();
 }
 
-void LayoutObject::RecalcVisualOverflow() {
+void LayoutObject::RecalcVisualOverflowForChildren() {
   NOT_DESTROYED();
   for (LayoutObject* current = SlowFirstChild(); current;
        current = current->NextSibling()) {
@@ -2445,14 +2445,6 @@ void LayoutObject::RecalcVisualOverflow() {
       continue;
     current->RecalcVisualOverflow();
   }
-}
-
-void LayoutObject::RecalcNormalFlowChildVisualOverflowIfNeeded() {
-  NOT_DESTROYED();
-  if (IsOutOfFlowPositioned() ||
-      (HasLayer() && To<LayoutBoxModelObject>(this)->HasSelfPaintingLayer()))
-    return;
-  RecalcVisualOverflow();
 }
 
 void LayoutObject::InvalidateVisualOverflow() {

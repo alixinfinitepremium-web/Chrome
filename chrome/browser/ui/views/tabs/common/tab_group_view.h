@@ -44,6 +44,11 @@ class TabGroupView : public TabCollectionZOrderManager,
   static constexpr int kFocusSwitchSlideOffset = 12;
   static constexpr float kFocusSwitchHandoffProgress = 0.75f;
 
+  // Progress of one group's half of a direct switch between focused groups.
+  // The outgoing group plays over [0, kFocusSwitchHandoffProgress] of the
+  // motion and the incoming group over [kFocusSwitchHandoffProgress, 1].
+  static float GetFocusSwitchPhaseProgress(float progress, bool is_incoming);
+
   explicit TabGroupView(TabCollectionNode* collection_node);
   TabGroupView(const TabGroupView&) = delete;
   TabGroupView& operator=(const TabGroupView&) = delete;
@@ -78,8 +83,8 @@ class TabGroupView : public TabCollectionZOrderManager,
   void CancelHeaderDrag() override;
   const TabGroup& GetTabGroup() const override;
   const tabs::TabGroupData& GetTabGroupData() const override;
-  void UpdateHoverCard(int update_type) const override;
-  void HideHoverCard(int update_type) const override;
+  void UpdateHoverCard(HoverCardUpdateType update_type) const override;
+  void HideHoverCard(HoverCardUpdateType update_type) const override;
   bool IsFocusInTabStrip() override;
   std::unique_ptr<ExpandOnHoverLock> AcquireExpandOnHoverLock() override;
   std::unique_ptr<TabHoverCardController::ScopedHideHoverCardLock>

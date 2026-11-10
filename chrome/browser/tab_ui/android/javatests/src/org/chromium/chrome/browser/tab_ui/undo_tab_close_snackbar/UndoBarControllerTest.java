@@ -12,7 +12,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
-import android.os.Build;
 import android.widget.TextView;
 
 import androidx.test.filters.SmallTest;
@@ -26,14 +25,13 @@ import org.junit.runner.RunWith;
 
 import org.chromium.base.ThreadUtils;
 import org.chromium.base.test.util.Batch;
-import org.chromium.base.test.util.CommandLineFlags;
 import org.chromium.base.test.util.DisableIf;
 import org.chromium.base.test.util.HistogramWatcher;
 import org.chromium.base.test.util.Restriction;
 import org.chromium.chrome.R;
 import org.chromium.chrome.browser.ChromeTabbedActivity;
-import org.chromium.chrome.browser.flags.ChromeSwitches;
 import org.chromium.chrome.browser.tab.Tab;
+import org.chromium.chrome.browser.tabmodel.TabClosingSource;
 import org.chromium.chrome.browser.tabmodel.TabClosureParams;
 import org.chromium.chrome.browser.tabmodel.TabGroupMergeNotificationType;
 import org.chromium.chrome.browser.tabmodel.TabModel;
@@ -57,7 +55,6 @@ import java.util.concurrent.ExecutionException;
 /** Tests for the UndoBarController. */
 @RunWith(ChromeJUnit4ClassRunner.class)
 @Batch(Batch.PER_CLASS)
-@CommandLineFlags.Add({ChromeSwitches.DISABLE_FIRST_RUN_EXPERIENCE})
 public class UndoBarControllerTest {
     @Rule
     public AutoResetCtaTransitTestRule mActivityTestRule =
@@ -263,8 +260,7 @@ public class UndoBarControllerTest {
 
     @Test
     @SmallTest
-    @DisableIf.Build(sdk_is_greater_than = Build.VERSION_CODES.R)
-    // TODO(crbug.com/477995172, crbug.com/571360557): Re-enable.
+    @DisableIf.Device(DeviceFormFactor.DESKTOP) // crbug.com/477995172
     public void testCloseTabGroup_Undo() throws Exception {
         ChromeTabUtils.newTabFromMenu(
                 InstrumentationRegistry.getInstrumentation(), mActivityTestRule.getActivity());
@@ -291,6 +287,7 @@ public class UndoBarControllerTest {
                             TabClosureParams.closeTabs(
                                             List.of(mTabModel.getTabAt(0), mTabModel.getTabAt(1)))
                                     .hideTabGroups(true)
+                                    .tabClosingSource(TabClosingSource.GRID_TAB_SWITCHER)
                                     .build());
                 });
 
@@ -316,8 +313,6 @@ public class UndoBarControllerTest {
     @Test
     @SmallTest
     @Restriction(DeviceFormFactor.PHONE_OR_TABLET)
-    @DisableIf.Build(sdk_is_greater_than = Build.VERSION_CODES.R)
-    // TODO(crbug.com/571360557): Re-enable.
     public void testCloseTabGroup_EmptyTitle_Undo() throws Exception {
         ChromeTabUtils.newTabFromMenu(
                 InstrumentationRegistry.getInstrumentation(), mActivityTestRule.getActivity());
@@ -344,6 +339,7 @@ public class UndoBarControllerTest {
                             TabClosureParams.closeTabs(
                                             List.of(mTabModel.getTabAt(0), mTabModel.getTabAt(1)))
                                     .hideTabGroups(true)
+                                    .tabClosingSource(TabClosingSource.GRID_TAB_SWITCHER)
                                     .build());
                 });
 
@@ -369,8 +365,6 @@ public class UndoBarControllerTest {
     @Test
     @SmallTest
     @Restriction(DeviceFormFactor.PHONE_OR_TABLET)
-    @DisableIf.Build(sdk_is_greater_than = Build.VERSION_CODES.R)
-    // TODO(crbug.com/571360557): Re-enable.
     public void testDeleteTabGroup_Undo() throws Exception {
         ChromeTabUtils.newTabFromMenu(
                 InstrumentationRegistry.getInstrumentation(), mActivityTestRule.getActivity());
@@ -395,6 +389,7 @@ public class UndoBarControllerTest {
                     closeTabs(
                             TabClosureParams.closeTabs(
                                             List.of(mTabModel.getTabAt(0), mTabModel.getTabAt(1)))
+                                    .tabClosingSource(TabClosingSource.GRID_TAB_SWITCHER)
                                     .build());
                 });
 
@@ -415,8 +410,6 @@ public class UndoBarControllerTest {
     @Test
     @SmallTest
     @Restriction(DeviceFormFactor.PHONE_OR_TABLET)
-    @DisableIf.Build(sdk_is_greater_than = Build.VERSION_CODES.R)
-    // TODO(crbug.com/571360557): Re-enable.
     public void testDeleteTabGroup_WithOtherTab_Undo() throws Exception {
         ChromeTabUtils.newTabFromMenu(
                 InstrumentationRegistry.getInstrumentation(), mActivityTestRule.getActivity());
@@ -443,6 +436,7 @@ public class UndoBarControllerTest {
                                                     mTabModel.getTabAt(0),
                                                     mTabModel.getTabAt(1),
                                                     mTabModel.getTabAt(2)))
+                                    .tabClosingSource(TabClosingSource.GRID_TAB_SWITCHER)
                                     .build());
                 });
 
@@ -463,8 +457,6 @@ public class UndoBarControllerTest {
     @Test
     @SmallTest
     @Restriction(DeviceFormFactor.PHONE_OR_TABLET)
-    @DisableIf.Build(sdk_is_greater_than = Build.VERSION_CODES.R)
-    // TODO(crbug.com/571360557): Re-enable.
     public void testCloseTabGroup_WithOtherTabs_Undo() throws Exception {
         ChromeTabUtils.newTabFromMenu(
                 InstrumentationRegistry.getInstrumentation(), mActivityTestRule.getActivity());
@@ -493,6 +485,7 @@ public class UndoBarControllerTest {
                                                     mTabModel.getTabAt(1),
                                                     mTabModel.getTabAt(2)))
                                     .hideTabGroups(true)
+                                    .tabClosingSource(TabClosingSource.GRID_TAB_SWITCHER)
                                     .build());
                 });
 
@@ -560,8 +553,6 @@ public class UndoBarControllerTest {
 
     @Test
     @SmallTest
-    @DisableIf.Build(sdk_is_greater_than = Build.VERSION_CODES.R)
-    // TODO(crbug.com/571360557): Re-enable.
     public void testDeleteTabGroups_Undo() throws Exception {
         ChromeTabUtils.newTabFromMenu(
                 InstrumentationRegistry.getInstrumentation(), mActivityTestRule.getActivity());
@@ -584,6 +575,7 @@ public class UndoBarControllerTest {
                     closeTabs(
                             TabClosureParams.closeTabs(
                                             List.of(mTabModel.getTabAt(0), mTabModel.getTabAt(1)))
+                                    .tabClosingSource(TabClosingSource.GRID_TAB_SWITCHER)
                                     .build());
                 });
 
@@ -682,8 +674,6 @@ public class UndoBarControllerTest {
     @Test
     @SmallTest
     @Restriction(DeviceFormFactor.PHONE_OR_TABLET)
-    @DisableIf.Build(sdk_is_greater_than = Build.VERSION_CODES.R)
-    // TODO(crbug.com/571360557): Re-enable.
     public void testCloseTabGroups_Undo() throws Exception {
         ChromeTabUtils.newTabFromMenu(
                 InstrumentationRegistry.getInstrumentation(), mActivityTestRule.getActivity());
@@ -703,6 +693,7 @@ public class UndoBarControllerTest {
                             TabClosureParams.closeTabs(
                                             List.of(mTabModel.getTabAt(0), mTabModel.getTabAt(1)))
                                     .hideTabGroups(true)
+                                    .tabClosingSource(TabClosingSource.GRID_TAB_SWITCHER)
                                     .build());
                 });
 
@@ -781,8 +772,6 @@ public class UndoBarControllerTest {
 
     @Test
     @SmallTest
-    @DisableIf.Build(sdk_is_greater_than = Build.VERSION_CODES.R)
-    // TODO(crbug.com/571360557): Re-enable.
     public void testThrottleUndo() throws Exception {
         ChromeTabbedActivity cta = mActivityTestRule.getActivity();
         UndoBarController undoBarController = cta.getUndoBarControllerForTesting();
@@ -806,10 +795,14 @@ public class UndoBarControllerTest {
 
         ThreadUtils.runOnUiThreadBlocking(
                 () -> {
-                    closeTabs(TabClosureParams.closeTab(tab0).build());
+                    closeTabs(
+                            TabClosureParams.closeTab(tab0)
+                                    .tabClosingSource(TabClosingSource.GRID_TAB_SWITCHER)
+                                    .build());
                     closeTabs(
                             TabClosureParams.closeTabs(List.of(tab1, tab2))
                                     .hideTabGroups(true)
+                                    .tabClosingSource(TabClosingSource.GRID_TAB_SWITCHER)
                                     .build());
                 });
 
@@ -828,8 +821,6 @@ public class UndoBarControllerTest {
 
     @Test
     @SmallTest
-    @DisableIf.Build(sdk_is_greater_than = Build.VERSION_CODES.R)
-    // TODO(crbug.com/571360557): Re-enable.
     public void testThrottleUndo_CommitSubset() throws Exception {
         ChromeTabbedActivity cta = mActivityTestRule.getActivity();
         UndoBarController undoBarController = cta.getUndoBarControllerForTesting();
@@ -853,10 +844,14 @@ public class UndoBarControllerTest {
 
         ThreadUtils.runOnUiThreadBlocking(
                 () -> {
-                    closeTabs(TabClosureParams.closeTab(tab0).build());
+                    closeTabs(
+                            TabClosureParams.closeTab(tab0)
+                                    .tabClosingSource(TabClosingSource.GRID_TAB_SWITCHER)
+                                    .build());
                     closeTabs(
                             TabClosureParams.closeTabs(List.of(tab1, tab2))
                                     .hideTabGroups(true)
+                                    .tabClosingSource(TabClosingSource.GRID_TAB_SWITCHER)
                                     .build());
                 });
 
@@ -879,8 +874,6 @@ public class UndoBarControllerTest {
 
     @Test
     @SmallTest
-    @DisableIf.Build(sdk_is_greater_than = Build.VERSION_CODES.R)
-    // TODO(crbug.com/571360557): Re-enable.
     public void testThrottleUndo_CommitAll() throws Exception {
         ChromeTabbedActivity cta = mActivityTestRule.getActivity();
         UndoBarController undoBarController = cta.getUndoBarControllerForTesting();
@@ -904,10 +897,14 @@ public class UndoBarControllerTest {
 
         ThreadUtils.runOnUiThreadBlocking(
                 () -> {
-                    closeTabs(TabClosureParams.closeTab(tab0).build());
+                    closeTabs(
+                            TabClosureParams.closeTab(tab0)
+                                    .tabClosingSource(TabClosingSource.GRID_TAB_SWITCHER)
+                                    .build());
                     closeTabs(
                             TabClosureParams.closeTabs(List.of(tab1, tab2))
                                     .hideTabGroups(true)
+                                    .tabClosingSource(TabClosingSource.GRID_TAB_SWITCHER)
                                     .build());
                 });
 
@@ -923,8 +920,6 @@ public class UndoBarControllerTest {
     @Test
     @SmallTest
     @Restriction(DeviceFormFactor.PHONE_OR_TABLET)
-    @DisableIf.Build(sdk_is_greater_than = Build.VERSION_CODES.R)
-    // TODO(crbug.com/571360557): Re-enable.
     public void testThrottleUndo_UndoNotViaSnackbar() throws Exception {
         ChromeTabbedActivity cta = mActivityTestRule.getActivity();
         UndoBarController undoBarController = cta.getUndoBarControllerForTesting();
@@ -948,10 +943,14 @@ public class UndoBarControllerTest {
 
         ThreadUtils.runOnUiThreadBlocking(
                 () -> {
-                    closeTabs(TabClosureParams.closeTab(tab0).build());
+                    closeTabs(
+                            TabClosureParams.closeTab(tab0)
+                                    .tabClosingSource(TabClosingSource.GRID_TAB_SWITCHER)
+                                    .build());
                     closeTabs(
                             TabClosureParams.closeTabs(List.of(tab1, tab2))
                                     .hideTabGroups(true)
+                                    .tabClosingSource(TabClosingSource.GRID_TAB_SWITCHER)
                                     .build());
                 });
 

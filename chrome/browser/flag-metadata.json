@@ -1877,11 +1877,6 @@
     "expiry_milestone": 180
   },
   {
-    "name": "cast-streaming-exponential-video-bitrate-algorithm",
-    "owners": [ "jophba@chromium.org", "openscreen-eng@chromium.org" ],
-    "expiry_milestone": 160
-  },
-  {
     "name": "cast-streaming-hardware-av1",
     "owners": [ "jophba@chromium.org", "openscreen-eng@chromium.org" ],
     "expiry_milestone": 160
@@ -1998,16 +1993,6 @@
     "name": "cct-tab-resumption",
     "owners": ["tivi@google.com"],
     "expiry_milestone": 160
-  },
-  {
-    "name": "cct-tab-switcher-enabled-for-chrome-experiment",
-    "owners": [ "tivi@google.com", "chrome-connective-tissue@google.com" ],
-    "expiry_milestone": 180
-  },
-  {
-    "name": "cct-tab-switcher-enabled-for-embedder-experiment",
-    "owners": [ "tivi@google.com", "chrome-connective-tissue@google.com" ],
-    "expiry_milestone": 180
   },
   {
     "name": "cellular-bypass-esim-installation-connectivity-check",
@@ -3316,7 +3301,7 @@
   {
     "name": "document-picture-in-picture-animate-resize",
     "owners": [ "steimel@chromium.org", "media-dev@chromium.org" ],
-    "expiry_milestone": 150
+    "expiry_milestone": 171
   },
   {
     "name": "dom-storage-sqlite",
@@ -8642,11 +8627,6 @@
     "expiry_milestone": 160
   },
   {
-    "name": "read-anything-line-focus",
-    "owners": [ "kristislee@google.com", "komo-eng@google.com", "//ui/accessibility/OWNERS" ],
-    "expiry_milestone": 160
-  },
-  {
     "name": "read-anything-omnibox-chip",
     "owners": [ "kristislee@google.com", "komo-eng@google.com", "//ui/accessibility/OWNERS" ],
     "expiry_milestone": 160
@@ -9695,6 +9675,16 @@
     "expiry_milestone": 160
   },
   {
+    "name": "tabbed-cct-if-allowed-by-embedder",
+    "owners": [ "jinsukkim@google.com", "chrome-connective-tissue@google.com" ],
+    "expiry_milestone": 180
+  },
+  {
+    "name": "tabbed-cct-if-enabled-by-embedder",
+    "owners": [ "jinsukkim@google.com", "chrome-connective-tissue@google.com" ],
+    "expiry_milestone": 180
+  },
+  {
     "name": "tabs-from-other-devices-enhancement",
     "owners": [
       "mtatarski@google.com",
@@ -10347,7 +10337,7 @@
   {
     "name": "web-app-short-edges-cutout-mode",
     "owners": [ "pwa-team@google.com", "helmut@januschka.com" ],
-    "expiry_milestone": 158
+    "expiry_milestone": 163
   },
   {
     "name": "web-authentication-ambient-signin",

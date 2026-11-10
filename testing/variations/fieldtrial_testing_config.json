@@ -2110,7 +2110,7 @@
             ]
         }
     ],
-    "AutofillEnableExpandIbanRegexPattern": [
+    "AutofillEnableExpandIbanRegexPatternV2": [
         {
             "platforms": [
                 "android",
@@ -4139,31 +4139,6 @@
             ]
         }
     ],
-    "CastStreamingExponentialVideoBitrateAlgorithm": [
-        {
-            "platforms": [
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "params": {
-                        "decrease_factor": "0.9",
-                        "drop_threshold": "1",
-                        "dynamic_window_multiplier": "0.0",
-                        "increase_factor": "1.05",
-                        "window_size": "30"
-                    },
-                    "enable_features": [
-                        "CastStreamingExponentialVideoBitrateAlgorithm"
-                    ]
-                }
-            ]
-        }
-    ],
     "CastStreamingHardwareHevc": [
         {
             "platforms": [
@@ -4277,6 +4252,7 @@
     "ChildProcessSecurityPolicyRust": [
         {
             "platforms": [
+                "android",
                 "chromeos",
                 "linux",
                 "mac",
@@ -6126,6 +6102,21 @@
                         "ContextualTasksEphemeralPinButtonRefactor",
                         "ContextualTasksHideMenuOnAiPage",
                         "EphemeralPinningVisibleWhenPermanentlyPinned"
+                    ]
+                }
+            ]
+        }
+    ],
+    "CoreAnimationBackdropFilter": [
+        {
+            "platforms": [
+                "mac"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "CoreAnimationBackdropFilter"
                     ]
                 }
             ]
@@ -12818,6 +12809,32 @@
             ]
         }
     ],
+    "NTPThreadsRail": [
+        {
+            "platforms": [
+                "android",
+                "android_desktop",
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "form_factors": [
+                "desktop"
+            ],
+            "experiments": [
+                {
+                    "name": "EnableHybrid_20261106",
+                    "params": {
+                        "NtpThreadsRailHybridParam": "true"
+                    },
+                    "enable_features": [
+                        "NtpThreadsRail"
+                    ]
+                }
+            ]
+        }
+    ],
     "NavigationResponseHeaderOptimization": [
         {
             "platforms": [
@@ -16751,6 +16768,7 @@
         {
             "platforms": [
                 "chromeos",
+                "ios",
                 "linux",
                 "mac",
                 "windows"
@@ -17034,6 +17052,27 @@
                     "name": "RustyIcoExperiment",
                     "enable_features": [
                         "RustyIcoFeature"
+                    ]
+                }
+            ]
+        }
+    ],
+    "RustyJpegFeature": [
+        {
+            "platforms": [
+                "android",
+                "android_webview",
+                "chromeos",
+                "ios",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "RustyJpegExperiment",
+                    "enable_features": [
+                        "RustyJpegFeature"
                     ]
                 }
             ]
@@ -20100,21 +20139,6 @@
                     "name": "Enabled",
                     "enable_features": [
                         "V8Flag_turbolev"
-                    ]
-                }
-            ]
-        }
-    ],
-    "VTVideoEncodeAcceleratorCalculatePSNR": [
-        {
-            "platforms": [
-                "mac"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "VTVideoEncodeAcceleratorCalculatePSNR"
                     ]
                 }
             ]

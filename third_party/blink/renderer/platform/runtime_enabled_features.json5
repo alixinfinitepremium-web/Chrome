@@ -3934,7 +3934,7 @@
       // Support for https://www.w3.org/TR/IFT/. Tracked at
       // https://chromestatus.com/feature/5135917565214720.
       name: "IncrementalFontTransfer",
-      status: "test",
+      status: "experimental",
     },
     {
       name: "InertElementNonEditable",
@@ -4556,6 +4556,14 @@
     {
       name: "ModifyParagraphCrossEditingoundary",
       status: "stable",
+    },
+    // Enables <link rel="stylesheet" import="..."> where the "import"
+    // attribute's value is resolved as a module specifier and fetched as
+    // a CSS module.
+    // https://crbug.com/448174611
+    {
+      name: "ModuleLinkStyleSheet",
+      status: "experimental",
     },
     // Stops caching failed module fetches (network error, non-ok status, or
     // MIME type mismatch), so a later import re-fetches instead of reusing the

@@ -6251,6 +6251,120 @@ TEST_P(WaylandWindowTest, UiScale_HandleServerTriggeredBoundsChange) {
   EXPECT_EQ(window_->root_surface()->state_.buffer_scale_float, 1.0f);
 }
 
+// Verifies that client-side decoration insets, which are in UI DIP, are scaled
+// by ui_scale when handling server-triggered configures and when computing the
+// window geometry. Otherwise, part of the transparent decoration area would be
+// included in the window geometry, causing visible gaps around tiled windows.
+TEST_P(WaylandWindowTest, UiScale_DecorationInsets) {
+  ASSERT_TRUE(connection_->IsUiScaleEnabled());
+
+  // Initialize surface preferred scale.
+  PostToServerAndWait([id = surface_id_](wl::TestWaylandServerThread* server) {
+    wl::MockSurface* mock_surface = server->GetObject<wl::MockSurface>(id);
+    ASSERT_TRUE(mock_surface);
+    ASSERT_TRUE(mock_surface->fractional_scale());
+    mock_surface->fractional_scale()->SendPreferredScale(1.0f);
+  });
+  WaylandTestBase::SyncDisplay();
+  EXPECT_EQ(1.0f, window_->GetPreferredScaleFactor().value_or(0));
+
+  // Set font scale to 1.25.
+  connection_->window_manager()->SetFontScale(1.25f);
+  VerifyAndClearExpectations();
+
+  constexpr gfx::Insets kInsets(10);
+  ON_CALL(delegate_, CalculateInsetsInDIP(PlatformWindowState::kNormal))
+      .WillByDefault(Return(kInsets));
+
+  // Emulate a server-triggered bounds change. The configured size is the window
+  // geometry size in Wayland DIP, so the resulting UI DIP bounds must be that
+  // size downscaled by ui_scale, plus the decoration insets.
+  constexpr uint32_t kConfigureSerial = 56u;
+  SendConfigureEvent(surface_id_, gfx::Size(1000, 1000), wl::ScopedWlArray({}),
+                     kConfigureSerial);
+  VerifyAndClearExpectations();
+  EXPECT_EQ(1.25f, window_->applied_state().ui_scale);
+  EXPECT_EQ(1.0f, window_->applied_state().window_scale);
+  EXPECT_EQ(gfx::Size(820, 820), window_->applied_state().bounds_dip.size());
+  EXPECT_EQ(gfx::Size(1025, 1025), window_->applied_state().size_px);
+
+  // The window geometry must exclude the decoration insets scaled by ui_scale,
+  // ie: 12.5 Wayland DIP on each side rather than 10, and its size must match
+  // the configured one.
+  PostToServerAndWait([id = surface_id_](wl::TestWaylandServerThread* server) {
+    wl::MockSurface* mock_surface = server->GetObject<wl::MockSurface>(id);
+    EXPECT_CALL(*mock_surface->xdg_surface(),
+                SetWindowGeometry(gfx::Rect(13, 13, 1000, 1000)));
+    EXPECT_CALL(*mock_surface->xdg_surface(),
+                AckConfigure(Eq(kConfigureSerial)));
+  });
+  CreateBufferAndPresentAsNewFrame(window_.get(), delegate_,
+                                   /*buffer_size=*/gfx::Size(1025, 1025),
+                                   /*buffer_scale=*/1.25f);
+  VerifyAndClearExpectations();
+}
+
+// Verifies that popup window geometry offsets also scale UI-DIP decoration
+// insets by ui_scale.
+TEST_P(WaylandWindowTest, UiScale_PopupDecorationInsets) {
+  ASSERT_TRUE(connection_->IsUiScaleEnabled());
+
+  connection_->window_manager()->SetFontScale(1.25f);
+  WaylandTestBase::SyncDisplay();
+  VerifyAndClearExpectations();
+
+  testing::NiceMock<MockWaylandPlatformWindowDelegate> menu_delegate(
+      connection_.get());
+  ON_CALL(menu_delegate, CalculateInsetsInDIP(PlatformWindowState::kNormal))
+      .WillByDefault(Return(gfx::Insets(10)));
+  ui::OwnedWindowAnchor anchor{
+      .anchor_rect = gfx::Rect(100, 100, 20, 20),
+      .anchor_position = OwnedWindowAnchorPosition::kBottomRight,
+      .anchor_gravity = OwnedWindowAnchorGravity::kBottomLeft};
+  EXPECT_CALL(menu_delegate, GetOwnedWindowAnchorAndRectInDIP())
+      .WillOnce(Return(anchor));
+
+  auto menu_window = CreateWaylandWindowWithParams(
+      PlatformWindowType::kMenu, gfx::Rect(100, 100, 40, 80), &menu_delegate,
+      window_->GetWidget());
+  ASSERT_TRUE(menu_window);
+  const uint32_t menu_surface_id =
+      menu_window->root_surface()->get_surface_id();
+
+  constexpr uint32_t kConfigureSerial = 57u;
+  PostToServerAndWait(
+      [id = menu_surface_id](wl::TestWaylandServerThread* server) {
+        auto* surface = server->GetObject<wl::MockSurface>(id);
+        ASSERT_TRUE(surface);
+        auto* xdg_surface = surface->xdg_surface();
+        ASSERT_TRUE(xdg_surface);
+        ASSERT_TRUE(xdg_surface->xdg_popup()->resource());
+        xdg_popup_send_configure(xdg_surface->xdg_popup()->resource(), 100, 100,
+                                 100, 200);
+        xdg_surface_send_configure(xdg_surface->resource(), kConfigureSerial);
+      });
+
+  // 100x200 Wayland DIP geometry / 1.25 = 80x160 UI DIP + 20 UI DIP insets =
+  // 100x180 UI DIP bounds -> 125x225 px.
+  EXPECT_EQ(gfx::Size(100, 180),
+            menu_window->applied_state().bounds_dip.size());
+  EXPECT_EQ(gfx::Size(125, 225), menu_window->applied_state().size_px);
+
+  PostToServerAndWait([menu_surface_id](wl::TestWaylandServerThread* server) {
+    wl::MockSurface* mock_surface =
+        server->GetObject<wl::MockSurface>(menu_surface_id);
+    ASSERT_TRUE(mock_surface->xdg_surface());
+    EXPECT_CALL(*mock_surface->xdg_surface(),
+                SetWindowGeometry(gfx::Rect(13, 13, 100, 200)));
+    EXPECT_CALL(*mock_surface->xdg_surface(),
+                AckConfigure(Eq(kConfigureSerial)));
+  });
+  CreateBufferAndPresentAsNewFrame(menu_window.get(), menu_delegate,
+                                   /*buffer_size=*/gfx::Size(125, 225),
+                                   /*buffer_scale=*/1.25f);
+  VerifyAndClearExpectations(menu_delegate, menu_surface_id);
+}
+
 TEST_P(WaylandWindowTest, UiScale_InitScaleAndBounds) {
   ASSERT_TRUE(connection_->IsUiScaleEnabled());
 
@@ -6653,13 +6767,16 @@ TEST_P(WaylandWindowTest, UiScale_RepeatedServerConfiguresDoNotGrowWindow) {
                      kSerial1);
   const gfx::Size initial_bounds_dip =
       window_->applied_state().bounds_dip.size();
+  // Decoration insets are in UI DIP, so they are added after converting the
+  // configured size: ceil(1000 / 0.90625) + 20 x ceil(800 / 0.90625) + 24.
+  EXPECT_EQ(gfx::Size(1124, 907), initial_bounds_dip);
   const gfx::Size initial_size_px = window_->applied_state().size_px;
 
   PostToServerAndWait([id = surface_id_](wl::TestWaylandServerThread* server) {
     wl::MockSurface* mock_surface = server->GetObject<wl::MockSurface>(id);
     ASSERT_TRUE(mock_surface);
     EXPECT_CALL(*mock_surface->xdg_surface(),
-                SetWindowGeometry(gfx::Rect(10, 10, 1000, 800)));
+                SetWindowGeometry(gfx::Rect(9, 9, 1000, 800)));
     EXPECT_CALL(*mock_surface->xdg_surface(), AckConfigure(Eq(kSerial1)));
   });
   CreateBufferAndPresentAsNewFrame(window_.get(), delegate_,
@@ -7041,7 +7158,7 @@ TEST_P(WaylandWindowTest, UiScale_InitializeBeforeFrameInsetsReady) {
     ASSERT_TRUE(mock_surface);
     ASSERT_TRUE(mock_surface->xdg_surface());
     EXPECT_CALL(*mock_surface->xdg_surface(),
-                SetWindowGeometry(gfx::Rect(10, 10, 705, 519)));
+                SetWindowGeometry(gfx::Rect(9, 9, 706, 522)));
     EXPECT_CALL(*mock_surface->xdg_surface(), AckConfigure(Eq(kInitSerial)));
   });
 

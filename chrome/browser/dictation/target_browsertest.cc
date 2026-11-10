@@ -126,6 +126,7 @@ IN_PROC_BROWSER_TEST_F(DictationTargetBrowserTest,
   DEFINE_LOCAL_ELEMENT_IDENTIFIER_VALUE(kWebContentsElementId);
   const GURL url =
       embedded_test_server()->GetURL("/textinput/simple_textinput.html");
+  AddOptimizationGuideEligibleHint(url);
   const DeepQuery kInput{"#text_id"};
 
   // clang-format off
@@ -358,11 +359,15 @@ IN_PROC_BROWSER_TEST_P(DictationTargetShowPartialsBrowserTest,
   RunTestSequence(
     InstrumentTab(kWebContentsElementId),
     NavigateWebContents(kWebContentsElementId, url),
+    // Place the caret before focusing. Focusing sends the text input state
+    // to the browser right away, but a later selection change is only sent
+    // with the next main frame, which may not happen before `Target` reads
+    // the text preceding the caret to format the insertion.
     ExecuteJsAt(kWebContentsElementId, kContentEditable,
                 "(el) => {"
                 "  el.textContent = 'Hello world';"
-                "  el.focus();"
                 "  window.getSelection().collapse(el.firstChild, 5);"
+                "  el.focus();"
                 "}"),
     StartSessionWithTarget(kWebContentsElementId, "#contenteditable"),
     ExtensionAPISetStreamState(ExtensionStreamState::kTranscribing),

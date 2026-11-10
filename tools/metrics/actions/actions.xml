@@ -760,6 +760,9 @@ should be able to be added at any place in this file.
       summary="For NewTabPageHomeButton feature. (obsolete)"/>
   <variant name="_NewTabPageThemeCustomization"
       summary="In product help for NewTabPage theme customization feature."/>
+  <variant name="_NewTabPageThemeCustomizationMagicStack"
+      summary="For NewTabPage theme customization promo card in the Magic
+               Stack."/>
   <variant name="_NewTabTip" summary="For NewTabTip feature."/>
   <variant name="_NotificationPermissionPromo"
       summary="For the OS notification permission prompt on Android."/>
@@ -10451,6 +10454,28 @@ should be able to be added at any place in this file.
   <description>
     Recorded when the Lens region chip is shown in the Contextual Tasks
     composebox plate.
+  </description>
+</action>
+
+<action name="ContextualTasks.OnboardingTooltip.Accepted">
+  <owner>juanmojica@google.com</owner>
+  <owner>chrome-contextual-tasks-eng@google.com</owner>
+  <description>
+    Recorded when the user clicks the accept button of the contextual tasks
+    onboarding tooltip, which explains that the active tab is auto-suggested as
+    context. This is the only way to explicitly dismiss the tooltip.
+  </description>
+</action>
+
+<action name="ContextualTasks.OnboardingTooltip.Shown"
+    not_user_triggered="true">
+  <owner>juanmojica@google.com</owner>
+  <owner>chrome-contextual-tasks-eng@google.com</owner>
+  <description>
+    Recorded when the contextual tasks onboarding tooltip, which explains that
+    the active tab is auto-suggested as context, has been shown for at least the
+    impression delay, or when the user accepts it before the delay elapses.
+    Recorded at most once per time the tooltip is shown.
   </description>
 </action>
 
@@ -42702,24 +42727,6 @@ should be able to be added at any place in this file.
   <description>
     Recorded when the user uncollapses the vertical tab strip using the view
     menu on mac.
-  </description>
-</action>
-
-<action name="VerticalTabStripSegmentedControl.TabSearch.Pinned">
-  <owner>agale@google.com</owner>
-  <owner>top-chrome-desktop-ui@google.com</owner>
-  <description>
-    Recorded when the user pins the Tab Search button to the tabstrip from the
-    vertical tab strip segmented control context menu.
-  </description>
-</action>
-
-<action name="VerticalTabStripSegmentedControl.TabSearch.Unpinned">
-  <owner>agale@google.com</owner>
-  <owner>top-chrome-desktop-ui@google.com</owner>
-  <description>
-    Recorded when the user unpins the Tab Search button from the tabstrip from
-    the vertical tab strip segmented control context menu.
   </description>
 </action>
 

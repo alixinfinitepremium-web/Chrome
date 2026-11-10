@@ -23,6 +23,7 @@
 #include "chrome/browser/ui/layout_constants.h"
 #include "chrome/browser/ui/tabs/organizer/organizer_panel_controller.h"
 #include "chrome/browser/ui/tabs/organizer/organizer_panel_utils.h"
+#include "chrome/browser/ui/tabs/tab_style.h"
 #include "chrome/browser/ui/tabs/vertical_tab_strip_state.h"
 #include "chrome/browser/ui/ui_features.h"
 #include "chrome/browser/ui/views/animations/common_animation_values.h"
@@ -1560,7 +1561,7 @@ void BrowserViewTabbedLayoutImpl::OnLayoutParamsChanged(
   // If the size of the visual client area changes, the size of our working
   // client area should change by the same amount.
   const gfx::Insets insets =
-      new_params.visual_client_area.InsetsFrom(old_params.visual_client_area);
+      old_params.visual_client_area.InsetsFrom(new_params.visual_client_area);
   layout_data_->revised_params.visual_client_area.Inset(insets);
 }
 

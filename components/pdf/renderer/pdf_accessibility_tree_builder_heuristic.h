@@ -37,6 +37,32 @@ namespace pdf {
 class PdfAccessibilityTreeBuilder;
 struct ListMarkerKind;
 
+// The type of an ordered list marker. Markers of different types (e.g. "1." and
+// "(1)") don't join the same list.
+struct OrderedMarkerType {
+  enum class CounterStyle {
+    // "1", "2", "3", ...
+    kDecimal,
+  };
+
+  friend bool operator==(const OrderedMarkerType&,
+                         const OrderedMarkerType&) = default;
+
+  CounterStyle counter_style = CounterStyle::kDecimal;
+  // Whether the marker is wrapped in parentheses, e.g. "(1)".
+  //
+  // If not, the marker ends with a delimiter instead, e.g. "1." or "1)". All
+  // delimiters count as the same type.
+  bool parenthesized = false;
+};
+
+// An ordered list marker.
+struct OrderedMarker {
+  // The marker's position in its list, not its text, e.g. 2 for "2.".
+  int value = 0;
+  OrderedMarkerType type;
+};
+
 // One nesting level of the list being built: the top-level list, or a sublist
 // inside an item of the level above. A level stays active, accepting new items,
 // until a marker outdents past it or a non-list block ends the list.
@@ -59,9 +85,9 @@ struct ListLevel {
   // Character counts of this level's ended items, excluding markers and
   // nested lists.
   std::vector<size_t> item_char_counts;
-  // The value of the most recent item if this is an ordered list; unset for an
-  // unordered list.
-  std::optional<int> last_ordered_value;
+  // The most recent item's marker if this is an ordered list; unset for an
+  // unordered list. A marker of another type can't join this level.
+  std::optional<OrderedMarker> last_ordered_marker;
   // Deepest level count reached under this list, including itself. Only
   // tracked on the top-level list.
   size_t max_nesting_depth = 1;

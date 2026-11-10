@@ -156,18 +156,6 @@ MEDIA_EXPORT BASE_DECLARE_FEATURE(
 // directly.
 // TODO(https://crbug.com/1453388): Guard Cast Sender flags with !IS_ANDROID.
 MEDIA_EXPORT BASE_DECLARE_FEATURE(kCastStreamingAv1);
-MEDIA_EXPORT BASE_DECLARE_FEATURE(
-    kCastStreamingExponentialVideoBitrateAlgorithm);
-MEDIA_EXPORT extern const base::FeatureParam<int>
-    kCastStreamingExponentialVideoBitrateAlgorithmWindowSize;
-MEDIA_EXPORT extern const base::FeatureParam<int>
-    kCastStreamingExponentialVideoBitrateAlgorithmDropThreshold;
-MEDIA_EXPORT extern const base::FeatureParam<double>
-    kCastStreamingExponentialVideoBitrateAlgorithmIncreaseFactor;
-MEDIA_EXPORT extern const base::FeatureParam<double>
-    kCastStreamingExponentialVideoBitrateAlgorithmDecreaseFactor;
-MEDIA_EXPORT extern const base::FeatureParam<double>
-    kCastStreamingExponentialVideoBitrateAlgorithmDynamicWindowMultiplier;
 MEDIA_EXPORT BASE_DECLARE_FEATURE(kCastStreamingHardwareHevc);
 MEDIA_EXPORT BASE_DECLARE_FEATURE(kCastStreamingMaxVideoBitrate);
 MEDIA_EXPORT extern const base::FeatureParam<int>
@@ -327,6 +315,7 @@ MEDIA_EXPORT BASE_DECLARE_FEATURE(kFileDialogsBlockPictureInPicture);
 MEDIA_EXPORT BASE_DECLARE_FEATURE(kFileDialogsTuckPictureInPicture);
 MEDIA_EXPORT BASE_DECLARE_FEATURE(kMediaRemotingWithoutFullscreen);
 MEDIA_EXPORT BASE_DECLARE_FEATURE(kPictureInPictureOcclusionTracking);
+MEDIA_EXPORT BASE_DECLARE_FEATURE(kPictureInPictureWebVttCaptionSurface);
 MEDIA_EXPORT BASE_DECLARE_FEATURE(kVideoPipDisplaySmoothnessOptimization);
 MEDIA_EXPORT BASE_DECLARE_FEATURE(
     kVideoPipForceTrustedForMediaPlaybackForTesting);
@@ -434,7 +423,6 @@ MEDIA_EXPORT BASE_DECLARE_FEATURE(kUseMediaFormatCodedSize);
 #endif  // BUILDFLAG(IS_ANDROID)
 
 #if BUILDFLAG(IS_APPLE)
-MEDIA_EXPORT BASE_DECLARE_FEATURE(kVTVideoEncodeAcceleratorCalculatePSNR);
 MEDIA_EXPORT BASE_DECLARE_FEATURE(
     kVTVideoEncodeAcceleratorOpaqueSharedImageEncode);
 MEDIA_EXPORT BASE_DECLARE_FEATURE(kVideoToolboxFullRangeOutput);

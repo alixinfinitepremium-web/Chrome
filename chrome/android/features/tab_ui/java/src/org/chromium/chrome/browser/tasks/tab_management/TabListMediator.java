@@ -769,7 +769,7 @@ public class TabListMediator implements TabListNotificationHandler {
 
                     @Override
                     public void onItemUpdated(TabListItem item, @PayloadType int payload) {
-                        // TODO(crbug.com/562590772): Handle updated items.
+                        onProviderItemUpdated(item, payload);
                     }
 
                     @Override
@@ -2899,6 +2899,46 @@ public class TabListMediator implements TabListNotificationHandler {
         endProviderUpdate();
     }
 
+    /**
+     * Applies an in-place property update for an item updated by the {@link TabListDataProvider}.
+     * The card is not inserted, removed, or moved, so layout updates are not suppressed.
+     *
+     * @param item The item that was updated.
+     * @param payload The {@link PayloadType} describing which aspect of the item changed.
+     */
+    private void onProviderItemUpdated(TabListItem item, @PayloadType int payload) {
+        if (!mTrackingTabs || mCurrentTabModelSupplier.get() == null) return;
+
+        if (item instanceof TabGroupItem groupItem) {
+            Token tabGroupId = groupItem.getTabGroupId();
+            switch (payload) {
+                case PayloadType.TITLE -> updateTabGroupTitle(tabGroupId);
+                case PayloadType.COLOR ->
+                        mTabListLayoutDelegate.didChangeTabGroupColor(
+                                tabGroupId,
+                                getCurrentTabModelChecked()
+                                        .getTabGroupColorWithFallback(tabGroupId));
+                case PayloadType.COLLAPSED ->
+                        updateTabGroupCollapsed(tabGroupId, groupItem.isCollapsed());
+                case PayloadType.TAB_GROUP_ORDER -> updateTabGroupThumbnail(tabGroupId);
+                case PayloadType.GROUP_MEMBERSHIP -> updateTabGroupMembership(groupItem);
+                case PayloadType.SELECTION -> updateSelection(groupItem);
+                default -> {}
+            }
+            return;
+        }
+        if (item instanceof TabItem tabItem) {
+            switch (payload) {
+                case PayloadType.GROUP_MEMBERSHIP -> updateTabItemGroupMembership(tabItem);
+                case PayloadType.SELECTION -> updateSelection(tabItem);
+                case PayloadType.MULTI_SELECTION -> updateMultiSelection(tabItem);
+                default -> {}
+            }
+        } else {
+            assert false : "Unsupported TabListItem: " + item;
+        }
+    }
+
     /** Suppresses layout updates while applying a batch of provider changes to the model list. */
     private void beginProviderUpdate() {
         assert !mSuppressUpdateLayout;
@@ -3568,6 +3608,89 @@ public class TabListMediator implements TabListNotificationHandler {
         headerModel.set(TabProperties.TITLE, title);
         updateDescriptionString(headerModel);
         updateActionButtonDescriptionString(tab, headerModel);
+    }
+
+    /**
+     * Sets the collapsed flag on the group header card. Child rows are added or removed by separate
+     * provider events.
+     */
+    private void updateTabGroupCollapsed(Token tabGroupId, boolean isCollapsed) {
+        int headerIndex = mModelList.indexFromTabGroupId(tabGroupId);
+        if (headerIndex == TabModel.INVALID_TAB_INDEX) return;
+        PropertyModel model = mModelList.get(headerIndex).model;
+        if (!model.containsKey(TabProperties.IS_COLLAPSED)) return;
+        model.set(TabProperties.IS_COLLAPSED, isCollapsed);
+    }
+
+    /**
+     * Refreshes the group card's thumbnail after its tabs are reordered. Skipped when the group
+     * isn't shown as a single card (e.g. NESTED), where the child card move arrives separately.
+     */
+    private void updateTabGroupThumbnail(Token tabGroupId) {
+        @Nullable Pair<Integer, Tab> indexAndTab =
+                mTabListLayoutDelegate.getIndexAndTabForTabGroupId(tabGroupId);
+        if (indexAndTab == null) return;
+        Tab tab = indexAndTab.second;
+        if (!mTabListLayoutDelegate.isChildTabRepresentedByGroupCard(tab)) return;
+        updateThumbnailFetcher(mModelList.get(indexAndTab.first).model, tab.getId());
+    }
+
+    /**
+     * Refreshes the group card after tabs join or leave the group, and stops observing members that
+     * left, e.g. a closed tab pending undo.
+     */
+    private void updateTabGroupMembership(TabGroupItem groupItem) {
+        int index = mModelList.indexFromItem(groupItem);
+        if (index == TabModel.INVALID_TAB_INDEX) return;
+        TabModel tabModel = getCurrentTabModelChecked();
+        Token tabGroupId = groupItem.getTabGroupId();
+        List<Tab> groupTabs = tabModel.getTabsInGroup(tabGroupId);
+        // The observer manager returns a copy since removeObserversForTab() mutates the observed
+        // set.
+        for (Tab tab : mObserverManager.getObservedTabsInGroup(tabGroupId)) {
+            if (!groupTabs.contains(tab)) removeObserversForTab(tab);
+        }
+        addOrUpdateCardForItem(
+                tabModel, groupItem, index, /* updateInPlace= */ true, /* quickMode= */ false);
+    }
+
+    /**
+     * Updates a tab card's group properties (group id, color and header id) after the tab moves
+     * into or out of a group. Only sent in NESTED when the tab already has its own card, e.g. a row
+     * dragged out of or into an expanded group. In GTS or a collapsed group the card is added or
+     * removed instead. The group card's own refresh comes from {@link #updateTabGroupMembership}.
+     */
+    private void updateTabItemGroupMembership(TabItem tabItem) {
+        int index = mModelList.indexFromItem(tabItem);
+        if (index == TabModel.INVALID_TAB_INDEX) return;
+        Tab tab = getCurrentTabModelChecked().getTabById(tabItem.getTabId());
+        if (tab == null) return;
+        PropertyModel model = mModelList.get(index).model;
+        mTabListLayoutDelegate.setupGroupPropertiesForChildTab(tab, model);
+        bindTabActionStateProperties(mTabActionState, tab, model);
+    }
+
+    /**
+     * Moves the selection highlight to or from the item's card. Providers send the deselect before
+     * the select.
+     */
+    private void updateSelection(TabListItem item) {
+        int index = mModelList.indexFromItem(item);
+        if (index == TabModel.INVALID_TAB_INDEX) return;
+        if (item.isSelected()) {
+            selectTab(/* oldIndex= */ TabModel.INVALID_TAB_INDEX, /* newIndex= */ index);
+        } else {
+            setLastSelectedTabListModelIndex(index);
+            selectTab(/* oldIndex= */ index, /* newIndex= */ TabModel.INVALID_TAB_INDEX);
+        }
+    }
+
+    /** Updates a tab card's multi-selection highlight. */
+    private void updateMultiSelection(TabItem tabItem) {
+        if (!mTabListConfig.supportsModifierMultiSelect) return;
+        int index = mModelList.indexFromItem(tabItem);
+        if (index == TabModel.INVALID_TAB_INDEX) return;
+        mModelList.get(index).model.set(TabProperties.IS_MULTI_SELECTED, tabItem.isMultiSelected());
     }
 
     /**

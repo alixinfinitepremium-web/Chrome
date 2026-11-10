@@ -37,8 +37,6 @@
 #include "components/contextual_tasks/public/features.h"
 #include "components/contextual_tasks/public/mock_contextual_tasks_service.h"
 #include "components/contextual_tasks/public/query_contextualizer.h"
-#include "components/dom_distiller/core/url_constants.h"
-#include "components/dom_distiller/core/url_utils.h"
 #include "components/omnibox/browser/actions/omnibox_action.h"
 #include "components/omnibox/browser/actions/tab_switch_action.h"
 #include "components/omnibox/browser/autocomplete_controller.h"
@@ -61,6 +59,8 @@
 #include "components/sessions/core/session_id.h"
 #include "components/sync_preferences/testing_pref_service_syncable.h"
 #include "components/url_formatter/url_fixer.h"
+#include "components/web_distiller/core/url_constants.h"
+#include "components/web_distiller/core/url_utils.h"
 #include "content/public/test/browser_task_environment.h"
 #include "extensions/buildflags/buildflags.h"
 #include "testing/gmock/include/gmock/gmock.h"
@@ -1193,6 +1193,215 @@ TEST_F(OmniboxEditModelPopupTest, PopupStepSelection) {
   model()->OnUpOrDownPressed(true, true);
   EXPECT_EQ(Selection(5, Selection::LineState::kNormal),
             model()->GetPopupSelection());
+}
+
+// Tests stepping (via Tab) into keyword mode when user text contains query
+// text (e.g. "bing.com q"). Verifies that autocomplete is not rerun, popup
+// matches are preserved, and stepping out (Shift+Tab / Tab) restores text.
+TEST_F(OmniboxEditModelPopupTest, PopupStepSelectionWithKeywordAndQuery) {
+  TemplateURLData data;
+  data.SetShortName(u"bing");
+  data.SetKeyword(u"bing.com");
+  data.SetURL("https://bing.com?q={searchTerms}");
+  data.is_active = TemplateURLData::ActiveStatus::kTrue;
+  TemplateURL* turl = controller()->client()->GetTemplateURLService()->Add(
+      std::make_unique<TemplateURL>(data));
+  ASSERT_TRUE(turl);
+
+  ACMatches matches;
+  AutocompleteMatch match0(nullptr, 1000, false,
+                           omnibox::AutocompleteMatchType::kSearchWhatYouTyped);
+  match0.allowed_to_be_default_match = true;
+  match0.fill_into_edit = u"bing.com q";
+  match0.associated_keyword = u"bing.com";
+  matches.push_back(match0);
+
+  AutocompleteMatch match1(nullptr, 900, false,
+                           omnibox::AutocompleteMatchType::kSearchSuggest);
+  match1.fill_into_edit = u"bing.com query 2";
+  matches.push_back(match1);
+
+  auto* result = &AutocompleteControllerPublishedResult();
+  result->AppendMatches(matches);
+  AutocompleteInput input(u"bing.com q", metrics::OmniboxEventProto::NTP,
+                          TestSchemeClassifier());
+  AutocompleteControllerInput() = input;
+  result->SortAndCull(input, /*template_url_service=*/nullptr,
+                      triggered_feature_service(), /*is_lens_active=*/false,
+                      /*can_show_contextual_suggestions=*/false,
+                      /*mia_enabled=*/false, /*is_incognito=*/false);
+  model()->OnPopupResultChanged();
+
+  view_->SetUserText(u"bing.com q");
+  model()->OnPopupDataChanged(std::u16string(), /*is_temporary_text=*/false,
+                              std::u16string(), u"bing.com", std::u16string(),
+                              KeywordState::kHint, std::u16string(), match0);
+  EXPECT_EQ(Selection(0, Selection::LineState::kNormal),
+            model()->GetPopupSelection());
+  EXPECT_TRUE(model()->is_keyword_hint());
+  EXPECT_EQ(u"bing.com q", view_->GetText());
+
+  // Tab focuses the keyword chip and enters keyword mode without rerunning
+  // autocomplete or replacing the popup matches.
+  model()->OnTabPressed(false);
+  EXPECT_EQ(Selection(0, Selection::LineState::kKeywordMode),
+            model()->GetPopupSelection());
+  EXPECT_TRUE(model()->is_keyword_selected());
+  EXPECT_EQ(u"q", view_->GetText());
+  EXPECT_EQ(u"q", model()->user_text());
+  EXPECT_EQ(2u, result->size());
+
+  // Shift+Tab exits keyword mode and restores the original input text.
+  model()->OnTabPressed(true);
+  EXPECT_EQ(Selection(0, Selection::LineState::kNormal),
+            model()->GetPopupSelection());
+  EXPECT_TRUE(model()->is_keyword_hint());
+  EXPECT_FALSE(model()->is_keyword_selected());
+  EXPECT_EQ(u"bing.com q", view_->GetText());
+  EXPECT_EQ(u"bing.com q", model()->user_text());
+
+  // Tab again enters keyword mode, and another Tab advances to the next match
+  // and exits keyword mode.
+  model()->OnTabPressed(false);
+  EXPECT_EQ(Selection(0, Selection::LineState::kKeywordMode),
+            model()->GetPopupSelection());
+  EXPECT_TRUE(model()->is_keyword_selected());
+
+  model()->OnTabPressed(false);
+  EXPECT_EQ(Selection(1, Selection::LineState::kNormal),
+            model()->GetPopupSelection());
+  EXPECT_FALSE(model()->is_keyword_selected());
+  EXPECT_EQ(u"bing.com query 2", view_->GetText());
+}
+
+// Tests stepping (via Tab) into keyword mode without query text (e.g. "bing").
+// Verifies that stepping in enters keyword mode with empty text, and stepping
+// out (Shift+Tab / Tab) restores text and user_text.
+TEST_F(OmniboxEditModelPopupTest, PopupStepSelectionWithKeywordWithoutQuery) {
+  TemplateURLData data;
+  data.SetShortName(u"bing");
+  data.SetKeyword(u"bing.com");
+  data.SetURL("https://bing.com?q={searchTerms}");
+  data.is_active = TemplateURLData::ActiveStatus::kTrue;
+  TemplateURL* turl = controller()->client()->GetTemplateURLService()->Add(
+      std::make_unique<TemplateURL>(data));
+  ASSERT_TRUE(turl);
+
+  ACMatches matches;
+  AutocompleteMatch match0(nullptr, 1000, false,
+                           omnibox::AutocompleteMatchType::kSearchWhatYouTyped);
+  match0.allowed_to_be_default_match = true;
+  match0.fill_into_edit = u"bing.com";
+  match0.associated_keyword = u"bing.com";
+  matches.push_back(match0);
+
+  AutocompleteMatch match1(nullptr, 900, false,
+                           omnibox::AutocompleteMatchType::kSearchSuggest);
+  match1.fill_into_edit = u"bing.com query 2";
+  matches.push_back(match1);
+
+  auto* result = &AutocompleteControllerPublishedResult();
+  result->AppendMatches(matches);
+  AutocompleteInput input(u"bing", metrics::OmniboxEventProto::NTP,
+                          TestSchemeClassifier());
+  AutocompleteControllerInput() = input;
+  result->SortAndCull(input, /*template_url_service=*/nullptr,
+                      triggered_feature_service(), /*is_lens_active=*/false,
+                      /*can_show_contextual_suggestions=*/false,
+                      /*mia_enabled=*/false, /*is_incognito=*/false);
+  model()->OnPopupResultChanged();
+
+  view_->SetUserText(u"bing");
+  model()->OnPopupDataChanged(std::u16string(), /*is_temporary_text=*/false,
+                              std::u16string(), u"bing.com", std::u16string(),
+                              KeywordState::kHint, std::u16string(), match0);
+  EXPECT_EQ(Selection(0, Selection::LineState::kNormal),
+            model()->GetPopupSelection());
+  EXPECT_TRUE(model()->is_keyword_hint());
+  EXPECT_EQ(u"bing", view_->GetText());
+
+  // Tab focuses the keyword chip and enters keyword mode without query text.
+  model()->OnTabPressed(false);
+  EXPECT_EQ(Selection(0, Selection::LineState::kKeywordMode),
+            model()->GetPopupSelection());
+  EXPECT_TRUE(model()->is_keyword_selected());
+  EXPECT_EQ(std::u16string(), view_->GetText());
+  EXPECT_EQ(std::u16string(), model()->user_text());
+  EXPECT_EQ(2u, result->size());
+
+  // Shift+Tab exits keyword mode and restores the original input text.
+  model()->OnTabPressed(true);
+  EXPECT_EQ(Selection(0, Selection::LineState::kNormal),
+            model()->GetPopupSelection());
+  EXPECT_TRUE(model()->is_keyword_hint());
+  EXPECT_FALSE(model()->is_keyword_selected());
+  EXPECT_EQ(u"bing.com", view_->GetText());
+  EXPECT_EQ(u"bing", model()->user_text());
+
+  // Tab again enters keyword mode, and another Tab advances to the next match
+  // and exits keyword mode.
+  model()->OnTabPressed(false);
+  EXPECT_EQ(Selection(0, Selection::LineState::kKeywordMode),
+            model()->GetPopupSelection());
+  EXPECT_TRUE(model()->is_keyword_selected());
+
+  model()->OnTabPressed(false);
+  EXPECT_EQ(Selection(1, Selection::LineState::kNormal),
+            model()->GetPopupSelection());
+  EXPECT_FALSE(model()->is_keyword_selected());
+  EXPECT_EQ(u"bing.com query 2", view_->GetText());
+}
+
+// Opening the keyword chip selection after tabbing into keyword mode with text
+// after the keyword searches the keyword for that text, without inline
+// autocompletion, since the popup still shows the pre-keyword-mode matches.
+TEST_F(OmniboxEditModelPopupTest, OpenKeywordChipSelectionWithQuery) {
+  TemplateURLData data;
+  data.SetShortName(u"bing");
+  data.SetKeyword(u"bing.com");
+  data.SetURL("https://bing.com/?q={searchTerms}");
+  data.is_active = TemplateURLData::ActiveStatus::kTrue;
+  for (TemplateURLService* service :
+       {controller()->client()->GetTemplateURLService(),
+        client()
+            ->autocomplete_classifier()
+            ->autocomplete_controller()
+            ->autocomplete_provider_client()
+            ->GetTemplateURLService()}) {
+    if (!service->GetTemplateURLForKeyword(u"bing.com")) {
+      ASSERT_TRUE(service->Add(std::make_unique<TemplateURL>(data)));
+    }
+  }
+
+  AutocompleteMatch match(
+      controller()->autocomplete_controller()->search_provider(), 1000, false,
+      omnibox::AutocompleteMatchType::kSearchWhatYouTyped);
+  match.allowed_to_be_default_match = true;
+  match.fill_into_edit = u"bing.com q";
+  match.associated_keyword = u"bing.com";
+  match.destination_url = GURL("https://google.com/search?q=bing.com+q");
+  auto* result = &AutocompleteControllerPublishedResult();
+  result->AppendMatches({match});
+  AutocompleteControllerInput() = AutocompleteInput(
+      u"bing.com q", metrics::OmniboxEventProto::NTP, TestSchemeClassifier());
+  model()->OnPopupResultChanged();
+
+  model()->OnSetFocus(false);
+  view_->SetUserText(u"bing.com q");
+  model()->OnPopupDataChanged(std::u16string(), /*is_temporary_text=*/false,
+                              std::u16string(), u"bing.com", std::u16string(),
+                              KeywordState::kHint, std::u16string(), match);
+  model()->OnTabPressed(false);
+  ASSERT_EQ(Selection(0, Selection::LineState::kKeywordMode),
+            model()->GetPopupSelection());
+  ASSERT_TRUE(model()->is_keyword_selected());
+
+  EXPECT_CALL(*client(), OnAutocompleteAccept(
+                             GURL("https://bing.com/?q=q"), _,
+                             ui::mojom::WindowOpenDisposition::kCurrentTab, _,
+                             _, _, _, _, _, _, _))
+      .Times(1);
+  model()->OpenSelection(Selection(0, Selection::LineState::kKeywordMode));
 }
 #endif  // !BUILDFLAG(IS_ANDROID)
 

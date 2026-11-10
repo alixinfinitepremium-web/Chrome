@@ -3060,14 +3060,6 @@ inline constexpr char kCastStreamingMaxVideoBitrateDescription[] =
     "Enables configuring the maximum video bitrate limit for Cast Streaming "
     "to experiment with different network quality ceilings.";
 
-inline constexpr char kCastStreamingExponentialVideoBitrateAlgorithmName[] =
-    "Cast Streaming Exponential Video Bitrate Algorithm";
-inline constexpr char
-    kCastStreamingExponentialVideoBitrateAlgorithmDescription[] =
-        "Enables the exponential video bitrate algorithm for Cast Streaming. "
-        "This algorithm uses an exponential increase and decrease factor to "
-        "adjust the bitrate based on network conditions.";
-
 inline constexpr char kCastStreamingMacHardwareH264Name[] =
     "Enable hardware H264 video encoding on for Cast Streaming on macOS";
 inline constexpr char kCastStreamingMacHardwareH264Description[] =
@@ -6106,17 +6098,6 @@ inline constexpr char kCCTResizableForThirdPartiesName[] =
 inline constexpr char kCCTResizableForThirdPartiesDescription[] =
     "Enable bottom sheet Custom Tabs for third party apps.";
 
-inline constexpr char kCCTTabSwitcherEnabledForChromeExperimentName[] =
-    "CCT Tab Switcher Enabled For Chrome Experiment";
-inline constexpr char kCCTTabSwitcherEnabledForChromeExperimentDescription[] =
-    "Enable the Custom Tabs tab switcher for Chrome-initiated experiments.";
-
-inline constexpr char kCCTTabSwitcherEnabledForEmbedderExperimentName[] =
-    "CCT Tab Switcher Enabled For Embedder Experiment";
-inline constexpr char kCCTTabSwitcherEnabledForEmbedderExperimentDescription[] =
-    "Enable the Custom Tabs tab switcher when enabled for embedder "
-    "experiments.";
-
 inline constexpr char kChangeUnfocusedPriorityName[] =
     "Change Unfocused Priority";
 inline constexpr char kChangeUnfocusedPriorityDescription[] =
@@ -6811,6 +6792,16 @@ inline constexpr char kTabStripLinkDragDropDescription[] =
     "Enables dragging and dropping links onto the tab strip to open them in a "
     "new tab or in an existing tab.";
 
+inline constexpr char kTabbedCctIfAllowedByEmbedderName[] =
+    "Tabbed CCT if allowed by Embedder";
+inline constexpr char kTabbedCctIfAllowedByEmbedderDescription[] =
+    "Enable Tabbed CCT for Chrome-driven experiments.";
+
+inline constexpr char kTabbedCctIfEnabledByEmbedderName[] =
+    "Tabbed CCT if enabled by Embedder";
+inline constexpr char kTabbedCctIfEnabledByEmbedderDescription[] =
+    "Enable Tabbed CCT for embedder-driven experiments.";
+
 inline constexpr char kThreeDotMenuBackButtonName[] =
     "Three Dot Menu Back Button";
 inline constexpr char kThreeDotMenuBackButtonDescription[] =
@@ -7038,10 +7029,6 @@ inline constexpr char kReadAnythingOmniboxChipName[] =
     "Reading Mode Omnibox Chip";
 inline constexpr char kReadAnythingOmniboxChipDescription[] =
     "Enables the omnibox chip entry point for Reading mode";
-
-inline constexpr char kReadAnythingLineFocusName[] = "Reading Mode Line Focus";
-inline constexpr char kReadAnythingLineFocusDescription[] =
-    "Enables the experimental line focus mode for Reading mode.";
 
 inline constexpr char kImmersiveReadAnythingPrintName[] =
     "Immersive Reading Mode Print";

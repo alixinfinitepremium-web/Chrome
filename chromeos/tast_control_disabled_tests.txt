@@ -75,9 +75,6 @@ tast.bruschetta.Toolkit.qt6_x11@betty
 # https://crbug.com/432304431
 tast.featured.FieldTrialEarlyBoot.active_trial
 
-# https://crbug.com/460052469
-tast.apps.LaunchHelpAppFromShortcut.stable_guest
-
 # https://crbug.com/460054243
 tast.inputs.VirtualKeyboardTypingUserMode.guest
 
@@ -96,13 +93,5 @@ tast.arc.Print.vm_t
 # tast.camera.CCAUISmoke.vivid.
 tast.camera.CCAUISmoke.fake_hal
 tast.camera.CCAUISmoke.vivid
-
-# b/574345073: GAIA rejects the connectivity_fwdump_policytest*@managedchrome.com
-# test accounts due to the domain's 2-Step Verification policy.
-# TODO(b/574345073): Re-enable once the test accounts are fixed.
-tast.crash.ValidateFirmwareDumpGeneration.multi_session_policy_all
-tast.crash.ValidateFirmwareDumpGeneration.policy_all
-tast.crash.ValidateFirmwareDumpGeneration.policy_none
-tast.crash.ValidateFirmwareDumpGeneration.policy_wifi
 
 # READ COMMENT AT TOP BEFORE ADDING NEW TESTS HERE.

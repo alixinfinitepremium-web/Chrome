@@ -19,6 +19,7 @@
 #include "base/strings/utf_string_conversions.h"
 #include "base/task/single_thread_task_runner.h"
 #include "base/test/bind.h"
+#include "base/test/metrics/histogram_tester.h"
 #include "base/test/metrics/user_action_tester.h"
 #include "base/test/run_until.h"
 #include "base/threading/thread_restrictions.h"
@@ -44,6 +45,7 @@
 #include "chrome/browser/contextual_tasks/contextual_tasks_web_view.h"
 #include "chrome/browser/contextual_tasks/mock_contextual_tasks_ui_service_delegate.h"
 #include "chrome/browser/extensions/component_loader.h"
+#include "chrome/browser/infobars/infobar_features.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/signin/identity_manager_factory.h"
 #include "chrome/browser/ui/actions/chrome_action_id.h"
@@ -61,7 +63,6 @@
 #include "chrome/browser/ui/location_bar/location_bar.h"
 #include "chrome/browser/ui/omnibox/omnibox_controller.h"
 #include "chrome/browser/ui/omnibox/omnibox_edit_model.h"
-#include "chrome/browser/ui/omnibox/omnibox_next_features.h"
 #include "chrome/browser/ui/omnibox/omnibox_view.h"
 #include "chrome/browser/ui/side_panel/side_panel_ui.h"
 #include "chrome/browser/ui/tabs/public/tab_features.h"
@@ -96,6 +97,7 @@
 #include "components/contextual_tasks/public/contextual_tasks_service.h"
 #include "components/contextual_tasks/public/features.h"
 #include "components/contextual_tasks/public/host_override.h"
+#include "components/infobars/core/infobar_delegate.h"
 #include "components/lens/contextual_input.h"
 #include "components/lens/lens_features.h"
 #include "components/lens/lens_overlay_invocation_source.h"
@@ -3886,10 +3888,8 @@ class ContextualTasksCopyUrlTest
     auto enabled = GetDefaultEnabledFeatures();
     auto disabled = GetDefaultDisabledFeatures();
     std::vector<base::test::FeatureRef> webui_features = {
-        features::kInitialWebUI, features::kWebUILocationBar,
-        omnibox::internal::kWebUIOmniboxAimPopup};
+        features::kInitialWebUI, features::kWebUILocationBar};
     if (IsWebUI()) {
-      std::erase(disabled, omnibox::internal::kWebUIOmniboxAimPopup);
       for (const auto& f : webui_features) {
         enabled.push_back({*f, {}});
       }
@@ -4976,11 +4976,15 @@ class ContextualTasksSidePanelRearchToolbarInteractiveUiTest
     enabled.push_back({kContextualTasksRearchitecture, {}});
     enabled.push_back({kContextualTasksSidePanelRearchitecture, {}});
     enabled.push_back({kContextualTasksEnableSpatialModelToolbarLayout, {}});
+    enabled.push_back(
+        {infobars::kCentralizedInfoBarFramework,
+         {{"MigratedCollectedCookies", "true"}, {"MigratedPageInfo", "true"}}});
 
     auto disabled = GetDefaultDisabledFeatures();
     std::erase(disabled, kContextualTasksRearchitecture);
     std::erase(disabled, kContextualTasksSidePanelRearchitecture);
     std::erase(disabled, kContextualTasksEnableSpatialModelToolbarLayout);
+    std::erase(disabled, infobars::kCentralizedInfoBarFramework);
     disabled.push_back(kContextualTasksHideMenuOnAiPage);
 
     feature_list_.InitWithFeaturesAndParameters(enabled, disabled);
@@ -5833,6 +5837,7 @@ IN_PROC_BROWSER_TEST_P(
   };
   const GURL kAimUrl("https://www.google.com/search?q=hello+world&udm=50");
   GURL committed_url;
+  base::HistogramTester histogram_tester;
 
   RunTestSequence(
       SubmitContextualSearchboxQueryToOpenSidePanel(kOverlayId, "hello world",
@@ -5920,7 +5925,106 @@ IN_PROC_BROWSER_TEST_P(
           "Side panel remains on the thread URL while reload banner is shown."),
       PressButton(ConfirmInfoBar::kOkButtonElementId),
       WaitForWebContentsNavigation(kSidePanelContentWebContentsId),
-      WaitForHide(ConfirmInfoBar::kOkButtonElementId));
+      WaitForHide(ConfirmInfoBar::kOkButtonElementId),
+      Do([&histogram_tester]() {
+        histogram_tester.ExpectBucketCount(
+            "InfoBar.Centralized.Show",
+            infobars::InfoBarDelegate::COLLECTED_COOKIES_INFOBAR_DELEGATE, 1);
+        histogram_tester.ExpectBucketCount(
+            "InfoBar.Centralized.Accept",
+            infobars::InfoBarDelegate::COLLECTED_COOKIES_INFOBAR_DELEGATE, 1);
+      }));
+}
+
+// This tests the following CUJ:
+//  (1) User opens Lens Overlay from the 3-dot App Menu on a web page.
+//  (2) User types a query into the Lens Overlay Contextual Searchbox and
+//      presses Enter to submit.
+//  (3) The Contextual Tasks side panel opens on an AI Mode page and the side
+//      panel toolbar shows the query as the thread title.
+//  (4) User clicks a link on the AI Mode page that opens a standard (non-AI)
+//      search results page in the side panel.
+//  (5) The search results page loads in the side panel, and the toolbar
+//      clears the thread title and leaves the AI page state.
+IN_PROC_BROWSER_TEST_P(ContextualTasksSidePanelRearchToolbarInteractiveUiTest,
+                       NonAiNavigationResetsThreadTitle) {
+  DEFINE_LOCAL_ELEMENT_IDENTIFIER_VALUE(kOverlayId);
+  DEFINE_LOCAL_ELEMENT_IDENTIFIER_VALUE(kSidePanelToolbarWebContentsId);
+  DEFINE_LOCAL_ELEMENT_IDENTIFIER_VALUE(kSidePanelContentsId);
+
+  const DeepQuery kToolbarTitle{
+      "contextual-tasks-toolbar-app",
+      "#toolbar",
+      ".top-toolbar-title",
+  };
+  const DeepQuery kTopToolbar{
+      "contextual-tasks-toolbar-app",
+      "#toolbar",
+  };
+  const GURL kAimUrl("https://www.google.com/search?q=hello+world&udm=50");
+  const GURL kSearchResultsUrl("https://www.google.com/search?q=standard+web");
+
+  RunTestSequence(
+      // Steps 1-3: Open the Contextual Tasks side panel on an AI page from a
+      // Contextual Searchbox query, then instrument the rearchitecture toolbar
+      // and wait for the thread title.
+      SubmitContextualSearchboxQueryToOpenSidePanel(kOverlayId, "hello world",
+                                                    kAimUrl),
+      InstrumentSidePanelToolbar(kSidePanelToolbarWebContentsId),
+      WaitForElementExists(kSidePanelToolbarWebContentsId, kToolbarTitle),
+      WaitForJsResultAt(kSidePanelToolbarWebContentsId, kToolbarTitle,
+                        "el => el.textContent.trim()",
+                        std::string("hello world")),
+      CheckJsResultAt(kSidePanelToolbarWebContentsId, kTopToolbar,
+                      "el => el.isAiPage", true),
+
+      // Step 4: Instrument the side panel page and click a link on it that
+      // points to a standard search results page.
+      NameViewRelative(kContextualTasksSidePanelWebViewElementId,
+                       "NonAiNavSidePanelContents",
+                       [](ContextualTasksWebView* web_view) -> views::View* {
+                         return web_view->content_web_view();
+                       }),
+      InstrumentNonTabWebView(kSidePanelContentsId,
+                              "NonAiNavSidePanelContents"),
+      WaitForWebContentsReady(kSidePanelContentsId),
+      // The click navigates the side panel page, so the step must not wait for
+      // a completion response that the navigation would drop.
+      ExecuteJs(kSidePanelContentsId,
+                content::JsReplace(
+                    "() => { const link = document.createElement('a'); "
+                    "link.href = $1; document.body.appendChild(link); "
+                    "link.click(); }",
+                    kSearchResultsUrl),
+                ExecuteJsMode::kFireAndForget),
+
+      // Step 5: The search results page loads in the side panel (the browser
+      // appends extra search params to `kSearchResultsUrl`), and the toolbar
+      // clears the thread title and leaves the AI page state.
+      WaitForJsResultAt(kSidePanelToolbarWebContentsId, kToolbarTitle,
+                        "el => el.textContent.trim()", std::string()),
+      WaitForJsResultAt(kSidePanelToolbarWebContentsId, kTopToolbar,
+                        "el => el.isAiPage", false),
+      Check(
+          [&]() {
+            content::WebContents* panel_contents =
+                ContextualTasksPanelController::From(browser())
+                    ->GetActiveWebContents();
+            if (!panel_contents) {
+              return false;
+            }
+            const GURL& url = panel_contents->GetLastCommittedURL();
+            std::string query;
+            std::string udm;
+            return url.host() == kSearchResultsUrl.host() &&
+                   url.path() == kSearchResultsUrl.path() &&
+                   net::GetValueForKeyInQuery(url, "q", &query) &&
+                   query == "standard web" &&
+                   !net::GetValueForKeyInQuery(url, "udm", &udm);
+          },
+          "The side panel shows the standard search results page."),
+      CheckResult([this]() { return browser()->tab_strip_model()->count(); },
+                  1));
 }
 
 INSTANTIATE_TEST_SUITE_P(All,

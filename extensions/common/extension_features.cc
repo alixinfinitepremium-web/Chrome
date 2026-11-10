@@ -107,6 +107,9 @@ BASE_FEATURE(kApiDesktopAndroidNativeMessagingBypassExtensionAllowlist,
 
 // For historical reasons, this includes some APIs. Please don't add more.
 
+BASE_FEATURE(kAvoidCloneMutableExtensionFunctionArgs,
+             base::FEATURE_DISABLED_BY_DEFAULT);
+
 BASE_FEATURE(kExtensionInstallSiteAccessOptions,
              base::FEATURE_DISABLED_BY_DEFAULT);
 
@@ -137,7 +140,7 @@ BASE_FEATURE(kExtensionAutoRejectIncognitoConnectability,
              base::FEATURE_ENABLED_BY_DEFAULT);
 
 BASE_FEATURE(kExtensionAsyncListenerRegistration,
-             base::FEATURE_DISABLED_BY_DEFAULT);
+             base::FEATURE_ENABLED_BY_DEFAULT);
 
 BASE_FEATURE(kExtensionDebuggerStrictPolicyRestrictions,
              base::FEATURE_DISABLED_BY_DEFAULT);

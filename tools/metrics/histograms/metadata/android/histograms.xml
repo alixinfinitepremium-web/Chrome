@@ -951,7 +951,7 @@ chromium-metrics-reviews@google.com.
 <histogram name="Android.BackgroundTaskScheduler.TaskFinished2"
     enum="BackgroundTaskId" expires_after="2027-09-03">
   <owner>hnakashima@chromium.org</owner>
-  <owner>smaier@chromium.org</owner>
+  <owner>smaier@google.com</owner>
   <summary>
     Records that a specific background task has finished.
 
@@ -1182,6 +1182,49 @@ chromium-metrics-reviews@google.com.
   </summary>
 </histogram>
 
+<histogram name="Android.BottomBar.DefaultPinState.OnStartup"
+    enum="AndroidBottomBarDefaultPinState" expires_after="2027-05-26">
+  <owner>polardz@google.com</owner>
+  <owner>ckitagawa@chromium.org</owner>
+  <owner>madhavpruthi@google.com</owner>
+  <summary>
+    Shows how many users keep a saved bottom bar default across a launch, and
+    when no pending defaults are left so the saved-default state can be retired.
+    Records the default saved for the user before this start
+    (BottomBarConfigUtils.DefaultPinState), once per full browser process start
+    while AndroidBottomBar is enabled. Users with an explicit Settings or
+    education choice are not recorded, since the saved default does not apply to
+    them. Includes Custom Tab and other non-tabbed starts and all form factors,
+    and excludes activity recreation, so read it by user count rather than by
+    sample. A default saved on this start is counted in
+    Android.BottomBar.DefaultPinState.Transition as PinnedOff or PinnedOn
+    instead, so PendingOff and PendingOn only count defaults carried over from
+    an earlier run.
+  </summary>
+</histogram>
+
+<histogram name="Android.BottomBar.DefaultPinState.Transition"
+    enum="AndroidBottomBarDefaultPinTransition" expires_after="2027-05-26">
+  <owner>polardz@google.com</owner>
+  <owner>ckitagawa@chromium.org</owner>
+  <owner>madhavpruthi@google.com</owner>
+  <summary>
+    Recorded each time the saved bottom bar default
+    (BottomBarConfigUtils.DefaultPinState) is written, on all form factors.
+    PinnedOff, PinnedOn, KeptOffOnEducation and KeptOnOnEducation skip users
+    with an explicit Settings or education choice. The Feature Engagement check
+    writes do not, but an explicit choice always wins for the bar itself.
+    Buckets count events, so one user can appear in Released and later in
+    KeptOnOnEducation. KeptOffOnBackfill and KeptOnOnBackfill count users whose
+    pending default moved to kept once Feature Engagement confirmed prior
+    onboarding, on the first start where Feature Engagement initializes after
+    pinning, often before launch. Both can also record while AndroidBottomBar is
+    off. ReleasedAndHeld counts never-seen users whose bar would have changed
+    mid-run. The bar kept its state for that run and changed on the next start,
+    when education can show.
+  </summary>
+</histogram>
+
 <histogram name="Android.BottomBar.Education.Onboarding.{OnboardingType}.Event"
     enum="AndroidBottomBarEducationOnboardingEvent" expires_after="2027-05-26">
   <owner>madhavpruthi@google.com</owner>
@@ -1315,6 +1358,20 @@ chromium-metrics-reviews@google.com.
   </token>
 <!-- LINT.ThenChange(//chrome/browser/ui/android/bottombar/java/src/org/chromium/chrome/browser/ui/bottombar/BottomBarMetrics.java:AndroidBottomBarIphFeature) -->
 
+</histogram>
+
+<histogram name="Android.BottomBar.LongPressMenu.Event"
+    enum="AndroidBottomBarLongPressMenuEvent" expires_after="2027-05-26">
+  <owner>polardz@google.com</owner>
+  <owner>ckitagawa@chromium.org</owner>
+  <owner>madhavpruthi@google.com</owner>
+  <summary>
+    Recorded when the menu opened by pressing and holding empty space on the
+    Android Bottom Bar is shown, and when its Customize appearance item is
+    clicked, which opens the Appearance settings. A Shown without a click means
+    the menu closed without selecting Customize appearance (e.g. user dismissal,
+    screen resize, or bottom bar hide/teardown).
+  </summary>
 </histogram>
 
 <histogram name="Android.BottomControlsStacker.NumberOfVisibleLayers"
@@ -1505,7 +1562,7 @@ chromium-metrics-reviews@google.com.
 
 <histogram name="Android.ChildProcess.JavalessStarted" enum="Boolean"
     expires_after="2027-04-18">
-  <owner>smaier@chromium.org</owner>
+  <owner>smaier@google.com</owner>
   <summary>
     Records when a child process (specifically a renderer) is started via the
     javaless code path on Android.
@@ -1656,7 +1713,7 @@ chromium-metrics-reviews@google.com.
 <histogram name="Android.ChildProcessConnection.FallbackService"
     enum="AndroidChildProcessConnectionServiceNames" expires_after="2027-03-21">
   <owner>boliu@chromium.org</owner>
-  <owner>smaier@chromium.org</owner>
+  <owner>smaier@google.com</owner>
   <summary>
     Records the name of the fallback service that is used in
     ChildProcessConnection. This is recorded when a fallback to a different
@@ -2660,6 +2717,22 @@ chromium-metrics-reviews@google.com.
   </summary>
 </histogram>
 
+<histogram name="Android.InAppUpdate.Discovery.StalenessDays" units="days"
+    expires_after="2027-03-10">
+  <owner>anunoy@chromium.org</owner>
+  <owner>chrome-counter-abuse-alerts@google.com</owner>
+  <summary>
+    Records how many days the available update had been known to Google Play on
+    this device (AppUpdateInfo.clientVersionStalenessDays()) when the in-app
+    update Discovery Snackbar was shown in Chrome for Android. Recorded at the
+    same point as the Impression bucket of
+    Android.InAppUpdate.DiscoverySnackbar.Event. Not recorded when Play does not
+    report staleness, so the difference between the two totals is the number of
+    prompts with unknown staleness. Values of 91 days or more are recorded in
+    the overflow bucket.
+  </summary>
+</histogram>
+
 <histogram name="Android.InAppUpdate.DiscoverySnackbar.Event"
     enum="InAppUpdateSnackbarEvent" expires_after="2027-03-10">
   <owner>vakh@chromium.org</owner>
@@ -2682,8 +2755,10 @@ chromium-metrics-reviews@google.com.
     of in-app update download operations via Google Play Core in Chrome for
     Android. Recorded at terminal states and significant milestones during the
     flexible update flow. FLOW_STARTED records the display of the Play consent
-    dialog; SUCCEEDED records completion of the background download (staged on
-    disk), not final binary swap.
+    dialog; PROMPT_ACCEPTED records the user accepting it; SUCCEEDED records
+    completion of the background download (staged on disk), not final binary
+    swap. SUCCEEDED is only recorded if the download finishes while the Activity
+    that started it is still alive, so it can be lower than PROMPT_ACCEPTED.
   </summary>
 </histogram>
 
@@ -2791,7 +2866,7 @@ chromium-metrics-reviews@google.com.
 </histogram>
 
 <histogram name="Android.InputHintChecker.InitializationResult"
-    enum="InputHintInitializationResult" expires_after="2026-12-20">
+    enum="InputHintInitializationResult" expires_after="2027-06-20">
   <owner>pasko@chromium.org</owner>
   <owner>mthiesse@chromium.org</owner>
   <summary>
@@ -3165,7 +3240,7 @@ chromium-metrics-reviews@google.com.
     units="ms" expires_after="2027-02-07">
   <owner>cduvall@chromium.org</owner>
   <owner>agrieve@chromium.org</owner>
-  <owner>smaier@chromium.org</owner>
+  <owner>smaier@google.com</owner>
   <summary>
     Amount of time it takes to create a new Context for a split. This will only
     be recorded if isolated splits are enabled. Different from ContextCreateTime
@@ -3179,7 +3254,7 @@ chromium-metrics-reviews@google.com.
     units="ms" expires_after="2026-07-19">
   <owner>cduvall@chromium.org</owner>
   <owner>agrieve@chromium.org</owner>
-  <owner>smaier@chromium.org</owner>
+  <owner>smaier@google.com</owner>
   <summary>
     Amount of time it takes to create a new Context and load a class for a
     split. This is simply ContextCreateTime2 + LoadFirstClassTime.
@@ -3192,7 +3267,7 @@ chromium-metrics-reviews@google.com.
     units="ms" expires_after="2026-07-19">
   <owner>cduvall@chromium.org</owner>
   <owner>agrieve@chromium.org</owner>
-  <owner>smaier@chromium.org</owner>
+  <owner>smaier@google.com</owner>
   <summary>
     Amount of time it takes to load the first class in a split. This will only
     be recorded if there is a hardcoded class to load in SplitChromeApplication.
@@ -3205,7 +3280,7 @@ chromium-metrics-reviews@google.com.
     units="ms" expires_after="2025-12-07">
   <owner>cduvall@chromium.org</owner>
   <owner>agrieve@chromium.org</owner>
-  <owner>smaier@chromium.org</owner>
+  <owner>smaier@google.com</owner>
   <summary>
     Amount of time spent waiting for a split preload task to finish. This will
     only be recorded if isolated splits are enabled. This histogram was expired
@@ -3236,7 +3311,7 @@ chromium-metrics-reviews@google.com.
 </histogram>
 
 <histogram name="Android.LibraryLoader.Prefetch.Duration" units="ms"
-    expires_after="2026-12-22">
+    expires_after="2027-11-07">
   <owner>ziadyoussef@chromium.org</owner>
   <owner>src/android_webview/OWNERS</owner>
   <owner>woa-performance@google.com</owner>
@@ -3247,7 +3322,7 @@ chromium-metrics-reviews@google.com.
 </histogram>
 
 <histogram name="Android.LibraryLoader.Prefetch.ForkDuration"
-    units="microseconds" expires_after="2026-12-22">
+    units="microseconds" expires_after="2027-11-07">
   <owner>ashleynewson@chromium.org</owner>
   <owner>src/android_webview/OWNERS</owner>
   <owner>woa-performance@google.com</owner>
@@ -3268,7 +3343,7 @@ chromium-metrics-reviews@google.com.
 </histogram>
 
 <histogram name="Android.LibraryLoader.Prefetch.Madvise" enum="Boolean"
-    expires_after="2026-12-22">
+    expires_after="2027-11-07">
   <owner>ashleynewson@chromium.org</owner>
   <owner>src/android_webview/OWNERS</owner>
   <owner>woa-performance@google.com</owner>
@@ -3284,7 +3359,7 @@ chromium-metrics-reviews@google.com.
 </histogram>
 
 <histogram name="Android.LibraryLoader.Prefetch.Status" enum="PrefetchStatus"
-    expires_after="2027-04-04">
+    expires_after="2027-11-07">
   <owner>ziadyoussef@chromium.org</owner>
   <owner>src/android_webview/OWNERS</owner>
   <owner>woa-performance@google.com</owner>
@@ -10395,92 +10470,6 @@ chromium-metrics-reviews@google.com.
     Warning: this histogram was expired from 2022-12-04 to 2023-09-07; data may
     be missing.
   </summary>
-</histogram>
-
-<histogram name="ChromiumAndroidLinker.{ProcessType}LoadTime2" units="ms"
-    expires_after="2022-10-01">
-  <owner>pasko@chromium.org</owner>
-  <owner>rsesek@chromium.org</owner>
-  <summary>
-    The amount of time it took to load the native libraries in {ProcessType}.
-
-    In order to explain the nature of the uploaded samples for this histogram it
-    is necessary to define a few core properties of the running processes.
-
-    On Android 10 (=Q) a new feature was introduced and became used in Chrome:
-    App Zygotes. An App Zygote (AZ) is a process pre-created by the system to
-    allow faster initialization of isolated processes (IP) for a specific app.
-    When AZ is created it runs the app-specific &quot;preload&quot; function
-    once, and becomes idle, after that no work can be performed in the AZ other
-    than getting forked. Whenever an app requests the Android Framework (AF) to
-    provide an isolated process, the AF notifies the AZ to fork itself into a
-    new process, which later will be provided to the app. An AZ created for one
-    app (package) cannot be used for another app.
-
-    The purpose of the AZ in Chrome is to load the native library - it avoids
-    loading the same library in each isolated process separately.
-
-    Capabilities of the AZ are very restricted. It runs in the same sandbox
-    constraints as an isolated process, while also not having the ability to
-    communicate with any other process on the system. Only after forking from
-    the AZ the inherited process becomes able to communicate to the rest of
-    Chrome.
-
-    Beyond isolated processes, Chrome can request processes with more
-    privileges: privileged processes (PP). In this case those processes will be
-    forked from another zygote. There are several types of those zygotes, we
-    will refer to them as Other Zygote (OZ) for simplicity. The decisions
-    whether to start an isolated process through an AZ, and when to start a new
-    AZ are made dynamically and depends on a few factors.
-
-    The suffixes of this histogram, as described below, correspond to distinct
-    execution scenarios:
-
-    Suffix &quot;Browser&quot;: the native library is loaded in the main app
-    process
-
-    Suffix &quot;Zygote&quot;: OZ forks into AZ, AZ loads the native library, AZ
-    forks into IP
-
-    Suffix &quot;Child&quot;: OZ forks into PP, PP loads the native library
-
-    Suffix &quot;Child&quot;: OZ forks into IP, IP loads the native library
-
-    Suffix &quot;Child&quot;: OZ forks into AZ, AZ fails to load the native
-    library, AZ forks into IP, IP loads the native library (this scenario should
-    happen rarely).
-
-    After library loading happens in the AZ, the recorded histogram value (for
-    simplicity) gets copied to each child process forked from this AZ process
-    and uploaded &quot;as if&quot; it is a unique sample from this child
-    process. This leads to a discrepancy in sample counts.
-
-    In early 2021-10 it had about 7% extra uploaded samples in
-    &quot;ChromiumAndroidLinker.ZygoteLoadTime2&quot;.
-  </summary>
-  <token key="ProcessType">
-    <variant name="Browser" summary="the browser process"/>
-    <variant name="Child" summary="a child process"/>
-    <variant name="Zygote" summary="the App Zygote"/>
-  </token>
-</histogram>
-
-<histogram name="ChromiumAndroidLinker.{ProcessType}ThreadLoadTime" units="ms"
-    expires_after="2022-10-01">
-  <owner>pasko@chromium.org</owner>
-  <owner>agrieve@chromium.org</owner>
-  <summary>
-    The amount of CPU time (thread time) it took to load the native libraries in
-    {ProcessType}.
-
-    For a more detailed description of each suffix process type suffix (Browser,
-    Child, Zygote) see description of the ChromiumAndroidLinker.*LoadTime2.
-  </summary>
-  <token key="ProcessType">
-    <variant name="Browser" summary="the browser process"/>
-    <variant name="Child" summary="a child process"/>
-    <variant name="Zygote" summary="the App Zygote"/>
-  </token>
 </histogram>
 
 <histogram name="GestureNavigation.Activated2"

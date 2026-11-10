@@ -5,6 +5,7 @@
 #include "chrome/browser/ui/webui/settings/settings_localized_strings_provider.h"
 
 #include <string>
+#include <string_view>
 
 #include "base/check_deref.h"
 #include "base/command_line.h"
@@ -64,6 +65,7 @@
 #include "chrome/browser/ui/webui/policy_indicator_localized_strings_provider.h"
 #include "chrome/browser/ui/webui/settings/glic_handler.h"
 #include "chrome/browser/ui/webui/settings/reset_settings_handler.h"
+#include "chrome/browser/ui/webui/settings/settings_utils.h"
 #include "chrome/browser/ui/webui/settings/shared_settings_localized_strings_provider.h"
 #include "chrome/browser/ui/webui/version/version_ui.h"
 #include "chrome/common/channel_info.h"
@@ -89,7 +91,6 @@
 #include "components/autofill/core/common/autofill_prefs.h"
 #include "components/commerce/core/commerce_constants.h"
 #include "components/content_settings/core/common/features.h"
-#include "components/dom_distiller/core/dom_distiller_features.h"
 #include "components/google/core/common/google_util.h"
 #include "components/history/core/common/pref_names.h"
 #include "components/lens/lens_features.h"
@@ -121,6 +122,7 @@
 #include "components/translate/core/common/translate_features.h"
 #include "components/wallet/core/browser/walletable_permission_utils.h"
 #include "components/wallet/core/common/wallet_features.h"
+#include "components/web_distiller/core/web_distiller_features.h"
 #include "components/zoom/page_zoom_constants.h"
 #include "content/public/browser/web_contents.h"
 #include "content/public/browser/web_ui_data_source.h"
@@ -154,7 +156,6 @@
 #include "chrome/browser/ash/ownership/owner_settings_service_ash_factory.h"
 #include "chrome/browser/ash/profiles/profile_helper.h"
 #include "chrome/common/webui_url_constants.h"
-#include "components/user_manager/user_manager.h"
 #include "ui/chromeos/devicetype_utils.h"
 #else  // !BUILDFLAG(IS_CHROMEOS)
 #include "chrome/browser/ui/webui/settings/system_handler.h"
@@ -257,14 +258,7 @@ void AddCommonStrings(content::WebUIDataSource* html_source, Profile* profile) {
   };
   html_source->AddLocalizedStrings(kLocalizedStrings);
 
-  html_source->AddBoolean(
-      "isGuest",
-#if BUILDFLAG(IS_CHROMEOS)
-      user_manager::UserManager::Get()->IsLoggedInAsGuest() ||
-          user_manager::UserManager::Get()->IsLoggedInAsManagedGuestSession());
-#else
-      profile->IsGuestSession());
-#endif
+  html_source->AddBoolean("isGuest", settings_utils::IsGuest(profile));
 
   html_source->AddBoolean("isChildAccount", profile->IsChild());
 }
@@ -2568,8 +2562,22 @@ void AddPeopleStrings(content::WebUIDataSource* html_source, Profile* profile) {
        IDS_SETTINGS_SYNC_DISCONNECT_DELETE_PROFILE_WARNING_WITH_COUNTS_PLURAL},
       {"deleteProfileWarningWithoutCounts",
        IDS_SETTINGS_SYNC_DISCONNECT_DELETE_PROFILE_WARNING_WITHOUT_COUNTS},
+      {"deviceTabVisibilityTitle", IDS_SETTINGS_DEVICE_TAB_VISIBILITY_TITLE},
+      {"deviceTabVisibilitySublabel",
+       IDS_SETTINGS_DEVICE_TAB_VISIBILITY_SUBLABEL},
+      {"deviceTabVisibilityNoDevices",
+       IDS_SETTINGS_DEVICE_TAB_VISIBILITY_NO_DEVICES},
   };
   html_source->AddLocalizedStrings(kLocalizedStrings);
+
+  html_source->AddString(
+      "deviceTabVisibilityDescription",
+      l10n_util::GetStringFUTF8(IDS_SETTINGS_DEVICE_TAB_VISIBILITY_DESCRIPTION,
+                                base::ASCIIToUTF16(std::string_view(
+                                    chrome::kGoogleAccountDeviceActivityURL))));
+  html_source->AddBoolean(
+      "enableDeviceTabVisibilitySettings",
+      base::FeatureList::IsEnabled(syncer::kDeviceTabVisibilitySettings));
 
 #if !BUILDFLAG(IS_CHROMEOS)
   html_source->AddLocalizedString(

@@ -509,7 +509,8 @@ const LayoutResult* GridLanesLayoutAlgorithm::LayoutInternal() {
       }
 
       container_builder_.SetGapGeometry(gap_accumulator->FinalizeGapGeometry(
-          grid_lanes, state, stacking_content_start, stacking_content_end));
+          grid_lanes, state, stacking_content_start, stacking_content_end,
+          container_builder_));
     }
   }
 
@@ -553,11 +554,12 @@ void GridLanesLayoutAlgorithm::SetReadingFlowNodes(
     return;
   }
 
-  HeapVector<Member<blink::Node>> reading_flow_nodes;
-  reading_flow_nodes.ReserveInitialCapacity(grid_items.Size());
+  auto* reading_flow_nodes =
+      MakeGarbageCollected<GCedHeapVector<Member<blink::Node>>>();
+  reading_flow_nodes->ReserveInitialCapacity(grid_items.Size());
   auto add_item_to_reading_flow_nodes = [&](const GridItemData& item) {
     if (blink::Node* node = item.node.GetDOMNode()) {
-      reading_flow_nodes.push_back(node);
+      reading_flow_nodes->push_back(node);
     }
   };
 
@@ -584,7 +586,7 @@ void GridLanesLayoutAlgorithm::SetReadingFlowNodes(
       add_item_to_reading_flow_nodes(*entry.grid_lanes_item->item);
     }
   }
-  container_builder_.SetReadingFlowNodes(std::move(reading_flow_nodes));
+  container_builder_.SetReadingFlowNodes(reading_flow_nodes);
 }
 
 namespace {
