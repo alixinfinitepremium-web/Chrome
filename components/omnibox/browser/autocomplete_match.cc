@@ -60,7 +60,7 @@
 #include "url/third_party/mozilla/url_parse.h"
 #include "url/url_util.h"
 
-#if (!BUILDFLAG(IS_ANDROID) || BUILDFLAG(ENABLE_VR)) && !BUILDFLAG(IS_IOS)
+#if !BUILDFLAG(IS_IOS)
 #include "components/omnibox/browser/vector_icons.h"  // nogncheck
 #include "components/vector_icons/vector_icons.h"     // nogncheck
 #endif
@@ -449,6 +449,8 @@ AutocompleteMatch& AutocompleteMatch::operator=(
   android_tab_id = std::move(match.android_tab_id);
   DestroyJavaObject();
   std::swap(java_match_, match.java_match_);
+  std::swap(java_vector_icon_, match.java_vector_icon_);
+  std::swap(java_bookmark_vector_icon_, match.java_bookmark_vector_icon_);
   UpdateJavaObjectNativeRef();
 #endif
   return *this;
@@ -542,7 +544,7 @@ AutocompleteMatch& AutocompleteMatch::operator=(
   return *this;
 }
 
-#if (!BUILDFLAG(IS_ANDROID) || BUILDFLAG(ENABLE_VR)) && !BUILDFLAG(IS_IOS)
+#if !BUILDFLAG(IS_IOS)
 // static
 
 const gfx::VectorIcon& AutocompleteMatch::GetVectorIcon(

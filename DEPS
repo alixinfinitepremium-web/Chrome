@@ -326,7 +326,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling V8
   # and whatever else without interference from each other.
-  'v8_revision': '7e4a671c59f0a68410ef2ea5bdc749b5612a3a24',
+  'v8_revision': 'f9ee147bc7ee152dcc59eb76e224292ee9971ca3',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
@@ -342,7 +342,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling BoringSSL
   # and whatever else without interference from each other.
-  'boringssl_revision': '7968531b8f882e3ab4c38fac8d8674231f40442e',
+  'boringssl_revision': '98ffd075a2db87093a62ca46f9e6e66e5f2f9f23',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Fuchsia sdk
   # and whatever else without interference from each other.
@@ -382,7 +382,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
-  'crossbench_revision': '9c8fdc904db8dac9c5d91ba3e7758a44bf07add7',
+  'crossbench_revision': '1816b553cfac5458a799619e5d11431f98ecfdca',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling CrossBench
   # and whatever else without interference from each other.
@@ -394,7 +394,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling fuzztest
   # and whatever else without interference from each other.
-  'fuzztest_revision': '9d57951ffcd9f087508bcc71ea896a7ea13a55fb',
+  'fuzztest_revision': '3fc4296a29ea1feabb0ee07fef17816da4c4e685',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling domato
   # and whatever else without interference from each other.
@@ -402,7 +402,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling devtools-frontend
   # and whatever else without interference from each other.
-  'devtools_frontend_revision': 'bc93449ab1871f94e60dca359a46b85fc0735659',
+  'devtools_frontend_revision': 'c3776ee8e410d3eb882546d827eb51beaa9c6f3d',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling libprotobuf-mutator
   # and whatever else without interference from each other.
@@ -3207,8 +3207,8 @@ deps = {
       ],
   },
 
-  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@0ff71152683e61ca20a54fcf08403d9862dca7e7',
-  'src/third_party/glslang/src': '{chromium_git}/external/github.com/KhronosGroup/glslang@44ef7454512e80d5927d7e6695d490cb69aae2b6',
+  'src/third_party/vulkan-deps': '{chromium_git}/vulkan-deps@af0da358e885f192434a613380aa0eaad47ccb7c',
+  'src/third_party/glslang/src': '{chromium_git}/external/github.com/KhronosGroup/glslang@b411a8fb8aa0f6ee727df17f3f8eafb3eb85ba9e',
   'src/third_party/spirv-cross/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Cross@b8fcf307f1f347089e3c46eb4451d27f32ebc8d3',
   'src/third_party/spirv-headers/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Headers@6efe5ae6b7c6ad29da3f2cc3f164b9c3d72b78b1',
   'src/third_party/spirv-tools/src': '{chromium_git}/external/github.com/KhronosGroup/SPIRV-Tools@b570f00a782a7bf4006964e8284dd8c10c4c549b',
@@ -3795,7 +3795,7 @@ deps = {
 
   'src/components/optimization_guide/internal': {
       'url': Var('chrome_git') + '/chrome/components/optimization_guide.git' + '@' +
-        'ce426275e9d6eb4d8960aae29986c1eb80733966',
+        '8cabc11ebeaa236143fe10dd28728954ef469e44',
       'condition': 'checkout_src_internal',
   },
 
@@ -3873,7 +3873,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        'dd01a2430c16fe49b33ae83ee3da2a4749560774',
+        'f80272810089120b125582c4b2ed8c193d023753',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 

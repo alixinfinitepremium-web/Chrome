@@ -27,7 +27,6 @@
 #include "components/omnibox/browser/autocomplete_enums.h"
 #include "components/omnibox/browser/autocomplete_input.h"
 #include "components/omnibox/browser/autocomplete_match_type.h"
-#include "components/omnibox/browser/buildflags.h"
 #include "components/saved_tab_groups/public/types.h"
 #include "components/search_engines/template_url.h"
 #include "components/search_engines/template_url_starter_pack_data.h"
@@ -47,6 +46,10 @@
 #if BUILDFLAG(IS_ANDROID)
 #include "base/android/jni_weak_ref.h"
 #include "base/android/scoped_java_ref.h"
+#endif
+
+#if BUILDFLAG(IS_ANDROID)
+class SkBitmap;
 #endif
 
 class AutocompleteProvider;
@@ -351,6 +354,14 @@ struct AutocompleteMatch {
   void OnClipboardSuggestionContentUpdated(
       const base::android::JavaRef<jobject>& j_callback);
 
+  // Rasterizes the vector icon resolved for the Java object (see
+  // GetOrCreateJavaObject()) into a square bitmap of `size_dip` device
+  // independent pixels at `scale`. Returns an empty SkBitmap (null on the Java
+  // side) if the match has no vector icon.
+  SkBitmap GetVectorIconBitmap(bool is_bookmark,
+                               int size_dip,
+                               float scale) const;
+
   // Update the Java object with clipboard content.
   void UpdateClipboardContent(JNIEnv* env);
   // Update the Java object with new destination URL.
@@ -359,7 +370,7 @@ struct AutocompleteMatch {
   void UpdateJavaDescription();
 #endif
 
-#if (!BUILDFLAG(IS_ANDROID) || BUILDFLAG(ENABLE_VR)) && !BUILDFLAG(IS_IOS)
+#if !BUILDFLAG(IS_IOS)
 
   // Gets the vector icon identifier for the icon to be shown for this match. If
   // `is_bookmark` is true, returns a bookmark icon rather than what the type
@@ -1156,6 +1167,13 @@ struct AutocompleteMatch {
   // See AutocompleteControllerAndroid for more details.
   mutable std::unique_ptr<base::android::ScopedJavaGlobalRef<jobject>>
       java_match_;
+
+  // Vector icons (regular and bookmarked variants) resolved for java_match_
+  // by GetOrCreateJavaObject(), where the TemplateURL is available. Vector
+  // icons have static storage duration, so the pointers never dangle. Reset
+  // together with java_match_.
+  mutable raw_ptr<const gfx::VectorIcon> java_vector_icon_ = nullptr;
+  mutable raw_ptr<const gfx::VectorIcon> java_bookmark_vector_icon_ = nullptr;
 #endif
   base::WeakPtrFactory<AutocompleteMatch> weak_ptr_factory_{this};
 };

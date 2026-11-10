@@ -4139,6 +4139,27 @@
             ]
         }
     ],
+    "CastStreamingGradualBandwidthBackoff": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "AfterEncodingOnly",
+                    "params": {
+                        "congestion_signal": "after_encoding"
+                    },
+                    "enable_features": [
+                        "CastStreamingGradualBandwidthBackoff"
+                    ]
+                }
+            ]
+        }
+    ],
     "CastStreamingHardwareHevc": [
         {
             "platforms": [
@@ -17057,27 +17078,6 @@
             ]
         }
     ],
-    "RustyJpegFeature": [
-        {
-            "platforms": [
-                "android",
-                "android_webview",
-                "chromeos",
-                "ios",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "RustyJpegExperiment",
-                    "enable_features": [
-                        "RustyJpegFeature"
-                    ]
-                }
-            ]
-        }
-    ],
     "SQLitePersistentCookieStoreEarlyInit": [
         {
             "platforms": [
@@ -18605,8 +18605,6 @@
     "SubframeNotVisibleIfParentNotVisible": [
         {
             "platforms": [
-                "android",
-                "android_desktop",
                 "chromeos",
                 "linux",
                 "mac",

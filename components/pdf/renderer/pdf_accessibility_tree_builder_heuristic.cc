@@ -8,6 +8,7 @@
 #include <array>
 #include <cmath>
 #include <cstdint>
+#include <functional>
 #include <numeric>
 #include <optional>
 #include <ranges>
@@ -18,7 +19,9 @@
 
 #include "base/check.h"
 #include "base/check_op.h"
+#include "base/containers/extend.h"
 #include "base/containers/fixed_flat_map.h"
+#include "base/containers/flat_set.h"
 #include "base/containers/span.h"
 #include "base/feature_list.h"
 #include "base/memory/raw_ref.h"
@@ -33,6 +36,7 @@
 #include "base/timer/elapsed_timer.h"
 #include "base/types/optional_ref.h"
 #include "components/pdf/renderer/pdf_accessibility_metrics.h"
+#include "components/pdf/renderer/pdf_accessibility_table_detector.h"
 #include "components/pdf/renderer/pdf_accessibility_text_utils.h"
 #include "components/pdf/renderer/pdf_accessibility_tree_builder.h"
 #include "pdf/accessibility_structs.h"
@@ -64,8 +68,7 @@ enum class ListMarkerForm {
 // Classifies a list marker and records its properties.
 struct ListMarkerKind {
   ListMarkerForm form = ListMarkerForm::kNone;
-  // The marker if it is a decimal ordered list marker; unset for unordered
-  // markers.
+  // The marker if it is an ordered list marker; unset for unordered markers.
   std::optional<OrderedMarker> ordered_marker;
   // Whether this is one of `kNestedOnlyListMarkers` or a Word nested marker.
   bool nested_only = false;
@@ -233,7 +236,7 @@ constexpr float kMaxFirstLineIndentEm = 3.0f;
 // reached close to the column's right edge before wrapping.
 constexpr float kWrapRightEdgeToleranceEm = 2.0f;
 
-// Delimiters that may follow the number in a decimal ordered list marker.
+// Delimiters that may follow the number or letter in an ordered list marker.
 // TODO(crbug.com/525509231): Support CJK delimiters such as "．" (U+FF0E
 // FULLWIDTH FULL STOP) and "、" (U+3001 IDEOGRAPHIC COMMA), which may follow
 // full-width digits and have no trailing space.
@@ -275,6 +278,10 @@ constexpr auto kUnorderedListMarkers = std::to_array<std::string_view>({
     "\xE2\x97\x8B",  // ○ U+25CB
     "\xE2\x97\x8F",  // ● U+25CF
     "\xE2\x96\xA0",  // ■ U+25A0
+    "\xE2\x96\xB6",  // ▶ U+25B6
+    "\xE2\x96\xBA",  // ► U+25BA
+    "\xE2\x97\x86",  // ◆ U+25C6
+    "\xE2\x97\x97",  // ◗ U+25D7
     "\xEF\x82\xB7",  // U+F0B7 (Symbol font bullet)
     "\xEF\x82\xA7",  // U+F0A7 (Wingdings square bullet)
 });
@@ -299,6 +306,11 @@ constexpr auto kWingdingsBulletMap =
         {0x6E, 0x25A0},  // ■ U+25A0
         {0x71, 0x2751},  // ❑ U+2751
         {0x76, 0x2756},  // ❖ U+2756
+        // InDesign's Wingdings subsets can put the square bullet at 0x83 or
+        // 0x84.
+        {0x83, kSquareBulletCodePoint},
+        {0x84, kSquareBulletCodePoint},
+        {0x9F, kBulletCodePoint},
         {0xA7, kSquareBulletCodePoint},
         {0xD8, 0x27A2},  // ➢ U+27A2
         {0xFC, 0x2713},  // ✓ U+2713
@@ -1012,28 +1024,26 @@ float GetLineRightEdge(
   return right;
 }
 
-const chrome_pdf::AccessibilityTextRunInfo* GetRunBeforeIndex(
-    base::span<const chrome_pdf::AccessibilityTextRunInfo> text_runs,
-    size_t index) {
-  return (index > 0 && index < text_runs.size()) ? &text_runs[index - 1]
-                                                 : nullptr;
-}
-
-const chrome_pdf::AccessibilityTextRunInfo* GetRunAfterIndex(
-    base::span<const chrome_pdf::AccessibilityTextRunInfo> text_runs,
-    size_t index) {
-  return (index + 1 < text_runs.size()) ? &text_runs[index + 1] : nullptr;
-}
-
 TextRunContext GetTextRunContext(const PageLayoutData& layout,
                                  size_t text_run_index) {
+  // A table ends the current block, so a run just inside a table isn't a
+  // neighbor of a run just outside it.
+  const base::flat_set<size_t>& table_runs = *layout.table_text_run_indices;
+  const bool is_table_run = table_runs.contains(text_run_index);
+  const bool has_previous =
+      text_run_index > 0 &&
+      table_runs.contains(text_run_index - 1) == is_table_run;
+  const size_t next_index = text_run_index + 1;
+  const bool has_next = next_index < layout.text_runs.size() &&
+                        table_runs.contains(next_index) == is_table_run;
   return {
       .run = raw_ref(layout.text_runs[text_run_index]),
-      .previous_run = GetRunBeforeIndex(layout.text_runs, text_run_index),
-      .next_run = GetRunAfterIndex(layout.text_runs, text_run_index),
+      .previous_run =
+          has_previous ? &layout.text_runs[text_run_index - 1] : nullptr,
+      .next_run = has_next ? &layout.text_runs[next_index] : nullptr,
       .chars = GetTextRunChars(layout, text_run_index),
-      .next_chars = text_run_index + 1 < layout.text_runs.size()
-                        ? GetTextRunChars(layout, text_run_index + 1)
+      .next_chars = has_next
+                        ? GetTextRunChars(layout, next_index)
                         : base::span<const chrome_pdf::AccessibilityCharInfo>(),
   };
 }
@@ -1764,27 +1774,42 @@ ListPlacement GetListPlacement(
           .level_index = target_level};
 }
 
-// Classifies `run_context` as a decimal ordered list marker: 1-3 digits
-// followed by one of `kOrderedMarkerDelimiters` (e.g. "1.", "12)"), or wrapped
-// in parentheses (e.g. "(1)"). On a match, returns `ordered_marker` set to the
-// marker's number and type, and form `kStandalone` if the marker is alone in
-// its run with item text in the next run on the same line, or `kCombined` if
-// whitespace and item text follow it in the same run.
+// Classifies `run_context` as an ordered list marker: 1-3 digits or a single
+// ASCII lowercase letter, followed by one of `kOrderedMarkerDelimiters` (e.g.
+// "1.", "12)", "a.") or wrapped in parentheses (e.g. "(1)", "(a)"). On a match,
+// returns `ordered_marker` set to the marker's type and value (the number, or
+// the letter's position in the alphabet), and form `kStandalone` if the marker
+// is alone in its run with item text in the next run on the same line, or
+// `kCombined` if whitespace and item text follow it in the same run.
 // Otherwise, returns form `kNone` with no `ordered_marker`, e.g. for years
-// ("2023.", "(2020)"), decimals ("1.5"), or a marker with no item text after
-// it.
+// ("2023.", "(2020)"), decimals ("1.5"), abbreviations ("e.g."), or a marker
+// with no item text after it.
 ListMarkerKind ClassifyOrderedMarker(const TextRunContext& run_context) {
   const std::string text = GetTrimmedText(run_context.chars);
-  // TODO(crbug.com/525509231): Support alphabetic and roman numeral markers
-  // (e.g. "a.", "B)", "iv.").
+  // TODO(crbug.com/525509231): Support uppercase and roman numeral markers
+  // (e.g. "B)", "iv.").
   const bool is_parenthesized = text.starts_with('(');
-  const size_t digits_start = is_parenthesized ? 1 : 0;
-  size_t i = digits_start;
+  const size_t value_start = is_parenthesized ? 1 : 0;
+  size_t i = value_start;
   while (i < text.size() && base::IsAsciiDigit(text[i])) {
     ++i;
   }
-  const size_t digit_count = i - digits_start;
-  if (digit_count == 0 || digit_count > kMaxOrderedMarkerDigits) {
+  const size_t digit_count = i - value_start;
+  if (digit_count > kMaxOrderedMarkerDigits) {
+    return {};
+  }
+  OrderedMarkerType::CounterStyle counter_style;
+  int value;
+  if (digit_count > 0) {
+    if (!base::StringToInt(text.substr(value_start, digit_count), &value)) {
+      return {};
+    }
+    counter_style = OrderedMarkerType::CounterStyle::kDecimal;
+  } else if (i < text.size() && base::IsAsciiLower(text[i])) {
+    counter_style = OrderedMarkerType::CounterStyle::kLowerAlpha;
+    value = text[i] - 'a' + 1;
+    ++i;
+  } else {
     return {};
   }
   // The marker ends at the first whitespace, or at the end of a standalone run.
@@ -1797,11 +1822,8 @@ ListMarkerKind ClassifyOrderedMarker(const TextRunContext& run_context) {
           : !std::ranges::contains(kOrderedMarkerDelimiters, delimiter)) {
     return {};
   }
-  int value;
-  if (!base::StringToInt(text.substr(digits_start, digit_count), &value)) {
-    return {};
-  }
-  const OrderedMarkerType type = {.parenthesized = is_parenthesized};
+  const OrderedMarkerType type = {.counter_style = counter_style,
+                                  .parenthesized = is_parenthesized};
   // A run containing only the marker is a standalone marker if the item text
   // follows in the next run on the same line.
   if (marker_size == text.size()) {
@@ -1870,6 +1892,10 @@ bool IsOrderedListStartConfirmed(
       (marker_kind.form == ListMarkerForm::kStandalone ? 2 : 1);
   size_t lines_count = 0;
   for (size_t i = first_run_index; i < layout.text_runs.size(); ++i) {
+    // A table ends the candidate list.
+    if (layout.table_text_run_indices->contains(i)) {
+      return false;
+    }
     const chrome_pdf::AccessibilityTextRunInfo& prev_run =
         layout.text_runs[i - 1];
     const chrome_pdf::AccessibilityTextRunInfo& run = layout.text_runs[i];
@@ -1980,7 +2006,7 @@ ListMarkerKind ClassifyListMarker(
 
   const int value = ordered_kind.ordered_marker->value;
   if (placement.kind == ListPlacementKind::kExistingLevel) {
-    // Continuing a list requires the next number in sequence.
+    // Continuing a list requires the next number or letter in sequence.
     if (list_levels[placement.level_index].last_ordered_marker->value !=
         value - 1) {
       return {};
@@ -2402,14 +2428,62 @@ void SortBlockNodesByVerticalBands(std::vector<ui::AXNodeData*>& block_nodes,
   block_nodes = std::move(sorted_blocks);
 }
 
+// Creates a table, row, or cell node with `html_tag`. `bounds` are relative to
+// the page, like text run bounds.
+ui::AXNodeData* CreateTableStructureNode(PdfAccessibilityTreeBuilder& builder,
+                                         ax::mojom::Role role,
+                                         std::string_view html_tag,
+                                         const gfx::RectF& bounds) {
+  ui::AXNodeData* node =
+      builder.CreateAndAppendNode(role, ax::mojom::Restriction::kReadOnly);
+  node->AddStringAttribute(ax::mojom::StringAttribute::kHtmlTag,
+                           std::string(html_tag));
+  node->relative_bounds.bounds =
+      bounds + builder.page_node()->relative_bounds.bounds.OffsetFromOrigin();
+  return node;
+}
+
+// Detects grid tables on the page and collects the text runs in them. Returns
+// no tables when heuristic enhancements are disabled.
+PageTables ComputePageTables(
+    base::span<const chrome_pdf::AccessibilityTextRunInfo> text_runs,
+    base::span<const RulingLine> ruling_lines) {
+  PageTables result;
+  if (!features::IsPdfAccessibilityHeuristicEnhancementsEnabled()) {
+    return result;
+  }
+  result.tables = DetectGridTables(text_runs, ruling_lines);
+  if (result.tables.empty()) {
+    return result;
+  }
+  // `BuildPageTree()` adds each table at its anchor, so anchors must be unique
+  // and ascending.
+  CHECK(std::ranges::adjacent_find(result.tables, std::ranges::greater_equal(),
+                                   &HeuristicTable::anchor_text_run_index) ==
+        result.tables.end());
+  std::vector<size_t> table_text_run_indices;
+  for (const HeuristicTable& table : result.tables) {
+    base::Extend(table_text_run_indices, GetTableTextRunIndices(table));
+  }
+  result.table_text_run_indices =
+      base::flat_set<size_t>(std::move(table_text_run_indices));
+  return result;
+}
+
 void RecordListStartReason(const ListMarkerKind& kind) {
   ListStartReason reason;
   if (kind.ordered_marker.has_value()) {
-    // New ordered lists start at 1, or above 1 when resuming numbering (e.g.
-    // on a new page); see `ClassifyListMarker()`.
-    reason = kind.ordered_marker->value == 1
-                 ? ListStartReason::kDecimalStartsAtOne
-                 : ListStartReason::kDecimalStartsAboveOne;
+    // New ordered lists start at 1 or "a", or above that when resuming
+    // numbering (e.g. on a new page); see `ClassifyListMarker()`.
+    const bool starts_at_one = kind.ordered_marker->value == 1;
+    if (kind.ordered_marker->type.counter_style ==
+        OrderedMarkerType::CounterStyle::kLowerAlpha) {
+      reason = starts_at_one ? ListStartReason::kLowerAlphaStartsAtA
+                             : ListStartReason::kLowerAlphaStartsAboveA;
+    } else {
+      reason = starts_at_one ? ListStartReason::kDecimalStartsAtOne
+                             : ListStartReason::kDecimalStartsAboveOne;
+    }
   } else if (kind.nested_only) {
     reason = ListStartReason::kNestedOnlyMarker;
   } else {
@@ -2608,10 +2682,14 @@ StaticTextState::~StaticTextState() = default;
 PdfAccessibilityTreeBuilderHeuristic::PdfAccessibilityTreeBuilderHeuristic(
     PdfAccessibilityTreeBuilder& builder)
     : builder_(builder),
+      page_tables_(
+          ComputePageTables(builder.text_runs(), builder.ruling_lines())),
       page_layout_{
           .text_runs = builder.text_runs(),
           .chars = builder.chars(),
           .text_run_start_indices = builder.text_run_start_indices(),
+          .table_text_run_indices =
+              raw_ref(page_tables_.table_text_run_indices),
       } {}
 
 PdfAccessibilityTreeBuilderHeuristic::~PdfAccessibilityTreeBuilderHeuristic() =
@@ -2666,9 +2744,37 @@ void PdfAccessibilityTreeBuilderHeuristic::BuildPageTree() {
   bool ocr_block = false;
   bool has_ocr_text = false;
 #endif
+  // Index into `page_tables_.tables` of the next table to add.
+  size_t next_table_index = 0;
 
   for (size_t text_run_index = 0; text_run_index < builder_->text_runs().size();
        ++text_run_index) {
+    // Check for a table run first. A table run's text goes in its table cell,
+    // so the paragraph code below is skipped.
+    if (page_layout_.table_text_run_indices->contains(text_run_index)) {
+      BuildStaticNode(&static_text_state);
+      block_node = nullptr;
+      previous_on_line_node = nullptr;
+      current_heading_classifier = HeadingClassifier::kNone;
+      if (!list_levels_.empty()) {
+        list_levels_.back().item_char_counts.push_back(
+            page_layout_.text_run_start_indices[text_run_index] -
+            list_levels_.back().last_item_start_char_index);
+        PopListLevels(list_levels_, /*levels_to_keep=*/0,
+                      ListEndReason::kTable);
+      }
+      // Add each table at its first text run.
+      if (next_table_index < page_tables_.tables.size() &&
+          page_tables_.tables[next_table_index].anchor_text_run_index ==
+              text_run_index) {
+        ui::AXNodeData* table_node =
+            BuildTableNode(page_tables_.tables[next_table_index++]);
+        builder_->page_node()->child_ids.push_back(table_node->id);
+        block_nodes.push_back(table_node);
+      }
+      continue;
+    }
+
     const TextRunContext run_context =
         GetTextRunContext(page_layout_, text_run_index);
     const chrome_pdf::AccessibilityTextRunInfo& text_run = *run_context.run;
@@ -2894,7 +3000,13 @@ void PdfAccessibilityTreeBuilderHeuristic::BuildPageTree() {
       break;
     }
 
-    if (!previous_on_line_node) {
+    // A following table run closes the block itself.
+    //
+    // A link or highlight with text in a table can leave `text_run_index` on a
+    // table run. Its `next_run` can be null, so skip it too.
+    if (!previous_on_line_node &&
+        !page_layout_.table_text_run_indices->contains(text_run_index) &&
+        !page_layout_.table_text_run_indices->contains(text_run_index + 1)) {
       if (BreakParagraph(text_run_index, block_node, current_heading_classifier,
                          page_layout_, page_properties, list_levels_,
                          last_recorded_lookahead_run_index_)) {
@@ -2928,12 +3040,7 @@ void PdfAccessibilityTreeBuilderHeuristic::BuildPageTree() {
     // Reorder blocks by vertical bands to restore top-to-bottom reading order
     // for pages emitted in authoring/layer order. Band sorting assumes
     // left-to-right columns, so skip pages with any right-to-left text.
-    if (std::ranges::none_of(
-            builder_->text_runs(),
-            [](const chrome_pdf::AccessibilityTextRunInfo& run) {
-              return run.direction ==
-                     chrome_pdf::AccessibilityTextDirection::kRightToLeft;
-            })) {
+    if (std::ranges::none_of(builder_->text_runs(), IsRightToLeftRun)) {
       SortBlockNodesByVerticalBands(block_nodes,
                                     builder_->page_node()->child_ids);
       // Remaining annotations go in a new paragraph rather than a trailing
@@ -3468,6 +3575,59 @@ void PdfAccessibilityTreeBuilderHeuristic::AddRemainingAnnotations(
       para_node->child_ids.push_back(image_node->id);
     }
   }
+}
+
+ui::AXNodeData* PdfAccessibilityTreeBuilderHeuristic::BuildTableNode(
+    const HeuristicTable& table) {
+  ui::AXNodeData* table_node = CreateTableStructureNode(
+      *builder_, ax::mojom::Role::kTable, "table", table.bounds);
+
+  // A table isn't a paragraph block. Clear the block tracking so
+  // `AddTextRunToNode()` doesn't update the language of the last paragraph
+  // block based on the table's text.
+  current_block_node_ = nullptr;
+  current_block_static_text_nodes_.clear();
+
+  // Build and add rows from top to bottom.
+  table_node->child_ids.reserve(table.rows.size());
+  for (const HeuristicTableRow& row : table.rows) {
+    ui::AXNodeData* row_node = CreateTableStructureNode(
+        *builder_, ax::mojom::Role::kRow, "tr", row.bounds);
+    table_node->child_ids.push_back(row_node->id);
+
+    // Build and add cells from left to right.
+    row_node->child_ids.reserve(row.cells.size());
+    for (const HeuristicTableCell& cell : row.cells) {
+      ui::AXNodeData* cell_node = CreateTableStructureNode(
+          *builder_, ax::mojom::Role::kCell, "td", cell.bounds);
+      row_node->child_ids.push_back(cell_node->id);
+
+      // Add the cell's text runs in order. Like in a paragraph, runs on the
+      // same line are linked as previous and next on line.
+      StaticTextState state;
+      const chrome_pdf::AccessibilityTextRunInfo* previous_run = nullptr;
+      ui::AXNodeData* previous_inline_text_box = nullptr;
+      for (size_t run_index : cell.text_run_indices) {
+        const chrome_pdf::AccessibilityTextRunInfo& run =
+            builder_->text_runs()[run_index];
+        ui::AXNodeData* inline_text_box =
+            AddTextRunToNode(run_index, cell_node, &state);
+        state.node->relative_bounds.bounds.Union(
+            inline_text_box->relative_bounds.bounds);
+
+        if (previous_run && AreRunsOnSameLine(*previous_run, run)) {
+          ConnectPreviousAndNextOnLine(previous_inline_text_box,
+                                       inline_text_box);
+        }
+        previous_run = &run;
+        previous_inline_text_box = inline_text_box;
+      }
+      // Finish the cell's last static text node.
+      BuildStaticNode(&state);
+    }
+  }
+
+  return table_node;
 }
 
 }  // namespace pdf

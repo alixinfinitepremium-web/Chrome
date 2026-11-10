@@ -10,14 +10,19 @@ export function getHtml(this: ViewerSignatureDialogElement) {
   // TODO(crbug.com/568576345): Add translated strings.
   return html`<!--_html_template_start_-->
 <cr-dialog id="dialog" show-on-attach show-close-button
-    close-text="Close signature inkpad">
+    close-text="Close signature inkpad"
+    @cr-dialog-open="${this.onCrDialogOpen_}">
   <div slot="title">New signature or initials</div>
   <div slot="body">
     <div id="canvas-container">
       <div id="guide" aria-hidden="true">
         <cr-icon icon="cr:close"></cr-icon>
       </div>
-      <canvas id="canvas"></canvas>
+      <canvas id="canvas" @pointerdown="${this.onPointerdown_}"
+          @pointermove="${this.onPointermove_}"
+          @pointerup="${this.onPointerup_}"
+          @pointercancel="${this.onPointercancel_}">
+      </canvas>
     </div>
   </div>
   <div slot="button-container">
