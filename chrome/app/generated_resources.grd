@@ -9489,6 +9489,9 @@ Keep your key file in a safe place. You will need it to create new versions of y
       <message name="IDS_READING_MODE_PREVIEW_TOOLTIP" desc="Tooltip label for button that previews speech in Read Aloud.">
         Play
       </message>
+      <message name="IDS_READING_MODE_PREVIEW_VOICE_LABEL" desc="Accessibility label for the Play button in the Read Aloud voice selection dialog that plays a short audio preview of a specific voice. VOICE_NAME is the display name of the voice being previewed (e.g. Pebble).">
+        Preview <ph name="VOICE_NAME">$1<ex>Pebble</ex></ph>
+      </message>
       <message name="IDS_READING_MODE_PAUSE_TOOLTIP" desc="Tooltip label for button that pauses speech in Read Aloud.">
         Pause (k)
       </message>
@@ -14604,6 +14607,12 @@ Please help our engineers fix this problem. Tell us what happened right before y
       </if>
 
       <!-- TTC -->
+      <message name="IDS_TTC_CONFIRMATION_YES" meaning="Button label and spoken keyword for TTC voice confirmation" desc="Label of the button that approves an action proposed by the TTC voice assistant. Users can also say this word to approve, so it must be the single, common word people say to agree.">
+        Yes
+      </message>
+      <message name="IDS_TTC_CONFIRMATION_NO" meaning="Button label and spoken keyword for TTC voice confirmation" desc="Label of the button that denies an action proposed by the TTC voice assistant. Users can also say this word to deny, so it must be the single, common word people say to refuse.">
+        No
+      </message>
       <message name="IDS_TTC_ENTRYPOINT_LABEL" desc="Text label of the TTC menu item." translateable="false" formatter_data="android_java">
         TTC
       </message>

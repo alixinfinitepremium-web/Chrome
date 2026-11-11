@@ -137,11 +137,6 @@ inline constexpr char kChroMenuSearchScoringDescription[] =
     "\"1.0,0.8,0.85,0.6\"). Empty or invalid entries keep their default "
     "value. Only takes effect when #chro-menu-search is also enabled.";
 
-inline constexpr char kCredentialManagementUnifiedUiName[] =
-    "Credential Management Unified UI";
-inline constexpr char kCredentialManagementUnifiedUiDescription[] =
-    "Enables the Unified UI for the credential management password APIs.";
-
 inline constexpr char kCrossDeviceSigninFromDesktopName[] =
     "Cross-Device Sign-in From Desktop";
 inline constexpr char kCrossDeviceSigninFromDesktopDescription[] =
@@ -378,14 +373,6 @@ inline constexpr char kBlockingFocusWithoutUserActivationDescription[] =
     "be used by embedders to block programmatic focus calls "
     "(element.focus(), window.focus(), autofocus) from iframes unless "
     "triggered by a user gesture.";
-
-inline constexpr char kBrowsingHistoryImprovedHostnameSuffixMatchingName[] =
-    "Browsing History Improved Hostname Suffix Matching";
-inline constexpr char
-    kBrowsingHistoryImprovedHostnameSuffixMatchingDescription[] =
-        "Improves hostname suffix matching for browsing history, so that "
-        "example.com matches example.com as well as subdomains like "
-        "www.example.com.";
 
 inline constexpr char kBrowsingHistoryFilterByActorName[] =
     "Filter Browsing History By Actor";
@@ -3091,6 +3078,12 @@ inline constexpr char kChromeDarkNeutrals26Name[] = "Chrome Dark Neutrals 26";
 inline constexpr char kChromeDarkNeutrals26Description[] =
     "When enabled, updates the neutral palette for dark mode default theme";
 
+inline constexpr char kCoreAnimationBackdropFilterName[] =
+    "Core Animation Backdrop Filters";
+inline constexpr char kCoreAnimationBackdropFilterDescription[] =
+    "When enabled, certain backdrop filters on browser UI and HTML elements "
+    "will be rendered natively for improved performance.";
+
 inline constexpr char kGpuRasterizationName[] = "GPU rasterization";
 inline constexpr char kGpuRasterizationDescription[] =
     "Use GPU to rasterize web content.";
@@ -4213,6 +4206,12 @@ inline constexpr char kPasswordCompromiseWarningInDetailsCardDescription[] =
     "Displays a warning banner in the password details card when a "
     "saved credential is compromised.";
 
+inline constexpr char kPasswordManagerListSortingName[] =
+    "Password Manager List Sorting";
+inline constexpr char kPasswordManagerListSortingDescription[] =
+    "Enables sorting saved passwords and passkeys by name, date last used, or "
+    "date created in Password Manager.";
+
 inline constexpr char kPasswordManagerShowSuggestionsOnAutofocusName[] =
     "Showing password suggestions on autofocused password forms";
 inline constexpr char kPasswordManagerShowSuggestionsOnAutofocusDescription[] =
@@ -4468,11 +4467,6 @@ inline constexpr char kSendTabToSelfEnhancedHandoffName[] =
 inline constexpr char kSendTabToSelfEnhancedHandoffDescription[] =
     "Enables an enhanced version of Send Tab To Self that propagates more "
     "information, such as form fields and scroll position.";
-
-inline constexpr char kSendTabToSelfGestureName[] = "Send Tab To Self Gesture";
-inline constexpr char kSendTabToSelfGestureDescription[] =
-    "Enables detecting physical double-tap gestures to trigger Send Tab To "
-    "Self on Android.";
 
 inline constexpr char kSensitiveContentName[] =
     "Redact sensitive content during screen sharing, screen recording, "
@@ -6021,12 +6015,6 @@ inline constexpr char kCCTAlwaysOpenInBrowserName[] =
 inline constexpr char kCCTAlwaysOpenInBrowserDescription[] =
     "Enable setting to always open Custom Tabs in the Chrome browser.";
 
-inline constexpr char kCCTContextualMenuItemsName[] =
-    "Enable Contextual Menu Items in CCT";
-inline constexpr char kCCTContextualMenuItemsDescription[] =
-    "When enabled, contextual menu items passed by developers will be visible "
-    "in CCTs.";
-
 inline constexpr char kCCTIncognitoAvailableToThirdPartyName[] =
     "Allow third party to open Custom Tabs Incognito mode";
 inline constexpr char kCCTIncognitoAvailableToThirdPartyDescription[] =
@@ -6085,13 +6073,6 @@ inline constexpr char kChromeFindsDescription[] =
 inline constexpr char kChromeFindsInternalsName[] = "Chrome Finds Internals";
 inline constexpr char kChromeFindsInternalsDescription[] =
     "Enables the chrome://chrome-finds-internals page.";
-
-inline constexpr char kClankDefaultBrowserPromoName[] =
-    "Clank default browser promo 2";
-inline constexpr char kClankDefaultBrowserPromoDescription[] =
-    "When enabled, show additional non-intrusive entry points to allow users "
-    "to set Chrome as their default browser, if the trigger conditions are "
-    "met.";
 
 inline constexpr char kClankDefaultBrowserPromoRoleManagerName[] =
     "Clank default browser Promo Role Manager ";
@@ -6496,12 +6477,6 @@ inline constexpr char kRefreshFeedOnRestartName[] =
     "Enable refreshing feed on restart";
 inline constexpr char kRefreshFeedOnRestartDescription[] =
     "Refresh feed when Chrome restarts.";
-
-inline constexpr char kPCCTMinimumHeightName[] =
-    "Change the minimum height of pCCT to 30%.";
-inline constexpr char kPCCTMinimumHeightDescription[] =
-    "When enabled, this sets the minimum "
-    "height to 30% or 220dp, whichever is greater, for ephemeral pCCTs.";
 
 inline constexpr char kPictureInPictureMovesToolbarAndroidName[] =
     "Picture-in-Picture moves toolbar to top on Android";

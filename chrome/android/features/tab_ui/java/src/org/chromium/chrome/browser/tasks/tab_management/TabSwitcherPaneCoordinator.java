@@ -81,6 +81,7 @@ import org.chromium.chrome.browser.tab_ui.undo_tab_close_snackbar.UndoBarThrottl
 import org.chromium.chrome.browser.tabmodel.TabList;
 import org.chromium.chrome.browser.tabmodel.TabModel;
 import org.chromium.chrome.browser.tabmodel.TabModelObserver;
+import org.chromium.chrome.browser.tabwindow.TabWindowManager;
 import org.chromium.chrome.browser.tasks.tab_management.PriceWelcomeMessageController.PriceMessageUpdateObserver;
 import org.chromium.chrome.browser.tasks.tab_management.TabGridContextMenuCoordinator.ShowTabListEditor;
 import org.chromium.chrome.browser.tasks.tab_management.TabGridDialogMediator.DialogController;
@@ -291,6 +292,7 @@ public class TabSwitcherPaneCoordinator implements BackPressHandler {
      * @param setOverlayViewCallback Callback to set the current overlay view.
      * @param tabSwitcherDragHandler An instance of the {@link TabSwitcherDragHandler}.
      * @param hubSearchBoxVisibilitySupplier Used to set the visibility of the hub search box.
+     * @param tabWindowManager The {@link TabWindowManager}.
      */
     public TabSwitcherPaneCoordinator(
             Activity activity,
@@ -320,7 +322,8 @@ public class TabSwitcherPaneCoordinator implements BackPressHandler {
             UndoBarThrottle undoBarThrottle,
             Callback<@Nullable View> setOverlayViewCallback,
             @Nullable TabSwitcherDragHandler tabSwitcherDragHandler,
-            SettableNonNullObservableSupplier<Boolean> hubSearchBoxVisibilitySupplier) {
+            SettableNonNullObservableSupplier<Boolean> hubSearchBoxVisibilitySupplier,
+            TabWindowManager tabWindowManager) {
         try (TraceEvent _ = TraceEvent.scoped("TabSwitcherPaneCoordinator.constructor")) {
             mProfileProvider = profileProvider;
             mIsVisibleSupplier = isVisibleSupplier;
@@ -475,7 +478,8 @@ public class TabSwitcherPaneCoordinator implements BackPressHandler {
                             tabSwitcherDragHandler,
                             /* undoBarExplicitTrigger= */ null,
                             /* snackbarManager= */ null,
-                            TabListEditorCoordinator.UNLIMITED_SELECTION);
+                            TabListEditorCoordinator.UNLIMITED_SELECTION,
+                            /* dataProvider= */ null);
             mTabListCoordinator = tabListCoordinator;
             TabGridItemLongPressOrchestrator.OnLongPressTabItemEventListener
                     longPressItemEventListener = this::onLongPressOnTabCard;
@@ -674,7 +678,8 @@ public class TabSwitcherPaneCoordinator implements BackPressHandler {
                                     profile,
                                     mTabListCoordinator,
                                     assumeNonNull(
-                                            messageManager.getTabGroupSuggestionMessageService()));
+                                            messageManager.getTabGroupSuggestionMessageService()),
+                                    tabWindowManager);
                 }
             }
         }
@@ -796,13 +801,27 @@ public class TabSwitcherPaneCoordinator implements BackPressHandler {
      * @param tabList The {@link TabList} to show tabs for.
      */
     public void resetWithListOfTabs(@Nullable List<Tab> tabs) {
-        mMessageManager.beforeReset();
+        resetTabs(tabs, /* updateMessages= */ true);
+    }
+
+    /**
+     * Shows {@code tabs} during a swipe preview. Unlike {@link #resetWithListOfTabs}, this does not
+     * update message cards, because they belong to the focused pane.
+     *
+     * @param tabs The tabs to show, or null to clear the list.
+     */
+    public void showPreviewTabs(@Nullable List<Tab> tabs) {
+        resetTabs(tabs, /* updateMessages= */ false);
+    }
+
+    private void resetTabs(@Nullable List<Tab> tabs, boolean updateMessages) {
+        if (updateMessages) mMessageManager.beforeReset();
         // Quick mode being false here ensures the selected tab's thumbnail gets updated. With Hub
         // the TabListCoordinator no longer triggers thumbnail captures so this shouldn't guard
         // against the large amount of work that is used to.
         mTabListCoordinator.resetWithListOfTabs(
                 tabs, /* tabGroupSyncIds= */ null, /* quickMode= */ false);
-        mMessageManager.afterReset(tabs == null ? 0 : tabs.size());
+        if (updateMessages) mMessageManager.afterReset(tabs == null ? 0 : tabs.size());
         mTabListOnScrollListener.postUpdate(mTabListCoordinator.getContainerView());
         if (mTabGroupLabeller != null) {
             mTabGroupLabeller.showAll();

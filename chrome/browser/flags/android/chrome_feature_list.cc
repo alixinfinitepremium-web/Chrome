@@ -349,7 +349,6 @@ const base::Feature* const kFeaturesExposedToJava[] = {
     &kCCTAlwaysOpenInBrowser,
     &kCCTBlockTouchesDuringEnterAnimation,
     &kCCTClientDataHeader,
-    &kCCTContextualMenuItems,
     &kCCTDestroyTabWhenModelIsEmpty,
     &kCCTDontOverrideIntentMimeType,
     &kCCTEarlyInitPowerManager,
@@ -398,7 +397,6 @@ const base::Feature* const kFeaturesExposedToJava[] = {
     &kCrossDeviceTaskHandoff,
     &kCrossWindowTabGroupOperations,
     &kDebugToolbarPositioning,
-    &kDefaultBrowserPromoAndroid2,
     &kDefaultBrowserPromoEntryPoint,
     &kDefaultBrowserPromoFre,
     &kDeferArchivedTabModelCreation,
@@ -477,7 +475,6 @@ const base::Feature* const kFeaturesExposedToJava[] = {
     &kOnStartupWindowPolicy,
     &kOneStepAimAccess,
     &kOpenDownloadInPreferredApp,
-    &kPCCTMinimumHeight,
     &kPageAnnotationsService,
     &kPageContentProvider,
     &kPartnerCustomizationsUma,
@@ -624,7 +621,6 @@ const base::Feature* const kFeaturesExposedToJava[] = {
     &segmentation_platform::features::kSegmentationPlatformAndroidHomeModuleRankerV2,
     &segmentation_platform::features::kSegmentationPlatformEphemeralCardRanker,
     &send_tab_to_self::kSendTabToSelfDynamicShortcuts,
-    &send_tab_to_self::kSendTabToSelfGesture,
     &send_tab_to_self::kSendTabToSelfMultiTabShare,
     &send_tab_to_self::kSendTabToSelfOpenNativeApp,
     &send_tab_to_self::kSendTabToSelfSupportAutoOpenInTabGrid,
@@ -751,7 +747,7 @@ BASE_FEATURE(kAndroidProgressBarVisualUpdate, base::FEATURE_DISABLED_BY_DEFAULT)
 BASE_FEATURE(kAndroidSaveCardNonBlockingDialog, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kAndroidSetGoogleAccountInHelp, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kAndroidSettingsUrl, base::FEATURE_ENABLED_BY_DEFAULT);
-BASE_FEATURE(kAndroidStartupImprovements, base::FEATURE_DISABLED_BY_DEFAULT);
+BASE_FEATURE(kAndroidStartupImprovements, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kAndroidSwapPressureTabDiscard, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kAndroidTabDeclutterArchiveOnDesktop, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kAndroidTabDeclutterDedupeTabIdsKillSwitch, base::FEATURE_ENABLED_BY_DEFAULT);
@@ -807,7 +803,6 @@ BASE_FEATURE(kBrowserControlsPersistsOnCvh, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kCCTAlwaysOpenInBrowser, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kCCTBlockTouchesDuringEnterAnimation, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kCCTClientDataHeader, base::FEATURE_DISABLED_BY_DEFAULT);
-BASE_FEATURE(kCCTContextualMenuItems, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kCCTDestroyTabWhenModelIsEmpty, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kCCTDontOverrideIntentMimeType, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kCCTEarlyInitPowerManager, base::FEATURE_DISABLED_BY_DEFAULT);
@@ -857,7 +852,6 @@ BASE_FEATURE(kCrossDeviceTabPaneAndroid, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kCrossDeviceTaskHandoff, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kCrossWindowTabGroupOperations, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kDebugToolbarPositioning, base::FEATURE_DISABLED_BY_DEFAULT);
-BASE_FEATURE(kDefaultBrowserPromoAndroid2, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kDefaultBrowserPromoEntryPoint, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kDefaultBrowserPromoFre, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kDeferArchivedTabModelCreation, base::FEATURE_DISABLED_BY_DEFAULT);
@@ -944,7 +938,6 @@ BASE_FEATURE(kOneStepAimAccess, base::FEATURE_DISABLED_BY_DEFAULT);
 // TODO(crbug.com/521890621): Enable on all form factors once the non-desktop
 // rollout is complete.
 BASE_FEATURE(kOpenDownloadInPreferredApp, base::FEATURE_DISABLED_BY_DEFAULT);
-BASE_FEATURE(kPCCTMinimumHeight, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kPageAnnotationsService, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kPageContentProvider, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kPartnerCustomizationsUma, base::FEATURE_DISABLED_BY_DEFAULT);

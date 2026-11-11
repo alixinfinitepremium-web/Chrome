@@ -172,7 +172,6 @@
 #include "components/security_state/core/security_state.h"
 #include "components/segmentation_platform/embedder/home_modules/constants.h"
 #include "components/segmentation_platform/public/features.h"
-#include "components/send_tab_to_self/features.h"
 #include "components/sensitive_content/features.h"
 #include "components/services/storage/dom_storage/features.h"
 #include "components/sessions/core/command_storage_features.h"
@@ -350,6 +349,7 @@
 
 #if BUILDFLAG(IS_MAC)
 #include "chrome/browser/ui/dialogs/browser_dialogs.h"
+#include "ui/base/cocoa/ca_backdrop_filter_api.h"
 #endif  // BUILDFLAG(IS_MAC)
 
 #if BUILDFLAG(IS_WIN)
@@ -4990,19 +4990,6 @@ const FeatureEntry::FeatureVariation kGestureUserEducationVariations[] = {
     {"8000ms delay", kGestureUserEducationPageDelay8Seconds, nullptr},
     {"10000ms delay", kGestureUserEducationPageDelay10Seconds, nullptr},
 };
-const FeatureEntry::Choice kSendTabToSelfGestureChoices[] = {
-    {flags_ui::kGenericExperimentChoiceDefault, "", ""},
-    {flags_ui::kGenericExperimentChoiceDisabled, switches::kDisableFeatures,
-     "SendTabToSelfGesture"},
-    {"Enabled Low Sensitivity", switches::kEnableFeatures,
-     "SendTabToSelfGesture:sensitivity/low"},
-    {"Enabled Medium Sensitivity", switches::kEnableFeatures,
-     "SendTabToSelfGesture:sensitivity/medium"},
-    {"Enabled High Sensitivity", switches::kEnableFeatures,
-     "SendTabToSelfGesture:sensitivity/high"},
-    {"Enabled Very High Sensitivity", switches::kEnableFeatures,
-     "SendTabToSelfGesture:sensitivity/very_high"},
-};
 #endif  // BUILDFLAG(IS_ANDROID)
 
 // The choices for Rust-based ChildProcessSecurityPolicy feature.
@@ -8125,10 +8112,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kCCTAlwaysOpenInBrowserName,
      flag_descriptions::kCCTAlwaysOpenInBrowserDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(chrome::android::kCCTAlwaysOpenInBrowser)},
-    {"cct-contextual-menu-items",
-     flag_descriptions::kCCTContextualMenuItemsName,
-     flag_descriptions::kCCTContextualMenuItemsDescription, kOsAndroid,
-     FEATURE_VALUE_TYPE(chrome::android::kCCTContextualMenuItems)},
     {"cct-resizable-for-third-parties",
      flag_descriptions::kCCTResizableForThirdPartiesName,
      flag_descriptions::kCCTResizableForThirdPartiesDescription, kOsAndroid,
@@ -8172,9 +8155,6 @@ const FeatureEntry kFeatureEntries[] = {
     {"cct-navigation-metrics", flag_descriptions::kCCTNavigationMetricsName,
      flag_descriptions::kCCTNavigationMetricsDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(chrome::android::kCCTNavigationMetrics)},
-    {"pcct-minimum-height", flag_descriptions::kPCCTMinimumHeightName,
-     flag_descriptions::kPCCTMinimumHeightDescription, kOsAndroid,
-     FEATURE_VALUE_TYPE(chrome::android::kPCCTMinimumHeight)},
 #endif
 
 #if BUILDFLAG(IS_ANDROID)
@@ -8364,6 +8344,13 @@ const FeatureEntry kFeatureEntries[] = {
 #endif  // defined(ARCH_CPU_ARM_FAMILY)
 #endif  // BUILDFLAG(USE_LINUX_VIDEO_ACCELERATION)
 #endif  // BUILDFLAG(IS_CHROMEOS)
+
+#if BUILDFLAG(IS_MAC)
+    {"core-animation-backdrop-filter",
+     flag_descriptions::kCoreAnimationBackdropFilterName,
+     flag_descriptions::kCoreAnimationBackdropFilterDescription, kOsMac,
+     FEATURE_VALUE_TYPE(ui::kCoreAnimationBackdropFilter)},
+#endif
 
 #if BUILDFLAG(IS_ANDROID)
     {"force-startup-signin-promo",
@@ -10392,6 +10379,12 @@ const FeatureEntry kFeatureEntries[] = {
          password_manager::features::kPasswordCompromiseWarningInDetailsCard)},
 #endif  // !BUILDFLAG(IS_ANDROID)
 
+    {"password-manager-list-sorting",
+     flag_descriptions::kPasswordManagerListSortingName,
+     flag_descriptions::kPasswordManagerListSortingDescription, kOsDesktop,
+     FEATURE_VALUE_TYPE(
+         password_manager::features::kPasswordManagerListSorting)},
+
     {"password-save-in-context-error-resolution",
      flag_descriptions::kPasswordSaveInContextErrorResolutionName,
      flag_descriptions::kPasswordSaveInContextErrorResolutionDescription,
@@ -10730,11 +10723,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kClankDefaultBrowserPromoRoleManagerDescription,
      kOsAndroid,
      SINGLE_DISABLE_VALUE_TYPE(switches::kDisableDefaultBrowserPromo)},
-
-    {"clank-default-browser-promo2",
-     flag_descriptions::kClankDefaultBrowserPromoName,
-     flag_descriptions::kClankDefaultBrowserPromoDescription, kOsAndroid,
-     FEATURE_VALUE_TYPE(chrome::android::kDefaultBrowserPromoAndroid2)},
 
     {"desktop-ua-on-connected-display",
      flag_descriptions::kDesktopUAOnConnectedDisplayName,
@@ -12939,14 +12927,6 @@ const FeatureEntry kFeatureEntries[] = {
      kOsDesktop,
      FEATURE_VALUE_TYPE(safe_browsing::kBundledSecuritySettingsSecureDnsV2)},
 
-#if !BUILDFLAG(IS_ANDROID)
-    {"credential-management-unified-ui",
-     flag_descriptions::kCredentialManagementUnifiedUiName,
-     flag_descriptions::kCredentialManagementUnifiedUiDescription, kOsDesktop,
-     FEATURE_VALUE_TYPE(
-         password_manager::features::kCredentialManagementUnifiedUi)},
-#endif  // !BUILDFLAG(IS_ANDROID)
-
 #if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC)
     {"search-engine-explicit-choice-dialog",
      flag_descriptions::kSearchEngineExplicitChoiceDialogName,
@@ -13356,9 +13336,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kLongScreenshotsLenientMemoryCheckDescription,
      kOsAndroid,
      FEATURE_VALUE_TYPE(chrome::android::kLongScreenshotsLenientMemoryCheck)},
-    {"send-tab-to-self-gesture", flag_descriptions::kSendTabToSelfGestureName,
-     flag_descriptions::kSendTabToSelfGestureDescription, kOsAndroid,
-     MULTI_VALUE_TYPE(kSendTabToSelfGestureChoices)},
 #endif  // BUILDFLAG(IS_ANDROID)
     {"enable-cancel-upload-on-content-analysis",
      flag_descriptions::kEnableCancelUploadOnContentAnalysisName,
@@ -13987,14 +13964,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kUnifyWaitForCookiesDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(switches::kUnifyWaitForCookies)},
 #endif  // BUILDFLAG(ENABLE_DESKTOP_ANDROID_EXTENSIONS)
-
-    {"browsing-history-improved-hostname-suffix-matching",
-     flag_descriptions::kBrowsingHistoryImprovedHostnameSuffixMatchingName,
-     flag_descriptions::
-         kBrowsingHistoryImprovedHostnameSuffixMatchingDescription,
-     kOsAll,
-     FEATURE_VALUE_TYPE(
-         history::kBrowsingHistoryImprovedHostnameSuffixMatching)},
 
     {"browsing-history-filter-by-device",
      flag_descriptions::kBrowsingHistoryFilterByDeviceName,

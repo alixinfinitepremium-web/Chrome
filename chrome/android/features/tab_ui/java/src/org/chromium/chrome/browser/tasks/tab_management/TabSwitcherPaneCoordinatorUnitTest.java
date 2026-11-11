@@ -14,6 +14,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.never;
@@ -95,6 +96,7 @@ import org.chromium.chrome.browser.tab_ui.TabThumbnailView;
 import org.chromium.chrome.browser.tab_ui.undo_tab_close_snackbar.UndoBarThrottle;
 import org.chromium.chrome.browser.tabmodel.TabModel;
 import org.chromium.chrome.browser.tabmodel.TabModelObserver;
+import org.chromium.chrome.browser.tabwindow.TabWindowManager;
 import org.chromium.chrome.browser.tasks.tab_management.TabGridDialogMediator.DialogController;
 import org.chromium.chrome.browser.ui.edge_to_edge.EdgeToEdgeController;
 import org.chromium.chrome.browser.ui.favicon.FaviconHelper;
@@ -165,6 +167,7 @@ public class TabSwitcherPaneCoordinatorUnitTest {
     @Mock private TabListGroupMenuCoordinator mTabListGroupMenuCoordinator;
     @Mock private PriceWelcomeMessageController mPriceWelcomeMessageController;
     @Mock private MultiInstanceOrchestrator mMultiInstanceOrchestrator;
+    @Mock private TabWindowManager mTabWindowManager;
 
     private final SettableNonNullObservableSupplier<Boolean> mHubSearchBoxVisibilitySupplier =
             ObservableSuppliers.createNonNull(false);
@@ -280,7 +283,8 @@ public class TabSwitcherPaneCoordinatorUnitTest {
                         mUndoBarThrottle,
                         mOverlayViewSupplier::set,
                         /* tabSwitcherDragHandler= */ null,
-                        mHubSearchBoxVisibilitySupplier);
+                        mHubSearchBoxVisibilitySupplier,
+                        mTabWindowManager);
         watcher.assertExpected();
         mOverlayViewManager = new SingleChildViewManager(overlayView, mOverlayViewSupplier);
 
@@ -330,6 +334,41 @@ public class TabSwitcherPaneCoordinatorUnitTest {
         }
         mTabModel.setIndex(1, TabSelectionType.FROM_USER);
         mCoordinator.resetWithListOfTabs(List.of(tab0, tab1));
+    }
+
+    @Test
+    public void testResetWithListOfTabs_updatesMessages() {
+        clearInvocations(mMessageManager);
+
+        mCoordinator.resetWithListOfTabs(null);
+
+        verify(mMessageManager).beforeReset();
+        verify(mMessageManager).afterReset(0);
+    }
+
+    @Test
+    public void testShowPreviewTabs_showsTabs() {
+        MockTab tab = MockTab.createAndInitialize(/* id= */ 1, mProfile);
+        mTabModel.addTab(
+                tab,
+                /* index= */ 0,
+                TabLaunchType.FROM_CHROME_UI,
+                TabCreationState.LIVE_IN_FOREGROUND);
+
+        mCoordinator.showPreviewTabs(List.of(tab));
+
+        TabListRecyclerView recyclerView = mActivity.findViewById(R.id.tab_list_recycler_view);
+        assertEquals(1, recyclerView.getAdapter().getItemCount());
+    }
+
+    @Test
+    public void testShowPreviewTabs_leavesMessagesAlone() {
+        clearInvocations(mMessageManager);
+
+        mCoordinator.showPreviewTabs(null);
+
+        verify(mMessageManager, never()).beforeReset();
+        verify(mMessageManager, never()).afterReset(anyInt());
     }
 
     @After

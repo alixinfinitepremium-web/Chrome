@@ -427,18 +427,6 @@ chromium-metrics-reviews@google.com.
   </summary>
 </histogram>
 
-<histogram name="Blink.Canvas.MaximumStateStackDepth" units="stack depth"
-    expires_after="2024-04-01">
-  <owner>junov@chromium.org</owner>
-  <owner>fserb@chromium.org</owner>
-  <summary>
-    Reports the maximum depth of the state stack over the lifetime of a 2d
-    rendering context. Metric is recorded once per instance of
-    CanvasRenderingContext2D, OffscreenRenderingContext2D, and
-    PaintRenderingContext2D; at context destruction time.
-  </summary>
-</histogram>
-
 <histogram name="Blink.Canvas.NumCanvasesPerPage" units="canvases"
     expires_after="2025-08-10">
   <owner>aaronhk@chromium.org</owner>
@@ -1079,19 +1067,6 @@ chromium-metrics-reviews@google.com.
     Note: This metric drops reports on clients with low-resolution clocks, which
     means these reports will be biased against a portion of the population on
     Windows. See Windows.HasHighResolutionTimeTicks for the affected sample.
-  </summary>
-</histogram>
-
-<histogram name="Blink.ContextMenu.ImageSelection.Outcome"
-    enum="ImageSelectionOutcome" expires_after="2024-03-17">
-  <owner>flackr@chromium.org</owner>
-  <owner>blink-interactions-team@google.com</owner>
-  <summary>
-    The outcome of an image selection search that may or may not trigger the
-    context menu.
-
-    Only recorded when a user long presses or right clicks a document (and an
-    image is found).
   </summary>
 </histogram>
 

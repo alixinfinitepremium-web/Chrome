@@ -5,6 +5,9 @@
 #ifndef CHROME_BROWSER_UI_AUTOFILL_AUTOFILL_BUBBLE_CONTROLLER_BASE_H_
 #define CHROME_BROWSER_UI_AUTOFILL_AUTOFILL_BUBBLE_CONTROLLER_BASE_H_
 
+#include <optional>
+#include <string>
+
 #include "base/callback_list.h"
 #include "base/check_deref.h"
 #include "base/memory/raw_ptr.h"
@@ -30,8 +33,31 @@ class AutofillBubbleHandler;
 class AutofillBubbleControllerBase : public BubbleControllerBase,
                                      public content::WebContentsObserver {
  public:
-  explicit AutofillBubbleControllerBase(content::WebContents* web_contents);
-  explicit AutofillBubbleControllerBase(tabs::TabInterface* tab_interface);
+  // Configures how `AutofillBubbleControllerBase` interacts with the browser
+  // action (`action_id`) associated with this bubble.
+  struct PageActionConfig {
+    actions::ActionId action_id;
+
+    // If true, `UpdatePageActionIcon()` shows and hides `action_id`'s omnibox
+    // icon based on `ShouldShowPageAction()`. Set to false if omnibox icon
+    // visibility is owned by a separate `*PageActionController` or if the
+    // bubble never shows an omnibox icon.
+    bool should_manage_visibility = false;
+
+    // If true, marks `action_id`'s `ActionItem` as showing a bubble while this
+    // bubble is open (`ActionItem::SetIsShowingBubble()`). This prevents
+    // clicking the anchor icon from immediately re-triggering the action after
+    // mouse-down closes the bubble, and lets `PageActionController` suppress
+    // competing anchored messages.
+    // TODO(crbug.com/582209796): Enable for pinnable toolbar actions once
+    // clicking a `PinnedActionToolbarButton` dismisses inactive bubbles.
+    bool should_sync_bubble_showing_state = false;
+  };
+
+  AutofillBubbleControllerBase(content::WebContents* web_contents,
+                               PageActionConfig page_action_config);
+  AutofillBubbleControllerBase(tabs::TabInterface* tab_interface,
+                               PageActionConfig page_action_config);
   ~AutofillBubbleControllerBase() override;
 
   // Calls the bubble manager to show the bubble on desktop. On Android, just
@@ -88,10 +114,6 @@ class AutofillBubbleControllerBase : public BubbleControllerBase,
 
   bool IsBubbleManagerEnabled();
 
-  // Subclasses should override this method to supply their page action's
-  // `ActionId`.
-  virtual std::optional<actions::ActionId> GetActionIdForPageAction();
-
   // Subclasses should implement this method to actually show the bubble and
   // potentially log metrics.
   virtual void DoShowBubble() = 0;
@@ -135,9 +157,12 @@ class AutofillBubbleControllerBase : public BubbleControllerBase,
   void WillDiscardContents(tabs::TabInterface* tab,
                            content::WebContents* old_contents,
                            content::WebContents* new_contents);
+  void SetActionItemIsShowingBubble(bool showing);
 
   // Non-null when constructed with `tabs::TabInterface*`.
   const raw_ptr<tabs::TabInterface> tab_interface_ = nullptr;
+
+  const PageActionConfig page_action_config_;
 
   base::CallbackListSubscription will_discard_contents_subscription_;
 

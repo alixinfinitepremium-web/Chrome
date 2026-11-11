@@ -103,6 +103,8 @@ source_set("impl") {
     "entrypoint_controller.cc",
     "eval_audio_controller.cc",
     "eval_audio_controller.h",
+    "hotl/hotl_transcript_matcher.cc",
+    "hotl/hotl_transcript_matcher.h",
     "lock_or_suspend_detector.cc",
     "lock_or_suspend_detector.h",
     "page_context.cc",
@@ -144,8 +146,10 @@ source_set("impl") {
   ]
   deps = [
     "//base",
+    "//base:i18n",
     "//chrome/browser/actor/tools/registry",
     "//chrome/browser/actor/ui",
+    "//chrome/browser/critical_actions",
     "//chrome/browser/glic",
     "//chrome/browser/page_content_annotations:extraction_service",
     "//chrome/browser/profiles:profile",
@@ -156,6 +160,7 @@ source_set("impl") {
     "//chrome/browser/ui/browser_window",
     "//chrome/common",
     "//chrome/common:actor_webui_mojom",
+    "//components/critical_actions/core/browser",
     "//components/keyed_service/core",
     "//components/optimization_guide/content/browser",
     "//components/sessions:session_id",
@@ -241,6 +246,7 @@ source_set("test_support") {
 source_set("unit_tests") {
   testonly = true
   sources = [
+    "hotl/hotl_transcript_matcher_unittest.cc",
     "lock_or_suspend_detector_unittest.cc",
     "page_context_util_unittest.cc",
     "pointer_tracker_unittest.cc",
@@ -260,6 +266,7 @@ source_set("unit_tests") {
     ":test_support",
     "//base/test:test_support",
     "//chrome/browser/actor:test_support",
+    "//chrome/browser/critical_actions",
     "//chrome/browser/ttc/app:public",
     "//chrome/browser/ttc/app:unit_tests",
     "//chrome/common:actor_webui_mojom",
@@ -268,6 +275,7 @@ source_set("unit_tests") {
     "//components/actor/core:journal",
     "//components/actor/core:task_id",
     "//components/actor/public/mojom:mojo_bindings",
+    "//components/critical_actions/core/browser",
     "//components/keyed_service/core",
     "//components/ttc/app/public",
     "//content/test:test_support",

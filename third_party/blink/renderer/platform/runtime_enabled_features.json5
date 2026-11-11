@@ -2396,6 +2396,14 @@
       name: "Database",
     },
     {
+      // Killswitch. When enabled, a data: URL document in a subframe is a
+      // secure context iff its ancestors are, per the HTML Standard's
+      // "secure context" algorithm. See
+      // https://html.spec.whatwg.org/C/#secure-context.
+      name: "DataUrlSubframeSecureContext",
+      status: "stable",
+    },
+    {
       // Killswitch for https://crbug.com/40622827
       name: "DateTimeFieldTypeWithoutSelection",
       status: "stable",
@@ -3557,14 +3565,6 @@
     },
     {
       name: "GamepadWindowEventHandlers",
-      status: "stable",
-    },
-    {
-      // When enabled, the drag image overlay for an element will be created
-      // before the "dragstart" event is fired. This fixes a bug that made
-      // drags not start if the "dragstart" event caused a layout shift that
-      // made the mouse hit test miss the drag source.
-      name: "GenerateDragOverlayBeforeDragStart",
       status: "stable",
     },
     {

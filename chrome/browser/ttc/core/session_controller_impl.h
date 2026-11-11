@@ -64,6 +64,7 @@ class SessionControllerImpl : public SessionController,
   SessionJournalImpl& GetJournal() override;
   DebugSink* GetDebugSink() override;
   void SetSessionLifecycle(SessionLifecycle lifecycle) override;
+  void SetSessionId(const std::string& session_id) override;
   void ProcessToolCall(const ToolRequest& tool_request,
                        ToolResponseCallback tool_response_callback) override;
   std::vector<ToolDefinition> GetToolDefinitions() override;
@@ -136,6 +137,11 @@ class SessionControllerImpl : public SessionController,
 
   SessionLifecycle session_lifecycle_ = SessionLifecycle::kInitializing;
   Speaker speaker_ = Speaker::kIdle;
+
+  // Whether the user muted the microphone in TTC, as opposed to the OS or
+  // hardware muting it (see `OnSystemMicMuteChanged()`). Sessions go live
+  // unmuted.
+  bool app_mic_muted_ = false;
 
   base::ObserverList<SessionController::Observer> observers_;
 

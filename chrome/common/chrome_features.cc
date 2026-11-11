@@ -1207,6 +1207,10 @@ const base::FeatureParam<bool>
 // Enables or disables HaTS for Scheduled Restarts on Desktop.
 BASE_FEATURE(kHappinessTrackingSurveysForDesktopScheduledRestart,
              base::FEATURE_DISABLED_BY_DEFAULT);
+
+// Enables or disables HaTS for Default Browser prompts on Desktop.
+BASE_FEATURE(kHappinessTrackingSurveysForDesktopDefaultBrowser,
+             base::FEATURE_DISABLED_BY_DEFAULT);
 #endif  // !BUILDFLAG(IS_ANDROID)
 
 // Enables HTTPS-First Mode in a balanced configuration that doesn't warn on
@@ -1946,6 +1950,10 @@ BASE_FEATURE(kWebAppInstallDialogWinPin, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kWebAppUpgradeToDatabaseVersion6,
              base::FEATURE_ENABLED_BY_DEFAULT);
 
+// Controls whether the WebUI toolbar WebContents opts out of frame eviction.
+BASE_FEATURE(kWebUIToolbarFrameEvictionOptOut,
+             base::FEATURE_DISABLED_BY_DEFAULT);
+
 #if !BUILDFLAG(IS_ANDROID)
 BASE_FEATURE(kWebium, base::FEATURE_DISABLED_BY_DEFAULT);
 // When enable, the reload button will be replaced with the a WebView, and
@@ -2005,10 +2013,6 @@ BASE_FEATURE(kWebUILocationBar, base::FEATURE_DISABLED_BY_DEFAULT);
 // When this is enabled, all the checks for enabled individual WebUI toolbar
 // controls in chrome/browser/ui/ui_features.h will return true.
 BASE_FEATURE(kWebUIToolbar, base::FEATURE_DISABLED_BY_DEFAULT);
-
-// Controls whether the WebUI toolbar WebContents opts out of frame eviction.
-BASE_FEATURE(kWebUIToolbarFrameEvictionOptOut,
-             base::FEATURE_DISABLED_BY_DEFAULT);
 
 // The following feature params control the crash recovery behavior of the Web
 // UI reload button. If the renderer crashes, we will try to recover it by

@@ -1114,7 +1114,7 @@
     ],
     "exclusive_tests": "ALL",
     "args": [
-      "--enable-features=EmailVerificationProtocol,FedCmPreservePortsForTesting",
+      "--enable-features=EmailVerificationProtocol",
       "--dns-txt-resolver-url-prefix=https://web-platform.test:8444/fedcm/support/delegation-dns.py?name="
     ],
     "expires": "Feb 1, 2027"
@@ -1583,6 +1583,15 @@
     "owners": [
       "horo@chromium.org"
     ]
+  },
+  "Temporary C++ ICO baseline during the Rust decoder transition; remove when the legacy decoder is retired.",
+  {
+    "prefix": "ico-cpp",
+    "platforms": ["Linux", "Mac", "Win"],
+    "bases": ["wpt_internal/images/ico-natural-size.html"],
+    "args": ["--disable-features=RustyIcoFeature"],
+    "owners": ["sergiog@microsoft.com"],
+    "expires": "May 10, 2027"
   },
   {
     "prefix": "jxl-disabled",

@@ -93,7 +93,6 @@
 #include "content/public/common/content_features.h"
 #include "content/public/common/content_switches.h"
 #include "third_party/blink/public/mojom/input/input_handler.mojom.h"
-#include "third_party/jni_zero/jni_zero.h"
 #include "third_party/perfetto/include/perfetto/tracing/track.h"
 #include "third_party/skia/include/core/SkBitmap.h"
 #include "third_party/skia/include/core/SkCanvas.h"
@@ -982,6 +981,7 @@ void RenderWidgetHostViewAndroid::OnRenderFrameMetadataChangedBeforeActivation(
   const ClampedBrowserControls controls =
       ClampBrowserControls(metadata.browser_controls_metadata);
   const float top_content_offset = controls.top_content_offset;
+  const float bottom_content_offset = controls.bottom_content_offset;
 
   if (ime_adapter_android_) {
     ime_adapter_android_->UpdateFrameInfo(metadata.selection.start, dip_scale,
@@ -1022,12 +1022,13 @@ void RenderWidgetHostViewAndroid::OnRenderFrameMetadataChangedBeforeActivation(
         metadata.root_overflow_y_hidden);
   }
 
-  // All offsets and sizes except |top_content_offset| are in dip.
+  // All offsets and sizes except |top_content_offset| and
+  // |bottom_content_offset| are in dip.
   gesture_listener_manager_->UpdateScrollInfo(
       root_scroll_offset_dip, metadata.page_scale_factor,
       metadata.min_page_scale_factor, metadata.max_page_scale_factor,
       root_layer_size_dip, scrollable_viewport_size_dip, top_content_offset_dip,
-      top_content_offset, controls_changed);
+      top_content_offset, bottom_content_offset, controls_changed);
   // This needs to be called after GestureListenerManager::UpdateScrollInfo, as
   // it depends on frame info being updated during the UpdateScrollInfo call.
   auto* wcax = GetWebContentsAccessibilityBase();
@@ -1067,7 +1068,7 @@ RenderWidgetHostViewAndroid::GetJavaObject() {
   if (!obj_) {
     JNIEnv* env = base::android::AttachCurrentThread();
     obj_.Reset(env, Java_RenderWidgetHostViewImpl_create(
-                        env, jni_zero::MakeRaw(this)));
+                        env, reinterpret_cast<intptr_t>(this)));
   }
   return base::android::ScopedJavaLocalRef<jobject>(obj_);
 }
@@ -2442,6 +2443,7 @@ RenderWidgetHostViewAndroid::ClampBrowserControls(
   clamped.top_min_height_offset = std::clamp(
       metadata.top_controls_min_height_offset, 0.f, browser_top_height);
   clamped.bottom_translate = bottom_translate;
+  clamped.bottom_content_offset = browser_bottom_height - bottom_translate;
   clamped.bottom_min_height_offset = std::clamp(
       metadata.bottom_controls_min_height_offset, 0.f, browser_bottom_height);
   return clamped;

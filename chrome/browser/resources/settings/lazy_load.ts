@@ -14,6 +14,7 @@ import './ai_page/skills_page.js';
 import './appearance_page/appearance_fonts_page.js';
 import './autofill_page/contact_info/contact_info_page.js';
 import './autofill_page/identity_docs/identity_docs_page.js';
+import './autofill_page/offers_and_loyalty_cards/offers_and_loyalty_cards_page.js';
 // <if expr="is_win or is_macosx">
 import './autofill_page/passwords/passkeys_page.js';
 // </if>
@@ -148,7 +149,6 @@ export {getToastManager} from 'chrome://resources/cr_elements/cr_toast/cr_toast_
 export {CrTooltipElement} from 'chrome://resources/cr_elements/cr_tooltip/cr_tooltip.js';
 export {browserProxyFactory as batchUploadPromoProxyFactory} from 'chrome://resources/js/batch_upload_promo.mojom-webui.js';
 export type {PageHandlerInterface, PageRemote} from 'chrome://resources/js/batch_upload_promo.mojom-webui.js';
-export type {IronListElement} from 'chrome://resources/polymer/v3_0/iron-list/iron-list.js';
 export {AccessibilityBrowserProxyImpl} from './a11y_page/a11y_browser_proxy.js';
 export type {AccessibilityBrowserProxy} from './a11y_page/a11y_browser_proxy.js';
 export {SettingsA11yPageElement, ToastAlertLevel} from './a11y_page/a11y_page.js';
@@ -190,6 +190,7 @@ export type {CountryDetailManagerProxy} from './autofill_page/country_detail_man
 export {EntityDataManagerProxyImpl} from './autofill_page/entity_data_manager_proxy.js';
 export type {EntityDataManagerProxy, EntityInstancesChangedListener} from './autofill_page/entity_data_manager_proxy.js';
 export {SettingsIdentityDocsPageElement} from './autofill_page/identity_docs/identity_docs_page.js';
+export {SettingsOffersAndLoyaltyCardsPageElement} from './autofill_page/offers_and_loyalty_cards/offers_and_loyalty_cards_page.js';
 // <if expr="is_win or is_macosx">
 export {PasskeysBrowserProxyImpl} from './autofill_page/passwords/passkeys_browser_proxy.js';
 export type {Passkey, PasskeysBrowserProxy} from './autofill_page/passwords/passkeys_browser_proxy.js';

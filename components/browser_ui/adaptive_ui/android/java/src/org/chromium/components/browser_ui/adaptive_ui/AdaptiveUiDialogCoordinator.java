@@ -46,7 +46,9 @@ import org.chromium.ui.modelutil.PropertyModelChangeProcessor;
  */
 @NullMarked
 final class AdaptiveUiDialogCoordinator
-        implements ModalDialogProperties.Controller, ModalDialogManagerObserver {
+        implements AdaptiveUiControllerImpl.Presenter,
+                ModalDialogProperties.Controller,
+                ModalDialogManagerObserver {
     private final PropertyModel mModel;
     private final ModalDialogManager mModalDialogManager;
     private final Runnable mOnShown;
@@ -60,6 +62,9 @@ final class AdaptiveUiDialogCoordinator
 
     /** Whether this is the last dialog the manager created and its onDialogShown is pending. */
     private boolean mWaitingForOnShown;
+
+    /** Whether this is the last dialog the manager created. */
+    private boolean mCreatedLast;
 
     private boolean mShown;
 
@@ -104,7 +109,8 @@ final class AdaptiveUiDialogCoordinator
     }
 
     /** Hands the dialog to the {@link ModalDialogManager}, which may queue it. */
-    void show() {
+    @Override
+    public void show() {
         if (mDestroyed) return;
         mModalDialogManager.addObserver(this);
         mModalDialogManager.showDialog(mDialogModel, getDialogType(mScope));
@@ -115,12 +121,23 @@ final class AdaptiveUiDialogCoordinator
      * before this returns.
      *
      * @param reason Why the entry is closed.
+     * @param animate Ignored: {@link ModalDialogManager} can't skip its exit animation.
      */
-    void hide(@DismissReason int reason) {
+    @Override
+    public void hide(@DismissReason int reason, boolean animate) {
         if (mDestroyed) return;
         setDismissReason(reason);
         // Synchronous for both showing and queued dialogs; onDismiss() reports the reason.
         mModalDialogManager.dismissDialog(mDialogModel, toDialogDismissalCause(reason));
+    }
+
+    @Override
+    public boolean isCurrent() {
+        // The manager doesn't report putting a dialog back in its queue, but it presents one
+        // dialog at a time and creates each dialog it presents, so the current dialog is the one it
+        // created last. This stays true if the manager suspends this dialog's type and shows
+        // nothing else; closing it then can't make the manager show another dialog.
+        return mCreatedLast;
     }
 
     /** Maps {@link AdaptiveUiScope#WINDOW} to app-modal and transient entries to tab-modal. */
@@ -132,7 +149,8 @@ final class AdaptiveUiDialogCoordinator
 
     @Override
     public void onDialogCreated(PropertyModel model, @Nullable ComponentDialog dialog) {
-        mWaitingForOnShown = model == mDialogModel;
+        mCreatedLast = model == mDialogModel;
+        mWaitingForOnShown = mCreatedLast;
     }
 
     @Override
@@ -304,7 +322,7 @@ final class AdaptiveUiDialogCoordinator
     private void requestDismiss(@DismissReason int reason) {
         if (isDismissing()) return;
         mRequestedDismissReason = reason;
-        hide(reason);
+        hide(reason, /* animate= */ true);
     }
 
     // LINT.IfChange(DialogDismissReasonMapping)

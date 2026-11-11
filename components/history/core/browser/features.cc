@@ -117,16 +117,6 @@ BASE_FEATURE(kBrowsingHistoryCollapsibleDayCards,
 // Enables improved chrome://history de-duplication logic, this includes
 // grouping entries by hostname and title per day.
 BASE_FEATURE(kBrowsingHistorySimilarVisitsGrouping,
-#if BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_IOS)
-             base::FEATURE_DISABLED_BY_DEFAULT
-#else
-             base::FEATURE_ENABLED_BY_DEFAULT
-#endif
-);
-
-// If enabled, improves hostname suffix matching for browsing history, so that
-// example.com matches example.com as well as subdomains like www.example.com.
-BASE_FEATURE(kBrowsingHistoryImprovedHostnameSuffixMatching,
              base::FEATURE_ENABLED_BY_DEFAULT);
 
 // Enables browser history filtering by device. Do not check this feature

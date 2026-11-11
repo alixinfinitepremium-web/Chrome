@@ -4582,19 +4582,6 @@ shown properly on the user-facing crash UI.
   <int value="1717998593" label="PrototypeVendorProduct9401"/>
 </enum>
 
-<enum name="GCMCheckinRequestStatus">
-  <int value="0" label="Success"/>
-  <int value="1" label="URL fetching failed (until M82)"/>
-  <int value="2" label="HTTP bad request"/>
-  <int value="3" label="HTTP unauthorized"/>
-  <int value="4" label="HTTP not OK"/>
-  <int value="5" label="Response parsing failed"/>
-  <int value="6" label="Zero ID or token"/>
-  <int value="7" label="URL fetching failed: network error"/>
-  <int value="8" label="URL fetching failed: no response info"/>
-  <int value="9" label="URL fetching failed: no headers"/>
-</enum>
-
 <enum name="GCMDecryptionResult">
   <int value="0" label="Success (message unencrypted)"/>
   <int value="1" label="Success (message decrypted per draft 03)"/>
@@ -10235,6 +10222,7 @@ from previous Chrome versions.
   <int value="-1447457836" label="QuickShareV2:disabled"/>
   <int value="-1447314734" label="QuerySearchBurnInPeriod:enabled"/>
   <int value="-1447147245" label="VideoPlayerNativeControls:enabled"/>
+  <int value="-1447127947" label="password-manager-list-sorting:disabled"/>
   <int value="-1447120866"
       label="EnableAndroidSidePanelManualResizing:disabled"/>
   <int value="-1447000031" label="PrivateStateTokensDevUI:disabled"/>
@@ -13411,6 +13399,7 @@ from previous Chrome versions.
   <int value="-501679339" label="CrossDeviceTaskHandoff:disabled"/>
   <int value="-501461773" label="GlicActorUiOverlayMagicCursor:disabled"/>
   <int value="-500807692" label="Apb144Patch7:disabled"/>
+  <int value="-500705256" label="CoreAnimationBackdropFilter:disabled"/>
   <int value="-500367371" label="CCTPageInsightsHubBetterScroll:enabled"/>
   <int value="-500187265"
       label="NtpFeatureOptimizationDismissModulesRemoval:enabled"/>
@@ -16737,6 +16726,7 @@ from previous Chrome versions.
   <int value="492985975" label="use-monitor-color-space"/>
   <int value="493758709" label="RestrictGamepadAccess:disabled"/>
   <int value="493903641" label="disable-appcontainer"/>
+  <int value="494002791" label="PasswordManagerListSorting:enabled"/>
   <int value="494733611" label="disable-drop-sync-credential"/>
   <int value="494832336" label="LockTopControlsOnLargeTablets:disabled"/>
   <int value="494939785" label="InsecureFormSubmissionInterstitial:disabled"/>
@@ -17013,6 +17003,7 @@ from previous Chrome versions.
   <int value="583840453" label="EnableDownloadSaveAsSystemFileDialog:enabled"/>
   <int value="584241117"
       label="ContextualTasksContextMultiTurnTabRelevance:disabled"/>
+  <int value="584304480" label="PasswordManagerListSorting:disabled"/>
   <int value="584509342" label="TerminalTmuxIntegration:enabled"/>
   <int value="584541349" label="ContextualSearchSingleActions:disabled"/>
   <int value="584661108"
@@ -18947,6 +18938,7 @@ from previous Chrome versions.
   <int value="1159222900" label="CollapseTabGroupDuringDrag:disabled"/>
   <int value="1159760152"
       label="ContextMenuSearchAndShopWithGoogleLens:disabled"/>
+  <int value="1160671261" label="password-manager-list-sorting:enabled"/>
   <int value="1161105475"
       label="ClipboardWellFormedHtmlSanitizationWrite:disabled"/>
   <int value="1161822401" label="LoginDetection:enabled"/>
@@ -19308,6 +19300,7 @@ from previous Chrome versions.
   <int value="1261095642" label="AndroidDesktopAimGate:disabled"/>
   <int value="1261379424" label="DecodeLossyWebPImagesToYUV:disabled"/>
   <int value="1261620998" label="IntentPickerPWAPersistence:disabled"/>
+  <int value="1261678231" label="CoreAnimationBackdropFilter:enabled"/>
   <int value="1261713150" label="ChromeHomeOptOutSnackbar:disabled"/>
   <int value="1262469513" label="GesturePropertiesDBusService:disabled"/>
   <int value="1262747485"
@@ -28135,13 +28128,6 @@ Called by update_net_error_codes.py.-->
 </enum>
 
 <!-- LINT.ThenChange(/components/segmentation_platform/embedder/home_modules/tips_manager/constants.h:TipIdentifier) -->
-
-<enum name="TokenStateOnRegistrationRequest">
-  <int value="0" label="Token was empty"/>
-  <int value="1" label="Token stayed unchanged"/>
-  <int value="2" label="Token has changed"/>
-  <int value="3" label="Token was cleared"/>
-</enum>
 
 <enum name="TouchscreenConfiguration">
   <int value="0" label="InternalOneExternalNone"/>

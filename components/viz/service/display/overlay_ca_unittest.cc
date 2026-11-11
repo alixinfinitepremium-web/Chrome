@@ -47,6 +47,7 @@
 #include "ui/base/cocoa/ca_backdrop_filter_api.h"
 #include "ui/gfx/geometry/rect_conversions.h"
 #include "ui/gfx/video_types.h"
+#include "ui/gl/ca_renderer_layer_params.h"
 #include "ui/latency/latency_info.h"
 
 using testing::_;
@@ -484,9 +485,10 @@ class CALayerOverlayRPDQTest : public CALayerOverlayTest {
   void SetBackdropFilter(
       cc::FilterOperations backdrop_filters,
       std::optional<SkPath> backdrop_filter_bounds = std::nullopt,
-      gfx::Vector2dF filters_scale = gfx::Vector2dF(1, 1)) {
+      gfx::Vector2dF filters_scale = gfx::Vector2dF(1, 1),
+      gfx::Rect visible_rect = kOverlayRect) {
     quad_->SetNew(pass_->shared_quad_state_list.back(), kOverlayRect,
-                  kOverlayRect, render_pass_id_, kInvalidResourceId,
+                  visible_rect, render_pass_id_, kInvalidResourceId,
                   gfx::RectF(), gfx::Size(), false);
     quad_->SetFilters(/*filters=*/{}, std::move(backdrop_filters),
                       std::move(backdrop_filter_bounds), filters_scale,
@@ -606,8 +608,10 @@ TEST_F(CALayerOverlayRPDQTest, RenderPassDrawQuadBlurBackdropFilter) {
       cc::FilterOperations({cc::FilterOperation::CreateBlurFilter(15.0f)}));
   ProcessForOverlays();
   EXPECT_EQ(1U, test::NumOverlaysExcludingPrimaryPlane(ca_layer_list_));
-  ASSERT_TRUE(ca_layer_list_.back().backdrop_filter_params.has_value());
-  EXPECT_EQ(15.0f, ca_layer_list_.back().backdrop_filter_params->blur_radius);
+  ASSERT_EQ(1U, ca_layer_list_.back().backdrop_filters.size());
+  auto& blur_filter = std::get<ui::CABackdropBlurFilter>(
+      ca_layer_list_.back().backdrop_filters[0]);
+  EXPECT_EQ(15.0f, blur_filter.blur_radius);
 }
 
 TEST_F(CALayerOverlayRPDQTest, RenderPassDrawQuadBlurBackdropFilterScale) {
@@ -617,9 +621,11 @@ TEST_F(CALayerOverlayRPDQTest, RenderPassDrawQuadBlurBackdropFilterScale) {
       /*filters_scale=*/gfx::Vector2dF(2, 2));
   ProcessForOverlays();
   EXPECT_EQ(1U, test::NumOverlaysExcludingPrimaryPlane(ca_layer_list_));
-  ASSERT_TRUE(ca_layer_list_.back().backdrop_filter_params.has_value());
+  ASSERT_EQ(1U, ca_layer_list_.back().backdrop_filters.size());
   // Blur radius 15.0 scaled by filters_scale 2.0 = 30.0.
-  EXPECT_EQ(30.0f, ca_layer_list_.back().backdrop_filter_params->blur_radius);
+  auto& blur_filter = std::get<ui::CABackdropBlurFilter>(
+      ca_layer_list_.back().backdrop_filters[0]);
+  EXPECT_EQ(30.0f, blur_filter.blur_radius);
 }
 
 TEST_F(CALayerOverlayRPDQTest, RenderPassDrawQuadBlurBackdropFilterWithBounds) {
@@ -632,8 +638,10 @@ TEST_F(CALayerOverlayRPDQTest, RenderPassDrawQuadBlurBackdropFilterWithBounds) {
       SkPath::RRect(rrect));
   ProcessForOverlays();
   EXPECT_EQ(1U, test::NumOverlaysExcludingPrimaryPlane(ca_layer_list_));
-  ASSERT_TRUE(ca_layer_list_.back().backdrop_filter_params.has_value());
-  EXPECT_EQ(15.0f, ca_layer_list_.back().backdrop_filter_params->blur_radius);
+  ASSERT_EQ(1U, ca_layer_list_.back().backdrop_filters.size());
+  auto& blur_filter = std::get<ui::CABackdropBlurFilter>(
+      ca_layer_list_.back().backdrop_filters[0]);
+  EXPECT_EQ(15.0f, blur_filter.blur_radius);
   EXPECT_EQ(gfx::RRectF(rrect), ca_layer_list_.back().backdrop_filter_bounds);
   EXPECT_TRUE(ca_layer_list_.back().rounded_corners.IsEmpty());
 }
@@ -647,8 +655,10 @@ TEST_F(CALayerOverlayRPDQTest, RenderPassDrawQuadBackdropFilterBoundsOval) {
       SkPath::Oval(oval_rect));
   ProcessForOverlays();
   EXPECT_EQ(1U, test::NumOverlaysExcludingPrimaryPlane(ca_layer_list_));
-  ASSERT_TRUE(ca_layer_list_.back().backdrop_filter_params.has_value());
-  EXPECT_EQ(15.0f, ca_layer_list_.back().backdrop_filter_params->blur_radius);
+  ASSERT_EQ(1U, ca_layer_list_.back().backdrop_filters.size());
+  auto& blur_filter = std::get<ui::CABackdropBlurFilter>(
+      ca_layer_list_.back().backdrop_filters[0]);
+  EXPECT_EQ(15.0f, blur_filter.blur_radius);
   EXPECT_EQ(gfx::RRectF(SkRRect::MakeOval(oval_rect)),
             ca_layer_list_.back().backdrop_filter_bounds);
 }
@@ -667,9 +677,36 @@ TEST_F(CALayerOverlayRPDQTest,
       SkPath::RRect(rrect));
   ProcessForOverlays();
   EXPECT_EQ(1U, test::NumOverlaysExcludingPrimaryPlane(ca_layer_list_));
-  ASSERT_TRUE(ca_layer_list_.back().backdrop_filter_params.has_value());
-  EXPECT_EQ(15.0f, ca_layer_list_.back().backdrop_filter_params->blur_radius);
+  ASSERT_EQ(1U, ca_layer_list_.back().backdrop_filters.size());
+  auto& blur_filter = std::get<ui::CABackdropBlurFilter>(
+      ca_layer_list_.back().backdrop_filters[0]);
+  EXPECT_EQ(15.0f, blur_filter.blur_radius);
   EXPECT_EQ(gfx::RRectF(rrect), ca_layer_list_.back().backdrop_filter_bounds);
+}
+
+TEST_F(CALayerOverlayRPDQTest,
+       RenderPassDrawQuadBackdropFilterBoundsAsymmetricClipped) {
+  SkVector radii[4] = {
+      {40.0f, 40.0f}, {10.0f, 10.0f}, {40.0f, 40.0f}, {10.0f, 10.0f}};
+  SkRRect rrect;
+  rrect.setRectRadii(
+      SkRect::MakeXYWH(kOverlayRect.x(), kOverlayRect.y(), kOverlayRect.width(),
+                       kOverlayRect.height()),
+      radii);
+  gfx::Rect clipped_rect = kOverlayRect;
+  clipped_rect.Inset(gfx::Insets::TLBR(20, 20, 0, 0));
+  SetBackdropFilter(
+      cc::FilterOperations({cc::FilterOperation::CreateBlurFilter(15.0f)}),
+      SkPath::RRect(rrect), gfx::Vector2dF(1, 1), clipped_rect);
+  ProcessForOverlays();
+  EXPECT_EQ(1U, test::NumOverlaysExcludingPrimaryPlane(ca_layer_list_));
+  ASSERT_EQ(1U, ca_layer_list_.back().backdrop_filters.size());
+  auto& blur_filter = std::get<ui::CABackdropBlurFilter>(
+      ca_layer_list_.back().backdrop_filters[0]);
+  EXPECT_EQ(15.0f, blur_filter.blur_radius);
+  EXPECT_EQ(gfx::RRectF(rrect), ca_layer_list_.back().backdrop_filter_bounds);
+  EXPECT_EQ(gfx::RectF(clipped_rect),
+            ca_layer_list_.back().backdrop_filter_clip);
 }
 
 TEST_F(CALayerOverlayRPDQTest, RenderPassDrawQuadBackdropFilterChainRejected) {
@@ -694,15 +731,17 @@ TEST_F(CALayerOverlayRPDQTest,
                             cc::FilterOperation::CreateContrastFilter(1.0f)}));
   ProcessForOverlays();
   EXPECT_EQ(1U, test::NumOverlaysExcludingPrimaryPlane(ca_layer_list_));
-  const auto& params = ca_layer_list_.back().backdrop_filter_params;
-  ASSERT_TRUE(params.has_value());
-  EXPECT_FLOAT_EQ(28.0f, params->blur_radius);
-  ASSERT_TRUE(params->color_matrix.has_value());
+  ASSERT_EQ(2U, ca_layer_list_.back().backdrop_filters.size());
+  auto& blur_filter = std::get<ui::CABackdropBlurFilter>(
+      ca_layer_list_.back().backdrop_filters[0]);
+  auto& color_filter = std::get<ui::CABackdropColorFilter>(
+      ca_layer_list_.back().backdrop_filters[1]);
+  EXPECT_FLOAT_EQ(28.0f, blur_filter.blur_radius);
   // Diagonal entry m11 = 1.05 * (0.213 + 0.787 * 1.35).
-  EXPECT_NEAR(1.05f * (0.213f + 0.787f * 1.35f), (*params->color_matrix)[0],
+  EXPECT_NEAR(1.05f * (0.213f + 0.787f * 1.35f), color_filter.color_matrix[0],
               1e-5f);
   // Alpha scale m44 = 1.0.
-  EXPECT_FLOAT_EQ(1.0f, (*params->color_matrix)[18]);
+  EXPECT_FLOAT_EQ(1.0f, color_filter.color_matrix[18]);
 }
 
 TEST_F(CALayerOverlayRPDQTest,
@@ -717,25 +756,20 @@ TEST_F(CALayerOverlayRPDQTest,
                             cc::FilterOperation::CreateContrastFilter(1.0f)}));
   ProcessForOverlays();
   EXPECT_EQ(1U, test::NumOverlaysExcludingPrimaryPlane(ca_layer_list_));
-  ASSERT_TRUE(ca_layer_list_.back().backdrop_filter_params.has_value());
-  EXPECT_FLOAT_EQ(35.0f,
-                  ca_layer_list_.back().backdrop_filter_params->blur_radius);
-  EXPECT_FALSE(
-      ca_layer_list_.back().backdrop_filter_params->color_matrix.has_value());
+  ASSERT_EQ(1U, ca_layer_list_.back().backdrop_filters.size());
+  auto& blur_filter = std::get<ui::CABackdropBlurFilter>(
+      ca_layer_list_.back().backdrop_filters[0]);
+  EXPECT_FLOAT_EQ(35.0f, blur_filter.blur_radius);
 
-  // All-identity chain (blur(0px) saturate(100%)) should promote the RPDQ
-  // with zero blur radius and no colorMatrix filter.
+  // All-identity chain (blur(0px) saturate(100%)) should not result in the
+  // generation of any backdrop filters.
   SetBackdropFilter(
       cc::FilterOperations({cc::FilterOperation::CreateBlurFilter(0.0f),
                             cc::FilterOperation::CreateSaturateFilter(1.0f)}));
   ca_layer_list_.clear();
   ProcessForOverlays();
   EXPECT_EQ(1U, test::NumOverlaysExcludingPrimaryPlane(ca_layer_list_));
-  ASSERT_TRUE(ca_layer_list_.back().backdrop_filter_params.has_value());
-  EXPECT_FLOAT_EQ(0.0f,
-                  ca_layer_list_.back().backdrop_filter_params->blur_radius);
-  EXPECT_FALSE(
-      ca_layer_list_.back().backdrop_filter_params->color_matrix.has_value());
+  ASSERT_EQ(0U, ca_layer_list_.back().backdrop_filters.size());
 }
 
 TEST_F(CALayerOverlayRPDQTest,
@@ -744,12 +778,11 @@ TEST_F(CALayerOverlayRPDQTest,
       cc::FilterOperations({cc::FilterOperation::CreateContrastFilter(1.2f)}));
   ProcessForOverlays();
   EXPECT_EQ(1U, test::NumOverlaysExcludingPrimaryPlane(ca_layer_list_));
-  const auto& params = ca_layer_list_.back().backdrop_filter_params;
-  ASSERT_TRUE(params.has_value());
-  EXPECT_FLOAT_EQ(0.0f, params->blur_radius);
-  ASSERT_TRUE(params->color_matrix.has_value());
-  EXPECT_FLOAT_EQ(1.2f, (*params->color_matrix)[0]);
-  EXPECT_NEAR(-0.5f * 1.2f + 0.5f, (*params->color_matrix)[4], 1e-5f);
+  ASSERT_EQ(1U, ca_layer_list_.back().backdrop_filters.size());
+  auto& color_filter = std::get<ui::CABackdropColorFilter>(
+      ca_layer_list_.back().backdrop_filters[0]);
+  EXPECT_FLOAT_EQ(1.2f, color_filter.color_matrix[0]);
+  EXPECT_NEAR(-0.5f * 1.2f + 0.5f, color_filter.color_matrix[4], 1e-5f);
 }
 
 TEST_F(CALayerOverlayRPDQTest,
@@ -852,9 +885,12 @@ TEST_F(CALayerOverlayRPDQTest,
       cc::FilterOperations({cc::FilterOperation::CreateBlurFilter(15.0f)}));
   ProcessForOverlays();
   EXPECT_EQ(1U, test::NumOverlaysExcludingPrimaryPlane(ca_layer_list_));
-  ASSERT_TRUE(ca_layer_list_.back().backdrop_filter_params.has_value());
-  EXPECT_FLOAT_EQ(15.0f,
-                  ca_layer_list_.back().backdrop_filter_params->blur_radius);
+  ASSERT_EQ(1U, ca_layer_list_.back().backdrop_filters.size());
+  {
+    auto& blur_filter = std::get<ui::CABackdropBlurFilter>(
+        ca_layer_list_.back().backdrop_filters[0]);
+    EXPECT_FLOAT_EQ(15.0f, blur_filter.blur_radius);
+  }
 
   // When filters_scale is 2.0 (e.g. 2x Retina display) and
   // quad_to_target_transform is 1.5x, RenderPass local blur_radius is
@@ -866,9 +902,12 @@ TEST_F(CALayerOverlayRPDQTest,
   ca_layer_list_.clear();
   ProcessForOverlays();
   EXPECT_EQ(1U, test::NumOverlaysExcludingPrimaryPlane(ca_layer_list_));
-  ASSERT_TRUE(ca_layer_list_.back().backdrop_filter_params.has_value());
-  EXPECT_FLOAT_EQ(30.0f,
-                  ca_layer_list_.back().backdrop_filter_params->blur_radius);
+  ASSERT_EQ(1U, ca_layer_list_.back().backdrop_filters.size());
+  {
+    auto& blur_filter = std::get<ui::CABackdropBlurFilter>(
+        ca_layer_list_.back().backdrop_filters[0]);
+    EXPECT_FLOAT_EQ(30.0f, blur_filter.blur_radius);
+  }
 
   // Non-uniform 2D scales cannot be represented by CoreAnimation's scalar
   // isotropic inputRadius and must fall back to SkiaRenderer.
@@ -916,7 +955,7 @@ TEST_F(CALayerOverlayRPDQTest,
   ca_layer_list_.clear();
   ProcessForOverlays();
   EXPECT_EQ(1U, test::NumOverlaysExcludingPrimaryPlane(ca_layer_list_));
-  ASSERT_TRUE(ca_layer_list_.back().backdrop_filter_params.has_value());
+  ASSERT_EQ(1U, ca_layer_list_.back().backdrop_filters.size());
   EXPECT_EQ(gfx::RRectF(gfx::RectF(kOverlayRect)),
             ca_layer_list_.back().backdrop_filter_bounds);
 }

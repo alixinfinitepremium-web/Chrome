@@ -817,9 +817,11 @@
             ],
             "experiments": [
                 {
-                    "name": "Enabled_20261109",
+                    "name": "Enabled_20261110",
                     "enable_features": [
-                        "AndroidNewTabButtonTabstripWebUI"
+                        "AndroidNewTabButtonTabstripWebUI",
+                        "InitialWebUI",
+                        "WebUIToolbarFrameEvictionOptOut"
                     ]
                 }
             ]
@@ -921,22 +923,6 @@
                         "AndroidSpellcheckNativeUi",
                         "LeftClickToHandleSuggestion",
                         "SpellCheckChunking"
-                    ]
-                }
-            ]
-        }
-    ],
-    "AndroidStartupImprovements": [
-        {
-            "platforms": [
-                "android",
-                "android_desktop"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "AndroidStartupImprovements"
                     ]
                 }
             ]
@@ -3892,23 +3878,6 @@
                     "enable_features": [
                         "BrowsingHistoryFilterByActor",
                         "BrowsingHistoryFilterByDevice"
-                    ]
-                }
-            ]
-        }
-    ],
-    "BrowsingHistorySimilarVisitsGroupingMobile": [
-        {
-            "platforms": [
-                "android",
-                "android_desktop",
-                "ios"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "BrowsingHistorySimilarVisitsGrouping"
                     ]
                 }
             ]
@@ -10295,6 +10264,21 @@
             ]
         }
     ],
+    "HappinessTrackingSurveysForDesktopDefaultBrowser": [
+        {
+            "platforms": [
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "HappinessTrackingSurveysForDesktopDefaultBrowser"
+                    ]
+                }
+            ]
+        }
+    ],
     "HappinessTrackingSurveysForDesktopHistoryPageControl": [
         {
             "platforms": [
@@ -12726,23 +12710,6 @@
             ]
         }
     ],
-    "MaliciousApkDownloadCheck": [
-        {
-            "platforms": [
-                "android",
-                "android_desktop"
-            ],
-            "experiments": [
-                {
-                    "//0": "This config is the intended feature to launch.",
-                    "name": "Enabled",
-                    "enable_features": [
-                        "MaliciousApkDownloadCheck"
-                    ]
-                }
-            ]
-        }
-    ],
     "MapsNativePreviewLinkifiedAddress": [
         {
             "platforms": [
@@ -14470,21 +14437,6 @@
             ]
         }
     ],
-    "OnlyUseWindowResizeHelperOnResize": [
-        {
-            "platforms": [
-                "mac"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "OnlyUseWindowResizeHelperOnResize"
-                    ]
-                }
-            ]
-        }
-    ],
     "OpenTranslationSettings": [
         {
             "platforms": [
@@ -15087,6 +15039,26 @@
                     },
                     "enable_features": [
                         "PartitionAllocMemoryTagging"
+                    ]
+                }
+            ]
+        }
+    ],
+    "PartitionAllocMinProvisioningSize": [
+        {
+            "platforms": [
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "//0": "The Finch study also tests a 16 KiB group, which is expected to be a no-op on macOS (Apple Silicon uses 16 KiB system pages).",
+                    "name": "Enabled_32KiB",
+                    "params": {
+                        "PartitionAllocMinProvisioningSizeInBytes": "32768"
+                    },
+                    "enable_features": [
+                        "PartitionAllocMinProvisioningSize"
                     ]
                 }
             ]
@@ -15890,6 +15862,21 @@
                     "name": "Enabled",
                     "enable_features": [
                         "PreFirstRunDesktopRefresh"
+                    ]
+                }
+            ]
+        }
+    ],
+    "PrePrefetchServiceCreatesPrefetchService": [
+        {
+            "platforms": [
+                "android_webview"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "PrePrefetchServiceCreatesPrefetchService"
                     ]
                 }
             ]
@@ -17014,11 +17001,7 @@
     "RemoteActorCredentialSharing": [
         {
             "platforms": [
-                "chromeos",
-                "ios",
-                "linux",
-                "mac",
-                "windows"
+                "ios"
             ],
             "experiments": [
                 {
@@ -21890,6 +21873,7 @@
                 {
                     "name": "Enabled",
                     "params": {
+                        "check_will_create_url_loader_factory": "true",
                         "update_missing_header_cache": "true"
                     },
                     "enable_features": [

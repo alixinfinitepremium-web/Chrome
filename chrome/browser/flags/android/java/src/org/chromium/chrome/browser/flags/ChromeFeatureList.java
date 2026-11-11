@@ -499,7 +499,6 @@ public abstract class ChromeFeatureList {
     public static final String CCT_BLOCK_TOUCHES_DURING_ENTER_ANIMATION =
             "CCTBlockTouchesDuringEnterAnimation";
     public static final String CCT_CLIENT_DATA_HEADER = "CCTClientDataHeader";
-    public static final String CCT_CONTEXTUAL_MENU_ITEMS = "CCTContextualMenuItems";
     public static final String CCT_DESTROY_TAB_WHEN_MODEL_IS_EMPTY =
             "CCTDestroyTabWhenModelIsEmpty";
     public static final String CCT_DONT_OVERRIDE_INTENT_MIME_TYPE = "CCTDontOverrideIntentMimeType";
@@ -586,7 +585,6 @@ public abstract class ChromeFeatureList {
     public static final String DATA_SHARING_JOIN_ONLY = "DataSharingJoinOnly";
     public static final String DBD_PASSWORD_REMOVAL_ON_ANDROID = "DbdPasswordRemovalOnAndroid";
     public static final String DEBUG_TOOLBAR_POSITIONING = "DebugToolbarPositioning";
-    public static final String DEFAULT_BROWSER_PROMO_ANDROID2 = "DefaultBrowserPromoAndroid2";
     public static final String DEFAULT_BROWSER_PROMO_ENTRY_POINT = "DefaultBrowserPromoEntryPoint";
     public static final String DEFAULT_BROWSER_PROMO_FRE = "DefaultBrowserPromoFre";
     public static final String DEFER_ARCHIVED_TAB_MODEL_CREATION = "DeferArchivedTabModelCreation";
@@ -767,7 +765,6 @@ public abstract class ChromeFeatureList {
             "PageInfoAboutThisSiteMoreLangs";
     public static final String PAINT_PREVIEW_DEMO = "PaintPreviewDemo";
     public static final String PARTNER_CUSTOMIZATIONS_UMA = "PartnerCustomizationsUma";
-    public static final String PCCT_MINIMUM_HEIGHT = "PCCTMinimumHeight";
     public static final String PDF_LAUNCHER_ACTIVITY = "PdfLauncherActivity";
     public static final String PDF_REUSE_FRAGMENT = "PdfReuseFragment";
     public static final String PERMISSION_DEDICATED_CPSS_SETTING_ANDROID =
@@ -830,7 +827,6 @@ public abstract class ChromeFeatureList {
     public static final String SEGMENTATION_PLATFORM_EPHEMERAL_CARD_RANKER =
             "SegmentationPlatformEphemeralCardRanker";
     public static final String SEND_TAB_TO_SELF_DYNAMIC_SHORTCUTS = "SendTabToSelfDynamicShortcuts";
-    public static final String SEND_TAB_TO_SELF_GESTURE = "SendTabToSelfGesture";
     public static final String SEND_TAB_TO_SELF_MULTI_TAB_SHARE = "SendTabToSelfMultiTabShare";
     public static final String SEND_TAB_TO_SELF_OPEN_NATIVE_APP = "SendTabToSelfOpenNativeApp";
     public static final String SEND_TAB_TO_SELF_SUPPORT_AUTO_OPEN_IN_TAB_GRID =
@@ -1054,10 +1050,7 @@ public abstract class ChromeFeatureList {
                     /* defaultValue= */ false,
                     /* defaultValueInTests= */ false);
     public static final CachedFlag sAndroidStartupImprovements =
-            newCachedFlag(
-                    ANDROID_STARTUP_IMPROVEMENTS,
-                    /* defaultValue= */ false,
-                    /* defaultValueInTests= */ true);
+            newCachedFlag(ANDROID_STARTUP_IMPROVEMENTS, /* defaultValue= */ true);
     public static final CachedFlag sAndroidTabDeclutterDedupeTabIdsKillSwitch =
             newCachedFlag(ANDROID_TAB_DECLUTTER_DEDUPE_TAB_IDS_KILL_SWITCH, true);
     public static final CachedFlag sAndroidTabPersistentStoreActiveTabPrefs =
@@ -1146,8 +1139,6 @@ public abstract class ChromeFeatureList {
     public static final CachedFlag sCctAutoTranslate = newCachedFlag(CCT_AUTO_TRANSLATE, true);
     public static final CachedFlag sCctBlockTouchesDuringEnterAnimation =
             newCachedFlag(CCT_BLOCK_TOUCHES_DURING_ENTER_ANIMATION, true);
-    public static final CachedFlag sCctContextualMenuItems =
-            newCachedFlag(CCT_CONTEXTUAL_MENU_ITEMS, true);
     public static final CachedFlag sCctDestroyTabWhenModelIsEmpty =
             newCachedFlag(CCT_DESTROY_TAB_WHEN_MODEL_IS_EMPTY, true);
     public static final CachedFlag sCctEarlyInitPowerManager =
@@ -1374,7 +1365,7 @@ public abstract class ChromeFeatureList {
     public static final CachedFlag sMaliciousApkDownloadCheck =
             newCachedFlag(
                     MALICIOUS_APK_DOWNLOAD_CHECK,
-                    /* defaultValue= */ false,
+                    /* defaultValue= */ true,
                     /* defaultValueInTests= */ true);
     public static final CachedFlag sMigrateManagementToWebUIOnMobile =
             newCachedFlag(
@@ -1404,7 +1395,6 @@ public abstract class ChromeFeatureList {
             newCachedFlag(ON_STARTUP_WINDOW_POLICY, /* defaultValue= */ true);
     public static final CachedFlag sOneStepAimAccess =
             newCachedFlag(ONE_STEP_AIM_ACCESS, /* defaultValue= */ false);
-    public static final CachedFlag sPCctMinimumHeight = newCachedFlag(PCCT_MINIMUM_HEIGHT, true);
     public static final CachedFlag sPaintPreviewDemo = newCachedFlag(PAINT_PREVIEW_DEMO, false);
     public static final CachedFlag sPdfReuseFragment =
             newCachedFlag(
@@ -1605,7 +1595,6 @@ public abstract class ChromeFeatureList {
                     sCctAlwaysOpenInBrowser,
                     sCctAutoTranslate,
                     sCctBlockTouchesDuringEnterAnimation,
-                    sCctContextualMenuItems,
                     sCctDestroyTabWhenModelIsEmpty,
                     sCctEarlyInitPowerManager,
                     sCctFreInSameTask,
@@ -1697,7 +1686,6 @@ public abstract class ChromeFeatureList {
                     sOnStartupSettingsUi,
                     sOnStartupWindowPolicy,
                     sOneStepAimAccess,
-                    sPCctMinimumHeight,
                     sPaintPreviewDemo,
                     sPdfReuseFragment,
                     sPersistAcrossReboots,
@@ -1916,6 +1904,8 @@ public abstract class ChromeFeatureList {
             newMutableFlagWithSafeDefault(TAB_SWITCHER_GROUP_SUGGESTIONS_ANDROID, false);
     public static final MutableFlagWithSafeDefault sTabSwitcherGroupSuggestionsTestModeAndroid =
             newMutableFlagWithSafeDefault(TAB_SWITCHER_GROUP_SUGGESTIONS_TEST_MODE_ANDROID, false);
+    public static final MutableFlagWithSafeDefault sTabUiDataVirtualization =
+            newMutableFlagWithSafeDefault(TAB_UI_DATA_VIRTUALIZATION, false);
     public static final MutableFlagWithSafeDefault sTipsSelfService =
             newMutableFlagWithSafeDefault(TIPS_SELF_SERVICE, false);
     public static final MutableFlagWithSafeDefault sToolbarScrollAblation =
@@ -2447,9 +2437,6 @@ public abstract class ChromeFeatureList {
     public static final IntCachedFeatureParam sOmahaMinSdkVersionMinSdkVersion =
             newIntCachedFeatureParam(OMAHA_MIN_SDK_VERSION_ANDROID, "min_sdk_version", -1);
 
-    public static final DoubleCachedFeatureParam sPCctMinimumHeightRatio =
-            newDoubleCachedFeatureParam(PCCT_MINIMUM_HEIGHT, "pcct_minimum_height_ratio", 0.3);
-
     public static final BooleanCachedFeatureParam
             sPriceChangeModuleSkipShoppingPersistedTabDataDelayedInit =
                     newBooleanCachedFeatureParam(
@@ -2626,7 +2613,6 @@ public abstract class ChromeFeatureList {
                     sNotificationTrampolineNormalJobDurationMs,
                     sNotificationTrampolineTimeoutPriorNativeInitMs,
                     sOmahaMinSdkVersionMinSdkVersion,
-                    sPCctMinimumHeightRatio,
                     sPriceChangeModuleSkipShoppingPersistedTabDataDelayedInit,
                     sReadAloudAudioOverviewsSpeedAdditionPercentage,
                     sReadAloudAudioOverviewsSupportedLanguages,
@@ -2711,6 +2697,12 @@ public abstract class ChromeFeatureList {
     public static final MutableBooleanParamWithSafeDefault
             sTabBottomSheetSuppressBottomToolbarWhileOpen =
                     sTabBottomSheet.newBooleanParam("suppress_bottom_toolbar_while_open", false);
+    public static final MutableBooleanParamWithSafeDefault sTabUiDataVirtualizationFlat =
+            sTabUiDataVirtualization.newBooleanParam("enable_flat", true);
+    public static final MutableBooleanParamWithSafeDefault sTabUiDataVirtualizationGrouped =
+            sTabUiDataVirtualization.newBooleanParam("enable_grouped", true);
+    public static final MutableBooleanParamWithSafeDefault sTabUiDataVirtualizationNested =
+            sTabUiDataVirtualization.newBooleanParam("enable_nested", true);
     public static final MutableBooleanParamWithSafeDefault sXplatSyncedSetupThemesObservationOnly =
             sXplatSyncedSetupThemes.newBooleanParam(
                     XPLAT_SYNCED_SETUP_THEMES_OBSERVATION_ONLY, false);

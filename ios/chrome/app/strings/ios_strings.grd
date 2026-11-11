@@ -5612,8 +5612,14 @@ You can restart anytime.
       <message name="IDS_IOS_NTP_FEED_SIGNIN_PROMO_DISABLE_SNACKBAR_MESSAGE" desc="The test shown in the snackbar message when sign-in promo is trigger when sign-in is disabled. [iOS only]">
         Not available on your device
       </message>
+      <message name="IDS_IOS_NTP_QUICK_ACTIONS_ADD" desc="The title of the attach image button in the quick actions buttons in NTP. Used to attach an image to a prompt. [iOS only]">
+        Add
+      </message>
       <message name="IDS_IOS_NTP_QUICK_ACTIONS_AIM" desc="The title of the AI Mode button in the quick actions buttons in NTP">
         AI Mode
+      </message>
+      <message name="IDS_IOS_NTP_QUICK_ACTIONS_CREATE" desc="The title of the image generation button in the quick actions buttons in NTP. Used to create an AI image. [iOS only]">
+        Create
       </message>
       <message name="IDS_IOS_NTP_QUICK_ACTIONS_INCOGNITO" desc="The title of the incognito button in the quick actions buttons in NTP">
         Incognito
@@ -7174,6 +7180,15 @@ Handoff must also be enabled in the General section of Settings, and your device
       </message>
       <message name="IDS_IOS_REMINDER_NOTIFICATIONS_TOOLS_MENU_BUBBLE_IPH" desc="Text for a bubble IPH displayed on the tools menu, informing the user that they can set a reminder for the current tab. [iOS only]">
         You can set a reminder to revisit this page later
+      </message>
+      <message name="IDS_IOS_REMOTE_ACTOR_NO_PASSWORD_DIALOG_BACK_BUTTON" desc="Button label in the remote actor credential sharing bottom sheet, shown when there is no saved password for the site, that takes the user back to the remote actor app. [iOS only]">
+        Back to <ph name="ACTOR_NAME">$1<ex>Gemini</ex></ph>
+      </message>
+      <message name="IDS_IOS_REMOTE_ACTOR_NO_PASSWORD_DIALOG_SUBTITLE" desc="Subtitle of the remote actor credential sharing bottom sheet, shown when there is no saved password for the site. [iOS only]">
+        Google Password Manager doesn’t have a password for this site. Go back to <ph name="ACTOR_NAME">$1<ex>Gemini</ex></ph> to sign in, or add a password to Google Password Manager.
+      </message>
+      <message name="IDS_IOS_REMOTE_ACTOR_NO_PASSWORD_DIALOG_TITLE" desc="Title of the remote actor credential sharing bottom sheet, shown when there is no saved password for the site. [iOS only]">
+        No saved passwords for <ph name="DOMAIN">$1<ex>example.com</ex></ph>
       </message>
       <message name="IDS_IOS_REMOVE_ACCOUNT_ALERT_TITLE" desc="Title of the alert view when the remove account button is clicked.">
         Remove account <ph name="USER_EMAIL">$1<ex>janedoe@google.com</ex></ph>?

@@ -43,7 +43,8 @@ import org.chromium.ui.modelutil.PropertyModelChangeProcessor;
  * The entry is dismissed once the {@link BottomSheetController} calls {@link #destroy()}.
  */
 @NullMarked
-final class AdaptiveUiSheetCoordinator implements BottomSheetContent {
+final class AdaptiveUiSheetCoordinator
+        implements AdaptiveUiControllerImpl.Presenter, BottomSheetContent {
     private final PropertyModel mModel;
     private final @AdaptiveUiScope int mScope;
     private final BottomSheetController mBottomSheetController;
@@ -166,7 +167,8 @@ final class AdaptiveUiSheetCoordinator implements BottomSheetContent {
     }
 
     /** Hands the sheet to the {@link BottomSheetController}, which may queue it. */
-    void show() {
+    @Override
+    public void show() {
         if (mDestroyed) return;
         mBottomSheetController.addObserver(mSheetObserver);
         mBottomSheetController.requestShowContent(this, /* animate= */ true);
@@ -178,17 +180,23 @@ final class AdaptiveUiSheetCoordinator implements BottomSheetContent {
      * @param reason Why the entry is closed.
      * @param animate Whether to animate. When false, {@code onDismissed} fires before this returns.
      */
-    void hide(@DismissReason int reason, boolean animate) {
+    @Override
+    public void hide(@DismissReason int reason, boolean animate) {
         if (mDestroyed) return;
         setDismissReason(reason);
-        boolean isCurrent = mBottomSheetController.getCurrentSheetContent() == this;
+        boolean wasCurrent = isCurrent();
         mBottomSheetController.hideContent(this, animate, toStateChangeReason(reason));
         // The BottomSheetController does not destroy content it removes from its queue, so a
         // queued sheet is destroyed here. A current sheet hidden without animation is destroyed by
         // the controller synchronously inside hideContent(); destroying it here as well is a no-op
         // and only makes onDismissed() timing explicit. In both cases the reason was latched above,
         // so it does not matter that this sheet's observer no longer sees the HIDDEN change.
-        if (!isCurrent || !animate) destroy();
+        if (!wasCurrent || !animate) destroy();
+    }
+
+    @Override
+    public boolean isCurrent() {
+        return mBottomSheetController.getCurrentSheetContent() == this;
     }
 
     /**
