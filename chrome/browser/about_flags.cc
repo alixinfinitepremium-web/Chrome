@@ -4907,7 +4907,7 @@ const FeatureEntry::Choice kPromptAPIToolUseChoices[] = {
 const FeatureEntry::Choice kGemma4Choices[] = {
     {flags_ui::kGenericExperimentChoiceDefault, "", ""},
     {flags_ui::kGenericExperimentChoiceEnabled, switches::kEnableFeatures,
-     "OptimizationGuideManifestBroker,"
+     "OnDeviceModelConversationBackend,OptimizationGuideManifestBroker,"
      "AIApiFoundationalModel:model_version/v4"}};
 
 // Scores options with EmbeddingGemma V1 or the Prompt API's foundation model
@@ -11142,6 +11142,11 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kGlicMessageFirstFreForContextualCueDescription,
      kOsDesktop,
      FEATURE_VALUE_TYPE(features::kGlicMessageFirstFreForContextualCue)},
+#if BUILDFLAG(IS_ANDROID)
+    {"glic-native-fre-android", flag_descriptions::kGlicNativeFreAndroidName,
+     flag_descriptions::kGlicNativeFreAndroidDescription, kOsAndroid,
+     FEATURE_VALUE_TYPE(features::kGlicNativeFreAndroid)},
+#endif  // BUILDFLAG(IS_ANDROID)
     {"glic-no-webview", flag_descriptions::kGlicNoWebviewName,
      flag_descriptions::kGlicNoWebviewDescription, kOsDesktop | kOsAndroid,
      ENABLE_DISABLE_VALUE_TYPE_AND_VALUE(switches::kEnableFeatures,
@@ -12472,10 +12477,6 @@ const FeatureEntry kFeatureEntries[] = {
      FEATURE_VALUE_TYPE(switches::kMigrateAccountManagerDelegate)},
 #endif
 
-    {"variations-seed-corpus", flag_descriptions::kVariationsSeedCorpusName,
-     flag_descriptions::kVariationsSeedCorpusDescription, kOsAll,
-     STRING_VALUE_TYPE(variations::switches::kVariationsSeedCorpus, "")},
-
 #if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_LINUX) || \
     BUILDFLAG(IS_CHROMEOS)
     {"passkey-unlock-error-ui", flag_descriptions::kPasskeyUnlockErrorUiName,
@@ -12539,9 +12540,6 @@ const FeatureEntry kFeatureEntries[] = {
     {"sync-ai-threads", flag_descriptions::kSyncAIThreadsName,
      flag_descriptions::kSyncAIThreadsDescription, kOsDesktop,
      FEATURE_VALUE_TYPE(syncer::kSyncAIThread)},
-    {"sync-gemini-threads", flag_descriptions::kSyncGeminiThreadsName,
-     flag_descriptions::kSyncGeminiThreadsDescription, kOsDesktop,
-     FEATURE_VALUE_TYPE(syncer::kSyncGeminiThread)},
 
     {"context-hub", flag_descriptions::kContextHubName,
      flag_descriptions::kContextHubDescription, kOsDesktop,
@@ -13225,9 +13223,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kSidePanelTopHairlineRefactorAndroidDescription,
      kOsAndroid,
      FEATURE_VALUE_TYPE(chrome::android::kSidePanelTopHairlineRefactorAndroid)},
-    {"side-ui-allow-pause", flag_descriptions::kSideUiAllowPauseName,
-     flag_descriptions::kSideUiAllowPauseDescription, kOsAndroid,
-     FEATURE_VALUE_TYPE(chrome::android::kSideUiAllowPause)},
 #endif
 
 #if BUILDFLAG(IS_ANDROID)
@@ -13966,7 +13961,7 @@ const FeatureEntry kFeatureEntries[] = {
     {"android-unified-keyboard-shortcuts",
      flag_descriptions::kAndroidUnifiedKeyboardShortcutsName,
      flag_descriptions::kAndroidUnifiedKeyboardShortcutsDescription, kOsAndroid,
-     FEATURE_VALUE_TYPE(ui::kAndroidUnifiedKeyboardShortcuts)},
+     FEATURE_VALUE_TYPE(chrome::android::kAndroidUnifiedKeyboardShortcuts)},
 #endif
     {"enable-desktop-qr-code-detection",
      flag_descriptions::kEnableDesktopQrCodeDetectionName,
@@ -14328,6 +14323,9 @@ const FeatureEntry kFeatureEntries[] = {
     {"history-page-refresh", flag_descriptions::kHistoryPageRefreshName,
      flag_descriptions::kHistoryPageRefreshDescription, kOsDesktop,
      FEATURE_VALUE_TYPE(features::kHistoryPageRefresh)},
+    {"chro-menu-search-scoring", flag_descriptions::kChroMenuSearchScoringName,
+     flag_descriptions::kChroMenuSearchScoringDescription, kOsDesktop,
+     STRING_VALUE_TYPE(switches::kChroMenuSearchScoring, "")},
 
     // Add new entries above this line.
     // NOTE: Adding a new flag requires adding a corresponding entry to enum

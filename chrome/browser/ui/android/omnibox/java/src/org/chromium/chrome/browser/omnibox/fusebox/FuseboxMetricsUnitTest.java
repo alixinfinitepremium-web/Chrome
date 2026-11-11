@@ -22,6 +22,7 @@ import org.chromium.base.test.BaseRobolectricTestRunner;
 import org.chromium.base.test.util.HistogramWatcher;
 import org.chromium.build.annotations.Nullable;
 import org.chromium.chrome.browser.omnibox.fusebox.FuseboxMetrics.AiModeActivationSource;
+import org.chromium.chrome.browser.omnibox.fusebox.FuseboxMetrics.DrivePermissionDeniedReason;
 import org.chromium.chrome.browser.omnibox.fusebox.FuseboxMetrics.FuseboxAttachmentButtonType;
 import org.chromium.chrome.browser.omnibox.fusebox.FuseboxMetrics.FuseboxAttachmentSizeLimitCheck;
 import org.chromium.chrome.browser.omnibox.fusebox.FuseboxMetrics.MobileFuseboxPickerAttachmentType;
@@ -322,6 +323,39 @@ public class FuseboxMetricsUnitTest {
                         .expectIntRecord(
                                 "Omnibox.MobileFusebox.ToolButtonShown",
                                 ToolMode.TOOL_MODE_DEEP_SEARCH)
+                        .build();
+
+        mMetrics.notifyAttachmentsPopupToggled(/* toShowPopup= */ true, mPropertyModel, mTracker);
+
+        histogramWatcher.assertExpected();
+    }
+
+    @Test
+    public void testNotifyAttachmentsPopupToggled_ShowPopup_PinnedToolButtonsVisible() {
+        PopupButtonData pinnedAi =
+                new PopupButtonData.Builder()
+                        .setText("AI Mode")
+                        .setType(PopupButtonType.TOOL)
+                        .setProtoId(ToolMode.TOOL_MODE_UNSPECIFIED)
+                        .build();
+        PopupButtonData pinnedPtm =
+                new PopupButtonData.Builder()
+                        .setText("PTM")
+                        .setType(PopupButtonType.TOOL)
+                        .setProtoId(ToolMode.TOOL_MODE_GEMINI_PRO)
+                        .build();
+        mPropertyModel.set(
+                FuseboxProperties.POPUP_PINNED_TOOL_BUTTON_DATA_LIST, List.of(pinnedAi, pinnedPtm));
+
+        HistogramWatcher histogramWatcher =
+                HistogramWatcher.newBuilder()
+                        .expectBooleanRecord("Omnibox.MobileFusebox.AttachmentsPopupToggled", true)
+                        .expectIntRecord(
+                                "Omnibox.MobileFusebox.ToolButtonShown",
+                                ToolMode.TOOL_MODE_UNSPECIFIED)
+                        .expectIntRecord(
+                                "Omnibox.MobileFusebox.ToolButtonShown",
+                                ToolMode.TOOL_MODE_GEMINI_PRO)
                         .build();
 
         mMetrics.notifyAttachmentsPopupToggled(/* toShowPopup= */ true, mPropertyModel, mTracker);
@@ -730,6 +764,29 @@ public class FuseboxMetricsUnitTest {
                         .build();
 
         FuseboxMetrics.recordDrivePickerOutcome(MobileFuseboxPickerOutcome.PERMISSION_DENIED);
+        watcher.assertExpected();
+    }
+
+    @Test
+    public void testRecordDrivePermissionDeniedReason() {
+        var watcher =
+                HistogramWatcher.newBuilder()
+                        .expectIntRecords(
+                                "Omnibox.MobileFusebox.Drive.PermissionDeniedReason",
+                                DrivePermissionDeniedReason.ACCOUNT_RESTRICTED,
+                                DrivePermissionDeniedReason.PAGE_NOT_SHOWN,
+                                DrivePermissionDeniedReason.PAGE_FAILED_AFTER_SHOWN,
+                                DrivePermissionDeniedReason.USER_CLOSED_AFTER_SHOWN)
+                        .build();
+
+        FuseboxMetrics.recordDrivePermissionDeniedReason(
+                DrivePermissionDeniedReason.ACCOUNT_RESTRICTED);
+        FuseboxMetrics.recordDrivePermissionDeniedReason(
+                DrivePermissionDeniedReason.PAGE_NOT_SHOWN);
+        FuseboxMetrics.recordDrivePermissionDeniedReason(
+                DrivePermissionDeniedReason.PAGE_FAILED_AFTER_SHOWN);
+        FuseboxMetrics.recordDrivePermissionDeniedReason(
+                DrivePermissionDeniedReason.USER_CLOSED_AFTER_SHOWN);
         watcher.assertExpected();
     }
 

@@ -129,6 +129,14 @@ inline constexpr char kChroMenuSearchDescription[] =
     "Enables search in the app Chrome menu. Only takes effect when "
     "#app-menu-glow-up is also enabled.";
 
+inline constexpr char kChroMenuSearchScoringName[] = "ChroMenu Search Scoring";
+inline constexpr char kChroMenuSearchScoringDescription[] =
+    "Overrides the fuzzy search scoring used by ChroMenu Search, as a "
+    "comma-separated list of title weight, secondary text weight, synonym "
+    "weight and minimum score, each between 0 and 1 (e.g. "
+    "\"1.0,0.8,0.85,0.6\"). Empty or invalid entries keep their default "
+    "value. Only takes effect when #chro-menu-search is also enabled.";
+
 inline constexpr char kCredentialManagementUnifiedUiName[] =
     "Credential Management Unified UI";
 inline constexpr char kCredentialManagementUnifiedUiDescription[] =
@@ -2092,6 +2100,11 @@ inline constexpr char kGlicMessageFirstFreForContextualCueName[] =
 inline constexpr char kGlicMessageFirstFreForContextualCueDescription[] =
     "Enables the message-first first run experience (FRE) when auto-submitting "
     "from a contextual cue.";
+
+inline constexpr char kGlicNativeFreAndroidName[] = "Glic Native FRE";
+inline constexpr char kGlicNativeFreAndroidDescription[] =
+    "Enables the native first-run experience (FRE) for Gemini in Chrome on "
+    "Android.";
 
 inline constexpr char kGlicNoWebviewName[] = "Glic No Webview";
 inline constexpr char kGlicNoWebviewDescription[] =
@@ -4757,10 +4770,6 @@ inline constexpr char kSyncEncryptedTabContextName[] =
 inline constexpr char kSyncEncryptedTabContextDescription[] =
     "Enables syncing of Encrypted Tab Context across devices.";
 
-inline constexpr char kSyncGeminiThreadsName[] = "Sync Gemini Threads";
-inline constexpr char kSyncGeminiThreadsDescription[] =
-    "Acquire Gemini Threads via sync.";
-
 inline constexpr char kSyncJourneyName[] = "Sync journeys";
 inline constexpr char kSyncJourneyDescription[] =
     "Enables syncing history journeys.";
@@ -5311,7 +5320,7 @@ inline constexpr const char* kDecisionsAPILinks[1] = {
 inline constexpr char kGemma4ForBuiltInAIName[] = "Gemma 4 for Built-in AI";
 inline constexpr char kGemma4ForBuiltInAIDescription[] =
     "Enables all built-in AI APIs (Prompt, Summarizer, Writer, etc.) to use "
-    "the Gemma 4 model.";
+    "the Gemma 4 model with the LiteRT-LM Conversation backend.";
 
 inline constexpr char kOnDeviceModelSpeculativeDecodingName[] =
     "Multi-Token Prediction (MTP) for Built-in AI";
@@ -5852,12 +5861,6 @@ inline constexpr char kSidePanelTopHairlineRefactorAndroidName[] =
     "Side Panel Top Hairline Refactor Android";
 inline constexpr char kSidePanelTopHairlineRefactorAndroidDescription[] =
     "Enables the Side Panel top hairline refactor on Android.";
-
-inline constexpr char kSideUiAllowPauseName[] = "Side UI Allow Pause";
-inline constexpr char kSideUiAllowPauseDescription[] =
-    "When enabled, Side UI updates can be paused for a Side UI container, "
-    "which keeps it at its current size. For example, vertical tabs keeps its "
-    "size while a tab is dragged out of it.";
 
 inline constexpr char kTextDetectionAPIName[] = "Text Detection API";
 inline constexpr char kTextDetectionAPIDescription[] =
@@ -8681,11 +8684,6 @@ inline constexpr char
     kEnableStandardBoundSessionCredentialsAudienceDescription[] =
         "Enables including the 'aud' (audience) claim in Device Bound "
         "Session Credentials registration and refresh JWT payloads.";
-
-inline constexpr char kVariationsSeedCorpusName[] = "Variations seed corpus";
-inline constexpr char kVariationsSeedCorpusDescription[] =
-    "The value of the 'corpus' parameter in the variations seed request. "
-    "If unspecified, the 'corpus' parameter is omitted from the request.";
 
 inline constexpr char kHandleMdmErrorsForDasherAccountsName[] =
     "Mdm error handling for dasher accounts";

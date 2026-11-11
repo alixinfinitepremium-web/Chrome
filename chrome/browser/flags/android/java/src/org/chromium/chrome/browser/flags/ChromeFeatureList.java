@@ -374,6 +374,8 @@ public abstract class ChromeFeatureList {
     public static final String ANDROID_TIPS_NOTIFICATIONS_V2 = "AndroidTipsNotificationsV2";
     public static final String ANDROID_TOOLBAR_CAPTURE_ON_DESKTOP =
             "AndroidToolbarCaptureOnDesktop";
+    public static final String ANDROID_UNIFIED_KEYBOARD_SHORTCUTS =
+            "AndroidUnifiedKeyboardShortcuts";
     public static final String ANDROID_VERTICAL_TABS = "AndroidVerticalTabs";
     public static final String ANDROID_WINDOW_MANAGEMENT_WEB_API = "AndroidWindowManagementWebApi";
     public static final String ANDROID_XR_IMMERSIVE_PLAYER = "AndroidXrImmersivePlayer";
@@ -854,7 +856,6 @@ public abstract class ChromeFeatureList {
             "ShowWarningsForSuspiciousNotifications";
     public static final String SIDE_PANEL_TOP_HAIRLINE_REFACTOR_ANDROID =
             "SidePanelTopHairlineRefactorAndroid";
-    public static final String SIDE_UI_ALLOW_PAUSE = "SideUiAllowPause";
     public static final String SITE_ISOLATION_ENABLE_MEMORY_THRESHOLD_ANDROID =
             "SiteIsolationEnableMemoryThresholdAndroid";
     public static final String SKIP_DETACHED_TAB_RESIZE_ON_SIZE_CHANGED =
@@ -1266,7 +1267,10 @@ public abstract class ChromeFeatureList {
     public static final CachedFlag sEdgeToEdgeTablet =
             newCachedFlag(EDGE_TO_EDGE_TABLET, /* defaultValue= */ true);
     public static final CachedFlag sEdgeToEdgeTopInset =
-            newCachedFlag(EDGE_TO_EDGE_TOP_INSET, /* defaultValue= */ false);
+            newCachedFlag(
+                    EDGE_TO_EDGE_TOP_INSET,
+                    /* defaultValue= */ false,
+                    /* defaultValueInTests= */ true);
     public static final CachedFlag sEdgeToEdgeUseBackupNavbarInsets =
             newCachedFlag(EDGE_TO_EDGE_USE_BACKUP_NAVBAR_INSETS, true);
     public static final CachedFlag sEnableAndroidSidePanel =
@@ -1793,6 +1797,8 @@ public abstract class ChromeFeatureList {
             newMutableFlagWithSafeDefault(ANDROID_TIPS_NOTIFICATIONS, true);
     public static final MutableFlagWithSafeDefault sAndroidTipsNotificationsV2 =
             newMutableFlagWithSafeDefault(ANDROID_TIPS_NOTIFICATIONS_V2, false);
+    public static final MutableFlagWithSafeDefault sAndroidUnifiedKeyboardShortcuts =
+            newMutableFlagWithSafeDefault(ANDROID_UNIFIED_KEYBOARD_SHORTCUTS, false);
     public static final MutableFlagWithSafeDefault sAndroidZoomImmersive =
             newMutableFlagWithSafeDefault(ANDROID_ZOOM_IMMERSIVE, false);
     public static final MutableFlagWithSafeDefault sAutofillCardScanningBugfixes =
@@ -1887,8 +1893,6 @@ public abstract class ChromeFeatureList {
             newMutableFlagWithSafeDefault(SHOW_TAB_LIST_ANIMATIONS, false);
     public static final MutableFlagWithSafeDefault sSidePanelTopHairlineRefactorAndroid =
             newMutableFlagWithSafeDefault(SIDE_PANEL_TOP_HAIRLINE_REFACTOR_ANDROID, false);
-    public static final MutableFlagWithSafeDefault sSideUiAllowPause =
-            newMutableFlagWithSafeDefault(SIDE_UI_ALLOW_PAUSE, true);
     public static final MutableFlagWithSafeDefault sSkipDetachedTabResizeOnSizeChanged =
             newMutableFlagWithSafeDefault(SKIP_DETACHED_TAB_RESIZE_ON_SIZE_CHANGED, true);
     public static final MutableFlagWithSafeDefault sSkipDuplicateOnUrlUpdated =
@@ -2366,8 +2370,13 @@ public abstract class ChromeFeatureList {
                     "e2e_backup_navbar_insets_oem_min_versions",
                     "");
 
+    // Default to false to match the RefactorOnly arm in fieldtrial_testing_config.json, since
+    // BooleanCachedFeatureParam does not have a separate defaultValueInTests parameter. Note that
+    // this means the plain "Enabled" option in chrome://flags/#edge-to-edge-top-inset (without
+    // parameters) only enables the refactor arm. Switch back to true when the testing config
+    // moves to the full top-inset arm.
     public static final BooleanCachedFeatureParam sEdgeToEdgeTopInsetEnableTopEdgeToEdge =
-            newBooleanCachedFeatureParam(EDGE_TO_EDGE_TOP_INSET, "enable_top_edge_to_edge", true);
+            newBooleanCachedFeatureParam(EDGE_TO_EDGE_TOP_INSET, "enable_top_edge_to_edge", false);
 
     public static final StringCachedFeatureParam sEdgeToEdgeUseBackupNavbarInsetsOemList =
             newStringCachedFeatureParam(

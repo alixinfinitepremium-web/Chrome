@@ -32,7 +32,8 @@ struct HostTypeContext {
 
   // The local account that the host is set up for. May be empty if the host
   // type doesn't require a local user (see HostType::requires_local_user()),
-  // in which case the steps that operate on per-user units are skipped.
+  // in which case the steps that operate on the units of a specific user are
+  // skipped.
   std::string local_user_name;
 
   // Whether the host config is for a corp host (see IsCorpHostConfig()). Not
@@ -61,23 +62,25 @@ class HostType {
   // Prints the help message for all supported host types.
   static void PrintHostTypeHelp();
 
-  // Detects the type of the host that is currently running. Returns the first
-  // host type, in a fixed detection order, whose IsCurrent() returns true, or
-  // nullptr if no host is running. Performs blocking operations.
-  //
-  // `chrome-remote-desktop@<local_user_name>.service` being active means
-  // single-process. Otherwise, `chrome-remote-desktop.service` being active
-  // means multi-process, and the multi-process host type is the first one
-  // whose state (e.g. the session routing config file) matches.
-  //
-  // `local_user_name` is the local account whose per-user units are checked.
-  // If it is empty, per-user units are not checked; otherwise it must pass
-  // IsUserNameSafeForUnitName(). Detection takes the user rather than a
-  // HostTypeContext because no context exists yet: the context's
-  // `is_corp_host` comes from the host config, and migrate-host reads the
-  // config from the location used by the detected host type.
-  static const HostType* DetectCurrent(const HostTypeEnvironment& env,
-                                       std::string_view local_user_name);
+  // Returns the host type that is set up on this computer, whether or not its
+  // host is running, or nullptr if none is. Reads the host type record (see
+  // WriteHostTypeRecord()), or falls back to GetFallbackConfigured() if no
+  // record exists. Returns an error if the record is invalid or insecure.
+  // `local_user_name` (may be empty) is only used by GetFallbackConfigured().
+  // Performs blocking operations.
+  static base::expected<const HostType*, std::string> GetConfigured(
+      const HostTypeEnvironment& env,
+      std::string_view local_user_name);
+
+  // Infers the configured host type from the host config files and the state
+  // of the host units when there is no host type record, e.g. for hosts set up
+  // before the record was introduced (see WriteHostTypeRecord()).
+  // `local_user_name` may be empty, in which case per-user units are not
+  // checked. Returns nullptr if no host is configured. Performs blocking
+  // operations.
+  static const HostType* GetFallbackConfigured(
+      const HostTypeEnvironment& env,
+      std::string_view local_user_name);
 
   virtual ~HostType() = default;
 
@@ -94,34 +97,41 @@ class HostType {
   // this host type (see CheckLocalUserForHostTypeSetup()).
   virtual bool requires_local_user() const = 0;
 
-  // Returns whether this host type is the one that is currently running,
-  // assuming that no host type earlier in the detection order matched (see
-  // DetectCurrent(), which also describes `local_user_name`). Performs
-  // blocking operations.
-  virtual bool IsCurrent(const HostTypeEnvironment& env,
-                         std::string_view local_user_name) const = 0;
+  // Returns whether the start hook supports the local user and the host
+  // config described by `context`, and prints an error if not. Unlike the
+  // rest of RunStartHostHook(), which calls this first, this doesn't check or
+  // change the system state, so it can also be called before anything is
+  // changed, e.g. before the host config is written. The default
+  // implementation returns true.
+  virtual bool ValidateStartHostHookContext(
+      const HostTypeContext& context) const;
 
-  // Returns whether a per-user unit of this host type (e.g.
-  // `chrome-remote-desktop@<user>.service`) is enabled or active for any user,
-  // or if this can't be determined (see CheckLocalUserForHostTypeSetup()).
-  // Performs blocking operations. The default implementation returns false,
-  // for host types without per-user units.
-  virtual bool HasPerUserUnits(const HostTypeEnvironment& env) const;
+  // Atomically writes this host type's name to `env.GetHostTypeRecordPath()`
+  // (mode 0644) after creating its directory (mode 0755) if absent and
+  // verifying it with CheckSecureDirectory(). The record names the configured
+  // host type (see GetConfigured()), and is kept when the host is stopped or
+  // deleted. Prints an error and returns false on failure. Performs blocking
+  // operations.
+  bool WriteHostTypeRecord(const HostTypeEnvironment& env) const;
 
-  // Starts the host of this host type. Called as root after the host config
-  // has been written. If `keep_existing_setup` is true, this host type is
-  // already set up (e.g. it is running, and the host is set up again with the
-  // same host type), so its state is kept, and only its host unit is started.
-  // Otherwise, its start hook is run (see RunStartHostHook()), which also stops
-  // leftover units of other host types. No other host type's stop hook is
-  // run, since switching the host type of a running host is left to
-  // migrate-host. Returns false on failure. Performs blocking operations.
-  bool SetUpAndStartHost(const HostTypeContext& context,
-                         bool keep_existing_setup) const;
+  // Returns whether start-host must run this host type's start hook, as root,
+  // to set it up, e.g. because the hook would stop leftover units of other
+  // host types. If not, start-host can set up the single-process host as the
+  // user; the host script then enables and starts the host unit, which still
+  // asks for root through polkit or sudo. Performs blocking operations. The
+  // default implementation returns true.
+  virtual bool NeedsStartHostHook(const HostTypeEnvironment& env) const;
 
-  // Sets up the state of this host type, then enables and starts its host
-  // unit. Called as root when setting up this host type, after the host
-  // config has been written. Returns false on failure.
+  // Validates `context` (see ValidateStartHostHookContext()), records this
+  // host type as the configured one (see WriteHostTypeRecord()), then sets up
+  // the state of this host type and enables and starts its host unit. Called
+  // as root when setting up this host type, after the host config has been
+  // written. It also stops leftover units of other host types, but doesn't run
+  // their stop hooks, since switching the host type of a running host is left
+  // to migrate-host. The record is written before any state is changed, so if
+  // a later step fails, it still names this host type. It may be run again on
+  // a host that is already set up with this host type, e.g. to repair it.
+  // Returns false on failure. Performs blocking operations.
   bool RunStartHostHook(const HostTypeContext& context) const;
 
   // Stops and disables the host unit of this host type, then cleans up its
@@ -133,8 +143,7 @@ class HostType {
 
  protected:
   // Enables and starts the host unit of this host type, without changing its
-  // state. See RunStartHostHook(). Also used directly by SetUpAndStartHost()
-  // when the existing setup is kept. Returns false on failure.
+  // state. See RunStartHostHook(). Returns false on failure.
   virtual bool StartHostUnit(const HostTypeContext& context) const = 0;
 
   // Stops and disables the host unit of this host type, without changing its
@@ -159,19 +168,18 @@ class HostType {
 // conservatively, don't start with '-'.
 bool IsUserNameSafeForUnitName(std::string_view user_name);
 
-// Checks the local user that start-host and migrate-host use to set up
-// `target_host_type` (`local_user_name`, may be empty). Returns an error
-// message if
-// - `local_user_name` is given but fails IsUserNameSafeForUnitName(), or
-// - no user is given, and `target_host_type` requires one, or a per-user unit
-//   of any host type is enabled or active (see HostType::HasPerUserUnits()),
-//   since the current host or its leftovers can't be found or cleaned up
-//   without the user.
-// Without a user, the steps that operate on per-user units are skipped.
-// Performs blocking operations.
+// Checks whether `local_user_name` is valid for setting up or migrating to
+// `target_host_type`. Returns `base::ok()` if so, or a user-facing error
+// message.
+// - `target_host_type`: The host type being set up or migrated to.
+// - `current_host_type`: The host type currently configured on the machine, or
+//   nullptr if none is configured.
+// - `local_user_name`: The local Linux account to use, or empty if none was
+//   specified (e.g. when running `start-host` or `migrate-host` as root
+//   without `--user-name`).
 base::expected<void, std::string> CheckLocalUserForHostTypeSetup(
-    const HostTypeEnvironment& env,
     const HostType& target_host_type,
+    const HostType* current_host_type,
     std::string_view local_user_name);
 
 }  // namespace remoting

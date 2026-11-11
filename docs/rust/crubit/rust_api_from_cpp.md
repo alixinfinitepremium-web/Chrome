@@ -14,11 +14,12 @@ Crubit, including Crubit availability in projects other than Chromium.
 
 ## Availability
 
-`rust_api_from_cpp` support is currently considered experimental and unstable.
-The `rust_api_from_cpp` GN template can only be used when the
-`enable_rust_api_from_cpp` GN arg is `true`.  It defaults to `false` (see
-`//build/config/rust.gni`), but can be set to `true` in `args.gn` for local
-experimentation.
+`rust_api_from_cpp` is enabled in Chromium builds (see
+`enable_rust_api_from_cpp` in `//build/config/rust.gni`), so that it can be
+used for experimentation.  It is **not yet officially supported**: the Rust in
+Chrome team is currently testing it in `//content`.  Until official support is
+announced, expect that some C++ constructs don't get Rust bindings yet, and
+that the generated Rust APIs may change.
 
 TODO(https://crbug.com/40226863): Edit this section once we officially declare
 and announce support for using `rust_api_from_cpp`.
@@ -109,7 +110,7 @@ inspected in `<out_dir>/gen/some/dir/foo_rs_api.rs`.  For example:
 $ head -3 out/rel/gen/build/rust/tests/test_rust_api_from_cpp/self_contained_target_rs_api.rs
 // Automatically @generated Rust bindings for the following C++ target:
 // //build/rust/tests/test_rust_api_from_cpp:self_contained_target_rs_api
-// Features: assume_lifetimes, constant_arrays, forward_declare, ...
+// Features: ...
 ```
 
 ## Specifying binding dependencies

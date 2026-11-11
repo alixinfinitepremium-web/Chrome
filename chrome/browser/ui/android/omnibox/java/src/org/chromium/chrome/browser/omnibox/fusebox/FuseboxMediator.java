@@ -13,6 +13,7 @@ import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
 import android.graphics.Color;
@@ -27,6 +28,7 @@ import android.view.View;
 
 import androidx.annotation.CheckResult;
 import androidx.annotation.ColorInt;
+import androidx.annotation.StringRes;
 import androidx.annotation.StyleRes;
 import androidx.annotation.VisibleForTesting;
 
@@ -50,6 +52,7 @@ import org.chromium.chrome.browser.omnibox.fusebox.Fusebox.FuseboxLayoutMode;
 import org.chromium.chrome.browser.omnibox.fusebox.Fusebox.FuseboxState;
 import org.chromium.chrome.browser.omnibox.fusebox.Fusebox.PopupState;
 import org.chromium.chrome.browser.omnibox.fusebox.FuseboxMetrics.AiModeActivationSource;
+import org.chromium.chrome.browser.omnibox.fusebox.FuseboxMetrics.DrivePermissionDeniedReason;
 import org.chromium.chrome.browser.omnibox.fusebox.FuseboxMetrics.FuseboxAttachmentButtonType;
 import org.chromium.chrome.browser.omnibox.fusebox.FuseboxMetrics.MobileFuseboxPickerOutcome;
 import org.chromium.chrome.browser.omnibox.fusebox.FuseboxMetrics.SetActiveModelSource;
@@ -1185,14 +1188,16 @@ class FuseboxMediator implements BackPressHandler {
             return "";
         }
 
-        return switch (toolMode) {
-            case ToolMode.TOOL_MODE_UNSPECIFIED ->
-                    mContext.getString(R.string.fusebox_ai_mode_subtext);
-            case ToolMode.TOOL_MODE_IMAGE_GEN ->
-                    mContext.getString(R.string.fusebox_create_image_subtext);
-            case ToolMode.TOOL_MODE_CANVAS -> mContext.getString(R.string.fusebox_canvas_subtext);
-            default -> "";
-        };
+        @StringRes
+        int resId =
+                switch (toolMode) {
+                    case ToolMode.TOOL_MODE_UNSPECIFIED -> R.string.fusebox_ai_mode_subtext;
+                    case ToolMode.TOOL_MODE_IMAGE_GEN -> R.string.fusebox_create_image_subtext;
+                    case ToolMode.TOOL_MODE_CANVAS -> R.string.fusebox_canvas_subtext;
+                    case ToolMode.TOOL_MODE_GEMINI_PRO -> R.string.fusebox_ptm_tool_subtext;
+                    default -> Resources.ID_NULL;
+                };
+        return resId != Resources.ID_NULL ? mResourceProvider.getString(resId) : "";
     }
 
     private void launchCamera() {
@@ -1319,7 +1324,11 @@ class FuseboxMediator implements BackPressHandler {
         switch (status) {
             case DisclaimerStatus.ACCEPTED -> launchDrivePicker(mProfile);
             case DisclaimerStatus.NOT_ACCEPTED -> showDriveConsentDialog(mProfile);
-            case DisclaimerStatus.RESTRICTED -> onDrivePermissionDenied();
+            case DisclaimerStatus.RESTRICTED -> {
+                FuseboxMetrics.recordDrivePermissionDeniedReason(
+                        DrivePermissionDeniedReason.ACCOUNT_RESTRICTED);
+                onDrivePermissionDenied();
+            }
         }
     }
 
@@ -1588,11 +1597,10 @@ class FuseboxMediator implements BackPressHandler {
         List<PopupButtonData> pinnedToolButtonDataList = new ArrayList<>();
         if (inputState != null) {
             if (!mIsDesktopPlatform) {
-                if (OmniboxFeatures.hasFuseboxPinnedSection()) {
-                    pinnedToolButtonDataList.add(createAiModeToolButtonData());
-                } else {
-                    toolButtonDataList.add(createAiModeToolButtonData());
-                }
+                (shouldPinToolButton(ToolMode.TOOL_MODE_UNSPECIFIED)
+                                ? pinnedToolButtonDataList
+                                : toolButtonDataList)
+                        .add(createAiModeToolButtonData());
             }
 
             for (ToolConfig toolConfig : inputState.getToolConfigs()) {
@@ -1616,7 +1624,7 @@ class FuseboxMediator implements BackPressHandler {
                                         || toolMode != ToolMode.TOOL_MODE_CANVAS);
                 boolean hasColor = !shouldTintRequestTypeButtonIcon(iconId);
 
-                toolButtonDataList.add(
+                PopupButtonData buttonData =
                         new PopupButtonData.Builder()
                                 .setType(PopupButtonType.TOOL)
                                 .setOnClicked(this::onDynamicButtonClicked)
@@ -1628,7 +1636,9 @@ class FuseboxMediator implements BackPressHandler {
                                 .setProtoId(toolMode)
                                 .setHasColor(hasColor)
                                 .setTooltip(tooltip)
-                                .build());
+                                .build();
+                (shouldPinToolButton(toolMode) ? pinnedToolButtonDataList : toolButtonDataList)
+                        .add(buttonData);
             }
         }
 
@@ -1689,6 +1699,16 @@ class FuseboxMediator implements BackPressHandler {
         mModel.set(
                 FuseboxProperties.POPUP_MODEL_BUTTON_DATA_LIST,
                 showModelPicker ? modelButtonDataList : List.of());
+    }
+
+    private static boolean shouldPinToolButton(@ToolMode int toolMode) {
+        if (!OmniboxFeatures.hasFuseboxPinnedSection()) {
+            return false;
+        }
+        return switch (toolMode) {
+            case ToolMode.TOOL_MODE_UNSPECIFIED, ToolMode.TOOL_MODE_GEMINI_PRO -> true;
+            default -> false;
+        };
     }
 
     private void updateAttachmentConfigs(@Nullable InputState inputState) {

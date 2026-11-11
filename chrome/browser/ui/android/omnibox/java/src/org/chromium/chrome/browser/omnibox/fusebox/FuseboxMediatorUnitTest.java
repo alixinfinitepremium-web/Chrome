@@ -82,6 +82,7 @@ import org.chromium.chrome.browser.omnibox.fusebox.Fusebox.FuseboxState;
 import org.chromium.chrome.browser.omnibox.fusebox.Fusebox.PopupState;
 import org.chromium.chrome.browser.omnibox.fusebox.FuseboxAttachmentRecyclerViewAdapter.FuseboxAttachmentType;
 import org.chromium.chrome.browser.omnibox.fusebox.FuseboxMetrics.AiModeActivationSource;
+import org.chromium.chrome.browser.omnibox.fusebox.FuseboxMetrics.DrivePermissionDeniedReason;
 import org.chromium.chrome.browser.omnibox.fusebox.FuseboxMetrics.FuseboxAttachmentButtonType;
 import org.chromium.chrome.browser.omnibox.fusebox.FuseboxMetrics.MobileFuseboxPickerAttachmentType;
 import org.chromium.chrome.browser.omnibox.fusebox.FuseboxMetrics.MobileFuseboxPickerOutcome;
@@ -446,6 +447,26 @@ public class FuseboxMediatorUnitTest {
         return HistogramWatcher.newBuilder()
                 .expectIntRecord(FuseboxMetrics.PICKER_OUTCOME_HISTOGRAM, outcome)
                 .expectIntRecord(HISTOGRAM_PICKER_OUTCOME_TABS, outcome)
+                .build();
+    }
+
+    private static InputState createPtmAndImageInputState() {
+        ToolConfig imageConfig =
+                ToolConfig.newBuilder()
+                        .setToolValue(ToolMode.TOOL_MODE_IMAGE_GEN)
+                        .setMenuLabel("Create images")
+                        .setChipLabel("Create images")
+                        .build();
+        ToolConfig ptmConfig =
+                ToolConfig.newBuilder()
+                        .setToolValue(ToolMode.TOOL_MODE_GEMINI_PRO)
+                        .setMenuLabel("PTM")
+                        .setChipLabel("PTM Chip")
+                        .setIcon(Icon.newBuilder().setIconIdValue(IconResourceIds.PTM_TOOL).build())
+                        .build();
+        return new InputStateBuilder()
+                .withAllowedTools(ToolMode.TOOL_MODE_IMAGE_GEN, ToolMode.TOOL_MODE_GEMINI_PRO)
+                .withToolConfigs(imageConfig, ptmConfig)
                 .build();
     }
 
@@ -1917,10 +1938,20 @@ public class FuseboxMediatorUnitTest {
     @Test
     public void onDrivePickerClicked_consentRestricted_cancelsWithoutPicker() {
         setDriveConsentStatus(DisclaimerStatus.RESTRICTED);
+        var histogramWatcher =
+                HistogramWatcher.newBuilder()
+                        .expectIntRecord(
+                                "Omnibox.MobileFusebox.PickerOutcome.Drive",
+                                MobileFuseboxPickerOutcome.PERMISSION_DENIED)
+                        .expectIntRecord(
+                                "Omnibox.MobileFusebox.Drive.PermissionDeniedReason",
+                                DrivePermissionDeniedReason.ACCOUNT_RESTRICTED)
+                        .build();
 
         mModel.get(FuseboxProperties.POPUP_ATTACH_DRIVE_CLICKED).run();
 
         verify(mDriveFilePickerClient, never()).launchPicker(any(), any(), any(), anyBoolean());
+        histogramWatcher.assertExpected();
     }
 
     @Test
@@ -3457,12 +3488,16 @@ public class FuseboxMediatorUnitTest {
         assertEquals(
                 mContext.getString(R.string.fusebox_canvas_subtext),
                 mMediator.getToolSubtext(ToolMode.TOOL_MODE_CANVAS));
+        assertEquals(
+                mContext.getString(R.string.fusebox_ptm_tool_subtext),
+                mMediator.getToolSubtext(ToolMode.TOOL_MODE_GEMINI_PRO));
         assertEquals("", mMediator.getToolSubtext(ToolMode.TOOL_MODE_DEEP_SEARCH));
 
         OmniboxFeatures.setUseAccordionForTesting(false);
         assertEquals("", mMediator.getToolSubtext(ToolMode.TOOL_MODE_UNSPECIFIED));
         assertEquals("", mMediator.getToolSubtext(ToolMode.TOOL_MODE_IMAGE_GEN));
         assertEquals("", mMediator.getToolSubtext(ToolMode.TOOL_MODE_CANVAS));
+        assertEquals("", mMediator.getToolSubtext(ToolMode.TOOL_MODE_GEMINI_PRO));
         assertEquals("", mMediator.getToolSubtext(ToolMode.TOOL_MODE_DEEP_SEARCH));
     }
 
@@ -3528,6 +3563,125 @@ public class FuseboxMediatorUnitTest {
         List<PopupButtonData> tools = mModel.get(FuseboxProperties.POPUP_TOOL_BUTTON_DATA_LIST);
         assertEquals(ToolMode.TOOL_MODE_UNSPECIFIED, tools.get(0).protoId);
         assertTrue(mModel.get(FuseboxProperties.POPUP_PINNED_TOOL_BUTTON_DATA_LIST).isEmpty());
+    }
+
+    @Test
+    @EnableFeatures(OmniboxFeatureList.OMNIBOX_FUSEBOX_POPUP_VARIATIONS)
+    public void toolsList_ptmPinnedSection_pinsPtmBelowAiMode() {
+        OmniboxCapabilities.setIsDesktopPlatformForTesting(false);
+        OmniboxFeatures.setUseScrollableCarouselForTesting(false);
+        recreateMediator();
+        mInputStateSupplier.set(createPtmAndImageInputState());
+        mMediator.onPlusButtonClicked();
+
+        List<PopupButtonData> pinnedTools =
+                mModel.get(FuseboxProperties.POPUP_PINNED_TOOL_BUTTON_DATA_LIST);
+        assertEquals(2, pinnedTools.size());
+        assertEquals(ToolMode.TOOL_MODE_UNSPECIFIED, pinnedTools.get(0).protoId);
+        assertEquals(ToolMode.TOOL_MODE_GEMINI_PRO, pinnedTools.get(1).protoId);
+        List<PopupButtonData> unpinnedTools =
+                mModel.get(FuseboxProperties.POPUP_TOOL_BUTTON_DATA_LIST);
+        assertEquals(1, unpinnedTools.size());
+        assertEquals(ToolMode.TOOL_MODE_IMAGE_GEN, unpinnedTools.get(0).protoId);
+    }
+
+    @Test
+    @EnableFeatures(OmniboxFeatureList.OMNIBOX_FUSEBOX_POPUP_VARIATIONS)
+    public void toolsList_ptmScrollableCarousel_preservesServerOrder() {
+        OmniboxCapabilities.setIsDesktopPlatformForTesting(false);
+        OmniboxFeatures.setShowBottomSheetPopupForTesting(true);
+        OmniboxFeatures.setUseCarouselForTesting(true);
+        OmniboxFeatures.setUseScrollableCarouselForTesting(true);
+        recreateMediator();
+        mInputStateSupplier.set(createPtmAndImageInputState());
+        mMediator.onPlusButtonClicked();
+
+        assertTrue(mModel.get(FuseboxProperties.POPUP_PINNED_TOOL_BUTTON_DATA_LIST).isEmpty());
+        List<PopupButtonData> scrollableTools =
+                mModel.get(FuseboxProperties.POPUP_TOOL_BUTTON_DATA_LIST);
+        assertEquals(3, scrollableTools.size());
+        assertEquals(ToolMode.TOOL_MODE_UNSPECIFIED, scrollableTools.get(0).protoId);
+        assertEquals(ToolMode.TOOL_MODE_IMAGE_GEN, scrollableTools.get(1).protoId);
+        assertEquals(ToolMode.TOOL_MODE_GEMINI_PRO, scrollableTools.get(2).protoId);
+    }
+
+    @Test
+    @DisableFeatures(OmniboxFeatureList.OMNIBOX_FUSEBOX_POPUP_VARIATIONS)
+    public void toolsList_ptmVariationsDisabled_preservesServerOrder() {
+        OmniboxCapabilities.setIsDesktopPlatformForTesting(false);
+        recreateMediator();
+        mInputStateSupplier.set(createPtmAndImageInputState());
+        mMediator.onPlusButtonClicked();
+
+        assertTrue(mModel.get(FuseboxProperties.POPUP_PINNED_TOOL_BUTTON_DATA_LIST).isEmpty());
+        List<PopupButtonData> tools = mModel.get(FuseboxProperties.POPUP_TOOL_BUTTON_DATA_LIST);
+        assertEquals(3, tools.size());
+        assertEquals(ToolMode.TOOL_MODE_UNSPECIFIED, tools.get(0).protoId);
+        assertEquals(ToolMode.TOOL_MODE_IMAGE_GEN, tools.get(1).protoId);
+        assertEquals(ToolMode.TOOL_MODE_GEMINI_PRO, tools.get(2).protoId);
+    }
+
+    @Test
+    @DisableFeatures(OmniboxFeatureList.OMNIBOX_FUSEBOX_POPUP_VARIATIONS)
+    public void toolsList_ptmPlacementDesktop() {
+        InputState state = createPtmAndImageInputState();
+        OmniboxCapabilities.setIsDesktopPlatformForTesting(true);
+        recreateMediator();
+        mInputStateSupplier.set(state);
+        mMediator.onPlusButtonClicked();
+        assertTrue(mModel.get(FuseboxProperties.POPUP_PINNED_TOOL_BUTTON_DATA_LIST).isEmpty());
+        List<PopupButtonData> desktopTools =
+                mModel.get(FuseboxProperties.POPUP_TOOL_BUTTON_DATA_LIST);
+        assertEquals(2, desktopTools.size());
+        assertEquals(ToolMode.TOOL_MODE_IMAGE_GEN, desktopTools.get(0).protoId);
+        assertEquals(ToolMode.TOOL_MODE_GEMINI_PRO, desktopTools.get(1).protoId);
+    }
+
+    @Test
+    @EnableFeatures(OmniboxFeatureList.OMNIBOX_FUSEBOX_POPUP_VARIATIONS)
+    public void selectPtmTool_updatesRequestTypeChipAndSelection() {
+        OmniboxCapabilities.setIsDesktopPlatformForTesting(false);
+        OmniboxFeatures.setUseScrollableCarouselForTesting(false);
+        recreateMediator();
+        InputState state = createPtmAndImageInputState();
+        mInputStateSupplier.set(state);
+        mMediator.onPlusButtonClicked();
+
+        HistogramWatcher watcher =
+                HistogramWatcher.newSingleRecordWatcher(
+                        "Omnibox.MobileFusebox.ToolButtonSelected", ToolMode.TOOL_MODE_GEMINI_PRO);
+        mModel.get(FuseboxProperties.POPUP_PINNED_TOOL_BUTTON_DATA_LIST).get(1).onClicked.run();
+
+        watcher.assertExpected();
+        assertEquals(AutocompleteRequestType.PTM, mInput.getRequestType());
+        mInputStateSupplier.set(
+                new InputStateBuilder()
+                        .withActiveTool(ToolMode.TOOL_MODE_GEMINI_PRO)
+                        .withToolConfigs(state.getToolConfigs().get(1))
+                        .build());
+        assertEquals(
+                IconResourceIds.PTM_TOOL,
+                mModel.get(FuseboxProperties.REQUEST_TYPE_BUTTON_ICON_ID));
+        assertEquals("PTM Chip", mModel.get(FuseboxProperties.REQUEST_TYPE_BUTTON_TEXT));
+
+        mMediator.onPlusButtonClicked();
+        assertTrue(
+                mModel.get(FuseboxProperties.POPUP_PINNED_TOOL_BUTTON_DATA_LIST).get(1).selected);
+    }
+
+    @Test
+    public void selectPtmTool_chipClickExitsByPlatform() {
+        OmniboxCapabilities.setIsDesktopPlatformForTesting(false);
+        recreateMediator();
+        mInput.setRequestType(AutocompleteRequestType.PTM);
+        mModel.get(FuseboxProperties.REQUEST_TYPE_BUTTON_CLICKED).run();
+        assertEquals(AutocompleteRequestType.SEARCH, mInput.getRequestType());
+
+        OmniboxCapabilities.setIsDesktopPlatformForTesting(true);
+        recreateMediator();
+        mInput.setRequestType(AutocompleteRequestType.PTM);
+        mModel.get(FuseboxProperties.REQUEST_TYPE_BUTTON_CLICKED).run();
+        assertEquals(AutocompleteRequestType.AI_MODE, mInput.getRequestType());
     }
 
     @Test

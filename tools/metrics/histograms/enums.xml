@@ -1383,28 +1383,6 @@ uploading your change for review.  These are checked by presubmit scripts.
 
 <!-- LINT.ThenChange(//components/browser_ui/bottomsheet/android/java/src/org/chromium/components/browser_ui/bottomsheet/BottomSheetController.java:StateChangeReason) -->
 
-<!-- LINT.IfChange(BrowserActuatorPayloadDropReason) -->
-
-<enum name="BrowserActuatorPayloadDropReason">
-  <int value="0" label="Unspecified or unknown payload type"/>
-  <int value="1" label="Any.type_url did not match the payload type"/>
-  <int value="2" label="No handler factory registered for the payload type"/>
-  <int value="3" label="Dispatch to the handler failed"/>
-</enum>
-
-<!-- LINT.ThenChange(//components/browser_actuator/internal/transport/metrics_utils.h:DownstreamPayloadDropReason) -->
-
-<!-- LINT.IfChange(BrowserActuatorSessionInitIngressSource) -->
-
-<enum name="BrowserActuatorSessionInitIngressSource">
-  <int value="0" label="Unspecified"/>
-  <int value="1" label="FcmPush"/>
-  <int value="2" label="WatchSessionsStream"/>
-  <int value="3" label="LocalChromeIngest"/>
-</enum>
-
-<!-- LINT.ThenChange(//components/browser_actuator/public/transport/common.h:InitIngressSource) -->
-
 <!-- LINT.IfChange(BrowserProfileType) -->
 
 <enum name="BrowserProfileType">
@@ -11460,6 +11438,7 @@ from previous Chrome versions.
       label="EnableBoundSessionCredentialsSoftwareKeysForManualTesting:enabled"/>
   <int value="-1090001589" label="WebViewRestrictSensitiveContent:enabled"/>
   <int value="-1089665395" label="HTMLParamElementUrlSupport:enabled"/>
+  <int value="-1089334150" label="chro-menu-search-scoring:enabled"/>
   <int value="-1088804127" label="DuetTabStripIntegrationAndroid:disabled"/>
   <int value="-1087409065" label="RoundedDisplay:enabled"/>
   <int value="-1087269659" label="UseAndroidBufferedInputDispatch:enabled"/>
@@ -12268,6 +12247,7 @@ from previous Chrome versions.
   <int value="-849792130" label="UserMediaCaptureOnFocus:disabled"/>
   <int value="-849065891" label="HistoryPagePromoCtaStringVariation:enabled"/>
   <int value="-848691867" label="DesktopPWAWindowing:enabled"/>
+  <int value="-848562165" label="GlicNativeFreAndroid:enabled"/>
   <int value="-847735582" label="NotificationsViaHelperApp:enabled"/>
   <int value="-847216521" label="ChromeDuplex:enabled"/>
   <int value="-847111565" label="EdgeToEdgeExtraLogs:disabled"/>
@@ -16420,6 +16400,7 @@ from previous Chrome versions.
   <int value="392107748" label="PwaUpdateDialogForIcon:disabled"/>
   <int value="392154827" label="BaselineGM3SurfaceColors:enabled"/>
   <int value="392436285" label="DisconnectWiFiOnEthernetConnected:enabled"/>
+  <int value="392578599" label="GlicNativeFreAndroid:disabled"/>
   <int value="392782890" label="SafeBrowsingTelemetryForApkDownloads:enabled"/>
   <int value="392823467" label="disable-default-browser-promo"/>
   <int value="392899843" label="EnableToggleCameraShortcut:enabled"/>
@@ -18695,6 +18676,7 @@ from previous Chrome versions.
   <int value="1079114788"
       label="MobilePromoOnDesktopWithReminderWave2:disabled"/>
   <int value="1079302639" label="ArcEnableWebAppShare:disabled"/>
+  <int value="1081458820" label="chro-menu-search-scoring:disabled"/>
   <int value="1081546525" label="ash-enable-docked-windows"/>
   <int value="1082054180" label="PersistentWindowBounds:disabled"/>
   <int value="1082064896" label="WebAuthenticationAmbientSignin:enabled"/>

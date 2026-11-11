@@ -5100,8 +5100,8 @@ enum WebFeature {
   kGetComputedStylePseudoElementWithoutColon = 5782,
   kGeolocationRequestPositionWithPotentiallyUpToDateWatchedCachedPosition =
       5783,
-  kAnchorCaseSensitiveMatch = 5784,
-  kAnchorCaseInsensitiveMatch = 5785,
+  kOBSOLETE_AnchorCaseSensitiveMatch = 5784,
+  kOBSOLETE_AnchorCaseInsensitiveMatch = 5785,
   kPrerenderActivationByFormSubmission = 5786,
   kLinkRelModulePreloadStyle = 5787,
   kAudioContextPlaybackStats = 5788,
@@ -5411,6 +5411,7 @@ enum WebFeature {
   kBeforeUnloadShowedDialogWithoutUserOrFormEdit = 6092,
   kBeforeUnloadDialogBlockedUnloadWithoutUserOrFormEdit = 6093,
   kWebAuthnAmbientUiGet = 6094,
+  kV8MLGraph_Devices_AttributeGetter = 6095,
 
   // Add new features immediately above this line. Don't change the existing
   // numbers of any item, and don't reuse removed slots. Also don't add extra

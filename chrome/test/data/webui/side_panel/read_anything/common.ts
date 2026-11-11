@@ -51,12 +51,16 @@ export interface AppTestFlags {
   useRealReadAloudModel?: boolean;
 }
 
+// Saved so stubAnimationFrame() doesn't leak into later tests.
+const originalRequestAnimationFrame = window.requestAnimationFrame;
+
 // Initializes all singletons, mocks, and controllers in their strict
 // dependency order without creating an AppElement.
 export function setupTestEnvironment(flags?: AppTestFlags): TestSetupResult {
   // Clearing the DOM must always be done first.
   document.body.innerHTML = window.trustedTypes!.emptyHTML;
   window.scrollTo(0, 0);
+  window.requestAnimationFrame = originalRequestAnimationFrame;
 
   // Browser Proxies: no dependencies.
   const browserProxy = new TestColorUpdaterBrowserProxy();
@@ -264,6 +268,36 @@ export function setContent(
   return node;
 }
 
+// Stores a new <p> element in the NodeStore for each of the given ids.
+export function setDomNodes(axNodeIds: number[]): Node[] {
+  return axNodeIds.map(id => {
+    const element = document.createElement('p');
+    NodeStore.getInstance().setDomNode(element, id);
+    return element;
+  });
+}
+
+// Plays or pauses speech for a new <p> with the given text. If a model is
+// given, also sets the text as the current content.
+export function onPlayPauseToggle(
+    text: string, model?: TestReadAloudModelBrowserProxy): HTMLElement {
+  if (model) {
+    setContent(text, model);
+  }
+  const element = document.createElement('p');
+  element.textContent = text;
+  SpeechController.getInstance().onPlayPauseToggle(element);
+  return element;
+}
+
+// Returns the trimmed text of the speak call at `callIndex`, which must be
+// the latest call.
+export function getSpokenText(
+    speech: TestSpeechBrowserProxy, callIndex = 0): string {
+  assertEquals(callIndex + 1, speech.getCallCount('speak'));
+  return speech.getArgs('speak')[callIndex].text.trim();
+}
+
 function getInnerHtml(axNodeId: number): string {
   const node = NodeStore.getInstance().getDomNode(axNodeId);
   assertTrue(node instanceof Element);
@@ -280,6 +314,37 @@ export function assertHtmlContains(partialHtml: string, axNodeId: number) {
 
 export function assertHtmlExcludes(partialHtml: string, axNodeId: number) {
   assertStringExcludes(getInnerHtml(axNodeId), partialHtml);
+}
+
+// Compares font names, ignoring case, quotes, and surrounding whitespace.
+export function assertFontsEqual(actual: string, expected: string): void {
+  assertEquals(
+      expected.trim().toLowerCase().replaceAll('"', ''),
+      actual.trim().toLowerCase().replaceAll('"', ''));
+}
+
+export function getLineFocusPadding(app: AppElement): number {
+  const val = app.style.getPropertyValue('--line-focus-padding');
+  return val ? parseInt(val) : 0;
+}
+
+// Styles a line focus test container so each text line is 40px tall.
+export function applyContainerStyles(container: HTMLElement): void {
+  container.style.whiteSpace = 'pre';
+  container.style.width = 'max-content';
+  container.style.margin = '0';
+  container.style.fontSize = '20px';
+  container.style.lineHeight = '2';
+}
+
+// Adds a styled <p> with 3 lines of text to the page for line focus tests.
+export function createShortContainer(): HTMLElement {
+  const container = document.createElement('p');
+  container.innerText =
+      'I\'ve heard it said\nThat people come into our lives\nfor a reason.\n';
+  applyContainerStyles(container);
+  document.body.appendChild(container);
+  return container;
 }
 
 export function setWindowSize(height: number, width: number) {

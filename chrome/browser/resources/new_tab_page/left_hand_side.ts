@@ -81,7 +81,10 @@ export class LeftHandSideElement extends CrLitElement {
 
   static override get properties() {
     return {
-      enableThreadsRailHybrid_: {type: Boolean},
+      enableThreadsRailHybrid_: {
+        type: Boolean,
+        reflect: true,
+      },
       expandedLhsUrl_: {type: String},
       expandedWidth_: {type: Number},
       hasPreloaded_: {type: Boolean},
@@ -93,7 +96,10 @@ export class LeftHandSideElement extends CrLitElement {
         type: Boolean,
         reflect: true,
       },
-      isExpandedReady_: {type: Boolean},
+      isExpandedReady_: {
+        type: Boolean,
+        reflect: true,
+      },
       threadsRailPreloadDebounceMs_: {type: Number},
     };
   }
@@ -198,12 +204,15 @@ export class LeftHandSideElement extends CrLitElement {
     this.setHostWidth_(width);
   }
 
-  // Returns the expanded LHS iframe, or null while it is not in the DOM. In
-  // hybrid mode it is only stamped once the folded rail is hovered, focused,
-  // or expanded (see getHtml()), so that the embedded page is not loaded until
-  // the user interacts with the rail.
+  // Returns the expanded LHS iframe, or null while it is not in the DOM or not
+  // yet upgraded. In hybrid mode it is only stamped once the folded rail is
+  // hovered, focused, or expanded (see getHtml()), so that the embedded page is
+  // not loaded until the user interacts with the rail. In full-iframe mode it
+  // is stamped right away, but <ntp-iframe> is defined in the lazily loaded
+  // bundle, so until lazy_load.js runs it is a plain HTMLElement without
+  // IframeElement's methods (e.g. postMessage()).
   private getExpandedIframe_(): IframeElement|null {
-    return this.shadowRoot.querySelector<IframeElement>('#expanded');
+    return this.shadowRoot.querySelector<IframeElement>('#expanded:defined');
   }
 
   protected onFoldedPointerenter_() {
@@ -329,7 +338,7 @@ export class LeftHandSideElement extends CrLitElement {
   private postThemeColors_ = () => {
     const expanded = this.getExpandedIframe_();
     if (!expanded) {
-      // Nothing to post to before the rail is expanded in hybrid mode. The
+      // Nothing to post to before the iframe is stamped and upgraded. The
       // embedded page asks for the theme with NTP_LHS_READY once it is loaded.
       return;
     }

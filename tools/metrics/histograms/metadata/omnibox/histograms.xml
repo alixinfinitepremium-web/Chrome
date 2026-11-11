@@ -3237,6 +3237,24 @@ Keep consistent with active providers. Doesn't need to include every provider in
   </summary>
 </histogram>
 
+<histogram name="Omnibox.MobileFusebox.Drive.PermissionDeniedReason"
+    enum="MobileFuseboxDrivePermissionDeniedReason" expires_after="2027-09-01">
+  <owner>charlesyc@google.com</owner>
+  <owner>chrome-mobile-search@google.com</owner>
+  <summary>
+    Records why a Google Drive attachment flow in the Android Fusebox ended
+    without Drive consent. Emitted at most once per Drive attachment button tap
+    on Android (1:1 with the Permission denied bucket of
+    Omnibox.MobileFusebox.PickerOutcome.Drive) when the user's account is
+    restricted from using Drive, the consent dialog fails to open or paint
+    before closing, the consent page fails to load after painting, or the user
+    declines or closes the shown consent dialog. Not emitted when consent was
+    already granted, when the user grants consent, when the URL bar loses focus
+    during the initial consent check, or when the Omnibox session ends before
+    the consent check or dialog completes.
+  </summary>
+</histogram>
+
 <histogram
     name="Omnibox.MobileFusebox.FileAttachmentSize{FuseboxAttachmentFileType}"
     units="KiB" expires_after="2027-05-01">
@@ -3435,8 +3453,16 @@ Keep consistent with active providers. Doesn't need to include every provider in
   <owner>skym@chromium.org</owner>
   <owner>chrome-mobile-search@google.com</owner>
   <summary>
-    Records all of the AI tool modes that are shown as options when the popup
-    appears. The tool id comes from the server driven config.
+    Records each AI tool mode option present in the Fusebox attachments popup
+    (including the client-added AI Mode entry on mobile and each visible tool
+    from the server-driven config). As of M159, also includes tools placed in
+    the pinned section of the popup.
+
+    Emitted on Android once per configured tool button each time the attachments
+    popup is opened (including tools inside the collapsible accordion even while
+    collapsed). Not emitted when the popup is closed, when the accordion is
+    expanded or collapsed while the popup is open, when the server-driven
+    InputState is unavailable, or on iOS.
   </summary>
 </histogram>
 

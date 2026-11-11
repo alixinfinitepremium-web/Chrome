@@ -308,6 +308,7 @@ const base::Feature* const kFeaturesExposedToJava[] = {
     &kAndroidThemeResourceProvider,
     &kAndroidToolbarCaptureOnDesktop,
     &kAndroidToolbarScrollAblation,
+    &kAndroidUnifiedKeyboardShortcuts,
     &kAndroidVerticalTabs,
     &kAndroidXRUsesSurfaceControl,
     &kAndroidXrImmersivePlayer,
@@ -509,7 +510,6 @@ const base::Feature* const kFeaturesExposedToJava[] = {
     &kShareCustomActionsInCCT,
     &kShowTabListAnimations,
     &kSidePanelTopHairlineRefactorAndroid,
-    &kSideUiAllowPause,
     &kSkipDetachedTabResizeOnSizeChanged,
     &kSkipDuplicateOnUrlUpdated,
     &kStartSurfaceReturnTime,
@@ -764,6 +764,7 @@ BASE_FEATURE(kAndroidThemeModule, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kAndroidThemeResourceProvider, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kAndroidToolbarCaptureOnDesktop, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kAndroidToolbarScrollAblation, base::FEATURE_DISABLED_BY_DEFAULT);
+BASE_FEATURE(kAndroidUnifiedKeyboardShortcuts, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kAndroidVerticalTabs, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kAndroidXRUsesSurfaceControl, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kAndroidXrImmersivePlayer, base::FEATURE_DISABLED_BY_DEFAULT);
@@ -979,7 +980,6 @@ BASE_FEATURE(kSettingsSearchCollapsibleSearchBox, base::FEATURE_DISABLED_BY_DEFA
 BASE_FEATURE(kShareCustomActionsInCCT, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kShowTabListAnimations, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kSidePanelTopHairlineRefactorAndroid, base::FEATURE_DISABLED_BY_DEFAULT);
-BASE_FEATURE(kSideUiAllowPause, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kSkipDetachedTabResizeOnSizeChanged, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kSkipDuplicateOnUrlUpdated, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kStartSurfaceReturnTime, base::FEATURE_ENABLED_BY_DEFAULT);

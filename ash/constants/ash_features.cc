@@ -321,9 +321,6 @@ BASE_FEATURE(kBorealisScaleClientByDPI, base::FEATURE_ENABLED_BY_DEFAULT);
 
 BASE_FEATURE(kBorealisZinkGlDriver, base::FEATURE_ENABLED_BY_DEFAULT);
 
-// Allows UserDataAuth client to use fingerprint auth factor.
-BASE_FEATURE(kFingerprintAuthFactor, base::FEATURE_DISABLED_BY_DEFAULT);
-
 const base::FeatureParam<BorealisZinkGlDriverParam>::Option
     borealis_zink_gl_driver_options[] = {
         {BorealisZinkGlDriverParam::kZinkEnableRecommended,
@@ -1338,6 +1335,10 @@ BASE_FEATURE(kPhoneHubMonochromeNotificationIcons,
 BASE_FEATURE(kPhoneHubShortQuickActionPodsTitles,
              base::FEATURE_ENABLED_BY_DEFAULT);
 
+// Enables toggling the PiP "auto layout" mode (e.g. snap to the display edge)
+// via a pin button on PiP windows.
+BASE_FEATURE(kPipAutoLayoutToggle, base::FEATURE_DISABLED_BY_DEFAULT);
+
 // Enables or disables the preference of using constant frame rate for camera
 // when streaming.
 BASE_FEATURE(kPreferConstantFrameRate, base::FEATURE_DISABLED_BY_DEFAULT);
@@ -2161,10 +2162,6 @@ bool IsFilesLocalImageSearchEnabled() {
   return base::FeatureList::IsEnabled(kFilesLocalImageSearch);
 }
 
-bool IsFingerprintAuthFactorEnabled() {
-  return base::FeatureList::IsEnabled(kFingerprintAuthFactor);
-}
-
 bool IsFixStaticIpForTwoManagedEthPortsEnabled() {
   return base::FeatureList::IsEnabled(kFixStaticIpForTwoManagedEthPorts);
 }
@@ -2507,6 +2504,10 @@ bool IsPasswordLockoutRecoveryRoutingEnabled() {
 
 bool IsPerDeskShelfEnabled() {
   return base::FeatureList::IsEnabled(kPerDeskShelf);
+}
+
+bool IsPipAutoLayoutToggleEnabled() {
+  return base::FeatureList::IsEnabled(kPipAutoLayoutToggle);
 }
 
 bool IsPhoneHubMonochromeNotificationIconsEnabled() {

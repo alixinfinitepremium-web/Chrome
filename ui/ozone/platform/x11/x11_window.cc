@@ -1373,6 +1373,28 @@ bool X11Window::IsWmSyncActiveForTest() {
   return bounds_wm_sync_.get();
 }
 
+void X11Window::OnFrameTypeChanged() {
+  const std::optional<gfx::Insets> old_insets_px = decoration_insets_in_pixels_;
+  UpdateDecorationInsets();
+  // Before the insets are first set, the initial bounds already account for
+  // the current frame, so there is nothing to adjust.
+  if (!old_insets_px || *decoration_insets_in_pixels_ == *old_insets_px) {
+    return;
+  }
+
+  // The insets are only non-empty in the normal state, so the window is not
+  // maximized, fullscreen or minimized here. Keep the area inside the
+  // client-side decorations at the same place and size, so that switching
+  // between the system title bar and the custom frame does not move or grow
+  // the visible window. Window managers that honor _GTK_FRAME_EXTENTS (e.g.
+  // Mutter) would otherwise keep the old frame rectangle and add the new
+  // shadow insets around it. See https://crbug.com/394152435.
+  gfx::Rect bounds = GetBoundsInPixels();
+  bounds.Inset(*old_insets_px);
+  bounds.Inset(-*decoration_insets_in_pixels_);
+  SetBoundsInPixels(bounds);
+}
+
 bool X11Window::HandleAsAtkEvent(const x11::Event& event) {
 #if !BUILDFLAG(USE_ATK)
   // TODO(crbug.com/40653448): Support ATK in Ozone/X11.
@@ -1504,11 +1526,19 @@ void X11Window::DispatchUiEvent(ui::Event* event, const x11::Event& xev) {
 }
 
 void X11Window::UpdateDecorationInsets() {
+  // Never set or remove _GTK_FRAME_EXTENTS on window managers that don't
+  // support it or handle it incorrectly (e.g. Xfwm4 4.16 and older, which make
+  // maximized windows larger than the screen).
+  if (!CanSetDecorationInsets()) {
+    return;
+  }
+
   auto atom = connection_->GetAtom("_GTK_FRAME_EXTENTS");
   auto insets_dip =
       platform_window_delegate_->CalculateInsetsInDIP(GetPlatformWindowState());
 
   if (insets_dip.IsEmpty()) {
+    decoration_insets_in_pixels_ = gfx::Insets();
     connection_->DeleteProperty(xwindow_, atom);
     return;
   }
@@ -1518,6 +1548,7 @@ void X11Window::UpdateDecorationInsets() {
         GetPlatformWindowState() == PlatformWindowState::kUnknown);
 
   auto insets_px = platform_window_delegate_->ConvertInsetsToPixels(insets_dip);
+  decoration_insets_in_pixels_ = insets_px;
   connection_->SetArrayProperty(
       xwindow_, atom, x11::Atom::CARDINAL,
       std::vector<uint32_t>{static_cast<uint32_t>(insets_px.left()),
@@ -1577,9 +1608,7 @@ void X11Window::OnXWindowStateChanged() {
     auto old_state = state_;
     state_ = new_state;
     platform_window_delegate_->OnWindowStateChanged(old_state, state_);
-    if (CanSetDecorationInsets()) {
-      UpdateDecorationInsets();
-    }
+    UpdateDecorationInsets();
   }
 
   WindowTiledEdges tiled_state = GetTiledState();

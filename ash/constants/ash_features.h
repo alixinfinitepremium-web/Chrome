@@ -308,7 +308,6 @@ COMPONENT_EXPORT(ASH_CONSTANTS)
 extern const base::FeatureParam<base::TimeDelta> kEcheScanningCycleOnTime;
 COMPONENT_EXPORT(ASH_CONSTANTS)
 extern const base::FeatureParam<base::TimeDelta> kEcheScanningCycleOffTime;
-COMPONENT_EXPORT(ASH_CONSTANTS) BASE_DECLARE_FEATURE(kFingerprintAuthFactor);
 COMPONENT_EXPORT(ASH_CONSTANTS)
 BASE_DECLARE_FEATURE(kForceEnableServerSideSpeechRecognition);
 COMPONENT_EXPORT(ASH_CONSTANTS)
@@ -608,6 +607,7 @@ COMPONENT_EXPORT(ASH_CONSTANTS)
 BASE_DECLARE_FEATURE(kPhoneHubMonochromeNotificationIcons);
 COMPONENT_EXPORT(ASH_CONSTANTS)
 BASE_DECLARE_FEATURE(kPhoneHubShortQuickActionPodsTitles);
+COMPONENT_EXPORT(ASH_CONSTANTS) BASE_DECLARE_FEATURE(kPipAutoLayoutToggle);
 COMPONENT_EXPORT(ASH_CONSTANTS) BASE_DECLARE_FEATURE(kPreferConstantFrameRate);
 COMPONENT_EXPORT(ASH_CONSTANTS) BASE_DECLARE_FEATURE(kProjectorAppDebug);
 COMPONENT_EXPORT(ASH_CONSTANTS) BASE_DECLARE_FEATURE(kProjectorCustomThumbnail);
@@ -920,7 +920,6 @@ COMPONENT_EXPORT(ASH_CONSTANTS) bool IsFastPairSoftwareScanningEnabled();
 COMPONENT_EXPORT(ASH_CONSTANTS) bool IsFastPairSavedDevicesEnabled();
 
 COMPONENT_EXPORT(ASH_CONSTANTS) bool IsFilesLocalImageSearchEnabled();
-COMPONENT_EXPORT(ASH_CONSTANTS) bool IsFingerprintAuthFactorEnabled();
 COMPONENT_EXPORT(ASH_CONSTANTS)
 bool IsFixStaticIpForTwoManagedEthPortsEnabled();
 COMPONENT_EXPORT(ASH_CONSTANTS) bool IsFjordOobeEnabled();
@@ -1029,6 +1028,7 @@ COMPONENT_EXPORT(ASH_CONSTANTS) bool IsPasswordLockoutRecoveryRoutingEnabled();
 
 COMPONENT_EXPORT(ASH_CONSTANTS) bool IsPciguardUiEnabled();
 COMPONENT_EXPORT(ASH_CONSTANTS) bool IsPerDeskShelfEnabled();
+COMPONENT_EXPORT(ASH_CONSTANTS) bool IsPipAutoLayoutToggleEnabled();
 COMPONENT_EXPORT(ASH_CONSTANTS)
 bool IsPhoneHubMonochromeNotificationIconsEnabled();
 COMPONENT_EXPORT(ASH_CONSTANTS)
