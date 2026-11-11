@@ -6351,11 +6351,6 @@ inline constexpr char kFullscreenSigninMediatorStateMachineName[] =
 inline constexpr char kFullscreenSigninMediatorStateMachineDescription[] =
     "Enables the state-machine implementation of FullscreenSigninMediator.";
 
-inline constexpr char kFullscreenVideoPictureInPictureName[] =
-    "Fullscreen Video Picture-in-Picture";
-inline constexpr char kFullscreenVideoPictureInPictureDescription[] =
-    "Enables fullscreen video Picture-in-Picture on Android.";
-
 inline constexpr char kGestureUserEducationBackSwipeName[] =
     "Gesture user education back swipe";
 inline constexpr char kGestureUserEducationBackSwipeDescription[] =
@@ -6463,10 +6458,6 @@ inline constexpr char kNotificationPermissionRationaleName[] =
 inline constexpr char kNotificationPermissionRationaleDescription[] =
     "Configure the dialog shown before requesting notification permission. "
     "Only works with builds targeting Android T.";
-
-inline constexpr char kNtpMvcRefactorName[] = "New Tab Page Refactor";
-inline constexpr char kNtpMvcRefactorDescription[] =
-    "Enables the refactor of the new tab page for MVC compliance.";
 
 inline constexpr char kOctoberTestUXRName[] = "OctoberTestUXR";
 inline constexpr char kOctoberTestUXRDescription[] =

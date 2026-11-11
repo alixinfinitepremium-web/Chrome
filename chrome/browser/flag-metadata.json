@@ -1458,7 +1458,7 @@
   {
     "name": "auxiliary-search-donation",
     "owners": [ "gangwu@chromium.org", "chrome-mobile-search@google.com" ],
-    "expiry_milestone": 160
+    "expiry_milestone": 170
   },
   {
     "name": "auxiliary-search-history-donation",
@@ -3074,12 +3074,12 @@
   {
     "name": "devtools-mobile-safe-area-emulation",
     "owners": [ "pfaffe@chromium.org" ],
-    "expiry_milestone": 160
+    "expiry_milestone": 166
   },
   {
     "name": "devtools-network-backend-linking",
     "owners": [ "pfaffe@chromium.org" ],
-    "expiry_milestone": 160
+    "expiry_milestone": 166
   },
   {
     "name": "devtools-plus-button",
@@ -5463,14 +5463,6 @@
     "expiry_milestone": 155
   },
   {
-    "name": "fullscreen-video-picture-in-picture",
-    "owners": [
-      "philyan@chromium.org",
-      "media-dev@chromium.org"
-    ],
-    "expiry_milestone": 160
-  },
-  {
     "name": "fullscreen-viewport-adjustment-experiment",
     "owners": [
       "thegreenfrog@chromium.org",
@@ -7369,11 +7361,6 @@
     "name": "ntp-module-sign-in-requirement",
     "owners": [ "rtatum@google.com", "tiborg@chromium.org", "chrome-desktop-ntp@google.com" ],
     "expiry_milestone": 145
-  },
-  {
-    "name": "ntp-mvc-refactor",
-    "owners": ["hanxi@google.com", "yanlinghu@google.com", "clank-start@google.com"],
-    "expiry_milestone": 170
   },
   {
     "name": "ntp-mvt-in-bottom-sheet",
@@ -9470,12 +9457,12 @@
   {
     "name": "tab-bottom-sheet-half-height",
     "owners": [ "mfiaz@google.com", "clank-tab-dev@google.com" ],
-    "expiry_milestone": 160
+    "expiry_milestone": 170
   },
   {
     "name": "tab-bottom-sheet-resize-webview",
     "owners": [ "mfiaz@google.com", "clank-tab-dev@google.com" ],
-    "expiry_milestone": 160
+    "expiry_milestone": 170
   },
   {
     "name": "tab-closure-committed-method-refactor",
@@ -9495,7 +9482,7 @@
   {
     "name": "tab-group-actions-submenus",
     "owners": [ "mfiaz@google.com", "clank-tab-dev@google.com" ],
-    "expiry_milestone": 160
+    "expiry_milestone": 170
   },
   {
     "name": "tab-group-color-refresh",

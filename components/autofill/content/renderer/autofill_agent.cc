@@ -48,7 +48,7 @@
 #include "base/android/device_info.h"
 #endif
 #include "components/autofill/content/renderer/a11y_util.h"
-#include "components/autofill/content/renderer/custom_form_control_agent_impl.h"
+#include "components/autofill/content/renderer/custom_form_control_agent.h"
 #include "components/autofill/content/renderer/custom_form_control_script_executor.h"
 #include "components/autofill/content/renderer/custom_form_control_util.h"
 #include "components/autofill/content/renderer/form_autofill_issues.h"
@@ -604,8 +604,7 @@ void AutofillAgent::EnableCustomFormControlScripts(
   if (!unsafe_render_frame() || custom_form_control_agent_) {
     return;
   }
-  // Destroyed in `OnDestruct()`, so that it doesn't outlive the frame.
-  custom_form_control_agent_ = std::make_unique<CustomFormControlAgentImpl>(
+  custom_form_control_agent_ = std::make_unique<CustomFormControlAgent>(
       unsafe_render_frame(), world_id, registry);
 }
 
@@ -946,9 +945,9 @@ void AutofillAgent::HandleCaretMovedInFormField(WebElement element,
 // triggered by JavaScript, which in turn may be triggered by AutofillAgent.
 void AutofillAgent::OnDestruct() {
   receiver_.reset();
-  // Unlike this agent, `custom_form_control_agent_` (and its executor) is
-  // destroyed right away, so that it never outlives the frame.
-  custom_form_control_agent_.reset();
+  if (custom_form_control_agent_) {
+    custom_form_control_agent_->OnDestruct();
+  }
   weak_ptr_factory_.InvalidateWeakPtrs();
   javascript_autofill_tracker_.Reset();
   base::SingleThreadTaskRunner::GetCurrentDefault()->DeleteSoon(FROM_HERE,

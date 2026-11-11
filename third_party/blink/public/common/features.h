@@ -1670,6 +1670,9 @@ BLINK_COMMON_EXPORT extern const base::FeatureParam<bool>
     kSpeculativeServiceWorkerWarmUpOnPointerdown;
 
 BLINK_COMMON_EXPORT BASE_DECLARE_FEATURE(
+    kServiceWorkerRaceNetworkRequestAbortedErrorMessage);
+
+BLINK_COMMON_EXPORT BASE_DECLARE_FEATURE(
     kServiceWorkerRaceNetworkRequestFallbackOnDisconnect);
 
 BLINK_COMMON_EXPORT BASE_DECLARE_FEATURE(kServiceWorkerSyntheticResponse);
@@ -1710,6 +1713,10 @@ BLINK_COMMON_EXPORT BASE_DECLARE_FEATURE_PARAM(
 BLINK_COMMON_EXPORT BASE_DECLARE_FEATURE_PARAM(
     bool,
     kServiceWorkerSyntheticResponseBypassSubresource);
+
+BLINK_COMMON_EXPORT BASE_DECLARE_FEATURE_PARAM(
+    bool,
+    kServiceWorkerSyntheticResponseRefreshHeaderOnMismatch);
 
 BLINK_COMMON_EXPORT BASE_DECLARE_FEATURE(kBoostRenderProcessForLoading);
 

@@ -22,7 +22,6 @@
 #include "components/autofill/core/common/form_field_data.h"
 #include "content/public/common/isolated_world_ids.h"
 #include "content/public/renderer/render_frame.h"
-#include "content/public/renderer/render_frame_observer.h"
 #include "content/public/test/render_view_test.h"
 #include "testing/gmock/include/gmock/gmock.h"
 #include "testing/gtest/include/gtest/gtest.h"
@@ -310,38 +309,18 @@ TEST_F(CustomFormControlScriptExecutorTest,
   EXPECT_FALSE(executor_->LoadScript("var y = 1;"));
 }
 
-// Stands in for an owner that destroys the executor synchronously in its own
-// `OnDestruct()` (unlike `AutofillAgent`, which is deleted asynchronously).
-// This lets a test destroy the executor while `LoadScript()` is still running
-// the script that detaches the frame.
-class DestroyExecutorOnFrameDestruction : public content::RenderFrameObserver {
- public:
-  DestroyExecutorOnFrameDestruction(
-      content::RenderFrame* render_frame,
-      std::unique_ptr<CustomFormControlScriptExecutor>& executor)
-      : content::RenderFrameObserver(render_frame), executor_(executor) {}
-
- private:
-  void OnDestruct() override { executor_->reset(); }
-
-  const raw_ref<std::unique_ptr<CustomFormControlScriptExecutor>> executor_;
-};
-
-// Tests that loading fails, without using the executor after it is destroyed,
-// if the script detaches the frame and the owner destroys the executor.
-TEST_F(CustomFormControlScriptExecutorTest,
-       LoadFailsIfExecutorIsDestroyedDuringLoad) {
+// Tests that loading fails, and no manager is kept, if the script detaches
+// the frame.
+TEST_F(CustomFormControlScriptExecutorTest, LoadFailsIfFrameIsDetached) {
   LoadHTML("<iframe src='about:blank'></iframe>");
   content::RenderFrame* child = content::RenderFrame::FromWebFrame(
       GetMainFrame()->FirstChild()->ToWebLocalFrame());
-  auto child_executor =
-      std::make_unique<CustomFormControlScriptExecutor>(child, kWorldId);
-  DestroyExecutorOnFrameDestruction owner(child, child_executor);
-  EXPECT_FALSE(child_executor->LoadScript(R"(
+  CustomFormControlScriptExecutor child_executor(child, kWorldId);
+  EXPECT_FALSE(child_executor.LoadScript(R"(
     frameElement.remove();
     function createCustomFormControlManager() { return {}; }
   )"));
-  EXPECT_FALSE(child_executor);
+  EXPECT_FALSE(child_executor.has_manager());
 }
 
 // Tests that the manager of a subframe is dropped when the subframe is
@@ -977,20 +956,6 @@ TEST_F(CustomFormControlScriptExecutorTest, CallsFailWhileWaiting) {
   EXPECT_EQ(Call("sync"), "sync");
 }
 
-// Tests that loading a script fails a call that waits for a promise of the
-// previous manager.
-TEST_F(CustomFormControlScriptExecutorTest, LoadScriptFailsPendingCall) {
-  ASSERT_TRUE(executor_->LoadScript(kAsyncScript));
-  CallResult never;
-  StartCall(MayReturnPromise(true), "never", never);
-  EXPECT_FALSE(never.done);
-  EXPECT_TRUE(executor_->LoadScript(kValidScript));
-  EXPECT_TRUE(never.done);
-  EXPECT_TRUE(never.had_isolate);
-  EXPECT_EQ(never.value, std::nullopt);
-  EXPECT_TRUE(executor_->has_manager());
-}
-
 // Tests that a call waiting for a promise fails when a new document is
 // committed, since the promise can no longer settle. The frame is still alive,
 // so the callback gets the isolate.
@@ -1005,9 +970,9 @@ TEST_F(CustomFormControlScriptExecutorTest, FailsPendingCallOnNavigation) {
   EXPECT_EQ(never.value, std::nullopt);
 }
 
-// Tests that destroying the executor while a call waits for a promise fails the
-// call, and that the promise settling afterwards is ignored.
-TEST_F(CustomFormControlScriptExecutorTest, DestroyedWhileWaiting) {
+// Tests that loading a script fails a call that waits for a promise of the
+// previous manager, and that the promise settling afterwards is ignored.
+TEST_F(CustomFormControlScriptExecutorTest, LoadScriptFailsPendingCall) {
   ASSERT_TRUE(executor_->LoadScript(R"(
     function createCustomFormControlManager() {
       return {
@@ -1022,11 +987,13 @@ TEST_F(CustomFormControlScriptExecutorTest, DestroyedWhileWaiting) {
   )"));
   CallResult later;
   StartCall(MayReturnPromise(true), "later", later);
-  executor_.reset();
+  EXPECT_FALSE(later.done);
+  EXPECT_TRUE(executor_->LoadScript(kValidScript));
   EXPECT_TRUE(later.done);
-  EXPECT_FALSE(later.had_isolate);
+  EXPECT_TRUE(later.had_isolate);
   EXPECT_EQ(later.value, std::nullopt);
-  // The promise's reaction finds no executor.
+  EXPECT_TRUE(executor_->has_manager());
+  // The promise's reaction finds no waiting call.
   ASSERT_TRUE(base::test::RunUntil([&] {
     return EvaluateInIsolatedWorld("String(window.resolved === true)") ==
            "true";

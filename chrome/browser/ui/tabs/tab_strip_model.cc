@@ -250,7 +250,7 @@ void MaybeActivateBrowserWindow(TabStripModelDelegate* delegate) {
 // Whether an ephemeral group exiting focus mode for `reason` may be kept
 // alive by `TabStripModel::TakeEphemeralGroupRemovalLock()`. False for exits
 // that are part of a structural mutation whose caller needs the group
-// dissolved first.
+// removed first.
 bool CanLockEphemeralGroupOnExit(
     std::optional<TabGroupFocusExitReason> reason) {
   if (!reason.has_value()) {
@@ -2447,32 +2447,6 @@ bool TabStripModel::IsEphemeralTabGroup(
              : false;
 }
 
-bool TabStripModel::IsPersistableTabGroup(
-    const tab_groups::TabGroupId& group_id) const {
-  return group_model_ && group_model_->ContainsTabGroup(group_id) &&
-         !group_model_->GetTabGroup(group_id)->is_ephemeral();
-}
-
-std::optional<tab_groups::TabGroupId>
-TabStripModel::GetPersistableTabGroupForTab(int index) const {
-  return ContainsIndex(index)
-             ? GetPersistableTabGroupForTab(GetTabAtIndex(index)->GetHandle())
-             : std::nullopt;
-}
-
-std::optional<tab_groups::TabGroupId>
-TabStripModel::GetPersistableTabGroupForTab(tabs::TabHandle tab) const {
-  const tabs::TabInterface* tab_ptr = tab.Get();
-  if (!tab_ptr ||
-      static_cast<const tabs::TabModel*>(tab_ptr)->owning_model() != this) {
-    return std::nullopt;
-  }
-  std::optional<tab_groups::TabGroupId> group_id = tab_ptr->GetGroup();
-  return (group_id.has_value() && IsPersistableTabGroup(*group_id))
-             ? group_id
-             : std::nullopt;
-}
-
 void TabStripModel::PromoteEphemeralTabGroup(
     const tab_groups::TabGroupId& group_id) {
   ReentrancyCheck reentrancy_check(&reentrancy_guard_);
@@ -2507,21 +2481,13 @@ std::optional<tab_groups::TabGroupId> TabStripModel::GetFocusedGroup() const {
   return selection_model_.focused_group();
 }
 
-std::optional<tab_groups::TabGroupId>
-TabStripModel::GetPersistableFocusedGroup() const {
-  std::optional<tab_groups::TabGroupId> group_id = GetFocusedGroup();
-  return (group_id.has_value() && IsPersistableTabGroup(*group_id))
-             ? group_id
-             : std::nullopt;
-}
-
 void TabStripModel::EnterFocusMode(const tab_groups::TabGroupId& group) {
   CHECK(base::FeatureList::IsEnabled(features::kTabGroupsFocusing));
 
   CHECK(group_model_);
   CHECK(group_model_->ContainsTabGroup(group));
   // An ephemeral group that is being kept alive for its exit may not be
-  // re-focused; it only exists to be dissolved.
+  // re-focused; it only exists to be removed.
   CHECK(locked_ephemeral_group_ != group);
 
   if (selection_model_.focused_group() == group) {
@@ -2585,7 +2551,7 @@ void TabStripModel::EnterFocusMode(const tab_groups::TabGroupId& group) {
                                tab_group->IsCustomized());
     }
 
-    MaybeDissolveEphemeralGroup(old_focused_group);
+    MaybeRemoveEphemeralGroup(old_focused_group);
   }
 }
 
@@ -2618,7 +2584,7 @@ void TabStripModel::ExitFocusMode(
   {
     // Observers may take the ephemeral group's removal lock during this
     // notification, except when the exit is part of a structural mutation
-    // whose caller needs the group dissolved before it continues.
+    // whose caller needs the group removed before it continues.
     base::AutoReset<std::optional<tab_groups::TabGroupId>> lockable(
         &lockable_ephemeral_group_,
         is_ephemeral && !closing_all_ && CanLockEphemeralGroupOnExit(reason)
@@ -2641,7 +2607,7 @@ void TabStripModel::ExitFocusMode(
     }
   }
 
-  MaybeDissolveEphemeralGroup(old_focused_group);
+  MaybeRemoveEphemeralGroup(old_focused_group);
 }
 
 base::ScopedClosureRunner TabStripModel::TakeEphemeralGroupRemovalLock(
@@ -2661,14 +2627,14 @@ void TabStripModel::ReleaseEphemeralGroupRemovalLock(
   CHECK(locked_ephemeral_group_ == group_id);
   locked_ephemeral_group_.reset();
   // Released during the `OnTabGroupFocusChanged()` notification; let
-  // `ExitFocusMode()` dissolve the group once the notification returns.
+  // `ExitFocusMode()` remove the group once the notification returns.
   if (lockable_ephemeral_group_ == group_id) {
     return;
   }
-  MaybeDissolveEphemeralGroup(group_id);
+  MaybeRemoveEphemeralGroup(group_id);
 }
 
-void TabStripModel::MaybeDissolveEphemeralGroup(
+void TabStripModel::MaybeRemoveEphemeralGroup(
     std::optional<tab_groups::TabGroupId> group_id) {
   if (closing_all_ || !group_id.has_value() ||
       locked_ephemeral_group_ == *group_id || GetFocusedGroup() == *group_id ||
@@ -2907,10 +2873,9 @@ void TabStripModel::NotifyTabGroupAttached(
 void TabStripModel::NotifyTabGroupedStateChanged(
     std::optional<tab_groups::TabGroupId> old_group,
     std::optional<tab_groups::TabGroupId> new_group,
-    tabs::TabInterface* tab,
-    int index) {
+    tabs::TabHandle tab) {
   for (auto& observer : observers_) {
-    observer.TabGroupedStateChanged(this, old_group, new_group, tab, index);
+    observer.TabGroupedStateChanged(this, old_group, new_group, tab);
   }
 }
 
@@ -2975,7 +2940,7 @@ void TabStripModel::NotifySplitTabDetached(
   // Send possible group notification of removal of grouped tabs.
   if (group_model_ && previous_group_state) {
     for (auto [tab, index] : tabs_in_split) {
-      TabGroupStateChanged(index, tab, previous_group_state, std::nullopt);
+      TabGroupStateChanged(tab, previous_group_state, std::nullopt);
     }
   }
 
@@ -2995,7 +2960,7 @@ void TabStripModel::NotifySplitTabAttached(
 
   if (group_model_ && group_id.has_value()) {
     for (auto [tab, i] : tabs_in_split) {
-      TabGroupStateChanged(i, tab, std::nullopt, group_id);
+      TabGroupStateChanged(tab, std::nullopt, group_id);
     }
   }
 
@@ -4554,7 +4519,7 @@ void TabStripModel::CloseTabs(base::span<content::WebContents* const> items,
       filtered_items.push_back(contents);
     } else {
       for (auto& observer : observers_) {
-        observer.OnTabCloseCancelled(tab);
+        observer.OnTabCloseCancelled(tab->GetHandle());
       }
     }
   }
@@ -5523,7 +5488,7 @@ void TabStripModel::InsertTabAtIndexImpl(
   OnChange(change, selection);
 
   if (group_model_ && group.has_value()) {
-    TabGroupStateChanged(index, tab_ptr, std::nullopt, group);
+    TabGroupStateChanged(tab_ptr, std::nullopt, group);
   }
 }
 
@@ -5588,8 +5553,7 @@ std::unique_ptr<tabs::TabModel> TabStripModel::RemoveTabFromIndexImpl(
   }
 
   if (group_model_ && old_group) {
-    TabGroupStateChanged(index_before_any_removals, tab_to_remove, old_group,
-                         std::nullopt);
+    TabGroupStateChanged(tab_to_remove, old_group, std::nullopt);
   }
 
   return old_data;
@@ -5669,7 +5633,7 @@ void TabStripModel::MoveTabToIndexImpl(
 
   if (group_model_) {
     if (initial_group != tab->GetGroup()) {
-      TabGroupStateChanged(final_index, tab, initial_group, tab->GetGroup());
+      TabGroupStateChanged(tab, initial_group, tab->GetGroup());
     } else if (initial_group.has_value()) {
       TabGroup* const tab_group =
           group_model_->GetTabGroup(initial_group.value());
@@ -5713,7 +5677,6 @@ void TabStripModel::MoveTabsToIndexImpl(
 }
 
 void TabStripModel::TabGroupStateChanged(
-    int index,
     tabs::TabInterface* tab,
     const std::optional<tab_groups::TabGroupId> initial_group,
     const std::optional<tab_groups::TabGroupId> new_group) {
@@ -5725,12 +5688,14 @@ void TabStripModel::TabGroupStateChanged(
     return;
   }
 
+  const tabs::TabHandle tab_handle = tab->GetHandle();
+
   if (initial_group.has_value()) {
     TabGroup* tab_group = group_model_->GetTabGroup(initial_group.value());
     tab_group->RemoveTab();
 
     // Send the observation
-    NotifyTabGroupedStateChanged(initial_group, std::nullopt, tab, index);
+    NotifyTabGroupedStateChanged(initial_group, std::nullopt, tab_handle);
 
     // If the group model must be deleted, then do that at this point.
     if (tab_group->IsEmpty()) {
@@ -5768,7 +5733,7 @@ void TabStripModel::TabGroupStateChanged(
     NotifyTabGroupCreated(new_group.value());
   }
 
-  NotifyTabGroupedStateChanged(std::nullopt, new_group, tab, index);
+  NotifyTabGroupedStateChanged(std::nullopt, new_group, tab_handle);
 
   // TODO(398256328): Look into replacing the empty visual change with
   // providing the right initial value or migrating clients to working with
@@ -6110,8 +6075,7 @@ void TabStripModel::MoveTabsWithNotifications(
 
     if (group_model_) {
       if (notification.intial_group != tab->GetGroup()) {
-        TabGroupStateChanged(final_index, tab, notification.intial_group,
-                             tab->GetGroup());
+        TabGroupStateChanged(tab, notification.intial_group, tab->GetGroup());
       } else if (notification.intial_group.has_value()) {
         TabGroup* const tab_group =
             group_model_->GetTabGroup(notification.intial_group.value());

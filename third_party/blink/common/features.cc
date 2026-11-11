@@ -2097,6 +2097,13 @@ const base::FeatureParam<bool> kSpeculativeServiceWorkerWarmUpOnPointerover{
 const base::FeatureParam<bool> kSpeculativeServiceWorkerWarmUpOnPointerdown{
     &kSpeculativeServiceWorkerWarmUp, "sw_warm_up_on_pointerdown", true};
 
+// Rejects `fetch(event.request)` in a ServiceWorker fetch handler with a
+// dedicated cancellation TypeError message instead of generic "Failed to fetch"
+// when a `race-network-and-fetch-handler` request fails with `net::ERR_ABORTED`
+// before receiving response headers.
+BASE_FEATURE(kServiceWorkerRaceNetworkRequestAbortedErrorMessage,
+             base::FEATURE_DISABLED_BY_DEFAULT);
+
 // Enables fallback to network request when the RaceNetworkRequest Mojo pipe is
 // disconnected.
 BASE_FEATURE(kServiceWorkerRaceNetworkRequestFallbackOnDisconnect,
@@ -2178,6 +2185,17 @@ BASE_FEATURE_PARAM(bool,
                    kServiceWorkerSyntheticResponseUseCacheStorageParam,
                    &kServiceWorkerSyntheticResponse,
                    "use_cache_storage",
+                   false);
+
+// If true, a mismatched network response header that still opts in to the
+// synthetic response is stored again right away instead of only being dropped.
+// Only browser-side processing modes can do this; in the `network_service`
+// mode the network service replaces mismatched headers before the browser sees
+// them, so the cached header is dropped as before.
+BASE_FEATURE_PARAM(bool,
+                   kServiceWorkerSyntheticResponseRefreshHeaderOnMismatch,
+                   &kServiceWorkerSyntheticResponse,
+                   "refresh_header_on_mismatch",
                    false);
 
 // If enabled, force renderer process foregrounded from CommitNavigation to

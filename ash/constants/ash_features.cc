@@ -1010,23 +1010,8 @@ BASE_FEATURE(kLobsterAlwaysShowDisclaimerForTesting,
 // Enables lobster dogfood.
 BASE_FEATURE(kLobsterDogfood, base::FEATURE_DISABLED_BY_DEFAULT);
 
-// Enables lobster dragging support.
-BASE_FEATURE(kLobsterDraggingSupport, base::FEATURE_ENABLED_BY_DEFAULT);
-
-// Enables lobster feedback form.
-BASE_FEATURE(kLobsterFeedback, base::FEATURE_ENABLED_BY_DEFAULT);
-
-// Enables lobster feedback form.
-BASE_FEATURE(kLobsterFileNamingImprovement, base::FEATURE_ENABLED_BY_DEFAULT);
-
 // Enables lobster restriction based on the current active IME.
 BASE_FEATURE(kLobsterDisabledByInvalidIME, base::FEATURE_DISABLED_BY_DEFAULT);
-
-// Controls lobster availability on managed accounts.
-BASE_FEATURE(kLobsterForManagedUsers, base::FEATURE_ENABLED_BY_DEFAULT);
-
-// Enables lobster i18n response.
-BASE_FEATURE(kLobsterI18n, base::FEATURE_ENABLED_BY_DEFAULT);
 
 // Enables lobster entry point in quick insert zero state.
 BASE_FEATURE(kLobsterQuickInsertZeroState, base::FEATURE_ENABLED_BY_DEFAULT);
@@ -2365,16 +2350,8 @@ bool IsLobsterUseRewrittenQuery() {
   return base::FeatureList::IsEnabled(kLobsterUseRewrittenQuery);
 }
 
-bool IsLobsterI18nEnabled() {
-  return base::FeatureList::IsEnabled(kLobsterI18n);
-}
-
 bool IsLobsterAlwaysShowDisclaimerForTesting() {
   return base::FeatureList::IsEnabled(kLobsterAlwaysShowDisclaimerForTesting);
-}
-
-bool IsLobsterEnabledForManagedUsers() {
-  return base::FeatureList::IsEnabled(kLobsterForManagedUsers);
 }
 
 bool IsLoginScreenProxyClientCertAuthEnabled() {

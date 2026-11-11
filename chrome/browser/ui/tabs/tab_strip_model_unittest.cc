@@ -349,8 +349,7 @@ class MockTabStripModelObserver : public TabStripModelObserver {
   void TabGroupedStateChanged(TabStripModel* tab_strip_model,
                               std::optional<tab_groups::TabGroupId> old_group,
                               std::optional<tab_groups::TabGroupId> new_group,
-                              tabs::TabInterface* tab,
-                              int index) override {
+                              tabs::TabHandle tab) override {
     if (old_group.has_value()) {
       group_updates_[old_group.value()].contents_update_count++;
     }
@@ -2660,7 +2659,7 @@ TEST_F(TabStripModelTest, CloseOtherTabsInGroupIndices) {
    public:
     struct Call {
       int tab_id;
-      int index;
+      tabs::TabHandle handle;
       std::optional<tab_groups::TabGroupId> old_group;
       std::optional<tab_groups::TabGroupId> new_group;
     };
@@ -2669,14 +2668,16 @@ TEST_F(TabStripModelTest, CloseOtherTabsInGroupIndices) {
     void TabGroupedStateChanged(TabStripModel* tab_strip_model,
                                 std::optional<tab_groups::TabGroupId> old_group,
                                 std::optional<tab_groups::TabGroupId> new_group,
-                                tabs::TabInterface* tab,
-                                int index) override {
-      calls.push_back({GetID(tab->GetContents()), index, old_group, new_group});
+                                tabs::TabHandle tab) override {
+      calls.push_back(
+          {GetID(tab.Get()->GetContents()), tab, old_group, new_group});
     }
   };
 
   // Create 3 tabs.
   PrepareTabs(tabstrip(), 3);
+  const tabs::TabHandle t0_handle = tabstrip()->GetTabAtIndex(0)->GetHandle();
+  const tabs::TabHandle t2_handle = tabstrip()->GetTabAtIndex(2)->GetHandle();
 
   // Group all 3 tabs.
   tab_groups::TabGroupId group = tabstrip()->AddToNewGroup({0, 1, 2});
@@ -2694,18 +2695,15 @@ TEST_F(TabStripModelTest, CloseOtherTabsInGroupIndices) {
                                         TabStripModel::CommandCloseOtherTabs);
 
   // We expect T0 (id 0) and T2 (id 2) to be removed from the group.
-  // The observer should be notified with their indices BEFORE removals started.
-  // T0 was at index 0.
-  // T2 was at index 2.
   ASSERT_EQ(2u, observer.calls.size());
 
   EXPECT_EQ(0, observer.calls[0].tab_id);
-  EXPECT_EQ(0, observer.calls[0].index);
+  EXPECT_EQ(t0_handle, observer.calls[0].handle);
   EXPECT_EQ(group, observer.calls[0].old_group);
   EXPECT_EQ(std::nullopt, observer.calls[0].new_group);
 
   EXPECT_EQ(2, observer.calls[1].tab_id);
-  EXPECT_EQ(2, observer.calls[1].index);
+  EXPECT_EQ(t2_handle, observer.calls[1].handle);
   EXPECT_EQ(group, observer.calls[1].old_group);
   EXPECT_EQ(std::nullopt, observer.calls[1].new_group);
 
@@ -3650,36 +3648,6 @@ TEST_F(TabStripModelTest,
   lock.RunAndReset();
   EXPECT_FALSE(tabstrip()->group_model()->ContainsTabGroup(ephemeral_group));
   EXPECT_EQ(std::nullopt, tabstrip()->GetTabGroupForTab(2));
-}
-
-// Ephemeral groups must never be persisted to session storage; regular and
-// promoted groups may be.
-TEST_F(TabStripModelTest, PersistableTabGroup) {
-  base::test::ScopedFeatureList feature_list;
-  feature_list.InitWithFeatures(
-      {features::kTabGroupsFocusing, features::kNonGroupFocus}, {});
-
-  PrepareTabs(tabstrip(), 3);
-  tabstrip()->ForgetAllOpeners();
-  const tab_groups::TabGroupId regular_group = tabstrip()->AddToNewGroup({0});
-  const tab_groups::TabGroupId ephemeral_group =
-      tabstrip()->EnterFocusMode({1});
-
-  EXPECT_TRUE(tabstrip()->IsPersistableTabGroup(regular_group));
-  EXPECT_FALSE(tabstrip()->IsPersistableTabGroup(ephemeral_group));
-  // A group that is not in the model cannot be persisted.
-  EXPECT_FALSE(
-      tabstrip()->IsPersistableTabGroup(tab_groups::TabGroupId::GenerateNew()));
-  EXPECT_EQ(std::nullopt, tabstrip()->GetPersistableFocusedGroup());
-
-  EXPECT_EQ(regular_group, tabstrip()->GetPersistableTabGroupForTab(0));
-  EXPECT_EQ(std::nullopt, tabstrip()->GetPersistableTabGroupForTab(1));
-  EXPECT_EQ(std::nullopt, tabstrip()->GetPersistableTabGroupForTab(2));
-
-  tabstrip()->PromoteEphemeralTabGroup(ephemeral_group);
-  EXPECT_TRUE(tabstrip()->IsPersistableTabGroup(ephemeral_group));
-  EXPECT_EQ(ephemeral_group, tabstrip()->GetPersistableFocusedGroup());
-  EXPECT_EQ(ephemeral_group, tabstrip()->GetPersistableTabGroupForTab(1));
 }
 
 // OnTabGroupPromoted() is sent only when an ephemeral group is promoted, not
@@ -9460,12 +9428,10 @@ TEST_F(TabStripModelTest, SingleTabStateHandleOverloads) {
   EXPECT_FALSE(tabstrip()->IsTabInForeground(tab2));
   tabstrip()->RemoveSplit(tab0.Get()->GetSplit().value());
 
-  // Collapsed and persistable group queries.
+  // Collapsed group query.
   EXPECT_FALSE(tabstrip()->IsTabCollapsed(tab1));
-  EXPECT_EQ(std::nullopt, tabstrip()->GetPersistableTabGroupForTab(tab1));
   const tab_groups::TabGroupId group_id =
       tabstrip()->AddToNewGroup({tabstrip()->GetIndexOfTab(tab1)});
-  EXPECT_EQ(group_id, tabstrip()->GetPersistableTabGroupForTab(tab1));
   tabstrip()->ChangeTabGroupVisuals(
       group_id, tab_groups::TabGroupVisualData(
                     u"Group", tab_groups::TabGroupColorId::kGrey,

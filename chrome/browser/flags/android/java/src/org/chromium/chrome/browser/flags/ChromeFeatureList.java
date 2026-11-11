@@ -747,7 +747,6 @@ public abstract class ChromeFeatureList {
     public static final String NTP_AURORA = "NtpAurora";
     public static final String NTP_AURORA_V2 = "NtpAuroraV2";
     public static final String NTP_CUSTOMIZE_WEBUI_ANDROID = "NtpCustomizeWebUiAndroid";
-    public static final String NTP_MVC_REFACTOR = "NtpMvcRefactor";
     public static final String NTP_VISION = "NtpVision";
     public static final String OMAHA_MIN_SDK_VERSION_ANDROID = "OmahaMinSdkVersionAndroid";
     public static final String OMNIBOX_CACHE_SUGGESTION_RESOURCES =
@@ -1001,6 +1000,8 @@ public abstract class ChromeFeatureList {
     public static final CachedFlag sAiOverlayDialog = newCachedFlag(AI_OVERLAY_DIALOG, false);
     public static final CachedFlag sAllocInstanceIdIncreasedDefaultRange =
             newCachedFlag(ALLOC_INSTANCE_ID_INCREASED_DEFAULT_RANGE, /* defaultValue= */ true);
+    public static final CachedFlag sAndroidAdaptiveUiTransitions =
+            newCachedFlag(ANDROID_ADAPTIVE_UI_TRANSITIONS, /* defaultValue= */ false);
     public static final CachedFlag sAndroidAnimatedProgressBarInBrowser =
             newCachedFlag(ANDROID_ANIMATED_PROGRESS_BAR_IN_BROWSER, /* defaultValue= */ false);
     public static final CachedFlag sAndroidApb144Patch1 = newCachedFlag(APB144_PATCH1, true);
@@ -1395,8 +1396,6 @@ public abstract class ChromeFeatureList {
             newCachedFlag(NOTIFICATION_TRAMPOLINE, false);
     public static final CachedFlag sNotificationTrampolineNoNewTask =
             newCachedFlag(NOTIFICATION_TRAMPOLINE_NO_NEW_TASK, true);
-    public static final CachedFlag sNtpMvcRefactor =
-            newCachedFlag(NTP_MVC_REFACTOR, /* defaultValue= */ false);
     public static final CachedFlag sNtpVision =
             newCachedFlag(NTP_VISION, /* defaultValue= */ false);
     public static final CachedFlag sOnStartupSettingsUi =
@@ -1549,6 +1548,7 @@ public abstract class ChromeFeatureList {
                     sAccountPickerDialog,
                     sAiOverlayDialog,
                     sAllocInstanceIdIncreasedDefaultRange,
+                    sAndroidAdaptiveUiTransitions,
                     sAndroidAnimatedProgressBarInBrowser,
                     sAndroidApb144Patch1,
                     sAndroidApb144Patch2,
@@ -1693,7 +1693,6 @@ public abstract class ChromeFeatureList {
                     sNewTabPageCustomizationV2,
                     sNotificationTrampoline,
                     sNotificationTrampolineNoNewTask,
-                    sNtpMvcRefactor,
                     sNtpVision,
                     sOnStartupSettingsUi,
                     sOnStartupWindowPolicy,

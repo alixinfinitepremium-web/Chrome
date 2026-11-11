@@ -354,8 +354,7 @@ void TabStripModelObserver::OnTabWillBeAdded() {}
 
 void TabStripModelObserver::OnTabWillBeRemoved(tabs::TabHandle tab) {}
 
-void TabStripModelObserver::OnTabCloseCancelled(const tabs::TabInterface* tab) {
-}
+void TabStripModelObserver::OnTabCloseCancelled(tabs::TabHandle tab) {}
 
 void TabStripModelObserver::OnTabChangedAt(tabs::TabInterface* tab,
                                            TabChangeType change_type) {}
@@ -370,8 +369,7 @@ void TabStripModelObserver::TabGroupedStateChanged(
     TabStripModel* tab_strip_model,
     std::optional<tab_groups::TabGroupId> old_group,
     std::optional<tab_groups::TabGroupId> new_group,
-    tabs::TabInterface* tab,
-    int index) {}
+    tabs::TabHandle tab) {}
 
 void TabStripModelObserver::OnTabGroupChanged(const TabGroupChange& change) {}
 

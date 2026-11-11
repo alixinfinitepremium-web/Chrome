@@ -507,6 +507,10 @@ BASE_FEATURE(kLocalNetworkAccessForFencedFrameNavigations,
 BASE_FEATURE(kLocalNetworkAccessForFencedFrameNavigationsWarningOnly,
              base::FEATURE_DISABLED_BY_DEFAULT);
 
+// Schedules worker GPU streams (kGpuStreamIdWorker) at
+// gpu::SchedulingPriority::kLow instead of kGpuStreamPriorityWorker (kNormal).
+BASE_FEATURE(kLowPriorityGpuWorkerStream, base::FEATURE_DISABLED_BY_DEFAULT);
+
 // When enabled, allows the ReusePrerenderingProcessForMainFrames feature
 // and the ProcessPerSiteUpToMainFrameThreshold feature to reuse processes
 // even when DevTools was ever attached.
@@ -932,6 +936,11 @@ BASE_FEATURE(kTrustedTypesFromLiteral, base::FEATURE_DISABLED_BY_DEFAULT);
 #if BUILDFLAG(IS_WIN)
 BASE_FEATURE(kUpdateDirectManipulationHelperOnParentChange,
              base::FEATURE_ENABLED_BY_DEFAULT);
+
+// Exercises event-based I/O in ordinary Win32 renderers independently of Basic
+// Process activation. Other process types retain the IOCP backend.
+BASE_FEATURE(kUseEventBasedMessagePumpForIOInRenderer,
+             base::FEATURE_DISABLED_BY_DEFAULT);
 #endif
 
 // Validate the code signing identity of the network process before establishing

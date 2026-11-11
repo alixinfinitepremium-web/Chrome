@@ -155,6 +155,7 @@ CONTENT_EXPORT BASE_DECLARE_FEATURE(kKeepChildProcessAfterIPCReset);
 CONTENT_EXPORT BASE_DECLARE_FEATURE(
     kKeepUnassignedSiteInstanceInOriginalBrowsingInstance);
 CONTENT_EXPORT BASE_DECLARE_FEATURE(kKillOnInvalidNavigationHeaders);
+CONTENT_EXPORT BASE_DECLARE_FEATURE(kLowPriorityGpuWorkerStream);
 
 CONTENT_EXPORT BASE_DECLARE_FEATURE(kLocalNetworkAccessForWorkers);
 CONTENT_EXPORT BASE_DECLARE_FEATURE(kLocalNetworkAccessForWorkersWarningOnly);
@@ -275,6 +276,7 @@ CONTENT_EXPORT BASE_DECLARE_FEATURE(kTrustedTypesFromLiteral);
 #if BUILDFLAG(IS_WIN)
 CONTENT_EXPORT BASE_DECLARE_FEATURE(
     kUpdateDirectManipulationHelperOnParentChange);
+CONTENT_EXPORT BASE_DECLARE_FEATURE(kUseEventBasedMessagePumpForIOInRenderer);
 #endif
 #if BUILDFLAG(IS_MAC)
 CONTENT_EXPORT BASE_DECLARE_FEATURE(kValidateNetworkServiceProcessIdentity);

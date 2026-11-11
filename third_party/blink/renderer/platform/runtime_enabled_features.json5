@@ -696,12 +696,6 @@
       // crbug.com/538260158
       name: "AnnotationSpaceForMultiCol",
       status: "experimental",
-      depends_on: ["AnnotationSpaceOnStart"],
-    },
-    {
-      // crbug.com/445727139
-      name: "AnnotationSpaceOnStart",
-      status: "stable",
     },
     {
       name: "AnonymousIframe",
@@ -3460,6 +3454,11 @@
       status: "stable",
     },
     {
+      // https://crbug.com/40083285
+      name: "FontNonNullPrimaryFont",
+      status: "stable",
+    },
+    {
       // Kill switch for https://crbug.com/489865845.
       name: "FontPrewarmerShutdownFallback",
       status: "stable",
@@ -4334,10 +4333,6 @@
     {
       // Use LongAnimationFrameMonitor to emit longtask entries
       name: "LongTaskFromLongAnimationFrame",
-      status: "stable",
-    },
-    {
-      name: "MacCharacterFallbackCache",
       status: "stable",
     },
     {
