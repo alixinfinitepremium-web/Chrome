@@ -804,7 +804,8 @@
                     "enable_features": [
                         "AndroidNewTabButtonTabstripWebUI",
                         "InitialWebUI",
-                        "WebUIToolbarFrameEvictionOptOut"
+                        "WebUIToolbarFrameEvictionOptOut",
+                        "WebUiAndroidTheming"
                     ]
                 }
             ]
@@ -1038,22 +1039,6 @@
                     "name": "Enabled",
                     "enable_features": [
                         "AndroidTabSearchRecentTabs"
-                    ]
-                }
-            ]
-        }
-    ],
-    "AndroidTabUiRefactor": [
-        {
-            "platforms": [
-                "android",
-                "android_desktop"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "AndroidTabUiRefactor"
                     ]
                 }
             ]
@@ -1395,6 +1380,24 @@
                     "name": "Enabled",
                     "enable_features": [
                         "AppShimNotificationAttribution"
+                    ]
+                }
+            ]
+        }
+    ],
+    "AppSwitcherPromoExperiment": [
+        {
+            "platforms": [
+                "ios"
+            ],
+            "experiments": [
+                {
+                    "name": "Arm1",
+                    "params": {
+                        "AppSwitcherPromoExperimentArm": "1"
+                    },
+                    "enable_features": [
+                        "AppSwitcherPromoExperiment"
                     ]
                 }
             ]
@@ -3215,6 +3218,25 @@
             ]
         }
     ],
+    "AvoidCloneMutableExtensionFunctionArgs": [
+        {
+            "platforms": [
+                "android_desktop",
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "AvoidCloneMutableExtensionFunctionArgs"
+                    ]
+                }
+            ]
+        }
+    ],
     "AvoidEntryCreationForNoStore": [
         {
             "platforms": [
@@ -4099,6 +4121,27 @@
             ]
         }
     ],
+    "CapCommandBufferWaitPriority": [
+        {
+            "platforms": [
+                "android",
+                "android_webview",
+                "chromeos",
+                "fuchsia",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "CapCommandBufferWaitPriority"
+                    ]
+                }
+            ]
+        }
+    ],
     "CastMirroringNativeNV12": [
         {
             "platforms": [
@@ -4252,6 +4295,7 @@
         {
             "platforms": [
                 "android",
+                "android_desktop",
                 "chromeos",
                 "linux",
                 "mac",
@@ -5623,30 +5667,6 @@
                     },
                     "enable_features": [
                         "ModelQualityLogging"
-                    ]
-                }
-            ]
-        }
-    ],
-    "ComposeProactiveNudgePosition": [
-        {
-            "platforms": [
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled_CursorNudgeModel",
-                    "params": {
-                        "proactive_nudge_compact_ui": "true",
-                        "proactive_nudge_delay_milliseconds": "1000",
-                        "proactive_nudge_force_show_probability": "0.04",
-                        "proactive_nudge_show_probability": "0.02"
-                    },
-                    "enable_features": [
-                        "ComposeProactiveNudge",
-                        "EnableComposeNudgeAtCursor"
                     ]
                 }
             ]
@@ -8838,6 +8858,30 @@
             ]
         }
     ],
+    "FetchErrorCategoryLogging": [
+        {
+            "platforms": [
+                "android",
+                "android_desktop",
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled_v1",
+                    "params": {
+                        "category_param_name": "category",
+                        "category_prefix": "search-"
+                    },
+                    "enable_features": [
+                        "FetchErrorCategoryLogging"
+                    ]
+                }
+            ]
+        }
+    ],
     "FirstRunDesktopRevamp": [
         {
             "platforms": [
@@ -9400,30 +9444,6 @@
                     "enable_features": [
                         "GlicContentsInitiallyHidden",
                         "GlicWarming"
-                    ]
-                }
-            ]
-        }
-    ],
-    "GlicConfirmNavigationToNewOrigins": [
-        {
-            "platforms": [
-                "chromeos",
-                "linux",
-                "mac",
-                "windows",
-                "android",
-                "android_desktop"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled_DarkLaunch",
-                    "params": {
-                        "confirm_navigation_to_new_origins": "false",
-                        "confirm_navigation_to_new_origins_dark_launch": "true"
-                    },
-                    "enable_features": [
-                        "GlicCrossOriginNavigationGating"
                     ]
                 }
             ]
@@ -14477,24 +14497,6 @@
             ]
         }
     ],
-    "OpenTranslationSettings": [
-        {
-            "platforms": [
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "TranslateOpenSettings"
-                    ]
-                }
-            ]
-        }
-    ],
     "OptGuideBatchSRPTuning": [
         {
             "platforms": [
@@ -14785,6 +14787,7 @@
                     "name": "Enabled",
                     "enable_features": [
                         "InlinePdfV2",
+                        "InlinePdfV2Download",
                         "InlinePdfV2Incognito",
                         "PdfReuseFragment"
                     ]
@@ -16437,6 +16440,26 @@
                     "enable_features": [
                         "PrioritizeCompositorTaskRunnerOnStartup",
                         "PrioritizeResizeTaskRunnerOnStartup"
+                    ]
+                }
+            ]
+        }
+    ],
+    "PrivateAiUseTlsSession": [
+        {
+            "platforms": [
+                "android",
+                "android_desktop",
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled_20261111",
+                    "enable_features": [
+                        "PrivateAiUseTlsSession"
                     ]
                 }
             ]
@@ -22148,21 +22171,6 @@
                     "name": "Enabled",
                     "enable_features": [
                         "WebViewUseMetricsUploadServiceOnlySdkRuntime"
-                    ]
-                }
-            ]
-        }
-    ],
-    "WebViewUseWVLESForLayeredStudy": [
-        {
-            "platforms": [
-                "android_webview"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "WebViewUseWVLESForLayeredStudy"
                     ]
                 }
             ]

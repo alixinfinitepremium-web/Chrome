@@ -36,6 +36,8 @@ class WebContents;
 
 namespace ttc {
 
+class PointerInputObserver;
+class PointerTracker;
 class SessionInactivityDetector;
 class SessionView;
 class TtcKeyedService;
@@ -82,6 +84,7 @@ class SessionControllerImpl : public SessionController,
 
   // SessionViewDelegate implementation:
   BrowserWindowInterface* GetBrowserWindowInterface() override;
+  bool SetMicMuted(bool muted) override;
   bool IsMicMuted() const override;
   Speaker GetSpeaker() const override;
 
@@ -99,15 +102,19 @@ class SessionControllerImpl : public SessionController,
   // session. Must be called before acting.
   void EnsureActorTaskCreated();
 
-  // Mutes or unmutes the user's microphone. While muted, no audio is captured
-  // or sent to the model. Only a live session can be muted, and it goes live
-  // unmuted. Returns whether the state changed: false unless the session is
-  // live, or if the microphone already was in that state. Observers are
-  // notified of changes.
-  bool SetMicMuted(bool muted);
-
   SessionView& session_view() { return CHECK_DEREF(session_view_.get()); }
   Conversation& conversation() { return CHECK_DEREF(conversation_.get()); }
+  TtcPageContextMonitor* page_context_monitor_for_testing() {
+    return page_context_monitor_.get();
+  }
+
+  // Where the pointer has been over the voice-focused contents, for the
+  // get_pointer tool. Null unless kTtcGetPointer is enabled.
+  PointerTracker* pointer_tracker() { return pointer_tracker_.get(); }
+
+  // When the user's latest turn began: the last time they started speaking or
+  // sent text, or when the session started if they have not yet.
+  base::TimeTicks user_turn_start() const { return user_turn_start_; }
 
  private:
   void OnPageContextFetched(const PageContextResult& result);
@@ -139,7 +146,13 @@ class SessionControllerImpl : public SessionController,
   ActorTaskHolder actor_task_holder_;
   SessionJournalImpl journal_;
   ToolController tool_controller_;
-  std::unique_ptr<TtcPageContextMonitor> page_context_monitor_;
+
+  // Both null unless kTtcGetPointer is enabled; the observer also while there
+  // are no voice-focused contents. The observer refers to the tracker, so it
+  // is declared after it.
+  std::unique_ptr<PointerTracker> pointer_tracker_;
+  std::unique_ptr<PointerInputObserver> pointer_input_observer_;
+  base::TimeTicks user_turn_start_ = base::TimeTicks::Now();
 
   SessionLifecycle session_lifecycle_ = SessionLifecycle::kInitializing;
   Speaker speaker_ = Speaker::kIdle;
@@ -154,6 +167,9 @@ class SessionControllerImpl : public SessionController,
   // The transcripts of the current exchange.
   TranscriptTracker transcript_tracker_;
 
+  // Declared after `observers_` because they hold `ScopedObservation`s on
+  // `this` whose destructors call `RemoveObserver()`, accessing `observers_`.
+  std::unique_ptr<TtcPageContextMonitor> page_context_monitor_;
   std::unique_ptr<SessionInactivityDetector> inactivity_detector_;
   std::unique_ptr<LockOrSuspendDetector> lock_or_suspend_detector_;
 

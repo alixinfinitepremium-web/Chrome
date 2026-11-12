@@ -651,6 +651,8 @@ public abstract class ChromeFeatureList {
     public static final String ENFORCE_INCOGNITO_ISOLATION = "EnforceIncognitoIsolation";
     public static final String EXCLUDE_CHROME_IN_INCOGNITO_SHARE_SHEET =
             "ExcludeChromeInIncognitoShareSheet";
+    public static final String FED_CM_PERMISSION_UI_WITH_CONTAINER =
+            "FedCmPermissionUiWithContainer";
     public static final String FEED_AUDIO_OVERVIEWS = "FeedAudioOverviews";
     public static final String FEED_CONTAINMENT = "FeedContainment";
     public static final String FEED_CONTAINMENT_CLIP_FIRST_CARD = "FeedContainmentClipFirstCard";
@@ -1060,10 +1062,7 @@ public abstract class ChromeFeatureList {
     public static final CachedFlag sAndroidTabSkipSaveTabsKillswitch =
             newCachedFlag(ANDROID_TAB_SKIP_SAVE_TABS_TASK_KILLSWITCH, true, true);
     public static final CachedFlag sAndroidTabUiRefactor =
-            newCachedFlag(
-                    ANDROID_TAB_UI_REFACTOR,
-                    /* defaultValue= */ false,
-                    /* defaultValueInTests= */ true);
+            newCachedFlag(ANDROID_TAB_UI_REFACTOR, true);
     public static final CachedFlag sAndroidTabstripStartupCaptureBugFix =
             newCachedFlag(ANDROID_TABSTRIP_STARTUP_CAPTURE_BUG_FIX, true, true);
     public static final CachedFlag sAndroidToolbarCaptureOnDesktop =
@@ -1541,7 +1540,10 @@ public abstract class ChromeFeatureList {
                     /* defaultValue= */ false,
                     /* defaultValueInTests= */ true);
     public static final CachedFlag sWebUiAndroidTheming =
-            newCachedFlag(WEB_UI_ANDROID_THEMING, BuildConfig.IS_DESKTOP_ANDROID);
+            newCachedFlag(
+                    WEB_UI_ANDROID_THEMING,
+                    /* defaultValue= */ BuildConfig.IS_DESKTOP_ANDROID,
+                    /* defaultValueInTests= */ true);
     // keep-sorted end
 
     public static final List<CachedFlag> sFlagsCachedFullBrowser =
@@ -1846,6 +1848,8 @@ public abstract class ChromeFeatureList {
             newMutableFlagWithSafeDefault(ENABLE_TOOLBAR_POSITIONING_IN_RESIZE_MODE, true);
     public static final MutableFlagWithSafeDefault sFREStringChanges =
             newMutableFlagWithSafeDefault(FRE_STRING_CHANGES, false);
+    public static final MutableFlagWithSafeDefault sFedCmPermissionUiWithContainer =
+            newMutableFlagWithSafeDefault(FED_CM_PERMISSION_UI_WITH_CONTAINER, false);
     public static final MutableFlagWithSafeDefault sFlyoutInBookmarksBar =
             newMutableFlagWithSafeDefault(FLYOUT_IN_BOOKMARKS_BAR, false);
     public static final MutableFlagWithSafeDefault sGlicNoWebview =

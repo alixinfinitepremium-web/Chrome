@@ -2082,6 +2082,7 @@ test("content_browsertests") {
   data = [
     "data/",
     "//media/test/data/",
+    "//media/webrtc/voice_isolation/test_model_stateful_1_2_160_2.tflite",
     "//third_party/aria-practices/src/content/patterns/",
     "//mojo/public/interfaces/bindings/tests/data/validation/",
     "$root_gen_dir/content/shell/common/rust_test.test-mojom-lite.js",
@@ -3084,6 +3085,7 @@ test("content_unittests") {
     "../common/memory_coordinator/memory_pressure_listener_policy_unittest.cc",
     "../common/memory_coordinator/mojom/memory_consumer_traits_unittest.cc",
     "../common/memory_coordinator/predicate_memory_coordinator_policy_unittest.cc",
+    "../common/process_priority_tracker_unittest.cc",
     "../common/pseudonymization_salt_unittest.cc",
     "../common/scheduler_loop_quarantine_task_observer_unittest.cc",
     "../common/service_worker/forwarded_race_network_request_url_loader_factory_unittest.cc",

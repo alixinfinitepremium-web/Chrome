@@ -796,8 +796,7 @@ crbug.com/591099 external/wpt/css/css-overflow/text-overflow-015.html [ Failure 
 crbug.com/1445990 external/wpt/css/css-ui/outline-color-002.html [ Failure ]
 crbug.com/1445990 external/wpt/css/css-ui/outline-color-003.html [ Failure ]
 crbug.com/1445990 external/wpt/css/css-ui/outline-color-004.html [ Failure ]
-# These tests require AccentColor to mirror the computed accent-color.
-crbug.com/536420071 external/wpt/css/css-ui/accent-color-keyword-animation.html [ Failure ]
+# This test requires AccentColor to mirror the computed accent-color.
 crbug.com/536420071 external/wpt/css/css-ui/accent-color-keyword-resolution.html [ Failure ]
 
 # [css-flexbox]
@@ -1968,6 +1967,12 @@ crbug.com/501115605 [ Mac15-arm64 ] virtual/webnn-service-with-gpu/external/wpt/
 crbug.com/501115605 [ Mac15 ] virtual/webnn-service-with-gpu/external/wpt/webnn/conformance_tests/expand.https.any.html?gpu [ Failure ]  # Flaky output
 crbug.com/501115605 [ Mac15 ] virtual/webnn-service-on-npu/external/wpt/webnn/conformance_tests/expand.https.any.html?npu [ Failure ]  # Flaky output
 crbug.com/530645748 [ Mac15 ] virtual/webnn-service-on-npu/external/wpt/webnn/conformance_tests/l2Pool2d.https.any.html?npu [ Failure ]  # Flaky output
+crbug.com/584855272 [ Mac14 ] virtual/webnn-service-with-gpu/external/wpt/webnn/conformance_tests/arg_min_max.https.any.html?gpu [ Failure ]
+crbug.com/584855272 [ Mac14 ] virtual/webnn-service-with-gpu/external/wpt/webnn/validation_tests/constant.https.any.html?gpu [ Failure ]
+crbug.com/584855272 [ Mac14 ] virtual/webnn-service-with-gpu/external/wpt/webnn/validation_tests/gather.https.any.html?gpu [ Failure ]
+crbug.com/584855272 [ Mac14 ] virtual/webnn-service-with-gpu/external/wpt/webnn/validation_tests/input.https.any.html?gpu [ Failure ]
+crbug.com/584855272 [ Mac14 ] virtual/webnn-service-with-gpu/external/wpt/webnn/validation_tests/lstmCell.https.any.html?gpu [ Failure ]
+crbug.com/584855272 [ Mac14 ] virtual/webnn-service-with-gpu/external/wpt/webnn/validation_tests/tile.https.any.html?gpu [ Failure ]
 
 # WebDriver WPT tests
 
@@ -7932,8 +7937,6 @@ crbug.com/379335371 [ Mac13 ] external/wpt/webcodecs/video-encoder-h264.https.an
 
 # Gardener 2024-11-21
 crbug.com/380323589 [ Win11 ] external/wpt/pointerevents/pointerevent_sequence_at_implicit_release_on_drag.html [ Failure Pass Timeout ]
-crbug.com/380327348 media/encrypted-media/encrypted-media-async-creation-with-gc.html [ Crash Failure Pass ]
-crbug.com/380327348 media/encrypted-media/encrypted-media-async-setcert-with-gc.html [ Crash Failure Pass ]
 
 # This test will [PRECONDITION_FAILED] on some bots and not others based on its HW capabilities, skip the test on such bots.
 # TODO(crbug.com/381407888): See if we can replace Pass/Failure with platform-specific -expected.txt files and remove this.

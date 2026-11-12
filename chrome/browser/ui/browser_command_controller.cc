@@ -867,6 +867,12 @@ void BrowserCommandController::HandleCommandWithDisposition(
           TabStripUserGestureDetails(
               TabStripUserGestureDetails::GestureType::kKeyboard, time_stamp));
       break;
+    case IDC_SELECT_LAST_ACTIVE_TAB:
+      SelectLastActiveTab(
+          browser_,
+          TabStripUserGestureDetails(
+              TabStripUserGestureDetails::GestureType::kKeyboard, time_stamp));
+      break;
     case IDC_DUPLICATE_TAB:
       DuplicateTab(browser_);
       break;
@@ -1282,10 +1288,6 @@ void BrowserCommandController::HandleCommandWithDisposition(
       break;
     case IDC_CARET_BROWSING_TOGGLE:
       ToggleCaretBrowsing(browser_);
-      break;
-    case IDC_RECENT_TABS_LOGIN_FOR_DEVICE_TABS:
-      ShowSettingsSubPage(webui::GetBrowserForOpeningWebUi(browser_),
-                          chrome::kPeopleSubPage);
       break;
     case IDC_RECENT_TABS_SEE_DEVICE_TABS:
       ShowHistorySubPage(webui::GetBrowserForOpeningWebUi(browser_),
@@ -1983,10 +1985,6 @@ void BrowserCommandController::InitCommandState() {
       (!guest_session && !profile()->IsSystemProfile() &&
        !profile()->IsPrimaryOTRProfileWithRegularParent()));
   command_updater_->UpdateCommandEnabled(
-      IDC_RECENT_TABS_LOGIN_FOR_DEVICE_TABS,
-      (!guest_session && !profile()->IsSystemProfile() &&
-       !profile()->IsPrimaryOTRProfileWithRegularParent()));
-  command_updater_->UpdateCommandEnabled(
       IDC_RECENT_TABS_SEE_DEVICE_TABS,
       (!guest_session && !profile()->IsSystemProfile() &&
        !profile()->IsPrimaryOTRProfileWithRegularParent()));
@@ -2060,6 +2058,8 @@ void BrowserCommandController::InitCommandState() {
   command_updater_->UpdateCommandEnabled(IDC_SELECT_TAB_6, supports_tabs);
   command_updater_->UpdateCommandEnabled(IDC_SELECT_TAB_7, supports_tabs);
   command_updater_->UpdateCommandEnabled(IDC_SELECT_LAST_TAB, supports_tabs);
+  command_updater_->UpdateCommandEnabled(IDC_SELECT_LAST_ACTIVE_TAB,
+                                         supports_tabs);
   command_updater_->UpdateCommandEnabled(IDC_NEW_TAB_TO_RIGHT, supports_tabs);
   command_updater_->UpdateCommandEnabled(IDC_TAB_SCROLL_BUTTONS_TOGGLE_PIN,
                                          supports_tabs);
@@ -2650,7 +2650,7 @@ void BrowserCommandController::UpdateCommandsForLockedFullscreenMode() {
     }
     if (auto* service =
             glic::GlicKeyedServiceFactory::GetGlicKeyedService(profile())) {
-      service->CloseFloatingPanel();
+      service->instance_coordinator().CloseFloatingPanel();
     }
     if (auto* const action = FindAction(kActionTtcToolbar, browser_)) {
       action->SetVisible(false);
