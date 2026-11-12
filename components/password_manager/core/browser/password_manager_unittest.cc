@@ -54,7 +54,7 @@
 #include "components/password_manager/core/browser/mock_webauthn_credentials_delegate.h"
 #include "components/password_manager/core/browser/password_autofill_manager.h"
 #include "components/password_manager/core/browser/password_bubble_experiment.h"
-#include "components/password_manager/core/browser/password_change_service_interface.h"
+#include "components/password_manager/core/browser/password_change/password_change_service_interface.h"
 #include "components/password_manager/core/browser/password_form.h"
 #include "components/password_manager/core/browser/password_form_manager.h"
 #include "components/password_manager/core/browser/password_form_manager_for_ui.h"
@@ -207,6 +207,10 @@ class MockPasswordChangeService : public PasswordChangeServiceInterface {
               (password_manager::LogInWithChangedPasswordOutcome, const GURL&),
               (const, override));
   MOCK_METHOD(void, AddChangePasswordUrlOverride, (const GURL&), (override));
+  MOCK_METHOD(PasswordChangeCredentialsProvider*,
+              GetCredentialsProviderForActorSurface,
+              (int32_t),
+              (override));
 };
 
 class MockPasswordManagerClient : public StubPasswordManagerClient {

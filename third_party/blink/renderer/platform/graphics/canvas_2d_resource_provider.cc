@@ -63,38 +63,8 @@ Canvas2DResourceProvider::CreateWeakPtr() {
   return weak_ptr_factory_.GetWeakPtr();
 }
 
-scoped_refptr<CanvasResourceSharedImage>
-Canvas2DResourceProvider::NewOrRecycledResource(bool is_accelerated) {
-  if (!image_pool_) {
-    return nullptr;
-  }
-
-  auto resource = image_pool_->GetImage();
-  if (!resource) {
-    return nullptr;
-  }
-
-  CHECK(!IsSingleBuffered() || !resource->IsInitialized());
-
-  if (!resource->IsInitialized()) {
-    if (image_pool_->GetImageInfo().is_software) {
-      resource->InitializeSoftware(
-          CreateWeakPtr(), shared_image_interface_provider_, hdr_metadata_);
-    } else {
-      resource->Initialize(CreateWeakPtr(), context_provider_wrapper_,
-                           hdr_metadata_, is_accelerated);
-    }
-    ++num_inflight_resources_;
-    if (num_inflight_resources_ > max_inflight_resources_) {
-      max_inflight_resources_ = num_inflight_resources_;
-    }
-  }
-  DCHECK(resource->HasOneRef());
-  return resource;
-}
-
 void Canvas2DResourceProvider::OnResourceRefReturned(
-    scoped_refptr<CanvasResourceSharedImage>&& resource) {
+    scoped_refptr<CanvasResourceSharedImage> resource) {
   if (!resource->IsLost() && resource->HasOneRef() &&
       resource_recycling_enabled_ && image_pool_) {
     image_pool_->ReleaseImage(std::move(resource));
@@ -109,93 +79,9 @@ void Canvas2DResourceProvider::SetResourceRecyclingEnabled(bool value) {
 }
 
 Canvas2DResourceProvider::Canvas2DResourceProvider(
-    gfx::Size size,
-    viz::SharedImageFormat format,
-    SkAlphaType alpha_type,
-    const gfx::ColorSpace& color_space,
-    const gfx::HDRMetadata& hdr_metadata,
-    base::WeakPtr<WebGraphicsContext3DProviderWrapper> context_provider_wrapper,
-    bool is_accelerated,
-    gpu::SharedImageUsageSet shared_image_usage_flags)
-    : context_provider_wrapper_(std::move(context_provider_wrapper)),
-      hdr_metadata_(hdr_metadata) {
-  CHECK(context_provider_wrapper_);
-
-  auto* sii =
-      context_provider_wrapper_->ContextProvider().SharedImageInterface();
-  CHECK(sii);
-
-  // These SharedImages are both read and written by the raster interface
-  // (both occur, for example, when copying canvas resources between
-  // canvases). Additionally, these SharedImages can be put into
-  // AcceleratedStaticBitmapImages (via Bitmap()) that are then copied into
-  // GL textures by WebGL (via
-  // AcceleratedStaticBitmapImage::CopyToTexture()).
-  shared_image_usage_flags =
-      shared_image_usage_flags | gpu::SHARED_IMAGE_USAGE_RASTER_READ |
-      gpu::SHARED_IMAGE_USAGE_RASTER_WRITE | gpu::SHARED_IMAGE_USAGE_GLES2_READ;
-  // Add WEBGPU_READ usage to allow importing into WebGPU without a copy.
-  if (base::FeatureList::IsEnabled(kCanvasResourceIsWebGPUCompatible)) {
-    shared_image_usage_flags |= gpu::SHARED_IMAGE_USAGE_WEBGPU_READ;
-  }
-
-  std::optional<gfx::BufferUsage> buffer_usage = std::nullopt;
-  if (!is_accelerated) {
-    // Ideally we should add SHARED_IMAGE_USAGE_CPU_WRITE_ONLY to the shared
-    // image usage flag here since mailbox will be used for CPU writes by
-    // the client. But doing that stops us from using CompoundImagebacking
-    // as many backings do not support SHARED_IMAGE_USAGE_CPU_WRITE_ONLY.
-    // TODO(https://crbug.com/40280504): Add that usage flag back here once
-    // the issue is resolved.
-    buffer_usage = gfx::BufferUsage::SCANOUT_CPU_READ_WRITE;
-    if (base::FeatureList::IsEnabled(kAppendCpuUsages)) {
-      shared_image_usage_flags |= gpu::SHARED_IMAGE_USAGE_CPU_READ |
-                                  gpu::SHARED_IMAGE_USAGE_CPU_WRITE_ONLY;
-    }
-  }
-
-  gpu::ImageInfo image_info(size, format, shared_image_usage_flags, color_space,
-                            kTopLeft_GrSurfaceOrigin, alpha_type, buffer_usage,
-                            /*is_software=*/false);
-
-  std::optional<base::TimeDelta> expiration_time =
-      (base::FeatureList::IsEnabled(kCanvas2DReclaimUnusedResources))
-          ? std::make_optional(kUnusedResourceExpirationTime)
-          : std::nullopt;
-  bool is_single_buffered = shared_image_usage_flags.Has(
-      gpu::SHARED_IMAGE_USAGE_CONCURRENT_READ_WRITE);
-
-  image_pool_ = gpu::SharedImagePool<CanvasResourceSharedImage>::Create(
-      image_info, sii,
-      is_accelerated ? "CanvasResourceRaster" : "CanvasResourceRasterGmb",
-      is_single_buffered ? 0 : kMaxRecycledCanvasResources, expiration_time);
-
-  resource_ = NewOrRecycledResource(is_accelerated);
-
-  // Single buffered mode supported only for accelerated canvas.
-  CHECK(!IsSingleBuffered() || is_accelerated);
-}
-
-Canvas2DResourceProvider::Canvas2DResourceProvider(
-    gfx::Size size,
-    viz::SharedImageFormat format,
-    SkAlphaType alpha_type,
-    const gfx::ColorSpace& color_space,
-    const gfx::HDRMetadata& hdr_metadata,
-    WebGraphicsSharedImageInterfaceProvider* shared_image_interface_provider)
-    : shared_image_interface_provider_(
-          shared_image_interface_provider->GetWeakPtr()),
-      hdr_metadata_(hdr_metadata) {
-  CHECK(shared_image_interface_provider_);
-  auto* sii = shared_image_interface_provider_->SharedImageInterface();
-  CHECK(sii);
-  gpu::ImageInfo image_info(
-      size, format, gpu::SHARED_IMAGE_USAGE_CPU_WRITE_ONLY, color_space,
-      kTopLeft_GrSurfaceOrigin, alpha_type, /*buffer_usage=*/std::nullopt,
-      /*is_software=*/true);
-  image_pool_ = gpu::SharedImagePool<CanvasResourceSharedImage>::Create(
-      image_info, sii, "CanvasResourceSharedImage",
-      kMaxRecycledCanvasResources);
+    std::unique_ptr<gpu::SharedImagePool<CanvasResourceSharedImage>> image_pool)
+    : image_pool_(std::move(image_pool)) {
+  CHECK(image_pool_);
 }
 
 Canvas2DResourceProvider::~Canvas2DResourceProvider() {
@@ -207,11 +93,6 @@ void Canvas2DResourceProvider::ClearUnusedResources() {
   if (image_pool_) {
     image_pool_->Clear();
   }
-}
-
-bool Canvas2DResourceProvider::IsSingleBuffered() const {
-  return image_pool_ && image_pool_->GetImageInfo().usage.Has(
-                            gpu::SHARED_IMAGE_USAGE_CONCURRENT_READ_WRITE);
 }
 
 }  // namespace blink

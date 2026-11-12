@@ -137,17 +137,11 @@ inline constexpr char kChroMenuSearchScoringDescription[] =
     "\"1.0,0.8,0.85,0.6\"). Empty or invalid entries keep their default "
     "value. Only takes effect when #chro-menu-search is also enabled.";
 
-inline constexpr char kCrossDeviceSigninFromDesktopName[] =
-    "Cross-Device Sign-in From Desktop";
-inline constexpr char kCrossDeviceSigninFromDesktopDescription[] =
-    "Enables entry points to sign in on a mobile phone using provided QR code.";
-
 inline constexpr char kCrossDeviceSigninFromDesktopFollowupName[] =
     "Cross-Device Sign-in From Desktop Follow-up";
 inline constexpr char kCrossDeviceSigninFromDesktopFollowupDescription[] =
     "Enables follow-up entry points (e.g. the What's New page) to sign in on a "
-    "mobile phone using provided QR code. Requires "
-    "#cross-device-signin-from-desktop.";
+    "mobile phone using provided QR code.";
 
 inline constexpr char kCrossDeviceSigninName[] = "Cross-Device Sign-in";
 inline constexpr char kCrossDeviceSigninDescription[] =
@@ -4424,12 +4418,6 @@ inline constexpr char kNtpComposeboxUsesChromeComposeClientName[] =
 inline constexpr char kNtpComposeboxUsesChromeComposeClientDescription[] =
     "Composebox will use chrome-compose client when querying suggest for "
     "unimodal typed inputs instead of chrome-omni.";
-
-inline constexpr char kProfileDiscOnAllPagesName[] =
-    "Profile Disc on All Pages";
-inline constexpr char kProfileDiscOnAllPagesDescription[] =
-    "Enables showing the Signin Button Profile Disc in the toolbar on all "
-    "pages, rather than solely the NTP.";
 
 inline constexpr char kOrganizerPanelName[] = "Organizer Panel";
 inline constexpr char kOrganizerPanelDescription[] =

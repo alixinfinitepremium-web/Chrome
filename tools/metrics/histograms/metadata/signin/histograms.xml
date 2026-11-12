@@ -731,10 +731,11 @@ to monitor/debug fetching OAuth2 Token issues. -->
   <owner>chrome-signin-team@google.com</owner>
   <summary>
     Records whether GetPreferredAccountForSigninAsync returned immediately from
-    cache (Cached), after waiting for an async fetch (Fetched), after an async
-    fetch was cancelled (Cancelled) or timed out returning nullopt (Timeout).
-    Recorded when GetPreferredAccountForSigninAsync resolves and returns its
-    result. Not recorded for early no-op returns (when
+    cache (Cached), after waiting for an async fetch that produced a preferred
+    account (FetchedWithResult) or no preferred account (FetchedWithoutResult),
+    after an async fetch was cancelled (Cancelled), or after timing out
+    (Timeout). Recorded when GetPreferredAccountForSigninAsync resolves and
+    returns its result. Not recorded for early no-op returns (when
     kEnableAccountPreviewPreferredAccountFRE is disabled, kSigninAllowed is
     false, or IdentityManager is already shut down at call time). (Android and
     iOS only)
@@ -893,6 +894,18 @@ to monitor/debug fetching OAuth2 Token issues. -->
     Records the state of the account reconcilor when GAIA returns a specific
     response. The data in the &quot;Inactive&quot; bucket might be incorrect
     prior to M111.
+  </summary>
+</histogram>
+
+<histogram name="Signin.AccountSwitchingPromo.Events"
+    enum="AccountSwitchingPromoEvent" expires_after="2027-04-01">
+  <owner>arthurmilchior@chromium.org</owner>
+  <owner>chrome-signin-mobile-team@google.com</owner>
+  <summary>
+    Records lifecycle events for the iOS smart account switching full-screen
+    startup promo. Emitted at startup when eligible for display (reflecting
+    account and pair eligibility when registering with PromosManager, prior to
+    Feature Engagement throttling).
   </summary>
 </histogram>
 
@@ -4427,6 +4440,17 @@ OAuth Multilogin call. -->
   <summary>
     Tracks the state of a user's signin-allowed preference. This is recorded at
     every startup.
+  </summary>
+</histogram>
+
+<histogram name="Signin.SigninAllowedOnStartupState"
+    enum="SigninAllowedOnStartupState" expires_after="2027-02-10">
+  <owner>droger@chromium.org</owner>
+  <owner>chrome-signin-team@google.com</owner>
+  <summary>
+    Tracks how the user's signin-allowed preference (`prefs::kSigninAllowed`)
+    was resolved at profile startup on Desktop. Recorded once per regular
+    profile creation alongside `Signin.SigninAllowed`.
   </summary>
 </histogram>
 

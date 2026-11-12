@@ -345,7 +345,7 @@ public class ActorBackgroundActuationManagerTest {
         BackgroundTabPool pool = BackgroundTabPoolManager.acquire(mProfile);
         try {
             assertNotNull(pool.getLiveTab(100));
-            assertTrue(pool.hasPlaceholder(101));
+            assertTrue(pool.getAllPlaceholderTabIds().contains(101));
         } finally {
             BackgroundTabPoolManager.release(pool);
         }
@@ -989,11 +989,7 @@ public class ActorBackgroundActuationManagerTest {
         try {
             LiveBackgroundTab liveTab =
                     new LiveBackgroundTab(
-                            pool,
-                            mTab,
-                            101,
-                            500,
-                            /* originalTabIndex= */ TabModel.INVALID_TAB_INDEX);
+                            pool, mTab, 101, /* originalTabIndex= */ TabModel.INVALID_TAB_INDEX);
             pool.addLiveTab(liveTab);
         } finally {
             BackgroundTabPoolManager.release(pool);
@@ -1035,11 +1031,7 @@ public class ActorBackgroundActuationManagerTest {
         try {
             LiveBackgroundTab liveTab =
                     new LiveBackgroundTab(
-                            pool,
-                            mTab,
-                            101,
-                            500,
-                            /* originalTabIndex= */ TabModel.INVALID_TAB_INDEX);
+                            pool, mTab, 101, /* originalTabIndex= */ TabModel.INVALID_TAB_INDEX);
             pool.addLiveTab(liveTab);
         } finally {
             BackgroundTabPoolManager.release(pool);
@@ -1082,11 +1074,7 @@ public class ActorBackgroundActuationManagerTest {
         try {
             LiveBackgroundTab liveTab =
                     new LiveBackgroundTab(
-                            pool,
-                            mTab,
-                            101,
-                            500,
-                            /* originalTabIndex= */ TabModel.INVALID_TAB_INDEX);
+                            pool, mTab, 101, /* originalTabIndex= */ TabModel.INVALID_TAB_INDEX);
             pool.addLiveTab(liveTab);
         } finally {
             BackgroundTabPoolManager.release(pool);
@@ -1134,11 +1122,7 @@ public class ActorBackgroundActuationManagerTest {
         try {
             LiveBackgroundTab liveTab =
                     new LiveBackgroundTab(
-                            pool,
-                            mTab,
-                            101,
-                            500,
-                            /* originalTabIndex= */ TabModel.INVALID_TAB_INDEX);
+                            pool, mTab, 101, /* originalTabIndex= */ TabModel.INVALID_TAB_INDEX);
             pool.addLiveTab(liveTab);
         } finally {
             BackgroundTabPoolManager.release(pool);
@@ -1215,7 +1199,6 @@ public class ActorBackgroundActuationManagerTest {
                             pool,
                             mTab,
                             Tab.INVALID_TAB_ID,
-                            500,
                             /* originalTabIndex= */ TabModel.INVALID_TAB_INDEX);
             pool.addLiveTab(liveTab);
         } finally {
@@ -1446,7 +1429,7 @@ public class ActorBackgroundActuationManagerTest {
 
         BackgroundTabPool pool = BackgroundTabPoolManager.acquire(mProfile);
         try {
-            pool.removeLiveTabByOriginalId(100);
+            pool.loadTabByOriginalId(100);
         } finally {
             BackgroundTabPoolManager.release(pool);
         }

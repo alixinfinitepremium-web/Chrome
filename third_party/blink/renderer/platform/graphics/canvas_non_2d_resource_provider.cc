@@ -40,6 +40,7 @@
 #include "third_party/blink/renderer/platform/graphics/memory_managed_paint_recorder.h"
 #include "third_party/blink/renderer/platform/graphics/unaccelerated_static_bitmap_image.h"
 #include "third_party/blink/renderer/platform/instrumentation/canvas_memory_dump_provider.h"
+#include "third_party/blink/renderer/platform/scheduler/public/thread_scheduler.h"
 #include "third_party/skia/include/core/SkAlphaType.h"
 #include "third_party/skia/include/core/SkSurface.h"
 
@@ -172,9 +173,6 @@ CanvasNon2DResourceProvider::CanvasNon2DResourceProvider(
       context_lost_callback_(std::move(context_lost_callback)),
       is_software_(false),
       snapshot_paint_image_id_(cc::PaintImage::GetNextId()),
-      recorder_for_external_draws_(
-          std::make_unique<MemoryManagedPaintRecorder>(Size(),
-                                                       /*client=*/nullptr)),
       context_provider_wrapper_(std::move(context_provider_wrapper)) {
   CanvasMemoryDumpProvider::Instance()->RegisterClient(this);
   if (context_provider_wrapper_) {
@@ -241,9 +239,6 @@ CanvasNon2DResourceProvider::CanvasNon2DResourceProvider(
       context_lost_callback_(std::move(context_lost_callback)),
       is_software_(true),
       snapshot_paint_image_id_(cc::PaintImage::GetNextId()),
-      recorder_for_external_draws_(
-          std::make_unique<MemoryManagedPaintRecorder>(Size(),
-                                                       /*client=*/nullptr)),
       shared_image_interface_provider_(
           shared_image_interface_provider
               ? shared_image_interface_provider->GetWeakPtr()
@@ -330,7 +325,9 @@ void CanvasNon2DResourceProvider::OnContextLost() {
   if (notified_context_lost_) {
     return;
   }
-  ClearUnusedResources();
+  if (image_pool_) {
+    image_pool_->Clear();
+  }
   // Notify the owner of this resource provider that the GPU context was
   // lost. The call is done in a separate task, so that the owner can delete
   // this resource provider if needed.
@@ -375,14 +372,8 @@ void CanvasNon2DResourceProvider::OnFlushForImage(
   }
 }
 
-void CanvasNon2DResourceProvider::ClearUnusedResources() {
-  if (image_pool_) {
-    image_pool_->Clear();
-  }
-}
-
 void CanvasNon2DResourceProvider::OnResourceRefReturned(
-    scoped_refptr<CanvasResourceSharedImage>&& resource) {
+    scoped_refptr<CanvasResourceSharedImage> resource) {
   if (!resource->IsLost() && resource->HasOneRef() && image_pool_) {
     image_pool_->ReleaseImage(std::move(resource));
   }
@@ -390,10 +381,10 @@ void CanvasNon2DResourceProvider::OnResourceRefReturned(
 
 gpu::raster::RasterInterface* CanvasNon2DResourceProvider::RasterInterface()
     const {
-  if (!ContextProviderWrapper()) {
+  if (!context_provider_wrapper_) {
     return nullptr;
   }
-  return ContextProviderWrapper()->ContextProvider().RasterInterface();
+  return context_provider_wrapper_->ContextProvider().RasterInterface();
 }
 
 bool CanvasNon2DResourceProvider::IsGpuContextLost() const {
@@ -467,9 +458,10 @@ CanvasNon2DResourceProvider::DoExternalOverdrawAndProduceResource(
     }
   }
 
-  draw_callback(recorder_for_external_draws_->getRecordingCanvas());
-  if (recorder_for_external_draws_->HasReleasableDrawOps()) {
-    FlushRecording(recorder_for_external_draws_->ReleaseMainRecording());
+  MemoryManagedPaintRecorder recorder(Size(), /*client=*/nullptr);
+  draw_callback(recorder.getRecordingCanvas());
+  if (recorder.HasReleasableDrawOps()) {
+    FlushRecording(recorder.ReleaseMainRecording());
   }
 
   if (IsSoftware()) {
@@ -490,9 +482,10 @@ CanvasNon2DResourceProvider::DoExternalOverdrawAndSnapshot(
     return nullptr;
   }
 
-  draw_callback(recorder_for_external_draws_->getRecordingCanvas());
-  if (recorder_for_external_draws_->HasReleasableDrawOps()) {
-    FlushRecording(recorder_for_external_draws_->ReleaseMainRecording());
+  MemoryManagedPaintRecorder recorder(Size(), /*client=*/nullptr);
+  draw_callback(recorder.getRecordingCanvas());
+  if (recorder.HasReleasableDrawOps()) {
+    FlushRecording(recorder.ReleaseMainRecording());
   }
   return Snapshot();
 }
@@ -521,10 +514,27 @@ void CanvasNon2DResourceProvider::EnsureResourceReadyForDraw() {
 scoped_refptr<ExportedCanvasResource>
 CanvasNon2DResourceProvider::CreateExportedResource(
     scoped_refptr<CanvasResourceSharedImage> resource) {
+  auto wait_sync_token = base::BindRepeating(
+      [](scoped_refptr<CanvasResourceSharedImage> resource,
+         gpu::SyncToken sync_token) { resource->WaitSyncToken(sync_token); },
+      resource);
+
+  auto release_callback = base::BindOnce(
+      [](scoped_refptr<CanvasResourceSharedImage> resource,
+         const gpu::SyncToken& sync_token, bool is_lost) {
+        if (is_lost) {
+          resource->NotifyResourceLost();
+        }
+        CanvasResource::DropRefOnOwningThread(std::move(resource));
+      },
+      resource);
+
   return base::MakeRefCounted<ExportedCanvasResource>(
-      resource, resource->GetSharedImage(), resource->sync_token(),
+      resource->GetSharedImage(), resource->sync_token(),
       viz::TransferableResource::ResourceSource::kCanvas, hdr_metadata_,
-      context_provider_wrapper_, !IsSoftware());
+      context_provider_wrapper_, !IsSoftware(), std::move(wait_sync_token),
+      std::move(release_callback),
+      /*use_legacy_external_canvas_resource_bitmap_path=*/false);
 }
 
 scoped_refptr<ExportedCanvasResource>
@@ -591,27 +601,23 @@ scoped_refptr<StaticBitmapImage> CanvasNon2DResourceProvider::Snapshot() {
     // the ref-count on the resource as a proxy for a read lock to allow
     // recycling the resource once all refs have been released.
     auto release_callback = base::BindOnce(
-        [](scoped_refptr<CanvasResourceSharedImage>&& resource,
+        [](scoped_refptr<CanvasResourceSharedImage> resource,
            const gpu::SyncToken& sync_token, bool lost_resource) {
           CHECK(resource);
+          CHECK(!lost_resource);
 
           resource->WaitSyncToken(sync_token);
-          if (lost_resource) {
-            resource->NotifyResourceLost();
-          }
-
           CanvasResource::DropRefOnOwningThread(std::move(resource));
         },
         resource_);
 
-    const auto& client_shared_image = resource_->GetSharedImage();
-
     cached_snapshot_ =
         AcceleratedStaticBitmapImage::CreateFromCanvasSharedImage(
-            client_shared_image, resource_->sync_token(),
-            client_shared_image->alpha_type(), resource_->hdr_metadata_,
-            resource_->context_provider_wrapper_, resource_->owning_thread_ref_,
-            resource_->owning_thread_task_runner_, std::move(release_callback));
+            resource_->GetSharedImage(), resource_->sync_token(), alpha_type_,
+            hdr_metadata_, context_provider_wrapper_,
+            base::PlatformThread::CurrentRef(),
+            ThreadScheduler::Current()->CleanupTaskRunner(),
+            std::move(release_callback));
 
     // We'll record its content_id to be used by the FlushForImageListener.
     // This will be needed in EnsureResourceReadyForDraw(), but we are doing it

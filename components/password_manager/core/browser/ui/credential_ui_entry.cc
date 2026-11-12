@@ -4,6 +4,8 @@
 
 #include "components/password_manager/core/browser/ui/credential_ui_entry.h"
 
+#include <algorithm>
+
 #include "base/i18n/time_formatting.h"
 #include "base/strings/strcat.h"
 #include "base/strings/string_split.h"
@@ -91,11 +93,6 @@ CredentialFacet& CredentialFacet::operator=(CredentialFacet&& other) = default;
 
 // CredentialUIEntry
 
-bool CredentialUIEntry::Less::operator()(const CredentialUIEntry& lhs,
-                                         const CredentialUIEntry& rhs) const {
-  return CreateCredentialSortKey(lhs) < CreateCredentialSortKey(rhs);
-}
-
 CredentialUIEntry::CredentialUIEntry() = default;
 
 CredentialUIEntry::CredentialUIEntry(const StoredCredential& credential)
@@ -156,7 +153,9 @@ CredentialUIEntry::CredentialUIEntry(
     facet.signon_realm = credential.signon_realm;
     facet.affiliated_web_realm = credential.affiliated_web_realm;
 
-    facets.push_back(std::move(facet));
+    if (!std::ranges::contains(facets, facet)) {
+      facets.push_back(std::move(facet));
+    }
 
     if (credential.IsUsingAccountStore()) {
       stored_in.insert(PasswordForm::Store::kAccountStore);
@@ -356,9 +355,16 @@ CredentialSortKey CreateCredentialSortKey(const StoredCredential& credential) {
       credential.username_value, credential.federation_origin);
 }
 
-bool operator==(const CredentialUIEntry& lhs, const CredentialUIEntry& rhs) {
+bool AreCredentialsEquivalent(const CredentialUIEntry& lhs,
+                              const CredentialUIEntry& rhs) {
+  // Checking `lhs.blocked_by_user` alone is symmetric because `blocked_by_user`
+  // is part of `CredentialSortKey`, so `lhs` and `rhs` already match on it.
   return CreateCredentialSortKey(lhs) == CreateCredentialSortKey(rhs) &&
          (lhs.blocked_by_user || lhs.password == rhs.password);
+}
+
+bool operator==(const CredentialUIEntry& lhs, const CredentialUIEntry& rhs) {
+  return AreCredentialsEquivalent(lhs, rhs);
 }
 
 bool operator<(const CredentialUIEntry& lhs, const CredentialUIEntry& rhs) {

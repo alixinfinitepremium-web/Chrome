@@ -29163,13 +29163,6 @@ This is true even if the type has been removed from the mojom file.
   <int value="3" label="Hit memory cache"/>
 </enum>
 
-<enum name="WebPushDeviceState">
-  <int value="0" label="Not idle, not high priority"/>
-  <int value="1" label="Not idle, high priority"/>
-  <int value="2" label="Idle, not high priority"/>
-  <int value="3" label="Idle, high priority"/>
-</enum>
-
 <enum name="WebShareMethod">
   <int value="0" label="Share"/>
 </enum>
@@ -29218,7 +29211,8 @@ This is true even if the type has been removed from the mojom file.
   <int value="32" label="AboutThisSite 'more about' link opened"/>
   <int value="33" label="Cookies subpage opened"/>
   <int value="34" label="Cookies settings opened"/>
-  <int value="35" label="'All sites' settings opened with a filter for FPS"/>
+  <int value="35"
+      label="(Obsolete) 'All sites' settings opened with a filter for FPS"/>
   <int value="36" label="Show full history clicked in Last Visited"/>
   <int value="37" label="Safe Browsing help opened"/>
   <int value="38" label="Chrome Sync settings opened"/>

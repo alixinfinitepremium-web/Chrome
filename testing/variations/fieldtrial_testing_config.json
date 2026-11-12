@@ -722,23 +722,6 @@
             ]
         }
     ],
-    "AndroidEnterpriseSkipRealTimeUrlLookup": [
-        {
-            "platforms": [
-                "android",
-                "android_desktop"
-            ],
-            "experiments": [
-                {
-                    "name": "BothEnabled",
-                    "enable_features": [
-                        "EnterpriseRealTimeUrlCheckUrlSkiplist",
-                        "SafeBrowsingSkipRealTimeLookupIfOffline"
-                    ]
-                }
-            ]
-        }
-    ],
     "AndroidFreLayoutUpdate": [
         {
             "platforms": [
@@ -5159,6 +5142,28 @@
             ]
         }
     ],
+    "ClearBrokenAlternativeServicesOnDefaultNetworkChange": [
+        {
+            "platforms": [
+                "android",
+                "android_desktop",
+                "android_webview",
+                "chromeos",
+                "ios",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "ClearBrokenAlternativeServicesOnDefaultNetworkChange"
+                    ]
+                }
+            ]
+        }
+    ],
     "ClearBrowsingHistoryJourney": [
         {
             "platforms": [
@@ -8499,21 +8504,6 @@
             ]
         }
     ],
-    "ExcludePipFromScreenCapture": [
-        {
-            "platforms": [
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "ExcludePipFromScreenCapture"
-                    ]
-                }
-            ]
-        }
-    ],
     "ExpandCompositedCullRectMobile": [
         {
             "platforms": [
@@ -9189,6 +9179,25 @@
                     "name": "Enabled",
                     "enable_features": [
                         "GlicActionFirstFRE"
+                    ]
+                }
+            ]
+        }
+    ],
+    "GlicActorAutofillOtp": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled_20261109",
+                    "enable_features": [
+                        "AnnotatedPageContentAutofillOtpRedactions",
+                        "GlicActorAutofillOneTimePassword"
                     ]
                 }
             ]
@@ -11840,21 +11849,6 @@
                     "name": "Enabled_Teamfood",
                     "enable_features": [
                         "ImportExportFlags"
-                    ]
-                }
-            ]
-        }
-    ],
-    "IncludeSystemLogInFeedback": [
-        {
-            "platforms": [
-                "ios"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled_20261106",
-                    "enable_features": [
-                        "IncludeSystemLogInFeedback"
                     ]
                 }
             ]
@@ -17348,6 +17342,27 @@
             ]
         }
     ],
+    "RustyJpegFeature": [
+        {
+            "platforms": [
+                "android",
+                "android_webview",
+                "chromeos",
+                "ios",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "RustyJpegExperiment",
+                    "enable_features": [
+                        "RustyJpegFeature"
+                    ]
+                }
+            ]
+        }
+    ],
     "SQLitePersistentCookieStoreEarlyInit": [
         {
             "platforms": [
@@ -20755,6 +20770,23 @@
                     "name": "Enabled",
                     "enable_features": [
                         "WebAppShortEdgesCutoutMode"
+                    ]
+                }
+            ]
+        }
+    ],
+    "WebAppSkipDiskIconHealthChecks": [
+        {
+            "platforms": [
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "WebAppSkipDiskIconHealthChecks"
                     ]
                 }
             ]

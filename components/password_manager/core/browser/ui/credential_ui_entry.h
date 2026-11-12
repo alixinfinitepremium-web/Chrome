@@ -82,6 +82,9 @@ struct CredentialFacet {
   // The web realm affiliated with the Android application, if the it is an
   // Android credential. Otherwise, the string is empty.
   std::string affiliated_web_realm;
+
+  friend bool operator==(const CredentialFacet& lhs,
+                         const CredentialFacet& rhs) = default;
 };
 
 // Simple struct that represents an entry inside Settings UI. Allows implicit
@@ -135,11 +138,6 @@ struct CredentialUIEntry {
     // The relying party identifier.
     // https://w3c.github.io/webauthn/#relying-party-identifier
     std::string rp_id;
-  };
-
-  struct Less {
-    bool operator()(const CredentialUIEntry& lhs,
-                    const CredentialUIEntry& rhs) const;
   };
 
   CredentialUIEntry();
@@ -250,6 +248,12 @@ struct CredentialUIEntry {
 // CredentialUIEntry; both overloads must produce identical keys.
 CredentialSortKey CreateCredentialSortKey(const CredentialUIEntry& credential);
 CredentialSortKey CreateCredentialSortKey(const StoredCredential& credential);
+
+// Returns true if `lhs` and `rhs` represent the same logical credential
+// (equal `CredentialSortKey`s and, unless `blocked_by_user` is true, equal
+// passwords), ignoring metadata such as notes, stores, or insecurity issues.
+bool AreCredentialsEquivalent(const CredentialUIEntry& lhs,
+                              const CredentialUIEntry& rhs);
 
 bool operator==(const CredentialUIEntry& lhs, const CredentialUIEntry& rhs);
 bool operator<(const CredentialUIEntry& lhs, const CredentialUIEntry& rhs);

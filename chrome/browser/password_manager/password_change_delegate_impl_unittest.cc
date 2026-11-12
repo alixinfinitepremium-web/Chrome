@@ -5,6 +5,7 @@
 #include "chrome/browser/password_manager/password_change_delegate_impl.h"
 
 #include "base/memory/weak_ptr.h"
+#include "base/test/gmock_expected_support.h"
 #include "base/test/metrics/histogram_tester.h"
 #include "base/test/scoped_feature_list.h"
 #include "base/types/pass_key.h"
@@ -17,8 +18,6 @@
 #include "chrome/browser/password_manager/password_change/password_change_actuator.h"
 #include "chrome/browser/ui/passwords/manage_passwords_ui_controller.h"
 #include "chrome/browser/ui/passwords/password_change_ui_controller.h"
-#include "chrome/browser/ui/passwords/passwords_leak_dialog_delegate_mock.h"
-#include "chrome/browser/ui/passwords/passwords_model_delegate_mock.h"
 #include "chrome/browser/ui/views/chrome_layout_provider.h"
 #include "chrome/test/base/chrome_render_view_host_test_harness.h"
 #include "chrome/test/base/testing_browser_process.h"
@@ -30,8 +29,12 @@
 #include "components/optimization_guide/core/model_quality/test_model_quality_logs_uploader_service.h"
 #include "components/optimization_guide/core/optimization_guide_features.h"
 #include "components/optimization_guide/proto/features/password_change_submission.pb.h"
+#include "components/password_manager/core/browser/fake_form_fetcher.h"
+#include "components/password_manager/core/browser/password_form_manager.h"
+#include "components/password_manager/core/browser/password_save_manager_impl.h"
 #include "components/password_manager/core/browser/password_string.h"
 #include "components/password_manager/core/browser/stub_password_manager_client.h"
+#include "components/password_manager/core/browser/stub_password_manager_driver.h"
 #include "components/password_manager/core/common/password_manager_pref_names.h"
 #include "components/prefs/pref_service.h"
 #include "components/tabs/public/mock_tab_interface.h"
@@ -80,10 +83,6 @@ class MockManagePasswordsUIController : public ManagePasswordsUIController {
       : ManagePasswordsUIController(tab, web_contents) {}
   ~MockManagePasswordsUIController() override = default;
 
-  MOCK_METHOD(base::WeakPtr<PasswordsModelDelegate>,
-              GetModelDelegateProxy,
-              (),
-              (override));
   void PrimaryPageChanged(content::Page& page) override {}
 };
 
@@ -96,6 +95,10 @@ class MockPasswordChangeDelegateObserver
               (override));
   MOCK_METHOD(void,
               OnPasswordChangeFinishedSuccessfully,
+              (PasswordChangeDelegate*),
+              (override));
+  MOCK_METHOD(void,
+              OnPasswordChangeDeclined,
               (PasswordChangeDelegate*),
               (override));
   MOCK_METHOD(void,
@@ -129,6 +132,28 @@ class MockPasswordChangeActuator : public PasswordChangeActuator {
 
  private:
   base::WeakPtrFactory<MockPasswordChangeActuator> weak_ptr_factory_{this};
+};
+
+// Owns a `PasswordFormManager` observing an empty form.
+class FormManagerForTesting {
+ public:
+  FormManagerForTesting()
+      : form_manager_(
+            &client_,
+            driver_.AsWeakPtr(),
+            autofill::FormData(),
+            &form_fetcher_,
+            std::make_unique<password_manager::PasswordSaveManagerImpl>(
+                &client_),
+            /*metrics_recorder=*/nullptr) {}
+
+  password_manager::PasswordFormManager& get() { return form_manager_; }
+
+ private:
+  password_manager::StubPasswordManagerClient client_;
+  password_manager::StubPasswordManagerDriver driver_;
+  password_manager::FakeFormFetcher form_fetcher_;
+  password_manager::PasswordFormManager form_manager_;
 };
 
 const ukm::mojom::UkmEntry* GetUkmEntry(
@@ -315,6 +340,52 @@ TEST_F(PasswordChangeDelegateImplTest, GeneratedPasswordOutlivesDelegate) {
   ResetDelegate();
 
   EXPECT_EQ(generated_password, password);
+}
+
+TEST_F(PasswordChangeDelegateImplTest, ProvidesOldPassword) {
+  CreateDelegate();
+
+  EXPECT_THAT(delegate()->GetOldPassword(),
+              base::test::ValueIs(password_manager::PasswordString(
+                  std::u16string(kPassword))));
+}
+
+TEST_F(PasswordChangeDelegateImplTest, OldPasswordFailsWithoutActuator) {
+  CreateDelegate(/*inject_actuator=*/false);
+
+  EXPECT_THAT(delegate()->GetOldPassword(),
+              base::test::ErrorIs(
+                  PasswordChangeDelegateImpl::Error::kNoPasswordChangeFlow));
+}
+
+TEST_F(PasswordChangeDelegateImplTest, ProvidesActuatorGeneratedPassword) {
+  CreateDelegate();
+  FormManagerForTesting form_manager;
+  const password_manager::PasswordString password(u"generated_password");
+  EXPECT_CALL(*actuator(), GetGeneratedPassword()).WillOnce(Return(password));
+
+  EXPECT_THAT(delegate()->GetNewPassword(&form_manager.get()),
+              base::test::ValueIs(password));
+}
+
+TEST_F(PasswordChangeDelegateImplTest, NewPasswordFailsIfNotGenerated) {
+  CreateDelegate();
+  FormManagerForTesting form_manager;
+  EXPECT_CALL(*actuator(), GetGeneratedPassword())
+      .WillOnce(Return(password_manager::PasswordString()));
+
+  EXPECT_THAT(delegate()->GetNewPassword(&form_manager.get()),
+              base::test::ErrorIs(
+                  PasswordChangeDelegateImpl::Error::kGenerationFailed));
+}
+
+TEST_F(PasswordChangeDelegateImplTest, NewPasswordFailsWithoutActuator) {
+  CreateDelegate(/*inject_actuator=*/false);
+  FormManagerForTesting form_manager;
+
+  EXPECT_THAT(delegate()->GetNewPassword(&form_manager.get()),
+              base::test::ErrorIs(
+                  PasswordChangeDelegateImpl::Error::kNoPasswordChangeFlow));
 }
 
 TEST_F(PasswordChangeDelegateImplTest, WaitingForAgreement) {
@@ -517,19 +588,11 @@ TEST_F(PasswordChangeDelegateImplTest, OnPasswordChangeDeclined) {
   EXPECT_EQ(delegate()->GetCurrentState(),
             PasswordChangeUIDelegate::State::kWaitingForAgreement);
 
-  PasswordsModelDelegateMock mock_model_delegate;
-  EXPECT_CALL(*manage_passwords_ui_controller(), GetModelDelegateProxy)
-      .WillOnce(Return(mock_model_delegate.AsWeakPtr()));
+  testing::InSequence s;
+  EXPECT_CALL(observer, OnPasswordChangeDeclined(delegate()));
   EXPECT_CALL(observer, OnPasswordChangeStopped(delegate()));
   delegate()->OnPasswordChangeDeclined();
   delegate()->RemoveObserver(&observer);
-
-  PasswordsLeakDialogDelegateMock mock_leak_delegate;
-  EXPECT_CALL(mock_model_delegate, GetPasswordsLeakDialogDelegate)
-      .WillOnce(Return(&mock_leak_delegate));
-  EXPECT_CALL(mock_leak_delegate, OnLeakDialogHidden);
-
-  task_environment()->RunUntilIdle();
 }
 
 TEST_F(PasswordChangeDelegateImplTest,

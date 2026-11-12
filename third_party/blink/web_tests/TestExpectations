@@ -1098,6 +1098,8 @@ crbug.com/329106317 external/wpt/css/css-color/lch-010.html [ Failure ]
 crbug.com/329106317 external/wpt/css/css-color/oklch-009.html [ Failure ]
 crbug.com/329106317 external/wpt/css/css-color/oklch-010.html [ Failure ]
 crbug.com/358210825 external/wpt/css/css-color/color-layers-no-blend-mode.html [ Failure ]
+# Marked as [ Slow ] in SlowTests but may still time out because of a huge number of subtests
+crbug.com/583503641 external/wpt/css/css-color/parsing/color-computed-hsl.html [ Pass Timeout ]
 
 # css-conditional
 crbug.com/1269580 external/wpt/css/css-conditional/at-supports-namespace-001.html [ Failure ]
@@ -1162,7 +1164,6 @@ crbug.com/491166375 external/wpt/css/css-variables/variable-supports-64.html [ F
 
 # ident() function
 crbug.com/384930424 [ Win ] external/wpt/css/css-values/ident-function-substitution.html [ Pass Timeout ]
-crbug.com/384930424 external/wpt/css/css-values/using-font-relative-units-in-font-properties.html [ Crash ]
 
 # ====== Style team owned tests to here ======
 
@@ -2934,8 +2935,6 @@ crbug.com/492281018 virtual/generic-sensor-extra-classes/external/wpt/magnetomet
 crbug.com/492281018 virtual/generic-sensor-extra-classes/external/wpt/magnetometer/Magnetometer-enabled-on-self-origin-by-permissions-policy.https.html [ Failure ]
 crbug.com/491527969 [ Win ] external/wpt/WebCryptoAPI/encrypt_decrypt/aes_gcm.https.any.worker.html [ Pass Timeout ]
 crbug.com/491084379 [ Win ] external/wpt/dom/nodes/DOMImplementation-createDocument.html [ Pass Timeout ]
-crbug.com/491070386 external/wpt/svg/painting/inner-outer-svg-overflow-auto.html [ Failure ]
-crbug.com/491070386 virtual/rust-xml/external/wpt/svg/painting/inner-outer-svg-overflow-auto.html [ Failure ]
 crbug.com/490449804 external/wpt/html/semantics/forms/the-select-element/customizable-select/select-optgroup-legend-label.html [ Failure ]
 crbug.com/490449804 external/wpt/html/semantics/forms/the-select-element/customizable-select/select-picker-pseudo-selection.html [ Failure ]
 crbug.com/490449804 external/wpt/html/semantics/forms/the-select-element/customizable-select/select-picker-pseudo-target-text.html [ Failure ]
@@ -3243,10 +3242,6 @@ crbug.com/431036875 [ Win11-arm64 ] external/wpt/content-security-policy/report-
 crbug.com/431039944 [ Mac14 ] external/wpt/cookies/samesite/window-open-reload.https.html [ Timeout ]
 crbug.com/431033198 [ Mac14 ] external/wpt/css/css-cascade/all-prop-revert-layer.html [ Timeout ]
 crbug.com/431033198 [ Mac14 ] external/wpt/css/selectors/focus-in-focus-event-001.html [ Timeout ]
-crbug.com/431033199 [ Mac14 ] external/wpt/editing/other/join-different-white-space-style-left-line-and-right-paragraph.html?method=select-boundary&left-white-space=normal&right-white-space=pre-wrap [ Skip Timeout ]
-crbug.com/431033199 [ Mac14 ] external/wpt/editing/other/join-different-white-space-style-paragraphs.html?method=backspace&left-white-space=pre&right-white-space=nowrap [ Skip Timeout ]
-crbug.com/431033199 [ Mac14 ] external/wpt/editing/other/join-different-white-space-style-paragraphs.html?method=select-boundary&left-white-space=pre&right-white-space=nowrap [ Skip Timeout ]
-crbug.com/431033199 [ Mac14 ] external/wpt/editing/other/join-different-white-space-style-paragraphs.html?method=select-boundary&left-white-space=pre-line&right-white-space=pre [ Skip Timeout ]
 crbug.com/431033199 [ Mac14 ] external/wpt/editing/run/multitest.html?5001-6000 [ Skip Timeout ]
 crbug.com/431034518 [ Mac14 ] external/wpt/encoding/legacy-mb-tchinese/big5/big5-encode-form-big5-hkscs.html?8001-9000 [ Crash ]
 crbug.com/431036876 [ Mac14 ] external/wpt/encrypted-media/clearkey-mp4-playback-temporary-events.https.html [ Timeout ]
@@ -5331,7 +5326,6 @@ crbug.com/1048761 [ Linux ] external/wpt/websockets/interfaces/WebSocket/send/00
 crbug.com/1048761 [ Win ] external/wpt/websockets/interfaces/WebSocket/send/006.html?wpt_flags=h2 [ Failure ]
 
 # These tests are very flaky and driving up shard retry rates: crbug.com/426959932
-external/wpt/editing/other/join-different-white-space-style-paragraphs.html?* [ Failure Pass ]
 crbug.com/417924844 virtual/close-watcher/external/wpt/close-watcher/iframes/dialog-same-origin-ynyn.html [ Skip Timeout ]
 crbug.com/417816138 virtual/close-watcher/external/wpt/close-watcher/iframes/dialog-same-origin-ynn.html [ Skip Timeout ]
 crbug.com/417870384 virtual/threaded/external/wpt/long-animation-frame/loaf-promise-scheduled-render.html [ Failure Pass ]
@@ -6367,7 +6361,6 @@ crbug.com/432218257 [ Debug Mac13 ] jquery/event.html [ Skip Timeout ]
 [ Debug Mac13 ] virtual/threaded-prefer-compositing/fast/scrolling/scrollable-area-frame-scrolling-no-overried-inherited-visibility-hidden.html [ Skip Timeout ]
 [ Debug Mac13 ] external/wpt/webtransport/streams-close.https.any.sharedworker.html [ Failure ]
 [ Debug Mac13 ] virtual/threaded/fast/idle-callback/idle_periods.html [ Skip Timeout ]
-[ Debug Mac13 ] http/tests/devtools/console/console-eval-scoped.js [ Skip Timeout ]
 [ Debug Mac13 ] animations/events/animation-iteration-event.html [ Skip Timeout ]
 [ Debug Mac13 ] animations/interpolation/svg-cy-interpolation.html [ Skip Timeout ]
 [ Debug Mac13 ] external/wpt/fetch/metadata/generated/element-frame.https.sub.html [ Skip Timeout ]
@@ -8688,3 +8681,9 @@ crbug.com/570220095 [ Mac ] external/wpt/css/css-contain/content-visibility/cont
 crbug.com/570216210 [ Mac ] external/wpt/css/css-overflow/scrollbar-gutter-propagation-007.html [ Failure Pass ]
 crbug.com/570225823 [ Mac ] external/wpt/css/css-overflow/scrollbar-gutter-rtl-001.html [ Failure Pass ]
 crbug.com/580335041 [ Mac ] external/wpt/resize-observer/scrollbars.html [ Failure Pass ]
+
+# Gardener 2026-11-12
+# The iframe src (helloWorld.html) does not exist; the pixel snapshot races the
+# commit of the net::ERR_FILE_NOT_FOUND error page. Fix pending in crrev.com/c/8677279.
+crbug.com/566257733 tables/mozilla/bugs/bug137388-1.html [ Failure Pass ]
+crbug.com/566257733 tables/mozilla/bugs/bug137388-2.html [ Failure Pass ]

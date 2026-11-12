@@ -19,28 +19,11 @@ ExportedCanvasResource::ExportedCanvasResource(
     const gpu::SyncToken& sync_token,
     viz::TransferableResource::ResourceSource resource_source,
     const gfx::HDRMetadata& hdr_metadata,
-    viz::ReleaseCallback callback,
-    base::WeakPtr<WebGraphicsContext3DProviderWrapper> provider)
-    : owning_thread_ref_(base::PlatformThread::CurrentRef()),
-      owning_thread_task_runner_(
-          ThreadScheduler::Current()->CleanupTaskRunner()),
-      shared_image_(std::move(client_si)),
-      sync_token_(sync_token),
-      hdr_metadata_(hdr_metadata),
-      resource_source_(resource_source),
-      accelerated_raster_(true),
-      context_provider_wrapper_(provider),
-      release_callback_(std::move(callback)),
-      use_legacy_external_canvas_resource_bitmap_path_(true) {}
-
-ExportedCanvasResource::ExportedCanvasResource(
-    scoped_refptr<CanvasResourceSharedImage> resource,
-    scoped_refptr<gpu::ClientSharedImage> client_si,
-    const gpu::SyncToken& sync_token,
-    viz::TransferableResource::ResourceSource resource_source,
-    const gfx::HDRMetadata& hdr_metadata,
     base::WeakPtr<WebGraphicsContext3DProviderWrapper> provider,
-    bool accelerated_raster)
+    bool accelerated_raster,
+    base::RepeatingCallback<void(gpu::SyncToken)> wait_sync_token,
+    viz::ReleaseCallback release_callback,
+    bool use_legacy_external_canvas_resource_bitmap_path)
     : owning_thread_ref_(base::PlatformThread::CurrentRef()),
       owning_thread_task_runner_(
           ThreadScheduler::Current()->CleanupTaskRunner()),
@@ -50,22 +33,10 @@ ExportedCanvasResource::ExportedCanvasResource(
       resource_source_(resource_source),
       accelerated_raster_(accelerated_raster),
       context_provider_wrapper_(provider),
-      use_legacy_external_canvas_resource_bitmap_path_(false) {
-  wait_sync_token_ = base::BindRepeating(
-      [](scoped_refptr<CanvasResourceSharedImage> resource,
-         gpu::SyncToken sync_token) { resource->WaitSyncToken(sync_token); },
-      resource);
-
-  release_callback_ = base::BindOnce(
-      [](scoped_refptr<CanvasResourceSharedImage> resource,
-         const gpu::SyncToken& sync_token, bool is_lost) {
-        if (is_lost) {
-          resource->NotifyResourceLost();
-        }
-        CanvasResource::DropRefOnOwningThread(std::move(resource));
-      },
-      resource);
-}
+      wait_sync_token_(std::move(wait_sync_token)),
+      release_callback_(std::move(release_callback)),
+      use_legacy_external_canvas_resource_bitmap_path_(
+          use_legacy_external_canvas_resource_bitmap_path) {}
 
 ExportedCanvasResource::~ExportedCanvasResource() {
   // `wait_sync_token_` might hold ref to the resource, so drop it first.
@@ -81,7 +52,7 @@ ExportedCanvasResource::~ExportedCanvasResource() {
 
 // static
 void ExportedCanvasResource::OnPlaceholderReleasedResource(
-    scoped_refptr<ExportedCanvasResource>&& exported_resource) {
+    scoped_refptr<ExportedCanvasResource> exported_resource) {
   if (!exported_resource) {
     return;
   }
@@ -163,7 +134,7 @@ scoped_refptr<StaticBitmapImage> ExportedCanvasResource::Bitmap() {
     // the ref-count on the resource as a proxy for a read lock to allow
     // recycling the resource once all refs have been released.
     auto release_callback = base::BindOnce(
-        [](scoped_refptr<ExportedCanvasResource>&& exported_resource,
+        [](scoped_refptr<ExportedCanvasResource> exported_resource,
            const gpu::SyncToken& sync_token, bool lost_resource) {
           exported_resource->last_access_sync_token_ = sync_token;
           if (exported_resource->wait_sync_token_) {

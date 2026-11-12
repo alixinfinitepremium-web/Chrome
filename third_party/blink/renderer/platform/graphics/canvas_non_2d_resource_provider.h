@@ -14,6 +14,7 @@
 #include "base/memory/scoped_refptr.h"
 #include "base/memory/weak_ptr.h"
 #include "base/observer_list.h"
+#include "cc/paint/paint_canvas.h"
 #include "cc/paint/paint_image.h"
 #include "components/viz/common/gpu/raster_context_provider.h"
 #include "components/viz/common/resources/shared_image_format.h"
@@ -26,7 +27,6 @@
 #include "third_party/blink/renderer/platform/graphics/canvas_resource.h"
 #include "third_party/blink/renderer/platform/graphics/exported_canvas_resource.h"
 #include "third_party/blink/renderer/platform/graphics/flush_for_image_listener.h"
-#include "third_party/blink/renderer/platform/graphics/memory_managed_paint_recorder.h"
 #include "third_party/blink/renderer/platform/graphics/static_bitmap_image.h"
 #include "third_party/blink/renderer/platform/graphics/web_graphics_context_3d_provider_wrapper.h"
 #include "third_party/blink/renderer/platform/instrumentation/canvas_memory_dump_provider.h"
@@ -35,7 +35,6 @@
 #include "third_party/skia/include/core/SkRefCnt.h"
 
 namespace cc {
-class PaintCanvas;
 class SkiaPaintCanvas;
 }  // namespace cc
 
@@ -146,7 +145,6 @@ class PLATFORM_EXPORT CanvasNon2DResourceProvider
 
   gpu::raster::RasterInterface* RasterInterface() const;
   CanvasImageProvider* GetOrCreateImageProvider();
-  void ClearUnusedResources();
   bool IsGpuContextLost() const;
 
   SkSurface* GetSkSurface() const;
@@ -155,7 +153,7 @@ class PLATFORM_EXPORT CanvasNon2DResourceProvider
   void OnContextDestroyed() override;
 
   void OnResourceRefReturned(
-      scoped_refptr<CanvasResourceSharedImage>&& resource) override;
+      scoped_refptr<CanvasResourceSharedImage> resource) override;
   void OnDestroyResource() override { --num_inflight_resources_; }
   void OnMemoryDump(base::trace_event::ProcessMemoryDump* pmd) override;
   size_t GetSize() const override;
@@ -178,12 +176,6 @@ class PLATFORM_EXPORT CanvasNon2DResourceProvider
   // The maximum number of in-flight resources waiting to be used for
   // recycling.
   static constexpr int kMaxRecycledCanvasResources = 3;
-
- private:
-  base::WeakPtr<WebGraphicsContext3DProviderWrapper> ContextProviderWrapper()
-      const {
-    return context_provider_wrapper_;
-  }
 
   // viz::ContextLostObserver implementation.
   void OnContextLost() override;
@@ -216,7 +208,6 @@ class PLATFORM_EXPORT CanvasNon2DResourceProvider
 
   std::unique_ptr<CanvasImageProvider> canvas_image_provider_;
   std::unique_ptr<cc::SkiaPaintCanvas> skia_canvas_;
-  std::unique_ptr<MemoryManagedPaintRecorder> recorder_for_external_draws_;
 
   // If this instance is single-buffered or |resource_recycling_enabled_| is
   // false, |image_pool_| will not recycle resources.

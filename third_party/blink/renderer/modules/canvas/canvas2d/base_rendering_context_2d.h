@@ -29,6 +29,7 @@
 #include "third_party/blink/renderer/modules/canvas/canvas2d/canvas_rendering_context_2d_state.h"
 #include "third_party/blink/renderer/modules/modules_export.h"
 #include "third_party/blink/renderer/platform/graphics/canvas_2d_color_params.h"
+#include "third_party/blink/renderer/platform/graphics/canvas_resource.h"
 #include "third_party/blink/renderer/platform/graphics/flush_for_image_listener.h"
 #include "third_party/blink/renderer/platform/graphics/flush_reason.h"
 #include "third_party/blink/renderer/platform/graphics/memory_managed_paint_recorder.h"
@@ -448,6 +449,8 @@ class MODULES_EXPORT BaseRenderingContext2D
   // BitmapGpuChannelLostObserver implementation.
   void OnGpuChannelLost() override;
 
+  void ResetSharedImageBacking();
+  scoped_refptr<CanvasResourceSharedImage> NewOrRecycledResource();
   gpu::raster::RasterInterface* RasterInterface() const;
   bool IsGpuContextLost() const;
   bool ShouldReplaceTargetBuffer();
@@ -464,8 +467,13 @@ class MODULES_EXPORT BaseRenderingContext2D
   GetAnimatedImageFrameIndexMap(uint32_t id) const;
   CanvasImageProvider* GetOrCreateCanvasImageProvider();
 
+  // The maximum number of in-flight resources waiting to be used for
+  // recycling.
+  static constexpr int kMaxRecycledCanvasResources = 3;
+
   Canvas2DColorParams color_params_;
   std::unique_ptr<Canvas2DResourceProvider> shared_image_provider_;
+  scoped_refptr<CanvasResourceSharedImage> resource_;
   bool is_accelerated_ = false;
   sk_sp<SkSurface> surface_;
   std::unique_ptr<CanvasImageProvider> canvas_image_provider_;

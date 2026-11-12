@@ -34,45 +34,21 @@ namespace blink {
 
 class BaseRenderingContext2D;
 class CanvasResourceSharedImage;
-class Canvas2DResourceProvider;
-class CanvasImageProvider;
-class WebGraphicsSharedImageInterfaceProvider;
 
 // * Subclass of CanvasResourceProvider that is specialized for usage
 // * by Canvas2D.
 class PLATFORM_EXPORT Canvas2DResourceProvider
     : public CanvasResourceSharedImage::Client {
  public:
-  Canvas2DResourceProvider(gfx::Size size,
-                           viz::SharedImageFormat format,
-                           SkAlphaType alpha_type,
-                           const gfx::ColorSpace& color_space,
-                           const gfx::HDRMetadata& hdr_metadata,
-                           base::WeakPtr<WebGraphicsContext3DProviderWrapper>,
-                           bool is_accelerated,
-                           gpu::SharedImageUsageSet shared_image_usage_flags);
-  Canvas2DResourceProvider(
-      gfx::Size size,
-      viz::SharedImageFormat format,
-      SkAlphaType alpha_type,
-      const gfx::ColorSpace& color_space,
-      const gfx::HDRMetadata& hdr_metadata,
-      WebGraphicsSharedImageInterfaceProvider* shared_image_interface_provider);
+  explicit Canvas2DResourceProvider(
+      std::unique_ptr<gpu::SharedImagePool<CanvasResourceSharedImage>>
+          image_pool);
 
   ~Canvas2DResourceProvider() override;
-
-  bool IsSingleBuffered() const;
 
   int NumInflightResourcesForTesting() const { return num_inflight_resources_; }
 
   void SetResourceRecyclingEnabled(bool value);
-
-  CanvasResourceSharedImage* resource() {
-    return static_cast<CanvasResourceSharedImage*>(resource_.get());
-  }
-  const CanvasResourceSharedImage* resource() const {
-    return static_cast<const CanvasResourceSharedImage*>(resource_.get());
-  }
 
  private:
   friend class BaseRenderingContext2D;
@@ -80,33 +56,18 @@ class PLATFORM_EXPORT Canvas2DResourceProvider
   void ClearUnusedResources();
 
   void OnResourceRefReturned(
-      scoped_refptr<CanvasResourceSharedImage>&& resource) override;
+      scoped_refptr<CanvasResourceSharedImage> resource) override;
   void OnDestroyResource() override { --num_inflight_resources_; }
 
-  scoped_refptr<CanvasResourceSharedImage> NewOrRecycledResource(
-      bool is_accelerated);
-
   base::WeakPtr<Canvas2DResourceProvider> CreateWeakPtr();
-
-  // The maximum number of in-flight resources waiting to be used for
-  // recycling.
-  static constexpr int kMaxRecycledCanvasResources = 3;
 
   // If this instance is single-buffered or |resource_recycling_enabled_| is
   // false, |image_pool_| will not recycle resources.
   std::unique_ptr<gpu::SharedImagePool<CanvasResourceSharedImage>> image_pool_;
 
-  scoped_refptr<CanvasResourceSharedImage> resource_;
-
-  base::WeakPtr<WebGraphicsContext3DProviderWrapper> context_provider_wrapper_;
-  base::WeakPtr<WebGraphicsSharedImageInterfaceProvider>
-      shared_image_interface_provider_;
-
   bool resource_recycling_enabled_ = true;
   int num_inflight_resources_ = 0;
   int max_inflight_resources_ = 0;
-
-  gfx::HDRMetadata hdr_metadata_;
 
   base::WeakPtrFactory<Canvas2DResourceProvider> weak_ptr_factory_{this};
 };
