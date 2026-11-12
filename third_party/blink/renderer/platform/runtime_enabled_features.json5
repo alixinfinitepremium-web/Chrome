@@ -3339,11 +3339,6 @@
       status: "stable",
     },
     {
-      // crbug.com/553136688 and crbug.com/553252820
-      name: "FindIgnoreSuggestionFix",
-      status: "stable",
-    },
-    {
       // Enables asymmetric diacritic matching in Find-in-Page so base
       // characters match diacritic variants while explicit diacritics only
       // match that diacritic (https://crbug.com/40518349).
@@ -3449,21 +3444,12 @@
       name: "FontFamilyStyleMatchingCTMigration",
     },
     {
-      // crbug.com/40398871
-      name: "FontFeatureSettingsDescriptor",
-      status: "stable",
-    },
-    {
       name: "FontFormatAvar2",
       status: "stable",
     },
     {
       // crbug.com/41170551
       name: "FontLanguageOverride",
-      status: "stable",
-    },
-    {
-      name: "FontMatchAliasesAsLastResort",
       status: "stable",
     },
     {
@@ -3762,6 +3748,12 @@
       // inline item that has a self-painting layer, such as a
       // position:relative child.
       name: "HitTestCulledInlineOfSelfPaintingChild",
+      status: "stable",
+    },
+    {
+      // Kill switch. Hit tests on a local root that can't enter child frames
+      // (such as elementFromPoint()) skip the lifecycle update of child frames.
+      name: "HitTestSkipChildFrameLifecycle",
       status: "stable",
     },
     {
@@ -6728,6 +6720,10 @@
     },
     {
       name: "SvgImageAnimationReset",
+      status: "stable",
+    },
+    {
+      name: "SvgImageDeferShutdown",
       status: "stable",
     },
     {

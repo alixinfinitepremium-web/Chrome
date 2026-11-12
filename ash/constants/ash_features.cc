@@ -1013,15 +1013,8 @@ BASE_FEATURE(kLobsterDogfood, base::FEATURE_DISABLED_BY_DEFAULT);
 // Enables lobster restriction based on the current active IME.
 BASE_FEATURE(kLobsterDisabledByInvalidIME, base::FEATURE_DISABLED_BY_DEFAULT);
 
-// Enables lobster entry point in quick insert zero state.
-BASE_FEATURE(kLobsterQuickInsertZeroState, base::FEATURE_ENABLED_BY_DEFAULT);
-
 // Enables lobster right click menu entry point.
 BASE_FEATURE(kLobsterRightClickMenu, base::FEATURE_ENABLED_BY_DEFAULT);
-
-// Enabling this flag allows Lobster to receive and use the rewritten queries
-// returned from the server.
-BASE_FEATURE(kLobsterUseRewrittenQuery, base::FEATURE_ENABLED_BY_DEFAULT);
 
 // Enables / Disables the lobster feature from the feature management module.
 BASE_FEATURE(kFeatureManagementLobster, base::FEATURE_DISABLED_BY_DEFAULT);
@@ -2344,10 +2337,6 @@ bool IsLobsterEnabled() {
 
 bool IsLobsterDisabledByInvalidIME() {
   return base::FeatureList::IsEnabled(kLobsterDisabledByInvalidIME);
-}
-
-bool IsLobsterUseRewrittenQuery() {
-  return base::FeatureList::IsEnabled(kLobsterUseRewrittenQuery);
 }
 
 bool IsLobsterAlwaysShowDisclaimerForTesting() {

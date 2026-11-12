@@ -169,11 +169,6 @@ static_library("file_manager") {
     "//chrome/browser/ui/webui/ash/office_fallback:mojo_bindings",
     "//chrome/browser/ui/webui/extensions:headers",
     "//chrome/browser/web_applications",
-    "//chrome/common",
-    "//chrome/common:chrome_features",
-    "//chrome/common:constants",
-    "//chrome/common:non_code_constants",
-    "//chrome/common/extensions/api",
     "//chromeos/ash/components/browser_context_helper",
     "//chromeos/ash/components/demo_mode",
     "//chromeos/ash/components/drivefs",
@@ -426,7 +421,7 @@ source_set("browser_tests") {
     "image_loader_jstest.cc",
     "open_with_browser_browsertest.cc",
   ]
-
+  public_deps = [ "//chrome/test/base:devtools_coverage" ]
   deps = [
     ":file_manager",
     ":test_support",

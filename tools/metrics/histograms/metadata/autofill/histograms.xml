@@ -295,6 +295,9 @@ chromium-metrics-reviews@google.com.
 </variants>
 
 <variants name="Autofill.PaymentsRequestType">
+  <variant name="GetDetailsForUpdateCardRequest"
+      summary="credit card update preflight"/>
+  <variant name="UpdateCardRequest" summary="credit card update"/>
   <variant name="UpdateVirtualCardEnrollment_Enroll" summary="VCN enrollment"/>
   <variant name="UploadCardRequest" summary="credit card upload"/>
 </variants>
@@ -8603,7 +8606,7 @@ Called by update_autofill_enums.py. This is a manual comment.-->
 </histogram>
 
 <histogram name="Autofill.SaveAndFill.{RequestType}.Result"
-    enum="SaveAndFillPaymentsRequestResult" expires_after="2027-04-30">
+    enum="AutofillPaymentsRpcResultMetric" expires_after="2027-04-30">
   <owner>siyua@chromium.org</owner>
   <owner>payments-autofill-team@google.com</owner>
   <summary>

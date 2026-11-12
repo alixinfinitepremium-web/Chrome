@@ -1877,6 +1877,7 @@ source_set("chrome_extensions_browser_client") {
     deps += [
       "//chrome/browser/custom_handlers",
       "//chrome/browser/web_applications",
+      "//chrome/browser/web_applications/isolated_web_apps",
       "//components/webapps/isolated_web_apps",
     ]
   }
@@ -2743,6 +2744,7 @@ source_set("browser_tests") {
       "//chrome/browser/ui/webui/interstitials:browser_tests",
       "//chrome/browser/ui/webui/location_internals:browser_tests",
       "//chrome/browser/ui/webui/policy:browser_tests",
+      "//chrome/browser/web_applications/isolated_web_apps",
       "//components/keep_alive_registry",
       "//components/webapps/isolated_web_apps/test_support",
     ]
@@ -3353,6 +3355,8 @@ source_set("interactive_ui_tests") {
       "//chrome/browser/ui/views/extensions:extensions_toolbar_desktop",
       "//chrome/browser/ui/views/infobars",
       "//chrome/test/base:browser_test_waiters",
+      "//chrome/test/base:chrome_test_path_utils",
+      "//chrome/test/base:chrome_test_utils",
       "//components/feed:feature_list",
       "//components/infobars/content",
       "//components/infobars/core",

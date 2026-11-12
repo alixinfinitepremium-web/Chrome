@@ -651,8 +651,6 @@ public abstract class ChromeFeatureList {
     public static final String ENFORCE_INCOGNITO_ISOLATION = "EnforceIncognitoIsolation";
     public static final String EXCLUDE_CHROME_IN_INCOGNITO_SHARE_SHEET =
             "ExcludeChromeInIncognitoShareSheet";
-    public static final String FACILITATED_PAYMENTS_ENABLE_A2A_PAYMENT =
-            "FacilitatedPaymentsEnableA2APayment";
     public static final String FEED_AUDIO_OVERVIEWS = "FeedAudioOverviews";
     public static final String FEED_CONTAINMENT = "FeedContainment";
     public static final String FEED_CONTAINMENT_CLIP_FIRST_CARD = "FeedContainmentClipFirstCard";
@@ -1524,7 +1522,11 @@ public abstract class ChromeFeatureList {
             newCachedFlag(USE_CHIME_ANDROID_SDK, false);
     public static final CachedFlag sUseWebUiBookmarksAndroid =
             newCachedFlag(USE_WEB_UI_BOOKMARKS_ANDROID, /* defaultValue= */ false);
-    public static final CachedFlag sUseWebUiNtp3PDSE = newCachedFlag(USE_WEB_UI_NTP_3P_DSE, false);
+    public static final CachedFlag sUseWebUiNtp3PDSE =
+            newCachedFlag(
+                    USE_WEB_UI_NTP_3P_DSE,
+                    /* defaultValue= */ false,
+                    /* defaultValueInTests= */ BuildConfig.IS_DESKTOP_ANDROID);
     public static final CachedFlag sUseWebUiNtpAndroid =
             newCachedFlag(USE_WEB_UI_NTP_ANDROID, BuildConfig.IS_DESKTOP_ANDROID);
     public static final CachedFlag sVirtualKeyboardResizesContentTransientOvershootFix =

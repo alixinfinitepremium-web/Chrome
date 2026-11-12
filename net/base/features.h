@@ -18,6 +18,7 @@
 #include "build/build_config.h"
 #include "crypto/crypto_buildflags.h"
 #include "net/base/net_export.h"
+#include "net/base/request_priority.h"
 #include "net/disk_cache/buildflags.h"
 #include "net/net_buildflags.h"
 
@@ -81,6 +82,11 @@ NET_EXPORT extern const base::FeatureParam<bool>
 // addresses, rather than failing the entire DnsTask and falling back to the
 // system resolver.
 NET_EXPORT BASE_DECLARE_FEATURE(kDnsTaskAllowPartialAddressResults);
+
+// If enabled, DoH (`AttemptMode::kHttp`) transactions query multi-label
+// hostnames (`ndots > 0`) directly as-is without applying `DnsConfig::search`
+// suffixes or `DnsConfig::ndots > 1` ordering.
+NET_EXPORT BASE_DECLARE_FEATURE(kDnsHttpsDontAppendToMultiLabelName);
 
 // Enables querying HTTPS DNS records that will affect results from HostResolver
 // and may be used to affect connection behavior. Whether or not those results
@@ -347,6 +353,18 @@ NET_EXPORT BASE_DECLARE_FEATURE_PARAM(base::TimeDelta,
 // enabled and the configured duration is positive and finite; otherwise returns
 // `std::nullopt`.
 NET_EXPORT std::optional<base::TimeDelta> GetQuicPreconnectInitialRtt();
+
+// Controls initial priority overrides for preconnect requests and priority
+// promotion when a higher-priority request attaches to an active QUIC job.
+NET_EXPORT BASE_DECLARE_FEATURE(kPreconnectPriorityBoost);
+NET_EXPORT BASE_DECLARE_FEATURE_PARAM(RequestPriority,
+                                      kPreconnectInitialPriority);
+NET_EXPORT BASE_DECLARE_FEATURE_PARAM(bool,
+                                      kPromoteActiveQuicJobPriorityOnAttach);
+// Returns `kPreconnectInitialPriority` when `kPreconnectPriorityBoost` is
+// enabled and the configured priority is higher than `RequestPriority::IDLE`;
+// otherwise returns `std::nullopt`.
+NET_EXPORT std::optional<RequestPriority> GetPreconnectInitialPriority();
 
 // When enabled, the time threshold for Lax-allow-unsafe cookies will be lowered
 // from 2 minutes to 10 seconds. This time threshold refers to the age cutoff

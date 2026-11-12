@@ -13264,6 +13264,7 @@ from previous Chrome versions.
   <int value="-541764089" label="AudioPlayerJsModules:disabled"/>
   <int value="-541611402" label="OfflinePagesPrefetching:enabled"/>
   <int value="-540972085" label="ManagedConfiguration:enabled"/>
+  <int value="-540438054" label="DynamicAimFulfillmentRealbox:disabled"/>
   <int value="-540150399" label="TapVisualizerApp:enabled"/>
   <int value="-539515670" label="CrOSLateBootArcVmmSwap:disabled"/>
   <int value="-538448229" label="MaxUnthrottledTimeoutNestingLevel:enabled"/>
@@ -14243,6 +14244,7 @@ from previous Chrome versions.
       label="IsSecurePaymentConfirmationAvailableAPI:enabled"/>
   <int value="-256347812" label="AndroidBricksNativePage:disabled"/>
   <int value="-256163762" label="AccessibilityAtomicLiveRegions:enabled"/>
+  <int value="-256096586" label="DynamicAimFulfillment:enabled"/>
   <int value="-256085312" label="SplitViewHorizontal:enabled"/>
   <int value="-255869867" label="eol-reset-dismissed-prefs:disabled"/>
   <int value="-255264176" label="OmniboxSearchEngineLogo:disabled"/>
@@ -15169,6 +15171,7 @@ from previous Chrome versions.
       label="NtpHistoryClustersModuleUseModelRanking:enabled"/>
   <int value="26875005" label="disable-explicit-dma-fences"/>
   <int value="26945819" label="EnhancedDeskAnimations:disabled"/>
+  <int value="27172919" label="DynamicAimFulfillmentOmnibox:disabled"/>
   <int value="27442980" label="ArcGameModeFeature:enabled"/>
   <int value="27507364" label="apps-keep-chrome-alive"/>
   <int value="27619459" label="WebAuthenticationImmediateGet:enabled"/>
@@ -15554,6 +15557,7 @@ from previous Chrome versions.
   <int value="139569991" label="SharingDeviceExpiration:disabled"/>
   <int value="139974547" label="ControlledFrame:enabled"/>
   <int value="140257184" label="ChromeOSAmbientModeNewUrl:enabled"/>
+  <int value="140408139" label="DynamicAimFulfillment:disabled"/>
   <int value="140427435" label="OmniboxReportSearchboxStats:enabled"/>
   <int value="140430538" label="AndroidBottomToolbarV2:enabled"/>
   <int value="140778694"
@@ -17023,6 +17027,7 @@ from previous Chrome versions.
   <int value="589938531"
       label="HttpsUpgradesTypedSchemelessNavigationNoTimeoutFallback:enabled"/>
   <int value="591007879" label="UseClientGmbInterface:enabled"/>
+  <int value="591188133" label="DynamicAimFulfillmentOmnibox:enabled"/>
   <int value="591455655"
       label="NTPRealboxContextualAndTrendingSuggestions:disabled"/>
   <int value="592001554" label="CaptivePortalPopupWindow:enabled"/>
@@ -20810,6 +20815,7 @@ from previous Chrome versions.
       label="AutofillEnableVirtualCardManagementInDesktopSettingsPage:enabled"/>
   <int value="1701972870" label="NTPSnippetsIncreasedVisibility:enabled"/>
   <int value="1702090999" label="ClearOldBrowsingData:disabled"/>
+  <int value="1702176034" label="EnableAndroidSandboxedGpuProcess:disabled"/>
   <int value="1702313424" label="ContextualTasksTabBasedSuggestions:disabled"/>
   <int value="1702653578" label="LocalNetworkAccessChecksWebTransport:enabled"/>
   <int value="1702985369"
@@ -21461,6 +21467,7 @@ from previous Chrome versions.
   <int value="1891312456" label="AndroidMessagesProdEndpoint:disabled"/>
   <int value="1891990252" label="IncognitoAsWindowFullScreen:enabled"/>
   <int value="1892005713" label="TabStripDensityChangeAndroid:enabled"/>
+  <int value="1892096976" label="EnableAndroidSandboxedGpuProcess:enabled"/>
   <int value="1892124105" label="HistoryClustersVisitDeduping:disabled"/>
   <int value="1892201400" label="enable-password-separated-signin-flow"/>
   <int value="1892311584" label="NewStyleNotifications:disabled"/>
@@ -22145,6 +22152,7 @@ from previous Chrome versions.
       label="EnableSupervisedUserReauthenticationForSubframes:disabled"/>
   <int value="2100547979" label="AdaptiveCharging:enabled"/>
   <int value="2100708771" label="AutofillVcnEnrollRequestTimeout:disabled"/>
+  <int value="2100732544" label="DynamicAimFulfillmentRealbox:enabled"/>
   <int value="2101124624" label="WebUIDownloadShelf:disabled"/>
   <int value="2101151142" label="disable-direct-write"/>
   <int value="2101244145" label="NtpDoodleMurals:disabled"/>

@@ -10522,6 +10522,15 @@ should be able to be added at any place in this file.
   </description>
 </action>
 
+<action name="ContextualTasks.SearchJourney.Cue.ChipClicked">
+  <owner>juanmojica@google.com</owner>
+  <owner>chrome-contextual-tasks-eng@google.com</owner>
+  <description>
+    Recorded when the user clicks the collapsed chip of the ABA search journey
+    contextual cue on the source tab, which re-shows its anchored message.
+  </description>
+</action>
+
 <action name="ContextualTasks.SearchJourney.Cue.Clicked">
   <owner>juanmojica@google.com</owner>
   <owner>chrome-contextual-tasks-eng@google.com</owner>
@@ -13872,6 +13881,26 @@ should be able to be added at any place in this file.
   </description>
 </action>
 
+<action name="Glic.FindHotKey.Floaty">
+  <owner>perrier@chromium.org</owner>
+  <owner>glic+metrics@google.com</owner>
+  <description>
+    Logged when the user presses the find keyboard shortcut (Ctrl+F / Cmd+F)
+    while the Glic floating window (Floaty) has focus. Only logged on desktop
+    platforms (Windows, Mac, Linux, and ChromeOS).
+  </description>
+</action>
+
+<action name="Glic.FindHotKey.SidePanel">
+  <owner>perrier@chromium.org</owner>
+  <owner>glic+metrics@google.com</owner>
+  <description>
+    Logged when the user presses the find keyboard shortcut (Ctrl+F / Cmd+F)
+    while the Glic side panel has focus. Only logged on desktop platforms
+    (Windows, Mac, Linux, and ChromeOS).
+  </description>
+</action>
+
 <action name="Glic.FocusHotKey">
   <owner>andreaxg@google.com</owner>
   <owner>erikchen@chromium.org</owner>
@@ -14482,6 +14511,28 @@ should be able to be added at any place in this file.
   <description>
     Logged any time a pinned tab is navigated to a new origin and the tab is
     unpinned as a result.
+  </description>
+</action>
+
+<action name="Glic.PrintHotKey.Floaty">
+  <owner>perrier@chromium.org</owner>
+  <owner>glic+metrics@google.com</owner>
+  <description>
+    Logged when the user presses the print keyboard shortcut (Ctrl+P / Cmd+P)
+    while the Glic floating window (Floaty) has focus, regardless of whether
+    keyboard printing is enabled or print preview is shown. Only logged on
+    desktop platforms (Windows, Mac, Linux, and ChromeOS).
+  </description>
+</action>
+
+<action name="Glic.PrintHotKey.SidePanel">
+  <owner>perrier@chromium.org</owner>
+  <owner>glic+metrics@google.com</owner>
+  <description>
+    Logged when the user presses the print keyboard shortcut (Ctrl+P / Cmd+P)
+    while the Glic side panel has focus, regardless of whether keyboard printing
+    is enabled or print preview is shown. Only logged on desktop platforms
+    (Windows, Mac, Linux, and ChromeOS).
   </description>
 </action>
 

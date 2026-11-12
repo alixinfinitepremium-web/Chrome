@@ -21,35 +21,36 @@ identity semantics.
 **Goal:** Clean up all unreferenced `Object` overrides in UI data holders,
 properties, and model objects where equality is not needed in production code.
 
-## Relevant Resources & Style Guides
-
-- **Implementation Patterns:** [patterns.md](references/patterns.md)
-- **Discovery Script:** [find_candidates.py](scripts/find_candidates.py)
-- **Automated Review Protocol:**
-  [automated_review.md](references/automated_review.md)
-
 ## Workflow
 
-> [!IMPORTANT] **Execution Protocol:** Execute all steps sequentially one by
-> one. Do not skip any step.
+> [!IMPORTANT] **Execution Protocol:** Execute all steps continuously in one
+> autonomous run, without skipping steps or pausing between files or steps. Stop
+> only at explicit `ask_question` gates or documented interactive stops. Use
+> `rg` (ripgrep) for searches.
 
 ### Step 1: Workspace Preparation
 
-Follow the workspace preparation steps in
-[workspace_preparation.md](../hub/references/workspace_preparation.md) to ensure
-a clean and updated environment.
+Run the workspace preparation script:
+
+```bash
+python3 agents/projects/code-health/hub/scripts/prepare_workspace.py --stash
+```
+
+- If the script outputs `(stashed local changes)`, inform the user.
+- If the script exits non-zero, stop and report the error instead of continuing
+  on a dirty or diverged tree.
 
 ### Step 2: Discovery & Batch Selection
 
 Follow the
 [Discovery & Batch Selection](../hub/references/discovery_and_batch_selection.md)
-workflow. Present the candidates and ask for explicit approval before
-proceeding.
+workflow.
 
 ### Step 3: Refactoring & Implementation
 
 Process candidates case-by-case (one file at a time), applying modifications
-cleanly:
+cleanly. Process all files sequentially within the same run, without pausing for
+user confirmation between edits, then proceed directly to Step 4:
 
 1. **Safety Audit:**
    - Follow [Rule 2 in patterns.md](references/patterns.md) to audit all
@@ -58,9 +59,9 @@ cleanly:
      (`List.contains`, `List.indexOf`), state equality comparisons
      (`Objects.equals`), and serialization (Proto/Mojo/JSON).
    - If `equals()` is required in production (e.g. Toolbar snapshot capture
-     tokens) $\\rightarrow$ **Keep BOTH `equals()` and `hashCode()`.**
-   - If `equals()` is only needed for tests or not needed at all $\\rightarrow$
-     **Remove BOTH `equals()` and `hashCode()`.**
+     tokens) -> **Keep BOTH `equals()` and `hashCode()`.**
+   - If `equals()` is only needed for tests or not needed at all -> **Remove
+     BOTH `equals()` and `hashCode()`.**
 2. **Apply Code Edits:**
    - Remove the unreferenced `equals()`, `hashCode()`, or `toString()` methods.
    - Clean up unused imports (such as `java.util.Objects`).
@@ -70,13 +71,15 @@ cleanly:
    - If JUnit `assertEquals()` calls fail: replace with explicit field
      assertions or a local assertion helper method.
 
-### Step 4: Validation
+### Step 4: Formatting & Automated Review
 
-1. **Code Formatting:** Run `git cl format` to format changes.
-2. **Mandatory Final Review:** Follow the
-   [Automated Review Protocol](references/automated_review.md) to delegate a
-   final review of the patch to the `generalist` sub-agent. Proceed only after
-   it returns `PASS`.
+1. **Format & Lint:** Run
+   `python3 agents/projects/code-health/hub/scripts/format_and_lint.py` (must
+   exit 0).
+2. **Automated Review:** Follow
+   [Automated Review](../hub/references/automated_review.md), passing
+   [review_rules.md](references/review_rules.md) as
+   `<SKILL_SPECIFIC_CLEANUP_RULES>`.
 
 ### Step 5: Verification
 

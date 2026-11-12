@@ -9708,17 +9708,15 @@
             ]
         }
     ],
-    "GlicPdfSummarizeButton": [
+    "GlicPdfSummarizeSingleCta": [
         {
             "platforms": [
-                "linux",
                 "mac",
-                "windows",
-                "chromeos"
+                "windows"
             ],
             "experiments": [
                 {
-                    "name": "Enabled",
+                    "name": "Enabled_SingleCta",
                     "params": {
                         "arm": "3"
                     },
@@ -12132,6 +12130,25 @@
             ]
         }
     ],
+    "KeepAliveBrowserProcessAlive": [
+        {
+            "platforms": [
+                "android",
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled_20260910",
+                    "enable_features": [
+                        "KeepAliveBrowserProcessAlive"
+                    ]
+                }
+            ]
+        }
+    ],
     "KeepHostResolverJobAliveForCache": [
         {
             "platforms": [
@@ -12366,6 +12383,22 @@
                     "name": "Enabled_20260723",
                     "enable_features": [
                         "LazyInitializeSpellcheckCharAttribute"
+                    ]
+                }
+            ]
+        }
+    ],
+    "LazyKeyedServiceInstantiationStudy": [
+        {
+            "platforms": [
+                "android",
+                "android_desktop"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "LazyKeyedServiceInstantiation"
                     ]
                 }
             ]
@@ -15162,28 +15195,6 @@
             ]
         }
     ],
-    "PartitionAllocTighterAlignedAllocBound": [
-        {
-            "platforms": [
-                "android",
-                "android_desktop",
-                "android_webview",
-                "chromeos",
-                "ios",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "PartitionAllocTighterAlignedAllocBound"
-                    ]
-                }
-            ]
-        }
-    ],
     "PartitionAllocUnretainedDanglingPtr": [
         {
             "platforms": [
@@ -16451,6 +16462,7 @@
                     "params": {
                         "fcp_enable_privacy_id_v2": "true",
                         "fcp_population_name_contextual_cues": "chrome/private_insights/contextual_cues",
+                        "fcp_population_name_storage_access": "chrome/private_insights/storage_access",
                         "fcp_server_uri": "https://federatedcompute-pa.googleapis.com/",
                         "fcp_use_attestation_transparency_verifier": "true",
                         "upload_interval": "10m"
@@ -16458,6 +16470,24 @@
                     "enable_features": [
                         "PrivateInsightsFeature",
                         "PrivateInsightsUploadTaskPipeline"
+                    ]
+                }
+            ]
+        }
+    ],
+    "PrivateInsightsStorageAccess": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "PrivateInsightsStorageAccess"
                     ]
                 }
             ]
@@ -20162,6 +20192,25 @@
                     "name": "Enabled",
                     "enable_features": [
                         "UseStrongRefToSharedImageInterface"
+                    ]
+                }
+            ]
+        }
+    ],
+    "UseWebUiNtp3PDSE": [
+        {
+            "platforms": [
+                "android_desktop"
+            ],
+            "form_factors": [
+                "desktop"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "NtpEnableInstantApiAndroid",
+                        "UseWebUiNtp3PDSE"
                     ]
                 }
             ]

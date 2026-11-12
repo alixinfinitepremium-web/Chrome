@@ -628,9 +628,6 @@ public final class ProductionSupportedFlagList {
                 "Straightens free lists for larger slot spans in PartitionRoot::PurgeMemory() -> "
                         + "... -> PartitionPurgeSlotSpan()."),
         Flag.baseFeature(
-                BaseFeatures.PARTITION_ALLOC_TIGHTER_ALIGNED_ALLOC_BOUND,
-                "Allocates less memory for aligned allocations."),
-        Flag.baseFeature(
                 "MemoryCoordinatorLastResortGC",
                 "Clears strong references in the MemoryCache in last resort GC."),
         Flag.baseFeature(
@@ -1567,6 +1564,11 @@ public final class ProductionSupportedFlagList {
         Flag.baseFeature(
                 "WebMessageListenerRemoveEvictsBfCache",
                 "Controls whether to flush BFCache on WebMessage listener removal."),
+        Flag.baseFeature(
+                NetFeatures.PRECONNECT_PRIORITY_BOOST,
+                "Allows configuring initial preconnect priority for Profile#preconnect and"
+                        + " promotes active QUIC job priority when a higher-priority request"
+                        + " attaches."),
         // Add new commandline switches and features above. The final entry should have a
         // trailing comma for cleaner diffs.
     };

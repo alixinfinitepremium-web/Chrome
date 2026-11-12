@@ -2130,12 +2130,6 @@ inline constexpr char kContextualSearchWithCredentialsForDebugName[] =
 inline constexpr char kContextualSearchWithCredentialsForDebugDescription[] =
     "When this is enabled, if a user do the contextual search, the credentials "
     "mode will be include.";
-inline constexpr char kFacilitatedPaymentsEnableA2APaymentName[] =
-    "Enable Account to Account payments";
-inline constexpr char kFacilitatedPaymentsEnableA2APaymentDescription[] =
-    "When enabled, Chrome will offer an app list when a supported "
-    "payment link is detected. Users can choose the payment app they want to "
-    "use and be redirected to the chosen app to complete the payment flow";
 
 inline constexpr char kForceAiSubscriptionTierName[] =
     "Force AI Subscription Tier";
@@ -2383,6 +2377,25 @@ inline constexpr char kDomStorageSqliteDescription[] =
     "Uses a SQLite-powered backing store for local and session storage. No "
     "data is migrated from existing backing stores, including LevelDB stores "
     "or SQLite stores with older schemas; use at your own peril.";
+
+inline constexpr char kDynamicAimFulfillmentName[] = "Dynamic AIM Fulfillment";
+inline constexpr char kDynamicAimFulfillmentDescription[] =
+    "Main switch for dynamic AIM fulfillment, routing Composebox queries to "
+    "the Search results page unless active tools, models, or inputs require "
+    "AI Mode. Must be enabled alongside the per-surface (Realbox or Omnibox) "
+    "flag.";
+
+inline constexpr char kDynamicAimFulfillmentOmniboxName[] =
+    "Dynamic AIM Fulfillment (Omnibox)";
+inline constexpr char kDynamicAimFulfillmentOmniboxDescription[] =
+    "Enables dynamic AIM fulfillment in the WebUI Omnibox Composebox. "
+    "Requires Dynamic AIM Fulfillment to also be enabled.";
+
+inline constexpr char kDynamicAimFulfillmentRealboxName[] =
+    "Dynamic AIM Fulfillment (Realbox)";
+inline constexpr char kDynamicAimFulfillmentRealboxDescription[] =
+    "Enables dynamic AIM fulfillment in the NTP Realbox Composebox. "
+    "Requires Dynamic AIM Fulfillment to also be enabled.";
 
 inline constexpr char kEnableTLS13EarlyDataName[] = "TLS 1.3 Early Data";
 inline constexpr char kEnableTLS13EarlyDataDescription[] =
@@ -6240,6 +6253,11 @@ inline constexpr char kEnableAccessibilityLabeledByDescription[] =
     "Enables the experimental support for aria-labelledby list format for "
     "relationships in "
     "the accessibility tree for android.";
+
+inline constexpr char kEnableAndroidSandboxedGpuProcessName[] =
+    "Enable Android Sandboxed GPU Process";
+inline constexpr char kEnableAndroidSandboxedGpuProcessDescription[] =
+    "Runs the GPU process in a sandboxed process on Android.";
 
 inline constexpr char kEnableAndroidSidePanelName[] =
     "Enable Android Side Panel";

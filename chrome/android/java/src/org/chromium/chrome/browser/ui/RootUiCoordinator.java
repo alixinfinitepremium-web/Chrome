@@ -101,7 +101,6 @@ import org.chromium.chrome.browser.flags.ActivityType;
 import org.chromium.chrome.browser.flags.ChromeFeatureList;
 import org.chromium.chrome.browser.fullscreen.BrowserControlsManager;
 import org.chromium.chrome.browser.fullscreen.FullscreenManager;
-import org.chromium.chrome.browser.fullscreen.FullscreenOptions;
 import org.chromium.chrome.browser.glic.GlicKeyedService.GlicInvocationSource;
 import org.chromium.chrome.browser.handoff.HandoffController;
 import org.chromium.chrome.browser.host_zoom.HostZoomListenerFactory;
@@ -269,6 +268,7 @@ import org.chromium.ui.base.PageTransition;
 import org.chromium.ui.display.DisplayAndroid;
 import org.chromium.ui.display.DisplayUtil;
 import org.chromium.ui.edge_to_edge.EdgeToEdgeManager;
+import org.chromium.ui.edge_to_edge.EdgeToEdgePadAdjuster;
 import org.chromium.ui.modaldialog.ModalDialogManager;
 import org.chromium.ui.modaldialog.ModalDialogManager.ModalDialogManagerObserver;
 import org.chromium.ui.modelutil.PropertyModel;
@@ -485,6 +485,7 @@ public class RootUiCoordinator
     protected @Nullable ActionRegistry mActionRegistry;
     protected @Nullable BottomBarHostManager mBottomBarHostManager;
     private @Nullable AnchoredDialogCoordinator mAnchoredDialogCoordinator;
+    private @Nullable EdgeToEdgePadAdjuster mBottomSheetEdgeToEdgePadAdjuster;
 
     /**
      * Create a new {@link RootUiCoordinator} for the given activity.
@@ -766,19 +767,15 @@ public class RootUiCoordinator
 
                             @Override
                             public void enterImmersiveMode() {
-                                DisplayAndroid display =
-                                        DisplayAndroid.getNonMultiDisplay(mActivity);
+                                assert ChromeFeatureList.sAndroidZoomImmersive.isEnabled();
                                 Tab tab = mActivityTabProvider.get();
                                 if (tab == null) {
                                     return;
                                 }
 
-                                mFullscreenManager.onEnterFullscreen(
-                                        tab,
-                                        new FullscreenOptions(
-                                                /* showNavigationBar= */ false,
-                                                /* showStatusBar= */ false,
-                                                /* displayId= */ display.getDisplayId()));
+                                assumeNonNull(mExclusiveAccessManager);
+                                mExclusiveAccessManager.toggleBrowserFullscreenMode(
+                                        /* userInitiated= */ true);
                                 assumeNonNull(mAppMenuCoordinator);
                                 mAppMenuCoordinator.getAppMenuHandler().hideAppMenu();
                             }
@@ -1175,6 +1172,13 @@ public class RootUiCoordinator
             extensionsSigninAndHistorySyncCoordinator.destroy();
         }
 
+        if (mEdgeToEdgeControllerSupplier.get() != null
+                && mBottomSheetEdgeToEdgePadAdjuster != null) {
+            mEdgeToEdgeControllerSupplier
+                    .get()
+                    .unregisterAdjuster(mBottomSheetEdgeToEdgePadAdjuster);
+            mBottomSheetEdgeToEdgePadAdjuster = null;
+        }
         if (mEdgeToEdgeController != null) {
             mEdgeToEdgeController.destroy();
             mEdgeToEdgeController = null;
@@ -1707,7 +1711,8 @@ public class RootUiCoordinator
         MessagesResourceMapperInitializer.init();
         MessageContainer container = mActivity.findViewById(R.id.message_container);
         mMessageContainerCoordinator =
-                new MessageContainerCoordinator(container, mBrowserControlsManager);
+                new MessageContainerCoordinator(
+                        container, mBrowserControlsManager, mEdgeToEdgeControllerSupplier);
         mMessageContainerObserver =
                 new MessageContainerObserver() {
                     @Override
@@ -2617,6 +2622,25 @@ public class RootUiCoordinator
                                 .sBottomSheetOnDesktopWindowing
                                 .isEnabled());
         mBottomSheetControllerSupplier.set(bottomSheetController);
+        mBottomSheetEdgeToEdgePadAdjuster =
+                new EdgeToEdgePadAdjuster() {
+                    @Override
+                    public void overrideBottomInset(int inset) {}
+
+                    @Override
+                    public void overrideTopInset(int inset) {
+                        bottomSheetController.onTopInsetChanged(inset);
+                    }
+
+                    @Override
+                    public void destroy() {}
+                };
+        mEdgeToEdgeControllerSupplier.addSyncObserverAndCallIfNonNull(
+                mCallbackController.makeCancelable(
+                        edgeToEdgeController -> {
+                            edgeToEdgeController.registerAdjuster(
+                                    assertNonNull(mBottomSheetEdgeToEdgePadAdjuster));
+                        }));
         BottomSheetControllerFactory.setExceptionReporter(
                 ChromePureJavaExceptionReporter::reportJavaException);
         BottomSheetControllerFactory.attach(mWindowAndroid, getBottomSheetController());

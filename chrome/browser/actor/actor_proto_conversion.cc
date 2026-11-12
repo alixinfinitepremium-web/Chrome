@@ -36,6 +36,7 @@
 #include "chrome/browser/actor/tools/autofill/attempt_form_filling/attempt_form_filling_tool_request.h"
 #include "chrome/browser/actor/tools/click_tool_request.h"
 #include "chrome/browser/actor/tools/drag_and_release_tool_request.h"
+#include "chrome/browser/actor/tools/execute_js_tool_request.h"
 #include "chrome/browser/actor/tools/file_upload_tool_request.h"
 #include "chrome/browser/actor/tools/gemini_panel_tool_request.h"
 #include "chrome/browser/actor/tools/history_tool_request.h"
@@ -120,6 +121,7 @@ using apc::CloseWindowAction;
 using apc::CreateTabAction;
 using apc::CreateWindowAction;
 using apc::DragAndReleaseAction;
+using apc::ExecuteJsAction;
 using apc::HistoryBackAction;
 using apc::HistoryForwardAction;
 using apc::LoadAndExtractContentAction;
@@ -839,6 +841,39 @@ std::unique_ptr<ToolRequest> CreateScriptToolRequest(
       action.input_arguments());
 }
 
+base::expected<std::unique_ptr<ToolRequest>, mojom::ActionResultCode>
+CreateExecuteJsRequest(const ExecuteJsAction& action) {
+  if (!base::FeatureList::IsEnabled(actor::kActorExecuteJsTool)) {
+    return base::unexpected(mojom::ActionResultCode::kToolUnknown);
+  }
+
+  const ActorSurfaceHandle actor_surface_handle = GetActorSurfaceHandle(action);
+  if (actor_surface_handle.is_null()) {
+    return base::unexpected(mojom::ActionResultCode::kTabWentAway);
+  }
+
+  if (action.script_code().empty()) {
+    return base::unexpected(mojom::ActionResultCode::kArgumentsInvalid);
+  }
+
+  std::optional<base::UnguessableToken> document_identifier =
+      base::UnguessableToken::DeserializeFromString(
+          action.document_identifier().serialized_token());
+  if (!document_identifier) {
+    return nullptr;
+  }
+
+  base::TimeDelta timeout = kExecuteJsDefaultTimeout;
+  if (action.timeout_ms() > 0) {
+    timeout =
+        std::min(base::Milliseconds(action.timeout_ms()), kExecuteJsMaxTimeout);
+  }
+
+  return std::make_unique<ExecuteJsToolRequest>(
+      actor_surface_handle, *document_identifier, action.script_code(),
+      base::checked_cast<uint32_t>(timeout.InMilliseconds()));
+}
+
 std::unique_ptr<ToolRequest> CreateMediaControlRequest(
     const MediaControlAction& action) {
   const ActorSurfaceHandle actor_surface_handle = GetActorSurfaceHandle(action);
@@ -1002,6 +1037,10 @@ CreateToolRequest(const optimization_guide::proto::Action& action) {
       const ScriptToolAction& script_tool_action = action.script_tool();
       return CreateScriptToolRequest(script_tool_action);
     }
+    case optimization_guide::proto::Action::kExecuteJs: {
+      const ExecuteJsAction& execute_js_action = action.execute_js();
+      return CreateExecuteJsRequest(execute_js_action);
+    }
     case optimization_guide::proto::Action::kScrollTo: {
       const ScrollToAction& scroll_to_action = action.scroll_to();
       return CreateScrollToRequest(scroll_to_action);
@@ -1088,6 +1127,8 @@ constexpr absl::Overload kGetCapabilityFn{
                  apc::RuleMetadata::CAPABILITY_CREATE_TAB>,
     ToCapability<DragAndReleaseToolRequest,
                  apc::RuleMetadata::CAPABILITY_DRAG_AND_RELEASE>,
+    ToCapability<ExecuteJsToolRequest,
+                 apc::RuleMetadata::CAPABILITY_EXECUTE_JS>,
     ToCapability<FileUploadToolRequest,
                  apc::RuleMetadata::CAPABILITY_CLICK_TO_UPLOAD>,
     ToCapability<HistoryBackToolRequest, apc::RuleMetadata::CAPABILITY_BACK>,
@@ -1756,6 +1797,7 @@ void BuildActionsResultWithObservations(
     response->set_index_of_failed_action(*index_of_failed_action);
   }
   CopyScriptToolResults(*response, action_results);
+  CopyExecuteJsResults(*response, action_results);
 
   for (const auto& action_result : action_results) {
     if (IsOk(*action_result.result)) {

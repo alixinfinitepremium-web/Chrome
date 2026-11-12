@@ -18,22 +18,6 @@ clean up these resources while ensuring no test regressions occur.
 **Goal:** Remove expired Chromium histograms (dead metrics) from XML files and
 all code recording sites.
 
-## Relevant Resources & Style Guides
-
-- [Chromium Metrics - Histograms Guide](https://chromium.googlesource.com/chromium/src/+/main/tools/metrics/histograms/README.md)
-- **Allowed Metadata Files (Allowlist):**
-  [safe_dirs.md](references/safe_dirs.md) — the ONLY `histograms.xml` files this
-  skill may scan, analyze, or edit.
-- **Implementation Patterns:** [patterns.md](references/patterns.md) (C++, Java,
-  XML examples)
-- **Analysis Guidelines:**
-  [analysis_guidelines.md](references/analysis_guidelines.md) (Safety checks and
-  effort estimation)
-- **Discovery Script:** [find_candidates.py](scripts/find_candidates.py)
-  (Identify expired histograms in the allowlisted files only)
-- **Automated Review Protocol:**
-  [automated_review.md](references/automated_review.md)
-
 ## Scope & Proactivity
 
 - **Allowlist (Hard Constraint):** Only histograms defined in one of the
@@ -69,15 +53,22 @@ all code recording sites.
 
 ## Workflow
 
-> [!IMPORTANT] **Execution Protocol:** Execute all steps sequentially one by
-> one. Do not skip any step. Do not use `edit-code` or `grep`. Use `rg`
-> (ripgrep) for searches.
+> [!IMPORTANT] **Execution Protocol:** Execute Steps 1–7 continuously in one
+> autonomous run, without skipping steps or pausing between files or steps. Stop
+> only at explicit `ask_question` gates (confidence `1–8` or missing `out` dir)
+> or documented interactive stops. Use `rg` (ripgrep) for searches.
 
 ### Step 1: Workspace Preparation
 
-Follow the workspace preparation steps in
-[workspace_preparation.md](../hub/references/workspace_preparation.md) to ensure
-a clean and updated environment.
+Run the workspace preparation script:
+
+```bash
+python3 agents/projects/code-health/hub/scripts/prepare_workspace.py --stash
+```
+
+- If the script outputs `(stashed local changes)`, inform the user.
+- If the script exits non-zero, stop and report the error instead of continuing
+  on a dirty or diverged tree.
 
 ### Step 2: Discovery & Batch Selection
 
@@ -110,7 +101,7 @@ non-allowlisted files with exit code 2).
      this message, then proceed directly to the **Refactoring & Implementation**
      phase. Do NOT ask for permission.
    - **If Confidence is between 1 and 8:** Present the findings and prompt the
-     user using `ask_user` (`type='choice'`):
+     user using `ask_question` (single choice):
      - `header`: "Confidence Check"
      - `question`: "This histogram is safe to remove from [Files] and [Tests].
        My confidence for this cleanup is [X]/10 because [Justification]. Shall I
@@ -129,11 +120,20 @@ non-allowlisted files with exit code 2).
      identify a different candidate. Ensure the same histogram is not selected
      again in this session.
 
+3. **Record XML Owners:** Before editing in Step 4 deletes the histogram from
+   XML, inspect its entry in `histograms.xml` and note its XML `<owner>` entries
+   **in the exact order listed** (emails and any `OWNERS` file references) so
+   they are available for Step 7.
+
 ### Step 4: Refactoring & Implementation
 
 Process the changes **file by file**, and apply modifications inside each file
 **one recording call at a time** (rather than refactoring all files or recording
 calls at once). This ensures stability and allows for precise verification.
+Process all files and recording calls sequentially within the same run, without
+pausing for user confirmation between edits, then proceed directly to Step 5.
+Refer to [patterns.md](references/patterns.md) for C++, Java, and XML removal
+patterns.
 
 1. **Apply Changes:** Make the changes directly. Apply the code modifications
    for the candidate histogram. Only edit `histograms.xml` files listed in
@@ -146,18 +146,15 @@ calls at once). This ensures stability and allows for precise verification.
    the codebase. Each individual change must have a corresponding 'What & Why'
    explanation provided to the user.
 
-### Step 5: Validation
+### Step 5: Formatting & Automated Review
 
-1. **Linting & Formatting:**
-   - **XML Linting:** Execute
-     `python3 tools/metrics/histograms/validate_format.py` to validate all
-     metadata changes. Address any errors that are reported.
-   - **Code Formatting:** Execute `git cl format` to format the modified source
-     code. Address any errors that are reported.
-2. **Mandatory Final Review:** Follow the
-   [Automated Review Protocol](references/automated_review.md) to delegate a
-   final review of the patch to the `generalist` sub-agent. Proceed to the
-   Verification phase only after the review returns `PASS`.
+1. **Format & Lint:** Run
+   `python3 agents/projects/code-health/hub/scripts/format_and_lint.py` (must
+   exit 0).
+2. **Automated Review:** Follow
+   [Automated Review](../hub/references/automated_review.md), passing
+   [review_rules.md](references/review_rules.md) as
+   `<SKILL_SPECIFIC_CLEANUP_RULES>`.
 
 ### Step 6: Verification
 
@@ -228,10 +225,28 @@ validation exits 0.
 
 #### 4. Submission Pipeline
 
-Follow [submission.md](../hub/references/submission.md), passing:
+Run the reviewer picker first, then follow the shared pipeline.
 
-- **Branch Name:** `cleanup-<HistogramName>` (without `{...}` token braces for
-  patterned names)
-- **Commit File:** `../commit`
+1. Run the reviewer picker before submission (pass the XML `<owner>` entries
+   recorded in Step 3 in listed order, space-separated; do not run
+   `find_owners.py` for this skill):
 
-Do NOT pass `--reviewers` or `--cc`.
+   ```bash
+   python3 agents/projects/code-health/histogram-cleanup/scripts/pick_histogram_reviewer.py \
+     --owners <ordered XML owners from Step 3>
+   ```
+
+2. Follow [submission.md](../hub/references/submission.md), passing:
+
+   - **Branch Name:** `cleanup-<HistogramName>` (without `{...}` token braces
+     for patterned names)
+   - **Commit File:** `../commit`
+   - **Reviewer Lookup:** `none` (the lookup already ran in the previous step)
+
+   Suggest only: do NOT pass `Upload Flags`, `--reviewers`, or `--cc`.
+
+3. In the final summary (even if the user skips uploading), report the suggested
+   reviewer from step 1, or state that no clear reviewer was found. Also include
+   any secondary note, warning, or skipped-owner reasons (e.g., left Google,
+   team alias, or OOO for more than a week) so the user can add a reviewer
+   manually on Gerrit if desired.

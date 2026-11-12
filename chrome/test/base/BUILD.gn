@@ -602,7 +602,7 @@ source_set("chrome_unit_test_suite") {
     deps += [
       "//chrome/browser/apps/app_service",
       "//chrome/browser/apps/app_service/publishers",
-      "//chrome/browser/web_applications",
+      "//chrome/browser/web_applications/isolated_web_apps",
     ]
   }
   if (enable_extensions) {
@@ -1358,9 +1358,9 @@ if (is_mac) {
     sources = [ "in_process_browser_test_mac_interactive_uitest.mm" ]
     deps = [
       ":in_process_browser_test",
+      ":interactive_test_utils",
       "//base/test:test_support",
       "//chrome/browser/ui/browser_window",
-      "//chrome/test:test_support_ui",
       "//content/test:test_support",
       "//ui/base",
     ]

@@ -22,11 +22,6 @@ tast.arc.WindowState.clamshell
 # b/241122961
 tast.policy.BlockThirdPartyCookies
 
-# b/287525851
-tast.arc.AudioValidity.playback
-tast.arc.AudioValidity.record
-tast.arc.BuildProperties
-
 # https://crbug.com/1455848
 tast.arc.CheckAndroidVersion
 tast.arc.Downloads
@@ -59,9 +54,6 @@ tast.apps.SystemWebAppsInstallGuest
 # b/422132031
 tast.inputs.VirtualKeyboardHandwriting.docked
 tast.inputs.VirtualKeyboardHandwriting.floating
-
-# b/424789710
-tast.apps.LaunchGalleryFromNotifications.stable
 
 # https://crbug.com/437961311
 tast.bruschetta.Basic.with_fieldtrial_config@betty
