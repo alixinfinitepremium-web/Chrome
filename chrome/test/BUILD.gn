@@ -97,9 +97,11 @@ if (is_android) {
   android_library("test_support_java") {
     testonly = true
     deps = [
+      ":drag_and_drop_test_support_jni_headers_java",
       ":payment_test_support_jni_headers_java",
       ":test_support_jni_headers_java",
       "//base:base_java",
+      "//build/android:build_java",
       "//chrome/android:chrome_all_java",
       "//chrome/browser/autofill/android:test_support_java",
       "//chrome/browser/commerce/price_tracking/android:java",
@@ -121,10 +123,12 @@ if (is_android) {
       "//third_party/blink/public/common:common_java",
       "//third_party/blink/public/mojom:android_mojo_bindings_java",
       "//third_party/jni_zero:jni_zero_java",
+      "//ui/android:ui_no_recycler_view_java",
     ]
     sources = [
       "../android/java/src/org/chromium/chrome/browser/tab/TabAndroidTestHelper.java",
       "//chrome/android/java/src/org/chromium/chrome/browser/app/tabwindow/TabWindowManagerNativeTestSupport.java",
+      "android/test_support/src/org/chromium/chrome/test_support/DragStartWaiterBridge.java",
       "android/test_support/src/org/chromium/chrome/test_support/FamilyInfoFeedbackSourceTestBridge.java",
       "android/test_support/src/org/chromium/chrome/test_support/PaymentRequestTestBridge.java",
     ]
@@ -138,6 +142,11 @@ if (is_android) {
       "android/javatests/src/org/chromium/chrome/test/util/OmniboxTestUtils.java",
       "android/test_support/src/org/chromium/chrome/test_support/FamilyInfoFeedbackSourceTestBridge.java",
     ]
+  }
+
+  generate_jni("drag_and_drop_test_support_jni_headers") {
+    testonly = true
+    sources = [ "android/test_support/src/org/chromium/chrome/test_support/DragStartWaiterBridge.java" ]
   }
 
   generate_jni("payment_test_support_jni_headers") {
@@ -824,10 +833,6 @@ if (is_android) {
       "//components/policy/test_support",
       "//components/privacy_sandbox",
       "//components/privacy_sandbox:privacy_sandbox_prefs",
-      "//components/privacy_sandbox/privacy_sandbox_attestations",
-      "//components/privacy_sandbox/privacy_sandbox_attestations:metrics",
-      "//components/privacy_sandbox/privacy_sandbox_attestations:test_support",
-      "//components/privacy_sandbox/privacy_sandbox_attestations/proto",
       "//components/qr_code_generator:bitmap_generator",
       "//components/safe_browsing/content/common:interfaces",
       "//components/safe_browsing/core/browser/db:sb_database",
@@ -3612,7 +3617,6 @@ if (!is_android) {
     public_deps = [
       "//chrome/browser:test_support_ui",
       "//chrome/browser/notifications:test_support",
-      "//chrome/browser/privacy_sandbox:attestations_mixin",
       "//chrome/browser/profiles:profile_test_util",
       "//chrome/browser/renderer_context_menu:test_support",
       "//chrome/browser/ui/autofill/payments:test_support_ui",

@@ -488,6 +488,7 @@ source_set("impl") {
       "//chrome/browser/ui/views/frame:glass_frame_service",
       "//chrome/browser/ui/webui/history",
       "//chrome/browser/ui/webui/tab_search",
+      "//chrome/browser/web_applications/isolated_web_apps",
     ]
   }
 
@@ -661,6 +662,7 @@ if (!is_android) {
       "//chrome/common:constants",
       "//chrome/common:non_code_constants",
       "//chrome/test:test_support",
+      "//chrome/test/base:chrome_test_path_utils",
       "//chrome/test/base:testing_browser_process",
       "//components/bookmarks/common",
       "//components/content_settings/core/browser",

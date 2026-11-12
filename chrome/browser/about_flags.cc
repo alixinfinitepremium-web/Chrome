@@ -1003,6 +1003,8 @@ const FeatureEntry::Choice kOmniboxLoomChoices[] = {
      switches::kEnableFeatures,
      "OmniboxEverywhere:DynamicSizing/true/DynamicSizingWidth/600/"
      "SmallFont/true,IPH_OmniboxEverywhereLensPromo"},
+    {"Enabled without NTP Promo", switches::kEnableFeatures,
+     "OmniboxEverywhere:NtpPromo/false,IPH_OmniboxEverywhereLensPromo"},
     {flags_ui::kGenericExperimentChoiceDisabled, switches::kDisableFeatures,
      "OmniboxEverywhere,IPH_OmniboxEverywhereLensPromo"},
 };
@@ -6395,11 +6397,6 @@ const FeatureEntry kFeatureEntries[] = {
      FEATURE_WITH_PARAMS_VALUE_TYPE(chrome::android::kOmahaMinSdkVersionAndroid,
                                     kOmahaMinSdkVersionAndroidVariations,
                                     "OmahaMinSdkVersionAndroidStudy")},
-    {"on-demand-background-tab-context-capture",
-     flag_descriptions::kOnDemandBackgroundTabContextCaptureName,
-     flag_descriptions::kOnDemandBackgroundTabContextCaptureDescription,
-     kOsAndroid,
-     FEATURE_VALUE_TYPE(chrome::android::kOnDemandBackgroundTabContextCapture)},
 #endif  // BUILDFLAG(IS_ANDROID)
     {"enable-tls13-early-data", flag_descriptions::kEnableTLS13EarlyDataName,
      flag_descriptions::kEnableTLS13EarlyDataDescription, kOsAll,
@@ -8112,6 +8109,9 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kCCTAlwaysOpenInBrowserName,
      flag_descriptions::kCCTAlwaysOpenInBrowserDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(chrome::android::kCCTAlwaysOpenInBrowser)},
+    {"cct-close-logging", flag_descriptions::kCCTCloseLoggingName,
+     flag_descriptions::kCCTCloseLoggingDescription, kOsAndroid,
+     FEATURE_VALUE_TYPE(chrome::android::kCCTCloseLogging)},
     {"cct-resizable-for-third-parties",
      flag_descriptions::kCCTResizableForThirdPartiesName,
      flag_descriptions::kCCTResizableForThirdPartiesDescription, kOsAndroid,
@@ -8173,19 +8173,6 @@ const FeatureEntry kFeatureEntries[] = {
 #endif
 
 #if BUILDFLAG(IS_CHROMEOS)
-    {"enforce-system-aec", flag_descriptions::kCrOSEnforceSystemAecName,
-     flag_descriptions::kCrOSEnforceSystemAecDescription, kOsCrOS,
-     FEATURE_VALUE_TYPE(media::kCrOSEnforceSystemAec)},
-    {"enforce-system-aec-agc", flag_descriptions::kCrOSEnforceSystemAecAgcName,
-     flag_descriptions::kCrOSEnforceSystemAecAgcDescription, kOsCrOS,
-     FEATURE_VALUE_TYPE(media::kCrOSEnforceSystemAecAgc)},
-    {"enforce-system-aec-ns-agc",
-     flag_descriptions::kCrOSEnforceSystemAecNsAgcName,
-     flag_descriptions::kCrOSEnforceSystemAecNsAgcDescription, kOsCrOS,
-     FEATURE_VALUE_TYPE(media::kCrOSEnforceSystemAecNsAgc)},
-    {"enforce-system-aec-ns", flag_descriptions::kCrOSEnforceSystemAecNsName,
-     flag_descriptions::kCrOSEnforceSystemAecNsDescription, kOsCrOS,
-     FEATURE_VALUE_TYPE(media::kCrOSEnforceSystemAecNs)},
     {"system-voice-isolation-option",
      flag_descriptions::kCrOSSystemVoiceIsolationOptionName,
      flag_descriptions::kCrOSSystemVoiceIsolationOptionDescription, kOsCrOS,
@@ -9345,11 +9332,6 @@ const FeatureEntry kFeatureEntries[] = {
         // BUILDFLAG(IS_CHROMEOS)
 
 #if BUILDFLAG(IS_ANDROID)
-    {"allow-delayed-audio-focus-gain-android",
-     flag_descriptions::kAllowDelayedAudioFocusGainAndroidName,
-     flag_descriptions::kAllowDelayedAudioFocusGainAndroidDescription,
-     kOsAndroid, FEATURE_VALUE_TYPE(media::kAllowDelayedAudioFocusGainAndroid)},
-
     {"auto-picture-in-picture-android",
      flag_descriptions::kAutoPictureInPictureAndroidName,
      flag_descriptions::kAutoPictureInPictureAndroidDescription, kOsAndroid,
@@ -10280,10 +10262,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kTabStripLinkDragDropDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(chrome::android::kTabStripLinkDragDrop)},
 
-    {"tab-opener-tracking", flag_descriptions::kTabOpenerTrackingName,
-     flag_descriptions::kTabOpenerTrackingDescription, kOsAndroid,
-     FEATURE_VALUE_TYPE(chrome::android::kTabOpenerTracking)},
-
 #endif  // BUILDFLAG(IS_ANDROID)
 
     {"data-sharing-debug-logs", flag_descriptions::kDataSharingDebugLogsName,
@@ -10929,6 +10907,9 @@ const FeatureEntry kFeatureEntries[] = {
      FEATURE_WITH_PARAMS_VALUE_TYPE(features::kGlicActorUiMagicCursor,
                                     kGlicActorUiMagicCursorVariations,
                                     "GlicActorUiMagicCursor")},
+    {"glic-actor-cursor-chip", flag_descriptions::kGlicActorCursorChipName,
+     flag_descriptions::kGlicActorCursorChipDescription, kOsDesktop,
+     FEATURE_VALUE_TYPE(features::kGlicActorUiMagicCursorChip)},
     {"glic-actor-localhost-is-sensitive",
      flag_descriptions::kGlicActorLocalhostIsSensitiveName,
      flag_descriptions::kGlicActorLocalhostIsSensitiveDescription,
@@ -11385,11 +11366,6 @@ const FeatureEntry kFeatureEntries[] = {
 #endif  // BUILDFLAF(IS_ANDROID)
 
 #if !BUILDFLAG(IS_ANDROID) && !BUILDFLAG(IS_CHROMEOS)
-    {"default-browser-framework",
-     flag_descriptions::kDefaultBrowserFrameworkName,
-     flag_descriptions::kDefaultBrowserFrameworkDescription, kOsDesktop,
-     FEATURE_VALUE_TYPE(default_browser::kDefaultBrowserFramework)},
-
     {"default-browser-sticky-modal",
      flag_descriptions::kDefaultBrowserStickyModalName,
      flag_descriptions::kDefaultBrowserStickyModalDescription, kOsWin,
@@ -12875,6 +12851,13 @@ const FeatureEntry kFeatureEntries[] = {
 #endif
 
 #if BUILDFLAG(IS_ANDROID)
+    {"enable-android-split-view",
+     flag_descriptions::kEnableAndroidSplitViewName,
+     flag_descriptions::kEnableAndroidSplitViewDescription, kOsAndroid,
+     FEATURE_VALUE_TYPE(chrome::android::kEnableAndroidSplitView)},
+#endif  // BUILDFLAG(IS_ANDROID)
+
+#if BUILDFLAG(IS_ANDROID)
     {"signin-level-up-button", flag_descriptions::kSigninLevelUpButtonName,
      flag_descriptions::kSigninLevelUpButtonDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(switches::kSigninLevelUpButton)},
@@ -14284,6 +14267,13 @@ const FeatureEntry kFeatureEntries[] = {
     {"chro-menu-search-scoring", flag_descriptions::kChroMenuSearchScoringName,
      flag_descriptions::kChroMenuSearchScoringDescription, kOsDesktop,
      STRING_VALUE_TYPE(switches::kChroMenuSearchScoring, "")},
+
+    {"block-v8-optimizer-on-unfamiliar-sites",
+     flag_descriptions::kBlockV8OptimizerOnUnfamiliarSitesName,
+     flag_descriptions::kBlockV8OptimizerOnUnfamiliarSitesDescription,
+     kOsDesktop,
+     FEATURE_VALUE_TYPE(
+         content_settings::features::kBlockV8OptimizerOnUnfamiliarSites)},
 
     // Add new entries above this line.
     // NOTE: Adding a new flag requires adding a corresponding entry to enum

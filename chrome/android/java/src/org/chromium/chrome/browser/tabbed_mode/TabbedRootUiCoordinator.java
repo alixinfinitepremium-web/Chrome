@@ -1272,10 +1272,9 @@ public class TabbedRootUiCoordinator extends RootUiCoordinator {
         mNavigationSheet.setDelegate(
                 new TabbedSheetDelegate(
                         tab,
-                        aTab -> {
-                            HistoryManagerUtils.showHistoryManager(
-                                    mActivity, aTab, aTab.getProfile());
-                        },
+                        aTab ->
+                                HistoryManagerUtils.showHistoryManager(
+                                        mWindowAndroid, aTab, aTab.getProfile()),
                         mActivity.getResources().getString(R.string.show_full_history)));
         if (!mNavigationSheet.startAndExpand(/* forward= */ false, /* animate= */ true)) {
             mNavigationSheet = null;
@@ -3086,7 +3085,10 @@ public class TabbedRootUiCoordinator extends RootUiCoordinator {
         }
 
         if (ChoiceDialogCoordinator.maybeShow(
-                mActivity, mModalDialogManagerSupplier.get(), mActivityLifecycleDispatcher)) {
+                mActivity,
+                mModalDialogManagerSupplier.get(),
+                mActivityLifecycleDispatcher,
+                profile)) {
             return true;
         }
 
@@ -3365,6 +3367,12 @@ public class TabbedRootUiCoordinator extends RootUiCoordinator {
         } else if (id == R.id.open_tab_strip_context_menu) {
             return mVerticalTabsSideUiCoordinator != null
                     && mVerticalTabsSideUiCoordinator.openKeyboardFocusedContextMenu();
+        } else if (id == R.id.toggle_vertical_tabs_collapse) {
+            if (mVerticalTabsSideUiCoordinator == null || !mIsVerticalTabsActiveSupplier.get()) {
+                return false;
+            }
+            mVerticalTabsSideUiCoordinator.toggleCollapseState();
+            return true;
         } else if (id == R.id.focus_bookmarks) {
             if (mBookmarkBarCoordinator != null && mBookmarkBarCoordinator.isVisible()) {
                 mBookmarkBarCoordinator.requestFocus();

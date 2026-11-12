@@ -8,6 +8,7 @@
 import argparse
 import logging
 import os
+import platform
 import re
 import shutil
 import sys
@@ -20,6 +21,9 @@ from util import server_utils
 import action_helpers  # build_utils adds //build to sys.path.
 
 _LINT_MD_URL = 'https://chromium.googlesource.com/chromium/src/+/main/build/android/docs/lint.md'
+
+# lint-graalvm is built for linux-x64 only.
+_IS_LINUX_X64 = sys.platform == 'linux' and platform.machine() == 'x86_64'
 
 # These checks are not useful for chromium.
 _DISABLED_ALWAYS = [
@@ -79,6 +83,7 @@ def _GenerateProjectFile(
     aars=None,
     android_sdk_version=None,
     baseline_path=None,
+    aar_dirs=None,
 ):
     project = ElementTree.Element('project')
     root = ElementTree.SubElement(project, 'root')
@@ -134,10 +139,14 @@ def _GenerateProjectFile(
             resource = ElementTree.SubElement(main_module, 'resource')
             resource.set('file', resource_file)
     if aars:
+        aar_dirs = aar_dirs or {}
         aars = sorted(set(aars))  # Ensure these are unique.
         for aar in aars:
             lint = ElementTree.SubElement(main_module, 'aar')
             lint.set('file', aar)
+            if aar_dir := aar_dirs.get(aar):
+                # Already unpacked by the build, so lint need not unzip it.
+                lint.set('extracted', os.path.abspath(aar_dir))
     return project
 
 
@@ -214,6 +223,8 @@ def _RunLint(
     baseline,
     manifest_path,
     warnings_as_errors=False,
+    native_lint_path=None,
+    aar_dirs=None,
 ):
     logging.info('Lint starting')
     if not cache_dir:
@@ -245,10 +256,18 @@ def _RunLint(
         root_path, os.path.relpath(build_utils.DIR_SOURCE_ROOT, start=root_path)
     )
 
-    cmd = build_utils.JavaCmd(xmx=lint_xmx) + [
-        '-cp',
-        lint_jar_path,
-        'com.android.tools.lint.Main',
+    if native_lint_path and _IS_LINUX_X64:
+        # A native image takes -Xmx but rejects most JVM flags. Size G1's
+        # threads for 2 CPUs, since many lint processes run in parallel.
+        cmd = [
+            native_lint_path,
+            '-Xmx' + lint_xmx,
+            '-XX:ActiveProcessorCount=2',
+        ]
+    else:
+        cmd = build_utils.JavaCmd(xmx=lint_xmx)
+        cmd += ['-cp', lint_jar_path, 'com.android.tools.lint.Main']
+    cmd += [
         '--sdk-home',
         android_sdk_root,
         '--jdk-home',
@@ -321,6 +340,7 @@ def _RunLint(
         aars,
         android_sdk_version,
         baseline,
+        aar_dirs=aar_dirs,
     )
 
     project_xml_path = os.path.join(lint_gen_dir, 'project.xml')
@@ -412,6 +432,11 @@ def _ParseArgs(argv):
         '--lint-jar-path', required=True, help='Path to the lint jar.'
     )
     parser.add_argument(
+        '--native-lint-path',
+        help='Native image of the lint jar (lint-graalvm) to run instead of '
+        'the JVM on linux-x64.',
+    )
+    parser.add_argument(
         '--backported-methods',
         help='Path to backported methods file created by R8.',
     )
@@ -446,6 +471,11 @@ def _ParseArgs(argv):
         help='A list of files containing java and kotlin source files.',
     )
     parser.add_argument('--aars', help='GN list of included aars.')
+    parser.add_argument(
+        '--aar-dirs',
+        help='GN list of directories that the --aars are unpacked into, in '
+        'the same order as --aars.',
+    )
     parser.add_argument('--srcjars', help='GN list of included srcjars.')
     parser.add_argument(
         '--manifest', help='Path to the merged AndroidManifest.xml.'
@@ -475,6 +505,9 @@ def _ParseArgs(argv):
     args = parser.parse_args(build_utils.ExpandFileArgs(argv))
     args.sources = action_helpers.parse_gn_list(args.sources)
     args.aars = action_helpers.parse_gn_list(args.aars)
+    args.aar_dirs = action_helpers.parse_gn_list(args.aar_dirs)
+    if args.aar_dirs:
+        assert len(args.aar_dirs) == len(args.aars), 'Need one dir per aar.'
     args.srcjars = action_helpers.parse_gn_list(args.srcjars)
     args.resource_sources = action_helpers.parse_gn_list(args.resource_sources)
     args.resource_zips = action_helpers.parse_gn_list(args.resource_zips)
@@ -543,6 +576,8 @@ def main():
         args.baseline,
         args.manifest,
         warnings_as_errors=args.warnings_as_errors,
+        native_lint_path=args.native_lint_path,
+        aar_dirs=dict(zip(args.aars, args.aar_dirs)),
     )
     logging.info('Creating stamp file')
     server_utils.MaybeTouch(args.stamp)

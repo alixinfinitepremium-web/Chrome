@@ -185,12 +185,6 @@ inline constexpr char kAllowInsecureLocalhostDescription[] =
     "Allows requests to localhost over HTTPS even when an invalid certificate "
     "is presented.";
 
-inline constexpr char kAllowDelayedAudioFocusGainAndroidName[] =
-    "Delayed audio focus gain on Android";
-inline constexpr char kAllowDelayedAudioFocusGainAndroidDescription[] =
-    "Allows media playback to start even if the system delays granting audio "
-    "focus, such as during a phone call.";
-
 inline constexpr char kAndroidAppIntegrationModuleName[] =
     "Integrate with Android App Search and shows a notice card";
 inline constexpr char kAndroidAppIntegrationModuleDescription[] =
@@ -575,11 +569,6 @@ inline constexpr char kDbdPasswordRemovalOnAndroidDescription[] =
     "Removes bulk password deletion from Delete Browsing Data "
     "on Android, instead directing users to manage passwords and other Google "
     "data via link-outs to relevant Google services.";
-
-inline constexpr char kDefaultBrowserFrameworkDescription[] =
-    "Enables the default browser framework.";
-inline constexpr char kDefaultBrowserFrameworkName[] =
-    "Default Browser Framework";
 
 inline constexpr char kDefaultBrowserSetterSelectionDescription[] =
     "Enables selecting a default browser setter: shell integration, or on "
@@ -1362,6 +1351,13 @@ inline constexpr char kBlockCrossPartitionBlobUrlFetchingName[] =
 inline constexpr char kBlockCrossPartitionBlobUrlFetchingDescription[] =
     "Blocks fetching of cross-partitioned Blob URL.";
 
+inline constexpr char kBlockV8OptimizerOnUnfamiliarSitesName[] =
+    "Automatic JS Optimizer Control";
+inline constexpr char kBlockV8OptimizerOnUnfamiliarSitesDescription[] =
+    "Enables the V8 optimizer content setting option to block JavaScript "
+    "optimization on unfamiliar sites, and shows the JavaScript optimizations "
+    "omnibox icon.";
+
 inline constexpr char kBookmarksEncryptionName[] = "Bookmarks Encryption";
 inline constexpr char kBookmarksEncryptionDescription[] =
     "Enable encryption for bookmarks";
@@ -1871,6 +1867,10 @@ inline constexpr char kGlicActorAutofillSectionLabelDescription[] =
 inline constexpr char kGlicActorCursorName[] = "Glic actor cursor";
 inline constexpr char kGlicActorCursorDescription[] =
     "Enables the Glic actor cursor";
+inline constexpr char kGlicActorCursorChipName[] = "Glic actor cursor chip";
+inline constexpr char kGlicActorCursorChipDescription[] =
+    "Enables the task step progress text chip next to the Glic actor magic "
+    "cursor.";
 inline constexpr char kGlicActorEnableScriptToolsName[] =
     "Glic actor script tools";
 inline constexpr char kGlicActorEnableScriptToolsDescription[] =
@@ -2827,7 +2827,7 @@ inline constexpr char kFedCmIdpLinksDescription[] =
     "When FedCM asks for permission to share data with a site, shows links to "
     "the identity provider's account management page, privacy policy and "
     "terms of service, from the account_management_url, privacy_policy_url and "
-    "terms_of_service_url keys of its config file.";
+    "terms_of_service_url keys of its well-known file.";
 
 inline constexpr char kFedCmIdPRegistrationName[] =
     "FedCM with IdP Registration support";
@@ -6015,6 +6015,10 @@ inline constexpr char kCCTAlwaysOpenInBrowserName[] =
 inline constexpr char kCCTAlwaysOpenInBrowserDescription[] =
     "Enable setting to always open Custom Tabs in the Chrome browser.";
 
+inline constexpr char kCCTCloseLoggingName[] = "CCT Close Logging";
+inline constexpr char kCCTCloseLoggingDescription[] =
+    "Enables logging timestamps when a Custom Tab is closed.";
+
 inline constexpr char kCCTIncognitoAvailableToThirdPartyName[] =
     "Allow third party to open Custom Tabs Incognito mode";
 inline constexpr char kCCTIncognitoAvailableToThirdPartyDescription[] =
@@ -6261,6 +6265,11 @@ inline constexpr char kEnableAndroidSidePanelManualResizingDescription[] =
     "When enabled, the Android side panel can be resized by dragging its "
     "inner edge.";
 
+inline constexpr char kEnableAndroidSplitViewName[] =
+    "Enable Android Split View";
+inline constexpr char kEnableAndroidSplitViewDescription[] =
+    "Enable viewing two tabs side by side or top and bottom on Android.";
+
 inline constexpr char kEnableSetShapeName[] =
     "Enable ChromeOS Isolated Web App setShape API";
 inline constexpr char kEnableSetShapeDescription[] =
@@ -6458,11 +6467,6 @@ inline constexpr char kOmahaMinSdkVersionAndroidMinSdk1Description[] =
     "Minimum SDK = 1";
 inline constexpr char kOmahaMinSdkVersionAndroidMinSdk1000Description[] =
     "Minimum SDK = 1000";
-
-inline constexpr char kOnDemandBackgroundTabContextCaptureName[] =
-    "On demand background tab context capture";
-inline constexpr char kOnDemandBackgroundTabContextCaptureDescription[] =
-    "Enables on-demand background tab context capture.";
 
 inline constexpr char kPersistAcrossRebootsDebugLogsName[] =
     "persist-across-reboots-debug-logs";
@@ -6689,11 +6693,6 @@ inline constexpr char kTabGroupContextMenuLiveTitleUpdateName[] =
 inline constexpr char kTabGroupContextMenuLiveTitleUpdateDescription[] =
     "Enables live updating of the tab group title on the tab strip as the user "
     "types in the context menu title editor.";
-
-inline constexpr char kTabOpenerTrackingName[] = "Tab Opener Tracking";
-inline constexpr char kTabOpenerTrackingDescription[] =
-    "Enables tracking opener and sibling relationships between tabs to select "
-    "hierarchical next tabs when closing tabs.";
 
 inline constexpr char kTabSearchForDesktopName[] = "Tab Search for Desktop";
 inline constexpr char kTabSearchForDesktopDescription[] =
@@ -8214,26 +8213,6 @@ inline constexpr char kTetheringExperimentalFunctionalityDescription[] =
     "carriers, modem and modem FW.";
 
 // Prefer keeping this section sorted to adding new definitions down here.
-
-inline constexpr char kCrOSEnforceSystemAecName[] =
-    "Enforce using the system AEC in CrAS";
-inline constexpr char kCrOSEnforceSystemAecDescription[] =
-    "Enforces using the system variant in CrAS of the AEC";
-
-inline constexpr char kCrOSEnforceSystemAecAgcName[] =
-    "Enforce using the system AEC and AGC in CrAS";
-inline constexpr char kCrOSEnforceSystemAecAgcDescription[] =
-    "Enforces using the system variants in CrAS of the AEC and AGC.";
-
-inline constexpr char kCrOSEnforceSystemAecNsName[] =
-    "Enforce using the system AEC and NS in CrAS";
-inline constexpr char kCrOSEnforceSystemAecNsDescription[] =
-    "Enforces using the system variants in CrAS of the AEC and NS.";
-
-inline constexpr char kCrOSEnforceSystemAecNsAgcName[] =
-    "Enforce using the system AEC, NS and AGC in CrAS";
-inline constexpr char kCrOSEnforceSystemAecNsAgcDescription[] =
-    "Enforces using the system variants in CrAS of the AEC, NS and AGC.";
 
 inline constexpr char kIgnoreUiGainsName[] =
     "Ignore UI Gains in system mic gain setting";

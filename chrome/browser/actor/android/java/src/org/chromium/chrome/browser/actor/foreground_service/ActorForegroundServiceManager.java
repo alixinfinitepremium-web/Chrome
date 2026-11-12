@@ -356,9 +356,15 @@ public class ActorForegroundServiceManager implements ActorKeyedService.Observer
                 || (notificationId != ActorNotificationFactory.OPT_IN_NOTIFICATION_ID
                         && hasOptInNotification()
                         && hasActiveOrPendingTasks())) {
-            clearOptInState();
+            // TODO(crbug.com/583955325): Post the opt-in notification as a regular (unpinned)
+            // notification when an active or pending task already holds the foreground service
+            // instead of failing fast.
+            Runnable cancelCallback = clearOptInState();
             BaseNotificationManagerProxyFactory.create()
                     .cancel(ActorNotificationFactory.OPT_IN_NOTIFICATION_ID);
+            if (cancelCallback != null) {
+                cancelCallback.run();
+            }
         }
     }
 
@@ -429,6 +435,9 @@ public class ActorForegroundServiceManager implements ActorKeyedService.Observer
                                 .getNotification();
                 startOrUpdateForegroundService(
                         ActorNotificationFactory.TASK_STARTS_SOON_NOTIFICATION_ID, placeholder);
+            } else {
+                maybeClearPreemptedOptInNotification(
+                        mPinnedNotificationId, INVALID_NOTIFICATION_ID);
             }
         } else if (hasOptInNotification() && !mNotificationService.hasPendingDemotions()) {
             if (!mStartForegroundCalled && !canStartForeground()) {
@@ -510,19 +519,13 @@ public class ActorForegroundServiceManager implements ActorKeyedService.Observer
             return;
         }
 
-        boolean killOldNotification =
-                mPinnedNotificationId != INVALID_NOTIFICATION_ID
-                        && mPinnedNotificationId != notificationId;
         int unpinnedNotificationId =
-                killOldNotification ? mPinnedNotificationId : INVALID_NOTIFICATION_ID;
+                mPinnedNotificationId != notificationId
+                        ? mPinnedNotificationId
+                        : INVALID_NOTIFICATION_ID;
 
         try {
-            getServiceController()
-                    .startOrUpdateForegroundService(
-                            notificationId,
-                            notification,
-                            mPinnedNotificationId,
-                            killOldNotification);
+            getServiceController().startOrUpdateForegroundService(notificationId, notification);
         } catch (IllegalStateException e) {
             Log.e(TAG, "Failed to start or update foreground service.", e);
             cancelOptInNotification();

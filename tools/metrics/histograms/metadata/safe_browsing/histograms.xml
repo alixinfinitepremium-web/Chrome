@@ -2125,22 +2125,14 @@ useful for Chirp alerts (go/crca-alerts). -->
   </summary>
 </histogram>
 
-<histogram
-    name="SafeBrowsing.HPRT.OhttpKeyService.Network.Time{Version}{Suffix}"
+<histogram name="SafeBrowsing.HPRT.OhttpKeyService.Network.Time2{Suffix}"
     units="ms" expires_after="2027-04-11">
   <owner>xinghuilu@chromium.org</owner>
   <owner>chrome-counter-abuse-alerts@google.com</owner>
   <summary>
     Logs the roundtrip time it took to fetch a new OHTTP key. Logged on each key
-    fetch request that {Suffix}. {Version}
+    fetch request that {Suffix}.
   </summary>
-  <token key="Version">
-    <variant name="" summary=""/>
-    <variant name="2"
-        summary="This version of the histogram logs a larger set of buckets
-                 since the request timeout length is longer than the default
-                 max bucket of 10 seconds."/>
-  </token>
   <token key="Suffix">
     <variant name="" summary="is sent to the server"/>
     <variant name=".Empty" summary="is empty"/>
@@ -3168,7 +3160,7 @@ useful for Chirp alerts (go/crca-alerts). -->
 </histogram>
 
 <histogram name="SafeBrowsing.RT.Response.VerdictType.{UserPopulation}"
-    enum="SafeBrowsingRTLookupResponseVerdictType" expires_after="2026-11-29">
+    enum="SafeBrowsingRTLookupResponseVerdictType" expires_after="2027-05-11">
   <owner>zackhan@chromium.org</owner>
   <owner>chrome-counter-abuse-alerts@google.com</owner>
   <summary>
@@ -4716,6 +4708,25 @@ failing to fetch the updates which puts users' security at risk. -->
     lookup when the cache is searched.
   </summary>
   <token key="CacheType" variants="V5CacheType"/>
+</histogram>
+
+<histogram
+    name="SafeBrowsing.{CheckType}.HighConfidenceAllowlistMatchThreatType"
+    enum="SBThreatType" expires_after="2027-02-11">
+  <owner>thefrog@chromium.org</owner>
+  <owner>chrome-counter-abuse-alerts@google.com</owner>
+  <summary>
+    Logs the final threat type when a {CheckType} lookup matches an available
+    high-confidence allowlist and falls back to a local hash-prefix database
+    lookup. Only logged when the URL matched the high-confidence allowlist and
+    the allowlist was not unavailable due to store state (i.e. all stores were
+    available and the allowlist store was not too small). Not logged if the
+    check times out.
+  </summary>
+  <token key="CheckType">
+    <variant name="HPRT" summary="hash-prefix real-time"/>
+    <variant name="RT" summary="URL real-time"/>
+  </token>
 </histogram>
 
 <histogram

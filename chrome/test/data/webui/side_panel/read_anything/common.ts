@@ -4,7 +4,7 @@
 import type {CrActionMenuElement} from '//resources/cr_elements/cr_action_menu/cr_action_menu.js';
 import type {CrLazyRenderLitElement} from '//resources/cr_elements/cr_lazy_render/cr_lazy_render_lit.js';
 import type {AppElement} from 'chrome-untrusted://read-anything-side-panel.top-chrome/read_anything.js';
-import {AudioBrowserProxyImpl, BrowserProxy, ContentBrowserProxyImpl, ContentController, LineFocusController, MetricsBrowserProxyImpl, NodeStore, playFromSelectionTimeout, ReadAloudHighlighter, ReadAloudNode, ReadAloudNodeStore, ReadAnythingLogger, SelectionController, setInstance, SpeechBrowserProxyImpl, SpeechController, TextSegmenter, ToolbarEvent, VisualBrowserProxyImpl, VoiceLanguageController, VoiceNotificationManager, WordBoundaries} from 'chrome-untrusted://read-anything-side-panel.top-chrome/read_anything.js';
+import {AudioBrowserProxyImpl, BlockSelectionHighlighter, BrowserProxy, ContentBrowserProxyImpl, ContentController, LineFocusController, MetricsBrowserProxyImpl, NodeStore, playFromSelectionTimeout, ReadAloudHighlighter, ReadAloudNode, ReadAloudNodeStore, ReadAnythingLogger, SelectionController, setInstance, SpeechBrowserProxyImpl, SpeechController, TextSegmenter, ToolbarEvent, VisualBrowserProxyImpl, VoiceLanguageController, VoiceNotificationManager, WordBoundaries} from 'chrome-untrusted://read-anything-side-panel.top-chrome/read_anything.js';
 import type {Segment} from 'chrome-untrusted://read-anything-side-panel.top-chrome/read_anything.js';
 import {assertEquals, assertStringContains, assertStringExcludes, assertTrue} from 'chrome-untrusted://webui-test/chai_assert.js';
 import {MockTimer} from 'chrome-untrusted://webui-test/mock_timer.js';
@@ -20,6 +20,7 @@ import {TestVisualBrowserProxy} from './test_visual_browser_proxy.js';
 
 export interface TestSetupResult {
   audioBrowserProxy: TestAudioBrowserProxy;
+  blockSelectionHighlighter: BlockSelectionHighlighter;
   browserProxy: TestColorUpdaterBrowserProxy;
   contentBrowserProxy: TestContentBrowserProxy;
   contentController: ContentController;
@@ -54,10 +55,19 @@ export interface AppTestFlags {
 // Saved so stubAnimationFrame() doesn't leak into later tests.
 const originalRequestAnimationFrame = window.requestAnimationFrame;
 
+// Clearing the DOM doesn't remove listeners on document, so
+// setupTestEnvironment() aborts this to remove ones from earlier tests.
+let documentListenerController = new AbortController();
+
 // Initializes all singletons, mocks, and controllers in their strict
 // dependency order without creating an AppElement.
 export function setupTestEnvironment(flags?: AppTestFlags): TestSetupResult {
-  // Clearing the DOM must always be done first.
+  // Remove listeners from earlier tests first, so none of them can run while
+  // the DOM is cleared.
+  documentListenerController.abort();
+  documentListenerController = new AbortController();
+
+  // Clearing the DOM must be done before anything else is set up.
   document.body.innerHTML = window.trustedTypes!.emptyHTML;
   window.scrollTo(0, 0);
   window.requestAnimationFrame = originalRequestAnimationFrame;
@@ -86,6 +96,8 @@ export function setupTestEnvironment(flags?: AppTestFlags): TestSetupResult {
   setInstance(flags?.useRealReadAloudModel ? null : readAloudModel);
   const nodeStore = new NodeStore();
   NodeStore.setInstance(nodeStore);
+  const blockSelectionHighlighter = new BlockSelectionHighlighter();
+  BlockSelectionHighlighter.setInstance(blockSelectionHighlighter);
   const readAloudNodeStore = new ReadAloudNodeStore();
   ReadAloudNodeStore.setInstance(readAloudNodeStore);
   const notificationManager = new VoiceNotificationManager();
@@ -117,6 +129,7 @@ export function setupTestEnvironment(flags?: AppTestFlags): TestSetupResult {
 
   return {
     audioBrowserProxy,
+    blockSelectionHighlighter,
     browserProxy,
     contentBrowserProxy,
     contentController,
@@ -169,6 +182,12 @@ export function mockMetrics(): TestMetricsBrowserProxy {
 export function emitEvent(
     app: AppElement, name: string, options?: CustomEventInit): void {
   app.$.toolbar.dispatchEvent(new CustomEvent(name, options));
+}
+
+// Adds a document listener that the next setupTestEnvironment() call removes.
+export function addDocumentListener(type: string, listener: EventListener) {
+  document.addEventListener(
+      type, listener, {signal: documentListenerController.signal});
 }
 
 // Runs the requestAnimationFrame callback immediately

@@ -8163,6 +8163,7 @@ from previous Chrome versions.
   <int value="-2042278511" label="SmartSuggestionForLargeDownloads:disabled"/>
   <int value="-2042238762"
       label="CCTAuthTabDisableAllExternalIntents:disabled"/>
+  <int value="-2041871168" label="BlockV8OptimizerOnUnfamiliarSites:enabled"/>
   <int value="-2041281386" label="MultiPaste:disabled"/>
   <int value="-2041208747" label="StorageBuckets:enabled"/>
   <int value="-2041180857" label="DevToolsMobileSafeAreaEmulation:enabled"/>
@@ -9006,6 +9007,7 @@ from previous Chrome versions.
   <int value="-1806173068" label="UseSharedImagesForPepperVideo:enabled"/>
   <int value="-1804896568" label="AndroidGrammarCheck:disabled"/>
   <int value="-1804758261" label="force-drive-disclaimer-accepted:enabled"/>
+  <int value="-1804612012" label="CCTCloseLogging:disabled"/>
   <int value="-1804485171" label="disable-fullscreen-tab-detaching"/>
   <int value="-1804411756" label="ClipboardSuggestionContentHidden:enabled"/>
   <int value="-1804027916"
@@ -10654,6 +10656,7 @@ from previous Chrome versions.
   <int value="-1317768255" label="PermissionStorageAccessAPI:enabled"/>
   <int value="-1316769004" label="CrossOriginOpenerPolicyReporting:disabled"/>
   <int value="-1316242662" label="AimUrlInterceptPassthrough:disabled"/>
+  <int value="-1316120270" label="EnableAndroidSplitView:disabled"/>
   <int value="-1315953775" label="SmartCardContextRelease:disabled"/>
   <int value="-1315894943" label="HappyEyeballsV3:enabled"/>
   <int value="-1315862295" label="GlicMITabContextMenu:disabled"/>
@@ -13528,6 +13531,7 @@ from previous Chrome versions.
   <int value="-463764673" label="TextHighlightFullLink:disabled"/>
   <int value="-463661468" label="FullscreenAlwaysShowTrafficLights:disabled"/>
   <int value="-463161052" label="TearOffWebAppTabOpensWebAppWindow:enabled"/>
+  <int value="-462886253" label="GlicActorUiMagicCursorChip:enabled"/>
   <int value="-462877654" label="FilesMaterializedViews:enabled"/>
   <int value="-462554210"
       label="OminboxUIExperimentUseGenericSearchEngineIcon:enabled"/>
@@ -16119,6 +16123,7 @@ from previous Chrome versions.
   <int value="310992985" label="AdvancedPeripheralsSupport:enabled"/>
   <int value="311326992" label="Prerender2WarmUpCompositor:disabled"/>
   <int value="312112911" label="FilesWebDriveOffice:enabled"/>
+  <int value="312514290" label="EnableAndroidSplitView:enabled"/>
   <int value="313112736" label="HandwritingLegacyRecognitionAllLang:enabled"/>
   <int value="313253630" label="AutofillRefreshStyleAndroid:enabled"/>
   <int value="313303258" label="WebPaymentsModifiers:disabled"/>
@@ -16563,6 +16568,7 @@ from previous Chrome versions.
   <int value="438595159" label="TabSharingToolbarAndroid:enabled"/>
   <int value="439267320" label="ScreenTime:disabled"/>
   <int value="439442906" label="PrefetchActivationBeacon:disabled"/>
+  <int value="439453312" label="CCTCloseLogging:enabled"/>
   <int value="439533068" label="CCTToolbarRefactor:enabled"/>
   <int value="439544735" label="EnableProxyAuthenticationService:enabled"/>
   <int value="439858569" label="OmniboxForceAllowedToBeDefault:enabled"/>
@@ -19986,6 +19992,7 @@ from previous Chrome versions.
   <int value="1454375019" label="AutofillEnableGradientGoogleLogos:disabled"/>
   <int value="1454527518" label="ArcNativeBridgeExperiment:enabled"/>
   <int value="1454656852" label="ResponsiveToolbar:enabled"/>
+  <int value="1455200894" label="GlicActorUiMagicCursorChip:disabled"/>
   <int value="1455708250" label="AutofillEnableVerveCardSupport:disabled"/>
   <int value="1455753326" label="EnableNearbyBleV2GattServer:disabled"/>
   <int value="1455881930" label="V8VmFuture:enabled"/>
@@ -20296,6 +20303,7 @@ from previous Chrome versions.
   <int value="1550025902"
       label="ExtensionDisableUnsupportedDeveloper:disabled"/>
   <int value="1550193978" label="PulseaudioLoopbackForCast:enabled"/>
+  <int value="1550299017" label="BlockV8OptimizerOnUnfamiliarSites:disabled"/>
   <int value="1550865563" label="AnimatedImageDragShadow:enabled"/>
   <int value="1551743170"
       label="WebAuthenticationNewDiscoverableCredentialsUi:disabled"/>

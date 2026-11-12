@@ -31,6 +31,10 @@
 #include "chrome/browser/ui/ui_features.h"
 #include "chrome/browser/ui/views/bookmarks/bookmark_editor_view.h"
 #include "chrome/browser/ui/views/frame/browser_view.h"
+#include "chrome/browser/ui/views/frame/tab_strip_region_view.h"
+#include "chrome/browser/ui/views/tabs/common/tab_group_view.h"
+#include "chrome/browser/ui/views/tabs/common/tab_view.h"
+#include "chrome/browser/ui/views/tabs/shared/tab_strip_types.h"
 #include "chrome/browser/ui/views/tabs/tab_group_header.h"
 #include "chrome/browser/ui/views/tabs/tab_strip.h"
 #include "chrome/grit/generated_resources.h"
@@ -436,26 +440,37 @@ IN_PROC_BROWSER_TEST_F(TabGroupEditorBubbleViewDialogBrowserTest,
   ASSERT_EQ(3, tsm->count());
   std::optional<tab_groups::TabGroupId> group = tsm->AddToNewGroup({0, 1});
 
-  ASSERT_FALSE(browser_view->horizontal_tab_strip_for_testing()
-                   ->tab_at(0)
-                   ->HasFreezingVote(FreezingVoteReason::kCollapsedGroup));
-  ASSERT_FALSE(browser_view->horizontal_tab_strip_for_testing()
-                   ->tab_at(1)
-                   ->HasFreezingVote(FreezingVoteReason::kCollapsedGroup));
-  ASSERT_FALSE(browser_view->horizontal_tab_strip_for_testing()
-                   ->tab_at(2)
-                   ->HasFreezingVote(FreezingVoteReason::kCollapsedGroup));
-  browser_view->horizontal_tab_strip_for_testing()
-      ->ToggleTabGroupCollapsedState(group.value());
-  EXPECT_TRUE(browser_view->horizontal_tab_strip_for_testing()
-                  ->tab_at(0)
-                  ->HasFreezingVote(FreezingVoteReason::kCollapsedGroup));
-  EXPECT_TRUE(browser_view->horizontal_tab_strip_for_testing()
-                  ->tab_at(1)
-                  ->HasFreezingVote(FreezingVoteReason::kCollapsedGroup));
-  EXPECT_FALSE(browser_view->horizontal_tab_strip_for_testing()
-                   ->tab_at(2)
-                   ->HasFreezingVote(FreezingVoteReason::kCollapsedGroup));
+  auto tab_has_freezing_vote = [&](int tab_index, FreezingVoteReason reason) {
+    views::View* tab_anchor = browser_view->tab_strip_view()->GetTabAnchorView(
+        tsm->GetTabAtIndex(tab_index)->GetHandle());
+    if (auto* tab = views::AsViewClass<Tab>(tab_anchor)) {
+      return tab->HasFreezingVote(reason);
+    }
+    if (auto* tab_view = views::AsViewClass<TabView>(tab_anchor)) {
+      return tab_view->HasFreezingVote(reason);
+    }
+    return false;
+  };
+
+  ASSERT_FALSE(tab_has_freezing_vote(0, FreezingVoteReason::kCollapsedGroup));
+  ASSERT_FALSE(tab_has_freezing_vote(1, FreezingVoteReason::kCollapsedGroup));
+  ASSERT_FALSE(tab_has_freezing_vote(2, FreezingVoteReason::kCollapsedGroup));
+  if (auto* tab_strip = browser_view->horizontal_tab_strip_for_testing()) {
+    tab_strip->ToggleTabGroupCollapsedState(group.value());
+  } else {
+    views::View* anchor =
+        browser_view->tab_strip_view()->GetTabGroupAnchorView(group.value());
+    auto* tab_group_view = views::AsViewClass<TabGroupView>(anchor);
+    if (!tab_group_view && anchor && anchor->parent()) {
+      tab_group_view = views::AsViewClass<TabGroupView>(anchor->parent());
+    }
+    ASSERT_TRUE(tab_group_view);
+    tab_group_view->ToggleCollapsedState(
+        ToggleTabGroupCollapsedStateOrigin::kMenuAction);
+  }
+  EXPECT_TRUE(tab_has_freezing_vote(0, FreezingVoteReason::kCollapsedGroup));
+  EXPECT_TRUE(tab_has_freezing_vote(1, FreezingVoteReason::kCollapsedGroup));
+  EXPECT_FALSE(tab_has_freezing_vote(2, FreezingVoteReason::kCollapsedGroup));
 }
 
 class TabGroupEditorBubbleViewDialogBrowserTestWithSavedGroup
@@ -935,6 +950,55 @@ IN_PROC_BROWSER_TEST_F(TabGroupEditorBubbleViewDialogBrowserTest,
   EXPECT_EQ(observer.title_at_promotion, u"Promoted Title");
   EXPECT_EQ(group_model()->GetTabGroup(ephemeral_group)->visual_data()->title(),
             u"Promoted Title");
+}
+
+// The editor bubble metrics must be recorded exactly once when an ephemeral
+// group is promoted.
+IN_PROC_BROWSER_TEST_F(TabGroupEditorBubbleViewDialogBrowserTest,
+                       EphemeralGroup_CreateRecordsBubbleMetricsOnce) {
+  base::HistogramTester histogram_tester;
+  base::UserActionTester user_action_tester;
+
+  tab_groups::TabGroupId ephemeral_group =
+      browser()->GetTabStripModel()->EnterFocusMode({0});
+  browser()->GetTabStripModel()->OpenTabGroupEditor(ephemeral_group);
+
+  views::Widget* editor_bubble = WaitForAndGetEditorBubbleWidget();
+  ASSERT_NE(nullptr, editor_bubble);
+
+  auto* title_field = views::AsViewClass<views::Textfield>(
+      views::ElementTrackerViews::GetInstance()->GetFirstMatchingView(
+          kTabGroupEditorBubbleId,
+          views::ElementTrackerViews::GetContextForWidget(editor_bubble)));
+  ASSERT_NE(nullptr, title_field);
+  title_field->InsertOrReplaceText(u"Promoted Title");
+
+  views::View* contents_view = editor_bubble->widget_delegate()
+                                   ->AsBubbleDialogDelegate()
+                                   ->GetContentsView();
+  ASSERT_EQ(contents_view->children().size(), 4u);
+  views::View* button_row = contents_view->children()[3];
+  ASSERT_EQ(button_row->children().size(), 2u);
+  views::Button* create_button =
+      views::Button::AsButton(button_row->children()[1]);
+  ASSERT_NE(nullptr, create_button);
+
+  base::WeakPtr<views::Widget> weak_widget = editor_bubble->GetWeakPtr();
+  ui::MouseEvent released_event(ui::EventType::kMouseReleased, gfx::PointF(),
+                                gfx::PointF(), base::TimeTicks(), 0, 0);
+  views::test::ButtonTestApi(create_button).NotifyClick(released_event);
+  EXPECT_TRUE(base::test::RunUntil([&]() { return !weak_widget; }));
+
+  EXPECT_FALSE(
+      browser()->GetTabStripModel()->IsEphemeralTabGroup(ephemeral_group));
+  EXPECT_EQ(1, user_action_tester.GetActionCount(
+                   "TabGroups_TabGroupBubble_NameChanged"));
+  histogram_tester.ExpectBucketCount(
+      "TabGroups.ContextMenu.EditorBubble.Action",
+      tab_groups::saved_tab_groups::metrics::TabGroupEditorBubbleAction::
+          kNameChanged,
+      1);
+  histogram_tester.ExpectTotalCount("TabGroups.TabGroupBubble.TabCount", 1);
 }
 
 IN_PROC_BROWSER_TEST_F(TabGroupEditorBubbleViewDialogBrowserTest,

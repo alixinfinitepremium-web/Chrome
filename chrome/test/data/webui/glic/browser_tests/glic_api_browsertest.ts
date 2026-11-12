@@ -8,6 +8,8 @@ import {                             //
   ActuationTarget,                   //
   CancelActionsResult,               //
   ClientCapabilities,                //
+  DataTransferAction,                //
+  DataTransferActionsBlockedReason,  //
   ExperimentalTriggeringUpdateType,  //
   FileUploadPolicyState,             //
   FormFactor,                        //
@@ -25,26 +27,27 @@ import {                             //
   WebClientMode,                     //
   WebUseCounter,                     //
 } from '/glic/glic_api/glic_api.js';
-import type {                               //
-             AdditionalContext,             //
-             CounterAbuseVerdict,           //
-             ExperimentalTriggeringUpdate,  //
-             FocusedTabData,                //
-             GetPinCandidatesOptions,       //
-             GlicBrowserHost,               //
-             GlicWebClient,                 //
-             InvokeOptions,                 //
-             Observable,                    //
-             Observable2,                   //
-             OpenPanelInfo,                 //
-             PageMetadata,                  //
-             PanelOpeningData,              //
-             PanelState,                    //
-             ScrollToError,                 //
-             TabContextResult,              //
-             TabData,                       //
-             UserConfirmationDialogRequest, //
-             UserProfileInfo,               //
+import type {                                  //
+             AdditionalContext,                //
+             CounterAbuseVerdict,              //
+             DataTransferActionsBlockedNotice, //
+             ExperimentalTriggeringUpdate,     //
+             FocusedTabData,                   //
+             GetPinCandidatesOptions,          //
+             GlicBrowserHost,                  //
+             GlicWebClient,                    //
+             InvokeOptions,                    //
+             Observable,                       //
+             Observable2,                      //
+             OpenPanelInfo,                    //
+             PageMetadata,                     //
+             PanelOpeningData,                 //
+             PanelState,                       //
+             ScrollToError,                    //
+             TabContextResult,                 //
+             TabData,                          //
+             UserConfirmationDialogRequest,    //
+             UserProfileInfo,                  //
 } from '/glic/glic_api/glic_api.js';
 import type {GlicBrowserHostImpl} from '/glic/glic_api_impl/glic_api_client.js';
 import {Subject} from '/glic/observable.js';
@@ -2012,6 +2015,43 @@ class ApiTests extends ApiTestFixtureBase {
     await additionalContextPromise;
   }
 
+  async testDataTransferActionsBlockedNotices() {
+    assertDefined(this.host.getDataTransferActionsBlockedNotices);
+    const notices: DataTransferActionsBlockedNotice[] = [];
+    this.host.getDataTransferActionsBlockedNotices().subscribe(notice => {
+      notices.push(notice);
+    });
+    await this.advanceToNextStep();
+    await runUntil(() => notices.length === 3);
+    assertEquals(notices[0]!.action, DataTransferAction.PASTE);
+    assertEquals(
+        notices[0]!.reason,
+        DataTransferActionsBlockedReason.INELIGIBLE_PAGE_CONTEXT);
+    assertEquals(notices[1]!.action, DataTransferAction.PASTE);
+    assertEquals(
+        notices[1]!.reason, DataTransferActionsBlockedReason.CROSS_PROFILE);
+    assertEquals(notices[2]!.action, DataTransferAction.DROP);
+    assertEquals(
+        notices[2]!.reason,
+        DataTransferActionsBlockedReason.UNSUPPORTED_OR_EXPIRED_SOURCE);
+
+    // Late subscribers must not replay already-emitted notices, and only
+    // receive subsequent live emissions.
+    const lateNotices: DataTransferActionsBlockedNotice[] = [];
+    this.host.getDataTransferActionsBlockedNotices().subscribe(notice => {
+      lateNotices.push(notice);
+    });
+    assertEquals(lateNotices.length, 0);
+
+    await this.advanceToNextStep();
+    await runUntil(() => lateNotices.length === 1);
+    assertEquals(notices.length, 4);
+    assertEquals(lateNotices[0]!.action, DataTransferAction.DROP);
+    assertEquals(
+        lateNotices[0]!.reason,
+        DataTransferActionsBlockedReason.INELIGIBLE_PAGE_CONTEXT);
+  }
+
   async testCancelActions() {
     assertDefined(this.host.cancelActions);
     // Task with id 12345 does not exist.
@@ -2904,6 +2944,7 @@ class ApiTests extends ApiTestFixtureBase {
     assertDefined(metrics.onSessionTerminated);
     assertDefined(metrics.onClosedCaptionsShown);
     assertDefined(metrics.onTooltipImpression);
+    assertDefined(metrics.onTooltipHidden);
     metrics.onResponseRated(true);
     metrics.onUserInputSubmitted(WebClientMode.TEXT);
     metrics.onContextUploadStarted();
@@ -2914,6 +2955,7 @@ class ApiTests extends ApiTestFixtureBase {
     metrics.onSessionTerminated();
     metrics.onClosedCaptionsShown();
     metrics.onTooltipImpression(TooltipImpressionType.TOOLTIP1);
+    metrics.onTooltipHidden();
   }
 
   async testUserInputSubmittedPromptType() {

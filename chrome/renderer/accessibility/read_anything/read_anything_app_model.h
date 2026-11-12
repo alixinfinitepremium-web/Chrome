@@ -527,10 +527,9 @@ class ReadAnythingAppModel {
     return text_to_ax_map_;
   }
 
-  // Maps the distilled rendered text from the WebUI with the AXtree.
-  // Returns true if the AXtree was successfully processed and we can
-  // notify the frontend that the mapping is ready.
-  bool MapRenderedTextToTree(const std::vector<std::u16string>& blocks);
+  // Stores the result of mapping the rendered Readability text to the AXTree,
+  // and updates `readability_display_node_ids_` to match.
+  void SetTextToAXMap(ReadAnythingTextAligner::TextToAXMap map);
 
   // Returns the AX mapping for the given index. This is the primary interface
   // for the WebUI to consume the results of the mapping algorithm. The index
@@ -563,8 +562,8 @@ class ReadAnythingAppModel {
     requires_tree_lang_ = requires_tree_lang;
   }
 
-  bool will_hide() const { return will_hide_; }
-  void set_will_hide(bool will_hide) { will_hide_ = will_hide; }
+  bool is_shown() const { return is_shown_; }
+  void set_is_shown(bool is_shown) { is_shown_ = is_shown; }
 
   const base::flat_set<ui::AXNodeID>& content_node_ids() const {
     return content_node_ids_;
@@ -816,14 +815,6 @@ class ReadAnythingAppModel {
           active_presentation_state) {
     active_presentation_state_ = active_presentation_state;
   }
-  bool is_active_presentation_state_opened() const {
-    return active_presentation_state_ ==
-               read_anything::mojom::ReadAnythingPresentationState::
-                   kInSidePanel ||
-           active_presentation_state_ ==
-               read_anything::mojom::ReadAnythingPresentationState::
-                   kInImmersiveOverlay;
-  }
 
   read_anything::mojom::ReadAnythingDistillationState distillation_state()
       const {
@@ -1047,7 +1038,11 @@ class ReadAnythingAppModel {
   // that here.
   bool requires_tree_lang_ = false;
 
-  bool will_hide_ = false;
+  // Whether Reading Mode is shown: from ReadAnythingAppController's
+  // OnReadingModeShown() until OnReadingModeHidden() or OnTabWillDetach().
+  // Unlike active_presentation_state_, this is false while a side panel tab is
+  // in the background (the side panel keeps hosting the WebUI).
+  bool is_shown_ = false;
 
   // Whether the distillation delay timer should be reset.
   bool reset_distillation_delay_timer_ = false;

@@ -893,7 +893,7 @@ targets.mixin(
     swarming = targets.swarming(
         dimensions = {
             "display_attached": "1",
-            "gpu": "1002:7550-32.0.31007.5012",
+            "gpu": "1002:7550",
             "os": "Windows-11",
             "pool": "chromium.tests.gpu.experimental",
         },
@@ -1488,8 +1488,8 @@ targets.mixin(
     swarming = targets.swarming(
         dimensions = {
             "display_server": "x11",
-            "gpu": "10de:2184-535.183.01|10de:2184-595.104.02",
-            "os": "Ubuntu-22.04|Ubuntu-24.04",
+            "gpu": "10de:2184-595.104.02",
+            "os": "Ubuntu-24.04",
             "pool": "chromium.tests.gpu",
         },
     ),

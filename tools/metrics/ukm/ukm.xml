@@ -8641,53 +8641,6 @@ be describing additional metrics about the same event.
   </metric>
 </event>
 
-<event name="CPUUsageMeasurement">
-  <owner>chrisha@chromium.org</owner>
-  <owner>siggi@chromium.org</owner>
-  <summary>
-    A CPU usage measurement that corresponds to a tick in a CPU usage
-    time-series. There is also some metadata stored to determine how faithful
-    the CPU usage measurement is (e.g. NumberOfCoresidentTabs).
-  </summary>
-  <metric name="CPUUsage">
-    <summary>
-      CPU usage measurement. This is in units of clock-cycles. For example, 1.2
-      seconds of 100% CPU usage on a 2.5GHz CPU corresponds to a value of 1.2 x
-      1.0 x 2.5e9 = 3e6.
-    </summary>
-  </metric>
-  <metric name="EventType">
-    <summary>
-      The event associated with the measurement. This is an integer value
-      corresponding to the enum defined in
-      resource_coordinator::RenderProcessProbe.
-    </summary>
-  </metric>
-  <metric name="IsVisible">
-    <summary>
-      Indicates if any frame hosted in this tab is visible at the moment the
-      measurement is taken.
-    </summary>
-  </metric>
-  <metric name="NumberOfCoresidentTabs">
-    <summary>
-      Number of co-resident tabs in all of the render processes a tab is
-      associated with when the CPU usage measurement is taken.
-    </summary>
-  </metric>
-  <metric name="ObservationWindowSizeMs">
-    <summary>
-      The size of the observation window (time since last CPU measurement) in
-      milliseconds.
-    </summary>
-  </metric>
-  <metric name="ProcessUptimeMs">
-    <summary>
-      The uptime of the process being measured, in milliseconds.
-    </summary>
-  </metric>
-</event>
-
 <event name="CrossOriginSubframeWithoutEmbeddingControl">
   <owner>clamy@chromium.org</owner>
   <summary>
@@ -9049,13 +9002,6 @@ be describing additional metrics about the same event.
       The duration (in milliseconds) for how long it took from the time the
       distillability result to be returned.
     </summary>
-    <aggregation>
-      <history>
-        <statistics>
-          <enumeration/>
-        </statistics>
-      </history>
-    </aggregation>
   </metric>
 </event>
 
@@ -9072,13 +9018,6 @@ be describing additional metrics about the same event.
     <summary>
       The distillation result from the current page.
     </summary>
-    <aggregation>
-      <history>
-        <statistics>
-          <enumeration/>
-        </statistics>
-      </history>
-    </aggregation>
   </metric>
 </event>
 
@@ -9116,13 +9055,6 @@ be describing additional metrics about the same event.
     <summary>
       Whether the current page is distillable.
     </summary>
-    <aggregation>
-      <history>
-        <statistics>
-          <enumeration/>
-        </statistics>
-      </history>
-    </aggregation>
   </metric>
 </event>
 
@@ -17309,25 +17241,6 @@ be describing additional metrics about the same event.
   </metric>
 </event>
 
-<event name="PageDomainInfo">
-  <owner>uthakore@chromium.org</owner>
-  <owner>invernizzi@chromium.org</owner>
-  <summary>
-    Metrics that describe the domain of pages that successfully commit. One
-    event is generated per page load that commits. Currently associated with
-    LocalNetworkRequests UKM metric collection.
-  </summary>
-  <metric name="DomainType">
-    <summary>
-      An enum value representing the type of domain of the loaded page. The enum
-      is defined in |LocalNetworkRequestsPageLoadMetricsObserver|. Possible
-      values are 0 for unknown (should never be logged), 1 for pages with public
-      domains, 2 for pages with private domains (IP addresses that are part of a
-      reserved IP space not including localhost), or 4 for localhost.
-    </summary>
-  </metric>
-</event>
-
 <event name="PageForegroundSession">
   <owner>sullivan@chromium.org</owner>
   <summary>
@@ -20558,13 +20471,6 @@ be describing additional metrics about the same event.
   </metric>
 </event>
 
-<event name="Plugins.FlashInstance">
-  <owner>tommycli@chromium.org</owner>
-  <summary>
-    Recorded when a Flash object instance is created.
-  </summary>
-</event>
-
 <event name="Popup.Closed">
   <owner>csharrison@chromium.org</owner>
   <owner>jkarlin@chromium.org</owner>
@@ -23368,13 +23274,6 @@ be describing additional metrics about the same event.
       Measured if the site matches the scope of any installed PWAs present in
       the profile.
     </summary>
-    <aggregation>
-      <history>
-        <statistics>
-          <enumeration/>
-        </statistics>
-      </history>
-    </aggregation>
   </metric>
   <metric name="IsPartiallyInstalled" enum="Boolean">
     <summary>
@@ -23384,13 +23283,6 @@ be describing additional metrics about the same event.
       to be a strong signal that the user will want to install the app fully on
       this device, as they already have it installed elsewhere.
     </summary>
-    <aggregation>
-      <history>
-        <statistics>
-          <enumeration/>
-        </statistics>
-      </history>
-    </aggregation>
   </metric>
 </event>
 
@@ -23420,13 +23312,6 @@ be describing additional metrics about the same event.
     <summary>
       Records whether the manifest has the background_color field populated.
     </summary>
-    <aggregation>
-      <history>
-        <statistics>
-          <enumeration/>
-        </statistics>
-      </history>
-    </aggregation>
   </metric>
   <metric name="HasIconsAny" enum="NullableBoolean">
     <summary>
@@ -23444,13 +23329,6 @@ be describing additional metrics about the same event.
     <summary>
       Records whether the manifest has maskable icons.
     </summary>
-    <aggregation>
-      <history>
-        <statistics>
-          <enumeration/>
-        </statistics>
-      </history>
-    </aggregation>
   </metric>
   <metric name="HasName" enum="NullableBoolean">
     <summary>
@@ -23492,13 +23370,6 @@ be describing additional metrics about the same event.
     <summary>
       Records whether the manifest has the theme_color field populated.
     </summary>
-    <aggregation>
-      <history>
-        <statistics>
-          <enumeration/>
-        </statistics>
-      </history>
-    </aggregation>
   </metric>
 </event>
 
@@ -23515,13 +23386,6 @@ be describing additional metrics about the same event.
       Measures the service worker cache storage size as determined by the Quota
       system for a site in bytes.
     </summary>
-    <aggregation>
-      <history>
-        <statistics>
-          <quantiles type="std-percentiles"/>
-        </statistics>
-      </history>
-    </aggregation>
   </metric>
   <metric name="HasFavicons" enum="Boolean">
     <summary>
@@ -23543,26 +23407,12 @@ be describing additional metrics about the same event.
     <summary>
       Records if the service worker exists and has a valid fetch handler.
     </summary>
-    <aggregation>
-      <history>
-        <statistics>
-          <enumeration/>
-        </statistics>
-      </history>
-    </aggregation>
   </metric>
   <metric name="ServiceWorkerScriptSize">
     <summary>
       Measured the size of the service worker script in bytes. If the service
       worker does not exist, then a script size of 0 is measured.
     </summary>
-    <aggregation>
-      <history>
-        <statistics>
-          <quantiles type="std-percentiles"/>
-        </statistics>
-      </history>
-    </aggregation>
   </metric>
 </event>
 
@@ -24331,209 +24181,6 @@ be describing additional metrics about the same event.
   </metric>
 </event>
 
-<event name="TabManager.Background.FirstAlertFired">
-  <owner>chrisha@chromium.org</owner>
-  <owner>lpy@chromium.org</owner>
-  <summary>
-    Collects the duration in MS from when the tab is backgrounded to when a
-    JavaScript alert is fired. Only recorded when the tab is in the background.
-  </summary>
-  <metric name="IsMainFrame">
-    <summary>
-      Indicates whether the alert is fired from main frame.
-    </summary>
-  </metric>
-  <metric name="TimeFromBackgrounded">
-    <summary>
-      Duration in MS from when the tab is backgrounded to when alert is fired.
-    </summary>
-  </metric>
-</event>
-
-<event name="TabManager.Background.FirstAudioStarts">
-  <owner>chrisha@chromium.org</owner>
-  <owner>lpy@chromium.org</owner>
-  <summary>
-    Collects the duration in MS from when the tab is backgrounded to when audio
-    starts to play. Only recorded when the tab is in the background.
-  </summary>
-  <metric name="IsMainFrame">
-    <summary>
-      Indicates whether the audio stream belongs to the main frame.
-    </summary>
-  </metric>
-  <metric name="TimeFromBackgrounded">
-    <summary>
-      Duration in MS from when the tab is backgrounded to when audio starts to
-      play.
-    </summary>
-  </metric>
-</event>
-
-<event name="TabManager.Background.FirstFaviconUpdated">
-  <owner>chrisha@chromium.org</owner>
-  <owner>lpy@chromium.org</owner>
-  <summary>
-    Collects the duration in MS from when the tab is backgrounded to when the
-    favicon is updated. Only recorded when the tab is in the background.
-  </summary>
-  <metric name="TimeFromBackgrounded">
-    <summary>
-      Duration in MS from when the tab is backgrounded to when the favicon is
-      updated.
-    </summary>
-  </metric>
-</event>
-
-<event name="TabManager.Background.FirstNonPersistentNotificationCreated">
-  <owner>chrisha@chromium.org</owner>
-  <owner>lpy@chromium.org</owner>
-  <summary/>
-  <metric name="IsMainFrame">
-    <summary>
-      Indicates whether the notification creation is from the main frame.
-    </summary>
-  </metric>
-  <metric name="TimeFromBackgrounded">
-    <summary>
-      Duration in MS from when the tab is backgrounded to when a non-persistent
-      notification is created.
-    </summary>
-  </metric>
-</event>
-
-<event name="TabManager.Background.FirstTitleUpdated">
-  <owner>chrisha@chromium.org</owner>
-  <owner>lpy@chromium.org</owner>
-  <summary>
-    Collects the duration in MS from when the tab is backgrounded to when the
-    title is updated. Only recorded when the tab is in the background.
-  </summary>
-  <metric name="TimeFromBackgrounded">
-    <summary>
-      Duration in MS from when the tab is backgrounded to when the title is
-      updated.
-    </summary>
-  </metric>
-</event>
-
-<event name="TabManager.Background.ForegroundedOrClosed">
-  <owner>chrisha@chromium.org</owner>
-  <summary>
-    Collects the duration in MS from when the tab is backgrounded to when it is
-    brought to foreground or closed.
-  </summary>
-  <metric name="IsDiscarded">
-    <summary>
-      Boolean value indicating whether or not the tab is discarded since it was
-      backgrounded.
-    </summary>
-  </metric>
-  <metric name="IsForegrounded">
-    <summary>
-      Boolean value indicating whether or not it's triggered because the tab is
-      brought to foreground again.
-    </summary>
-  </metric>
-  <metric name="LabelId">
-    <summary>
-      An int64 random number generated when TabManager.TabMetric is logged. The
-      same number is also logged here, so that feature label can be paired.
-    </summary>
-  </metric>
-  <metric name="TimeFromBackgrounded">
-    <summary>
-      Duration in MS from when the tab is backgrounded to when it is brought to
-      foreground or closed.
-    </summary>
-  </metric>
-</event>
-
-<event name="TabManager.Experimental.SessionRestore.TabSwitchLoadStopped"
-    singular="True">
-  <owner>zhenw@chromium.org</owner>
-  <summary>
-    Collects data when a tab is switched to from another tab and then finishes
-    loading in the foreground during session restore The event is only recorded
-    when a tab is switched to from another tab within the same tabstrip. As a
-    result, the initial foreground tab is not included in this event since it
-    was not switched to from another tab. The event is not recorded when the
-    session overlaps with background tab opening.
-  </summary>
-  <metric name="SequenceId">
-    <summary>
-      The ID of this event's sequence in current session restore session.
-    </summary>
-  </metric>
-  <metric name="SessionRestoreSessionId">
-    <summary>
-      The ID of this session restore session.
-    </summary>
-  </metric>
-  <metric name="SessionRestoreTabCount">
-    <summary>
-      Number of tabs that are restored.
-    </summary>
-  </metric>
-  <metric name="SystemTabCount">
-    <summary>
-      Number of all tabs of the system, which includes all browser windows.
-    </summary>
-  </metric>
-  <metric name="TabSwitchLoadTime">
-    <summary>
-      Tab switch load time in MS. It is defined as the time between when the
-      user switches to a background tab, and the time when that tab finishes
-      loading in the foreground. If the user switches away before the tab
-      finishes loading, a metric will not be recorded unless the user switches
-      back, in which case the tab switch load time is measured from that point
-      in time.
-    </summary>
-  </metric>
-</event>
-
-<event
-    name="TabManager.SessionRestore.ForegroundTab.ExpectedTaskQueueingDurationInfo">
-  <owner>zhenw@chromium.org</owner>
-  <summary>
-    Collects the expected queueing duration of tasks and metadata for the
-    foreground tab during session restore. The event is not recorded when the
-    session overlaps with background tab opening. The event is not recorded when
-    there is only one restored tab, in which case, there is no background
-    restored tab and we are not interested at that. In this way, we cap the
-    volume while keeping all interesting data.
-  </summary>
-  <metric name="ExpectedTaskQueueingDuration">
-    <summary>
-      Duration in MS for expected task queueing duration. The metric reflects
-      the responsiveness of a tab. A lower value means the tab will respond to
-      inputs faster. This metric is equal to
-      RendererScheduler.ExpectedTaskQueueingDuration. It is emitted once for all
-      tasks in each 1000-ms window.
-    </summary>
-  </metric>
-  <metric name="SequenceId">
-    <summary>
-      The ID of this event's sequence in current session restore session.
-    </summary>
-  </metric>
-  <metric name="SessionRestoreSessionId">
-    <summary>
-      The ID of this session restore session.
-    </summary>
-  </metric>
-  <metric name="SessionRestoreTabCount">
-    <summary>
-      Number of tabs that are restored.
-    </summary>
-  </metric>
-  <metric name="SystemTabCount">
-    <summary>
-      Number of all tabs of the system, which includes all browser windows.
-    </summary>
-  </metric>
-</event>
-
 <event name="TabManager.TabLifetime" singular="True">
   <owner>chrisha@chromium.org</owner>
   <summary>
@@ -25256,13 +24903,6 @@ be describing additional metrics about the same event.
       latency caused by dispatching beforeunloads to remote frames from the
       browser.
     </summary>
-    <aggregation>
-      <history>
-        <statistics>
-          <quantiles type="std-percentiles"/>
-        </statistics>
-      </history>
-    </aggregation>
   </metric>
   <metric name="BeforeUnloadQueueingDuration">
     <summary>
@@ -25274,13 +24914,6 @@ be describing additional metrics about the same event.
       initiated navigations this metric will only be filled in if we dispatched
       beforeunloads from the browser to remote frames which we had to wait on.
     </summary>
-    <aggregation>
-      <history>
-        <statistics>
-          <quantiles type="std-percentiles"/>
-        </statistics>
-      </history>
-    </aggregation>
   </metric>
   <metric name="BeforeUnloadToCommit.CrossProcess">
     <summary>
@@ -25291,13 +24924,6 @@ be describing additional metrics about the same event.
       the renderer process. For cross-process navigations this represents the
       total amount of time the navigation is blocked since it was initiated.
     </summary>
-    <aggregation>
-      <history>
-        <statistics>
-          <quantiles type="std-percentiles"/>
-        </statistics>
-      </history>
-    </aggregation>
   </metric>
   <metric name="BeforeUnloadToCommit.SameProcess">
     <summary>
@@ -25308,13 +24934,6 @@ be describing additional metrics about the same event.
       same-process navigations this represents the total amount of time the
       navigation is blocked since it was initiated.
     </summary>
-    <aggregation>
-      <history>
-        <statistics>
-          <quantiles type="std-percentiles"/>
-        </statistics>
-      </history>
-    </aggregation>
   </metric>
   <metric name="UnloadDuration">
     <summary>
@@ -25338,13 +24957,6 @@ be describing additional metrics about the same event.
       events. Only records for same-process navigations since unload handlers
       are run in a different process for cross-process navigations.
     </summary>
-    <aggregation>
-      <history>
-        <statistics>
-          <quantiles type="std-percentiles"/>
-        </statistics>
-      </history>
-    </aggregation>
   </metric>
 </event>
 
@@ -27569,7 +27181,7 @@ be describing additional metrics about the same event.
 
 <event name="Webapp.AddToHomeScreen">
   <owner>hartmanng@chromium.org</owner>
-  <owner>mwi-team-core@google.com</owner>
+  <owner>pwa-team@google.com</owner>
   <summary>
     A2HS usage metrics recorded when users started the add to home screen flow
     on Android.
@@ -27578,26 +27190,12 @@ be describing additional metrics about the same event.
     <summary>
       Records the display mode of the added Webapp.
     </summary>
-    <aggregation>
-      <history>
-        <statistics>
-          <enumeration/>
-        </statistics>
-      </history>
-    </aggregation>
   </metric>
   <metric name="SameAsManifestStartUrl" enum="Boolean">
     <summary>
       Record whether `start_url` for the Shortcuts is the same as the current
       page url.
     </summary>
-    <aggregation>
-      <history>
-        <statistics>
-          <enumeration/>
-        </statistics>
-      </history>
-    </aggregation>
   </metric>
   <metric name="ShortcutReason" enum="InstallableStatusCode">
     <summary>
@@ -27631,16 +27229,6 @@ be describing additional metrics about the same event.
       a bug is fixed where on resuming from sleep background time did not resume
       counting.
     </summary>
-    <aggregation>
-      <history>
-        <index fields="profile.country"/>
-        <index fields="profile.form_factor"/>
-        <index fields="profile.system_ram"/>
-        <statistics>
-          <quantiles type="std-percentiles"/>
-        </statistics>
-      </history>
-    </aggregation>
   </metric>
   <metric name="CapturesLinks" enum="Boolean">
     <summary>
@@ -27648,32 +27236,12 @@ be describing additional metrics about the same event.
       app window. Recorded only for installed web apps that are currently open
       in a web app window, and all preinstalled web apps.
     </summary>
-    <aggregation>
-      <history>
-        <index fields="profile.country"/>
-        <index fields="profile.form_factor"/>
-        <index fields="profile.system_ram"/>
-        <statistics>
-          <enumeration/>
-        </statistics>
-      </history>
-    </aggregation>
   </metric>
   <metric name="DisplayMode" enum="WebAppDisplayMode">
     <summary>
       Effective display mode of the web app (may be set by a manifest and
       manifest may be overridden by the user).
     </summary>
-    <aggregation>
-      <history>
-        <index fields="profile.country"/>
-        <index fields="profile.form_factor"/>
-        <index fields="profile.system_ram"/>
-        <statistics>
-          <enumeration/>
-        </statistics>
-      </history>
-    </aggregation>
   </metric>
   <metric name="ForegroundDuration">
     <summary>
@@ -27748,16 +27316,6 @@ be describing additional metrics about the same event.
       Whether the web app is currently considered 'promotable' (passes Chrome
       checks to be considered an installable web app).
     </summary>
-    <aggregation>
-      <history>
-        <index fields="profile.country"/>
-        <index fields="profile.form_factor"/>
-        <index fields="profile.system_ram"/>
-        <statistics>
-          <enumeration/>
-        </statistics>
-      </history>
-    </aggregation>
   </metric>
   <metric name="Used" enum="Boolean">
     <summary>
@@ -27793,26 +27351,12 @@ be describing additional metrics about the same event.
       origin of the caller-supplied manifest URL (earlier milestones used the
       install URL). Only recorded when the manifest URL is HTTPS.
     </summary>
-    <aggregation>
-      <history>
-        <statistics>
-          <enumeration/>
-        </statistics>
-      </history>
-    </aggregation>
   </metric>
   <metric name="ElementResultByRequestingPage" enum="WebInstallServiceResult">
     <summary>
       Records the result of one activation of the install element for the URL of
       the requesting page that the element was activated from.
     </summary>
-    <aggregation>
-      <history>
-        <statistics>
-          <enumeration/>
-        </statistics>
-      </history>
-    </aggregation>
   </metric>
   <metric name="ResultByInstalledApp" enum="WebInstallServiceResult">
     <summary>
@@ -27827,13 +27371,6 @@ be describing additional metrics about the same event.
       Records the result of the Web Install API for the URL of the requesting
       page that invoked the API.
     </summary>
-    <aggregation>
-      <history>
-        <statistics>
-          <enumeration/>
-        </statistics>
-      </history>
-    </aggregation>
   </metric>
 </event>
 

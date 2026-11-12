@@ -48,6 +48,8 @@ export import CreateActorTabOptions = generated.CreateActorTabOptions;
 export import CreateSkillRequest = generated.CreateSkillRequest;
 export import CreateTabOptions = generated.CreateTabOptions;
 export import Credential = generated.Credential;
+export import DataTransferActionsBlockedNotice =
+    generated.DataTransferActionsBlockedNotice;
 export import DocumentData = generated.DocumentData;
 export import ExperimentalTriggeringPayload =
     generated.ExperimentalTriggeringPayload;
@@ -132,6 +134,9 @@ export import CloseAuthTabResult = generated.CloseAuthTabResult;
 export import CloseSignInTabResult = generated.CloseSignInTabResult;
 export import CreateTaskErrorReason = generated.CreateTaskErrorReason;
 export import CredentialType = generated.CredentialType;
+export import DataTransferAction = generated.DataTransferAction;
+export import DataTransferActionsBlockedReason =
+    generated.DataTransferActionsBlockedReason;
 export import ExperimentalTriggeringUpdateType =
     generated.ExperimentalTriggeringUpdateType;
 export import FeatureMode = generated.FeatureMode;
@@ -1342,6 +1347,13 @@ export declare interface GlicBrowserHost {
   getAdditionalContext?(): Observable<AdditionalContext>;
 
   /**
+   * Returns an observable that emits when a paste or drop into Glic is blocked
+   * by product or context eligibility checks.
+   */
+  getDataTransferActionsBlockedNotices?
+      (): Observable<DataTransferActionsBlockedNotice>;
+
+  /**
    * Returns the host's capability to act on web pages. This reflects enterprise
    * policy for whether actuation is allowed.
    */
@@ -1699,6 +1711,12 @@ export declare interface GlicBrowserHostMetrics {
 
   /** Called when a multi-tab sharing tooltip is shown. */
   onTooltipImpression?(impression: TooltipImpressionType): void;
+
+  /**
+   * Called when a currently displayed multi-tab sharing tooltip is hidden in
+   * the web client (e.g. dismissed, timed out, or engaged with).
+   */
+  onTooltipHidden?(): void;
 
   // Removed fields and methods :
   onModelChanged?(): never;  // Last seen on Canary 146.0.7639.0

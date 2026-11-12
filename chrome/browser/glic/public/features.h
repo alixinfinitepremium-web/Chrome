@@ -12,19 +12,6 @@
 #include "base/metrics/field_trial_params.h"
 #include "build/build_config.h"
 
-// Macros to define the default state of features explicitly across platforms.
-#if BUILDFLAG(IS_ANDROID)
-#define FEATURE_ENABLED_BY_DEFAULT_NON_ANDROID base::FEATURE_DISABLED_BY_DEFAULT
-#define FEATURE_ENABLED_BY_DEFAULT_ANDROID_ONLY base::FEATURE_ENABLED_BY_DEFAULT
-#else
-#define FEATURE_ENABLED_BY_DEFAULT_NON_ANDROID base::FEATURE_ENABLED_BY_DEFAULT
-#define FEATURE_ENABLED_BY_DEFAULT_ANDROID_ONLY \
-  base::FEATURE_DISABLED_BY_DEFAULT
-#endif
-
-#define FEATURE_ENABLED_BY_DEFAULT_ALL_PLATFORMS \
-  base::FEATURE_ENABLED_BY_DEFAULT
-
 namespace features {
 
 BASE_DECLARE_FEATURE(kGlicAndroidSidePanel);
@@ -59,6 +46,7 @@ BASE_DECLARE_FEATURE(kGlicSelectionSmallChip);
 extern const base::FeatureParam<bool> kGlicSelectionSmallChipOnTop;
 
 BASE_DECLARE_FEATURE(kGlicSuggestionContextMenu);
+BASE_DECLARE_FEATURE(kGlicSmartSelectionToolbarButton);
 
 BASE_DECLARE_FEATURE(kGlicCreateTabAdjacent);
 
@@ -299,6 +287,16 @@ BASE_DECLARE_FEATURE(kGlicAskGeminiWayfinding);
 // instance cleanup while an experimental triggering actuation session is
 // active, unless the last bound/pinned tab itself was closed (b/581951225).
 BASE_DECLARE_FEATURE(kGlicExperimentalTriggeringKeepInstanceOnUnbind);
+
+BASE_DECLARE_FEATURE(kGlicConversationSharing);
+extern const base::FeatureParam<std::string>
+    kGlicConversationSharingCaptureUrls;
+
+#if BUILDFLAG(IS_ANDROID)
+BASE_DECLARE_FEATURE(kGlicExperimentalTriggeringBackgroundOptInNotification);
+extern const base::FeatureParam<base::TimeDelta>
+    kGlicExperimentalTriggeringBackgroundOptInTimeout;
+#endif  // BUILDFLAG(IS_ANDROID)
 }  // namespace features
 
 #endif  // CHROME_BROWSER_GLIC_PUBLIC_FEATURES_H_

@@ -29,6 +29,7 @@
 #include "chrome/browser/glic/public/features.h"
 #include "chrome/browser/glic/public/glic_invoke_options.h"
 #include "chrome/browser/glic/public/provider_features.h"
+#include "chrome/browser/glic/selection/explain_suggestion.h"
 #include "chrome/browser/glic/selection/explain_suggestion_fre.h"
 #include "chrome/browser/glic/selection/selection_overlay_controller.h"
 #include "chrome/browser/glic/selection/selection_suggestion.h"
@@ -37,8 +38,11 @@
 #include "chrome/browser/optimization_guide/optimization_guide_keyed_service.h"
 #include "chrome/browser/optimization_guide/optimization_guide_keyed_service_factory.h"
 #include "chrome/browser/selection/features.h"
+#include "chrome/browser/selection/metrics_logger.h"
 #include "chrome/browser/selection/suggestion_service.h"
 #include "chrome/browser/selection/suggestion_tool.h"
+#include "chrome/browser/ui/actions/chrome_action_id.h"
+#include "chrome/browser/ui/browser_actions.h"
 #include "chrome/browser/ui/browser_element_identifiers.h"
 #include "chrome/browser/ui/browser_tabstrip.h"
 #include "chrome/browser/ui/color/chrome_color_id.h"
@@ -74,6 +78,7 @@
 #include "content/public/common/content_features.h"
 #include "content/public/test/browser_test.h"
 #include "content/public/test/browser_test_utils.h"
+#include "ui/actions/actions.h"
 #include "ui/base/accelerators/global_accelerator_listener/global_accelerator_listener.h"
 #include "ui/base/interaction/element_identifier.h"
 #include "ui/base/l10n/l10n_util.h"
@@ -322,7 +327,9 @@ class FakePromptSuggestionTool : public ::selection::SuggestionTool {
           server_suggestion) override {
     QueueServerResponse();
     return std::make_unique<SelectionSuggestion>(
-        *tab_, base::UTF8ToUTF16(server_suggestion.label()));
+        *tab_, base::UTF8ToUTF16(server_suggestion.label()),
+        server_suggestion.label() == "Ask Gemini" ? std::string()
+                                                  : server_suggestion.label());
   }
 
  private:
@@ -2344,6 +2351,31 @@ IN_PROC_BROWSER_TEST_F(SelectionOverlayInteractiveTestWithPrompt,
           "}"));
 }
 
+// The "Ask about this" toolbar action opens the overlay and attributes the
+// session to the toolbar entry point.
+IN_PROC_BROWSER_TEST_F(SelectionOverlayInteractiveTestWithPrompt,
+                       ToolbarActionShowsOverlay) {
+  const auto GetToolbarAction = [this]() {
+    return actions::ActionManager::Get().FindAction(
+        kActionGlicSmartSelectionToolbar,
+        BrowserActions::From(browser())->root_action_item());
+  };
+  DEFINE_LOCAL_ELEMENT_IDENTIFIER_VALUE(kActiveTab);
+  base::HistogramTester histogram_tester;
+
+  RunTestSequence(
+      LoadPageAndWaitForPaint(kActiveTab),
+      // Fail fast instead of timing out in WaitForShow() below.
+      CheckResult(
+          [GetToolbarAction]() { return GetToolbarAction() != nullptr; }, true),
+      Do([GetToolbarAction]() { GetToolbarAction()->InvokeAction(); }),
+      WaitForShow(OverlayBaseController::kOverlayId), Do([&histogram_tester]() {
+        histogram_tester.ExpectUniqueSample(
+            "SmartSelection.Invocation.ByEntryPoint",
+            ::selection::EntryPoint::kToolbarButton, 1);
+      }));
+}
+
 IN_PROC_BROWSER_TEST_F(SelectionOverlayInteractiveTestWithPrompt,
                        SubmitPromptInputOnEnter) {
   DEFINE_LOCAL_ELEMENT_IDENTIFIER_VALUE(kOverlayWebContentsId);
@@ -2994,6 +3026,45 @@ IN_PROC_BROWSER_TEST_F(SelectionOverlayInteractiveTestWithInlineFulfillment,
       InAnyContext(WaitForShow(ExplainSuggestionFre::kCancelButtonElementId)));
 }
 
+IN_PROC_BROWSER_TEST_F(SelectionOverlayInteractiveTestWithPrompt,
+                       ClickActionChipWithRegionSendsPromptAndRegion) {
+  DEFINE_LOCAL_ELEMENT_IDENTIFIER_VALUE(kActiveTab);
+  DEFINE_LOCAL_ELEMENT_IDENTIFIER_VALUE(kOverlayWebContentsId);
+  const DeepQuery kSelectionOverlay = {"selection-overlay-app",
+                                       "glic-selection-overlay"};
+
+  RunTestSequence(
+      LoadPageAndWaitForPaint(kActiveTab), Do([this]() {
+        ShowWithImageSelection(selection::InteractionOptions::New(
+            /*hide_handles=*/true, /*skip_intro_animation=*/true));
+      }),
+      WaitForShow(OverlayBaseController::kOverlayId),
+      InstrumentNonTabWebView(kOverlayWebContentsId,
+                              OverlayBaseController::kOverlayId),
+      WaitForPageContext(kOverlayWebContentsId),
+      WaitForJsResultAt(
+          kOverlayWebContentsId, kSelectionOverlay,
+          "el => Array.from(el.shadowRoot.querySelectorAll('.action-chip'))"
+          "    .some(c => c.querySelector('.chip-label')?.textContent === "
+          "'Summarize')"),
+      ExecuteJsAt(
+          kOverlayWebContentsId, kSelectionOverlay,
+          "el => {"
+          "  const chips = "
+          "Array.from(el.shadowRoot.querySelectorAll('.action-chip'));"
+          "  chips.find(c => c.querySelector('.chip-label')?.textContent === "
+          "'Summarize').click();"
+          "}",
+          ExecuteJsMode::kFireAndForget),
+      WaitForHide(OverlayBaseController::kOverlayId),
+      WaitForAndInstrumentGlic(GlicInstrumentMode::kHostAndContents),
+      WaitForJsResultAt(kGlicContentsElementId, {"#invocationLog"},
+                        "el => el.textContent.includes('Summarize')"),
+      CheckJsResultAt(kGlicContentsElementId, DeepQuery{"#invocationLog"},
+                      "el => el.textContent.includes('\"autoSubmit\": true') "
+                      "&& el.textContent.includes('pendingRegion')"));
+}
+
 IN_PROC_BROWSER_TEST_F(SelectionOverlayInteractiveTestWithInlineFulfillment,
                        ClickCardAskGeminiOpensSidePanel) {
   DEFINE_LOCAL_ELEMENT_IDENTIFIER_VALUE(kActiveTab);
@@ -3002,14 +3073,165 @@ IN_PROC_BROWSER_TEST_F(SelectionOverlayInteractiveTestWithInlineFulfillment,
       "selection-overlay-app", "glic-selection-overlay",
       "#inlineFulfillmentHost > glic-explain-fulfillment > .ask-gemini"};
 
-  RunTestSequence(OpenExplainCard(kActiveTab, kOverlayWebContentsId),
-                  WaitForElementVisible(kOverlayWebContentsId, kAskGemini),
-                  ClickElement(kOverlayWebContentsId, kAskGemini,
-                               ExecuteJsMode::kFireAndForget),
-                  WaitForHide(OverlayBaseController::kOverlayId),
-                  // Glic opens in the side panel.
-                  WaitForShow(kSidePanelElementId),
-                  InAnyContext(WaitForShow(kGlicViewElementId)));
+  RunTestSequence(
+      OpenExplainCard(kActiveTab, kOverlayWebContentsId),
+      WaitForElementVisible(kOverlayWebContentsId, kAskGemini),
+      ClickElement(kOverlayWebContentsId, kAskGemini,
+                   ExecuteJsMode::kFireAndForget),
+      WaitForHide(OverlayBaseController::kOverlayId),
+      // Glic opens in the side panel with the selected text context and without
+      // auto-submitting a prompt.
+      WaitForShow(kSidePanelElementId),
+      InAnyContext(WaitForShow(kGlicViewElementId)),
+      WaitForAndInstrumentGlic(GlicInstrumentMode::kHostAndContents),
+      WaitForJsResultAt(kGlicContentsElementId,
+                        DeepQuery{"#additionalContextResult"},
+                        "el => el.innerText.includes("
+                        "'MIME Type: application/x-glic-selection')"),
+      CheckJsResultAt(kGlicContentsElementId, DeepQuery{"#invocationLog"},
+                      "el => !el.textContent.includes('autoSubmit') && "
+                      "!el.textContent.includes('pendingRegion')"));
+}
+
+namespace {
+
+class FakeExplainSuggestionTool : public ::selection::SuggestionTool {
+ public:
+  explicit FakeExplainSuggestionTool(tabs::TabInterface* tab) : tab_(tab) {
+    QueueServerResponse();
+  }
+  ~FakeExplainSuggestionTool() override = default;
+
+  ToolId GetToolId() const override {
+    return optimization_guide::proto::SMART_SELECTION_TOOL_QUICK_ANSWERS;
+  }
+
+  std::unique_ptr<::selection::Suggestion> CreateSuggestion(
+      const ::selection::AreaOfInterest& processed_area,
+      const optimization_guide::proto::SmartSelectionSuggestion&
+          server_suggestion) override {
+    QueueServerResponse();
+    return std::make_unique<ExplainSuggestion>(
+        *tab_, optimization_guide::proto::QuickAnswersRequest());
+  }
+
+ private:
+  void QueueServerResponse() {
+    optimization_guide::proto::SmartSelectionSuggestionsResponse response;
+    auto* suggestion = response.add_suggestions();
+    suggestion->set_tool(
+        optimization_guide::proto::SMART_SELECTION_TOOL_QUICK_ANSWERS);
+    suggestion->set_label("Explain");
+    optimization_guide::proto::Any any;
+    any.set_value(response.SerializeAsString());
+    any.set_type_url(
+        base::StrCat({"type.googleapis.com/", response.GetTypeName()}));
+    OptimizationGuideKeyedServiceFactory::GetForProfile(tab_->GetProfile())
+        ->AddExecutionResultForTesting(
+            optimization_guide::ModelBasedCapabilityKey::
+                kSmartSelectionSuggestions,
+            optimization_guide::OptimizationGuideModelExecutionResult(
+                std::move(any), nullptr));
+  }
+
+  raw_ptr<tabs::TabInterface> tab_;
+};
+
+class SelectionOverlayInteractiveTestWithExplainRegion
+    : public SelectionOverlayInteractiveTest {
+ public:
+  SelectionOverlayInteractiveTestWithExplainRegion() {
+    feature_list_.InitWithFeatures(
+        {features::kGlicSelectionOverlayPrompt,
+         ::selection::kSmartSelectionServerSuggestions},
+        {});
+  }
+
+  void SetUpOnMainThread() override {
+    SelectionOverlayInteractiveTest::SetUpOnMainThread();
+    tabs::TabInterface* tab = browser()->tab_strip_model()->GetActiveTab();
+    fake_tool_ = std::make_unique<FakeExplainSuggestionTool>(tab);
+    if (auto* service = ::selection::SuggestionService::From(tab)) {
+      service->RegisterTool(fake_tool_.get());
+    }
+  }
+
+  void TearDownOnMainThread() override {
+    tabs::TabInterface* tab = browser()->tab_strip_model()->GetTabAtIndex(0);
+    if (tab && fake_tool_) {
+      if (auto* service = ::selection::SuggestionService::From(tab)) {
+        service->UnregisterTool(fake_tool_.get());
+      }
+    }
+    fake_tool_.reset();
+    SelectionOverlayInteractiveTest::TearDownOnMainThread();
+  }
+
+ protected:
+  const DeepQuery kSelectionOverlay = {"selection-overlay-app",
+                                       "glic-selection-overlay"};
+
+  void SetExplanation(std::string_view answer) {
+    optimization_guide::proto::QuickAnswersResponse response_msg;
+    response_msg.set_answer(std::string(answer));
+    optimization_guide::proto::Any any;
+    any.set_value(response_msg.SerializeAsString());
+    any.set_type_url(
+        base::StrCat({"type.googleapis.com/", response_msg.GetTypeName()}));
+    OptimizationGuideKeyedServiceFactory::GetForProfile(browser()->GetProfile())
+        ->AddExecutionResultForTesting(
+            optimization_guide::ModelBasedCapabilityKey::kQuickAnswers,
+            optimization_guide::OptimizationGuideModelExecutionResult(
+                std::move(any), nullptr));
+  }
+
+  static constexpr char kClickExplainChipJs[] = R"js(
+      el => {
+        const chip = [...el.shadowRoot.querySelectorAll('.action-chip')].find(
+            c => c.querySelector('.chip-label')?.textContent === 'Explain');
+        chip?.click();
+        return !!chip;
+      }
+    )js";
+
+ private:
+  base::test::ScopedFeatureList feature_list_;
+  std::unique_ptr<FakeExplainSuggestionTool> fake_tool_;
+};
+
+}  // namespace
+
+IN_PROC_BROWSER_TEST_F(SelectionOverlayInteractiveTestWithExplainRegion,
+                       ClickCardAskGeminiWithRegionSendsRegion) {
+  DEFINE_LOCAL_ELEMENT_IDENTIFIER_VALUE(kActiveTab);
+  DEFINE_LOCAL_ELEMENT_IDENTIFIER_VALUE(kOverlayWebContentsId);
+  const DeepQuery kAskGemini = {
+      "selection-overlay-app", "glic-selection-overlay",
+      "#inlineFulfillmentHost > glic-explain-fulfillment > .ask-gemini"};
+
+  SetExplanation("An explanation of your region.");
+
+  RunTestSequence(
+      LoadPageAndWaitForPaint(kActiveTab), Do([this]() {
+        ShowWithImageSelection(selection::InteractionOptions::New(
+            /*hide_handles=*/true, /*skip_intro_animation=*/true));
+      }),
+      WaitForShow(OverlayBaseController::kOverlayId),
+      InstrumentNonTabWebView(kOverlayWebContentsId,
+                              OverlayBaseController::kOverlayId),
+      WaitForPageContext(kOverlayWebContentsId),
+      WaitForJsResultAt(kOverlayWebContentsId, kSelectionOverlay,
+                        kClickExplainChipJs),
+      WaitForElementVisible(kOverlayWebContentsId, kAskGemini),
+      ClickElement(kOverlayWebContentsId, kAskGemini,
+                   ExecuteJsMode::kFireAndForget),
+      WaitForHide(OverlayBaseController::kOverlayId),
+      WaitForAndInstrumentGlic(GlicInstrumentMode::kHostAndContents),
+      WaitForJsResultAt(kGlicContentsElementId, {"#invocationLog"},
+                        "el => el.textContent.includes('pendingRegion')"),
+      CheckJsResultAt(kGlicContentsElementId, DeepQuery{"#invocationLog"},
+                      "el => el.textContent.includes('\"autoSubmit\": false') "
+                      "&& !el.textContent.includes('\"prompts\"')"));
 }
 
 // With the side panel open, the small chip starts a capture session through

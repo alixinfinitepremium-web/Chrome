@@ -4205,18 +4205,6 @@ This is emitted for two scenarios when a worker may be unregistered:
   </summary>
 </histogram>
 
-<histogram name="Extensions.ServiceWorkerBackground.RegistrationTime"
-    units="ms" expires_after="2025-03-25">
-  <owner>jlulejian@chromium.org</owner>
-  <owner>extensions-core@chromium.org</owner>
-  <summary>
-    The amount of time it takes to register a service worker background script
-    with the content service worker layer.
-
-    Measured in milliseconds from 1ms up to 10 seconds.
-  </summary>
-</histogram>
-
 <histogram name="Extensions.ServiceWorkerBackground.RegistrationWhenExpected"
     enum="Boolean" expires_after="2026-03-01">
   <owner>jlulejian@chromium.org</owner>
@@ -4356,20 +4344,6 @@ This is emitted for two scenarios when a worker may be unregistered:
     If there are attempts to retry registration, those are not emitted. See
     Extensions.ServiceWorkerBackground.RegistrationRetry.{Outcome}.InitialStatus
     for a metric on retry attempts.
-  </summary>
-</histogram>
-
-<histogram name="Extensions.ServiceWorkerBackground.WorkerScriptFetchNetError"
-    enum="CombinedHttpResponseAndNetErrorCode" expires_after="2025-02-01">
-  <owner>jlulejian@chromium.org</owner>
-  <owner>extensions-core@chromium.org</owner>
-  <summary>
-    Records the underlying net::Error that was encountered when the content
-    service worker layer tries to fetch the worker script (from disk) but
-    encounters a network error.
-
-    It is emitted each time a worker script fetch fails for a
-    blink::ServiceWorkerBackground::kErrorNetwork reason.
   </summary>
 </histogram>
 

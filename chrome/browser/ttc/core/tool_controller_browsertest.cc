@@ -52,6 +52,7 @@
 #include "chrome/browser/tab_list/tab_list_interface.h"
 #include "chrome/browser/translate/chrome_translate_client.h"
 #include "chrome/browser/translate/translate_test_utils.h"
+#include "chrome/browser/ttc/core/features.h"
 #include "chrome/browser/ttc/core/session_controller.h"
 #include "chrome/browser/ttc/core/session_controller_impl.h"
 #include "chrome/browser/ttc/core/ttc_core_browser_test_base.h"
@@ -415,8 +416,8 @@ IN_PROC_BROWSER_TEST_F(ToolControllerBrowserTest, ReloadPage) {
   EXPECT_EQ(web_contents()->GetLastCommittedURL(), url);
 }
 
-// The actor framework does not act on crashed tabs, so reload_page reloads
-// them directly.
+// The actor framework executes reload_page on crashed tabs to restore the
+// renderer.
 IN_PROC_BROWSER_TEST_F(ToolControllerBrowserTest, ReloadPageOnCrashedTab) {
   ttc_service().StartSession();
   auto* session_controller =
@@ -447,35 +448,6 @@ IN_PROC_BROWSER_TEST_F(ToolControllerBrowserTest, ReloadPageOnCrashedTab) {
       actor_service->GetActingActorTaskForWebContents(web_contents());
   ASSERT_TRUE(acting_task);
   EXPECT_EQ(acting_task->id(), session_controller->GetActorTaskId());
-}
-
-// Reloading a crashed tab directly still honors the enterprise policy that
-// the actor would apply.
-IN_PROC_BROWSER_TEST_F(ToolControllerBrowserTest,
-                       ReloadPageOnCrashedTabBlockedByPolicy) {
-  ttc_service().SetEnterprisePolicyCheckerForTesting(
-      std::make_unique<actor::MockPolicyChecker>(
-          actor::EnterprisePolicyChecker::UrlBlockReason::kExplicitlyBlocked));
-  ttc_service().StartSession();
-  auto* session_controller = ttc_service().session_controller();
-  ASSERT_TRUE(session_controller);
-
-  const GURL url =
-      embedded_https_test_server().GetURL("example.com", "/title1.html");
-  ASSERT_TRUE(content::NavigateToURL(web_contents(), url));
-  content::CrashTab(web_contents());
-  ASSERT_TRUE(web_contents()->IsCrashed());
-
-  base::test::TestFuture<ToolResponse> future;
-  ToolRequest tool_request;
-  tool_request.name =
-      std::string(actor::ReloadPageToolRequest::kModelFacingName);
-  session_controller->ProcessToolCall(std::move(tool_request),
-                                      future.GetCallback());
-
-  ToolResponse response = future.Take();
-  EXPECT_TOOL_ERROR(response, actor::mojom::ActionResultCode::kUrlBlocked);
-  EXPECT_TRUE(web_contents()->IsCrashed());
 }
 
 IN_PROC_BROWSER_TEST_F(ToolControllerBrowserTest, SwitchTab) {
@@ -2703,6 +2675,63 @@ IN_PROC_BROWSER_TEST_F(ToolControllerBrowserTest, GetToolDefinitions) {
     // definition this one takes no window_id.
     EXPECT_TRUE(close_window.parameters_json_schema.empty());
   }
+}
+
+// get_pointer is behind kTtcGetPointer, off by default: the model is not
+// offered it and cannot call it.
+IN_PROC_BROWSER_TEST_F(ToolControllerBrowserTest, GetPointerDisabledByDefault) {
+  ttc_service().StartSession();
+  auto* session_controller = ttc_service().session_controller();
+  ASSERT_TRUE(session_controller);
+
+  EXPECT_FALSE(std::ranges::contains(session_controller->GetToolDefinitions(),
+                                     "get_pointer", &ToolDefinition::name));
+
+  base::test::TestFuture<ToolResponse> future;
+  ToolRequest tool_request;
+  tool_request.name = "get_pointer";
+  session_controller->ProcessToolCall(std::move(tool_request),
+                                      future.GetCallback());
+  ToolResponse response = future.Take();
+  EXPECT_TOOL_ERROR(response, actor::mojom::ActionResultCode::kToolUnknown);
+}
+
+class ToolControllerGetPointerBrowserTest : public ToolControllerBrowserTest {
+ public:
+  ToolControllerGetPointerBrowserTest() {
+    scoped_feature_list_.InitAndEnableFeature(kTtcGetPointer);
+  }
+
+ private:
+  base::test::ScopedFeatureList scoped_feature_list_;
+};
+
+IN_PROC_BROWSER_TEST_F(ToolControllerGetPointerBrowserTest, GetPointer) {
+  ttc_service().StartSession();
+  auto* session_controller = ttc_service().session_controller();
+  ASSERT_TRUE(session_controller);
+
+  std::vector<ToolDefinition> tools = session_controller->GetToolDefinitions();
+  auto get_pointer =
+      std::ranges::find(tools, "get_pointer", &ToolDefinition::name);
+  ASSERT_NE(get_pointer, tools.end());
+  EXPECT_FALSE(get_pointer->description.empty());
+  EXPECT_EQ(get_pointer->behavior, ToolDefinition::Behavior::kBlocking);
+  EXPECT_EQ(get_pointer->verbalization,
+            ToolDefinition::Verbalization::kStandard);
+  EXPECT_TRUE(get_pointer->parameters_json_schema.empty());
+
+  // TODO(b/571268337): Nothing tracks the pointer yet, so the user is never
+  // pointing.
+  base::test::TestFuture<ToolResponse> future;
+  ToolRequest tool_request;
+  tool_request.name = "get_pointer";
+  session_controller->ProcessToolCall(std::move(tool_request),
+                                      future.GetCallback());
+  ToolResponse response = future.Take();
+  ASSERT_TRUE(response.Ok());
+  EXPECT_EQ(response.GetResult(),
+            base::DictValue().Set("status", "no_active_pointer"));
 }
 
 // The session's actor task is started with the session and stopped when it

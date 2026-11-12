@@ -337,6 +337,8 @@ class WithTestParams : public testing::WithParamInterface<TestParams> {
     }
     command_line->AppendSwitchASCII(::switches::kGeicGuestURL,
                                     guest_url.spec());
+    // Allows the non-allowlisted test server guest URL.
+    command_line->AppendSwitch(::switches::kGeicAllowAnyGuestURL);
   }
 
   // Returns whether the test profile should be latched to GEiC.
@@ -5074,6 +5076,39 @@ IN_PROC_BROWSER_TEST_P(GlicApiTest, testAdditionalContextClearedOnAbortedOpen) {
   ASSERT_FALSE(instance->host().IsPrimaryClientOpen());
 }
 
+IN_PROC_BROWSER_TEST_P(GlicApiTest, testDataTransferActionsBlockedNotices) {
+  ASSERT_OK(OpenGlicForActiveTab());
+  ExecuteJsTest();
+
+  auto* instance = GetOnlyGlicInstance();
+  ASSERT_TRUE(instance);
+
+  instance->NotifyDataTransferActionsBlocked(
+      glic::mojom::DataTransferActionsBlockedNotice::New(
+          glic::mojom::DataTransferAction::kPaste,
+          glic::mojom::DataTransferActionsBlockedReason::
+              kIneligiblePageContext));
+  instance->NotifyDataTransferActionsBlocked(
+      glic::mojom::DataTransferActionsBlockedNotice::New(
+          glic::mojom::DataTransferAction::kPaste,
+          glic::mojom::DataTransferActionsBlockedReason::kCrossProfile));
+  instance->NotifyDataTransferActionsBlocked(
+      glic::mojom::DataTransferActionsBlockedNotice::New(
+          glic::mojom::DataTransferAction::kDrop,
+          glic::mojom::DataTransferActionsBlockedReason::
+              kUnsupportedOrExpiredSource));
+
+  ContinueJsTest();
+
+  instance->NotifyDataTransferActionsBlocked(
+      glic::mojom::DataTransferActionsBlockedNotice::New(
+          glic::mojom::DataTransferAction::kDrop,
+          glic::mojom::DataTransferActionsBlockedReason::
+              kIneligiblePageContext));
+
+  ContinueJsTest();
+}
+
 IN_PROC_BROWSER_TEST_P(GlicApiActorTest, testCancelActions) {
   ASSERT_OK(OpenGlicForActiveTab());
   ExecuteJsTest();
@@ -5757,6 +5792,11 @@ IN_PROC_BROWSER_TEST_P(GlicApiTest, testMetrics) {
       /*expected_bucket_count=*/1));
   ASSERT_OK(histogram_tester.WaitForTotalCount(
       "Glic.Api.RequestCounts.OnTooltipImpression", 1));
+  ASSERT_OK(histogram_tester.WaitForTotalCount(
+      "Glic.Api.RequestCounts.OnTooltipHidden", 1));
+  ASSERT_OK(CloseGlicForTabAndWait(GetTabListInterface()->GetActiveTab()));
+  histogram_tester.ExpectUniqueSample("Glic.Tooltip.MultiTab.ClosedWhileShown",
+                                      false, 1);
 }
 
 IN_PROC_BROWSER_TEST_P(GlicApiTest, testUserInputSubmittedPromptType) {

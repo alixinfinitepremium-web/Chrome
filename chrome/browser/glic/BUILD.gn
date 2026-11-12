@@ -175,6 +175,7 @@ source_set("glic") {
       "glic_selection_observer.h",
       "host/context/glic_focused_tab_manager.h",
       "public/widget/glic_side_panel_coordinator_impl.h",
+      "selection/selection_overlay_invocation_helper.h",
       "widget/glic_loading_placeholder_controller.h",
       "widget/glic_loading_placeholder_view.h",
       "widget/glic_view.h",
@@ -711,6 +712,7 @@ source_set("impl") {
     "//components/skills:features",
     "//components/skills/public",
     "//components/skills/public:mojo_bindings",
+    "//components/split_tabs",
     "//components/startup_metric_utils",
     "//components/stream_transport/public",
     "//components/stream_transport/public:service",
@@ -755,6 +757,7 @@ source_set("impl") {
       "host/context/glic_focused_tab_manager.cc",
       "host/context/glic_focused_tab_manager.h",
       "host/glic_tools_desktop.cc",
+      "selection/selection_overlay_invocation_helper.cc",
       "widget/glic_floating_ui.cc",
       "widget/glic_floating_ui.h",
       "widget/glic_inactive_side_panel_ui.cc",
@@ -813,6 +816,8 @@ source_set("impl") {
       "common/view_scoped_registration_delegate_android.cc",
       "experimental_opt_in/glic_experimental_opt_in_ui_host_android.cc",
       "experimental_opt_in/glic_experimental_opt_in_ui_host_android.h",
+      "experimental_triggering/glic_background_opt_in_notifier_android.cc",
+      "experimental_triggering/glic_background_opt_in_notifier_android.h",
       "glic_settings_util_android.cc",
       "host/context/favicon_impl/glic_tab_favicon_adapter_android.cc",
       "host/context/favicon_impl/glic_tab_favicon_adapter_android.h",
@@ -832,6 +837,7 @@ source_set("impl") {
       "//chrome/browser/context_sharing/tab_bottom_sheet/android",
       "//chrome/browser/glic/android",
       "//chrome/browser/glic/browser_ui:impl",
+      "//chrome/browser/ui/android/tab_model",
       "//chrome/browser/ui/side_panel",
       "//chrome/browser/ui/side_panel/android",
       "//components/embedder_support/android:web_contents_delegate",
@@ -973,6 +979,7 @@ source_set("unit_tests") {
     "public/glic_provider_latch_unittest.cc",
     "public/glic_provider_metrics_unittest.cc",
     "selection/selection_context_unittest.cc",
+    "service/glic_instance_impl_unittest.cc",
     "service/glic_invoke_handler_unittest.cc",
     "service/glic_invoke_preparation_unittest.cc",
     "service/glic_invoke_task_unittest.cc",
@@ -1004,7 +1011,9 @@ source_set("unit_tests") {
     "//chrome/browser/pwc",
     "//chrome/browser/stream_transport",
     "//chrome/browser/sync",
+    "//chrome/browser/tab_list:test_support",
     "//chrome/browser/ui:ui_features",
+    "//chrome/browser/ui/browser_window/test:test_support",
     "//chrome/test/base:chrome_render_view_host_test_harness",
     "//chrome/test/base:chrome_test_scoped_utils",
     "//chrome/test/base:testing_browser_process",
@@ -1027,12 +1036,14 @@ source_set("unit_tests") {
     "//components/signin/public/base",
     "//components/skills:features",
     "//components/skills/public",
+    "//components/split_tabs",
     "//components/stream_transport/public:payload_type_mapping",
     "//components/stream_transport/public:service",
     "//components/tabs:test_support",
     "//pdf:buildflags",
     "//testing/gmock",
     "//testing/gtest",
+    "//url",
   ]
   if (!is_android) {
     sources += [
@@ -1068,7 +1079,6 @@ source_set("unit_tests") {
       "//chrome/browser/notifications",
       "//chrome/browser/status_icons",
       "//chrome/browser/ui:browser_manager_service",
-      "//chrome/browser/ui/browser_window/test:test_support",
       "//chrome/common:chrome_features",
       "//chrome/test/base:scoped_metrics_service",
       "//components/live_caption",
@@ -1090,6 +1100,7 @@ source_set("unit_tests") {
     sources += [
       "android/background_actuation_capability_unittest.cc",
       "common/glic_tab_observer_android_unittest.cc",
+      "experimental_triggering/glic_background_opt_in_notifier_android_unittest.cc",
       "public/glic_enabling_native_fre_unittest.cc",
       "widget/glic_side_panel_ui_android_unittest.cc",
     ]
@@ -1099,7 +1110,6 @@ source_set("unit_tests") {
       "//chrome/browser/glic/common",
       "//chrome/browser/ui/android/tab_model",
       "//chrome/browser/ui/android/tab_model:test_support",
-      "//chrome/browser/ui/browser_window/test:test_support",
       "//chrome/common:chrome_features",
       "//chrome/test:test_support",
       "//components/prefs:test_support",
@@ -1152,6 +1162,7 @@ source_set("browser_tests") {
     "host/glic_start_benchmark_browsertest.cc",
     "host/glic_web_client_manager_browsertest.cc",
     "host/glic_web_contents_warming_pool_browsertest.cc",
+    "host/glic_web_drag_and_drop_browsertest.cc",
     "service/glic_activity_manager_browsertest.cc",
     "service/glic_instance_coordinator_browsertest.cc",
     "service/glic_instance_helper_browsertest.cc",
@@ -1263,10 +1274,7 @@ source_set("browser_tests") {
     ]
 
     if (enterprise_cloud_content_analysis) {
-      sources += [
-        "host/glic_drag_and_drop_policy_browsertest.cc",
-        "host/glic_web_drag_and_drop_browsertest.cc",
-      ]
+      sources += [ "host/glic_drag_and_drop_policy_browsertest.cc" ]
     }
     deps += [
       ":glic",
@@ -1391,6 +1399,10 @@ source_set("browser_tests") {
   }
 
   data_deps = [ "//chrome/test/data/webui/glic:generate_test_files" ]
+
+  if (!is_chromeos && !is_android) {
+    deps += [ "//chrome/test/base:fake_gaia_mixin" ]
+  }
 }
 
 if (!is_android) {

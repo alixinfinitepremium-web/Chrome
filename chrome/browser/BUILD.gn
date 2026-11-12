@@ -4909,7 +4909,6 @@ source_set("test_support") {
   } else {
     public_deps += [
       "//chrome/browser/apps/intent_helper:test_support",
-      "//chrome/browser/privacy_sandbox:attestations_mixin",
       "//chrome/browser/sessions:test_support",
     ]
     deps += [
@@ -4918,7 +4917,6 @@ source_set("test_support") {
       "//chrome/browser/speech",
       "//chrome/browser/speech:test_support",
       "//components/privacy_sandbox:features",
-      "//components/privacy_sandbox/privacy_sandbox_attestations:test_support",
       "//components/services/app_service",
     ]
   }
@@ -5091,6 +5089,7 @@ source_set("core_unit_tests") {
     deps += [
       "//chrome/browser/child_module",
       "//chrome/browser/ui/webui/top_chrome",
+      "//chrome/browser/web_applications:web_applications_test_support",
       "//chrome/common/child_module",
     ]
   }
@@ -5296,7 +5295,6 @@ if (!is_android) {
       "//components/enterprise/data_controls/core/browser:test_support",
       "//components/javascript_dialogs",
       "//components/prefs",
-      "//components/privacy_sandbox/privacy_sandbox_attestations:test_support",
       "//components/site_isolation",
       "//components/tabs:public",
       "//components/universal_optout",
@@ -5407,6 +5405,7 @@ if (!is_android) {
       "//chrome/common:chrome_features",
       "//chrome/common:non_code_constants",
       "//chrome/test:test_support",
+      "//chrome/test/base:chrome_test_path_utils",
       "//components/javascript_dialogs",
       "//components/surface_embed/common",
       "//components/webui/flags",

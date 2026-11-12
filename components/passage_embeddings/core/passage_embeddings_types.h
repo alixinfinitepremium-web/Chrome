@@ -5,6 +5,7 @@
 #ifndef COMPONENTS_PASSAGE_EMBEDDINGS_CORE_PASSAGE_EMBEDDINGS_TYPES_H_
 #define COMPONENTS_PASSAGE_EMBEDDINGS_CORE_PASSAGE_EMBEDDINGS_TYPES_H_
 
+#include <cstdint>
 #include <optional>
 #include <set>
 #include <string>
@@ -80,15 +81,21 @@ enum class ComputeEmbeddingsStatus {
 struct EmbedderMetadata {
   EmbedderMetadata(int64_t model_version,
                    size_t output_size,
+                   uint32_t input_window_size,
                    std::optional<double> search_score_threshold = std::nullopt)
       : model_version(model_version),
         output_size(output_size),
+        input_window_size(input_window_size),
         search_score_threshold(search_score_threshold) {}
 
-  bool IsValid() { return model_version != 0 && output_size != 0; }
+  bool IsValid() const {
+    return model_version != 0 && output_size != 0 && input_window_size != 0;
+  }
 
   int64_t model_version;
   size_t output_size;
+  // The size of the input window expected by the model, in tokens.
+  uint32_t input_window_size;
   std::optional<double> search_score_threshold;
 };
 

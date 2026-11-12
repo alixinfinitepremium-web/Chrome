@@ -19,7 +19,7 @@
 #include "base/observer_list_types.h"
 #include "base/sequence_checker.h"
 #include "base/time/time.h"
-#include "components/autofill/core/browser/data_manager/autofill_ai/entity_suppression_entry.h"
+#include "components/autofill/core/browser/webdata/personal_context/personal_context_entity_metadata_sync_util.h"
 #include "components/sync/model/data_type_store.h"
 #include "components/sync/model/data_type_sync_bridge.h"
 #include "components/sync/protocol/autofill_entity_suppression_specifics.pb.h"
@@ -79,12 +79,19 @@ class PersonalContextEntityMetadataSyncBridge
   // no such records. Returns `true` if suppression status was modified.
   bool Unsuppress(const EntitySuppressionEntry& entry);
 
-  // Deletes suppression records whose creation timestamp falls within the
-  // inclusive range `[delete_begin, delete_end]` from local storage and Sync,
-  // and notifies observers if any record was removed. Returns `false` if Sync
-  // is not tracking metadata or no entries matched the time range. Returns
-  // `true` if suppression status was modified.
-  bool ClearSuppressions(base::Time delete_begin, base::Time delete_end);
+  // Adds a confirmation `hash`, generates a GUID, encrypts and persists it,
+  // and notifies Sync. If this exceeds the maximum number of confirmations,
+  // the oldest ones are deleted. Returns `false` if Sync is not tracking
+  // metadata or `hash` was already confirmed. Returns `true` if confirmation
+  // status was modified.
+  bool Confirm(EntityConfirmationHash hash);
+
+  // Deletes suppression and confirmation records whose creation timestamp falls
+  // within the inclusive range `[delete_begin, delete_end]` from local storage
+  // and Sync, and notifies observers if any suppression record was removed.
+  // Returns `false` if no entries matched the time range. Returns `true` if any
+  // record was removed.
+  bool ClearEntries(base::Time delete_begin, base::Time delete_end);
 
   // Returns the hashes of all currently active suppressions.
   base::flat_set<EntitySuppressionHash> GetSuppressions() const;
@@ -92,11 +99,17 @@ class PersonalContextEntityMetadataSyncBridge
   // Returns true if `entry` is currently suppressed.
   bool IsSuppressed(const EntitySuppressionEntry& entry) const;
 
-  // Returns the number of suppression records whose creation timestamp falls
-  // within the inclusive range `[begin, end]`. Null `begin`/`end` are treated
-  // as `base::Time::Min()`/`base::Time::Max()`, matching `ClearSuppressions()`.
-  size_t CountSuppressionsCreatedBetween(base::Time begin,
-                                         base::Time end) const;
+  // Returns the hashes of all currently active confirmations.
+  base::flat_set<EntityConfirmationHash> GetConfirmations() const;
+
+  // Returns true if `hash` is currently confirmed.
+  bool IsConfirmed(EntityConfirmationHash hash) const;
+
+  // Returns the number of suppression and confirmation records whose creation
+  // timestamp falls within the inclusive range `[begin, end]`. Null
+  // `begin`/`end` are treated as `base::Time::Min()`/`base::Time::Max()`,
+  // matching `ClearEntries()`.
+  size_t CountEntriesCreatedBetween(base::Time begin, base::Time end) const;
 
   bool IsLoaded() const;
 
@@ -172,6 +185,13 @@ class PersonalContextEntityMetadataSyncBridge
       base::flat_map<Key, EntryMetadata>& metadata_map,
       syncer::DataTypeStore::WriteBatch& batch);
 
+  // Applies an incoming remote `specifics` entry and returns `true` if a new
+  // entry was added to `suppression_metadata_by_entry_`.
+  bool ApplyRemoteSpecifics(
+      const std::string& storage_key,
+      const sync_pb::AutofillEntitySuppressionSpecifics& specifics,
+      syncer::DataTypeStore::WriteBatch& batch);
+
   // Stages the encrypted write of `specifics` to local storage (via `batch`)
   // and notifies Sync (via `change_processor()`).
   void WriteEntryToStoreAndSync(
@@ -191,6 +211,15 @@ class PersonalContextEntityMetadataSyncBridge
   bool DeleteOldestEntriesAboveLimit(
       base::flat_map<Key, EntryMetadata>& metadata_map,
       size_t max_entries,
+      syncer::DataTypeStore::WriteBatch& batch);
+
+  struct EvictedEntriesResult {
+    bool deleted_suppressions = false;
+    bool deleted_confirmations = false;
+  };
+
+  // Enforces `kMaxSuppressions` and `kMaxConfirmations` on both metadata maps.
+  EvictedEntriesResult DeleteOldestEntriesAboveLimits(
       syncer::DataTypeStore::WriteBatch& batch);
 
   void OnStoreCreated(base::RepeatingClosure barrier,
@@ -239,6 +268,10 @@ class PersonalContextEntityMetadataSyncBridge
   // In-memory mapping from `EntitySuppressionHash` to its metadata.
   base::flat_map<EntitySuppressionHash, EntryMetadata>
       suppression_metadata_by_entry_;
+
+  // In-memory mapping from `EntityConfirmationHash` to its metadata.
+  base::flat_map<EntityConfirmationHash, EntryMetadata>
+      confirmation_metadata_by_entry_;
 
   base::WeakPtrFactory<PersonalContextEntityMetadataSyncBridge>
       weak_ptr_factory_{this};

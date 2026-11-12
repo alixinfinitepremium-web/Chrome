@@ -18,7 +18,6 @@
 #include "base/strings/string_util.h"
 #include "base/strings/utf_string_conversions.h"
 #include "base/time/time.h"
-#include "base/types/expected.h"
 #include "chrome/common/read_anything/read_anything_util.h"
 #include "ui/accessibility/ax_tree_data.h"
 #if !BUILDFLAG(IS_CHROMEOS)
@@ -670,6 +669,8 @@ void ReadAnythingAppModel::UpdateDistillationForDocsIfNeeded() {
 void ReadAnythingAppModel::ResetReadabilityState() {
   readability_title_.clear();
   readability_content_html_.clear();
+  text_to_ax_map_.clear();
+  readability_display_node_ids_.clear();
   set_requires_readability_distillation(false);
   set_readability_content_drawn(false);
   set_is_readability_mapping_in_progress(false);
@@ -1128,8 +1129,10 @@ void ReadAnythingAppModel::SetDefaultDistillationMethod() {
 
 void ReadAnythingAppModel::OnScroll(bool on_selection,
                                     bool from_reading_mode) const {
-  // Scroll events shouldn't be logged when reading mode is inactive.
-  if (!is_active_presentation_state_opened()) {
+  // Don't log scroll events while reading mode isn't shown.
+  // TODO(crbug.com/580978096): Scrolls queued while Reading Mode is hidden are
+  // still recorded once it's shown.
+  if (!is_shown_) {
     return;
   }
   // Enum for logging how a scroll occurs.
@@ -1176,6 +1179,8 @@ void ReadAnythingAppModel::SetActiveTreeId(ui::AXTreeID active_tree_id) {
   // Otherwise, this can cause tree inconsistency issues if reading mode later
   // incorrectly receives updates from the old tree.
   if (active_tree_id_ != active_tree_id) {
+    // TODO(crbug.com/580978096): A navigation while Reading Mode is hidden
+    // still applies the old page's queued updates here.
     if (active_tree_id_ != ui::AXTreeIDUnknown() && ContainsActiveTree()) {
       UnserializePendingUpdates(active_tree_id_);
     }
@@ -1709,41 +1714,11 @@ void ReadAnythingAppModel::ResetAXTreeAnchors() {
   ax_tree_anchors_.clear();
 }
 
-bool ReadAnythingAppModel::MapRenderedTextToTree(
-    const std::vector<std::u16string>& blocks) {
-  if (!should_map_rendered_text_to_tree_for_readability()) {
-    return false;
-  }
-
-  ui::AXSerializableTree* tree = GetValidActiveTree();
-  if (!tree) {
-    return false;
-  }
-
-  text_to_ax_map_.clear();
+void ReadAnythingAppModel::SetTextToAXMap(
+    ReadAnythingTextAligner::TextToAXMap text_to_ax_map) {
+  text_to_ax_map_ = std::move(text_to_ax_map);
   readability_display_node_ids_.clear();
-  // Ensure the mapping storage size matches the input blocks.
-  text_to_ax_map_.resize(blocks.size());
-
-  base::expected<ReadAnythingTextAligner::TextToAXMap,
-                 ReadAnythingTextAligner::AlignmentError>
-      text_to_ax_map = ReadAnythingTextAligner::MapRenderedTextToTree(
-          blocks, *tree, page_finished_loading_ || tree->data().loaded);
-  if (!text_to_ax_map.has_value()) {
-    // Once the loaded tree has no text, reset the mapping flags so mapping is
-    // not retried on every event.
-    if (text_to_ax_map.error() ==
-        ReadAnythingTextAligner::AlignmentError::kNoText) {
-      should_map_rendered_text_to_tree_for_readability_ = false;
-      is_readability_mapping_in_progress_ = false;
-    }
-    return false;
-  }
-
-  text_to_ax_map_ = std::move(text_to_ax_map.value());
   ComputeReadabilityDisplayNodeIds();
-  should_map_rendered_text_to_tree_for_readability_ = false;
-  return true;
 }
 
 std::vector<ReadAnythingTextAligner::MappingSegment>

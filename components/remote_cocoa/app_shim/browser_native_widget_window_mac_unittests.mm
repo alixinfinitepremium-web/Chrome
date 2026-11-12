@@ -418,6 +418,97 @@ TEST(NativeWidgetMacNSWindowTest,
   }
 }
 
+// Tests that AppKit frame adjustment callbacks (_setFrameAfterMove: and
+// _setFrame:fromAdjustmentToScreen:anchorIfNeeded:animate:) are suppressed
+// during live resize to prevent asynchronous move callbacks from triggering
+// recursive resize loops.
+TEST(NativeWidgetMacNSWindowTest,
+     SuppressAppKitFrameAdjustmentsDuringLiveResize) {
+  display::ScopedNativeScreen screen;
+  @autoreleasepool {
+    TestLiveResizeNSWindow* window = [[TestLiveResizeNSWindow alloc]
+        initWithContentRect:ui::kWindowSizeDeterminedLater
+                  styleMask:NSWindowStyleMaskBorderless
+                    backing:NSBackingStoreBuffered
+                      defer:NO];
+
+    DummyNativeWidgetNSWindowHost dummy_host;
+    DummyNativeWidgetNSWindowHostHelper dummy_helper;
+    auto bridge = std::make_unique<remote_cocoa::NativeWidgetNSWindowBridge>(
+        1, &dummy_host, &dummy_helper, nullptr);
+    bridge->SetWindow(window);
+
+    const NSRect initial_frame = NSMakeRect(100, 100, 400, 300);
+    [window setFrame:initial_frame display:NO];
+
+    window.mockInLiveResize = YES;
+
+    // Verify that AppKit internal frame adjustment callbacks do not modify the
+    // frame while in live resize.
+    NSScreen* main_screen = [NSScreen mainScreen];
+    [window _setFrame:NSMakeRect(200, 200, 400, 400)
+        fromAdjustmentToScreen:main_screen
+                anchorIfNeeded:nullptr
+                       animate:NO];
+    EXPECT_TRUE(NSEqualRects([window frame], initial_frame));
+
+    [window _setFrameAfterMove:NSMakeRect(300, 300, 400, 400)];
+    EXPECT_TRUE(NSEqualRects([window frame], initial_frame));
+
+    window.mockInLiveResize = NO;
+    [window close];
+  }
+}
+
+// Tests that AppKit frame adjustments remain suppressed while an async live
+// resize frame is pending. This prevents AppKit from adjusting the window
+// frame when inLiveResize clears before the final frame arrives.
+TEST(NativeWidgetMacNSWindowTest,
+     SuppressAppKitFrameAdjustmentsDuringPendingLiveResizeFrame) {
+  base::test::ScopedFeatureList feature_list;
+  feature_list.InitAndEnableFeature(features::kAsyncLiveResize);
+
+  display::ScopedNativeScreen screen;
+  @autoreleasepool {
+    NativeWidgetMacNSWindow* window = [[NativeWidgetMacNSWindow alloc]
+        initWithContentRect:ui::kWindowSizeDeterminedLater
+                  styleMask:NSWindowStyleMaskBorderless
+                    backing:NSBackingStoreBuffered
+                      defer:NO];
+
+    DummyNativeWidgetNSWindowHost dummy_host;
+    DummyNativeWidgetNSWindowHostHelper dummy_helper;
+    auto bridge = std::make_unique<remote_cocoa::NativeWidgetNSWindowBridge>(
+        2, &dummy_host, &dummy_helper, nullptr);
+    bridge->SetWindow(window);
+
+    const NSRect initial_frame = NSMakeRect(100, 100, 400, 300);
+    [window setFrame:initial_frame display:NO];
+
+    EXPECT_FALSE(bridge->HasPendingLiveResizeFrame());
+
+    // Queue a pending live resize frame with different content size so it is
+    // stored in live_resize_.pending_window_frame awaiting compositor response.
+    const NSRect pending_frame = NSMakeRect(100, 100, 500, 400);
+    bridge->SendWindowFrameChangeToHost(pending_frame);
+    EXPECT_TRUE(bridge->HasPendingLiveResizeFrame());
+
+    // Verify that AppKit internal frame adjustment callbacks do not modify the
+    // frame while a live resize frame is pending.
+    NSScreen* main_screen = [NSScreen mainScreen];
+    [window _setFrame:NSMakeRect(200, 200, 400, 400)
+        fromAdjustmentToScreen:main_screen
+                anchorIfNeeded:nullptr
+                       animate:NO];
+    EXPECT_TRUE(NSEqualRects([window frame], initial_frame));
+
+    [window _setFrameAfterMove:NSMakeRect(300, 300, 400, 400)];
+    EXPECT_TRUE(NSEqualRects([window frame], initial_frame));
+
+    [window close];
+  }
+}
+
 // Tests that AppKit frame adjustments are suppressed specifically when dragging
 // across display boundaries, ensuring position is not clamped or locked.
 TEST(NativeWidgetMacNSWindowTest,
@@ -830,6 +921,54 @@ TEST(NativeWidgetMacNSWindowTest, AsyncLiveResizeOptionKeyCenterResize) {
   // Height delta (+61) with divisor 2.0 rounds to 31, shifting origin.y by -31.
   test_option_resize(25, NSWindowLiveResizeEdgesAll, NSMakeSize(441, 361),
                      NSMakeRect(79, 69, 441, 361), 0.5f);
+}
+
+// Tests that, when kAsyncLiveResize is enabled, a live resize with no
+// associated edges (e.g., resizing tiled windows via the native divider handle)
+// is accepted synchronously rather than being intercepted for asynchronous live
+// resize.
+TEST(NativeWidgetMacNSWindowTest, AsyncLiveResizeNoEdges) {
+  base::test::ScopedFeatureList feature_list;
+  feature_list.InitAndEnableFeature(features::kAsyncLiveResize);
+
+  display::ScopedNativeScreen screen;
+  @autoreleasepool {
+    TestLiveResizeNSWindow* window = [[TestLiveResizeNSWindow alloc]
+        initWithContentRect:ui::kWindowSizeDeterminedLater
+                  styleMask:NSWindowStyleMaskBorderless
+                    backing:NSBackingStoreBuffered
+                      defer:NO];
+
+    DummyNativeWidgetNSWindowHost dummy_host;
+    DummyNativeWidgetNSWindowHostHelper dummy_helper;
+    auto bridge = std::make_unique<remote_cocoa::NativeWidgetNSWindowBridge>(
+        13, &dummy_host, &dummy_helper, nullptr);
+    bridge->SetWindow(window);
+
+    const NSRect initial_frame = NSMakeRect(100, 100, 400, 300);
+    [window setFrame:initial_frame display:NO];
+
+    id<NSWindowDelegate> delegate = [window delegate];
+    ASSERT_TRUE(delegate);
+
+    window.mockInLiveResize = YES;
+    window.mockLiveResizeEdges = NSWindowLiveResizeEdgesNone;
+
+    const NSSize target_size = NSMakeSize(500, 400);
+    const NSSize returned_size = [delegate windowWillResize:window
+                                                     toSize:target_size];
+
+    // Synchronous resize should be accepted when there are no live resize
+    // edges.
+    EXPECT_TRUE(NSEqualSizes(returned_size, target_size));
+
+    // No asynchronous live resize frame change should be dispatched to the
+    // host.
+    EXPECT_EQ(dummy_host.last_window_bounds_in_screen_dips(),
+              gfx::ScreenRectFromNSRect(initial_frame));
+
+    [window close];
+  }
 }
 
 // Tests that, when kAsyncLiveResize is disabled, windowWillResize does not

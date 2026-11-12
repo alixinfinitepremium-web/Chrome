@@ -4370,6 +4370,9 @@ are declared in tools/grit/grit_args.gni.
         <message translateable="false" name="IDS_CERT_OID_AVA_POSTAL_CODE" desc="">
           postalCode
         </message>
+        <message translateable="false" name="IDS_CERT_OID_TRUST_ANCHOR_ID" desc="">
+          trustAnchorID
+        </message>
 
         <message name="IDS_CERT_EXT_NS_CERT_TYPE" desc="description of extension Netscape Certificate Type">
           Netscape Certificate Type
@@ -17398,16 +17401,16 @@ Please help our engineers fix this problem. Tell us what happened right before y
     </message>
 
     <!-- Incognito History Disclaimer dialog bubble. -->
-    <message name="IDS_INCOGNITO_HISTORY_BUBBLE_PRIMARY_TEXT" desc="Header in bubble view that states visited sites aren't saved in Incognito mode.">
+    <message name="IDS_INCOGNITO_HISTORY_BUBBLE_PRIMARY_TEXT" desc="Header in bubble view that states visited sites aren't saved in Incognito mode." formatter_data="android_java">
       Sites you visit aren’t saved in Incognito
     </message>
-    <message name="IDS_INCOGNITO_HISTORY_BUBBLE_SECONDARY_TEXT" desc="Description in bubble view that states closing all Incognito tabs is necessary to delete Incognito browsing history from the device,">
+    <message name="IDS_INCOGNITO_HISTORY_BUBBLE_SECONDARY_TEXT" desc="Description in bubble view that states closing all Incognito tabs is necessary to delete Incognito browsing history from the device," formatter_data="android_java">
       To delete Incognito browsing history from your device, close all Incognito tabs
     </message>
-    <message name="IDS_INCOGNITO_HISTORY_BUBBLE_CLOSE_INCOGNITO_BUTTON_TEXT" desc="Text of button in bubble view for calling to the close all incognito tabs action.">
+    <message name="IDS_INCOGNITO_HISTORY_BUBBLE_CLOSE_INCOGNITO_BUTTON_TEXT" desc="Text of button in bubble view for calling to the close all incognito tabs action." formatter_data="android_java">
       Close Incognito
     </message>
-    <message name="IDS_INCOGNITO_HISTORY_BUBBLE_CANCEL_BUTTON_TEXT" desc="Text of button in bubble view for calling to the close the bubble action.">
+    <message name="IDS_INCOGNITO_HISTORY_BUBBLE_CANCEL_BUTTON_TEXT" desc="Text of button in bubble view for calling to the close the bubble action." formatter_data="android_java">
       Got it
     </message>
 
@@ -18800,6 +18803,16 @@ Please help our engineers fix this problem. Tell us what happened right before y
       <message name="IDS_NTP_EXTENSIONS_PROMO" desc="The text shown in the body of the New Tab Page extensions promotion">
         Add extensions to stay organized, simplify tasks, and enhance your browsing
       </message>
+      <if expr="is_macosx">
+        <message name="IDS_NTP_OMNIBOX_EVERYWHERE_PROMO" desc="The text shown in the body of the New Tab Page Omnibox Everywhere promotion on macOS.">
+          Search faster from anywhere on your Mac without opening a new tab
+        </message>
+      </if>
+      <if expr="not is_macosx">
+        <message name="IDS_NTP_OMNIBOX_EVERYWHERE_PROMO" desc="The text shown in the body of the New Tab Page Omnibox Everywhere promotion.">
+          Search faster from anywhere on your computer without opening a new tab
+        </message>
+      </if>
     </if>
 
     <!-- Save to Drive -->

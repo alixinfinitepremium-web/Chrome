@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <optional>
+
 #include "base/location.h"
 #include "base/run_loop.h"
 #include "base/strings/strcat.h"
@@ -31,6 +33,7 @@
 #include "chrome/browser/ui/browser_element_identifiers.h"
 #include "chrome/browser/ui/browser_tabstrip.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_features.h"
+#include "chrome/browser/ui/color/chrome_color_id.h"
 #include "chrome/browser/ui/side_panel/side_panel_entry_id.h"
 #include "chrome/browser/ui/side_panel/side_panel_ui.h"
 #include "chrome/browser/ui/tabs/features.h"
@@ -88,8 +91,10 @@
 #include "ui/accessibility/ax_node_data.h"
 #include "ui/actions/action_id.h"
 #include "ui/base/l10n/l10n_util.h"
+#include "ui/base/models/image_model.h"
 #include "ui/base/mojom/menu_source_type.mojom.h"
 #include "ui/base/page_transition_types.h"
+#include "ui/color/color_variant.h"
 #include "ui/compositor/layer.h"
 #include "ui/compositor/layer_animator.h"
 #include "ui/compositor/layer_solid_color.h"
@@ -102,6 +107,7 @@
 #include "ui/views/controls/menu/menu_separator.h"
 #include "ui/views/layout/animating_layout_manager.h"
 #include "ui/views/view_utils.h"
+#include "ui/views/widget/widget.h"
 
 #if BUILDFLAG(IS_MAC)
 #include "ui/views/controls/menu/menu_cocoa_watcher_mac.h"
@@ -1338,7 +1344,11 @@ class ContextualTasksPinningV2ParamMixin
     }
     // Keep the pinned actions container wide enough to never overflow and skip
     // its layout animation so popped-out buttons show synchronously.
-    this->browser()->GetWindow()->SetBounds(gfx::Rect(0, 0, 1280, 800));
+    ui_test_utils::SetAndWaitForBounds(*this->browser(),
+                                       gfx::Rect(0, 0, 1280, 800));
+    BrowserView::GetBrowserViewForBrowser(this->browser())
+        ->GetWidget()
+        ->LayoutRootViewIfNecessary();
     if (auto* pinned_actions = ToolbarButtonProvider::From(this->browser())
                                    ->GetPinnedToolbarActions()) {
       if (auto* container = views::AsViewClass<PinnedToolbarActionsContainer>(
@@ -3929,6 +3939,9 @@ class ContextualTasksPinnedButtonActiveIndicatorCircleHighlightInteractiveTest
         {contextual_tasks::kContextualTasksPinnedButtonActiveIndicator,
          {{"ContextualTasksPinnedButtonActiveIndicatorCircleHighlight",
            "true"}}});
+    enabled_features.push_back(
+        {contextual_tasks::kContextualTasksUnifyPinButtonLogos,
+         {{"ContextualTasksUnifyPinButtonLogo", "gray-super-g"}}});
     return enabled_features;
   }
 };
@@ -4080,8 +4093,7 @@ IN_PROC_BROWSER_TEST_F(
     EphemeralButtonShowsCircleHighlightOnlyWhenPanelClosed) {
   raw_ptr<ContextualTasksButton> ephemeral_button = nullptr;
   RunTestSequence(
-      SignIntoEligibleAccount(), InstrumentTab(kFirstTab),
-      Do([&]() {
+      SignIntoEligibleAccount(), InstrumentTab(kFirstTab), Do([&]() {
         PinnedToolbarActionsModel::Get(browser()->GetProfile())
             ->UpdatePinnedState(kActionSidePanelShowContextualTasks, false);
       }),
@@ -4091,7 +4103,12 @@ IN_PROC_BROWSER_TEST_F(
           kContextualTasksEphemeralToolbarButtonElementId,
           [&ephemeral_button](ContextualTasksButton* button) {
             ephemeral_button = button;
-            return button->GetStatusIndicatorForTesting() != nullptr &&
+            const std::optional<ui::ImageModel>& image_model =
+                button->GetImageModel(views::Button::STATE_NORMAL);
+            return image_model.has_value() && image_model->IsVectorIcon() &&
+                   image_model->GetVectorIcon().color() ==
+                       ui::ColorVariant(kColorToolbarButtonIcon) &&
+                   button->GetStatusIndicatorForTesting() != nullptr &&
                    !button->GetStatusIndicatorForTesting()->GetVisible() &&
                    !button->ShouldShowCircleHighlight() &&
                    button->GetBackground() == nullptr &&
@@ -4103,7 +4120,12 @@ IN_PROC_BROWSER_TEST_F(
       CheckView(
           kContextualTasksEphemeralToolbarButtonElementId,
           [](ContextualTasksButton* button) {
-            return button->GetStatusIndicatorForTesting() != nullptr &&
+            const std::optional<ui::ImageModel>& image_model =
+                button->GetImageModel(views::Button::STATE_NORMAL);
+            return image_model.has_value() && image_model->IsVectorIcon() &&
+                   image_model->GetVectorIcon().color() ==
+                       ui::ColorVariant(kColorToolbarButtonIcon) &&
+                   button->GetStatusIndicatorForTesting() != nullptr &&
                    !button->GetStatusIndicatorForTesting()->GetVisible() &&
                    button->ShouldShowCircleHighlight() &&
                    button->GetBackground() != nullptr &&
@@ -4111,8 +4133,7 @@ IN_PROC_BROWSER_TEST_F(
           },
           true),
       RemoveTaskFromTab(0),
-      WaitForHide(kContextualTasksEphemeralToolbarButtonElementId),
-      Do([&]() {
+      WaitForHide(kContextualTasksEphemeralToolbarButtonElementId), Do([&]() {
         ASSERT_NE(ephemeral_button, nullptr);
         EXPECT_FALSE(ephemeral_button->ShouldShowCircleHighlight());
       }));
@@ -4605,5 +4626,60 @@ IN_PROC_BROWSER_TEST_F(
             "ContextualTasks.EphemeralToolbarButton.UserAction."
             "RemoveByContextMenu",
             true, 1);
+      }));
+}
+
+// The two-button `kEphemeralPinningVisibleWhenPermanentlyPinned` mode is not
+// supported under the ephemeral pin button refactor, since the ephemeral and
+// permanent buttons are the same toolbar action. A pinned user must only see
+// the permanent button and must not record ephemeral button metrics.
+class ContextualTasksEphemeralPinButtonRefactorVisibleWhenPinnedInteractiveTest
+    : public ContextualTasksEphemeralPinButtonRefactorInteractiveTest {
+ public:
+  std::vector<base::test::FeatureRefAndParams> GetEnabledFeatures() override {
+    std::vector<base::test::FeatureRefAndParams> enabled_features =
+        ContextualTasksEphemeralPinButtonRefactorInteractiveTest::
+            GetEnabledFeatures();
+    enabled_features.push_back(
+        {contextual_tasks::kEphemeralPinningVisibleWhenPermanentlyPinned, {}});
+    return enabled_features;
+  }
+};
+
+IN_PROC_BROWSER_TEST_F(
+    ContextualTasksEphemeralPinButtonRefactorVisibleWhenPinnedInteractiveTest,
+    PinnedButtonDoesNotRecordEphemeralMetrics) {
+  base::UserActionTester user_action_tester;
+  base::HistogramTester histogram_tester;
+
+  RunTestSequence(
+      SignIntoEligibleAccount(), InstrumentTab(kFirstTab), Do([&]() {
+        PinnedToolbarActionsModel::Get(browser()->GetProfile())
+            ->UpdatePinnedState(kActionSidePanelShowContextualTasks, true);
+      }),
+      WaitForShow(kPinnedToolbarActionShowSidePanelContextualTasksElementId),
+      CreateTaskForTab(0), SimulateOpeningContextualTaskSidePanel(),
+      SimulateClosingContextualTaskSidePanel(),
+      EnsurePresent(kPinnedToolbarActionShowSidePanelContextualTasksElementId),
+      EnsureNotPresent(kContextualTasksEphemeralToolbarButtonElementId),
+      Do([&]() {
+        EXPECT_EQ(0, user_action_tester.GetActionCount(
+                         "ContextualTasks.EphemeralToolbarButton.Shown"));
+        histogram_tester.ExpectTotalCount(
+            "ContextualTasks.EphemeralToolbarButton.Shown", 0);
+      }),
+      PressButton(kPinnedToolbarActionShowSidePanelContextualTasksElementId),
+      Do([&]() {
+        EXPECT_EQ(1, user_action_tester.GetActionCount(
+                         "ContextualTasks.PermanentToolbarButton.UserAction."
+                         "OpenSidePanel"));
+        EXPECT_EQ(0, user_action_tester.GetActionCount(
+                         "ContextualTasks.EphemeralToolbarButton.UserAction."
+                         "OpenSidePanel"));
+        EXPECT_TRUE(
+            histogram_tester
+                .GetTotalCountsForPrefix(
+                    "ContextualTasks.EphemeralToolbarButton.ShownDuration")
+                .empty());
       }));
 }

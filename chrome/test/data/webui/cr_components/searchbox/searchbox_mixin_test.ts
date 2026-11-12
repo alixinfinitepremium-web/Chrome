@@ -647,7 +647,8 @@ suite('SearchboxMixinTest', () => {
     assertTrue(enterEvent.defaultPrevented);
     await microtasksFinished();
 
-    const args = await testProxy.handler.whenCalled('openPopupSelection');
+    const args =
+        await testProxy.handler.whenCalled('openPopupSelectionWithDisposition');
     assertEquals(0, args.selection.line);
     assertEquals(SelectionLineState.kCtrlEnter, args.selection.state);
   });
@@ -1960,6 +1961,57 @@ suite('SearchboxMixinTest', () => {
     assertEquals(input.inputElement.value, 'Hello');
     assertEquals(0, textUpdatedEventCount);
   });
+
+  test(
+      'first mouse press after committing a composition freezes its results',
+      async () => {
+        const mockInput = element.getInputElement();
+        function commit() {
+          mockInput.inputElement.dispatchEvent(
+              new CompositionEvent('compositionend', {data: 'にほん'}));
+        }
+        function pressMouse() {
+          element.getDropdownElement().dispatchEvent(
+              new MouseEvent('mousedown', {bubbles: true, composed: true}));
+        }
+        mockInput.inputElement.value = 'にほん';
+        mockInput.inputElement.dispatchEvent(new InputEvent('input', {
+          inputType: 'insertCompositionText',
+          data: 'にほん',
+          isComposing: true,
+        }));
+
+        // Like the browser, commit the composition before dispatching the
+        // mouse press that ended it, e.g. on a match.
+        commit();
+        const queryId = element.activeQueryId;
+        pressMouse();
+        assertEquals(-1, element.activeQueryId);
+
+        // The results for the committed text don't replace the matches under
+        // the pointer.
+        element.onAutocompleteResultChanged(createAutocompleteResultForTesting({
+          queryId,
+          input: 'にほん',
+          matches: [createSearchMatchForTesting()],
+        }));
+        await microtasksFinished();
+        assertEquals(null, element.result);
+
+        // Later presses don't freeze them, e.g. once deleting a match
+        // unfroze them.
+        element.unfreezeActiveQueryId();
+        pressMouse();
+        assertEquals(queryId, element.activeQueryId);
+
+        // Neither do presses after a key press, e.g. Enter, which waits for
+        // the results.
+        commit();
+        const secondQueryId = element.activeQueryId;
+        mockInput.inputElement.dispatchEvent(createKeyboardEvent('Enter'));
+        pressMouse();
+        assertEquals(secondQueryId, element.activeQueryId);
+      });
 
   test('question mark keyword entry', async () => {
     testProxy.callbackRouterRemote.setAvailableKeywordModels(
@@ -3329,7 +3381,8 @@ suite('SearchboxMixinVirtualFocusTest', () => {
     await microtasksFinished();
 
     assertTrue(ctrlEnterEvent.defaultPrevented);
-    const args = await testProxy.handler.whenCalled('openPopupSelection');
+    const args =
+        await testProxy.handler.whenCalled('openPopupSelectionWithDisposition');
     assertEquals(0, args.selection.line);
     assertEquals(SelectionLineState.kCtrlEnter, args.selection.state);
   });
@@ -4041,22 +4094,34 @@ suite('SearchboxMixinVirtualFocusTest', () => {
         assertEquals('cats', mockInput.inputElement.value);
 
         // Enter asks the browser to open the keyword chip selection, which
-        // searches the keyword for the text.
+        // searches the keyword for the text, forwarding modifier keys.
         mockInput.inputElement.dispatchEvent(createKeyboardEvent('Enter'));
         await microtasksFinished();
         assertEquals(1, testProxy.handler.getCallCount('openPopupSelection'));
-        const args = testProxy.handler.getArgs('openPopupSelection')[0];
+        let args = testProxy.handler.getArgs('openPopupSelection')[0];
         assertDeepEquals(
             {line: 0, state: SelectionLineState.kKeywordMode, actionIndex: 0},
             args.selection);
+        assertDeepEquals(
+            {altKey: false, ctrlKey: false, metaKey: false, shiftKey: false},
+            args.modifiers);
         assertEquals(
             0, testProxy.handler.getCallCount('openAutocompleteMatch'));
+
+        mockInput.inputElement.dispatchEvent(
+            createKeyboardEvent('Enter', {altKey: true, shiftKey: true}));
+        await microtasksFinished();
+        assertEquals(2, testProxy.handler.getCallCount('openPopupSelection'));
+        args = testProxy.handler.getArgs('openPopupSelection')[1];
+        assertDeepEquals(
+            {altKey: true, ctrlKey: false, metaKey: false, shiftKey: true},
+            args.modifiers);
 
         // Without text after the keyword, Enter does nothing.
         mockInput.inputElement.value = '';
         mockInput.inputElement.dispatchEvent(createKeyboardEvent('Enter'));
         await microtasksFinished();
-        assertEquals(1, testProxy.handler.getCallCount('openPopupSelection'));
+        assertEquals(2, testProxy.handler.getCallCount('openPopupSelection'));
         assertEquals(
             0, testProxy.handler.getCallCount('openAutocompleteMatch'));
       });

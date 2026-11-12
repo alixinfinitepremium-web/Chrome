@@ -1618,6 +1618,11 @@ class GlicWebClientHandler
     host().instance_metrics().OnTooltipImpression(impression);
   }
 
+  void OnTooltipHidden() override {
+    LogApiRequest(GlicHostApiRequestId::kOnTooltipHidden);
+    host().instance_metrics().OnTooltipHidden();
+  }
+
   void SetSyntheticExperimentState(const std::string& trial_name,
                                    const std::string& group_name) override {
     LogApiRequest(GlicHostApiRequestId::kSetSyntheticExperimentState);
@@ -1721,6 +1726,13 @@ class GlicWebClientHandler
   void NotifyAdditionalContext(mojom::AdditionalContextPtr context) override {
     if (web_client_) {
       web_client_->NotifyAdditionalContext(std::move(context));
+    }
+  }
+
+  void NotifyDataTransferActionsBlocked(
+      mojom::DataTransferActionsBlockedNoticePtr notice) override {
+    if (web_client_) {
+      web_client_->NotifyDataTransferActionsBlocked(std::move(notice));
     }
   }
 

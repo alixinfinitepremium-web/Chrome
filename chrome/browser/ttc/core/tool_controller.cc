@@ -13,6 +13,7 @@
 
 #include "base/base64.h"
 #include "base/check_deref.h"
+#include "base/feature_list.h"
 #include "base/functional/bind.h"
 #include "base/functional/callback_helpers.h"
 #include "base/json/json_writer.h"
@@ -24,7 +25,6 @@
 #include "chrome/browser/actor/actor_surface_handle.h"
 #include "chrome/browser/actor/actor_task.h"
 #include "chrome/browser/actor/actor_task_metadata.h"
-#include "chrome/browser/actor/enterprise_policy_checker.h"
 #include "chrome/browser/actor/tab_observation_strategy.h"
 #include "chrome/browser/actor/tools/click_tool_request.h"
 #include "chrome/browser/actor/tools/find_and_highlight_tool_request.h"
@@ -46,6 +46,7 @@
 #include "chrome/browser/actor/tools/window_management_tool_request.h"
 #include "chrome/browser/glic/public/glic_passkeys.h"
 #include "chrome/browser/profiles/profile.h"
+#include "chrome/browser/ttc/core/features.h"
 #include "chrome/browser/ttc/core/page_context_util.h"
 #include "chrome/browser/ttc/core/session_controller_impl.h"
 #include "chrome/browser/ttc/core/session_journal_impl.h"
@@ -59,10 +60,7 @@
 #include "components/page_content_annotations/content/page_context_fetcher.h"
 #include "components/sessions/core/session_id.h"
 #include "components/tabs/public/tab_interface.h"
-#include "content/public/browser/navigation_controller.h"
-#include "content/public/browser/navigation_handle.h"
 #include "content/public/browser/page.h"
-#include "content/public/browser/reload_type.h"
 #include "content/public/browser/render_widget_host_view.h"
 #include "content/public/browser/visibility.h"
 #include "content/public/browser/web_contents.h"
@@ -230,6 +228,10 @@ void ToolController::RunToolCall(const ToolRequest& tool_request,
   // The task may have been stopped while this call was queued. Replace it
   // before journaling so that the call is journaled under the task it runs in.
   session_controller_->EnsureActorTaskCreated();
+  actor::ActorKeyedService* actor_service =
+      actor::ActorKeyedService::Get(GetProfile());
+  CHECK(actor_service);
+  CHECK(actor_service->GetTask(session_controller_->GetActorTaskId()));
 
   callback = base::BindOnce(
       &OnToolCallFinished,
@@ -344,6 +346,12 @@ void ToolController::RunToolCall(const ToolRequest& tool_request,
     return;
   }
 
+  if (tool_request.name == "get_pointer" &&
+      base::FeatureList::IsEnabled(kTtcGetPointer)) {
+    GetPointer(std::move(callback));
+    return;
+  }
+
   std::move(callback).Run(ToolResponse::Error(
       actor::mojom::ActionResultCode::kToolUnknown, "Unsupported tool"));
 }
@@ -375,12 +383,13 @@ std::vector<ToolDefinition> ToolController::GetToolDefinitions() {
   std::vector<const actor::ToolDefinition*> actor_tools =
       actor_service->tool_registry().GetToolsByIds(supported_tool_ids);
 
-  // Legacy tools defined below: click_element, set_text, select_option,
-  // scroll_page, and get_screenshot; plus close_window where window tools are
-  // supported.
-  constexpr size_t kNumLegacyTools = 6;
+  // Tools defined below rather than taken from the registry: the legacy
+  // click_element, set_text, select_option, scroll_page and get_screenshot;
+  // close_window where window tools are supported; get_pointer behind its
+  // flag.
+  constexpr size_t kNumLocalTools = 7;
   std::vector<ToolDefinition> tools;
-  tools.reserve(actor_tools.size() + kNumLegacyTools);
+  tools.reserve(actor_tools.size() + kNumLocalTools);
   for (const actor::ToolDefinition* actor_tool : actor_tools) {
     ToolDefinition tool;
     tool.name = actor_tool->name;
@@ -536,6 +545,24 @@ std::vector<ToolDefinition> ToolController::GetToolDefinitions() {
     tools.push_back(std::move(close_window));
   }
 
+  if (base::FeatureList::IsEnabled(kTtcGetPointer)) {
+    ToolDefinition get_pointer;
+    get_pointer.name = "get_pointer";
+    get_pointer.description =
+        "Returns a small image of the active webpage around where the user's "
+        "pointer has been during their current request, with a crosshair "
+        "marking the pointed-at spot, plus the page element under it. Use it "
+        "when the user refers to something on screen with words like "
+        "\"this\", \"that\", \"here\" or \"there\" without naming it. If it "
+        "returns no_active_pointer, the user is not pointing at anything; "
+        "answer from the page content or ask.";
+    // The tool takes no arguments, so its schema is left empty. Like
+    // get_screenshot, the model speaks about what the tool returns.
+    get_pointer.behavior = ToolDefinition::Behavior::kBlocking;
+    get_pointer.verbalization = ToolDefinition::Verbalization::kStandard;
+    tools.push_back(std::move(get_pointer));
+  }
+
   return tools;
 }
 
@@ -637,6 +664,14 @@ void ToolController::FindAndHighlight(const base::DictValue& arguments,
             actor_surface_handle, *query);
       },
       std::move(callback));
+}
+
+void ToolController::GetPointer(ToolResponseCallback callback) {
+  // TODO(b/571268337): Resolve the pointer's dwells, capture and
+  // annotate the page around them and hit-test the element under them. Until
+  // then the user is never pointing.
+  std::move(callback).Run(ToolResponse::Success(
+      base::DictValue().Set("status", "no_active_pointer")));
 }
 
 // TODO(b/573253710): Migrate this to be an actor tool once ActorKeyedService
@@ -900,52 +935,6 @@ void ToolController::PromptGeminiPanel(const base::DictValue& arguments,
 }
 
 void ToolController::ReloadPage(ToolResponseCallback callback) {
-  // The actor rejects every action on a crashed tab, including reloading it,
-  // and leaves recovering the tab to its client (see
-  // ExecutionEngine::KickOffNextAction()), so reload a crashed tab directly.
-  content::WebContents* contents =
-      session_controller_->GetVoiceFocusedWebContents();
-  if (contents && contents->IsCrashed()) {
-    // Bypassing the actor also bypasses its enterprise policy check, which
-    // blocks navigations to URLs the policy explicitly blocks.
-    const actor::EnterprisePolicyChecker* policy_checker =
-        CHECK_DEREF(TtcKeyedService::Get(GetProfile()))
-            .enterprise_policy_checker();
-    if (policy_checker &&
-        policy_checker->Evaluate(contents->GetLastCommittedURL()) ==
-            actor::EnterprisePolicyChecker::UrlBlockReason::
-                kExplicitlyBlocked) {
-      std::move(callback).Run(
-          ToolResponse::Error(actor::mojom::ActionResultCode::kUrlBlocked,
-                              "URL is blocked by enterprise policy"));
-      return;
-    }
-    // Tool calls run one at a time, so no other reload can be in progress.
-    CHECK(!crashed_tab_reload_callback_);
-    if (tabs::TabInterface* active_tab =
-            tabs::TabInterface::MaybeGetFromContents(contents)) {
-      actor::ActorKeyedService* actor_service =
-          actor::ActorKeyedService::Get(GetProfile());
-      CHECK(actor_service);
-      if (actor::ActorTask* task =
-              actor_service->GetTask(session_controller_->GetActorTaskId())) {
-        task->AddTab(active_tab->GetHandle(), /*stop_task_on_detach=*/true,
-                     base::DoNothing());
-      }
-    }
-    crashed_tab_reload_callback_ = std::move(callback);
-    Observe(contents);
-    contents->GetController().Reload(content::ReloadType::NORMAL,
-                                     /*check_for_repost=*/true);
-    // Reload() doesn't start a navigation if it asks the user to confirm
-    // resubmitting a form.
-    if (crashed_tab_reload_callback_ &&
-        !contents->GetController().GetPendingEntry()) {
-      FinishCrashedTabReload();
-    }
-    return;
-  }
-
   PerformActionOnTrackedContents(
       [](actor::ActorSurfaceHandle actor_surface_handle)
           -> std::unique_ptr<actor::ToolRequest> {
@@ -953,19 +942,6 @@ void ToolController::ReloadPage(ToolResponseCallback callback) {
             actor_surface_handle);
       },
       std::move(callback));
-}
-
-void ToolController::FinishCrashedTabReload() {
-  Observe(nullptr);
-  std::move(crashed_tab_reload_callback_).Run(ToolResponse::Success());
-}
-
-void ToolController::DidFinishNavigation(
-    content::NavigationHandle* navigation_handle) {
-  if (navigation_handle->IsInPrimaryMainFrame() &&
-      !navigation_handle->IsSameDocument()) {
-    FinishCrashedTabReload();
-  }
 }
 
 void ToolController::ScrollPage(const base::DictValue& arguments,

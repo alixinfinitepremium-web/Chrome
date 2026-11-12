@@ -346,9 +346,11 @@ const base::Feature* const kFeaturesExposedToJava[] = {
     &kBrowserControlsHidingToken,
     &kBrowserControlsLockoutDuration,
     &kBrowserControlsPersistsOnCvh,
+    &kBrowserControlsSnapOnHeightChange,
     &kCCTAlwaysOpenInBrowser,
     &kCCTBlockTouchesDuringEnterAnimation,
     &kCCTClientDataHeader,
+    &kCCTCloseLogging,
     &kCCTDestroyTabWhenModelIsEmpty,
     &kCCTDontOverrideIntentMimeType,
     &kCCTEarlyInitPowerManager,
@@ -424,6 +426,7 @@ const base::Feature* const kFeaturesExposedToJava[] = {
     &kEnableAndroidSidePanelDevFeature,
     &kEnableAndroidSidePanelLogs,
     &kEnableAndroidSidePanelManualResizing,
+    &kEnableAndroidSplitView,
     &kEnableBrowserWindowInterfaceForCustomTabActivity,
     &kEnableSwipeToSwitchPane,
     &kEnableToolbarPositioningInResizeMode,
@@ -469,7 +472,6 @@ const base::Feature* const kFeaturesExposedToJava[] = {
     &kNtpAuroraV2,
     &kNtpVision,
     &kOmahaMinSdkVersionAndroid,
-    &kOnDemandBackgroundTabContextCapture,
     &kOnDemandBackgroundTabContextCaptureOptimization,
     &kOnStartupSettingsUi,
     &kOnStartupWindowPolicy,
@@ -523,7 +525,6 @@ const base::Feature* const kFeaturesExposedToJava[] = {
     &kTabClosureMethodRefactor,
     &kTabGroupActionsSubmenus,
     &kTabGroupContextMenuLiveTitleUpdate,
-    &kTabOpenerTracking,
     &kTabSearchForDesktop,
     &kTabSharingToolbarAndroid,
     &kTabStorageSqlitePrototype,
@@ -800,9 +801,11 @@ BASE_FEATURE(kBrowserControlsEarlyResize, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kBrowserControlsHidingToken, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kBrowserControlsLockoutDuration, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kBrowserControlsPersistsOnCvh, base::FEATURE_ENABLED_BY_DEFAULT);
+BASE_FEATURE(kBrowserControlsSnapOnHeightChange, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kCCTAlwaysOpenInBrowser, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kCCTBlockTouchesDuringEnterAnimation, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kCCTClientDataHeader, base::FEATURE_DISABLED_BY_DEFAULT);
+BASE_FEATURE(kCCTCloseLogging, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kCCTDestroyTabWhenModelIsEmpty, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kCCTDontOverrideIntentMimeType, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kCCTEarlyInitPowerManager, base::FEATURE_DISABLED_BY_DEFAULT);
@@ -881,6 +884,7 @@ BASE_FEATURE(kEnableAndroidSidePanel, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kEnableAndroidSidePanelDevFeature, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kEnableAndroidSidePanelLogs, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kEnableAndroidSidePanelManualResizing, base::FEATURE_DISABLED_BY_DEFAULT);
+BASE_FEATURE(kEnableAndroidSplitView, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kEnableBrowserWindowInterfaceForCustomTabActivity, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kEnableSwipeToSwitchPane, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kEnableToolbarPositioningInResizeMode, base::FEATURE_ENABLED_BY_DEFAULT);
@@ -905,7 +909,7 @@ BASE_FEATURE(kIncognitoAsWindowFullScreen, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kIncognitoModeForcedAndroid, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kIncognitoScreenshot, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kInlinePdfV2, base::FEATURE_DISABLED_BY_DEFAULT);
-BASE_FEATURE(kInlinePdfV2Download, base::FEATURE_DISABLED_BY_DEFAULT);
+BASE_FEATURE(kInlinePdfV2Download, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kInlinePdfV2Incognito, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kKeyboardEscBackNavigation, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kLinkHoverStatusBar, base::FEATURE_ENABLED_BY_DEFAULT);
@@ -930,7 +934,6 @@ BASE_FEATURE(kNtpAuroraV2, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kNtpVision, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kOctoberTestUXR, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kOmahaMinSdkVersionAndroid, base::FEATURE_DISABLED_BY_DEFAULT);
-BASE_FEATURE(kOnDemandBackgroundTabContextCapture, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kOnDemandBackgroundTabContextCaptureOptimization, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kOnStartupSettingsUi, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kOnStartupWindowPolicy, base::FEATURE_ENABLED_BY_DEFAULT);
@@ -988,7 +991,6 @@ BASE_FEATURE(kTabClosureCommittedMethodRefactor, base::FEATURE_DISABLED_BY_DEFAU
 BASE_FEATURE(kTabClosureMethodRefactor, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kTabGroupActionsSubmenus, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kTabGroupContextMenuLiveTitleUpdate, base::FEATURE_ENABLED_BY_DEFAULT);
-BASE_FEATURE(kTabOpenerTracking, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kTabSearchForDesktop, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kTabSharingToolbarAndroid, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kTabStorageSqlitePrototype, base::FEATURE_DISABLED_BY_DEFAULT);

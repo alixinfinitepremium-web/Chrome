@@ -7,7 +7,6 @@ package org.chromium.chrome.browser.download.tray;
 import android.content.Context;
 import android.view.View;
 
-import androidx.annotation.DrawableRes;
 import androidx.annotation.VisibleForTesting;
 import androidx.core.text.BidiFormatter;
 import androidx.core.text.TextDirectionHeuristicsCompat;
@@ -15,13 +14,12 @@ import androidx.core.text.TextDirectionHeuristicsCompat;
 import org.chromium.base.TimeUtils;
 import org.chromium.build.annotations.NullMarked;
 import org.chromium.build.annotations.Nullable;
+import org.chromium.chrome.browser.download.DownloadIconUtils;
 import org.chromium.chrome.browser.download.DownloadStateModel;
 import org.chromium.chrome.browser.download.R;
-import org.chromium.chrome.browser.profiles.OtrProfileId;
 import org.chromium.components.browser_ui.util.DownloadUtils;
 import org.chromium.components.offline_items_collection.ContentId;
 import org.chromium.components.offline_items_collection.OfflineItem;
-import org.chromium.components.offline_items_collection.OfflineItemFilter;
 import org.chromium.components.offline_items_collection.OfflineItemState;
 import org.chromium.ui.modelutil.PropertyModel;
 
@@ -126,7 +124,11 @@ class DownloadTrayMediator implements DownloadStateModel.Observer {
     @Override
     public void onItemChanged(OfflineItem item, @Nullable OfflineItem previous) {
         // The model only caches active downloads, so a null previous means it wasn't active.
-        if (previous == null || !isVisibleInWindow(item)) return;
+        if (previous == null
+                || !DownloadStateModel.isVisibleInWindow(
+                        item, mIsIncognitoSelected.getAsBoolean())) {
+            return;
+        }
         // As on desktop, an active download ends when it stops being active or is flagged as
         // dangerous (desktop counts those as done). Pausing or waiting to auto-resume isn't an
         // ending: a waiting completion is shown once that download ends.
@@ -161,7 +163,11 @@ class DownloadTrayMediator implements DownloadStateModel.Observer {
         mPendingCompletion = null;
 
         // Re-checked as the window may have switched between regular and incognito since.
-        if (!mIsWindowFocused.getAsBoolean() || !isVisibleInWindow(item)) return;
+        if (!mIsWindowFocused.getAsBoolean()
+                || !DownloadStateModel.isVisibleInWindow(
+                        item, mIsIncognitoSelected.getAsBoolean())) {
+            return;
+        }
 
         long now = TimeUtils.elapsedRealtimeMillis();
         if (now - mLastShownTimeMs < MIN_SHOW_INTERVAL_MS) return;
@@ -189,28 +195,15 @@ class DownloadTrayMediator implements DownloadStateModel.Observer {
      * this window doesn't show don't hold it back.
      */
     private boolean isAnythingDownloading() {
+        boolean isIncognitoSelected = mIsIncognitoSelected.getAsBoolean();
         for (OfflineItem active : mModel.getActiveItems()) {
             if (active.state == OfflineItemState.IN_PROGRESS
                     && !isDangerous(active)
-                    && isVisibleInWindow(active)) {
+                    && DownloadStateModel.isVisibleInWindow(active, isIncognitoSelected)) {
                 return true;
             }
         }
         return false;
-    }
-
-    /**
-     * Whether this window may show {@code item}. As on the Downloads page ({@code
-     * OffTheRecordOfflineItemFilter}), regular downloads show in every window, and incognito ones
-     * only while the window shows incognito tabs. Like desktop, this keeps incognito file names out
-     * of regular browsing.
-     */
-    private boolean isVisibleInWindow(OfflineItem item) {
-        if (!item.isOffTheRecord) return true;
-        // Incognito tabs use the primary off-the-record profile; e.g. incognito Custom Tabs don't.
-        return mIsIncognitoSelected.getAsBoolean()
-                && OtrProfileId.getPrimaryOtrProfileId()
-                        .equals(OtrProfileId.deserializeWithoutVerify(item.otrProfileId));
     }
 
     /** Whether {@code item} is dangerous and so has its own warning UI instead of the tray. */
@@ -220,7 +213,7 @@ class DownloadTrayMediator implements DownloadStateModel.Observer {
 
     private PropertyModel createCompletedItemModel(OfflineItem item) {
         return new PropertyModel.Builder(DownloadTrayItemProperties.ALL_KEYS)
-                .with(DownloadTrayItemProperties.ICON, getIconForItem(item))
+                .with(DownloadTrayItemProperties.ICON, DownloadIconUtils.getIconForItem(item))
                 .with(DownloadTrayItemProperties.TITLE, item.title)
                 .with(DownloadTrayItemProperties.DESCRIPTION, getCompletedDescription(item))
                 .with(DownloadTrayItemProperties.ON_OPEN, v -> onOpen(item))
@@ -244,27 +237,5 @@ class DownloadTrayMediator implements DownloadStateModel.Observer {
                 R.string.download_tray_item_status_message_with_separator,
                 size,
                 mContext.getString(R.string.download_tray_item_status_done));
-    }
-
-    /**
-     * Returns the file-type icon for {@code item}. Mirrors {@code UiUtils.getIconForItem} on the
-     * Downloads page for the items the tray can show; dangerous items never reach the tray.
-     *
-     * <p>TODO(crbug.com/574064718): Share the Downloads page helper instead of mirroring it.
-     */
-    @VisibleForTesting
-    static @DrawableRes int getIconForItem(OfflineItem item) {
-        switch (item.filter) {
-            case OfflineItemFilter.PAGE:
-                return R.drawable.ic_globe_24dp;
-            case OfflineItemFilter.VIDEO:
-                return R.drawable.ic_videocam_fill_24dp;
-            case OfflineItemFilter.AUDIO:
-                return R.drawable.ic_music_note_24dp;
-            case OfflineItemFilter.IMAGE:
-                return R.drawable.ic_drive_image_24dp;
-            default:
-                return R.drawable.ic_drive_file_24dp;
-        }
     }
 }

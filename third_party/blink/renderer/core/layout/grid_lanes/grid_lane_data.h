@@ -99,6 +99,18 @@ struct GridLanesItemData : public GarbageCollected<GridLanesItemData> {
 struct GridLaneData {
   DISALLOW_NEW();
 
+  GridLaneData() = default;
+
+  // Use copy-assignment to emit a barrier for the nested HeapVector.
+  GridLaneData(const GridLaneData& other)
+      : has_unfinished_items(other.has_unfinished_items),
+        item_offset_adjustment(other.item_offset_adjustment) {
+    item_data = other.item_data;
+  }
+  GridLaneData(GridLaneData&&) = default;
+  GridLaneData& operator=(const GridLaneData&) = default;
+  GridLaneData& operator=(GridLaneData&&) = default;
+
   void AddItem(GridLanesItemData* item) {
     item_data.push_back(std::move(item));
   }
@@ -109,7 +121,7 @@ struct GridLaneData {
   // Non-start spanner entries are owned by their start lane and do not affect
   // this state.
   bool has_unfinished_items = false;
-  // How far unstarted column items are pushed down by fragmentation.
+  // How far unstarted items (or row tracks) are pushed down by fragmentation.
   LayoutUnit item_offset_adjustment;
 
   HeapVector<Member<GridLanesItemData>> item_data;

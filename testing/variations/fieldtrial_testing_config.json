@@ -6170,40 +6170,6 @@
             ]
         }
     ],
-    "CrOSEnforceSystemAec": [
-        {
-            "platforms": [
-                "chromeos"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "CrOSEnforceSystemAec"
-                    ],
-                    "disable_features": [
-                        "AudioServiceOutOfProcess",
-                        "ChromeWideEchoCancellation"
-                    ]
-                }
-            ]
-        }
-    ],
-    "CrOSEnforceSystemAecNsAgc": [
-        {
-            "platforms": [
-                "chromeos"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "CrOSEnforceSystemAecNsAgc"
-                    ]
-                }
-            ]
-        }
-    ],
     "CrOSLateBootDynamicEPP": [
         {
             "platforms": [
@@ -6575,25 +6541,6 @@
             ]
         }
     ],
-    "DefaultBrowserFramework": [
-        {
-            "platforms": [
-                "mac",
-                "linux"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "params": {
-                        "prompt_surface": "bubble_dialog"
-                    },
-                    "enable_features": [
-                        "DefaultBrowserFramework"
-                    ]
-                }
-            ]
-        }
-    ],
     "DefaultBrowserPipTextVideo": [
         {
             "platforms": [
@@ -6640,7 +6587,6 @@
                     },
                     "enable_features": [
                         "DefaultBrowserChangedOsNotification",
-                        "DefaultBrowserFramework",
                         "DefaultBrowserPromptSurfaces",
                         "PerformDefaultBrowserCheckValidations"
                     ]
@@ -7947,6 +7893,22 @@
             ]
         }
     ],
+    "EnableAndroidSplitView": [
+        {
+            "platforms": [
+                "android",
+                "android_desktop"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "EnableAndroidSplitView"
+                    ]
+                }
+            ]
+        }
+    ],
     "EnableAppBackgroundRefresh": [
         {
             "platforms": [
@@ -8372,6 +8334,22 @@
                     },
                     "enable_features": [
                         "EncryptSessionStorage"
+                    ]
+                }
+            ]
+        }
+    ],
+    "EnforceIncognitoIsolation": [
+        {
+            "platforms": [
+                "android",
+                "android_desktop"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "EnforceIncognitoIsolation"
                     ]
                 }
             ]
@@ -11246,6 +11224,21 @@
             ]
         }
     ],
+    "IOSEnterpriseWatermark": [
+        {
+            "platforms": [
+                "ios"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "EnableEnterpriseWatermarkingIOS"
+                    ]
+                }
+            ]
+        }
+    ],
     "IOSFullscreenScrollThreshold": [
         {
             "platforms": [
@@ -13244,7 +13237,7 @@
             ]
         }
     ],
-    "NewVoiceSearchUiInNtpRealbox": [
+    "NewVoiceSearchUiInNtpRealboxV2": [
         {
             "platforms": [
                 "android",
@@ -13255,7 +13248,7 @@
             ],
             "experiments": [
                 {
-                    "name": "Arm4_Transcript_AutoEndpoint_20260923",
+                    "name": "Arm4_Transcript_AutoEndpoint_20261105",
                     "params": {
                         "VoiceSearchCoherenceRealboxAutoEndpoint": "true",
                         "VoiceSearchCoherenceRealboxHelperText": "true",
@@ -13266,9 +13259,7 @@
                     ]
                 }
             ]
-        }
-    ],
-    "NewVoiceSearchUiInNtpRealboxV2": [
+        },
         {
             "platforms": [
                 "chromeos",
@@ -13775,6 +13766,28 @@
             "experiments": [
                 {
                     "name": "Enabled"
+                }
+            ]
+        }
+    ],
+    "OmitSubframeDetachmentEventsOnRemoval": [
+        {
+            "platforms": [
+                "android",
+                "android_desktop",
+                "android_webview",
+                "chromeos",
+                "fuchsia",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "OmitSubframeDetachmentEventsOnRemoval"
+                    ]
                 }
             ]
         }
@@ -16473,6 +16486,24 @@
             ]
         }
     ],
+    "ProcessBoundCookieSecureOnly": [
+        {
+            "platforms": [
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "EnabledSecure_20261111",
+                    "params": {
+                        "CookieProcessBoundEncryptHttpOnly": "false"
+                    },
+                    "enable_features": [
+                        "CookieProcessBoundEncryptOnlyImportant"
+                    ]
+                }
+            ]
+        }
+    ],
     "ProcessHtmlDataImmediately": [
         {
             "platforms": [
@@ -18976,21 +19007,6 @@
                     },
                     "enable_features": [
                         "SyncIncreaseNudgeDelayForSingleClient"
-                    ]
-                }
-            ]
-        }
-    ],
-    "SyncThemesIos": [
-        {
-            "platforms": [
-                "ios"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "SyncThemesIos"
                     ]
                 }
             ]
