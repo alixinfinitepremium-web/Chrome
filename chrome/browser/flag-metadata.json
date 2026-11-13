@@ -470,6 +470,11 @@
     "expiry_milestone": 137
   },
   {
+    "name": "android-feeds-visibility-sync-by-form-factor",
+    "owners": [ "hanxi@google.com", "clank-start@google.com" ],
+    "expiry_milestone": 170
+  },
+  {
     "name": "android-fre-layout-update",
     "owners": ["sinansahin@google.com"],
     "expiry_milestone": 160
@@ -4523,11 +4528,6 @@
     "expiry_milestone": -1
   },
   {
-    "name": "enable-root-ns-dns-proxy",
-    "owners": [ "jasongustaman@chromium.org", "cros-networking@google.com" ],
-    "expiry_milestone": 160
-  },
-  {
     "name": "enable-rusty-ico",
     "owners": [
       "lukasza@chromium.org",
@@ -4636,11 +4636,6 @@
     "name": "enable-start-surface-return-time",
     "owners": [ "hanxi@chromium.org", "clank-start@chromium.org" ],
     "expiry_milestone": 170
-  },
-  {
-    "name": "enable-static-qr-code-for-pix",
-    "owners": [ "longsheng@google.com", "siashah@google.com", "chrome-payments-team@google.com", "payments-autofill-team@google.com" ],
-    "expiry_milestone": 150
   },
   {
     "name": "enable-swipe-to-switch-pane",
@@ -8078,11 +8073,6 @@
     "expiry_milestone": 190
   },
   {
-    "name": "panel-self-refresh-2",
-    "owners": [ "mrfemi@google.com", "chromeos-gfx-compositor@google.com" ],
-    "expiry_milestone": 135
-  },
-  {
     "name": "partition-alloc-memory-tagging",
     "owners": [ "keishi@google.com", "chrome-mte@google.com" ],
     "expiry_milestone": 150
@@ -9843,6 +9833,16 @@
     "name": "use-chime-android-sdk",
     "owners": [ "xingliu@chromium.org" ],
     "expiry_milestone": 102
+  },
+  {
+    "name": "use-direct-xkb-layout-for-thai-kedmanee-input-method",
+    "owners": [ "tranbaoduy@chromium.org", "essential-inputs-team@google.com" ],
+    "expiry_milestone": 170
+  },
+  {
+    "name": "use-direct-xkb-layout-for-thai-tis-input-method",
+    "owners": [ "tranbaoduy@chromium.org", "essential-inputs-team@google.com" ],
+    "expiry_milestone": 170
   },
   {
     "name": "use-fake-device-for-media-stream",

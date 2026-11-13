@@ -2271,12 +2271,6 @@ inline constexpr char kEnableProcessIsolationUiName[] =
 inline constexpr char kEnableProcessIsolationUiDescription[] =
     "Shows the Enable Process Isolation toggle in chrome://settings/system.";
 
-inline constexpr char kEnableStaticQrCodeForPixName[] =
-    "Enable Static Qr Code For Pix";
-inline constexpr char kEnableStaticQrCodeForPixDescription[] =
-    "When enabled, pix pay flow will be triggered when users click the copy "
-    "button of static qr code.";
-
 inline constexpr char kEnableIframeForPixName[] = "Enable Iframe For Pix";
 inline constexpr char kEnableIframeForPixDescription[] =
     "When enabled, pix pay flow will be triggered when users click the copy "
@@ -5509,6 +5503,13 @@ inline constexpr char kAndroidElegantTextHeightName[] =
 inline constexpr char kAndroidElegantTextHeightDescription[] =
     "Enables elegant text height in core BrowserUI theme.";
 
+inline constexpr char kAndroidFeedsVisibilitySyncByFormFactorName[] =
+    "Sync feed visibility by form factor";
+inline constexpr char kAndroidFeedsVisibilitySyncByFormFactorDescription[] =
+    "Syncs whether the feed is turned on or off between Android devices of the "
+    "same form factor: between phones, and between tablets. Foldables sync "
+    "with phones.";
+
 inline constexpr char kAndroidFreLayoutUpdateName[] =
     "Android Fre Layout Update";
 inline constexpr char kAndroidFreLayoutUpdateDescription[] =
@@ -7663,13 +7664,6 @@ inline constexpr char kEnableRFC8925Description[] =
     "Let ChromeOS DHCPv4 client voluntarily drop DHCPv4 lease and prefer to"
     "operate IPv6-only, if the network is also IPv6-only capable.";
 
-inline constexpr char kEnableRootNsDnsProxyName[] =
-    "Enable DNS proxy service running on the root network namespace for "
-    "ChromeOS";
-inline constexpr char kEnableRootNsDnsProxyDescription[] =
-    "When enabled, DNS proxy service runs on the root network namespace "
-    "instead of inside a specified network namespace";
-
 inline constexpr char kTiledDisplaySupportName[] =
     "Enable tile display support";
 inline constexpr char kTiledDisplaySupportDescription[] =
@@ -7720,11 +7714,11 @@ inline constexpr char kEnableTouchpadsInDiagnosticsAppDescription[] =
     "Shows touchpad cards in the Diagnostics App's input section. Requires "
     "#enable-input-in-diagnostics-app to be enabled.";
 
-inline constexpr char kPanelSelfRefresh2Name[] = "Enable Panel Self Refresh 2";
-inline constexpr char kPanelSelfRefresh2Description[] =
-    "Enable Panel Self Refresh 2/Selective-Update where supported. "
-    "Allows the display driver to only update regions of the screen that have "
-    "damage.";
+inline constexpr char kEnableTouchscreenCalibrationName[] =
+    "Enable/disable touchscreen calibration option in material design settings";
+inline constexpr char kEnableTouchscreenCalibrationDescription[] =
+    "If enabled, the user can calibrate the touch screen displays in "
+    "chrome://settings/display.";
 
 inline constexpr char kEnableVariableRefreshRateName[] =
     "Enable Variable Refresh Rate";
@@ -8017,12 +8011,6 @@ inline constexpr char kTilingWindowResizeName[] =
 inline constexpr char kTilingWindowResizeDescription[] =
     "Enables tile-like resizing of windows.";
 
-inline constexpr char kTouchscreenCalibrationName[] =
-    "Enable/disable touchscreen calibration option in material design settings";
-inline constexpr char kTouchscreenCalibrationDescription[] =
-    "If enabled, the user can calibrate the touch screen displays in "
-    "chrome://settings/display.";
-
 inline constexpr char kTouchscreenMappingName[] =
     "Enable/disable touchscreen mapping option in material design settings";
 inline constexpr char kTouchscreenMappingDescription[] =
@@ -8048,6 +8036,19 @@ inline constexpr char kUseAnnotatedAccountIdName[] =
 inline constexpr char kUseAnnotatedAccountIdDescription[] =
     "Uses AccountId annotated for BrowserContext to look up between ChromeOS "
     "User and BrowserContext, a.k.a. Profile.";
+
+inline constexpr char kUseDirectXkbLayoutForThaiKedmaneeInputMethodName[] =
+    "Use direct XKB layout for Thai Kedmanee input method";
+inline constexpr char
+    kUseDirectXkbLayoutForThaiKedmaneeInputMethodDescription[] =
+        "Use direct XKB layout for ChromeOS Thai Kedmanee input method, "
+        "instead of character remaps via m17n rule-based IME.";
+
+inline constexpr char kUseDirectXkbLayoutForThaiTisInputMethodName[] =
+    "Use direct XKB layout for Thai TIS 820-2531 input method";
+inline constexpr char kUseDirectXkbLayoutForThaiTisInputMethodDescription[] =
+    "Use direct XKB layout for ChromeOS Thai TIS 820-2531 input method, "
+    "instead of character remaps via m17n rule-based IME.";
 
 inline constexpr char kUseFakeDeviceForMediaStreamName[] =
     "Use fake video capture device";

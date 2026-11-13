@@ -1131,6 +1131,25 @@
             ]
         }
     ],
+    "AndroidWebViewPreconnectManagerDirectFastPath": [
+        {
+            "platforms": [
+                "android_webview"
+            ],
+            "experiments": [
+                {
+                    "name": "EnabledWith25ms_20261109_BETA",
+                    "params": {
+                        "QuicPreconnectInitialRttParam": "25ms"
+                    },
+                    "enable_features": [
+                        "PreconnectManagerDirectFastPath",
+                        "QuicPreconnectInitialRtt"
+                    ]
+                }
+            ]
+        }
+    ],
     "AndroidWindowManagementWebApi": [
         {
             "platforms": [
@@ -2404,26 +2423,6 @@
             ]
         }
     ],
-    "AutofillKeydownEditableElement": [
-        {
-            "platforms": [
-                "android",
-                "android_desktop",
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "AutofillKeydownEditableElement"
-                    ]
-                }
-            ]
-        }
-    ],
     "AutofillLabelSensitiveAutocomplete": [
         {
             "platforms": [
@@ -3688,33 +3687,6 @@
                     "name": "Enabled",
                     "enable_features": [
                         "BorealisProvision"
-                    ]
-                }
-            ]
-        }
-    ],
-    "BrokenAlternativeServiceDelays": [
-        {
-            "platforms": [
-                "android",
-                "android_desktop",
-                "android_webview",
-                "chromeos",
-                "ios",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Initial1s_Max5m_20260804",
-                    "params": {
-                        "InitialDelayForBrokenAlternativeServiceParam": "1s",
-                        "MaxDelayForBrokenAlternativeServiceParam": "5m"
-                    },
-                    "enable_features": [
-                        "InitialDelayForBrokenAlternativeService",
-                        "MaxDelayForBrokenAlternativeService"
                     ]
                 }
             ]
@@ -10243,6 +10215,21 @@
             ]
         }
     ],
+    "GtkCacheNavButtonIconsStudy": [
+        {
+            "platforms": [
+                "linux"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "GtkCacheNavButtonIcons"
+                    ]
+                }
+            ]
+        }
+    ],
     "GtkPrefetchNavButtonIconsStudy": [
         {
             "platforms": [
@@ -15202,6 +15189,7 @@
                         "PartitionAllocWithAdvancedChecks"
                     ],
                     "disable_features": [
+                        "ExcludeOopRasterizationFromSafetyChecks",
                         "PartitionAllocSchedulerLoopQuarantineTaskObserverForBrowserUIThread"
                     ],
                     "disable_benchmarking": true
@@ -16078,7 +16066,6 @@
             "platforms": [
                 "android",
                 "android_desktop",
-                "android_webview",
                 "chromeos",
                 "linux",
                 "mac",
@@ -16627,6 +16614,7 @@
             "platforms": [
                 "android",
                 "android_desktop",
+                "android_webview",
                 "chromeos",
                 "linux",
                 "mac",
@@ -18372,6 +18360,28 @@
                     "name": "Enabled",
                     "enable_features": [
                         "SigninButtonProfileMenuRefinements"
+                    ]
+                }
+            ]
+        }
+    ],
+    "SimdutfTextCodecUtf8Decode": [
+        {
+            "platforms": [
+                "android",
+                "android_desktop",
+                "android_webview",
+                "chromeos",
+                "fuchsia",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "SimdutfTextCodecUtf8Decode"
                     ]
                 }
             ]

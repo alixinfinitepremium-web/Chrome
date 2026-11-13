@@ -365,48 +365,8 @@ void MaybeRecordBoostImagePriorityReason(const bool is_first_n,
   }
 }
 
-constexpr char kLCPPDeferUnusedPreloadHistogramPrefix[] =
-    "Blink.LCPP.DeferUnusedPreload.";
-
 std::string_view LinkPreloadStrForHistogram(bool link_preload) {
   return link_preload ? "LinkPreload" : "NoLinkPreload";
-}
-
-void RecordDeferUnusedPreloadHistograms(const Resource* resource) {
-  base::UmaHistogramEnumeration(
-      base::StrCat(
-          {kLCPPDeferUnusedPreloadHistogramPrefix, "DeferredResource"}),
-      resource->GetType());
-  base::UmaHistogramEnumeration(
-      base::StrCat({kLCPPDeferUnusedPreloadHistogramPrefix, "DeferredResource.",
-                    LinkPreloadStrForHistogram(resource->IsLinkPreload())}),
-      resource->GetType());
-
-  // When `resource` still not need load, that means the resource load is not
-  // started yet because there are no subsequent resource requests or vice
-  // versa.
-  base::UmaHistogramBoolean(
-      base::StrCat({kLCPPDeferUnusedPreloadHistogramPrefix,
-                    "UnusedAtDeferredLoadTiming"}),
-      resource->StillNeedsLoad());
-  base::UmaHistogramBoolean(
-      base::StrCat({kLCPPDeferUnusedPreloadHistogramPrefix,
-                    "UnusedAtDeferredLoadTiming.",
-                    LinkPreloadStrForHistogram(resource->IsLinkPreload())}),
-      resource->StillNeedsLoad());
-  if (!resource->StillNeedsLoad()) {
-    // If the resource load is not needed anymore, that's a false positive case
-    // of the LCPP based deferring unused preloads.
-    base::UmaHistogramEnumeration(
-        base::StrCat(
-            {kLCPPDeferUnusedPreloadHistogramPrefix, "PredictionFailed"}),
-        resource->GetType());
-    base::UmaHistogramEnumeration(
-        base::StrCat({kLCPPDeferUnusedPreloadHistogramPrefix,
-                      "PredictionFailed.",
-                      LinkPreloadStrForHistogram(resource->IsLinkPreload())}),
-        resource->GetType());
-  }
 }
 
 }  // namespace
@@ -2343,12 +2303,16 @@ bool ResourceFetcher::ShouldDeferImageLoad(const KURL& url) const {
 }
 
 void ResourceFetcher::ReloadImagesIfNotDeferred() {
-  for (Resource* resource : not_loaded_image_resources_) {
+  // Copy to a vector so that the iteration stays valid even if `StartLoad()`
+  // re-entrantly modifies `not_loaded_image_resources_`.
+  HeapVector<Member<Resource>> not_loaded_snapshot(not_loaded_image_resources_);
+  for (Resource* resource : not_loaded_snapshot) {
     DCHECK_EQ(resource->GetType(), ResourceType::kImage);
     if (resource->StillNeedsLoad() && !ShouldDeferImageLoad(resource->Url())) {
       StartLoad(resource);
     }
   }
+  not_loaded_snapshot.clear();
 }
 
 void ResourceFetcher::PopulateResourceRequestPermissionsPolicy(
@@ -2564,11 +2528,6 @@ void ResourceFetcher::WarnUnusedPreloads(
   }
   base::UmaHistogramCounts100("Renderer.Preload.UnusedResourceCount",
                               unused_resource_count);
-  // Record the total count of deferred preloads based on the LCPP signal.
-  base::UmaHistogramCounts100(
-      base::StrCat(
-          {kLCPPDeferUnusedPreloadHistogramPrefix, "DeferredResourceCount"}),
-      deferred_preloads_.size());
 
   for (auto& pair : unused_early_hints_preloaded_resources_) {
     if (pair.value.state == EarlyHintsPreloadEntry::State::kWarnedUnused) {
@@ -2919,10 +2878,6 @@ void ResourceFetcher::StartLoadAndFinishIfFailed(
     return;
   }
 
-  if (is_potentially_unused_preload) {
-    RecordDeferUnusedPreloadHistograms(resource);
-  }
-
   if (!resource->StillNeedsLoad()) {
     // When `resource` does not need load anymore, the resource load was already
     // started by a subsequent resource request.
@@ -2979,9 +2934,15 @@ void ResourceFetcher::UpdateImagePrioritiesAndSpeculativeDecodes() {
                "UpdateImagePrioritiesAndSpeculativeDecodes");
 
   // Update ResourcePriority for all resources.
-  for (Resource* resource : speculative_decode_candidate_images_) {
+  // Copy to a vector since UpdateResourceInfoFromObservers() may trigger
+  // additional resource loads and modify
+  // `speculative_decode_candidate_images_`.
+  HeapVector<Member<Resource>> candidate_snapshot(
+      speculative_decode_candidate_images_);
+  for (Resource* resource : candidate_snapshot) {
     resource->UpdateResourceInfoFromObservers();
   }
+  candidate_snapshot.clear();
   speculative_decode_candidate_images_.erase_if(
       [](const WeakMember<Resource>& resource) -> bool {
         return resource->PriorityFromObservers()
@@ -2990,10 +2951,12 @@ void ResourceFetcher::UpdateImagePrioritiesAndSpeculativeDecodes() {
       });
   StartSpeculativeImageDecodes();
 
-  HeapVector<Member<Resource>> to_be_removed;
-  for (Resource* resource : not_loaded_image_resources_) {
+  // Copy to a vector since UpdateResourceInfoFromObservers() may trigger
+  // additional resource loads and modify `not_loaded_image_resources_`.
+  HeapVector<Member<Resource>> not_loaded_snapshot(not_loaded_image_resources_);
+  for (Resource* resource : not_loaded_snapshot) {
     if (resource->IsLoaded()) {
-      to_be_removed.push_back(resource);
+      not_loaded_image_resources_.erase(resource);
       continue;
     }
 
@@ -3033,10 +2996,9 @@ void ResourceFetcher::UpdateImagePrioritiesAndSpeculativeDecodes() {
         resource_priority.intra_priority_value);
   }
 
-  not_loaded_image_resources_.RemoveAll(to_be_removed);
   // Explicitly free the backing store to not regress memory.
   // TODO(bikineev): Revisit when young generation is done.
-  to_be_removed.clear();
+  not_loaded_snapshot.clear();
 }
 
 String ResourceFetcher::GetCacheIdentifier(const KURL& url,

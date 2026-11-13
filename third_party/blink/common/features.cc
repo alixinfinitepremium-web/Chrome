@@ -2051,6 +2051,10 @@ BASE_FEATURE(kSetIntervalWithoutClamp, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kSetSelectionForAccessibilityHandlingInputEvent,
              base::FEATURE_ENABLED_BY_DEFAULT);
 
+// Enables single-allocation SIMD UTF-8 decoding in TextCodecUtf8::Decode via
+// simdutf.
+BASE_FEATURE(kSimdutfTextCodecUtf8Decode, base::FEATURE_DISABLED_BY_DEFAULT);
+
 // Skips redundant RemoteFrameHost::CheckCompleted() IPCs from
 // RemoteFrame::DidStopLoading() when the parent frame in the current renderer
 // process is a RemoteFrame, notifying any in-process LocalFrame ancestor
@@ -2194,6 +2198,16 @@ BASE_FEATURE_PARAM(bool,
                    kServiceWorkerSyntheticResponseRefreshHeaderOnMismatch,
                    &kServiceWorkerSyntheticResponse,
                    "refresh_header_on_mismatch",
+                   false);
+
+// If true, response headers of navigations intercepted by an embedder preload
+// handler (`ServiceWorkerClient::TakeInterceptingPreloadHandler()`) are
+// observed to populate the synthetic response header cache for subsequent
+// navigations. The response body is forwarded without buffering.
+BASE_FEATURE_PARAM(bool,
+                   kServiceWorkerSyntheticResponseCaptureInterceptedHeaders,
+                   &kServiceWorkerSyntheticResponse,
+                   "capture_intercepted_headers",
                    false);
 
 // If enabled, force renderer process foregrounded from CommitNavigation to

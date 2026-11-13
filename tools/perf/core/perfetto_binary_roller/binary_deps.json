@@ -1,16 +1,16 @@
 {
     "trace_processor_shell": {
         "linux_arm64": {
-            "hash": "dfd3ff4159f088f95585c50056fa604569ef9aad",
-            "full_remote_path": "perfetto-luci-artifacts/3c53ccda1eb2aa97c036554bd4d5a0fcbb7c2040/linux-arm64/trace_processor_shell"
+            "hash": "6f52e9d102b02380a9521fb98c3706a39a022f24",
+            "full_remote_path": "perfetto-luci-artifacts/71eb77779c7650e911674b18f55423c546d051b3/linux-arm64/trace_processor_shell"
         },
         "win": {
             "hash": "75542a03b18621894658e09477ffa3e308881042",
-            "full_remote_path": "chromium-telemetry/perfetto_binaries/trace_processor_shell/win/b274ce9ccccb67bb2f5e5ddad1b7383b42e4ab34/trace_processor_shell.exe"
+            "full_remote_path": "chromium-telemetry/perfetto_binaries/trace_processor_shell/win/71eb77779c7650e911674b18f55423c546d051b3/trace_processor_shell.exe"
         },
         "linux_arm": {
-            "hash": "a645a2ec35213546b183d20a0eb0150fb5ab9c50",
-            "full_remote_path": "perfetto-luci-artifacts/3c53ccda1eb2aa97c036554bd4d5a0fcbb7c2040/linux-arm/trace_processor_shell"
+            "hash": "a4be7ec81f14816d775f40390e0430a16b2cf01d",
+            "full_remote_path": "perfetto-luci-artifacts/71eb77779c7650e911674b18f55423c546d051b3/linux-arm/trace_processor_shell"
         },
         "mac": {
             "hash": "5df665c3834be9a2cc3f45fd1cc4f64814b64d36",
@@ -21,8 +21,8 @@
             "full_remote_path": "perfetto-luci-artifacts/d64dfb7175a5e91d2d6308d4aefaf671da641cf3/mac-arm64/trace_processor_shell"
         },
         "linux": {
-            "hash": "570d7333c031ab60409efc17b903c0a537b088cc",
-            "full_remote_path": "chromium-telemetry/perfetto_binaries/trace_processor_shell/linux/b274ce9ccccb67bb2f5e5ddad1b7383b42e4ab34/trace_processor_shell"
+            "hash": "b7409638811e00de8c43095cab6b8315132df796",
+            "full_remote_path": "chromium-telemetry/perfetto_binaries/trace_processor_shell/linux/71eb77779c7650e911674b18f55423c546d051b3/trace_processor_shell"
         }
     },
     "power_profile.sql": {

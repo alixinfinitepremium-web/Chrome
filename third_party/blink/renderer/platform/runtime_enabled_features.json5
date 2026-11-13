@@ -1292,11 +1292,6 @@
       status: "stable",
     },
     {
-      // crbug.com/517429018
-      name: "ClampUnfocusedSelectionCache",
-      status: "stable",
-    },
-    {
       // This is a kill switch for a refactor of the way activation
       // behaviors are triggered. It should not affect behavior.
       // This flag shipped in M157 and can be removed in M160.
@@ -2220,6 +2215,11 @@
       // ChromeStatus: https://chromestatus.com/feature/6323071520735232
       name: "CSSShapeOutsideRectAndXywhSupport",
       status: "stable",
+    },
+    {
+      // crbug.com/537526308
+      name: "CssSizeShrinkContent",
+      status: "test",
     },
     {
       // https://drafts.csswg.org/cssom-1/#dom-cssstylesheetinit-baseurl
@@ -7019,19 +7019,12 @@
     },
     {
       // crbug.com/431660829
-      name: "TextSpacingTrimFallback",
-      status: "stable",
-    },
-    {
-      // crbug.com/431660829
       name: "TextSpacingTrimFallback2",
-      depends_on: ["TextSpacingTrimFallback"],
       status: "test",
     },
     {
       // crbug.com/440947112
       name: "TextSpacingTrimFallbackChws",
-      depends_on: ["TextSpacingTrimFallback"],
       status: "stable",
     },
     {
@@ -7644,6 +7637,11 @@
       public: true,
       status: "experimental",
       base_feature: "none",
+    },
+    {
+      name: "WebBluetoothMaxWriteWithoutResponseSize",
+      public: true,
+      status: "experimental",
     },
     {
       name: "WebBluetoothScanning",

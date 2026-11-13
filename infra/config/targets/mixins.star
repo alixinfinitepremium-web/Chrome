@@ -191,6 +191,18 @@ targets.mixin(
 )
 
 targets.mixin(
+    name = "chrome-redfin-fleet-pool",
+    swarming = targets.swarming(
+        dimensions = {
+            "device_type": "redfin",
+            "device_os": "T",
+            "pool": "chrome.tests",
+            "os": "Android",
+        },
+    ),
+)
+
+targets.mixin(
     name = "chrome-swarming-pool",
     swarming = targets.swarming(
         dimensions = {
@@ -2400,8 +2412,8 @@ targets.mixin(
     swarming = targets.swarming(
         dimensions = {
             "display_attached": "1",
-            "gpu": "10de:2184-31.0.15.4601|10de:2184-32.0.16.1074",
-            "os": "Windows-10-19045|Windows-11-26200",
+            "gpu": "10de:2184-32.0.16.1074",
+            "os": "Windows-11-26200",
             "pool": "chromium.tests.gpu",
         },
     ),

@@ -5637,9 +5637,6 @@ const FeatureEntry kFeatureEntries[] = {
     {"enable-rfc-8925", flag_descriptions::kEnableRFC8925Name,
      flag_descriptions::kEnableRFC8925Description, kOsCrOS,
      FEATURE_VALUE_TYPE(ash::features::kEnableRFC8925)},
-    {"enable-root-ns-dns-proxy", flag_descriptions::kEnableRootNsDnsProxyName,
-     flag_descriptions::kEnableRootNsDnsProxyDescription, kOsCrOS,
-     FEATURE_VALUE_TYPE(ash::features::kEnableRootNsDnsProxy)},
     {"window-preview-on-shelf", flag_descriptions::kWindowPreviewOnShelfName,
      flag_descriptions::kWindowPreviewOnShelfDescription, kOsCrOS,
      FEATURE_VALUE_TYPE(ash::features::kWindowPreviewOnShelf)},
@@ -6414,6 +6411,11 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kWideScreenFeedForFoldablesName,
      flag_descriptions::kWideScreenFeedForFoldablesDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(feed::kWideScreenFeedForFoldables)},
+    {"android-feeds-visibility-sync-by-form-factor",
+     flag_descriptions::kAndroidFeedsVisibilitySyncByFormFactorName,
+     flag_descriptions::kAndroidFeedsVisibilitySyncByFormFactorDescription,
+     kOsAndroid,
+     FEATURE_VALUE_TYPE(feed::kAndroidFeedsVisibilitySyncByFormFactor)},
 #endif  // BUILDFLAG(IS_ANDROID)
     {"enable-force-dark", flag_descriptions::kAutoWebContentsDarkModeName,
      flag_descriptions::kAutoWebContentsDarkModeDescription, kOsAll,
@@ -6618,9 +6620,9 @@ const FeatureEntry kFeatureEntries[] = {
 
 #if BUILDFLAG(IS_CHROMEOS)
     {"enable-touchscreen-calibration",
-     flag_descriptions::kTouchscreenCalibrationName,
-     flag_descriptions::kTouchscreenCalibrationDescription, kOsCrOS,
-     SINGLE_VALUE_TYPE(ash::switches::kEnableTouchCalibrationSetting)},
+     flag_descriptions::kEnableTouchscreenCalibrationName,
+     flag_descriptions::kEnableTouchscreenCalibrationDescription, kOsCrOS,
+     FEATURE_VALUE_TYPE(ash::features::kEnableTouchscreenCalibration)},
     {"enable-touchscreen-mapping", flag_descriptions::kTouchscreenMappingName,
      flag_descriptions::kTouchscreenMappingDescription, kOsCrOS,
      FEATURE_VALUE_TYPE(ash::features::kEnableTouchscreenMappingExperience)},
@@ -7507,6 +7509,11 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kNtpComponentExtensionDescription, kOsAll,
      FEATURE_VALUE_TYPE(ntp_features::kNtpComponentExtension)},
 
+    {"ntp-shortcuts-reorder", flag_descriptions::kNtpShortcutsReorderName,
+     flag_descriptions::kNtpShortcutsReorderDescription,
+     kOsDesktop | kOsAndroid,
+     FEATURE_VALUE_TYPE(ntp_features::kNtpShortcutsReorder)},
+
 #if !BUILDFLAG(IS_ANDROID)
     {"chrome-dark-neutrals-26", flag_descriptions::kChromeDarkNeutrals26Name,
      flag_descriptions::kChromeDarkNeutrals26Description, kOsDesktop,
@@ -7681,11 +7688,6 @@ const FeatureEntry kFeatureEntries[] = {
     {"ntp-shortcuts-redesign", flag_descriptions::kNtpShortcutsRedesignName,
      flag_descriptions::kNtpShortcutsRedesignDescription, kOsDesktop,
      FEATURE_VALUE_TYPE(ntp_features::kNtpShortcutsRedesign)},
-
-    {"ntp-shortcuts-reorder", flag_descriptions::kNtpShortcutsReorderName,
-     flag_descriptions::kNtpShortcutsReorderDescription, kOsDesktop,
-     FEATURE_VALUE_TYPE(ntp_features::kNtpShortcutsReorder)},
-
 #endif  // !BUILDFLAG(IS_ANDROID)
 
 #if BUILDFLAG(CHROME_WIDE_ECHO_CANCELLATION)
@@ -8564,6 +8566,19 @@ const FeatureEntry kFeatureEntries[] = {
     {"use-android-staging-smds", flag_descriptions::kUseAndroidStagingSmdsName,
      flag_descriptions::kUseAndroidStagingSmdsDescription, kOsCrOS,
      FEATURE_VALUE_TYPE(ash::features::kUseAndroidStagingSmds)},
+    {"use-direct-xkb-layout-for-thai-kedmanee-input-method",
+     flag_descriptions::kUseDirectXkbLayoutForThaiKedmaneeInputMethodName,
+     flag_descriptions::
+         kUseDirectXkbLayoutForThaiKedmaneeInputMethodDescription,
+     kOsCrOS,
+     FEATURE_VALUE_TYPE(
+         ash::features::kUseDirectXkbLayoutForThaiKedmaneeInputMethod)},
+    {"use-direct-xkb-layout-for-thai-tis-input-method",
+     flag_descriptions::kUseDirectXkbLayoutForThaiTisInputMethodName,
+     flag_descriptions::kUseDirectXkbLayoutForThaiTisInputMethodDescription,
+     kOsCrOS,
+     FEATURE_VALUE_TYPE(
+         ash::features::kUseDirectXkbLayoutForThaiTisInputMethod)},
     {"use-stork-smds-server-address",
      flag_descriptions::kUseStorkSmdsServerAddressName,
      flag_descriptions::kUseStorkSmdsServerAddressDescription, kOsCrOS,
@@ -8579,12 +8594,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kPaintPreviewDemoDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(paint_preview::kPaintPreviewDemo)},
 #endif  // BUILDFLAG(ENABLE_PAINT_PREVIEW) && BUILDFLAG(IS_ANDROID)
-
-#if BUILDFLAG(IS_CHROMEOS)
-    {"panel-self-refresh-2", flag_descriptions::kPanelSelfRefresh2Name,
-     flag_descriptions::kPanelSelfRefresh2Description, kOsCrOS,
-     FEATURE_VALUE_TYPE(display::features::kPanelSelfRefresh2)},
-#endif  // BUILDFLAG(IS_CHROMEOS)
 
 #if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_CHROMEOS)
     {"run-video-capture-service-in-browser",
@@ -10247,11 +10256,6 @@ const FeatureEntry kFeatureEntries[] = {
      kOsAndroid,
      FEATURE_VALUE_TYPE(
          payments::facilitated::kEnablePixPaymentsInLandscapeMode)},
-
-    {"enable-static-qr-code-for-pix",
-     flag_descriptions::kEnableStaticQrCodeForPixName,
-     flag_descriptions::kEnableStaticQrCodeForPixDescription, kOsAndroid,
-     FEATURE_VALUE_TYPE(payments::facilitated::kEnableStaticQrCodeForPix)},
 
     {"enable-iframe-for-pix", flag_descriptions::kEnableIframeForPixName,
      flag_descriptions::kEnableIframeForPixDescription, kOsAndroid,
